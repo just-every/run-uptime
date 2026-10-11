@@ -1,0 +1,38 @@
+/* The public site's own fixed light palette, scoped under .ut-site so nothing reaches the console. Navy ink on a mist-white
+   morning; the dawn colours belong to the sky; green means a check ran and passed, a hollow grey ring means Unknown, rose
+   means a confirmed failure. */
+.ut-site {
+  --ink: #14204a;
+  --body: #3b4466;
+  --muted: #5f6684;
+  --ground: #f7f6fb;
+  --card: rgba(255, 255, 255, 0.88);
+  --card-solid: #ffffff;
+  --line: #e5e6f2;
+  --line-strong: #d4d6ea;
+  --lavender: #ecebf8;
+  --lavender-deep: #b9bde6;
+  --sky-top: #e9e8f6;
+  --horizon: #fbe3cf;
+  --green: #3fae7a;
+  --green-text: #1f7a4f;
+  --green-soft: #e6f4ec;
+  --unknown: #8a8fa8;
+  --rose: #e0566b;
+  --rose-text: #b23048;
+  --rose-soft: #fde8ec;
+  --code-bg: #14204a;
+  --code-ink: #e7e9f8;
+  --code-muted: #9fa6cf;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  --sans: 'Plus Jakarta Sans', 'Plus Jakarta Sans Fallback', 'Avenir Next', 'Segoe UI', sans-serif;
+  --radius: 18px;
+  --shadow: 0 1px 2px rgba(20, 32, 74, 0.04), 0 10px 30px -14px rgba(20, 32, 74, 0.16), 0 28px 60px -36px rgba(20, 32, 74, 0.18);
+  --max: 1200px;
+  --gutter: clamp(20px, 5vw, 76px);
+  --chrome-gutter: clamp(20px, 5vw, 80px);
+  --header-h: clamp(76px, 7.2vw, 104px);
+}
+@media (max-width: 560px) {
+  .ut-site { --header-h: 72px; }
+}

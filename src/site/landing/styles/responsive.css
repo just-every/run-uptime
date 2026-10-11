@@ -1,0 +1,43 @@
+/* Narrower screens. Below 960px every section stacks, copy first, then its card, all on the one column the header spans;
+   below 640px the grids become lists. */
+@media (max-width: 960px) {
+  .ut-sec, .ut-sec--art-left { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .ut-sec--art-left .ut-sec-copy { order: 0; }
+  .ut-sec-art, .ut-assert, .ut-notify, .ut-sec-body { max-width: none; }
+  .ut-assert { margin-left: 0; }
+  .ut-included-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* Tablets: a portrait screen gives the hero far more sky than the approved still, so the landscape takes about the
+   still's share of the height again and the words grow to meet it. */
+@media (min-width: 641px) and (max-width: 960px) {
+  .ut-hero { --land: clamp(330px, min(60vw, 45svh), 460px); }
+  .ut-hero h1 { font-size: clamp(44px, 7.4vw, 64px); }
+  .ut-hero-sub { font-size: 20px; }
+  .ut-hero .ut-actions { margin-top: 32px; }
+}
+@media (max-width: 640px) {
+  .ut-home { --hero-h: 0px; }
+  /* On phones the scene lifts the watched night a little higher (22px) to give the lake room. */
+  .ut-hero { padding-top: calc(var(--header-h) + 28px); padding-bottom: calc(var(--land) * 0.629 + 182px + var(--mist)); }
+  .ut-hero h1 { font-size: clamp(40px, 11.6vw, 54px); }
+  .ut-hero-sub { font-size: 18px; text-wrap: pretty; }
+  .ut-actions { gap: 16px 28px; }
+  .ut-pill--large { min-height: 54px; padding: 0 28px; font-size: 18px; }
+  .ut-link--large { font-size: 18px; }
+  .ut-sec h2, .ut-included-head h2 { font-size: clamp(30px, 8.6vw, 38px); }
+  .ut-sec-body { font-size: 17px; }
+  .ut-included-grid { grid-template-columns: minmax(0, 1fr); }
+  .ut-included-grid li { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 16px; padding: 20px; }
+  .ut-included-icon { grid-row: span 2; width: 44px; height: 44px; }
+  .ut-included-grid h3 { margin-top: 0; font-size: 17px; }
+  .ut-included-grid p { margin-top: 2px; font-size: 15.5px; }
+  .ut-notify-card, .ut-notify-json { width: 94%; }
+  .ut-notify-json pre { font-size: 12px; }
+  .ut-plainly-card { grid-template-columns: auto minmax(0, 1fr); padding: 20px; }
+  /* On a phone the chip rises to the title's first line; its side margins still sum to -20px, so its slot stays
+     the ring's 14 by 18px. */
+  .ut-moon { align-self: start; margin: -6px -13px -10px -7px; }
+  .ut-plainly-link { grid-column: 2; justify-self: start; }
+  .ut-closing { padding-top: 88px; }
+  .ut-closing h2 { font-size: clamp(38px, 11vw, 50px); }
+}

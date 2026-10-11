@@ -1,0 +1,26 @@
+/* Below the hero, each card rises into place once, the first time it scrolls into view (parts/useReveal.ts), and a strip's
+   dots light up left to right, like the hero's watched night. Only opacity and transforms move, so nothing reflows. None of
+   this applies under reduced motion or before the script runs: the page is then simply the finished cards. */
+@media (prefers-reduced-motion: no-preference) {
+  .ut-home .ut-sec-art[data-reveal="wait"] { opacity: 0; transform: translateY(22px); }
+  .ut-home .ut-sec-art[data-reveal="play"] { animation: ut-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+  .ut-home .ut-sec-art[data-reveal="play"] .ut-strip .ut-dot { animation: ut-light 0.45s cubic-bezier(0.34, 1.5, 0.64, 1) calc(0.35s + var(--i) * 0.07s) backwards; }
+  .ut-home .ut-sec-art[data-reveal="play"] .ut-callout { animation: ut-fade 0.6s ease-out 0.95s backwards; }
+  /* The recovery glow warms in once the incident's two passes have lit, as if the recovery caught the sunrise. */
+  .ut-home #incidents .ut-sec-art[data-reveal="play"]::before { animation: ut-fade 1.8s ease-out 1s backwards; }
+
+  .ut-home .ut-included-grid[data-reveal="wait"] > li { opacity: 0; transform: translateY(18px); }
+  .ut-home .ut-included-grid[data-reveal="play"] > li { animation: ut-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+  .ut-home .ut-included-grid[data-reveal="play"] > li:nth-child(2) { animation-delay: 0.07s; }
+  .ut-home .ut-included-grid[data-reveal="play"] > li:nth-child(3) { animation-delay: 0.14s; }
+  .ut-home .ut-included-grid[data-reveal="play"] > li:nth-child(4) { animation-delay: 0.21s; }
+  .ut-home .ut-included-grid[data-reveal="play"] > li:nth-child(5) { animation-delay: 0.28s; }
+  .ut-home .ut-included-grid[data-reveal="play"] > li:nth-child(6) { animation-delay: 0.35s; }
+
+  @keyframes ut-rise { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+  @keyframes ut-light { from { opacity: 0; transform: scale(0.4); } to { opacity: 1; transform: none; } }
+  @keyframes ut-fade { from { opacity: 0; } to { opacity: 1; } }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ut-site *, .ut-site *::before, .ut-site *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}

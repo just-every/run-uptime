@@ -1,0 +1,57 @@
+/* The article body, rendered from Markdown at build time: 17.5px on a 38em measure, navy code cards, quiet tables and
+   lists with lavender markers (green on this site only ever means a check passed). The first paragraph is the page's lead. */
+.docs-prose { color: var(--body); font-size: 17.5px; line-height: 1.72; overflow-wrap: break-word; }
+.docs-prose > * { max-width: 38em; }
+.docs-prose > p:first-child { color: var(--ink); font-size: 19.5px; line-height: 1.6; }
+.docs-prose :is(p, ul, ol, blockquote, .docs-code, .docs-table) { margin: 0 0 1.15em; }
+.docs-prose :is(ul, ol) { padding-left: 1.3em; }
+.docs-prose ul { list-style: none; }
+.docs-prose ul > li { position: relative; }
+.docs-prose ul > li::before { content: ""; position: absolute; left: -1.05em; top: 0.68em; width: 7px; height: 7px; border-radius: 50%; background: var(--lavender-deep); }
+.docs-prose ol { list-style: decimal; }
+.docs-prose ol > li::marker { color: var(--muted); font-weight: 700; font-variant-numeric: tabular-nums; }
+.docs-prose li + li { margin-top: 0.4em; }
+.docs-prose li > :is(ul, ol) { margin: 0.4em 0 0; }
+.docs-prose li > p { margin-bottom: 0.5em; }
+.docs-prose :is(h2, h3, h4, h5, h6) { color: var(--ink); scroll-margin-top: 24px; text-wrap: balance; }
+.docs-prose h2 { margin: 2.3em 0 0.6em; font-size: 28px; letter-spacing: -0.022em; line-height: 1.2; }
+.docs-prose h3 { margin: 1.8em 0 0.5em; font-size: 21px; letter-spacing: -0.012em; line-height: 1.3; }
+.docs-prose :is(h4, h5, h6) { margin: 1.6em 0 0.4em; font-size: 18px; line-height: 1.4; }
+.docs-prose > :first-child { margin-top: 0; }
+.docs-prose :is(strong, b) { color: var(--ink); font-weight: 700; }
+.docs-prose hr { margin: 2.4em 0; border: 0; border-top: 1px solid var(--line-strong); }
+.docs-prose blockquote { padding: 4px 0 4px 18px; border-left: 3px solid var(--lavender-deep); color: var(--muted); }
+.docs-prose blockquote > :last-child { margin-bottom: 0; }
+
+/* Links: ink with a soft navy underline that darkens on hover; links off the site get a small arrow. */
+.docs-prose a { color: var(--ink); font-weight: 600; text-decoration: underline; text-decoration-color: rgba(20, 32, 74, 0.32); text-decoration-thickness: 2px; text-underline-offset: 4px; transition: text-decoration-color 0.18s; }
+.docs-prose a:hover { text-decoration-color: var(--ink); }
+.docs-prose a:is([href^="http:"], [href^="https:"])::after { content: "\2197" / ""; display: inline-block; margin-left: 0.15em; font-size: 0.8em; text-decoration: none; }
+
+/* Code: inline in a soft lavender chip; blocks in the navy code card, wrapped rather than scrolled. */
+.docs-prose code { padding: 0.14em 0.4em; border-radius: 6px; background: #ecebf6; color: var(--ink); font-family: var(--mono); font-size: 0.86em; overflow-wrap: anywhere; }
+.docs-code { overflow: hidden; border-radius: 16px; background: var(--code-bg); box-shadow: var(--shadow); }
+.docs-code-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 42px; padding: 0 12px 0 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+.docs-code-lang { color: var(--code-muted); font-size: 12.5px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+.docs-copy { padding: 5px 12px; border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 999px; background: transparent; color: var(--code-ink); font: 600 13px/1.2 var(--sans); cursor: pointer; transition: background-color 0.18s; }
+.docs-copy:hover { background: rgba(255, 255, 255, 0.08); }
+.docs-copy:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.docs-copy[hidden] { display: none; }
+.docs-code pre { padding: 16px 20px 18px; color: var(--code-ink); font-family: var(--mono); font-size: 14.5px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+.docs-code pre code { padding: 0; border-radius: 0; background: none; color: inherit; font-size: inherit; }
+
+/* Tables: ruled, scrolling inside their region only when they cannot fit. */
+.docs-table { max-width: 100%; overflow-x: auto; }
+.docs-table table { width: 100%; border-collapse: collapse; font-size: 15.5px; line-height: 1.55; }
+.docs-table :is(th, td) { padding: 10px 16px 10px 0; text-align: left; vertical-align: top; }
+.docs-table th { color: var(--ink); font-weight: 700; border-bottom: 2px solid var(--ink); }
+.docs-table td { border-bottom: 1px solid var(--line-strong); }
+.docs-table code { overflow-wrap: normal; }
+.docs-table:focus-visible { outline: 3px solid var(--ink); outline-offset: 4px; border-radius: 6px; }
+
+@media (max-width: 600px) {
+  .docs-prose { font-size: 17px; }
+  .docs-prose > p:first-child { font-size: 18.5px; }
+  .docs-prose h2 { font-size: 25px; }
+  .docs-code pre { padding: 14px 16px 16px; font-size: 13.5px; }
+}

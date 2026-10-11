@@ -1,0 +1,42 @@
+/* The header and footer every public page shares, and the brand lockup inside them. */
+/* Header and footer run wider than the page's content, out to the edges of the window, as across the family. */
+.ut-header { position: relative; z-index: 3; }
+.ut-header .ut-wrap, .ut-footer .ut-wrap { max-width: none; padding-inline: var(--chrome-gutter); }
+.ut-header-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: var(--header-h); }
+.ut-header nav { display: flex; align-items: center; gap: clamp(14px, 2.6vw, 40px); font-size: 17px; font-weight: 500; color: var(--ink); }
+.ut-header nav a:not(.ut-pill) { position: relative; padding: 6px 0; }
+.ut-header nav a:not(.ut-pill)::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; border-radius: 2px; background: currentColor; opacity: 0; transform: scaleX(0.4); transition: opacity 0.2s, transform 0.2s; }
+.ut-header nav a:not(.ut-pill):hover::after { opacity: 0.35; transform: none; }
+.ut-header nav a[aria-current]::after { opacity: 1; transform: none; background: var(--green); height: 3px; }
+.ut-header .ut-pill { min-height: 46px; padding: 0 26px; font-size: 17px; box-shadow: 0 8px 20px -12px rgba(20, 32, 74, 0.6); }
+
+.ut-brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); }
+.ut-brand-mark { width: clamp(28px, 2.4vw, 34px); height: auto; flex: none; }
+.ut-brand-name { font-size: clamp(25px, 2.3vw, 33px); font-weight: 700; letter-spacing: -0.035em; line-height: 1; }
+
+.ut-footer { position: relative; z-index: 1; padding: 0 0 40px; }
+.ut-footer-row { display: flex; flex-wrap: wrap; align-items: center; gap: 18px 36px; padding-top: 32px; border-top: 1px solid var(--line-strong); }
+.ut-footer .ut-brand-mark { width: 26px; }
+.ut-footer .ut-brand-name { font-size: 22px; }
+.ut-footer-tagline { color: var(--muted); font-size: 15px; }
+.ut-footer nav { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 28px; margin-left: auto; font-size: 15px; font-weight: 500; color: var(--ink); }
+.ut-footer nav a:hover { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 5px; text-decoration-color: rgba(20, 32, 74, 0.4); }
+.ut-footer-licence { color: var(--muted); font-weight: 400; }
+
+@media (max-width: 720px) {
+  .ut-footer-row { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .ut-footer nav { margin-left: 0; }
+}
+@media (max-width: 560px) {
+  .ut-header-row { gap: 12px; }
+  .ut-header nav { gap: 16px; font-size: 15px; }
+  .ut-header .ut-pill { min-height: 40px; padding: 0 16px; font-size: 15px; }
+  .ut-brand { gap: 8px; }
+  .ut-brand-mark { width: 26px; }
+  .ut-brand-name { font-size: 23px; }
+}
+@media (max-width: 359px) {
+  .ut-header nav { gap: 12px; font-size: 14px; }
+  .ut-header .ut-pill { padding: 0 12px; font-size: 14px; }
+  .ut-brand-name { font-size: 21px; }
+}

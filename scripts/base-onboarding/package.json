@@ -1,0 +1,6 @@
+{
+  "name": "@run-edit-run/onboarding",
+  "private": true,
+  "type": "module",
+  "description": "Dependency-free Base seed installer and local runner; seeds copy its runtime source without Base tests."
+}

@@ -1,0 +1,454 @@
+/* The console (/app and /app/monitors/<id>): its grid with the side column, the summary, the monitor list with its
+   coverage bars, a monitor's page and the runner and archive view. It builds on app-theme.css (tokens, element defaults, ui-* components and the shell), which
+   loads first; notifications.css loads after it. The shell's single-column breakpoint is 700px, matching
+   matchMedia('(max-width:700px)') in app.js and innerWidth<=700 in notifications.js. */
+
+/* ---------------------------------------------------------------- grid */
+/* The side column (.right) holds the notifications help and the runner limits; app.js hides it for the monitor list and
+   a monitor's page, which then take the full width. */
+@media (min-width: 1200px) {
+  .app { grid-template-columns: var(--sidebar-w) minmax(0, 1fr) 360px; }
+  .app:has(> .right[hidden]) { grid-template-columns: var(--sidebar-w) minmax(0, 1fr); }
+  .right { padding: 32px 0 48px; }
+  /* The runner view's limits card lines up with the main card, under the page header. */
+  .app:has(.runner-panel) > .right { padding-top: 117px; }
+}
+@media (min-width: 701px) and (max-width: 1199px) {
+  .app > .ui-sidebar { grid-row: 1 / span 2; }
+  .app > .ui-main { padding-bottom: 24px; }
+  .right { grid-column: 2; padding-bottom: 48px; }
+}
+.right { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+@media (max-width: 700px) {
+  .app > .ui-main { padding-bottom: 16px; }
+  .right { padding: 0 16px 40px; }
+}
+
+/* Side panels are .ui-card; they keep a slightly tighter padding (a monitor page's cards set their own below). */
+.right > .panel { padding: 22px; }
+:is(.right, .monitor-primary, .monitor-secondary) > .panel { overflow-wrap: anywhere; }
+.right > .panel > h2 { margin-bottom: 8px; }
+.right > .panel > p + p { margin-top: 10px; }
+@media (max-width: 700px) {
+  .right > .panel { padding: 16px; }
+}
+
+/* ---------------------------------------------------------------- summary */
+/* Each ring's arc is count / total, set by app.js as --share; a zero count leaves the bare track and Unknown is a grey
+   ring. The words stay in ink or body colour; the tone is carried by the ring. */
+/* Five across, the refresh tile never takes less than its one-line labels; a narrow summary tile shrinks its ring. */
+.cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(max-content, 1.35fr); gap: 12px; margin-bottom: 20px; }
+.summary-tile { display: grid; justify-items: center; align-content: center; gap: 8px; padding: 18px 10px 16px; text-align: center; }
+.summary-tile .ui-ring { width: 66px; }
+@media (min-width: 1200px) {
+  .summary-tile .ui-ring { width: min(84px, 100%); }
+}
+.summary-tile strong { font-size: 22px; letter-spacing: -0.02em; }
+.tile-label { color: var(--body); font-size: 14px; font-weight: 600; line-height: 1.3; }
+.cards .refresh { display: grid; align-content: center; gap: 10px; padding: 16px 18px; color: var(--muted); }
+.cards .refresh dl { display: grid; gap: 10px; }
+.cards .refresh dt { color: var(--muted); font-size: 13px; font-weight: 500; line-height: 1.3; white-space: nowrap; }
+.cards .refresh dd { margin: 2px 0 0; color: var(--ink); font-size: 16px; font-weight: 700; line-height: 1.3; font-variant-numeric: tabular-nums; }
+@media (min-width: 701px) and (max-width: 1199px) {
+  .cards { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .cards .refresh { grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; padding: 12px 18px; }
+  .cards .refresh dl { display: flex; flex-wrap: wrap; gap: 4px 32px; }
+  .cards .refresh dl > div { display: flex; align-items: baseline; gap: 8px; }
+}
+@media (max-width: 700px) {
+  .cards { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-bottom: 16px; }
+  .cards .card { border-radius: var(--radius-panel); }
+  .summary-tile { gap: 6px; padding: 12px 2px 10px; }
+  .summary-tile .ui-ring { --thickness: 4px; width: 46px; }
+  .summary-tile strong { font-size: 17px; }
+  .tile-label { font-size: 12.5px; }
+  .cards .refresh { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; padding: 10px 14px; }
+  .cards .refresh dl { display: flex; flex-wrap: wrap; gap: 2px 20px; }
+  .cards .refresh dl > div { display: flex; align-items: baseline; gap: 6px; }
+  .cards .refresh dd { font-size: 14px; }
+}
+@media (max-width: 360px) {
+  .cards { gap: 4px; }
+  .summary-tile { padding-inline: 0; }
+  .tile-label { font-size: 11.5px; }
+}
+
+/* ---------------------------------------------------------------- the content card */
+/* section.monitors, a .ui-card with no padding of its own, holds the view's heading and #content-area. It is the card for
+   the monitor list and the runner view; the notifications view lays its own cards out on the ground, so there it is a
+   bare container. */
+.monitors { padding: 0; }
+.monitors:has(.notification-intro, .monitor-page, .monitor-missing) { border: 0; border-radius: 0; background: none; box-shadow: none; }
+.table-title { padding: 20px 24px 0; }
+.monitors:has(.notification-intro) > .table-title { padding: 0; }
+/* #content-area is the monitor table's table-wrap container: the table stacks into card rows when this area is under
+   760px wide (app-theme.css .ui-table--stack-md), whatever the viewport. */
+#content-area { container: table-wrap / inline-size; min-width: 0; border-radius: var(--radius); }
+#content-area:focus-visible { outline-offset: -3px; }
+@media (max-width: 700px) {
+  .table-title { padding: 16px 16px 0; }
+}
+
+/* The loading skeleton, shown until the first overview arrives: neutral bars, no sample data, no motion. */
+.loading-list { padding: 6px 24px 20px; }
+.loading-note { color: var(--muted); font-size: 14px; }
+.loading-list.read-failed { padding-block: 14px 22px; }
+.read-failed .loading-note { color: var(--body); }
+.read-failed .loading-rows { display: none; }
+.loading-rows > div { display: grid; grid-template-columns: 88px minmax(0, 2fr) minmax(0, 1fr); align-items: center; gap: 20px; padding: 18px 0; border-bottom: 1px solid var(--line); }
+.loading-rows > div:last-child { border-bottom: 0; }
+.loading-rows .ui-skeleton:first-child { height: 22px; border-radius: 999px; }
+.loading-rows > div:nth-child(2n) .ui-skeleton:nth-child(2) { width: 72%; }
+.loading-panel { display: grid; gap: 14px; }
+.loading-panel .ui-skeleton--title { width: 58%; margin-bottom: 6px; }
+.loading-panel .ui-skeleton:last-child { width: 64%; }
+@media (max-width: 700px) {
+  .loading-list { padding: 4px 16px 16px; }
+  .loading-rows > div { grid-template-columns: 72px minmax(0, 1fr); gap: 12px; }
+  .loading-rows .ui-skeleton:nth-child(3) { grid-column: 2; }
+}
+
+/* ---------------------------------------------------------------- monitor list */
+/* The coverage rule, stated once under the list heading. */
+#content-area > .metric-basis { padding: 4px 24px 12px; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.monitor-list { min-width: 0; padding: 0 8px 8px; }
+.monitor-list table { table-layout: fixed; }
+.monitor-list th { padding: 10px 8px; }
+.monitor-list th:nth-child(1) { width: 124px; padding-left: 14px; }
+.monitor-list th:nth-child(3) { width: 13.5%; }
+.monitor-list th:nth-child(4) { width: 10%; }
+.monitor-list th:nth-child(5), .monitor-list th:nth-child(6) { width: 18%; }
+.monitor-list td { min-width: 0; padding: 14px 8px; overflow-wrap: anywhere; }
+.monitor-list td:first-child { padding-left: 14px; }
+.monitor-row .state { font-size: 12.5px; padding-inline: 8px; }
+.monitor-list .response { overflow-wrap: normal; }
+.monitor-row .state { margin-top: 2px; }
+/* The name is the link to the monitor's page; the URL under it is plain text. */
+.monitor-link { display: block; max-width: 100%; min-height: 24px; margin-bottom: 2px; border-radius: 6px; color: var(--ink); text-decoration: none; }
+.monitor-name { color: var(--ink); font-size: 15px; font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
+.monitor-link:hover .monitor-name { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+/* app.js puts <wbr> after the scheme and before each path segment, so the host and port stay whole and the URL wraps at
+   its path; overflow-wrap only breaks a segment that is wider than the column on its own. */
+.url { display: block; color: var(--muted); font-family: var(--mono); font-size: 12.5px; line-height: 1.45; overflow-wrap: anywhere; }
+/* A heartbeat monitor has no URL; its "Incoming heartbeat" is prose, so it stays in the sans (DESIGN-PICKS rule 3). */
+.url.url-prose { font-family: inherit; font-size: 13px; }
+.last-check, .response { color: var(--ink); font-size: 14px; line-height: 1.45; }
+.check-label, .time-ago { display: block; color: var(--muted); font-size: 12.5px; }
+/* The date breaks only at its spaces ("10/10/2026," then "4:04:24 PM"), never inside a number, and balanced so the
+   time does not leave "PM" alone on a line. */
+.last-check time { display: block; text-wrap: balance; }
+.last-check time, .detail-metrics time { overflow-wrap: normal; }
+/* When #content-area is under 760px (below a viewport of about 1030px) the six
+   columns no longer fit, so each row becomes a card with captions from td[data-label] (the theme's .ui-table--stack-md,
+   which also moves the selected bar onto the row): four columns on a tablet or desktop, two on a phone. */
+@container table-wrap (max-width: 759px) {
+  .monitor-list { padding: 0 0 4px; }
+  .monitor-list .monitor-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.65fr) minmax(0, 1.2fr) minmax(0, 1.2fr); gap: 12px 16px; padding: 14px 24px; border-bottom: 1px solid var(--line); }
+  .monitor-list .monitor-row:last-child { border-bottom: 0; }
+  .monitor-list td, .monitor-list td:first-child { padding: 0; }
+  .monitor-list td[data-label="Monitor"] { grid-column: 2 / -1; }
+  /* A cell with a time already starts with its own "Last check" words, styled here as the other cells' captions. */
+  .monitor-list td.last-check:has(.check-label)::before { content: none; }
+  .monitor-list .check-label { margin-bottom: 2px; color: var(--muted); font-size: 12px; font-weight: 600; line-height: 1.3; }
+  .monitor-row .state { margin-top: 0; }
+}
+@media (max-width: 700px) {
+  #content-area > .metric-basis { padding: 4px 16px 8px; font-size: 13.5px; }
+  .monitor-list .monitor-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 16px; padding: 12px 16px; }
+  .monitor-list td:is([data-label="State"], [data-label="Monitor"]) { grid-column: 1 / -1; }
+}
+
+/* ---------------------------------------------------------------- first use */
+.first-use { margin: 8px 24px 24px; border-radius: var(--radius-panel); background: var(--ground); }
+.first-use h2 { font-size: 20px; }
+@media (max-width: 700px) {
+  .first-use { margin: 8px 16px 16px; padding: 28px 16px; }
+}
+
+/* ---------------------------------------------------------------- coverage bars */
+/* One bar per window: passed (green), failing (rose) and Unknown (a hatched grey gap, never green), each as wide as its
+   share of the window. monitor-coverage.js sets each segment's flex-grow to its milliseconds; a part that is not zero
+   keeps a visible sliver however small its share. The list uses the compact bar over its label, the monitor page the
+   tall bar with its label pair beside it; both draw the same segments. */
+.coverage { display: grid; gap: 6px; min-width: 0; }
+.coverage-bar { display: flex; gap: 2px; height: 12px; overflow: hidden; border-radius: 999px; background: var(--card); }
+.coverage-segment { flex: 0 1 0; min-width: 4px; }
+.coverage-segment.passed, .coverage-key.passed { background: var(--green); }
+.coverage-segment.failing, .coverage-key.failing { background: var(--rose); }
+.coverage-segment.unknown, .coverage-key.unknown { background: repeating-linear-gradient(130deg, #c4c8dc 0 1.5px, #eceef6 1.5px 4px); box-shadow: inset 0 0 0 1px #aeb2c8; }
+.coverage-segment:first-child { border-radius: 999px 0 0 999px; }
+.coverage-segment:last-child { border-radius: 0 999px 999px 0; }
+.coverage-segment:only-child { border-radius: 999px; }
+.coverage-label { color: var(--ink); font-size: 13px; font-weight: 500; line-height: 1.4; font-variant-numeric: tabular-nums; }
+.coverage-copy { min-width: 0; }
+.coverage-unknown { color: var(--muted); font-size: 13.5px; line-height: 1.45; font-variant-numeric: tabular-nums; }
+.coverage-unknown strong { color: var(--body); font-weight: 500; }
+.coverage-unknown-span { white-space: nowrap; }
+/* A label part that ends in its " · " separator, so a wrapped label never starts a line with one. */
+.keep-line { white-space: nowrap; }
+.coverage-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; color: var(--body); font-size: 13px; }
+.coverage-legend li { display: inline-flex; align-items: center; gap: 6px; }
+.coverage-key { display: block; width: 18px; height: 10px; border-radius: 999px; }
+
+/* ---------------------------------------------------------------- a monitor's page */
+/* The page header: a back link, then the name with its large state pill, the URL (or the heartbeat receipt path) and
+   the kind and interval; the monitor's four actions sit at the top right as two rows of two, under the title when
+   the header is too narrow, and as a two-column grid on a phone. */
+.back-link { margin-bottom: 14px; font-size: 15px; font-weight: 500; text-decoration: none; }
+.back-link:where(:not([aria-disabled="true"])):hover { text-decoration: underline; }
+.back-link .ui-icon { width: 18px; height: 18px; transform: rotate(90deg); }
+.monitor-title { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.ui-header .monitor-title h1 { min-width: 0; font-size: clamp(26px, 2.5vw, 36px); letter-spacing: -0.03em; line-height: 1.2; overflow-wrap: anywhere; }
+.monitor-title .badge { flex: none; gap: 10px; min-height: 42px; padding: 6px 18px 6px 15px; border-color: var(--pill-line, var(--line-strong)); font-size: 16.5px; font-weight: 600; }
+.monitor-title .badge::before { width: 24px; height: 24px; }
+.monitor-title .badge.unknown { --pill-bg: rgba(255, 255, 255, 0.72); --pill-line: #cdd0e8; color: var(--ink); }
+.ui-header .monitor-target { max-width: 72ch; margin-top: 6px; color: var(--muted); font-size: 16px; font-weight: 500; line-height: 1.45; overflow-wrap: anywhere; }
+/* A mono chip that wraps keeps its padding and radius on each line piece. */
+.monitor-target code, .heartbeat-details code { -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.monitor-target code { font-size: 14.5px; overflow-wrap: anywhere; }
+.monitor-kind { margin-top: 6px; color: var(--muted); font-size: 14.5px; }
+.ui-header:has(.monitor-title) .actions { display: grid; grid-template-columns: repeat(2, max-content); gap: 10px 12px; }
+.ui-header:has(.monitor-title) .actions button { min-height: 46px; padding: 0 22px; font-size: 15px; }
+@media (min-width: 1200px) {
+  .ui-header:has(.monitor-title) { flex-wrap: nowrap; }
+  .ui-header:has(.monitor-title) > :first-child { flex: 1 1 auto; }
+  /* Level with the title (the back link is 24px with a 14px margin), as design I sets it; Edit check hugs its label. */
+  .ui-header:has(.monitor-title) .actions { flex: none; grid-template-columns: repeat(2, minmax(150px, auto)); margin-top: 32px; }
+  .ui-header:has(.monitor-title) #edit { justify-self: start; }
+}
+/* Below the wide layout the heartbeat receipt path sits on its own line under "Incoming heartbeat at", so its chip
+   never starts mid-line. */
+@media (max-width: 1199px) {
+  .monitor-target code { display: block; width: fit-content; max-width: 100%; margin-top: 2px; }
+}
+@media (min-width: 701px) and (max-width: 1199px) {
+  .ui-header:has(.monitor-title) { display: block; }
+  .ui-header:has(.monitor-title) .actions { display: flex; flex-wrap: wrap; margin-top: 18px; }
+}
+@media (min-width: 701px) and (max-width: 959px) {
+  .ui-header:has(.monitor-title) .actions { display: grid; grid-template-columns: repeat(2, minmax(150px, max-content)); }
+}
+@media (max-width: 700px) {
+  .ui-header:has(.monitor-title) { display: block; }
+  .back-link { margin-bottom: 10px; }
+  .monitor-title { gap: 8px 12px; }
+  .monitor-title .badge { min-height: 34px; padding: 4px 14px 4px 12px; font-size: 15px; }
+  .monitor-title .badge::before { width: 20px; height: 20px; }
+  .ui-header .monitor-target { font-size: 14px; }
+  .monitor-target code { font-size: 13px; }
+  .monitor-kind { font-size: 13.5px; }
+  .ui-header:has(.monitor-title) .actions { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 16px; }
+  .ui-header:has(.monitor-title) .actions button { min-height: 44px; padding: 0 10px; gap: 8px; font-size: 14px; white-space: normal; line-height: 1.2; }
+}
+/* On a narrow phone every label stays on one line: the wider second column takes Edit check and Maintenance 15m (or End
+   maintenance). A paused monitor's Authorize & resume is too wide for a column, so its actions wrap as rows that each
+   fill the width. */
+@media (max-width: 400px) {
+  .ui-header:has(.monitor-title) .actions { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 6px; }
+  .ui-header:has(.monitor-title) .actions button { min-width: 0; padding: 4px 8px; gap: 7px; font-size: 13.5px; text-align: center; }
+  .ui-header:has(.monitor-title) .actions:has(.resume) { display: flex; flex-wrap: wrap; }
+  .ui-header:has(.monitor-title) .actions:has(.resume) button { flex: 1 1 auto; }
+}
+#maintenance { border-color: #f5c3a0; background: var(--peach-soft); color: var(--peach-text); }
+/* A paused monitor cannot run: its Run now drops the navy fill for a quiet outline, so it is never the heaviest action. */
+#run-monitor:disabled { border-color: var(--line-strong); background: var(--neutral-soft); box-shadow: none; color: var(--muted); }
+#maintenance:not(:disabled):hover { border-color: var(--peach); background: #fbe4d0; }
+/* The state pill sits on the page ground, so each tone gets a hairline in its own hue (Recovering has its own in the theme). */
+.badge.healthy { --pill-line: #c3e4d1; }
+.badge.failing { --pill-line: #f5c4cd; }
+.badge.degraded { --pill-line: #f1d79f; }
+.badge.maintenance { --pill-line: #f5cfb3; }
+.badge.paused { --pill-line: var(--line-strong); }
+
+/* The page body, inside #content-area (the table-wrap container): the notice band, then coverage and recent checks in
+   the main column beside a fixed side column with the last check, the expectations and heartbeat receipts. Under
+   720px the side cards follow the main ones, two across while there is room. */
+.monitor-page { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+.monitor-page > .status-explanation { grid-column: 1 / -1; align-items: center; min-height: 52px; padding: 14px 16px; color: var(--ink); font-size: 15px; }
+.monitor-page > .status-explanation::before { margin-top: 0; }
+.monitor-primary, .monitor-secondary { display: grid; align-content: start; gap: 18px; min-width: 0; }
+@container table-wrap (min-width: 720px) {
+  .monitor-page { grid-template-columns: minmax(0, 1fr) clamp(280px, 31%, 354px); align-items: start; }
+}
+@container table-wrap (min-width: 520px) and (max-width: 719px) {
+  .monitor-secondary { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  .monitor-secondary > .heartbeat { grid-column: 1 / -1; }
+}
+:is(.monitor-primary, .monitor-secondary) > .panel { padding: 18px 20px 22px; border-radius: 16px; }
+:is(.monitor-primary, .monitor-secondary) > .panel > h2, .panel-head h2 { font-size: 19px; letter-spacing: -0.015em; line-height: 1.3; }
+:is(.monitor-primary, .monitor-secondary) > .panel > h2 { margin-bottom: 12px; }
+.monitor-secondary > .panel > h2 { font-size: 18px; }
+@media (max-width: 700px) {
+  :is(.monitor-primary, .monitor-secondary) > .panel { padding: 16px 14px 18px; }
+  :is(.monitor-primary, .monitor-secondary) > .panel > h2, .panel-head h2 { font-size: 18px; }
+}
+/* A card header: the heading on the left and the rule sentence, or the dot strip with its times, on the right. */
+.panel-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 8px 24px; margin-bottom: 14px; }
+.panel-head > h2 { flex: none; }
+
+/* Evidence coverage: one full-width bar per window with its label pair to the right, then the key and the note. */
+.coverage-panel { container: coverage-card / inline-size; }
+.coverage-panel .metric-basis { flex: 1 1 320px; max-width: 460px; color: var(--muted); font-size: 13px; line-height: 1.45; }
+.coverage-windows { display: grid; gap: 18px; }
+.coverage-window { display: grid; gap: 6px; min-width: 0; }
+.coverage-window h3 { color: var(--ink); font-size: 15.5px; font-weight: 600; }
+.coverage.large { grid-template-columns: minmax(0, 1fr) minmax(0, 296px); align-items: center; gap: 8px 20px; }
+.coverage.large .coverage-bar { height: 28px; }
+.coverage.large .coverage-label { font-size: 14px; font-weight: 500; }
+@container coverage-card (max-width: 639px) {
+  .coverage.large { grid-template-columns: minmax(0, 1fr); }
+  .coverage.large .coverage-bar { height: 22px; }
+}
+.coverage-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); }
+.coverage-note { color: var(--muted); font-size: 13px; line-height: 1.45; }
+
+/* Recent checks: the dot strip in the card header, the list's rows oldest first between the oldest and newest times,
+   then a bordered list with one row per entry: time and age, result, what ran, and a chevron that turns down when open.
+   A missed or overdue check, a collapsed run of them and a paused or maintenance span are rows in the same columns, with
+   no chevron. */
+.evidence { container: checks-card / inline-size; }
+.history-strip { display: flex; align-items: center; gap: 12px; min-width: 0; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.history-strip:empty { display: none; }
+.history-strip .ui-strip { gap: 13px; padding: 0; }
+.history-strip .ui-dot { width: 13px; height: 13px; }
+/* Marks beyond passed, failed and the hollow no-result ring: an overdue check is an amber ring; a running check is half
+   filled; a manual check is a smaller diamond in its result's colour; a paused or maintenance span is a short bar. */
+.history-strip .ui-dot.overdue { box-shadow: inset 0 0 0 2px var(--amber), 0 0 0 3px var(--card); }
+.history-strip .ui-dot.running { background: linear-gradient(90deg, var(--ink) 50%, var(--card) 50%); box-shadow: inset 0 0 0 2px var(--ink), 0 0 0 3px var(--card); }
+.history-strip .ui-dot.manual { width: 10px; height: 10px; margin: 0 1.5px; border-radius: 2px; transform: rotate(45deg); }
+.history-strip .ui-dot.span { width: 20px; height: 9px; border-radius: 999px; background: var(--neutral-soft); box-shadow: inset 0 0 0 2px var(--line-strong), 0 0 0 3px var(--card); }
+.history-strip .ui-dot.span.maintenance { background: var(--peach-soft); box-shadow: inset 0 0 0 2px var(--peach), 0 0 0 3px var(--card); }
+/* A run of two or more missed or overdue checks: one hollow ring with its count, in one place. */
+.strip-run { position: relative; flex: none; min-width: 30px; padding: 0 5px; border-radius: 999px; background: var(--card); box-shadow: inset 0 0 0 2px var(--unknown), 0 0 0 3px var(--card); color: var(--muted); font-size: 11.5px; font-weight: 600; line-height: 17px; text-align: center; }
+.strip-run.overdue { box-shadow: inset 0 0 0 2px var(--amber), 0 0 0 3px var(--card); color: var(--amber-text); }
+.strip-time { white-space: nowrap; }
+/* In a narrower card the strip moves under the heading, still packed at its own width between its times; in a phone
+   card the times move under it, at its two ends. */
+@container checks-card (max-width: 640px) {
+  .evidence .panel-head { display: block; }
+  .history-strip { margin-top: 10px; }
+  .history-strip .ui-strip { flex: 0 1 auto; justify-content: flex-start; gap: 8px; }
+}
+@container checks-card (max-width: 400px) {
+  .history-strip { display: grid; grid-template-columns: auto auto; justify-content: space-between; width: max-content; max-width: 100%; gap: 6px 12px; font-size: 12px; }
+  .history-strip .ui-strip { grid-column: 1 / -1; order: -1; justify-self: start; }
+  .history-strip .ui-strip ~ .strip-time { justify-self: end; }
+  /* With few slots the two times sit side by side under a short strip; the dash keeps them reading as a range. */
+  .history-strip .ui-strip ~ .strip-time::before { content: "\2013\00a0"; }
+  .history-strip .ui-strip { gap: 7px; }
+  .history-strip .ui-dot { width: 11px; height: 11px; }
+  .history-strip .ui-dot.manual { width: 8px; height: 8px; }
+  .history-strip .ui-dot.span { width: 16px; height: 8px; }
+  .strip-run { min-width: 24px; padding: 0 4px; font-size: 10.5px; line-height: 15px; }
+}
+.check-list { overflow: hidden; border: 1px solid var(--line); border-radius: 12px; }
+#raw-history .check-list > * + * { border-top: 1px solid var(--line); }
+/* Columns: time, result, what ran, chevron. The " · " separators stay in the text (the summary's name and text content
+   read as one line) but are visually hidden. */
+#raw-history :is(summary, .slot-row) { display: grid; grid-template-columns: minmax(7.5rem, 8.5rem) minmax(8.5rem, 10rem) minmax(0, 1fr) 18px; align-items: center; gap: 4px 14px; min-height: 54px; padding: 8px 16px 8px 18px; font-size: 14px; font-weight: 500; line-height: 1.35; }
+#raw-history summary:hover { background: #fafaff; }
+#raw-history summary::after { grid-column: 4; grid-row: 1; justify-self: center; margin: 0; transform: rotate(-45deg); }
+#raw-history details[open] > summary::after { margin: 0; transform: rotate(45deg); }
+.slot-time { display: grid; color: var(--ink); font-variant-numeric: tabular-nums; }
+.slot-clock { font-weight: 600; }
+.slot-age { color: var(--muted); font-size: 12.5px; font-weight: 400; }
+/* The label breaks only after "Failed ·" or before "(expected 201)", never inside "HTTP 503" (each is a .keep-line);
+   the code is monospace (DESIGN-PICKS rule 3). */
+#raw-history .check-result { gap: 9px; font-size: 14px; }
+#raw-history .result-label { min-width: 0; }
+.slot-code .ui-mono { font-size: 13.5px; }
+/* The mark box is 19px so the drawn dot or ring is about 13px, against the 14px label. */
+#raw-history .check-result::before { width: 19px; height: 19px; }
+.slot-meta { min-width: 0; color: var(--muted); font-size: 13.5px; font-weight: 400; }
+/* Results beyond passed, failed and no result: running (half filled, ink), overdue (amber warning), and the neutral
+   paused and maintenance spans with the marks their state pills use. */
+#raw-history .check-result.running { --mark: var(--mark-half); --mark-color: var(--ink); color: var(--ink); }
+#raw-history .check-result.overdue { --mark: var(--mark-triangle); --mark-color: var(--amber); color: var(--amber-text); }
+#raw-history .check-result.paused { --mark: var(--mark-pause); --mark-color: var(--muted); color: var(--body); }
+#raw-history .check-result.maintenance { --mark: var(--mark-moon); --mark-color: var(--peach); color: var(--peach-text); }
+@container checks-card (max-width: 560px) {
+  #raw-history :is(summary, .slot-row) { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) 16px; gap: 6px 10px; padding: 10px 12px; }
+  #raw-history summary::after { grid-column: 3; grid-row: 1 / span 2; }
+  .slot-meta { grid-column: 1 / 3; grid-row: 2; font-size: 12.5px; }
+}
+/* The narrowest card (a 320px phone, under 300px of content): the time column takes its clock's width and the result
+   column the rest, with the row's padding, gaps, mark and label trimmed so "Failed · HTTP 200" over "(expected 201)"
+   fits beside "12:58:05 PM". A 390px phone's card is 328px and keeps the layout above. */
+@container checks-card (max-width: 300px) {
+  #raw-history :is(summary, .slot-row) { grid-template-columns: auto minmax(0, 1fr) 14px; gap: 6px 8px; padding: 10px 8px; }
+  #raw-history .check-result { gap: 7px; font-size: 13.5px; }
+  #raw-history .check-result::before { width: 17px; height: 17px; }
+  .slot-code .ui-mono { font-size: 13px; }
+}
+/* An open slot's attempts in a soft lavender inset: the attempt line, then its PASS / FAIL lines on white, all in the sans
+   with tabular numbers (monospace stays for the HTTP code, DESIGN-PICKS rule 3). */
+.slot-attempts { display: grid; gap: 12px; margin: 0 14px 14px; padding: 14px; border-radius: 12px; background: linear-gradient(115deg, #efeffa, #f3f3fb); color: var(--body); font-size: 13.5px; line-height: 1.5; font-variant-numeric: tabular-nums; }
+.slot-attempts:empty { display: none; }
+.attempt-group { display: grid; gap: 10px; }
+.attempt-group + .attempt-group { padding-top: 12px; border-top: 1px solid var(--lavender-deep); }
+.attempt-line { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 30px; }
+.attempt-name { color: var(--ink); font-weight: 500; }
+.attempt-line .ui-result::before { width: 16px; height: 16px; }
+.attempt-line .ui-mono { color: var(--ink); font-size: 13.5px; }
+.attempt-age { white-space: nowrap; }
+/* As in design I, the bold PASS / FAIL word carries the result on its own, without a mark. */
+.attempt-checks .attempt-mark::before { content: none; }
+.attempt-checks { display: grid; gap: 4px; padding: 9px 13px; border-radius: 10px; background: rgba(255, 255, 255, 0.85); color: var(--body); font-size: 13px; overflow-wrap: anywhere; }
+@container checks-card (max-width: 560px) {
+  .slot-attempts { margin: 0 8px 10px; padding: 10px; }
+  .attempt-line { gap: 4px 16px; font-size: 12.5px; }
+  .attempt-checks { padding: 8px; font-size: 12px; }
+}
+.history-empty { padding: 4px 0; color: var(--muted); font-size: 14px; }
+
+/* The last check: its date and age beside the response duration. */
+.detail { container: latest-card / inline-size; }
+.detail-metrics { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, auto); align-items: start; gap: 12px 20px; }
+.detail-metrics > div { min-width: 0; }
+.detail-metrics dt { color: var(--muted); font-size: 14px; font-weight: 400; line-height: 1.5; }
+.detail-metrics dd { margin: 0; color: var(--ink); font-size: 17px; font-weight: 600; line-height: 1.4; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.detail-time time { display: block; max-width: 11em; overflow-wrap: normal; text-wrap: balance; }
+.detail-metrics .time-ago { margin-top: 2px; font-size: 14px; font-weight: 400; }
+@container latest-card (max-width: 299px) { .detail-metrics { grid-template-columns: minmax(0, 1fr); } }
+@container latest-card (min-width: 400px) { .detail-time time { max-width: none; } }
+
+/* What the check expects: each value as a one-line chip under its label, two across; a value too wide for half the card
+   takes its own row (a code or JSON chip wraps only when it is wider than the card). The full definition folds below. */
+.assertion-summary { display: flex; flex-wrap: wrap; gap: 14px 18px; margin: 4px 0 18px; }
+.assertion-summary > div { flex: 1 1 auto; min-width: calc(50% - 9px); max-width: 100%; }
+.assertion-summary dt { margin-bottom: 6px; color: var(--muted); font-size: 14px; line-height: 1.4; }
+.assertion-summary dd { margin: 0; }
+.expect-chip { display: inline-block; max-width: 100%; padding: 5px 14px; border-radius: 14px; background: var(--lavender); color: var(--ink); font-size: 14px; font-weight: 500; line-height: 1.45; white-space: nowrap; }
+.expect-chip.ui-mono { font-size: 14px; white-space: normal; overflow-wrap: anywhere; }
+#assertion-definition { padding-top: 4px; border-top: 1px solid var(--line); }
+#assertion-definition > summary { font-size: 16px; font-weight: 600; }
+#assertion-definition pre { margin-bottom: 4px; }
+.heartbeat-details { grid-template-columns: minmax(0, 1fr); gap: 10px; margin-bottom: 12px; }
+.heartbeat-details code { overflow-wrap: anywhere; }
+.heartbeat > p { color: var(--body); font-size: 14px; }
+.monitor-missing { margin: 0; padding: 40px 24px; border-radius: var(--radius); background: var(--card); box-shadow: 0 0 0 1px var(--line), var(--shadow-sm); }
+.monitor-missing p { max-width: 56ch; overflow-wrap: anywhere; }
+.monitor-missing .ui-button { margin-top: 16px; }
+
+/* ---------------------------------------------------------------- runner and archive */
+.runner-panel { padding: 16px 24px 24px; }
+.runner-panel > h2 { margin-bottom: 6px; padding-top: 16px; border-top: 1px solid var(--line); }
+.runner-panel > p { max-width: 72ch; }
+.runner-panel > p + p { margin-top: 8px; }
+.runner-panel > section { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line); }
+.runner-panel h3 { margin-bottom: 10px; font-size: 17px; }
+.runner-panel section > p { max-width: 72ch; margin-top: 10px; }
+.runner-contact { display: grid; gap: 4px; margin-bottom: 4px; }
+.runner-contact > div { display: grid; grid-template-columns: minmax(150px, 220px) minmax(0, 1fr); align-items: baseline; gap: 4px 16px; padding: 6px 0; }
+.runner-contact dt { color: var(--muted); font-size: 14px; font-weight: 500; }
+.runner-contact dd { margin: 0; color: var(--ink); font-size: 15px; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+#export { margin-top: 4px; }
+.archive-tools label { max-width: 520px; margin-top: 18px; color: var(--body); font-weight: 500; }
+.archive-tools .ui-callout { max-width: none; margin-top: 18px; }
+@media (max-width: 700px) {
+  .runner-panel { padding: 12px 16px 16px; }
+  .archive-tools label { max-width: none; }
+}
+@media (max-width: 480px) {
+  .runner-contact > div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+}

@@ -1,0 +1,607 @@
+/* The private app's dawn theme, loaded before the area stylesheets (style.css and notifications.css on /app, editor.css
+   on /app/monitor). It holds the fonts, the tokens, element defaults, the shared components and the shell.
+
+   How the area files use it
+   - Element defaults sit under :where(), so they carry no specificity and any rule in an area file wins over them.
+   - Components and the shell are opt-in classes (ui-*), so markup that has not adopted them renders as before.
+   - Words use the -text tokens; bright green, peach and the Unknown grey are for shapes. Green means a check ran and
+     passed or a monitor is Healthy, nothing else. Unknown is a hollow grey ring plus its word, everywhere.
+   - Never text-transform asserted text (PLAN 3.6 rule 2). The one uppercase style is .ui-eyebrow, for new decorative
+     spans only; table headers and data-label captions stay in the sentence case the source writes.
+   - Nothing here animates. Hover and focus transitions are 150ms or less and stop under prefers-reduced-motion.
+
+   Shell (console.html with app.js, editor.html)
+     <div class="app">                                   root, kept literal; or <div class="monitor-editor">
+       <aside class="sidebar ui-sidebar">                 the grid starts as soon as the root has a .ui-sidebar child
+         <a class="brand ui-brand" href="/app"><span class="ui-mark" aria-hidden="true"></span>Uptime</a>
+         <nav aria-label="…">                             links: <span class="ui-icon" data-icon="bell" aria-hidden="true"></span>Notifications
+                                                          the current link carries aria-current="page", or "true" for the
+                                                          current section (the editor's Monitors): white pill, peach dot
+         <div class="environment"><small>Monitoring console</small><p>One local vantage · Not global coverage</p></div>
+       </aside>
+       <main class="main ui-main">
+         <header class="top ui-header"><div><h1>…</h1><p class="subtitle">…</p></div><div class="actions">…</div></header>
+         <div id="notice" class="ui-notice">              p#action-notice[data-state=working|success|error], p#read-notice
+                                                          [data-state=unavailable|recovered], p#background-notice
+     The grid is [sidebar | main]; style.css adds the console's inspector column (≥1200px) by setting
+     grid-template-columns on .app with var(--sidebar-w). At ≤700px the sidebar becomes a top bar with the nav as
+     wrapping pills; 700px is the JS breakpoint (app.js matchMedia, notifications.js innerWidth). The dawn wash is
+     drawn behind any page whose body holds a .ui-sidebar.
+
+   Element defaults
+     button (secondary pill, 44px)   button.primary, button[type=submit] (navy pill)   input, select, textarea (44px,
+     --field-line border)   checkbox and radio (24px, accent --ink)   label (14px 600 --ink, field below it)
+     a (--ink, underlined)   summary (44px row with a chevron)   pre (code block)   code (inline chip)   table
+     dialog (white card, --backdrop)   h1-h4, p, lists (margins reset)   :disabled and [aria-disabled=true] (opacity .6)
+
+   Components
+     .ui-button          a link or other element drawn as the button pill; add .primary, .danger, .ui-compact
+     .danger             outline destructive action; .primary.danger is the filled final confirm
+     .ui-compact         36px control for toolbars and cards (still above the 24px target size)
+     .ui-link            text action (a or button) in the underlined link style
+     .ui-icon[data-icon] 18px line icon drawn with a CSS mask in currentColor: arrow, arrow-left, archive, bell, braces,
+                         chat, check, check-circle, chevron, clock, copy, export, info, mail, monitor, moon, pause,
+                         pencil, play, plus, pulse, restore, server, sign-out, alert, x-circle. Always aria-hidden.
+     .ui-mark            the ring-and-peach-arc mark (28px); an inline <svg class="ui-mark"> is sized the same
+     .ui-card            white card, 1px --line, --radius, --shadow-sm; .ui-card--raised uses --shadow
+     .ui-inset           quiet lavender inner panel (--radius-panel)
+     .ui-callout         lavender note with an info icon; .warning (amber, triangle), .error (rose, triangle)
+     .ui-pill + tone     status pill with its mark. Tones: healthy, passed, fresh (green dot); failing, failed, rejected
+                         (rose crossed dot); unknown, never, unavailable (hollow grey ring); degraded, uncertain (amber
+                         triangle); stale (amber dot); recovering (half-filled green ring on lavender); maintenance
+                         (peach moon); paused (pause bars); accepted (ink tick on lavender); queued, sending, not-sent
+                         (small muted dot); enabled (ink dot on lavender); disabled (no mark). The text is never
+                         transformed. Put it beside the hook classes: class="ui-pill badge unknown".
+     .ui-result + passed|failed|unknown   inline check result word with its mark
+     .ui-ring            summary ring; set --share (count / total, 0 to 1) inline; tones as .ui-pill; 0 shows the track
+     .ui-strip > .ui-dot.passed|failed|unknown   dot strip on a rail, oldest first, aria-hidden
+     .ui-empty           centred empty state (put a .ui-strip of .ui-dot.unknown in it as the illustration)
+     .ui-skeleton        static loading bar in --neutral-soft; size it with width or .ui-skeleton--title
+     .ui-table           dense table: sentence-case th, row separators, hover, selected row (tr.is-selected,
+                         tr[aria-selected=true] or a row holding [aria-pressed=true]); .ui-table--stack turns rows
+                         into stacked cards at ≤700px with td[data-label] captions; .ui-table--stack-md does it when
+                         its table-wrap container (container: table-wrap / inline-size on a wrapper) is under 760px,
+                         so a table squeezed between the sidebar and the inspector stacks at any viewport;
+                         a stacked row carries the selected bar itself, not its first cell
+     .ui-list            stacked rows with separators
+     .ui-dl              label-over-value pairs (dl > div > dt + dd)
+     .ui-code            block code or secret on --code-bg (pre already looks like this)
+     .ui-mono, .ui-url   monospace for URLs, codes and JSON; .ui-url wraps anywhere
+     .ui-helper          13.5px --muted helper line, outside its label
+     .ui-eyebrow         12px uppercase caption, for new decorative spans only
+     .ui-num             tabular numbers
+     .ui-visually-hidden hidden from sight, kept for assistive technology */
+
+/* Plus Jakarta Sans (SIL Open Font License 1.1), the variable wght axis, self-hosted from /design-assets/fonts/ with OFL.txt
+   beside the files. Copied from src/site/shell/styles/fonts.css; a change there changes this file too. */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url('/design-assets/fonts/plus-jakarta-sans-latin-wght-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url('/design-assets/fonts/plus-jakarta-sans-latin-ext-wght-normal.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* The metric-matched fallback the browser paints until the font arrives: Arial (or Liberation Sans) scaled to Plus Jakarta
+   Sans's advance widths and vertical metrics per weight, so nothing reflows when the font swaps in. */
+@font-face {
+  font-family: 'Plus Jakarta Sans Fallback';
+  font-weight: 100 450;
+  src: local('Arial'), local('ArialMT'), local('Liberation Sans'), local('LiberationSans');
+  size-adjust: 103.64%;
+  ascent-override: 100.15%;
+  descent-override: 21.42%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Plus Jakarta Sans Fallback';
+  font-weight: 451 549;
+  src: local('Arial'), local('ArialMT'), local('Liberation Sans'), local('LiberationSans');
+  size-adjust: 104.77%;
+  ascent-override: 99.07%;
+  descent-override: 21.19%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Plus Jakarta Sans Fallback';
+  font-weight: 550 649;
+  src: local('Arial Bold'), local('Arial-BoldMT'), local('Liberation Sans Bold'), local('LiberationSans-Bold');
+  size-adjust: 98.88%;
+  ascent-override: 104.98%;
+  descent-override: 22.45%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Plus Jakarta Sans Fallback';
+  font-weight: 650 900;
+  src: local('Arial Bold'), local('Arial-BoldMT'), local('Liberation Sans Bold'), local('LiberationSans-Bold');
+  size-adjust: 99.94%;
+  ascent-override: 103.86%;
+  descent-override: 22.21%;
+  line-gap-override: 0%;
+}
+
+/* Tokens. The values shared with the public site are copied from src/site/shell/styles/tokens.css and stay identical: a
+   change to the palette changes both files. The app's own additions are marked. Green means a check ran and passed or
+   a monitor is Healthy; bright green, peach and the Unknown grey are for shapes, and words use the -text tokens. */
+:root {
+  --ink: #14204a;
+  --ink-hover: #22306a; /* app */
+  --body: #3b4466;
+  --muted: #5f6684;
+  --ground: #f7f6fb;
+  --card: #ffffff; /* solid in the app, with no backdrop blur */
+  --line: #e5e6f2;
+  --line-strong: #d4d6ea;
+  --field-line: #8a8fa8; /* app: input, select and textarea borders */
+  --lavender: #ecebf8;
+  --lavender-deep: #b9bde6;
+  --sky-top: #e9e8f6;
+  --horizon: #fbe3cf;
+  --green: #3fae7a;
+  --green-text: #1f7a4f;
+  --green-soft: #e6f4ec;
+  --rose: #e0566b;
+  --rose-text: #b23048;
+  --rose-soft: #fde8ec;
+  --unknown: #7f849e; /* app: the site's #8a8fa8, darkened for contrast on the ground */
+  --amber: #e0a030; /* app */
+  --amber-text: #8a5300; /* app */
+  --amber-soft: #fdf1d8; /* app */
+  --peach: #e8894f; /* app */
+  --peach-text: #9a4b1f; /* app */
+  --peach-soft: #fdeee0; /* app */
+  --neutral-soft: #efeff5; /* app */
+  --code-bg: #14204a;
+  --code-ink: #e7e9f8;
+  --code-muted: #9fa6cf;
+  --backdrop: rgba(20, 32, 74, 0.32); /* app */
+  --sans: 'Plus Jakarta Sans', 'Plus Jakarta Sans Fallback', 'Avenir Next', 'Segoe UI', sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  --radius: 18px;
+  --radius-panel: 14px; /* app */
+  --radius-control: 12px; /* app */
+  --shadow: 0 1px 2px rgba(20, 32, 74, 0.04), 0 10px 30px -14px rgba(20, 32, 74, 0.16), 0 28px 60px -36px rgba(20, 32, 74, 0.18);
+  --shadow-sm: 0 1px 2px rgba(20, 32, 74, 0.05), 0 6px 16px -12px rgba(20, 32, 74, 0.2); /* app */
+}
+
+/* Icons, pill marks, the mark and the select chevron, as data URIs so no file is requested. The line icons are drawn on
+   a 24px grid; those also in src/site/shell/Icon.tsx keep its paths, and the mark is src/site/shell/Mark.tsx. */
+:root {
+  --icon-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6'/%3E%3C/svg%3E");
+  --icon-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
+  --icon-server: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 4h14a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2ZM5 13h14a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2ZM7 7.5h.01M7 16.5h.01'/%3E%3C/svg%3E");
+  --icon-export: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 4v10.5M7.5 10 12 14.5 16.5 10M4 15.5V19a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3.5'/%3E%3C/svg%3E");
+  --icon-play: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18ZM10 8.6l5.4 3.4-5.4 3.4Z'/%3E%3C/svg%3E");
+  --icon-pulse: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 12.5h4l2.2-5.5 4.2 10.5 2.2-5h5.4'/%3E%3C/svg%3E");
+  --icon-restore: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.2 13.5A8 8 0 1 0 6.3 6.4M4 4v4.5h4.5M12 8v4.2l2.8 1.8'/%3E%3C/svg%3E");
+  --icon-mail: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 5.5h13A2.5 2.5 0 0 1 21 8v8a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 16V8a2.5 2.5 0 0 1 2.5-2.5ZM4 7.5l8 6 8-6'/%3E%3C/svg%3E");
+  --icon-chat: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 4.5h13A2.5 2.5 0 0 1 21 7v7.5a2.5 2.5 0 0 1-2.5 2.5H12l-4.5 3.5V17h-2A2.5 2.5 0 0 1 3 14.5V7a2.5 2.5 0 0 1 2.5-2.5Z'/%3E%3C/svg%3E");
+  --icon-braces: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 4H8a2 2 0 0 0-2 2v3.5A2.5 2.5 0 0 1 3.5 12 2.5 2.5 0 0 1 6 14.5V18a2 2 0 0 0 2 2h1M15 4h1a2 2 0 0 1 2 2v3.5a2.5 2.5 0 0 0 2.5 2.5 2.5 2.5 0 0 0-2.5 2.5V18a2 2 0 0 1-2 2h-1'/%3E%3C/svg%3E");
+  --icon-monitor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.5 4h15A1.5 1.5 0 0 1 21 5.5v10a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 15.5v-10A1.5 1.5 0 0 1 4.5 4ZM8.5 20.5h7M12 17v3.5M6.5 11h2.4l1.6-3.2 3 6.2 1.6-3h2.4'/%3E%3C/svg%3E");
+  --icon-bell: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15ZM10 20.5a2.2 2.2 0 0 0 4 0'/%3E%3C/svg%3E");
+  --icon-archive: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 4.5h16a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1ZM5 8.5V19a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8.5M10 12.5h4'/%3E%3C/svg%3E");
+  --icon-plus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 5v14M5 12h14'/%3E%3C/svg%3E");
+  --icon-sign-out: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 4.5H6.5A1.5 1.5 0 0 0 5 6v12a1.5 1.5 0 0 0 1.5 1.5H14M10.5 12H20M16.5 8.5 20 12l-3.5 3.5'/%3E%3C/svg%3E");
+  --icon-pencil: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15.5 4.5l4 4L9 19H5v-4ZM13 7l4 4'/%3E%3C/svg%3E");
+  --icon-pause: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 5.5v13M15 5.5v13'/%3E%3C/svg%3E");
+  --icon-moon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19.5 14.5A8 8 0 1 1 9.5 4.5a6.5 6.5 0 0 0 10 10Z'/%3E%3C/svg%3E");
+  --icon-copy: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 8h10a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1ZM16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h3'/%3E%3C/svg%3E");
+  --icon-clock: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18ZM12 7.5V12l3 2'/%3E%3C/svg%3E");
+  --icon-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  --icon-arrow-left: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 12H5M11 6l-6 6 6 6'/%3E%3C/svg%3E");
+  --icon-info: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18ZM12 11v5.5M12 7.8h.01'/%3E%3C/svg%3E");
+  --icon-alert: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 4 21 19.5H3ZM12 10v4.5M12 17h.01'/%3E%3C/svg%3E");
+  --icon-x-circle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18ZM9 9l6 6M15 9l-6 6'/%3E%3C/svg%3E");
+  --icon-check-circle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18ZM8 12.3l2.7 2.7L16 9.5'/%3E%3C/svg%3E");
+  --mark-dot: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='5.5'/%3E%3C/svg%3E");
+  --mark-ring: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='5' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E");
+  --mark-half: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='5' fill='none' stroke='%23000' stroke-width='2'/%3E%3Cpath d='M8 3a5 5 0 0 0 0 10Z'/%3E%3C/svg%3E");
+  --mark-cross: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cmask id='m'%3E%3Crect width='16' height='16' fill='%23fff'/%3E%3Cpath d='M5.6 5.6l4.8 4.8M10.4 5.6l-4.8 4.8' stroke='%23000' stroke-width='1.7' stroke-linecap='round'/%3E%3C/mask%3E%3Ccircle cx='8' cy='8' r='6.5' mask='url(%23m)'/%3E%3C/svg%3E");
+  --mark-triangle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 2 14.5 13.5h-13Z' stroke='%23000' stroke-width='1.4' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --mark-moon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M14 10.3A6.2 6.2 0 1 1 5.7 2a4.9 4.9 0 0 0 8.3 8.3Z'/%3E%3C/svg%3E");
+  --mark-pause: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5.3 3.2v9.6M10.7 3.2v9.6' stroke='%23000' stroke-width='2.8' stroke-linecap='round'/%3E%3C/svg%3E");
+  --mark-tick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.2 8.4l3.1 3.1 6.5-6.8' fill='none' stroke='%23000' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --mark-small: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='3.2'/%3E%3C/svg%3E");
+  --mark-brand: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none'%3E%3Cpath d='M24.49 9.83A10.5 10.5 0 1 1 7.51 9.83' stroke='%2314204a' stroke-width='3.2' stroke-linecap='round'/%3E%3Cpath d='M11.73 6.41A10.5 10.5 0 0 1 20.27 6.41' stroke='%23e8894f' stroke-width='3.2' stroke-linecap='round'/%3E%3C/svg%3E");
+  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2314204a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+}
+
+/* Layout and type sizes the area files share. */
+:root {
+  color-scheme: light;
+  --sidebar-w: 232px;
+  --shell-gap: 24px;
+  --placeholder: #6b7190; /* 4.8:1 on white */
+  --hover-tint: rgba(20, 32, 74, 0.05);
+  --row-hover: rgba(20, 32, 74, 0.03);
+  --focus-halo: 0 0 0 7px rgba(20, 32, 74, 0.1);
+}
+@media (max-width: 1199px) {
+  :root { --sidebar-w: 224px; }
+}
+
+/* ---------------------------------------------------------------- base */
+:where(*, *::before, *::after) { box-sizing: border-box; }
+[hidden] { display: none !important; }
+:where(html) { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+:where(body) {
+  margin: 0;
+  background: var(--ground);
+  color: var(--body);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+::selection { background: #dcdcf4; color: var(--ink); }
+:where(a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible) { outline: 3px solid var(--ink); outline-offset: 2px; }
+:where(a:focus-visible, summary:focus-visible, [tabindex]:not(button, input, select, textarea):focus-visible) { border-radius: 8px; }
+:where(:disabled, [aria-disabled="true"]) { opacity: 0.6; cursor: not-allowed; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0s !important; animation: none !important; scroll-behavior: auto !important; }
+}
+
+/* ---------------------------------------------------------------- element defaults */
+:where(h1, h2, h3, h4, h5, h6, p, ul, ol, dl, dd, figure, blockquote, pre) { margin: 0; }
+:where(ul, ol) { padding: 0; list-style: none; }
+:where(h1, h2, h3, h4, h5, h6) { color: var(--ink); font-weight: 700; overflow-wrap: anywhere; }
+:where(h1) { font-size: clamp(24px, 2.2vw, 30px); line-height: 1.15; letter-spacing: -0.025em; }
+:where(h2) { font-size: 18px; line-height: 1.3; letter-spacing: -0.01em; }
+:where(h3, h4) { font-size: 16px; line-height: 1.35; }
+:where(small) { font-size: 13px; }
+:where(strong, b) { font-weight: 700; }
+:where(time, td, dd, .ui-num) { font-variant-numeric: tabular-nums; }
+:where(code, kbd, samp, pre) { font-family: var(--mono); font-size: 13px; }
+:where(img, svg) { display: block; max-width: 100%; }
+
+/* Links are underlined, so a link in running text never relies on colour alone (axe link-in-text-block). */
+:where(a) { color: var(--ink); text-decoration: underline; text-decoration-color: rgba(20, 32, 74, 0.4); text-decoration-thickness: 2px; text-underline-offset: 4px; transition: text-decoration-color 0.15s; }
+:where(a:hover) { text-decoration-color: var(--ink); }
+
+/* The base button is the secondary pill; primary and submit buttons are the navy pill. */
+:where(button, .ui-button) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0 18px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+:where(button:not(:disabled, [aria-disabled="true"]):hover, .ui-button:not(:disabled, [aria-disabled="true"]):hover) { border-color: var(--lavender-deep); background: #fafaff; }
+:where(button.primary, button[type="submit"], .ui-button.primary) {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: #fff;
+  box-shadow: 0 1px 1px rgba(20, 32, 74, 0.12), 0 8px 18px -12px rgba(20, 32, 74, 0.55);
+}
+:where(button.primary, button[type="submit"], .ui-button.primary):where(:not(:disabled, [aria-disabled="true"]):hover) { border-color: var(--ink-hover); background: var(--ink-hover); }
+:where(button.danger, .ui-button.danger) { border-color: rgba(178, 48, 72, 0.45); color: var(--rose-text); }
+:where(button.danger, .ui-button.danger):where(:not(:disabled, [aria-disabled="true"]):hover) { border-color: var(--rose-text); background: var(--rose-soft); }
+:where(button.primary.danger, .ui-button.primary.danger) { border-color: var(--rose-text); background: var(--rose-text); color: #fff; box-shadow: 0 8px 18px -12px rgba(178, 48, 72, 0.6); }
+:where(button.primary.danger, .ui-button.primary.danger):where(:not(:disabled, [aria-disabled="true"]):hover) { border-color: #9a2840; background: #9a2840; }
+:where(button, .ui-button) > :where(.ui-icon) { width: 18px; height: 18px; }
+
+:where(input:not([type="checkbox"], [type="radio"], [type="file"], [type="hidden"], [type="range"], [type="color"]), select, textarea) {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--field-line);
+  border-radius: var(--radius-control);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.4;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+:where(textarea) { min-height: 96px; resize: vertical; }
+:where(select) { appearance: none; padding-right: 44px; background-image: var(--select-chevron); background-repeat: no-repeat; background-position: right 14px center; background-size: 18px; cursor: pointer; }
+:where(input, select, textarea)::placeholder { color: var(--placeholder); opacity: 1; }
+:where(input:not([type="checkbox"], [type="radio"], [type="file"]):focus-visible, select:focus-visible, textarea:focus-visible) { border-color: var(--ink); box-shadow: var(--focus-halo); }
+:where(input[aria-invalid="true"], select[aria-invalid="true"], textarea[aria-invalid="true"]) { border-color: var(--rose-text); }
+:where(input[type="checkbox"], input[type="radio"]) { width: 24px; height: 24px; min-width: 24px; margin: 0; flex: none; accent-color: var(--ink); cursor: pointer; }
+:where(input[type="file"]) { display: block; width: 100%; max-width: 100%; min-height: 44px; padding: 5px 6px; border: 1px solid var(--field-line); border-radius: var(--radius-control); background: var(--card); color: var(--body); font: inherit; font-size: 14px; }
+:where(input[type="file"])::file-selector-button { min-height: 32px; margin-right: 12px; padding: 0 14px; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--lavender); color: var(--ink); font: inherit; font-weight: 600; cursor: pointer; }
+
+:where(label) { color: var(--ink); font-size: 14px; font-weight: 600; line-height: 1.4; }
+:where(label:has(> input:not([type="checkbox"], [type="radio"]), > select, > textarea)) { display: block; }
+:where(label) > :where(input:not([type="checkbox"], [type="radio"]), select, textarea) { margin-top: 6px; }
+:where(label:has(> input:is([type="checkbox"], [type="radio"]))) { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 15px; font-weight: 500; cursor: pointer; }
+:where(fieldset) { min-width: 0; margin: 0; padding: 0; border: 0; }
+:where(legend) { padding: 0; color: var(--ink); font-size: 16px; font-weight: 700; }
+
+:where(summary) { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 10px 0; color: var(--ink); font-weight: 600; cursor: pointer; list-style: none; }
+:where(summary)::-webkit-details-marker { display: none; }
+:where(summary)::after { content: ""; flex: none; width: 7px; height: 7px; margin: -4px 4px 0 auto; border: solid currentColor; border-width: 0 1.6px 1.6px 0; transform: rotate(45deg); transition: transform 0.15s; }
+:where(details[open]) > :where(summary)::after { margin-top: 4px; transform: rotate(225deg); }
+
+:where(pre), .ui-code { display: block; margin: 0; padding: 14px 16px; border-radius: var(--radius-panel); background: var(--code-bg); color: var(--code-ink); font-family: var(--mono); font-size: 13.5px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+:where(code) { padding: 1px 6px; border-radius: 6px; background: var(--lavender); color: var(--ink); font-size: 0.9em; overflow-wrap: anywhere; }
+:where(pre, .ui-code) :where(code) { padding: 0; background: none; color: inherit; font-size: inherit; }
+
+:where(table) { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+:where(th) { text-align: left; }
+
+:where(dialog) { width: calc(100% - 32px); max-width: 560px; max-height: calc(100dvh - 32px); margin: auto; padding: 28px; border: 1px solid var(--line); border-radius: 20px; background: var(--card); color: var(--body); box-shadow: var(--shadow); overflow: auto; }
+:where(dialog)::backdrop { background: var(--backdrop); }
+@media (max-width: 480px) {
+  :where(dialog) { padding: 20px; }
+}
+
+/* ---------------------------------------------------------------- components */
+.ui-compact { min-height: 36px; padding: 0 14px; font-size: 14px; }
+.ui-link { display: inline-flex; align-items: center; gap: 6px; min-height: 24px; margin: 0; padding: 0; border: 0; border-radius: 6px; background: none; box-shadow: none; color: var(--ink); font: inherit; font-weight: 600; text-decoration: underline; text-decoration-color: rgba(20, 32, 74, 0.4); text-decoration-thickness: 2px; text-underline-offset: 4px; cursor: pointer; }
+.ui-link:where(:not(:disabled, [aria-disabled="true"])):hover { background: none; text-decoration-color: var(--ink); }
+.ui-link.danger { color: var(--rose-text); text-decoration-color: rgba(178, 48, 72, 0.45); }
+
+.ui-icon { display: inline-block; flex: none; width: 18px; height: 18px; background: currentColor; -webkit-mask: var(--i) center / contain no-repeat; mask: var(--i) center / contain no-repeat; vertical-align: -0.2em; }
+.ui-icon[data-icon="arrow"] { --i: var(--icon-arrow); }
+.ui-icon[data-icon="arrow-left"] { --i: var(--icon-arrow-left); }
+.ui-icon[data-icon="archive"] { --i: var(--icon-archive); }
+.ui-icon[data-icon="bell"] { --i: var(--icon-bell); }
+.ui-icon[data-icon="braces"] { --i: var(--icon-braces); }
+.ui-icon[data-icon="chat"] { --i: var(--icon-chat); }
+.ui-icon[data-icon="check"] { --i: var(--icon-check); }
+.ui-icon[data-icon="check-circle"] { --i: var(--icon-check-circle); }
+.ui-icon[data-icon="chevron"] { --i: var(--icon-chevron); }
+.ui-icon[data-icon="clock"] { --i: var(--icon-clock); }
+.ui-icon[data-icon="copy"] { --i: var(--icon-copy); }
+.ui-icon[data-icon="export"] { --i: var(--icon-export); }
+.ui-icon[data-icon="info"] { --i: var(--icon-info); }
+.ui-icon[data-icon="mail"] { --i: var(--icon-mail); }
+.ui-icon[data-icon="monitor"] { --i: var(--icon-monitor); }
+.ui-icon[data-icon="moon"] { --i: var(--icon-moon); }
+.ui-icon[data-icon="pause"] { --i: var(--icon-pause); }
+.ui-icon[data-icon="pencil"] { --i: var(--icon-pencil); }
+.ui-icon[data-icon="play"] { --i: var(--icon-play); }
+.ui-icon[data-icon="plus"] { --i: var(--icon-plus); }
+.ui-icon[data-icon="pulse"] { --i: var(--icon-pulse); }
+.ui-icon[data-icon="restore"] { --i: var(--icon-restore); }
+.ui-icon[data-icon="server"] { --i: var(--icon-server); }
+.ui-icon[data-icon="sign-out"] { --i: var(--icon-sign-out); }
+.ui-icon[data-icon="alert"] { --i: var(--icon-alert); }
+.ui-icon[data-icon="x-circle"] { --i: var(--icon-x-circle); }
+
+.ui-mark { display: inline-block; flex: none; width: 28px; height: 28px; }
+.ui-mark:not(svg) { background: var(--mark-brand) center / contain no-repeat; }
+
+.ui-card { min-width: 0; padding: 24px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow-sm); }
+.ui-card--raised { box-shadow: var(--shadow); }
+.ui-inset { padding: 12px 16px; border-radius: var(--radius-panel); background: var(--lavender); color: var(--body); }
+@media (max-width: 700px) {
+  .ui-card { padding: 16px; }
+}
+
+.ui-callout { --i: var(--icon-info); display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px; border-radius: var(--radius-panel); background: var(--lavender); color: var(--body); font-size: 14px; line-height: 1.5; }
+.ui-callout::before { content: ""; flex: none; width: 18px; height: 18px; margin-top: 1px; background: var(--ink); -webkit-mask: var(--i) center / contain no-repeat; mask: var(--i) center / contain no-repeat; }
+.ui-callout.warning { --i: var(--icon-alert); background: var(--amber-soft); color: var(--amber-text); }
+.ui-callout.warning::before { background: currentColor; }
+.ui-callout.error { --i: var(--icon-alert); background: var(--rose-soft); color: var(--rose-text); }
+.ui-callout.error::before { background: currentColor; }
+
+/* Status pills. Each tone sets the fill, the word's colour and the mark; the mark differs by shape as well as colour. */
+.ui-pill {
+  --pill-bg: var(--neutral-soft);
+  --pill-fg: var(--body);
+  --pill-line: transparent;
+  --mark: var(--mark-small);
+  --mark-color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+  max-width: 100%;
+  padding: 2px 10px;
+  border: 1px solid var(--pill-line);
+  border-radius: 999px;
+  background: var(--pill-bg);
+  color: var(--pill-fg);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.ui-pill::before { content: none; flex: none; width: 10px; height: 10px; margin-left: -2px; background: var(--mark-color); -webkit-mask: var(--mark) center / contain no-repeat; mask: var(--mark) center / contain no-repeat; }
+.ui-pill:is(.healthy, .passed, .fresh, .failing, .failed, .rejected, .unknown, .never, .unavailable, .degraded, .uncertain, .stale, .recovering, .maintenance, .paused, .accepted, .queued, .sending, .not-sent, .enabled)::before { content: ""; }
+.ui-pill:is(.healthy, .passed, .fresh) { --pill-bg: var(--green-soft); --pill-fg: var(--green-text); --mark: var(--mark-dot); --mark-color: var(--green); }
+.ui-pill:is(.failing, .failed, .rejected) { --pill-bg: var(--rose-soft); --pill-fg: var(--rose-text); --mark: var(--mark-cross); --mark-color: var(--rose); }
+.ui-pill:is(.unknown, .never, .unavailable) { --pill-bg: var(--card); --pill-fg: var(--muted); --pill-line: var(--line-strong); --mark: var(--mark-ring); --mark-color: var(--unknown); }
+.ui-pill:is(.degraded, .uncertain) { --pill-bg: var(--amber-soft); --pill-fg: var(--amber-text); --mark: var(--mark-triangle); --mark-color: var(--amber); }
+.ui-pill.stale { --pill-bg: var(--amber-soft); --pill-fg: var(--amber-text); --mark: var(--mark-dot); --mark-color: var(--amber); }
+/* Recovering shares the selected row's lavender, so it keeps a deeper lavender hairline everywhere. */
+.ui-pill.recovering { --pill-line: var(--lavender-deep); --pill-bg: var(--lavender); --pill-fg: var(--ink); --mark: var(--mark-half); --mark-color: var(--green); }
+.ui-pill.maintenance { --pill-bg: var(--peach-soft); --pill-fg: var(--peach-text); --mark: var(--mark-moon); --mark-color: var(--peach); }
+.ui-pill.paused { --pill-bg: var(--neutral-soft); --pill-fg: var(--body); --mark: var(--mark-pause); --mark-color: var(--muted); }
+.ui-pill.accepted { --pill-bg: var(--lavender); --pill-fg: var(--ink); --mark: var(--mark-tick); --mark-color: var(--ink); }
+.ui-pill.enabled { --pill-bg: var(--lavender); --pill-fg: var(--ink); --mark: var(--mark-dot); --mark-color: var(--ink); }
+/* The neutral tones come last, so .not-sent wins when it sits beside a state class (a not-sent delivery is also .rejected). */
+.ui-pill:is(.queued, .sending, .not-sent) { --pill-bg: var(--neutral-soft); --pill-fg: var(--body); --pill-line: transparent; --mark: var(--mark-small); --mark-color: var(--muted); }
+
+/* A check result inside running text: the word in its -text colour after its mark. */
+.ui-result { --mark: var(--mark-ring); --mark-color: var(--unknown); display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-weight: 600; }
+.ui-result::before { content: ""; flex: none; width: 10px; height: 10px; background: var(--mark-color); -webkit-mask: var(--mark) center / contain no-repeat; mask: var(--mark) center / contain no-repeat; }
+.ui-result.passed { --mark: var(--mark-dot); --mark-color: var(--green); color: var(--green-text); }
+.ui-result.failed { --mark: var(--mark-cross); --mark-color: var(--rose); color: var(--rose-text); }
+/* Small variant for dense lines (per-attempt PASS / FAIL): a 9px mark, bolder word; the small cross takes the darker rose
+   so it still reads at that size. */
+.ui-result--small { gap: 5px; font-weight: 700; }
+.ui-result--small::before { width: 9px; height: 9px; }
+.ui-result--small.failed { --mark-color: var(--rose-text); }
+
+/* Summary ring: the arc is --share of a full turn (count / total, set inline from the counts); 0 leaves the bare track. */
+.ui-ring { --share: 0; --tone: var(--unknown); --track: var(--line); --thickness: 5px; position: relative; display: inline-grid; place-items: center; flex: none; width: 64px; aspect-ratio: 1; border-radius: 50%; color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; }
+.ui-ring::before { content: ""; position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(var(--tone) calc(var(--share) * 1turn), var(--track) 0); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--thickness) - 0.5px), #000 calc(100% - var(--thickness))); mask: radial-gradient(farthest-side, transparent calc(100% - var(--thickness) - 0.5px), #000 calc(100% - var(--thickness))); }
+.ui-ring:is(.healthy, .recovering) { --tone: var(--green); }
+.ui-ring.failing { --tone: var(--rose); }
+.ui-ring.degraded { --tone: var(--amber); }
+.ui-ring.maintenance { --tone: var(--peach); }
+.ui-ring.paused { --tone: var(--muted); }
+
+/* Dot strip: one row of 12px dots on a 2px rail, oldest on the left. Decorative (aria-hidden); the list is the record. */
+.ui-strip { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 4px; min-height: 20px; padding: 0 3px; }
+.ui-strip::before { content: ""; position: absolute; left: 6px; right: 6px; top: 50%; height: 2px; margin-top: -1px; border-radius: 2px; background: var(--line-strong); }
+.ui-dot { position: relative; display: block; flex: none; width: 12px; height: 12px; border-radius: 50%; background: var(--card); box-shadow: inset 0 0 0 2px var(--unknown), 0 0 0 3px var(--card); }
+.ui-dot.passed { background: var(--green); box-shadow: 0 0 0 3px var(--card); }
+.ui-dot.failed { background: var(--rose); box-shadow: 0 0 0 3px var(--card); }
+
+.ui-empty { display: grid; justify-items: center; gap: 10px; padding: 40px 24px; text-align: center; }
+.ui-empty .ui-strip { width: min(240px, 100%); margin-bottom: 10px; }
+.ui-empty p { max-width: 46ch; color: var(--body); }
+
+.ui-skeleton { display: block; height: 12px; border-radius: 6px; background: var(--neutral-soft); }
+.ui-skeleton--title { height: 18px; }
+
+/* Dense table. The monitor list builds on it in style.css. */
+.ui-table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+.ui-table th { padding: 10px 14px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 13px; font-weight: 600; line-height: 1.3; text-align: left; vertical-align: bottom; white-space: nowrap; }
+.ui-table td { padding: 14px; border-bottom: 1px solid var(--line); color: var(--body); vertical-align: top; }
+.ui-table tbody tr:last-child td { border-bottom: 0; }
+.ui-table tbody tr:hover { background: var(--row-hover); }
+.ui-table tbody tr:is(.is-selected, [aria-selected="true"], :has([aria-pressed="true"])) { background: var(--lavender); }
+.ui-table tbody tr:is(.is-selected, [aria-selected="true"], :has([aria-pressed="true"])) > :first-child { box-shadow: inset 3px 0 0 var(--ink); }
+@media (max-width: 700px) {
+  .ui-table--stack thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .ui-table--stack, .ui-table--stack tbody, .ui-table--stack tr, .ui-table--stack td { display: block; width: 100%; }
+  .ui-table--stack tr { padding: 12px 16px; border-bottom: 1px solid var(--line); }
+  .ui-table--stack tbody tr:last-child { border-bottom: 0; }
+  .ui-table--stack td { padding: 6px 0; border: 0; }
+  .ui-table--stack td[data-label]::before { content: attr(data-label); display: block; margin-bottom: 2px; color: var(--muted); font-size: 12px; font-weight: 600; line-height: 1.3; }
+  .ui-table--stack tbody tr:is(.is-selected, [aria-selected="true"], :has([aria-pressed="true"])) { box-shadow: inset 3px 0 0 var(--ink); }
+  .ui-table--stack tbody tr:is(.is-selected, [aria-selected="true"], :has([aria-pressed="true"])) > :first-child { box-shadow: none; }
+}
+@container table-wrap (max-width: 759px) {
+  .ui-table--stack-md thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .ui-table--stack-md, .ui-table--stack-md tbody, .ui-table--stack-md tr, .ui-table--stack-md td { display: block; width: 100%; }
+  .ui-table--stack-md tr { padding: 12px 16px; border-bottom: 1px solid var(--line); }
+  .ui-table--stack-md tbody tr:last-child { border-bottom: 0; }
+  .ui-table--stack-md td { padding: 6px 0; border: 0; }
+  .ui-table--stack-md td[data-label]::before { content: attr(data-label); display: block; margin-bottom: 2px; color: var(--muted); font-size: 12px; font-weight: 600; line-height: 1.3; }
+  .ui-table--stack-md tbody tr:is(.is-selected, [aria-selected="true"], :has([aria-pressed="true"])) { box-shadow: inset 3px 0 0 var(--ink); }
+  .ui-table--stack-md tbody tr:is(.is-selected, [aria-selected="true"], :has([aria-pressed="true"])) > :first-child { box-shadow: none; }
+}
+
+.ui-list > * { padding: 12px 0; border-top: 1px solid var(--line); }
+.ui-list > :first-child { border-top: 0; }
+
+.ui-dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px 24px; }
+.ui-dl dt { color: var(--muted); font-size: 13px; font-weight: 500; line-height: 1.4; }
+.ui-dl dd { margin: 2px 0 0; color: var(--ink); font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+
+.ui-mono, .ui-url { font-family: var(--mono); font-size: 13px; }
+.ui-url { color: var(--muted); overflow-wrap: anywhere; }
+.ui-helper { color: var(--muted); font-size: 13.5px; font-weight: 400; line-height: 1.5; }
+.ui-eyebrow { color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: 0.12em; line-height: 1.3; text-transform: uppercase; }
+.ui-num { font-variant-numeric: tabular-nums; }
+.ui-visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* ---------------------------------------------------------------- shell */
+/* The one quiet dawn touch: a lavender sky fading out over the top of the page, with a faint warm glow at the top right.
+   It sits behind everything, fixed to the document top, and never inside a card. */
+body:has(.ui-sidebar)::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: -1;
+  height: 300px;
+  pointer-events: none;
+  background:
+    radial-gradient(55% 260px at 90% 0%, rgba(251, 227, 207, 0.62), rgba(251, 227, 207, 0) 72%),
+    linear-gradient(180deg, var(--sky-top), rgba(247, 246, 251, 0) 260px);
+}
+
+:where(.app, .monitor-editor):has(> .ui-sidebar) {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+  column-gap: var(--shell-gap);
+  max-width: 1680px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding-right: var(--shell-gap);
+  /* the sidebar's edge, drawn on the grid so it runs the full height of the page */
+  background: linear-gradient(90deg, transparent calc(var(--sidebar-w) - 1px), var(--line) 0, var(--line) var(--sidebar-w), transparent 0) no-repeat;
+}
+
+.ui-sidebar { display: flex; flex-direction: column; gap: 20px; min-width: 0; min-height: 100vh; padding: 24px 14px 24px 16px; }
+.ui-brand { display: inline-flex; align-items: center; align-self: flex-start; gap: 10px; min-height: 44px; padding: 0 8px; color: var(--ink); font-size: 27px; font-weight: 700; letter-spacing: -0.035em; line-height: 1; text-decoration: none; }
+.ui-brand .ui-mark { width: 30px; height: 30px; }
+.ui-sidebar nav { display: grid; gap: 4px; }
+.ui-sidebar nav a { position: relative; display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px 0 28px; border-radius: 12px; color: var(--body); font-size: 15px; font-weight: 500; line-height: 1.2; text-decoration: none; white-space: nowrap; transition: background-color 0.15s, color 0.15s; }
+.ui-sidebar nav a:where(:not([aria-disabled="true"])):hover { background: var(--hover-tint); color: var(--ink); }
+.ui-sidebar nav a:is([aria-current="page"], [aria-current="true"]) { background: var(--card); color: var(--ink); font-weight: 650; box-shadow: 0 0 0 1px var(--line), var(--shadow-sm); }
+.ui-sidebar nav a:is([aria-current="page"], [aria-current="true"])::before { content: ""; position: absolute; left: 11px; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 50%; background: var(--peach); }
+.ui-sidebar nav .ui-icon { width: 20px; height: 20px; }
+@media (min-width: 701px) and (max-width: 1199px) {
+  .ui-sidebar nav a { gap: 10px; padding-right: 10px; }
+}
+.ui-sidebar .environment { margin-top: auto; padding: 14px 16px; border-radius: var(--radius-panel); background: var(--lavender); color: var(--body); font-size: 13.5px; line-height: 1.45; }
+.ui-sidebar .environment small { display: block; margin-bottom: 4px; color: var(--muted); font-size: 12px; font-weight: 700; line-height: 1.3; }
+.ui-sidebar .environment p { margin: 0; }
+
+.ui-main { min-width: 0; padding: 32px 0 48px; }
+.ui-header { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px 24px; margin-bottom: 20px; }
+.ui-header > :first-child { min-width: 0; }
+.ui-header h1 { font-size: clamp(24px, 2.2vw, 30px); font-weight: 700; letter-spacing: -0.025em; line-height: 1.15; }
+.ui-header .subtitle { margin-top: 6px; color: var(--muted); font-size: 15px; }
+.ui-header .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+
+/* The notice band: under the header, nothing floats, hidden when empty. Tones by channel and state; the word carries the
+   meaning and the icon repeats it. */
+.ui-notice { display: grid; gap: 8px; margin-bottom: 20px; }
+.ui-notice > p { --i: var(--icon-info); display: flex; align-items: flex-start; gap: 10px; margin: 0; padding: 12px 16px; border: 1px solid transparent; border-radius: var(--radius-panel); background: var(--lavender); color: var(--ink); font-size: 14.5px; line-height: 1.5; }
+.ui-notice > p::before { content: ""; flex: none; width: 18px; height: 18px; margin-top: 2px; background: currentColor; -webkit-mask: var(--i) center / contain no-repeat; mask: var(--i) center / contain no-repeat; }
+.ui-notice > [data-state="working"] { --i: var(--icon-clock); }
+.ui-notice > [data-state="success"], .ui-notice > [data-state="recovered"] { --i: var(--icon-check-circle); border-color: var(--line-strong); background: var(--card); }
+.ui-notice > [data-state="error"] { --i: var(--icon-alert); background: var(--rose-soft); color: var(--rose-text); }
+.ui-notice > [data-state="unavailable"] { --i: var(--mark-ring); border-color: var(--line-strong); background: var(--card); color: var(--ink); font-weight: 500; }
+.ui-notice strong { font-weight: 700; }
+.ui-notice > [data-state="unavailable"]::before { width: 14px; height: 14px; margin: 4px 2px 0; background: var(--unknown); }
+.ui-notice > #background-notice { color: var(--body); }
+.ui-notice > #background-notice::before { content: none; }
+
+@media (max-width: 700px) {
+  :where(.app, .monitor-editor):has(> .ui-sidebar) { display: block; padding: 0; background: none; }
+  .ui-sidebar { min-height: 0; gap: 12px; padding: 12px 16px 0; }
+  .ui-brand { padding: 0; font-size: 22px; }
+  .ui-brand .ui-mark { width: 26px; height: 26px; }
+  /* Two pills a row on a phone, whichever view is current: the current pill's dot adds 12px, and the widest row
+     (Runner / archive, current, beside Sign out) still fits at 320 with the smaller label below. */
+  .ui-sidebar nav { display: flex; flex-wrap: wrap; gap: 8px 6px; }
+  .ui-sidebar nav a { flex: 1 1 auto; gap: 6px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 999px; background: rgba(255, 255, 255, 0.6); font-size: 14.5px; }
+  .ui-sidebar nav a:is([aria-current="page"], [aria-current="true"]) { padding-left: 24px; border-color: var(--line); background: var(--card); }
+  .ui-sidebar nav a:is([aria-current="page"], [aria-current="true"])::before { left: 10px; }
+  .ui-sidebar nav .ui-icon { width: 18px; height: 18px; }
+  .ui-sidebar .environment { display: none; }
+  .ui-main { padding: 20px 16px 40px; }
+}
+@media (max-width: 360px) {
+  .ui-sidebar nav a { font-size: 14px; }
+}

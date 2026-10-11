@@ -1,0 +1,60 @@
+/* The section cards, built from real text: the evidence strip, the incident strip, the assertion card, the three
+   notifications and the terminal. */
+
+/* The strip cards are size containers, so a strip lays itself out by the room its card gives it. */
+.ut-evidence, .ut-incident { container-type: inline-size; }
+
+/* 1. Honest evidence */
+.ut-evidence { padding: clamp(22px, 2.4vw, 32px) clamp(18px, 2.4vw, 32px) clamp(20px, 2vw, 28px); }
+.ut-monitor { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-bottom: 8px; }
+.ut-monitor-name { color: var(--ink); font-size: 16px; font-weight: 700; }
+.ut-monitor-meta { color: var(--muted); font-size: 14px; }
+
+/* 2. Confirmed incidents */
+.ut-incident { padding: clamp(22px, 2.4vw, 30px) clamp(14px, 2vw, 26px) clamp(14px, 1.6vw, 20px); }
+
+/* 3. Checks */
+.ut-assert { display: grid; gap: 16px; max-width: 580px; margin-left: auto; }
+.ut-assert-card { padding: 22px clamp(18px, 2.2vw, 28px) 10px; }
+.ut-assert-request { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding-bottom: 16px; border-bottom: 1px solid var(--line); color: var(--ink); font-family: var(--mono); font-size: 14.5px; overflow-wrap: anywhere; }
+.ut-assert-method { padding: 4px 9px; border-radius: 7px; background: var(--lavender); font-size: 12.5px; font-weight: 700; letter-spacing: 0.04em; }
+.ut-assert-list li { display: flex; align-items: center; gap: 14px; padding: 13px 0; color: var(--ink); font-size: 16px; font-weight: 500; }
+.ut-assert-list li + li { border-top: 1px dashed var(--line-strong); }
+.ut-assert-pass { display: grid; place-items: center; width: 26px; height: 26px; flex: none; border-radius: 50%; background: var(--green-soft); color: var(--green-text); }
+.ut-assert-pass .ut-icon { width: 15px; height: 15px; stroke-width: 2.4; }
+.ut-heartbeat { display: flex; align-items: center; gap: 14px; justify-self: start; margin-left: clamp(0px, 4vw, 48px); padding: 14px 20px 14px 16px; }
+.ut-heartbeat p { color: var(--muted); font-size: 15px; line-height: 1.4; }
+.ut-heartbeat strong { color: var(--ink); font-weight: 700; }
+.ut-heartbeat-icon { display: grid; place-items: center; width: 36px; height: 36px; flex: none; border-radius: 11px; background: #fdeee0; color: #9a4b1f; }
+.ut-heartbeat-icon .ut-icon { width: 20px; height: 20px; }
+.ut-heartbeat .ut-dot { width: 10px; height: 10px; margin-left: 4px; box-shadow: 0 0 0 4px var(--green-soft); }
+
+/* 4. Notifications: three equal cards, each stepping a little further in, like messages arriving. */
+.ut-notify { display: flex; flex-direction: column; gap: 14px; max-width: 600px; }
+.ut-notify-card { width: 86%; padding: 18px 22px 20px; }
+.ut-notify-chat { margin-left: 7%; }
+.ut-notify-json { margin-left: 14%; border-radius: var(--radius); background: var(--code-bg); box-shadow: var(--shadow); }
+.ut-notify-kind { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+.ut-notify-kind .ut-icon { width: 17px; height: 17px; }
+.ut-notify-kind--channel { color: var(--ink); font-size: 14.5px; letter-spacing: 0; text-transform: none; }
+.ut-notify-subject { display: flex; align-items: center; gap: 10px; margin-top: 10px; color: var(--ink); font-size: 16.5px; font-weight: 700; line-height: 1.35; }
+.ut-notify-subject .ut-dot { width: 10px; height: 10px; box-shadow: none; }
+.ut-notify-text { margin-top: 4px; padding-left: 20px; color: var(--muted); font-size: 14.5px; line-height: 1.45; }
+.ut-notify-message { display: flex; gap: 12px; margin-top: 12px; }
+.ut-notify-avatar { display: grid; place-items: center; width: 36px; height: 36px; flex: none; border-radius: 10px; background: var(--ink); color: #fff; }
+.ut-notify-avatar svg { width: 22px; height: 22px; }
+.ut-notify-avatar svg path:last-child { stroke: #f2a46f; }
+.ut-notify-sender { color: var(--ink); font-size: 14.5px; font-weight: 700; }
+.ut-notify-message .ut-notify-subject { margin-top: 2px; font-size: 15.5px; font-weight: 500; }
+.ut-notify-json .ut-notify-kind { color: var(--code-muted); }
+.ut-notify-json pre { margin-top: 10px; color: var(--code-ink); font-family: var(--mono); font-size: 13.5px; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+.ut-json-key { color: #b9bde6; }
+.ut-json-string { color: #fde2bd; }
+
+/* 5. Ownership: the terminal */
+.ut-terminal { overflow: hidden; border-radius: var(--radius); background: var(--code-bg); box-shadow: var(--shadow); }
+.ut-terminal-bar { display: flex; gap: 8px; padding: 16px 20px 0; }
+.ut-terminal-bar i { width: 11px; height: 11px; border-radius: 50%; background: #2f3b6e; }
+.ut-terminal pre { padding: 20px clamp(18px, 2.4vw, 30px) clamp(24px, 2.6vw, 34px); color: var(--code-ink); font-family: var(--mono); font-size: clamp(13.5px, 1.12vw, 15.5px); line-height: 2; white-space: pre-wrap; overflow-wrap: break-word; }
+.ut-terminal-line { display: block; padding-left: 1.5em; text-indent: -1.5em; }
+.ut-terminal-prompt { display: inline-block; width: 1.5em; text-indent: 0; color: #7fd6a8; }

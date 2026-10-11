@@ -1,0 +1,168 @@
+/* The notifications view, its help panel and the destination, confirm and secret dialogs, in the dawn style. Loaded after
+   app-theme.css and style.css; it builds on the theme's tokens, element defaults and ui-* components and owns only what
+   notifications.js and notification-dialogs.js render. Green stays for a check that passed: Enabled, Accepted and
+   Copied are ink, not sent and queued are neutral, and nothing here borrows the Unknown hollow ring. The text of
+   asserted elements is written in the source's case and never transformed. */
+
+/* ---------------------------------------------------------------- view */
+.table-scroll:has(.notification-intro) { overflow: visible; }
+/* The console lays this view out on the ground (style.css drops section.monitors' card here), so the intro and the
+   history are .ui-card cards of their own and the destination cards sit on the ground between them. */
+.notification-intro, .notification-history { padding: 22px 24px; }
+.notification-destinations, .notification-history, .notification-help-mobile { margin-top: 28px; }
+.notification-destinations h3, .notification-history h3 { color: var(--ink); font-size: 18px; font-weight: 700; line-height: 1.3; letter-spacing: -0.01em; }
+
+/* Intro: the installation-wide facts, with Add destination at the top right of the same block. */
+.notification-intro { display: grid; margin-top: 12px; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 12px 24px; }
+.notification-status { display: grid; gap: 6px; min-width: 0; color: var(--body); font-size: 15px; line-height: 1.55; }
+.notification-intro strong { color: var(--ink); }
+#add-destination { white-space: nowrap; }
+/* A tablet main column is too narrow for the prose beside the button, so the button moves under the prose. */
+@media (min-width: 701px) and (max-width: 959px) {
+  .notification-intro { grid-template-columns: minmax(0, 1fr); }
+  .notification-intro #add-destination { justify-self: start; }
+}
+@media (max-width: 700px) {
+  .notification-intro, .notification-history { padding: 16px; }
+  .notification-destinations, .notification-history, .notification-help-mobile { margin-top: 24px; }
+  .notification-intro { grid-template-columns: minmax(0, 1fr); }
+  .notification-intro #add-destination { justify-self: start; }
+}
+
+/* Destination cards, each with its kind icon, name, kind and enabled pill, custody line, any warning and its actions.
+   Three across when the list is 700px or wider (the desktop main column beside the help aside), otherwise stacked. Delete stands apart at the end
+   of the actions. */
+.notification-destinations { container: destinations / inline-size; }
+.destination-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 14px; min-width: 0; }
+@container destination (min-width: 440px) {
+  .destination-card > :not(.destination-head, .destination-controls) { margin-left: 52px; }
+  .destination-card > .email-setup-action { align-self: flex-start; }
+}
+.destination-card { container: destination / inline-size; display: flex; flex-direction: column; gap: 12px; min-width: 0; padding: 18px; border: 1px solid var(--line); border-radius: var(--radius-panel); background: var(--card); box-shadow: var(--shadow-sm); overflow-wrap: anywhere; }
+.destination-head { display: flex; align-items: flex-start; gap: 12px; min-width: 0; }
+.destination-icon { display: grid; place-items: center; flex: none; width: 40px; height: 40px; border-radius: 50%; background: var(--lavender); color: var(--ink); }
+.destination-icon .ui-icon { width: 20px; height: 20px; }
+.destination-title { display: grid; gap: 6px; min-width: 0; padding-top: 1px; }
+.destination-card h4 { color: var(--ink); font-size: 16px; font-weight: 700; line-height: 1.35; }
+.destination-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; color: var(--muted); font-size: 13.5px; line-height: 1.4; }
+.destination-custody { color: var(--body); font-size: 14px; line-height: 1.5; }
+.destination-custody.ui-mono { color: var(--ink); font-size: 13.5px; }
+.destination-warning.ui-callout { padding: 10px 12px; font-size: 13.5px; }
+/* The buttons' hit area reaches 10px past the text column on each side, but the rule above them stays on the card's
+   padding, level with the text. */
+.destination-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: auto -10px 0; padding-top: 10px; background: linear-gradient(var(--line), var(--line)) 10px 0 / calc(100% - 20px) 1px no-repeat; }
+.destination-controls button { min-height: 36px; padding: 0 10px; border-color: transparent; background: none; box-shadow: none; color: var(--ink); font-size: 14px; }
+.destination-controls button:not(:disabled):hover { border-color: transparent; background: var(--lavender); }
+.destination-controls [data-delete-destination] { margin-left: auto; color: var(--rose-text); }
+.destination-controls [data-delete-destination]:not(:disabled):hover { background: var(--rose-soft); }
+/* Three across, the cards line up. The pill takes its own line straight under the name, with the kind after it, so the
+   pills sit level even when one kind wraps. The controls sit at the foot of each card and Delete wraps right-aligned
+   onto their last row, so every card's bottom row sits level whatever the card holds above it. */
+@container destinations (min-width: 700px) {
+  .destination-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .destination-meta { flex-direction: column; align-items: flex-start; }
+  .destination-meta .ui-pill { order: -1; }
+}
+@container destination (max-width: 439px) {
+  .destination-card > .email-setup-action { width: 100%; }
+}
+
+/* History: one row per delivery, separated by rules. On a wide list the title, time and destination sit in the first
+   column, then the state pill, the reason with its code and the next action. */
+.notification-history > p { margin-top: 6px; color: var(--body); font-size: 14.5px; }
+.delivery-list { container: deliveries / inline-size; margin-top: 10px; min-width: 0; }
+.delivery-card { display: grid; gap: 4px; min-width: 0; padding: 14px 0; border-top: 1px solid var(--line); overflow-wrap: anywhere; }
+.delivery-card:first-child { border-top: 0; }
+.delivery-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; min-width: 0; }
+.delivery-heading strong { color: var(--ink); font-size: 15px; font-weight: 650; line-height: 1.4; }
+.delivery-when, .delivery-destination { color: var(--muted); font-size: 13.5px; line-height: 1.45; }
+.delivery-when time { white-space: nowrap; }
+.delivery-destination strong { color: var(--body); font-weight: 600; }
+.delivery-reason { color: var(--body); font-size: 14px; line-height: 1.5; }
+/* "Code:" is a sans label; only the code is mono. A value too long for the label's line moves whole to the next line
+   and breaks inside itself only when it is wider than the chip. */
+.reason-code { display: block; width: fit-content; max-width: 100%; margin-top: 4px; padding: 1px 8px; border-radius: 6px; background: var(--neutral-soft); color: var(--muted); font-size: 12.5px; font-weight: 500; line-height: 1.6; }
+.reason-code-value { display: inline-block; max-width: 100%; color: var(--body); font-family: var(--mono); overflow-wrap: anywhere; }
+.delivery-outcome { display: grid; justify-items: start; gap: 2px; min-width: 0; }
+.delivery-outcome > .email-setup-action { min-height: 36px; }
+@container deliveries (min-width: 620px) {
+  /* The outcome spans every row, ending in the 1fr track, so a tall reason grows that track and never spreads the
+     title, time and destination lines apart. */
+  .delivery-card { grid-template-columns: minmax(0, 1.2fr) 104px minmax(0, 1.5fr); grid-template-rows: auto auto auto 1fr; column-gap: 20px; row-gap: 2px; align-items: start; }
+  .delivery-heading { display: contents; }
+  .delivery-heading strong { grid-column: 1; grid-row: 1; }
+  .delivery-state { grid-column: 2; grid-row: 1; justify-self: start; }
+  .delivery-when { grid-column: 1; grid-row: 2; }
+  .delivery-destination { grid-column: 1; grid-row: 3; }
+  .delivery-outcome { grid-column: 3; grid-row: 1 / -1; }
+}
+
+.notification-empty { margin-top: 12px; padding: 16px; border: 1px solid var(--line); border-radius: var(--radius-panel); background: var(--card); color: var(--body); font-size: 14.5px; }
+.destination-list > .notification-empty { grid-column: 1 / -1; margin-top: 0; }
+
+/* ---------------------------------------------------------------- help panel */
+/* One card, placed in the aside on wide screens and inline before the history at 700px and below; notifications.js
+   picks the copy to open by the same 700px width. */
+.notification-help { padding: 22px 24px; color: var(--body); }
+.notification-help h2 { color: var(--ink); font-size: 18px; font-weight: 700; }
+.notification-help h3 { margin: 18px 0 4px; color: var(--ink); font-size: 15px; font-weight: 700; }
+.notification-help p { margin: 6px 0 0; color: var(--body); font-size: 14px; line-height: 1.6; }
+.notification-help h3 + p { margin-top: 0; }
+.notification-help code { overflow-wrap: anywhere; }
+.notification-help details, .verification-help { border-top: 1px solid var(--line); }
+.notification-help details:first-of-type { margin-top: 18px; }
+.notification-help details:last-of-type { border-bottom: 1px solid var(--line); }
+.notification-help summary, .verification-help summary { font-size: 15px; }
+.notification-help details[open], .verification-help[open] { padding-bottom: 12px; }
+.notification-help-mobile { display: none; }
+@media (max-width: 700px) {
+  .notification-help-mobile { display: block; }
+  .notification-help-mobile .notification-help { padding: 18px 16px; }
+  .right:has(.notification-help) { display: none; }
+}
+
+/* ---------------------------------------------------------------- dialogs */
+/* The theme draws the native dialog as the white card over --backdrop; these set the stacked form and the footer. */
+.notification-dialog { max-width: 560px; }
+.notification-dialog h2 { margin-bottom: 4px; color: var(--ink); font-size: 22px; font-weight: 700; line-height: 1.25; letter-spacing: -0.015em; }
+.notification-dialog form { display: grid; gap: 18px; }
+.notification-dialog p { color: var(--body); line-height: 1.6; }
+.notification-dialog .ui-helper { margin-top: -10px; }
+.dialog-field { display: grid; gap: 6px; }
+.notification-dialog .enabled-control input[type=checkbox]{width:24px;height:24px;min-width:24px;margin:0;flex:none}
+.notification-dialog .enabled-control { min-height: 44px; color: var(--ink); }
+.notification-dialog .form-error { color: var(--rose-text); font-size: 14px; font-weight: 600; }
+.notification-dialog .form-error:empty { display: none; }
+.notification-dialog .buttons { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; margin-top: 6px; }
+@media (max-width: 480px) {
+  .notification-dialog .buttons { flex-direction: column; }
+  .notification-dialog .buttons button { width: 100%; }
+}
+
+/* Confirm: a tone mark, the destination-named heading, the consequence and Cancel before the confirm. */
+.confirmation-dialog { max-width: 500px; }
+.dialog-mark { display: grid; place-items: center; width: 44px; height: 44px; margin-bottom: 14px; border-radius: 50%; background: var(--lavender); color: var(--ink); }
+.dialog-mark.danger { background: var(--rose-soft); color: var(--rose-text); }
+.dialog-mark .ui-icon { width: 22px; height: 22px; }
+.confirmation-dialog > p { margin-top: 8px; }
+.confirmation-dialog > .buttons { margin-top: 24px; }
+
+/* Secret: the one-time secret in the code block with Copy beside it, then its feedback, the verification help and the
+   close. Every child stays a direct child of the dialog. */
+.secret-dialog[open] { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 12px; max-width: 600px; }
+.secret-dialog > :not(.one-time-secret, .copy-secret) { grid-column: 1 / -1; }
+.secret-dialog > h2 { margin-bottom: 0; }
+.one-time-secret { display: block; min-width: 0; margin: 4px 0 0; padding: 14px 16px; border-radius: var(--radius-panel); background: var(--code-bg); color: var(--code-ink); font-family: var(--mono); font-size: 13.5px; line-height: 1.6; overflow-wrap: anywhere; user-select: all; }
+.secret-dialog > .copy-secret { margin-top: 4px; }
+.copy-feedback { min-height: 24px; margin-top: -4px; color: var(--ink); font-size: 14px; font-weight: 600; }
+.copy-feedback[data-state="error"] { color: var(--rose-text); }
+/* Until Copy reports, the feedback line takes no room, so the verification help sits right under the secret. */
+.copy-feedback:empty { min-height: 0; }
+.secret-dialog > .copy-feedback:empty + * { margin-top: -12px; }
+.secret-dialog .verification-help { border-bottom: 1px solid var(--line); }
+.secret-dialog > .secret-close { justify-self: end; margin-top: 8px; }
+@media (max-width: 480px) {
+  .secret-dialog[open] { grid-template-columns: minmax(0, 1fr); }
+  .secret-dialog > * { grid-column: 1; }
+  .secret-dialog > .copy-secret, .secret-dialog > .secret-close { width: 100%; }
+}

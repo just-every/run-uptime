@@ -1,0 +1,10 @@
+/* The close: the lake once more the morning after, the sun well up, the words just above it. The scene's own sky fades
+   into the mist at its top; the words sit in the landscape's upper sky, a little above the risen sun (dawn-scene.css lifts
+   it a fifth of the landscape), and the lake fades out into the footer over --mist below it. */
+.ut-closing { --land: min(560px, max(32.8125vw, min(330px, 82vw))); --mist: 64px; position: relative; isolation: isolate; display: flex; flex-direction: column; padding: clamp(88px, 9vw, 130px) 0 calc(var(--land) * 0.8 + var(--mist)); text-align: center; }
+.ut-closing-scene { position: absolute; inset: 0; z-index: -1; --ut-dawn-fade: 34%; }
+.ut-closing-copy { display: flex; flex-direction: column; align-items: center; }
+.ut-closing h2 { font-size: clamp(40px, 5vw, 72px); font-weight: 760; letter-spacing: -0.024em; word-spacing: 0.05em; line-height: 1.04; text-wrap: balance; }
+.ut-closing-sub { margin-top: 18px; color: var(--body); font-size: clamp(18px, 1.6vw, 22px); line-height: 1.5; text-wrap: balance; }
+.ut-closing .ut-actions { justify-content: center; margin-top: clamp(26px, 2.6vw, 36px); }
+.ut-closing .ut-fine { margin-top: 22px; color: var(--body); }

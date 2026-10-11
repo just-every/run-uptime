@@ -1,0 +1,97 @@
+name: Verify
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.20.0
+          cache: pnpm
+      - name: Remove unused preinstalled toolchains
+        # rer dev and preview refuse to start with under 15 GiB free.
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+      - run: node scripts/rer.mjs install
+      - run: pnpm exec playwright install --with-deps --only-shell chromium
+      - name: Prepare canonical temporary directory
+        run: |
+          mkdir -p ../scratch/tmp
+          echo "TMPDIR=$(realpath ../scratch/tmp)" >> "$GITHUB_ENV"
+          df -Pk "$GITHUB_WORKSPACE"
+          available_kib=$(df --output=avail -k "$GITHUB_WORKSPACE" | tail -n 1)
+          if (( available_kib < 15 * 1024 * 1024 )); then
+            printf 'Verification requires at least 15 GiB free after installation; available: %s KiB\n' "$available_kib" >&2
+            exit 1
+          fi
+      - run: node scripts/rer.mjs verify
+        env:
+          CI: 'true'
+          WRANGLER_SEND_METRICS: 'false'
+  prepare:
+    # This job has no provider credentials and never deploys. Its artifact must
+    # pass independent source, run and digest checks in a trusted controller.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22.20.0
+      - name: Install and package without credential environment
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          bundle="$RUNNER_TEMP/uptime-package-$RUN_ID-$RUN_ATTEMPT"
+          install_home="$RUNNER_TEMP/uptime-install-home-$RUN_ID-$RUN_ATTEMPT"
+          prepare_home="$RUNNER_TEMP/uptime-prepare-home-$RUN_ID-$RUN_ATTEMPT"
+          test ! -e "$bundle"
+          test ! -e "$install_home"
+          test ! -e "$prepare_home"
+          mkdir -m 700 "$bundle" "$install_home"
+          mkdir -m 700 "$bundle/tmp"
+          trap 'rm -rf "$install_home" "$prepare_home" "$bundle/tmp"' EXIT
+          if git config --local --name-only --get-regexp '(extraheader|credential|sshcommand)'; then
+            echo 'Checkout retained credential configuration' >&2
+            exit 1
+          fi
+          env -i PATH="$PATH" HOME="$install_home" CI=true TMPDIR="$bundle/tmp" \
+            GIT_CONFIG_NOSYSTEM=1 WRANGLER_SEND_METRICS=false \
+            CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV=false node scripts/rer.mjs install
+          env -i PATH="$PATH" HOME="$install_home" CI=true TMPDIR="$bundle/tmp" \
+            GIT_CONFIG_NOSYSTEM=1 WRANGLER_SEND_METRICS=false \
+            CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV=false \
+            RER_PREPARE_ISOLATION=ephemeral-credential-free-job \
+            RER_PREPARE_HOME="$prepare_home" RER_DEPLOY_ARTIFACT="$bundle/artifact.json" \
+            RER_DEPLOY_SOURCE_SHA="$SOURCE_SHA" RER_DEPLOY_RUN_ID="$RUN_ID" \
+            RER_DEPLOY_RUN_ATTEMPT="$RUN_ATTEMPT" node scripts/deployment/prepare.mjs
+          (cd "$bundle" && sha256sum artifact.json > artifact.sha256)
+      - name: Retain inert deployment artifact and digest
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: uptime-deploy-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/uptime-package-${{ github.run_id }}-${{ github.run_attempt }}/artifact.json
+            ${{ runner.temp }}/uptime-package-${{ github.run_id }}-${{ github.run_attempt }}/artifact.sha256
+          if-no-files-found: error
+          retention-days: 7

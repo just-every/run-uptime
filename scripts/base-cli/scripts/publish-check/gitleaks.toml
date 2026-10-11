@@ -1,0 +1,40 @@
+title = "Base publication scan"
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Explicit synthetic credential values; no exemption by file or directory"
+regexes = ['''(?i)^(?:test|fixture|fake|example|dummy|placeholder|your)[_-]''', '''(?i)^(?:gh[pousr]_|sk-(?:proj-|ant-)?|glpat-|npm_|whsec_|rk_live_|sk_live_|hf_|xapp-)(?:test|fixture|fake|example|dummy|placeholder)[_-]''']
+
+[[allowlists]]
+description = "Explicit synthetic values used by redaction fixtures"
+regexes = ['''(?i)^synthetic[_-]''']
+
+[[rules]]
+id = "private-key"
+[[rules.allowlists]]
+description = "A PEM-shaped fixture starts its body with a synthetic marker"
+regexes = ['''(?i)^-----BEGIN[ A-Z0-9_-]{0,100}PRIVATE KEY(?: BLOCK)?-----(?:\s|\\[nr])+(?:test|fixture|fake|example|dummy|placeholder|synthetic)[_-]''']
+
+[[rules.allowlists]]
+description = "A private-key header literal without an attached body is not a stored key"
+regexTarget = "match"
+regexes = ['''(?i)^-----BEGIN[ A-Z0-9_-]{0,100}PRIVATE KEY(?: BLOCK)?-----(?:\s|\\[nr])*['"]''']
+
+[[rules]]
+id = "jwt"
+[[rules.allowlists]]
+description = "A JWT-shaped fixture explicitly marks the signature synthetic"
+regexes = ['''\.(?:test|fixture|fake|example|dummy|placeholder|synthetic)[_-][a-zA-Z0-9_-]+$''']
+
+# SHA-shaped credentials must not disappear because their random bytes contain
+# an English stopword (for example dead/feed) or fall below generic entropy.
+# Source/module identities still require the location-bound proof in Python.
+[[rules]]
+id = "hex-api-key"
+description = "Hexadecimal credential assignment"
+regex = '''(?i)[\w.-]{0,50}?(?:access|auth|(?-i:[Aa]pi|API)|credential|creds|key|passw(?:or)?d|secret|token)(?:[ \t\w.-]{0,20})[\s'"]{0,3}(?:=|>|:{1,3}=|\|\||:|=>|\?=|,)[\x60'"\s=]{0,5}([a-f0-9]{64}|[a-f0-9]{40})(?:[\x60'"\s;]|\\[nr]|$)'''
+keywords = ["access", "auth", "api", "credential", "creds", "key", "passwd", "password", "secret", "token"]
+
+[[rules]]
+id = "generic-api-key"

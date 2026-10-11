@@ -1,0 +1,28 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {incidentEvent,mailContent} from '../src/domain/notification-content.ts';
+import {verificationHelp} from '../public/notification-dialogs.js';
+const read=file=>readFile(new URL('../'+file,import.meta.url),'utf8');
+const [notifications,style,notificationStyle,editor,markup,app,monitorPage,setup]=await Promise.all(['public/notifications.js','public/style.css','public/notifications.css','public/editor.js','src/ui/editor.html','public/app.js','public/monitor-page.js','src/domain/auth-document.server.ts'].map(read));
+test('edit enabled control has a 24px pointer target',()=>assert.match(notificationStyle,/enabled-control[^}]*[\s\S]*?input\[type=checkbox\][^}]*min-width:24px/));
+test('destructive actions require destination-named confirmation',()=>{assert.match(notifications,/confirmDestination/);assert.match(notifications,/Queued sends are cancelled/);assert.match(notifications,/update your receiver/)});
+test('owner can see and edit saved email and recover unavailable credentials',()=>{assert.match(notifications,/destination\.address/);assert.match(notifications,/credentialsAvailable/);assert.match(notifications,/values\.address/);assert.match(notifications,/Re-enter/)});
+test('unconfigured mail has local card warning and plain setup next action',()=>{assert.match(notifications,/Email is not set up, so this will not send/);assert.match(notifications,/Set up email/)});
+test('secret dialog offers copy, names receiver and verification instructions',async()=>{const dialogs=await read('public/notification-dialogs.js');assert.match(dialogs,/clipboard\.writeText/);assert.match(dialogs,/Copied/);assert.match(dialogs,/destinationName/);assert.match(dialogs,/UTF-8/)});
+test('signed request help names states emitted in notification content',()=>{
+ const monitor={id:'monitor',revision:1,definition:{name:'Review monitor',url:'https://monitor.example.com'}};
+ const events=['trigger','recovery'].map(kind=>incidentEvent({id:`event:${kind}`,kind,monitor,slotId:`slot:${kind}`,now:1,state:{reason:'HTTP 500'},observations:[],origin:'https://uptime.example.com',incidentKey:'incident:slot'}));
+ const payloads=events.map(event=>JSON.parse(JSON.stringify(event)));
+ const actualStates=payloads.map(payload=>payload.state);
+ assert.deepEqual(events.map(event=>mailContent(event).text.split('\n').find(line=>line.startsWith('State: '))),actualStates.map(state=>`State: ${state}`));
+ const helpText=verificationHelp.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ');
+ const documentedStates=helpText.match(/\bstate\b\s+is\s+([a-z]+)\s+or\s+([a-z]+)\b/i)?.slice(1);
+ assert.ok(documentedStates,'verification help should name both notification states');
+ assert.deepEqual([...documentedStates].sort(),[...new Set(actualStates)].sort());
+});
+test('help is headed, collapsed and before mobile history',async()=>{assert.match(await read('public/notification-dialogs.js'),/How to verify a signed request/);assert.match(notifications,/notification-help/);assert.match(notificationStyle,/notification-help-mobile/)});
+test('notifications copy is specific and codes labelled',()=>{assert.match(app,/Installation-wide destinations/);assert.match(notifications,/Code:/);assert.match(notifications,/https:\/\/hooks\.example\.com/);assert.doesNotMatch(notifications,/private runner/)});
+test('healthy badge and recent pass/fail detail have distinct marks',()=>{assert.match(monitorPage,/badge .*toLowerCase/);assert.match(style,/badge\.healthy/);assert.match(monitorPage,/checkResultSummary/)});
+test('one responsive editor has full navigation and human units',()=>{assert.doesNotMatch(markup,/mobile-390/);assert.match(markup,/Notifications/);assert.match(markup,/Sign out/);assert.match(markup,/Check every/);assert.match(markup,/Alert after/);assert.match(editor,/minutesToMilliseconds/);assert.doesNotMatch(editor,/native API|private-runner/)});
+test('setup locates local credential file in product document',()=>assert.match(setup,/Find it in data\/local-secrets\.json/));

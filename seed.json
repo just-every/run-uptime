@@ -1,0 +1,147 @@
+{
+  "id": "uptime",
+  "name": "Uptime",
+  "version": "0.1.0",
+  "maturity": "local-installer-and-owner-deploy-implemented-hosted-unverified",
+  "category": "monitoring",
+  "spine": {
+    "id": "monitor",
+    "record": "Immutable scheduled slot observations and explained private alert outbox"
+  },
+  "description": "Private uptime console for scheduled HTTP(S), keyword, and heartbeat probes, with Base owner sign-in, installation-wide incident notifications, and portable product archives.",
+  "capabilities": [
+    {
+      "id": "scheduled-monitoring",
+      "description": "Run signed HTTP(S), keyword, and heartbeat checks with immutable observations and explicit Unknown state.",
+      "clauses": [
+        "HTTP-001",
+        "EVIDENCE-001",
+        "STATE-001",
+        "NETWORK-001",
+        "HEARTBEAT-001"
+      ]
+    },
+    {
+      "id": "portable-archives",
+      "description": "Export and restore versioned product archives with paused definitions, portable notification definitions and histories, and preserved original state.",
+      "clauses": [
+        "ARCHIVE-001",
+        "RETENTION-001"
+      ]
+    },
+    {
+      "id": "notification-delivery",
+      "description": "Send scheduled incident email, signed JSON, and Slack notifications to installation-wide destinations.",
+      "clauses": [
+        "NOTIFY-001",
+        "DELIVERY-001"
+      ]
+    }
+  ],
+  "nonGoals": [
+    "Real provider or production target actions before explicit authority and verification",
+    "Public communication, people paging, and independent geographic monitoring",
+    "Fresh-account hosted operation and recipient acceptance remain unverified"
+  ],
+  "externals": [
+    {
+      "id": "cloudflare",
+      "required": false,
+      "requiredWhen": "When deploying a hosted Worker",
+      "why": "Cloudflare hosts the Worker, D1 database, and scheduled Cron for an owner's hosted installation.",
+      "data": [
+        "Cloudflare API deployment and health requests with account, resource, migration, and deployment identity metadata",
+        "Hosted Worker requests and responses carrying configured monitor data, observations, operator sessions, and notification state",
+        "Product records stored in the owner's Cloudflare D1 database and scheduled Worker execution metadata"
+      ],
+      "adapters": []
+    },
+    {
+      "id": "sendgrid-mail",
+      "required": false,
+      "requiredWhen": "When hosted sign-in or an owner-configured email destination is enabled",
+      "why": "SendGrid (sendgrid) sends hosted operator sign-in links and incident notification email. Local sign-in uses the development outbox.",
+      "data": [
+        "operator email addresses and single-use sign-in links",
+        "notification recipient addresses",
+        "incident titles, monitor identity, target URL, state, probe outcomes, explanations, observation times, and console URL"
+      ],
+      "adapters": []
+    },
+    {
+      "id": "incident-webhook",
+      "required": false,
+      "requiredWhen": "An owner enables a signed JSON webhook destination",
+      "why": "Owner-configured webhook (custom-webhook) sends to custom destination owner-configured-json-receiver: deliver scheduled incident events to the owner's public HTTPS endpoint. The endpoint runs outside this installation.",
+      "data": [
+        "event ID, type, and incident key",
+        "monitor ID, revision, name, target URL, and scheduled slot",
+        "state, observation time, probe outcomes, explanations, and private console URL"
+      ],
+      "adapters": []
+    },
+    {
+      "id": "slack-incoming-webhook",
+      "required": false,
+      "requiredWhen": "An owner enables a Slack incoming-webhook destination",
+      "why": "Slack (slack) sends to provider destination slack-incoming-webhook: post escaped notification content to the owner's incoming webhook. Slack runs outside this installation and accepts the configured remote request.",
+      "data": [
+        "incident title and state",
+        "monitor identity and target URL",
+        "probe outcomes, explanations, observation time, and console URL"
+      ],
+      "adapters": []
+    }
+  ],
+  "env": [
+    {
+      "name": "SENDGRID_API_KEY",
+      "required": false,
+      "requiredWhen": "When hosted sign-in or an email notification destination is enabled",
+      "secret": true,
+      "why": "Authenticates Base mail sending through SendGrid; load it from server-side secret storage and never expose it to browser code or logs."
+    }
+  ],
+  "deploy": {
+    "healthPath": "/health",
+    "publicPaths": [
+      "/",
+      "/docs",
+      "/health",
+      "/login",
+      "/claim",
+      "/auth/magic-link",
+      "/auth/confirm"
+    ],
+    "notes": "Console documents and APIs require a Base owner session; runner and heartbeat APIs use separately scoped credentials."
+  },
+  "extensionPoints": {
+    "contributions": [],
+    "policies": [],
+    "events": [],
+    "slots": [],
+    "adapters": []
+  },
+  "limits": {
+    "status": "unmeasured"
+  },
+  "accessibility": {
+    "level": "WCAG 2.2 AA",
+    "status": "target; unaudited"
+  },
+  "operatingCost": {
+    "status": "unmeasured"
+  },
+  "composition": {
+    "base": "base",
+    "family": "uptime",
+    "edition": "uptime",
+    "modules": [
+      "operator-auth",
+      "mail",
+      "integrations",
+      "deploy-kit",
+      "onboarding"
+    ]
+  }
+}

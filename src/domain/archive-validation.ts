@@ -1,0 +1,27 @@
+import {ARCHIVE_VERSION,ARCHIVE_ROWS,LEGACY_TABLES,TABLES,columns,assertBytes,shape,object,clock,digest,type Tables} from './archive-schema.ts'
+import {validateMonitorTables} from './archive-monitor-validation.ts'
+import {validateNotificationTables} from './archive-notification-validation.ts'
+export async function validateArchive(input:any){
+ try{assertBytes(input)}catch(error){if(error instanceof Error)throw Error(`Invalid archive integrity/version: ${error.message}`);throw error}
+ if(!object(input)||Object.keys(input).sort().join(',')!=='payload,sha256'||!object(input.payload)||![1,ARCHIVE_VERSION].includes(input.payload.schemaVersion)||input.payload.target!=='uptime-worker-d1'||typeof input.sha256!=='string'||input.sha256!==await digest(JSON.stringify(input.payload)))throw Error('Invalid archive integrity/version');
+ const p=input.payload,extended=p.extensionVersion!==undefined;
+ shape(p,extended?['schemaVersion','target','createdAt','tables','extensionVersion','productTables']:['schemaVersion','target','createdAt','tables'],'payload');clock(p.createdAt,'creation');
+ if(extended&&(p.extensionVersion!==1||p.schemaVersion!==2))throw Error('Unsupported archive extension');
+ if(!object(p.tables)||Object.keys(p.tables).sort().join(',')!==LEGACY_TABLES.slice().sort().join(','))throw Error('Invalid archive tables');
+ const extra=TABLES.filter(t=>!LEGACY_TABLES.includes(t));
+ if(extended&&(!object(p.productTables)||Object.keys(p.productTables).sort().join(',')!==extra.slice().sort().join(',')))throw Error('Invalid archive product tables');
+ const t:Tables={...structuredClone(p.tables),...Object.fromEntries(extra.map(name=>[name,extended?structuredClone(p.productTables[name]):[]]))};
+ for(const name of TABLES){if(!Array.isArray(t[name])||t[name].length>ARCHIVE_ROWS)throw Error(`Archive row bound exceeded: ${name} (${ARCHIVE_ROWS})`);for(const row of t[name]){if(p.schemaVersion===1&&name==='slots'&&!Object.hasOwn(row,'manual'))row.manual=row.id?.includes(':manual:')?1:0;shape(row,columns[name],name)}}
+ if(extended)for(const name of ['monitors','revisions','slots'])for(const row of t[name])if(Object.hasOwn(JSON.parse(row.definition),'request'))throw Error('Archive execution references forbidden');
+ validateMonitorTables(t,Date.now());validateNotificationTables(t);
+ const seen=new Set<string>();
+ // History is a flat set of sanitized originals, never archives inside archives.
+ // Validate its oldest original view using the same complete referential checks.
+ const original:Tables=Object.fromEntries(TABLES.map(n=>[n,t[n].slice()]));
+ for(const h of t.archive_history){
+  if(!['monitors','slots','outbox','notification_destinations','notification_jobs','integration_deliveries'].includes(h.table_name)||typeof h.record!=='string'||h.id!==await digest(`${h.table_name}\n${h.record}`)||seen.has(h.id))throw Error('Invalid archive original history');seen.add(h.id);
+  const row=JSON.parse(h.record);shape(row,columns[h.table_name],h.table_name);if(row.definition&&Object.hasOwn(JSON.parse(row.definition),'request')||h.table_name==='slots'&&(row.lease_owner!=='restored-inactive'||row.lease_until!==0))throw Error('Archive execution references forbidden');const list=original[h.table_name];const i=list.findIndex(r=>r.id===row.id);if(i<0)throw Error('Orphan archive original history');list[i]=row;const variant={...t,[h.table_name]:t[h.table_name].map(r=>r.id===row.id?row:r)};if(['monitors','slots','outbox'].includes(h.table_name))validateMonitorTables(variant,Date.now());else validateNotificationTables(variant);
+ }
+ if(t.archive_history.length){validateMonitorTables(original,Date.now());validateNotificationTables(original)}
+ return t;
+}

@@ -1,0 +1,116 @@
+/* Docs layout: section sidebar | article | "On this page", spanning the header's width so the sidebar sits under the
+   lockup, and all three columns starting on one line. The sidebar shows from 900px, the contents column from 1200px;
+   below 900px a pill menu replaces the sidebar. The docs home has the sidebar and no contents column. The top of every docs
+   page keeps a faint dawn sky, with far hills and mist behind the header (DocsDawn) and the faintest warmth along the
+   sidebar's edge; the article column stays on the cool ground. */
+.ut-docs { position: relative; isolation: isolate; }
+.ut-docs::before { content: ""; position: absolute; inset: 0 0 auto; z-index: -1; height: 520px; pointer-events: none;
+  background:
+    radial-gradient(70% 380px at 82% 0%, rgba(251, 227, 207, 0.6), rgba(251, 227, 207, 0) 72%),
+    linear-gradient(180deg, var(--sky-top) 0, rgba(239, 234, 243, 0.8) calc(var(--header-h) * 0.88), rgba(247, 246, 251, 0) calc(var(--header-h) * 1.6)); }
+.docs-dawn { position: absolute; top: 0; left: 0; z-index: -1; width: 100%; height: calc(var(--header-h) * 1.5); pointer-events: none;
+  -webkit-mask-image: linear-gradient(#000 72%, transparent); mask-image: linear-gradient(#000 72%, transparent); }
+/* Narrower than this, the sun would sit behind the header's links: only its glow and glint stay. */
+@media (max-width: 1199px) {
+  .docs-dawn-sun { display: none; }
+}
+@media (min-width: 900px) {
+  .ut-docs::after { content: ""; position: absolute; top: calc(var(--header-h) + 40px); left: 0; z-index: -1; width: 420px; height: 760px; pointer-events: none;
+    background: radial-gradient(100% 50% at 0% 50%, rgba(251, 230, 218, 0.42), rgba(251, 230, 218, 0.16) 45%, rgba(251, 230, 218, 0)); }
+}
+
+.docs-shell { display: grid; grid-template-columns: minmax(0, 1fr); column-gap: clamp(32px, 4vw, 64px); padding-top: clamp(20px, 3vw, 48px); padding-bottom: clamp(72px, 8vw, 120px); }
+.ut-wrap.docs-shell { max-width: none; padding-inline: var(--chrome-gutter); }
+.docs-main { min-width: 0; }
+.docs-main:focus { outline: none; }
+
+/* The first line of each column (the sidebar's "All docs", the article's eyebrow, "On this page") shares one line box,
+   so the three tops line up. The side columns scroll on their own; 8px of padding, taken back by the margin, keeps focus
+   rings inside them. */
+.docs-sidebar-home, .docs-eyebrow, .docs-toc-title { line-height: 18px; }
+
+/* Section navigation, shared by the sidebar and the phone menu. */
+.docs-sidebar, .docs-toc { position: sticky; top: 24px; align-self: start; max-height: calc(100vh - 48px); overflow-y: auto; margin: -8px -8px 0; padding: 8px 8px 24px; }
+.docs-sidebar-home { display: block; width: max-content; margin-bottom: 22px; color: var(--muted); font-size: 14px; font-weight: 600; }
+.docs-sidebar-home:hover, .docs-sidebar-home[aria-current] { color: var(--ink); }
+:is(.docs-sidebar-home, .docs-toc a, .docs-toc-compact a, .docs-prose a):focus-visible { border-radius: 8px; }
+.docs-nav-group + .docs-nav-group { margin-top: 26px; }
+.docs-nav-section { margin-bottom: 8px; color: var(--muted); font-size: 12.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; }
+.docs-nav-group ul { display: grid; gap: 2px; }
+.docs-nav-group a { position: relative; display: block; padding: 7px 12px 7px 14px; border-radius: 10px; color: var(--body); font-size: 15.5px; line-height: 1.35; transition: background-color 0.18s, color 0.18s; }
+.docs-nav-group a:hover { background: rgba(20, 32, 74, 0.05); color: var(--ink); }
+.docs-nav-group a[aria-current="page"] { background: rgba(255, 255, 255, 0.9); color: var(--ink); font-weight: 650; box-shadow: 0 0 0 1px var(--line), 0 6px 16px -10px rgba(20, 32, 74, 0.35); }
+.docs-nav-group a[aria-current="page"]::before { content: ""; position: absolute; left: -2px; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 3px var(--ground); }
+
+/* On this page */
+.docs-toc-title { margin-bottom: 10px; color: var(--muted); font-size: 12.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; }
+:is(.docs-toc, .docs-toc-compact) ul { display: grid; gap: 1px; }
+:is(.docs-toc, .docs-toc-compact) a { display: block; padding: 5px 0; color: var(--muted); font-size: 14.5px; line-height: 1.4; transition: color 0.18s; }
+:is(.docs-toc, .docs-toc-compact) a:hover { color: var(--ink); }
+:is(.docs-toc, .docs-toc-compact) ul ul { margin: 2px 0 6px; padding-left: 14px; border-left: 1.5px solid var(--line-strong); }
+
+/* The phone menu and the compact contents list: an outline pill that opens a card. */
+:is(.docs-menu, .docs-toc-compact) { margin-bottom: 24px; }
+:is(.docs-menu, .docs-toc-compact) summary { display: inline-flex; align-items: center; gap: 10px; max-width: 100%; min-height: 44px; padding: 0 18px; border: 1px solid var(--line-strong); border-radius: 999px; background: rgba(255, 255, 255, 0.8); color: var(--ink); font-size: 15px; font-weight: 600; cursor: pointer; list-style: none; }
+:is(.docs-menu, .docs-toc-compact) summary::-webkit-details-marker { display: none; }
+:is(.docs-menu, .docs-toc-compact) summary::after { content: ""; flex: none; width: 7px; height: 7px; margin: -3px 0 0 2px; border: solid currentColor; border-width: 0 1.6px 1.6px 0; transform: rotate(45deg); }
+:is(.docs-menu details[open], .docs-toc-compact[open]) > summary::after { margin-top: 4px; transform: rotate(225deg); }
+.docs-menu-current { min-width: 0; overflow: hidden; color: var(--muted); font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+.docs-menu-current::before { content: "\00b7"; margin-right: 10px; }
+.docs-menu-list, .docs-toc-compact[open] > ul { margin-top: 12px; padding: 18px 20px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card-solid); box-shadow: var(--shadow); }
+
+/* Previous and next */
+.docs-pager { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; max-width: 38em; margin-top: clamp(48px, 6vw, 72px); }
+.docs-pager-card { display: grid; align-content: center; gap: 4px; min-height: 84px; padding: 16px 22px; transition: border-color 0.18s, transform 0.18s; }
+.docs-pager-card:hover { border-color: var(--lavender-deep); transform: translateY(-1px); }
+.docs-pager-card--next { grid-column: 2; text-align: right; }
+.docs-pager-label { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; font-weight: 600; }
+.docs-pager-card--next .docs-pager-label { justify-content: flex-end; }
+.docs-pager-card--previous .docs-pager-label .ut-icon { transform: rotate(180deg); }
+.docs-pager-label .ut-icon { width: 15px; height: 15px; }
+.docs-pager-title { color: var(--ink); font-size: 17.5px; font-weight: 700; line-height: 1.3; }
+
+/* Page head, shared by the index and the articles. */
+.docs-page-head { margin-bottom: 34px; }
+.docs-eyebrow { margin-bottom: 12px; }
+.docs-title { font-size: clamp(38px, 4.4vw, 58px); letter-spacing: -0.03em; line-height: 1.05; text-wrap: balance; overflow-wrap: anywhere; }
+.docs-title-dots { margin-top: 20px; }
+
+/* The docs home: a lead, then each section's pages as cards, two to a row, every card the height of the tallest. */
+.docs-shell--index .docs-main { max-width: 980px; }
+.docs-lead { max-width: 38em; color: var(--body); font-size: clamp(18px, 1.5vw, 21px); line-height: 1.6; text-wrap: pretty; }
+.docs-index-section { margin-top: clamp(40px, 4.4vw, 56px); }
+.docs-index-section-title { margin-bottom: 14px; }
+.docs-index-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: 16px; }
+.docs-index-grid li { display: grid; }
+.docs-index-card { display: block; padding: 20px 24px 22px; transition: border-color 0.18s, transform 0.18s; }
+.docs-index-card:hover { border-color: var(--lavender-deep); transform: translateY(-1px); }
+.docs-index-card h3 { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 18px; letter-spacing: -0.012em; line-height: 1.3; }
+.docs-index-card h3 .ut-icon { width: 17px; height: 17px; flex: none; color: var(--muted); transition: color 0.18s, transform 0.18s; }
+.docs-index-card:is(:hover, :focus-visible) h3 .ut-icon { color: var(--ink); transform: translateX(2px); }
+.docs-index-card p { margin-top: 6px; color: var(--body); font-size: 15.5px; line-height: 1.55; }
+
+@media (min-width: 900px) {
+  .docs-shell { grid-template-columns: 236px minmax(0, 1fr); }
+  .docs-menu { display: none; }
+}
+@media (max-width: 899px) {
+  .docs-sidebar { display: none; }
+}
+@media (min-width: 1200px) {
+  /* On very wide screens the article column stops growing and the spare width goes either side of it, so the page's
+     text stays near the middle while the sidebar and contents keep to the header's edges. */
+  .docs-shell { grid-template-columns: 236px minmax(0, 860px) 216px; justify-content: space-between; }
+  .docs-shell--index { grid-template-columns: 236px minmax(0, 1fr); }
+  .docs-toc-compact { display: none; }
+}
+@media (max-width: 1199px) {
+  .docs-toc { display: none; }
+}
+@media (max-width: 640px) {
+  .docs-index-grid { grid-template-columns: minmax(0, 1fr); grid-auto-rows: auto; }
+}
+@media (max-width: 600px) {
+  .docs-pager { grid-template-columns: minmax(0, 1fr); }
+  .docs-pager-card--next { grid-column: auto; }
+}

@@ -1,0 +1,11 @@
+CREATE TABLE migrations(version INTEGER PRIMARY KEY, applied_at INTEGER NOT NULL);
+INSERT INTO migrations VALUES(1,unixepoch()*1000);
+CREATE TABLE sessions(hash TEXT PRIMARY KEY,expires_at INTEGER NOT NULL,revoked INTEGER NOT NULL DEFAULT 0);
+CREATE TABLE login_attempts(id TEXT PRIMARY KEY,at INTEGER NOT NULL);
+CREATE TABLE monitors(id TEXT PRIMARY KEY,revision INTEGER NOT NULL,definition TEXT NOT NULL,next_due INTEGER NOT NULL,state TEXT NOT NULL);
+CREATE TABLE revisions(monitor_id TEXT NOT NULL,revision INTEGER NOT NULL,definition TEXT NOT NULL,created_at INTEGER NOT NULL,PRIMARY KEY(monitor_id,revision));
+CREATE TABLE slots(id TEXT PRIMARY KEY,monitor_id TEXT NOT NULL,revision INTEGER NOT NULL,due_at INTEGER NOT NULL,status TEXT NOT NULL,definition TEXT NOT NULL,lease_owner TEXT NOT NULL,lease_until INTEGER NOT NULL,missed_count INTEGER NOT NULL DEFAULT 0);
+CREATE TABLE observations(id TEXT PRIMARY KEY,slot_id TEXT NOT NULL,probe TEXT NOT NULL,attempt INTEGER NOT NULL,evidence TEXT NOT NULL,UNIQUE(slot_id,probe,attempt));
+CREATE TABLE outbox(id TEXT PRIMARY KEY,monitor_id TEXT NOT NULL,slot_id TEXT NOT NULL,kind TEXT NOT NULL,event TEXT NOT NULL,status TEXT NOT NULL DEFAULT 'pending',lease_until INTEGER NOT NULL DEFAULT 0,receipt TEXT);
+CREATE INDEX slots_monitor ON slots(monitor_id,due_at);
+CREATE INDEX observations_slot ON observations(slot_id);

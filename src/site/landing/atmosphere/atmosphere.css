@@ -1,0 +1,42 @@
+/* A little of the hero's morning carried down the page, one quiet touch per region, each behind or beside the content and
+   never under body text: the recovery catching the sunrise, one far horizon, a lakeside cabin in the mid-morning sun and,
+   in the note at the end, the night still to come (sections.css draws the dawn-tinted icon wells and the moon chip). */
+
+/* 1. Recovery glow: a warm peach light behind the right end of the incident card, where the two passes close the
+   incident. It ends before the copy beside the card; on one column it rises from below the card's right end instead, clear
+   of the paragraph above. */
+#incidents .ut-sec-art { position: relative; }
+#incidents .ut-sec-art::before { content: ""; position: absolute; z-index: -1; top: -120px; right: -80px; width: 360px; height: 330px; pointer-events: none;
+  background: radial-gradient(closest-side, rgba(252, 214, 184, 0.78), rgba(252, 220, 194, 0.4) 50%, rgba(252, 226, 204, 0)); }
+
+/* 2. One horizon, in the air between Checks and Notifications: a band across the whole page, centred on the boundary
+   between the two sections, its height following the width (128px at most) so it stays in the gap on a phone. */
+.ut-horizon { position: relative; z-index: -1; height: 0; pointer-events: none; --hz: clamp(36px, 6.25vw, 128px); }
+.ut-horizon svg { position: absolute; top: calc(var(--hz) / -2); left: calc(50% - 50vw); width: 100vw; height: var(--hz); }
+
+/* 3. The lakeside cabin, at the terminal's top right corner: drawn with that corner at its origin, 620 by 320 drawing units of
+   --u each, always behind the card. Where the margin beside the card is narrow (two columns up to 1599px) the island stands
+   on the card's top edge, its waterline 14px above it, with the sky lowered to stand just behind it: dock, cabin, pines,
+   ridge and sun all in the open air above the card's right end, clear of the copy column, the reflection sliding behind the
+   card. From 1600px the margin holds the whole island, dock and all, beside the card as in the target: the dock starts at
+   least 8px off the card, and the island grows a little from 1800px to fill the wider margin. Below 960px, where the card
+   spans the column, it is left out. */
+#ownership .ut-sec-art { position: relative; }
+.ut-cabin { position: absolute; z-index: -1; width: calc(620 * var(--u)); height: calc(320 * var(--u)); pointer-events: none; }
+@media (min-width: 961px) and (max-width: 1599px) {
+  .ut-cabin { --u: clamp(0.75px, 0.75px + (100vw - 961px) / 6380, 0.85px); top: calc(-250 * var(--u) - 14px); right: calc(150px - 240 * var(--u));
+    -webkit-mask-image: linear-gradient(#000 78%, transparent), linear-gradient(to right, #000 85%, transparent); -webkit-mask-composite: source-in;
+    mask-image: linear-gradient(#000 78%, transparent), linear-gradient(to right, #000 85%, transparent); mask-composite: intersect; }
+  .ut-cabin-sky { transform: translateY(100px); }
+}
+@media (min-width: 1600px) {
+  .ut-cabin { --u: 1px; --g: calc(50vw - var(--max) / 2); --ml: clamp(8px, (var(--g) - 186 * var(--u)) / 2, 40px);
+    top: calc(-120 * var(--u)); right: calc(-276 * var(--u) - var(--ml));
+    -webkit-mask-image: linear-gradient(to right, #000 78%, transparent); mask-image: linear-gradient(to right, #000 78%, transparent); }
+}
+@media (min-width: 1800px) { .ut-cabin { --u: 1.3px; } }
+@media (max-width: 960px) {
+  .ut-cabin { display: none; }
+  #incidents .ut-sec-art::before { top: auto; bottom: -72px; right: -8px; width: min(320px, 80%); height: 200px;
+    background: radial-gradient(closest-side, rgba(252, 214, 184, 1), rgba(252, 220, 194, 0.45) 50%, rgba(252, 226, 204, 0)); }
+}

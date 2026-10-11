@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "id": "job-queue",
+  "kind": "optional-source",
+  "entry": "index.mjs",
+  "cli": "cli.mjs",
+  "copy": ["config.mjs", "resources.mjs", "processes.mjs", "identity.mjs", "storage.mjs", "command.mjs", "supervisor.mjs", "index.mjs", "cli.mjs"],
+  "requires": ["node-22-or-newer", "macos-or-linux", "local-atomic-filesystem", "shared-owner-state-directory"],
+  "status": "Machine-wide development admission and process-group cleanup; rer verbs can adopt the queue independently"
+}

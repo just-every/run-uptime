@@ -1,0 +1,74 @@
+{
+  "schema": 1,
+  "projectId": "just-every/uptime-monitor",
+  "name": "Uptime",
+  "sourceRepository": "https://github.com/just-every/uptime-monitor",
+  "license": "MIT",
+  "deployment": {
+    "target": "cloudflare-workers",
+    "artifactFile": "rer-worker-artifact.json"
+  },
+  "operations": {
+    "setup": "bash scripts/delivery/setup-build.sh",
+    "build": "export PATH=\"$PWD/.rer-tools/node_modules/.bin:$PATH\" && node scripts/rer.mjs build",
+    "verify": "export PATH=\"$PWD/.rer-tools/node_modules/.bin:$PATH\" && node scripts/rer.mjs verify",
+    "artifact": "export PATH=\"$PWD/.rer-tools/node_modules/.bin:$PATH\" && node scripts/build-delivery-artifact.mjs",
+    "recovery": "Preserve the private deployment receipt and D1 migration ledger. Restore archives into an empty installation with monitors paused and alerts quarantined."
+  },
+  "verification": {
+    "sensitivePaths": [
+      "src/domain/operator-auth.server.ts",
+      "src/server.ts",
+      "src/base/modules/operator-auth/**",
+      "src/base/modules/mail/**",
+      "src/base/modules/integrations/**",
+      "runners/src/public-http.mjs",
+      "scripts/local-settings.mjs",
+      "public/notifications.js",
+      "src/domain/notification-content.ts",
+      "src/domain/notification-cancellation.server.ts",
+      "src/domain/notification-credentials.server.ts",
+      "src/domain/notification-destinations.server.ts",
+      "src/domain/notification-mail.server.ts",
+      "src/domain/notification-protocols.ts",
+      "src/domain/notification-rpc.server.ts",
+      "src/domain/notifications.server.ts",
+      "runners/src/credentials.mjs",
+      "runners/src/notification-dispatch.mjs",
+      "src/domain/notification-claims.server.ts",
+      "public/notification-dialogs.js",
+      "src/domain/auth-document.server.ts",
+      "scripts/installer/**",
+      "scripts/base-onboarding/**",
+      "scripts/deployment/owner-*.mjs",
+      "src/domain/archive*.ts",
+      "scripts/rer.mjs",
+      "scripts/base-cli/**",
+      "scripts/local/**",
+      "rer-setup.json",
+      "src/base/modules/owner-claim/**",
+      "src/base/modules/editor/**",
+      "src/editor/**",
+      "src/domain/editor.server.ts",
+      "src/domain/owner-claim.server.ts",
+      "scripts/delivery/**",
+      ".github/workflows/rer-managed.yml",
+      "src/domain/first-run.server.ts"
+    ],
+    "migrationDirectories": [
+      "migrations"
+    ],
+    "guidanceFiles": [
+      "AGENTS.md",
+      "CONTRACT.md",
+      "OPERATIONS.md"
+    ],
+    "testPatterns": [
+      "tests/*.mjs"
+    ]
+  },
+  "setup": {
+    "path": "rer-setup.json",
+    "sha256": "4057567992552770fa92694d6048dc3574e9a7cd5cd0bd4cefc2b33b3ba06a74"
+  }
+}

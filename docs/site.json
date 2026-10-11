@@ -1,0 +1,28 @@
+{
+  "sections": [
+    {
+      "title": "Start here",
+      "pages": [
+        { "slug": "overview", "title": "Overview", "file": "overview.md", "summary": "What Uptime is, how its pieces fit together, and who it is for." },
+        { "slug": "install", "title": "Install Uptime", "file": "install.md", "summary": "Run Uptime on your own computer with the rer command, then sign in and finish setup." },
+        { "slug": "deploy", "title": "Deploy to Cloudflare", "file": "deploy.md", "summary": "Put Uptime on your own Cloudflare account with one command, and what to check afterwards." }
+      ]
+    },
+    {
+      "title": "Run it",
+      "pages": [
+        { "slug": "runner", "title": "The private runner", "file": "runner.md", "summary": "Start and supervise the separate process that actually checks your targets." },
+        { "slug": "monitors", "title": "Monitors and evidence", "file": "monitors.md", "summary": "The three monitor kinds, how checks become incidents, and why Unknown is never green." },
+        { "slug": "notifications", "title": "Notifications", "file": "notifications.md", "summary": "Send confirmed failures to email, a signed webhook or Slack, and know what delivery claims mean." },
+        { "slug": "data", "title": "Move your data", "file": "data.md", "summary": "Export an archive, restore it into an empty installation, and keep your private settings separately." }
+      ]
+    },
+    {
+      "title": "Project",
+      "pages": [
+        { "slug": "limits", "title": "What Uptime does not do", "file": "limits.md", "summary": "The checks, channels and claims Uptime leaves out, stated plainly." },
+        { "slug": "security", "title": "Security", "file": "security.md", "summary": "Who can reach what, how requests are checked, and where your credentials live." }
+      ]
+    }
+  ]
+}

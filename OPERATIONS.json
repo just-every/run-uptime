@@ -1,0 +1,442 @@
+{
+  "version": 2,
+  "project": "uptime",
+  "runtime": {
+    "requirements": [
+      {
+        "name": "node",
+        "version": "22.20.0"
+      },
+      {
+        "name": "pnpm",
+        "version": "10.12.4"
+      }
+    ]
+  },
+  "requiredEnvironment": [
+    "CLOUDFLARE_ACCOUNT_ID",
+    "CLOUDFLARE_API_TOKEN",
+    "OWNER_EMAIL",
+    "MAIL_FROM",
+    "SENDGRID_API_KEY",
+    "SESSION_SECRET",
+    "SETUP_TOKEN",
+    "UPTIME_RUNNER_KEY",
+    "RER_PREPARE_ISOLATION",
+    "RER_PREPARE_HOME",
+    "RER_DEPLOY_ARTIFACT",
+    "RER_DEPLOY_ARTIFACT_SHA256",
+    "RER_DEPLOY_SOURCE_SHA",
+    "RER_DEPLOY_RUN_ID",
+    "RER_DEPLOY_RUN_ATTEMPT",
+    "RER_DEPLOY_RECEIPT",
+    "UPTIME_WORKER_NAME",
+    "UPTIME_ORIGIN"
+  ],
+  "environmentSources": {
+    "CLOUDFLARE_ACCOUNT_ID": "Cloudflare account details in the owner deployment environment. Read OPERATIONS.md",
+    "CLOUDFLARE_API_TOKEN": "Cloudflare token setup in the owner deployment environment. Read OPERATIONS.md",
+    "OWNER_EMAIL": "Owner email entered in the owner deployment environment. Read OPERATIONS.md",
+    "MAIL_FROM": "Verified sender entered in the owner deployment environment. Read OPERATIONS.md",
+    "SENDGRID_API_KEY": "SendGrid integration item in the team vault. Read OPERATIONS.md",
+    "SESSION_SECRET": "Private Uptime deployment settings or the team vault. Read OPERATIONS.md",
+    "SETUP_TOKEN": "Private Uptime deployment settings or the team vault. Read OPERATIONS.md",
+    "UPTIME_RUNNER_KEY": "Private Uptime deployment settings or the team vault. Read OPERATIONS.md",
+    "RER_PREPARE_ISOLATION": "Isolated Linux job marker from the build workflow. Read OPERATIONS.md",
+    "RER_PREPARE_HOME": "Fresh private home path created by the build workflow. Read OPERATIONS.md",
+    "RER_DEPLOY_ARTIFACT": "Absolute archive path provided by the build workflow. Read OPERATIONS.md",
+    "RER_DEPLOY_ARTIFACT_SHA256": "Verified archive digest from the preparation output. Read OPERATIONS.md",
+    "RER_DEPLOY_SOURCE_SHA": "Exact source revision used by the build workflow. Read OPERATIONS.md",
+    "RER_DEPLOY_RUN_ID": "Build workflow numeric run identifier. Read OPERATIONS.md",
+    "RER_DEPLOY_RUN_ATTEMPT": "Build workflow numeric attempt number. Read OPERATIONS.md",
+    "RER_DEPLOY_RECEIPT": "Private receipt location held by the deployment operator. Read OPERATIONS.md",
+    "UPTIME_WORKER_NAME": "Cloudflare Worker name selected in the deployment plan. Read OPERATIONS.md",
+    "UPTIME_ORIGIN": "Exact public HTTPS origin selected in the deployment plan. Read OPERATIONS.md"
+  },
+  "commands": {
+    "setup": {
+      "argv": [
+        "node",
+        "scripts/rer.mjs",
+        "setup"
+      ],
+      "effects": "Build, apply all additive local migrations, prepare private settings and bootstrap one owner through operator-auth; send an ordinary sign-in to the Base outbox, then stop every temporary process.",
+      "inputs": [
+        "package.json",
+        "scripts/rer.mjs",
+        "scripts/installer/local.mjs",
+        "rer-setup.json"
+      ],
+      "requiredEnvironment": []
+    },
+    "dev": {
+      "argv": [
+        "node",
+        "scripts/rer.mjs",
+        "dev"
+      ],
+      "effects": "Start Vite with assets and HMR, the product synthetic target and private runner on loopback; print readiness after application health and fresh outbox sign-in.",
+      "inputs": [
+        "package.json",
+        "scripts/rer.mjs",
+        "scripts/installer/local.mjs",
+        "rer-setup.json"
+      ],
+      "requiredEnvironment": []
+    },
+    "preview": {
+      "argv": [
+        "node",
+        "scripts/rer.mjs",
+        "preview"
+      ],
+      "effects": "Build and serve fixed production output with the product synthetic target and private runner on loopback; preserve the local owner and durable state; stop after idle timeout or preview --stop.",
+      "inputs": [
+        "package.json",
+        "scripts/rer.mjs",
+        "scripts/installer/local.mjs",
+        "rer-setup.json"
+      ],
+      "requiredEnvironment": []
+    },
+    "deploy": {
+      "argv": [
+        "node",
+        "scripts/rer.mjs",
+        "deploy"
+      ],
+      "effects": "Build and provision in the owner Cloudflare account through Base deploy-kit, then check health. Dry run validates/builds locally with zero provider requests.",
+      "inputs": [
+        "package.json",
+        "scripts/rer.mjs",
+        "scripts/installer/local.mjs",
+        "rer-setup.json"
+      ],
+      "requiredEnvironment": [
+        "CLOUDFLARE_ACCOUNT_ID",
+        "CLOUDFLARE_API_TOKEN",
+        "OWNER_EMAIL",
+        "MAIL_FROM",
+        "SENDGRID_API_KEY",
+        "SESSION_SECRET",
+        "SETUP_TOKEN",
+        "UPTIME_RUNNER_KEY"
+      ]
+    },
+    "health": {
+      "argv": [
+        "pnpm",
+        "run",
+        "health"
+      ],
+      "effects": "Read Cloudflare deployment identity and health for the selected owner account.",
+      "inputs": [
+        "package.json",
+        "deploy.json",
+        "scripts/deployment/owner-cli.mjs",
+        "scripts/deployment/owner-prepare.mjs",
+        "scripts/deployment/owner-settings.mjs",
+        "src/base/modules/deploy-kit/owner-cli.mjs"
+      ],
+      "requiredEnvironment": [
+        "CLOUDFLARE_ACCOUNT_ID",
+        "CLOUDFLARE_API_TOKEN"
+      ],
+      "environmentPolicy": "Read-only provider check; application secret values are not required."
+    },
+    "verify": {
+      "argv": [
+        "node",
+        "scripts/rer.mjs",
+        "verify"
+      ],
+      "effects": "Run the complete product verification target without recursive aliases.",
+      "inputs": [
+        "package.json",
+        "scripts/rer.mjs",
+        "scripts/installer/local.mjs",
+        "rer-setup.json"
+      ],
+      "requiredEnvironment": []
+    },
+    "export": {
+      "argv": [
+        "node",
+        "scripts/rer.mjs",
+        "export"
+      ],
+      "effects": "Write a new private Base integrity archive containing the complete Uptime product payload; exclude credentials and installation authority.",
+      "inputs": [
+        "package.json",
+        "scripts/rer.mjs",
+        "scripts/installer/local.mjs",
+        "rer-setup.json"
+      ],
+      "requiredEnvironment": []
+    },
+    "import": {
+      "argv": [
+        "node",
+        "scripts/rer.mjs",
+        "import"
+      ],
+      "effects": "After confirmation validate Base integrity and atomically restore complete product/history records into an empty destination, with monitors paused, destinations disabled and notifications quarantined.",
+      "inputs": [
+        "package.json",
+        "scripts/rer.mjs",
+        "scripts/installer/local.mjs",
+        "rer-setup.json"
+      ],
+      "requiredEnvironment": []
+    },
+    "artifact-prepare": {
+      "argv": [
+        "node",
+        "scripts/deployment/prepare.mjs"
+      ],
+      "effects": "Build clean exact source without credentials and package an inert Worker, assets and migrations.",
+      "inputs": [
+        "package.json",
+        "scripts/deployment/prepare.mjs"
+      ],
+      "requiredEnvironment": [
+        "RER_PREPARE_ISOLATION",
+        "RER_PREPARE_HOME",
+        "RER_DEPLOY_ARTIFACT",
+        "RER_DEPLOY_SOURCE_SHA",
+        "RER_DEPLOY_RUN_ID",
+        "RER_DEPLOY_RUN_ATTEMPT"
+      ],
+      "forbiddenEnvironment": [
+        "NODE_OPTIONS",
+        "NODE_PATH"
+      ],
+      "environmentPolicy": "Isolated credential-free Linux job. Use only the declared preparation inputs and job plumbing; the preparation home and artifact path are private and outside the checkout."
+    },
+    "artifact-deploy": {
+      "argv": [
+        "node",
+        "scripts/deployment/deploy.mjs",
+        "deploy"
+      ],
+      "effects": "Provision Worker, D1 and Cron from an independently verified artifact.",
+      "inputs": [
+        "package.json",
+        "scripts/deployment/deploy.mjs",
+        "scripts/deployment/plan.mjs"
+      ],
+      "requiredEnvironment": [
+        "RER_DEPLOY_ARTIFACT",
+        "RER_DEPLOY_ARTIFACT_SHA256",
+        "RER_DEPLOY_SOURCE_SHA",
+        "RER_DEPLOY_RUN_ID",
+        "RER_DEPLOY_RUN_ATTEMPT",
+        "RER_DEPLOY_RECEIPT",
+        "CLOUDFLARE_ACCOUNT_ID",
+        "CLOUDFLARE_API_TOKEN",
+        "UPTIME_WORKER_NAME",
+        "UPTIME_ORIGIN"
+      ],
+      "conditionalEnvironment": [
+        {
+          "names": [
+            "SESSION_SECRET",
+            "SETUP_TOKEN",
+            "OWNER_EMAIL",
+            "MAIL_FROM",
+            "SENDGRID_API_KEY",
+            "UPTIME_RUNNER_KEY"
+          ],
+          "when": "Required for a fresh deployment or when the corresponding named secret is absent at the provider. Existing opaque secrets are preserved; identical-artifact receipt readback needs no secret values."
+        }
+      ],
+      "forbiddenEnvironment": [
+        "NODE_OPTIONS",
+        "NODE_PATH"
+      ],
+      "environmentPolicy": "Separately reviewed credential-bearing controller with no install or build. Invoke directly with Node through the declared package command."
+    },
+    "artifact-health": {
+      "argv": [
+        "node",
+        "scripts/deployment/deploy.mjs",
+        "health"
+      ],
+      "effects": "Read provider deployment, schema and Cron state and verify served deployment identity.",
+      "inputs": [
+        "package.json",
+        "scripts/deployment/deploy.mjs",
+        "scripts/deployment/plan.mjs"
+      ],
+      "requiredEnvironment": [
+        "RER_DEPLOY_ARTIFACT",
+        "RER_DEPLOY_ARTIFACT_SHA256",
+        "RER_DEPLOY_SOURCE_SHA",
+        "RER_DEPLOY_RUN_ID",
+        "RER_DEPLOY_RUN_ATTEMPT",
+        "RER_DEPLOY_RECEIPT",
+        "CLOUDFLARE_ACCOUNT_ID",
+        "CLOUDFLARE_API_TOKEN",
+        "UPTIME_WORKER_NAME",
+        "UPTIME_ORIGIN"
+      ],
+      "forbiddenEnvironment": [
+        "NODE_OPTIONS",
+        "NODE_PATH"
+      ],
+      "environmentPolicy": "Read-only credential-bearing controller with existing private receipt; application secret values are not needed. Invoke directly with Node through the declared package command."
+    },
+    "install": {
+      "argv": [
+        "node",
+        "scripts/rer.mjs",
+        "install"
+      ],
+      "effects": "Frozen dependency installation; no setup, global tool change or deployment.",
+      "inputs": [
+        "package.json",
+        "scripts/rer.mjs",
+        "scripts/installer/local.mjs",
+        "rer-setup.json"
+      ],
+      "requiredEnvironment": []
+    },
+    "build": {
+      "argv": [
+        "node",
+        "scripts/rer.mjs",
+        "build"
+      ],
+      "effects": "Build production Worker/assets with all private local settings excluded and restored exactly.",
+      "inputs": [
+        "package.json",
+        "scripts/rer.mjs",
+        "scripts/installer/local.mjs",
+        "rer-setup.json"
+      ],
+      "requiredEnvironment": []
+    },
+    "reset": {
+      "argv": [
+        "node",
+        "scripts/rer.mjs",
+        "reset"
+      ],
+      "effects": "After explicit confirmation remove canonical local state, private settings, installer state and CLI bookkeeping only.",
+      "inputs": [
+        "package.json",
+        "scripts/rer.mjs",
+        "scripts/installer/local.mjs",
+        "rer-setup.json"
+      ],
+      "requiredEnvironment": []
+    },
+    "release": {
+      "argv": [
+        "node",
+        "scripts/rer.mjs",
+        "release"
+      ],
+      "effects": "Base release producer, verification and publication checks; no push or deployment.",
+      "inputs": [
+        "package.json",
+        "scripts/rer.mjs",
+        "scripts/installer/local.mjs",
+        "rer-setup.json"
+      ],
+      "requiredEnvironment": []
+    },
+    "outbox": {
+      "argv": [
+        "node",
+        "scripts/rer.mjs",
+        "outbox"
+      ],
+      "effects": "Print the running local Base outbox URL; request ordinary sign-in only with an owner email; open browser only when explicitly requested.",
+      "inputs": [
+        "package.json",
+        "scripts/rer.mjs",
+        "scripts/installer/local.mjs",
+        "rer-setup.json"
+      ],
+      "requiredEnvironment": []
+    },
+    "doctor": {
+      "argv": [
+        "node",
+        "scripts/rer.mjs",
+        "doctor"
+      ],
+      "effects": "Read-only tool, pin, local settings and state diagnostics; no provider request.",
+      "inputs": [
+        "package.json",
+        "scripts/rer.mjs",
+        "scripts/installer/local.mjs",
+        "rer-setup.json"
+      ],
+      "requiredEnvironment": []
+    },
+    "describe": {
+      "argv": [
+        "node",
+        "scripts/rer.mjs",
+        "describe"
+      ],
+      "effects": "Read-only command flags, aliases, pins and effects.",
+      "inputs": [
+        "package.json",
+        "scripts/rer.mjs",
+        "scripts/installer/local.mjs",
+        "rer-setup.json"
+      ],
+      "requiredEnvironment": []
+    },
+    "check": {
+      "argv": [
+        "node",
+        "scripts/rer.mjs",
+        "check"
+      ],
+      "effects": "Read-only operations and first-party contract validation; no credentials required.",
+      "inputs": [
+        "package.json",
+        "scripts/rer.mjs",
+        "scripts/installer/local.mjs",
+        "rer-setup.json"
+      ],
+      "requiredEnvironment": []
+    }
+  },
+  "documentation": {
+    "document": "OPERATIONS.md"
+  },
+  "acceptance": {
+    "document": "ACCEPTANCE.md"
+  },
+  "loops": [
+    {
+      "id": "worker",
+      "type": "worker",
+      "required": true,
+      "enabled": true
+    },
+    {
+      "id": "operator-sign-in-mail",
+      "type": "mail",
+      "required": true,
+      "enabled": true,
+      "provider": "sendgrid"
+    }
+  ],
+  "authentication": "Base operator-auth magic-link owner sessions and one-time setup. Local sign-in links use the development outbox.",
+  "health": {
+    "path": "/health",
+    "meaning": "D1 readiness and deployment identity, not target health, runner operation, mail delivery, notification delivery or recipient acceptance."
+  },
+  "environmentInspection": "The local check inspects aggregate declared names, source guidance and the enabled hosted sign-in mail loop. It performs no provider request, does not read private saved settings, does not select a command, and does not validate command-specific runtime behavior. An empty environment lists every declared source; dummy values only check descriptor completeness.",
+  "seedContract": {
+    "version": 1,
+    "profile": "first-party",
+    "adapter": "scripts/installer/local.mjs"
+  }
+}

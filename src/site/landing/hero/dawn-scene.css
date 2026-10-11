@@ -1,0 +1,230 @@
+/* The dawn lake. Art is drawn in the units of the approved 1536 x 1024 still (art/frame.ts): the landscape box is 504 units
+   tall, the lake's horizon 130 units above its bottom, the wide layers 3936 units across starting at -1200.
+   Every rule here describes the finished dawn; the only start states live in the motion block at the end. */
+
+.ut-dawn {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--ut-dawn-height, 100%);
+  margin: 0;
+  overflow: hidden;
+  pointer-events: none;
+  container: ut-dawn / inline-size;
+  /* The landscape's height: the still's proportion on wide screens, a little taller on narrow ones so the lake still reads.
+     Read by the layers inside, so cqw is this scene's width. A page that lays its words out around the landscape passes
+     its own value in as --ut-dawn-land, so both agree. */
+  --land: var(--ut-dawn-land, min(560px, max(32.8125cqw, min(330px, 82cqw))));
+  /* The landscape can stand on an apron of open water (`--ut-dawn-apron`), drawn on below the still's bottom edge, so a
+     page can fade the lake out below the fold rather than across it. */
+  --apron: var(--ut-dawn-apron, 0px);
+  --horizon: calc(var(--land) * 0.258 + var(--apron));
+}
+.ut-dawn svg { display: block; max-width: none; }
+.ut-dawn-range, .ut-dawn-shore { overflow: visible; }
+
+/* Sky: peach at the horizon, through rose cream to the page's lavender, fading into the page at the top. */
+.ut-dawn-sky,
+.ut-dawn-dusk {
+  position: absolute;
+  inset: 0;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 var(--ut-dawn-fade, 18%));
+  mask-image: linear-gradient(to bottom, transparent, #000 var(--ut-dawn-fade, 18%));
+}
+.ut-dawn-sky {
+  background: linear-gradient(to top,
+    #fadbc5 var(--horizon),
+    #fbdfc8 calc(var(--horizon) + var(--land) * 0.12),
+    #fbe4d0 calc(var(--horizon) + var(--land) * 0.3),
+    #f9e9dd calc(var(--horizon) + var(--land) * 0.52),
+    #f3e8ec calc(var(--horizon) + var(--land) * 0.76),
+    #ece8f3 calc(var(--horizon) + var(--land) * 1.03),
+    #e9e8f6 calc(var(--horizon) + var(--land) * 1.39));
+}
+.ut-dawn--risen .ut-dawn-sky {
+  background: linear-gradient(to top,
+    #fcd8bb var(--horizon),
+    #fddfc4 calc(var(--horizon) + var(--land) * 0.14),
+    #fce6d2 calc(var(--horizon) + var(--land) * 0.34),
+    #f9ebe2 calc(var(--horizon) + var(--land) * 0.58),
+    #f3ecf1 calc(var(--horizon) + var(--land) * 0.86),
+    #edebf6 calc(var(--horizon) + var(--land) * 1.2));
+}
+
+/* The far layers share one box: scaled by the landscape's height, with scene unit --focus at the middle of the page. */
+.ut-dawn-wide {
+  --focus: 768;
+  position: absolute;
+  bottom: var(--apron);
+  height: var(--land);
+  width: calc(var(--land) * 7.8095);
+  left: calc(50% - (var(--focus) + 1200) * var(--land) / 504);
+}
+.ut-dawn--risen .ut-dawn-sun { transform: translateY(calc(var(--land) * -0.2)); filter: saturate(1.4); }
+
+/* Shores hug their edge of the page at the landscape's scale. */
+.ut-dawn-shore {
+  --shore: var(--land);
+  position: absolute;
+  bottom: var(--apron);
+  height: var(--shore);
+  width: calc(var(--shore) * 1.1905);
+}
+.ut-dawn-shore--left { left: 0; }
+.ut-dawn-shore--right { right: 0; }
+
+/* Dusk and the night's veil exist only for the watched night; at rest they are gone. */
+.ut-dawn-dusk {
+  visibility: hidden;
+  opacity: 0;
+  background: linear-gradient(to top,
+    #d2c8e4 var(--horizon),
+    #d8d1ea calc(var(--horizon) + var(--land) * 0.3),
+    #dddaef calc(var(--horizon) + var(--land) * 0.8),
+    #e3e2f4 calc(var(--horizon) + var(--land) * 1.4));
+}
+.ut-dawn-veil {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(var(--land) + var(--apron));
+  visibility: hidden;
+  opacity: 0;
+  background: linear-gradient(to top, rgb(52 56 122 / 0.24), rgb(52 56 122 / 0.16) 45%, rgb(52 56 122 / 0));
+}
+
+/* The watched night: a rail across the horizon, a dot per check, notes above and the hours below. */
+.ut-dawn-watch {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--land) * 0.629 + var(--lift, 0px) + var(--apron));
+  width: clamp(min(100cqw - 48px, 520px), 53cqw, 820px);
+  height: 0;
+  transform: translateX(-50%);
+  color: #14204a;
+  font-size: 13px;
+  line-height: 1.35;
+  font-variant-numeric: tabular-nums;
+  --dot: 13px;
+}
+.ut-dawn-rail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -0.5px;
+  height: 1px;
+  background: rgb(82 91 124 / 0.3);
+}
+.ut-dawn-check {
+  position: absolute;
+  left: var(--at);
+  top: 0;
+  width: var(--dot);
+  height: var(--dot);
+  margin: calc(var(--dot) / -2) 0 0 calc(var(--dot) / -2);
+  border-radius: 50%;
+}
+.ut-dawn-check--ok {
+  background-color: #3fae7a;
+  box-shadow: inset 0 0 0 0 rgb(82 91 124 / 0), 0 0 0 3px rgb(63 174 122 / 0.14);
+}
+.ut-dawn-check--gap {
+  background-color: #fff;
+  box-shadow: inset 0 0 0 1.5px #8a8fa8;
+}
+.ut-dawn-note {
+  position: absolute;
+  left: var(--at);
+  bottom: 9px;
+  padding-bottom: 44px;
+  white-space: nowrap;
+  pointer-events: auto;
+}
+.ut-dawn-note::after {
+  content: "";
+  position: absolute;
+  left: -0.5px;
+  bottom: 0;
+  width: 1px;
+  height: 30px;
+  background: rgb(82 91 124 / 0.5);
+}
+.ut-dawn-note-text { display: block; margin-left: -6px; }
+.ut-dawn-note--gap .ut-dawn-note-text,
+.ut-dawn-note--end .ut-dawn-note-text { margin-left: -36px; }
+.ut-dawn-note-title {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: #14204a;
+}
+.ut-dawn-note-line { display: block; color: #4f5878; }
+.ut-dawn-note-line strong { font-weight: 600; color: #2c3558; }
+.ut-dawn-time {
+  position: absolute;
+  left: var(--at);
+  top: 21px;
+  transform: translateX(-50%);
+  color: #4f5878;
+  pointer-events: auto;
+}
+
+/* Tablets: the far layers move a little toward the sun and the shores step back, so a taller landscape keeps its lake. */
+@container ut-dawn (min-width: 600px) and (max-width: 960px) {
+  .ut-dawn-wide { --focus: 980; }
+  .ut-dawn-shore { --shore: calc(var(--land) * 0.8); }
+}
+
+/* Phones: the shores step back, the far layers centre on the sun's valley, the clouds give the night room, and the night
+   keeps every other check. */
+@container ut-dawn (max-width: 599px) {
+  .ut-dawn-wide { --focus: 1143; }
+  .ut-dawn-shore { --shore: calc(var(--land) * 0.8); }
+  .ut-dawn-cloud { display: none; }
+  .ut-dawn-watch { width: calc(100cqw - 72px); --dot: 11px; --lift: 22px; }
+  .ut-dawn-check--extra,
+  .ut-dawn-note--start,
+  .ut-dawn-note--end { display: none; }
+  .ut-dawn-note--gap .ut-dawn-note-text { margin-left: 0; transform: translateX(-50%); text-align: center; }
+}
+
+/* The twist, only when motion is welcome: the night is watched once, left to right. Each animation starts from a night
+   state and runs to the resting dawn above, so the markup on its own is always the finished frame. */
+@media (prefers-reduced-motion: no-preference) {
+  .ut-dawn--night-watch .ut-dawn-dusk { animation: ut-dawn-lift 3.6s cubic-bezier(0.45, 0, 0.35, 1) backwards; }
+  .ut-dawn--night-watch .ut-dawn-veil { animation: ut-dawn-lift 3.2s cubic-bezier(0.45, 0, 0.35, 1) backwards; }
+  .ut-dawn--night-watch .ut-dawn-sun { animation: ut-dawn-rise 3.8s cubic-bezier(0.3, 0.1, 0.3, 1) 0.1s backwards; }
+  .ut-dawn--night-watch .ut-dawn-check--ok {
+    animation: ut-dawn-pass 0.6s cubic-bezier(0.3, 0.7, 0.4, 1) backwards;
+    animation-delay: calc(0.35s + var(--i) * 0.2s);
+  }
+  .ut-dawn--night-watch .ut-dawn-note {
+    animation: ut-dawn-note 0.7s ease-out backwards;
+    animation-delay: calc(0.45s + var(--i) * 0.2s);
+  }
+  .ut-dawn--night-watch .ut-dawn-glints {
+    animation: ut-dawn-glints 3.4s ease-in backwards, ut-dawn-shimmer 7s ease-in-out 3.8s infinite alternate;
+  }
+  .ut-dawn--risen .ut-dawn-glints { animation: ut-dawn-shimmer 7s ease-in-out infinite alternate; }
+  .ut-dawn[data-unseen] * { animation-play-state: paused !important; }
+}
+@keyframes ut-dawn-lift { 0%, 10% { opacity: 1; visibility: visible; } }
+@keyframes ut-dawn-rise { from { transform: translateY(14px); } }
+@keyframes ut-dawn-pass {
+  from {
+    background-color: rgb(255 255 255 / 0.4);
+    box-shadow: inset 0 0 0 1.5px rgb(82 91 124 / 0.45), 0 0 0 0 rgb(63 174 122 / 0);
+    transform: scale(0.72);
+  }
+  45% {
+    box-shadow: inset 0 0 0 0 rgb(82 91 124 / 0), 0 0 0 7px rgb(63 174 122 / 0.22);
+    transform: scale(1.1);
+  }
+}
+@keyframes ut-dawn-note { from { opacity: 0; transform: translateY(4px); } }
+@keyframes ut-dawn-glints { from { opacity: 0.15; } }
+@keyframes ut-dawn-shimmer { to { opacity: 0.5; } }

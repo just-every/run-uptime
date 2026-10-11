@@ -1,0 +1,47 @@
+/* The sections below the hero: copy on one side, one small card on the other, switching sides down the page. The mist
+   ground keeps the faintest trace of the dawn: a peach glow under the sun's side, a lavender one further down. */
+/* --sec-gap is the air between two sections: about 205px on a 1440px screen, as across the family, less on smaller ones. */
+.ut-home-sections { --sec-gap: clamp(80px, 14.25vw, 208px); position: relative; isolation: isolate; padding-top: clamp(8px, 2vw, 32px); }
+.ut-home-sections::before { content: ""; position: absolute; inset: 0 calc(50% - 50vw); z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(48% 440px at 90% 520px, rgba(251, 227, 207, 0.5), rgba(251, 227, 207, 0) 70%),
+    radial-gradient(46% 560px at 6% 38%, rgba(233, 232, 246, 0.85), rgba(233, 232, 246, 0) 70%),
+    radial-gradient(50% 560px at 96% 70%, rgba(251, 227, 207, 0.32), rgba(251, 227, 207, 0) 70%); }
+
+.ut-sec { display: grid; grid-template-columns: minmax(0, 11fr) minmax(0, 13fr); gap: clamp(40px, 5.5vw, 88px); align-items: center; padding: calc(var(--sec-gap) / 2) 0; }
+.ut-sec--art-left { grid-template-columns: minmax(0, 13fr) minmax(0, 11fr); }
+.ut-sec--art-left .ut-sec-copy { order: 2; }
+.ut-sec h2 { margin-top: 14px; font-size: clamp(32px, 3.6vw, 52px); letter-spacing: -0.025em; line-height: 1.08; text-wrap: balance; }
+.ut-sec-body { max-width: 30em; margin-top: 20px; color: var(--body); font-size: 18px; line-height: 1.6; text-wrap: pretty; }
+.ut-sec-art { min-width: 0; }
+
+/* Ownership's three short points. */
+.ut-points { display: grid; gap: 14px; margin-top: 30px; }
+.ut-points li { display: flex; align-items: center; gap: 14px; color: var(--ink); font-size: 16.5px; font-weight: 600; }
+.ut-points-icon { display: grid; place-items: center; width: 40px; height: 40px; flex: none; border-radius: 12px; background: var(--lavender); color: var(--ink); }
+.ut-points-icon .ut-icon { width: 21px; height: 21px; }
+
+/* Also included */
+.ut-included { padding: calc(var(--sec-gap) / 2) 0; }
+.ut-included-head { max-width: 640px; }
+.ut-included-head h2 { margin-top: 14px; font-size: clamp(32px, 3.6vw, 52px); letter-spacing: -0.025em; line-height: 1.08; }
+.ut-included-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(14px, 1.6vw, 22px); margin-top: clamp(32px, 4vw, 52px); }
+.ut-included-grid li { padding: 26px 26px 28px; }
+/* Each icon sits in a round well of its own hue, warmed with the faintest dawn: peach light from above, lavender below. */
+.ut-included-icon { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; color: var(--ink); background: linear-gradient(165deg, rgba(253, 228, 206, 0.85), rgba(253, 228, 206, 0) 55%, rgba(221, 221, 245, 0.3)) var(--lavender); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7); }
+.ut-included-icon .ut-icon { width: 24px; height: 24px; }
+.ut-included-icon--play, .ut-included-icon--seal { background-color: var(--green-soft); color: var(--green-text); }
+.ut-included-icon--pulse, .ut-included-icon--restore { background-color: #fdeee0; color: #9a4b1f; }
+.ut-included-grid h3 { margin-top: 18px; font-size: 18px; letter-spacing: -0.01em; line-height: 1.3; }
+.ut-included-grid p { margin-top: 6px; color: var(--body); font-size: 16px; line-height: 1.55; }
+
+/* What it doesn't do (yet): small and quiet, not a section of its own. */
+.ut-plainly { display: flex; justify-content: center; padding: 0 0 calc(var(--sec-gap) * 0.35); }
+.ut-plainly-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px 22px; width: 100%; max-width: 900px; padding: 22px 28px; background: rgba(255, 255, 255, 0.62); box-shadow: none; }
+/* The moon chip keeps the 14px slot of the ring it replaced and spills 10px round it, so nothing beside it moves. */
+.ut-moon { display: grid; place-items: center; width: 34px; height: 34px; margin: -10px; border-radius: 50%; background: radial-gradient(circle at 34% 30%, #fff, #efeef9 72%); box-shadow: inset 0 0 0 1px rgba(214, 215, 238, 0.9), 0 0 0 5px rgba(236, 235, 248, 0.5), 0 0 16px 4px rgba(221, 221, 245, 0.45); }
+.ut-moon svg { width: 28px; height: 28px; fill: #8d91c0; }
+.ut-plainly h2 { font-size: 19px; letter-spacing: -0.01em; line-height: 1.35; }
+.ut-plainly p { margin-top: 3px; color: var(--body); font-size: 16px; line-height: 1.55; }
+.ut-plainly-link { display: inline-flex; align-items: center; gap: 8px; font-size: 16px; white-space: nowrap; text-underline-offset: 6px; }
+.ut-plainly-link .ut-icon { width: 17px; height: 17px; }

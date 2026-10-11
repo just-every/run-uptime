@@ -1,0 +1,55 @@
+/* The dot strip: a grid of one column per check. Row 1 holds callouts, row 2 their stems, row 3 the rail and dots, row 4
+   the times and row 5, when given, what each check returned. Bands sit behind the dots and their labels. */
+.ut-strip { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); grid-template-rows: auto 20px 26px auto; align-items: center; justify-items: center; }
+.ut-strip--results { grid-template-rows: auto 20px 26px auto auto; }
+
+.ut-callout { grid-row: 1; align-self: end; max-width: calc(100% - 6px); padding: 9px 14px 10px; border-radius: 12px; font-size: 14px; line-height: 1.35; text-align: center; text-wrap: balance; }
+.ut-callout strong, .ut-callout span { display: block; }
+.ut-callout strong { color: var(--ink); font-weight: 700; }
+.ut-callout--unknown { background: #f1f0fa; color: var(--muted); box-shadow: inset 0 0 0 1px #e3e2f3; }
+.ut-callout--rose { background: var(--rose-soft); color: var(--rose-text); font-weight: 600; }
+.ut-callout--green { background: var(--green-soft); color: var(--green-text); font-weight: 600; }
+
+.ut-stem { grid-row: 2; align-self: stretch; width: 1px; background: #c3c6df; }
+.ut-stem--rose { background: #eea3b0; }
+.ut-stem--green { background: #92cdaa; }
+
+.ut-band { grid-row: 3 / span 2; align-self: stretch; justify-self: stretch; margin: 0 3px; border-radius: 12px; }
+.ut-strip--results .ut-band { grid-row: 3 / span 3; }
+.ut-band--rose { background: var(--rose-soft); }
+.ut-band--green { background: var(--green-soft); }
+
+.ut-rail { grid-row: 3; grid-column: 1 / -1; justify-self: stretch; height: 2px; margin: 0 calc(50% / var(--n)); border-radius: 2px; background: #d6d8ec; }
+
+.ut-dot { display: block; width: 14px; height: 14px; flex: none; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 3px var(--dot-ring, #fff); }
+.ut-strip .ut-dot { grid-row: 3; position: relative; z-index: 1; }
+.ut-dot--fail { background: var(--rose); }
+.ut-dot--unknown { background: #fff; box-shadow: inset 0 0 0 2px var(--unknown), 0 0 0 3px var(--dot-ring, #fff); }
+.ut-band ~ .ut-dot { --dot-ring: transparent; }
+
+.ut-strip-time { grid-row: 4; padding-top: 10px; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; line-height: 1.3; white-space: nowrap; }
+.ut-strip-time--unknown { color: var(--ink); font-weight: 700; }
+.ut-strip-result { grid-row: 5; padding: 3px 2px 12px; color: var(--body); font-size: 12.5px; line-height: 1.3; text-align: center; white-space: nowrap; }
+.ut-strip-result--fail { color: var(--rose-text); font-weight: 600; white-space: normal; }
+.ut-strip--results .ut-strip-time { padding-top: 12px; }
+
+@container (max-width: 520px) {
+  .ut-strip-time.is-minor { visibility: hidden; }
+  .ut-callout { padding: 8px 10px 9px; font-size: 13px; }
+}
+/* A phone-width strip: results stay on one line and hang from the same top; only a failure's longer reason wraps, inside
+   its own column. */
+@container (max-width: 400px) {
+  .ut-strip-time { font-size: 12px; }
+  .ut-strip-result { align-self: start; font-size: 11px; }
+  .ut-strip-result--fail { max-width: 4.2em; }
+  .ut-callout { font-size: 12.5px; }
+}
+/* A narrow incident strip has no room for two callouts side by side: the opening one widens over the strip and the
+   recovery one moves under it, each still on a stem to its own band. */
+@container (max-width: 520px) {
+  .ut-strip--results { grid-template-rows: auto 20px 26px auto auto 18px auto; }
+  .ut-strip--results .ut-callout--rose { grid-column: 2 / -2 !important; }
+  .ut-strip--results .ut-callout--green { grid-row: 7; grid-column: 3 / -1 !important; justify-self: end; align-self: start; }
+  .ut-strip--results .ut-stem--green { grid-row: 6; }
+}

@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "intendedPublicRepositories": [
+    { "repository": "just-every/cradle", "reason": "Owner-declared public identity; created by clean-history export at the first public tag." },
+    { "repository": "just-every/penny", "reason": "Owner-declared public identity; created by clean-history export at the first public tag." },
+    { "repository": "just-every/mango", "reason": "Owner-declared public identity; created by clean-history export at the first public tag." },
+    { "repository": "just-every/lamp", "reason": "Owner-declared public identity; created by clean-history export at the first public tag." },
+    { "repository": "just-every/dial", "reason": "Owner-declared public identity; created by clean-history export at the first public tag." },
+    { "repository": "just-every/orbit", "reason": "Owner-declared public identity; created by clean-history export at the first public tag." },
+    { "repository": "just-every/uptime-monitor", "reason": "Owner-declared public identity; created by clean-history export at the first public tag." }
+  ]
+}

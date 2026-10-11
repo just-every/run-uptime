@@ -1,0 +1,65 @@
+/* The monitor editor (/app/monitor), loaded after app-theme.css, which gives it the fonts, tokens, element defaults and
+   the shell (.ui-sidebar, .ui-main, .ui-header). This file lays out the form: two cards for what to check and its
+   timing, the policy card beside them at 1200px and wider, and the footer with the feedback line, Cancel and Save.
+   Hooks editor.js relies on: #monitor-form, the field names, #settings-probes (it appends the Local check boxes),
+   #editor-feedback[role=status] with data-error, #editor-signout, the first h1 and html.editor-ready. */
+
+/* Header */
+.editor-back { margin-bottom: 14px; font-size: 14px; }
+.editor-back .ui-icon { width: 16px; height: 16px; }
+.editor-header { margin-bottom: 24px; }
+.editor-description { max-width: 80ch; margin-top: 8px; color: var(--body); }
+
+/* Columns: the check and timing cards, then the policy card beside them (≥1200px) or below. */
+.editor-columns { display: grid; gap: 20px; align-items: start; }
+.editor-stack { display: grid; gap: 20px; min-width: 0; }
+@media (min-width: 1200px) {
+  .editor-columns { grid-template-columns: minmax(0, 1.7fr) minmax(320px, 1fr); gap: 24px; }
+}
+
+.editor-panel h2 { margin-bottom: 18px; }
+.editor-fields { display: grid; gap: 18px; }
+.editor-field { display: grid; gap: 6px; min-width: 0; }
+
+/* Paired and timing fields share a row; labels that wrap keep the fields on one line by pushing them to the bottom. */
+.editor-pair, .timing-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 16px; }
+.timing-fields { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.editor-pair > label, .timing-fields > label { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.editor-pair > label > :is(input, select), .timing-fields > label > input { margin-top: auto; }
+.timing-fields + .helper { margin-top: 10px; }
+
+/* Monospace only where the value is a URL or JSON. */
+.editor-panel :is(input[name="url"], textarea[name="additional"]) { font-family: var(--mono); font-size: 14px; }
+.editor-panel textarea[name="body"] { min-height: 88px; }
+.editor-panel textarea[name="additional"] { min-height: 104px; }
+
+/* Policy card: the Local check boxes, a thin divider, then the alert policy. */
+.policy-panel fieldset { padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+.policy-panel legend { margin-bottom: 4px; font-size: 18px; line-height: 1.3; letter-spacing: -0.01em; }
+.policy-panel fieldset p { margin-bottom: 6px; color: var(--muted); font-size: 14px; }
+.policy-panel fieldset label { color: var(--ink); }
+.policy-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 20px 24px; margin-top: 20px; }
+
+/* Footer: the one live feedback line beside Cancel and Save, under a thin divider. */
+.editor-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
+#editor-feedback { --i: var(--icon-info); display: flex; flex: 1 1 320px; align-items: flex-start; gap: 8px; min-width: 0; color: var(--muted); font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+#editor-feedback::before { content: ""; flex: none; width: 18px; height: 18px; margin-top: 1px; background: currentColor; -webkit-mask: var(--i) center / contain no-repeat; mask: var(--i) center / contain no-repeat; }
+#editor-feedback:empty::before { content: none; }
+#monitor-form:has(button[type="submit"]:disabled) #editor-feedback { --i: var(--icon-clock); color: var(--ink); }
+#editor-feedback[data-error] { --i: var(--icon-alert); padding: 10px 14px; border-radius: var(--radius-panel); background: var(--rose-soft); color: var(--rose-text); font-weight: 600; }
+.editor-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px 16px; margin-left: auto; }
+.editor-cancel { display: inline-flex; align-items: center; min-height: 44px; padding: 0 10px; font-weight: 600; }
+.editor-actions button { min-width: 160px; padding: 0 28px; }
+
+@media (max-width: 700px) {
+  .editor-header { margin-bottom: 20px; }
+  .editor-columns, .editor-stack { gap: 16px; }
+  .timing-fields { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .editor-pair { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .editor-actions { width: 100%; }
+  .editor-actions button { flex: 1 1 auto; min-width: 0; }
+}

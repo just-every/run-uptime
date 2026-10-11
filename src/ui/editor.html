@@ -1,0 +1,41 @@
+<div class="monitor-editor">
+ <aside class="editor-sidebar ui-sidebar">
+  <a class="editor-brand ui-brand" href="/app"><svg class="ui-mark" viewBox="0 0 32 32" width="32" height="32" fill="none" aria-hidden="true" focusable="false"><path d="M24.49 9.83A10.5 10.5 0 1 1 7.51 9.83" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/><path d="M11.73 6.41A10.5 10.5 0 0 1 20.27 6.41" stroke="#e8894f" stroke-width="3.2" stroke-linecap="round"/></svg>Uptime</a>
+  <nav aria-label="Uptime navigation"><a href="/app" aria-current="true"><span class="ui-icon" data-icon="monitor" aria-hidden="true"></span>Monitors</a><a href="/app#notifications"><span class="ui-icon" data-icon="bell" aria-hidden="true"></span>Notifications</a><a href="/app#runners"><span class="ui-icon" data-icon="archive" aria-hidden="true"></span>Runner / archive</a><a href="/login" id="editor-signout"><span class="ui-icon" data-icon="sign-out" aria-hidden="true"></span>Sign out</a></nav>
+  <div class="environment"><small>Monitoring console</small><p>One local vantage · Not global coverage</p></div>
+ </aside>
+ <main class="editor-main ui-main">
+  <a class="editor-back ui-link" href="/app"><span class="ui-icon" data-icon="arrow-left" aria-hidden="true"></span>Back to monitors</a>
+  <header class="editor-header ui-header"><div><h1>New monitor</h1><p class="editor-description">Choose what should pass and when to alert. Checks run from this installation’s one local vantage.</p></div></header>
+  <form id="monitor-form">
+   <div class="editor-columns">
+    <div class="editor-stack">
+     <section class="editor-panel ui-card" aria-labelledby="editor-check-heading"><h2 id="editor-check-heading">What to check</h2>
+      <div class="editor-fields">
+       <label>Monitor name<input disabled name="name" maxlength="100" required></label>
+       <label>Target URL<input disabled name="url" type="url" placeholder="https://example.com/health" required></label>
+       <div class="editor-pair"><label>Request method<select disabled name="method"><option>GET</option><option>HEAD</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option><option>OPTIONS</option></select></label><label>Expected HTTP status<input disabled name="status" type="number" min="100" max="599" required></label></div>
+       <label>Body contains required text<textarea disabled name="body" maxlength="200"></textarea></label>
+       <div class="editor-pair header-fields"><label>Expected header name<input disabled name="headerName" maxlength="80"></label><label>Expected header value<input disabled name="headerValue" maxlength="200"></label></div>
+       <div class="editor-field"><label>Additional checks (JSON)<textarea disabled name="additional" aria-describedby="additional-help"></textarea></label><p id="additional-help" class="helper ui-helper">Optional JSON-value and response-time checks. Set status, body and headers above.</p></div>
+      </div>
+     </section>
+     <section class="editor-panel ui-card" aria-labelledby="editor-timing-heading"><h2 id="editor-timing-heading">Check timing</h2>
+      <div class="timing-fields"><label>Check every (minutes)<input disabled name="intervalMinutes" type="number" step="any" min="0.08333333333333333" max="1440" required></label><label>Wait for a response (seconds)<input disabled name="timeoutSeconds" type="number" step="0.001" min="0.05" max="10" required></label><label>Extra attempts after a failure<input disabled name="retries" type="number" min="0" max="2" required aria-describedby="retries-help"></label></div>
+      <p id="retries-help" class="helper ui-helper">Extra attempts belong to the same check; they do not count as additional failed checks.</p>
+     </section>
+    </div>
+    <section class="editor-panel policy-panel ui-card">
+     <fieldset id="settings-probes"><legend>Checks to include</legend><p>All selected checks run from one local vantage.</p></fieldset>
+     <div class="policy-fields">
+      <div class="editor-field"><label>Selected checks that must fail<input disabled name="failureQuorum" type="number" min="1" max="3" required aria-describedby="quorum-help"></label><p id="quorum-help" class="helper ui-helper">A failure counts when at least this many selected checks fail.</p></div>
+      <div class="editor-field"><label>Alert after this many failed checks<input disabled name="confirmSlots" type="number" min="1" max="10" required aria-describedby="confirm-help"></label><p id="confirm-help" class="helper ui-helper">Consecutive scheduled checks must fail before an alert opens.</p></div>
+      <div class="editor-field"><label>Recover after this many passing checks<input disabled name="recoverSlots" type="number" min="1" max="10" required aria-describedby="recover-help"></label><p id="recover-help" class="helper ui-helper">Every selected check must pass before recovery can count.</p></div>
+      <div class="editor-field"><label>Results become Unknown after (minutes)<input disabled name="freshnessMinutes" type="number" step="any" min="0.08333333333333333" max="1440" required aria-describedby="freshness-help"></label><p id="freshness-help" class="helper ui-helper">Older results no longer establish current health.</p></div>
+     </div>
+    </section>
+   </div>
+   <div class="editor-footer"><p id="editor-feedback" role="status"></p><div class="editor-actions"><a class="editor-cancel" href="/app">Cancel</a><button disabled type="submit">Save monitor</button></div></div>
+  </form>
+ </main>
+</div>

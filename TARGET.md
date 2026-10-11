@@ -1,0 +1,11 @@
+# Uptime product direction
+
+Serve an independently operated installation whose operator needs to know what failed, from which selected probes, and why an incident was justified. Monitoring is sampled evidence, not universal user availability. Preserve operator-defined success criteria and make missing evidence Unknown.
+
+The implemented scope is a private console, durable scheduled evidence, signed Node runner, HTTP(S)/keyword assertions, authenticated incoming heartbeats, fixed coverage and quorum, confirmation/recovery, maintenance, manual checks, installation-wide email/signed JSON/Slack notifications, technical outbox and inactive archive restore. Shared Base operator-auth, mail, webhook integrations and deploy-kit support installation and operator access through declared provenance.
+
+The release candidate uses one self-run Node runner with signed enrolment and one network vantage. Its open operating gates are an authorized operator pilot, a fresh-account hosted installation/recovery, isolated runner placement, hosted notification recipient acceptance and current accessibility evidence. Local notification checks and provider acknowledgments do not establish that a recipient received or read an event. Logical probe names sharing a runner do not establish independent regional monitoring. Storage costs and operating limits remain unmeasured.
+
+Future directions include monitoring-as-code, policy replay, deployment/source links, explicit synthetic service objectives and trusted browser journeys. Browser execution requires sandboxed egress, scoped secrets, bounded lifecycle/cost and sanitized artifacts. DNS, ping, TCP and domain-expiry monitors are not currently supported. RUM/APM, arbitrary untrusted script hosting, public communication and automatic production repair are separate products or programs.
+
+Original implementation and interface assets are MIT licensed. No competitor captures or proprietary assets belong in the release. Source provenance describes adoption; local tests, hosted proof, operator acceptance and public release remain distinct claims.

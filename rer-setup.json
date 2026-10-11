@@ -1,0 +1,102 @@
+{
+  "schema": 1,
+  "title": "Uptime",
+  "groups": [
+    {
+      "id": "owner",
+      "label": "First owner"
+    },
+    {
+      "id": "mail",
+      "label": "Notification and hosted sign-in email"
+    }
+  ],
+  "fields": [
+    {
+      "name": "OWNER_EMAIL",
+      "label": "Owner email",
+      "help": "Local sign-in links appear in the development outbox; no email is sent.",
+      "kind": "email",
+      "required": true,
+      "prefill": "account-email",
+      "group": "owner"
+    },
+    {
+      "name": "SESSION_SECRET",
+      "label": "Session secret",
+      "kind": "secret",
+      "required": true,
+      "ownerVisible": false,
+      "input": "managed",
+      "generate": "hex",
+      "group": "owner"
+    },
+    {
+      "name": "SETUP_TOKEN",
+      "label": "Setup token",
+      "kind": "secret",
+      "required": true,
+      "ownerVisible": false,
+      "generate": "hex",
+      "group": "owner"
+    },
+    {
+      "name": "UPTIME_RUNNER_KEY",
+      "label": "Private runner key",
+      "kind": "secret",
+      "required": true,
+      "ownerVisible": false,
+      "input": "managed",
+      "generate": "hex",
+      "group": "owner"
+    },
+    {
+      "name": "MAIL_PROVIDER",
+      "label": "Email delivery",
+      "kind": "select",
+      "required": true,
+      "default": "development",
+      "options": [
+        {
+          "value": "development",
+          "label": "Local development outbox"
+        },
+        {
+          "value": "sendgrid",
+          "label": "SendGrid"
+        }
+      ],
+      "group": "mail"
+    },
+    {
+      "name": "MAIL_FROM",
+      "label": "Verified sender email",
+      "kind": "email",
+      "required": true,
+      "default": "auth@localhost.test",
+      "group": "mail"
+    },
+    {
+      "name": "SENDGRID_API_KEY",
+      "label": "SendGrid Mail Send API key",
+      "kind": "secret",
+      "input": "entered",
+      "ownerVisible": true,
+      "required": true,
+      "when": {
+        "field": "MAIL_PROVIDER",
+        "equals": "sendgrid"
+      },
+      "group": "mail"
+    }
+  ],
+  "steps": [
+    {
+      "type": "owner-claim",
+      "mode": "signed",
+      "emailField": "OWNER_EMAIL",
+      "tokenField": "SETUP_TOKEN",
+      "path": "/auth/owner-claim"
+    }
+  ]
+}
