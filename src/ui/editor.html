@@ -2,11 +2,11 @@
  <aside class="editor-sidebar ui-sidebar">
   <a class="editor-brand ui-brand" href="/app"><svg class="ui-mark" viewBox="0 0 32 32" width="32" height="32" fill="none" aria-hidden="true" focusable="false"><path d="M24.49 9.83A10.5 10.5 0 1 1 7.51 9.83" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/><path d="M11.73 6.41A10.5 10.5 0 0 1 20.27 6.41" stroke="#e8894f" stroke-width="3.2" stroke-linecap="round"/></svg>Uptime</a>
   <nav aria-label="Uptime navigation"><a href="/app" aria-current="true"><span class="ui-icon" data-icon="monitor" aria-hidden="true"></span>Monitors</a><a href="/app#notifications"><span class="ui-icon" data-icon="bell" aria-hidden="true"></span>Notifications</a><a href="/app#runners"><span class="ui-icon" data-icon="archive" aria-hidden="true"></span>Runner / archive</a><a href="/login" id="editor-signout"><span class="ui-icon" data-icon="sign-out" aria-hidden="true"></span>Sign out</a></nav>
-  <div class="environment"><small>Monitoring console</small><p>One local vantage · Not global coverage</p></div>
+  <div class="environment"><small>Monitoring console</small><p>Runner networks · sampled coverage</p></div>
  </aside>
  <main class="editor-main ui-main">
   <a class="editor-back ui-link" href="/app"><span class="ui-icon" data-icon="arrow-left" aria-hidden="true"></span>Back to monitors</a>
-  <header class="editor-header ui-header"><div><h1>New monitor</h1><p class="editor-description">Choose what should pass and when to alert. Checks run from this installation’s one local vantage.</p></div></header>
+  <header class="editor-header ui-header"><div><h1>New monitor</h1><p class="editor-description">Choose what should pass and when to alert. Each selected check runs from its assigned runner.</p></div></header>
   <form id="monitor-form">
    <div class="editor-columns">
     <div class="editor-stack">
@@ -26,9 +26,8 @@
      </section>
     </div>
     <section class="editor-panel policy-panel ui-card">
-     <fieldset id="settings-probes"><legend>Checks to include</legend><p>All selected checks run from one local vantage.</p></fieldset>
+     <fieldset id="settings-probes"><legend>Checks to include</legend><p>Assign each selected check to a runner network. Independent labels or a passing external canary establish failure agreement.</p></fieldset>
      <div class="policy-fields">
-      <div class="editor-field"><label>Selected checks that must fail<input disabled name="failureQuorum" type="number" min="1" max="3" required aria-describedby="quorum-help"></label><p id="quorum-help" class="helper ui-helper">A failure counts when at least this many selected checks fail.</p></div>
       <div class="editor-field"><label>Alert after this many failed checks<input disabled name="confirmSlots" type="number" min="1" max="10" required aria-describedby="confirm-help"></label><p id="confirm-help" class="helper ui-helper">Consecutive scheduled checks must fail before an alert opens.</p></div>
       <div class="editor-field"><label>Recover after this many passing checks<input disabled name="recoverSlots" type="number" min="1" max="10" required aria-describedby="recover-help"></label><p id="recover-help" class="helper ui-helper">Every selected check must pass before recovery can count.</p></div>
       <div class="editor-field"><label>Results become Unknown after (minutes)<input disabled name="freshnessMinutes" type="number" step="any" min="0.08333333333333333" max="1440" required aria-describedby="freshness-help"></label><p id="freshness-help" class="helper ui-helper">Older results no longer establish current health.</p></div>

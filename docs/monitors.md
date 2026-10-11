@@ -44,7 +44,7 @@ Each monitor has a schedule and a few knobs that decide when a bad check becomes
 - **Retries** are extra attempts inside a slot. A retry never erases an earlier failure and never counts as another slot.
 - **Confirmation** is how many consecutive scheduled slots must fail before the monitor is Failing.
 - **Recovery** is how many consecutive fresh, passing scheduled slots are needed before it recovers.
-- **Failure quorum** is how many of the selected probes must fail together.
+- **Failure agreement** requires two independent network labels, or one failing vantage whose external canary passed in the same slot. Checks on the same network count once.
 - **Freshness** is how long a result stays usable before it counts as expired.
 
 Because of confirmation and recovery, one blip does not wake you, and one lucky pass does not close an incident.
@@ -58,15 +58,15 @@ A **manual check** runs a check now. It is recorded with its own identity, but i
 ## What each state means
 
 - **Healthy** means fresh checks passed for every selected probe, and any recovery threshold has been met.
-- **Degraded** means some checks failed, but not enough to meet the failure quorum, or the failure quorum has been met but not yet for enough consecutive scheduled slots to confirm a failure.
-- **Failing** means the quorum and confirmation threshold have been met.
+- **Degraded** means a target failed without independent network agreement, its canary failed, or agreement has not yet met the scheduled confirmation threshold.
+- **Failing** means two independent runner networks agree on terminal failure, or one terminal failure has a passing external canary in the same slot, and the confirmation threshold has been met.
 - **Recovering** means passing checks are arriving after a confirmed failure, but the recovery threshold is not yet met.
 - **Maintenance** means a maintenance window is on.
 - **Unknown** means there is not enough fresh evidence to say.
 
 Unknown covers a result that never arrived, an incomplete set of passing results, and a result that has expired. Unknown never means healthy, and it does not quietly close an open incident. A runner error or a missing result is kept distinct from a target that answered badly.
 
-In the 24-hour and 7-day figures, each complete scheduled result (every selected probe answered, no runner error) counts from when it finishes for up to one interval, or until the next scheduled check finishes if that comes sooner, and never past its freshness or, for a passing heartbeat, the receipt's maximum age. A runner error or an incomplete result adds no time. The rest of each full window, including time before the monitor existed, is Unknown. Manual checks and retries do not add time.
+In the 24-hour and 7-day figures, each complete scheduled result (every selected probe answered, no runner error) counts from when it finishes for up to one interval, or until the next scheduled check finishes if that comes sooner, and never past its freshness or, for a passing heartbeat, the receipt's maximum age. A runner error, failed canary or incomplete result adds no time. The rest of each full window, including time before the monitor existed, is Unknown. Manual checks and retries do not add time.
 
 ## Evidence you can read later
 

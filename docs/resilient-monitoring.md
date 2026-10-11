@@ -1,0 +1,38 @@
+
+Phase 0 watches an ordinary single-site installation. It does not keep checks running during a provider outage. Phase 1 adds independent runner vantages. Standby execution is a later phase.
+
+## Watch setup
+
+Keep `UPTIME_WATCH_WEBHOOK_URL` or `UPTIME_WATCH_SLACK_URL` only in the private runner's environment. After three minutes of unsuccessful polls, it posts an unreachable notice. Rejected or failed notices retry on subsequent polls after a ten-second backoff; the hourly repeat starts only after acceptance. Restored-contact notices also retry until accepted. Set `UPTIME_WATCH_AFTER_MS` and `UPTIME_WATCH_REPEAT_MS` in that environment to change the outage and repeat intervals. A stopped runner cannot report a stopped Worker, so keep it supervised on an independent host.
+
+The Worker emails `OWNER_EMAIL` when an enrolled runner's authenticated contact becomes stale. The default is two minutes, configurable with `UPTIME_RUNNER_STALE_MS`; notices repeat hourly (`UPTIME_WATCH_REPEAT_MS` on the Worker). A definite mail-provider rejection may retry in the same window after ten seconds. Accepted, development-captured and uncertain outcomes do not automatically replay in that window. A fresh request proves contact, not target health.
+
+Optionally configure `UPTIME_HEARTBEAT_URL` with the public HTTPS capability URL from an independent heartbeat service. It is secret and off when absent. The Worker pings every five minutes (`UPTIME_HEARTBEAT_INTERVAL_MS`) only after its scheduled work and `/health` self-check succeed. It sends an empty GET and refuses redirects. Configure the external service's expected interval and grace period; that service sends the alarm when pings stop. No product or visitor data travels.
+
+The owner gets an all-healthy digest each week (`UPTIME_DIGEST_INTERVAL_MS`) when enrolled runners have fresh contact, active monitors are Healthy, and any configured external heartbeat was acknowledged. Failed checks produce no all-healthy digest. A missing digest is a reason to investigate. Choose the receiving mailbox and phone on infrastructure independent of the hosting provider; testing here proves local service behavior, not human receipt.
+
+## Runner identity and assignments
+
+Migration 0022 copies the existing runner into the first `runners` row, then removes the old registration table. Rolling back requires the matching pre-upgrade database backup. The migrated runner retains its key from `UPTIME_RUNNER_KEY` and gives its network the default label `owner-network`. New runners are created in **Runner / Archive** or with the owner-only `POST /api/runners` body `{"networkLabel":"another-network"}`. Save the returned `runnerId` and one-time `key` privately. The list never returns the key. Each added key is encrypted under installation-local session-secret custody and can be revoked independently with `DELETE /api/runners/:id`. Revocation refuses future polls and results; it does not delete immutable evidence. Preserve `SESSION_SECRET` and back up local settings separately from product archives.
+
+Set `UPTIME_RUNNER_ID`, `UPTIME_RUNNER_KEY`, `UPTIME_NETWORK_LABEL` and the exact `UPTIME_CONTROL_ORIGIN` on that runner. The legacy runner can omit its ID, and repeat enrolment returns its existing identity. Runners on the same labelled network count as one vantage, regardless of how many probe names they execute. Choose labels that reflect actual independent networks; a label is an owner's declaration, not a measured network fact.
+
+Monitor settings assign each selected probe to one runner and optionally specify that vantage's external canary URL. Choose a stable canary you do not host. Assignments and labels are frozen in each revision. The API uses `assignments: {"local-a":{"runnerId":"self-…","canaryUrl":"https://independent.example/"}}`. An enabled production monitor requires two runner networks or a configured canary; it cannot be saved with a configuration incapable of reaching Failing. The settings show the number of recently contacted active vantages.
+
+## C3 — State from stored attempts
+
+A scheduled slot and the confirmation/recovery streaks are recalculated from immutable stored attempts in chronological slot order after every arrival. Reversed arrivals produce the same state. Retries are attempts in the same slot and do not increment streaks. Failing requires two distinct network labels reporting terminal failure, or one terminal failing vantage whose canary passed in the same slot. A failed canary removes its network from failure agreement; its target failure remains visible as Degraded. Missing or expired evidence is Unknown. Complete fresh passing evidence and the recovery streak are required for recovery. Manual checks never advance scheduled incident policy. Revisions created before runner assignments existed retain their historical selected-probe failure quorum, counting terminal failed probes, until the owner saves a new revision. The overview warns that these monitors need a second independent network or an external canary; owner watch mail includes only their count. New enabled production saves always enforce network agreement. Legacy runner contact contributes to the displayed active vantage count.
+
+Projection groups attempts by slot and maintains a rebuildable installation-local checkpoint of expired acceptance windows. Complete slots whose windows remain open are replayed so late attempts and failed canaries still affect the result. Raw streak counters are retained without clamping; current freshness is evaluated separately. An upgraded history is folded once in bounded pages, then reads and arrivals fetch only the mutable tail. Checkpoints are excluded from archives and removed on monitor erasure; immutable evidence remains portable.
+
+A retry decision requires every preceding attempt in its chain. A failing network contributes to agreement only after every configured canary probe on that network has terminal, complete evidence, because a later failed canary can remove the whole network. Probes without canaries and pending canaries on other networks do not delay an otherwise settled quorum. Partial passing retries cannot recover an incident.
+
+## C4 — Assigned attempt authority
+
+Attempt identity is `(slot, probe, attempt number)`. Only its assigned, unrevoked runner may submit it, with that runner's purpose-separated timestamped HMAC signature, inside the slot acceptance window. The first accepted copy wins; duplicates cannot overwrite it. There is no slot-wide lease owner and no requirement to submit every runner's probes in one result. Optimistic generation guards atomically store the new attempts, derived state and incident/destination events across concurrent arrivals. Historical lease columns remain in the archive schema for older records; they grant no live slot ownership.
+
+C5's pinned address resolution and protected runner-local target credentials remain in force. Archives exclude runner keys, enrolment, contact and execution authority; historical revisions retain assignments as configuration, never as receiving-installation authority. Receiving owners assign active runners before resuming imported monitors.
+
+## Mail
+
+Setup selects Base's `MAIL_PROVIDER`: `resend`, `sendgrid` or `cloudflare`, with `MAIL_FROM`. Resend uses `MAIL_PROVIDER_API_KEY`; SendGrid retains `SENDGRID_API_KEY`; Cloudflare Email Sending uses `CLOUDFLARE_MAIL_API_KEY` and `MAIL_ACCOUNT_ID`. Local setup uses the Base development outbox without contacting a provider. There is no automatic fallback between providers. Production mail acceptance needs the owner's verified sender and receiving-mailbox proof.

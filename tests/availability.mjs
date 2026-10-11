@@ -4,6 +4,7 @@ import {join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {availabilityOverview} from '../src/domain/availability.server.ts';
 import {startLocalWorker} from '../scripts/local-worker.mjs';
+import {testAuthBindings} from './auth-test-support.mjs';
 import {migrate} from './probe-native-support.mjs';
 
 const root=resolve(fileURLToPath(new URL('../',import.meta.url))),scratch=resolve(root,'..','scratch/tmp'),persist=join(scratch,`availability-${process.pid}-${Date.now()}`);
@@ -12,7 +13,7 @@ await mkdir(scratch,{recursive:true});
 let worker;
 try{
  await migrate(persist);
- worker=await startLocalWorker({root,persist,port,assets:false});
+ worker=await startLocalWorker({root,persist,port,assets:false,bindings:testAuthBindings});
  const db=await worker.getD1Database('DB'),now=Date.now(),definitions=new Map();
  const makeDefinition=({intervalMs=60000,freshnessMs=120000,probes=['local-a'],type='http',heartbeat,retries=2}={})=>({name:'Availability fixture',type,network:'synthetic',url:'http://127.0.0.1:15516/health',intervalMs,freshnessMs,timeoutMs:2000,retries,failureQuorum:probes.length,confirmSlots:2,recoverSlots:2,probes,assertions:{status:200},enabled:true,maintenanceUntil:0,...(heartbeat?{heartbeat}:{})});
  async function addMonitor(key,definition,revision=1){

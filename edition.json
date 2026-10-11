@@ -251,7 +251,9 @@
           "scripts/delivery/base/setup-manifest.mjs",
           "scripts/build-delivery-artifact.mjs",
           "scripts/delivery/setup-build.sh",
-          "migrations/0017_first_run.sql"
+          "migrations/0017_first_run.sql",
+          "migrations/0020_audit_erasure.sql",
+          "migrations/0021_public_rate_limits.sql"
         ]
       }
     },

@@ -30,8 +30,11 @@ Notification custody verification must inspect raw populated D1 across the
 0008-to-0009 key-bearing Worker upgrade and restart, including active and
 obsolete credential versions. Require no plaintext, isolated unavailable
 credentials for missing/wrong keys and modified/swapped ciphertext, preserved
-monitor/outbox/history identities, complete obsolete retirement erasure, and no
-upgrade sends or replay. Unchanged keys preserve authorized sessions; rotating
+monitor/outbox/history identities, complete obsolete credential-material
+scrubbing after retirement (`endpoint`, `signing_secret`, and `ciphertext` are
+null and `retired_at` is set), and no upgrade sends or replay. Destination
+erasure removes every credential version and its dependent local history.
+Unchanged keys preserve authorized sessions; rotating
 SESSION_SECRET invalidates old authentication while allowing sign-in and
 credential re-entry/deletion. Monitoring and probe claims/results remain
 available with a damaged destination. Exercise the actual runner RPC bridge with an ahead clock, a clock
@@ -44,29 +47,49 @@ Notification browser verification must audit every add and edit destination kind
 
 Run the literal README clone, `node scripts/rer.mjs install`, explicit-owner setup and foreground dev. Check health, Vite/HMR assets, ordinary one-use outbox sign-in, native form POST before hydration, first-run `/setup` at 1440 and 390, unfinished-owner app redirects, signed-out sign-in return, durable native-form completion, signed-in documents and unsigned private-access refusal. Local sign-in makes no mail-provider request. Setup must stop all temporary processes, preserve exact settings and owner/data on repeat, and reject a conflicting owner.
 
-Stop dev and verify descendant teardown and released ports. Reset must refuse active state and unconfirmed execution, preserve source/exports/deployment receipts, and enable fresh empty setup. The populated export/reset/import/setup/export journey must retain complete portable records/history with explicit inactive transformations and excluded installation authority. Import requires integrity, an empty destination and confirmation; no imported event dispatches.
+Stop dev and verify descendant teardown and released ports. Reset must refuse active state and unconfirmed execution, preserve source/exports/deployment receipts, and enable fresh empty setup. The populated export/reset/setup/import/export journey must retain complete portable records/history with explicit inactive transformations and excluded installation authority. Setup must establish the receiving owner and settings before import; product data must remain empty. Import requires integrity and confirmation; no imported event dispatches.
 
 ## Candidate release state and unmet obligations
 
 The product exposes the rer command contract, owner-account deployment, local
-export/import and versioned archive history.
-The candidate is unreleased and has no tag. No fresh Cloudflare account,
-deployed `/health`, hosted runner, target, or recipient acceptance is recorded
-here. A local `pnpm run health`, an operations descriptor check, or a successful
-deployment command cannot substitute for that evidence.
+export/import and versioned archive history. This checkout is the
+v0.1.2 source; public v0.1.1 is its security predecessor.
+No fresh Cloudflare account, deployed `/health`, hosted runner, target, or
+recipient acceptance is recorded here. A local `pnpm run health`, an operations
+descriptor check, or a successful deployment command cannot substitute for
+that evidence.
 
-BASE-DATA-001's archive exception is pending owner confirmation. `ARCHIVE-001`
-preserves product definitions and notification histories while excluding
-installation-local authority and destination credentials. The replacement
-`tests/archive-roundtrip.mjs` must prove equivalent portable data after
-export/import/export; it is not a passing result until the exact candidate run
-is inspected. Other baseline clauses remain requirements. In particular,
-startup configuration diagnostics, complete public-path and rate-limit
-coverage, entity erasure with durable anonymized audit history, full migration
-recovery and accessibility across sign-in/setup surfaces remain unaccepted.
+BASE-DATA-001's archive exception remains pending owner confirmation; it excludes
+installation authority and webhook/Slack endpoint credentials while available
+email addresses remain portable destination definitions.
+`ARCHIVE-001` preserves product definitions and notification histories and now
+includes the permanent anonymised audit and source erasure journal, while
+excluding installation-local authority and webhook/Slack endpoint credentials.
+The inspected candidate `tests/archive-roundtrip.mjs` run passed the unchanged
+10,000-revision boundary. Separately, the real rer
+export/erase/reset/setup/import/export flow was inspected. Decoded archives had
+stable audit history, one restore audit entry and the preserved source erasure
+journal. This evidence does not resolve the pending owner decision.
+If the owner declines the archive exception, secure credential portability with
+explicit receiving-owner reauthorization must be redesigned and verified before
+claiming BASE-DATA-001 equivalence.
 
-The [BASELINE.md](BASELINE.md) status list names each clause, the current test
-evidence and the gap that prevents a satisfied result. A test filename or tag
+The inspected local and emitted candidate evidence now records `BASE-ACCESS-002`,
+`BASE-ACCESS-003`, `BASE-SECRET-002`, `BASE-DATA-003` and `BASE-OPS-005` as
+Covered in `BASELINE.md`. It includes startup matrices, declared-path and asset
+boundaries, populated erasure and audit flows, and race-safety checks. The final
+committed head and inspected run results are mapped in the external evidence
+record. The erasure/audit flow includes audited local authentication-mail
+captures, six separate network-edge monitor/test sends, surviving anonymised
+audit and refusal of erased-operator actor references on later-journal restore.
+These are source results only: no hosted installation or recipient acceptance is claimed, and
+no private Git tag or published v0.1.2 release is represented. Other baseline
+clauses remain requirements; full migration recovery and accessibility across
+sign-in/setup surfaces remain unaccepted. No comprehensive Dependabot closure is
+claimed.
+
+The [BASELINE.md](BASELINE.md) status list names each clause, the inspected
+candidate evidence and any remaining gap. A test filename or clause label
 without an inspected result is a lead for verification, not a release verdict.
 
 

@@ -8,7 +8,7 @@ import {restore} from '../src/domain/archive.server.ts';
 import {legacyArchive,rehashArchive} from './archive-restore-fixtures.mjs';
 const wrap=async payload=>({payload,sha256:await digest(JSON.stringify(payload))});
 const base=()=>({schemaVersion:2,target:'uptime-worker-d1',createdAt:Date.now(),tables:Object.fromEntries(LEGACY_TABLES.map(n=>[n,[]]))});
-const extended=()=>({...base(),extensionVersion:1,productTables:Object.fromEntries(TABLES.filter(n=>!LEGACY_TABLES.includes(n)).map(n=>[n,[]]))});
+const extended=()=>({...base(),extensionVersion:2,productTables:Object.fromEntries(TABLES.filter(n=>!LEGACY_TABLES.includes(n)).map(n=>[n,[]]))});
 test('versioned archive preserves strict legacy and extension table sets',async()=>{
  for(const version of [1,2]){const value=base();value.schemaVersion=version;assert.deepEqual(Object.keys(await validateArchive(await wrap(value))),TABLES)}
  await validateArchive(await wrap(extended()));

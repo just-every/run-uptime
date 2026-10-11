@@ -1,28 +1,30 @@
-import { open, mkdir, unlink, lstat } from 'node:fs/promises';
-import { dirname } from 'node:path';
+import { open, mkdir, unlink, lstat, readFile } from 'node:fs/promises';
+import { dirname, isAbsolute } from 'node:path';
 import { constants } from 'node:fs';
 import { Readable } from 'node:stream';
 import { createPortability, readArchive, PortabilityError } from '../base-cli/modules/portability/index.mjs';
 import { absent, privateFile, promote } from '../base-cli/modules/portability/cli-options.mjs';
-import { readLocalSettings, prepareLocalSettings, defaultSettingsPath } from '../local-settings.mjs';
+import { readLocalSettings } from '../local-settings.mjs';
 import { startLocalWorker } from '../local-worker.mjs';
 import { productPolicy } from './transfer-policy.mjs';
+import {validateJournal} from '../../src/domain/archive-fence.server.ts';
 async function* records(path) {
  const file = await open(path, constants.O_RDONLY | constants.O_NOFOLLOW);
  try { yield* readArchive(Readable.toWeb(file.createReadStream({ autoClose: false }))); }
  finally { await file.close(); }
 }
 export async function transfer(direction, path) {
+ let laterJournal;
+ if(direction==='import'&&process.env.UPTIME_LATER_JOURNAL){const journalPath=process.env.UPTIME_LATER_JOURNAL;if(!isAbsolute(journalPath))throw Error('UPTIME_LATER_JOURNAL must be an absolute file path');const stat=await lstat(journalPath);if(!stat.isFile()||stat.isSymbolicLink()||stat.size>8*1024*1024)throw Error('Invalid erasure journal file');laterJournal=validateJournal(JSON.parse(await readFile(journalPath,'utf8')))}
  if (direction === 'export') await absent(path);
  else for await (const record of records(path)) {}
- const present = await lstat(defaultSettingsPath).catch(error => { if (error.code !== 'ENOENT') throw error; });
- const settings = !present && direction === 'import' ? (await prepareLocalSettings({ controlPort: 8787 })).vars : await readLocalSettings();
+ const settings = await readLocalSettings();
  const worker = await startLocalWorker({ bindings: settings, assets: false });
  let service, id, complete = false, manifest, closing;
  const temporary = path + '.partial';
  try {
   const env = { ...settings, DB: await worker.getD1Database('DB') };
-  service = await createPortability({ db: env.DB, policy: productPolicy(env, () => id) });
+  service = await createPortability({ db: env.DB, policy: productPolicy(env, () => id, () => ({manifest,laterJournal})) });
   if (direction === 'export') {
    await mkdir(dirname(path), { recursive: true, mode: 0o700 });
    const file = await privateFile(temporary, false);
@@ -42,7 +44,7 @@ export async function transfer(direction, path) {
     else if (record.kind === 'part') await service.imports.uploadPart(id, record.index, record);
     else closing = record;
    }
-   await service.imports.finalize(id, { contentHash: closing.contentHash }); complete = true;
+   await service.imports.finalize(id, { contentHash: closing.contentHash,laterJournal }); complete = true;
   }
   return { contentHash: closing.contentHash, payloads: manifest.payloads.map(({ name, size }) => ({ name, size })), exclusions: Object.values((await import('../../src/domain/archive-inventory.ts')).installationLocalTables), requiredConfiguration: manifest.requiredConfiguration };
  } finally {

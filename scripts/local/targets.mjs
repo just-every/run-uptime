@@ -1,18 +1,28 @@
+import { readLocalSettings, validateLocalConfiguration } from '../local-settings.mjs';
 import { lstat, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { priorOwnerEmail } from './prior-owner.mjs';
+import { priorOwnerEmails } from './prior-owner.mjs';
 import { installationFailure } from '../base-onboarding/failures.mjs';
 import { selectLocalState } from '../base-onboarding/local/state.mjs';
 import { privateDirectory } from '../base-onboarding/private-files.mjs';
 import { syntheticPortFor } from '../local-ports.mjs';
 export async function prepare({ root, input, store }) {
  await selectLocalState(root);
+ let saved;
+ if (await lstat(join(root, 'data/local-secrets.json')).catch(error => { if (error.code !== 'ENOENT') throw error; })) saved = await readLocalSettings(join(root, 'data/local-secrets.json'));
+ validateLocalConfiguration({ ...input, UPTIME_LOCAL_REVIEW: 'true' }, { scope: 'settings', suppliedOnly: true });
  if (await lstat(join(root, 'data/control')).catch(error => { if (error.code !== 'ENOENT') throw error; })) {
   store.report('Legacy state remains at data/control. Stop the old runtime and follow OPERATIONS.md to recover it explicitly; no data was moved.');
   throw installationFailure('command_failed', { step: 'setup' });
  }
- const email = await priorOwnerEmail(join(root, '.wrangler/state'));
- if (email && typeof input?.OWNER_EMAIL === 'string' && input.OWNER_EMAIL.toLowerCase() !== email) {
+ const emails = await priorOwnerEmails(join(root, '.wrangler/state'));
+ // Transfer preparation has no input; its configured owner comes from saved settings.
+ const email = input?.OWNER_EMAIL ?? saved?.OWNER_EMAIL;
+ if (emails.size > 1 && email === undefined) {
+  store.report('More than one prior owner exists; configure OWNER_EMAIL with an active owner before setup.');
+  throw installationFailure('command_failed', { step: 'setup' });
+ }
+ if (emails.size && typeof email === 'string' && !emails.has(email.toLowerCase())) {
   store.report('The saved owner differs from the requested owner. Reuse that owner or export and explicitly reset.');
   throw installationFailure('command_failed', { step: 'setup' });
  }
@@ -20,6 +30,7 @@ export async function prepare({ root, input, store }) {
 }
 export async function runtimeTarget(context, development) {
  const { root, origin, vars, store, signal, runtimePort, devKey, devLogin } = context;
+ validateLocalConfiguration({ ...vars, UPTIME_LOCAL_REVIEW: 'true', ...(devKey ? { RER_DEV_KEY: devKey } : {}) }, { scope: 'settings' });
  // Managed dev and preview serve the origin through a proxy to an internal loopback port.
  const hostname = runtimePort ? '127.0.0.1' : new URL(origin).hostname.replace(/^\[|\]$/g, '');
  const port = String(runtimePort ?? new URL(origin).port);

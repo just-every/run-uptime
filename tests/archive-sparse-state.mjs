@@ -35,7 +35,7 @@ async function assertInactiveRoundtrip(source,original){
   assert.equal(JSON.parse(history.record).state,original.state,'original sparse JSON bytes preserved');
   assert.deepEqual(restored.notification_jobs,[]);assert.deepEqual(restored.outbox,[]);
   await restore(again,await archive(target));
-  assert.deepEqual(archiveTables(await archive(again)),restored,'repeated inactive import neither rewrites nor grows history');
+  const repeatedTables=archiveTables(await archive(again));const addedAudit=repeatedTables.uptime_audit.slice(restored.uptime_audit.length);assert.equal(addedAudit.length,1);assert.equal(addedAudit[0].action,'archive_restore');assert.deepEqual(repeatedTables,{...restored,uptime_audit:[...restored.uptime_audit,...addedAudit]},'Repeated inactive restore preserves every original row and adds its one audit action');
  }finally{target.DB.close();again.DB.close()}
 }
 

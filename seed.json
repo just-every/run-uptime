@@ -1,7 +1,7 @@
 {
   "id": "uptime",
   "name": "Uptime",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "maturity": "local-installer-and-owner-deploy-implemented-hosted-unverified",
   "category": "monitoring",
   "spine": {
@@ -59,12 +59,13 @@
     {
       "id": "sendgrid-mail",
       "required": false,
-      "requiredWhen": "When hosted sign-in or an owner-configured email destination is enabled",
-      "why": "SendGrid (sendgrid) sends hosted operator sign-in links and incident notification email. Local sign-in uses the development outbox.",
+      "requiredWhen": "MAIL_PROVIDER selects sendgrid",
+      "why": "SendGrid sends hosted sign-in, incident email and monitoring watch mail when selected as the Base mail adapter.",
       "data": [
         "operator email addresses and single-use sign-in links",
         "notification recipient addresses",
-        "incident titles, monitor identity, target URL, state, probe outcomes, explanations, observation times, and console URL"
+        "incident titles, monitor identity, target URL, state, probe outcomes, explanations, observation times, and console URL",
+        "Owner watch notices, runner identity and declared network label, contact timestamps, and healthy digest status"
       ],
       "adapters": []
     },
@@ -91,6 +92,50 @@
         "probe outcomes, explanations, observation time, and console URL"
       ],
       "adapters": []
+    },
+    {
+      "id": "external-heartbeat",
+      "required": false,
+      "why": "Owner-selected independent heartbeat service; optional empty GET while self-check passes.",
+      "data": [
+        "Empty heartbeat ping: receipt time and source network address; no product payload."
+      ],
+      "adapters": []
+    },
+    {
+      "id": "runner-watch",
+      "required": false,
+      "why": "Independent webhook or Slack notice configured only in the runner environment.",
+      "data": [
+        "Site-unreachable or contact-restored notice and timestamps"
+      ],
+      "adapters": []
+    },
+    {
+      "id": "resend-mail",
+      "required": false,
+      "requiredWhen": "MAIL_PROVIDER selects resend",
+      "why": "Resend sends hosted sign-in, incident email and monitoring watch mail when selected as the Base mail adapter.",
+      "data": [
+        "operator email addresses and single-use sign-in links",
+        "notification recipient addresses",
+        "incident titles, monitor identity, target URL, state, probe outcomes, explanations, observation times, and console URL",
+        "Owner watch notices, runner identity and declared network label, contact timestamps, and healthy digest status"
+      ],
+      "adapters": []
+    },
+    {
+      "id": "cloudflare-mail",
+      "required": false,
+      "requiredWhen": "MAIL_PROVIDER selects cloudflare",
+      "why": "Cloudflare Email Sending sends hosted sign-in, incident email and monitoring watch mail when selected as the Base mail adapter.",
+      "data": [
+        "operator email addresses and single-use sign-in links",
+        "notification recipient addresses",
+        "incident titles, monitor identity, target URL, state, probe outcomes, explanations, observation times, and console URL",
+        "Owner watch notices, runner identity and declared network label, contact timestamps, and healthy digest status"
+      ],
+      "adapters": []
     }
   ],
   "env": [
@@ -100,18 +145,586 @@
       "requiredWhen": "When hosted sign-in or an email notification destination is enabled",
       "secret": true,
       "why": "Authenticates Base mail sending through SendGrid; load it from server-side secret storage and never expose it to browser code or logs."
+    },
+    {
+      "name": "UPTIME_HEARTBEAT_URL",
+      "required": false,
+      "secret": true,
+      "why": "External public HTTPS heartbeat capability URL; off when absent."
+    },
+    {
+      "name": "MAIL_PROVIDER_API_KEY",
+      "required": false,
+      "secret": true,
+      "why": "Resend API key selected at setup."
+    },
+    {
+      "name": "CLOUDFLARE_MAIL_API_KEY",
+      "required": false,
+      "secret": true,
+      "why": "Cloudflare Email Sending API key selected at setup."
+    },
+    {
+      "name": "MAIL_ACCOUNT_ID",
+      "required": false,
+      "secret": false,
+      "why": "Cloudflare Email Sending account selected at setup."
+    },
+    {
+      "name": "UPTIME_RUNNER_ID",
+      "required": false,
+      "secret": false,
+      "why": "Per-runner identity returned at enrolment or provisioning; legacy runner may omit it."
+    },
+    {
+      "name": "UPTIME_NETWORK_LABEL",
+      "required": false,
+      "secret": false,
+      "why": "Runner-local declared network label; must match its provisioned identity."
+    },
+    {
+      "name": "UPTIME_WATCH_WEBHOOK_URL",
+      "required": false,
+      "secret": true,
+      "why": "Independent HTTPS notice capability URL, kept only in the runner environment."
+    },
+    {
+      "name": "UPTIME_WATCH_SLACK_URL",
+      "required": false,
+      "secret": true,
+      "why": "Independent Slack notice capability URL, kept only in the runner environment."
+    },
+    {
+      "name": "UPTIME_WATCH_AFTER_MS",
+      "required": false,
+      "secret": false,
+      "why": "Runner-local failed-poll notice interval; defaults to three minutes."
+    },
+    {
+      "name": "UPTIME_WATCH_REPEAT_MS",
+      "required": false,
+      "secret": false,
+      "why": "Notice repeat interval on the runner or Worker; defaults to one hour."
+    },
+    {
+      "name": "UPTIME_RUNNER_STALE_MS",
+      "required": false,
+      "secret": false,
+      "why": "Worker stale-contact interval; defaults to two minutes."
+    },
+    {
+      "name": "UPTIME_HEARTBEAT_INTERVAL_MS",
+      "required": false,
+      "secret": false,
+      "why": "Worker external heartbeat interval; defaults to five minutes."
+    },
+    {
+      "name": "UPTIME_DIGEST_INTERVAL_MS",
+      "required": false,
+      "secret": false,
+      "why": "Worker healthy digest interval; defaults to one week."
     }
   ],
   "deploy": {
     "healthPath": "/health",
     "publicPaths": [
-      "/",
-      "/docs",
-      "/health",
-      "/login",
-      "/claim",
-      "/auth/magic-link",
-      "/auth/confirm"
+      {
+        "path": "/",
+        "match": "exact",
+        "kind": "document",
+        "class": "documents",
+        "authentication": "None; public product information.",
+        "environment": "all"
+      },
+      {
+        "path": "/docs",
+        "match": "exact",
+        "kind": "document",
+        "class": "documents",
+        "authentication": "None; public product information.",
+        "environment": "all"
+      },
+      {
+        "path": "/docs/",
+        "match": "prefix",
+        "kind": "document",
+        "class": "documents",
+        "authentication": "None; public product documentation.",
+        "environment": "all"
+      },
+      {
+        "path": "/health",
+        "match": "exact",
+        "kind": "health",
+        "class": "health",
+        "authentication": "None; deployment and database readiness only.",
+        "environment": "all"
+      },
+      {
+        "path": "/login",
+        "match": "exact",
+        "kind": "document",
+        "class": "authentication",
+        "authentication": "None; admission form only, credentials checked on submission.",
+        "environment": "all"
+      },
+      {
+        "path": "/claim",
+        "match": "exact",
+        "kind": "document",
+        "class": "authentication",
+        "authentication": "None; admission form only, credentials checked on submission.",
+        "environment": "all"
+      },
+      {
+        "path": "/auth/bootstrap",
+        "match": "exact",
+        "kind": "authentication",
+        "class": "authentication",
+        "authentication": "Installation setup token; first owner only.",
+        "environment": "all"
+      },
+      {
+        "path": "/auth/magic-link",
+        "match": "exact",
+        "kind": "authentication",
+        "class": "authentication",
+        "authentication": "None to request a link; allow-listed email and one-use token admit the operator.",
+        "environment": "all"
+      },
+      {
+        "path": "/auth/confirm",
+        "match": "exact",
+        "kind": "authentication",
+        "class": "authentication",
+        "authentication": "One-use magic-link or invitation token.",
+        "environment": "all"
+      },
+      {
+        "path": "/auth/owner-claim",
+        "match": "exact",
+        "kind": "authentication",
+        "class": "authentication",
+        "authentication": "Signed installation-bound owner claim.",
+        "environment": "all"
+      },
+      {
+        "path": "/auth/session",
+        "match": "exact",
+        "kind": "authentication",
+        "class": "authentication",
+        "authentication": "Base operator session; privileged account operations additionally require owner authority.",
+        "environment": "all"
+      },
+      {
+        "path": "/auth/operators",
+        "match": "exact",
+        "kind": "authentication",
+        "class": "authentication",
+        "authentication": "Base operator session; privileged account operations additionally require owner authority.",
+        "environment": "all"
+      },
+      {
+        "path": "/auth/sessions",
+        "match": "exact",
+        "kind": "authentication",
+        "class": "authentication",
+        "authentication": "Base operator session; privileged account operations additionally require owner authority.",
+        "environment": "all"
+      },
+      {
+        "path": "/auth/signout",
+        "match": "exact",
+        "kind": "authentication",
+        "class": "authentication",
+        "authentication": "Base operator session; privileged account operations additionally require owner authority.",
+        "environment": "all"
+      },
+      {
+        "path": "/auth/invite",
+        "match": "exact",
+        "kind": "authentication",
+        "class": "authentication",
+        "authentication": "Base operator session; privileged account operations additionally require owner authority.",
+        "environment": "all"
+      },
+      {
+        "path": "/auth/invite/cancel",
+        "match": "exact",
+        "kind": "authentication",
+        "class": "authentication",
+        "authentication": "Base operator session; privileged account operations additionally require owner authority.",
+        "environment": "all"
+      },
+      {
+        "path": "/auth/operator/status",
+        "match": "exact",
+        "kind": "authentication",
+        "class": "authentication",
+        "authentication": "Base operator session; privileged account operations additionally require owner authority.",
+        "environment": "all"
+      },
+      {
+        "path": "/auth/operator/role",
+        "match": "exact",
+        "kind": "authentication",
+        "class": "authentication",
+        "authentication": "Base operator session; privileged account operations additionally require owner authority.",
+        "environment": "all"
+      },
+      {
+        "path": "/auth/session/revoke",
+        "match": "exact",
+        "kind": "authentication",
+        "class": "authentication",
+        "authentication": "Base operator session; privileged account operations additionally require owner authority.",
+        "environment": "all"
+      },
+      {
+        "path": "/setup",
+        "match": "exact",
+        "kind": "setup",
+        "class": "setup",
+        "authentication": "Owner session required; unauthenticated requests redirect to login.",
+        "environment": "all"
+      },
+      {
+        "path": "/api/editor/config",
+        "match": "exact",
+        "kind": "editor",
+        "class": "editor",
+        "authentication": "Owner session required; unauthenticated requests are denied.",
+        "environment": "all"
+      },
+      {
+        "path": "/monitor",
+        "match": "exact",
+        "kind": "redirect",
+        "class": "redirects",
+        "authentication": "None; redirect to session-gated monitor editor.",
+        "environment": "all"
+      },
+      {
+        "path": "/monitor/",
+        "match": "exact",
+        "kind": "redirect",
+        "class": "redirects",
+        "authentication": "None; redirect to session-gated monitor editor.",
+        "environment": "all"
+      },
+      {
+        "path": "/api/heartbeats/",
+        "match": "prefix",
+        "kind": "credentialed",
+        "class": "heartbeats",
+        "authentication": "Revision-scoped bearer token and increasing sequence.",
+        "environment": "all"
+      },
+      {
+        "path": "/api/runner/",
+        "match": "prefix",
+        "kind": "credentialed",
+        "class": "runner",
+        "authentication": "Installation runner key; scoped runner identity and signed enrolment/results where required.",
+        "environment": "all"
+      },
+      {
+        "path": "/app.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/console-format.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/monitor-coverage.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/monitor-page.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/monitor-timeline.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/notifications.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/notification-dialogs.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/editor-units.mjs",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/editor.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/app-theme.css",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/style.css",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/notifications.css",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/editor.css",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/action-feedback.mjs",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/editor-definition.mjs",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/favicon.svg",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/assets/",
+        "match": "prefix",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resources only.",
+        "environment": "all"
+      },
+      {
+        "path": "/design-assets/",
+        "match": "prefix",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resources only.",
+        "environment": "all"
+      },
+      {
+        "path": "/__dev/outbox",
+        "match": "exact",
+        "kind": "development",
+        "class": "development",
+        "authentication": "Local runtime only; private RER_DEV_KEY header or gate cookie, or key in exchange POST body. Hosted mode returns 404.",
+        "environment": "local"
+      },
+      {
+        "path": "/__dev/key",
+        "match": "exact",
+        "kind": "development",
+        "class": "development",
+        "authentication": "Local runtime only; private RER_DEV_KEY header or gate cookie, or key in exchange POST body. Hosted mode returns 404.",
+        "environment": "local"
+      },
+      {
+        "path": "/__dev/personas",
+        "match": "exact",
+        "kind": "development",
+        "class": "development",
+        "authentication": "Local runtime only; private RER_DEV_KEY header or gate cookie, or key in exchange POST body. Hosted mode returns 404.",
+        "environment": "local"
+      },
+      {
+        "path": "/auth/dev/enter",
+        "match": "exact",
+        "kind": "development",
+        "class": "development",
+        "authentication": "Local runtime only; private RER_DEV_KEY header or gate cookie, or key in exchange POST body. Hosted mode returns 404.",
+        "environment": "local"
+      },
+      {
+        "path": "/@vite/client",
+        "match": "exact",
+        "kind": "development-asset",
+        "class": "assets",
+        "authentication": "None; local Vite HMR runtime only. The filesystem allowlist and private-file denies still apply. Hosted mode returns 404.",
+        "environment": "local"
+      },
+      {
+        "path": "/@id/virtual:tanstack-start-dev-client-entry",
+        "match": "exact",
+        "kind": "development-asset",
+        "class": "assets",
+        "authentication": "None; local TanStack Vite client entry only. Filesystem allowlist and private-file denies still apply. Hosted mode returns 404.",
+        "environment": "local"
+      },
+      {
+        "path": "/@react-refresh",
+        "match": "exact",
+        "kind": "development-asset",
+        "class": "assets",
+        "authentication": "None; local Vite compiler transport only. Vite filesystem allowlist and private-file denies remain authoritative. Hosted mode returns 404.",
+        "environment": "local"
+      },
+      {
+        "path": "/@tanstack-start/styles.css",
+        "match": "exact",
+        "kind": "development-asset",
+        "class": "assets",
+        "authentication": "None; local Vite compiler transport only. Vite filesystem allowlist and private-file denies remain authoritative. Hosted mode returns 404.",
+        "environment": "local"
+      },
+      {
+        "path": "/@fs/",
+        "match": "prefix",
+        "kind": "development-asset",
+        "class": "assets",
+        "authentication": "None; local dependency compiler transport only, restricted to a node_modules path segment and unencoded separators. Vite filesystem allowlist and private-file denies remain authoritative. Hosted mode returns 404.",
+        "environment": "local",
+        "withinDirectory": "node_modules"
+      },
+      {
+        "path": "/node_modules/.vite/",
+        "match": "prefix",
+        "kind": "development-asset",
+        "class": "assets",
+        "authentication": "None; local Vite optimized browser dependency files only. Filesystem allowlist and private-file denies remain authoritative. Hosted mode returns 404.",
+        "environment": "local"
+      },
+      {
+        "path": "/src/router.tsx",
+        "match": "exact",
+        "kind": "development-asset",
+        "class": "assets",
+        "authentication": "None; local Vite application client module graph from src/router.tsx only. Private domain/server modules are not declared. Filesystem allowlist and private-file denies still apply. Hosted mode returns 404.",
+        "environment": "local"
+      },
+      {
+        "path": "/src/routeTree.gen.ts",
+        "match": "exact",
+        "kind": "development-asset",
+        "class": "assets",
+        "authentication": "None; local Vite application client module graph from src/router.tsx only. Private domain/server modules are not declared. Filesystem allowlist and private-file denies still apply. Hosted mode returns 404.",
+        "environment": "local"
+      },
+      {
+        "path": "/src/routes/",
+        "match": "prefix",
+        "kind": "development-asset",
+        "class": "assets",
+        "authentication": "None; local Vite application client module graph from src/router.tsx only. Private domain/server modules are not declared. Filesystem allowlist and private-file denies still apply. Hosted mode returns 404.",
+        "environment": "local"
+      },
+      {
+        "path": "/src/base/modules/editor/",
+        "match": "prefix",
+        "kind": "development-asset",
+        "class": "assets",
+        "authentication": "None; local Vite application client module graph from src/router.tsx only. Private domain/server modules are not declared. Filesystem allowlist and private-file denies still apply. Hosted mode returns 404.",
+        "environment": "local"
+      },
+      {
+        "path": "/src/editor/",
+        "match": "prefix",
+        "kind": "development-asset",
+        "class": "assets",
+        "authentication": "None; local Vite application client module graph from src/router.tsx only. Private domain/server modules are not declared. Filesystem allowlist and private-file denies still apply. Hosted mode returns 404.",
+        "environment": "local"
+      },
+      {
+        "path": "/src/site/",
+        "match": "prefix",
+        "kind": "development-asset",
+        "class": "assets",
+        "authentication": "None; local Vite application client module graph from src/router.tsx only. Private domain/server modules are not declared. Filesystem allowlist and private-file denies still apply. Hosted mode returns 404.",
+        "environment": "local"
+      },
+      {
+        "path": "/src/ui/",
+        "match": "prefix",
+        "kind": "development-asset",
+        "class": "assets",
+        "authentication": "None; local Vite application client module graph from src/router.tsx only. Private domain/server modules are not declared. Filesystem allowlist and private-file denies still apply. Hosted mode returns 404.",
+        "environment": "local"
+      },
+      {
+        "path": "/@id/__x00__virtual:uptime-docs",
+        "match": "exact",
+        "kind": "development-asset",
+        "class": "assets",
+        "authentication": "None; local Vite virtual module containing published product documentation only. Hosted mode returns 404.",
+        "environment": "local"
+      },
+      {
+        "path": "/runner-settings.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      }
     ],
     "notes": "Console documents and APIs require a Base owner session; runner and heartbeat APIs use separately scoped credentials."
   },
@@ -123,7 +736,20 @@
     "adapters": []
   },
   "limits": {
-    "status": "unmeasured"
+    "status": "estimated-not-tested",
+    "publicRequestsPerMinutePerIp": {
+      "documents": 180,
+      "health": 180,
+      "authentication": 120,
+      "setup": 180,
+      "editor": 180,
+      "redirects": 180,
+      "heartbeats": 600,
+      "runner": 1800,
+      "assets": 600,
+      "development": 600
+    },
+    "notes": "Owner-tunable source settings; each class shares one fixed 60-second D1 window per client. Defaults allow a console load of about 25 assets plus polling, but capacity has not been load tested. Hosted CF-Connecting-IP must be a valid single IP; missing/malformed values share an unknown-client bucket. Local mode ignores all forwarding headers and uses one loopback bucket. Only keyed hashes of client identities are stored."
   },
   "accessibility": {
     "level": "WCAG 2.2 AA",

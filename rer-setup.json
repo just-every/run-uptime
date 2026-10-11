@@ -15,7 +15,7 @@
     {
       "name": "OWNER_EMAIL",
       "label": "Owner email",
-      "help": "Local sign-in links appear in the development outbox; no email is sent.",
+      "help": "Use a receiving mailbox independent of this hosting provider. Keep the phone receiving external heartbeat notices independent too; a missing weekly healthy digest is a signal.",
       "kind": "email",
       "required": true,
       "prefill": "account-email",
@@ -64,6 +64,14 @@
         {
           "value": "sendgrid",
           "label": "SendGrid"
+        },
+        {
+          "value": "resend",
+          "label": "Resend"
+        },
+        {
+          "value": "cloudflare",
+          "label": "Cloudflare Email Sending"
         }
       ],
       "group": "mail"
@@ -88,6 +96,53 @@
         "equals": "sendgrid"
       },
       "group": "mail"
+    },
+    {
+      "name": "MAIL_PROVIDER_API_KEY",
+      "label": "Mail provider API key",
+      "kind": "secret",
+      "required": true,
+      "when": {
+        "field": "MAIL_PROVIDER",
+        "equals": "resend"
+      },
+      "group": "mail",
+      "input": "entered",
+      "ownerVisible": true
+    },
+    {
+      "name": "MAIL_ACCOUNT_ID",
+      "label": "Cloudflare Email Sending account ID",
+      "kind": "text",
+      "required": true,
+      "when": {
+        "field": "MAIL_PROVIDER",
+        "equals": "cloudflare"
+      },
+      "group": "mail"
+    },
+    {
+      "name": "CLOUDFLARE_MAIL_API_KEY",
+      "label": "Cloudflare Email Sending API key",
+      "kind": "secret",
+      "required": true,
+      "when": {
+        "field": "MAIL_PROVIDER",
+        "equals": "cloudflare"
+      },
+      "group": "mail",
+      "input": "entered",
+      "ownerVisible": true
+    },
+    {
+      "name": "UPTIME_HEARTBEAT_URL",
+      "label": "External heartbeat ping URL (optional)",
+      "help": "Choose a service and a receiving mailbox or phone independent of this hosting provider. Empty disables pings.",
+      "kind": "secret",
+      "required": false,
+      "group": "owner",
+      "input": "entered",
+      "ownerVisible": true
     }
   ],
   "steps": [

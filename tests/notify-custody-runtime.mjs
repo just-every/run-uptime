@@ -1,37 +1,53 @@
-import {testAuthBindings} from './auth-test-support.mjs';
+import {testAuthBindings,authRequest,signInOwner} from './auth-test-support.mjs';
 import assert from 'node:assert/strict';
 import {randomBytes,randomUUID,createHmac} from 'node:crypto';
 import {readFile,readdir} from 'node:fs/promises';
 import {join} from 'node:path';
-import {root,availablePorts,migratedWorker,runtimeDirectory,cleanupDirectory,ownerAPI} from './notify-acceptance-runtime.mjs';
+import {root,availablePorts,migratedWorker,runtimeDirectory,cleanupDirectory,fixtureProcess,waitFor} from './notify-acceptance-runtime.mjs';
+import {eraseAndAssert} from './notify-custody-fixture.mjs';
+import {populateLegacy} from './notify-upgrade-fixture.mjs';
+import {readGrant} from '../runners/src/grants.mjs';
+import {probeHttp} from '../runners/src/engine.mjs';
 import {splitSql} from './migration-support.mjs';
 import {dispatchNotifications} from '../runners/src/notification-dispatch.mjs';
-const directory=await runtimeDirectory(),[port]=await availablePorts(1),persist=join(directory,'worker'),origin=`http://127.0.0.1:${port}`;
-const bindings={...testAuthBindings,SESSION_SECRET:randomBytes(32).toString('hex'),UPTIME_RUNNER_KEY:randomBytes(32).toString('hex')};
-const owner=ownerAPI(origin),id=randomUUID(),current=randomUUID(),old=randomUUID(),secret=randomBytes(32).toString('hex'),oldSecret=randomBytes(32).toString('hex'),endpoint='https://receiver.example.com/'+randomUUID();
+const [port,fixturePort]=await availablePorts(2),directory=await runtimeDirectory(),persist=join(directory,'worker'),grantPath=join(directory,'grant.json'),origin=`http://127.0.0.1:${port}`;
+const bindings={...testAuthBindings,UPTIME_SYNTHETIC_PORT:String(fixturePort),SESSION_SECRET:randomBytes(32).toString('hex'),UPTIME_RUNNER_KEY:randomBytes(32).toString('hex')};
+let cookie;
+const call=authRequest(origin),owner={
+ async api(path,method='GET',value){const response=await fetch(origin+path,{method,headers:{'content-type':'application/json',origin,cookie},body:value===undefined?undefined:JSON.stringify(value)});const text=await response.text();let data;try{data=JSON.parse(text)}catch{data=text}return {status:response.status,headers:response.headers,data}},
+ async signIn(settings){cookie=await signInOwner(origin,{bindings:settings})},
+};
+const id=randomUUID(),current=randomUUID(),old=randomUUID(),secret=randomBytes(32).toString('hex'),oldSecret=randomBytes(32).toString('hex'),endpoint='https://receiver.example.com/'+randomUUID();
 const slackId=randomUUID(),slackCredential=randomUUID(),slackURL='https://hooks.slack.com/services/TONE/BONE/'+randomUUID(),unusedSlackKey=randomBytes(32).toString('hex'),emailId=randomUUID(),emailCredential=randomUUID(),email='prior@example.com',deletedId=randomUUID(),deletedCredential=randomUUID(),deletedURL='https://receiver.example.com/'+randomUUID(),deletedKey=randomBytes(32).toString('hex');
-let worker,DB;
+let worker,DB,fixture;
+const rows=async table=>(await DB.prepare(`SELECT * FROM ${table} ORDER BY 1`).all()).results;
+const snapshot=async tables=>Object.fromEntries(await Promise.all(tables.map(async table=>[table,await rows(table)])));
 const raw=async()=> (await DB.prepare('SELECT * FROM notification_credentials ORDER BY id').all()).results;
-const noPlain=async()=>{const text=JSON.stringify(await raw());assert.ok([secret,oldSecret,endpoint,slackURL,unusedSlackKey,email,deletedURL,deletedKey].every(s=>!text.includes(s)),'raw D1 has no notification plaintext')};
+const noPlain=async()=>{const credentials=await raw(),text=JSON.stringify(credentials);assert.ok(credentials.every(row=>row.endpoint===null&&row.signing_secret===null),'every version has scrubbed plaintext columns');assert.ok([secret,oldSecret,endpoint,slackURL,unusedSlackKey,email,deletedURL,deletedKey,'recovered@example.com'].every(s=>!text.includes(s)),'raw D1 has no notification plaintext')};
 const health=()=>fetch(origin+'/health');
 const runner=async(_path,input)=>{const response=await fetch(origin+'/api/runner/notifications',{method:'POST',headers:{'content-type':'application/json','x-runner-key':bindings.UPTIME_RUNNER_KEY},body:JSON.stringify(input)});assert.equal(response.status,200,'runner RPC remains authorized');return response.json()};
 const apply=async lower=>{for(const name of (await readdir(join(root,'migrations'))).filter(n=>n.endsWith('.sql')&&Number(n.slice(0,4))>lower).sort())for(const sql of splitSql(await readFile(join(root,'migrations',name),'utf8')))await DB.prepare(sql).run()};
 try{
- ({worker,DB}=await migratedWorker({port,persist,bindings,baselineOnly:true}));await owner.signIn(bindings);
- const monitor=await owner.api('/api/monitors','POST',{name:'Preserved upgrade monitor',url:'https://example.com'});assert.equal(monitor.status,201);
+ ({worker,DB}=await migratedWorker({port,persist,bindings,baselineOnly:true}));
+ fixture=fixtureProcess(fixturePort,grantPath,directory);
+ const grant=await waitFor(async()=>{
+  const grant=await readGrant(grantPath,port),response=await fetch(`http://127.0.0.1:${fixturePort}/health`);
+  assert.equal(grant.pid,fixture.child.pid);assert.equal(grant.port,fixturePort);
+  return response.ok&&response.headers.get('x-uptime-fixture')===grant.identity?grant:false;
+ },'custody fixture and owned grant ready');
+ ({cookie}=await populateLegacy(DB,{bindings,origin,fixturePort,grant}));
+ const [legacyMonitor]=await rows('monitors'),[legacyEvent]=await rows('outbox');
+ const monitor={data:{id:legacyMonitor.id,definition:JSON.parse(legacyMonitor.definition)}};
  for(const name of ['0007_integrations.sql','0008_notifications.sql']){
   // Locate the actual edition migration by immutable number.
   const actual=(await readdir(join(root,'migrations'))).find(n=>n.startsWith(name.slice(0,4)));
   for(const sql of splitSql(await readFile(join(root,'migrations',actual),'utf8')))await DB.prepare(sql).run();
  }
- const now=Date.now(),slot=randomUUID(),observationId=randomUUID(),eventId=randomUUID();
- // Populated prior-version rows are upgrade fixtures, never newly emitted work.
- const event={schemaVersion:2,id:eventId,kind:'trigger',eventType:'uptime.incident.firing',incidentKey:'incident:'+slot,monitorId:monitor.data.id,monitorRevision:1,monitorName:monitor.data.definition.name,url:monitor.data.definition.url,slotId:slot,observedAt:now,state:'firing',title:'Prior incident',visibility:'private',evidenceRef:'/api/monitors/'+monitor.data.id+'/history',explanation:'HTTP 500',probes:[{name:'local-a',outcome:'target_failure',reason:'HTTP 500'}],consoleUrl:origin};
- const observation={id:observationId,probe:'local-a',attempt:0,startedAt:now,completedAt:now,durationMs:0,runnerVersion:'uptime-node/0.1.0',outcome:'target_failure',status:500,bytes:0,checks:[{assertion:'status',pass:false,reason:'HTTP 500'}]};
+ const now=Date.now(),eventId=legacyEvent.id,incident=JSON.parse(legacyEvent.event);
+ const evidence=(await rows('observations')).map(row=>JSON.parse(row.evidence));
+ const event={schemaVersion:2,id:eventId,kind:'trigger',eventType:'uptime.incident.firing',incidentKey:'incident:'+incident.slotId,monitorId:monitor.data.id,monitorRevision:1,monitorName:monitor.data.definition.name,url:monitor.data.definition.url,slotId:incident.slotId,observedAt:incident.observedAt,state:'firing',title:'Prior incident',visibility:'private',evidenceRef:'/api/monitors/'+monitor.data.id+'/history',explanation:JSON.parse(legacyMonitor.state).reason,probes:evidence.map(observation=>({name:observation.probe,outcome:observation.outcome,reason:observation.checks.filter(check=>!check.pass).map(check=>check.reason).join('; ')})),consoleUrl:origin};
+ // Notification records belonged to this actual scheduled incident before upgrade.
  await DB.batch([
-  DB.prepare('INSERT INTO slots VALUES(?,?,?,?,?,?,?,?,?,?)').bind(slot,monitor.data.id,1,now,'complete',JSON.stringify(monitor.data.definition),'prior-holder',now+30000,0,0),
-  DB.prepare('INSERT INTO observations VALUES(?,?,?,?,?)').bind(observationId,slot,'local-a',0,JSON.stringify(observation)),
-  DB.prepare('INSERT INTO outbox VALUES(?,?,?,?,?,?,?,?)').bind(eventId,monitor.data.id,slot,'trigger',JSON.stringify(event),'accepted',0,JSON.stringify({acknowledged:true})),
   DB.prepare("INSERT INTO notification_jobs(id,event_id,destination_id,destination_name,kind,credential_id,event,created_at,state,code,attempts,finished_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)").bind(eventId+':'+id,eventId,id,'Prior webhook','webhook',old,JSON.stringify(event),now,'accepted','webhook_accepted',1,now),
   DB.prepare('INSERT INTO notification_credentials VALUES(?,?,?,?,?)').bind(slackCredential,slackId,slackURL,unusedSlackKey,now),
   DB.prepare('INSERT INTO notification_credentials VALUES(?,?,?,?,?)').bind(emailCredential,emailId,email,null,now),
@@ -44,16 +60,49 @@ try{
   DB.prepare('INSERT INTO notification_credentials VALUES(?,?,?,?,?)').bind(current,id,endpoint,secret,now),
   DB.prepare('INSERT INTO notification_destinations VALUES(?,?,?,?,?,?,NULL)').bind(id,'Prior webhook','webhook',1,current,now),
  ]);
- const tables=['migrations','monitors','revisions','slots','observations','outbox','oa_operators','oa_sessions','notification_destinations','notification_jobs','integration_deliveries','integration_attempts'];
- const before=Object.fromEntries(await Promise.all(tables.map(async t=>[t,(await DB.prepare(`SELECT * FROM ${t} ORDER BY rowid`).all()).results])));
- assert.equal((await health()).status,503,'SQL-only plaintext notification schema must not advertise ready');
- await apply(8);assert.equal((await health()).status,200,'complete SQL schema establishes health readiness');await noPlain();assert.ok((await raw()).filter(r=>r.retired_at===null).every(r=>r.ciphertext),'the first health request seals current plaintext before any owner visit');assert.equal((await owner.api('/api/notifications')).status,200,'authorized notification read completes key-bearing upgrade');await noPlain();
- const protectedRows=await raw();assert.equal(protectedRows.length,5);assert.ok(protectedRows.filter(r=>r.destination_id!==deletedId&&r.id!==old).every(r=>r.ciphertext&&r.endpoint===null&&r.signing_secret===null),'only current usable credentials are encrypted');assert.ok(protectedRows.filter(r=>r.destination_id===deletedId||r.id===old).every(r=>r.ciphertext===null&&r.endpoint===null&&r.signing_secret===null&&r.retired_at!==null),'deleted and unused obsolete credentials are scrubbed');
- for(const table of tables)assert.ok(JSON.stringify((await DB.prepare(`SELECT * FROM ${table} ORDER BY rowid`).all()).results)===JSON.stringify(before[table]),`${table} survives key-bearing upgrade without replay`);
- await worker.dispose();({worker,DB}=await migratedWorker({port,persist,bindings}));assert.equal((await health()).status,200);assert.ok(JSON.stringify(await raw())===JSON.stringify(protectedRows),'restart does not reencrypt or replace identities');assert.equal((await owner.api('/api/notifications')).status,200,'prior session survives');
+ const tables=(await DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_cf_%' AND name<>'notification_credentials' ORDER BY name").all()).results.map(row=>row.name);
+ const before=await snapshot(tables),credentialsBefore=await raw();
+ assert.equal(credentialsBefore.length,5);
+ assert.deepEqual(Object.keys(credentialsBefore[0]).sort(),['id','destination_id','endpoint','signing_secret','created_at'].sort(),'genuine 0008 credentials are plaintext');
+ assert.ok(credentialsBefore.every(row=>row.endpoint),'all five historical versions have plaintext endpoints');
+ for(const table of ['notification_claim_custody','uptime_audit','public_rate_limits'])assert.equal(await DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name=?").bind(table).first(),null,`${table} is absent at 0008`);
+ for(const response of [await health(),await call('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'Test owner',returnTo:'/app'})]){
+  assert.equal(response.status,503,'public limiter refuses current routes against historical storage');
+  assert.equal(response.headers.get('set-cookie'),null);
+  assert.deepEqual(await response.json(),{error:'Public request limiter unavailable'},'refusal exposes no SQL detail or authority');
+ }
+ assert.equal((await call('/api/overview')).status,401,'unsigned private read remains unauthorized');
+ assert.deepEqual(await snapshot(tables),before,'denied current requests cannot change historical authority or business data');
+ assert.deepEqual(await raw(),credentialsBefore);
+ console.log('PASS authentic 0008 plaintext history: limiter 503 masks /health notification readiness; no cookie, capability, SQL detail or historical writes');
+ await apply(8);assert.equal((await health()).status,200,'all additive migrations establish health readiness');await noPlain();
+ const protectedRows=await raw();assert.equal(protectedRows.length,5);
+ assert.deepEqual(protectedRows.map(({id,destination_id,created_at})=>({id,destination_id,created_at})),credentialsBefore.map(({id,destination_id,created_at})=>({id,destination_id,created_at})),'five credential identities survive');
+ const usable=protectedRows.filter(r=>r.destination_id!==deletedId&&r.id!==old),retired=protectedRows.filter(r=>r.destination_id===deletedId||r.id===old);
+ assert.equal(usable.length,3);assert.ok(usable.every(r=>r.ciphertext&&r.endpoint===null&&r.signing_secret===null&&r.retired_at===null),'first health seals current credentials before owner visits');
+ assert.equal(retired.length,2);assert.ok(retired.every(r=>r.ciphertext===null&&r.endpoint===null&&r.signing_secret===null&&r.retired_at!==null),'obsolete and soft-deleted plaintext is scrubbed');
+ const [native]=before.oa_sessions,[operator]=before.oa_operators;
+ assert.equal(operator.role,'owner');assert.equal(operator.status,'active');assert.equal(before.oa_bootstrap[0].claim_id,operator.id);assert.ok(native.expires_at>Date.now(),'historical native session retains its fixed valid expiry');
+ const nativeSession=async()=>{const result=await owner.api('/auth/session');assert.equal(result.status,200);assert.deepEqual(result.data,{id:native.id,operatorId:operator.id,createdAt:native.created_at,expiresAt:native.expires_at,kind:'native',operator:{id:operator.id,email:operator.email,displayName:operator.display_name,role:operator.role,status:operator.status,version:operator.version,createdAt:operator.created_at}})};
+ await nativeSession();
+ const overviewRead=await owner.api('/api/overview');assert.equal(overviewRead.status,200);assert.equal(overviewRead.data.monitors.length,1);
+ const retainedMonitor=overviewRead.data.monitors[0];
+ assert.deepEqual({id:retainedMonitor.id,revision:retainedMonitor.revision,definition:retainedMonitor.definition,nextDue:retainedMonitor.nextDue,storedState:retainedMonitor.storedState},{id:legacyMonitor.id,revision:legacyMonitor.revision,definition:JSON.parse(legacyMonitor.definition),nextDue:legacyMonitor.next_due,storedState:JSON.parse(legacyMonitor.state)});
+ assert.deepEqual(overviewRead.data.alerts,before.outbox.map(row=>({...row,event:JSON.parse(row.event)})));
+ const historyRead=await owner.api(`/api/monitors/${monitor.data.id}/history`);assert.equal(historyRead.status,200);
+ assert.deepEqual(historyRead.data,before.slots.map(row=>({...row,definition:JSON.parse(row.definition),observations:before.observations.filter(observation=>observation.slot_id===row.id).map(observation=>JSON.parse(observation.evidence))})),'owner history exposes the exact original scheduled evidence');
+ assert.equal((await owner.api('/api/notifications')).status,200);
+ assert.equal((await call('/api/overview')).status,401);
+ assert.deepEqual(await snapshot(tables),before,'complete historical authority and business snapshot survives encryption and owner reads without replay');
+ assert.deepEqual((await DB.prepare('PRAGMA foreign_key_check').all()).results,[]);assert.deepEqual((await DB.prepare('PRAGMA quick_check').all()).results,[{quick_check:'ok'}]);
+ await worker.dispose();({worker,DB}=await migratedWorker({port,persist,bindings}));assert.equal((await health()).status,200);
+ assert.deepEqual(await raw(),protectedRows,'restart preserves ciphertext and identities');await nativeSession();
+ assert.deepEqual(await snapshot(tables),before,'restart preserves historical rows and fixed native expiry');
+ console.log('PASS complete additive upgrade and same-key restart preserve history, native authority and five credential identities without sending');
  const priorPoll=await runner('',{operation:'poll'});const priorSlack=priorPoll.jobs.find(j=>j.credentialId===slackCredential);
+ assert.equal(priorPoll.jobs.length,1,'accepted webhook history is never polled again');
  assert.ok(priorSlack,'existing queued Slack job remains available without replaying completed history');assert.equal(priorSlack.credential.signing_secret,null,'obsolete Slack signing key was discarded');assert.ok(priorSlack.credential.endpoint===slackURL,'legacy capability decrypted correctly');
- assert.equal((await owner.api(`/api/notifications/destinations/${slackId}`,'DELETE')).status,200);assert.equal((await owner.api(`/api/notifications/destinations/${emailId}`,'DELETE')).status,200);
+ await eraseAndAssert(DB,owner,slackId,{expectedCredentials:1});await eraseAndAssert(DB,owner,emailId,{expectedCredentials:1});
  let sends=0;const transport={async send(wire){sends++;assert.ok(wire.url===endpoint,'decrypted endpoint matches original');assert.ok(wire.headers['x-lamp-signature']===createHmac('sha256',secret).update(wire.headers['x-lamp-timestamp']+'.'+wire.body).digest('base64url'),'wire signature still authenticates the exact bytes');return {status:202,headers:{},body:''}}};
  const ahead=(await owner.api(`/api/notifications/destinations/${id}/test`,'POST',{})).data;
  await dispatchNotifications(runner,transport,{now:()=>Date.now()+61000});let history=(await owner.api('/api/notifications')).data.deliveries.find(j=>j.id===ahead.deliveryId);assert.equal(history.state,'queued');assert.equal(history.attempts,0);assert.equal(sends,0);
@@ -70,7 +119,9 @@ try{
  assert.equal((await owner.api(`/api/notifications/destinations/${id}/rotate`,'POST',{})).status,200);
  let stored=await raw();assert.equal(stored.filter(r=>r.destination_id===id&&r.retired_at!==null).length,2);assert.ok(stored.filter(r=>r.retired_at!==null).every(r=>r.ciphertext===null&&r.endpoint===null&&r.signing_secret===null));
  await dispatchNotifications(runner,transport);assert.equal(sends,3);history=(await owner.api('/api/notifications')).data.deliveries.find(j=>j.id===queued.deliveryId);assert.equal(history.code,'credential_rotated');
- assert.equal((await owner.api(`/api/notifications/destinations/${id}`,'DELETE')).status,200);stored=await raw();assert.ok(stored.every(r=>r.ciphertext===null&&r.endpoint===null&&r.signing_secret===null&&r.retired_at!==null));await noPlain();
+ await eraseAndAssert(DB,owner,id,{expectedCredentials:3,exerciseHistory:true});
+ stored=await raw();assert.equal(stored.length,1,'only the historical soft-deleted credential remains');assert.equal(stored[0].id,deletedCredential);assert.ok(stored[0].ciphertext===null&&stored[0].endpoint===null&&stored[0].signing_secret===null&&stored[0].retired_at!==null);await noPlain();
+ console.log('PASS clock bounds, exact HMAC, no replay, expiry, rotation and full destination erasure with receipt/audit');
  // Raw D1 damage is isolated from health, sign-in and authenticated probes.
  const recoveryHook=(await owner.api('/api/notifications/destinations','POST',{kind:'webhook',name:'Recover webhook',url:endpoint})).data;
  const recoveryMail=(await owner.api('/api/notifications/destinations','POST',{kind:'email',name:'Recover inbox',address:email})).data;
@@ -87,11 +138,15 @@ try{
   assert.equal((await owner.api('/api/overview')).status,200,'monitoring remains readable');
   await DB.prepare('UPDATE monitors SET next_due=? WHERE id=?').bind(Date.now(),monitor.data.id).run();
   const claimed=await fetch(origin+'/api/runner/claim',{method:'POST',headers:{'content-type':'application/json','x-runner-key':bindings.UPTIME_RUNNER_KEY},body:'{}'});assert.equal(claimed.status,200,'probe claims remain available');
-  const task=(await claimed.json()).task;assert.ok(task,'scheduled probe claimed');const stamp=Date.now();
-  const attempts=task.definition.probes.map(probe=>({id:randomUUID(),probe,attempt:0,startedAt:stamp,completedAt:stamp,durationMs:0,runnerVersion:'uptime-node/0.1.0',outcome:'pass',status:200,bytes:0,checks:[{assertion:'status',pass:true,reason:'HTTP 200'}]}));
+  const task=(await claimed.json()).task;assert.ok(task,'scheduled probe claimed');
+  // Continue the existing real failing incident: a fabricated pass would create
+  // an unrelated recovery notification and contaminate this custody journey.
+  const attempts=await Promise.all(task.definition.probes.map(async probe=>({...await probeHttp({...task.definition,fixtureIdentity:grant.identity},probe,[fixturePort]),attempt:0})));
+  assert.ok(attempts.every(attempt=>attempt.outcome==='target_failure'&&attempt.status===503));
   const text=JSON.stringify({slotId:task.id,leaseOwner:task.leaseOwner,attempts}),timestamp=String(Date.now());
   const completed=await fetch(origin+'/api/runner/results',{method:'POST',headers:{'content-type':'application/json','x-runner-key':bindings.UPTIME_RUNNER_KEY,'x-sent-at':timestamp,'x-runner-signature':createHmac('sha256',bindings.UPTIME_RUNNER_KEY).update(timestamp+'.'+text).digest('hex')},body:text});
   assert.equal(completed.status,200,'signed probe results remain available');assert.equal((await completed.json()).accepted,true);
+  assert.deepEqual(await rows('outbox'),before.outbox,'continuing the historical incident cannot manufacture another notification');
  };
  await probeRoundTrip();
  assert.equal((await owner.api(`/api/notifications/destinations/${recoveryHook.id}/test`,'POST',{})).status,400);
@@ -100,23 +155,23 @@ try{
  await DB.prepare('UPDATE notification_credentials SET ciphertext=? WHERE id=?').bind(tampered.ciphertext.slice(0,-5)+'AAAAA',tampered.id).run();
  assert.equal((await health()).status,200,'changed ciphertext cannot disable health');
  await probeRoundTrip();
- assert.equal((await owner.api(`/api/notifications/destinations/${recoveryHook.id}`,'DELETE')).status,200,'damaged destination can be deleted');
- const retainedTables=['monitors','revisions','slots','observations','outbox','notification_jobs','integration_attempts'];
- const snapshot=Object.fromEntries(await Promise.all(retainedTables.map(async t=>[t,JSON.stringify((await DB.prepare(`SELECT * FROM ${t} ORDER BY rowid`).all()).results)])));
+ await eraseAndAssert(DB,owner,recoveryHook.id,{expectedCredentials:2});
+ const retainedTables=['monitors','revisions','slots','observations','outbox','notification_jobs','integration_attempts','uptime_erasure_receipts'];
+ const retainedSnapshot=await snapshot(retainedTables);
  // Change the actual Worker secret, invalidate the old cookie, then reauthenticate.
  await worker.dispose();({worker,DB}=await migratedWorker({port,persist,bindings:{...bindings,SESSION_SECRET:randomBytes(32).toString('hex')}}));
  assert.equal((await health()).status,200,'session-key rotation cannot disable monitoring readiness');
  assert.equal((await owner.api('/api/overview')).status,401,'old authentication no longer works');
  assert.equal((await fetch(origin+'/login')).status,200);assert.equal((await fetch(origin+'/auth/session')).status,401,'authentication route is available');
  await owner.signIn(bindings);
- overview=(await owner.api('/api/notifications')).data;assert.ok(overview.destinations.every(d=>!d.credentialsAvailable),'owner sees each invalidated credential');
- for(const table of retainedTables)assert.ok(JSON.stringify((await DB.prepare(`SELECT * FROM ${table} ORDER BY rowid`).all()).results)===snapshot[table],`${table} remains intact across secret rotation`);
+ overview=(await owner.api('/api/notifications')).data;assert.equal(overview.destinations.length,2);assert.ok(overview.destinations.every(d=>!d.credentialsAvailable),'owner sees each invalidated credential');
+ assert.deepEqual(await snapshot(retainedTables),retainedSnapshot,'business tables remain intact across session-secret rotation');
  await probeRoundTrip();
  assert.equal((await runner('',{operation:'poll'})).jobs.length,0,'invalidated credentials never enter runner memory');
  assert.equal((await owner.api(`/api/notifications/destinations/${recoveryMail.id}`,'PATCH',{name:'Recovered inbox',enabled:true,address:'recovered@example.com'})).status,200);
  assert.equal((await owner.api(`/api/notifications/destinations/${recoverySlack.id}`,'PATCH',{name:'Recovered chat',enabled:true,url:slackURL})).status,200);
- overview=(await owner.api('/api/notifications')).data;assert.ok(overview.destinations.every(d=>d.credentialsAvailable));assert.equal(overview.destinations.find(d=>d.id===recoveryMail.id).address,'recovered@example.com');
+ overview=(await owner.api('/api/notifications')).data;assert.equal(overview.destinations.length,2);assert.ok(overview.destinations.every(d=>d.credentialsAvailable));assert.equal(overview.destinations.find(d=>d.id===recoveryMail.id).address,'recovered@example.com');
  await noPlain();
- for(const destination of overview.destinations)assert.equal((await owner.api(`/api/notifications/destinations/${destination.id}`,'DELETE')).status,200);
+ for(const destination of overview.destinations)await eraseAndAssert(DB,owner,destination.id,{expectedCredentials:2});
  console.log('PASS emitted Worker populated upgrade retirement; raw tamper and secret rotation isolate credentials while auth/probe claim/results continue; reentry/deletion; clock bridge signatures and no replay');
-}finally{if(worker)await worker.dispose();await cleanupDirectory(directory)}
+}finally{try{if(worker)await worker.dispose()}finally{try{if(fixture)await fixture.stop()}finally{await cleanupDirectory(directory)}}}

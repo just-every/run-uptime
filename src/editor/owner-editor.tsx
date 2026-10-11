@@ -21,17 +21,23 @@ export function OwnerEditorShell() {
     const current=JSON.stringify([session.id,session.operator.id])
     if(current!==identity){editor.setOwner(true);identity=current}
     await editor.refresh(configLoader('/api/editor/config',location.origin))
-   } catch {revoke()} finally {pending=false}
+   } catch {if(!stopped)revoke()} finally {pending=false}
   }
   const changed=()=>{revoke();void refresh()}
   const focused=()=>{void refresh()}
   const authorityLost=()=>{revoke()}
+  const dispose=()=>{
+   if(stopped)return
+   stopped=true;generation++;identity='';controller.abort();clearInterval(timer);editor.dispose()
+   window.removeEventListener('uptime:auth-changed',changed);window.removeEventListener('uptime:auth-lost',authorityLost);window.removeEventListener('uptime:console-closed',dispose);window.removeEventListener('focus',focused)
+  }
   window.addEventListener('uptime:auth-changed',changed)
   window.addEventListener('uptime:auth-lost',authorityLost)
+  window.addEventListener('uptime:console-closed',dispose)
   window.addEventListener('focus',focused)
   const timer=setInterval(()=>void refresh(),20_000)
   void refresh()
-  return ()=>{stopped=true;controller.abort();clearInterval(timer);editor.dispose();window.removeEventListener('uptime:auth-changed',changed);window.removeEventListener('uptime:auth-lost',authorityLost);window.removeEventListener('focus',focused)}
+  return dispose
  },[])
  return null
 }

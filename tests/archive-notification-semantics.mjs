@@ -34,7 +34,7 @@ async function assertQuarantinedRoundtrip(source){
   for(const row of rows.notification_jobs.filter(row=>row.kind!=='email'))assert.equal(await notificationRpc(target,{operation:'claim',id:row.id}),null);
   assert.deepEqual(archiveTables(await archive(target)),rows,'poll and stale claims never replay imported notifications');
   await restore(again,exported);
-  assert.deepEqual(archiveTables(await archive(again)),rows,'repeated inactive import preserves all histories');
+  const repeatedTables=archiveTables(await archive(again));const addedAudit=repeatedTables.uptime_audit.slice(rows.uptime_audit.length);assert.equal(addedAudit.length,1);assert.equal(addedAudit[0].action,'archive_restore');assert.deepEqual(repeatedTables,{...rows,uptime_audit:[...rows.uptime_audit,...addedAudit]},'Repeated inactive restore preserves every original row and adds its one audit action');
  }finally{target.DB.close();again.DB.close()}
 }
 

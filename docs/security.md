@@ -2,9 +2,9 @@ Uptime is built to fail closed: if something is not configured or not authorized
 
 ## Who can reach what
 
-The console and every API behind it are owner-only. Each private page, read, change and export is checked on the server for either an operator session or a scoped runner credential, on every request. Hiding a button in the browser is never the protection.
+The console and private product APIs are owner-only; runner and heartbeat APIs use separate scoped credentials. Each private page, read, change and export is checked on the server on every request. Authentication routes and public information are listed separately in `seed.json`; a public route declaration never grants private product access. Hiding a button in the browser is never the protection.
 
-- If required configuration is missing, requests are refused.
+- Required configuration is checked before the Worker handles a request or scheduled run. Setup checks generated or saved settings before opening its temporary runtime; the local app, preview, deployment and runner check their configuration before serving or starting operational work. Missing or malformed configuration stops that entry point and names the variable; the Worker returns 503, including at `/health`, without returning a configured value.
 - Running on a loopback address is not authentication.
 - Sign-in uses shared operator sign-in with email links, and Uptime does not grant extra roles on its own.
 
@@ -12,9 +12,10 @@ The console and every API behind it are owner-only. Each private page, read, cha
 
 - **Host guard.** The Worker answers only requests whose address and Host header match its configured origin. Anything else gets a 403.
 - **Same-origin checks.** Changes made from a browser must come from the configured origin, and cross-site requests are rejected.
-- **Runner key and signed results.** Every runner request, including claims and notification work, must present the scoped runner key. Results are also timestamped and signed with that key. The Worker accepts results only for an exact check it handed out, and rejects expired, foreign, duplicate or contradictory ones.
+- **Runner key and signed results.** Every runner request, including claims and notification work, must present the scoped runner key. Results are also timestamped and signed with that key. The Worker accepts results only for an exact check it handed out, and refuses expired, foreign or contradictory attempts; the first accepted copy wins when an attempt is repeated.
 - **Heartbeat tokens.** Tokens are issued by the owner, stored only as hashes, scoped to one monitor revision, and used with strictly increasing sequence numbers.
 - **Pinned connections.** The runner validates every DNS answer and redirect hop, then pins the connection. See [Monitors and evidence](/docs/monitors).
+- **Declared public routes.** Every route that can be reached without a session is listed in `seed.json` with its purpose, authentication rule and rate-limit class. Limits use a fixed 60-second window per public path class and client IP; an excess request returns 429 with `Retry-After`, and unavailable counter storage returns 503. A public declaration does not grant route authority. Hosted client identity comes from Cloudflare's `CF-Connecting-IP`; a missing or malformed value shares an unknown-client bucket. Local requests share a loopback bucket, and forwarding headers do not change it. Only keyed hashes of client identities are stored, and expired counters are removed after their window.
 
 A signature identifies the holder of the runner key. It does not prove the runner was uncompromised, so protect the key.
 
@@ -27,7 +28,15 @@ A signature identifies the holder of the runner key. It does not prove the runne
 
 ## What travels in an archive
 
-Archives carry monitor definitions, evidence, outbox events, destination definitions (including an email address) and delivery history. They never carry sessions, runner grants, request-credential references, webhook or Slack URLs, signing keys or other credentials. See [Move your data](/docs/data).
+Archives carry monitor definitions, evidence, product outbox events, destination definitions (including an email address), delivery history for records still in the source, erasure receipts and the permanent action audit. Current destination erasure removes its dependent delivery, replay and archive-history records before a later export. Local development sign-in messages stay in the guarded, installation-local outbox until their associated operator is erased or local reset; they are not archive data. Audit subject references are opaque; they do not store monitor names, email addresses, target URLs or destination URLs. Archives never carry sessions, runner grants, request-credential references, webhook or Slack URLs, signing keys or other credentials. The source erasure journal is carried so later restores can apply erasure fences.
+
+An older offline archive by itself cannot disclose an erasure that happened after it was made. Export the later journal from **Runner / Archive** and provide it with the old archive when restoring; a local CLI import accepts it through the absolute-path `UPTIME_LATER_JOURNAL` setting. Restoring the old archive without the journal into a fresh installation cannot detect the later erasure. This is a limit of Base's offline transfer model. An archive someone downloaded before erasure remains outside the installation's control, as do messages already sent to email, webhook or Slack services; a request already in progress may still reach its provider after erasure.
+
+## Erasure and audit
+
+Owner-directed erasure removes a monitor and its dependent evidence, a destination and its credential copies, or an operator while at least one active owner remains. Monitor erasure requires typing the current monitor name. The last active owner is protected; use local reset or replace the hosted installation to establish a new owner. Uptime has no R2 upload store, so its product records have no uploaded attachments to erase.
+
+Destructive actions and automated notification attempts, including test sends, are recorded with an actor or feature, time, action, subject kind and opaque reference. Operator authentication-mail provider attempts and local development captures are audited too; a capture and its audit commit in one D1 batch, while the hosted mail sender records the audit before attempting the provider request. Audit entries remain after subject erasure. When an operator is erased, prior actor references are anonymised, and a later journal makes restore refuse old audit actor references for an erased operator. See [Data and archives](/docs/data) for erasure receipts, restore limits and what an installation cannot recall.
 
 ## Rotating the session secret
 

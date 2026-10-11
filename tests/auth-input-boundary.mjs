@@ -95,7 +95,7 @@ try{
  assert.equal(accepted.headers.has('set-cookie'),false,'link request does not authenticate before confirmation');
  assert.equal((await DB.prepare('SELECT COUNT(*) n FROM oa_tokens').first()).n,1,'only the accepted request creates a token');
  assert.equal((await DB.prepare('SELECT COUNT(*) n FROM rer_mail_development_outbox').first()).n,1,'only the accepted request creates captured mail');
- const link=await outboxLink(call);
+ const link=await outboxLink(call,{email:bindings.OWNER_EMAIL});
  assert.ok(link.origin===origin,'development link remains within the isolated local Worker');
  const preview=await call(link.pathname+link.search);
  assert.equal(preview.status,200,'actual captured link previews successfully');

@@ -33,7 +33,7 @@ When a failure is confirmed, Uptime can notify you by email, a signed JSON webho
 
 Uptime suits you if you want to run your own monitoring and read the evidence behind every alert. It fits a small team or one person who is comfortable running a Cloudflare Worker and a small Node process, and who would rather see an honest "no check received" than a reassuring green.
 
-It does not cover everything. Uptime is sampled evidence from one runner, not a promise about every visitor's experience. See [What Uptime does not do](/docs/limits).
+It does not cover everything. Uptime uses sampled evidence from the assigned runner networks, not a promise about every visitor's experience. See [What Uptime does not do](/docs/limits).
 
 ## Where to go next
 

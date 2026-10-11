@@ -4,10 +4,10 @@
 // reversed, as the dot strip. It is pure: no DOM and no clock; the caller passes now (the overview's server time), so a
 // refresh renders the same rows from the same reads. Without revisions the model falls back to what the slots prove.
 //
-// What the scheduler does (src/domain/control.server.ts save and claimNext, src/domain/schedule.ts):
+// What the scheduler does (src/domain/control.server.ts save and claimAttempt, src/domain/schedule.ts):
 // - Every save (an edit, pause, resume, or maintenance start or end) creates a revision and sets next_due to the save
 //   time, so each revision has its own grid: its save time plus whole intervals. Grids never continue across revisions.
-// - claimNext claims next_due as one scheduled slot even when it is late, stores in missed_count the whole intervals
+// - claimAttempt claims next_due as one scheduled slot even when it is late, stores in missed_count the whole intervals
 //   that had passed by the claim, and moves next_due to due + (missed_count + 1) * interval. The due times
 //   due + k * interval, k = 1..missed_count, were skipped: never claimed, never run. They lie on the slot's own revision
 //   before the next scheduled slot, so a missed run is clipped there and never crosses a revision boundary.
@@ -16,7 +16,7 @@
 //   outage once a grace past due (overdue). See tailRuns.
 // - A paused revision is never claimed and cannot be run manually. Maintenance does not stop claims (checks continue,
 //   alerts are suppressed), but missed and overdue checks inside a maintenance span are not listed.
-// - A claim holds a lease (leaseMs); a slot still running when its lease ends has no result.
+// - Assigned attempts have a bounded acceptance window; an expired unfinished slot has no complete result.
 // - A manual check is its own slot (manual 1) queued at the click time; it never moves next_due, so it never fills or
 //   hides a gap and never counts as scheduled evidence.
 
@@ -26,20 +26,19 @@ const isTime=Number.isSafeInteger;
 // marked "+N", or a paused or maintenance span), so the list holds at most this many rows.
 export const STRIP_PLACES=12;
 
-// The lease the control plane gives a claim (src/domain/schedule.ts leaseMs): every selected probe attempt's timeout plus
-// a 10 s margin, at least 30 s.
-export function leaseMs(definition){
+// The acceptance budget matches src/domain/schedule.ts: target retries and each configured canary, plus the completion margin.
+export function acceptanceMs(definition){
  const probes=Array.isArray(definition?.probes)?definition.probes.length:1;
  const retries=isTime(definition?.retries)&&definition.retries>=0?definition.retries:0;
  const timeout=isTime(definition?.timeoutMs)&&definition.timeoutMs>=0?definition.timeoutMs:0;
- return Math.max(30000,probes*(retries+1)*timeout+10000);
+ const canaries=Object.values(definition?.assignments??{}).filter(assignment=>assignment.canaryUrl).length;
+ return Math.max(30000,(probes*(retries+1)+canaries)*timeout+10000);
 }
 
-// How long past its due time an unclaimed scheduled check waits before it is overdue: one lease of the current
-// definition. A running runner polls about once a second, and claimNext holds back a monitor's next slot only while its
-// previous slot is still running, which that slot's lease bounds; a due time still unclaimed a full lease later is not
-// being picked up (the runner is stopped or cannot keep up).
-export const overdueGraceMs=definition=>leaseMs(definition);
+// An unclaimed scheduled check is overdue after one acceptance budget. Several
+// assigned runners can accept their probes independently; earlier in-flight
+// slots do not own the monitor's next scheduled slot.
+export const overdueGraceMs=definition=>acceptanceMs(definition);
 
 // A slot's result from the latest attempt of each probe: failed when any target failed (with that response's HTTP status
 // and, when it is not the expected one, the expected status), passed only when the slot is complete and every probe
@@ -49,7 +48,7 @@ export function checkResultSummary(slot){
  for(const o of Array.isArray(slot?.observations)?slot.observations:[]){const previous=latest.get(o.probe);if(!previous||o.attempt>previous.attempt)latest.set(o.probe,o)}
  const results=[...latest.values()],failed=results.find(o=>o.outcome==='target_failure');
  if(failed){const expected=slot.definition?.assertions?.status;return {state:'failed',label:'Failed',code:failed.status,expected:failed.status&&isTime(expected)&&expected!==failed.status?expected:null}}
- if(slot?.status==='complete'&&results.length&&results.every(o=>o.outcome==='pass'))return {state:'passed',label:'Passed'};
+ if(slot?.status==='complete'&&results.length&&results.every(o=>o.outcome==='pass')&&!slot.observations.some(o=>o.canary&&o.canary.outcome!=='pass'))return {state:'passed',label:'Passed'};
  return {state:'unknown',label:results.length?'No passing result':'No result',runnerError:results.length>0&&results.every(o=>o.outcome==='runner_error')};
 }
 
@@ -58,15 +57,15 @@ const RANK={overdue:0,missed:1,running:2,noresult:3,failed:4,passed:5,manual:6,m
 const newerFirst=(a,b)=>b.effectiveTime-a.effectiveTime||b.dueAt-a.dueAt||RANK[a.kind]-RANK[b.kind];
 
 // One slot (scheduled or manual) as an entry. effectiveTime: the latest attempt's completion when it ran; the claim
-// (lease start) while it runs; otherwise its due time. Never earlier than its due time.
+// (acceptance-window start) while it runs; otherwise its due time. Never earlier than its due time.
 function slotEntry(slot,now,grace){
  const observations=Array.isArray(slot.observations)?slot.observations:[],summary=checkResultSummary(slot);
- const lease=leaseMs(slot.definition),claimedAt=isTime(slot.lease_until)&&slot.lease_until>0?slot.lease_until-lease:null;
+ const budget=acceptanceMs(slot.definition),claimedAt=isTime(slot.lease_until)&&slot.lease_until>0?slot.lease_until-budget:null;
  const completions=observations.map(o=>o.completedAt).filter(isTime),starts=observations.map(o=>o.startedAt).filter(isTime);
  let state,reason=null;
  if(slot.status==='complete'&&observations.length){state=summary.state==='unknown'?'noresult':summary.state;if(state==='noresult')reason=summary.runnerError?'runner-error':'incomplete'}
- else if(slot.status==='running'){if(isTime(slot.lease_until)&&slot.lease_until>now)state='running';else{state='noresult';reason='lease-expired'}}
- else if(slot.status==='queued'){if(slot.due_at+lease>now){state='running';reason='queued'}else{state='noresult';reason='queued-expired'}}
+ else if(slot.status==='running'){if(isTime(slot.lease_until)&&slot.lease_until>now)state='running';else{state='noresult';reason='window-expired'}}
+ else if(slot.status==='queued'){if(slot.due_at+budget>now){state='running';reason='queued'}else{state='noresult';reason='queued-expired'}}
  else{state='noresult';reason=slot.status==='interrupted'?'interrupted':'no-result'}
  const ran=completions.length>0,running=state==='running'&&reason!=='queued'&&claimedAt!==null;
  const effectiveTime=Math.max(slot.due_at,ran?Math.max(...completions):running?claimedAt:slot.due_at);
@@ -153,7 +152,7 @@ function missedRuns(scheduled,starts){
 // due times a full grace before that save, so a claim the save simply beat is never called missed. For the newest
 // revision, enabled, they are overdue once a full grace past due: the ongoing outage. Without the revisions read, when
 // the revision after one left no scheduled slot and is not current, when it ended is unknown and nothing is drawn.
-// Grace is one lease of the revision's definition (overdueGraceMs).
+// Grace is one acceptance budget of the revision's definition (overdueGraceMs).
 function tailRuns(scheduled,monitor,starts,now,known){
  const byRevision=new Map(),definitions=new Map(known.map(r=>[r.revision,r.definition]));
  for(const slot of scheduled)if(isTime(slot.revision)){if(!byRevision.has(slot.revision))byRevision.set(slot.revision,[]);byRevision.get(slot.revision).push(slot)}

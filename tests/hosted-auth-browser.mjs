@@ -3,13 +3,13 @@ import {mkdtemp, readFile, readdir, rm} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {chromium} from 'playwright';
+import {testAuthBindings} from './auth-test-support.mjs';
 import {hostedBrowserRuntime} from './hosted-browser-runtime.mjs';
 import {splitSql} from './migration-support.mjs';
 
 const directory = await mkdtemp(join(tmpdir(), 'uptime-hosted-browser-'));
 const mails = [];
-const bindings = {UPTIME_LOCAL_REVIEW: 'false', OWNER_EMAIL: 'owner@example.test',
-  SESSION_SECRET: 'test-only-native-session-secret-00001', SETUP_TOKEN: 'test-only-onetime-setup-credential-00001',
+const bindings = {...testAuthBindings, MAIL_PROVIDER: 'sendgrid', UPTIME_LOCAL_REVIEW: 'false', OWNER_EMAIL: 'owner@example.test',
   MAIL_FROM: 'Uptime <auth@example.test>', SENDGRID_API_KEY: 'test-only-provider-key'};
 let runtime, browser;
 try {

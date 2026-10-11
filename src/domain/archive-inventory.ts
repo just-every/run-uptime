@@ -2,6 +2,7 @@ import {TABLES,columns} from './archive-schema.ts'
 /** Every permanent schema table has a portability decision. Unknown tables and
  * foreign integration namespaces refuse export rather than silently lose data. */
 export const installationLocalTables:Record<string,string>={
+ public_rate_limits:'Installation public-path request counters; expire after their window.',
  _cf_METADATA:'D1 installation metadata; never product records.',
  d1_migrations:'Receiving installation migration ledger; never replace applied migration history.',
  sessions:'Retired installation authentication sessions.',login_attempts:'Authentication rate-limit authority.',
@@ -11,12 +12,13 @@ export const installationLocalTables:Record<string,string>={
  oa_domain_rules:'Installation sign-in provider policy; never portable authorization.',
  oa_step_up_challenges:'Installation session-bound step-up token authority; never portable.',
  runner_contact:'Installation runner contact, not product target evidence.',
- runner_registration:'Installation signed self-runner identity and enrolment authority; never portable target evidence.',
+ attempt_checkpoints:'Rebuildable installation-local scheduled evidence checkpoints.',
+ runners:'Installation runner identities and encrypted per-runner keys.',runner_assignments:'Installation execution assignments; revisions retain their selected configuration.',evidence_generation:'Installation atomic evidence projection generations.',monitoring_watch:'Installation watch dispatch state; never portable authority.',
  heartbeat_authority:'Installation heartbeat token and receipt authority.',heartbeat_claims:'Installation heartbeat execution snapshots.',heartbeat_limits:'Installation ingress rate limits.',
  notification_credentials:'Installation destination ciphertext, webhook/Slack URLs and signing keys; email definition is separately exported.',
  notification_claim_custody:'Installation dispatch reservation hashes and claim authorization; product attempts and outcomes are retained separately.',
  integration_tokens:'Installation integration token authority.',integration_token_usage:'Installation token authorization audit.',integration_token_events:'Installation token administration audit.',
- rer_mail_development_outbox:'Installation authentication messages containing local sign-in/setup authority.',
+ rer_mail_development_outbox:'Installation development captures, including sign-in/setup authority; retained until explicit erasure or reset.',
  oc_owner_claims:'Installation signed owner admission ledger; retain permanently, never export credentials or authority.',
  uptime_first_run:'Installation first-run completion; a receiving owner completes setup independently.',
 };

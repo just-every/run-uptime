@@ -4,17 +4,19 @@ You can deploy Uptime to your own Cloudflare account with one command. This page
 
 - A Cloudflare account ID and an API token for that account.
 - An owner email address, for the person who will claim the installation.
-- A verified SendGrid sender address and a SendGrid Mail Send API key. Hosted sign-in uses email links, so this is required even if you chose **Set up later** for email on your own computer.
+- A verified sender and the API credential for Resend, SendGrid or Cloudflare Email Sending. Hosted sign-in uses email links, so this is required even if you chose **Set up later** for email on your own computer.
 
 ## Set the inputs
 
-`node scripts/rer.mjs deploy` reads these five values:
+`node scripts/rer.mjs deploy` reads the hosting and chosen mail inputs:
 
 - `CLOUDFLARE_ACCOUNT_ID` is your Cloudflare account.
 - `CLOUDFLARE_API_TOKEN` is a token that can deploy to that account.
 - `OWNER_EMAIL` is the address of the first owner.
-- `MAIL_FROM` is your verified SendGrid sender.
-- `SENDGRID_API_KEY` is a Mail Send API key.
+- `MAIL_FROM` is your verified sender.
+- `MAIL_PROVIDER` selects `resend`, `sendgrid` (the existing-install default), or `cloudflare`.
+- Resend uses `MAIL_PROVIDER_API_KEY`; SendGrid uses `SENDGRID_API_KEY`; Cloudflare Email Sending uses `CLOUDFLARE_MAIL_API_KEY` and `MAIL_ACCOUNT_ID`.
+- Optional `UPTIME_HEARTBEAT_URL` enables the independent heartbeat described in [Watchers and independent checks](/docs/resilient-monitoring).
 
 Uptime also needs three secrets of its own: `SESSION_SECRET`, `SETUP_TOKEN` and `UPTIME_RUNNER_KEY`. You do not make these up. They are generated for a new installation, or reused from `.rer/deploy/production-secrets.json` if you have deployed before. Keep that file private and back it up separately from the database.
 

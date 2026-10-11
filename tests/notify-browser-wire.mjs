@@ -4,11 +4,12 @@ import {createServer} from 'node:http';
 import {availablePorts} from './notify-acceptance-runtime.mjs';
 import {runRunner} from '../runners/src/private-runner.mjs';
 export function notificationMailFake(){
- const records=[];
- return {records,outboundService:async request=>{
+ const records=[],authMessages=[];
+ return {records,authMessages,outboundService:async request=>{
   assert.equal(request.url,'https://api.sendgrid.com/v3/mail/send','only Base SendGrid outbound is allowed');
   assert.equal(request.method,'POST');
   const body=await request.json();
+  if(body.personalizations[0].to[0]?.email==='operator@example.test'){authMessages.push(body);return new Response(null,{status:202})}
   assert.deepEqual(body.personalizations[0].to,[{email:'qa-inbox@example.test'}]);
   assert.ok(body.custom_args.rer_delivery_id,'Base sends delivery correlation');
   assert.deepEqual(body.tracking_settings.click_tracking,{enable:false,enable_text:false});

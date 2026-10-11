@@ -1,7 +1,9 @@
+import { missing } from './base-cli/cli/errors.mjs';
+import { validateConfiguration } from '../src/domain/startup-config.mjs';
 import setupManifest from '../rer-setup.json' with { type: 'json' };
 import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, lstat } from 'node:fs/promises';
 import { prepareSettings, readSettings } from './base-onboarding/adapter-settings.mjs';
 import { freePort, portValue } from './local-ports.mjs';
 export const rootDirectory = fileURLToPath(new URL('../', import.meta.url));
@@ -19,21 +21,26 @@ function settingsLocation(path) {
  const root = path === defaultSettingsPath ? rootDirectory : dirname(path);
  return { root, file: relative(root, path) };
 }
+export function validateLocalConfiguration(values, options = {}) {
+ try { validateConfiguration(values, { scope: 'settings', ...options }); }
+ catch (error) { throw missing(error.message); }
+}
 export async function readLocalSettings(path = defaultSettingsPath) {
  const { root, file } = settingsLocation(path);
  const { values } = await readSettings(root, settingsDefinition({ file }));
- if (!generatedNames.every(name => typeof values[name] === 'string' && values[name].length >= 32) || new Set(generatedNames.map(name => values[name])).size !== generatedNames.length) throw Error('Independent installation credentials required; run setup.');
+ validateLocalConfiguration({ ...values, UPTIME_LOCAL_REVIEW: 'true' });
  return values;
 }
 export function savedOrigin(values, requestedPort) {
  let url;
  try { url = new URL(values.UPTIME_ORIGIN); } catch {}
- if (!url || url.protocol !== 'http:' || !['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname) || !url.port || url.origin !== values.UPTIME_ORIGIN) throw Error('A saved loopback origin is required; run setup.');
+ if (!url || url.protocol !== 'http:' || !['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname) || !url.port || url.origin !== values.UPTIME_ORIGIN) throw missing('Invalid configuration: UPTIME_ORIGIN must be a saved loopback origin; run setup.');
  if (requestedPort !== undefined && requestedPort !== '' && portValue(requestedPort) !== Number(url.port)) throw Error('The requested control port differs from the saved installation origin; use the saved port.');
  return url.origin;
 }
 export async function prepareLocalSettings({ path = defaultSettingsPath, input = {}, controlPort, store = { step: async () => {}, addSecrets() {} } } = {}) {
  path = resolve(path); const { root, file } = settingsLocation(path); await mkdir(root, { recursive: true, mode: 0o700 });
+ if (await lstat(path).catch(error => { if (error.code !== 'ENOENT') throw error; })) await readLocalSettings(path);
  const secrets = settingsDefinition({ file });
  const context = { root, input: { ...input, OWNER_EMAIL: input.OWNER_EMAIL ?? input.email }, store, manifest: setupManifest, operationToken: path === defaultSettingsPath ? process.env.RER_LOCAL_OPERATION : undefined };
  const hooks = { secrets, origin: async () => {

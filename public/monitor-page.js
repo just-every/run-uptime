@@ -1,3 +1,4 @@
+import {confirmErasure,showErasureReceipt} from './notification-dialogs.js';
 // One monitor's page (/app/monitors/<id>), rendered by public/app.js into the console shell on every refresh: the page
 // header (back link, name with its state, URL, kind and interval, actions) and, in #content-area, the state notice, then
 // evidence coverage and recent checks with their attempts on the left, and the last check, what the check expects and,
@@ -56,7 +57,7 @@ function heartbeatPanel(m){
 }
 function coveragePanel(availability){
  const window=(label,metrics)=>`<div class="coverage-window"><h3>${label}</h3>${coverage(metrics,label,'large')}</div>`;
- return `<section class="ui-card panel coverage-panel" aria-labelledby="coverage-heading"><div class="panel-head"><h2 id="coverage-heading">Evidence coverage</h2><p class="metric-basis">${escape(COVERAGE_RULE)}</p></div><div class="coverage-windows">${window('Last 24 hours',availability?.last24h)}${window('Last 7 days',availability?.last7d)}</div><div class="coverage-foot">${coverageLegend}<p class="coverage-note">Passing is the share of observed time when every configured check passed; Unknown is the share of each full window without a valid result. Both are rounded to two decimals, passing down and failing and Unknown up, and never to 0% or 100% unless exact. Manual runs and retries do not add observed time. Checks run from this installation's one local vantage.</p></div></section>`;
+ return `<section class="ui-card panel coverage-panel" aria-labelledby="coverage-heading"><div class="panel-head"><h2 id="coverage-heading">Evidence coverage</h2><p class="metric-basis">${escape(COVERAGE_RULE)}</p></div><div class="coverage-windows">${window('Last 24 hours',availability?.last24h)}${window('Last 7 days',availability?.last7d)}</div><div class="coverage-foot">${coverageLegend}<p class="coverage-note">Passing is the share of observed time when every configured check passed; Unknown is the share of each full window without a valid result. Both are rounded to two decimals, passing down and failing and Unknown up, and never to 0% or 100% unless exact. Manual runs and retries do not add observed time. Checks run from their assigned runner networks.</p></div></section>`;
 }
 function pageBody(m,readUnavailable,definitionOpen){
  const availability=m.availability,lastLabel=readUnavailable?'Last recorded check':'Last check';
@@ -108,7 +109,7 @@ function slotResult(row){
  if(row.result==='running')return resultCell('running',row.reason==='queued'?'Queued':'Running');
  return resultCell('unknown',escape(summary.label));
 }
-const endings={'runner-error':'could not run','lease-expired':'lease ended','queued':'queued, waiting for the runner','queued-expired':'queued, not run within its lease',interrupted:'interrupted'};
+const endings={'runner-error':'could not run','window-expired':'acceptance window ended','queued':'queued, waiting for the runner','queued-expired':'queued, not run within its acceptance window',interrupted:'interrupted'};
 function slotMeta(row,revision){
  const s=row.slot,count=Array.isArray(s.observations)?s.observations.length:0,parts=[];
  parts.push(`${s.manual?'Manual':'Scheduled'} check ${endings[row.reason]??(row.result==='running'?'running':s.status)}`);
@@ -166,11 +167,12 @@ export function renderMonitorPage({header,actions,area,data,id,api,action,readUn
  const historyFocus=document.activeElement?.id,definitionOpen=area.querySelector('#assertion-definition')?.open??false,historyHeight=area.querySelector('#raw-history')?.getBoundingClientRect().height,previousStrip=area.querySelector('#history-strip')?.innerHTML??'';
  document.title=`${m.definition.name} · Uptime`;
  header.innerHTML=titleBlock(m,readUnavailable);
- actions.innerHTML=actionButtons(m);
+ actions.innerHTML=actionButtons(m)+'<button id="erase-monitor" class="danger">Erase monitor</button>';
+ actions.querySelector('#erase-monitor').onclick=()=>confirmErasure({kind:'monitor',name:m.definition.name,onConfirm:async name=>{const result=await action(()=>api(`/api/monitors/${encodeURIComponent(m.id)}/erase`,'POST',{name}),{pending:'Erasing monitor…',success:'Monitor and dependent records erased.'});if(result.ok){document.title='Monitor erased · Uptime';showErasureReceipt(result.result.receipt)}}});
  area.innerHTML=pageBody(m,readUnavailable,definitionOpen);
  actions.querySelector('#run-monitor').onclick=()=>action(()=>api(`/api/monitors/${m.id}/run`,'POST',{}),{pending:'Requesting a manual check…',success:'Manual check queued. Manual checks do not change uptime.'});
  actions.querySelector('#edit').onclick=()=>{location.href='/app/monitor?monitor='+encodeURIComponent(m.id)};
- actions.querySelector('#pause').onclick=()=>action(()=>api(`/api/monitors/${m.id}`,'PATCH',{...m.definition,enabled:!m.definition.enabled}),{pending:m.definition.enabled?'Pausing monitor…':'Authorizing and resuming…',success:m.definition.enabled?'Monitor paused. Historical observations remain available.':'Monitor authorized and resumed. New scheduled results are required.'});
+ actions.querySelector('#pause').onclick=()=>{if(!m.definition.enabled&&Object.values(m.definition.assignments??{}).some(a=>!(data.runner.runners??[]).some(r=>r.runnerId===a.runnerId&&!r.revokedAt))){location.href='/app/monitor?monitor='+encodeURIComponent(m.id);return}return action(()=>api(`/api/monitors/${m.id}`,'PATCH',{...m.definition,enabled:!m.definition.enabled}),{pending:m.definition.enabled?'Pausing monitor…':'Authorizing and resuming…',success:m.definition.enabled?'Monitor paused. Historical observations remain available.':'Monitor authorized and resumed. New scheduled results are required.'})};
  actions.querySelector('#maintenance').onclick=()=>action(()=>api(`/api/monitors/${m.id}`,'PATCH',{...m.definition,maintenanceUntil:m.definition.maintenanceUntil>Date.now()?0:Date.now()+900000}));
  const history=area.querySelector('#raw-history'),strip=area.querySelector('#history-strip');
  // Keep the previous list height and strip while the history reloads, so the page does not jump on each refresh.

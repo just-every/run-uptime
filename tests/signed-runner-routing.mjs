@@ -5,7 +5,7 @@ import https from 'node:https';
 import {Resolver} from 'node:dns/promises';
 
 Resolver.prototype.resolve4=async host=>{
- assert.equal(host,'runner-target.test');
+ assert.ok(['runner-target.test','canary.runner-target.test'].includes(host));
  return ['93.184.216.34'];
 };
 Resolver.prototype.resolve6=async()=>[];
@@ -14,7 +14,7 @@ https.request=function(options,callback){
  assert.equal(options.hostname,'93.184.216.34');
  assert.equal(options.rejectUnauthorized,true);
  assert.equal(typeof options.checkServerIdentity,'function');
- assert.equal(options.servername,'runner-target.test');
+ assert.ok(['runner-target.test','canary.runner-target.test'].includes(options.servername));
  assert.equal(options.headers.host,options.servername);
  return original.call(this,{...options,hostname:'127.0.0.1',port:Number(process.env.SIGNED_RUNNER_TARGET_PORT)},callback);
 };

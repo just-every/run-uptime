@@ -3,7 +3,7 @@
 Uptime serves owner-only console documents and APIs from a Cloudflare Worker.
 D1 stores immutable observations, scheduled slots, incident state and Base
 operator sessions. A separately supervised Node runner performs target probes.
-Cron runs every minute to expire abandoned leases and transient auth records.
+Cron runs every minute to expire acceptance windows and transient auth records, check stale runner contact, ping the configured external heartbeat and send the weekly healthy digest.
 
 ## Run it locally
 
@@ -21,9 +21,11 @@ Local durable data is `.wrangler/state`, private settings are `data/local-secret
 
 First-run completion is installation-local D1 state and is excluded from product archives with owner identity and sessions. A receiving installation completes `/setup` with its own owner. Upgrading an installation that already has monitors preserves its completed first-run status.
 
-Stop dev or preview before data movement or reset. Export to a new private path with `node scripts/rer.mjs export --output exports/archive.rer`. Import with `node scripts/rer.mjs import --input exports/archive.rer --yes` into an empty installation, then run setup for the receiving owner. Base owns integrity and transfer bookkeeping; its named payload uses Uptime's complete archive and atomic inactive-restore transaction. No remote CLI transfer is declared.
+Stop dev or preview before data movement or reset. Export to a new private path with `node scripts/rer.mjs export --output exports/archive.rer`. On the receiving checkout, first run `node scripts/rer.mjs setup --owner-email EMAIL --non-interactive` to establish its owner and private settings, then import with `node scripts/rer.mjs import --input exports/archive.rer --yes` into an empty product-data store. If local D1 already has active owners, setup requires the configured email to match one; when several are active, configure one explicitly. Base owns integrity and transfer bookkeeping; its named payload uses Uptime's complete archive and atomic inactive-restore transaction. No remote CLI transfer is declared.
 
 `node scripts/rer.mjs reset --yes` lists and removes only `.wrangler/state`, `.rer/local`, `.seed/installer` and declared generated settings/recovery files. It refuses active dev or transfers. Source, dependencies, export files and `.rer/deploy` receipts remain. A second reset succeeds with an empty inventory; setup can then create a fresh owner.
+
+Erasing an operator does not change `OWNER_EMAIL` in saved settings or the hosted Worker binding. If it named the erased operator, a surviving owner can still sign in with their own email and export from the console. Before using local `rer` commands again, stop dev and change only `OWNER_EMAIL` in `data/local-secrets.json` to an existing surviving active owner. Preserve every generated key and all other settings, then run `node scripts/rer.mjs setup --owner-email EMAIL --non-interactive` with that same email. Supplying the new email to setup without first updating the saved setting is refused. This selects an existing owner; it does not create or transfer an identity. On hosted installations, the deployment owner must update the `OWNER_EMAIL` binding separately; D1 erasure does not change provider configuration.
 
 ### State recovery
 
@@ -39,7 +41,7 @@ The owner-account path is `node scripts/rer.mjs deploy`. Use `deploy --environme
 excluded, then provisions a Worker, D1 database, migrations and one-minute
 Cron through Base deploy-kit. Supply `CLOUDFLARE_ACCOUNT_ID` and
 `CLOUDFLARE_API_TOKEN`, plus `OWNER_EMAIL`, `MAIL_FROM` and `SENDGRID_API_KEY`.
-Hosted sign-in requires SendGrid, a verified sender and a Mail Send API key.
+Hosted sign-in requires a configured Base mail adapter (Resend, SendGrid or Cloudflare), a verified sender and a Mail Send API key.
 The production plan declares Worker `uptime-monitor-production` and database
 `uptime-monitor-production-db`; Cloudflare supplies the hosted origin after
 deployment. Independent `SESSION_SECRET`, `SETUP_TOKEN` and `UPTIME_RUNNER_KEY`
@@ -122,7 +124,7 @@ The owner-only **Notifications** view manages destinations for every monitor in
 one installation. Email uses the same `MAIL_FROM` and `SENDGRID_API_KEY`
 configuration as operator sign-in. The Worker sends email. The private Node
 runner sends signed JSON and Slack incoming webhooks when it polls the
-installation. At each poll, the Worker submits queued email through SendGrid;
+installation. At each poll, the Worker submits queued email through the selected Base mail adapter;
 keep the runner running for queued notifications and target checks to run.
 Email, signed JSON, and Slack destinations are installation-wide, not
 per-monitor routes. The **Send test** action queues a separate test event and
@@ -181,8 +183,7 @@ checks do not advance scheduled incident policy. Missing, incomplete or stale
 observations remain Unknown. Runner contact is authenticated receipt time, not
 process health.
 
-Use `node scripts/rer.mjs export --output FILE` and `node scripts/rer.mjs import --input FILE --yes` for local archive files;
-hosted owners use the console export and restore actions. Imports require explicit confirmation and an empty destination.
+Use `node scripts/rer.mjs export --output FILE` and `node scripts/rer.mjs import --input FILE --yes` for local archive files. Run setup on the receiving checkout before import so its owner and private settings are established; product data must be empty. Hosted owners use the console export and restore actions. Imports require explicit confirmation.
 
 The `/health` endpoint proves D1 readiness and exact deployment identity, not
 runner operation, target health, provider acceptance, mailbox receipt, or a
@@ -250,13 +251,15 @@ operation; changing a deploy input alone does not replace an existing secret.
 Back up installation settings separately from D1.
 
 Webhook rotation and email/URL replacement create a new credential version and
-cancel queued sends bound to the older version. Deletion cancels queued work
-and erases all credentials. Durable history and identity remain. Concurrent
-rotation/deletion uses guarded atomic transactions. A committed attempt that
-already has credentials in runner memory cannot be recalled; it retains the
-single-attempt/no-replay contract. Destination comparison hashes are HMACs
-under the purpose-derived custody key, including upgraded historical hashes;
-D1 retains no unsalted URL digest after the key-bearing upgrade.
+cancel queued sends bound to the older version. Destination erasure removes the
+destination, its credentials, dependent notification jobs, delivery attempts
+and outcomes, replay entries, and matching archive-history copies. Its per-table
+erasure receipt and opaque audit entry remain. Concurrent rotation/erasure uses guarded
+atomic transactions. A send already committed with credentials in runner
+memory cannot be recalled and retains the single-attempt/no-replay contract.
+Destination comparison hashes are HMACs under the purpose-derived custody key,
+including upgraded historical hashes; D1 retains no unsalted URL digest after
+the key-bearing upgrade.
 
 The private runner retains Base's durable claim recheck and 60-second claim
 window. A runner at least 60 seconds ahead of the Worker skips claiming. If its
@@ -277,3 +280,7 @@ workflow, exact setup-manifest digest, trusted signed-claim bindings and native
 owner editor policy. `pnpm run test:admission` checks these public flows against
 the emitted application; its management peer is only a test network edge.
 Stage installation, live Cloudflare and the public release remain owner work.
+
+## Independent watches and runner vantages
+
+Public v0.1.2 uses per-runner keys, immutable probe assignments, stored-evidence state and independent-vantage failure agreement. Mail is selected through Base adapters. See [the monitoring setup and C3/C4 rules](docs/resilient-monitoring.md).

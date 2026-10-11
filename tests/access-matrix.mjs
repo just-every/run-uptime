@@ -46,7 +46,7 @@ try{
   }
   const revoked=await login();assert.equal((await call('/auth/signout',{}, {cookie:revoked})).status,204);
   const valid=await login();await finishSetup(origin,valid,fetcher);
-  assert.equal((await call('/api/monitors',{name:'Private access evidence',type:'heartbeat',heartbeat:{maxAgeMs:60000}},{cookie:valid})).status,201);
+  assert.equal((await call('/api/monitors',{name:'Private access evidence',type:'heartbeat',canaryUrl:'https://canary.example.test/health',heartbeat:{maxAgeMs:60000}},{cookie:valid})).status,201);
   const before=await snapshot(DB);
   for(const [state,cookie] of [['missing',''],['expired',expired],['revoked',revoked]]){
    for(const path of documents){const response=await call(path,undefined,{cookie});assert.equal(response.status,303,`${hosted?'hosted':'local'} ${state} ${path}`);assert.equal(response.headers.get('location'),path==='/setup'?'/login?returnTo=%2Fsetup':'/login');assert.doesNotMatch(await response.text(),/monitor-list|Private access evidence/)}
@@ -59,7 +59,7 @@ try{
   for(const path of ['/app','/app/monitor','/app/monitors/private']){const response=await call(path,undefined,{cookie:valid});assert.equal(response.status,200);assert.match(response.headers.get('content-type'),/text\/html/)}
   const canonical=await call('/app/monitor/',undefined,{cookie:valid});assert.equal(canonical.status,307);assert.equal(canonical.headers.get('location'),'/app/monitor');
   assert.equal((await call('/api/overview',undefined,{cookie:valid})).status,200);
-  assert.equal((await call('/api/monitors',{name:'Authorized write',type:'heartbeat',heartbeat:{maxAgeMs:60000}},{cookie:valid})).status,201);
+  assert.equal((await call('/api/monitors',{name:'Authorized write',type:'heartbeat',canaryUrl:'https://canary.example.test/health',heartbeat:{maxAgeMs:60000}},{cookie:valid})).status,201);
   assert.equal((await call('/does-not-exist',undefined,{cookie:valid})).status,404);
   assert.equal((await call('/login')).status,200);
   assert.match(await (await call('/claim')).text(),/data\/local-secrets\.json/);

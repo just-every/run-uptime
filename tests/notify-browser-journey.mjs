@@ -5,6 +5,7 @@ import {notificationWireFake} from './notify-browser-wire.mjs';
 export async function notificationJourney({page,origin,runnerKey,mailFake,evidence,pageErrors,grantPath}){
  const wire=await notificationWireFake(),checks=[];let scenarioWidth=1440;
  const overview=async()=>{const response=await page.request.get(origin+'/api/notifications',{maxRetries:3});assert.equal(response.status(),200);return response.json()};
+ const archive=async()=>{const response=await page.request.get(origin+'/api/archive',{maxRetries:3});assert.equal(response.status(),200);return (await response.json()).payload.productTables};
  const card=name=>page.locator('.destination-card').filter({has:page.getByRole('heading',{name,exact:true})});
  async function snapshot(label){for(const width of [1440,390,320])checks.push(await auditNotificationView({page,label,width,evidence,pageErrors,grantPath}));await page.setViewportSize({width:scenarioWidth,height:900})}
  async function retainActionFocus(destination){
@@ -102,9 +103,38 @@ export async function notificationJourney({page,origin,runnerKey,mailFake,eviden
   wire.setMode('uncertain');const uncertain=await send(slack);await wire.dispatch(origin,runnerKey,grantPath);await outcome(uncertain,'uncertain');
   await snapshot('notification-history-flow-'+scenarioWidth);
   const sent=wire.records.length;await wire.dispatch(origin,runnerKey,grantPath);assert.equal(wire.records.length,sent,'uncertain deliveries are never replayed');
-  await card(slack.name).getByRole('button',{name:'Delete',exact:true}).click();await page.getByRole('dialog').getByRole('button',{name:'Delete destination',exact:true}).click();await card(slack.name).waitFor({state:'detached'});
-  assert.ok(!(await overview()).destinations.some(item=>item.id===slack.id),'native deletion removes the active destination');
-  assert.ok((await overview()).deliveries.some(item=>item.id===uncertain&&item.state==='uncertain'),'deletion retains historical delivery');
+  const queued=await send(slack),before=await overview(),beforeArchive=await archive();
+  const erasedIds=[acceptedIds[2],uncertain,queued];
+  assert.deepEqual(before.deliveries.filter(item=>item.destinationId===slack.id).map(item=>[item.id,item.state]).sort(),[[acceptedIds[2],'accepted'],[uncertain,'uncertain'],[queued,'queued']].sort(),'accepted, uncertain and queued deliveries exist before erasure');
+  const related=row=>[slack.id,...erasedIds].some(id=>JSON.stringify(row).includes(id));
+  await card(slack.name).getByRole('button',{name:'Delete',exact:true}).click();
+  const erasedResponse=page.waitForResponse(response=>response.url()===`${origin}/api/notifications/destinations/${slack.id}`&&response.request().method()==='DELETE');
+  const started=Date.now();await page.getByRole('dialog').getByRole('button',{name:'Delete destination',exact:true}).click();
+  const response=await erasedResponse;assert.equal(response.status(),200);
+  const result=await response.json(),receipt=result.receipt;
+  assert.equal(result.erased,true);assert.equal(receipt.entityKind,'destination');
+  assert.ok(receipt.completedAt>=started&&receipt.completedAt<=Date.now(),'receipt records completion of this erasure');
+  assert.equal(receipt.counts.notification_credentials,1,'receipt confirms removal of the destination credential');
+  const receiptDialog=page.locator('dialog.erasure-receipt');
+  await receiptDialog.waitFor();assert.ok((await receiptDialog.innerText()).includes(receipt.id),'visible receipt identifies the completed erasure');
+  assert.deepEqual(await receiptDialog.locator('dl > div').evaluateAll(rows=>Object.fromEntries(rows.map(row=>[row.querySelector('dt').textContent,Number(row.querySelector('dd').textContent)]))),receipt.counts,'visible receipt shows the actual per-table removal counts');
+  await receiptDialog.getByRole('button',{name:'Close receipt',exact:true}).click();
+  await card(slack.name).waitFor({state:'detached'});
+  await page.locator('.delivery-card').filter({hasText:slack.name}).first().waitFor({state:'detached'});
+  const after=await overview(),afterArchive=await archive();
+  assert.deepEqual(after.destinations,before.destinations.filter(item=>item.id!==slack.id),'erasure removes only the selected destination');
+  assert.deepEqual(after.deliveries,before.deliveries.filter(item=>item.destinationId!==slack.id),'erasure removes all selected delivery history and preserves unrelated outcomes');
+  for(const table of ['notification_destinations','notification_jobs','integration_deliveries','integration_attempts','integration_resolutions','integration_replays','archive_history']){
+   const removed=beforeArchive[table].filter(related);
+   assert.deepEqual(afterArchive[table],beforeArchive[table].filter(row=>!related(row)),`${table} physically omits erased records and preserves unrelated archive records`);
+   assert.equal(receipt.counts[table]??0,removed.length,`${table} receipt count matches removed archive records`);
+  }
+  assert.deepEqual(afterArchive.uptime_erasure_receipts.find(item=>item.id===receipt.id),{id:receipt.id,entity_kind:receipt.entityKind,counts:JSON.stringify(receipt.counts),completed_at:receipt.completedAt},'completed receipt survives in the owner archive');
+  for(const entry of beforeArchive.uptime_audit)assert.deepEqual(afterArchive.uptime_audit.find(item=>item.id===entry.id),entry,'earlier audit entries survive destination erasure');
+  assert.ok(afterArchive.uptime_audit.some(item=>item.action==='erase'&&item.subject_kind==='destination'&&item.subject_ref===receipt.id),'erasure leaves an opaque receipt-linked audit entry');
+  assert.equal((await page.request.post(`${origin}/api/notifications/destinations/${slack.id}/test`,{data:{},maxRetries:3})).status(),400,'erased destination cannot queue another send');
+  for(const destination of [email,webhook])assert.equal(await card(destination.name).getByRole('button',{name:'Send test',exact:true}).isEnabled(),true,'unrelated destination remains usable');
+  await wire.dispatch(origin,runnerKey,grantPath);assert.equal(wire.records.length,sent,'erased queued delivery is not sent and erased uncertain delivery is not replayed');
   }
   await snapshot('destinations');await snapshot('notification-history');
   for(const width of [390,320]){await page.setViewportSize({width,height:900});await assertTabsFit(page,width)}

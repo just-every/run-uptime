@@ -48,7 +48,7 @@ export async function restoreBounds({dir,migrate,installation,dispose,command,se
   }
   await dispose();
   const repeated=join(dir,`${label}-repeat`);await migrate(repeated);env=await installation(repeated);await restore(env,cli);
-  assert.deepEqual(archiveTables(await archive(env)),tables,'A repeated accepted restore adds neither history nor revisions');await dispose();
+  const repeatedTables=archiveTables(await archive(env));const addedAudit=repeatedTables.uptime_audit.slice(tables.uptime_audit.length);assert.equal(addedAudit.length,1);assert.equal(addedAudit[0].action,'archive_restore');assert.deepEqual(repeatedTables,{...tables,uptime_audit:[...tables.uptime_audit,...addedAudit]},'Repeated inactive restore preserves every original row and adds its one audit action');await dispose();
  }
  console.log('ARCHIVE-PROJECTED-BOUNDS passed: real D1 no-write refusals, 10000 revision boundary, genuine accepted legacy history, runtime export equivalence and repeat stability.');
 }

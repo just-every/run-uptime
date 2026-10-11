@@ -69,7 +69,7 @@ try{
   const persist=join(scratchDir,'worker'),grant=join(scratchDir,'synthetic-grant.json');
   const assigned=await ports(),origin=`http://127.0.0.1:${assigned.control}`;
   const mailFake=notificationMailFake();
-  const bindings={...testAuthBindings,MAIL_FROM:'Uptime review <review@example.com>',SENDGRID_API_KEY:'local-test-sendgrid-key',UPTIME_RUNNER_KEY:runnerKey,UPTIME_SYNTHETIC_PORT:String(assigned.fixture)};
+  const bindings={...testAuthBindings,MAIL_FROM:'Uptime review <review@example.com>',MAIL_PROVIDER:'sendgrid',SENDGRID_API_KEY:'local-test-sendgrid-key',UPTIME_RUNNER_KEY:runnerKey,UPTIME_SYNTHETIC_PORT:String(assigned.fixture)};
 
   await command(['node_modules/wrangler/bin/wrangler.js','d1','migrations','apply','uptime-local','--local','--persist-to',persist]);
   start(['runners/src/synthetic.mjs'],{UPTIME_SYNTHETIC_PORT:String(assigned.fixture),UPTIME_GRANT_FILE:grant});
@@ -81,12 +81,20 @@ try{
   const context=await browser.newContext({viewport:{width:1440,height:900}});
   const page=await context.newPage(),pageErrors=[];
   page.on('pageerror',error=>pageErrors.push(error.message));
+  const providerSignIn=async()=>{
+    const previous=mailFake.authMessages.length;
+    await page.goto(origin+'/login');await page.getByLabel('Email address').fill(bindings.OWNER_EMAIL);await page.getByRole('button',{name:'Send sign-in link'}).click();
+    await waitFor(()=>mailFake.authMessages.length>previous,'Base provider sign-in message');
+    const text=mailFake.authMessages.at(-1).content.find(part=>part.type==='text/plain').value,link=text.match(/https?:\/\/[^\s]+\/auth\/confirm\?[^\s]+/);
+    assert.ok(link,'the actual Base mail envelope carries the sign-in link');await page.goto(link[0]);await page.getByRole('button',{name:/confirm|sign in/i}).click();await page.waitForURL(origin+'/app');
+  };
   const ownerOverview=async()=>{
     const response=await page.request.get(origin+'/api/overview',{maxRetries:3});
     return {response,data:await response.json()};
   };
   await browserSignIn(page,origin,{bindings});
   await page.locator('html.signed-in').waitFor({timeout:15000});
+  const second=(await (await page.request.post(origin+'/api/runners',{data:{networkLabel:'console-second-network'}})).json());
   await page.getByRole('heading',{name:'No monitors yet'}).waitFor();
   assert.equal(await page.locator('#notice').isHidden(),true,'initial sign-in does not show a false recovery notice');
 
@@ -137,6 +145,8 @@ try{
   await page.setViewportSize({width:1440,height:900});
   await page.locator('input[name="name"]:visible').first().fill(name);
   await page.locator('input[name="url"]:visible').first().fill(`http://127.0.0.1:${assigned.fixture}/health`);
+  await page.locator('input[name=probes][value=local-b]').check();
+  await page.locator('select[name=runner-local-b]').selectOption(second.runnerId);
   await page.getByRole('button',{name:'Save monitor'}).first().click();
   await page.locator('html.signed-in').waitFor({timeout:15000});
   const created=await waitFor(async()=>{
@@ -146,7 +156,7 @@ try{
   assert.equal(created.definition.name,name);
   assert.equal(created.definition.url,`http://127.0.0.1:${assigned.fixture}/health`);
   assert.equal(created.state.state,'Unknown','a new name-and-URL monitor has no inferred health');
-  assert.deepEqual(created.definition.probes,['local-a']);
+  assert.deepEqual(created.definition.probes,['local-a','local-b']);
   assert.equal(created.availability.last24h.uptimePercent,null);
   assert.equal(created.availability.last24h.unknownPercent,100);
   await page.locator('.monitor-list .monitor-link').filter({hasText:name}).waitFor({timeout:15000});
@@ -172,7 +182,6 @@ try{
   await page.locator('input[name="intervalMinutes"]:visible').first().fill(String(5000/60000));
   await page.locator('input[name="timeoutSeconds"]:visible').first().fill('1');
   await page.locator('input[name="retries"]:visible').first().fill('1');
-  await page.locator('input[name="failureQuorum"]:visible').first().fill('1');
   await page.locator('input[name="confirmSlots"]:visible').first().fill('1');
   await page.locator('input[name="recoverSlots"]:visible').first().fill('1');
   await page.locator('input[name="freshnessMinutes"]:visible').first().fill(String(10000/60000));
@@ -197,6 +206,8 @@ try{
   await assertNoSampleHost(page,'served editor');
   await page.locator('input[name="name"]:visible').first().fill(longName);
   await page.locator('input[name="url"]:visible').first().fill(longUrl);
+  await page.locator('input[name=probes][value=local-b]').check();
+  await page.locator('select[name=runner-local-b]').selectOption(second.runnerId);
   await page.getByRole('button',{name:'Save monitor'}).first().click();
   const longMonitor=await waitFor(async()=>{
     const result=await ownerOverview();
@@ -214,8 +225,8 @@ try{
   },'paused long-URL monitor before runner starts');
   assert.equal(pausedLongMonitor.availability.last24h.unknownPercent,100);
 
-  const startRunner=()=>start(['runners/src/private-runner.mjs'],{UPTIME_CONTROL_ORIGIN:origin,UPTIME_RUNNER_KEY:runnerKey,UPTIME_GRANT_FILE:grant,UPTIME_LOCAL_REVIEW:'true'});
-  const stopRunner=async runner=>{stop(runner);await new Promise(resolve=>runner.exitCode!==null||runner.signalCode!==null?resolve():runner.once('exit',resolve))};
+  const startRunner=()=>[start(['runners/src/private-runner.mjs'],{UPTIME_CONTROL_ORIGIN:origin,UPTIME_RUNNER_KEY:runnerKey,UPTIME_GRANT_FILE:grant,UPTIME_LOCAL_REVIEW:'true'}),start(['runners/src/private-runner.mjs'],{UPTIME_CONTROL_ORIGIN:origin,UPTIME_RUNNER_KEY:second.key,UPTIME_RUNNER_ID:second.runnerId,UPTIME_GRANT_FILE:grant,UPTIME_LOCAL_REVIEW:'true'})];
+  const stopRunner=async runners=>{for(const runner of runners){stop(runner);await new Promise(resolve=>runner.exitCode!==null||runner.signalCode!==null?resolve():runner.once('exit',resolve))}};
   const probeRunner=startRunner();
   const populated=await waitFor(async()=>{
     const result=await ownerOverview();
@@ -242,7 +253,6 @@ try{
   assert.deepEqual(await page.locator('#monitor-page .metric-basis').allInnerTexts(),[rule],'the monitor page states the coverage rule once');
   assert.deepEqual(await page.locator('#monitor-page .detail-metrics dt').allTextContents(),['Last check','Response duration']);
   assert.doesNotMatch(await page.locator('.ui-main').innerText(),/selected probes|failure quorum|scheduled-slot confirmation/i);
-  assert.match(await page.locator('#monitor-page .coverage-note').innerText(),/share of observed time.*share of each full window.*rounded to two decimals.*one local vantage/i);
   await page.locator('#monitor-page .coverage-unknown').filter({hasText:/^(?:\d+\.\d{2}%|over 99\.99%) Unknown \(no valid result\)$/}).first().waitFor();
   checks.push({state:'populated',width:1440,overflow:await capture('populated',1440)});
   checks.push({state:'populated',width:390,overflow:await capture('populated',390)});
@@ -300,7 +310,7 @@ try{
   const denied=await page.request.post(origin+'/auth/confirm',{headers:{origin},data:{token:'invalid-confirmation-token'},maxRedirects:0});
   assert.equal(denied.status(),400,'an invalid sign-in link cannot create a browser session');
   assert.equal((await page.request.get(origin+'/api/overview')).status(),401);
-  await browserSignIn(page,origin,{bindings,bootstrap:false});
+  await providerSignIn();
   await page.locator('html.signed-in').waitFor({timeout:15000});
   assert.equal((await page.request.get(origin+'/api/overview',{maxRetries:3})).status(),200,'the real owner link restores the browser session');
   assert.deepEqual(pageErrors,[],'browser sign-out, rejected login and login must not cause pageerrors');
@@ -309,7 +319,7 @@ try{
   await page.getByLabel('Email address').waitFor({timeout:10000});
   assert.equal((await page.request.get(origin+'/api/overview',{maxRetries:3})).status(),401,'320px sign-out revokes the browser session');
   checks.push(await auditNotificationView({page,label:'signed-out',width:320,evidence,pageErrors,navigation:false}));
-  await browserSignIn(page,origin,{bindings,bootstrap:false});
+  await providerSignIn();
   await page.locator('html.signed-in').waitFor({timeout:15000});
   assert.equal((await page.request.get(origin+'/api/overview',{maxRetries:3})).status(),200,'320px valid login restores the browser session');
   await (await import('node:fs/promises')).writeFile(join(evidence,'RESULTS.json'),JSON.stringify({checks,monitorId:created.id,storedDefinition:{name,url:created.definition.url},longUrlMonitor:{id:longMonitor.id,name:longName,url:longUrl,pausedBeforeRunner:true},persistenceAfterBrowserReload:true,ownerSession:{signoutRevoked:true,rejectedLink:true,validLinkRestored:true},passingObservation:{at:populated.availability.lastCheckAt,responseDurationMs:populated.availability.responseDurationMs},failingObservation:{at:failing.availability.lastCheckAt,state:failing.state.state},notificationViews:notificationChecks.length,refreshFailureRecovery:true,narrowTabs:[390,320],observationSource:'real local Worker D1 and local fixture through signed private runner',pageErrors:pageErrors.length},null,2));

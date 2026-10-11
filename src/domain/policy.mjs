@@ -33,6 +33,11 @@ export function validateDefinition(input, grants) {
   }else if(input.heartbeat!==undefined)throw Error('Heartbeat settings require heartbeat type');
   const probes = input.probes ?? ['local-a'];
   if (!Array.isArray(probes) || probes.length < 1 || probes.length > 3 || new Set(probes).size !== probes.length || probes.some(p => !['local-a','local-b','local-c'].includes(p))) throw Error('Invalid local probes');
+  let assignments;
+  if(input.assignments!==undefined){
+    if(!input.assignments||typeof input.assignments!=='object'||Array.isArray(input.assignments)||Object.keys(input.assignments).some(p=>!probes.includes(p)))throw Error('Invalid assignments');
+    assignments=Object.fromEntries(probes.map(p=>{const a=input.assignments[p];if(typeof a==='string'){if(!/^self-[0-9a-f-]{36}$/.test(a))throw Error('Invalid runner assignment');return [p,{runnerId:a}];}if(!a||typeof a.runnerId!=='string'||!/^self-[0-9a-f-]{36}$/.test(a.runnerId)||(a.networkLabel!==undefined&&(typeof a.networkLabel!=='string'||!a.networkLabel.trim()||a.networkLabel.length>80||/[\x00-\x1f\x7f]/.test(a.networkLabel)))||Object.keys(a).some(k=>!['runnerId','networkLabel','canaryUrl'].includes(k)))throw Error('Invalid runner assignment');return [p,{runnerId:a.runnerId,...(a.networkLabel?{networkLabel:a.networkLabel}:{}),...(a.canaryUrl?{canaryUrl:publicTarget(a.canaryUrl).href}:{})}]}));
+  }
   const assertions = input.assertions ?? { status: 200 };
   if (!assertions || typeof assertions !== 'object' || Array.isArray(assertions) || Object.keys(assertions).some(k => !['status','bodyIncludes','header','json','latencyMs'].includes(k))) throw Error('Invalid assertions');
   integer(assertions.status ?? 200, 100, 599, 'expected status');
@@ -42,17 +47,34 @@ export function validateDefinition(input, grants) {
   if (assertions.header !== undefined && (!assertions.header || !/^[a-zA-Z0-9-]{1,80}$/.test(assertions.header.name) || typeof assertions.header.equals !== 'string' || assertions.header.equals.length > 200)) throw Error('Invalid header assertion');
   if (assertions.json !== undefined && (!assertions.json || !/^[a-zA-Z0-9_.-]{1,120}$/.test(assertions.json.path) || !['string','number','boolean'].includes(typeof assertions.json.equals))) throw Error('Invalid JSON assertion');
   if (assertions.latencyMs !== undefined) integer(assertions.latencyMs, 1, 10000, 'latency assertion');
-  return { name:name.trim(), type, network, url:u?.href??'', method, ...(request?{request}:{}), ...(heartbeat?{heartbeat}:{}), probes, assertions:{...assertions,status:assertions.status??200}, intervalMs:integer(input.intervalMs??60000,5000,86400000,'interval'), timeoutMs:integer(input.timeoutMs??2000,50,10000,'timeout'), retries:integer(input.retries??1,0,2,'retries'), failureQuorum:integer(input.failureQuorum??probes.length,1,probes.length,'failure quorum'), confirmSlots:integer(input.confirmSlots??2,1,10,'confirmation'), recoverSlots:integer(input.recoverSlots??2,1,10,'recovery'), freshnessMs:integer(input.freshnessMs??180000,5000,86400000,'freshness'), enabled:input.enabled === undefined ? true : (()=>{if(typeof input.enabled!=='boolean')throw Error('Invalid enabled flag');return input.enabled;})(), maintenanceUntil:integer(input.maintenanceUntil??0,0,Number.MAX_SAFE_INTEGER,'maintenance end') };
+  return { name:name.trim(), type, network, url:u?.href??'', method, ...(request?{request}:{}), ...(heartbeat?{heartbeat}:{}), probes, ...(assignments?{assignments}:{}), assertions:{...assertions,status:assertions.status??200}, intervalMs:integer(input.intervalMs??60000,5000,86400000,'interval'), timeoutMs:integer(input.timeoutMs??2000,50,10000,'timeout'), retries:integer(input.retries??1,0,2,'retries'), failureQuorum:integer(input.failureQuorum??probes.length,1,probes.length,'failure quorum'), confirmSlots:integer(input.confirmSlots??2,1,10,'confirmation'), recoverSlots:integer(input.recoverSlots??2,1,10,'recovery'), freshnessMs:integer(input.freshnessMs??180000,5000,86400000,'freshness'), enabled:input.enabled === undefined ? true : (()=>{if(typeof input.enabled!=='boolean')throw Error('Invalid enabled flag');return input.enabled;})(), maintenanceUntil:integer(input.maintenanceUntil??0,0,Number.MAX_SAFE_INTEGER,'maintenance end') };
 }
 export function evaluate(def, observations, previous = {}, now = Date.now(), advance = true) {
   const regions = def.probes.map(probe => {
     const observation = observations.find(o => o.probe === probe);
-    const fresh = observation && (def.type!=='heartbeat'||observation.outcome!=='pass'||(Number.isFinite(observation.heartbeatReceivedAt)&&observation.heartbeatReceivedAt<=now&&now-observation.heartbeatReceivedAt<=def.heartbeat.maxAgeMs)) && now - observation.completedAt <= def.freshnessMs && observation.completedAt <= now && !['runner_error','interrupted'].includes(observation.outcome);
-    return { probe, state:!fresh?'Unknown':observation.outcome==='pass'?'Healthy':'Failing', observationId:observation?.id??null,observedAt:observation?.completedAt??null };
+    const retryComplete=observation?.retryComplete!==false;
+    const canary=observation?.canary;
+    const canaryFresh=!canary||(canary.outcome==='pass'&&canary.completedAt<=now&&now-canary.completedAt<=def.freshnessMs);
+    const fresh = canaryFresh && observation && (observation.outcome!=='pass'||retryComplete) && (def.type!=='heartbeat'||observation.outcome!=='pass'||(Number.isFinite(observation.heartbeatReceivedAt)&&observation.heartbeatReceivedAt<=now&&now-observation.heartbeatReceivedAt<=def.heartbeat.maxAgeMs)) && now - observation.completedAt <= def.freshnessMs && observation.completedAt <= now && !['runner_error','interrupted'].includes(observation.outcome);
+    return { probe, networkLabel:def.assignments?.[probe]?.networkLabel??'owner-network', canaryPassed:Boolean(canary&&canaryFresh),terminal:Boolean(observation)&&retryComplete&&(observation.outcome!=='target_failure'||observation.attempt===def.retries), state:!fresh?'Unknown':observation.outcome==='pass'?'Healthy':'Failing', observationId:observation?.id??null,observedAt:observation?.completedAt??null };
   });
   const fails=regions.filter(r=>r.state==='Failing').length,unknown=regions.filter(r=>r.state==='Unknown').length;
   const coverageState=unknown?'Incomplete':'Complete';
-  const candidate=fails>=def.failureQuorum?'Failing':fails?'Degraded':unknown?'Unknown':'Healthy';
+  const absentLabels=new Set(observations.filter(o=>o.canary&&o.canary.outcome!=='pass').map(o=>def.assignments?.[o.probe]?.networkLabel??'owner-network'));
+  // A canary belongs to its whole network label, not just its probe or key.
+  // Until every configured-canary peer has a contiguous terminal chain, a
+  // missing attempt or a later retry can still exclude that label. Unconfigured
+  // probes cannot invalidate a settled witness and need not hold it back.
+  const pendingLabels=new Set(regions.filter(r=>def.assignments?.[r.probe]?.canaryUrl&&!r.terminal).map(r=>r.networkLabel));
+  const failures=regions.filter(r=>r.state==='Failing'&&r.terminal&&!absentLabels.has(r.networkLabel)&&!pendingLabels.has(r.networkLabel));
+  const failingVantages=new Set(failures.map(r=>r.networkLabel)).size;
+  const witnessed=failures.some(r=>r.canaryPassed);
+  const failedCanary=observations.some(o=>o.canary&&o.canary.outcome!=='pass'&&o.outcome==='target_failure');
+  // Assignment-free revisions retain their historical quorum until an owner saves
+  // a new revision. New saves always pass assignDefinition's network boundary.
+  const legacy=!def.assignments;
+  const agreement=legacy?failures.length>=def.failureQuorum:failingVantages>=2||witnessed;
+  const candidate=agreement?'Failing':fails||failedCanary?'Degraded':unknown?'Unknown':'Healthy';
   const failureStreak=advance?(candidate==='Failing'?(previous.failureStreak??0)+1:0):(previous.failureStreak??0);
   const recoveryStreak=advance?(candidate==='Healthy'?(previous.recoveryStreak??0)+1:0):(previous.recoveryStreak??0);
   let targetState=candidate;
@@ -60,5 +82,5 @@ export function evaluate(def, observations, previous = {}, now = Date.now(), adv
   if(candidate==='Healthy'&&previous.confirmedFailure&&recoveryStreak<def.recoverSlots)targetState='Recovering';
   const confirmedFailure=targetState==='Failing'||(previous.confirmedFailure&&targetState!=='Healthy');
   const maintenance=def.maintenanceUntil>now;
-  return {state:maintenance?'Maintenance':targetState,targetState,underlyingState:targetState,evidenceState:candidate,coverageState,candidate,regions,denominator:def.probes.length,fails,unknown,failureStreak,recoveryStreak,confirmedFailure,notificationOpen:previous.notificationOpen??false,maintenance,reason:`${fails}/${def.probes.length} selected probes failed; ${unknown} unknown; coverage ${coverageState.toLowerCase()}. Failure quorum ${def.failureQuorum}; scheduled-slot confirmation ${failureStreak}/${def.confirmSlots}; recovery ${recoveryStreak}/${def.recoverSlots}.`,evaluatedAt:now};
+  return {state:maintenance?'Maintenance':targetState,targetState,underlyingState:targetState,evidenceState:candidate,coverageState,candidate,regions,denominator:def.probes.length,fails,unknown,failingVantages,failureStreak,recoveryStreak,confirmedFailure,notificationOpen:previous.notificationOpen??false,maintenance,reason:`${fails}/${def.probes.length} selected probes failed; ${unknown} unknown; coverage ${coverageState.toLowerCase()}. ${failingVantages} independent failing vantages; passing canary ${witnessed?'present':'absent'}; scheduled-slot confirmation ${failureStreak}/${def.confirmSlots}; recovery ${recoveryStreak}/${def.recoverSlots}.`,evaluatedAt:now};
 }

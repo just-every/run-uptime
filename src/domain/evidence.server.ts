@@ -1,5 +1,5 @@
 // Signed completion and portable history share the same evidence contract.
-const fields = new Set(['id', 'probe', 'outcome', 'completedAt', 'startedAt', 'durationMs', 'runnerVersion', 'status', 'bytes', 'checks', 'attempt', 'heartbeatReceivedAt'])
+const fields = new Set(['id', 'probe', 'outcome', 'completedAt', 'startedAt', 'durationMs', 'runnerVersion', 'status', 'bytes', 'checks', 'attempt', 'heartbeatReceivedAt', 'canary'])
 const targetErrors = new Set(['encoding', 'redirect', 'body-limit', 'transport', 'timeout', 'connection'])
 const runnerErrors = new Set(['custody', 'runner', 'network', 'dns'])
 const responseErrors = new Set(['encoding', 'redirect', 'body-limit'])
@@ -89,6 +89,12 @@ export function validateEvidence(o: any, definition: any, dueAt: number, now: nu
       o.startedAt < dueAt || o.completedAt < o.startedAt || o.completedAt > now + COMPLETION_CLOCK_ALLOWANCE_MS ||
       !timestamp(o.durationMs) || !['pass', 'target_failure', 'runner_error'].includes(o.outcome) ||
       JSON.stringify(o).length > 4000) throw Error('Invalid observation evidence')
+  if(definition.assignments?.[o.probe]?.canaryUrl&&o.canary===undefined)throw Error('Configured canary evidence required');
+  if(o.canary!==undefined){
+    if(!definition.assignments?.[o.probe]?.canaryUrl||o.canary?.canary!==undefined)throw Error('Unexpected canary evidence');
+    validateEvidence(o.canary,{...definition,type:'http',network:'public',assignments:undefined,request:undefined,retries:0,assertions:{status:200}},dueAt,now,mode);
+    if(o.canary.probe!==o.probe||o.canary.attempt!==0)throw Error('Invalid canary identity');
+  }
   const elapsed = o.completedAt - o.startedAt
   // Historical runners sampled completion and duration separately. Preserve a
   // single millisecond clock tick without relaxing any of the clock bounds.

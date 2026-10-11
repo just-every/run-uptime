@@ -42,10 +42,9 @@ try {
  const settings = JSON.parse(await readFile(join(appRoot, 'data/local-secrets.json'), 'utf8'));
  browser = await chromium.launch({ headless: true });
  const page = await browser.newPage();
- await openGate(page.context(), origin, await readCheckoutKey(appRoot));
- await page.goto(origin + '/__dev/outbox');
- await page.getByRole('link', { name: 'Read message' }).first().click();
- await signInThroughOutbox(page, page.url(), { OWNER_EMAIL: settings.OWNER_EMAIL, displayName: ownerName });
+ const devKey = await readCheckoutKey(appRoot);
+ await openGate(page.context(), origin, devKey);
+ await signInThroughOutbox(page, origin + '/__dev/outbox', { OWNER_EMAIL: settings.OWNER_EMAIL, displayName: ownerName }, { key: devKey });
  const health = await page.request.get(origin + '/health');
  assert.equal(health.status(), 200); assert.equal((await health.json()).status, 'ok');
  await smokeDocuments(page, origin);

@@ -17,8 +17,16 @@
   form.elements.url.required=definition.type!=='heartbeat';
   const probes=document.querySelector('#settings-probes');
   for(const [index,name] of ['local-a','local-b','local-c'].entries()){
-   const label=document.createElement('label'),input=document.createElement('input');input.type='checkbox';input.name='probes';input.value=name;input.checked=definition.probes.includes(name);input.disabled=true;label.append(input,document.createTextNode(`Local check ${index+1}`));probes.append(label);
+   const group=document.createElement('div');group.className='probe-assignment';probes.append(group);
+   const label=document.createElement('label'),input=document.createElement('input');input.type='checkbox';input.name='probes';input.value=name;input.checked=definition.probes.includes(name);input.disabled=true;label.append(input,document.createTextNode(`Check ${index+1}`));group.append(label);
+   const runnerLabel=document.createElement('label'),select=document.createElement('select');runnerLabel.textContent=`Runner for check ${index+1}`;select.name=`runner-${name}`;
+   for(const row of overview.runner.runners??[]){if(row.revokedAt)continue;const option=document.createElement('option');option.value=row.runnerId;option.textContent=`${row.networkLabel} · ${row.runnerId.slice(5,13)}`;select.append(option)}
+   if(definition.assignments?.[name])select.value=definition.assignments[name].runnerId;
+   runnerLabel.append(select);group.append(runnerLabel);
+   const canaryLabel=document.createElement('label'),canary=document.createElement('input');canaryLabel.textContent=`External canary URL for check ${index+1} (optional)`;canary.type='url';canary.name=`canary-${name}`;canary.value=definition.assignments?.[name]?.canaryUrl??'';canaryLabel.append(canary);group.append(canaryLabel);
+   input.onchange=()=>{select.required=input.checked;select.disabled=canary.disabled=!input.checked};
   }
+  const count=document.createElement('p');count.textContent=`${id?overview.monitors.find(m=>m.id===id)?.activeVantages??0:0} vantages active. Production monitors require two networks or a passing external canary.`;probes.append(count);
   const value=name=>form.elements.namedItem(name).value;
   form.onsubmit=async event=>{
    event.preventDefault();if(!form.reportValidity())return;
@@ -26,13 +34,15 @@
    try{
     const assertions=assembleAssertions({status:value('status'),body:value('body'),headerName:value('headerName'),headerValue:value('headerValue'),additional:value('additional')});
     const result={...definition,name:value('name'),url:value('url'),method:value('method'),assertions,intervalMs:minutesToMilliseconds(value('intervalMinutes')),timeoutMs:secondsToMilliseconds(value('timeoutSeconds')),freshnessMs:minutesToMilliseconds(value('freshnessMinutes'))};
-    for(const name of ['retries','failureQuorum','confirmSlots','recoverSlots'])result[name]=Number(value(name));
+    for(const name of ['retries','confirmSlots','recoverSlots'])result[name]=Number(value(name));
     result.probes=[...probes.querySelectorAll('input:checked')].map(input=>input.value);
+    result.assignments=Object.fromEntries(result.probes.map(name=>[name,{runnerId:value('runner-'+name),...(value('canary-'+name)?{canaryUrl:value('canary-'+name)}:{})}]));
     await api(id?`/api/monitors/${id}`:'/api/monitors',id?'PATCH':'POST',result);location.href=returnTo;
    }catch(error){message.textContent=error.message;message.setAttribute('data-error','');button.disabled=false}
   };
   document.querySelector('#editor-signout').onclick=async event=>{event.preventDefault();try{await api('/api/auth/sign-out','POST',{});window.dispatchEvent(new Event('uptime:auth-lost'));location.href='/login'}catch(error){message.textContent=error.message;message.setAttribute('data-error','')}};
   form.querySelectorAll('input,select,textarea,button[type="submit"]').forEach(control=>control.disabled=false);
+  for(const checkbox of probes.querySelectorAll('input[type=checkbox]'))checkbox.onchange();
   document.documentElement.classList.add('editor-ready');message.textContent='Request credentials stay in the runner installation.';
  }catch(error){message.textContent=error.message+' — return to the console to sign in.';message.setAttribute('data-error','')}
 })();

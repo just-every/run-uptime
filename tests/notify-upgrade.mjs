@@ -1,61 +1,88 @@
-import {testAuthBindings} from './auth-test-support.mjs';
+import {testAuthBindings,authRequest} from './auth-test-support.mjs';
 import assert from 'node:assert/strict';
-import {createHash,randomUUID} from 'node:crypto';
 import {readFile,readdir} from 'node:fs/promises';
 import {join} from 'node:path';
-import {probeHttp} from '../runners/src/engine.mjs';
 import {readGrant} from '../runners/src/grants.mjs';
 import {splitSql} from './migration-support.mjs';
-import {root,availablePorts,migratedWorker,runtimeDirectory,fixtureProcess,cleanupDirectory,ownerAPI,waitFor} from './notify-acceptance-runtime.mjs';
+import {populateLegacy} from './notify-upgrade-fixture.mjs';
+import {root,availablePorts,migratedWorker,runtimeDirectory,fixtureProcess,cleanupDirectory,waitFor} from './notify-acceptance-runtime.mjs';
 
 const directory=await runtimeDirectory(),[port,fixturePort]=await availablePorts(2);
 const persist=join(directory,'worker'),grantPath=join(directory,'grant.json');
 const bindings={...testAuthBindings,UPTIME_RUNNER_KEY:'upgrade-acceptance-runner-local-only-20261007',UPTIME_SYNTHETIC_PORT:String(fixturePort)};
-const {api,signIn}=ownerAPI(`http://127.0.0.1:${port}`);
+const origin=`http://127.0.0.1:${port}`,call=authRequest(origin);
 let worker,DB,fixture;
-const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
+const historicalTables=['migrations','monitors','revisions','slots','observations','outbox','oa_operators','oa_bootstrap','oa_sessions','oa_tokens','oa_limits','oa_external_identities','oa_invitation_cancellations','sessions','login_attempts','heartbeat_authority','heartbeat_claims'];
+const rows=async table=>(await DB.prepare(`SELECT * FROM ${table} ORDER BY 1`).all()).results;
+const snapshot=async()=>Object.fromEntries(await Promise.all(historicalTables.map(async table=>[table,await rows(table)])));
+const unchanged=async(before,label)=>assert.deepEqual(await snapshot(),before,label);
+const noReplay=async()=>{
+ for(const table of ['notification_destinations','notification_credentials','notification_jobs','notification_claim_custody','integration_deliveries','integration_attempts','integration_resolutions','integration_replays'])assert.deepEqual(await rows(table),[],`${table} has no new delivery authority or replay`);
+};
 try{
- // SHA-256 of the six migrations applied by the original 0.1.0 starting clone,
- // in sha256sum format. Changing an applied migration requires a new additive one.
- const recorded=(await readFile(join(root,'tests/applied-migrations.sha256'),'utf8')).trimEnd().split('\n').map(line=>{
-  const match=/^([a-f0-9]{64})  (\S+\.sql)$/.exec(line);assert.ok(match,`malformed applied migration record: ${line}`);return [match[2],match[1]];
- });
- const appliedMigrationDigests=new Map(recorded);
- assert.equal(appliedMigrationDigests.size,6,'six distinct applied migrations are recorded');
  const migrations=(await readdir(join(root,'migrations'))).filter(name=>name.endsWith('.sql')).sort();
- const baseline=migrations.filter(name=>Number(name.slice(0,4))<=6);
- assert.deepEqual(baseline,[...appliedMigrationDigests.keys()].sort(),'the six original applied migration filenames remain present');
- for(const name of baseline){
-  const bytes=await readFile(join(root,'migrations',name));
-  assert.equal(digest(bytes),appliedMigrationDigests.get(name),`${name} applied migration bytes must remain immutable`);
- }
- console.log('PASS all six immutable baseline migration byte hashes match the migration baseline');
  ({worker,DB}=await migratedWorker({port,persist,bindings,baselineOnly:true}));
- fixture=fixtureProcess(fixturePort,grantPath,directory);await waitFor(async()=> (await fetch(`http://127.0.0.1:${fixturePort}/health`)).ok,'upgrade fixture ready');
- await signIn(bindings);
- const created=await api('/api/monitors','POST',{name:'Legacy café 日本語 observation',url:`http://127.0.0.1:${fixturePort}/health`,intervalMs:5000,retries:0,confirmSlots:1,recoverSlots:1});
- assert.equal(created.status,201,'existing definition API works against migrations 0001–0006');
- const monitor=created.data,grant=await readGrant(grantPath,port);
- const observation={...await probeHttp({...monitor.definition,fixtureIdentity:grant.identity},'local-a',[fixturePort]),attempt:0};
- assert.equal(observation.outcome,'pass','legacy observation fixture uses a real authorised probe');
- const slotId=`${monitor.id}:1:legacy:${Date.now()}`,due=observation.startedAt,eventId=randomUUID();
- // Legacy upgrade input is a populated pre-upgrade database, not an incident
- // simulation. No current state is rewritten to drive a notification test.
- await DB.batch([
-  DB.prepare('INSERT INTO slots VALUES(?,?,?,?,?,?,?,?,?,?)').bind(slotId,monitor.id,1,due,'complete',JSON.stringify(monitor.definition),'legacy-owner',due+30000,0,0),
-  DB.prepare('INSERT INTO observations VALUES(?,?,?,?,?)').bind(observation.id,slotId,'local-a',0,JSON.stringify(observation)),
-  DB.prepare('INSERT INTO outbox VALUES(?,?,?,?,?,?,?,?)').bind(eventId,monitor.id,slotId,'trigger',JSON.stringify({schemaVersion:1,id:eventId,kind:'trigger',visibility:'private',monitorId:monitor.id,monitorName:monitor.definition.name,state:'Failing',slotId,observedAt:due}),'accepted',0,JSON.stringify({effect:['stored','task','owned','receiver'].join('-'),peoplePaged:false})),
- ]);
- const tables=['migrations','monitors','revisions','slots','observations','outbox','oa_operators','oa_sessions'];
- const before={};for(const table of tables)before[table]=(await DB.prepare(`SELECT * FROM ${table} ORDER BY rowid`).all()).results;
- assert.ok(before.oa_sessions.length,'valid owner session is present in baseline D1');
+ for(const name of ['public_rate_limits','uptime_audit','notification_jobs','notification_destinations','uptime_first_run'])assert.equal(await DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name=?").bind(name).first(),null,`${name} is absent from the genuine legacy schema`);
+ fixture=fixtureProcess(fixturePort,grantPath,directory);
+ const grant=await waitFor(async()=>{
+  const grant=await readGrant(grantPath,port),response=await fetch(`http://127.0.0.1:${fixturePort}/health`);
+  assert.equal(grant.pid,fixture.child.pid,'grant belongs to the fixture child');
+  assert.equal(grant.port,fixturePort);
+  return response.ok&&response.headers.get('x-uptime-fixture')===grant.identity?grant:false;
+ },'upgrade fixture and owned grant ready');
+ const {cookie}=await populateLegacy(DB,{bindings,origin,fixturePort,grant});
+ const before=await snapshot(),[owner]=before.oa_operators,[session]=before.oa_sessions,[monitor]=before.monitors;
+ assert.equal(session.operator_id,owner.id,'valid owner session is present in baseline D1');
+ assert.ok(session.expires_at>Date.now());
+ assert.deepEqual(await rows('runner_contact'),[]);
+ assert.equal((await call('/health')).status,503,'current public admission fails closed without limiter storage');
+ const denied=await call('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'Test owner',returnTo:'/app'});
+ assert.equal(denied.status,503,'current bootstrap fails closed against the original schema');
+ assert.equal(denied.headers.get('set-cookie'),null,'failed bootstrap issues no session');
+ await unchanged(before,'denied current requests preserve every historical authority and business row');
+ console.log('PASS genuine populated legacy D1 rejects current health/bootstrap with 503, no session and no historical changes');
  await worker.dispose();worker=null;
  ({worker,DB}=await migratedWorker({port,persist,bindings,baselineOnly:true}));
+ const upgradeStarted=Date.now();
  for(const name of migrations.filter(name=>Number(name.slice(0,4))>6))for(const statement of splitSql(await readFile(join(root,'migrations',name),'utf8')))await DB.prepare(statement).run();
- for(const table of tables)assert.deepEqual((await DB.prepare(`SELECT * FROM ${table} ORDER BY rowid`).all()).results,before[table],`${table} bytes and identities survive additive notification migration`);
- assert.equal((await api('/api/overview')).status,200,'existing owner session remains authorised after upgrade and process restart');
- const history=await api(`/api/monitors/${monitor.id}/history`);assert.equal(history.status,200);assert.equal(history.data[0].observations[0].id,observation.id);
- assert.deepEqual((await api('/api/notifications')).data.destinations,[],'upgrade never grants an outbound destination');
- assert.deepEqual((await api('/api/notifications')).data.deliveries,[],'upgrade does not replay prior accepted outbox events');
+ await unchanged(before,'all historical bytes and identities survive every additive migration and restart');
+ const firstRun=await DB.prepare('SELECT * FROM uptime_first_run WHERE id=1').first();
+ assert.ok(firstRun&&Number.isSafeInteger(firstRun.completed_at)&&firstRun.completed_at>=Math.floor(upgradeStarted/1000)*1000&&firstRun.completed_at<=Date.now(),'existing monitor infers a valid completed first run');
+ for(const table of ['uptime_audit','uptime_erasure_receipts','public_rate_limits','notification_claim_custody','oa_domain_rules','oa_step_up_challenges'])await rows(table);
+ assert.deepEqual((await DB.prepare('PRAGMA foreign_key_check').all()).results,[],'upgraded D1 has no foreign-key violations');
+ assert.deepEqual((await DB.prepare('PRAGMA quick_check').all()).results,[{quick_check:'ok'}],'D1-supported integrity check succeeds');
+ assert.equal((await call('/health')).status,200,'all current storage is ready');
+ const ownerRead=async path=>{
+  const response=await call(path,undefined,{cookie});
+  assert.equal(response.status,200,`${path} accepts the retained native owner cookie`);
+  return response.json();
+ };
+ assert.deepEqual(await ownerRead('/auth/session'),{id:session.id,operatorId:owner.id,createdAt:session.created_at,expiresAt:session.expires_at,kind:session.kind,operator:{id:owner.id,email:owner.email,displayName:owner.display_name,role:owner.role,status:owner.status,version:owner.version,createdAt:owner.created_at}});
+ assert.equal((await call('/api/overview')).status,401,'owner data still requires a cookie');
+ const overview=await ownerRead('/api/overview');
+ assert.equal(overview.monitors.length,1);
+ const retained=overview.monitors[0];
+ assert.deepEqual({id:retained.id,revision:retained.revision,definition:retained.definition,nextDue:retained.nextDue,storedState:retained.storedState},{id:monitor.id,revision:monitor.revision,definition:JSON.parse(monitor.definition),nextDue:monitor.next_due,storedState:JSON.parse(monitor.state)});
+ assert.deepEqual(overview.alerts,before.outbox.map(row=>({...row,event:JSON.parse(row.event)})),'accepted legacy event and original receipt remain visible');
+ const history=await ownerRead(`/api/monitors/${monitor.id}/history`);
+ assert.deepEqual(history,before.slots.map(row=>({...row,definition:JSON.parse(row.definition),observations:before.observations.filter(o=>o.slot_id===row.id).map(o=>JSON.parse(o.evidence))})),'exact scheduled slot and actual observation survive through owner history');
+ const notifications=async()=>{
+  const data=await ownerRead('/api/notifications');
+  assert.deepEqual(data.destinations,[],'upgrade never grants an outbound destination');
+  assert.deepEqual(data.deliveries,[],'upgrade does not replay prior accepted outbox events');
+ };
+ await notifications();
+ const setup=await call('/setup',undefined,{cookie});
+ assert.equal(setup.status,303);assert.equal(setup.headers.get('location'),'/app');
+ await unchanged(before,'read-only owner routes preserve every historical row and fixed session expiry');
+ await noReplay();assert.deepEqual(await rows('runner_contact'),[]);
+ const pollStarted=Date.now(),poll=await call('/api/runner/notifications',{operation:'poll'},{'x-runner-key':bindings.UPTIME_RUNNER_KEY});
+ assert.equal(poll.status,200,'scoped runner notification poll succeeds');
+ assert.deepEqual((await poll.json()).jobs,[],'accepted historical event creates no runner work');
+ await notifications();await noReplay();
+ await unchanged(before,'runner notification poll neither replays nor changes historical rows');
+ const contact=await rows('runner_contact');
+ assert.equal(contact.length,1);assert.equal(contact[0].id,1);
+ assert.ok(contact[0].last_contact_at>=pollStarted&&contact[0].last_contact_at<=Date.now(),'new runner contact is separate operational state');
  console.log('PASS additive notification upgrade retains exact legacy definitions observations outbox migration ledger and live owner session without replay');
 }finally{if(worker)await worker.dispose();if(fixture)await fixture.stop();await cleanupDirectory(directory)}

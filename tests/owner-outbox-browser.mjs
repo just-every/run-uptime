@@ -6,7 +6,7 @@ import {tmpdir} from 'node:os';
 import {chromium} from 'playwright';
 import {splitSql} from './migration-support.mjs';
 import {ownerOutboxBrowserRuntime} from './owner-outbox-browser-runtime.mjs';
-import {openGate, testDevKey} from './auth-test-support.mjs';
+import {openGate, openOutboxMessage, testDevKey, testAuthBindings} from './auth-test-support.mjs';
 
 const require = createRequire(import.meta.url);
 const directory = await mkdtemp(join(tmpdir(), 'uptime-owner-outbox-browser-'));
@@ -15,10 +15,9 @@ await mkdir(evidenceRoot, {recursive: true, mode: 0o700});
 const evidence = await mkdtemp(join(evidenceRoot, 'run-'));
 await chmod(evidence, 0o700);
 const bindings = {
+  ...testAuthBindings,
   UPTIME_LOCAL_REVIEW: 'true', MAIL_PROVIDER: 'development', RER_DEV_KEY: testDevKey,
   OWNER_EMAIL: 'operator@example.test', MAIL_FROM: 'Uptime <auth@example.test>',
-  SESSION_SECRET: 'test-only-owner-outbox-session-secret-0001',
-  SETUP_TOKEN: 'test-only-owner-outbox-first-owner-token-001',
   SENDGRID_API_KEY: 'test-only-owner-outbox-must-never-submit',
 };
 let runtime, browser;
@@ -166,7 +165,7 @@ try {
   await login.getByRole('link', {name: 'Open development outbox', exact: true}).click();
   assert.equal(new URL(login.url()).pathname, '/__dev/outbox', 'browser opens the emitted Worker development outbox');
   await auditBoth(login, 'outbox-list');
-  await login.getByRole('link', {name: 'Read message', exact: true}).click();
+  await openOutboxMessage(login, runtime.origin, {email: bindings.OWNER_EMAIL, key: bindings.RER_DEV_KEY});
   await auditBoth(login, 'outbox-message');
   const actualLink = new URL(await login.getByRole('link', {name: 'Open this link', exact: true}).getAttribute('href'));
   assert.ok(actualLink.origin === runtime.origin && actualLink.pathname === '/auth/confirm' &&

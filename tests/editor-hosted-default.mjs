@@ -17,7 +17,7 @@ test('hosted new monitor starts with an empty required target and saves the oper
       if (path === '/editor.js') return route.fulfill({contentType: 'text/javascript', body: source});
       if (path === '/editor-units.mjs') return route.fulfill({contentType: 'text/javascript', body: units});
       if (path === '/editor-definition.mjs') return route.fulfill({contentType: 'text/javascript', body: assertions});
-      if (path === '/api/overview') return route.fulfill({json: {monitors: [], runner: {grants: []}}});
+      if (path === '/api/overview') return route.fulfill({json: {monitors: [], runner: {grants: [],runners:[{runnerId:'self-00000000-0000-4000-8000-000000000000',networkLabel:'owner-network',revokedAt:null}]}}});
       if (path === '/api/monitors' && request.method() === 'POST') {
         saved = request.postDataJSON();
         return route.fulfill({json: {id: 'hosted-monitor'}});

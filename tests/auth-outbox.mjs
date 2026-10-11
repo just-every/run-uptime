@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {join} from 'node:path';
+import {createHmac} from 'node:crypto';
 import {readFile,readdir} from 'node:fs/promises';
 import {migratedWorker,runtimeDirectory,cleanupDirectory,availablePorts} from './notify-acceptance-runtime.mjs';
 import {testAuthBindings,authRequest,sessionCookie,outboxLink,hostRequest,keyHeader} from './auth-test-support.mjs';
@@ -56,15 +57,51 @@ try{
  const sent=await fetch(origin+'/auth/magic-link',{method:'POST',headers:{origin,'content-type':'application/x-www-form-urlencoded'},body:new URLSearchParams({email:bindings.OWNER_EMAIL,returnTo:'/'})});
  assert.equal(new URL(sent.url).searchParams.get('notice'),'sent','native form returns with delivery acknowledgement');
  assert.match(await identity(sent,200),/role="status"/,'the acknowledgement is announced to the operator');
- const link=await outboxLink(call),token=link.searchParams.get('token');
+ const link=await outboxLink(call,{email:bindings.OWNER_EMAIL}),token=link.searchParams.get('token');
  await identity(await call(link.pathname+link.search),200);
  assert.equal((await DB.prepare('SELECT consumed_at FROM oa_tokens').first()).consumed_at,null,'opening a link does not consume it');
  const cookie=sessionCookie(await call('/auth/confirm',{token}));
  assert.equal((await call('/api/overview',undefined,{cookie})).status,200);
  assert.equal((await call('/auth/confirm',{token})).status,400,'confirmed link is single-use');
  await invalidLink(call,link.pathname+link.search);
+ // The same public outbox contains older links, invitations, another owner's
+ // newer sign-in, and cron watch mail. Only the requested owner's newest magic
+ // link may authenticate this flow; reading either page grants no authority.
+ const otherEmail='other-owner@example.test';
+ assert.equal((await call('/auth/invite',{email:otherEmail,displayName:'Other outbox owner',role:'owner'},{cookie})).status,202);
+ const invitation=await outboxLink(call,{email:otherEmail,kind:'invite'});
+ const otherCookie=sessionCookie(await call('/auth/confirm',{token:invitation.searchParams.get('token')}));
  assert.equal((await call('/auth/magic-link',{email:bindings.OWNER_EMAIL})).status,202);
- const expired=await outboxLink(call);
+ const older=await outboxLink(call,{email:bindings.OWNER_EMAIL});
+ assert.equal((await call('/auth/magic-link',{email:bindings.OWNER_EMAIL})).status,202);
+ const newest=await outboxLink(call,{email:bindings.OWNER_EMAIL});
+ assert.ok(newest.href!==older.href,'successive sign-in requests create distinct links');
+ assert.equal((await call('/auth/magic-link',{email:otherEmail})).status,202);
+ const otherLink=await outboxLink(call,{email:otherEmail});
+ const enrolment={version:1},timestamp=String(Date.now());
+ assert.equal((await call('/api/runner/enroll',enrolment,{'x-runner-key':bindings.UPTIME_RUNNER_KEY,'x-sent-at':timestamp,'x-runner-signature':createHmac('sha256',bindings.UPTIME_RUNNER_KEY).update(`${timestamp}.runner-enrolment.${JSON.stringify(enrolment)}`).digest('hex')})).status,200);
+ assert.equal((await call('/api/runner/claim',{}, {'x-runner-key':bindings.UPTIME_RUNNER_KEY})).status,200);
+ const beforeDigest=await call('/__dev/outbox',undefined,keyHeader());assert.equal(beforeDigest.status,200);
+ const captureCount=[...(await beforeDigest.text()).matchAll(/<article>/g)].length;
+ await (await worker.getWorker()).scheduled();
+ assert.equal((await DB.prepare("SELECT outcome FROM monitoring_watch WHERE id LIKE 'healthy-digest:%'").first())?.outcome,'development','scheduled healthy digest was delivered into development capture');
+ const captures=await call('/__dev/outbox',undefined,keyHeader());
+ assert.equal(captures.status,200);
+ assert.equal([...(await captures.text()).matchAll(/<article>/g)].length,captureCount+1,'scheduled digest adds a message to the public capture listing');
+ const selected=await outboxLink(call,{email:bindings.OWNER_EMAIL});
+ assert.ok(selected.href===newest.href,'newest matching sign-in survives newer digest and other-owner mail');
+ const preview=await call(selected.pathname+selected.search);
+ await identity(preview,200);assert.ok(!preview.headers.has('set-cookie'),'preview grants no session');
+ assert.equal((await call('/api/overview')).status,401,'reading the outbox and preview grants no private authority');
+ const selectedCookie=sessionCookie(await call('/auth/confirm',{token:selected.searchParams.get('token')}));
+ const selectedSession=await call('/auth/session',undefined,{cookie:selectedCookie});assert.equal(selectedSession.status,200);
+ assert.equal((await selectedSession.json()).operator.email,bindings.OWNER_EMAIL,'confirmed session belongs to the intended owner');
+ assert.equal((await call('/api/overview',undefined,{cookie:selectedCookie})).status,200);
+ assert.equal((await call('/auth/confirm',{token:selected.searchParams.get('token')})).status,400,'selected link remains single-use');
+ assert.equal((await call(otherLink.pathname+otherLink.search)).status,200,'selecting one owner leaves the other owner link untouched');
+ assert.equal((await call('/auth/signout',{}, {cookie:otherCookie})).status,204);
+ assert.equal((await call('/auth/magic-link',{email:bindings.OWNER_EMAIL})).status,202);
+ const expired=await outboxLink(call,{email:bindings.OWNER_EMAIL});
  await DB.prepare('UPDATE oa_tokens SET expires_at=? WHERE consumed_at IS NULL').bind(Date.now()-1).run();
  await invalidLink(call,expired.pathname+expired.search);
  assert.equal((await DB.prepare("SELECT COUNT(*) n FROM oa_sessions WHERE kind!='native'").first()).n,0);
@@ -100,7 +137,7 @@ try{
  ]){
   const settings={...bindings,...mode},native=await authOutboxRuntime(directory,settings,()=>{submissions++;throw Error('External transport forbidden')});worker=native.worker;const callHosted=native.call;
   for(const path of ['/__dev/outbox','/__dev/outbox?message=private-message']){
-   const outbox=await callHosted(path);assert.equal(outbox.status,404,'hosted origin never exposes outbox');assert.equal(outbox.headers.get('x-test-outbox-reads'),'0','hosted refusal precedes private outbox reads');
+   const outbox=await callHosted(path);assert.equal(outbox.status,503,'invalid delivery or origin configuration refuses every route');assert.equal(outbox.headers.get('x-test-outbox-reads'),'0','hosted refusal precedes private outbox reads');
   }
   assert.equal((await callHosted('/auth/magic-link',{email:bindings.OWNER_EMAIL})).status,503,'hosted or nonloopback development provider fails closed');
   await worker.dispose();worker=null;
@@ -134,9 +171,9 @@ try{
   assert.equal(response.status,503,`${label} fails closed per request`);assert.ok(!response.headers.has('set-cookie'),'refused mail configuration cannot issue a session cookie');
   assert.equal((await native.DB.prepare('SELECT COUNT(*) n FROM oa_sessions').first()).n,before,`${label} creates no session`);
   assert.equal((await native.DB.prepare('SELECT COUNT(*) n FROM oa_tokens WHERE expires_at>? AND consumed_at IS NULL AND revoked_at IS NULL').bind(Date.now()).first()).n,0,`${label} leaves no usable sign-in link`);
-  const outbox=await native.call('/__dev/outbox');assert.equal(outbox.status,404,`${label} does not select development delivery`);assert.equal(outbox.headers.get('x-test-outbox-reads'),'0');
+  const outbox=await native.call('/__dev/outbox');assert.equal(outbox.status,503,`${label} refuses every route without selecting development delivery`);assert.equal(outbox.headers.get('x-test-outbox-reads'),'0');
   await worker.dispose();worker=null;
  }
  assert.equal(submissions,0,'no rejected configuration contacts an external provider');
- console.log('AUTH-OUTBOX passed local and hosted identity/recovery, real link expiry, setup/revocation/single-use, all outbox boundaries before private reads, Base guard controls and missing/invalid SendGrid configuration.');
+ console.log('AUTH-OUTBOX passed local and hosted identity/recovery, real link expiry, recipient/kind/newest capture selection amid scheduled digest, setup/revocation/single-use, all outbox boundaries before private reads, Base guard controls and missing/invalid SendGrid configuration.');
 }finally{await worker?.dispose();await cleanupDirectory(directory)}

@@ -6,35 +6,89 @@ import {spawn} from 'node:child_process';
 import {createHash,createHmac} from 'node:crypto';
 import {once} from 'node:events';
 import {mkdtemp,readFile,readdir,rm} from 'node:fs/promises';
+import {createServer} from 'node:net';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {startLocalWorker} from '../scripts/local-worker.mjs';
-import {archive,restore} from '../src/domain/control.server.ts';
-import {TABLES,columns} from '../src/domain/archive-schema.ts';
-import {installationLocalTables} from '../src/domain/archive-inventory.ts';
+import {restore} from '../src/domain/control.server.ts';
 import {probeHttp} from '../runners/src/engine.mjs';
 import {readGrant} from '../runners/src/grants.mjs';
 
 const root=fileURLToPath(new URL('../',import.meta.url));
-const controlPort=Number(process.env.UPTIME_INTAKE_CONTROL_PORT??15510);
-const fixturePort=Number(process.env.UPTIME_INTAKE_FIXTURE_PORT??15511);
-if([controlPort,fixturePort].some(p=>!Number.isInteger(p)||p<15481||p>15519)||controlPort===fixturePort)throw Error('Distinct assigned local intake-test ports required');
+async function intakePorts(){
+  const names=['UPTIME_INTAKE_CONTROL_PORT','UPTIME_INTAKE_FIXTURE_PORT'];
+  const ports=names.map(name=>{
+    const value=process.env[name];
+    if(value===undefined)return undefined;
+    if(!/^\d+$/.test(value)||!Number.isInteger(Number(value))||Number(value)<15481||Number(value)>15519)throw Error(`${name} must be an integer port in 15481–15519`);
+    return Number(value);
+  });
+  if(ports[0]!==undefined&&ports[0]===ports[1])throw Error(`${names.join(' and ')} must be distinct (port ${ports[0]})`);
+  const reservations=[];
+  async function reserve(port,name,explicit){
+    const server=createServer(socket=>socket.destroy());
+    try{
+      server.listen(port,'127.0.0.1');await once(server,'listening');
+      reservations.push(server);return true;
+    }catch(error){
+      if(error.code==='EADDRINUSE'){
+        if(explicit)throw Error(`${name} port ${port} is occupied`);
+        return false;
+      }
+      throw Error(`${name} could not reserve port ${port}`);
+    }
+  }
+  try{
+    // Reserve intentional choices first; keep the whole pair until selection ends.
+    for(let i=0;i<ports.length;i++)if(ports[i]!==undefined)await reserve(ports[i],names[i],true);
+    for(let i=0;i<ports.length;i++)if(ports[i]===undefined){
+      for(let port=15519;port>=15481;port--){
+        if(ports.includes(port))continue;
+        if(await reserve(port,names[i],false)){ports[i]=port;break}
+      }
+      if(ports[i]===undefined)throw Error(`${names[i]} has no free port in 15481–15519`);
+    }
+    return ports;
+  }finally{await Promise.all(reservations.map(server=>new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()))))}
+}
+const [controlPort,fixturePort]=await intakePorts();
+console.log(`INTAKE ports: control=${controlPort} fixture=${fixturePort}`);
 const dir=await mkdtemp(join(tmpdir(),'uptime-intake-'));
 const grantPath=join(dir,'grant.json');
 const origin=`http://127.0.0.1:${controlPort}`;
 const runner='synthetic-independent-intake-runner-key-20261002';
 const maxBytes=2*1024*1024;
 const padding='€'.repeat(750000);
-let worker,fixture,cookie='',logs='',passed=0;
+let worker,fixture,fixtureClosed,fixtureFailure,cookie='',passed=0;
+const fixtureAbort=new AbortController();
 
 async function check(name,fn){await fn();passed++;console.log('PASS '+name)}
-async function wait(fn){
+function assertFixtureLive(){
+  if(fixtureFailure)throw fixtureFailure;
+  if(!fixture.pid||fixture.exitCode!==null||fixture.signalCode!==null)throw Error(`Synthetic fixture port ${fixturePort} is not running (pid ${fixture.pid??'unavailable'}, exit ${fixture.exitCode}, signal ${fixture.signalCode})`);
+}
+async function waitForFixture(){
+  const deadline=AbortSignal.timeout(160*125);
   for(let i=0;i<160;i++){
-    try{if(await fn())return}catch{}
+    assertFixtureLive();
+    let grant,ready=false;
+    try{grant=await readGrant(grantPath,controlPort)}catch{}
+    assertFixtureLive();
+    if(grant?.port===fixturePort&&grant.pid===fixture.pid){
+      try{
+        const response=await fetch(`http://127.0.0.1:${fixturePort}/health`,{signal:AbortSignal.any([fixtureAbort.signal,deadline])});
+        ready=response.ok&&response.headers.get('x-uptime-fixture')===grant.identity;
+        await response.body?.cancel();
+      }catch{}
+    }
+    assertFixtureLive();
+    if(ready){console.log(`INTAKE fixture ready: port=${fixturePort} pid=${fixture.pid}`);return}
+    if(deadline.aborted)break;
     await new Promise(resolve=>setTimeout(resolve,125));
   }
-  throw Error('Synthetic fixture unavailable: '+logs.slice(-4000));
+  assertFixtureLive();
+  throw Error(`Synthetic fixture unavailable: port ${fixturePort}, pid ${fixture.pid}`);
 }
 async function api(path,method='GET',value,headers={}){
   const response=await fetch(origin+path,{method,headers:{origin,'content-type':'application/json',cookie,...headers},body:value===undefined?undefined:JSON.stringify(value)});
@@ -75,23 +129,6 @@ async function signed(body){
 }
 
 try{
-  await check('export counts UTF8 bytes before returning a multibyte archive',async()=>{
-    const definition=JSON.stringify({name:'UTF8 byte-bound fixture',url:'http://127.0.0.1:15511/health',intervalMs:86400000});
-    const rows=Object.fromEntries(TABLES.map(name=>[name,[]]));
-    rows.monitors=[{id:'utf8-byte-bound-fixture',revision:1,definition,next_due:0,state:JSON.stringify({state:'Unknown',confirmedFailure:false,notificationOpen:false,reason:padding})}];
-    rows.revisions=[{monitor_id:'utf8-byte-bound-fixture',revision:1,definition,created_at:0}];
-    const sourceColumns={...columns,notification_destinations:['id','name','kind','enabled','credential_id','created_at','deleted_at'],notification_jobs:[...columns.notification_jobs,'credential_id','claim','claim_until'],integration_deliveries:[...columns.integration_deliveries,'fingerprint','destination_hash','claim','claim_until'],integration_replays:[...columns.integration_replays,'fingerprint']};
-    const physicalTables=[...TABLES,...Object.keys(installationLocalTables)];
-    const DB={
-      prepare(sql){return {sql,async all(){return {results:physicalTables.map(name=>({name}))}},async first(){return {n:0}}}},
-      async batch(statements){
-        if(statements[0]?.sql.startsWith('PRAGMA table_info('))return statements.map(({sql})=>{const name=sql.slice('PRAGMA table_info('.length,-1);return {results:sourceColumns[name].map(name=>({name}))}});
-        return TABLES.map(name=>({results:rows[name]}));
-      },
-    };
-    assert.ok(padding.length<maxBytes&&Buffer.byteLength(padding)>maxBytes);
-    await assert.rejects(archive({DB}),/Archive exceeds 2 MiB/);
-  });
   await check('restore rejects a digest-valid oversized UTF8 archive before database access',async()=>{
     const payload={schemaVersion:2,target:'uptime-worker-d1',createdAt:Date.now(),tables:{migrations:[],monitors:[],revisions:[],slots:[],observations:[],outbox:[]},padding};
     const value={payload,sha256:createHash('sha256').update(JSON.stringify(payload),'utf8').digest('hex')};
@@ -108,9 +145,11 @@ try{
     const sql=await readFile(join(root,'migrations',name),'utf8');
     for(const statement of splitSql(sql))await DB.prepare(statement).run();
   }
-  fixture=spawn(process.execPath,[join(root,'runners/src/synthetic.mjs')],{cwd:dir,env:{...process.env,UPTIME_SYNTHETIC_PORT:String(fixturePort),UPTIME_GRANT_FILE:grantPath},stdio:'pipe'});
-  fixture.stdout.on('data',chunk=>logs+=chunk);fixture.stderr.on('data',chunk=>logs+=chunk);
-  await wait(async()=> (await fetch(`http://127.0.0.1:${fixturePort}/health`)).ok);
+  fixture=spawn(process.execPath,[join(root,'runners/src/synthetic.mjs')],{cwd:dir,env:{...process.env,UPTIME_SYNTHETIC_PORT:String(fixturePort),UPTIME_GRANT_FILE:grantPath},stdio:'ignore'});
+  fixtureClosed=new Promise(resolve=>fixture.once('close',resolve));
+  fixture.once('error',()=>{fixtureFailure=Error(`Synthetic fixture failed to spawn on port ${fixturePort}`);fixtureAbort.abort()});
+  fixture.once('exit',(code,signal)=>{fixtureFailure=Error(`Synthetic fixture port ${fixturePort} exited (pid ${fixture.pid}, exit ${code}, signal ${signal})`);fixtureAbort.abort()});
+  await waitForFixture();
   cookie=await signInOwner(origin);
   await check('valid chunked owner sign-out preserves UTF8 split into one-byte HTTP chunks',async()=>{
     const result=await chunked('/api/auth/sign-out',JSON.stringify({note:'€日本語✓ café'}),{},1);
@@ -168,9 +207,34 @@ try{
     assert.equal(history.data[0].observations[0].checks[0].reason,observation.checks[0].reason);
     assert.equal(history.data[0].observations[0].outcome,'pass');
   });
+  await check('export counts UTF8 bytes before returning a multibyte archive',async()=>{
+    const before=await api('/api/archive');assert.equal(before.status,200,JSON.stringify(before.data));
+    const {state}=await DB.prepare('SELECT state FROM monitors WHERE id=?').bind(monitor.id).first();
+    const oversizedState=JSON.stringify({...JSON.parse(state),reason:padding});
+    const oversizedArchive=structuredClone(before.data);
+    oversizedArchive.payload.tables.monitors.find(row=>row.id===monitor.id).state=oversizedState;
+    assert.ok(JSON.stringify(oversizedArchive).length<maxBytes&&Buffer.byteLength(JSON.stringify(oversizedArchive))>maxBytes);
+    // Seed only the size boundary in real D1; export uses the owner HTTP door,
+    // including the installation's real journal and archive projections.
+    await DB.prepare('UPDATE monitors SET state=? WHERE id=?').bind(oversizedState,monitor.id).run();
+    try{
+      const result=await api('/api/archive');assert.equal(result.status,400);
+      assert.match(result.data.error,/Archive exceeds 2 MiB/);
+      assert.equal((await DB.prepare('SELECT state FROM monitors WHERE id=?').bind(monitor.id).first()).state,oversizedState,'export refusal preserves the stored evidence');
+    }finally{
+      await DB.prepare('UPDATE monitors SET state=? WHERE id=?').bind(state,monitor.id).run();
+    }
+    const after=await api('/api/archive');assert.equal(after.status,200,JSON.stringify(after.data));
+    assert.deepEqual(after.data.payload.tables,before.data.payload.tables);
+    assert.deepEqual(after.data.payload.productTables,before.data.payload.productTables);
+    assert.deepEqual(after.data.payload.erasureFence,before.data.payload.erasureFence);
+  });
   console.log(`INTAKE-001 passed: ${passed} UTF8 byte, chunked HTTP, post413 lifecycle, actualD1 and signed real-probe checks on the recommended emitted Worker path.`);
 }finally{
-  if(fixture&&fixture.exitCode===null&&fixture.signalCode===null){fixture.kill('SIGTERM');await once(fixture,'exit')}
-  if(worker)await worker.dispose();
-  await rm(dir,{recursive:true,force:true});
+  try{
+    if(fixture?.pid&&fixture.exitCode===null&&fixture.signalCode===null)fixture.kill('SIGTERM');
+    await fixtureClosed;
+  }finally{
+    try{if(worker)await worker.dispose()}finally{await rm(dir,{recursive:true,force:true})}
+  }
 }

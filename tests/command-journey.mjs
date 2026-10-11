@@ -49,9 +49,9 @@ try {
  const resetActive = scratch.start('node', ['scripts/rer.mjs', 'reset', '--yes', '--non-interactive']);
  try { assert.equal((await resetActive.done).code, 4); } finally { await scratch.stop(resetActive); }
  browser = await chromium.launch({ headless: true }); const page = await browser.newPage();
- await openGate(page.context(), origin, await readCheckoutKey(scratch.root));
- await page.goto(origin + '/__dev/outbox'); await page.getByRole('link', { name: 'Read message' }).first().click();
- await signInThroughOutbox(page, page.url(), { displayName: 'Command Owner', OWNER_EMAIL: 'journey@example.test' }, { finishSetup: false });
+ const devKey = await readCheckoutKey(scratch.root);
+ await openGate(page.context(), origin, devKey);
+ await signInThroughOutbox(page, origin + '/__dev/outbox', { displayName: 'Command Owner', OWNER_EMAIL: 'journey@example.test' }, { finishSetup: false, key: devKey });
  assert.equal(new URL(page.url()).pathname, '/setup', 'rer sign-in returns the unfinished owner to setup');
  const unsigned = await browser.newContext();
  try {
@@ -115,8 +115,9 @@ try {
  await invoke(['reset', '--yes', '--non-interactive']);
  assert.equal(await readFile(join(scratch.root, '.rer/deploy/receipt'), 'utf8'), 'retained');
  await invoke(['reset', '--yes', '--non-interactive']);
- await invoke(['import', '--input', 'exports/product.rer', '--yes']);
+ // Establish receiving authority and private settings while product data is empty.
  await invoke(['setup', '--owner-email', 'receiving@example.test', '--non-interactive']);
+ await invoke(['import', '--input', 'exports/product.rer', '--yes']);
  await invoke(['export', '--output', 'exports/restored.rer']);
  const receiving = JSON.parse(await readFile(settingsPath));
  native = await startLocalWorker({ root: scratch.root, persist: join(scratch.root, '.wrangler/state'), bindings: receiving, assets: false });

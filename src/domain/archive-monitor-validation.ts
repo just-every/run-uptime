@@ -6,7 +6,7 @@ import {clock,identity,object,unique,type Tables} from './archive-schema.ts'
 export function historicalDefinition(text:any){
  if(typeof text!=='string')throw Error('Invalid archive definition');
  const definition=JSON.parse(text);
- if(!object(definition)||Object.keys(definition).some(k=>!['name','type','network','url','method','request','heartbeat','probes','assertions','intervalMs','timeoutMs','retries','failureQuorum','confirmSlots','recoverSlots','freshnessMs','enabled','maintenanceUntil'].includes(k)))throw Error('Invalid archive definition fields');
+ if(!object(definition)||Object.keys(definition).some(k=>!['name','type','network','url','method','request','heartbeat','probes','assertions','intervalMs','timeoutMs','retries','failureQuorum','confirmSlots','recoverSlots','freshnessMs','enabled','maintenanceUntil','assignments'].includes(k)))throw Error('Invalid archive definition fields');
  const port=typeof definition.url==='string'&&/^http:\/\/127\.0\.0\.1:[0-9]+\//.test(definition.url)?Number(new URL(definition.url).port):null;
  validateDefinition(definition,port===null?[]:[port]);return definition;
 }
@@ -19,7 +19,7 @@ export function validateMonitorTables(t:Tables,now:number){
  for(const r of t.monitors){
   historicalDefinition(r.definition);clock(r.next_due,'monitor');const state=JSON.parse(r.state);
   // Prior installations retained sparse state; absent flags remain absent in history.
-  if(!object(state)||Object.keys(state).some(k=>!['state','targetState','underlyingState','evidenceState','coverageState','candidate','regions','denominator','fails','unknown','failureStreak','recoveryStreak','confirmedFailure','notificationOpen','maintenance','reason','evaluatedAt','incidentKey'].includes(k))||!['Unknown','Healthy','Degraded','Failing','Recovering','Maintenance','Paused'].includes(state.state)||['confirmedFailure','notificationOpen'].some(k=>Object.hasOwn(state,k)&&typeof state[k]!=='boolean'))throw Error('Invalid archive monitor state');
+  if(!object(state)||Object.keys(state).some(k=>!['state','targetState','underlyingState','evidenceState','coverageState','candidate','regions','denominator','fails','unknown','failureStreak','recoveryStreak','confirmedFailure','notificationOpen','maintenance','reason','evaluatedAt','incidentKey','failingVantages'].includes(k))||!['Unknown','Healthy','Degraded','Failing','Recovering','Maintenance','Paused'].includes(state.state)||['confirmedFailure','notificationOpen'].some(k=>Object.hasOwn(state,k)&&typeof state[k]!=='boolean'))throw Error('Invalid archive monitor state');
   const revision=revisions.get(`${r.id}:${r.revision}`);
   if(!Number.isSafeInteger(r.revision)||r.revision<1||!revision||JSON.stringify(JSON.parse(r.definition))!==JSON.stringify(JSON.parse(revision.definition)))throw Error('Current definition mismatch');
  }
@@ -31,7 +31,7 @@ export function validateMonitorTables(t:Tables,now:number){
  unique(t.observations,r=>r.id,'observation');unique(t.observations,r=>`${r.slot_id}:${r.probe}:${r.attempt}`,'attempt');
  const observations=new Map<string,any[]>();
  for(const r of t.observations){const slot=slots.get(r.slot_id),o=JSON.parse(r.evidence);if(!slot||o.id!==r.id||o.probe!==r.probe||o.attempt!==r.attempt)throw Error('Invalid observation reference');validateEvidence(o,JSON.parse(slot.definition),slot.due_at,now,'historical-restore');const list=observations.get(r.slot_id)??[];list.push(o);observations.set(r.slot_id,list)}
- for(const slot of t.slots){const definition=JSON.parse(slot.definition),all=observations.get(slot.id)??[];for(const probe of definition.probes){const chain=all.filter(o=>o.probe===probe).sort((a,b)=>a.attempt-b.attempt);if((slot.status==='complete'&&!chain.length)||chain.some((o,i)=>o.attempt!==i||(i>0&&chain[i-1].outcome!=='target_failure')))throw Error('Invalid restored attempt chain')}}
+ for(const slot of t.slots){const definition=JSON.parse(slot.definition),all=observations.get(slot.id)??[];for(const probe of definition.probes){const chain=all.filter(o=>o.probe===probe).sort((a,b)=>a.attempt-b.attempt);if((slot.status==='complete'&&(!chain.length||(definition.assignments&&chain.at(-1).outcome==='target_failure'&&chain.at(-1).attempt!==definition.retries)))||chain.some((o,i)=>(!definition.assignments&&o.attempt!==i)||(i>0&&chain[i-1].outcome!=='target_failure')))throw Error('Invalid restored attempt chain')}}
  unique(t.outbox,r=>r.id,'outbox');
  for(const r of t.outbox){const slot=slots.get(r.slot_id),event=JSON.parse(r.event);if(!slot||slot.monitor_id!==r.monitor_id||slot.manual||event.id!==r.id||event.slotId!==r.slot_id||event.monitorId!==r.monitor_id||event.kind!==r.kind||event.visibility!=='private'||!['trigger','recovery'].includes(r.kind))throw Error('Outbox reference mismatch');if(!['pending','sending','sent','accepted','delivered','failed','imported-inactive'].includes(r.status))throw Error('Invalid outbox status');clock(r.lease_until,'outbox lease');if(r.receipt!==null&&typeof r.receipt!=='string')throw Error('Invalid outbox receipt')}
  return {monitors,revisions,slots};

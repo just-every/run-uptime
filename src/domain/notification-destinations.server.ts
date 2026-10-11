@@ -1,3 +1,5 @@
+import {auditStatement,automated,type AuditActor} from './audit.server.ts'
+import {erase} from './erasure.server.ts'
 import {ensureNotificationCustody,sealCredential,readCredential,retireObsoleteStatements} from './notification-credentials.server.ts'
 import {cancelDestinationStatements} from './notification-cancellation.server.ts'
 import {validateDestination} from '../base/modules/integrations/core/destination.ts'
@@ -30,7 +32,7 @@ export async function createDestination(env:Bindings,input:any){
  await env.DB.batch([env.DB.prepare('INSERT INTO notification_credentials(id,destination_id,created_at,ciphertext) VALUES(?,?,?,?)').bind(credentialId,id,now,ciphertext),env.DB.prepare('INSERT INTO notification_destinations VALUES(?,?,?,?,?,?,NULL)').bind(id,displayName,kind,input.enabled===false?0:1,credentialId,now)]);
  return {id,name:displayName,kind,enabled:input.enabled!==false,created_at:now,...(signingSecret?{signingSecret}:{})}
 }
-export async function updateDestination(env:Bindings,id:string,input:any){
+export async function updateDestination(env:Bindings,id:string,input:any,actor:AuditActor=automated){
  if(!input||Object.keys(input).some(k=>!['name','enabled','address','url'].includes(k))||typeof input.enabled!=='boolean')throw Error('Name and enabled are required');
  const displayName=name(input.name);
  const row=await env.DB.prepare('SELECT d.kind,c.* FROM notification_destinations d JOIN notification_credentials c ON c.id=d.credential_id WHERE d.id=? AND d.deleted_at IS NULL').bind(id).first<any>();
@@ -41,24 +43,25 @@ export async function updateDestination(env:Bindings,id:string,input:any){
   const endpoint=await endpointFor(row.kind,input);let current;try{current=await readCredential(env,row)}catch{}
   if(!current||current.endpoint!==endpoint)replacement={endpoint,signing_secret:row.kind==='webhook'?secret():null};
  }
- if(replacement)return replaceCredential(env,row,replacement,{name:displayName,enabled:input.enabled});
+ if(replacement)return replaceCredential(env,row,replacement,{name:displayName,enabled:input.enabled},actor);
  const result=await env.DB.batch([env.DB.prepare('UPDATE notification_destinations SET name=?,enabled=? WHERE id=? AND credential_id=? AND deleted_at IS NULL').bind(displayName,input.enabled?1:0,id,row.id),...(input.enabled?[]:cancelDestinationStatements(env,id))]);
  if(!result[0].meta.changes)throw Error('Destination changed; refresh and retry');return {updated:true};
 }
-export async function deleteDestination(env:Bindings,id:string){await ensureNotificationCustody(env);const result=await env.DB.batch([env.DB.prepare('UPDATE notification_destinations SET enabled=0,deleted_at=? WHERE id=? AND deleted_at IS NULL').bind(Date.now(),id),...cancelDestinationStatements(env,id,true),env.DB.prepare('UPDATE notification_credentials SET endpoint=NULL,signing_secret=NULL,ciphertext=NULL,retired_at=? WHERE destination_id=?').bind(Date.now(),id)]);if(!result[0].meta.changes)throw Error('Destination not found');return {deleted:true}}
-export async function rotateDestination(env:Bindings,id:string){
+export async function deleteDestination(env:Bindings,id:string,actor:AuditActor=automated){return erase(env,'destination',id,actor)}
+export async function rotateDestination(env:Bindings,id:string,actor:AuditActor=automated){
  await ensureNotificationCustody(env);
  const row=await env.DB.prepare("SELECT c.* FROM notification_destinations d JOIN notification_credentials c ON c.id=d.credential_id WHERE d.id=? AND d.kind='webhook' AND d.deleted_at IS NULL").bind(id).first<any>();if(!row)throw Error('Signed webhook destination not found');
  const credential=await readCredential(env,row);
- return replaceCredential(env,row,{endpoint:credential.endpoint,signing_secret:secret()});
+ return replaceCredential(env,row,{endpoint:credential.endpoint,signing_secret:secret()},undefined,actor);
 }
-async function replaceCredential(env:Bindings,row:any,credential:{endpoint:string;signing_secret:string|null},metadata?:{name:string;enabled:boolean}){
+async function replaceCredential(env:Bindings,row:any,credential:{endpoint:string;signing_secret:string|null},metadata?:{name:string;enabled:boolean},actor:AuditActor=automated){
  const id=row.destination_id,credentialId=crypto.randomUUID(),now=Date.now();
  const ciphertext=await sealCredential(env,{id:credentialId,destination_id:id,created_at:now},credential);
  const result=await env.DB.batch([
   env.DB.prepare(`INSERT INTO notification_credentials(id,destination_id,created_at,ciphertext)
    SELECT ?,?,?,? WHERE EXISTS(SELECT 1 FROM notification_destinations WHERE id=? AND credential_id=? AND deleted_at IS NULL)`).bind(credentialId,id,now,ciphertext,id,row.id),
   env.DB.prepare('UPDATE notification_destinations SET credential_id=?,name=COALESCE(?,name),enabled=COALESCE(?,enabled) WHERE id=? AND credential_id=? AND deleted_at IS NULL').bind(credentialId,metadata?.name??null,metadata?Number(metadata.enabled):null,id,row.id),
+  auditStatement(env,actor,'credential_rotate','credential',crypto.randomUUID(),'EXISTS(SELECT 1 FROM notification_destinations WHERE id=? AND credential_id=?)',[id,credentialId],now),
   ...retireObsoleteStatements(env,now),
   ...(metadata?.enabled===false?cancelDestinationStatements(env,id):[]),
  ]);

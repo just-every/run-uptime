@@ -8,10 +8,14 @@ import {testDestination,notificationOverview,openIncidentKey} from '../src/domai
 import {notificationRpc,notificationRepository} from '../src/domain/notification-rpc.server.ts';
 import {dispatchNotifications} from '../runners/src/notification-dispatch.mjs';
 import {incidentEvent,mailContent,slackContent,notificationText,testEvent} from '../src/domain/notification-content.ts';
-import {save,claim,complete,archive,restore,grants} from '../src/domain/control.server.ts';
+import {save as saveMonitor,claim as claimAttempt,complete as completeAttempts,archive,restore,grants} from '../src/domain/control.server.ts';
 import {verifyWebhook} from '../src/base/modules/integrations/core/webhook.ts';
 import {validateSlackMessage,escapeSlackText} from '../src/base/modules/integrations/slack/message.ts';
 import {createActionFeedback} from '../public/action-feedback.mjs';
+import {ensureFirstRunner} from '../src/domain/runner-registration.server.ts';
+async function save(env,input){return saveMonitor(env,{canaryUrl:'https://canary.example.com/health',...input})}
+async function claim(env){return claimAttempt(env,(await ensureFirstRunner(env)).runner_id)}
+async function complete(env,input){for(const o of input.attempts)o.canary??={id:crypto.randomUUID(),probe:o.probe,attempt:0,startedAt:o.startedAt,completedAt:o.completedAt,durationMs:o.durationMs,runnerVersion:o.runnerVersion,outcome:'pass',status:200,bytes:0,checks:[{assertion:'status',pass:true,reason:'Network-edge canary fixture'}]};return completeAttempts(env,input,(await ensureFirstRunner(env)).runner_id)}
 function setup(){return {DB:notificationTestDB(),SESSION_SECRET:randomBytes(32).toString('hex'),UPTIME_ORIGIN:'https://uptime.example.com'}}
 const webhook={name:'Operations',kind:'webhook',url:'https://receiver.example.com/events'};
 function apiFor(env){return async(_path,input)=>notificationRpc(env,input)}
@@ -22,7 +26,7 @@ function holdCompletionBatches(DB){
  const batch=DB.batch.bind(DB),pending=[];
  DB.batch=statements=>new Promise((resolve,reject)=>pending.push({statements,resolve,reject,released:false}));
  return {
-  async ready(count){const deadline=Date.now()+5000;while(pending.length<count&&Date.now()<deadline)await new Promise(resolve=>setImmediate(resolve));assert.equal(pending.length,count,'each completion read the live lease before its batch');DB.batch=batch},
+  async ready(count){const deadline=Date.now()+5000;while(pending.length<count&&Date.now()<deadline)await new Promise(resolve=>setImmediate(resolve));assert.equal(pending.length,count,'each completion read the assigned acceptance window before its batch');DB.batch=batch},
   async commit(index){const item=pending[index];item.released=true;try{item.resolve(await batch(item.statements))}catch(error){item.reject(error)}},
   close(){DB.batch=batch;for(const item of pending)if(!item.released)item.reject(Error('Test transaction schedule closed'))}
  };
@@ -53,7 +57,7 @@ test('email without provider visibly rejects and expired committed claims stay u
 test('event content escapes email HTML and Slack markup while preserving UTF8 and incident identity',()=>{const event=incidentEvent({id:'event',kind:'trigger',monitor:{id:'monitor',revision:1,definition:{name:'日本語 <!channel> <script>x</script>',url:'https://monitor.example.com'}},slotId:'slot',now:1,state:{reason:'status < expected'},observations:[{probe:'local-a',outcome:'target_failure',checks:[{pass:false,reason:'HTTP 500'}]}],origin:'https://uptime.example.com',incidentKey:'incident'});const mail=mailContent(event),slack=JSON.parse(slackContent(event));assert.match(mail.subject,/^Down: 日本語/);assert.match(mail.html,/&lt;script&gt;/);assert.ok(!mail.html.includes('<script>'));assert.match(mail.text,/Probe local-a: target_failure — HTTP 500/);assert.match(mail.text,/Incident: incident/);assert.match(slack.text,/&lt;!channel&gt;/);assert.equal(slack.mrkdwn,false)});
 test('signed completion atomically snapshots enabled destinations; recovery keeps incident identity; archive never replays',async()=>{const env=setup();let receiving;try{
  const d=await createDestination(env,webhook),monitor=await save(env,{name:'Atomic monitor',url:'https://monitor.example.com',intervalMs:5000,retries:0,confirmSlots:1,recoverSlots:1});
- async function finish(status){await env.DB.prepare('UPDATE monitors SET next_due=? WHERE id=?').bind(Date.now(),monitor.id).run();const task=await claim(env),now=Date.now(),pass=status===200;const attempts=[{id:crypto.randomUUID(),probe:'local-a',attempt:0,startedAt:now,completedAt:now,durationMs:0,runnerVersion:'uptime-node/0.1.0',outcome:pass?'pass':'target_failure',status,bytes:0,checks:[{assertion:'status',pass,reason:`HTTP ${status}`}]}];await complete(env,{slotId:task.id,leaseOwner:task.leaseOwner,attempts});await assert.rejects(complete(env,{slotId:task.id,leaseOwner:task.leaseOwner,attempts}));}
+ async function finish(status){await env.DB.prepare('UPDATE monitors SET next_due=? WHERE id=?').bind(Date.now(),monitor.id).run();const task=await claim(env),now=Date.now(),pass=status===200;const attempts=[{id:crypto.randomUUID(),probe:'local-a',attempt:0,startedAt:now,completedAt:now,durationMs:0,runnerVersion:'uptime-node/0.1.0',outcome:pass?'pass':'target_failure',status,bytes:0,checks:[{assertion:'status',pass,reason:`HTTP ${status}`}]}];await complete(env,{slotId:task.id,attempts});assert.equal((await complete(env,{slotId:task.id,attempts})).duplicate,true);}
  await finish(500);const first=(await notificationOverview(env)).deliveries[0];assert.equal(first.event.kind,'trigger');await rotateDestination(env,d.id);await updateDestination(env,d.id,{name:'Renamed',enabled:false});const old=(await env.DB.prepare('SELECT credential_id FROM notification_jobs WHERE id=?').bind(first.id).first()).credential_id;const current=(await env.DB.prepare('SELECT credential_id FROM notification_destinations WHERE id=?').bind(d.id).first()).credential_id;assert.notEqual(old,current);assert.equal(first.destinationName,'Operations');
  await updateDestination(env,d.id,{name:'Renamed',enabled:true});await finish(200);const rows=(await notificationOverview(env)).deliveries;assert.equal(rows.length,2);assert.equal(new Set(rows.map(r=>r.event.incidentKey)).size,1);assert.deepEqual(rows.map(r=>r.event.kind).sort(),['recovery','trigger']);
  const exported=await archive(env);guardSecrets(exported,[d.signingSecret,webhook.url]);assert.ok(!('notification_jobs' in exported.payload.tables));receiving=setup();await restore(receiving,exported);const restoredRows=(await notificationOverview(receiving)).deliveries;
@@ -70,7 +74,7 @@ for(const initiallyEnabled of [false,true])test(`overlapping completion rejects 
   const monitor=await save(env,{name:'Concurrent automatic incident',url:'https://monitor.example.com',intervalMs:5000,retries:0,confirmSlots:1,recoverSlots:1});
   const task=await claim(env),now=Date.now();
   const attempt={id:crypto.randomUUID(),probe:'local-a',attempt:0,startedAt:now,completedAt:now,durationMs:0,runnerVersion:'uptime-node/0.1.0',outcome:'target_failure',status:500,bytes:0,checks:[{assertion:'status',pass:false,reason:'HTTP 500'}]};
-  const input={slotId:task.id,leaseOwner:task.leaseOwner,attempts:[attempt]};
+  const input={slotId:task.id,attempts:[attempt]};
   schedule=holdCompletionBatches(env.DB);
   const winner=complete(env,input),duplicate=complete(env,input),settled=Promise.allSettled([winner,duplicate]);
   await schedule.ready(2);await schedule.commit(0);
@@ -89,23 +93,22 @@ for(const initiallyEnabled of [false,true])test(`overlapping completion rejects 
   const late=await createDestination(env,{name:'Created after committed incident',kind:'email',address:'later@example.com'});
   await schedule.commit(1);
   const results=await settled;
-  assert.equal(results[0].status,'fulfilled');assert.equal(results[1].status,'rejected','overlapping duplicate cannot report accepted');
-  assert.match(results[1].reason.message,/Invalid or expired slot lease/);
+  assert.equal(results[0].status,'fulfilled');assert.equal(results[1].status,'fulfilled');assert.equal(results[1].value.duplicate,true,'first accepted copy wins');
   assert.deepEqual(await snapshot(),first,'duplicate preserves original evidence, state, outbox, jobs and accepted contact');
   assert.equal((await env.DB.prepare('SELECT COUNT(*) n FROM notification_jobs WHERE destination_id=?').bind(late.id).first()).n,0,'a destination created after the event cannot join its fanout');
  }finally{schedule?.close();env.DB.close()}
 });
-test('completion rejects when its live lease expires before the guarded transaction',async()=>{
+test('completion rejects when its assigned acceptance window expires before the guarded transaction',async()=>{
  const env=setup();let schedule;
  try{
   await createDestination(env,webhook);
   const monitor=await save(env,{name:'Expired transaction lease',url:'https://monitor.example.com',intervalMs:5000,retries:0,confirmSlots:1,recoverSlots:1});
   const task=await claim(env),now=Date.now(),before=(await env.DB.prepare('SELECT state FROM monitors WHERE id=?').bind(monitor.id).first()).state;
   schedule=holdCompletionBatches(env.DB);
-  const completion=complete(env,{slotId:task.id,leaseOwner:task.leaseOwner,attempts:[{id:crypto.randomUUID(),probe:'local-a',attempt:0,startedAt:now,completedAt:now,durationMs:0,runnerVersion:'uptime-node/0.1.0',outcome:'target_failure',status:500,bytes:0,checks:[{assertion:'status',pass:false,reason:'HTTP 500'}]}]});
+  const completion=complete(env,{slotId:task.id,attempts:[{id:crypto.randomUUID(),probe:'local-a',attempt:0,startedAt:now,completedAt:now,durationMs:0,runnerVersion:'uptime-node/0.1.0',outcome:'target_failure',status:500,bytes:0,checks:[{assertion:'status',pass:false,reason:'HTTP 500'}]}]});
   const settled=Promise.allSettled([completion]);await schedule.ready(1);
   await env.DB.prepare('UPDATE slots SET lease_until=0 WHERE id=?').bind(task.id).run();await schedule.commit(0);
-  const [result]=await settled;assert.equal(result.status,'rejected');assert.match(result.reason.message,/Invalid or expired slot lease/);
+  const [result]=await settled;assert.equal(result.status,'rejected');assert.match(result.reason.message,/Acceptance authority expired/);
   for(const table of ['observations','outbox','notification_jobs','runner_contact'])assert.equal((await env.DB.prepare(`SELECT COUNT(*) n FROM ${table}`).first()).n,0);
   assert.equal((await env.DB.prepare('SELECT state FROM monitors WHERE id=?').bind(monitor.id).first()).state,before);
   assert.equal((await env.DB.prepare('SELECT status FROM slots WHERE id=?').bind(task.id).first()).status,'running');
@@ -155,12 +158,12 @@ test('concurrent rotations expose only a secret actually selected by their guard
  }finally{env.DB.close()}
 });
 
-test('disable and delete cancel queued deliveries atomically while explicit disabled tests remain deliberate',async()=>{
+test('disable cancels queued delivery and erasure removes delivery records while disabled tests remain deliberate',async()=>{
  const env=setup();try{
   const d=await createDestination(env,webhook),mail=await createDestination(env,{kind:'email',name:'Mail',address:'owner@example.com'});
   const monitor=await save(env,{name:'Queued failure',url:'https://monitor.example.com',intervalMs:5000,retries:0,confirmSlots:1,recoverSlots:1});
   const task=await claim(env),now=Date.now();
-  await complete(env,{slotId:task.id,leaseOwner:task.leaseOwner,attempts:[{id:crypto.randomUUID(),probe:'local-a',attempt:0,startedAt:now,completedAt:now,durationMs:0,runnerVersion:'uptime-node/0.1.0',outcome:'target_failure',status:500,bytes:0,checks:[{assertion:'status',pass:false,reason:'HTTP 500'}]}]});
+  await complete(env,{slotId:task.id,attempts:[{id:crypto.randomUUID(),probe:'local-a',attempt:0,startedAt:now,completedAt:now,durationMs:0,runnerVersion:'uptime-node/0.1.0',outcome:'target_failure',status:500,bytes:0,checks:[{assertion:'status',pass:false,reason:'HTTP 500'}]}]});
   // Prepare the webhook without dispatching any request; no-provider mail is terminal.
   await notificationRpc(env,{operation:'poll'});
   await updateDestination(env,d.id,{name:d.name,enabled:false});
@@ -171,10 +174,10 @@ test('disable and delete cancel queued deliveries atomically while explicit disa
   assert.equal((await notificationOverview(env)).deliveries.find(j=>j.id===deliberate.deliveryId).state,'accepted');
   const pending=await testDestination(env,d.id);await notificationRpc(env,{operation:'poll'});await deleteDestination(env,d.id);
   await dispatchNotifications(apiFor(env),{async send(){sends++;throw Error('deleted destination must not send')}});assert.equal(sends,1);
-  rows=(await notificationOverview(env)).deliveries;assert.equal(rows.find(j=>j.id===pending.deliveryId).code,'destination_deleted');assert.equal(rows.find(j=>j.id===pending.deliveryId).attempts,0);
+  rows=(await notificationOverview(env)).deliveries;assert.ok(!rows.some(j=>j.destinationId===d.id),'erasure removes every copied destination and delivery');assert.equal(await env.DB.prepare('SELECT * FROM integration_deliveries WHERE id=?').bind(pending.deliveryId).first(),null);
   // Deletion before mail claim must prevent even a configured provider call.
   const pendingMail=await testDestination(env,mail.id);await deleteDestination(env,mail.id);await notificationRpc(env,{operation:'poll'});
-  const cancelledMail=(await notificationOverview(env)).deliveries.find(j=>j.id===pendingMail.deliveryId);assert.equal(cancelledMail.code,'destination_deleted');assert.equal(cancelledMail.attempts,0);
+  assert.ok(!(await notificationOverview(env)).deliveries.some(j=>j.id===pendingMail.deliveryId));assert.equal(await env.DB.prepare('SELECT * FROM notification_credentials WHERE destination_id=?').bind(mail.id).first(),null);
  }finally{env.DB.close()}
 });
 test('plain notification text contains actual separate lines',()=>{

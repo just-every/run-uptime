@@ -37,7 +37,7 @@ test('one tampered row is unavailable without blocking healthy dispatch, owner r
   await env.DB.prepare('UPDATE notification_credentials SET ciphertext=? WHERE destination_id=?').bind('corrupt-record',broken.id).run();
   const list=await destinations(env);assert.equal(list.find(d=>d.id===broken.id).credentialsAvailable,false);assert.equal(list.find(d=>d.id===broken.id).credentialError,'credential_unavailable');
   let sends=0;await dispatchNotifications(api(env),{async send(){sends++;return {status:202,headers:{},body:''}}});assert.equal(sends,1);
-  await assert.rejects(testDestination(env,broken.id));await deleteDestination(env,broken.id);assertScrubbed((await stored(env)).find(r=>r.destination_id===broken.id));
+  await assert.rejects(testDestination(env,broken.id));await deleteDestination(env,broken.id);assert.ok(!(await stored(env)).some(r=>r.destination_id===broken.id),'erasure removes every credential version');
  }finally{env.DB.close()}
 });
 test('SESSION rotation permits reentry of each kind and email edits rotate queued work once',async()=>{
@@ -108,7 +108,14 @@ for(const kind of ['trigger','test'])for(const mutation of ['unchanged','disable
   }});await arrived;
   const reservation=crypto.randomUUID(),claim=await notificationRpc(env,{operation:'claim',id,reservation});assert.ok(claim);
   if(mutation==='disabled')await updateDestination(env,d.id,{name:d.name,enabled:false});
-  if(mutation==='deleted')await deleteDestination(env,d.id);
+  if(mutation==='deleted'){
+   await deleteDestination(env,d.id);
+   await assert.rejects(notificationRpc(env,{operation:'releaseUnstarted',id,claim,reservation}),/Notification not found/);
+   resume();await assert.rejects(pending,/Notification not found/);pending=null;
+   assert.equal(sends,0,'cached credentials cannot send after erasure');
+   for(const table of ['notification_jobs','integration_deliveries','integration_attempts','notification_claim_custody'])assert.equal((await env.DB.prepare(`SELECT COUNT(*) n FROM ${table}`).first()).n,0,'erasure removes delivery and reservation history');
+   assert.ok(!(await stored(env)).some(row=>row.destination_id===d.id));return;
+  }
   if(mutation==='rotated')await rotateDestination(env,d.id);
   assert.equal(await notificationRpc(env,{operation:'releaseUnstarted',id,claim,reservation}),true);
   const released=await env.DB.prepare('SELECT * FROM integration_deliveries WHERE id=?').bind(id).first();

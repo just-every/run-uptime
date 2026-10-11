@@ -94,7 +94,8 @@
         "RER_OWNER_CLAIM_ISSUER",
         "RER_OWNER_CLAIM_INSTALLATION_ID",
         "RER_OWNER_CLAIM_APP_ORIGIN",
-        "RER_OWNER_CLAIM_PUBLIC_KEYS"
+        "RER_OWNER_CLAIM_PUBLIC_KEYS",
+        "MAIL_ACCOUNT_ID"
       ],
       "secretNames": [
         "SESSION_SECRET",
@@ -102,7 +103,10 @@
         "UPTIME_RUNNER_KEY"
       ],
       "optionalSecretNames": [
-        "SENDGRID_API_KEY"
+        "SENDGRID_API_KEY",
+        "MAIL_PROVIDER_API_KEY",
+        "CLOUDFLARE_MAIL_API_KEY",
+        "UPTIME_HEARTBEAT_URL"
       ],
       "providerEffects": [
         "outbound-mail",

@@ -4,6 +4,7 @@ import { promisify } from 'node:util';
 import { inspectionMs, readProcessTable } from '../scripts/base-onboarding/process-table.mjs';
 import { createServer } from 'node:net';
 import { setTimeout as delay } from 'node:timers/promises';
+import { openOutboxMessage } from './auth-test-support.mjs';
 
 export const answers = { displayName: 'Installer Owner', OWNER_EMAIL: 'installer-owner@example.test' };
 export async function until(observe, timeout = 20 * 60_000) {
@@ -15,8 +16,9 @@ export async function assertPortFree(port) {
  const free = await new Promise(resolve => { const socket = createServer(); socket.once('error', () => resolve(false)); socket.listen(port, '127.0.0.1', () => socket.close(() => resolve(true))); });
  assert.equal(free, true, 'journey-owned port remains occupied');
 }
-export async function signInThroughOutbox(page, url, owner = answers, { finishSetup = true } = {}) {
+export async function signInThroughOutbox(page, url, owner = answers, { finishSetup = true, key } = {}) {
  await page.goto(url);
+ await openOutboxMessage(page, new URL(url).origin, { email: owner.OWNER_EMAIL ?? owner.email, key });
  await page.getByRole('link', { name: 'Open this link', exact: true }).click();
  await page.getByRole('button', { name: 'Confirm', exact: true }).click();
  await page.waitForURL(value=>['/app','/setup'].includes(value.pathname));

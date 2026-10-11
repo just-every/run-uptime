@@ -14,7 +14,7 @@ let source,recovery,passed=0,rejections=0;
 const check=async(name,fn)=>{await fn();passed++;console.log('PASS '+name)};
 const assertion=(name,pass=true)=>({assertion:name,pass,reason:'Historical sampled assertion'});
 const rehash=archive=>({...archive,sha256:createHash('sha256').update(JSON.stringify(archive.payload)).digest('hex')});
-const evidence=(task,changes={})=>({id:randomUUID(),probe:'local-a',attempt:0,runnerVersion:'uptime-node/0.1.0',startedAt:task.dueAt,completedAt:task.dueAt+100,durationMs:100,outcome:'pass',status:200,bytes:5,checks:[assertion('status'),assertion('latency')],...changes});
+const evidence=(task,changes={})=>({id:randomUUID(),probe:'local-a',attempt:0,runnerVersion:'uptime-node/0.1.0',startedAt:task.dueAt,completedAt:task.dueAt+100,durationMs:100,outcome:'pass',status:200,bytes:5,checks:[assertion('status'),assertion('latency')],canary:{id:randomUUID(),probe:'local-a',attempt:0,runnerVersion:'uptime-node/0.1.0',startedAt:task.dueAt,completedAt:task.dueAt,durationMs:0,outcome:'pass',status:200,bytes:0,checks:[assertion('status')]},...changes});
 const tables=['monitors','revisions','slots','observations','outbox','runner_contact','heartbeat_authority','heartbeat_claims','migrations','d1_migrations'];
 async function durable(installation){
  return Promise.all(tables.map(async table=>(await installation.DB.prepare(`SELECT * FROM ${table} ORDER BY rowid`).all()).results));
@@ -53,7 +53,7 @@ let legacy,boundary,archive,heartbeat,heartbeatToken,publicMonitor;
 try{
  await migrate(join(dir,'source'));source=await installation(join(dir,'source'),15504);
  await check('the exact historical 100ms/101ms passing record remains rejected by live signed completion',async()=>{
-  const created=await source.api('/api/monitors','POST',{name:'Legacy latency boundary',network:'synthetic',url:'http://127.0.0.1:15509/health',assertions:{status:200,latencyMs:100},intervalMs:86400000,retries:0,confirmSlots:1,recoverSlots:1});
+  const created=await source.api('/api/monitors','POST',{name:'Legacy latency boundary',network:'synthetic',url:'http://127.0.0.1:15509/health',canaryUrl:'https://canary.example.test/health',assertions:{status:200,latencyMs:100},intervalMs:86400000,retries:0,confirmSlots:1,recoverSlots:1});
   assert.equal(created.status,201);legacy=created.data;
   const task=await source.claim();assert.equal(task.monitorId,legacy.id);
   await new Promise(resolve=>setTimeout(resolve,Math.max(0,task.dueAt+100-Date.now())));
@@ -76,13 +76,13 @@ try{
   assert.equal((await source.submit(errorTask,[historicalError])).status,200);
   const created=await source.api('/api/monitors','POST',{name:'Local request authority',type:'http',network:'public',url:'https://archive-only.test/health',request:{credentialRef:'installation-only'},enabled:false,intervalMs:86400000,retries:0});
   assert.equal(created.status,201);publicMonitor=created.data;
-  const incoming=await source.api('/api/monitors','POST',{name:'Local heartbeat authority',type:'heartbeat',heartbeat:{maxAgeMs:60000},intervalMs:86400000,retries:0,confirmSlots:1,recoverSlots:1});
+  const incoming=await source.api('/api/monitors','POST',{name:'Local heartbeat authority',type:'heartbeat',canaryUrl:'https://canary.example.test/health',heartbeat:{maxAgeMs:60000},intervalMs:86400000,retries:0,confirmSlots:1,recoverSlots:1});
   assert.equal(incoming.status,201);heartbeat=incoming.data;
   const issued=await source.api(`/api/monitors/${heartbeat.id}/heartbeat-key`,'POST',{});
   assert.equal(issued.status,200);heartbeatToken=issued.data.token;
   assert.equal((await source.api(`/api/heartbeats/${heartbeat.id}`,'POST',{}, {authorization:`Bearer ${heartbeatToken}`,'x-heartbeat-sequence':'1'},false)).status,200);
   const heartbeatTask=await source.claim();assert.equal(heartbeatTask.monitorId,heartbeat.id);
-  assert.equal((await source.submit(heartbeatTask,[{...probeHeartbeat(heartbeatTask.definition,'local-a',heartbeatTask.heartbeatReceipt),attempt:0}])).status,200);
+  assert.equal((await source.submit(heartbeatTask,[{...probeHeartbeat(heartbeatTask.definition,'local-a',heartbeatTask.heartbeatReceipt),attempt:0,canary:{id:randomUUID(),probe:'local-a',attempt:0,startedAt:heartbeatTask.dueAt,completedAt:heartbeatTask.dueAt,durationMs:0,runnerVersion:'uptime-node/0.1.0',outcome:'pass',status:200,bytes:0,checks:[assertion('status')]}}])).status,200);
   assert.equal((await source.monitor(heartbeat.id)).state.state,'Healthy');
   archive=(await source.api('/api/archive')).data;
   assert.deepEqual(Object.keys(archive.payload.tables).sort(),['migrations','monitors','observations','outbox','revisions','slots']);
@@ -143,9 +143,10 @@ try{
  });
  await check('explicit reactivation cannot reuse imported latency or receipt evidence to establish active health',async()=>{
   const restored=await recovery.monitor(legacy.id);
-  assert.equal((await recovery.api(`/api/monitors/${legacy.id}`,'PATCH',{...restored.definition,enabled:true})).status,200);
+  assert.equal((await recovery.api(`/api/monitors/${legacy.id}`,'PATCH',{...restored.definition,assignments:undefined,canaryUrl:'https://canary.example.test/health',enabled:true})).status,200);
   assert.equal((await recovery.monitor(legacy.id)).state.state,'Unknown');
   const task=await recovery.claim();assert.equal(task.monitorId,legacy.id);
+  await new Promise(resolve=>setTimeout(resolve,Math.max(0,task.dueAt+100-Date.now())));
   const before=await durable(recovery);
   assert.equal((await recovery.submit(task,[evidence(task,{durationMs:101})])).status,400);
   assert.deepEqual(await durable(recovery),before);
@@ -153,7 +154,7 @@ try{
   assert.equal((await recovery.submit(task,[evidence(task)])).status,200);
   assert.equal((await recovery.monitor(legacy.id)).state.state,'Healthy');
   const restoredHeartbeat=await recovery.monitor(heartbeat.id);
-  assert.equal((await recovery.api(`/api/monitors/${heartbeat.id}`,'PATCH',{...restoredHeartbeat.definition,enabled:true})).status,200);
+  assert.equal((await recovery.api(`/api/monitors/${heartbeat.id}`,'PATCH',{...restoredHeartbeat.definition,assignments:undefined,canaryUrl:'https://canary.example.test/health',enabled:true})).status,200);
   assert.equal((await recovery.monitor(heartbeat.id)).state.state,'Unknown');
   const heartbeatTask=await recovery.claim();assert.equal(heartbeatTask.monitorId,heartbeat.id);assert.equal(heartbeatTask.heartbeatReceipt,null);
   const oldReceipt=archive.payload.tables.observations.map(row=>JSON.parse(row.evidence)).find(value=>value.heartbeatReceivedAt);

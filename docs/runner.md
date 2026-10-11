@@ -31,7 +31,7 @@ Keep the runner's clock in sync with real time. If its clock is a minute or more
 
 ## One runner, one vantage
 
-Everything the runner checks, it checks from where the runner sits. A monitor can list up to three named probes, but they all run on the same runner, so they share one network position. They are not separate places.
+Everything the runner checks, it checks from where the runner sits. A monitor can list up to three named probes and assign each to a separately keyed runner. Probes assigned to runners with the same network label share one vantage. Different labels should represent actual independent networks that the owner operates.
 
 ## Request secrets stay with the runner
 
@@ -46,10 +46,14 @@ Raw secrets and response bodies never go into stored evidence or archives.
 
 ## Signed results
 
-The runner signs its enrolment before it polls, and keeps this installation's single durable runner identity across restarts. It identifies itself with its key on every request, including when it claims checks and notification work. Results carry more: each one is also timestamped and signed with the key, and the Worker accepts only results that match an exact check it handed out. The runner refuses redirects when talking to the Worker, and only a local review setup may use plain HTTP loopback.
+The runner signs its enrolment before it polls, and keeps its own durable identity across restarts. It identifies itself with its key on every request, including when it claims checks and notification work. Results carry more: each one is also timestamped and signed with the key, and the Worker accepts only results that match an exact check it handed out. The runner refuses redirects when talking to the Worker, and only a local review setup may use plain HTTP loopback.
 
 A signature shows that the holder of the runner key sent the result. It does not prove the runner was uncompromised, so protect the key like any other secret.
 
 ## Next
 
 Add a [monitor](/docs/monitors) and watch its first checks arrive.
+
+## Independent watches and runner vantages
+
+Public v0.1.2 uses per-runner keys, immutable probe assignments, stored-evidence state and independent-vantage failure agreement. Mail is selected through Base adapters. See [the monitoring setup and C3/C4 rules](/docs/resilient-monitoring).

@@ -1,5 +1,7 @@
+import { validateConfiguration } from '../../src/domain/startup-config.mjs';
 import { readLocalSettings } from '../local-settings.mjs';
 import { startLocalWorker } from '../local-worker.mjs';
+validateConfiguration(process.env, { scope: 'local-worker' });
 const origin = process.env.UPTIME_LOCAL_ORIGIN;
 const settings = await readLocalSettings(process.env.UPTIME_LOCAL_SETTINGS);
 const worker = await startLocalWorker({

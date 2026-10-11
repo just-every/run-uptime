@@ -1,5 +1,5 @@
 import { COMPLETION_CLOCK_ALLOWANCE_MS } from './evidence.server.ts'
-import { leaseMs } from './schedule.ts'
+import { acceptanceMs } from './schedule.ts'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 const WEEK_MS = 7 * DAY_MS
@@ -20,23 +20,28 @@ WITH params AS (
   ), p.window_start-p.coverage_reach_ms) AS due_floor
   FROM params p
 ), latest_slot AS (
-  SELECT s.id, s.due_at, s.status
+  SELECT s.id, s.due_at, s.status, s.definition
   FROM slots s, params p
   WHERE s.monitor_id=p.monitor_id AND s.revision=p.revision
     AND s.manual=0 AND s.status='complete' AND s.due_at<=p.now_at
   ORDER BY s.due_at DESC, s.rowid DESC LIMIT 1
 ), bounded_slots AS (
-  SELECT s.id, s.due_at, s.status
+  SELECT s.id, s.due_at, s.status, s.definition
   FROM slots s, params p, window_floor f
   WHERE s.monitor_id=p.monitor_id AND s.revision=p.revision
     AND s.manual=0 AND s.due_at>=f.due_floor AND s.due_at<=p.now_at
 ), scheduled_slots AS (
-  SELECT id, due_at, status FROM bounded_slots
+  SELECT id, due_at, status, definition FROM bounded_slots
   UNION
-  SELECT id, due_at, status FROM latest_slot
+  SELECT id, due_at, status, definition FROM latest_slot
 ), ranked AS (
   SELECT s.id AS slot_id, s.due_at, s.status, o.id AS observation_id,
     o.probe, o.attempt,
+    json_type(s.definition,'$.assignments') IS NOT NULL AS assigned_revision,
+    json_extract(s.definition,'$.assignments."'||o.probe||'".canaryUrl') AS configured_canary,
+    json_extract(o.evidence,'$.canary.outcome') AS canary_outcome,
+    json_extract(o.evidence,'$.canary.completedAt') AS canary_completed_at,
+    SUM(CASE WHEN json_extract(o.evidence,'$.canary.outcome') IS NOT NULL AND json_extract(o.evidence,'$.canary.outcome')<>'pass' THEN 1 ELSE 0 END) OVER (PARTITION BY s.id,o.probe) AS failed_canary_attempts,
     json_extract(o.evidence, '$.outcome') AS outcome,
     json_extract(o.evidence, '$.startedAt') AS started_at,
     json_extract(o.evidence, '$.completedAt') AS completed_at,
@@ -84,6 +89,11 @@ WITH params AS (
     MAX(runner_error_attempts) AS runner_error_attempts,
     MAX(invalid_attempts) AS invalid_attempts,
     MAX(selected_probe) AS selected_probe,
+    MAX(assigned_revision) AS assigned_revision,
+    MAX(configured_canary) AS configured_canary,
+    MAX(failed_canary_attempts) AS failed_canary_attempts,
+    MAX(CASE WHEN attempt_rank=1 THEN canary_outcome END) AS final_canary_outcome,
+    MAX(CASE WHEN attempt_rank=1 THEN canary_completed_at END) AS final_canary_completed_at,
     MAX(CASE WHEN attempt_rank=1 THEN outcome END) AS final_outcome,
     MAX(CASE WHEN attempt_rank=1 THEN started_at END) AS final_started_at,
     MAX(CASE WHEN attempt_rank=1 THEN completed_at END) AS final_completed_at,
@@ -100,16 +110,17 @@ WITH params AS (
     COALESCE(SUM(r.target_failure_attempts), 0) AS target_failure_attempts,
     COALESCE(SUM(r.runner_error_attempts), 0) AS runner_error_attempts,
     COALESCE(SUM(r.invalid_attempts), 0) AS invalid_attempts,
-    COALESCE(SUM(CASE WHEN r.attempt_count!=r.last_attempt+1 OR r.first_attempt!=0 OR
+    COALESCE(SUM(CASE WHEN (r.assigned_revision=0 AND (r.attempt_count!=r.last_attempt+1 OR r.first_attempt!=0)) OR
       COALESCE(r.final_outcome, '') NOT IN ('pass','target_failure','runner_error') THEN 1 ELSE 0 END), 0) AS invalid_chains,
     COALESCE(SUM(CASE WHEN p.monitor_type='heartbeat' AND r.final_outcome='pass' AND (
       r.final_heartbeat_received_at IS NULL OR r.final_started_at IS NULL OR
       r.final_completed_at IS NULL OR r.final_heartbeat_received_at>r.final_started_at OR
       r.final_completed_at-r.final_heartbeat_received_at>p.heartbeat_max_age_ms
     ) THEN 1 ELSE 0 END), 0) AS invalid_heartbeat_passes,
+    COALESCE(SUM(CASE WHEN r.configured_canary IS NOT NULL AND (r.failed_canary_attempts>0 OR COALESCE(r.final_canary_outcome,'')<>'pass' OR r.final_canary_completed_at IS NULL OR r.final_canary_completed_at>s.due_at+p.coverage_reach_ms OR r.final_canary_completed_at>p.now_at) THEN 1 ELSE 0 END),0) AS invalid_canaries,
     COALESCE(SUM(CASE WHEN r.final_outcome='pass' THEN 1 ELSE 0 END), 0) AS passing_probes,
     MIN(CASE WHEN r.selected_probe=1 AND r.final_completed_at IS NOT NULL
-      THEN r.final_completed_at+p.freshness_ms END) AS freshness_expires_at,
+      THEN MIN(r.final_completed_at,COALESCE(r.final_canary_completed_at,r.final_completed_at))+p.freshness_ms END) AS freshness_expires_at,
     MIN(CASE WHEN p.monitor_type='heartbeat' AND r.final_outcome='pass' AND
       r.selected_probe=1 AND r.final_heartbeat_received_at IS NOT NULL
       THEN r.final_heartbeat_received_at+p.heartbeat_max_age_ms END) AS heartbeat_pass_expires_at,
@@ -122,7 +133,7 @@ WITH params AS (
 ), classified AS (
   SELECT *, CASE WHEN status='complete' AND observed_probes=probe_count AND
       selected_probes=probe_count AND runner_error_attempts=0 AND invalid_attempts=0 AND
-      invalid_chains=0 AND invalid_heartbeat_passes=0 AND completed_at IS NOT NULL AND
+      invalid_chains=0 AND invalid_heartbeat_passes=0 AND invalid_canaries=0 AND completed_at IS NOT NULL AND
       completed_at>=due_at AND completed_at<=now_at
     THEN 1 ELSE 0 END AS valid_result,
     CASE WHEN target_failure_attempts=0 AND passing_probes=probe_count THEN 1 ELSE 0 END AS all_passing,
@@ -153,13 +164,14 @@ WITH params AS (
     COALESCE(SUM(r.selected_probe), 0) AS selected_probes,
     COALESCE(SUM(r.runner_error_attempts), 0) AS runner_error_attempts,
     COALESCE(SUM(r.invalid_attempts), 0) AS invalid_attempts,
-    COALESCE(SUM(CASE WHEN r.attempt_count!=r.last_attempt+1 OR r.first_attempt!=0 OR
+    COALESCE(SUM(CASE WHEN (r.assigned_revision=0 AND (r.attempt_count!=r.last_attempt+1 OR r.first_attempt!=0)) OR
       COALESCE(r.final_outcome, '') NOT IN ('pass','target_failure','runner_error') THEN 1 ELSE 0 END), 0) AS invalid_chains,
     COALESCE(SUM(CASE WHEN p.monitor_type='heartbeat' AND r.final_outcome='pass' AND (
       r.final_heartbeat_received_at IS NULL OR r.final_started_at IS NULL OR
       r.final_completed_at IS NULL OR r.final_heartbeat_received_at>r.final_started_at OR
       r.final_completed_at-r.final_heartbeat_received_at>p.heartbeat_max_age_ms
     ) THEN 1 ELSE 0 END), 0) AS invalid_heartbeat_passes,
+    COALESCE(SUM(CASE WHEN r.configured_canary IS NOT NULL AND (r.failed_canary_attempts>0 OR COALESCE(r.final_canary_outcome,'')<>'pass' OR r.final_canary_completed_at IS NULL OR r.final_canary_completed_at>p.now_at) THEN 1 ELSE 0 END),0) AS invalid_canaries,
     MAX(r.final_completed_at) AS last_check_at,
     MAX(r.final_duration_ms) AS response_duration_ms
   FROM latest_slot l
@@ -172,7 +184,7 @@ SELECT windows.day_up_ms, windows.day_not_passing_ms, windows.week_up_ms, window
   CASE WHEN latest_summary.observed_probes=params.probe_count AND
       latest_summary.selected_probes=params.probe_count AND
       latest_summary.runner_error_attempts=0 AND latest_summary.invalid_attempts=0 AND
-      latest_summary.invalid_chains=0 AND latest_summary.invalid_heartbeat_passes=0 AND
+      latest_summary.invalid_chains=0 AND latest_summary.invalid_heartbeat_passes=0 AND latest_summary.invalid_canaries=0 AND
       latest_summary.last_check_at IS NOT NULL AND latest_summary.last_check_at>=latest_summary.due_at AND
       latest_summary.last_check_at<=params.now_at
     THEN latest_summary.response_duration_ms ELSE NULL END AS response_duration_ms
@@ -257,7 +269,7 @@ export async function availabilityOverview(
       monitor.id,
       monitor.revision,
       now - WEEK_MS,
-      intervalMs + leaseMs({ probes, retries, timeoutMs }) + COMPLETION_CLOCK_ALLOWANCE_MS,
+      intervalMs + acceptanceMs(monitor.definition as any) + COMPLETION_CLOCK_ALLOWANCE_MS,
     )
   })
   const rows = await db.batch(statements)

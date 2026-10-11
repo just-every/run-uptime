@@ -63,3 +63,8 @@
   .editor-actions { width: 100%; }
   .editor-actions button { flex: 1 1 auto; min-width: 0; }
 }
+
+.probe-assignment { display: grid; gap: 8px; margin: 12px 0; min-width: 0; }
+.probe-assignment label { display: flex; flex-direction: column; gap: 4px; min-width: 0; overflow-wrap: anywhere; }
+.probe-assignment label:has(input[type="checkbox"]) { flex-direction: row; align-items: center; }
+.probe-assignment :is(input[type="url"],select) { width: 100%; min-width: 0; }

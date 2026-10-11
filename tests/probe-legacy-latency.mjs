@@ -27,7 +27,7 @@ const durable=instance=>Promise.all(tables.map(async table=>(await instance.DB.p
 function evidence(task,elapsed=100,latency=true){
  return {id:randomUUID(),probe:'local-a',attempt:0,runnerVersion:'uptime-node/0.1.0',startedAt:task.dueAt,
   completedAt:task.dueAt+elapsed,durationMs:elapsed,outcome:latency?'pass':'target_failure',status:200,bytes:14,
-  checks:checks().map(c=>c.assertion==='latency'?{...c,pass:latency}:c)};
+  checks:checks().map(c=>c.assertion==='latency'?{...c,pass:latency}:c),canary:{id:randomUUID(),probe:'local-a',attempt:0,runnerVersion:'uptime-node/0.1.0',startedAt:task.dueAt,completedAt:task.dueAt,durationMs:0,outcome:'pass',status:200,bytes:0,checks:[assertion('status')]}};
 }
 function changeDefinitions(archive,change){
  for(const row of [...archive.payload.tables.monitors,...archive.payload.tables.revisions,...archive.payload.tables.slots]){
@@ -53,7 +53,7 @@ async function rejectArchive(archive,label){
 
 try{
  await migrate(join(dir,'source'));source=await installation(join(dir,'source'),15504);
- const created=await source.api('/api/monitors','POST',{name:'Pre-type latency history',network:'synthetic',url:'http://127.0.0.1:15509/health',
+ const created=await source.api('/api/monitors','POST',{name:'Pre-type latency history',network:'synthetic',url:'http://127.0.0.1:15509/health',canaryUrl:'https://canary.example.test/health',
   assertions:{status:200,bodyIncludes:'ready',header:{name:'x-check',equals:'yes'},json:{path:'ready',equals:true},latencyMs:100},
   retries:0,intervalMs:86400000,confirmSlots:1,recoverSlots:1});
  assert.equal(created.status,201);monitor=created.data;
@@ -146,7 +146,7 @@ try{
  });
  await check('reactivation starts Unknown and needs new valid signed evidence for the new revision',async()=>{
   const restored=await recovery.monitor(monitor.id);
-  assert.equal((await recovery.api(`/api/monitors/${monitor.id}`,'PATCH',{...restored.definition,enabled:true})).status,200);
+  assert.equal((await recovery.api(`/api/monitors/${monitor.id}`,'PATCH',{...restored.definition,assignments:undefined,canaryUrl:'https://canary.example.test/health',enabled:true})).status,200);
   const active=await recovery.monitor(monitor.id);assert.equal(active.revision,monitor.revision+2);assert.equal(active.state.state,'Unknown');
   const task=await claim(recovery);
   for(const record of records)await rejectLive(recovery,task,evidence(task,record.elapsed,record.latency),'reactivated '+record.name);

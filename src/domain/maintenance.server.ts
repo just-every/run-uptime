@@ -1,13 +1,14 @@
+import {cleanupPublicRateLimits} from './public-rate-limits.server.ts'
 import {notificationRepository} from './notification-rpc.server.ts'
 import {ensureNotificationCustody} from './notification-credentials.server.ts'
 import {type Bindings} from './control.server.ts'
 // Cron expires abandoned execution leases and bounded transient auth records.
 // Durable authority ledgers, observations, definitions and outbox are retained.
 export async function maintenance(env:Bindings,now=Date.now()){
+ await cleanupPublicRateLimits(env,now);
  const results=await env.DB.batch([
   env.DB.prepare("UPDATE slots SET status='interrupted' WHERE status='running' AND lease_until<=?").bind(now),
   env.DB.prepare('DELETE FROM oa_sessions WHERE expires_at<=?').bind(now),
-  env.DB.prepare('DELETE FROM oa_tokens WHERE expires_at<=? AND NOT EXISTS(SELECT 1 FROM oa_sessions WHERE source_token_id=oa_tokens.id)').bind(now),
   env.DB.prepare('DELETE FROM oa_limits WHERE window<?').bind(Math.floor(now/900000)-2),
   env.DB.prepare('DELETE FROM login_attempts WHERE at<?').bind(now-60000),
  ]);

@@ -4,17 +4,19 @@ import {randomUUID,createHash} from 'node:crypto';
 import {mkdtemp,rm} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
-import {migrate,installation} from './probe-native-support.mjs';
+import {migrate,installation,bindings} from './probe-native-support.mjs';
 import {probeHttp,probeHeartbeat} from '../runners/src/probes.mjs';
 import {validateDefinition} from '../src/domain/policy.mjs';
 
 const dir=await mkdtemp(join(tmpdir(),'uptime-signed-evidence-'));
-let source,recovery,fixture,passed=0,rejections=0;
+let source,recovery,fixture,fixturePort,passed=0,rejections=0;const originalGrantPort=bindings.UPTIME_SYNTHETIC_PORT;
 let response={status:200,headers:{'x-check':'yes'},body:'{"ready":true}'};
 const check=async(name,fn)=>{await fn();passed++;console.log('PASS '+name)};
 const assertion=(name,pass=true)=>({assertion:name,pass,reason:'Signed test evidence'});
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const rehash=value=>({...value,sha256:createHash('sha256').update(JSON.stringify(value.payload)).digest('hex')});
+// Signed evidence fixtures stand at the network edge; the production canary is exercised separately by real runner flows.
+function attachCanary(task,value){if(value&&typeof value==='object'&&!Array.isArray(value)&&task.definition.assignments?.[value.probe]?.canaryUrl)value.canary??={id:randomUUID(),probe:value.probe,attempt:0,startedAt:task.dueAt,completedAt:task.dueAt,durationMs:0,runnerVersion:'uptime-node/0.1.0',outcome:'pass',status:200,bytes:0,checks:[assertion('status')]};return value}
 const outcome=(task,changes={})=>({id:randomUUID(),probe:'local-a',attempt:0,startedAt:task.dueAt,completedAt:task.dueAt,durationMs:0,runnerVersion:'uptime-node/0.1.0',outcome:'pass',status:200,bytes:3,checks:[assertion('status')],...changes});
 const timed=(task,duration,changes={})=>outcome(task,{completedAt:task.dueAt+duration,durationMs:duration,...changes});
 const failed=(task,category,outcomeName)=>{
@@ -22,7 +24,7 @@ const failed=(task,category,outcomeName)=>{
  delete value.status;delete value.bytes;return value;
 };
 async function create(changes={}){
- const result=await source.api('/api/monitors','POST',{name:'Signed evidence contract',type:'http',network:'public',url:'https://evidence-only.test/health',intervalMs:86400000,retries:0,confirmSlots:1,recoverSlots:1,...changes});
+ const result=await source.api('/api/monitors','POST',{name:'Signed evidence contract',type:'http',network:'public',url:'https://evidence-only.test/health',canaryUrl:'https://canary.example.test/health',intervalMs:86400000,retries:0,confirmSlots:1,recoverSlots:1,...changes});
  assert.equal(result.status,201,JSON.stringify(result.data));
  const task=await source.claim();assert.equal(task.monitorId,result.data.id);return task;
 }
@@ -32,12 +34,12 @@ async function durable(){
  return Promise.all(tables.map(async name=>(await source.DB.prepare(`SELECT * FROM ${name} ORDER BY rowid`).all()).results));
 }
 async function reject(task,value,label){
- const before=await durable(),result=await source.submit(task,[value]);
+ const before=await durable(),result=await source.submit(task,[attachCanary(task,value)]);
  assert.equal(result.status,400,label+' '+JSON.stringify(result.data));
  assert.deepEqual(await durable(),before,label+' must not commit evidence, health, alerts, contact or slot completion');rejections++;
 }
 async function accept(task,attempts,state){
- const result=await source.submit(task,attempts);assert.equal(result.status,200,JSON.stringify(result.data));
+ attempts.forEach(value=>attachCanary(task,value));const result=await source.submit(task,attempts);assert.equal(result.status,200,JSON.stringify(result.data));
  assert.equal((await source.monitor(task.monitorId)).state.state,state);
  const history=(await source.api(`/api/monitors/${task.monitorId}/history`)).data;
  assert.deepEqual(history.find(slot=>slot.id===task.id).observations,attempts);
@@ -45,18 +47,18 @@ async function accept(task,attempts,state){
 
 try{
  fixture=http.createServer((_req,res)=>{res.sendDate=false;res.writeHead(response.status,{'x-uptime-fixture':'signed-evidence-fixture',...response.headers});res.end(response.body)});
- await new Promise(resolve=>fixture.listen(15516,'127.0.0.1',resolve));
+ await new Promise((resolve,reject)=>{fixture.once('error',reject);fixture.listen(0,'127.0.0.1',resolve)});fixturePort=fixture.address().port;bindings.UPTIME_SYNTHETIC_PORT=String(fixturePort);
  await check('runner uses one completion sample for latency and stored clock evidence at an exact limit',async()=>{
-  const definition=validateDefinition({name:'Clock boundary',url:'http://127.0.0.1:15516/health',assertions:{status:200,latencyMs:1}},[15516]);
+  const definition=validateDefinition({name:'Clock boundary',url:`http://127.0.0.1:${fixturePort}/health`,assertions:{status:200,latencyMs:1}},[fixturePort]);
   const original=Date.now;let ticks=0,evidence;
   try{
    Date.now=()=>100000+ticks++;
-   evidence=await probeHttp({...definition,fixtureIdentity:'signed-evidence-fixture'},'local-a',[15516]);
+   evidence=await probeHttp({...definition,fixtureIdentity:'signed-evidence-fixture'},'local-a',[fixturePort]);
   }finally{Date.now=original}
   assert.equal(evidence.outcome,'pass');assert.equal(evidence.durationMs,1);assert.equal(evidence.completedAt-evidence.startedAt,1);
   assert.equal(evidence.checks.find(c=>c.assertion==='latency').pass,true);assert.equal(ticks,2);
  });
- await migrate(join(dir,'source'));source=await installation(join(dir,'source'),15518);
+ await migrate(join(dir,'source'));source=await installation(join(dir,'source'),0);
  await check('signed latency derives from immutable limits and consistent clocks before any health or alert commit',async()=>{
   let task=await create({assertions:{status:200,latencyMs:1}});
   await delay(Math.max(0,task.dueAt+21-Date.now()));
@@ -100,7 +102,7 @@ try{
   assert.equal((await source.api('/api/overview')).data.alerts.filter(a=>a.monitor_id===task.monitorId).length,0);
   for(const name of ['body','header','json']){
    task=await next(task);
-   await accept(task,[outcome(task,{outcome:'target_failure',checks:checks.map(c=>c.assertion===name?assertion(name,false):c)})],'Failing');
+   const exhausted=outcome(task,{outcome:'target_failure',checks:checks.map(c=>c.assertion===name?assertion(name,false):c)});await accept(task,[exhausted,{...exhausted,id:randomUUID(),attempt:1}],'Failing');
   }
  });
  await check('transport and runner errors have exact category/outcome shapes and preserve target/coverage separation',async()=>{
@@ -160,8 +162,8 @@ try{
   await accept(task,[valid],'Healthy');
  });
  await check('real synthetic HTTP response assertions pass and fail through native signed completion',async()=>{
-  let task=await create({network:'synthetic',url:'http://127.0.0.1:15516/health',assertions:{status:200,bodyIncludes:'ready',header:{name:'x-check',equals:'yes'},json:{path:'ready',equals:true},latencyMs:10000}});
-  const execute=async()=>({...await probeHttp({...task.definition,fixtureIdentity:'signed-evidence-fixture'},'local-a',[15516]),attempt:0});
+  let task=await create({network:'synthetic',url:`http://127.0.0.1:${fixturePort}/health`,assertions:{status:200,bodyIncludes:'ready',header:{name:'x-check',equals:'yes'},json:{path:'ready',equals:true},latencyMs:10000}});
+  const execute=async()=>({...await probeHttp({...task.definition,fixtureIdentity:'signed-evidence-fixture'},'local-a',[fixturePort]),attempt:0});
   await accept(task,[await execute()],'Healthy');
   response={status:200,headers:{'x-check':'no'},body:'{"ready":false}'};task=await next(task);
   const failure=await execute();assert.equal(failure.checks.find(c=>c.assertion==='status').pass,true);assert.equal(failure.checks.find(c=>c.assertion==='header').pass,false);assert.equal(failure.checks.find(c=>c.assertion==='json').pass,false);
@@ -206,6 +208,7 @@ try{
  });
  console.log(`SIGNED-EVIDENCE-001 passed: ${passed} native/runner/archive checks; ${rejections} contradictory or malformed signed observations rejected without durable side effects.`);
 }finally{
+ bindings.UPTIME_SYNTHETIC_PORT=originalGrantPort;
  await recovery?.worker.dispose();await source?.worker.dispose();
  if(fixture){fixture.closeAllConnections();await new Promise(resolve=>fixture.close(resolve))}
  await rm(dir,{recursive:true,force:true});

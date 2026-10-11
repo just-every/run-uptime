@@ -1,9 +1,9 @@
-// Scheduled cadence and lease bounds shared by claiming and availability.
-type LeaseDefinition = { probes: unknown[]; retries: number; timeoutMs: number }
+// Scheduled cadence and acceptance bounds shared by claiming and availability.
+type AcceptanceDefinition = { probes: string[]; retries: number; timeoutMs: number; assignments?: Record<string,{canaryUrl?:string}> }
 
-/** A scheduled or manual lease covers every selected probe attempt plus a fixed margin. */
-export function leaseMs(definition: LeaseDefinition): number {
-  return Math.max(30000, definition.probes.length * (definition.retries + 1) * definition.timeoutMs + 10000)
+/** The acceptance window covers selected attempts and configured canaries plus a fixed margin. */
+export function acceptanceMs(definition: AcceptanceDefinition): number {
+  return Math.max(30000, definition.probes.length * (definition.retries + 1) * definition.timeoutMs + definition.probes.filter(p=>definition.assignments?.[p]?.canaryUrl).length*definition.timeoutMs + 10000)
 }
 
 /** Whole intervals that passed between the due time and the claim, without catch-up slots. */

@@ -18,7 +18,7 @@ export async function emittedRunnerWorker(directory,bindings){
 
 export async function certificate(directory){
  const key=join(directory,'key.pem'),cert=join(directory,'cert.pem');
- const child=spawn('openssl',['req','-x509','-newkey','rsa:2048','-nodes','-keyout',key,'-out',cert,'-days','1','-subj','/CN=runner-target.test','-addext','subjectAltName=DNS:runner-target.test,DNS:localhost'],{stdio:'ignore'});
+ const child=spawn('openssl',['req','-x509','-newkey','rsa:2048','-nodes','-keyout',key,'-out',cert,'-days','1','-subj','/CN=runner-target.test','-addext','subjectAltName=DNS:runner-target.test,DNS:canary.runner-target.test,DNS:localhost'],{stdio:'ignore'});
  assert.equal((await once(child,'exit'))[0],0,'test CA creation');
  return {key:await readFile(key),cert:await readFile(cert),caPath:cert};
 }

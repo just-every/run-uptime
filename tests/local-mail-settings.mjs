@@ -86,7 +86,7 @@ test('saved local SendGrid inputs keep actual sign-in in the outbox and configur
  };
  const destination = await createDestination(env, { kind: 'email', name: 'Local email', address: 'recipient@example.test' });
  const delivery = await testDestination(env, destination.id);
- await dispatchNotificationMail(env);
+ await dispatchNotificationMail({...env,MAIL_PROVIDER:saved.MAIL_PROVIDER});
  assert.equal(requests, 1);
  const result = (await notificationOverview(env)).deliveries.find(item => item.id === delivery.deliveryId);
  assert.equal(result?.state, 'accepted');

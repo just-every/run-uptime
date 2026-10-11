@@ -1,6 +1,6 @@
 {
   "name": "@uptime/uptime-console",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "type": "module",
   "engines": {
@@ -46,7 +46,7 @@
     "test:browser": "node tests/browser-suites.mjs",
     "release": "node scripts/rer.mjs release",
     "build:app": "vite build",
-    "verify:app": "pnpm build && pnpm typecheck && pnpm test:runtime && pnpm test:intake && pnpm test:contact && pnpm test:feedback && pnpm test:editor && pnpm test:document && pnpm test:probes && pnpm test:security && pnpm test:availability && pnpm test:console-smoke && pnpm test:notifications && pnpm test:local && pnpm test:source && pnpm test:base && pnpm test:admission && pnpm test:access && pnpm test:owner-deploy && pnpm test:archive && pnpm test:readme && pnpm test:runner && pnpm test:owner-outbox-ui && pnpm test:browser",
+    "verify:app": "pnpm build && pnpm typecheck && pnpm test:baseline && pnpm test:resilience && pnpm test:runtime && pnpm test:intake && pnpm test:contact && pnpm test:feedback && pnpm test:editor && pnpm test:document && pnpm test:probes && pnpm test:security && pnpm test:availability && pnpm test:console-smoke && pnpm test:notifications && pnpm test:local && pnpm test:source && pnpm test:base && pnpm test:admission && pnpm test:access && pnpm test:owner-deploy && pnpm test:archive && pnpm test:readme && pnpm test:runner && pnpm test:owner-outbox-ui && pnpm test:browser",
     "reset": "node scripts/rer.mjs reset",
     "outbox": "node scripts/rer.mjs outbox",
     "doctor": "node scripts/rer.mjs doctor",
@@ -54,7 +54,9 @@
     "check": "node scripts/rer.mjs check",
     "deps": "node scripts/rer.mjs install",
     "rer": "node scripts/rer.mjs",
-    "test:admission": "node tests/delivery-artifact.mjs && node tests/owner-claim-admission.mjs && node tests/owner-editor-browser.mjs"
+    "test:admission": "node tests/delivery-artifact.mjs && node tests/owner-claim-admission.mjs && node tests/owner-editor-browser.mjs",
+    "test:resilience": "node --test --test-concurrency=1 tests/resilience/attempts.mjs tests/resilience/watches.mjs",
+    "test:baseline": "node tests/startup-config.mjs && node tests/public-paths.mjs && node tests/erasure-audit.mjs && node --test --test-concurrency=2 tests/erasure-races.mjs"
   },
   "dependencies": {
     "@tanstack/react-router": "1.170.33",
@@ -64,22 +66,25 @@
     "react-dom": "19.2.8"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "1.54.5",
-    "@cloudflare/workers-types": "5.20260908.1",
+    "@cloudflare/vite-plugin": "1.62.2",
+    "@cloudflare/workers-types": "5.20261006.1",
     "@types/node": "26.6.4",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.7",
     "@vitejs/plugin-react": "6.1.1",
     "axe-core": "4.10.3",
     "marked": "18.0.14",
-    "miniflare": "5.20260907.0-alpha",
+    "miniflare": "5.20260926.1-alpha",
     "playwright": "1.60.0",
     "typescript": "5.9.3",
     "vite": "8.2.2",
-    "wrangler": "4.129.1"
+    "wrangler": "4.144.0"
   },
   "packageManager": "pnpm@10.12.4",
   "pnpm": {
+    "overrides": {
+      "miniflare@5.20260926.1-alpha>sharp": "0.35.5"
+    },
     "onlyBuiltDependencies": [
       "esbuild",
       "workerd"

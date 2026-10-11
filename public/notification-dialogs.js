@@ -24,3 +24,27 @@ export function showSecret(secret,destinationName){
  const clear=()=>{code.textContent='';secret='';status.textContent='';copy.onclick=null;dialog.remove()};close.onclick=()=>{dialog.close();clear()};dialog.oncancel=clear;dialog.onclose=clear;
  dialog.append(title,explanation,code,copy,status,help,close);document.body.append(dialog);dialog.showModal();
 }
+
+export function showErasureReceipt(receipt,{onClose=()=>{}}={}){
+ const dialog=document.createElement('dialog');dialog.className='editor notification-dialog erasure-receipt';dialog.setAttribute('aria-labelledby','erasure-receipt-heading');
+ const heading=document.createElement('h2');heading.id='erasure-receipt-heading';heading.textContent='Erasure complete';
+ const description=document.createElement('p');description.textContent=`${receipt.entityKind} erased at ${new Date(receipt.completedAt).toLocaleString()}.`;
+ const reference=document.createElement('p');reference.textContent=`Receipt: ${receipt.id}`;reference.style.overflowWrap='anywhere';
+ const counts=document.createElement('dl');for(const [table,count] of Object.entries(receipt.counts)){const row=document.createElement('div'),label=document.createElement('dt'),value=document.createElement('dd');label.textContent=table;value.textContent=String(count);row.append(label,value);counts.append(row)}
+ const close=document.createElement('button');close.className='primary';close.textContent='Close receipt';close.onclick=()=>dialog.close();dialog.onclose=()=>{dialog.onclose=null;dialog.remove();onClose()};
+ dialog.append(heading,description,reference,counts);
+ if(receipt.counts.oa_bootstrap){const claim=document.createElement('p');claim.textContent='The original setup claim remains closed. Its counted row was anonymised.';dialog.append(claim)}
+ if(receipt.entityKind==='operator'){
+  const guidance=document.createElement('p');guidance.textContent='If this was the configured owner, stop local dev and change only OWNER_EMAIL in data/local-secrets.json to an existing active owner, preserving every key and other setting. Then run node scripts/rer.mjs setup --owner-email EMAIL --non-interactive with that email. Supplying a different setup email alone is refused. Hosted OWNER_EMAIL must be updated separately by the deployment owner. ';
+  const help=document.createElement('a');help.href='/docs/data';help.textContent='Owner settings after erasure';guidance.append(help);dialog.append(guidance);
+ }
+ dialog.append(close);document.body.append(dialog);dialog.showModal();
+}
+export function confirmErasure({kind,name,onConfirm}){
+ const dialog=document.createElement('dialog');dialog.className='editor notification-dialog confirmation-dialog';dialog.setAttribute('aria-labelledby','erase-heading');
+ const heading=document.createElement('h2');heading.id='erase-heading';heading.textContent=`Erase ${kind}?`;
+ const explanation=document.createElement('p');explanation.textContent=`This permanently erases ${name} and its dependent records. The anonymous audit remains. Requests already sent cannot be recalled.`;
+ const label=document.createElement('label');label.textContent=`Type ${name} to confirm`;const input=document.createElement('input');input.autocomplete='off';label.append(input);
+ const buttons=document.createElement('div');buttons.className='buttons';const cancel=document.createElement('button');cancel.textContent='Cancel';const confirm=document.createElement('button');confirm.className='primary danger';confirm.textContent=`Erase ${kind}`;confirm.disabled=true;
+ input.oninput=()=>confirm.disabled=input.value!==name;cancel.onclick=()=>dialog.close();confirm.onclick=()=>{dialog.close();onConfirm(input.value)};dialog.onclose=()=>dialog.remove();buttons.append(cancel,confirm);dialog.append(heading,explanation,label,buttons);document.body.append(dialog);dialog.showModal();input.focus();
+}

@@ -1,3 +1,4 @@
+import {auditStatement} from './audit.server.ts'
 // @ts-expect-error Maintained Base AES-GCM primitive; product purpose and record AAD below.
 import {keyedHash,seal,unseal,decode} from '../base/modules/operator-auth/identity/oidc/crypto.mjs'
 import {sha256} from '../base/modules/integrations/core/crypto.ts'
@@ -40,6 +41,7 @@ export function retireObsoleteStatements(env:Bindings,now=Date.now()){
    AND NOT EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace='uptime-notifications' AND d.id=notification_jobs.id AND d.state<>'queued')`).bind(now),
   env.DB.prepare(`UPDATE integration_deliveries SET state='rejected',next_at=? WHERE namespace='uptime-notifications' AND state='queued'
    AND id IN(SELECT id FROM notification_jobs WHERE state='rejected' AND code='credential_rotated')`).bind(now),
+  auditStatement(env,{kind:'feature',ref:'credential-maintenance'},'credential_retire','credential',crypto.randomUUID(),`EXISTS(SELECT 1 FROM notification_credentials c WHERE c.retired_at IS NULL AND NOT EXISTS(SELECT 1 FROM notification_destinations d WHERE d.id=c.destination_id AND d.credential_id=c.id AND d.deleted_at IS NULL) AND NOT EXISTS(SELECT 1 FROM notification_jobs j WHERE j.credential_id=c.id AND ((j.state='sending' AND j.claim IS NOT NULL AND j.claim_until>?) OR EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace='uptime-notifications' AND d.id=j.id AND d.state='sending' AND d.claim IS NOT NULL AND d.claim_until>?))))`,[now,now],now),
   env.DB.prepare(`UPDATE notification_credentials SET endpoint=NULL,signing_secret=NULL,ciphertext=NULL,retired_at=? WHERE retired_at IS NULL
    AND NOT EXISTS(SELECT 1 FROM notification_destinations d WHERE d.id=notification_credentials.destination_id AND d.credential_id=notification_credentials.id AND d.deleted_at IS NULL)
    AND NOT EXISTS(SELECT 1 FROM notification_jobs j WHERE j.credential_id=notification_credentials.id AND

@@ -15,6 +15,8 @@ export const columns:Record<string,string[]>={
  integration_resolutions:['namespace','id','delivery_id','at','outcome'],
  integration_replays:['namespace','id','envelope','received_at'],
  archive_history:['id','table_name','record'],
+ uptime_erasure_receipts:['id','entity_kind','counts','completed_at'],
+ uptime_audit:['id','actor_kind','actor_ref','occurred_at','action','subject_kind','subject_ref'],
 };
 export const TABLES=Object.keys(columns);
 export const notificationNamespace='uptime-notifications';
@@ -26,8 +28,8 @@ export function identity(v:any,label:string){if(typeof v!=='string'||!v||v.lengt
 export function unique(rows:any[],key:(r:any)=>string,label:string){const map=new Map<string,any>();for(const r of rows){const id=key(r);identity(id,label);if(map.has(id))throw Error(`Duplicate archive ${label}`);map.set(id,r)}return map}
 export async function digest(value:string){return [...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value)))].map(b=>b.toString(16).padStart(2,'0')).join('')}
 export function assertBytes(value:any,reservedBytes=0){if(new TextEncoder().encode(JSON.stringify(value)).byteLength+reservedBytes>ARCHIVE_BYTES)throw Error('Archive exceeds 2 MiB (byte bound exceeded: 2 MiB)')}
-export async function portableArchive(t:Tables,createdAt=Date.now()){
- const payload={schemaVersion:ARCHIVE_VERSION,target:'uptime-worker-d1',createdAt,tables:Object.fromEntries(LEGACY_TABLES.map(name=>[name,t[name]])),extensionVersion:1,productTables:Object.fromEntries(TABLES.filter(name=>!LEGACY_TABLES.includes(name)).map(name=>[name,t[name]]))};
+export async function portableArchive(t:Tables,createdAt=Date.now(),erasureFence?:any){
+ const payload={schemaVersion:ARCHIVE_VERSION,target:'uptime-worker-d1',createdAt,tables:Object.fromEntries(LEGACY_TABLES.map(name=>[name,t[name]])),extensionVersion:2,...(erasureFence?{erasureFence}:{}),productTables:Object.fromEntries(TABLES.filter(name=>!LEGACY_TABLES.includes(name)).map(name=>[name,t[name]]))};
  return {payload,sha256:await digest(JSON.stringify(payload))};
 }
 export function portableDefinition(text:string){const value=JSON.parse(text);if(value.request!==undefined){delete value.request;return JSON.stringify(value)}return text}

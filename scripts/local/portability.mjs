@@ -5,9 +5,9 @@ async function transfer(context, direction) {
  const { root, path, store, signal, operationToken } = context;
  const location = relative(root, path);
  if (/^(?:\.wrangler\/state|\.seed\/installer|\.rer\/local)(?:\/|$)/.test(location) || location === 'data/local-secrets.json') throw refuse('Archives must remain outside the reset inventory; use exports/ within this checkout.');
+ if (!await lstat(root + '/data/local-secrets.json').catch(error => { if (error.code !== 'ENOENT') throw error; })) throw missing('OWNER_EMAIL and installation settings are required. Run rer setup --owner-email EMAIL --non-interactive before importing or exporting.');
  if (direction === 'export') {
   if (await lstat(path).catch(error => { if (error.code !== 'ENOENT') throw error; })) throw refuse('Export requires a new archive path.');
-  if (!await lstat(root + '/data/local-secrets.json').catch(error => { if (error.code !== 'ENOENT') throw error; })) throw missing('Private installation settings are missing. Run setup before exporting.');
  }
  await store.run('Applying local data migrations', 'pnpm', ['exec', 'wrangler', 'd1', 'migrations', 'apply', 'uptime-local', '--local', '--persist-to', '.wrangler/state'], { cwd: root, signal, env: { ...process.env, RER_LOCAL_OPERATION: operationToken, WRANGLER_SEND_METRICS: 'false' } });
  let receipt = '';

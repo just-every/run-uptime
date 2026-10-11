@@ -55,18 +55,20 @@ p95 at the limits in `seed.json`.
 - **BASE-OPS-004 — Failure is visible.** A job that fails after its retries is marked failed where an operator can see it. Nothing is dropped silently.
 - **BASE-OPS-005 — Audit.** Every destructive action and every automated action that reaches a user records the actor, or the feature that acted, and the time. Audit records survive deletion of what they describe.
 
-## Uptime evidence status — 2026-10-09
+## Uptime evidence status — 2026-10-11
 
-The clauses above retain Base requirements using the public rer commands. Statuses below describe this
-candidate. A test reference without an explicit clause tag and an inspected run
-is not a satisfied result. BASE-ACCESS-002 is the only clause marked satisfied
-in this record.
+The clauses above retain Base requirements using the public rer commands. Statuses below describe the
+v0.1.2 source and the inspected clause-labelled candidate runs in the evidence
+folder. The final committed head and inspected run results are mapped in the external evidence
+record. `BASE-*` labels mean clause labels printed by proof outputs, not Git tags.
+These local and emitted candidate results do not establish hosted operation, recipient acceptance, a
+private Git tag or a published v0.1.2 release.
 
 ### Access
 
 - **BASE-ACCESS-001 — Not covered.** The inspected native run of `tests/auth-outbox.mjs` passes local and hosted sign-in, outbox-boundary and mail-configuration checks, but does not prove complete allow-list behavior or the absence of password storage.
-- **BASE-ACCESS-002 — Satisfied.** The explicitly tagged `tests/access-matrix.mjs` passed with `node tests/access-matrix.mjs`. The test confirms fixed seven-day absolute expiry within the 30-day inactivity maximum, no expiry extension on authenticated reads, and missing, expired, revoked and valid session behavior across local and emitted hosted documents, reads and every owner mutation; denied operations leave durable data unchanged.
-- **BASE-ACCESS-003 — Broken.** `seed.json` does not declare every served static asset path, and there is no inspected test covering rate limits on every declared public path.
+- **BASE-ACCESS-002 — Covered by inspected candidate evidence.** The `BASE-ACCESS-002` output from `tests/access-matrix.mjs` passes missing, expired, revoked and valid sessions through local and emitted hosted Worker documents, reads and every owner mutation; denials leave durable data unchanged, and fixed seven-day expiry stays below 30 days. The fixture-adoption evidence also records passing `tests/operator-security.mjs`, `tests/auth-input-boundary.mjs` and `tests/hosted-auth.mjs` results.
+- **BASE-ACCESS-003 — Covered by inspected candidate evidence.** `tests/public-paths.mjs` emits `BASE-ACCESS-003 PASS`: all 61 declarations and 35 served static resources from 36 emitted files are exercised through the public Worker door, including window boundaries, second-IP and concurrent admission, unknown-client and shared-loopback rules, restart persistence, denials and storage failure. Owner-tunable limits remain estimated and are not load-tested; this is not a capacity claim.
 - **BASE-ACCESS-004 — Not covered.** Existing origin and owner checks are targeted; there is no complete mutation/ownership matrix proving that client identity and ownership claims are always ignored.
 
 ### Input
@@ -78,13 +80,13 @@ in this record.
 ### Secrets and configuration
 
 - **BASE-SECRET-001 — Not covered.** Credential custody and output-redaction tests are targeted; a complete client-bundle, log and error-response scan has not been inspected.
-- **BASE-SECRET-002 — Broken.** Missing configuration is currently rejected during requests rather than failing at startup with the missing variable named; missing hosted mail configuration can leave email unavailable.
+- **BASE-SECRET-002 — Covered by inspected candidate evidence.** `tests/startup-config.mjs` reports a clause-labelled passing `BASE-SECRET-002` result after a complete-health check and missing/malformed-binding matrices across hosted and local emitted Worker health, assets, auth, development gates and scheduled entry. The inspected Vite development, preview and launcher proofs also fail closed, name the binding and retain no sentinel values in logs. This does not establish hosted operation.
 
 ### Data ownership
 
-- **BASE-DATA-001 — Overridden, pending owner confirmation.** The owner's brief authorizes the default that installation-local authority (owner sessions, runner grants and claims) and destination credentials remain outside portable product data; authority is established for each target installation. The replacement requirement is export/import/export equivalence for portable product records and histories. `tests/archive-roundtrip.mjs` passed with the pinned native CLI export, `node scripts/rer.mjs import`, and export sequence; its stdout explicitly tags the BASE-DATA-001 replacement and covers complete portable history, inactive restore without dispatch, excluded authority, invalid-history rejection, legacy restore, and row and byte bounds. Owner confirmation of this data exception remains pending.
-- **BASE-DATA-002 — Not covered.** Documentation states that observation metadata is not automatically deleted, but no complete test covers all user data and allowed session/rate-limit expiry.
-- **BASE-DATA-003 — Broken.** No entity-wide erasure flow with dependent-record cleanup and durable anonymized audit evidence is present.
+- **BASE-DATA-001 — Overridden, pending owner confirmation.** The owner's brief authorizes the default that installation-local authority (owner sessions, runner grants and claims) and webhook/Slack endpoint credentials and signing keys remain outside portable product data; available email addresses remain portable destination definitions. Authority is established for each target installation. The candidate `tests/archive-roundtrip.mjs` passed the unchanged 10,000-revision boundary. Separately, the real export/erase/reset/setup/import/export flow was inspected; decoded archives had stable audit history, one restore audit entry and the preserved source erasure journal. This is evidence for the replacement archive behavior, not owner confirmation of the exception. If the owner declines it, secure credential portability with explicit receiving-owner reauthorization must be designed before claiming BASE-DATA-001 equivalence.
+- **BASE-DATA-002 — Not covered.** Documentation states that observation metadata is not automatically deleted and only session/rate-limit state expires, but no complete test covers all user data and allowed expiry.
+- **BASE-DATA-003 — Covered by inspected candidate evidence.** `tests/erasure-audit.mjs` emits `BASE-DATA-003 / BASE-OPS-005 PASS` for owner-door erasures with a 50-table scan, actual scheduled probes, six network-edge sends, populated heartbeat/replay/history dependents, anonymised surviving audit, and native/custom archive later-journal fences. `tests/erasure-races.mjs` additionally exercises batch atomicity, last-owner refusal and concurrent stale-state safety. The evidence describes local candidate flows, not hosted acceptance.
 - **BASE-DATA-004 — Not covered.** Target and notification egress have focused tests; no inspected test proves that every request carrying user data is limited to declared externals.
 - **BASE-DATA-005 — Not covered.** No inspected check proves the absence of telemetry, marketplace or author requests, licence checks and kill switches across the shipped deployment.
 
@@ -97,12 +99,12 @@ in this record.
 ### Operations
 
 - **BASE-OPS-001 — Not covered.** `tests/notify-custody-runtime.mjs` checks selected schema readiness responses, but no inspected dependency-failure matrix proves the one-second bound for database, storage and queues.
-- **BASE-OPS-002 — Not covered.** `tests/notify-upgrade.mjs` (with its checksum manifest `tests/applied-migrations.sha256`) covers selected migration states. A previous-release sample-data upgrade with recovery evidence has not been inspected.
+- **BASE-OPS-002 — Not covered.** `tests/notify-upgrade.mjs` covers a populated historical database across additive migrations and process restart. A previous-release sample-data upgrade with recovery evidence has not been inspected.
 - **BASE-OPS-003 — Not covered pending result.** `tests/control-runtime.mjs` and `tests/notify-delivery.mjs` are candidates for duplicate-message coverage. They have no explicit BASE-OPS-003 tags or inspected candidate result yet.
 - **BASE-OPS-004 — Not covered.** Probe and notification tests show selected failures, but no general test proves every exhausted job is visible and nothing is dropped silently.
-- **BASE-OPS-005 — Broken.** There is no durable actor/time audit record that survives deletion of every described entity.
+- **BASE-OPS-005 — Covered by inspected candidate evidence.** The `BASE-DATA-003 / BASE-OPS-005 PASS` result from `tests/erasure-audit.mjs` shows destructive actions, audited operator authentication-mail captures, plus six separate real network-edge monitor/test notification sends. Local outbox capture and its audit commit in one D1 batch; the hosted mail sender records the feature audit before attempting its provider request. Source audit rows survive erasure, erased-operator actors are anonymised, and a later journal causes restore to refuse old audit actor references for an erased operator. Inactive restore preserves audit history and adds one restore record. `tests/erasure-races.mjs` also covers concurrent erasure safety. This is local candidate evidence, not hosted acceptance.
 
 
-Local portability uses `node scripts/rer.mjs export --output FILE` and `node scripts/rer.mjs import --input FILE --yes` with a complete versioned product payload. `tests/command-journey.mjs` exercises the public transport; `tests/archive-roundtrip.mjs` checks product history, supported archive formats and bounds. Inspect exact-head results before making acceptance claims.
+Local portability uses `node scripts/rer.mjs export --output FILE` and `node scripts/rer.mjs import --input FILE --yes` with a complete versioned product payload. Before a local import, run `node scripts/rer.mjs setup --owner-email EMAIL --non-interactive` on the receiving checkout; its owner and settings are established locally while product/history tables remain empty. `tests/command-journey.mjs` exercises the public transport; `tests/archive-roundtrip.mjs` checks product history, supported archive formats and bounds. The final committed head and inspected run results are mapped in the external evidence record; these local results do not establish hosted acceptance.
 
 Assisted delivery uses `tests/delivery-artifact.mjs`, `tests/owner-claim-admission.mjs` and `tests/owner-editor-browser.mjs` to exercise payloads, native owner admission, role loss and management CSP refusal. Base donor tests are not vendored. Local checks do not establish stage installation or live management acceptance.

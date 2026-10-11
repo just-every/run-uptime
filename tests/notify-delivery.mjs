@@ -17,8 +17,8 @@ const slackUrl='https://hooks.slack.com/services/TACCEPT/BACCEPT/local-notificat
 const directory=await runtimeDirectory(),ports=await availablePorts(6);
 const [controlPort,fixturePort,mailPort,webhookPort,slackPort,restorePort]=ports;
 const origin=`http://127.0.0.1:${controlPort}`,persist=join(directory,'worker'),grantPath=join(directory,'grant.json');
-const bindings={...testAuthBindings,UPTIME_RUNNER_KEY:key,UPTIME_SYNTHETIC_PORT:String(fixturePort),MAIL_FROM:'qa-sender@example.com',SENDGRID_API_KEY:'notification-acceptance-provider-key-local-only'};
-let worker,DB,fixture,runnerAbort,runnerPromise,restoreWorker;
+const bindings={...testAuthBindings,UPTIME_RUNNER_KEY:key,UPTIME_SYNTHETIC_PORT:String(fixturePort),MAIL_PROVIDER:'sendgrid',MAIL_FROM:'qa-sender@example.com',SENDGRID_API_KEY:'notification-acceptance-provider-key-local-only'};
+let worker,DB,fixture,runnerAbort,runnerPromise,restoreWorker,secondRunner;
 const receivers=[],credentials=[bindings.SETUP_TOKEN,bindings.SESSION_SECRET,key,bindings.SENDGRID_API_KEY],runnerLogs=[];let webhookDestination;
 const originalConsoleError=console.error;console.error=(...values)=>runnerLogs.push(values.map(value=>String(value)).join(' '));
 const routes=new Map([[webhookUrl,{port:webhookPort,path:'/incident'}],[slackUrl,{port:slackPort,path:'/slack'}]]);
@@ -31,7 +31,9 @@ async function startWorker(){({worker,DB}=await migratedWorker({port:controlPort
  assert.equal(request.url,'https://api.sendgrid.com/v3/mail/send','only Base SendGrid endpoint uses Worker outbound');
  return fetch(`http://127.0.0.1:${mailPort}/v3/mail/send`,{method:request.method,headers:request.headers,body:await request.arrayBuffer(),redirect:'error'});
  }}))}
-async function startRunner(){runnerAbort=new AbortController();runnerPromise=runRunner({origin,key,grantPath,localReview:true,transport,signal:runnerAbort.signal})}
+const runnerOptions=()=>[{origin,key,grantPath,localReview:true,transport},{origin,key:secondRunner.key,runnerId:secondRunner.runnerId,grantPath,localReview:true,transport}];
+async function runOnce(){const [first,second]=runnerOptions();await Promise.all([runRunner({...first,once:true}),runRunner({...first,once:true}),runRunner({...second,once:true})])}
+async function startRunner(){runnerAbort=new AbortController();runnerPromise=Promise.all(runnerOptions().map(options=>runRunner({...options,signal:runnerAbort.signal})))}
 async function stopRunner(){if(runnerAbort){runnerAbort.abort();await runnerPromise;runnerAbort=null}}
 async function restart(){await stopRunner();await worker.dispose();worker=null;await startWorker();await startRunner()}
 async function testDestination(destination){const result=await api(`/api/notifications/destinations/${destination.id}/test`,'POST',{});assert.equal(result.status,202);assert.equal(result.data.queued,true);return result.data.deliveryId}
@@ -44,6 +46,7 @@ try{
  await startWorker();fixture=fixtureProcess(fixturePort,grantPath,directory);
  await waitFor(async()=> (await fetch(`http://127.0.0.1:${fixturePort}/health`)).ok,'live custody fixture');
  await signIn(bindings);
+ const added=await api('/api/runners','POST',{networkLabel:'notification-second-network'});assert.equal(added.status,201);secondRunner=added.data;credentials.push(secondRunner.key);
  const destinations=[];
  for(const value of[{name:'Acceptance email',kind:'email',address:'qa-inbox@example.test'},{name:'Acceptance signed JSON',kind:'webhook',url:webhookUrl},{name:'Acceptance Slack',kind:'slack',url:slackUrl}]){
   const result=await api('/api/notifications/destinations','POST',value);assert.equal(result.status,201);destinations.push(result.data);
@@ -58,12 +61,12 @@ try{
   assert.equal((await notifications()).destinations.length,3,'refusals do not save destination rows');
   await promisify(execFile)(process.execPath,[fileURLToPath(new URL('./notify-acceptance-dns.mjs',import.meta.url))]);
  });
- const created=await api('/api/monitors','POST',{name,url:`http://127.0.0.1:${fixturePort}/health`,intervalMs:5000,retries:0,confirmSlots:1,recoverSlots:1,freshnessMs:15000});assert.equal(created.status,201);const monitorId=created.data.id;
+ const created=await api('/api/monitors','POST',{name,url:`http://127.0.0.1:${fixturePort}/health`,probes:['local-a','local-b'],intervalMs:5000,retries:0,confirmSlots:1,recoverSlots:1,freshnessMs:15000});assert.equal(created.status,201);const monitorId=created.data.id;
  await startRunner();
  await waitFor(async()=> (await overview()).monitors.find(m=>m.id===monitorId)?.state.state==='Healthy','real scheduled Healthy');
  await check('each destination test is visibly labelled and cannot open an incident or alter target evidence',async()=>{
   const before=await overview();await stopRunner();const beforeCount=receivers.map(receiver=>receiver.records.length);
-  for(const destination of destinations){const id=await testDestination(destination);await Promise.all([runRunner({origin,key,grantPath,localReview:true,transport,once:true}),runRunner({origin,key,grantPath,localReview:true,transport,once:true})]);const delivery=await settle(id,'accepted');assert.equal(delivery.event.kind,'test');assert.equal(delivery.event.state,'test');assert.equal(delivery.event.incidentKey,null);assert.match(delivery.event.title,/Test notification/)}
+  for(const destination of destinations){const id=await testDestination(destination);await runOnce();const delivery=await settle(id,'accepted');assert.equal(delivery.event.kind,'test');assert.equal(delivery.event.state,'test');assert.equal(delivery.event.incidentKey,null);assert.match(delivery.event.title,/Test notification/)}
   assert.deepEqual(receivers.map(receiver=>receiver.records.length),beforeCount.map(count=>count+1),'concurrent real runner dispatch claims each test once');await startRunner();
   const after=await overview();assert.equal(after.monitors.find(m=>m.id===monitorId).state.state,'Healthy');assert.deepEqual(after.alerts,before.alerts,'test delivery never adds incident outbox rows');
  });
@@ -126,7 +129,7 @@ try{
    receiver.releaseStalled();receiver.setDisposition('accepted');
   }
   const counts=receivers.map(receiver=>receiver.records.length);await restart();await stopRunner();
-  for(let repeat=0;repeat<2;repeat++)await runRunner({origin,key,grantPath,localReview:true,transport,once:true});
+  for(let repeat=0;repeat<2;repeat++)await runOnce();
   assert.deepEqual(receivers.map(receiver=>receiver.records.length),counts,'repeat dispatch after Worker and runner restart cannot resend a timed out delivery');
   for(const id of ids){const row=(await notifications()).deliveries.find(row=>row.id===id);assert.equal(row.state,'uncertain');assert.equal(row.attempts,1)}
   await startRunner();
@@ -138,8 +141,8 @@ try{
  });
  await check('archive restoration leaves monitors paused events inactive and destinations unauthorised without replay',async()=>{
   await stopRunner();const archive=(await api('/api/archive')).data;
-  // Model the pre-notification portable archive; historical event values remain unchanged on restore.
-  delete archive.payload.extensionVersion;delete archive.payload.productTables;
+  // Genuine pre-notification archives have no product extension or erasure fence; historical event values remain unchanged on restore.
+  delete archive.payload.extensionVersion;delete archive.payload.productTables;delete archive.payload.erasureFence;
   for(const row of archive.payload.tables.outbox){const event=JSON.parse(row.event);row.event=JSON.stringify({id:event.id,kind:event.kind,monitorId:event.monitorId,monitorName:event.monitorName,state:event.state,slotId:event.slotId,observedAt:event.observedAt,visibility:'private',effect:['task','owned','handoff'].join('-'),peoplePaged:false});row.status='accepted';row.receipt=JSON.stringify({effect:['stored','task','owned','receiver'].join('-'),peoplePaged:false})}
   archive.sha256=createHash('sha256').update(JSON.stringify(archive.payload)).digest('hex');
   assert.ok(!('notification_credentials' in archive.payload.tables));assert.ok(!('notification_destinations' in archive.payload.tables));

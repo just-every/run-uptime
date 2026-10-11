@@ -18,7 +18,7 @@ try {
  const grant=await config.json();assert.equal(grant.config.managementOrigin,edge.origin);
  assert.ok(!JSON.stringify(grant).includes(testAuthBindings.SESSION_SECRET));
  const primary=(await (await app.call('/auth/session',undefined,{cookie})).json()).operator.id;
- const invite=async(role,email)=>{assert.equal((await app.call('/auth/invite',{email,displayName:'Editor test operator',role},{cookie})).status,202);const link=await outboxLink(app.call);return sessionCookie(await app.call('/auth/confirm',{token:link.searchParams.get('token')}))};
+ const invite=async(role,email)=>{assert.equal((await app.call('/auth/invite',{email,displayName:'Editor test operator',role},{cookie})).status,202);const link=await outboxLink(app.call,{email,kind:'invite'});return sessionCookie(await app.call('/auth/confirm',{token:link.searchParams.get('token')}))};
  const memberCookie=await invite('member','member@example.test');
  const secondOwner=await invite('owner','other-owner@example.test');
  assert.equal((await app.call('/api/editor/config',undefined,{cookie:memberCookie})).status,403,'a native member session has no editor authority');

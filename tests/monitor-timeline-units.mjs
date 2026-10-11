@@ -5,7 +5,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {buildTimeline,STRIP_PLACES} from '../public/monitor-timeline.js';
-import {leaseMs,missedSlots,nextDueAfter} from '../src/domain/schedule.ts';
+import {acceptanceMs,missedSlots,nextDueAfter} from '../src/domain/schedule.ts';
 
 const MIN=60000,T0=Date.UTC(2026,9,11,1,0,0);
 
@@ -23,10 +23,10 @@ function installation({intervalMs=MIN,target=()=>'pass'}={}){
   claim(at){
    const due=definition.enabled&&nextDue<=at&&!running();
    const manual=due?null:slots.filter(s=>s.manual&&s.status==='queued').sort((a,b)=>a.due_at-b.due_at)[0];
-   if(manual){if(!definition.enabled||manual.revision!==revision){manual.status='interrupted';return null}if(!running()){manual.status='running';manual.lease_until=at+leaseMs(manual.definition);return manual}}
+   if(manual){if(!definition.enabled||manual.revision!==revision){manual.status='interrupted';return null}if(!running()){manual.status='running';manual.lease_until=at+acceptanceMs(manual.definition);return manual}}
    for(const s of slots)if(s.status==='running'&&s.lease_until<=at)s.status='interrupted';
    if(!definition.enabled||nextDue>at||running())return null;
-   const slot={id:`m:${revision}:${nextDue}`,revision,due_at:nextDue,status:'running',definition:{...definition},lease_until:at+leaseMs(definition),missed_count:missedSlots(nextDue,at,definition.intervalMs),manual:0,observations:[],rowid:++rowid};
+   const slot={id:`m:${revision}:${nextDue}`,revision,due_at:nextDue,status:'running',definition:{...definition},lease_until:at+acceptanceMs(definition),missed_count:missedSlots(nextDue,at,definition.intervalMs),manual:0,observations:[],rowid:++rowid};
    nextDue=nextDueAfter(nextDue,at,definition.intervalMs);slots.push(slot);return slot;
   },
   complete(slot,startedAt,completedAt){
@@ -70,7 +70,7 @@ function assertInvariants(sim,now){
  if(monitor.definition.enabled){
   const interval=monitor.definition.intervalMs,own=history.filter(s=>!s.manual&&s.revision===monitor.revision);
   const anchor=own.length?Math.min(...own.map(s=>s.due_at)):monitor.nextDue,until=monitor.definition.maintenanceUntil;
-  const from=Math.max(oldest,anchor),to=now-leaseMs(monitor.definition);
+  const from=Math.max(oldest,anchor),to=now-acceptanceMs(monitor.definition);
   for(let g=monitor.nextDue+Math.ceil((from-monitor.nextDue)/interval)*interval;g<to;g+=interval){
    if(until>anchor&&g>=anchor&&g<=until)continue;
    assert.ok(set.has(g),`(b) due time ${iso(g)} on the current grid is represented`);
@@ -80,7 +80,7 @@ function assertInvariants(sim,now){
  for(const rev of sim.revs){
   const next=sim.revs.find(r=>r.revision===rev.revision+1);
   if(!next||!rev.definition.enabled)continue;
-  const grace=leaseMs(rev.definition),until=rev.definition.maintenanceUntil;
+  const grace=acceptanceMs(rev.definition),until=rev.definition.maintenanceUntil;
   for(let g=rev.start;g+grace<next.start;g+=rev.definition.intervalMs){
    if(g<oldest||(until>rev.start&&g<=until))continue;
    assert.ok(set.has(g)||real.has(g),`(b) due time ${iso(g)} of revision ${rev.revision}, scheduled before revision ${next.revision} began, is represented`);
@@ -152,7 +152,7 @@ test('a manual check during an outage neither fills nor hides the gap',()=>{
 test('an ongoing outage shows the overdue due times one grace (one lease) past due',()=>{
  const sim=installation();sim.run(T0,T0+2*MIN+500);
  const now=T0+7*MIN+10000,{rows,graceMs}=assertInvariants(sim,now);
- assert.equal(graceMs,leaseMs(sim.monitor().definition),'the grace is the lease the control plane gives a claim');
+ assert.equal(graceMs,acceptanceMs(sim.monitor().definition),'the grace is the lease the control plane gives a claim');
  assert.equal(rows[0].kind,'overdue');
  assert.deepEqual([rows[0].first,rows[0].last],[T0+3*MIN,T0+6*MIN],'7:00 is not yet a lease past due');
  sim.run(now,T0+9*MIN);

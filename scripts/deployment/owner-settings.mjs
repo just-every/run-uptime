@@ -4,6 +4,7 @@ import { privateDirectory, readPrivateFile, writePrivateFile } from '../base-onb
 
 export const secretsFile = '.rer/deploy/production-secrets.json';
 export const secretNames = ['SESSION_SECRET', 'SETUP_TOKEN', 'OWNER_EMAIL', 'MAIL_FROM', 'SENDGRID_API_KEY', 'UPTIME_RUNNER_KEY'];
+const allowedNames=[...secretNames, 'MAIL_PROVIDER', 'MAIL_PROVIDER_API_KEY', 'CLOUDFLARE_MAIL_API_KEY', 'MAIL_ACCOUNT_ID', 'UPTIME_HEARTBEAT_URL'];
 const generatedNames = ['SESSION_SECRET', 'SETUP_TOKEN', 'UPTIME_RUNNER_KEY'];
 const email = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
 const string = value => typeof value === 'string' && value.trim() && !/[\r\n\0]/.test(value);
@@ -17,15 +18,19 @@ export function validateAccount(env, store) {
   if (!/^[a-f0-9]{32}$/i.test(env.CLOUDFLARE_ACCOUNT_ID) || /\s/.test(env.CLOUDFLARE_API_TOKEN)) throw new Error('invalid-cloudflare-input');
 }
 
+function mailInputs(values) {
+ const provider=values.MAIL_PROVIDER??'sendgrid';if(!['sendgrid','resend','cloudflare'].includes(provider))throw new Error('invalid-mail-provider');
+ return provider==='sendgrid'?['SENDGRID_API_KEY']:provider==='resend'?['MAIL_PROVIDER_API_KEY']:['CLOUDFLARE_MAIL_API_KEY','MAIL_ACCOUNT_ID'];
+}
 function validateSecrets(values) {
-  const absent = secretNames.filter(name => !string(values[name]));
+  const absent = [...generatedNames,'OWNER_EMAIL','MAIL_FROM',...mailInputs(values)].filter(name => !string(values[name]));
   if (absent.length) throw missing(absent);
   if (generatedNames.some(name => values[name].length < 32) || !email.test(values.OWNER_EMAIL) || !email.test(values.MAIL_FROM)) throw new Error('invalid-owner-secret-input');
-  if (Object.keys(values).some(name => !secretNames.includes(name))) throw new Error('invalid-owner-secret-file');
+  if (Object.keys(values).some(name => !allowedNames.includes(name))) throw new Error('invalid-owner-secret-file');
 }
 
 export async function ownerSecrets(root, { env = process.env, store } = {}) {
-  const supplied = Object.fromEntries(secretNames.filter(name => env[name] !== undefined).map(name => [name, env[name]]));
+  const supplied = Object.fromEntries(allowedNames.filter(name => env[name] !== undefined).map(name => [name, env[name]]));
   store?.addSecrets?.(Object.values(supplied).filter(value => typeof value === 'string'));
   const directory = await privateDirectory(root, ['.rer', 'deploy']);
   await writePrivateFile(join(directory, '.gitignore'), '*\n');
@@ -40,7 +45,7 @@ export async function ownerSecrets(root, { env = process.env, store } = {}) {
   try { return await read(); } catch (error) { if (error.code !== 'ENOENT') throw error; }
   // Validate owner inputs before generating or publishing anything. Hosted keys
   // have their own custody; local-installation values are never consulted.
-  const absent = ['OWNER_EMAIL', 'MAIL_FROM', 'SENDGRID_API_KEY'].filter(name => !string(supplied[name]));
+  const absent = ['OWNER_EMAIL', 'MAIL_FROM', ...mailInputs(supplied)].filter(name => !string(supplied[name]));
   if (absent.length) throw missing(absent);
   const values = { ...supplied };
   for (const name of generatedNames) if (values[name] === undefined) values[name] = randomBytes(32).toString('hex');
@@ -55,7 +60,7 @@ export async function ownerSecrets(root, { env = process.env, store } = {}) {
 // NODE_PATH, Wrangler login state, unrelated provider keys and local secrets do
 // not inherit into the controller.
 export function ownerEnvironment(env) {
-  return Object.fromEntries(['PATH', 'HOME', 'TMPDIR', 'CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_API_TOKEN', ...secretNames]
+  return Object.fromEntries(['PATH', 'HOME', 'TMPDIR', 'CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_API_TOKEN', ...allowedNames]
     .filter(name => typeof env[name] === 'string').map(name => [name, env[name]]));
 }
 export function buildEnvironment(env = process.env) {

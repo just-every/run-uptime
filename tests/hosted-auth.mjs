@@ -2,10 +2,11 @@ import assert from 'node:assert/strict';
 import {mkdtemp,readFile,readdir,rm} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
+import {testAuthBindings} from './auth-test-support.mjs';
 import {hostedRuntime} from './hosted-auth-runtime.mjs';
 import {splitSql} from './migration-support.mjs';
 const dir=await mkdtemp(join(tmpdir(),'uptime-hosted-auth-')),origin='https://uptime.example.test',mails=[];
-const bindings={UPTIME_LOCAL_REVIEW:'false',UPTIME_ORIGIN:origin,OWNER_EMAIL:'owner@example.test',SESSION_SECRET:'test-only-native-session-secret-00001',SETUP_TOKEN:'test-only-onetime-setup-credential-00001',MAIL_FROM:'Uptime <auth@example.test>',SENDGRID_API_KEY:'test-only-provider-key'};
+const bindings={...testAuthBindings,MAIL_PROVIDER:'sendgrid',UPTIME_LOCAL_REVIEW:'false',UPTIME_ORIGIN:origin,OWNER_EMAIL:'owner@example.test',MAIL_FROM:'Uptime <auth@example.test>',SENDGRID_API_KEY:'test-only-provider-key'};
 let worker,passed=0;
 const check=async(name,run)=>{await run();passed++;console.log('PASS '+name)};
 try{

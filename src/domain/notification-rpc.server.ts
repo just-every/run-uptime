@@ -1,7 +1,8 @@
 import {ensureNotificationCustody,readCredential,retireObsoleteCredentials,notificationDestinationHash,notificationKeyPresent} from './notification-credentials.server.ts'
 import {claimNotification,releaseUnstartedClaim,startClaim,registerClaim} from './notification-claims.server.ts'
 import {D1SqlDatabase} from '../base/modules/integrations/core/database.ts'
-import {IntegrationsRepository} from '../base/modules/integrations/core/repository.ts'
+import {pickEnvelope,IntegrationsRepository} from '../base/modules/integrations/core/repository.ts'
+import type {Delivery} from '../base/modules/integrations/core/types.ts'
 import {DeliveryService} from '../base/modules/integrations/core/delivery.ts'
 import {SLACK_WEBHOOK_PROTOCOL} from '../base/modules/integrations/slack/protocol.ts'
 import {notificationProtocols} from './notification-protocols.ts'
@@ -14,6 +15,12 @@ export function notificationRepository(env:Bindings){return new NotificationRepo
 class NotificationRepository extends IntegrationsRepository {
  private env:Bindings;
  constructor(env:Bindings){super(new D1SqlDatabase(env.DB),NOTIFICATION_NAMESPACE);this.env=env}
+ async insert(delivery:Delivery){
+  await this.env.DB.prepare(`INSERT INTO integration_deliveries(namespace,id,fingerprint,destination_hash,envelope,state,created_at,next_at,max_attempts,retry_delays)
+   SELECT ?,?,?,?,?,'queued',?,?,?,? WHERE EXISTS(SELECT 1 FROM notification_jobs j JOIN notification_destinations d ON d.id=j.destination_id WHERE j.id=? AND j.credential_id=? AND d.credential_id=j.credential_id AND d.deleted_at IS NULL) ON CONFLICT(namespace,id) DO NOTHING`)
+   .bind(NOTIFICATION_NAMESPACE,delivery.id,delivery.fingerprint,delivery.destinationHash,JSON.stringify(pickEnvelope(delivery)),delivery.createdAt,delivery.nextAt,delivery.maxAttempts,JSON.stringify(delivery.retryDelaysMs),delivery.id,delivery.destinationId).run();
+  const current=await this.get(delivery.id);if(!current||current.fingerprint!==delivery.fingerprint)throw Error('Notification erased or changed');return current;
+ }
  async claim(id:string,now:number,leaseMs:number){return claimNotification(this.env,id,now,leaseMs)}
  async recoverExpired(now:number){const recovered=await super.recoverExpired(now);await this.env.DB.prepare("UPDATE notification_jobs SET state='uncertain',code='claim_expired',claim=NULL,claim_until=NULL,finished_at=? WHERE kind='email' AND state='sending' AND claim_until<=?").bind(now,now).run();await retireObsoleteCredentials(this.env);return recovered}
 }

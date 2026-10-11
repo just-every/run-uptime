@@ -25,7 +25,7 @@ If you need those, you can send Uptime's signed JSON to a receiver of your own. 
 
 ## One runner is one vantage
 
-A single runner checks from one network position. Monitors can list up to three named probes, but those names do not mean different places. Sampled evidence from one runner is not a claim about every visitor's experience, and a past success does not guarantee a target is up now. Independent regional monitoring would need independently operated placements, which Uptime does not provide today.
+A single runner checks from one network position. Monitors can list up to three named probes, but those names do not mean different places. Sampled evidence from one runner is not a claim about every visitor's experience, and a past success does not guarantee a target is up now. Independent monitoring uses separately keyed runners with different declared network labels. The owner supplies and supervises those placements; logical probe names never establish independence.
 
 ## What a result does not prove
 

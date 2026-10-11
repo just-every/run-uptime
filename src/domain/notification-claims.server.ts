@@ -1,3 +1,4 @@
+import {auditStatement,automated} from './audit.server.ts'
 import {sha256} from '../base/modules/integrations/core/crypto.ts'
 import {readCredential,notificationKeyPresent,type CredentialRow} from './notification-credentials.server.ts'
 import type {Bindings} from './control.server.ts'
@@ -70,9 +71,9 @@ export async function registerClaim(env:Bindings,id:string,claim:string,reservat
 export async function startClaim(env:Bindings,id:string,claim:unknown,reservation:unknown,now:number){
  if(typeof claim!=='string'||typeof reservation!=='string'||reservation.length>128)return false;
  const reservationHash=await sha256(reservation);
- const result=await env.DB.prepare(`UPDATE notification_claim_custody SET started_at=? WHERE delivery_id=? AND claim=? AND reservation_hash=? AND started_at IS NULL AND released_at IS NULL
-  AND EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace=? AND d.id=? AND d.claim=? AND d.state='sending' AND d.claim_until>?)`).bind(now,id,claim,reservationHash,namespace,id,claim,now).run();
- return Boolean(result.meta.changes);
+ const result=await env.DB.batch([env.DB.prepare(`UPDATE notification_claim_custody SET started_at=? WHERE delivery_id=? AND claim=? AND reservation_hash=? AND started_at IS NULL AND released_at IS NULL
+  AND EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace=? AND d.id=? AND d.claim=? AND d.state='sending' AND d.claim_until>?)`).bind(now,id,claim,reservationHash,namespace,id,claim,now),auditStatement(env,automated,'notification_send','notification',crypto.randomUUID(),'changes()=1',[],now)]);
+ return Boolean(result[0].meta.changes);
 }
 export async function releaseUnstartedClaim(env:Bindings,id:string,claim:unknown,reservation:unknown,now:number){
  if(typeof claim!=='string'||typeof reservation!=='string'||reservation.length>128)return false;
