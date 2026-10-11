@@ -1,0 +1,37 @@
+/* Loaded only for a seed that declares a theme (rer-theme.css); every rule is
+   scoped to .rer-themed so an unthemed installer keeps style.css alone. */
+.rer-themed body{color:var(--rer-text);font-family:var(--rer-font-body,Inter,Arial,sans-serif)}
+.rer-themed .scene{background:var(--rer-page)}
+.rer-themed .brand,.rer-themed .panel h1,.rer-themed .agent-handoff h2,.rer-themed .known-group-title{font-family:var(--rer-font-heading,var(--rer-font-body,inherit))}
+.rer-themed .brand,.rer-themed .sidebar{color:var(--rer-text)}
+/* content toggles the mark only when --rer-logo is declared; the background draws it at size. */
+.rer-themed .brand{display:flex;align-items:center;gap:12px}
+.rer-themed .brand::before{content:var(--rer-logo,none);display:block;flex:none;width:36px;height:36px;overflow:hidden;text-indent:200%;white-space:nowrap;background:var(--rer-logo) center/contain no-repeat}
+.rer-themed .panel{background:var(--rer-surface);border-radius:var(--rer-radius,26px);box-shadow:0 1px 2px #0000000d,0 14px 36px #00000014}
+.rer-themed .field label,.rer-themed .field-title,.rer-themed .panel .target-choices legend,.rer-themed .email-unit .target-choices legend{color:var(--rer-text)}
+.rer-themed .input{border-color:var(--rer-border);background:var(--rer-surface);color:var(--rer-text);border-radius:calc(var(--rer-radius,20px) / 2)}
+.rer-themed .input:focus-visible,.rer-themed button:focus-visible,.rer-themed a:focus-visible,.rer-themed summary:focus-visible,.rer-themed .target-choice:has(input:focus-visible){outline-color:var(--rer-focus)}
+.rer-themed .help,.rer-themed .status,.rer-themed .step-progress,.rer-themed .advanced summary,.rer-themed .target-choice .help,.rer-themed .failure-log-path,.rer-themed .agent-activity-history,.rer-themed .known-editor .help{color:var(--rer-muted)}
+.rer-themed .select-wrap:after{border-color:var(--rer-muted)}
+.rer-themed .edit,.rer-themed .field .edit,.rer-themed .panel .edit,.rer-themed .help-link,.rer-themed #known-summary .known-group .edit,.rer-themed .editor-actions button{color:var(--rer-link,var(--rer-text))}
+.rer-themed .primary,.rer-themed .secondary,.rer-themed .agent-connect{font-family:inherit;border-radius:var(--rer-radius,25px)}
+.rer-themed .primary{background:var(--rer-accent,var(--installer-accent,#7542d3));color:var(--rer-accent-text,var(--installer-accent-text,#fff));box-shadow:none}
+.rer-themed .secondary,.rer-themed .agent-connect{border:1px solid var(--rer-border);background:transparent;color:var(--rer-text)}
+.rer-themed .logs,.rer-themed .ready-summary{background:var(--rer-page);color:var(--rer-text);border-radius:calc(var(--rer-radius,24px) / 2)}
+.rer-themed .panel .target-choice{color:var(--rer-text);border-color:var(--rer-border)}
+.rer-themed .panel .target-choice:has(input:checked){background:var(--rer-page);border-color:var(--rer-focus);box-shadow:inset 0 0 0 1px var(--rer-focus)}
+.rer-themed .target-tick,.rer-themed .panel .target-tick{border-color:var(--rer-muted)}
+.rer-themed .target-choice input:checked+.target-tick{background:var(--rer-accent,var(--rer-text));border-color:var(--rer-accent,var(--rer-text));color:var(--rer-accent-text,var(--rer-surface))}
+.rer-themed .hosting-unit>[data-provider]{border-left-color:var(--rer-border)}
+.rer-themed .connection-editor .field{background:var(--rer-surface);color:var(--rer-text)}
+.rer-themed .agent-activity.known-group,.rer-themed .agent-activity,.rer-themed .known-group{background:var(--rer-surface);color:var(--rer-text);backdrop-filter:none;-webkit-backdrop-filter:none;border-radius:var(--rer-radius,13px);box-shadow:0 1px 2px #0000000d}
+.rer-themed .agent-activity-message,.rer-themed .agent-working,.rer-themed .connected,.rer-themed .badge{color:var(--rer-text)}
+.rer-themed .agent-working-spinner{border-color:var(--rer-border);border-top-color:currentColor}
+.rer-themed .category-icon,.rer-themed .workspace .category-icon,.rer-themed .hosting .category-icon,.rer-themed .email .category-icon{background:var(--rer-accent,var(--rer-page));color:var(--rer-accent-text,var(--rer-text));box-shadow:none;border-radius:calc(var(--rer-radius,22px) / 2)}
+.rer-themed .known-summary{color:var(--rer-text)}
+.rer-themed .known-summary>summary{border-color:var(--rer-border);background:var(--rer-page);color:var(--rer-text);border-radius:calc(var(--rer-radius,18px) / 2)}
+.rer-themed #known-summary .known-group,.rer-themed #known-summary .known-group.workspace,.rer-themed #known-summary .known-group.hosting,.rer-themed #known-summary .known-group.email{background:var(--rer-page);box-shadow:none}
+.rer-themed #known-summary .known-label,.rer-themed #known-summary .known-source{color:var(--rer-muted)}
+.rer-themed #known-summary .known-group-title,.rer-themed #known-summary .known-value{color:var(--rer-text)}
+.rer-themed .agent-handoff{background:var(--rer-surface);color:var(--rer-text);border-radius:var(--rer-radius,20px)}
+@media(max-width:700px){.rer-themed .actions{background:var(--rer-surface);border-top-color:var(--rer-border)}}

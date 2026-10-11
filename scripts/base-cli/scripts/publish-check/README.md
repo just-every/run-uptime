@@ -42,3 +42,15 @@ tree. Historical matches use only that commit's blobs; present files cannot
 rescue a historical mismatch. Working-tree preimages reject linked paths.
 Only the exact native match at a proved inventory field is classified. There
 is no filename, hash-value or comma-delimited credential exemption.
+
+`checksum_maps.py` classifies a file-name to digest map (`'0005_operator_auth.sql':
+'<sha256>'`, in JSON, JavaScript, YAML or similar) in any file outside the
+content-identity documents above. The native match must sit in a run of
+`name: digest` entries separated only by commas, semicolons, whitespace and line
+comments, and every entry in that run must name a regular file in the same scanned
+tree (a path, or a trailing path component) whose bytes hash to that SHA-256. One
+entry that does not prove, a 40-hex value, a key that names no tree file, or a hex
+value with no file-name key keeps the native finding. Historical matches use only
+that commit's blobs and working-tree preimages reject linked paths. There is no
+path, filename, hash-value or repository exemption. `hit_location.py` resolves
+the native match's exact bytes for both proofs.

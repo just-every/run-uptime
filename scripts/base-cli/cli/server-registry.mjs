@@ -15,7 +15,14 @@ export function positive(value, name, fallback) {
  return Number(value);
 }
 export const stopInstruction = record => `rer ${record.mode} --cwd ${JSON.stringify(record.checkout)} --stop`;
-export const description = record => `${record.mode} ${record.url ?? '(starting)'}; ${stopInstruction(record)}`;
+export const description = record => `${record.mode} ${record.url ?? '(starting)'} for ${record.checkout}; stop it with: ${stopInstruction(record)}`;
+// A test or CI journey declares itself, the way RER_SERVERS_LOAD_THRESHOLD
+// declares load. It serves on its own port and never counts toward the cap.
+export const declaresJourney = env => {
+ if(env.RER_SERVER_JOURNEY===undefined)return false;
+ if(env.RER_SERVER_JOURNEY==='1')return true;
+ throw invalid('RER_SERVER_JOURNEY must be 1 to declare a test or CI journey.');
+};
 async function request(record, action) {
  return new Promise((resolveRequest,reject)=>{
   const socket=createConnection(record.control);let text='';
@@ -27,11 +34,14 @@ async function request(record, action) {
  });
 }
 
+// A server is only ever stopped by the checkout that owns it, through its own
+// --stop, idle timeout or signal. Capacity never stops another checkout's
+// server: a request over the cap is refused with the running servers named.
 // Lock order: short machine transaction -> reserve checkout; release transaction
 // before queue admission/local operation. Stop waits for process+state cleanup,
 // which never needs the machine transaction. Generation removal happens last.
 export async function serverRegistry(root,{env=process.env}={}) {
- const limit=positive(env.RER_SERVER_LIMIT,'RER_SERVER_LIMIT',2);
+ const limit=positive(env.RER_SERVER_LIMIT,'RER_SERVER_LIMIT',2),journey=declaresJourney(env);
  const checkout=await realpath(root), lifetime=await identity();
  const directory=resolve(env.RER_SERVERS_DIR??join(userInfo().homedir,'.rer/servers'));
  let secured;
@@ -83,21 +93,10 @@ export async function serverRegistry(root,{env=process.env}={}) {
    await inspect(state);
    const same=state.running.find(item=>item.checkout===checkout);
    if(same)return {existing:same};
-   const cap=Math.min(limit,...state.running.map(item=>item.limit));
-   while(state.running.length>=cap){
-    const eligible=[];
-    for(const record of state.running){
-     let status;try{status=await request(record,'status');}catch{throw refuse(`Cannot verify managed server ${description(record)}. Preserve it and inspect its foreground process.`);}
-     if(status.ready && !status.active && status.idleSeconds>=60)eligible.push({...record,...status});
-    }
-    eligible.sort((a,b)=>a.lastActivity-b.lastActivity||a.startedAt-b.startedAt||a.checkout.localeCompare(b.checkout));
-    if(!eligible.length)throw refuse(`Server limit ${cap} reached. ${state.running.map(description).join('\n')}`);
-    const victim=eligible[0],eviction=await request(victim,'evict');
-    if(eviction.evicted!==true)throw refuse(`Server became active before eviction: ${description(victim)}. Retry after its owner is idle.`);
-    state.running=state.running.filter(item=>item.generation!==victim.generation);
-    options.onEvict?.(`Stopped idle checkout ${victim.checkout}: ${victim.mode} ${victim.url}; idle ${Math.floor(victim.idleSeconds)} seconds.`);
-   }
-   owned={checkout,mode,generation:randomUUID(),token:randomUUID(),owner:lifetime.info,limit,startedAt:Number(process.hrtime.bigint()/1000000n),idleTimeout:options.idleTimeout};
+   // Journeys are listed but uncounted: they neither use nor lower the cap.
+   const counted=state.running.filter(item=>!item.journey),cap=Math.min(limit,...counted.map(item=>item.limit));
+   if(!journey&&counted.length>=cap)throw refuse(`Server limit ${cap} reached: ${counted.length} dev or preview ${counted.length===1?'server is':'servers are'} already running on this machine.\n${counted.map(description).join('\n')}\nStop one of them, or raise RER_SERVER_LIMIT.`);
+   owned={checkout,mode,journey,generation:randomUUID(),token:randomUUID(),owner:lifetime.info,limit,startedAt:Number(process.hrtime.bigint()/1000000n),idleTimeout:options.idleTimeout};
    owned.lastActivity=owned.startedAt;owned.active=0;
    const name=`rer-server-${createHash('sha256').update(owned.generation).digest('hex').slice(0,20)}.sock`;
    owned.control=join(tmpdir(),name);if(Buffer.byteLength(owned.control)>=100)owned.control=join('/tmp',name);

@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { parseJsonc } from './jsonc.mjs';
 
 // `rer dev` runs the project's declared Cron Triggers (wrangler `triggers.crons`)
 // on their schedule by calling the local runtime's scheduled test endpoint, so
@@ -36,27 +37,17 @@ export function cronMatches(cron, date) {
  return parsed.minute.has(date.getUTCMinutes()) && parsed.hour.has(date.getUTCHours()) && parsed.month.has(date.getUTCMonth() + 1) && days;
 }
 
-function stripJsonc(text) {
- let result = '', index = 0;
- while (index < text.length) {
-  const char = text[index];
-  if (char === '"') {
-   let end = index + 1;
-   while (text[end] !== '"') end += text[end] === '\\' ? 2 : 1;
-   result += text.slice(index, end + 1); index = end + 1;
-  } else if (char === '/' && text[index + 1] === '/') { while (index < text.length && text[index] !== '\n') index++; }
-  else if (char === '/' && text[index + 1] === '*') { index = text.indexOf('*/', index + 2) + 2 || text.length; }
-  else { result += char; index++; }
- }
- return result.replace(/,(\s*[}\]])/g, '$1');
-}
-
 // The Cron Triggers a project declares in wrangler.jsonc or wrangler.json.
 export async function declaredCrons(root) {
  for (const name of ['wrangler.jsonc', 'wrangler.json']) {
   let text;
   try { text = await readFile(join(root, name), 'utf8'); } catch (error) { if (error.code === 'ENOENT') continue; throw error; }
-  const crons = JSON.parse(stripJsonc(text)).triggers?.crons ?? [];
+  let config;
+  try { config = parseJsonc(text); }
+  catch (error) {
+   throw new Error(`${name}: ${error.message}`, { cause: error });
+  }
+  const crons = config.triggers?.crons ?? [];
   if (!Array.isArray(crons) || crons.some(cron => typeof cron !== 'string')) throw new Error(`${name} triggers.crons must be a list of cron expressions.`);
   for (const cron of crons) parseCron(cron);
   return crons;

@@ -32,7 +32,7 @@ function validProductName(name) {
 export function configureBranding(input = {}) {
   const invalid = () => { throw new AuthError('invalid_configuration', 503); };
   if (!input || typeof input !== 'object' || Array.isArray(input)) invalid();
-  const { productName = 'your workspace', accentColor = '#334155', signInPath = '/signin' } = input;
+  const { productName = 'your workspace', accentColor = '#334155', signInPath = '/signin', theme } = input;
   if (!validProductName(productName)) invalid();
   if (typeof accentColor !== 'string' || !/^#[0-9a-f]{6}$/i.test(accentColor)) invalid();
   if (typeof signInPath !== 'string' || !signInPath.startsWith('/') || signInPath.startsWith('//') || /[\\\u0000-\u0020\u007f-\u009f]/u.test(signInPath)) invalid();
@@ -52,7 +52,9 @@ export function configureBranding(input = {}) {
     if (next === decoded) break;
     decoded = next;
   }
-  return Object.freeze({ productName: productName.trim(), accentColor, signInPath });
+  // A seed theme is its own served rer-theme.css; Base onboarding validates its contents.
+  if (theme !== undefined && (typeof theme !== 'string' || !/^\/(?!\/)[A-Za-z0-9._~/-]{1,200}\.css$/.test(theme) || theme.includes('/.'))) invalid();
+  return Object.freeze({ productName: productName.trim(), accentColor, signInPath, ...(theme ? { theme } : {}) });
 }
 
 /** WCAG relative luminance chooses readable text for any permitted brand color. */

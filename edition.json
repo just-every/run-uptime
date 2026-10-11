@@ -24,11 +24,12 @@
           "migrations/0007_integrations.sql",
           "migrations/0011_development_outbox.sql",
           "src/base/modules/owner-claim",
-          "migrations/0016_owner_claim.sql"
+          "migrations/0016_owner_claim.sql",
+          "migrations/0019_domain_rules_step_up.sql"
         ],
         "origin": {
           "repository": "https://github.com/runeditrun/base.git",
-          "revision": "eca838d6659f47f99338b8e638345bfe9191f3ba",
+          "revision": "3d643dda1d203d36e3fa57e8e5ba14e414bba6f9",
           "path": ".",
           "paths": [
             "foundation/runtime/dispatch.ts",
@@ -40,11 +41,12 @@
             "operations/operations.mjs",
             "operations/project-operations.mjs",
             "edition-authoring",
-            "modules/operator-auth/schema/operator-auth.sql",
+            "modules/operator-auth/accounts/schema/operator-auth.sql",
             "modules/integrations/core/schema.sql",
             "modules/mail/src/development/schema.sql",
             "modules/owner-claim",
-            "modules/owner-claim/schema/owner-claim.sql"
+            "modules/owner-claim/schema/owner-claim.sql",
+            "modules/operator-auth/accounts/schema/domain-rules-step-up.sql"
           ]
         },
         "mappings": [
@@ -78,7 +80,7 @@
           },
           {
             "path": "migrations/0005_operator_auth.sql",
-            "originPath": "modules/operator-auth/schema/operator-auth.sql"
+            "originPath": "modules/operator-auth/accounts/schema/operator-auth.sql"
           },
           {
             "path": "migrations/0007_integrations.sql",
@@ -95,6 +97,10 @@
           {
             "path": "migrations/0016_owner_claim.sql",
             "originPath": "modules/owner-claim/schema/owner-claim.sql"
+          },
+          {
+            "path": "migrations/0019_domain_rules_step_up.sql",
+            "originPath": "modules/operator-auth/accounts/schema/domain-rules-step-up.sql"
           }
         ]
       }
@@ -109,7 +115,7 @@
         ],
         "origin": {
           "repository": "https://github.com/runeditrun/base.git",
-          "revision": "eca838d6659f47f99338b8e638345bfe9191f3ba",
+          "revision": "3d643dda1d203d36e3fa57e8e5ba14e414bba6f9",
           "paths": [
             "onboarding"
           ]
@@ -137,7 +143,7 @@
         ],
         "origin": {
           "repository": "https://github.com/runeditrun/base.git",
-          "revision": "eca838d6659f47f99338b8e638345bfe9191f3ba",
+          "revision": "3d643dda1d203d36e3fa57e8e5ba14e414bba6f9",
           "paths": [
             "cli",
             "bin/rer.mjs",
@@ -259,7 +265,7 @@
         ],
         "origin": {
           "repository": "https://github.com/runeditrun/base.git",
-          "revision": "eca838d6659f47f99338b8e638345bfe9191f3ba",
+          "revision": "3d643dda1d203d36e3fa57e8e5ba14e414bba6f9",
           "paths": [
             "modules/editor/src"
           ]
@@ -296,7 +302,7 @@
         ],
         "origin": {
           "repository": "https://github.com/runeditrun/base.git",
-          "revision": "eca838d6659f47f99338b8e638345bfe9191f3ba",
+          "revision": "3d643dda1d203d36e3fa57e8e5ba14e414bba6f9",
           "paths": [
             "modules/delivery-producer/artifact.mjs",
             "modules/delivery-producer/bindings.mjs",

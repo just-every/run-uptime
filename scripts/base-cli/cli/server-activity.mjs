@@ -6,7 +6,6 @@ export function activityClock({seconds,onIdle,now=()=>Number(process.hrtime.bigi
  function touch(){last=now();onChange({lastActivity:last,active});arm();}
  return {ready(){ready=true;touch();},touch,
   begin(){active++;touch();let ended=false;return()=>{if(ended)return;ended=true;active--;touch();};},
-  async evict(stop){if(closed||!ready||active||now()-last<60000)return {evicted:false};await stop();return {evicted:true};},
   snapshot(){return {ready,active,lastActivity:last,idleSeconds:(now()-last)/1000};},
   close(){closed=true;cancel(timer);}
  };

@@ -155,7 +155,7 @@ origin path, Base commit, and the SHA-256 of every copied file:
     {"path": "src/base/modules/mail", "originPath": "modules/mail", "revision": "FULL_40_HEX_COMMIT",
      "files": {"src/base/modules/mail/index.mjs": "SHA256_OF_BASE_BYTES"},
      "modes": {"src/base/modules/mail/index.mjs": "100644"}},
-    {"path": "migrations/0005_operator_auth.sql", "originPath": "modules/operator-auth/schema/operator-auth.sql",
+    {"path": "migrations/0005_operator_auth.sql", "originPath": "modules/operator-auth/accounts/schema/operator-auth.sql",
      "revision": "FULL_40_HEX_COMMIT", "files": {"migrations/0005_operator_auth.sql": "SHA256_OF_BASE_BYTES"},
      "modes": {"migrations/0005_operator_auth.sql": "100644"}}
   ],

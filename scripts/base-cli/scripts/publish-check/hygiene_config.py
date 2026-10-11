@@ -35,5 +35,6 @@ def load_config(data=None):
 
 def public_email(address, config):
     domain = address.lower().rsplit('@', 1)[1]
-    reserved = ('example', 'test', 'invalid', 'example.com', 'example.net', 'example.org')
+    # RFC 2606 reserved names; .localhost also holds local dev personas (<as>@dev.localhost).
+    reserved = ('example', 'test', 'invalid', 'localhost', 'example.com', 'example.net', 'example.org')
     return address.lower() in config['publicEmails'] or any(domain == d or domain.endswith('.' + d) for d in reserved)

@@ -21,7 +21,7 @@ Local durable data is `.wrangler/state`, private settings are `data/local-secret
 
 First-run completion is installation-local D1 state and is excluded from product archives with owner identity and sessions. A receiving installation completes `/setup` with its own owner. Upgrading an installation that already has monitors preserves its completed first-run status.
 
-Stop dev or preview before data movement or reset. Export to a new private path with `node scripts/rer.mjs export --output .exports/archive.jsonl`. Import with `node scripts/rer.mjs import --input .exports/archive.jsonl --yes` into an empty installation, then run setup for the receiving owner. Base owns integrity and transfer bookkeeping; its named payload uses Uptime's complete archive and atomic inactive-restore transaction. No remote CLI transfer is declared.
+Stop dev or preview before data movement or reset. Export to a new private path with `node scripts/rer.mjs export --output exports/archive.rer`. Import with `node scripts/rer.mjs import --input exports/archive.rer --yes` into an empty installation, then run setup for the receiving owner. Base owns integrity and transfer bookkeeping; its named payload uses Uptime's complete archive and atomic inactive-restore transaction. No remote CLI transfer is declared.
 
 `node scripts/rer.mjs reset --yes` lists and removes only `.wrangler/state`, `.rer/local`, `.seed/installer` and declared generated settings/recovery files. It refuses active dev or transfers. Source, dependencies, export files and `.rer/deploy` receipts remain. A second reset succeeds with an empty inventory; setup can then create a fresh owner.
 

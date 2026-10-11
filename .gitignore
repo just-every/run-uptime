@@ -8,6 +8,8 @@ data/
 .rer/
 .seed/
 .exports/
+exports/
+*.rer
 delivery-artifact/
 rer-package/
 .rer-tools/

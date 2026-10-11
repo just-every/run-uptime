@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {join} from 'node:path';
 import {readFile,readdir} from 'node:fs/promises';
 import {migratedWorker,runtimeDirectory,cleanupDirectory,availablePorts} from './notify-acceptance-runtime.mjs';
-import {testAuthBindings,authRequest,sessionCookie,outboxLink,hostRequest} from './auth-test-support.mjs';
+import {testAuthBindings,authRequest,sessionCookie,outboxLink,hostRequest,keyHeader} from './auth-test-support.mjs';
 import {authOutboxRuntime} from './auth-outbox-runtime.mjs';
 import {splitSql} from './migration-support.mjs';
 import {createDevelopmentOutboxHandler,createD1DevelopmentOutbox} from '../src/base/modules/mail/src/development/index.mjs';
@@ -37,7 +37,7 @@ const boundaryCases=[
 ];
 async function refusedBeforeReads(call){
  for(const [label,headers] of boundaryCases)for(const path of ['/__dev/outbox','/__dev/outbox?message=private-message']){
-  const response=await call(path,undefined,headers);
+  const response=await call(path,undefined,{...headers,...keyHeader()});
   assert.equal(response.status,404,`${label} refuses the native outbox route`);
   assert.equal(response.headers.get('x-test-outbox-reads'),'0',`${label} refuses before private outbox reads`);
  }
@@ -54,7 +54,8 @@ try{
  const loginHTML=await identity(await call('/login'),200);assert.match(loginHTML,/development outbox/);assert.match(loginHTML,/href="\/__dev\/outbox"/);
  await invalidLink(call,'/auth/confirm?token=invalid');
  const sent=await fetch(origin+'/auth/magic-link',{method:'POST',headers:{origin,'content-type':'application/x-www-form-urlencoded'},body:new URLSearchParams({email:bindings.OWNER_EMAIL,returnTo:'/'})});
- assert.match(await identity(sent,200),/sign-in link is in the development outbox/);
+ assert.equal(new URL(sent.url).searchParams.get('notice'),'sent','native form returns with delivery acknowledgement');
+ assert.match(await identity(sent,200),/role="status"/,'the acknowledgement is announced to the operator');
  const link=await outboxLink(call),token=link.searchParams.get('token');
  await identity(await call(link.pathname+link.search),200);
  assert.equal((await DB.prepare('SELECT consumed_at FROM oa_tokens').first()).consumed_at,null,'opening a link does not consume it');
@@ -67,8 +68,9 @@ try{
  await DB.prepare('UPDATE oa_tokens SET expires_at=? WHERE consumed_at IS NULL').bind(Date.now()-1).run();
  await invalidLink(call,expired.pathname+expired.search);
  assert.equal((await DB.prepare("SELECT COUNT(*) n FROM oa_sessions WHERE kind!='native'").first()).n,0);
- assert.equal((await hostRequest(origin,'/__dev/outbox','nonloopback.example.test')).status,404);
- assert.equal((await call('/__dev/outbox',undefined,{origin:'https://attacker.example.test'})).status,404);
+ assert.equal((await hostRequest(origin,'/__dev/outbox','nonloopback.example.test',keyHeader())).status,404);
+ assert.equal((await call('/__dev/outbox',undefined,{origin:'https://attacker.example.test',...keyHeader()})).status,404);
+ assert.equal((await call('/__dev/outbox')).status,404,'the outbox needs the key gate');
  assert.equal((await hostRequest(origin,'/login','nonloopback.example.test')).status,403,'normal Host guard remains active');
  assert.equal((await call('/auth/magic-link',{email:bindings.OWNER_EMAIL},{origin:'https://attacker.example.test'})).status,403);
  assert.equal(submissions,0,'development delivery never calls an external mail provider');
@@ -77,7 +79,7 @@ try{
  // outbox reads. It does not alter the emitted application or D1 implementation.
  const native=await authOutboxRuntime(directory,{...bindings,UPTIME_LOCAL_REVIEW:'true',UPTIME_ORIGIN:origin},()=>{submissions++;throw Error('External transport forbidden')});worker=native.worker;
  await migrate(native.DB);
- const admitted=await native.call('/__dev/outbox');assert.equal(admitted.status,200);assert.equal(admitted.headers.get('x-test-outbox-reads'),'1','positive control observes the real D1 outbox read');
+ const admitted=await native.call('/__dev/outbox',undefined,keyHeader());assert.equal(admitted.status,200);assert.equal(admitted.headers.get('x-test-outbox-reads'),'1','positive control observes the real D1 outbox read');
  await refusedBeforeReads(native.call);
  // Exercise Base itself with the same native D1 reader. Count attempted SQL
  // preparation, so refusal cannot conceal a read even if it later catches it.

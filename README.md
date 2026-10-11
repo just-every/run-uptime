@@ -17,7 +17,7 @@ Replace the example address with the owner's address. Setup builds, migrates, pr
 node scripts/rer.mjs dev
 ```
 
-Open the printed `/__dev/outbox`, choose the newest sign-in message and follow its ordinary one-use link. No email is sent. First-run setup opens at `/setup`; choose **Finish setup** to enter the private console at `/app`. Until then, app routes return the signed-in owner there. `/` and `/docs` are the public landing and documentation. Vite provides assets and HMR alongside the bundled target and signed private runner. Control-C stops all owned processes. From another terminal, `node scripts/rer.mjs outbox` prints the outbox URL; `outbox --owner-email owner@example.test` requests a fresh message.
+`rer dev` opens signed in: it prints `RER_SIGNED_IN` (the owner) and `RER_OPEN`, a link that carries this checkout's private dev key in its fragment. Open `RER_OPEN` in a browser on this computer and you land signed in as the owner; a small dev badge switches to the `member` persona (a signed-in operator who is not the owner) or signs out. Never share the link: the key is what keeps the outbox and dev sign-in closed to anything that reaches this port through a proxy or tunnel, and `reset` removes the key so every earlier browser session stops working. `--as member` (or `--as signed-out`) starts as another persona, and `--login` turns dev identity off so dev prints `RER_SIGN_IN` and a key-carrying `RER_OPEN` for the outbox instead: choose the newest message and follow its one-use link (no email is sent). Previews open the outbox the same way. `RER_OPEN` is for people at this terminal; scripts use `rer dev --json` or the key header. First-run setup opens at `/setup`; choose **Finish setup** to enter the private console at `/app`. Until then, app routes return the signed-in owner there. `/` and `/docs` are the public landing and documentation. Vite provides assets and HMR alongside the bundled target and signed private runner. Control-C stops all owned processes. From another terminal, `node scripts/rer.mjs outbox` prints the outbox URL; `outbox --owner-email owner@example.test` requests a fresh message.
 
 Use `node scripts/rer.mjs describe` for commands and flags, `node scripts/rer.mjs check --profile first-party` for the read-only contract check, and `node scripts/rer.mjs doctor` to compare your Node and pnpm with the pinned versions (run it under Node 22.20.0) and check that local state is safe. Doctor also lists every input the deployment needs (Cloudflare, SendGrid, `RER_DEPLOY_*` and the like) under `missingInputs`. On a local install these are expected to be missing until you deploy, so it reports `ok: false` and exits 3 even when the local app is healthy. Read the `node`, `pnpm` and `state` lines, not `ok`. The structural check works before dependency installation. Private settings are `data/local-secrets.json` (0600); durable data is `.wrangler/state`. There is no automatic credential rotation. See [OPERATIONS.md](OPERATIONS.md) for state custody and recovery.
 
@@ -59,10 +59,10 @@ The synthetic target binds only to `127.0.0.1`. Its owner-only grant at `.wrangl
 
 ## Reset the local installation
 
-Stop dev first, then export to a new private file in .exports within the checkout:
+Stop dev first, then export to a new private file under exports/ within the checkout:
 
 ```sh
-node scripts/rer.mjs export --output .exports/uptime.jsonl
+node scripts/rer.mjs export --output exports/uptime.rer
 node scripts/rer.mjs reset --yes --non-interactive
 node scripts/rer.mjs setup --owner-email owner@example.test --non-interactive
 ```
@@ -85,7 +85,7 @@ The runner signs its enrolment before polling and reuses this installation's sin
 
 ## Move your data
 
-Use `node scripts/rer.mjs export --output .exports/uptime.jsonl` after stopping dev. The new 0600 file is a Base integrity archive containing Uptime's complete product payload: definitions, observations, events, destination definitions, delivery and preserved archive history. To restore, run `node scripts/rer.mjs import --input .exports/uptime.jsonl --yes` in an empty installation, then setup a receiving owner. Monitors remain paused, destinations disabled and imported notifications quarantined. Installation credentials, sessions, grants and runner authority are excluded. Hosted CLI transfer is unsupported; the authenticated console retains its existing archive format and actions. Private settings remain a separate backup.
+Use `node scripts/rer.mjs export --output exports/uptime.rer` after stopping dev. The new 0600 file is a Base integrity archive containing Uptime's complete product payload: definitions, observations, events, destination definitions, delivery and preserved archive history. To restore, run `node scripts/rer.mjs import --input exports/uptime.rer --yes` in an empty installation, then setup a receiving owner. Monitors remain paused, destinations disabled and imported notifications quarantined. Installation credentials, sessions, grants and runner authority are excluded. Hosted CLI transfer is unsupported; the authenticated console retains its existing archive format and actions. Private settings remain a separate backup.
 
 ## Get told when a check fails
 

@@ -34,6 +34,13 @@ schema at construction. Apply the bookkeeping migration first. Policy fields:
 
 Default exclusions are `sqlite_%`, `_cf_%`, `d1_migrations`,
 `rer_portability_%`, `rer_mail_development_outbox`, `oa_%` and `oc_%`.
+When a policy includes operator-auth tables, local dev identity still never
+travels, and no policy option changes that: export drops `oa_sessions` rows of
+kind `dev`, every credential recorded in `oa_dev_credentials` (and that table's
+rows), and marks dev personas (`<as>@dev.localhost` operators) inactive with a
+new authority version; import refuses with 409 (`dev_data`, exit 4 in the CLI)
+an archive holding a `dev` session or `oa_dev_credentials` rows. Only tables with
+operator-auth's own columns are touched.
 The destination completes its own bootstrap or claim. Other tables are discovered
 automatically. Exclusion rules follow SQLite's ASCII identifier case matching.
 Unlisted virtual tables, hidden virtual-table columns and foreign keys into
@@ -149,9 +156,10 @@ Only HTTPS or HTTP on literal localhost, 127.0.0.1 or [::1] is accepted. Origins
 cannot contain URL credentials, path, query or fragment. The small regular session
 file contains one cookie; its value is never displayed or copied. Paths must be
 absolute. `--base-path` selects another mounted path. Export refuses an existing
-output, writes a 0600 `.partial`, verifies every line, syncs, then hard-links the
-final name. New directories are 0700. A 0600 `.transfer.json` stores the job id and
-origin. Use the printed resume command with the same job id. A resumed download
+output, writes a 0600 `.partial`, verifies every line, syncs, then renames it to
+the final name, leaving no second link, so `rer import` accepts the file. New
+directories are 0700. A 0600 `.transfer.json` stores the job id and origin.
+Use the printed resume command with the same job id. A resumed download
 starts at the manifest and re-verifies the stream before promotion. Imports
 re-read and verify the file, retrying earlier acknowledged parts harmlessly.
 
@@ -215,6 +223,7 @@ modules/portability/format.mjs
 modules/portability/catalogue.mjs
 modules/portability/storage.mjs
 modules/portability/copies.mjs
+modules/portability/dev-data.mjs
 modules/portability/generated.mjs
 modules/portability/restore-safety.mjs
 modules/portability/export.mjs

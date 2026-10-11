@@ -1,7 +1,7 @@
 # Assisted delivery policy
 
 `base/packaging.json` is Uptime's single packaging policy. The runtime is exported
-from Base `eca838d6659f47f99338b8e638345bfe9191f3ba`, without donor tests.
+from Base `d6080a22a66794d7b817f7eccb72ca077ffd9ecf`, without donor tests.
 `base/setup-manifest.mjs` has only the exporter's documented schema import-path
 relocation; every other runtime file is recorded as a verbatim Base copy.
 

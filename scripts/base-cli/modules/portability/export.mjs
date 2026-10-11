@@ -5,6 +5,7 @@ import { canonicalJson, utf8, base64, StreamHash } from './hash.mjs';
 import { FORMAT, makePart, checkPart, ContentVerifier } from './format.mjs';
 import { journal } from './journal.mjs';
 import { capturePayload, payloadRange } from './payloads.mjs';
+import { dropDevData } from './dev-data.mjs';
 export async function createExport(context,actor='direct') {
   const {db,config,buckets}=context,s=await state(db);insist(!s.applying,'import_applying',409);
   const cat=await catalogue(db,config),id=crypto.randomUUID(),objects=[];
@@ -23,6 +24,7 @@ export async function createExport(context,actor='direct') {
   await db.batch([guard(db,'EXISTS(SELECT 1 FROM rer_portability_state WHERE id=1 AND applying=0 AND source_identity=? AND epoch=?)',s.source_identity,s.epoch),
     ...cat.tables.flatMap(t=>createCopy(db,t,copies[t.name],true)),statement(db,'INSERT INTO rer_portability_jobs(id,kind,actor,phase,metadata) VALUES(?,?,?,?,?)',id,'export',actor,row.phase,canonicalJson(row.metadata)),db.prepare('DELETE FROM rer_portability_guard')]);
   try {
+    await dropDevData(db,cat.tables,copies);
     for(const t of manifest.tables) t.count=(await statement(db,`SELECT COUNT(*) AS n FROM ${quote(copies[t.name])}`).first()).n;
     for(const [name,producer] of Object.entries(config.extraPayloads).sort()) {
       const descriptor=await capturePayload(db,id,manifest.payloads.length,await producer.produce());manifest.payloads.push({name,...descriptor});

@@ -39,7 +39,7 @@ export function inspectSource(repo, ref) {
   const release = JSON.parse(bytes('RELEASE.json'));
   if (!/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?$/.test(seed.version) ||
       pkg.version !== seed.version || release.version !== seed.version || !pkg.scripts?.verify) throw Error('Seed, package and release versions must agree, and verify must exist');
-  const timestamp = git(repo, 'show', '-s', '--format=%cI', commit).toString().trim();
+  const timestamp = git(repo, 'log', '-1', '--format=%cI', commit).toString().trim();
   return { repo, commit, tree, entries, bytes, seed, release, timestamp, tag: `v${seed.version}` };
 }
 

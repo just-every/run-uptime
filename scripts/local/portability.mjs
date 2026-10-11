@@ -4,7 +4,7 @@ import { RerError, refuse, missing } from '../base-cli/cli/errors.mjs';
 async function transfer(context, direction) {
  const { root, path, store, signal, operationToken } = context;
  const location = relative(root, path);
- if (/^(?:\.wrangler\/state|\.seed\/installer|\.rer\/local)(?:\/|$)/.test(location) || location === 'data/local-secrets.json') throw refuse('Archives must remain outside the reset inventory; use .exports within this checkout.');
+ if (/^(?:\.wrangler\/state|\.seed\/installer|\.rer\/local)(?:\/|$)/.test(location) || location === 'data/local-secrets.json') throw refuse('Archives must remain outside the reset inventory; use exports/ within this checkout.');
  if (direction === 'export') {
   if (await lstat(path).catch(error => { if (error.code !== 'ENOENT') throw error; })) throw refuse('Export requires a new archive path.');
   if (!await lstat(root + '/data/local-secrets.json').catch(error => { if (error.code !== 'ENOENT') throw error; })) throw missing('Private installation settings are missing. Run setup before exporting.');

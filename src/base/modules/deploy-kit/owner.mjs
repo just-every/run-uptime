@@ -65,9 +65,19 @@ function entries(declaration, key) {
   assert(Array.isArray(list) && list.every(item => item && typeof item === 'object' && !Array.isArray(item) && Object.keys(item).every(k => ENTRY_KEYS[key].includes(k))), 'invalid-owner-declaration');
   return list;
 }
+/* RER_DEV_KEY opens local dev identity; it and every key a seed adapter declares
+ * local-only never become a deployed binding, secret or secret source. */
+export const LOCAL_ONLY_KEYS = Object.freeze(['RER_DEV_KEY']);
+export function localOnlyBinding(declaration, localOnlyKeys = []) {
+  const refused = new Set([...LOCAL_ONLY_KEYS, ...localOnlyKeys]);
+  const names = [...Object.keys(declaration?.vars ?? {}), declaration?.originVar, ...(Array.isArray(declaration?.secrets) ? declaration.secrets.flatMap(item => [item?.binding, item?.environment]) : [])];
+  return names.find(name => refused.has(name)) ?? null;
+}
 /** A seed declares bindings, never names. Migrations come from the packaged artifact. */
-export function ownerPlan(target, declaration, artifact) {
+export function ownerPlan(target, declaration, artifact, { localOnlyKeys = [] } = {}) {
   assert(declaration?.version === 1 && typeof declaration === 'object' && Object.keys(declaration).every(key => DECLARATION_KEYS.includes(key)), 'invalid-owner-declaration');
+  const local = localOnlyBinding(declaration, localOnlyKeys);
+  if (local) throw refuse('local-only-binding', 'binding', local);
   assert(declaration.project === undefined || declaration.project === target.project, 'owner-project-mismatch');
   const name = binding => ownerResourceName(target.worker, binding);
   const d1 = entries(declaration,'d1');

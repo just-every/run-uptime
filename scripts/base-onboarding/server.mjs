@@ -15,6 +15,7 @@ import { join, resolve } from 'node:path';
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { createState } from './state.mjs';
 import { metadata } from './metadata.mjs';
+import { loadSeedTheme } from './theme-files.mjs';
 export async function startInstaller(root,{seed,port=0,answers,secretInput,noPrefill=false,resume=false,agent=false}={}){
  root=resolve(root);
  seed=await loadInstallerSeed(root,seed);
@@ -23,6 +24,7 @@ export async function startInstaller(root,{seed,port=0,answers,secretInput,noPre
  const inputLimit=setupInputLimit(seed.model);
  const accent=seed.branding?.accent;
  const accentStyle=/^#[0-9a-f]{6}$/i.test(accent||'')?`<style>:root{--installer-accent:${accent};--installer-accent-text:${[1,3,5].map((start,i)=>parseInt(accent.slice(start,start+2),16)*[.299,.587,.114][i]).reduce((a,b)=>a+b,0)>150?'#173753':'#ffffff'}}</style>`:'';
+ const theme=seed.theme?await loadSeedTheme(root,seed.theme):null;
  const uiRoot=fileURLToPath(new URL('./ui/',import.meta.url));
  if(resume&&noPrefill)throw Error('--resume cannot be combined with --no-prefill.');
  const store=await createState(root,seed),token=randomBytes(32).toString('hex'),cookie=randomBytes(32).toString('hex');let origin,work,connection,starting=false,mutations=0;const apps=createAppProcesses();const abort=new AbortController();let attemptAbort,attemptProcesses;
@@ -54,7 +56,8 @@ export async function startInstaller(root,{seed,port=0,answers,secretInput,noPre
  if(secretInput){vault.set(secretInput,store.state.draft);if(Object.keys(secretInput).length)store.activity.secrets();secretInput=undefined;}
  await workspaceArt?.request();
  store.state.known.providers=noPrefill||(!seed.features?.hosting&&!seed.features?.github)?{}:(await discoverProviders(root,{signal:abort.signal})).providers;
- const assets={'/setup-manifest.mjs':['../setup-manifest.mjs','text/javascript'],'/installer-inputs.mjs':['../installer-inputs.mjs','text/javascript'],'/schema/setup-validation.mjs':['../schema/setup-validation.mjs','text/javascript'],'/schema/json-schema.mjs':['../schema/json-schema.mjs','text/javascript'],'/ui/model-core.mjs':['model-core.mjs','text/javascript'],'/seed.mjs':[seed.browserModule,'text/javascript'],'/model-core.mjs':['model-core.mjs','text/javascript'],'/workspace-art.js':['workspace-art.js','text/javascript'],'/activity.js':['activity.js','text/javascript'], '/':['index.html','text/html'], '/app.js':['app.js','text/javascript'], '/address-client.mjs':['address-client.mjs','text/javascript'], '/model.mjs':['model.mjs','text/javascript'], '/style.css':['style.css','text/css'], '/ocean.png':[null,seed.background?.endsWith('.svg')?'image/svg+xml':'image/png']};
+ const assets={'/setup-manifest.mjs':['../setup-manifest.mjs','text/javascript'],'/installer-inputs.mjs':['../installer-inputs.mjs','text/javascript'],'/schema/setup-validation.mjs':['../schema/setup-validation.mjs','text/javascript'],'/schema/json-schema.mjs':['../schema/json-schema.mjs','text/javascript'],'/ui/model-core.mjs':['model-core.mjs','text/javascript'],'/seed.mjs':[seed.browserModule,'text/javascript'],'/model-core.mjs':['model-core.mjs','text/javascript'],'/workspace-art.js':['workspace-art.js','text/javascript'],'/activity.js':['activity.js','text/javascript'], '/':['index.html','text/html'], '/app.js':['app.js','text/javascript'], '/address-client.mjs':['address-client.mjs','text/javascript'], '/model.mjs':['model.mjs','text/javascript'], '/style.css':['style.css','text/css'], '/theme.css':['theme.css','text/css'], '/ocean.png':[null,seed.background?.endsWith('.svg')?'image/svg+xml':'image/png']};
+ for(const path of theme?.files.keys()??[])if(assets[path])throw Error(`Seed theme file ${path} collides with an installer path; serve it at another path.`);
  const equal=(a,b)=>typeof a==='string'&&a.length===b.length&&timingSafeEqual(Buffer.from(a),Buffer.from(b));
  const server=createServer(async(req,res)=>{
   let mutation=false;
@@ -88,6 +91,12 @@ export async function startInstaller(root,{seed,port=0,answers,secretInput,noPre
       if(path==='/api/workspace-art/job')return json(200,await workspaceArt?.report(input));
       return json(404,{error:'Unknown workspace artwork action.'});
      }catch(error){return json(409,{error:error.message});}
+    }
+    // The dev key reaches only this authenticated page, never saved state or logs.
+    if(req.method==='GET'&&path==='/api/open-app'){
+     const key=store.state.phase==='complete'&&store.state.devOpen?/^RER_DEV_KEY=([A-Za-z0-9_-]{43,256})$/m.exec(await readFile(join(root,'.rer/local/dev-key.env'),'utf8').catch(()=>''))?.[1]:undefined;
+     if(!key)return json(404,{error:'No dev key for this installation.'});
+     const app=new URL(store.state.appUrl);return json(200,{url:`${app.origin}/__dev/key#${new URLSearchParams({'rer-dev':key,next:'/__dev/outbox'})}`});
     }
     if(req.method==='GET'&&path==='/api/agent-handoff')return json(200,(seed.handoff||agentHandoff)(root,origin,store.state.sessionId,seed));
     if(req.method==='GET'&&path==='/api/state'){await workspaceArt?.refresh();store.state.known.secretReadiness=vault.readiness(store.state.draft);return json(200,store.state);}
@@ -164,9 +173,11 @@ export async function startInstaller(root,{seed,port=0,answers,secretInput,noPre
    if(req.method==='GET'&&path==='/rer-setup.json'){res.writeHead(200,{'Content-Type':'application/json'});res.end(seed.manifestBytes);return;}
    if(req.method==='GET'&&path==='/SETUP.schema.json'){res.writeHead(200,{'Content-Type':'application/json'});res.end(seed.schemaBytes);return;}
    if(req.method==='GET'&&path==='/model-options.json'){json(200,seed.modelOptions);return;}
-   if(req.method!=='GET'||!assets[path])return json(404,{error:'Not found.'});
+   const themeFile=req.method==='GET'&&theme?.files.get(path);
+   if(themeFile){res.writeHead(200,{'Content-Type':themeFile.type});res.end(themeFile.bytes);return;}
+   if(req.method!=='GET'||!assets[path]||(path==='/theme.css'&&!theme))return json(404,{error:'Not found.'});
    const [file,type]=assets[path];let content=await readFile(file?(path==='/seed.mjs'?join(root,file):join(uiRoot,file)):join(root,seed.background));
-   if(path==='/'){content=content.toString().replaceAll('{{product}}',String(seed.product).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))).replace('</head>',`${accentStyle}<meta name="installer-token" content="${token}"></head>`);res.setHeader('Set-Cookie',`rer_installer=${cookie}; Path=/; HttpOnly; SameSite=Strict`);res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; frame-ancestors 'none'; base-uri 'none'")}
+   if(path==='/'){content=content.toString().replaceAll('{{product}}',String(seed.product).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))).replace('</head>',`${accentStyle}<meta name="installer-token" content="${token}"></head>`);if(theme)content=content.replace('<html lang="en">','<html lang="en" class="rer-themed">').replace('<link rel="stylesheet" href="/style.css">','<link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/rer-theme.css"><link rel="stylesheet" href="/theme.css">');res.setHeader('Set-Cookie',`rer_installer=${cookie}; Path=/; HttpOnly; SameSite=Strict`);res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; frame-ancestors 'none'; base-uri 'none'")}
    res.writeHead(200,{'Content-Type':type});res.end(content);
   }catch{json(500,{error:'The installer could not complete this request.'})}finally{if(mutation)mutations--;}
  });

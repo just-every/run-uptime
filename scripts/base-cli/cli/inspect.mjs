@@ -8,6 +8,7 @@ import { shared } from './shared.mjs';
 import { missing } from './errors.mjs';
 import { projectNodePin } from './node-runtime-discovery.mjs';
 import { localSettingKeys, requiredLocalSettings } from './settings.mjs';
+import { authCopyClauses } from './auth-copy.mjs';
 
 export async function describe(project) {
  const pkg = await readPackage(project.root);
@@ -19,7 +20,7 @@ export async function describe(project) {
  return { contractVersion: 1, profile: 'first-party', pins: { node: pkg.engines?.node, pnpm: pkg.packageManager?.replace(/^pnpm@/, '') },
   verbs: Object.fromEntries(Object.entries(capabilities).map(([verb, capability]) => [verb, { flags: (verbs[verb]?.flags ?? releaseFlags).filter(flag => capability.flags?.includes(flag)), effects: verbs[verb]?.effects ?? 'Existing Base release producer.' }])),
   aliases: Object.fromEntries(Object.entries(aliases).filter(([alias, verb]) => pkg.scripts?.[alias] === `node scripts/rer.mjs${verb ? ' ' + verb : ''}`)),
-  local: { state: project.adapter?.state, settings: project.adapter?.settings ?? [], installerState: '.seed/installer', outbox: '/__dev/outbox' },
+  local: { state: project.adapter?.state, settings: project.adapter?.settings ?? [], installerState: '.seed/installer', outbox: '/__dev/outbox', ...(project.adapter?.devIdentity ? { devIdentity: true, devKey: '.rer/local/dev-key.env' } : {}) },
  };
 }
 
@@ -67,6 +68,8 @@ export async function check(project, explicitProfile) {
    }
   } catch { add('SC-01.inventory', false, 'Restore the deterministic portable CLI source inventory.'); }
   add('SC-08.portability', typeof adapter?.portability?.export === 'function' && typeof adapter?.portability?.import === 'function', 'Adopt the reviewed mainline complete local portability API; archive support remains unavailable until then.');
+  if (adapter?.devIdentity) for (const [id, ok, message] of await devIdentityClauses(project.root, adapter.devIdentity)) add(id, ok, message);
+  for (const [id, ok, message] of await authCopyClauses(project.root)) add(id, ok, message);
  }
  return { clauses, ok: clauses.every(clause => clause.ok) };
 }
@@ -118,4 +121,22 @@ async function probePnpm(root, store, signal) {
  await store.stop(child);
  if (probeSignal.aborted || code !== 0) throw missing('The pinned pnpm version probe failed. Select the documented tool.');
  return version.trim();
+}
+
+// SC-05: a seed declaring devIdentity loads the dev layer only from a local-only
+// entry that its dev configuration names, never from the deployed main, lets
+// rer build scan its output, and keeps one end-to-end email-link test.
+async function devIdentityClauses(root, declaration) {
+ const text = async path => { try { return await readFile(await contained(root, path), 'utf8'); } catch { return null; } };
+ const entry = typeof declaration.entry === 'string' ? declaration.entry.replace(/^\.\//, '') : '';
+ let main;
+ try { const source = await text('wrangler.jsonc') ?? await text('wrangler.json'); main = JSON.parse(source.replace(/\/\*[\s\S]*?\*\/|^\s*\/\/.*$/gm, '')).main?.replace(/^\.\//, ''); } catch {}
+ const production = main ? await text(main) : null;
+ const configs = (await Promise.all(['vite.config.ts', 'vite.config.mts', 'vite.config.js', 'vite.config.mjs', 'wrangler.local.jsonc', 'wrangler.local.json', 'wrangler.local.toml'].map(text))).filter(Boolean);
+ const test = typeof declaration.emailLinkTest === 'string' ? await text(declaration.emailLinkTest) : null;
+ return [
+  ['SC-05.dev-identity.entry', entry && await text(entry) !== null && entry !== main && configs.some(config => config.includes(entry)), 'Declare devIdentity.entry as an existing local-only Worker entry that the local Vite or wrangler configuration loads and that is not the deployed main.'],
+  ['SC-05.dev-identity.exclusion', production !== null && !/operator-auth\/dev\//.test(production) && !production.includes(entry.replace(/\.[a-z]+$/, '')) && Array.isArray(declaration.output) && declaration.output.length > 0, 'Keep the deployed main free of the dev layer and its local entry, and declare devIdentity.output so rer build refuses output containing the dev layer.'],
+  ['SC-05.dev-identity.email-link-test', test !== null && /outbox/i.test(test), 'Keep one end-to-end email-link test through the outbox and declare it as devIdentity.emailLinkTest.'],
+ ];
 }

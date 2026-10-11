@@ -6,6 +6,10 @@ import { check, describe } from './inspect.mjs';
 import { selectNodeRuntime } from './node-runtime.mjs';
 
 export async function main(argv = process.argv.slice(2)) {
+ // Every runtime a seed's hooks start inherits this: Wrangler and the Cloudflare
+ // Vite plugin otherwise serve the Local Explorer, which reads and writes the
+ // store without the dev key.
+ process.env.X_LOCAL_EXPLORER = 'false';
  let options = { verb: argv[0], json: argv.includes('--json') }, out = output(options);
  try {
   options = parse(argv,process.cwd(),{deferTail:true}); out = output(options);

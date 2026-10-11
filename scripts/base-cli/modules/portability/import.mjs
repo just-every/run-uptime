@@ -1,4 +1,5 @@
 import { all, statement, state, guard, job, save, partStatements, parts, cleanCopies, quote, stream, insist, run } from './storage.mjs';
+import { refuseDevData } from './dev-data.mjs';
 import { catalogue, validateRow, bindCell, writableColumns } from './catalogue.mjs';
 import { canonicalJson, unbase64 } from './hash.mjs';
 import { checkManifest, checkPart, ContentVerifier } from './format.mjs';
@@ -113,6 +114,7 @@ export async function finalizeImport(context,id,{contentHash,laterJournal}={}) {
   const dependentGuards=await excludedDependentGuards(db,row.metadata.targets,config.replaceableTables);
   await bucketsEmpty(context,row);
   const checked=await fence(db,manifest,row.metadata.copies,laterJournal);
+  await refuseDevData(db,row.metadata.copies,row.metadata.targets);
   if(config.validateStaged) {
     const read=async table=>{insist(row.metadata.copies[table],'staged_table');const target=row.metadata.targets.find(t=>t.name===table);return (await readCopy(db,target,row.metadata.copies[table],0,row.metadata.manifest.tables.find(t=>t.name===table).count)).map(x=>x.row);};
     insist(await config.validateStaged({db,tables:{...row.metadata.copies},read,manifest})!==false,'staged_validation');

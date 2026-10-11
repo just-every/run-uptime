@@ -25,15 +25,14 @@ Replace the example address with your own. Setup builds Uptime, applies the loca
 node scripts/rer.mjs dev
 ```
 
-Dev starts Uptime with its private runner and a practice target, and prints the development outbox address. Control-C stops all of them.
+Dev starts Uptime with its private runner and a practice target, and prints a link that opens the console signed in. Control-C stops all of them.
 
 ### Sign in and finish setup
 
-1. Open the `/__dev/outbox` address that dev printed. Local sign-in does not send email, so the link waits for you there.
-2. Choose the newest sign-in message and follow its link.
-3. First-run setup opens at `/setup`. Choose **Finish setup**.
+1. Open the `RER_OPEN` link that dev printed in a browser on this computer. It carries this checkout's private key in its fragment, so keep it to yourself; you land signed in as the owner.
+2. First-run setup opens at `/setup`. Choose **Finish setup**.
 
-The console is then at `/app`. From another terminal, `node scripts/rer.mjs outbox` prints the outbox address again.
+The console is then at `/app`. A small dev badge switches to the `member` dev operator (who has no console access) or signs out. To try the ordinary email sign-in instead, run dev with `--login`: it prints a key-carrying link to the development outbox, where you choose the newest sign-in message and follow its link (no email is sent). From another terminal, `node scripts/rer.mjs outbox` prints that link again.
 
 ## Look after the settings file
 

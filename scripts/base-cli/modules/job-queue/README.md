@@ -10,7 +10,7 @@ private to its owner. Use a local filesystem with atomic hard links and rename,
 not a network filesystem. No daemon, install, service or provider is needed.
 
 ```sh
-node /path/to/base/modules/job-queue/cli.mjs run --kind heavy --label 'Ferry build' -- pnpm build
+node /path/to/base/modules/job-queue/cli.mjs run --kind heavy --label 'app build' -- pnpm build
 node /path/to/base/modules/job-queue/cli.mjs run --kind heavy --priority owner --label 'Owner browser review' -- pnpm exec playwright test --workers=2
 node /path/to/base/modules/job-queue/cli.mjs status
 node /path/to/base/modules/job-queue/cli.mjs status --json

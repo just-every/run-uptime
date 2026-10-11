@@ -1,5 +1,5 @@
 // Shared black-box presentation checks run against each consumer's actual Worker.
-export async function checkConfirmation(response, { kind, productName, minutes = 15, token, signInPath = '/signin', confirmationFonts = false }) {
+export async function checkConfirmation(response, { kind, productName, minutes = 15, token, signInPath = '/signin', confirmationFonts = false, theme }) {
   const valid = !!kind;
   expect(response.status === (valid ? 200 : 400), 'confirmation status');
   expect(response.headers.get('set-cookie') === null, 'preview must be cookie-free');
@@ -10,8 +10,14 @@ export async function checkConfirmation(response, { kind, productName, minutes =
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(styles[0][1]));
   const hash = btoa(String.fromCharCode(...new Uint8Array(digest)));
   const fontsPolicy = confirmationFonts ? " 'self'; font-src 'self'" : '';
-  expect(response.headers.get('content-security-policy') === `default-src 'none'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; style-src 'sha256-${hash}'${fontsPolicy}`, 'only approved stylesheet and font CSP sources');
-  const links = [...html.matchAll(/<link\b[^>]*>/gi)].map(match => match[0]);
+  // A declared seed theme is one same-origin stylesheet whose fonts and logo the app serves.
+  const sources = theme ? `style-src 'self' 'sha256-${hash}'; font-src 'self'; img-src 'self'` : `style-src 'sha256-${hash}'${fontsPolicy}`;
+  expect(response.headers.get('content-security-policy') === `default-src 'none'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; ${sources}`, 'only approved stylesheet and font CSP sources');
+  const themeLink = theme && `<link rel="stylesheet" href="${escape(theme)}">`;
+  const allLinks = [...html.matchAll(/<link\b[^>]*>/gi)].map(match => match[0]);
+  expect(allLinks.filter(link => link === themeLink).length === (theme ? 1 : 0), 'the declared theme stylesheet only');
+  expect(!theme || html.startsWith('<!doctype html><html lang="en" class="rer-themed">'), 'themed document');
+  const links = allLinks.filter(link => link !== themeLink);
   if (confirmationFonts) {
     expect(links.length === 2, 'one font stylesheet and one primary preload');
     const resources = links.map(link => {

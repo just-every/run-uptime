@@ -26,7 +26,7 @@ export { ownerAccountHosting } from './adapter-hosting.mjs';
 // existing seed".
 
 export { labels } from './adapter-labels.mjs';
-const hookNames = ['node', 'tools', 'prepare', 'dependencies', 'origin', 'secrets', 'build', 'migrate', 'start', 'health', 'owner', 'signIn', 'hosting', 'guard', 'failure', 'features', 'localOwner'];
+const hookNames = ['node', 'tools', 'prepare', 'dependencies', 'origin', 'secrets', 'build', 'migrate', 'start', 'health', 'owner', 'signIn', 'hosting', 'guard', 'failure', 'features', 'localOwner', 'sessionSecretKey'];
 
 // Feature flags shown by the shared browser flow must describe what this
 // adapter really does. localTrialWithoutEmail claims that sign-in works with no
@@ -44,9 +44,11 @@ export function localInstaller(hooks = {}) {
  for (const key of Object.keys(hooks)) if (!hookNames.includes(key)) throw new TypeError(`Unknown installer hook: ${key}`);
  for (const tool of hooks.tools ?? []) if (!['node', 'npm', 'pnpm', 'git'].includes(tool)) throw new TypeError(`Unsupported required tool: ${tool}. Use node, npm, pnpm or git.`);
  const features = adapterFeatures(hooks, hooks.features);
+ if (hooks.sessionSecretKey !== undefined && !/^[A-Z][A-Z0-9_]*$/.test(hooks.sessionSecretKey)) throw new TypeError('sessionSecretKey must name a setting, such as AUTH_SECRET.');
  async function run(root, input, store, onApp, signal, options = {}) {
   const context = Object.assign(createContext(root, input, store, onApp, signal, hooks.guard), options);
   context.manifest=store.setupManifest;
+  context.sessionSecretKey=hooks.sessionSecretKey??'SESSION_SECRET';
   store.addSecrets?.(credentialValues(process.env,context.manifest?.fields.filter(field=>field.kind==='secret').map(field=>field.name)));
   context.ownerClaim=context.manifest?.steps.find(step=>step.type==='owner-claim');
   options.onContext?.(context);
@@ -67,7 +69,9 @@ export function localInstaller(hooks = {}) {
    if (typeof hooks.owner === 'function' || Array.isArray(hooks.owner)) await phase(context, hooks, 'owner', hooks.owner);
    else await owner(context, hooks.owner);
   }
-  if ((['installer', 'setup', 'dev', 'preview'].includes(verb) || (verb === 'outbox' && options.requestSignIn)) && hooks.signIn) await signIn(context, hooks.signIn);
+  // Dev identity opens dev signed in; --login (devLogin) keeps the outbox sign-in.
+  const devIdentity = verb === 'dev' && options.devKey && !options.devLogin;
+  if ((['installer', 'setup', 'dev', 'preview'].includes(verb) || (verb === 'outbox' && options.requestSignIn)) && hooks.signIn && !devIdentity) await signIn(context, hooks.signIn);
   if (verb === 'installer' && hooks.hosting) await hosting(context, hooks.hosting);
   store.state.appUrl = context.appUrl ?? (context.app ? context.origin : context.hostedUrl ?? context.origin);
   if (context.hostedUrl) store.state.hostedUrl = context.hostedUrl;
@@ -91,7 +95,9 @@ export function localInstaller(hooks = {}) {
    await store.phase('failed');
   }
  }
- return { install, features, settings:hooks.secrets, supplied:hooks.secrets?.supplied??[], ownerBootstrap:Boolean(hooks.owner&&typeof hooks.owner==='object'&&!Array.isArray(hooks.owner)), run, hooks: { dependencies: ['pnpm', ['install', '--frozen-lockfile']], health: defaultHealth, ...hooks } };
+ // export and import read what the seed's prepare step writes (its generated Worker config), so a copy that never ran setup or build gets it first.
+ async function prepare(root, store, signal) { if (hooks.prepare) await hooks.prepare(createContext(root, {}, store, () => {}, signal, hooks.guard)); }
+ return { install, prepare, features, settings:hooks.secrets, supplied:hooks.secrets?.supplied??[], ownerBootstrap:Boolean(hooks.owner&&typeof hooks.owner==='object'&&!Array.isArray(hooks.owner)), run, hooks: { dependencies: ['pnpm', ['install', '--frozen-lockfile']], health: defaultHealth, ...hooks } };
 }
 
 function createContext(root, input, store, onApp, signal, guard) {
@@ -205,6 +211,14 @@ async function start(context, hooks) {
    store.report(message);const prior=approvedFailure(error);error=commandFailure(`${prior?.message??readinessLabel}\n${message}`,prior??{});
   }
   throw installationFailure('command_failed', { step: 'start', diagnostic: error });
+ }
+ // Another app can take the loopback port between the port check and the bind;
+ // its /health would pass. Claim and sign in only against the process this
+ // setup started.
+ if (!(await listenerPorts(child.pid)).includes(expectedPort)) {
+  const message = store.redact?.(`Another process answered on port ${expectedPort}; the application did not bind it. Nothing was sent. Stop that process or choose another port, then run setup again.`) ?? `Another process answered on port ${expectedPort}; the application did not bind it.`;
+  store.report?.(message);
+  throw installationFailure('command_failed', { step: 'start', diagnostic: commandFailure(message, {}) });
  }
 }
 

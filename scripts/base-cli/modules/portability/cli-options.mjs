@@ -1,4 +1,4 @@
-import { lstat, readFile, mkdir, open, link } from 'node:fs/promises';
+import { lstat, readFile, mkdir, open, rename } from 'node:fs/promises';
 import { isAbsolute, dirname } from 'node:path';
 import { constants } from 'node:fs';
 export function options(args) {
@@ -35,4 +35,4 @@ export async function privateFile(path,resume=false) {
 export async function checkpoint(path,value) {
   const file=await privateFile(path,true);try{await file.writeFile(JSON.stringify(value)+'\n');await file.sync();}finally{await file.close();}
 }
-export async function promote(partial,path) {await link(partial,path);}
+export async function promote(partial,path) {await rename(partial,path);}

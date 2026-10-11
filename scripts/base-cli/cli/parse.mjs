@@ -1,7 +1,7 @@
 import { resolve } from 'node:path';
 import { commonFlags, verbs } from './contract.mjs';
 import { invalid, refuse } from './errors.mjs';
-const booleans = new Set(['--help', '--json', '--non-interactive', '--yes', '--dry-run', '--open', '--stop', '--no-queue']);
+const booleans = new Set(['--help', '--json', '--non-interactive', '--yes', '--dry-run', '--open', '--stop', '--no-queue', '--login']);
 export const mailbox = value => typeof value === 'string' && value.length <= 254 && /^[a-zA-Z0-9.!+_%\-]+@[a-zA-Z0-9\-]+(?:\.[a-zA-Z0-9\-]+)+$/.test(value);
 export const loopback = host => ['127.0.0.1', 'localhost', '::1'].includes(host);
 export const origin = (host, port) => `http://${host === '::1' ? '[::1]' : host}:${port}`;
@@ -38,7 +38,8 @@ export function parse(argv, cwd = process.cwd(), { independent = false, deferTai
  }
  if (options.help) return options;
  if (deferTail) { options.cwd=resolve(cwd,options.cwd);return options; }
- if(options.stop && ['--port','--host','--idle-timeout','--no-queue'].some(flag=>options.supplied.has(flag)))throw invalid('--stop cannot be combined with start-only flags.');
+ if(options.stop && ['--port','--host','--idle-timeout','--no-queue','--as','--login'].some(flag=>options.supplied.has(flag)))throw invalid('--stop cannot be combined with start-only flags.');
+ if(options.as!==undefined && (options.login || !/^[a-z][a-z0-9-]{0,39}$/.test(options.as)))throw invalid(options.login?'--as and --login cannot be combined.':'--as takes a persona name such as owner, signed-out or admin.');
  if(['dev','preview'].includes(verb) && !options.stop){
   const value=options.idleTimeout??process.env.RER_SERVER_IDLE_SECONDS??'1800';
   if(!/^[1-9][0-9]*$/.test(value)||!Number.isSafeInteger(Number(value)))throw invalid('Idle timeout must be positive integer seconds.');

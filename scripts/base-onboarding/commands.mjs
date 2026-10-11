@@ -124,7 +124,7 @@ export async function createCommands(directory,state,{terminal=text=>writeSync(1
   onChild?.(child);
   ownershipRecords.set(child,{pid:child.pid,token:ownershipScope.token});
   track(label,child,ownershipScope);
-  const cancel=()=>stopCommand(child);
+  const cancel=()=>{void stopCommand(child);};
   commandSignal?.addEventListener('abort',cancel,{once:true});if(commandSignal?.aborted)cancel();
   const capture=captures.get(child);capture.removeCancellation=()=>commandSignal?.removeEventListener('abort',cancel);
   if(!capture.custody)void capture.closed.then(capture.removeCancellation);

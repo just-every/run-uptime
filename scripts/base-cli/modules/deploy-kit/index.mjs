@@ -1,7 +1,7 @@
 export { cloudflare } from './provider.mjs';
 export { deploy } from './deploy.mjs';
 export { verifyHealth, waitForDeploymentHealth } from './health.mjs';
-export { ownerWorkerName, ownerResourceName, ownerTarget, ownerPlan, ownerDeploy, ownerHealth, readOwnerState, withScopeHints } from './owner.mjs';
+export { ownerWorkerName, ownerResourceName, ownerTarget, ownerPlan, localOnlyBinding, LOCAL_ONLY_KEYS, ownerDeploy, ownerHealth, readOwnerState, withScopeHints } from './owner.mjs';
 export { verifyTeardown } from './teardown.mjs';
 export { writeHealthReceipt } from './receipt.mjs';
 export { workerConsumerScript } from './queue-consumer.mjs';

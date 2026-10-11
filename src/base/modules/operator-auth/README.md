@@ -1,9 +1,10 @@
 # Operator auth (IF-055-CORE-v1)
 
-Portable server-only ESM: import `createOperatorAuth` and `createAuthHandler` from
-`modules/operator-auth/index.mjs`. TypeScript declarations are `index.d.mts`.
-No framework or mail transport is bundled. Apply `schema/operator-auth.sql` once
-for a fresh auth database. Preserve applied migration history in an existing
+Portable server-only ESM: import `createOperatorAuth`, `createAuthHandler` and
+`createSignInHandler` from `modules/operator-auth/index.mjs`. TypeScript
+declarations are `index.d.mts`. No framework or mail transport is bundled. Apply
+`accounts/schema/operator-auth.sql` once for a fresh auth database (and
+`identity/oidc/schema/oidc.sql` when the app offers identity providers). Preserve applied migration history in an existing
 store and follow “Adopting this version” below for its additive upgrade. Tables
 use the `oa_` namespace. This module does not seed any product data.
 
@@ -54,14 +55,52 @@ Protect every private API, server function and document with
 expired, revoked, deactivated and disallowed sessions yield null; host violations
 throw `AuthError` with 403. Never return a private page then check in the browser.
 
+## Layers
+
+Base's operator auth is the only staff sign-in, in three layers:
+
+| Directory | Holds | Interface |
+| --- | --- | --- |
+| `identity/` | Proving who a person is: the email link (`identity/email-link/`), identity providers over OpenID Connect (`identity/oidc/`, see [its README](identity/oidc/README.md)), and the admission that turns a verified principal into a session (`identity/admission.mjs`). | Outputs a **verified principal** `{issuer, subject, provider?, email?, emailVerified?, emailVerifiedAt?, amr?}`; `identity/index.mjs`. |
+| `accounts/` | Who a person is in this app and what they may do: operators, roles, invitations, sessions, domain rules and step-up proofs in the `oa_` store (`accounts/store.mjs`, `accounts/schema/`). | The **accounts adapter interface** (`accounts/adapter.mjs`); Base's implementation over `oa_` is `accounts/oa.mjs`. |
+| `dev/` | Local-only dev sessions, personas and the badge, loaded only from a local-only Worker entry. | `dev/index.mjs`; see "Local dev identity" below. |
+
+The files at the root are shared by all three: HTTP and input checks, crypto,
+configuration and branding, the shared page frame (`page.mjs`), the key gate
+(`dev-gate.mjs`, `dev-admission.mjs`, which production loads to *refuse* dev
+credentials), the composition (`service.mjs`), the HTTP adapter (`routes.mjs`)
+and the sign-in page (`signin/`).
+
+### The accounts adapter interface
+
+Identity never decides who may enter; it asks the app's accounts. A seed that
+keeps its own tables (HappyToHelp, Slate) implements these methods over them and
+passes the adapter to `createAdmission` from `identity/index.mjs`:
+
+| Method | Contract |
+| --- | --- |
+| `findByEmail(email)` | The person whose account holds this **proven** email, or null. A person is `{id, email, status: 'active'\|'invited'\|'inactive', owner: boolean}`. |
+| `findBinding({issuer, subject})` | The person bound to this provider principal, or null. |
+| `bind({issuer, subject, person, associated})` | Binds `(iss, sub)` to the person and returns whether it now names them. Never rebinds a principal bound to someone else; binds only proven emails (or an explicit configured association, `associated: true`); revokes the person's earlier password credentials. |
+| `issueSession({person, principal, method, returnTo, request})` | A completed session `{session, operator, cookie, returnTo}`, or null when the person changed meanwhile. |
+| `revokeSession(sessionId)` | Ends one session (used when a seed's `afterConfirm` refuses a sign-in). |
+| `owner()` | The app's owner, or null. |
+| `acceptInvitation(...)` *(optional)* | Accepts a pending invitation through a principal that proves the invited email. |
+| `requiredProvider(email)` *(optional)* | The provider id the email's domain must use, or null. |
+
+`accounts/oa.mjs` is Base's own implementation: bindings live in
+`oa_external_identities`, sessions in `oa_sessions` (fenced to the operator's
+version), domain rules in `oa_domain_rules`. `auth.accounts` exposes it and
+`auth.admission` the admission built on it.
+
 ## HTTP contract
 
 | Path | Method | Input / result |
 | --- | --- | --- |
 | `/auth/bootstrap` | POST | token, displayName, returnTo?; 303 with cookie and safe Location |
-| `/auth/magic-link` | POST | email, returnTo?; 202 `{status:'accepted'}` for admitted/unknown/disallowed address |
+| `/auth/magic-link` | POST | email, returnTo?; 202 `{status:'accepted', requiredProvider?}` for admitted/unknown/disallowed address. A native HTML form post (URL-encoded) gets a 303 back to the sign-in page with `notice=sent` instead. |
 | `/auth/confirm?token=…` | GET/HEAD | 200 confirmation form, or 400 expired/invalid; **no writes, no session cookie** |
-| `/auth/confirm` | POST | token; consume once, create session and 303 to stored returnTo |
+| `/auth/confirm` | POST | token; consume once, create session and 303 to stored returnTo. A step-up link completes only in the session that asked for it and sets no new cookie. |
 | `/auth/session` | GET | session and operator, or 401 |
 | `/auth/signout` | POST | `{}`; revoke current session, clear cookie, 204 |
 | `/auth/invite` | POST | email, displayName, role? (member), returnTo?; mail invitation, 202 |
@@ -72,6 +111,11 @@ throw `AuthError` with 403. Never return a private page then check in the browse
 | `/auth/sessions?operatorId=…` | GET | authorized session metadata, no credentials |
 | `/auth/session/revoke` | POST | sessionId; 204 |
 | `/auth/review-session` | POST | returnTo?; explicitly configured loopback review session |
+| `/auth/step-up` | POST | action, returnTo?; email a step-up link to the signed-in operator, 202 (a form post gets 303 with `notice=step_up_sent`) |
+| `/auth/domain-rules` | GET / POST | list rules; POST domain, provider (null lifts); owner only, step-up |
+| `/auth/providers` | GET | the pinned provider links; owner only |
+| `/auth/providers/unlink`, `/auth/providers/relink` | POST | provider; owner only, step-up |
+| `/auth/oidc/<id>/start`, `/auth/oidc/<id>/callback` | POST / GET | each provider's own routes (see [identity/oidc](identity/oidc/README.md)) |
 
 Unknown `/auth/*` paths return 404. Unsupported methods return 405. Except for invalid/expired confirmation GET/HEAD documents, known public
 errors are JSON `{error:code}`: invalid input 400, unauthenticated 401, policy/host/
@@ -201,9 +245,9 @@ completed join makes cancellation conflict; a completed cancellation prevents th
 join and session creation. Use `setOperatorStatus` for explicit active-operator
 removal; its last-owner protection remains in force.
 
-The full `schema/operator-auth.sql` includes the cancellation ledger and triggers
+The full `accounts/schema/operator-auth.sql` includes the cancellation ledger and triggers
 for a fresh database. In an existing store that lacks these objects, apply
-`schema/invitation-cancellation.sql` as a **new numbered migration before switching
+`accounts/schema/invitation-cancellation.sql` as a **new numbered migration before switching
 to this runtime**: the runtime reads the ledger for reinvitation and consumes it
 on confirmation. Inspect the seed's migration history and assign its next unused
 number; never rewrite an applied migration. Do not apply both files to a fresh
@@ -258,18 +302,13 @@ exists. Missing/failing/uncertain transport revokes the link and reports
 `mail_unavailable`; retries require a new link. Explicit development results are
 accepted only in local mode. Auth never claims mailbox receipt.
 
-The OIDC adapter verifies authorization-code/PKCE/state/nonce/issuer/audience/
-signature/expiry before passing a principal to the core. The existing server-only
+Identity providers verify the whole protocol and hand the admission a verified
+principal; [identity/oidc/README.md](identity/oidc/README.md) describes them. The
+original server seams remain for existing callers:
 `auth.admitVerifiedIdentity(request, identity, {returnTo})` requires
-`{issuer,subject,email,emailVerified:true}`. `config.externalIssuers` is a
-deployment-controlled HTTPS issuer allow-list. Verified email can establish an
-account's **first** external binding. Once any issuer+subject is bound to that
-account, another principal cannot join it merely by presenting the same email,
-including from another allowed issuer. Existing identical principals can sign in
-again. The absence-of-binding check, binding insertion and session creation run
-inside one atomic D1 batch, so competing first admissions cannot both succeed.
-
-An explicit trusted server association may admit an additional principal:
+`{issuer,subject,email,emailVerified:true}` from an issuer in
+`config.externalIssuers`, and `auth.createIdentityAdmission({issuer,
+subjectEmails})` snapshots an exact issuer's subject associations:
 
 ```js
 const admit = auth.createIdentityAdmission({
@@ -280,25 +319,25 @@ const admit = auth.createIdentityAdmission({
 const result = await admit(request, { issuer, subject }, { returnTo });
 ```
 
-The factory validates and snapshots its issuer and subject map. Its returned
-function accepts a `VerifiedPrincipal` (`issuer`, `subject`, optional `email` and
-`emailVerified`). A configured subject needs no email claim; every unmapped
-subject still needs `emailVerified:true` and the first-binding rule. The map must
-come from trusted deployment configuration or independently verified server-side
-association records, never HTTP input or token email/role claims. There is no
-per-login linking flag. The OIDC adapter builds this function from its existing
-`config.subjectEmails`, preserving Microsoft's subject association path.
-
-Neither path provisions operators, moves a bound issuer+subject to another
-account, nor changes local roles. Both require existing active, allowed operators
-and fence the current authority version when issuing an `oidc` session. No schema
-change is needed; retain existing identity rows on upgrade. These are trusted
-server seams, not HTTP JSON routes. OIDC correlation storage belongs to its
-adapter; operator/session storage does not.
+Both now admit through the accounts adapter, under the same rules as provider
+sign-in. A binding on `(iss, sub)` is never silently rebound: a bound principal
+always names the same account, and one presenting another existing account's
+email is refused. A proven email binds a person's **first** principal at each
+issuer; another subject at the same issuer needs an explicit association, while
+a different issuer may bind its own principal by a proven email. Binding revokes
+the person's password sessions, and `admitVerifiedPassword` then refuses with
+`password_revoked`. An email counts only when proven in the last 30 days
+(`emailVerifiedAt`, where sent). Identity providers also refuse, in a production
+app (not `local`), `amr` containing `dev` and addresses under `.localhost`,
+`.test` or `.invalid`.
+A pending invitation is accepted when a principal proves the invited email.
+Neither path provisions operators or changes roles. The subject map must come
+from trusted deployment configuration, never HTTP input or token claims.
 
 `admitVerifiedPassword(request, operatorId, {returnTo})` supports a seed's existing
 real password verifier. It requires POST/Origin and shares active-operator,
-allow-list, version and session policy. The caller must verify and rate-limit the
+allow-list, version, domain-rule and session policy; an operator bound to a
+provider has no password admission. The caller must verify and rate-limit the
 password **before** invoking it. It neither creates an operator nor claims setup;
 there is no password checker or password endpoint in this module.
 
@@ -311,6 +350,105 @@ invalidate review admission immediately. Bind the local review listener to a
 loopback interface; a forged Host is not network isolation. Production configuration
 must never enable review. No fixture/sample operator is created for review.
 
+## The sign-in page
+
+`createSignInHandler(auth, {setup, links, defaultReturnTo})` serves the one
+sign-in page every Base seed mounts, at `branding.signInPath` (GET and HEAD; null
+for other requests). It is server-rendered plain HTML with no script, so it works
+before hydration and without JavaScript, in the same hashed-style frame as the
+confirmation page (light and dark, the seed's `rer-theme.css` when declared).
+It shows "Continue with…" for each linked, reachable provider, then the email
+link, then optional seed links (the local outbox) and, while the first owner is
+unclaimed, the setup form. A provider that has failed discovery or JWKS for 5
+minutes, or answered 404 or a DNS failure, is hidden, and a browser that still
+posts to it comes back to this page with a notice and the email link instead of
+being redirected away. Its `form-action` allows exactly this origin plus each
+visible provider's authorization origin, since the start route redirects there.
+
+Two hooks on `createOperatorAuth({hooks})` keep a seed's own sign-in work in place:
+
+- `beforeMagicLink({request, email, operator})` runs before an email link is sent
+  to an active operator; returning `false` sends nothing (the public answer is
+  unchanged).
+- `afterConfirm({request, operator, session, method, returnTo})` runs after an
+  email-link or provider sign-in (`method: 'email' | 'oidc'`). Return
+  `{returnTo}` to redirect (Vector's restored-operator review), do other work
+  (Pencil's audit mail), or throw an `AuthError` to refuse: the session it was
+  about to get is revoked first (Cradle's forgery check).
+
+## Domain rules and step-up
+
+An owner can require a provider for an email domain (`POST /auth/domain-rules`
+`{domain, provider}`; `provider: null` lifts it). Sign-ins for an address in that
+domain by any other route are refused: the email link is not sent (the public
+answer is the same, and names the domain's provider), another provider is
+refused with `oidc_provider_required`, and the password and review seams refuse
+with `provider_required`. App owners are exempt. Domains match exactly.
+Unlinking a provider lifts the rules naming it.
+
+An identity provider can assert any email, so these actions need a fresh
+**app-local email-link proof**: unlinking or changing a provider, changing domain
+rules, transferring ownership (making or unmaking an owner), export, delete and
+minting long-lived credentials (`STEP_UP_ACTIONS`). `POST /auth/step-up
+{action}` emails a link to the signed-in operator's own address; confirming it in
+the same session records the proof, which lasts 10 minutes. An email-link
+sign-in within those 10 minutes is itself a proof. A provider-issued session is
+never one. Base's own routes enforce it; a seed guards its export, delete and
+credential-minting routes with `await auth.requireStepUp(request, action)`,
+which refuses with `step_up_required` (403).
+
+## Local dev identity and the key gate
+
+`dev-gate.mjs` (exported as `devGate`, production-safe) is the per-checkout key
+gate. `rer setup` writes a random `RER_DEV_KEY` to `.rer/local/dev-key.env`;
+only local runtimes receive it as a binding, and `rer deploy` refuses it, so a
+deployed Worker has no gate and every gated surface answers 404. A tunnel or
+local reverse proxy makes remote requests look local (forwarded requests carry
+a loopback URL and Host, and `CF-Connecting-IP` is whatever the caller sent), so
+the gate is the key, not the network. `devGate({key, origin, local})` returns
+null unless the key is present and the origin is an explicit loopback origin in
+local mode. `admits(request)` accepts the `rer_dev_gate` cookie (an HMAC of the
+key, so a reset key refuses old cookies) or the key in `x-rer-dev-key` (the rer
+CLI and test harnesses). `exchange(request)` serves `GET /__dev/key` and trades
+the key from the URL fragment, through a same-origin POST, for a host-only
+`HttpOnly; SameSite=Strict; Path=/` cookie. Seeds gate their development outbox
+with it.
+
+`dev/` is the dev layer: **server-only and local-only**. Import it only from a
+local-only Worker entry (a Vite-serve or local `wrangler dev` entry), never
+from the deployed main; its `DEV_LAYER_MARKER` lets `rer build` refuse any output
+that bundles it. `withDevIdentity(worker, {bindings, config, personas})` wraps
+the seed's Worker and serves, behind the gate only:
+
+| Path | Result |
+| --- | --- |
+| `/auth/dev/enter?as=owner\|signed-out\|PERSONA&returnTo=` | Creates or reuses a real `oa_sessions` row of kind `dev` for the configured owner or persona and 303s to `returnTo` (default `/app`); `signed-out` revokes the current session. |
+| `/__dev/personas` | `[{as,email,role?}]`, used by `rer dev` for `RER_SIGNED_IN`. |
+
+`personas()` returns the seed's `devPersonas()`: `[{as, role, displayName?}]`,
+real operators at `<as>@dev.localhost` created only by dev sign-in. Dev
+sessions pass the same version fences, revocation, deactivation and allow-list
+as every other session. The core admits a `dev` session, and any credential
+minted while using one (`oa_dev_credentials`, today an invitation link, whose
+confirmation then yields a `dev` session), only when the dev layer's
+registered check passes for that request; a production Worker never registers
+one. HTML documents gain a dev-only badge for switching identity; the root
+document also gets the fragment exchange script. Both are added under the
+document's own CSP by hash. With `RER_DEV_IDENTITY=off` (`rer dev --login`)
+dev sign-in and personas answer 404 while the gate still opens the outbox. The
+layer answers 503 to every request when `RER_INSTALLATION_ID` is set beside a
+non-loopback `RER_MANAGEMENT_ORIGIN`.
+
+`dev/sign-in-as.mjs` is the test harness door: `signInAs({origin, key, as})`
+returns the cookies a test browser or fetch client installs, and
+`readDevKey(root)` reads the checkout's key.
+
+Portable archives never carry dev identity: export drops `dev` sessions and
+dev-minted credentials and marks personas suspended, and import refuses an
+archive holding either (`modules/portability/dev-data.mjs`). Seeds that mint
+their own credentials while signed in record them in `oa_dev_credentials` and
+admit them only behind the gate.
+
 ## Integration and checks
 
 Copy this directory as source; import only its server entry from `.server` modules.
@@ -320,11 +458,14 @@ consumer owns its native unauthorized document redirect and API 401 behavior.
 Mount `/auth/*` before private namespace guards and before Start; keep private
 unknown API paths behind authentication before returning 404.
 
-At the Base repository root, `pnpm run verify:operator-auth` runs the operator-auth
-and OIDC `.test.mjs` suites; `pnpm run verify:modules` runs the module `.test.ts`
+At the Base repository root, `pnpm run verify:operator-auth` runs the operator-auth,
+identity-provider and sign-in page `.test.mjs` suites; `pnpm run verify:modules` runs the module `.test.ts`
 suites. The default suite includes a static pre-ledger schema and populated-row
 upgrade fixture, exercising current handlers and persistent D1 with a fixed test
 clock; its provenance is documented in `tests/fixtures/pre-ledger/README.md`.
+`tests/prior-data.test.mjs` runs a store written by the auth-1 main's own API
+(`tests/fixtures/auth-1-store/README.md`) through these layers after the two
+additive migrations below.
 The "cancelled before the ledger" fixture row represents a state reachable only
 by a direct database update, not through the cancellation API before its ledger
 exists. The prior-data test executes every statement in the shipped migration
@@ -332,7 +473,7 @@ and checks that the applied count matches the file's statement count.
 The pre-update source upgrade check is separate from those globs. Prepare
 an independently captured pre-update source snapshot containing the complete
 `operator-auth/` directory (including `tests/worker.mjs` and
-`schema/invitation-cancellation.sql`) and `pre-cancellation.sql` at the snapshot
+`accounts/schema/invitation-cancellation.sql`) and `pre-cancellation.sql` at the snapshot
 root. With the frozen workspace dependencies installed, run:
 
 ```sh
@@ -351,9 +492,10 @@ deployment remain separate.
 ## Adopting this version
 
 Copy the **complete** `modules/operator-auth/` directory from one reviewed Base
-revision into the seed's operator-auth source location. Keep its runtime files,
-declarations, schema, OIDC adapter, conformance files and tests from that same
-revision; the runtime imports neighboring helpers within the module. Keep imports
+revision into the seed's operator-auth source location. Keep its layers
+(`identity/`, `accounts/`, `dev/`), runtime files, declarations, schema,
+conformance files and tests from that same revision; `rer check` names any copied
+file that differs from the pinned revision (`SC-05.auth-copy.*`); the runtime imports neighboring helpers within the module. Keep imports
 server-only, reconcile the seed's route integration, and run that seed's real auth
 and browser checks.
 
@@ -368,10 +510,10 @@ Cloudflare-only `accountId`; its sample maps `provider` to `MAIL_PROVIDER`,
 intentionally unavailable for first setup, omit both `mailSender` and `MAIL_FROM`
 until mail is configured.
 
-For a fresh auth database, install `schema/operator-auth.sql` through the seed's
+For a fresh auth database, install `accounts/schema/operator-auth.sql` through the seed's
 initial schema or migration process, once. In an existing store that has the
 earlier operator-auth schema but lacks cancellation objects,
-apply `schema/invitation-cancellation.sql` under the seed's next unused migration
+apply `accounts/schema/invitation-cancellation.sql` under the seed's next unused migration
 number **before switching the runtime**. The consume path now reads and removes
 the ledger during invitation acceptance, so the migration is a runtime prerequisite
 for such stores. Never rewrite an applied migration, infer cancellation for old
@@ -391,6 +533,33 @@ Pre-ledger cancelled identities have no cancellation record and remain refused
 for reinvitation until the owner deliberately removes the identity and reinvites
 the same email; the current status API cannot distinguish them from ordinary
 inactive identities.
+
+**Dev sessions.** The fresh schema admits session kind `dev` and includes
+`oa_dev_credentials`. An existing store needs `accounts/schema/dev-sessions.sql` as a
+**new numbered migration under the seed's next unused number, before switching
+to this runtime**: SQLite cannot change a CHECK in place, so it rebuilds
+`oa_sessions` with `dev` added, keeping every row, column, index and
+constraint (no table refers to `oa_sessions`), and creates
+`oa_dev_credentials`. The runtime reads that table when previewing and
+confirming links, so a store without it fails closed. Unlike the cancellation
+migration, this file is also safe after the fresh schema. The reference seed
+applies it as `migrations/core/0007_dev_sessions.sql`;
+`tests/dev-sessions-upgrade.test.mjs` upgrades a populated store built from
+the reference's earlier migrations and proves every existing session of every
+kind keeps its id and expiry and stays valid.
+
+**Layers, domain rules and step-up.** An existing store needs
+`accounts/schema/domain-rules-step-up.sql` (`oa_domain_rules`,
+`oa_step_up_challenges`) and, when it offers providers or had the earlier OIDC
+adapter, `identity/oidc/schema/oidc.sql` again (it adds `oa_identity_providers`
+and `oa_identity_provider_health`; every statement is `IF NOT EXISTS`), each as
+a new numbered migration before switching to this runtime. Both are additive and
+safe after the fresh schema; the runtime reads them when previewing links and
+requesting email links. The reference applies them as
+`migrations/core/0008_identity_providers.sql` and
+`0009_domain_rules_step_up.sql`. The earlier single-issuer `oidc/` adapter
+(`createOidcClient`) is replaced by `config.providers`; its existing bindings keep
+signing in once the same issuer is configured as a provider.
 
 Seeds copy this module at different revisions, and an older copy lacks the
 cancellation migration and the optional OIDC and conformance files. Check each

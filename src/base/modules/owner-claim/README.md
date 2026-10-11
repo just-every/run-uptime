@@ -9,7 +9,7 @@ permanently prevents another claim, including after the consumed claim expires.
 ## Adopting this module
 
 1. Copy `modules/owner-claim/` and `modules/operator-auth/` together as source;
-   preserve their relative paths. Apply `operator-auth/schema/operator-auth.sql`
+   preserve their relative paths. Apply `operator-auth/accounts/schema/operator-auth.sql`
    to a fresh store, then `owner-claim/schema/owner-claim.sql`, each as a new
    numbered application migration. Preserve existing migrations and ledgers.
 2. Provision an independent random `SESSION_SECRET` (32 random bytes or more)

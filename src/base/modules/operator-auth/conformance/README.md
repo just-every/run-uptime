@@ -23,6 +23,13 @@ same-origin stylesheet and font-preload links, verifies the exact inline style
 hash plus only same-origin style/font permissions, and still rejects external
 origins, scripts, images and unsafe inline attributes. Mail stays self-contained.
 
+A consumer that configures `branding.productName` or a seed theme
+(`branding.theme`, its served `rer-theme.css`) declares the same values as
+`adapter.branding: { productName, theme }`. Mail and confirmation must then
+carry that name, and a themed confirmation must hold exactly that one theme
+stylesheet link and the CSP `style-src 'self' 'sha256-…'; font-src 'self';
+img-src 'self'`; every other resource rule above still applies.
+
 The Base conformance registration is executable at
 [`../tests/conformance.test.ts`](../tests/conformance.test.ts), and its D1/Worker
 adapter lives in this directory's `tests/worker.mjs` and `tests/runtime.mjs`.
@@ -52,7 +59,7 @@ The registered cases prove:
   through `admitVerifiedIdentity`, followed by access through the same native
   session route. This is a no-provider-key seam check, not an OIDC protocol
   check. The protocol, keys, PKCE, state, nonce and callback behavior remain
-  covered by `modules/operator-auth/oidc/tests/`.
+  covered by `modules/operator-auth/identity/oidc/tests/`.
 
 The optional seam is enabled by setting `adapter.oidcIssuer` to one exact HTTPS
 issuer and implementing `runtime.admitVerifiedIdentity`. It must call the real

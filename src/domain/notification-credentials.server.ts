@@ -1,5 +1,5 @@
 // @ts-expect-error Maintained Base AES-GCM primitive; product purpose and record AAD below.
-import {keyedHash,seal,unseal,decode} from '../base/modules/operator-auth/oidc/crypto.mjs'
+import {keyedHash,seal,unseal,decode} from '../base/modules/operator-auth/identity/oidc/crypto.mjs'
 import {sha256} from '../base/modules/integrations/core/crypto.ts'
 import type {Bindings} from './control.server.ts'
 type Identity={id:string;destination_id:string;created_at:number};

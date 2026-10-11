@@ -6,6 +6,7 @@ import { populateArchiveFixture } from './archive-fixture.mjs';
 import { archive as productArchive } from '../src/domain/archive.server.ts';
 import { chromium } from 'playwright';
 import { scratchInstallation, machineAvailable } from './scratch-installation.mjs';
+import { openGate, readCheckoutKey } from './auth-test-support.mjs';
 import { until, assertPortFree, signInThroughOutbox, smokeDocuments, descendantGroups, assertGroupsGone } from './installer-support.mjs';
 const scratch = await scratchInstallation();
 let dev, browser, origin; const groups = new Set();
@@ -39,12 +40,16 @@ try {
  try { assert.equal((await conflicting.done).code, 4); } finally { await scratch.stop(conflicting); }
  await machineAvailable(); dev = scratch.start('node', ['scripts/rer.mjs', 'dev']);
  await until(() => { assert.equal(dev.exitCode, null); return dev.output.includes('RER_READY ' + origin); });
- assert.ok(dev.output.includes('RER_SIGN_IN ' + origin + '/__dev/outbox'));
+ // dev opens signed in: the owner it names and the key-carrying link (whose key stays in the fragment).
+ assert.ok(dev.output.includes('RER_SIGNED_IN journey@example.test'));
+ assert.ok(dev.output.includes('RER_OPEN ' + origin + '/#rer-dev='));
+ assert.equal((await fetch(origin + '/__dev/outbox')).status, 404, 'the outbox answers only a request that holds the key');
  assert.equal((await fetch(origin + '/@vite/client')).status, 200, 'real Vite asset/HMR support');
  await invoke(['outbox']);
  const resetActive = scratch.start('node', ['scripts/rer.mjs', 'reset', '--yes', '--non-interactive']);
  try { assert.equal((await resetActive.done).code, 4); } finally { await scratch.stop(resetActive); }
  browser = await chromium.launch({ headless: true }); const page = await browser.newPage();
+ await openGate(page.context(), origin, await readCheckoutKey(scratch.root));
  await page.goto(origin + '/__dev/outbox'); await page.getByRole('link', { name: 'Read message' }).first().click();
  await signInThroughOutbox(page, page.url(), { displayName: 'Command Owner', OWNER_EMAIL: 'journey@example.test' }, { finishSetup: false });
  assert.equal(new URL(page.url()).pathname, '/setup', 'rer sign-in returns the unfinished owner to setup');
@@ -104,15 +109,15 @@ try {
  let native = await startLocalWorker({ root: scratch.root, persist: join(scratch.root, '.wrangler/state'), bindings: values, assets: false });
  try { const env = { ...values, DB: await native.getD1Database('DB') }; await populateArchiveFixture(env); expected = await productArchive(env); }
  finally { await native.dispose(); }
- const archive = join(scratch.root, '.exports/product.jsonl');
- await invoke(['export', '--output', '.exports/product.jsonl']); assert.equal((await stat(archive)).mode & 0o777, 0o600);
+ const archive = join(scratch.root, 'exports/product.rer');
+ await invoke(['export', '--output', 'exports/product.rer']); assert.equal((await stat(archive)).mode & 0o777, 0o600);
  await mkdir(join(scratch.root, '.rer/deploy'), { recursive: true }); await writeFile(join(scratch.root, '.rer/deploy/receipt'), 'retained');
  await invoke(['reset', '--yes', '--non-interactive']);
  assert.equal(await readFile(join(scratch.root, '.rer/deploy/receipt'), 'utf8'), 'retained');
  await invoke(['reset', '--yes', '--non-interactive']);
- await invoke(['import', '--input', '.exports/product.jsonl', '--yes']);
+ await invoke(['import', '--input', 'exports/product.rer', '--yes']);
  await invoke(['setup', '--owner-email', 'receiving@example.test', '--non-interactive']);
- await invoke(['export', '--output', '.exports/restored.jsonl']);
+ await invoke(['export', '--output', 'exports/restored.rer']);
  const receiving = JSON.parse(await readFile(settingsPath));
  native = await startLocalWorker({ root: scratch.root, persist: join(scratch.root, '.wrangler/state'), bindings: receiving, assets: false });
  try {

@@ -2,8 +2,14 @@
 
 `bin/rer.mjs` dispatches `cli/main.mjs`. Parsing/contract declarations, project
 resolution, output/exits, shared lifecycle orchestration, local state/reset,
-transfers, independent argv and diagnostics are separate modules. Release retains
+transfers, independent argv and diagnostics are separate modules. `dev-identity.mjs`
+holds the per-checkout dev key (`.rer/local/dev-key.env`), the `RER_OPEN` URL,
+the managed-installation refusal and the build-output dev-layer scan. Release retains
 its own compatibility parser and producer and does not use the generic executor.
+
+The browser installer that `rer install` opens, and Base's sign-in confirmation and
+`/setup` frames, wear the seed's declared theme (`public/rer-theme.css`); the
+contract and token table are under "Seed theme" in `onboarding/README.md`.
 
 `node scripts/export-cli.mjs SEED_ROOT` copies the deterministic `sourceRoots`
 in `cli/export.mjs`, preserving their relative topology under
@@ -133,7 +139,8 @@ want this declares one adapter option: `commandAdapter(lifecycle, { scheduled: f
 `setup` and every `dev` start ask the local application for one ordinary
 sign-in message (and `setup` claims the first owner) so the outbox is ready.
 Those requests carry `x-rer-local-cli`, an HMAC-SHA256 of `local-cli\0sign-in`
-keyed by the installation's private `SESSION_SECRET`
+keyed by the installation's private session secret (the setting the adapter
+declares as `sessionSecretKey`, default `SESSION_SECRET`)
 (`onboarding/adapter-auth.mjs`; checked in
 `modules/operator-auth/local-cli.mjs`). A server in local (loopback) mode skips
 the sign-in and owner-claim rate limit for a request with a valid proof, so
@@ -146,23 +153,25 @@ Idle timeout is `--idle-timeout SECONDS`, then `RER_SERVER_IDLE_SECONDS`, then
 1800 seconds. Only positive integer seconds are accepted. HTTP requests,
 including assets/outbox, reset inactivity; a live request/stream prevents idle
 shutdown. Internal health probes and Vite HMR control traffic do not prolong
-serving; application WebSocket data messages count. Explicit stop, idle expiry
-and eviction clean up owned descendants before releasing state and capacity.
+serving; application WebSocket data messages count. Explicit stop and idle
+expiry clean up owned descendants before releasing state and capacity.
 
 The private registry defaults to the OS user's `~/.rer/servers` independently
 of checkout and Codex home; `RER_SERVERS_DIR` selects an isolated directory.
 The combined dev/preview cap is 2 (`RER_SERVER_LIMIT`, positive integer).
-Starting reservations count. Capacity stops the oldest eligible instance only
-after at least 60 seconds without activity and no active request/stream; ties
-use start time then canonical checkout. Otherwise admission refuses with safe
-URLs and stop instructions. Concurrent policy uses the stricter active limit.
+Starting reservations count. At the cap a start is refused with a plain message
+naming each running server, its checkout and its stop command; rer never stops
+another checkout's server to make room, in any mode. A run that declares itself
+a test or CI journey with `RER_SERVER_JOURNEY=1`, on its own `--port`, neither
+counts toward the cap nor is refused by it; its port must be free, as for any
+server. Concurrent policy uses the stricter active limit among counted servers.
 Symlink/cwd spellings share an instance; distinct worktrees remain distinct.
 
 Bounded workflows enter the queue before checkout custody. Managed serving
 reserves under a short machine transaction, releases that transaction, then takes
 checkout custody before finite preparation. A competing local operation refuses
 immediately rather than waiting with a lease. Cleanup stops processes and releases private/state custody
-before removing a generation's registry record. Stop/eviction waits never need
+before removing a generation's registry record. Stop waits never need
 the machine transaction during process cleanup. A stale generation cannot remove
 its replacement. Unverifiable foreign processes are never adopted or signalled.
 

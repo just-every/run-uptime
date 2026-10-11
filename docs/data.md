@@ -5,8 +5,8 @@ Your monitoring history is yours to take with you. Uptime can export an archive 
 On a local installation, stop dev first, then use the two commands:
 
 ```sh
-node scripts/rer.mjs export --output .exports/uptime.jsonl
-node scripts/rer.mjs import --input .exports/uptime.jsonl --yes
+node scripts/rer.mjs export --output exports/uptime.rer
+node scripts/rer.mjs import --input exports/uptime.rer --yes
 ```
 
 Import needs an empty installation. Run setup afterwards to establish the receiving owner.

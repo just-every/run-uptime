@@ -69,9 +69,13 @@ try {
   await login.goto(runtime.origin + '/login');
   await login.getByLabel('Email address').fill(bindings.OWNER_EMAIL);
   const sent = await nativePost(login, '/auth/magic-link', 'Send sign-in link');
-  assert.equal(sent.status(), 200);
-  assert.match(sent.headers()['content-type'], /text\/html/);
-  await login.getByRole('heading', {name: 'Check your email', exact: true}).waitFor();
+  assert.equal(sent.status(), 303, 'native form redirects to its acknowledgement');
+  const acknowledgement = new URL(sent.headers().location, runtime.origin);
+  assert.equal(acknowledgement.origin, runtime.origin);
+  assert.equal(acknowledgement.pathname, '/login');
+  assert.equal(acknowledgement.searchParams.get('notice'), 'sent');
+  await login.waitForURL(acknowledgement.href);
+  await login.getByRole('status').waitFor();
   assert.equal(mails.length, 1);
   const link = new URL(mails[0].content.find(content => content.type === 'text/plain').value.match(/https:\/\/[^\s]+/)[0]);
   assert.equal(link.origin, runtime.origin);

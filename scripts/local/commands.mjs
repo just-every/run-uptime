@@ -12,7 +12,7 @@ export async function buildCommand(context) {
  const directory = await privateDirectory(root, ['.rer', 'local']);
  const home = await mkdtemp(join(directory, 'build-home-'));
  store.ownCleanup(signal, () => rm(home, { recursive: true, force: true }));
- const env = { ...buildEnvironment(), HOME: home };
+ const env = { ...buildEnvironment(), HOME: home, X_LOCAL_EXPLORER: 'false' };
  assertCredentialFree(env);
  return ['pnpm', ['run', 'build:app'], { env }];
 }

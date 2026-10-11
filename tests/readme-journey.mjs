@@ -3,6 +3,7 @@ import { open, readFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { chromium } from 'playwright';
 import { scratchInstallation, repository, machineAvailable } from './scratch-installation.mjs';
+import { openGate, readCheckoutKey } from './auth-test-support.mjs';
 import { assertPortFree, signInThroughOutbox, smokeDocuments, until, descendantGroups, assertGroupsGone } from './installer-support.mjs';
 
 // Execute the local README shell blocks verbatim. Git redirects only the clone
@@ -41,6 +42,7 @@ try {
  const settings = JSON.parse(await readFile(join(appRoot, 'data/local-secrets.json'), 'utf8'));
  browser = await chromium.launch({ headless: true });
  const page = await browser.newPage();
+ await openGate(page.context(), origin, await readCheckoutKey(appRoot));
  await page.goto(origin + '/__dev/outbox');
  await page.getByRole('link', { name: 'Read message' }).first().click();
  await signInThroughOutbox(page, page.url(), { OWNER_EMAIL: settings.OWNER_EMAIL, displayName: ownerName });

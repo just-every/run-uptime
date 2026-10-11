@@ -1,7 +1,7 @@
 {
   "id": "uptime",
   "name": "Uptime",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "maturity": "local-installer-and-owner-deploy-implemented-hosted-unverified",
   "category": "monitoring",
   "spine": {

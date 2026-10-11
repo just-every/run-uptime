@@ -2,6 +2,8 @@
 import json
 import re
 
+from hit_location import match_spans
+
 HEX = re.compile(r'[a-f0-9]{64}\Z')
 GIT_REVISION = re.compile(r'[a-f0-9]{40}\Z')
 
@@ -65,28 +67,13 @@ class Document:
     def matches(self, hit, pointers):
         if hit.get('RuleID') not in ('generic-api-key', 'hex-api-key'):
             return False
-        lines = self.data.splitlines(keepends=True)
-        try:
-            first, last = hit['StartLine'] - 1, hit['EndLine'] - 1
-            if not (0 <= first <= last < len(lines)):
-                return False
-            start = sum(map(len, lines[:first])) + hit['StartColumn'] - 1
-            end = sum(map(len, lines[:last])) + hit['EndColumn']
-            # Gitleaks 8.30.1 includes the preceding newline in columns
-            # after fragment line one; Git fragments may begin mid-file.
-            # Resolve that one-byte difference only against the exact match.
-            located = set()
-            for shift in (0, 1):
-                left, right = start - shift, end - shift
-                if self.data[left:right] != hit['Match'].encode('utf-8'):
-                    continue
-                for pointer in pointers:
-                    span = self.spans.get(pointer)
-                    if span:
-                        a, b, value = span
-                        if (left <= a + 1 and b - 1 <= right and hit['Secret'] == value
-                                and self.data[a + 1:b - 1] == value.encode('ascii')):
-                            located.add((a, b))
-            return len(located) == 1
-        except (KeyError, TypeError, IndexError, UnicodeError):
-            return False
+        located = set()
+        for left, right in match_spans(self.data, hit):
+            for pointer in pointers:
+                span = self.spans.get(pointer)
+                if span:
+                    a, b, value = span
+                    if (left <= a + 1 and b - 1 <= right and hit.get('Secret') == value
+                            and self.data[a + 1:b - 1] == value.encode('ascii')):
+                        located.add((a, b))
+        return len(located) == 1

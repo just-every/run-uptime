@@ -52,22 +52,7 @@ export async function scopedProcesses(scope, table, timeout = inspectionMs, prev
     && (member.uid === undefined || member.uid === process.getuid())
 )
   if (!candidates.length) return []
-  const environments = new Map()
-  if (process.platform !== 'linux') {
-    let stdout
-    try {
-      ({ stdout } = await execute('/bin/ps', ['eww', '-p', candidates.map(member => member.pid).join(','), '-o', 'pid=', '-o', 'command='], { timeout, maxBuffer: 16 * 1024 * 1024 }))
-    } catch (error) {
-      // ps may lose a candidate while it enumerates. Keep partial private output
-      // only for that exit code; each missing identity is checked below.
-      if (error.code === 1 && typeof error.stdout === 'string') stdout = error.stdout
-      else throw new Error('Could not inspect scoped process ownership.')
-    }
-    for (const line of stdout.split('\n')) {
-      const match = line.match(/^\s*(\d+)\s+(.*)$/)
-      if (match) environments.set(Number(match[1]), match[2])
-    }
-  }
+  const environments = process.platform === 'linux' ? new Map() : await readEnvironments(candidates.map(member => member.pid), timeout)
   const matches = []
   inspectCandidate: for (const member of candidates) {
     let environment
@@ -86,8 +71,13 @@ export async function scopedProcesses(scope, table, timeout = inspectionMs, prev
         // a transient read error as foreign ownership or completed cleanup.
         const current = await readProcessIdentity(member.pid, Math.max(1, inspectionEnd - Date.now()))
         if (!sameBirth(current, member) || current.state.startsWith('Z')) continue inspectCandidate
-        if (process.platform === 'linux' && ['ENOENT', 'ESRCH'].includes(error.code) && Date.now() < inspectionEnd) {
-          await delay(5); continue
+        if (Date.now() < inspectionEnd && (process.platform !== 'linux' || ['ENOENT', 'ESRCH'].includes(error.code))) {
+          // The same live birth is still between images (fork/exec) or being
+          // reaped. Wait for its environment to become readable, up to the
+          // inspection deadline, instead of reading the batch listing once.
+          await delay(5)
+          if (process.platform !== 'linux') for (const [pid, text] of await readEnvironments([member.pid], Math.max(1, inspectionEnd - Date.now()))) environments.set(pid, text)
+          continue
         }
         throw new Error(`Could not inspect ownership of process ${member.pid} (${error.code ?? 'missing'}, state ${current.state}).`)
       }
@@ -100,6 +90,27 @@ export async function scopedProcesses(scope, table, timeout = inspectionMs, prev
   // legitimately change, so follow the same birth identity across that change.
   // The caller rechecks each match's full PID/start/command identity.
   return matches
+}
+
+// macOS exposes a process environment only through ps. One bounded call lists
+// every candidate; a process that vanishes or is between images yields no line
+// or an empty command, and callers wait for that same birth rather than guess.
+async function readEnvironments(pids, timeout) {
+  let stdout
+  try {
+    ({ stdout } = await execute('/bin/ps', ['eww', '-p', pids.join(','), '-o', 'pid=', '-o', 'command='], { timeout, maxBuffer: 16 * 1024 * 1024 }))
+  } catch (error) {
+    // ps may lose a candidate while it enumerates. Keep partial private output
+    // only for that exit code; each missing identity is checked by the caller.
+    if (error.code === 1 && typeof error.stdout === 'string') stdout = error.stdout
+    else throw new Error('Could not inspect scoped process ownership.')
+  }
+  const environments = new Map()
+  for (const line of stdout.split('\n')) {
+    const match = line.match(/^\s*(\d+)\s+(.+)$/)
+    if (match) environments.set(Number(match[1]), match[2])
+  }
+  return environments
 }
 
 export function inheritedScopeTokens(environment) {

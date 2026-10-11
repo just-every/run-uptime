@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFile,readdir} from 'node:fs/promises';
 import {join} from 'node:path';
 import {runtimeDirectory,cleanupDirectory,availablePorts,waitFor} from './notify-acceptance-runtime.mjs';
-import {authRequest,signInOwner,testAuthBindings} from './auth-test-support.mjs';
+import {authRequest,signInOwner,testAuthBindings,readCheckoutKey} from './auth-test-support.mjs';
 import {hostedRuntime} from './hosted-auth-runtime.mjs';
 import {splitSql} from './migration-support.mjs';
 import {scratchInstallation,machineAvailable} from './scratch-installation.mjs';
@@ -37,7 +37,8 @@ async function probe(call,settings,fetcher=fetch,requireRunner=false){
 try{
  await scratch.run('pnpm',['install','--frozen-lockfile']);
  await scratch.run('pnpm',['run','setup','--','--owner-email',testAuthBindings.OWNER_EMAIL,'--port',String(port),'--non-interactive']);
- const settings=JSON.parse(await readFile(join(scratch.root,'data/local-secrets.json'),'utf8'));
+ // The installation's own dev key opens its outbox, as it does for the person at this checkout.
+ const settings={...JSON.parse(await readFile(join(scratch.root,'data/local-secrets.json'),'utf8')),RER_DEV_KEY:await readCheckoutKey(scratch.root)};
  await machineAvailable();child=scratch.start('pnpm',['run','dev']);
  await waitFor(async()=>{if(child.exitCode!==null)throw Error('Development launcher stopped');return child.output.includes('RER_READY '+origin)&&(await fetch(origin+'/health')).ok},'real pnpm run dev',60000);
  syntheticPort=JSON.parse(await readFile(join(scratch.root,'.wrangler/state/synthetic-grant.json'),'utf8')).port;

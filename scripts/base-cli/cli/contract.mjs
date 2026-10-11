@@ -3,7 +3,7 @@ export const commonFlags = ['--help', '--cwd', '--non-interactive', '--json'];
 const definitions = {
  install: [[], 'Frozen dependency installation; no setup or global tool changes.'],
  setup: [['--owner-email', '--owner-name', '--port', '--host', '--answers'], 'Build, migrate, prepare private settings and first owner; stop the temporary app.'],
- dev: [['--port', '--host', '--idle-timeout', '--stop'], 'Foreground development with assets, HMR, ordinary owner sign-in and the declared scheduled triggers run locally on their schedule.'],
+ dev: [['--port', '--host', '--idle-timeout', '--stop', '--as', '--login'], 'Foreground development with assets, HMR and the declared scheduled triggers run locally on their schedule. With devIdentity it opens signed in as the owner (--as PERSONA picks another start, --login uses the outbox sign-in instead); otherwise ordinary owner sign-in through the outbox.'],
  preview: [['--port', '--host', '--idle-timeout', '--stop'], 'Foreground fixed production output; reuse intact build, preserve owner/state, idle timeout and explicit stop.'],
  build: [[], 'Production build with private local settings excluded and restored.'],
  verify: [[], 'Run the complete internal verification target.'],

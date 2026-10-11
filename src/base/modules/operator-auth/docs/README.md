@@ -2,12 +2,12 @@
 
 This module is server-only. Copy `modules/operator-auth/` into the product source,
 import its server entry from server-owned files, and apply
-`schema/operator-auth.sql` as a new numbered migration on the product's primary
+`accounts/schema/operator-auth.sql` as a new numbered migration on the product's primary
 D1 database. The integrator assigns the next migration number. Keep applied
 migrations unchanged, plan an explicit existing-operator import for populated
 systems, and never treat applying the schema as creating an owner or product data.
 When upgrading an existing auth store, apply the separate additive
-`schema/invitation-cancellation.sql` before enabling pending-invitation cancellation;
+`accounts/schema/invitation-cancellation.sql` before enabling pending-invitation cancellation;
 do not replay the complete schema. Its ledger is durable admission state, not
 credential cleanup data. See the [migration and cancellation contract](../README.md).
 
@@ -54,23 +54,23 @@ coverage, register the shared suite once from the seed's existing test file. See
 types. The adapter must exercise the adopting Worker and real D1, and the private
 request must traverse the product's actual session gate.
 
-## Optional OIDC and local review
+## Identity providers, the sign-in page and local review
 
-Use `modules/operator-auth/oidc/index.mjs` only from a server entry. Construct
-`createOidcClient({ auth, db, clientIp, config })` with the same auth instance and
-primary D1 database. Set the exact deployment-owned HTTPS issuer in both
-`config.issuer` and the core's `externalIssuers`; keep client and transaction
-secrets in Worker bindings. Dispatch the OIDC handler before the core auth
-handler because both own `/auth/*` paths, and preserve all `Set-Cookie` headers
-individually. The client builds a server-only admission closure through
-`auth.createIdentityAdmission({ issuer, subjectEmails })`. A persisted
-issuer/subject may be admitted again; another principal cannot attach to an
-already-bound operator by matching its verified email. Configure any explicit
-subject-to-existing-email association from trusted server configuration, never
-callback input. Custom auth adapters must provide the same closed-over issuer
-and association semantics. The provider-key-free conformance case checks only a
-first binding into an unbound active owner; the independent OIDC tests cover the
-protocol without live provider credentials.
+Mount `createSignInHandler(auth)` at the seed's sign-in path ahead of the app's
+own routes; it replaces a seed's own sign-in page once the seed has checked its
+`ACCEPTANCE.md`. Offer providers through `config.providers` (each with a preset:
+`auth`, `google`, `microsoft` or `okta`) plus an independent
+`OIDC_TRANSACTION_SECRET`, pass the runtime's `fetch`, apply
+`identity/oidc/schema/oidc.sql`, and keep client secrets and the app's private
+key in Worker bindings. `createAuthHandler(auth)` then also serves each
+provider's `/auth/oidc/<id>/start` and `/auth/oidc/<id>/callback`; preserve all
+`Set-Cookie` headers individually. See [identity/oidc](../identity/oidc/README.md)
+for presets, pinning, email trust and reachability, and the module README for
+domain rules, step-up and the `beforeMagicLink`/`afterConfirm` hooks. Microsoft
+and Okta identify people only through `subjectEmails`, configured from trusted
+server configuration, never callback input. The provider-key-free conformance
+case checks only a first binding into an unbound active owner; the fake-provider
+tests cover the protocol without live provider credentials.
 
 `review` is a local-only mechanism. Keep `review.enabled` false in production;
 bind a local review server to a loopback interface; use literal `localhost`,

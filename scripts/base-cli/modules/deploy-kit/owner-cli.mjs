@@ -19,7 +19,7 @@ async function ownerArtifact(root, product) {
 }
 
 /** Inputs: CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN, plus the secrets the declaration names on first deploy. */
-export async function main(argv = process.argv.slice(2), env = process.env, {fetch = globalThis.fetch, cwd = process.cwd(), healthOptions} = {}) {
+export async function main(argv = process.argv.slice(2), env = process.env, {fetch = globalThis.fetch, cwd = process.cwd(), healthOptions, localOnlyKeys = []} = {}) {
   let parsed;
   try { parsed = parseArgs({args:argv,allowPositionals:true,strict:true,options:{declaration:{type:'string'},environment:{type:'string'},product:{type:'string',default:''},state:{type:'string'}}}); }
   catch { throw new Error('usage'); }
@@ -37,7 +37,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, {fet
   const target = await ownerTarget(api,{project:declaration.project,environment:values.environment});
   const statePath = values.state ? resolve(root,values.state) : join(root,'.rer','deploy',`${target.environment}.json`);
   const artifact = await ownerArtifact(root,values.product);
-  const plan = ownerPlan(target,declaration,artifact);
+  const plan = ownerPlan(target,declaration,artifact,{localOnlyKeys});
   if (command === 'health') {
     await ownerHealth({api,target,plan,statePath,fetch,healthOptions:{...healthOptions,readiness:{single:true,totalMs:30000}}});
     return {ok:true,worker:target.worker,origin:target.origin};
@@ -54,5 +54,5 @@ export function report(error) {
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   try { console.log(JSON.stringify(await main())); }
-  catch (error) { console.error(JSON.stringify(report(error))); process.exitCode = 1; }
+  catch (error) { console.error(JSON.stringify(report(error))); process.exitCode = error.message === 'local-only-binding' ? 4 : 1; }
 }

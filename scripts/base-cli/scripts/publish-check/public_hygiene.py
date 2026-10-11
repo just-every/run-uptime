@@ -5,6 +5,7 @@ from destination import RULE as PENDING_DESTINATION
 from hygiene_text import decoded_text
 from provenance import provenance_text
 from hygiene_config import EMAIL, LOCAL_PATH, public_email
+from font_licence import without_required_notices
 URI_AUTHORITY = re.compile(r'''(?i)(?a:(?P<scheme>[a-z][a-z0-9+.-]*:))?//(?P<authority>[^/?#\s<>"']+)''')
 
 
@@ -31,7 +32,7 @@ def inspect_text(data, path, config, resolver):
         rules.add('hygiene.internal-reference')
     # URL paths, queries and fragments remain visible to email inspection.
     if '@' in text:
-        email_text = URI_AUTHORITY.sub(email_userinfo, text)
+        email_text = URI_AUTHORITY.sub(email_userinfo, without_required_notices(text))
         email_text = re.sub(r'(?i)\b(?a:git@github\.com:)(?=[A-Za-z0-9])', '', email_text)
         version = r'(?:v?[0-9]+(?:\.[0-9]+)*(?:-[A-Za-z0-9-]+)?|[a-f0-9]{40})(?![A-Za-z0-9_.-])'
         email_text = re.sub(r'(?m)^\s*-?\s*uses:\s*[\"\']?[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+@[^\s\"\']+', '', email_text)

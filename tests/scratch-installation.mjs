@@ -15,14 +15,14 @@ export async function machineAvailable(timeout = 20 * 60_000) {
  const threshold = servingLoadThreshold(), end = Date.now() + timeout;
  while (loadavg()[0] > threshold) { assert.ok(Date.now() < end, `machine load stayed above ${threshold}`); await delay(5000); }
 }
-const excluded = new Set(['.git', 'node_modules', 'dist', 'data', '.seed', '.rer', '.wrangler', '.dev.vars', '.dev.vars.previous', 'test-results', 'playwright-report', '.exports', '.rer-tools', 'delivery-artifact', 'rer-package']);
+const excluded = new Set(['.git', 'node_modules', 'dist', 'data', '.seed', '.rer', '.wrangler', '.dev.vars', '.dev.vars.previous', 'test-results', 'playwright-report', '.exports', 'exports', '.rer-tools', 'delivery-artifact', 'rer-package']);
 // Copy the current candidate bytes and isolate the installation.
 export async function scratchInstallation({ mirror = false } = {}) {
  const directory = await realpath(await mkdtemp(join(tmpdir(), 'uptime-local-journey-')));
  const root = join(directory, mirror ? 'mirror' : 'uptime');
  const temporary = join(directory, 'temporary');
  await mkdir(temporary, { mode: 0o700 });
- const env = { PATH: process.env.PATH, HOME: process.env.HOME, CI: 'true', TMPDIR: temporary, TMP: temporary, TEMP: temporary,
+ const env = { PATH: process.env.PATH, HOME: process.env.HOME, CI: 'true', RER_SERVER_JOURNEY: '1', TMPDIR: temporary, TMP: temporary, TEMP: temporary,
   npm_config_child_concurrency: '1', npm_config_network_concurrency: '2', WRANGLER_SEND_METRICS: 'false', WRANGLER_LOG_PATH: join(temporary, 'wrangler.log'),
   ...(process.env.PLAYWRIGHT_BROWSERS_PATH ? { PLAYWRIGHT_BROWSERS_PATH: process.env.PLAYWRIGHT_BROWSERS_PATH } : {}) };
  const children = new Set();

@@ -17,5 +17,5 @@ export function authDocument(setup=false,sent=false,localReview=false){
  const fields=setup?'<label>Setup token<input name="token" type="password" autocomplete="off" required></label><label>Your name<input name="displayName" autocomplete="name" required></label>':'<label>Email address<input name="email" type="email" autocomplete="email" required></label>';
  // Sign-in returns through /setup, which sends a finished owner on to the console at /app.
  const form=`<form method="post" action="${setup?'/auth/bootstrap':'/auth/magic-link'}">${fields}<input type="hidden" name="returnTo" value="/setup"><button>${setup?'Create owner account':'Send sign-in link'}</button></form>${!setup?'<p class="outbox"><a class="text-link" href="/claim">Claim the first owner with an installation token</a></p>':''}${localReview&&!setup?'<p class="outbox"><a class="text-link" href="/__dev/outbox">Open development outbox</a></p>':''}`;
- return new Response(shellDocument({title,style,card:`<h1>${title}</h1><p>${lead.replace('data/local-secrets.json','<code>data/local-secrets.json</code>')}</p>${form}`}),{headers:documentHeaders});
+ return new Response(shellDocument({title,style,card:`<h1>${title}</h1><p${sent?' role="status"':''}>${lead.replace('data/local-secrets.json','<code>data/local-secrets.json</code>')}</p>${form}`}),{headers:documentHeaders});
 }

@@ -18,7 +18,7 @@ export async function startLocalWorker({root=resolve(fileURLToPath(new URL('../'
   const worker=new Miniflare(convertV4MiniflareOptions({
     name:config.name,scriptPath:join(emitted,config.main),modules,modulesRoot:emitted,
     compatibilityDate:config.compatibility_date,compatibilityFlags:config.compatibility_flags,
-    host,port,...(outboundService?{outboundService}:{}),unsafeLocalExplorer:false,unsafeObservability:false,resourcePersistencePath:join(resolve(persist),'v3'),
+    host,port,...(outboundService?{outboundService}:{}),unsafeTriggerHandlers:false,unsafeLocalExplorer:false,unsafeObservability:false,resourcePersistencePath:join(resolve(persist),'v3'),
     d1Databases:Object.fromEntries(config.d1_databases.map(db=>[db.binding,db.database_id])),
     ...(assets?{assets:{directory:resolve(emitted,config.assets.directory),binding:'ASSETS',routerConfig:{has_user_worker:true},run_worker_first:true}}:{}),bindings:{UPTIME_LOCAL_REVIEW:'true',...secrets,...bindings,UPTIME_ORIGIN:bindings.UPTIME_ORIGIN??`http://127.0.0.1:${port}`},
   }));

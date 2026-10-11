@@ -12,18 +12,18 @@ export async function prepare({ root, input, store }) {
   throw installationFailure('command_failed', { step: 'setup' });
  }
  const email = await priorOwnerEmail(join(root, '.wrangler/state'));
- if (email && input.OWNER_EMAIL.toLowerCase() !== email) {
+ if (email && typeof input?.OWNER_EMAIL === 'string' && input.OWNER_EMAIL.toLowerCase() !== email) {
   store.report('The saved owner differs from the requested owner. Reuse that owner or export and explicitly reset.');
   throw installationFailure('command_failed', { step: 'setup' });
  }
  await privateDirectory(root, ['.wrangler', 'state']);
 }
 export async function runtimeTarget(context, development) {
- const { root, origin, vars, store, signal, runtimePort } = context;
+ const { root, origin, vars, store, signal, runtimePort, devKey, devLogin } = context;
  // Managed dev and preview serve the origin through a proxy to an internal loopback port.
  const hostname = runtimePort ? '127.0.0.1' : new URL(origin).hostname.replace(/^\[|\]$/g, '');
  const port = String(runtimePort ?? new URL(origin).port);
- const runtime = { ...process.env, UPTIME_LOCAL_ORIGIN: origin, UPTIME_LOCAL_HOST: hostname, UPTIME_LOCAL_PORT: port, UPTIME_LOCAL_PERSIST: join(root, '.wrangler/state'), UPTIME_LOCAL_SETTINGS: join(root, 'data/local-secrets.json') };
+ const runtime = { ...process.env, X_LOCAL_EXPLORER: 'false', UPTIME_LOCAL_ORIGIN: origin, UPTIME_LOCAL_HOST: hostname, UPTIME_LOCAL_PORT: port, UPTIME_LOCAL_PERSIST: join(root, '.wrangler/state'), UPTIME_LOCAL_SETTINGS: join(root, 'data/local-secrets.json') };
  const grantPath = join(root, '.wrangler/state/synthetic-grant.json');
  // Synthetic monitors name the synthetic port, so a relaunch keeps the port its grant records.
  const syntheticPort = await syntheticPortFor(process.env.UPTIME_SYNTHETIC_PORT, grantPath);
@@ -41,7 +41,8 @@ export async function runtimeTarget(context, development) {
   if (!runner) runner = store.spawn('Starting the private runner', process.execPath, ['runners/src/private-runner.mjs'], { cwd: root, signal, env: { ...runtime, UPTIME_CONTROL_ORIGIN: origin, UPTIME_LOCAL_REVIEW: 'true', UPTIME_RUNNER_KEY: vars.UPTIME_RUNNER_KEY, UPTIME_GRANT_FILE: grantPath } });
   return runner.exitCode === null;
  };
- const env = { ...runtime, UPTIME_SYNTHETIC_PORT: String(grant.port), ...(development ? { RER_DEV_ORIGIN: origin } : {}) };
+ // Only the control runtime receives the checkout's dev key (the synthetic target and the private runner never do).
+ const env = { ...runtime, UPTIME_SYNTHETIC_PORT: String(grant.port), ...(development ? { RER_DEV_ORIGIN: origin } : {}), ...(devKey ? { RER_DEV_KEY: devKey, ...(development ? { RER_DEV_IDENTITY: devLogin ? 'off' : 'on' } : {}) } : {}) };
  return development
   ? ['pnpm', ['exec', 'vite', 'dev', '--host', hostname, '--port', port, '--strictPort'], { env, ready }]
   : [process.execPath, ['scripts/local/worker.mjs'], { env, ready }];

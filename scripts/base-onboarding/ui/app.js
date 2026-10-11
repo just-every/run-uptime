@@ -327,6 +327,8 @@ function applyState(next) {
   else if (next.phase === 'failed') error(failureHeadline(next.error, failure.step));
   else error();
   if (next.phase === 'complete' && next.appUrl) { try { const url = new URL(next.appUrl); if (['http:', 'https:'].includes(url.protocol)) { $('#open').href = url.href; $('#open').hidden = false; } } catch { error('The application address is invalid. Check the installer terminal.'); } }
+  // A dev-identity app's outbox opens through its key exchange; the key stays out of saved state.
+  if (next.phase === 'complete' && next.devOpen && !$('#open').dataset.devOpen) { $('#open').dataset.devOpen = 'pending'; request('/api/open-app').then(({ url }) => { if (new URL(url).origin === new URL(next.appUrl).origin) { $('#open').href = url; $('#open').dataset.devOpen = 'ready'; } }).catch(() => { delete $('#open').dataset.devOpen; }); }
 }
 function failureHeadline(message, step) {
   const firstLine = typeof message === 'string' ? message.split('\n', 1)[0] : '';

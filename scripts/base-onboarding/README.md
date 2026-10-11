@@ -26,7 +26,13 @@ recursively.
 
 The shared setup lifecycle supports these hooks: `node`, `tools`, `prepare`,
 `dependencies`, `origin`, `secrets`, `build`, `migrate`, `start`, `health`,
-`owner`, `signIn`, `hosting`, `guard`, `failure` and `features`. A hook can
+`owner`, `signIn`, `hosting`, `guard`, `failure`, `features` and
+`sessionSecretKey` (the setting that holds the application's session secret,
+default `SESSION_SECRET`; a seed whose settings call it `AUTH_SECRET` declares
+that). `rer export` and `rer import` run the seed's `prepare` hook first, so a copy that
+never ran setup or build already has the files those commands read (a generated Worker
+config, for one). Setup also stops, before any request, when the process listening on the
+expected port is not the one it started. A hook can
 declare an argv command or use its provided context and command store. The
 adapter owns real migrations, resource names, auth hooks, settings names, data
 policy and deployment effects. The CLI owns parsing, public flags, pins,
@@ -40,6 +46,56 @@ manifest specifies a generation method, and never accepted as CLI values.
 `--owner-email` maps to the manifest's owner-claim field. A non-interactive
 setup must supply every required answer; it never silently adopts the git
 identity. Conflicting flag and answer-file values fail before effects.
+
+## Seed theme
+
+A seed dresses Base's installer and its shared sign-in and first-run frames in
+its own look by declaring one theme: a plain CSS file at the root of the
+directory its app serves as `/`, conventionally `public/rer-theme.css`. The file
+holds only a `:root { }` block of `--rer-*` tokens and `@font-face` rules for
+font files the app already serves; anything else is refused.
+
+| Token | Value | Used for |
+| --- | --- | --- |
+| `--rer-page`, `--rer-surface` | `#rgb`/`#rrggbb` | page backdrop; cards and panels |
+| `--rer-text`, `--rer-muted` | colour | body text; secondary text |
+| `--rer-border` | colour | input and control boundaries |
+| `--rer-focus` | colour | focus outlines |
+| `--rer-accent`, `--rer-accent-text` | colour, declared together (optional) | primary buttons |
+| `--rer-link` | colour (optional, defaults to text) | links and edit actions |
+| `--rer-font-body`, `--rer-font-heading` | font stack (optional) | text; headings and product name |
+| `--rer-radius` | `px` or `rem` length (optional) | cards, inputs, buttons |
+| `--rer-logo` | `url("/path")` to an svg, png or webp the app serves (optional) | mark beside the product name |
+
+Contrast is checked against the declared colours before the installer starts:
+text on page and surface, muted text on page and surface, links on surface and
+accent text on accent need 4.5:1; focus on page and surface and borders on
+surface need 3:1. A failing pair is named with its ratio. Every `url()` must
+name a same-origin file under the served directory.
+
+The app must serve the file at `/rer-theme.css` with its fonts and logo; a
+Worker that runs first and admits only listed static paths lists it too. If the
+file cannot load, the frames fall back to readable neutrals.
+
+Declare the theme in two places that name the same file:
+
+- the installer seed descriptor (`scripts/installer/seed.mjs`) returns
+  `theme: 'public/rer-theme.css'`, a root-relative path. The installer then
+  links it, serves exactly the files it names, and loads its own token skin
+  (`ui/theme.css`); the product name stays the descriptor's
+  `branding.name`/`product`, and with no `--rer-accent` the buttons keep
+  `branding.accent`.
+- the Worker passes the served path to Base's frames: operator-auth
+  `branding: { productName, theme: '/rer-theme.css' }` for sign-in confirmation,
+  and `firstRunResponse(request, bindings, auth, { theme: { href:
+  '/rer-theme.css', productName, accentColor? } })` from `src/base/setup` for
+  `/setup`; the foundation sign-in uses `themeFrame` from
+  `src/base/theme-frame` the same way. `accentColor` colours buttons when the
+  theme declares no accent. A seed's own pages may read the same tokens by
+  linking the file.
+
+Without a theme every page is unchanged. `default-seed/public/rer-theme.css`
+and the foundation template's `public/rer-theme.css` are worked examples.
 
 ## Setup behavior and custody
 

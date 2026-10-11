@@ -6,12 +6,17 @@ const outboxPath = '/__dev/outbox'; // modules/mail/src/development default path
 // The CLI's own requests to its loopback server prove they come from the
 // installation's owner-side tooling (modules/operator-auth/local-cli.mjs), so
 // setup and dev restarts do not spend the owner's sign-in rate limit. A server
-// that is not in local mode ignores the header.
+// that is not in local mode ignores the header. The proof comes from the
+// setting the seed's adapter declares as its session secret (sessionSecretKey,
+// default SESSION_SECRET).
 const localCliProof = secret => createHmac('sha256', secret).update('local-cli\0sign-in').digest('hex');
-const post = (context, path, body) => fetch(new URL(path, context.origin), {
- method: 'POST', redirect: 'manual', signal: context.signal,
- headers: { Origin: context.origin, 'Content-Type': 'application/json', ...(typeof context.vars.SESSION_SECRET === 'string' && context.vars.SESSION_SECRET ? { 'x-rer-local-cli': localCliProof(context.vars.SESSION_SECRET) } : {}) }, body: JSON.stringify(body),
-});
+const post = (context, path, body) => {
+ const secret = context.vars[context.sessionSecretKey ?? 'SESSION_SECRET'];
+ return fetch(new URL(path, context.origin), {
+  method: 'POST', redirect: 'manual', signal: context.signal,
+  headers: { Origin: context.origin, 'Content-Type': 'application/json', ...(typeof secret === 'string' && secret ? { 'x-rer-local-cli': localCliProof(secret) } : {}) }, body: JSON.stringify(body),
+ });
+};
 const errorCode = async response => { try { const code = (await response.json())?.error; return typeof code === 'string' && /^[a-z_]{1,64}$/.test(code) ? code : 'no code'; } catch { return 'no code'; } };
 
 // Claim the first owner through Base operator-auth POST /auth/bootstrap with
@@ -65,7 +70,8 @@ export async function signIn(context, hook) {
 
 async function outboxMessages(context, path, address, required = false) {
  let response;
- try { response = await fetch(new URL(path, context.origin), { signal: context.signal }); } catch (error) {
+ // A dev-identity seed gates its outbox with the checkout's key; present it.
+ try { response = await fetch(new URL(path, context.origin), { signal: context.signal, headers: context.devKey ? { 'x-rer-dev-key': context.devKey } : {} }); } catch (error) {
   if (context.signal?.aborted) throw error;
   if(required){context.store.report?.('Local development outbox is unavailable. Run rer setup before requesting sign-in.');throw context.fail('setup');}
   return [];

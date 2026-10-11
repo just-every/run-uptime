@@ -126,14 +126,14 @@ When a token lacks a permission, the CLI prints which one instead of only a stat
 
 ### Adoption by seeds
 
-Each of these seeds carries a copy of `modules/deploy-kit/` from a Base pin. Refresh the copy, write a `deploy.json` from the plan the seed already builds, and point `deploy`, and the hosting step of `setup`, at `owner-cli.mjs`. Keep the throwaway controller only for proofs.
+A seed carries a copy of `modules/deploy-kit/` from a Base pin. Refresh the copy, write a `deploy.json` from the plan the seed already builds, and point `deploy`, and the hosting step of `setup`, at `owner-cli.mjs`. Keep any throwaway controller only for proofs. In `deploy.json` declare:
 
-- **Vector** deploys only through `scripts/deployment/controller.mjs` with `CF_THROWAWAY_*`, `RER_DEPLOY_*` and `rer-seedproof-vector`. Declare `DB`, `FILES`, `SESSION_SECRET` and `MAIL_API_KEY`, the one-minute Cron, its public setup fields in `vars`, and `originVar: "APP_ORIGIN"`.
-- **Penny**'s `pennyPlan` fixes `rer-seedproof-penny`. Declare `DB`, `FILES` and `JOBS`, the secrets for the chosen mail provider, and `originVar: "APP_ORIGIN"`. Then `setup` can provision through owner mode.
-- **Dial** uses a throwaway prefix, and its setup provisions nothing. Declare `DB`, `FILES`, `JOBS` with its consumer and `deadLetterQueue: "JOBS_DEAD"`, `JOBS_DEAD`, the SQLite `BOOKING_COORDINATOR` (`BookingCoordinator`), its three secrets and `originVar: "APP_URL"`. Its receipt-scoped teardown stays proof-only.
-- **Cradle**'s setup provisions nothing, and its `deploy` verb runs pnpm's built-in `pnpm deploy`. Use `pnpm run deploy`. Declare `DB`, `FILES`, `WORK_QUEUE` with its consumer, the SQLite `INSTALLATION` (`InstallationCoordinator`), its three secrets and `originVar: "APP_ORIGIN"`.
+- the bindings the app uses (`DB`, `FILES`, `JOBS` and so on), with each queue's consumer and dead-letter queue and each SQLite Durable Object class;
+- the secrets the app reads, such as its session secret and the mail provider's key;
+- any Cron schedule and the public setup fields the app takes in `vars`;
+- `originVar`, the variable that holds the app's public origin (for example `APP_ORIGIN`).
 
-Resource names change from `rer-seedproof-*` or a chosen prefix to `<project>-<environment>-*`. The kit refuses rather than adopts an earlier installation's resources.
+A seed whose setup provisions nothing declares the same bindings and deploys through its own `deploy` verb. Resource names change from `rer-seedproof-*` or a chosen prefix to `<project>-<environment>-*`. The kit refuses rather than adopts an earlier installation's resources.
 
 ## Migration safety
 
@@ -163,7 +163,7 @@ node --test modules/deploy-kit/tests/*.test.mjs operations/*.test.mjs
 
 The tests cover real SQLite prior data, migration order/hash/failure/replay safety, fixture provider uploads and repeated no mutations across D1/R2/Queue/DO/Cron/secrets, wrong/missing mail inputs, transport boundaries/pagination, stale health/version, artifact links/custody, actual authoring lock/check and unchanged v1 regression tests. Owner-account tests use a fake Cloudflare API (`tests/owner-provider.mjs`, which adds KV, foreign resources and injected failures to the same fixture): first create, byte-identical re-run, partial failure and resume, a lost create response, a Worker upload failure, a lost first-upload response, collisions with resources the kit did not create, a Worker or bucket replaced under the same name, a missing workers.dev subdomain, token-scope failures, the state-file lock, and the CLI over a committed seed build. `pnpm verify:deployment` runs every deploy-kit test in Base verify. They are not live receipts. CF throwaway token/account ID and evidence persistence token remain missing until the owner supplies them. Prepare/build's Actions isolation and real default-seed remote health require the parent integration; no Mac provider login or live call was used.
 
-Implementation references read: Lamp `scripts/setup.mjs`, the public HappyToHelp v0.2.1 release's `scripts/deployment/*`, Base `deployment/owner-migrations.mjs`, `operations/` and `edition-authoring/`. The ambient-login/catch-and-continue paths in those examples were not adopted. No private source was copied or merged.
+Implementation references read: the public HappyToHelp v0.2.1 release's `scripts/deployment/*`, Base `deployment/owner-migrations.mjs`, `operations/` and `edition-authoring/`. The ambient-login/catch-and-continue paths in those examples were not adopted. No private source was copied or merged.
 
 Primary protocol references: [Worker upload](https://developers.cloudflare.com/api/resources/workers/subresources/scripts/methods/update/), [multipart metadata](https://developers.cloudflare.com/workers/configuration/multipart-upload-metadata/), [asset upload](https://developers.cloudflare.com/workers/static-assets/direct-upload/), [D1 query](https://developers.cloudflare.com/api/resources/d1/subresources/database/methods/query/), [Queue consumers](https://developers.cloudflare.com/api/resources/queues/subresources/consumers/), [R2 pagination](https://developers.cloudflare.com/api/resources/r2/subresources/buckets/methods/list/), [DO namespaces](https://developers.cloudflare.com/api/resources/durable_objects/subresources/namespaces/), [Worker versions](https://developers.cloudflare.com/api/resources/workers/subresources/scripts/subresources/versions/methods/get/). Checked 6 October 2026; hosted conformance is not inferred from documentation.
 
@@ -259,8 +259,7 @@ unpaginated endpoints; supplied pagination metadata must confirm completion.
 
 A seed teardown adopts it by keeping every pre-delete receipt, consumer and
 ownership check and its exact DELETE requests, and replacing its final
-post-delete list-and-assert block with the shared verifier. Dial's
-`scripts/deployment/teardown.mjs` is the reference consumer:
+post-delete list-and-assert block with the shared verifier:
 
 ```js
 import { verifyTeardown } from '../../modules/deploy-kit/index.mjs';

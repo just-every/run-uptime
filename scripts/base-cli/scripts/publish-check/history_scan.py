@@ -12,6 +12,7 @@ from reviewed import REVIEWED, load_reviewed
 from report import new_report, Findings, finish
 from tree_scan import context, text_rules, working_files, working_regular
 from content_identities import ContentIdentities, candidate as identity_candidate
+from checksum_maps import ChecksumMaps
 
 
 def scan(repo, ref='HEAD', public_base=None, env_file=None, project=None, repository=None, *, cache_dir=None, timeout=300):
@@ -100,6 +101,7 @@ def scan(repo, ref='HEAD', public_base=None, env_file=None, project=None, reposi
             add('license.missing', 'LICENSE', scope='working-tree')
         identities = {'working-tree': ContentIdentities(working_identities,
             lambda path: working_regular(Path(history.repo), path))}
+        checksums = {}
         for mode in ('git', 'dir'):
             for hit in secrets(binary, mode, history.repo, history.revisions, timeout=timeout, redact=False):
                 path, commit = hit.get('File', '.'), hit.get('Commit') or history.commit
@@ -108,18 +110,28 @@ def scan(repo, ref='HEAD', public_base=None, env_file=None, project=None, reposi
                 entry = entries_by_commit.get(commit, {}).get(path)
                 oid = entry['oid'] if entry and entry['kind'] == 'blob' else None
                 scope = 'working-tree' if mode == 'dir' else 'release-tree' if commit == history.commit else 'pre-existing' if oid in public_blobs else 'newly-public'
-                if hit['RuleID'] in ('generic-api-key', 'hex-api-key') and identity_candidate(path):
+                if hit['RuleID'] in ('generic-api-key', 'hex-api-key'):
                     identity_scope = 'working-tree' if mode == 'dir' else commit
-                    if identity_scope not in identities:
-                        scoped_entries = entries_by_commit.get(commit, {})
-                        def read_regular(path):
-                            entry = scoped_entries.get(path)
-                            return (history.blob(entry['oid']), entry['mode']) if entry and entry['kind'] == 'blob' and entry['mode'] in ('100644', '100755') else None
-                        identities[identity_scope] = ContentIdentities({
-                            p: history.blob(e['oid']) for p, e in entries_by_commit.get(commit, {}).items()
-                            if identity_candidate(p) and e['kind'] == 'blob' and e['mode'] in ('100644', '100755')}, read_regular)
-                    if identities[identity_scope].matches(path, hit):
-                        continue
+                    scoped_entries = entries_by_commit.get(commit, {})
+                    def read_regular(path, scoped_entries=scoped_entries):
+                        entry = scoped_entries.get(path)
+                        return (history.blob(entry['oid']), entry['mode']) if entry and entry['kind'] == 'blob' and entry['mode'] in ('100644', '100755') else None
+                    if identity_scope not in checksums:
+                        checksums[identity_scope] = ChecksumMaps(
+                            working_paths if mode == 'dir' else scoped_entries,
+                            (lambda path: working_regular(Path(history.repo), path)) if mode == 'dir' else read_regular)
+                    if identity_candidate(path):
+                        if identity_scope not in identities:
+                            identities[identity_scope] = ContentIdentities({
+                                p: history.blob(e['oid']) for p, e in scoped_entries.items()
+                                if identity_candidate(p) and e['kind'] == 'blob' and e['mode'] in ('100644', '100755')}, read_regular)
+                        if identities[identity_scope].matches(path, hit):
+                            continue
+                    else:
+                        # Content-identity documents keep their own stricter proof.
+                        held = working_regular(Path(history.repo), path) if mode == 'dir' else read_regular(path)
+                        if held and checksums[identity_scope].matches(held[0], hit):
+                            continue
                 add(secret_rule(hit['RuleID']), path, commit, oid, scope, scanner_rule=hit['RuleID'])
         messages, lines = [], []
         count = 1

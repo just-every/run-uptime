@@ -282,6 +282,13 @@ export function refreshCopies(root, {positional: [revision], record: recordPath,
     const upstream = read.digests([...next.values()].map(({object}) => object));
     const local = name => files.get(name)?.regular ? hash(files.get(name).read()) : null;
     const edited = [];
+    // Check every recorded path before planning removals too. A path absent
+    // upstream still belongs to the owner when its local bytes have changed.
+    for (const copy of record.copies) for (const [name, digest] of Object.entries(copy.files)) {
+      const actual = local(name), source = next.get(mapped(name, copy.path, copy.originPath));
+      if (actual && actual !== digest && actual !== (source && upstream.get(source.object))) edited.push(name);
+    }
+    if (edited.length) throw Error(`Recorded copies have local edits; move adapted source out of the record first: ${edited.join(', ')}`);
     const plans = record.copies.map(copy => {
       const pinned = read.tree(copy.revision);
       const tests = Object.keys(copy.files).some(name => testSource(mapped(name, copy.path, copy.originPath)));
@@ -289,7 +296,6 @@ export function refreshCopies(root, {positional: [revision], record: recordPath,
         if (!within(name, copy.originPath)) return false;
         const target = mapped(name, copy.originPath, copy.path), actual = local(target);
         if (Object.hasOwn(copy.files, target)) {
-          if (actual && actual !== copy.files[target] && actual !== upstream.get(object)) edited.push(target);
           return Boolean(actual);
         }
         if (actual) return actual === upstream.get(object);
@@ -298,7 +304,6 @@ export function refreshCopies(root, {positional: [revision], record: recordPath,
       if (!sources.length) throw Error(`No Base source at ${copy.originPath} in ${revision}`);
       return {copy, sources, removed: Object.keys(copy.files).filter(name => !sources.some(([source]) => mapped(source, copy.originPath, copy.path) === name))};
     });
-    if (edited.length) throw Error(`Recorded copies have local edits; move adapted source out of the record first: ${edited.join(', ')}`);
     const bytes = read.blobs(plans.flatMap(plan => plan.sources.map(([, {object}]) => object)));
     const changes = [];
     for (const {copy, sources, removed} of plans) {

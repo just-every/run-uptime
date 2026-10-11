@@ -20,11 +20,14 @@ or acquisition fails, the command reports a repair invocation in this form:
 `npm exec --yes --package=node@VERSION -- node SCRIPT VERB --cwd PROJECT`.
 Help, check, describe, doctor and stop do not select or acquire Node.
 
-After `RER_READY`, open the reported `/__dev/outbox` URL and follow the newest
-ordinary sign-in link to finish first-run setup at `/setup`. Until first-run
-completion is stored durably, app routes send the signed-in owner to `/setup`;
-signed-out visitors sign in and return there. Once complete, `/setup` opens the
-app or settings. The local outbox sends no external email.
+After `RER_READY`, a seed with dev identity prints `RER_SIGNED_IN EMAIL` and
+`RER_OPEN URL`: open that URL on this computer and the app opens signed in as
+the owner, at `/setup` until first-run is finished. Other seeds, and
+`dev --login`, print `RER_SIGN_IN URL` for the local outbox: open it, follow
+the newest ordinary sign-in link and finish first-run setup at `/setup`. Until
+first-run completion is stored durably, app routes send the signed-in owner to
+`/setup`; signed-out visitors sign in and return there. Once complete,
+`/setup` opens the app or settings. The local outbox sends no external email.
 
 The saved local port is used, otherwise 8787. Explicit ports are decimal
 integers from 1 through 65535 and must be free; a busy requested port fails
@@ -53,10 +56,19 @@ migrations, prepares the first owner, requests an ordinary sign-in message and
 stops its temporary app before it exits. Existing owner data and private
 settings are preserved on a repeated setup.
 
-Dev starts the real local app with assets and HMR. It prints `RER_READY URL`
-after the application health check and `RER_SIGN_IN URL` for the local outbox.
-Open that outbox URL, choose the newest ordinary sign-in message and follow its
-link. No external email is sent. A successful sign-in consumes the link once.
+Dev starts the real local app with assets and HMR and prints `RER_READY URL`
+after the application health check. With dev identity it then prints
+`RER_SIGNED_IN EMAIL` and `RER_OPEN URL`. The `RER_OPEN` URL carries this
+checkout's dev key in its fragment: opening it signs the browser in through a
+real dev session, and the key is removed from the address bar and kept only as a
+host-only cookie. Treat that line as a credential and open it only on this
+computer. A dev-only badge switches between the owner, signed out and the
+seed's personas (`admin@dev.localhost` and so on). `dev --as PERSONA` starts as
+another persona or `signed-out`; `dev --login` turns dev identity off and uses
+the outbox: it prints `RER_SIGN_IN URL` and a `RER_OPEN` URL that opens that
+outbox. Choose the newest ordinary sign-in message and follow its link. No
+external email is sent. A successful sign-in consumes the link once. Seeds
+without dev identity print only `RER_SIGN_IN URL` for the local outbox.
 
 Dev and preview are managed foreground servers. The first invocation stays
 active while serving. Use `node scripts/rer.mjs dev --stop` or
@@ -68,8 +80,10 @@ Both retain the same owner and `.wrangler/state`. The default idle timeout is
 1800 seconds and the combined machine cap is two servers.
 
 Use the following operations as needed. Reset is destructive local cleanup;
-export any data you need to keep before resetting. Import requires an empty
-destination and `--yes` confirms the restore.
+export any data you need to keep before resetting. Export saves under
+`exports/` (or any `.rer` name), which the dev server never serves; it refuses
+other paths in the checkout. Import requires an empty destination and `--yes`
+confirms the restore.
 
 ```sh
 node scripts/rer.mjs verify
@@ -126,9 +140,14 @@ to `node scripts/rer.mjs install`.
 
 Local durable state is `.wrangler/state`; CLI bookkeeping is `.rer/local`,
 installer state is `.seed/installer`, and the default private settings file is
-`.dev.vars` with mode 0600. The local development outbox is available only on
-the configured loopback origin. Any local user or process with access to the
-machine can read it and sign in as the owner.
+`.dev.vars` with mode 0600. Setup writes this checkout's dev key to
+`.rer/local/dev-key.env` (mode 0600); a repeat setup keeps it and reset removes
+it, which also ends every browser's earlier dev cookie. Dev sign-in, personas
+and the development outbox answer only a request holding that key's cookie, so
+a tunnel or local proxy to the app cannot reach them; anything else returns 404.
+Any local user or process that can read the checkout can read the key and sign
+in as the owner. `rer deploy` refuses the key, and `rer build` refuses output
+that contains the dev layer.
 
 The first-party command profile is optional for independently authored
 projects. They may keep their own runtime, tools, installer, commands and

@@ -43,12 +43,20 @@ export async function listenerPorts(pid){
  const owned=new Set([pid]);for(let changed=true;changed;){changed=false;for(const [child,parent]of rows)if(owned.has(parent)&&!owned.has(child)){owned.add(child);changed=true;}}
  return [...new Set((await listeners([...owned])).filter(row=>owned.has(row.pid)).flatMap(row=>row.names.map(name=>Number(/:(\d+)$/.exec(name)?.[1])).filter(port=>Number.isInteger(port)&&port>0&&port<=65535)))].sort((a,b)=>a-b);
 }
+// The caller and the chain that launched it (an installer server running setup,
+// pnpm, a shell) act for this command, never against it.
+async function callerLineage(){
+ const parents=new Map((await run('/bin/ps',['-axo','pid=,ppid='])).trim().split('\n').map(line=>line.trim().split(/\s+/).map(Number)));
+ const lineage=new Set([process.pid,process.ppid]);
+ for(let pid=process.ppid;pid>1&&parents.has(pid);){pid=parents.get(pid);if(lineage.has(pid))break;lineage.add(pid);}
+ return lineage;
+}
 export async function localProcessConflict(root,savedOrigin){
- root=await realpath(root);const all=await listeners();
+ root=await realpath(root);const all=await listeners(),lineage=await callerLineage();
  const cwdRecords=process.platform!=='linux'&&all.length?records(await run(lsof,['-a','-p',all.map(row=>row.pid).join(','),'-d','cwd','-Fpn'])):[];
  let port;try{const url=new URL(savedOrigin);port=Number(url.port||80);}catch{}
  for(const row of all){
-  if(row.pid===process.pid)continue;
+  if(lineage.has(row.pid))continue;
   const onSavedPort=port&&row.names.some(name=>Number(/:(\d+)$/.exec(name)?.[1])===port);
   const cwd=process.platform==='linux'?[await readlink(`/proc/${row.pid}/cwd`).catch(()=>undefined)].filter(Boolean):cwdRecords.filter(item=>item.pid===row.pid).flatMap(item=>item.names);
   const inCheckout=(await Promise.all(cwd.map(path=>realpath(path).catch(()=>undefined)))).includes(root);
@@ -58,7 +66,7 @@ export async function localProcessConflict(root,savedOrigin){
  // actual state files, never broad checkout contents or a process environment.
  const state=join(root,'.wrangler/state');
  let held;
- if(process.platform==='linux'){for(const pid of await linuxPids())if(pid!==process.pid&&(await descriptors(pid)).some(path=>path.startsWith(state+'/'))){held={pid};break;}}
- else held=records(await run(lsof,['-nP','+D',state,'-Fpn'])).find(row=>row.pid!==process.pid);
+ if(process.platform==='linux'){for(const pid of await linuxPids())if(!lineage.has(pid)&&(await descriptors(pid)).some(path=>path.startsWith(state+'/'))){held={pid};break;}}
+ else held=records(await run(lsof,['-nP','+D',state,'-Fpn'])).find(row=>!lineage.has(row.pid));
  if(held)return {pid:held.pid,command:await processName(held.pid),reason:'the canonical local state'};
 }

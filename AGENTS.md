@@ -8,13 +8,13 @@ node scripts/rer.mjs setup --owner-email owner@example.test --owner-name "Local 
 node scripts/rer.mjs dev
 ```
 
-Replace the example email with the owner's address. Open the printed outbox, choose the newest sign-in message, and follow its link; no email is sent. First-run setup opens at `/setup`; finish it to enter the console. Until then, app routes return the signed-in owner there. Setup exits with its temporary processes stopped. Control-C stops dev and its owned runner and target.
+Replace the example email with the owner's address. Dev prints its health-ready URL. `rer dev` opens signed in: it prints `RER_SIGNED_IN` (the owner) and `RER_OPEN`, a link that carries this checkout's private dev key in its fragment. Open `RER_OPEN` in a browser on this computer and you land signed in as the owner; a small dev badge switches to the `member` persona (a signed-in operator who is not the owner, so the console stays closed to it) or signs out. Never share the link: the key is what keeps the outbox and dev sign-in closed to anything that reaches this port through a proxy or tunnel, and `reset` removes the key so every earlier browser session stops working. `--as member` (or `--as signed-out`) starts as another persona, and `--login` turns dev identity off so dev prints `RER_SIGN_IN` and a key-carrying `RER_OPEN` for the outbox instead: choose the newest message and follow its one-use link (no email is sent). Previews open the outbox the same way. `RER_OPEN` is for people at this terminal; scripts use `rer dev --json` or the key header. First-run setup opens at `/setup`; finish it to enter the console. Until then, app routes return the signed-in owner there. Setup exits with its temporary processes stopped. Control-C stops dev and its owned runner and target.
 
 After stopping dev, run `node scripts/rer.mjs verify`. `node scripts/rer.mjs reset --yes` removes local data and generated settings; export first if you need the data.
 
 ```sh
-node scripts/rer.mjs export --output .exports/uptime.jsonl
-node scripts/rer.mjs import --input .exports/uptime.jsonl --yes
+node scripts/rer.mjs export --output exports/uptime.rer
+node scripts/rer.mjs import --input exports/uptime.rer --yes
 ```
 
 Import requires an empty destination. Run setup after import to establish the receiving owner; monitors stay paused and destinations disabled. For an authorized owner-account deployment use `node scripts/rer.mjs deploy`; `deploy --dry-run` makes no provider requests. Use `node scripts/rer.mjs describe` for the rest and `node scripts/rer.mjs check --profile first-party` for the structural contract.

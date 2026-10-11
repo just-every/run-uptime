@@ -6,6 +6,7 @@ import {notificationRpc} from './domain/notification-rpc.server.ts'
 import {isPublicAsset} from './domain/assets.server.ts'
 import {maintenance} from './domain/maintenance.server.ts'
 import {authRoute,authFailure,developmentMail,signOut} from './domain/operator-auth.server.ts'
+import {devGate,devNotFound} from './base/modules/operator-auth/index.mjs'
 import {createD1DevelopmentOutbox,createDevelopmentOutboxHandler} from './base/modules/mail/src/development/index.mjs'
 import {authDocument} from './domain/auth-document.server.ts'
 import {firstRun,firstRunComplete,setupRedirect} from './domain/first-run.server.ts'
@@ -56,13 +57,21 @@ const isConsoleDocument=(path:string)=>['/app','/app/','/app/monitor','/app/moni
 export default {async fetch(request,env,execution){
  const bindings=env as Bindings,url=new URL(request.url),path=url.pathname;
  // This deliberately public local viewer must disappear before the normal Host guard.
- if(path==='/__dev/outbox')return developmentMail(bindings)?(await createDevelopmentOutboxHandler({local:true,origin:bindings.UPTIME_ORIGIN!,outbox:createD1DevelopmentOutbox({db:bindings.DB})})(request))??new Response('Not found',{status:404}):new Response('Not found',{status:404});
+ // The outbox and the key exchange answer only a local runtime that holds RER_DEV_KEY. A tunnel or local proxy makes remote
+ // requests look local, so the outbox also needs the key gate's cookie (or the rer harness's key header).
+ if(path==='/__dev/outbox'||path==='/__dev/key'){
+  const gate=developmentMail(bindings)?devGate({key:bindings.RER_DEV_KEY,origin:bindings.UPTIME_ORIGIN!,local:true}):null;
+  if(!gate)return devNotFound();
+  if(path==='/__dev/key')return (await gate.exchange(request))??devNotFound();
+  if(!await gate.admits(request))return devNotFound();
+  return (await createDevelopmentOutboxHandler({local:true,origin:bindings.UPTIME_ORIGIN!,outbox:createD1DevelopmentOutbox({db:bindings.DB})})(request))??devNotFound();
+ }
  if(url.origin!==bindings.UPTIME_ORIGIN||(request.headers.has('host')&&request.headers.get('host')?.toLowerCase()!==url.host.toLowerCase()))return new Response('Invalid host',{status:403});
  if(path==='/auth/owner-claim')return (await ownerClaim(bindings,request))!;
  if(path==='/api/editor/config')return editorConfigResponse(bindings,request);
- if(path.startsWith('/auth/')){const response=(await authRoute(bindings,request))!;if(path==='/auth/magic-link'&&response.status===202&&request.headers.get('content-type')?.startsWith('application/x-www-form-urlencoded'))return authDocument(false,true,developmentMail(bindings));return response}
+ if(path.startsWith('/auth/'))return (await authRoute(bindings,request))!;
  if(path==='/setup')return firstRun(bindings,request);
- if(path==='/login'||path==='/claim')return authDocument(path==='/claim',false,developmentMail(bindings));
+ if(path==='/login'||path==='/claim')return authDocument(path==='/claim',path==='/login'&&url.searchParams.get('notice')==='sent',developmentMail(bindings));
  if(isPublicAsset(path))return bindings.ASSETS?bindings.ASSETS.fetch(request):new Response('Not found',{status:404});
  if(path==='/monitor'||path==='/monitor/')return new Response(null,{status:308,headers:{location:`/app/monitor${url.search}`,'cache-control':'no-store'}});
  if(path!=='/health'&&path!=='/api'&&!path.startsWith('/api/')&&!isPublicDocument(path)){
