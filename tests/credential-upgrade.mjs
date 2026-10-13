@@ -11,7 +11,7 @@ import {fixture} from './resilience/support.mjs';
 import {signInOwner} from './auth-test-support.mjs';
 import {startFlowFixture,FIXTURE_EMAIL,FIXTURE_PASSWORD} from './flow-fixture.mjs';
 import {executeTaskProbe} from '../runners/src/execute-task.mjs';
-import {bindingCommand} from '../src/domain/credential-binding.mjs';
+import {bindingCommand,ownReference} from '../src/domain/credential-binding.mjs';
 
 export async function credentialUpgrade(){
  const directory=await mkdtemp(join(tmpdir(),'uptime-credential-upgrade-')),credentials=join(directory,'credentials'),empty=join(directory,'empty'),workspace=join(directory,'flows'),grantPath=join(directory,'grant.json');
@@ -27,7 +27,8 @@ export async function credentialUpgrade(){
   const old={origin,headers:{'x-client':'upgrade'},auth:{type:'bearer',token}};
   const write=(ref,value=old,mode=0o600)=>writeFile(join(credentials,`${ref}.json`),JSON.stringify(value),{mode});
   const read=ref=>readFile(join(credentials,`${ref}.json`),'utf8');
-  const migrate=()=>promisify(execFile)(process.execPath,[resolve('runners/migrations/0001-monitor-credentials.mjs'),'--directory',credentials,'--persist-to',f.directory]);
+  // Setup runs the inventory migration with --bind-existing; dev and preview starts run it without.
+  const migrate=(setup=false)=>promisify(execFile)(process.execPath,[resolve('runners/migrations/0001-monitor-credentials.mjs'),'--directory',credentials,'--persist-to',f.directory,...(setup?['--bind-existing']:[])]);
   const create=(options={})=>f.monitor({runners:[f.first],canary:true,url:origin+'/health',intervalMs:86400000,request:{credentialRef:'unique'},...options});
   const run=task=>executeTaskProbe(task,task.probes[0],{grantPath,controlPort:Number(new URL(f.origin).port),flowWorkspace:workspace});
   const claim=async(instance,id)=>{const task=await instance.claim(instance.first);assert.equal(task?.monitorId,id);return task};
@@ -41,21 +42,23 @@ export async function credentialUpgrade(){
   const browserMonitor=await create({name:'Unique browser upgrade',enabled:false,type:'flow',network:'synthetic',url:flow.origin+'/s/healthy/login',request:undefined,canary:false,intervalMs:300000,timeoutMs:10000,flow:flowBody});
   for(const ref of ['unique','paused','unused',sharedRef])await write(ref,old,ref==='paused'?0o400:0o600);
   for(const [ref,value] of [['email',FIXTURE_EMAIL],['password',FIXTURE_PASSWORD]])await write(ref,{origin:flow.origin,value});
-  const before=await read('unused'),first=await migrate();
+  const before=await read('unused'),first=await migrate(true);
   assert.match(first.stdout,/unused: unbound; no existing monitor/);assert.ok(!first.stdout.includes(token));
   for(const [ref,id] of [['unique',unique.id],['paused',paused.id],['email',browserMonitor.id],['password',browserMonitor.id]]){
    const input=JSON.parse(await read(ref));assert.equal(input.monitorId,id);
    if(['unique','paused'].includes(ref))assert.deepEqual(input,{...old,monitorId:id});
   }
   assert.equal((await stat(join(credentials,'paused.json'))).mode&0o777,0o400,'automatic binding preserves exact owner-only mode');
-  const unchanged=await read('unique');await migrate();assert.equal(await read('unique'),unchanged);assert.equal(await read('unused'),before);
+  const unchanged=await read('unique');await migrate(true);assert.equal(await read('unique'),unchanged);assert.equal(await read('unused'),before);
   const ownTask=await claim(f,unique.id),own=await run(ownTask);assert.equal(own.outcome,'pass');await submit(f,ownTask,own);assert.equal((await f.state(unique.id)).state,'Healthy');
   assert.equal((await f.request(`/api/monitors/${browserMonitor.id}`,{method:'PATCH',body:{...browserMonitor.definition,enabled:true}})).status,200);
   const flowTask=await claim(f,browserMonitor.id),flowResult=await run(flowTask);assert.equal(flowResult.outcome,'pass',JSON.stringify(flowResult));await submit(f,flowTask,flowResult);assert.equal((await f.state(browserMonitor.id)).state,'Healthy');await f.pause(browserMonitor);
   const unused=await create({name:'Later unused reference',request:{credentialRef:'unused'}}),unusedTask=await claim(f,unused.id),unusedResult=await run(unusedTask);
   assert.equal(unusedResult.outcome,'runner_error');assert.equal(await read('unused'),before,'execution never binds even a sole new reference');
   assert.ok(unusedResult.checks[0].reason.includes(bindingCommand('unused',unused.id)));await submit(f,unusedTask,unusedResult);await f.pause(unused);
-  const copied=await create({...unique.definition,name:'Copied definition'}),copyTask=await claim(f,copied.id),copiedResult=await run(copyTask);assert.notEqual(copied.id,unique.id);assert.equal(copiedResult.outcome,'runner_error');await submit(f,copyTask,copiedResult);await f.pause(copied);
+  for(const setup of [false,true])await migrate(setup);assert.equal(await read('unused'),before,'later setups and dev or preview starts never bind a later sole reference');
+  const copied=await create({...unique.definition,name:'Copied definition'}),copyTask=await claim(f,copied.id),copiedResult=await run(copyTask);assert.notEqual(copied.id,unique.id);assert.equal(copiedResult.outcome,'runner_error');
+  assert.equal(copiedResult.credentialBinding.boundElsewhere,true);assert.ok(copiedResult.checks[0].reason.includes(bindingCommand(ownReference('unique',copied.id),copied.id)),'a file bound to another monitor names this monitor\'s own binding');assert.ok(!JSON.stringify(copiedResult).includes(token));await submit(f,copyTask,copiedResult);await f.pause(copied);
   const file={format:'uptime.monitors',version:1,monitors:[{name:'Imported definition',url:origin+'/health',request:{credentialRef:'unique'}}]};
   const preview=await f.request('/api/definitions/preview',{body:file});assert.equal(preview.status,200);
   const imported=await f.request(`/api/definitions/apply?digest=${preview.data.digest}`,{body:file});assert.equal(imported.status,201);

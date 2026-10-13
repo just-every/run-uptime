@@ -16,4 +16,5 @@ export async function buildCommand(context) {
  assertCredentialFree(env);
  return ['pnpm', ['run', 'build:app'], { env }];
 }
-export const migrationCommand = persist => ['node', ['scripts/local/migrate.mjs', persist]];
+// Only setup binds credential files referenced by exactly one monitor, once; dev and preview starts report.
+export const migrationCommand = (persist, setup = false) => ['node', ['scripts/local/migrate.mjs', persist, ...(setup ? ['--bind-existing'] : [])]];

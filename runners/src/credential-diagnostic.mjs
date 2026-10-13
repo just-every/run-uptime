@@ -7,7 +7,7 @@ export class CredentialBindingRequired extends Error {
   constructor(diagnostic) { super(bindingReason(diagnostic)); this.diagnostic = diagnostic; }
 }
 // This report is diagnostic only. It never grants access or binds a credential.
-export async function bindingRequired(reference, monitorId, root) {
+export async function bindingRequired(reference, monitorId, root, boundElsewhere = false) {
   let file, ids = [];
   try {
     file = await open(join(root, INVENTORY_FILE), constants.O_RDONLY | constants.O_NOFOLLOW);
@@ -18,7 +18,7 @@ export async function bindingRequired(reference, monitorId, root) {
     if (Array.isArray(saved) && saved.length <= 100 && saved.every(validMonitorId)) ids = saved;
   } catch { /* No report is required to refuse an unbound credential. */ }
   finally { await file?.close(); }
-  const diagnostic = {reference, monitorId, monitorIds: [...new Set([...ids, monitorId])]};
+  const diagnostic = {reference, monitorId, monitorIds: [...new Set([...ids, monitorId])], ...(boundElsewhere ? {boundElsewhere} : {})};
   if (!validBindingDiagnostic(diagnostic)) throw Error('Credential unavailable or invalid');
   return new CredentialBindingRequired(diagnostic);
 }

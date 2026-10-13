@@ -13,7 +13,7 @@ export async function readFlowSecret(reference, directory = process.env.UPTIME_C
     const {input, root} = source;
     if (!('value' in input)) throw Error();
     if (input.monitorId === undefined) throw await bindingRequired(reference, monitorId, root);
-    if (input.monitorId !== monitorId) throw Error();
+    if (input.monitorId !== monitorId) throw await bindingRequired(reference, monitorId, root, true);
     return {origin: input.origin, value: input.value};
   } catch (error) {
     if (error instanceof CredentialBindingRequired) throw error;
