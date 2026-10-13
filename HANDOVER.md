@@ -2,9 +2,9 @@
 
 ## Commands and runtime
 
-Use the **Run it locally** section in [AGENTS.md](AGENTS.md): `node scripts/rer.mjs install`, `setup --owner-email EMAIL`, `dev`, and the printed Base development outbox. The signed-in first-run page is `/setup`; completion is installation-local D1 state. `/claim` hosts the one-use token form for an unclaimed hosted installation. Setup stops its temporary runtime; dev stays in the foreground with Vite assets/HMR, the synthetic target and signed private runner. `verify` runs the complete product and browser checks. `describe --json` and `check --profile first-party` are read-only. [OPERATIONS.md](OPERATIONS.md) covers reset, data movement, deployment and recovery.
+Use the **Run it locally** section in [AGENTS.md](AGENTS.md): `rer install`, `setup --owner-email EMAIL`, `dev`, and the printed Base development outbox. The signed-in first-run page is `/setup`; completion is installation-local D1 state. `/claim` hosts the one-use token form for an unclaimed hosted installation. Setup stops its temporary runtime; dev stays in the foreground with Vite assets/HMR, the synthetic target and signed private runner. `verify` runs the complete product and browser checks. `describe --json` and `check --profile first-party` are read-only. [OPERATIONS.md](OPERATIONS.md) covers reset, data movement, deployment and recovery.
 
-`scripts/rer.mjs` dispatches the pinned Base CLI. `scripts/installer/local.mjs` declares the shared lifecycle hooks and product targets. `rer-setup.json` is the sole setup manifest. `scripts/local` supplies the real runtime, migrations and complete product transfer. Settings remain in `data/local-secrets.json`; state is `.wrangler/state`. Existing owners, data and exact private settings survive setup. Reset is confirmed and contained. No automatic credential rotation is supported.
+`@runeditrun/rer`, pinned in `package.json`, is the Base CLI. `scripts/installer/local.mjs` declares the shared lifecycle hooks and product targets. `rer-setup.json` is the sole setup manifest. `scripts/local` supplies the real runtime, migrations and complete product transfer. Settings remain in `data/local-secrets.json`; state is `.wrangler/state`. Existing owners, data and exact private settings survive setup. Reset is confirmed and contained. No automatic credential rotation is supported.
 
 ## Component ownership
 
@@ -26,13 +26,13 @@ Notifications cover installation-wide email, signed JSON and Slack. The Worker s
 
 ## Deployment and acceptance
 
-`node scripts/rer.mjs deploy` provisions the owner-account Worker, D1 and Cron through Base deploy-kit. Hosted sign-in requires a configured Base mail adapter (Resend, SendGrid or Cloudflare); deployment settings are separate from local settings. The private runner needs its own authorized supervised host. The credential-free artifact controller remains a separate CI operation. Assisted delivery and the native owner editor use the policy in [scripts/delivery/README.md](scripts/delivery/README.md).
+`rer deploy` provisions the owner-account Worker, D1 and Cron through Base deploy-kit. Hosted sign-in requires a configured Base mail adapter (Resend, SendGrid or Cloudflare); deployment settings are separate from local settings. The private runner needs its own authorized supervised host. The credential-free artifact controller remains a separate CI operation. Assisted delivery and the native owner editor use the policy in [scripts/delivery/README.md](scripts/delivery/README.md).
 
 [CONTRACT.md](CONTRACT.md) defines product guarantees; [ACCEPTANCE.md](ACCEPTANCE.md) defines local and hosted validation. [BASELINE.md](BASELINE.md) retains baseline obligations and the pending owner decision on the BASE-DATA-001 authority/credential exclusion. Local tests do not establish a fresh-account installation, stage/public release, network placement, recipient acceptance, screen-reader behavior or full baseline satisfaction. Observation metadata has no automatic deletion; storage growth is an installation responsibility.
 
-## First public source candidate
+## Public source and releases
 
-The public source is `just-every/uptime-monitor`, created from an exact-tree parentless export at the first public tag. `RELEASE.json`, the edition identity and the generated managed descriptor agree on that destination. Use `node scripts/rer.mjs release --repo . --project just-every/uptime-monitor --repository https://github.com/just-every/uptime-monitor --output ../uptime-release-preview --dry-run --clean-history` for the maintained tag-free release check. The export must pass the complete publication scan with zero findings and no exceptions. Public creation, pushing, tagging, real Cloudflare acceptance and site/platform pin activation remain owner work.
+Uptime is developed in the public repository `just-every/run-uptime`: candidate work goes on branches and accepted work on `main`, with Verify passing on the exact commit. `RELEASE.json`, the edition identity and the generated managed descriptor agree on that destination. A release raises the version in `seed.json`, `package.json` and `RELEASE.json`, passes `rer release --repo . --project just-every/uptime-monitor --repository https://github.com/just-every/run-uptime --output ../uptime-release-preview --dry-run` and the complete publication scan with zero findings and no exceptions, and is tagged `vVERSION` on `main`. Tagging, real Cloudflare acceptance and site/platform pin activation remain owner work.
 
 ## Independent watches and runner vantages
 

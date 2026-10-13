@@ -1,3 +1,4 @@
+import { identitySettingsPage } from './accounts/settings-page.mjs';
 import { confirmationResponse } from './identity/email-link/confirmation.mjs';
 import { createOidcHandler } from './identity/oidc/index.mjs';
 import { AuthError } from './errors.mjs';
@@ -22,10 +23,12 @@ export function createAuthHandler(auth) {
   return async function handleAuth(request) {
     const url = new URL(request.url);
     const path = url.pathname;
-    if (!path.startsWith('/auth/')) return null;
     let form = false;
     try {
-      if (path.startsWith('/auth/oidc/')) return await oidc?.(request) ?? json({ error: 'not_found' }, 404);
+      const providerResponse = await oidc?.(request);
+      if (providerResponse) return providerResponse;
+      if (!path.startsWith('/auth/')) return null;
+      if (path.startsWith('/auth/oidc/')) return json({ error: 'not_found' }, 404);
       if (path === '/auth/review-session') requireLoopback(request);
       if (path === '/auth/confirm' && ['GET', 'HEAD'].includes(request.method)) {
         const token = readParameters(url.searchParams).token ?? null;
@@ -39,9 +42,10 @@ export function createAuthHandler(auth) {
       if (path === '/auth/operators' && request.method === 'GET') return json(await auth.listOperators(request));
       if (path === '/auth/sessions' && request.method === 'GET') return json(await auth.listSessions(request, readParameters(url.searchParams).operatorId));
       if (path === '/auth/domain-rules' && request.method === 'GET') return json(await auth.listDomainRules(request));
+      if (path === '/auth/settings/identity' && request.method === 'GET') {const value=await auth.identitySettings(request);return /text\/html/.test(request.headers.get('accept')??'')?identitySettingsPage(value):json(value);}
       if (path === '/auth/providers' && request.method === 'GET') return json(await auth.listProviders(request));
       const posts = new Set(['/auth/bootstrap', '/auth/magic-link', '/auth/confirm', '/auth/signout', '/auth/invite', '/auth/invite/cancel', '/auth/review-session',
-        '/auth/operator/status', '/auth/operator/role', '/auth/session/revoke', '/auth/step-up', '/auth/domain-rules', '/auth/providers/unlink', '/auth/providers/relink']);
+        '/auth/operator/status', '/auth/operator/role', '/auth/session/revoke', '/auth/step-up', '/auth/domain-rules', '/auth/providers/unlink', '/auth/providers/relink', '/auth/settings/identity', '/auth/setup-complete']);
       if (!posts.has(path)) return json({ error: 'not_found' }, 404);
       if (request.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
       const query = readParameters(url.searchParams);
@@ -51,6 +55,8 @@ export function createAuthHandler(auth) {
       form = formPost(request) && ['/auth/magic-link', '/auth/step-up'].includes(path);
       const input = await readInput(request);
       switch (path) {
+        case '/auth/settings/identity': {const value=await auth.setIdentitySettings(request,formPost(request)?{idpSignIn:input.idpSignIn==='true'}:input);return formPost(request)?seeOther('/auth/settings/identity'):json(value);}
+        case '/auth/setup-complete': return json(await auth.completeLocalSetup(request));
         case '/auth/bootstrap': { const value = await auth.bootstrap(request, input); return seeOther(value.returnTo, value.cookie); }
         case '/auth/magic-link': {
           const result = await auth.requestMagicLink(request, input);

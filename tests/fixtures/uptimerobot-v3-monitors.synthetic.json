@@ -1,0 +1,609 @@
+{
+ "data": [
+  {
+   "id": 9000001,
+   "friendlyName": "Shop home",
+   "type": "HTTP",
+   "url": "https://shop.example.com/",
+   "interval": 300,
+   "timeout": 30,
+   "httpMethodType": "GET",
+   "successHttpResponseCodes": [
+    "200"
+   ],
+   "authType": "NONE",
+   "customHttpHeaders": null,
+   "postValueData": null,
+   "postValueType": null,
+   "port": null,
+   "gracePeriod": null,
+   "keywordValue": null,
+   "keywordCaseType": null,
+   "keywordType": null,
+   "checkSSLErrors": true,
+   "followRedirections": true,
+   "sslExpirationReminder": false,
+   "domainExpirationReminder": false,
+   "responseTimeThreshold": 0,
+   "config": null,
+   "regionalData": {
+    "REGION": [
+     "na",
+     "eu"
+    ]
+   },
+   "heartbeatUrl": null,
+   "maintenanceWindows": [],
+   "psps": [],
+   "tags": [],
+   "assignedAlertContacts": [],
+   "status": "UP",
+   "groupId": null,
+   "currentStateDuration": 0,
+   "lastIncidentId": null,
+   "userId": 1000001,
+   "lastDayUptimes": {},
+   "createDateTime": "2026-01-01T00:00:00.000Z",
+   "apiKey": null
+  },
+  {
+   "id": 9000002,
+   "friendlyName": "Docs",
+   "type": "HTTP",
+   "url": "https://docs.example.com/",
+   "interval": 300,
+   "timeout": 5,
+   "httpMethodType": "HEAD",
+   "successHttpResponseCodes": [
+    "2xx",
+    "3xx"
+   ],
+   "authType": "NONE",
+   "customHttpHeaders": null,
+   "postValueData": null,
+   "postValueType": null,
+   "port": null,
+   "gracePeriod": null,
+   "keywordValue": null,
+   "keywordCaseType": null,
+   "keywordType": null,
+   "checkSSLErrors": true,
+   "followRedirections": true,
+   "sslExpirationReminder": false,
+   "domainExpirationReminder": false,
+   "responseTimeThreshold": 0,
+   "config": null,
+   "regionalData": {
+    "REGION": [
+     "na",
+     "eu"
+    ]
+   },
+   "heartbeatUrl": null,
+   "maintenanceWindows": [],
+   "psps": [
+    {
+     "id": 5,
+     "friendlyName": "Public status",
+     "customDomain": null,
+     "isPasswordSet": false,
+     "monitorIds": [
+      9000002
+     ]
+    }
+   ],
+   "tags": [
+    {
+     "id": 1,
+     "name": "prod",
+     "color": "#000"
+    }
+   ],
+   "assignedAlertContacts": [
+    {
+     "alertContactId": 77,
+     "threshold": 0,
+     "recurrence": 0
+    }
+   ],
+   "status": "UP",
+   "groupId": null,
+   "currentStateDuration": 0,
+   "lastIncidentId": null,
+   "userId": 1000001,
+   "lastDayUptimes": {},
+   "createDateTime": "2026-01-01T00:00:00.000Z",
+   "apiKey": null
+  },
+  {
+   "id": 9000003,
+   "friendlyName": "Checkout keyword",
+   "type": "KEYWORD",
+   "url": "https://shop.example.com/checkout",
+   "interval": 300,
+   "timeout": 30,
+   "httpMethodType": "HEAD",
+   "successHttpResponseCodes": [
+    "2xx",
+    "3xx"
+   ],
+   "authType": "NONE",
+   "customHttpHeaders": null,
+   "postValueData": null,
+   "postValueType": null,
+   "port": null,
+   "gracePeriod": null,
+   "keywordValue": "Add to cart",
+   "keywordCaseType": 0,
+   "keywordType": "ALERT_NOT_EXISTS",
+   "checkSSLErrors": true,
+   "followRedirections": true,
+   "sslExpirationReminder": false,
+   "domainExpirationReminder": false,
+   "responseTimeThreshold": 0,
+   "config": null,
+   "regionalData": {
+    "REGION": [
+     "na",
+     "eu"
+    ]
+   },
+   "heartbeatUrl": null,
+   "maintenanceWindows": [
+    {
+     "id": 3,
+     "userId": 1000001,
+     "name": "Nightly",
+     "interval": "daily",
+     "date": null,
+     "time": "02:00:00",
+     "duration": 30,
+     "autoAddMonitors": false,
+     "monitorIds": [
+      9000003
+     ],
+     "days": [],
+     "status": "active"
+    }
+   ],
+   "psps": [],
+   "tags": [],
+   "assignedAlertContacts": [],
+   "status": "UP",
+   "groupId": null,
+   "currentStateDuration": 0,
+   "lastIncidentId": null,
+   "userId": 1000001,
+   "lastDayUptimes": {},
+   "createDateTime": "2026-01-01T00:00:00.000Z",
+   "apiKey": null
+  },
+  {
+   "id": 9000004,
+   "friendlyName": "Error banner absent",
+   "type": "KEYWORD",
+   "url": "https://shop.example.com/",
+   "interval": 300,
+   "timeout": 30,
+   "httpMethodType": "HEAD",
+   "successHttpResponseCodes": [
+    "2xx",
+    "3xx"
+   ],
+   "authType": "NONE",
+   "customHttpHeaders": null,
+   "postValueData": null,
+   "postValueType": null,
+   "port": null,
+   "gracePeriod": null,
+   "keywordValue": "Internal error",
+   "keywordCaseType": null,
+   "keywordType": "ALERT_EXISTS",
+   "checkSSLErrors": true,
+   "followRedirections": true,
+   "sslExpirationReminder": false,
+   "domainExpirationReminder": false,
+   "responseTimeThreshold": 0,
+   "config": null,
+   "regionalData": {
+    "REGION": [
+     "na",
+     "eu"
+    ]
+   },
+   "heartbeatUrl": null,
+   "maintenanceWindows": [],
+   "psps": [],
+   "tags": [],
+   "assignedAlertContacts": [],
+   "status": "UP",
+   "groupId": null,
+   "currentStateDuration": 0,
+   "lastIncidentId": null,
+   "userId": 1000001,
+   "lastDayUptimes": {},
+   "createDateTime": "2026-01-01T00:00:00.000Z",
+   "apiKey": null
+  },
+  {
+   "id": 9000005,
+   "friendlyName": "Nightly backup",
+   "type": "HEARTBEAT",
+   "url": null,
+   "interval": 3600,
+   "timeout": null,
+   "httpMethodType": null,
+   "successHttpResponseCodes": [],
+   "authType": "NONE",
+   "customHttpHeaders": null,
+   "postValueData": null,
+   "postValueType": null,
+   "port": null,
+   "gracePeriod": 600,
+   "keywordValue": null,
+   "keywordCaseType": null,
+   "keywordType": null,
+   "checkSSLErrors": true,
+   "followRedirections": true,
+   "sslExpirationReminder": false,
+   "domainExpirationReminder": false,
+   "responseTimeThreshold": 0,
+   "config": null,
+   "regionalData": {
+    "REGION": []
+   },
+   "heartbeatUrl": "https://heartbeat.uptimerobot.com/m9000005-SYNTHETIC0TOKEN",
+   "maintenanceWindows": [],
+   "psps": [],
+   "tags": [],
+   "assignedAlertContacts": [],
+   "status": "UP",
+   "groupId": null,
+   "currentStateDuration": 0,
+   "lastIncidentId": null,
+   "userId": 1000001,
+   "lastDayUptimes": {},
+   "createDateTime": "2026-01-01T00:00:00.000Z",
+   "apiKey": null
+  }
+ ],
+ "nextLink": "https://api.uptimerobot.com/v3/monitors?cursor=9000005"
+}
+{
+ "data": [
+  {
+   "id": 9000006,
+   "friendlyName": "Mail server ping",
+   "type": "PING",
+   "url": "mail.example.com",
+   "interval": 300,
+   "timeout": 30,
+   "httpMethodType": "HEAD",
+   "successHttpResponseCodes": [
+    "2xx",
+    "3xx"
+   ],
+   "authType": "NONE",
+   "customHttpHeaders": null,
+   "postValueData": null,
+   "postValueType": null,
+   "port": null,
+   "gracePeriod": null,
+   "keywordValue": null,
+   "keywordCaseType": null,
+   "keywordType": null,
+   "checkSSLErrors": true,
+   "followRedirections": true,
+   "sslExpirationReminder": false,
+   "domainExpirationReminder": false,
+   "responseTimeThreshold": 0,
+   "config": null,
+   "regionalData": {
+    "REGION": [
+     "na",
+     "eu"
+    ]
+   },
+   "heartbeatUrl": null,
+   "maintenanceWindows": [],
+   "psps": [],
+   "tags": [],
+   "assignedAlertContacts": [],
+   "status": "UP",
+   "groupId": null,
+   "currentStateDuration": 0,
+   "lastIncidentId": null,
+   "userId": 1000001,
+   "lastDayUptimes": {},
+   "createDateTime": "2026-01-01T00:00:00.000Z",
+   "apiKey": null
+  },
+  {
+   "id": 9000007,
+   "friendlyName": "Database port",
+   "type": "PORT",
+   "url": "db.example.com",
+   "interval": 300,
+   "timeout": 30,
+   "httpMethodType": "HEAD",
+   "successHttpResponseCodes": [
+    "2xx",
+    "3xx"
+   ],
+   "authType": "NONE",
+   "customHttpHeaders": null,
+   "postValueData": null,
+   "postValueType": null,
+   "port": 5432,
+   "gracePeriod": null,
+   "keywordValue": null,
+   "keywordCaseType": null,
+   "keywordType": null,
+   "checkSSLErrors": true,
+   "followRedirections": true,
+   "sslExpirationReminder": false,
+   "domainExpirationReminder": false,
+   "responseTimeThreshold": 0,
+   "config": null,
+   "regionalData": {
+    "REGION": [
+     "na",
+     "eu"
+    ]
+   },
+   "heartbeatUrl": null,
+   "maintenanceWindows": [],
+   "psps": [],
+   "tags": [],
+   "assignedAlertContacts": [],
+   "status": "UP",
+   "groupId": null,
+   "currentStateDuration": 0,
+   "lastIncidentId": null,
+   "userId": 1000001,
+   "lastDayUptimes": {},
+   "createDateTime": "2026-01-01T00:00:00.000Z",
+   "apiKey": null
+  },
+  {
+   "id": 9000008,
+   "friendlyName": "DNS records",
+   "type": "DNS",
+   "url": "example.com",
+   "interval": 300,
+   "timeout": 30,
+   "httpMethodType": "HEAD",
+   "successHttpResponseCodes": [
+    "2xx",
+    "3xx"
+   ],
+   "authType": "NONE",
+   "customHttpHeaders": null,
+   "postValueData": null,
+   "postValueType": null,
+   "port": null,
+   "gracePeriod": null,
+   "keywordValue": null,
+   "keywordCaseType": null,
+   "keywordType": null,
+   "checkSSLErrors": true,
+   "followRedirections": true,
+   "sslExpirationReminder": false,
+   "domainExpirationReminder": false,
+   "responseTimeThreshold": 0,
+   "config": null,
+   "regionalData": {
+    "REGION": [
+     "na",
+     "eu"
+    ]
+   },
+   "heartbeatUrl": null,
+   "maintenanceWindows": [],
+   "psps": [],
+   "tags": [],
+   "assignedAlertContacts": [],
+   "status": "UP",
+   "groupId": null,
+   "currentStateDuration": 0,
+   "lastIncidentId": null,
+   "userId": 1000001,
+   "lastDayUptimes": {},
+   "createDateTime": "2026-01-01T00:00:00.000Z",
+   "apiKey": null
+  },
+  {
+   "id": 9000009,
+   "friendlyName": "Partner API",
+   "type": "HTTP",
+   "url": "https://api.partner.example.net/v1/health",
+   "interval": 300,
+   "timeout": 30,
+   "httpMethodType": "POST",
+   "successHttpResponseCodes": [
+    "2xx",
+    "3xx"
+   ],
+   "authType": "BEARER",
+   "customHttpHeaders": {
+    "X-Api-Key": "synthetic-not-a-secret"
+   },
+   "postValueData": {
+    "ping": 1
+   },
+   "postValueType": "RAW_JSON",
+   "port": null,
+   "gracePeriod": null,
+   "keywordValue": null,
+   "keywordCaseType": null,
+   "keywordType": null,
+   "checkSSLErrors": false,
+   "followRedirections": true,
+   "sslExpirationReminder": false,
+   "domainExpirationReminder": false,
+   "responseTimeThreshold": 0,
+   "config": null,
+   "regionalData": {
+    "REGION": [
+     "na",
+     "eu"
+    ]
+   },
+   "heartbeatUrl": null,
+   "maintenanceWindows": [],
+   "psps": [],
+   "tags": [],
+   "assignedAlertContacts": [],
+   "status": "UP",
+   "groupId": null,
+   "currentStateDuration": 0,
+   "lastIncidentId": null,
+   "userId": 1000001,
+   "lastDayUptimes": {},
+   "createDateTime": "2026-01-01T00:00:00.000Z",
+   "apiKey": null
+  },
+  {
+   "id": 9000010,
+   "friendlyName": "Router admin",
+   "type": "HTTP",
+   "url": "http://192.168.1.1/",
+   "interval": 300,
+   "timeout": 30,
+   "httpMethodType": "HEAD",
+   "successHttpResponseCodes": [
+    "2xx",
+    "3xx"
+   ],
+   "authType": "NONE",
+   "customHttpHeaders": null,
+   "postValueData": null,
+   "postValueType": null,
+   "port": null,
+   "gracePeriod": null,
+   "keywordValue": null,
+   "keywordCaseType": null,
+   "keywordType": null,
+   "checkSSLErrors": true,
+   "followRedirections": true,
+   "sslExpirationReminder": false,
+   "domainExpirationReminder": false,
+   "responseTimeThreshold": 0,
+   "config": null,
+   "regionalData": {
+    "REGION": [
+     "na",
+     "eu"
+    ]
+   },
+   "heartbeatUrl": null,
+   "maintenanceWindows": [],
+   "psps": [],
+   "tags": [],
+   "assignedAlertContacts": [],
+   "status": "UP",
+   "groupId": null,
+   "currentStateDuration": 0,
+   "lastIncidentId": null,
+   "userId": 1000001,
+   "lastDayUptimes": {},
+   "createDateTime": "2026-01-01T00:00:00.000Z",
+   "apiKey": null
+  },
+  {
+   "id": 9000011,
+   "friendlyName": "Weekly report",
+   "type": "HTTP",
+   "url": "https://reports.example.com/",
+   "interval": 172800,
+   "timeout": 30,
+   "httpMethodType": "HEAD",
+   "successHttpResponseCodes": [
+    "2xx",
+    "3xx"
+   ],
+   "authType": "NONE",
+   "customHttpHeaders": null,
+   "postValueData": null,
+   "postValueType": null,
+   "port": null,
+   "gracePeriod": null,
+   "keywordValue": null,
+   "keywordCaseType": null,
+   "keywordType": null,
+   "checkSSLErrors": true,
+   "followRedirections": true,
+   "sslExpirationReminder": false,
+   "domainExpirationReminder": false,
+   "responseTimeThreshold": 0,
+   "config": null,
+   "regionalData": {
+    "REGION": [
+     "na",
+     "eu"
+    ]
+   },
+   "heartbeatUrl": null,
+   "maintenanceWindows": [],
+   "psps": [],
+   "tags": [],
+   "assignedAlertContacts": [],
+   "status": "UP",
+   "groupId": null,
+   "currentStateDuration": 0,
+   "lastIncidentId": null,
+   "userId": 1000001,
+   "lastDayUptimes": {},
+   "createDateTime": "2026-01-01T00:00:00.000Z",
+   "apiKey": null
+  },
+  {
+   "id": 9000012,
+   "friendlyName": "Staging",
+   "type": "HTTP",
+   "url": "https://user:pass@staging.example.com/",
+   "interval": 300,
+   "timeout": 30,
+   "httpMethodType": "HEAD",
+   "successHttpResponseCodes": [
+    "2xx",
+    "3xx"
+   ],
+   "authType": "NONE",
+   "customHttpHeaders": null,
+   "postValueData": null,
+   "postValueType": null,
+   "port": null,
+   "gracePeriod": null,
+   "keywordValue": null,
+   "keywordCaseType": null,
+   "keywordType": null,
+   "checkSSLErrors": true,
+   "followRedirections": true,
+   "sslExpirationReminder": false,
+   "domainExpirationReminder": false,
+   "responseTimeThreshold": 0,
+   "config": null,
+   "regionalData": {
+    "REGION": [
+     "na",
+     "eu"
+    ]
+   },
+   "heartbeatUrl": null,
+   "maintenanceWindows": [],
+   "psps": [],
+   "tags": [],
+   "assignedAlertContacts": [],
+   "status": "UP",
+   "groupId": null,
+   "currentStateDuration": 0,
+   "lastIncidentId": null,
+   "userId": 1000001,
+   "lastDayUptimes": {},
+   "createDateTime": "2026-01-01T00:00:00.000Z",
+   "apiKey": null
+  }
+ ],
+ "nextLink": null
+}

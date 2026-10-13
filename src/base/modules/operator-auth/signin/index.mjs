@@ -55,7 +55,7 @@ export function createSignInHandler(auth, { setup, links, defaultReturnTo = '/ap
     }
     parts.push(`<form method="post" action="/auth/magic-link">${hidden(returnTo)}<label for="signin-email">Email</label><input id="signin-email" name="email" type="email" autocomplete="email" required maxlength="254"><button type="submit">Email a sign-in link</button></form>`);
     for (const link of (await links?.(request)) ?? []) {
-      if (typeof link?.href === 'string' && /^\/(?!\/)[^\s\\]*$/.test(link.href) && typeof link.label === 'string') parts.push(`<p><a href="${escapeHtml(link.href)}">${escapeHtml(link.label)}</a></p>`);
+      if (typeof link?.href === 'string' && /^\/(?!\/)[^\s\\]*$/.test(link.href) && typeof link.label === 'string') parts.push(`<p class="secondary-link"><a href="${escapeHtml(link.href)}">${escapeHtml(link.label)}</a></p>`);
     }
     const firstOwner = await setup?.(request);
     if (firstOwner) {

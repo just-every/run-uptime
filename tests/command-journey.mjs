@@ -1,27 +1,36 @@
 import assert from 'node:assert/strict';
 import { readFile, readdir, stat, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { populateArchiveFixture } from './archive-fixture.mjs';
 import { archive as productArchive } from '../src/domain/archive.server.ts';
 import { chromium } from 'playwright';
 import { scratchInstallation, machineAvailable } from './scratch-installation.mjs';
 import { openGate, readCheckoutKey } from './auth-test-support.mjs';
 import { until, assertPortFree, signInThroughOutbox, smokeDocuments, descendantGroups, assertGroupsGone } from './installer-support.mjs';
+import { definitionsJourney } from './definitions-journey.mjs';
+import { drillJourney } from './drill-journey.mjs';
 const scratch = await scratchInstallation();
 let dev, browser, origin; const groups = new Set();
 try {
- const invoke = args => scratch.run('node', ['scripts/rer.mjs', ...args]);
+ // The installed rer: the @runeditrun/rer entry this checkout pins. On the fresh scratch checkout describe, check and install
+ // install the pinned package first, and every verb then runs with the scratch's own pinned rer.
+ const rer = fileURLToPath(new URL('../node_modules/@runeditrun/rer/global/rer.mjs', import.meta.url));
+ const invoke = args => scratch.run('node', [rer, ...args]);
  await invoke(['describe', '--json']);
  await invoke(['check', '--profile', 'first-party']);
  await invoke(['install']);
- const missing = scratch.start('node', ['scripts/rer.mjs', 'setup', '--non-interactive', '--json']);
+ const missing = scratch.start('node', [rer, 'setup', '--non-interactive', '--json']);
  try { assert.equal((await missing.done).code, 3); } finally { await scratch.stop(missing); }
- const setup = await invoke(['setup', '--owner-email', 'journey@example.test', '--owner-name', 'Command Owner', '--non-interactive']);
+ // The owner's website is a private-file answer; it reaches the Worker through the installation's own settings.
+ const startSite = 'https://start-site.example.test/';
+ await writeFile(join(scratch.root, 'answers.json'), JSON.stringify({ UPTIME_START_URL: startSite }), { mode: 0o600 });
+ const setup = await invoke(['setup', '--owner-email', 'journey@example.test', '--owner-name', 'Command Owner', '--non-interactive', '--answers', 'answers.json']);
  origin = setup.match(/RER_SETUP_READY (http:\/\/127\.0\.0\.1:\d+)/)?.[1]; assert.ok(origin);
  await assertPortFree(Number(new URL(origin).port));
  const settingsPath = join(scratch.root, 'data/local-secrets.json'), settings = await readFile(settingsPath);
  assert.equal((await stat(settingsPath)).mode & 0o777, 0o600);
+ assert.equal(JSON.parse(settings).UPTIME_START_URL, startSite, 'the website reached the installation settings');
  await invoke(['setup', '--owner-email', 'journey@example.test', '--non-interactive']);
  assert.ok((await readFile(settingsPath)).equals(settings));
  // Inspect the real production output of setup after it built with saved keys.
@@ -36,17 +45,22 @@ try {
  }
  await inspectBuild(join(scratch.root, 'dist'));
 
- const conflicting = scratch.start('node', ['scripts/rer.mjs', 'setup', '--owner-email', 'another@example.test', '--non-interactive']);
+ const conflicting = scratch.start('node', [rer, 'setup', '--owner-email', 'another@example.test', '--non-interactive']);
  try { assert.equal((await conflicting.done).code, 4); } finally { await scratch.stop(conflicting); }
- await machineAvailable(); dev = scratch.start('node', ['scripts/rer.mjs', 'dev']);
+ await machineAvailable(); dev = scratch.start('node', [rer, 'dev', '--foreground']);
  await until(() => { assert.equal(dev.exitCode, null); return dev.output.includes('RER_READY ' + origin); });
  // dev opens signed in: the owner it names and the key-carrying link (whose key stays in the fragment).
  assert.ok(dev.output.includes('RER_SIGNED_IN journey@example.test'));
- assert.ok(dev.output.includes('RER_OPEN ' + origin + '/#rer-dev='));
+ assert.ok(dev.output.includes('RER_OPEN ' + origin + '/__dev/key#rer-dev='));
  assert.equal((await fetch(origin + '/__dev/outbox')).status, 404, 'the outbox answers only a request that holds the key');
- assert.equal((await fetch(origin + '/@vite/client')).status, 200, 'real Vite asset/HMR support');
+ const client = await fetch(origin + '/@vite/client');
+ assert.equal(client.status, 200, 'real Vite asset/HMR support');
+ // The client's own imports (Vite 8 names its env module by package-store path) must reach the browser too, or nothing hydrates.
+ const imports = [...(await client.text()).matchAll(/^import "(\/[^"]+)";/gm)];
+ assert.ok(imports.length > 0, 'the Vite client imports its env module');
+ for (const [, specifier] of imports) assert.equal((await fetch(origin + specifier)).status, 200, 'the Vite client import ' + specifier + ' is served');
  await invoke(['outbox']);
- const resetActive = scratch.start('node', ['scripts/rer.mjs', 'reset', '--yes', '--non-interactive']);
+ const resetActive = scratch.start('node', [rer, 'reset', '--yes', '--non-interactive']);
  try { assert.equal((await resetActive.done).code, 4); } finally { await scratch.stop(resetActive); }
  browser = await chromium.launch({ headless: true }); const page = await browser.newPage();
  const devKey = await readCheckoutKey(scratch.root);
@@ -73,7 +87,9 @@ try {
   for (const path of ['/app', '/app/', '/app/monitor', '/app/monitor/', '/_serverFn/private']) {
    await page.goto(origin + path); assert.equal(new URL(page.url()).pathname, '/setup', 'unfinished owner stays in setup');
   }
-  assert.equal((await page.request.get(origin + '/setup', { maxRedirects: 0 })).status(), 200, 'denied completion left first-run unfinished');
+  const unfinishedPage = await page.request.get(origin + '/setup', { maxRedirects: 0 });
+  assert.equal(unfinishedPage.status(), 200, 'denied completion left first-run unfinished');
+  assert.ok((await unfinishedPage.text()).includes(startSite), 'setup says which site Uptime is checking');
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'setup fits the viewport');
   if (setupEvidence) await page.screenshot({ path: join(setupEvidence, `setup-${width}.png`), fullPage: true });
  }
@@ -81,13 +97,17 @@ try {
  const nativeSetup = await browser.newContext({ javaScriptEnabled: false, storageState: await page.context().storageState() });
  try {
   const p = await nativeSetup.newPage(); await p.goto(origin + '/setup');
-  await p.getByRole('button', { name: 'Finish setup', exact: true }).click(); await p.waitForURL(origin + '/app');
+  await p.getByRole('button', { name: 'Finish setup', exact: true }).click(); await p.waitForURL(url => url.origin === origin && url.pathname === '/app/monitor' && url.searchParams.has('discovery'));
+  const job = await page.request.get(origin + '/api/discoveries/' + new URL(p.url()).searchParams.get('discovery'));
+  assert.equal(job.status(), 200); assert.equal((await job.json()).url, startSite, 'finishing setup lands on the discovery of the owner\'s website');
  } finally { await nativeSetup.close(); }
  const finished = await page.request.get(origin + '/setup', { maxRedirects: 0 });
  assert.equal(finished.status(), 303); assert.equal(finished.headers().location, '/app');
  await page.goto(origin + '/app');
  if (setupEvidence) await writeFile(join(setupEvidence, 'RESULTS.json'), JSON.stringify({ widths: [1440, 390], freshRerSetup: true, outboxReturn: '/setup', unfinishedRoutes: true, unsignedReturn: true, csrfRefused: true, nativeCompletion: true, finishedReturn: '/app' }, null, 2));
  await smokeDocuments(page, origin);
+ await definitionsJourney(page, origin);
+ await drillJourney(page, origin);
  // Native form POST remains usable without hydration; ordinary links are one-use.
  const noScript = await browser.newContext({ javaScriptEnabled: false });
  try { const p = await noScript.newPage(); await p.goto(origin + '/login'); await p.getByLabel('Email address', { exact: true }).fill('journey@example.test'); await p.getByRole('button', { name: 'Send sign-in link', exact: true }).click(); assert.ok(p.url().startsWith(origin)); } finally { await noScript.close(); }
@@ -95,8 +115,13 @@ try {
  let expected = await before.json();
  for (const group of await descendantGroups(dev.pid)) groups.add(group);
  await scratch.stop(dev); dev = undefined; await assertGroupsGone(groups);
+ // The local definitions command: export the current definitions to a new file; its preview is all unchanged.
+ await scratch.run('node', ['scripts/definitions.mjs', 'export', '--output', 'exports/uptime.monitors.json']);
+ const exportedFile = JSON.parse(await readFile(join(scratch.root, 'exports/uptime.monitors.json'), 'utf8'));
+ const exported = JSON.parse((await scratch.run('node', ['scripts/definitions.mjs', 'preview', '--input', 'exports/uptime.monitors.json', '--json'])).split('\n').find(line => line.startsWith('{"kind"')));
+ assert.ok(exportedFile.monitors.length >= 6); assert.deepEqual(exported.counts, { create: 0, unchanged: exportedFile.monitors.length, change: 0, refused: 0, unsupported: 0 });
  // Preview serves the fixed production build on the same origin, then stops with its owned processes.
- await machineAvailable(); let preview = scratch.start('node', ['scripts/rer.mjs', 'preview']);
+ await machineAvailable(); let preview = scratch.start('node', [rer, 'preview']);
  try {
   await until(() => { assert.equal(preview.exitCode, null); return preview.output.includes('RER_READY ' + origin); });
   const landing = await fetch(origin + '/'); assert.equal(landing.status, 200);
@@ -131,6 +156,7 @@ try {
   assert.ok(target.notification_destinations.every(row => row.enabled === 0));
   assert.ok(target.notification_jobs.every(row => row.state === 'imported-inactive'));
   assert.ok(target.outbox.every(row => row.status === 'imported-inactive'));
+  assert.equal(target.definition_batches.length, 2); assert.ok(target.definition_batches.every(row => row.undone_at !== null && row.restored_at !== null), 'applied-and-undone batches arrive as restored history');
   for (const name of ['monitors', 'slots', 'outbox', 'notification_destinations', 'notification_jobs', 'integration_deliveries']) for (const original of source[name]) {
    const current = target[name].find(row => row.id === original.id);
    if (JSON.stringify(current) !== JSON.stringify(original)) assert.ok(target.archive_history.some(row => row.table_name === name && row.record === JSON.stringify(original)));

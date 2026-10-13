@@ -1,5 +1,6 @@
+import { HydrationUnit } from '../../base/hydration/unit';
 import { Icon } from '../shell/Icon';
-import { docsPath } from '../shell/links';
+import { docsPath, type SiteVariant } from '../shell/links';
 import { SiteFooter } from '../shell/SiteFooter';
 import { SiteFrame } from '../shell/SiteFrame';
 import { SiteHeader } from '../shell/SiteHeader';
@@ -14,22 +15,25 @@ import './styles';
  * section's pages as even cards in reading order. It has no "On this page" column, and on phones no menu: the page itself
  * is the full list.
  */
-export function DocsIndex() {
+export function DocsIndex({ variant = 'instance' }: { variant?: SiteVariant }) {
   return (
     <SiteFrame className="ut-docs">
       <DocsDawn />
-      <SiteHeader current="docs" />
+      <HydrationUnit><SiteHeader current="docs" variant={variant} /></HydrationUnit>
       <div className="ut-wrap docs-shell docs-shell--index">
-        <DocsSidebar />
+        <HydrationUnit><DocsSidebar /></HydrationUnit>
         <main id="main" className="docs-main">
-          <header className="docs-page-head">
-            <p className="ut-eyebrow docs-eyebrow">Uptime</p>
-            <h1 className="docs-title">Docs</h1>
-            <TitleDots />
-          </header>
-          <p className="docs-lead">{docsLead}</p>
+          <HydrationUnit>
+            <header className="docs-page-head">
+              <p className="ut-eyebrow docs-eyebrow">Uptime</p>
+              <h1 className="docs-title">Docs</h1>
+              <TitleDots />
+            </header>
+          </HydrationUnit>
+          <HydrationUnit><p className="docs-lead">{docsLead}</p></HydrationUnit>
           {docsSections.map((section, index) => (
-            <section className="docs-index-section" key={section.title} aria-labelledby={`docs-section-${index}`}>
+            <HydrationUnit key={section.title}>
+            <section className="docs-index-section" aria-labelledby={`docs-section-${index}`}>
               <h2 className="ut-eyebrow docs-index-section-title" id={`docs-section-${index}`}>{section.title}</h2>
               <ul className="docs-index-grid">
                 {section.pages.map(page => (
@@ -42,10 +46,11 @@ export function DocsIndex() {
                 ))}
               </ul>
             </section>
+            </HydrationUnit>
           ))}
         </main>
       </div>
-      <SiteFooter />
+      <HydrationUnit><SiteFooter variant={variant} /></HydrationUnit>
     </SiteFrame>
   );
 }

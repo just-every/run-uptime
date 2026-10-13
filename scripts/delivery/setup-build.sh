@@ -7,5 +7,5 @@ cd "$uptime_build_root"
 npm install --prefix "$uptime_build_root/.rer-tools" --no-save --package-lock=false \
   --no-audit --no-fund node@22.20.0 pnpm@10.12.4
 export PATH="$uptime_build_root/.rer-tools/node_modules/.bin:$PATH"
-node scripts/rer.mjs install
+pnpm install --frozen-lockfile && pnpm exec rer install
 pnpm exec playwright install --with-deps --only-shell chromium

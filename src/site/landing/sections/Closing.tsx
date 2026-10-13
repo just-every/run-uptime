@@ -13,7 +13,7 @@ export function Closing() {
         <h2 id="closing-title"><Headline text={c.title} /></h2>
         <p className="ut-closing-sub">{c.sub}</p>
         <div className="ut-actions">
-          <a className="ut-pill ut-pill--large" href={links.install}>{c.primary}<Icon name="arrow" /></a>
+          <a className="ut-pill ut-pill--large" href={links.run}>{c.primary}<Icon name="arrow" /></a>
           <a className="ut-link ut-link--large" href={links.docs}>{c.secondary}</a>
         </div>
         <p className="ut-fine">{c.fine}</p>

@@ -44,7 +44,7 @@ Rotating `SESSION_SECRET` signs everyone out and makes stored notification crede
 
 ## Report a problem
 
-If you find a security problem or anything that looks wrong, open an issue on GitHub at https://github.com/just-every/uptime-monitor. Please leave out secrets, tokens and private URLs when you describe it.
+If you find a security problem or anything that looks wrong, open an issue on GitHub at https://github.com/just-every/run-uptime. Please leave out secrets, tokens and private URLs when you describe it.
 
 ## Related
 

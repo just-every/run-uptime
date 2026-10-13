@@ -1,5 +1,6 @@
 import {publicLimits,publicPath,type PublicPath} from './public-paths.ts'
 import type {AuthBindings} from './operator-auth.server.ts'
+import {storageOperation,classifyStorage,storageLogLine} from './storage-error.ts'
 
 const windowMs=60_000
 // Only Cloudflare's trusted edge header supplies hosted client identity. A
@@ -28,13 +29,15 @@ export async function limitPublicRequest(env:AuthBindings,request:Request,declar
  const hash=await clientHash(env,request)
  let admitted:unknown
  try{
-  admitted=await env.DB.prepare(`INSERT INTO public_rate_limits(class,client_hash,window_start,request_count,expires_at)
+  admitted=await storageOperation('publicRateLimit.count',()=>env.DB.prepare(`INSERT INTO public_rate_limits(class,client_hash,window_start,request_count,expires_at)
   VALUES(?,?,?,1,?) ON CONFLICT(class,client_hash,window_start) DO UPDATE SET request_count=request_count+1
-  WHERE public_rate_limits.request_count<? RETURNING request_count`).bind(declaration.class,hash,windowStart,expiresAt,limit).first()
- }catch{
+  WHERE public_rate_limits.request_count<? RETURNING request_count`).bind(declaration.class,hash,windowStart,expiresAt,limit).first())
+ }catch(error){
   // A missing migration or unavailable D1 must close the public boundary,
   // including health; never admit an uncounted request or expose DB details.
-  return Response.json({error:'Public request limiter unavailable'},{status:503,headers:{'cache-control':'no-store'}})
+  const fault=classifyStorage(error)
+  console.error(fault?storageLogLine(request.method,declaration.path,fault):JSON.stringify({event:'storage_error',method:request.method,route:declaration.path,operation:'publicRateLimit.count',class:'other',status:503,cause:'not a D1 error'}))
+  return Response.json({error:'Public request limiter unavailable',code:'storage_unavailable',retryable:true,class:fault?.class??'other',operation:'publicRateLimit.count'},{status:503,headers:{'retry-after':'5','cache-control':'no-store'}})
  }
  if(admitted)return null
  return Response.json({error:'Public request rate limit exceeded'},{status:429,headers:{'retry-after':String(Math.max(1,Math.ceil((expiresAt-now)/1000))),'cache-control':'no-store'}})

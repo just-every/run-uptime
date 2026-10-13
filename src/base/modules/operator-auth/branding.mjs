@@ -53,7 +53,7 @@ export function configureBranding(input = {}) {
     decoded = next;
   }
   // A seed theme is its own served rer-theme.css; Base onboarding validates its contents.
-  if (theme !== undefined && (typeof theme !== 'string' || !/^\/(?!\/)[A-Za-z0-9._~/-]{1,200}\.css$/.test(theme) || theme.includes('/.'))) invalid();
+  if (theme !== undefined && (typeof theme !== 'string' || !/^\/(?!\/)[A-Za-z0-9._~/-]{1,200}\.css$/.test(theme) || theme.includes('//') || theme.includes('/.'))) invalid();
   return Object.freeze({ productName: productName.trim(), accentColor, signInPath, ...(theme ? { theme } : {}) });
 }
 

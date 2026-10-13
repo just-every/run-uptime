@@ -1,7 +1,7 @@
 import {randomUUID} from 'node:crypto';
 import http from 'node:http';
 import {RUNNER_VERSION,MAX_BODY,validateDefinition} from '../../src/domain/policy.mjs';
-import {publicHttp,ProbeError} from './public-http.mjs';
+import {publicHttp,ProbeError,PROBE_ACCEPT} from './public-http.mjs';
 function assertions(def,response,durationMs){
   const a=def.assertions,{body,headers,status}=response;
   const checks=[{assertion:'status',pass:status===a.status,reason:'Expected HTTP status'}];
@@ -16,7 +16,7 @@ function syntheticHttp(def,signal,onRequest){
   return new Promise((resolve,reject)=>{
     let size=0,chunks=[];
     const fail=category=>reject(new ProbeError(category));
-    const req=http.request(def.url,{method:def.method,agent:new http.Agent({keepAlive:false,proxyEnv:{}}),signal,headers:{'User-Agent':RUNNER_VERSION,'Accept':'application/json,text/plain'}},res=>{
+    const req=http.request(def.url,{method:def.method,agent:new http.Agent({keepAlive:false,proxyEnv:{}}),signal,headers:{'User-Agent':RUNNER_VERSION,'Accept':PROBE_ACCEPT}},res=>{
       if(res.headers['x-uptime-fixture']!==def.fixtureIdentity){fail('custody');res.destroy();return}
       if(res.headers['content-encoding']&&res.headers['content-encoding']!=='identity'){fail('encoding');res.destroy();return}
       if(res.statusCode>=300&&res.statusCode<400){fail('redirect');res.destroy();return}
@@ -31,14 +31,16 @@ export function probeHeartbeat(def,probe,receipt){
   const pass=Number.isFinite(receivedAt)&&receivedAt<=now&&now-receivedAt<=def.heartbeat.maxAgeMs;
   return {id:randomUUID(),probe,startedAt:now,completedAt:now,durationMs:0,runnerVersion:RUNNER_VERSION,outcome:pass?'pass':'target_failure',...(Number.isFinite(receivedAt)?{heartbeatReceivedAt:receivedAt}:{}),checks:[{assertion:'heartbeat',pass,reason:pass?'Authenticated receipt is fresh':'Authenticated receipt absent or stale'}]};
 }
-export async function probeHttp(input,probe,grants=[]) {
+// statusOnly is for the external canary: it asserts the status alone, so the page's body is never read, bounded or kept.
+export async function probeHttp(input,probe,grants=[],{statusOnly=false}={}) {
   const def=validateDefinition(input,grants),startedAt=Date.now();
+  if(statusOnly&&(def.network!=='public'||Object.keys(def.assertions).some(key=>key!=='status')))throw Error('Status-only reads serve public status assertions only');
   if(def.type==='heartbeat')throw Error('Heartbeat requires a signed scheduled receipt snapshot');
   const abort=new AbortController();let active;
   let timer;
   const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>{abort.abort();active?.destroy();reject(new ProbeError('timeout'))},def.timeoutMs)});
   try{
-    const response=await Promise.race([timeout,def.network==='public'?publicHttp(def,abort.signal,r=>active=r):syntheticHttp({...def,fixtureIdentity:input.fixtureIdentity},abort.signal,r=>active=r)]);
+    const response=await Promise.race([timeout,def.network==='public'?publicHttp(def,abort.signal,r=>active=r,{statusOnly}):syntheticHttp({...def,fixtureIdentity:input.fixtureIdentity},abort.signal,r=>active=r)]);
     const completedAt=Date.now(),checks=assertions(def,response,completedAt-startedAt);
     return evidence({outcome:checks.every(c=>c.pass)?'pass':'target_failure',status:response.status,bytes:response.bytes,checks},completedAt);
   }catch(error){const category=error instanceof ProbeError?error.category:'runner';return evidence({outcome:['custody','runner','network','dns'].includes(category)?'runner_error':'target_failure',checks:[{assertion:category,pass:false,reason:'Probe '+category+' check failed'}]})}

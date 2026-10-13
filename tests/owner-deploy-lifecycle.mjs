@@ -124,7 +124,7 @@ test('five real pnpm run deploy cycles cover provision, exact repeat, partial mi
   const collision = await deploy(root, provider, t.signal);
   assert.equal(collision.code, 1);
   assert.equal(collision.result?.ok, false);
-  assert.deepEqual(collision.errorCodes, ['command_failed']);
+  assert.deepEqual(collision.errorCodes, ['owner_deploy_failed']);
   assert.equal(provider.state.writes.length, writes, 'foreign collision refuses before any mutation');
   assert.deepEqual(migrationRows(provider), migrations);
   assert.equal(provider.uploads.length, 1, 'repeat and foreign collision never upload another worker');

@@ -1,6 +1,7 @@
 import { extname } from 'node:path';
 import { assert, hash, hexId, uuid } from './validation.mjs';
 import { moduleType, assetType } from './artifact.mjs';
+import { RUN_WORKER_FIRST } from './render.mjs';
 
 export async function activeWorker(api, worker) {
   let settings;
@@ -15,6 +16,10 @@ export async function activeWorker(api, worker) {
   const version = await api.request(`/workers/scripts/${worker}/versions/${versionId}`);
   assert(version.id === versionId && typeof version.resources?.script?.etag === 'string' && version.resources.script.etag.length > 0, 'invalid-active-version');
   return {settings,versionId,deploymentId:deployment.id,etag:version.resources.script.etag,version};
+}
+/** Read authenticated runtime detection, never infer handlers from uploaded source text. */
+export function verifyScheduledHandler(active, plan) {
+  if (plan.crons.length) assert(Array.isArray(active?.version?.resources?.script?.handlers) && active.version.resources.script.handlers.includes('scheduled'), 'missing-scheduled-handler');
 }
 /** The build fingerprint a Worker's settings (or an upload's metadata) carry as a plain-text binding. */
 export const deployedFingerprint = settings => settings?.bindings?.find(x => x.type === 'plain_text' && x.name === 'RER_DEPLOY_FINGERPRINT')?.text;
@@ -77,12 +82,20 @@ export async function uploadWorker(api, {plan,artifact,bindings,secrets,migratio
   const data = new FormData();
   const metadata = {main_module:artifact.main,compatibility_date:plan.compatibilityDate,compatibility_flags:plan.compatibilityFlags ?? [],bindings:[...bindings,...secrets.bindings],keep_bindings:['secret_text'],annotations:{'workers/message':`rer-deploy:${fingerprint}`}};
   if (migration) metadata.migrations = migration;
-  if (artifact.assets.length) { metadata.assets = {jwt:await uploadAssets(api,plan.worker,artifact.assets),config:{run_worker_first:true}}; }
+  if (artifact.assets.length) { metadata.assets = {jwt:await uploadAssets(api,plan.worker,artifact.assets),config:{run_worker_first:RUN_WORKER_FIRST}}; }
   data.set('metadata',new Blob([JSON.stringify(metadata)],{type:'application/json'}));
   for (const file of artifact.modules) data.set(file.path,new Blob([Buffer.from(file.base64,'base64')],{type:moduleType(file.path)}),file.path);
   await api.request(`/workers/scripts/${plan.worker}?bindings_inherit=strict`,{method:'PUT',body:data});
 }
-export async function workerOrigin(api, worker, { enable = false } = {}) {
+/** The workers.dev origin, enabling it when allowed. With `workersDev: false` the route is kept
+ * off (a Worker reached only through service bindings) and there is no origin. */
+export async function workerOrigin(api, worker, { enable = false, workersDev = true } = {}) {
+  if (!workersDev) {
+    const state = await api.request(`/workers/scripts/${worker}/subdomain`);
+    assert(typeof state.enabled === 'boolean','invalid-worker-subdomain');
+    if (state.enabled) { assert(enable,'worker-subdomain-enabled'); await api.request(`/workers/scripts/${worker}/subdomain`,{method:'POST',body:{enabled:false,previews_enabled:false}}); }
+    return null;
+  }
   const result = await api.request('/workers/subdomain');
   assert(typeof result.subdomain === 'string' && /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(result.subdomain),'invalid-account-subdomain');
   const state = await api.request(`/workers/scripts/${worker}/subdomain`);

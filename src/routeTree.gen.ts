@@ -9,18 +9,12 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppMonitorRouteImport } from './routes/app.monitor'
 import { Route as DocsIndexRouteImport } from './routes/docs.index'
 import { Route as DocsSlugRouteImport } from './routes/docs.$slug'
 import { Route as AppMonitorsIdRouteImport } from './routes/app.monitors.$id'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/app/',
   path: '/app/',
@@ -48,7 +42,6 @@ const AppMonitorsIdRoute = AppMonitorsIdRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
   '/app/monitor': typeof AppMonitorRoute
   '/docs/$slug': typeof DocsSlugRoute
   '/app/': typeof AppIndexRoute
@@ -56,7 +49,6 @@ export interface FileRoutesByFullPath {
   '/app/monitors/$id': typeof AppMonitorsIdRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
   '/app/monitor': typeof AppMonitorRoute
   '/docs/$slug': typeof DocsSlugRoute
   '/app': typeof AppIndexRoute
@@ -65,7 +57,6 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
   '/app/monitor': typeof AppMonitorRoute
   '/docs/$slug': typeof DocsSlugRoute
   '/app/': typeof AppIndexRoute
@@ -75,23 +66,11 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/'
-    | '/app/monitor'
-    | '/docs/$slug'
-    | '/app/'
-    | '/docs/'
-    | '/app/monitors/$id'
+    '/app/monitor' | '/docs/$slug' | '/app/' | '/docs/' | '/app/monitors/$id'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/app/monitor'
-    | '/docs/$slug'
-    | '/app'
-    | '/docs'
-    | '/app/monitors/$id'
+  to: '/app/monitor' | '/docs/$slug' | '/app' | '/docs' | '/app/monitors/$id'
   id:
     | '__root__'
-    | '/'
     | '/app/monitor'
     | '/docs/$slug'
     | '/app/'
@@ -100,7 +79,6 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
   AppMonitorRoute: typeof AppMonitorRoute
   DocsSlugRoute: typeof DocsSlugRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -110,13 +88,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/app/': {
       id: '/app/'
       path: '/app'
@@ -156,7 +127,6 @@ declare module '@tanstack/react-router' {
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
   AppMonitorRoute: AppMonitorRoute,
   DocsSlugRoute: DocsSlugRoute,
   AppIndexRoute: AppIndexRoute,

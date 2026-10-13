@@ -1,3 +1,4 @@
+import { providerPinFence } from '../operator-auth/accounts/provider-pin.mjs';
 import { OwnerClaimError } from './verify.mjs';
 
 // The existing bootstrap performs its limit batch before its admission batch.
@@ -54,15 +55,26 @@ export function bootstrapTransaction(db, claim, config, clock) {
       if (claim.iat - now > 30 || claim.exp <= now || claim.exp <= claim.iat || claim.exp - claim.iat > 300) throw new OwnerClaimError();
       const start = db.prepare(`INSERT INTO oc_owner_claims(singleton,jti,installation_id,email,issued_at,expires_at,consumed_at,operator_id,session_id)
         VALUES(1,?,?,?,?,?,?,?,?)`).bind(claim.jti, claim.installationId, claim.email, claim.iat, claim.exp, now, owner, session);
+      const pin = providerPinFence(claim.identity?.pin);
       const finish = db.prepare(`UPDATE oc_owner_claims SET completed=CASE WHEN
         EXISTS(SELECT 1 FROM oa_bootstrap WHERE claim_id=?) AND
         EXISTS(SELECT 1 FROM oa_operators WHERE id=? AND email=? AND role='owner' AND status='active') AND
         EXISTS(SELECT 1 FROM oa_sessions WHERE id=? AND operator_id=?) AND
-        (SELECT count FROM oa_limits WHERE key=?)<=? AND (SELECT count FROM oa_limits WHERE key=?)<=?
+        ${claim.identity ? `EXISTS(SELECT 1 FROM rer_dependency_link WHERE interface='oidc-provider@1' AND issuer=? AND client_id=? AND metadata=? AND needs_relink=0 AND linked_at=?) AND EXISTS(SELECT 1 FROM rer_dependency_installation WHERE singleton=1 AND sector_id=?) AND` : ''}
+        ${pin.sql} AND (SELECT count FROM oa_limits WHERE key=?)<=? AND (SELECT count FROM oa_limits WHERE key=?)<=?
         THEN 1 ELSE 2 END WHERE jti=?`).bind(owner, owner, claim.email, session, owner,
-          limits[0].args[0], config.ipLimit, limits[1].args[0], config.emailLimit, claim.jti);
+          ...(claim.identity?[claim.identity.issuer,claim.identity.clientId,claim.identity.metadata,claim.identity.linkedAt,claim.installationId]:[]), ...pin.args, limits[0].args[0], config.ipLimit, limits[1].args[0], config.emailLimit, claim.jti);
       try {
-        const results = await db.batch([start, ...[...limits, ...statements].map(s => db.prepare(s.sql).bind(...s.args)), finish]);
+        const identity = claim.identity ? [
+          db.prepare('INSERT INTO oc_idp_grants(issuer,client_id,jti,subject,sector_id) VALUES(?,?,?,?,?)').bind(claim.identity.issuer,claim.identity.clientId,claim.jti,claim.identity.subject,claim.installationId),
+          db.prepare('INSERT INTO oa_external_identities(issuer,subject,operator_id) VALUES(?,?,?)').bind(claim.identity.issuer,claim.identity.subject,owner),
+          db.prepare("INSERT INTO oa_auth_audit(id,actor_id,action,value,created_at) VALUES(?,?,'idpSignIn','true',?)").bind(crypto.randomUUID(),owner,clock()),
+          db.prepare('UPDATE oa_auth_settings SET idp_sign_in=1,first_setup=0,generation=generation+1 WHERE singleton=1'),
+          db.prepare("UPDATE oa_sessions SET kind='oidc',expires_at=MIN(expires_at,?) WHERE id=?").bind(clock()+86400000,session),
+          db.prepare("INSERT INTO oa_provider_session_pins(session_id,provider_id,issuer,client_id,linked_at) SELECT ?,provider_id,issuer,client_id,linked_at FROM oa_identity_providers WHERE provider_id='auth' AND status='linked'").bind(session),
+          db.prepare('INSERT INTO oa_provider_sessions(session_id,issuer,subject,sid,generation) SELECT ?,?,?,?,generation FROM oa_auth_settings WHERE singleton=1').bind(session,claim.identity.issuer,claim.identity.subject,claim.identity.sid),
+        ] : [];
+        const results = await db.batch([start, ...[...limits, ...statements].map(s => db.prepare(s.sql).bind(...s.args)), ...identity, finish]);
         committed = true;
         return results.slice(3, 6);
       } catch {

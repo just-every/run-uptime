@@ -11,7 +11,7 @@ export function oaSessions({ config, store, clock }) {
   const hash = (purpose, token) => hashToken(config.SESSION_SECRET, purpose, token);
   async function newSession(kind = 'native') {
     const token = opaqueToken();
-    const seconds = kind === 'review' ? config.reviewSeconds : config.sessionSeconds;
+    const seconds = kind === 'review' ? config.reviewSeconds : kind === 'oidc' ? Math.min(config.sessionSeconds, 86400) : config.sessionSeconds;
     return { id: crypto.randomUUID(), token, hash: await hash('session', token), expiresAt: clock() + seconds * 1000 };
   }
   function completed(session, record, returnTo) {
@@ -44,6 +44,11 @@ function personOf(operator, ownerFlag = operator.role === 'owner' && operator.st
 export function createOaAccounts({ config, store, clock, sessions, rolePolicy }) {
   const visible = operator => operator && emailAllowed(operator.email, config.allowList) ? personOf(operator) : null;
   return {
+    async identityEnabled() { return !!(await store.first('SELECT idp_sign_in FROM oa_auth_settings WHERE singleton=1'))?.idp_sign_in; },
+    async currentBoundSubject({ personId, issuer }) {
+      const rows = (await store.statement('SELECT subject FROM oa_external_identities WHERE operator_id=? AND issuer=?', [personId, issuer]).all()).results;
+      return rows.length === 1 ? rows[0].subject : null;
+    },
     async findByEmail(email) { return visible(await store.byEmail(email)); },
     async findBinding({ issuer, subject }) { return visible(await store.binding(issuer, subject)); },
     async bind({ issuer, subject, person, associated }) {
@@ -51,7 +56,12 @@ export function createOaAccounts({ config, store, clock, sessions, rolePolicy })
     },
     async issueSession({ person, principal, returnTo }) {
       const session = await sessions.newSession('oidc');
-      const record = await store.issueBound({ issuer: principal.issuer, subject: principal.subject, operatorId: person.id, expectedVersion: person.version, session, now: clock() });
+      const record = await store.issueBound({ issuer: principal.issuer, subject: principal.subject, sid: principal.sid ?? null, expectedGeneration: principal.providerGeneration ?? null, providerPin: principal.providerPin, operatorId: person.id, expectedVersion: person.version, session, now: clock() });
+      return record ? sessions.completed(session, record, returnTo) : null;
+    },
+    async bindAndIssueSession({ person, principal, returnTo }) {
+      const session = await sessions.newSession('oidc');
+      const record = await store.issueBound({ issuer: principal.issuer, subject: principal.subject, sid: principal.sid ?? null, associated: principal.associatedEmail !== undefined, establish: true, expectedGeneration: principal.providerGeneration ?? null, providerPin: principal.providerPin, operatorId: person.id, expectedVersion: person.version, session, now: clock() });
       return record ? sessions.completed(session, record, returnTo) : null;
     },
     async acceptInvitation({ person, principal, returnTo }) {
@@ -61,7 +71,7 @@ export function createOaAccounts({ config, store, clock, sessions, rolePolicy })
       if (!isActiveOperator(inviter, config.allowList) || inviter.version !== invitation.issuerVersion
         || !await rolePolicy({ actor: inviter, action: 'operators:invite', role: person.role })) return null;
       const session = await sessions.newSession('oidc');
-      const record = await store.acceptByBinding({ issuer: principal.issuer, subject: principal.subject, tokenId: invitation.id, operatorId: person.id,
+      const record = await store.acceptByBinding({ issuer: principal.issuer, subject: principal.subject, sid: principal.sid ?? null, expectedGeneration: principal.providerGeneration ?? null, providerPin: principal.providerPin, tokenId: invitation.id, operatorId: person.id,
         expectedVersion: person.version, inviter, session, now: clock() });
       return record ? sessions.completed(session, record, returnTo ?? invitation.returnTo) : null;
     },

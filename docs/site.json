@@ -51,6 +51,18 @@
           "summary": "Send confirmed failures to email, a signed webhook or Slack, and know what delivery claims mean."
         },
         {
+          "slug": "definitions",
+          "title": "Definition files",
+          "file": "definitions.md",
+          "summary": "Keep monitors as a reviewed file: preview every change, apply exactly the preview, undo a batch."
+        },
+        {
+          "slug": "moving-from-uptimerobot",
+          "title": "Moving from UptimeRobot",
+          "file": "moving-from-uptimerobot.md",
+          "summary": "Import a saved UptimeRobot monitor list as paused monitors, and see plainly what does not move."
+        },
+        {
           "slug": "data",
           "title": "Move your data",
           "file": "data.md",

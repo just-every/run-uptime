@@ -268,7 +268,8 @@ export function recordCopy(root, {positional: [localPath, originPath, revision],
 // its files. Recorded files and files already equal to Base at that commit are
 // kept current; files Base added under a copied path since the copy's pin are
 // adopted (tests only into copies that carry tests); recorded files that Base or
-// the export removed are dropped. Local edits are refused, never overwritten.
+// the export removed are dropped. Local edits are refused, never overwritten, and
+// so is any change to an existing file under a migrations folder.
 export function refreshCopies(root, {positional: [revision], record: recordPath, base}) {
   if (!commit.test(revision)) throw Error('Refresh to an immutable full Base commit');
   const filename = recordFile(root, recordPath);
@@ -304,6 +305,11 @@ export function refreshCopies(root, {positional: [revision], record: recordPath,
       if (!sources.length) throw Error(`No Base source at ${copy.originPath} in ${revision}`);
       return {copy, sources, removed: Object.keys(copy.files).filter(name => !sources.some(([source]) => mapped(source, copy.originPath, copy.path) === name))};
     });
+    // A migration a database may already have applied is never rewritten in place:
+    // the schema change it brings belongs in a new migration of the seed's own.
+    const applied = plans.flatMap(({copy, sources}) => sources.map(([source, {object}]) => [mapped(source, copy.originPath, copy.path), object])
+      .filter(([name, object]) => name.split('/').slice(0, -1).includes('migrations') && local(name) && local(name) !== upstream.get(object)).map(([name]) => name));
+    if (applied.length) throw Error(`Refusing to rewrite migrations that may already be applied: ${applied.join(', ')}. Base changed these files after they were copied; keep them as they are, drop them from ${recordPath}, and add a new migration for the change instead.`);
     const bytes = read.blobs(plans.flatMap(plan => plan.sources.map(([, {object}]) => object)));
     const changes = [];
     for (const {copy, sources, removed} of plans) {

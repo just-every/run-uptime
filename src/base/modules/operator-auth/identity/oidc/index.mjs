@@ -3,7 +3,7 @@
 // has its own start and callback route; its output is a verified principal,
 // which the accounts layer admits through the admission it is given.
 import { safeReturnTo } from '../../policy.mjs';
-import { securityHeaders, requireLoopback } from '../../http.mjs';
+import { securityHeaders, requireLoopback, localCookieName } from '../../http.mjs';
 import { configure } from './config.mjs';
 import { check, OidcError } from './errors.mjs';
 import { random, isRandom, digest, keyedHash, seal, unseal } from './crypto.mjs';
@@ -18,7 +18,7 @@ export { PRESETS, MINIMUM_PROVIDER_VERSION } from './presets.mjs';
 export const HIDE_AFTER_MS = 5 * 60000;
 const PROBE_EVERY_MS = 60000;
 
-function cookieName(config, state) { return `${config.local ? 'oa_oidc_local_' : '__Host-oa_oidc_'}${state}`; }
+function cookieName(config, state) { return config.local ? `${localCookieName('oa_oidc_local', config.origin)}_${state}` : `__Host-oa_oidc_${state}`; }
 function cookie(config, state, value, age = config.transactionSeconds) {
   return `${cookieName(config, state)}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${age}${config.secure ? '; Secure' : ''}`;
 }
@@ -64,13 +64,13 @@ function pinnedView(provider, link) {
   if (link.issuer === provider.issuer && link.clientId === provider.clientId && link.preset === provider.preset) return provider;
   const preset = PRESETS[link.preset];
   return { ...provider, preset: link.preset, issuer: link.issuer, clientId: link.clientId, tokenAuthMethod: link.tokenAuthMethod, algorithms: link.algorithms,
-    email: preset.email, interface: preset.interface, minimumVersion: preset.interface ? provider.minimumVersion ?? MINIMUM_PROVIDER_VERSION : undefined, scope: preset.scope, subjectEmails: {},
+    endpointPins: link.preset === 'legacy-rs256' ? { authorization: link.authorization, token: link.token, jwks: link.jwks } : undefined, email: preset.email, interface: preset.interface, minimumVersion: preset.interface ? provider.minimumVersion ?? MINIMUM_PROVIDER_VERSION : undefined, scope: preset.scope, subjectEmails: {},
     endpointOrigins: [...new Set([link.authorization, link.token, link.jwks].map(u => new URL(u).origin))] };
 }
 const samePin = (link, metadata) => link.issuer === metadata.issuer && link.jwks === metadata.jwks && link.authorization === metadata.authorization
   && link.token === metadata.token && link.algorithms.every(a => metadata.algorithms.includes(a)) && (!link.responseIssuer || metadata.responseIssuer);
 
-export function createOidcProviders({ admission, db, config: input, clientIp, fetch: fetcher = globalThis.fetch, clock = Date.now, waitUntil }) {
+export function createOidcProviders({ admission, db, config: input, clientIp, fetch: fetcher = globalThis.fetch, clock = Date.now, waitUntil, enabled = async () => Boolean(await admission?.accounts?.identityEnabled?.()), claim, claimScope = async () => false, policyVersion = async () => 0 }) {
   const config = configure(input);
   check(admission && typeof admission.admit === 'function' && db && typeof db.prepare === 'function' && typeof clientIp === 'function' && typeof fetcher === 'function' && typeof clock === 'function', 'oidc_invalid_configuration', 503);
   const store = storage(db);
@@ -106,7 +106,7 @@ export function createOidcProviders({ admission, db, config: input, clientIp, fe
   }
   // Changes to a provider's pin, callback or policy invalidate its outstanding logins.
   const fingerprint = (provider, link) => keyedHash(config.transactionSecret, 'configuration', JSON.stringify({
-    id: provider.id, issuer: link.issuer, clientId: link.clientId, jwks: link.jwks, token: link.token, authorization: link.authorization, algorithms: link.algorithms,
+    configured: providers.get(provider.id), id: provider.id, linkedAt: link.linkedAt, issuer: link.issuer, clientId: link.clientId, jwks: link.jwks, token: link.token, authorization: link.authorization, algorithms: link.algorithms,
     redirectUri: provider.redirectUri, method: provider.tokenAuthMethod, subjectEmails: provider.subjectEmails, audiences: provider.additionalAudiences, email: provider.email,
     transactionSeconds: config.transactionSeconds, maxTokenAgeSeconds: config.maxTokenAgeSeconds, clockSkewSeconds: config.clockSkewSeconds }));
   // State is keyed to its provider: a response for one provider presented at
@@ -116,7 +116,7 @@ export function createOidcProviders({ admission, db, config: input, clientIp, fe
     if (knowsKey(link.keySet, kid)) return link.keySet;
     // One refetch for a key this app has not seen; a key still unknown is refused.
     const fetched = await observe(provider, () => readJson(fetcher, link.jwks, config, {}, 262144));
-    await store.keys(provider.id, fetched, clock());
+    await store.keys(link, fetched, clock());
     check(knowsKey(fetched, kid), 'oidc_unknown_key');
     return fetched;
   }
@@ -129,12 +129,13 @@ export function createOidcProviders({ admission, db, config: input, clientIp, fe
         if (!samePin(link, fresh)) { await store.failing(provider.id, true, clock()); return; }
       }
       const keys = await observe(provider, () => readJson(fetcher, link.jwks, config, {}, 262144));
-      await store.keys(provider.id, keys, clock());
+      await store.keys(link, keys, clock());
     } catch { /* recorded by observe */ }
   }
   async function begin(request, id, { returnTo } = {}) {
     const provider = providers.get(id);
     try {
+      check(await enabled(), 'oidc_sign_in_disabled', 403);
       boundary(request, config, true);
       check(provider && new URL(request.url).pathname === provider.startPath && !new URL(request.url).search, 'oidc_invalid_route', 404);
       const ip = await clientIp(request);
@@ -147,11 +148,11 @@ export function createOidcProviders({ admission, db, config: input, clientIp, fe
       const state = random(); const binding = random(); const verifier = random(); const nonce = random();
       const hashed = await stateHash(provider, state);
       const expiresAt = clock() + config.transactionSeconds * 1000;
-      const payload = await seal(config.transactionSecret, hashed, { nonce, verifier, returnTo: safeReturnTo(returnTo), expiresAt, provider: provider.id });
+      const payload = await seal(config.transactionSecret, hashed, { nonce, verifier, returnTo: safeReturnTo(returnTo), expiresAt, provider: provider.id, policyVersion: await policyVersion() });
       await store.put({ stateHash: hashed, bindingHash: await keyedHash(config.transactionSecret, 'binding', binding), configHash: await fingerprint(view, link), payload, expiresAt });
       const authorization = new URL(link.authorization);
       const params = { response_type: 'code', response_mode: 'query', client_id: link.clientId, redirect_uri: provider.redirectUri,
-        scope: view.scope, state, nonce, code_challenge: await digest(verifier), code_challenge_method: 'S256' };
+        scope: view.scope + (await claimScope() ? ' claim' : ''), state, nonce, code_challenge: await digest(verifier), code_challenge_method: 'S256' };
       for (const [key, value] of Object.entries(params)) authorization.searchParams.set(key, value);
       return redirect(authorization.href, [cookie(config, state, binding)]);
     } catch (e) { return errorResponse(e, config, request); }
@@ -160,6 +161,7 @@ export function createOidcProviders({ admission, db, config: input, clientIp, fe
     const provider = providers.get(id);
     let clearCookie;
     try {
+      check(await enabled(), 'oidc_sign_in_disabled', 403);
       boundary(request, config, false);
       check(request.method === 'GET', 'oidc_method_not_allowed', 405);
       check(request.url.length <= 12288, 'oidc_invalid_response');
@@ -193,9 +195,15 @@ export function createOidcProviders({ admission, db, config: input, clientIp, fe
         claims = await verifyIdToken(parsed, keys, link, view, config, transaction, { ...tokens, code }, clock());
       } catch (error) { if (error instanceof OidcError && error.status !== 400) throw error; throw new OidcError(error instanceof OidcError ? error.code : 'oidc_invalid_response'); }
       check(clock() < transaction.expiresAt, 'oidc_invalid_correlation');
+      check(transaction.policyVersion === await policyVersion() && await enabled(), 'oidc_sign_in_disabled', 403);
+      const providerPin={id:link.id,issuer:link.issuer,clientId:link.clientId,linkedAt:link.linkedAt};
+      if (Object.hasOwn(claims,'install_owner')) {
+        check(typeof claim === 'function','oidc_claim_refused',403);
+        const claimed=await claim(request,tokens.id_token,providerPin);check(claimed,'oidc_claim_refused',403);return claimed;
+      }
       let result;
       try {
-        const principal = principalOf(claims, view);
+        const principal = {...principalOf(claims, view),providerGeneration:transaction.policyVersion,providerPin};
         // A production app refuses dev identities and addresses only local or test systems hold.
         refuseInProduction(principal, config);
         result = await admission.admit(request, principal, { returnTo: transaction.returnTo });
@@ -207,8 +215,10 @@ export function createOidcProviders({ admission, db, config: input, clientIp, fe
   return Object.freeze({
     ids: Object.freeze([...providers.keys()]),
     begin, callback,
+    callbackPaths: Object.freeze(Object.fromEntries([...providers.values()].map(p => [new URL(p.redirectUri).pathname, p.id]))),
     /** The sign-in page's list: a provider is hidden while unlinked or unreachable. */
     async list() {
+      if (!await enabled()) return [];
       const now = clock();
       const [links, health] = await Promise.all([store.links(), store.health()]);
       const result = [];
@@ -252,9 +262,12 @@ export function createOidcProviders({ admission, db, config: input, clientIp, fe
 export function createOidcHandler(oidc) {
   return async request => {
     const path = new URL(request.url).pathname;
-    const match = /^\/auth\/oidc\/([a-z][a-z0-9-]{0,31})\/(start|callback)$/.exec(path);
+    const callbackId = oidc.callbackPaths?.[path];
+    if (callbackId) return oidc.callback(request, callbackId);
+    const match = /^\/auth\/oidc\/([a-z][a-z0-9-]{0,31})\/(start|callback|logout)$/.exec(path);
     if (!match || !oidc.ids.includes(match[1])) return null;
-    if (match[2] === 'callback') return oidc.callback(request, match[1]);
+    if (match[2] === 'logout') return oidc.logout?.(request) ?? new Response(null,{status:404});
+    if (match[2] === 'callback') return oidc.callbackPaths ? null : oidc.callback(request, match[1]);
     try {
       check(request.method === 'POST', 'oidc_method_not_allowed', 405);
       const type = (request.headers.get('content-type') ?? '').split(';')[0].trim().toLowerCase();

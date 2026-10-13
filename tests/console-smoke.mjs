@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
 import {mkdtemp,mkdir,rm} from 'node:fs/promises';
 import {createServer} from 'node:net';
+import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {chromium} from 'playwright';
@@ -13,7 +14,7 @@ import {notificationMailFake} from './notify-browser-wire.mjs';
 
 const root=resolve(fileURLToPath(new URL('../',import.meta.url)));
 const scratch=process.env.TMPDIR||join(root,'..','tmp');
-const evidence=resolve(process.env.UPTIME_UI_EVIDENCE??resolve(root,'..','evidence','console'));
+const evidence=resolve(process.env.UPTIME_UI_EVIDENCE??resolve(tmpdir(),'uptime-console-evidence'));
 const runnerKey='console-smoke-runner-key-local-only-20261007';
 const children=[];
 let worker,browser,logs='';
@@ -141,6 +142,9 @@ try{
   await page.getByRole('button',{name:/NEW MONITOR/i}).click();
   await page.locator('html.editor-ready').waitFor({timeout:15000});
   await assertNoSampleHost(page,'served editor');
+  for(const width of [1440,390,320])checks.push(await auditNotificationView({page,label:'new-monitor-url-step',width,evidence,pageErrors}));
+  await page.setViewportSize({width:1440,height:900});
+  await page.getByRole('button',{name:'Fill in the form yourself',exact:true}).click();
   for(const width of [1440,390,320])checks.push(await auditNotificationView({page,label:'new-monitor-editor',width,evidence,pageErrors}));
   await page.setViewportSize({width:1440,height:900});
   await page.locator('input[name="name"]:visible').first().fill(name);
@@ -178,7 +182,7 @@ try{
   await page.getByRole('button',{name:'Edit check'}).click();
   await page.locator('html.editor-ready').waitFor({timeout:15000});
   await assertNoSampleHost(page,'served editor');
-  for(const link of ['.editor-back','.editor-cancel'])assert.equal(await page.locator(link).getAttribute('href'),new URL(monitorPage).pathname,`${link} returns to the edited monitor's page`);
+  for(const link of ['.editor-back','.editor-cancel:visible'])assert.equal(await page.locator(link).getAttribute('href'),new URL(monitorPage).pathname,`${link} returns to the edited monitor's page`);
   await page.locator('input[name="intervalMinutes"]:visible').first().fill(String(5000/60000));
   await page.locator('input[name="timeoutSeconds"]:visible').first().fill('1');
   await page.locator('input[name="retries"]:visible').first().fill('1');
@@ -204,6 +208,7 @@ try{
   await page.getByRole('button',{name:/NEW MONITOR/i}).click();
   await page.locator('html.editor-ready').waitFor({timeout:15000});
   await assertNoSampleHost(page,'served editor');
+  await page.getByRole('button',{name:'Fill in the form yourself',exact:true}).click();
   await page.locator('input[name="name"]:visible').first().fill(longName);
   await page.locator('input[name="url"]:visible').first().fill(longUrl);
   await page.locator('input[name=probes][value=local-b]').check();
@@ -258,6 +263,9 @@ try{
   checks.push({state:'populated',width:390,overflow:await capture('populated',390)});
   checks.push({state:'populated',width:320,overflow:await capture('populated',320)});
 
+  // The page's own refresh is the update signal: wait for the overview read it receives that reports Failing, then for
+  // the badge it renders from that read, instead of a fixed wait that races the five-second refresh.
+  const failingRefresh=page.waitForResponse(async response=>{if(!response.url().endsWith('/api/overview')||!response.ok())return false;const body=await response.json().catch(()=>null);return body?.monitors?.find(m=>m.id===created.id)?.state?.state==='Failing'},{timeout:60000});
   const mode=await fetch(`http://127.0.0.1:${assigned.fixture}/control`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({mode:'failing'})});
   assert.equal(mode.status,200,'owned fixture failure mode set');
   const failing=await waitFor(async()=>{
@@ -267,7 +275,8 @@ try{
   },'real signed failing observation',25000);
   assert.ok(failing.availability.last24h.notPassingMs>0,'a real failed result contributes its actual observed duration even when its share rounds to 0.00% of a day');
   assert.ok(failing.availability.last24h.unknownPercent<100);
-  await page.locator('#monitor-state.badge').filter({hasText:'Failing'}).waitFor({timeout:10000});
+  await failingRefresh;
+  await page.locator('#monitor-state.badge').filter({hasText:'Failing'}).waitFor();
   await page.locator('#raw-history .check-result.failed').filter({hasText:'Failed · HTTP 503'}).first().waitFor();
   assert.match(await page.locator('#monitor-page .status-explanation').innerText(),/latest scheduled check did not pass/i);
   checks.push({state:'failing',width:1440,overflow:await capture('failing',1440)});

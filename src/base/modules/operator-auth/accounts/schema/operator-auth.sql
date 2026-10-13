@@ -91,3 +91,52 @@ CREATE TABLE IF NOT EXISTS oa_step_up_challenges (
  created_at INTEGER NOT NULL, expires_at INTEGER NOT NULL, consumed_at INTEGER
 );
 CREATE INDEX IF NOT EXISTS oa_step_up_session ON oa_step_up_challenges(session_id);
+
+-- Additive provider controls. An absent setting means off, including upgrades.
+CREATE TABLE IF NOT EXISTS oa_auth_settings (
+ singleton INTEGER PRIMARY KEY CHECK(singleton=1), idp_sign_in INTEGER NOT NULL CHECK(idp_sign_in IN (0,1)), generation INTEGER NOT NULL DEFAULT 0, first_setup INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS oa_auth_audit (
+ id TEXT PRIMARY KEY, actor_id TEXT NOT NULL, action TEXT NOT NULL, value TEXT NOT NULL, created_at INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS oa_provider_sessions (
+ session_id TEXT PRIMARY KEY, issuer TEXT NOT NULL, subject TEXT NOT NULL, sid TEXT, generation INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS oa_provider_session_identity ON oa_provider_sessions(issuer,subject,sid);
+CREATE TABLE IF NOT EXISTS oa_logout_events (
+ issuer TEXT NOT NULL, jti TEXT NOT NULL, consumed_at INTEGER NOT NULL CHECK(consumed_at>=0), PRIMARY KEY(issuer,jti)
+);
+
+CREATE TRIGGER IF NOT EXISTS oa_first_setup_provider_setting AFTER INSERT ON oa_bootstrap BEGIN
+ INSERT INTO oa_auth_settings(singleton,idp_sign_in,generation,first_setup) VALUES(1,0,0,1) ON CONFLICT DO NOTHING;
+END;
+
+CREATE TABLE IF NOT EXISTS oa_credentials (
+ id TEXT PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE, operator_id TEXT NOT NULL REFERENCES oa_operators(id),
+ operator_version INTEGER, kind TEXT NOT NULL, expires_at INTEGER NOT NULL, revoked_at INTEGER
+);
+
+-- Session provenance for OIDC pins. Apply as a new migration on existing stores.
+-- External admission has no OIDC pin and does not require OIDC protocol tables.
+CREATE TABLE IF NOT EXISTS oa_provider_session_pins (
+ session_id TEXT PRIMARY KEY, provider_id TEXT NOT NULL, issuer TEXT NOT NULL,
+ client_id TEXT NOT NULL, linked_at INTEGER NOT NULL
+);
+
+-- Ephemeral app-local setup attempts are never exported. A native claim binds
+-- only attempts opened before that claim to its exact owner/session authority,
+-- in its own bootstrap transaction.
+CREATE TABLE IF NOT EXISTS oa_setup_links (
+ interface TEXT PRIMARY KEY, attempt_id TEXT NOT NULL, expires_at INTEGER NOT NULL,
+ owner_id TEXT, owner_version INTEGER, session_id TEXT,
+ completed INTEGER NOT NULL DEFAULT 0 CHECK(completed IN (0,1))
+);
+CREATE TRIGGER IF NOT EXISTS oa_native_claim_closes_provider_setup AFTER INSERT ON oa_sessions
+WHEN NEW.kind='native' AND NOT EXISTS(SELECT 1 FROM oa_sessions WHERE operator_id=NEW.operator_id AND id!=NEW.id) AND EXISTS(SELECT 1 FROM oa_bootstrap WHERE claim_id=NEW.operator_id AND claimed_at=NEW.created_at)
+BEGIN
+ UPDATE oa_auth_settings SET first_setup=0 WHERE singleton=1 AND NOT EXISTS(
+  SELECT 1 FROM oa_setup_links WHERE interface='oidc-provider@1' AND completed=0 AND owner_id IS NULL AND expires_at>NEW.created_at
+ );
+ UPDATE oa_setup_links SET owner_id=NEW.operator_id,owner_version=NEW.operator_version,session_id=NEW.id
+ WHERE owner_id IS NULL AND completed=0 AND expires_at>NEW.created_at;
+END;

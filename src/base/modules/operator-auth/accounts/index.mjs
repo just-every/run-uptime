@@ -5,3 +5,5 @@ export { accountsAdapter } from './adapter.mjs';
 export { createOaAccounts, oaSessions } from './oa.mjs';
 export { AuthStore } from './store.mjs';
 export { DEFAULT_ROLES, ACTIONS, defaultRolePolicy, isActiveOperator, emailAllowed } from './roles.mjs';
+
+export { requireEditorOwner } from './editor-owner.mjs';

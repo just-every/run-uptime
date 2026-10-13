@@ -1,7 +1,9 @@
 // Signed completion and portable history share the same evidence contract.
-const fields = new Set(['id', 'probe', 'outcome', 'completedAt', 'startedAt', 'durationMs', 'runnerVersion', 'status', 'bytes', 'checks', 'attempt', 'heartbeatReceivedAt', 'canary'])
+// @ts-ignore Edition flow vocabulary is JavaScript shared with the runner.
+import {FLOW_LIMITS,FLOW_REASONS,validateFlowEvidence} from './flow.mjs'
+const fields = new Set(['id', 'probe', 'outcome', 'completedAt', 'startedAt', 'durationMs', 'runnerVersion', 'status', 'bytes', 'checks', 'attempt', 'heartbeatReceivedAt', 'canary', 'flow'])
 const targetErrors = new Set(['encoding', 'redirect', 'body-limit', 'transport', 'timeout', 'connection'])
-const runnerErrors = new Set(['custody', 'runner', 'network', 'dns'])
+const runnerErrors = new Set(['custody', 'runner', 'network', 'dns', 'browser', 'credential', 'grant'])
 const responseErrors = new Set(['encoding', 'redirect', 'body-limit'])
 /** Live completion accepts runner clocks up to this far ahead of control-plane time. */
 export const COMPLETION_CLOCK_ALLOWANCE_MS = 1000
@@ -41,6 +43,19 @@ function validateError(o: any, checks: Map<string, Check>, heartbeat = false) {
     : runnerErrors.has(check.assertion) ? 'runner_error'
       : targetErrors.has(check.assertion) ? 'target_failure' : undefined
   if (!outcome || o.outcome !== outcome) throw Error('Invalid error outcome')
+}
+
+// A flow observation carries its sanitized step trace. It passes only when every step passed and every required outcome was
+// observed; it fails with a reason the runner could not have chosen for itself (a runner-side reason is a runner_error, Unknown).
+function validateFlowObservation(o: any, definition: any, checks: Map<string, Check>) {
+  if (o.outcome === 'runner_error') {
+    if (o.flow !== undefined) throw Error('Invalid flow error evidence')
+    return validateError(o, checks)
+  }
+  if (o.status !== undefined || o.bytes !== undefined || o.heartbeatReceivedAt !== undefined || checks.size !== 1 || !checks.has('flow') || !o.flow) throw Error('Invalid flow evidence')
+  const flow = validateFlowEvidence(o.flow, definition), passed = !flow.failure && flow.outcomes.every((x: any) => x.observed) && flow.trace.every((x: any) => x.outcome !== 'fail')
+  if (o.outcome !== (passed ? 'pass' : 'target_failure') || checks.get('flow')!.pass !== passed) throw Error('Inconsistent flow outcome')
+  if (!passed && (!flow.failure || FLOW_REASONS[flow.failure.reason as keyof typeof FLOW_REASONS].runner)) throw Error('Inconsistent flow outcome')
 }
 
 function validateHeartbeat(o: any, definition: any, checks: Map<string, Check>) {
@@ -88,7 +103,7 @@ export function validateEvidence(o: any, definition: any, dueAt: number, now: nu
       o.runnerVersion !== 'uptime-node/0.1.0' || !timestamp(o.startedAt) || !timestamp(o.completedAt) ||
       o.startedAt < dueAt || o.completedAt < o.startedAt || o.completedAt > now + COMPLETION_CLOCK_ALLOWANCE_MS ||
       !timestamp(o.durationMs) || !['pass', 'target_failure', 'runner_error'].includes(o.outcome) ||
-      JSON.stringify(o).length > 4000) throw Error('Invalid observation evidence')
+      JSON.stringify(o).length > (definition.type === 'flow' ? 4000 + FLOW_LIMITS.traceBytes : 4000)) throw Error('Invalid observation evidence')
   if(definition.assignments?.[o.probe]?.canaryUrl&&o.canary===undefined)throw Error('Configured canary evidence required');
   if(o.canary!==undefined){
     if(!definition.assignments?.[o.probe]?.canaryUrl||o.canary?.canary!==undefined)throw Error('Unexpected canary evidence');
@@ -101,6 +116,7 @@ export function validateEvidence(o: any, definition: any, dueAt: number, now: nu
   if (Math.abs(o.durationMs - elapsed) > 1) throw Error('Inconsistent observation timing')
   const checks = validateChecks(o.checks)
   if (definition.type === 'heartbeat') validateHeartbeat(o, definition, checks)
+  else if (definition.type === 'flow') validateFlowObservation(o, definition, checks)
   else {
     const max = Math.max(o.durationMs, elapsed)
     // Pre-type/network runners sampled the latency assertion before both saved

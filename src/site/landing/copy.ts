@@ -4,7 +4,9 @@
 export const hero = {
   title: 'Sleep through the night.',
   sub: 'Uptime checks your sites and APIs on schedule, tells you only when a failure is confirmed, and never calls a missing check healthy.',
-  primary: 'Run your own',
+  alt: '100% free, open source alternative to',
+  altNames: ['UptimeRobot', 'Pingdom', 'Better Stack'],
+  primary: 'Run Uptime',
   secondary: 'Read the docs',
   fine: 'Free and open source, MIT licensed.',
 };
@@ -64,14 +66,14 @@ export const notifications = {
 export const ownership = {
   eyebrow: 'Ownership',
   title: 'Yours, start to finish.',
-  body: 'Run Uptime on your own computer or deploy it to your own Cloudflare account. A small private runner checks your targets from a machine you choose, and you can export monitors, evidence and delivery history whenever you like.',
-  commands: ['git clone https://github.com/just-every/uptime-monitor.git uptime', 'cd uptime', 'node scripts/rer.mjs install', 'node scripts/rer.mjs setup', 'node scripts/rer.mjs dev'],
+  body: 'Run Uptime on your own computer. A small private runner checks your targets from a machine you choose, and you can export monitors, evidence and delivery history whenever you like.',
+  commands: ['git clone https://github.com/just-every/run-uptime.git uptime', 'cd uptime', 'node scripts/rer.mjs install', 'node scripts/rer.mjs setup', 'node scripts/rer.mjs dev'],
   points: [
-    { icon: 'cloud', text: 'Your computer or your Cloudflare account' },
+    { icon: 'cloud', text: 'Your own computer' },
     { icon: 'server', text: 'Your runner, your network' },
     { icon: 'export', text: 'Export any time' },
   ] as const,
-  label: 'A terminal running five commands: git clone https://github.com/just-every/uptime-monitor.git uptime, cd uptime, node scripts/rer.mjs install, node scripts/rer.mjs setup, and node scripts/rer.mjs dev.',
+  label: 'A terminal running five commands: git clone https://github.com/just-every/run-uptime.git uptime, cd uptime, node scripts/rer.mjs install, node scripts/rer.mjs setup, and node scripts/rer.mjs dev.',
 };
 
 export const included = {
@@ -96,7 +98,7 @@ export const plainly = {
 export const closing = {
   title: 'Rest easy tonight.',
   sub: 'Open-source monitoring you run yourself.',
-  primary: 'Run your own',
+  primary: 'Run Uptime',
   secondary: 'Read the docs',
   fine: 'Free and open source, MIT licensed.',
 };

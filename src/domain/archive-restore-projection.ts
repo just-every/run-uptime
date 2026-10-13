@@ -36,6 +36,8 @@ export async function projectRestore(input:Tables,migrations:any[],now=Date.now(
   if(name==='integration_deliveries'&&['queued','sending'].includes(row.state))row.state='rejected';
   if(JSON.stringify(row)!==JSON.stringify(original))await remember(name,original);
  }
+ // Imported batches stay history: restored_at keeps them from undoing anything in the receiving installation.
+ for(const row of t.definition_batches)if(row.restored_at===null)row.restored_at=now;
  t.archive_history=[...history.values()];
  for(const name of TABLES)if(t[name].length>ARCHIVE_ROWS)throw Error(`Archive row bound exceeded: ${name} (${ARCHIVE_ROWS})`);
  // Reserve the largest allowed export timestamp and the CLI's final newline.

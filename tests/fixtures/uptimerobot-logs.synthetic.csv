@@ -1,0 +1,4 @@
+Date-Time,Monitor,Event,Reason,Duration
+2026-10-01 10:00:00,Shop home,Down,Connection Timeout,00:02:00
+2026-10-01 10:02:00,Shop home,Up,OK,01:00:00
+"2026-10-02 08:00:00","Docs, public",Down,"503 Service Unavailable",00:05:00

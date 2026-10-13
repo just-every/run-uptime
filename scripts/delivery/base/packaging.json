@@ -4,7 +4,7 @@
     "schema": 1,
     "projectId": "just-every/uptime-monitor",
     "name": "Uptime",
-    "sourceRepository": "https://github.com/just-every/uptime-monitor",
+    "sourceRepository": "https://github.com/just-every/run-uptime",
     "license": "MIT",
     "deployment": {
       "target": "cloudflare-workers",
@@ -12,8 +12,8 @@
     },
     "operations": {
       "setup": "bash scripts/delivery/setup-build.sh",
-      "build": "export PATH=\"$PWD/.rer-tools/node_modules/.bin:$PATH\" && node scripts/rer.mjs build",
-      "verify": "export PATH=\"$PWD/.rer-tools/node_modules/.bin:$PATH\" && node scripts/rer.mjs verify",
+      "build": "export PATH=\"$PWD/.rer-tools/node_modules/.bin:$PATH\" && pnpm exec rer build",
+      "verify": "export PATH=\"$PWD/.rer-tools/node_modules/.bin:$PATH\" && pnpm exec rer verify",
       "artifact": "export PATH=\"$PWD/.rer-tools/node_modules/.bin:$PATH\" && node scripts/build-delivery-artifact.mjs",
       "recovery": "Preserve the private deployment receipt and D1 migration ledger. Restore archives into an empty installation with monitors paused and alerts quarantined."
     },
@@ -39,6 +39,8 @@
         "runners/src/notification-dispatch.mjs",
         "src/domain/notification-claims.server.ts",
         "public/notification-dialogs.js",
+        "public/alert-drills.js",
+        "src/domain/alert-drill*.ts",
         "src/domain/auth-document.server.ts",
         "scripts/installer/**",
         "scripts/base-onboarding/**",
@@ -106,7 +108,8 @@
         "SENDGRID_API_KEY",
         "MAIL_PROVIDER_API_KEY",
         "CLOUDFLARE_MAIL_API_KEY",
-        "UPTIME_HEARTBEAT_URL"
+        "UPTIME_HEARTBEAT_URL",
+        "UPTIME_START_URL"
       ],
       "providerEffects": [
         "outbound-mail",

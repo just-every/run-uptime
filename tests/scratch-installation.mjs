@@ -5,9 +5,9 @@ import { basename, join } from 'node:path';
 import { loadavg, tmpdir } from 'node:os';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
-import { createCommands } from '../scripts/base-onboarding/commands.mjs';
-import { inspectionMs, readProcessTable } from '../scripts/base-onboarding/process-table.mjs';
-import { servingLoadThreshold } from '../scripts/base-cli/cli/server-resources.mjs';
+import { createCommands } from '@runeditrun/rer/commands';
+import { inspectionMs, readProcessTable } from '@runeditrun/rer/internal/onboarding/process-table.mjs';
+import { servingLoadThreshold } from '@runeditrun/rer/server-resources';
 
 export const repository = fileURLToPath(new URL('../', import.meta.url));
 // rer dev and preview start only at or below the serving load threshold; wait for it as an owner would.

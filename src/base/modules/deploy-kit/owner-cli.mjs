@@ -7,7 +7,9 @@ import { regularBytes } from './artifact.mjs';
 import { packageBuild } from './prepare.mjs';
 import { cloudflare } from './provider.mjs';
 import { ownerTarget, ownerPlan, ownerDeploy, ownerHealth } from './owner.mjs';
+import { refuseLocalModels } from './local-only.mjs';
 
+export const cronNotice = 'This Worker has a Cron Trigger. Cloudflare may take up to about two hours to start its first scheduled run on some accounts.';
 const usage = 'usage: owner-cli.mjs deploy|health --declaration <file> --environment <name> [--product <dir>] [--state <file>]';
 
 /** The owner's committed source and existing local build. Run the seed's build first. */
@@ -19,12 +21,13 @@ async function ownerArtifact(root, product) {
 }
 
 /** Inputs: CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN, plus the secrets the declaration names on first deploy. */
-export async function main(argv = process.argv.slice(2), env = process.env, {fetch = globalThis.fetch, cwd = process.cwd(), healthOptions, localOnlyKeys = []} = {}) {
+export async function main(argv = process.argv.slice(2), env = process.env, {fetch = globalThis.fetch, cwd = process.cwd(), healthOptions, localOnlyKeys = [], notice = line => console.error(line)} = {}) {
   let parsed;
   try { parsed = parseArgs({args:argv,allowPositionals:true,strict:true,options:{declaration:{type:'string'},environment:{type:'string'},product:{type:'string',default:''},state:{type:'string'}}}); }
   catch { throw new Error('usage'); }
   const {positionals:[command,...rest],values} = parsed;
   if (!['deploy','health'].includes(command) || rest.length || !values.declaration || !values.environment) throw new Error('usage');
+  await refuseLocalModels(resolve(cwd));
   const missing = ['CLOUDFLARE_ACCOUNT_ID','CLOUDFLARE_API_TOKEN'].filter(key => typeof env[key] !== 'string' || !env[key].trim());
   if (missing.length) { const error = new Error('missing-input'); error.inputs = missing; throw error; }
   assert(hexId(env.CLOUDFLARE_ACCOUNT_ID) && !/[\r\n]/.test(env.CLOUDFLARE_API_TOKEN),'invalid-cloudflare-input');
@@ -42,6 +45,8 @@ export async function main(argv = process.argv.slice(2), env = process.env, {fet
     await ownerHealth({api,target,plan,statePath,fetch,healthOptions:{...healthOptions,readiness:{single:true,totalMs:30000}}});
     return {ok:true,worker:target.worker,origin:target.origin};
   }
+  // Dispatch is the provider's: on some accounts a new Cron starts only at the account scheduler's next refresh.
+  if (plan.crons.length) notice(cronNotice);
   const {receipt,created} = await ownerDeploy({api,target,plan,artifact,statePath,env,fetch,healthOptions});
   return {ok:true,changed:receipt.changed,worker:target.worker,origin:receipt.origin,versionId:receipt.provider.versionId,created,state:statePath};
 }

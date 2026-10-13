@@ -67,7 +67,7 @@ export async function reconcileResources(api, plan, { create = true } = {}) {
   }
   return resources;
 }
-export async function reconcileTriggers(api, plan, resources, { mutate = true } = {}) {
+export async function reconcileTriggers(api, plan, resources, { mutate = true, reapplyCrons = false } = {}) {
   // PUT replaces the entire schedule set. Inspect it before any trigger write,
   // and never remove a schedule that the requested plan does not own.
   const crons = await checkCronOwnership(api, plan);
@@ -88,9 +88,11 @@ export async function reconcileTriggers(api, plan, resources, { mutate = true } 
   }
   // Validate every consumer's ownership before applying any trigger update.
   for (const {path,options} of updates) await api.request(path,options);
-  if (JSON.stringify(crons) !== JSON.stringify([...plan.crons].sort())) {
+  const desired = JSON.stringify([...plan.crons].sort());
+  if (JSON.stringify(crons) !== desired || reapplyCrons && plan.crons.length > 0) {
     assert(mutate,'cron-drift');
     await api.request(`/workers/scripts/${plan.worker}/schedules`,{method:'PUT',body:plan.crons.map(cron => ({cron}))});
+    assert(JSON.stringify(await checkCronOwnership(api,plan)) === desired,'cron-drift');
   }
 }
 

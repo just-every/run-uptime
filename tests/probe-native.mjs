@@ -84,7 +84,7 @@ try{
   await source.due(heartbeat.id);const old=await source.claim();const paused=await source.api(`/api/monitors/${heartbeat.id}`,'PATCH',{...(await source.monitor(heartbeat.id)).definition,enabled:false});assert.equal(paused.status,200);
   assert.equal((await source.api(`/api/heartbeats/${heartbeat.id}`,'POST',{}, {authorization:`Bearer ${key}`,'x-heartbeat-sequence':'2'},false)).status,400);
   assert.equal((await source.submit(old,[heartbeatEvidence(old)])).status,200);assert.equal((await source.monitor(heartbeat.id)).state.state,'Paused');
-  await source.api(`/api/monitors/${heartbeat.id}`,'PATCH',{...paused.data.definition,enabled:true});const task=await source.claim();assert.equal(task.heartbeatReceipt,null);assert.equal((await source.submit(task,[heartbeatEvidence(task)])).status,200);
+  await source.api(`/api/monitors/${heartbeat.id}`,'PATCH',{...paused.data.definition,enabled:true});await source.due(heartbeat.id);const task=await source.claim();assert.equal(task.heartbeatReceipt,null);assert.equal((await source.submit(task,[heartbeatEvidence(task)])).status,200);
   const before=(await source.monitor(heartbeat.id)).revision;const issued=await source.api(`/api/monitors/${heartbeat.id}/heartbeat-key`,'POST',{});key=issued.data.token;assert.equal(issued.data.revision,before+1);
   assert.equal((await source.api(`/api/heartbeats/${heartbeat.id}`,'POST',{}, {authorization:`Bearer ${key}`,'x-heartbeat-sequence':'1'},false)).status,200);
  });

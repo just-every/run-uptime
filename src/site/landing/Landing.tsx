@@ -10,13 +10,14 @@ import { Checks, Evidence, Incidents, Notifications, Ownership } from './section
 import './styles';
 
 /**
- * The public landing page at `/`: a watched night turning into a quiet dawn. It reads no installation data, loads only
- * same-origin files and sets no cookies.
+ * The approved homepage, served at `/` of the run site (src/site/pages.tsx); an installed instance serves the Lobby there.
+ * A watched night turning into a quiet dawn. It reads no installation data, loads only same-origin files and sets no
+ * cookies.
  */
 export function Landing() {
   return (
     <SiteFrame className="ut-home">
-      <SiteHeader />
+      <SiteHeader variant="site" />
       <main id="main">
         <Hero />
         <div className="ut-wrap ut-home-sections">
@@ -31,7 +32,7 @@ export function Landing() {
         </div>
         <Closing />
       </main>
-      <SiteFooter />
+      <SiteFooter variant="site" />
     </SiteFrame>
   );
 }

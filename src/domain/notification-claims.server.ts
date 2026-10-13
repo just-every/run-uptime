@@ -72,7 +72,9 @@ export async function startClaim(env:Bindings,id:string,claim:unknown,reservatio
  if(typeof claim!=='string'||typeof reservation!=='string'||reservation.length>128)return false;
  const reservationHash=await sha256(reservation);
  const result=await env.DB.batch([env.DB.prepare(`UPDATE notification_claim_custody SET started_at=? WHERE delivery_id=? AND claim=? AND reservation_hash=? AND started_at IS NULL AND released_at IS NULL
-  AND EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace=? AND d.id=? AND d.claim=? AND d.state='sending' AND d.claim_until>?)`).bind(now,id,claim,reservationHash,namespace,id,claim,now),auditStatement(env,automated,'notification_send','notification',crypto.randomUUID(),'changes()=1',[],now)]);
+  AND EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace=? AND d.id=? AND d.claim=? AND d.state='sending' AND d.claim_until>?)`).bind(now,id,claim,reservationHash,namespace,id,claim,now),auditStatement(env,automated,'notification_send','notification',crypto.randomUUID(),'changes()=1',[],now),
+  // A drill's Submitted time is the transport boundary of its one attempt, recorded only with a started claim.
+  env.DB.prepare('UPDATE alert_drills SET submitted_at=? WHERE delivery_id=? AND submitted_at IS NULL AND EXISTS(SELECT 1 FROM notification_claim_custody WHERE delivery_id=? AND claim=? AND started_at=?)').bind(now,id,id,claim,now)]);
  return Boolean(result[0].meta.changes);
 }
 export async function releaseUnstartedClaim(env:Bindings,id:string,claim:unknown,reservation:unknown,now:number){

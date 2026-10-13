@@ -57,7 +57,7 @@ try{
   assert.equal(response.status,200,`${path} accepts the retained native owner cookie`);
   return response.json();
  };
- assert.deepEqual(await ownerRead('/auth/session'),{id:session.id,operatorId:owner.id,createdAt:session.created_at,expiresAt:session.expires_at,kind:session.kind,operator:{id:owner.id,email:owner.email,displayName:owner.display_name,role:owner.role,status:owner.status,version:owner.version,createdAt:owner.created_at}});
+ assert.deepEqual(await ownerRead('/auth/session'),{id:session.id,operatorId:owner.id,createdAt:session.created_at,expiresAt:session.expires_at,kind:session.kind,issuer:null,subject:null,sid:null,operator:{id:owner.id,email:owner.email,displayName:owner.display_name,role:owner.role,status:owner.status,version:owner.version,createdAt:owner.created_at}});
  assert.equal((await call('/api/overview')).status,401,'owner data still requires a cookie');
  const overview=await ownerRead('/api/overview');
  assert.equal(overview.monitors.length,1);

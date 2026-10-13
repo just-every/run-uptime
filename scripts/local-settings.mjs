@@ -1,10 +1,10 @@
-import { missing } from './base-cli/cli/errors.mjs';
+import { missing } from '@runeditrun/rer/errors';
 import { validateConfiguration } from '../src/domain/startup-config.mjs';
 import setupManifest from '../rer-setup.json' with { type: 'json' };
 import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { mkdir, lstat } from 'node:fs/promises';
-import { prepareSettings, readSettings } from './base-onboarding/adapter-settings.mjs';
+import { prepareSettings, readSettings } from '@runeditrun/rer/adapter-settings';
 import { freePort, portValue } from './local-ports.mjs';
 export const rootDirectory = fileURLToPath(new URL('../', import.meta.url));
 export const defaultSettingsPath = resolve(rootDirectory, 'data/local-secrets.json');

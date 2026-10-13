@@ -338,10 +338,11 @@
 :where(fieldset) { min-width: 0; margin: 0; padding: 0; border: 0; }
 :where(legend) { padding: 0; color: var(--ink); font-size: 16px; font-weight: 700; }
 
-:where(summary) { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 10px 0; color: var(--ink); font-weight: 600; cursor: pointer; list-style: none; }
-:where(summary)::-webkit-details-marker { display: none; }
-:where(summary)::after { content: ""; flex: none; width: 7px; height: 7px; margin: -4px 4px 0 auto; border: solid currentColor; border-width: 0 1.6px 1.6px 0; transform: rotate(45deg); transition: transform 0.15s; }
-:where(details[open]) > :where(summary)::after { margin-top: 4px; transform: rotate(225deg); }
+/* The disclosure row styles the console's own details; the local development badge (#rer-dev-badge, Base) is injected chrome with its own colours and keeps its own summary. :where keeps these rules at zero specificity. */
+:where(summary:not(#rer-dev-badge summary)) { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 10px 0; color: var(--ink); font-weight: 600; cursor: pointer; list-style: none; }
+:where(summary:not(#rer-dev-badge summary))::-webkit-details-marker { display: none; }
+:where(summary:not(#rer-dev-badge summary))::after { content: ""; flex: none; width: 7px; height: 7px; margin: -4px 4px 0 auto; border: solid currentColor; border-width: 0 1.6px 1.6px 0; transform: rotate(45deg); transition: transform 0.15s; }
+:where(details[open]) > :where(summary:not(#rer-dev-badge summary))::after { margin-top: 4px; transform: rotate(225deg); }
 
 :where(pre), .ui-code { display: block; margin: 0; padding: 14px 16px; border-radius: var(--radius-panel); background: var(--code-bg); color: var(--code-ink); font-family: var(--mono); font-size: 13.5px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
 :where(code) { padding: 1px 6px; border-radius: 6px; background: var(--lavender); color: var(--ink); font-size: 0.9em; overflow-wrap: anywhere; }

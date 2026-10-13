@@ -47,6 +47,12 @@ try {
    assert.equal(malformed.status, 503); const body = await malformed.text(); assert.ok(body.includes(name)); assert.ok(!body.includes(sentinel));
    console.log(`PASS ${mode} ${name}: missing routes/cron and malformed health 503; names only`);
   }
+  // The optional website is absent or public; anything else fails closed by name.
+  assert.equal((await call({ settings: { ...settings, UPTIME_START_URL: 'https://example.com/shop' }, url: complete.UPTIME_ORIGIN + '/health' })).status, 200, `${mode} public start site`);
+  for (const bad of ['http://10.0.0.1/', 'https://user:pw@example.com/', 'example.com', 'https://example.com/#x']) {
+   const refused = await call({ settings: { ...settings, UPTIME_START_URL: bad }, url: complete.UPTIME_ORIGIN + '/health' });
+   assert.equal(refused.status, 503, `${mode} ${bad}`); const body = await refused.text(); assert.ok(body.includes('UPTIME_START_URL')); assert.ok(!body.includes(bad));
+  }
  }
  assert.ok(captured.every(line => !line.includes(sentinel)), 'runtime logs contain no malformed value or credential sentinel');
  console.log('BASE-SECRET-002 STARTUP-CONFIG passed: complete health 200; every required binding fails closed; logs retain no sentinel');

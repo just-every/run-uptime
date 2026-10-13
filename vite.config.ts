@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { readFileSync } from 'node:fs'
 import { docsSite } from './src/site/docs/build/plugin.ts'
+import { archiveOutputGuard } from '@runeditrun/rer/archive-output'
 
 const origin = process.env.RER_DEV_ORIGIN
 const local = origin ? {
@@ -20,9 +21,11 @@ export default defineConfig(({ command, isPreview }) => ({ server: { fs: {
  // Runtime imports need the public manifest and maintained portability source.
  // Allow only those paths, never scripts or the checkout root; private settings
  // and archives remain outside the file allowlist and under the denies below.
- allow: ['src', 'public', 'node_modules', 'seed.json', 'scripts/base-cli/modules/portability'],
+ allow: ['src', 'public', 'node_modules', 'seed.json', 'node_modules/@runeditrun/rer/modules/portability'],
  deny: ['**/.rer/**', '**/.seed/**', '**/exports/**', '**/*.rer'],
 } }, plugins: [
  cloudflare({ inspectorPort: false, viteEnvironment: { name: 'ssr' }, persistState: { path: '.wrangler/state' }, config: command === 'serve' && !isPreview ? { main: './src/server.dev.ts', assets: { binding: 'ASSETS', run_worker_first: true }, ...(local ? { vars: { ...local, ...gate('RER_DEV_KEY'), ...gate('RER_DEV_IDENTITY') } } : {}) } : local ? { vars: local } : {} }),
  docsSite(), tanstackStart(), react(),
+ // Refuses a build whose output (public/ copies included) holds an installation archive.
+ archiveOutputGuard(),
 ] }))

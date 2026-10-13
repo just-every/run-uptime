@@ -2,6 +2,10 @@ import { fail } from '../core/errors.mjs';
 import { parseAddress } from '../core/validation.mjs';
 import { verifyWebhook } from './verify.mjs';
 import { createDurableEventStore } from './storage.mjs';
+import { isD1EventStore } from './d1-storage.mjs';
+import { pinnedKeys, verifyEventJws } from '../adapters/messaging/jws.mjs';
+import { serviceOrigin, identity, closed } from '../adapters/messaging/contract.mjs';
+import { messagingEvent } from '../adapters/messaging/event-schema.mjs';
 
 const MAX_EVENT_BYTES = 1024 * 1024;
 const MAX_EVENTS = 1000;
@@ -110,11 +114,19 @@ export function createDeliveryEventIntake(options) {
   const { provider, key, storage, authorize, clock = Date.now, toleranceSeconds = 300 } = options;
   const tenantId = bounded(options.tenantId, 256);
   const eventNamespace = bounded(options.eventNamespace, 256);
-  if (!['sendgrid', 'resend', 'cloudflare'].includes(provider) || typeof authorize !== 'function' || typeof clock !== 'function') fail('invalid_event_config');
+  if (!['sendgrid', 'resend', 'cloudflare', 'messaging'].includes(provider) || typeof authorize !== 'function' || typeof clock !== 'function') fail('invalid_event_config');
   if (!Number.isSafeInteger(toleranceSeconds) || toleranceSeconds < 0 || toleranceSeconds > 3600) fail('invalid_event_config');
-  if (provider !== 'cloudflare' && (typeof key !== 'string' || !key.length)) fail('event_key_required');
-  if (provider === 'cloudflare' && key !== undefined) fail('unsupported_event_key');
-  const store = createDurableEventStore(storage);
+  if (['sendgrid', 'resend'].includes(provider) && (typeof key !== 'string' || !key.length)) fail('event_key_required');
+  if (['cloudflare', 'messaging'].includes(provider) && key !== undefined) fail('unsupported_event_key');
+  if (options.store !== undefined && (storage !== undefined || !isD1EventStore(options.store))) fail('invalid_event_store');
+  const store = options.store ?? createDurableEventStore(storage);
+  let messagingSource;
+  if (provider === 'messaging') {
+    const source = closed(options.messagingSource, ['serviceOrigin', 'installId', 'jwks'], 'invalid_event_config');
+    if (options.mode !== undefined && !['production', 'development', 'test'].includes(options.mode)) fail('invalid_event_config');
+    messagingSource = { serviceOrigin: serviceOrigin(source.serviceOrigin, options.mode ?? 'production'),
+      installId: identity(source.installId, 256), jwks: pinnedKeys(source.jwks) };
+  }
   const source = provider === 'cloudflare' ? { ...object(options.cloudflareSource) } : null;
   if (source) {
     for (const field of ['queue', 'zoneId', 'domain', 'accountId', 'eventSubscriptionId']) bounded(source[field]);
@@ -128,7 +140,7 @@ export function createDeliveryEventIntake(options) {
   async function persist(records) {
     // Complete schema/authorization of the whole batch before the first write.
     for (const event of records) {
-      Object.freeze(event.recipients); Object.freeze(event);
+      Object.freeze(event.recipients); if (event.detail) Object.freeze(event.detail); Object.freeze(event);
       let permitted;
       try { permitted = await authorize(event); } catch { fail('event_unauthorized'); }
       if (permitted !== true) fail('event_unauthorized');
@@ -165,6 +177,16 @@ export function createDeliveryEventIntake(options) {
       const rawBody = new Uint8Array(input.rawBody);
       const headers = new Headers(input.headers);
       const timestamp = now();
+      if (provider === 'messaging') {
+        const events = await verifyEventJws(rawBody, messagingSource, timestamp);
+        if (!Array.isArray(events) || !events.length || events.length > MAX_EVENTS) fail('invalid_event_batch');
+        const normalized = events.map(event => messagingEvent(event, timestamp));
+        return persist(await Promise.all(normalized.map(event => record({
+          eventId: event.id, providerMessageId: event.messageId, deliveryId: event.deliveryId,
+          type: event.type, status: event.type === 'suppressed' ? 'rejected' : event.type,
+          occurredAt: Date.parse(event.occurredAt), recipients: [event.recipient], product: null, detail: event.detail,
+        }, encoder.encode(JSON.stringify(event))))));
+      }
       if (!await verifyWebhook({ provider, rawBody, headers, key, now: timestamp, toleranceSeconds })) fail('event_signature_invalid');
       let text, payload;
       try { text = new TextDecoder('utf-8', { fatal: true }).decode(rawBody); payload = JSON.parse(text); } catch { fail('invalid_event_json'); }

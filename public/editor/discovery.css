@@ -1,0 +1,107 @@
+/* The URL-first step of a new monitor (/app/monitor): the website address card, the proposed monitors and the outside check.
+   Loaded after app-theme.css and editor.css; it uses their tokens and the editor's footer and action rows.
+   Hooks editor/discovery.mjs relies on: #discovery[data-state=start|checking|result|problem], #discovery-url, #discovery-check,
+   #discovery-status[role=status], #discovery-problem, #discovery-result, .proposal rows with .proposal-pick and details, #discovery-start. */
+
+.discovery { display: grid; gap: 20px; }
+/* Headings, the problem and the summary take focus from script so a screen reader announces them; they are not controls, so no box is drawn.
+   Real controls keep the focus-visible ring from app-theme.css. */
+.discovery [tabindex="-1"]:focus { outline: none; }
+.discovery[hidden] { display: none; }
+#discovery-result { display: grid; gap: 20px; }
+
+/* The website address card: label, field and action on one row, then the one live status line under it. */
+.discovery-panel { padding: 18px 24px 20px; }
+.discovery-url-row { display: flex; gap: 12px; margin-top: 6px; }
+.discovery-url-row input { flex: 1 1 auto; min-width: 0; font-size: 16px; }
+.discovery-url-row button { flex: none; min-width: 120px; }
+.discovery-url-row button.is-secondary { border-color: var(--line-strong); background: var(--card); color: var(--ink); box-shadow: none; }
+.discovery-url-row button.is-secondary:hover { border-color: var(--lavender-deep); background: #fafaff; }
+.discovery-panel input[readonly] { background: var(--neutral-soft); color: var(--body); border-color: var(--line-strong); cursor: progress; }
+.discovery-status { min-height: 0; margin-top: 10px; color: var(--muted); font-size: 14px; line-height: 1.5; font-variant-numeric: tabular-nums; }
+.discovery-status:empty { display: none; }
+.discovery-status[data-state="checking"] { color: var(--ink); font-weight: 500; }
+.discovery-status[data-state="checking"]::before { content: ""; display: inline-block; width: 8px; height: 8px; margin: 0 8px 1px 0; border-radius: 50%; background: var(--peach); }
+.discovery-panel .ui-helper { margin-top: 10px; }
+.discovery-manual { margin-top: 14px; }
+.discovery-manual .ui-link { font-size: 14px; font-weight: 500; }
+#discovery-problem { margin: 0; }
+
+/* What the runner noticed, as quiet lines above the proposals. */
+.discovery-notes { display: grid; gap: 4px; margin: 0; padding: 0 4px; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.discovery-notes li { padding-left: 14px; position: relative; overflow-wrap: anywhere; }
+.discovery-notes li::before { content: ""; position: absolute; left: 0; top: 0.62em; width: 5px; height: 5px; border-radius: 50%; background: var(--unknown); }
+.discovery-notes[hidden] { display: none; }
+
+.discovery-proposals { display: grid; gap: 4px; padding-top: 20px; border-top: 1px solid var(--line-strong); }
+.discovery-proposals h2 { font-size: 22px; letter-spacing: -0.02em; }
+.discovery-intro { margin-bottom: 14px; color: var(--muted); }
+.proposal-list { display: grid; gap: 12px; }
+
+/* One proposed monitor: a card with the tick at its left, then the identity, the checks and the chevron. */
+.proposal { display: grid; grid-template-columns: 64px minmax(0, 1fr); align-items: center; border: 1px solid var(--line-strong); border-radius: var(--radius-panel); background: var(--card); box-shadow: var(--shadow-sm); }
+.proposal.is-started { background: var(--green-soft); border-color: transparent; }
+.proposal-pick { justify-self: center; align-self: start; margin-top: 29px; width: 26px; height: 26px; min-width: 26px; }
+.proposal-details { min-width: 0; }
+.proposal-summary { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) 36px; align-items: center; gap: 0; min-height: 84px; padding: 12px 0; border-radius: var(--radius-panel); }
+.proposal-summary::after { grid-column: 3; justify-self: center; width: 9px; height: 9px; margin: -4px 0 0; }
+.proposal-identity { display: grid; gap: 2px; min-width: 0; padding-right: 20px; }
+.proposal-name { color: var(--ink); font-size: 16px; font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
+.proposal-url { color: var(--body); font-size: 14px; font-weight: 400; line-height: 1.45; overflow-wrap: anywhere; }
+.proposal-reason { color: var(--muted); font-size: 13px; font-weight: 400; line-height: 1.45; }
+.proposal-checks { display: grid; gap: 3px; align-content: center; min-width: 0; min-height: 52px; padding: 2px 16px 2px 28px; border-left: 1px solid var(--line); }
+.proposal-checks-label { color: var(--ink); font-size: 14px; font-weight: 600; }
+.proposal-checks-text { color: var(--muted); font-size: 13.5px; font-weight: 400; line-height: 1.45; }
+.proposal-details[open] > .proposal-summary::after { margin-top: 4px; }
+
+/* The expanded row holds the same fields as the full form, flattened out of their cards. */
+.proposal-fields { padding: 8px 24px 24px 0; }
+.proposal-fields .editor-columns { grid-template-columns: minmax(0, 1fr); gap: 22px; padding-top: 18px; border-top: 1px solid var(--line); }
+.proposal-fields .editor-stack { gap: 22px; }
+.proposal-fields .ui-card { padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
+.proposal-fields .editor-panel h2 { margin-bottom: 12px; font-size: 16px; }
+.proposal-fields .policy-fields { margin-top: 0; }
+
+/* The result of starting a row stays on the row, in words. */
+.proposal-outcome { grid-column: 2; margin: 0 20px 14px 0; padding: 10px 14px; border-radius: var(--radius-control); font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.proposal-outcome[hidden] { display: none; }
+.proposal-outcome[data-state="working"] { background: var(--lavender); color: var(--ink); }
+.proposal-outcome[data-state="error"] { background: var(--rose-soft); color: var(--rose-text); font-weight: 600; }
+.proposal-outcome[data-state="done"] { background: transparent; color: var(--green-text); font-weight: 600; padding-left: 0; padding-top: 0; }
+.proposal-outcome[data-state="done"] a { color: var(--green-text); }
+
+.discovery-empty { display: grid; gap: 10px; justify-items: start; }
+
+/* The footer reuses the editor's: feedback on the left, Cancel and Start on the right. */
+#discovery-result .editor-footer { margin-top: 4px; border-top: 0; padding-top: 0; }
+.discovery-summary, .discovery-feedback { flex: 1 1 320px; min-width: 0; margin: 0; color: var(--ink); font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.discovery-summary:empty, .discovery-feedback:empty { display: none; }
+.discovery-summary { padding: 10px 14px; border-radius: var(--radius-control); background: var(--rose-soft); color: var(--rose-text); font-weight: 600; }
+#discovery-result .editor-actions { margin-left: auto; }
+#discovery-result .editor-cancel { min-height: 44px; padding: 0 22px; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--card); text-decoration: none; }
+#discovery-result .editor-actions button { min-width: 190px; }
+
+@media (max-width: 960px) {
+  .proposal-summary { grid-template-columns: minmax(0, 1fr) 36px; }
+  .proposal-identity { grid-column: 1; }
+  .proposal-checks { grid-column: 1; margin-top: 10px; padding: 10px 12px 0 0; border-left: 0; border-top: 1px solid var(--line); min-height: 0; }
+  .proposal-summary::after { grid-column: 2; grid-row: 1 / span 2; }
+}
+@media (max-width: 700px) {
+  .discovery { gap: 16px; }
+  .discovery-panel { padding: 14px 16px 16px; }
+  .discovery-url-row { flex-wrap: wrap; }
+  .discovery-url-row input { flex-basis: 100%; font-size: 15px; }
+  .discovery-url-row button { flex: 1 1 100%; }
+  .discovery-proposals h2 { font-size: 20px; }
+  .proposal { grid-template-columns: 48px minmax(0, 1fr); }
+  .proposal-pick { width: 24px; height: 24px; min-width: 24px; margin-top: 15px; }
+  .proposal-summary { min-height: 0; padding: 12px 0; }
+  .proposal-identity { padding-right: 8px; }
+  .proposal-name { font-size: 15px; }
+  .proposal-fields { padding-right: 14px; }
+  .proposal-outcome { margin-right: 14px; }
+  #discovery-result .editor-actions { width: 100%; }
+  #discovery-result .editor-actions button { flex: 1 1 auto; min-width: 0; }
+  #discovery-result .editor-cancel { flex: 0 0 auto; }
+}

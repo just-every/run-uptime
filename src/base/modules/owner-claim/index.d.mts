@@ -23,3 +23,5 @@ export interface OwnerClaimHandlerOptions extends OwnerClaimConfig {
   clock?: () => number;
 }
 export function createOwnerClaimHandler(options: OwnerClaimHandlerOptions): (request: Request) => Promise<Response | null>;
+
+export function createIdpOwnerClaimHandler(options:{db:import('../operator-auth/index.mjs').Database;authConfig:import('../operator-auth/index.mjs').AuthConfig;clientIp:(request:Request)=>string|Promise<string>;clock?:()=>number;fetch?:typeof fetch}):(request:Request)=>Promise<Response|null>;

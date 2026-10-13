@@ -12,14 +12,60 @@ test('C3: two real runners on independent networks agree on a failed target',asy
 test('C3: one real runner with a passing external canary establishes failure',async()=>{
  const m=await f.monitor({runners:[f.first],canary:true});await f.run(f.first);assert.equal((await f.state(m.id)).targetState,'Failing');await f.pause(m);
 });
+test('C3: a canary page larger than the probe body limit still passes and witnesses the failure',async()=>{
+ f.modes.canaryBytes=300000;const m=await f.monitor({runners:[f.first],canary:true});await f.run(f.first);const state=await f.state(m.id);assert.equal(state.targetState,'Failing');assert.equal(state.regions[0].canaryPassed,true);await f.pause(m);f.modes.canaryBytes=0;
+});
 test('C3: a failing canary leaves target failure visible as Degraded',async()=>{
  f.modes.canary=503;const m=await f.monitor({runners:[f.first],canary:true,retries:1}),task=await f.claim(f.first);assert.equal((await f.submit(f.first,task,[await f.evidence(task)])).status,200);f.modes.canary=200;assert.equal((await f.submit(f.first,task,[{...await f.evidence(task),attempt:1}])).status,200);const state=await f.state(m.id);assert.equal(state.targetState,'Degraded');assert.equal(state.unknown,1);const overview=(await f.request('/api/overview')).data.monitors.find(row=>row.id===m.id);assert.equal(overview.availability.last24h.observedMs,0);assert.equal(overview.availability.responseDurationMs,null);await f.pause(m);f.modes.canary=200;
 });
-test('the same network label counts once and an impossible production monitor is refused',async()=>{
+test('C3: one network with no external check takes the installation External check URL into its saved revision',async()=>{
+ const save=(name,extra={},assignment={})=>f.request('/api/monitors',{body:{name,url:'https://target.example.test/',probes:['local-a'],assignments:{'local-a':{runnerId:f.first.runnerId,...assignment}},intervalMs:60000,...extra}});
+ const overview=async()=>(await f.request('/api/overview')).data;
+ const canary=async name=>(await overview()).monitors.find(m=>m.definition.name===name).definition.assignments['local-a'].canaryUrl;
+ const setting=url=>f.request('/api/external-check',{body:{url}});
+ assert.equal((await f.request('/api/external-check')).data.url,'https://example.com/','a new installation starts with https://example.com/');
+ assert.equal((await overview()).runner.externalCheckUrl,'https://example.com/','the console reads the default from the overview');
+ const first=await save('Default one');assert.equal(first.status,201,JSON.stringify(first.data));assert.equal(first.data.definition.assignments['local-a'].canaryUrl,'https://example.com/');
+ // Revisions are immutable: changing the setting reaches monitors saved afterwards only.
+ const changed=await setting('https://status.example.org/health');assert.equal(changed.status,200);assert.equal(changed.data.url,'https://status.example.org/health');
+ assert.equal((await f.request('/api/external-check')).data.url,'https://status.example.org/health');
+ const second=await save('Default two');assert.equal(second.status,201);assert.equal(second.data.definition.assignments['local-a'].canaryUrl,'https://status.example.org/health');
+ assert.equal(await canary('Default one'),'https://example.com/','the earlier monitor keeps the URL it was saved with');
+ // Resuming a paused monitor is a save: it takes the setting in force then.
+ const paused=await save('Paused first',{enabled:false});assert.equal(paused.status,201);assert.equal(paused.data.definition.assignments['local-a'].canaryUrl,undefined,'a paused monitor needs none');
+ await setting('https://example.org/status');
+ const resumed=await f.request('/api/monitors/'+paused.data.id,{method:'PATCH',body:{...paused.data.definition,enabled:true}});assert.equal(resumed.status,200,JSON.stringify(resumed.data));assert.equal(resumed.data.definition.assignments['local-a'].canaryUrl,'https://example.org/status');
+ // A URL the owner supplies is kept as it is.
+ const own=await save('Own check',{},{canaryUrl:'https://owner.example.net/up'});assert.equal(own.data.definition.assignments['local-a'].canaryUrl,'https://owner.example.net/up');
+ // Two runners that share a label are one network; two independent networks need no external check at all.
  const same=(await f.request('/api/runners',{body:{networkLabel:f.first.networkLabel}})).data;
- assert.equal((await f.request('/api/monitors',{body:{name:'One network',url:'https://target.example.test/',probes:['local-a','local-b'],assignments:{'local-a':{runnerId:f.first.runnerId},'local-b':{runnerId:same.runnerId}}}})).status,400);
- const m=await f.monitor({runners:[f.first,same],enabled:false});assert.equal(new Set(Object.values(m.definition.assignments).map(a=>a.networkLabel)).size,1);
- assert.equal((await f.request('/api/monitors',{body:{...m.definition,enabled:true}})).status,400);
+ const shared=await f.request('/api/monitors',{body:{name:'One network twice',url:'https://target.example.test/',probes:['local-a','local-b'],assignments:{'local-a':{runnerId:f.first.runnerId},'local-b':{runnerId:same.runnerId}}}});
+ assert.equal(shared.status,201);assert.deepEqual(Object.values(shared.data.definition.assignments).map(a=>a.canaryUrl),['https://example.org/status','https://example.org/status']);
+ const two=await f.request('/api/monitors',{body:{name:'Two networks',url:'https://target.example.test/',probes:['local-a','local-b'],assignments:{'local-a':{runnerId:f.first.runnerId},'local-b':{runnerId:f.second.runnerId}}}});
+ assert.equal(two.status,201);assert.ok(Object.values(two.data.definition.assignments).every(a=>a.canaryUrl===undefined));
+ // A check on the monitored site fails whenever the monitor does, so it could never confirm an outage: refused for the
+ // filled-in default and for a URL the owner supplies. Same site means the same hostname, ignoring case and a leading www.
+ const sameSite=/is the same site as this monitor, so an outage there could never be confirmed/;
+ for(const url of ['https://example.org/','https://www.example.org/home','https://EXAMPLE.org:8443/x?y=1','https://example.org./']){
+  const refused=await save('Same site '+url,{url});assert.equal(refused.status,400,url);assert.match(refused.data.error,sameSite);
+  assert.match(refused.data.error,/https:\/\/example\.org\/status/,'the message names the address');assert.match(refused.data.error,/Runner \/ archive/,'and says where to change it');
+ }
+ const subdomain=await save('Other site',{url:'https://status.example.org/'});assert.equal(subdomain.status,201,JSON.stringify(subdomain.data));assert.equal(subdomain.data.definition.assignments['local-a'].canaryUrl,'https://example.org/status','a different hostname is a different site');
+ const ownSame=await save('Own same site',{},{canaryUrl:'https://www.target.example.test/up'});assert.equal(ownSame.status,400);assert.match(ownSame.data.error,sameSite);assert.match(ownSame.data.error,/different site for this check/);
+ const independentSame=await f.request('/api/monitors',{body:{name:'Two networks same site',url:'https://target.example.test/',probes:['local-a','local-b'],assignments:{'local-a':{runnerId:f.first.runnerId,canaryUrl:'https://target.example.test/up'},'local-b':{runnerId:f.second.runnerId}}}});assert.equal(independentSame.status,400);assert.match(independentSame.data.error,sameSite);
+ assert.equal((await save('Paused same site',{enabled:false},{canaryUrl:'https://target.example.test/up'})).status,201,'a paused monitor is checked when it is resumed');
+ assert.equal((await overview()).monitors.some(m=>/^Same site /.test(m.definition.name)||m.definition.name==='Own same site'||m.definition.name==='Two networks same site'),false,'a refused save creates no monitor');
+ // Refused at the boundary with a plain message; the stored value does not change.
+ for(const url of ['http://127.0.0.1/','http://10.0.0.5/health','https://user:pw@example.com/','https://example.com/#x','ftp://example.com/','not a url','',5,undefined]){
+  const refused=await setting(url);assert.equal(refused.status,400,String(url));assert.equal(typeof refused.data.error,'string');
+ }
+ assert.equal((await f.request('/api/external-check',{body:{url:'https://example.com/',other:1}})).status,400);
+ assert.equal((await f.request('/api/external-check')).data.url,'https://example.org/status');
+ // Without the setting there is nothing to fill in: refused, naming the setting.
+ await f.DB.prepare('DELETE FROM external_check').run();
+ const missing=await save('No setting');assert.equal(missing.status,400);assert.match(missing.data.error,/External check URL/);
+ await f.DB.prepare("INSERT INTO external_check(id,url,updated_at) VALUES(1,'https://example.com/',?)").bind(Date.now()).run();
+ for(const m of (await overview()).monitors.filter(m=>m.definition.enabled))await f.pause(m);
 });
 test('C4: assigned-runner, signature and acceptance-window authority protect first-copy-wins evidence',async()=>{
  const m=await f.monitor(),task=await f.claim(f.first),o=await f.evidence(task);
@@ -174,7 +220,7 @@ test('C4: revoking one runner refuses its attempts and leaves another runner aut
  const m=await f.monitor(),task=await f.claim(f.second),o=await f.evidence(task);assert.equal((await f.request('/api/runners/'+f.second.runnerId,{method:'DELETE'})).status,200);assert.equal((await f.submit(f.second,task,[o])).status,401);assert.equal((await f.request('/api/runner/claim',{runner:f.first,body:{}})).status,200);assert.equal((await f.request('/api/runners',{method:'POST',body:{networkLabel:'untrusted'},headers:{cookie:''}})).status,401);await f.pause(m);
 });
 
-test('legacy revisions keep quorum alerts until a new save adopts independent networks',async()=>{
+test('legacy revisions keep quorum alerts until a new save adopts an external check or independent networks',async()=>{
  const {validateDefinition}=await import('../../src/domain/policy.mjs');
  const target=(await f.monitor({enabled:false})).definition.url;
  const definition=validateDefinition({name:'Upgraded monitor',url:target,probes:['local-a'],retries:1,intervalMs:5000,confirmSlots:1,recoverSlots:1},[]),id=crypto.randomUUID(),now=Date.now();
@@ -189,7 +235,9 @@ test('legacy revisions keep quorum alerts until a new save adopts independent ne
  assert.equal((await f.submit(f.first,task,[terminal])).status,200);
  const read=(await f.request('/api/overview')).data,legacy=read.monitors.find(m=>m.id===id);
  assert.equal(legacy.state.targetState,'Failing');assert.equal(legacy.activeVantages,1);assert.ok(legacy.configurationWarning);assert.equal(read.alerts.filter(a=>a.monitor_id===id&&a.kind==='trigger').length,1);
- assert.equal((await f.request('/api/monitors/'+id,{method:'PATCH',body:definition})).status,400);
+ // Saving the same single-network settings is a new revision, which takes the installation's External check URL instead of being refused.
+ const adopted=await f.request('/api/monitors/'+id,{method:'PATCH',body:definition});assert.equal(adopted.status,200,JSON.stringify(adopted.data));
+ assert.equal(adopted.data.definition.assignments['local-a'].canaryUrl,'https://example.com/');assert.equal((await f.request('/api/overview')).data.monitors.find(m=>m.id===id).configurationWarning,null);
  const saved=await f.request('/api/monitors/'+id,{method:'PATCH',body:{...definition,probes:['local-a','local-b'],assignments:{'local-a':{runnerId:f.first.runnerId},'local-b':{runnerId:(await f.request('/api/runners',{body:{networkLabel:'upgrade-second'}})).data.runnerId}}}});
  assert.equal(saved.status,200);assert.ok(saved.data.definition.assignments);assert.equal((await f.request('/api/overview')).data.monitors.find(m=>m.id===id).configurationWarning,null);await f.pause(saved.data);
 });
@@ -243,4 +291,16 @@ test('bounded projection equals full stored replay through late retries, expiry,
   await f.DB.prepare('UPDATE slots SET lease_until=? WHERE id=?').bind(Date.now()-1,task.id).run();assert.equal((await oracle(recovery)).targetState,expected);
  }
  assert.equal((await oracle(recovery)).recoveryStreak,2);f.modes.target=503;await f.pause(recovery);
+});
+test('each vantage starts its own scheduled checks at least one interval apart',async()=>{
+ // Two machines poll out of phase: the second runner takes its part of a check 1.5 s after the first claimed it, and is then the
+ // first to poll once the next check is due. Its next part must still start a whole interval after its previous one.
+ const second=(await f.request('/api/runners',{body:{networkLabel:'phase-network'}})).data,m=await f.monitor({runners:[f.first,second]}),sleep=ms=>new Promise(r=>setTimeout(r,ms));
+ const first=await f.claim(f.first);assert.equal((await f.submit(f.first,first,[await f.evidence(first)])).status,200);await sleep(1500);
+ const own=await f.claim(second),ownAt=Date.now();assert.equal(own.id,first.id,'the second runner takes its part of the same check');
+ assert.equal((await f.submit(second,own,[await f.evidence(own)])).status,200);
+ let next=null;while(!next&&Date.now()-ownAt<15000){next=await f.claim(second);if(!next)await sleep(100)}
+ assert.ok(next&&next.id!==own.id,'the second runner took its part of the next scheduled check');
+ assert.ok(Date.now()-ownAt>=m.definition.intervalMs,`the second runner's checks started ${Date.now()-ownAt} ms apart`);
+ await f.pause(m);
 });

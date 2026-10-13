@@ -16,12 +16,15 @@ import { AuthError } from '../errors.mjs';
 //   revokeSession(sessionId)      end one session
 //   owner()                       the app's owner, or null
 // Optional:
+//   bindAndIssueSession(input)    atomically bind and issue with current setting/version fences
+//   identityEnabled()            provider admission setting; missing means off
+//   currentBoundSubject(input)   current subject for person/issuer; absent denies editor authority
 //   acceptInvitation({person,principal,returnTo,request})  accept a pending invitation
 //   requiredProvider(email)       the provider id an email's domain must use, or null
 //
 // A person is { id, email, status: 'active'|'invited'|'inactive', owner: boolean }.
 const REQUIRED = ['findByEmail', 'findBinding', 'bind', 'issueSession', 'revokeSession', 'owner'];
-const OPTIONAL = ['acceptInvitation', 'requiredProvider'];
+const OPTIONAL = ['bindAndIssueSession','acceptInvitation', 'requiredProvider', 'currentBoundSubject', 'identityEnabled'];
 
 export function accountsAdapter(adapter) {
   if (!adapter || typeof adapter !== 'object' || REQUIRED.some(name => typeof adapter[name] !== 'function')

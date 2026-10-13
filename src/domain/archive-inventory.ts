@@ -21,6 +21,14 @@ export const installationLocalTables:Record<string,string>={
  rer_mail_development_outbox:'Installation development captures, including sign-in/setup authority; retained until explicit erasure or reset.',
  oc_owner_claims:'Installation signed owner admission ledger; retain permanently, never export credentials or authority.',
  uptime_first_run:'Installation first-run completion; a receiving owner completes setup independently.',
+ alert_drills:'Installation alert drill history and confirmation capability hashes; a restored destination starts never proven.',
+ external_check:'Installation External check URL: the receiving installation chooses its own network\'s default, and monitors keep the URL saved in their revisions, which do travel.',
+ discovery_jobs:'Installation discovery questions and the runner\'s derived answers; transient, never evidence or definitions of record.',
+ oa_identity_providers:'Installation linked-provider pin and endpoints; a restored installation must link again.',oa_identity_provider_health:'Installation provider reachability.',oa_oidc_transactions:'Installation in-flight provider sign-in state; expires.',oa_oidc_limits:'Installation provider sign-in rate limits.',
+ oa_auth_settings:'Installation provider sign-in setting; a restored installation starts with it off.',oa_auth_audit:'Installation record of owner changes to provider sign-in and links.',
+ oa_provider_sessions:'Installation provider session provenance; never portable authority.',oa_provider_session_pins:'Installation provider pin of each provider session; never portable authority.',oa_logout_events:'Installation one-use back-channel logout tokens.',oa_credentials:'Installation minted credential authority; Uptime mints none.',oa_setup_links:'Installation first-setup provider approvals; expire.',
+ rer_dependency_codes:'Installation one-use link handshake digests.',rer_dependency_installation:'Installation sector identity for the optional Auth link.',rer_dependency_keys:'Installation private link key; never exported.',rer_dependency_link:'Installation provider link record; a restored installation must link again.',rer_dependency_pending:'Installation pending link approvals; expire.',
+ oc_idp_grants:'Installation one-use provider owner-claim grant ledger.',
 };
 export async function assertArchiveInventory(db:D1Database){
  const rows=await db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name").all<{name:string}>();

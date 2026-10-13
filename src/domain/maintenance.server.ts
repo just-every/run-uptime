@@ -1,6 +1,8 @@
 import {cleanupPublicRateLimits} from './public-rate-limits.server.ts'
 import {notificationRepository} from './notification-rpc.server.ts'
 import {ensureNotificationCustody} from './notification-credentials.server.ts'
+import {retireDrillTokens} from './alert-drills.server.ts'
+import {expireMailClaims} from './notification-mail.server.ts'
 import {type Bindings} from './control.server.ts'
 // Cron expires abandoned execution leases and bounded transient auth records.
 // Durable authority ledgers, observations, definitions and outbox are retained.
@@ -13,8 +15,9 @@ export async function maintenance(env:Bindings,now=Date.now()){
   env.DB.prepare('DELETE FROM login_attempts WHERE at<?').bind(now-60000),
  ]);
  await notificationRepository(env).recoverExpired(now);
- await env.DB.prepare("UPDATE notification_jobs SET state='uncertain',code='claim_expired',claim=NULL,claim_until=NULL,finished_at=? WHERE kind='email' AND state='sending' AND claim_until<=?").bind(now,now).run();
+ await env.DB.batch(expireMailClaims(env,now));
  // Seal any plaintext credential left by an upgrade, without decrypting stored ones.
  await ensureNotificationCustody(env,{validate:false});
+ await retireDrillTokens(env,now);
  return {interrupted:results[0].meta.changes};
 }

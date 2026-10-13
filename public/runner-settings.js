@@ -1,7 +1,7 @@
 export function runnerSettings(container,runners,api,refresh){
  const heading=document.createElement('h3');heading.textContent='Runner networks';container.append(heading);
  const list=document.createElement('ul');
- for(const runner of runners){const row=document.createElement('li');row.textContent=`${runner.networkLabel} · ${runner.runnerId} · ${runner.revokedAt?'Revoked':runner.lastContactAt?'Contact '+new Date(runner.lastContactAt).toLocaleString():'Never contacted'}`;
+ for(const runner of runners){const row=document.createElement('li');row.textContent=`${runner.networkLabel} · ${runner.runnerId} · ${runner.revokedAt?'Revoked':runner.lastContactAt?'Contact '+new Date(runner.lastContactAt).toLocaleString():'Never contacted'} · ${runner.capabilities?.browser?'Has a browser for flows':'No browser for flows'}`;
   if(!runner.revokedAt){const button=document.createElement('button');button.textContent='Revoke runner';button.onclick=async()=>{if(!confirm('Revoke this runner key? Its future requests will be refused.'))return;button.disabled=true;try{await api('/api/runners/'+encodeURIComponent(runner.runnerId),'DELETE');await refresh()}catch(error){status.textContent=error.message;button.disabled=false}};row.append(button)}list.append(row)
  }
  container.append(list);

@@ -69,7 +69,8 @@ try{
  for(const response of [await health(),await call('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'Test owner',returnTo:'/app'})]){
   assert.equal(response.status,503,'public limiter refuses current routes against historical storage');
   assert.equal(response.headers.get('set-cookie'),null);
-  assert.deepEqual(await response.json(),{error:'Public request limiter unavailable'},'refusal exposes no SQL detail or authority');
+  assert.deepEqual(await response.json(),{error:'Public request limiter unavailable',code:'storage_unavailable',retryable:true,class:'schema',operation:'publicRateLimit.count'},'refusal is typed, names its operation and exposes no SQL detail or authority');
+  assert.equal(response.headers.get('retry-after'),'5');
  }
  assert.equal((await call('/api/overview')).status,401,'unsigned private read remains unauthorized');
  assert.deepEqual(await snapshot(tables),before,'denied current requests cannot change historical authority or business data');
@@ -83,7 +84,7 @@ try{
  assert.equal(retired.length,2);assert.ok(retired.every(r=>r.ciphertext===null&&r.endpoint===null&&r.signing_secret===null&&r.retired_at!==null),'obsolete and soft-deleted plaintext is scrubbed');
  const [native]=before.oa_sessions,[operator]=before.oa_operators;
  assert.equal(operator.role,'owner');assert.equal(operator.status,'active');assert.equal(before.oa_bootstrap[0].claim_id,operator.id);assert.ok(native.expires_at>Date.now(),'historical native session retains its fixed valid expiry');
- const nativeSession=async()=>{const result=await owner.api('/auth/session');assert.equal(result.status,200);assert.deepEqual(result.data,{id:native.id,operatorId:operator.id,createdAt:native.created_at,expiresAt:native.expires_at,kind:'native',operator:{id:operator.id,email:operator.email,displayName:operator.display_name,role:operator.role,status:operator.status,version:operator.version,createdAt:operator.created_at}})};
+ const nativeSession=async()=>{const result=await owner.api('/auth/session');assert.equal(result.status,200);assert.deepEqual(result.data,{id:native.id,operatorId:operator.id,createdAt:native.created_at,expiresAt:native.expires_at,kind:'native',issuer:null,subject:null,sid:null,operator:{id:operator.id,email:operator.email,displayName:operator.display_name,role:operator.role,status:operator.status,version:operator.version,createdAt:operator.created_at}})};
  await nativeSession();
  const overviewRead=await owner.api('/api/overview');assert.equal(overviewRead.status,200);assert.equal(overviewRead.data.monitors.length,1);
  const retainedMonitor=overviewRead.data.monitors[0];

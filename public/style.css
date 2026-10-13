@@ -318,28 +318,43 @@
 .history-strip .ui-dot.manual { width: 10px; height: 10px; margin: 0 1.5px; border-radius: 2px; transform: rotate(45deg); }
 .history-strip .ui-dot.span { width: 20px; height: 9px; border-radius: 999px; background: var(--neutral-soft); box-shadow: inset 0 0 0 2px var(--line-strong), 0 0 0 3px var(--card); }
 .history-strip .ui-dot.span.maintenance { background: var(--peach-soft); box-shadow: inset 0 0 0 2px var(--peach), 0 0 0 3px var(--card); }
+/* The strip never runs past its card or over its times: the rail is at most the strip's width, and every mark but a dot
+   can narrow, so the rail's marks always fit inside it. Bars shorten first (their outsized shrink factor leaves the
+   rings whole until every bar is at its shortest); then a "+N" ring gives up its spare width and then its count's last
+   digits (an ellipsis); dots keep their size. The list below names every count. */
+.history-strip .ui-strip { min-width: 0; max-width: 100%; }
+.history-strip .ui-dot.span { flex: 0 100000 auto; min-width: 8px; }
+.strip-time { flex: none; white-space: nowrap; }
 /* A run of two or more missed or overdue checks: one hollow ring with its count, in one place. */
-.strip-run { position: relative; flex: none; min-width: 30px; padding: 0 5px; border-radius: 999px; background: var(--card); box-shadow: inset 0 0 0 2px var(--unknown), 0 0 0 3px var(--card); color: var(--muted); font-size: 11.5px; font-weight: 600; line-height: 17px; text-align: center; }
+.strip-run { position: relative; flex: 0 1 auto; overflow: hidden; min-width: 30px; padding: 0 5px; text-overflow: ellipsis; white-space: nowrap; border-radius: 999px; background: var(--card); box-shadow: inset 0 0 0 2px var(--unknown), 0 0 0 3px var(--card); color: var(--muted); font-size: 11.5px; font-weight: 600; line-height: 17px; text-align: center; }
 .strip-run.overdue { box-shadow: inset 0 0 0 2px var(--amber), 0 0 0 3px var(--card); color: var(--amber-text); }
-.strip-time { white-space: nowrap; }
-/* In a narrower card the strip moves under the heading, still packed at its own width between its times; in a phone
-   card the times move under it, at its two ends. */
+/* Three or more runs: a ring may narrow to its padding and an ellipsis. Seven or more: tighter places, so more of their
+   counts stay whole. */
+.history-strip .ui-strip:has(.strip-run ~ .strip-run ~ .strip-run) .strip-run { min-width: 17px; }
+.history-strip .ui-strip:has(.strip-run ~ .strip-run ~ .strip-run ~ .strip-run ~ .strip-run ~ .strip-run ~ .strip-run) { gap: 6px; }
+/* In a narrower card the strip moves under the heading: the rail on its own row, packed at its own width, and its two
+   times under its two ends, so the rail has the card's whole width and never shares a row with a time. */
 @container checks-card (max-width: 640px) {
   .evidence .panel-head { display: block; }
-  .history-strip { margin-top: 10px; }
-  .history-strip .ui-strip { flex: 0 1 auto; justify-content: flex-start; gap: 8px; }
-}
-@container checks-card (max-width: 400px) {
-  .history-strip { display: grid; grid-template-columns: auto auto; justify-content: space-between; width: max-content; max-width: 100%; gap: 6px 12px; font-size: 12px; }
-  .history-strip .ui-strip { grid-column: 1 / -1; order: -1; justify-self: start; }
+  .history-strip { display: grid; grid-template-columns: auto auto; justify-content: space-between; width: max-content; max-width: 100%; margin-top: 10px; gap: 6px 12px; }
+  .history-strip .ui-strip { grid-column: 1 / -1; order: -1; justify-self: start; gap: 8px; }
   .history-strip .ui-strip ~ .strip-time { justify-self: end; }
   /* With few slots the two times sit side by side under a short strip; the dash keeps them reading as a range. */
   .history-strip .ui-strip ~ .strip-time::before { content: "\2013\00a0"; }
+  /* Seven or more runs: compact rings, so twelve three-digit counts fit whole in a card wider than 400px. */
+  .history-strip .ui-strip:has(.strip-run ~ .strip-run ~ .strip-run ~ .strip-run ~ .strip-run ~ .strip-run ~ .strip-run) { gap: 3px; }
+  .history-strip .ui-strip:has(.strip-run ~ .strip-run ~ .strip-run ~ .strip-run ~ .strip-run ~ .strip-run ~ .strip-run) .strip-run { padding: 0 2px; font-size: 9.5px; letter-spacing: -0.04em; }
+}
+/* In a phone card: smaller places, and from three runs compact rings, so twelve places with six "+N" fit a 320px phone. */
+@container checks-card (max-width: 400px) {
+  .history-strip { font-size: 12px; }
   .history-strip .ui-strip { gap: 7px; }
   .history-strip .ui-dot { width: 11px; height: 11px; }
   .history-strip .ui-dot.manual { width: 8px; height: 8px; }
   .history-strip .ui-dot.span { width: 16px; height: 8px; }
   .strip-run { min-width: 24px; padding: 0 4px; font-size: 10.5px; line-height: 15px; }
+  .history-strip .ui-strip:has(.strip-run ~ .strip-run ~ .strip-run) { gap: 3px; }
+  .history-strip .ui-strip:has(.strip-run ~ .strip-run ~ .strip-run) .strip-run { min-width: 17px; padding: 0 2px; font-size: 9.5px; letter-spacing: -0.04em; }
 }
 .check-list { overflow: hidden; border: 1px solid var(--line); border-radius: 12px; }
 #raw-history .check-list > * + * { border-top: 1px solid var(--line); }
@@ -356,6 +371,8 @@
    the code is monospace (DESIGN-PICKS rule 3). */
 #raw-history .check-result { gap: 9px; font-size: 14px; }
 #raw-history .result-label { min-width: 0; }
+/* A time or a result word wraps only between words, never inside one: each column is sized to hold its widest word. */
+#raw-history :is(.slot-time, .result-label) { overflow-wrap: normal; }
 .slot-code .ui-mono { font-size: 13.5px; }
 /* The mark box is 19px so the drawn dot or ring is about 13px, against the 14px label. */
 #raw-history .check-result::before { width: 19px; height: 19px; }
@@ -371,14 +388,16 @@
   #raw-history summary::after { grid-column: 3; grid-row: 1 / span 2; }
   .slot-meta { grid-column: 1 / 3; grid-row: 2; font-size: 12.5px; }
 }
-/* The narrowest card (a 320px phone, under 300px of content): the time column takes its clock's width and the result
-   column the rest, with the row's padding, gaps, mark and label trimmed so "Failed · HTTP 200" over "(expected 201)"
-   fits beside "12:58:05 PM". A 390px phone's card is 328px and keeps the layout above. */
+/* The narrowest card (a 320px phone, under 300px of content): every row has the same time column, wide enough for
+   "12:58:05 PM –" (the first line of a range) and set in em so it follows the clock's size, and the result column the
+   rest, with the row's padding, gaps, mark and label trimmed so "Maintenance" and "(expected 201)" fit on one line. A
+   range or a span's "since" then wraps inside its own column and the result column starts at the same place in every
+   row. A 390px phone's card is 328px and keeps the layout above. */
 @container checks-card (max-width: 300px) {
-  #raw-history :is(summary, .slot-row) { grid-template-columns: auto minmax(0, 1fr) 14px; gap: 6px 8px; padding: 10px 8px; }
-  #raw-history .check-result { gap: 7px; font-size: 13.5px; }
+  #raw-history :is(summary, .slot-row) { grid-template-columns: 6.8em minmax(0, 1fr) 14px; gap: 6px; padding: 10px 8px; font-size: 13.5px; }
+  #raw-history .check-result { gap: 6px; font-size: 13px; }
   #raw-history .check-result::before { width: 17px; height: 17px; }
-  .slot-code .ui-mono { font-size: 13px; }
+  .slot-code .ui-mono { font-size: 12.5px; }
 }
 /* An open slot's attempts in a soft lavender inset: the attempt line, then its PASS / FAIL lines on white, all in the sans
    with tabular numbers (monospace stays for the HTTP code, DESIGN-PICKS rule 3). */
@@ -442,9 +461,31 @@
 .runner-contact > div { display: grid; grid-template-columns: minmax(150px, 220px) minmax(0, 1fr); align-items: baseline; gap: 4px 16px; padding: 6px 0; }
 .runner-contact dt { color: var(--muted); font-size: 14px; font-weight: 500; }
 .runner-contact dd { margin: 0; color: var(--ink); font-size: 15px; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.external-check form { max-width: 560px; margin-top: 14px; }
+.external-check label { display: block; margin-bottom: 6px; color: var(--body); font-weight: 500; }
+.external-check-row { display: flex; gap: 10px; }
+.external-check-row input { flex: 1 1 auto; min-width: 0; margin: 0; }
+.external-check .ui-callout { max-width: none; margin-top: 12px; }
+.external-check .ui-callout[hidden] { display: none; }
 #export { margin-top: 4px; }
 .archive-tools label { max-width: 520px; margin-top: 18px; color: var(--body); font-weight: 500; }
 .archive-tools .ui-callout { max-width: none; margin-top: 18px; }
+/* ---------------------------------------------------------------- definition files */
+.definition-input textarea { width: 100%; min-height: 120px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+.definition-input select { max-width: 100%; }
+.definition-counts { display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 4px 0 12px; }
+.definition-counts > div { min-width: 96px; }
+.definition-counts dt { color: var(--muted); font-size: 13px; font-weight: 500; }
+.definition-counts dd { margin: 0; color: var(--ink); font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.definition-source, .definition-digest { max-width: 72ch; overflow-wrap: anywhere; }
+.definition-digest code { font-size: 12px; overflow-wrap: anywhere; }
+.definitions-panel .table-scroll { margin-top: 12px; }
+.definition-details p, .definition-details li { max-width: 64ch; overflow-wrap: anywhere; }
+.definition-details ul, .definition-batches ul { margin: 4px 0 0; padding-left: 18px; }
+.definition-details .field { font-weight: 600; }
+.definition-batches { margin: 0; padding: 0; list-style: none; }
+.definition-batches > li { padding: 12px 0; border-top: 1px solid var(--line); overflow-wrap: anywhere; }
+.definition-batches button { margin-top: 10px; }
 @media (max-width: 700px) {
   .runner-panel { padding: 12px 16px 16px; }
   .archive-tools label { max-width: none; }
@@ -452,3 +493,11 @@
 @media (max-width: 480px) {
   .runner-contact > div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
 }
+
+/* Browser flow (FLOW-001): the step trace and revision history on a monitor's page, in the page's own list and result styles. */
+.flow-limit{margin:0 0 .75rem;color:var(--ui-muted,inherit)}
+.flow-trace-wrap{margin:.5rem 0 0}
+.flow-trace-head,.flow-trace-foot{margin:.25rem 0;font-size:.875rem}
+.flow-trace,.flow-history{list-style:none;margin:.25rem 0;padding:0;display:grid;gap:.25rem}
+.flow-trace li,.flow-history li{font-size:.875rem;overflow-wrap:anywhere}
+.flow-revisions h3{margin:1rem 0 .25rem;font-size:1rem}

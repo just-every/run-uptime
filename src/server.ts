@@ -1,17 +1,25 @@
 import {monitoringWatch} from './domain/monitoring-watch.server.ts'
 import {dispatchNotificationMail} from './domain/notification-mail.server.ts'
-import {enrollRunner,authenticateRunner,runnerKey,createRunner,revokeRunner,listRunners,ensureFirstRunner,type Runner} from './domain/runner-registration.server.ts'
+import {createDiscovery,readDiscovery,claimDiscovery,completeDiscovery,discoveryAnswer,DISCOVERY_RESULT_BYTES} from './domain/discovery.server.ts'
+import {readExternalCheck,saveExternalCheck} from './domain/external-check.server.ts'
+import {signedRunnerBody} from './domain/runner-signature.server.ts'
+import {enrollRunner,authenticateRunner,createRunner,revokeRunner,listRunners,ensureFirstRunner,type Runner} from './domain/runner-registration.server.ts'
 import {configurationResponse,validateConfiguration} from './domain/startup-config.mjs'
 import {isPublicDocument,publicPath} from './domain/public-paths.ts'
 import {limitPublicRequest} from './domain/public-rate-limits.server.ts'
 import {erase} from './domain/erasure.server.ts'
+import {previewDefinitions,applyDefinitions,exportDefinitions,listBatches,undoBatch} from './domain/definitions/index.server.ts'
 import {exportJournal} from './domain/archive-fence.server.ts'
 import {operatorSession} from './domain/operator-auth.server.ts'
 import {notificationReadiness,ensureNotificationCustody} from './domain/notification-credentials.server.ts'
 import {destinations,createDestination,updateDestination,rotateDestination} from './domain/notification-destinations.server.ts'
 import {notificationOverview,testDestination} from './domain/notifications.server.ts'
 import {notificationRpc} from './domain/notification-rpc.server.ts'
+import {startDrill} from './domain/alert-drills.server.ts'
+import {alertDrillDocument} from './domain/alert-drill-document.server.ts'
 import {isPublicAsset} from './domain/assets.server.ts'
+import {deploymentHealth} from './base/deployment-health.ts'
+import {classifyStorage,storageLogLine,storageOperation} from './domain/storage-error.ts'
 import {maintenance} from './domain/maintenance.server.ts'
 import {authRoute,authFailure,developmentMail,signOut} from './domain/operator-auth.server.ts'
 import {devGate,devNotFound} from './base/modules/operator-auth/index.mjs'
@@ -26,13 +34,16 @@ import {issueHeartbeatKey,receiveHeartbeat} from './domain/heartbeat.server'
 import start from '@tanstack/react-start/server-entry'
 import {Hono} from 'hono'
 import {dispatch} from './base/dispatch'
+import {lobbyResponse} from './base/lobby'
+import {claimedWhen,setupStateResponse} from './base/setup-state'
+import {identity} from './identity'
 import {recordContact} from './domain/runner-contact.server.ts'
-import {session,same,sign,overview,save,get,claim,complete,history,revisions,archive,restore,type Bindings} from './domain/control.server'
+import {session,overview,save,get,claim,complete,history,revisions,archive,restore,type Bindings} from './domain/control.server'
 const api=new Hono<{Bindings:Bindings;Variables:{requestText:string;runner:Runner}}> ()
-api.get('/health',async c=>{try{await notificationReadiness(c.env)}catch{return c.json({error:'Notification schema upgrade required'},503)}await c.env.DB.prepare('SELECT 1 FROM monitors LIMIT 1').first();try{await ensureNotificationCustody(c.env,{validate:false})}catch{}return c.json({ok:true,status:'ok',deployment:{sourceSha:c.env.RER_DEPLOY_SOURCE,fingerprint:c.env.RER_DEPLOY_FINGERPRINT,versionId:c.env.RER_VERSION?.id}})})
-api.use('/api/*',async(c,next)=>{c.header('cache-control','no-store');const origin=c.req.header('origin');if(c.env.UPTIME_LOCAL_REVIEW!=='true'&&['POST','PATCH','DELETE'].includes(c.req.method)&&!c.req.path.startsWith('/api/runner/')&&!c.req.path.startsWith('/api/heartbeats/')&&origin!==c.env.UPTIME_ORIGIN)return c.json({error:'Same origin required'},403);if(c.req.header('sec-fetch-site')==='cross-site'||(origin&&origin!==new URL(c.req.url).origin))return c.json({error:'Same origin required'},403);if(Number(c.req.header('content-length')??0)>2*1024*1024)return c.json({error:'Payload too large'},413);if(['POST','PATCH'].includes(c.req.method)&&c.req.header('content-type')!=='application/json')return c.json({error:'JSON required'},415);if(['POST','PATCH'].includes(c.req.method)){const reader=c.req.raw.body?.getReader(),decoder=new TextDecoder('utf-8',{fatal:true});let size=0,text='';if(reader){try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>2*1024*1024){return c.json({error:'Payload too large'},413)}text+=decoder.decode(value,{stream:true})}text+=decoder.decode()}catch(error){if(error instanceof TypeError)return c.json({error:'Invalid UTF-8 request body'},400);throw error}finally{reader.releaseLock()}}c.set('requestText',text)}await next()})
+api.get('/health',async c=>{try{await notificationReadiness(c.env)}catch{return c.json({error:'Notification schema upgrade required'},503)}await c.env.DB.prepare('SELECT 1 FROM monitors LIMIT 1').first();try{await ensureNotificationCustody(c.env,{validate:false})}catch{}return c.json({status:'ok',...deploymentHealth(c.env)})})
+api.use('/api/*',async(c,next)=>{c.header('cache-control','no-store');const origin=c.req.header('origin');if(c.env.UPTIME_LOCAL_REVIEW!=='true'&&['POST','PATCH','DELETE'].includes(c.req.method)&&!c.req.path.startsWith('/api/runner/')&&!c.req.path.startsWith('/api/heartbeats/')&&origin!==c.env.UPTIME_ORIGIN)return c.json({error:'Same origin required'},403);if(c.req.header('sec-fetch-site')==='cross-site'||(origin&&origin!==new URL(c.req.url).origin))return c.json({error:'Same origin required'},403);if(Number(c.req.header('content-length')??0)>2*1024*1024)return c.json({error:'Payload too large'},413);if(['POST','PATCH'].includes(c.req.method)&&c.req.header('content-type')!=='application/json'&&!(c.req.path==='/api/definitions/preview'&&c.req.header('content-type')==='text/csv'))return c.json({error:'JSON required'},415);if(['POST','PATCH'].includes(c.req.method)){const reader=c.req.raw.body?.getReader(),decoder=new TextDecoder('utf-8',{fatal:true});let size=0,text='';if(reader){try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>2*1024*1024){return c.json({error:'Payload too large'},413)}text+=decoder.decode(value,{stream:true})}text+=decoder.decode()}catch(error){if(error instanceof TypeError)return c.json({error:'Invalid UTF-8 request body'},400);throw error}finally{reader.releaseLock()}}c.set('requestText',text)}await next()})
 api.post('/api/heartbeats/:id',async c=>{if(c.get('requestText')!=='{}')return c.json({error:'Empty JSON object required'},400);return c.json(await receiveHeartbeat(c.env,c.req.param('id'),c.req.header('authorization')??'',c.req.header('x-heartbeat-sequence')??''))})
-api.use('/api/*',async(c,next)=>{if(c.req.path.startsWith('/api/runner/')){const row=await authenticateRunner(c.env,c.req.header('x-runner-id'),c.req.header('x-runner-key')??'');if(!row)return c.json({error:'Runner authorization required'},401);c.set('runner',row)}else if(!await session(c.env,c.req.raw))return c.json({error:'Owner session required'},401);await next()})
+api.use('/api/*',async(c,next)=>{if(c.req.path.startsWith('/api/runner/')){const row=await storageOperation('runner.authenticate',()=>authenticateRunner(c.env,c.req.header('x-runner-id'),c.req.header('x-runner-key')??''));if(!row)return c.json({error:'Runner authorization required'},401);c.set('runner',row)}else if(!await storageOperation('owner.session',()=>session(c.env,c.req.raw)))return c.json({error:'Owner session required'},401);await next()})
 api.post('/api/auth/sign-out',async c=>{try{const result=await signOut(c.env,c.req.raw);c.header('set-cookie',result.cookie);return c.json({signedOut:true})}catch(error){return authFailure(error)}})
 api.get('/api/overview',async c=>c.json(await overview(c.env)))
 api.post('/api/monitors',async c=>c.json(await save(c.env,JSON.parse(c.get('requestText')),undefined,{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id}),201))
@@ -44,11 +55,28 @@ api.post('/api/monitors/:id/run',async c=>{const m=await get(c.env,c.req.param('
 api.get('/api/runners',async c=>c.json(await listRunners(c.env)))
 api.post('/api/runners',async c=>c.json(await createRunner(c.env,JSON.parse(c.get('requestText'))),201))
 api.delete('/api/runners/:id',async c=>c.json(await revokeRunner(c.env,c.req.param('id'))))
+// The installation-wide External check URL: owner session only, same origin, validated before it is stored.
+api.get('/api/external-check',async c=>c.json(await readExternalCheck(c.env)))
+api.post('/api/external-check',async c=>c.json(await saveExternalCheck(c.env,c.get('requestText'))))
 api.post('/api/runner/enroll',async c=>{const registration=await enrollRunner(c.env,c.get('requestText'),c.req.header('x-sent-at')??'',c.req.header('x-runner-signature')??'',c.get('runner'));return registration?c.json(registration):c.json({error:'Invalid signed enrolment'},403)})
-api.post('/api/runner/claim',async c=>{const row=c.get('runner').runner_id?c.get('runner'):await ensureFirstRunner(c.env);const task=await claim(c.env,row.runner_id);await recordContact(c.env.DB);await c.env.DB.prepare('UPDATE runners SET last_contact_at=? WHERE runner_id=? AND revoked_at IS NULL').bind(Date.now(),row.runner_id).run();return c.json({task})})
-api.post('/api/runner/results',async c=>{const text=c.get('requestText'),timestamp=c.req.header('x-sent-at')??'';if(new TextEncoder().encode(text).byteLength>40000||!Number.isFinite(Number(timestamp))||Math.abs(Date.now()-Number(timestamp))>60000||!await same(c.req.header('x-runner-signature')??'',await sign((await runnerKey(c.env,c.get('runner')))!,`${timestamp}.${text}`)))return c.json({error:'Invalid signed result'},403);return c.json(await complete(c.env,JSON.parse(text),c.get('runner').runner_id))})
+api.post('/api/runner/claim',async c=>{const row=c.get('runner').runner_id?c.get('runner'):await ensureFirstRunner(c.env);const task=await storageOperation('runner.claim',()=>claim(c.env,row.runner_id));await storageOperation('runner.claim.contact',async()=>{await recordContact(c.env.DB);await c.env.DB.prepare('UPDATE runners SET last_contact_at=? WHERE runner_id=? AND revoked_at IS NULL').bind(Date.now(),row.runner_id).run()});
+ // `now` is the Worker's clock at the claim: the runner aligns the times it reports to it (see docs/runner.md).
+ return c.json({task,now:Date.now()})})
+api.post('/api/runner/results',async c=>{const text=c.get('requestText');if(!await signedRunnerBody(c.env,c.get('runner'),text,c.req.header('x-sent-at')??'',c.req.header('x-runner-signature')??'',40000))return c.json({error:'Invalid signed result'},403);return c.json(await storageOperation('runner.results',()=>complete(c.env,JSON.parse(text),c.get('runner').runner_id)))})
+// Discovery: the owner's console asks, the owner's runner claims and answers; the Worker never fetches the target.
+api.post('/api/discoveries',async c=>c.json(await createDiscovery(c.env,c.get('requestText')),201))
+api.get('/api/discoveries/:id',async c=>c.json(await readDiscovery(c.env,c.req.param('id'))))
+api.post('/api/runner/discoveries/claim',async c=>c.json(await claimDiscovery(c.env,c.get('requestText'),c.get('runner'))))
+api.post('/api/runner/discoveries/:id/result',async c=>{const text=c.get('requestText');if(!await signedRunnerBody(c.env,c.get('runner'),text,c.req.header('x-sent-at')??'',c.req.header('x-runner-signature')??'',DISCOVERY_RESULT_BYTES))return c.json({error:'Invalid signed result'},403);return c.json(await completeDiscovery(c.env,c.req.param('id'),discoveryAnswer(text),c.get('runner')))})
 api.get('/api/archive',async c=>c.json(await archive(c.env)))
 api.post('/api/restore',async c=>{const input=JSON.parse(c.get('requestText'));return c.json(await restore(c.env,input.archive??input,undefined,{laterJournal:input.laterJournal,actor:{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id}}))})
+// Definition files: preview writes nothing; apply takes the previewed digest; export is read-only; undo pauses or restores.
+const operator=async(c:any)=>({kind:'operator' as const,ref:(await operatorSession(c.env,c.req.raw))!.operator.id})
+api.post('/api/definitions/preview',async c=>c.json(await previewDefinitions(c.env,c.get('requestText'),c.req.query('source'))))
+api.post('/api/definitions/apply',async c=>c.json(await applyDefinitions(c.env,c.get('requestText'),c.req.query('source'),c.req.query('digest'),await operator(c)),201))
+api.get('/api/definitions/export',async c=>{c.header('content-disposition','attachment; filename="uptime.monitors.json"');return c.json(await exportDefinitions(c.env))})
+api.get('/api/definitions/batches',async c=>c.json(await listBatches(c.env)))
+api.post('/api/definitions/batches/:id/undo',async c=>c.json(await undoBatch(c.env,c.req.param('id'),await operator(c))))
 api.get('/api/erasure-journal',async c=>c.json(await exportJournal(c.env)))
 api.post('/api/monitors/:id/erase',async c=>c.json(await erase(c.env,'monitor',c.req.param('id'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id},JSON.parse(c.get('requestText')).name)))
 api.post('/api/operators/:id/erase',async c=>c.json(await erase(c.env,'operator',c.req.param('id'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
@@ -59,15 +87,38 @@ api.patch('/api/notifications/destinations/:id',async c=>c.json(await updateDest
 api.delete('/api/notifications/destinations/:id',async c=>c.json(await erase(c.env,'destination',c.req.param('id'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 api.post('/api/notifications/destinations/:id/rotate',async c=>c.json(await rotateDestination(c.env,c.req.param('id'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 api.post('/api/notifications/destinations/:id/test',async c=>c.json(await testDestination(c.env,c.req.param('id')),202))
+api.post('/api/notifications/destinations/:id/drill',async c=>c.json(await startDrill(c.env,c.req.param('id'),(await operator(c)).ref),202))
 api.post('/api/runner/notifications',async c=>c.json(await notificationRpc(c.env,JSON.parse(c.get('requestText')))))
-api.onError((error,c)=>{const limited=(error as Error&{status?:number}).status===429;if(limited)c.header('retry-after','60');return c.json({error:error.message.startsWith('D1')?'Storage operation failed':error.message},limited?429:(error as Error&{status?:number}).status===409?409:400)})
-// The marketing landing and public docs carry no installation data and need no session.
+// A failed mutation guard or a racing writer's constraint means the installation changed between reading and writing: a conflict.
+// Any other D1 failure is a retryable storage fault. The log line names the operation, class, status and a sanitized cause, never values.
+api.onError((error,c)=>{
+ const status=(error as Error&{status?:number}).status,limited=status===429,fault=classifyStorage(error)
+ if(limited)c.header('retry-after','60')
+ if(fault){
+  console.error(storageLogLine(c.req.method,storageRoute(c.req.path),fault))
+  const operation={class:fault.class,cause:fault.cause,...(fault.operation?{operation:fault.operation}:{})}
+  if(fault.code==='conflict')return c.json({error:'The installation changed during this request. Nothing was saved; try again.',code:'conflict',...operation},409)
+  c.header('retry-after','5');return c.json({error:'Storage operation failed',code:'storage_unavailable',retryable:true,...operation},503)
+ }
+ return c.json({error:error.message},status===409?409:limited?429:status===404?404:400)
+})
+const storageRoute=(path:string)=>path.split('/').map(part=>part.length>24||/[0-9a-f]{8}-[0-9a-f]{4}/i.test(part)?':id':part).join('/')
+// The installation is claimed once the owner confirms first-run setup at /setup (first-run.server.ts writes this row).
+const claimed=claimedWhen('SELECT 1 FROM uptime_first_run WHERE id = 1')
+// The public docs carry no installation data and need no session.
 
 // One monitor's page in the console (/app/monitors/<id>); it is gated like /app.
 const isMonitorPage=(path:string)=>/^\/app\/monitors\/[^/]+\/?$/.test(path)
 // A monitor page whose id is not valid percent-encoding names no monitor; after the session check it gets the 404 page.
 const undecodableMonitorId=(path:string)=>{try{decodeURIComponent(path.slice('/app/monitors/'.length).replace(/\/$/,''));return false}catch{return true}}
 // The private console documents: the monitor list, the monitor editor and each monitor's page.
+// Documents React hydrates carry no-transform, so no proxy (Cloudflare's email address obfuscation) rewrites them first.
+const noTransform=(response:Response)=>{
+ const headers=new Headers(response.headers),policy=headers.get('cache-control');
+ if(!headers.get('content-type')?.startsWith('text/html')||policy?.includes('no-transform'))return response;
+ headers.set('cache-control',policy?policy+', no-transform':'no-transform');
+ return new Response(response.body,{status:response.status,statusText:response.statusText,headers})
+}
 const isConsoleDocument=(path:string)=>['/app','/app/','/app/monitor','/app/monitor/'].includes(path)||isMonitorPage(path)
 export default {async fetch(request,env,execution){
  const invalid=configurationResponse(env as Bindings);if(invalid)return invalid;
@@ -84,11 +135,16 @@ export default {async fetch(request,env,execution){
   return (await createDevelopmentOutboxHandler({local:true,origin:bindings.UPTIME_ORIGIN!,outbox:developmentOutbox(bindings.DB)})(request))??devNotFound();
  }
  if(url.origin!==bindings.UPTIME_ORIGIN||(request.headers.has('host')&&request.headers.get('host')?.toLowerCase()!==url.host.toLowerCase()))return new Response('Invalid host',{status:403});
+ // The Lobby at / and GET /setup/state: Base's shared responses, before the public-path guard and the document renderer.
+ const lobbyBindings={DB:bindings.DB,AUTH_ORIGIN:bindings.UPTIME_ORIGIN!};
+ const state=await setupStateResponse(request,lobbyBindings,claimed);if(state)return state;
+ const lobby=await lobbyResponse(request,lobbyBindings,identity,claimed);if(lobby)return lobby;
  if(!publicPath(path,bindings.UPTIME_LOCAL_REVIEW==='true')&&!isConsoleDocument(path)&&!path.startsWith('/_serverFn/')&&path!=='/api'&&!path.startsWith('/api/'))return notFoundDocument();
  if(path==='/auth/owner-claim')return (await ownerClaim(bindings,request))!;
  if(path==='/api/editor/config')return editorConfigResponse(bindings,request);
  if(path.startsWith('/auth/'))return (await authRoute(bindings,request))!;
  if(path==='/setup')return firstRun(bindings,request);
+ if(path==='/alert-drill')return alertDrillDocument(bindings,request);
  if(path==='/login'||path==='/claim')return authDocument(path==='/claim',path==='/login'&&url.searchParams.get('notice')==='sent',developmentMail(bindings));
  if(isPublicAsset(path))return bindings.ASSETS?bindings.ASSETS.fetch(request):new Response('Not found',{status:404});
  if(path==='/monitor'||path==='/monitor/')return new Response(null,{status:308,headers:{location:`/app/monitor${url.search}`,'cache-control':'no-store'}});
@@ -99,5 +155,5 @@ export default {async fetch(request,env,execution){
   if(isMonitorPage(path)&&undecodableMonitorId(path))return notFoundDocument();
  }
  const response=await dispatch(request,()=>api.fetch(request,bindings,execution),()=>start.fetch(request));
- return isConsoleDocument(path)?editorDocument(response,bindings):response
+ return noTransform(isConsoleDocument(path)?editorDocument(response,bindings):response)
 },async scheduled(_controller,env){validateConfiguration(env as Bindings);const bindings=env as Bindings;await maintenance(bindings);await dispatchNotificationMail(bindings);await monitoringWatch(bindings,()=>api.fetch(new Request(bindings.UPTIME_ORIGIN+'/health'),bindings) as Promise<Response>,async()=>{const data=await overview(bindings);return data.monitors.filter(m=>m.definition.enabled).every(m=>m.state.targetState==='Healthy')})}} satisfies ExportedHandler

@@ -3,10 +3,11 @@ import assert from 'node:assert/strict';
 import {randomBytes} from 'node:crypto';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
+import {tmpdir} from 'node:os';
 import {chromium} from 'playwright';
 import {availablePorts,migratedWorker,runtimeDirectory,cleanupDirectory} from './notify-acceptance-runtime.mjs';
 import {auditNotificationView} from './notify-browser-audit.mjs';
-const evidence=resolve(process.env.UPTIME_UI_EVIDENCE??'../evidence/review-round-two/ui/current'),directory=await runtimeDirectory(),[port]=await availablePorts(1),origin=`http://127.0.0.1:${port}`,runnerKey=randomBytes(32).toString('hex');
+const evidence=resolve(process.env.UPTIME_UI_EVIDENCE??join(tmpdir(),'uptime-notify-ux-evidence')),directory=await runtimeDirectory(),[port]=await availablePorts(1),origin=`http://127.0.0.1:${port}`,runnerKey=randomBytes(32).toString('hex');
 await mkdir(evidence,{recursive:true});let worker,browser,DB;const checks=[],pageErrors=[];
 async function check(label,fn){try{await fn();checks.push({label,pass:true})}catch(error){checks.push({label,pass:false,error:error instanceof assert.AssertionError?'Assertion failed':error.name});console.error('FAIL '+label)}}
 try{
@@ -59,6 +60,8 @@ try{
  if(await page.getByRole('dialog').count())await page.keyboard.press('Escape');
  await check('delete-accept-real-mutation',async()=>{await card(slack.name).getByRole('button',{name:'Delete',exact:true}).click();await page.getByRole('dialog').getByRole('button',{name:'Delete destination',exact:true}).click();await card(slack.name).waitFor({state:'detached'});assert.ok(!(await list()).destinations.some(d=>d.id===slack.id))});
  await page.goto(origin+'/app/monitor');await page.locator('html.editor-ready').waitFor();
+ for(const width of [1440,390,320])await check(`new-monitor-url-step-${width}`,()=>auditNotificationView({page,label:'new-monitor-url-step',width,evidence,pageErrors,navigation:false}));
+ await page.setViewportSize({width:1440,height:900});await page.getByRole('button',{name:'Fill in the form yourself',exact:true}).click();
  for(const width of [1440,390,320])await check(`new-monitor-${width}`,()=>auditNotificationView({page,label:'new-monitor',width,evidence,pageErrors,navigation:false}));
  await check('editor-single-controls-and-friendly-labels',async()=>{assert.equal(await page.locator('input[name=url]').count(),1);assert.equal(await page.getByRole('link',{name:/Notifications/}).count(),1);assert.equal(await page.getByRole('link',{name:/Sign out/}).count(),1);assert.equal(await page.getByLabel('Check every (minutes)',{exact:true}).count(),1);assert.equal(await page.getByLabel('Alert after this many failed checks',{exact:true}).count(),1);assert.doesNotMatch(await page.locator('body').innerText(),/LOCAL SYNTHETIC ENVIRONMENT|native API|Quorum/)});
 

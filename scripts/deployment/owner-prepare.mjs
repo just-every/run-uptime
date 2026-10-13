@@ -1,6 +1,6 @@
 import { cp, mkdir, mkdtemp, rename, rm } from 'node:fs/promises';
 import { join } from 'node:path';
-import { privateDirectory, writePrivateFile } from '../base-onboarding/private-files.mjs';
+import { privateDirectory, writePrivateFile } from '@runeditrun/rer/private-files';
 
 export const ownerProduct = '.rer/deploy/product';
 export async function prepareOwnerBuild(root) {

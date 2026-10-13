@@ -3,6 +3,14 @@ import { validToken } from './crypto.mjs';
 export function isLoopbackHost(hostname) {
   return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]';
 }
+// Browsers keep cookies per host, not per port, so checkouts side by side on
+// one loopback host would overwrite each other's cookies. A local cookie name
+// therefore carries its origin's port; hosted names never change. Seeds on
+// separate `<name>.localhost` hosts stay apart by host as well.
+export function localCookieName(name, origin) {
+  const url = new URL(origin);
+  return `${name}_${url.port || (url.protocol === 'https:' ? '443' : '80')}`;
+}
 export function requireLoopback(request) {
   const url = new URL(request.url);
   const host = request.headers.get('host');

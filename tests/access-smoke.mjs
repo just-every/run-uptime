@@ -13,7 +13,7 @@ let child,worker,syntheticPort;
 async function stop(){if(!child)return;groups.add(child.pid);for(const group of await descendantGroups(child.pid))groups.add(group);await scratch.stop(child);child=null}
 const consoleMarkers=/class="app"|monitor-list|id="access-form"|id="owner-token"|\/style\.css|\/app\.js/;
 async function probe(call,settings,fetcher=fetch,requireRunner=false){
- // The landing and docs are public documents with no console assets or data.
+ // The Lobby and docs are public documents with no console assets or data.
  for(const path of ['/','/docs','/docs/overview','/docs/install']){
   const response=await call(path);assert.equal(response.status,200,'public '+path);
   assert.match(response.headers.get('content-type'),/text\/html/);const body=await response.text();assert.doesNotMatch(body,consoleMarkers,path+' carries no console markers');assert.equal(body.match(/<title>/g)?.length,1,path+' has exactly one title');
@@ -27,7 +27,11 @@ async function probe(call,settings,fetcher=fetch,requireRunner=false){
  const legacySlash=await call('/monitor/?monitor=x');assert.equal(legacySlash.status,308);assert.equal(legacySlash.headers.get('location'),'/app/monitor?monitor=x');
  assert.equal((await call('/login')).status,200);
  assert.equal((await call('/does-not-exist')).status,404);
+ // Before the owner confirms first-run setup the Lobby's one action is /setup; once confirmed it is sign-in.
+ const lobby=async expected=>{const state=await call('/setup/state');assert.equal(state.status,200);assert.deepEqual(await state.json(),{state:expected});const action=(await(await call('/')).text()).match(/<a class="btn" href="([^"]+)"/)?.[1];assert.equal(action,expected==='claimed'?'/login':'/setup','Lobby action while '+expected)};
+ await lobby('unclaimed');
  const cookie=await signInOwner(settings.UPTIME_ORIGIN,{bindings:settings,fetcher,finishFirstRun:true});
+ await lobby('claimed');
  if(requireRunner)await waitFor(async()=>{const response=await call('/api/overview',undefined,{cookie});return response.ok&&(await response.json()).runner.contact.state==='Fresh contact'},'real private runner contact',60000);
  const response=await call('/app',undefined,{cookie});assert.equal(response.status,200);const html=await response.text();assert.match(html,/class="app"/);assert.match(html,/href="\/style\.css"/);assert.match(html,/src="\/app\.js"/);assert.doesNotMatch(html,/id="access-form"|id="owner-token"/);
  assert.equal((await call('/app/monitor',undefined,{cookie})).status,200);
@@ -39,7 +43,8 @@ try{
  await scratch.run('pnpm',['run','setup','--','--owner-email',testAuthBindings.OWNER_EMAIL,'--port',String(port),'--non-interactive']);
  // The installation's own dev key opens its outbox, as it does for the person at this checkout.
  const settings={...JSON.parse(await readFile(join(scratch.root,'data/local-secrets.json'),'utf8')),RER_DEV_KEY:await readCheckoutKey(scratch.root)};
- await machineAvailable();child=scratch.start('pnpm',['run','dev']);
+ // rer dev detaches without a terminal; --foreground keeps it this test's child, as a terminal would.
+ await machineAvailable();child=scratch.start('pnpm',['run','dev','--','--foreground']);
  await waitFor(async()=>{if(child.exitCode!==null)throw Error('Development launcher stopped');return child.output.includes('RER_READY '+origin)&&(await fetch(origin+'/health')).ok},'real pnpm run dev',60000);
  syntheticPort=JSON.parse(await readFile(join(scratch.root,'.wrangler/state/synthetic-grant.json'),'utf8')).port;
  await probe(authRequest(origin),settings,fetch,true);
@@ -51,7 +56,7 @@ try{
  for(const file of(await readdir('migrations')).filter(f=>f.endsWith('.sql')).sort())for(const sql of splitSql(await readFile(join('migrations',file),'utf8')))await DB.prepare(sql).run();
  const fetcher=(url,init)=>worker.dispatchFetch('http://127.0.0.1:15504/',{method:'POST',redirect:'manual',headers:{'content-type':'application/json'},body:JSON.stringify({url,method:init.method,headers:{...init.headers,'cf-connecting-ip':'192.0.2.1'},body:init.body})});
  await probe(authRequest(hostedOrigin,fetcher),bindings,fetcher);
- console.log('ACCESS-SMOKE passed real pnpm run dev and emitted hosted Worker: public landing and docs 200 without console markers, unknown docs and routes 404, signed-out /app redirect, /monitor 308, signed-in /app console.');
+ console.log('ACCESS-SMOKE passed real pnpm run dev and emitted hosted Worker: the Lobby turns from Finish setup to Sign in when first run is confirmed, public docs 200 without console markers, unknown docs and routes 404, signed-out /app redirect, /monitor 308, signed-in /app console.');
 }finally{
  const failures=[];
  for(const action of [stop,()=>worker?.dispose(),()=>scratch.close(),()=>cleanupDirectory(directory),()=>assertGroupsGone(groups),...[port,syntheticPort,15504].filter(Boolean).map(port=>()=>assertPortFree(port))])try{await action()}catch(error){failures.push(error)}

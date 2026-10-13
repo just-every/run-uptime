@@ -154,6 +154,20 @@ RPC binding implementing `send(WireRequest): Promise<WireResponse>`; this module
 does not provide or deploy that service. There is deliberately no fetch adapter
 or permissive transport fallback. Validate required bindings/secrets at startup.
 
+**Gap: no Worker transport in Base yet.** A seed that posts only to fixed
+provider hosts (Slack and Teams incoming webhooks, for one) has no Base
+transport to use in a Worker today; Lamp records a provider-host allow-list over
+Worker `fetch` as its own divergence. Design: the enforcing egress service
+(in progress in Base's egress workstream) is a
+separate Worker exposing this module's `TrustedTransport.send` over a service
+binding. It resolves each destination once, refuses any non-public answer,
+pins the checked address into a TLS connection verified for the original
+hostname, follows no redirects and bounds size and time; an optional allow-list
+of exact or `*.suffix` hosts in the service's own configuration narrows it to
+provider hosts. When it lands, a provider-host seed binds it instead of its own
+allow-list. A host allow-list over plain `fetch` is not a `TrustedTransport`:
+it checks the literal host, not the address the connection reaches.
+
 ```ts
 import { D1SqlDatabase, IntegrationsRepository, DeliveryService, createWebhookProtocol } from './modules/integrations/index.ts';
 import type { D1Binding, TrustedTransport } from './modules/integrations/index.ts';

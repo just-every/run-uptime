@@ -3,11 +3,13 @@
 // deployed main. `rer build` refuses any build output containing the marker.
 import { configure } from '../config.mjs';
 import { AuthStore } from '../accounts/store.mjs';
+import { createOperatorAuth } from '../service.mjs';
+import { AuthError } from '../errors.mjs';
 import { hashToken, opaqueToken } from '../crypto.mjs';
 import { readCookie, sessionCookie, isLoopbackHost } from '../http.mjs';
 import { safeReturnTo } from '../policy.mjs';
-import { isActiveOperator } from '../accounts/roles.mjs';
-import { devGate, devNotFound, DEV_GATE_COOKIE } from '../dev-gate.mjs';
+import { isActiveOperator, defaultRolePolicy } from '../accounts/roles.mjs';
+import { devGate, devNotFound } from '../dev-gate.mjs';
 import { registerDevAdmission } from '../dev-admission.mjs';
 import { definePersonas } from './personas.mjs';
 import { decorate } from './badge.mjs';
@@ -47,7 +49,12 @@ export function withDevIdentity(worker, { bindings = env => env, config: authCon
       if (path === '/auth/dev/enter' || path === '/__dev/personas') {
         if (!gate || env.RER_DEV_IDENTITY === 'off' || !await gate.admits(request)) return devNotFound();
         const context = identity(env, authConfig, declared);
-        return path === '/__dev/personas' ? Response.json(context.list(), { headers }) : enter(request, gate, context);
+        try {
+          return path === '/__dev/personas' ? Response.json(context.list(), { headers }) : await enter(request, gate, context);
+        } catch (error) {
+          if (error instanceof AuthError) return Response.json({ error: error.code }, { status: error.status, headers });
+          throw error;
+        }
       }
       const response = await worker.fetch(request, original, execution);
       if (!gate || request.method !== 'GET' || path.startsWith('/__dev/')) return response;
@@ -70,17 +77,25 @@ function identity(env, authConfig, declared) {
   }
   return {
     config, store, hash, current, everyone,
+    async ownerProof(request) {
+      // Reuse the same persisted app-local proof guard as the administration
+      // routes. This read-only guard never needs a mail sender or an IP budget.
+      const auth = createOperatorAuth({ db: env.DB, config: authConfig(env), clientIp: () => null });
+      const actor = await auth.requireStepUp(request, 'owner:transfer');
+      if (!defaultRolePolicy({ actor: actor.operator, action: 'operators:invite', role: 'owner' })) throw new AuthError('forbidden', 403);
+      return { ...actor, hash: await hash(readCookie(request, config)) };
+    },
     list: () => [...everyone().map(({ as, email, role }) => ({ as, email, ...(role ? { role } : {}) })), { as: 'signed-out' }],
     async badge(request) { return { session: await current(request), choices: everyone() }; },
   };
 }
 
-async function enter(request, gate, { config, store, hash, current, everyone }) {
+async function enter(request, gate, { config, store, hash, current, everyone, ownerProof }) {
   if (request.method !== 'GET') return text(405, 'Method not allowed');
   const url = new URL(request.url), as = url.searchParams.get('as') ?? 'owner';
   const reply = new Headers(headers);
   // A harness presenting the key header also receives the browser cookie.
-  if (!(request.headers.get('cookie') ?? '').includes(`${DEV_GATE_COOKIE}=`)) reply.append('set-cookie', await gate.setCookie());
+  if (!(request.headers.get('cookie') ?? '').includes(`${gate.cookieName}=`)) reply.append('set-cookie', await gate.setCookie());
   const existing = await current(request);
   if (as === 'signed-out') {
     const token = readCookie(request, config);
@@ -94,12 +109,23 @@ async function enter(request, gate, { config, store, hash, current, everyone }) 
   let operator = await store.byEmail(persona.email);
   // Personas are real operators, created only here, in local dev.
   if (!operator && persona.role) {
-    await store.run(`INSERT INTO oa_operators(id,email,display_name,role,status,created_at) VALUES(?,?,?,?,'active',?) ON CONFLICT(email) DO NOTHING`,
-      [crypto.randomUUID(), persona.email, persona.displayName, persona.role, Date.now()]);
+    if (persona.role === 'owner') {
+      const actor = await ownerProof(request), now = Date.now();
+      const fence = store.actorFence(actor, now);
+      const result = await store.run(`INSERT INTO oa_operators(id,email,display_name,role,status,created_at)
+        SELECT ?,?,?,'owner','active',? WHERE ${fence.sql} ON CONFLICT(email) DO NOTHING`,
+        [crypto.randomUUID(), persona.email, persona.displayName, now, ...fence.args]);
+      if (result.meta.changes !== 1) throw new AuthError('authority_changed', 409);
+    } else {
+      await store.run(`INSERT INTO oa_operators(id,email,display_name,role,status,created_at) VALUES(?,?,?,?,'active',?) ON CONFLICT(email) DO NOTHING`,
+        [crypto.randomUUID(), persona.email, persona.displayName, persona.role, Date.now()]);
+    }
     operator = await store.byEmail(persona.email);
   }
   if (!operator) return text(409, 'The owner that rer setup claimed is not in this database. Run rer setup.');
   if (!isActiveOperator(operator, config.allowList)) return text(403, `${as} is not an active operator in this app.`);
+  const domain = operator.email.slice(operator.email.lastIndexOf('@') + 1);
+  if (operator.role !== 'owner' && await store.domainRule(domain)) return text(403, 'Sign-in refused');
   if (existing?.kind !== 'dev' || existing.operator.id !== operator.id) {
     const token = opaqueToken(), session = { id: crypto.randomUUID(), hash: await hash(token), expiresAt: Date.now() + config.sessionSeconds * 1000 };
     const issued = await store.issue({ operatorId: operator.id, expectedVersion: operator.version, session, now: Date.now(), kind: 'dev' });

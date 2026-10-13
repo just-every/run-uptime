@@ -8,6 +8,7 @@ import {confirmErasure,showErasureReceipt} from './notification-dialogs.js';
 import {escape,icon,ago,duration,breakableUrl,checkTime,humaneDuration,shownState} from './console-format.js';
 import {COVERAGE_RULE,coverage,coverageLegend} from './monitor-coverage.js';
 import {buildTimeline,checkResultSummary} from './monitor-timeline.js';
+import {isFlow,flowSummary,flowPanel,flowRevisions,traceMarkup} from './flow-panel.js';
 
 // The id in /app/monitors/<id>, or null on any other path. The server answers an id that does not decode with its 404
 // page, so this page only sees ids that decode.
@@ -16,7 +17,7 @@ export function monitorIdFromPath(pathname){
  return match?decodeURIComponent(match[1]):null;
 }
 
-const kinds={http:'HTTP check',keyword:'Keyword check',heartbeat:'Heartbeat'};
+const kinds={http:'HTTP check',keyword:'Keyword check',heartbeat:'Heartbeat',flow:'Browser flow'};
 const backLink='<a class="back-link ui-link" id="monitor-back" href="/app"><span class="ui-icon" data-icon="chevron" aria-hidden="true"></span><span class="ui-visually-hidden">Back to </span>Monitors</a>';
 const hiddenDot='<span class="ui-visually-hidden"> · </span>',slash='<span class="ui-visually-hidden"> / </span>';
 const openHistory=new Set();
@@ -30,6 +31,7 @@ function statusExplanation(m,readUnavailable){if(readUnavailable)return 'The lat
 // check only reads its receipt (runners/src/probes.mjs probeHeartbeat), so its stored HTTP assertions are not listed;
 // Full check details still shows them.
 function assertionSummary(definition){
+ if(isFlow(definition))return flowSummary(definition);
  const assertions=definition.assertions,checks=[];
  if(definition.type==='heartbeat'){if(Number.isFinite(definition.heartbeat?.maxAgeMs))checks.push(['Heartbeat receipt','Received within '+humaneDuration(definition.heartbeat.maxAgeMs),false])}
  else{
@@ -49,7 +51,7 @@ function titleBlock(m,readUnavailable){
 }
 function actionButtons(m){
  const maintenance=m.definition.maintenanceUntil>Date.now();
- return `<button id="run-monitor" class="primary" ${m.definition.enabled?'':'disabled'}>${icon('play')}Run now</button><button id="edit">${icon('pencil')}Edit check</button><button id="pause"${m.definition.enabled?'':' class="resume"'}>${icon(m.definition.enabled?'pause':'play')}${m.definition.enabled?'Pause':'Authorize & resume'}</button><button id="maintenance">${icon('moon')}${maintenance?'End maintenance':'Maintenance 15m'}</button>`;
+ return `<button id="run-monitor" class="primary" ${m.definition.enabled?'':'disabled'}>${icon('play')}Run now</button>${isFlow(m.definition)?'<a class="ui-button" id="edit" href="/docs/definitions">'+icon('pencil')+'Edit in a definitions file</a>':`<button id="edit">${icon('pencil')}Edit check</button>`}<button id="pause"${m.definition.enabled?'':' class="resume"'}>${icon(m.definition.enabled?'pause':'play')}${m.definition.enabled?'Pause':'Authorize & resume'}</button><button id="maintenance">${icon('moon')}${maintenance?'End maintenance':'Maintenance 15m'}</button>`;
 }
 function heartbeatPanel(m){
  if(m.definition.type!=='heartbeat')return '';
@@ -59,14 +61,14 @@ function coveragePanel(availability){
  const window=(label,metrics)=>`<div class="coverage-window"><h3>${label}</h3>${coverage(metrics,label,'large')}</div>`;
  return `<section class="ui-card panel coverage-panel" aria-labelledby="coverage-heading"><div class="panel-head"><h2 id="coverage-heading">Evidence coverage</h2><p class="metric-basis">${escape(COVERAGE_RULE)}</p></div><div class="coverage-windows">${window('Last 24 hours',availability?.last24h)}${window('Last 7 days',availability?.last7d)}</div><div class="coverage-foot">${coverageLegend}<p class="coverage-note">Passing is the share of observed time when every configured check passed; Unknown is the share of each full window without a valid result. Both are rounded to two decimals, passing down and failing and Unknown up, and never to 0% or 100% unless exact. Manual runs and retries do not add observed time. Checks run from their assigned runner networks.</p></div></section>`;
 }
-function pageBody(m,readUnavailable,definitionOpen){
+function pageBody(m,readUnavailable,definitionOpen,data){
  const availability=m.availability,lastLabel=readUnavailable?'Last recorded check':'Last check';
  return `<div class="monitor-page" id="monitor-page"><p class="status-explanation ui-callout" data-state="${escape(shownState(m,readUnavailable).toLowerCase())}">${escape(statusExplanation(m,readUnavailable))}</p>`
   +'<div class="monitor-primary">'+coveragePanel(availability)
   +`<section class="ui-card panel evidence" aria-labelledby="recent-checks-heading"><div class="panel-head"><h2 id="recent-checks-heading">Recent checks</h2><div class="history-strip" id="history-strip" aria-hidden="true"></div></div><div id="raw-history">Loading recent checks…</div></section></div>`
   +`<div class="monitor-secondary"><section class="ui-card panel detail" aria-labelledby="latest-check-heading"><h2 id="latest-check-heading">${lastLabel}</h2><dl class="detail-metrics"><div><dt class="ui-visually-hidden">${lastLabel}</dt><dd class="detail-time">${checkTime(m,{withLabel:false,readUnavailable})}</dd></div><div><dt>Response duration</dt><dd>${escape(duration(availability?.responseDurationMs))}</dd></div></dl></section>`
   +`<section class="ui-card panel assertions" aria-labelledby="expects-heading"><h2 id="expects-heading">What the check expects</h2>${assertionSummary(m.definition)}<details id="assertion-definition" ${definitionOpen?'open':''}><summary id="assertion-definition-summary">Full check details</summary><pre>${escape(JSON.stringify(m.definition.assertions,null,2))}</pre></details></section>`
-  +heartbeatPanel(m)+'</div></div>';
+  +(isFlow(m.definition)?flowPanel(m,data):'')+heartbeatPanel(m)+'</div></div>';
 }
 
 const clock=t=>new Date(t).toLocaleTimeString();
@@ -95,8 +97,8 @@ const probeNames={'local-a':'Check 1','local-b':'Check 2','local-c':'Check 3'};
 const attemptResults={pass:['passed','Passed'],target_failure:['failed','Target did not pass'],runner_error:['unknown','Check could not run']};
 function attemptMarkup(o){
  const [tone,result]=attemptResults[o.outcome]??['unknown','Unknown result'];
- const status=o.status?`HTTP <span class="ui-mono">${escape(o.status)}</span>`:'No HTTP status';
- return `<div class="attempt-group"><p class="attempt-line"><span class="attempt-name">${escape(probeNames[o.probe]??'Check')} attempt ${o.attempt+1}</span><span class="ui-visually-hidden">: </span><span class="ui-result ${tone}">${escape(result)}</span>${slash}<span>${status}</span>${slash}<span>${escape(duration(o.durationMs))}</span>${slash}<span class="attempt-age">${ago(o.completedAt)}</span></p><ul class="attempt-checks">${o.checks.map(c=>`<li><span class="attempt-mark ui-result ui-result--small ${c.pass?'passed':'failed'}">${c.pass?'PASS':'FAIL'}</span> ${escape(c.assertion)}: ${escape(c.reason)}</li>`).join('')}</ul></div>`;
+ const status=o.flow?`${escape(o.flow.pages)} page${o.flow.pages===1?'':'s'}`:o.status?`HTTP <span class="ui-mono">${escape(o.status)}</span>`:'No HTTP status';
+ return `<div class="attempt-group"><p class="attempt-line"><span class="attempt-name">${escape(probeNames[o.probe]??'Check')} attempt ${o.attempt+1}</span><span class="ui-visually-hidden">: </span><span class="ui-result ${tone}">${escape(result)}</span>${slash}<span>${status}</span>${slash}<span>${escape(duration(o.durationMs))}</span>${slash}<span class="attempt-age">${ago(o.completedAt)}</span></p><ul class="attempt-checks">${o.checks.map(c=>`<li><span class="attempt-mark ui-result ui-result--small ${c.pass?'passed':'failed'}">${c.pass?'PASS':'FAIL'}</span> ${escape(c.assertion)}: ${escape(c.reason)}</li>`).join('')}</ul>${traceMarkup(o)}</div>`;
 }
 // What a slot row says it is: its result word, and in the meta how it ended, when it was due if it ran late, its
 // attempts, and the revision it came from when the monitor was edited, paused or resumed since (its result is real but
@@ -130,10 +132,12 @@ function runRow(row){
  const what=missed?(single?'Scheduled check missed (no result available)':`${row.count} scheduled checks missed (no result available)`):(single?'Scheduled check overdue (not run yet)':`${row.count} scheduled checks overdue (not run yet)`);
  return `<div class="slot-row slot-${row.kind}" ${rowData(row,` data-first="${row.first}" data-last="${row.last}" data-count="${row.count}" data-interval="${row.interval}"`)}>${timeCell(single?escape(clock(row.first)):range(row.first,row.last),row.last)}${hiddenDot}${resultCell(missed?'unknown':'overdue',missed?'No result':'Overdue')}${hiddenDot}<span class="slot-meta">${escape(what)}</span></div>`;
 }
-// A paused or maintenance span, neutral: when it began (and ended), and what it means for the checks.
+// A paused or maintenance span, neutral: when it began (and ended), and what it means for the checks. A span's clock
+// stays whole, so "since" or "until" wraps above it in a narrow time column.
 function spanRow(row,monitor){
  const paused=row.kind==='paused',until=monitor.definition.maintenanceUntil;
- const when=row.to===null?(row.fromKnown?`since ${escape(clock(row.from))}`:'ongoing'):row.fromKnown?range(row.from,row.to):`until ${escape(clock(row.to))}`;
+ const whole=t=>`<span class="keep-line">${escape(clock(t))}</span>`;
+ const when=row.to===null?(row.fromKnown?`since ${whole(row.from)}`:'ongoing'):row.fromKnown?range(row.from,row.to):`until ${whole(row.to)}`;
  const what=paused?['No scheduled checks while paused']:row.to===null?[...(Number.isSafeInteger(until)&&until>row.from?[`Until ${clock(until)}`]:[]),'checks continue, alerts are suppressed']:['Checks continued, alerts were suppressed'];
  return `<div class="slot-row slot-span" ${rowData(row,` data-from="${row.from}" data-to="${row.to??''}"`)}>${timeCell(when,row.to??row.from)}${hiddenDot}${resultCell(row.kind,paused?'Paused':'Maintenance')}${hiddenDot}<span class="slot-meta">${metaLine(what)}</span></div>`;
 }
@@ -169,9 +173,9 @@ export function renderMonitorPage({header,actions,area,data,id,api,action,readUn
  header.innerHTML=titleBlock(m,readUnavailable);
  actions.innerHTML=actionButtons(m)+'<button id="erase-monitor" class="danger">Erase monitor</button>';
  actions.querySelector('#erase-monitor').onclick=()=>confirmErasure({kind:'monitor',name:m.definition.name,onConfirm:async name=>{const result=await action(()=>api(`/api/monitors/${encodeURIComponent(m.id)}/erase`,'POST',{name}),{pending:'Erasing monitor…',success:'Monitor and dependent records erased.'});if(result.ok){document.title='Monitor erased · Uptime';showErasureReceipt(result.result.receipt)}}});
- area.innerHTML=pageBody(m,readUnavailable,definitionOpen);
+ area.innerHTML=pageBody(m,readUnavailable,definitionOpen,data);
  actions.querySelector('#run-monitor').onclick=()=>action(()=>api(`/api/monitors/${m.id}/run`,'POST',{}),{pending:'Requesting a manual check…',success:'Manual check queued. Manual checks do not change uptime.'});
- actions.querySelector('#edit').onclick=()=>{location.href='/app/monitor?monitor='+encodeURIComponent(m.id)};
+ if(!isFlow(m.definition))actions.querySelector('#edit').onclick=()=>{location.href='/app/monitor?monitor='+encodeURIComponent(m.id)};
  actions.querySelector('#pause').onclick=()=>{if(!m.definition.enabled&&Object.values(m.definition.assignments??{}).some(a=>!(data.runner.runners??[]).some(r=>r.runnerId===a.runnerId&&!r.revokedAt))){location.href='/app/monitor?monitor='+encodeURIComponent(m.id);return}return action(()=>api(`/api/monitors/${m.id}`,'PATCH',{...m.definition,enabled:!m.definition.enabled}),{pending:m.definition.enabled?'Pausing monitor…':'Authorizing and resuming…',success:m.definition.enabled?'Monitor paused. Historical observations remain available.':'Monitor authorized and resumed. New scheduled results are required.'})};
  actions.querySelector('#maintenance').onclick=()=>action(()=>api(`/api/monitors/${m.id}`,'PATCH',{...m.definition,maintenanceUntil:m.definition.maintenanceUntil>Date.now()?0:Date.now()+900000}));
  const history=area.querySelector('#raw-history'),strip=area.querySelector('#history-strip');
@@ -183,6 +187,7 @@ export function renderMonitorPage({header,actions,area,data,id,api,action,readUn
   if(!history.isConnected)return;
   const timeline=buildTimeline({slots,now:Number.isSafeInteger(data.now)?data.now:Date.now(),monitor:m,revisions});
   history.innerHTML=historyMarkup(timeline,m);history.style.minHeight='';strip.innerHTML=stripMarkup(timeline);
+  const flowHistory=area.querySelector('#flow-revisions');if(flowHistory)flowHistory.innerHTML=flowRevisions(revisions);
   if(historyFocus?.startsWith('history-')&&document.activeElement?.tagName==='BODY')document.getElementById(historyFocus)?.focus({preventScroll:true});
  },error=>{if(history.isConnected){history.textContent=error.message;strip.innerHTML=''}});
 }

@@ -1,7 +1,11 @@
 import { EXCHANGE_SCRIPT, exchangeHashes } from '../dev-gate.mjs';
 import { escapeHtml } from '../http.mjs';
 
-const STYLE = '#rer-dev-badge{position:fixed;right:12px;bottom:12px;z-index:2147483647;max-width:calc(100vw - 24px);box-sizing:border-box;padding:8px 12px;border-radius:10px;background:#111827;color:#f9fafb;font:14px/1.5 system-ui,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,.25)}#rer-dev-badge summary{cursor:pointer;overflow-wrap:anywhere}#rer-dev-badge ul{margin:8px 0 0;padding:0;list-style:none}#rer-dev-badge li{margin:4px 0}#rer-dev-badge a{display:inline-block;min-height:24px;color:#bfdbfe;text-decoration:underline}#rer-dev-badge a[aria-current]{color:#fff;font-weight:700}#rer-dev-badge a:focus-visible{outline:2px solid #fff;outline-offset:2px}';
+// A slim bar at the top of the document, in normal flow so the page below it
+// starts after it and nothing is ever covered. A grid body (the frames that
+// centre their card) gives the bar its own auto row and keeps the card centred
+// in the rest.
+const STYLE = 'body:has(>#rer-dev-badge){grid-template-rows:auto 1fr}#rer-dev-badge{grid-column:1/-1;justify-self:stretch;align-self:start;position:relative;z-index:2147483647;box-sizing:border-box;width:100%;margin:0 0 12px;padding:6px 12px;border-radius:8px;background:#111827;color:#f9fafb;font:13px/1.5 system-ui,sans-serif;text-align:left}#rer-dev-badge summary{cursor:pointer;overflow-wrap:anywhere}#rer-dev-badge ul{margin:6px 0 0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:4px 16px}#rer-dev-badge li{margin:0}#rer-dev-badge a{display:inline-block;min-height:24px;color:#bfdbfe;text-decoration:underline}#rer-dev-badge a[aria-current]{color:#fff;font-weight:700}#rer-dev-badge a:focus-visible,#rer-dev-badge summary:focus-visible{outline:2px solid #fff;outline-offset:2px}';
 let styleHash;
 async function sha256(text) {
   const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
@@ -36,20 +40,23 @@ function allow(policy, directive, source) {
 /** Adds the fragment key exchange (root only) and the badge to an HTML document. */
 export async function decorate(response, { exchange, badge }) {
   if ((!exchange && !badge) || !response.headers.get('content-type')?.toLowerCase().startsWith('text/html') || !response.body) return response;
-  const additions = [];
+  let bar = '', scripts = '';
   const headers = new Headers(response.headers);
   let policy = headers.get('content-security-policy');
   if (badge) {
-    additions.push(badgeHtml(badge));
+    bar = badgeHtml(badge);
     if (policy) policy = allow(policy, 'style-src', styleHash ??= await sha256(STYLE));
   }
   if (exchange) {
-    additions.push(`<script>${EXCHANGE_SCRIPT}</script>`);
+    scripts = `<script>${EXCHANGE_SCRIPT}</script>`;
     if (policy) policy = allow(allow(policy, 'script-src', (await exchangeHashes()).script), 'connect-src', "'self'");
   }
   if (policy) headers.set('content-security-policy', policy);
   headers.delete('content-length');
-  const body = await response.text(), end = body.lastIndexOf('</body>');
-  const html = end < 0 ? body + additions.join('') : body.slice(0, end) + additions.join('') + body.slice(end);
+  // The bar opens the body; the key exchange script stays at its end.
+  let html = await response.text();
+  const open = /<body\b[^>]*>/i.exec(html), at = open ? open.index + open[0].length : 0, end = html.lastIndexOf('</body>');
+  if (end >= at) html = html.slice(0, end) + scripts + html.slice(end); else html += scripts;
+  html = html.slice(0, at) + bar + html.slice(at);
   return new Response(html, { status: response.status, statusText: response.statusText, headers });
 }

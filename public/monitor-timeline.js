@@ -4,16 +4,20 @@
 // reversed, as the dot strip. It is pure: no DOM and no clock; the caller passes now (the overview's server time), so a
 // refresh renders the same rows from the same reads. Without revisions the model falls back to what the slots prove.
 //
-// What the scheduler does (src/domain/control.server.ts save and claimAttempt, src/domain/schedule.ts):
-// - Every save (an edit, pause, resume, or maintenance start or end) creates a revision and sets next_due to the save
-//   time, so each revision has its own grid: its save time plus whole intervals. Grids never continue across revisions.
+// What the scheduler does (src/domain/control.server.ts revisionStatements and lastScheduledStart,
+// src/domain/attempts.server.ts claimAttempt and completeAttempts, src/domain/schedule.ts):
+// - Every save (an edit, pause, resume, or maintenance start or end) creates a revision. Its first due time is the later
+//   of the save time and the shorter of the old and new intervals after the previous scheduled check started (see
+//   revisionDue). A due time of an earlier revision is never claimed after the save that ended it.
 // - claimAttempt claims next_due as one scheduled slot even when it is late, stores in missed_count the whole intervals
-//   that had passed by the claim, and moves next_due to due + (missed_count + 1) * interval. The due times
-//   due + k * interval, k = 1..missed_count, were skipped: never claimed, never run. They lie on the slot's own revision
-//   before the next scheduled slot, so a missed run is clipped there and never crosses a revision boundary.
-// - next_due after a revision's last claim names the first due time no claim took. The due times from there to the
-//   save that ended the revision were scheduled and never ran (missed); for the newest revision they are the ongoing
-//   outage once a grace past due (overdue). See tailRuns.
+//   that had passed by the claim, and moves next_due to the later of due + (missed_count + 1) * interval and the claim
+//   plus one interval; a completed result on the current revision raises it to one interval after the runner's reported
+//   start. The due times due + k * interval, k = 1..missed_count, were skipped: never claimed, never run. They lie before
+//   the claim, so before the next scheduled slot, and a missed run never crosses a revision boundary.
+// - next_due after a revision's last claim (see slotNextDue) names the first due time no claim took; while nothing
+//   claims it, the due times after it follow every interval. The due times from there to the save that ended the
+//   revision were scheduled and never ran (missed); for the newest revision they are the ongoing outage once a grace
+//   past due (overdue). See tailRuns.
 // - A paused revision is never claimed and cannot be run manually. Maintenance does not stop claims (checks continue,
 //   alerts are suppressed), but missed and overdue checks inside a maintenance span are not listed.
 // - Assigned attempts have a bounded acceptance window; an expired unfinished slot has no complete result.
@@ -75,6 +79,44 @@ function slotEntry(slot,now,grace){
  return {kind:manual?'manual':state,result:state,reason,slot,dueAt:slot.due_at,effectiveTime,oldestTime:effectiveTime,startedAt,late};
 }
 
+// When a scheduled slot's check started, as lastScheduledStart reads it: the claim (its lease runs one acceptance window
+// from the claim) or the runner's first reported start, whichever is later; null for a slot restored from an archive,
+// which ran elsewhere. Only results stored by `before` count, so a save reads what it could have seen. A runner reports
+// every attempt of its probes in one request once its last attempt completed (runners/src/private-runner.mjs), so one
+// runner's results count only when all of them completed by `before`: a check still running at the save is not read.
+function reportedStarts(slot,before){
+ const batches=new Map(),assignments=slot.definition?.assignments??{};
+ for(const o of Array.isArray(slot.observations)?slot.observations:[]){
+  const key=assignments[o?.probe]?.runnerId??'',batch=batches.get(key)??{reported:-Infinity,starts:[]},done=isTime(o.completedAt)?o.completedAt:o.startedAt;
+  batch.reported=isTime(done)?Math.max(batch.reported,done):Infinity;if(isTime(o.startedAt))batch.starts.push(o.startedAt);batches.set(key,batch);
+ }
+ return [...batches.values()].filter(b=>b.reported<=before).flatMap(b=>b.starts);
+}
+function slotStart(slot,before=Infinity){
+ if(slot.lease_owner==='restored-inactive')return null;
+ const claimed=isTime(slot.lease_until)&&slot.lease_until>0?slot.lease_until-acceptanceMs(slot.definition):null;
+ const started=reportedStarts(slot,before);
+ const values=[claimed,started.length?Math.min(...started):null].filter(isTime);
+ return values.length?Math.max(...values):null;
+}
+// next_due once this scheduled slot was claimed: the grid past its skipped due times, no sooner than one interval after
+// the claim, raised to one interval after the check's reported start by a result completeAttempts accepts while the
+// slot's revision is current, so only results reported by `before` (the save that ended the revision) count.
+function slotNextDue(slot,before=Infinity){
+ const interval=slot.definition.intervalMs,start=slotStart(slot,before),grid=slot.due_at+((isTime(slot.missed_count)&&slot.missed_count>0?slot.missed_count:0)+1)*interval;
+ return start===null?grid:Math.max(grid,start+interval);
+}
+// A revision's first due time from its save (revisionStatements): the save time, or the shorter of its own and the
+// previous revision's intervals after the latest earlier scheduled check started, whichever is later.
+function revisionDue(save,interval,previousInterval,scheduled){
+ let previous=null;
+ for(const slot of scheduled)if(slot.due_at<save&&slot.lease_owner!=='restored-inactive')previous=slot;
+ const start=previous?slotStart(previous,save):null;
+ if(start===null)return save;
+ const shorter=isTime(previousInterval)&&previousInterval>0?Math.min(interval,previousInterval):interval;
+ return Math.max(save,start+shorter);
+}
+
 // Due times as runs: {first, count, interval, revision}, members first + k * interval for k = 0..count-1.
 const runLast=run=>run.first+(run.count-1)*run.interval;
 // The members of a run outside [from, to] (to null: still going), as up to two runs.
@@ -90,11 +132,12 @@ function outside(run,{from,to}){
 // revision's first due time, which is exactly the save that ended the span.
 const without=(runs,spans)=>runs.flatMap(run=>spans.filter(span=>span.revision===run.revision).reduce((list,span)=>list.flatMap(piece=>outside(piece,span)),[run]));
 
-// Revision starts the history proves. A revision's first scheduled slot is due at its save time, and every slot of an
-// earlier revision is due before that, so the earliest scheduled slot of a revision is its start whenever the history
-// also holds an earlier revision's slot. The current revision with no scheduled slot yet still has next_due at its save
-// time, because only a scheduled claim moves next_due.
-// A revisions read gives every start outright.
+// Revision starts the history proves. A revision's first scheduled slot is due at its first due time (its save time or
+// later, see revisionDue), and every slot of an earlier revision is due before its save, so without the revisions read
+// the earliest scheduled slot of a revision stands for its start whenever the history also holds an earlier revision's
+// slot. The current revision with no scheduled slot yet still has next_due at its first due time, because only a
+// scheduled claim or its result moves next_due.
+// A revisions read gives every start (the save time) outright.
 function revisionStarts(scheduled,all,monitor,known){
  const starts=new Map(),lowest=Math.min(...all.map(s=>s.revision).filter(isTime));
  for(const r of known)starts.set(r.revision,r.start);
@@ -131,6 +174,19 @@ function spans(scheduled,all,monitor,now,starts,known){
  return result;
 }
 
+// One span per continuous pause or maintenance window: a span that begins where the one before it of the same kind ends
+// (a save that kept the monitor paused, or kept the same maintenance going) continues it, so the list and the strip show
+// the window once, from its first revision's start to its last revision's end. A joined span keeps the revision it began on.
+function joinSpans(list){
+ const joined=[];
+ for(const span of [...list].sort((a,b)=>a.from-b.from)){
+  const before=joined.at(-1);
+  if(before&&before.kind===span.kind&&before.to!==null&&before.to===span.from){joined[joined.length-1]={...before,to:span.to};continue}
+  joined.push(span);
+ }
+ return joined;
+}
+
 // The scheduled checks that never ran, from each scheduled slot's missed_count: the due times between it and the next
 // scheduled slot. They were all skipped before that slot's claim, so the clip at the next slot (or, with none, at the
 // next known revision start) only guards odd data.
@@ -145,16 +201,16 @@ function missedRuns(scheduled,starts){
  return runs;
 }
 
-// Each revision's unclaimed tail: the due times on its grid from its next_due (its last scheduled slot's
-// due + (missed_count + 1) * interval; its start while nothing was claimed; the overview's next_due for the current
+// Each revision's unclaimed tail: the due times from its next_due (slotNextDue of its last scheduled slot; while nothing
+// was claimed, its first due time, revisionDue from the revisions read; the overview's next_due for the current
 // revision, whichever is latest) that no claim ever took. For a revision the next save ended (the next revision's start
-// is known: from the revisions read, or it has a scheduled slot or is the current one), they are missed, counting only
-// due times a full grace before that save, so a claim the save simply beat is never called missed. For the newest
-// revision, enabled, they are overdue once a full grace past due: the ongoing outage. Without the revisions read, when
-// the revision after one left no scheduled slot and is not current, when it ended is unknown and nothing is drawn.
-// Grace is one acceptance budget of the revision's definition (overdueGraceMs).
+// is known: from the revisions read, or it has a scheduled slot or is the current one), every one due before that save
+// is missed: no claim takes it once the save has moved next_due to the next revision. For the newest revision, enabled,
+// they are overdue once a full grace past due: the ongoing outage. Without the revisions read, when the revision after
+// one left no scheduled slot and is not current, when it ended is unknown and nothing is drawn. Grace is one acceptance
+// budget of the revision's definition (overdueGraceMs).
 function tailRuns(scheduled,monitor,starts,now,known){
- const byRevision=new Map(),definitions=new Map(known.map(r=>[r.revision,r.definition]));
+ const byRevision=new Map(),definitions=new Map(known.map(r=>[r.revision,r.definition])),saves=new Map(known.map(r=>[r.revision,r.start]));
  for(const slot of scheduled)if(isTime(slot.revision)){if(!byRevision.has(slot.revision))byRevision.set(slot.revision,[]);byRevision.get(slot.revision).push(slot)}
  const current=monitor&&isTime(monitor.revision)?monitor.revision:null;
  const revisions=[...new Set([...byRevision.keys(),...definitions.keys(),...(current===null?[]:[current])])],newest=Math.max(...revisions);
@@ -162,12 +218,13 @@ function tailRuns(scheduled,monitor,starts,now,known){
  for(const revision of revisions){
   const last=byRevision.get(revision)?.at(-1),definition=last?.definition??definitions.get(revision)??(revision===current?monitor.definition:null),interval=definition?.intervalMs;
   if(!definition||!isTime(interval)||interval<=0)continue;
-  let first=last?last.due_at+((isTime(last.missed_count)&&last.missed_count>0?last.missed_count:0)+1)*interval:starts.get(revision)??-Infinity;
+  const save=saves.get(revision);
+  let first=last?slotNextDue(last,starts.get(revision+1)??Infinity):isTime(save)?revisionDue(save,interval,(definitions.get(revision-1)??byRevision.get(revision-1)?.at(-1)?.definition)?.intervalMs,scheduled):starts.get(revision)??-Infinity;
   if(revision===current&&isTime(monitor.nextDue))first=Math.max(first,monitor.nextDue);
   if(!Number.isFinite(first))continue;
   const grace=overdueGraceMs(definition),nextStart=starts.get(revision+1);
   let kind,end;
-  if(isTime(nextStart)){kind='missed';end=nextStart-grace-1}
+  if(isTime(nextStart)){kind='missed';end=nextStart-1}
   else if(revision<newest||nextKnownStart(starts,revision)!==null)continue;
   else if(definition.enabled===false)continue;
   else{kind='overdue';end=now-grace-1}
@@ -196,16 +253,16 @@ function splitRuns(runs,points){
 // rows: the list, newest first, at most STRIP_PLACES. Each row has kind, effectiveTime (its newest moment) and
 // oldestTime; a run row (missed or overdue) also has first, last, count and interval; a slot row (passed, failed,
 // running, noresult, manual) has its slot, result, reason, startedAt and late ({by} when it started at least
-// min(interval, grace) after its due time); a span row (paused, maintenance) has from and to (null while it continues).
+// min(interval, grace) after its due time); a span row (paused, maintenance) has from and to (null while it continues), one row per continuous window (joinSpans).
 // strip: the same rows, oldest first.
 export function buildTimeline({slots,now,monitor,revisions}){
  const definition=monitor?.definition,grace=overdueGraceMs(definition);
  const all=(Array.isArray(slots)?slots:[]).filter(s=>s&&typeof s==='object'&&isTime(s.due_at));
- const scheduled=all.filter(s=>!s.manual).sort((a,b)=>a.due_at-b.due_at);
+ const scheduled=all.filter(s=>!s.manual).sort((a,b)=>a.due_at-b.due_at||(a.rowid??0)-(b.rowid??0));
  const known=(Array.isArray(revisions)?revisions:[]).filter(r=>r&&isTime(r.revision)&&isTime(r.start)&&r.definition&&typeof r.definition==='object');
  const starts=revisionStarts(scheduled,all,monitor,known),spanList=spans(scheduled,all,monitor,now,starts,known);
  const points=all.map(slot=>slotEntry(slot,now,grace));
- for(const span of spanList)points.push({...span,dueAt:span.from,effectiveTime:span.to??Math.max(now,span.from),oldestTime:span.to??Math.max(now,span.from)});
+ for(const span of joinSpans(spanList))points.push({...span,dueAt:span.from,effectiveTime:span.to??Math.max(now,span.from),oldestTime:span.to??Math.max(now,span.from)});
  const runs=splitRuns(without([...missedRuns(scheduled,starts),...tailRuns(scheduled,monitor,starts,now,known)],spanList),points)
   .map(run=>({kind:run.kind,first:run.first,last:runLast(run),count:run.count,interval:run.interval,revision:run.revision,dueAt:runLast(run),effectiveTime:runLast(run),oldestTime:run.first}));
  const ordered=[...points,...runs].sort(newerFirst);

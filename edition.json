@@ -25,11 +25,31 @@
           "migrations/0011_development_outbox.sql",
           "src/base/modules/owner-claim",
           "migrations/0016_owner_claim.sql",
-          "migrations/0019_domain_rules_step_up.sql"
+          "migrations/0019_domain_rules_step_up.sql",
+          "src/base/deployment-health.ts",
+          "src/base/font-head.ts",
+          "src/base/font-response.ts",
+          "src/base/hydration",
+          "src/base/identity.ts",
+          "src/base/lobby.ts",
+          "src/base/page-style.ts",
+          "src/base/run-site.ts",
+          "src/base/setup-state.ts",
+          "src/base/setup.ts",
+          "src/base/static-assets.ts",
+          "src/base/theme-frame.ts",
+          "src/base/modules/dependencies",
+          "migrations/0028_identity_providers.sql",
+          "migrations/0029_provider_control.sql",
+          "migrations/0030_dependencies.sql",
+          "migrations/0031_idp_owner.sql",
+          "migrations/0032_provider_pins.sql",
+          "migrations/0033_dependency_setup.sql",
+          "migrations/0034_dependency_approval.sql"
         ],
         "origin": {
           "repository": "https://github.com/runeditrun/base.git",
-          "revision": "3d643dda1d203d36e3fa57e8e5ba14e414bba6f9",
+          "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
           "path": ".",
           "paths": [
             "foundation/runtime/dispatch.ts",
@@ -46,7 +66,16 @@
             "modules/mail/src/development/schema.sql",
             "modules/owner-claim",
             "modules/owner-claim/schema/owner-claim.sql",
-            "modules/operator-auth/accounts/schema/domain-rules-step-up.sql"
+            "modules/operator-auth/accounts/schema/domain-rules-step-up.sql",
+            "foundation/runtime/deployment-health.ts",
+            "modules/dependencies",
+            "modules/operator-auth/identity/oidc/schema/oidc.sql",
+            "modules/operator-auth/accounts/schema/provider-control.sql",
+            "modules/dependencies/schema/dependencies.sql",
+            "modules/owner-claim/schema/idp.sql",
+            "modules/operator-auth/accounts/schema/provider-pins.sql",
+            "modules/operator-auth/accounts/schema/dependency-setup.sql",
+            "modules/dependencies/schema/approval-attempt.sql"
           ]
         },
         "mappings": [
@@ -101,112 +130,42 @@
           {
             "path": "migrations/0019_domain_rules_step_up.sql",
             "originPath": "modules/operator-auth/accounts/schema/domain-rules-step-up.sql"
-          }
-        ]
-      }
-    },
-    {
-      "id": "runeditrun/onboarding",
-      "role": "module",
-      "source": {
-        "kind": "local",
-        "paths": [
-          "scripts/base-onboarding"
-        ],
-        "origin": {
-          "repository": "https://github.com/runeditrun/base.git",
-          "revision": "3d643dda1d203d36e3fa57e8e5ba14e414bba6f9",
-          "paths": [
-            "onboarding"
-          ]
-        }
-      }
-    },
-    {
-      "id": "runeditrun/cli",
-      "role": "module",
-      "source": {
-        "kind": "local",
-        "paths": [
-          "scripts/base-cli/cli",
-          "scripts/base-cli/bin/rer.mjs",
-          "scripts/base-cli/modules/release",
-          "scripts/base-cli/modules/deploy-kit",
-          "scripts/base-cli/modules/mail",
-          "scripts/base-cli/modules/portability",
-          "scripts/base-cli/operations",
-          "scripts/base-cli/scripts/publish-check",
-          "scripts/base-cli/scripts/publish-check.mjs",
-          "scripts/base-cli/composition/git-source.mjs",
-          "scripts/base-cli/edition-authoring/manifest.mjs",
-          "scripts/base-cli/edition-authoring/files.mjs"
-        ],
-        "origin": {
-          "repository": "https://github.com/runeditrun/base.git",
-          "revision": "3d643dda1d203d36e3fa57e8e5ba14e414bba6f9",
-          "paths": [
-            "cli",
-            "bin/rer.mjs",
-            "modules/release",
-            "modules/deploy-kit",
-            "modules/mail",
-            "modules/portability",
-            "operations",
-            "scripts/publish-check",
-            "scripts/publish-check.mjs",
-            "composition/git-source.mjs",
-            "edition-authoring/manifest.mjs",
-            "edition-authoring/files.mjs"
-          ]
-        },
-        "mappings": [
-          {
-            "path": "scripts/base-cli/cli",
-            "originPath": "cli"
           },
           {
-            "path": "scripts/base-cli/bin/rer.mjs",
-            "originPath": "bin/rer.mjs"
+            "path": "src/base/deployment-health.ts",
+            "originPath": "foundation/runtime/deployment-health.ts"
           },
           {
-            "path": "scripts/base-cli/modules/release",
-            "originPath": "modules/release"
+            "path": "src/base/modules/dependencies",
+            "originPath": "modules/dependencies"
           },
           {
-            "path": "scripts/base-cli/modules/deploy-kit",
-            "originPath": "modules/deploy-kit"
+            "path": "migrations/0028_identity_providers.sql",
+            "originPath": "modules/operator-auth/identity/oidc/schema/oidc.sql"
           },
           {
-            "path": "scripts/base-cli/modules/mail",
-            "originPath": "modules/mail"
+            "path": "migrations/0029_provider_control.sql",
+            "originPath": "modules/operator-auth/accounts/schema/provider-control.sql"
           },
           {
-            "path": "scripts/base-cli/modules/portability",
-            "originPath": "modules/portability"
+            "path": "migrations/0030_dependencies.sql",
+            "originPath": "modules/dependencies/schema/dependencies.sql"
           },
           {
-            "path": "scripts/base-cli/operations",
-            "originPath": "operations"
+            "path": "migrations/0031_idp_owner.sql",
+            "originPath": "modules/owner-claim/schema/idp.sql"
           },
           {
-            "path": "scripts/base-cli/scripts/publish-check",
-            "originPath": "scripts/publish-check"
+            "path": "migrations/0032_provider_pins.sql",
+            "originPath": "modules/operator-auth/accounts/schema/provider-pins.sql"
           },
           {
-            "path": "scripts/base-cli/scripts/publish-check.mjs",
-            "originPath": "scripts/publish-check.mjs"
+            "path": "migrations/0033_dependency_setup.sql",
+            "originPath": "modules/operator-auth/accounts/schema/dependency-setup.sql"
           },
           {
-            "path": "scripts/base-cli/composition/git-source.mjs",
-            "originPath": "composition/git-source.mjs"
-          },
-          {
-            "path": "scripts/base-cli/edition-authoring/manifest.mjs",
-            "originPath": "edition-authoring/manifest.mjs"
-          },
-          {
-            "path": "scripts/base-cli/edition-authoring/files.mjs",
-            "originPath": "edition-authoring/files.mjs"
+            "path": "migrations/0034_dependency_approval.sql",
+            "originPath": "modules/dependencies/schema/approval-attempt.sql"
           }
         ]
       }
@@ -240,10 +199,8 @@
           "deploy.json",
           "scripts/local",
           "migrations/0012_archive_history.sql",
-          "scripts/rer.mjs",
           "rer-setup.json",
           "migrations/0014_portability.sql",
-          "scripts/base-cli/inventory.json",
           "migrations/0015_portability_restore_receipt.sql",
           "scripts/data-files.mjs",
           "src/editor",
@@ -267,7 +224,7 @@
         ],
         "origin": {
           "repository": "https://github.com/runeditrun/base.git",
-          "revision": "3d643dda1d203d36e3fa57e8e5ba14e414bba6f9",
+          "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
           "paths": [
             "modules/editor/src"
           ]
@@ -300,11 +257,12 @@
           "scripts/delivery/base/generators",
           "scripts/delivery/base/schema/SETUP.schema.json",
           "scripts/delivery/base/schema/json-schema.mjs",
-          "scripts/delivery/base/schema/setup-validation.mjs"
+          "scripts/delivery/base/schema/setup-validation.mjs",
+          "scripts/delivery/base/schema/dependencies.mjs"
         ],
         "origin": {
           "repository": "https://github.com/runeditrun/base.git",
-          "revision": "3d643dda1d203d36e3fa57e8e5ba14e414bba6f9",
+          "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
           "paths": [
             "modules/delivery-producer/artifact.mjs",
             "modules/delivery-producer/bindings.mjs",
@@ -320,7 +278,8 @@
             "modules/delivery-producer/generators",
             "schema/SETUP.schema.json",
             "schema/json-schema.mjs",
-            "schema/setup-validation.mjs"
+            "schema/setup-validation.mjs",
+            "schema/dependencies.mjs"
           ]
         },
         "mappings": [
@@ -383,6 +342,10 @@
           {
             "path": "scripts/delivery/base/schema/setup-validation.mjs",
             "originPath": "schema/setup-validation.mjs"
+          },
+          {
+            "path": "scripts/delivery/base/schema/dependencies.mjs",
+            "originPath": "schema/dependencies.mjs"
           }
         ]
       }

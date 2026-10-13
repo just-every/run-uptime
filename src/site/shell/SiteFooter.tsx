@@ -1,8 +1,8 @@
 import { Brand } from './Brand';
-import { links } from './links';
+import { links, type SiteVariant } from './links';
 
-/** The slim footer on every public page. */
-export function SiteFooter() {
+/** The slim footer on every public page. The run site has no Sign in. */
+export function SiteFooter({ variant = 'instance' }: { variant?: SiteVariant }) {
   return (
     <footer className="ut-footer">
       <div className="ut-wrap">
@@ -12,7 +12,7 @@ export function SiteFooter() {
           <nav aria-label="Footer">
             <a href={links.docs}>Docs</a>
             <a href={links.source}>Source</a>
-            <a href={links.signIn}>Sign in</a>
+            {variant === 'instance' && <a href={links.signIn}>Sign in</a>}
             <span className="ut-footer-licence">MIT licensed</span>
           </nav>
         </div>

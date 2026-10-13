@@ -55,7 +55,8 @@ The registered cases prove:
 - accepted, rejected and uncertain IF-056 mail results. Only `accepted` makes
   the link usable; rejected or uncertain delivery revokes it and returns
   `mail_unavailable`;
-- optionally, a first verified OIDC admission into an existing unbound owner
+- optionally, owner-authorized provider sign-in enablement through the public
+  settings route, then a first verified OIDC admission into an existing unbound owner
   through `admitVerifiedIdentity`, followed by access through the same native
   session route. This is a no-provider-key seam check, not an OIDC protocol
   check. The protocol, keys, PKCE, state, nonce and callback behavior remain

@@ -30,7 +30,7 @@ The trusted controller must verify artifact-service run/source custody and obtai
 
 Worker names are `rer-base-stage-<run-id>`, with `-db` D1 and `-jobs` Queue. The exact account's authenticated workers.dev subdomain defines the origin. There is no arbitrary URL/command/name workflow input. Default-seed requires D1, JOBS and its ten-minute Cron only. No unrelated mail credential is required.
 
-Parent integration must extend actual default-seed `/health` after a real D1 readiness check:
+The maintained default-seed `/health` returns the existing `status: 'ok'` plus this deployment identity after its real D1 readiness check, built by `deploymentHealth(env)` from `foundation/runtime/deployment-health.ts`:
 
 ```js
 { ok: true, deployment: {
@@ -40,13 +40,15 @@ Parent integration must extend actual default-seed `/health` after a real D1 rea
 } }
 ```
 
+Assets upload with `run_worker_first: true` (`RUN_WORKER_FIRST` in `render.mjs`). Every request reaches the Worker first, so the seed's routing, origin admission, `no-store` document policy and private-path refusals decide what is served, and the Base delivery producer accepts no other setting. A built file therefore reaches the browser only through the Worker: seed entries call `staticAssetResponse(request, env)` from `foundation/runtime/static-assets.ts` first. After the deploy identity passes, health requests one built file (the first artifact asset that is neither an HTML document nor under a dot path) once, without credentials, and fails with `asset-http-failed` unless it answers 200; the result is recorded as `health.asset`. `rer verify` serves the local build with the same setting (`cli/hosted-output.mjs`).
+
 The controller supplies the two public variables and Cloudflare version-metadata binding. The parent owns default-seed source/types, package scripts, shared manifests and workflows. Keep the staged-deploy descriptor blocked until the three-stage isolation and actual build/health integration pass; the original deploy-then-health executor cannot safely run installation/build with its credentials.
 
 ## Reconciliation and repeats
 
 `deploy({api,plan,artifact,artifactSha256,previousReceipt,env,fetch})` is the shared implementation for deploy and stage. Plans are controller-owned and validated; do not derive a secret-bearing plan from executable project configuration. `defaultStagePlan` demonstrates the full schema. Optional R2 `{binding,name}`, Queue `{binding,name,consumer?}`, DO `{binding,className,storage:'sqlite'|'classic'}`, and secret `{binding,environment}` declarations are supported. New DOs must use SQLite; existing classic namespaces are reusable. Namespace creation occurs through Worker upload migrations, with old/new migration tags, then authenticated namespace readback. No namespace create endpoint is invented. Cron and queue consumers reconcile after Worker creation. Conflicting consumers and resource identities fail; resources/data are never deleted.
 
-Cron reads require the documented `result: {schedules: [...]}` envelope, including valid unique Cron strings; bare arrays and partial/malformed results fail. Before changing an existing Worker, deployment reads its schedules and rejects any Cron outside the requested plan with `cron-drift`, before resource writes, SQL migrations or Worker upload. Trigger reconciliation repeats that read before any trigger write. This applies to ordinary changed-source upgrades with or without a prior receipt. The kit may add requested schedules; it never intentionally removes existing schedules. Removing a Cron from the plan while it still exists remotely requires a separate reviewed removal first. Unchanged deployment and health require the exact desired schedule set and perform no repairs. Callers must serialize deployments and out-of-band schedule edits for a Worker: the provider schedule replacement API offers no conditional update in this interface.
+Cron reads require the documented `result: {schedules: [...]}` envelope, including valid unique Cron strings; bare arrays and partial/malformed results fail. Before changing an existing Worker, deployment reads its schedules and rejects any Cron outside the requested plan with `cron-drift`, before resource writes, SQL migrations or Worker upload. Trigger reconciliation repeats that read before any trigger write. This applies to ordinary changed-source upgrades with or without a prior receipt. The kit may add requested schedules; it never intentionally removes existing schedules. Removing a Cron from the plan while it still exists remotely requires a separate reviewed removal first. Every changed upload reapplies its nonempty declared Cron set after workers.dev activation, even when the Worker-scoped list already matches. The kit reads the exact schedule set back after the write and checks that the active deployment identity remained stable. A declared Cron also requires the authenticated active version to report a `scheduled` handler; absent detection fails with `missing-scheduled-handler`. These checks establish provider configuration, not proof that a scheduled invocation has executed. Dispatch is the provider's: on the RunEditRun account (11 October 2026) a correctly registered Cron started only at the account scheduler's next refresh, observed 60 to 106 minutes apart, so a first tick can arrive well after Cloudflare's documented 15 minutes; a cleared schedule keeps running, and a deleted Worker keeps being invoked (as `internalError`), until a later refresh. A redeploy keeps the existing dispatch: the first run after it executes the new version. Judge first-deploy Cron by the seed's own scheduled-run record, not by a short watch. Unchanged deployment and health require the exact desired schedule set and perform no repairs. Callers must serialize deployments and out-of-band schedule edits for a Worker: the provider schedule replacement API offers no conditional update in this interface.
 
 `workerConsumerScript(consumer)` (also exported from `index.mjs`) decodes Worker consumer identities from either documented `script_name` or the observed GET response string `script`. It returns the exact name using the plan's resource-name grammar, or `null` for missing, malformed, conflicting, or non-Worker identities. If both fields are present, each must be valid and both must agree; a malformed alias is never ignored. Reconciliation checks every consumer on queues with a requested consumer before any trigger write and rejects foreign or duplicate consumers. Writes continue to use the documented `script_name` request field. Read-only health and retained-receipt repeats accept either response variant without repairs.
 
@@ -82,6 +84,15 @@ The seed declares bindings, never names:
 ```
 
 Names are deterministic. The Worker is `<last segment of project>-<environment>`, for example `penny-production`. Each D1 database, R2 bucket, KV namespace and Queue is `<worker>-<binding in lower case, _ as ->`, for example `penny-production-db` and `penny-production-jobs-dead`. Durable Object namespaces belong to the Worker and are created by its upload migration. `originVar` receives `https://<worker>.<account subdomain>.workers.dev`. Migrations come from the packaged build's `migrations/core/*.sql` files. A name over 63 characters is refused, not shortened.
+
+A declaration may also bind another owner-deployed Worker and may keep its own workers.dev route off. Both keys are optional, and a declaration without them renders and fingerprints exactly as before:
+
+```json
+{ "services": [{ "binding": "PENNY_EGRESS", "project": "runeditrun/egress-service", "entrypoint": "Optional", "allowedHosts": ["hooks.example.com", "*.example.org"] }],
+  "workersDev": false }
+```
+
+A service's Worker name is derived from its `project` and this deploy's environment, so the example above binds `egress-service-production`. `allowedHosts` becomes the binding's `props` (`{allowedHosts}`), which the bound Worker reads as `ctx.props`. The binding is uploaded and read back like every other binding, so a changed `props` is reported as `binding-readback-mismatch`. Before any write, deploy reads each bound Worker. If it is absent, deploy refuses with `service-worker-missing` and resource `service:<worker>`; deploy that Worker first. `workersDev: false` keeps the route off: an enabled route is switched off on upload, the receipt's `origin` is `null`, and health uses provider readback only, because there is no public `/health` to request. [modules/egress-service](../egress-service/README.md) is the Worker this exists for.
 
 `ownerTarget`, `ownerPlan`, `ownerDeploy` and `ownerHealth` (exported from `index.mjs`) are the same steps for a seed's own script. A seed script can compute vars before calling `ownerPlan`.
 
@@ -163,7 +174,7 @@ node --test modules/deploy-kit/tests/*.test.mjs operations/*.test.mjs
 
 The tests cover real SQLite prior data, migration order/hash/failure/replay safety, fixture provider uploads and repeated no mutations across D1/R2/Queue/DO/Cron/secrets, wrong/missing mail inputs, transport boundaries/pagination, stale health/version, artifact links/custody, actual authoring lock/check and unchanged v1 regression tests. Owner-account tests use a fake Cloudflare API (`tests/owner-provider.mjs`, which adds KV, foreign resources and injected failures to the same fixture): first create, byte-identical re-run, partial failure and resume, a lost create response, a Worker upload failure, a lost first-upload response, collisions with resources the kit did not create, a Worker or bucket replaced under the same name, a missing workers.dev subdomain, token-scope failures, the state-file lock, and the CLI over a committed seed build. `pnpm verify:deployment` runs every deploy-kit test in Base verify. They are not live receipts. CF throwaway token/account ID and evidence persistence token remain missing until the owner supplies them. Prepare/build's Actions isolation and real default-seed remote health require the parent integration; no Mac provider login or live call was used.
 
-Implementation references read: the public HappyToHelp v0.2.1 release's `scripts/deployment/*`, Base `deployment/owner-migrations.mjs`, `operations/` and `edition-authoring/`. The ambient-login/catch-and-continue paths in those examples were not adopted. No private source was copied or merged.
+Implementation references read: an earlier public seed release's own deployment scripts, Base `deployment/owner-migrations.mjs`, `operations/` and `edition-authoring/`. The ambient-login/catch-and-continue paths in those examples were not adopted. No private source was copied or merged.
 
 Primary protocol references: [Worker upload](https://developers.cloudflare.com/api/resources/workers/subresources/scripts/methods/update/), [multipart metadata](https://developers.cloudflare.com/workers/configuration/multipart-upload-metadata/), [asset upload](https://developers.cloudflare.com/workers/static-assets/direct-upload/), [D1 query](https://developers.cloudflare.com/api/resources/d1/subresources/database/methods/query/), [Queue consumers](https://developers.cloudflare.com/api/resources/queues/subresources/consumers/), [R2 pagination](https://developers.cloudflare.com/api/resources/r2/subresources/buckets/methods/list/), [DO namespaces](https://developers.cloudflare.com/api/resources/durable_objects/subresources/namespaces/), [Worker versions](https://developers.cloudflare.com/api/resources/workers/subresources/scripts/subresources/versions/methods/get/). Checked 6 October 2026; hosted conformance is not inferred from documentation.
 
@@ -267,9 +278,31 @@ const verification = await verifyTeardown({api, plan, receipt});
 return {ok: true, deleted: true, verification};
 ```
 
-Worker deletion covers its schedules and bindings; the namespace listing
+Worker deletion removes its schedules and bindings from the API, but not from
+the provider's dispatch: a deleted cron Worker keeps being invoked (failing) until
+the account's next scheduler refresh (see Cron above). A teardown that deletes a
+Worker calls `deleteWorker({api, worker})`, which PUTs an empty schedule set, reads
+the schedules back until the provider reports none (bounded, 60 seconds by default;
+a set that does not settle fails with `teardown-schedules-not-cleared` and leaves
+the Worker in place) and only then deletes. The deploy CLI prints one line after a
+Cron deploy that the first scheduled run can take up to about two hours on some
+accounts. The namespace listing
 independently checks Durable Object removal. Persist the verification (or the
 error's `attempts` and `remaining`) in the seed's teardown evidence. This Base change
 modifies no seed repository. Protocol references:
 [Worker scripts list](https://developers.cloudflare.com/api/resources/workers/subresources/scripts/methods/list/)
 and [Queue consumers list](https://developers.cloudflare.com/api/resources/queues/subresources/consumers/methods/list/).
+
+Named egress service grants may be declared as `services[].grant` alongside
+`entrypoint`. The grant carries exact `allowedHosts`, service `sourceSha`,
+`fingerprint` and the service receipt's `provider` identity (`versionId`,
+`deploymentId`, `etag`). These are controller checks, not upload binding fields.
+Before deployment and during health verification, deploy-kit reads the target
+Worker's `EGRESS_GRANTS` plain-text binding and verifies the chosen entrypoint,
+host grant, source and immutable deployment identity. Missing, duplicate or
+widened grants fail closed, as do service/binding/entrypoint/environment drift.
+Only the ordinary named service binding is uploaded. This supports service-owned
+narrowing where Cloudflare omits service-binding `props` from settings/version
+readback. Ordinary `allowedHosts` still maps to `props` and retains strict
+readback; missing props are never silently accepted. See the
+[egress service guide](../egress-service/README.md).

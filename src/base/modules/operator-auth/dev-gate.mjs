@@ -1,14 +1,15 @@
 import { constantEqual } from './crypto.mjs';
-import { isLoopbackHost } from './http.mjs';
+import { isLoopbackHost, localCookieName } from './http.mjs';
 
 // The local key gate. `rer setup` writes a random RER_DEV_KEY per checkout and
 // the local runtimes receive it as a binding; a deployed Worker never has one
 // (`rer deploy` refuses it), so this gate is inert there. A tunnel or local
 // reverse proxy makes remote requests look local, so the network is not the
 // gate: holding the key is. Browsers trade it once for a host-only cookie; test
-// harnesses and the rer command line present it in a header.
+// harnesses and the rer command line present it in a header. The cookie is
+// named for the origin's port (`rer_dev_gate_8787`), so checkouts side by side
+// on one loopback host keep their own.
 export const DEV_KEY_HEADER = 'x-rer-dev-key';
-export const DEV_GATE_COOKIE = 'rer_dev_gate';
 export const DEV_KEY_PATH = '/__dev/key';
 const encoder = new TextEncoder();
 const validKey = value => typeof value === 'string' && /^[A-Za-z0-9_-]{43,256}$/.test(value);
@@ -39,9 +40,9 @@ export function devNotFound() {
     'content-security-policy': "default-src 'none'; script-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'" } });
 }
 
-function readGateCookie(request) {
-  const entries = (request.headers.get('cookie') || '').split(';').map(part => part.trim()).filter(part => part.startsWith(`${DEV_GATE_COOKIE}=`));
-  return entries.length === 1 ? entries[0].slice(DEV_GATE_COOKIE.length + 1) : null;
+function readGateCookie(request, name) {
+  const entries = (request.headers.get('cookie') || '').split(';').map(part => part.trim()).filter(part => part.startsWith(`${name}=`));
+  return entries.length === 1 ? entries[0].slice(name.length + 1) : null;
 }
 
 /**
@@ -54,13 +55,15 @@ export function devGate({ key, origin, local }) {
   let url; try { url = new URL(origin); } catch { return null; }
   if (url.origin !== origin || url.username || url.password || !isLoopbackHost(url.hostname)) return null;
   let expected;
+  const cookieName = localCookieName('rer_dev_gate', origin);
   const cookie = () => expected ??= cookieValue(key);
-  const setCookie = async () => `${DEV_GATE_COOKIE}=${await cookie()}; Path=/; HttpOnly; SameSite=Strict; Max-Age=2592000${url.protocol === 'https:' ? '; Secure' : ''}`;
+  const setCookie = async () => `${cookieName}=${await cookie()}; Path=/; HttpOnly; SameSite=Strict; Max-Age=2592000${url.protocol === 'https:' ? '; Secure' : ''}`;
   return Object.freeze({
+    cookieName,
     async admits(request) {
       const presented = request.headers.get(DEV_KEY_HEADER);
       if (presented !== null) return constantEqual(presented, key);
-      const value = readGateCookie(request);
+      const value = readGateCookie(request, cookieName);
       return value !== null && constantEqual(value, await cookie());
     },
     setCookie,

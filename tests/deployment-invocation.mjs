@@ -66,7 +66,7 @@ test('declared direct commands reach their real input checks and reject explicit
 });
 
 test('Base inspector reports controller custody and credentials absent from preparation', async () => {
-  const {inspectOperations} = await import('../scripts/base-cli/operations/operations.mjs');
+  const {inspectOperations} = await import('@runeditrun/rer/operations');
   const preparation = Object.fromEntries(descriptor.commands['artifact-prepare'].requiredEnvironment.map(name => [name, 'synthetic-input']));
   const result = await inspectOperations(root, preparation);
   assert.equal(result.ok, false);

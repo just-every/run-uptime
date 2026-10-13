@@ -10,7 +10,7 @@ A product supersession names the baseline ID
 in its contract and explains the replacement behavior. Keep these records in the
 edition's useful requirements, intent or override documents. Use the override
 schema and reporting that the edition actually implements; neither a particular
-file path nor automatic `node scripts/rer.mjs verify` supersession reporting is universal. Where
+file path nor automatic `rer verify` supersession reporting is universal. Where
 reporting is absent, state that gap and verify the replacement directly. Do not
 silently weaken a guarantee or report an untested override as passing. Times are
 p95 at the limits in `seed.json`.
@@ -35,7 +35,7 @@ p95 at the limits in `seed.json`.
 
 ## Data ownership
 
-- **BASE-DATA-001 — Export and import.** `node scripts/rer.mjs export --output FILE` produces every record and attachment; `node scripts/rer.mjs import --input FILE --yes` restores it into an empty deployment; export, import, export yields an archive with equivalent contents.
+- **BASE-DATA-001 — Export and import.** `rer export --output FILE` produces every record and attachment; `rer import --input FILE --yes` restores it into an empty deployment; export, import, export yields an archive with equivalent contents.
 - **BASE-DATA-002 — Retention.** No user data is deleted automatically. Only sessions and rate-limit state expire.
 - **BASE-DATA-003 — Erasure.** Every entity that holds personal data can be deleted by an operator. Deletion cascades to dependent records and attachments within 5 minutes and is confirmed when complete. Audit entries are kept with the reference anonymised.
 - **BASE-DATA-004 — Outbound flows.** User data leaves the deployment only through externals declared in `seed.json → externals`. No other outbound request carries user data.
@@ -68,7 +68,7 @@ private Git tag or a published v0.1.2 release.
 
 - **BASE-ACCESS-001 — Not covered.** The inspected native run of `tests/auth-outbox.mjs` passes local and hosted sign-in, outbox-boundary and mail-configuration checks, but does not prove complete allow-list behavior or the absence of password storage.
 - **BASE-ACCESS-002 — Covered by inspected candidate evidence.** The `BASE-ACCESS-002` output from `tests/access-matrix.mjs` passes missing, expired, revoked and valid sessions through local and emitted hosted Worker documents, reads and every owner mutation; denials leave durable data unchanged, and fixed seven-day expiry stays below 30 days. The fixture-adoption evidence also records passing `tests/operator-security.mjs`, `tests/auth-input-boundary.mjs` and `tests/hosted-auth.mjs` results.
-- **BASE-ACCESS-003 — Covered by inspected candidate evidence.** `tests/public-paths.mjs` emits `BASE-ACCESS-003 PASS`: all 61 declarations and 35 served static resources from 36 emitted files are exercised through the public Worker door, including window boundaries, second-IP and concurrent admission, unknown-client and shared-loopback rules, restart persistence, denials and storage failure. Owner-tunable limits remain estimated and are not load-tested; this is not a capacity claim.
+- **BASE-ACCESS-003 — Covered by inspected candidate evidence.** `tests/public-paths.mjs` emits `BASE-ACCESS-003 PASS`: all 63 declarations and 37 served static resources from 38 emitted files are exercised through the public Worker door, including window boundaries, second-IP and concurrent admission, unknown-client and shared-loopback rules, restart persistence, denials and storage failure. Owner-tunable limits remain estimated and are not load-tested; this is not a capacity claim.
 - **BASE-ACCESS-004 — Not covered.** Existing origin and owner checks are targeted; there is no complete mutation/ownership matrix proving that client identity and ownership claims are always ignored.
 
 ### Input
@@ -105,6 +105,6 @@ private Git tag or a published v0.1.2 release.
 - **BASE-OPS-005 — Covered by inspected candidate evidence.** The `BASE-DATA-003 / BASE-OPS-005 PASS` result from `tests/erasure-audit.mjs` shows destructive actions, audited operator authentication-mail captures, plus six separate real network-edge monitor/test notification sends. Local outbox capture and its audit commit in one D1 batch; the hosted mail sender records the feature audit before attempting its provider request. Source audit rows survive erasure, erased-operator actors are anonymised, and a later journal causes restore to refuse old audit actor references for an erased operator. Inactive restore preserves audit history and adds one restore record. `tests/erasure-races.mjs` also covers concurrent erasure safety. This is local candidate evidence, not hosted acceptance.
 
 
-Local portability uses `node scripts/rer.mjs export --output FILE` and `node scripts/rer.mjs import --input FILE --yes` with a complete versioned product payload. Before a local import, run `node scripts/rer.mjs setup --owner-email EMAIL --non-interactive` on the receiving checkout; its owner and settings are established locally while product/history tables remain empty. `tests/command-journey.mjs` exercises the public transport; `tests/archive-roundtrip.mjs` checks product history, supported archive formats and bounds. The final committed head and inspected run results are mapped in the external evidence record; these local results do not establish hosted acceptance.
+Local portability uses `rer export --output FILE` and `rer import --input FILE --yes` with a complete versioned product payload. Before a local import, run `rer setup --owner-email EMAIL --non-interactive` on the receiving checkout; its owner and settings are established locally while product/history tables remain empty. `tests/command-journey.mjs` exercises the public transport; `tests/archive-roundtrip.mjs` checks product history, supported archive formats and bounds. The final committed head and inspected run results are mapped in the external evidence record; these local results do not establish hosted acceptance.
 
 Assisted delivery uses `tests/delivery-artifact.mjs`, `tests/owner-claim-admission.mjs` and `tests/owner-editor-browser.mjs` to exercise payloads, native owner admission, role loss and management CSP refusal. Base donor tests are not vendored. Local checks do not establish stage installation or live management acceptance.

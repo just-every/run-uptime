@@ -10,22 +10,22 @@ Cron runs every minute to expire acceptance windows and transient auth records, 
 Use Node 22.20.0 and pnpm 10.12.4. From the repository root:
 
 ```sh
-node scripts/rer.mjs install
-node scripts/rer.mjs setup --owner-email owner@example.test --non-interactive
-node scripts/rer.mjs dev
+rer install
+rer setup --owner-email owner@example.test --non-interactive
+rer dev
 ```
 
-Use the owner's email. Setup creates one owner, preserves existing owner/data/settings and stops its temporary app. Open the printed outbox, select the newest message and follow its one-use link; no email is sent. Dev runs real Vite assets/HMR, the synthetic target and signed private runner. `node scripts/rer.mjs preview` instead builds and serves the fixed production output with the same target and runner. Control-C, `dev --stop` or `preview --stop` stops owned processes. Public commands use `scripts/rer.mjs`; `build:app` and `verify:app` are internal adapter targets. The root `rer-setup.json` owns all setup fields and generated secrets. Inspect `node scripts/rer.mjs describe --json`; `check --profile first-party` works without dependencies or credentials.
+Use the owner's email. Setup creates one owner, preserves existing owner/data/settings and stops its temporary app. Open the printed outbox, select the newest message and follow its one-use link; no email is sent. Dev runs real Vite assets/HMR, the synthetic target and signed private runner. `rer preview` instead builds and serves the fixed production output with the same target and runner. Control-C, `dev --stop` or `preview --stop` stops owned processes. Public commands run the pinned `@runeditrun/rer` (`rer VERB`); `build:app` and `verify:app` are internal adapter targets. The root `rer-setup.json` owns all setup fields and generated secrets. Inspect `rer describe --json`; `check --profile first-party` works without dependencies or credentials.
 
 Local durable data is `.wrangler/state`, private settings are `data/local-secrets.json` (0600), CLI bookkeeping is `.rer/local` and command captures are `.seed/installer`. Secret directories are 0700. Builds exclude private settings and restore their exact bytes. Setup refuses conflicting owner/origin answers and never rotates existing credentials.
 
 First-run completion is installation-local D1 state and is excluded from product archives with owner identity and sessions. A receiving installation completes `/setup` with its own owner. Upgrading an installation that already has monitors preserves its completed first-run status.
 
-Stop dev or preview before data movement or reset. Export to a new private path with `node scripts/rer.mjs export --output exports/archive.rer`. On the receiving checkout, first run `node scripts/rer.mjs setup --owner-email EMAIL --non-interactive` to establish its owner and private settings, then import with `node scripts/rer.mjs import --input exports/archive.rer --yes` into an empty product-data store. If local D1 already has active owners, setup requires the configured email to match one; when several are active, configure one explicitly. Base owns integrity and transfer bookkeeping; its named payload uses Uptime's complete archive and atomic inactive-restore transaction. No remote CLI transfer is declared.
+Stop dev or preview before data movement or reset. Export to a new private path with `rer export --output exports/archive.rer`. On the receiving checkout, first run `rer setup --owner-email EMAIL --non-interactive` to establish its owner and private settings, then import with `rer import --input exports/archive.rer --yes` into an empty product-data store. If local D1 already has active owners, setup requires the configured email to match one; when several are active, configure one explicitly. Base owns integrity and transfer bookkeeping; its named payload uses Uptime's complete archive and atomic inactive-restore transaction. No remote CLI transfer is declared.
 
-`node scripts/rer.mjs reset --yes` lists and removes only `.wrangler/state`, `.rer/local`, `.seed/installer` and declared generated settings/recovery files. It refuses active dev or transfers. Source, dependencies, export files and `.rer/deploy` receipts remain. A second reset succeeds with an empty inventory; setup can then create a fresh owner.
+`rer reset --yes` lists and removes only `.wrangler/state`, `.rer/local`, `.seed/installer` and declared generated settings/recovery files. It refuses active dev or transfers. Source, dependencies, export files and `.rer/deploy` receipts remain. A second reset succeeds with an empty inventory; setup can then create a fresh owner.
 
-Erasing an operator does not change `OWNER_EMAIL` in saved settings or the hosted Worker binding. If it named the erased operator, a surviving owner can still sign in with their own email and export from the console. Before using local `rer` commands again, stop dev and change only `OWNER_EMAIL` in `data/local-secrets.json` to an existing surviving active owner. Preserve every generated key and all other settings, then run `node scripts/rer.mjs setup --owner-email EMAIL --non-interactive` with that same email. Supplying the new email to setup without first updating the saved setting is refused. This selects an existing owner; it does not create or transfer an identity. On hosted installations, the deployment owner must update the `OWNER_EMAIL` binding separately; D1 erasure does not change provider configuration.
+Erasing an operator does not change `OWNER_EMAIL` in saved settings or the hosted Worker binding. If it named the erased operator, a surviving owner can still sign in with their own email and export from the console. Before using local `rer` commands again, stop dev and change only `OWNER_EMAIL` in `data/local-secrets.json` to an existing surviving active owner. Preserve every generated key and all other settings, then run `rer setup --owner-email EMAIL --non-interactive` with that same email. Supplying the new email to setup without first updating the saved setting is refused. This selects an existing owner; it does not create or transfer an identity. On hosted installations, the deployment owner must update the `OWNER_EMAIL` binding separately; D1 erasure does not change provider configuration.
 
 ### State recovery
 
@@ -33,16 +33,25 @@ Unexpected state placement or multiple databases refuse rather than move or dele
 
 ## Verification
 
-`node scripts/rer.mjs verify` builds, typechecks and runs the complete product and browser checks. Install pinned Playwright Chromium with `pnpm exec playwright install --only-shell chromium`; Linux CI also requires `--with-deps`. Shared caches can use `PLAYWRIGHT_SKIP_BROWSER_GC=1` during browser installation. Test transports replace only authorized network/provider edges; no live provider request is required.
+`rer verify` builds, typechecks and runs the complete product and browser checks, then serves the production build as `rer deploy` hosts it and fails if a built file would answer anything but 200 or `/health` lacks the deploy identity. Install pinned Playwright Chromium with `pnpm exec playwright install --only-shell chromium`; Linux CI also requires `--with-deps`. Shared caches can use `PLAYWRIGHT_SKIP_BROWSER_GC=1` during browser installation. Test transports replace only authorized network/provider edges; no live provider request is required.
 
 ## Deploy in your own Cloudflare account
 
-The owner-account path is `node scripts/rer.mjs deploy`. Use `deploy --environment production` to select the environment; `deploy --dry-run` validates/builds with zero provider requests. It builds with provider credentials
+The owner-account path is `rer deploy`. Use `deploy --environment production` to select the environment; `deploy --dry-run` validates/builds with zero provider requests. It builds with provider credentials
 excluded, then provisions a Worker, D1 database, migrations and one-minute
 Cron through Base deploy-kit. Supply `CLOUDFLARE_ACCOUNT_ID` and
-`CLOUDFLARE_API_TOKEN`, plus `OWNER_EMAIL`, `MAIL_FROM` and `SENDGRID_API_KEY`.
-Hosted sign-in requires a configured Base mail adapter (Resend, SendGrid or Cloudflare), a verified sender and a Mail Send API key.
-The production plan declares Worker `uptime-monitor-production` and database
+`CLOUDFLARE_API_TOKEN`, plus `OWNER_EMAIL`, `MAIL_FROM` and the selected mail
+provider's credentials.
+Hosted sign-in requires a configured Base mail adapter (Resend, SendGrid or Cloudflare), a verified sender and that provider's API credential.
+`MAIL_PROVIDER` selects `resend`, `sendgrid` (the existing-install default when
+unset) or `cloudflare`. Resend uses `MAIL_PROVIDER_API_KEY`; SendGrid uses
+`SENDGRID_API_KEY`; Cloudflare Email Sending uses `CLOUDFLARE_MAIL_API_KEY` and
+`MAIL_ACCOUNT_ID`. There is no automatic fallback between providers. Locally the
+provider is the development outbox. Optional `UPTIME_HEARTBEAT_URL` enables the
+independent heartbeat.
+Cloudflare is the only owner deployment target: Uptime's `deploy.json` declares no
+container platform, so the Base `--platform container`, `--host ssh://...` and
+`--image` options are refused. The production plan declares Worker `uptime-monitor-production` and database
 `uptime-monitor-production-db`; Cloudflare supplies the hosted origin after
 deployment. Independent `SESSION_SECRET`, `SETUP_TOKEN` and `UPTIME_RUNNER_KEY`
 values are generated for a new installation or reused from the owner-only
@@ -52,12 +61,30 @@ back it up separately from D1.
 After deployment, open the hosted `/claim` address once to claim the owner, then finish the signed-in `/setup` page, which opens the console at `/app`. App documents return unfinished owners to `/setup`; signed-out visitors go to sign-in and back. Completion is durable and repeating rer setup preserves it.
 Start the private runner separately on an authorized host. See [Runner and
 targets](#runner-and-targets) for its exact environment and command. The deploy
-path is implemented but has not been verified with a fresh Cloudflare account;
-the command and a local readiness result do not establish hosted operation.
+path was exercised end to end once on v0.1.1; the command and a local readiness
+result do not establish hosted operation. A successful deploy prints the hosted
+origin, Worker and environment. A failed one ends with `owner_deploy_failed`,
+the stage and the deploy-kit code, keeps `.rer/deploy/<environment>.json`, and
+resumes when the same command is run again. Other environments use their own
+ownership record but share `.rer/deploy/production-secrets.json`. Uptime never
+deletes provider resources; see `docs/deploy.md` for listing, exact-ID deletion
+and absence checks.
 
 `pnpm run health` checks the owner deployment through Cloudflare and is
-read-only. It does not prove that the runner is active, targets are healthy, or
+read-only; `pnpm run health -- --environment NAME` checks another environment. It does not prove that the runner is active, targets are healthy, or
 mail and notifications reached a person.
+
+## Monitor definition files
+
+`node scripts/definitions.mjs validate|preview|apply|export|batches|undo` is
+the local door to the same engine as the console's Definitions view
+(`/api/definitions/*`, owner session and configured origin). Stop dev and
+preview first: it holds the local operation like export and import. Preview and
+validate write nothing; apply needs `--digest` from the preview and refuses a
+changed installation; export writes a new private file; apply and undo apply
+pending local migrations first. Batches applied from the command line record
+the actor as the local command. See `docs/definitions.md` and
+`docs/moving-from-uptimerobot.md`.
 
 ## Artifact-controller deployment
 
@@ -78,8 +105,9 @@ credential-free Linux job. The preparation step needs no provider credentials.
 `pnpm run artifact-deploy` consumes the artifact, its SHA-256, source and run
 identity, a private receipt path, `CLOUDFLARE_ACCOUNT_ID`,
 `CLOUDFLARE_API_TOKEN`, `UPTIME_WORKER_NAME` and exact HTTPS `UPTIME_ORIGIN`.
-For a fresh deployment, also provide `OWNER_EMAIL`, `MAIL_FROM`,
-`SENDGRID_API_KEY`, and independent `SESSION_SECRET`, `SETUP_TOKEN` and
+For a fresh deployment, also provide `OWNER_EMAIL`, `MAIL_FROM`, the selected
+mail provider's credentials (see above; `MAIL_PROVIDER` is needed for Resend and
+Cloudflare), and independent `SESSION_SECRET`, `SETUP_TOKEN` and
 `UPTIME_RUNNER_KEY` values. The controller writes a private identity receipt,
 checks deployment state and health, and preserves already configured opaque
 secrets. `pnpm run artifact-health` is read-only and needs the same artifact
@@ -104,6 +132,12 @@ origin is only for local review. Probe credentials remain owner-only files in
 `UPTIME_CREDENTIAL_DIR`, referenced by immutable monitor definitions and bound
 to a target origin. Never put bearer credentials in a URL.
 
+The Worker's clock defines every time that sets a schedule. A claim answer carries the Worker's `now`; the runner measures its own offset from the quickest of its last twenty exchanges and reports attempt starts, completions and signature timestamps in the Worker's clock, so a runner whose clock is seconds off still has its evidence accepted and its checks start at least one interval apart by the Worker's claim times. A scheduled check never starts sooner than one interval after the previous one started (after an interval change, the shorter of the old and new interval; a manual Run now never moves the floor). Because each next due time slides to the runner-reported start plus one interval, real cadence is slightly slower than configured: about 0.26 s per check at the 5 s minimum interval (5 % slower) and about 0.4 s per check at 60 s on loopback, with the runner's 1 s poll (see docs/monitors.md).
+
+A runner needs a browser to serve a flow monitor: install the pinned Playwright Chromium on that runner (`pnpm exec playwright install chromium`). The runner reports whether it has one when it enrols; a flow assigned to a runner without one is Unknown with that reason. Each flow run is its own process with a fresh private profile folder and sanitized environment, all browser traffic goes through the runner's filtering proxy, and credentials for fill steps are owner-only files in `UPTIME_CREDENTIAL_DIR` holding `{"origin","value"}`. `UPTIME_RUNNER_BROWSER=off` keeps a runner from running flows. See docs/runner.md and docs/limits.md for the bounds.
+
+A database fault on a runner or console route answers 409 `conflict` (a racing writer or failed guard) or 503 `storage_unavailable` with `Retry-After` (anything else), names the failing operation, and is logged by the Worker and by the runner as one line with the operation, class, status and a sanitized cause; the runner's next poll is the retry.
+
 Public HTTP/HTTPS targets permit ordinary query parameters. Every target and
 redirect hop rechecks credentials, scheme, DNS answers and public IP ranges;
 sockets pin validated addresses, TLS verifies the original hostname, cross-origin
@@ -121,7 +155,7 @@ Receipts do not change target health until the runner evaluates a scheduled slot
 ## Notification destinations
 
 The owner-only **Notifications** view manages destinations for every monitor in
-one installation. Email uses the same `MAIL_FROM` and `SENDGRID_API_KEY`
+one installation. Email uses the same `MAIL_FROM` and selected mail provider
 configuration as operator sign-in. The Worker sends email. The private Node
 runner sends signed JSON and Slack incoming webhooks when it polls the
 installation. At each poll, the Worker submits queued email through the selected Base mail adapter;
@@ -183,7 +217,7 @@ checks do not advance scheduled incident policy. Missing, incomplete or stale
 observations remain Unknown. Runner contact is authenticated receipt time, not
 process health.
 
-Use `node scripts/rer.mjs export --output FILE` and `node scripts/rer.mjs import --input FILE --yes` for local archive files. Run setup on the receiving checkout before import so its owner and private settings are established; product data must be empty. Hosted owners use the console export and restore actions. Imports require explicit confirmation.
+Use `rer export --output FILE` and `rer import --input FILE --yes` for local archive files. Run setup on the receiving checkout before import so its owner and private settings are established; product data must be empty. Hosted owners use the console export and restore actions. Imports require explicit confirmation.
 
 The `/health` endpoint proves D1 readiness and exact deployment identity, not
 runner operation, target health, provider acceptance, mailbox receipt, or a

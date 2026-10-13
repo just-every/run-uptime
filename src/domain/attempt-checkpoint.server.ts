@@ -4,9 +4,13 @@ import {foldAttempts,type ProjectionCheckpoint} from './attempt-projection.ts'
 // An upgraded installation catches up once in bounded pages. Thereafter only
 // expired windows since the checkpoint and still-mutable windows are read.
 const PAGE=512;
-const tail=`SELECT id,due_at,manual,lease_until FROM slots
- WHERE monitor_id=? AND revision=? AND manual=0 AND (due_at,id)>(?,?)
- ORDER BY due_at,id LIMIT ${PAGE}`;
+// `skipped`: a vantage's part of the slot was never delivered because its runner, behind, took a newer scheduled slot of the
+// monitor instead (the newest-slot rule in attempts.server.ts). A runner that took nothing newer leaves its part as missing evidence.
+const tail=`SELECT t.id,t.due_at,t.manual,t.lease_until,EXISTS(SELECT 1 FROM runner_assignments a JOIN slots n ON n.monitor_id=t.monitor_id
+ AND n.manual=0 AND n.due_at>t.due_at JOIN runner_assignments na ON na.slot_id=n.id AND na.runner_id=a.runner_id AND na.delivered_at IS NOT NULL
+ WHERE a.slot_id=t.id AND a.delivered_at IS NULL) skipped FROM slots t
+ WHERE t.monitor_id=? AND t.revision=? AND t.manual=0 AND (t.due_at,t.id)>(?,?)
+ ORDER BY t.due_at,t.id LIMIT ${PAGE}`;
 type Update={dueAt:number;slotId:string;checkpoint:ProjectionCheckpoint};
 export function checkpointStatement(env:Bindings,monitorId:string,revision:number,update:Update,generation:number,token:string){
  return env.DB.prepare(`INSERT INTO attempt_checkpoints(monitor_id,revision,due_at,slot_id,state,last_observations)

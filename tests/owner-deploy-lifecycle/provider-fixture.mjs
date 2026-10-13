@@ -75,7 +75,7 @@ export function providerFixture() {
       const bindings = meta.bindings.map(x => x.type === 'inherit' || x.type === 'secret_text' ? {name:x.name,type:'secret_text'} : x);
       state.settings = {...meta,bindings,migration_tag:meta.migrations?.new_tag ?? state.settings?.migration_tag};
       for (const klass of meta.migrations?.new_sqlite_classes ?? []) state.namespaces.push({id:randomUUID().replaceAll('-',''),class:klass,script:name,use_sqlite:true});
-      const id = randomUUID();state.version={id,resources:{bindings,script:{etag:hash(await body.get(meta.main_module).text())}}};state.deployments=[{id:randomUUID(),versions:[{version_id:id,percentage:100}]}];
+      const id = randomUUID();state.version={id,resources:{bindings,script:{etag:hash(await body.get(meta.main_module).text()),handlers:['fetch','scheduled']}}};state.deployments=[{id:randomUUID(),versions:[{version_id:id,percentage:100}]}];
       write(method,path,{bindings:bindings.map(x => ({name:x.name,type:x.type}))});return ok({id:name,deployment_id:id});
     }
     throw Error(`unexpected fixture ${method} ${path}`);

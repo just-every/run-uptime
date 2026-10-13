@@ -56,14 +56,12 @@
   "commands": {
     "setup": {
       "argv": [
-        "node",
-        "scripts/rer.mjs",
+        "rer",
         "setup"
       ],
       "effects": "Build, apply all additive local migrations, prepare private settings and bootstrap one owner through operator-auth; send an ordinary sign-in to the Base outbox, then stop every temporary process.",
       "inputs": [
         "package.json",
-        "scripts/rer.mjs",
         "scripts/installer/local.mjs",
         "rer-setup.json"
       ],
@@ -71,14 +69,12 @@
     },
     "dev": {
       "argv": [
-        "node",
-        "scripts/rer.mjs",
+        "rer",
         "dev"
       ],
       "effects": "Start Vite with assets and HMR, the product synthetic target and private runner on loopback; print readiness after application health and fresh outbox sign-in.",
       "inputs": [
         "package.json",
-        "scripts/rer.mjs",
         "scripts/installer/local.mjs",
         "rer-setup.json"
       ],
@@ -86,14 +82,12 @@
     },
     "preview": {
       "argv": [
-        "node",
-        "scripts/rer.mjs",
+        "rer",
         "preview"
       ],
       "effects": "Build and serve fixed production output with the product synthetic target and private runner on loopback; preserve the local owner and durable state; stop after idle timeout or preview --stop.",
       "inputs": [
         "package.json",
-        "scripts/rer.mjs",
         "scripts/installer/local.mjs",
         "rer-setup.json"
       ],
@@ -101,14 +95,12 @@
     },
     "deploy": {
       "argv": [
-        "node",
-        "scripts/rer.mjs",
+        "rer",
         "deploy"
       ],
       "effects": "Build and provision in the owner Cloudflare account through Base deploy-kit, then check health. Dry run validates/builds locally with zero provider requests.",
       "inputs": [
         "package.json",
-        "scripts/rer.mjs",
         "scripts/installer/local.mjs",
         "rer-setup.json"
       ],
@@ -146,14 +138,12 @@
     },
     "verify": {
       "argv": [
-        "node",
-        "scripts/rer.mjs",
+        "rer",
         "verify"
       ],
-      "effects": "Run the complete product verification target without recursive aliases.",
+      "effects": "Run the complete product verification target without recursive aliases, then serve the production build as rer deploy hosts it (assets behind the Worker, deploy identity bound) and fail naming each built file that does not answer 200 or a /health without the deploy identity. Browser flows need the pinned Playwright Chromium.",
       "inputs": [
         "package.json",
-        "scripts/rer.mjs",
         "scripts/installer/local.mjs",
         "rer-setup.json"
       ],
@@ -161,14 +151,12 @@
     },
     "export": {
       "argv": [
-        "node",
-        "scripts/rer.mjs",
+        "rer",
         "export"
       ],
       "effects": "Write a new private Base integrity archive containing the complete Uptime product payload; exclude credentials and installation authority.",
       "inputs": [
         "package.json",
-        "scripts/rer.mjs",
         "scripts/installer/local.mjs",
         "rer-setup.json"
       ],
@@ -176,16 +164,27 @@
     },
     "import": {
       "argv": [
-        "node",
-        "scripts/rer.mjs",
+        "rer",
         "import"
       ],
       "effects": "After confirmation validate Base integrity and atomically restore complete product/history records into an empty destination, with monitors paused, destinations disabled and notifications quarantined.",
       "inputs": [
         "package.json",
-        "scripts/rer.mjs",
         "scripts/installer/local.mjs",
         "rer-setup.json"
+      ],
+      "requiredEnvironment": []
+    },
+    "definitions": {
+      "argv": [
+        "node",
+        "scripts/definitions.mjs"
+      ],
+      "effects": "Monitor definition files for the local installation, through the same engine as the console Import view: validate and preview a file (uptime.monitors.json, saved UptimeRobot v3 GET /monitors pages, or an UptimeRobot log export counted as history) without writing; apply exactly the previewed plan digest as one batch with new monitors paused; export current definitions to a new file; list batches and undo one. Never enables a monitor, issues a heartbeat token, schedules a notification or touches a destination. Pass validate|preview|apply|export|batches|undo and their flags; stop dev or preview first.",
+      "inputs": [
+        "package.json",
+        "scripts/definitions.mjs",
+        "src/domain/definitions/index.server.ts"
       ],
       "requiredEnvironment": []
     },
@@ -288,14 +287,12 @@
     },
     "install": {
       "argv": [
-        "node",
-        "scripts/rer.mjs",
+        "rer",
         "install"
       ],
       "effects": "Frozen dependency installation; no setup, global tool change or deployment.",
       "inputs": [
         "package.json",
-        "scripts/rer.mjs",
         "scripts/installer/local.mjs",
         "rer-setup.json"
       ],
@@ -303,14 +300,12 @@
     },
     "build": {
       "argv": [
-        "node",
-        "scripts/rer.mjs",
+        "rer",
         "build"
       ],
       "effects": "Build production Worker/assets with all private local settings excluded and restored exactly.",
       "inputs": [
         "package.json",
-        "scripts/rer.mjs",
         "scripts/installer/local.mjs",
         "rer-setup.json"
       ],
@@ -318,14 +313,12 @@
     },
     "reset": {
       "argv": [
-        "node",
-        "scripts/rer.mjs",
+        "rer",
         "reset"
       ],
       "effects": "After explicit confirmation remove canonical local state, private settings, installer state and CLI bookkeeping only.",
       "inputs": [
         "package.json",
-        "scripts/rer.mjs",
         "scripts/installer/local.mjs",
         "rer-setup.json"
       ],
@@ -333,14 +326,12 @@
     },
     "release": {
       "argv": [
-        "node",
-        "scripts/rer.mjs",
+        "rer",
         "release"
       ],
       "effects": "Base release producer, verification and publication checks; no push or deployment.",
       "inputs": [
         "package.json",
-        "scripts/rer.mjs",
         "scripts/installer/local.mjs",
         "rer-setup.json"
       ],
@@ -348,14 +339,12 @@
     },
     "outbox": {
       "argv": [
-        "node",
-        "scripts/rer.mjs",
+        "rer",
         "outbox"
       ],
       "effects": "Print the running local Base outbox URL; request ordinary sign-in only with an owner email; open browser only when explicitly requested.",
       "inputs": [
         "package.json",
-        "scripts/rer.mjs",
         "scripts/installer/local.mjs",
         "rer-setup.json"
       ],
@@ -363,14 +352,12 @@
     },
     "doctor": {
       "argv": [
-        "node",
-        "scripts/rer.mjs",
+        "rer",
         "doctor"
       ],
       "effects": "Read-only tool, pin, local settings and state diagnostics; no provider request.",
       "inputs": [
         "package.json",
-        "scripts/rer.mjs",
         "scripts/installer/local.mjs",
         "rer-setup.json"
       ],
@@ -378,14 +365,12 @@
     },
     "describe": {
       "argv": [
-        "node",
-        "scripts/rer.mjs",
+        "rer",
         "describe"
       ],
       "effects": "Read-only command flags, aliases, pins and effects.",
       "inputs": [
         "package.json",
-        "scripts/rer.mjs",
         "scripts/installer/local.mjs",
         "rer-setup.json"
       ],
@@ -393,14 +378,12 @@
     },
     "check": {
       "argv": [
-        "node",
-        "scripts/rer.mjs",
+        "rer",
         "check"
       ],
       "effects": "Read-only operations and first-party contract validation; no credentials required.",
       "inputs": [
         "package.json",
-        "scripts/rer.mjs",
         "scripts/installer/local.mjs",
         "rer-setup.json"
       ],

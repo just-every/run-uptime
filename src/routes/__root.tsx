@@ -1,6 +1,7 @@
 import { HeadContent, Outlet, Scripts, createRootRoute, lazyRouteComponent, useRouterState } from '@tanstack/react-router'
 import {OwnerEditorShell} from '../editor/owner-editor.tsx'
 import {useEditorLeafReady} from '../base/modules/editor/react.tsx'
+import {introCss,introGuardScript} from '../base/hydration/intro-guard.ts'
 // Lazy, so the public site's styles stay out of the root chunk and never reach the console's documents.
 const SiteNotFound=lazyRouteComponent(() => import('../site/shell/NotFound.tsx'), 'NotFound')
 function NotFound(){useEditorLeafReady('not-found');return <SiteNotFound/>}
@@ -10,5 +11,6 @@ function ConsoleEditor(){const path=useRouterState({select:state=>state.location
 export const Route = createRootRoute({
   head: () => ({ meta: [{ title: 'Uptime & API monitoring' }, { charSet: 'utf-8' }, { name: 'viewport', content: 'width=device-width, initial-scale=1' }], title: 'Uptime & API monitoring' }),
   notFoundComponent: NotFound,
-  component: () => <html lang="en"><head><HeadContent /></head><body><Outlet /><ConsoleEditor/><Scripts /></body></html>,
+  // Base's intro guard, early in <head> (src/base/hydration/README.md).
+  component: () => <html lang="en"><head><script dangerouslySetInnerHTML={{__html:introGuardScript}}/><style>{introCss}</style><HeadContent /></head><body><Outlet /><ConsoleEditor/><Scripts /></body></html>,
 })

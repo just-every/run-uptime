@@ -5,6 +5,7 @@ import { pathToFileURL } from 'node:url';
 import { assert, hash, localPath } from './validation.mjs';
 import { collectFiles, regularBytes, validateArtifact, MAX_ARTIFACT } from './artifact.mjs';
 import { collectBuildModules } from './build-modules.mjs';
+import { refuseLocalModels } from './local-only.mjs';
 
 export function assertCredentialFree(env) {
   for (const [key,value] of Object.entries(env)) if (value && /(?:TOKEN|SECRET|PASSWORD|API_KEY|PRIVATE_KEY|AUTHORIZATION|COOKIE|CREDENTIAL)/i.test(key)) throw new Error('prepare-credential-environment-forbidden');
@@ -17,6 +18,8 @@ function run(argv, cwd, env) {
 export async function packageBuild({root,source,runIdentity,productDirectory = 'default-seed'}) {
   assert(productDirectory === '' || localPath(productDirectory), 'invalid-product-directory');
   const product = join(root,productDirectory);
+  await refuseLocalModels(root);
+  if (product !== root) await refuseLocalModels(product);
   const build = join(product,'dist/server');
   const config = JSON.parse(await regularBytes(join(build,'wrangler.json'),1024*1024));
   const main = localPath(relative(build,resolve(build,config.main)));

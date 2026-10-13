@@ -1,4 +1,4 @@
-import type { Admission, Database, IdentityProviderConfig, IdentityProviders } from '../../index.mjs';
+import type { Admission, Role, Database, IdentityProviderConfig, IdentityProviders } from '../../index.mjs';
 export interface OidcProvidersConfig {
   origin: string;
   local?: boolean;
@@ -12,8 +12,12 @@ export interface OidcProvidersConfig {
   maxTokenAgeSeconds?: number;
   startLimit?: number;
 }
-export interface OidcProvidersOptions {
-  admission: Pick<Admission, 'admit'>;
+export interface OidcProvidersOptions<R extends string = Role> {
+  admission: Pick<Admission<R>, 'admit'> & Partial<Pick<Admission<R>,'accounts'>>;
+  enabled?:()=>Promise<boolean>;
+  policyVersion?:()=>Promise<number>;
+  claimScope?:()=>Promise<boolean>;
+  claim?:(request:Request,token:string,pin:{id:string;issuer:string;clientId:string;linkedAt:number})=>Promise<Response|null>;
   db: Database;
   config: OidcProvidersConfig;
   clientIp: (request: Request) => string | Promise<string>;
@@ -23,7 +27,7 @@ export interface OidcProvidersOptions {
 }
 export const HIDE_AFTER_MS: number;
 export const MINIMUM_PROVIDER_VERSION: string;
-export const PRESETS: Readonly<Record<'auth' | 'google' | 'microsoft' | 'okta', { label: string; algorithms: string[]; methods: string[]; email: 'verified-at' | 'google' | 'subject' }>>;
-export function createOidcProviders(options: OidcProvidersOptions): IdentityProviders;
+export const PRESETS: Readonly<Record<'auth' | 'google' | 'microsoft' | 'okta' | 'legacy-rs256', { label: string; algorithms: string[]; methods: string[]; email: 'verified-at' | 'google' | 'subject' | 'legacy-verified' }>>;
+export function createOidcProviders<R extends string>(options: OidcProvidersOptions<R>): IdentityProviders;
 export function createOidcHandler(providers: IdentityProviders): (request: Request) => Promise<Response | null>;
 export class OidcError extends Error { constructor(code: string, status?: number); code: string; status: number }

@@ -1,6 +1,6 @@
 import { lstat } from 'node:fs/promises';
 import { relative } from 'node:path';
-import { RerError, refuse, missing } from '../base-cli/cli/errors.mjs';
+import { RerError, refuse, missing } from '@runeditrun/rer/errors';
 async function transfer(context, direction) {
  const { root, path, store, signal, operationToken } = context;
  const location = relative(root, path);
@@ -16,6 +16,7 @@ async function transfer(context, direction) {
  const result = await new Promise(resolve => child.once('close', (code, signal) => resolve({ code, signal })));
  let value; try { value = JSON.parse(receipt.trim().split('\n').at(-1)); } catch { throw new RerError('transfer_failed', 'The product transfer returned no integrity receipt.', 1); }
  if (result.code !== 0 || !value.ok) {
+  if (value.reason === 'legacy_archive_unbound') throw refuse('This archive was exported by Uptime 0.1.2 or earlier, before archives bound their metadata, and cannot be imported. Upgrade the source installation to this version and export it again. A console archive (Runner / archive) still restores into an empty installation.');
   if (value.refused) throw refuse('Uptime refused the transfer: preserve the archive, restore only into an empty destination, and inspect the private capture.');
   throw new RerError('transfer_failed', `The Uptime transfer failed (${/^[a-zA-Z_]+$/.test(value.reason) ? value.reason : 'product_transfer_failed'}); inspect the private capture.`, 1);
  }

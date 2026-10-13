@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {validateArchive} from '../src/domain/archive-validation.ts';
-import {digest,LEGACY_TABLES,TABLES,ARCHIVE_BYTES,ARCHIVE_ROWS} from '../src/domain/archive-schema.ts';
+import {digest,LEGACY_TABLES,TABLES,ARCHIVE_BYTES,ARCHIVE_ROWS,EXTENSION_VERSION} from '../src/domain/archive-schema.ts';
 import {projectRestore} from '../src/domain/archive-restore-projection.ts';
 import {portableArchive} from '../src/domain/archive-schema.ts';
 import {restore} from '../src/domain/archive.server.ts';
 import {legacyArchive,rehashArchive} from './archive-restore-fixtures.mjs';
 const wrap=async payload=>({payload,sha256:await digest(JSON.stringify(payload))});
 const base=()=>({schemaVersion:2,target:'uptime-worker-d1',createdAt:Date.now(),tables:Object.fromEntries(LEGACY_TABLES.map(n=>[n,[]]))});
-const extended=()=>({...base(),extensionVersion:2,productTables:Object.fromEntries(TABLES.filter(n=>!LEGACY_TABLES.includes(n)).map(n=>[n,[]]))});
+const extended=()=>({...base(),extensionVersion:EXTENSION_VERSION,productTables:Object.fromEntries(TABLES.filter(n=>!LEGACY_TABLES.includes(n)).map(n=>[n,[]]))});
 test('versioned archive preserves strict legacy and extension table sets',async()=>{
  for(const version of [1,2]){const value=base();value.schemaVersion=version;assert.deepEqual(Object.keys(await validateArchive(await wrap(value))),TABLES)}
  await validateArchive(await wrap(extended()));

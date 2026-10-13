@@ -9,7 +9,7 @@ import {availablePorts,migratedWorker,runtimeDirectory,fixtureProcess,cleanupDir
 import {testAuthBindings,authRequest,outboxLink,sessionCookie} from './auth-test-support.mjs';
 import {restore,archive} from '../src/domain/archive.server.ts';
 import {productPolicy} from '../scripts/local/transfer-policy.mjs';
-import {createPortability,readArchive} from '../scripts/base-cli/modules/portability/index.mjs';
+import {createPortability,readArchive} from '@runeditrun/rer/modules/portability';
 import {digest} from '../src/domain/archive-schema.ts';
 import {assertRunnerAdmissionOnly} from './signed-runner-result-proof.mjs';
 
@@ -49,6 +49,8 @@ try{
  // heartbeat slot on a later immutable revision of the same monitor.
  await ok(`/api/monitors/${monitor.id}`,'PATCH',{name:canaries.monitor,type:'heartbeat',probes:['local-a','local-b'],heartbeat:{maxAgeMs:60000},intervalMs:86400000,retries:0,confirmSlots:1,recoverSlots:1});
  const heartbeat=await ok(`/api/monitors/${monitor.id}/heartbeat-key`,'POST',{});
+ // Edits and key issuance save revisions due no sooner than the shorter interval after the previous check started; bring this one forward.
+ await DB.prepare('UPDATE monitors SET next_due=? WHERE id=?').bind(Date.now(),monitor.id).run();
  await ok(`/api/heartbeats/${monitor.id}`,'POST',{}, {authorization:`Bearer ${heartbeat.token}`,'x-heartbeat-sequence':'1'});
  await runChecks();
  assert.ok((await DB.prepare('SELECT COUNT(*) n FROM heartbeat_claims WHERE slot_id IN(SELECT id FROM slots WHERE monitor_id=?)').bind(monitor.id).first()).n>0);
@@ -69,6 +71,7 @@ try{
  await worker.dispose();worker=null;bindings.MAIL_PROVIDER='development';env.MAIL_PROVIDER='development';
  ({worker,DB}=await migratedWorker({port,persist,bindings,outboundService:()=>{throw Error('Capture-mode erasure proof must not send provider mail')}}));env.DB=DB;
  // Real invitation, confirmation and owner action create personal account copies.
+ await owner.freshSignIn(bindings);
  await ok('/auth/invite','POST',{email:canaries.operator,displayName:'erase-operator-name-canary',role:'owner'},{origin});
  const call=authRequest(origin),link=await outboxLink(call,{email:canaries.operator,kind:'invite'}),erasedCookie=sessionCookie(await call('/auth/confirm',{token:link.searchParams.get('token')}));
  const other=(await ok('/auth/operators')).find(o=>o.email===canaries.operator);assert.ok(other);
@@ -126,7 +129,7 @@ try{
  const forged=structuredClone(afterArchive);forged.payload.productTables.uptime_audit[0].subject_ref=canaries.operator;forged.sha256=await digest(JSON.stringify(forged.payload));await assert.rejects(restore(fresh,forged),/anonymized archive audit/);
  let importId;const manifest=transferBefore.records[0],service=await createPortability({db:fresh.DB,policy:productPolicy(fresh,()=>importId,()=>({manifest,laterJournal:later}))});
  importId=await service.imports.create(manifest);for(const record of transferBefore.records)if(record.kind==='part')await service.imports.uploadPart(importId,record.index,record);
- await assert.rejects(service.imports.finalize(importId,{contentHash:transferBefore.records.at(-1).contentHash,laterJournal:later}),/erased/);
+ await assert.rejects(service.imports.finalize(importId,{contentHash:transferBefore.records.at(-1).contentHash,archiveHash:transferBefore.records.at(-1).archiveHash,laterJournal:later}),/erased/);
  assert.equal((await fresh.DB.prepare('SELECT COUNT(*) n FROM monitors').first()).n,0,'native payload fence precedes product writes');await service.imports.abort(importId);
  await restore(fresh,afterArchive);const restoredAudit=(await fresh.DB.prepare('SELECT * FROM uptime_audit').all()).results;for(const row of savedAudit)assert.deepEqual(restoredAudit.find(item=>item.id===row.id),row,'portable audit rows survive import unchanged');assert.equal(restoredAudit.length,savedAudit.length+1);const restoreAudit=restoredAudit.find(row=>row.action==='archive_restore');assert.ok(restoreAudit);
  const evidence={receipts,scan,audit:savedAudit,restoreAudit,signedResult:{realClaimedHeartbeat:true,validSignaturePassed:true,refusedStatus:signedRefusal.status,unchangedNonCounterTables:true,runnerAdmissions:5},notificationAttempts:{mail:mail.length,webhook:receiver.records.length,authCaptures,authAudits},erasedActorArchiveRefusedBeforeWrites:true,historicalFixtures:'Two replay envelopes cloned from actual deliveries, one delivery resolution, and an original monitor archive_history copy were inserted in real D1; owner and runner APIs populated all other dependents.',attachments:'No R2 buckets or uploads exist.'};

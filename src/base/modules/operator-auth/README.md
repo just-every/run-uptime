@@ -71,6 +71,17 @@ configuration and branding, the shared page frame (`page.mjs`), the key gate
 credentials), the composition (`service.mjs`), the HTTP adapter (`routes.mjs`)
 and the sign-in page (`signin/`).
 
+### Native composition
+
+`createOperatorAuth({ accounts, proofs, ... })` routes the complete service
+through the seed's native accounts, cookies, sessions and durable email/step-up
+proof persistence. Both are required; partial injection fails closed. Native
+roles are generic types, and unsupported administration/provisioning explicitly
+refuses. Apply identity/dependency storage only, without OA account tables.
+See the [native adoption contract](docs/native-accounts.md) for exact APIs,
+transaction fences, optional capabilities, callback/trust settings and the
+Slate/HappyToHelp continuation steps.
+
 ### The accounts adapter interface
 
 Identity never decides who may enter; it asks the app's accounts. A seed that
@@ -84,6 +95,9 @@ passes the adapter to `createAdmission` from `identity/index.mjs`:
 | `bind({issuer, subject, person, associated})` | Binds `(iss, sub)` to the person and returns whether it now names them. Never rebinds a principal bound to someone else; binds only proven emails (or an explicit configured association, `associated: true`); revokes the person's earlier password credentials. |
 | `issueSession({person, principal, method, returnTo, request})` | A completed session `{session, operator, cookie, returnTo}`, or null when the person changed meanwhile. |
 | `revokeSession(sessionId)` | Ends one session (used when a seed's `afterConfirm` refuses a sign-in). |
+| `identityEnabled()` *(optional)* | The app-owned provider sign-in setting; omission means off. |
+| `currentBoundSubject({personId,issuer})` *(optional)* | The current bound subject for this person at this issuer; null for ambiguity. Required for OIDC editor authority. |
+| `bindAndIssueSession(...)` *(optional)* | Atomically bind and issue the session with current person and provider-setting fences; Base uses this path. |
 | `owner()` | The app's owner, or null. |
 | `acceptInvitation(...)` *(optional)* | Accepts a pending invitation through a principal that proves the invited email. |
 | `requiredProvider(email)` *(optional)* | The provider id the email's domain must use, or null. |
@@ -199,7 +213,9 @@ The standalone module's default conformance still requires no font resources.
 Opaque 256-bit credentials are HMAC-SHA256 hashed with domain separation at rest.
 Cookies are host-only, Path=/, HttpOnly, SameSite=Lax; production uses Secure and
 `__Host-operator_session`. Explicit `local:true` allows only literal localhost,
-127.0.0.1 or [::1] and uses `operator_session_local`. Session expiry defaults to
+127.0.0.1 or [::1] and uses `operator_session_local_<port>` (for example
+`operator_session_local_8787`): browsers keep cookies per host, not per port, so
+checkouts side by side on one loopback host each keep their own session. Session expiry defaults to
 7 days (maximum 30), links to 15 minutes (maximum 60); no silent sliding renewal.
 `returnTo` must be a local absolute path; unsafe values become `/app`. It is stored
 with the token, and cannot be replaced on confirmation. Auth methods never return
@@ -397,6 +413,16 @@ never one. Base's own routes enforce it; a seed guards its export, delete and
 credential-minting routes with `await auth.requireStepUp(request, action)`,
 which refuses with `step_up_required` (403).
 
+The shared administrative actor guard applies that proof to every owner role
+grant or removal, owner invitation (new, reissued or reinstated after cancellation),
+owner invitation cancellation, and owner activation or deactivation. Unchanged
+roles/statuses and non-owner status changes retain their usual authorization.
+The existing version fences and last-active-owner protection still apply after
+the proof succeeds.
+Creating a server-declared owner dev persona also requires the signed-in owner's
+fresh local proof in addition to the checkout key. Its creation repeats the actor
+session/version fence in the database write.
+
 ## Local dev identity and the key gate
 
 `dev-gate.mjs` (exported as `devGate`, production-safe) is the per-checkout key
@@ -407,7 +433,7 @@ local reverse proxy makes remote requests look local (forwarded requests carry
 a loopback URL and Host, and `CF-Connecting-IP` is whatever the caller sent), so
 the gate is the key, not the network. `devGate({key, origin, local})` returns
 null unless the key is present and the origin is an explicit loopback origin in
-local mode. `admits(request)` accepts the `rer_dev_gate` cookie (an HMAC of the
+local mode. `admits(request)` accepts the `rer_dev_gate_<port>` cookie (an HMAC of the
 key, so a reset key refuses old cookies) or the key in `x-rer-dev-key` (the rer
 CLI and test harnesses). `exchange(request)` serves `GET /__dev/key` and trades
 the key from the URL fragment, through a same-origin POST, for a host-only
@@ -545,8 +571,11 @@ confirming links, so a store without it fails closed. Unlike the cancellation
 migration, this file is also safe after the fresh schema. The reference seed
 applies it as `migrations/core/0007_dev_sessions.sql`;
 `tests/dev-sessions-upgrade.test.mjs` upgrades a populated store built from
-the reference's earlier migrations and proves every existing session of every
-kind keeps its id and expiry and stays valid.
+the reference's earlier migrations and proves every stored session keeps its id
+and expiry. Native, review and password sessions retain usable authority after
+the later additive migrations. Legacy provider sessions require a new sign-in:
+upgrades start with provider sign-in off, and enabling it does not manufacture
+missing provider session provenance.
 
 **Layers, domain rules and step-up.** An existing store needs
 `accounts/schema/domain-rules-step-up.sql` (`oa_domain_rules`,
@@ -566,3 +595,5 @@ cancellation migration and the optional OIDC and conformance files. Check each
 seed's present source and applied migrations before adopting. A seed owns its
 route configuration, CI and release; Base checks do not establish integrated
 adoption or deployment.
+
+The application-side dependency, owner-setting and logout protocol is documented in [dependencies](../dependencies/README.md). Existing stores default to provider sign-in off, and provider admission requires the app-owned setting.

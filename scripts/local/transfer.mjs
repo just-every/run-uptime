@@ -2,29 +2,44 @@ import { open, mkdir, unlink, lstat, readFile } from 'node:fs/promises';
 import { dirname, isAbsolute } from 'node:path';
 import { constants } from 'node:fs';
 import { Readable } from 'node:stream';
-import { createPortability, readArchive, PortabilityError } from '../base-cli/modules/portability/index.mjs';
-import { absent, privateFile, promote } from '../base-cli/modules/portability/cli-options.mjs';
+import { createPortability, readArchive, PortabilityError } from '@runeditrun/rer/modules/portability';
+import { readLegacyArchive } from '@runeditrun/rer/modules/portability/format';
+import { absent, privateFile, promote } from '@runeditrun/rer/modules/portability/cli-options';
 import { readLocalSettings } from '../local-settings.mjs';
 import { startLocalWorker } from '../local-worker.mjs';
 import { productPolicy } from './transfer-policy.mjs';
+import { migrationReplay } from '@runeditrun/rer/modules/portability/migration-history';
+import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
 import {validateJournal} from '../../src/domain/archive-fence.server.ts';
-async function* records(path) {
+async function* records(path, reader = readArchive) {
  const file = await open(path, constants.O_RDONLY | constants.O_NOFOLLOW);
- try { yield* readArchive(Readable.toWeb(file.createReadStream({ autoClose: false }))); }
+ try { yield* reader(Readable.toWeb(file.createReadStream({ autoClose: false }))); }
  finally { await file.close(); }
 }
 export async function transfer(direction, path) {
  let laterJournal;
  if(direction==='import'&&process.env.UPTIME_LATER_JOURNAL){const journalPath=process.env.UPTIME_LATER_JOURNAL;if(!isAbsolute(journalPath))throw Error('UPTIME_LATER_JOURNAL must be an absolute file path');const stat=await lstat(journalPath);if(!stat.isFile()||stat.isSymbolicLink()||stat.size>8*1024*1024)throw Error('Invalid erasure journal file');laterJournal=validateJournal(JSON.parse(await readFile(journalPath,'utf8')))}
  if (direction === 'export') await absent(path);
- else for await (const record of records(path)) {}
+ else try { for await (const record of records(path)) {} } catch (error) {
+  // Archives from Uptime 0.1.2 and earlier predate Base's metadata binding. Base reads them only through an
+  // acknowledged recovery into an installation without an owner, which Uptime's setup-first import cannot offer.
+  if (!(error instanceof PortabilityError)) throw error;
+  let legacy = false; try { for await (const record of records(path, readLegacyArchive)) {} legacy = true; } catch {}
+  throw legacy ? new PortabilityError('legacy_archive_unbound', 409) : error;
+ }
  const settings = await readLocalSettings();
  const worker = await startLocalWorker({ bindings: settings, assets: false });
  let service, id, complete = false, manifest, closing;
  const temporary = path + '.partial';
  try {
   const env = { ...settings, DB: await worker.getD1Database('DB') };
-  service = await createPortability({ db: env.DB, policy: productPolicy(env, () => id, () => ({manifest,laterJournal})) });
+  const policy = productPolicy(env, () => id, () => ({manifest,laterJournal}));
+  // The migrations this installation applied, in Wrangler's applied order, so an archive made before later additive migrations
+  // (new tables, columns with defaults, indexes) restores into it instead of being refused for a ledger it has outgrown.
+  const root = fileURLToPath(new URL('../../', import.meta.url)), { unstable_splitSqlQuery: split } = createRequire(root + 'package.json')('wrangler');
+  const migrations = async () => migrationReplay(await Promise.all((await env.DB.prepare('SELECT name FROM d1_migrations ORDER BY id').all()).results.map(async ({ name }) => ({ name, statements: split(await readFile(root + 'migrations/' + name, 'utf8')) }))), policy);
+  service = await createPortability({ db: env.DB, policy, migrations });
   if (direction === 'export') {
    await mkdir(dirname(path), { recursive: true, mode: 0o700 });
    const file = await privateFile(temporary, false);
@@ -44,7 +59,7 @@ export async function transfer(direction, path) {
     else if (record.kind === 'part') await service.imports.uploadPart(id, record.index, record);
     else closing = record;
    }
-   await service.imports.finalize(id, { contentHash: closing.contentHash,laterJournal }); complete = true;
+   await service.imports.finalize(id, { contentHash: closing.contentHash, archiveHash: closing.archiveHash, laterJournal }); complete = true;
   }
   return { contentHash: closing.contentHash, payloads: manifest.payloads.map(({ name, size }) => ({ name, size })), exclusions: Object.values((await import('../../src/domain/archive-inventory.ts')).installationLocalTables), requiredConfiguration: manifest.requiredConfiguration };
  } finally {

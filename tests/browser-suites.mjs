@@ -9,7 +9,7 @@ import {fileURLToPath} from 'node:url';
 import {startLocalWorker} from '../scripts/local-worker.mjs';
 import {testAuthBindings, signInOwner, authRequest} from './auth-test-support.mjs';
 import {splitSql} from './migration-support.mjs';
-import {readProcessTable, sameProcess} from '../scripts/base-onboarding/process-table.mjs';
+import {readProcessTable, sameProcess} from '@runeditrun/rer/internal/onboarding/process-table.mjs';
 
 // Integration of the existing local-review browser suites, not hosted acceptance
 // or the separate production signed-runner regression. Build first (pnpm verify).

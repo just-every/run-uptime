@@ -8,4 +8,4 @@ export { AuthError } from './errors.mjs';
 export { normalizeEmail, safeReturnTo } from './policy.mjs';
 export { DEFAULT_ROLES, defaultRolePolicy, isActiveOperator } from './accounts/roles.mjs';
 export { requireLoopback, isLoopbackHost, securityHeaders } from './http.mjs';
-export { devGate, devNotFound, DEV_KEY_HEADER, DEV_GATE_COOKIE } from './dev-gate.mjs';
+export { devGate, devNotFound, DEV_KEY_HEADER } from './dev-gate.mjs';

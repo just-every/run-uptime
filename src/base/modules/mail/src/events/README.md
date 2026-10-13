@@ -195,3 +195,74 @@ Primary contracts checked 6 October 2026:
 * [Resend recipient event scope](https://www.resend.com/changelog/webhook-event-visibility)
 * [Cloudflare event schemas](https://developers.cloudflare.com/email-service/platform/event-subscriptions/)
 * [Durable Object storage transactions](https://developers.cloudflare.com/durable-objects/api/sqlite-storage-api/)
+
+## Messaging events and real D1 storage
+
+```js
+import { createDeliveryEventIntake, createD1EventStore } from './modules/mail/index.mjs';
+const intake = createDeliveryEventIntake({
+  provider: 'messaging', tenantId: trustedTenant, eventNamespace: 'messaging-link',
+  messagingSource: {
+    serviceOrigin: 'https://messaging.example.com',
+    installId: localInstallId,
+    jwks: pinnedEventJwks, // public ES256 keys obtained when linking
+  },
+  store: createD1EventStore({ db: env.DB }),
+  authorize: event => ownsDelivery(event.deliveryId, event.providerMessageId,
+    event.recipients, event.tenantId),
+});
+// Bound the read to 1 MiB before allocating; this is the actual compact JWS body.
+const results = await intake.ingestWebhook({ rawBody, headers: request.headers });
+```
+
+For the exact independent wire format, signature envelope and closed detail
+fields, see [Messaging v1](../adapters/messaging/README.md). `key` is forbidden for
+this source. The event JWKS is copied when constructing intake; mutating the
+caller configuration cannot change an existing trust root. No network lookup
+runs during verification. Messaging's envelope clock tolerance is fixed at 60s;
+the existing `toleranceSeconds` option still configures Resend/SendGrid only.
+HTTPS service origins are required; explicit `mode:'test'|'development'` permits
+HTTP loopback for local integration. The signature establishes the service and
+installation; application authorization must still check every correlated
+message and recipient. All schema validation and whole-batch authorization
+finish before any SQL effect. Normalized `detail` is frozen before authorization.
+
+Apply `src/events/d1-schema.sql` as a new application migration before using the
+store. This additive schema owns only `rer_mail_event_receipts` and
+`rer_mail_event_states`; it leaves existing application and DO storage intact.
+Pass the constructed store as `store`, and omit `storage`. Existing DO users keep
+`storage:ctx.storage` unchanged. The D1 store also accepts authenticated Resend,
+SendGrid and Cloudflare intake; choosing the database does not change a source's
+authentication boundary. Only the real D1 constructor's stores are accepted,
+with no process-local fallback or arbitrary unverified normalizer.
+
+Every `commit` issues exactly one D1 `batch()` containing all receipt inserts,
+conditional recipient-state upserts and state reads. The D1 transaction is the
+concurrency and rollback boundary; no process mutex or preliminary read is used.
+Receipts have a primary key on `(provider,tenant_id,event_namespace,event_id)`.
+A conflicting fingerprint intentionally violates the named
+`rer_mail_event_identity_conflict` SQL CHECK; D1 rolls back the **whole batch**,
+including receipts and states inserted earlier in it. Other SQL errors also roll
+back the transaction and return a redacted `event_storage_failed` error.
+
+Each insert carries a random commit token and its batch ordinal. Conditional
+state writes require that exact receipt token/ordinal, so concurrent duplicates,
+repeated events within one batch and post-restart retries cannot reapply state.
+Receipt `event_json` stores the full normalized event, including correlation and
+detail; state keys include provider, tenant, namespace, provider message ID and
+case-preserved mailbox. Terminal-state ordering is the same as the DO store.
+Stored result reads occur within the same batch, so each event's returned state
+reflects its place in that batch. Duplicate results have no recipient effects.
+
+D1 bind/statement limits still apply to the host's database. Oversized batches
+fail atomically rather than being split into partial commits. Applications should
+size service pushes accordingly. Receipts and state are retained until the app
+explicitly prunes or erases them; this module has no implicit cleanup. The app
+owns an atomic business workflow for any external effects after intake, just as
+with the DO store.
+
+`tests/events/d1-workerd.test.mjs` drives public intake against real workerd D1.
+It covers signature/issuer/audience/key/time refusal, whole-batch schema and
+ownership checks, duplicate/conflicting races, rollback after an earlier insert,
+forced SQL failure rollback, restart duplicates, tenant/namespace isolation,
+local-part case and terminal ordering. The existing DO/Queue smoke remains.

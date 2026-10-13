@@ -13,6 +13,7 @@ export const PRESETS = Object.freeze({
     email: 'google', endpointOrigins: ['https://accounts.google.com', 'https://oauth2.googleapis.com', 'https://www.googleapis.com'], scope: 'openid email' }),
   microsoft: Object.freeze({ label: 'Microsoft', tenantIssuer: tenant => `https://login.microsoftonline.com/${tenant}/v2.0`, algorithms: ['RS256'],
     methods: ['private_key_jwt', 'client_secret_basic', 'client_secret_post'], email: 'subject', endpointOrigins: ['https://login.microsoftonline.com'], scope: 'openid email' }),
+  'legacy-rs256': Object.freeze({ label: 'Company', algorithms: ['RS256'], methods: ['private_key_jwt', 'client_secret_basic', 'client_secret_post'], email: 'legacy-verified', scope: 'openid email' }),
   okta: Object.freeze({ label: 'Okta', algorithms: ['RS256'], methods: ['private_key_jwt', 'client_secret_basic', 'client_secret_post'], email: 'subject', scope: 'openid email' }),
 });
 

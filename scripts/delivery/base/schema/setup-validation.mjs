@@ -1,3 +1,5 @@
+import { dependencyErrors } from './dependencies.mjs';
+export { validateDependencyGraph } from './dependencies.mjs';
 import {checkSchema, validate} from './json-schema.mjs';
 
 export const SETUP_SCHEMA_ID = 'urn:rer:setup:1';
@@ -100,7 +102,7 @@ function rejectDuplicateObjectKeys(text) {
 export function setupManifestSemanticErrors(data) {
   if (!data || typeof data !== 'object' || Array.isArray(data)
     || !Array.isArray(data.fields) || !Array.isArray(data.groups) || !Array.isArray(data.steps)) return [];
-  const errors = [];
+  const errors = dependencyErrors(data);
   const fail = (path, message) => errors.push(`${path}: ${message}`);
   const groups = new Map();
   for (const [index, group] of data.groups.entries()) {
@@ -166,6 +168,8 @@ export function setupManifestSemanticErrors(data) {
       }
     }
 
+    if (Object.hasOwn(field, 'localDefault')) validateLocalDefault(field, `${path}.localDefault`);
+
     if (field.when !== undefined && field.when && typeof field.when === 'object') {
       validateCondition(field.when, `${path}.when`, index, true);
     }
@@ -194,7 +198,7 @@ export function setupManifestSemanticErrors(data) {
       continue;
     }
     if (step.type !== 'owner-claim') continue;
-    const allowed = step.mode === 'signed'
+    const allowed = step.mode === 'idp' ? ['type','mode','emailField','dependency','path'] : step.mode === 'signed'
       ? ['type', 'mode', 'emailField', 'tokenField', 'path']
       : ['type', 'mode', 'emailField', 'tokenField'];
     if (Object.keys(step).some(key => !allowed.includes(key))) fail(path, 'owner-claim step has fields that do not apply to its mode');
@@ -202,7 +206,10 @@ export function setupManifestSemanticErrors(data) {
     if (!email || email.kind !== 'email' || email.prefill !== 'account-email') {
       fail(`${path}.emailField`, 'owner-claim must reference a prefilled public email field');
     }
-    if (step.mode === 'signed') {
+    if (step.mode === 'idp') {
+      if (!(data.dependencies??[]).some(d=>d.interface===step.dependency) || step.dependency!=='oidc-provider@1') fail(path, 'idp claim requires the declared identity dependency');
+      if (step.path!=='/auth/owner-claim') fail(path, 'idp claim requires the owner claim path');
+    } else if (step.mode === 'signed') {
       const token = fields.get(step.tokenField);
       if (!token || token.kind !== 'secret' || token.required !== true
         || !['hex', 'base64'].includes(token.generate) || token.ownerVisible !== false) {
@@ -220,6 +227,26 @@ export function setupManifestSemanticErrors(data) {
           fail(`${path}.tokenField`, 'legacy setup-token must reference a required generated owner-visible secret');
         }
       }
+    }
+  }
+
+  // A value only the zero-setup local launch fills in: a literal for a public
+  // field, a generated value for an entered secret, or the chosen local origin.
+  function validateLocalDefault(field, path) {
+    const value = field.localDefault;
+    if (typeof value === 'string') {
+      if (field.kind === 'secret') fail(path, 'a secret takes a generated local default, never a literal');
+      else if (!value) fail(path, 'a literal local default must not be empty');
+      else { try { validateSetupValue(field, value); } catch (error) { fail(path, error.message); } }
+      return;
+    }
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return;
+    if (Object.hasOwn(value, 'generate') === Object.hasOwn(value, 'from')) {
+      fail(path, 'local default must declare exactly one of generate or from');
+    } else if (Object.hasOwn(value, 'generate')) {
+      if (field.kind !== 'secret' || field.input !== 'entered') fail(path, 'a generated local default requires an entered secret');
+    } else if (!['url', 'text'].includes(field.kind)) {
+      fail(path, 'the local origin default requires a url or text field');
     }
   }
 

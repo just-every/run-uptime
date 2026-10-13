@@ -4,7 +4,7 @@ Notifications are how Uptime tells you a failure has been confirmed, and when it
 
 Open **Notifications** in the console and add one or more destinations.
 
-- **Email** uses the same sender setup as sign-in: `MAIL_FROM` and `SENDGRID_API_KEY`. Until that sender is configured, the destination shows a warning and a **Set up email** step.
+- **Email** uses the same sender setup as sign-in: `MAIL_FROM` and the mail provider you chose with `MAIL_PROVIDER`, which is `resend`, `sendgrid` (the existing-install default) or `cloudflare`. Each has its own credential: `MAIL_PROVIDER_API_KEY`, `SENDGRID_API_KEY`, or `CLOUDFLARE_MAIL_API_KEY` with `MAIL_ACCOUNT_ID`. See [Deploy to Cloudflare](/docs/deploy). On your own computer, email goes to the development outbox instead of a provider. Until the sender is configured, the destination shows a warning and a **Set up email** step.
 - **Signed JSON webhook** posts a signed JSON event to a public HTTPS URL. Copy the signing secret when it is shown, because Uptime shows it only at creation or rotation.
 - **Slack incoming webhook** posts to an exact incoming-webhook URL on `hooks.slack.com`. Slack has no Uptime signing secret.
 
@@ -14,13 +14,33 @@ Destinations are installation-wide. An enabled destination applies to every moni
 
 Only scheduled incident changes produce notifications: a trigger when a failure is confirmed, and a recovery when it clears. Maintenance suppresses these events, and manual checks never create them.
 
-Delivery depends on the [private runner](/docs/runner). The Worker submits queued email through SendGrid and the runner sends signed JSON and Slack requests, both when the runner polls. Keep the runner running so queued notifications go out.
+Delivery depends on the [private runner](/docs/runner). The Worker submits queued email through your selected mail provider and the runner sends signed JSON and Slack requests, both when the runner polls. Keep the runner running so queued notifications go out.
 
 ## Send a test
 
 Use **Send test** on a destination to queue a separate test event. A test does not change monitor evidence, open an incident or recover one.
 
 "Accepted" means the provider or your endpoint acknowledged the request. It does not prove that a person read it or was woken up.
+
+## Run an alert drill
+
+A test shows the provider answered. An alert drill also asks the person at the other end to say they got it. Use **Run alert drill** on a destination. Uptime sends one test event marked as a drill. It says who started the drill and when, and carries a one-time confirmation link. Ask whoever reads that inbox or channel to open the link and press **Confirm I received this drill**. They do not need to sign in. The page shows only the kind of destination and the drill time.
+
+The destination then shows the latest drill as three separate lines, because each proves something different:
+
+- **Submitted**: Uptime started sending it, at this time. It does not show the provider took it.
+- **Acknowledged**: the provider or your endpoint answered, at this time, with this code. It does not show the message reached an inbox. If there was no clear answer, the line says **Uncertain**; if the request was refused, **Failed**. Either way it is not sent again.
+- **Recipient confirmed**: someone used the link, at this time. This is what the recipient reported. It is not a check Uptime made itself.
+
+Whether anyone acted on the alert is not measured, so there is no line for it.
+
+A drill that nobody confirms stays "not confirmed yet" until its link expires after 24 hours. It then reads "not confirmed within 24 hours", and nothing is sent again.
+
+Each destination shows **Last proven** with the time of its latest confirmed drill, **Not proven in 30 days**, or **Never proven**. A proven destination says one message reached a person once. It says nothing about whether monitoring works, whether a later alert will arrive or whether anyone will respond. Changing an email address or webhook URL, or rotating a secret, makes the destination **Never proven** again. So does restoring it from an archive, because drill history stays with the installation that ran it.
+
+The link holds a random one-time capability. Uptime keeps only a hash of it, plus a sealed copy that is deleted once the single send is over. Opening the link only shows the page; the button on it is what confirms. Mail scanners and link previews that open links therefore cannot confirm a drill. A link that was already used, has expired or is not a real drill link gets the ordinary "Page not found".
+
+A signed JSON webhook drill carries the link as an extra `drill` object (`startedBy`, `startedAt`, `expiresAt`, `confirmUrl`). Incident events never have this field, and their payload and signature are unchanged.
 
 ## Uncertain results are not resent
 
@@ -46,7 +66,7 @@ Lamp can receive Uptime's signed JSON as a native alert source. Create an HMAC-S
 - state path `$.state`, and
 - recovered value `recovered`.
 
-Use the destination's signing secret as literal UTF-8 bytes. A test event is not a valid Lamp incident, so verify the mapping with a real trigger and recovery. The full detail, including how the signature is built, is in the "Get told when a check fails" section of the Uptime README at https://github.com/just-every/uptime-monitor#get-told-when-a-check-fails.
+Use the destination's signing secret as literal UTF-8 bytes. A test event is not a valid Lamp incident, so verify the mapping with a real trigger and recovery. The full detail, including how the signature is built, is in the "Get told when a check fails" section of the Uptime README at https://github.com/just-every/run-uptime#get-told-when-a-check-fails.
 
 ## What notifications do not cover
 

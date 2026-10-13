@@ -166,3 +166,14 @@
   .secret-dialog > * { grid-column: 1; }
   .secret-dialog > .copy-secret, .secret-dialog > .secret-close { width: 100%; }
 }
+
+/* Alert drill proof and the latest drill's lines on a destination card: plain text in the custody line's size, no colour
+   meaning. The three facts are a definition list so each reads as its own line with its own time. */
+.destination-proof { color: var(--ink); font-size: 14px; line-height: 1.5; }
+.drill-result { display: grid; gap: 6px; min-width: 0; color: var(--body); font-size: 13.5px; line-height: 1.5; }
+.drill-heading { color: var(--ink); font-weight: 600; }
+.drill-lines { display: grid; gap: 4px; margin: 0; }
+.drill-lines div { display: grid; grid-template-columns: minmax(0, 9.5em) minmax(0, 1fr); gap: 2px 10px; }
+.drill-lines dt { color: var(--ink); font-weight: 600; }
+.drill-lines dd { margin: 0; min-width: 0; }
+@container destination (max-width: 360px) { .drill-lines div { grid-template-columns: minmax(0, 1fr); } }

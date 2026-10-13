@@ -2,10 +2,11 @@ import { readLocalSettings, validateLocalConfiguration } from '../local-settings
 import { lstat, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { priorOwnerEmails } from './prior-owner.mjs';
-import { installationFailure } from '../base-onboarding/failures.mjs';
-import { selectLocalState } from '../base-onboarding/local/state.mjs';
-import { privateDirectory } from '../base-onboarding/private-files.mjs';
+import { installationFailure } from '@runeditrun/rer/failures';
+import { selectLocalState } from '@runeditrun/rer/local/state';
+import { privateDirectory } from '@runeditrun/rer/private-files';
 import { syntheticPortFor } from '../local-ports.mjs';
+import { migrationCommand } from './commands.mjs';
 export async function prepare({ root, input, store }) {
  await selectLocalState(root);
  let saved;
@@ -31,6 +32,9 @@ export async function prepare({ root, input, store }) {
 export async function runtimeTarget(context, development) {
  const { root, origin, vars, store, signal, runtimePort, devKey, devLogin } = context;
  validateLocalConfiguration({ ...vars, UPTIME_LOCAL_REVIEW: 'true', ...(devKey ? { RER_DEV_KEY: devKey } : {}) }, { scope: 'settings' });
+ // Setup migrates before it starts the app. A dev or preview start on a copy that has since pulled a new migration does the
+ // same before anything serves, so saved data never meets a Worker that expects a newer schema. Nothing pending is a no-op.
+ if (['dev', 'preview'].includes(context.verb)) { const [command, args] = migrationCommand('.wrangler/state'); await context.run('Applying database migrations', command, args, { step: 'start' }); }
  // Managed dev and preview serve the origin through a proxy to an internal loopback port.
  const hostname = runtimePort ? '127.0.0.1' : new URL(origin).hostname.replace(/^\[|\]$/g, '');
  const port = String(runtimePort ?? new URL(origin).port);

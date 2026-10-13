@@ -1,8 +1,9 @@
 import { fail } from './errors.mjs';
+import { validateMessagingConfig, validateMessagingResult, identity, rfc3339 } from '../adapters/messaging/contract.mjs';
 
-const providers = ['sendgrid', 'resend', 'cloudflare', 'development'];
+const providers = ['sendgrid', 'resend', 'cloudflare', 'development', 'messaging'];
 const controls = /[\x00-\x1f\x7f]/;
-const fields = new Set(['deliveryId', 'from', 'to', 'subject', 'text', 'html', 'cc', 'bcc', 'replyTo', 'headers', 'attachments', 'unsubscribe', 'customArgs', 'asmGroupId', 'subscriptionTracking']);
+const fields = new Set(['deliveryId', 'from', 'to', 'subject', 'text', 'html', 'cc', 'bcc', 'replyTo', 'headers', 'attachments', 'unsubscribe', 'customArgs', 'asmGroupId', 'subscriptionTracking', 'kind', 'expiresAt']);
 const reservedHeaders = new Set(['x-sg-id', 'x-sg-eid', 'received', 'dkim-signature', 'content-type', 'content-transfer-encoding', 'mime-version', 'to', 'from', 'subject', 'reply-to', 'cc', 'bcc', 'return-path', 'sender']);
 const reservedArgs = new Set(['rer_delivery_id', 'email', 'event', 'timestamp', 'sg_event_id', 'sg_message_id']);
 
@@ -19,7 +20,7 @@ function bounded(value, limit, code, empty = false) {
 }
 
 export function validateConfig(config, dependencies = {}) {
-  keys(config, new Set(['provider', 'mode', 'apiKey', 'accountId']), 'invalid_config');
+  keys(config, new Set(['provider', 'mode', 'apiKey', 'accountId', 'serviceOrigin', 'installId', 'kid', 'signingKey']), 'invalid_config');
   record(dependencies, 'invalid_dependencies');
   if (!providers.includes(config.provider)) fail('invalid_provider');
   if (!['production', 'development', 'test'].includes(config.mode)) fail('invalid_mode');
@@ -27,6 +28,8 @@ export function validateConfig(config, dependencies = {}) {
   if (dependencies.clock !== undefined && typeof dependencies.clock !== 'function') fail('invalid_clock');
   if (dependencies.timeoutMilliseconds !== undefined &&
       (!Number.isSafeInteger(dependencies.timeoutMilliseconds) || dependencies.timeoutMilliseconds <= 0)) fail('invalid_timeout');
+  if (config.provider === 'messaging') return validateMessagingConfig(config, dependencies) ?? config;
+  if (['serviceOrigin', 'installId', 'kid', 'signingKey'].some(field => config[field] !== undefined) || dependencies.serviceBinding !== undefined) fail('unsupported_provider_setting');
   if (config.provider === 'development') {
     if (config.mode !== 'development') fail('development_mode_required');
     if (config.apiKey !== undefined || config.accountId !== undefined) fail('unsupported_development_config');
@@ -105,6 +108,16 @@ export function validateMessage(message, provider) {
   keys(message, fields, 'invalid_message');
   if (provider !== undefined && !providers.includes(provider)) fail('invalid_provider');
   bounded(message.deliveryId, 512, 'invalid_delivery_id');
+  if (provider === 'messaging') {
+    identity(message.deliveryId, 512, 'invalid_delivery_id');
+    if (message.deliveryId === '.' || message.deliveryId === '..') fail('invalid_delivery_id');
+    try { encodeURIComponent(message.deliveryId); } catch { fail('invalid_delivery_id'); }
+    if (!['auth', 'transactional', 'bulk'].includes(message.kind)) fail('invalid_message_kind');
+    if (!Array.isArray(message.to) || message.to.length !== 1 || message.cc !== undefined || message.bcc !== undefined) fail('messaging_one_recipient_required');
+    if (message.expiresAt !== undefined) rfc3339(message.expiresAt, 'invalid_message_expiry');
+  } else if (provider !== undefined && (message.kind !== undefined || message.expiresAt !== undefined)) fail('unsupported_provider_setting');
+  if (message.kind !== undefined && !['auth', 'transactional', 'bulk'].includes(message.kind)) fail('invalid_message_kind');
+  if (message.expiresAt !== undefined) rfc3339(message.expiresAt, 'invalid_message_expiry');
   parseAddress(message.from);
   addresses(message.to, true);
   if (message.cc !== undefined) addresses(message.cc);
@@ -140,6 +153,7 @@ export function encodeBase64(bytes) {
 }
 
 export function validateSendResult(result, provider) {
+  if (provider === 'messaging') return validateMessagingResult(result);
   keys(result, new Set(['provider', 'status', 'providerMessageId', 'code', 'recipientResults']), 'invalid_send_result');
   if (!providers.includes(provider) || result.provider !== provider || !['accepted', 'rejected', 'rate_limited', 'uncertain', 'development'].includes(result.status)) fail('invalid_send_result');
   if ((provider === 'development') !== (result.status === 'development')) fail('invalid_send_result');

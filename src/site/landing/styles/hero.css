@@ -17,5 +17,7 @@
 /* The headline's closing full stop, tucked in so it sits on the last word as in the approved still. */
 .ut-stop { margin-left: -0.06em; }
 .ut-hero-sub { max-width: 33em; margin-top: clamp(18px, 1.7vw, 24px); color: var(--body); font-size: clamp(18px, 1.55vw, 22px); line-height: 1.55; text-wrap: balance; }
+.ut-hero .ut-hero-alt { margin-top: 14px; color: var(--body); text-wrap: balance; }
+.ut-hero-alt strong { font-weight: 700; }
 .ut-hero .ut-actions { justify-content: center; margin-top: clamp(26px, 2.2vw, 32px); }
 .ut-hero .ut-fine { margin-top: clamp(20px, 1.8vw, 26px); color: var(--body); }

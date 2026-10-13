@@ -1,13 +1,24 @@
 import {publicTarget} from './public-target.mjs';
+import {FLOW_LIMITS,validateFlow} from './flow.mjs';
 export const RUNNER_VERSION = 'uptime-node/0.1.0';
 export const MAX_BODY = 65536;
 const integer = (v, min, max, label) => { if (!Number.isInteger(v) || v < min || v > max) throw Error(`Invalid ${label}`); return v; };
+// The only fields a header or JSON assertion holds. Anything else (an authorization value, a token) is refused by name
+// and never stored, so it cannot reach revisions, the runner or an exported file.
+export const ASSERTION_FIELDS = { header: ['name', 'equals'], json: ['path', 'equals'] };
+const assertionObject = (value, kind) => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw Error(`Invalid ${kind === 'json' ? 'JSON' : kind} assertion`);
+  const unknown = Object.keys(value).filter(k => !ASSERTION_FIELDS[kind].includes(k));
+  if (unknown.length) throw Error(`Invalid ${kind === 'json' ? 'JSON' : kind} assertion: unknown field${unknown.length > 1 ? 's' : ''} ${unknown.map(k => `“${k.slice(0, 60)}”`).join(', ')}; it takes only ${ASSERTION_FIELDS[kind].join(' and ')}`);
+  return value;
+};
 export function validateDefinition(input, grants) {
   if (!input || typeof input !== 'object') throw Error('Definition required');
   const { name, url } = input;
   if (typeof name !== 'string' || !name.trim() || name.length > 100) throw Error('Name required (100 characters max)');
   const type=input.type??'http';
-  if(!['http','keyword','heartbeat'].includes(type))throw Error('Unsupported monitor type');
+  if(!['http','keyword','heartbeat','flow'].includes(type))throw Error('Unsupported monitor type');
+  if(type==='flow'){if(input.method!==undefined&&input.method!=='GET')throw Error('A flow starts with GET');if(input.request!==undefined)throw Error('A flow names its credentials in its fill steps');if(input.assertions!==undefined&&JSON.stringify(input.assertions)!=='{"status":200}')throw Error('A flow has required outcomes, not HTTP assertions')}else if(input.flow!==undefined)throw Error('Flow settings require the flow type');
   const network=input.network??(typeof url==='string'&&/^http:\/\/127\.0\.0\.1:[0-9]+\//.test(url)?'synthetic':'public');
   if(!['public','synthetic'].includes(network))throw Error('Invalid network scope');
   let u;
@@ -44,11 +55,21 @@ export function validateDefinition(input, grants) {
   if(type==='keyword'&&(typeof assertions.bodyIncludes!=='string'||!assertions.bodyIncludes.length))throw Error('Keyword requires bodyIncludes');
   if(type==='heartbeat'&&Object.keys(assertions).some(k=>k!=='status'))throw Error('Heartbeat cannot have HTTP assertions');
   if (assertions.bodyIncludes !== undefined && (typeof assertions.bodyIncludes !== 'string' || assertions.bodyIncludes.length > 200)) throw Error('Invalid body assertion');
-  if (assertions.header !== undefined && (!assertions.header || !/^[a-zA-Z0-9-]{1,80}$/.test(assertions.header.name) || typeof assertions.header.equals !== 'string' || assertions.header.equals.length > 200)) throw Error('Invalid header assertion');
-  if (assertions.json !== undefined && (!assertions.json || !/^[a-zA-Z0-9_.-]{1,120}$/.test(assertions.json.path) || !['string','number','boolean'].includes(typeof assertions.json.equals))) throw Error('Invalid JSON assertion');
+  if (assertions.header !== undefined && (!assertionObject(assertions.header, 'header') || !/^[a-zA-Z0-9-]{1,80}$/.test(assertions.header.name) || typeof assertions.header.equals !== 'string' || assertions.header.equals.length > 200)) throw Error('Invalid header assertion');
+  if (assertions.json !== undefined && (!assertionObject(assertions.json, 'json') || !/^[a-zA-Z0-9_.-]{1,120}$/.test(assertions.json.path) || !['string','number','boolean'].includes(typeof assertions.json.equals))) throw Error('Invalid JSON assertion');
   if (assertions.latencyMs !== undefined) integer(assertions.latencyMs, 1, 10000, 'latency assertion');
-  return { name:name.trim(), type, network, url:u?.href??'', method, ...(request?{request}:{}), ...(heartbeat?{heartbeat}:{}), probes, ...(assignments?{assignments}:{}), assertions:{...assertions,status:assertions.status??200}, intervalMs:integer(input.intervalMs??60000,5000,86400000,'interval'), timeoutMs:integer(input.timeoutMs??2000,50,10000,'timeout'), retries:integer(input.retries??1,0,2,'retries'), failureQuorum:integer(input.failureQuorum??probes.length,1,probes.length,'failure quorum'), confirmSlots:integer(input.confirmSlots??2,1,10,'confirmation'), recoverSlots:integer(input.recoverSlots??2,1,10,'recovery'), freshnessMs:integer(input.freshnessMs??180000,5000,86400000,'freshness'), enabled:input.enabled === undefined ? true : (()=>{if(typeof input.enabled!=='boolean')throw Error('Invalid enabled flag');return input.enabled;})(), maintenanceUntil:integer(input.maintenanceUntil??0,0,Number.MAX_SAFE_INTEGER,'maintenance end') };
+  let flow;
+  if(type==='flow'){
+    if(input.flow===undefined)throw Error('A flow monitor needs its flow: intent, steps and required outcomes');
+    // A synthetic flow may only visit granted local addresses; a public flow only public targets.
+    const synthetic=value=>{if(typeof value!=='string'||value.length>2048||!/^http:\/\/127\.0\.0\.1:[0-9]+\//.test(value))throw Error('Invalid URL');const v=new URL(value);if(v.hostname!=='127.0.0.1'||v.username||v.password||v.hash||v.search||!grants.includes(Number(v.port)))throw Error('Target outside local synthetic grants');return v.href};
+    flow=validateFlow(input.flow,{network,startUrl:u.href,synthetic});
+    if(probes.length>2)throw Error('A flow runs on at most two probes');
+  }
+  return { name:name.trim(), type, network, url:u?.href??'', method, ...(request?{request}:{}), ...(heartbeat?{heartbeat}:{}), ...(flow?{flow}:{}), probes, ...(assignments?{assignments}:{}), assertions:{...assertions,status:assertions.status??200}, intervalMs:type==='flow'?integer(input.intervalMs??FLOW_LIMITS.minIntervalMs,FLOW_LIMITS.minIntervalMs,86400000,'interval (a flow runs at most every 5 minutes)'):integer(input.intervalMs??60000,5000,86400000,'interval'), timeoutMs:type==='flow'?integer(input.timeoutMs??FLOW_LIMITS.wallMs,FLOW_LIMITS.minTimeoutMs,FLOW_LIMITS.wallMs,'flow time limit'):integer(input.timeoutMs??2000,50,10000,'timeout'), retries:type==='flow'?integer(input.retries??0,0,1,'flow retries'):integer(input.retries??1,0,2,'retries'), failureQuorum:integer(input.failureQuorum??probes.length,1,probes.length,'failure quorum'), confirmSlots:integer(input.confirmSlots??2,1,10,'confirmation'), recoverSlots:integer(input.recoverSlots??2,1,10,'recovery'), freshnessMs:integer(input.freshnessMs??(type==='flow'?Math.min(86400000,Math.max(180000,integer(input.intervalMs??FLOW_LIMITS.minIntervalMs,0,86400000,'interval')*3)):180000),5000,86400000,'freshness'), enabled:input.enabled === undefined ? true : (()=>{if(typeof input.enabled!=='boolean')throw Error('Invalid enabled flag');return input.enabled;})(), maintenanceUntil:integer(input.maintenanceUntil??0,0,Number.MAX_SAFE_INTEGER,'maintenance end') };
 }
+// A flow the runner could not run says why (no browser, a missing credential): that is the reason its coverage is Unknown.
+const unknownWhy=(def,observations)=>{if(def.type!=='flow')return '';const why=[...new Set(observations.filter(o=>o.outcome==='runner_error').map(o=>o.checks?.[0]?.reason).filter(Boolean))];return why.length?` Unknown because: ${why.join('; ')}.`:''};
 export function evaluate(def, observations, previous = {}, now = Date.now(), advance = true) {
   const regions = def.probes.map(probe => {
     const observation = observations.find(o => o.probe === probe);
@@ -82,5 +103,5 @@ export function evaluate(def, observations, previous = {}, now = Date.now(), adv
   if(candidate==='Healthy'&&previous.confirmedFailure&&recoveryStreak<def.recoverSlots)targetState='Recovering';
   const confirmedFailure=targetState==='Failing'||(previous.confirmedFailure&&targetState!=='Healthy');
   const maintenance=def.maintenanceUntil>now;
-  return {state:maintenance?'Maintenance':targetState,targetState,underlyingState:targetState,evidenceState:candidate,coverageState,candidate,regions,denominator:def.probes.length,fails,unknown,failingVantages,failureStreak,recoveryStreak,confirmedFailure,notificationOpen:previous.notificationOpen??false,maintenance,reason:`${fails}/${def.probes.length} selected probes failed; ${unknown} unknown; coverage ${coverageState.toLowerCase()}. ${failingVantages} independent failing vantages; passing canary ${witnessed?'present':'absent'}; scheduled-slot confirmation ${failureStreak}/${def.confirmSlots}; recovery ${recoveryStreak}/${def.recoverSlots}.`,evaluatedAt:now};
+  return {state:maintenance?'Maintenance':targetState,targetState,underlyingState:targetState,evidenceState:candidate,coverageState,candidate,regions,denominator:def.probes.length,fails,unknown,failingVantages,failureStreak,recoveryStreak,confirmedFailure,notificationOpen:previous.notificationOpen??false,maintenance,reason:`${fails}/${def.probes.length} selected probes failed; ${unknown} unknown; coverage ${coverageState.toLowerCase()}. ${failingVantages} independent failing vantages; passing canary ${witnessed?'present':'absent'}; scheduled-slot confirmation ${failureStreak}/${def.confirmSlots}; recovery ${recoveryStreak}/${def.recoverSlots}.${unknownWhy(def,observations)}`,evaluatedAt:now};
 }

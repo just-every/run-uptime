@@ -35,3 +35,5 @@ export function createOwnerClaimHandler({ db, authConfig, clientIp, clock = Date
     }
   };
 }
+
+export { createIdpOwnerClaimHandler } from './idp.mjs';

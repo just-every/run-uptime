@@ -8,6 +8,20 @@
     "id": "monitor",
     "record": "Immutable scheduled slot observations and explained private alert outbox"
   },
+  "replaces": [
+    {
+      "name": "UptimeRobot",
+      "edition": null
+    },
+    {
+      "name": "Pingdom",
+      "edition": null
+    },
+    {
+      "name": "Better Stack",
+      "edition": null
+    }
+  ],
   "description": "Private uptime console for scheduled HTTP(S), keyword, and heartbeat probes, with Base owner sign-in, installation-wide incident notifications, and portable product archives.",
   "capabilities": [
     {
@@ -151,6 +165,12 @@
       "required": false,
       "secret": true,
       "why": "External public HTTPS heartbeat capability URL; off when absent."
+    },
+    {
+      "name": "UPTIME_START_URL",
+      "required": false,
+      "secret": false,
+      "why": "Website the owner chose at setup; first-run setup asks the owner's runner to look at it. Off when absent."
     },
     {
       "name": "MAIL_PROVIDER_API_KEY",
@@ -389,6 +409,22 @@
         "environment": "all"
       },
       {
+        "path": "/setup/state",
+        "match": "exact",
+        "kind": "setup",
+        "class": "setup",
+        "authentication": "None; answers only whether the owner has claimed this installation.",
+        "environment": "all"
+      },
+      {
+        "path": "/alert-drill",
+        "match": "exact",
+        "kind": "recipient-confirmation",
+        "class": "drills",
+        "authentication": "One-use alert drill capability in the link; GET only shows the page, a same-origin POST confirms. Unknown, used, expired or foreign capabilities answer 404.",
+        "environment": "all"
+      },
+      {
         "path": "/api/editor/config",
         "match": "exact",
         "kind": "editor",
@@ -485,6 +521,14 @@
         "environment": "all"
       },
       {
+        "path": "/alert-drills.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
         "path": "/editor-units.mjs",
         "match": "exact",
         "kind": "asset",
@@ -522,6 +566,14 @@
         "kind": "asset",
         "class": "assets",
         "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/editor/",
+        "match": "prefix",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resources only.",
         "environment": "all"
       },
       {
@@ -566,6 +618,22 @@
       },
       {
         "path": "/design-assets/",
+        "match": "prefix",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resources only.",
+        "environment": "all"
+      },
+      {
+        "path": "/rer-theme.css",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/brand/",
         "match": "prefix",
         "kind": "asset",
         "class": "assets",
@@ -642,6 +710,15 @@
         "kind": "development-asset",
         "class": "assets",
         "authentication": "None; local dependency compiler transport only, restricted to a node_modules path segment and unencoded separators. Vite filesystem allowlist and private-file denies remain authoritative. Hosted mode returns 404.",
+        "environment": "local",
+        "withinDirectory": "node_modules"
+      },
+      {
+        "path": "/node_modules/.pnpm/",
+        "match": "prefix",
+        "kind": "development-asset",
+        "class": "assets",
+        "authentication": "None; local Vite client runtime and dependency files imported by their package-store path, restricted to a node_modules path segment and unencoded separators. Vite filesystem allowlist and private-file denies remain authoritative. Hosted mode returns 404.",
         "environment": "local",
         "withinDirectory": "node_modules"
       },
@@ -724,6 +801,30 @@
         "class": "assets",
         "authentication": "None; emitted static resource only.",
         "environment": "all"
+      },
+      {
+        "path": "/external-check.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/definitions.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/flow-panel.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
       }
     ],
     "notes": "Console documents and APIs require a Base owner session; runner and heartbeat APIs use separately scoped credentials."
@@ -747,7 +848,8 @@
       "heartbeats": 600,
       "runner": 1800,
       "assets": 600,
-      "development": 600
+      "development": 600,
+      "drills": 30
     },
     "notes": "Owner-tunable source settings; each class shares one fixed 60-second D1 window per client. Defaults allow a console load of about 25 assets plus polling, but capacity has not been load tested. Hosted CF-Connecting-IP must be a valid single IP; missing/malformed values share an unknown-client bucket. Local mode ignores all forwarding headers and uses one loopback bucket. Only keyed hashes of client identities are stored."
   },

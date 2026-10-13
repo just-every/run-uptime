@@ -11,6 +11,14 @@ export function administration(context) {
     const actor = await authenticate(request);
     if (!actor) deny('unauthenticated', 401);
     if (!await authorize({ actor: actor.operator, action, target, role })) deny();
+    // Every administrative owner-authority write passes this shared guard,
+    // including pending grants and removal by invitation cancellation.
+    const unchanged = (action === 'operators:role' && role === target?.role)
+      || (action === 'operators:deactivate' && target?.status === 'inactive')
+      || (action === 'operators:reactivate' && target?.status === 'active');
+    if (mutation && action.startsWith('operators:')
+      && !unchanged
+      && (role === 'owner' || target?.role === 'owner')) await requireFreshProof(actor);
     return actor;
   }
   async function targetFor(id) {
@@ -79,8 +87,6 @@ export function administration(context) {
       if (!DEFAULT_ROLES.includes(role)) throw new AuthError('invalid_role');
       const target = await targetFor(operatorId);
       const actor = await actorFor(request, 'operators:role', target, role);
-      // Making or unmaking an owner transfers ownership: it needs a fresh proof.
-      if (role !== target.role && (role === 'owner' || target.role === 'owner')) await requireFreshProof(actor);
       const fence = store.actorFence(actor, clock());
       try {
         const result = await store.run(`UPDATE oa_operators SET role=? WHERE id=? AND version=? AND ${fence.sql}`, [role, target.id, target.version, ...fence.args]);

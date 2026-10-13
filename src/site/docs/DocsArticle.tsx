@@ -1,4 +1,6 @@
 import { notFound } from '@tanstack/react-router';
+import { HydrationUnit } from '../../base/hydration/unit';
+import type { SiteVariant } from '../shell/links';
 import { SiteFooter } from '../shell/SiteFooter';
 import { SiteFrame } from '../shell/SiteFrame';
 import { SiteHeader } from '../shell/SiteHeader';
@@ -15,7 +17,7 @@ import './styles';
  * One docs page: the section sidebar, the article rendered from Markdown at build time, and "On this page". Previous and
  * next cards close the article. An unknown slug is a 404 (the route checks hasDocsPage first).
  */
-export function DocsArticle({ slug }: { slug: string }) {
+export function DocsArticle({ slug, variant = 'instance' }: { slug: string; variant?: SiteVariant }) {
   const page = getDocsPage(slug);
   const copyButtons = useCopyButtons();
   if (!page) throw notFound();
@@ -23,11 +25,12 @@ export function DocsArticle({ slug }: { slug: string }) {
   return (
     <SiteFrame className="ut-docs">
       <DocsDawn />
-      <SiteHeader current="docs" />
+      <HydrationUnit><SiteHeader current="docs" variant={variant} /></HydrationUnit>
       <div className="ut-wrap docs-shell">
-        <DocsSidebar current={slug} />
+        <HydrationUnit><DocsSidebar current={slug} /></HydrationUnit>
         <main id="main" className="docs-main">
-          <DocsMenu current={slug} label={page.title} />
+          <HydrationUnit><DocsMenu current={slug} label={page.title} /></HydrationUnit>
+          <HydrationUnit>
           <article className="docs-article" aria-labelledby="docs-title">
             <header className="docs-page-head">
               <p className="ut-eyebrow docs-eyebrow">{page.section}</p>
@@ -37,11 +40,12 @@ export function DocsArticle({ slug }: { slug: string }) {
             <DocsTocCompact toc={page.toc} />
             <div className="docs-prose" ref={copyButtons} dangerouslySetInnerHTML={{ __html: page.html }} />
           </article>
-          <DocsPager previous={previous} next={next} />
+          </HydrationUnit>
+          <HydrationUnit><DocsPager previous={previous} next={next} /></HydrationUnit>
         </main>
-        <DocsToc toc={page.toc} />
+        <HydrationUnit><DocsToc toc={page.toc} /></HydrationUnit>
       </div>
-      <SiteFooter />
+      <HydrationUnit><SiteFooter variant={variant} /></HydrationUnit>
     </SiteFrame>
   );
 }

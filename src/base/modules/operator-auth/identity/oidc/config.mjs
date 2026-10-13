@@ -49,12 +49,26 @@ function provider(input, origin) {
   check(minimumVersion === undefined || validVersion(minimumVersion) && compareVersions(minimumVersion, MINIMUM_PROVIDER_VERSION) >= 0);
   const label = input.label ?? preset.label;
   check(typeof label === 'string' && label.length > 0 && label.length <= 60 && !/[\x00-\x1f\x7f]/.test(label));
+  const redirectUri = input.redirectUri ?? `${origin}/auth/oidc/${input.id}/callback`;
+  const redirect = new URL(redirectUri);
+  check(typeof redirectUri === 'string' && redirect.href === redirectUri && redirect.origin === origin && !redirect.username && !redirect.password && !redirect.search && !redirect.hash && !/[\s\\]/.test(redirectUri));
+  // Incumbent trust is a separate explicit preset, scoped to exact server-owned
+  // endpoints. No verified-email switch can broaden Okta/Microsoft defaults.
+  let endpointPins;
+  if (input.preset === 'legacy-rs256') {
+    check(input.endpointPins && typeof input.endpointPins === 'object');
+    endpointPins = Object.freeze(Object.fromEntries(['authorization', 'token', 'jwks'].map(key => {
+      const value = input.endpointPins[key], u = httpsUrl(value);
+      check(u.href === value && endpointOrigins.includes(u.origin));
+      return [key, value];
+    })));
+  } else check(input.endpointPins === undefined);
   return Object.freeze({ id: input.id, preset: input.preset, label, issuer, clientId: input.clientId, tokenAuthMethod,
     clientSecret: input.clientSecret, privateKey: keyAlgorithm ? privateKey(input.privateKey, keyAlgorithm) : undefined, keyAlgorithm,
     algorithms: Object.freeze([...preset.algorithms]), email: preset.email, scope: preset.scope, interface: preset.interface, minimumVersion,
     additionalAudiences: Object.freeze([...new Set(additionalAudiences)]), endpointOrigins: Object.freeze([...new Set(endpointOrigins)]), subjectEmails: Object.freeze(subjectEmails),
     // Each provider has its own redirect URI; its state is bound to it.
-    startPath: `/auth/oidc/${input.id}/start`, redirectUri: `${origin}/auth/oidc/${input.id}/callback` });
+    endpointPins, startPath: `/auth/oidc/${input.id}/start`, redirectUri });
 }
 
 export function configure(input) {
@@ -67,6 +81,13 @@ export function configure(input) {
     check(Array.isArray(input.providers) && input.providers.length <= 8);
     const providers = input.providers.map(entry => provider(entry, input.origin));
     check(new Set(providers.map(p => p.id)).size === providers.length);
+    const callbacks = providers.map(p => new URL(p.redirectUri).pathname);
+    check(new Set(callbacks).size === providers.length);
+    // Auth routes, owner-claim handlers and the local dev gate retain their
+    // handlers even when an edition chooses its own OIDC callback pathname.
+    const reserved = new Set([input.signInPath ?? '/signin', '/auth/owner-claim', '/auth/dev/enter', '/__dev/personas', '/__dev/key', '/auth/bootstrap', '/auth/magic-link', '/auth/confirm', '/auth/signout', '/auth/session', '/auth/invite', '/auth/invite/cancel', '/auth/review-session', '/auth/operators', '/auth/sessions', '/auth/operator/status', '/auth/operator/role', '/auth/session/revoke', '/auth/step-up', '/auth/domain-rules', '/auth/providers', '/auth/providers/unlink', '/auth/providers/relink', '/auth/settings/identity', '/auth/setup-complete']);
+    check(callbacks.every((path, index) => !reserved.has(path) && !path.startsWith('/.well-known/') && !path.startsWith('/auth/dependencies/') && !providers.some(p => path === p.startPath) && (!path.startsWith('/auth/oidc/') || path === `/auth/oidc/${providers[index].id}/callback`)));
+
     return Object.freeze({ origin: input.origin, local, secure: origin.protocol === 'https:', transactionSecret: input.transactionSecret, providers: Object.freeze(providers),
       signInPath: input.signInPath ?? '/signin',
       transactionSeconds: integer(input.transactionSeconds, 600, 60, 900), timeoutMs: integer(input.timeoutMs, 5000, 100, 15000),

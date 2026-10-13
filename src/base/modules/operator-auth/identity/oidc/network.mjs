@@ -18,8 +18,9 @@ export async function readJson(fetcher, uri, settings, init = {}, maxBytes = 655
   try {
     return await Promise.race([deadline, (async () => {
       let response;
-      try { response = await fetcher(uri, { ...init, redirect: 'error', signal: controller.signal, headers: { Accept: 'application/json', ...init.headers } }); }
+      try { response = await fetcher(uri, { ...init, redirect: 'manual', signal: controller.signal, headers: { Accept: 'application/json', ...init.headers } }); }
       catch (error) { hard = dnsFailure(error); throw error; }
+      check(response.status < 300 || response.status >= 400, 'oidc_provider_redirect', 502);
       if (response.status === 404 || response.status === 530) hard = true;
       check(response.status === 200 && !response.redirected && (!response.url || response.url === uri), 'oidc_provider_unavailable', 502);
       check(/^application\/(?:[a-z0-9.+-]+\+)?json(?:\s*;|$)/i.test(response.headers.get('content-type') ?? ''), 'oidc_provider_unavailable', 502);
@@ -66,6 +67,7 @@ export async function discover(fetcher, provider, settings) {
     interfaceVersion = served.sort(compareVersions).at(-1) ?? null;
     check(interfaceVersion && compareVersions(interfaceVersion, provider.minimumVersion) >= 0, 'oidc_provider_version_unsupported', 502);
   }
+  if (provider.endpointPins) check(d.authorization_endpoint === provider.endpointPins.authorization && d.token_endpoint === provider.endpointPins.token && d.jwks_uri === provider.endpointPins.jwks, 'oidc_relink_required', 502);
   return { issuer: d.issuer, authorization: endpoint(d.authorization_endpoint, provider), token: endpoint(d.token_endpoint, provider), jwks: endpoint(d.jwks_uri, provider),
     algorithms, responseIssuer: d.authorization_response_iss_parameter_supported === true, interfaceVersion };
 }

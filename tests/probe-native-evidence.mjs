@@ -136,7 +136,7 @@ try{
   await accept(task,[absent],'Failing');
   const issued=await source.api(`/api/monitors/${task.monitorId}/heartbeat-key`,'POST',{});assert.equal(issued.status,200);
   assert.equal((await source.api(`/api/heartbeats/${task.monitorId}`,'POST',{}, {authorization:`Bearer ${issued.data.token}`,'x-heartbeat-sequence':'1'},false)).status,200);
-  task=await source.claim();const fresh={...probeHeartbeat(task.definition,'local-a',task.heartbeatReceipt),attempt:0};
+  task=await next(task);const fresh={...probeHeartbeat(task.definition,'local-a',task.heartbeatReceipt),attempt:0};
   await reject(task,{...fresh,outcome:'target_failure',checks:[assertion('heartbeat',false)]},'fresh heartbeat cannot manufacture failure');
   await reject(task,{...fresh,heartbeatReceivedAt:fresh.heartbeatReceivedAt-1},'freshness does not replace exact snapshot identity');
   await accept(task,[fresh],'Healthy');

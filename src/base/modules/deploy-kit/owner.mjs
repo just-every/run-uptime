@@ -1,3 +1,4 @@
+import { ingressBindings } from './container-config.mjs';
 import { mkdir, open, rename, rm, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { assert, hash, identifier, resourceName, validatePlan } from './validation.mjs';
@@ -16,8 +17,8 @@ import { verifyHealth } from './health.mjs';
 const segment = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
 const STATE_KIND = 'rer-deploy-owner-state';
 const KINDS = ['d1','r2','kv','queues'];
-const DECLARATION_KEYS = ['version','project','compatibilityDate','compatibilityFlags','d1','r2','kv','queues','durableObjects','secrets','crons','vars','originVar'];
-const ENTRY_KEYS = {d1:['binding'],r2:['binding','locationHint'],kv:['binding'],queues:['binding','consumer','deadLetterQueue'],durableObjects:['binding','className','storage'],secrets:['binding','environment']};
+const DECLARATION_KEYS = ['version','project','compatibilityDate','compatibilityFlags','d1','r2','kv','queues','durableObjects','secrets','crons','vars','originVar','services','workersDev','platforms','container'];
+const ENTRY_KEYS = {d1:['binding'],r2:['binding','locationHint'],kv:['binding'],queues:['binding','consumer','deadLetterQueue'],durableObjects:['binding','className','storage'],secrets:['binding','environment'],services:['binding','project','entrypoint','allowedHosts','grant']};
 
 function refuse(code, kind, name) { const error = new Error(code); error.resource = `${kind}:${name}`; return error; }
 
@@ -67,7 +68,7 @@ function entries(declaration, key) {
 }
 /* RER_DEV_KEY opens local dev identity; it and every key a seed adapter declares
  * local-only never become a deployed binding, secret or secret source. */
-export const LOCAL_ONLY_KEYS = Object.freeze(['RER_DEV_KEY']);
+export const LOCAL_ONLY_KEYS = Object.freeze(['RER_DEV_KEY', 'RER_MODELS_KEY', 'RER_MODELS_SERVICE', '.rer/local/models.json']);
 export function localOnlyBinding(declaration, localOnlyKeys = []) {
   const refused = new Set([...LOCAL_ONLY_KEYS, ...localOnlyKeys]);
   const names = [...Object.keys(declaration?.vars ?? {}), declaration?.originVar, ...(Array.isArray(declaration?.secrets) ? declaration.secrets.flatMap(item => [item?.binding, item?.environment]) : [])];
@@ -76,6 +77,15 @@ export function localOnlyBinding(declaration, localOnlyKeys = []) {
 /** A seed declares bindings, never names. Migrations come from the packaged artifact. */
 export function ownerPlan(target, declaration, artifact, { localOnlyKeys = [] } = {}) {
   assert(declaration?.version === 1 && typeof declaration === 'object' && Object.keys(declaration).every(key => DECLARATION_KEYS.includes(key)), 'invalid-owner-declaration');
+  if (declaration.platforms !== undefined) assert(Array.isArray(declaration.platforms) && declaration.platforms.length > 0 && new Set(declaration.platforms).size === declaration.platforms.length && declaration.platforms.every(item => ['workers','container'].includes(item)), 'invalid-platforms');
+  if (declaration.container !== undefined) {
+    const config=declaration.container;
+    assert(config&&typeof config==='object'&&!Array.isArray(config)&&Object.keys(config).every(key=>['engine','cacheContract','runner','hostVariables','ingress'].includes(key))&&['node','workerd'].includes(config.engine),'invalid-container');
+    if(config.ingress!==undefined)ingressBindings(config.ingress);
+    assert(config.hostVariables===undefined||Array.isArray(config.hostVariables)&&config.hostVariables.every(name=>/^[A-Z][A-Z0-9_]*$/.test(name)),'invalid-container-host-variables');
+    assert(config.cacheContract===undefined||config.cacheContract==='lamp-retained-v1','invalid-container-cache');
+    if(config.runner!==undefined){const runner=config.runner,relative=path=>typeof path==='string'&&!path.startsWith('/')&&path.split('/').every(part=>part&&!['.','..'].includes(part));assert(runner&&Object.keys(runner).every(key=>['entry','files'].includes(key))&&relative(runner.entry)&&Array.isArray(runner.files)&&runner.files.length>0&&runner.files.every(relative),'invalid-container-runner');}
+  }
   const local = localOnlyBinding(declaration, localOnlyKeys);
   if (local) throw refuse('local-only-binding', 'binding', local);
   assert(declaration.project === undefined || declaration.project === target.project, 'owner-project-mismatch');
@@ -90,6 +100,10 @@ export function ownerPlan(target, declaration, artifact, { localOnlyKeys = [] } 
     vars[declaration.originVar] = target.origin;
   }
   const kv = entries(declaration,'kv').map(({binding}) => ({binding,name:name(binding)}));
+  // A service binding names another project; its Worker name derives from the same environment.
+  const services = entries(declaration,'services').map(({binding,project,entrypoint,allowedHosts,grant}) => ({binding,service:ownerWorkerName(project,target.environment),
+    ...(grant === undefined ? {} : {grant}),...(entrypoint === undefined ? {} : {entrypoint}),...(allowedHosts === undefined ? {} : {props:{allowedHosts}})}));
+  assert(declaration.workersDev === undefined || declaration.workersDev === false, 'invalid-owner-declaration');
   return validatePlan({version:1,worker:target.worker,compatibilityDate:declaration.compatibilityDate,compatibilityFlags:declaration.compatibilityFlags ?? [],
     d1:d1.map(({binding}) => ({binding,name:name(binding),migrations:artifact.migrations.filter(x => x.binding === binding).map(({binding:_,...rest}) => rest)})),
     r2:entries(declaration,'r2').map(item => ({...item,name:name(item.binding)})),
@@ -97,7 +111,9 @@ export function ownerPlan(target, declaration, artifact, { localOnlyKeys = [] } 
     queues:queues.map(item => ({...item,name:name(item.binding),...(item.deadLetterQueue === undefined ? {} : {deadLetterQueue:name(item.deadLetterQueue)})})),
     durableObjects:entries(declaration,'durableObjects').map(item => ({...item})),
     secrets:entries(declaration,'secrets').map(item => ({...item})),
-    crons:[...(declaration.crons ?? [])],vars});
+    crons:[...(declaration.crons ?? [])],vars,
+    // Only declarations using these add the keys, so earlier plans and fingerprints are unchanged.
+    ...(services.length ? {services} : {}),...(declaration.workersDev === false ? {workersDev:false} : {})});
 }
 function assertOwnerNames(target, plan) {
   assert(plan.worker === target.worker, 'owner-plan-name-mismatch');
@@ -161,6 +177,10 @@ async function checkSavedResourceIdentities(api, state) {
     const rows = await resourceKinds[kind].list(api);
     for (const [name,entry] of entries) checkResourceIdentity(kind,name,findResource(rows,kind,name),entry);
   }
+}
+/** Read-only: a bound service Worker must already exist in the account; deploy it first. */
+async function checkServiceWorkers(api, plan) {
+  for (const {service} of plan.services ?? []) if (await workerSettings(api, service) === null) throw refuse('service-worker-missing','service',service);
 }
 async function workerSettings(api, worker) {
   try { return await api.request(`/workers/scripts/${worker}/settings`); }
@@ -226,6 +246,7 @@ export async function ownerDeploy({api: provider, target, plan, artifact, stateP
 async function deployLocked({api, target, plan, artifact, statePath, env, fetch, healthOptions, readiness}) {
   const state = await readOwnerState(statePath, target);
   const save = () => writeOwnerState(statePath, state);
+  await checkServiceWorkers(api, plan);
   const priorWorker = await checkOwnedWorker(api, plan, artifact, state);
   const exists = priorWorker !== null;
   const create = await ownedResourcesToCreate(api, plan, state);

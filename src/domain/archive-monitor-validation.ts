@@ -6,7 +6,7 @@ import {clock,identity,object,unique,type Tables} from './archive-schema.ts'
 export function historicalDefinition(text:any){
  if(typeof text!=='string')throw Error('Invalid archive definition');
  const definition=JSON.parse(text);
- if(!object(definition)||Object.keys(definition).some(k=>!['name','type','network','url','method','request','heartbeat','probes','assertions','intervalMs','timeoutMs','retries','failureQuorum','confirmSlots','recoverSlots','freshnessMs','enabled','maintenanceUntil','assignments'].includes(k)))throw Error('Invalid archive definition fields');
+ if(!object(definition)||Object.keys(definition).some(k=>!['name','type','network','url','method','request','heartbeat','probes','assertions','intervalMs','timeoutMs','retries','failureQuorum','confirmSlots','recoverSlots','freshnessMs','enabled','maintenanceUntil','assignments','flow'].includes(k)))throw Error('Invalid archive definition fields');
  const port=typeof definition.url==='string'&&/^http:\/\/127\.0\.0\.1:[0-9]+\//.test(definition.url)?Number(new URL(definition.url).port):null;
  validateDefinition(definition,port===null?[]:[port]);return definition;
 }
@@ -19,7 +19,7 @@ export function validateMonitorTables(t:Tables,now:number){
  for(const r of t.monitors){
   historicalDefinition(r.definition);clock(r.next_due,'monitor');const state=JSON.parse(r.state);
   // Prior installations retained sparse state; absent flags remain absent in history.
-  if(!object(state)||Object.keys(state).some(k=>!['state','targetState','underlyingState','evidenceState','coverageState','candidate','regions','denominator','fails','unknown','failureStreak','recoveryStreak','confirmedFailure','notificationOpen','maintenance','reason','evaluatedAt','incidentKey','failingVantages'].includes(k))||!['Unknown','Healthy','Degraded','Failing','Recovering','Maintenance','Paused'].includes(state.state)||['confirmedFailure','notificationOpen'].some(k=>Object.hasOwn(state,k)&&typeof state[k]!=='boolean'))throw Error('Invalid archive monitor state');
+  if(!object(state)||Object.keys(state).some(k=>!['state','targetState','underlyingState','evidenceState','coverageState','candidate','regions','denominator','fails','unknown','failureStreak','recoveryStreak','confirmedFailure','notificationOpen','maintenance','reason','evaluatedAt','incidentKey','failingVantages','incidentRevision','definitionChange'].includes(k))||!['Unknown','Healthy','Degraded','Failing','Recovering','Maintenance','Paused'].includes(state.state)||['confirmedFailure','notificationOpen'].some(k=>Object.hasOwn(state,k)&&typeof state[k]!=='boolean'))throw Error('Invalid archive monitor state');
   const revision=revisions.get(`${r.id}:${r.revision}`);
   if(!Number.isSafeInteger(r.revision)||r.revision<1||!revision||JSON.stringify(JSON.parse(r.definition))!==JSON.stringify(JSON.parse(revision.definition)))throw Error('Current definition mismatch');
  }

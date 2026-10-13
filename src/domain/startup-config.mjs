@@ -36,6 +36,7 @@ export const configurationTable = Object.freeze([
  { name: 'CLOUDFLARE_MAIL_API_KEY', scopes: app, required: 'conditional', when: env => env.MAIL_PROVIDER === 'cloudflare', valid: value => text(value) && !/\s/.test(value) },
  { name: 'MAIL_ACCOUNT_ID', scopes: app, required: 'conditional', when: env => env.MAIL_PROVIDER === 'cloudflare', valid: value => text(value) && !/\s/.test(value) },
  { name: 'UPTIME_HEARTBEAT_URL', scopes: app, required: 'optional', valid: value => {try{return publicTarget(value).protocol==='https:'}catch{return false}} },
+ { name: 'UPTIME_START_URL', scopes: app, required: 'optional', valid: value => {try{publicTarget(value);return true}catch{return false}} },
  ...['UPTIME_HEARTBEAT_INTERVAL_MS','UPTIME_RUNNER_STALE_MS','UPTIME_DIGEST_INTERVAL_MS'].map(name=>({name,scopes:app,required:'optional',valid:value=>text(value)&&Number.isSafeInteger(Number(value))&&Number(value)>0})),
  ...['UPTIME_WATCH_AFTER_MS','UPTIME_WATCH_REPEAT_MS'].map(name=>({name,scopes:[...app,'runner'],required:'optional',valid:value=>text(value)&&Number.isSafeInteger(Number(value))&&Number(value)>0})),
  ...['UPTIME_WATCH_WEBHOOK_URL','UPTIME_WATCH_SLACK_URL'].map(name=>({name,scopes:['runner'],required:'optional',valid:value=>{try{return publicTarget(value).protocol==='https:'}catch{return false}}})),

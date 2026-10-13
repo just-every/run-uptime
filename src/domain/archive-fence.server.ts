@@ -1,10 +1,10 @@
-import {PortabilityError} from '../../scripts/base-cli/modules/portability/index.mjs'
+import {PortabilityError} from '@runeditrun/rer/modules/portability'
 // Reuse the maintained Base journal exports; custom payloads must explicitly
 // participate because Base's automatic fence covers row parts only.
 // @ts-expect-error Maintained Base journal exports are portable JavaScript.
-import {fence,journal,mergeJournal,tombstone} from '../../scripts/base-cli/modules/portability/journal.mjs'
+import {fence,journal,mergeJournal,tombstone} from '@runeditrun/rer/modules/portability/journal'
 // @ts-expect-error Maintained Base state initialization is portable JavaScript.
-import {state} from '../../scripts/base-cli/modules/portability/storage.mjs'
+import {state} from '@runeditrun/rer/modules/portability/storage'
 import {mutationGuard} from './audit.server.ts'
 import type {Bindings} from './control.server.ts'
 import type {Tables} from './archive-schema.ts'

@@ -1,10 +1,13 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
+import {readFile,readdir} from 'node:fs/promises';
 import {incidentEvent,mailContent} from '../src/domain/notification-content.ts';
 import {verificationHelp} from '../public/notification-dialogs.js';
 const read=file=>readFile(new URL('../'+file,import.meta.url),'utf8');
 const [notifications,style,notificationStyle,editor,markup,app,monitorPage,setup]=await Promise.all(['public/notifications.js','public/style.css','public/notifications.css','public/editor.js','src/ui/editor.html','public/app.js','public/monitor-page.js','src/domain/auth-document.server.ts'].map(read));
+// The editor page loads its form, fields and discovery from public/editor/; read them with it.
+const editorModules=(await readdir(new URL('../public/editor/',import.meta.url))).filter(name=>name.endsWith('.mjs')).sort();
+const editorSource=[editor,...await Promise.all(editorModules.map(name=>read('public/editor/'+name)))].join('\n');
 test('edit enabled control has a 24px pointer target',()=>assert.match(notificationStyle,/enabled-control[^}]*[\s\S]*?input\[type=checkbox\][^}]*min-width:24px/));
 test('owner can see and edit saved email and recover unavailable credentials',()=>{assert.match(notifications,/destination\.address/);assert.match(notifications,/credentialsAvailable/);assert.match(notifications,/values\.address/);assert.match(notifications,/Re-enter/)});
 test('unconfigured mail has local card warning and plain setup next action',()=>{assert.match(notifications,/Email is not set up, so this will not send/);assert.match(notifications,/Set up email/)});
@@ -23,5 +26,5 @@ test('signed request help names states emitted in notification content',()=>{
 test('help is headed, collapsed and before mobile history',async()=>{assert.match(await read('public/notification-dialogs.js'),/How to verify a signed request/);assert.match(notifications,/notification-help/);assert.match(notificationStyle,/notification-help-mobile/)});
 test('notifications copy is specific and codes labelled',()=>{assert.match(app,/Installation-wide destinations/);assert.match(notifications,/Code:/);assert.match(notifications,/https:\/\/hooks\.example\.com/);assert.doesNotMatch(notifications,/private runner/)});
 test('healthy badge and recent pass/fail detail have distinct marks',()=>{assert.match(monitorPage,/badge .*toLowerCase/);assert.match(style,/badge\.healthy/);assert.match(monitorPage,/checkResultSummary/)});
-test('one responsive editor has full navigation and human units',()=>{assert.doesNotMatch(markup,/mobile-390/);assert.match(markup,/Notifications/);assert.match(markup,/Sign out/);assert.match(markup,/Check every/);assert.match(markup,/Alert after/);assert.match(editor,/minutesToMilliseconds/);assert.doesNotMatch(editor,/native API|private-runner/)});
-test('setup locates local credential file in product document',()=>assert.match(setup,/Find it in data\/local-secrets\.json/));
+test('one responsive editor has full navigation and human units',()=>{assert.doesNotMatch(markup,/mobile-390/);assert.match(markup,/Notifications/);assert.match(markup,/Sign out/);assert.match(markup,/Check every/);assert.match(markup,/Alert after/);assert.match(editorSource,/minutesToMilliseconds/);assert.doesNotMatch(editorSource,/native API|private-runner/)});
+test('setup locates the setup token for local and hosted installs in product document',()=>{assert.match(setup,/data\/local-secrets\.json/);assert.match(setup,/\.rer\/deploy\/production-secrets\.json/)});

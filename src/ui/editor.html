@@ -7,7 +7,36 @@
  <main class="editor-main ui-main">
   <a class="editor-back ui-link" href="/app"><span class="ui-icon" data-icon="arrow-left" aria-hidden="true"></span>Back to monitors</a>
   <header class="editor-header ui-header"><div><h1>New monitor</h1><p class="editor-description">Choose what should pass and when to alert. Each selected check runs from its assigned runner.</p></div></header>
-  <form id="monitor-form">
+  <p id="editor-notice" class="ui-callout error" role="alert" hidden></p>
+  <section id="discovery" class="discovery" aria-label="Check a website" hidden>
+   <form id="discovery-form" class="discovery-panel ui-card" novalidate>
+    <label for="discovery-url">Website URL</label>
+    <div class="discovery-url-row"><input id="discovery-url" name="website" type="text" inputmode="url" autocomplete="url" autocapitalize="off" spellcheck="false" placeholder="https://example.com" autofocus aria-describedby="discovery-status discovery-help"><button id="discovery-check" type="submit">Check</button></div>
+    <p id="discovery-status" class="discovery-status" role="status" aria-atomic="true"><span id="discovery-elapsed" aria-live="off"></span></p>
+    <p id="discovery-help" class="helper ui-helper">Your runner opens the site from your network, looks around, and proposes monitors that are already filled in.</p>
+    <p class="discovery-manual"><button id="discovery-manual" class="ui-link" type="button">Fill in the form yourself</button></p>
+   </form>
+   <div id="discovery-problem" class="ui-callout error" tabindex="-1" hidden></div>
+   <div id="discovery-result" hidden>
+    <ul id="discovery-notes" class="discovery-notes"></ul>
+    <section id="discovery-proposal-section" class="discovery-proposals" aria-labelledby="discovery-proposals-heading">
+     <h2 id="discovery-proposals-heading" tabindex="-1">Proposed monitors</h2>
+     <p class="discovery-intro">We checked your site and found these endpoints. Review and adjust as needed, then start the monitors.</p>
+     <ul id="discovery-proposals" class="proposal-list"></ul>
+    </section>
+    <div id="discovery-empty" class="discovery-empty ui-card" hidden>
+     <h2 id="discovery-empty-heading" tabindex="-1">No monitors to propose</h2>
+     <p>The runner could not find anything it can watch on this site. The notes above say what it tried. You can set up a monitor by hand instead.</p>
+     <button id="discovery-empty-manual" type="button">Fill in the form yourself</button>
+    </div>
+    <div class="editor-footer">
+     <div id="discovery-summary" class="discovery-summary" role="status" tabindex="-1"></div>
+     <p id="discovery-feedback" class="discovery-feedback" role="status"></p>
+     <div class="editor-actions"><a class="editor-cancel ui-button" href="/app">Cancel</a><button id="discovery-start" class="primary" type="button">Start 0 monitors</button></div>
+    </div>
+   </div>
+  </section>
+  <form id="monitor-form" hidden>
    <div class="editor-columns">
     <div class="editor-stack">
      <section class="editor-panel ui-card" aria-labelledby="editor-check-heading"><h2 id="editor-check-heading">What to check</h2>
@@ -26,7 +55,7 @@
      </section>
     </div>
     <section class="editor-panel policy-panel ui-card">
-     <fieldset id="settings-probes"><legend>Checks to include</legend><p>Assign each selected check to a runner network. Independent labels or a passing external canary establish failure agreement.</p></fieldset>
+     <fieldset id="settings-probes"><legend>Checks to include</legend><p>Assign each selected check to a runner network. Independent networks, or an external check URL, establish failure agreement.</p></fieldset>
      <div class="policy-fields">
       <div class="editor-field"><label>Alert after this many failed checks<input disabled name="confirmSlots" type="number" min="1" max="10" required aria-describedby="confirm-help"></label><p id="confirm-help" class="helper ui-helper">Consecutive scheduled checks must fail before an alert opens.</p></div>
       <div class="editor-field"><label>Recover after this many passing checks<input disabled name="recoverSlots" type="number" min="1" max="10" required aria-describedby="recover-help"></label><p id="recover-help" class="helper ui-helper">Every selected check must pass before recovery can count.</p></div>

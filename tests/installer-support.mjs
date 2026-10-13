@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { inspectionMs, readProcessTable } from '../scripts/base-onboarding/process-table.mjs';
+import { inspectionMs, readProcessTable } from '@runeditrun/rer/internal/onboarding/process-table.mjs';
 import { createServer } from 'node:net';
 import { setTimeout as delay } from 'node:timers/promises';
 import { openOutboxMessage } from './auth-test-support.mjs';

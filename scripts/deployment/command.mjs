@@ -1,14 +1,14 @@
 import { saveOwnerDeclaration,selectMailDeclaration } from './mail-config.mjs';
 import { requiredConfiguration, validateConfiguration } from '../../src/domain/startup-config.mjs';
-import { readPrivateFile } from '../base-onboarding/private-files.mjs';
+import { readPrivateFile } from '@runeditrun/rer/private-files';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { ownerPlan, ownerWorkerName } from '../../src/base/modules/deploy-kit/owner.mjs';
 import { packageBuild } from '../../src/base/modules/deploy-kit/prepare.mjs';
-import { main } from '../../src/base/modules/deploy-kit/owner-cli.mjs';
+import { main, report } from '../../src/base/modules/deploy-kit/owner-cli.mjs';
 import { secretsFile, ownerSecrets, ownerEnvironment, validateAccount } from './owner-settings.mjs';
 import { prepareOwnerBuild, ownerProduct } from './owner-prepare.mjs';
-import { missing } from '../base-cli/cli/errors.mjs';
+import { missing, RerError } from '@runeditrun/rer/errors';
 export function deployment(lifecycle) {
  return async ({ root, options, store, signal, operationToken }) => {
   const declaration = JSON.parse(await readFile(join(root, 'deploy.json'), 'utf8'));
@@ -55,8 +55,14 @@ export function deployment(lifecycle) {
   const env = ownerEnvironment({ ...process.env, ...secrets });
   const selected=await saveOwnerDeclaration(root,declaration,env);
   const args = ['--declaration', selected, '--environment', environment, '--product', ownerProduct];
-  const result = await main(['deploy', ...args], env, { cwd: root });
-  await main(['health', ...args], env, { cwd: root });
-  return { deployed: true, origin: result.origin };
+  // A kit failure keeps its sanitized code and the stage it stopped in; its saved state lets the same command resume.
+  const kit = async (stage, command) => {
+   try { return await main([command, ...args], env, { cwd: root }); }
+   catch (error) { const failure = report(error); throw new RerError('owner_deploy_failed', `Owner deployment stopped during ${stage}: ${failure.code}${failure.resource ? ` (${failure.resource})` : ''}. Its saved state in .rer/deploy/${environment}.json is kept; run the same command again to resume.`, 1); }
+  };
+  const result = await kit('provisioning, migrations and upload', 'deploy');
+  await kit('the health check', 'health');
+  store.report(`deploy: ${result.origin} (Worker ${result.worker}, environment ${environment})`);
+  return { deployed: true, origin: result.origin, worker: result.worker, environment };
  };
 }

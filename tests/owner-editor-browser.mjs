@@ -20,6 +20,8 @@ try {
  const primary=(await (await app.call('/auth/session',undefined,{cookie})).json()).operator.id;
  const invite=async(role,email)=>{assert.equal((await app.call('/auth/invite',{email,displayName:'Editor test operator',role},{cookie})).status,202);const link=await outboxLink(app.call,{email,kind:'invite'});return sessionCookie(await app.call('/auth/confirm',{token:link.searchParams.get('token')}))};
  const memberCookie=await invite('member','member@example.test');
+ // Inviting an owner needs an email proof from the last ten minutes; the first-owner bootstrap session carries none.
+ cookie=await outboxSignIn(app.origin);
  const secondOwner=await invite('owner','other-owner@example.test');
  assert.equal((await app.call('/api/editor/config',undefined,{cookie:memberCookie})).status,403,'a native member session has no editor authority');
  const document=await app.call('/app',undefined,{cookie});

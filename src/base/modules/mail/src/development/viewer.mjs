@@ -1,4 +1,4 @@
-import { detail, document, listing, style } from './viewer-html.mjs';
+import { detail, document, listing, style, themedStyle } from './viewer-html.mjs';
 
 function localOrigin(origin) {
   if (typeof origin !== 'string') return null;
@@ -15,21 +15,29 @@ function routePath(path) {
   return typeof path === 'string' && /^\/(?:[A-Za-z0-9_-]+\/?)+$/.test(path) && !path.includes('//');
 }
 
+// The seed's own served stylesheet, in the grammar operator-auth branding accepts.
+function themePath(theme) {
+  return typeof theme === 'string' && /^\/(?!\/)[A-Za-z0-9._~/-]{1,200}\.css$/.test(theme) && !theme.includes('//') && !theme.includes('/.');
+}
+
 /** Opt-in local route. Rejected requests return null without touching the outbox. */
-export function createDevelopmentOutboxHandler({ local, origin, outbox, path = '/__dev/outbox' } = {}) {
+export function createDevelopmentOutboxHandler({ local, origin, outbox, path = '/__dev/outbox', theme } = {}) {
+  if (theme !== undefined && !themePath(theme)) throw new TypeError('Declare the outbox theme as a same-origin path to the seed\'s served .css file');
   const configured = local === true ? localOrigin(origin) : null;
   if (!configured || !routePath(path)) return async () => null;
   if (!outbox || typeof outbox.list !== 'function' || typeof outbox.get !== 'function') throw new TypeError('Invalid development outbox reader');
+  const sheet = theme ? style + themedStyle : style;
+  const styles = hash => theme ? `style-src 'self' 'sha256-${hash}'; font-src 'self'; img-src 'self'` : `style-src 'sha256-${hash}'`;
   let hash;
   async function response(body, status = 200, head = false) {
-    hash ??= crypto.subtle.digest('SHA-256', new TextEncoder().encode(style)).then(bytes => btoa(String.fromCharCode(...new Uint8Array(bytes))));
-    return new Response(head ? null : document(body), { status, headers: {
+    hash ??= crypto.subtle.digest('SHA-256', new TextEncoder().encode(sheet)).then(bytes => btoa(String.fromCharCode(...new Uint8Array(bytes))));
+    return new Response(head ? null : document(body, theme), { status, headers: {
       'Content-Type': 'text/html; charset=utf-8',
       'Cache-Control': 'no-store',
       'X-Robots-Tag': 'noindex, nofollow',
       'X-Content-Type-Options': 'nosniff',
       'Referrer-Policy': 'no-referrer',
-      'Content-Security-Policy': `default-src 'none'; script-src 'none'; style-src 'sha256-${await hash}'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'`,
+      'Content-Security-Policy': `default-src 'none'; script-src 'none'; ${styles(await hash)}; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'`,
       ...(status === 405 ? { Allow: 'GET, HEAD' } : {}),
     } });
   }

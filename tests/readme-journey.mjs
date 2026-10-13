@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
-import { open, readFile } from 'node:fs/promises';
+import { mkdir, open, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { scratchInstallation, repository, machineAvailable } from './scratch-installation.mjs';
 import { openGate, readCheckoutKey } from './auth-test-support.mjs';
@@ -20,9 +21,13 @@ const ports = new Set(), groups = new Set();
 let browser, dev, appRoot, caseError;
 let cwd = scratch.directory;
 try {
- const environment = { GIT_CONFIG_COUNT: '1', GIT_CONFIG_KEY_0: `url.${scratch.root}.insteadOf`, GIT_CONFIG_VALUE_0: cloneUrl };
+ // The README names `rer VERB`. The installed rer is the @runeditrun/rer package's own entry, which runs each verb with the clone's pinned rer; this stand-in is that entry, from the version this checkout pins. In a terminal rer dev stays in the foreground; without one it detaches, so the stand-in asks for the terminal's behaviour.
+ const bin = join(scratch.directory, 'bin');
+ await mkdir(bin, { mode: 0o700 });
+ await writeFile(join(bin, 'rer'), `#!/bin/sh\n[ "$1" = dev ] && set -- "$@" --foreground\nexec node "${fileURLToPath(new URL('../node_modules/@runeditrun/rer/global/rer.mjs', import.meta.url))}" "$@"\n`, { mode: 0o700 });
+ const environment = { GIT_CONFIG_COUNT: '1', GIT_CONFIG_KEY_0: `url.${scratch.root}.insteadOf`, GIT_CONFIG_VALUE_0: cloneUrl, PATH: `${bin}:${process.env.PATH}` };
  for (const block of blocks) {
-  if (/(?:^|\n)\s*node\s+scripts\/rer\.mjs\s+dev(?:\s|$)/.test(block)) {
+  if (/(?:^|\n)\s*(?:rer|node\s+scripts\/rer\.mjs)\s+dev(?:\s|$)/.test(block)) {
    assert.ok(!dev, 'only one foreground application may own the journey');
    appRoot = cwd;
    await machineAvailable();
@@ -54,7 +59,7 @@ try {
  ports.add(grant.port);
  await scratch.stop(dev); dev = undefined;
  await assertGroupsGone(groups);
- await scratch.run('node', ['scripts/rer.mjs', 'reset', '--yes', '--non-interactive'], { cwd: appRoot });
+ await scratch.run('node', ['node_modules/@runeditrun/rer/bin/rer.mjs', 'reset', '--yes', '--non-interactive'], { cwd: appRoot });
  assert.equal((await scratch.run('git', ['status', '--porcelain'], { cwd: appRoot })).trim(), '', 'documented journey changed tracked source');
  console.log('README-JOURNEY passed: literal fresh clone, rer install/setup/dev, health, owner outbox sign-in, private documents, reset and clean tracked tree.');
 } catch (error) { caseError = error; throw error; }

@@ -22,6 +22,14 @@
       "group": "owner"
     },
     {
+      "name": "UPTIME_START_URL",
+      "label": "Website to monitor (optional)",
+      "help": "Uptime checks this site from your runner and offers monitors to start with one click. Leave empty to add monitors yourself.",
+      "kind": "url",
+      "required": false,
+      "group": "owner"
+    },
+    {
       "name": "SESSION_SECRET",
       "label": "Session secret",
       "kind": "secret",

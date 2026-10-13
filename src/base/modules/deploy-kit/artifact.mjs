@@ -40,5 +40,8 @@ export async function collectFiles(root, directory = '', budget = {bytes:0,count
   }
   return files;
 }
+/** Built files a deployed Worker must serve: everything for the browser except documents
+ * (the app answers those; asset html_handling redirects them) and dot paths (never public). */
+export const publicAssetPaths = paths => paths.filter(path => !path.split('/').some(part => part.startsWith('.')) && extname(path) !== '.html');
 export function moduleType(path) { return ({'.js':'application/javascript+module','.mjs':'application/javascript+module','.wasm':'application/wasm','.txt':'text/plain','.html':'text/plain','.sql':'text/plain','.bin':'application/octet-stream'})[extname(path)]; }
 export function assetType(path) { return ({'.html':'text/html','.css':'text/css','.js':'application/javascript','.mjs':'application/javascript','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.ico':'image/x-icon','.woff2':'font/woff2','.txt':'text/plain'})[extname(path)] ?? 'application/octet-stream'; }

@@ -5,7 +5,7 @@ from Base `d6080a22a66794d7b817f7eccb72ca077ffd9ecf`, without donor tests.
 `base/setup-manifest.mjs` has only the exporter's documented schema import-path
 relocation; every other runtime file is recorded as a verbatim Base copy.
 
-Build with `node scripts/rer.mjs build`, then run `node scripts/build-delivery-artifact.mjs`
+Build with `pnpm exec rer build`, then run `node scripts/build-delivery-artifact.mjs`
 into a fresh `delivery-artifact` directory. The producer emits schema-2 raw
 payloads and exact migration bytes. It makes no provider request. The managed
 workflow is a manual caller of trusted-build at

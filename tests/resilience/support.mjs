@@ -11,8 +11,8 @@ import {executeTaskProbe} from '../../runners/src/execute-task.mjs';
 import {runRunner} from '../../runners/src/private-runner.mjs';
 export async function fixture(extraBindings={},outbound){
  const directory=await mkdtemp(join(tmpdir(),'uptime-resilience-')),key='test-only-resilience-runner-key-0001',legacyId=`self-${randomUUID()}`;
- const modes={target:503,canary:200},migratedContact=Date.now()-5;
- const target=http.createServer((req,res)=>{res.statusCode=req.url==='/canary'?modes.canary:modes.target;res.end('local network edge')});
+ const modes={target:503,canary:200,canaryBytes:0},migratedContact=Date.now()-5;
+ const target=http.createServer((req,res)=>{res.statusCode=req.url==='/canary'?modes.canary:modes.target;res.end(req.url==='/canary'&&modes.canaryBytes?Buffer.alloc(modes.canaryBytes,'x'):'local network edge')});
  await new Promise(r=>target.listen(0,'127.0.0.1',r));const port=target.address().port;
  const original=http.request;
  http.request=function(options,...args){if(options?.hostname==='93.184.216.34'||options?.hostname==='93.184.216.35'){assert.equal(options.headers.host,`${options.hostname}:${port}`,'C5 keeps the public Host while pinning');return original.call(this,{...options,hostname:'127.0.0.1'},...args)}return original.call(this,options,...args)};
@@ -34,6 +34,6 @@ export async function fixture(extraBindings={},outbound){
  async function submit(runner,task,attempts){return request('/api/runner/results',{runner,signed:true,body:{slotId:task.id,attempts}})}
  async function state(id){const overview=await request('/api/overview');assert.equal(overview.status,200);return overview.data.monitors.find(m=>m.id===id).state}
  async function pause(m){assert.equal((await request('/api/monitors/'+m.id,{method:'PATCH',body:{...m.definition,enabled:false}})).status,200)}
- return {worker,DB,origin,bindings,directory,migratedContact,first,second,modes,request,monitor,claim,evidence,submit,state,pause,run:runner=>runRunner({origin,key:runner.key,runnerId:runner.runnerId,localReview:true,once:true}),async close(){http.request=original;try{await worker.dispose()}catch(error){if(error.code!=='ERR_SERVER_NOT_RUNNING')throw error}target.closeAllConnections();await new Promise(r=>target.close(r));await rm(directory,{recursive:true,force:true})}}
+ return {worker,DB,origin,port,bindings,directory,migratedContact,first,second,modes,request,monitor,claim,evidence,submit,state,pause,run:runner=>runRunner({origin,key:runner.key,runnerId:runner.runnerId,localReview:true,once:true}),async close(){http.request=original;try{await worker.dispose()}catch(error){if(error.code!=='ERR_SERVER_NOT_RUNNING')throw error}target.closeAllConnections();await new Promise(r=>target.close(r));await rm(directory,{recursive:true,force:true})}}
  }catch(error){http.request=original;await worker?.dispose();target.closeAllConnections();await new Promise(r=>target.close(r));await rm(directory,{recursive:true,force:true});throw error}
 }

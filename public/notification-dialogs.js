@@ -35,7 +35,7 @@ export function showErasureReceipt(receipt,{onClose=()=>{}}={}){
  dialog.append(heading,description,reference,counts);
  if(receipt.counts.oa_bootstrap){const claim=document.createElement('p');claim.textContent='The original setup claim remains closed. Its counted row was anonymised.';dialog.append(claim)}
  if(receipt.entityKind==='operator'){
-  const guidance=document.createElement('p');guidance.textContent='If this was the configured owner, stop local dev and change only OWNER_EMAIL in data/local-secrets.json to an existing active owner, preserving every key and other setting. Then run node scripts/rer.mjs setup --owner-email EMAIL --non-interactive with that email. Supplying a different setup email alone is refused. Hosted OWNER_EMAIL must be updated separately by the deployment owner. ';
+  const guidance=document.createElement('p');guidance.textContent='If this was the configured owner, stop local dev and change only OWNER_EMAIL in data/local-secrets.json to an existing active owner, preserving every key and other setting. Then run rer setup --owner-email EMAIL --non-interactive with that email. Supplying a different setup email alone is refused. Hosted OWNER_EMAIL must be updated separately by the deployment owner. ';
   const help=document.createElement('a');help.href='/docs/data';help.textContent='Owner settings after erasure';guidance.append(help);dialog.append(guidance);
  }
  dialog.append(close);document.body.append(dialog);dialog.showModal();

@@ -1,7 +1,7 @@
 import { configureBranding } from './branding.mjs';
 import { AuthError } from './errors.mjs';
 import { normalizeEmail } from './policy.mjs';
-import { isLoopbackHost } from './http.mjs';
+import { isLoopbackHost, localCookieName } from './http.mjs';
 function seconds(value, fallback, max) {
   const n = value ?? fallback;
   if (!Number.isSafeInteger(n) || n < 1 || n > max) throw new AuthError('invalid_configuration', 503);
@@ -14,7 +14,7 @@ export function configure(input) {
   if (url.origin !== input.origin || url.username || url.password || (local ? (!isLoopbackHost(url.hostname) || !['http:', 'https:'].includes(url.protocol)) : url.protocol !== 'https:')) throw new AuthError('invalid_configuration', 503);
   if (typeof input.SESSION_SECRET !== 'string' || input.SESSION_SECRET.length < 32 || input.SESSION_SECRET.length > 1024) throw new AuthError('invalid_configuration', 503);
   if (input.SETUP_TOKEN !== undefined && (typeof input.SETUP_TOKEN !== 'string' || input.SETUP_TOKEN.length < 32 || input.SETUP_TOKEN.length > 1024)) throw new AuthError('invalid_configuration', 503);
-  const cookieName = local ? 'operator_session_local' : '__Host-operator_session';
+  const cookieName = local ? localCookieName('operator_session_local', input.origin) : '__Host-operator_session';
   // Identity providers are validated in full by identity/oidc; here only the
   // shape and the independent transaction secret they need.
   const providers = input.providers ?? [];

@@ -17,8 +17,14 @@ export const columns:Record<string,string[]>={
  archive_history:['id','table_name','record'],
  uptime_erasure_receipts:['id','entity_kind','counts','completed_at'],
  uptime_audit:['id','actor_kind','actor_ref','occurred_at','action','subject_kind','subject_ref'],
+ definition_batches:['id','created_at','actor_kind','actor_ref','source','plan_digest','counts','undone_at','restored_at'],
+ definition_batch_entries:['batch_id','monitor_id','action','revision','previous_revision','undo_outcome'],
 };
 export const TABLES=Object.keys(columns);
+// Product tables each extension version carries: 1 predates the audit, 2 predates definition batches.
+export const EXTENSION_VERSION=3;
+export const EXTENSION_TABLES:Record<number,string[]>={1:['uptime_audit','uptime_erasure_receipts','definition_batches','definition_batch_entries'],2:['definition_batches','definition_batch_entries'],3:[]};
+export const extensionTables=(version:number)=>TABLES.filter(name=>!LEGACY_TABLES.includes(name)&&!EXTENSION_TABLES[version].includes(name));
 export const notificationNamespace='uptime-notifications';
 export type Tables=Record<string,any[]>;
 export const object=(v:any)=>v!==null&&typeof v==='object'&&!Array.isArray(v);
@@ -29,7 +35,7 @@ export function unique(rows:any[],key:(r:any)=>string,label:string){const map=ne
 export async function digest(value:string){return [...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value)))].map(b=>b.toString(16).padStart(2,'0')).join('')}
 export function assertBytes(value:any,reservedBytes=0){if(new TextEncoder().encode(JSON.stringify(value)).byteLength+reservedBytes>ARCHIVE_BYTES)throw Error('Archive exceeds 2 MiB (byte bound exceeded: 2 MiB)')}
 export async function portableArchive(t:Tables,createdAt=Date.now(),erasureFence?:any){
- const payload={schemaVersion:ARCHIVE_VERSION,target:'uptime-worker-d1',createdAt,tables:Object.fromEntries(LEGACY_TABLES.map(name=>[name,t[name]])),extensionVersion:2,...(erasureFence?{erasureFence}:{}),productTables:Object.fromEntries(TABLES.filter(name=>!LEGACY_TABLES.includes(name)).map(name=>[name,t[name]]))};
+ const payload={schemaVersion:ARCHIVE_VERSION,target:'uptime-worker-d1',createdAt,tables:Object.fromEntries(LEGACY_TABLES.map(name=>[name,t[name]])),extensionVersion:EXTENSION_VERSION,...(erasureFence?{erasureFence}:{}),productTables:Object.fromEntries(TABLES.filter(name=>!LEGACY_TABLES.includes(name)).map(name=>[name,t[name]]))};
  return {payload,sha256:await digest(JSON.stringify(payload))};
 }
 export function portableDefinition(text:string){const value=JSON.parse(text);if(value.request!==undefined){delete value.request;return JSON.stringify(value)}return text}

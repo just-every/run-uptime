@@ -1,12 +1,15 @@
-// The composed operator auth: identity (email link, OIDC providers) over
-// Base's own accounts (the oa_ store), with dev sessions admitted only behind
-// the local key gate.
-import { linkMessage } from './identity/email-link/message.mjs';
+// Composed identity over Base's OA accounts, or an explicitly paired native
+// accounts/proof adapter. Native composition never constructs the OA store.
+import { fencedCredentials } from './accounts/credentials.mjs';
+import { providerControl } from './accounts/provider-control.mjs';
+import { linkedProviders } from '../dependencies/auth.mjs';
+import { createEmailLinkLifecycle } from './identity/email-link/index.mjs';
+import { createNativeAuth } from './accounts/native.mjs';
 import { AuthError, deny } from './errors.mjs';
 import { configure } from './config.mjs';
-import { opaqueToken, validToken, constantEqual } from './crypto.mjs';
-import { safeReturnTo, normalizeEmail, emailDomain } from './policy.mjs';
-import { requirePost, requireOrigin, requireLoopback, readCookie, sessionCookie } from './http.mjs';
+import { constantEqual } from './crypto.mjs';
+import { normalizeEmail } from './policy.mjs';
+import { requirePost, requireLoopback, readCookie, sessionCookie } from './http.mjs';
 import { AuthStore } from './accounts/store.mjs';
 import { administration, displayName } from './accounts/admin.mjs';
 import { emailAllowed, isActiveOperator, defaultRolePolicy } from './accounts/roles.mjs';
@@ -16,60 +19,28 @@ import { createOidcProviders } from './identity/oidc/index.mjs';
 import { isLocalCli } from './local-cli.mjs';
 import { devAdmitted } from './dev-admission.mjs';
 
-// Actions that need a fresh app-local email-link proof. A provider-issued
-// session never satisfies one: an identity provider can assert any email.
-export const STEP_UP_ACTIONS = Object.freeze(['providers:unlink', 'providers:relink', 'domains:change', 'owner:transfer', 'export', 'delete', 'credentials:mint']);
-export const STEP_UP_SECONDS = 600;
-
-export function createOperatorAuth({ db, config: input, mailSender, clientIp, rolePolicy = defaultRolePolicy, clock = Date.now, hooks = {}, fetch, waitUntil }) {
+export { STEP_UP_ACTIONS, STEP_UP_SECONDS } from './identity/email-link/index.mjs';
+export function createOperatorAuth(options) {
+  const { db, config: input, mailSender, clientIp, rolePolicy = defaultRolePolicy, clock = Date.now, hooks = {}, fetch, waitUntil, accounts: nativeAccounts, proofs } = options;
   const config = configure(input);
   if (typeof clientIp !== 'function') throw new AuthError('client_ip_required', 503);
   if (!hooks || typeof hooks !== 'object' || ['beforeMagicLink', 'afterConfirm'].some(name => hooks[name] !== undefined && typeof hooks[name] !== 'function')) throw new AuthError('invalid_configuration', 503);
+  if (Object.hasOwn(options, 'accounts') || Object.hasOwn(options, 'proofs')) return createNativeAuth({ db, config, accounts: nativeAccounts, proofs, mailSender, clientIp, clock, hooks, fetch, waitUntil });
   const store = new AuthStore(db);
   const sessions = oaSessions({ config, store, clock });
   const { hash, newSession, completed, authenticate } = sessions;
   const accounts = createOaAccounts({ config, store, clock, sessions, rolePolicy });
   const admission = createAdmission({ accounts, config, clock, hooks });
-  const providers = config.providers.length ? createOidcProviders({ admission, db, clientIp, clock, waitUntil, ...(fetch ? { fetch } : {}),
+  const policyVersion = async () => (await store.first('SELECT generation FROM oa_auth_settings WHERE singleton=1'))?.generation ?? -1;
+  const staticProviders = config.providers.length ? createOidcProviders({ admission, db, clientIp, clock, waitUntil, policyVersion, enabled: () => accounts.identityEnabled(), ...(fetch ? { fetch } : {}),
     config: { origin: config.origin, local: config.local, transactionSecret: config.OIDC_TRANSACTION_SECRET, providers: config.providers, signInPath: config.branding.signInPath,
       timeoutMs: config.identityTimeoutMs, startLimit: config.identityStartLimit } }) : null;
-  async function limit(request, email, scope) {
-    // The CLI's own loopback sign-in and owner claim are not a person's attempts.
-    if ((scope === 'magic' || scope === 'bootstrap') && await isLocalCli(request, config)) return;
-    const ip = await clientIp(request);
-    if (typeof ip !== 'string' || !ip || ip.length > 128) deny('client_ip_unavailable', 503);
-    const keys = await Promise.all([hash('rate', `${scope}:ip:${ip}`), hash('rate', `${scope}:email:${email}`)]);
-    const counts = await store.limits(keys, clock(), config.limitWindowSeconds * 1000);
-    if (counts[0] > config.ipLimit || counts[1] > config.emailLimit) deny('rate_limited', 429);
-  }
-  async function newToken(kind, returnTo) {
-    const token = opaqueToken();
-    return { id: crypto.randomUUID(), token, hash: await hash('link', token), kind, returnTo, expiresAt: clock() + config.linkSeconds * 1000 };
-  }
-  // The email link: the app's own proof that a person holds an address.
-  async function sendLink(email, token, revoke = () => store.run('UPDATE oa_tokens SET revoked_at=? WHERE id=?', [clock(), token.id])) {
-    if (!mailSender || !config.MAIL_FROM) { await revoke(); deny('mail_unavailable', 503); }
-    const url = new URL('/auth/confirm', config.origin);
-    url.searchParams.set('token', token.token);
-    let result;
-    try {
-      result = await mailSender.send({ deliveryId: token.id, from: config.MAIL_FROM, to: [email],
-        ...linkMessage(config, token, url.href),
-        headers: { 'Auto-Submitted': 'auto-generated' } });
-    } catch { await revoke(); deny('mail_unavailable', 503); }
-    if (result?.status !== 'accepted' && !(result?.status === 'development' && config.local)) {
-      // Even ambiguous delivery cannot leave a valid, unreported auth link.
-      await revoke(); deny('mail_unavailable', 503);
-    }
-  }
+  const providers = linkedProviders({ db, config, admission, clientIp, clock, waitUntil, fetch, staticProviders, policyVersion, enabled: () => accounts.identityEnabled() });
   // A domain's required provider refuses the email link and every other
   // non-provider route; owners are exempt.
   async function requireRoute(operator) {
     if (operator.role === 'owner' && operator.status === 'active') return;
     if (await accounts.requiredProvider(operator.email)) deny('provider_required');
-  }
-  async function requireFreshProof(actor) {
-    if (!await store.steppedUp(actor, clock() - STEP_UP_SECONDS * 1000)) deny('step_up_required', 403);
   }
   async function authorizedLink(request, digest) {
     const link = await store.preview(digest, clock());
@@ -81,10 +52,28 @@ export function createOperatorAuth({ db, config: input, mailSender, clientIp, ro
       || !await rolePolicy({ actor: issuer, action: 'operators:invite', role: link.role })) return null;
     return { link, issuer };
   }
+  const email = createEmailLinkLifecycle({ config, clock, mailSender, clientIp, hash, hooks: { beforeMagicLink: hooks.beforeMagicLink }, afterConfirm: admission.afterConfirm,
+    persistence: {
+      authenticate, requiredProvider: value => accounts.requiredProvider(value),
+      limits: (...args) => store.limits(...args), byEmail: value => store.byEmail(value), token: value => store.token(value),
+      authorizedLink, stepUpPreview: (...args) => store.stepUpPreview(...args), consumeStepUp: (...args) => store.consumeStepUp(...args),
+      stepUpChallenge: (...args) => store.stepUpChallenge(...args), steppedUp: (...args) => store.steppedUp(...args),
+      revokeLink: (id, now) => store.run('UPDATE oa_tokens SET revoked_at=? WHERE id=?', [now, id]),
+      revokeStepUp: id => store.run('UPDATE oa_step_up_challenges SET expires_at=0 WHERE id=?', [id]),
+      async consumeLink({ digest, approval, now }) {
+        await requireRoute({ email: approval.link.email, role: approval.link.role, status: approval.link.kind === 'invite' ? 'invited' : 'active' });
+        const session = await newSession();
+        const record = await store.consume(digest, now, session, config.allowList, approval.issuer);
+        return completed(session, record, record?.returnTo);
+      },
+    } });
+  const { limit, newToken, sendLink, requireFreshProof } = email;
   const admin = administration({ config, store, clock, authorize: rolePolicy, authenticate, newToken, sendLink, limit, requireFreshProof, providers });
   const external = legacyAdmission({ admission, config });
   return Object.freeze({
     ...admin,
+    ...providerControl({ store, accounts, authenticate, config, clock }),
+    ...fencedCredentials({store,authenticate,requireFreshProof,config,clock,hash}),
     presentation: config.branding,
     /** Identity providers (null when none is configured): routes, the sign-in page's list and owner actions. */
     providers,
@@ -92,6 +81,18 @@ export function createOperatorAuth({ db, config: input, mailSender, clientIp, ro
     admission,
     /** Base's accounts adapter over the oa_ store. */
     accounts,
+    async authorizeDependencySetup(request, { token }) {
+      requirePost(request, config);
+      if (!await isLocalCli(request, config) && (!config.SETUP_TOKEN || typeof token !== 'string' || token.length > 1024 || !constantEqual(await hash('setup', token), await hash('setup', config.SETUP_TOKEN)))) deny('invalid_setup_token',403);
+      if (await accounts.owner()) deny('already_initialized',409);
+      return true;
+    },
+    async completeLocalSetup(request) {
+      requirePost(request, config);
+      if (!await isLocalCli(request, config) || !await accounts.owner()) deny('owner_required',403);
+      await store.run('UPDATE oa_auth_settings SET first_setup=0 WHERE singleton=1');
+      return {complete:true};
+    },
     async getSession(request) {
       const value = await authenticate(request);
       if (!value) return null;
@@ -108,52 +109,9 @@ export function createOperatorAuth({ db, config: input, mailSender, clientIp, ro
       if (!record) deny('already_initialized', 409);
       return completed(session, record, returnTo);
     },
-    async requestMagicLink(request, { email: raw, returnTo }) {
-      requirePost(request, config);
-      const email = normalizeEmail(raw);
-      await limit(request, email, 'magic');
-      // Configuration failure is uniform for all addresses; unknown addresses
-      // otherwise have the same successful public response as admitted ones.
-      if (!mailSender || !config.MAIL_FROM) deny('mail_unavailable', 503);
-      // A domain rule is said for the whole domain, whoever asks.
-      const required = await accounts.requiredProvider(email);
-      const accepted = { status: 'accepted', ...(required ? { requiredProvider: required } : {}) };
-      const operator = await store.byEmail(email);
-      if (!isActiveOperator(operator, config.allowList)) return accepted;
-      if (required && operator.role !== 'owner') return accepted;
-      if (hooks.beforeMagicLink && await hooks.beforeMagicLink({ request, email, operator }) === false) return accepted;
-      const token = await newToken('magic', safeReturnTo(returnTo));
-      if (await store.token({ ...token, operatorId: operator.id, now: clock() })) await sendLink(email, token);
-      return accepted;
-    },
-    async previewLink(request, token) {
-      requireOrigin(request, config);
-      if (!['GET', 'HEAD'].includes(request.method)) deny('method_not_allowed', 405);
-      if (!validToken(token)) return null;
-      const digest = await hash('link', token);
-      const result = await authorizedLink(request, digest);
-      if (result) return { kind: result.link.kind, expiresInMinutes: Math.max(1, Math.ceil((result.link.expiresAt - clock()) / 60000)) };
-      const challenge = await store.stepUpPreview(digest, clock());
-      return challenge ? { kind: 'step_up', expiresInMinutes: Math.max(1, Math.ceil((challenge.expiresAt - clock()) / 60000)) } : null;
-    },
-    async confirmLink(request, { token }) {
-      requirePost(request, config);
-      await limit(request, typeof token === 'string' ? token.slice(0, 128) : '', 'confirmation');
-      if (!validToken(token)) deny('invalid_or_expired', 400);
-      const digest = await hash('link', token);
-      const approval = await authorizedLink(request, digest);
-      if (!approval) {
-        // A step-up link completes only in the session that asked for it.
-        const actor = await authenticate(request);
-        const proof = actor && await store.consumeStepUp(digest, actor, clock());
-        if (!proof) deny('invalid_or_expired', 400);
-        return { stepUp: proof.action, returnTo: safeReturnTo(proof.returnTo) };
-      }
-      await requireRoute({ email: approval.link.email, role: approval.link.role, status: approval.link.kind === 'invite' ? 'invited' : 'active' });
-      const session = await newSession();
-      const record = await store.consume(digest, clock(), session, config.allowList, approval.issuer);
-      return admission.afterConfirm(request, completed(session, record, record?.returnTo), 'email');
-    },
+    requestMagicLink: email.requestMagicLink,
+    previewLink: email.previewLink,
+    confirmLink: email.confirmLink,
     async signOut(request) {
       requirePost(request, config);
       const token = readCookie(request, config);
@@ -188,26 +146,7 @@ export function createOperatorAuth({ db, config: input, mailSender, clientIp, ro
       const record = await store.issue({ operatorId, expectedVersion: operator.version, session, now: clock(), kind: 'password' });
       return completed(session, record, returnTo);
     },
-    /** Ask for a step-up proof: an email link to the signed-in operator's own address. */
-    async requestStepUp(request, { action, returnTo } = {}) {
-      requirePost(request, config);
-      if (!STEP_UP_ACTIONS.includes(action)) throw new AuthError('invalid_action');
-      const actor = await authenticate(request);
-      if (!actor) deny('unauthenticated', 401);
-      await limit(request, actor.operator.email, 'step-up');
-      const token = await newToken('step_up', safeReturnTo(returnTo));
-      if (!await store.stepUpChallenge({ id: token.id, hash: token.hash, action, returnTo: token.returnTo, now: clock(), expiresAt: token.expiresAt }, actor)) deny('authority_changed', 409);
-      await sendLink(actor.operator.email, token, () => store.run('UPDATE oa_step_up_challenges SET expires_at=0 WHERE id=?', [token.id]));
-      return { status: 'accepted' };
-    },
-    /** Server-side guard for a listed action: the session holds a fresh email-link proof. */
-    async requireStepUp(request, action) {
-      if (!STEP_UP_ACTIONS.includes(action)) throw new AuthError('invalid_action');
-      const actor = await authenticate(request);
-      if (!actor) deny('unauthenticated', 401);
-      await requireFreshProof(actor);
-      const { hash: _, ...session } = actor;
-      return session;
-    },
+    requestStepUp: email.requestStepUp,
+    requireStepUp: email.requireStepUp,
   });
 }

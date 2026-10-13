@@ -7,7 +7,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
         with:
@@ -22,7 +22,7 @@ jobs:
       - name: Remove unused preinstalled toolchains
         # rer dev and preview refuse to start with under 15 GiB free.
         run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
-      - run: node scripts/rer.mjs install
+      - run: pnpm install --frozen-lockfile && pnpm exec rer install
       - run: pnpm exec playwright install --with-deps --only-shell chromium
       - name: Prepare canonical temporary directory
         run: |
@@ -34,7 +34,7 @@ jobs:
             printf 'Verification requires at least 15 GiB free after installation; available: %s KiB\n' "$available_kib" >&2
             exit 1
           fi
-      - run: node scripts/rer.mjs verify
+      - run: pnpm exec rer verify
         env:
           CI: 'true'
           WRANGLER_SEND_METRICS: 'false'
@@ -77,7 +77,7 @@ jobs:
           fi
           env -i PATH="$PATH" HOME="$install_home" CI=true TMPDIR="$bundle/tmp" \
             GIT_CONFIG_NOSYSTEM=1 WRANGLER_SEND_METRICS=false \
-            CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV=false node scripts/rer.mjs install
+            CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV=false sh -c 'pnpm install --frozen-lockfile && exec pnpm exec rer "$@"' sh install
           env -i PATH="$PATH" HOME="$install_home" CI=true TMPDIR="$bundle/tmp" \
             GIT_CONFIG_NOSYSTEM=1 WRANGLER_SEND_METRICS=false \
             CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV=false \

@@ -38,7 +38,7 @@ export function storage(db) {
     // A re-link the owner approved: the configured provider replaces the pin.
     async relink(id, provider, metadata, now) {
       return guarded(() => db.prepare(`UPDATE oa_identity_providers SET preset=?,status='linked',issuer=?,client_id=?,jwks_uri=?,authorization_endpoint=?,token_endpoint=?,algorithms=?,token_auth_method=?,
-        response_iss=?,interface_version=?,linked_at=?,pending_issuer=NULL,pending_client_id=NULL,pending_preset=NULL,pending_at=NULL,jwks=NULL,jwks_fetched_at=NULL
+        response_iss=?,interface_version=?,linked_at=MAX(linked_at+1,?),pending_issuer=NULL,pending_client_id=NULL,pending_preset=NULL,pending_at=NULL,jwks=NULL,jwks_fetched_at=NULL
         WHERE provider_id=?`).bind(provider.preset, metadata.issuer, provider.clientId, metadata.jwks, metadata.authorization, metadata.token, JSON.stringify(metadata.algorithms), provider.tokenAuthMethod,
         metadata.responseIssuer ? 1 : 0, metadata.interfaceVersion, now, id).run());
     },
@@ -49,7 +49,9 @@ export function storage(db) {
     },
     clearPending(id) { return guarded(() => db.prepare('UPDATE oa_identity_providers SET pending_issuer=NULL,pending_client_id=NULL,pending_preset=NULL,pending_at=NULL WHERE provider_id=?').bind(id).run()); },
     unlink(id) { return guarded(() => db.prepare("UPDATE oa_identity_providers SET status='unlinked' WHERE provider_id=?").bind(id).run()); },
-    keys(id, keySet, now) { return guarded(() => db.prepare('UPDATE oa_identity_providers SET jwks=?,jwks_fetched_at=? WHERE provider_id=?').bind(JSON.stringify(keySet), now, id).run()); },
+    keys(pin, keySet, now) {
+      return guarded(() => db.prepare("UPDATE oa_identity_providers SET jwks=?,jwks_fetched_at=? WHERE provider_id=? AND status='linked' AND issuer=? AND client_id=? AND linked_at=?").bind(JSON.stringify(keySet), now, pin.id, pin.issuer, pin.clientId, pin.linkedAt).run());
+    },
     async health() {
       return guarded(async () => new Map((await db.prepare('SELECT provider_id AS id,failing_since AS failingSince,hard_failure_at AS hardFailureAt,checked_at AS checkedAt FROM oa_identity_provider_health').all()).results.map(r => [r.id, r])));
     },

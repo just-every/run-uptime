@@ -26,11 +26,13 @@ export function observationsBySlot(observations:any[]){
  for(const row of observations){const values=grouped.get(row.slot_id)??[];values.push(evidence(row));grouped.set(row.slot_id,values)}
  return grouped
 }
-/** Fold each scheduled slot exactly once, preserving unbounded raw counters. */
+/** Fold each scheduled slot exactly once, preserving unbounded raw counters. A slot a lagging vantage skipped for a newer one holds
+ * no decision for that vantage: the state passes through it unchanged, so confirmation and recovery count consecutive slots with full
+ * evidence however steadily a vantage lags. */
 export function foldAttempts(definition:any,slots:any[],observations:any[],checkpoint:ProjectionCheckpoint={state:{},last:[]}){
  const grouped=observationsBySlot(observations);
  let {state,last}=checkpoint;
- for(const slot of slots.filter(s=>!s.manual).sort((a,b)=>a.due_at-b.due_at||a.id.localeCompare(b.id))){
+ for(const slot of slots.filter(s=>!s.manual&&!s.skipped).sort((a,b)=>a.due_at-b.due_at||a.id.localeCompare(b.id))){
   last=finalAttempts(definition,grouped.get(slot.id)??[]);
   const at=Math.max(slot.due_at,...last.flatMap((o:any)=>[o.completedAt,o.canary?.completedAt??0]));
   state=evaluate(definition,last,state,at);

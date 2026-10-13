@@ -1,6 +1,6 @@
 import { mkdtemp, readdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
-import { privateDirectory } from '../base-onboarding/private-files.mjs';
+import { privateDirectory } from '@runeditrun/rer/private-files';
 import { assertCredentialFree } from '../../src/base/modules/deploy-kit/prepare.mjs';
 import { buildEnvironment } from '../deployment/owner-settings.mjs';
 

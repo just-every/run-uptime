@@ -34,7 +34,11 @@ const page = await createSignInHandler(auth)(request);
 const response = page ?? await createAuthHandler(auth)(request);
 ```
 
-Register each provider's own redirect URI: `${origin}/auth/oidc/<id>/callback`.
+Register each provider's own redirect URI: `${origin}/auth/oidc/<id>/callback`,
+or an explicit same-origin `redirectUri` for an incumbent route. Both exported
+HTTP handlers own that configured callback outside `/auth/oidc/` too. The old
+default route is unowned after an override. Conflicting callbacks, foreign
+origins, credentials, query and fragment components are refused.
 `createOidcProviders({ admission, db, config, clientIp, fetch, clock, waitUntil })`
 is the same client for a seed whose accounts adapter is its own.
 
@@ -46,10 +50,11 @@ is the same client for a seed whose accounts adapter is its own.
 | `google` | `https://accounts.google.com` (fixed) | RS256 | `private_key_jwt` (default), `client_secret_basic`, `client_secret_post` | `email_verified`, and only for `@gmail.com` or tokens carrying a matching `hd` |
 | `microsoft` | `https://login.microsoftonline.com/<tenant>/v2.0` from `tenant` (never `common`, `organizations` or `consumers`) | RS256 | as Google | never by email: only `subjectEmails` |
 | `okta` | the organisation's exact HTTPS issuer | RS256 | as Google | never by email: only `subjectEmails` |
+| `legacy-rs256` (explicit incumbent opt-in) | exact HTTPS issuer plus required exact `endpointPins` | RS256 | as Google | signed verified email; missing timestamp counts at sign-in, supplied timestamp must be current and valid |
 
 `none` and every `HS*` algorithm are never accepted; a token whose `alg` is not
 in its link's pin is refused before any key is looked up. GitHub is not an
-OpenID provider and is not offered. Any other upstream identifies people only
+OpenID provider and is not offered. Outside the explicit incumbent preset, other upstreams identify people only
 through explicit `subjectEmails`, a trusted server map from the provider's `sub`
 to an existing operator's email (never populated from a callback, a token email
 or a request).
@@ -58,6 +63,17 @@ An `auth` provider must state, in discovery, the interface it serves:
 `"rer_interfaces": ["oidc-provider@1.0.0"]`. One below the minimum
 (`MINIMUM_PROVIDER_VERSION`, or a provider's higher `minimumVersion`) is refused
 and nothing is pinned.
+
+The incumbent preset requires `endpointPins: { authorization, token, jwks }`.
+Discovery must match these exact HTTPS URLs; this does not loosen Okta,
+Microsoft, Google or Auth trust. See [native adoption](../../docs/native-accounts.md)
+for the full persistence and callback contract.
+
+Callback overrides cannot occupy shared owner-claim, sign-in, auth, dependency
+or dev routes, including `/auth/owner-claim`, `/auth/dev/enter`, `/__dev/key` and
+`/__dev/personas`. These routes keep their original handlers; an incumbent path
+such as `/api/auth/identity/callback` is supported with the same transaction
+binding as the default callback.
 
 ## Linking and pinning
 
@@ -84,7 +100,7 @@ Metadata; JSON or a native form with `returnTo`, at most 4096 bytes) sends
 `response_type=code`, `response_mode=query`, the preset's scope, independent
 256-bit state and nonce, and mandatory S256 PKCE to the pinned authorization
 endpoint, with a per-state browser-binding cookie (`__Host-oa_oidc_<state>`, or
-`oa_oidc_local_<state>` on a loopback origin). State is keyed to its provider:
+`oa_oidc_local_<port>_<state>` on a loopback origin). State is keyed to its provider:
 an authorization response for one provider presented at another provider's
 redirect URI finds no transaction and is refused (the mix-up defence), and no
 code reaches the wrong token endpoint.

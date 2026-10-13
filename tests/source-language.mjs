@@ -153,7 +153,7 @@ export async function selfTest() {
         origin: {repository: '.', paths: ['modules/example.mjs', 'operations/operations.mjs', 'edition-authoring/cli.mjs']},
         mappings: [{path: 'src/base/modules', originPath: 'modules'}, {path: 'scripts/operations.mjs', originPath: 'operations/operations.mjs'}, {path: 'scripts/edition-authoring', originPath: 'edition-authoring'}],
       }}, {id: 'runeditrun/onboarding', source: {
-        paths: ['scripts/base-onboarding'],
+        paths: ['node_modules/@runeditrun/rer/onboarding'],
         origin: {repository: '.', paths: ['onboarding']},
       }}]})],
       ['.gitignore', 'ignored/\n'],

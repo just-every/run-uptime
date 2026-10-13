@@ -7,16 +7,12 @@ test('hosted new monitor starts with an empty required target and saves the oper
   const browser = await chromium.launch({headless: true,args:['--disable-gpu'], ...(process.env.UPTIME_BROWSER_EXECUTABLE ? {executablePath: process.env.UPTIME_BROWSER_EXECUTABLE} : {})});
   try {
     const page = await browser.newPage();
-    const source = await readFile(new URL('../public/editor.js', import.meta.url), 'utf8');
     const markup = await readFile(new URL('../src/ui/editor.html', import.meta.url), 'utf8');
-    const units = await readFile(new URL('../public/editor-units.mjs', import.meta.url), 'utf8');
-    const assertions = await readFile(new URL('../public/editor-definition.mjs', import.meta.url), 'utf8');
     let saved;
     await page.route('https://uptime.test/**', async route => {
       const request = route.request(), path = new URL(request.url()).pathname;
-      if (path === '/editor.js') return route.fulfill({contentType: 'text/javascript', body: source});
-      if (path === '/editor-units.mjs') return route.fulfill({contentType: 'text/javascript', body: units});
-      if (path === '/editor-definition.mjs') return route.fulfill({contentType: 'text/javascript', body: assertions});
+      // The page's own scripts, served from public/ exactly as the console serves them.
+      if (/^\/editor(?:\/[a-z-]+\.mjs|-[a-z]+\.mjs|\.js)$/.test(path)) return route.fulfill({contentType: 'text/javascript', body: await readFile(new URL(`../public${path}`, import.meta.url), 'utf8')});
       if (path === '/api/overview') return route.fulfill({json: {monitors: [], runner: {grants: [],runners:[{runnerId:'self-00000000-0000-4000-8000-000000000000',networkLabel:'owner-network',revokedAt:null}]}}});
       if (path === '/api/monitors' && request.method() === 'POST') {
         saved = request.postDataJSON();
@@ -28,6 +24,8 @@ test('hosted new monitor starts with an empty required target and saves the oper
     });
     await page.goto('https://uptime.test/editor');
     await page.waitForSelector('html.editor-ready');
+    // A new monitor starts from a website address; the owner can skip it and fill in the form.
+    await page.getByRole('button', {name: 'Fill in the form yourself', exact: true}).click();
     const urls = page.getByRole('textbox', {name: 'Target URL', exact: true});
     assert.equal(await urls.count(), 1, 'one responsive target control replaces duplicated hidden editor');
     for (const url of await urls.all()) {

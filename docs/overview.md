@@ -1,4 +1,4 @@
-Uptime is self-hosted uptime and API monitoring. It checks your sites and APIs on a schedule, tells you when a failure is confirmed, and never calls a missing check healthy. You run it yourself, it is free and open source under the MIT license, and the source is at https://github.com/just-every/uptime-monitor.
+Uptime is self-hosted uptime and API monitoring. It checks your sites and APIs on a schedule, tells you when a failure is confirmed, and never calls a missing check healthy. You run it yourself, it is free and open source under the MIT license, and the source is at https://github.com/just-every/run-uptime.
 
 ## How it works
 
