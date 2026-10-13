@@ -10,6 +10,25 @@
 
 <p align="center"><a href="https://run-uptime.com">run-uptime.com</a> · <a href="https://justevery.com">Part of Just Every</a> · <a href="LICENSE">MIT licensed</a></p>
 
+<p align="center">
+  <a href="https://justevery.com/#vol-uptime"><img src=".github/assets/media/preview.gif" width="800" alt="Uptime counting a failing Checkout API to three before it opens an incident, then watching it recover to healthy"></a>
+</p>
+<p align="center"><a href="https://justevery.com/#vol-uptime"><b>Watch the full demo</b></a> · 51 seconds</p>
+
+<p align="center">
+  <img src=".github/assets/media/flow.webp" width="800" alt="The Checkout API monitor moving from Degraded to Failing, then Recovering and back to Healthy">
+</p>
+
+<p align="center">
+  <img src=".github/assets/media/screen-1.webp" width="800" alt="Uptime's New monitor page: one URL checked and four proposed monitors for chargedesk.com with what each check expects"><br>
+  <sub>Start with one URL: Uptime looks around your site and proposes what to watch.</sub>
+</p>
+
+<p align="center">
+  <img src=".github/assets/media/screen-2.webp" width="800" alt="The Checkout API monitor marked Degraded after one failed check, with evidence coverage, the last check and recent results"><br>
+  <sub>One failed check marks a monitor Degraded; it is not an alert yet.</sub>
+</p>
+
 # Uptime
 
 ## Run it on your computer
