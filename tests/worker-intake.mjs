@@ -190,7 +190,8 @@ try{
   await check('every route refuses invalid path, query and body input at its boundary without echo or effect',async()=>{
     const tables=async()=>JSON.stringify(await Promise.all((await DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT GLOB '_cf*' AND name NOT IN ('public_rate_limits','oa_limits','runner_contact') ORDER BY name").all()).results.map(async({name})=>(await DB.prepare(`SELECT * FROM "${name}" ORDER BY rowid`).all()).results)));
     const secret='planted-credential-0001',before=await tables();
-    const send=async(method,path,body)=>{const response=await fetch(origin+path,{method,headers:{origin,'content-type':'application/json',cookie,'x-runner-key':runner},...(body===undefined?{}:{body})});const text=await response.text();assert.equal(response.status,400,`${method} ${path}: ${text}`);assert.ok(/^\{"error":"[^"]+"\}$/.test(text)&&!text.includes(secret),`${method} ${path} answers the standard error without the input`)};
+    // Parser diagnostics can truncate the input, so even its short prefix must stay private.
+    const send=async(method,path,body)=>{const response=await fetch(origin+path,{method,headers:{origin,'content-type':'application/json',cookie,'x-runner-key':runner},...(body===undefined?{}:{body})});const text=await response.text();assert.equal(response.status,400,`${method} ${path}: ${text}`);assert.ok(/^\{"error":"[^"]+"\}$/.test(text)&&!text.includes(secret.slice(0,7)),`${method} ${path} answers the standard error without the input`)};
     for(const route of apiRoutes){
       const at=id=>route.path.replace(':id',id),valid=at(route.params?.id?.(monitor.id)?monitor.id:'00000000-0000-4000-8000-000000000000'),body=route.body==='none'?undefined:'{}';
       if(route.params)await send(route.method,at(encodeURIComponent(secret+'\u0001')),body);
@@ -199,6 +200,8 @@ try{
       if(route.body==='empty')await send(route.method,valid,JSON.stringify({secret}));
       if(route.body==='object')for(const malformed of [secret,`["${secret}"]`,`{"value":"${secret}"`])await send(route.method,valid,malformed);
     }
+    await send('POST','/api/definitions/preview?source=uptime.monitors',secret);
+    await send('POST',`/api/definitions/apply?source=uptime.monitors&digest=${'0'.repeat(64)}`,secret);
     assert.equal(await tables(),before,'no refused input changed anything durable');
   });
   const claimed=await api('/api/runner/claim','POST',{}, {'x-runner-key':runner});

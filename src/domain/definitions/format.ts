@@ -22,7 +22,7 @@ export function decodeDefinitionBytes(bytes:Uint8Array){
 }
 export function boundDefinitionText(text:string){decodeDefinitionBytes(new TextEncoder().encode(text));return text}
 
-export function parseJson(text:string,what:string){try{return JSON.parse(text)}catch(error){throw fileError(`The ${what} is not valid JSON: ${(error as Error).message}`)}}
+export function parseJson(text:string,what:string){try{return JSON.parse(text)}catch{throw fileError(`The ${what} is not valid JSON`)}}
 export function boundEntries<T>(entries:T[]){if(entries.length>DEFINITION_MONITORS)throw fileError(`The file lists ${entries.length} monitors; at most ${DEFINITION_MONITORS} are accepted in one file.`);return entries}
 export const entryLabel=(index:number,value:any)=>`Entry ${index+1}${typeof value?.name==='string'&&value.name.trim()?` (“${value.name.trim().slice(0,100)}”)`:''}`
 
