@@ -5,6 +5,7 @@ import { defineConfig } from 'vite'
 import { readFileSync } from 'node:fs'
 import { docsSite } from './src/site/docs/build/plugin.ts'
 import { archiveOutputGuard } from '@runeditrun/rer/archive-output'
+import { developmentImportDiagnostics } from './scripts/dev/import-diagnostics.ts'
 
 const origin = process.env.RER_DEV_ORIGIN
 const local = origin ? {
@@ -24,6 +25,7 @@ export default defineConfig(({ command, isPreview }) => ({ server: { fs: {
  allow: ['src', 'public', 'node_modules', 'seed.json', 'node_modules/@runeditrun/rer/modules/portability'],
  deny: ['**/.rer/**', '**/.seed/**', '**/exports/**', '**/*.rer'],
 } }, plugins: [
+ developmentImportDiagnostics(),
  cloudflare({ inspectorPort: false, viteEnvironment: { name: 'ssr' }, persistState: { path: '.wrangler/state' }, config: command === 'serve' && !isPreview ? { main: './src/server.dev.ts', assets: { binding: 'ASSETS', run_worker_first: true }, ...(local ? { vars: { ...local, ...gate('RER_DEV_KEY'), ...gate('RER_DEV_IDENTITY') } } : {}) } : local ? { vars: local } : {} }),
  docsSite(), tanstackStart(), react(),
  // Refuses a build whose output (public/ copies included) holds an installation archive.

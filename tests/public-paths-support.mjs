@@ -4,6 +4,18 @@ import {readFile,readdir,writeFile,cp,mkdir} from 'node:fs/promises';
 import {resolve,join,relative,dirname,parse} from 'node:path';
 import {splitSql} from './migration-support.mjs';
 
+export async function steadyMinute(){
+ // Wait at the burst itself, not suite startup: earlier route checks may use
+ // most of a minute. Reserve enough of this fixed window for the real calls.
+ const remaining=60_000-Date.now()%60_000;
+ // Leave five seconds for D1 prefill before the >=20-second dispatch check.
+ const waited=remaining<25_000;
+ if(waited)await new Promise(resolve=>setTimeout(resolve,remaining+25));
+ const started=Date.now(),windowStart=Math.floor(started/60_000)*60_000;
+ assert.ok(windowStart+60_000-started>=20_000,'burst starts with at least twenty seconds in its fixed minute');
+ return {started,windowStart,remainingBeforeWaitMs:remaining,waited,remainingMs:windowStart+60_000-started};
+}
+
 export async function filesIn(directory,prefix=''){
  const result=[];
  for(const item of await readdir(directory,{withFileTypes:true})){

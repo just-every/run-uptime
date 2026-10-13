@@ -4,7 +4,7 @@ import {readFile,readdir,writeFile,mkdir} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
 import {runtimeDirectory,cleanupDirectory,availablePorts} from './notify-acceptance-runtime.mjs';
 import {testAuthBindings,keyHeader} from './auth-test-support.mjs';
-import {filesIn,publicRuntime,prefill,limited} from './public-paths-support.mjs';
+import {filesIn,publicRuntime,prefill,limited,steadyMinute} from './public-paths-support.mjs';
 
 const seed=JSON.parse(await readFile('seed.json','utf8')),declarations=seed.deploy.publicPaths,limits=seed.limits.publicRequestsPerMinutePerIp;
 const matches=(path,local=false)=>declarations.find(item=>(local||item.environment!=='local')&&(item.match==='prefix'?path.startsWith(item.path):path===item.path)&&(!item.withinDirectory||(!/[\\]|%(?:2f|5c|25)/i.test(path)&&path.split('/').includes(item.withinDirectory))));
@@ -82,8 +82,14 @@ try{
  }
  for(const item of declarations.filter(item=>item.environment==='local'))assert.equal((await call(item.path)).status,404,`${item.path}: unavailable hosted`);
  await DB.prepare('DELETE FROM public_rate_limits').run();
- await (await call('/health')).arrayBuffer();await prefill(DB,matches('/health').class,limits[matches('/health').class]);
+ await (await call('/health')).arrayBuffer();
+ const burstTiming=await steadyMinute();
+ await prefill(DB,matches('/health').class,limits[matches('/health').class]);
+ const dispatched=Date.now();
+ assert.ok(burstTiming.windowStart+60_000-dispatched>=20_000,'actual concurrent dispatch has at least twenty seconds remaining');
  const boundary=await Promise.all(Array.from({length:8},()=>call('/health')));
+ assert.equal(Math.floor(Date.now()/60_000)*60_000,burstTiming.windowStart,'the concurrent burst completes within one fixed minute');
+ console.log('BURST_TIMING '+JSON.stringify({...burstTiming,dispatched,dispatchRemainingMs:burstTiming.windowStart+60_000-dispatched,completed:Date.now()}));
  assert.equal(boundary.filter(response=>response.status===200).length,1,'one simultaneous request occupies the last slot');
  assert.equal(boundary.filter(response=>response.status===429).length,boundary.length-1,'every other simultaneous request is rate limited');
  for(const response of boundary)if(response.status===429)await limited(response,'atomic boundary');else await response.arrayBuffer();
