@@ -676,7 +676,7 @@
         "path": "/@vite/client",
         "match": "exact",
         "kind": "development-asset",
-        "class": "assets",
+        "class": "development-assets",
         "authentication": "None; local Vite HMR runtime only. The filesystem allowlist and private-file denies still apply. Hosted mode returns 404.",
         "environment": "local"
       },
@@ -684,7 +684,7 @@
         "path": "/@id/virtual:tanstack-start-dev-client-entry",
         "match": "exact",
         "kind": "development-asset",
-        "class": "assets",
+        "class": "development-assets",
         "authentication": "None; local TanStack Vite client entry only. Filesystem allowlist and private-file denies still apply. Hosted mode returns 404.",
         "environment": "local"
       },
@@ -692,7 +692,7 @@
         "path": "/@react-refresh",
         "match": "exact",
         "kind": "development-asset",
-        "class": "assets",
+        "class": "development-assets",
         "authentication": "None; local Vite compiler transport only. Vite filesystem allowlist and private-file denies remain authoritative. Hosted mode returns 404.",
         "environment": "local"
       },
@@ -700,7 +700,7 @@
         "path": "/@tanstack-start/styles.css",
         "match": "exact",
         "kind": "development-asset",
-        "class": "assets",
+        "class": "development-assets",
         "authentication": "None; local Vite compiler transport only. Vite filesystem allowlist and private-file denies remain authoritative. Hosted mode returns 404.",
         "environment": "local"
       },
@@ -708,7 +708,7 @@
         "path": "/@fs/",
         "match": "prefix",
         "kind": "development-asset",
-        "class": "assets",
+        "class": "development-assets",
         "authentication": "None; local dependency compiler transport only, restricted to a node_modules path segment and unencoded separators. Vite filesystem allowlist and private-file denies remain authoritative. Hosted mode returns 404.",
         "environment": "local",
         "withinDirectory": "node_modules"
@@ -717,7 +717,7 @@
         "path": "/node_modules/.pnpm/",
         "match": "prefix",
         "kind": "development-asset",
-        "class": "assets",
+        "class": "development-assets",
         "authentication": "None; local Vite client runtime and dependency files imported by their package-store path, restricted to a node_modules path segment and unencoded separators. Vite filesystem allowlist and private-file denies remain authoritative. Hosted mode returns 404.",
         "environment": "local",
         "withinDirectory": "node_modules"
@@ -726,7 +726,7 @@
         "path": "/node_modules/.vite/",
         "match": "prefix",
         "kind": "development-asset",
-        "class": "assets",
+        "class": "development-assets",
         "authentication": "None; local Vite optimized browser dependency files only. Filesystem allowlist and private-file denies remain authoritative. Hosted mode returns 404.",
         "environment": "local"
       },
@@ -734,7 +734,7 @@
         "path": "/src/client.tsx",
         "match": "exact",
         "kind": "development-asset",
-        "class": "assets",
+        "class": "development-assets",
         "authentication": "None; local Vite application client entry only. Filesystem allowlist and private-file denies still apply. Hosted mode returns 404.",
         "environment": "local"
       },
@@ -742,7 +742,7 @@
         "path": "/src/base/hydration/report.ts",
         "match": "exact",
         "kind": "development-asset",
-        "class": "assets",
+        "class": "development-assets",
         "authentication": "None; local Vite browser hydration reporter imported by the client entry only. Filesystem allowlist and private-file denies still apply. Hosted mode returns 404.",
         "environment": "local"
       },
@@ -750,7 +750,7 @@
         "path": "/src/base/hydration/intro-guard.ts",
         "match": "exact",
         "kind": "development-asset",
-        "class": "assets",
+        "class": "development-assets",
         "authentication": "None; local Vite browser hydration guard imported by the root route only. Filesystem allowlist and private-file denies still apply. Hosted mode returns 404.",
         "environment": "local"
       },
@@ -758,7 +758,7 @@
         "path": "/src/base/hydration/unit.tsx",
         "match": "exact",
         "kind": "development-asset",
-        "class": "assets",
+        "class": "development-assets",
         "authentication": "None; local Vite browser hydration boundary imported by the documentation routes only. Filesystem allowlist and private-file denies still apply. Hosted mode returns 404.",
         "environment": "local"
       },
@@ -766,7 +766,7 @@
         "path": "/src/router.tsx",
         "match": "exact",
         "kind": "development-asset",
-        "class": "assets",
+        "class": "development-assets",
         "authentication": "None; local Vite application client module graph from src/router.tsx only. Private domain/server modules are not declared. Filesystem allowlist and private-file denies still apply. Hosted mode returns 404.",
         "environment": "local"
       },
@@ -774,7 +774,7 @@
         "path": "/src/routeTree.gen.ts",
         "match": "exact",
         "kind": "development-asset",
-        "class": "assets",
+        "class": "development-assets",
         "authentication": "None; local Vite application client module graph from src/router.tsx only. Private domain/server modules are not declared. Filesystem allowlist and private-file denies still apply. Hosted mode returns 404.",
         "environment": "local"
       },
@@ -782,7 +782,7 @@
         "path": "/src/routes/",
         "match": "prefix",
         "kind": "development-asset",
-        "class": "assets",
+        "class": "development-assets",
         "authentication": "None; local Vite application client module graph from src/router.tsx only. Private domain/server modules are not declared. Filesystem allowlist and private-file denies still apply. Hosted mode returns 404.",
         "environment": "local"
       },
@@ -790,7 +790,7 @@
         "path": "/src/base/modules/editor/",
         "match": "prefix",
         "kind": "development-asset",
-        "class": "assets",
+        "class": "development-assets",
         "authentication": "None; local Vite application client module graph from src/router.tsx only. Private domain/server modules are not declared. Filesystem allowlist and private-file denies still apply. Hosted mode returns 404.",
         "environment": "local"
       },
@@ -798,7 +798,7 @@
         "path": "/src/editor/",
         "match": "prefix",
         "kind": "development-asset",
-        "class": "assets",
+        "class": "development-assets",
         "authentication": "None; local Vite application client module graph from src/router.tsx only. Private domain/server modules are not declared. Filesystem allowlist and private-file denies still apply. Hosted mode returns 404.",
         "environment": "local"
       },
@@ -806,7 +806,7 @@
         "path": "/src/site/",
         "match": "prefix",
         "kind": "development-asset",
-        "class": "assets",
+        "class": "development-assets",
         "authentication": "None; local Vite application client module graph from src/router.tsx only. Private domain/server modules are not declared. Filesystem allowlist and private-file denies still apply. Hosted mode returns 404.",
         "environment": "local"
       },
@@ -814,7 +814,7 @@
         "path": "/src/ui/",
         "match": "prefix",
         "kind": "development-asset",
-        "class": "assets",
+        "class": "development-assets",
         "authentication": "None; local Vite application client module graph from src/router.tsx only. Private domain/server modules are not declared. Filesystem allowlist and private-file denies still apply. Hosted mode returns 404.",
         "environment": "local"
       },
@@ -822,7 +822,7 @@
         "path": "/@id/__x00__virtual:uptime-docs",
         "match": "exact",
         "kind": "development-asset",
-        "class": "assets",
+        "class": "development-assets",
         "authentication": "None; local Vite virtual module containing published product documentation only. Hosted mode returns 404.",
         "environment": "local"
       },
@@ -881,9 +881,10 @@
       "runner": 1800,
       "assets": 600,
       "development": 600,
-      "drills": 30
+      "drills": 30,
+      "development-assets": 1800
     },
-    "notes": "Owner-tunable source settings; each class shares one fixed 60-second D1 window per client. Defaults allow a console load of about 25 assets plus polling, but capacity has not been load tested. Hosted CF-Connecting-IP must be a valid single IP; missing/malformed values share an unknown-client bucket. Local mode ignores all forwarding headers and uses one loopback bucket. Only keyed hashes of client identities are stored."
+    "notes": "Owner-tunable source settings; each class shares one fixed 60-second D1 window per client. Production assets retain their own budget. Local Vite compiler assets use a separate budget for the unbundled browser graph: about 140 module requests per console load, with room for twelve loads per minute. These defaults are estimated, not load tested. Hosted CF-Connecting-IP must be a valid single IP; missing/malformed values share an unknown-client bucket. Local mode ignores all forwarding headers and uses one loopback bucket. Only keyed hashes of client identities are stored."
   },
   "accessibility": {
     "level": "WCAG 2.2 AA",
