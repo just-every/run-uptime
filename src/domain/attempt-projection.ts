@@ -31,8 +31,8 @@ export function observationsBySlot(observations:any[]){
  for(const row of observations){const values=grouped.get(row.slot_id)??[];values.push(evidence(row));grouped.set(row.slot_id,values)}
  return grouped
 }
-/** Fold each scheduled slot exactly once, preserving unbounded raw counters. A skipped runner's missing part cannot reset a streak or
- * advance recovery. Other timely evidence in that slot can still confirm failure when it independently meets the configured quorum. */
+/** Fold each scheduled slot exactly once, preserving unbounded raw counters. Settled skipped slots are neutral without failure agreement;
+ * unresolved slots bound streaks conservatively while later independent evidence can still confirm failure or complete recovery. */
 export function foldAttempts(definition:any,slots:any[],observations:any[],checkpoint:ProjectionCheckpoint={state:{},last:[]}){
  const grouped=observationsBySlot(observations);
  let {state,last}=checkpoint;
@@ -44,10 +44,13 @@ export function foldAttempts(definition:any,slots:any[],observations:any[],check
   const at=Math.max(slot.due_at,...observed.flatMap((o:any)=>[completedAt(o),o.canary?completedAt(o.canary):0]));
   const decision=evaluate(definition,observed,state,at,true,evidenceThrough(observed,at));
   // Independent failure agreement is already a decision even when another
-  // vantage is pending or skipped. Otherwise pending classification holds
-  // chronological counters, and a settled skipped slot remains neutral.
+  // vantage is pending or skipped. An unresolved non-agreement might still
+  // become a missing slot, so neither streak can cross it yet. Continue from
+  // that lower bound, retaining confirmed failure until complete recovery.
+  // Checkpoints stop before pending slots; settled replay restores exact
+  // counters if the slot instead proves skipped and remains neutral.
   if(decision.candidate!=='Failing'){
-   if(slot.pending)break;
+   if(slot.pending){state={...state,failureStreak:0,recoveryStreak:0};continue;}
    if(slot.skipped)continue;
   }
   last=observed;
@@ -58,8 +61,8 @@ export function foldAttempts(definition:any,slots:any[],observations:any[],check
 /** Read-time freshness never consumes a scheduled slot or overwrites the fold. */
 export function projectAttempts(definition:any,slots:any[],observations:any[],now:number,checkpoint?:ProjectionCheckpoint){
  const {state,last}=foldAttempts(definition,slots,observations,checkpoint);
- // A pending classification holds chronological counters, not visible coverage.
- // Show the newest non-skipped slot's actual observations even while the fold
+ // Pending classification bounds counters, not visible coverage. Show the
+ // newest non-skipped slot's actual observations while historical eligibility
  // waits for a runner to advance or the fixed classification deadline to pass.
  const latest=slots.filter(s=>!s.manual&&!s.skipped).sort((a,b)=>b.due_at-a.due_at||b.id.localeCompare(a.id))[0];
  const visible=latest?finalAttempts(definition,observationsBySlot(observations).get(latest.id)??[]):last;
