@@ -1,13 +1,13 @@
 // Runner-local credentials for a flow's fill steps. A credential is a private file in UPTIME_CREDENTIAL_DIR named
-// <credentialRef>.json holding exactly {"origin": "https://…", "value": "…"}: the same owner-only custody, file mode and exact-origin
+// <credentialRef>.json holding exactly {"monitorId": "…", "origin": "https://…", "value": "…"}: the same owner-only custody, file mode and exact-origin
 // binding as an HTTP request credential, with a value instead of headers. The value is read on the runner, handed to the
 // browser process over a pipe, and never reaches the control plane, a definitions file, an archive, a log or a trace.
 import {open, realpath} from 'node:fs/promises';
 import {constants} from 'node:fs';
 import {resolve, dirname} from 'node:path';
 
-export async function readFlowSecret(reference, directory = process.env.UPTIME_CREDENTIAL_DIR) {
-  if (!directory || !/^[a-zA-Z0-9_-]{1,80}$/.test(reference)) throw Error('Credential unavailable');
+export async function readFlowSecret(reference, directory = process.env.UPTIME_CREDENTIAL_DIR, monitorId) {
+  if (typeof monitorId !== 'string' || !monitorId || !directory || !/^[a-zA-Z0-9_-]{1,80}$/.test(reference)) throw Error('Credential unavailable');
   let file;
   try {
     const root = await realpath(directory), path = resolve(root, `${reference}.json`);
@@ -16,7 +16,7 @@ export async function readFlowSecret(reference, directory = process.env.UPTIME_C
     const info = await file.stat();
     if (!info.isFile() || (info.mode & 0o077) || info.uid !== process.getuid() || info.size > 4096) throw Error();
     const input = JSON.parse(await file.readFile('utf8'));
-    if (!input || Object.keys(input).sort().join(',') !== 'origin,value' || typeof input.value !== 'string' || !input.value || input.value.length > 1024) throw Error();
+    if (!input || Object.keys(input).sort().join(',') !== 'monitorId,origin,value' || input.monitorId !== monitorId || typeof input.value !== 'string' || !input.value || input.value.length > 1024) throw Error();
     const origin = new URL(input.origin);
     if (!['http:', 'https:'].includes(origin.protocol) || origin.origin !== input.origin) throw Error();
     return {origin: input.origin, value: input.value};

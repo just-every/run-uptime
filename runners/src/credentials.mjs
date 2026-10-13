@@ -3,8 +3,8 @@ import {constants} from 'node:fs';
 import {resolve,dirname} from 'node:path';
 import {validateHeaderName,validateHeaderValue} from 'node:http';
 const forbidden=new Set(['host','connection','upgrade','content-length','transfer-encoding','te','trailer','expect','accept-encoding','proxy-authorization','proxy-connection']);
-export async function readCredentials(reference,url,method,directory=process.env.UPTIME_CREDENTIAL_DIR) {
-  if(!directory||!/^[a-zA-Z0-9_-]{1,80}$/.test(reference))throw Error('Credential unavailable');
+export async function readCredentials(reference,url,method,directory=process.env.UPTIME_CREDENTIAL_DIR,monitorId) {
+  if(typeof monitorId!=='string'||!monitorId||!directory||!/^[a-zA-Z0-9_-]{1,80}$/.test(reference))throw Error('Credential unavailable');
   let file;
   try{
     const root=await realpath(directory),path=resolve(root,`${reference}.json`);
@@ -13,7 +13,7 @@ export async function readCredentials(reference,url,method,directory=process.env
     const info=await file.stat();
     if(!info.isFile()||(info.mode&0o077)||info.uid!==process.getuid()||info.size>32768)throw Error();
     const input=JSON.parse(await file.readFile('utf8'));
-    if(!input||Object.keys(input).some(k=>!['origin','headers','body','auth'].includes(k))||input.origin!==new URL(url).origin)throw Error();
+    if(!input||Object.keys(input).some(k=>!['monitorId','origin','headers','body','auth'].includes(k))||input.monitorId!==monitorId||input.origin!==new URL(url).origin)throw Error();
     const headers={};
     if(input.headers!==undefined){
       if(!input.headers||Array.isArray(input.headers)||typeof input.headers!=='object'||Object.keys(input.headers).length>30)throw Error();

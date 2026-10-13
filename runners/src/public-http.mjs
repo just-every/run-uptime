@@ -59,9 +59,9 @@ function requestOnce(url,pin,method,settings,signal,onRequest,report,statusOnly=
 }
 import {checkServerIdentity as checkIdentity} from 'node:tls';
 // statusOnly: see requestOnce. Resolution, pinning, redirect validation and the downgrade refusal are the same as a probe's.
-export async function publicHttp(def,signal,onRequest,{statusOnly=false}={}) {
+export async function publicHttp(def,signal,onRequest,{statusOnly=false,monitorId}={}) {
   let url=publicTarget(def.url),method=def.method;
-  let settings=def.request?await readCredentials(def.request.credentialRef,url.href,method):{headers:{}};
+  let settings=def.request?await readCredentials(def.request.credentialRef,url.href,method,undefined,monitorId):{headers:{}};
   signal.throwIfAborted();
   for(let hop=0;hop<=5;hop++){
     const pin=await resolvePublic(url,signal),response=await requestOnce(url,pin,method,settings,signal,onRequest,undefined,statusOnly);
