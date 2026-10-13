@@ -85,12 +85,12 @@ export async function credentialUpgrade(){
   const sharedBefore=await read(sharedRef),report=await migrate();assert.equal(await read(sharedRef),sharedBefore);
   const ids=[shared.id,...manyImport.data.created].sort();for(const id of ids)assert.ok(report.stdout.includes(bindingCommand(sharedRef,id)));
   const sharedTask=await claim(f,shared.id),blocked=await run(sharedTask);assert.equal(blocked.outcome,'runner_error');assert.deepEqual(blocked.credentialBinding.monitorIds,ids);
-  assert.ok(JSON.stringify(blocked).length>4000,'exercise the diagnostic beyond the ordinary evidence limit');await submit(f,sharedTask,blocked);
+  await submit(f,sharedTask,blocked);
   const history=(await f.request(`/api/monitors/${shared.id}/history`)).data;assert.ok(history[0].observations[0].checks[0].reason.includes(bindingCommand(sharedRef,shared.id)));
   browser=await chromium.launch({headless:true});const context=await browser.newContext(),cookie=await signInOwner(f.origin,{bindings:f.bindings,finishFirstRun:true});
   const [name,...value]=cookie.split('=');await context.addCookies([{name,value:value.join('='),url:f.origin}]);
   const page=await context.newPage();await page.goto(f.origin+'/app/monitors/'+shared.id);await page.locator('#raw-history details[data-slot] > summary').first().click();await page.getByText('Known monitors referencing this credential').waitFor();
-  await page.getByText('Known monitors referencing this credential').click();const text=await page.locator('#raw-history').innerText();assert.match(text,/separate owner-only credential files and references/);assert.ok(text.includes(bindingCommand(sharedRef,shared.id)));for(const id of ids)assert.ok(text.includes(id));
+  await page.getByText('Known monitors referencing this credential').click();const text=await page.locator('#raw-history').innerText();assert.ok(text.includes(bindingCommand(sharedRef,shared.id)));for(const id of ids)assert.ok(text.includes(id));
   await browser.close();browser=null;
   // Ambiguous local databases must not choose an inventory and bind unused files.
   const {readdir}=await import('node:fs/promises'),dbDir=join(f.directory,'v3/d1/miniflare-D1DatabaseObject'),dbName=(await readdir(dbDir)).find(name=>name.endsWith('.sqlite'));

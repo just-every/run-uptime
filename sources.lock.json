@@ -3043,7 +3043,7 @@
       "executable": false
     },
     "tests/credential-upgrade.mjs": {
-      "sha256": "e1f35439cec9242147c4b506d5cd2082a76da4c7468827ad461e169ab07093e2",
+      "sha256": "83a00574e319705de1b60d3ce4cd84c4023a04e9f44083b183b1c0e7758a6ec5",
       "executable": false
     },
     "tests/definitions-import.mjs": {
