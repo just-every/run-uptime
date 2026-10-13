@@ -19,7 +19,7 @@ export async function runRunner({origin,key,runnerId:configuredId,networkLabel,w
  // Flow profiles live in this runner's own folder, emptied now: a profile a hard stop left behind never outlives this start.
  const flowWorkspace=await prepareFlowWorkspace(key).catch(()=>{console.error('The flow folder is not a private folder this runner owns; flows will report Unknown until UPTIME_FLOW_DIR is fixed.');return undefined});
  const watcher=createWatch({...watch,transport:watch?.transport??transport}),clock=createClock();
- const api=async(path,data,signed=false)=>{const body=JSON.stringify(data),timestamp=String(clock.now()),headers={'content-type':'application/json','x-runner-key':key};if(runnerId)headers['x-runner-id']=runnerId;if(signed){headers['x-sent-at']=timestamp;headers['x-runner-signature']=createHmac('sha256',key).update(`${timestamp}.${path==='/api/runner/enroll'?'runner-enrolment.':''}${body}`).digest('hex')}const r=await fetch(origin+path,{method:'POST',headers,body,redirect:'error',signal:AbortSignal.any([AbortSignal.timeout(30000),...(signal?[signal]:[])])});if(!r.ok){const answer=await r.json().catch(()=>null),pick=(value,pattern)=>typeof value==='string'&&pattern.test(value)?value:null,code=pick(answer?.code,/^[a-z_]{1,40}$/),operation=pick(answer?.operation,/^[a-z][A-Za-z0-9_.]{0,80}$/),kind=pick(answer?.class,/^[a-z_]{1,20}$/),cause=pick(answer?.cause,/^[\x20-\x7e]{1,200}$/);throw Object.assign(Error(`Control-plane response ${r.status}${code?` ${code}`:''}${kind?` (${kind})`:''}${operation?` in ${operation}`:''}${cause?`: ${cause}`:''} for ${path}`),{status:r.status,code,operation,class:kind})}return r.json()};
+ const api=async(path,data,signed=false,{shutdown=false}={})=>{const body=JSON.stringify(data),timestamp=String(clock.now()),headers={'content-type':'application/json','x-runner-key':key};if(runnerId)headers['x-runner-id']=runnerId;if(signed){headers['x-sent-at']=timestamp;headers['x-runner-signature']=createHmac('sha256',key).update(`${timestamp}.${path==='/api/runner/enroll'?'runner-enrolment.':''}${body}`).digest('hex')}const r=await fetch(origin+path,{method:'POST',headers,body,redirect:'error',signal:AbortSignal.any([AbortSignal.timeout(shutdown?2000:30000),...(!shutdown&&signal?[signal]:[])])});if(!r.ok){const answer=await r.json().catch(()=>null),pick=(value,pattern)=>typeof value==='string'&&pattern.test(value)?value:null,code=pick(answer?.code,/^[a-z_]{1,40}$/),operation=pick(answer?.operation,/^[a-z][A-Za-z0-9_.]{0,80}$/),kind=pick(answer?.class,/^[a-z_]{1,20}$/),cause=pick(answer?.cause,/^[\x20-\x7e]{1,200}$/);throw Object.assign(Error(`Control-plane response ${r.status}${code?` ${code}`:''}${kind?` (${kind})`:''}${operation?` in ${operation}`:''}${cause?`: ${cause}`:''} for ${path}`),{status:r.status,code,operation,class:kind})}return r.json()};
  let discovering;
  do{
   let task;
@@ -32,17 +32,18 @@ export async function runRunner({origin,key,runnerId:configuredId,networkLabel,w
   if(task)try{
    const attempts=[];
    for(const probe of task.probes??task.definition.probes){
+    if(signal?.aborted)break;
     const canaryUrl=task.definition.assignments?.[probe]?.canaryUrl;
     let canary;
-    if(canaryUrl){const canaryTask={...task,definition:{...task.definition,type:'http',network:'public',url:canaryUrl,method:'GET',request:undefined,assertions:{status:200},retries:0}};canary={...await executeTaskProbe(canaryTask,probe,{grantPath,controlPort:Number(u.port||(u.protocol==='https:'?443:80)),statusOnly:true}),attempt:0}}
+    if(canaryUrl){const canaryTask={...task,definition:{...task.definition,type:'http',network:'public',url:canaryUrl,method:'GET',request:undefined,assertions:{status:200},retries:0}};canary={...await executeTaskProbe(canaryTask,probe,{grantPath,controlPort:Number(u.port||(u.protocol==='https:'?443:80)),statusOnly:true,signal,now:clock.now}),attempt:0}}
     for(let attempt=0;attempt<=task.definition.retries;attempt++){
-     let evidence;try{evidence=await executeTaskProbe(task,probe,{grantPath,controlPort:Number(u.port||(u.protocol==='https:'?443:80)),flowWorkspace})}catch{const now=Date.now();evidence={id:randomUUID(),probe,startedAt:now,completedAt:now,durationMs:0,runnerVersion:'uptime-node/0.1.0',outcome:'runner_error',checks:[{assertion:'runner',pass:false,reason:'Custody or runner execution unavailable'}]}}
-     attempts.push({...clock.align(evidence,{dueAt:task.dueAt}),attempt,...(canary?{canary:clock.align(canary,{dueAt:task.dueAt})}:{})});if(evidence.outcome==='pass'||evidence.outcome==='runner_error')break;
+     let evidence;try{evidence=await executeTaskProbe(task,probe,{grantPath,controlPort:Number(u.port||(u.protocol==='https:'?443:80)),flowWorkspace,signal,now:clock.now})}catch{const now=Date.now();evidence={id:randomUUID(),probe,startedAt:now,completedAt:now,durationMs:0,runnerVersion:'uptime-node/0.1.0',outcome:'runner_error',checks:[{assertion:'runner',pass:false,reason:signal?.aborted?'Runner stopped before the attempt completed':'Custody or runner execution unavailable'}]}}
+     attempts.push({...clock.align(evidence,{dueAt:task.dueAt}),attempt,...(canary?{canary:clock.align(canary,{dueAt:task.dueAt})}:{})});if(signal?.aborted||evidence.outcome==='pass'||evidence.outcome==='runner_error')break;
     }
    }
-   await api('/api/runner/results',{slotId:task.id,attempts},true);
+   if(attempts.length)await api('/api/runner/results',{slotId:task.id,attempts},true,{shutdown:Boolean(signal?.aborted)});
   }catch(error){if(signal?.aborted)break;if(once)throw error;console.error('Runner execution failed; retained evidence remains available.')}
-  if(registered)try{await dispatchNotifications(api,transport)}catch(error){if(!signal?.aborted)console.error(`Runner notification operation failed (${/^Control-plane response /.test(error?.message)?error.message:'local error'}); the next poll retries it.`)}
+  if(registered&&!signal?.aborted)try{await dispatchNotifications(api,transport)}catch(error){if(!signal?.aborted)console.error(`Runner notification operation failed (${/^Control-plane response /.test(error?.message)?error.message:'local error'}); the next poll retries it.`)}
   if(once||signal?.aborted)break;
   await new Promise(resolve=>{const timer=setTimeout(done,pollMs);function done(){clearTimeout(timer);signal?.removeEventListener('abort',done);resolve()}signal?.addEventListener('abort',done,{once:true})});
  }while(!signal?.aborted)

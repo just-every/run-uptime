@@ -69,6 +69,7 @@ export async function startFlowProxy({grant = null, maxBytes, maxConnections = 6
       reply.on('data', count); reply.pipe(response);
     });
     track(request.socket);
+    upstream.on('socket', track);
     upstream.on('error', () => { if (!response.headersSent) response.writeHead(502); response.end(); });
     request.pipe(upstream);
   });

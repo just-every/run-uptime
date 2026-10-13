@@ -39,12 +39,15 @@ const reasonText = (failure, flow, wallMs) => {
   }
 };
 
-export async function runFlow(definition, probe, {grantPath, controlPort, workspace, credentialDir = process.env.UPTIME_CREDENTIAL_DIR, capability} = {}) {
+export async function runFlow(definition, probe, {grantPath, controlPort, workspace, credentialDir = process.env.UPTIME_CREDENTIAL_DIR, capability, monitorId, signal} = {}) {
   const startedAt = Date.now(), flow = definition.flow;
   const observation = data => ({id: randomUUID(), probe, startedAt, completedAt: Date.now(), durationMs: 0, runnerVersion: RUNNER_VERSION, ...data});
   const finish = o => ({...o, durationMs: o.completedAt - o.startedAt});
   const runnerError = (assertion, reason) => finish(observation({outcome: 'runner_error', checks: [{assertion, pass: false, reason}]}));
+  const interrupted = () => runnerError('runner', 'Runner stopped before the attempt completed');
+  if (signal?.aborted) return interrupted();
   const browser = capability ?? await browserCapability();
+  if (signal?.aborted) return interrupted();
   if (!browser.available) return runnerError('browser', browser.reason);
   if (!workspace) return runnerError('browser', 'This runner has no private flow folder (UPTIME_FLOW_DIR must be a folder this runner owns)');
   let grant = null;
@@ -56,9 +59,10 @@ export async function runFlow(definition, probe, {grantPath, controlPort, worksp
     } catch { return runnerError('grant', 'The local synthetic grant is missing, expired or does not cover this flow'); }
   }
   const credentials = {};
-  try { for (const ref of new Set(flow.steps.filter(s => s.kind === 'fill').map(s => s.credentialRef))) credentials[ref] = await readFlowSecret(ref, credentialDir); }
+  try { for (const ref of new Set(flow.steps.filter(s => s.kind === 'fill').map(s => s.credentialRef))) credentials[ref] = await readFlowSecret(ref, credentialDir, monitorId); }
   catch { return runnerError('credential', 'A credential this flow names is missing or invalid on this runner'); }
 
+  if (signal?.aborted) return interrupted();
   const deadlineMs = Math.min(definition.timeoutMs ?? FLOW_LIMITS.wallMs, FLOW_LIMITS.wallMs);
   // The proxy starts first, so the run folder exists for as short a time as possible before the process that cleans it up does.
   const proxy = await startFlowProxy({grant, maxBytes: FLOW_LIMITS.maxBytes});
@@ -69,6 +73,7 @@ export async function runFlow(definition, probe, {grantPath, controlPort, worksp
   let child, timer, killedForTime = false, output = '', tooMuch = false, stats;
   const entries = [], arrivals = [];
   let done;
+  const stop = () => { if (child?.pid) void killTree(child.pid); };
   try {
     // The fourth pipe is the child's lifeline: it closes only when this process ends, however it ends, and the child then removes
     // its browser and this run's folder itself.
@@ -86,10 +91,13 @@ export async function runFlow(definition, probe, {grantPath, controlPort, worksp
     child.on('error', () => {});
     child.stdin.on('error', () => {});
     child.stdin.end(JSON.stringify({flow, url: definition.url, profileDir, home, proxy: {port: proxy.port, username: proxy.username, password: proxy.password}, credentials, deadlineMs: deadlineMs - 3000, maxPages: FLOW_LIMITS.maxPages}));
+    signal?.addEventListener('abort', stop, {once: true});
+    if (signal?.aborted) stop();
     timer = setTimeout(() => { killedForTime = true; killTree(child.pid); }, deadlineMs);
     await exited;
   } finally {
     clearTimeout(timer);
+    signal?.removeEventListener('abort', stop);
     if (child?.pid) await killTree(child.pid);
     child?.stdio[3]?.destroy();
     // A browser whose child process was killed outright is no longer below it, but still names its profile in this folder.
@@ -98,6 +106,7 @@ export async function runFlow(definition, probe, {grantPath, controlPort, worksp
     await proxy.close();
     await rm(base, {recursive: true, force: true, maxRetries: 10, retryDelay: 100});
   }
+  if (signal?.aborted) return interrupted();
   const completedAt = Date.now();
   if (tooMuch || (!done && !killedForTime) || done?.launchFailed || done?.crashed) return runnerError('browser', done?.launchFailed ? 'The browser could not be started on this runner' : 'The browser process ended without a result');
   // Reasons and the step they belong to, in the order of authority: the clock, the byte limit, what the proxy refused, then the page.

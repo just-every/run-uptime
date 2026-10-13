@@ -3,7 +3,7 @@ import {discover as discoverSite} from './discovery/index.mjs';
 // Answers the owner's "check this website" jobs. It runs beside the probe loop, never inside it: one claim route poll
 // at a time, one discovery at a time, and a slow crawl only delays the next discovery, never a probe or a notification.
 const ERROR_MAX=200,RUN_LIMIT_MS=100_000;
-const sleep=(ms,signal)=>new Promise(resolve=>{const timer=setTimeout(done,ms);function done(){clearTimeout(timer);signal?.removeEventListener('abort',done);resolve()}signal?.addEventListener('abort',done,{once:true})});
+const sleep=(ms,signal)=>signal?.aborted?Promise.resolve():new Promise(resolve=>{const timer=setTimeout(done,ms);function done(){clearTimeout(timer);signal?.removeEventListener('abort',done);resolve()}signal?.addEventListener('abort',done,{once:true})});
 // A failure the owner reads in the console: plain, one line, within the Worker's limit.
 export const failureText=(error,prefix)=>{const detail=String(error?.message??error).replace(/[\x00-\x1f\x7f]+/g,' ').replace(/\s+/g,' ').trim();return (prefix+(detail?`: ${detail}`:'.')).slice(0,ERROR_MAX)};
 // api(path,body,signed) is the runner's own control-plane call; it throws an Error whose `status` is the HTTP status.
