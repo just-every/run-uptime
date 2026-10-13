@@ -6,10 +6,18 @@ import {foldAttempts,type ProjectionCheckpoint} from './attempt-projection.ts'
 const PAGE=512;
 // `skipped`: a vantage's part of the slot was never delivered because its runner, behind, took a newer scheduled slot of the
 // monitor instead (the newest-slot rule in attempts.server.ts). A runner that took nothing newer leaves its part as missing evidence.
-const tail=`SELECT t.id,t.due_at,t.manual,t.lease_until,EXISTS(SELECT 1 FROM runner_assignments a JOIN slots n ON n.monitor_id=t.monitor_id
- AND n.manual=0 AND n.due_at>t.due_at JOIN runner_assignments na ON na.slot_id=n.id AND na.runner_id=a.runner_id AND na.delivered_at IS NOT NULL
- WHERE a.slot_id=t.id AND a.delivered_at IS NULL) skipped FROM slots t
- WHERE t.monitor_id=? AND t.revision=? AND t.manual=0 AND (t.due_at,t.id)>(?,?)
+// `held`: its undelivered part still belongs to a runner whose authenticated contact is fresh. Keep an expired slot mutable until
+// that runner advances or its contact goes stale, so an overview read cannot permanently fold a temporary lag into missing evidence.
+const tail=`SELECT t.id,t.due_at,t.manual,t.lease_until,
+ COALESCE((SELECT json_group_array(a.probe) FROM runner_assignments a WHERE a.slot_id=t.id AND a.delivered_at IS NULL
+  AND EXISTS(SELECT 1 FROM slots n JOIN runner_assignments na ON na.slot_id=n.id AND na.runner_id=a.runner_id AND na.delivered_at IS NOT NULL
+   WHERE n.monitor_id=t.monitor_id AND n.manual=0 AND n.due_at>t.due_at)), '[]') skipped_probes,
+ EXISTS(SELECT 1 FROM runner_assignments a JOIN runners r ON r.runner_id=a.runner_id
+ WHERE a.slot_id=t.id AND a.delivered_at IS NULL AND r.revoked_at IS NULL
+  AND r.last_contact_at<=?5 AND r.last_contact_at>=?5-?6
+  AND NOT EXISTS(SELECT 1 FROM slots n JOIN runner_assignments na ON na.slot_id=n.id AND na.runner_id=a.runner_id AND na.delivered_at IS NOT NULL
+   WHERE n.monitor_id=t.monitor_id AND n.manual=0 AND n.due_at>t.due_at)) held FROM slots t
+ WHERE t.monitor_id=?1 AND t.revision=?2 AND t.manual=0 AND (t.due_at,t.id)>(?3,?4)
  ORDER BY t.due_at,t.id LIMIT ${PAGE}`;
 type Update={dueAt:number;slotId:string;checkpoint:ProjectionCheckpoint};
 export function checkpointStatement(env:Bindings,monitorId:string,revision:number,update:Update,generation:number,token:string){
@@ -19,6 +27,8 @@ export function checkpointStatement(env:Bindings,monitorId:string,revision:numbe
   .bind(monitorId,revision,update.dueAt,update.slotId,JSON.stringify(update.checkpoint.state),JSON.stringify(update.checkpoint.last),monitorId,generation,token)
 }
 export async function attemptSnapshot(env:Bindings,monitorId:string,revision:number,definition:any,now:number,extraSlot?:string){
+ const staleMs=Number(env.UPTIME_RUNNER_STALE_MS??120000);
+ if(!Number.isSafeInteger(staleMs)||staleMs<=0)throw Error('Invalid monitoring watch interval');
  restart:for(;;){
   const initial=await env.DB.batch([
    env.DB.prepare('SELECT generation FROM evidence_generation WHERE monitor_id=?').bind(monitorId),
@@ -32,15 +42,15 @@ export async function attemptSnapshot(env:Bindings,monitorId:string,revision:num
   for(;;){
    const snapshot=await env.DB.batch([
     env.DB.prepare('SELECT generation FROM evidence_generation WHERE monitor_id=?').bind(monitorId),
-    env.DB.prepare(tail).bind(monitorId,revision,dueAt,slotId),
-    env.DB.prepare(`SELECT o.* FROM observations o JOIN (${tail}) s ON s.id=o.slot_id`).bind(monitorId,revision,dueAt,slotId),
+    env.DB.prepare(tail).bind(monitorId,revision,dueAt,slotId,now,staleMs),
+    env.DB.prepare(`SELECT o.* FROM observations o JOIN (${tail}) s ON s.id=o.slot_id`).bind(monitorId,revision,dueAt,slotId,now,staleMs),
     ...(extraSlot?[env.DB.prepare('SELECT * FROM observations WHERE slot_id=?').bind(extraSlot)]:[])
    ]);
    if((snapshot[0].results[0] as any)?.generation!==generation)continue restart;
    const slots=snapshot[1].results as any[],observations=snapshot[2].results as any[];
    // Complete slots still accept late attempts (including failed canaries).
    // Freeze only a contiguous prefix whose acceptance authority has expired.
-   const boundary=slots.findIndex(s=>s.lease_until>now);
+   const boundary=slots.findIndex(s=>s.lease_until>now||s.held);
    const expired=boundary<0?slots:slots.slice(0,boundary);
    if(!expired.length){
     if(slots.length===PAGE)throw Error('Mutable scheduled window exceeds projection page');

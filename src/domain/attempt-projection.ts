@@ -26,15 +26,20 @@ export function observationsBySlot(observations:any[]){
  for(const row of observations){const values=grouped.get(row.slot_id)??[];values.push(evidence(row));grouped.set(row.slot_id,values)}
  return grouped
 }
-/** Fold each scheduled slot exactly once, preserving unbounded raw counters. A slot a lagging vantage skipped for a newer one holds
- * no decision for that vantage: the state passes through it unchanged, so confirmation and recovery count consecutive slots with full
- * evidence however steadily a vantage lags. */
+const skippedProbes=(slot:any)=>{
+ const value=typeof slot.skipped_probes==='string'?JSON.parse(slot.skipped_probes):slot.skipped_probes;
+ return new Set(Array.isArray(value)?value.filter((probe:any)=>typeof probe==='string'):[])
+}
+/** Fold each scheduled slot exactly once, preserving unbounded raw counters. A skipped runner's missing part cannot reset a streak or
+ * advance recovery. Other timely evidence in that slot can still confirm failure when it independently meets the configured quorum. */
 export function foldAttempts(definition:any,slots:any[],observations:any[],checkpoint:ProjectionCheckpoint={state:{},last:[]}){
  const grouped=observationsBySlot(observations);
  let {state,last}=checkpoint;
- for(const slot of slots.filter(s=>!s.manual&&!s.skipped).sort((a,b)=>a.due_at-b.due_at||a.id.localeCompare(b.id))){
-  last=finalAttempts(definition,grouped.get(slot.id)??[]);
-  const at=Math.max(slot.due_at,...last.flatMap((o:any)=>[o.completedAt,o.canary?.completedAt??0]));
+ for(const slot of slots.filter(s=>!s.manual).sort((a,b)=>a.due_at-b.due_at||a.id.localeCompare(b.id))){
+  const observed=finalAttempts(definition,grouped.get(slot.id)??[]);
+  const at=Math.max(slot.due_at,...observed.flatMap((o:any)=>[o.completedAt,o.canary?.completedAt??0]));
+  if(skippedProbes(slot).size&&evaluate(definition,observed,state,at,false).candidate!=='Failing')continue;
+  last=observed;
   state=evaluate(definition,last,state,at);
  }
  return {state,last}
