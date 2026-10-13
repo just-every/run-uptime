@@ -172,7 +172,7 @@
       "requiredWhen": "An owner asks to check a public website or configures UPTIME_START_URL",
       "why": "The runner performs bounded read-only discovery of the owner's chosen site, following its public redirects and crawling permitted pages and related API/status hosts.",
       "data": [
-        "The owner-selected URL, request host/path/query, GET or HEAD method, discovery user agent and headers, request time, and runner source address",
+        "The owner-selected URL, request host/path/query, GET or HEAD method, discovery User-Agent and other headers, request time, and runner source address",
         "The initial URL's public redirect chain, then robots files, pages, JSON/spec documents and redirect destinations on its permitted registrable domains and linked status hosts are read with bounded bodies in runner memory",
         "Only the input/final URL, contacted hostnames, request count and duration, short notes, and validated proposed monitor definitions return to the console; raw target HTML, JSON and response headers are not returned, stored, logged, or rendered as console HTML"
       ],
