@@ -25,7 +25,7 @@ try {
     await atomicJson(root, join(root, INVENTORY_FILE), inventory);
     for (const name of (await readdir(root)).sort()) {
       if (!name.endsWith('.json') || !validReference(name.slice(0, -5))) continue;
-      const ref = name.slice(0, -5), ids = inventory[ref] ?? [];
+      const ref = name.slice(0, -5), ids = Object.hasOwn(inventory, ref) ? inventory[ref] : [];
       let source;
       try { source = await openCredential(root, ref); }
       catch { console.log(`Credential ${ref}: invalid local file; review custody and format. No binding changed.`); continue; }
