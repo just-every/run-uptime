@@ -1,0 +1,149 @@
+name: Run site off
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: run-site
+  cancel-in-progress: false
+jobs:
+  detach:
+    if: github.ref == 'refs/heads/main' && vars.RUN_SITE_DEPLOY != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    environment: run-site
+    steps:
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22.20.0'
+      - name: Detach site domains and verify absence
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          const account = 'b20c0ca9cab0c2b70e13d7cf724b89bd';
+          const zoneName = 'run-uptime.com';
+          const hosts = ['run-uptime.com', 'www.run-uptime.com'];
+          const service = 'uptime-monitor-production--site';
+          let requests = 0;
+          let attempted = 0;
+          let deleted = 0;
+          let phase = 'configuration';
+          const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+          const safeID = value => typeof value === 'string' && /^[a-zA-Z0-9_-]{1,64}$/.test(value);
+          const hostname = value => typeof value === 'string' && value.length <= 253 &&
+            value.split('.').length >= 2 && value.split('.').every(label => /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(label));
+          function requireValid(condition) {
+            if (!condition) throw new Error('refused');
+          }
+          function completeList(body, optionalPagination = false) {
+            requireValid(Array.isArray(body.result));
+            const info = body.result_info;
+            if (optionalPagination && !Object.hasOwn(body, 'result_info')) return body.result;
+            requireValid(object(info));
+            const fields = ['page', 'count', 'total_count', 'total_pages'];
+            requireValid(Object.keys(info).every(key => key === 'per_page' || fields.includes(key)));
+            requireValid(fields.every(key => Number.isSafeInteger(info[key])));
+            requireValid((optionalPagination && !Object.hasOwn(info, 'per_page')) ||
+              (Number.isSafeInteger(info.per_page) && info.per_page > 0 && info.count <= info.per_page));
+            requireValid(info.page === 1 && info.count === body.result.length &&
+              info.total_count === info.count &&
+              (info.total_pages === 1 || (info.count === 0 && info.total_pages === 0)));
+            return body.result;
+          }
+          async function request(method, path) {
+            requireValid(++requests <= 5);
+            const controller = new AbortController();
+            let timer;
+            try {
+              return await Promise.race([
+                (async () => {
+                  const response = await fetch(`https://api.cloudflare.com/client/v4${path}`, {
+                    method,
+                    headers: { Authorization: `Bearer ${process.env.CLOUDFLARE_API_TOKEN}` },
+                    redirect: 'error',
+                    signal: controller.signal,
+                  });
+                  requireValid(response.ok && !response.redirected && response.body);
+                  const reader = response.body.getReader();
+                  const decoder = new TextDecoder('utf-8', { fatal: true });
+                  let bytes = 0;
+                  let text = '';
+                  try {
+                    while (true) {
+                      const { value, done } = await reader.read();
+                      if (done) break;
+                      bytes += value.byteLength;
+                      requireValid(bytes <= 1024 * 1024);
+                      text += decoder.decode(value, { stream: true });
+                    }
+                    text += decoder.decode();
+                  } finally {
+                    await reader.cancel();
+                  }
+                  const body = JSON.parse(text);
+                  requireValid(object(body) && body.success === true && Array.isArray(body.errors) && body.errors.length === 0);
+                  // Unknown envelope fields could hide pagination or continuation.
+                  requireValid(Object.keys(body).every(key => ['success', 'errors', 'messages', 'result', 'result_info'].includes(key)));
+                  requireValid(!Object.hasOwn(body, 'messages') || Array.isArray(body.messages));
+                  return body;
+                })(),
+                new Promise((_, reject) => {
+                  timer = setTimeout(() => {
+                    controller.abort();
+                    reject(new Error('timeout'));
+                  }, 15000);
+                }),
+              ]);
+            } finally {
+              clearTimeout(timer);
+              controller.abort();
+            }
+          }
+          async function inventory(zoneID) {
+            const body = await request('GET', `/accounts/${account}/workers/domains?zone_id=${zoneID}`);
+            const rows = completeList(body, true);
+            const ids = new Set();
+            const names = new Set();
+            for (const row of rows) {
+              requireValid(object(row) && safeID(row.id) && safeID(row.zone_id) && hostname(row.hostname) &&
+                row.zone_id === zoneID && row.zone_name === zoneName &&
+                typeof row.service === 'string' && /^[a-zA-Z0-9_-]{1,128}$/.test(row.service) &&
+                typeof row.environment === 'string' && /^[a-zA-Z0-9_-]{1,64}$/.test(row.environment));
+              requireValid(!ids.has(row.id) && !names.has(row.hostname));
+              ids.add(row.id);
+              names.add(row.hostname);
+            }
+            return rows;
+          }
+          try {
+            requireValid(process.env.CLOUDFLARE_ACCOUNT_ID === account &&
+              typeof process.env.CLOUDFLARE_API_TOKEN === 'string' && process.env.CLOUDFLARE_API_TOKEN.trim().length > 0);
+            phase = 'zone_preflight';
+            const zones = completeList(await request('GET', `/zones?name=${zoneName}&account.id=${account}&page=1&per_page=50`));
+            requireValid(zones.length === 1);
+            const zone = zones[0];
+            requireValid(object(zone) && safeID(zone.id) && zone.name === zoneName &&
+              zone.status === 'active' && object(zone.account) && zone.account.id === account);
+            phase = 'domain_preflight';
+            const before = await inventory(zone.id);
+            const targets = before.filter(row => hosts.includes(row.hostname));
+            requireValid(targets.every(row => row.service === service && row.environment === 'production'));
+            phase = 'detach';
+            for (const target of targets) {
+              attempted++;
+              // The documented DELETE envelope has no result property. Never retry an ambiguous outcome.
+              await request('DELETE', `/accounts/${account}/workers/domains/${target.id}`);
+              deleted++;
+            }
+            phase = 'verify_absent';
+            const after = await inventory(zone.id);
+            requireValid(!after.some(row => hosts.includes(row.hostname)));
+            console.log(JSON.stringify({ status: 'verified_off', hostnames: hosts, service, deleted, already_absent: hosts.length - targets.length, verified_absent: hosts.length }));
+          } catch {
+            console.error(JSON.stringify({ status: attempted ? 'incomplete' : 'refused', phase, hostnames: hosts, service, attempted, deleted }));
+            process.exitCode = 1;
+          }
+          NODE
