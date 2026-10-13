@@ -47,13 +47,25 @@ Raw secrets and response bodies never go into stored evidence or archives.
 
 ### Bind existing files after upgrading
 
-Old files without `monitorId` are refused. Stop the runner, review which monitor should use each file, and copy that monitor's ID from its console URL. Run the numbered local-file migration on the runner machine, once per reference:
+When upgrading a local installation, stop the runner and run `rer setup` with `UPTIME_CREDENTIAL_DIR` set to its existing credential folder. Numbered migration 0001 reads current local monitor definitions, including paused monitors. A valid unbound file referenced by exactly one distinct monitor is bound to that monitor automatically, keeping every existing field and its exact file mode. Repeating setup or the migration preserves existing bindings; it never silently rebinds a file.
+
+You can rerun the inventory migration directly from the checkout root:
 
 ```sh
-node runners/migrations/0001-monitor-credentials.mjs --directory /path/to/private/credentials --reference partner-api --monitor-id MONITOR_ID
+node runners/migrations/0001-monitor-credentials.mjs --directory "$UPTIME_CREDENTIAL_DIR" --persist-to .wrangler/state
 ```
 
-The command adds the explicit binding atomically, keeps the existing origin and credential fields, and leaves the file owner-only. It refuses a file already bound to another monitor. It makes no control-plane or provider request and prints no credential value. There is no automatic inference or unscoped fallback. If a file used to serve several monitors, create a separate owner-only file and reference for each, review the intended account, and bind each separately before restarting the runner.
+Shared and unused files stay unbound. Setup reports the reference and all known monitor IDs, with a complete numbered command for each possible selection. A scheduled HTTP or browser check that encounters an unbound file stays Unknown and records the reference, its intended monitor, the known IDs from the last migration, and the exact command in **Recent checks**. The report is diagnostic only: checks never bind files. With several missing flow credentials, each check reports the first unbound reference it encounters; resolve it and the next check identifies the next one.
+
+Review the intended monitor (its ID is in the console URL), stop the runner, then run the command for that monitor on the runner machine:
+
+```sh
+node runners/migrations/0001-monitor-credentials.mjs --directory "$UPTIME_CREDENTIAL_DIR" --reference partner-api --monitor-id MONITOR_ID
+```
+
+This adds the explicit binding atomically and prints no credential value. It refuses a file already bound to another monitor. If a file used to serve several monitors, create a separate owner-only file and reference for each, review the intended account, and bind each separately before restarting the runner. An unused file is reported at setup; if a monitor later names it, the check reports the required binding without modifying the file. Hosted runners without the local database use the explicit per-monitor command.
+
+Archives preserve non-secret credential references and monitor IDs; they never contain local credential files or runner authority. Restore remains paused. After reviewing the restored monitor and assigning a receiving runner, it may reuse its same-ID local file if that file was retained separately on that runner. A receiving runner without the file has no credential access. A copied, new or definitions-imported monitor receives a different ID and cannot reuse that file.
 
 Rotation means replacing the contents of the bound file on the runner, preferably by atomically renaming a new mode-0600 file over it. The next check reads the new value. Removing the file makes subsequent checks Unknown. A check already in progress may have read the old value; stop the runner before immediate revocation. Erasing a monitor in the console does not delete files on a separate runner: remove its local credential files yourself. A new monitor has a new ID and cannot use those leftover files. Rebinding requires explicit owner review and re-entry. Keep runner credential backups separate from product archives.
 

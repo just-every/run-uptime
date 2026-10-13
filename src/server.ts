@@ -2,6 +2,8 @@ import {monitoringWatch} from './domain/monitoring-watch.server.ts'
 import {dispatchNotificationMail} from './domain/notification-mail.server.ts'
 import {createDiscovery,readDiscovery,claimDiscovery,completeDiscovery,discoveryAnswer,DISCOVERY_RESULT_BYTES} from './domain/discovery.server.ts'
 import {readExternalCheck,saveExternalCheck} from './domain/external-check.server.ts'
+// @ts-ignore Shared bounded credential diagnostics.
+import {RUNNER_RESULT_BYTES} from './domain/credential-binding.mjs'
 import {signedRunnerBody} from './domain/runner-signature.server.ts'
 import {enrollRunner,authenticateRunner,createRunner,revokeRunner,listRunners,ensureFirstRunner,type Runner} from './domain/runner-registration.server.ts'
 import {configurationResponse,validateConfiguration} from './domain/startup-config.mjs'
@@ -62,7 +64,7 @@ api.post('/api/runner/enroll',async c=>{const registration=await enrollRunner(c.
 api.post('/api/runner/claim',async c=>{const row=c.get('runner').runner_id?c.get('runner'):await ensureFirstRunner(c.env);const task=await storageOperation('runner.claim',()=>claim(c.env,row.runner_id));await storageOperation('runner.claim.contact',async()=>{await recordContact(c.env.DB);await c.env.DB.prepare('UPDATE runners SET last_contact_at=? WHERE runner_id=? AND revoked_at IS NULL').bind(Date.now(),row.runner_id).run()});
  // `now` is the Worker's clock at the claim: the runner aligns the times it reports to it (see docs/runner.md).
  return c.json({task,now:Date.now()})})
-api.post('/api/runner/results',async c=>{const text=c.get('requestText');if(!await signedRunnerBody(c.env,c.get('runner'),text,c.req.header('x-sent-at')??'',c.req.header('x-runner-signature')??'',40000))return c.json({error:'Invalid signed result'},403);return c.json(await storageOperation('runner.results',()=>complete(c.env,JSON.parse(text),c.get('runner').runner_id)))})
+api.post('/api/runner/results',async c=>{const text=c.get('requestText');if(!await signedRunnerBody(c.env,c.get('runner'),text,c.req.header('x-sent-at')??'',c.req.header('x-runner-signature')??'',RUNNER_RESULT_BYTES))return c.json({error:'Invalid signed result'},403);return c.json(await storageOperation('runner.results',()=>complete(c.env,JSON.parse(text),c.get('runner').runner_id)))})
 // Discovery: the owner's console asks, the owner's runner claims and answers; the Worker never fetches the target.
 api.post('/api/discoveries',async c=>c.json(await createDiscovery(c.env,c.get('requestText')),201))
 api.get('/api/discoveries/:id',async c=>c.json(await readDiscovery(c.env,c.req.param('id'))))

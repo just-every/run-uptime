@@ -38,4 +38,3 @@ export async function portableArchive(t:Tables,createdAt=Date.now(),erasureFence
  const payload={schemaVersion:ARCHIVE_VERSION,target:'uptime-worker-d1',createdAt,tables:Object.fromEntries(LEGACY_TABLES.map(name=>[name,t[name]])),extensionVersion:EXTENSION_VERSION,...(erasureFence?{erasureFence}:{}),productTables:Object.fromEntries(TABLES.filter(name=>!LEGACY_TABLES.includes(name)).map(name=>[name,t[name]]))};
  return {payload,sha256:await digest(JSON.stringify(payload))};
 }
-export function portableDefinition(text:string){const value=JSON.parse(text);if(value.request!==undefined){delete value.request;return JSON.stringify(value)}return text}

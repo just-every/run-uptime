@@ -8,6 +8,8 @@ import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {fixture} from './resilience/support.mjs';
 import {startFlowFixture,FIXTURE_EMAIL,FIXTURE_PASSWORD} from './flow-fixture.mjs';
+import {credentialUpgrade} from './credential-upgrade.mjs';
+import {bindingCommand} from '../src/domain/credential-binding.mjs';
 import {executeTaskProbe} from '../runners/src/execute-task.mjs';
 
 // One complete owner/claim/receiver flow. Only the public socket edge is routed to a local server.
@@ -31,7 +33,7 @@ test('claimed HTTP and browser checks require their own monitor-bound local cred
   const A=await create({name:'Credential A',url:origin+'/health',request:{credentialRef:'shared'}}),taskA=await claim(A.id);
   const B=await create({name:'Credential B',url:origin+'/health',request:{credentialRef:'shared'}}),taskB=await claim(B.id);
   const old={origin,auth:{type:'bearer',token:'http-private-one'}};await write('shared',old);
-  assert.equal((await run(taskA)).outcome,'runner_error');assert.equal(records.length,0,'unbound prior files fail closed');
+  const unboundHttp=await run(taskA);assert.equal(unboundHttp.outcome,'runner_error');assert.ok(unboundHttp.checks[0].reason.includes(bindingCommand('shared',A.id)));assert.equal(records.length,0,'unbound prior files fail closed');
   const migrated=await migrate('shared',A.id);assert.doesNotMatch(migrated.stdout+migrated.stderr,/http-private-one/);
   assert.deepEqual(JSON.parse(await readFile(join(directory,'shared.json'),'utf8')),{...old,monitorId:A.id},'explicit transition preserves populated old file fields');
   const allowed=await run(taskA);assert.equal(allowed.outcome,'pass');assert.deepEqual(records,['Bearer http-private-one']);await submit(taskA,allowed);
@@ -52,7 +54,7 @@ test('claimed HTTP and browser checks require their own monitor-bound local cred
   const C=await create({name:'Flow credential A',...flowOptions}),taskC=await claim(C.id);
   const D=await create({name:'Flow credential B',...flowOptions}),taskD=await claim(D.id);
   for(const [ref,value] of [['email',FIXTURE_EMAIL],['password',FIXTURE_PASSWORD]])await write(ref,{origin:flow.origin,value});
-  const flowBefore=flow.seen.requests.length;assert.equal((await run(taskC)).outcome,'runner_error');assert.equal(flow.seen.requests.length,flowBefore,'unbound flow credential makes no target request');
+  const flowBefore=flow.seen.requests.length;const unboundFlow=await run(taskC);assert.equal(unboundFlow.outcome,'runner_error');assert.ok(unboundFlow.checks[0].reason.includes(bindingCommand('email',C.id)));assert.equal(flow.seen.requests.length,flowBefore,'unbound flow credential makes no target request');
   for(const [ref,value] of [['email',FIXTURE_EMAIL],['password',FIXTURE_PASSWORD]]){await migrate(ref,C.id);assert.deepEqual(JSON.parse(await readFile(join(directory,`${ref}.json`),'utf8')),{origin:flow.origin,value,monitorId:C.id})}
   const flowAllowed=await run(taskC);assert.equal(flowAllowed.outcome,'pass',JSON.stringify(flowAllowed));assert.ok(flow.seen.requests.includes('/s/healthy/dashboard'));await submit(taskC,flowAllowed);
   const reached=flow.seen.requests.length,flowDenied=await run(taskD);assert.equal(flowDenied.outcome,'runner_error');assert.equal(flow.seen.requests.length,reached);await submit(taskD,flowDenied);
@@ -75,3 +77,5 @@ test('claimed HTTP and browser checks require their own monitor-bound local cred
   await rm(directory,{recursive:true,force:true});
  }
 });
+
+test('local upgrade migration preserves healthy credentials and portable identities with bounded actionable diagnostics',credentialUpgrade);

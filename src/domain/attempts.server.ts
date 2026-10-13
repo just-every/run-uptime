@@ -62,7 +62,7 @@ export async function completeAttempts(env:Bindings,input:any,runnerId:string){
  if(!Array.isArray(attempts)||!attempts.length||attempts.length>9)throw Error('Invalid observations');
  const assigned=(await env.DB.prepare('SELECT probe FROM runner_assignments WHERE slot_id=? AND runner_id=?').bind(slot.id,runnerId).all<{probe:string}>()).results.map(r=>r.probe);
  const seen=new Set();
- for(const o of attempts){if(!assigned.includes(o.probe))throw Error('Attempt requires its assigned runner');validateEvidence(o,definition,slot.due_at,now);if(o.completedAt>slot.lease_until)throw Error('Attempt outside acceptance window');const key=`${o.probe}:${o.attempt}`;if(seen.has(key))throw Error('Duplicate observation');seen.add(key)}
+ for(const o of attempts){if(!assigned.includes(o.probe))throw Error('Attempt requires its assigned runner');if(o.credentialBinding&&o.credentialBinding.monitorId!==slot.monitor_id)throw Error('Credential diagnostic monitor mismatch');validateEvidence(o,definition,slot.due_at,now);if(o.completedAt>slot.lease_until)throw Error('Attempt outside acceptance window');const key=`${o.probe}:${o.attempt}`;if(seen.has(key))throw Error('Duplicate observation');seen.add(key)}
  if(definition.type==='heartbeat')await validateHeartbeatSnapshot(env,slot,attempts);
  // A flow observation names the exact revision it ran: its digest is the digest of the flow in this slot's definition.
  if(definition.type==='flow'){const digest=await flowDigest(definition.flow);for(const o of attempts)if(o.outcome!=='runner_error'&&o.flow?.digest!==digest)throw Error('Flow evidence does not name this revision')}

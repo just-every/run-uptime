@@ -1,5 +1,6 @@
 import {randomUUID} from 'node:crypto';
 import http from 'node:http';
+import {CredentialBindingRequired} from './credential-diagnostic.mjs';
 import {RUNNER_VERSION,MAX_BODY,validateDefinition} from '../../src/domain/policy.mjs';
 import {publicHttp,ProbeError,PROBE_ACCEPT} from './public-http.mjs';
 function assertions(def,response,durationMs){
@@ -44,7 +45,7 @@ export async function probeHttp(input,probe,grants=[],{statusOnly=false,monitorI
     const response=await Promise.race([timeout,def.network==='public'?publicHttp(def,executionSignal,r=>active=r,{statusOnly,monitorId}):syntheticHttp({...def,fixtureIdentity:input.fixtureIdentity},executionSignal,r=>active=r)]);
     const completedAt=Date.now(),checks=assertions(def,response,completedAt-startedAt);
     return evidence({outcome:checks.every(c=>c.pass)?'pass':'target_failure',status:response.status,bytes:response.bytes,checks},completedAt);
-  }catch(error){const category=error instanceof ProbeError?error.category:'runner';return evidence({outcome:['custody','runner','network','dns'].includes(category)?'runner_error':'target_failure',checks:[{assertion:category,pass:false,reason:'Probe '+category+' check failed'}]})}
+  }catch(error){if(error instanceof CredentialBindingRequired)return evidence({outcome:'runner_error',credentialBinding:error.diagnostic,checks:[{assertion:'credential',pass:false,reason:error.message}]});const category=error instanceof ProbeError?error.category:'runner';return evidence({outcome:['custody','runner','network','dns'].includes(category)?'runner_error':'target_failure',checks:[{assertion:category,pass:false,reason:'Probe '+category+' check failed'}]})}
   finally{clearTimeout(timer);abort.abort();active?.destroy()}
   function evidence(data,completedAt=Date.now()){return {id:randomUUID(),probe,startedAt,completedAt,durationMs:completedAt-startedAt,runnerVersion:RUNNER_VERSION,...data}}
 }

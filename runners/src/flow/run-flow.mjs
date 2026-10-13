@@ -14,6 +14,7 @@ import {startFlowProxy} from './proxy.mjs';
 import {killTree, killFolderHolders} from './processes.mjs';
 import {FLOW_LIMITS, describeExpectation, flowDigest, plainUrl} from '../../../src/domain/flow.mjs';
 import {RUNNER_VERSION} from '../../../src/domain/policy.mjs';
+import {CredentialBindingRequired} from '../credential-diagnostic.mjs';
 import {readGrant} from '../grants.mjs';
 
 const here = new URL('./child.mjs', import.meta.url).pathname;
@@ -60,7 +61,7 @@ export async function runFlow(definition, probe, {grantPath, controlPort, worksp
   }
   const credentials = {};
   try { for (const ref of new Set(flow.steps.filter(s => s.kind === 'fill').map(s => s.credentialRef))) credentials[ref] = await readFlowSecret(ref, credentialDir, monitorId); }
-  catch { return runnerError('credential', 'A credential this flow names is missing or invalid on this runner'); }
+  catch (error) { if (error instanceof CredentialBindingRequired) return {...runnerError('credential', error.message), credentialBinding: error.diagnostic}; return runnerError('credential', 'A credential this flow names is missing or invalid on this runner'); }
 
   if (signal?.aborted) return interrupted();
   const deadlineMs = Math.min(definition.timeoutMs ?? FLOW_LIMITS.wallMs, FLOW_LIMITS.wallMs);

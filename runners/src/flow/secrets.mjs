@@ -2,25 +2,23 @@
 // <credentialRef>.json holding exactly {"monitorId": "…", "origin": "https://…", "value": "…"}: the same owner-only custody, file mode and exact-origin
 // binding as an HTTP request credential, with a value instead of headers. The value is read on the runner, handed to the
 // browser process over a pipe, and never reaches the control plane, a definitions file, an archive, a log or a trace.
-import {open, realpath} from 'node:fs/promises';
-import {constants} from 'node:fs';
-import {resolve, dirname} from 'node:path';
-
+import {openCredential} from '../credential-file.mjs';
+import {bindingRequired, CredentialBindingRequired} from '../credential-diagnostic.mjs';
+import {validMonitorId} from '../../../src/domain/credential-binding.mjs';
 export async function readFlowSecret(reference, directory = process.env.UPTIME_CREDENTIAL_DIR, monitorId) {
-  if (typeof monitorId !== 'string' || !monitorId || !directory || !/^[a-zA-Z0-9_-]{1,80}$/.test(reference)) throw Error('Credential unavailable');
-  let file;
+  if (!validMonitorId(monitorId)) throw Error('Credential unavailable');
+  let source;
   try {
-    const root = await realpath(directory), path = resolve(root, `${reference}.json`);
-    if (dirname(path) !== root) throw Error();
-    file = await open(path, constants.O_RDONLY | constants.O_NOFOLLOW);
-    const info = await file.stat();
-    if (!info.isFile() || (info.mode & 0o077) || info.uid !== process.getuid() || info.size > 4096) throw Error();
-    const input = JSON.parse(await file.readFile('utf8'));
-    if (!input || Object.keys(input).sort().join(',') !== 'monitorId,origin,value' || input.monitorId !== monitorId || typeof input.value !== 'string' || !input.value || input.value.length > 1024) throw Error();
-    const origin = new URL(input.origin);
-    if (!['http:', 'https:'].includes(origin.protocol) || origin.origin !== input.origin) throw Error();
+    source = await openCredential(directory, reference);
+    const {input, root} = source;
+    if (!('value' in input)) throw Error();
+    if (input.monitorId === undefined) throw await bindingRequired(reference, monitorId, root);
+    if (input.monitorId !== monitorId) throw Error();
     return {origin: input.origin, value: input.value};
-  } catch { throw Error('Credential unavailable or invalid'); } finally { await file?.close(); }
+  } catch (error) {
+    if (error instanceof CredentialBindingRequired) throw error;
+    throw Error('Credential unavailable or invalid');
+  } finally { await source?.file.close(); }
 }
 
 // A value as a site may echo it into a URL or a page: each character as typed, lowercased or uppercased, each of those raw or

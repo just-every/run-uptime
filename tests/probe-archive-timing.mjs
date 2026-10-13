@@ -30,7 +30,7 @@ async function assertInactive(archive){
   const original=archive.payload.tables.monitors.find(row=>row.id===monitor.id);
   assert.equal(monitor.revision,original.revision+1);
   assert.equal(monitor.definition.enabled,false);
-  assert.equal(monitor.definition.request,undefined);
+  assert.deepEqual(monitor.definition.request,JSON.parse(original.definition).request);
   assert.equal(monitor.state.state,'Paused');
   assert.equal(monitor.state.targetState,'Unknown');
   assert.deepEqual(monitor.storedState,{state:'Unknown',confirmedFailure:false,notificationOpen:false});
@@ -133,13 +133,13 @@ try{
   assert.deepEqual(JSON.parse((await recovery.DB.prepare('SELECT evidence FROM observations WHERE id=?').bind(boundary.id).first()).evidence),boundary);
  });
  await receiving('current');
- await check('current archives keep ambiguous history but remove request and heartbeat authority from new paused revisions',async()=>{
+ await check('current archives preserve non-secret credential references and remove heartbeat authority from paused revisions',async()=>{
   const ledger=(await recovery.DB.prepare('SELECT * FROM d1_migrations ORDER BY rowid').all()).results;
   const result=await recovery.api('/api/restore','POST',rehash(archive));assert.equal(result.status,200,JSON.stringify(result.data));
   await assertInactive(archive);
   assert.deepEqual((await recovery.DB.prepare('SELECT * FROM d1_migrations ORDER BY rowid').all()).results,ledger);
   assert.equal((await recovery.api(`/api/heartbeats/${heartbeat.id}`,'POST',{}, {authorization:`Bearer ${heartbeatToken}`,'x-heartbeat-sequence':'2'},false)).status,400);
-  const restored=await recovery.monitor(publicMonitor.id);assert.equal(restored.definition.request,undefined);
+  const restored=await recovery.monitor(publicMonitor.id);assert.deepEqual(restored.definition.request,publicMonitor.definition.request);
  });
  await check('explicit reactivation cannot reuse imported latency or receipt evidence to establish active health',async()=>{
   const restored=await recovery.monitor(legacy.id);

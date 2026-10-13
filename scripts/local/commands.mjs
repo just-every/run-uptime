@@ -16,4 +16,4 @@ export async function buildCommand(context) {
  assertCredentialFree(env);
  return ['pnpm', ['run', 'build:app'], { env }];
 }
-export const migrationCommand = persist => ['node', ['node_modules/wrangler/bin/wrangler.js', 'd1', 'migrations', 'apply', 'uptime-local', '--local', '--persist-to', persist]];
+export const migrationCommand = persist => ['node', ['scripts/local/migrate.mjs', persist]];

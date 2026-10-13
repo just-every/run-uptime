@@ -4,7 +4,7 @@ import {auditStatement,mutationGuard,type AuditActor} from './audit.server.ts'
 import {assertArchiveInventory} from './archive-inventory.ts'
 import type {Bindings} from './control.server.ts'
 import {readCredential,sealCredential} from './notification-credentials.server.ts'
-import {ARCHIVE_ROWS,TABLES,columns,assertBytes,digest,portableArchive,portableDefinition,type Tables} from './archive-schema.ts'
+import {ARCHIVE_ROWS,TABLES,columns,assertBytes,digest,portableArchive,type Tables} from './archive-schema.ts'
 import {validateArchive} from './archive-validation.ts'
 import {projectRestore} from './archive-restore-projection.ts'
 /** Explicit projections prevent future credential columns silently becoming portable. */
@@ -25,7 +25,6 @@ export async function archive(env:Bindings){
   }
   const value={...Object.fromEntries(columns.notification_destinations.filter(k=>k!=='address').map(k=>[k,row[k]])),address};Object.keys(row).forEach(k=>delete row[k]);Object.assign(row,value);
  }
- for(const name of ['monitors','revisions','slots'])for(const row of t[name])row.definition=portableDefinition(row.definition);
  for(const row of t.slots){row.lease_owner='restored-inactive';row.lease_until=0}
  for(const row of t.integration_deliveries){const e=JSON.parse(row.envelope),job=t.notification_jobs.find(j=>j.id===row.id);if(!job)throw Error('Archive notification delivery is orphaned');if(e.destinationId!==job.destination_id){e.destinationId=job.destination_id;row.envelope=JSON.stringify(e)}}
  for(const row of t.integration_replays){const envelope=JSON.parse(row.envelope);if(!t.notification_destinations.some(d=>d.id===envelope.destinationId)){const credential=await env.DB.prepare('SELECT destination_id FROM notification_credentials WHERE id=?').bind(envelope.destinationId).first<{destination_id:string}>();if(!credential)throw Error('Archive notification replay destination unavailable');envelope.destinationId=credential.destination_id;row.envelope=JSON.stringify(envelope)}}

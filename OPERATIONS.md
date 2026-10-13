@@ -130,7 +130,7 @@ Set the private runner's `UPTIME_CONTROL_ORIGIN` to the exact HTTPS origin and
 redirects and results are timestamped and HMAC signed. The limited HTTP loopback
 origin is only for local review. Probe credentials remain owner-only files in
 `UPTIME_CREDENTIAL_DIR`, referenced by immutable monitor definitions and bound
-to one monitor ID and a target origin. Old files require explicit binding with `runners/migrations/0001-monitor-credentials.mjs`; see docs/runner.md for the command, rotation and local erasure. Never put bearer credentials in a URL.
+to one monitor ID and a target origin. Setup binds valid unbound files referenced by exactly one existing monitor, counting paused monitors. Shared or unused files remain unbound and report the intended IDs and numbered binding command with `runners/migrations/0001-monitor-credentials.mjs`; see docs/runner.md for the command, rotation and local erasure. Never put bearer credentials in a URL.
 
 The Worker's clock defines every time that sets a schedule. A claim answer carries the Worker's `now`; the runner measures its own offset from the quickest of its last twenty exchanges and reports attempt starts, completions and signature timestamps in the Worker's clock, so a runner whose clock is seconds off still has its evidence accepted and its checks start at least one interval apart by the Worker's claim times. A scheduled check never starts sooner than one interval after the previous one started (after an interval change, the shorter of the old and new interval; a manual Run now never moves the floor). Because each next due time slides to the runner-reported start plus one interval, real cadence is slightly slower than configured: about 0.26 s per check at the 5 s minimum interval (5 % slower) and about 0.4 s per check at 60 s on loopback, with the runner's 1 s poll (see docs/monitors.md).
 
@@ -208,7 +208,7 @@ status delivery.
 
 Archives include product definitions, evidence, outbox events, notification
 destination definitions and delivery history. They omit sessions, keys,
-receipts, local request-credential references, runner grants, webhook and Slack
+receipts, local request credential values, runner grants, webhook and Slack
 URLs, signing keys, and other installation credentials. Restore creates paused
 monitor definitions and disabled destinations, interrupts outstanding leases,
 and quarantines imported alerts. Re-enter destination credentials and

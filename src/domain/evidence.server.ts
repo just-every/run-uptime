@@ -1,7 +1,9 @@
 // Signed completion and portable history share the same evidence contract.
 // @ts-ignore Edition flow vocabulary is JavaScript shared with the runner.
 import {FLOW_LIMITS,FLOW_REASONS,validateFlowEvidence} from './flow.mjs'
-const fields = new Set(['id', 'probe', 'outcome', 'completedAt', 'startedAt', 'durationMs', 'runnerVersion', 'status', 'bytes', 'checks', 'attempt', 'heartbeatReceivedAt', 'canary', 'flow'])
+// @ts-ignore Bounded non-secret diagnostics are shared with the runner.
+import {validBindingDiagnostic, bindingReason, BINDING_DIAGNOSTIC_BYTES} from './credential-binding.mjs'
+const fields = new Set(['id', 'probe', 'outcome', 'completedAt', 'startedAt', 'durationMs', 'runnerVersion', 'status', 'bytes', 'checks', 'attempt', 'heartbeatReceivedAt', 'canary', 'flow', 'credentialBinding'])
 const targetErrors = new Set(['encoding', 'redirect', 'body-limit', 'transport', 'timeout', 'connection'])
 const runnerErrors = new Set(['custody', 'runner', 'network', 'dns', 'browser', 'credential', 'grant'])
 const responseErrors = new Set(['encoding', 'redirect', 'body-limit'])
@@ -12,7 +14,7 @@ const timestamp = (value: unknown): value is number => Number.isSafeInteger(valu
 interface Check { assertion: string; pass: boolean; reason: string }
 type ValidationMode = 'live-completion' | 'historical-restore'
 
-function validateChecks(value: any): Map<string, Check> {
+function validateChecks(value: any, binding = false): Map<string, Check> {
   if (!Array.isArray(value) || !value.length || value.length > 10) throw Error('Invalid assertion evidence')
   const checks = new Map<string, Check>()
   for (const check of value) {
@@ -20,7 +22,7 @@ function validateChecks(value: any): Map<string, Check> {
         Object.keys(check).sort().join(',') !== 'assertion,pass,reason' ||
         typeof check.assertion !== 'string' || checks.has(check.assertion) ||
         typeof check.pass !== 'boolean' || typeof check.reason !== 'string' ||
-        !check.reason || check.reason.length > 300) throw Error('Invalid assertion evidence')
+        !check.reason || check.reason.length > (binding ? 1200 : 300)) throw Error('Invalid assertion evidence')
     checks.set(check.assertion, check)
   }
   return checks
@@ -97,13 +99,16 @@ function validateHttp(o: any, definition: any, checks: Map<string, Check>, durat
 }
 
 export function validateEvidence(o: any, definition: any, dueAt: number, now: number, mode: ValidationMode = 'live-completion') {
+  const binding = o?.credentialBinding;
+  if (binding !== undefined && (!validBindingDiagnostic(binding) || o.outcome !== 'runner_error' || o.checks?.length !== 1 || o.checks[0].assertion !== 'credential' || o.checks[0].reason !== bindingReason(binding) ||
+      !(definition.request?.credentialRef === binding.reference || definition.flow?.steps.some((step: any) => step.kind === 'fill' && step.credentialRef === binding.reference)))) throw Error('Invalid credential binding diagnostic');
   if (!o || typeof o !== 'object' || Array.isArray(o) || Object.keys(o).some(key => !fields.has(key)) ||
       typeof o.id !== 'string' || !o.id || o.id.length > 100 || !definition.probes.includes(o.probe) ||
       !Number.isInteger(o.attempt) || o.attempt < 0 || o.attempt > definition.retries ||
       o.runnerVersion !== 'uptime-node/0.1.0' || !timestamp(o.startedAt) || !timestamp(o.completedAt) ||
       o.startedAt < dueAt || o.completedAt < o.startedAt || o.completedAt > now + COMPLETION_CLOCK_ALLOWANCE_MS ||
       !timestamp(o.durationMs) || !['pass', 'target_failure', 'runner_error'].includes(o.outcome) ||
-      JSON.stringify(o).length > (definition.type === 'flow' ? 4000 + FLOW_LIMITS.traceBytes : 4000)) throw Error('Invalid observation evidence')
+      JSON.stringify(o).length > ((definition.type === 'flow' ? 4000 + FLOW_LIMITS.traceBytes : 4000) + (binding ? BINDING_DIAGNOSTIC_BYTES : 0))) throw Error('Invalid observation evidence')
   if(definition.assignments?.[o.probe]?.canaryUrl&&o.canary===undefined)throw Error('Configured canary evidence required');
   if(o.canary!==undefined){
     if(!definition.assignments?.[o.probe]?.canaryUrl||o.canary?.canary!==undefined)throw Error('Unexpected canary evidence');
@@ -114,7 +119,7 @@ export function validateEvidence(o: any, definition: any, dueAt: number, now: nu
   // Historical runners sampled completion and duration separately. Preserve a
   // single millisecond clock tick without relaxing any of the clock bounds.
   if (Math.abs(o.durationMs - elapsed) > 1) throw Error('Inconsistent observation timing')
-  const checks = validateChecks(o.checks)
+  const checks = validateChecks(o.checks, binding !== undefined)
   if (definition.type === 'heartbeat') validateHeartbeat(o, definition, checks)
   else if (definition.type === 'flow') validateFlowObservation(o, definition, checks)
   else {
