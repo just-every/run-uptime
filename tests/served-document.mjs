@@ -20,15 +20,12 @@ try {
   const html = await response.text();
   assert.match(html, /class="app"/);
   assert.doesNotMatch(html, /id="access-form"|id="owner-token"/);
-  assert.match(html, /<script[^>]*type="module"[^>]*src="\/app.js"/);
-  const appScripts = html.match(/<script[^>]*src="\/app.js"[^>]*>/g) ?? [];
-  assert.equal(appScripts.length, 1);
-  assert.match(appScripts[0], /type="module"/);
+  assert.doesNotMatch(html, /<script[^>]*src="\/app.js"/, 'the DOM-mutating controller starts only after hydration');
   const app = await worker.dispatchFetch('http://127.0.0.1:15519/app.js');
   assert.equal(app.status, 200);
   assert.equal(await app.text(), await readFile('public/app.js', 'utf8'));
   for(const path of ['/notification-dialogs.js','/editor-units.mjs']){const asset=await worker.dispatchFetch('http://127.0.0.1:15519'+path);assert.equal(asset.status,200);assert.equal(await asset.text(),await readFile('public'+path,'utf8'));}
   const helper = await worker.dispatchFetch('http://127.0.0.1:15519/action-feedback.mjs');
   assert.equal(helper.status, 200);
-  console.log('SERVED-DOCUMENT-001 passed: Start root, single module controller and served import dependency; authenticated native document; no browser proof.');
+  console.log('SERVED-DOCUMENT-001 passed: Start root, controller deferred until hydration and served import dependency; authenticated native document; no browser proof.');
 } finally { await worker.dispose();await rm(persist,{recursive:true,force:true}); }

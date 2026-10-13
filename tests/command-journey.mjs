@@ -7,7 +7,7 @@ import { archive as productArchive } from '../src/domain/archive.server.ts';
 import { chromium } from 'playwright';
 import { scratchInstallation, machineAvailable } from './scratch-installation.mjs';
 import { openGate, readCheckoutKey } from './auth-test-support.mjs';
-import { until, assertPortFree, signInThroughOutbox, smokeDocuments, descendantGroups, assertGroupsGone } from './installer-support.mjs';
+import { until, assertPortFree, signInThroughOutbox, smokeDocuments, monitorHydration, descendantGroups, assertGroupsGone } from './installer-support.mjs';
 import { definitionsJourney } from './definitions-journey.mjs';
 import { drillJourney } from './drill-journey.mjs';
 const scratch = await scratchInstallation();
@@ -112,6 +112,7 @@ try {
  await page.goto(origin + '/app');
  if (setupEvidence) await writeFile(join(setupEvidence, 'RESULTS.json'), JSON.stringify({ widths: [1440, 390], freshRerSetup: true, outboxReturn: '/setup', unfinishedRoutes: true, unsignedReturn: true, csrfRefused: true, nativeCompletion: true, finishedReturn: '/app' }, null, 2));
  await smokeDocuments(page, origin);
+ await monitorHydration(page, origin, scratch.root);
  await definitionsJourney(page, origin);
  await drillJourney(page, origin);
  // Native form POST remains usable without hydration; ordinary links are one-use.

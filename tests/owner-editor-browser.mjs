@@ -9,7 +9,8 @@ const edge=await managementEdge();
 let app,browser;
 const evidence=process.env.UPTIME_ADMISSION_EVIDENCE??'data/wave-b-evidence';
 try {
- app=await admissionRuntime({RER_MANAGEMENT_ORIGIN:edge.origin,RER_INSTALLATION_ID:'uptime-browser-admission'});
+ const editorBindings={RER_MANAGEMENT_ORIGIN:edge.origin,RER_INSTALLATION_ID:'uptime-browser-admission'};
+ app=await admissionRuntime(editorBindings);
  edge.state.allowed=app.origin;
  assert.equal((await app.call('/api/editor/config')).status,403,'anonymous requests receive no editor configuration');
  let cookie=await signInOwner(app.origin,{finishFirstRun:true});
@@ -24,6 +25,24 @@ try {
  cookie=await outboxSignIn(app.origin);
  const secondOwner=await invite('owner','other-owner@example.test');
  assert.equal((await app.call('/api/editor/config',undefined,{cookie:memberCookie})).status,403,'a native member session has no editor authority');
+ const enabledBindings={...editorBindings};
+ for(const name of Object.keys(editorBindings))delete editorBindings[name];
+ await app.restart();
+ assert.equal((await app.call('/api/editor/config')).status,403,'disabled editor never bypasses anonymous denial');
+ assert.equal((await app.call('/api/editor/config',undefined,{cookie:memberCookie})).status,403,'disabled editor never bypasses member denial');
+ const disabled=await app.call('/api/editor/config',undefined,{cookie});
+ assert.equal(disabled.status,204,'wholly absent optional editor configuration is disabled');
+ assert.match(disabled.headers.get('cache-control'),/no-store, private/);assert.match(disabled.headers.get('vary'),/Cookie/i);
+ assert.equal(await disabled.text(),'','disabled editor issues no grant');
+ assert.equal((await app.call('/api/editor/config',{},{cookie})).status,405,'disabled editor preserves the owner method guard');
+ for(const bindings of [{RER_MANAGEMENT_ORIGIN:edge.origin},{RER_INSTALLATION_ID:enabledBindings.RER_INSTALLATION_ID},{...enabledBindings,RER_MANAGEMENT_ORIGIN:'invalid'}]) {
+  await assert.rejects(()=>admissionRuntime(bindings),/Invalid or missing configuration: RER_MANAGEMENT_ORIGIN|Invalid or missing configuration: RER_INSTALLATION_ID/,'partial/malformed settings still refuse runtime startup');
+ }
+ Object.assign(editorBindings,enabledBindings,{RER_INSTALLATION_ID:'invalid/id'});await app.restart();
+ assert.equal((await app.call('/api/editor/config')).status,403,'invalid grant configuration still requires authorization');
+ assert.equal((await app.call('/api/editor/config',undefined,{cookie:memberCookie})).status,403);
+ assert.equal((await app.call('/api/editor/config',undefined,{cookie})).status,503,'malformed grant configuration cannot issue an owner grant');
+ Object.assign(editorBindings,enabledBindings);await app.restart();
  const document=await app.call('/app',undefined,{cookie});
  assert.match(document.headers.get('content-security-policy'),new RegExp(`frame-ancestors 'self' ${edge.origin.replaceAll('.','\\.')}`));
  await mkdir(evidence,{recursive:true});browser=await chromium.launch({headless:true,args:['--disable-gpu']});
@@ -59,5 +78,5 @@ try {
   } finally {await context.close()}
  }
  await writeFile(join(evidence,'RESULTS.json'),JSON.stringify({results,externalNetwork:false,scope:'Real emitted Uptime and Base editor, local management network edge; hosted service acceptance remains with the owner.'},null,2));
- console.log('OWNER-EDITOR passed: native owner config, anonymous/member refusal, 1440/390 mount, route transition, role-loss revocation and browser CSP refusal.');
+ console.log('OWNER-EDITOR passed: owner-only disabled 204, partial/malformed configuration refusal, native owner config, anonymous/member refusal, 1440/390 mount, route transition, role-loss revocation and browser CSP refusal.');
 } finally {await browser?.close();await app?.close();await edge.close()}

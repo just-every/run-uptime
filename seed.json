@@ -731,6 +731,38 @@
         "environment": "local"
       },
       {
+        "path": "/src/client.tsx",
+        "match": "exact",
+        "kind": "development-asset",
+        "class": "assets",
+        "authentication": "None; local Vite application client entry only. Filesystem allowlist and private-file denies still apply. Hosted mode returns 404.",
+        "environment": "local"
+      },
+      {
+        "path": "/src/base/hydration/report.ts",
+        "match": "exact",
+        "kind": "development-asset",
+        "class": "assets",
+        "authentication": "None; local Vite browser hydration reporter imported by the client entry only. Filesystem allowlist and private-file denies still apply. Hosted mode returns 404.",
+        "environment": "local"
+      },
+      {
+        "path": "/src/base/hydration/intro-guard.ts",
+        "match": "exact",
+        "kind": "development-asset",
+        "class": "assets",
+        "authentication": "None; local Vite browser hydration guard imported by the root route only. Filesystem allowlist and private-file denies still apply. Hosted mode returns 404.",
+        "environment": "local"
+      },
+      {
+        "path": "/src/base/hydration/unit.tsx",
+        "match": "exact",
+        "kind": "development-asset",
+        "class": "assets",
+        "authentication": "None; local Vite browser hydration boundary imported by the documentation routes only. Filesystem allowlist and private-file denies still apply. Hosted mode returns 404.",
+        "environment": "local"
+      },
+      {
         "path": "/src/router.tsx",
         "match": "exact",
         "kind": "development-asset",

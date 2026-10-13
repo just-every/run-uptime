@@ -12,7 +12,7 @@ export async function editorConfigResponse(env:AuthBindings, request:Request) {
   if(!session)return Response.json({error:'Owner authorization required'},{status:403,headers})
   if(request.method!=='GET')return Response.json({error:'GET required'},{status:405,headers:{...headers,allow:'GET'}})
   const config=editorConfig(env)
-  if(!config)return Response.json({error:'Editor is not configured'},{status:503,headers})
+  if(!config)return new Response(null,{status:204,headers})
   return Response.json({config,expiresAt:Math.min(session.expiresAt,Date.now()+30_000)},{headers})
  } catch {return Response.json({error:'Editor authorization unavailable'},{status:503,headers})}
 }
