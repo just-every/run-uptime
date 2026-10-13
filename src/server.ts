@@ -13,14 +13,13 @@ import {erase} from './domain/erasure.server.ts'
 import {previewDefinitions,applyDefinitions,exportDefinitions,listBatches,undoBatch} from './domain/definitions/index.server.ts'
 import {exportJournal} from './domain/archive-fence.server.ts'
 import {operatorSession} from './domain/operator-auth.server.ts'
-import {notificationReadiness,ensureNotificationCustody} from './domain/notification-credentials.server.ts'
+import {boundedHealth,health} from './domain/health.server.ts'
 import {destinations,createDestination,updateDestination,rotateDestination} from './domain/notification-destinations.server.ts'
 import {notificationOverview,testDestination} from './domain/notifications.server.ts'
 import {notificationRpc} from './domain/notification-rpc.server.ts'
 import {startDrill} from './domain/alert-drills.server.ts'
 import {alertDrillDocument} from './domain/alert-drill-document.server.ts'
 import {isPublicAsset} from './domain/assets.server.ts'
-import {deploymentHealth} from './base/deployment-health.ts'
 import {classifyStorage,storageLogLine,storageOperation} from './domain/storage-error.ts'
 import {maintenance} from './domain/maintenance.server.ts'
 import {authRoute,authFailure,developmentMail,signOut} from './domain/operator-auth.server.ts'
@@ -43,7 +42,7 @@ import {recordContact} from './domain/runner-contact.server.ts'
 import {session,overview,save,get,claim,complete,history,revisions,archive,restore,type Bindings} from './domain/control.server'
 import {checkInput,InputError} from './domain/request-boundary.ts'
 const api=new Hono<{Bindings:Bindings;Variables:{requestText:string;input:any;runner:Runner}}> ()
-api.get('/health',async c=>{try{await notificationReadiness(c.env)}catch{return c.json({error:'Notification schema upgrade required'},503)}await c.env.DB.prepare('SELECT 1 FROM monitors LIMIT 1').first();try{await ensureNotificationCustody(c.env,{validate:false})}catch{}return c.json({status:'ok',...deploymentHealth(c.env)})})
+api.get('/health',c=>health(c.env))
 api.use('/api/*',async(c,next)=>{c.header('cache-control','no-store');const origin=c.req.header('origin');if(c.env.UPTIME_LOCAL_REVIEW!=='true'&&['POST','PATCH','DELETE'].includes(c.req.method)&&!c.req.path.startsWith('/api/runner/')&&!c.req.path.startsWith('/api/heartbeats/')&&origin!==c.env.UPTIME_ORIGIN)return c.json({error:'Same origin required'},403);if(c.req.header('sec-fetch-site')==='cross-site'||(origin&&origin!==new URL(c.req.url).origin))return c.json({error:'Same origin required'},403);if(Number(c.req.header('content-length')??0)>2*1024*1024)return c.json({error:'Payload too large'},413);if(['POST','PATCH'].includes(c.req.method)&&c.req.header('content-type')!=='application/json'&&!(c.req.path==='/api/definitions/preview'&&c.req.header('content-type')==='text/csv'))return c.json({error:'JSON required'},415);if(['POST','PATCH'].includes(c.req.method)){const reader=c.req.raw.body?.getReader(),decoder=new TextDecoder('utf-8',{fatal:true});let size=0,text='';if(reader){try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>2*1024*1024){return c.json({error:'Payload too large'},413)}text+=decoder.decode(value,{stream:true})}text+=decoder.decode()}catch(error){if(error instanceof TypeError)return c.json({error:'Invalid UTF-8 request body'},400);throw error}finally{reader.releaseLock()}}c.set('requestText',text)}await next()})
 // Every route's path, query and body schema, once the caller's authority is known and before any service (request-boundary.ts).
 // Heartbeats carry their own token, so their input is checked before their handler.
@@ -128,7 +127,7 @@ const noTransform=(response:Response)=>{
  return new Response(response.body,{status:response.status,statusText:response.statusText,headers})
 }
 const isConsoleDocument=(path:string)=>['/app','/app/','/app/monitor','/app/monitor/'].includes(path)||isMonitorPage(path)
-export default {async fetch(request,env,execution){
+const handler={async fetch(request,env,execution){
  const invalid=configurationResponse(env as Bindings);if(invalid)return invalid;
  const limited=await limitPublicRequest(env as Bindings,request);if(limited)return limited;
  const bindings=env as Bindings,url=new URL(request.url),path=url.pathname;
@@ -164,4 +163,7 @@ export default {async fetch(request,env,execution){
  }
  const response=await dispatch(request,()=>api.fetch(request,bindings,execution),()=>start.fetch(request));
  return noTransform(isConsoleDocument(path)?editorDocument(response,bindings):response)
-},async scheduled(_controller,env){validateConfiguration(env as Bindings);const bindings=env as Bindings;await maintenance(bindings);await dispatchNotificationMail(bindings);await monitoringWatch(bindings,()=>api.fetch(new Request(bindings.UPTIME_ORIGIN+'/health'),bindings) as Promise<Response>,async()=>{const data=await overview(bindings);return data.monitors.filter(m=>m.definition.enabled).every(m=>m.state.targetState==='Healthy')})}} satisfies ExportedHandler
+},async scheduled(_controller,env){validateConfiguration(env as Bindings);const bindings=env as Bindings;await maintenance(bindings);await dispatchNotificationMail(bindings);await monitoringWatch(bindings,()=>boundedHealth(()=>health(bindings)),async()=>{const data=await overview(bindings);return data.monitors.filter(m=>m.definition.enabled).every(m=>m.state.targetState==='Healthy')})}} satisfies ExportedHandler
+export default {...handler,fetch(request,env,execution){
+ return new URL(request.url).pathname==='/health'?boundedHealth(()=>handler.fetch(request,env,execution)):handler.fetch(request,env,execution)
+}} satisfies ExportedHandler

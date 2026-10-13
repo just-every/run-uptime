@@ -34,7 +34,10 @@ try {
  for (const mode of ['hosted', 'local']) {
   const settings = mode === 'local' ? { UPTIME_LOCAL_REVIEW: 'true', UPTIME_ORIGIN: 'http://127.0.0.1:8787', MAIL_PROVIDER: 'development' } : {};
   const complete = { ...bindings, ...settings };
+  const started=performance.now();
   assert.equal((await call({ settings, url: complete.UPTIME_ORIGIN + '/health' })).status, 200, `${mode} complete health`);
+  assert.ok(performance.now()-started<1000,`${mode} health responds within one second`);
+  assert.equal((await call({settings,remove:'ASSETS',url:complete.UPTIME_ORIGIN+'/health'})).status,503,`${mode} missing static asset dependency`);
   for (const { name } of requiredConfiguration(complete)) {
    for (const path of ['/health', '/app.js', '/auth/session', '/__dev/key']) {
     const response = await call({ settings, remove: name, url: complete.UPTIME_ORIGIN + path });

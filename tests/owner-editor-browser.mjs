@@ -52,12 +52,36 @@ try {
   const context=await browser.newContext({viewport:{width,height:900}});
   try {
    const [name,value]=cookie.split('=');await context.addCookies([{name,value,url:app.origin,httpOnly:true,sameSite:'Lax'}]);
-   const page=await context.newPage();await page.goto(app.origin+'/app');
+   const page=await context.newPage(),renewals=[],nativeChecks=[];
+   page.on('response',async response=>{
+    if(response.url()===app.origin+'/api/editor/config'&&response.status()===200)renewals.push({at:Date.now(),...(await response.json())});
+    if(response.url()===app.origin+'/auth/session'&&response.status()===200)nativeChecks.push(Date.now());
+   });
+   await page.goto(app.origin+'/app');
    const host=page.locator('[data-rer-editor]');await host.waitFor();
    await page.waitForFunction(()=>document.querySelector('[data-rer-editor]')?.getAttribute('data-connection')==='connected');
    const launcher=host.getByRole('button',{name:'Open Run Edit Run'});await launcher.click();
    const frame=host.locator('iframe');await frame.waitFor({state:'visible'});
    const bounds=await frame.boundingBox();assert.equal(Math.round(bounds.width),width);assert.ok(bounds.x>=0&&bounds.y>=0);
+   // Observe real 20-second revalidation twice, including past the original
+   // 30-second grant. Do not drive focus events or shorten production leases.
+   const initial=renewals.at(-1);assert.ok(initial,'initial owner grant observed');
+   const originalFrame=await frame.elementHandle(),editorFrame=await originalFrame.contentFrame();
+   const marker=`private-draft-${width}`;
+   await editorFrame.evaluate(value=>{
+    window.renewalDocument=document;
+    const draft=document.createElement('textarea');draft.id='renewal-private-draft';draft.value=value;document.body.append(draft);
+   },marker);
+   const openedAt=Date.now(),beforeChecks=nativeChecks.length,beforeGrants=renewals.length;
+   await page.waitForTimeout(42_000);
+   assert.ok(Date.now()>initial.expiresAt,'initial grant expiry crossed');
+   const refreshed=renewals.slice(beforeGrants);
+   assert.ok(refreshed.length>=2,'two ordinary timer grant renewals observed');
+   assert.ok(nativeChecks.length-beforeChecks>=2,'each renewal rechecks the native session');
+   assert.ok(refreshed.every(grant=>grant.expiresAt>initial.expiresAt&&JSON.stringify(grant.config)===JSON.stringify(initial.config)),'fresh expiry preserves identical authority/config');
+   assert.ok(await originalFrame.evaluate(node=>node.isConnected&&node===document.querySelector('[data-rer-editor]')?.shadowRoot?.querySelector('iframe')),'original iframe remains mounted');
+   assert.ok(await frame.isVisible(),'already-open editor stays open');
+   assert.deepEqual(await editorFrame.evaluate(()=>({sameDocument:window.renewalDocument===document,draft:document.getElementById('renewal-private-draft')?.value})),{sameDocument:true,draft:marker},'editor document identity and private draft survive renewal');
    await page.screenshot({path:join(evidence,`editor-${width}.png`)});
    await page.goto(app.origin+'/app/monitor');await page.locator('[data-rer-editor]').waitFor();
    // Native role loss is checked through the product route, then focus revokes immediately.
@@ -74,9 +98,9 @@ try {
    await page.waitForFunction(()=>document.querySelector('[data-rer-editor]')?.getAttribute('data-connection')!=='connected');
    await new Promise(resolve=>setTimeout(resolve,1000));assert.ok(violations.length,'Chromium enforces management frame-ancestors refusal');
    edge.state.denied=false;
-   results.push({width,nativeOwner:true,memberRefused:true,roleLossRevoked:true,cspRefusal:true});
+   results.push({width,nativeOwner:true,memberRefused:true,roleLossRevoked:true,cspRefusal:true,renewal:{elapsedMs:Date.now()-openedAt,originalExpiry:initial.expiresAt,renewedExpiries:refreshed.map(grant=>grant.expiresAt),ordinaryTimerRenewals:refreshed.length,iframeAndDocumentPreserved:true,privateDraftRetained:true}});
   } finally {await context.close()}
  }
  await writeFile(join(evidence,'RESULTS.json'),JSON.stringify({results,externalNetwork:false,scope:'Real emitted Uptime and Base editor, local management network edge; hosted service acceptance remains with the owner.'},null,2));
- console.log('OWNER-EDITOR passed: owner-only disabled 204, partial/malformed configuration refusal, native owner config, anonymous/member refusal, 1440/390 mount, route transition, role-loss revocation and browser CSP refusal.');
+ console.log('OWNER-EDITOR passed: owner-only disabled 204, partial/malformed configuration refusal, native owner config, anonymous/member refusal, 1440/390 mount, two ordinary renewals beyond initial expiry preserving iframe/document/private draft, route transition, role-loss revocation and browser CSP refusal.');
 } finally {await browser?.close();await app?.close();await edge.close()}

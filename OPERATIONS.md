@@ -209,20 +209,89 @@ status delivery.
 Archives include product definitions, evidence, outbox events, notification
 destination definitions and delivery history. They omit sessions, keys,
 receipts, local request credential values, runner grants, webhook and Slack
-URLs, signing keys, and other installation credentials. Restore creates paused
-monitor definitions and disabled destinations, interrupts outstanding leases,
-and quarantines imported alerts. Re-enter destination credentials and
-deliberately enable them before use; imports never replay notifications. Manual
-checks do not advance scheduled incident policy. Missing, incomplete or stale
-observations remain Unknown. Runner contact is authenticated receipt time, not
-process health.
+URLs, signing keys, and other installation credentials. The owner accepted
+this archive policy on 2026-10-13; available email addresses remain portable
+destination definitions. Restore creates paused monitor definitions and
+disabled destinations, interrupts outstanding leases, and quarantines imported
+alerts. Re-enter destination credentials and deliberately enable them before
+use; imports never replay notifications. Manual checks do not advance scheduled
+incident policy. Missing, incomplete or stale observations remain Unknown.
+Runner contact is authenticated receipt time, not process health.
 
 Use `rer export --output FILE` and `rer import --input FILE --yes` for local archive files. Run setup on the receiving checkout before import so its owner and private settings are established; product data must be empty. Hosted owners use the console export and restore actions. Imports require explicit confirmation.
 
-The `/health` endpoint proves D1 readiness and exact deployment identity, not
-runner operation, target health, provider acceptance, mailbox receipt, or a
-person being notified. Confirm each intended receiver with an authorized test
+The `/health` endpoint checks D1 readiness, credential-custody storage and an actual emitted `/app.js` through `ASSETS`, and returns the exact deployment identity. Public admission and dependency checks share a 900 ms response deadline; unavailable or hung dependencies return 503. Uptime has no R2 or queue binding. Deadline expiry cannot cancel an underlying D1 operation. The retained original local health log's 15-case matrix (healthy plus 14 faults) returned 503 for every fault within 906 ms and recovered after each; 20 sequential healthy samples gave p95 6 ms and maximum 7 ms. These are local measurements, not hosted latency or capacity proof. Health does not establish runner operation, target health, provider acceptance, mailbox receipt, or a person being notified. Confirm each intended receiver with an authorized test
 and review its delivery history before relying on it.
+
+### External requests and retained data
+
+`seed.json → externals` records the declared destinations and data categories.
+Public monitor and canary requests expose their destination host, request path
+and query, method, time and runner address to the target; owner-configured
+headers, bodies and credentials are sent only under their documented origin
+rules. A canary is a status-only GET with no request credentials and no body
+read. Redirects are checked at each hop and cross-origin monitor redirects
+strip credentials, custom headers and body.
+
+Discovery requests the URL an owner selects, its public redirects, robots files,
+and permitted site/API/status pages. The runner reads bounded HTML, JSON and
+spec bodies in memory, then returns only derived proposals, URLs, hostnames,
+notes and request summaries. Raw target HTML is not sent to the console or
+rendered as console HTML. A browser flow sends normal browser traffic to its
+declared top-level origins and to public subresources and WebSocket destinations
+reached by those pages. A flow credential is submitted only when the page is at
+its exact configured origin; every destination still passes through the
+runner's filtering proxy.
+
+The private runner sends signed enrollment, claims, task definitions, discovery
+answers, contact and attempt results to the configured control plane. For a
+notification job it receives the selected endpoint credential and event payload
+for the one send. Selected email providers receive API-key authorization, sender and recipient addresses, subject and text/HTML body, sign-in links, incident/test/watch content and drill confirmation links. Cloudflare also receives the configured account identity; SendGrid receives the delivery ID in custom arguments and Resend receives it in the idempotency header. The Worker sends mail; the runner does not receive the provider credential. Webhook and Slack endpoints receive
+the event fields declared for that destination; runner-local watch endpoints
+receive only outage/recovery state and times. An optional external heartbeat
+service receives an empty HTTPS request but can see its configured capability
+path, source address and request time. Hosted deployment sends the Worker,
+migrations, configured secrets and resource settings to the owner's Cloudflare
+account. DNS resolvers see queried hostnames, source address and lookup timing.
+
+The shared local lifecycle also requests readiness at the selected application
+origin (normally local loopback, possibly an owner-selected remote origin). It
+sends a GET without an authorization header or body, follows HTTP redirects and
+reads only the readiness status/value. DNS lookups expose hostnames, source
+address and timing to the runner or system resolver; public target, canary,
+discovery, browser and provider redirect policy is described in the product
+contract.
+
+An optional owner-configured management editor uses only its configured exact
+origin. Its hidden frame is requested when an authenticated owner page mounts;
+the integration sends installation identity, parent origin and editor surface,
+then the page path after the handshake. It sends visible page text only when the
+owner opens the editor and enables context sharing. Uptime has no public embeddable widget. BASE-DATA-005 is explicitly replaced by native standalone operation without a marketplace/author dependency plus this optional owner-configured editor; an author-hosted management origin may be contacted when opted in. No absolute author-zero-egress claim applies in that case, and the exception authorizes no telemetry, licence check or kill switch. Leave `IDENTITY_PROVIDER` omitted for native email-link setup. The completed probe passes native setup, sign-in, revocation and exact repeat preservation. Selecting a provider reads dependency metadata from a local issuer edge, then fails at the unmounted app dependency-approval route (404) before owner creation; no link request is made. Dependency/OIDC routes remain unavailable after a separate native bootstrap, so linked callback, repeat and revocation remain unreachable. The default is a separate scoped Base adoption round; runtime OIDC is not ready. A source inventory documents these flows; it does
+not prove the exact emitted application and runner make no other network
+request. Do not claim no telemetry, marketplace/author contact, license checks
+or kill switch without exact-candidate runtime network evidence.
+
+Observation, definition, audit, notification and local development capture
+history has no automatic age/count deletion. The local runtime retention scan
+compared all 76 migrated tables in a populated installation; 36 had rows before
+maintenance. Only aged `oa_sessions`, `oa_limits`, `login_attempts` and
+`public_rate_limits` rows were deleted, and other preexisting row identities survived the measured cleanup
+paths and Worker restart. Not every active automatic transition or optional
+provider integration was exercised. Scheduled cleanup removes expired sessions
+and stale rate-limit/auth-attempt counters. Discovery timeout changes job state
+but keeps the row; drill expiry clears the one-time capability but keeps drill
+history; retired endpoint secrets are scrubbed after owner action and any
+in-flight send; and a proven-unsent attempt reservation may be removed while
+delivery history remains. Local development captures remain until the
+associated operator is erased or local reset. View, export and archive bounds
+are not a retention policy or capacity claim.
+
+The main monitor, discovery and notification execution classes have route-visible
+durable results in measured cases. BASE-OPS-004 remains partial: Worker stale contact notices keep only their latest per-window outcome and have no lease-expiry reconciliation; external-heartbeat watch keeps only its latest outcome,
+the external-heartbeat row can be overwritten, runner-local outage/recovery
+state is in memory, and authentication-mail audit records an attempt but not a
+durable provider outcome or crash reconciliation. No all-execution-class
+ledger is claimed.
 
 ## Notification credential custody and upgrades
 
