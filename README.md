@@ -1,3 +1,15 @@
+<p align="center">
+  <a href="https://run-uptime.com">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset=".github/assets/banner-dark.webp">
+      <source media="(prefers-color-scheme: light)" srcset=".github/assets/banner-light.webp">
+      <img src=".github/assets/banner-light.webp" width="100%" alt="Uptime: Sleep through the night. 100% free, open source alternative to UptimeRobot, Pingdom and Better Stack.">
+    </picture>
+  </a>
+</p>
+
+<p align="center"><a href="https://run-uptime.com">run-uptime.com</a> · <a href="https://justevery.com">Part of Just Every</a> · <a href="LICENSE">MIT licensed</a></p>
+
 # Uptime
 
 ## Run it on your computer
