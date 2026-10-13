@@ -48,7 +48,13 @@ try {
  const conflicting = scratch.start('node', [rer, 'setup', '--owner-email', 'another@example.test', '--non-interactive']);
  try { assert.equal((await conflicting.done).code, 4); } finally { await scratch.stop(conflicting); }
  await machineAvailable(); dev = scratch.start('node', [rer, 'dev', '--foreground']);
- await until(() => { assert.equal(dev.exitCode, null); return dev.output.includes('RER_READY ' + origin); });
+ // The launcher's separate startup writes can arrive in different output chunks.
+ await until(() => {
+  assert.equal(dev.exitCode, null);
+  return dev.output.includes('RER_READY ' + origin)
+   && dev.output.includes('RER_SIGNED_IN journey@example.test')
+   && dev.output.includes('RER_OPEN ' + origin + '/__dev/key#rer-dev=');
+ });
  // dev opens signed in: the owner it names and the key-carrying link (whose key stays in the fragment).
  assert.ok(dev.output.includes('RER_SIGNED_IN journey@example.test'));
  assert.ok(dev.output.includes('RER_OPEN ' + origin + '/__dev/key#rer-dev='));

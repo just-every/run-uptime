@@ -16,9 +16,9 @@ const fixturePort=Number(process.env.UPTIME_ACTION_FIXTURE_PORT??15511);
 if([port,fixturePort].some(p=>!Number.isInteger(p)||p<15480||p>15519)||port===fixturePort)throw Error('Distinct assigned local ports required');
 const nextTurn=()=>new Promise(resolve=>setImmediate(resolve));
 function deferred(){let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no});return {promise,resolve,reject};}
-function harness(load=async()=>({revision:1}),onRender=()=>{}){
+function harness(load=async()=>({revision:1}),onRender=()=>{},onLock=()=>{}){
  const snapshots=[],renders=[],locks=[];
- const controller=createActionFeedback({load,render:(value,options)=>{renders.push({value,options});onRender(value,options);},publish:state=>snapshots.push(state),lock:value=>locks.push(value)});
+ const controller=createActionFeedback({load,render:(value,options)=>{renders.push({value,options});onRender(value,options);},publish:state=>snapshots.push(state),lock:value=>{locks.push(value);onLock(value)}});
  return {controller,snapshots,renders,locks,last:()=>snapshots.at(-1)};
 }
 let passed=0;
@@ -39,17 +39,24 @@ await check('rejected action survives reconciliation, contact announcement and l
 });
 
 await check('mutations stay excluded and replacement renders stay locked through reconciliation',async()=>{
- const reconciliation=deferred();let reads=0,secondCalls=0;
- const h=harness(()=>{reads++;return reconciliation.promise;});
- const first=h.controller.run(async()=>({id:'created'}),{pending:'Restoring…',success:'Archive restored; monitors remain paused.'});
- await nextTurn();assert.equal(reads,1);assert.equal(h.controller.busy,true);assert.equal(h.last().busy,true);
+ for(const independentAnnouncement of ['', 'Runner contact changed.']){
+ const reconciliation=deferred(),events=[];let reads=0,secondCalls=0;
+ const h=harness(()=>{events.push('read');reads++;return reconciliation.promise;},()=>{},busy=>{if(busy)events.push('lock')});
+ const first=h.controller.run(async()=>{events.push('new controls');return {id:'created'};},{pending:'Restoring…',success:'Archive restored; monitors remain paused.'});
+ await nextTurn();assert.ok(events.lastIndexOf('lock')>events.indexOf('new controls')&&events.lastIndexOf('lock')<events.indexOf('read'),'controls inserted by the task are locked before reconciliation starts');assert.equal(reads,1);assert.equal(h.controller.busy,true);assert.equal(h.last().busy,true);
  assert.deepEqual(await h.controller.run(async()=>{secondCalls++;}),{accepted:false,ok:false});
+ assert.ok(h.last().background.message,'a refused concurrent call publishes visible feedback');assert.equal(h.last().action.message,'Archive restored; monitors remain paused.','a refused concurrent call does not replace the original outcome');
+ const originalOutcome={...h.last().action};assert.equal(h.last().busy,true);
+ if(independentAnnouncement)h.controller.announceBackground(independentAnnouncement);
  assert.equal(await h.controller.refresh(),false);assert.equal(reads,1);assert.equal(secondCalls,0);
  assert.ok(h.locks.length>0&&h.locks.every(locked=>locked),'controls cannot unlock before reconciliation');
  reconciliation.resolve({revision:2});assert.equal((await first).ok,true);
  assert.equal(h.renders.at(-1).options.busy,true,'reconciliation render must identify replacement controls as locked');
  assert.equal(h.locks.at(-1),false);assert.equal(h.controller.busy,false);
  assert.equal(h.last().action.message,'Archive restored; monitors remain paused.');
+ assert.deepEqual(h.last().action,originalOutcome);assert.equal(h.last().background.message,independentAnnouncement,'completion clears its obsolete refusal while retaining a later independent announcement');
+ await h.controller.refresh();assert.deepEqual(h.last().action,originalOutcome);assert.equal(h.last().background.message,independentAnnouncement,'later polling cannot restore the obsolete refusal');
+ }
 });
 
 for(const oldOutcome of ['success','failure'])await check(`pre-action ${oldOutcome} read cannot replace reconciled observations or feedback`,async()=>{

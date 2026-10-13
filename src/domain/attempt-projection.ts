@@ -33,6 +33,7 @@ export function foldAttempts(definition:any,slots:any[],observations:any[],check
  const grouped=observationsBySlot(observations);
  let {state,last}=checkpoint;
  for(const slot of slots.filter(s=>!s.manual&&!s.skipped).sort((a,b)=>a.due_at-b.due_at||a.id.localeCompare(b.id))){
+  if(slot.pending)break;
   last=finalAttempts(definition,grouped.get(slot.id)??[]);
   const at=Math.max(slot.due_at,...last.flatMap((o:any)=>[o.completedAt,o.canary?.completedAt??0]));
   state=evaluate(definition,last,state,at);
@@ -42,5 +43,10 @@ export function foldAttempts(definition:any,slots:any[],observations:any[],check
 /** Read-time freshness never consumes a scheduled slot or overwrites the fold. */
 export function projectAttempts(definition:any,slots:any[],observations:any[],now:number,checkpoint?:ProjectionCheckpoint){
  const {state,last}=foldAttempts(definition,slots,observations,checkpoint);
- return evaluate(definition,last,state,now,false)
+ // A pending classification holds chronological counters, not visible coverage.
+ // Show the newest non-skipped slot's actual observations even while the fold
+ // waits for a runner to advance or the fixed classification deadline to pass.
+ const latest=slots.filter(s=>!s.manual&&!s.skipped).sort((a,b)=>b.due_at-a.due_at||b.id.localeCompare(a.id))[0];
+ const visible=latest?finalAttempts(definition,observationsBySlot(observations).get(latest.id)??[]):last;
+ return evaluate(definition,visible,state,now,false)
 }

@@ -1,15 +1,23 @@
 import type {Bindings} from './control.server.ts'
 import {foldAttempts,type ProjectionCheckpoint} from './attempt-projection.ts'
+import {classifyAttempts} from './attempt-classification.ts'
+import {CONTACT_FRESHNESS_MS} from './runner-contact.server.ts'
 
 // An upgraded installation catches up once in bounded pages. Thereafter only
 // expired windows since the checkpoint and still-mutable windows are read.
 const PAGE=512;
-// `skipped`: a vantage's part of the slot was never delivered because its runner, behind, took a newer scheduled slot of the
-// monitor instead (the newest-slot rule in attempts.server.ts). A runner that took nothing newer leaves its part as missing evidence.
-const tail=`SELECT t.id,t.due_at,t.manual,t.lease_until,EXISTS(SELECT 1 FROM runner_assignments a JOIN slots n ON n.monitor_id=t.monitor_id
- AND n.manual=0 AND n.due_at>t.due_at JOIN runner_assignments na ON na.slot_id=n.id AND na.runner_id=a.runner_id AND na.delivered_at IS NOT NULL
- WHERE a.slot_id=t.id AND a.delivered_at IS NULL) skipped FROM slots t
- WHERE t.monitor_id=? AND t.revision=? AND t.manual=0 AND (t.due_at,t.id)>(?,?)
+// Read assignment progress alongside immutable slots, without manufacturing
+// observations or changing their acceptance deadlines.
+// A scheduled delivery cannot precede its due time, so the lookup is bounded
+// by the same fixed classification window even during historical catch-up.
+const tail=`SELECT t.id,t.due_at,t.manual,t.lease_until,
+ (SELECT json_group_array(json_object('probe',a.probe,'delivered_at',a.delivered_at,
+ 'advanced_at',(SELECT MIN(na.delivered_at) FROM slots n JOIN runner_assignments na ON na.slot_id=n.id
+ WHERE n.monitor_id=t.monitor_id AND n.manual=0 AND n.due_at>t.due_at
+ AND n.due_at<t.lease_until+${CONTACT_FRESHNESS_MS}
+ AND na.runner_id=a.runner_id AND na.delivered_at IS NOT NULL)))
+ FROM runner_assignments a WHERE a.slot_id=t.id) assignments
+ FROM slots t WHERE t.monitor_id=? AND t.revision=? AND t.manual=0 AND (t.due_at,t.id)>(?,?)
  ORDER BY t.due_at,t.id LIMIT ${PAGE}`;
 type Update={dueAt:number;slotId:string;checkpoint:ProjectionCheckpoint};
 export function checkpointStatement(env:Bindings,monitorId:string,revision:number,update:Update,generation:number,token:string){
@@ -37,10 +45,12 @@ export async function attemptSnapshot(env:Bindings,monitorId:string,revision:num
     ...(extraSlot?[env.DB.prepare('SELECT * FROM observations WHERE slot_id=?').bind(extraSlot)]:[])
    ]);
    if((snapshot[0].results[0] as any)?.generation!==generation)continue restart;
-   const slots=snapshot[1].results as any[],observations=snapshot[2].results as any[];
+   const observations=snapshot[2].results as any[];
+   const slots=classifyAttempts(definition,snapshot[1].results as any[],observations,now);
    // Complete slots still accept late attempts (including failed canaries).
-   // Freeze only a contiguous prefix whose acceptance authority has expired.
-   const boundary=slots.findIndex(s=>s.lease_until>now);
+   // Freeze only a contiguous prefix whose acceptance authority and skip
+   // classification have both settled. Fresh contact is never target evidence.
+   const boundary=slots.findIndex(s=>s.lease_until>now||s.pending);
    const expired=boundary<0?slots:slots.slice(0,boundary);
    if(!expired.length){
     if(slots.length===PAGE)throw Error('Mutable scheduled window exceeds projection page');
