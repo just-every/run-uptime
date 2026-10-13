@@ -10,10 +10,12 @@ export async function openCredential(directory, reference) {
   const file = await open(path, constants.O_RDONLY | constants.O_NOFOLLOW);
   try {
     const stat = await file.stat();
-    if (!stat.isFile() || (stat.mode & 0o077) || stat.uid !== process.getuid() || stat.size > 32768) throw Error();
+    if (!stat.isFile() || (stat.mode & 0o077) || stat.uid !== process.getuid() || stat.size > 32768 + 544) throw Error();
     const input = JSON.parse(await file.readFile('utf8'));
     validateCredential(input);
-    if ('value' in input && stat.size > 4096) throw Error();
+    // Adding a monitor identity must not invalidate an otherwise valid boundary-size legacy file.
+    const identityBytes = input.monitorId === undefined ? 0 : JSON.stringify({monitorId: input.monitorId}).length;
+    if (stat.size - identityBytes > ('value' in input ? 4096 : 32768)) throw Error();
     return {file, stat, input, path, root};
   } catch { await file.close(); throw Error('Credential unavailable or invalid'); }
 }

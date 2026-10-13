@@ -779,7 +779,7 @@
       "executable": false
     },
     "public/monitor-page.js": {
-      "sha256": "f77d7f1e14ed74c4e27a46afdd380bbcce37caf4ff769a25776c9a4ca20a3c49",
+      "sha256": "48de786f2fc4f277ebc6bfe6043817f24e4381d288be11f20c00893a0a449a6e",
       "executable": false
     },
     "public/monitor-timeline.js": {
@@ -855,7 +855,7 @@
       "executable": false
     },
     "runners/src/credential-file.mjs": {
-      "sha256": "afbe924f616f0b1bd4a91b4b36d45e21fb34aa4028ffda7a641046a03a069954",
+      "sha256": "e8e75ed812d792a0e1ec735d3412b73b1b081947547ad8b49fdb24fe5ad08dc5",
       "executable": false
     },
     "runners/src/credentials.mjs": {
@@ -3043,7 +3043,7 @@
       "executable": false
     },
     "tests/credential-upgrade.mjs": {
-      "sha256": "32413cc0815956ccf279e8958a393d41539c0a28d2a9c11db013264301ce292d",
+      "sha256": "e1f35439cec9242147c4b506d5cd2082a76da4c7468827ad461e169ab07093e2",
       "executable": false
     },
     "tests/definitions-import.mjs": {
