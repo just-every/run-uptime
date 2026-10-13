@@ -7,13 +7,18 @@ export function bindingCommand(reference, monitorId) {
   return `node runners/migrations/0001-monitor-credentials.mjs --directory "$UPTIME_CREDENTIAL_DIR" --reference ${reference} --monitor-id ${monitorId}`;
 }
 export function validBindingDiagnostic(value) {
-  return value && typeof value === 'object' && Object.keys(value).sort().join(',') === 'monitorId,monitorIds,reference' &&
+  return value && typeof value === 'object' && ['monitorId,monitorIds,reference', 'boundElsewhere,monitorId,monitorIds,reference'].includes(Object.keys(value).sort().join(',')) &&
+    (value.boundElsewhere === undefined || value.boundElsewhere === true) &&
     validReference(value.reference) && validMonitorId(value.monitorId) && Array.isArray(value.monitorIds) &&
     value.monitorIds.length >= 1 && value.monitorIds.length <= 101 && value.monitorIds.every(validMonitorId) &&
     new Set(value.monitorIds).size === value.monitorIds.length && value.monitorIds.includes(value.monitorId) &&
     JSON.stringify(value).length <= BINDING_DIAGNOSTIC_BYTES;
 }
-export const bindingReason = value => `Credential ${value.reference} is unbound. Stop the runner, review the intended monitor, then run: ${bindingCommand(value.reference, value.monitorId)}`;
+// A file bound to another monitor can never serve this one, so the step names a new reference of this monitor's own.
+export const ownReference = (reference, monitorId) => `${reference.slice(0, 71)}-${monitorId.slice(0, 8)}`;
+export const bindingReason = value => value.boundElsewhere
+  ? `Credential ${value.reference} is bound to another monitor. Give this monitor its own: create owner-only ${ownReference(value.reference, value.monitorId)}.json for its account, set this monitor's credentialRef to ${ownReference(value.reference, value.monitorId)} with a definitions change, stop the runner, then run: ${bindingCommand(ownReference(value.reference, value.monitorId), value.monitorId)}`
+  : `Credential ${value.reference} is unbound. Stop the runner, review the intended monitor, then run: ${bindingCommand(value.reference, value.monitorId)}`;
 // Keep the ordinary signed-result byte limit. Only valid bounded diagnostics earn
 // their own serialized space; unrelated payload padding never enlarges the limit.
 export function runnerResultLimit(text) {

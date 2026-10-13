@@ -475,11 +475,11 @@
       "executable": false
     },
     "docs/runner.md": {
-      "sha256": "1e0d82a9841d70592ff48c683c055bcf72a22da117f6499ddc21292283aaeaf2",
+      "sha256": "c05f03897bae3330755b4d65d5b806bb17e0b94f7f510912c459d6df24712203",
       "executable": false
     },
     "docs/security.md": {
-      "sha256": "818646d2474a081347e47b04a2c1143823433900b193a81d6af43cfb63483ca3",
+      "sha256": "3b895a3c43905e391eac6ea7f2ef1b4672ca1b6b7a08ae3701f61908b224bf0c",
       "executable": false
     },
     "docs/site.json": {
@@ -655,7 +655,7 @@
       "executable": false
     },
     "OPERATIONS.md": {
-      "sha256": "e010f225f903fa5bc6858d67a97ff40f35debcf2dfdfed1f306dfaba282ee5c6",
+      "sha256": "8b5f005f5f1e10488e885be5385badef3bcef072cd1d391e589dace557469058",
       "executable": false
     },
     "package.json": {
@@ -839,7 +839,7 @@
       "executable": false
     },
     "runners/migrations/0001-monitor-credentials.mjs": {
-      "sha256": "a4581079aedad2b189fff5b79aab704d65e83beb46c314839a7e088eb5adcd2b",
+      "sha256": "35b628ccc4503ae78c206f8bb1c88134af4abd046e654bbd9e13413e74b66991",
       "executable": false
     },
     "runners/migrations/bind-credential.mjs": {
@@ -859,7 +859,7 @@
       "executable": false
     },
     "runners/src/credential-diagnostic.mjs": {
-      "sha256": "ece0a28ba1c9d0b89f42efeff5e0863a07a1bd9e0ee5db8e8816b30c5cedc1a9",
+      "sha256": "24d706896f462d828b57a144eb7bc8f7f3764f74a55fbdbfb477d46fbd74fb7b",
       "executable": false
     },
     "runners/src/credential-file.mjs": {
@@ -867,7 +867,7 @@
       "executable": false
     },
     "runners/src/credentials.mjs": {
-      "sha256": "8e4d01256ad09a5a38295cbf8e8dbd13a4f4d147bb89c0dd6d9e11b2b8ddb17d",
+      "sha256": "f71da2597a30f5067f2322eae77158b4ecda22f059a18ca5f6230619b06c9200",
       "executable": false
     },
     "runners/src/discovery-loop.mjs": {
@@ -1011,7 +1011,7 @@
       "executable": false
     },
     "runners/src/flow/secrets.mjs": {
-      "sha256": "43f5d366f496d15dc302c7f1a93d27603ddc93b5cbb3e6da0d52cf27ac9ba842",
+      "sha256": "86c5f93794a635ecb3748a32269ef08e7b827d33e4d5d2277be916448ef4c499",
       "executable": false
     },
     "runners/src/flow/workspace.mjs": {
@@ -1235,7 +1235,7 @@
       "executable": false
     },
     "scripts/installer/local.mjs": {
-      "sha256": "73743bacdb5bab65c6958181591b448d3db38d291acd8a1ef984e3da37579583",
+      "sha256": "872aa7ae1a688ef8e7e5640c8dcf0b56be69306fa14cc91a4250a63993c67edb",
       "executable": false
     },
     "scripts/installer/ui/seed.mjs": {
@@ -1255,11 +1255,11 @@
       "executable": false
     },
     "scripts/local/commands.mjs": {
-      "sha256": "56b1366ef2d944b3c251a49fc59d2227d615963670c40e243b9677f9a6af17d2",
+      "sha256": "c01e624ceb61039025fccd83b286544fcbd6d79a2a151ef47be8920713dfd308",
       "executable": false
     },
     "scripts/local/migrate.mjs": {
-      "sha256": "88705ef0e402b69d73482f67ae3c275351d22853bf87084ec4285dcbd35cc964",
+      "sha256": "f0bfbef7cf4926f190467e5751f54cc80bd65fd10a4cd4fa46bd7b871c3901a5",
       "executable": false
     },
     "scripts/local/portability.mjs": {
@@ -2379,7 +2379,7 @@
       "executable": false
     },
     "src/domain/credential-binding.mjs": {
-      "sha256": "989ab019fed9bf2bfd6999fc759729cd8e5b26f5f125d47f749890af2b68929e",
+      "sha256": "1403840bd2c0124325c1a46581ab37662b40842f61bd0f85c7e0ddef6b621075",
       "executable": false
     },
     "src/domain/definitions/apply.server.ts": {
@@ -3051,7 +3051,7 @@
       "executable": false
     },
     "tests/credential-upgrade.mjs": {
-      "sha256": "83a00574e319705de1b60d3ce4cd84c4023a04e9f44083b183b1c0e7758a6ec5",
+      "sha256": "a2b4a1d25fb8e6b8ddf10da39760053872d7809b368903694d894e5f890ae5e7",
       "executable": false
     },
     "tests/definitions-import.mjs": {

@@ -47,15 +47,15 @@ Raw secrets and response bodies never go into stored evidence or archives.
 
 ### Bind existing files after upgrading
 
-When upgrading a local installation, stop the runner and run `rer setup` with `UPTIME_CREDENTIAL_DIR` set to its existing credential folder. Numbered migration 0001 reads current local monitor definitions, including paused monitors. A valid unbound file referenced by exactly one distinct monitor is bound to that monitor automatically, keeping every existing field and its exact file mode. Repeating setup or the migration preserves existing bindings; it never silently rebinds a file.
+When upgrading a local installation, stop the runner and run `rer setup` with `UPTIME_CREDENTIAL_DIR` set to its existing credential folder. Numbered migration 0001 reads current local monitor definitions, including paused monitors. A valid unbound file referenced by exactly one distinct monitor is bound to that monitor automatically, keeping every existing field and its exact file mode. This happens once: setup then records `.monitor-credential-upgrade.json` in the credential folder, and every later setup, `rer dev` or `rer preview` start only reports unbound files. Repeating setup or the migration preserves existing bindings; it never silently binds or rebinds a file.
 
-You can rerun the inventory migration directly from the checkout root:
+You can rerun the report from the checkout root:
 
 ```sh
 node runners/migrations/0001-monitor-credentials.mjs --directory "$UPTIME_CREDENTIAL_DIR" --persist-to .wrangler/state
 ```
 
-Shared and unused files stay unbound. Setup reports the reference and all known monitor IDs, with a complete numbered command for each possible selection. A scheduled HTTP or browser check that encounters an unbound file stays Unknown and records the reference, its intended monitor, the known IDs from the last migration, and the exact command in **Recent checks**. The report is diagnostic only: checks never bind files. With several missing flow credentials, each check reports the first unbound reference it encounters; resolve it and the next check identifies the next one.
+Shared and unused files stay unbound. Setup, and each dev or preview start, reports the reference and all known monitor IDs, with a complete numbered command for each possible selection. A scheduled HTTP or browser check that encounters an unbound file stays Unknown and records the reference, its intended monitor, the known IDs from the last migration, and the exact command in **Recent checks**. The report is diagnostic only: checks never bind files. With several missing flow credentials, each check reports the first unbound reference it encounters; resolve it and the next check identifies the next one.
 
 Review the intended monitor (its ID is in the console URL), stop the runner, then run the command for that monitor on the runner machine:
 
@@ -63,7 +63,7 @@ Review the intended monitor (its ID is in the console URL), stop the runner, the
 node runners/migrations/0001-monitor-credentials.mjs --directory "$UPTIME_CREDENTIAL_DIR" --reference partner-api --monitor-id MONITOR_ID
 ```
 
-This adds the explicit binding atomically and prints no credential value. It refuses a file already bound to another monitor. If a file used to serve several monitors, create a separate owner-only file and reference for each, review the intended account, and bind each separately before restarting the runner. An unused file is reported at setup; if a monitor later names it, the check reports the required binding without modifying the file. Hosted runners without the local database use the explicit per-monitor command.
+This adds the explicit binding atomically and prints no credential value. It refuses a file already bound to another monitor. If a file used to serve several monitors, create a separate owner-only file and reference for each, review the intended account, and bind each separately before restarting the runner. Once one of them is bound, a check of each other monitor that still names the file stays Unknown and its **Recent checks** names a new reference for that monitor (the old reference and the first eight characters of its ID), the definitions change that points the monitor at it, and the exact binding command; a copied, new or definitions-imported monitor that names a bound file gets the same step. An unused file is reported at setup; if a monitor later names it, the check reports the required binding without modifying the file. Hosted runners without the local database use the explicit per-monitor command.
 
 Archives preserve non-secret credential references and monitor IDs; they never contain local credential files or runner authority. Restore remains paused. After reviewing the restored monitor and assigning a receiving runner, it may reuse its same-ID local file if that file was retained separately on that runner. A receiving runner without the file has no credential access. A copied, new or definitions-imported monitor receives a different ID and cannot reuse that file.
 

@@ -10,7 +10,7 @@ export async function readCredentials(reference, url, method, directory = proces
     const result = httpCredential(input);
     if (input.origin !== new URL(url).origin || (input.body !== undefined && ['GET','HEAD'].includes(method))) throw Error();
     if (input.monitorId === undefined) throw await bindingRequired(reference, monitorId, root);
-    if (input.monitorId !== monitorId) throw Error();
+    if (input.monitorId !== monitorId) throw await bindingRequired(reference, monitorId, root, true);
     return result;
   } catch (error) {
     if (error instanceof CredentialBindingRequired) throw error;

@@ -8,7 +8,7 @@ import { portability } from '../local/portability.mjs';
 import { buildCommand, migrationCommand } from '../local/commands.mjs';
 export const lifecycle = localInstaller({
  features, node: '22.20.0', tools: ['pnpm', 'node'], prepare,
- secrets: settingsDefinition(), build: buildCommand, migrate: migrationCommand('.wrangler/state'),
+ secrets: settingsDefinition(), build: buildCommand, migrate: migrationCommand('.wrangler/state', true),
  start: context => runtimeTarget(context, false),
  owner: { existingOwnerViaSignIn: true, displayName: input => input.displayName, returnTo: '/setup' },
  signIn: { emailKey: 'OWNER_EMAIL', returnTo: '/setup' },
