@@ -17,7 +17,7 @@ const dir=await mkdtemp(join(tmpdir(),'uptime-public-probes-'));
 let servers=[],requests=[],pins=[],dns=[],httpOriginal=http.request,httpsOriginal=https.request,restoreEnv={};
 let route=()=>({status:200,body:'{"ready":true,"word":"operational"}',headers:{'x-check':'yes'}});
 const def=(extra={})=>validateDefinition({name:'Authorized synthetic protocol test',url:'https://public-a.test/health',network:'public',timeoutMs:1000,retries:0,...extra},[]);
-async function run(extra={}){return probeHttp(def(extra),'local-a',[])}
+async function run(extra={}){return probeHttp(def(extra),'local-a',[],{monitorId:'probe-monitor'})}
 before(async()=>{
  const result=spawnSync('openssl',['req','-x509','-newkey','rsa:2048','-nodes','-keyout',join(dir,'key.pem'),'-out',join(dir,'cert.pem'),'-days','1','-subj','/CN=public-a.test','-addext','subjectAltName=DNS:public-a.test,DNS:public-b.test'],{stdio:'ignore'});assert.equal(result.status,0);
  const key=await readFile(join(dir,'key.pem')),cert=await readFile(join(dir,'cert.pem'));
@@ -63,12 +63,12 @@ test('actual HTTP/HTTPS sockets use validated pin, original Host and verified SN
  const evidence=await run({url:'https://not-in-certificate.test/health'});assert.equal(evidence.outcome,'target_failure');assert.equal(evidence.checks[0].assertion,'connection');
 });
 test('credential files enforce owner-only scope, header/body/auth and origin binding',async()=>{
- await writeFile(join(dir,'request-a.json'),JSON.stringify({origin:'https://public-a.test',headers:{'x-secret':'private-header','content-type':'application/json'},body:'private-body',auth:{type:'bearer',token:'private-token'}}),{mode:0o600});
- const settings=await readCredentials('request-a','https://public-a.test/health','POST',dir);assert.equal(settings.headers.authorization,'Bearer private-token');
- await assert.rejects(readCredentials('request-a','https://public-b.test/health','POST',dir));await assert.rejects(readCredentials('request-a','https://public-a.test/health','GET',dir));
- await chmod(join(dir,'request-a.json'),0o644);await assert.rejects(readCredentials('request-a','https://public-a.test/health','POST',dir));await chmod(join(dir,'request-a.json'),0o600);
- await symlink(join(dir,'request-a.json'),join(dir,'linked.json'));await assert.rejects(readCredentials('linked','https://public-a.test/health','POST',dir));
- for(const header of ['Host','Content-Length','Transfer-Encoding','Proxy-Authorization','Connection']){await writeFile(join(dir,'bad.json'),JSON.stringify({origin:'https://public-a.test',headers:{[header]:'value'}}),{mode:0o600});await assert.rejects(readCredentials('bad','https://public-a.test/health','POST',dir))}
+ await writeFile(join(dir,'request-a.json'),JSON.stringify({monitorId:'probe-monitor',origin:'https://public-a.test',headers:{'x-secret':'private-header','content-type':'application/json'},body:'private-body',auth:{type:'bearer',token:'private-token'}}),{mode:0o600});
+ const settings=await readCredentials('request-a','https://public-a.test/health','POST',dir,'probe-monitor');assert.equal(settings.headers.authorization,'Bearer private-token');
+ await assert.rejects(readCredentials('request-a','https://public-b.test/health','POST',dir,'probe-monitor'));await assert.rejects(readCredentials('request-a','https://public-a.test/health','GET',dir,'probe-monitor'));
+ await chmod(join(dir,'request-a.json'),0o644);await assert.rejects(readCredentials('request-a','https://public-a.test/health','POST',dir,'probe-monitor'));await chmod(join(dir,'request-a.json'),0o600);
+ await symlink(join(dir,'request-a.json'),join(dir,'linked.json'));await assert.rejects(readCredentials('linked','https://public-a.test/health','POST',dir,'probe-monitor'));
+ for(const header of ['Host','Content-Length','Transfer-Encoding','Proxy-Authorization','Connection']){await writeFile(join(dir,'bad.json'),JSON.stringify({monitorId:'probe-monitor',origin:'https://public-a.test',headers:{[header]:'value'}}),{mode:0o600});await assert.rejects(readCredentials('bad','https://public-a.test/health','POST',dir,'probe-monitor'))}
  route=()=>({status:200,body:'operational'});const evidence=await run({method:'POST',request:{credentialRef:'request-a'}});assert.equal(evidence.outcome,'pass');assert.equal(requests.at(-1).body,'private-body');assert.equal(requests.at(-1).headers['x-secret'],'private-header');assert.equal(requests.at(-1).headers.authorization,'Bearer private-token');assert.doesNotMatch(JSON.stringify(evidence),/private-header|private-body|private-token/);
 });
 test('redirects re-resolve every hop; cross-origin headers/auth/body are discarded permanently',async()=>{

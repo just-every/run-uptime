@@ -6,8 +6,10 @@ export async function executeTaskProbe(task,probe,{grantPath,controlPort,flowWor
  const definition=task.definition;
  // Only the authenticated claim envelope supplies local credential authority; editor fields never do.
  const needsCredential=Boolean(definition.request)||definition.flow?.steps?.some(step=>step.kind==='fill');
- if(needsCredential&&(typeof task.monitorId!=='string'||!task.monitorId||typeof task.id!=='string'||!task.id||!task.probes?.includes(probe)||!Number.isSafeInteger(task.acceptUntil)||task.acceptUntil<=now()))throw Error('Credential claim unavailable');
+ if(needsCredential&&(typeof task.monitorId!=='string'||!task.monitorId||typeof task.id!=='string'||!task.id||!task.probes?.includes(probe)||!definition.probes?.includes(probe)||!Number.isSafeInteger(task.acceptUntil)||task.acceptUntil<=now()))throw Error('Credential claim unavailable');
  const monitorId=needsCredential?task.monitorId:undefined;
+ // Preparation and network work must not outlive the claim's Worker-clock authority either.
+ if(needsCredential)signal=AbortSignal.any([...(signal?[signal]:[]),AbortSignal.timeout(Math.max(1,task.acceptUntil-now()))]);
  signal?.throwIfAborted();
  if(definition.type==='heartbeat'){
   validateDefinition(definition,[]);

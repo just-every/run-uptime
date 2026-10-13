@@ -67,7 +67,7 @@ Public HTTP(S) checks validate every A/AAAA answer and redirect hop, reject unsa
 
 Synthetic checks retain a separate live process/custody grant, exact path/port identity, expiry, GET/HEAD-only and no-redirect boundary. Grant authority is rechecked on every attempt.
 
-Request headers, body and bearer/basic credentials are protected runner-local regular files with exact origin binding. Missing or invalid references yield runner errors without falling back to unauthenticated requests. Raw secrets and response bodies never enter observations, alerts or archives. Portable historical references are not receiving-installation execution authority.
+Request headers, body and bearer/basic credentials are protected runner-local regular files with exact monitor-ID and origin binding. Credential authority comes from the authenticated task envelope while its assigned probe and acceptance window are valid; another monitor on the same runner cannot use the same reference to obtain the credential. Legacy unbound files require explicit owner binding through the numbered local-file migration. Missing or invalid references yield runner errors without falling back to unauthenticated requests. Raw secrets and response bodies never enter observations, alerts or archives. Portable historical references are not receiving-installation execution authority.
 
 Heartbeat tokens are owner-issued, hashed at rest, scoped to an immutable revision and rotated on issuance. Server receipt time and strictly increasing sequences prevent replay. Ingress alone cannot change state. A scheduled slot freezes an installation-local receipt snapshot; signed completion must match it. Missing, stale, future, paused, revision-mismatched or imported receipts cannot establish Healthy.
 

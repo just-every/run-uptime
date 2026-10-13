@@ -34,7 +34,6 @@ try {
   ({worker, DB} = await migratedWorker({port, persist, bindings}));
   fixture = await startFlowFixture({port: fixturePort, grantPath});
   await mkdir(credentials, {mode: 0o700});
-  for (const [ref, value] of [['login-email', FIXTURE_EMAIL], ['login-password', FIXTURE_PASSWORD], ['wrong-password', 'not-the-password']]) await writeFile(join(credentials, `${ref}.json`), JSON.stringify({origin: fixture.origin, value}), {mode: 0o600});
   await owner.signIn(bindings);
   const {api} = owner, ok = async (path, method = 'GET', body, headers) => { const r = await api(path, method, body, headers); assert.ok(r.status >= 200 && r.status < 300, `${path}: ${r.status} ${JSON.stringify(r.data)}`); return r.data; };
   // Two vantages: a failing flow becomes an incident when two network labels agree.
@@ -60,7 +59,14 @@ try {
   const accountFlow = {intent: 'Sign in to the account page', steps: [...signIn('profile-path', 'login-password'), {kind: 'expect', what: 'url', value: '/s/profile-path/u/', match: 'prefix'},
     {kind: 'click', target: {text: 'Account settings'}}, {kind: 'waitFor', what: 'text', value: 'Account settings'},
     {kind: 'click', target: {text: 'Mailbox'}}, {kind: 'waitFor', what: 'text', value: 'Your mailbox'}, {kind: 'click', target: {text: 'Full profile'}}], outcomes: [{id: 'profile', what: 'text', value: 'Full profile'}]};
-  const create = async (name, scenario, body, extra = {}) => (await ok('/api/monitors', 'POST', {name, type: 'flow', url: `${fixture.origin}/s/${scenario}/login`, network: 'synthetic', probes: ['local-a', 'local-b'], intervalMs: 300000, freshnessMs: 900000, confirmSlots: 1, recoverSlots: 1, flow: body, ...extra})).id;
+  const create = async (name, scenario, body, extra = {}) => {
+    const prefix = crypto.randomUUID();
+    const scoped = {...body, steps: body.steps.map(step => step.kind === 'fill' ? {...step, credentialRef: `${prefix}-${step.credentialRef}`} : step)};
+    const created = await ok('/api/monitors', 'POST', {name, type: 'flow', url: `${fixture.origin}/s/${scenario}/login`, network: 'synthetic', probes: ['local-a', 'local-b'], intervalMs: 300000, freshnessMs: 900000, confirmSlots: 1, recoverSlots: 1, flow: scoped, ...extra, enabled: false});
+    for (const [ref, value] of [['login-email', FIXTURE_EMAIL], ['login-password', FIXTURE_PASSWORD], ['wrong-password', 'not-the-password']]) await writeFile(join(credentials, `${prefix}-${ref}.json`), JSON.stringify({monitorId: created.id, origin: fixture.origin, value}), {mode: 0o600});
+    await ok(`/api/monitors/${created.id}`, 'PATCH', {...created.definition, enabled: extra.enabled ?? true});
+    return created.id;
+  };
   const good = await create('Checkout flow', 'healthy', flow('healthy', 'login-password')), bad = await create('Checkout flow, wrong password', 'wrong-password', flow('wrong-password', 'wrong-password'));
   const account = await create('Account flow', 'profile-path', accountFlow);
   const observations = async id => (await ok(`/api/monitors/${id}/history`)).flatMap(slot => slot.observations);
@@ -91,7 +97,7 @@ try {
   // requires none of the flow's outcomes.
   await ok(`/api/monitors/${bad}`, 'PATCH', {name: 'Checkout flow, wrong password', type: 'heartbeat', probes: ['local-a', 'local-b'], intervalMs: 5000, freshnessMs: 60000, confirmSlots: 1, recoverSlots: 1, heartbeat: {maxAgeMs: 60000}});
   const changed = (await ok('/api/overview')).monitors.find(m => m.id === bad).state.definitionChange;
-  assert.equal(changed?.fromRevision, 1, 'while the incident is open the state names the revision it began under');
+  assert.equal(changed?.fromRevision, overview.monitors.find(m => m.id === bad).revision, 'while the incident is open the state names the revision it began under');
   assert.ok(changed.removed.some(r => r.includes('order-confirmed')), 'the flow outcome the heartbeat no longer requires is named');
   const {token} = await ok(`/api/monitors/${bad}/heartbeat-key`, 'POST', {});
   await ok(`/api/heartbeats/${bad}`, 'POST', {}, {authorization: `Bearer ${token}`, 'x-heartbeat-sequence': '1'});

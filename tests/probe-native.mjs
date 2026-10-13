@@ -105,7 +105,7 @@ try{
   const all=(await recovery.api('/api/overview')).data;assert.ok(all.monitors.every(m=>m.state.state==='Paused'));assert.ok(all.alerts.every(a=>a.status==='imported-inactive'));assert.equal(await recovery.claim(),null);
   const restored=await recovery.monitor(publicMonitor.id);assert.equal(restored.definition.request,undefined);
   // A same-named receiving credential file must never be selected by a restored definition.
-  await writeFile(join(dir,'request-a.json'),JSON.stringify({origin:'https://public-a.test',auth:{type:'bearer',token:'receiving-only-sentinel'}}),{mode:0o600});
+  await writeFile(join(dir,'request-a.json'),JSON.stringify({monitorId:publicMonitor.id,origin:'https://public-a.test',auth:{type:'bearer',token:'receiving-only-sentinel'}}),{mode:0o600});
   const receivingId=(await recovery.api('/api/runners')).data[0].runnerId;const assign=definition=>Object.fromEntries(definition.probes.map(p=>[p,{...definition.assignments[p],runnerId:receivingId}]));
   const revision=await recovery.api(`/api/monitors/${publicMonitor.id}`,'PATCH',{...restored.definition,assignments:assign(restored.definition),enabled:true});assert.equal(revision.status,200,JSON.stringify(revision.data));assert.equal(revision.data.definition.request,undefined);const publicTask=await recovery.claim();assert.equal(publicTask.definition.request,undefined);
   await recovery.submit(publicTask,[evidence(publicTask)]);

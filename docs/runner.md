@@ -35,14 +35,27 @@ Everything the runner checks, it checks from where the runner sits. A monitor ca
 
 ## Request secrets stay with the runner
 
-If a check needs a header, a body or a bearer or basic credential, put it in a file on the runner's machine and point the monitor at it. Those files are read only by the runner, and are bound to the origin they are meant for.
+If a check needs a header, a body or a bearer or basic credential, put it in a file on the runner's machine and point the monitor at it. Those files are read only by the runner, and are bound to one monitor ID and the exact origin they are meant for. The runner takes that ID from the authenticated claim, never from a field in the monitor definition.
 
 - Credential files are owner-only regular files in the folder named by `UPTIME_CREDENTIAL_DIR`.
-- A monitor refers to a file by name and never contains the secret itself.
+- A monitor refers to `<credentialRef>.json` by name and never contains the secret itself. Each file must contain `"monitorId"` matching that monitor's ID (shown in its console URL), plus `"origin"`. An HTTP file can also contain `"headers"`, `"body"` and `"auth"`. For example: `{"monitorId":"MONITOR_ID","origin":"https://app.example.com","auth":{"type":"bearer","token":"…"}}`.
+- The same reference and origin on another monitor do not grant access. Give each monitor its own file and reference, even when two monitors intentionally use the same account.
 - If a reference is missing or invalid, the check fails with a runner error. It does not fall back to an unauthenticated request.
 - Never put a bearer credential in a URL.
 
 Raw secrets and response bodies never go into stored evidence or archives.
+
+### Bind existing files after upgrading
+
+Old files without `monitorId` are refused. Stop the runner, review which monitor should use each file, and copy that monitor's ID from its console URL. Run the numbered local-file migration on the runner machine, once per reference:
+
+```sh
+node runners/migrations/0001-monitor-credentials.mjs --directory /path/to/private/credentials --reference partner-api --monitor-id MONITOR_ID
+```
+
+The command adds the explicit binding atomically, keeps the existing origin and credential fields, and leaves the file owner-only. It refuses a file already bound to another monitor. It makes no control-plane or provider request and prints no credential value. There is no automatic inference or unscoped fallback. If a file used to serve several monitors, create a separate owner-only file and reference for each, review the intended account, and bind each separately before restarting the runner.
+
+Rotation means replacing the contents of the bound file on the runner, preferably by atomically renaming a new mode-0600 file over it. The next check reads the new value. Removing the file makes subsequent checks Unknown. A check already in progress may have read the old value; stop the runner before immediate revocation. Erasing a monitor in the console does not delete files on a separate runner: remove its local credential files yourself. A new monitor has a new ID and cannot use those leftover files. Rebinding requires explicit owner review and re-entry. Keep runner credential backups separate from product archives.
 
 ## Browser flows
 
@@ -60,7 +73,7 @@ Each flow run is isolated:
 - The whole browser network goes through one filtering proxy inside the runner. It resolves each destination itself, connects only to the address it checked, and refuses private, loopback, link-local and metadata addresses for every page, redirect, subresource and WebSocket. A local fixture is reachable only through the same owner-only grant file the HTTP runner uses.
 - The run is killed, browser and all, when its wall-clock limit passes. A run that ends any other way is still cleaned up: if the runner is killed outright, the flow's own process ends the browser and deletes the profile; if that process is killed, the runner does; and if everything stops at once (a power loss), the runner empties its flow folder, ending any browser still using it, the next time it starts.
 
-Credentials for `fill` steps are files in the folder named by `UPTIME_CREDENTIAL_DIR`, one `<credentialRef>.json` per credential, owner-only, holding exactly `{"origin": "https://app.example.com", "value": "…"}`. The value is read on the runner, handed to the browser process over a pipe, and used only on a page whose origin matches the file's origin. It never reaches Uptime: not the database, a definitions file, an archive, an export, a log, the trace or the audit table. A missing or invalid credential makes the flow Unknown, never a failure of the target.
+Credentials for `fill` steps are files in the folder named by `UPTIME_CREDENTIAL_DIR`, one `<credentialRef>.json` per credential, owner-only, holding exactly `{"monitorId": "MONITOR_ID", "origin": "https://app.example.com", "value": "…"}`. The value is read on the runner, handed to the browser process over a pipe, and used only on a page whose origin matches the file's origin. It never reaches Uptime: not the database, a definitions file, an archive, an export, a log, the trace or the audit table. A missing or invalid credential makes the flow Unknown, never a failure of the target.
 
 A flow's observation keeps a sanitized step trace (step, result, duration, the expectation it matched or missed, and the page's URL without its query string or fragment) and no screenshots or page bodies. Before anything is stored, every value of a credential the flow named is replaced with `[credential]` wherever it appears, each character as typed, lowercased or uppercased, raw or percent-encoded, once or twice (so a site that escapes only part of an address, lowercases an accented address, re-encodes an encoded path, or turns a space into '+', is covered too), and only then is a URL cut to its 300-character limit, so a site that puts your sign-in address in its URL path does not put it, or any part of it, in the trace. See [Limits](/docs/limits#browser-flows-are-small-and-bounded).
 

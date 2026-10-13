@@ -1,6 +1,6 @@
 // @ts-ignore checked by family policy tests
 import {validateDefinition} from '../policy.mjs'
-import {get,grants,revisionStatements,flowCapGuard,withinFlowCap,type Bindings} from '../control.server.ts'
+import {get,grants,revisionStatements,flowCapGuard,withinFlowCap,withinMonitorCap,type Bindings} from '../control.server.ts'
 import {assignDefinition} from '../runner-registration.server.ts'
 import {mutationGuard,type AuditActor} from '../audit.server.ts'
 import {keptAssignments,liveHeartbeatTokens,tokenNote,type Plan} from './plan.server.ts'
@@ -31,7 +31,7 @@ export async function applyPlan(env:Bindings,plan:Plan,digest:string,actor:Audit
  for(const w of written)statements.push(env.DB.prepare('INSERT INTO definition_batch_entries(batch_id,monitor_id,action,revision,previous_revision) VALUES(?,?,?,?,?)').bind(batchId,w.monitorId,w.action,w.revision,w.previous))
  // The preview counted room for its flows; a flow saved since then must not take the installation past the bound.
  if(addsFlows)statements.push(flowCapGuard(env))
- await withinFlowCap(env,addsFlows,env.DB.batch(statements))
+ await withinMonitorCap(env,written.filter(w=>w.action==='create').length,withinFlowCap(env,addsFlows,env.DB.batch(statements)))
  return {batchId,created:written.filter(w=>w.action==='create').map(w=>w.monitorId),changed:written.filter(w=>w.action==='change').map(w=>w.monitorId),counts:plan.counts}
 }
 
