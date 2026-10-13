@@ -43,11 +43,13 @@ jobs:
             const info = body.result_info;
             if (optionalPagination && !Object.hasOwn(body, 'result_info')) return body.result;
             requireValid(object(info));
-            const fields = ['page', 'per_page', 'count', 'total_count', 'total_pages'];
-            requireValid(Object.keys(info).every(key => fields.includes(key)));
+            const fields = ['page', 'count', 'total_count', 'total_pages'];
+            requireValid(Object.keys(info).every(key => key === 'per_page' || fields.includes(key)));
             requireValid(fields.every(key => Number.isSafeInteger(info[key])));
-            requireValid(info.page === 1 && info.per_page > 0 && info.count === body.result.length &&
-              info.total_count === info.count && info.count <= info.per_page &&
+            requireValid((optionalPagination && !Object.hasOwn(info, 'per_page')) ||
+              (Number.isSafeInteger(info.per_page) && info.per_page > 0 && info.count <= info.per_page));
+            requireValid(info.page === 1 && info.count === body.result.length &&
+              info.total_count === info.count &&
               (info.total_pages === 1 || (info.count === 0 && info.total_pages === 0)));
             return body.result;
           }
