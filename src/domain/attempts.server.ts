@@ -72,13 +72,10 @@ export async function completeAttempts(env:Bindings,input:any,runnerId:string){
   const {generation,observations:stored}=snapshot;
   const fresh=attempts.filter((o:any)=>!stored.some(s=>s.slot_id===slot.id&&s.probe===o.probe&&s.attempt===o.attempt));
   if(!fresh.length)return {accepted:true,duplicate:true};
-  const combined=[...stored,...fresh.map((o:any)=>({slot_id:slot.id,probe:o.probe,attempt:o.attempt,evidence:JSON.stringify(o)}))];
+  const combined=[...stored,...fresh.map((o:any)=>({slot_id:slot.id,probe:o.probe,attempt:o.attempt,evidence:JSON.stringify(o),received_at:now}))];
   for(const probe of definition.probes){const chain=combined.filter(o=>o.slot_id===slot.id&&o.probe===probe).map(o=>JSON.parse(o.evidence)).sort((a,b)=>a.attempt-b.attempt);if(chain.some((o,i)=>i<chain.length-1&&o.outcome!=='target_failure'))throw Error('Contradictory retry evidence')}
   const m=await get(env,slot.monitor_id);if(!m)throw Error('Monitor absent');
-  // Accepted evidence can be slightly ahead of the control plane's clock. Include
-  // stored attempts and canaries as well as this arrival: another runner's later
-  // arrival must not hide an already accepted witness as still "in the future".
-  const evaluatedAt=combined.reduce((at:number,row:any)=>{const evidence=JSON.parse(row.evidence);return Math.max(at,evidence.completedAt,evidence.canary?.completedAt??0)},now),state=projectAttempts(definition,classifyAttempts(definition,snapshot.slots,combined,now),combined,evaluatedAt,snapshot.checkpoint),current=m.revision===slot.revision&&!slot.manual;
+  const state=projectAttempts(definition,classifyAttempts(definition,snapshot.slots,combined,now),combined,now,snapshot.checkpoint),current=m.revision===slot.revision&&!slot.manual;
   const last=await env.DB.prepare("SELECT kind,event FROM outbox WHERE monitor_id=? AND status<>'imported-inactive' ORDER BY rowid DESC LIMIT 1").bind(m.id).first<any>();
   const open=last?.kind==='trigger';if(open&&state.targetState==='Healthy'&&state.recoveryStreak<definition.recoverSlots){state.targetState=state.underlyingState='Recovering';if(!state.maintenance)state.state='Recovering';state.confirmedFailure=true}state.notificationOpen=open;state.incidentKey=open?JSON.parse(last.event).incidentKey:null;state.incidentRevision=open?JSON.parse(last.event).monitorRevision??null:null;const changed=open?await definitionChange(env,m.id,state.incidentRevision,slot.revision,definition):null;if(changed){state.definitionChange=changed;state.reason+=definitionChangeNote(changed)}
   const kind=current&&!state.maintenance?(state.targetState==='Failing'&&!open?'trigger':state.targetState==='Healthy'&&open?'recovery':null):null;
@@ -91,6 +88,7 @@ export async function completeAttempts(env:Bindings,input:any,runnerId:string){
   const guard='EXISTS(SELECT 1 FROM evidence_generation WHERE monitor_id=? AND generation=? AND projection_id=?)';
   const values=[slot.monitor_id,generation+1,projectionId];
   const statements=fresh.map((o:any)=>env.DB.prepare(`INSERT INTO observations(id,slot_id,probe,attempt,evidence) SELECT ?,?,?,?,? WHERE ${guard}`).bind(o.id,slot.id,o.probe,o.attempt,JSON.stringify(o),...values));
+  for(const o of fresh)statements.push(env.DB.prepare(`UPDATE runner_assignments SET received_times=json_set(received_times,?,?) WHERE slot_id=? AND probe=? AND ${guard}`).bind(`$."${o.attempt}"`,now,slot.id,o.probe,...values));
   if(snapshot.checkpointUpdate)statements.push(checkpointStatement(env,slot.monitor_id,slot.revision,snapshot.checkpointUpdate,generation+1,projectionId));
   if(current)statements.push(env.DB.prepare(`UPDATE monitors SET state=? WHERE id=? AND revision=? AND ${guard}`).bind(JSON.stringify(state),m.id,m.revision,...values));
   if(kind){const event=incidentEvent({id:`${slot.id}:${kind}`,kind,monitor:m,slotId:slot.id,now,state,observations:finalAttempts(definition,combined.filter(o=>o.slot_id===slot.id).map(o=>JSON.parse(o.evidence))),origin:env.UPTIME_ORIGIN,incidentKey:state.incidentKey});

@@ -19,6 +19,8 @@ const tail=`SELECT t.id,t.due_at,t.manual,t.lease_until,
  FROM runner_assignments a WHERE a.slot_id=t.id) assignments
  FROM slots t WHERE t.monitor_id=? AND t.revision=? AND t.manual=0 AND (t.due_at,t.id)>(?,?)
  ORDER BY t.due_at,t.id LIMIT ${PAGE}`;
+const received=`SELECT o.*,json_extract(a.received_times,'$."'||o.attempt||'"') received_at
+ FROM observations o LEFT JOIN runner_assignments a ON a.slot_id=o.slot_id AND a.probe=o.probe`;
 type Update={dueAt:number;slotId:string;checkpoint:ProjectionCheckpoint};
 export function checkpointStatement(env:Bindings,monitorId:string,revision:number,update:Update,generation:number,token:string){
  return env.DB.prepare(`INSERT INTO attempt_checkpoints(monitor_id,revision,due_at,slot_id,state,last_observations)
@@ -41,8 +43,8 @@ export async function attemptSnapshot(env:Bindings,monitorId:string,revision:num
    const snapshot=await env.DB.batch([
     env.DB.prepare('SELECT generation FROM evidence_generation WHERE monitor_id=?').bind(monitorId),
     env.DB.prepare(tail).bind(monitorId,revision,dueAt,slotId),
-    env.DB.prepare(`SELECT o.* FROM observations o JOIN (${tail}) s ON s.id=o.slot_id`).bind(monitorId,revision,dueAt,slotId),
-    ...(extraSlot?[env.DB.prepare('SELECT * FROM observations WHERE slot_id=?').bind(extraSlot)]:[])
+    env.DB.prepare(`${received} JOIN (${tail}) s ON s.id=o.slot_id`).bind(monitorId,revision,dueAt,slotId),
+    ...(extraSlot?[env.DB.prepare(`${received} WHERE o.slot_id=?`).bind(extraSlot)]:[])
    ]);
    if((snapshot[0].results[0] as any)?.generation!==generation)continue restart;
    const observations=snapshot[2].results as any[];

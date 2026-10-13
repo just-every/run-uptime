@@ -70,13 +70,15 @@ export function validateDefinition(input, grants) {
 }
 // A flow the runner could not run says why (no browser, a missing credential): that is the reason its coverage is Unknown.
 const unknownWhy=(def,observations)=>{if(def.type!=='flow')return '';const why=[...new Set(observations.filter(o=>o.outcome==='runner_error').map(o=>o.checks?.[0]?.reason).filter(Boolean))];return why.length?` Unknown because: ${why.join('; ')}.`:''};
-export function evaluate(def, observations, previous = {}, now = Date.now(), advance = true) {
+// evidenceThrough only admits already accepted target/canary timestamps; it
+// never advances freshness ages, heartbeat receipt validity or maintenance.
+export function evaluate(def, observations, previous = {}, now = Date.now(), advance = true, evidenceThrough = now) {
   const regions = def.probes.map(probe => {
     const observation = observations.find(o => o.probe === probe);
     const retryComplete=observation?.retryComplete!==false;
     const canary=observation?.canary;
-    const canaryFresh=!canary||(canary.outcome==='pass'&&canary.completedAt<=now&&now-canary.completedAt<=def.freshnessMs);
-    const fresh = canaryFresh && observation && (observation.outcome!=='pass'||retryComplete) && (def.type!=='heartbeat'||observation.outcome!=='pass'||(Number.isFinite(observation.heartbeatReceivedAt)&&observation.heartbeatReceivedAt<=now&&now-observation.heartbeatReceivedAt<=def.heartbeat.maxAgeMs)) && now - observation.completedAt <= def.freshnessMs && observation.completedAt <= now && !['runner_error','interrupted'].includes(observation.outcome);
+    const canaryFresh=!canary||(canary.outcome==='pass'&&canary.completedAt<=evidenceThrough&&now-canary.completedAt<=def.freshnessMs);
+    const fresh = canaryFresh && observation && (observation.outcome!=='pass'||retryComplete) && (def.type!=='heartbeat'||observation.outcome!=='pass'||(Number.isFinite(observation.heartbeatReceivedAt)&&observation.heartbeatReceivedAt<=now&&now-observation.heartbeatReceivedAt<=def.heartbeat.maxAgeMs)) && now - observation.completedAt <= def.freshnessMs && observation.completedAt <= evidenceThrough && !['runner_error','interrupted'].includes(observation.outcome);
     return { probe, networkLabel:def.assignments?.[probe]?.networkLabel??'owner-network', canaryPassed:Boolean(canary&&canaryFresh),terminal:Boolean(observation)&&retryComplete&&(observation.outcome!=='target_failure'||observation.attempt===def.retries), state:!fresh?'Unknown':observation.outcome==='pass'?'Healthy':'Failing', observationId:observation?.id??null,observedAt:observation?.completedAt??null };
   });
   const fails=regions.filter(r=>r.state==='Failing').length,unknown=regions.filter(r=>r.state==='Unknown').length;

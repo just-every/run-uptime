@@ -634,6 +634,10 @@
       "sha256": "d5578b08f8f3c9dac655c83a0dca787bdafd5c580db8b91d60a230f287d71908",
       "executable": false
     },
+    "migrations/0036_attempt_receipt_clocks.sql": {
+      "sha256": "c751b3812386accdb25aa02bcb77624df76b95a7ce9d460bcc95a5f34bf57e2e",
+      "executable": false
+    },
     "OPERATIONS.json": {
       "sha256": "0876edd5e0707cc0691b9a56d10365268bcada6cd5945d3573765aedb171e3dc",
       "executable": false
@@ -2299,7 +2303,7 @@
       "executable": false
     },
     "src/domain/attempt-checkpoint.server.ts": {
-      "sha256": "dffa65a2cc5a2c36c1ac8990e0879720777183d5c98c7e12bf28104b11eecbb2",
+      "sha256": "aac8ed55342d8c3ab06a850bd7c6bac98196fbecdcdf0dfec3effedc0532efca",
       "executable": false
     },
     "src/domain/attempt-classification.ts": {
@@ -2307,11 +2311,11 @@
       "executable": false
     },
     "src/domain/attempt-projection.ts": {
-      "sha256": "27b707897176fad54ce533bf586ee6f3d40077b0a13021bae7f21bae5e434d80",
+      "sha256": "e04555f6442ffa5856bd5251d93757f9793d28f153250be5dd659b1b88679b4c",
       "executable": false
     },
     "src/domain/attempts.server.ts": {
-      "sha256": "379da7b65f9f8af6d77b9eae4e7d517a8840b74677c2d3ff8122f1ae3fd9cd6c",
+      "sha256": "994f7ee1e85c9c7b1d362f172091e6250342bceacbe426424d5dc3b89f73a6f9",
       "executable": false
     },
     "src/domain/audit.server.ts": {
@@ -2495,7 +2499,7 @@
       "executable": false
     },
     "src/domain/policy.mjs": {
-      "sha256": "a8bc86d0ac6deeb9cd0edc1b11b64d5f376eb8a94e93f9b0057f411f20e22e43",
+      "sha256": "bef29e1ccdfc332762513624fbe983f2374758a17dd351a59ea10da1681019c6",
       "executable": false
     },
     "src/domain/public-paths.ts": {

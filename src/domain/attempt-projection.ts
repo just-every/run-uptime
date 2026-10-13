@@ -1,6 +1,11 @@
 // @ts-ignore Edition policy has public flow coverage.
 import {evaluate} from './policy.mjs'
-const evidence=(row:any)=>typeof row.evidence==='string'?JSON.parse(row.evidence):row.evidence
+const evidence=(row:any)=>{
+ const value=typeof row.evidence==='string'?JSON.parse(row.evidence):row.evidence;
+ return row.received_at==null?value:{...value,receivedAt:row.received_at,...(value.canary?{canary:{...value.canary,receivedAt:row.received_at}}:{})}
+}
+const evidenceThrough=(observations:any[],now:number)=>observations.reduce((at,o)=>Math.max(at,o.completedAt,o.canary?.completedAt??0),now)
+const completedAt=(o:any)=>Math.min(o.completedAt,o.receivedAt??o.completedAt)
 export function finalAttempts(definition:any,observations:any[]){
  return definition.probes.flatMap((probe:string)=>{
   const chain=observations.filter(o=>o.probe===probe).sort((a,b)=>b.attempt-a.attempt)
@@ -35,8 +40,11 @@ export function foldAttempts(definition:any,slots:any[],observations:any[],check
  for(const slot of slots.filter(s=>!s.manual&&!s.skipped).sort((a,b)=>a.due_at-b.due_at||a.id.localeCompare(b.id))){
   if(slot.pending)break;
   last=finalAttempts(definition,grouped.get(slot.id)??[]);
-  const at=Math.max(slot.due_at,...last.flatMap((o:any)=>[o.completedAt,o.canary?.completedAt??0]));
-  state=evaluate(definition,last,state,at);
+  // An accepted future clock cannot age another witness out of confirmation.
+  // Receipt clocks cap the historical fold, not the signed timestamps. Stored
+  // receipt times keep replay and checkpoint counters stable after time passes.
+  const at=Math.max(slot.due_at,...last.flatMap((o:any)=>[completedAt(o),o.canary?completedAt(o.canary):0]));
+  state=evaluate(definition,last,state,at,true,evidenceThrough(last,at));
  }
  return {state,last}
 }
@@ -48,5 +56,8 @@ export function projectAttempts(definition:any,slots:any[],observations:any[],no
  // waits for a runner to advance or the fixed classification deadline to pass.
  const latest=slots.filter(s=>!s.manual&&!s.skipped).sort((a,b)=>b.due_at-a.due_at||b.id.localeCompare(a.id))[0];
  const visible=latest?finalAttempts(definition,observationsBySlot(observations).get(latest.id)??[]):last;
- return evaluate(definition,visible,state,now,false)
+ // Every visible observation has passed completion admission. Keep accepted
+ // target and canary clocks visible on later arrivals and reads, even when a
+ // runner is slightly ahead. They cannot advance maintenance or evidence age.
+ return evaluate(definition,visible,state,now,false,evidenceThrough(visible,now))
 }
