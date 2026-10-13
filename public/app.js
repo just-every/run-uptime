@@ -16,7 +16,7 @@ function closeConsole(){
  document.documentElement.classList.remove('signed-in');
  for(const host of [area,right,header,actions,nav,n])host.replaceChildren();
  document.body.replaceChildren(...document.body.querySelectorAll('link[rel=stylesheet]'));
- lockedControls.clear();lockedLinks.clear();
+ controlsObserver.disconnect();lockedControls.clear();lockedLinks.clear();
 }
 const navigateToLogin=()=>{if(redirecting)return;redirecting=true;closeConsole();location.replace('/login')};
 window.addEventListener('pagehide',closeConsole);
@@ -41,6 +41,10 @@ right.hidden=['monitors','monitor','definitions'].includes(view);
 if(view==='monitor'){$('.cards').hidden=true;title.hidden=true;area.setAttribute('aria-label','Monitor details');area.querySelector('.loading-note').textContent='Loading monitor…';$('.top h1').textContent='Monitor';$('.subtitle').textContent='Loading…'}
 else{$('.top h1').textContent='Monitors';$('.subtitle').textContent='Runner networks · results and gaps shown';actions.innerHTML=`<button class="primary" id="new-monitor">${icon('plus')}New monitor</button>`;$('#new-monitor').onclick=()=>{location.href='/app/monitor'}}
 const lockedControls=new Map(),lockedLinks=new Map();
+// Async tasks and dialogs can insert controls without rendering the whole view.
+// Observe those insertions before the browser can offer a click on a busy console.
+const controlsObserver=new MutationObserver(records=>{if(!closed&&feedback?.busy&&records.some(record=>record.addedNodes.length))lockControls(true)});
+controlsObserver.observe(document.body,{childList:true,subtree:true});
 // The first read failed, so nothing is loading any more: a static note replaces the skeleton until a read succeeds, and
 // a monitor's page drops its "Loading…" subtitle.
 function firstReadFailed(){const list=area.querySelector('.loading-list');if(!list)return;list.classList.add('read-failed');list.querySelector('.loading-note').textContent=view==='monitor'?'This monitor could not be read yet.':'Monitors could not be read yet.';if(view==='monitor')$('.subtitle').textContent='';right.querySelector('.loading-panel')?.remove()}

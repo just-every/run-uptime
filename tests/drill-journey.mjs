@@ -43,6 +43,7 @@ export async function drillJourney(page, origin) {
   await dialog.getByLabel('Email address').fill(address);
   await dialog.getByRole('button', { name: 'Create destination' }).click();
   const card = page.locator('.destination-card').filter({ has: page.getByRole('heading', { name, exact: true }) });
+  await page.waitForFunction(id=>{const control=document.getElementById(id);return control&&!control.disabled},await card.getByRole('button', { name: 'Run alert drill' }).getAttribute('id'));
   await card.getByText(/^Never proven/).waitFor();
   await card.getByRole('button', { name: 'Run alert drill' }).click();
   await page.locator('#action-notice').filter({ hasText: /^Alert drill queued/ }).waitFor();

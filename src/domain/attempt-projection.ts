@@ -1,6 +1,11 @@
 // @ts-ignore Edition policy has public flow coverage.
 import {evaluate} from './policy.mjs'
-const evidence=(row:any)=>typeof row.evidence==='string'?JSON.parse(row.evidence):row.evidence
+const evidence=(row:any)=>{
+ const value=typeof row.evidence==='string'?JSON.parse(row.evidence):row.evidence;
+ return row.received_at==null?value:{...value,receivedAt:row.received_at,...(value.canary?{canary:{...value.canary,receivedAt:row.received_at}}:{})}
+}
+const evidenceThrough=(observations:any[],now:number)=>observations.reduce((at,o)=>Math.max(at,o.completedAt,o.canary?.completedAt??0),now)
+const completedAt=(o:any)=>Math.min(o.completedAt,o.receivedAt??o.completedAt)
 export function finalAttempts(definition:any,observations:any[]){
  return definition.probes.flatMap((probe:string)=>{
   const chain=observations.filter(o=>o.probe===probe).sort((a,b)=>b.attempt-a.attempt)
@@ -26,10 +31,6 @@ export function observationsBySlot(observations:any[]){
  for(const row of observations){const values=grouped.get(row.slot_id)??[];values.push(evidence(row));grouped.set(row.slot_id,values)}
  return grouped
 }
-const skippedProbes=(slot:any)=>{
- const value=typeof slot.skipped_probes==='string'?JSON.parse(slot.skipped_probes):slot.skipped_probes;
- return new Set(Array.isArray(value)?value.filter((probe:any)=>typeof probe==='string'):[])
-}
 /** Fold each scheduled slot exactly once, preserving unbounded raw counters. A skipped runner's missing part cannot reset a streak or
  * advance recovery. Other timely evidence in that slot can still confirm failure when it independently meets the configured quorum. */
 export function foldAttempts(definition:any,slots:any[],observations:any[],checkpoint:ProjectionCheckpoint={state:{},last:[]}){
@@ -37,15 +38,33 @@ export function foldAttempts(definition:any,slots:any[],observations:any[],check
  let {state,last}=checkpoint;
  for(const slot of slots.filter(s=>!s.manual).sort((a,b)=>a.due_at-b.due_at||a.id.localeCompare(b.id))){
   const observed=finalAttempts(definition,grouped.get(slot.id)??[]);
-  const at=Math.max(slot.due_at,...observed.flatMap((o:any)=>[o.completedAt,o.canary?.completedAt??0]));
-  if(skippedProbes(slot).size&&evaluate(definition,observed,state,at,false).candidate!=='Failing')continue;
+  // An accepted future clock cannot age another witness out of confirmation.
+  // Receipt clocks cap the historical fold, not the signed timestamps. Stored
+  // receipt times keep replay and checkpoint counters stable after time passes.
+  const at=Math.max(slot.due_at,...observed.flatMap((o:any)=>[completedAt(o),o.canary?completedAt(o.canary):0]));
+  const decision=evaluate(definition,observed,state,at,true,evidenceThrough(observed,at));
+  // Independent failure agreement is already a decision even when another
+  // vantage is pending or skipped. Otherwise pending classification holds
+  // chronological counters, and a settled skipped slot remains neutral.
+  if(decision.candidate!=='Failing'){
+   if(slot.pending)break;
+   if(slot.skipped)continue;
+  }
   last=observed;
-  state=evaluate(definition,last,state,at);
+  state=decision;
  }
  return {state,last}
 }
 /** Read-time freshness never consumes a scheduled slot or overwrites the fold. */
 export function projectAttempts(definition:any,slots:any[],observations:any[],now:number,checkpoint?:ProjectionCheckpoint){
  const {state,last}=foldAttempts(definition,slots,observations,checkpoint);
- return evaluate(definition,last,state,now,false)
+ // A pending classification holds chronological counters, not visible coverage.
+ // Show the newest non-skipped slot's actual observations even while the fold
+ // waits for a runner to advance or the fixed classification deadline to pass.
+ const latest=slots.filter(s=>!s.manual&&!s.skipped).sort((a,b)=>b.due_at-a.due_at||b.id.localeCompare(a.id))[0];
+ const visible=latest?finalAttempts(definition,observationsBySlot(observations).get(latest.id)??[]):last;
+ // Every visible observation has passed completion admission. Keep accepted
+ // target and canary clocks visible on later arrivals and reads, even when a
+ // runner is slightly ahead. They cannot advance maintenance or evidence age.
+ return evaluate(definition,visible,state,now,false,evidenceThrough(visible,now))
 }

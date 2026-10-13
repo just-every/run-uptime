@@ -5,6 +5,7 @@ import {validateEvidence} from './evidence.server.ts'
 import {acceptanceMs,missedSlots,nextDueAfter} from './schedule.ts'
 import {finalAttempts,terminalSlot,projectAttempts} from './attempt-projection.ts'
 import {attemptSnapshot,checkpointStatement} from './attempt-checkpoint.server.ts'
+import {classifyAttempts} from './attempt-classification.ts'
 import {incidentEvent} from './notification-content.ts'
 import {definitionChange,definitionChangeNote} from './flow-changes.server.ts'
 // @ts-ignore Edition flow vocabulary is JavaScript shared with the runner.
@@ -40,9 +41,16 @@ export async function claimAttempt(env:Bindings,runnerId:string){
  await env.DB.batch([env.DB.prepare("UPDATE slots SET status='running',lease_owner='',lease_until=? WHERE id=? AND status='queued'").bind(until,slot.id),...definition.probes.map((p:string)=>env.DB.prepare("INSERT OR IGNORE INTO runner_assignments(slot_id,probe,runner_id) SELECT ?,?,? WHERE EXISTS(SELECT 1 FROM slots WHERE id=? AND status='running' AND lease_until>?)").bind(slot.id,p,assignments[p].runnerId,slot.id,now))]);
  const mine=definition.probes.filter((p:string)=>assignments[p].runnerId===runnerId);
  if(!mine.length)return null;
- const changes=await env.DB.batch([...mine.map((p:string)=>env.DB.prepare(`UPDATE runner_assignments SET delivered_at=?3 WHERE slot_id=?1 AND probe=?4 AND runner_id=?2 AND delivered_at IS NULL AND ${newest('?1')}`).bind(slot.id,runnerId,now,p)),
+ // Record delivery at the transaction, not request entry: a claim delayed past
+ // an older slot's classification deadline must not retroactively skip it.
+ const deliveryTime="MAX(?3,CAST(ROUND((julianday('now')-2440587.5)*86400000) AS INTEGER))";
+ const changes=await env.DB.batch([...mine.map((p:string)=>env.DB.prepare(`UPDATE runner_assignments SET delivered_at=${deliveryTime} WHERE slot_id=?1 AND probe=?4 AND runner_id=?2 AND delivered_at IS NULL AND ${newest('?1')} AND EXISTS(SELECT 1 FROM slots WHERE id=?1 AND lease_until>${deliveryTime})`).bind(slot.id,runnerId,now,p)),
+  // New delivery resolves older undelivered classifications. Fence snapshots
+  // in the same transaction so a concurrent checkpoint cannot freeze an old
+  // missing classification after this runner has demonstrably advanced.
+  env.DB.prepare('UPDATE evidence_generation SET generation=generation+1 WHERE monitor_id=? AND EXISTS(SELECT 1 FROM runner_assignments WHERE slot_id=? AND runner_id=? AND delivered_at>=?)').bind(slot.monitor_id,slot.id,runnerId,now),
   // Also when the monitor was edited since this slot: by the shorter of the two intervals, as an edit itself schedules.
-  ...(slot.manual?[]:[env.DB.prepare("UPDATE monitors SET next_due=MAX(next_due,?1+MIN(?2,json_extract(definition,'$.intervalMs'))) WHERE id=?3 AND EXISTS(SELECT 1 FROM runner_assignments WHERE slot_id=?4 AND runner_id=?5 AND delivered_at=?1)").bind(now,definition.intervalMs,slot.monitor_id,slot.id,runnerId)])]);
+  ...(slot.manual?[]:[env.DB.prepare("UPDATE monitors SET next_due=MAX(next_due,(SELECT MAX(delivered_at) FROM runner_assignments WHERE slot_id=?4 AND runner_id=?5)+MIN(?2,json_extract(definition,'$.intervalMs'))) WHERE id=?3 AND EXISTS(SELECT 1 FROM runner_assignments WHERE slot_id=?4 AND runner_id=?5 AND delivered_at>=?1)").bind(now,definition.intervalMs,slot.monitor_id,slot.id,runnerId)])]);
  const probes=mine.filter((_:string,i:number)=>changes[i].meta.changes);
  if(!probes.length)return null;
  return snapshotHeartbeat(env,{id:slot.id,monitorId:slot.monitor_id,revision:slot.revision,dueAt:slot.due_at,definition:{...definition,assignments},probes,acceptUntil:until})
@@ -64,12 +72,10 @@ export async function completeAttempts(env:Bindings,input:any,runnerId:string){
   const {generation,observations:stored}=snapshot;
   const fresh=attempts.filter((o:any)=>!stored.some(s=>s.slot_id===slot.id&&s.probe===o.probe&&s.attempt===o.attempt));
   if(!fresh.length)return {accepted:true,duplicate:true};
-  const combined=[...stored,...fresh.map((o:any)=>({slot_id:slot.id,probe:o.probe,attempt:o.attempt,evidence:JSON.stringify(o)}))];
+  const combined=[...stored,...fresh.map((o:any)=>({slot_id:slot.id,probe:o.probe,attempt:o.attempt,evidence:JSON.stringify(o),received_at:now}))];
   for(const probe of definition.probes){const chain=combined.filter(o=>o.slot_id===slot.id&&o.probe===probe).map(o=>JSON.parse(o.evidence)).sort((a,b)=>a.attempt-b.attempt);if(chain.some((o,i)=>i<chain.length-1&&o.outcome!=='target_failure'))throw Error('Contradictory retry evidence')}
   const m=await get(env,slot.monitor_id);if(!m)throw Error('Monitor absent');
-  // Evidence is accepted up to COMPLETION_CLOCK_ALLOWANCE_MS ahead of the control plane's clock, so it is also evaluated as fresh: an accepted
-  // attempt that is still "in the future" for a few milliseconds must not hide the incident it confirms.
-  const evaluatedAt=Math.max(now,...fresh.map((o:any)=>o.completedAt)),state=projectAttempts(definition,snapshot.slots,combined,evaluatedAt,snapshot.checkpoint),current=m.revision===slot.revision&&!slot.manual;
+  const state=projectAttempts(definition,classifyAttempts(definition,snapshot.slots,combined,now),combined,now,snapshot.checkpoint),current=m.revision===slot.revision&&!slot.manual;
   const last=await env.DB.prepare("SELECT kind,event FROM outbox WHERE monitor_id=? AND status<>'imported-inactive' ORDER BY rowid DESC LIMIT 1").bind(m.id).first<any>();
   const open=last?.kind==='trigger';if(open&&state.targetState==='Healthy'&&state.recoveryStreak<definition.recoverSlots){state.targetState=state.underlyingState='Recovering';if(!state.maintenance)state.state='Recovering';state.confirmedFailure=true}state.notificationOpen=open;state.incidentKey=open?JSON.parse(last.event).incidentKey:null;state.incidentRevision=open?JSON.parse(last.event).monitorRevision??null:null;const changed=open?await definitionChange(env,m.id,state.incidentRevision,slot.revision,definition):null;if(changed){state.definitionChange=changed;state.reason+=definitionChangeNote(changed)}
   const kind=current&&!state.maintenance?(state.targetState==='Failing'&&!open?'trigger':state.targetState==='Healthy'&&open?'recovery':null):null;
@@ -82,6 +88,7 @@ export async function completeAttempts(env:Bindings,input:any,runnerId:string){
   const guard='EXISTS(SELECT 1 FROM evidence_generation WHERE monitor_id=? AND generation=? AND projection_id=?)';
   const values=[slot.monitor_id,generation+1,projectionId];
   const statements=fresh.map((o:any)=>env.DB.prepare(`INSERT INTO observations(id,slot_id,probe,attempt,evidence) SELECT ?,?,?,?,? WHERE ${guard}`).bind(o.id,slot.id,o.probe,o.attempt,JSON.stringify(o),...values));
+  for(const o of fresh)statements.push(env.DB.prepare(`UPDATE runner_assignments SET received_times=json_set(received_times,?,?) WHERE slot_id=? AND probe=? AND ${guard}`).bind(`$."${o.attempt}"`,now,slot.id,o.probe,...values));
   if(snapshot.checkpointUpdate)statements.push(checkpointStatement(env,slot.monitor_id,slot.revision,snapshot.checkpointUpdate,generation+1,projectionId));
   if(current)statements.push(env.DB.prepare(`UPDATE monitors SET state=? WHERE id=? AND revision=? AND ${guard}`).bind(JSON.stringify(state),m.id,m.revision,...values));
   if(kind){const event=incidentEvent({id:`${slot.id}:${kind}`,kind,monitor:m,slotId:slot.id,now,state,observations:finalAttempts(definition,combined.filter(o=>o.slot_id===slot.id).map(o=>JSON.parse(o.evidence))),origin:env.UPTIME_ORIGIN,incidentKey:state.incidentKey});

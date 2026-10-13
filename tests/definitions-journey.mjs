@@ -38,6 +38,7 @@ export async function definitionsJourney(page, origin) {
   await page.getByRole('button', { name: 'Preview', exact: true }).click();
   const apply = page.getByRole('button', { name: step.apply, exact: true });
   await apply.waitFor();
+  await page.waitForFunction(()=>{const control=document.getElementById('definition-apply');return control&&!control.disabled});
   const counts = await page.locator('.definition-counts > div').evaluateAll(rows => Object.fromEntries(rows.map(row => [row.querySelector('dt').textContent, row.querySelector('dd').textContent])));
   assert.deepEqual(counts, step.counts, 'the preview shows its counts before its rows');
   await audit(page, 'definitions-preview', evidence, step.width);

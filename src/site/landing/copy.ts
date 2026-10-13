@@ -67,13 +67,13 @@ export const ownership = {
   eyebrow: 'Ownership',
   title: 'Yours, start to finish.',
   body: 'Run Uptime on your own computer. A small private runner checks your targets from a machine you choose, and you can export monitors, evidence and delivery history whenever you like.',
-  commands: ['git clone https://github.com/just-every/run-uptime.git uptime', 'cd uptime', 'node scripts/rer.mjs install', 'node scripts/rer.mjs setup', 'node scripts/rer.mjs dev'],
+  commands: ['git clone https://github.com/just-every/run-uptime.git uptime', 'cd uptime', 'rer install', 'rer setup', 'rer dev'],
   points: [
     { icon: 'cloud', text: 'Your own computer' },
     { icon: 'server', text: 'Your runner, your network' },
     { icon: 'export', text: 'Export any time' },
   ] as const,
-  label: 'A terminal running five commands: git clone https://github.com/just-every/run-uptime.git uptime, cd uptime, node scripts/rer.mjs install, node scripts/rer.mjs setup, and node scripts/rer.mjs dev.',
+  label: 'A terminal running five commands: git clone https://github.com/just-every/run-uptime.git uptime, cd uptime, rer install, rer setup, and rer dev.',
 };
 
 export const included = {
