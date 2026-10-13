@@ -370,8 +370,8 @@
       "sha256": "41c2c300a6c92566fd8d60414d15fd3208ecbea25313fa6f13a918b8cff812cf",
       "executable": false
     },
-    ".github/workflows/run-site-probe.yml": {
-      "sha256": "056f27d60b222d51b910cadd3c750b699ed9e7e504b330063ccdf74a6271dfa8",
+    ".github/workflows/run-site.yml": {
+      "sha256": "1466e0cc78eeee30a85f1602c0b4bbb74f053fc9f1aa723635c5f0fc5a0f19b0",
       "executable": false
     },
     ".github/workflows/verify.yml": {
@@ -1159,7 +1159,11 @@
       "executable": false
     },
     "scripts/dev/import-diagnostics.ts": {
-      "sha256": "c75ee136e4220e39db683077c28430580bc788a5078f2ecc0bd7f30bf81faf9f",
+      "sha256": "1c36c8328915a731d60c3105a0ce4f602483944c9a071612677669bc90c3a178",
+      "executable": false
+    },
+    "scripts/dev/public-module-paths.ts": {
+      "sha256": "bedf2a03dea3899a0e091c231ae8818d2978d10e87f54dca6a0f61cbe9455c79",
       "executable": false
     },
     "scripts/edition-authoring/base-copies.mjs": {
