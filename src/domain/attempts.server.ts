@@ -75,9 +75,10 @@ export async function completeAttempts(env:Bindings,input:any,runnerId:string){
   const combined=[...stored,...fresh.map((o:any)=>({slot_id:slot.id,probe:o.probe,attempt:o.attempt,evidence:JSON.stringify(o)}))];
   for(const probe of definition.probes){const chain=combined.filter(o=>o.slot_id===slot.id&&o.probe===probe).map(o=>JSON.parse(o.evidence)).sort((a,b)=>a.attempt-b.attempt);if(chain.some((o,i)=>i<chain.length-1&&o.outcome!=='target_failure'))throw Error('Contradictory retry evidence')}
   const m=await get(env,slot.monitor_id);if(!m)throw Error('Monitor absent');
-  // Evidence is accepted up to COMPLETION_CLOCK_ALLOWANCE_MS ahead of the control plane's clock, so it is also evaluated as fresh: an accepted
-  // attempt that is still "in the future" for a few milliseconds must not hide the incident it confirms.
-  const evaluatedAt=Math.max(now,...fresh.map((o:any)=>o.completedAt)),state=projectAttempts(definition,classifyAttempts(definition,snapshot.slots,combined,now),combined,evaluatedAt,snapshot.checkpoint),current=m.revision===slot.revision&&!slot.manual;
+  // Accepted evidence can be slightly ahead of the control plane's clock. Include
+  // stored attempts and canaries as well as this arrival: another runner's later
+  // arrival must not hide an already accepted witness as still "in the future".
+  const evaluatedAt=combined.reduce((at:number,row:any)=>{const evidence=JSON.parse(row.evidence);return Math.max(at,evidence.completedAt,evidence.canary?.completedAt??0)},now),state=projectAttempts(definition,classifyAttempts(definition,snapshot.slots,combined,now),combined,evaluatedAt,snapshot.checkpoint),current=m.revision===slot.revision&&!slot.manual;
   const last=await env.DB.prepare("SELECT kind,event FROM outbox WHERE monitor_id=? AND status<>'imported-inactive' ORDER BY rowid DESC LIMIT 1").bind(m.id).first<any>();
   const open=last?.kind==='trigger';if(open&&state.targetState==='Healthy'&&state.recoveryStreak<definition.recoverSlots){state.targetState=state.underlyingState='Recovering';if(!state.maintenance)state.state='Recovering';state.confirmedFailure=true}state.notificationOpen=open;state.incidentKey=open?JSON.parse(last.event).incidentKey:null;state.incidentRevision=open?JSON.parse(last.event).monitorRevision??null:null;const changed=open?await definitionChange(env,m.id,state.incidentRevision,slot.revision,definition):null;if(changed){state.definitionChange=changed;state.reason+=definitionChangeNote(changed)}
   const kind=current&&!state.maintenance?(state.targetState==='Failing'&&!open?'trigger':state.targetState==='Healthy'&&open?'recovery':null):null;
