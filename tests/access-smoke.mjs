@@ -33,7 +33,8 @@ async function probe(call,settings,fetcher=fetch,requireRunner=false){
  const cookie=await signInOwner(settings.UPTIME_ORIGIN,{bindings:settings,fetcher,finishFirstRun:true});
  await lobby('claimed');
  if(requireRunner)await waitFor(async()=>{const response=await call('/api/overview',undefined,{cookie});return response.ok&&(await response.json()).runner.contact.state==='Fresh contact'},'real private runner contact',60000);
- const response=await call('/app',undefined,{cookie});assert.equal(response.status,200);const html=await response.text();assert.match(html,/class="app"/);assert.match(html,/href="\/style\.css"/);assert.match(html,/src="\/app\.js"/);assert.doesNotMatch(html,/id="access-form"|id="owner-token"/);
+ const response=await call('/app',undefined,{cookie});assert.equal(response.status,200);const html=await response.text();assert.match(html,/class="app"/);assert.match(html,/href="\/style\.css"/);assert.doesNotMatch(html,/<script[^>]*src="\/app\.js"/,'the DOM-mutating controller starts only after hydration');assert.doesNotMatch(html,/id="access-form"|id="owner-token"/);
+ const app=await call('/app.js',undefined,{cookie});assert.equal(app.status,200);assert.equal(await app.text(),await readFile('public/app.js','utf8'),'the deferred console controller is served intact');
  assert.equal((await call('/app/monitor',undefined,{cookie})).status,200);
  assert.equal((await call('/docs/overview',undefined,{cookie})).status,200,'signed-in owner can still read the public docs');
  const missing=await call('/does-not-exist',undefined,{cookie});assert.equal(missing.status,404);assert.doesNotMatch(await missing.text(),/class="app"|src="\/app.js"/);

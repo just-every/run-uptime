@@ -2963,7 +2963,7 @@
       "executable": false
     },
     "tests/access-smoke.mjs": {
-      "sha256": "dc2701d4053747b24de475d0b22bda2425e998e2f0e489e07164c4b1fefda125",
+      "sha256": "24f5c8462370682d63d26a43587064a1f1caa986a1572663e648cac5c1454df8",
       "executable": false
     },
     "tests/action-feedback.mjs": {
