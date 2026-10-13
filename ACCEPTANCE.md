@@ -76,7 +76,7 @@ journal. This is evidence for the accepted replacement archive behavior, not
 BASE-DATA-001 equivalence.
 
 The static external-sink inventory is mapped to `seed.json → externals` in
-`CONTRACT.md`, but is not runtime egress proof. Before claiming BASE-DATA-004 or the BASE-DATA-005 replacement verified, inspect a complete exact-candidate application and runner network
+`CONTRACT.md`, but is not runtime egress proof. A native independence trace has passed as described below. Before claiming complete BASE-DATA-004 coverage across optional integrations and deployment, inspect an application and runner network
 trace, including DNS, public target and canary redirects, discovery hosts,
 browser redirects/subresources/WebSockets, exact-origin credential use, owner-app
 readiness checks, runner
@@ -88,17 +88,16 @@ connection, redirects do not forward authority, discovery raw HTML never
 reaches the Worker or console, and an absent optional editor produces no
 management request. The completed local OIDC probe separately establishes public check, omitted-provider setup, native sign-in/handoff/revocation and exact repeat preservation. Selected-provider dependency metadata returned 200 from the local issuer edge, then actual setup failed at application dependency approval (404) before owner creation or linking; a separate native bootstrap cannot reach the unmounted dependency/OIDC routes. No linked callback, repeat or revocation lifecycle is accepted. The default is a separate scoped adoption round, with no provider-readiness claim. The exact-candidate trace must also investigate marketplace/author,
 telemetry, licence and kill-switch traffic. Static source reading alone cannot
-establish their absence; those claims remain unverified until the capture is
-returned and reviewed.
+establish their absence; those broad claims remain unverified outside the measured native flows.
 
 BASE-INPUT-002 is explicitly superseded by no owner-supplied HTML and
 derived-only parsing of bounded fetched target content. BASE-INPUT-003 is
 superseded by no R2 or product attachment-upload route; bounded definitions and
 archives remain structured data. BASE-PUBLIC-002 is superseded by no public
 embeddable surface, with only the optional exact-origin private management
-editor documented in `CONTRACT.md`. BASE-DATA-005 is replaced by native standalone operation without a marketplace/author dependency, while permitting an optional owner-configured private management editor that may contact the author at that configured origin. Verify native operation with the editor absent; an opted-in author-hosted editor cannot support an absolute author-zero-egress claim. This exception permits no telemetry, licence check or kill switch. These named replacements do not expand product scope and are not general baseline passes.
+editor documented in `CONTRACT.md`. BASE-DATA-005 is replaced by native standalone operation without a marketplace/author dependency, while permitting an optional owner-configured private management editor that may contact the author at that configured origin. Native operation with the editor absent passed; an opted-in author-hosted editor cannot support an absolute author-zero-egress claim. This exception permits no telemetry, licence check or kill switch. These named replacements do not expand product scope and are not general baseline passes.
 
-The retained original corrected local health log records 15 total cases (healthy 200 plus 14 faults), all faults 503 within 906 ms and recovery after each. Twenty sequential healthy samples have p95 6 ms and maximum 7 ms. The applicable dependencies are D1 and emitted `ASSETS`; there is no R2 or queue binding. The 900 ms response deadline cannot cancel underlying D1 work. This is scoped BASE-OPS-001 local evidence, not hosted latency or load capacity. The retention scan covers 76 migrated tables, 36 populated before maintenance, with aged rows deleted only from the four transient session/rate/auth-attempt tables and other preexisting identities surviving measured cleanup and restart. BASE-DATA-002 remains partial because not every cleanup edge was exercised. BASE-OPS-004 remains partial for auxiliary watch latest-only/in-memory state, absent watch lease reconciliation and authentication-mail attempt-only audit without durable provider outcomes or crash reconciliation. Browser egress, public independence and accessibility proof for this round are still pending; no browser passing result is claimed here.
+The retained original corrected local health log records 15 total cases (healthy 200 plus 14 faults), all faults 503 within 906 ms and recovery after each. Twenty sequential healthy samples have p95 6 ms and maximum 7 ms. The applicable dependencies are D1 and emitted `ASSETS`; there is no R2 or queue binding. The 900 ms response deadline cannot cancel underlying D1 work. This is scoped BASE-OPS-001 local evidence, not hosted latency or load capacity. The retention scan covers 76 migrated tables, 36 populated before maintenance, with aged rows deleted only from the four transient session/rate/auth-attempt tables and other preexisting identities surviving measured cleanup and restart. BASE-DATA-002 remains partial because not every cleanup edge was exercised. BASE-OPS-004 remains partial for auxiliary watch latest-only/in-memory state, absent watch lease reconciliation and authentication-mail attempt-only audit without durable provider outcomes or crash reconciliation. The emitted native-independence probe passed sign-in, actual local-edge monitoring failure/recovery, history and archive/definitions export with outside Worker/browser requests and the exercised runner HTTP(S) transport denied and optional integrations absent. At 1440/390, accepted hostile-text monitor/destination/definition names stayed literal with no script or planted resource request; unknown JSON/multipart uploads were refused without table changes or outbound requests, and native CSP restricted frame ancestors to self. `tests/owner-editor-browser.mjs` passed two ordinary renewals past the initial expiry at both widths with iframe/document/open state/private draft preserved, followed by authority-loss and browser CSP refusal. `tests/flow-journey.mjs` also passed real browser failure, changed-definition recovery, hard stops/profile cleanup and custody refusal. The public privacy pass completed all 84 fresh-context marketing/app-Lobby/docs cases at 1440/390 before visitor interaction, including unclaimed and claimed installations, idle/repeat and tab isolation: no cookies, Set-Cookie, visitor queries/bodies, telemetry or third-party requests. Only validated tab-local scroll-restoration state was retained and its keys were not transmitted. The emitted static site and Worker used local HTTP edges; live CDN/header behavior remains unmeasured. Accessibility and hosted/provider acceptance are not established by these checks.
 
 The inspected local and emitted candidate evidence now records `BASE-ACCESS-002`,
 `BASE-ACCESS-003`, `BASE-SECRET-002`, `BASE-DATA-003` and `BASE-OPS-005` as
@@ -110,7 +109,8 @@ captures, six separate network-edge monitor/test sends, surviving anonymised
 audit and refusal of erased-operator actor references on later-journal restore.
 These are source results only: no hosted installation or recipient acceptance is claimed, and
 no private Git tag or published v0.1.2 release is represented. Other baseline
-clauses remain requirements; accessibility across sign-in/setup surfaces remains unaccepted. No comprehensive Dependabot closure is
+clauses remain requirements; full migration recovery and accessibility across
+sign-in/setup surfaces remain unaccepted. No comprehensive Dependabot closure is
 claimed.
 
 The [BASELINE.md](BASELINE.md) status list names each clause, the inspected

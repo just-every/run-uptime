@@ -243,8 +243,9 @@ reached by those pages. A flow credential is submitted only when the page is at
 its exact configured origin; every destination still passes through the
 runner's filtering proxy.
 
-The private runner sends signed enrollment, claims, task definitions, discovery
-answers, contact and attempt results to the configured control plane. For a
+The private runner sends signed enrollment, claims, discovery answers, contact
+and attempt results to the configured control plane, and receives assigned
+monitor/flow definitions and discovery jobs from it. For a
 notification job it receives the selected endpoint credential and event payload
 for the one send. Selected email providers receive API-key authorization, sender and recipient addresses, subject and text/HTML body, sign-in links, incident/test/watch content and drill confirmation links. Cloudflare also receives the configured account identity; SendGrid receives the delivery ID in custom arguments and Resend receives it in the idempotency header. The Worker sends mail; the runner does not receive the provider credential. Webhook and Slack endpoints receive
 the event fields declared for that destination; runner-local watch endpoints
@@ -267,9 +268,7 @@ origin. Its hidden frame is requested when an authenticated owner page mounts;
 the integration sends installation identity, parent origin and editor surface,
 then the page path after the handshake. It sends visible page text only when the
 owner opens the editor and enables context sharing. Uptime has no public embeddable widget. BASE-DATA-005 is explicitly replaced by native standalone operation without a marketplace/author dependency plus this optional owner-configured editor; an author-hosted management origin may be contacted when opted in. No absolute author-zero-egress claim applies in that case, and the exception authorizes no telemetry, licence check or kill switch. Leave `IDENTITY_PROVIDER` omitted for native email-link setup. The completed probe passes native setup, sign-in, revocation and exact repeat preservation. Selecting a provider reads dependency metadata from a local issuer edge, then fails at the unmounted app dependency-approval route (404) before owner creation; no link request is made. Dependency/OIDC routes remain unavailable after a separate native bootstrap, so linked callback, repeat and revocation remain unreachable. The default is a separate scoped Base adoption round; runtime OIDC is not ready. A source inventory documents these flows; it does
-not prove the exact emitted application and runner make no other network
-request. Do not claim no telemetry, marketplace/author contact, license checks
-or kill switch without exact-candidate runtime network evidence.
+not prove complete optional-provider or hosted/deployment egress. A scoped emitted-runtime proof with the editor and linked provider absent passed native sign-in, local-edge monitoring failure/recovery, history and export while outside Worker/browser requests and the exercised runner HTTP(S) transport were denied. Its 1440/390 browser trace made no outside request. That proves the tested standalone flows do not need an author or marketplace service, not every possible integration configuration.
 
 Observation, definition, audit, notification and local development capture
 history has no automatic age/count deletion. The local runtime retention scan
