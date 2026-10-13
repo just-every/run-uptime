@@ -69,7 +69,7 @@ export async function credentialUpgrade(){
   const restored=await recovery.request('/api/restore',{body:archive});assert.equal(restored.status,200,JSON.stringify(restored.data));
   const restoredMonitors=(await recovery.request('/api/overview')).data.monitors;assert.ok(restoredMonitors.every(m=>!m.definition.enabled));assert.equal(await recovery.claim(recovery.first),null);
   const restoredOwn=restoredMonitors.find(m=>m.id===unique.id);assert.deepEqual(restoredOwn.definition.request,{credentialRef:'unique'});
-  assert.equal((await recovery.request(`/api/monitors/${unique.id}`,{method:'PATCH',body:{...restoredOwn.definition,enabled:true,assignments:{'local-a':{runnerId:recovery.first.runnerId,canaryUrl:unique.definition.assignments['local-a'].canaryUrl}}}})).status,200);
+  assert.equal((await recovery.request(`/api/monitors/${unique.id}`,{method:'PATCH',body:{...restoredOwn.definition,enabled:true,assignments:{'local-a':{runnerId:recovery.first.runnerId,canaryUrl:`http://93.184.216.35:${recovery.port}/canary`}}}})).status,200);
   process.env.UPTIME_CREDENTIAL_DIR=empty;
   const missingTask=await claim(recovery,unique.id),missing=await run(missingTask);assert.equal(missing.outcome,'runner_error','archive alone transfers no local credential');await submit(recovery,missingTask,missing);
   process.env.UPTIME_CREDENTIAL_DIR=credentials;
@@ -86,7 +86,7 @@ export async function credentialUpgrade(){
   const ids=[shared.id,...manyImport.data.created].sort();for(const id of ids)assert.ok(report.stdout.includes(bindingCommand(sharedRef,id)));
   const sharedTask=await claim(f,shared.id),blocked=await run(sharedTask);assert.equal(blocked.outcome,'runner_error');assert.deepEqual(blocked.credentialBinding.monitorIds,ids);
   assert.ok(JSON.stringify(blocked).length>4000,'exercise the diagnostic beyond the ordinary evidence limit');await submit(f,sharedTask,blocked);
-  const history=(await f.request(`/api/monitors/${shared.id}/history`)).data;assert.ok(JSON.stringify(history).includes(bindingCommand(sharedRef,shared.id)));
+  const history=(await f.request(`/api/monitors/${shared.id}/history`)).data;assert.ok(history[0].observations[0].checks[0].reason.includes(bindingCommand(sharedRef,shared.id)));
   browser=await chromium.launch({headless:true});const context=await browser.newContext(),cookie=await signInOwner(f.origin,{bindings:f.bindings,finishFirstRun:true});
   const [name,...value]=cookie.split('=');await context.addCookies([{name,value:value.join('='),url:f.origin}]);
   const page=await context.newPage();await page.goto(f.origin+'/app/monitors/'+shared.id);await page.getByText('Known monitors referencing this credential').waitFor();

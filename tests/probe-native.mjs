@@ -94,7 +94,7 @@ try{
   assert.deepEqual((await source.DB.prepare('SELECT * FROM heartbeat_authority').all()).results,before.results);assert.deepEqual((await source.DB.prepare('SELECT * FROM heartbeat_claims').all()).results,snapshots.results);
   assert.equal((await source.api(`/api/heartbeats/${heartbeat.id}`,'POST',{}, {authorization:`Bearer ${key}`,'x-heartbeat-sequence':'1'},false)).status,400);
  });
- await check('portable archive omits heartbeat authority and secret material; receiving restore clears request authority and quarantines history',async()=>{
+ await check('portable archive omits heartbeat authority and secret material; receiving restore preserves references without transferring local authority and quarantines history',async()=>{
   exported=(await source.api('/api/archive')).data;
   assert.deepEqual(Object.keys(exported.payload.tables).sort(),['migrations','monitors','observations','outbox','revisions','slots']);assert.ok(!JSON.stringify(exported).includes(key));assert.ok(!JSON.stringify(exported).includes('token_hash'));
   await migrate(join(dir,'recovery'));recovery=await installation(join(dir,'recovery'),15515);
@@ -103,11 +103,11 @@ try{
   assert.deepEqual((await recovery.DB.prepare('SELECT * FROM d1_migrations').all()).results,ledger);
   assert.equal((await recovery.DB.prepare('SELECT COUNT(*) n FROM heartbeat_authority').first()).n,0);assert.equal((await recovery.DB.prepare('SELECT COUNT(*) n FROM heartbeat_claims').first()).n,0);
   const all=(await recovery.api('/api/overview')).data;assert.ok(all.monitors.every(m=>m.state.state==='Paused'));assert.ok(all.alerts.every(a=>a.status==='imported-inactive'));assert.equal(await recovery.claim(),null);
-  const restored=await recovery.monitor(publicMonitor.id);assert.equal(restored.definition.request,undefined);
-  // A same-named receiving credential file must never be selected by a restored definition.
+  const restored=await recovery.monitor(publicMonitor.id);assert.deepEqual(restored.definition.request,publicMonitor.definition.request);
+  // The same restored monitor ID may use a separately retained local file after explicit reactivation.
   await writeFile(join(dir,'request-a.json'),JSON.stringify({monitorId:publicMonitor.id,origin:'https://public-a.test',auth:{type:'bearer',token:'receiving-only-sentinel'}}),{mode:0o600});
   const receivingId=(await recovery.api('/api/runners')).data[0].runnerId;const assign=definition=>Object.fromEntries(definition.probes.map(p=>[p,{...definition.assignments[p],runnerId:receivingId}]));
-  const revision=await recovery.api(`/api/monitors/${publicMonitor.id}`,'PATCH',{...restored.definition,assignments:assign(restored.definition),enabled:true});assert.equal(revision.status,200,JSON.stringify(revision.data));assert.equal(revision.data.definition.request,undefined);const publicTask=await recovery.claim();assert.equal(publicTask.definition.request,undefined);
+  const revision=await recovery.api(`/api/monitors/${publicMonitor.id}`,'PATCH',{...restored.definition,assignments:assign(restored.definition),enabled:true});assert.equal(revision.status,200,JSON.stringify(revision.data));assert.deepEqual(revision.data.definition.request,publicMonitor.definition.request);const publicTask=await recovery.claim();assert.deepEqual(publicTask.definition.request,publicMonitor.definition.request);
   await recovery.submit(publicTask,[evidence(publicTask)]);
   const resumed=await recovery.api(`/api/monitors/${heartbeat.id}`,'PATCH',{...(await recovery.monitor(heartbeat.id)).definition,assignments:assign((await recovery.monitor(heartbeat.id)).definition),enabled:true});assert.equal(resumed.status,200);
   assert.equal((await recovery.api(`/api/heartbeats/${heartbeat.id}`,'POST',{}, {authorization:`Bearer ${key}`,'x-heartbeat-sequence':'99'},false)).status,400);

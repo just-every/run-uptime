@@ -21,7 +21,7 @@ A signature identifies the holder of the runner key. It does not prove the runne
 
 ## Where your credentials live
 
-- **Request secrets** for your targets stay in owner-only files on the runner's machine. Each file binds one monitor ID and an exact target origin; a same-named reference on another monitor grants no access. Old unbound files require explicit owner binding; see [Runner credentials](/docs/runner#bind-existing-files-after-upgrading). They never enter evidence, alerts or archives.
+- **Request secrets** for your targets stay in owner-only files on the runner's machine. Each file binds one monitor ID and an exact target origin; a same-named reference on another monitor grants no access. Setup binds valid unbound files referenced by exactly one existing monitor, including paused monitors. Shared and unused files require explicit owner binding; see [Runner credentials](/docs/runner#bind-existing-files-after-upgrading). They never enter evidence, alerts or archives.
 - **Private settings** stay in `data/local-secrets.json` for a local installation, or `.rer/deploy/production-secrets.json` for a hosted one. Neither is included in archives, and you should back them up separately.
 - **Notification credentials**, meaning email addresses, webhook and Slack URLs and signing keys, are encrypted at rest using a key derived from your `SESSION_SECRET`. Lists never show stored URLs or signing keys.
 - **Webhook signing secrets** are shown only when created or rotated.

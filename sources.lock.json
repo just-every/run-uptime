@@ -415,7 +415,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "0b66b46a3d8fa28cd15438a33455273b8ba7826914b291d9d6d749a8429633a8",
+      "sha256": "2d8e5f6ce7f0343d153787f4051de4941abd120f67e85341481383127589ff93",
       "executable": false
     },
     "deploy-site.json": {
@@ -471,7 +471,7 @@
       "executable": false
     },
     "docs/security.md": {
-      "sha256": "8090d63872e42192cc4ffd035557014ad388e1820db76afc88d692947261064f",
+      "sha256": "818646d2474a081347e47b04a2c1143823433900b193a81d6af43cfb63483ca3",
       "executable": false
     },
     "docs/site.json": {
@@ -2371,7 +2371,7 @@
       "executable": false
     },
     "src/domain/credential-binding.mjs": {
-      "sha256": "ac93c9745cddafeb0f12c7763e3b490c667ac620d61d27255f3acd9db0def566",
+      "sha256": "989ab019fed9bf2bfd6999fc759729cd8e5b26f5f125d47f749890af2b68929e",
       "executable": false
     },
     "src/domain/definitions/apply.server.ts": {
@@ -2639,7 +2639,7 @@
       "executable": false
     },
     "src/server.ts": {
-      "sha256": "7692c86c128acf1c510490c502774460611cde9cf2907638c1a4e9f56b727daf",
+      "sha256": "9fb9350195dfc5bc834af3b8689602ff9c613189c8ba8b02aaabcfdb8fb1bccd",
       "executable": false
     },
     "src/site/docs/build/manifest.ts": {
@@ -3043,7 +3043,7 @@
       "executable": false
     },
     "tests/credential-upgrade.mjs": {
-      "sha256": "50e4ab7bcabb980b8ebe734ebc9de692fc64cf6810eb833543936198c805c0e4",
+      "sha256": "32413cc0815956ccf279e8958a393d41539c0a28d2a9c11db013264301ce292d",
       "executable": false
     },
     "tests/definitions-import.mjs": {
@@ -3307,7 +3307,7 @@
       "executable": false
     },
     "tests/probe-native.mjs": {
-      "sha256": "81d99a838d1ca6a805182c1e3f70c4c6b05ef3dccba23c4bd0fdd36bc78a9ddb",
+      "sha256": "8c3309983e6740c4d6fd0315e68dda2e68f286be654e644278904988a5ac088a",
       "executable": false
     },
     "tests/public-paths-support.mjs": {
