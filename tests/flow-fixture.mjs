@@ -37,7 +37,7 @@ export async function startFlowFixture({port = 0, grantPath, secondPort = 0}) {
       if (form.get('email') === FIXTURE_EMAIL && form.get('password') === FIXTURE_PASSWORD) { const sid = randomUUID(); sessions.add(sid); return send(302, '', {location: scenario === 'profile-path' ? `${base}/u/${encodeURIComponent(FIXTURE_EMAIL)}/dashboard` : `${base}/dashboard`, 'set-cookie': `sid=${sid}; HttpOnly; Path=/`}); }
       return send(200, page('Sign in', '<h1>Sign in</h1><p role="alert">Wrong email or password</p>'));
     }
-    if (!signedIn && !['/redirect-private', '/hostile', '/big', '/phrases'].includes(path) && !path.startsWith('/bounce/') && !path.startsWith('/long-')) return send(302, '', {location: `${base}/login`});
+    if (!signedIn && !['/redirect-private', '/hostile', '/big', '/phrases', '/tunnel'].includes(path) && !path.startsWith('/bounce/') && !path.startsWith('/long-')) return send(302, '', {location: `${base}/login`});
     if (path === '/dashboard') {
       const extra = scenario === 'metadata-subresource' ? '<img alt="" src="http://169.254.169.254/latest/meta-data/">' : '';
       return send(200, page('Dashboard', `<h1>Welcome back</h1>${extra}<a id="order" href="${base}/confirm">Confirm order</a>${scenario === 'profile-path' ? accountLinks(base) : ''}`));
@@ -54,6 +54,8 @@ export async function startFlowFixture({port = 0, grantPath, secondPort = 0}) {
     if (bounce) return send(200, page('Bounce', `<h1>Page ${bounce[1]}</h1><script>setTimeout(()=>{location='${base}/bounce/${Number(bounce[1]) + 1}'},150)</script>`));
     if (path === '/big') return send(200, page('Big', '<h1>Big page</h1><p>' + 'x'.repeat(6 * 1024 * 1024) + '</p>'));
     if (path === '/phrases' || path.startsWith('/long-')) return send(200, page('Phrases', Array.from({length: 20}, (_, i) => `<p>${phrase(i)}</p>`).join('')));
+    // A page that asks the browser for a TLS tunnel to this fixture's own port: a tunnel can carry no fixture identity.
+    if (path === '/tunnel') return send(200, page('Tunnel', `<h1>Tunnel page</h1><img alt="" src="https://127.0.0.1:${req.socket.localPort}/s/${scenario}/pixel">`));
     if (path === '/redirect-private') return send(302, '', {location: 'http://169.254.169.254/latest/meta-data/'});
     if (path === '/redirect-private-network') return send(302, '', {location: 'http://10.255.255.1/'});
     if (path === '/hostile') return send(200, page('Hostile', `<h1>Hostile page</h1><script>window.open('http://127.0.0.1:${otherPort}/');setTimeout(()=>{location='http://127.0.0.1:${otherPort}/'},200)</script>`));

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {request as httpRequest} from 'node:http';
 import {join} from 'node:path';
 import {isDeepStrictEqual} from 'node:util';
+import {randomBytes} from 'node:crypto';
 import {migratedWorker,runtimeDirectory,cleanupDirectory,availablePorts} from './notify-acceptance-runtime.mjs';
 import {testAuthBindings,authRequest,sessionCookie,outboxLink} from './auth-test-support.mjs';
 
@@ -114,8 +115,23 @@ try{
  await ownerRecord(DB);
  assert.equal((await call('/api/overview',undefined,{cookie:secondCookie})).status,200,'confirmed native session reads private overview');
  assert.equal((await call('/api/overview',undefined,{cookie:firstCookie})).status,401,'confirmation does not resurrect revoked authority');
+ // BASE-ACCESS-001: a link goes only to an allow-listed operator; any other address gets the same answer and no token or mail.
+ const counts=async()=>[(await DB.prepare('SELECT COUNT(*) n FROM oa_tokens').first()).n,(await DB.prepare('SELECT COUNT(*) n FROM rer_mail_development_outbox').first()).n];
+ const listed=await counts(),unlisted=await call('/auth/magic-link',{email:'not-an-operator@example.test',returnTo:'/'});
+ assert.equal(unlisted.status,202,'an unlisted address gets the same acknowledgement');assert.ok(!unlisted.headers.has('set-cookie'));
+ assert.deepEqual(await counts(),listed,'an unlisted address gets no link and no mail');
+ // No passwords are stored: no column of any table can hold one, and a password offered with a link request is kept nowhere.
+ const offeredValue=randomBytes(16).toString('hex'),offered=await call('/auth/magic-link',{email:bindings.OWNER_EMAIL,password:offeredValue});
+ assert.ok(!offered.headers.has('set-cookie'),'a password never signs in');
+ const tables=(await DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT GLOB '_cf*' AND name NOT GLOB 'sqlite_*'").all()).results.map(row=>row.name);
+ const columns=[];for(const table of tables){
+  assert.ok(/^[a-z0-9_]+$/.test(table),'table identifier is safe');
+  columns.push(...(await DB.prepare(`PRAGMA table_info(${table})`).all()).results.map(column=>column.name));
+  assert.ok(!JSON.stringify((await DB.prepare(`SELECT * FROM ${table}`).all()).results).includes(offeredValue),`${table} keeps no offered password`);
+ }
+ assert.ok(columns.length>100&&!columns.some(name=>/pass|pwd/i.test(name)),'no stored column can hold a password');
  assert.equal(submissions,0,'development sign-in never submits to an external provider');
- console.log('AUTH-INPUT-BOUNDARY passed: one-byte Unicode native bootstrap, durable owner/native authority, 8192 UTF8-byte rejection without auth/outbox changes, immediate post413 magic-link recovery, real development outbox preview and chunked native confirmation; external submissions=0.');
+ console.log('AUTH-INPUT-BOUNDARY passed: one-byte Unicode native bootstrap, durable owner/native authority, 8192 UTF8-byte rejection without auth/outbox changes, immediate post413 magic-link recovery, no link for an unlisted address and no stored password, real development outbox preview and chunked native confirmation; external submissions=0.');
 }finally{
  for(const request of requests)request.destroy();
  try{await worker?.dispose()}finally{if(directory)await cleanupDirectory(directory)}

@@ -71,7 +71,7 @@ test('a job nobody claims, or nobody finishes, expires; refusals at create leave
  assert.equal((await f.DB.prepare('SELECT COUNT(*) n FROM discovery_jobs').first()).n,0);
  assert.equal((await f.request('/api/discoveries',{body:{url:'https://example.com/'},headers:{origin:'https://evil.example'}})).status,403);
  assert.equal((await f.DB.prepare('SELECT COUNT(*) n FROM discovery_jobs').first()).n,0);
- assert.equal((await read('00000000-0000-0000-0000-000000000000')).status,404);assert.equal((await read('not-an-id')).status,404);
+ assert.equal((await read('00000000-0000-0000-0000-000000000000')).status,404);assert.equal((await read('not-an-id')).status,400,'a malformed id is invalid input');
  assert.deepEqual(await everythingElse(),before);
 });
 test('at most five discoveries wait or run at once, and a finished one frees its place',async()=>{

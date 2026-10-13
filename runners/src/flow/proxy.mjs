@@ -2,7 +2,7 @@
 // redirect, subresource and WebSocket becomes a CONNECT or an absolute-URI request here, so NETWORK-001 is checked once, in one
 // place, whatever the page does. The proxy resolves each destination itself and connects to the address it checked (a DNS answer
 // cannot change between check and use), refuses private, loopback, link-local and metadata addresses, and reaches the local
-// fixture only through the same authorization grant the HTTP runner uses. It counts response bytes and records what it blocked.
+// fixture only through the same authorization grant the HTTP runner uses, over plain HTTP where every response proves its identity. It counts response bytes and records what it blocked.
 import http from 'node:http';
 import net from 'node:net';
 import {randomBytes, timingSafeEqual} from 'node:crypto';
@@ -81,6 +81,9 @@ export async function startFlowProxy({grant = null, maxBytes, maxConnections = 6
     if (!parsed || !parsed.port || sockets.size > maxConnections || exceeded) return refuse('403 Forbidden');
     const target = await destination(parsed.host, parsed.port);
     if (!target) return refuse('403 Forbidden');
+    // A tunnel's bytes never pass here as HTTP, so whatever answers on the granted port could not prove it is the fixture: the
+    // fixture serves plain HTTP only, and a synthetic run never tunnels to it.
+    if (grant) { block('custody', parsed.host); return refuse('403 Forbidden'); }
     const upstream = track(net.connect({host: target.address, family: target.family, port: parsed.port}));
     upstream.once('connect', () => { client.write('HTTP/1.1 200 Connection Established\r\n\r\n'); if (head?.length) upstream.write(head); upstream.on('data', count); upstream.pipe(client); client.pipe(upstream); });
     upstream.once('error', () => client.destroy()); client.once('error', () => upstream.destroy());

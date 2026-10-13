@@ -173,6 +173,12 @@
       "why": "Website the owner chose at setup; first-run setup asks the owner's runner to look at it. Off when absent."
     },
     {
+      "name": "IDENTITY_PROVIDER",
+      "required": false,
+      "secret": false,
+      "why": "Optional Auth installation URL for the oidc-provider@1 dependency. Empty keeps email-link sign-in."
+    },
+    {
       "name": "MAIL_PROVIDER_API_KEY",
       "required": false,
       "secret": true,
@@ -399,6 +405,14 @@
         "class": "authentication",
         "authentication": "Base operator session; privileged account operations additionally require owner authority.",
         "environment": "all"
+      },
+      {
+        "path": "/auth/setup-complete",
+        "match": "exact",
+        "kind": "authentication",
+        "class": "authentication",
+        "authentication": "Local CLI proof derived from the installation session secret, after the first owner exists; hosted mode refuses.",
+        "environment": "local"
       },
       {
         "path": "/setup",

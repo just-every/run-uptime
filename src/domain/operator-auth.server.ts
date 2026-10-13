@@ -17,7 +17,7 @@ export function operatorAuth(env:AuthBindings){
  ...(mailSender(env)?{mailSender:operatorMailSender(env,development)}:{}),clientIp:(request:Request)=>local?'loopback':request.headers.get('CF-Connecting-IP')??''})
 }
 export async function operatorSession(env:AuthBindings,request:Request){const session=await operatorAuth(env).getSession(request);return session?.operator.role==='owner'?session:null}
-const authPaths=new Set(['/auth/bootstrap','/auth/magic-link','/auth/confirm','/auth/session','/auth/operators','/auth/sessions','/auth/signout','/auth/invite','/auth/invite/cancel','/auth/operator/status','/auth/operator/role','/auth/session/revoke']);
+const authPaths=new Set(['/auth/bootstrap','/auth/magic-link','/auth/confirm','/auth/session','/auth/operators','/auth/sessions','/auth/signout','/auth/invite','/auth/invite/cancel','/auth/operator/status','/auth/operator/role','/auth/session/revoke','/auth/setup-complete']);
 export async function authRoute(env:AuthBindings,request:Request){try{
  if(!authPaths.has(new URL(request.url).pathname))return new Response('Not found',{status:404});
  let configured=env;

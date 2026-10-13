@@ -69,8 +69,10 @@ try {
   };
   const good = await create('Checkout flow', 'healthy', flow('healthy', 'login-password')), bad = await create('Checkout flow, wrong password', 'wrong-password', flow('wrong-password', 'wrong-password'));
   const account = await create('Account flow', 'profile-path', accountFlow);
+  // A page that opens a tunnel to the fixture's port fails the run: nothing on a tunnel could prove it is the fixture.
+  const tunnel = await create('Tunnel flow', 'tunnel', {intent: 'Open the tunnel page', steps: [{kind: 'goto', url: `${fixture.origin}/s/tunnel/tunnel`}, {kind: 'waitFor', what: 'text', value: 'Tunnel page'}], outcomes: [{id: 'page', what: 'text', value: 'Tunnel page'}]});
   const observations = async id => (await ok(`/api/monitors/${id}/history`)).flatMap(slot => slot.observations);
-  for (const id of [good, bad, account]) await waitFor(async () => (await observations(id)).length >= 2, 'the flow ran on both runners', 120000);
+  for (const id of [good, bad, account, tunnel]) await waitFor(async () => (await observations(id)).length >= 2, 'the flow ran on both runners', 120000);
   const overview = await ok('/api/overview'), state = id => overview.monitors.find(m => m.id === id).state;
   for (const id of [good, account]) {
     for (const o of await observations(id)) {
@@ -89,6 +91,7 @@ try {
     assert.equal(o.flow.trace.at(-1).outcome, 'fail');
   }
   assert.equal(state(bad).state, 'Failing');
+  for (const o of await observations(tunnel)) assert.deepEqual([o.outcome, o.flow.failure?.reason, o.flow.failure?.blocked], ['target_failure', 'blocked_request', 'custody'], 'a tunnel to the fixture port is refused as a custody violation');
   // One email, accepted by the development provider, for the incident of the failing flow only.
   await waitFor(async () => (await DB.prepare("SELECT state FROM notification_jobs WHERE kind='email' AND json_extract(event,'$.monitorName')=?").bind('Checkout flow, wrong password').first())?.state === 'accepted', 'the incident email was sent', 60000);
   assert.equal((await DB.prepare("SELECT COUNT(*) n FROM notification_jobs WHERE json_extract(event,'$.monitorName')=?").bind('Checkout flow').first()).n, 0, 'a passing flow sends nothing');
@@ -138,7 +141,7 @@ try {
   assert.equal(results.filter(r => r.status === 201).length, FLOW_LIMITS.maxFlowsPerInstallation - flows, 'exactly the room left was created');
   assert.ok(results.filter(r => r.status !== 201).every(r => r.status === 400 && /limit/.test(r.data.error)), 'every refused create names the limit');
   assert.equal(Number((await DB.prepare("SELECT COUNT(*) n FROM monitors WHERE json_extract(definition,'$.type')='flow'").first()).n), FLOW_LIMITS.maxFlowsPerInstallation);
-  console.log('FLOW-001 passed: browser flow through the production runner and Worker; healthy traces keep no query or credential, also with the account in the URL path; wrong password failed at its step and sent an incident email; a type change recovered only as a changed definition; hard stops left no profile; concurrent creates kept the flow limit.');
+  console.log('FLOW-001 passed: browser flow through the production runner and Worker; healthy traces keep no query or credential, also with the account in the URL path; wrong password failed at its step and sent an incident email; a type change recovered only as a changed definition; hard stops left no profile; concurrent creates kept the flow limit; a tunnel to the fixture port failed as a custody violation.');
 } finally {
   for (const c of children) if (c.exitCode === null && c.signalCode === null) { c.kill('SIGTERM'); await once(c, 'exit'); }
   await fixture?.close(); await worker?.dispose(); await cleanupDirectory(directory);

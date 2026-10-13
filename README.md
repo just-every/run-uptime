@@ -145,7 +145,7 @@ See [CONTRACT.md](CONTRACT.md) for guarantees, [BASELINE.md](BASELINE.md) for sh
 
 ## Upgrading
 
-An upgrade keeps your data: `rer setup` on the same checkout applies the new additive migrations (earlier tables are never rewritten, the migration history only gains rows) and preserves the owner and private settings, and nothing is sent while it runs. This version adopts Base 479094f0 (current CLI, onboarding, mail, auth and deploy-kit copies, with the linked-provider module's tables). Archives from 0.1.2 or earlier must be re-exported from the upgraded installation first: `rer import` refuses them with a plain message and exit code 4, and writes nothing.
+An upgrade keeps your data: `rer setup` on the same checkout applies the new additive migrations (earlier tables are never rewritten, the migration history only gains rows) and preserves the owner and private settings, and nothing is sent while it runs. If an upgrade is interrupted (a closed terminal, a crash or a power loss), run the same `rer setup` again: each migration commits together with its history row, so the rerun applies only the missing ones and every earlier row is kept. Local browser sessions from 0.1.2 sign in again once after the upgrade, because local session cookies are now named per port. This version adopts Base 479094f0 (current CLI, onboarding, mail, auth and deploy-kit copies, with the linked-provider module's tables). Archives from 0.1.2 or earlier must be re-exported from the upgraded installation first: `rer import` refuses them with a plain message and exit code 4, and writes nothing.
 
 ## Source and licence
 

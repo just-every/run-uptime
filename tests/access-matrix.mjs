@@ -1,4 +1,4 @@
-// BASE-ACCESS-002: native session denial, fixed expiry, revocation and no denied mutation.
+// BASE-ACCESS-002 and BASE-ACCESS-004: native session denial, fixed expiry, revocation, member refusal and forged claims, with no denied mutation.
 import assert from 'node:assert/strict';
 import {createHmac} from 'node:crypto';
 import {join} from 'node:path';
@@ -7,11 +7,18 @@ import {migratedWorker,runtimeDirectory,cleanupDirectory,availablePorts} from '.
 import {testAuthBindings,authRequest,sessionCookie,outboxSignIn,finishSetup} from './auth-test-support.mjs';
 import {hostedRuntime} from './hosted-auth-runtime.mjs';
 import {splitSql} from './migration-support.mjs';
+import {apiRoutes} from '../src/domain/request-boundary.ts';
 const directory=await runtimeDirectory(),[port]=await availablePorts(1);
 let worker;
 const documents=['/app','/app/','/app/monitor','/app/monitor/','/app/monitors/private','/_serverFn/private','/setup'];
-const reads=['/api/overview','/api/archive','/api/notifications','/api/notifications/destinations','/api/monitors/private/history','/api/monitors/private/revisions','/api/discoveries/00000000-0000-0000-0000-000000000000','/api/external-check'];
-const writes=[['POST','/api/monitors'],['PATCH','/api/monitors/private'],['POST','/api/monitors/private/heartbeat-key'],['POST','/api/monitors/private/run'],['POST','/api/restore'],['POST','/api/notifications/destinations'],['PATCH','/api/notifications/destinations/private'],['DELETE','/api/notifications/destinations/private'],['POST','/api/notifications/destinations/private/rotate'],['POST','/api/notifications/destinations/private/test'],['POST','/api/auth/sign-out'],['POST','/api/discoveries'],['POST','/api/external-check']];
+// Every owner route in the Worker's route table (runner and heartbeat routes carry their own credentials and are checked below).
+const ownerRoutes=apiRoutes.filter(route=>!route.path.startsWith('/api/runner/')&&!route.path.startsWith('/api/heartbeats/')).map(route=>[route.method,route.path.replace(':id',route.path.startsWith('/api/discoveries/')?'00000000-0000-0000-0000-000000000000':'private')]);
+const reads=ownerRoutes.filter(([method])=>method==='GET').map(([,path])=>path),writes=ownerRoutes.filter(([method])=>method!=='GET');
+// Every durable table but the request counters a refused request may still advance.
+async function everything(DB){
+ const tables=(await DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT GLOB '_cf*' AND name NOT IN ('public_rate_limits','oa_limits') ORDER BY name").all()).results;
+ return Promise.all(tables.map(async({name})=>[name,(await DB.prepare(`SELECT * FROM "${name}" ORDER BY rowid`).all()).results]));
+}
 async function snapshot(DB){
  const tables=['monitors','revisions','slots','observations','outbox','oa_sessions','oa_operators','uptime_first_run','external_check'];
  return Promise.all(tables.map(async table=>(await DB.prepare(`SELECT * FROM ${table} ORDER BY rowid`).all()).results));
@@ -90,15 +97,28 @@ try{
   }
   assert.deepEqual(await snapshot(DB),discoveryBefore,'refused discovery requests change no installation data');
   assert.equal((await DB.prepare('SELECT COUNT(*) n FROM discovery_jobs').first()).n,0,'refused discovery requests create no job');
-  if(hosted){
-   // A signed-in member is not an owner: the owner discovery routes stay closed to it.
+   if(hosted){
+   // BASE-ACCESS-004: a signed-in member is not an owner. Every owner read and mutation, every owner-only account change and
+   // first-run setup refuse it, and nothing durable changes.
    await DB.prepare("INSERT INTO oa_operators VALUES('member','member@example.test','Member','member','active',1,?)").bind(Date.now()).run();
    assert.equal((await call('/auth/magic-link',{email:'member@example.test'})).status,202);
    const memberCookie=sessionCookie(await call('/auth/confirm',{token:new URL(mails.at(-1).content.find(c=>c.type==='text/plain').value.match(/https:\/\/[^\s]+/)[0]).searchParams.get('token')}));
+   const ownerId=(await DB.prepare("SELECT id FROM oa_operators WHERE role='owner'").first()).id,memberBefore=await everything(DB);
+   for(const path of reads)assert.equal((await call(path,undefined,{cookie:memberCookie})).status,401,`member GET ${path}`);
+   for(const [method,path] of writes){const response=await fetcher(origin+path,{method,redirect:'manual',headers:{host:new URL(origin).host,origin,'content-type':'application/json',cookie:memberCookie},...(method==='DELETE'?{}:{body:'{}'})});assert.equal(response.status,401,`member ${method} ${path}`)}
+   for(const [path,body] of [['/auth/operator/role',{operatorId:'member',role:'owner'}],['/auth/operator/status',{operatorId:ownerId,status:'inactive'}],['/auth/invite',{email:'friend@example.test',displayName:'Friend',role:'owner'}],['/auth/invite/cancel',{operatorId:ownerId}]])assert.equal((await call(path,body,{cookie:memberCookie})).status,403,`member ${path}`);
+   assert.equal((await call('/setup',{}, {cookie:memberCookie})).status,303,'member first-run setup');
+   assert.deepEqual(await everything(DB),memberBefore,'a member changes nothing durable');
+   // Identity, role and ownership claims a client sends are never authority: an owner's request carrying forged claims in its
+   // headers and body is recorded under the session's own operator, and no claim is stored anywhere.
+   const marker='forged-claim-0001',claims={'x-operator-id':marker,'x-user-id':marker,'x-forwarded-user':marker,'x-forwarded-email':`${marker}@example.test`,'cf-access-authenticated-user-email':`${marker}@example.test`,'x-runner-id':marker};
+   const forged={actor:{kind:'operator',ref:marker},operatorId:marker,ownerId:marker,role:'owner',email:`${marker}@example.test`};
+   const created=await call('/api/monitors',{name:'Forged claims',type:'heartbeat',canaryUrl:'https://canary.example.test/health',heartbeat:{maxAgeMs:60000},...forged},{cookie:valid,...claims});assert.equal(created.status,201);
+   assert.equal((await call(`/api/monitors/${(await created.json()).id}/erase`,{name:'Forged claims',...forged},{cookie:valid,...claims})).status,200);
+   const erasure=await DB.prepare("SELECT actor_kind,actor_ref FROM uptime_audit WHERE action LIKE '%erase%' ORDER BY rowid DESC").first();
+   assert.deepEqual({...erasure},{actor_kind:'operator',actor_ref:ownerId},'the erasure is recorded under the session operator');
+   assert.ok(!JSON.stringify(await everything(DB)).includes(marker),'no forged claim is stored');
    assert.equal((await call('/api/discoveries',{url:'https://example.com/'},{cookie:memberCookie})).status,401,'member create');
-   assert.equal((await call('/api/discoveries/'+jobId,undefined,{cookie:memberCookie})).status,401,'member read');
-   assert.equal((await call('/api/external-check',undefined,{cookie:memberCookie})).status,401,'member read of the External check URL');
-   assert.equal((await call('/api/external-check',{url:'https://example.org/'},{cookie:memberCookie})).status,401,'member change of the External check URL');
    assert.equal(await external(),'https://example.com/');
    assert.equal((await DB.prepare('SELECT COUNT(*) n FROM discovery_jobs').first()).n,0);
   }
@@ -107,5 +127,5 @@ try{
   assert.match(await (await call('/claim')).text(),/data\/local-secrets\.json/);
   await worker.dispose();worker=null;
  }
- console.log('BASE-ACCESS-002 passed missing, expired, revoked and valid Base sessions on local and emitted hosted Worker documents, reads and every owner mutation; denied operations leave durable data unchanged; seven-day absolute expiry stays below 30 days and never slides on reads.');
+ console.log('BASE-ACCESS-002 passed missing, expired, revoked and valid Base sessions on local and emitted hosted Worker documents, reads and every owner mutation; denied operations leave durable data unchanged; seven-day absolute expiry stays below 30 days and never slides on reads. BASE-ACCESS-004 passed: a member is refused every owner route and account change with nothing durable changed, and forged identity claims are neither authority nor stored.');
 }finally{await worker?.dispose();await cleanupDirectory(directory)}

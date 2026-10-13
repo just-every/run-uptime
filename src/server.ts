@@ -41,21 +41,27 @@ import {claimedWhen,setupStateResponse} from './base/setup-state'
 import {identity} from './identity'
 import {recordContact} from './domain/runner-contact.server.ts'
 import {session,overview,save,get,claim,complete,history,revisions,archive,restore,type Bindings} from './domain/control.server'
-const api=new Hono<{Bindings:Bindings;Variables:{requestText:string;runner:Runner}}> ()
+import {checkInput,InputError} from './domain/request-boundary.ts'
+const api=new Hono<{Bindings:Bindings;Variables:{requestText:string;input:any;runner:Runner}}> ()
 api.get('/health',async c=>{try{await notificationReadiness(c.env)}catch{return c.json({error:'Notification schema upgrade required'},503)}await c.env.DB.prepare('SELECT 1 FROM monitors LIMIT 1').first();try{await ensureNotificationCustody(c.env,{validate:false})}catch{}return c.json({status:'ok',...deploymentHealth(c.env)})})
 api.use('/api/*',async(c,next)=>{c.header('cache-control','no-store');const origin=c.req.header('origin');if(c.env.UPTIME_LOCAL_REVIEW!=='true'&&['POST','PATCH','DELETE'].includes(c.req.method)&&!c.req.path.startsWith('/api/runner/')&&!c.req.path.startsWith('/api/heartbeats/')&&origin!==c.env.UPTIME_ORIGIN)return c.json({error:'Same origin required'},403);if(c.req.header('sec-fetch-site')==='cross-site'||(origin&&origin!==new URL(c.req.url).origin))return c.json({error:'Same origin required'},403);if(Number(c.req.header('content-length')??0)>2*1024*1024)return c.json({error:'Payload too large'},413);if(['POST','PATCH'].includes(c.req.method)&&c.req.header('content-type')!=='application/json'&&!(c.req.path==='/api/definitions/preview'&&c.req.header('content-type')==='text/csv'))return c.json({error:'JSON required'},415);if(['POST','PATCH'].includes(c.req.method)){const reader=c.req.raw.body?.getReader(),decoder=new TextDecoder('utf-8',{fatal:true});let size=0,text='';if(reader){try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>2*1024*1024){return c.json({error:'Payload too large'},413)}text+=decoder.decode(value,{stream:true})}text+=decoder.decode()}catch(error){if(error instanceof TypeError)return c.json({error:'Invalid UTF-8 request body'},400);throw error}finally{reader.releaseLock()}}c.set('requestText',text)}await next()})
+// Every route's path, query and body schema, once the caller's authority is known and before any service (request-boundary.ts).
+// Heartbeats carry their own token, so their input is checked before their handler.
+const boundary=async(c:any,next:()=>Promise<void>)=>{const headers=c.req.raw.headers,hasBody=Number(headers.get('content-length')??0)>0||headers.has('transfer-encoding');let checked;try{checked=checkInput(c.req.method==='HEAD'?'GET':c.req.method,new URL(c.req.url),c.get('requestText')??'',hasBody)}catch(error){if(error instanceof InputError)return c.json({error:error.message},400);throw error}if(!checked)return c.json({error:'Not found'},404);c.set('input',checked.body);await next()}
+api.use('/api/heartbeats/*',boundary)
 api.post('/api/heartbeats/:id',async c=>{if(c.get('requestText')!=='{}')return c.json({error:'Empty JSON object required'},400);return c.json(await receiveHeartbeat(c.env,c.req.param('id'),c.req.header('authorization')??'',c.req.header('x-heartbeat-sequence')??''))})
 api.use('/api/*',async(c,next)=>{if(c.req.path.startsWith('/api/runner/')){const row=await storageOperation('runner.authenticate',()=>authenticateRunner(c.env,c.req.header('x-runner-id'),c.req.header('x-runner-key')??''));if(!row)return c.json({error:'Runner authorization required'},401);c.set('runner',row)}else if(!await storageOperation('owner.session',()=>session(c.env,c.req.raw)))return c.json({error:'Owner session required'},401);await next()})
+api.use('/api/*',boundary)
 api.post('/api/auth/sign-out',async c=>{try{const result=await signOut(c.env,c.req.raw);c.header('set-cookie',result.cookie);return c.json({signedOut:true})}catch(error){return authFailure(error)}})
 api.get('/api/overview',async c=>c.json(await overview(c.env)))
-api.post('/api/monitors',async c=>c.json(await save(c.env,JSON.parse(c.get('requestText')),undefined,{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id}),201))
-api.patch('/api/monitors/:id',async c=>c.json(await save(c.env,JSON.parse(c.get('requestText')),c.req.param('id'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
+api.post('/api/monitors',async c=>c.json(await save(c.env,c.get('input'),undefined,{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id}),201))
+api.patch('/api/monitors/:id',async c=>c.json(await save(c.env,c.get('input'),c.req.param('id'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 api.post('/api/monitors/:id/heartbeat-key',async c=>c.json(await issueHeartbeatKey(c.env,c.req.param('id'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 api.get('/api/monitors/:id/history',async c=>c.json(await history(c.env,c.req.param('id'))))
 api.get('/api/monitors/:id/revisions',async c=>c.json(await revisions(c.env,c.req.param('id'))))
 api.post('/api/monitors/:id/run',async c=>{const m=await get(c.env,c.req.param('id'));if(!m||!m.definition.enabled)return c.json({error:'Monitor unavailable or paused'},409);const id=`${m.id}:${m.revision}:manual:${crypto.randomUUID()}`;const inserted=await c.env.DB.prepare("INSERT INTO slots(id,monitor_id,revision,due_at,status,definition,lease_owner,lease_until,missed_count,manual) SELECT ?,?,?,?,'queued',?,'unclaimed',0,0,1 WHERE EXISTS(SELECT 1 FROM monitors WHERE id=?)").bind(id,m.id,m.revision,Date.now(),JSON.stringify(m.definition),m.id).run();if(!inserted.meta.changes)return c.json({error:'Monitor unavailable or erased'},409);return c.json({queued:true,slotId:id,policyAdvanced:false})})
 api.get('/api/runners',async c=>c.json(await listRunners(c.env)))
-api.post('/api/runners',async c=>c.json(await createRunner(c.env,JSON.parse(c.get('requestText'))),201))
+api.post('/api/runners',async c=>c.json(await createRunner(c.env,c.get('input')),201))
 api.delete('/api/runners/:id',async c=>c.json(await revokeRunner(c.env,c.req.param('id'))))
 // The installation-wide External check URL: owner session only, same origin, validated before it is stored.
 api.get('/api/external-check',async c=>c.json(await readExternalCheck(c.env)))
@@ -64,14 +70,14 @@ api.post('/api/runner/enroll',async c=>{const registration=await enrollRunner(c.
 api.post('/api/runner/claim',async c=>{const row=c.get('runner').runner_id?c.get('runner'):await ensureFirstRunner(c.env);const task=await storageOperation('runner.claim',()=>claim(c.env,row.runner_id));await storageOperation('runner.claim.contact',async()=>{await recordContact(c.env.DB);await c.env.DB.prepare('UPDATE runners SET last_contact_at=? WHERE runner_id=? AND revoked_at IS NULL').bind(Date.now(),row.runner_id).run()});
  // `now` is the Worker's clock at the claim: the runner aligns the times it reports to it (see docs/runner.md).
  return c.json({task,now:Date.now()})})
-api.post('/api/runner/results',async c=>{const text=c.get('requestText');if(!await signedRunnerBody(c.env,c.get('runner'),text,c.req.header('x-sent-at')??'',c.req.header('x-runner-signature')??'',runnerResultLimit(text)))return c.json({error:'Invalid signed result'},403);return c.json(await storageOperation('runner.results',()=>complete(c.env,JSON.parse(text),c.get('runner').runner_id)))})
+api.post('/api/runner/results',async c=>{const text=c.get('requestText');if(!await signedRunnerBody(c.env,c.get('runner'),text,c.req.header('x-sent-at')??'',c.req.header('x-runner-signature')??'',runnerResultLimit(text)))return c.json({error:'Invalid signed result'},403);return c.json(await storageOperation('runner.results',()=>complete(c.env,c.get('input'),c.get('runner').runner_id)))})
 // Discovery: the owner's console asks, the owner's runner claims and answers; the Worker never fetches the target.
 api.post('/api/discoveries',async c=>c.json(await createDiscovery(c.env,c.get('requestText')),201))
 api.get('/api/discoveries/:id',async c=>c.json(await readDiscovery(c.env,c.req.param('id'))))
 api.post('/api/runner/discoveries/claim',async c=>c.json(await claimDiscovery(c.env,c.get('requestText'),c.get('runner'))))
 api.post('/api/runner/discoveries/:id/result',async c=>{const text=c.get('requestText');if(!await signedRunnerBody(c.env,c.get('runner'),text,c.req.header('x-sent-at')??'',c.req.header('x-runner-signature')??'',DISCOVERY_RESULT_BYTES))return c.json({error:'Invalid signed result'},403);return c.json(await completeDiscovery(c.env,c.req.param('id'),discoveryAnswer(text),c.get('runner')))})
 api.get('/api/archive',async c=>c.json(await archive(c.env)))
-api.post('/api/restore',async c=>{const input=JSON.parse(c.get('requestText'));return c.json(await restore(c.env,input.archive??input,undefined,{laterJournal:input.laterJournal,actor:{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id}}))})
+api.post('/api/restore',async c=>{const input=c.get('input');return c.json(await restore(c.env,input.archive??input,undefined,{laterJournal:input.laterJournal,actor:{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id}}))})
 // Definition files: preview writes nothing; apply takes the previewed digest; export is read-only; undo pauses or restores.
 const operator=async(c:any)=>({kind:'operator' as const,ref:(await operatorSession(c.env,c.req.raw))!.operator.id})
 api.post('/api/definitions/preview',async c=>c.json(await previewDefinitions(c.env,c.get('requestText'),c.req.query('source'))))
@@ -80,17 +86,17 @@ api.get('/api/definitions/export',async c=>{c.header('content-disposition','atta
 api.get('/api/definitions/batches',async c=>c.json(await listBatches(c.env)))
 api.post('/api/definitions/batches/:id/undo',async c=>c.json(await undoBatch(c.env,c.req.param('id'),await operator(c))))
 api.get('/api/erasure-journal',async c=>c.json(await exportJournal(c.env)))
-api.post('/api/monitors/:id/erase',async c=>c.json(await erase(c.env,'monitor',c.req.param('id'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id},JSON.parse(c.get('requestText')).name)))
+api.post('/api/monitors/:id/erase',async c=>c.json(await erase(c.env,'monitor',c.req.param('id'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id},c.get('input').name)))
 api.post('/api/operators/:id/erase',async c=>c.json(await erase(c.env,'operator',c.req.param('id'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 api.get('/api/notifications',async c=>c.json(await notificationOverview(c.env)))
 api.get('/api/notifications/destinations',async c=>c.json(await destinations(c.env)))
-api.post('/api/notifications/destinations',async c=>c.json(await createDestination(c.env,JSON.parse(c.get('requestText'))),201))
-api.patch('/api/notifications/destinations/:id',async c=>c.json(await updateDestination(c.env,c.req.param('id'),JSON.parse(c.get('requestText')),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
+api.post('/api/notifications/destinations',async c=>c.json(await createDestination(c.env,c.get('input')),201))
+api.patch('/api/notifications/destinations/:id',async c=>c.json(await updateDestination(c.env,c.req.param('id'),c.get('input'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 api.delete('/api/notifications/destinations/:id',async c=>c.json(await erase(c.env,'destination',c.req.param('id'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 api.post('/api/notifications/destinations/:id/rotate',async c=>c.json(await rotateDestination(c.env,c.req.param('id'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 api.post('/api/notifications/destinations/:id/test',async c=>c.json(await testDestination(c.env,c.req.param('id')),202))
 api.post('/api/notifications/destinations/:id/drill',async c=>c.json(await startDrill(c.env,c.req.param('id'),(await operator(c)).ref),202))
-api.post('/api/runner/notifications',async c=>c.json(await notificationRpc(c.env,JSON.parse(c.get('requestText')))))
+api.post('/api/runner/notifications',async c=>c.json(await notificationRpc(c.env,c.get('input'))))
 // A failed mutation guard or a racing writer's constraint means the installation changed between reading and writing: a conflict.
 // Any other D1 failure is a retryable storage fault. The log line names the operation, class, status and a sanitized cause, never values.
 api.onError((error,c)=>{

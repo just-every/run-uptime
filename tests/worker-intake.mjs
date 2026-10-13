@@ -12,6 +12,7 @@ import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {startLocalWorker} from '../scripts/local-worker.mjs';
 import {restore} from '../src/domain/control.server.ts';
+import {apiRoutes} from '../src/domain/request-boundary.ts';
 import {probeHttp} from '../runners/src/engine.mjs';
 import {readGrant} from '../runners/src/grants.mjs';
 
@@ -151,12 +152,6 @@ try{
   fixture.once('exit',(code,signal)=>{fixtureFailure=Error(`Synthetic fixture port ${fixturePort} exited (pid ${fixture.pid}, exit ${code}, signal ${signal})`);fixtureAbort.abort()});
   await waitForFixture();
   cookie=await signInOwner(origin);
-  await check('valid chunked owner sign-out preserves UTF8 split into one-byte HTTP chunks',async()=>{
-    const result=await chunked('/api/auth/sign-out',JSON.stringify({note:'€日本語✓ café'}),{},1);
-    assert.equal(result.status,200,JSON.stringify(result.data));
-    assert.equal(result.requestContentLength,null);assert.equal(result.requestEncoding,'chunked');
-    assert.match(result.headers['set-cookie'][0],/Max-Age=0/);cookie=await signInOwner(origin);
-  });
   await check('chunked body without Content-Length rejects bytes above2MiB despite fewer characters',async()=>{
     const result=await chunked('/api/auth/sign-out',JSON.stringify({padding}));
     assert.ok(result.characters<maxBytes&&result.bytes>maxBytes);
@@ -188,6 +183,23 @@ try{
     const definition={name:'レビュー € café',url:`http://127.0.0.1:${fixturePort}/health`,intervalMs:86400000,retries:0,confirmSlots:1,recoverSlots:1};
     const result=await chunked('/api/monitors',JSON.stringify(definition),{},1);
     assert.equal(result.status,201,JSON.stringify(result.data));assert.equal(result.data.definition.name,definition.name);monitor=result.data;
+  });
+  // BASE-INPUT-001 / BASE-SECRET-001: every route in the Worker's route table refuses an invalid path parameter, an undeclared
+  // query, a stray or malformed body with a 400 in the standard format, before any service and with nothing durable changed; a
+  // refusal never repeats what was sent, here a credential-shaped value.
+  await check('every route refuses invalid path, query and body input at its boundary without echo or effect',async()=>{
+    const tables=async()=>JSON.stringify(await Promise.all((await DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT GLOB '_cf*' AND name NOT IN ('public_rate_limits','oa_limits','runner_contact') ORDER BY name").all()).results.map(async({name})=>(await DB.prepare(`SELECT * FROM "${name}" ORDER BY rowid`).all()).results)));
+    const secret='planted-credential-0001',before=await tables();
+    const send=async(method,path,body)=>{const response=await fetch(origin+path,{method,headers:{origin,'content-type':'application/json',cookie,'x-runner-key':runner},...(body===undefined?{}:{body})});const text=await response.text();assert.equal(response.status,400,`${method} ${path}: ${text}`);assert.ok(/^\{"error":"[^"]+"\}$/.test(text)&&!text.includes(secret),`${method} ${path} answers the standard error without the input`)};
+    for(const route of apiRoutes){
+      const at=id=>route.path.replace(':id',id),valid=at(route.params?.id?.(monitor.id)?monitor.id:'00000000-0000-4000-8000-000000000000'),body=route.body==='none'?undefined:'{}';
+      if(route.params)await send(route.method,at(encodeURIComponent(secret+'\u0001')),body);
+      await send(route.method,`${valid}?${secret}=1`,body);
+      if(route.body==='none'&&route.method!=='GET')await send(route.method,valid,JSON.stringify({secret}));
+      if(route.body==='empty')await send(route.method,valid,JSON.stringify({secret}));
+      if(route.body==='object')for(const malformed of [secret,`["${secret}"]`,`{"value":"${secret}"`])await send(route.method,valid,malformed);
+    }
+    assert.equal(await tables(),before,'no refused input changed anything durable');
   });
   const claimed=await api('/api/runner/claim','POST',{}, {'x-runner-key':runner});
   assert.equal(claimed.status,200);const task=claimed.data.task;assert.equal(task.monitorId,monitor.id);
