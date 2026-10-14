@@ -10,6 +10,8 @@ function link(row) {
 }
 
 export function storage(db) {
+  const pruneExchange = id => db.prepare(`DELETE FROM oa_identity_provider_health WHERE provider_id LIKE ? AND provider_id NOT IN
+    (SELECT 'exchange:' || provider_id || ':' || linked_at FROM oa_identity_providers WHERE provider_id=? AND status='linked')`).bind(`exchange:${id}:%`, id);
   const guarded = async operation => { try { return await operation(); } catch { fail('oidc_storage_unavailable', 503); } };
   return {
     async limit(bucket, expiresAt, maximum) {
@@ -37,10 +39,10 @@ export function storage(db) {
     },
     // A re-link the owner approved: the configured provider replaces the pin.
     async relink(id, provider, metadata, now) {
-      return guarded(() => db.prepare(`UPDATE oa_identity_providers SET preset=?,status='linked',issuer=?,client_id=?,jwks_uri=?,authorization_endpoint=?,token_endpoint=?,algorithms=?,token_auth_method=?,
+      return guarded(() => db.batch([db.prepare(`UPDATE oa_identity_providers SET preset=?,status='linked',issuer=?,client_id=?,jwks_uri=?,authorization_endpoint=?,token_endpoint=?,algorithms=?,token_auth_method=?,
         response_iss=?,interface_version=?,linked_at=MAX(linked_at+1,?),pending_issuer=NULL,pending_client_id=NULL,pending_preset=NULL,pending_at=NULL,jwks=NULL,jwks_fetched_at=NULL
         WHERE provider_id=?`).bind(provider.preset, metadata.issuer, provider.clientId, metadata.jwks, metadata.authorization, metadata.token, JSON.stringify(metadata.algorithms), provider.tokenAuthMethod,
-        metadata.responseIssuer ? 1 : 0, metadata.interfaceVersion, now, id).run());
+        metadata.responseIssuer ? 1 : 0, metadata.interfaceVersion, now, id), pruneExchange(id)]));
     },
     // A changed configuration only records what a re-link would pin.
     pending(id, provider, now) {
@@ -48,9 +50,23 @@ export function storage(db) {
         WHERE provider_id=? AND (pending_issuer IS NOT ? OR pending_client_id IS NOT ? OR pending_preset IS NOT ?)`).bind(provider.issuer, provider.clientId, provider.preset, now, id, provider.issuer, provider.clientId, provider.preset).run());
     },
     clearPending(id) { return guarded(() => db.prepare('UPDATE oa_identity_providers SET pending_issuer=NULL,pending_client_id=NULL,pending_preset=NULL,pending_at=NULL WHERE provider_id=?').bind(id).run()); },
-    unlink(id) { return guarded(() => db.prepare("UPDATE oa_identity_providers SET status='unlinked' WHERE provider_id=?").bind(id).run()); },
+    unlink(id) { return guarded(() => db.batch([db.prepare("UPDATE oa_identity_providers SET status='unlinked' WHERE provider_id=?").bind(id), pruneExchange(id)])); },
     keys(pin, keySet, now) {
       return guarded(() => db.prepare("UPDATE oa_identity_providers SET jwks=?,jwks_fetched_at=? WHERE provider_id=? AND status='linked' AND issuer=? AND client_id=? AND linked_at=?").bind(JSON.stringify(keySet), now, pin.id, pin.issuer, pin.clientId, pin.linkedAt).run());
+    },
+    // Reuse the existing health schema with a reserved phase/generation key.
+    // A late callback can neither overwrite a replacement pin's proof nor retain
+    // stale generations. The pin fence is evaluated by SQL at write time.
+    exchangeHealth(pin, healthy, hard, now) {
+      const key = `exchange:${pin.id}:${pin.linkedAt}`;
+      return guarded(() => db.batch([
+        pruneExchange(pin.id),
+        db.prepare(`INSERT INTO oa_identity_provider_health(provider_id,failing_since,hard_failure_at,checked_at)
+          SELECT ?,?,?,? WHERE EXISTS(SELECT 1 FROM oa_identity_providers WHERE provider_id=? AND status='linked' AND issuer=? AND client_id=? AND linked_at=?)
+          ON CONFLICT(provider_id) DO UPDATE SET failing_since=CASE WHEN ? THEN NULL ELSE COALESCE(failing_since,excluded.failing_since) END,
+          hard_failure_at=CASE WHEN ? THEN NULL ELSE COALESCE(excluded.hard_failure_at,hard_failure_at) END,checked_at=excluded.checked_at`)
+          .bind(key, healthy ? null : now, !healthy && hard ? now : null, now, pin.id, pin.issuer, pin.clientId, pin.linkedAt, Number(healthy), Number(healthy)),
+      ]));
     },
     async health() {
       return guarded(async () => new Map((await db.prepare('SELECT provider_id AS id,failing_since AS failingSince,hard_failure_at AS hardFailureAt,checked_at AS checkedAt FROM oa_identity_provider_health').all()).results.map(r => [r.id, r])));

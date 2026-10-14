@@ -42,7 +42,7 @@ export const configurationTable = Object.freeze([
  ...['UPTIME_WATCH_WEBHOOK_URL','UPTIME_WATCH_SLACK_URL'].map(name=>({name,scopes:['runner'],required:'optional',valid:value=>{try{return publicTarget(value).protocol==='https:'}catch{return false}}})),
  {name:'UPTIME_RUNNER_ID',scopes:['runner'],required:'optional',valid:text},
  {name:'UPTIME_NETWORK_LABEL',scopes:['runner'],required:'optional',valid:value=>text(value)&&value.length<=80},
- { name: 'MAIL_PROVIDER', scopes: app, required: 'local', valid: (value, env) => ['sendgrid','resend','cloudflare'].includes(value) || (local(env) && value === 'development') },
+ { name: 'MAIL_PROVIDER', scopes: app, required: 'local', valid: (value, env) => ['sendgrid','resend','cloudflare'].includes(value) || ((local(env) || env.RER_DEMO==='1') && value === 'development') },
  { name: 'UPTIME_LOCAL_REVIEW', scopes: [...app, 'runner'], required: 'optional', valid: value => ['true', 'false'].includes(value) },
  { name: 'AUTH_ORIGIN', scopes: ['settings'], required: 'optional', valid: origin },
  { name: 'UPTIME_LOCAL_ORIGIN', scopes: ['local-worker'], required: 'always', valid: value => origin(value, { UPTIME_LOCAL_REVIEW: 'true' }) },

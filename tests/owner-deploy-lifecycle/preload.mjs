@@ -1,8 +1,8 @@
 // Test-only network edge for the real rer deploy command. The edition build
-// drops NODE_OPTIONS; only the command's Cloudflare and served-health requests
+// drops NODE_OPTIONS; only the command's Cloudflare and hosted-app requests
 // cross this authenticated loopback bridge.
-const bridge = process.env.UPTIME_OWNER_TEST_BRIDGE;
-const key = process.env.UPTIME_OWNER_TEST_KEY;
+import { readFile } from 'node:fs/promises';
+const { bridge, key } = JSON.parse(await readFile(new URL('../../.rer/owner-deploy-test-transport.json', import.meta.url), 'utf8'));
 if (!bridge || !key || new URL(bridge).hostname !== '127.0.0.1') throw Error('missing-test-transport');
 
 const actualFetch = globalThis.fetch;

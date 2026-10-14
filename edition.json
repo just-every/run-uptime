@@ -205,7 +205,8 @@
           "scripts/delivery/setup-build.sh",
           "migrations/0017_first_run.sql",
           "migrations/0020_audit_erasure.sql",
-          "migrations/0021_public_rate_limits.sql"
+          "migrations/0021_public_rate_limits.sql",
+          "src/demo.ts"
         ]
       }
     },
@@ -341,6 +342,30 @@
           {
             "path": "scripts/delivery/base/schema/dependencies.mjs",
             "originPath": "schema/dependencies.mjs"
+          }
+        ]
+      }
+    },
+    {
+      "id": "runeditrun/demo",
+      "role": "module",
+      "source": {
+        "kind": "local",
+        "paths": [
+          "src/modules/demo"
+        ],
+        "origin": {
+          "repository": "https://github.com/runeditrun/base.git",
+          "revision": "a6afad9f4d007bf1b97a75bd67880d1850683e5d",
+          "path": ".",
+          "paths": [
+            "modules/demo"
+          ]
+        },
+        "mappings": [
+          {
+            "path": "src/modules/demo",
+            "originPath": "modules/demo"
           }
         ]
       }

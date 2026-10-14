@@ -1,8 +1,7 @@
 import { deny } from './errors.mjs';
 import { validToken } from './crypto.mjs';
-export function isLoopbackHost(hostname) {
-  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]';
-}
+import { isLoopbackHost } from './loopback.mjs';
+export { isLoopbackHost };
 // Browsers keep cookies per host, not per port, so checkouts side by side on
 // one loopback host would overwrite each other's cookies. A local cookie name
 // therefore carries its origin's port; hosted names never change. Seeds on

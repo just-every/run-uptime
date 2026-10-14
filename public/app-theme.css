@@ -338,6 +338,9 @@
 :where(fieldset) { min-width: 0; margin: 0; padding: 0; border: 0; }
 :where(legend) { padding: 0; color: var(--ink); font-size: 16px; font-weight: 700; }
 
+/* Base's demo marker owns its foreground, independent of app disclosure colours. */
+#rer-demo-bar summary { color: inherit; }
+
 /* The disclosure row styles the console's own details; the local development badge (#rer-dev-badge, Base) is injected chrome with its own colours and keeps its own summary. :where keeps these rules at zero specificity. */
 :where(summary:not(#rer-dev-badge summary)) { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 10px 0; color: var(--ink); font-weight: 600; cursor: pointer; list-style: none; }
 :where(summary:not(#rer-dev-badge summary))::-webkit-details-marker { display: none; }

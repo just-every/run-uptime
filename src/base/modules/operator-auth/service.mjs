@@ -75,6 +75,7 @@ export function createOperatorAuth(options) {
     ...providerControl({ store, accounts, authenticate, config, clock }),
     ...fencedCredentials({store,authenticate,requireFreshProof,config,clock,hash}),
     presentation: config.branding,
+    emailSignInAvailable: Boolean(mailSender),
     /** Identity providers (null when none is configured): routes, the sign-in page's list and owner actions. */
     providers,
     /** The admission identity methods use: a verified principal in, a session out. */

@@ -29,5 +29,5 @@ export const HIDE_AFTER_MS: number;
 export const MINIMUM_PROVIDER_VERSION: string;
 export const PRESETS: Readonly<Record<'auth' | 'google' | 'microsoft' | 'okta' | 'legacy-rs256', { label: string; algorithms: string[]; methods: string[]; email: 'verified-at' | 'google' | 'subject' | 'legacy-verified' }>>;
 export function createOidcProviders<R extends string>(options: OidcProvidersOptions<R>): IdentityProviders;
-export function createOidcHandler(providers: IdentityProviders): (request: Request) => Promise<Response | null>;
+export function createOidcHandler(providers: IdentityProviders, options?: { signInPath?: string }): (request: Request) => Promise<Response | null>;
 export class OidcError extends Error { constructor(code: string, status?: number); code: string; status: number }

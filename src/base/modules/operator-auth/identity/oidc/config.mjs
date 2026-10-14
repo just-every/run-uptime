@@ -1,3 +1,4 @@
+import { configureBranding } from '../../branding.mjs';
 import { normalizeEmail } from '../../policy.mjs';
 import { isLoopbackHost } from '../../http.mjs';
 import { check } from './errors.mjs';
@@ -73,6 +74,7 @@ function provider(input, origin) {
 
 export function configure(input) {
   try {
+    const { signInPath } = configureBranding({ signInPath: input.signInPath });
     const origin = new URL(input.origin);
     check(origin.origin === input.origin && !origin.username && !origin.password);
     const local = input.local === true;
@@ -85,11 +87,11 @@ export function configure(input) {
     check(new Set(callbacks).size === providers.length);
     // Auth routes, owner-claim handlers and the local dev gate retain their
     // handlers even when an edition chooses its own OIDC callback pathname.
-    const reserved = new Set([input.signInPath ?? '/signin', '/auth/owner-claim', '/auth/dev/enter', '/__dev/personas', '/__dev/key', '/auth/bootstrap', '/auth/magic-link', '/auth/confirm', '/auth/signout', '/auth/session', '/auth/invite', '/auth/invite/cancel', '/auth/review-session', '/auth/operators', '/auth/sessions', '/auth/operator/status', '/auth/operator/role', '/auth/session/revoke', '/auth/step-up', '/auth/domain-rules', '/auth/providers', '/auth/providers/unlink', '/auth/providers/relink', '/auth/settings/identity', '/auth/setup-complete']);
+    const reserved = new Set([new URL(signInPath, origin).pathname, '/auth/owner-claim', '/auth/dev/enter', '/__dev/personas', '/__dev/key', '/auth/bootstrap', '/auth/magic-link', '/auth/confirm', '/auth/signout', '/auth/session', '/auth/invite', '/auth/invite/cancel', '/auth/review-session', '/auth/operators', '/auth/sessions', '/auth/operator/status', '/auth/operator/role', '/auth/session/revoke', '/auth/step-up', '/auth/domain-rules', '/auth/providers', '/auth/providers/unlink', '/auth/providers/relink', '/auth/settings/identity', '/auth/setup-complete']);
     check(callbacks.every((path, index) => !reserved.has(path) && !path.startsWith('/.well-known/') && !path.startsWith('/auth/dependencies/') && !providers.some(p => path === p.startPath) && (!path.startsWith('/auth/oidc/') || path === `/auth/oidc/${providers[index].id}/callback`)));
 
     return Object.freeze({ origin: input.origin, local, secure: origin.protocol === 'https:', transactionSecret: input.transactionSecret, providers: Object.freeze(providers),
-      signInPath: input.signInPath ?? '/signin',
+      signInPath,
       transactionSeconds: integer(input.transactionSeconds, 600, 60, 900), timeoutMs: integer(input.timeoutMs, 5000, 100, 15000),
       clockSkewSeconds: integer(input.clockSkewSeconds, 30, 0, 120), maxTokenAgeSeconds: integer(input.maxTokenAgeSeconds, 600, 60, 3600),
       startLimit: integer(input.startLimit, 30, 1, 1000) });

@@ -67,6 +67,6 @@ export function deployment(lifecycle) {
   const result = await kit('provisioning, migrations and upload', 'deploy');
   await kit('the health check', 'health');
   store.report(`deploy: ${result.origin} (Worker ${result.worker}, environment ${environment})`);
-  return { deployed: true, origin: result.origin, worker: result.worker, environment };
+  return { deployed: true, origin: result.origin, worker: result.worker, environment, state: result.state };
  };
 }

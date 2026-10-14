@@ -1,3 +1,6 @@
+import {withDemo} from './modules/demo/index.mjs'
+import {seedDemo} from './demo.ts'
+import {demoBindings,recordDemoBlocked} from './domain/demo.server.ts'
 import {monitoringWatch} from './domain/monitoring-watch.server.ts'
 import {dispatchNotificationMail} from './domain/notification-mail.server.ts'
 import {createDiscovery,readDiscovery,claimDiscovery,completeDiscovery,discoveryAnswer,DISCOVERY_RESULT_BYTES} from './domain/discovery.server.ts'
@@ -95,6 +98,7 @@ api.delete('/api/notifications/destinations/:id',async c=>c.json(await erase(c.e
 api.post('/api/notifications/destinations/:id/rotate',async c=>c.json(await rotateDestination(c.env,c.req.param('id'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 api.post('/api/notifications/destinations/:id/test',async c=>c.json(await testDestination(c.env,c.req.param('id')),202))
 api.post('/api/notifications/destinations/:id/drill',async c=>c.json(await startDrill(c.env,c.req.param('id'),(await operator(c)).ref),202))
+api.post('/api/runner/demo-blocked',async c=>c.json(await recordDemoBlocked(c.env,c.get('input'))))
 api.post('/api/runner/notifications',async c=>c.json(await notificationRpc(c.env,c.get('input'))))
 // A failed mutation guard or a racing writer's constraint means the installation changed between reading and writing: a conflict.
 // Any other D1 failure is a retryable storage fault. The log line names the operation, class, status and a sanitized cause, never values.
@@ -128,6 +132,7 @@ const noTransform=(response:Response)=>{
 }
 const isConsoleDocument=(path:string)=>['/app','/app/','/app/monitor','/app/monitor/'].includes(path)||isMonitorPage(path)
 const handler={async fetch(request,env,execution){
+ env=await demoBindings(env as Bindings);
  const invalid=await configurationResponse(env as Bindings);if(invalid)return invalid;
  const limited=await limitPublicRequest(env as Bindings,request);if(limited)return limited;
  const bindings=env as Bindings,url=new URL(request.url),path=url.pathname;
@@ -163,7 +168,7 @@ const handler={async fetch(request,env,execution){
  }
  const response=await dispatch(request,()=>api.fetch(request,bindings,execution),()=>start.fetch(request));
  return noTransform(isConsoleDocument(path)?editorDocument(response,bindings):response)
-},async scheduled(_controller,env){await validateWorkerConfiguration(env as Bindings);const bindings=env as Bindings;await maintenance(bindings);await dispatchNotificationMail(bindings);await monitoringWatch(bindings,()=>boundedHealth(()=>health(bindings)),async()=>{const data=await overview(bindings);return data.monitors.filter(m=>m.definition.enabled).every(m=>m.state.targetState==='Healthy')})}} satisfies ExportedHandler
-export default {...handler,fetch(request,env,execution){
+},async scheduled(_controller,env){env=await demoBindings(env as Bindings);await validateWorkerConfiguration(env as Bindings);const bindings=env as Bindings;await maintenance(bindings);await dispatchNotificationMail(bindings);await monitoringWatch(bindings,()=>boundedHealth(()=>health(bindings)),async()=>{const data=await overview(bindings);return data.monitors.filter(m=>m.definition.enabled).every(m=>m.state.targetState==='Healthy')})}} satisfies ExportedHandler
+export default withDemo({...handler,fetch(request,env,execution){
  return new URL(request.url).pathname==='/health'?boundedHealth(()=>handler.fetch(request,env,execution)):handler.fetch(request,env,execution)
-}} satisfies ExportedHandler
+}} satisfies ExportedHandler,{seed:seedDemo})

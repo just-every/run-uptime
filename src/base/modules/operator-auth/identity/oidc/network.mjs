@@ -7,10 +7,13 @@ import { clientAssertion } from './client-auth.mjs';
 // or its name does not resolve (a resolver error, or the 530 a Cloudflare
 // Worker receives for an origin DNS failure).
 export class ProviderUnreachable extends OidcError { constructor() { super('oidc_provider_unavailable', 502); this.hard = true; } }
+// A rejected authorization code says nothing about the registration's health.
+// Only a bounded, valid token-endpoint HTTP 400 response can produce this type.
+export class GrantRejected extends OidcError { constructor() { super('oidc_invalid_response'); } }
 const dnsFailure = error => /\b(?:dns|getaddrinfo|enotfound|eai_again|name not resolved|could not resolve)\b/i.test(String(error?.message ?? error));
 
 // The deadline includes stream consumption; redirects never forward credentials.
-export async function readJson(fetcher, uri, settings, init = {}, maxBytes = 65536) {
+export async function readJson(fetcher, uri, settings, init = {}, maxBytes = 65536, tokenExchange = false) {
   const controller = new AbortController();
   let timer, hard = false;
   const deadline = new Promise((_, reject) => { timer = setTimeout(() => { controller.abort(); reject(new Error('deadline')); }, settings.timeoutMs); });
@@ -22,7 +25,7 @@ export async function readJson(fetcher, uri, settings, init = {}, maxBytes = 655
       catch (error) { hard = dnsFailure(error); throw error; }
       check(response.status < 300 || response.status >= 400, 'oidc_provider_redirect', 502);
       if (response.status === 404 || response.status === 530) hard = true;
-      check(response.status === 200 && !response.redirected && (!response.url || response.url === uri), 'oidc_provider_unavailable', 502);
+      check((response.status === 200 || tokenExchange && response.status === 400) && !response.redirected && (!response.url || response.url === uri), 'oidc_provider_unavailable', 502);
       check(/^application\/(?:[a-z0-9.+-]+\+)?json(?:\s*;|$)/i.test(response.headers.get('content-type') ?? ''), 'oidc_provider_unavailable', 502);
       const length = response.headers.get('content-length');
       check(!length || /^\d+$/.test(length) && Number(length) <= maxBytes, 'oidc_provider_unavailable', 502);
@@ -34,9 +37,11 @@ export async function readJson(fetcher, uri, settings, init = {}, maxBytes = 655
       for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
       const body = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
       check(body && typeof body === 'object' && !Array.isArray(body), 'oidc_provider_unavailable', 502);
+      if (response.status === 400 && body.error === 'invalid_grant') throw new GrantRejected();
+      check(response.status === 200, 'oidc_provider_unavailable', 502);
       return body;
     })()]);
-  } catch { if (hard) throw new ProviderUnreachable(); fail('oidc_provider_unavailable', 502); }
+  } catch (error) { if (error instanceof GrantRejected) throw error; if (hard) throw new ProviderUnreachable(); fail('oidc_provider_unavailable', 502); }
   finally { clearTimeout(timer); controller.abort(); if (reader) void reader.cancel().catch(() => {}); }
 }
 
@@ -86,7 +91,7 @@ export async function exchange(fetcher, link, provider, settings, code, verifier
     form.set('client_assertion_type', 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer');
     form.set('client_assertion', await clientAssertion(provider, link, now));
   }
-  const response = await readJson(fetcher, link.token, settings, { method: 'POST', headers, body: form.toString() });
+  const response = await readJson(fetcher, link.token, settings, { method: 'POST', headers, body: form.toString() }, 65536, true);
   check(!Object.hasOwn(response, 'error') && typeof response.id_token === 'string' && (response.access_token === undefined || typeof response.access_token === 'string' && /^[\x21-\x7e]+$/.test(response.access_token))
     && (response.token_type === undefined && response.access_token === undefined || typeof response.token_type === 'string' && response.token_type.toLowerCase() === 'bearer'));
   return response;

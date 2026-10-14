@@ -1,3 +1,4 @@
+import {demoEnvironment,runtimeEnvironment} from '../local/demo-state.mjs';
 import { localInstaller } from '@runeditrun/rer/local-installer';
 import { commandAdapter as createCommandAdapter } from '@runeditrun/rer/adapter';
 import { deployment } from '../deployment/command.mjs';
@@ -8,9 +9,9 @@ import { portability } from '../local/portability.mjs';
 import { buildCommand, migrationCommand } from '../local/commands.mjs';
 export const lifecycle = localInstaller({
  features, node: '22.20.0', tools: ['pnpm', 'node'], prepare,
- secrets: settingsDefinition(), build: buildCommand, migrate: migrationCommand('.wrangler/state', true),
+ secrets: settingsDefinition(), build: buildCommand, migrate: async ({demo}) => {const [command,args]=migrationCommand(demo?.state ?? '.wrangler/state', !demo);return [command,args,{env:{...runtimeEnvironment(),...await demoEnvironment(demo)}}]},
  start: context => runtimeTarget(context, false),
- owner: { existingOwnerViaSignIn: true, displayName: input => input.displayName, returnTo: '/setup' },
+ owner: { existingOwnerViaSignIn: true, displayName: input => input.displayName ?? 'Owner', returnTo: '/setup' },
  signIn: { emailKey: 'OWNER_EMAIL', returnTo: '/setup' },
 });
 export const commandAdapter = createCommandAdapter(lifecycle, {

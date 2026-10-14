@@ -111,7 +111,7 @@ export function createNativeAuth({ accounts, proofs, db, config, clock, hooks, m
     // explicit refusals, never apparently successful writes to an unused store.
     ...Object.fromEntries(['invite', 'listOperators', 'cancelInvitation', 'setOperatorStatus', 'setRole', 'listSessions', 'revokeSession',
       'listDomainRules', 'setDomainRule', 'unlinkProvider', 'relinkProvider', 'mintCredential', 'authenticateCredential'].map(k => [k, unavailable])),
-    native: true, presentation: config.branding, accounts, admission, providers,
+    native: true, presentation: config.branding, emailSignInAvailable: Boolean(mailSender), accounts, admission, providers,
     requestMagicLink: email.requestMagicLink, previewLink: email.previewLink, confirmLink: email.confirmLink,
     requestStepUp: email.requestStepUp, requireStepUp: email.requireStepUp,
     ...legacyAdmission({ admission, config, policyVersion }),

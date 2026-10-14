@@ -124,10 +124,12 @@ export interface ProviderEntry { id: string; label: string; preset: ProviderPres
 export interface ProviderLink {
   id: string; preset: ProviderPreset; status: 'linked' | 'unlinked'; issuer: string; clientId: string; jwks: string; authorization: string; token: string;
   algorithms: Array<'ES256' | 'RS256'>; tokenAuthMethod: string; responseIssuer: boolean; interfaceVersion: string | null; linkedAt: number;
+  healthy?: boolean;
   pendingIssuer: string | null; pendingClientId: string | null; pendingPreset: string | null; pendingAt: number | null;
 }
 export interface IdentityProviders {
   readonly ids: readonly string[];
+  readonly signInPath?: string;
   readonly callbackPaths?: Readonly<Record<string, string>>;
   begin(request: Request, id: string, input?: { returnTo?: string }): Promise<Response>;
   callback(request: Request, id: string): Promise<Response>;
@@ -149,6 +151,8 @@ export interface OperatorAuth<R extends string = Role> {
   checkCredentialFence(credential:{personId:string;fence?:number;kind?:SessionKind},request?:Request):Promise<boolean>;
   /** Frozen public branding only; contains no credentials or auth configuration. */
   readonly presentation: AuthPresentation;
+  /** Whether this composition has a sender for email sign-in. */
+  readonly emailSignInAvailable: boolean;
   /** Linked identity providers; null when none is configured. */
   readonly providers: IdentityProviders | null;
   readonly admission: Admission<R>;
@@ -191,15 +195,8 @@ export type { NativeProofPersistence } from './identity/email-link/index.mjs';
 export function createOperatorAuth<R extends string>(options: import('./accounts/native.mjs').NativeAuthOptions<R>): import('./accounts/native.mjs').NativeOperatorAuth<R>;
 export function createOperatorAuth(options: AuthOptions): OperatorAuth;
 export function createAuthHandler<R extends string>(auth: OperatorAuth<R>): (request: Request) => Promise<Response | null>;
-export interface SignInPageOptions {
-  /** While the first owner is unclaimed: the setup form and its instructions. */
-  setup?: (request: Request) => null | false | undefined | { instructions?: string } | Promise<null | false | undefined | { instructions?: string }>;
-  /** Extra same-origin links under the form (for example the local development outbox). */
-  links?: (request: Request) => Array<{ href: string; label: string }> | Promise<Array<{ href: string; label: string }>>;
-  defaultReturnTo?: string;
-}
-/** The shared server-rendered sign-in page at branding.signInPath (GET and HEAD); null for anything else. */
-export function createSignInHandler<R extends string>(auth: OperatorAuth<R>, options?: SignInPageOptions): (request: Request) => Promise<Response | null>;
+export { createSignInHandler } from './signin/index.mjs';
+export type { SignInPageOptions } from './signin/index.mjs';
 export class AuthError extends Error { constructor(code: string, status?: number); code: string; status: number }
 export const DEFAULT_ROLES: readonly Role[];
 export function defaultRolePolicy(input: PolicyInput): boolean;

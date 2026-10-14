@@ -48,7 +48,7 @@
     "test:browser": "node tests/browser-suites.mjs",
     "release": "rer release",
     "build:app": "vite build",
-    "verify:app": "pnpm build && pnpm typecheck && pnpm test:baseline && pnpm test:resilience && pnpm test:runtime && pnpm test:intake && pnpm test:contact && pnpm test:feedback && pnpm test:editor && pnpm test:document && pnpm test:probes && pnpm test:security && pnpm test:availability && pnpm test:console-smoke && pnpm test:notifications && pnpm test:local && pnpm test:source && pnpm test:base && pnpm test:admission && pnpm test:access && pnpm test:owner-deploy && pnpm test:archive && pnpm test:definitions && pnpm test:readme && pnpm test:runner && pnpm test:flow && pnpm test:owner-outbox-ui && pnpm test:browser",
+    "verify:app": "pnpm build && pnpm typecheck && pnpm test:baseline && pnpm test:resilience && pnpm test:runtime && pnpm test:intake && pnpm test:contact && pnpm test:feedback && pnpm test:editor && pnpm test:document && pnpm test:probes && pnpm test:security && pnpm test:availability && pnpm test:console-smoke && pnpm test:notifications && pnpm test:local && pnpm test:source && pnpm test:base && pnpm test:admission && pnpm test:access && pnpm test:owner-deploy && pnpm test:archive && pnpm test:definitions && pnpm test:readme && pnpm test:runner && pnpm test:flow && pnpm test:owner-outbox-ui && pnpm test:browser && pnpm test:demo",
     "reset": "rer reset",
     "outbox": "rer outbox",
     "doctor": "rer doctor",
@@ -59,7 +59,8 @@
     "test:admission": "node tests/delivery-artifact.mjs && node tests/owner-claim-admission.mjs && node tests/owner-editor-browser.mjs",
     "test:resilience": "node --test --test-concurrency=1 tests/resilience/attempts.mjs tests/resilience/watches.mjs",
     "test:baseline": "node tests/startup-config.mjs && node tests/public-paths.mjs && node tests/storage-faults.mjs && node tests/erasure-audit.mjs && node --test --test-concurrency=2 tests/erasure-races.mjs",
-    "verify:release": "node tests/archive-release.mjs"
+    "verify:release": "node tests/archive-release.mjs",
+    "test:demo": "node --test --test-concurrency=1 tests/demo-runner.mjs tests/demo-browser.mjs tests/demo-worker.mjs"
   },
   "dependencies": {
     "@tanstack/react-router": "1.170.33",
@@ -71,7 +72,7 @@
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.62.2",
     "@cloudflare/workers-types": "5.20261006.1",
-    "@runeditrun/rer": "0.2.2",
+    "@runeditrun/rer": "0.2.6",
     "@types/node": "26.6.4",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.7",
