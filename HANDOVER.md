@@ -4,6 +4,8 @@
 
 Use the **Run it locally** section in [AGENTS.md](AGENTS.md): `rer install`, `setup --owner-email EMAIL`, `dev`, and the printed Base development outbox. The signed-in first-run page is `/setup`; completion is installation-local D1 state. `/claim` hosts the one-use token form for an unclaimed hosted installation. Setup stops its temporary runtime; dev stays in the foreground with Vite assets/HMR, the synthetic target and signed private runner. `verify` runs the complete product and browser checks. `describe --json` and `check --profile first-party` are read-only. [OPERATIONS.md](OPERATIONS.md) covers reset, data movement, deployment and recovery.
 
+The app origin serves the Lobby at `/`, setup at `/setup` and public documentation at `/docs`; `/app` is the private operator console. The separate marketing site is `https://run-uptime.com/`, with its `/run` page.
+
 `@runeditrun/rer`, pinned in `package.json`, is the Base CLI. `scripts/installer/local.mjs` declares the shared lifecycle hooks and product targets. `rer-setup.json` is the sole setup manifest. `scripts/local` supplies the real runtime, migrations and complete product transfer. Settings remain in `data/local-secrets.json`; state is `.wrangler/state`. Existing owners, data and exact private settings survive setup. Reset is confirmed and contained. No automatic credential rotation is supported.
 
 ## Component ownership

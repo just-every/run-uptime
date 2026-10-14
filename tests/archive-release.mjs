@@ -21,5 +21,5 @@ async function installation(path) {
  worker = await startLocalWorker({ persist:path, port, bindings:values, assets:false });
  return { ...values, DB:await worker.getD1Database('DB') };
 }
-try { await restoreBounds({ dir, migrate, installation, dispose:async () => { await worker?.dispose(); worker = null; } }); }
+try { await restoreBounds({ dir, migrate, installation, capacity:true, dispose:async () => { await worker?.dispose(); worker = null; } }); }
 finally { await worker?.dispose(); await rm(dir, { recursive:true, force:true }); }
