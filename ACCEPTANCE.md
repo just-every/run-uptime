@@ -59,8 +59,15 @@ export/import and versioned archive history. The latest published version is
 v0.1.2 at tag commit `bdcd147542e0fab55be2663f05165a0724b4e49e`; no GitHub
 Release entry exists. This branch is preparing v0.1.3, which remains
 unpublished and has no release tag. The candidate pins `@runeditrun/rer` to
-0.2.2; populated-upgrade recovery and deployment-ledger archive import/export
-still need exact-candidate proof. At the app origin, `/` is the Lobby,
+0.2.2. Scoped local recovery evidence covers a repeated setup with exact settings,
+a populated v0.1.2 upgrade that preserved existing private values while adding
+only optional `IDENTITY_PROVIDER`, and current CLI import/export, dev, native
+sign-in and readback using a genuine rer 0.2.1-bound archive and current-ledger
+archives. Product rows were compared through live data and retained
+`archive_history`, accounting for inactive restore transformations. Unbound
+v0.1.2 archives are refused with exit 4, and uncertain migration history is
+refused. Exact-head CI and release-pack verification remain pending. At the app
+origin, `/` is the Lobby,
 `/setup` is setup, `/docs` is public documentation and `/app` is the private
 operator console. The separate marketing site serves `https://run-uptime.com/`
 and `https://run-uptime.com/run`.
@@ -120,8 +127,9 @@ These are scoped source results only; they do not establish hosted installation,
 recipient acceptance or acceptance of the current v0.1.3 candidate. The latest
 published version is the v0.1.2 tag at `bdcd147542e0fab55be2663f05165a0724b4e49e`,
 with no GitHub Release entry; v0.1.3 remains unpublished. Other baseline clauses
-remain requirements; current-candidate migration recovery and accessibility
-across sign-in/setup surfaces remain unaccepted. The 2026-10-14 pnpm audit
+remain requirements; scoped migration and ledger recovery evidence is recorded
+externally, while exact-head CI and release-pack verification remain pending.
+Accessibility across sign-in/setup surfaces and VoiceOver remain unmeasured. The 2026-10-14 pnpm audit
 snapshots report zero vulnerabilities across 262 root dependency records and
 57 copied-mail dependency records, and the initial GitHub Dependabot alert
 snapshot is empty. A final audit on the integrated candidate remains pending.

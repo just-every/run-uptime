@@ -66,6 +66,50 @@ try{
  assert.equal((await DB.prepare('SELECT COUNT(*) n FROM oa_operators').first()).n,0,'fresh installation has no owner');
  assert.equal((await call('/api/overview')).status,401,'private overview requires native authority');
 
+ // Native claim errors keep Base's refusal and authority while presenting the
+ // same retry form accessibly. Admission counters are the only expected writes.
+ const durableSnapshot=async()=>{
+  const names=(await DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT IN ('oa_limits','public_rate_limits') ORDER BY name").all()).results;
+  return Promise.all(names.map(async({name})=>{
+   assert.ok(/^[a-z0-9_]+$/i.test(name),'durable table identifier is safe');
+   return [name,(await DB.prepare(`SELECT * FROM "${name}" ORDER BY 1`).all()).results];
+  }));
+ };
+ const unclaimed=await durableSnapshot(),wrongToken=randomBytes(24).toString('hex');
+ const claimPage=await call('/claim'),claimHeaders=claimPage.headers;
+ assert.equal(claimPage.status,200);
+ const refusedJson=await call('/auth/bootstrap',{token:wrongToken,displayName});
+ assert.equal(refusedJson.status,403);
+ assert.deepEqual(await refusedJson.json(),{error:'invalid_setup_token'},'JSON claim clients keep their original denial');
+ const nativeClaim=(path='/auth/bootstrap',headers={},method='POST')=>fetch(origin+path,{
+  method,redirect:'manual',headers:{origin,'content-type':'application/x-www-form-urlencoded; charset=UTF-8',...headers},
+  ...(method==='POST'?{body:new URLSearchParams({token:wrongToken,displayName,returnTo:'/setup'})}:{}),
+ });
+ const refusedForm=await nativeClaim(),refusedHtml=await refusedForm.text();
+ assert.equal(refusedForm.status,refusedJson.status,'native claim keeps the Base denial status');
+ assert.ok(refusedForm.headers.get('content-type').startsWith('text/html'));
+ for(const header of ['cache-control','x-content-type-options','x-robots-tag'])assert.equal(refusedForm.headers.get(header),refusedJson.headers.get(header),'Base denial header is retained');
+ for(const header of ['content-security-policy','referrer-policy'])assert.equal(refusedForm.headers.get(header),claimHeaders.get(header),'retry form uses the existing claim document policy');
+ assert.ok(/<html\b[^>]*lang="en"/.test(refusedHtml)&&/<title>[^<]+<\/title>/.test(refusedHtml)&&/<h1>[^<]+<\/h1>/.test(refusedHtml),'refusal is a titled semantic document');
+ const tokenInput=refusedHtml.match(/<input[^>]*name="token"[^>]*>/)?.[0]??'';
+ const description=tokenInput.match(/aria-describedby="([^"]+)"/)?.[1];
+ assert.ok(tokenInput.includes('aria-invalid="true"')&&description&&refusedHtml.includes(`id="${description}"`),'token field is linked to its error');
+ assert.ok(!tokenInput.includes('value=')&&!refusedHtml.includes(wrongToken)&&!refusedHtml.includes(displayName),'refusal clears rather than reflects submitted values');
+ assert.equal(refusedForm.headers.has('set-cookie'),false,'native denial issues no session');
+ for(const [path,headers,method,status,error] of [
+  ['/auth/bootstrap',{origin:'https://foreign.example'},'POST',403,'invalid_origin'],
+  ['/auth/bootstrap',{'sec-fetch-site':'cross-site'},'POST',403,'invalid_origin'],
+  ['/auth/bootstrap?token=duplicate-source',{},'POST',400,'invalid_input'],
+  ['/auth/bootstrap',{},'GET',405,'method_not_allowed'],
+ ]){
+  const denied=await nativeClaim(path,headers,method);
+  assert.equal(denied.status,status,'other native authority and input denials keep their status');
+  assert.deepEqual(await denied.json(),{error},'only wrong setup tokens become a retry document');
+  assert.equal(denied.headers.has('set-cookie'),false);
+ }
+ assert.ok(isDeepStrictEqual(await durableSnapshot(),unclaimed),'claim refusals leave all durable tables unchanged except admission counters');
+ assert.equal((await call('/api/overview')).status,401,'claim refusal creates no private authority');
+
  const bootstrap=await chunked(origin,'/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName,returnTo:'/'});
  assertChunked(bootstrap);
  const firstCookie=sessionCookie(bootstrap.response);

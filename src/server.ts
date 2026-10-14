@@ -26,7 +26,7 @@ import {authRoute,authFailure,developmentMail,signOut} from './domain/operator-a
 import {devGate,devNotFound} from './base/modules/operator-auth/index.mjs'
 import {developmentOutbox} from './domain/development-outbox.server.ts'
 import {createDevelopmentOutboxHandler} from './base/modules/mail/src/development/index.mjs'
-import {authDocument} from './domain/auth-document.server.ts'
+import {authDocument,nativeClaimFailure} from './domain/auth-document.server.ts'
 import {firstRun,firstRunComplete,setupRedirect} from './domain/first-run.server.ts'
 import {ownerClaim} from './domain/owner-claim.server.ts'
 import {editorConfigResponse,editorDocument} from './domain/editor.server.ts'
@@ -149,7 +149,7 @@ const handler={async fetch(request,env,execution){
  if(!publicPath(path,bindings.UPTIME_LOCAL_REVIEW==='true')&&!isConsoleDocument(path)&&!path.startsWith('/_serverFn/')&&path!=='/api'&&!path.startsWith('/api/'))return notFoundDocument();
  if(path==='/auth/owner-claim')return (await ownerClaim(bindings,request))!;
  if(path==='/api/editor/config')return editorConfigResponse(bindings,request);
- if(path.startsWith('/auth/'))return (await authRoute(bindings,request))!;
+ if(path.startsWith('/auth/'))return nativeClaimFailure(request,(await authRoute(bindings,request))!);
  if(path==='/setup')return firstRun(bindings,request);
  if(path==='/alert-drill')return alertDrillDocument(bindings,request);
  if(path==='/login'||path==='/claim')return authDocument(path==='/claim',path==='/login'&&url.searchParams.get('notice')==='sent',developmentMail(bindings));
