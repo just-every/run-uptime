@@ -10,13 +10,17 @@ export function providerFixture({handlers = ['fetch','scheduled']} = {}) {
   // Model the provider's detected-handler response at the network edge. Tests
   // can change this before any upload; Worker modules are inert upload bytes.
   state.uploadHandlers = structuredClone(handlers);
+  let ownerClaimed = false;
   const ok = (result, result_info) => Response.json({success:true,errors:[],result,...(result_info ? {result_info}:{})});
   const missing = () => Response.json({success:false,errors:[{code:100,message:'missing'}]},{status:404});
   function write(method,path,body) { state.writes.push({method,path,body}); }
   // A secret change deploys a new version of the same script, as the provider does.
   function secretVersion() {
     if (!state.version) return;
-    const id = randomUUID(); state.version = {...structuredClone(state.version),id}; state.versions = [state.version,...(state.versions ?? [])];
+    state.settings.bindings = [...state.settings.bindings.filter(item => item.type !== 'secret_text'), ...state.secrets.map(({name}) => ({name,type:'secret_text'}))];
+    const id = randomUUID(); state.version = {...structuredClone(state.version),id};
+    state.version.resources.bindings = structuredClone(state.settings.bindings);
+    state.versions = [state.version,...(state.versions ?? [])];
     state.deployments = [{id:randomUUID(),versions:[{version_id:id,percentage:100}]},...state.deployments];
   }
   const imports = new Map(), assets = new Map();
@@ -35,6 +39,17 @@ export function providerFixture({handlers = ['fetch','scheduled']} = {}) {
     }
     if (url.hostname.endsWith('.workers.dev')) {
       if (init.headers?.Authorization) throw Error('health received token');
+      // The current CLI claims the hosted owner after verifying deployment.
+      // Model that network exchange against the secrets actually uploaded.
+      if (url.pathname === '/auth/bootstrap') {
+        if (method !== 'POST' || init.headers?.origin !== url.origin) return Response.json({error:'invalid_origin'},{status:403});
+        const input = JSON.parse(init.body);
+        const token = state.secrets.find(item => item.name === 'SETUP_TOKEN')?.value;
+        if (!token || input.token !== token) return Response.json({error:'invalid_setup_token'},{status:403});
+        if (ownerClaimed) return Response.json({error:'already_initialized'},{status:409});
+        ownerClaimed = true;
+        return new Response(null, {status:303,headers:{location:'/setup'}});
+      }
       if (url.pathname !== '/health') {
         const entry = assetManifest[decodeURIComponent(url.pathname)], bytes = entry && assets.get(entry.hash);
         if (!bytes) return new Response('Not found', {status:404});

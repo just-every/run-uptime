@@ -34,7 +34,12 @@ async function checkout(t) {
   return root;
 }
 async function deploy(root, provider, signal, flags = []) {
-  const env = { PATH: commandPath, HOME: root, CI: 'true', ...toolEnvironment, ...provider.env,
+  // Dependency probes keep NODE_OPTIONS but correctly discard application
+  // environment variables. Keep the test transport in this private checkout so
+  // the same preload also works in the real npm/pnpm probe processes.
+  await mkdir(join(root, '.rer'), { recursive: true, mode: 0o700 });
+  await writeFile(join(root, '.rer/owner-deploy-test-transport.json'), JSON.stringify(provider.transport), { mode: 0o600 });
+  const env = { PATH: commandPath, HOME: root, CI: 'true', ...toolEnvironment,
     NODE_OPTIONS: `--import=${pathToFileURL(join(root, 'tests/owner-deploy-lifecycle/preload.mjs')).href}`,
     CLOUDFLARE_ACCOUNT_ID: provider.accountId, CLOUDFLARE_API_TOKEN: provider.token,
     OWNER_EMAIL: 'owner@example.test', MAIL_FROM: 'sender@example.test', SENDGRID_API_KEY: 'test-only-sendgrid-key',

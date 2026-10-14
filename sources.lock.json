@@ -3298,19 +3298,19 @@
       "executable": false
     },
     "tests/owner-deploy-lifecycle.mjs": {
-      "sha256": "1d35e09c53ae5c8d201acfbf28347487637569aa881912594386a204931a04c1",
+      "sha256": "e7bda0849c3463c0ff50c71314ddf8c1ef5c1f9d390cc2c42657fee68bac282e",
       "executable": false
     },
     "tests/owner-deploy-lifecycle/bridge.mjs": {
-      "sha256": "eb496da32391e992e8d4c6f68117f29bc86e4eea9d8a0d74fc9ac61818c09feb",
+      "sha256": "e290ca24d040e6c40389ce32477beef88c386a3715665db0e9e2322f84b18d00",
       "executable": false
     },
     "tests/owner-deploy-lifecycle/preload.mjs": {
-      "sha256": "2c1536427c4788e55764053aeb96521ecbee83edf9484a09589b472596b1596b",
+      "sha256": "3e605093a51018017e445eb4d52c06b7e45e63e440a8f366c96c743420cbe117",
       "executable": false
     },
     "tests/owner-deploy-lifecycle/provider-fixture.mjs": {
-      "sha256": "88ad8e9fed609e7aba8a28077fd195e92a2d8d8f1818b0e9a22791da0d93375f",
+      "sha256": "a860faeca2dcf8b8fa52375dcfb4825f6d444a37e1ac58b8870cfed606f0df8d",
       "executable": false
     },
     "tests/owner-deploy.mjs": {

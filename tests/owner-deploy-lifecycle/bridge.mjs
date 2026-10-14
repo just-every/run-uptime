@@ -57,6 +57,6 @@ export async function providerBridge(t) {
   return { ...fixture, uploads, get healthRequests() { return healthRequests; },
     interruptBeforeSecondMigration() { interruptMigration = true; },
     get interruptedMigration() { return interruptedMigration; },
-    env: { UPTIME_OWNER_TEST_BRIDGE: `http://127.0.0.1:${server.address().port}`, UPTIME_OWNER_TEST_KEY: key },
+    transport: { bridge: `http://127.0.0.1:${server.address().port}`, key },
   };
 }
