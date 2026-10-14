@@ -8,6 +8,12 @@ import {hostedRuntime} from './hosted-auth-runtime.mjs';
 import {splitSql} from './migration-support.mjs';
 import {claimKeys,signClaim} from '@runeditrun/rer/internal/modules/demo-host/claim.mjs';
 
+function demoBarEntries(html){
+ const marker=html.match(/<aside\b[^>]*\bid="rer-demo-bar"[^>]*>([\s\S]*?)<\/aside>/);
+ assert.ok(marker,'signed-in app exposes the demo marker');
+ return [...marker[1].matchAll(/<li\b[^>]*>([\s\S]*?)<\/li>/g)].map(([,entry])=>entry.replace(/<[^>]*>/g,'').replace(/&(amp|lt|gt|quot|#39);/g,(_,entity)=>({amp:'&',lt:'<',gt:'>',quot:'"','#39':"'"})[entity]));
+}
+
 test('HTTPS demo signed claim uses exact bound origin, captures mail and blocks scheduled heartbeat without egress',async()=>{
  const directory=await mkdtemp(join(tmpdir(),'uptime-demo-worker-')),origin='https://demo.example.test',keys=await claimKeys(),installationId=crypto.randomUUID();
  const settings={RER_DEMO:'1',RER_DEMO_EXPIRES:new Date(Date.now()+3600000).toISOString(),UPTIME_ORIGIN:origin,OWNER_EMAIL:'owner@demo.invalid',SESSION_SECRET:randomBytes(32).toString('hex'),SETUP_TOKEN:randomBytes(32).toString('hex'),
@@ -22,7 +28,7 @@ test('HTTPS demo signed claim uses exact bound origin, captures mail and blocks 
   const token=await signClaim(keys,{origin,installationId,email:settings.OWNER_EMAIL,now:Date.now()});
   const claim=await call('/auth/owner-claim',{method:'POST',headers:{'content-type':'application/x-www-form-urlencoded'},body:new URLSearchParams({token}).toString()});
   assert.equal(claim.status,303,await claim.clone().text());const cookie=claim.headers.getSetCookie().map(v=>v.split(';')[0]).join('; ');assert.match(cookie,/__Host-operator_session=/);
-  const app=await call('/app',{headers:{cookie}});assert.equal(app.status,200);assert.match(await app.text(),/Demo.*nothing is sent/s);
+  const app=await call('/app',{headers:{cookie}});assert.equal(app.status,200);demoBarEntries(await app.text());
   const counts=async()=>({monitors:(await db.prepare('SELECT COUNT(*) n FROM monitors').first()).n,revisions:(await db.prepare('SELECT COUNT(*) n FROM revisions').first()).n,firstRun:(await db.prepare('SELECT COUNT(*) n FROM uptime_first_run').first()).n});
   assert.deepEqual(await counts(),{monitors:3,revisions:3,firstRun:1});await call('/app',{headers:{cookie}});assert.deepEqual(await counts(),{monitors:3,revisions:3,firstRun:1});
   assert.equal((await call('/auth/magic-link',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email:settings.OWNER_EMAIL,returnTo:'/app'})})).status,503,'Base refuses hosted development auth delivery; it must not claim delivery');
@@ -33,7 +39,14 @@ test('HTTPS demo signed claim uses exact bound origin, captures mail and blocks 
   const mail=(await db.prepare('SELECT message FROM rer_mail_development_outbox').all()).results;assert.ok(mail.length>=1);
   assert.equal((await db.prepare("SELECT outcome FROM monitoring_watch WHERE id='external-heartbeat'").first()).outcome,'failed');
   assert.ok((await db.prepare("SELECT COUNT(*) n FROM rer_demo_outbound WHERE host='heartbeat.example.test'").first()).n>0);
-  const visible=await call('/app',{headers:{cookie}}),html=await visible.text();assert.match(html,/mail captured/);assert.match(html,/heartbeat.example.test/);
+  const visible=await call('/app',{headers:{cookie}});assert.equal(visible.status,200);const entries=demoBarEntries(await visible.text());
+  for(const row of mail){
+   const message=JSON.parse(row.message),recipients=[message.to].flat().map(recipient=>typeof recipient==='string'?recipient:recipient.email);
+   assert.ok(message.subject?.length&&recipients.length&&recipients.every(recipient=>typeof recipient==='string'&&recipient.length),'captured mail has a subject and recipients');
+   assert.ok(entries.some(entry=>entry.includes(message.subject)&&recipients.every(recipient=>entry.includes(recipient))),'demo marker lists the captured subject and recipients together');
+  }
+  const blocked=(await db.prepare("SELECT DISTINCT method, host FROM rer_demo_outbound WHERE host='heartbeat.example.test'").all()).results;
+  for(const operation of blocked)assert.ok(entries.some(entry=>entry.split(/\s+/).includes(operation.method)&&entry.includes(operation.host)),'demo marker lists the blocked operation and destination together');
   assert.equal(network,0);
  }finally{await worker?.dispose();await rm(directory,{recursive:true,force:true});}
 });
