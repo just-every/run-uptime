@@ -1,12 +1,12 @@
 import {existsSync} from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
-import { report } from '../../src/base/modules/deploy-kit/owner-cli.mjs';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { report } from '@runeditrun/rer/modules/deploy-kit/owner-cli';
 import { validateAccount, ownerEnvironment } from './owner-settings.mjs';
 import { prepareOwnerBuild, ownerProduct } from './owner-prepare.mjs';
 
-export const kitCLI = 'src/base/modules/deploy-kit/owner-cli.mjs';
+export const kitCLI = fileURLToPath(import.meta.resolve('@runeditrun/rer/modules/deploy-kit/owner-cli'));
 export const ownerArguments = (command,declaration='deploy.json',environment='production') => [command, '--declaration', declaration, '--environment', environment, '--product', ownerProduct];
 
 export async function main(argv = process.argv.slice(2), env = process.env, { root = process.cwd(), run = execFileSync, store } = {}) {

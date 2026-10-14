@@ -21,7 +21,7 @@ test('package-script environment injection cannot cross the credential-free boun
     // Exercise the installed, pinned pnpm binary with a disposable package, not
     // a simulated environment or a copy of Base's credential guard.
     await writeFile(join(home, 'package.json'), JSON.stringify({private: true, scripts: {probe: 'node probe.mjs'}}));
-    const guard = new URL('../src/base/modules/deploy-kit/prepare.mjs', import.meta.url).href;
+    const guard = import.meta.resolve('@runeditrun/rer/modules/deploy-kit/prepare');
     await writeFile(join(home, 'probe.mjs'), `import {assertCredentialFree} from ${JSON.stringify(guard)};
 try { assertCredentialFree(process.env); console.log('credential-free'); }
 catch (error) { console.error(JSON.stringify({code:error.message,nodePathPresent:Boolean(process.env.NODE_PATH)})); process.exitCode=1; }

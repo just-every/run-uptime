@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {deploymentFailureCode,isDeploymentFailureCode} from '../scripts/deployment/diagnostics.mjs';
-import {verifyBindings} from '../src/base/modules/deploy-kit/render.mjs';
-import {activeWorker,secretBindings} from '../src/base/modules/deploy-kit/worker.mjs';
-import {checkCronOwnership} from '../src/base/modules/deploy-kit/resources.mjs';
-import {cloudflare} from '../src/base/modules/deploy-kit/provider.mjs';
+import {verifyBindings} from '@runeditrun/rer/internal/modules/deploy-kit/render.mjs';
+import {activeWorker,secretBindings} from '@runeditrun/rer/internal/modules/deploy-kit/worker.mjs';
+import {checkCronOwnership} from '@runeditrun/rer/internal/modules/deploy-kit/resources.mjs';
+import {cloudflare} from '@runeditrun/rer/modules/deploy-kit/provider';
 
 test('reviewed deployment failures map to fixed public codes',()=>{
  for(const code of ['binding-readback-mismatch','invalid-deployments','mixed-or-invalid-deployment',

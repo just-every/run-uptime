@@ -1,4 +1,4 @@
-import {validatePlan,resourceName} from '../../src/base/modules/deploy-kit/validation.mjs';
+import {validatePlan,resourceName} from '@runeditrun/rer/internal/modules/deploy-kit/validation.mjs';
 export function deploymentPlan(artifact,env){
  const worker=env.UPTIME_WORKER_NAME;
  if(!resourceName(worker))throw Error('UPTIME_WORKER_NAME must be a valid Cloudflare Worker name');

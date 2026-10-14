@@ -98,7 +98,7 @@
         "rer",
         "deploy"
       ],
-      "effects": "Build and provision in the owner Cloudflare account through Base deploy-kit, then check health. Dry run validates/builds locally with zero provider requests.",
+      "effects": "Build and provision in the owner Cloudflare account through the pinned rer package, then check health. Dry run validates/builds locally with zero provider requests.",
       "inputs": [
         "package.json",
         "scripts/installer/local.mjs",
@@ -127,8 +127,7 @@
         "deploy.json",
         "scripts/deployment/owner-cli.mjs",
         "scripts/deployment/owner-prepare.mjs",
-        "scripts/deployment/owner-settings.mjs",
-        "src/base/modules/deploy-kit/owner-cli.mjs"
+        "scripts/deployment/owner-settings.mjs"
       ],
       "requiredEnvironment": [
         "CLOUDFLARE_ACCOUNT_ID",

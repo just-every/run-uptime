@@ -17,7 +17,6 @@
           "src/base/rejected-response.ts",
           "src/base/modules/operator-auth",
           "src/base/modules/mail",
-          "src/base/modules/deploy-kit",
           "src/base/modules/integrations",
           "scripts/edition-authoring",
           "migrations/0005_operator_auth.sql",
@@ -94,10 +93,6 @@
           {
             "path": "src/base/modules/mail",
             "originPath": "modules/mail"
-          },
-          {
-            "path": "src/base/modules/deploy-kit",
-            "originPath": "modules/deploy-kit"
           },
           {
             "path": "src/base/modules/integrations",

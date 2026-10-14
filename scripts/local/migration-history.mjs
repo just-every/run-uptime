@@ -1,9 +1,9 @@
 import { readFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createRequire } from 'node:module';
-import { hash } from '../../src/base/modules/deploy-kit/validation.mjs';
-import { readLedger } from '../../src/base/modules/deploy-kit/migration-ledger.mjs';
-import { migrate } from '../../src/base/modules/deploy-kit/migrations.mjs';
+import { hash } from '@runeditrun/rer/internal/modules/deploy-kit/validation.mjs';
+import { readLedger } from '@runeditrun/rer/internal/modules/deploy-kit/migration-ledger.mjs';
+import { migrate } from '@runeditrun/rer/internal/modules/deploy-kit/migrations.mjs';
 
 // Preserve the distinction between Wrangler's local names and a deployment's
 // hash-attested history. Never infer applied bytes from a name-only ledger.

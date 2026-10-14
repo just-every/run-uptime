@@ -4,9 +4,9 @@ import { execFileSync } from 'node:child_process';
 import { mkdtemp, mkdir, writeFile, readFile, readdir, cp, rm, stat, symlink } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ownerPlan, ownerTarget } from '../src/base/modules/deploy-kit/owner.mjs';
-import { cloudflare } from '../src/base/modules/deploy-kit/provider.mjs';
-import { packageBuild } from '../src/base/modules/deploy-kit/prepare.mjs';
+import { ownerPlan, ownerTarget } from '@runeditrun/rer/modules/deploy-kit/owner';
+import { cloudflare } from '@runeditrun/rer/modules/deploy-kit/provider';
+import { packageBuild } from '@runeditrun/rer/modules/deploy-kit/prepare';
 import { ownerSecrets, secretsFile, secretNames } from '../scripts/deployment/owner-settings.mjs';
 import { prepareOwnerBuild, ownerProduct } from '../scripts/deployment/owner-prepare.mjs';
 

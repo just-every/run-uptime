@@ -1,8 +1,9 @@
 // Test-only Base network fixture from 67e0a7d7c4a87b3a145545515a8c83afcac457ec.
-// Original SHA-256: 7da730af1ad879fae98d590922daf317bc7523fa47cb2bcb977fecab0436bdd4. Validation import relocated; requested asset hashes deduplicated for shared product assets.
+// Validation comes from the installed package. The provider models eventual D1
+// listings and serves the uploaded asset bytes for the package health probe.
 import { DatabaseSync } from 'node:sqlite';
 import { createHash, randomUUID } from 'node:crypto';
-import { hash } from '../../src/base/modules/deploy-kit/validation.mjs';
+import { hash } from '@runeditrun/rer/internal/modules/deploy-kit/validation.mjs';
 export function providerFixture({handlers = ['fetch','scheduled']} = {}) {
   const accountId = 'a'.repeat(32); const token = 'test-only-provider-token';
   const state = {calls:[],writes:[],databases:[],buckets:[],queues:[],namespaces:[],settings:null,version:null,deployments:[],secrets:[],subdomain:false,schedules:[],objects:new Map(),failSql:null,healthOverride:null};
@@ -18,7 +19,9 @@ export function providerFixture({handlers = ['fetch','scheduled']} = {}) {
     const id = randomUUID(); state.version = {...structuredClone(state.version),id}; state.versions = [state.version,...(state.versions ?? [])];
     state.deployments = [{id:randomUUID(),versions:[{version_id:id,percentage:100}]},...state.deployments];
   }
-  const imports = new Map();
+  const imports = new Map(), assets = new Map();
+  let delayedListing = false, pendingDatabaseListings = 0, assetManifest = {};
+  state.omittedDatabaseListings = 0; state.settledDatabaseListings = 0; state.assetRequests = [];
   const fetch = async (input,init={}) => {
     const url = new URL(input); const method = init.method ?? 'GET'; const path = url.pathname.slice(`/client/v4/accounts/${accountId}`.length);
     if (url.hostname === `${accountId}.r2.cloudflarestorage.com`) {
@@ -32,6 +35,12 @@ export function providerFixture({handlers = ['fetch','scheduled']} = {}) {
     }
     if (url.hostname.endsWith('.workers.dev')) {
       if (init.headers?.Authorization) throw Error('health received token');
+      if (url.pathname !== '/health') {
+        const entry = assetManifest[decodeURIComponent(url.pathname)], bytes = entry && assets.get(entry.hash);
+        if (!bytes) return new Response('Not found', {status:404});
+        state.assetRequests.push(url.pathname);
+        return new Response(bytes);
+      }
       if (state.healthOverride) return state.healthOverride();
       const vars = Object.fromEntries(state.settings.bindings.filter(x => x.type === 'plain_text').map(x => [x.name,x.text]));
       return Response.json({ok:true,deployment:{sourceSha:vars.RER_DEPLOY_SOURCE,fingerprint:vars.RER_DEPLOY_FINGERPRINT,versionId:state.version.id}});
@@ -43,8 +52,16 @@ export function providerFixture({handlers = ['fetch','scheduled']} = {}) {
     const body = typeof init.body === 'string' ? (init.body ? JSON.parse(init.body) : undefined) : init.body;
     const list = rows => ok(rows,{page:Number(url.searchParams.get('page') ?? 1),total_count:rows.length,total_pages:1});
     if (path === '/d1/database') {
-      if (method === 'GET') return list(state.databases.map(({db,...x}) => x));
-      const row = {uuid:randomUUID(),name:body.name,db:new DatabaseSync(':memory:')};row.db.exec('PRAGMA foreign_keys=ON');state.databases.push(row);write(method,path,body);return ok({uuid:row.uuid,name:row.name});
+      if (method === 'GET') {
+        if (pendingDatabaseListings > 0) {
+          pendingDatabaseListings--; state.omittedDatabaseListings++;
+          // Creation is authoritative; the listing index has not caught up.
+          return ok([], {page:1,total_count:state.databases.length,total_pages:1});
+        }
+        if (state.omittedDatabaseListings) state.settledDatabaseListings++;
+        return list(state.databases.map(({db,...x}) => x));
+      }
+      const row = {uuid:randomUUID(),name:body.name,db:new DatabaseSync(':memory:')};row.db.exec('PRAGMA foreign_keys=ON');state.databases.push(row);if(delayedListing)pendingDatabaseListings=2;write(method,path,body);return ok({uuid:row.uuid,name:row.name});
     }
     const d1 = /^\/d1\/database\/([^/]+)(\/query|\/import)?$/.exec(path);
     if (d1) {
@@ -102,10 +119,10 @@ export function providerFixture({handlers = ['fetch','scheduled']} = {}) {
     }
     if (path === '/workers/durable_objects/namespaces') return list(state.namespaces);
     if (path === '/workers/subdomain') return ok({subdomain:'fixture-account'});
-    if (path === '/workers/assets/upload') {write(method,path);return ok({jwt:'fixture-complete-jwt'});}
+    if (path === '/workers/assets/upload') {for(const [digest,file] of body)assets.set(digest,Buffer.from(await file.text(),'base64'));write(method,path);return ok({jwt:'fixture-complete-jwt'});}
     const worker = /^\/workers\/scripts\/([^/]+)(.*)$/.exec(path); if (!worker) throw Error(`unexpected fixture path ${path}`);
     const name = worker[1], suffix = worker[2];
-    if (suffix === '/assets-upload-session') {write(method,path,body);return ok({jwt:'fixture-upload-jwt',buckets:[[...new Set(Object.values(body.manifest).map(x => x.hash))]]});}
+    if (suffix === '/assets-upload-session') {assetManifest=body.manifest;write(method,path,body);return ok({jwt:'fixture-upload-jwt',buckets:[[...new Set(Object.values(body.manifest).map(x => x.hash))]]});}
     if (suffix === '/settings') return state.settings ? ok(state.settings) : missing();
     if (suffix === '/deployments') return ok({deployments:state.deployments});
     if (suffix === '/versions') return ok({items:(state.versions ?? []).map(({id}) => ({id}))});
@@ -132,5 +149,5 @@ export function providerFixture({handlers = ['fetch','scheduled']} = {}) {
     }
     throw Error(`unexpected fixture ${method} ${path}`);
   };
-  return {accountId,token,state,fetch,close(){for(const row of state.databases) row.db.close();}};
+  return {accountId,token,state,fetch,delayCreatedDatabaseListing(){delayedListing=true;},close(){for(const row of state.databases) row.db.close();}};
 }

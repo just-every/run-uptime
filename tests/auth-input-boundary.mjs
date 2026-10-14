@@ -84,9 +84,24 @@ try{
  const refusedJson=await call('/auth/bootstrap',{token:wrongToken,displayName});
  assert.equal(refusedJson.status,403);
  assert.deepEqual(await refusedJson.json(),{error:'invalid_setup_token'},'JSON claim clients keep their original denial');
- const nativeClaim=(path='/auth/bootstrap',headers={},method='POST')=>fetch(origin+path,{
-  method,redirect:'manual',headers:{origin,'content-type':'application/x-www-form-urlencoded; charset=UTF-8',...headers},
-  ...(method==='POST'?{body:new URLSearchParams({token:wrongToken,displayName,returnTo:'/setup'})}:{}),
+ // A denial may close its connection before accepting an upload (the query-token
+ // refusal precedes readInput). Give each case its own socket, with no replay.
+ const nativeClaim=(path='/auth/bootstrap',headers={},method='POST')=>new Promise((resolve,reject)=>{
+  const body=method==='POST'?new URLSearchParams({token:wrongToken,displayName,returnTo:'/setup'}).toString():undefined;
+  const request=httpRequest(origin+path,{
+   method,agent:false,headers:{origin,'content-type':'application/x-www-form-urlencoded; charset=UTF-8',connection:'close',
+    ...(body===undefined?{}:{'content-length':Buffer.byteLength(body)}),...headers},
+  },response=>{
+   const chunks=[];
+   response.on('data',chunk=>chunks.push(chunk));
+   response.on('error',reject);
+   response.on('end',()=>resolve(new Response(Buffer.concat(chunks),{status:response.statusCode,headers:response.headers})));
+  });
+  requests.add(request);
+  request.once('close',()=>requests.delete(request));
+  request.on('error',error=>reject(new Error(`Native claim ${method} ${path} transport failed`,{cause:error})));
+  request.setTimeout(30000,()=>request.destroy(Error('Local native claim request timed out')));
+  request.end(body);
  });
  const refusedForm=await nativeClaim(),refusedHtml=await refusedForm.text();
  assert.equal(refusedForm.status,refusedJson.status,'native claim keeps the Base denial status');

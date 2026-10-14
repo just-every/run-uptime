@@ -1,4 +1,4 @@
-// Public codes reviewed against this edition's plan and vendored Base deploy-kit.
+// Public codes reviewed against this edition's plan and published rer deployment package.
 // This is a fixed vocabulary, never a pattern permitting arbitrary error text.
 const codes = Object.freeze([
  'deployment-failed', 'usage-deploy-or-health', 'absolute-path-required',

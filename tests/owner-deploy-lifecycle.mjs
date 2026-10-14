@@ -3,14 +3,14 @@ import assert from 'node:assert/strict';
 import { spawn, execFileSync } from 'node:child_process';
 import { mkdtemp, mkdir, cp, readFile, readdir, rm, symlink, realpath, appendFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { delimiter, dirname, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { providerBridge } from './owner-deploy-lifecycle/bridge.mjs';
 
 const project = resolve(import.meta.dirname, '..');
 // Resolve the installed, package-pinned pnpm before moving into the isolated
 // HOME. pnpm's own exec PATH identifies its real binary, without a test stub.
-const commandPath = execFileSync('pnpm', ['exec', process.execPath, '-p', 'process.env.PATH'], { cwd: project, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+const commandPath = join(project, 'node_modules/.bin') + delimiter + execFileSync('pnpm', ['exec', process.execPath, '-p', 'process.env.PATH'], { cwd: project, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
 // Keep the already-prepared tool cache when isolating HOME. Otherwise Corepack
 // downloads pnpm inside the provider-only network preload before rer can start.
 const toolEnvironment = Object.fromEntries(['COREPACK_HOME', 'COREPACK_DEFAULT_TO_LATEST', 'COREPACK_ENABLE_AUTO_PIN', 'COREPACK_ENABLE_DOWNLOAD_PROMPT', 'COREPACK_ENV_FILE']
@@ -40,7 +40,7 @@ async function deploy(root, provider, signal) {
     OWNER_EMAIL: 'owner@example.test', MAIL_FROM: 'sender@example.test', SENDGRID_API_KEY: 'test-only-sendgrid-key',
   };
   return new Promise((resolveResult, reject) => {
-    const child = spawn('pnpm', ['run', 'deploy', '--', '--json'], { cwd: root, env, detached: true, stdio: ['ignore', 'pipe', 'pipe'] });
+    const child = spawn('rer', ['deploy', '--json'], { cwd: root, env, detached: true, stdio: ['ignore', 'pipe', 'pipe'] });
     const stop = () => { try { process.kill(-child.pid, 'SIGKILL'); } catch { /* Already reaped. */ } };
     signal.addEventListener('abort', stop, { once: true });
     let output = '', errors = '';
@@ -58,8 +58,11 @@ async function deploy(root, provider, signal) {
 const state = async root => JSON.parse(await readFile(join(root, '.rer/deploy/production.json')));
 const migrationRows = provider => provider.state.databases[0].db.prepare('SELECT name, sha256, state FROM d1_migrations ORDER BY name').all().map(row => ({ ...row }));
 
-test('five real pnpm run deploy cycles cover provision, exact repeat, partial migration resume and foreign ownership refusal', { timeout: 20 * 60_000 }, async t => {
+test('five real rer deploy cycles cover eventual D1 listing, exact repeat, partial migration resume and foreign ownership refusal', { timeout: 20 * 60_000 }, async t => {
   const root = await checkout(t), provider = await providerBridge(t);
+  assert.equal(provider.state.databases.length, 0);
+  assert.equal(provider.uploads.length, 0);
+  provider.delayCreatedDatabaseListing();
   const first = await deploy(root, provider, t.signal);
   assert.equal(first.code, 0, JSON.stringify(first));
   assert.equal(first.result?.ok, true);
@@ -70,8 +73,12 @@ test('five real pnpm run deploy cycles cover provision, exact repeat, partial mi
   assert.equal(receipt.owned.d1['uptime-monitor-production-db'].status, 'created');
   assert.ok(receipt.receipt, 'successful provision persists deployment identity');
   assert.equal(provider.state.databases.length, 1);
+  assert.ok(provider.state.omittedDatabaseListings > 0, 'the newly created D1 was absent from an inconsistent account listing');
+  assert.ok(provider.state.settledDatabaseListings > 0, 'the same first deploy read a settled listing before proceeding');
+  assert.equal(provider.state.writes.filter(row => row.path === '/d1/database').length, 1, 'eventual listing never creates another D1');
   assert.equal(provider.uploads.length, 1);
   assert.ok(provider.healthRequests > 0, 'successful deployment verifies the served deployment identity');
+  assert.ok(provider.state.assetRequests.length > 0, 'the package verifies an uploaded static asset');
   assert.deepEqual(provider.state.schedules, [{ cron: '* * * * *' }]);
   const migrations = migrationRows(provider);
   assert.ok(migrations.length > 0, 'the real controller records applied migrations');

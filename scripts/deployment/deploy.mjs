@@ -2,11 +2,11 @@
 // prepare has exited. Never install/build candidate code in this process.
 import {lstat,writeFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
-import {readArtifact,regularBytes} from '../../src/base/modules/deploy-kit/artifact.mjs';
-import {cloudflare} from '../../src/base/modules/deploy-kit/provider.mjs';
-import {deploy} from '../../src/base/modules/deploy-kit/deploy.mjs';
-import {verifyHealth} from '../../src/base/modules/deploy-kit/health.mjs';
-import {assert,hash} from '../../src/base/modules/deploy-kit/validation.mjs';
+import {readArtifact,regularBytes} from '@runeditrun/rer/internal/modules/deploy-kit/artifact.mjs';
+import {cloudflare} from '@runeditrun/rer/modules/deploy-kit/provider';
+import {deploy} from '@runeditrun/rer/internal/modules/deploy-kit/deploy.mjs';
+import {verifyHealth} from '@runeditrun/rer/internal/modules/deploy-kit/health.mjs';
+import {assert,hash} from '@runeditrun/rer/internal/modules/deploy-kit/validation.mjs';
 import {deploymentPlan} from './plan.mjs';
 import {deploymentFailureCode} from './diagnostics.mjs';
 try{

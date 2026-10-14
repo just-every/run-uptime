@@ -5,8 +5,8 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {regularBytes,readArtifact} from '../src/base/modules/deploy-kit/artifact.mjs';
-import {hash} from '../src/base/modules/deploy-kit/validation.mjs';
+import {regularBytes,readArtifact} from '@runeditrun/rer/internal/modules/deploy-kit/artifact.mjs';
+import {hash} from '@runeditrun/rer/internal/modules/deploy-kit/validation.mjs';
 
 const cli=fileURLToPath(new URL('../scripts/deployment/deploy.mjs',import.meta.url));
 async function workspace(t){
@@ -75,7 +75,7 @@ test('incomplete or missing receipt cannot establish health and remains availabl
  }
 });
 
-test('vendored Base artifact custody rejects changed hashes, run identity and linked files',async t=>{
+test('published package artifact custody rejects changed hashes, run identity and linked files',async t=>{
  const {root,path,artifact,env}=await fixture(t);
  const expected={sha256:env.RER_DEPLOY_ARTIFACT_SHA256,sourceSha:artifact.source.sha,runId:artifact.run.id,runAttempt:artifact.run.attempt};
  assert.deepEqual(await readArtifact(path,expected),artifact);

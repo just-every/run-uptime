@@ -3,9 +3,9 @@ import { requiredConfiguration, validateConfiguration } from '../../src/domain/s
 import { readPrivateFile } from '@runeditrun/rer/private-files';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { ownerPlan, ownerWorkerName } from '../../src/base/modules/deploy-kit/owner.mjs';
-import { packageBuild } from '../../src/base/modules/deploy-kit/prepare.mjs';
-import { main, report } from '../../src/base/modules/deploy-kit/owner-cli.mjs';
+import { ownerPlan, ownerWorkerName } from '@runeditrun/rer/modules/deploy-kit/owner';
+import { packageBuild } from '@runeditrun/rer/modules/deploy-kit/prepare';
+import { main, report } from '@runeditrun/rer/modules/deploy-kit/owner-cli';
 import { secretsFile, ownerSecrets, ownerEnvironment, validateAccount } from './owner-settings.mjs';
 import { prepareOwnerBuild, ownerProduct } from './owner-prepare.mjs';
 import { missing, RerError } from '@runeditrun/rer/errors';

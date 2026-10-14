@@ -1,7 +1,7 @@
 import { mkdtemp, readdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { privateDirectory } from '@runeditrun/rer/private-files';
-import { assertCredentialFree } from '../../src/base/modules/deploy-kit/prepare.mjs';
+import { assertCredentialFree } from '@runeditrun/rer/modules/deploy-kit/prepare';
 import { buildEnvironment } from '../deployment/owner-settings.mjs';
 
 export async function buildCommand(context) {
