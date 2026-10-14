@@ -1166,7 +1166,7 @@
       "executable": false
     },
     "scripts/deployment/command.mjs": {
-      "sha256": "6fb07ad577e325316bd41248a0b42409b2dd35982d0cbcf3179cf482d797e3dd",
+      "sha256": "2e785209b5b63cea8a509f346992160588721e2af36d0ba72d4087784f2d5a64",
       "executable": false
     },
     "scripts/deployment/deploy.mjs": {
@@ -3186,7 +3186,7 @@
       "executable": false
     },
     "tests/owner-deploy-lifecycle.mjs": {
-      "sha256": "0c136a0b678da50b64e0c2991db4bd13c6a24b679656586b68237bac0a408f66",
+      "sha256": "1d35e09c53ae5c8d201acfbf28347487637569aa881912594386a204931a04c1",
       "executable": false
     },
     "tests/owner-deploy-lifecycle/bridge.mjs": {
