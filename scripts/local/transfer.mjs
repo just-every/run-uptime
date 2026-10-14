@@ -2,13 +2,15 @@ import { open, mkdir, unlink, lstat, readFile } from 'node:fs/promises';
 import { dirname, isAbsolute } from 'node:path';
 import { constants } from 'node:fs';
 import { Readable } from 'node:stream';
-import { createPortability, readArchive, PortabilityError } from '@runeditrun/rer/modules/portability';
+import { createPortability, readArchive, PortabilityError, canonicalJson } from '@runeditrun/rer/modules/portability';
 import { readLegacyArchive } from '@runeditrun/rer/modules/portability/format';
 import { absent, privateFile, promote } from '@runeditrun/rer/modules/portability/cli-options';
 import { readLocalSettings } from '../local-settings.mjs';
 import { startLocalWorker } from '../local-worker.mjs';
 import { productPolicy } from './transfer-policy.mjs';
 import { migrationReplay } from '@runeditrun/rer/modules/portability/migration-history';
+import { catalogue, policy as archivePolicy } from '@runeditrun/rer/modules/portability/catalogue';
+import { appliedMigrations, sameSchemaMigrations, additiveBridge } from '@runeditrun/rer/internal/modules/portability/bridge.mjs';
 import { migrationHistory } from './migration-history.mjs';
 import { fileURLToPath } from 'node:url';
 import {validateJournal} from '../../src/domain/archive-fence.server.ts';
@@ -18,10 +20,10 @@ async function* records(path, reader = readArchive) {
  finally { await file.close(); }
 }
 export async function transfer(direction, path) {
- let laterJournal;
+ let laterJournal, validatedManifest;
  if(direction==='import'&&process.env.UPTIME_LATER_JOURNAL){const journalPath=process.env.UPTIME_LATER_JOURNAL;if(!isAbsolute(journalPath))throw Error('UPTIME_LATER_JOURNAL must be an absolute file path');const stat=await lstat(journalPath);if(!stat.isFile()||stat.isSymbolicLink()||stat.size>8*1024*1024)throw Error('Invalid erasure journal file');laterJournal=validateJournal(JSON.parse(await readFile(journalPath,'utf8')))}
  if (direction === 'export') await absent(path);
- else try { for await (const record of records(path)) {} } catch (error) {
+ else try { for await (const record of records(path)) if (record.kind === 'manifest') validatedManifest = record; } catch (error) {
   // Archives from Uptime 0.1.2 and earlier predate Base's metadata binding. Base reads them only through an
   // acknowledged recovery into an installation without an owner, which Uptime's setup-first import cannot offer.
   if (!(error instanceof PortabilityError)) throw error;
@@ -40,6 +42,19 @@ export async function transfer(direction, path) {
   const root = fileURLToPath(new URL('../../', import.meta.url));
   const history = await migrationHistory(env.DB, root);
   const migrations = async () => migrationReplay(history.plan, policy);
+  if (direction === 'import') {
+   // The package creates its local identity before checking compatibility. The
+   // setup-first seed refuses product/schema/migration incompatibility before
+   // that write, using the same read-only checks and keeping its final checks.
+   const config = archivePolicy(policy);
+   if (validatedManifest.product !== config.product) throw new PortabilityError('wrong_product');
+   await appliedMigrations(env.DB);
+   const cat = await catalogue(env.DB, config);
+   if (!config.acceptedSchemas[validatedManifest.schema]) {
+    if (validatedManifest.schema === cat.identity) await sameSchemaMigrations(env.DB, validatedManifest, cat, migrations);
+    else await additiveBridge(env.DB, validatedManifest, cat, migrations);
+   }
+  }
   service = await createPortability({ db: env.DB, policy, migrations });
   if (direction === 'export') {
    await mkdir(dirname(path), { recursive: true, mode: 0o700 });
@@ -56,7 +71,10 @@ export async function transfer(direction, path) {
    await promote(temporary, path); complete = true;
   } else {
    for await (const record of records(path)) {
-    if (record.kind === 'manifest') { manifest = record; id = await service.imports.create(manifest); }
+    if (record.kind === 'manifest') {
+     if (canonicalJson(record) !== canonicalJson(validatedManifest)) throw new PortabilityError('archive_changed');
+     manifest = record; id = await service.imports.create(manifest);
+    }
     else if (record.kind === 'part') await service.imports.uploadPart(id, record.index, record);
     else closing = record;
    }

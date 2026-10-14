@@ -834,7 +834,7 @@
       "executable": false
     },
     "README.md": {
-      "sha256": "8fe5ff7d28198fd3f94e27c4b5e9791e0248d82f6ed9b5806301a4d6432c3342",
+      "sha256": "a92ff9d3eb1060446704873245e41a5cf8bc1a0ed42dd79216cf4af95de40159",
       "executable": false
     },
     "RELEASE.json": {
@@ -1302,7 +1302,7 @@
       "executable": false
     },
     "scripts/local/transfer.mjs": {
-      "sha256": "96a4f2efa926d6096d78b817499eb05c82e1303b96c2c8eb219eb5974c0973f6",
+      "sha256": "01803bc2ec77fdcc558905244ae959affa6d7a278d025e3dd633cff6dd0accf7",
       "executable": false
     },
     "scripts/local/worker.mjs": {
