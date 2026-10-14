@@ -1,3 +1,4 @@
+import {demoMode,setDemoReporter} from './demo-policy.mjs';
 import {validateConfiguration} from '../../src/domain/startup-config.mjs';
 import {controlOrigin} from './control-origin.mjs';
 import {createHmac,randomUUID} from 'node:crypto';
@@ -12,15 +13,18 @@ import {createClock} from './clock.mjs';
 import {browserCapability} from './flow/browser.mjs';
 import {prepareFlowWorkspace} from './flow/workspace.mjs';
 import {readControlResponse} from './control-response.mjs';
-export async function runRunner({origin,key,runnerId:configuredId,networkLabel,watch,grantPath=resolve('data/synthetic-grant.json'),localReview=false,transport=new NodePinnedTransport(),signal,once=false,pollMs=1000}){
+export async function runRunner({origin,key,controlAddress,runnerId:configuredId,networkLabel,watch,grantPath=resolve('data/synthetic-grant.json'),localReview=false,transport=new NodePinnedTransport(),signal,once=false,pollMs=1000}){
  validateConfiguration({UPTIME_CONTROL_ORIGIN:origin,UPTIME_RUNNER_KEY:key,UPTIME_LOCAL_REVIEW:String(localReview)},{scope:'runner'});
  const u=controlOrigin(origin,{localReview});
+ if(demoMode()&&!controlAddress&&(u.protocol!=='http:'||u.hostname!=='127.0.0.1'||!u.port))throw Error('Demo control transport requires its exact loopback origin');
+ if(controlAddress&&(!demoMode()||controlAddress!==`http://127.0.0.1:${process.env.PORT??8080}`))throw Error('Invalid demo control address');
  if(!key||key.length<24)throw Error('Scoped control-plane runner key required');
  let runnerId=configuredId,registered=false;
  // Flow profiles live in this runner's own folder, emptied now: a profile a hard stop left behind never outlives this start.
  const flowWorkspace=await prepareFlowWorkspace(key).catch(()=>{console.error('The flow folder is not a private folder this runner owns; flows will report Unknown until UPTIME_FLOW_DIR is fixed.');return undefined});
  const watcher=createWatch({...watch,transport:watch?.transport??transport}),clock=createClock();
- const api=async(path,data,signed=false,{shutdown=false}={})=>{const body=JSON.stringify(data),timestamp=String(clock.now()),headers={'content-type':'application/json','x-runner-key':key};if(runnerId)headers['x-runner-id']=runnerId;if(signed){headers['x-sent-at']=timestamp;headers['x-runner-signature']=createHmac('sha256',key).update(`${timestamp}.${path==='/api/runner/enroll'?'runner-enrolment.':''}${body}`).digest('hex')}const requestSignal=AbortSignal.any([AbortSignal.timeout(shutdown?2000:30000),...(!shutdown&&signal?[signal]:[])]),r=await fetch(origin+path,{method:'POST',headers,body,redirect:'error',signal:requestSignal});if(!r.ok){const answer=await readControlResponse(r,requestSignal).catch(()=>null),pick=(value,pattern)=>typeof value==='string'&&pattern.test(value)?value:null,code=pick(answer?.code,/^[a-z_]{1,40}$/),operation=pick(answer?.operation,/^[a-z][A-Za-z0-9_.]{0,80}$/),kind=pick(answer?.class,/^[a-z_]{1,20}$/),cause=pick(answer?.cause,/^[\x20-\x7e]{1,200}$/);throw Object.assign(Error(`Control-plane response ${r.status}${code?` ${code}`:''}${kind?` (${kind})`:''}${operation?` in ${operation}`:''}${cause?`: ${cause}`:''} for ${path}`),{status:r.status,code,operation,class:kind})}return readControlResponse(r,requestSignal)};
+ const api=async(path,data,signed=false,{shutdown=false}={})=>{const body=JSON.stringify(data),timestamp=String(clock.now()),headers={'content-type':'application/json','x-runner-key':key};if(runnerId)headers['x-runner-id']=runnerId;if(signed){headers['x-sent-at']=timestamp;headers['x-runner-signature']=createHmac('sha256',key).update(`${timestamp}.${path==='/api/runner/enroll'?'runner-enrolment.':''}${body}`).digest('hex')}const requestSignal=AbortSignal.any([AbortSignal.timeout(shutdown?2000:30000),...(!shutdown&&signal?[signal]:[])]),r=await fetch((controlAddress??origin)+path,{method:'POST',headers,body,redirect:'error',signal:requestSignal});if(!r.ok){const answer=await readControlResponse(r,requestSignal).catch(()=>null),pick=(value,pattern)=>typeof value==='string'&&pattern.test(value)?value:null,code=pick(answer?.code,/^[a-z_]{1,40}$/),operation=pick(answer?.operation,/^[a-z][A-Za-z0-9_.]{0,80}$/),kind=pick(answer?.class,/^[a-z_]{1,20}$/),cause=pick(answer?.cause,/^[\x20-\x7e]{1,200}$/);throw Object.assign(Error(`Control-plane response ${r.status}${code?` ${code}`:''}${kind?` (${kind})`:''}${operation?` in ${operation}`:''}${cause?`: ${cause}`:''} for ${path}`),{status:r.status,code,operation,class:kind})}return readControlResponse(r,requestSignal)};
+ if(demoMode())setDemoReporter(event=>api('/api/runner/demo-blocked',event));
  let discovering;
  do{
   let task;

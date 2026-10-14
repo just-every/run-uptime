@@ -7,6 +7,11 @@ settings:
 overrides:
   miniflare@5.20260926.1-alpha>sharp: 0.35.5
 
+patchedDependencies:
+  '@runeditrun/rer@0.2.2':
+    hash: 0a570e75db3af0662dd6cfcffeeabcee9ceafb945bbe212bbb602b724fbc7735
+    path: patches/@runeditrun__rer@0.2.2.patch
+
 importers:
 
   .:
@@ -35,7 +40,7 @@ importers:
         version: 5.20261006.1
       '@runeditrun/rer':
         specifier: 0.2.2
-        version: 0.2.2
+        version: 0.2.2(patch_hash=0a570e75db3af0662dd6cfcffeeabcee9ceafb945bbe212bbb602b724fbc7735)
       '@types/node':
         specifier: 26.6.4
         version: 26.6.4
@@ -2013,7 +2018,7 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.1': {}
 
-  '@runeditrun/rer@0.2.2': {}
+  '@runeditrun/rer@0.2.2(patch_hash=0a570e75db3af0662dd6cfcffeeabcee9ceafb945bbe212bbb602b724fbc7735)': {}
 
   '@sindresorhus/is@7.2.0': {}
 

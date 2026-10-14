@@ -7,7 +7,7 @@ export function mailSender(env:AuthBindings,dependencies:any={}){
  if(!env.MAIL_FROM)return null;
  if(provider==='development'){
   let url;try{url=new URL(env.UPTIME_ORIGIN!)}catch{return null}
-  if(env.UPTIME_LOCAL_REVIEW!=='true'||!['127.0.0.1','localhost','[::1]'].includes(url.hostname))throw Error('Development mail requires local runtime');
+  if(env.RER_DEMO!=='1'&&(env.UPTIME_LOCAL_REVIEW!=='true'||!['127.0.0.1','localhost','[::1]'].includes(url.hostname)))throw Error('Development mail requires local runtime');
   return createMailSender({provider,mode:'development'},{outbox:developmentOutbox(env.DB,'notification')})
  }
  if(!['resend','sendgrid','cloudflare'].includes(provider))throw Error('Invalid MAIL_PROVIDER');
