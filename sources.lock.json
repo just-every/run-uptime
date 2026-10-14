@@ -3094,7 +3094,7 @@
       "executable": false
     },
     "tests/demo-worker.mjs": {
-      "sha256": "4aa7d8b766d986da597653b8bb407f49757f48c5aa0b4e5ed95d710d74248a8f",
+      "sha256": "a906f31c58fc3ebb7fedc42a850607015e909d7794d0f36b7998d695b9df36d2",
       "executable": false
     },
     "tests/deployment-custody.mjs": {

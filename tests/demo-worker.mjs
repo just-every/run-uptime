@@ -9,7 +9,7 @@ import {splitSql} from './migration-support.mjs';
 import {claimKeys,signClaim} from '@runeditrun/rer/internal/modules/demo-host/claim.mjs';
 
 function demoBarEntries(html){
- const marker=html.match(/<aside\b[^>]*\bid="rer-demo-bar"[^>]*>([\s\S]*?)<\/aside>/);
+ const marker=html.match(/<aside\b(?:[^>"']|"[^"]*"|'[^']*')*?\s+id="rer-demo-bar"[^>]*>([\s\S]*?)<\/aside>/);
  assert.ok(marker,'signed-in app exposes the demo marker');
  return [...marker[1].matchAll(/<li\b[^>]*>([\s\S]*?)<\/li>/g)].map(([,entry])=>entry.replace(/<[^>]*>/g,'').replace(/&(amp|lt|gt|quot|#39);/g,(_,entity)=>({amp:'&',lt:'<',gt:'>',quot:'"','#39':"'"})[entity]));
 }
@@ -46,7 +46,7 @@ test('HTTPS demo signed claim uses exact bound origin, captures mail and blocks 
    assert.ok(entries.some(entry=>entry.includes(message.subject)&&recipients.every(recipient=>entry.includes(recipient))),'demo marker lists the captured subject and recipients together');
   }
   const blocked=(await db.prepare("SELECT DISTINCT method, host FROM rer_demo_outbound WHERE host='heartbeat.example.test'").all()).results;
-  for(const operation of blocked)assert.ok(entries.some(entry=>entry.split(/\s+/).includes(operation.method)&&entry.includes(operation.host)),'demo marker lists the blocked operation and destination together');
+  for(const operation of blocked)assert.ok(entries.some(entry=>entry.split(/\W+/).includes(operation.method)&&entry.includes(operation.host)),'demo marker lists the blocked operation and destination together');
   assert.equal(network,0);
  }finally{await worker?.dispose();await rm(directory,{recursive:true,force:true});}
 });
