@@ -3269,8 +3269,12 @@
       "sha256": "29baf0f1695ca348d7cee3662a83fe6853d76d300240ca1ed685ba86e5341275",
       "executable": false
     },
+    "tests/resilience/watch-clock.mjs": {
+      "sha256": "aa3b7cbb570b413117e431b253e384cc5a197b71c24fa8477d15602a89b9fd39",
+      "executable": false
+    },
     "tests/resilience/watches.mjs": {
-      "sha256": "4bf9382a75e05bee3e6305dad943534054b118e0a5fcfca1f1eb7a8aeb3aecd5",
+      "sha256": "2f29cf6fdbefbea5d493b8856cb93f2ec9c743badc2cb4c465d464923f6c6b69",
       "executable": false
     },
     "tests/review-ux-source.mjs": {
