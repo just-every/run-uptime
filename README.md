@@ -13,7 +13,7 @@
 <p align="center">
   <a href="https://justevery.com/#vol-uptime"><img src=".github/assets/media/preview.gif" width="800" alt="Uptime counting a failing Checkout API to three before it opens an incident, then watching it recover to healthy"></a>
 </p>
-<p align="center"><a href="https://justevery.com/#vol-uptime"><b>Watch the full demo</b></a> · 51 seconds</p>
+<p align="center"><a href="https://justevery.com/#vol-uptime"><b>Watch the full demo</b></a> · 49 seconds</p>
 
 <p align="center">
   <img src=".github/assets/media/flow.webp" width="800" alt="The Checkout API monitor moving from Degraded to Failing, then Recovering and back to Healthy">
