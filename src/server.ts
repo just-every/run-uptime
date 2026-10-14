@@ -6,7 +6,7 @@ import {readExternalCheck,saveExternalCheck} from './domain/external-check.serve
 import {runnerResultLimit} from './domain/credential-binding.mjs'
 import {signedRunnerBody} from './domain/runner-signature.server.ts'
 import {enrollRunner,authenticateRunner,createRunner,revokeRunner,listRunners,ensureFirstRunner,type Runner} from './domain/runner-registration.server.ts'
-import {configurationResponse,validateConfiguration} from './domain/startup-config.mjs'
+import {configurationResponse,validateWorkerConfiguration} from './domain/startup-config.mjs'
 import {isPublicDocument,publicPath} from './domain/public-paths.ts'
 import {limitPublicRequest} from './domain/public-rate-limits.server.ts'
 import {erase} from './domain/erasure.server.ts'
@@ -110,7 +110,7 @@ api.onError((error,c)=>{
  return c.json({error:error.message},status===409?409:limited?429:status===404?404:400)
 })
 const storageRoute=(path:string)=>path.split('/').map(part=>part.length>24||/[0-9a-f]{8}-[0-9a-f]{4}/i.test(part)?':id':part).join('/')
-// The installation is claimed once the owner confirms first-run setup at /setup (first-run.server.ts writes this row).
+// Lobby readiness follows /setup completion, separately from permanent Base owner admission.
 const claimed=claimedWhen('SELECT 1 FROM uptime_first_run WHERE id = 1')
 // The public docs carry no installation data and need no session.
 
@@ -128,7 +128,7 @@ const noTransform=(response:Response)=>{
 }
 const isConsoleDocument=(path:string)=>['/app','/app/','/app/monitor','/app/monitor/'].includes(path)||isMonitorPage(path)
 const handler={async fetch(request,env,execution){
- const invalid=configurationResponse(env as Bindings);if(invalid)return invalid;
+ const invalid=await configurationResponse(env as Bindings);if(invalid)return invalid;
  const limited=await limitPublicRequest(env as Bindings,request);if(limited)return limited;
  const bindings=env as Bindings,url=new URL(request.url),path=url.pathname;
  // This deliberately public local viewer must disappear before the normal Host guard.
@@ -163,7 +163,7 @@ const handler={async fetch(request,env,execution){
  }
  const response=await dispatch(request,()=>api.fetch(request,bindings,execution),()=>start.fetch(request));
  return noTransform(isConsoleDocument(path)?editorDocument(response,bindings):response)
-},async scheduled(_controller,env){validateConfiguration(env as Bindings);const bindings=env as Bindings;await maintenance(bindings);await dispatchNotificationMail(bindings);await monitoringWatch(bindings,()=>boundedHealth(()=>health(bindings)),async()=>{const data=await overview(bindings);return data.monitors.filter(m=>m.definition.enabled).every(m=>m.state.targetState==='Healthy')})}} satisfies ExportedHandler
+},async scheduled(_controller,env){await validateWorkerConfiguration(env as Bindings);const bindings=env as Bindings;await maintenance(bindings);await dispatchNotificationMail(bindings);await monitoringWatch(bindings,()=>boundedHealth(()=>health(bindings)),async()=>{const data=await overview(bindings);return data.monitors.filter(m=>m.definition.enabled).every(m=>m.state.targetState==='Healthy')})}} satisfies ExportedHandler
 export default {...handler,fetch(request,env,execution){
  return new URL(request.url).pathname==='/health'?boundedHealth(()=>handler.fetch(request,env,execution)):handler.fetch(request,env,execution)
 }} satisfies ExportedHandler

@@ -57,6 +57,8 @@ try {
    assert.equal(refused.status, 503, `${mode} ${bad}`); const body = await refused.text(); assert.ok(body.includes('UPTIME_START_URL')); assert.ok(!body.includes(bad));
   }
  }
+ await DB.prepare('INSERT INTO oa_bootstrap(singleton,claim_id,claimed_at) VALUES(1,?,?)').bind(crypto.randomUUID(),Date.now()).run();
+ assert.equal((await call({remove:'SETUP_TOKEN',url:bindings.UPTIME_ORIGIN+'/health'})).status,200,'permanently claimed D1 permits setup-token retirement before first-run completion');
  assert.ok(captured.every(line => !line.includes(sentinel)), 'runtime logs contain no malformed value or credential sentinel');
  console.log('BASE-SECRET-002 STARTUP-CONFIG passed: complete health 200; every required binding fails closed; logs retain no sentinel');
 } finally { await worker?.dispose(); await rm(temporary, { recursive: true, force: true }); }

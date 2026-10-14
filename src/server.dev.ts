@@ -14,7 +14,7 @@ const local=(env:AuthBindings)=>({...env,AUTH_ORIGIN:env.UPTIME_ORIGIN,AUTH_LOCA
 
 const developmentWorker=withDevIdentity<AuthBindings,typeof worker>(worker,{bindings:local as (env:AuthBindings)=>AuthBindings,config:authConfig,personas:devPersonas})
 export default {...developmentWorker,async fetch(request,env,execution){
- const invalid=configurationResponse(env);if(invalid)return invalid;
+ const invalid=await configurationResponse(env);if(invalid)return invalid;
  const path=new URL(request.url).pathname;
  if(env.UPTIME_LOCAL_REVIEW==='true'&&publicPath(path,true)?.kind==='development-asset'){const limited=await limitPublicRequest(env,request);if(limited)return limited;return env.ASSETS?env.ASSETS.fetch(request):new Response('Not found',{status:404})}
  if(env.UPTIME_LOCAL_REVIEW==='true'&&['/__dev/personas','/auth/dev/enter'].includes(path)){const limited=await limitPublicRequest(env,request);if(limited)return limited}

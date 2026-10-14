@@ -70,19 +70,34 @@ export const configurationTable = Object.freeze([
 export function requiredConfiguration(env, scope = 'worker') {
  return configurationTable.filter(rule => rule.scopes.includes(scope) && (rule.required === 'always' || rule.required === (local(env) ? 'local' : 'hosted') || rule.when?.(env)));
 }
-export function validateConfiguration(env, { scope = 'worker', suppliedOnly = false } = {}) {
+export function validateConfiguration(env, options = {}) {
+ validate(env, options);
+}
+function validate(env, { scope = 'worker', suppliedOnly = false } = {}, retiredSetupToken = false) {
  const required = new Set(requiredConfiguration(env, scope).map(rule => rule.name));
  for (const rule of configurationTable) {
   if (!rule.scopes.includes(scope)) continue;
   const value = env[rule.name];
-  if (value === undefined && (suppliedOnly || !required.has(rule.name))) continue;
+  if (value === undefined && (suppliedOnly || !required.has(rule.name) || (retiredSetupToken && rule.name === 'SETUP_TOKEN'))) continue;
   if (!rule.valid(value, env)) throw new Error(`Invalid or missing configuration: ${rule.name}`);
  }
  // Distinct secrets preserve installation-local authority boundaries.
  const keys = ['SESSION_SECRET', 'SETUP_TOKEN', 'UPTIME_RUNNER_KEY'].filter(name => typeof env[name] === 'string');
  for (let i = 0; i < keys.length; i++) for (let j = 0; j < i; j++) if (env[keys[i]] === env[keys[j]]) throw new Error(`Invalid configuration: ${keys[i]} must differ from ${keys[j]}`);
 }
-export function configurationResponse(env) {
- try { validateConfiguration(env); return null; }
+// Launchers validate pre-admission settings synchronously. A running Worker may
+// retire SETUP_TOKEN only after the permanent Base owner-admission singleton
+// exists. First-run completion and the original owner's continued existence are
+// separate concerns; erasure deliberately preserves this singleton.
+export async function validateWorkerConfiguration(env) {
+ if (env.SETUP_TOKEN !== undefined) return validateConfiguration(env);
+ validate(env, {}, true);
+ let admitted;
+ try { admitted = await env.DB.prepare('SELECT 1 FROM oa_bootstrap WHERE singleton = 1').first(); }
+ catch { throw new Error('Configuration unavailable: DB owner admission'); }
+ if (!admitted) throw new Error('Invalid or missing configuration: SETUP_TOKEN');
+}
+export async function configurationResponse(env) {
+ try { await validateWorkerConfiguration(env); return null; }
  catch (error) { return new Response(error.message, { status: 503, headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' } }); }
 }

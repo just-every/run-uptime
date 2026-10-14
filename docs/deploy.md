@@ -33,15 +33,17 @@ When it finishes, it prints the hosted address with the Worker and environment, 
 
 Cloudflare is the only place this command deploys to. Uptime declares no container platform, so the shared `--platform container`, `--host ssh://...` and `--image` options are refused for it; there is no Docker or SSH-host deployment.
 
-If a deployment stops part way, the command ends with `owner_deploy_failed`, the stage it stopped in (provisioning, migrations and upload, or the health check) and a short code from the deployment kit. What it already created is recorded in `.rer/deploy/<environment>.json`. Run the same command again to resume; it reuses what exists and does not create a second copy.
+If deployment or owner claim stops part way, inspect the reported stage, code and owner-claim outcome. What the deployment already created is recorded in `.rer/deploy/<environment>.json`. Rerun the same `rer deploy` command with the same environment to resume and inspect the new outcome; it reuses the recorded resources. Keep the ownership record and private settings.
 
 ### A separate environment
 
 `rer deploy --environment staging` deploys a second installation named `uptime-monitor-staging` with the database `uptime-monitor-staging-db`. An environment name starts with a lowercase letter and has at most 40 lowercase letters, digits and hyphens. Each environment keeps its own ownership record in `.rer/deploy/<environment>.json`, but the three generated secrets are shared: every environment deployed from this checkout uses `.rer/deploy/production-secrets.json`.
 
-## Claim the installation
+## Owner claim and sign-in
 
-Open `/claim` on the hosted address once and enter the `SETUP_TOKEN` from `.rer/deploy/production-secrets.json` to create the owner. Then finish first-run setup at `/setup`. After that, sign in with an email link: opening the link shows a confirmation page, and choosing **Confirm** finishes signing in. Opening the link alone does not sign you in. The console is at `/app`.
+Current rer deployment claims the owner automatically, then retires the one-use hosted `SETUP_TOKEN`. Inspect the CLI's `claimed` or `kept` owner outcome and token-retirement result. After successful admission, open `/login` on the reported hosted address and request an ordinary email sign-in link. Opening the link shows a confirmation page; choosing **Confirm** signs you in. Finish first-run setup at `/setup`, then use the console at `/app`. Permanent owner admission survives token retirement even before setup is finished, and remains claimed if the original owner is later erased.
+
+Automatic claim and retirement require a CLI providing that lifecycle. This checkout intentionally retains `@runeditrun/rer` 0.2.2 and commands use that pin; do not assume the older pin already auto-claims. Inspect the invoked CLI's reported owner outcome. If claim fails or is incomplete, rerun the same `rer deploy --environment NAME` and inspect the outcome. Do not enter a retired token at `/claim` as routine recovery.
 
 ## Check it
 
@@ -55,26 +57,37 @@ For another environment, pass its name: `pnpm run health -- --environment stagin
 
 Deploying does not run the private runner. Checks do not happen until you start it on a machine that can reach your targets. Follow [The private runner](/docs/runner).
 
+## Update an existing deployment
+
+Use the checkout that owns the existing deployment. Start with a clean tracked tree and preserve `.rer/deploy/<environment>.json` plus the private `.rer/deploy/production-secrets.json` and backups. Resolve local changes before updating; do not delete deployment records or replace private settings.
+
+On the public `main` branch, obtain newer public source:
+
+```sh
+git status --short
+git pull --ff-only origin main
+```
+
+Alternatively, fetch from the public repository and check out a reviewed public commit. Refresh dependencies with `rer install` if the newer source requires it, then redeploy the same environment:
+
+```sh
+rer deploy --environment NAME
+pnpm run health -- --environment NAME
+```
+
+Compare the recorded Worker and D1 identities before and after; an update retains the same resources, owner, monitors, history, destinations and saved private settings while applying additive migrations and the new code. Inspect deployment readback and health, including the deployed-source identity matching the reviewed public commit, then test ordinary email sign-in at `/login`. Unfinished owners should reach `/setup`; completed owners should reach `/app` with their existing monitors and history. Check runner contact and actual results separately. Deployment does not update or supervise the private runner's host.
+
 ## Remove a deployment
 
-Uptime never deletes anything in your Cloudflare account. A deployment owns exactly two things: the Worker `uptime-monitor-<environment>` (its Cron trigger is part of the Worker) and the D1 database `uptime-monitor-<environment>-db`. It creates no R2 buckets, queues, KV namespaces or Workflows. Deleting the database deletes its monitors and history for good, so export an archive first.
+Export a hosted product archive from the owner console and back up D1 before removal; keep private settings separately. D1 deletion permanently destroys the installation's monitors and history. Use:
 
-1. List what is in the account and find the two names. The D1 list is paginated; keep asking for the next page until a page comes back with fewer than 100 results.
+```sh
+rer deploy --environment NAME --remove --yes
+```
 
-   ```sh
-   curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts"
-   curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/d1/database?per_page=100&page=1"
-   ```
+The command validates the selected environment's recorded ownership before deleting its Worker and D1 database, then reads back their absence. Its Cron trigger belongs to the Worker; Uptime creates no R2 buckets, queues, KV namespaces or Workflows. Inspect the command's outcome rather than assuming a successful request means everything is gone.
 
-2. Check that the database ID matches the one recorded in `.rer/deploy/<environment>.json`. A Worker or database with the expected name but a different ID belongs to someone else; the deploy command refuses to adopt such a name, and you should not delete it.
-3. Delete the Worker, then the database by its exact ID:
-
-   ```sh
-   curl -s -X DELETE -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts/uptime-monitor-<environment>"
-   curl -s -X DELETE -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/d1/database/<database-id>"
-   ```
-
-4. List again and confirm both names are gone. Then remove `.rer/deploy/<environment>.json`, and the secrets file if no other environment uses it.
+A resource with a familiar name but mismatched identity must not be adopted or deleted. If ownership cannot be established or removal is incomplete, keep the ownership record and settings; incomplete removal retains the record for recovery. Use manual provider inspection to reconcile that specific outcome. Keep shared settings while other environments still use them. Manual deletion is not the routine removal procedure.
 
 ## About verification
 

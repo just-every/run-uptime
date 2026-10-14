@@ -58,17 +58,23 @@ values are generated for a new installation or reused from the owner-only
 `.rer/deploy/production-secrets.json` settings file. Keep that file private and
 back it up separately from D1.
 
-After deployment, open the hosted `/claim` address once to claim the owner, then finish the signed-in `/setup` page, which opens the console at `/app`. App documents return unfinished owners to `/setup`; signed-out visitors go to sign-in and back. Completion is durable and repeating rer setup preserves it.
-Start the private runner separately on an authorized host. See [Runner and
-targets](#runner-and-targets) for its exact environment and command. The deploy
-path was exercised end to end once on v0.1.1; the command and a local readiness
-result do not establish hosted operation. A successful deploy prints the hosted
-origin, Worker and environment. A failed one ends with `owner_deploy_failed`,
-the stage and the deploy-kit code, keeps `.rer/deploy/<environment>.json`, and
-resumes when the same command is run again. Other environments use their own
-ownership record but share `.rer/deploy/production-secrets.json`. Uptime never
-deletes provider resources; see `docs/deploy.md` for listing, exact-ID deletion
-and absence checks.
+Current rer deployment claims the owner automatically and retires the one-use hosted `SETUP_TOKEN` after permanent admission. Inspect the command's `claimed` or `kept` owner outcome and token-retirement result, then open the hosted `/login` for ordinary email-link sign-in and finish the signed-in `/setup` page to enter `/app`. Owner admission is the permanent `oa_bootstrap` singleton; first-run completion is the separate `uptime_first_run` record. Retirement works before first-run completion and after original-owner erasure, which anonymises but retains admission. App documents return unfinished owners to `/setup`; signed-out visitors go to `/login`.
+
+Automatic claim and retirement require a CLI providing that lifecycle; see the [deployment guide](docs/deploy.md#owner-claim-and-sign-in) for the retained pin and outcome checks. If deployment or owner claim fails or remains incomplete, retain `.rer/deploy/<environment>.json`, rerun the same `rer deploy --environment NAME`, and inspect the reported stage and outcome. Do not recover a failed claim by entering a retired token at `/claim`. Other environments retain their own ownership record but share `.rer/deploy/production-secrets.json`.
+
+Start the private runner separately on an authorized host. See [Runner and targets](#runner-and-targets). The owner-account deployment path was exercised end to end once on v0.1.1; that historical run and a local readiness result do not establish the newer lifecycle or hosted operation.
+
+### Update an existing hosted installation
+
+Start with the existing deployment checkout and a clean tracked tree (`git status --short`); resolve local changes before updating. Preserve `.rer/deploy/<environment>.json`, `.rer/deploy/production-secrets.json` and the private backups. On public `main`, run `git pull --ff-only origin main`, or fetch the public repository and check out a reviewed public commit. Refresh dependencies with `rer install` if the new source requires it, then use the same `rer deploy --environment NAME` with the same account, environment and settings. Do not reset ownership records or generate a replacement installation. Compare the Worker and D1 identities with the retained record: IDs, owner, monitors, history, destinations and saved private settings must be retained while additive migrations and new code are applied.
+
+Inspect deployment readback and `pnpm run health -- --environment NAME`, including the deployed-source identity matching the reviewed public commit, then test ordinary email sign-in at `/login`. An unfinished owner must reach `/setup`; an already completed owner must reach `/app` with existing monitors and history. Confirm the separately supervised runner's contact and real results independently. The CLI does not update or supervise that host for you.
+
+### Remove a hosted installation
+
+First export the hosted product archive from the owner console and back up D1; preserve private settings separately. Run `rer deploy --environment NAME --remove --yes`. Removing D1 permanently destroys the installation's monitors and history. The command checks recorded ownership of the Worker and D1 before deleting, removes only owned resources, and reads back their absence. The Worker owns its Cron trigger; Uptime declares no R2, KV, queues or Workflows.
+
+Inspect the removal result. A mismatch or uncertain ownership must stop deletion; an incomplete removal retains its ownership record for recovery. Keep `.rer/deploy` records and settings until the outcome is reconciled, including any other environments using the settings. Manual provider inspection is a recovery step for mismatches or interrupted removals, not the routine removal path. See [docs/deploy.md](docs/deploy.md#remove-a-deployment).
 
 `pnpm run health` checks the owner deployment through Cloudflare and is
 read-only; `pnpm run health -- --environment NAME` checks another environment. It does not prove that the runner is active, targets are healthy, or

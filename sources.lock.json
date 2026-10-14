@@ -454,7 +454,7 @@
       "executable": false
     },
     "docs/deploy.md": {
-      "sha256": "b20a6a59c61ce4cb5659b2b488e46e7e72f8088c1db3c1ab57e898b2b4ed5dc4",
+      "sha256": "fc3a1231eb943c9a2133c4c4f855c89800acaf3b6fa754f6aade9aa8b5bc3b16",
       "executable": false
     },
     "docs/install.md": {
@@ -666,7 +666,7 @@
       "executable": false
     },
     "OPERATIONS.md": {
-      "sha256": "3acc7f62e6acfdb6347b237124d5a64435ea30a3c5f357eadfea1e798b0c11b4",
+      "sha256": "bf6139851d057581fb0acf79edc14340bdfb2f3a56ef05eb77ebbd56782a38c9",
       "executable": false
     },
     "package.json": {
@@ -830,7 +830,7 @@
       "executable": false
     },
     "README.md": {
-      "sha256": "d9b68d6054fd1c6bf4f891de6b5a00e65a9ab517b6ad3f1367040d2aa1bc7b17",
+      "sha256": "e5bd1f69c9ac4a263dea4540e57c75cf3b1c2bc4ab4cc3928e7ab4d6dc0c5b6b",
       "executable": false
     },
     "RELEASE.json": {
@@ -2498,11 +2498,11 @@
       "executable": false
     },
     "src/domain/startup-config.d.mts": {
-      "sha256": "a3b4f9b9fa1eff3ddb16347bb687a38c816d931804baaa1fe9710f39b0a1ff95",
+      "sha256": "41067bc92be5508ebc125cefe90248ad2de40d93ca27b58f1ee8d2e8c92b38bb",
       "executable": false
     },
     "src/domain/startup-config.mjs": {
-      "sha256": "a19703daf5ba55ed582dba8ff6940005f9b900301c71e6d73b26a2b0f21fc609",
+      "sha256": "b021c01ef2d9770bf0a7fee8c5798f2e1f5b4af3a2a7d9ed401c3b3c890253c6",
       "executable": false
     },
     "src/domain/storage-error.ts": {
@@ -2558,11 +2558,11 @@
       "executable": false
     },
     "src/server.dev.ts": {
-      "sha256": "a595cadee58cf6b958f347f28142f306eb6a2cefd26afce822bf84f583f9b506",
+      "sha256": "6fc0c1b75d12bff10aa207406e35cbe7a31b203dd750a72e9197a37804767c11",
       "executable": false
     },
     "src/server.ts": {
-      "sha256": "9164d695d7770aee0c9aa632a6db50de1e8bd51e0da86e07230891e5696c9769",
+      "sha256": "c49ecfc3247ee62f5507431e1a4b6a781217e9ed6991c45f619b95e872282b8a",
       "executable": false
     },
     "src/site/docs/build/manifest.ts": {
@@ -3330,7 +3330,7 @@
       "executable": false
     },
     "tests/startup-config.mjs": {
-      "sha256": "3771a54dba084856dee735b9598b70366b726572e9d8862073a6284908d7da34",
+      "sha256": "fd0733c53f0956e48412d8ee7de744f58b684b9c6b4cb61e794e067d099021f2",
       "executable": false
     },
     "tests/storage-faults.mjs": {
