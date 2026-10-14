@@ -69,7 +69,10 @@ try{
  // Native claim errors keep Base's refusal and authority while presenting the
  // same retry form accessibly. Admission counters are the only expected writes.
  const durableSnapshot=async()=>{
-  const names=(await DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT IN ('oa_limits','public_rate_limits') ORDER BY name").all()).results;
+  // _cf_METADATA is provider-owned, unreadable D1 installation metadata, as
+  // classified in archive-inventory.ts. Keep every application table except
+  // the two admission counters, including installation-local authority.
+  const names=(await DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT IN ('oa_limits','public_rate_limits','_cf_METADATA') ORDER BY name").all()).results;
   return Promise.all(names.map(async({name})=>{
    assert.ok(/^[a-z0-9_]+$/i.test(name),'durable table identifier is safe');
    return [name,(await DB.prepare(`SELECT * FROM "${name}" ORDER BY 1`).all()).results];
