@@ -51,7 +51,7 @@ async function deploy(root, provider, signal) {
       signal.removeEventListener('abort', stop);
       const records = (output + '\n' + errors).split('\n').filter(line => line.startsWith('{')).flatMap(line => { try { return [JSON.parse(line)]; } catch { return []; } });
       // Never expose raw child output: generated installation keys are private.
-      resolveResult({ code, errorCodes: records.filter(value => value.event === 'error').map(value => value.code), result: records.findLast(value => value.event === 'result') ?? null });
+      resolveResult({ code, errorCodes: records.filter(value => value.event === 'error').map(value => value.code), failureCodes: records.filter(value => value.event === 'error').flatMap(value => value.message?.match(/: ([a-zA-Z0-9_-]+)(?:[. ]|$)/)?.[1] ?? []), result: records.findLast(value => value.event === 'result') ?? null });
     });
   });
 }

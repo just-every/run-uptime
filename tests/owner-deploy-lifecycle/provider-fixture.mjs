@@ -1,5 +1,5 @@
 // Test-only Base network fixture from 67e0a7d7c4a87b3a145545515a8c83afcac457ec.
-// Original SHA-256: 7da730af1ad879fae98d590922daf317bc7523fa47cb2bcb977fecab0436bdd4. Only validation import relocated.
+// Original SHA-256: 7da730af1ad879fae98d590922daf317bc7523fa47cb2bcb977fecab0436bdd4. Validation import relocated; requested asset hashes deduplicated for shared product assets.
 import { DatabaseSync } from 'node:sqlite';
 import { createHash, randomUUID } from 'node:crypto';
 import { hash } from '../../src/base/modules/deploy-kit/validation.mjs';
@@ -105,7 +105,7 @@ export function providerFixture({handlers = ['fetch','scheduled']} = {}) {
     if (path === '/workers/assets/upload') {write(method,path);return ok({jwt:'fixture-complete-jwt'});}
     const worker = /^\/workers\/scripts\/([^/]+)(.*)$/.exec(path); if (!worker) throw Error(`unexpected fixture path ${path}`);
     const name = worker[1], suffix = worker[2];
-    if (suffix === '/assets-upload-session') {write(method,path,body);return ok({jwt:'fixture-upload-jwt',buckets:[Object.values(body.manifest).map(x => x.hash)]});}
+    if (suffix === '/assets-upload-session') {write(method,path,body);return ok({jwt:'fixture-upload-jwt',buckets:[[...new Set(Object.values(body.manifest).map(x => x.hash))]]});}
     if (suffix === '/settings') return state.settings ? ok(state.settings) : missing();
     if (suffix === '/deployments') return ok({deployments:state.deployments});
     if (suffix === '/versions') return ok({items:(state.versions ?? []).map(({id}) => ({id}))});
