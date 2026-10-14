@@ -20,3 +20,8 @@ Missing, altered or mismatched patches still fail the contract check.
 Replace this patch with an exact published package update when Base publishes
 these capabilities and that checker correction. Do not replace the CLI with a
 seed command wrapper or require another checkout at runtime.
+
+`modules/demo` requires operator-auth's shared CSP helper. The app's
+operator-auth runtime copy moves as one unit to the same Base revision, as the
+SC-05 source contract requires; historical SQL migration bytes remain intact.
+The old foundation comparison baseline is retained in the edition source lock.

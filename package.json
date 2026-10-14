@@ -60,7 +60,7 @@
     "test:resilience": "node --test --test-concurrency=1 tests/resilience/attempts.mjs tests/resilience/watches.mjs",
     "test:baseline": "node tests/startup-config.mjs && node tests/public-paths.mjs && node tests/storage-faults.mjs && node tests/erasure-audit.mjs && node --test --test-concurrency=2 tests/erasure-races.mjs",
     "verify:release": "node tests/archive-release.mjs",
-    "test:demo": "node --test --test-concurrency=1 tests/demo-runner.mjs tests/demo-browser.mjs"
+    "test:demo": "node --test --test-concurrency=1 tests/demo-runner.mjs tests/demo-browser.mjs tests/demo-worker.mjs"
   },
   "dependencies": {
     "@tanstack/react-router": "1.170.33",

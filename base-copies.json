@@ -827,11 +827,13 @@
         "src/base/modules/operator-auth/index.mjs": "d788203c0e82f4d4e22df8884f592bc9134bdbedaee29bb416f7eee9fc82b0c1",
         "src/base/modules/operator-auth/input.mjs": "0b668bdbdce75d31acc6a2918ed8131d6baeff948d91048bde9fd58fb52a91e8",
         "src/base/modules/operator-auth/local-cli.mjs": "b10dafbf33fc4f342e2c3c6db343afd353c3e6264208216a6155d50e71d1f19a",
+        "src/base/modules/operator-auth/loopback.mjs": "13b32a076bce23a3124be1745202c18eda553f298fad3d9f5cb93ac61aee3115",
         "src/base/modules/operator-auth/page.mjs": "553b04f210e94f7f5622a5988445da82ffc94ca436be272d8ccfe993918ca7a0",
         "src/base/modules/operator-auth/policy.mjs": "d535aba35621d333cd6faae49fc3c6cb72e1d5718741f02d363cbe3e8eaf153c",
         "src/base/modules/operator-auth/README.md": "90ed6b62dd5557e517392ef62837d1059f0c44f701db2bbf205974369c4483e9",
         "src/base/modules/operator-auth/routes.mjs": "5337330fca02e8862e42750232967ef084f0d7b5bf0c01cb3f3a6e844c4f6cf3",
         "src/base/modules/operator-auth/service.mjs": "be4aee5deb9c18101acafe98f896faad0c282a795ccb85a4016e46f4d8d1f584",
+        "src/base/modules/operator-auth/signin/index.d.mts": "220f869fbe7e93a293f6cde24bec0f3fd9639289b7548353b9904b4085f94a6a",
         "src/base/modules/operator-auth/signin/index.mjs": "c902a6895f5ffb8c141eb3214d78ccd654dc094671569594c51b0a73dfb1f3ce"
       },
       "modes": {
@@ -904,11 +906,13 @@
         "src/base/modules/operator-auth/index.mjs": "100644",
         "src/base/modules/operator-auth/input.mjs": "100644",
         "src/base/modules/operator-auth/local-cli.mjs": "100644",
+        "src/base/modules/operator-auth/loopback.mjs": "100644",
         "src/base/modules/operator-auth/page.mjs": "100644",
         "src/base/modules/operator-auth/policy.mjs": "100644",
         "src/base/modules/operator-auth/README.md": "100644",
         "src/base/modules/operator-auth/routes.mjs": "100644",
         "src/base/modules/operator-auth/service.mjs": "100644",
+        "src/base/modules/operator-auth/signin/index.d.mts": "100644",
         "src/base/modules/operator-auth/signin/index.mjs": "100644"
       }
     },

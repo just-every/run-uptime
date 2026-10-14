@@ -86,12 +86,12 @@ export async function startFlowProxy({grant = null, maxBytes, maxConnections = 6
     if (!target) {if(demoMode())await demoRefusal(`https://${request.url}`,'CONNECT');return refuse('403 Forbidden');}
     // A tunnel's bytes never pass here as HTTP, so whatever answers on the granted port could not prove it is the fixture: the
     // fixture serves plain HTTP only, and a synthetic run never tunnels to it.
-    if (grant) { block('custody', parsed.host); return refuse('403 Forbidden'); }
+    if (grant) { if(demoMode())await demoRefusal(`https://${request.url}`,'CONNECT');block('custody', parsed.host); return refuse('403 Forbidden'); }
     const upstream = track(net.connect({host: target.address, family: target.family, port: parsed.port}));
     upstream.once('connect', () => { client.write('HTTP/1.1 200 Connection Established\r\n\r\n'); if (head?.length) upstream.write(head); upstream.on('data', count); upstream.pipe(client); client.pipe(upstream); });
     upstream.once('error', () => client.destroy()); client.once('error', () => upstream.destroy());
   });
-  server.on('upgrade',(request,socket)=>{block('websocket');if(demoMode())void demoRefusal(request.url,'WEBSOCKET');socket.end('HTTP/1.1 403 Forbidden\r\nconnection: close\r\n\r\n');});
+  if(demoMode())server.on('upgrade',(request,socket)=>{block('websocket');void demoRefusal(request.url,'WEBSOCKET');socket.end('HTTP/1.1 403 Forbidden\r\nconnection: close\r\n\r\n');});
   server.on('clientError', (_error, socket) => socket.destroy());
   await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', resolve); });
   return {

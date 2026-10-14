@@ -8,6 +8,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {startSynthetic} from '../runners/src/synthetic-server.mjs';
 import {executeTaskProbe} from '../runners/src/execute-task.mjs';
+import {runRunner} from '../runners/src/private-runner.mjs';
 import {publicReport} from '../runners/src/public-http.mjs';
 import {createWatch} from '../runners/src/watch.mjs';
 import {dispatchNotifications} from '../runners/src/notification-dispatch.mjs';
@@ -26,6 +27,7 @@ test('demo runner executes its fixture and refuses probes, discovery, watches an
  const resolve4=Resolver.prototype.resolve4,resolve6=Resolver.prototype.resolve6;
  Resolver.prototype.resolve4=Resolver.prototype.resolve6=async()=>{dns++;throw Error('unexpected DNS')};
  try{
+  await assert.rejects(runRunner({origin:'https://example.com',key:'a'.repeat(64),once:true}),/Demo control transport/);
   const origin=`http://127.0.0.1:${target.port}`,probe=async input=>executeTaskProbe({definition:input},'local-a',{grantPath,controlPort:0});
   for(const input of [{name:'HTTP demo sample',url:origin+'/health'},{name:'Keyword demo sample',url:origin+'/api/status',type:'keyword',assertions:{status:200,bodyIncludes:'healthy'}}])assert.equal((await probe(validateDefinition({...input,network:'synthetic'},[target.port]))).outcome,'pass');
   const redirect=await probe({name:'Redirect sample',url:origin+'/redirect',network:'synthetic'});assert.notEqual(redirect.outcome,'pass');

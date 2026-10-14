@@ -1,3 +1,4 @@
+import {demoEnvironment,runtimeEnvironment} from './demo-state.mjs';
 import { readLocalSettings, validateLocalConfiguration } from '../local-settings.mjs';
 import { lstat, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -32,8 +33,7 @@ export async function prepare({ root, input, store }) {
 export async function runtimeTarget(context, development) {
  const { root, origin, vars, store, signal, runtimePort, devKey, devLogin, demo } = context;
  const state = demo?.state ?? join(root, '.wrangler/state');
- const demoEnv = demo ? {RER_DEMO:'1',RER_DEMO_EXPIRES:demo.ends,RER_STATE_DIR:state,UPTIME_FLOW_DIR:join(state,'flows'),UPTIME_CREDENTIAL_DIR:join(state,'credentials'),UPTIME_DEMO_LOG:join(state,'blocked.jsonl')} : {};
- if(demo) { const {mkdir}=await import('node:fs/promises'); for(const folder of ['flows','credentials'])await mkdir(join(state,folder),{recursive:true,mode:0o700}); }
+ const demoEnv = await demoEnvironment(demo);
  validateLocalConfiguration({ ...vars, UPTIME_LOCAL_REVIEW: 'true', ...(devKey ? { RER_DEV_KEY: devKey } : {}) }, { scope: 'settings' });
  // Setup migrates before it starts the app. A dev or preview start on a copy that has since pulled a new migration does the
  // same before anything serves, so saved data never meets a Worker that expects a newer schema. Nothing pending is a no-op.
@@ -41,7 +41,7 @@ export async function runtimeTarget(context, development) {
  // Managed dev and preview serve the origin through a proxy to an internal loopback port.
  const hostname = runtimePort ? '127.0.0.1' : new URL(origin).hostname.replace(/^\[|\]$/g, '');
  const port = String(runtimePort ?? new URL(origin).port);
- const runtime = { ...process.env, ...demoEnv, X_LOCAL_EXPLORER: 'false', UPTIME_LOCAL_ORIGIN: origin, UPTIME_LOCAL_HOST: hostname, UPTIME_LOCAL_PORT: port, UPTIME_LOCAL_PERSIST: state, UPTIME_LOCAL_SETTINGS: join(root, 'data/local-secrets.json') };
+ const runtime = { ...runtimeEnvironment(), ...demoEnv, X_LOCAL_EXPLORER: 'false', UPTIME_LOCAL_ORIGIN: origin, UPTIME_LOCAL_HOST: hostname, UPTIME_LOCAL_PORT: port, UPTIME_LOCAL_PERSIST: state, UPTIME_LOCAL_SETTINGS: join(root, 'data/local-secrets.json') };
  const grantPath = join(state, 'synthetic-grant.json');
  // Synthetic monitors name the synthetic port, so a relaunch keeps the port its grant records.
  const syntheticPort = await syntheticPortFor(process.env.UPTIME_SYNTHETIC_PORT, grantPath);

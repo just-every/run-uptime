@@ -26,6 +26,10 @@ notification outcomes, the Demo bar and the private demo's `blocked.jsonl`.
 If the control plane itself is unavailable, independent watch refusals remain in
 that local log; they are never recorded as delivered. Worker mail uses the
 existing development outbox, including on the hosted demo's HTTPS origin.
+Base currently refuses development authentication delivery on non-local origins:
+a hosted magic-link request captures its message, revokes the link, and returns
+unavailable. Hosted visitors sign in through their signed owner claim instead;
+no captured message is described as delivered.
 The Demo bar lists captured mail and blocked sends. External heartbeats pass
 through the Worker guard and record failure when refused.
 
@@ -36,8 +40,10 @@ change when `RER_DEMO` is absent.
 
 ## Hosted demo
 
-`rer deploy --demo --dry-run` prepares the Base front Worker and workerd
-container without provider requests. The existing Uptime project identifiers
+`rer deploy --demo --dry-run` currently stops before provider requests at Base's
+container import boundary: it rejects the unmodified demo module's
+`cloudflare:workers` import. Base must sanction its own demo guard imports for
+the workerd engine before this hosted configuration can build or deploy. The existing Uptime project identifiers
 are retained. A visitor gets one isolated container, its own owner claim keys,
 session/setup secrets, derived runner key, D1 state and synthetic process.
 Only the trusted exact `UPTIME_ORIGIN` binding can supply the demo owner-claim
