@@ -9,8 +9,12 @@ import { main, report } from '@runeditrun/rer/modules/deploy-kit/owner-cli';
 import { secretsFile, ownerSecrets, ownerEnvironment, validateAccount } from './owner-settings.mjs';
 import { prepareOwnerBuild, ownerProduct } from './owner-prepare.mjs';
 import { missing, RerError } from '@runeditrun/rer/errors';
+import { ownerDeploy } from '@runeditrun/rer/deploy';
 export function deployment(lifecycle) {
- return async ({ root, options, store, signal, operationToken }) => {
+ const sharedDeploy = ownerDeploy('deploy.json', lifecycle);
+ return async context => {
+  const { root, options, store, signal, operationToken } = context;
+  if (options.remove || options.setSecret || options.unsetSecret) return sharedDeploy(context);
   const declaration = JSON.parse(await readFile(join(root, 'deploy.json'), 'utf8'));
   const environment = options.environment ?? 'production';
   // Dry runs inspect the deploy schema without accepting or requiring provider credentials.

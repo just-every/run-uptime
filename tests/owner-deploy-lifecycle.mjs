@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn, execFileSync } from 'node:child_process';
-import { mkdtemp, mkdir, cp, readFile, readdir, rm, symlink, realpath, appendFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, cp, readFile, readdir, rm, symlink, realpath, appendFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { delimiter, dirname, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -33,14 +33,14 @@ async function checkout(t) {
   await appendFile(join(root, '.git/info/exclude'), '\n/node_modules\n');
   return root;
 }
-async function deploy(root, provider, signal) {
+async function deploy(root, provider, signal, flags = []) {
   const env = { PATH: commandPath, HOME: root, CI: 'true', ...toolEnvironment, ...provider.env,
     NODE_OPTIONS: `--import=${pathToFileURL(join(root, 'tests/owner-deploy-lifecycle/preload.mjs')).href}`,
     CLOUDFLARE_ACCOUNT_ID: provider.accountId, CLOUDFLARE_API_TOKEN: provider.token,
     OWNER_EMAIL: 'owner@example.test', MAIL_FROM: 'sender@example.test', SENDGRID_API_KEY: 'test-only-sendgrid-key',
   };
   return new Promise((resolveResult, reject) => {
-    const child = spawn('rer', ['deploy', '--json'], { cwd: root, env, detached: true, stdio: ['ignore', 'pipe', 'pipe'] });
+    const child = spawn('rer', ['deploy', '--json', ...flags], { cwd: root, env, detached: true, stdio: ['ignore', 'pipe', 'pipe'] });
     const stop = () => { try { process.kill(-child.pid, 'SIGKILL'); } catch { /* Already reaped. */ } };
     signal.addEventListener('abort', stop, { once: true });
     let output = '', errors = '';
@@ -136,5 +136,16 @@ test('five real rer deploy cycles cover eventual D1 listing, exact repeat, parti
   assert.deepEqual(migrationRows(provider), migrations);
   assert.equal(provider.uploads.length, 1, 'repeat and foreign collision never upload another worker');
   assert.equal(git(root, 'status', '--porcelain', '--untracked-files=all'), '');
-
+  await writeFile(join(root, '.rer/deploy/production.json'), receiptBytes, { mode: 0o600 });
+  const uploadsBeforeRemoval = provider.uploads.length;
+  const removed = await deploy(root, provider, t.signal, ['--remove', '--yes']);
+  assert.deepEqual({
+    code: removed.code, ok: removed.result?.ok, deployed: removed.result?.deployed,
+    removed: removed.result?.removed?.toSorted(), worker: provider.state.settings,
+    databases: provider.state.databases.length, uploads: provider.uploads.length,
+  }, {
+    code: 0, ok: true, deployed: false,
+    removed: ['d1:uptime-monitor-production-db', 'worker:uptime-monitor-production'],
+    worker: null, databases: 0, uploads: uploadsBeforeRemoval,
+  }, 'remove uses shared removal without uploading a deployment');
 });
