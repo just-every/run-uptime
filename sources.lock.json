@@ -3063,7 +3063,7 @@
       "executable": false
     },
     "tests/auth-input-boundary.mjs": {
-      "sha256": "2e22397bd39ca221b80e2024f160099ffd4cb1976ea5c28cad1a9152dc8e7c75",
+      "sha256": "844d09ec1eb31cb5cfd4a0eb9c64e6e9bd3ef59b626d6a5b19ffe80fa81193d3",
       "executable": false
     },
     "tests/auth-outbox-runtime.mjs": {
