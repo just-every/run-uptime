@@ -14,7 +14,11 @@ No successful observation is seeded: monitors begin Unknown and become Healthy
 only after the real private runner has checked that service. This is evidence
 about a local synthetic target, never evidence of a customer's website health.
 
-Base's unmodified `modules/demo` adds the Demo bar and Worker outbound guard.
+Base's demo module at `src/modules/demo` adds the Demo bar and Worker outbound
+guard. Its only edition adaptation is the two relative imports back to the
+unchanged operator-auth helpers in `src/base/modules/operator-auth`; its guard
+behavior is unchanged. [Source provenance](patches/README.md) records both the
+adapted index and the five unchanged files.
 The outside-Worker Node runner has a narrower rule: only the live owner-only
 synthetic grant's exact origin, allowed paths and GET/HEAD methods may be probed.
 Redirects cannot leave it; public probes and canaries, discovery (including a
@@ -40,11 +44,19 @@ change when `RER_DEMO` is absent.
 
 ## Hosted demo
 
-`rer deploy --demo --dry-run` currently stops before provider requests at Base's
-container import boundary: it rejects the unmodified demo module's
-`cloudflare:workers` import. Base must sanction its own demo guard imports for
-the workerd engine before this hosted configuration can build or deploy. The existing Uptime project identifiers
-are retained. A visitor gets one isolated container, its own owner claim keys,
+`rer deploy --demo --dry-run` now passes Base's canonical demo import boundary
+and prepares the front Worker, configuration and workerd image locally. The
+credential-free check returned `dryRun: true` and `deployed: false`, with Worker
+`uptime-monitor-production--demo` at the declared `demo.run-uptime.com` domain,
+the synthetic runner, demo egress denial and `enableInternet: false`.
+This proves local image preparation only: Docker execution, Cloudflare container
+operation, visitor isolation and expiry, hosted egress, startup latency and
+public availability remain unverified. The independent Base owner-deploy
+exact-repeat provider-write and receipt-preservation regression still blocks
+main release. Hosted acceptance and owner go-live remain pending.
+
+The existing Uptime project identifiers are retained. The hosted configuration
+provides one isolated container per visitor, its own owner claim keys,
 session/setup secrets, derived runner key, D1 state and synthetic process.
 Only the trusted exact `UPTIME_ORIGIN` binding can supply the demo owner-claim
 origin. Production still requires its explicit owner-claim binding.

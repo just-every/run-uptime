@@ -9,7 +9,7 @@ overrides:
 
 patchedDependencies:
   '@runeditrun/rer@0.2.2':
-    hash: 0a570e75db3af0662dd6cfcffeeabcee9ceafb945bbe212bbb602b724fbc7735
+    hash: 5ffdf870e3ab472eb300915ddc24edf63f255ec2a9eb877990a7f560961550a3
     path: patches/@runeditrun__rer@0.2.2.patch
 
 importers:
@@ -40,7 +40,7 @@ importers:
         version: 5.20261006.1
       '@runeditrun/rer':
         specifier: 0.2.2
-        version: 0.2.2(patch_hash=0a570e75db3af0662dd6cfcffeeabcee9ceafb945bbe212bbb602b724fbc7735)
+        version: 0.2.2(patch_hash=5ffdf870e3ab472eb300915ddc24edf63f255ec2a9eb877990a7f560961550a3)
       '@types/node':
         specifier: 26.6.4
         version: 26.6.4
@@ -2018,7 +2018,7 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.1': {}
 
-  '@runeditrun/rer@0.2.2(patch_hash=0a570e75db3af0662dd6cfcffeeabcee9ceafb945bbe212bbb602b724fbc7735)': {}
+  '@runeditrun/rer@0.2.2(patch_hash=5ffdf870e3ab472eb300915ddc24edf63f255ec2a9eb877990a7f560961550a3)': {}
 
   '@sindresorhus/is@7.2.0': {}
 

@@ -461,27 +461,6 @@
       }
     },
     {
-      "path": "src/base/modules/demo",
-      "originPath": "modules/demo",
-      "revision": "a6afad9f4d007bf1b97a75bd67880d1850683e5d",
-      "files": {
-        "src/base/modules/demo/index.d.mts": "2fe3e8715a0b41cc931dbc31a0a73a01a8ddfd8363334f32ebc8978854016e22",
-        "src/base/modules/demo/index.mjs": "29d0e4d44d0542febc29bc2f8c7447fdc3a5fdd80aebda2a3485de0e4b594a3e",
-        "src/base/modules/demo/README.md": "2c79b0a5a4c1998f7bdd8638a442159c4eb3cb0eee07032d67d521347751b9f7",
-        "src/base/modules/demo/sockets.mjs": "be9978b79f3aeef305c6e6fa36ce041b7bda559941c6c377bc4cc2b19506177b",
-        "src/base/modules/demo/vite.d.mts": "f43b152b4a993feaf96afdbc276922bfa20d64725ea0150a12ec6ec805a7c7b3",
-        "src/base/modules/demo/vite.mjs": "e38556e50c954814ee8e12278babd627d5cdd051a7ea2c242a61d6c5d84d12f8"
-      },
-      "modes": {
-        "src/base/modules/demo/index.d.mts": "100644",
-        "src/base/modules/demo/index.mjs": "100644",
-        "src/base/modules/demo/README.md": "100644",
-        "src/base/modules/demo/sockets.mjs": "100644",
-        "src/base/modules/demo/vite.d.mts": "100644",
-        "src/base/modules/demo/vite.mjs": "100644"
-      }
-    },
-    {
       "path": "src/base/modules/dependencies",
       "originPath": "modules/dependencies",
       "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
@@ -1018,6 +997,61 @@
       },
       "modes": {
         "src/base/theme-frame.ts": "100644"
+      }
+    },
+    {
+      "path": "src/modules/demo/index.d.mts",
+      "originPath": "modules/demo/index.d.mts",
+      "revision": "a6afad9f4d007bf1b97a75bd67880d1850683e5d",
+      "files": {
+        "src/modules/demo/index.d.mts": "2fe3e8715a0b41cc931dbc31a0a73a01a8ddfd8363334f32ebc8978854016e22"
+      },
+      "modes": {
+        "src/modules/demo/index.d.mts": "100644"
+      }
+    },
+    {
+      "path": "src/modules/demo/README.md",
+      "originPath": "modules/demo/README.md",
+      "revision": "a6afad9f4d007bf1b97a75bd67880d1850683e5d",
+      "files": {
+        "src/modules/demo/README.md": "2c79b0a5a4c1998f7bdd8638a442159c4eb3cb0eee07032d67d521347751b9f7"
+      },
+      "modes": {
+        "src/modules/demo/README.md": "100644"
+      }
+    },
+    {
+      "path": "src/modules/demo/sockets.mjs",
+      "originPath": "modules/demo/sockets.mjs",
+      "revision": "a6afad9f4d007bf1b97a75bd67880d1850683e5d",
+      "files": {
+        "src/modules/demo/sockets.mjs": "be9978b79f3aeef305c6e6fa36ce041b7bda559941c6c377bc4cc2b19506177b"
+      },
+      "modes": {
+        "src/modules/demo/sockets.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/modules/demo/vite.d.mts",
+      "originPath": "modules/demo/vite.d.mts",
+      "revision": "a6afad9f4d007bf1b97a75bd67880d1850683e5d",
+      "files": {
+        "src/modules/demo/vite.d.mts": "f43b152b4a993feaf96afdbc276922bfa20d64725ea0150a12ec6ec805a7c7b3"
+      },
+      "modes": {
+        "src/modules/demo/vite.d.mts": "100644"
+      }
+    },
+    {
+      "path": "src/modules/demo/vite.mjs",
+      "originPath": "modules/demo/vite.mjs",
+      "revision": "a6afad9f4d007bf1b97a75bd67880d1850683e5d",
+      "files": {
+        "src/modules/demo/vite.mjs": "e38556e50c954814ee8e12278babd627d5cdd051a7ea2c242a61d6c5d84d12f8"
+      },
+      "modes": {
+        "src/modules/demo/vite.mjs": "100644"
       }
     }
   ],

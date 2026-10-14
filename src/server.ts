@@ -1,4 +1,4 @@
-import {withDemo} from './base/modules/demo/index.mjs'
+import {withDemo} from './modules/demo/index.mjs'
 import {seedDemo} from './demo.ts'
 import {demoBindings,recordDemoBlocked} from './domain/demo.server.ts'
 import {monitoringWatch} from './domain/monitoring-watch.server.ts'

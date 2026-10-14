@@ -7,8 +7,8 @@
 // hook runs once after the owner exists, and every HTML page carries a "Demo"
 // bar listing the captured mail and the blocked sends.
 import { env } from 'cloudflare:workers';
-import { escapeHtml, isLoopbackHost } from '../operator-auth/http.mjs';
-import { allow, sha256 } from '../operator-auth/csp.mjs';
+import { escapeHtml, isLoopbackHost } from '../../base/modules/operator-auth/http.mjs';
+import { allow, sha256 } from '../../base/modules/operator-auth/csp.mjs';
 
 const on = env?.RER_DEMO === '1';
 let database = 'DB';

@@ -352,13 +352,22 @@
       "source": {
         "kind": "local",
         "paths": [
-          "src/base/modules/demo"
+          "src/modules/demo"
         ],
         "origin": {
           "repository": "https://github.com/runeditrun/base.git",
           "revision": "a6afad9f4d007bf1b97a75bd67880d1850683e5d",
-          "path": "modules/demo"
-        }
+          "path": ".",
+          "paths": [
+            "modules/demo"
+          ]
+        },
+        "mappings": [
+          {
+            "path": "src/modules/demo",
+            "originPath": "modules/demo"
+          }
+        ]
       }
     }
   ]
