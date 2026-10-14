@@ -874,6 +874,10 @@
       "sha256": "25603d478e3553b545b7074d694eab61b0a2380ffa3a01f0b9bc892237c6037d",
       "executable": false
     },
+    "runners/src/control-response.mjs": {
+      "sha256": "ad102ba2523a594d784bb9575380dc4bc81c901af9cb1fe4696cb9e88f8afbbc",
+      "executable": false
+    },
     "runners/src/credential-diagnostic.mjs": {
       "sha256": "24d706896f462d828b57a144eb7bc8f7f3764f74a55fbdbfb477d46fbd74fb7b",
       "executable": false
@@ -1043,7 +1047,7 @@
       "executable": false
     },
     "runners/src/private-runner.mjs": {
-      "sha256": "3f39a7000a4545f54ac1948a194dd3ce5311fe306689e2e808a4bbe5d2e5a8ef",
+      "sha256": "f71361a92ffb66515f69d90f989e44f92fff385664654797f585d4835a6c80d2",
       "executable": false
     },
     "runners/src/probes.mjs": {
@@ -3371,11 +3375,11 @@
       "executable": false
     },
     "tests/resilience/support.mjs": {
-      "sha256": "0e32cef7f89e386355b2dd0696621ba760483b045f7cb90eace2c28abb5c76e3",
+      "sha256": "29baf0f1695ca348d7cee3662a83fe6853d76d300240ca1ed685ba86e5341275",
       "executable": false
     },
     "tests/resilience/watches.mjs": {
-      "sha256": "cd95b37ba1375dd9eac5cb3f0b9dd5f2604c531549e3a3b7fac2b91ace4e057d",
+      "sha256": "4bf9382a75e05bee3e6305dad943534054b118e0a5fcfca1f1eb7a8aeb3aecd5",
       "executable": false
     },
     "tests/review-ux-source.mjs": {
