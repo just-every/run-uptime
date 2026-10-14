@@ -2,9 +2,9 @@
 
 Local verification must exercise the actual product runtime with isolated migrated D1 and authorized test endpoints. Preserve existing assertions and fixtures; a failing check is evidence to repair the implementation, not permission to weaken the expected behavior.
 
-The source release candidate additionally requires signed self-runner enrolment, real certificate-verified HTTPS up/down/recovery and restart against the emitted production Worker, owner-deploy test-provider provision/repeat/interruption/resume/collision, and first-owner Base development-outbox sign-in with zero axe violations at 1440 and 390 pixels. `rer verify` runs full verification and the separately hosted browser suites in an isolated checkout. `rer release --repo . --project just-every/uptime-monitor --repository https://github.com/just-every/run-uptime --output ../uptime-release --dry-run --clean-history` invokes that actual verification command and complete parentless-export publication scanning. The public export must retain every byte of the final private tree and have zero findings without exclusions or reviewed findings. Private development history remains private. Hosted installation and public publication require separate owner authorization and acceptance.
+The source release candidate additionally requires signed self-runner enrolment, real certificate-verified HTTPS up/down/recovery and restart against the emitted production Worker, owner-deploy test-provider provision/repeat/interruption/resume/collision, and first-owner Base development-outbox sign-in with zero axe violations at 1440 and 390 pixels. `rer verify` runs full verification and the separately hosted browser suites in an isolated checkout. Prepare this candidate's local annotated artifact with `rer release --repo . --project just-every/uptime-monitor --repository https://github.com/just-every/run-uptime --onto https://github.com/just-every/run-uptime#main --tag v0.1.3 --dry-run --output ../uptime-release-preview`. This creates a local artifact only; it does not publish or move a remote tag, and its invocation alone does not establish that Verify, the source scan or independent review passed. The public export must retain every byte of the final private tree and have zero findings without exclusions or reviewed findings. Private development history remains private. Hosted installation and public publication require separate owner authorization and acceptance.
 
-Prove one-off fixes with before/after evidence outside the permanent suite. Release acceptance requires the actual release dry run and complete publication/export proof.
+Prove one-off fixes with before/after evidence outside the permanent suite. Release acceptance requires inspected exact-candidate verification, the complete publication/export proof and independent review; the local annotated-artifact command above does not provide those results by itself.
 
 - Install, repeat additive setup, restart and preserve prior definitions, observations, migration history and authorized sessions.
 - Configure/edit/pause/resume monitors with immutable revisions and complete assertion preservation; reject invalid or contradictory inputs before execution.
@@ -25,7 +25,7 @@ Build, types and local runtime suites are separate from hosted proof. A hosted i
 
 A useful operator release also requires an authorized endpoint, real runner placement and isolation, an inspected operator workflow. Single-vantage checks do not establish regional independence. Automated accessibility checks do not certify screen-reader speech or WCAG conformance. Retention economics, operator demand and larger-scale reliability remain unmeasured; they are outside this source release's acceptance.
 
-Notification delivery is bounded to configured email, signed JSON, and Slack incoming-webhook destinations. A stored outbox row, local receiver, or provider acknowledgment cannot establish inbox delivery or human notification. Each event/destination pair gets one automatic send attempt; an uncertain result is not retried automatically. Browser checks, arbitrary scripts, DNS/ping/TCP/domain-expiry checks and public status communication are outside the implemented monitor types.
+Notification delivery is bounded to configured email, signed JSON, and Slack incoming-webhook destinations. A stored outbox row, local receiver, or provider acknowledgment cannot establish inbox delivery or human notification. Each event/destination pair gets one automatic send attempt; an uncertain result is not retried automatically. Uptime implements one bounded browser-flow monitor type; arbitrary scripts, DNS/ping/TCP/domain-expiry checks and public status communication are outside the implemented monitor types. No public status page exists.
 
 This document states requirements, not a passing release verdict. Executed candidate evidence must identify the exact source and preserve failures alongside successes.
 
@@ -48,15 +48,22 @@ Notification browser verification must audit every add and edit destination kind
 
 ## Local command journey
 
-Run the literal README clone, `rer install`, explicit-owner setup and foreground dev. Check health, Vite/HMR assets, ordinary one-use outbox sign-in, native form POST before hydration, first-run `/setup` at 1440 and 390, unfinished-owner app redirects, signed-out sign-in return, durable native-form completion, signed-in documents and unsigned private-access refusal. Local sign-in makes no mail-provider request. Setup must stop all temporary processes, preserve exact settings and owner/data on repeat, and reject a conflicting owner.
+Run the literal README clone, `rer install`, explicit-owner setup and foreground dev. Check health, Vite/HMR assets, ordinary one-use outbox sign-in, native form POST before hydration, first-run `/setup` at 1440 and 390, unfinished-owner app redirects, signed-out sign-in return, durable native-form completion, signed-in documents and unsigned private-access refusal. Confirm the app-origin `/` serves the Lobby, `/setup` serves first-run setup, `/docs` serves public documentation and `/app` is private; check separately that the marketing site serves `https://run-uptime.com/` and `https://run-uptime.com/run`. Local sign-in makes no mail-provider request. Setup must stop all temporary processes, preserve exact settings and owner/data on repeat, and reject a conflicting owner.
 
 Stop dev and verify descendant teardown and released ports. Reset must refuse active state and unconfirmed execution, preserve source/exports/deployment receipts, and enable fresh empty setup. The populated export/reset/setup/import/export journey must retain complete portable records/history with explicit inactive transformations and excluded installation authority. Setup must establish the receiving owner and settings before import; product data must remain empty. Import requires integrity and confirmation; no imported event dispatches.
 
 ## Candidate release state and unmet obligations
 
 The product exposes the rer command contract, owner-account deployment, local
-export/import and versioned archive history. This checkout is the
-v0.1.2 source; public v0.1.1 is its security predecessor.
+export/import and versioned archive history. The latest published version is
+v0.1.2 at tag commit `bdcd147542e0fab55be2663f05165a0724b4e49e`; no GitHub
+Release entry exists. This branch is preparing v0.1.3, which remains
+unpublished and has no release tag. The candidate pins `@runeditrun/rer` to
+0.2.2; populated-upgrade recovery and deployment-ledger archive import/export
+still need exact-candidate proof. At the app origin, `/` is the Lobby,
+`/setup` is setup, `/docs` is public documentation and `/app` is the private
+operator console. The separate marketing site serves `https://run-uptime.com/`
+and `https://run-uptime.com/run`.
 No fresh Cloudflare account, deployed `/health`, hosted runner, target, or
 recipient acceptance is recorded here. A local `pnpm run health`, an operations
 descriptor check, or a successful deployment command cannot substitute for
@@ -68,7 +75,7 @@ while available email addresses remain portable destination definitions.
 `ARCHIVE-001` preserves product definitions and notification histories and now
 includes the permanent anonymised audit and source erasure journal, while
 excluding installation-local authority and webhook/Slack endpoint credentials.
-The inspected candidate `tests/archive-roundtrip.mjs` run passed the unchanged
+An earlier inspected `tests/archive-roundtrip.mjs` run passed the unchanged
 10,000-revision boundary. Separately, the real rer
 export/erase/reset/setup/import/export flow was inspected. Decoded archives had
 stable audit history, one restore audit entry and the preserved source erasure
@@ -76,7 +83,9 @@ journal. This is evidence for the accepted replacement archive behavior, not
 BASE-DATA-001 equivalence.
 
 The static external-sink inventory is mapped to `seed.json → externals` in
-`CONTRACT.md`, but is not runtime egress proof. A native independence trace has passed as described below. Before claiming complete BASE-DATA-004 coverage across optional integrations and deployment, inspect an application and runner network
+`CONTRACT.md`, but is not runtime egress proof. Earlier scoped native-independence
+evidence is summarized below; it is not acceptance evidence for the current
+v0.1.3 candidate. Before claiming complete BASE-DATA-004 coverage across optional integrations and deployment, inspect an application and runner network
 trace, including DNS, public target and canary redirects, discovery hosts,
 browser redirects/subresources/WebSockets, exact-origin credential use, owner-app
 readiness checks, runner
@@ -97,21 +106,28 @@ archives remain structured data. BASE-PUBLIC-002 is superseded by no public
 embeddable surface, with only the optional exact-origin private management
 editor documented in `CONTRACT.md`. BASE-DATA-005 is replaced by native standalone operation without a marketplace/author dependency, while permitting an optional owner-configured private management editor that may contact the author at that configured origin. Native operation with the editor absent passed; an opted-in author-hosted editor cannot support an absolute author-zero-egress claim. This exception permits no telemetry, licence check or kill switch. These named replacements do not expand product scope and are not general baseline passes.
 
-The retained original corrected local health log records 15 total cases (healthy 200 plus 14 faults), all faults 503 within 906 ms and recovery after each. Twenty sequential healthy samples have p95 6 ms and maximum 7 ms. The applicable dependencies are D1 and emitted `ASSETS`; there is no R2 or queue binding. The 900 ms response deadline cannot cancel underlying D1 work. This is scoped BASE-OPS-001 local evidence, not hosted latency or load capacity. The retention scan covers 76 migrated tables, 36 populated before maintenance, with aged rows deleted only from the four transient session/rate/auth-attempt tables and other preexisting identities surviving measured cleanup and restart. BASE-DATA-002 remains partial because not every cleanup edge was exercised. BASE-OPS-004 remains partial for auxiliary watch latest-only/in-memory state, absent watch lease reconciliation and authentication-mail attempt-only audit without durable provider outcomes or crash reconciliation. The emitted native-independence probe passed sign-in, actual local-edge monitoring failure/recovery, history and archive/definitions export with outside Worker/browser requests and the exercised runner HTTP(S) transport denied and optional integrations absent. At 1440/390, accepted hostile-text monitor/destination/definition names stayed literal with no script or planted resource request; unknown JSON/multipart uploads were refused without table changes or outbound requests, and native CSP restricted frame ancestors to self. `tests/owner-editor-browser.mjs` passed two ordinary renewals past the initial expiry at both widths with iframe/document/open state/private draft preserved, followed by authority-loss and browser CSP refusal. `tests/flow-journey.mjs` also passed real browser failure, changed-definition recovery, hard stops/profile cleanup and custody refusal. The public privacy pass completed all 84 fresh-context marketing/app-Lobby/docs cases at 1440/390 before visitor interaction, including unclaimed and claimed installations, idle/repeat and tab isolation: no cookies, Set-Cookie, visitor queries/bodies, telemetry or third-party requests. Only validated tab-local scroll-restoration state was retained and its keys were not transmitted. The emitted static site and Worker used local HTTP edges; live CDN/header behavior remains unmeasured. Accessibility and hosted/provider acceptance are not established by these checks.
+The retained original corrected local health log records 15 total cases (healthy 200 plus 14 faults), all faults 503 within 906 ms and recovery after each. Twenty sequential healthy samples have p95 6 ms and maximum 7 ms. The applicable dependencies are D1 and emitted `ASSETS`; there is no R2 or queue binding. The 900 ms response deadline cannot cancel underlying D1 work. This is scoped BASE-OPS-001 local evidence, not hosted latency or load capacity. The retention scan covers 76 migrated tables, 36 populated before maintenance, with aged rows deleted only from the four transient session/rate/auth-attempt tables and other preexisting identities surviving measured cleanup and restart. BASE-DATA-002 remains partial because not every cleanup edge was exercised. BASE-OPS-004 remains partial for auxiliary watch latest-only/in-memory state, absent watch lease reconciliation and authentication-mail attempt-only audit without durable provider outcomes or crash reconciliation. Earlier inspected local evidence records the emitted native-independence probe, hostile-text/upload behavior and editor renewals described above. An earlier `tests/flow-journey.mjs` run records browser failure, changed-definition recovery, hard-stop cleanup and custody refusal; exact-candidate browser-flow recovery proof is pending for v0.1.3. A prior public-privacy receipt records 84 fresh-context marketing/app-Lobby/docs cases at 1440/390 before visitor interaction, including unclaimed and claimed installations, idle/repeat and tab isolation. It observed no cookies, Set-Cookie, visitor queries/bodies, telemetry or third-party requests; only validated tab-local scroll-restoration state was retained and its keys were not transmitted. These prior local results used emitted static and Worker artifacts at local HTTP edges; live CDN/header behavior remains unmeasured. Current-candidate keyboard, axe, reflow and screen-reader acceptance has not been recorded, and hosted/provider acceptance remains open.
 
-The inspected local and emitted candidate evidence now records `BASE-ACCESS-002`,
+Earlier inspected local and emitted results record `BASE-ACCESS-002`,
 `BASE-ACCESS-003`, `BASE-SECRET-002`, `BASE-DATA-003` and `BASE-OPS-005` as
-Covered in `BASELINE.md`. It includes startup matrices, declared-path and asset
+covered in `BASELINE.md`. It includes startup matrices, declared-path and asset
 boundaries, populated erasure and audit flows, and race-safety checks. The final
-committed head and inspected run results are mapped in the external evidence
+candidate head and prior inspected run results are mapped in the external evidence
 record. The erasure/audit flow includes audited local authentication-mail
 captures, six separate network-edge monitor/test sends, surviving anonymised
 audit and refusal of erased-operator actor references on later-journal restore.
-These are source results only: no hosted installation or recipient acceptance is claimed, and
-no private Git tag or published v0.1.2 release is represented. Other baseline
-clauses remain requirements; full migration recovery and accessibility across
-sign-in/setup surfaces remain unaccepted. No comprehensive Dependabot closure is
-claimed.
+These are scoped source results only; they do not establish hosted installation,
+recipient acceptance or acceptance of the current v0.1.3 candidate. The latest
+published version is the v0.1.2 tag at `bdcd147542e0fab55be2663f05165a0724b4e49e`,
+with no GitHub Release entry; v0.1.3 remains unpublished. Other baseline clauses
+remain requirements; current-candidate migration recovery and accessibility
+across sign-in/setup surfaces remain unaccepted. The 2026-10-14 pnpm audit
+snapshots report zero vulnerabilities across 262 root dependency records and
+57 copied-mail dependency records, and the initial GitHub Dependabot alert
+snapshot is empty. A final audit on the integrated candidate remains pending.
+
+Public status communication remains outside scope and no public status page
+exists.
 
 The [BASELINE.md](BASELINE.md) status list names each clause, the inspected
 candidate evidence and any remaining gap. A test filename or clause label

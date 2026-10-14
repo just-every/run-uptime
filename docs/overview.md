@@ -11,6 +11,8 @@ Uptime has four parts, and it helps to know which does what.
 
 You work in the console at `/app` once you have signed in. Only the installation owner can open it.
 
+At the app origin, `/` is the Lobby, `/setup` is first-run setup, and `/docs` is public documentation. The separate marketing site is `https://run-uptime.com/`, with its `/run` page.
+
 Because the runner is a separate process, a healthy Worker does not tell you the runner is working. The [runner page](/docs/runner) shows how to keep it running.
 
 ## What Unknown means
@@ -19,11 +21,12 @@ Every green mark in Uptime is a check that ran and passed. If a result never arr
 
 Read more in [Monitors and evidence](/docs/monitors).
 
-## Three kinds of monitor
+## Four kinds of monitor
 
 - **HTTP(S)** checks a URL and tests the response against your own success rules: status, body text, headers, JSON values and latency.
 - **Keyword** is an HTTP(S) check that requires a piece of text in the response body.
 - **Incoming heartbeat** waits for your job or service to call Uptime on schedule, which suits cron jobs and background workers.
+- **Browser flow** checks one bounded path in a real browser on a runner with a browser. It reports only the steps and outcomes you configured; it does not represent the rest of the site. See [What Uptime does not do](/docs/limits#browser-flows-are-small-and-bounded).
 
 ## Notifications
 

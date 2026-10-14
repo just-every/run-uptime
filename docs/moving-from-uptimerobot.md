@@ -29,7 +29,7 @@ Every imported monitor checks from probe `local-a` on your own runner, and its e
 
 The preview lists each of these on the monitor it affects. Nothing is dropped without a note.
 
-- **Ping, port, DNS, UDP, API-assertion, visual comparison and dependency monitors** are unsupported. Uptime runs HTTP(S), keyword and heartbeat checks.
+- **Ping, port, DNS, UDP, API-assertion, visual comparison and dependency monitors** are unsupported by this importer. It maps HTTP(S), keyword and heartbeat monitors; Uptime's bounded browser flows are configured separately and are not imported from UptimeRobot.
 - **Keyword monitors that alert when the keyword is present** are unsupported. Uptime has no "must not contain" check.
 - **Authentication, custom request headers and POST bodies** are not imported, because they can hold secrets. The monitor is created with a local credential reference such as `uptimerobot-123456`, which you set up on your own runner before enabling it.
 - **Locations and regions.** UptimeRobot's own vantage points are not reproduced. Uptime checks from your runners.

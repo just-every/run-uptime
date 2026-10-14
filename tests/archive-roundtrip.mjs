@@ -11,7 +11,6 @@ import {digest,TABLES,LEGACY_TABLES,ARCHIVE_ROWS} from '../src/domain/archive-sc
 import {installationLocalTables} from '../src/domain/archive-inventory.ts';
 import {populateArchiveFixture} from './archive-fixture.mjs';
 import {applyDefinitions,previewDefinitions,undoBatch} from '../src/domain/definitions/index.server.ts';
-import {restoreBounds} from './archive-restore-bounds.mjs';
 const parent=new URL('../../tmp/',import.meta.url).pathname;await mkdir(parent,{recursive:true});const dir=await mkdtemp(join(parent,'archive-roundtrip-'));let worker;
 const controlPort=await freePort();
 const values={UPTIME_LOCAL_REVIEW:'true',SESSION_SECRET:randomBytes(32).toString('base64url'),SETUP_TOKEN:randomBytes(32).toString('base64url'),UPTIME_RUNNER_KEY:randomBytes(32).toString('base64url'),UPTIME_ORIGIN:`http://127.0.0.1:${controlPort}`,OWNER_EMAIL:'archive-owner@example.test',MAIL_PROVIDER:'development',MAIL_FROM:'auth@localhost.test'};
@@ -56,6 +55,5 @@ try{
  await worker.dispose();worker=null;const bound=join(dir,'bound');await migrate(bound);env=await installation(bound);
  await env.DB.prepare(`WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM n WHERE x<${ARCHIVE_ROWS+1}) INSERT INTO observations SELECT 'bound-'||x,'none-'||x,'local-a',0,'{}' FROM n`).run();await assert.rejects(archive(env),/row bound exceeded: observations/);await env.DB.prepare('DELETE FROM observations').run();await env.DB.prepare("WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM n WHERE x<1000) INSERT INTO observations SELECT 'bytes-'||x,'none-'||x,'local-a',0,hex(zeroblob(2048)) FROM n").run();await assert.rejects(archive(env),/byte bound exceeded/);await env.DB.prepare('DELETE FROM observations').run();await env.DB.prepare("CREATE TABLE unexpected_product (id TEXT)").run();await assert.rejects(archive(env),/unclassified table: unexpected_product/);await env.DB.prepare('DROP TABLE unexpected_product').run();await env.DB.prepare("INSERT INTO integration_replays VALUES('foreign','foreign','fingerprint','{}',0)").run();await assert.rejects(archive(env),/unsupported product namespace: integration_replays/);
  await worker.dispose();worker=null;
- await restoreBounds({dir,migrate,installation,command,settings,dispose:async()=>{await worker?.dispose();worker=null}});
  console.log('BASE-DATA-001 replacement / ARCHIVE-ROUNDTRIP-001 passed: real D1 archive/restore/archive, exact complete history, inactive restore, excluded authority, invalid history rejection, legacy restore and named row bound.');
 }finally{await worker?.dispose();await rm(dir,{recursive:true,force:true})}

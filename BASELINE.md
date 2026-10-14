@@ -58,11 +58,23 @@ p95 at the limits in `seed.json`.
 ## Uptime evidence status — 2026-10-11
 
 The clauses above retain Base requirements using the public rer commands. Statuses below describe the
-v0.1.2 source and the inspected clause-labelled candidate runs in the evidence
-folder. The final committed head and inspected run results are mapped in the external evidence
-record. `BASE-*` labels mean clause labels printed by proof outputs, not Git tags.
-These local and emitted candidate results do not establish hosted operation, recipient acceptance, a
-private Git tag or a published v0.1.2 release.
+v0.1.2 source and previously inspected clause-labelled candidate runs in the
+evidence folder. The final committed head and inspected run results are mapped
+in the external evidence record. `BASE-*` labels mean clause labels printed
+by proof outputs, not Git tags. These historical local and emitted results do
+not establish hosted operation, recipient acceptance, or acceptance of the
+current candidate.
+
+### Current release preparation — 2026-10-14
+
+The latest published version is v0.1.2 at tag commit
+`bdcd147542e0fab55be2663f05165a0724b4e49e`; it has no GitHub Release entry.
+This branch is preparing v0.1.3, which remains unpublished and has no release
+tag. The candidate pins `@runeditrun/rer` to 0.2.2. Populated-upgrade recovery,
+deployment-ledger archive import/export, current-candidate browser-flow
+recovery, and accessibility across sign-in/setup surfaces remain unverified.
+The earlier clause-labelled results below are not substitutes for those
+exact-candidate proofs.
 
 ### Access
 
@@ -92,16 +104,16 @@ private Git tag or a published v0.1.2 release.
 
 ### Public surfaces
 
-- **BASE-PUBLIC-001 — Covered by scoped emitted-browser evidence.** All 84 fresh-context cases passed: marketing landing/docs and unclaimed/claimed app Lobby/docs at 1440/390, each with initial navigation, idle, repeat navigation and separate-tab isolation. No cookies, Set-Cookie, request cookies, localStorage, unrelated session storage, visitor queries/bodies, telemetry endpoints or third-party requests were observed. App documentation retains only source-validated tab-local navigation/scroll coordinates on repeat navigation; those keys were not transmitted. This measures the emitted Worker and static site at local HTTP edges, not live CDN/header behavior. Uptime offers no public widget, booking form or status page.
+- **BASE-PUBLIC-001 — Covered by scoped emitted-browser evidence.** All 84 fresh-context cases passed: the separate marketing landing and app-origin Lobby/docs for unclaimed and claimed installations at 1440/390, each with initial navigation, idle, repeat navigation and separate-tab isolation. No cookies, Set-Cookie, request cookies, localStorage, unrelated session storage, visitor queries/bodies, telemetry endpoints or third-party requests were observed. App documentation retains only source-validated tab-local navigation/scroll coordinates on repeat navigation; those keys were not transmitted. This measures the emitted Worker and static site at local HTTP edges, not live CDN/header behavior. Uptime offers no public widget, booking form or status page.
 - **BASE-PUBLIC-002 — Superseded for this product; private editor exception.** Uptime has no public surface intended for embedding; its public landing, Lobby and documentation pages remain ordinary standalone pages. An optional authenticated management editor can use only the exact owner-configured management origin and installation identity; it is private management integration, not public embedding. Rendered page context is shared only after the owner opens the editor and enables sharing. The native console's measured CSP permits only same-origin frame ancestors and forbids child frames/objects when the optional editor is absent; the configured editor test also proves actual Chromium framing refusal. This replacement does not establish a public embed allow-list or a general BASE-PUBLIC-002 pass.
-- **BASE-PUBLIC-003 — Not covered.** Browser checks cover selected signed-in console screens. Sign-in and setup surfaces are not included in inspected accessibility evidence, and the broad clause has not been tagged.
+- **BASE-PUBLIC-003 — Not covered.** Prior browser evidence covers selected signed-in console screens, not sign-in and setup. Current-candidate keyboard, axe and reflow checks across Lobby, docs, sign-in, setup and operator surfaces, plus an assistive-technology journey, remain pending; the broad clause has not been tagged.
 
 ### Operations
 
 - **BASE-OPS-001 — Covered by scoped local emitted-Worker evidence.** The applicable dependencies are D1, including public admission and credential-custody storage, and actual emitted assets via `ASSETS`; Uptime has no R2 or queue binding. The retained original health log records 15 total cases: one healthy 200 and 14 faults, all 503 within 906 ms, with recovery after every fault. Twenty sequential healthy samples give p95 6 ms and maximum 7 ms. The 900 ms outer deadline bounds responses even when D1 or ASSETS hangs; it cannot cancel an underlying D1 request. `tests/startup-config.mjs` and unchanged `tests/notify-custody-runtime.mjs` pass. This is local evidence, not hosted latency, configured-limit load capacity, runner health or provider acceptance.
-- **BASE-OPS-002 — Covered by one-off evidence.** A populated 0.1.2 installation (owner, monitors with real observations, heartbeat receipt, destinations, two runners) was upgraded with the current migration command and killed at five points; every rerun of the same command finished, matched a fresh installation's schema, lost no 0.1.2 row and served the owner's monitors, history, destinations and export. Each migration commits with its history row. Recovery: run `rer setup` again (README, Upgrading). `tests/notify-upgrade.mjs` keeps the populated historical upgrade covered.
+- **BASE-OPS-002 — Earlier evidence only; current candidate proof pending.** A prior populated 0.1.2 upgrade run recorded migration interruption and same-command recovery at five points, with preserved rows and a documented `rer setup` rerun. That result predates this candidate's rer 0.2.2 pin and deployment-ledger portability changes. Prove the populated upgrade, interruption/recovery and archive import/export on the exact v0.1.3 candidate before calling the clause covered.
 - **BASE-OPS-003 — Not covered pending result.** `tests/control-runtime.mjs` and `tests/notify-delivery.mjs` are candidates for duplicate-message coverage. They have no explicit BASE-OPS-003 tags or inspected candidate result yet.
-- **BASE-OPS-004 — Partially covered; auxiliary execution gaps remain.** Measured local execution-retention cases keep exhausted HTTP, keyword and heartbeat attempts, abandoned leases, discovery outcomes, delivery failures/uncertainty and drill expiry visible across restart. A separate passing `tests/flow-journey.mjs` run exercised real browser failure with retained step evidence and incident mail, changed-definition recovery, hard-stop profile cleanup and tunnel-custody refusal. This remains local runner/Worker evidence, not hosted acceptance. Worker monitoring-watch rows keep only the latest per-window outcome and have no lease-expiry reconciliation; external heartbeat watch attempts overwrite their last outcome; runner-local outage/recovery watch state is in memory; authentication-mail audit records an attempt but no durable provider outcome/reconciliation. Therefore the literal all-execution-classes guarantee is not established.
+- **BASE-OPS-004 — Partially covered; auxiliary execution gaps remain.** Measured local execution-retention cases keep exhausted HTTP, keyword and heartbeat attempts, abandoned leases, discovery outcomes, delivery failures/uncertainty and drill expiry visible across restart. A prior local `tests/flow-journey.mjs` result records browser failure with retained step evidence and incident mail, changed-definition recovery, hard-stop profile cleanup and tunnel-custody refusal; current-candidate browser-flow recovery proof remains pending. This is local runner/Worker evidence, not hosted acceptance. Worker monitoring-watch rows keep only the latest per-window outcome and have no lease-expiry reconciliation; external heartbeat watch attempts overwrite their last outcome; runner-local outage/recovery watch state is in memory; authentication-mail audit records an attempt but no durable provider outcome/reconciliation. Therefore the literal all-execution-classes guarantee is not established.
 - **BASE-OPS-005 — Covered by inspected candidate evidence.** The `BASE-DATA-003 / BASE-OPS-005 PASS` result from `tests/erasure-audit.mjs` shows destructive actions, audited operator authentication-mail captures, plus six separate real network-edge monitor/test notification sends. Local outbox capture and its audit commit in one D1 batch; the hosted mail sender records the feature audit before attempting its provider request. Source audit rows survive erasure, erased-operator actors are anonymised, and a later journal causes restore to refuse old audit actor references for an erased operator. Inactive restore preserves audit history and adds one restore record. `tests/erasure-races.mjs` also covers concurrent erasure safety. This is local candidate evidence, not hosted acceptance.
 
 

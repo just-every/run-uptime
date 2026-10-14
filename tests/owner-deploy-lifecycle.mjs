@@ -56,7 +56,7 @@ async function deploy(root, provider, signal) {
   });
 }
 const state = async root => JSON.parse(await readFile(join(root, '.rer/deploy/production.json')));
-const migrationRows = provider => provider.state.databases[0].db.prepare('SELECT name, sha256, state FROM _rer_deploy_migrations ORDER BY name').all().map(row => ({ ...row }));
+const migrationRows = provider => provider.state.databases[0].db.prepare('SELECT name, sha256, state FROM d1_migrations ORDER BY name').all().map(row => ({ ...row }));
 
 test('five real pnpm run deploy cycles cover provision, exact repeat, partial migration resume and foreign ownership refusal', { timeout: 20 * 60_000 }, async t => {
   const root = await checkout(t), provider = await providerBridge(t);
@@ -112,7 +112,7 @@ test('five real pnpm run deploy cycles cover provision, exact repeat, partial mi
   assert.deepEqual(finalMigrations, migrations);
   assert.deepEqual(finalMigrations[0], firstMigration[0]);
   for (const migration of finalMigrations) {
-    assert.equal(partialProvider.state.writes.filter(row => row.body?.sql?.startsWith('INSERT INTO _rer_deploy_migrations') && row.body.sql.includes(migration.name)).length, 1, 'each migration is claimed once');
+    assert.equal(partialProvider.state.writes.filter(row => row.body?.sql?.startsWith('INSERT INTO d1_migrations') && row.body.sql.includes(migration.name)).length, 1, 'each migration is claimed once');
   }
   assert.equal(partialProvider.uploads.length, 1);
   assert.ok((await state(interruptedRoot)).receipt);

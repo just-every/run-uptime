@@ -18,11 +18,11 @@ export async function providerBridge(t) {
       for await (const chunk of request) chunks.push(chunk);
       const input = JSON.parse(Buffer.concat(chunks).toString());
       const target = new URL(input.url);
-      assert.ok(['https://api.cloudflare.com', 'https://uptime-monitor-production.fixture-account.workers.dev'].includes(target.origin));
+      assert.ok(['https://api.cloudflare.com', 'https://uptime-monitor-production.fixture-account.workers.dev', `https://${fixture.accountId}.r2.cloudflarestorage.com`].includes(target.origin));
       if (target.origin === 'https://uptime-monitor-production.fixture-account.workers.dev') healthRequests++;
       const headers = input.headers;
       const bytes = Buffer.from(input.body, 'base64');
-      let body = bytes.length ? bytes.toString() : undefined;
+      let body = target.hostname.endsWith('.r2.cloudflarestorage.com') ? bytes : bytes.length ? bytes.toString() : undefined;
       if (headers['content-type']?.startsWith('multipart/form-data')) {
         body = await new Response(bytes, { headers }).formData();
       }
@@ -35,11 +35,11 @@ export async function providerBridge(t) {
       // Fail before a second migration is claimed, after the first migration's
       // applied ledger row and D1 ownership receipt have both been persisted.
       const sql = typeof body === 'string' && target.pathname.endsWith('/query') ? JSON.parse(body).sql : '';
-      if (interruptMigration && /^INSERT INTO _rer_deploy_migrations/.test(sql)
-          && fixture.state.databases[0].db.prepare("SELECT COUNT(*) AS n FROM _rer_deploy_migrations WHERE state='applied'").get().n === 1) {
+      if (interruptMigration && /^INSERT INTO d1_migrations/.test(sql)
+          && fixture.state.databases[0].db.prepare("SELECT COUNT(*) AS n FROM d1_migrations WHERE state='applied'").get().n === 1) {
         interruptMigration = false; interruptedMigration = true;
         result = Response.json({ success: false, errors: [{ code: 10000, message: 'test interruption before migration claim' }] }, { status: 500 });
-      } else result = await fixture.fetch(input.url, { method: input.method, headers, body });
+      } else result = await fixture.fetch(input.url, { method: input.method, headers: { ...headers, ...(headers['content-length'] ? { 'Content-Length': headers['content-length'] } : {}) }, body, redirect: 'error' });
       response.setHeader('content-type', 'application/json');
       response.end(JSON.stringify({ status: result.status, headers: Object.fromEntries(result.headers), body: Buffer.from(await result.arrayBuffer()).toString('base64') }));
     } catch (error) {

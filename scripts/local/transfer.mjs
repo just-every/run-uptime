@@ -9,7 +9,7 @@ import { readLocalSettings } from '../local-settings.mjs';
 import { startLocalWorker } from '../local-worker.mjs';
 import { productPolicy } from './transfer-policy.mjs';
 import { migrationReplay } from '@runeditrun/rer/modules/portability/migration-history';
-import { createRequire } from 'node:module';
+import { migrationHistory } from './migration-history.mjs';
 import { fileURLToPath } from 'node:url';
 import {validateJournal} from '../../src/domain/archive-fence.server.ts';
 async function* records(path, reader = readArchive) {
@@ -37,8 +37,9 @@ export async function transfer(direction, path) {
   const policy = productPolicy(env, () => id, () => ({manifest,laterJournal}));
   // The migrations this installation applied, in Wrangler's applied order, so an archive made before later additive migrations
   // (new tables, columns with defaults, indexes) restores into it instead of being refused for a ledger it has outgrown.
-  const root = fileURLToPath(new URL('../../', import.meta.url)), { unstable_splitSqlQuery: split } = createRequire(root + 'package.json')('wrangler');
-  const migrations = async () => migrationReplay(await Promise.all((await env.DB.prepare('SELECT name FROM d1_migrations ORDER BY id').all()).results.map(async ({ name }) => ({ name, statements: split(await readFile(root + 'migrations/' + name, 'utf8')) }))), policy);
+  const root = fileURLToPath(new URL('../../', import.meta.url));
+  const history = await migrationHistory(env.DB, root);
+  const migrations = async () => migrationReplay(history.plan, policy);
   service = await createPortability({ db: env.DB, policy, migrations });
   if (direction === 'export') {
    await mkdir(dirname(path), { recursive: true, mode: 0o700 });

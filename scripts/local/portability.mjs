@@ -9,7 +9,7 @@ async function transfer(context, direction) {
  if (direction === 'export') {
   if (await lstat(path).catch(error => { if (error.code !== 'ENOENT') throw error; })) throw refuse('Export requires a new archive path.');
  }
- await store.run('Applying local data migrations', 'pnpm', ['exec', 'wrangler', 'd1', 'migrations', 'apply', 'uptime-local', '--local', '--persist-to', '.wrangler/state'], { cwd: root, signal, env: { ...process.env, RER_LOCAL_OPERATION: operationToken, WRANGLER_SEND_METRICS: 'false' } });
+ await store.run('Applying local data migrations', process.execPath, ['scripts/local/migrate.mjs', '.wrangler/state'], { cwd: root, signal, env: { ...process.env, RER_LOCAL_OPERATION: operationToken, WRANGLER_SEND_METRICS: 'false' } });
  let receipt = '';
  const child = store.spawn('Moving complete Uptime product data', process.execPath, ['scripts/local/transfer.mjs', direction, path], { cwd: root, signal, env: { ...process.env, RER_LOCAL_OPERATION: operationToken } });
  child.stdout.on('data', bytes => { receipt += bytes; });

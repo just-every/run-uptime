@@ -496,67 +496,343 @@
       }
     },
     {
-      "path": "src/base/modules/deploy-kit",
-      "originPath": "modules/deploy-kit",
+      "path": "src/base/modules/deploy-kit/artifact.mjs",
+      "originPath": "modules/deploy-kit/artifact.mjs",
       "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
       "files": {
-        "src/base/modules/deploy-kit/artifact.mjs": "84104eba381178baed0100e6c7fda107d095cdb79888925fe5b3f69874a0adc7",
-        "src/base/modules/deploy-kit/build-modules.mjs": "14583fe6bef98ceeebb26a41886e1c8a47259fb99d21c668d331f818045c2ba5",
-        "src/base/modules/deploy-kit/check.mjs": "e42e2aacb5f48748973bdf16758d37b014906ad703b55b685b71c3906bd9b79a",
-        "src/base/modules/deploy-kit/cli.mjs": "3422765e133b78fc6a408f29a720686dbf8f7c8ac75a0536a8b7042c2c539b4e",
-        "src/base/modules/deploy-kit/container-config.mjs": "c2f75cf5f5b2f1ac5ac9a55545342f2f73b6e5462c7e38b71e7dcf56c64bcf43",
-        "src/base/modules/deploy-kit/default-stage.mjs": "c0887feda400c958192ca8b2aa7968af6c34b2c50159fe66d554c6f00295a4d7",
-        "src/base/modules/deploy-kit/deploy.mjs": "feac8556472d03f8025958ccf84edfe0472807c939aa0c5baeb45fb4e4f242b0",
-        "src/base/modules/deploy-kit/health-request.mjs": "f75f5b4eaf8209fe436ed2da525dfe49c8feb2a8b7b71787116fe25422ee2634",
-        "src/base/modules/deploy-kit/health.mjs": "66d8eb8b294f22da059191dd1e97524215e2d74ac14522fec967b24f6ae8d977",
-        "src/base/modules/deploy-kit/index.mjs": "218795edb7486d9fc22b9c4ed84760b8acf7ad869b8747fbd9578e42a599426a",
-        "src/base/modules/deploy-kit/local-only.mjs": "2d6bcd56534ec07ba47d1e1951252a6fae7949ff52fdc517e6f4b27fb76981ea",
-        "src/base/modules/deploy-kit/migrations.mjs": "063e146a93f2c43290569b5c5fac922667a9d434ebb0a9f6e0af97c8790961ce",
-        "src/base/modules/deploy-kit/owner-cli.mjs": "4a6ecc145b24f45898c69269a72b9421e12fbc16bbf6cc93fddcfb12406af047",
-        "src/base/modules/deploy-kit/owner.mjs": "64adb91737168cdd7cc5e8f7f8f24fedb60f7d8172b4a8d81899181520d1650e",
-        "src/base/modules/deploy-kit/prepare.mjs": "5acf640abf90af32692a7138bda1b935497bc9a7335b14230957007429aa9b22",
-        "src/base/modules/deploy-kit/provider.mjs": "555563517af57d8c8a8b54fe0056f61173d46af546988a7eca4435dbb8999b4d",
-        "src/base/modules/deploy-kit/queue-consumer.mjs": "349b6200571359ab54e3a3f267c68d78c2f08fd479859fbf50473e57e1e0753f",
-        "src/base/modules/deploy-kit/README.md": "48a22828659092874bbc7c79d0e2f63562863ce8e63a51429ae51b70f6eb1c5e",
-        "src/base/modules/deploy-kit/receipt.mjs": "b85d33d9404eb3466e3fcf5d3f73d1c5d2d7ab9e7d84b1b00505d5613ba57b31",
-        "src/base/modules/deploy-kit/render.mjs": "62aff446df8b444c2f78760951698e5799b13d8528228c7be987ac2d5e9fe274",
-        "src/base/modules/deploy-kit/resources.mjs": "ed17ef6de4392319743b5457cc437b13b9a273028aba4fc9ed3385574f571e90",
-        "src/base/modules/deploy-kit/service-grants.mjs": "441be67fe70a4f9fe126141df96db1d22e7a30f04229eb3d2f7fac637d961868",
-        "src/base/modules/deploy-kit/sql-safety.mjs": "482634f15b0715c64756e819b02173fdc6292d206cd639c49abda6a78076e94b",
-        "src/base/modules/deploy-kit/sql-tokens.mjs": "ddbcb2639e902dce995b32d75d8827f922651e080b40e01dbe76a4b682a96357",
-        "src/base/modules/deploy-kit/teardown.mjs": "ee2d3d4b594c0c37513c8dc124d7dc16642582f2822c269192afa256cacbe8c3",
-        "src/base/modules/deploy-kit/templates.mjs": "520ce28bd00ddb37918652cb1b3369ee1de950b03002071ae07e90735a84b0d0",
-        "src/base/modules/deploy-kit/validation.mjs": "1e9b0b3c20420176e8f8d10d5f88ae18776cb35649e1ac2e6051372c81ff1309",
+        "src/base/modules/deploy-kit/artifact.mjs": "84104eba381178baed0100e6c7fda107d095cdb79888925fe5b3f69874a0adc7"
+      },
+      "modes": {
+        "src/base/modules/deploy-kit/artifact.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/deploy-kit/build-modules.mjs",
+      "originPath": "modules/deploy-kit/build-modules.mjs",
+      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "files": {
+        "src/base/modules/deploy-kit/build-modules.mjs": "14583fe6bef98ceeebb26a41886e1c8a47259fb99d21c668d331f818045c2ba5"
+      },
+      "modes": {
+        "src/base/modules/deploy-kit/build-modules.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/deploy-kit/check.mjs",
+      "originPath": "modules/deploy-kit/check.mjs",
+      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "files": {
+        "src/base/modules/deploy-kit/check.mjs": "e42e2aacb5f48748973bdf16758d37b014906ad703b55b685b71c3906bd9b79a"
+      },
+      "modes": {
+        "src/base/modules/deploy-kit/check.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/deploy-kit/cli.mjs",
+      "originPath": "modules/deploy-kit/cli.mjs",
+      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "files": {
+        "src/base/modules/deploy-kit/cli.mjs": "3422765e133b78fc6a408f29a720686dbf8f7c8ac75a0536a8b7042c2c539b4e"
+      },
+      "modes": {
+        "src/base/modules/deploy-kit/cli.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/deploy-kit/container-config.mjs",
+      "originPath": "modules/deploy-kit/container-config.mjs",
+      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "files": {
+        "src/base/modules/deploy-kit/container-config.mjs": "c2f75cf5f5b2f1ac5ac9a55545342f2f73b6e5462c7e38b71e7dcf56c64bcf43"
+      },
+      "modes": {
+        "src/base/modules/deploy-kit/container-config.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/deploy-kit/d1-import.mjs",
+      "originPath": "modules/deploy-kit/d1-import.mjs",
+      "revision": "67e0a7d7c4a87b3a145545515a8c83afcac457ec",
+      "files": {
+        "src/base/modules/deploy-kit/d1-import.mjs": "785d20a330e3172cea7c7457275a30b902b9d5c782ba3cc74e1a7d7c68d0895c"
+      },
+      "modes": {
+        "src/base/modules/deploy-kit/d1-import.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/deploy-kit/default-stage.mjs",
+      "originPath": "modules/deploy-kit/default-stage.mjs",
+      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "files": {
+        "src/base/modules/deploy-kit/default-stage.mjs": "c0887feda400c958192ca8b2aa7968af6c34b2c50159fe66d554c6f00295a4d7"
+      },
+      "modes": {
+        "src/base/modules/deploy-kit/default-stage.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/deploy-kit/deploy.mjs",
+      "originPath": "modules/deploy-kit/deploy.mjs",
+      "revision": "67e0a7d7c4a87b3a145545515a8c83afcac457ec",
+      "files": {
+        "src/base/modules/deploy-kit/deploy.mjs": "c37d6eaa7a247d3776cf2a1ba472d233affbb4838d8b6019a888246912ec8482"
+      },
+      "modes": {
+        "src/base/modules/deploy-kit/deploy.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/deploy-kit/diagnostics.mjs",
+      "originPath": "modules/deploy-kit/diagnostics.mjs",
+      "revision": "67e0a7d7c4a87b3a145545515a8c83afcac457ec",
+      "files": {
+        "src/base/modules/deploy-kit/diagnostics.mjs": "d3991f89b4347aaaae9695621f79ed4c5c179967342f4a3ee75af2f02d13196c"
+      },
+      "modes": {
+        "src/base/modules/deploy-kit/diagnostics.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/deploy-kit/health-request.mjs",
+      "originPath": "modules/deploy-kit/health-request.mjs",
+      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "files": {
+        "src/base/modules/deploy-kit/health-request.mjs": "f75f5b4eaf8209fe436ed2da525dfe49c8feb2a8b7b71787116fe25422ee2634"
+      },
+      "modes": {
+        "src/base/modules/deploy-kit/health-request.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/deploy-kit/health.mjs",
+      "originPath": "modules/deploy-kit/health.mjs",
+      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "files": {
+        "src/base/modules/deploy-kit/health.mjs": "66d8eb8b294f22da059191dd1e97524215e2d74ac14522fec967b24f6ae8d977"
+      },
+      "modes": {
+        "src/base/modules/deploy-kit/health.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/deploy-kit/index.mjs",
+      "originPath": "modules/deploy-kit/index.mjs",
+      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "files": {
+        "src/base/modules/deploy-kit/index.mjs": "218795edb7486d9fc22b9c4ed84760b8acf7ad869b8747fbd9578e42a599426a"
+      },
+      "modes": {
+        "src/base/modules/deploy-kit/index.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/deploy-kit/local-only.mjs",
+      "originPath": "modules/deploy-kit/local-only.mjs",
+      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "files": {
+        "src/base/modules/deploy-kit/local-only.mjs": "2d6bcd56534ec07ba47d1e1951252a6fae7949ff52fdc517e6f4b27fb76981ea"
+      },
+      "modes": {
+        "src/base/modules/deploy-kit/local-only.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/deploy-kit/migration-ledger.mjs",
+      "originPath": "modules/deploy-kit/migration-ledger.mjs",
+      "revision": "67e0a7d7c4a87b3a145545515a8c83afcac457ec",
+      "files": {
+        "src/base/modules/deploy-kit/migration-ledger.mjs": "55a554e089a59287d8fbdd1871fe04d9987ed1900a1cafa5bdc74a25d7311296"
+      },
+      "modes": {
+        "src/base/modules/deploy-kit/migration-ledger.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/deploy-kit/migrations.mjs",
+      "originPath": "modules/deploy-kit/migrations.mjs",
+      "revision": "67e0a7d7c4a87b3a145545515a8c83afcac457ec",
+      "files": {
+        "src/base/modules/deploy-kit/migrations.mjs": "f2ab5bca39935dfd74753d6a6fbfb5032535b567f8e4b3b69881e5a9431f0fad"
+      },
+      "modes": {
+        "src/base/modules/deploy-kit/migrations.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/deploy-kit/owner-cli.mjs",
+      "originPath": "modules/deploy-kit/owner-cli.mjs",
+      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "files": {
+        "src/base/modules/deploy-kit/owner-cli.mjs": "4a6ecc145b24f45898c69269a72b9421e12fbc16bbf6cc93fddcfb12406af047"
+      },
+      "modes": {
+        "src/base/modules/deploy-kit/owner-cli.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/deploy-kit/owner.mjs",
+      "originPath": "modules/deploy-kit/owner.mjs",
+      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "files": {
+        "src/base/modules/deploy-kit/owner.mjs": "64adb91737168cdd7cc5e8f7f8f24fedb60f7d8172b4a8d81899181520d1650e"
+      },
+      "modes": {
+        "src/base/modules/deploy-kit/owner.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/deploy-kit/prepare.mjs",
+      "originPath": "modules/deploy-kit/prepare.mjs",
+      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "files": {
+        "src/base/modules/deploy-kit/prepare.mjs": "5acf640abf90af32692a7138bda1b935497bc9a7335b14230957007429aa9b22"
+      },
+      "modes": {
+        "src/base/modules/deploy-kit/prepare.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/deploy-kit/provider.mjs",
+      "originPath": "modules/deploy-kit/provider.mjs",
+      "revision": "67e0a7d7c4a87b3a145545515a8c83afcac457ec",
+      "files": {
+        "src/base/modules/deploy-kit/provider.mjs": "a5de791ad9aef3cb8171404ca767c5bfa6817617de61868b8d29c7e0dd332b4e"
+      },
+      "modes": {
+        "src/base/modules/deploy-kit/provider.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/deploy-kit/queue-consumer.mjs",
+      "originPath": "modules/deploy-kit/queue-consumer.mjs",
+      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "files": {
+        "src/base/modules/deploy-kit/queue-consumer.mjs": "349b6200571359ab54e3a3f267c68d78c2f08fd479859fbf50473e57e1e0753f"
+      },
+      "modes": {
+        "src/base/modules/deploy-kit/queue-consumer.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/deploy-kit/README.md",
+      "originPath": "modules/deploy-kit/README.md",
+      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "files": {
+        "src/base/modules/deploy-kit/README.md": "48a22828659092874bbc7c79d0e2f63562863ce8e63a51429ae51b70f6eb1c5e"
+      },
+      "modes": {
+        "src/base/modules/deploy-kit/README.md": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/deploy-kit/receipt.mjs",
+      "originPath": "modules/deploy-kit/receipt.mjs",
+      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "files": {
+        "src/base/modules/deploy-kit/receipt.mjs": "b85d33d9404eb3466e3fcf5d3f73d1c5d2d7ab9e7d84b1b00505d5613ba57b31"
+      },
+      "modes": {
+        "src/base/modules/deploy-kit/receipt.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/deploy-kit/render.mjs",
+      "originPath": "modules/deploy-kit/render.mjs",
+      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "files": {
+        "src/base/modules/deploy-kit/render.mjs": "62aff446df8b444c2f78760951698e5799b13d8528228c7be987ac2d5e9fe274"
+      },
+      "modes": {
+        "src/base/modules/deploy-kit/render.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/deploy-kit/resources.mjs",
+      "originPath": "modules/deploy-kit/resources.mjs",
+      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "files": {
+        "src/base/modules/deploy-kit/resources.mjs": "ed17ef6de4392319743b5457cc437b13b9a273028aba4fc9ed3385574f571e90"
+      },
+      "modes": {
+        "src/base/modules/deploy-kit/resources.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/deploy-kit/service-grants.mjs",
+      "originPath": "modules/deploy-kit/service-grants.mjs",
+      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "files": {
+        "src/base/modules/deploy-kit/service-grants.mjs": "441be67fe70a4f9fe126141df96db1d22e7a30f04229eb3d2f7fac637d961868"
+      },
+      "modes": {
+        "src/base/modules/deploy-kit/service-grants.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/deploy-kit/sql-safety.mjs",
+      "originPath": "modules/deploy-kit/sql-safety.mjs",
+      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "files": {
+        "src/base/modules/deploy-kit/sql-safety.mjs": "482634f15b0715c64756e819b02173fdc6292d206cd639c49abda6a78076e94b"
+      },
+      "modes": {
+        "src/base/modules/deploy-kit/sql-safety.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/deploy-kit/sql-tokens.mjs",
+      "originPath": "modules/deploy-kit/sql-tokens.mjs",
+      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "files": {
+        "src/base/modules/deploy-kit/sql-tokens.mjs": "ddbcb2639e902dce995b32d75d8827f922651e080b40e01dbe76a4b682a96357"
+      },
+      "modes": {
+        "src/base/modules/deploy-kit/sql-tokens.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/deploy-kit/teardown.mjs",
+      "originPath": "modules/deploy-kit/teardown.mjs",
+      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "files": {
+        "src/base/modules/deploy-kit/teardown.mjs": "ee2d3d4b594c0c37513c8dc124d7dc16642582f2822c269192afa256cacbe8c3"
+      },
+      "modes": {
+        "src/base/modules/deploy-kit/teardown.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/deploy-kit/templates.mjs",
+      "originPath": "modules/deploy-kit/templates.mjs",
+      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "files": {
+        "src/base/modules/deploy-kit/templates.mjs": "520ce28bd00ddb37918652cb1b3369ee1de950b03002071ae07e90735a84b0d0"
+      },
+      "modes": {
+        "src/base/modules/deploy-kit/templates.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/deploy-kit/validation.mjs",
+      "originPath": "modules/deploy-kit/validation.mjs",
+      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "files": {
+        "src/base/modules/deploy-kit/validation.mjs": "1e9b0b3c20420176e8f8d10d5f88ae18776cb35649e1ac2e6051372c81ff1309"
+      },
+      "modes": {
+        "src/base/modules/deploy-kit/validation.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/deploy-kit/worker.mjs",
+      "originPath": "modules/deploy-kit/worker.mjs",
+      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "files": {
         "src/base/modules/deploy-kit/worker.mjs": "22dcd7ee17de0120de522d2495070015c54e2bdfd251d58e3a43f2e37b804b3b"
       },
       "modes": {
-        "src/base/modules/deploy-kit/artifact.mjs": "100644",
-        "src/base/modules/deploy-kit/build-modules.mjs": "100644",
-        "src/base/modules/deploy-kit/check.mjs": "100644",
-        "src/base/modules/deploy-kit/cli.mjs": "100644",
-        "src/base/modules/deploy-kit/container-config.mjs": "100644",
-        "src/base/modules/deploy-kit/default-stage.mjs": "100644",
-        "src/base/modules/deploy-kit/deploy.mjs": "100644",
-        "src/base/modules/deploy-kit/health-request.mjs": "100644",
-        "src/base/modules/deploy-kit/health.mjs": "100644",
-        "src/base/modules/deploy-kit/index.mjs": "100644",
-        "src/base/modules/deploy-kit/local-only.mjs": "100644",
-        "src/base/modules/deploy-kit/migrations.mjs": "100644",
-        "src/base/modules/deploy-kit/owner-cli.mjs": "100644",
-        "src/base/modules/deploy-kit/owner.mjs": "100644",
-        "src/base/modules/deploy-kit/prepare.mjs": "100644",
-        "src/base/modules/deploy-kit/provider.mjs": "100644",
-        "src/base/modules/deploy-kit/queue-consumer.mjs": "100644",
-        "src/base/modules/deploy-kit/README.md": "100644",
-        "src/base/modules/deploy-kit/receipt.mjs": "100644",
-        "src/base/modules/deploy-kit/render.mjs": "100644",
-        "src/base/modules/deploy-kit/resources.mjs": "100644",
-        "src/base/modules/deploy-kit/service-grants.mjs": "100644",
-        "src/base/modules/deploy-kit/sql-safety.mjs": "100644",
-        "src/base/modules/deploy-kit/sql-tokens.mjs": "100644",
-        "src/base/modules/deploy-kit/teardown.mjs": "100644",
-        "src/base/modules/deploy-kit/templates.mjs": "100644",
-        "src/base/modules/deploy-kit/validation.mjs": "100644",
         "src/base/modules/deploy-kit/worker.mjs": "100644"
       }
     },

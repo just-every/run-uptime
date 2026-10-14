@@ -4,6 +4,7 @@ import {TABLES,columns} from './archive-schema.ts'
 export const installationLocalTables:Record<string,string>={
  public_rate_limits:'Installation public-path request counters; expire after their window.',
  _cf_METADATA:'D1 installation metadata; never product records.',
+ _rer_deploy_migrations:'Historical deployment migration ledger; installation-local permanent history, never portable product records.',
  d1_migrations:'Receiving installation migration ledger; never replace applied migration history.',
  sessions:'Retired installation authentication sessions.',login_attempts:'Authentication rate-limit authority.',
  oa_operators:'Installation operator identities, roles and authorization.',oa_bootstrap:'Installation owner-claim authority.',

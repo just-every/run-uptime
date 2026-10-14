@@ -42,7 +42,7 @@
           "slug": "monitors",
           "title": "Monitors and evidence",
           "file": "monitors.md",
-          "summary": "The three monitor kinds, how checks become incidents, and why Unknown is never green."
+          "summary": "The four monitor kinds, how checks become incidents, and why Unknown is never green."
         },
         {
           "slug": "notifications",

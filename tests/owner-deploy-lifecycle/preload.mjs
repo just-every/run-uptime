@@ -9,7 +9,7 @@ const actualFetch = globalThis.fetch;
 globalThis.fetch = async (input, init) => {
   const request = new Request(input, init);
   const url = new URL(request.url);
-  if (url.origin !== 'https://api.cloudflare.com' && url.origin !== 'https://uptime-monitor-production.fixture-account.workers.dev') {
+  if (url.origin !== 'https://api.cloudflare.com' && url.origin !== 'https://uptime-monitor-production.fixture-account.workers.dev' && url.origin !== 'https://' + 'a'.repeat(32) + '.r2.cloudflarestorage.com') {
     throw Error('external-network-forbidden');
   }
   const response = await actualFetch(bridge, {

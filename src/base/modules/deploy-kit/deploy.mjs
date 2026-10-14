@@ -1,3 +1,4 @@
+import { recordDeployFailure } from './diagnostics.mjs';
 import { verifyServiceGrants } from './service-grants.mjs';
 import { assert, hash, validatePlan } from './validation.mjs';
 import { validateArtifact, publicAssetPaths } from './artifact.mjs';
@@ -32,13 +33,14 @@ export async function deploy({api,plan,artifact,artifactSha256,previousReceipt,r
   const authenticated = previousReceipt?.fingerprint === fingerprint && previousReceipt.accountId === api.accountId && previousReceipt.worker === plan.worker && previousReceipt.provider?.versionId === existing?.versionId && previousReceipt.provider?.etag === existing?.etag && previousReceipt.provider?.deploymentId === existing?.deploymentId;
   const unchanged = priorFingerprint === fingerprint && secrets.missing.length === 0 && !migration && !(uploadWithoutReceipt && !authenticated);
   if (repeatOnly) assert(unchanged && previousReceipt?.fingerprint === fingerprint && previousReceipt?.provider?.versionId === existing?.versionId && previousReceipt?.provider?.etag === existing?.etag, 'repeat-deployment-drift');
-  const migrations = [];
-  for (const item of plan.d1) migrations.push({binding:item.binding,...await migrate(api,resources.d1.find(x => x.binding === item.binding).id,item.migrations,{apply:!unchanged})});
   if (unchanged) {
     assert(previousReceipt?.fingerprint === fingerprint && previousReceipt.accountId === api.accountId && previousReceipt.worker === plan.worker && previousReceipt.provider?.versionId === existing.versionId && previousReceipt.provider?.etag === existing.etag && previousReceipt.provider?.deploymentId === existing.deploymentId, 'no-op-requires-authenticated-prior-receipt');
     verifyBindings(existing.settings.bindings,bindings);
   }
-  else await uploadWorker(api,{plan,artifact,bindings,secrets,migration,fingerprint});
+  const migrations = [];
+  // A migration failure names its database, so the owner knows which one to inspect.
+  for (const item of plan.d1) migrations.push({binding:item.binding,...await migrate(api,resources.d1.find(x => x.binding === item.binding).id,item.migrations,{apply:!unchanged,upgrade:true}).catch(error => { error.resource ??= `d1:${item.name}`; throw error; })});
+  if (!unchanged) await uploadWorker(api,{plan,artifact,bindings,secrets,migration,fingerprint});
   const published = unchanged ? existing : await activeWorker(api,plan.worker); assert(published,'missing-deployed-worker');
   verifyBindings(published.settings.bindings,bindings);
   verifyScheduledHandler(published,plan);
@@ -55,8 +57,10 @@ export async function deploy({api,plan,artifact,artifactSha256,previousReceipt,r
   if (onReceipt) await onReceipt(receipt);
   // One built file proves the Worker hands static assets to the browser (assets run behind it).
   const asset = publicAssetPaths(artifact.assets.map(x => x.path))[0];
-  if (unchanged) await verifyHealth({...healthOptions,api,plan,receipt,fetch,asset});
-  else await firstHealth({api,plan,receipt,fetch,healthOptions,readiness,onHealth,asset});
+  try {
+    if (unchanged) await verifyHealth({...healthOptions,api,plan,receipt,fetch,asset});
+    else await firstHealth({api,plan,receipt,fetch,healthOptions,readiness,onHealth,asset});
+  } catch (error) { throw recordDeployFailure(error,{step:'health',...(error.code ? {code:error.code,output:error.message} : {})}); }
   return receipt;
 }
 

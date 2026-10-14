@@ -38,6 +38,8 @@ Replace the example email with the owner's address. To start with proposed monit
 
 After stopping dev, run `rer verify`. `rer reset --yes` removes local data and generated settings; export first if you need the data.
 
+On the app origin, `/` is the Lobby, `/setup` is first-run setup, `/docs` is public documentation, and `/app` is the private operator console. The separate marketing site is `https://run-uptime.com/`, with its `/run` page; that site is not the app Lobby.
+
 ```sh
 rer export --output exports/uptime.rer
 rer import --input exports/uptime.rer --yes
