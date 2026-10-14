@@ -471,7 +471,7 @@
       "executable": false
     },
     "DEMO.md": {
-      "sha256": "c13bb67360b2875d3e651fd618d7637c7e33a24c7a69c5b7b4c98f874e40d78d",
+      "sha256": "2a9c29e6ea7cddcbee8149c53071c806626ec67b2c8f0e8435eb38814c68bcea",
       "executable": false
     },
     "deploy-demo.json": {
@@ -495,7 +495,7 @@
       "executable": false
     },
     "docs/deploy.md": {
-      "sha256": "fb58808700c5612add563a6dba61378489daea57cb51d98490a998c4593f2fbf",
+      "sha256": "d66f80726a5aa49178c602c74e94e42356b81f368b93113eb649f0e14cfb1a3a",
       "executable": false
     },
     "docs/install.md": {

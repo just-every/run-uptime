@@ -1,10 +1,11 @@
 # Uptime demo
 
 After the ordinary `rer setup`, run `rer demo` (`rer dev --demo`) and open its
-private `RER_OPEN` link. The installed `@runeditrun/rer` 0.2.4 release includes demo mode, with a narrow
-three-file patch; see [the adoption note](patches/README.md). No external Base checkout is
-needed. `rer demo --stop`, Ctrl-C, or expiry stops its owned runtime, runner and
-synthetic target and deletes `.rer/demo/<start>/`. Restarting starts afresh.
+private `RER_OPEN` link. The installed, unmodified published `@runeditrun/rer` 0.2.6
+release includes demo mode; see [the adoption note](patches/README.md). No package
+patch or external Base checkout is needed. `rer demo --stop`, Ctrl-C, or expiry
+stops its owned runtime, runner and synthetic target and deletes
+`.rer/demo/<start>/`. Restarting starts afresh.
 Normal `.wrangler/state` data and private settings are retained.
 
 The owner lands on a completed first run with three runnable sample monitors:
@@ -51,9 +52,9 @@ credential-free check returned `dryRun: true` and `deployed: false`, with Worker
 the synthetic runner, demo egress denial and `enableInternet: false`.
 This proves local image preparation only: Docker execution, Cloudflare container
 operation, visitor isolation and expiry, hosted egress, startup latency and
-public availability remain unverified. The independent Base owner-deploy
-exact-repeat provider-write and receipt-preservation regression still blocks
-main release. Hosted acceptance and owner go-live remain pending.
+public availability remain unverified. Published RER 0.2.6 includes the owner-deploy
+exact-repeat fix: an unchanged repeat preserves the receipt and avoids provider
+writes after setup-token retirement. Hosted acceptance and owner go-live remain pending.
 
 The existing Uptime project identifiers are retained. The hosted configuration
 provides one isolated container per visitor, its own owner claim keys,
@@ -69,8 +70,8 @@ reason; it cannot invent success. HTTP and keyword checks run against the
 container's synthetic process. Local browser acceptance uses real Chromium.
 
 `.github/workflows/run-demo.yml` uses the `run-demo` environment and the fixed
-approved Cloudflare account. Manual dispatch deploys independently of
-`RUN_DEMO_DEPLOY`; pushes deploy only when that repository variable is `true`.
+approved Cloudflare account. It is triggered only by manual dispatch, which
+deploys independently of `RUN_DEMO_DEPLOY`; pushes do not trigger this workflow.
 The optional `test_only` dispatch creates a separate `demo-test` Worker at
 `demo.test.run-uptime.com` using Turnstile's test keys in workflow environment
 inputs only. Production always uses the environment's real widget keys.

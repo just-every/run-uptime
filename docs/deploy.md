@@ -31,9 +31,9 @@ The command builds Uptime without your Cloudflare credentials in the build envir
 
 When it finishes, it prints the hosted address with the Worker and environment, for example `deploy: https://uptime-monitor-production.your-subdomain.workers.dev (Worker uptime-monitor-production, environment production)`. With `--json` the same values are in the result. Add `--dry-run` first if you want to see the plan without any provider requests.
 
-Cloudflare is the only place this command deploys to. Uptime declares no container platform, so the shared `--platform container`, `--host ssh://...` and `--image` options are refused for it; there is no Docker or SSH-host deployment.
+This page covers the default Cloudflare Workers deployment. Uptime also declares the `container` platform in `deploy.json`; the shared CLI supports `--platform container` with `--host ssh://...` and optional `--image` for Docker deployment to an SSH host. That separate path has not been exercised end to end for Uptime. The hosted demo uses the declared container image; see [the demo notes](https://github.com/just-every/run-uptime/blob/main/DEMO.md) for its acceptance status.
 
-If the Uptime upload or health-check stage stops part way, inspect the reported stage and code. What deployment already created is recorded in `.rer/deploy/<environment>.json`. Keep the ownership record and private settings, then rerun the same `rer deploy` command with the same environment to resume the deployment and inspect its outcome; it reuses the recorded resources. This does not add automatic owner claim under this checkout's pinned CLI.
+If the Uptime upload or health-check stage stops part way, inspect the reported stage and code. What deployment already created is recorded in `.rer/deploy/<environment>.json`. Keep the ownership record and private settings, then rerun the same `rer deploy` command with the same environment to resume the deployment and inspect its outcome; it reuses the recorded resources and continues automatic owner claim and setup-token retirement after the deployed source and health are confirmed.
 
 ### A separate environment
 
