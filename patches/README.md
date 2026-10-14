@@ -1,35 +1,34 @@
-# Base demo source adoption
+# Published RER demo adoption
 
-The registry release `@runeditrun/rer` 0.2.2 does not contain demo mode. This
-checkout retains its exact package pin and uses Base's documented `pnpm patch`
-route (`global/README.md`, Package mode). A frozen install applies the committed
-patch, so `pnpm exec rer demo` and the run-demo workflow use the same CLI.
+This checkout pins the published `@runeditrun/rer` package exactly to `0.2.4`.
+That release includes demo mode and hosted demo preparation. Its registry
+SHA-512 is recorded in `pnpm-lock.yaml`; a frozen install applies the narrow
+committed patch through Base's documented `pnpm patch` route (Package mode).
+No external Base checkout is needed at runtime.
 
-The patch adopts the changed portable package sources from immutable Base
-revision `a6afad9f4d007bf1b97a75bd67880d1850683e5d` (the 0.2.4 source), produced
-from its `scripts/rer-package.mjs` package inventory. The package identity stays
-0.2.2; this is a source adoption, not a claim that npm has released 0.2.4.
-Only `modules/container/boundary.mjs` and `modules/container/README.md` are
-additionally adopted byte-for-byte from immutable Base revision
-`e83eb9f13ae3282b81347ac4b482196606f2a9e9`. They sanction the canonical exported
-demo guard at `src/modules/demo/index.mjs`, with only its unaliased
-`import { env } from 'cloudflare:workers'`. All other previously adopted package
-sources remain at the a6 revision above; this is not a whole-package e83 update.
+The patch changes exactly three published package files:
 
-One local CLI correction is carried in `cli/package-mode.mjs`: recognize pnpm's
-`(patch_hash=...)` importer resolution, while checking the pinned base package,
-patch declaration, snapshot, and actual patch digest. Previously `rer check`
-rejected any valid `pnpm patch` installation even though Base recommends it.
-Missing, altered or mismatched patches still fail the contract check.
+- `modules/container/boundary.mjs` and `modules/container/README.md` are
+  byte-for-byte from immutable Base revision
+  `e83eb9f13ae3282b81347ac4b482196606f2a9e9`. They sanction the canonical exported
+  demo guard at `src/modules/demo/index.mjs`, with only its unaliased
+  `import { env } from 'cloudflare:workers'`.
+- `cli/package-mode.mjs` retains the local integrity correction: recognize pnpm's
+  `(patch_hash=...)` importer resolution while checking the pinned base package,
+  patch declaration and path, snapshot, and actual SHA-256 patch digest.
+  Missing, altered or mismatched patches still fail the contract check.
 
-Replace this patch with an exact published package update when Base publishes
-these capabilities and that checker correction. Do not replace the CLI with a
-seed command wrapper or require another checkout at runtime.
+All other package files are the published 0.2.4 artifact, including its new
+secret-readiness and recovery behavior. This is not a whole-package e83 source
+adoption. The obsolete broad 0.2.2 source patch has been removed. Replace the
+remaining patch when an exact published release carries these corrections.
+Do not replace the CLI with a seed command wrapper.
 
 `modules/demo` requires operator-auth's shared CSP helper. The app's
-operator-auth runtime copy moves as one unit to the same Base revision, as the
-SC-05 source contract requires; historical SQL migration bytes remain intact.
-The old foundation comparison baseline is retained in the edition source lock.
+operator-auth runtime copy remains at immutable Base revision
+`a6afad9f4d007bf1b97a75bd67880d1850683e5d`, as the SC-05 source contract
+requires; historical SQL migration bytes remain intact. The old foundation
+comparison baseline is retained in the edition source lock.
 
 The app-side demo module retains the a6 source at `src/modules/demo`, with an
 explicit `edition.json` mapping to Base's `modules/demo` comparison baseline.

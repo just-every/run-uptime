@@ -1,0 +1,83 @@
+diff --git a/cli/package-mode.mjs b/cli/package-mode.mjs
+index 5e4f3d7e0670c33cb092d653981258feaa2ae332..3ce015c388bdb67ec5fa180fc452e68edcd67499 100644
+--- a/cli/package-mode.mjs
++++ b/cli/package-mode.mjs
+@@ -3,6 +3,7 @@
+ // scripts/base-cli and scripts/base-onboarding). Its commands run `rer VERB`
+ // from node_modules/.bin, and its adapter imports the package's exports.
+ import { readFile } from 'node:fs/promises';
++import { createHash } from 'node:crypto';
+ import { resolve } from 'node:path';
+ 
+ export const packageName = '@runeditrun/rer';
+@@ -39,8 +40,23 @@ export async function lockedPackage(root) {
+   const entries = block(...own, `${group}:`, 4), entry = entries && block(...entries, `'${packageName}':`, 6);
+   if (!entry) continue;
+   const fields = Object.fromEntries(lines.slice(...entry).map(line => /^\s+(specifier|version):\s*'?([^'\s]*)'?\s*$/.exec(line)).filter(Boolean).map(match => [match[1], match[2]]));
+-  const packages = block(0, lines.length, 'packages:', 0), resolved = packages && block(...packages, `'${packageName}@${fields.version}':`, 2);
+-  return { group, specifier: fields.specifier, version: fields.version, locked: Boolean(resolved && lines.slice(...resolved).some(line => /^\s+resolution: \{integrity: sha512-/.test(line))) };
++  const patched = /^(.*)\(patch_hash=([a-f0-9]{64})\)$/.exec(fields.version ?? '');
++  const version = patched ? patched[1] : fields.version;
++  let patchValid = !patched;
++  if (patched) {
++   const patches = block(0, lines.length, 'patchedDependencies:', 0), record = patches && block(...patches, `'${packageName}@${version}':`, 2);
++   const data = record && Object.fromEntries(lines.slice(...record).map(line => /^\s+(hash|path):\s*'?([^'\s]*)'?\s*$/.exec(line)).filter(Boolean).map(match => [match[1],match[2]]));
++   try {
++    const pkg = JSON.parse(await readFile(resolve(root,'package.json'),'utf8'));
++    if (data?.hash === patched[2] && data.path === pkg.pnpm?.patchedDependencies?.[`${packageName}@${version}`] && !data.path.startsWith('/') && !data.path.split(/[\\/]/).includes('..')) {
++     const digest = createHash('sha256').update(await readFile(resolve(root,data.path))).digest('hex');
++     const snapshots = block(0, lines.length, 'snapshots:', 0);
++     patchValid = digest === data.hash && Boolean(snapshots && lines.slice(...snapshots).some(line => line.trim() === `'${packageName}@${fields.version}': {}`));
++    }
++   } catch { patchValid = false; }
++  }
++  const packages = block(0, lines.length, 'packages:', 0), resolved = packages && block(...packages, `'${packageName}@${version}':`, 2);
++  return { group, specifier: fields.specifier, version, locked: patchValid && Boolean(resolved && lines.slice(...resolved).some(line => /^\s+resolution: \{integrity: sha512-/.test(line))) };
+  }
+  return undefined;
+ }
+diff --git a/modules/container/README.md b/modules/container/README.md
+index bfcf8bd7bd2254464428448a728f998060039e9a..253f7f427636d3a2ee487456e73640d01ce2babd 100644
+--- a/modules/container/README.md
++++ b/modules/container/README.md
+@@ -13,7 +13,9 @@ selected through `cacheContract` when the seed implements that contract. This
+ is not a general Durable Object adapter. A seed requiring KV or other
+ Cloudflare-only APIs cannot use Node.
+ The import boundary rejects those APIs and new Cloudflare imports outside the
+-platform binding/cache boundary.
++platform binding/cache boundary. The one other file it admits is an exported
++seed's demo guard, `src/modules/demo/index.mjs`, and there only
++`import { env } from 'cloudflare:workers'` (it reads `RER_DEMO`).
+ 
+ The entrypoint holds a Linux kernel `flock` for the lifetime of the host. Each
+ installation has one local data volume and one writer. The lock inode retains
+diff --git a/modules/container/boundary.mjs b/modules/container/boundary.mjs
+index 85781b8601c09398feffd44fe1273763689c9288..ceb602690b6358936e861c6fc02f04e1563631fc 100644
+--- a/modules/container/boundary.mjs
++++ b/modules/container/boundary.mjs
+@@ -1,5 +1,5 @@
+ import { readdir, readFile } from 'node:fs/promises';
+-import { join, relative } from 'node:path';
++import { join, relative, sep } from 'node:path';
+ import { createRequire } from 'node:module';
+ import { pathToFileURL } from 'node:url';
+ export async function checkBoundary(root, { engine='node', cacheContract }={}) {
+@@ -10,6 +10,9 @@ export async function checkBoundary(root, { engine='node', cacheContract }={}) {
+    const name=relative(root,path),tree=ts.createSourceFile(path,await readFile(path,'utf8'),ts.ScriptTarget.Latest,true);
+    const cache=cacheContract==='lamp-retained-v1'&&/(?:^|\/)platform\/blobs\/snapshot-cache\.ts$/.test(name);
+    const bindings=/(?:^|\/)platform\/bindings\.server\.ts$/.test(name);
++   // The demo guard an exported seed carries reads RER_DEMO from env: that one
++   // file, and only its unrenamed `env` import.
++   const demo=name.split(sep).join('/')==='src/modules/demo/index.mjs';
+    const fail=api=>failures.push({path:name,api}),localNames=new Set();
+    function names(node){if((ts.isVariableDeclaration(node)||ts.isFunctionDeclaration(node)||ts.isImportSpecifier(node))&&node.name&&ts.isIdentifier(node.name))localNames.add(node.name.text);ts.forEachChild(node,names);}names(tree);
+    function visit(node){
+@@ -17,7 +20,7 @@ export async function checkBoundary(root, { engine='node', cacheContract }={}) {
+      const module=node.moduleSpecifier.text;
+      if(module.startsWith('cloudflare:')){
+       const imports=node.importClause?.namedBindings;
+-      const allowed=module==='cloudflare:workers'&&imports&&ts.isNamedImports(imports)&&imports.elements.every(element=>(bindings&&(element.propertyName??element.name).text==='env')||(cache&&(element.propertyName??element.name).text==='DurableObject'));
++      const allowed=module==='cloudflare:workers'&&imports&&ts.isNamedImports(imports)&&imports.elements.every(element=>(demo&&!node.importClause.name&&!element.propertyName&&element.name.text==='env')||(bindings&&(element.propertyName??element.name).text==='env')||(cache&&(element.propertyName??element.name).text==='DurableObject'));
+       if(!allowed)fail('Cloudflare import outside binding/cache contract');
+      }
+     }

@@ -1,8 +1,8 @@
 # Uptime demo
 
 After the ordinary `rer setup`, run `rer demo` (`rer dev --demo`) and open its
-private `RER_OPEN` link. The installed package is patched with committed Base
-source; see [the adoption note](patches/README.md). No external Base checkout is
+private `RER_OPEN` link. The installed `@runeditrun/rer` 0.2.4 release includes demo mode, with a narrow
+three-file patch; see [the adoption note](patches/README.md). No external Base checkout is
 needed. `rer demo --stop`, Ctrl-C, or expiry stops its owned runtime, runner and
 synthetic target and deletes `.rer/demo/<start>/`. Restarting starts afresh.
 Normal `.wrangler/state` data and private settings are retained.

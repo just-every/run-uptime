@@ -8,9 +8,9 @@ overrides:
   miniflare@5.20260926.1-alpha>sharp: 0.35.5
 
 patchedDependencies:
-  '@runeditrun/rer@0.2.2':
-    hash: 5ffdf870e3ab472eb300915ddc24edf63f255ec2a9eb877990a7f560961550a3
-    path: patches/@runeditrun__rer@0.2.2.patch
+  '@runeditrun/rer@0.2.4':
+    hash: 7fb9ea15482859c2775dacb59da4ce1d87e7f3c0e6729c1d636f8419282896dd
+    path: patches/@runeditrun__rer@0.2.4.patch
 
 importers:
 
@@ -39,8 +39,8 @@ importers:
         specifier: 5.20261006.1
         version: 5.20261006.1
       '@runeditrun/rer':
-        specifier: 0.2.2
-        version: 0.2.2(patch_hash=5ffdf870e3ab472eb300915ddc24edf63f255ec2a9eb877990a7f560961550a3)
+        specifier: 0.2.4
+        version: 0.2.4(patch_hash=7fb9ea15482859c2775dacb59da4ce1d87e7f3c0e6729c1d636f8419282896dd)
       '@types/node':
         specifier: 26.6.4
         version: 26.6.4
@@ -806,8 +806,8 @@ packages:
   '@rolldown/pluginutils@1.0.1':
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
 
-  '@runeditrun/rer@0.2.2':
-    resolution: {integrity: sha512-PP1PCu/8CaU3T6D/T+6hOLTkf06S+7fEaUim0yk+Rzek5I9M4YHuVH/JqnaDkRwKOMaecmhOY2gZpUkhcB5sXg==}
+  '@runeditrun/rer@0.2.4':
+    resolution: {integrity: sha512-nlSq/1BD+HreDHAnJQ8bck6FYqCYiBncGI9KLR0zmSHj4vL4Jue/KhaJrK3lm9UKE6F3RhYrMg9H07dJjlweXw==}
     engines: {node: '>=22'}
     hasBin: true
 
@@ -2018,7 +2018,7 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.1': {}
 
-  '@runeditrun/rer@0.2.2(patch_hash=5ffdf870e3ab472eb300915ddc24edf63f255ec2a9eb877990a7f560961550a3)': {}
+  '@runeditrun/rer@0.2.4(patch_hash=7fb9ea15482859c2775dacb59da4ce1d87e7f3c0e6729c1d636f8419282896dd)': {}
 
   '@sindresorhus/is@7.2.0': {}
 

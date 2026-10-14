@@ -471,7 +471,7 @@
       "executable": false
     },
     "DEMO.md": {
-      "sha256": "6d78585c23427e6e77b709a1bb14d593b8b7f4c45c6bcd49587acb10a81368e1",
+      "sha256": "c13bb67360b2875d3e651fd618d7637c7e33a24c7a69c5b7b4c98f874e40d78d",
       "executable": false
     },
     "deploy-demo.json": {
@@ -711,19 +711,19 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "e2dd089d179591db427c452810b72f4e8fc0602d5b994eadf0fdecd3e0d60560",
+      "sha256": "24185225ad5b11cd6984a2460812e4fe97b2777bda6b80769fcc14a86be96c54",
       "executable": false
     },
-    "patches/@runeditrun__rer@0.2.2.patch": {
-      "sha256": "5ffdf870e3ab472eb300915ddc24edf63f255ec2a9eb877990a7f560961550a3",
+    "patches/@runeditrun__rer@0.2.4.patch": {
+      "sha256": "7fb9ea15482859c2775dacb59da4ce1d87e7f3c0e6729c1d636f8419282896dd",
       "executable": false
     },
     "patches/README.md": {
-      "sha256": "91f5eb7e73e30b8ad3396db6354f7aed2ea4bfae6de61e721930490cc6ecd512",
+      "sha256": "aabfbbd84357f7ce27901a972f65d5ef8916bfa09c1061b57c379f633275a455",
       "executable": false
     },
     "pnpm-lock.yaml": {
-      "sha256": "dca838e6ce4f8eed64053ef3ebc19f79d9611c0c85b3cfe1e93a9c244407376f",
+      "sha256": "e855db6ee699e2947a99daa79e00cdd85e03d2f6ec7f1f5aa9bca0839c9848e1",
       "executable": false
     },
     "public/action-feedback.mjs": {
