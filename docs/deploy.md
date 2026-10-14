@@ -33,7 +33,7 @@ When it finishes, it prints the hosted address with the Worker and environment, 
 
 Cloudflare is the only place this command deploys to. Uptime declares no container platform, so the shared `--platform container`, `--host ssh://...` and `--image` options are refused for it; there is no Docker or SSH-host deployment.
 
-If deployment or owner claim stops part way, inspect the reported stage, code and owner-claim outcome. What the deployment already created is recorded in `.rer/deploy/<environment>.json`. Rerun the same `rer deploy` command with the same environment to resume and inspect the new outcome; it reuses the recorded resources. Keep the ownership record and private settings.
+If the Uptime upload or health-check stage stops part way, inspect the reported stage and code. What deployment already created is recorded in `.rer/deploy/<environment>.json`. Keep the ownership record and private settings, then rerun the same `rer deploy` command with the same environment to resume the deployment and inspect its outcome; it reuses the recorded resources. This does not add automatic owner claim under this checkout's pinned CLI.
 
 ### A separate environment
 
@@ -41,9 +41,9 @@ If deployment or owner claim stops part way, inspect the reported stage, code an
 
 ## Owner claim and sign-in
 
-Current rer deployment claims the owner automatically, then retires the one-use hosted `SETUP_TOKEN`. Inspect the CLI's `claimed` or `kept` owner outcome and token-retirement result. After successful admission, open `/login` on the reported hosted address and request an ordinary email sign-in link. Opening the link shows a confirmation page; choosing **Confirm** signs you in. Finish first-run setup at `/setup`, then use the console at `/app`. Permanent owner admission survives token retirement even before setup is finished, and remains claimed if the original owner is later erased.
+With rer's newer custom-deployment lifecycle (0.2.3 and later), `rer deploy` wraps Uptime's custom deployment hook, claims the owner automatically, then retires the one-use hosted `SETUP_TOKEN`. Inspect the CLI's `claimed` or `kept` owner outcome and token-retirement result. After successful admission, open `/login` on the reported hosted address and request an ordinary email sign-in link. Opening the link shows a confirmation page; choosing **Confirm** signs you in. Finish first-run setup at `/setup`, then use the console at `/app`. Permanent owner admission survives token retirement even before setup is finished, and remains claimed if the original owner is later erased.
 
-Automatic claim and retirement require a CLI providing that lifecycle. This checkout intentionally retains `@runeditrun/rer` 0.2.2 and commands use that pin; do not assume the older pin already auto-claims. Inspect the invoked CLI's reported owner outcome. If claim fails or is incomplete, rerun the same `rer deploy --environment NAME` and inspect the outcome. Do not enter a retired token at `/claim` as routine recovery.
+This checkout intentionally retains `@runeditrun/rer` 0.2.2, and `rer` commands use that pin; do not assume the older pin already auto-claims. Its Uptime deployment hook uploads the Worker and checks health, but does not automatically claim the owner or retire the token. The newer lifecycle wraps that hook to perform claim and retirement after deployment. Updating the pin is a separate dependency-adoption decision; repeating `rer deploy` with 0.2.2 may resume deployment but does not add automatic claim or retirement. The 0.2.2 CLI still supports this checkout's update, health-check and removal procedures. If automatic claim or token retirement is incomplete while using 0.2.3 or later, retain `.rer/deploy/<environment>.json` and private settings, rerun the same `rer deploy --environment NAME`, and inspect the new stage, owner outcome and retirement result. Do not enter a retired token at `/claim` as routine recovery.
 
 ## Check it
 

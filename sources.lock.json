@@ -454,7 +454,7 @@
       "executable": false
     },
     "docs/deploy.md": {
-      "sha256": "fc3a1231eb943c9a2133c4c4f855c89800acaf3b6fa754f6aade9aa8b5bc3b16",
+      "sha256": "59fd65c2f10f8d7625802dd9bcf0c1c8095d2f60f82f33310768f08bff668f26",
       "executable": false
     },
     "docs/install.md": {
@@ -666,7 +666,7 @@
       "executable": false
     },
     "OPERATIONS.md": {
-      "sha256": "bf6139851d057581fb0acf79edc14340bdfb2f3a56ef05eb77ebbd56782a38c9",
+      "sha256": "1492a87facebd1de045ea05ddbe765c25b322b1ece741f400a9853b9d9844fa2",
       "executable": false
     },
     "package.json": {
@@ -830,7 +830,7 @@
       "executable": false
     },
     "README.md": {
-      "sha256": "e5bd1f69c9ac4a263dea4540e57c75cf3b1c2bc4ab4cc3928e7ab4d6dc0c5b6b",
+      "sha256": "3c154b7f5779ec05a2220c46743c9a28031a093a9298c4cf9b124521d6822e5e",
       "executable": false
     },
     "RELEASE.json": {
