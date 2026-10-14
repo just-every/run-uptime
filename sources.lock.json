@@ -721,10 +721,6 @@
       "sha256": "153fc85b70298beeb1d61a5f723331649e7f23bb77302a66e61cb3e2fbdb5e79",
       "executable": false
     },
-    "public/dialog-focus.js": {
-      "sha256": "d72a82357da8d1cdabf4bfafc15a2ba13ee4d397c5abe1d69eb86b95ff751b28",
-      "executable": false
-    },
     "public/editor-definition.mjs": {
       "sha256": "d0bb3a821e3ff15abdb7ee8742c26d2e46b1cd7f832dc7366c2ad7aee67a5c7f",
       "executable": false
@@ -810,7 +806,7 @@
       "executable": false
     },
     "public/notification-dialogs.js": {
-      "sha256": "95b7d09c4bf877ed3e251100ef3d14476bbdaf5a84ee0f6b7162d79b91cee819",
+      "sha256": "6e0b91dff32c277e99f2fcb7dd2b226e20f2797547567a0f968d4f0242b4437a",
       "executable": false
     },
     "public/notifications.css": {
@@ -818,7 +814,7 @@
       "executable": false
     },
     "public/notifications.js": {
-      "sha256": "2aafde6375715e1a47f5eac4daafbd42fcc5392b6787a5b60f31db56e00c4cdf",
+      "sha256": "254424341f4d119e372a42cd758a018a8e7b483b6b67c60b155373137a260603",
       "executable": false
     },
     "public/rer-theme.css": {
@@ -826,7 +822,7 @@
       "executable": false
     },
     "public/runner-settings.js": {
-      "sha256": "036d40853dddd542ada22728652bb85d22f4d2d261dee6c2a9320962dec7b8b5",
+      "sha256": "b81b60dd7e639e69c41c2fc09f85738c89790666871dedb6a6acdf14cc779bf3",
       "executable": false
     },
     "public/style.css": {

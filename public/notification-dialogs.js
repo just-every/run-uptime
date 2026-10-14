@@ -1,4 +1,14 @@
-import {dialogFocusReturn} from './dialog-focus.js';
+// Periodic console redraws can replace the opener while a native dialog is
+// open. Restore the current control with the same id when that happens.
+export function dialogFocusReturn(fallbackId) {
+ const opener=document.activeElement,id=opener?.id||fallbackId;
+ return ()=>{
+  if(document.querySelector('dialog[open]'))return;
+  const control=opener?.isConnected&&opener!==document.body&&!opener.closest('dialog')?opener:id?document.getElementById(id):null;
+  control?.focus({preventScroll:true});
+ };
+}
+
 // One-time credentials stay in this dialog only, and are erased on every exit.
 export const verificationHelp=`<details class="verification-help"><summary>How to verify a signed request</summary><p>Use the signing secret as literal UTF-8 text; do not hex-decode it. Read <code>x-lamp-timestamp</code> and <code>x-lamp-signature</code>.</p><p>Reject timestamps more than five minutes from the current time. The timestamp is ISO 8601 UTC, ending in .000Z. Compute HMAC-SHA256 over the exact UTF-8 timestamp, a dot, and the exact request body bytes. Compare its unprefixed, unpadded base64url signature with the signature header using a constant-time comparison.</p><p>Receivers using the <code>webhook-*</code> headers should follow their matching verification scheme. <code>incidentKey</code> identifies an incident, <code>title</code> names it, and <code>state</code> is firing or recovered. Test requests use a separate test identity.</p></details>`;
 export function confirmDestination({title,explanation,button,tone,onConfirm}){

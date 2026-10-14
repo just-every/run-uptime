@@ -1,5 +1,4 @@
-import {dialogFocusReturn} from './dialog-focus.js';
-import {confirmDestination,showSecret,verificationHelp,showErasureReceipt} from './notification-dialogs.js';
+import {dialogFocusReturn,confirmDestination,showSecret,verificationHelp,showErasureReceipt} from './notification-dialogs.js';
 import {drillProof,drillLines} from './alert-drills.js';
 // Lists expose saved email to the owner; URL capabilities and signing secrets
 // are never returned by the list API or reconstructed by the browser.

@@ -1,4 +1,4 @@
-import {dialogFocusReturn} from './dialog-focus.js';
+import {dialogFocusReturn} from './notification-dialogs.js';
 export function runnerSettings(container,runners,api,refresh){
  const heading=document.createElement('h3');heading.textContent='Runner networks';container.append(heading);
  const list=document.createElement('ul');
