@@ -2998,7 +2998,7 @@
       "executable": false
     },
     "tests/deployment-invocation.mjs": {
-      "sha256": "896638c57245a54ef5ed3e1d167426f3996193b5a42f20651633ed43ddf067e7",
+      "sha256": "0a0f666615efc7bca6d1b8dd5007ebf775ed8f3682091c382722266bd83bb42e",
       "executable": false
     },
     "tests/discovery-jobs.mjs": {

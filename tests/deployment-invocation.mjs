@@ -7,6 +7,7 @@ import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
+const {packageManager} = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
 const descriptor = JSON.parse(await readFile(new URL('../OPERATIONS.json', import.meta.url), 'utf8'));
 // Construct an environment from non-secret job plumbing only, even when the
 // test runner itself was started by pnpm or has unrelated controller secrets.
@@ -20,7 +21,7 @@ test('package-script environment injection cannot cross the credential-free boun
   try {
     // Exercise the installed, pinned pnpm binary with a disposable package, not
     // a simulated environment or a copy of Base's credential guard.
-    await writeFile(join(home, 'package.json'), JSON.stringify({private: true, scripts: {probe: 'node probe.mjs'}}));
+    await writeFile(join(home, 'package.json'), JSON.stringify({private: true, packageManager, scripts: {probe: 'node probe.mjs'}}));
     const guard = import.meta.resolve('@runeditrun/rer/modules/deploy-kit/prepare');
     await writeFile(join(home, 'probe.mjs'), `import {assertCredentialFree} from ${JSON.stringify(guard)};
 try { assertCredentialFree(process.env); console.log('credential-free'); }
