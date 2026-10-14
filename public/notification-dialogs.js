@@ -34,7 +34,7 @@ export function showSecret(secret,destinationName){
  copy.onclick=async()=>{try{await navigator.clipboard.writeText(secret);if(dialog.isConnected){status.dataset.state='success';status.textContent='Copied — save it in your receiver.'}}catch{if(dialog.isConnected){status.dataset.state='error';status.textContent='Copy could not complete. Select and copy the secret above.'}}};
  const help=document.createElement('div');help.innerHTML=verificationHelp;
  const close=document.createElement('button');close.className='primary secret-close';close.textContent='I saved it — close';
- const clear=()=>{code.textContent='';secret='';status.textContent='';copy.onclick=null};close.onclick=()=>{clear();dialog.close()};dialog.oncancel=clear;dialog.onclose=()=>{clear();dialog.remove();returnFocus()};
+ const clear=()=>{code.textContent='';code.remove();secret='';status.textContent='';copy.onclick=null};close.onclick=()=>{clear();dialog.close()};dialog.oncancel=clear;dialog.onclose=()=>{clear();dialog.remove();returnFocus()};
  dialog.append(title,explanation,code,copy,status,help,close);document.body.append(dialog);dialog.showModal();
 }
 
