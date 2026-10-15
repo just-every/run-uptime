@@ -1,4 +1,4 @@
-import {HOSTED_RUNNER_ID,hostedHttp,hostedInstallation} from './hosted-runner.ts'
+import {HOSTED_RUNNER_ID,hostedHttp,hostedInstallation,ownOrigin,SELF_CHECK_REFUSAL} from './hosted-runner.ts'
 import {same,sign,type Bindings} from './control.server.ts'
 import {externalCheckUrl,EXTERNAL_CHECK_ABSENT} from './external-check.server.ts'
 // @ts-expect-error Base authenticated encryption; separate product purpose.
@@ -50,7 +50,7 @@ export async function listRunners(env:Bindings){return (await env.DB.prepare(`SE
 const capabilitiesOf=(value:unknown)=>{try{const parsed=JSON.parse(String(value));return {browser:parsed?.browser===true}}catch{return {browser:false}}}
 export async function assignDefinition(env:Bindings,definition:any,input:any){
  const first=await ensureFirstRunner(env),rows=(await env.DB.prepare(`SELECT * FROM runners ORDER BY ${runnerOrder}`).all<Runner>()).results;
- return assignRunners(rows,first.runner_id,definition,input,await externalCheckUrl(env),env.RER_DEMO!=='1');
+ return assignRunners(rows,first.runner_id,definition,input,await externalCheckUrl(env),env.RER_DEMO!=='1',env.UPTIME_ORIGIN);
 }
 // The pure assignment step, shared by saving and by a definition-file preview that must not write. `external` is the
 // installation's External check URL: an enabled public monitor or local HTTP practice monitor on one network takes it.
@@ -64,7 +64,7 @@ export const sameSite=(a:string,b:string)=>site(a)===site(b)
 function sameSiteRefusal(url:string,own:boolean){
  return Error(`The external check URL ${url} is the same site as this monitor, so an outage there could never be confirmed. ${own?'Choose an external check URL on a different site for this check.':'Choose a different external check URL on Runner / archive, or set one for this check.'}`)
 }
-export function assignRunners(rows:Runner[],firstRunnerId:string,definition:any,input:any,external:string|null=null,syntheticCanary=true){
+export function assignRunners(rows:Runner[],firstRunnerId:string,definition:any,input:any,external:string|null=null,syntheticCanary=true,appOrigin?:string){
  const assignments:Record<string,any>={};
  const available=rows.filter(r=>r.revoked_at===null&&(r.runner_id!==HOSTED_RUNNER_ID||hostedHttp(definition)));
  const hosted=hostedHttp(definition)?available.find(r=>r.runner_id===HOSTED_RUNNER_ID):undefined;
@@ -72,6 +72,7 @@ export function assignRunners(rows:Runner[],firstRunnerId:string,definition:any,
  for(const [i,probe] of definition.probes.entries()){
   const requested=input.assignments?.[probe],runnerId=typeof requested==='string'?requested:requested?.runnerId??hosted?.runner_id??available[i%available.length]?.runner_id??firstRunnerId;
   const row=rows.find(r=>r.runner_id===runnerId);if(runnerId===HOSTED_RUNNER_ID&&(!hostedHttp(definition)||definition.intervalMs<60000))throw Error('Worker checks require public HTTP(S), no runner-local credentials, and an interval of at least one minute. Choose a private runner for other checks');if(!row||(definition.enabled&&row.revoked_at!==null))throw Error('Probe requires an active assigned runner');
+  if(definition.enabled&&runnerId===HOSTED_RUNNER_ID&&ownOrigin(definition.url,appOrigin))throw Error(SELF_CHECK_REFUSAL);
   const canaryUrl=requested?.canaryUrl??input.canaryUrl;
   const href=canaryUrl?publicTarget(canaryUrl).href:null;
   if(href&&definition.enabled&&definition.url&&sameSite(href,definition.url))throw sameSiteRefusal(href,true);
@@ -85,5 +86,6 @@ export function assignRunners(rows:Runner[],firstRunnerId:string,definition:any,
   if(definition.url&&sameSite(href,definition.url))throw sameSiteRefusal(href,false);
   for(const assignment of Object.values(assignments) as any[])assignment.canaryUrl=href;
  }
+ for(const assignment of Object.values(assignments) as any[])if(definition.enabled&&assignment.runnerId===HOSTED_RUNNER_ID&&assignment.canaryUrl&&ownOrigin(assignment.canaryUrl,appOrigin))throw Error(SELF_CHECK_REFUSAL);
  return {...definition,assignments}
 }

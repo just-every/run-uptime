@@ -891,7 +891,7 @@
       "executable": false
     },
     "README.md": {
-      "sha256": "acbbb18e8eaadff175d1b4a5cb7818a06c98e4f0cace731f3c658b89f5cde46d",
+      "sha256": "f5a12b0c3f91976649a255f3ae92e139f20b7eed0d2e0ecadb012143bce3a745",
       "executable": false
     },
     "RELEASE.json": {
@@ -2435,7 +2435,7 @@
       "executable": false
     },
     "src/domain/definitions/plan.server.ts": {
-      "sha256": "33a56fbac19b9eae7a3725ca483d9b463be86f7365e79882ba326a444be09f30",
+      "sha256": "f4011bdcbca87b0165fa6b6b64f7c338720a5c13a23040987dd28445bea96bce",
       "executable": false
     },
     "src/domain/demo.server.ts": {
@@ -2503,7 +2503,7 @@
       "executable": false
     },
     "src/domain/hosted-runner.ts": {
-      "sha256": "7d5943b213a304f837e96e72aa4971ea45dae20efcfbd66c8a7689bd804a93a5",
+      "sha256": "9e9c6f1bbbec5f3e3901c86261724504a5b16195a6d0ac9a8671c0f71c66a569",
       "executable": false
     },
     "src/domain/http-assertions.mjs": {
@@ -2611,7 +2611,7 @@
       "executable": false
     },
     "src/domain/runner-registration.server.ts": {
-      "sha256": "db57640e0b89e3eb66350f7958c086ba41192693b73b9b71f14c0104e525d3a6",
+      "sha256": "fb95f3a9c8db5feb0ec2682695a5c2b8940c40c3584fe15f6828a4bce621c7f6",
       "executable": false
     },
     "src/domain/runner-signature.server.ts": {
@@ -2639,11 +2639,11 @@
       "executable": false
     },
     "src/domain/worker-checks.server.ts": {
-      "sha256": "52ab2e7eb9326710de6dca4a3bc45ecc2867eb4cd28830db0a188b4bf1d97933",
+      "sha256": "2a37d0e7358cc15f11618ee4e912e596470f6665de52394444c9588b60e644fa",
       "executable": false
     },
     "src/domain/worker-http.server.ts": {
-      "sha256": "5c00162e9c4a42766f394836ded3fb0eba0c1d6e9d7342157f84cfc541df3d2c",
+      "sha256": "1b539b61d8fbc0e2c5d79c354193baf641da228d1ede5c6747c2226887cf617f",
       "executable": false
     },
     "src/editor/owner-editor.tsx": {
@@ -3191,7 +3191,7 @@
       "executable": false
     },
     "tests/hosted-scheduled.mjs": {
-      "sha256": "7eafd4199dd876677f6211e236e9a54c119f9213de0b6952493498ea81719fb8",
+      "sha256": "2340d48c27f3b2f8aa3ae2664479def4ce4949fd49e6041208c36d0e9c88111f",
       "executable": false
     },
     "tests/installer-support.mjs": {

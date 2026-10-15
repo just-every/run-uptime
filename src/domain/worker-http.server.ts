@@ -1,5 +1,6 @@
 // Hosted public probes use Workers' public Internet fetch transport (no VPC binding).
 // Node runners retain socket pinning for their separately authorized networks.
+import {ownOrigin,SELF_CHECK_REFUSAL} from './hosted-runner.ts'
 // @ts-ignore Shared public-address policy.
 import {publicTarget,publicAddress} from './public-target.mjs'
 // @ts-ignore Shared assertion policy.
@@ -27,9 +28,11 @@ async function publicDNS(url:URL,signal:AbortSignal){
  const addresses=answers.flat();if(!addresses.length)throw new ProbeError('dns');
  if(addresses.some(address=>!publicAddress(address)))throw new ProbeError('network');
 }
-async function publicResponse(def:any,signal:AbortSignal,statusOnly:boolean){
+async function publicResponse(def:any,signal:AbortSignal,statusOnly:boolean,appOrigin?:string){
  let url=publicTarget(def.url),method=def.method;
  for(let hop=0;hop<=5;hop++){
+  // Existing revisions and redirects must not mistake Workers' self-fetch 404 for target evidence.
+  if(ownOrigin(url.href,appOrigin))throw new ProbeError('runner');
   await publicDNS(url,signal);
   const response=await fetch(url.href,{method,redirect:'manual',signal,headers:{'user-agent':'uptime-worker/0.1.0',accept:'application/json,text/plain,*/*;q=0.1','accept-encoding':'identity'},cache:'no-store'});
   if([301,302,303,307,308].includes(response.status)){
@@ -48,11 +51,11 @@ async function publicResponse(def:any,signal:AbortSignal,statusOnly:boolean){
  }
  throw new ProbeError('redirect');
 }
-export async function workerProbe(def:any,probe:string,{statusOnly=false}:{statusOnly?:boolean}={}){
+export async function workerProbe(def:any,probe:string,{statusOnly=false,appOrigin}:{statusOnly?:boolean;appOrigin?:string}={}){
  const startedAt=Date.now(),signal=AbortSignal.timeout(def.timeoutMs);
  const evidence=(data:any,completedAt=Date.now())=>({id:crypto.randomUUID(),probe,startedAt,completedAt,durationMs:completedAt-startedAt,runnerVersion:'uptime-worker/0.1.0',...data});
  try{
-  const response=await publicResponse(def,signal,statusOnly),completedAt=Date.now(),checks=httpAssertions(def,response,completedAt-startedAt);
+  const response=await publicResponse(def,signal,statusOnly,appOrigin),completedAt=Date.now(),checks=httpAssertions(def,response,completedAt-startedAt);
   return evidence({outcome:checks.every((check:any)=>check.pass)?'pass':'target_failure',status:response.status,bytes:response.bytes,checks},completedAt);
- }catch(error){const category=signal.aborted?'timeout':error instanceof ProbeError?error.category:'connection';return evidence({outcome:['dns','network'].includes(category)?'runner_error':'target_failure',checks:[{assertion:category,pass:false,reason:`Probe ${category} check failed`}]})}
+ }catch(error){const category=signal.aborted?'timeout':error instanceof ProbeError?error.category:'connection';return evidence({outcome:['dns','network','runner'].includes(category)?'runner_error':'target_failure',checks:[{assertion:category,pass:false,reason:category==='runner'?SELF_CHECK_REFUSAL:`Probe ${category} check failed`}]})}
 }

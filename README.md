@@ -147,6 +147,8 @@ For a named environment use `rer signin --environment NAME`. Supply `CLOUDFLARE_
 
 Public website checks run automatically in the hosted Cloudflare Worker; you do not need to start a private runner for them. Use a private runner for a network you control, including private networks, or checks that need runner-local credentials or a browser. In **Runner / Archive**, enter an independent network label and choose **Add runner**. Save the one-time command privately, then paste it into a shell from an installed Uptime checkout on that network. It includes the app origin, runner ID, key, network label and startup command.
 
+To monitor this Uptime installation's own address, assign a private runner. Cloudflare does not route the Worker's fetch of its own origin back to the app, so saving an active self-monitor with a Worker assignment is refused. An internal handler call would not test public routing, TLS or network reachability. Existing self-monitor assignments and redirects back to the app produce runner errors and Unknown coverage; their earlier history stays intact. The same restriction applies to a Worker's external check URL.
+
 Keep a private runner under a supervisor. A healthy Worker does not establish that a separately operated runner is working: check its contact and actual results. See [the runner guide](docs/runner.md) and [ACCEPTANCE.md](ACCEPTANCE.md) for hosted acceptance requirements.
 
 ### Update or remove a hosted installation

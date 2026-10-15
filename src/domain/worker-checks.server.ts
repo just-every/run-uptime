@@ -18,9 +18,9 @@ export async function scheduledPublicChecks(env:Bindings){
   const attempts=[];
   for(const probe of task.probes){
    const canaryUrl=task.definition.assignments[probe].canaryUrl;
-   const canary=canaryUrl?{...await workerProbe({...task.definition,url:canaryUrl,method:'GET',assertions:{status:200}},probe,{statusOnly:true}),attempt:0}:undefined;
+   const canary=canaryUrl?{...await workerProbe({...task.definition,url:canaryUrl,method:'GET',assertions:{status:200}},probe,{statusOnly:true,appOrigin:env.UPTIME_ORIGIN}),attempt:0}:undefined;
    for(let attempt=0;attempt<=task.definition.retries;attempt++){
-    const observation=await workerProbe(task.definition,probe);attempts.push({...observation,attempt,...(canary?{canary}:{})});
+    const observation=await workerProbe(task.definition,probe,{appOrigin:env.UPTIME_ORIGIN});attempts.push({...observation,attempt,...(canary?{canary}:{})});
     if(observation.outcome!=='target_failure')break;
    }
   }
