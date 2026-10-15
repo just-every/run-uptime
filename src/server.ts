@@ -31,7 +31,7 @@ import {alertDrillDocument} from './domain/alert-drill-document.server.ts'
 import {isPublicAsset} from './domain/assets.server.ts'
 import {classifyStorage,storageLogLine,storageOperation} from './domain/storage-error.ts'
 import {maintenance} from './domain/maintenance.server.ts'
-import {authRoute,authFailure,developmentMail,signOut} from './domain/operator-auth.server.ts'
+import {authRoute,authFailure,developmentMail,signOut,signInDocument} from './domain/operator-auth.server.ts'
 import {authDocument,nativeClaimFailure} from './domain/auth-document.server.ts'
 import {firstRun,firstRunComplete,setupRedirect} from './domain/first-run.server.ts'
 import {ownerClaim} from './domain/owner-claim.server.ts'
@@ -152,6 +152,7 @@ const handler={async fetch(request,env,execution){
  if(path==='/auth/owner-claim')return (await ownerClaim(bindings,request))!;
  if(path==='/api/editor/config')return editorConfigResponse(bindings,request);
  if(path.startsWith('/auth/'))return nativeClaimFailure(request,(await authRoute(bindings,request))!,bindings.UPTIME_DEPLOY_ENVIRONMENT);
+ if(path==='/signin')return signInDocument(bindings,request);
  if(path==='/setup')return firstRun(bindings,request);
  if(path==='/alert-drill')return alertDrillDocument(bindings,request);
  // Once an owner is admitted the first-owner claim is spent, so sign-in stops offering it.

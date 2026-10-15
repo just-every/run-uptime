@@ -2,7 +2,7 @@ import {auditStatement} from './audit.server.ts'
 // Edition wiring only. Credential, session and operator authority belongs to Base.
 import {mailSender} from './mail.server.ts'
 import branding from '../branding.json' with {type:'json'}
-import {createOperatorAuth,createAuthHandler,AuthError,isLoopbackHost} from '@runeditrun/rer/modules/operator-auth'
+import {createOperatorAuth,createAuthHandler,createSignInHandler,AuthError,isLoopbackHost} from '@runeditrun/rer/modules/operator-auth'
 import {operatorMailSender} from './operator-mail.server.ts'
 export interface AuthBindings {RER_DEMO?:string;RER_DEMO_EXPIRES?:string;DB:D1Database;UPTIME_ORIGIN?:string;UPTIME_LOCAL_REVIEW?:string;OWNER_EMAIL?:string;SESSION_SECRET?:string;SETUP_TOKEN?:string;MAIL_FROM?:string;SENDGRID_API_KEY?:string;MAIL_PROVIDER?:string;MAIL_API_KEY?:string;MAIL_RELAY_URL?:string;MAIL_PROVIDER_API_KEY?:string;MAIL_ACCOUNT_ID?:string;CLOUDFLARE_MAIL_API_KEY?:string;RER_OWNER_CLAIM_ISSUER?:string;RER_OWNER_CLAIM_INSTALLATION_ID?:string;RER_OWNER_CLAIM_APP_ORIGIN?:string;RER_OWNER_CLAIM_PUBLIC_KEYS?:string;RER_MANAGEMENT_ORIGIN?:string;RER_INSTALLATION_ID?:string;RER_DEV_KEY?:string;RER_DEV_IDENTITY?:string}
 export function developmentMail(env:AuthBindings){
@@ -33,3 +33,11 @@ export async function authRoute(env:AuthBindings,request:Request){try{
  }catch(error){return authFailure(error)}}
 export function authFailure(error:unknown){return Response.json({error:error instanceof AuthError?error.code:'auth_unavailable'},{status:error instanceof AuthError?error.status:503,headers:{'cache-control':'no-store'}})}
 export async function signOut(env:AuthBindings,request:Request){return operatorAuth(env).signOut(request)}
+
+// RER's Open app uses /signin; /login remains the native auth return path.
+// Render the alias through Base so validation, escaping and login_hint stay shared.
+export async function signInDocument(env:AuthBindings,request:Request){
+ const url=new URL(request.url);url.pathname='/login';
+ if(!['GET','HEAD'].includes(request.method))return new Response(null,{status:405,headers:{allow:'GET, HEAD'}});
+ return (await createSignInHandler(operatorAuth(env),{defaultReturnTo:'/setup'})(new Request(url,request)))!;
+}

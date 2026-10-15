@@ -7,10 +7,7 @@ export function relayMailSender(config:any,dependencies:any={}){
  return {async send(message:any){
   let retryAt:number|undefined;
   const sender=createMailSender(config,{...dependencies,fetch:async(url:RequestInfo|URL,init:RequestInit)=>{
-   // workerd implements follow/manual only. Preserve Base's redirect:error
-   // contract by never following a redirect and refusing every 3xx response.
-   const response=await (dependencies.fetch??fetch)(url,{...init,redirect:'manual'});
-   if(response.status>=300&&response.status<400)throw Error('Mail relay redirects are refused');
+   const response=await (dependencies.fetch??fetch)(url,init);
    if(response.status===429){
     const value=response.headers.get('retry-after');
     if(value!==null&&/^\d+$/.test(value)){

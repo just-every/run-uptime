@@ -393,6 +393,14 @@
         "environment": "all"
       },
       {
+        "path": "/signin",
+        "match": "exact",
+        "kind": "document",
+        "class": "authentication",
+        "authentication": "None; admission form only, credentials checked on submission.",
+        "environment": "all"
+      },
+      {
         "path": "/login",
         "match": "exact",
         "kind": "document",

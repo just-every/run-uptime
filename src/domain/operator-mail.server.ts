@@ -8,8 +8,6 @@ export function operatorMailSender(env:AuthBindings,development:boolean){
  if(development)return createMailSender({provider:'development',mode:'development'});
  return {async send(message:any){
   const snapshot=structuredClone(message),deliveryId=snapshot.deliveryId;
-  // The relay accepts content only; Base auth's Auto-Submitted header is for direct providers.
-  if(env.MAIL_PROVIDER==='rer')delete snapshot.headers;
   const sender=mailSender(env,{fetch:async(url:RequestInfo|URL,init?:RequestInit)=>{
    // Base validation completes before this edge. Per-message authority also
    // closes erasure races without depending on any provider's wire format.

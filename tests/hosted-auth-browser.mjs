@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {mkdtemp, readFile, readdir, rm} from 'node:fs/promises';
+import {mkdtemp, readFile, readdir, rm, mkdir} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {chromium} from 'playwright';
@@ -66,9 +66,23 @@ try {
 
   const loginContext = await newContext(), login = await loginContext.newPage();
   assert.equal((await loginContext.request.get(runtime.origin + '/api/overview')).status(), 401);
-  await login.goto(runtime.origin + '/login');
-  await login.getByLabel('Email address').fill(bindings.OWNER_EMAIL);
-  const sent = await nativePost(login, '/auth/magic-link', 'Send sign-in link');
+  for (const width of [1440, 390]) {
+    await login.setViewportSize({width, height: 900});
+    for (const query of ['', '?login_hint=not-an-email']) {
+      await login.goto(runtime.origin + '/signin' + query);
+      assert.equal(await login.getByLabel('Email', {exact: true}).inputValue(), '', 'only a complete explicit hint prefills');
+    }
+    await login.goto(runtime.origin + '/signin?login_hint=' + encodeURIComponent(bindings.OWNER_EMAIL));
+    assert.equal(await login.getByLabel('Email', {exact: true}).inputValue(), bindings.OWNER_EMAIL);
+    assert.equal(await login.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    assert.equal(mails.length, 0, 'opening Open app never sends mail');
+    assert.equal((await db.prepare('SELECT count(*) n FROM oa_tokens').first()).n, 0);
+    if (process.env.UPTIME_AUTH_SHOTS) {
+      await mkdir(process.env.UPTIME_AUTH_SHOTS, {recursive: true});
+      await login.screenshot({path: join(process.env.UPTIME_AUTH_SHOTS, `login-hint-${width}.png`), fullPage: true});
+    }
+  }
+  const sent = await nativePost(login, '/auth/magic-link', 'Email a sign-in link');
   assert.equal(sent.status(), 303, 'native form redirects to its acknowledgement');
   const acknowledgement = new URL(sent.headers().location, runtime.origin);
   assert.equal(acknowledgement.origin, runtime.origin);
@@ -88,7 +102,7 @@ try {
   assert.deepEqual(runtime.errors, []);
   assert.deepEqual(errors, []);
   await loginContext.close();
-  console.log('HOSTED-AUTH-BROWSER passed native HTTPS bootstrap, fresh-context magic link and confirmation; actual Origin, origin-only Referer and Secure Base owner session verified; outbound mail captured only in test');
+  console.log('HOSTED-AUTH-BROWSER passed native HTTPS bootstrap, Open app login_hint prefill at 1440/390 without auto-submit, fresh-context magic link and confirmation; actual Origin, origin-only Referer and Secure Base owner session verified; outbound mail captured only in test');
 } finally {
   await browser?.close();
   await runtime?.close();

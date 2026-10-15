@@ -26,7 +26,7 @@ try{
   if(status===302)return new Response(null,{status,headers:{location:'https://redirect-target.example.test/'}});
   return Response.json(status===202?{accepted:true}:{error:'relay problem'},
    {status,headers:status===429?{'retry-after':'2'}:{}});
- });
+ },{observeFetch:true});
  const db=await worker.getD1Database('DB');
  for(const file of (await readdir('migrations')).filter(f=>f.endsWith('.sql')).sort())
   for(const sql of splitSql(await readFile(join('migrations',file),'utf8')))await db.prepare(sql).run();
@@ -39,8 +39,12 @@ try{
  assert.equal(owner.status,303,await owner.clone().text());const cookie=owner.headers.get('set-cookie').split(';')[0];
  const signIn=await call('/auth/magic-link',{email:bindings.OWNER_EMAIL});
  assert.deepEqual(edgeErrors,[]);assert.equal(signIn.status,202,await signIn.clone().text());
- assert.equal(requests[0].to,bindings.OWNER_EMAIL);
- assert.match(requests[0].text,/https:\/\/uptime\.example\.test\/auth\/confirm\?token=/);
+ const message=requests[0],link=new URL(message.text.match(/https:\/\/[^\s]+/)[0]);
+ assert.equal(link.origin,origin);assert.equal(link.pathname,'/auth/confirm');
+ assert.ok(link.searchParams.get('token'));
+ assert.equal(message.to,bindings.OWNER_EMAIL);
+ assert.deepEqual(Object.keys(message).sort(),['html','subject','text','to'],'exact relay envelope: content only');
+ assert.ok(message.html.includes(link.href.replaceAll('&','&amp;')),'HTML and text carry the same confirmation');
 
  const added=await call('/api/notifications/destinations',{name:'Operations inbox',kind:'email',address:'oncall@example.test'},cookie);
  assert.equal(added.status,201);const destination=await added.json();
@@ -68,14 +72,18 @@ try{
  assert.equal(native.headers.get('location'),'/login?notice=mail_unavailable');
  const login=await call(native.headers.get('location'));assert.equal(login.status,200);
  assert.match(await login.text(),/Sign-in email is not available right now/);
- for(const [failure,expected] of [[400,'rejected'],[401,'rejected'],[402,'rejected'],[403,'rejected'],[413,'rejected'],[502,'uncertain'],[503,'uncertain']]){
+ for(const [failure,expected] of [[302,'rejected'],[400,'rejected'],[401,'rejected'],[402,'rejected'],[403,'rejected'],[413,'rejected'],[502,'uncertain'],[503,'uncertain']]){
   status=failure;const response=await call(`/api/notifications/destinations/${destination.id}/test`,{},cookie);
   assert.equal(response.status,202);const {deliveryId:id}=await response.json();await scheduled();
-  const delivery=await db.prepare('SELECT state,attempts FROM notification_jobs WHERE id=?').bind(id).first();
+  const delivery=await db.prepare('SELECT state,code,attempts FROM notification_jobs WHERE id=?').bind(id).first();
   assert.equal(delivery.state,expected);assert.equal(delivery.attempts,1);
+  if(failure===302)assert.equal(delivery.code,'provider_redirected');
   const sent=requests.length;await scheduled();assert.equal(requests.length,sent,'terminal or uncertain sends never replay');
  }
  assert.deepEqual(edgeErrors,[]);
  assert.equal((await call('/health')).status,200,'credential rejection does not crash the app');
- console.log('PASS RER relay: exact sign-in request, 429 Retry-After queued then accepted, 401 owner-visible mail problem; app stays healthy');
+ const observed=await (await worker.dispatchFetch('http://127.0.0.1:15504/',{method:'POST',body:JSON.stringify({transportObservation:true})})).json();
+ assert.equal(observed.length,requests.length,'every observed fetch reached the relay edge');
+ assert.ok(observed.length>0);assert.ok(observed.every(mode=>mode==='manual'),'all provider fetches use manual inside workerd');
+ console.log('PASS workerd emitted Worker RER relay: exact sign-in POST and Bearer/JSON envelope, redirect=manual, 302 refused/provider_redirected without follow, 429 Retry-After queued then accepted on attempt 2, 401 owner-visible mail problem; app stays healthy');
 }finally{await worker?.dispose();await rm(directory,{recursive:true,force:true})}
