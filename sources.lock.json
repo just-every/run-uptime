@@ -3079,7 +3079,7 @@
       "executable": false
     },
     "tests/auth-outbox.mjs": {
-      "sha256": "1017295a40566eac29e25de1af0ec650cc6d823ae0802010cce4bc3902d00050",
+      "sha256": "c6c52a0a4e093a917cc31fd25acd81a0c6b88c6a469abb30a65dac576fa0b5b7",
       "executable": false
     },
     "tests/auth-test-support.mjs": {

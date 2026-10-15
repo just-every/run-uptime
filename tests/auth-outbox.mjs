@@ -9,7 +9,7 @@ import {splitSql} from './migration-support.mjs';
 import {createDevelopmentOutboxHandler,createD1DevelopmentOutbox} from '../src/base/modules/mail/src/development/index.mjs';
 const branding=JSON.parse(await readFile(new URL('../src/branding.json',import.meta.url),'utf8'));
 const directory=await runtimeDirectory(),[port]=await availablePorts(1),origin=`http://127.0.0.1:${port}`;
-const bindings={...testAuthBindings,SENDGRID_API_KEY:'test-provider-must-never-be-contacted'};
+const bindings={...testAuthBindings,UPTIME_RUNNER_STALE_MS:'1000',SENDGRID_API_KEY:'test-provider-must-never-be-contacted'};
 let worker,submissions=0;
 async function identity(response,status){
  assert.equal(response.status,status);
@@ -84,12 +84,17 @@ try{
  const beforeDigest=await call('/__dev/outbox',undefined,keyHeader());assert.equal(beforeDigest.status,200);
  const captureCount=[...(await beforeDigest.text()).matchAll(/<article>/g)].length;
  await (await worker.getWorker()).scheduled();
- assert.equal((await DB.prepare("SELECT outcome FROM monitoring_watch WHERE id LIKE 'healthy-digest:%'").first())?.outcome,'development','scheduled healthy digest was delivered into development capture');
+ assert.equal(await DB.prepare("SELECT outcome FROM monitoring_watch WHERE id LIKE 'healthy-digest:%'").first(),null,'zero monitors never produce an all-healthy digest');
+ // Use an actual elapsed contact window to produce unrelated watch mail for the
+ // link-selection flow; no monitor means no healthy digest is justified.
+ await new Promise(resolve=>setTimeout(resolve,1100));
+ await (await worker.getWorker()).scheduled();
+ assert.equal((await DB.prepare("SELECT outcome FROM monitoring_watch WHERE id LIKE 'runner-stale:%'").first())?.outcome,'development','stale runner notice was delivered into development capture');
  const captures=await call('/__dev/outbox',undefined,keyHeader());
  assert.equal(captures.status,200);
- assert.equal([...(await captures.text()).matchAll(/<article>/g)].length,captureCount+1,'scheduled digest adds a message to the public capture listing');
+ assert.equal([...(await captures.text()).matchAll(/<article>/g)].length,captureCount+1,'scheduled watch notice adds a message to the public capture listing');
  const selected=await outboxLink(call,{email:bindings.OWNER_EMAIL});
- assert.ok(selected.href===newest.href,'newest matching sign-in survives newer digest and other-owner mail');
+ assert.ok(selected.href===newest.href,'newest matching sign-in survives newer watch notice and other-owner mail');
  const preview=await call(selected.pathname+selected.search);
  await identity(preview,200);assert.ok(!preview.headers.has('set-cookie'),'preview grants no session');
  assert.equal((await call('/api/overview')).status,401,'reading the outbox and preview grants no private authority');
@@ -175,5 +180,5 @@ try{
   await worker.dispose();worker=null;
  }
  assert.equal(submissions,0,'no rejected configuration contacts an external provider');
- console.log('AUTH-OUTBOX passed local and hosted identity/recovery, real link expiry, recipient/kind/newest capture selection amid scheduled digest, setup/revocation/single-use, all outbox boundaries before private reads, Base guard controls and missing/invalid SendGrid configuration.');
+ console.log('AUTH-OUTBOX passed local and hosted identity/recovery, real link expiry, recipient/kind/newest capture selection amid scheduled watch mail, setup/revocation/single-use, all outbox boundaries before private reads, Base guard controls and missing/invalid SendGrid configuration.');
 }finally{await worker?.dispose();await cleanupDirectory(directory)}
