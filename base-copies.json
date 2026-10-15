@@ -1002,7 +1002,7 @@
     {
       "path": "src/modules/demo/index.d.mts",
       "originPath": "modules/demo/index.d.mts",
-      "revision": "be254d4eb7831b9d6adc4bdff584cf61e2b972ce",
+      "revision": "e8296d97481b62ec6805d780021ed7cb528b7a07",
       "files": {
         "src/modules/demo/index.d.mts": "2fe3e8715a0b41cc931dbc31a0a73a01a8ddfd8363334f32ebc8978854016e22"
       },
@@ -1013,7 +1013,7 @@
     {
       "path": "src/modules/demo/README.md",
       "originPath": "modules/demo/README.md",
-      "revision": "be254d4eb7831b9d6adc4bdff584cf61e2b972ce",
+      "revision": "e8296d97481b62ec6805d780021ed7cb528b7a07",
       "files": {
         "src/modules/demo/README.md": "44b7b2dfea231d0df6620b2abbf3c6ca11dc866f4d4c8f3b4dcef6f832d5604e"
       },
@@ -1024,7 +1024,7 @@
     {
       "path": "src/modules/demo/sockets.mjs",
       "originPath": "modules/demo/sockets.mjs",
-      "revision": "be254d4eb7831b9d6adc4bdff584cf61e2b972ce",
+      "revision": "e8296d97481b62ec6805d780021ed7cb528b7a07",
       "files": {
         "src/modules/demo/sockets.mjs": "be9978b79f3aeef305c6e6fa36ce041b7bda559941c6c377bc4cc2b19506177b"
       },
@@ -1035,7 +1035,7 @@
     {
       "path": "src/modules/demo/vite.d.mts",
       "originPath": "modules/demo/vite.d.mts",
-      "revision": "be254d4eb7831b9d6adc4bdff584cf61e2b972ce",
+      "revision": "e8296d97481b62ec6805d780021ed7cb528b7a07",
       "files": {
         "src/modules/demo/vite.d.mts": "f43b152b4a993feaf96afdbc276922bfa20d64725ea0150a12ec6ec805a7c7b3"
       },
@@ -1046,7 +1046,7 @@
     {
       "path": "src/modules/demo/vite.mjs",
       "originPath": "modules/demo/vite.mjs",
-      "revision": "be254d4eb7831b9d6adc4bdff584cf61e2b972ce",
+      "revision": "e8296d97481b62ec6805d780021ed7cb528b7a07",
       "files": {
         "src/modules/demo/vite.mjs": "e38556e50c954814ee8e12278babd627d5cdd051a7ea2c242a61d6c5d84d12f8"
       },

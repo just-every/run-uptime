@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "parent": null,
   "edition": "just-every/uptime-monitor",
-  "manifest": "0bc6734e37c3c2ec770da7b4be4c35e48b0a2364cc98c2e2054d086865ca96a2",
+  "manifest": "f8cb9b47adcf7fa646e6c9fc7ec806ccbc3c20aaaeafa0e33b328f4fda4acdb9",
   "toolchain": {
     "id": "runeditrun/edition-authoring",
     "version": "1.1.0",
@@ -369,7 +369,7 @@
         ],
         "origin": {
           "repository": "https://github.com/runeditrun/base.git",
-          "revision": "be254d4eb7831b9d6adc4bdff584cf61e2b972ce",
+          "revision": "e8296d97481b62ec6805d780021ed7cb528b7a07",
           "path": ".",
           "paths": [
             "modules/demo"
@@ -383,9 +383,9 @@
         ]
       },
       "baseline": {
-        "key": "90baa3b20a7cbf1e0c1803744cf6368e56b85280df8fa8289a1806ca7f5cbc4b",
+        "key": "123732c6863084a7a63986e018658b069faca2ea33716db652938d4f6a7d0445",
         "digest": "f0787dbedbef077ae241cd2655bd181c45364ab5b82806144fc233479931d564",
-        "sha256": "342e3279fbe7eee486b2014e9f79119f93ef12ca98af3fdebedfc91cafb17796"
+        "sha256": "896a17e6d5b933b37b490b784217746659b1ac43c68167c5d004371e18f6d688"
       }
     }
   ],
@@ -443,7 +443,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "9a05dea2e25cf604c39cdd3bf54c604fd8f2cf97d02674a87fad3e2f4bcd1183",
+      "sha256": "824976153a5d6bac6baaeddac56abb9dbfcd03e3275797b8b5bf7e209772ec80",
       "executable": false
     },
     "AGENTS.md": {
@@ -451,11 +451,11 @@
       "executable": false
     },
     "base-copies.json": {
-      "sha256": "78ac33f75592cefaaca8b344ce455f4afd12f39c64cb1683d809b924922d2de1",
+      "sha256": "4bcca97f0b3c4c107aeb3b4485714d4764ba1a6e2c03d7345243a970c252ca2a",
       "executable": false
     },
     "BASELINE.md": {
-      "sha256": "7439ad6d6c62a6bccd8f16577bb0bc3c1b64e4a6f563a6b1c540a238728ff4f0",
+      "sha256": "fb56a9f67e976a493bf2ca9688d5324318f359ccc544053ec1115a63fc5b8ebb",
       "executable": false
     },
     "CHANGELOG.md": {
@@ -475,7 +475,7 @@
       "executable": false
     },
     "deploy-demo.json": {
-      "sha256": "92533748683a55fd451f6b7a838dca90238a4a5435837de9668b07f29a315b51",
+      "sha256": "a36e05986d368917264b3d122fa4ac3aecdece1b2ce855c2b1ba76bcd87ef987",
       "executable": false
     },
     "deploy-site.json": {
@@ -495,7 +495,7 @@
       "executable": false
     },
     "docs/deploy.md": {
-      "sha256": "b10c6f7f0711a253af5211adc0d040adb7f40f54bb19181df531fa756e47d489",
+      "sha256": "dc6539c429c3bb26ffd8e813511a838e38dda312e0c353cd330f2dbd1ab670f8",
       "executable": false
     },
     "docs/install.md": {
@@ -539,11 +539,11 @@
       "executable": false
     },
     "edition.json": {
-      "sha256": "0bc6734e37c3c2ec770da7b4be4c35e48b0a2364cc98c2e2054d086865ca96a2",
+      "sha256": "f8cb9b47adcf7fa646e6c9fc7ec806ccbc3c20aaaeafa0e33b328f4fda4acdb9",
       "executable": false
     },
     "HANDOVER.md": {
-      "sha256": "ee0fbc66d64236c7ce891320ef07312cf6718849107151c7a142dae84e4a568e",
+      "sha256": "1728eef96b3c529b82c389fed6e319be7bdecf77674a20ec1fcb7b6da24a6f34",
       "executable": false
     },
     "LICENSE": {
@@ -711,11 +711,11 @@
       "executable": false
     },
     "OPERATIONS.md": {
-      "sha256": "715085ca16415cc8559289fad1ca893683ba670ce7938fc54cb6ceb35f819735",
+      "sha256": "a6462a295b22ea3b7c93f13b25e7ccbdd1495aaab3bb053d4b72f4332b1fc384",
       "executable": false
     },
     "package.json": {
-      "sha256": "39df874d15f54e67301369ba526ccece369208e3beb827df92876822e8835ee1",
+      "sha256": "2d609c9c86fe6635542c381eec3359f96257af9c94b06aecd72e1e73169edbce",
       "executable": false
     },
     "patches/README.md": {
@@ -723,7 +723,7 @@
       "executable": false
     },
     "pnpm-lock.yaml": {
-      "sha256": "9516c6f0697d98f290e40f8a00b1b5ae5cdf89213b3ae138406251b776a2f1c8",
+      "sha256": "be087554b0887d80f017be66e71771cd8ba9dbd9aac4c5802a02775119d7bed5",
       "executable": false
     },
     "public/action-feedback.mjs": {
@@ -879,7 +879,7 @@
       "executable": false
     },
     "README.md": {
-      "sha256": "11317c7b3fec2f0d2d6107d0badd26a53d44bf007d9a4df15ebd9566d1bc4275",
+      "sha256": "d19843172ddc86e4c298f5f1de21f6e4792dea611927181fcf030a769592fcb6",
       "executable": false
     },
     "RELEASE.json": {
