@@ -1,4 +1,4 @@
-import {fetchDemoRead} from '../base/modules/demo/index.mjs'
+import {fetchDemoRead} from '@runeditrun/rer/modules/demo'
 // Hosted public probes use Workers' public Internet fetch transport (no VPC binding).
 // Node runners retain socket pinning for their separately authorized networks.
 import {ownOrigin,SELF_CHECK_REFUSAL} from './hosted-runner.ts'

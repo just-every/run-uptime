@@ -1,4 +1,4 @@
-import {demoEffect} from '../base/modules/demo/index.mjs'
+import {demoEffect} from '@runeditrun/rer/modules/demo'
 import type {Bindings} from './control.server.ts'
 import {auditStatement,automated} from './audit.server.ts'
 import {mailSender} from './mail.server.ts'

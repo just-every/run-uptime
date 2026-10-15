@@ -1,4 +1,5 @@
-import {withDemo} from './base/modules/demo/index.mjs'
+// The package's demo module: operator-auth runs from the package and reads demo mode from this same instance.
+import {withDemo} from '@runeditrun/rer/modules/demo'
 import {scheduledPublicChecks} from './domain/worker-checks.server.ts'
 import {seedDemo} from './demo.ts'
 import {demoBindings} from './domain/demo.server.ts'
