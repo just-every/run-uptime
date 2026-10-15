@@ -3,7 +3,7 @@ import {curlyQuotes,describeChecks} from './discovery-checks.mjs';
 // One proposed monitor: a tick, what it is and why, the checks in plain words, and a chevron that opens the same fields
 // as the full form. The row owns its fields; nothing is sent until the owner starts the monitors.
 const element=(tag,className,text)=>{const node=document.createElement(tag);if(className)node.className=className;if(text!==undefined)node.textContent=text;return node};
-export function createRow({proposal,index,form,onChange}){
+export function createRow({proposal,index,form,plan,onChange}){
  const proposed=proposal.definition,id=`proposal-${index}`;
  const item=element('li','proposal');item.dataset.key=proposal.key;
  const pick=element('input','proposal-pick');pick.type='checkbox';pick.id=`${id}-pick`;pick.checked=proposal.selected;pick.setAttribute('aria-labelledby',`${id}-name`);pick.setAttribute('aria-describedby',`${id}-url ${id}-outcome`);
@@ -13,6 +13,10 @@ export function createRow({proposal,index,form,onChange}){
  const checks=element('span','proposal-checks'),checksText=element('span','proposal-checks-text');checks.append(element('span','proposal-checks-label','Checks'),checksText);
  summary.append(identity,checks);
  const fields=element('div','proposal-fields'),copy=cloneFields(form,String(index));fields.setAttribute('role','group');fields.setAttribute('aria-labelledby',`${id}-name`);fields.append(copy);
+ const externalLabel=element('label','', 'External check URL (optional)'),external=element('input');
+ external.type='url';external.name='externalCheck';external.placeholder=plan.externalCheckUrl;external.id=`${id}-external-check`;externalLabel.append(external);
+ const externalHelp=element('p','', 'Use a public site independent of this monitor. Leave empty to use the installation External check URL shown above.');
+ copy.querySelector('.policy-panel').append(externalLabel,externalHelp);
  details.append(summary,fields);
  const outcome=element('p','proposal-outcome');outcome.id=`${id}-outcome`;outcome.setAttribute('role','status');outcome.hidden=true;
  item.append(pick,details,outcome);
@@ -36,7 +40,7 @@ export function createRow({proposal,index,form,onChange}){
   get started(){return started},
   get name(){return copy.querySelector('[name=name]').value.trim()},
   get url(){return copy.querySelector('[name=url]').value.trim()},
-  read:()=>readFields(copy,proposed),
+  read:()=>({...readFields(copy,proposed),...(external.value.trim()?{canaryUrl:external.value.trim()}:{})}),
   open(){details.open=true},
   // The first thing wrong with the fields, opened and ready to fix, or null.
   problem(){
@@ -49,7 +53,7 @@ export function createRow({proposal,index,form,onChange}){
   setOutcome(state,detail){
    outcome.hidden=false;outcome.dataset.state=state;outcome.textContent='';
    if(state==='working')outcome.textContent='Starting this monitor…';
-   if(state==='error')outcome.textContent=detail;
+   if(state==='error'){outcome.textContent=detail;details.open=true;}
    if(state==='done'){
     started=true;pick.disabled=true;
     outcome.append('Started. ');

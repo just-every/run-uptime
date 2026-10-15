@@ -10,7 +10,9 @@ export const kitCLI = fileURLToPath(import.meta.resolve('@runeditrun/rer/modules
 export const ownerArguments = (command,declaration='deploy.json',environment='production') => [command, '--declaration', declaration, '--environment', environment, '--product', ownerProduct];
 
 export async function main(argv = process.argv.slice(2), env = process.env, { root = process.cwd(), run = execFileSync, store } = {}) {
-  const [command, ...rest] = argv;
+  const [command, ...forwarded] = argv;
+  // pnpm can preserve its argument separator when forwarding script flags.
+  const rest = forwarded[0] === '--' ? forwarded.slice(1) : forwarded;
   // `pnpm run health -- --environment NAME` checks a deployment made with `rer deploy --environment NAME`.
   const environment = rest.length === 2 && rest[0] === '--environment' ? rest[1] : rest.length ? null : 'production';
   if (command !== 'health' || !environment || !/^[a-z][a-z0-9-]{0,39}$/.test(environment)) throw new Error('owner-usage');

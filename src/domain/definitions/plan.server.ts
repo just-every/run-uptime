@@ -48,7 +48,7 @@ export async function planDefinitions(env:Bindings,source:string,items:(SourceEn
   if(!matches.length){
    if(monitors.length+creates>=MONITOR_LIMIT){entries.push({index,label,name,action:'refused',reason:`${label}: monitor limit reached (an installation holds at most ${MONITOR_LIMIT} monitors).`,differences});continue}
    if(!flowRoom(normalized,false)){entries.push({index,label,name,action:'refused',reason:`${label}: flow monitor limit reached (an installation runs at most ${FLOW_LIMITS.maxFlowsPerInstallation} flows).`,differences});continue}
-   try{assignRunners(runners,first,normalized,{},external)}catch(error){entries.push({index,label,name,action:'refused',reason:`${label}: ${message(error)}`,differences});continue}
+   try{assignRunners(runners,first,normalized,{},external,env.RER_DEMO!=='1')}catch(error){entries.push({index,label,name,action:'refused',reason:`${label}: ${message(error)}`,differences});continue}
    if(input.enabled===true)differences.push('The file marks this monitor enabled; files never enable monitors, so it arrives paused.')
    creates++;if(normalized.type==='flow')flowCreates++;entries.push({index,label,name,action:'create',differences,definition:normalized});continue
   }
@@ -60,7 +60,7 @@ export async function planDefinitions(env:Bindings,source:string,items:(SourceEn
   if(normalized.type==='flow'&&current.definition.type!=='flow')flowCreates++
   const definition={...normalized,enabled:current.definition.enabled,maintenanceUntil:current.definition.maintenanceUntil??0}
   const token=tokenNote(current.definition,definition,tokens.has(current.id)).trim();if(token)differences.push(token)
-  try{assignRunners(runners,first,definition,{assignments:keptAssignments(current.definition,definition)},external)}catch(error){entries.push({index,label,name,action:'refused',reason:`${label}: ${message(error)}`,differences});continue}
+  try{assignRunners(runners,first,definition,{assignments:keptAssignments(current.definition,definition)},external,env.RER_DEMO!=='1')}catch(error){entries.push({index,label,name,action:'refused',reason:`${label}: ${message(error)}`,differences});continue}
   entries.push({index,label,name,action:'change',monitorId:current.id,revision:current.revision,differences,definition,
    changes:COMPARED_FIELDS.filter(k=>!same(before[k],after[k])).map(field=>({field,from:before[field],to:after[field]}))})
  }

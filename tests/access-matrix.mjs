@@ -107,7 +107,7 @@ try{
    for(const path of reads)assert.equal((await call(path,undefined,{cookie:memberCookie})).status,401,`member GET ${path}`);
    for(const [method,path] of writes){const response=await fetcher(origin+path,{method,redirect:'manual',headers:{host:new URL(origin).host,origin,'content-type':'application/json',cookie:memberCookie},...(method==='DELETE'?{}:{body:'{}'})});assert.equal(response.status,401,`member ${method} ${path}`)}
    for(const [path,body] of [['/auth/operator/role',{operatorId:'member',role:'owner'}],['/auth/operator/status',{operatorId:ownerId,status:'inactive'}],['/auth/invite',{email:'friend@example.test',displayName:'Friend',role:'owner'}],['/auth/invite/cancel',{operatorId:ownerId}]])assert.equal((await call(path,body,{cookie:memberCookie})).status,403,`member ${path}`);
-   assert.equal((await call('/setup',{}, {cookie:memberCookie})).status,303,'member first-run setup');
+   assert.equal((await call('/setup',{}, {cookie:memberCookie})).status,403,'member first-run setup');
    assert.deepEqual(await everything(DB),memberBefore,'a member changes nothing durable');
    // Identity, role and ownership claims a client sends are never authority: an owner's request carrying forged claims in its
    // headers and body is recorded under the session's own operator, and no claim is stored anywhere.

@@ -1,5 +1,6 @@
 import {publicTarget} from './public-target.mjs';
 import {FLOW_LIMITS,validateFlow} from './flow.mjs';
+import {policyReason} from './policy-reason.mjs';
 export const RUNNER_VERSION = 'uptime-node/0.1.0';
 export const MAX_BODY = 65536;
 const integer = (v, min, max, label) => { if (!Number.isInteger(v) || v < min || v > max) throw Error(`Invalid ${label}`); return v; };
@@ -68,8 +69,6 @@ export function validateDefinition(input, grants) {
   }
   return { name:name.trim(), type, network, url:u?.href??'', method, ...(request?{request}:{}), ...(heartbeat?{heartbeat}:{}), ...(flow?{flow}:{}), probes, ...(assignments?{assignments}:{}), assertions:{...assertions,status:assertions.status??200}, intervalMs:type==='flow'?integer(input.intervalMs??FLOW_LIMITS.minIntervalMs,FLOW_LIMITS.minIntervalMs,86400000,'interval (a flow runs at most every 5 minutes)'):integer(input.intervalMs??60000,5000,86400000,'interval'), timeoutMs:type==='flow'?integer(input.timeoutMs??FLOW_LIMITS.wallMs,FLOW_LIMITS.minTimeoutMs,FLOW_LIMITS.wallMs,'flow time limit'):integer(input.timeoutMs??2000,50,10000,'timeout'), retries:type==='flow'?integer(input.retries??0,0,1,'flow retries'):integer(input.retries??1,0,2,'retries'), failureQuorum:integer(input.failureQuorum??probes.length,1,probes.length,'failure quorum'), confirmSlots:integer(input.confirmSlots??2,1,10,'confirmation'), recoverSlots:integer(input.recoverSlots??2,1,10,'recovery'), freshnessMs:integer(input.freshnessMs??(type==='flow'?Math.min(86400000,Math.max(180000,integer(input.intervalMs??FLOW_LIMITS.minIntervalMs,0,86400000,'interval')*3)):180000),5000,86400000,'freshness'), enabled:input.enabled === undefined ? true : (()=>{if(typeof input.enabled!=='boolean')throw Error('Invalid enabled flag');return input.enabled;})(), maintenanceUntil:integer(input.maintenanceUntil??0,0,Number.MAX_SAFE_INTEGER,'maintenance end') };
 }
-// A flow the runner could not run says why (no browser, a missing credential): that is the reason its coverage is Unknown.
-const unknownWhy=(def,observations)=>{if(def.type!=='flow')return '';const why=[...new Set(observations.filter(o=>o.outcome==='runner_error').map(o=>o.checks?.[0]?.reason).filter(Boolean))];return why.length?` Unknown because: ${why.join('; ')}.`:''};
 // evidenceThrough only admits already accepted target/canary timestamps; it
 // never advances freshness ages, heartbeat receipt validity or maintenance.
 export function evaluate(def, observations, previous = {}, now = Date.now(), advance = true, evidenceThrough = now) {
@@ -77,7 +76,7 @@ export function evaluate(def, observations, previous = {}, now = Date.now(), adv
     const observation = observations.find(o => o.probe === probe);
     const retryComplete=observation?.retryComplete!==false;
     const canary=observation?.canary;
-    const canaryFresh=!canary||(canary.outcome==='pass'&&canary.completedAt<=evidenceThrough&&now-canary.completedAt<=def.freshnessMs);
+    const canaryFresh=canary?(canary.outcome==='pass'&&canary.completedAt<=evidenceThrough&&now-canary.completedAt<=def.freshnessMs):!def.assignments?.[probe]?.canaryUrl;
     const fresh = canaryFresh && observation && (observation.outcome!=='pass'||retryComplete) && (def.type!=='heartbeat'||observation.outcome!=='pass'||(Number.isFinite(observation.heartbeatReceivedAt)&&observation.heartbeatReceivedAt<=now&&now-observation.heartbeatReceivedAt<=def.heartbeat.maxAgeMs)) && now - observation.completedAt <= def.freshnessMs && observation.completedAt <= evidenceThrough && !['runner_error','interrupted'].includes(observation.outcome);
     return { probe, networkLabel:def.assignments?.[probe]?.networkLabel??'owner-network', canaryPassed:Boolean(canary&&canaryFresh),terminal:Boolean(observation)&&retryComplete&&(observation.outcome!=='target_failure'||observation.attempt===def.retries), state:!fresh?'Unknown':observation.outcome==='pass'?'Healthy':'Failing', observationId:observation?.id??null,observedAt:observation?.completedAt??null };
   });
@@ -105,5 +104,6 @@ export function evaluate(def, observations, previous = {}, now = Date.now(), adv
   if(candidate==='Healthy'&&previous.confirmedFailure&&recoveryStreak<def.recoverSlots)targetState='Recovering';
   const confirmedFailure=targetState==='Failing'||(previous.confirmedFailure&&targetState!=='Healthy');
   const maintenance=def.maintenanceUntil>now;
-  return {state:maintenance?'Maintenance':targetState,targetState,underlyingState:targetState,evidenceState:candidate,coverageState,candidate,regions,denominator:def.probes.length,fails,unknown,failingVantages,failureStreak,recoveryStreak,confirmedFailure,notificationOpen:previous.notificationOpen??false,maintenance,reason:`${fails}/${def.probes.length} selected probes failed; ${unknown} unknown; coverage ${coverageState.toLowerCase()}. ${failingVantages} independent failing vantages; passing canary ${witnessed?'present':'absent'}; scheduled-slot confirmation ${failureStreak}/${def.confirmSlots}; recovery ${recoveryStreak}/${def.recoverSlots}.${unknownWhy(def,observations)}`,evaluatedAt:now};
+  const explanation=policyReason(def,observations,{candidate,targetState,agreement,failureStreak,recoveryStreak,now,evidenceThrough});
+  return {state:maintenance?'Maintenance':targetState,targetState,underlyingState:targetState,evidenceState:candidate,coverageState,candidate,regions,denominator:def.probes.length,fails,unknown,failingVantages,failureStreak,recoveryStreak,confirmedFailure,notificationOpen:previous.notificationOpen??false,maintenance,reason:`${explanation}${explanation?' ':''}${fails}/${def.probes.length} selected probes failed; ${unknown} unknown; coverage ${coverageState.toLowerCase()}. ${failingVantages} independent failing vantages; passing external check ${regions.some(r=>r.canaryPassed)?'present':'absent'}; scheduled-slot confirmation ${failureStreak}/${def.confirmSlots}; recovery ${recoveryStreak}/${def.recoverSlots}.`,evaluatedAt:now};
 }

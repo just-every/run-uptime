@@ -24,7 +24,7 @@ A heartbeat monitor waits for your own job to call Uptime. It suits cron jobs, b
 
 1. Open **Definitions**, paste a file like the one below, choose **Preview**, review it, then **Apply**. The heartbeat arrives paused. `maxAgeMs` is how old the last receipt may be; `intervalMs` is how often the runner evaluates it. Maximum age is at most one day.
 2. Keep the [private runner](/docs/runner) running. Dev starts one automatically; a hosted installation needs its separately supervised runner. Open the new monitor and choose **Authorize & resume** to use its assigned runner. Imported definitions select installation-local runners; runner authority and heartbeat keys never come from the file.
-3. After resuming, issue a key for the active revision through the authenticated API as shown below. There is no token button in the console. The response contains `token`, `revision`, `receiptPath` and `sequenceStartsAt` (1). Store the token in your job's secret settings. Issuing another key creates a new revision, retires the old token and resets its receipt and sequence.
+3. After resuming, choose **Issue heartbeat key** on the monitor's page. Review **Issue a new heartbeat key?** and choose **Issue key**. The **Heartbeat key** dialog shows the endpoint and a curl command with the new key once. Save the key in your job's secret settings before closing the dialog. Issuing another key creates a new revision, retires the old token and resets its receipt and sequence.
 4. From your job, send exactly `{}` as JSON to the receipt path on your Uptime origin, with `Authorization: Bearer <token>` and an `X-Heartbeat-Sequence` header. Start at 1 and persist a strictly increasing positive integer across job restarts; do not restart at 1 on each run.
 
 ```json
@@ -41,19 +41,7 @@ A heartbeat monitor waits for your own job to call Uptime. It suits cron jobs, b
 }
 ```
 
-While signed in as the owner, open your browser's developer console on the Uptime app origin. Replace `MONITOR_ID` with the ID in the monitor page's URL and run this same-origin request. Its session cookie supplies owner authority; a runner key cannot issue heartbeat keys.
-
-```js
-const heartbeatResponse = await fetch('/api/monitors/MONITOR_ID/heartbeat-key', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: '{}'
-});
-if (!heartbeatResponse.ok) throw new Error(`Key request failed: ${heartbeatResponse.status}`);
-const heartbeatKey = await heartbeatResponse.json();
-```
-
-Use `heartbeatKey.token` only in your job's secret settings and combine the app origin with `heartbeatKey.receiptPath` for `HEARTBEAT_RECEIPT_URL`. Keep the token out of URLs, definition files, screenshots and logs. With those job settings loaded, and `HEARTBEAT_SEQUENCE` set to the next persisted number:
+Use the endpoint from the dialog for `HEARTBEAT_RECEIPT_URL` and its key for `HEARTBEAT_TOKEN`, both in your job's private settings. Keep the key out of URLs, definition files, screenshots and logs; the command shown in the dialog is also private. Only an owner can issue a key. With those job settings loaded, and `HEARTBEAT_SEQUENCE` set to the next persisted number (starting at 1):
 
 ```sh
 curl --fail --silent --show-error -X POST "$HEARTBEAT_RECEIPT_URL" \

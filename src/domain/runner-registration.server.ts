@@ -50,10 +50,11 @@ export async function listRunners(env:Bindings){return (await env.DB.prepare(`SE
 const capabilitiesOf=(value:unknown)=>{try{const parsed=JSON.parse(String(value));return {browser:parsed?.browser===true}}catch{return {browser:false}}}
 export async function assignDefinition(env:Bindings,definition:any,input:any){
  const first=await ensureFirstRunner(env),rows=(await env.DB.prepare(`SELECT * FROM runners ORDER BY ${runnerOrder}`).all<Runner>()).results;
- return assignRunners(rows,first.runner_id,definition,input,await externalCheckUrl(env));
+ return assignRunners(rows,first.runner_id,definition,input,await externalCheckUrl(env),env.RER_DEMO!=='1');
 }
 // The pure assignment step, shared by saving and by a definition-file preview that must not write. `external` is the
-// installation's External check URL: an enabled public monitor on one network with no external check of its own takes it.
+// installation's External check URL: an enabled public monitor or local HTTP practice monitor on one network takes it.
+// Ephemeral demo mode never adds a public request to its closed synthetic fixture.
 // Two addresses are the same site when their hostnames match exactly, ignoring case, a leading `www.` and a trailing dot:
 // example.com and www.example.com are one site, while status.example.com and example.com are not. Ports and paths do not
 // matter: an outage on the host takes every page and port on it down for the owner's purposes.
@@ -63,7 +64,7 @@ export const sameSite=(a:string,b:string)=>site(a)===site(b)
 function sameSiteRefusal(url:string,own:boolean){
  return Error(`The external check URL ${url} is the same site as this monitor, so an outage there could never be confirmed. ${own?'Choose an external check URL on a different site for this check.':'Choose a different external check URL on Runner / archive, or set one for this check.'}`)
 }
-export function assignRunners(rows:Runner[],firstRunnerId:string,definition:any,input:any,external:string|null=null){
+export function assignRunners(rows:Runner[],firstRunnerId:string,definition:any,input:any,external:string|null=null,syntheticCanary=true){
  const assignments:Record<string,any>={};
  const available=rows.filter(r=>r.revoked_at===null&&(r.runner_id!==HOSTED_RUNNER_ID||hostedHttp(definition)));
  const hosted=hostedHttp(definition)?available.find(r=>r.runner_id===HOSTED_RUNNER_ID):undefined;
@@ -77,7 +78,8 @@ export function assignRunners(rows:Runner[],firstRunnerId:string,definition:any,
   assignments[probe]={runnerId,networkLabel:row.network_label,...(href?{canaryUrl:href}:{})};
  }
  const labels=new Set(Object.values(assignments).map((a:any)=>a.networkLabel));
- if(definition.enabled&&definition.network==='public'&&labels.size<2&&!Object.values(assignments).some((a:any)=>a.canaryUrl)){
+ const needsCanary=definition.network==='public'||(syntheticCanary&&definition.network==='synthetic'&&['http','keyword'].includes(definition.type));
+ if(definition.enabled&&needsCanary&&labels.size<2&&!Object.values(assignments).some((a:any)=>a.canaryUrl)){
   if(!external)throw Error(`Production monitor requires two network vantages or an external check URL. ${EXTERNAL_CHECK_ABSENT}`);
   const href=publicTarget(external).href;
   if(definition.url&&sameSite(href,definition.url))throw sameSiteRefusal(href,false);

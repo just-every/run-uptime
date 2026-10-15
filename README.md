@@ -91,13 +91,13 @@ Start in healthy mode and wait for a scheduled **Healthy** result:
 curl --fail --silent --show-error --request POST "http://127.0.0.1:${target_port}/control" --header 'content-type: application/json' --data '{"mode":"healthy"}'
 ```
 
-Switch the fixture to failing mode. `/health` now returns HTTP 503; the next scheduled result should be **Degraded**. This single local vantage has no independent agreement. Production failure alerting requires another network or a passing external check. A monitor on one network takes the installation's External check URL (default `https://example.com/`, changed on Runner / archive) when you save it:
+Switch the fixture to failing mode. `/health` now returns HTTP 503; the next completed scheduled check should make the monitor **Failing** and open an incident. Keep the installation's **External check URL** reachable (shown on **Runner / Archive**; first-run setup suggests `https://example.org/`). This independent check must pass in the same slot to confirm failure from one network; if it fails, the target failure stays **Degraded**, and missing evidence is **Unknown**. The monitor takes that URL when you save it:
 
 ```sh
 curl --fail --silent --show-error --request POST "http://127.0.0.1:${target_port}/control" --header 'content-type: application/json' --data '{"mode":"failing"}'
 ```
 
-Switch back to healthy mode and wait for the next scheduled result to show recovery:
+Switch back to healthy mode and wait for the next completed scheduled result to show **Healthy** and close the incident:
 
 ```sh
 curl --fail --silent --show-error --request POST "http://127.0.0.1:${target_port}/control" --header 'content-type: application/json' --data '{"mode":"healthy"}'
@@ -131,7 +131,7 @@ Supply the owner deployment inputs for `rer deploy`. Ordinary email-link sign-in
 
 Run `rer deploy` to build and provision the Worker, D1 database, migrations, and Cron in your account. With rer's newer custom-deployment lifecycle (0.2.3 and later), `rer deploy` wraps Uptime's deployment hook, claims the owner automatically, and retires the one-use hosted `SETUP_TOKEN` after admission. Inspect the command's `claimed` or `kept` owner outcome and token-retirement result, then open the reported hosted origin at `/login` for ordinary email-link sign-in and finish `/setup`; the owner then works in `/app`. This checkout pins the unmodified published rer 0.2.19, including automatic owner claim, token retirement and hosted owner sign-in recovery.
 
-If automatic claim or retirement is incomplete, keep the ownership record, rerun the same `rer deploy` command with the same environment, and inspect the reported outcome. Never use a retired token at `/claim`. See the [deployment guide](docs/deploy.md#owner-claim-and-sign-in) for the lifecycle boundary and recovery steps. The Cloudflare account deployment path was exercised end to end once on version 0.1.1; that historical run does not prove the newer lifecycle. `--environment NAME` selects a separate installation, checked with `pnpm run health -- --environment NAME`. The deploy command does not run the private probe runner for you.
+If automatic claim or retirement is incomplete, keep the ownership record, rerun the same `rer deploy` command with the same environment, and inspect the reported outcome. Never use a retired token at `/claim`. See the [deployment guide](docs/deploy.md#owner-claim-and-sign-in) for the lifecycle boundary and recovery steps. The Cloudflare account deployment path was exercised end to end once on version 0.1.1; that historical run does not prove the newer lifecycle. `--environment NAME` selects a separate installation, checked with `node scripts/deployment/owner-cli.mjs health --environment NAME` from this checkout under Node 22.20.0. The deploy command does not run the private probe runner for you. `rer deploy --dry-run` builds and prints its resource plan without provider requests; Cloudflare assigns the hosted origin during a real deploy.
 
 ### Hosted sign-in and recovery
 
@@ -183,7 +183,7 @@ Email, signed JSON, and Slack routing is installation-wide. Uptime does not prov
 
 Uptime stores immutable scheduled evidence for HTTP(S), keyword and incoming heartbeat monitors. A scheduled check never starts sooner than one interval after the monitor's previous scheduled check started, by the Worker's own clock. Missing or expired evidence is **Unknown**. A successful past response does not promise current availability. Manual checks do not confirm or recover incidents. Public HTTP(S) connections validate every DNS answer and redirect hop and pin the socket while retaining the original Host and TLS identity. Request secrets stay in protected runner-local files.
 
-HTTP monitors support status, body text, header, JSON, and latency assertions. Keyword monitors require a body text assertion. Heartbeats use owner-issued, revision-scoped tokens and increasing sequences; receipt ingestion alone cannot change target health. Create heartbeats through [definition files](docs/definitions.md), authorize their runner and resume them, then issue a token through the authenticated API as described in [Monitors](docs/monitors.md#incoming-heartbeat). Browser checks, DNS, ping, TCP and domain-expiry checks are outside the supported public feature set.
+HTTP monitors support status, body text, header, JSON, and latency assertions. Keyword monitors require a body text assertion. Heartbeats use owner-issued, revision-scoped tokens and increasing sequences; receipt ingestion alone cannot change target health. Create heartbeats through [definition files](docs/definitions.md), authorize their runner and resume them, then choose **Issue heartbeat key** on the monitor's page as described in [Monitors](docs/monitors.md#incoming-heartbeat). Browser checks, DNS, ping, TCP and domain-expiry checks are outside the supported public feature set.
 
 Restores require empty product data. A local CLI restore requires setup on the receiving checkout first, so its owner and private settings are in place before import. Imported definitions are paused, leases interrupted, destinations disabled, and alerts quarantined. Destination type, name, enabled setting, and available email address travel with delivery history for destinations that remain in the source data; webhook and Slack URLs, signing keys, and credentials remain with the installation. Re-enter webhook and Slack URLs, plus any email address unavailable in the archive, then deliberately enable destinations and resume monitoring before execution. Imported incidents never send notifications. Archive hashes check integrity, not trustworthy provenance.
 

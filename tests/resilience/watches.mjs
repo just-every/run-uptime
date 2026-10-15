@@ -37,6 +37,12 @@ test('the Worker mails stale runner contact once per incident window and a healt
  const f=await fixture({UPTIME_RUNNER_STALE_MS:'1000',UPTIME_WATCH_REPEAT_MS:'100000',UPTIME_DIGEST_INTERVAL_MS:'100000'});
  let clockWorker;
  try{
+ // A digest needs an actual healthy scheduled monitor, not vacuous Array.every coverage.
+ await f.run(f.first);await f.run(f.second);await (await f.worker.getWorker()).scheduled();
+ assert.equal((await f.DB.prepare("SELECT COUNT(*) n FROM monitoring_watch WHERE id LIKE 'healthy-digest:%'").first()).n,0,'empty installation never sends all healthy');
+ f.modes.target=200;const watched=await f.monitor({freshnessMs:300000});
+ await f.run(f.first);await f.run(f.second);assert.equal((await f.state(watched.id)).targetState,'Healthy');
+
   await f.worker.dispose();clockWorker=await startWatchClockWorker({port:Number(new URL(f.origin).port),persist:f.directory,bindings:f.bindings});
   const DB=await clockWorker.getD1Database('DB'),runtime=await clockWorker.getWorker();
   const boundary=(Math.floor(Date.now()/100000)+1)*100000,tick=now=>runtime.scheduled({scheduledTime:now});

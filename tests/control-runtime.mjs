@@ -20,6 +20,14 @@ try{
  // Removed receiver/handoff delivery assertions are replaced by notify-delivery.mjs automatic three-channel acceptance and restart idempotency.
  const incident=(await api('/api/overview')).data.alerts[0];assert.equal(incident.status,'pending');assert.equal(incident.receipt,null);assert.deepEqual((await api('/api/notifications')).data.deliveries,[],'no configured destination implies no outbound authority');await api('/api/runner/notifications','POST',{operation:'poll'},{'x-runner-key':runnerKey});assert.equal((await api('/api/overview')).data.alerts.length,1);
  await fetch(fixture+'/control',{method:'POST',body:JSON.stringify({mode:'healthy'})});await wait(async()=> (await api('/api/overview')).data.alerts.some(a=>a.kind==='recovery'),'scheduled recovery');assert.ok((await api('/api/overview')).data.alerts.every(a=>a.status==='pending'&&a.receipt===null));
+ // Incident history is a public owner read backed by the confirmed scheduled transitions.
+ const incidentPath=`/api/monitors/${id}/incidents`,records=(await api(incidentPath)).data;
+ assert.equal((await fetch(origin+incidentPath)).status,401);
+ assert.equal(records.length,1);assert.equal(records[0].key,incident.event.incidentKey);
+ const recoveryEvent=(await api('/api/overview')).data.alerts.find(a=>a.kind==='recovery').event;
+ assert.equal(records[0].startedAt,incident.event.observedAt);assert.equal(records[0].endedAt,recoveryEvent.observedAt);
+ assert.ok(records[0].durationMs>0);assert.equal(records[0].durationMs,records[0].endedAt-records[0].startedAt);
+ assert.ok(records[0].trigger.probes.some(p=>p.outcome==='target_failure'));assert.equal(records[0].recovery.state,'recovered');
  // An actual process restart and repeated setup must retain evidence, native
  // sessions and outbox records. Leave an uncompleted lease to exercise crash recovery.
  for(const child of [privateRunner,secondRunner]){child.kill('SIGTERM');await new Promise(r=>child.exitCode!==null?r():child.once('exit',r))}
@@ -32,6 +40,7 @@ try{
  await wait(async()=> (await fetch(origin+'/health')).ok,'same installation restarted');
  const afterRestart=(await api('/api/archive')).data;assert.deepEqual(afterRestart.payload.tables,beforeRestart.payload.tables,'repeated setup/restart retains exact observations, revisions, outbox records and migration ledger');
  assert.equal((await api('/api/overview')).response.status,200,'native session survives process restart');
+ assert.deepEqual((await api(incidentPath)).data,records,'recovered incident start/end/duration/evidence survive restart');
  const nextClaim=(await api('/api/runner/claim','POST',{}, {'x-runner-key':runnerKey})).data.task;assert.notEqual(nextClaim?.id,interruptedTask.id,'the assigned probe cannot be delivered twice');
  await wait(async()=> Date.now()>interruptedTask.acceptUntil,'real acceptance expiry',400);
  const lateText=JSON.stringify({slotId:interruptedTask.id,attempts:[]}),stamp=String(Date.now());

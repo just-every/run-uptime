@@ -505,3 +505,9 @@
 .flow-trace,.flow-history{list-style:none;margin:.25rem 0;padding:0;display:grid;gap:.25rem}
 .flow-trace li,.flow-history li{font-size:.875rem;overflow-wrap:anywhere}
 .flow-revisions h3{margin:1rem 0 .25rem;font-size:1rem}
+
+.incident-record + .incident-record { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
+.incident-record h3 { margin: 0 0 10px; font-size: 16px; }
+.incident-record :is(p,li,dd) { overflow-wrap: anywhere; }
+.incident-record details { margin-top: 12px; }
+.heartbeat-key-dialog > .one-time-secret { grid-column: 1 / -1; white-space: pre-wrap; overflow-wrap: anywhere; }

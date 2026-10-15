@@ -19,10 +19,23 @@ export function deployment(lifecycle) {
   // The Worker learns its environment so first-run setup names that environment's settings file.
   const source = JSON.parse(await readFile(join(root, 'deploy.json'), 'utf8'));
   const declaration = { ...source, vars: { ...source.vars, UPTIME_DEPLOY_ENVIRONMENT: environment } };
-  // Dry runs inspect the deploy schema without accepting or requiring provider credentials.
-  const selectedDeclaration=selectMailDeclaration(declaration,process.env);
+  // Saved mail/optional inputs win on real repeats, so plan those same bindings.
+  // Dry runs never require provider credentials or generate new private settings.
+  let planningEnvironment = process.env;
+  if (options.dryRun) {
+   let contents;
+   try { contents = await readPrivateFile(join(root, secretsFile)); }
+   catch (error) { if (error.code !== 'ENOENT') throw error; }
+   if (contents !== undefined) {
+    let saved;
+    try { saved = JSON.parse(contents); } catch { throw missing('Invalid configuration: deployment secret settings must contain valid JSON'); }
+    if (!saved || typeof saved !== 'object' || Array.isArray(saved)) throw missing('Invalid configuration: deployment secret settings must contain an object');
+    planningEnvironment = { ...process.env, ...saved };
+   }
+  }
+  const selectedDeclaration=selectMailDeclaration(declaration,planningEnvironment);
   const declared = new Set([declaration.originVar, ...selectedDeclaration.secrets.map(item => item.binding), ...declaration.d1.map(item => item.binding)]);
-  for (const rule of requiredConfiguration({...process.env,UPTIME_LOCAL_REVIEW:'false'},'worker')) {
+  for (const rule of requiredConfiguration({...planningEnvironment,UPTIME_LOCAL_REVIEW:'false'},'worker')) {
    if (!declared.has(rule.name)) throw missing(`Missing deployment configuration declaration: ${rule.name}`);
   }
   let secrets;
@@ -55,9 +68,18 @@ export function deployment(lifecycle) {
   if (options.dryRun) {
    const worker = ownerWorkerName(declaration.project, environment);
    const artifact = await packageBuild({ root, source: { sha: '0'.repeat(40), tree: '0'.repeat(40) }, runIdentity: { id: '0', attempt: '1' }, productDirectory: ownerProduct });
-   ownerPlan({ project: declaration.project, environment, worker, origin: `https://${worker}.example.invalid` }, selectMailDeclaration(declaration,process.env), artifact);
+   // Cloudflare assigns the origin during deployment. Validate the remaining
+   // plan without inventing an origin, and name its pending variable explicitly.
+   const { originVar, ...planningDeclaration } = selectedDeclaration;
+   const validated = ownerPlan({ project: declaration.project, environment, worker }, planningDeclaration, artifact);
+   const plan = { ...validated, d1: validated.d1.map(database => ({ ...database,
+    migrations: database.migrations.map(({ sql, ...migration }) => migration),
+   })) };
+   const pendingVariables = originVar ? [originVar] : [];
+   store.report(`deploy: resource plan (provider state not queried):\n${JSON.stringify({ environment, plan, pendingVariables }, null, 2)}`);
+   if (originVar) store.report(`deploy: Cloudflare assigns the hosted origin and ${originVar} during deployment.`);
    store.report('deploy: dry run complete; no deployment occurred and no provider request was made.');
-   return { dryRun: true, deployed: false };
+   return { dryRun: true, deployed: false, environment, plan, pendingVariables };
   }
   const env = ownerEnvironment({ ...process.env, ...secrets });
   const selected=await saveOwnerDeclaration(root,declaration,env);

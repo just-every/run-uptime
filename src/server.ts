@@ -2,6 +2,7 @@ import {scheduledPublicChecks} from './domain/worker-checks.server.ts'
 import {withDemo} from './modules/demo/index.mjs'
 import {seedDemo} from './demo.ts'
 import {demoBindings,recordDemoBlocked} from './domain/demo.server.ts'
+import {incidents} from './domain/incidents.server.ts'
 import {monitoringWatch} from './domain/monitoring-watch.server.ts'
 import {dispatchNotificationMail} from './domain/notification-mail.server.ts'
 import {createDiscovery,readDiscovery,claimDiscovery,completeDiscovery,discoveryAnswer,DISCOVERY_RESULT_BYTES} from './domain/discovery.server.ts'
@@ -16,7 +17,8 @@ import {limitPublicRequest} from './domain/public-rate-limits.server.ts'
 import {erase} from './domain/erasure.server.ts'
 import {previewDefinitions,applyDefinitions,exportDefinitions,listBatches,undoBatch} from './domain/definitions/index.server.ts'
 import {exportJournal} from './domain/archive-fence.server.ts'
-import {operatorSession} from './domain/operator-auth.server.ts'
+import {operatorSession,authenticatedSession} from './domain/operator-auth.server.ts'
+import {accessDeniedDocument} from './domain/access-document.server.ts'
 import {boundedHealth,health} from './domain/health.server.ts'
 import {destinations,createDestination,updateDestination,rotateDestination} from './domain/notification-destinations.server.ts'
 import {notificationOverview,testDestination} from './domain/notifications.server.ts'
@@ -61,6 +63,7 @@ api.post('/api/monitors',async c=>c.json(await save(c.env,c.get('input'),undefin
 api.patch('/api/monitors/:id',async c=>c.json(await save(c.env,c.get('input'),c.req.param('id'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 api.post('/api/monitors/:id/heartbeat-key',async c=>c.json(await issueHeartbeatKey(c.env,c.req.param('id'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 api.get('/api/monitors/:id/history',async c=>c.json(await history(c.env,c.req.param('id'))))
+api.get('/api/monitors/:id/incidents',async c=>c.json(await incidents(c.env,c.req.param('id'))))
 api.get('/api/monitors/:id/revisions',async c=>c.json(await revisions(c.env,c.req.param('id'))))
 api.post('/api/monitors/:id/run',async c=>{const m=await get(c.env,c.req.param('id'));if(!m||!m.definition.enabled)return c.json({error:'Monitor unavailable or paused'},409);const id=`${m.id}:${m.revision}:manual:${crypto.randomUUID()}`;const inserted=await c.env.DB.prepare("INSERT INTO slots(id,monitor_id,revision,due_at,status,definition,lease_owner,lease_until,missed_count,manual) SELECT ?,?,?,?,'queued',?,'unclaimed',0,0,1 WHERE EXISTS(SELECT 1 FROM monitors WHERE id=?)").bind(id,m.id,m.revision,Date.now(),JSON.stringify(m.definition),m.id).run();if(!inserted.meta.changes)return c.json({error:'Monitor unavailable or erased'},409);return c.json({queued:true,slotId:id,policyAdvanced:false})})
 api.get('/api/runners',async c=>c.json(await listRunners(c.env)))
@@ -164,7 +167,7 @@ const handler={async fetch(request,env,execution){
  if(path!=='/health'&&path!=='/api'&&!path.startsWith('/api/')&&!isPublicDocument(path)){
   // Only native document routes and Start transports reach the private renderer.
   if(!isConsoleDocument(path)&&!path.startsWith('/_serverFn/'))return notFoundDocument();
-  try{if(!await session(bindings,request))return new Response(null,{status:303,headers:{location:'/login','cache-control':'no-store'}});if(!await firstRunComplete(bindings))return setupRedirect()}catch(error){return authFailure(error)}
+  try{const principal=await authenticatedSession(bindings,request);if(!principal)return new Response(null,{status:303,headers:{location:'/login','cache-control':'no-store'}});if(principal.operator.role!=='owner')return accessDeniedDocument(principal.operator.displayName,request.method==='HEAD');if(!await firstRunComplete(bindings))return setupRedirect()}catch(error){return authFailure(error)}
   if(isMonitorPage(path)&&undecodableMonitorId(path))return notFoundDocument();
  }
  const response=await dispatch(request,()=>api.fetch(request,bindings,execution),()=>start.fetch(request));

@@ -17,7 +17,10 @@ export function operatorAuth(env:AuthBindings){
  return createOperatorAuth({db:env.DB,config:authConfig(env),
  ...(mailSender(env)?{mailSender:operatorMailSender(env,development)}:{}),clientIp:(request:Request)=>local?'loopback':request.headers.get('CF-Connecting-IP')??''})
 }
-export async function operatorSession(env:AuthBindings,request:Request){const session=await operatorAuth(env).getSession(request);return session?.operator.role==='owner'?session:null}
+// Base validates the identity; the edition separately limits product access to owners.
+// Document gates need the authenticated identity to distinguish a refused member from a signed-out visitor.
+export async function authenticatedSession(env:AuthBindings,request:Request){return operatorAuth(env).getSession(request)}
+export async function operatorSession(env:AuthBindings,request:Request){const session=await authenticatedSession(env,request);return session?.operator.role==='owner'?session:null}
 const authPaths=new Set(['/auth/owner-signin','/auth/bootstrap','/auth/magic-link','/auth/confirm','/auth/session','/auth/operators','/auth/sessions','/auth/signout','/auth/invite','/auth/invite/cancel','/auth/operator/status','/auth/operator/role','/auth/session/revoke','/auth/setup-complete']);
 export async function authRoute(env:AuthBindings,request:Request){try{
  if(!authPaths.has(new URL(request.url).pathname))return new Response('Not found',{status:404});

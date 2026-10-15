@@ -18,6 +18,7 @@ export const apiRoutes:readonly Route[]=[
  {method:'PATCH',path:'/api/monitors/:id',params:id,body:'object'},
  {method:'POST',path:'/api/monitors/:id/heartbeat-key',params:id,body:'empty'},
  {method:'GET',path:'/api/monitors/:id/history',params:id,body:'none'},
+ {method:'GET',path:'/api/monitors/:id/incidents',params:id,body:'none'},
  {method:'GET',path:'/api/monitors/:id/revisions',params:id,body:'none'},
  {method:'POST',path:'/api/monitors/:id/run',params:id,body:'empty'},
  {method:'POST',path:'/api/monitors/:id/erase',params:id,body:'object'},

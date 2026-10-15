@@ -29,7 +29,15 @@ rer deploy
 
 The command builds Uptime without your Cloudflare credentials in the build environment, then creates the Worker `uptime-monitor-production`, the D1 database `uptime-monitor-production-db`, the database migrations and a one-minute Cron trigger in your account. Cloudflare assigns the hosted address.
 
-When it finishes, it prints the hosted address with the Worker and environment, for example `deploy: https://uptime-monitor-production.your-subdomain.workers.dev (Worker uptime-monitor-production, environment production)`. With `--json` the same values are in the result. Add `--dry-run` first if you want to see the plan without any provider requests.
+When it finishes, it prints the hosted address with the Worker and environment, for example `deploy: https://uptime-monitor-production.your-subdomain.workers.dev (Worker uptime-monitor-production, environment production)`. With `--json` the same values are in the result.
+
+To build and inspect the resource plan first, run:
+
+```sh
+rer deploy --dry-run
+```
+
+The plan names the Worker, D1 database, migration names and digests, Cron triggers, public variables and secret bindings (names only). It uses saved mail and optional settings when present; otherwise it uses your supplied inputs. It makes no provider requests and does not generate deployment secrets. Cloudflare assigns the hosted origin during a real deployment, so `UPTIME_ORIGIN` is listed as pending. The plan does not establish whether those resources already exist, who owns them, or which migrations have already run; the real deploy checks that state. With `--json`, the result includes `plan` and `pendingVariables`.
 
 This page covers the default Cloudflare Workers deployment. Uptime also declares the `container` platform in `deploy.json`; the shared CLI supports `--platform container` with `--host ssh://...` and optional `--image` for Docker deployment to an SSH host. That separate path has not been exercised end to end for Uptime. The hosted demo uses the declared container image; see [the demo notes](https://github.com/just-every/run-uptime/blob/main/DEMO.md) for its acceptance status.
 
@@ -62,14 +70,23 @@ The command does not create or replace an owner. If the deployment is unclaimed 
 ## Check it
 
 ```sh
-pnpm run health
+node scripts/deployment/owner-cli.mjs health
 ```
 
-For another environment, pass its name: `pnpm run health -- --environment staging`. This is read-only and checks your deployment through Cloudflare. A passing result tells you the database is ready and the deployment is the one you expect. It does not tell you the runner is working, that your targets are healthy, or that an email reached a person.
+Run this from the installed deployment checkout under Node 22.20.0 with `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` available. For another environment, pass its name: `node scripts/deployment/owner-cli.mjs health --environment staging`. This avoids requiring `pnpm` on your shell's PATH. If pnpm is available, `pnpm run health -- --environment staging` runs the same command; its forwarded `--` is accepted. Health checks your deployment through Cloudflare without changing hosted resources. A passing result tells you the database is ready and the deployment is the one you expect. It does not tell you the runner is working, that your targets are healthy, or that an email reached a person.
 
 ## Start the runner
 
 Public website checks run automatically in the deployed Cloudflare Worker. A private runner is optional for those checks. Add one when checks need a network you control, including private networks, runner-local credentials or browser execution. In **Runner / Archive**, create a runner for its independent network and save the complete one-time command; paste it into a shell from an installed Uptime checkout on that network. Keep it under a supervisor and inspect its contact and actual results. Deployment does not start or supervise that separate process. Follow [The private runner](/docs/runner).
+
+To start the original deployment runner from the checkout holding that environment's private settings, use the exact HTTPS origin printed by deployment, without a path or trailing slash:
+
+```sh
+export UPTIME_CONTROL_ORIGIN='https://your-uptime-address.example'
+node scripts/runner-start.mjs --environment production
+```
+
+For a named environment, replace `production` with its name and use its own hosted origin. The wrapper reads the environment's saved runner key privately. An added runner instead uses the complete command from its console dialog, including its own ID, key and network label.
 
 ## Update an existing deployment
 
@@ -86,7 +103,7 @@ Alternatively, fetch from the public repository and check out a reviewed public 
 
 ```sh
 rer deploy --environment NAME
-pnpm run health -- --environment NAME
+node scripts/deployment/owner-cli.mjs health --environment NAME
 ```
 
 Compare the recorded Worker and D1 identities before and after; an update retains the same resources, owner, monitors, history, destinations and saved private settings while applying additive migrations and the new code. Inspect deployment readback and health, including the deployed-source identity matching the reviewed public commit, then test ordinary email sign-in at `/login`. Unfinished owners should reach `/setup`; completed owners should reach `/app` with their existing monitors and history. Check runner contact and actual results separately. Deployment does not update or supervise the private runner's host.

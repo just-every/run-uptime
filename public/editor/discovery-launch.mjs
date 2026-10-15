@@ -4,7 +4,7 @@ import {api} from './api.mjs';
 export function networkPlan(overview){
  const active=(overview.runner?.runners??[]).filter(runner=>!runner.revokedAt);
  const labels=new Set(active.map(runner=>runner.networkLabel));
- return {active,labels:[...labels],singleNetwork:labels.size<2};
+ return {active,labels:[...labels],singleNetwork:labels.size<2,externalCheckUrl:overview.runner?.externalCheckUrl??''};
 }
 // One network: one check. Two or more: two checks, each from a different network, which is what lets a failure be agreed
 // without an external check.

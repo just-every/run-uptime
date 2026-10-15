@@ -106,29 +106,27 @@ test('a new monitor starts from a pasted URL: the runner answers, the owner unti
   const page=await (await browser.newContext({viewport:{width:1440,height:900}})).newPage();
   await browserSignIn(page,f.origin,{bindings:f.bindings});
   await page.goto(f.origin+'/app/monitor');
-  await page.getByLabel('Website URL',{exact:true}).fill('example.org');
+  await page.getByLabel('Website URL',{exact:true}).fill('example.com');
   await page.getByRole('button',{name:'Check',exact:true}).click();
   // The test is the runner: it claims over the runner route and answers over the signed result route.
   const job=await waitUntil(async()=>(await claim(f.first)).data.job,'the console queueing the check');
-  assert.equal(job.url,'https://example.org/');
-  await page.getByText('Checking example.org from owner-network',{exact:false}).waitFor();
+  assert.equal(job.url,'https://example.com/');
+  await page.getByText('Checking example.com from owner-network',{exact:false}).waitFor();
   const shape=(name,url,extra={})=>proposal(name.toLowerCase().replace(/\W+/g,'-'),{name,reason:`${name} answered 200.`,checks:['Expects 200','Every minute'],definition:definition({name,url,...extra})});
-  const answer=result({input:'https://example.org/',finalUrl:'https://example.org/',requests:9,durationMs:5400,notes:['robots.txt was read on 1 host and honoured for everything except your own URL.'],
-   proposals:[shape('Example site','https://example.org/'),{...shape('Example status','https://status.example.org/api/v2/status.json',{assertions:{status:200,json:{path:'status.indicator',equals:'none'}}}),kind:'status-page'},shape('Example dashboard','https://example.org/dashboard')]});
+  const answer=result({input:'https://example.com/',finalUrl:'https://example.com/',requests:9,durationMs:5400,notes:['robots.txt was read on 1 host and honoured for everything except your own URL.'],
+   proposals:[shape('Example site','https://example.com/'),{...shape('Example status','https://status.example.com/api/v2/status.json',{assertions:{status:200,json:{path:'status.indicator',equals:'none'}}}),kind:'status-page'},shape('Example dashboard','https://example.com/dashboard')]});
   assert.equal((await post(f.first,job.id,{result:answer})).status,200);
   await page.getByRole('heading',{name:'Proposed monitors'}).waitFor();
   assert.equal(await page.locator('#discovery-status').innerText(),'Checked from owner-network · 9 requests · 5 seconds');
   assert.equal(await page.getByRole('checkbox').evaluateAll(boxes=>boxes.filter(b=>b.checked).length),3,'the runner pre-ticked all three');
   await page.getByRole('checkbox',{name:'Example status'}).uncheck();
   await page.getByRole('button',{name:'Start 2 monitors',exact:true}).waitFor();
-  // One runner network: no outside check is asked for; the installation's External check URL is filled in on the server.
-  assert.equal(await page.getByLabel('External check URL',{exact:true}).count(),0,'no external check field in the New monitor flow');
-  assert.equal(await page.getByText('Confirming outages').count(),0);
+  // The visible first-run default is independent of example.com; no extra input is required.
   await page.getByRole('button',{name:'Start 2 monitors',exact:true}).click();
   await page.waitForURL(f.origin+'/app');
   const monitors=(await f.request('/api/overview')).data.monitors;
   assert.deepEqual(monitors.map(m=>m.definition.name).sort(),['Example dashboard','Example site']);
-  for(const m of monitors){assert.equal(m.definition.enabled,true);assert.deepEqual(m.definition.assignments['local-a'],{runnerId:f.first.runnerId,networkLabel:'owner-network',canaryUrl:'https://example.com/'})}
+  for(const m of monitors){assert.equal(m.definition.enabled,true);assert.deepEqual(m.definition.assignments['local-a'],{runnerId:f.first.runnerId,networkLabel:'owner-network',canaryUrl:'https://example.org/'})}
  }finally{await browser.close()}
 });
 // First-run setup through its public door: the owner's website, set at installation or typed into the form, becomes one discovery job.
@@ -187,7 +185,7 @@ test('first run refuses a site that is not public, a stranger and another origin
   }
   assert.equal((await post(cookie,'start_url='+'a'.repeat(20000))).status,400);await unfinished();
   for(const [label,session] of [['signed out',''],['a member',member]]){
-   const denied=await post(session,'start_url=example.com');assert.equal(denied.status,303,label);assert.equal(denied.headers.get('location'),'/login?returnTo=%2Fsetup');await unfinished();
+   const denied=await post(session,'start_url=example.com');assert.equal(denied.status,session?403:303,label);if(session)assert.match(await denied.text(),/Access denied/);else assert.equal(denied.headers.get('location'),'/login?returnTo=%2Fsetup');await unfinished();
   }
   for(const headers of [{origin:'https://evil.example'},{'sec-fetch-site':'cross-site'}])assert.equal((await post(cookie,'start_url=example.com',headers)).status,403);
   await unfinished();assert.equal((await fetch(g.origin+'/setup',{headers:{cookie}})).status,200,'refusals left first run unfinished');
