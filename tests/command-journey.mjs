@@ -6,7 +6,7 @@ import { populateArchiveFixture } from './archive-fixture.mjs';
 import { archive as productArchive } from '../src/domain/archive.server.ts';
 import { chromium } from 'playwright';
 import { scratchInstallation, machineAvailable } from './scratch-installation.mjs';
-import { openGate, readCheckoutKey } from './auth-test-support.mjs';
+import { authRequest, openGate, readCheckoutKey } from './auth-test-support.mjs';
 import { until, assertPortFree, signInThroughOutbox, smokeDocuments, monitorHydration, descendantGroups, assertGroupsGone } from './installer-support.mjs';
 import { definitionsJourney } from './definitions-journey.mjs';
 import { drillJourney } from './drill-journey.mjs';
@@ -65,6 +65,8 @@ try {
  const imports = [...(await client.text()).matchAll(/^import "(\/[^"]+)";/gm)];
  assert.ok(imports.length > 0, 'the Vite client imports its env module');
  for (const [, specifier] of imports) assert.equal((await fetch(origin + specifier)).status, 200, 'the Vite client import ' + specifier + ' is served');
+ // rer 0.2.20 retired `rer outbox`; the owner asks for a sign-in link through the app's public door.
+ assert.equal((await authRequest(origin)('/auth/magic-link', { email: 'journey@example.test', returnTo: '/setup' })).status, 202, 'sign-in link requested');
  const resetActive = scratch.start('node', [rer, 'reset', '--yes', '--non-interactive']);
  try { assert.equal((await resetActive.done).code, 4); } finally { await scratch.stop(resetActive); }
  browser = await chromium.launch({ headless: true }); const page = await browser.newPage();
