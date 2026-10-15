@@ -1,3 +1,4 @@
+import {deliveredMessages} from './mail-provider-fixture.mjs';
 // Every class of D1 error a runner's notification poll can meet, injected under the running Worker and observed at its HTTP door.
 // A trigger makes the write each poll performs fail with the message that class of D1 error carries. Racing writers and guard failures
 // answer 409 conflict, every other fault answers 503 storage_unavailable with Retry-After, each names the operation that failed, and the
@@ -50,7 +51,7 @@ try {
   assert.equal(faulted.status, 503);
   assert.equal(fault.operation, 'notifications.mail.markSubmitted', 'the answer names the write that failed first, not the release');
   const job = () => DB.prepare('SELECT state, claim_until FROM notification_jobs WHERE id=?').bind(deliveryId).first();
-  const sent = async () => (await DB.prepare('SELECT message FROM rer_mail_development_outbox').all()).results.filter(r => r.message.includes('fault-inbox@example.test')).length;
+  const sent = async () => deliveredMessages(origin).filter(({message})=>message.personalizations.some(p=>p.to.some(to=>to.email==='fault-inbox@example.test'))).length;
   assert.equal((await job()).state, 'sending');
   assert.equal((await poll()).status, 200); assert.equal(await sent(), 0, 'nothing is sent while the claim lasts');
   // The claim's minute passes.

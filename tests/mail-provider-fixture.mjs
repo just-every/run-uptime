@@ -3,7 +3,7 @@ const messages=[];
 export const allDeliveredMessages=()=>messages;
 export const deliveredMessages=origin=>messages.filter(message=>message.origin===origin);
 export function testMailOptions(options){
- const development=options.bindings?.MAIL_PROVIDER==='development';
+ const development=options.bindings?.MAIL_PROVIDER==='development'&&options.bindings?.UPTIME_LOCAL_REVIEW!=='false'&&options.bindings?.RER_DEMO!=='1';
  const bindings=development?{...options.bindings,MAIL_PROVIDER:'sendgrid',SENDGRID_API_KEY:'test-only-mail-provider-key'}:options.bindings;
  return {...options,bindings,outboundService:async request=>{
   if(new URL(request.url).hostname==='api.sendgrid.com'){

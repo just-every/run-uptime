@@ -3219,7 +3219,7 @@
       "executable": false
     },
     "tests/mail-provider-fixture.mjs": {
-      "sha256": "578d3fae6b89a4d0794dfda94b1270b0b418c57d3284446f15eacb2168d4ab4b",
+      "sha256": "d2753b251d90a108ac66a1614c82d0032395479813eaf9926e184983cd56d46d",
       "executable": false
     },
     "tests/migration-support.mjs": {
@@ -3395,7 +3395,7 @@
       "executable": false
     },
     "tests/storage-faults.mjs": {
-      "sha256": "66bbc1fe164e40e0e121b5fbe2447692745bd1d3df16b58a62693e73c8a0d143",
+      "sha256": "07768b997da8fe99867fad2aa46206e95869795205e1d3d7b0aaa2b71b51a3fb",
       "executable": false
     },
     "tests/worker-intake.mjs": {
