@@ -2787,7 +2787,7 @@
       "executable": false
     },
     "src/site/landing/copy.ts": {
-      "sha256": "fd0e54aa8d02c495e5c047810e58d0852158f31ba967d0107ce9e0fe80d2e98c",
+      "sha256": "0549a57731de1635b0b15ab619d59e8865baf606f0554b1e8426f2f8416de2c1",
       "executable": false
     },
     "src/site/landing/hero/art/frame.ts": {
@@ -2855,7 +2855,7 @@
       "executable": false
     },
     "src/site/landing/sections/Hero.tsx": {
-      "sha256": "3e6e90a4b4a5c91aac1c249525fc79ff87bb7e98ff40e211be45c1098115c6d6",
+      "sha256": "9b6150b1c940d1829d780281e2ac21d43a5c8937ded6f91dcdee733620aa2baa",
       "executable": false
     },
     "src/site/landing/sections/Included.tsx": {
@@ -2919,7 +2919,7 @@
       "executable": false
     },
     "src/site/shell/links.ts": {
-      "sha256": "1edc7d42852aa349f24d6ff1d037ee151f56af1669216b16c41f185a99430594",
+      "sha256": "6886481363a43bf17b1dedea349050f76c7045cae36140993227f108678f6973",
       "executable": false
     },
     "src/site/shell/Mark.tsx": {
