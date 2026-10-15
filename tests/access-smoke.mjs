@@ -27,8 +27,9 @@ async function probe(call,settings,fetcher=fetch,requireRunner=false){
  const legacySlash=await call('/monitor/?monitor=x');assert.equal(legacySlash.status,308);assert.equal(legacySlash.headers.get('location'),'/app/monitor?monitor=x');
  const login=await call('/login');assert.equal(login.status,requireRunner?303:200);if(requireRunner)assert.equal(login.headers.get('location'),'/signin?returnTo=%2Fsetup');
  assert.equal((await call('/does-not-exist')).status,404);
- // Before the owner confirms first-run setup the Lobby's one action is /setup; once confirmed it is sign-in.
- const lobby=async expected=>{const state=await call('/setup/state');assert.equal(state.status,200);assert.deepEqual(await state.json(),{state:expected});const action=(await(await call('/')).text()).match(/<a class="btn" href="([^"]+)"/)?.[1];assert.equal(action,expected==='claimed'?'/login':'/setup','Lobby action while '+expected)};
+ // Before the owner confirms first-run setup the Lobby's one action is /setup; once confirmed it is sign-in,
+ // which a local instance prefills with the owner's address.
+ const lobby=async expected=>{const state=await call('/setup/state');assert.equal(state.status,200);assert.deepEqual(await state.json(),{state:expected});const action=(await(await call('/')).text()).match(/<a class="btn" href="([^"]+)"/)?.[1];assert.equal(action,expected==='claimed'?(requireRunner?`/login?login_hint=${encodeURIComponent(settings.OWNER_EMAIL)}`:'/login'):'/setup','Lobby action while '+expected)};
  await lobby('unclaimed');
  let cookie;
  if(requireRunner){

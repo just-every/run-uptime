@@ -3105,7 +3105,7 @@
       "executable": false
     },
     "tests/access-smoke.mjs": {
-      "sha256": "f3b96718047933c818f55a0ea2dca3f76bb8152dea9fd993af80d2a3e3750703",
+      "sha256": "a369dce207d5160e0a5a02cd2b2653bafba95d1a5d9864634bb58e66c74cf6bc",
       "executable": false
     },
     "tests/admission-runtime.mjs": {
