@@ -356,7 +356,7 @@
         ],
         "origin": {
           "repository": "https://github.com/runeditrun/base.git",
-          "revision": "be254d4eb7831b9d6adc4bdff584cf61e2b972ce",
+          "revision": "e8296d97481b62ec6805d780021ed7cb528b7a07",
           "path": ".",
           "paths": [
             "modules/demo"
