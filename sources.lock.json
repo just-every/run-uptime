@@ -459,7 +459,7 @@
       "executable": false
     },
     "CHANGELOG.md": {
-      "sha256": "004fb3f824fb0d3f4d2a254d516b9fd3126df8e84cd5d776fb2a661ccc32cac0",
+      "sha256": "0c6eb14bb874f2f1504eee99fd9f1bd6d4dfca9751d171a2c6ce3eadaf7cb425",
       "executable": false
     },
     "CLAUDE.md": {
@@ -499,7 +499,7 @@
       "executable": false
     },
     "docs/install.md": {
-      "sha256": "d8537035754cc18e655ef7ebb6731e465ebe403cfbb94773c598d1ec1e49aa5b",
+      "sha256": "4247d8ec88621613774bb0e0d0f6fadf333c63d64520f4ffc0c178a73c95981d",
       "executable": false
     },
     "docs/limits.md": {
@@ -719,7 +719,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "38ca0d422f913d0abaddf5a4030d50a7951b67f525715817dd89cd8943012f10",
+      "sha256": "c14f44ea69ff0046aa6f0fc0602e6b962766cd2c477f2a369c5e16318b816d62",
       "executable": false
     },
     "patches/README.md": {
@@ -891,7 +891,7 @@
       "executable": false
     },
     "README.md": {
-      "sha256": "2786a3d21d9dcc1d52dfef4ed5c55b6a3ff41aba8d035ce58bb611ceb018bdc9",
+      "sha256": "b4a346bb12ae7cd29e6eb84bdf4b8c0a69f547247062a541e4019cc9a3e5311c",
       "executable": false
     },
     "RELEASE.json": {
@@ -3107,7 +3107,7 @@
       "executable": false
     },
     "tests/command-journey.mjs": {
-      "sha256": "f628438feed3cc41cdf49c002e8403498a26698f10dc130f321ad1b1a0f1ab02",
+      "sha256": "cd23df63c345b49a7670eb6c2cdebe99d729d658a12c39682d56927a3408387c",
       "executable": false
     },
     "tests/control-runtime.mjs": {
@@ -3287,7 +3287,7 @@
       "executable": false
     },
     "tests/owner-deploy-lifecycle.mjs": {
-      "sha256": "e7bda0849c3463c0ff50c71314ddf8c1ef5c1f9d390cc2c42657fee68bac282e",
+      "sha256": "a1c24f7aa72fbc403451385ff98c523286440ddb3737422ac2e5dfc8da4e818f",
       "executable": false
     },
     "tests/owner-deploy-lifecycle/bridge.mjs": {

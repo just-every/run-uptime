@@ -28,6 +28,7 @@
 ### Deployment
 
 - rer 0.2.20 checks before building that production sign-in can send email, using its shared names. Set `MAIL_PROVIDER` (also for SendGrid), `MAIL_FROM` and `MAIL_API_KEY` on every `rer deploy`, including updates; Uptime stores `MAIL_API_KEY` under the selected provider's own setting, so saved settings and Worker secrets are unchanged.
+- rer 0.2.20 retires the separate `rer outbox` command; run `rer dev` again to print its `RER_OPEN` link. The `outbox` package script is removed.
 - `pnpm run health -- --environment NAME` accepts the forwarded `--`, and `rer deploy --dry-run` prints the actual resource plan.
 - A named environment deployed again after `rer deploy --environment NAME --remove --yes` gets fresh `SESSION_SECRET`, `SETUP_TOKEN` and `UPTIME_RUNNER_KEY` instead of the values left in its settings file, which for an environment deployed before per-environment secrets were production's.
 - Each named deploy environment now also has its own `SESSION_SECRET` and `UPTIME_RUNNER_KEY` in `.rer/deploy/environments/<environment>/secrets.json`, so a session or runner key from one environment is refused by another; environments deployed earlier keep their values. First-run setup names the environment's settings file, and `node scripts/runner-start.mjs --environment NAME` starts that environment's runner.

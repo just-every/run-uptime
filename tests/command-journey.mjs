@@ -65,7 +65,6 @@ try {
  const imports = [...(await client.text()).matchAll(/^import "(\/[^"]+)";/gm)];
  assert.ok(imports.length > 0, 'the Vite client imports its env module');
  for (const [, specifier] of imports) assert.equal((await fetch(origin + specifier)).status, 200, 'the Vite client import ' + specifier + ' is served');
- await invoke(['outbox']);
  const resetActive = scratch.start('node', [rer, 'reset', '--yes', '--non-interactive']);
  try { assert.equal((await resetActive.done).code, 4); } finally { await scratch.stop(resetActive); }
  browser = await chromium.launch({ headless: true }); const page = await browser.newPage();

@@ -54,7 +54,7 @@ When you open `/setup`, Uptime asks your runner to visit that site and look arou
 1. Open the `RER_OPEN` link that dev printed in a browser on this computer. It carries this checkout's private key in its fragment, so keep it to yourself; you land signed in as the owner.
 2. First-run setup opens at `/setup`. Choose **Finish setup**. If you gave a website, the page says Uptime is checking it, and finishing takes you to the proposed monitors.
 
-The console is then at `/app`. A small dev badge switches to the `member` dev operator (who has no console access) or signs out. To try the ordinary email sign-in instead, run dev with `--login`: it prints a key-carrying link to the development outbox, where you choose the newest sign-in message and follow its link (no email is sent). From another terminal, `rer outbox` prints that link again.
+The console is then at `/app`. A small dev badge switches to the `member` dev operator (who has no console access) or signs out. To try the ordinary email sign-in instead, run dev with `--login`: it prints a key-carrying link to the development outbox, where you choose the newest sign-in message and follow its link (no email is sent). Running `rer dev` again prints that link again; rer 0.2.20 retired the separate `rer outbox` command.
 
 ## Stop it
 
