@@ -45,7 +45,12 @@ try{
  });
  const created=await api('/api/monitors','POST',{name:'Contact is not target success',url:'http://127.0.0.1:15490/health',retries:0,confirmSlots:1});assert.equal(created.status,201);
  const task=(await api('/api/runner/claim','POST',{}, {'x-runner-key':bindings.UPTIME_RUNNER_KEY})).data.task;assert.ok(task);const old=Date.now()-CONTACT_FRESHNESS_MS-1000;await setTime(DB,old);
- const attempts=task.definition.probes.map(probe=>({id:randomUUID(),probe,attempt:0,startedAt:Date.now(),completedAt:Date.now(),durationMs:0,runnerVersion:'uptime-node/0.1.0',outcome:'runner_error',checks:[{assertion:'runner',pass:false,reason:'Synthetic protocol execution unavailable'}]}));
+ const attempts=task.definition.probes.map(probe=>{
+  const evidence={id:randomUUID(),probe,attempt:0,startedAt:Date.now(),completedAt:Date.now(),durationMs:0,runnerVersion:'uptime-node/0.1.0',outcome:'runner_error',checks:[{assertion:'runner',pass:false,reason:'Synthetic protocol execution unavailable'}]};
+  // The network-edge fixture reports both configured checks as unavailable.
+  // Accepted contact must still leave target health Unknown.
+  return {...evidence,canary:{...evidence,id:randomUUID()}};
+ });
  await check('rejected signature/evidence do not refresh contact; accepted runner_error does',async()=>{
   assert.equal((await submit(task,attempts,false)).status,403);assert.equal((await submit(task,[])).status,400);assert.equal((await api('/api/overview')).data.runner.contact.lastContactAt,old);assert.equal((await submit(task,attempts)).status,200);const result=(await api('/api/overview')).data;assert.equal(result.runner.contact.state,'Fresh contact');assert.equal(result.monitors.find(m=>m.id===created.data.id).state.state,'Unknown');assert.equal(result.alerts.length,0);await setTime(DB,old);assert.equal((await submit(task,attempts)).status,200);assert.equal((await api('/api/overview')).data.runner.contact.lastContactAt,old);
  });

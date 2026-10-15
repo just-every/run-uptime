@@ -3351,7 +3351,7 @@
       "executable": false
     },
     "tests/runner-contact.mjs": {
-      "sha256": "e2c629e39b12b88cbd6c1b04c7960188786ebf2e109bc301a6544f9807e9d817",
+      "sha256": "aea88116f53d9be2ab6ddcbdc1bade9428aea4d0bfa46e055b4352156bc2d4a4",
       "executable": false
     },
     "tests/runtime.mjs": {
