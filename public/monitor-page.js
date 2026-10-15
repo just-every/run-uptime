@@ -51,7 +51,7 @@ function titleBlock(m,readUnavailable){
 }
 function actionButtons(m){
  const maintenance=m.definition.maintenanceUntil>Date.now();
- return `<button id="run-monitor" class="primary" ${m.definition.enabled?'':'disabled'}>${icon('play')}Run now</button>${isFlow(m.definition)?'<a class="ui-button" id="edit" href="/docs/definitions">'+icon('pencil')+'Edit in a definitions file</a>':`<button id="edit">${icon('pencil')}Edit check</button>`}<button id="pause"${m.definition.enabled?'':' class="resume"'}>${icon(m.definition.enabled?'pause':'play')}${m.definition.enabled?'Pause':'Authorize & resume'}</button><button id="maintenance">${icon('moon')}${maintenance?'End maintenance':'Maintenance 15m'}</button>`;
+ return `<button id="run-monitor" class="primary" ${m.definition.enabled?'':'disabled'}>${icon('play')}Run now</button>${(isFlow(m.definition)||m.definition.type==='heartbeat')?'<a class="ui-button" id="edit" href="/docs/definitions">'+icon('pencil')+'Edit in a definitions file</a>':`<button id="edit">${icon('pencil')}Edit check</button>`}<button id="pause"${m.definition.enabled?'':' class="resume"'}>${icon(m.definition.enabled?'pause':'play')}${m.definition.enabled?'Pause':'Authorize & resume'}</button><button id="maintenance">${icon('moon')}${maintenance?'End maintenance':'Maintenance 15m'}</button>`;
 }
 function heartbeatPanel(m){
  if(m.definition.type!=='heartbeat')return '';
@@ -59,7 +59,7 @@ function heartbeatPanel(m){
 }
 function coveragePanel(availability){
  const window=(label,metrics)=>`<div class="coverage-window"><h3>${label}</h3>${coverage(metrics,label,'large')}</div>`;
- return `<section class="ui-card panel coverage-panel" aria-labelledby="coverage-heading"><div class="panel-head"><h2 id="coverage-heading">Evidence coverage</h2><p class="metric-basis">${escape(COVERAGE_RULE)}</p></div><div class="coverage-windows">${window('Last 24 hours',availability?.last24h)}${window('Last 7 days',availability?.last7d)}</div><div class="coverage-foot">${coverageLegend}<p class="coverage-note">Passing is the share of observed time when every configured check passed; Unknown is the share of each full window without a valid result. Both are rounded to two decimals, passing down and failing and Unknown up, and never to 0% or 100% unless exact. Manual runs and retries do not add observed time. Checks run from their assigned runner networks.</p></div></section>`;
+ return `<section class="ui-card panel coverage-panel" aria-labelledby="coverage-heading"><div class="panel-head"><h2 id="coverage-heading">Evidence coverage</h2><p class="metric-basis">${escape(COVERAGE_RULE)}</p></div><div class="coverage-windows">${window('Last 24 hours',availability?.last24h)}${window('Last 7 days',availability?.last7d)}</div><div class="coverage-foot">${coverageLegend}<p class="coverage-note">Passing is the share of observed time when every configured check passed. Earlier revisions retain their observed time. Maintenance and paused periods are separate from Unknown time without a valid result. Percentages are rounded to two decimals, passing down and failing and Unknown up, and never to 0% or 100% unless exact. Manual runs and retries do not add observed time. Checks run from their assigned runner networks.</p></div></section>`;
 }
 function pageBody(m,readUnavailable,definitionOpen,data){
  const availability=m.availability,lastLabel=readUnavailable?'Last recorded check':'Last check';
@@ -102,7 +102,7 @@ function attemptMarkup(o){
 }
 // What a slot row says it is: its result word, and in the meta how it ended, when it was due if it ran late, its
 // attempts, and the revision it came from when the monitor was edited, paused or resumed since (its result is real but
-// does not count toward the current revision's last check or coverage). A failed row's "HTTP 200" and
+// contributes to historical coverage, but cannot establish current health). A failed row's "HTTP 200" and
 // "(expected 201)" are each one unit, so the label breaks only between them in a narrow column.
 function slotResult(row){
  const summary=checkResultSummary(row.slot);
@@ -175,7 +175,7 @@ export function renderMonitorPage({header,actions,area,data,id,api,action,readUn
  actions.querySelector('#erase-monitor').onclick=()=>confirmErasure({kind:'monitor',name:m.definition.name,onConfirm:async name=>{const result=await action(()=>api(`/api/monitors/${encodeURIComponent(m.id)}/erase`,'POST',{name}),{pending:'Erasing monitor…',success:'Monitor and dependent records erased.'});if(result.ok){document.title='Monitor erased · Uptime';showErasureReceipt(result.result.receipt)}}});
  area.innerHTML=pageBody(m,readUnavailable,definitionOpen,data);
  actions.querySelector('#run-monitor').onclick=()=>action(()=>api(`/api/monitors/${m.id}/run`,'POST',{}),{pending:'Requesting a manual check…',success:'Manual check queued. Manual checks do not change uptime.'});
- if(!isFlow(m.definition))actions.querySelector('#edit').onclick=()=>{location.href='/app/monitor?monitor='+encodeURIComponent(m.id)};
+ if(!isFlow(m.definition)&&m.definition.type!=='heartbeat')actions.querySelector('#edit').onclick=()=>{location.href='/app/monitor?monitor='+encodeURIComponent(m.id)};
  actions.querySelector('#pause').onclick=()=>{if(!m.definition.enabled&&Object.values(m.definition.assignments??{}).some(a=>!(data.runner.runners??[]).some(r=>r.runnerId===a.runnerId&&!r.revokedAt))){location.href='/app/monitor?monitor='+encodeURIComponent(m.id);return}return action(()=>api(`/api/monitors/${m.id}`,'PATCH',{...m.definition,enabled:!m.definition.enabled}),{pending:m.definition.enabled?'Pausing monitor…':'Authorizing and resuming…',success:m.definition.enabled?'Monitor paused. Historical observations remain available.':'Monitor authorized and resumed. New scheduled results are required.'})};
  actions.querySelector('#maintenance').onclick=()=>action(()=>api(`/api/monitors/${m.id}`,'PATCH',{...m.definition,maintenanceUntil:m.definition.maintenanceUntil>Date.now()?0:Date.now()+900000}));
  const history=area.querySelector('#raw-history'),strip=area.querySelector('#history-strip');

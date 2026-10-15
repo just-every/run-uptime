@@ -1,10 +1,10 @@
 // Evidence coverage for one window (Last 24 hours or Last 7 days), from the availability fields /api/overview returns:
-// one bar split into passed, failing and Unknown time, and a short label. The bar's green is only time a scheduled
+// one bar split into passed, failing, Unknown, maintenance and paused time, and a short label. The bar's green is only time a scheduled
 // check passed; Unknown is the hatched grey gap of time with no valid result, never counted as up.
 import {escape,humaneDuration} from './console-format.js';
 
 // The rule the coverage figures follow, stated once on the list and once on the monitor page.
-export const COVERAGE_RULE='Uptime counts only observed time. Time without a valid scheduled result is Unknown, never counted as up.';
+export const COVERAGE_RULE='Uptime counts only observed time. History keeps earlier revisions. Maintenance and paused time are shown separately; missing results stay Unknown.';
 
 const valid=metrics=>metrics&&[metrics.upMs,metrics.notPassingMs,metrics.unknownMs,metrics.observedMs,metrics.windowMs].every(Number.isFinite)&&metrics.windowMs>0;
 
@@ -35,7 +35,7 @@ const unknownShare=metrics=>share(metrics.unknownMs,metrics.windowMs,Math.ceil);
 // Shares of the whole window, for the bar's accessible name: the same Unknown figure as the visible Unknown line.
 function windowShares(metrics){
  const {upMs,notPassingMs,windowMs}=metrics;
- return `passed ${share(upMs,windowMs,Math.floor)} of the window, failing ${share(notPassingMs,windowMs,Math.ceil)}, Unknown ${unknownShare(metrics)}`;
+ return `passed ${share(upMs,windowMs,Math.floor)} of the window, failing ${share(notPassingMs,windowMs,Math.ceil)}, Unknown ${unknownShare(metrics)}, maintenance ${share(metrics.maintenanceMs??0,windowMs,Math.ceil)}, paused ${share(metrics.pausedMs??0,windowMs,Math.ceil)}`;
 }
 
 // size 'compact' for a list cell: the bar over its label. 'large' for the monitor page: the bar with the label and the
@@ -44,11 +44,11 @@ function windowShares(metrics){
 export function coverage(metrics,windowLabel,size='compact'){
  const large=size==='large',label=coverageLabel(metrics,{observed:large});
  if(!valid(metrics))return `<div class="coverage ${size}"><div class="coverage-bar" role="img" aria-label="${escape(windowLabel)}: coverage Unknown"><span class="coverage-segment unknown" style="flex-grow:1"></span></div><div class="coverage-copy"><p class="coverage-label">${label}</p></div></div>`;
- const segments=[['passed',metrics.upMs],['failing',metrics.notPassingMs],['unknown',metrics.unknownMs]].filter(([,ms])=>ms>0);
+ const segments=[['passed',metrics.upMs],['failing',metrics.notPassingMs],['unknown',metrics.unknownMs],['maintenance',metrics.maintenanceMs??0],['paused',metrics.pausedMs??0]].filter(([,ms])=>ms>0);
  const bar=`<div class="coverage-bar" role="img" aria-label="${escape(`${windowLabel}: ${windowShares(metrics)}`)}">${segments.map(([kind,ms])=>`<span class="coverage-segment ${kind}" style="flex-grow:${ms}"></span>`).join('')}</div>`;
  const unknown=large?`<p class="coverage-unknown"><strong>${escape(unknownShare(metrics))}</strong> Unknown (no valid result)</p>`:'';
- return `<div class="coverage ${size}">${bar}<div class="coverage-copy"><p class="coverage-label">${label}</p>${unknown}</div></div>`;
+ return `<div class="coverage ${size}">${bar}<div class="coverage-copy"><p class="coverage-label">${label}</p>${unknown}${[['Maintenance',metrics.maintenanceMs],['Paused',metrics.pausedMs]].filter(([,ms])=>ms>0).map(([label,ms])=>`<p class="coverage-excluded">${escape(humaneDuration(ms))} ${label}</p>`).join('')}</div></div>`;
 }
 
-// The key for the three parts of the bar, shown once on the monitor page.
-export const coverageLegend='<ul class="coverage-legend"><li><span class="coverage-key passed" aria-hidden="true"></span>Passed</li><li><span class="coverage-key failing" aria-hidden="true"></span>Failing</li><li><span class="coverage-key unknown" aria-hidden="true"></span>Unknown</li></ul>';
+// The key for each part of the bar, shown once on the monitor page.
+export const coverageLegend='<ul class="coverage-legend"><li><span class="coverage-key passed" aria-hidden="true"></span>Passed</li><li><span class="coverage-key failing" aria-hidden="true"></span>Failing</li><li><span class="coverage-key unknown" aria-hidden="true"></span>Unknown</li><li><span class="coverage-key maintenance" aria-hidden="true"></span>Maintenance</li><li><span class="coverage-key paused" aria-hidden="true"></span>Paused</li></ul>';

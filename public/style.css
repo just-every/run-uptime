@@ -176,6 +176,9 @@
 .coverage-segment.passed, .coverage-key.passed { background: var(--green); }
 .coverage-segment.failing, .coverage-key.failing { background: var(--rose); }
 .coverage-segment.unknown, .coverage-key.unknown { background: repeating-linear-gradient(130deg, #c4c8dc 0 1.5px, #eceef6 1.5px 4px); box-shadow: inset 0 0 0 1px #aeb2c8; }
+.coverage-segment.maintenance, .coverage-key.maintenance { background: var(--peach); }
+.coverage-segment.paused, .coverage-key.paused { background: var(--muted); }
+.coverage-excluded { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
 .coverage-segment:first-child { border-radius: 999px 0 0 999px; }
 .coverage-segment:last-child { border-radius: 0 999px 999px 0; }
 .coverage-segment:only-child { border-radius: 999px; }

@@ -40,7 +40,8 @@ export async function runRunner({origin,key,controlAddress,runnerId:configuredId
     if(signal?.aborted)break;
     const canaryUrl=task.definition.assignments?.[probe]?.canaryUrl;
     let canary;
-    if(canaryUrl){const canaryTask={...task,definition:{...task.definition,type:'http',network:'public',url:canaryUrl,method:'GET',request:undefined,assertions:{status:200},retries:0}};canary={...await executeTaskProbe(canaryTask,probe,{grantPath,controlPort:Number(u.port||(u.protocol==='https:'?443:80)),statusOnly:true,signal,now:clock.now}),attempt:0}}
+    // The external check is HTTP even when the monitored task is a heartbeat or flow.
+    if(canaryUrl){const canaryTask={...task,definition:{...task.definition,type:'http',network:'public',url:canaryUrl,method:'GET',request:undefined,heartbeat:undefined,flow:undefined,assertions:{status:200},retries:0}};canary={...await executeTaskProbe(canaryTask,probe,{grantPath,controlPort:Number(u.port||(u.protocol==='https:'?443:80)),statusOnly:true,signal,now:clock.now}),attempt:0}}
     for(let attempt=0;attempt<=task.definition.retries;attempt++){
      let evidence;try{evidence=await executeTaskProbe(task,probe,{grantPath,controlPort:Number(u.port||(u.protocol==='https:'?443:80)),flowWorkspace,signal,now:clock.now})}catch{const now=Date.now();evidence={id:randomUUID(),probe,startedAt:now,completedAt:now,durationMs:0,runnerVersion:'uptime-node/0.1.0',outcome:'runner_error',checks:[{assertion:'runner',pass:false,reason:signal?.aborted?'Runner stopped before the attempt completed':'Custody or runner execution unavailable'}]}}
      attempts.push({...clock.align(evidence,{dueAt:task.dueAt}),attempt,...(canary?{canary:clock.align(canary,{dueAt:task.dueAt})}:{})});if(signal?.aborted||evidence.outcome==='pass'||evidence.outcome==='runner_error')break;

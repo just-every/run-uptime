@@ -95,6 +95,19 @@ try{
   const before=await snapshot(),start=Date.now();assert.equal((await api('/api/runner/results',body,signed('/api/runner/results',body,{'x-runner-id':`self-${randomUUID()}`}))).status,401);assertRunnerAdmissionOnly(before,await snapshot(),{secret:bindings.SESSION_SECRET,client:'192.0.2.1',requests:1,start});
   assert.equal((await api('/api/runner/results',body,signed('/api/runner/results',body))).status,200);assert.equal((await monitor()).state.state,'Healthy','manual execution cannot change scheduled state');
  });
+ await check('a single-vantage heartbeat receipt completes through the real runner with its HTTP canary',async()=>{
+  const current=await monitor();
+  assert.equal((await api(`/api/monitors/${id}`,{...current.definition,enabled:false},{},'PATCH')).status,200);
+  const heartbeat=await api('/api/monitors',{name:'Nightly backup heartbeat',type:'heartbeat',heartbeat:{maxAgeMs:60000},canaryUrl:'https://canary.runner-target.test/canary',intervalMs:5000,timeoutMs:2000,retries:0,confirmSlots:1,recoverSlots:1});
+  assert.equal(heartbeat.status,201);
+  const issued=await api(`/api/monitors/${heartbeat.data.id}/heartbeat-key`,{});assert.equal(issued.status,200);
+  const receipt=await api(`/api/heartbeats/${heartbeat.data.id}`,{},{authorization:`Bearer ${issued.data.token}`,'x-heartbeat-sequence':'1'});assert.equal(receipt.status,200);assert.equal(receipt.data.received,true);
+  await waitDue(heartbeat.data.id);await runner();
+  const rows=(await api(`/api/monitors/${heartbeat.data.id}/history`)).data;
+  assert.equal(rows[0].status,'complete');assert.equal(rows[0].manual,0);
+  assert.equal(rows[0].observations[0].outcome,'pass');assert.equal(rows[0].observations[0].canary.outcome,'pass');
+  assert.equal((await api('/api/overview')).data.monitors.find(m=>m.id===heartbeat.data.id).state.state,'Healthy');
+ });
  console.log('SIGNED-RUNNER results '+JSON.stringify(signatureReceipt));
  console.log(`SIGNED-RUNNER passed ${passed} checks: emitted Worker + migrated persistent D1, real Node process restarts, local HTTPS with verified certificates; no real account or public network deployment.`);
 }finally{await child?.stop();await close(control);await worker?.dispose();await close(target);await rm(directory,{recursive:true,force:true})}

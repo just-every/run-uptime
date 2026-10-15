@@ -2,14 +2,14 @@ Uptime does a small set of things carefully. This page lists what it leaves out,
 
 ## Checks it does not run
 
-Uptime monitors HTTP(S) endpoints, keyword text, incoming heartbeats and, on a runner that has a browser, a few bounded [browser flows](#browser-flows-are-small-and-bounded). It does not offer:
+Uptime monitors HTTP(S) endpoints, keyword text and incoming heartbeats. Its supported public feature set does not include:
 
 - DNS checks,
 - ping,
 - TCP port checks,
 - domain-expiry monitoring,
 - scripts, recorded sessions or screenshots of pages, or
-- browser checks beyond the one flow type below.
+- browser checks.
 
 ## Channels and workflows it does not have
 
@@ -23,24 +23,6 @@ Notifications go to email, a signed JSON webhook or a Slack incoming webhook, fo
 - public status pages or other public communication.
 
 If you need those, you can send Uptime's signed JSON to a receiver of your own. See [Notifications](/docs/notifications).
-
-## Browser flows are small and bounded
-
-A flow is one business path in a real browser on your own runner, for example a sign-in or an order confirmation. It is a closed list of steps and the outcomes that must all be observed; it is not a script. The limits are fixed and a run that exceeds one fails and names it, instead of hanging:
-
-| Limit | Value |
-| --- | --- |
-| Interval | at least 5 minutes |
-| Flow monitors in one installation | 5 |
-| Wall time of one run, browser start included | 60 seconds (a flow may set less, down to 10) |
-| Steps in one flow | 20 |
-| Required outcomes in one flow | 8 |
-| Top-level pages loaded in one run | 8 |
-| Response bytes through the browser's one network door in one run | 5 MiB |
-| Step trace kept with an observation | 8 KiB |
-| Flows running on one runner at the same time | 1 |
-
-A flow keeps no screenshots and no page bodies. Its fill steps name a credential that lives on the runner; the value never reaches Uptime. A pass is evidence of that flow only: it says nothing about pages or steps the flow does not visit, and Uptime never describes it as the site or the checkout working. See [Monitors](/docs/monitors#browser-flow) and [The runner](/docs/runner#browser-flows).
 
 ## A check's cadence is slightly slower than its interval
 

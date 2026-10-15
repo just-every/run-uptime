@@ -80,7 +80,8 @@ try{
  ]});
 
  const revisionDefinition=makeDefinition();
- const revisionId=await addMonitor('revision',revisionDefinition,2);
+ const revisionId=await addMonitor('revision',makeDefinition({probes:['local-b']}),2);
+ await db.prepare('UPDATE revisions SET created_at=? WHERE monitor_id=? AND revision=2').bind(now-500,revisionId).run();
  const priorSlot=`${revisionId}:1:${now-1000}`;
  await db.prepare('INSERT INTO revisions(monitor_id,revision,definition,created_at) VALUES(?,?,?,?)')
   .bind(revisionId,1,JSON.stringify(revisionDefinition),now-3*week).run();
@@ -136,8 +137,9 @@ try{
  assert.equal(heartbeat.last24h.unknownMs,day-4900);
 
  const revised=report.get(revisionId);
- assert.equal(revised.last24h.uptimePercent,null,'a prior revision cannot establish current-revision availability');
- assert.equal(revised.last24h.unknownPercent,100);
+ assert.equal(revised.last24h.upMs,400,'historical coverage uses its own selected probes and ends at the next revision');
+ assert.equal(revised.last24h.unknownMs,day-400);
+ assert.equal(revised.lastCheckAt,now-900,'last completed check survives revision changes');
 
  const future=report.get(futureId);
  assert.equal(future.last24h.uptimePercent,null,'future completion time remains Unknown');

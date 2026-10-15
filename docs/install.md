@@ -2,22 +2,40 @@ Uptime runs on your own computer first, which is the quickest way to try it. Thi
 
 ## What you need
 
-- Node exactly 22.20.0.
-- pnpm 10.12.4.
+- Node 22 or later and pnpm 10.12.4.
+- macOS, Linux or Windows with WSL2.
 - Git, to clone the source from https://github.com/just-every/run-uptime.
 
-## Install and set up
+The CLI selects the checkout's pinned Node 22.20.0 for application commands. Use that pinned runtime when running contributor commands directly with `node` or `pnpm`.
 
-Every step goes through one command, `rer`, run from the checkout. Clone Uptime, install its frozen dependencies and set it up:
+## Clone and start
+
+Install `rer` once if it is not on your PATH:
+
+```sh
+npx -y @runeditrun/rer cli install
+```
+
+Then clone Uptime and start it:
 
 ```sh
 git clone https://github.com/just-every/run-uptime.git uptime
 cd uptime
+rer dev
+```
+
+`rer dev` installs frozen dependencies and sets up a fresh checkout automatically. A first launch can take several minutes. If it is interrupted, run `rer dev` again to resume. It starts the app, private runner and practice target, then prints `RER_READY` and a signed-in `RER_OPEN` link. In an interactive terminal it stays in the foreground and Control-C stops it. From an agent or other non-interactive shell it returns once ready, leaving the app in the background. Use `rer dev --detach` to request a background run explicitly.
+
+## Explicit owner setup
+
+To choose an owner or supply setup answers yourself, run these before `rer dev`:
+
+```sh
 rer install
 rer setup --owner-email EMAIL --owner-name "NAME" --non-interactive
 ```
 
-Replace EMAIL and NAME with your own address and name. Setup builds Uptime, applies the local database migrations, saves your private settings in `data/local-secrets.json` and creates the first owner, then prints `RER_SETUP_READY` and stops. Running it again keeps your owner, data and settings, and refuses a different owner or address instead of replacing them.
+Replace EMAIL and NAME with your own address and name. Setup builds Uptime, applies the local database migrations, saves your private settings in `data/local-secrets.json` and creates the first owner, then prints `RER_SETUP_READY` and stops its temporary processes. Running it again keeps your owner, data and settings, and refuses a different owner or address instead of replacing them.
 
 ### Start with a website
 
@@ -31,20 +49,20 @@ Then add `--answers answers.json` to the setup command above. Use a public `http
 
 When you open `/setup`, Uptime asks your runner to visit that site and look around. Dev starts the runner for you. When you choose **Finish setup**, the console opens on the monitors it proposes, each ready to start with one click. Nothing is created until you choose it, and nothing is checked from anywhere but your runner.
 
-## Start it
-
-```sh
-rer dev
-```
-
-Dev starts Uptime with its private runner and a practice target, and prints a link that opens the console signed in. Control-C stops all of them.
-
-### Sign in and finish setup
+## Sign in and finish setup
 
 1. Open the `RER_OPEN` link that dev printed in a browser on this computer. It carries this checkout's private key in its fragment, so keep it to yourself; you land signed in as the owner.
 2. First-run setup opens at `/setup`. Choose **Finish setup**. If you gave a website, the page says Uptime is checking it, and finishing takes you to the proposed monitors.
 
 The console is then at `/app`. A small dev badge switches to the `member` dev operator (who has no console access) or signs out. To try the ordinary email sign-in instead, run dev with `--login`: it prints a key-carrying link to the development outbox, where you choose the newest sign-in message and follow its link (no email is sent). From another terminal, `rer outbox` prints that link again.
+
+## Stop it
+
+```sh
+rer dev --stop
+```
+
+This stops the app and its owned runner and practice target. Stop it before export, import or reset.
 
 ## Look after the settings file
 

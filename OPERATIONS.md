@@ -7,7 +7,7 @@ Cron runs every minute to expire acceptance windows and transient auth records, 
 
 ## Run it locally
 
-Use Node 22.20.0 and pnpm 10.12.4. From the repository root:
+Use Node 22 or later and pnpm 10.12.4; rer selects the pinned Node 22.20.0 runtime. From the repository root:
 
 ```sh
 rer install
@@ -15,7 +15,7 @@ rer setup --owner-email owner@example.test --non-interactive
 rer dev
 ```
 
-Use the owner's email. Setup creates one owner, preserves existing owner/data/settings and stops its temporary app. Open the printed outbox, select the newest message and follow its one-use link; no email is sent. Dev runs real Vite assets/HMR, the synthetic target and signed private runner. `rer preview` instead builds and serves the fixed production output with the same target and runner. Control-C, `dev --stop` or `preview --stop` stops owned processes. Public commands run the pinned `@runeditrun/rer` (`rer VERB`); `build:app` and `verify:app` are internal adapter targets. The root `rer-setup.json` owns all setup fields and generated secrets. Inspect `rer describe --json`; `check --profile first-party` works without dependencies or credentials.
+Use the owner's email. Setup creates one owner, preserves existing owner/data/settings and stops its temporary app. Open the printed outbox, select the newest message and follow its one-use link; no email is sent. Dev starts real Vite assets/HMR, the synthetic target and signed private runner. It stays in the foreground in an interactive terminal (Control-C stops it), and returns once ready in a non-interactive shell, leaving the app running. `rer dev --detach` requests a background run explicitly. `rer preview` instead builds and serves the fixed production output with the same target and runner. Use `rer dev --stop` or `rer preview --stop` to stop the corresponding runtime and its owned processes. Public commands run the pinned `@runeditrun/rer` (`rer VERB`); `build:app` and `verify:app` are internal adapter targets. The root `rer-setup.json` owns all setup fields and generated secrets. Inspect `rer describe --json`; `check --profile first-party` works without dependencies or credentials.
 
 Local durable data is `.wrangler/state`, private settings are `data/local-secrets.json` (0600), CLI bookkeeping is `.rer/local` and command captures are `.seed/installer`. Secret directories are 0700. Builds exclude private settings and restore their exact bytes. Setup refuses conflicting owner/origin answers and never rotates existing credentials.
 
@@ -49,9 +49,9 @@ unset) or `cloudflare`. Resend uses `MAIL_PROVIDER_API_KEY`; SendGrid uses
 `MAIL_ACCOUNT_ID`. There is no automatic fallback between providers. Locally the
 provider is the development outbox. Optional `UPTIME_HEARTBEAT_URL` enables the
 independent heartbeat.
-Cloudflare is the only owner deployment target: Uptime's `deploy.json` declares no
-container platform, so the Base `--platform container`, `--host ssh://...` and
-`--image` options are refused. The production plan declares Worker `uptime-monitor-production` and database
+Cloudflare Workers is the default owner deployment target. Uptime also declares
+the container platform in `deploy.json`; see [the deployment guide](docs/deploy.md)
+for that separate path and its unverified acceptance status. The production plan declares Worker `uptime-monitor-production` and database
 `uptime-monitor-production-db`; Cloudflare supplies the hosted origin after
 deployment. Independent `SESSION_SECRET`, `SETUP_TOKEN` and `UPTIME_RUNNER_KEY`
 values are generated for a new installation or reused from the owner-only
@@ -60,7 +60,7 @@ back it up separately from D1.
 
 With rer's newer custom-deployment lifecycle (0.2.3 and later), `rer deploy` wraps Uptime's deployment hook, claims the owner automatically and retires the one-use hosted `SETUP_TOKEN` after permanent admission. Inspect the command's `claimed` or `kept` owner outcome and token-retirement result, then open the hosted `/login` for ordinary email-link sign-in and finish the signed-in `/setup` page to enter `/app`. Owner admission is the permanent `oa_bootstrap` singleton; first-run completion is the separate `uptime_first_run` record. Retirement works before first-run completion and after original-owner erasure, which anonymises but retains admission. App documents return unfinished owners to `/setup`; signed-out visitors go to `/login`.
 
-This checkout pins the unmodified published `@runeditrun/rer` 0.2.13. Its lifecycle wraps the Uptime upload and health-check hook to claim the owner and retire `SETUP_TOKEN`. If upload, health check, automatic claim or retirement is incomplete, retain `.rer/deploy/<environment>.json` and private settings, rerun the same deployment command with the same environment, and inspect the reported stage, owner outcome and retirement result. Never enter a retired token at `/claim`. See the [deployment guide](docs/deploy.md#owner-claim-and-sign-in). Other environments retain their own ownership record and their own `SESSION_SECRET`, `SETUP_TOKEN` and `UPTIME_RUNNER_KEY` in `.rer/deploy/environments/<environment>/secrets.json` (an environment deployed earlier keeps the values it was deployed with), and share the owner and mail inputs in `.rer/deploy/production-secrets.json`; back up both. Start a named environment's runner with `node scripts/runner-start.mjs --environment NAME`.
+This checkout pins the unmodified published `@runeditrun/rer` 0.2.16. Its lifecycle wraps the Uptime upload and health-check hook to claim the owner and retire `SETUP_TOKEN`. If upload, health check, automatic claim or retirement is incomplete, retain `.rer/deploy/<environment>.json` and private settings, rerun the same deployment command with the same environment, and inspect the reported stage, owner outcome and retirement result. Never enter a retired token at `/claim`. See the [deployment guide](docs/deploy.md#owner-claim-and-sign-in). Other environments retain their own ownership record and their own `SESSION_SECRET`, `SETUP_TOKEN` and `UPTIME_RUNNER_KEY` in `.rer/deploy/environments/<environment>/secrets.json` (an environment deployed earlier keeps the values it was deployed with), and share the owner and mail inputs in `.rer/deploy/production-secrets.json`; back up both. Start a named environment's runner with `node scripts/runner-start.mjs --environment NAME`.
 
 Start the private runner separately on an authorized host. See [Runner and targets](#runner-and-targets). The owner-account deployment path was exercised end to end once on v0.1.1; that historical run and a local readiness result do not establish the newer lifecycle or hosted operation.
 

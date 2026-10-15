@@ -21,12 +21,13 @@ Every green mark in Uptime is a check that ran and passed. If a result never arr
 
 Read more in [Monitors and evidence](/docs/monitors).
 
-## Four kinds of monitor
+## Supported monitors
 
 - **HTTP(S)** checks a URL and tests the response against your own success rules: status, body text, headers, JSON values and latency.
 - **Keyword** is an HTTP(S) check that requires a piece of text in the response body.
 - **Incoming heartbeat** waits for your job or service to call Uptime on schedule, which suits cron jobs and background workers.
-- **Browser flow** checks one bounded path in a real browser on a runner with a browser. It reports only the steps and outcomes you configured; it does not represent the rest of the site. See [What Uptime does not do](/docs/limits#browser-flows-are-small-and-bounded).
+
+Browser checks are outside the supported public feature set. See [What Uptime does not do](/docs/limits).
 
 ## Notifications
 

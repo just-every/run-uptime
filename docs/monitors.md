@@ -1,6 +1,6 @@
 A monitor describes what to check, how often, and what counts as success. Uptime runs the check on schedule, keeps the result as evidence, and only raises an incident when a failure is confirmed. This page explains the monitor kinds and how a series of checks becomes a state you can trust.
 
-## The four kinds
+## Supported monitor kinds
 
 ### HTTP(S)
 
@@ -20,60 +20,58 @@ A keyword monitor is an HTTP(S) check that requires specific text in the respons
 
 ### Incoming heartbeat
 
-A heartbeat monitor waits for your own job to call Uptime. It suits cron jobs, backups and workers that should check in on a schedule.
+A heartbeat monitor waits for your own job to call Uptime. It suits cron jobs, backups and workers that should check in on a schedule. Creation and configuration use **Definitions**; the New monitor HTTP form does not create heartbeats.
 
-1. While signed in as the owner, issue a key for the monitor with `POST /api/monitors/:id/heartbeat-key`. The response gives you a token, the receipt path and the first sequence number, which is 1. Keys belong to one revision of the monitor, and issuing a new one replaces the old.
-2. From your job, send an empty JSON object to the receipt path, with `Authorization: Bearer <token>` and an `X-Heartbeat-Sequence` header.
-3. Increase the sequence number on every call. Uptime uses it, with its own clock, to reject replays.
+1. Open **Definitions**, paste a file like the one below, choose **Preview**, review it, then **Apply**. The heartbeat arrives paused. `maxAgeMs` is how old the last receipt may be; `intervalMs` is how often the runner evaluates it. Maximum age is at most one day.
+2. Keep the [private runner](/docs/runner) running. Dev starts one automatically; a hosted installation needs its separately supervised runner. Open the new monitor and choose **Authorize & resume** to use its assigned runner. Imported definitions select installation-local runners; runner authority and heartbeat keys never come from the file.
+3. After resuming, issue a key for the active revision through the authenticated API as shown below. There is no token button in the console. The response contains `token`, `revision`, `receiptPath` and `sequenceStartsAt` (1). Store the token in your job's secret settings. Issuing another key creates a new revision, retires the old token and resets its receipt and sequence.
+4. From your job, send exactly `{}` as JSON to the receipt path on your Uptime origin, with `Authorization: Bearer <token>` and an `X-Heartbeat-Sequence` header. Start at 1 and persist a strictly increasing positive integer across job restarts; do not restart at 1 on each run.
+
+```json
+{
+  "format": "uptime.monitors",
+  "version": 2,
+  "monitors": [{
+    "name": "Backup job",
+    "type": "heartbeat",
+    "heartbeat": { "maxAgeMs": 300000 },
+    "intervalMs": 60000,
+    "probes": ["local-a"]
+  }]
+}
+```
+
+While signed in as the owner, open your browser's developer console on the Uptime app origin. Replace `MONITOR_ID` with the ID in the monitor page's URL and run this same-origin request. Its session cookie supplies owner authority; a runner key cannot issue heartbeat keys.
+
+```js
+const heartbeatResponse = await fetch('/api/monitors/MONITOR_ID/heartbeat-key', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: '{}'
+});
+if (!heartbeatResponse.ok) throw new Error(`Key request failed: ${heartbeatResponse.status}`);
+const heartbeatKey = await heartbeatResponse.json();
+```
+
+Use `heartbeatKey.token` only in your job's secret settings and combine the app origin with `heartbeatKey.receiptPath` for `HEARTBEAT_RECEIPT_URL`. Keep the token out of URLs, definition files, screenshots and logs. With those job settings loaded, and `HEARTBEAT_SEQUENCE` set to the next persisted number:
 
 ```sh
-curl -X POST "$HEARTBEAT_RECEIPT_URL" \
+curl --fail --silent --show-error -X POST "$HEARTBEAT_RECEIPT_URL" \
   -H "Authorization: Bearer $HEARTBEAT_TOKEN" \
-  -H "X-Heartbeat-Sequence: 1" \
+  -H "X-Heartbeat-Sequence: $HEARTBEAT_SEQUENCE" \
   -H "Content-Type: application/json" \
   -d '{}'
 ```
 
-Each monitor accepts up to 60 calls per one-minute window. A window starts with the first call after the previous window has ended and lasts 60 seconds, and further calls in a full window get HTTP 429. A received heartbeat is recorded as a receipt. It does not change health on its own: the next scheduled check evaluates the receipts it finds.
+A successful call returns `received: true` and the server's receipt time. It records receipt only. The assigned runner must claim and complete a scheduled check using the receipt snapshot taken at claim time. A call received after that claim is considered on a later check. Wait for a completed scheduled result, with fresh receipt evidence for every selected probe and the recovery threshold met, before expecting Healthy. Fresh runner contact and HTTP 200 from receipt ingestion alone do not establish heartbeat health.
 
-### Browser flow
-
-A flow monitor runs one path in a real browser, on a runner that has one: it opens a page, fills fields from credentials that stay on the runner, clicks, waits, and then checks the outcomes you require. Use it for one question, such as "can a person still sign in and see their dashboard?" A pass is evidence of that flow only. It says nothing about any page or step the flow does not visit.
-
-A flow is defined in a [definitions file](/docs/definitions) or through the monitor API, not in the editor form. The page of a flow monitor shows what it tests, the outcomes it requires, the revision running and each check's step trace. A flow is an ordinary monitor otherwise: it has revisions, a schedule (at least every 5 minutes), probes on separately keyed runners, confirmation and recovery, and incidents that notify.
-
-```json
-{
-  "name": "Sign in",
-  "type": "flow",
-  "url": "https://app.example.com/login",
-  "intervalMs": 300000,
-  "flow": {
-    "intent": "A person can sign in and reach their dashboard",
-    "steps": [
-      {"kind": "goto", "url": "https://app.example.com/login"},
-      {"kind": "fill", "target": {"label": "Email"}, "credentialRef": "app-login-email"},
-      {"kind": "fill", "target": {"label": "Password"}, "credentialRef": "app-login-password"},
-      {"kind": "click", "target": {"role": "button", "name": "Sign in"}},
-      {"kind": "waitFor", "what": "text", "value": "Welcome back"}
-    ],
-    "outcomes": [{"id": "dashboard", "what": "url", "value": "/dashboard"}]
-  }
-}
-```
-
-- **Steps** are `goto` (a URL), `click` (a target), `fill` (a target and a `credentialRef`, never a value), `waitFor` and `expect` (what: `text`, `url` or `element`). A target is exactly one of `css` (one plain CSS selector), `text`, `label`, or `role` with its `name`. There are no scripts, expressions or raw browser code, and an unknown step kind or field is refused with the entry's name.
-- **Required outcomes** must all be observed after the last step for a pass. Each has an `id` and the same `what` as an expectation.
-- **Credentials** are files on the runner, named by `credentialRef`: see [The runner](/docs/runner#browser-flows).
-- **Network:** every request the page makes goes through one filtering door on the runner. Public addresses only; private, loopback, link-local and metadata addresses are refused, including after a redirect or from a subresource, and the page may only load top-level pages on the origins the flow names.
-- **A failed flow says which step and why:** the expected text or element did not appear, no element matched a click, a page answered with an error status, the flow ran past its time limit, the page tried to reach a forbidden address or open a second window, or a required outcome was missing. A runner without a browser, or one missing a credential the flow names, makes the flow Unknown with that reason, never a pass and never a failure.
-- **Revisions:** every edit is a new revision, and the monitor's page lists when a revision's required outcomes shrank. A pass under a revision that requires less than the one an open incident began under, including one that changed the monitor's type, recovers that incident labelled as a changed definition, with what is no longer required named in the recovery notice. See the [limits](/docs/limits#browser-flows-are-small-and-bounded).
+Each monitor accepts up to 60 calls per one-minute window. A window starts with the first call after the previous window has ended and lasts 60 seconds; further calls in a full window get HTTP 429. Replayed sequences and paused or foreign-revision tokens are refused. Ordinary saves, including pause/resume and maintenance changes, retire the token: issue a replacement after the final change and update your job. Applying a Definitions change that keeps the heartbeat type preserves its token and sequence. Restored archives have no heartbeat authority; resume, issue a new key and repoint the job.
 
 ## Schedules and thresholds
 
 Each monitor has a schedule and a few knobs that decide when a bad check becomes an incident.
 
-- **Interval** is how often the check is due. A slot is one due check. A check never starts sooner than one interval after the monitor's previous scheduled check started, at each of its vantages and by the Worker's own clock, so a late check moves later due times back by its delay instead of letting two checks run closer together. The Worker's clock is the one that counts: a runner whose own clock is off by seconds reports its times in the Worker's clock and still has its results accepted. Because each due time slides to the previous start plus one interval, real cadence is a little slower than the interval you set: the delay between a check becoming due and starting (the runner polls every second) adds to every check, measured at about 0.4 s at a 60 second interval and about 0.26 s at the 5 second minimum, which runs about 5.3 seconds apart. Slots missed while no runner was working are counted rather than caught up. A vantage whose runner falls behind (a long browser flow on the same machine, or a stalled machine) does not catch up either: it skips the checks it missed and takes only the newest, so its own checks stay at least one interval apart, and each check it skipped shows its part as missing evidence (coverage incomplete), never as a pass or a failure. A skipped check neither confirms nor breaks confirmation or recovery: the monitor's state passes through it, so an incident both vantages see is confirmed, and recovers, however steadily one of them lags. A vantage that takes no newer check at all (its runner is down) leaves its part as missing evidence that does break them.
+- **Interval** is how often the check is due. A slot is one due check. A check never starts sooner than one interval after the monitor's previous scheduled check started, at each of its vantages and by the Worker's own clock, so a late check moves later due times back by its delay instead of letting two checks run closer together. The Worker's clock is the one that counts: a runner whose own clock is off by seconds reports its times in the Worker's clock and still has its results accepted. Because each due time slides to the previous start plus one interval, real cadence is a little slower than the interval you set: the delay between a check becoming due and starting (the runner polls every second) adds to every check, measured at about 0.4 s at a 60 second interval and about 0.26 s at the 5 second minimum, which runs about 5.3 seconds apart. Slots missed while no runner was working are counted rather than caught up. A vantage whose runner falls behind (a busy or stalled machine) does not catch up either: it skips the checks it missed and takes only the newest, so its own checks stay at least one interval apart, and each check it skipped shows its part as missing evidence (coverage incomplete), never as a pass or a failure. A skipped check neither confirms nor breaks confirmation or recovery: the monitor's state passes through it, so an incident both vantages see is confirmed, and recovers, however steadily one of them lags. A vantage that takes no newer check at all (its runner is down) leaves its part as missing evidence that does break them.
 - **Edits** save a new revision of the monitor, and so does enabling a paused monitor. After an edit that changes the interval, the first check is due the shorter of the old and new intervals after the previous check started (so an edit never delays a check by a whole new longer interval, and never makes two checks run closer than either cadence), or straight away if that is already past. A runner restart, a pause or a URL edit never makes two scheduled checks start closer than one interval. Use **Run now** when you want an immediate result; a manual check is excluded from this floor, does not move the schedule and never confirms or recovers an incident.
 - **Retries** are extra attempts inside a slot. A retry never erases an earlier failure and never counts as another slot.
 - **Confirmation** is how many consecutive scheduled slots must fail before the monitor is Failing.
@@ -100,7 +98,7 @@ A **manual check** runs a check now. It is recorded with its own identity, but i
 
 Unknown covers a result that never arrived, an incomplete set of passing results, and a result that has expired. Unknown never means healthy, and it does not quietly close an open incident. A runner error or a missing result is kept distinct from a target that answered badly.
 
-In the 24-hour and 7-day figures, each complete scheduled result (every selected probe answered, no runner error) counts from when it finishes for up to one interval, or until the next scheduled check finishes if that comes sooner, and never past its freshness or, for a passing heartbeat, the receipt's maximum age. A runner error, failed canary or incomplete result adds no time. The rest of each full window, including time before the monitor existed, is Unknown. Manual checks and retries do not add time.
+In the 24-hour and 7-day figures, each complete scheduled result (every selected probe answered, no runner error) counts from when it finishes for up to one interval, or until the next scheduled check finishes if that comes sooner, and never past its freshness or, for a passing heartbeat, the receipt's maximum age. A runner error, failed canary or incomplete result adds no time. The figures include retained scheduled results across revisions, using the settings of each result's own revision. Maintenance and paused time are listed separately; changing those settings does not erase earlier observed time. Time before the monitor existed and time without usable evidence are Unknown. Current health still uses the current revision. Manual checks and retries do not add time.
 
 ## Evidence you can read later
 

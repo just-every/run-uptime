@@ -70,13 +70,13 @@ current candidate.
 The latest published version is v0.1.2 at tag commit
 `bdcd147542e0fab55be2663f05165a0724b4e49e`; it has no GitHub Release entry.
 This branch is preparing v0.1.3, which remains unpublished and has no release
-tag. The candidate pins `@runeditrun/rer` to 0.2.2. Scoped local migration and
+tag. The candidate pins `@runeditrun/rer` to 0.2.16. Scoped local migration and
 ledger recovery evidence is summarized under BASE-OPS-002. Current-candidate
 browser-flow recovery remains a separate release acceptance item. The earlier
 clause-labelled results below do not substitute for exact-candidate evidence.
 
 The release pack uses the official current Base CLI release producer,
-independent of Uptime's `@runeditrun/rer` 0.2.2 product pin. It frozen-installs
+independent of Uptime's `@runeditrun/rer` 0.2.16 product pin. It frozen-installs
 the candidate, runs `pnpm run verify` and `pnpm run verify:release`, scans the
 source and emits a local dry-run artifact. Exact-head CI, runtime/accessibility
 receipts and scan reports accompany candidate review as external evidence; a

@@ -2,7 +2,7 @@ A definition file lists your monitors as reviewed text, so you can keep them in 
 
 ## The file
 
-The default name is `uptime.monitors.json`. Version 2 adds the [browser flow](/docs/monitors#browser-flow) type; a version 1 file is still read and cannot hold a flow, and an export always writes version 2:
+The default name is `uptime.monitors.json`. New exports use version 2; version 1 files remain readable. The supported public monitor types are HTTP(S), keyword and heartbeat:
 
 ```json
 {
@@ -34,20 +34,7 @@ The default name is `uptime.monitors.json`. Version 2 adds the [browser flow](/d
 }
 ```
 
-Each entry uses the same fields as the monitor editor, and the same validation checks them: `name`, `type` (`http`, `keyword`, `heartbeat` or `flow`), `url`, `method`, `assertions`, `intervalMs`, `timeoutMs`, `retries`, `probes`, `failureQuorum`, `confirmSlots`, `recoverSlots`, `freshnessMs`, `heartbeat` (`maxAgeMs`, at most one day), `flow`, `enabled` and `maintenanceUntil`. A header assertion takes only `name` and `equals`, and a JSON assertion only `path` and `equals`. Fields you leave out take the editor's defaults. Monitors are matched to your installation by name.
-
-A flow entry carries its `flow` (intent, steps, required outcomes) and no HTTP assertions:
-
-```json
-{"name": "Sign in", "type": "flow", "url": "https://app.example.com/login", "intervalMs": 300000,
- "flow": {"intent": "A person can sign in and reach their dashboard",
-  "steps": [{"kind": "goto", "url": "https://app.example.com/login"},
-            {"kind": "fill", "target": {"label": "Password"}, "credentialRef": "app-login-password"},
-            {"kind": "click", "target": {"role": "button", "name": "Sign in"}}],
-  "outcomes": [{"id": "dashboard", "what": "url", "value": "/dashboard"}]}}
-```
-
-A flow is refused, with the entry named, for an unknown step kind or field, a `fill` that carries a value instead of a `credentialRef`, a script, expression or selector engine other than plain CSS, an interval under 5 minutes, more than 20 steps or 8 outcomes, a version 1 file, or an installation already holding 5 flows. A secret never belongs in the file: a credential is a file on the runner (see [The runner](/docs/runner#browser-flows)). An edit that removes a required outcome previews as a change, saves a new revision, and shows in the monitor's revision history as a reduction.
+Each entry uses the same fields as the monitor editor, and the same validation checks them: `name`, `type` (`http`, `keyword` or `heartbeat`), `url`, `method`, `assertions`, `intervalMs`, `timeoutMs`, `retries`, `probes`, `failureQuorum`, `confirmSlots`, `recoverSlots`, `freshnessMs`, `heartbeat` (`maxAgeMs`, at most one day), `enabled` and `maintenanceUntil`. A header assertion takes only `name` and `equals`, and a JSON assertion only `path` and `equals`. Fields you leave out take the editor's defaults. Monitors are matched to your installation by name.
 
 Some things never go in the file:
 
@@ -70,6 +57,8 @@ In the console, open **Definitions**, choose or paste a file and select **Previe
 The preview ends with a plan digest. **Apply** sends that digest back. If anything changed since the preview, such as a monitor edited in another tab, the apply is refused and nothing is written; preview again. Otherwise every create and change commits together, or none do. A file never enables a monitor, issues a heartbeat token, sends a notification or changes a destination.
 
 A new revision's first check is due no sooner than the shorter of its old and new intervals after the monitor's previous check started, so an applied change never makes checks run closer together than either cadence.
+
+For a newly created heartbeat, continue with [Incoming heartbeat](/docs/monitors#incoming-heartbeat): authorize its runner and resume it, issue a token for its active revision, then configure your job to send receipts. The HTTP editor is not the heartbeat editor; change heartbeat settings through Definitions.
 
 ## Undo
 

@@ -21,6 +21,10 @@ node runners/src/private-runner.mjs
 
 The runner is run from a clone of the source, so use the same checkout you installed from. `rer dev` starts a runner for you; the steps above are for a hosted installation.
 
+## Heartbeat evaluation
+
+Heartbeats also need the runner. The job sends receipts to Uptime, but only a completed signed scheduled evaluation turns those receipts into monitoring evidence. Keep the assigned runner polling even when every monitor is a heartbeat. See [Incoming heartbeat](/docs/monitors#incoming-heartbeat) for creation, token issuance and increasing sequences.
+
 ## Keep it under a supervisor
 
 Run the runner under something that restarts it when it stops, such as systemd, a container restart policy or a process manager. A runner that quietly stopped looks like a quiet night, so you want to notice.
@@ -55,7 +59,7 @@ You can rerun the report from the checkout root:
 node runners/migrations/0001-monitor-credentials.mjs --directory "$UPTIME_CREDENTIAL_DIR" --persist-to .wrangler/state
 ```
 
-Shared and unused files stay unbound. Setup, and each dev or preview start, reports the reference and all known monitor IDs, with a complete numbered command for each possible selection. A scheduled HTTP or browser check that encounters an unbound file stays Unknown and records the reference, its intended monitor, the known IDs from the last migration, and the exact command in **Recent checks**. The report is diagnostic only: checks never bind files. With several missing flow credentials, each check reports the first unbound reference it encounters; resolve it and the next check identifies the next one.
+Shared and unused files stay unbound. Setup, and each dev or preview start, reports the reference and all known monitor IDs, with a complete numbered command for each possible selection. A scheduled check that encounters an unbound file stays Unknown and records the reference, its intended monitor, the known IDs from the last migration, and the exact command in **Recent checks**. The report is diagnostic only: checks never bind files.
 
 Review the intended monitor (its ID is in the console URL), stop the runner, then run the command for that monitor on the runner machine:
 
@@ -68,26 +72,6 @@ This adds the explicit binding atomically and prints no credential value. It ref
 Archives preserve non-secret credential references and monitor IDs; they never contain local credential files or runner authority. Restore remains paused. After reviewing the restored monitor and assigning a receiving runner, it may reuse its same-ID local file if that file was retained separately on that runner. A receiving runner without the file has no credential access. A copied, new or definitions-imported monitor receives a different ID and cannot reuse that file.
 
 Rotation means replacing the contents of the bound file on the runner, preferably by atomically renaming a new mode-0600 file over it. The next check reads the new value. Removing the file makes subsequent checks Unknown. A check already in progress may have read the old value; stop the runner before immediate revocation. Erasing a monitor in the console does not delete files on a separate runner: remove its local credential files yourself. A new monitor has a new ID and cannot use those leftover files. Rebinding requires explicit owner review and re-entry. Keep runner credential backups separate from product archives.
-
-## Browser flows
-
-A [flow monitor](/docs/monitors#browser-flow) runs in a real browser, so the runner that serves it needs one. Install the pinned browser once on that machine:
-
-```sh
-pnpm exec playwright install chromium
-```
-
-At enrolment the runner starts the browser once to prove it can, and reports `"capabilities": {"browser": true|false}`; the console lists a runner without a browser as having none. A flow assigned to a runner without a browser, or to one that has `UPTIME_RUNNER_BROWSER=off` set, is Unknown with that reason; it is never a pass and never a failure.
-
-Each flow run is isolated:
-
-- It runs in its own process with a fresh private profile folder that is deleted afterwards, a sanitized environment (no inherited credentials, proxy settings or Node hooks) and a stricter home folder, one flow at a time. Profiles live in a folder the runner owns (owner-only, mode 0700): one per runner under `UPTIME_FLOW_DIR`, or under the system temporary folder when that is unset. A runner refuses to run flows from a folder that is a link or belongs to another user.
-- The whole browser network goes through one filtering proxy inside the runner. It resolves each destination itself, connects only to the address it checked, and refuses private, loopback, link-local and metadata addresses for every page, redirect, subresource and WebSocket. A local fixture is reachable only through the same owner-only grant file the HTTP runner uses.
-- The run is killed, browser and all, when its wall-clock limit passes. A run that ends any other way is still cleaned up: if the runner is killed outright, the flow's own process ends the browser and deletes the profile; if that process is killed, the runner does; and if everything stops at once (a power loss), the runner empties its flow folder, ending any browser still using it, the next time it starts.
-
-Credentials for `fill` steps are files in the folder named by `UPTIME_CREDENTIAL_DIR`, one `<credentialRef>.json` per credential, owner-only, holding exactly `{"monitorId": "MONITOR_ID", "origin": "https://app.example.com", "value": "…"}`. The value is read on the runner, handed to the browser process over a pipe, and used only on a page whose origin matches the file's origin. It never reaches Uptime: not the database, a definitions file, an archive, an export, a log, the trace or the audit table. A missing or invalid credential makes the flow Unknown, never a failure of the target.
-
-A flow's observation keeps a sanitized step trace (step, result, duration, the expectation it matched or missed, and the page's URL without its query string or fragment) and no screenshots or page bodies. Before anything is stored, every value of a credential the flow named is replaced with `[credential]` wherever it appears, each character as typed, lowercased or uppercased, raw or percent-encoded, once or twice (so a site that escapes only part of an address, lowercases an accented address, re-encodes an encoded path, or turns a space into '+', is covered too), and only then is a URL cut to its 300-character limit, so a site that puts your sign-in address in its URL path does not put it, or any part of it, in the trace. See [Limits](/docs/limits#browser-flows-are-small-and-bounded).
 
 ## Signed results
 
