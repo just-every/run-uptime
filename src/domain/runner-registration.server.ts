@@ -1,3 +1,4 @@
+import {HOSTED_RUNNER_ID,hostedHttp,hostedInstallation} from './hosted-runner.ts'
 import {same,sign,type Bindings} from './control.server.ts'
 import {externalCheckUrl,EXTERNAL_CHECK_ABSENT} from './external-check.server.ts'
 // @ts-expect-error Base authenticated encryption; separate product purpose.
@@ -5,14 +6,16 @@ import {keyedHash,seal,unseal} from '../base/modules/operator-auth/identity/oidc
 // @ts-ignore Edition URL validation is JavaScript.
 import {publicTarget} from './public-target.mjs'
 export type Runner={runner_id:string;registered_at:number;network_label:string;key_ciphertext:string|null;legacy_key:number;revoked_at:number|null;last_contact_at:number|null;capabilities?:string}
+const runnerOrder=`CASE runner_id WHEN '${HOSTED_RUNNER_ID}' THEN 0 ELSE 1 END,registered_at,runner_id`
 const label=(value:unknown)=>{if(typeof value!=='string'||!value.trim()||value.length>80||/[\x00-\x1f\x7f]/.test(value))throw Error('Network label required (80 characters max)');return value.trim()}
 async function custody(env:Bindings){if(!env.SESSION_SECRET||env.SESSION_SECRET.length<32)throw Error('Runner key custody unavailable');return keyedHash(env.SESSION_SECRET,'uptime-runner-keys','aes-gcm-v1')}
 export async function runnerIdentity(env:Bindings){return env.DB.prepare('SELECT * FROM runners WHERE legacy_key=1').first<Runner>()}
 export async function ensureFirstRunner(env:Bindings){
+ if(hostedInstallation(env))await env.DB.prepare("INSERT OR IGNORE INTO runners(runner_id,registered_at,network_label,legacy_key) VALUES(?,?,'Cloudflare Worker',0)").bind(HOSTED_RUNNER_ID,Date.now()).run();
  await env.DB.prepare("INSERT INTO runners(runner_id,registered_at,network_label,legacy_key) SELECT ?,?,'owner-network',1 WHERE NOT EXISTS(SELECT 1 FROM runners WHERE legacy_key=1)").bind(`self-${crypto.randomUUID()}`,Date.now()).run();return (await runnerIdentity(env))!
 }
 export async function runnerKey(env:Bindings,row:Runner){
- if(row.revoked_at!==null)return null;
+ if(row.runner_id===HOSTED_RUNNER_ID||row.revoked_at!==null)return null;
  if(row.legacy_key)return env.UPTIME_RUNNER_KEY?.length>=24?env.UPTIME_RUNNER_KEY:null;
  try{const value=await unseal(await custody(env),JSON.stringify(['uptime-runner-key-v1',row.runner_id,row.registered_at]),row.key_ciphertext);return typeof value.key==='string'?value.key:null}catch{return null}
 }
@@ -42,11 +45,11 @@ export async function createRunner(env:Bindings,input:any){
  await env.DB.prepare('INSERT INTO runners(runner_id,registered_at,network_label,key_ciphertext) VALUES(?,?,?,?)').bind(runnerId,registeredAt,networkLabel,ciphertext).run();
  return {runnerId,networkLabel,key}
 }
-export async function revokeRunner(env:Bindings,id:string){const result=await env.DB.prepare('UPDATE runners SET revoked_at=?,key_ciphertext=NULL WHERE runner_id=? AND revoked_at IS NULL').bind(Date.now(),id).run();if(!result.meta.changes)throw Error('Active runner not found');return {revoked:true}}
-export async function listRunners(env:Bindings){return (await env.DB.prepare('SELECT runner_id AS runnerId,network_label AS networkLabel,registered_at AS registeredAt,revoked_at AS revokedAt,last_contact_at AS lastContactAt,capabilities FROM runners ORDER BY registered_at,runner_id').all()).results.map((r:any)=>({...r,capabilities:capabilitiesOf(r.capabilities)}))}
+export async function revokeRunner(env:Bindings,id:string){if(id===HOSTED_RUNNER_ID)throw Error('The hosted Worker has no runner key to revoke');const result=await env.DB.prepare('UPDATE runners SET revoked_at=?,key_ciphertext=NULL WHERE runner_id=? AND revoked_at IS NULL').bind(Date.now(),id).run();if(!result.meta.changes)throw Error('Active runner not found');return {revoked:true}}
+export async function listRunners(env:Bindings){return (await env.DB.prepare(`SELECT runner_id AS runnerId,network_label AS networkLabel,registered_at AS registeredAt,revoked_at AS revokedAt,last_contact_at AS lastContactAt,capabilities FROM runners ORDER BY ${runnerOrder}`).all()).results.map((r:any)=>({...r,hosted:r.runnerId===HOSTED_RUNNER_ID,capabilities:capabilitiesOf(r.capabilities)}))}
 const capabilitiesOf=(value:unknown)=>{try{const parsed=JSON.parse(String(value));return {browser:parsed?.browser===true}}catch{return {browser:false}}}
 export async function assignDefinition(env:Bindings,definition:any,input:any){
- const first=await ensureFirstRunner(env),rows=(await env.DB.prepare('SELECT * FROM runners ORDER BY registered_at,runner_id').all<Runner>()).results;
+ const first=await ensureFirstRunner(env),rows=(await env.DB.prepare(`SELECT * FROM runners ORDER BY ${runnerOrder}`).all<Runner>()).results;
  return assignRunners(rows,first.runner_id,definition,input,await externalCheckUrl(env));
 }
 // The pure assignment step, shared by saving and by a definition-file preview that must not write. `external` is the
@@ -62,10 +65,12 @@ function sameSiteRefusal(url:string,own:boolean){
 }
 export function assignRunners(rows:Runner[],firstRunnerId:string,definition:any,input:any,external:string|null=null){
  const assignments:Record<string,any>={};
+ const available=rows.filter(r=>r.revoked_at===null&&(r.runner_id!==HOSTED_RUNNER_ID||hostedHttp(definition)));
+ const hosted=hostedHttp(definition)?available.find(r=>r.runner_id===HOSTED_RUNNER_ID):undefined;
  if(input.assignments!==undefined&&(!input.assignments||Array.isArray(input.assignments)||Object.keys(input.assignments).some(k=>!definition.probes.includes(k))))throw Error('Invalid probe assignments');
  for(const [i,probe] of definition.probes.entries()){
-  const requested=input.assignments?.[probe],runnerId=typeof requested==='string'?requested:requested?.runnerId??rows.filter(r=>r.revoked_at===null)[i%rows.filter(r=>r.revoked_at===null).length]?.runner_id??firstRunnerId;
-  const row=rows.find(r=>r.runner_id===runnerId);if(!row||(definition.enabled&&row.revoked_at!==null))throw Error('Probe requires an active assigned runner');
+  const requested=input.assignments?.[probe],runnerId=typeof requested==='string'?requested:requested?.runnerId??hosted?.runner_id??available[i%available.length]?.runner_id??firstRunnerId;
+  const row=rows.find(r=>r.runner_id===runnerId);if(runnerId===HOSTED_RUNNER_ID&&(!hostedHttp(definition)||definition.intervalMs<60000))throw Error('Worker checks require public HTTP(S), no runner-local credentials, and an interval of at least one minute. Choose a private runner for other checks');if(!row||(definition.enabled&&row.revoked_at!==null))throw Error('Probe requires an active assigned runner');
   const canaryUrl=requested?.canaryUrl??input.canaryUrl;
   const href=canaryUrl?publicTarget(canaryUrl).href:null;
   if(href&&definition.enabled&&definition.url&&sameSite(href,definition.url))throw sameSiteRefusal(href,true);

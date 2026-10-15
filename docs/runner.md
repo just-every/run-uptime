@@ -1,25 +1,31 @@
-The private runner is the part of Uptime that actually visits your sites and APIs. It is a small Node process that you start yourself, on a machine you trust to reach your targets, and that you keep running. Without it the console works but no checks happen.
+Public website checks run automatically in the hosted Cloudflare Worker. New public HTTP(S) and keyword monitors use the Worker by default, with a minimum interval of one minute. You do not need to keep a private runner running for those checks. The Worker validates public DNS answers and each redirect, uses Cloudflare’s public Internet fetch transport with certificate verification, and bounds response size and time; it has no private-network binding. Add a private runner when a check needs to run from a network you control, such as a private network, or needs runner-local credentials or browser execution.
 
 ## Why it is separate
 
-The Worker stores evidence and decides what it means, but it does not make the requests. Keeping the runner separate means your targets are probed from a network you choose, and credentials for those targets never need to leave it.
+A private runner is a small Node process on a machine you operate. Its checks use that machine's network vantage, and request credentials stay on that machine. The Worker stores the evidence and evaluates health. A runner being reachable does not establish that its targets are healthy.
 
-The runner also does the delivery work for notifications: it sends signed JSON webhooks and Slack messages when it polls. See [Notifications](/docs/notifications).
+The runner also sends signed JSON webhooks and Slack messages when it polls. See [Notifications](/docs/notifications).
 
 ## Start it
 
-Give the runner the exact address of your Uptime installation and the runner key, then start it.
+In the signed-in console, open **Runner / Archive**, enter an **Independent network label**, and choose **Add runner**. The dialog shows a complete command with this app's origin, the new runner ID, its one-time key, the network label and the startup command. Save it privately before closing the dialog.
+
+On the runner machine, use an installed Uptime source checkout with Node 22 or later. From its root, paste the command from the dialog. Its shape is:
 
 ```sh
-export UPTIME_CONTROL_ORIGIN="https://your-uptime-address.example"
-export UPTIME_RUNNER_KEY="the key from your private deployment settings"
+export UPTIME_CONTROL_ORIGIN='https://your-uptime-address.example'
+export UPTIME_RUNNER_ID='the runner ID from the dialog'
+export UPTIME_RUNNER_KEY='the one-time key from the dialog'
+export UPTIME_NETWORK_LABEL='your independent network label'
 node runners/src/private-runner.mjs
 ```
 
-- `UPTIME_CONTROL_ORIGIN` is the exact HTTPS origin of your installation. It is required, and the runner refuses to start without it.
-- `UPTIME_RUNNER_KEY` is the scoped key that matches your installation. For a hosted deployment, it is in `.rer/deploy/production-secrets.json`, or for a separate environment in `.rer/deploy/environments/<environment>/secrets.json`. From the deploying checkout, `node scripts/runner-start.mjs --environment NAME` reads that environment's key for you (without `--environment`, production's). See [Deploy to Cloudflare](/docs/deploy).
+- `UPTIME_CONTROL_ORIGIN` is the exact HTTPS origin of your Uptime app, without a path or trailing slash. The dialog fills in the origin you are signed into.
+- The runner ID and key authorize this runner in this installation. Never share its command or commit it to source control. Revoking the runner in the console refuses its future requests.
+- Give each independent network a separate runner and key. Labels identify network vantages; different labels alone do not make two runners independent.
+- For the original deployment runner, `node scripts/runner-start.mjs --environment NAME` reads that environment's saved key privately. Set `UPTIME_CONTROL_ORIGIN` first; omitting `--environment` selects production. See [Deploy to Cloudflare](/docs/deploy).
 
-The runner is run from a clone of the source, so use the same checkout you installed from. `rer dev` starts a runner for you; the steps above are for a hosted installation.
+`rer dev` starts a local runner for you. The manual steps above are for a separately operated runner. Local loopback review permits `http://127.0.0.1:PORT` only with `UPTIME_LOCAL_REVIEW=true`; the dialog includes this setting when opened at that local origin.
 
 ## Heartbeat evaluation
 

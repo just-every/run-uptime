@@ -16,15 +16,15 @@ import {flowDigest} from './flow.mjs'
 // at least one interval after each vantage's previous delivery (see the delivery below), so a vantage's own consecutive checks stay
 // one interval apart however late it polls. `slot` is the slot about to be delivered and ?2 its runner.
 const newest=(slot:string)=>`NOT EXISTS(SELECT 1 FROM slots c JOIN slots n ON n.monitor_id=c.monitor_id AND n.manual=0 AND n.due_at>c.due_at JOIN runner_assignments na ON na.slot_id=n.id AND na.runner_id=?2 WHERE c.id=${slot} AND c.manual=0)`
-export async function claimAttempt(env:Bindings,runnerId:string){
+export async function claimAttempt(env:Bindings,runnerId:string,{monitorId=null}:{monitorId?:string|null}={}){
  const now=Date.now();
  await env.DB.prepare("UPDATE slots SET status='interrupted' WHERE status='running' AND lease_until<=?").bind(now).run();
- const pending=await env.DB.prepare(`SELECT s.* FROM slots s JOIN runner_assignments a ON a.slot_id=s.id WHERE a.runner_id=?2 AND a.delivered_at IS NULL AND s.status='running' AND s.lease_until>?3 AND ${newest('s.id')} ORDER BY s.manual,s.due_at LIMIT 1`).bind(null,runnerId,now).first<any>();
+ const pending=await env.DB.prepare(`SELECT s.* FROM slots s JOIN runner_assignments a ON a.slot_id=s.id WHERE a.runner_id=?2 AND a.delivered_at IS NULL AND s.status='running' AND s.lease_until>?3 AND (?4 IS NULL OR s.monitor_id=?4) AND ${newest('s.id')} ORDER BY s.manual,s.due_at LIMIT 1`).bind(null,runnerId,now,monitorId).first<any>();
  let slot=pending;
  if(!slot){
-  const queued=await env.DB.prepare("SELECT * FROM slots WHERE status='queued' AND manual=1 ORDER BY due_at LIMIT 1").first<any>();
+  const queued=await env.DB.prepare("SELECT * FROM slots WHERE status='queued' AND manual=1 AND (? IS NULL OR monitor_id=?) AND (json_extract(definition,'$.assignments') IS NULL OR EXISTS(SELECT 1 FROM json_each(json_extract(slots.definition,'$.assignments')) a WHERE json_extract(a.value,'$.runnerId')=?)) ORDER BY due_at LIMIT 1").bind(monitorId,monitorId,runnerId).first<any>();
   if(queued){const m=await get(env,queued.monitor_id);if(!m?.definition.enabled||m.revision!==queued.revision){await env.DB.prepare("UPDATE slots SET status='interrupted' WHERE id=?").bind(queued.id).run()}else slot=queued}
-  if(!slot){const row=await env.DB.prepare("SELECT * FROM monitors WHERE next_due<=? AND json_extract(definition,'$.enabled')=1 ORDER BY next_due LIMIT 1").bind(now).first<any>();
+  if(!slot){const row=await env.DB.prepare("SELECT * FROM monitors WHERE next_due<=? AND json_extract(definition,'$.enabled')=1 AND (? IS NULL OR id=?) AND (json_extract(definition,'$.assignments') IS NULL OR EXISTS(SELECT 1 FROM json_each(json_extract(monitors.definition,'$.assignments')) a WHERE json_extract(a.value,'$.runnerId')=?)) ORDER BY next_due LIMIT 1").bind(now,monitorId,monitorId,runnerId).first<any>();
    if(row){const definition=JSON.parse(row.definition),id=`${row.id}:${row.revision}:${row.next_due}`,until=now+acceptanceMs(definition);
     // The next scheduled check is due no sooner than one interval after this claim. Each vantage that takes its part of the check
     // later raises it to one interval after its own delivery, and completed results to one interval after the latest vantage's

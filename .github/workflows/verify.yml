@@ -26,8 +26,13 @@ jobs:
       - run: pnpm exec playwright install --with-deps --only-shell chromium
       - name: Prepare canonical temporary directory
         run: |
-          mkdir -p ../scratch/tmp
-          echo "TMPDIR=$(realpath ../scratch/tmp)" >> "$GITHUB_ENV"
+          node --input-type=module <<'NODE'
+          import {appendFile, mkdtemp, realpath} from 'node:fs/promises';
+          import {tmpdir} from 'node:os';
+          import {join} from 'node:path';
+          const directory = await realpath(await mkdtemp(join(tmpdir(), 'uptime-verify-')));
+          await appendFile(process.env.GITHUB_ENV, `TMPDIR=${directory}\nTMP=${directory}\nTEMP=${directory}\n`);
+          NODE
           df -Pk "$GITHUB_WORKSPACE"
           available_kib=$(df --output=avail -k "$GITHUB_WORKSPACE" | tail -n 1)
           if (( available_kib < 15 * 1024 * 1024 )); then

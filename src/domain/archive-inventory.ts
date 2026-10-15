@@ -8,6 +8,7 @@ export const installationLocalTables:Record<string,string>={
  d1_migrations:'Receiving installation migration ledger; never replace applied migration history.',
  sessions:'Retired installation authentication sessions.',login_attempts:'Authentication rate-limit authority.',
  oa_operators:'Installation operator identities, roles and authorization.',oa_bootstrap:'Installation owner-claim authority.',
+ oa_owner_signins:'Installation one-use hosted owner sign-in authority; never portable.',
  oa_tokens:'Magic-link and invitation authentication authority.',oa_sessions:'Installation session authority.',
  oa_dev_credentials:'Installation record of credentials minted in a local dev session; never portable.',oa_external_identities:'Installation external authentication identities.',oa_limits:'Authentication rate limits.',oa_invitation_cancellations:'Invitation authorization and revocation ledger.',
  oa_domain_rules:'Installation sign-in provider policy; never portable authorization.',

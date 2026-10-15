@@ -4,7 +4,7 @@ You can deploy Uptime to your own Cloudflare account with one command. This page
 
 - A Cloudflare account ID and an API token for that account.
 - An owner email address, for the person who will claim the installation.
-- A verified sender and the API credential for Resend, SendGrid or Cloudflare Email Sending. Hosted sign-in uses email links, so this is required even if you chose **Set up later** for email on your own computer.
+- A verified sender and the API credential for Resend, SendGrid or Cloudflare Email Sending. These deployment inputs support ordinary email-link sign-in and email notifications, and are required even if you chose **Set up later** locally. The owner can also sign in without sending mail using `rer signin` below.
 
 ## Set the inputs
 
@@ -43,7 +43,21 @@ If the Uptime upload or health-check stage stops part way, inspect the reported 
 
 With rer's newer custom-deployment lifecycle (0.2.3 and later), `rer deploy` wraps Uptime's custom deployment hook, claims the owner automatically, then retires the one-use hosted `SETUP_TOKEN`. Inspect the CLI's `claimed` or `kept` owner outcome and token-retirement result. After successful admission, open `/login` on the reported hosted address and request an ordinary email sign-in link. Opening the link shows a confirmation page; choosing **Confirm** signs you in. Finish first-run setup at `/setup`, then use the console at `/app`. Permanent owner admission survives token retirement even before setup is finished, and remains claimed if the original owner is later erased.
 
-This checkout pins the unmodified published `@runeditrun/rer` 0.2.18. The lifecycle wraps Uptime's upload and health-check hook to perform owner claim and token retirement. If automatic claim or token retirement is incomplete, retain `.rer/deploy/<environment>.json` and private settings, rerun the same `rer deploy --environment NAME`, and inspect the new stage, owner outcome and retirement result. Do not enter a retired token at `/claim` as routine recovery.
+This checkout pins the unmodified published `@runeditrun/rer` 0.2.19. The lifecycle wraps Uptime's upload and health-check hook to perform owner claim and token retirement. If automatic claim or token retirement is incomplete, retain `.rer/deploy/<environment>.json` and private settings, rerun the same `rer deploy --environment NAME`, and inspect the new stage, owner outcome and retirement result. Do not enter a retired token at `/claim` as routine recovery.
+
+### Sign in without mail
+
+From the checkout that owns the completed deployment, with its `.rer/deploy` records retained, run:
+
+```sh
+rer signin
+```
+
+Use `rer signin --environment staging` for a separate environment. The command needs the same Cloudflare account credentials that deployed it: `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`, supplied through the environment or `--env-file /path/to/private-deploy.env`.
+
+The CLI verifies the owned deployment, writes a single-use sign-in grant for its existing owner, and prints a link once to the terminal. It sends no mail and does not save the link. Open it immediately and complete its sign-in confirmation; it works once, expires within 15 minutes, and its use is recorded in the owner's audit log. Keep the link private. This is also the recovery path when the owner's mailbox is unavailable or the saved email is wrong.
+
+The command does not create or replace an owner. If the deployment is unclaimed or incomplete, resume `rer deploy` with its existing records. If it reports that owner sign-in is unsupported, update the app to include the owner sign-in migration and route, redeploy the same environment, then run `rer signin` again. Never reuse a retired setup token for sign-in recovery.
 
 ## Check it
 
@@ -55,7 +69,7 @@ For another environment, pass its name: `pnpm run health -- --environment stagin
 
 ## Start the runner
 
-Deploying does not run the private runner. Checks do not happen until you start it on a machine that can reach your targets. Follow [The private runner](/docs/runner).
+Public website checks run automatically in the deployed Cloudflare Worker. A private runner is optional for those checks. Add one when checks need a network you control, including private networks, runner-local credentials or browser execution. In **Runner / Archive**, create a runner for its independent network and save the complete one-time command; paste it into a shell from an installed Uptime checkout on that network. Keep it under a supervisor and inspect its contact and actual results. Deployment does not start or supervise that separate process. Follow [The private runner](/docs/runner).
 
 ## Update an existing deployment
 

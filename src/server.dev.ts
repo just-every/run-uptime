@@ -1,7 +1,7 @@
 // Local-only Worker entry. vite.config.ts loads it only for `vite dev`; the deployed main stays server.ts, and
 // `rer build` refuses any output that contains the dev layer. It adds dev sign-in, personas and the dev badge.
 import worker from './server'
-import {withDevIdentity} from './base/modules/operator-auth/dev/index.mjs'
+import {withDevIdentity} from '@runeditrun/rer/modules/operator-auth/dev'
 import {authConfig,type AuthBindings} from './domain/operator-auth.server.ts'
 import {publicPath} from './domain/public-paths.ts'
 import type {Bindings} from './domain/control.server'

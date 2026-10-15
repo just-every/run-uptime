@@ -147,9 +147,10 @@
       "id": "configured-dns-resolver",
       "required": false,
       "requiredWhen": "A target, discovery page, flow subresource, notification endpoint, heartbeat, runner control plane, or configured provider hostname needs DNS resolution",
-      "why": "The runner and owner tools resolve public target and provider hostnames through the configured DNS resolver before connecting.",
+      "why": "Private runners and owner tools use their configured DNS resolver. Hosted public checks validate A/AAAA answers through Cloudflare DNS over HTTPS; Workers fetch uses Cloudflare\u2019s public Internet resolver and transport.",
       "data": [
-        "Queried hostnames for A/AAAA or system address lookup, resolver source address, and lookup timing; DNS carries no URL path, request body, or HTTP credential"
+        "Queried hostnames for A/AAAA or system address lookup, resolver source address, and lookup timing; DNS carries no URL path, request body, or HTTP credential",
+        "Hosted checks send the target and canary hostnames as A/AAAA queries to https://cloudflare-dns.com/dns-query; no target URL path, body or credential is included."
       ],
       "adapters": []
     },
@@ -157,7 +158,7 @@
       "id": "public-monitor-targets",
       "required": false,
       "requiredWhen": "An owner enables a public HTTP(S) monitor or assigns an external canary",
-      "why": "The separately operated runner sends scheduled requests to the owner's public target and optional canary URLs.",
+      "why": "The hosted Worker or an explicitly assigned private runner sends scheduled requests to the owner\u2019s public target and optional canary URLs.",
       "data": [
         "Target hostname, path and query, method, request time and runner source address; configured headers and request body where the monitor has them",
         "An owner-held request credential is sent only to its exact authorized target origin and monitor; credentials, custom headers and body are stripped on a cross-origin redirect",
@@ -429,6 +430,14 @@
         "kind": "authentication",
         "class": "authentication",
         "authentication": "One-use magic-link or invitation token.",
+        "environment": "all"
+      },
+      {
+        "path": "/auth/owner-signin",
+        "match": "exact",
+        "kind": "authentication",
+        "class": "authentication",
+        "authentication": "One-use owner sign-in grant minted with this deployment\u2019s Cloudflare credentials.",
         "environment": "all"
       },
       {

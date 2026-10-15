@@ -234,6 +234,12 @@
       "name": "0036_attempt_receipt_clocks.sql",
       "sha256": "c751b3812386accdb25aa02bcb77624df76b95a7ce9d460bcc95a5f34bf57e2e",
       "sql": "-- Control-plane receipt clocks belong to installation execution authority,\n-- alongside delivery clocks. Keep the signed observation bytes unchanged.\n-- Older attempts have no receipt clock and retain their historical projection.\nALTER TABLE runner_assignments ADD COLUMN received_times TEXT NOT NULL DEFAULT '{}';\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0037_owner_signin.sql",
+      "sha256": "98da904e768e35b43fb1be83d9dcc9c9b5d86ab3a795234ed5223c4fddc567d9",
+      "sql": "-- One-time owner sign-in links minted by `rer signin` with the deployment's own\n-- Cloudflare credentials, written straight into this table through the D1 API.\n-- Apply as a NEW numbered migration under the seed's next unused number; never\n-- rewrite an applied migration. Additive only. token_hash is the SHA-256 of the\n-- link token (owner-signin-grant.mjs); the token itself is never stored.\nCREATE TABLE IF NOT EXISTS oa_owner_signins (\n id TEXT PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE,\n operator_id TEXT NOT NULL REFERENCES oa_operators(id), operator_version INTEGER NOT NULL,\n created_at INTEGER NOT NULL, expires_at INTEGER NOT NULL, consumed_at INTEGER\n);\n"
     }
   ],
   "compatibilityDate": "2026-09-08",

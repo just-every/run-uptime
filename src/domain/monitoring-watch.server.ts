@@ -1,6 +1,7 @@
 import type {Bindings} from './control.server.ts'
 import {auditStatement,automated} from './audit.server.ts'
 import {mailSender} from './mail.server.ts'
+import {hostedInstallation} from './hosted-runner.ts'
 import {listRunners} from './runner-registration.server.ts'
 import {legacyMonitoringWarning} from './legacy-monitoring.server.ts'
 // @ts-ignore Edition-owned URL boundary.
@@ -14,7 +15,9 @@ async function ownerNotice(env:Bindings,id:string,subject:string,text:string,now
 }
 export async function monitoringWatch(env:Bindings,selfCheck:()=>Promise<Response>,healthy:()=>Promise<boolean>,now=Date.now()){
  const staleMs=watchDuration(env.UPTIME_RUNNER_STALE_MS,120000),repeatMs=watchDuration(env.UPTIME_WATCH_REPEAT_MS,3600000),retryMs=10000,warning=await legacyMonitoringWarning(env);
- const runners=await listRunners(env);
+ let runners=await listRunners(env);
+ // A hosted install's dormant private-runner credential is optional. Watch the networks actually assigned to enabled checks.
+ if(hostedInstallation(env)){const rows=await env.DB.prepare("SELECT definition FROM monitors WHERE json_extract(definition,'$.enabled')=1").all<{definition:string}>();const assigned=new Set(rows.results.flatMap(row=>Object.values(JSON.parse(row.definition).assignments??{}).map((a:any)=>a.runnerId)));runners=runners.filter((runner:any)=>assigned.has(runner.runnerId))}
  for(const row of runners as any[]){if(row.revokedAt!==null)continue;const contact=row.lastContactAt??row.registeredAt;
   if(contact>now||now-contact>staleMs)await ownerNotice(env,`runner-stale:${row.runnerId}:${Math.floor(now/repeatMs)}`,'Uptime runner contact is stale',`Runner ${row.runnerId} (${row.networkLabel}) has no recent authenticated contact. Missing checks are not evidence of target health. Review the runner on its own host.${warning?`\n\n${warning}`:''}`,now,retryMs)
  }

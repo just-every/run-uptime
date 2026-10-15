@@ -19,7 +19,7 @@
     "test:contact": "node tests/runner-contact.mjs",
     "test:recovery-ui": "node tests/recovery-browser.mjs",
     "test:probes": "node --test --test-concurrency=2 tests/public-probes.mjs && node tests/probe-native.mjs",
-    "test:security": "node --test --test-concurrency=1 tests/monitor-capacity.mjs tests/monitor-credentials.mjs && node tests/operator-security.mjs && node tests/hosted-auth.mjs && node tests/hosted-auth-browser.mjs && node --test --test-concurrency=2 tests/public-query.mjs && node --test --test-concurrency=2 tests/deployment-invocation.mjs && node --test --test-concurrency=2 tests/deployment-custody.mjs",
+    "test:security": "node --test --test-concurrency=1 tests/monitor-capacity.mjs tests/monitor-credentials.mjs && node tests/operator-security.mjs && node tests/hosted-auth.mjs && node tests/hosted-scheduled.mjs && node tests/hosted-auth-browser.mjs && node --test --test-concurrency=2 tests/public-query.mjs && node --test --test-concurrency=2 tests/deployment-invocation.mjs && node --test --test-concurrency=2 tests/deployment-custody.mjs",
     "test:availability": "node tests/availability.mjs",
     "test:notifications": "node tests/notify-delivery.mjs && node tests/alert-drill.mjs && node tests/notify-upgrade.mjs && node tests/notify-custody-runtime.mjs && node tests/notify-secret-browser.mjs",
     "test:local": "node --test --test-concurrency=1 tests/local-mail-settings.mjs && node tests/command-journey.mjs",
@@ -68,7 +68,7 @@
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.62.2",
     "@cloudflare/workers-types": "5.20261006.1",
-    "@runeditrun/rer": "0.2.18",
+    "@runeditrun/rer": "0.2.19",
     "@types/node": "26.6.4",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.7",

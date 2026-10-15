@@ -66,7 +66,7 @@ try{
   assert.equal((await db.prepare('SELECT COUNT(*) n FROM runner_contact').first()).n,0,'enrolment is not contact or health');
  });
  const boot=await api('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'Runner acceptance owner'});assert.equal(boot.status,303);cookie=boot.headers['set-cookie'][0].split(';')[0];
- const created=await api('/api/monitors',{name:'Actual verified HTTPS',url:'https://runner-target.test/health',network:'public',canaryUrl:'https://canary.runner-target.test/canary',intervalMs:5000,timeoutMs:2000,retries:0,confirmSlots:1,recoverSlots:1});assert.equal(created.status,201);
+ const created=await api('/api/monitors',{name:'Actual verified HTTPS',assignments:{'local-a':registration.runnerId},url:'https://runner-target.test/health',network:'public',canaryUrl:'https://canary.runner-target.test/canary',intervalMs:5000,timeoutMs:2000,retries:0,confirmSlots:1,recoverSlots:1});assert.equal(created.status,201);
  const id=created.data.id;
  const history=async()=>{const r=await api(`/api/monitors/${id}/history`);assert.equal(r.status,200);return r.data};
  const monitor=async()=>(await api('/api/overview')).data.monitors.find(m=>m.id===id);

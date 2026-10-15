@@ -20,7 +20,7 @@ const children = new Set();
 const results = [];
 let worker, directory, evidence, ownedGrant = false, interrupted = false;
 const env = Object.fromEntries([
-  'PATH', 'HOME', 'TMPDIR', 'TMP', 'TEMP', 'SystemRoot',
+  'PATH', 'HOME', 'SystemRoot',
   'PLAYWRIGHT_BROWSERS_PATH', 'UPTIME_BROWSER_EXECUTABLE',
 ].filter(name => process.env[name] !== undefined).map(name => [name, process.env[name]]));
 // Never pass inherited provider credentials, proxy configuration or Node hooks.
@@ -190,6 +190,9 @@ try {
   ownedGrant = true;
   await reservation.close();
   directory = await mkdtemp(join(tmpdir(), 'uptime-browser-suites-'));
+  // Browser profiles and sockets belong to this run's OS temporary directory.
+  // Do not forward a caller's work-tree scratch path to Chromium.
+  Object.assign(env, {TMPDIR: directory, TMP: directory, TEMP: directory});
   evidence = await mkdtemp(join(root, 'data/browser-suites-evidence-'));
   const synthetic = launch('synthetic', 'runners/src/synthetic.mjs', {
     UPTIME_SYNTHETIC_PORT: '15481', UPTIME_GRANT_FILE: grantPath,
