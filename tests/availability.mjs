@@ -3,7 +3,7 @@ import {mkdir,rm} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {availabilityOverview} from '../src/domain/availability.server.ts';
-import {startLocalWorker} from '../scripts/local-worker.mjs';
+import {startLocalWorker} from './mail-provider-fixture.mjs';
 import {testAuthBindings} from './auth-test-support.mjs';
 import {migrate} from './probe-native-support.mjs';
 

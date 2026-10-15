@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { scratchInstallation, repository, machineAvailable } from './scratch-installation.mjs';
 import { openGate, readCheckoutKey } from './auth-test-support.mjs';
-import { assertPortFree, signInThroughOutbox, smokeDocuments, descendantGroups, assertGroupsGone } from './installer-support.mjs';
+import { assertPortFree, devSignIn, smokeDocuments, descendantGroups, assertGroupsGone } from './installer-support.mjs';
 
 // Execute the local README shell blocks verbatim. Git redirects only the clone
 // transport to a snapshot of this candidate; all application commands are real.
@@ -56,7 +56,7 @@ try {
  const page = await browser.newPage();
  const devKey = await readCheckoutKey(appRoot);
  await openGate(page.context(), origin, devKey);
- await signInThroughOutbox(page, origin + '/__dev/outbox', { OWNER_EMAIL: settings.OWNER_EMAIL, displayName: 'Owner' }, { key: devKey });
+ await devSignIn(page, origin + '/__dev/key', { OWNER_EMAIL: settings.OWNER_EMAIL, displayName: 'Owner' }, { key: devKey });
  const health = await page.request.get(origin + '/health');
  assert.equal(health.status(), 200); assert.equal((await health.json()).status, 'ok');
  await smokeDocuments(page, origin);
@@ -69,7 +69,7 @@ try {
  await assertGroupsGone(groups);
  await scratch.run('node', ['node_modules/@runeditrun/rer/bin/rer.mjs', 'reset', '--yes', '--non-interactive'], { cwd: appRoot });
  assert.equal((await scratch.run('git', ['status', '--porcelain'], { cwd: appRoot })).trim(), '', 'documented journey changed tracked source');
- console.log('README-JOURNEY passed: literal fresh clone and automatic rer dev setup, background start/stop, health, owner outbox sign-in, private documents, reset and clean tracked tree.');
+ console.log('README-JOURNEY passed: literal fresh clone and automatic rer dev setup, background start/stop, health, one-click owner sign-in, private documents, reset and clean tracked tree.');
 } catch (error) { caseError = error; throw error; }
 finally {
  const failures = [];

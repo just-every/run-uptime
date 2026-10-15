@@ -7,7 +7,7 @@ import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {chromium} from 'playwright';
-import {startLocalWorker} from '../scripts/local-worker.mjs';
+import {startLocalWorker} from './mail-provider-fixture.mjs';
 
 // Full restore/re-authorize workflow uses the owned live fixture and its
 // current custody grant. No source-installation monitor is edited by this test.

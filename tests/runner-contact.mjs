@@ -6,7 +6,7 @@ import {mkdtemp,readFile,readdir,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {startLocalWorker} from '../scripts/local-worker.mjs';
+import {startLocalWorker} from './mail-provider-fixture.mjs';
 import {projectContact,CONTACT_FRESHNESS_MS} from '../src/domain/runner-contact.server.ts';
 import {validateDefinition} from '../src/domain/policy.mjs';
 

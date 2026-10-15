@@ -67,7 +67,7 @@
       "options": [
         {
           "value": "development",
-          "label": "Local development outbox"
+          "label": "Local development (mail suppressed)"
         },
         {
           "value": "sendgrid",

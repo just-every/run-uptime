@@ -6,7 +6,7 @@ import {createServer} from 'node:net';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {startLocalWorker} from '../scripts/local-worker.mjs';
+import {startLocalWorker} from './mail-provider-fixture.mjs';
 import {testAuthBindings, signInOwner, authRequest} from './auth-test-support.mjs';
 import {splitSql} from './migration-support.mjs';
 import {readProcessTable, sameProcess} from '@runeditrun/rer/internal/onboarding/process-table.mjs';

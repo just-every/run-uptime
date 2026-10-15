@@ -1,9 +1,11 @@
+import {testMailOptions} from './mail-provider-fixture.mjs';
 // Test-only envelope preserves an exact HTTPS request through local workerd.
 // Production handler, Base auth, SendGrid adapter and D1 remain unchanged.
 import {Miniflare,convertV4MiniflareOptions} from 'miniflare';
 import {readFile,readdir,writeFile} from 'node:fs/promises';
 import {resolve,join,relative,dirname,parse} from 'node:path';
 export async function hostedRuntime(directory,bindings,outboundService){
+ ({bindings,outboundService}=testMailOptions({bindings,outboundService}));
  const emitted=resolve('dist/server'),config=JSON.parse(await readFile(join(emitted,'wrangler.json'),'utf8'));
  const wrapper=join(directory,'test-envelope.mjs');
  await writeFile(wrapper,`import app from ${JSON.stringify(relative(dirname(wrapper),join(emitted,config.main)))}; export default {scheduled(controller,env,ctx){return app.scheduled(controller,env,ctx)},async fetch(request,env,ctx){const input=await request.json(); if(input.scheduled){try{await app.scheduled({},env,ctx);return new Response(null,{status:204})}catch(error){return new Response(error.stack,{status:500})}} return app.fetch(new Request(input.url,{method:input.method,headers:input.headers,...(input.body===undefined?{}:{body:input.body})}),env,ctx)}};`);

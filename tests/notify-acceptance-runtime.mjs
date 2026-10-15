@@ -1,4 +1,4 @@
-import {testAuthBindings,signInOwner,outboxSignIn} from './auth-test-support.mjs';
+import {testAuthBindings,signInOwner,emailSignIn} from './auth-test-support.mjs';
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
 import {once} from 'node:events';
@@ -7,7 +7,7 @@ import {mkdtemp,readFile,readdir,rm} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
-import {startLocalWorker} from '../scripts/local-worker.mjs';
+import {startLocalWorker} from './mail-provider-fixture.mjs';
 import {splitSql} from './migration-support.mjs';
 
 export const root=fileURLToPath(new URL('../',import.meta.url));
@@ -56,5 +56,5 @@ export function ownerAPI(origin){
   return {status:response.status,headers:response.headers,data};
  };
  // A fresh email-link sign-in: owner-authority changes (inviting another owner) need an app-local email proof from the last ten minutes, which the first-owner bootstrap session does not carry.
- return {api,async signIn(bindings=testAuthBindings){cookie=await signInOwner(origin,{bindings:{...testAuthBindings,...bindings}})},async freshSignIn(bindings=testAuthBindings){cookie=await outboxSignIn(origin,{bindings:{...testAuthBindings,...bindings}})}};
+ return {api,async signIn(bindings=testAuthBindings){cookie=await signInOwner(origin,{bindings:{...testAuthBindings,...bindings}})},async freshSignIn(bindings=testAuthBindings){cookie=await emailSignIn(origin,{bindings:{...testAuthBindings,...bindings}})}};
 }

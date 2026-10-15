@@ -1,3 +1,4 @@
+import {fetchDemoRead} from '../base/modules/demo/index.mjs'
 // Hosted public probes use Workers' public Internet fetch transport (no VPC binding).
 // Node runners retain socket pinning for their separately authorized networks.
 // @ts-ignore Shared public-address policy.
@@ -31,7 +32,7 @@ async function publicResponse(def:any,signal:AbortSignal,statusOnly:boolean){
  let url=publicTarget(def.url),method=def.method;
  for(let hop=0;hop<=5;hop++){
   await publicDNS(url,signal);
-  const response=await fetch(url.href,{method,redirect:'manual',signal,headers:{'user-agent':'uptime-worker/0.1.0',accept:'application/json,text/plain,*/*;q=0.1','accept-encoding':'identity'},cache:'no-store'});
+  const response=await fetchDemoRead(url.href,{method,redirect:'manual',signal,headers:{'user-agent':'uptime-worker/0.1.0',accept:'application/json,text/plain,*/*;q=0.1','accept-encoding':'identity'},cache:'no-store'});
   if([301,302,303,307,308].includes(response.status)){
    const location=response.headers.get('location');await response.body?.cancel();
    if(hop===5||!location)throw new ProbeError('redirect');

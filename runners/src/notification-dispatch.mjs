@@ -1,4 +1,4 @@
-import {demoMode,demoRefusal} from './demo-policy.mjs';
+import {demoEffect} from './demo-policy.mjs';
 import {IntegrationsRepository} from '../../src/base/modules/integrations/core/repository.ts';
 import {DeliveryService} from '../../src/base/modules/integrations/core/delivery.ts';
 import {NodePinnedTransport} from '../../src/base/modules/integrations/core/node-transport.ts';
@@ -35,6 +35,6 @@ export async function dispatchNotifications(api,transport=new NodePinnedTranspor
  const {jobs,serverNow}=await api('/api/runner/notifications',{operation:'poll'});
  if(Number.isFinite(serverNow)&&now()-serverNow>=60000)return 0;
  const repository=new RunnerNotificationRepository(api,now);
- for(const job of jobs){if(demoMode()){const claim=await repository.claim(job.id);if(claim){await demoRefusal(job.credential.endpoint,'POST');await repository.finish(job.id,claim,{kind:'rejected',code:'demo_blocked'});}continue;}const service=new DeliveryService({repository,hashDestination:async url=>{if(url!==job.credential.endpoint)throw Error('Destination version mismatch');return job.destinationHash},protocols:notificationProtocols(job.credential,job.credentialId),transport:{async send(wire){await repository.started(job.id);return transport.send(wire)}},now});await service.dispatch(job.id)}
+ for(const job of jobs){const service=new DeliveryService({repository,hashDestination:async url=>{if(url!==job.credential.endpoint)throw Error('Destination version mismatch');return job.destinationHash},protocols:notificationProtocols(job.credential,job.credentialId),transport:{async send(wire){await repository.started(job.id);return demoEffect(()=>transport.send(wire),()=>({status:200,headers:{},body:new URL(wire.url).hostname==='hooks.slack.com'?'ok':''}))}},now});await service.dispatch(job.id)}
  return jobs.length;
 }

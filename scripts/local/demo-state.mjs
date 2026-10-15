@@ -11,5 +11,5 @@ export async function demoEnvironment(demo){
  if(!demo)return {};
  const state=demo.state;
  for(const folder of ['flows','credentials'])await mkdir(join(state,folder),{recursive:true,mode:0o700});
- return {RER_DEMO:'1',RER_DEMO_EXPIRES:demo.ends,RER_STATE_DIR:state,UPTIME_FLOW_DIR:join(state,'flows'),UPTIME_CREDENTIAL_DIR:join(state,'credentials'),UPTIME_DEMO_LOG:join(state,'blocked.jsonl')};
+ return {RER_DEMO:'1',RER_DEMO_EXPIRES:demo.ends,RER_STATE_DIR:state,UPTIME_FLOW_DIR:join(state,'flows'),UPTIME_CREDENTIAL_DIR:join(state,'credentials')};
 }

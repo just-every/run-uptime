@@ -1,4 +1,5 @@
 // Portable Web Crypto verifier. This file has no application or database imports.
+import { isLoopbackHost } from '../operator-auth/loopback.mjs';
 export class OwnerClaimError extends Error {
   constructor(code = 'invalid_claim', status = 403) { super(code); this.name = 'OwnerClaimError'; this.code = code; this.status = status; }
 }
@@ -10,7 +11,7 @@ function coordinate(value) {
   return btoa(atob(value.replaceAll('-', '+').replaceAll('_', '/'))).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '') === value;
 }
 function origin(value) {
-  try { const u = new URL(value); return u.origin === value && !u.username && !u.password && (u.protocol === 'https:' || (u.protocol === 'http:' && ['localhost', '127.0.0.1', '[::1]'].includes(u.hostname))); } catch { return false; }
+  try { const u = new URL(value); return u.origin === value && !u.username && !u.password && (u.protocol === 'https:' || (u.protocol === 'http:' && isLoopbackHost(u.hostname))); } catch { return false; }
 }
 export function configureClaim(input) {
   if (!input || !origin(input.issuer) || !origin(input.appOrigin)

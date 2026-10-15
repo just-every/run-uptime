@@ -1,4 +1,3 @@
-import {blockDemoSend} from './demo-policy.mjs';
 import http from 'node:http';
 import https from 'node:https';
 import {Resolver} from 'node:dns/promises';
@@ -10,7 +9,6 @@ import {readCredentials} from './credentials.mjs';
 export const PROBE_ACCEPT='application/json,text/plain,*/*;q=0.1';
 export class ProbeError extends Error {constructor(category){super(category);this.category=category}}
 export async function resolvePublic(url,signal) {
-  await blockDemoSend(url.href,'GET');
   const host=url.hostname.replace(/^\[|\]$/g,'');
   if(isIP(host)){if(!publicAddress(host))throw new ProbeError('network');return {address:host,family:isIP(host)}}
   const resolver=new Resolver({timeout:1000,tries:1}),cancel=()=>resolver.cancel();
@@ -87,7 +85,6 @@ export async function publicHttp(def,signal,onRequest,{statusOnly=false,monitorI
 export async function publicReport(rawUrl,{signal,accept=PROBE_ACCEPT,userAgent,maxBody,method='GET',maxHops=4,hopTimeoutMs=8000,beforeRequest,followRedirect}={}) {
   if(!['GET','HEAD'].includes(method))throw new ProbeError('method');
   if(!Number.isInteger(maxBody)||maxBody<1||typeof userAgent!=='string'||!userAgent)throw new ProbeError('runner');
-  await blockDemoSend(rawUrl,method);
   let url=publicTarget(rawUrl);
   const hops=[],settings={headers:{}},base=signal??new AbortController().signal;
   for(let hop=0;hop<=maxHops;hop++){

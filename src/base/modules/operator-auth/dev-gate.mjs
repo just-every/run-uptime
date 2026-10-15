@@ -1,3 +1,4 @@
+import { rejectedResponse } from './rejected-response.mjs';
 import { constantEqual } from './crypto.mjs';
 import { isLoopbackHost, localCookieName } from './http.mjs';
 
@@ -76,7 +77,7 @@ export function devGate({ key, origin, local }) {
         return new Response(request.method === 'HEAD' ? null : body, { headers: { ...privateHeaders, 'content-type': 'text/html; charset=utf-8',
           'content-security-policy': `default-src 'none'; script-src ${script}; style-src ${style}; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'` } });
       }
-      if (request.method !== 'POST' || request.headers.get('sec-fetch-site') === 'cross-site' || !request.headers.get('content-type')?.startsWith('application/json')) return devNotFound();
+      if (request.method !== 'POST' || request.headers.get('sec-fetch-site') === 'cross-site' || !request.headers.get('content-type')?.startsWith('application/json')) return rejectedResponse(request, devNotFound());
       const text = await request.text();
       let presented; try { presented = text.length <= 1024 ? JSON.parse(text)?.key : undefined; } catch {}
       if (typeof presented !== 'string' || !constantEqual(presented, key)) return devNotFound();

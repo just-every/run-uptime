@@ -43,7 +43,7 @@ async function installation(t) {
   return context.vars;
  } };
 }
-test('saved local SendGrid inputs keep actual sign-in in the outbox and configure notification mail', async t => {
+test('saved local SendGrid inputs suppress local auth mail and configure notification mail', async t => {
  const originalFetch = globalThis.fetch;
  let requests = 0;
  // A provider request during preparation or sign-in is a test failure.
@@ -58,16 +58,11 @@ test('saved local SendGrid inputs keep actual sign-in in the outbox and configur
   ...(body === undefined ? {} : { body: JSON.stringify(body) }),
  });
  assert.equal(developmentMail(env), true);
- sessionCookie(await authRoute(env, request('/auth/bootstrap', { token: saved.SETUP_TOKEN, displayName: 'Local owner' })));
+ const cookie=sessionCookie(await authRoute(env, request('/auth/bootstrap', { token: saved.SETUP_TOKEN, displayName: 'Local owner' })));
  const outbox = createD1DevelopmentOutbox({ db: DB });
  assert.equal((await outbox.list()).length, 0);
  assert.equal((await authRoute(env, request('/auth/magic-link', { email: saved.OWNER_EMAIL, returnTo: '/' }))).status, 202);
- const messages = await outbox.list();
- assert.equal(messages.length, 1, 'ordinary sign-in stores a real development-outbox message');
- const link = messages[0].message.text.match(/http:\/\/127\.0\.0\.1:\d+\/auth\/confirm\?[^\s]+/);
- assert.ok(link, 'stored message contains the real confirmation link');
- const token = new URL(link[0]).searchParams.get('token');
- const cookie = sessionCookie(await authRoute(env, request('/auth/confirm', { token })));
+ assert.equal((await outbox.list()).length,0,'development mail is silently suppressed');
  const session = await operatorSession(env, request('/', undefined, cookie));
  assert.equal(session?.operator.email, saved.OWNER_EMAIL);
  assert.equal(session?.operator.role, 'owner');
@@ -91,5 +86,5 @@ test('saved local SendGrid inputs keep actual sign-in in the outbox and configur
  const result = (await notificationOverview(env)).deliveries.find(item => item.id === delivery.deliveryId);
  assert.equal(result?.state, 'accepted');
  assert.equal(result?.attempts, 1);
- assert.equal((await outbox.list()).length, 1, 'notification dispatch did not add a sign-in message');
+ assert.equal((await outbox.list()).length, 0, 'notification dispatch leaves no captured messages');
 });

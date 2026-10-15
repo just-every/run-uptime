@@ -1,7 +1,7 @@
 import {mkdtemp,readFile,readdir,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {startLocalWorker} from '../scripts/local-worker.mjs';
+import {startLocalWorker} from './mail-provider-fixture.mjs';
 import {splitSql} from './migration-support.mjs';
 import {testAuthBindings,authRequest} from './auth-test-support.mjs';
 

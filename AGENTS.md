@@ -16,8 +16,7 @@ rer dev
   email, port, password or answers file.
 - Give the owner the `RER_READY` address and the `RER_OPEN` link, and ask
   nothing. `RER_OPEN` is a credential: share it only with the owner, in this
-  chat. A seed without dev identity prints `RER_SIGN_IN` (its local outbox)
-  instead.
+  chat. Local mail is suppressed silently.
 - Stop the app with `rer dev --stop`. If a start is refused, the message names
   the cause and the next command: run that command.
 
@@ -34,7 +33,7 @@ rer setup --owner-email owner@example.test --owner-name "Local Owner" --non-inte
 rer dev
 ```
 
-Replace the example email with the owner's address. To start with proposed monitors, add `--answers answers.json` to setup, a private (mode 0600) file holding `{"UPTIME_START_URL":"https://example.com"}`; the owner's runner checks that public site when `/setup` opens and finishing setup lands on its proposals. Dev prints its health-ready URL. `rer dev` opens signed in: it prints `RER_SIGNED_IN` (the owner) and `RER_OPEN`, a link that carries this checkout's private dev key in its fragment. Open `RER_OPEN` in a browser on this computer and you land signed in as the owner; a small dev badge switches to the `member` persona (a signed-in operator who is not the owner, so the console stays closed to it) or signs out. Never share the link: the key is what keeps the outbox and dev sign-in closed to anything that reaches this port through a proxy or tunnel, and `reset` removes the key so every earlier browser session stops working. `--as member` (or `--as signed-out`) starts as another persona, and `--login` turns dev identity off so dev prints `RER_SIGN_IN` and a key-carrying `RER_OPEN` for the outbox instead: choose the newest message and follow its one-use link (no email is sent). Uptime retains local development sign-in captures until their associated operator is erased or `rer reset --yes`; they do not expire by age or count. Previews open the outbox the same way. `RER_OPEN` is for people at this terminal; scripts use `rer dev --json` or the key header. First-run setup opens at `/setup`; finish it to enter the console. Until then, app routes return the signed-in owner there. Setup exits with its temporary processes stopped. `rer dev --stop` stops dev and its owned runner and target.
+Replace the example email with the owner's address. To start with proposed monitors, add `--answers answers.json` to setup, a private (mode 0600) file holding `{"UPTIME_START_URL":"https://example.com"}`; the owner's runner checks that public site when `/setup` opens and finishing setup lands on its proposals. Dev prints its health-ready URL. `rer dev` opens signed in: it prints `RER_SIGNED_IN` and a private `RER_OPEN` link. Open that link on this computer to continue as the owner. The product name reads **Uptime Dev**. `rer demo` opens a throwaway installation with sample data as **Uptime Demo**. Public checks run for real; demo notifications return success without sending. Local mail is silently suppressed. `--as member` and `--as signed-out` select other local personas. Keep `RER_OPEN` private and stop with `rer dev --stop` or `rer demo --stop`. First-run setup opens at `/setup`; finish it to enter `/app`.
 
 After stopping dev, run `rer verify`. `rer reset --yes` removes local data and generated settings; export first if you need the data.
 

@@ -109,12 +109,14 @@ COOP `same-origin` to these two cooperating screens.
 
 ## Atomic admission and checks
 
-Operator-auth normally commits rate limits before bootstrap. A request-local D1
-adapter reads actual existing limit counters and projects the real UPSERT result
-without writing. It defers those unchanged UPSERTs until the real bootstrap's
-unchanged three-statement batch. One D1 transaction inserts the single-use claim,
-checks an empty auth store, runs the original limits and bootstrap SQL, then
-checks owner/session identity and actual limit thresholds before committing.
+Operator-auth normally commits its client-IP rate limit before bootstrap. This
+budget is per client, so wrong setup tokens from another client cannot block a
+valid signed claim. A request-local D1 adapter reads the actual existing counter
+and projects the real UPSERT result without writing. It defers that unchanged
+UPSERT until the real bootstrap's unchanged three-statement batch. One D1
+transaction inserts the single-use claim, checks an empty auth store, runs the
+original limit and bootstrap SQL, then checks owner/session identity and the
+actual client-IP threshold before committing.
 A SQL CHECK failure or racing claim rolls the entire batch back. No application
 mock, substitute owner/session creation, in-memory lock or retry is involved.
 The adapter accepts only that exact SQL protocol and never serves other auth APIs.

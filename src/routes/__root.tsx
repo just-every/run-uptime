@@ -9,7 +9,7 @@ function NotFound(){useEditorLeafReady('not-found');return <SiteNotFound/>}
 function ConsoleEditor(){const path=useRouterState({select:state=>state.location.pathname});return path==='/app'||path.startsWith('/app/')?<OwnerEditorShell/>:null}
 
 export const Route = createRootRoute({
-  head: () => ({ meta: [{ title: 'Uptime & API monitoring' }, { charSet: 'utf-8' }, { name: 'viewport', content: 'width=device-width, initial-scale=1' }], title: 'Uptime & API monitoring' }),
+  head: () => ({ meta: [{ title: 'Uptime' }, { charSet: 'utf-8' }, { name: 'viewport', content: 'width=device-width, initial-scale=1' }], title: 'Uptime' }),
   notFoundComponent: NotFound,
   // Base's intro guard, early in <head> (src/base/hydration/README.md).
   component: () => <html lang="en"><head><script dangerouslySetInnerHTML={{__html:introGuardScript}}/><style>{introCss}</style><HeadContent /></head><body><Outlet /><ConsoleEditor/><Scripts /></body></html>,
