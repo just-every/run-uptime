@@ -1,7 +1,7 @@
 # Uptime demo
 
 After the ordinary `rer setup`, run `rer demo` (`rer dev --demo`) and open its
-private `RER_OPEN` link. The installed, unmodified published `@runeditrun/rer` 0.2.8
+private `RER_OPEN` link. The installed, unmodified published `@runeditrun/rer` 0.2.9
 release includes demo mode; see [the adoption note](patches/README.md). No package
 patch or external Base checkout is needed. `rer demo --stop`, Ctrl-C, or expiry
 stops its owned runtime, runner and synthetic target and deletes
@@ -52,7 +52,7 @@ credential-free check returned `dryRun: true` and `deployed: false`, with Worker
 the synthetic runner, demo egress denial and `enableInternet: false`.
 This proves local image preparation only: Docker execution, Cloudflare container
 operation, visitor isolation and expiry, hosted egress, startup latency and
-public availability remain unverified. Published RER 0.2.8 includes the owner-deploy
+public availability remain unverified. Published RER 0.2.9 includes the owner-deploy
 exact-repeat fix: an unchanged repeat preserves the receipt and avoids provider
 writes after setup-token retirement. Hosted acceptance and owner go-live remain pending.
 

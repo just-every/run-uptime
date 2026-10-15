@@ -1,4 +1,5 @@
 import { randomBytes } from 'node:crypto';
+import { lstat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { privateDirectory, readPrivateFile, writePrivateFile } from '@runeditrun/rer/private-files';
 
@@ -54,6 +55,29 @@ export async function ownerSecrets(root, { env = process.env, store } = {}) {
   try { await writePrivateFile(path, JSON.stringify(values, null, 2) + '\n', true); }
   catch (error) { if (error.code !== 'EEXIST') throw error; return read(); }
   return values;
+}
+
+// Production deploys the SETUP_TOKEN in the shared settings file. Every other
+// environment has its own, generated on its first deploy and kept for repeats, so
+// a token from one environment's setup is never valid on another. An environment
+// already deployed with the shared token (its kit record exists) keeps that token,
+// because the kit never replaces a secret its Worker already has.
+export async function environmentSetupToken(root, environment, shared, { store } = {}) {
+  if (environment === 'production') return shared.SETUP_TOKEN;
+  const path = join(await privateDirectory(root, ['.rer', 'deploy', 'environments', environment]), 'secrets.json');
+  const read = async () => {
+    const values = JSON.parse(await readPrivateFile(path));
+    if (!values || typeof values !== 'object' || Object.keys(values).join() !== 'SETUP_TOKEN' || !string(values.SETUP_TOKEN) || values.SETUP_TOKEN.length < 32) throw new Error('invalid-owner-secret-file');
+    store?.addSecrets?.([values.SETUP_TOKEN]);
+    return values.SETUP_TOKEN;
+  };
+  try { return await read(); } catch (error) { if (error.code !== 'ENOENT') throw error; }
+  const deployed = await lstat(join(root, '.rer', 'deploy', `${environment}.json`)).then(() => true, error => { if (error.code === 'ENOENT') return false; throw error; });
+  const token = deployed ? shared.SETUP_TOKEN : randomBytes(32).toString('hex');
+  store?.addSecrets?.([token]);
+  try { await writePrivateFile(path, JSON.stringify({ SETUP_TOKEN: token }, null, 2) + '\n', true); }
+  catch (error) { if (error.code !== 'EEXIST') throw error; return read(); }
+  return token;
 }
 
 // Only these credentials may cross the hosting command boundary. NODE_OPTIONS,

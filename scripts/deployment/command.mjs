@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { ownerPlan, ownerWorkerName } from '@runeditrun/rer/modules/deploy-kit/owner';
 import { packageBuild } from '@runeditrun/rer/modules/deploy-kit/prepare';
 import { main, report } from '@runeditrun/rer/modules/deploy-kit/owner-cli';
-import { secretsFile, ownerSecrets, ownerEnvironment, validateAccount } from './owner-settings.mjs';
+import { secretsFile, ownerSecrets, environmentSetupToken, ownerEnvironment, validateAccount } from './owner-settings.mjs';
 import { prepareOwnerBuild, ownerProduct } from './owner-prepare.mjs';
 import { missing, RerError } from '@runeditrun/rer/errors';
 import { ownerDeploy } from '@runeditrun/rer/deploy';
@@ -40,6 +40,7 @@ export function deployment(lifecycle) {
     if (saved) validateConfiguration({ ...hosted, ...saved }, { scope: 'deploy' });
     validateAccount(process.env, store);
     secrets = await ownerSecrets(root, { store });
+    secrets = { ...secrets, SETUP_TOKEN: await environmentSetupToken(root, environment, secrets, { store }) };
     validateConfiguration({ ...hosted, ...secrets }, { scope: 'deploy' });
    } catch (error) {
     if (error.message.startsWith('Invalid')) throw missing(error.message);
@@ -67,6 +68,7 @@ export function deployment(lifecycle) {
   const result = await kit('provisioning, migrations and upload', 'deploy');
   await kit('the health check', 'health');
   store.report(`deploy: ${result.origin} (Worker ${result.worker}, environment ${environment})`);
-  return { deployed: true, origin: result.origin, worker: result.worker, environment, state: result.state };
+  // rer claims the owner with this token when it cannot read the kit record, and never prints it.
+  return { deployed: true, origin: result.origin, worker: result.worker, environment, state: result.state, setupToken: secrets.SETUP_TOKEN };
  };
 }

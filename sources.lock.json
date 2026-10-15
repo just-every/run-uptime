@@ -459,7 +459,7 @@
       "executable": false
     },
     "CHANGELOG.md": {
-      "sha256": "b30f2124572815283bd8cd1458487b7898a35707cca002cb4be38767b115ea2f",
+      "sha256": "8c123ed2caeb26ce0d38f130b6fc2cecfe0033a5d5a819d74ee3c2d4908c8a63",
       "executable": false
     },
     "CLAUDE.md": {
@@ -471,7 +471,7 @@
       "executable": false
     },
     "DEMO.md": {
-      "sha256": "040a32e20304be6f3e0320daccb42761f649a3673dc306d62d1a0e87acb830da",
+      "sha256": "49a66ff500135356efd798343ab159b581656919dddc99ab0b257ac4f5a4ac50",
       "executable": false
     },
     "deploy-demo.json": {
@@ -495,7 +495,7 @@
       "executable": false
     },
     "docs/deploy.md": {
-      "sha256": "fc0898d9115c887316c04e603068048721e1727af7bee24743efdea5f4440f7b",
+      "sha256": "cbcb9d40065f42794d2beb095c0dd0b9cdd82ebb42243b55e42f24ecf84fb44b",
       "executable": false
     },
     "docs/install.md": {
@@ -543,7 +543,7 @@
       "executable": false
     },
     "HANDOVER.md": {
-      "sha256": "ebcbccb5ec493b44fb9975c9869c43d27e0e3874747b05f6de3e6d32c3c0a178",
+      "sha256": "ba1c35f2bc10e866f263810d5b237bd197f293493d29997a3b92e881bf36992f",
       "executable": false
     },
     "LICENSE": {
@@ -707,11 +707,11 @@
       "executable": false
     },
     "OPERATIONS.md": {
-      "sha256": "7878ea10af091cff9ecc22de1808cb4ed46f4af4bbee80789e4279458a1678db",
+      "sha256": "e49e79f006ec4ad9e6fa347813efe5f808156fb3a1a5eb74060e587a718b4583",
       "executable": false
     },
     "package.json": {
-      "sha256": "8eb3d4e3083611200dd5c9a22da6d77641f9b25603e8f7870acd9e49bf43f85c",
+      "sha256": "34c05220726e40fcb568f6735dff7faeeced3fabb93f83d9819e5a860dd5c581",
       "executable": false
     },
     "patches/README.md": {
@@ -719,7 +719,7 @@
       "executable": false
     },
     "pnpm-lock.yaml": {
-      "sha256": "c716459f18d6a3becb5e2df0dc80dadbefef139ce96c3cbe3654b539d280a23b",
+      "sha256": "cd1e42884923b23c7d384a12c2e43ef069b9293cd6af121fcf614d88ee5e5a89",
       "executable": false
     },
     "public/action-feedback.mjs": {
@@ -1223,7 +1223,7 @@
       "executable": false
     },
     "scripts/deployment/command.mjs": {
-      "sha256": "bde60b793ff90ccfab6774a27aebdf1e42518734c6e64e7e9939b2e69e0a2cf8",
+      "sha256": "88902738a364d633523b6f152058cbe9959e084ed1c53537b6e2497ebbd3cf69",
       "executable": false
     },
     "scripts/deployment/deploy.mjs": {
@@ -1247,7 +1247,7 @@
       "executable": false
     },
     "scripts/deployment/owner-settings.mjs": {
-      "sha256": "f1a79ad64d078a66f0b51af15f9acb32b7594002aee6da5996dfa496cfcc6524",
+      "sha256": "6bc927eb4d9a4b370f4f09aba4abb1b2a4abef59af969908355e8cafdf63ae3c",
       "executable": false
     },
     "scripts/deployment/plan.mjs": {

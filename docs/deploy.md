@@ -37,13 +37,13 @@ If the Uptime upload or health-check stage stops part way, inspect the reported 
 
 ### A separate environment
 
-`rer deploy --environment staging` deploys a second installation named `uptime-monitor-staging` with the database `uptime-monitor-staging-db`. An environment name starts with a lowercase letter and has at most 40 lowercase letters, digits and hyphens. Each environment keeps its own ownership record in `.rer/deploy/<environment>.json`, but the three generated secrets are shared: every environment deployed from this checkout uses `.rer/deploy/production-secrets.json`.
+`rer deploy --environment staging` deploys a second installation named `uptime-monitor-staging` with the database `uptime-monitor-staging-db`. An environment name starts with a lowercase letter and has at most 40 lowercase letters, digits and hyphens. Each environment keeps its own ownership record in `.rer/deploy/<environment>.json` and its own `SETUP_TOKEN` in `.rer/deploy/environments/<environment>/secrets.json`, generated on its first deploy and kept for repeats, so a setup token from one environment is never valid on another. An environment deployed before this change keeps the token it was deployed with. The other saved inputs and the generated `SESSION_SECRET` and `UPTIME_RUNNER_KEY` are shared: every environment deployed from this checkout uses `.rer/deploy/production-secrets.json`.
 
 ## Owner claim and sign-in
 
 With rer's newer custom-deployment lifecycle (0.2.3 and later), `rer deploy` wraps Uptime's custom deployment hook, claims the owner automatically, then retires the one-use hosted `SETUP_TOKEN`. Inspect the CLI's `claimed` or `kept` owner outcome and token-retirement result. After successful admission, open `/login` on the reported hosted address and request an ordinary email sign-in link. Opening the link shows a confirmation page; choosing **Confirm** signs you in. Finish first-run setup at `/setup`, then use the console at `/app`. Permanent owner admission survives token retirement even before setup is finished, and remains claimed if the original owner is later erased.
 
-This checkout pins the unmodified published `@runeditrun/rer` 0.2.8. The lifecycle wraps Uptime's upload and health-check hook to perform owner claim and token retirement. If automatic claim or token retirement is incomplete, retain `.rer/deploy/<environment>.json` and private settings, rerun the same `rer deploy --environment NAME`, and inspect the new stage, owner outcome and retirement result. Do not enter a retired token at `/claim` as routine recovery.
+This checkout pins the unmodified published `@runeditrun/rer` 0.2.9. The lifecycle wraps Uptime's upload and health-check hook to perform owner claim and token retirement. If automatic claim or token retirement is incomplete, retain `.rer/deploy/<environment>.json` and private settings, rerun the same `rer deploy --environment NAME`, and inspect the new stage, owner outcome and retirement result. Do not enter a retired token at `/claim` as routine recovery.
 
 ## Check it
 
