@@ -3107,7 +3107,7 @@
       "executable": false
     },
     "tests/command-journey.mjs": {
-      "sha256": "a8a218aa08d6c66b5aff0c62e54ac9e85ff7c04bcc2efcc7ba12b61818559cd3",
+      "sha256": "cd23df63c345b49a7670eb6c2cdebe99d729d658a12c39682d56927a3408387c",
       "executable": false
     },
     "tests/control-runtime.mjs": {
@@ -3211,7 +3211,7 @@
       "executable": false
     },
     "tests/installer-support.mjs": {
-      "sha256": "009a5e60b8f0c087696798b069556934871670c8430fb9510c60e1df76c81937",
+      "sha256": "5b40496e194bb131a09f8cfe25ef0259da808b7cd3dcea25ae4a1c86ec804809",
       "executable": false
     },
     "tests/legacy-monitor-fixture.mjs": {
