@@ -8,7 +8,7 @@ import {freePort} from '../scripts/local-ports.mjs';
 import {startLocalWorker} from '../scripts/local-worker.mjs';
 import {archive,restore} from '../src/domain/archive.server.ts';
 import {digest,TABLES,LEGACY_TABLES,ARCHIVE_ROWS} from '../src/domain/archive-schema.ts';
-import {installationLocalTables} from '../src/domain/archive-inventory.ts';
+import {installationLocalTables,assertArchiveInventory} from '../src/domain/archive-inventory.ts';
 import {populateArchiveFixture} from './archive-fixture.mjs';
 import {restoreBounds} from './archive-restore-bounds.mjs';
 import {applyDefinitions,previewDefinitions,undoBatch} from '../src/domain/definitions/index.server.ts';
@@ -28,6 +28,9 @@ try{
  for(const [names,undo] of [[['imported-a','imported-b'],true],[['imported-c'],false]]){const text=definitionFile(names),applied=await applyDefinitions(env,text,'auto',(await previewDefinitions(env,text)).digest,owner);if(undo)await undoBatch(env,applied.batchId,owner)}
  const original=await archive(env),a=tables(original);
  assert.equal(a.definition_batches.length,2);assert.equal(a.definition_batch_entries.length,3);assert.ok(a.definition_batches.every(b=>b.restored_at===null));const inventory=(await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name").all()).results;for(const {name} of inventory)assert.ok(TABLES.includes(name)||installationLocalTables[name]||name.startsWith('rer_portability_'),`Unclassified schema table: ${name}`);console.log('Archive schema inventory: '+inventory.map(({name})=>`${name}=${TABLES.includes(name)?'portable':'installation-local authority'}`).join(', '));
+ // Real D1 carries Cloudflare's _cf_* tables (_cf_KV) that local D1 refuses to create, so inject their names under the real inventory query: platform tables are never refused, while any other unknown table, even one that merely resembles the prefix, still refuses.
+ const withTables=(names,db=env.DB)=>({prepare:sql=>db.prepare(sql.replace('FROM sqlite_master',`FROM (SELECT name,type FROM sqlite_master${names.map(n=>` UNION ALL SELECT '${n}','table'`).join('')})`)),batch:statements=>db.batch(statements)});
+ await assertArchiveInventory(withTables(['_cf_KV','_cf_FUTURE']));await assert.rejects(assertArchiveInventory(withTables(['_cf_KV','xcf_unknown'])),/Archive unclassified table: xcf_unknown/);
  assert.equal(original.payload.schemaVersion,2);assert.deepEqual(Object.keys(original.payload.tables),LEGACY_TABLES);assert.deepEqual(Object.keys(a),TABLES);
  const text=JSON.stringify(original);for(const secret of [values.SESSION_SECRET,values.SETUP_TOKEN,values.UPTIME_RUNNER_KEY,'private-lease','private-queued-lease','private-destination','private-fingerprint','fixture-signing-secret','credential-webhook','credential-slack','private-claim','/fixture/private/token'])assert.ok(!text.includes(secret),'Excluded credential or authority marker');assert.ok(text.includes('archive-owner@example.test'));
  await assert.rejects(archive({...env,SESSION_SECRET:'incorrect-local-secret-that-cannot-decrypt-email'}),/email definition unavailable/);

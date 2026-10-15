@@ -31,8 +31,9 @@ export const installationLocalTables:Record<string,string>={
  rer_dependency_codes:'Installation one-use link handshake digests.',rer_dependency_installation:'Installation sector identity for the optional Auth link.',rer_dependency_keys:'Installation private link key; never exported.',rer_dependency_link:'Installation provider link record; a restored installation must link again.',rer_dependency_pending:'Installation pending link approvals; expire.',
  oc_idp_grants:'Installation one-use provider owner-claim grant ledger.',
 };
+/** SQLite's own sqlite_% tables and Cloudflare's _cf_% tables (real D1 adds _cf_KV and others) belong to the platform: never exported, never restored into, never refused. GLOB keeps the underscore literal. */
 export async function assertArchiveInventory(db:D1Database){
- const rows=await db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name").all<{name:string}>();
+ const rows=await db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT GLOB '_cf_*' ORDER BY name").all<{name:string}>();
  for(const {name} of rows.results)if(!name.startsWith('rer_portability_')&&!TABLES.includes(name)&&!Object.hasOwn(installationLocalTables,name))throw Error(`Archive unclassified table: ${name}`);
  const sourceColumns:Record<string,string[]>={...columns,notification_destinations:['id','name','kind','enabled','credential_id','created_at','deleted_at'],notification_jobs:[...columns.notification_jobs,'credential_id','claim','claim_until'],integration_deliveries:[...columns.integration_deliveries,'fingerprint','destination_hash','claim','claim_until'],integration_replays:[...columns.integration_replays,'fingerprint']};
  const schemas=await db.batch(TABLES.map(name=>db.prepare(`PRAGMA table_info(${name})`)));

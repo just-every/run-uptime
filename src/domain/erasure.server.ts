@@ -16,7 +16,7 @@ export async function erase(env:Bindings,kind:'monitor'|'destination'|'operator'
  if(actor.kind==='operator'&&!actingOwner)throw Error('Owner authorization required');
  // Capture counts before discovering dependents: a job or credential arriving
  // while planning must invalidate the transaction, including uncaptured rows.
- const allNames=(await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'rer_portability_%' AND name<>'_cf_METADATA'").all<any>()).results;
+ const allNames=(await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'rer_portability_%' AND name NOT GLOB '_cf_*'").all<any>()).results;
  const initialCounts=await env.DB.batch(allNames.map(({name})=>env.DB.prepare(`SELECT COUNT(*) n FROM "${name}"`)));
  const plans:Selection[]=[],discoveryGuards:D1PreparedStatement[]=[],jobIds:string[]=[],jobRows:{id:string;event:string}[]=[],destinationCredentials:string[]=[];
  if(kind==='monitor'||kind==='destination'){
