@@ -17,7 +17,7 @@ node runners/src/private-runner.mjs
 ```
 
 - `UPTIME_CONTROL_ORIGIN` is the exact HTTPS origin of your installation. It is required, and the runner refuses to start without it.
-- `UPTIME_RUNNER_KEY` is the scoped key that matches your installation. For a hosted deployment, it is in `.rer/deploy/production-secrets.json`. See [Deploy to Cloudflare](/docs/deploy).
+- `UPTIME_RUNNER_KEY` is the scoped key that matches your installation. For a hosted deployment, it is in `.rer/deploy/production-secrets.json`, or for a separate environment in `.rer/deploy/environments/<environment>/secrets.json`. From the deploying checkout, `node scripts/runner-start.mjs --environment NAME` reads that environment's key for you (without `--environment`, production's). See [Deploy to Cloudflare](/docs/deploy).
 
 The runner is run from a clone of the source, so use the same checkout you installed from. `rer dev` starts a runner for you; the steps above are for a hosted installation.
 

@@ -7,20 +7,25 @@ import { controlOrigin } from '../runners/src/control-origin.mjs';
 
 const processVariables = ['PATH', 'HOME', 'TMPDIR', 'LANG', 'LC_ALL', 'TZ'];
 const signals = ['SIGINT', 'SIGTERM', 'SIGHUP'];
-const settingsError = () => Error('Runner settings require an owned private regular .rer/deploy/production-secrets.json file without symlinks.');
+// Production's runner key is in the shared settings file; every other deploy
+// environment has its own (see scripts/deployment/owner-settings.mjs).
+const settingsPath = environment => environment === 'production' ? ['.rer', 'deploy', 'production-secrets.json'] : ['.rer', 'deploy', 'environments', environment, 'secrets.json'];
+const settingsError = environment => Error(`Runner settings require an owned private regular ${settingsPath(environment).join('/')} file without symlinks.`);
 
-async function runnerKey(root) {
+async function runnerKey(root, environment) {
   // Do not repair permissions while reading authority. Parent directories must
   // also refuse links and replacement by another local account.
   let file;
   try {
-    for (const path of [join(root, '.rer'), join(root, '.rer/deploy')]) {
+    const parts = settingsPath(environment);
+    for (let depth = 1; depth < parts.length; depth++) {
+      const path = join(root, ...parts.slice(0, depth));
       const info = await lstat(path);
-      if (!info.isDirectory() || info.uid !== process.getuid() || (info.mode & 0o022)) throw settingsError();
+      if (!info.isDirectory() || info.uid !== process.getuid() || (info.mode & 0o022)) throw settingsError(environment);
     }
-    file = await open(join(root, '.rer/deploy/production-secrets.json'), constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+    file = await open(join(root, ...parts), constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
     const info = await file.stat();
-    if (!info.isFile() || info.uid !== process.getuid() || ![0o400, 0o600].includes(info.mode & 0o7777) || info.size > 65536) throw settingsError();
+    if (!info.isFile() || info.uid !== process.getuid() || ![0o400, 0o600].includes(info.mode & 0o7777) || info.size > 65536) throw settingsError(environment);
     const bytes = Buffer.alloc(65537);
     let length = 0;
     while (length < bytes.length) {
@@ -28,7 +33,7 @@ async function runnerKey(root) {
       if (!bytesRead) break;
       length += bytesRead;
     }
-    if (length > 65536) throw settingsError();
+    if (length > 65536) throw settingsError(environment);
     let settings;
     try { settings = JSON.parse(bytes.subarray(0, length).toString('utf8')); }
     finally { bytes.fill(0); }
@@ -37,7 +42,7 @@ async function runnerKey(root) {
     return key;
   } catch {
     // JSON parser and filesystem errors can include private bytes or paths.
-    throw settingsError();
+    throw settingsError(environment);
   } finally {
     await file?.close();
   }
@@ -46,12 +51,13 @@ async function runnerKey(root) {
 // runnerPath is an explicit function argument for isolated subprocess tests;
 // the CLI has no argument or environment override for the executable child.
 export async function launchRunner({ root = process.cwd(), env = process.env,
-  runnerPath, signalSource = process, stdio = 'inherit', terminationGraceMs = 30000 } = {}) {
+  environment = 'production', runnerPath, signalSource = process, stdio = 'inherit', terminationGraceMs = 30000 } = {}) {
   if (typeof process.getuid !== 'function') throw Error('Runner start requires a Unix owner account.');
+  if (typeof environment !== 'string' || !/^[a-z][a-z0-9-]{0,39}$/.test(environment)) throw Error('Runner start requires a valid deploy environment name.');
   try { controlOrigin(env.UPTIME_CONTROL_ORIGIN); }
   catch { throw Error('UPTIME_CONTROL_ORIGIN must be an exact HTTPS origin.'); }
   const directory = await realpath(root);
-  const key = await runnerKey(directory);
+  const key = await runnerKey(directory, environment);
   const childEnvironment = Object.fromEntries(processVariables
     .filter(name => typeof env[name] === 'string').map(name => [name, env[name]]));
   // Suppress Node's implicit coverage inheritance as well as the explicit env.
@@ -89,12 +95,13 @@ export async function launchRunner({ root = process.cwd(), env = process.env,
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   try {
-    if (process.argv.length !== 2) throw Error('Usage: node scripts/runner-start.mjs');
-    const result = await launchRunner();
+    const args = process.argv.slice(2);
+    if (!(args.length === 0 || (args.length === 2 && args[0] === '--environment'))) throw Error('Usage: node scripts/runner-start.mjs [--environment NAME]');
+    const result = await launchRunner({ environment: args[1] ?? 'production' });
     if (result.signal) process.kill(process.pid, result.signal);
     else process.exitCode = result.code ?? 1;
   } catch {
-    console.error('Runner start failed: check the exact HTTPS UPTIME_CONTROL_ORIGIN and owner-only deployment settings containing UPTIME_RUNNER_KEY.');
+    console.error('Runner start failed: check the exact HTTPS UPTIME_CONTROL_ORIGIN and the owner-only deployment settings for the environment containing UPTIME_RUNNER_KEY (for a named environment, run its rer deploy again to save its key).');
     process.exitCode = 1;
   }
 }

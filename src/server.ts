@@ -154,10 +154,10 @@ const handler={async fetch(request,env,execution){
  if(!publicPath(path,bindings.UPTIME_LOCAL_REVIEW==='true')&&!isConsoleDocument(path)&&!path.startsWith('/_serverFn/')&&path!=='/api'&&!path.startsWith('/api/'))return notFoundDocument();
  if(path==='/auth/owner-claim')return (await ownerClaim(bindings,request))!;
  if(path==='/api/editor/config')return editorConfigResponse(bindings,request);
- if(path.startsWith('/auth/'))return nativeClaimFailure(request,(await authRoute(bindings,request))!);
+ if(path.startsWith('/auth/'))return nativeClaimFailure(request,(await authRoute(bindings,request))!,bindings.UPTIME_DEPLOY_ENVIRONMENT);
  if(path==='/setup')return firstRun(bindings,request);
  if(path==='/alert-drill')return alertDrillDocument(bindings,request);
- if(path==='/login'||path==='/claim')return authDocument(path==='/claim',path==='/login'&&url.searchParams.get('notice')==='sent',developmentMail(bindings));
+ if(path==='/login'||path==='/claim')return authDocument(path==='/claim',path==='/login'&&url.searchParams.get('notice')==='sent',developmentMail(bindings),false,bindings.UPTIME_DEPLOY_ENVIRONMENT);
  if(isPublicAsset(path))return bindings.ASSETS?bindings.ASSETS.fetch(request):new Response('Not found',{status:404});
  if(path==='/monitor'||path==='/monitor/')return new Response(null,{status:308,headers:{location:`/app/monitor${url.search}`,'cache-control':'no-store'}});
  if(path!=='/health'&&path!=='/api'&&!path.startsWith('/api/')&&!isPublicDocument(path)){

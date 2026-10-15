@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Each named deploy environment now also has its own `SESSION_SECRET` and `UPTIME_RUNNER_KEY` in `.rer/deploy/environments/<environment>/secrets.json`, so a session or runner key from one environment is refused by another; environments deployed earlier keep their values. First-run setup names the environment's settings file, and `node scripts/runner-start.mjs --environment NAME` starts that environment's runner. `@runeditrun/rer` is pinned to 0.2.11.
 - Each named deploy environment now has its own one-time setup token, kept in `.rer/deploy/environments/<environment>/secrets.json`; the deploy hook returns the token it deployed so rer can claim the owner, and environments deployed earlier keep their token. `@runeditrun/rer` is pinned to 0.2.9.
 - Runner handoffs no longer reset incident confirmation or recovery while older undelivered checks await a skip decision; skipped checks still show missing coverage.
 - Console controls added while an action is finishing stay disabled until its latest read completes, and an unexpected concurrent action asks the operator to wait rather than silently dropping the click.

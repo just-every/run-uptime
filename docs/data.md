@@ -82,7 +82,7 @@ The console restore accepts the same JSON file under **Later erasure journal**. 
 Your private settings are installation credentials, and they are not portable archive data. Keep them in their own backup, apart from the archive.
 
 - Local installation: `data/local-secrets.json`.
-- Hosted installation: `.rer/deploy/production-secrets.json`.
+- Hosted installation: `.rer/deploy/production-secrets.json`, and `.rer/deploy/environments/<environment>/secrets.json` for each separate environment.
 
 Notification credentials are encrypted with a key derived from the installation's `SESSION_SECRET`. If that secret is lost, destinations need their addresses entered again. See [Notifications](/docs/notifications).
 

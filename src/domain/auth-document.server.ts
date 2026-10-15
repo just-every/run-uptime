@@ -11,24 +11,28 @@ button:focus-visible{outline-offset:4px}
 .outbox{margin:16px 0 0}
 code{color:var(--ink);font:500 .9em/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow-wrap:anywhere}`;
 
-export function authDocument(setup=false,sent=false,localReview=false,invalidSetupToken=false){
+// A hosted Worker names its deploy environment (UPTIME_DEPLOY_ENVIRONMENT, validated at startup); each named environment keeps its own settings file.
+const hostedSettings=(environment?:string)=>environment&&environment!=='production'?`.rer/deploy/environments/${environment}/secrets.json`:'.rer/deploy/production-secrets.json';
+
+export function authDocument(setup=false,sent=false,localReview=false,invalidSetupToken=false,environment?:string){
+ const hosted=hostedSettings(environment);
  const title=invalidSetupToken?'Setup token not accepted':sent?(localReview?'Check the development outbox':'Check your email'):setup?`Set up ${productName}`:`Sign in to ${productName}`;
- const lead=sent?(localReview?'If this email belongs to an active operator, its sign-in link is in the development outbox. Open the link and confirm to continue. No email was sent.':'If this email belongs to an active operator, a sign-in link has been requested. Open the link and confirm to continue.'):setup?'Use the one-time setup token supplied during installation: SETUP_TOKEN in data/local-secrets.json for a local install, or in .rer/deploy/production-secrets.json in the checkout that deployed a hosted installation.':(localReview?'Enter your operator email. Your sign-in link will appear in the development outbox on this computer. No email is sent.':'Enter your operator email to receive a secure sign-in link.');
+ const lead=sent?(localReview?'If this email belongs to an active operator, its sign-in link is in the development outbox. Open the link and confirm to continue. No email was sent.':'If this email belongs to an active operator, a sign-in link has been requested. Open the link and confirm to continue.'):setup?'Use the one-time setup token supplied during installation: SETUP_TOKEN in data/local-secrets.json for a local install, or in '+hosted+' in the checkout that deployed a hosted installation.':(localReview?'Enter your operator email. Your sign-in link will appear in the development outbox on this computer. No email is sent.':'Enter your operator email to receive a secure sign-in link.');
  const fields=setup?`<label>Setup token<input name="token" type="password" autocomplete="off" required${invalidSetupToken?' aria-invalid="true" aria-describedby="setup-token-error"':''}></label><label>Your name<input name="displayName" autocomplete="name" required></label>`:'<label>Email address<input name="email" type="email" autocomplete="email" required></label>';
  // Sign-in returns through /setup, which sends a finished owner on to the console at /app.
  const form=`<form method="post" action="${setup?'/auth/bootstrap':'/auth/magic-link'}">${fields}<input type="hidden" name="returnTo" value="/setup"><button>${setup?'Create owner account':'Send sign-in link'}</button></form>${!setup?'<p class="outbox"><a class="text-link" href="/claim">Claim the first owner with an installation token</a></p>':''}${localReview&&!setup?'<p class="outbox"><a class="text-link" href="/__dev/outbox">Open development outbox</a></p>':''}`;
- return new Response(shellDocument({title,style,card:`<h1>${title}</h1><p${sent?' role="status"':''}>${lead.replace('SETUP_TOKEN','<code>SETUP_TOKEN</code>').replace('data/local-secrets.json','<code>data/local-secrets.json</code>').replace('.rer/deploy/production-secrets.json','<code>.rer/deploy/production-secrets.json</code>')}</p>${invalidSetupToken?'<p id="setup-token-error" role="alert">The setup token was not accepted. Check the installation token and enter it again.</p>':''}${form}`}),{headers:documentHeaders});
+ return new Response(shellDocument({title,style,card:`<h1>${title}</h1><p${sent?' role="status"':''}>${lead.replace('SETUP_TOKEN','<code>SETUP_TOKEN</code>').replace('data/local-secrets.json','<code>data/local-secrets.json</code>').replace(hosted,`<code>${hosted}</code>`)}</p>${invalidSetupToken?'<p id="setup-token-error" role="alert">The setup token was not accepted. Check the installation token and enter it again.</p>':''}${form}`}),{headers:documentHeaders});
 }
 
 // Presentation only, after Base has refused this exact native form submission.
 // Use Base's form media-type distinction; JSON callers retain the original response.
-export async function nativeClaimFailure(request:Request,response:Response){
+export async function nativeClaimFailure(request:Request,response:Response,environment?:string){
  if(request.method!=='POST'||new URL(request.url).pathname!=='/auth/bootstrap'||
   (request.headers.get('content-type')??'').split(';')[0].trim().toLowerCase()!=='application/x-www-form-urlencoded'||
   response.status!==403||!response.headers.get('content-type')?.startsWith('application/json'))return response;
  const failure=await response.clone().json() as {error?:string};
  if(failure.error!=='invalid_setup_token')return response;
- const document=authDocument(true,false,false,true),headers=new Headers(response.headers);
+ const document=authDocument(true,false,false,true,environment),headers=new Headers(response.headers);
  // Keep Base's denial headers and status, with the existing auth document's
  // resource policy and origin-only referrer so a corrected native form can submit.
  for(const name of ['content-type','content-security-policy','referrer-policy'])headers.set(name,document.headers.get(name)!);

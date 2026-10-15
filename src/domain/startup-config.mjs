@@ -58,6 +58,7 @@ export const configurationTable = Object.freeze([
  ...claimNames.map(name => ({ name, scopes: ['worker', 'settings'], required: 'conditional', when: any(claimNames), valid: name.endsWith('PUBLIC_KEYS') ? (value, env) => { try { configureClaim({ issuer: env.RER_OWNER_CLAIM_ISSUER, installationId: env.RER_OWNER_CLAIM_INSTALLATION_ID, appOrigin: env.RER_OWNER_CLAIM_APP_ORIGIN, expectedEmail: env.OWNER_EMAIL?.toLowerCase(), publicKeys: JSON.parse(value) }); return true; } catch { return false; } } : name.endsWith('ISSUER') || name.endsWith('APP_ORIGIN') ? externalOrigin : value => text(value) && value.length <= 256 })),
  ...editorNames.map(name => ({ name, scopes: ['worker', 'settings'], required: 'conditional', when: any(editorNames), valid: name.endsWith('ORIGIN') ? externalOrigin : text })),
  { name: 'ASSETS', scopes: ['worker'], required: 'optional', valid: value => value && typeof value.fetch === 'function' },
+ { name: 'UPTIME_DEPLOY_ENVIRONMENT', scopes: ['worker'], required: 'optional', valid: value => text(value) && /^[a-z][a-z0-9-]{0,39}$/.test(value) },
  { name: 'RER_DEPLOY_SOURCE', scopes: ['worker'], required: 'optional', valid: text },
  { name: 'RER_DEPLOY_FINGERPRINT', scopes: ['worker'], required: 'optional', valid: text },
  { name: 'RER_VERSION', scopes: ['worker'], required: 'optional', valid: value => value && typeof value.id === 'string' },

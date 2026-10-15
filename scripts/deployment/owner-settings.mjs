@@ -57,27 +57,40 @@ export async function ownerSecrets(root, { env = process.env, store } = {}) {
   return values;
 }
 
-// Production deploys the SETUP_TOKEN in the shared settings file. Every other
-// environment has its own, generated on its first deploy and kept for repeats, so
-// a token from one environment's setup is never valid on another. An environment
-// already deployed with the shared token (its kit record exists) keeps that token,
-// because the kit never replaces a secret its Worker already has.
-export async function environmentSetupToken(root, environment, shared, { store } = {}) {
-  if (environment === 'production') return shared.SETUP_TOKEN;
+// Production deploys the generated secrets in the shared settings file. Every
+// other environment has its own SESSION_SECRET, SETUP_TOKEN and UPTIME_RUNNER_KEY,
+// generated on its first deploy and kept for repeats, so a session, setup token or
+// runner key from one environment is never valid on another. An environment
+// deployed before this change keeps the values it was deployed with, because the
+// kit never replaces a secret its Worker already has: one deployed with every
+// shared value (its kit record exists) keeps them all, and one with only its own
+// SETUP_TOKEN keeps the shared SESSION_SECRET and UPTIME_RUNNER_KEY.
+export const environmentNames = ['SESSION_SECRET', 'SETUP_TOKEN', 'UPTIME_RUNNER_KEY'];
+export const environmentSecretsFile = environment => `.rer/deploy/environments/${environment}/secrets.json`;
+export async function environmentSecrets(root, environment, shared, { store } = {}) {
+  const pick = values => Object.fromEntries(environmentNames.map(name => [name, values[name]]));
+  if (environment === 'production') return pick(shared);
   const path = join(await privateDirectory(root, ['.rer', 'deploy', 'environments', environment]), 'secrets.json');
   const read = async () => {
     const values = JSON.parse(await readPrivateFile(path));
-    if (!values || typeof values !== 'object' || Object.keys(values).join() !== 'SETUP_TOKEN' || !string(values.SETUP_TOKEN) || values.SETUP_TOKEN.length < 32) throw new Error('invalid-owner-secret-file');
-    store?.addSecrets?.([values.SETUP_TOKEN]);
-    return values.SETUP_TOKEN;
+    const names = values && typeof values === 'object' && !Array.isArray(values) ? Object.keys(values).sort().join() : '';
+    if (![environmentNames.join(), 'SETUP_TOKEN'].includes(names) || Object.values(values).some(value => !string(value) || value.length < 32)) throw new Error('invalid-owner-secret-file');
+    store?.addSecrets?.(Object.values(values));
+    return values;
   };
-  try { return await read(); } catch (error) { if (error.code !== 'ENOENT') throw error; }
+  const write = async (values, exclusive) => {
+    store?.addSecrets?.(Object.values(values));
+    await writePrivateFile(path, JSON.stringify(pick(values), null, 2) + '\n', exclusive);
+    return pick(values);
+  };
+  let saved;
+  try { saved = await read(); } catch (error) { if (error.code !== 'ENOENT') throw error; }
+  if (saved?.SESSION_SECRET) return pick(saved);
+  if (saved) return write({ ...shared, SETUP_TOKEN: saved.SETUP_TOKEN }, false);
   const deployed = await lstat(join(root, '.rer', 'deploy', `${environment}.json`)).then(() => true, error => { if (error.code === 'ENOENT') return false; throw error; });
-  const token = deployed ? shared.SETUP_TOKEN : randomBytes(32).toString('hex');
-  store?.addSecrets?.([token]);
-  try { await writePrivateFile(path, JSON.stringify({ SETUP_TOKEN: token }, null, 2) + '\n', true); }
-  catch (error) { if (error.code !== 'EEXIST') throw error; return read(); }
-  return token;
+  const values = deployed ? shared : Object.fromEntries(environmentNames.map(name => [name, randomBytes(32).toString('hex')]));
+  try { return await write(values, true); }
+  catch (error) { if (error.code !== 'EEXIST') throw error; return pick(await read()); }
 }
 
 // Only these credentials may cross the hosting command boundary. NODE_OPTIONS,

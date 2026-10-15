@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { ownerPlan, ownerWorkerName } from '@runeditrun/rer/modules/deploy-kit/owner';
 import { packageBuild } from '@runeditrun/rer/modules/deploy-kit/prepare';
 import { main, report } from '@runeditrun/rer/modules/deploy-kit/owner-cli';
-import { secretsFile, ownerSecrets, environmentSetupToken, ownerEnvironment, validateAccount } from './owner-settings.mjs';
+import { secretsFile, ownerSecrets, environmentSecrets, ownerEnvironment, validateAccount } from './owner-settings.mjs';
 import { prepareOwnerBuild, ownerProduct } from './owner-prepare.mjs';
 import { missing, RerError } from '@runeditrun/rer/errors';
 import { ownerDeploy } from '@runeditrun/rer/deploy';
@@ -15,8 +15,10 @@ export function deployment(lifecycle) {
  return async context => {
   const { root, options, store, signal, operationToken } = context;
   if (options.remove || options.setSecret || options.unsetSecret) return sharedDeploy(context);
-  const declaration = JSON.parse(await readFile(join(root, 'deploy.json'), 'utf8'));
   const environment = options.environment ?? 'production';
+  // The Worker learns its environment so first-run setup names that environment's settings file.
+  const source = JSON.parse(await readFile(join(root, 'deploy.json'), 'utf8'));
+  const declaration = { ...source, vars: { ...source.vars, UPTIME_DEPLOY_ENVIRONMENT: environment } };
   // Dry runs inspect the deploy schema without accepting or requiring provider credentials.
   const selectedDeclaration=selectMailDeclaration(declaration,process.env);
   const declared = new Set([declaration.originVar, ...selectedDeclaration.secrets.map(item => item.binding), ...declaration.d1.map(item => item.binding)]);
@@ -40,7 +42,7 @@ export function deployment(lifecycle) {
     if (saved) validateConfiguration({ ...hosted, ...saved }, { scope: 'deploy' });
     validateAccount(process.env, store);
     secrets = await ownerSecrets(root, { store });
-    secrets = { ...secrets, SETUP_TOKEN: await environmentSetupToken(root, environment, secrets, { store }) };
+    secrets = { ...secrets, ...await environmentSecrets(root, environment, secrets, { store }) };
     validateConfiguration({ ...hosted, ...secrets }, { scope: 'deploy' });
    } catch (error) {
     if (error.message.startsWith('Invalid')) throw missing(error.message);
