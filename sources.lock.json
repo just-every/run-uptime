@@ -419,7 +419,7 @@
       "executable": false
     },
     ".github/workflows/run-demo.yml": {
-      "sha256": "7844097dc6409defc9fe04bddb4b30735eb369e0e4f4065540bc530203bec3dc",
+      "sha256": "508b61e80b484e6b3e8ee524a177d0b0402df3cf35cd357fc695a3876be4d766",
       "executable": false
     },
     ".github/workflows/run-site-off.yml": {
@@ -471,7 +471,7 @@
       "executable": false
     },
     "DEMO.md": {
-      "sha256": "2a9c29e6ea7cddcbee8149c53071c806626ec67b2c8f0e8435eb38814c68bcea",
+      "sha256": "040a32e20304be6f3e0320daccb42761f649a3673dc306d62d1a0e87acb830da",
       "executable": false
     },
     "deploy-demo.json": {
@@ -495,7 +495,7 @@
       "executable": false
     },
     "docs/deploy.md": {
-      "sha256": "d66f80726a5aa49178c602c74e94e42356b81f368b93113eb649f0e14cfb1a3a",
+      "sha256": "fc0898d9115c887316c04e603068048721e1727af7bee24743efdea5f4440f7b",
       "executable": false
     },
     "docs/install.md": {
@@ -543,7 +543,7 @@
       "executable": false
     },
     "HANDOVER.md": {
-      "sha256": "4d0db33b6d00d34fdbb3cf04d369c3c67440428f27c25a1b11591dce7582a58e",
+      "sha256": "ebcbccb5ec493b44fb9975c9869c43d27e0e3874747b05f6de3e6d32c3c0a178",
       "executable": false
     },
     "LICENSE": {
@@ -707,11 +707,11 @@
       "executable": false
     },
     "OPERATIONS.md": {
-      "sha256": "ddd53117ad584174c9a3668272fe76f865df771569d25d05af66a8af778bca7b",
+      "sha256": "7878ea10af091cff9ecc22de1808cb4ed46f4af4bbee80789e4279458a1678db",
       "executable": false
     },
     "package.json": {
-      "sha256": "a5165ff3590d055c118de3f1df0d82c3a7a23e39bd301f0bc135951da9a5be12",
+      "sha256": "8eb3d4e3083611200dd5c9a22da6d77641f9b25603e8f7870acd9e49bf43f85c",
       "executable": false
     },
     "patches/README.md": {
@@ -719,7 +719,7 @@
       "executable": false
     },
     "pnpm-lock.yaml": {
-      "sha256": "212633a03894c7ce53b5a161a6ab0d20c50a0294a241ee52b79dc47827d599ef",
+      "sha256": "c716459f18d6a3becb5e2df0dc80dadbefef139ce96c3cbe3654b539d280a23b",
       "executable": false
     },
     "public/action-feedback.mjs": {
