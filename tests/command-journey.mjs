@@ -49,7 +49,7 @@ try {
  await machineAvailable(); dev = scratch.start('node', [rer, 'dev', '--foreground']);
  // The launcher's separate startup writes can arrive in different output chunks.
  await until(() => {
-  assert.equal(dev.exitCode, null);
+  assert.equal(dev.exitCode, null, dev.output.split('\n').filter(line=>/not started|in use|limit is|refus|load|GiB|port|missing/i.test(line)).slice(-12).join('\n'));
   return dev.output.includes('RER_READY ' + origin)
    && dev.output.includes('RER_SIGNED_IN journey@example.test')
    && dev.output.includes('RER_OPEN ' + origin + '/__dev/key#rer-dev=');
@@ -78,7 +78,7 @@ try {
    assert.equal(denied.status(), 303);
    assert.equal(denied.headers().location, '/login?returnTo=%2Fsetup');
   }
-  await unsigned.newPage().then(async p => { await p.goto(origin + '/setup'); assert.equal(new URL(p.url()).pathname, '/login'); });
+  await unsigned.newPage().then(async p => { await p.goto(origin + '/setup'); assert.equal(new URL(p.url()).pathname, '/__dev/key'); });
  } finally { await unsigned.close(); }
  for (const headers of [{ origin: 'https://attacker.example.test' }, { origin, 'sec-fetch-site': 'cross-site' }, {}]) {
   const refused = await page.request.post(origin + '/setup', { headers, maxRedirects: 0 });

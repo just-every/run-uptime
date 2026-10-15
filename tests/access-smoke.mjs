@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFile,readdir} from 'node:fs/promises';
 import {join} from 'node:path';
 import {runtimeDirectory,cleanupDirectory,availablePorts,waitFor} from './notify-acceptance-runtime.mjs';
-import {authRequest,signInOwner,testAuthBindings,readCheckoutKey} from './auth-test-support.mjs';
+import {authRequest,signInOwner,testAuthBindings,readCheckoutKey,sessionCookie,finishSetup} from './auth-test-support.mjs';
 import {hostedRuntime} from './hosted-auth-runtime.mjs';
 import {splitSql} from './migration-support.mjs';
 import {scratchInstallation,machineAvailable} from './scratch-installation.mjs';
@@ -25,12 +25,18 @@ async function probe(call,settings,fetcher=fetch,requireRunner=false){
  }
  const legacy=await call('/monitor?monitor=x');assert.equal(legacy.status,308);assert.equal(legacy.headers.get('location'),'/app/monitor?monitor=x');
  const legacySlash=await call('/monitor/?monitor=x');assert.equal(legacySlash.status,308);assert.equal(legacySlash.headers.get('location'),'/app/monitor?monitor=x');
- assert.equal((await call('/login')).status,200);
+ const login=await call('/login');assert.equal(login.status,requireRunner?303:200);if(requireRunner)assert.equal(login.headers.get('location'),'/signin?returnTo=%2Fsetup');
  assert.equal((await call('/does-not-exist')).status,404);
  // Before the owner confirms first-run setup the Lobby's one action is /setup; once confirmed it is sign-in.
  const lobby=async expected=>{const state=await call('/setup/state');assert.equal(state.status,200);assert.deepEqual(await state.json(),{state:expected});const action=(await(await call('/')).text()).match(/<a class="btn" href="([^"]+)"/)?.[1];assert.equal(action,expected==='claimed'?'/login':'/setup','Lobby action while '+expected)};
  await lobby('unclaimed');
- const cookie=await signInOwner(settings.UPTIME_ORIGIN,{bindings:settings,fetcher,finishFirstRun:true});
+ let cookie;
+ if(requireRunner){
+  const gate=await call('/__dev/key',{key:settings.RER_DEV_KEY});assert.equal(gate.status,204);
+  const gateCookie=gate.headers.getSetCookie().map(value=>value.split(';')[0]).join('; ');
+  cookie=gateCookie+'; '+sessionCookie(await call('/auth/dev/enter?as=owner&returnTo=%2Fsetup',undefined,{cookie:gateCookie}));
+  await finishSetup(settings.UPTIME_ORIGIN,cookie,fetcher);
+ }else cookie=await signInOwner(settings.UPTIME_ORIGIN,{bindings:settings,fetcher,finishFirstRun:true});
  await lobby('claimed');
  if(requireRunner)await waitFor(async()=>{const response=await call('/api/overview',undefined,{cookie});return response.ok&&(await response.json()).runner.contact.state==='Fresh contact'},'real private runner contact',60000);
  const response=await call('/app',undefined,{cookie});assert.equal(response.status,200);const html=await response.text();assert.match(html,/class="app"/);assert.match(html,/href="\/style\.css"/);assert.doesNotMatch(html,/<script[^>]*src="\/app\.js"/,'the DOM-mutating controller starts only after hydration');assert.doesNotMatch(html,/id="access-form"|id="owner-token"/);
@@ -42,7 +48,7 @@ async function probe(call,settings,fetcher=fetch,requireRunner=false){
 try{
  await scratch.run('pnpm',['install','--frozen-lockfile']);
  await scratch.run('pnpm',['run','setup','--','--owner-email',testAuthBindings.OWNER_EMAIL,'--port',String(port),'--non-interactive']);
- // The installation's own dev key opens its outbox, as it does for the person at this checkout.
+ // The installation's own dev key opens one-click owner entry.
  const settings={...JSON.parse(await readFile(join(scratch.root,'data/local-secrets.json'),'utf8')),RER_DEV_KEY:await readCheckoutKey(scratch.root)};
  // rer dev detaches without a terminal; --foreground keeps it this test's child, as a terminal would.
  await machineAvailable();child=scratch.start('pnpm',['run','dev','--','--foreground']);
