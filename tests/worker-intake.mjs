@@ -210,6 +210,8 @@ try{
   const observation={...await probeHttp({...task.definition,fixtureIdentity:grant.identity},'local-a',[fixturePort]),attempt:0};
   assert.equal(observation.outcome,'pass');
   observation.checks[0].reason+='; 証拠 € café ✓';
+  // The target is real; this intake test replaces only its independent public network edge.
+  observation.canary={...observation,id:crypto.randomUUID(),bytes:0,checks:[{assertion:'status',pass:true,reason:'Network-edge external check fixture'}]};
   const value={slotId:task.id,leaseOwner:task.leaseOwner,attempts:[observation]};
   await check('signed runner intake rejects over40,000 UTF8 bytes below40,000 characters',async()=>{
     const body=JSON.stringify({...value,padding:'€'.repeat(14000)});

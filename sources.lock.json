@@ -3391,7 +3391,7 @@
       "executable": false
     },
     "tests/worker-intake.mjs": {
-      "sha256": "999bbd6c60ca53b54a1ca2d20426924f7f1bd571a8cb925346353fab7b6972ea",
+      "sha256": "9a1a7fe33ff53043c6ad00bc1b43aa3a39a1eb414646b188edc797861ee20865",
       "executable": false
     },
     "tsconfig.json": {
