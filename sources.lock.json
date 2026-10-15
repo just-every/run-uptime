@@ -2369,7 +2369,7 @@
       "executable": false
     },
     "src/demo.ts": {
-      "sha256": "034877dbd4d974fa1d0bf17e748ca0b0e2315a5b62b254ca53815f39ddedee51",
+      "sha256": "086da9828df9511209aaa66ae8073f7e0a1e79f57ff39737e2d4c168504d8f1d",
       "executable": false
     },
     "src/domain/access-document.server.ts": {
@@ -2510,6 +2510,10 @@
     },
     "src/domain/definitions/plan.server.ts": {
       "sha256": "f4011bdcbca87b0165fa6b6b64f7c338720a5c13a23040987dd28445bea96bce",
+      "executable": false
+    },
+    "src/domain/demo-history.server.ts": {
+      "sha256": "b85c568643b8cd969159d73290fa2fc80cb318edd3f90a325849f21ec5432406",
       "executable": false
     },
     "src/domain/demo.server.ts": {
