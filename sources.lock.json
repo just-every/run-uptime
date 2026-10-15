@@ -875,7 +875,7 @@
       "executable": false
     },
     "README.md": {
-      "sha256": "ff6624ccafea57b8de5c2bc31ce902f9b5ff78b03d2ded34dd556f6803f203be",
+      "sha256": "d64e3ac813b0a951ae6f2bd54f256dc2c03a529df4cf6afe01991dc2c6f03795",
       "executable": false
     },
     "RELEASE.json": {
@@ -2299,7 +2299,7 @@
       "executable": false
     },
     "src/domain/archive-inventory.ts": {
-      "sha256": "0d9b1a27cf6f186a6ba44cecf1038b58587a7a492c024f41980a301a3caad7dc",
+      "sha256": "72f3eb66b11a19b74936afc21bf96ce3a25d8d6252d34633c13039eef5128456",
       "executable": false
     },
     "src/domain/archive-monitor-validation.ts": {
@@ -2439,7 +2439,7 @@
       "executable": false
     },
     "src/domain/erasure.server.ts": {
-      "sha256": "aedfa960b276bf4dfa185abed9e34a4295f6b4dd0a31142cb5c00c0440faeda1",
+      "sha256": "130219b9c4acc94f31f3ef0c5cf567a6284299bdd44d2cfc12546a59af1d4cd4",
       "executable": false
     },
     "src/domain/evidence.server.ts": {
@@ -3027,7 +3027,7 @@
       "executable": false
     },
     "tests/archive-roundtrip.mjs": {
-      "sha256": "586ca902dda933ff2f94683da7488375762c526700868bc9f40960e2d6fe45e3",
+      "sha256": "33735a9a570c9187baa965efd38c3e4bbaef6b13673d24af6014978344cd9efc",
       "executable": false
     },
     "tests/archive-sparse-state.mjs": {
