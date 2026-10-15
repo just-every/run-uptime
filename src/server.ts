@@ -1,7 +1,7 @@
+import {withDemo} from './base/modules/demo/index.mjs'
 import {scheduledPublicChecks} from './domain/worker-checks.server.ts'
-import {withDemo} from './modules/demo/index.mjs'
 import {seedDemo} from './demo.ts'
-import {demoBindings,recordDemoBlocked} from './domain/demo.server.ts'
+import {demoBindings} from './domain/demo.server.ts'
 import {incidents} from './domain/incidents.server.ts'
 import {monitoringWatch} from './domain/monitoring-watch.server.ts'
 import {scheduledNotifications} from './domain/notification-worker.server.ts'
@@ -30,9 +30,6 @@ import {isPublicAsset} from './domain/assets.server.ts'
 import {classifyStorage,storageLogLine,storageOperation} from './domain/storage-error.ts'
 import {maintenance} from './domain/maintenance.server.ts'
 import {authRoute,authFailure,developmentMail,signOut} from './domain/operator-auth.server.ts'
-import {devGate,devNotFound} from './base/modules/operator-auth/index.mjs'
-import {developmentOutbox} from './domain/development-outbox.server.ts'
-import {createDevelopmentOutboxHandler} from './base/modules/mail/src/development/index.mjs'
 import {authDocument,nativeClaimFailure} from './domain/auth-document.server.ts'
 import {firstRun,firstRunComplete,setupRedirect} from './domain/first-run.server.ts'
 import {ownerClaim} from './domain/owner-claim.server.ts'
@@ -103,7 +100,6 @@ api.delete('/api/notifications/destinations/:id',async c=>c.json(await erase(c.e
 api.post('/api/notifications/destinations/:id/rotate',async c=>c.json(await rotateDestination(c.env,c.req.param('id'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 api.post('/api/notifications/destinations/:id/test',async c=>c.json(await testDestination(c.env,c.req.param('id')),202))
 api.post('/api/notifications/destinations/:id/drill',async c=>c.json(await startDrill(c.env,c.req.param('id'),(await operator(c)).ref),202))
-api.post('/api/runner/demo-blocked',async c=>c.json(await recordDemoBlocked(c.env,c.get('input'))))
 api.post('/api/runner/notifications',async c=>c.json(await notificationRpc(c.env,c.get('input'))))
 // A failed mutation guard or a racing writer's constraint means the installation changed between reading and writing: a conflict.
 // Any other D1 failure is a retryable storage fault. The log line names the operation, class, status and a sanitized cause, never values.
@@ -143,16 +139,6 @@ const handler={async fetch(request,env,execution){
  const invalid=await configurationResponse(env as Bindings);if(invalid)return invalid;
  const limited=await limitPublicRequest(env as Bindings,request);if(limited)return limited;
  const bindings=env as Bindings,url=new URL(request.url),path=url.pathname;
- // This deliberately public local viewer must disappear before the normal Host guard.
- // The outbox and the key exchange answer only a local runtime that holds RER_DEV_KEY. A tunnel or local proxy makes remote
- // requests look local, so the outbox also needs the key gate's cookie (or the rer harness's key header).
- if(path==='/__dev/outbox'||path==='/__dev/key'){
-  const gate=developmentMail(bindings)?devGate({key:bindings.RER_DEV_KEY,origin:bindings.UPTIME_ORIGIN!,local:true}):null;
-  if(!gate)return devNotFound();
-  if(path==='/__dev/key')return (await gate.exchange(request))??devNotFound();
-  if(!await gate.admits(request))return devNotFound();
-  return (await createDevelopmentOutboxHandler({local:true,origin:bindings.UPTIME_ORIGIN!,outbox:developmentOutbox(bindings.DB)})(request))??devNotFound();
- }
  if(url.origin!==bindings.UPTIME_ORIGIN||(request.headers.has('host')&&request.headers.get('host')?.toLowerCase()!==url.host.toLowerCase()))return new Response('Invalid host',{status:403});
  // The Lobby at / and GET /setup/state: Base's shared responses, before the public-path guard and the document renderer.
  const lobbyBindings={DB:bindings.DB,AUTH_ORIGIN:bindings.UPTIME_ORIGIN!};

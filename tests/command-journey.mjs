@@ -7,9 +7,8 @@ import { archive as productArchive } from '../src/domain/archive.server.ts';
 import { chromium } from 'playwright';
 import { scratchInstallation, machineAvailable } from './scratch-installation.mjs';
 import { openGate, readCheckoutKey } from './auth-test-support.mjs';
-import { until, assertPortFree, signInThroughOutbox, smokeDocuments, monitorHydration, descendantGroups, assertGroupsGone } from './installer-support.mjs';
+import { until, assertPortFree, devSignIn, smokeDocuments, monitorHydration, descendantGroups, assertGroupsGone } from './installer-support.mjs';
 import { definitionsJourney } from './definitions-journey.mjs';
-import { drillJourney } from './drill-journey.mjs';
 const scratch = await scratchInstallation();
 let dev, browser, origin; const groups = new Set();
 try {
@@ -50,7 +49,7 @@ try {
  await machineAvailable(); dev = scratch.start('node', [rer, 'dev', '--foreground']);
  // The launcher's separate startup writes can arrive in different output chunks.
  await until(() => {
-  assert.equal(dev.exitCode, null);
+  assert.equal(dev.exitCode, null, dev.output.split('\n').filter(line=>/not started|in use|limit is|refus|load|GiB|port|missing/i.test(line)).slice(-12).join('\n'));
   return dev.output.includes('RER_READY ' + origin)
    && dev.output.includes('RER_SIGNED_IN journey@example.test')
    && dev.output.includes('RER_OPEN ' + origin + '/__dev/key#rer-dev=');
@@ -58,7 +57,7 @@ try {
  // dev opens signed in: the owner it names and the key-carrying link (whose key stays in the fragment).
  assert.ok(dev.output.includes('RER_SIGNED_IN journey@example.test'));
  assert.ok(dev.output.includes('RER_OPEN ' + origin + '/__dev/key#rer-dev='));
- assert.equal((await fetch(origin + '/__dev/outbox')).status, 404, 'the outbox answers only a request that holds the key');
+ assert.equal((await fetch(origin + '/__dev/outbox')).status, 404, 'the removed development outbox stays absent');
  const client = await fetch(origin + '/@vite/client');
  assert.equal(client.status, 200, 'real Vite asset/HMR support');
  // The client's own imports (Vite 8 names its env module by package-store path) must reach the browser too, or nothing hydrates.
@@ -70,7 +69,7 @@ try {
  browser = await chromium.launch({ headless: true }); const page = await browser.newPage();
  const devKey = await readCheckoutKey(scratch.root);
  await openGate(page.context(), origin, devKey);
- await signInThroughOutbox(page, origin + '/__dev/outbox', { displayName: 'Command Owner', OWNER_EMAIL: 'journey@example.test' }, { finishSetup: false, key: devKey });
+ await devSignIn(page, origin + '/__dev/key', { displayName: 'Command Owner', OWNER_EMAIL: 'journey@example.test' }, { finishSetup: false, key: devKey });
  assert.equal(new URL(page.url()).pathname, '/setup', 'rer sign-in returns the unfinished owner to setup');
  const unsigned = await browser.newContext();
  try {
@@ -79,7 +78,7 @@ try {
    assert.equal(denied.status(), 303);
    assert.equal(denied.headers().location, '/login?returnTo=%2Fsetup');
   }
-  await unsigned.newPage().then(async p => { await p.goto(origin + '/setup'); assert.equal(new URL(p.url()).pathname, '/login'); });
+  await unsigned.newPage().then(async p => { await p.goto(origin + '/setup'); assert.equal(new URL(p.url()).pathname, '/__dev/key'); });
  } finally { await unsigned.close(); }
  for (const headers of [{ origin: 'https://attacker.example.test' }, { origin, 'sec-fetch-site': 'cross-site' }, {}]) {
   const refused = await page.request.post(origin + '/setup', { headers, maxRedirects: 0 });
@@ -109,14 +108,10 @@ try {
  const finished = await page.request.get(origin + '/setup', { maxRedirects: 0 });
  assert.equal(finished.status(), 303); assert.equal(finished.headers().location, '/app');
  await page.goto(origin + '/app');
- if (setupEvidence) await writeFile(join(setupEvidence, 'RESULTS.json'), JSON.stringify({ widths: [1440, 390], freshRerSetup: true, outboxReturn: '/setup', unfinishedRoutes: true, unsignedReturn: true, csrfRefused: true, nativeCompletion: true, finishedReturn: '/app' }, null, 2));
+ if (setupEvidence) await writeFile(join(setupEvidence, 'RESULTS.json'), JSON.stringify({ widths: [1440, 390], freshRerSetup: true, devReturn: '/setup', unfinishedRoutes: true, unsignedReturn: true, csrfRefused: true, nativeCompletion: true, finishedReturn: '/app' }, null, 2));
  await smokeDocuments(page, origin);
  await monitorHydration(page, origin, scratch.root);
  await definitionsJourney(page, origin);
- await drillJourney(page, origin);
- // Native form POST remains usable without hydration; ordinary links are one-use.
- const noScript = await browser.newContext({ javaScriptEnabled: false });
- try { const p = await noScript.newPage(); await p.goto(origin + '/login'); await p.getByLabel('Email address', { exact: true }).fill('journey@example.test'); await p.getByRole('button', { name: 'Send sign-in link', exact: true }).click(); assert.ok(p.url().startsWith(origin)); } finally { await noScript.close(); }
  const before = await page.request.get(origin + '/api/archive'); assert.equal(before.status(), 200);
  let expected = await before.json();
  for (const group of await descendantGroups(dev.pid)) groups.add(group);
@@ -169,5 +164,5 @@ try {
   }
  } finally { await native.dispose(); }
  for (const value of Object.values(JSON.parse(settings))) if (typeof value === 'string' && value.length >= 32) assert.ok(!setup.includes(value));
- console.log('COMMAND-JOURNEY passed: explicit owner, teardown, exact rerun, conflicts, foreground Vite/HMR, outbox/native forms, active reset refusal, private archive, confirmed reset/import/export and retained receipts.');
+ console.log('COMMAND-JOURNEY passed: explicit owner, teardown, exact rerun, conflicts, foreground Vite/HMR, dev identity/native forms, active reset refusal, private archive, confirmed reset/import/export and retained receipts.');
 } finally { await scratch.stop(dev); await browser?.close(); await scratch.close(); }

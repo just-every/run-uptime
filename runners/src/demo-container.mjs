@@ -6,7 +6,7 @@ if(process.env.RER_DEMO!=='1')throw Error('The packaged demo runner requires RER
 if(!process.env.SESSION_SECRET||!process.env.UPTIME_ORIGIN)throw Error('Demo container authority missing');
 const state='/data/uptime-demo';
 for(const folder of [state,state+'/flows',state+'/credentials'])await mkdir(folder,{recursive:true,mode:0o700});
-Object.assign(process.env,{UPTIME_GRANT_FILE:state+'/synthetic-grant.json',UPTIME_FLOW_DIR:state+'/flows',UPTIME_CREDENTIAL_DIR:state+'/credentials',UPTIME_DEMO_LOG:state+'/blocked.jsonl'});
+Object.assign(process.env,{UPTIME_GRANT_FILE:state+'/synthetic-grant.json',UPTIME_FLOW_DIR:state+'/flows',UPTIME_CREDENTIAL_DIR:state+'/credentials'});
 const controller=new AbortController();
 for(const signal of ['SIGTERM','SIGINT'])process.once(signal,()=>controller.abort());
 const target=await startSynthetic();

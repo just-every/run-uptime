@@ -1,3 +1,4 @@
+import {allDeliveredMessages} from './mail-provider-fixture.mjs';
 import assert from 'node:assert/strict';
 import {join} from 'node:path';
 import {randomUUID,createHmac} from 'node:crypto';
@@ -6,7 +7,7 @@ import {mkdir,writeFile} from 'node:fs/promises';
 import {runRunner} from '../runners/src/private-runner.mjs';
 import {acceptanceReceiver,loopbackWireTransport} from './notify-acceptance-receivers.mjs';
 import {availablePorts,migratedWorker,runtimeDirectory,fixtureProcess,cleanupDirectory,ownerAPI,waitFor} from './notify-acceptance-runtime.mjs';
-import {testAuthBindings,authRequest,outboxLink,sessionCookie} from './auth-test-support.mjs';
+import {testAuthBindings,authRequest,deliveredLink,sessionCookie} from './auth-test-support.mjs';
 import {restore,archive} from '../src/domain/archive.server.ts';
 import {productPolicy} from '../scripts/local/transfer-policy.mjs';
 import {createPortability,readArchive} from '@runeditrun/rer/modules/portability';
@@ -73,7 +74,7 @@ try{
  // Real invitation, confirmation and owner action create personal account copies.
  await owner.freshSignIn(bindings);
  await ok('/auth/invite','POST',{email:canaries.operator,displayName:'erase-operator-name-canary',role:'owner'},{origin});
- const call=authRequest(origin),link=await outboxLink(call,{email:canaries.operator,kind:'invite'}),erasedCookie=sessionCookie(await call('/auth/confirm',{token:link.searchParams.get('token')}));
+ const call=authRequest(origin),link=await deliveredLink(call,{email:canaries.operator,kind:'invite'}),erasedCookie=sessionCookie(await call('/auth/confirm',{token:link.searchParams.get('token')}));
  const other=(await ok('/auth/operators')).find(o=>o.email===canaries.operator);assert.ok(other);
  await ok(`/api/notifications/destinations/${destination.id}/rotate`,'POST',{}, {cookie:erasedCookie});
  const otherSessions=await ok(`/auth/sessions?operatorId=${other.id}`);assert.ok(otherSessions.length);
@@ -84,7 +85,7 @@ try{
  const unsigned=await fetch(origin+`/api/monitors/${monitor.id}/erase`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({name:canaries.monitor})});assert.equal(unsigned.status,401);
  assert.equal((await api(`/api/monitors/${monitor.id}/erase`,'POST',{name:'wrong current name'})).status,400);
  assert.deepEqual(await DB.prepare('SELECT COUNT(*) n FROM uptime_audit').first(),auditBeforeRefused,'unauthorized and refused erasures create no audit');
- const authCaptures=Number((await DB.prepare('SELECT COUNT(*) n FROM rer_mail_development_outbox').first()).n),authAudits=Number((await DB.prepare("SELECT COUNT(*) n FROM uptime_audit WHERE action='notification_send' AND actor_ref='operator-auth-mail'").first()).n);assert.ok(authCaptures>0);assert.equal(authAudits,authCaptures,'one auth audit for each actual public-flow capture');
+ const authCaptures=allDeliveredMessages().filter(({message})=>/^(Your sign-in link|You're invited)/.test(message.subject)).length,authAudits=Number((await DB.prepare("SELECT COUNT(*) n FROM uptime_audit WHERE action='notification_send' AND actor_ref='operator-auth-mail'").first()).n);assert.ok(authCaptures>0);assert.equal(authAudits,authCaptures,'one auth audit for each actual public-flow capture');
  const nativeBefore=await ok('/api/archive'),transferBefore=await exportedService(env);
  const captured=await ok(`/api/notifications/destinations/${destination.id}/test`,'POST',{});await runner({operation:'poll'});
  const reservation=randomUUID(),claimed=await runner({operation:'claim',id:captured.deliveryId,reservation});assert.equal(claimed.status,200);assert.ok(claimed.data);

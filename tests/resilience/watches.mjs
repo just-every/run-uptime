@@ -1,9 +1,10 @@
+import {deliveredMessages} from '../mail-provider-fixture.mjs';
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import http from 'node:http';
 import {runRunner} from '../../runners/src/private-runner.mjs';
 import {fixture,cleanup,closeServer} from './support.mjs';
-import {startLocalWorker} from '../../scripts/local-worker.mjs';
+import {startLocalWorker} from '../mail-provider-fixture.mjs';
 import {startWatchClockWorker} from './watch-clock.mjs';
 const wait=async(fn)=>{for(let i=0;i<200;i++){if(await fn())return;await new Promise(r=>setTimeout(r,20))}throw Error('Expected watch event did not arrive')};
 test('stopping the real Worker retries a rejected independent notice, repeats accepted notices and reports restored contact',async()=>{
@@ -48,20 +49,20 @@ test('the Worker mails stale runner contact once per incident window and a healt
   const boundary=(Math.floor(Date.now()/100000)+1)*100000,tick=now=>runtime.scheduled({scheduledTime:now});
   await DB.prepare('UPDATE runners SET last_contact_at=?').bind(boundary-2002).run();
   await tick(boundary-2);await tick(boundary-2);await Promise.all([tick(boundary-2),tick(boundary-2)]);
-  const notices=(await DB.prepare('SELECT id,outcome FROM monitoring_watch').all()).results;assert.equal(notices.filter(n=>n.id.startsWith('runner-stale:')).length,2);assert.ok(notices.every(n=>n.outcome==='development'));
+  const notices=(await DB.prepare('SELECT id,outcome FROM monitoring_watch').all()).results;assert.equal(notices.filter(n=>n.id.startsWith('runner-stale:')).length,2);assert.ok(notices.every(n=>n.outcome==='accepted'));
   assert.equal((await f.request('/api/runner/claim',{runner:f.first,body:{}})).status,200);assert.equal((await f.request('/api/runner/claim',{runner:f.second,body:{}})).status,200);await tick(boundary-2);await tick(boundary-1);
   await Promise.all([tick(boundary-1),tick(boundary-1)]);
   const digests=async()=>(await DB.prepare("SELECT id,outcome FROM monitoring_watch WHERE id LIKE 'healthy-digest:%' ORDER BY id").all()).results;
-  const envelopes=async()=>(await DB.prepare('SELECT message FROM rer_mail_development_outbox ORDER BY sequence').all()).results.map(r=>JSON.parse(r.message));
+  const envelopes=async()=>deliveredMessages(f.origin).map(({message})=>({deliveryId:message.custom_args.rer_delivery_id,to:message.personalizations.flatMap(p=>p.to.map(to=>to.email))}));
   const digestEnvelopes=async()=>(await envelopes()).filter(e=>e.deliveryId.startsWith('healthy-digest:'));
   assert.equal((await DB.prepare("SELECT COUNT(*) n FROM monitoring_watch WHERE id LIKE 'healthy-digest:%'").first()).n,1);
   assert.equal((await digestEnvelopes()).length,1,'repeated and concurrent ticks emit one digest in the same window');
   assert.equal((await envelopes()).filter(e=>e.deliveryId.startsWith('runner-stale:')).length,2,'repeated and concurrent ticks emit one stale notice per runner in the same window');
   assert.ok((await envelopes()).some(e=>e.to.includes(f.bindings.OWNER_EMAIL)));
   await Promise.all([tick(boundary),tick(boundary)]);await tick(boundary);await tick(boundary+1);
-  assert.deepEqual(await digests(),[boundary/100000-1,boundary/100000].map(bucket=>({id:`healthy-digest:${bucket}`,outcome:'development'})));
+  assert.deepEqual(await digests(),[boundary/100000-1,boundary/100000].map(bucket=>({id:`healthy-digest:${bucket}`,outcome:'accepted'})));
   assert.deepEqual((await digestEnvelopes()).map(e=>e.deliveryId),(await digests()).map(row=>row.id),'one emitted envelope per distinct window, with no repeat after crossing');
-  assert.ok((await DB.prepare('SELECT outcome FROM monitoring_watch').all()).results.every(n=>n.outcome==='development'));
+  assert.ok((await DB.prepare('SELECT outcome FROM monitoring_watch').all()).results.every(n=>n.outcome==='accepted'));
  }finally{await cleanup(()=>clockWorker?.dispose(),()=>f.close())}
 });
 test('the Worker retries only a definite owner-watch rejection after its short backoff in the same bucket',async()=>{

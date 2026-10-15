@@ -1,5 +1,6 @@
 import { readJson, discover } from '../operator-auth/identity/oidc/network.mjs';
 import { PRESETS, MINIMUM_PROVIDER_VERSION } from '../operator-auth/identity/oidc/presets.mjs';
+import { isLoopbackHost } from '../operator-auth/loopback.mjs';
 export const INTERFACE = 'oidc-provider@1';
 export const CALLBACK = '/.well-known/rer-link/callback';
 export const PATHS = ['/auth/oidc/auth/callback','/auth/oidc/auth/logout'];
@@ -7,7 +8,7 @@ export const NETWORK = { timeoutMs:5000 };
 export function insist(value, code = 'invalid_link', status = 400) { if (!value) throw Object.assign(new Error(code),{code,status}); }
 export function originOf(value, local = false) {
  let u;try { u=new URL(value); } catch { insist(false); }
- insist(u.origin===value && !u.username && !u.password && (u.protocol==='https:' || local && u.protocol==='http:' && ['localhost','127.0.0.1','[::1]'].includes(u.hostname)));
+ insist(u.origin===value && !u.username && !u.password && (u.protocol==='https:' || local && u.protocol==='http:' && isLoopbackHost(u.hostname)));
  return u.origin;
 }
 export async function providerMetadata(issuer, fetcher, contract = INTERFACE) {

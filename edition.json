@@ -48,7 +48,7 @@
         ],
         "origin": {
           "repository": "https://github.com/runeditrun/base.git",
-          "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+          "revision": "1ce15dd8cbb7c8cf2d83ebfde2b4a8a130ff9d74",
           "path": ".",
           "paths": [
             "foundation/runtime/dispatch.ts",
@@ -220,7 +220,7 @@
         ],
         "origin": {
           "repository": "https://github.com/runeditrun/base.git",
-          "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+          "revision": "1ce15dd8cbb7c8cf2d83ebfde2b4a8a130ff9d74",
           "paths": [
             "modules/editor/src"
           ]
@@ -245,6 +245,7 @@
           "scripts/delivery/base/cli.mjs",
           "scripts/delivery/base/declarations.mjs",
           "scripts/delivery/base/export.mjs",
+          "scripts/delivery/base/mail.mjs",
           "scripts/delivery/base/migrations.mjs",
           "scripts/delivery/base/package.mjs",
           "scripts/delivery/base/paths.mjs",
@@ -258,7 +259,7 @@
         ],
         "origin": {
           "repository": "https://github.com/runeditrun/base.git",
-          "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+          "revision": "1ce15dd8cbb7c8cf2d83ebfde2b4a8a130ff9d74",
           "paths": [
             "modules/delivery-producer/artifact.mjs",
             "modules/delivery-producer/bindings.mjs",
@@ -266,6 +267,7 @@
             "modules/delivery-producer/cli.mjs",
             "modules/delivery-producer/declarations.mjs",
             "modules/delivery-producer/export.mjs",
+            "modules/delivery-producer/mail.mjs",
             "modules/delivery-producer/migrations.mjs",
             "modules/delivery-producer/package.mjs",
             "modules/delivery-producer/paths.mjs",
@@ -302,6 +304,10 @@
           {
             "path": "scripts/delivery/base/export.mjs",
             "originPath": "modules/delivery-producer/export.mjs"
+          },
+          {
+            "path": "scripts/delivery/base/mail.mjs",
+            "originPath": "modules/delivery-producer/mail.mjs"
           },
           {
             "path": "scripts/delivery/base/migrations.mjs",
@@ -352,11 +358,11 @@
       "source": {
         "kind": "local",
         "paths": [
-          "src/modules/demo"
+          "src/base/modules/demo"
         ],
         "origin": {
           "repository": "https://github.com/runeditrun/base.git",
-          "revision": "e8296d97481b62ec6805d780021ed7cb528b7a07",
+          "revision": "1ce15dd8cbb7c8cf2d83ebfde2b4a8a130ff9d74",
           "path": ".",
           "paths": [
             "modules/demo"
@@ -364,7 +370,7 @@
         },
         "mappings": [
           {
-            "path": "src/modules/demo",
+            "path": "src/base/modules/demo",
             "originPath": "modules/demo"
           }
         ]

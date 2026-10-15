@@ -28,7 +28,6 @@ export const apiRoutes:readonly Route[]=[
  {method:'GET',path:'/api/external-check',body:'none'},
  {method:'POST',path:'/api/external-check',body:'object'},
  {method:'POST',path:'/api/runner/enroll',body:'object'},
- {method:'POST',path:'/api/runner/demo-blocked',body:'object'},
  {method:'POST',path:'/api/runner/claim',body:'empty'},
  {method:'POST',path:'/api/runner/results',body:'object'},
  {method:'POST',path:'/api/runner/notifications',body:'object'},

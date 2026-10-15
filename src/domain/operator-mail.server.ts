@@ -2,11 +2,10 @@ import {mailSender} from './mail.server.ts'
 // @ts-expect-error Maintained Base provider implementation performs validation.
 import {createMailSender} from '../base/modules/mail/index.mjs'
 import {auditStatement} from './audit.server.ts'
-import {developmentOutbox} from './development-outbox.server.ts'
 import {mailAuthority,mailAuthorityValues} from './operator-mail-authority.ts'
 import type {AuthBindings} from './operator-auth.server.ts'
 export function operatorMailSender(env:AuthBindings,development:boolean){
- if(development)return createMailSender({provider:'development',mode:'development'},{outbox:developmentOutbox(env.DB)});
+ if(development)return createMailSender({provider:'development',mode:'development'});
  return {async send(message:any){
   const snapshot=structuredClone(message),deliveryId=snapshot.deliveryId;
   // The relay accepts content only; Base auth's Auto-Submitted header is for direct providers.

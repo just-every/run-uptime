@@ -1,4 +1,3 @@
-import {demoMode,demoRefusal} from '../demo-policy.mjs';
 // The one door a flow's browser has to the network. Chromium is started with this forward proxy and nothing else: every page,
 // redirect, subresource and WebSocket becomes a CONNECT or an absolute-URI request here, so NETWORK-001 is checked once, in one
 // place, whatever the page does. The proxy resolves each destination itself and connects to the address it checked (a DNS answer
@@ -36,10 +35,9 @@ export async function startFlowProxy({grant = null, maxBytes, maxConnections = 6
   // Browsers make requests of their own (autofill, leak checks, connectivity). Where the grant or DNS simply cannot reach a host, the
   // request is refused and left out of the run's verdict; an attempt on a private, loopback, link-local or metadata address, or on a
   // port that is not the fixture, is the violation a flow must never get away with, so it fails the run.
-  const block = (klass, host) => { blocked.push({class: klass, at: Date.now(), violation: demoMode() || (klass !== 'not_granted' && klass !== 'unresolved_host')}); if (process.env.UPTIME_FLOW_DEBUG) console.error('flow-proxy blocked', klass, host); return null; };
+  const block = (klass, host) => { blocked.push({class: klass, at: Date.now(), violation: klass !== 'not_granted' && klass !== 'unresolved_host'}); if (process.env.UPTIME_FLOW_DEBUG) console.error('flow-proxy blocked', klass, host); return null; };
   // The address to connect to, or null after recording why not. Never resolves for a destination the grant or policy refuses.
   async function destination(host, port) {
-    if(demoMode()&&!grant){await demoRefusal(`http://${host}:${port}`);return block('demo_blocked',host);}
     if (grant) {
       if (host === '127.0.0.1' && port === grant.port) return {address: '127.0.0.1', family: 4};
       return block(isIP(host) ? addressClass(host) : 'not_granted', host);
@@ -61,8 +59,7 @@ export async function startFlowProxy({grant = null, maxBytes, maxConnections = 6
     try { url = new URL(request.url); } catch { response.writeHead(400); response.end(); return; }
     if (url.protocol !== 'http:' || sockets.size > maxConnections || exceeded) { response.writeHead(403); response.end(); return; }
     const host = url.hostname.replace(/^\[|\]$/g, ''), port = Number(url.port || 80), target = await destination(host, port);
-    if (!target) { if(demoMode())await demoRefusal(url.href,request.method);response.writeHead(403); response.end(); return; }
-    if(demoMode()&&(url.username||url.password||url.search||url.hash||!grant.paths.includes(url.pathname)||!['GET','HEAD'].includes(request.method))){await demoRefusal(url.href,request.method);block('demo_blocked',host);response.writeHead(403);response.end();return;}
+    if (!target) { response.writeHead(403); response.end(); return; }
     const headers = Object.fromEntries(Object.entries(request.headers).filter(([k]) => !hop.has(k)));
     headers.host = url.host;
     const upstream = http.request({host: target.address, family: target.family, port, method: request.method, path: url.pathname + url.search, headers, agent: false}, reply => {
@@ -83,15 +80,14 @@ export async function startFlowProxy({grant = null, maxBytes, maxConnections = 6
     const parsed = split(request.url);
     if (!parsed || !parsed.port || sockets.size > maxConnections || exceeded) return refuse('403 Forbidden');
     const target = await destination(parsed.host, parsed.port);
-    if (!target) {if(demoMode())await demoRefusal(`https://${request.url}`,'CONNECT');return refuse('403 Forbidden');}
+    if (!target) return refuse('403 Forbidden');
     // A tunnel's bytes never pass here as HTTP, so whatever answers on the granted port could not prove it is the fixture: the
     // fixture serves plain HTTP only, and a synthetic run never tunnels to it.
-    if (grant) { if(demoMode())await demoRefusal(`https://${request.url}`,'CONNECT');block('custody', parsed.host); return refuse('403 Forbidden'); }
+    if (grant) { block('custody', parsed.host); return refuse('403 Forbidden'); }
     const upstream = track(net.connect({host: target.address, family: target.family, port: parsed.port}));
     upstream.once('connect', () => { client.write('HTTP/1.1 200 Connection Established\r\n\r\n'); if (head?.length) upstream.write(head); upstream.on('data', count); upstream.pipe(client); client.pipe(upstream); });
     upstream.once('error', () => client.destroy()); client.once('error', () => upstream.destroy());
   });
-  if(demoMode())server.on('upgrade',(request,socket)=>{block('websocket');void demoRefusal(request.url,'WEBSOCKET');socket.end('HTTP/1.1 403 Forbidden\r\nconnection: close\r\n\r\n');});
   server.on('clientError', (_error, socket) => socket.destroy());
   await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', resolve); });
   return {

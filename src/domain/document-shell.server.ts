@@ -47,7 +47,7 @@ export const documentHeaders={'content-type':'text/html; charset=utf-8','cache-c
 export function shellDocument({title,card,style=''}:{title:string;card:string;style?:string}){
  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="preload" href="${font}" as="font" type="font/woff2" crossorigin><style>${fonts}
 ${base}
-${style}</style></head><body><main><a class="brand" href="/">${mark}<span>${productName}</span></a><div class="card">${card}</div></main></body></html>`;
+${style}</style></head><body><main><a class="brand" href="/">${mark}<span data-rer-name>${productName}</span></a><div class="card">${card}</div></main></body></html>`;
 }
 
 const notFoundStyle=`.eyebrow{display:block;margin:0 0 10px;color:var(--muted);font-size:12px;font-weight:700;letter-spacing:.12em;line-height:1.3;text-transform:uppercase}

@@ -36,7 +36,6 @@ export function validateConfig(config, dependencies = {}) {
   if (config.provider === 'development') {
     if (config.mode !== 'development') fail('development_mode_required');
     if (config.apiKey !== undefined || config.accountId !== undefined) fail('unsupported_development_config');
-    if (!dependencies.outbox || typeof dependencies.outbox.put !== 'function') fail('development_outbox_required');
   } else {
     if (typeof config.apiKey !== 'string' || !config.apiKey.trim()) fail('api_key_required');
     bounded(config.apiKey, 4096, 'invalid_api_key');

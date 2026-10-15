@@ -4,7 +4,7 @@ import {join} from 'node:path';
 import {chromium} from 'playwright';
 import {admissionRuntime} from './admission-runtime.mjs';
 import {managementEdge} from './editor-management-edge.mjs';
-import {signInOwner,outboxSignIn,outboxLink,sessionCookie,testAuthBindings} from './auth-test-support.mjs';
+import {signInOwner,emailSignIn,deliveredLink,sessionCookie,testAuthBindings} from './auth-test-support.mjs';
 const edge=await managementEdge();
 let app,browser;
 const evidence=process.env.UPTIME_ADMISSION_EVIDENCE??'data/wave-b-evidence';
@@ -19,10 +19,10 @@ try {
  const grant=await config.json();assert.equal(grant.config.managementOrigin,edge.origin);
  assert.ok(!JSON.stringify(grant).includes(testAuthBindings.SESSION_SECRET));
  const primary=(await (await app.call('/auth/session',undefined,{cookie})).json()).operator.id;
- const invite=async(role,email)=>{assert.equal((await app.call('/auth/invite',{email,displayName:'Editor test operator',role},{cookie})).status,202);const link=await outboxLink(app.call,{email,kind:'invite'});return sessionCookie(await app.call('/auth/confirm',{token:link.searchParams.get('token')}))};
+ const invite=async(role,email)=>{assert.equal((await app.call('/auth/invite',{email,displayName:'Editor test operator',role},{cookie})).status,202);const link=await deliveredLink(app.call,{email,kind:'invite'});return sessionCookie(await app.call('/auth/confirm',{token:link.searchParams.get('token')}))};
  const memberCookie=await invite('member','member@example.test');
  // Inviting an owner needs an email proof from the last ten minutes; the first-owner bootstrap session carries none.
- cookie=await outboxSignIn(app.origin);
+ cookie=await emailSignIn(app.origin);
  const secondOwner=await invite('owner','other-owner@example.test');
  assert.equal((await app.call('/api/editor/config',undefined,{cookie:memberCookie})).status,403,'a native member session has no editor authority');
  const enabledBindings={...editorBindings};
@@ -48,7 +48,7 @@ try {
  await mkdir(evidence,{recursive:true});browser=await chromium.launch({headless:true,args:['--disable-gpu']});
  const results=[];
  for(const width of [1440,390]) {
-  cookie=await outboxSignIn(app.origin);
+  cookie=await emailSignIn(app.origin);
   const context=await browser.newContext({viewport:{width,height:900}});
   try {
    const [name,value]=cookie.split('=');await context.addCookies([{name,value,url:app.origin,httpOnly:true,sameSite:'Lax'}]);
@@ -91,7 +91,7 @@ try {
    assert.equal((await app.call('/api/editor/config',undefined,{cookie})).status,403);
    assert.equal((await app.call('/auth/operator/role',{operatorId:primary,role:'owner'},{cookie:secondOwner})).status,200);
    // Version changes revoke the old native session, so use a real outbox sign-in.
-   const fresh=await outboxSignIn(app.origin), [freshName,freshValue]=fresh.split('=');
+   const fresh=await emailSignIn(app.origin), [freshName,freshValue]=fresh.split('=');
    await context.addCookies([{name:freshName,value:freshValue,url:app.origin,httpOnly:true,sameSite:'Lax'}]);
    edge.state.denied=true;const violations=[];page.on('console',message=>{if(message.type()==='error'&&/frame-ancestors|framing/i.test(message.text()))violations.push(true)});
    await page.goto(app.origin+'/app');await page.locator('[data-rer-editor]').waitFor();

@@ -10,11 +10,3 @@ export async function demoBindings(env:Bindings):Promise<Bindings>{
   ...(env.RER_OWNER_CLAIM_PUBLIC_KEYS?{RER_OWNER_CLAIM_APP_ORIGIN:env.RER_OWNER_CLAIM_APP_ORIGIN??env.UPTIME_ORIGIN}:{}),
   MAIL_PROVIDER:'development',MAIL_FROM:env.MAIL_FROM??'Uptime demo <demo@demo.invalid>'}
 }
-
-/** Authenticated runner reports contain only method and host, never URL paths or credentials. */
-export async function recordDemoBlocked(env:Bindings,input:any){
- if(env.RER_DEMO!=='1')throw Object.assign(Error('Not found'),{status:404})
- if(!input||Object.keys(input).some(k=>!['method','host'].includes(k))||!['GET','HEAD','POST','PUT','PATCH','DELETE','OPTIONS','CONNECT','WEBSOCKET'].includes(input.method)||typeof input.host!=='string'||input.host.length>255||!/^[a-zA-Z0-9.\-:[\]]+$/.test(input.host))throw Error('Invalid demo refusal')
- await env.DB.prepare('INSERT INTO rer_demo_outbound(at,method,host) VALUES(?,?,?)').bind(Date.now(),input.method,input.host).run()
- return {blocked:true}
-}

@@ -1,10 +1,11 @@
+import {deliveredMessages} from './mail-provider-fixture.mjs';
 import assert from 'node:assert/strict';
 import {request as httpRequest} from 'node:http';
 import {join} from 'node:path';
 import {isDeepStrictEqual} from 'node:util';
 import {randomBytes} from 'node:crypto';
 import {migratedWorker,runtimeDirectory,cleanupDirectory,availablePorts} from './notify-acceptance-runtime.mjs';
-import {testAuthBindings,authRequest,sessionCookie,outboxLink} from './auth-test-support.mjs';
+import {testAuthBindings,authRequest,sessionCookie,deliveredLink} from './auth-test-support.mjs';
 
 // Run against the emitted application and a fresh migrated D1 store. The native
 // Base auth reader has an 8192-byte bound, separate from Uptime's /api reader.
@@ -149,7 +150,7 @@ try{
  assert.deepEqual(await oversized.response.json(),{error:'input_too_large'});
  assert.equal(oversized.response.headers.has('set-cookie'),false,'oversized request grants no cookie');
  // Compare as a boolean so assertion output cannot expose token hashes or mail.
- assert.ok(isDeepStrictEqual(await authSnapshot(DB),before),'oversized input leaves every auth, token, limit and development-outbox row unchanged');
+ assert.ok(isDeepStrictEqual(await authSnapshot(DB),before),'oversized input leaves every auth, token, limit and provider delivery unchanged');
 
  // This is the very next HTTP request after the 413. D1 snapshot reads above do
  // not make a request to the application listener or mask a lost-next-request bug.
@@ -157,8 +158,8 @@ try{
  assert.equal(accepted.status,202,'first ordinary HTTP request after 413 accepts native magic-link sign-in');
  assert.equal(accepted.headers.has('set-cookie'),false,'link request does not authenticate before confirmation');
  assert.equal((await DB.prepare('SELECT COUNT(*) n FROM oa_tokens').first()).n,1,'only the accepted request creates a token');
- assert.equal((await DB.prepare('SELECT COUNT(*) n FROM rer_mail_development_outbox').first()).n,1,'only the accepted request creates captured mail');
- const link=await outboxLink(call,{email:bindings.OWNER_EMAIL});
+ assert.equal(deliveredMessages(origin).length,1,'only the accepted request reaches the mail provider');
+ const link=await deliveredLink(call,{email:bindings.OWNER_EMAIL});
  assert.ok(link.origin===origin,'development link remains within the isolated local Worker');
  const preview=await call(link.pathname+link.search);
  assert.equal(preview.status,200,'actual captured link previews successfully');
@@ -178,7 +179,7 @@ try{
  assert.equal((await call('/api/overview',undefined,{cookie:secondCookie})).status,200,'confirmed native session reads private overview');
  assert.equal((await call('/api/overview',undefined,{cookie:firstCookie})).status,401,'confirmation does not resurrect revoked authority');
  // BASE-ACCESS-001: a link goes only to an allow-listed operator; any other address gets the same answer and no token or mail.
- const counts=async()=>[(await DB.prepare('SELECT COUNT(*) n FROM oa_tokens').first()).n,(await DB.prepare('SELECT COUNT(*) n FROM rer_mail_development_outbox').first()).n];
+ const counts=async()=>[(await DB.prepare('SELECT COUNT(*) n FROM oa_tokens').first()).n,deliveredMessages(origin).length];
  const listed=await counts(),unlisted=await call('/auth/magic-link',{email:'not-an-operator@example.test',returnTo:'/'});
  assert.equal(unlisted.status,202,'an unlisted address gets the same acknowledgement');assert.ok(!unlisted.headers.has('set-cookie'));
  assert.deepEqual(await counts(),listed,'an unlisted address gets no link and no mail');
@@ -193,7 +194,7 @@ try{
  }
  assert.ok(columns.length>100&&!columns.some(name=>/pass|pwd/i.test(name)),'no stored column can hold a password');
  assert.equal(submissions,0,'development sign-in never submits to an external provider');
- console.log('AUTH-INPUT-BOUNDARY passed: one-byte Unicode native bootstrap, durable owner/native authority, 8192 UTF8-byte rejection without auth/outbox changes, immediate post413 magic-link recovery, no link for an unlisted address and no stored password, real development outbox preview and chunked native confirmation; external submissions=0.');
+ console.log('AUTH-INPUT-BOUNDARY passed: one-byte Unicode native bootstrap, durable owner/native authority, 8192 UTF8-byte rejection without auth or mail changes, immediate post413 magic-link recovery, no link for an unlisted address and no stored password, real provider confirmation preview and chunked native confirmation; external submissions=0.');
 }finally{
  for(const request of requests)request.destroy();
  try{await worker?.dispose()}finally{if(directory)await cleanupDirectory(directory)}

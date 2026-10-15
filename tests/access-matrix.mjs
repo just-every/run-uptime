@@ -4,7 +4,7 @@ import {createHmac} from 'node:crypto';
 import {join} from 'node:path';
 import {readFile,readdir} from 'node:fs/promises';
 import {migratedWorker,runtimeDirectory,cleanupDirectory,availablePorts} from './notify-acceptance-runtime.mjs';
-import {testAuthBindings,authRequest,sessionCookie,outboxSignIn,finishSetup} from './auth-test-support.mjs';
+import {testAuthBindings,authRequest,sessionCookie,emailSignIn,finishSetup} from './auth-test-support.mjs';
 import {hostedRuntime} from './hosted-auth-runtime.mjs';
 import {splitSql} from './migration-support.mjs';
 import {apiRoutes} from '../src/domain/request-boundary.ts';
@@ -47,7 +47,7 @@ try{
   // Fixed absolute expiry also bounds an inactive session by the same lifetime.
   await DB.prepare('UPDATE oa_sessions SET expires_at=?').bind(Date.now()-1000).run();
   async function login(){
-   if(!hosted)return outboxSignIn(origin,{bindings,fetcher});
+   if(!hosted)return emailSignIn(origin,{bindings,fetcher});
    assert.equal((await call('/auth/magic-link',{email:bindings.OWNER_EMAIL})).status,202);
    const link=new URL(mails.at(-1).content.find(c=>c.type==='text/plain').value.match(/https:\/\/[^\s]+/)[0]);
    return sessionCookie(await call('/auth/confirm',{token:link.searchParams.get('token')}));

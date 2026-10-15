@@ -4,6 +4,7 @@
 // evidence format; it never throws for a failing flow, and it reports a runner-side problem (no browser, missing credential) as
 // runner_error, which the control plane shows as Unknown, never as a pass or a failure. No credential value leaves this function:
 // every URL, expectation and reason it returns has each named value replaced, in whatever encoding the site gave it.
+import {demoMode} from '../demo-policy.mjs';
 import {spawn} from 'node:child_process';
 import {mkdtemp, mkdir, rm, chmod} from 'node:fs/promises';
 import {join} from 'node:path';
@@ -91,7 +92,7 @@ export async function runFlow(definition, probe, {grantPath, controlPort, worksp
     });
     child.on('error', () => {});
     child.stdin.on('error', () => {});
-    child.stdin.end(JSON.stringify({flow, url: definition.url, profileDir, home, proxy: {port: proxy.port, username: proxy.username, password: proxy.password}, credentials, deadlineMs: deadlineMs - 3000, maxPages: FLOW_LIMITS.maxPages}));
+    child.stdin.end(JSON.stringify({demo:demoMode(),flow, url: definition.url, profileDir, home, proxy: {port: proxy.port, username: proxy.username, password: proxy.password}, credentials, deadlineMs: deadlineMs - 3000, maxPages: FLOW_LIMITS.maxPages}));
     signal?.addEventListener('abort', stop, {once: true});
     if (signal?.aborted) stop();
     timer = setTimeout(() => { killedForTime = true; killTree(child.pid); }, deadlineMs);

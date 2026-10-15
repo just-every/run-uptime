@@ -1,11 +1,11 @@
-import {testAuthBindings,signInOwner,outboxSignIn,hostRequest} from './auth-test-support.mjs';
+import {testAuthBindings,signInOwner,emailSignIn} from './auth-test-support.mjs';
 import {maintenance} from '../src/domain/maintenance.server.ts';
 import assert from 'node:assert/strict';
 import {mkdtemp,readFile,readdir,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createRequire} from 'node:module';
-import {startLocalWorker} from '../scripts/local-worker.mjs';
+import {startLocalWorker} from './mail-provider-fixture.mjs';
 const {unstable_splitSqlQuery:splitSql}=createRequire(import.meta.url)('wrangler');
 const dir=await mkdtemp(join(tmpdir(),'uptime-security-')),port=15503,origin=`http://127.0.0.1:${port}`;
 const bindings={...testAuthBindings,UPTIME_RUNNER_KEY:'test-only-loopback-runner-credential'};
@@ -18,7 +18,7 @@ try{
  let cookie;
  await check('loopback bootstrap uses Base native session and protects private APIs',async()=>{assert.equal((await call('/api/overview')).status,401);cookie=await signInOwner(origin,{bindings});assert.match(cookie,/^operator_session_local(_\d+)?=/);assert.equal((await db.prepare('SELECT kind FROM oa_sessions').first()).kind,'native');assert.equal((await db.prepare('SELECT COUNT(*) n FROM sessions').first()).n,0);assert.equal((await call('/api/overview',undefined,{cookie})).status,200)});
  await check('cross-origin Base public mutation requests are rejected',async()=>{assert.equal((await call('/auth/magic-link',{email:bindings.OWNER_EMAIL},{origin:'https://attacker.test'})).status,403);assert.equal((await call('/auth/bootstrap',{token:'wrong'})).status,403);assert.equal((await call('/auth/confirm',{token:'wrong'},{origin:'https://attacker.test'})).status,403)});
- await check('one-time setup remains claimed and outbox sign-in uses Base durable native session',async()=>{assert.equal((await call('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'Other owner'})).status,409);cookie=await outboxSignIn(origin,{bindings});assert.equal((await db.prepare("SELECT COUNT(*) n FROM oa_sessions WHERE kind='native'").first()).n,2);assert.equal((await db.prepare('SELECT COUNT(*) n FROM oa_bootstrap').first()).n,1);assert.equal((await hostRequest(origin,'/__dev/outbox','attacker.test')).status,404)});
+ await check('one-time setup remains claimed and provider sign-in uses Base durable native session',async()=>{assert.equal((await call('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'Other owner'})).status,409);cookie=await emailSignIn(origin,{bindings});assert.equal((await db.prepare("SELECT COUNT(*) n FROM oa_sessions WHERE kind='native'").first()).n,2);assert.equal((await db.prepare('SELECT COUNT(*) n FROM oa_bootstrap').first()).n,1)});
  let id,token;
  await check('heartbeat accepts exactly sixty concurrent receipts and returns HTTP429',async()=>{const m=await call('/api/monitors',{name:'Heartbeat quota',type:'heartbeat',canaryUrl:'https://canary.example.test/health',heartbeat:{maxAgeMs:60000}},{cookie});assert.equal(m.status,201,await m.clone().text());id=(await m.json()).id;const key=await call(`/api/monitors/${id}/heartbeat-key`,{},{cookie});token=(await key.json()).token;
  // Race distinct increasing sequences; concurrency may reject old sequences,

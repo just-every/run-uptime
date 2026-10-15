@@ -1,3 +1,4 @@
+import {demoEffect} from '../base/modules/demo/index.mjs'
 import type {Bindings} from './control.server.ts'
 import {auditStatement,automated} from './audit.server.ts'
 import {mailSender} from './mail.server.ts'
@@ -27,7 +28,7 @@ export async function monitoringWatch(env:Bindings,selfCheck:()=>Promise<Respons
   const url=publicTarget(env.UPTIME_HEARTBEAT_URL);if(url.protocol!=='https:')throw Error('External heartbeat requires HTTPS');
   const id='external-heartbeat';
   const claim=await env.DB.prepare("INSERT INTO monitoring_watch(id,at,outcome) VALUES(?,?,'sending') ON CONFLICT(id) DO UPDATE SET at=excluded.at,outcome='sending' WHERE monitoring_watch.at<=?").bind(id,now,now-pingMs).run();
-  if(claim.meta.changes){let outcome='failed';try{const result=await fetch(url.href,{method:'GET',redirect:'manual',signal:AbortSignal.timeout(10000)});outcome=result.ok?'accepted':'rejected';await result.body?.cancel()}catch{}await env.DB.prepare('UPDATE monitoring_watch SET outcome=? WHERE id=? AND at=?').bind(outcome,id,now).run()}
+  if(claim.meta.changes){let outcome='failed';try{const result=await demoEffect(()=>fetch(url.href,{method:'GET',redirect:'manual',signal:AbortSignal.timeout(10000)}),()=>new Response(null,{status:200}));outcome=result.ok?'accepted':'rejected';await result.body?.cancel()}catch{}await env.DB.prepare('UPDATE monitoring_watch SET outcome=? WHERE id=? AND at=?').bind(outcome,id,now).run()}
  }
  const digestMs=watchDuration(env.UPTIME_DIGEST_INTERVAL_MS,604800000);
  const runnersHealthy=(runners as any[]).some(r=>r.revokedAt===null)&&(runners as any[]).filter(r=>r.revokedAt===null).every(r=>r.lastContactAt!==null&&r.lastContactAt<=now&&now-r.lastContactAt<=staleMs);

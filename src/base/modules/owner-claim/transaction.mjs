@@ -36,7 +36,7 @@ export function bootstrapTransaction(db, claim, config, clock) {
     async batch(statements) {
       if (committed || !Array.isArray(statements) || statements.some(s => !owned.has(s))) return drift();
       if (!limits) {
-        if (statements.length !== 2 || statements.some(s => normalize(s.sql) !== LIMIT || s.args.length !== 2) || statements[0].args[0] === statements[1].args[0]) return drift();
+        if (statements.length !== 1 || statements.some(s => normalize(s.sql) !== LIMIT || s.args.length !== 2)) return drift();
         limits = statements;
         // Read the exact counters which the real UPSERT will increment. Auth's
         // configured limit check still runs; repeat it on actual transaction
@@ -61,9 +61,9 @@ export function bootstrapTransaction(db, claim, config, clock) {
         EXISTS(SELECT 1 FROM oa_operators WHERE id=? AND email=? AND role='owner' AND status='active') AND
         EXISTS(SELECT 1 FROM oa_sessions WHERE id=? AND operator_id=?) AND
         ${claim.identity ? `EXISTS(SELECT 1 FROM rer_dependency_link WHERE interface='oidc-provider@1' AND issuer=? AND client_id=? AND metadata=? AND needs_relink=0 AND linked_at=?) AND EXISTS(SELECT 1 FROM rer_dependency_installation WHERE singleton=1 AND sector_id=?) AND` : ''}
-        ${pin.sql} AND (SELECT count FROM oa_limits WHERE key=?)<=? AND (SELECT count FROM oa_limits WHERE key=?)<=?
+        ${pin.sql} AND (SELECT count FROM oa_limits WHERE key=?)<=?
         THEN 1 ELSE 2 END WHERE jti=?`).bind(owner, owner, claim.email, session, owner,
-          ...(claim.identity?[claim.identity.issuer,claim.identity.clientId,claim.identity.metadata,claim.identity.linkedAt,claim.installationId]:[]), ...pin.args, limits[0].args[0], config.ipLimit, limits[1].args[0], config.emailLimit, claim.jti);
+          ...(claim.identity?[claim.identity.issuer,claim.identity.clientId,claim.identity.metadata,claim.identity.linkedAt,claim.installationId]:[]), ...pin.args, limits[0].args[0], config.ipLimit, claim.jti);
       try {
         const identity = claim.identity ? [
           db.prepare('INSERT INTO oc_idp_grants(issuer,client_id,jti,subject,sector_id) VALUES(?,?,?,?,?)').bind(claim.identity.issuer,claim.identity.clientId,claim.jti,claim.identity.subject,claim.installationId),
@@ -76,7 +76,7 @@ export function bootstrapTransaction(db, claim, config, clock) {
         ] : [];
         const results = await db.batch([start, ...[...limits, ...statements].map(s => db.prepare(s.sql).bind(...s.args)), ...identity, finish]);
         committed = true;
-        return results.slice(3, 6);
+        return results.slice(1 + limits.length, 1 + limits.length + statements.length);
       } catch {
         // Includes unique/empty-store fences and final CHECK failure. D1 has
         // rolled the whole batch back, including every original limit UPSERT.

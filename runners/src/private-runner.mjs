@@ -1,4 +1,4 @@
-import {demoMode,setDemoReporter} from './demo-policy.mjs';
+import {demoMode} from './demo-policy.mjs';
 import {validateConfiguration} from '../../src/domain/startup-config.mjs';
 import {controlOrigin} from './control-origin.mjs';
 import {createHmac,randomUUID} from 'node:crypto';
@@ -24,7 +24,6 @@ export async function runRunner({origin,key,controlAddress,runnerId:configuredId
  const flowWorkspace=await prepareFlowWorkspace(key).catch(()=>{console.error('The flow folder is not a private folder this runner owns; flows will report Unknown until UPTIME_FLOW_DIR is fixed.');return undefined});
  const watcher=createWatch({...watch,transport:watch?.transport??transport}),clock=createClock();
  const api=async(path,data,signed=false,{shutdown=false}={})=>{const body=JSON.stringify(data),timestamp=String(clock.now()),headers={'content-type':'application/json','x-runner-key':key};if(runnerId)headers['x-runner-id']=runnerId;if(signed){headers['x-sent-at']=timestamp;headers['x-runner-signature']=createHmac('sha256',key).update(`${timestamp}.${path==='/api/runner/enroll'?'runner-enrolment.':''}${body}`).digest('hex')}const requestSignal=AbortSignal.any([AbortSignal.timeout(shutdown?2000:30000),...(!shutdown&&signal?[signal]:[])]),r=await fetch((controlAddress??origin)+path,{method:'POST',headers,body,redirect:'error',signal:requestSignal});if(!r.ok){const answer=await readControlResponse(r,requestSignal).catch(()=>null),pick=(value,pattern)=>typeof value==='string'&&pattern.test(value)?value:null,code=pick(answer?.code,/^[a-z_]{1,40}$/),operation=pick(answer?.operation,/^[a-z][A-Za-z0-9_.]{0,80}$/),kind=pick(answer?.class,/^[a-z_]{1,20}$/),cause=pick(answer?.cause,/^[\x20-\x7e]{1,200}$/);throw Object.assign(Error(`Control-plane response ${r.status}${code?` ${code}`:''}${kind?` (${kind})`:''}${operation?` in ${operation}`:''}${cause?`: ${cause}`:''} for ${path}`),{status:r.status,code,operation,class:kind})}return readControlResponse(r,requestSignal)};
- if(demoMode())setDemoReporter(event=>api('/api/runner/demo-blocked',event));
  let discovering;
  do{
   let task;

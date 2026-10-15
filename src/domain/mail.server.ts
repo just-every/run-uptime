@@ -1,7 +1,6 @@
 // @ts-expect-error Base mail adapters are portable JavaScript.
 import {createMailSender} from '../base/modules/mail/index.mjs'
 import {relayMailSender} from './relay-mail.server.ts'
-import {developmentOutbox} from './development-outbox.server.ts'
 import type {AuthBindings} from './operator-auth.server.ts'
 export function mailSender(env:AuthBindings,dependencies:any={}){
  const provider=env.MAIL_PROVIDER??'sendgrid';
@@ -9,7 +8,7 @@ export function mailSender(env:AuthBindings,dependencies:any={}){
  if(provider==='development'){
   let url;try{url=new URL(env.UPTIME_ORIGIN!)}catch{return null}
   if(env.RER_DEMO!=='1'&&(env.UPTIME_LOCAL_REVIEW!=='true'||!['127.0.0.1','localhost','[::1]'].includes(url.hostname)))throw Error('Development mail requires local runtime');
-  return createMailSender({provider,mode:'development'},{outbox:developmentOutbox(env.DB,'notification')})
+  return createMailSender({provider,mode:'development'})
  }
  if(!['resend','sendgrid','cloudflare','rer'].includes(provider))throw Error('Invalid MAIL_PROVIDER');
  const apiKey=provider==='rer'?env.MAIL_API_KEY:provider==='sendgrid'?env.SENDGRID_API_KEY??env.MAIL_PROVIDER_API_KEY:provider==='cloudflare'?env.CLOUDFLARE_MAIL_API_KEY:env.MAIL_PROVIDER_API_KEY;

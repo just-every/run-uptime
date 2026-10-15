@@ -13,3 +13,4 @@ exports/
 delivery-artifact/
 rer-package/
 .rer-tools/
+.rer/demo/

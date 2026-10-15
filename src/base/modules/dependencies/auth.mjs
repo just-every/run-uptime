@@ -19,12 +19,13 @@ export function linkedProviders(options) {
    if(!await unclaimed())return null;
    if(native)return native.claimOwner?native.claimOwner({request,token,expectedPin}):null;
    return createIdpOwnerClaimHandler({expectedPin,db,authConfig:config,clientIp:()=>options.clientIp(request),clock:options.clock,fetch:options.fetch})(new Request(config.origin+'/auth/owner-claim',{method:'POST',headers:{Host:new URL(config.origin).host,Origin:config.origin,'Content-Type':'application/json'},body:JSON.stringify({token})}));
-  }, claimScope: unclaimed, config:{origin:config.origin,local:config.local,transactionSecret:config.OIDC_TRANSACTION_SECRET ?? config.SESSION_SECRET+'-oidc',providers:[{
+  }, claimScope: unclaimed, config:{origin:config.origin,local:config.local,signInPath:config.branding.signInPath,transactionSecret:config.OIDC_TRANSACTION_SECRET ?? config.SESSION_SECRET+'-oidc',providers:[{
    id:'auth',preset:'auth',issuer:link.issuer,clientId:link.client_id,privateKey:JSON.parse(row.private_key),
   }]}});
  }
  if(!config.dependencies) return staticProviders;
  return {
+  signInPath:config.branding.signInPath,
   ids:[...new Set(['auth',...(staticProviders?.ids??[])])],
   callbackPaths:{...staticProviders?.callbackPaths,'/auth/oidc/auth/callback':'auth'},
   async begin(...args){const p=args[1]!=='auth'?staticProviders:await current();return p?p.begin(...args):Response.json({error:'provider_unlinked'},{status:403});},

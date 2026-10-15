@@ -5,7 +5,7 @@ import {join} from 'node:path';
 import {spawn} from 'node:child_process';
 import {randomBytes} from 'node:crypto';
 import {freePort} from '../scripts/local-ports.mjs';
-import {startLocalWorker} from '../scripts/local-worker.mjs';
+import {startLocalWorker} from './mail-provider-fixture.mjs';
 import {archive,restore} from '../src/domain/archive.server.ts';
 import {digest,TABLES,LEGACY_TABLES,ARCHIVE_ROWS} from '../src/domain/archive-schema.ts';
 import {installationLocalTables,assertArchiveInventory} from '../src/domain/archive-inventory.ts';

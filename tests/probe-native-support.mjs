@@ -2,7 +2,7 @@ import {testAuthBindings,signInOwner} from './auth-test-support.mjs';
 import assert from 'node:assert/strict';
 import {createHmac} from 'node:crypto';
 import {spawn} from 'node:child_process';
-import {startLocalWorker} from '../scripts/local-worker.mjs';
+import {startLocalWorker} from './mail-provider-fixture.mjs';
 export const bindings={...testAuthBindings,UPTIME_RUNNER_KEY:'synthetic-probe-runner-key-local-only',UPTIME_SYNTHETIC_PORT:'15516'};
 export async function migrate(persist){
  const child=spawn(process.execPath,['node_modules/wrangler/bin/wrangler.js','d1','migrations','apply','uptime-local','--local','--persist-to',persist],{stdio:'pipe'});let output='';child.stdout.on('data',b=>output+=b);child.stderr.on('data',b=>output+=b);

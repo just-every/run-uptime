@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { inspectionMs, readProcessTable } from '@runeditrun/rer/internal/onboarding/process-table.mjs';
 import { createServer } from 'node:net';
 import { setTimeout as delay } from 'node:timers/promises';
-import { authRequest, openOutboxMessage } from './auth-test-support.mjs';
+import {openGate} from './auth-test-support.mjs';
 
 export const answers = { displayName: 'Installer Owner', OWNER_EMAIL: 'installer-owner@example.test' };
 export async function until(observe, timeout = 20 * 60_000) {
@@ -18,13 +18,10 @@ export async function assertPortFree(port) {
  const free = await new Promise(resolve => { const socket = createServer(); socket.once('error', () => resolve(false)); socket.listen(port, '127.0.0.1', () => socket.close(() => resolve(true))); });
  assert.equal(free, true, 'journey-owned port remains occupied');
 }
-export async function signInThroughOutbox(page, url, owner = answers, { finishSetup = true, key } = {}) {
- // The owner asks for a sign-in link at the app's public door (rer 0.2.20 retired `rer outbox`, which also sent one).
- assert.equal((await authRequest(new URL(url).origin)('/auth/magic-link', { email: owner.OWNER_EMAIL ?? owner.email, returnTo: '/setup' })).status, 202, 'sign-in link requested');
- await page.goto(url);
- await openOutboxMessage(page, new URL(url).origin, { email: owner.OWNER_EMAIL ?? owner.email, key });
- await page.getByRole('link', { name: 'Open this link', exact: true }).click();
- await page.getByRole('button', { name: 'Confirm', exact: true }).click();
+export async function devSignIn(page, url, owner = answers, { finishSetup = true, key } = {}) {
+ const origin=new URL(url).origin;
+ await openGate(page.context(),origin,key);
+ await page.goto(origin+'/auth/dev/enter?as=owner&returnTo=%2Fsetup');
  await page.waitForURL(value=>['/app','/setup'].includes(value.pathname));
  if(finishSetup&&new URL(page.url()).pathname==='/setup'){await page.getByRole('button',{name:'Finish setup',exact:true}).click();await page.waitForURL(new URL('/app', url).href);}
  const response = await page.request.get(new URL('/auth/session', url).href);

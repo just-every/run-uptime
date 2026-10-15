@@ -1,3 +1,4 @@
+import {fetchDemoRead} from '../base/modules/demo/index.mjs'
 // Hosted public probes use Workers' public Internet fetch transport (no VPC binding).
 // Node runners retain socket pinning for their separately authorized networks.
 import {ownOrigin,SELF_CHECK_REFUSAL} from './hosted-runner.ts'
@@ -28,7 +29,7 @@ async function publicResponse(def:any,signal:AbortSignal,{dns,allowance,appOrigi
   if(ownOrigin(url.href,appOrigin))throw new ProbeError('runner');
   await dns(url,signal,allowance);
   allowance.spend();
-  const response=await fetch(url.href,{method,redirect:'manual',signal,headers:{'user-agent':USER_AGENT,accept:'application/json,text/plain,*/*;q=0.1','accept-encoding':'identity'},cache:'no-store'});
+  const response=await fetchDemoRead(url.href,{method,redirect:'manual',signal,headers:{'user-agent':USER_AGENT,accept:'application/json,text/plain,*/*;q=0.1','accept-encoding':'identity'},cache:'no-store'});
   if([301,302,303,307,308].includes(response.status)){
    const location=response.headers.get('location');await response.body?.cancel();
    if(hop===5||!location)throw new ProbeError('redirect');

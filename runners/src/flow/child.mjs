@@ -5,6 +5,7 @@
 // crash), at any moment from this process's start, its lifeline pipe closes and this process ends the browser and removes the run's
 // folder, profile and session included, before it exits.
 import net from 'node:net';
+import {effectSuccess} from '../../../src/base/modules/demo/responses.mjs';
 import {rm} from 'node:fs/promises';
 import {descendants, killFolderHolders} from './processes.mjs';
 
@@ -76,6 +77,9 @@ await context.route('**/*', route => {
   if (main && ['http:', 'https:'].includes(u.protocol)) {
     if (!origins.has(u.origin)) { fail('undeclared_origin'); return route.abort('blockedbyclient'); }
     if (++pages > maxPages) { fail('pages_limit', {limit: 'maxPages'}); return route.abort('blockedbyclient'); }
+  }
+  if (job.demo && ['http:', 'https:'].includes(u.protocol) && (!['GET','HEAD','OPTIONS'].includes(q.method()) || u.hostname==='hooks.slack.com' || ['discord.com','discordapp.com'].includes(u.hostname)&&u.pathname.startsWith('/api/webhooks/') || u.hostname==='slack.com'&&u.pathname==='/api/chat.postMessage' || u.hostname==='api.telegram.org'&&/\/(?:sendMessage|sendPhoto|sendDocument)$/.test(u.pathname))) {
+    return effectSuccess(new Request(q.url(),{method:q.method(),...(q.postData()?{body:q.postData()}:{}),headers:q.headers()})).then(async response=>route.fulfill({status:response.status,headers:Object.fromEntries(response.headers),body:await response.text()}));
   }
   return route.continue();
 });

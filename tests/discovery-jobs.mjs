@@ -5,7 +5,7 @@ import {test,before,after} from 'node:test';
 import assert from 'node:assert/strict';
 import {chromium} from 'playwright';
 import {fixture} from './resilience/support.mjs';
-import {browserSignIn,signInOwner,outboxSignIn} from './auth-test-support.mjs';
+import {browserSignIn,signInOwner,emailSignIn} from './auth-test-support.mjs';
 import {runRunner} from '../runners/src/private-runner.mjs';
 let f;
 before(async()=>{f=await fixture()});
@@ -176,7 +176,7 @@ test('first run refuses a site that is not public, a stranger and another origin
  try{
   const cookie=await signInOwner(g.origin,{bindings:g.bindings});
   await g.DB.prepare("INSERT INTO oa_operators VALUES('member','member@example.test','Member','member','active',1,?)").bind(Date.now()).run();
-  const member=await outboxSignIn(g.origin,{bindings:{...g.bindings,OWNER_EMAIL:'member@example.test'}});
+  const member=await emailSignIn(g.origin,{bindings:{...g.bindings,OWNER_EMAIL:'member@example.test'}});
   const post=(session,form,headers={})=>fetch(g.origin+'/setup',{method:'POST',redirect:'manual',headers:{origin:g.origin,...formHeaders,...(session?{cookie:session}:{}),...headers},body:form});
   const unfinished=async()=>{assert.equal((await g.DB.prepare('SELECT COUNT(*) n FROM uptime_first_run').first()).n,0);assert.equal((await g.DB.prepare('SELECT COUNT(*) n FROM discovery_jobs').first()).n,0)};
   for(const site of ['http://10.0.0.1/','127.0.0.1:4795','http://[::1]/','192.168.1.1/admin','ftp://example.com/','https://user:pw@example.com/','https://example.com/#top','not a url','x'.repeat(3000)]){

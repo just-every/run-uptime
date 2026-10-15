@@ -10,7 +10,7 @@ import {createServer} from 'node:net';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {startLocalWorker} from '../scripts/local-worker.mjs';
+import {startLocalWorker} from './mail-provider-fixture.mjs';
 import {restore} from '../src/domain/control.server.ts';
 import {apiRoutes} from '../src/domain/request-boundary.ts';
 import {probeHttp} from '../runners/src/engine.mjs';

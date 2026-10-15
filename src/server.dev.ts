@@ -1,5 +1,5 @@
 // Local-only Worker entry. vite.config.ts loads it only for `vite dev`; the deployed main stays server.ts, and
-// `rer build` refuses any output that contains the dev layer. It adds dev sign-in, personas and the dev badge.
+// `rer build` refuses any output that contains the dev layer. It adds dev sign-in, personas and the Dev product name.
 import worker from './server'
 import {withDevIdentity} from '@runeditrun/rer/modules/operator-auth/dev'
 import {authConfig,type AuthBindings} from './domain/operator-auth.server.ts'
@@ -16,6 +16,7 @@ const developmentWorker=withDevIdentity<AuthBindings,typeof worker>(worker,{bind
 export default {...developmentWorker,async fetch(request,env,execution){
  const invalid=await configurationResponse(env);if(invalid)return invalid;
  const path=new URL(request.url).pathname;
+ if(env.UPTIME_LOCAL_REVIEW==='true'&&path==='/login')return new Response(null,{status:303,headers:{location:'/signin?returnTo=%2Fsetup','cache-control':'no-store'}});
  if(env.UPTIME_LOCAL_REVIEW==='true'&&publicPath(path,true)?.kind==='development-asset'){const limited=await limitPublicRequest(env,request);if(limited)return limited;return env.ASSETS?env.ASSETS.fetch(request):new Response('Not found',{status:404})}
  if(env.UPTIME_LOCAL_REVIEW==='true'&&['/__dev/personas','/auth/dev/enter'].includes(path)){const limited=await limitPublicRequest(env,request);if(limited)return limited}
  return developmentWorker.fetch(request,env,execution)

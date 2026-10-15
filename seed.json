@@ -769,14 +769,6 @@
         "environment": "all"
       },
       {
-        "path": "/__dev/outbox",
-        "match": "exact",
-        "kind": "development",
-        "class": "development",
-        "authentication": "Local runtime only; private RER_DEV_KEY header or gate cookie, or key in exchange POST body. Hosted mode returns 404.",
-        "environment": "local"
-      },
-      {
         "path": "/__dev/key",
         "match": "exact",
         "kind": "development",

@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { freePort } from '../scripts/local-ports.mjs';
-import { startLocalWorker } from '../scripts/local-worker.mjs';
+import { startLocalWorker } from './mail-provider-fixture.mjs';
 import { restoreBounds } from './archive-restore-bounds.mjs';
 const parent = new URL('../../tmp/', import.meta.url).pathname;
 await mkdir(parent, { recursive: true });
