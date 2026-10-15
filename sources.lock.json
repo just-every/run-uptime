@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "parent": null,
   "edition": "just-every/uptime-monitor",
-  "manifest": "c4d15ccc1be0f8834a149ff9a68fb7b30eb43174d8848b77766992a46cd1bd6d",
+  "manifest": "0bc6734e37c3c2ec770da7b4be4c35e48b0a2364cc98c2e2054d086865ca96a2",
   "toolchain": {
     "id": "runeditrun/edition-authoring",
     "version": "1.1.0",
@@ -369,7 +369,7 @@
         ],
         "origin": {
           "repository": "https://github.com/runeditrun/base.git",
-          "revision": "fc0e1041efa55771142bbb57c4ab4743147e264d",
+          "revision": "be254d4eb7831b9d6adc4bdff584cf61e2b972ce",
           "path": ".",
           "paths": [
             "modules/demo"
@@ -383,9 +383,9 @@
         ]
       },
       "baseline": {
-        "key": "3868ba15b30544f066c1cd437702028292bce0730697f6dfb2d6a66c1097fa45",
+        "key": "90baa3b20a7cbf1e0c1803744cf6368e56b85280df8fa8289a1806ca7f5cbc4b",
         "digest": "f0787dbedbef077ae241cd2655bd181c45364ab5b82806144fc233479931d564",
-        "sha256": "0b0f01a62eef910ab15be196bc87b2702c2550a5aeb86f83c82c56f8bdc77bf2"
+        "sha256": "342e3279fbe7eee486b2014e9f79119f93ef12ca98af3fdebedfc91cafb17796"
       }
     }
   ],
@@ -419,7 +419,7 @@
       "executable": false
     },
     ".github/workflows/run-demo.yml": {
-      "sha256": "508b61e80b484e6b3e8ee524a177d0b0402df3cf35cd357fc695a3876be4d766",
+      "sha256": "72c2cd7d2c2826c87dda6e8ec885beeb927bc3317e143938f8852f89e81f404c",
       "executable": false
     },
     ".github/workflows/run-site-off.yml": {
@@ -451,7 +451,7 @@
       "executable": false
     },
     "base-copies.json": {
-      "sha256": "3ef061626daacaba40be0f30d0b352742e41b61b49226dcffa18e167e9c9bf09",
+      "sha256": "78ac33f75592cefaaca8b344ce455f4afd12f39c64cb1683d809b924922d2de1",
       "executable": false
     },
     "BASELINE.md": {
@@ -475,7 +475,7 @@
       "executable": false
     },
     "deploy-demo.json": {
-      "sha256": "66b363f195963f5923d81929247298c0861a33086f745e8447d6b206be33daaf",
+      "sha256": "a36e05986d368917264b3d122fa4ac3aecdece1b2ce855c2b1ba76bcd87ef987",
       "executable": false
     },
     "deploy-site.json": {
@@ -539,7 +539,7 @@
       "executable": false
     },
     "edition.json": {
-      "sha256": "c4d15ccc1be0f8834a149ff9a68fb7b30eb43174d8848b77766992a46cd1bd6d",
+      "sha256": "0bc6734e37c3c2ec770da7b4be4c35e48b0a2364cc98c2e2054d086865ca96a2",
       "executable": false
     },
     "HANDOVER.md": {
@@ -715,7 +715,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "ebcf5b4271495c471246b56da55cb76921c0211c2594b957f33089aade5a32ab",
+      "sha256": "39df874d15f54e67301369ba526ccece369208e3beb827df92876822e8835ee1",
       "executable": false
     },
     "patches/README.md": {
@@ -723,7 +723,7 @@
       "executable": false
     },
     "pnpm-lock.yaml": {
-      "sha256": "3d31d097b2f5358d1008aeeb43c563e3333b2c73f6142316222d87d4d262b22b",
+      "sha256": "9516c6f0697d98f290e40f8a00b1b5ae5cdf89213b3ae138406251b776a2f1c8",
       "executable": false
     },
     "public/action-feedback.mjs": {

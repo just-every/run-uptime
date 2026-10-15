@@ -6,5 +6,6 @@
     "MAIL_PROVIDER": "development",
     "MAIL_FROM": "Uptime demo <demo@demo.invalid>",
     "UPTIME_SYNTHETIC_PORT": "18081"
-  }
+  },
+  "instanceType": "basic"
 }
