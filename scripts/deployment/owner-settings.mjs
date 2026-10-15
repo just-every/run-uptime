@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { lstat } from 'node:fs/promises';
+import { lstat, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { privateDirectory, readPrivateFile, writePrivateFile } from '@runeditrun/rer/private-files';
 
@@ -83,11 +83,15 @@ export async function environmentSecrets(root, environment, shared, { store } = 
     await writePrivateFile(path, JSON.stringify(pick(values), null, 2) + '\n', exclusive);
     return pick(values);
   };
+  const deployed = await lstat(join(root, '.rer', 'deploy', `${environment}.json`)).then(() => true, error => { if (error.code === 'ENOENT') return false; throw error; });
+  // Without the kit record no Worker holds this file's values: `rer deploy --remove`
+  // drops the record but runs no Uptime hook, so a removed environment's file (which
+  // may hold the shared values) is replaced and the recreated environment starts fresh.
+  if (!deployed) await rm(path, { force: true });
   let saved;
   try { saved = await read(); } catch (error) { if (error.code !== 'ENOENT') throw error; }
   if (saved?.SESSION_SECRET) return pick(saved);
   if (saved) return write({ ...shared, SETUP_TOKEN: saved.SETUP_TOKEN }, false);
-  const deployed = await lstat(join(root, '.rer', 'deploy', `${environment}.json`)).then(() => true, error => { if (error.code === 'ENOENT') return false; throw error; });
   const values = deployed ? shared : Object.fromEntries(environmentNames.map(name => [name, randomBytes(32).toString('hex')]));
   try { return await write(values, true); }
   catch (error) { if (error.code !== 'EEXIST') throw error; return pick(await read()); }

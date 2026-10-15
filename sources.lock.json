@@ -459,7 +459,7 @@
       "executable": false
     },
     "CHANGELOG.md": {
-      "sha256": "e4ae881d81244cac2d8fb767698eeb4a77d2d6cea8049fe15f76bd9b19821b81",
+      "sha256": "ce60c27aa93968f65f60edf8de121f46c71245a0bc0d959dab8799ccc0643ab2",
       "executable": false
     },
     "CLAUDE.md": {
@@ -495,7 +495,7 @@
       "executable": false
     },
     "docs/deploy.md": {
-      "sha256": "a4d85abca8c0596d9be5522c55868a0740f594d2b40607c565f804a0aaf9d282",
+      "sha256": "e533747c7bcacf1aefbe6212f1770868cef2da2ddb039afb2255c05e8522ded5",
       "executable": false
     },
     "docs/install.md": {
@@ -543,7 +543,7 @@
       "executable": false
     },
     "HANDOVER.md": {
-      "sha256": "3cabb5e8512e5548534742491099fc6da928ec169cdccd661fd899ea5ae5bd17",
+      "sha256": "19588e571b9e520650cadcb2043f28362c298d6fd6bc810b7c606f3adc452702",
       "executable": false
     },
     "LICENSE": {
@@ -707,11 +707,11 @@
       "executable": false
     },
     "OPERATIONS.md": {
-      "sha256": "199ae2f44625e59e54130215ff87eb1ff88033d58adc17b74db61b05da96d896",
+      "sha256": "c0bbc3be99fb3bec8e213c189cbe21bceca23dcd75e4e95767dcd0499dfd45b7",
       "executable": false
     },
     "package.json": {
-      "sha256": "441f743a0e869a673a66c632f659f6b6145c528828d227d57461a82ceac435a1",
+      "sha256": "a6bb6abbb51cf09e85b3ef83467e65c734e640e1e6f62ee1daef883e7ae1ea67",
       "executable": false
     },
     "patches/README.md": {
@@ -719,7 +719,7 @@
       "executable": false
     },
     "pnpm-lock.yaml": {
-      "sha256": "6fe6677be5045788cd20d629e7b2b93419ad2a274dd711f285622c2885d18901",
+      "sha256": "ab6820a7083dd8018645a9a9ba960019b3386b39f561b819e72015390c3c6606",
       "executable": false
     },
     "public/action-feedback.mjs": {
@@ -1247,7 +1247,7 @@
       "executable": false
     },
     "scripts/deployment/owner-settings.mjs": {
-      "sha256": "0454e94eef20c9b5beab7cce8eeea28ff8c8a66d9278dbac0b44d8ae37fd2f8c",
+      "sha256": "fe2c839cb4a99bed2852f9b71fc3573a4df47e6b144fbcc52061c2ab8f36c89f",
       "executable": false
     },
     "scripts/deployment/plan.mjs": {

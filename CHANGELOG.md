@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A named environment deployed again after `rer deploy --environment NAME --remove --yes` gets fresh `SESSION_SECRET`, `SETUP_TOKEN` and `UPTIME_RUNNER_KEY` instead of the values left in its settings file, which for an environment deployed before per-environment secrets were production's. `@runeditrun/rer` is pinned to 0.2.13.
 - Each named deploy environment now also has its own `SESSION_SECRET` and `UPTIME_RUNNER_KEY` in `.rer/deploy/environments/<environment>/secrets.json`, so a session or runner key from one environment is refused by another; environments deployed earlier keep their values. First-run setup names the environment's settings file, and `node scripts/runner-start.mjs --environment NAME` starts that environment's runner. `@runeditrun/rer` is pinned to 0.2.11.
 - Each named deploy environment now has its own one-time setup token, kept in `.rer/deploy/environments/<environment>/secrets.json`; the deploy hook returns the token it deployed so rer can claim the owner, and environments deployed earlier keep their token. `@runeditrun/rer` is pinned to 0.2.9.
 - Runner handoffs no longer reset incident confirmation or recovery while older undelivered checks await a skip decision; skipped checks still show missing coverage.
