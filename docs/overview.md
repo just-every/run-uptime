@@ -4,10 +4,10 @@ Uptime is self-hosted uptime and API monitoring. It checks your sites and APIs o
 
 Uptime has four parts, and it helps to know which does what.
 
-- **A Cloudflare Worker** serves the console and its APIs, and decides what each result means.
+- **A Cloudflare Worker** serves the console and APIs, runs hosted public website checks and notifications, and decides what each result means.
 - **A D1 database** stores every scheduled check, every attempt and every incident, so history is never rewritten.
-- **A Cron trigger** runs every minute to expire abandoned work and clear out old sign-in records.
-- **A private runner**, a small Node process that you start and supervise separately, makes the actual requests to your targets and sends back signed results.
+- **A Cron trigger** schedules hosted work and cleanup every minute. Cloudflare can take up to about two hours to activate it after deployment; owner-console requests also prompt due checks and sends while you use it.
+- **A private runner**, a small Node process that you start and supervise separately, checks private targets, evaluates heartbeats and discovers website monitors. It sends back signed results; public hosted checks need no private runner.
 
 You work in the console at `/app` once you have signed in. Only the installation owner can open it.
 
@@ -43,5 +43,5 @@ It does not cover everything. Uptime uses sampled evidence from the assigned run
 
 1. [Install Uptime](/docs/install) on your own computer to look around.
 2. [Deploy to Cloudflare](/docs/deploy) when you want it running for real.
-3. Start [the private runner](/docs/runner) so checks begin.
+3. Start [the private runner](/docs/runner) for heartbeats, website discovery or private targets.
 4. Add [monitors](/docs/monitors) and [notifications](/docs/notifications).

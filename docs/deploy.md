@@ -1,4 +1,4 @@
-You can deploy Uptime to your own Cloudflare account with one command. This page covers what you need, what the command creates, and how to confirm it worked. One thing to know up front: the hosted path has been exercised end to end only once, so treat your first deployment as a careful one.
+You can deploy Uptime to your own Cloudflare account with one command. This page covers what you need, what the command creates, and how to confirm it worked. Stop local dev or preview before any deployment command, including a dry run: run `rer dev --stop` or `rer preview --stop` first.
 
 ## Managed hosting mail
 
@@ -10,7 +10,7 @@ The account credentials and provider mail inputs below apply when deploying to y
 
 - A Cloudflare account ID and an API token for that account.
 - An owner email address, for the person who will claim the installation.
-- A verified sender and the API credential for Resend, SendGrid or Cloudflare Email Sending. These deployment inputs support ordinary email-link sign-in and email notifications, and are required even if you chose **Set up later** locally. The owner can also sign in without sending mail using `rer signin` below.
+- A verified sender and the API credential for Resend, SendGrid or Cloudflare Email Sending. These deployment inputs support ordinary email-link sign-in and email notifications, and are required even if you chose **Set up later** locally.
 
 ## Set the inputs
 
@@ -31,6 +31,7 @@ Uptime also needs three secrets of its own: `SESSION_SECRET`, `SETUP_TOKEN` and 
 ## Deploy
 
 ```sh
+rer dev --stop
 rer deploy
 ```
 
@@ -60,19 +61,7 @@ With rer's newer custom-deployment lifecycle (0.2.3 and later), `rer deploy` wra
 
 This checkout pins the unmodified published `@runeditrun/rer` exactly 0.2.22. The lifecycle wraps Uptime's upload and health-check hook to perform owner claim and token retirement. If automatic claim or token retirement is incomplete, retain `.rer/deploy/<environment>.json` and private settings, rerun the same `rer deploy --environment NAME`, and inspect the new stage, owner outcome and retirement result. Do not enter a retired token at `/claim` as routine recovery.
 
-### Sign in without mail
-
-From the checkout that owns the completed deployment, with its `.rer/deploy` records retained, run:
-
-```sh
-rer signin
-```
-
-Use `rer signin --environment staging` for a separate environment. The command needs the same Cloudflare account credentials that deployed it: `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`, supplied through the environment or `--env-file /path/to/private-deploy.env`.
-
-The CLI verifies the owned deployment, writes a single-use sign-in grant for its existing owner, and prints a link once to the terminal. It sends no mail and does not save the link. Open it immediately and complete its sign-in confirmation; it works once, expires within 15 minutes, and its use is recorded in the owner's audit log. Keep the link private. This is also the recovery path when the owner's mailbox is unavailable or the saved email is wrong.
-
-The command does not create or replace an owner. If the deployment is unclaimed or incomplete, resume `rer deploy` with its existing records. If it reports that owner sign-in is unsupported, update the app to include the owner sign-in migration and route, redeploy the same environment, then run `rer signin` again. Never reuse a retired setup token for sign-in recovery.
+If mail is unavailable, restore the configured mail sender and verify the owner's email address, then request a new link at `/login`. Keep the deployment records and existing private settings when updating mail configuration; an ordinary update preserves the admitted owner.
 
 ## Check it
 
@@ -82,9 +71,11 @@ node scripts/deployment/owner-cli.mjs health
 
 Run this from the installed deployment checkout under Node 22.20.0 with `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` available. For another environment, pass its name: `node scripts/deployment/owner-cli.mjs health --environment staging`. This avoids requiring `pnpm` on your shell's PATH. If pnpm is available, `pnpm run health -- --environment staging` runs the same command; its forwarded `--` is accepted. Health checks your deployment through Cloudflare without changing hosted resources. A passing result tells you the database is ready and the deployment is the one you expect. It does not tell you the runner is working, that your targets are healthy, or that an email reached a person.
 
-## Start the runner
+## Hosted checks and the private runner
 
-Public website checks and notifications (email, signed JSON and Slack) run automatically in the deployed Cloudflare Worker. A private runner is optional for those. Add one when checks need a network you control, including private networks, runner-local credentials or browser execution. In **Runner / Archive**, create a runner for its independent network and save the complete one-time command; paste it into a shell from an installed Uptime checkout on that network. Keep it under a supervisor and inspect its contact and actual results. Deployment does not start or supervise that separate process. Follow [The private runner](/docs/runner).
+Public website checks and notifications (email, signed JSON and Slack) run automatically in the deployed Cloudflare Worker. While the owner console is open, its requests prompt due checks and sends. The one-minute Cron schedule continues work without the console, but Cloudflare can take up to about two hours to activate the trigger after deployment; this is not a promise of delivery within a minute.
+
+A private runner is required for heartbeats and website discovery, as well as private targets and runner-local credentials. Before using **Website to monitor** on a hosted installation, start that runner; otherwise choose **Fill in the form yourself** and create public monitors for the Worker. Add a runner when checks need a network you control or browser execution. In **Runner / Archive**, create a runner for its independent network and save the complete one-time command; paste it into a shell from an installed Uptime checkout on that network. Keep it under a supervisor and inspect its contact and actual results. Deployment does not start or supervise that separate process. Follow [The private runner](/docs/runner).
 
 To start the original deployment runner from the checkout holding that environment's private settings, use the exact HTTPS origin printed by deployment, without a path or trailing slash:
 

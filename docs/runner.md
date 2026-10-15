@@ -4,7 +4,7 @@ Public website checks run automatically in the hosted Cloudflare Worker. New pub
 
 A private runner is a small Node process on a machine you operate. Its checks use that machine's network vantage, and request credentials stay on that machine. The Worker stores the evidence and evaluates health. A runner being reachable does not establish that its targets are healthy.
 
-The runner also sends signed JSON webhooks and Slack messages when it polls. See [Notifications](/docs/notifications).
+Hosted email, signed JSON and Slack notifications are sent by the Worker without a private runner. A runner can also claim notification work when it polls. Heartbeat evaluation and website discovery require a private runner, including on hosted installations. See [Notifications](/docs/notifications).
 
 ## Start it
 

@@ -41,7 +41,7 @@
     "test:browser": "node tests/browser-suites.mjs",
     "release": "rer release",
     "build:app": "vite build",
-    "verify:app": "pnpm build && pnpm spec:check && pnpm typecheck && pnpm test:baseline && pnpm test:resilience && pnpm test:runtime && pnpm test:intake && pnpm test:contact && pnpm test:probes && pnpm test:security && pnpm test:availability && pnpm test:notifications && pnpm test:local && pnpm test:base && pnpm test:admission && pnpm test:access && pnpm test:owner-deploy && pnpm test:archive && pnpm test:definitions && pnpm test:readme && pnpm test:runner && pnpm test:flow && pnpm test:browser",
+    "verify:app": "node .github/scripts/verify-ci.mjs --app",
     "reset": "rer reset",
     "doctor": "rer doctor",
     "describe": "rer describe",

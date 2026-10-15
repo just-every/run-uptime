@@ -1,3 +1,4 @@
+import {runnerRuntime} from './private-runner.ts'
 import {notificationOverview} from './notifications.server.ts'
 import {mutationGuard,auditStatement,type AuditActor} from './audit.server.ts'
 import {availabilityOverview} from './availability.server.ts'
@@ -47,7 +48,7 @@ export async function overview(env:Bindings){
  const availability=await availabilityOverview(env.DB,monitors,now);
  const alerts=await env.DB.prepare('SELECT * FROM outbox ORDER BY rowid DESC LIMIT 200').all<any>();
  return {monitors:monitors.map(m=>({...m,availability:availability.get(m.id)})),alerts:alerts.results.map(r=>({...r,event:JSON.parse(r.event)})),
-  runner:{identity:'private-runner',version:'uptime-node/0.1.0',independentVantage:new Set(runners.filter((r:any)=>r.revokedAt===null).map((r:any)=>r.networkLabel)).size>1,runners,grants:grants(env),contact:await readContact(env.DB),externalCheckUrl:await externalCheckUrl(env)},
+  runner:{...runnerRuntime(env,runners),identity:'private-runner',version:'uptime-node/0.1.0',independentVantage:new Set(runners.filter((r:any)=>r.revokedAt===null).map((r:any)=>r.networkLabel)).size>1,runners,grants:grants(env),contact:await readContact(env.DB),externalCheckUrl:await externalCheckUrl(env)},
   notifications:await notificationOverview(env),now};
 }
 export const MONITOR_LIMIT=100

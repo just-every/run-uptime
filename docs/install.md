@@ -16,15 +16,17 @@ Install `rer` once if it is not on your PATH:
 npx -y @runeditrun/rer cli install
 ```
 
-Then clone Uptime and start it:
+Then clone Uptime, install its dependencies, set it up and start it:
 
 ```sh
 git clone https://github.com/just-every/run-uptime.git uptime
 cd uptime
+rer install
+rer setup
 rer dev
 ```
 
-`rer dev` installs frozen dependencies and sets up a fresh checkout automatically. A first launch can take several minutes. If it is interrupted, run `rer dev` again to resume. It starts the app, private runner and practice target, then prints `RER_READY` and a signed-in `RER_OPEN` link. In an interactive terminal it stays in the foreground and Control-C stops it. From an agent or other non-interactive shell it returns once ready, leaving the app in the background. Use `rer dev --detach` to request a background run explicitly.
+`rer install` installs frozen dependencies. `rer setup` asks for the first owner and saves private settings. `rer dev` starts the app, private runner and practice target, then prints `RER_READY`. A first launch can take several minutes; repeating `rer dev` resumes interrupted setup. In an interactive terminal it stays in the foreground and Control-C stops it. From a non-interactive shell it returns once ready, leaving the app in the background. Use `rer dev --detach` for an explicit background run.
 
 ## Explicit owner setup
 
@@ -47,14 +49,14 @@ If you already know which site you want to watch, tell setup and Uptime will hav
 
 Then add `--answers answers.json` to the setup command above. Use a public `http` or `https` address; setup refuses one that Uptime could not check. This is optional. If you leave it out, `/setup` has a **Website to monitor** box you can fill in instead, and leaving the box empty works as it always did.
 
-When you open `/setup`, Uptime asks your runner to visit that site and look around. Dev starts the runner for you. When you choose **Finish setup**, the console opens on the monitors it proposes, each ready to start with one click. Nothing is created until you choose it, and nothing is checked from anywhere but your runner.
+When you open `/setup`, Uptime asks your runner to visit that site and look around. Dev starts the runner for you. When you choose **Finish setup**, the console opens on the monitors it proposes, each ready to start with one click. Nothing is created until you choose it. Website discovery needs a private runner, including after deployment; hosted public monitors can then run in the Worker without one.
 
 ## Sign in and finish setup
 
-1. Open the `RER_OPEN` link that dev printed in a browser on this computer. It carries this checkout's private key in its fragment, so keep it to yourself; you land signed in as the owner.
-2. First-run setup opens at `/setup`. Choose **Finish setup**. If you gave a website, the page says Uptime is checking it, and finishing takes you to the proposed monitors.
+1. Open the address printed as `RER_READY` and complete the browser sign-in handoff from `rer dev`. Keep local access credentials private.
+2. First-run setup opens at `/setup`. Choose **Finish setup**. If you gave a website and the runner is working, finishing takes you to its proposed monitors.
 
-The console is then at `/app`. A small dev badge switches to the `member` dev operator (who has no console access) or signs out. To try the ordinary email sign-in instead, run dev with `--login`: it prints a key-carrying link to the development outbox, where you choose the newest sign-in message and follow its link (no email is sent). Running `rer dev` again prints that link again; rer 0.2.20 retired the separate `rer outbox` command.
+The console is then at `/app`. Ordinary email-link sign-in and email notifications use a configured mail sender, including in development. Setup can defer mail configuration; dev identity provides local owner access while you configure it. There is no captured-mail inbox or outbox page.
 
 ## Stop it
 
@@ -62,7 +64,7 @@ The console is then at `/app`. A small dev badge switches to the `member` dev op
 rer dev --stop
 ```
 
-This stops the app and its owned runner and practice target. Stop it before export, import or reset.
+This stops the app and its owned runner and practice target. Stop it before deployment (including a dry run), export, import or reset.
 
 ## Look after the settings file
 
@@ -70,4 +72,4 @@ This stops the app and its owned runner and practice target. Stop it before expo
 
 ## What next
 
-Checks run only while the [private runner](/docs/runner) is running. Dev starts one for you. To put Uptime on the internet, follow [Deploy to Cloudflare](/docs/deploy).
+Dev starts a [private runner](/docs/runner) for local checks and website discovery. Hosted public website checks and notifications run in the Worker; heartbeats, discovery and private targets still need a private runner. To put Uptime on the internet, follow [Deploy to Cloudflare](/docs/deploy).

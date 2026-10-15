@@ -2,28 +2,75 @@ name: Verify
 on:
   push:
   pull_request:
+  schedule:
+    - cron: '17 18 * * *'
+  workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: uptime-verify-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
-  verify:
-    runs-on: ubuntu-latest
-    timeout-minutes: 40
+  plan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 1
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '22.20.0'
+          package-manager-cache: false
+      - id: plan
+        env:
+          TIER: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')) && 'all' || 'push' }}
+        run: echo "matrix=$(node .github/scripts/verify-ci.mjs --matrix "$TIER")" >> "$GITHUB_OUTPUT"
+  shards:
+    needs: plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    env:
+      CI: 'true'
+      WRANGLER_SEND_METRICS: 'false'
+      PLAYWRIGHT_SKIP_BROWSER_GC: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
       - uses: pnpm/action-setup@v4
         with:
           version: 10.12.4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
-          node-version: 22.20.0
+          node-version: '22.20.0'
           cache: pnpm
-      - name: Remove unused preinstalled toolchains
-        # rer dev and preview refuse to start with under 15 GiB free.
-        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
-      - run: pnpm install --frozen-lockfile && pnpm exec rer install
-      - run: pnpm exec playwright install --with-deps --only-shell chromium
+      - name: Check edition source lock freshness
+        run: node scripts/edition-authoring/cli.mjs check
+      - name: Cache Chromium
+        if: matrix.browser
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        with:
+          path: ~/.cache/ms-playwright
+          key: uptime-ubuntu24-${{ runner.arch }}-browser-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec rer install
+      - name: Install Chromium and system libraries
+        if: matrix.browser
+        run: pnpm exec playwright install --with-deps --only-shell chromium
+      - name: Reserve disk for native runtime journeys
+        run: |
+          free_kib() { df -Pk "$GITHUB_WORKSPACE" | awk 'END { print $4 }'; }
+          for unused_tools in /usr/local/lib/android /usr/share/dotnet /opt/ghc /opt/hostedtoolcache/CodeQL; do
+            if [ "$(free_kib)" -ge "$((20 * 1024 * 1024))" ]; then break; fi
+            sudo rm -rf -- "$unused_tools"
+          done
+          test "$(free_kib)" -ge "$((15 * 1024 * 1024))"
       - name: Prepare canonical temporary directory
         run: |
           node --input-type=module <<'NODE'
@@ -33,21 +80,27 @@ jobs:
           const directory = await realpath(await mkdtemp(join(tmpdir(), 'uptime-verify-')));
           await appendFile(process.env.GITHUB_ENV, `TMPDIR=${directory}\nTMP=${directory}\nTEMP=${directory}\n`);
           NODE
-          df -Pk "$GITHUB_WORKSPACE"
-          available_kib=$(df --output=avail -k "$GITHUB_WORKSPACE" | tail -n 1)
-          if (( available_kib < 15 * 1024 * 1024 )); then
-            printf 'Verification requires at least 15 GiB free after installation; available: %s KiB\n' "$available_kib" >&2
-            exit 1
-          fi
-      - run: pnpm exec rer verify
+      - name: Run this shard
         env:
-          CI: 'true'
-          WRANGLER_SEND_METRICS: 'false'
+          SHARD: ${{ matrix.name }}
+        run: node .github/scripts/verify-ci.mjs "$SHARD"
+  verify:
+    needs: [plan, shards, prepare]
+    if: ${{ always() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 1
+    steps:
+      - name: Require every shard and the inert artifact
+        env:
+          PLAN: ${{ needs.plan.result }}
+          SHARDS: ${{ needs.shards.result }}
+          PREPARE: ${{ needs.prepare.result }}
+        run: test "$PLAN" = success && test "$SHARDS" = success && test "$PREPARE" = success
   prepare:
     # This job has no provider credentials and never deploys. Its artifact must
     # pass independent source, run and digest checks in a trusted controller.
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 14
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:

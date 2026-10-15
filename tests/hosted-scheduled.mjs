@@ -28,7 +28,9 @@ try{
  assert.equal((await (await call('/api/overview',undefined,cookie)).json()).monitors.length,0,'refused self-monitor is not saved');
  const created=await call('/api/monitors',{name:'Public service',url:'https://public.example.test/health',intervalMs:60000,retries:0,assertions:{status:200,bodyIncludes:'ready'}},cookie);
  assert.equal(created.status,201,await created.clone().text());const monitor=await created.json();
- assert.equal((await (await call(`/api/monitors/${monitor.id}/history`,undefined,cookie)).json()).length,0);
+ let firstHistory=[];
+ for(let attempt=0;attempt<100;attempt++){firstHistory=await (await call(`/api/monitors/${monitor.id}/history`,undefined,cookie)).json();if(firstHistory.some(s=>s.status==='complete'))break;await new Promise(resolve=>setTimeout(resolve,50))}
+ assert.ok(firstHistory.some(s=>s.status==='complete'&&s.manual===0),'saving a hosted monitor runs its first scheduled check without Cron');
  const privateClaim=await call('/api/runner/claim',{},undefined,{'x-runner-key':testAuthBindings.UPTIME_RUNNER_KEY});assert.equal(privateClaim.status,200);assert.equal((await privateClaim.json()).task,null,'a private runner cannot consume a Worker-only due slot');
  const edit=await call(`/api/monitors/${monitor.id}`,selfInput,cookie,{},'PATCH');
  assert.equal(edit.status,400);assert.match((await edit.json()).error,/private runner/i);
@@ -54,5 +56,5 @@ try{
  assert.equal(redirectedHistory.length,1);assert.ok(redirectedHistory[0].observations.every(o=>o.outcome==='runner_error'&&o.status===undefined),JSON.stringify(redirectedHistory));
  assert.equal(overview.monitors.find(m=>m.id===redirectMonitor.id).state.targetState,'Unknown','an unsupported self-fetch is not a target failure or success');
  assert.equal((await (await call(`/api/monitors/${privateMonitor.id}/history`,undefined,cookie)).json()).length,0,'the Worker does not execute private assignments');
- console.log('PASS public Worker checks preserve external health, refuse self-monitor saves and leave self-redirects Unknown');
+ console.log('PASS request-started and scheduled public Worker checks preserve external health, refuse self-monitor saves and leave self-redirects Unknown');
 }finally{await worker?.dispose();await rm(directory,{recursive:true,force:true})}

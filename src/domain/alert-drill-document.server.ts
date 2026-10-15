@@ -12,8 +12,12 @@ button:focus-visible{outline-offset:4px}`;
 // same-origin, not no-referrer: under no-referrer browsers send `Origin: null` on the form POST, which the origin check refuses.
 const headers={...documentHeaders,'referrer-policy':'same-origin','x-robots-tag':'noindex','x-content-type-options':'nosniff'};
 const kindLabel=(kind:string)=>kind==='webhook'?'signed JSON webhook':kind==='slack'?'Slack':'email';
-const when=(value:number)=>escapeHtml(new Date(value).toUTCString());
-const page=(card:string,status=200)=>new Response(shellDocument({title:'Alert drill',style,card}),{status,headers});
+const when=(value:number)=>{const iso=new Date(value).toISOString();return `<time datetime="${iso}">${escapeHtml(new Date(value).toUTCString())}</time>`};
+const localTimes="for(const time of document.querySelectorAll('time[datetime]'))time.textContent=new Date(time.dateTime).toLocaleString();";
+const page=(card:string,status=200)=>{
+ const nonce=crypto.randomUUID().replaceAll('-','');
+ return new Response(shellDocument({title:'Alert drill',style,card:`${card}<script nonce="${nonce}">${localTimes}</script>`}),{status,headers:{...headers,'content-security-policy':`${documentHeaders['content-security-policy']}; script-src 'nonce-${nonce}'`}});
+};
 export async function alertDrillDocument(env:Bindings,request:Request){
  if(!['GET','HEAD','POST'].includes(request.method))return new Response('Method not allowed',{status:405,headers:{allow:'GET, HEAD, POST','cache-control':'no-store'}});
  if(request.method==='POST'){

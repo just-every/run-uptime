@@ -57,7 +57,10 @@ export function validateDefinition(input, grants) {
   if(type==='heartbeat'&&Object.keys(assertions).some(k=>k!=='status'))throw Error('Heartbeat cannot have HTTP assertions');
   if (assertions.bodyIncludes !== undefined && (typeof assertions.bodyIncludes !== 'string' || assertions.bodyIncludes.length > 200)) throw Error('Invalid body assertion');
   if (assertions.header !== undefined && (!assertionObject(assertions.header, 'header') || !/^[a-zA-Z0-9-]{1,80}$/.test(assertions.header.name) || typeof assertions.header.equals !== 'string' || assertions.header.equals.length > 200)) throw Error('Invalid header assertion');
-  if (assertions.json !== undefined && (!assertionObject(assertions.json, 'json') || !/^[a-zA-Z0-9_.-]{1,120}$/.test(assertions.json.path) || !['string','number','boolean'].includes(typeof assertions.json.equals))) throw Error('Invalid JSON assertion');
+  if (assertions.json !== undefined) {
+    const json=assertionObject(assertions.json, 'json');
+    if(typeof json.path!=='string'||json.path.length>120||!/^(?:\$\.)?[a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9_-]+)*$/.test(json.path)||!['string','number','boolean'].includes(typeof json.equals)||typeof json.equals==='number'&&!Number.isFinite(json.equals))throw Error('Invalid JSON assertion: use {"path":"$.status.indicator","equals":"none"}; equals must be a string, number or boolean.');
+  }
   if (assertions.latencyMs !== undefined) integer(assertions.latencyMs, 1, 10000, 'latency assertion');
   let flow;
   if(type==='flow'){

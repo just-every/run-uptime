@@ -3,7 +3,7 @@
 ## Launch for review
 
 When asked to launch, run or review this app, run this from the checkout root
-and nothing else:
+first:
 
 ```sh
 rer dev
@@ -14,9 +14,8 @@ rer dev
   minutes. If the tool times out, run the same `rer dev` again: it resumes.
 - Never run install, setup, reset or deploy for this, and never ask for an
   email, port, password or answers file.
-- Give the owner the `RER_READY` address and the `RER_OPEN` link, and ask
-  nothing. `RER_OPEN` is a credential: share it only with the owner, in this
-  chat. Local mail is suppressed silently.
+- Give the owner the `RER_READY` address and complete dev’s browser sign-in
+  handoff. Never print or share a sign-in credential.
 - Stop the app with `rer dev --stop`. If a start is refused, the message names
   the cause and the next command: run that command.
 
@@ -33,7 +32,7 @@ rer setup --owner-email owner@example.test --owner-name "Local Owner" --non-inte
 rer dev
 ```
 
-Replace the example email with the owner's address. To start with proposed monitors, add `--answers answers.json` to setup, a private (mode 0600) file holding `{"UPTIME_START_URL":"https://example.com"}`; the owner's runner checks that public site when `/setup` opens and finishing setup lands on its proposals. Dev prints its health-ready URL. `rer dev` opens signed in: it prints `RER_SIGNED_IN` and a private `RER_OPEN` link. Open that link on this computer to continue as the owner. The product name reads **Uptime Dev**. `rer demo` opens a throwaway installation with sample data as **Uptime Demo**. Public checks run for real; demo notifications return success without sending. Local mail is silently suppressed. `--as member` and `--as signed-out` select other local personas. Keep `RER_OPEN` private and stop with `rer dev --stop` or `rer demo --stop`. First-run setup opens at `/setup`; finish it to enter `/app`.
+Replace the example email with the owner's address. To start with proposed monitors, add `--answers answers.json` to setup, a private (mode 0600) file holding `{"UPTIME_START_URL":"https://example.com"}`; the owner's runner checks that public site when `/setup` opens and finishing setup lands on its proposals. Dev prints `RER_READY`. Complete dev’s browser sign-in handoff and keep local access credentials private. The product name reads **Uptime Dev**. `rer demo` opens a throwaway installation with sample data as **Uptime Demo**. Public checks run for real; demo notifications return success without sending. Ordinary dev mail uses the configured sender; no captured-mail page is available. `--as member` and `--as signed-out` select other local personas. Stop with `rer dev --stop` or `rer demo --stop`. First-run setup opens at `/setup`; finish it to enter `/app`.
 
 After stopping dev, run `rer verify`. `rer reset --yes` removes local data and generated settings; export first if you need the data.
 
@@ -44,7 +43,7 @@ rer export --output exports/uptime.rer
 rer import --input exports/uptime.rer --yes
 ```
 
-Import requires an empty product-data destination whose receiving owner and private settings have already been established. On the receiving checkout, run `rer setup --owner-email EMAIL --non-interactive` before `rer import --input exports/uptime.rer --yes`; monitors stay paused and destinations disabled. An archive exported by Uptime 0.1.2 or earlier is refused (exit 4) with a plain message: re-export it from the upgraded installation first. For an authorized owner-account deployment use `rer deploy`; `rer deploy --dry-run` makes no provider requests. Use `rer describe` for the rest and `rer check --profile first-party` for the structural contract.
+Import requires an empty product-data destination whose receiving owner and private settings have already been established. On the receiving checkout, run `rer setup --owner-email EMAIL --non-interactive` before `rer import --input exports/uptime.rer --yes`; monitors stay paused and destinations disabled. An archive exported by Uptime 0.1.2 or earlier is refused (exit 4) with a plain message: re-export it from the upgraded installation first. Stop dev or preview before any deployment command, including a dry run. For an authorized owner-account deployment use `rer deploy`; `rer deploy --dry-run` makes no provider requests. Use `rer describe` for the rest and `rer check --profile first-party` for the structural contract.
 
 # Uptime contributor guidance
 

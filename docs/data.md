@@ -37,7 +37,7 @@ Exports refuse to run, and name the reason, when an installation exceeds the arc
 - Sign-in sessions.
 - Runner grants and heartbeat keys.
 - Request credential references.
-- Local development sign-in captures. They remain in the installation's guarded outbox until their associated operator is erased or the local installation is reset.
+- Legacy local sign-in records. They are installation-local, have no viewer, and remain until their associated operator is erased or the local installation is reset.
 - Webhook and Slack URLs and signing keys.
 - Every other installation credential.
 
@@ -59,7 +59,7 @@ An archive carries a digest, which detects changed bytes. It does not tell you w
 
 ## Erase a record
 
-An owner can erase a monitor, notification destination, or operator while at least one active owner remains. Monitor erasure removes its revisions, scheduled evidence, heartbeat authority, incidents, related notification work and archive-history copies. Destination erasure removes the destination and all its credential versions, dependent notification jobs, delivery attempts and outcomes, replay entries, and matching archive-history copies. Operator erasure removes that operator's sessions, sign-in tokens, invitations and local development sign-in messages. The original owner can also be erased while another active owner remains: its setup claim stays closed, with its operator reference replaced by an unrelated anonymous identifier. The receipt counts that bootstrap row as anonymised. The console returns a receipt with the entity kind, per-table affected-row counts and completion time. Its count record is stored with the permanent product data and travels in later archives.
+An owner can erase a monitor, notification destination, or operator while at least one active owner remains. Monitor erasure removes its revisions, scheduled evidence, heartbeat authority, incidents, related notification work and archive-history copies. Destination erasure removes the destination and all its credential versions, dependent notification jobs, delivery attempts and outcomes, replay entries, and matching archive-history copies. Operator erasure removes that operator's sessions, sign-in tokens, invitations and legacy development sign-in records. The original owner can also be erased while another active owner remains: its setup claim stays closed, with its operator reference replaced by an unrelated anonymous identifier. The receipt counts that bootstrap row as anonymised. The console returns a receipt with the entity kind, per-table affected-row counts and completion time. Its count record is stored with the permanent product data and travels in later archives.
 
 The monitor action asks you to type its current name. Deleting a notification destination is an erasure. Audit entries remain; their subject references do not contain the erased monitor name, address or URL. When an operator is erased, earlier audit entries retain the action and time while that operator's actor reference is anonymised. The audit travels in later archives.
 
@@ -88,4 +88,4 @@ Notification credentials are encrypted with a key derived from the installation'
 
 ## Storage growth
 
-Observation metadata and local development sign-in captures are not deleted by age or count. Erasing an operator removes captures tied to that operator; `rer reset --yes` clears local captures with the installation. Operator erasure is explicit and separate from retention. Limits on views and archives are not a retention policy. Plan to watch storage over time.
+Observation metadata and legacy development sign-in records are not deleted by age or count. Erasing an operator removes captures tied to that operator; `rer reset --yes` clears local captures with the installation. Operator erasure is explicit and separate from retention. Limits on views and archives are not a retention policy. Plan to watch storage over time.

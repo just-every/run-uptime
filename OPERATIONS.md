@@ -2,8 +2,8 @@
 
 Uptime serves owner-only console documents and APIs from a Cloudflare Worker.
 D1 stores immutable observations, scheduled slots, incident state and Base
-operator sessions. A separately supervised Node runner performs target probes.
-Cron runs every minute to expire acceptance windows and transient auth records, check stale runner contact, ping the configured external heartbeat and send the weekly healthy digest.
+operator sessions. The hosted Worker performs public website checks and notification delivery. A separately supervised Node runner performs private probes, heartbeat evaluation and website discovery.
+Owner-console requests also prompt due hosted checks and sends. The one-minute Cron trigger can take up to about two hours to activate after deployment. Cron expires acceptance windows and transient auth records, check stale runner contact, ping the configured external heartbeat and send the weekly healthy digest.
 
 ## Run it locally
 
@@ -15,13 +15,13 @@ rer setup --owner-email owner@example.test --non-interactive
 rer dev
 ```
 
-Use the owner's email. Setup creates one owner, preserves existing owner/data/settings and stops its temporary app. Open the printed outbox, select the newest message and follow its one-use link; no email is sent. Dev starts real Vite assets/HMR, the synthetic target and signed private runner. It stays in the foreground in an interactive terminal (Control-C stops it), and returns once ready in a non-interactive shell, leaving the app running. `rer dev --detach` requests a background run explicitly. `rer preview` instead builds and serves the fixed production output with the same target and runner. Use `rer dev --stop` or `rer preview --stop` to stop the corresponding runtime and its owned processes. Public commands run the pinned `@runeditrun/rer` (`rer VERB`); `build:app` and `verify:app` are internal adapter targets. The root `rer-setup.json` owns all setup fields and generated secrets. Inspect `rer describe --json`; `check --profile first-party` works without dependencies or credentials.
+Use the owner's email. Setup creates one owner, preserves existing owner/data/settings and stops its temporary app. Open the printed `RER_READY` address and complete dev’s browser sign-in handoff. Keep access credentials private; no captured-mail page is exposed. Ordinary local email uses the configured sender. Dev starts real Vite assets/HMR, the synthetic target and signed private runner. It stays in the foreground in an interactive terminal (Control-C stops it), and returns once ready in a non-interactive shell, leaving the app running. `rer dev --detach` requests a background run explicitly. `rer preview` instead builds and serves the fixed production output with the same target and runner. Use `rer dev --stop` or `rer preview --stop` to stop the corresponding runtime and its owned processes. Public commands run the pinned `@runeditrun/rer` (`rer VERB`); `build:app` and `verify:app` are internal adapter targets. The root `rer-setup.json` owns all setup fields and generated secrets. Inspect `rer describe --json`; `check --profile first-party` works without dependencies or credentials.
 
 Local durable data is `.wrangler/state`, private settings are `data/local-secrets.json` (0600), CLI bookkeeping is `.rer/local` and command captures are `.seed/installer`. Secret directories are 0700. Builds exclude private settings and restore their exact bytes. Setup refuses conflicting owner/origin answers and never rotates existing credentials.
 
 First-run completion is installation-local D1 state and is excluded from product archives with owner identity and sessions. A receiving installation completes `/setup` with its own owner. Upgrading an installation that already has monitors preserves its completed first-run status.
 
-Stop dev or preview before data movement or reset. Export to a new private path with `rer export --output exports/archive.rer`. On the receiving checkout, first run `rer setup --owner-email EMAIL --non-interactive` to establish its owner and private settings, then import with `rer import --input exports/archive.rer --yes` into an empty product-data store. If local D1 already has active owners, setup requires the configured email to match one; when several are active, configure one explicitly. Base owns integrity and transfer bookkeeping; its named payload uses Uptime's complete archive and atomic inactive-restore transaction. No remote CLI transfer is declared.
+Stop dev or preview before deployment (including a dry run), data movement or reset. Export to a new private path with `rer export --output exports/archive.rer`. On the receiving checkout, first run `rer setup --owner-email EMAIL --non-interactive` to establish its owner and private settings, then import with `rer import --input exports/archive.rer --yes` into an empty product-data store. If local D1 already has active owners, setup requires the configured email to match one; when several are active, configure one explicitly. Base owns integrity and transfer bookkeeping; its named payload uses Uptime's complete archive and atomic inactive-restore transaction. No remote CLI transfer is declared.
 
 `rer reset --yes` lists and removes only `.wrangler/state`, `.rer/local`, `.seed/installer` and declared generated settings/recovery files. It refuses active dev or transfers. Source, dependencies, export files and `.rer/deploy` receipts remain. A second reset succeeds with an empty inventory; setup can then create a fresh owner.
 
@@ -33,7 +33,7 @@ Unexpected state placement or multiple databases refuse rather than move or dele
 
 ## Verification
 
-`rer verify` builds, typechecks and runs the complete product and browser checks, then serves the production build as `rer deploy` hosts it and fails if a built file would answer anything but 200 or `/health` lacks the deploy identity. Install pinned Playwright Chromium with `pnpm exec playwright install --only-shell chromium`; Linux CI also requires `--with-deps`. Shared caches can use `PLAYWRIGHT_SKIP_BROWSER_GC=1` during browser installation. Test transports replace only authorized network/provider edges; no live provider request is required.
+`rer verify` builds, typechecks and runs the complete product and browser checks, then serves the production build as `rer deploy` hosts it and fails if a built file would answer anything but 200 or `/health` lacks the deploy identity. Install pinned Playwright Chromium with `pnpm exec playwright install --only-shell chromium`; Linux CI also requires `--with-deps`. Shared caches can use `PLAYWRIGHT_SKIP_BROWSER_GC=1` during browser installation. Test transports replace only authorized network/provider edges; no live provider request is required. Push and pull-request Verify use parallel shards from `.github/scripts/verify-ci.mjs`, with a 12-minute limit per shard. Installer and README clone journeys run nightly and on tags; manual workflow dispatch runs all tiers. The aggregate requires all selected shards and the credential-free preparation job. The hosted shard retains production-output and hydration checks. A local `rer verify` still runs the complete plan.
 
 ## Managed hosting mail
 
@@ -43,7 +43,7 @@ Production and preview share an allowance of 20 messages per minute, 200 per hou
 
 ## Deploy in your own Cloudflare account
 
-The owner-account path is `rer deploy`. Use `deploy --environment production` to select the environment; `deploy --dry-run` builds and prints the Worker, D1, migrations, Cron and binding plan with zero provider requests. Its hosted origin remains pending until Cloudflare assigns it; it does not establish current provider state. The `--json` result includes `plan` and `pendingVariables`. It builds with provider credentials
+Stop dev with `rer dev --stop` (or stop preview with `rer preview --stop`) before any deployment command, including `--dry-run`. The owner-account path is `rer deploy`. Use `deploy --environment production` to select the environment; `deploy --dry-run` builds and prints the Worker, D1, migrations, Cron and binding plan with zero provider requests. Its hosted origin remains pending until Cloudflare assigns it; it does not establish current provider state. The `--json` result includes `plan` and `pendingVariables`. It builds with provider credentials
 excluded, then provisions a Worker, D1 database, migrations and one-minute
 Cron through Base deploy-kit. Supply `CLOUDFLARE_ACCOUNT_ID` and
 `CLOUDFLARE_API_TOKEN`, plus `OWNER_EMAIL`, `MAIL_FROM` and the selected mail
@@ -56,8 +56,7 @@ unset) or `cloudflare`. Resend uses `MAIL_PROVIDER_API_KEY`; SendGrid uses
 before building. Supply `MAIL_PROVIDER`, `MAIL_FROM` and the selected provider's
 key in the environment or `--env-file`; the shared `MAIL_API_KEY` input can also
 supply a direct provider's key. Updates may reuse the existing deployment's mail
-credential. There is no automatic fallback between providers. Locally the
-provider is the development outbox. Optional `UPTIME_HEARTBEAT_URL` enables the
+credential. There is no automatic fallback between providers. Development also uses the configured sender; it has no captured-mail viewer. Optional `UPTIME_HEARTBEAT_URL` enables the
 independent heartbeat.
 Cloudflare Workers is the default owner deployment target. Uptime also declares
 the container platform in `deploy.json`; see [the deployment guide](docs/deploy.md)
@@ -70,9 +69,9 @@ back it up separately from D1.
 
 With rer's newer custom-deployment lifecycle (0.2.3 and later), `rer deploy` wraps Uptime's deployment hook, claims the owner automatically and retires the one-use hosted `SETUP_TOKEN` after permanent admission. Inspect the command's `claimed` or `kept` owner outcome and token-retirement result, then open the hosted `/login` for ordinary email-link sign-in and finish the signed-in `/setup` page to enter `/app`. Owner admission is the permanent `oa_bootstrap` singleton; first-run completion is the separate `uptime_first_run` record. Retirement works before first-run completion and after original-owner erasure, which anonymises but retains admission. App documents return unfinished owners to `/setup`; signed-out visitors go to `/login`.
 
-This checkout pins the unmodified published `@runeditrun/rer` exactly 0.2.22. Its lifecycle wraps the Uptime upload and health-check hook to claim the owner and retire `SETUP_TOKEN`. If upload, health check, automatic claim or retirement is incomplete, retain `.rer/deploy/<environment>.json` and private settings, rerun the same deployment command with the same environment, and inspect the reported stage, owner outcome and retirement result. Never enter a retired token at `/claim`. See the [deployment guide](docs/deploy.md#owner-claim-and-sign-in). Other environments retain their own ownership record and their own `SESSION_SECRET`, `SETUP_TOKEN` and `UPTIME_RUNNER_KEY` in `.rer/deploy/environments/<environment>/secrets.json` (an environment deployed earlier keeps the values it was deployed with), and share the owner and mail inputs in `.rer/deploy/production-secrets.json`; back up both. Before `node scripts/runner-start.mjs --environment NAME`, export `UPTIME_CONTROL_ORIGIN` as that environment's exact hosted HTTPS origin, without a path or trailing slash. The wrapper reads its saved runner key privately; the complete example is in [the deployment guide](docs/deploy.md#start-the-runner).
+This checkout pins the unmodified published `@runeditrun/rer` exactly 0.2.22. Its lifecycle wraps the Uptime upload and health-check hook to claim the owner and retire `SETUP_TOKEN`. If upload, health check, automatic claim or retirement is incomplete, retain `.rer/deploy/<environment>.json` and private settings, rerun the same deployment command with the same environment, and inspect the reported stage, owner outcome and retirement result. Never enter a retired token at `/claim`. See the [deployment guide](docs/deploy.md#owner-claim-and-sign-in). Other environments retain their own ownership record and their own `SESSION_SECRET`, `SETUP_TOKEN` and `UPTIME_RUNNER_KEY` in `.rer/deploy/environments/<environment>/secrets.json` (an environment deployed earlier keeps the values it was deployed with), and share the owner and mail inputs in `.rer/deploy/production-secrets.json`; back up both. Before `node scripts/runner-start.mjs --environment NAME`, export `UPTIME_CONTROL_ORIGIN` as that environment's exact hosted HTTPS origin, without a path or trailing slash. The wrapper reads its saved runner key privately; the complete example is in [the deployment guide](docs/deploy.md#hosted-checks-and-the-private-runner).
 
-Start the private runner separately on an authorized host. See [Runner and targets](#runner-and-targets). The owner-account deployment path was exercised end to end once on v0.1.1; that historical run and a local readiness result do not establish the newer lifecycle or hosted operation.
+Start a private runner separately on an authorized host for heartbeats, website discovery, private targets or runner-local credentials. Public hosted website checks and notifications run without it. See [Runner and targets](#runner-and-targets). The owner-account deployment path was exercised end to end once on v0.1.1; that historical run and a local readiness result do not establish the newer lifecycle or hosted operation.
 
 ### Update an existing hosted installation
 
@@ -171,10 +170,7 @@ Receipts do not change target health until the runner evaluates a scheduled slot
 
 The owner-only **Notifications** view manages destinations for every monitor in
 one installation. Email uses the same `MAIL_FROM` and selected mail provider
-configuration as operator sign-in. The Worker sends email. The private Node
-runner sends signed JSON and Slack incoming webhooks when it polls the
-installation. At each poll, the Worker submits queued email through the selected Base mail adapter;
-keep the runner running for queued notifications and target checks to run.
+configuration as operator sign-in. The hosted Worker sends email, signed JSON and Slack incoming webhooks without a private runner. Owner-console requests prompt due checks and sends while the console is open; the one-minute Cron trigger continues background work after activation, which Cloudflare can delay for up to about two hours on a new deployment. A private runner may also claim notifications when polling, using the same durable claim and attempt rules.
 Email, signed JSON, and Slack destinations are installation-wide, not
 per-monitor routes. The **Send test** action queues a separate test event and
 does not change monitor state or incident history.
@@ -285,7 +281,7 @@ then the page path after the handshake. It sends visible page text only when the
 owner opens the editor and enables context sharing. Uptime has no public embeddable widget. BASE-DATA-005 is explicitly replaced by native standalone operation without a marketplace/author dependency plus this optional owner-configured editor; an author-hosted management origin may be contacted when opted in. No absolute author-zero-egress claim applies in that case, and the exception authorizes no telemetry, licence check or kill switch. Leave `IDENTITY_PROVIDER` omitted for native email-link setup. The completed probe passes native setup, sign-in, revocation and exact repeat preservation. Selecting a provider reads dependency metadata from a local issuer edge, then fails at the unmounted app dependency-approval route (404) before owner creation; no link request is made. Dependency/OIDC routes remain unavailable after a separate native bootstrap, so linked callback, repeat and revocation remain unreachable. The default is a separate scoped Base adoption round; runtime OIDC is not ready. A source inventory documents these flows; it does
 not prove complete optional-provider or hosted/deployment egress. A scoped emitted-runtime proof with the editor and linked provider absent passed native sign-in, local-edge monitoring failure/recovery, history and export while outside Worker/browser requests and the exercised runner HTTP(S) transport were denied. Its 1440/390 browser trace made no outside request. That proves the tested standalone flows do not need an author or marketplace service, not every possible integration configuration.
 
-Observation, definition, audit, notification and local development capture
+Observation, definition, audit, notification and legacy development capture
 history has no automatic age/count deletion. The local runtime retention scan
 compared all 76 migrated tables in a populated installation; 36 had rows before
 maintenance. Only aged `oa_sessions`, `oa_limits`, `login_attempts` and
@@ -296,7 +292,7 @@ and stale rate-limit/auth-attempt counters. Discovery timeout changes job state
 but keeps the row; drill expiry clears the one-time capability but keeps drill
 history; retired endpoint secrets are scrubbed after owner action and any
 in-flight send; and a proven-unsent attempt reservation may be removed while
-delivery history remains. Local development captures remain until the
+delivery history remains. Legacy development captures remain until the
 associated operator is erased or local reset. View, export and archive bounds
 are not a retention policy or capacity claim.
 

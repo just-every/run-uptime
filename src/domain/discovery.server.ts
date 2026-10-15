@@ -2,6 +2,8 @@
 import {publicTarget} from './public-target.mjs'
 // @ts-ignore Shared with the runner; edition JavaScript.
 import {validateDiscoveryResult} from './discovery-result.mjs'
+import {runnerRuntime} from './private-runner.ts'
+import {listRunners} from './runner-registration.server.ts'
 import {ensureFirstRunner,type Runner} from './runner-registration.server.ts'
 import type {Bindings} from './control.server.ts'
 // A discovery job is the owner's console asking the owner's runner to check one URL. The Worker never fetches the
@@ -36,6 +38,8 @@ function insertJob(env:Bindings,id:string,url:string,now:number,reuse:boolean){
  return env.DB.prepare(`INSERT INTO discovery_jobs(id,url,status,created_at) SELECT ?,?,'queued',? WHERE (SELECT COUNT(*) FROM discovery_jobs WHERE status IN ('queued','running'))<?${reuse?" AND NOT EXISTS (SELECT 1 FROM discovery_jobs WHERE url=? AND status IN ('queued','running','done'))":''}`).bind(id,url,now,DISCOVERY_ACTIVE_LIMIT,...(reuse?[url]:[])).run()
 }
 export async function createDiscovery(env:Bindings,text:string){
+ const runtime=runnerRuntime(env,await listRunners(env));
+ if(runtime.hosted&&!runtime.privateRunnerReady)throw Error('Website discovery needs a connected private runner. Start it from the deploying checkout: '+runtime.privateRunnerCommand);
  let input;try{input=JSON.parse(text)}catch{throw Error('Invalid discovery request')}
  const url=discoveryTarget(object(input,['url'],'discovery request').url).href,id=crypto.randomUUID(),now=Date.now();
  await expire(env,now);

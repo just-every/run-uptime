@@ -14,6 +14,16 @@ An HTTP(S) monitor requests a URL and tests the response against rules you set. 
 
 A monitor that sets no status rule expects 200.
 
+### JSON values and latency
+
+In the HTTP form's **Additional checks (JSON)** field, enter:
+
+```json
+{"json":{"path":"$.status.indicator","equals":"none"},"latencyMs":1500}
+```
+
+This requires the response's `status.indicator` value to equal `"none"` and its response time to be at most 1,500 ms. Both `$.status.indicator` and `status.indicator` are accepted. `json` is a single object with `path` and `equals`, not an array; either the JSON check or `latencyMs` may be omitted. Keep the expected HTTP status in its separate field.
+
 ### Keyword
 
 A keyword monitor is an HTTP(S) check that requires specific text in the response body. Use it when a page can return 200 while the content is wrong.
@@ -23,7 +33,7 @@ A keyword monitor is an HTTP(S) check that requires specific text in the respons
 A heartbeat monitor waits for your own job to call Uptime. It suits cron jobs, backups and workers that should check in on a schedule. Creation and configuration use **Definitions**; the New monitor HTTP form does not create heartbeats.
 
 1. Open **Definitions**, paste a file like the one below, choose **Preview**, review it, then **Apply**. The heartbeat arrives paused. `maxAgeMs` is how old the last receipt may be; `intervalMs` is how often the runner evaluates it. Maximum age is at most one day.
-2. Keep the [private runner](/docs/runner) running. Dev starts one automatically; a hosted installation needs its separately supervised runner. Open the new monitor and choose **Authorize & resume** to use its assigned runner. Imported definitions select installation-local runners; runner authority and heartbeat keys never come from the file.
+2. Keep the [private runner](/docs/runner) running. Dev starts one automatically; a hosted installation needs its separately supervised runner. From the deployment checkout, set `UPTIME_CONTROL_ORIGIN` to its exact hosted HTTPS origin and run `node scripts/runner-start.mjs --environment production` (replace `production` with your environment). Open the new monitor and choose **Authorize & resume** to use its assigned runner. Imported definitions select installation-local runners; runner authority and heartbeat keys never come from the file.
 3. After resuming, choose **Issue heartbeat key** on the monitor's page. Review **Issue a new heartbeat key?** and choose **Issue key**. The **Heartbeat key** dialog shows the endpoint and a curl command with the new key once. Save the key in your job's secret settings before closing the dialog. Issuing another key creates a new revision, retires the old token and resets its receipt and sequence.
 4. From your job, send exactly `{}` as JSON to the receipt path on your Uptime origin, with `Authorization: Bearer <token>` and an `X-Heartbeat-Sequence` header. Start at 1 and persist a strictly increasing positive integer across job restarts; do not restart at 1 on each run.
 
@@ -64,7 +74,7 @@ Each monitor has a schedule and a few knobs that decide when a bad check becomes
 - **Retries** are extra attempts inside a slot. A retry never erases an earlier failure and never counts as another slot.
 - **Confirmation** is how many consecutive scheduled slots must fail before the monitor is Failing.
 - **Recovery** is how many consecutive fresh, passing scheduled slots are needed before it recovers.
-- **Failure agreement** requires two independent network labels, or one failing vantage whose external check (canary) passed in the same slot. A monitor on one network gets that check from the installation's External check URL when you save it (default `https://example.com/`, changed on Runner / archive and applied to monitors saved afterwards), unless you give the monitor its own. Checks on the same network count once.
+- **Failure agreement** requires two independent network labels, or one failing vantage whose external check (canary) passed in the same slot. A monitor on one network gets that check from the installation's External check URL when you save it (default `https://example.org/`, changed on Runner / archive and applied to monitors saved afterwards), unless you give the monitor its own. Checks on the same network count once.
 - **Freshness** is how long a result stays usable before it counts as expired.
 
 Because of confirmation and recovery, one blip does not wake you, and one lucky pass does not close an incident.

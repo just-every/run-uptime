@@ -8,7 +8,8 @@ const hostOf=url=>{try{return new URL(url).hostname}catch{return ''}};
 export function mountDiscovery({form,overview,openCheck,showManualForm}){
  const root=document.querySelector('#discovery'),$=selector=>root.querySelector(selector);
  const panel=$('#discovery-form'),input=$('#discovery-url'),button=$('#discovery-check'),status=$('#discovery-status'),elapsed=$('#discovery-elapsed'),help=$('#discovery-help'),manual=$('#discovery-manual'),problem=$('#discovery-problem'),result=$('#discovery-result'),feedback=$('#discovery-feedback');
- const plan=networkPlan(overview);
+ const plan=networkPlan(overview),needsRunner=overview.runner.hosted&&!overview.runner.privateRunnerReady;
+ if(overview.runner.hosted){help.textContent='Website discovery needs a private runner. Public HTTP and keyword monitors can run in the Cloudflare Worker; choose Fill in the form yourself to add one.';const command=document.createElement('pre');command.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere';command.textContent=overview.runner.privateRunnerCommand;help.append(command)}
  const results=createResults({root,form,plan,onFeedback:text=>{feedback.textContent=text},onStarted:id=>{location.href=id?`/app/monitors/${encodeURIComponent(id)}`:'/app'}});
  let control,timer,state;
  const stopTimer=()=>{clearInterval(timer);timer=undefined};
@@ -74,6 +75,6 @@ export function mountDiscovery({form,overview,openCheck,showManualForm}){
  });
  for(const trigger of [manual,$('#discovery-empty-manual')])trigger.addEventListener('click',()=>showManualForm({url:input.value.trim()}));
  root.hidden=false;
- if(openCheck){restart();const say=showProgress('');say();watch(openCheck,say)}
- else{show('start');input.focus()}
+ if(openCheck&&!needsRunner){restart();const say=showProgress('');say();watch(openCheck,say)}
+ else{show('start');if(needsRunner){input.disabled=true;button.disabled=true;help.hidden=false}else input.focus()}
 }

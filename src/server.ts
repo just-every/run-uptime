@@ -1,5 +1,6 @@
 // The package's demo module: operator-auth runs from the package and reads demo mode from this same instance.
 import {withDemo} from '@runeditrun/rer/modules/demo'
+import {kickHostedWork} from './domain/worker-kick.server.ts'
 import {scheduledPublicChecks} from './domain/worker-checks.server.ts'
 import {seedDemo} from './demo.ts'
 import {demoBindings} from './domain/demo.server.ts'
@@ -56,6 +57,8 @@ api.use('/api/heartbeats/*',boundary)
 api.post('/api/heartbeats/:id',async c=>{if(c.get('requestText')!=='{}')return c.json({error:'Empty JSON object required'},400);return c.json(await receiveHeartbeat(c.env,c.req.param('id'),c.req.header('authorization')??'',c.req.header('x-heartbeat-sequence')??''))})
 api.use('/api/*',async(c,next)=>{if(c.req.path.startsWith('/api/runner/')){const row=await storageOperation('runner.authenticate',()=>authenticateRunner(c.env,c.req.header('x-runner-id'),c.req.header('x-runner-key')??''));if(!row)return c.json({error:'Runner authorization required'},401);c.set('runner',row)}else if(!await storageOperation('owner.session',()=>session(c.env,c.req.raw)))return c.json({error:'Owner session required'},401);await next()})
 api.use('/api/*',boundary)
+// Only authenticated owner requests can kick hosted work; public traffic and private runners cannot.
+api.use('/api/*',async(c,next)=>{await next();if(c.res.ok&&(c.req.path==='/api/overview'||/^\/api\/(monitors|notifications)(\/|$)/.test(c.req.path))){c.executionCtx.waitUntil(kickHostedWork(c.env).catch(()=>console.error('Hosted console work failed; queued work remains available to Cron.')))}})
 api.post('/api/auth/sign-out',async c=>{try{const result=await signOut(c.env,c.req.raw);c.header('set-cookie',result.cookie);return c.json({signedOut:true})}catch(error){return authFailure(error)}})
 api.get('/api/overview',async c=>c.json(await overview(c.env)))
 api.post('/api/monitors',async c=>c.json(await save(c.env,c.get('input'),undefined,{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id}),201))

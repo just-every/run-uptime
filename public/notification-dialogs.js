@@ -3,7 +3,7 @@
 export function dialogFocusReturn(fallbackId) {
  const opener=document.activeElement,id=opener?.id||fallbackId;
  return ()=>{
-  if(document.querySelector('dialog[open]'))return;
+  if(document.querySelector('dialog:modal'))return;
   const control=opener?.isConnected&&opener!==document.body&&!opener.closest('dialog')?opener:id?document.getElementById(id):null;
   control?.focus({preventScroll:true});
  };
@@ -43,15 +43,18 @@ export function showErasureReceipt(receipt,{onClose=()=>{}}={}){
  const heading=document.createElement('h2');heading.id='erasure-receipt-heading';heading.textContent='Erasure complete';
  const description=document.createElement('p');description.textContent=`${receipt.entityKind} erased at ${new Date(receipt.completedAt).toLocaleString()}.`;
  const reference=document.createElement('p');reference.textContent=`Receipt: ${receipt.id}`;reference.style.overflowWrap='anywhere';
- const counts=document.createElement('dl');for(const [table,count] of Object.entries(receipt.counts)){const row=document.createElement('div'),label=document.createElement('dt'),value=document.createElement('dd');label.textContent=table;value.textContent=String(count);row.append(label,value);counts.append(row)}
- const close=document.createElement('button');close.className='primary';close.textContent='Close receipt';close.onclick=()=>dialog.close();dialog.onclose=()=>{dialog.onclose=null;dialog.remove();onClose()};
+ const labels={notification_destinations:'Destinations',notification_credentials:'Stored credentials',notification_jobs:'Notification jobs',integration_attempts:'Delivery attempts',integration_deliveries:'Delivery records',integration_resolutions:'Delivery resolutions',integration_replays:'Replay records',notification_claim_custody:'Delivery authorizations',alert_drills:'Alert drills',archive_history:'Archived history copies',rer_mail_development_outbox:'Local development messages'};
+ const totals={};for(const [table,count] of Object.entries(receipt.counts)){const label=labels[table]??'Other dependent records';totals[label]=(totals[label]??0)+Number(count)}
+ const counts=document.createElement('dl');for(const [labelText,count] of Object.entries(totals)){const row=document.createElement('div'),label=document.createElement('dt'),value=document.createElement('dd');label.textContent=labelText;value.textContent=String(count);row.append(label,value);counts.append(row)}
+ const close=document.createElement('button');close.className='primary';close.textContent='Close receipt';close.onclick=()=>dialog.close();dialog.onclose=()=>{dialog.onclose=null;dialog.remove();onClose();if(receipt.entityKind==='destination'&&!document.querySelector('dialog:modal'))document.getElementById('add-destination')?.focus({preventScroll:true})};
  dialog.append(heading,description,reference,counts);
  if(receipt.counts.oa_bootstrap){const claim=document.createElement('p');claim.textContent='The original setup claim remains closed. Its counted row was anonymised.';dialog.append(claim)}
  if(receipt.entityKind==='operator'){
   const guidance=document.createElement('p');guidance.textContent='If this was the configured owner, stop local dev and change only OWNER_EMAIL in data/local-secrets.json to an existing active owner, preserving every key and other setting. Then run rer setup --owner-email EMAIL --non-interactive with that email. Supplying a different setup email alone is refused. Hosted OWNER_EMAIL must be updated separately by the deployment owner. ';
   const help=document.createElement('a');help.href='/docs/data';help.textContent='Owner settings after erasure';guidance.append(help);dialog.append(guidance);
  }
- dialog.append(close);document.body.append(dialog);dialog.showModal();
+ dialog.append(close);document.body.append(dialog);
+ if(receipt.entityKind==='destination'){Object.assign(dialog.style,{position:'fixed',inset:'auto 16px 16px auto',maxWidth:'min(560px, calc(100vw - 32px))',maxHeight:'calc(100vh - 32px)',overflow:'auto',zIndex:'10'});dialog.show()}else dialog.showModal();
 }
 export function confirmErasure({kind,name,onConfirm}){
  const returnFocus=dialogFocusReturn();

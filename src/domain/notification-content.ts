@@ -21,7 +21,9 @@ export function testEvent(origin:string):NotificationEvent {
 export function notificationText(event:NotificationEvent){return [event.title,event.url?`URL: ${event.url}`:'',`State: ${event.state}`,event.monitorId?`Monitor: ${event.monitorId}`:'',event.incidentKey?`Incident: ${event.incidentKey}`:'',`Why: ${event.explanation}`,`Time: ${new Date(event.observedAt).toISOString()}`,...event.probes.map(p=>`Probe ${p.name}: ${p.outcome} — ${p.reason}`),event.consoleUrl?`Console: ${event.consoleUrl}`:''].filter(Boolean).join('\n')}
 export function escapeHtml(value:string){return value.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!))}
 export function mailContent(event:NotificationEvent){
- const text=notificationText(event);let link='';
+ // Mail uses friendly check labels; persisted Slack envelopes retain their byte-stable rendering.
+ const display={...event,probes:event.probes.map(p=>({...p,name:p.name==='local-a'&&event.explanation.includes('Cloudflare Worker')?'Cloudflare Worker':/^local-[a-z]$/.test(p.name)?`Check ${p.name.charCodeAt(6)-96}`:p.name}))};
+ const text=notificationText(display);let link='';
  if(event.consoleUrl){const url=new URL(event.consoleUrl);if(!['https:','http:'].includes(url.protocol)||url.username||url.password||url.origin!==event.consoleUrl)throw Error('Invalid console origin');link=`<p><a href="${escapeHtml(event.consoleUrl)}/app">Open Uptime console</a></p>`}
  return {subject:event.title.replace(/[\r\n\x00-\x1f\x7f]/g,' '),text,html:`<pre>${escapeHtml(text)}</pre>${link}`}
 }
