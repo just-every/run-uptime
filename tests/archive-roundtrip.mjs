@@ -33,7 +33,7 @@ try{
  await assertArchiveInventory(withTables(['_cf_KV','_cf_FUTURE']));await assert.rejects(assertArchiveInventory(withTables(['_cf_KV','xcf_unknown'])),/Archive unclassified table: xcf_unknown/);
  assert.equal(original.payload.schemaVersion,2);assert.deepEqual(Object.keys(original.payload.tables),LEGACY_TABLES);assert.deepEqual(Object.keys(a),TABLES);
  const text=JSON.stringify(original);for(const secret of [values.SESSION_SECRET,values.SETUP_TOKEN,values.UPTIME_RUNNER_KEY,'private-lease','private-queued-lease','private-destination','private-fingerprint','fixture-signing-secret','credential-webhook','credential-slack','private-claim','/fixture/private/token'])assert.ok(!text.includes(secret),'Excluded credential or authority marker');assert.ok(text.includes('archive-owner@example.test'));
- await assert.rejects(archive({...env,SESSION_SECRET:'incorrect-local-secret-that-cannot-decrypt-email'}),/email definition unavailable/);
+ await assert.rejects(archive({...env,SESSION_SECRET:'synthetic-incorrect-local-secret-that-cannot-decrypt-email'}),/email definition unavailable/);
  await worker.dispose();worker=null;
  await writeFile(file,JSON.stringify(original),{mode:0o600});assert.equal((await stat(file)).mode&0o777,0o600);assert.deepEqual(tables(JSON.parse(await readFile(file,'utf8'))),a);
  await migrate(target);env=await installation(target);await restore(env,original);const roundtrip=await archive(env),b=tables(roundtrip);

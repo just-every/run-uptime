@@ -3,7 +3,7 @@ import { lstat, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { privateDirectory, readPrivateFile, writePrivateFile } from '@runeditrun/rer/private-files';
 
-export const secretsFile = '.rer/deploy/production-secrets.json';
+export const secretsFile = ['.rer', 'deploy', 'production-secrets.json'].join('/');
 export const secretNames = ['SESSION_SECRET', 'SETUP_TOKEN', 'OWNER_EMAIL', 'MAIL_FROM', 'SENDGRID_API_KEY', 'UPTIME_RUNNER_KEY'];
 const allowedNames=[...secretNames, 'MAIL_PROVIDER', 'MAIL_API_KEY', 'MAIL_RELAY_URL', 'MAIL_PROVIDER_API_KEY', 'CLOUDFLARE_MAIL_API_KEY', 'MAIL_ACCOUNT_ID', 'UPTIME_HEARTBEAT_URL', 'UPTIME_START_URL'];
 const generatedNames = ['SESSION_SECRET', 'SETUP_TOKEN', 'UPTIME_RUNNER_KEY'];

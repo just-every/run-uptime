@@ -189,7 +189,7 @@ try{
   // refusal never repeats what was sent, here a credential-shaped value.
   await check('every route refuses invalid path, query and body input at its boundary without echo or effect',async()=>{
     const tables=async()=>JSON.stringify(await Promise.all((await DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT GLOB '_cf*' AND name NOT IN ('public_rate_limits','oa_limits','runner_contact') ORDER BY name").all()).results.map(async({name})=>(await DB.prepare(`SELECT * FROM "${name}" ORDER BY rowid`).all()).results)));
-    const secret='planted-credential-0001',before=await tables();
+    const secret='synthetic-planted-credential-0001',before=await tables();
     // Parser diagnostics can truncate the input, so even its short prefix must stay private.
     const send=async(method,path,body)=>{const response=await fetch(origin+path,{method,headers:{origin,'content-type':'application/json',cookie,'x-runner-key':runner},...(body===undefined?{}:{body})});const text=await response.text();assert.equal(response.status,400,`${method} ${path}: ${text}`);assert.ok(/^\{"error":"[^"]+"\}$/.test(text)&&!text.includes(secret.slice(0,7)),`${method} ${path} answers the standard error without the input`)};
     for(const route of apiRoutes){

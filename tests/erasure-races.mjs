@@ -7,7 +7,7 @@ import {erase} from '../src/domain/erasure.server.ts';
 import {createDestination,rotateDestination} from '../src/domain/notification-destinations.server.ts';
 import {testDestination} from '../src/domain/notifications.server.ts';
 import {notificationRpc} from '../src/domain/notification-rpc.server.ts';
-const environment=()=>({DB:notificationTestDB(),SESSION_SECRET:'real-sqlite-test-sealing-key-abcdefghijklmnopqrstuvwxyz',UPTIME_LOCAL_REVIEW:'true',UPTIME_ORIGIN:'http://localhost:8787'});
+const environment=()=>({DB:notificationTestDB(),SESSION_SECRET:'synthetic-real-sqlite-test-sealing-key-abcdefghijklmnopqrstuvwxyz',UPTIME_LOCAL_REVIEW:'true',UPTIME_ORIGIN:'http://localhost:8787'});
 const actor={kind:'feature',ref:'notification-dispatch'};
 async function snapshot(DB){const names=(await DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name").all()).results;return Promise.all(names.map(async({name})=>[name,(await DB.prepare(`SELECT * FROM ${name} ORDER BY rowid`).all()).results]))}
 

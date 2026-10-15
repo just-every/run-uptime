@@ -469,7 +469,7 @@
       "executable": false
     },
     "CHANGELOG.md": {
-      "sha256": "58598f79e28d4a73fb03e68356f40ac005c313e47af950fdea7d28f5aa647afc",
+      "sha256": "90d56ac00d7f7fca728b5ab156401f4dacbd885277c04bbc16b783a05e39abd4",
       "executable": false
     },
     "CLAUDE.md": {
@@ -1285,7 +1285,7 @@
       "executable": false
     },
     "scripts/deployment/owner-settings.mjs": {
-      "sha256": "d8d746d2c9f4e064aaf0cb2d375bd17b44cf29d96b3c0a986b2fbde7d75bc045",
+      "sha256": "f1a3900c9799b434c2ea8c434690c34f0d6772f86aa1a91acc121cfe0d112097",
       "executable": false
     },
     "scripts/deployment/plan.mjs": {
@@ -3125,7 +3125,7 @@
       "executable": false
     },
     "tests/alert-drill.mjs": {
-      "sha256": "30147128b3b4bfa74cfc42448a6e4f5b1ebe2aef3ee80423973faf67a95672d3",
+      "sha256": "a9c47dc7f33a9f064669ecb1a92c1b1083f2a146870330379d4d581c4b8563f5",
       "executable": false
     },
     "tests/archive-fixture.mjs": {
@@ -3145,7 +3145,7 @@
       "executable": false
     },
     "tests/archive-roundtrip.mjs": {
-      "sha256": "82cbd937ebe0c19889c9a043fa220e251f9de29f25af069d8425f0a705369ef8",
+      "sha256": "254d148475567f58db4ae9b6dda7546e8b299043ec69e9da8d969450207c8cef",
       "executable": false
     },
     "tests/auth-input-boundary.mjs": {
@@ -3173,7 +3173,7 @@
       "executable": false
     },
     "tests/credential-upgrade.mjs": {
-      "sha256": "a2b4a1d25fb8e6b8ddf10da39760053872d7809b368903694d894e5f890ae5e7",
+      "sha256": "33fcd79e3c4c534bc56e548d1d7bbd4104c234114237ae0d145feedf06b7f5bc",
       "executable": false
     },
     "tests/definitions-import.mjs": {
@@ -3205,7 +3205,7 @@
       "executable": false
     },
     "tests/erasure-races.mjs": {
-      "sha256": "d801544b9077b6741d9a677642d7f2e758e050b4d4c55f23ab019b190d681b8b",
+      "sha256": "9bd27dcd520da6d4c950e84103f6f3001664b4fa0350abfe5d8a6984bd479bfb",
       "executable": false
     },
     "tests/fixtures/README.md": {
@@ -3305,7 +3305,7 @@
       "executable": false
     },
     "tests/notify-delivery.mjs": {
-      "sha256": "2bf47c70754a581309b8b5d457ec8c7078c354b421f4dc4ef14b44bb21fecb84",
+      "sha256": "d2a95201beb50d4b7cdf03dc2663cf6db84dfc0a001523d7ef85bd0a3345bd87",
       "executable": false
     },
     "tests/notify-secret-browser.mjs": {
@@ -3449,7 +3449,7 @@
       "executable": false
     },
     "tests/worker-intake.mjs": {
-      "sha256": "250fbe06c5122f47b29d9eca0f8f373e85d9557adad443e5ce45805953a155eb",
+      "sha256": "c54dd37ac23a7667dec3eda0a0904df3121d8004b531b946851de3f5c20ff938",
       "executable": false
     },
     "tsconfig.json": {

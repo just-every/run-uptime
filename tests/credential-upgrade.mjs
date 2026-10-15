@@ -17,7 +17,7 @@ export async function credentialUpgrade(){
  const directory=await mkdtemp(join(tmpdir(),'uptime-credential-upgrade-')),credentials=join(directory,'credentials'),empty=join(directory,'empty'),workspace=join(directory,'flows'),grantPath=join(directory,'grant.json');
  const previous=process.env.UPTIME_CREDENTIAL_DIR;process.env.UPTIME_CREDENTIAL_DIR=credentials;
  let f,recovery,flow,receiver,original,browser;
- const records=[],sharedRef='shared-'.padEnd(80,'x'),token='upgrade-private-auth-value';
+ const records=[],sharedRef='shared-'.padEnd(80,'x'),token='synthetic-upgrade-private-auth-value';
  try{
   for(const path of [credentials,empty,workspace])await mkdir(path,{mode:0o700});
   flow=await startFlowFixture({grantPath});f=await fixture({UPTIME_SYNTHETIC_PORT:String(flow.port)});

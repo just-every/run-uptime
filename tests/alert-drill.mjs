@@ -11,7 +11,7 @@ const key='alert-drill-runner-local-only-20261012';
 const webhookUrl='https://drills.example.com/receiver',slackUrl='https://hooks.slack.com/services/TDRILL/BDRILL/local-alert-drill';
 const directory=await runtimeDirectory(),[controlPort,fixturePort,mailPort,webhookPort,slackPort,restorePort]=await availablePorts(6);
 const origin=`http://127.0.0.1:${controlPort}`,grantPath=join(directory,'grant.json');
-const bindings={...testAuthBindings,UPTIME_RUNNER_KEY:key,UPTIME_SYNTHETIC_PORT:String(fixturePort),MAIL_PROVIDER:'sendgrid',MAIL_FROM:'qa-sender@example.com',SENDGRID_API_KEY:'alert-drill-provider-key-local-only'};
+const bindings={...testAuthBindings,UPTIME_RUNNER_KEY:key,UPTIME_SYNTHETIC_PORT:String(fixturePort),MAIL_PROVIDER:'sendgrid',MAIL_FROM:'qa-sender@example.com',SENDGRID_API_KEY:'synthetic-alert-drill-provider-key-local-only'};
 const secrets=[bindings.SETUP_TOKEN,bindings.SESSION_SECRET,key,bindings.SENDGRID_API_KEY,slackUrl],capabilities=[],runnerLogs=[],receivers=[];
 const originalConsoleError=console.error;console.error=(...values)=>runnerLogs.push(values.map(String).join(' '));
 const transport=loopbackWireTransport(new Map([[webhookUrl,{port:webhookPort,path:'/receiver'}],[slackUrl,{port:slackPort,path:'/slack'}]])),{api,signIn}=ownerAPI(origin);

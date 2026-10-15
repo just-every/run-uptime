@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Mark credential fixtures and examples explicitly synthetic so hosted source checks accept them.
+
 - Managed hosting sends sign-in links and email notifications through the RER mail relay, with no provider account or API key to enter. Configure fills and hides `MAIL_PROVIDER`, `MAIL_FROM`, `MAIL_RELAY_URL` and private `MAIL_API_KEY`; Assisted and Free keep their existing SendGrid, Resend and Cloudflare Email Sending options.
 - Pin `@runeditrun/rer` to exactly 0.2.23 and adopt its Base mail adapter: Managed mail sends from Workers, refuses relay redirects and supports relay-stamped automatic-mail headers.
 - RER Open app links to `/signin?login_hint=<email>` prefill the email field through Base's shared sign-in page.

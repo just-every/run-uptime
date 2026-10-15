@@ -17,7 +17,7 @@ const slackUrl='https://hooks.slack.com/services/TACCEPT/BACCEPT/local-notificat
 const directory=await runtimeDirectory(),ports=await availablePorts(6);
 const [controlPort,fixturePort,mailPort,webhookPort,slackPort,restorePort]=ports;
 const origin=`http://127.0.0.1:${controlPort}`,persist=join(directory,'worker'),grantPath=join(directory,'grant.json');
-const bindings={...testAuthBindings,UPTIME_RUNNER_KEY:key,UPTIME_SYNTHETIC_PORT:String(fixturePort),MAIL_PROVIDER:'sendgrid',MAIL_FROM:'qa-sender@example.com',SENDGRID_API_KEY:'notification-acceptance-provider-key-local-only'};
+const bindings={...testAuthBindings,UPTIME_RUNNER_KEY:key,UPTIME_SYNTHETIC_PORT:String(fixturePort),MAIL_PROVIDER:'sendgrid',MAIL_FROM:'qa-sender@example.com',SENDGRID_API_KEY:'synthetic-notification-acceptance-provider-key-local-only'};
 let worker,DB,fixture,runnerAbort,runnerPromise,restoreWorker,secondRunner;
 const receivers=[],credentials=[bindings.SETUP_TOKEN,bindings.SESSION_SECRET,key,bindings.SENDGRID_API_KEY],runnerLogs=[];let webhookDestination;
 const originalConsoleError=console.error;console.error=(...values)=>runnerLogs.push(values.map(value=>String(value)).join(' '));
