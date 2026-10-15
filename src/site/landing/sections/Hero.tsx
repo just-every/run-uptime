@@ -32,6 +32,7 @@ export function Hero() {
         <p className="ut-fine ut-hero-alt">{c.alt} <AltNames names={c.altNames} /></p>
         <div className="ut-actions">
           <a className="ut-pill ut-pill--large" href={links.run}>{c.primary}<Icon name="arrow" /></a>
+          <a className="ut-link ut-link--large" href={links.demo}>{c.demo}</a>
           <a className="ut-link ut-link--large" href={links.docs}>{c.secondary}</a>
         </div>
         <p className="ut-fine">{c.fine}</p>

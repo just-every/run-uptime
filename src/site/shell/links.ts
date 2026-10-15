@@ -3,6 +3,7 @@ export const links = {
   home: '/',
   docs: '/docs',
   run: '/run',
+  demo: 'https://demo.run-uptime.com/',
   limits: '/docs/limits',
   source: 'https://github.com/just-every/run-uptime',
   signIn: '/login',

@@ -7,6 +7,7 @@ export const hero = {
   alt: '100% free, open source alternative to',
   altNames: ['UptimeRobot', 'Pingdom', 'Better Stack'],
   primary: 'Run Uptime',
+  demo: 'Try the demo',
   secondary: 'Read the docs',
   fine: 'Free and open source, MIT licensed.',
 };
