@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "parent": null,
   "edition": "just-every/uptime-monitor",
-  "manifest": "2932e4e0641cee892813ad760eeb69bce47ce939f6cc36c2a0282ed0b70a0f13",
+  "manifest": "c4d15ccc1be0f8834a149ff9a68fb7b30eb43174d8848b77766992a46cd1bd6d",
   "toolchain": {
     "id": "runeditrun/edition-authoring",
     "version": "1.1.0",
@@ -369,7 +369,7 @@
         ],
         "origin": {
           "repository": "https://github.com/runeditrun/base.git",
-          "revision": "a6afad9f4d007bf1b97a75bd67880d1850683e5d",
+          "revision": "fc0e1041efa55771142bbb57c4ab4743147e264d",
           "path": ".",
           "paths": [
             "modules/demo"
@@ -383,9 +383,9 @@
         ]
       },
       "baseline": {
-        "key": "10d37d40da7a5afb1b10cf5b004bc6f59a0ce02758582a05f5b8af2fa3372717",
-        "digest": "e3dc535989313ab2ac415ce0421c4cd282ad4165b4f65e10e6aeea033d1400a2",
-        "sha256": "2cf1129060f7286b395daad18f22e17f432198c39ec926ed7a97a7b2f2e1a44f"
+        "key": "3868ba15b30544f066c1cd437702028292bce0730697f6dfb2d6a66c1097fa45",
+        "digest": "f0787dbedbef077ae241cd2655bd181c45364ab5b82806144fc233479931d564",
+        "sha256": "0b0f01a62eef910ab15be196bc87b2702c2550a5aeb86f83c82c56f8bdc77bf2"
       }
     }
   ],
@@ -451,7 +451,7 @@
       "executable": false
     },
     "base-copies.json": {
-      "sha256": "64be7504484852b704a7fbc1aab25df8d71eca8e856634d80cacb0fb26b28882",
+      "sha256": "3ef061626daacaba40be0f30d0b352742e41b61b49226dcffa18e167e9c9bf09",
       "executable": false
     },
     "BASELINE.md": {
@@ -539,7 +539,7 @@
       "executable": false
     },
     "edition.json": {
-      "sha256": "2932e4e0641cee892813ad760eeb69bce47ce939f6cc36c2a0282ed0b70a0f13",
+      "sha256": "c4d15ccc1be0f8834a149ff9a68fb7b30eb43174d8848b77766992a46cd1bd6d",
       "executable": false
     },
     "HANDOVER.md": {
@@ -2623,11 +2623,11 @@
       "executable": false
     },
     "src/modules/demo/index.mjs": {
-      "sha256": "8b6e6aea3d484c1b1e2ee748ec8075492a6492e35f443b2309429d0c01355bf6",
+      "sha256": "378293dac595ac39844299f01049951c15f007cef11e2581cdbb0ebf41e1e982",
       "executable": false
     },
     "src/modules/demo/README.md": {
-      "sha256": "2c79b0a5a4c1998f7bdd8638a442159c4eb3cb0eee07032d67d521347751b9f7",
+      "sha256": "44b7b2dfea231d0df6620b2abbf3c6ca11dc866f4d4c8f3b4dcef6f832d5604e",
       "executable": false
     },
     "src/modules/demo/sockets.mjs": {
