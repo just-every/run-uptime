@@ -26,6 +26,12 @@ try {
  await writeFile(join(bin, 'rer'), `#!/bin/sh\nexec node "${fileURLToPath(new URL('../node_modules/@runeditrun/rer/global/rer.mjs', import.meta.url))}" "$@"\n`, { mode: 0o700 });
  const environment = { GIT_CONFIG_COUNT: '1', GIT_CONFIG_KEY_0: `url.${scratch.root}.insteadOf`, GIT_CONFIG_VALUE_0: cloneUrl, PATH: `${bin}:${process.env.PATH}` };
  for (const block of blocks) {
+  // The README asks for the owner's identity at setup's prompt. Supply that
+  // answer through the CLI's real saved-answer store in this non-TTY journey.
+  if (/(?:^|\n)\s*rer\s+setup(?:\s|$)/.test(block)) {
+   await mkdir(join(cwd, '.seed/installer'), { recursive: true, mode: 0o700 });
+   await writeFile(join(cwd, '.seed/installer/setup-answers.json'), JSON.stringify({ OWNER_EMAIL: 'readme-owner@example.test' }), { mode: 0o600 });
+  }
   if (/(?:^|\n)\s*(?:rer|node\s+scripts\/rer\.mjs)\s+dev(?:\s|$)/.test(block)) {
    assert.ok(!dev, 'only one application may own the journey');
    appRoot = cwd;
@@ -69,7 +75,7 @@ try {
  await assertGroupsGone(groups);
  await scratch.run('node', ['node_modules/@runeditrun/rer/bin/rer.mjs', 'reset', '--yes', '--non-interactive'], { cwd: appRoot });
  assert.equal((await scratch.run('git', ['status', '--porcelain'], { cwd: appRoot })).trim(), '', 'documented journey changed tracked source');
- console.log('README-JOURNEY passed: literal fresh clone and automatic rer dev setup, background start/stop, health, one-click owner sign-in, private documents, reset and clean tracked tree.');
+ console.log('README-JOURNEY passed: literal fresh clone and documented install/setup/dev, background start/stop, health, one-click owner sign-in, private documents, reset and clean tracked tree.');
 } catch (error) { caseError = error; throw error; }
 finally {
  const failures = [];

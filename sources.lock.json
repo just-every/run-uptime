@@ -3385,7 +3385,7 @@
       "executable": false
     },
     "tests/readme-journey.mjs": {
-      "sha256": "d148e336502f560c0925dab15eefe7bb98c52ff3d840db20e5de21eb00d6a5c4",
+      "sha256": "95abafee8da6983c9724bf9be4937292a05d7df43a28205db360f104a7a5d98f",
       "executable": false
     },
     "tests/recovery-browser.mjs": {
