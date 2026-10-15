@@ -1,0 +1,185 @@
+{
+  "schema": 1,
+  "title": "Uptime",
+  "groups": [
+    {
+      "id": "owner",
+      "label": "First owner"
+    },
+    {
+      "id": "mail",
+      "label": "Notification and hosted sign-in email"
+    }
+  ],
+  "fields": [
+    {
+      "name": "OWNER_EMAIL",
+      "label": "Owner email",
+      "help": "Use a receiving mailbox independent of this hosting provider. Keep the phone receiving external heartbeat notices independent too; a missing weekly healthy digest is a signal.",
+      "kind": "email",
+      "required": true,
+      "prefill": "account-email",
+      "group": "owner"
+    },
+    {
+      "name": "UPTIME_START_URL",
+      "label": "Website to monitor (optional)",
+      "help": "Uptime checks this site from your runner and offers monitors to start with one click. Leave empty to add monitors yourself.",
+      "kind": "url",
+      "required": false,
+      "group": "owner"
+    },
+    {
+      "name": "SESSION_SECRET",
+      "label": "Session secret",
+      "kind": "secret",
+      "required": true,
+      "ownerVisible": false,
+      "input": "managed",
+      "generate": "hex",
+      "group": "owner"
+    },
+    {
+      "name": "SETUP_TOKEN",
+      "label": "Setup token",
+      "kind": "secret",
+      "required": true,
+      "ownerVisible": false,
+      "generate": "hex",
+      "group": "owner"
+    },
+    {
+      "name": "UPTIME_RUNNER_KEY",
+      "label": "Private runner key",
+      "kind": "secret",
+      "required": true,
+      "ownerVisible": false,
+      "input": "managed",
+      "generate": "hex",
+      "group": "owner"
+    },
+    {
+      "name": "MAIL_PROVIDER",
+      "label": "Email delivery",
+      "kind": "select",
+      "required": true,
+      "default": "development",
+      "options": [
+        {
+          "value": "development",
+          "label": "Local development outbox"
+        },
+        {
+          "value": "sendgrid",
+          "label": "SendGrid"
+        },
+        {
+          "value": "resend",
+          "label": "Resend"
+        },
+        {
+          "value": "cloudflare",
+          "label": "Cloudflare Email Sending"
+        }
+      ],
+      "group": "mail"
+    },
+    {
+      "name": "MAIL_FROM",
+      "label": "Verified sender email",
+      "kind": "email",
+      "required": true,
+      "group": "mail",
+      "default": "auth@localhost.test"
+    },
+    {
+      "name": "SENDGRID_API_KEY",
+      "label": "SendGrid Mail Send API key",
+      "kind": "secret",
+      "input": "entered",
+      "ownerVisible": true,
+      "required": true,
+      "when": {
+        "field": "MAIL_PROVIDER",
+        "equals": "sendgrid"
+      },
+      "group": "mail"
+    },
+    {
+      "name": "MAIL_PROVIDER_API_KEY",
+      "label": "Mail provider API key",
+      "kind": "secret",
+      "required": true,
+      "when": {
+        "field": "MAIL_PROVIDER",
+        "equals": "resend"
+      },
+      "group": "mail",
+      "input": "entered",
+      "ownerVisible": true
+    },
+    {
+      "name": "MAIL_ACCOUNT_ID",
+      "label": "Cloudflare Email Sending account ID",
+      "kind": "text",
+      "required": true,
+      "when": {
+        "field": "MAIL_PROVIDER",
+        "equals": "cloudflare"
+      },
+      "group": "mail"
+    },
+    {
+      "name": "CLOUDFLARE_MAIL_API_KEY",
+      "label": "Cloudflare Email Sending API key",
+      "kind": "secret",
+      "required": true,
+      "when": {
+        "field": "MAIL_PROVIDER",
+        "equals": "cloudflare"
+      },
+      "group": "mail",
+      "input": "entered",
+      "ownerVisible": true
+    },
+    {
+      "name": "UPTIME_HEARTBEAT_URL",
+      "label": "External heartbeat ping URL (optional)",
+      "help": "Choose a service and a receiving mailbox or phone independent of this hosting provider. Empty disables pings.",
+      "kind": "secret",
+      "required": false,
+      "group": "owner",
+      "input": "entered",
+      "ownerVisible": true
+    },
+    {
+      "name": "IDENTITY_PROVIDER",
+      "label": "Identity provider",
+      "kind": "url",
+      "required": false,
+      "default": "",
+      "help": "Optional Auth install. Leave empty to use email links."
+    }
+  ],
+  "steps": [
+    {
+      "type": "owner-claim",
+      "mode": "signed",
+      "emailField": "OWNER_EMAIL",
+      "tokenField": "SETUP_TOKEN",
+      "path": "/auth/owner-claim"
+    }
+  ],
+  "dependencies": [
+    {
+      "interface": "oidc-provider@1",
+      "optional": true,
+      "cardinality": 1,
+      "address": "IDENTITY_PROVIDER",
+      "paths": [
+        "/auth/oidc/auth/callback",
+        "/auth/oidc/auth/logout"
+      ]
+    }
+  ]
+}

@@ -17,7 +17,7 @@ export const lifecycle = localInstaller({
 export const commandAdapter = createCommandAdapter(lifecycle, {
  dev: context => runtimeTarget(context, true), preview: context => runtimeTarget(context, false), verify: ['pnpm', ['run', 'verify:app']],
  deploy: deployment(lifecycle), portability,
- settings: ['data/local-secrets.json'], setup: { manifestFile: 'rer-setup.json' },
+ settings: ['data/local-secrets.json'], setup: { manifestFile: 'rer-local-setup.json' },
  // Local dev identity: the local-only Worker entry, the build output rer build scans for the dev layer, and the kept end-to-end email-link test.
  devIdentity: { entry: 'src/server.dev.ts', output: ['dist'], emailLinkTest: 'tests/command-journey.mjs' }, localOnlyKeys: ['RER_DEV_ORIGIN', 'RER_DEV_IDENTITY'],
  browserModule: 'scripts/installer/ui/seed.mjs', product: 'Uptime',

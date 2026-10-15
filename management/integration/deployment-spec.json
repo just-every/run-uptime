@@ -1,0 +1,282 @@
+{
+  "schema": 1,
+  "resources": [
+    {
+      "kind": "d1",
+      "binding": "DB"
+    }
+  ],
+  "migrations": [
+    {
+      "binding": "DB",
+      "name": "0001_uptime.sql",
+      "sha256": "9d847bb037a73619e59f913dad87a810fb455b5b0ec63d7f4f281d2143778d32",
+      "sql": "CREATE TABLE migrations(version INTEGER PRIMARY KEY, applied_at INTEGER NOT NULL);\nINSERT INTO migrations VALUES(1,unixepoch()*1000);\nCREATE TABLE sessions(hash TEXT PRIMARY KEY,expires_at INTEGER NOT NULL,revoked INTEGER NOT NULL DEFAULT 0);\nCREATE TABLE login_attempts(id TEXT PRIMARY KEY,at INTEGER NOT NULL);\nCREATE TABLE monitors(id TEXT PRIMARY KEY,revision INTEGER NOT NULL,definition TEXT NOT NULL,next_due INTEGER NOT NULL,state TEXT NOT NULL);\nCREATE TABLE revisions(monitor_id TEXT NOT NULL,revision INTEGER NOT NULL,definition TEXT NOT NULL,created_at INTEGER NOT NULL,PRIMARY KEY(monitor_id,revision));\nCREATE TABLE slots(id TEXT PRIMARY KEY,monitor_id TEXT NOT NULL,revision INTEGER NOT NULL,due_at INTEGER NOT NULL,status TEXT NOT NULL,definition TEXT NOT NULL,lease_owner TEXT NOT NULL,lease_until INTEGER NOT NULL,missed_count INTEGER NOT NULL DEFAULT 0);\nCREATE TABLE observations(id TEXT PRIMARY KEY,slot_id TEXT NOT NULL,probe TEXT NOT NULL,attempt INTEGER NOT NULL,evidence TEXT NOT NULL,UNIQUE(slot_id,probe,attempt));\nCREATE TABLE outbox(id TEXT PRIMARY KEY,monitor_id TEXT NOT NULL,slot_id TEXT NOT NULL,kind TEXT NOT NULL,event TEXT NOT NULL,status TEXT NOT NULL DEFAULT 'pending',lease_until INTEGER NOT NULL DEFAULT 0,receipt TEXT);\nCREATE INDEX slots_monitor ON slots(monitor_id,due_at);\nCREATE INDEX observations_slot ON observations(slot_id);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0002_manual_slots.sql",
+      "sha256": "5f2ad59d50474e40a6b421394fc1c389242107b7dffa40cff180f195d428468c",
+      "sql": "ALTER TABLE slots ADD COLUMN manual INTEGER NOT NULL DEFAULT 0;\nUPDATE slots SET manual=1 WHERE id LIKE '%:manual:%';\nINSERT INTO migrations VALUES(2,unixepoch()*1000);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0003_runner_contact.sql",
+      "sha256": "65296e8ff0497d341d381ae0b5d9a2628e518b3516badcb7956d9f61d86c8336",
+      "sql": "-- Installation-local authenticated contact, never imported from an archive.\nCREATE TABLE runner_contact(id INTEGER PRIMARY KEY CHECK(id=1),last_contact_at INTEGER NOT NULL);\nINSERT INTO migrations VALUES(3,unixepoch()*1000);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0004_heartbeat_authority.sql",
+      "sha256": "b1cfe257f174a89584e601c30b442f5a1fb88ac681fa7d6227815578db829a6f",
+      "sql": "-- Installation-local execution authority, tracked by Wrangler d1_migrations.\n-- Not a portable domain schema change: domain/archive ledger stays at version 3.\nCREATE TABLE heartbeat_authority(\n monitor_id TEXT PRIMARY KEY REFERENCES monitors(id),\n revision INTEGER NOT NULL,\n token_hash TEXT NOT NULL,\n last_sequence INTEGER NOT NULL DEFAULT 0,\n received_at INTEGER\n);\nCREATE TABLE heartbeat_claims(\n slot_id TEXT PRIMARY KEY REFERENCES slots(id),\n revision INTEGER NOT NULL,\n received_at INTEGER\n);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0005_operator_auth.sql",
+      "sha256": "86c87c79b2f8c2199a20908bf4451d3cdad61316aacec7d79c4851fd841ca04b",
+      "sql": "-- Additive schema draft. Integrator assigns the next migration number; never\n-- replace an applied migration. All epoch timestamps are milliseconds.\nCREATE TABLE oa_operators (\n id TEXT PRIMARY KEY, email TEXT NOT NULL UNIQUE, display_name TEXT NOT NULL,\n role TEXT NOT NULL CHECK(role IN ('owner','admin','member')),\n status TEXT NOT NULL CHECK(status IN ('invited','active','inactive')),\n version INTEGER NOT NULL DEFAULT 1, created_at INTEGER NOT NULL\n);\nCREATE TABLE oa_bootstrap (singleton INTEGER PRIMARY KEY CHECK(singleton=1), claim_id TEXT NOT NULL UNIQUE, claimed_at INTEGER NOT NULL);\nCREATE TABLE oa_tokens (\n id TEXT PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE,\n kind TEXT NOT NULL CHECK(kind IN ('magic','invite')),\n operator_id TEXT NOT NULL REFERENCES oa_operators(id), operator_version INTEGER NOT NULL,\n issuer_id TEXT REFERENCES oa_operators(id), issuer_version INTEGER,\n return_to TEXT NOT NULL, created_at INTEGER NOT NULL, expires_at INTEGER NOT NULL,\n consumed_at INTEGER, revoked_at INTEGER,\n CHECK((kind='invite' AND issuer_id IS NOT NULL AND issuer_version IS NOT NULL)\n    OR (kind='magic' AND issuer_id IS NULL AND issuer_version IS NULL))\n);\nCREATE TABLE oa_sessions (\n id TEXT PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE,\n operator_id TEXT NOT NULL REFERENCES oa_operators(id), operator_version INTEGER NOT NULL,\n kind TEXT NOT NULL CHECK(kind IN ('native','review','oidc','password')),\n source_token_id TEXT UNIQUE REFERENCES oa_tokens(id),\n created_at INTEGER NOT NULL, expires_at INTEGER NOT NULL, revoked_at INTEGER\n);\nCREATE INDEX oa_sessions_operator ON oa_sessions(operator_id);\nCREATE TABLE oa_external_identities (\n issuer TEXT NOT NULL, subject TEXT NOT NULL, operator_id TEXT NOT NULL REFERENCES oa_operators(id),\n PRIMARY KEY(issuer, subject)\n);\nCREATE TABLE oa_limits (key TEXT PRIMARY KEY, window INTEGER NOT NULL, count INTEGER NOT NULL);\nCREATE TRIGGER oa_preserve_last_owner_update BEFORE UPDATE OF status,role ON oa_operators\n WHEN OLD.role='owner' AND OLD.status='active' AND (NEW.role!='owner' OR NEW.status!='active')\n AND (SELECT COUNT(*) FROM oa_operators WHERE role='owner' AND status='active') <= 1\n BEGIN SELECT RAISE(ABORT, 'last_owner'); END;\nCREATE TRIGGER oa_preserve_last_owner_delete BEFORE DELETE ON oa_operators\n WHEN OLD.role='owner' AND OLD.status='active'\n AND (SELECT COUNT(*) FROM oa_operators WHERE role='owner' AND status='active') <= 1\n BEGIN SELECT RAISE(ABORT, 'last_owner'); END;\n-- A status/role change invalidates every preexisting session and link, including\n-- after a later reactivation. Keep this invariant for direct administrative SQL.\nCREATE TRIGGER oa_operator_version AFTER UPDATE OF status,role ON oa_operators\n WHEN OLD.status != NEW.status OR OLD.role != NEW.role\n BEGIN UPDATE oa_operators SET version=OLD.version+1 WHERE id=NEW.id; END;\n\n-- Fresh installs include the additive invitation cancellation ledger.\n-- Apply as a NEW numbered migration after operator-auth.sql in existing stores.\n-- This durable record is admission state, not an expiring credential. Never prune it.\n-- Existing active/inactive operators retain their recorded status: no historical\n-- acceptance is inferred. Only a witnessed invited -> inactive transition records\n-- an unaccepted cancellation, including direct administrative SQL transitions.\nCREATE TABLE oa_invitation_cancellations (\n operator_id TEXT PRIMARY KEY REFERENCES oa_operators(id),\n operator_version INTEGER NOT NULL\n);\nCREATE TRIGGER oa_record_invitation_cancellation AFTER UPDATE OF status ON oa_operators\n WHEN OLD.status='invited' AND NEW.status='inactive'\n BEGIN INSERT INTO oa_invitation_cancellations(operator_id,operator_version)\n VALUES(NEW.id,OLD.version+1)\n ON CONFLICT(operator_id) DO UPDATE SET operator_version=excluded.operator_version; END;\nCREATE TRIGGER oa_reject_cancelled_invitation_reactivation BEFORE UPDATE OF status ON oa_operators\n WHEN NEW.status='active' AND EXISTS(SELECT 1 FROM oa_invitation_cancellations WHERE operator_id=OLD.id)\n BEGIN SELECT RAISE(ABORT, 'invitation_required'); END;\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0006_heartbeat_limits.sql",
+      "sha256": "ed553444fee71f41bd8727511daedff7add4699fb2cc9b7b1f974fe085f69e5c",
+      "sql": "CREATE TABLE heartbeat_limits (monitor_id TEXT PRIMARY KEY, window_start INTEGER NOT NULL, receipts INTEGER NOT NULL);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0007_integrations.sql",
+      "sha256": "1a24ad5a3b682c5bb3ab53966732a62ea97a7e7a23a16effbefbd0a908722509",
+      "sql": "CREATE TABLE IF NOT EXISTS integration_deliveries (\n namespace TEXT NOT NULL, id TEXT NOT NULL, fingerprint TEXT NOT NULL, destination_hash TEXT NOT NULL,\n envelope TEXT NOT NULL, state TEXT NOT NULL CHECK(state IN ('queued','sending','accepted','rejected','uncertain')),\n attempts INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL, next_at INTEGER NOT NULL,\n claim TEXT, claim_until INTEGER, max_attempts INTEGER NOT NULL, retry_delays TEXT NOT NULL,\n PRIMARY KEY(namespace,id)\n);\nCREATE INDEX IF NOT EXISTS integration_deliveries_due ON integration_deliveries(namespace,state,next_at);\nCREATE TABLE IF NOT EXISTS integration_attempts (\n namespace TEXT NOT NULL, id TEXT NOT NULL, delivery_id TEXT NOT NULL, number INTEGER NOT NULL,\n started_at INTEGER NOT NULL, finished_at INTEGER, outcome TEXT,\n PRIMARY KEY(namespace,id), UNIQUE(namespace,delivery_id,number)\n);\nCREATE TABLE IF NOT EXISTS integration_resolutions (\n namespace TEXT NOT NULL, id TEXT NOT NULL, delivery_id TEXT NOT NULL, at INTEGER NOT NULL, outcome TEXT NOT NULL,\n PRIMARY KEY(namespace,id)\n);\nCREATE TABLE IF NOT EXISTS integration_replays (\n namespace TEXT NOT NULL, id TEXT NOT NULL, fingerprint TEXT NOT NULL, envelope TEXT NOT NULL, received_at INTEGER NOT NULL,\n PRIMARY KEY(namespace,id)\n);\nCREATE TABLE IF NOT EXISTS integration_tokens (\n namespace TEXT NOT NULL, id TEXT NOT NULL, token_hash TEXT NOT NULL, name TEXT NOT NULL, scopes TEXT NOT NULL,\n created_at INTEGER NOT NULL, expires_at INTEGER, revoked_at INTEGER,\n PRIMARY KEY(namespace,id), UNIQUE(namespace,token_hash)\n);\nCREATE TABLE IF NOT EXISTS integration_token_usage (\n namespace TEXT NOT NULL, id TEXT NOT NULL, token_id TEXT, at INTEGER NOT NULL, required_scopes TEXT NOT NULL, allowed INTEGER NOT NULL,\n request_id TEXT, resource TEXT,\n PRIMARY KEY(namespace,id)\n);\nCREATE TABLE IF NOT EXISTS integration_token_events (\n namespace TEXT NOT NULL, id TEXT NOT NULL, token_id TEXT NOT NULL, at INTEGER NOT NULL,\n action TEXT NOT NULL, feature TEXT NOT NULL,\n PRIMARY KEY(namespace,id)\n);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0008_notifications.sql",
+      "sha256": "6e40b68add4f3fae271c50d914f8be176de15fe1e6096341d55d56a70e2d77ad",
+      "sql": "-- Installation-local destinations and credentials are deliberately excluded from archives.\nCREATE TABLE notification_destinations (\n id TEXT PRIMARY KEY, name TEXT NOT NULL, kind TEXT NOT NULL CHECK(kind IN ('email','webhook','slack')),\n enabled INTEGER NOT NULL CHECK(enabled IN (0,1)), credential_id TEXT NOT NULL, created_at INTEGER NOT NULL,\n deleted_at INTEGER\n);\nCREATE TABLE notification_credentials (\n id TEXT PRIMARY KEY, destination_id TEXT NOT NULL, endpoint TEXT NOT NULL, signing_secret TEXT,\n created_at INTEGER NOT NULL\n);\nCREATE TABLE notification_jobs (\n id TEXT PRIMARY KEY, event_id TEXT NOT NULL, destination_id TEXT NOT NULL, destination_name TEXT NOT NULL,\n kind TEXT NOT NULL, credential_id TEXT NOT NULL, event TEXT NOT NULL, created_at INTEGER NOT NULL,\n state TEXT NOT NULL DEFAULT 'queued', code TEXT NOT NULL DEFAULT 'waiting_for_runner',\n claim TEXT, claim_until INTEGER, finished_at INTEGER, attempts INTEGER NOT NULL DEFAULT 0,\n UNIQUE(event_id,destination_id)\n);\nCREATE INDEX notification_jobs_queued ON notification_jobs(state,created_at);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0009_notification_custody.sql",
+      "sha256": "5b3c25a4f96264bf8f82e06a18425013cbc5fca47da1790f511f5f3d07aa2e72",
+      "sql": "-- Plaintext columns are nullable so retirement erases custody without removing\n-- durable identities. The key-bearing Worker completes encryption before ready.\nALTER TABLE notification_credentials RENAME TO notification_credentials_legacy;\nCREATE TABLE notification_credentials (\n id TEXT PRIMARY KEY, destination_id TEXT NOT NULL, endpoint TEXT, signing_secret TEXT,\n created_at INTEGER NOT NULL, ciphertext TEXT, retired_at INTEGER,\n CHECK(retired_at IS NULL OR (endpoint IS NULL AND signing_secret IS NULL AND ciphertext IS NULL))\n);\nINSERT INTO notification_credentials(id,destination_id,endpoint,signing_secret,created_at)\n SELECT id,destination_id,endpoint,signing_secret,created_at FROM notification_credentials_legacy;\nDROP TABLE notification_credentials_legacy;\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0010_notification_recovery.sql",
+      "sha256": "a55da553cf20508fd333da769217ca8b78b7a5a00aa80a0aa4b008fa0d88536c",
+      "sql": "-- A damaged or invalidated credential is visible to its owner but never sent.\nALTER TABLE notification_credentials ADD COLUMN unavailable_at INTEGER;\n-- Product-only custody for provably unstarted claims. Base attempts retain their\n-- original semantics; released reservations are retained here for audit.\nCREATE TABLE notification_claim_custody (\n claim TEXT PRIMARY KEY, delivery_id TEXT NOT NULL, created_at INTEGER NOT NULL,\n reservation_hash TEXT NOT NULL,\n started_at INTEGER, released_at INTEGER\n);\n-- Retirement needs no encryption key. Apply it during SQL upgrade as well as\n-- after later outcomes, including installations that have not polled yet.\nUPDATE notification_jobs SET state='rejected',code='credential_rotated',finished_at=unixepoch()*1000\n WHERE state='queued'\n AND NOT EXISTS(SELECT 1 FROM notification_destinations d WHERE d.id=notification_jobs.destination_id AND d.credential_id=notification_jobs.credential_id AND d.deleted_at IS NULL)\n AND NOT EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace='uptime-notifications' AND d.id=notification_jobs.id AND d.state<>'queued');\nUPDATE integration_deliveries SET state='rejected',next_at=unixepoch()*1000\n WHERE namespace='uptime-notifications' AND state='queued'\n AND id IN(SELECT id FROM notification_jobs WHERE state='rejected' AND code='credential_rotated');\nUPDATE notification_credentials SET endpoint=NULL,signing_secret=NULL,ciphertext=NULL,retired_at=unixepoch()*1000\n WHERE retired_at IS NULL\n AND NOT EXISTS(SELECT 1 FROM notification_destinations d WHERE d.id=notification_credentials.destination_id AND d.credential_id=notification_credentials.id AND d.deleted_at IS NULL)\n AND NOT EXISTS(SELECT 1 FROM notification_jobs j WHERE j.credential_id=notification_credentials.id AND\n  ((j.state='sending' AND j.claim IS NOT NULL AND j.claim_until>unixepoch()*1000) OR EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace='uptime-notifications' AND d.id=j.id AND d.state='sending' AND d.claim IS NOT NULL AND d.claim_until>unixepoch()*1000)));\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0011_development_outbox.sql",
+      "sha256": "45d6b03eadfe1e91737763ae85cdff74e7216f859869e34431550bba48294996",
+      "sql": "-- Additive local-development storage. Apply explicitly to the local D1 database.\nCREATE TABLE IF NOT EXISTS rer_mail_development_outbox (\n  sequence INTEGER PRIMARY KEY AUTOINCREMENT,\n  id TEXT NOT NULL UNIQUE,\n  created_at INTEGER NOT NULL,\n  message TEXT NOT NULL\n);\nCREATE INDEX IF NOT EXISTS rer_mail_development_outbox_order\n  ON rer_mail_development_outbox(created_at DESC, sequence DESC);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0012_archive_history.sql",
+      "sha256": "d8ed77a160a4fefc0935e6da34b97328b206861a32aa6699c40168d11c3089e6",
+      "sql": "-- Sanitized originals of records transformed by inactive restore. These records\n-- are historical product data only and never queried by scheduling/dispatch.\nCREATE TABLE archive_history (\n id TEXT PRIMARY KEY,\n table_name TEXT NOT NULL,\n record TEXT NOT NULL\n);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0013_runner_registration.sql",
+      "sha256": "0459ae91df9f6cccf18ad4f33a8e6a0300d6dd4d685dbaf2c8effdf9800a2414",
+      "sql": "-- One self-runner identity belongs to this installation, never to an archive.\nCREATE TABLE runner_registration (\n id INTEGER PRIMARY KEY CHECK (id = 1),\n runner_id TEXT NOT NULL UNIQUE,\n registered_at INTEGER NOT NULL\n);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0014_portability.sql",
+      "sha256": "c7db9042f6d5c571e10297c02df858ad2f3466beb4fa85649fee407cc228747b",
+      "sql": "CREATE TABLE rer_portability_state (\n  id INTEGER PRIMARY KEY CHECK(id=1), source_identity TEXT NOT NULL, epoch INTEGER NOT NULL DEFAULT 0,\n  import_job TEXT, applying INTEGER NOT NULL DEFAULT 0\n);\nCREATE TABLE rer_portability_jobs (\n  id TEXT PRIMARY KEY, kind TEXT NOT NULL, actor TEXT NOT NULL, phase TEXT NOT NULL,\n  completed INTEGER NOT NULL DEFAULT 0, metadata TEXT NOT NULL\n);\nCREATE TABLE rer_portability_parts (\n  job TEXT NOT NULL REFERENCES rer_portability_jobs(id) ON DELETE CASCADE,\n  idx INTEGER NOT NULL, sha256 TEXT NOT NULL, PRIMARY KEY(job,idx)\n);\nCREATE TABLE rer_portability_segments (\n  job TEXT NOT NULL REFERENCES rer_portability_jobs(id) ON DELETE CASCADE,\n  part INTEGER NOT NULL, segment INTEGER NOT NULL, data TEXT NOT NULL, PRIMARY KEY(job,part,segment)\n);\nCREATE TABLE rer_portability_owned (\n  job TEXT NOT NULL REFERENCES rer_portability_jobs(id) ON DELETE CASCADE,\n  bucket TEXT NOT NULL, key TEXT NOT NULL, PRIMARY KEY(job,bucket,key)\n);\nCREATE TABLE rer_portability_journal (\n  source TEXT NOT NULL, tombstone TEXT NOT NULL, PRIMARY KEY(source,tombstone)\n);\nCREATE TABLE rer_portability_epochs (source TEXT PRIMARY KEY, epoch INTEGER NOT NULL);\nCREATE TABLE rer_portability_guard (value INTEGER NOT NULL CHECK(value=1));\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0015_portability_restore_receipt.sql",
+      "sha256": "36c1df9c749d77b2a92b15e2daa55e9b9d1db0d5c4932a7bccd3c828fb02ee04",
+      "sql": "CREATE TABLE rer_portability_product_restore (id TEXT PRIMARY KEY, sha256 TEXT NOT NULL);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0016_owner_claim.sql",
+      "sha256": "c3ffe653727bb4867b064dc2489df5013613f08f4b5998d2fe2b6a8485cdb815",
+      "sql": "-- Apply after operator-auth.sql as a new numbered migration. Never prune this ledger.\nCREATE TABLE oc_owner_claims (\n  singleton INTEGER PRIMARY KEY CHECK(singleton=1),\n  jti TEXT NOT NULL UNIQUE,\n  installation_id TEXT NOT NULL,\n  email TEXT NOT NULL,\n  issued_at INTEGER NOT NULL,\n  expires_at INTEGER NOT NULL,\n  consumed_at INTEGER NOT NULL CHECK(consumed_at<expires_at),\n  operator_id TEXT NOT NULL,\n  session_id TEXT NOT NULL,\n  completed INTEGER NOT NULL DEFAULT 0 CHECK(completed IN (0,1))\n);\nCREATE TRIGGER oc_owner_claim_empty_store BEFORE INSERT ON oc_owner_claims\nWHEN EXISTS(SELECT 1 FROM oa_bootstrap) OR EXISTS(SELECT 1 FROM oa_operators)\nBEGIN\n  SELECT RAISE(ABORT, 'owner_claim_already_initialized');\nEND;\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0017_first_run.sql",
+      "sha256": "7eb6957812d4a3ebc5459926af62a467646a213fbf64d33a6ce1ffe0ddd0befe",
+      "sql": "CREATE TABLE uptime_first_run (\n  id INTEGER PRIMARY KEY CHECK (id = 1),\n  completed_at INTEGER NOT NULL\n);\n-- An installation already monitoring targets has completed its first run.\nINSERT INTO uptime_first_run (id, completed_at)\nSELECT 1, CAST(strftime('%s', 'now') AS INTEGER) * 1000\nWHERE EXISTS (SELECT 1 FROM monitors);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0018_dev_sessions.sql",
+      "sha256": "18754583983c09f3624038131c1b03fadecb8375dddb0a5d09c449a4238ce298",
+      "sql": "-- Local dev identity for an existing store. Apply as a NEW numbered migration\n-- under the seed's next unused number; never rewrite an applied migration.\n-- SQLite cannot change a CHECK in place, so oa_sessions is rebuilt with 'dev'\n-- admitted, keeping every row, column, index and constraint. No table refers\n-- to oa_sessions. The file is also safe on a store created from the current\n-- schema/operator-auth.sql, so a fresh store may apply both.\nCREATE TABLE oa_sessions_dev_rebuild (\n id TEXT PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE,\n operator_id TEXT NOT NULL REFERENCES oa_operators(id), operator_version INTEGER NOT NULL,\n kind TEXT NOT NULL CHECK(kind IN ('native','review','oidc','password','dev')),\n source_token_id TEXT UNIQUE REFERENCES oa_tokens(id),\n created_at INTEGER NOT NULL, expires_at INTEGER NOT NULL, revoked_at INTEGER\n);\nINSERT INTO oa_sessions_dev_rebuild(id,token_hash,operator_id,operator_version,kind,source_token_id,created_at,expires_at,revoked_at)\n SELECT id,token_hash,operator_id,operator_version,kind,source_token_id,created_at,expires_at,revoked_at FROM oa_sessions;\nDROP TABLE oa_sessions;\nALTER TABLE oa_sessions_dev_rebuild RENAME TO oa_sessions;\nCREATE INDEX oa_sessions_operator ON oa_sessions(operator_id);\nCREATE TABLE IF NOT EXISTS oa_dev_credentials (\n credential TEXT NOT NULL, id TEXT NOT NULL, created_at INTEGER NOT NULL,\n PRIMARY KEY(credential, id)\n);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0019_domain_rules_step_up.sql",
+      "sha256": "e41c7f1381f547582148cdf247b521d7f166461ab24058ace95acdf21839e815",
+      "sql": "-- Domain rules and step-up proofs for an existing store. Apply as a NEW\n-- numbered migration under the seed's next unused number; never rewrite an\n-- applied migration. Additive only: every existing row stays as it is. The file\n-- is also safe after the current schema/operator-auth.sql.\n-- A required sign-in provider for an email domain. Sign-ins for that domain by\n-- any other route are refused; app owners are exempt.\nCREATE TABLE IF NOT EXISTS oa_domain_rules (\n domain TEXT PRIMARY KEY, provider_id TEXT NOT NULL,\n created_by TEXT NOT NULL REFERENCES oa_operators(id), created_at INTEGER NOT NULL\n);\n-- A step-up proof: an app-local email link sent to the operator's own address,\n-- bound to the session that asked and completed only in that session. No\n-- foreign key names oa_sessions, which schema/dev-sessions.sql rebuilds.\nCREATE TABLE IF NOT EXISTS oa_step_up_challenges (\n id TEXT PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE,\n session_id TEXT NOT NULL, operator_id TEXT NOT NULL REFERENCES oa_operators(id),\n operator_version INTEGER NOT NULL, action TEXT NOT NULL, return_to TEXT NOT NULL,\n created_at INTEGER NOT NULL, expires_at INTEGER NOT NULL, consumed_at INTEGER\n);\nCREATE INDEX IF NOT EXISTS oa_step_up_session ON oa_step_up_challenges(session_id);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0020_audit_erasure.sql",
+      "sha256": "5dcf619c5f1184b42890d685f9eddeb6a99b51fa6bd1e8b78a5d56fb2247eca3",
+      "sql": "-- Permanent, portable audit. References contain opaque identifiers only.\nCREATE TABLE uptime_audit (\n id TEXT PRIMARY KEY NOT NULL,\n actor_kind TEXT NOT NULL CHECK(actor_kind IN ('operator','feature','anonymized')),\n actor_ref TEXT NOT NULL,\n occurred_at INTEGER NOT NULL,\n action TEXT NOT NULL,\n subject_kind TEXT NOT NULL,\n subject_ref TEXT NOT NULL\n);\nCREATE INDEX uptime_audit_time ON uptime_audit(occurred_at);\nCREATE TABLE uptime_erasure_receipts (\n id TEXT PRIMARY KEY NOT NULL,\n entity_kind TEXT NOT NULL CHECK(entity_kind IN ('monitor','destination','operator')),\n counts TEXT NOT NULL,\n completed_at INTEGER NOT NULL\n);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0021_public_rate_limits.sql",
+      "sha256": "2c2dc08a8c688cae7a2e2c1d20a94f8905b466b04595c12198bae6a2d2601952",
+      "sql": "-- Installation-local, expiring request counters; no raw IP addresses.\nCREATE TABLE public_rate_limits (\n  class TEXT NOT NULL,\n  client_hash TEXT NOT NULL,\n  window_start INTEGER NOT NULL,\n  request_count INTEGER NOT NULL CHECK (request_count > 0),\n  expires_at INTEGER NOT NULL,\n  PRIMARY KEY (class, client_hash, window_start)\n);\nCREATE INDEX public_rate_limits_expiry ON public_rate_limits(expires_at);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0022_resilient_monitoring.sql",
+      "sha256": "2f136e3052ee5613a256421a2ca1b2e4a5e6f9f1ad6162659a6d9fd2e1a9a7b1",
+      "sql": "-- Installation-local runner credentials never enter a portable archive.\nCREATE TABLE runners (\n runner_id TEXT PRIMARY KEY,\n registered_at INTEGER NOT NULL,\n network_label TEXT NOT NULL,\n key_ciphertext TEXT,\n legacy_key INTEGER NOT NULL DEFAULT 0,\n revoked_at INTEGER,\n last_contact_at INTEGER\n);\nINSERT INTO runners(runner_id,registered_at,network_label,legacy_key)\n SELECT runner_id,registered_at,'owner-network',1 FROM runner_registration;\nDROP TABLE runner_registration;\n-- Old slot lease columns remain only for portable historical records. Live\n-- execution uses the deadline as an acceptance window, without a slot owner.\nCREATE TABLE runner_assignments (\n slot_id TEXT NOT NULL,\n probe TEXT NOT NULL,\n runner_id TEXT NOT NULL,\n delivered_at INTEGER,\n PRIMARY KEY(slot_id,probe)\n);\nCREATE TABLE monitoring_watch (\n id TEXT PRIMARY KEY,\n at INTEGER NOT NULL,\n outcome TEXT NOT NULL\n);\n-- Optimistic generation guard keeps attempts, derived state and events atomic\n-- across concurrent arrivals without a runtime-specific coordination service.\nCREATE TABLE evidence_generation(monitor_id TEXT PRIMARY KEY,generation INTEGER NOT NULL DEFAULT 0);\nINSERT INTO evidence_generation(monitor_id) SELECT id FROM monitors;\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0023_migrated_runner_contact.sql",
+      "sha256": "c3de257b4004908b86e2912a271939c4416bfcf1911afebfa9184688b29eaf98",
+      "sql": "-- Retain genuine pre-upgrade contact for the migrated runner. This avoids an\n-- unnecessary stale-contact notice immediately after applying the new table.\nUPDATE runners SET last_contact_at=(SELECT last_contact_at FROM runner_contact WHERE id=1)\n WHERE legacy_key=1 AND last_contact_at IS NULL;\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0024_projection_transaction.sql",
+      "sha256": "f3eae25d0f09d148c9b94ce23e7a72f64a89ca5ddafc405ba1273fcc8659f3f1",
+      "sql": "-- An atomic projection token freezes the acceptance decision for its batch.\n-- It is ephemeral installation-local concurrency state, not portable evidence.\nALTER TABLE evidence_generation ADD COLUMN projection_id TEXT;\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0025_attempt_checkpoint.sql",
+      "sha256": "baa73d311588fc1a93054115eae11f8b8ac129c95668e421adfca423a40a03c8",
+      "sql": "-- Derived installation-local state; portable immutable observations remain intact.\n-- Only an expired acceptance window can enter this chronological checkpoint.\nCREATE TABLE attempt_checkpoints (\n monitor_id TEXT NOT NULL,\n revision INTEGER NOT NULL,\n due_at INTEGER NOT NULL,\n slot_id TEXT NOT NULL,\n state TEXT NOT NULL,\n last_observations TEXT NOT NULL,\n PRIMARY KEY(monitor_id,revision)\n);\nCREATE INDEX slots_projection ON slots(monitor_id,revision,manual,due_at,id);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0026_definition_batches.sql",
+      "sha256": "094700cf85f64723aa098f06e33f319f823d8eba87f8d45aa9d85d79e175ed18",
+      "sql": "-- Each applied definition file is one batch: when, by whom, from which source and plan, and per entry the monitor and\n-- the revision it produced. Undo reads these rows; it never deletes observations, slots or incident history. Batches\n-- travel in archives as history and arrive with restored_at set, which keeps them from acting on a new installation.\nCREATE TABLE definition_batches(\n id TEXT PRIMARY KEY,\n created_at INTEGER NOT NULL,\n actor_kind TEXT NOT NULL,\n actor_ref TEXT NOT NULL,\n source TEXT NOT NULL,\n plan_digest TEXT NOT NULL,\n counts TEXT NOT NULL,\n undone_at INTEGER,\n restored_at INTEGER\n);\nCREATE TABLE definition_batch_entries(\n batch_id TEXT NOT NULL,\n monitor_id TEXT NOT NULL,\n action TEXT NOT NULL CHECK(action IN ('create','change')),\n revision INTEGER NOT NULL,\n previous_revision INTEGER,\n undo_outcome TEXT,\n PRIMARY KEY(batch_id,monitor_id)\n);\nCREATE INDEX definition_batch_entries_monitor ON definition_batch_entries(monitor_id);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0027_alert_drills.sql",
+      "sha256": "3444df3b1ff86e4eefcdc546c1adf6193f74f7ec728bd7281bd63c0ecd8fa2cf",
+      "sql": "-- An alert drill is one labelled test send to one destination with a one-time confirmation link. The row binds the drill\n-- to the destination's credential at the time, so a rotated or re-entered destination is no longer proven by it. The\n-- link's capability is never stored in plaintext: token_hash is its SHA-256, and token_ciphertext is the capability\n-- sealed under the installation key only until the single send finishes, so the sender can add it to the message.\n-- Drill history is installation-local and does not travel in archives. Nothing here touches monitors or incidents.\nCREATE TABLE alert_drills(\n id TEXT PRIMARY KEY,\n destination_id TEXT NOT NULL,\n credential_id TEXT NOT NULL,\n delivery_id TEXT NOT NULL UNIQUE,\n started_by TEXT,\n started_at INTEGER NOT NULL,\n expires_at INTEGER NOT NULL,\n token_hash TEXT,\n token_ciphertext TEXT,\n submitted_at INTEGER,\n confirmed_at INTEGER\n);\nCREATE INDEX alert_drills_destination ON alert_drills(destination_id,started_at);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0028_discovery_jobs.sql",
+      "sha256": "ba57ed03917d0ec39b608e3fa052e6f9539372cc9be4aa04b6b1ac6bd2d9b298",
+      "sql": "-- A discovery job asks the owner's runner to check one URL and look around the site; the console reads back proposed\n-- monitors. The Worker never fetches the target: it only queues the question and stores the runner's derived answer\n-- (hosts, notes and proposed definitions, never a response body). A job lives at most 120 seconds unclaimed or running.\n-- Discovery history is installation-local and does not travel in archives. Nothing here touches monitors, slots,\n-- observations, state, the outbox or notifications.\nCREATE TABLE discovery_jobs(\n id TEXT PRIMARY KEY,\n url TEXT NOT NULL,\n status TEXT NOT NULL CHECK(status IN ('queued','running','done','failed','expired')),\n created_at INTEGER NOT NULL,\n claimed_at INTEGER,\n runner_id TEXT,\n network_label TEXT,\n finished_at INTEGER,\n result TEXT,\n error TEXT\n);\nCREATE INDEX discovery_jobs_status ON discovery_jobs(status,created_at);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0028_identity_providers.sql",
+      "sha256": "f879fb86b079e591dfe4a8513752a8e0394e252b940aa35d3f7430f27b7382c6",
+      "sql": "-- Identity providers (OpenID Connect). Apply as a NEW numbered migration after\n-- the accounts schema. Every statement is IF NOT EXISTS, so a store that applied\n-- an earlier version of this file applies the current one again as its next\n-- migration and gains only what it lacks.\nCREATE TABLE IF NOT EXISTS oa_oidc_transactions (\n  state_hash TEXT PRIMARY KEY,\n  binding_hash TEXT NOT NULL,\n  config_hash TEXT NOT NULL,\n  payload TEXT NOT NULL,\n  expires_at INTEGER NOT NULL\n);\nCREATE INDEX IF NOT EXISTS oa_oidc_transactions_expiry ON oa_oidc_transactions(expires_at);\nCREATE TABLE IF NOT EXISTS oa_oidc_limits (\n  bucket TEXT PRIMARY KEY,\n  count INTEGER NOT NULL,\n  expires_at INTEGER NOT NULL\n);\n-- One pinned link per configured provider. Linking stores the issuer, JWKS URI,\n-- client id, endpoints and allowed algorithms; a changed configuration only\n-- records a pending re-link, which the owner completes with a step-up proof.\nCREATE TABLE IF NOT EXISTS oa_identity_providers (\n  provider_id TEXT PRIMARY KEY,\n  preset TEXT NOT NULL,\n  status TEXT NOT NULL CHECK(status IN ('linked','unlinked')),\n  issuer TEXT NOT NULL,\n  client_id TEXT NOT NULL,\n  jwks_uri TEXT NOT NULL,\n  authorization_endpoint TEXT NOT NULL,\n  token_endpoint TEXT NOT NULL,\n  algorithms TEXT NOT NULL,\n  token_auth_method TEXT NOT NULL,\n  response_iss INTEGER NOT NULL,\n  interface_version TEXT,\n  linked_at INTEGER NOT NULL,\n  pending_issuer TEXT,\n  pending_client_id TEXT,\n  pending_preset TEXT,\n  pending_at INTEGER,\n  jwks TEXT,\n  jwks_fetched_at INTEGER\n);\n-- Reachability per configured provider, linked or not. A provider that has\n-- failed discovery or JWKS for 5 minutes, or answered 404 or a DNS failure, is\n-- hidden from the sign-in page until a later check succeeds.\nCREATE TABLE IF NOT EXISTS oa_identity_provider_health (\n  provider_id TEXT PRIMARY KEY,\n  failing_since INTEGER,\n  hard_failure_at INTEGER,\n  checked_at INTEGER NOT NULL\n);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0029_external_check.sql",
+      "sha256": "1dcbc18a0165104a2d7434e005330b49f401e6f81147b60e4e10b8906e975bc8",
+      "sql": "-- The installation-wide External check URL: a page the owner does not run, checked from the same runner so a problem on the\n-- owner's own network is not reported as an outage. A monitor saved on a single runner network with no URL of its own takes\n-- this value into its saved revision; changing it applies only to monitors saved afterwards. The row is installation-local\n-- configuration and does not travel in archives. Nothing here touches monitors, slots, observations, state or the outbox.\nCREATE TABLE external_check(\n id INTEGER PRIMARY KEY CHECK(id=1),\n url TEXT NOT NULL,\n updated_at INTEGER NOT NULL\n);\nINSERT INTO external_check(id,url,updated_at) VALUES(1,'https://example.com/',CAST(strftime('%s','now') AS INTEGER)*1000);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0029_provider_control.sql",
+      "sha256": "f19cc7a792538a8ff36d87760a3cad58fccab0316984488d1834af14fbf37cfe",
+      "sql": "-- Additive provider controls. An absent setting means off, including upgrades.\nCREATE TABLE IF NOT EXISTS oa_auth_settings (\n singleton INTEGER PRIMARY KEY CHECK(singleton=1), idp_sign_in INTEGER NOT NULL CHECK(idp_sign_in IN (0,1)), generation INTEGER NOT NULL DEFAULT 0, first_setup INTEGER NOT NULL DEFAULT 0\n);\nCREATE TABLE IF NOT EXISTS oa_auth_audit (\n id TEXT PRIMARY KEY, actor_id TEXT NOT NULL, action TEXT NOT NULL, value TEXT NOT NULL, created_at INTEGER NOT NULL\n);\nCREATE TABLE IF NOT EXISTS oa_provider_sessions (\n session_id TEXT PRIMARY KEY, issuer TEXT NOT NULL, subject TEXT NOT NULL, sid TEXT, generation INTEGER NOT NULL\n);\nCREATE INDEX IF NOT EXISTS oa_provider_session_identity ON oa_provider_sessions(issuer,subject,sid);\nCREATE TABLE IF NOT EXISTS oa_logout_events (\n issuer TEXT NOT NULL, jti TEXT NOT NULL, consumed_at INTEGER NOT NULL CHECK(consumed_at>=0), PRIMARY KEY(issuer,jti)\n);\n\nCREATE TRIGGER IF NOT EXISTS oa_first_setup_provider_setting AFTER INSERT ON oa_bootstrap BEGIN\n INSERT INTO oa_auth_settings(singleton,idp_sign_in,generation,first_setup) VALUES(1,0,0,1) ON CONFLICT DO NOTHING;\nEND;\n\nCREATE TABLE IF NOT EXISTS oa_credentials (\n id TEXT PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE, operator_id TEXT NOT NULL REFERENCES oa_operators(id),\n operator_version INTEGER, kind TEXT NOT NULL, expires_at INTEGER NOT NULL, revoked_at INTEGER\n);\n\n-- Session provenance for OIDC pins. Apply as a new migration on existing stores.\n-- External admission has no OIDC pin and does not require OIDC protocol tables.\nCREATE TABLE IF NOT EXISTS oa_provider_session_pins (\n session_id TEXT PRIMARY KEY, provider_id TEXT NOT NULL, issuer TEXT NOT NULL,\n client_id TEXT NOT NULL, linked_at INTEGER NOT NULL\n);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0030_dependencies.sql",
+      "sha256": "3481d8aef870a9eda153a1617e99bb71a408e61a25dea92bb132efa7dd1c2526",
+      "sql": "CREATE TABLE IF NOT EXISTS rer_dependency_installation (\n singleton INTEGER PRIMARY KEY CHECK(singleton=1), sector_id TEXT NOT NULL UNIQUE\n);\nCREATE TABLE IF NOT EXISTS rer_dependency_link (\n interface TEXT PRIMARY KEY, issuer TEXT NOT NULL, client_id TEXT NOT NULL, metadata TEXT NOT NULL,\n needs_relink INTEGER NOT NULL DEFAULT 0, linked_at INTEGER NOT NULL\n);\nCREATE TABLE IF NOT EXISTS rer_dependency_pending (\n interface TEXT PRIMARY KEY, issuer TEXT NOT NULL, approved_by TEXT NOT NULL, expires_at INTEGER NOT NULL, approved_session TEXT NOT NULL, approved_version INTEGER NOT NULL, callbacks TEXT NOT NULL\n);\nCREATE TABLE IF NOT EXISTS rer_dependency_codes (\n digest TEXT PRIMARY KEY, created_at INTEGER NOT NULL CHECK(created_at>=0)\n);\n\nCREATE TABLE IF NOT EXISTS rer_dependency_keys (interface TEXT PRIMARY KEY, private_key TEXT NOT NULL);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0031_idp_owner.sql",
+      "sha256": "a870102648a2226b18a2fe8168d096389b698af88333d112fa8137e582fc2b33",
+      "sql": "CREATE TABLE IF NOT EXISTS oc_idp_grants (\n issuer TEXT NOT NULL, client_id TEXT NOT NULL, jti TEXT NOT NULL, subject TEXT NOT NULL, sector_id TEXT NOT NULL,\n PRIMARY KEY(issuer,client_id), UNIQUE(issuer,jti)\n);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0032_provider_pins.sql",
+      "sha256": "f0cfb6b3740869fd098ee449efb25807f8b1ef51c353fd07bafeb00ce38aeb63",
+      "sql": "-- Session provenance for OIDC pins. Apply as a new migration on existing stores.\n-- External admission has no OIDC pin and does not require OIDC protocol tables.\nCREATE TABLE IF NOT EXISTS oa_provider_session_pins (\n session_id TEXT PRIMARY KEY, provider_id TEXT NOT NULL, issuer TEXT NOT NULL,\n client_id TEXT NOT NULL, linked_at INTEGER NOT NULL\n);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0033_dependency_setup.sql",
+      "sha256": "7b36f7e1fb0991fe3e808613d911393bbad3386ead06427082c69a48c5738108",
+      "sql": "-- Ephemeral app-local setup attempts are never exported. A native claim binds\n-- only attempts opened before that claim to its exact owner/session authority,\n-- in its own bootstrap transaction.\nCREATE TABLE IF NOT EXISTS oa_setup_links (\n interface TEXT PRIMARY KEY, attempt_id TEXT NOT NULL, expires_at INTEGER NOT NULL,\n owner_id TEXT, owner_version INTEGER, session_id TEXT,\n completed INTEGER NOT NULL DEFAULT 0 CHECK(completed IN (0,1))\n);\nCREATE TRIGGER IF NOT EXISTS oa_native_claim_closes_provider_setup AFTER INSERT ON oa_sessions\nWHEN NEW.kind='native' AND NOT EXISTS(SELECT 1 FROM oa_sessions WHERE operator_id=NEW.operator_id AND id!=NEW.id) AND EXISTS(SELECT 1 FROM oa_bootstrap WHERE claim_id=NEW.operator_id AND claimed_at=NEW.created_at)\nBEGIN\n UPDATE oa_auth_settings SET first_setup=0 WHERE singleton=1 AND NOT EXISTS(\n  SELECT 1 FROM oa_setup_links WHERE interface='oidc-provider@1' AND completed=0 AND owner_id IS NULL AND expires_at>NEW.created_at\n );\n UPDATE oa_setup_links SET owner_id=NEW.operator_id,owner_version=NEW.operator_version,session_id=NEW.id\n WHERE owner_id IS NULL AND completed=0 AND expires_at>NEW.created_at;\nEND;\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0034_dependency_approval.sql",
+      "sha256": "7d3742369189b69ea28bdc000097f150f83221c6474f7e177c7b5590691b67e9",
+      "sql": "-- Existing pending approvals predate attempt fencing and must be renewed.\nALTER TABLE rer_dependency_pending ADD COLUMN attempt_id TEXT;\nDELETE FROM rer_dependency_pending;\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0035_runner_capabilities.sql",
+      "sha256": "d5578b08f8f3c9dac655c83a0dca787bdafd5c580db8b91d60a230f287d71908",
+      "sql": "-- What a runner reports about itself at enrolment (for now: whether it has a browser for flow monitors). Additive; a runner\n-- that predates the report is shown as having none. Installation-local, like the runner row it extends.\nALTER TABLE runners ADD COLUMN capabilities TEXT NOT NULL DEFAULT '{}';\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0036_attempt_receipt_clocks.sql",
+      "sha256": "c751b3812386accdb25aa02bcb77624df76b95a7ce9d460bcc95a5f34bf57e2e",
+      "sql": "-- Control-plane receipt clocks belong to installation execution authority,\n-- alongside delivery clocks. Keep the signed observation bytes unchanged.\n-- Older attempts have no receipt clock and retain their historical projection.\nALTER TABLE runner_assignments ADD COLUMN received_times TEXT NOT NULL DEFAULT '{}';\n"
+    }
+  ],
+  "compatibilityDate": "2026-09-08",
+  "compatibilityFlags": [
+    "nodejs_compat"
+  ],
+  "durableObjects": [],
+  "durableObjectMigrations": [],
+  "publicVariables": {},
+  "secretNames": [
+    "SESSION_SECRET",
+    "SETUP_TOKEN",
+    "UPTIME_RUNNER_KEY"
+  ],
+  "optionalSecretNames": [
+    "SENDGRID_API_KEY",
+    "MAIL_PROVIDER_API_KEY",
+    "CLOUDFLARE_MAIL_API_KEY",
+    "UPTIME_HEARTBEAT_URL"
+  ],
+  "schedules": [
+    "* * * * *"
+  ],
+  "queueConsumers": [],
+  "healthPath": "/health",
+  "recovery": "Preserve the private deployment receipt and D1 migration ledger. Restore archives into an empty installation with monitors paused and alerts quarantined.",
+  "providerEffects": [
+    "outbound-mail",
+    "outbound-webhooks",
+    "outbound-http"
+  ],
+  "surfaces": {
+    "app": {
+      "path": "/",
+      "originVariable": "UPTIME_ORIGIN",
+      "readiness": [
+        {
+          "path": "/health",
+          "statuses": [
+            200
+          ]
+        }
+      ]
+    }
+  }
+}

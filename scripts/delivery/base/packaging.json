@@ -47,6 +47,8 @@
         "src/domain/archive*.ts",
         "scripts/local/**",
         "rer-setup.json",
+        "rer-local-setup.json",
+        "management/integration/deployment-spec.json",
         "src/base/modules/owner-claim/**",
         "src/base/modules/editor/**",
         "src/editor/**",
@@ -94,7 +96,8 @@
         "RER_OWNER_CLAIM_INSTALLATION_ID",
         "RER_OWNER_CLAIM_APP_ORIGIN",
         "RER_OWNER_CLAIM_PUBLIC_KEYS",
-        "MAIL_ACCOUNT_ID"
+        "MAIL_ACCOUNT_ID",
+        "UPTIME_START_URL"
       ],
       "secretNames": [
         "SESSION_SECRET",
@@ -105,8 +108,7 @@
         "SENDGRID_API_KEY",
         "MAIL_PROVIDER_API_KEY",
         "CLOUDFLARE_MAIL_API_KEY",
-        "UPTIME_HEARTBEAT_URL",
-        "UPTIME_START_URL"
+        "UPTIME_HEARTBEAT_URL"
       ],
       "providerEffects": [
         "outbound-mail",

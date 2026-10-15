@@ -13,10 +13,19 @@ workflow is a manual caller of trusted-build at
 require the owner's separate release work.
 
 The committed descriptor and workflow are generated from this policy. Its
-`setup.manifestFile` selects the same canonical `rer-setup.json` as rer setup;
-the descriptor digest covers those exact bytes. Full verification remains the
+`setup.manifestFile` selects canonical `rer-setup.json` for hosted setup;
+the descriptor digest covers those exact bytes. Local setup uses the generated
+`rer-local-setup.json`, which also offers the development outbox. Full verification remains the
 project profile. Existing owner-account deployment and inert deploy-kit CI
 artifacts retain their separate controller contract.
+
+After `rer build`, run `pnpm spec:generate` to refresh
+`management/integration/deployment-spec.json`, the setup digest and local setup
+manifest. The specification comes from Base's artifact spec reader with this
+packaging policy. `rer verify` runs `pnpm spec:check` after building and refuses
+drift. Hosted setup assigns `UPTIME_ORIGIN`, prefills the owner email and
+generates the hidden owner-claim token; select a mail provider and supply its
+verified sender and credentials before deployment.
 
 `setup-build.sh` prepares the seed's pinned Node 22.20.0, pnpm 10.12.4 and
 browser dependencies in local ignored build tools. Descriptor build/verify/artifact commands select those tools. This
@@ -41,8 +50,8 @@ management origin (plus same-origin ancestors). Native logout and authority loss
 revoke the mount; focus and grant renewal recheck the session. No secrets enter
 the config response or browser bundle.
 
-`pnpm run test:admission` verifies actual payload integrity, signed native
-admission and second-claim refusal, and the emitted app/editor at 1440 and 390.
+`pnpm run test:admission` verifies signed native admission and second-claim
+refusal, and the emitted app/editor at 1440 and 390.
 The browser management peer is a labeled test-only network edge. Those checks
 prove local wiring and CSP enforcement, not stage installation or live RER and
 Cloudflare acceptance.

@@ -63,12 +63,8 @@
       "label": "Email delivery",
       "kind": "select",
       "required": true,
-      "default": "development",
+      "default": "sendgrid",
       "options": [
-        {
-          "value": "development",
-          "label": "Local development outbox"
-        },
         {
           "value": "sendgrid",
           "label": "SendGrid"
@@ -82,14 +78,14 @@
           "label": "Cloudflare Email Sending"
         }
       ],
-      "group": "mail"
+      "group": "mail",
+      "help": "Hosted sign-in and notifications need a verified sender and the selected provider credentials. Local installs use the development outbox."
     },
     {
       "name": "MAIL_FROM",
       "label": "Verified sender email",
       "kind": "email",
       "required": true,
-      "default": "auth@localhost.test",
       "group": "mail"
     },
     {

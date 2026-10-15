@@ -71,3 +71,16 @@ export function projectAttempts(definition:any,slots:any[],observations:any[],no
  // runner is slightly ahead. They cannot advance maintenance or evidence age.
  return evaluate(definition,visible,state,now,false,evidenceThrough(visible,now))
 }
+/** A newly claimed check has no result yet. Keep the latest scheduled evidence
+ * visible during that open acceptance window, with its original freshness.
+ * Any returned attempt or an expired window replaces it, even if incomplete.
+ * This is owner-read visibility only; result admission and incident folding
+ * continue to include every scheduled slot through projectAttempts. */
+export function projectRecentAttempts(definition:any,slots:any[],observations:any[],now:number,checkpoint?:ProjectionCheckpoint){
+ const grouped=observationsBySlot(observations),waiting=new Set<string>();
+ for(const slot of slots.filter(s=>!s.manual&&!s.skipped).sort((a,b)=>b.due_at-a.due_at||b.id.localeCompare(a.id))){
+  if(slot.lease_until<=now||grouped.get(slot.id)?.length)break;
+  waiting.add(slot.id);
+ }
+ return projectAttempts(definition,slots.filter(s=>!waiting.has(s.id)),observations,now,checkpoint)
+}

@@ -1,6 +1,6 @@
 import { missing } from '@runeditrun/rer/errors';
 import { validateConfiguration } from '../src/domain/startup-config.mjs';
-import setupManifest from '../rer-setup.json' with { type: 'json' };
+import setupManifest from '../rer-local-setup.json' with { type: 'json' };
 import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { mkdir, lstat } from 'node:fs/promises';

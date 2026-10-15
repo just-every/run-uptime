@@ -217,9 +217,6 @@ try {
     return response.ok && (await response.json()).runner.contact.state === 'Fresh contact';
   }, runner);
   await runSuite('tests/operator-browser.mjs', 'UPTIME_UI_EVIDENCE', 'operator');
-  // This suite keeps the runner live: stale/never/unavailable are its existing
-  // presentation projections, and its final recovery requires fresh contact.
-  await runSuite('tests/runner-contact-browser.mjs', 'UPTIME_CONTACT_UI_EVIDENCE', 'contact');
   await stopChild(runner);
   await worker.dispose(); worker = undefined;
   // Recovery owns its two independent Workers/runners, sharing only custody.

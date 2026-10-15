@@ -25,7 +25,7 @@ async function installation(t) {
  const root = await mkdtemp(join(temporary, 'local-mail-settings-'));
  await cp('scripts/installer/ui', join(root, 'scripts/installer/ui'), { recursive: true });
  await cp('src/branding.json', join(root, 'src/branding.json'));
- await cp('rer-setup.json', join(root, 'rer-setup.json'));
+ await cp(commandAdapter.setup.manifestFile, join(root, commandAdapter.setup.manifestFile));
  const seed = await loadInstallerSeed(root, commandAdapter);
  await mkdir(join(root, 'capture'), { mode: 0o700 });
  const store = await createCommands(join(root, 'capture'), { logs: [] }, { terminal: () => {} });

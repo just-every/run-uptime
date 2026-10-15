@@ -13,7 +13,7 @@ import {assignDefinition,listRunners,ensureFirstRunner,runnerIdentity} from './r
 import {attemptSnapshot} from './attempt-checkpoint.server.ts'
 import {legacyWarning} from './legacy-monitoring.server.ts'
 import {definitionChange,definitionChangeNote} from './flow-changes.server.ts'
-import {projectAttempts} from './attempt-projection.ts'
+import {projectRecentAttempts} from './attempt-projection.ts'
 import {acceptanceMs} from './schedule.ts'
 import {classifyStorage} from './storage-error.ts'
 export interface Bindings extends AuthBindings {ASSETS?:Fetcher;RER_DEPLOY_SOURCE?:string;RER_DEPLOY_FINGERPRINT?:string;RER_VERSION?:{id:string};DB:D1Database;UPTIME_RUNNER_KEY:string;UPTIME_SYNTHETIC_PORT:string;UPTIME_HEARTBEAT_URL?:string;UPTIME_START_URL?:string;UPTIME_DEPLOY_ENVIRONMENT?:string;UPTIME_HEARTBEAT_INTERVAL_MS?:string;UPTIME_RUNNER_STALE_MS?:string;UPTIME_WATCH_REPEAT_MS?:string;UPTIME_DIGEST_INTERVAL_MS?:string}
@@ -32,7 +32,7 @@ export async function overview(env:Bindings){
  for(const row of rows.results){
   const m=await get(env,row.id);if(!m)continue;
   const snapshot=await attemptSnapshot(env,m.id,m.revision,m.definition,now);
-  const state:any={...projectAttempts(m.definition,snapshot.slots,snapshot.observations,now,snapshot.checkpoint),notificationOpen:m.storedState.notificationOpen,incidentKey:m.storedState.incidentKey};
+  const state:any={...projectRecentAttempts(m.definition,snapshot.slots,snapshot.observations,now,snapshot.checkpoint),notificationOpen:m.storedState.notificationOpen,incidentKey:m.storedState.incidentKey};
   const changed=m.storedState.notificationOpen?await definitionChange(env,m.id,m.storedState.incidentRevision,m.revision,m.definition):null;if(changed){state.definitionChange=changed;state.reason+=definitionChangeNote(changed)}
   if(state.notificationOpen&&state.targetState==='Healthy'&&state.recoveryStreak<m.definition.recoverSlots){
    state.targetState=state.underlyingState='Recovering';if(!state.maintenance)state.state='Recovering';state.confirmedFailure=true;

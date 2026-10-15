@@ -45,6 +45,8 @@
       "src/domain/archive*.ts",
       "scripts/local/**",
       "rer-setup.json",
+      "rer-local-setup.json",
+      "management/integration/deployment-spec.json",
       "src/base/modules/owner-claim/**",
       "src/base/modules/editor/**",
       "src/editor/**",
@@ -68,6 +70,6 @@
   },
   "setup": {
     "path": "rer-setup.json",
-    "sha256": "44e5aa4a4ba8130b5e454e35374ad6d074dd68fcc0a5fb680299d29d0cdb9a18"
+    "sha256": "3ae0c288b0665b9470173d0a7c51e20b4148ab001f45e75c55382ebd0787b760"
   }
 }
