@@ -1,4 +1,4 @@
-import { saveOwnerDeclaration,selectMailDeclaration } from './mail-config.mjs';
+import { saveOwnerDeclaration,selectMailDeclaration,withProviderKey } from './mail-config.mjs';
 import { requiredConfiguration, validateConfiguration } from '../../src/domain/startup-config.mjs';
 import { readPrivateFile } from '@runeditrun/rer/private-files';
 import { readFile } from 'node:fs/promises';
@@ -15,13 +15,13 @@ export function deployment(lifecycle) {
  return async context => {
   const { root, options, store, signal, operationToken } = context;
   if (options.remove || options.setSecret || options.unsetSecret) return sharedDeploy(context);
-  const environment = options.environment ?? 'production';
+  const environment = options.environment ?? 'production', processEnv = withProviderKey(process.env);
   // The Worker learns its environment so first-run setup names that environment's settings file.
   const source = JSON.parse(await readFile(join(root, 'deploy.json'), 'utf8'));
   const declaration = { ...source, vars: { ...source.vars, UPTIME_DEPLOY_ENVIRONMENT: environment } };
   // Saved mail/optional inputs win on real repeats, so plan those same bindings.
   // Dry runs never require provider credentials or generate new private settings.
-  let planningEnvironment = process.env;
+  let planningEnvironment = processEnv;
   if (options.dryRun) {
    let contents;
    try { contents = await readPrivateFile(join(root, secretsFile)); }
@@ -30,7 +30,7 @@ export function deployment(lifecycle) {
     let saved;
     try { saved = JSON.parse(contents); } catch { throw missing('Invalid configuration: deployment secret settings must contain valid JSON'); }
     if (!saved || typeof saved !== 'object' || Array.isArray(saved)) throw missing('Invalid configuration: deployment secret settings must contain an object');
-    planningEnvironment = { ...process.env, ...saved };
+    planningEnvironment = { ...processEnv, ...saved };
    }
   }
   const selectedDeclaration=selectMailDeclaration(declaration,planningEnvironment);
@@ -42,7 +42,7 @@ export function deployment(lifecycle) {
   if (!options.dryRun) {
    try {
     // Owner deployments always use hosted mail, irrespective of local shell flags.
-    const hosted = { ...process.env, UPTIME_LOCAL_REVIEW: 'false' };
+    const hosted = { ...processEnv, UPTIME_LOCAL_REVIEW: 'false' };
     validateConfiguration(hosted, { scope: 'deploy', suppliedOnly: true });
     let saved;
     try {
@@ -54,7 +54,7 @@ export function deployment(lifecycle) {
     }
     if (saved) validateConfiguration({ ...hosted, ...saved }, { scope: 'deploy' });
     validateAccount(process.env, store);
-    secrets = await ownerSecrets(root, { store });
+    secrets = await ownerSecrets(root, { env: processEnv, store });
     secrets = { ...secrets, ...await environmentSecrets(root, environment, secrets, { store }) };
     validateConfiguration({ ...hosted, ...secrets }, { scope: 'deploy' });
    } catch (error) {
@@ -81,7 +81,7 @@ export function deployment(lifecycle) {
    store.report('deploy: dry run complete; no deployment occurred and no provider request was made.');
    return { dryRun: true, deployed: false, environment, plan, pendingVariables };
   }
-  const env = ownerEnvironment({ ...process.env, ...secrets });
+  const env = ownerEnvironment({ ...processEnv, ...secrets });
   const selected=await saveOwnerDeclaration(root,declaration,env);
   const args = ['--declaration', selected, '--environment', environment, '--product', ownerProduct];
   // A kit failure keeps its sanitized code and the stage it stopped in; its saved state lets the same command resume.

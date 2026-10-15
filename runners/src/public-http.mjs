@@ -8,7 +8,7 @@ import {MAX_BODY,RUNNER_VERSION} from '../../src/domain/policy.mjs';
 import {readCredentials} from './credentials.mjs';
 // JSON and text first, then anything: servers that negotiate on Accept (406 to a narrow list) still answer a probe as they answer a browser.
 export const PROBE_ACCEPT='application/json,text/plain,*/*;q=0.1';
-export class ProbeError extends Error {constructor(category){super(category);this.category=category}}
+export class ProbeError extends Error {constructor(category,reason){super(category);this.category=category;this.reason=reason}}
 export async function resolvePublic(url,signal) {
   await blockDemoSend(url.href,'GET');
   const host=url.hostname.replace(/^\[|\]$/g,'');
@@ -20,7 +20,9 @@ export async function resolvePublic(url,signal) {
     signal.throwIfAborted();
     if(results.some(r=>r.status==='rejected'&&!['ENODATA','ENOTFOUND'].includes(r.reason.code)))throw new ProbeError('dns');
     const addresses=results.flatMap(r=>r.status==='fulfilled'?r.value:[]);
-    if(!addresses.length||addresses.some(a=>!isIP(a)||!publicAddress(a)))throw new ProbeError('network');
+    // The resolver answered for the name: it does not exist, or has no address. That is the target's outage, not the runner's.
+    if(!addresses.length)throw new ProbeError('unresolved',results.some(r=>r.status==='rejected'&&r.reason.code==='ENOTFOUND')?'DNS: the hostname does not exist (NXDOMAIN)':'DNS: the hostname has no A or AAAA records');
+    if(addresses.some(a=>!isIP(a)||!publicAddress(a)))throw new ProbeError('network');
     return {address:addresses[0],family:isIP(addresses[0])};
   }finally{signal.removeEventListener('abort',cancel)}
 }

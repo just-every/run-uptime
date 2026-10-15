@@ -4,7 +4,8 @@ import {seedDemo} from './demo.ts'
 import {demoBindings,recordDemoBlocked} from './domain/demo.server.ts'
 import {incidents} from './domain/incidents.server.ts'
 import {monitoringWatch} from './domain/monitoring-watch.server.ts'
-import {dispatchNotificationMail} from './domain/notification-mail.server.ts'
+import {scheduledNotifications} from './domain/notification-worker.server.ts'
+import {SubrequestBudget,RUN_SUBREQUESTS,CHECK_SUBREQUESTS,WATCH_SUBREQUESTS} from './domain/worker-budget.ts'
 import {createDiscovery,readDiscovery,claimDiscovery,completeDiscovery,discoveryAnswer,DISCOVERY_RESULT_BYTES} from './domain/discovery.server.ts'
 import {readExternalCheck,saveExternalCheck} from './domain/external-check.server.ts'
 // @ts-ignore Shared bounded credential diagnostics.
@@ -120,6 +121,8 @@ api.onError((error,c)=>{
 const storageRoute=(path:string)=>path.split('/').map(part=>part.length>24||/[0-9a-f]{8}-[0-9a-f]{4}/i.test(part)?':id':part).join('/')
 // Lobby readiness follows /setup completion, separately from permanent Base owner admission.
 const claimed=claimedWhen('SELECT 1 FROM uptime_first_run WHERE id = 1')
+// Base records owner admission (by setup token or rer's owner claim) in oa_bootstrap before the owner row.
+const ownerAdmitted=claimedWhen('SELECT 1 FROM oa_bootstrap WHERE singleton = 1')
 // The public docs carry no installation data and need no session.
 
 // One monitor's page in the console (/app/monitors/<id>); it is gated like /app.
@@ -161,7 +164,8 @@ const handler={async fetch(request,env,execution){
  if(path.startsWith('/auth/'))return nativeClaimFailure(request,(await authRoute(bindings,request))!,bindings.UPTIME_DEPLOY_ENVIRONMENT);
  if(path==='/setup')return firstRun(bindings,request);
  if(path==='/alert-drill')return alertDrillDocument(bindings,request);
- if(path==='/login'||path==='/claim')return authDocument(path==='/claim',path==='/login'&&url.searchParams.get('notice')==='sent',developmentMail(bindings),false,bindings.UPTIME_DEPLOY_ENVIRONMENT);
+ // Once an owner is admitted the first-owner claim is spent, so sign-in stops offering it.
+ if(path==='/login'||path==='/claim')return authDocument(path==='/claim',path==='/login'&&url.searchParams.get('notice')==='sent',developmentMail(bindings),false,bindings.UPTIME_DEPLOY_ENVIRONMENT,!await ownerAdmitted(bindings.DB));
  if(isPublicAsset(path))return bindings.ASSETS?bindings.ASSETS.fetch(request):new Response('Not found',{status:404});
  if(path==='/monitor'||path==='/monitor/')return new Response(null,{status:308,headers:{location:`/app/monitor${url.search}`,'cache-control':'no-store'}});
  if(path!=='/health'&&path!=='/api'&&!path.startsWith('/api/')&&!isPublicDocument(path)){
@@ -172,7 +176,7 @@ const handler={async fetch(request,env,execution){
  }
  const response=await dispatch(request,()=>api.fetch(request,bindings,execution),()=>start.fetch(request));
  return noTransform(isConsoleDocument(path)?editorDocument(response,bindings):response)
-},async scheduled(_controller,env){env=await demoBindings(env as Bindings);await validateWorkerConfiguration(env as Bindings);const bindings=env as Bindings;await maintenance(bindings);await scheduledPublicChecks(bindings);await dispatchNotificationMail(bindings);await monitoringWatch(bindings,()=>boundedHealth(()=>health(bindings)),async()=>{const data=await overview(bindings);return data.monitors.filter(m=>m.definition.enabled).every(m=>m.state.targetState==='Healthy')})}} satisfies ExportedHandler
+},async scheduled(_controller,env){env=await demoBindings(env as Bindings);await validateWorkerConfiguration(env as Bindings);const bindings=env as Bindings;await maintenance(bindings);const checks=new SubrequestBudget(CHECK_SUBREQUESTS);await scheduledPublicChecks(bindings,checks);await scheduledNotifications(bindings,new SubrequestBudget(RUN_SUBREQUESTS-WATCH_SUBREQUESTS-(CHECK_SUBREQUESTS-checks.remaining)));await monitoringWatch(bindings,()=>boundedHealth(()=>health(bindings)),async()=>{const data=await overview(bindings);return data.monitors.filter(m=>m.definition.enabled).every(m=>m.state.targetState==='Healthy')})}} satisfies ExportedHandler
 export default withDemo({...handler,fetch(request,env,execution){
  return new URL(request.url).pathname==='/health'?boundedHealth(()=>handler.fetch(request,env,execution)):handler.fetch(request,env,execution)
 }} satisfies ExportedHandler,{seed:seedDemo})

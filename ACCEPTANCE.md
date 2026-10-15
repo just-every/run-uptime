@@ -2,7 +2,7 @@
 
 Local verification must exercise the actual product runtime with isolated migrated D1 and authorized test endpoints. Preserve existing assertions and fixtures; a failing check is evidence to repair the implementation, not permission to weaken the expected behavior.
 
-The source release candidate additionally requires signed self-runner enrolment, real certificate-verified HTTPS up/down/recovery and restart against the emitted production Worker, owner-deploy test-provider provision/repeat/interruption/resume/collision, and headless accessibility acceptance at 1440 and 390 pixels across the Lobby, public docs, sign-in, setup and private operator app. It requires zero axe violations, keyboard-operable flows with focus returning to the invoking control after dialogs close, responsive reflow without horizontal overflow, and computed accessibility-tree inspection. Spoken-announcement testing is out of scope, and no WCAG certification is claimed. The published `@runeditrun/rer` 0.2.18 package supplies the CLI and deploy-kit integration; the Uptime seed adapter must retain explicit target validation and authorization guards. `rer verify` runs full verification and the separately hosted browser suites in an isolated checkout. The official current Base CLI release producer prepares the local annotated artifact; it is independent of the product's `@runeditrun/rer` 0.2.18 pin. It frozen-installs the candidate, runs `pnpm run verify` and `pnpm run verify:release`, scans the source and emits a local dry-run artifact. A dry run does not publish or move a remote tag. The emitted public source must preserve the exact reviewed candidate tree and produce zero scan findings without exclusions or reviewed findings. Exact-candidate run receipts, the scan report and independent review accompany release acceptance as external evidence. Hosted installation and public publication require separate owner authorization and acceptance.
+The source release candidate additionally requires signed self-runner enrolment, real certificate-verified HTTPS up/down/recovery and restart against the emitted production Worker, owner-deploy test-provider provision/repeat/interruption/resume/collision, and headless accessibility acceptance at 1440 and 390 pixels across the Lobby, public docs, sign-in, setup and private operator app. It requires zero axe violations, keyboard-operable flows with focus returning to the invoking control after dialogs close, responsive reflow without horizontal overflow, and computed accessibility-tree inspection. Spoken-announcement testing is out of scope, and no WCAG certification is claimed. The published `@runeditrun/rer` 0.2.20 package supplies the CLI and deploy-kit integration; the Uptime seed adapter must retain explicit target validation and authorization guards. `rer verify` runs full verification and the separately hosted browser suites in an isolated checkout. The official current Base CLI release producer prepares the local annotated artifact; it is independent of the product's `@runeditrun/rer` 0.2.20 pin. It frozen-installs the candidate, runs `pnpm run verify` and `pnpm run verify:release`, scans the source and emits a local dry-run artifact. A dry run does not publish or move a remote tag. The emitted public source must preserve the exact reviewed candidate tree and produce zero scan findings without exclusions or reviewed findings. Exact-candidate run receipts, the scan report and independent review accompany release acceptance as external evidence. Hosted installation and public publication require separate owner authorization and acceptance.
 
 Prove one-off fixes with before/after evidence outside the permanent suite. Release acceptance requires inspected exact-candidate verification, external runtime and accessibility receipts, the complete publication/export proof and independent review. The external receipts accompany review of the exact candidate.
 
@@ -55,11 +55,12 @@ Stop dev and verify descendant teardown and released ports. Reset must refuse ac
 ## Candidate release state and unmet obligations
 
 The product exposes the rer command contract, owner-account deployment, local
-export/import and versioned archive history. The latest published version is
-v0.1.2 at tag commit `bdcd147542e0fab55be2663f05165a0724b4e49e`; no GitHub
-Release entry exists. This branch is preparing v0.1.3, which remains
-unpublished and has no release tag. The candidate pins `@runeditrun/rer` to
-0.2.18. Scoped local recovery evidence covers a repeated setup with exact settings,
+export/import and versioned archive history. The previous published version is
+v0.1.3 at tag commit `6a7a9eec92331de5f57f78a258f36275a1aee1ff`. This release is v0.2.0, tagged `v0.2.0`; no tag
+has a GitHub Release entry. It pins `@runeditrun/rer` to 0.2.20. An upgrade
+from v0.1.3 applies only migration `0037_owner_signin` and keeps monitors,
+definitions, operators, incidents, destinations and local secrets
+(sd-uptime-release-review, 2026-10-15). Earlier scoped local recovery evidence covers a repeated setup with exact settings,
 a populated v0.1.2 upgrade that preserved existing private values while adding
 only optional `IDENTITY_PROVIDER`, and current CLI import/export, dev, native
 sign-in and readback using a genuine rer 0.2.1-bound archive and current-ledger
@@ -93,7 +94,7 @@ BASE-DATA-001 equivalence.
 The static external-sink inventory is mapped to `seed.json → externals` in
 `CONTRACT.md`, but is not runtime egress proof. Earlier scoped native-independence
 evidence is summarized below; it is not acceptance evidence for the current
-v0.1.3 candidate. Before claiming complete BASE-DATA-004 coverage across optional integrations and deployment, inspect an application and runner network
+v0.2.0 release. Before claiming complete BASE-DATA-004 coverage across optional integrations and deployment, inspect an application and runner network
 trace, including DNS, public target and canary redirects, discovery hosts,
 browser redirects/subresources/WebSockets, exact-origin credential use, owner-app
 readiness checks, runner
@@ -125,9 +126,9 @@ record. The erasure/audit flow includes audited local authentication-mail
 captures, six separate network-edge monitor/test sends, surviving anonymised
 audit and refusal of erased-operator actor references on later-journal restore.
 These are scoped source results only; they do not establish hosted installation,
-recipient acceptance or acceptance of the current v0.1.3 candidate. The latest
-published version is the v0.1.2 tag at `bdcd147542e0fab55be2663f05165a0724b4e49e`,
-with no GitHub Release entry; v0.1.3 remains unpublished. Other baseline clauses
+recipient acceptance or acceptance of the v0.2.0 release. The previous
+published version is the v0.1.3 tag at `6a7a9eec92331de5f57f78a258f36275a1aee1ff`; this release is v0.2.0, and
+no tag has a GitHub Release entry. Other baseline clauses
 remain requirements; scoped migration and ledger recovery evidence is recorded
 externally. Exact-head CI, runtime/accessibility receipts and release-pack
 reports accompany candidate review as external evidence. The current

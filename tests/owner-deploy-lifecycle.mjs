@@ -42,7 +42,8 @@ async function deploy(root, provider, signal, flags = []) {
   const env = { PATH: commandPath, HOME: root, CI: 'true', ...toolEnvironment,
     NODE_OPTIONS: `--import=${pathToFileURL(join(root, 'tests/owner-deploy-lifecycle/preload.mjs')).href}`,
     CLOUDFLARE_ACCOUNT_ID: provider.accountId, CLOUDFLARE_API_TOKEN: provider.token,
-    OWNER_EMAIL: 'owner@example.test', MAIL_FROM: 'sender@example.test', SENDGRID_API_KEY: 'test-only-sendgrid-key',
+    // rer's shared production-mail names; Uptime keeps MAIL_API_KEY under the selected provider's own setting.
+    OWNER_EMAIL: 'owner@example.test', MAIL_FROM: 'sender@example.test', MAIL_PROVIDER: 'sendgrid', MAIL_API_KEY: 'test-only-sendgrid-key',
   };
   return new Promise((resolveResult, reject) => {
     const child = spawn('rer', ['deploy', '--json', ...flags], { cwd: root, env, detached: true, stdio: ['ignore', 'pipe', 'pipe'] });
@@ -85,6 +86,9 @@ test('five real rer deploy cycles cover eventual D1 listing, exact repeat, parti
   assert.ok(provider.healthRequests > 0, 'successful deployment verifies the served deployment identity');
   assert.ok(provider.state.assetRequests.length > 0, 'the package verifies an uploaded static asset');
   assert.deepEqual(provider.state.schedules, [{ cron: '* * * * *' }]);
+  const uploaded = provider.state.secrets.find(item => item.name === 'SENDGRID_API_KEY');
+  assert.equal(uploaded?.value, 'test-only-sendgrid-key', 'MAIL_API_KEY reaches the Worker as the key its selected provider reads');
+  assert.ok(!provider.state.secrets.some(item => item.name === 'MAIL_API_KEY'), 'the shared name is a deploy input, not a second Worker secret');
   const migrations = migrationRows(provider);
   assert.ok(migrations.length > 0, 'the real controller records applied migrations');
   assert.ok(migrations.every(row => row.state === 'applied'));

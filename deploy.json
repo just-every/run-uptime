@@ -32,6 +32,14 @@
       "environment": "SENDGRID_API_KEY"
     },
     {
+      "binding": "MAIL_PROVIDER",
+      "environment": "MAIL_PROVIDER"
+    },
+    {
+      "binding": "MAIL_API_KEY",
+      "environment": "MAIL_API_KEY"
+    },
+    {
       "binding": "UPTIME_RUNNER_KEY",
       "environment": "UPTIME_RUNNER_KEY"
     }

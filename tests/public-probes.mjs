@@ -47,12 +47,14 @@ test('definition types and request references validate without retaining plainte
  assert.throws(()=>def({headers:{a:'b'}}));assert.throws(()=>def({network:'synthetic'}));
  assert.equal(def({method:'POST',request:{credentialRef:'request-a'}}).request.credentialRef,'request-a');
 });
-test('A/AAAA resolution fails closed on mixed unsafe answers and resolver errors',async()=>{
+test('A/AAAA resolution fails closed on unsafe answers and resolver errors, and reports names that do not resolve',async()=>{
  const v4=Resolver.prototype.resolve4,v6=Resolver.prototype.resolve6;
  try{Resolver.prototype.resolve4=async()=>['8.8.8.8','127.0.0.1'];await assert.rejects(resolvePublic(publicTarget('http://public-a.test/'),AbortSignal.timeout(1000)),/network/);
  Resolver.prototype.resolve4=async()=>['8.8.8.8'];Resolver.prototype.resolve6=async()=>['::ffff:8.8.8.8'];await assert.rejects(resolvePublic(publicTarget('http://public-a.test/'),AbortSignal.timeout(1000)),/network/);
  Resolver.prototype.resolve6=async()=>{throw Object.assign(Error(),{code:'ESERVFAIL'})};await assert.rejects(resolvePublic(publicTarget('http://public-a.test/'),AbortSignal.timeout(1000)),/dns/);
- Resolver.prototype.resolve6=async()=>[];Resolver.prototype.resolve4=async()=>[];await assert.rejects(resolvePublic(publicTarget('http://public-a.test/'),AbortSignal.timeout(1000)),/network/);
+ // A name with no address is the target's outage (Failing), not the runner's (Unknown).
+ Resolver.prototype.resolve6=async()=>[];Resolver.prototype.resolve4=async()=>[];await assert.rejects(resolvePublic(publicTarget('http://public-a.test/'),AbortSignal.timeout(1000)),error=>error.category==='unresolved'&&/no A or AAAA/.test(error.reason));
+ Resolver.prototype.resolve6=Resolver.prototype.resolve4=async()=>{throw Object.assign(Error(),{code:'ENOTFOUND'})};await assert.rejects(resolvePublic(publicTarget('http://public-a.test/'),AbortSignal.timeout(1000)),error=>error.category==='unresolved'&&/NXDOMAIN/.test(error.reason));
  }finally{Resolver.prototype.resolve4=v4;Resolver.prototype.resolve6=v6}
 });
 test('actual HTTP/HTTPS sockets use validated pin, original Host and verified SNI despite proxy env',async()=>{

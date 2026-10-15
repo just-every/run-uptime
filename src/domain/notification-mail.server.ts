@@ -6,6 +6,7 @@ import {mailSender,mailConfigured} from './mail.server.ts'
 import {notificationMail,markSubmitted,retireDrillTokens} from './alert-drills.server.ts'
 import {storageOperation,classifyStorage} from './storage-error.ts'
 import type {Bindings} from './control.server.ts'
+import type {SubrequestBudget} from './worker-budget.ts'
 // Every storage step is named (see storage-error.ts). A D1 fault is never turned into a rejection or an uncertain send: the claim
 // goes back to queued when nothing was sent yet, and the typed fault surfaces to the caller, so the next poll retries naturally.
 // A claim is `mail_claimed` until the one write that hands the job to the sender marks it `mail_sending`. A claim that expires
@@ -15,7 +16,7 @@ export const expireMailClaims=(env:Bindings,now:number)=>[
  env.DB.prepare("UPDATE notification_jobs SET state='queued',code='waiting_for_runner',claim=NULL,claim_until=NULL,attempts=attempts-1 WHERE kind='email' AND state='sending' AND code='mail_claimed' AND claim_until<=?").bind(now),
  env.DB.prepare("UPDATE notification_jobs SET state='uncertain',code='claim_expired',claim=NULL,claim_until=NULL,finished_at=? WHERE kind='email' AND state='sending' AND claim_until<=?").bind(now,now),
 ]
-export async function dispatchNotificationMail(env:Bindings){
+export async function dispatchNotificationMail(env:Bindings,budget?:SubrequestBudget){
  const now=Date.now(),op=storageOperation;
  await op('notifications.mail.expireClaims',()=>env.DB.batch(expireMailClaims(env,now)));
  const rows=await op('notifications.mail.selectQueued',()=>env.DB.prepare("SELECT j.*,c.id AS credential_record_id,c.destination_id AS credential_destination_id,c.created_at AS credential_created_at,c.endpoint,c.signing_secret,c.ciphertext,c.retired_at,c.unavailable_at FROM notification_jobs j JOIN notification_credentials c ON c.id=j.credential_id WHERE j.kind='email' AND j.state='queued' ORDER BY j.created_at LIMIT 10").all<any>());
@@ -23,6 +24,8 @@ export async function dispatchNotificationMail(env:Bindings){
   let credential;
   try{credential=await readCredential(env,{...row,id:row.credential_record_id,destination_id:row.credential_destination_id,created_at:row.credential_created_at})}
   catch(error){if(classifyStorage(error))throw error;if(!notificationKeyPresent(env))continue;await op('notifications.mail.rejectCredential',()=>env.DB.prepare("UPDATE notification_jobs SET state='rejected',code='credential_unavailable',finished_at=? WHERE id=? AND state='queued'").bind(Date.now(),row.id).run());continue}
+  // A provider request the run cannot afford waits, still queued, for the next run.
+  if(budget&&!budget.reserve(1))break;
   const claim=crypto.randomUUID();
   const changes=await op('notifications.mail.claim',()=>env.DB.batch([env.DB.prepare("UPDATE notification_jobs SET state='sending',code='mail_claimed',attempts=attempts+1,claim=?,claim_until=? WHERE id=? AND state='queued' AND EXISTS(SELECT 1 FROM notification_destinations d WHERE d.id=notification_jobs.destination_id AND d.credential_id=notification_jobs.credential_id AND d.deleted_at IS NULL)").bind(claim,Date.now()+60000,row.id),auditStatement(env,automated,'notification_send','notification',crypto.randomUUID(),'changes()=1 AND ?=1',[Number(mailConfigured(env))])]));
   // Another dispatcher (the cron or a second poll) claimed this job first: nothing for this one to do.

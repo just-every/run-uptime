@@ -92,11 +92,13 @@ In the 24-hour and 7-day figures, each complete scheduled result (every selected
 
 Every slot and attempt keeps the monitor revision, the policy in force, the probes chosen, runner version, start and finish times, each assertion result and an error category. Evidence is immutable: editing a monitor creates a new revision, and old checks stay tied to the revision that ran them.
 
+A hostname that does not resolve, because the name does not exist (NXDOMAIN) or has no A or AAAA records, is a failed check with that cause, so a lapsed domain or a deleted DNS record opens an incident like any other outage. A resolver that errors or answers with a private address is a runner problem instead, and the check is Unknown.
+
 Target response bodies and request secrets are not stored. Observation metadata is never deleted automatically, so storage grows with time and is yours to look after.
 
 ## How requests stay safe
 
-For public HTTP(S) targets, the runner checks every DNS answer and every redirect hop, rejects unsafe or mixed addresses, and then pins the connection to the address it validated. The original host name and its certificate are still verified. Downgrading from HTTPS is rejected, and a redirect to another origin drops credentials, custom headers, the body and any mutating method. Responses are limited to 64 KiB, and compressed responses are rejected.
+For public HTTP(S) targets, a private runner checks every DNS answer and every redirect hop, rejects unsafe or mixed addresses, and then pins the connection to the address it validated. The original host name and its certificate are still verified. Hosted checks run in the Cloudflare Worker: it validates every DNS answer and redirect hop the same way through Cloudflare DNS over HTTPS, but Workers cannot pin a connection, so the request itself relies on Cloudflare's outbound network, which does not reach private addresses. Downgrading from HTTPS is rejected, and a redirect to another origin drops credentials, custom headers, the body and any mutating method. Responses are limited to 64 KiB, and compressed responses are rejected.
 
 ## What this evidence is
 

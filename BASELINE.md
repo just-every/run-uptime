@@ -65,18 +65,17 @@ by proof outputs, not Git tags. These historical local and emitted results do
 not establish hosted operation, recipient acceptance, or acceptance of the
 current candidate.
 
-### Current release preparation — 2026-10-14
+### Current release — 2026-10-15
 
-The latest published version is v0.1.2 at tag commit
-`bdcd147542e0fab55be2663f05165a0724b4e49e`; it has no GitHub Release entry.
-This branch is preparing v0.1.3, which remains unpublished and has no release
-tag. The candidate pins `@runeditrun/rer` to 0.2.18. Scoped local migration and
+The previous published version is v0.1.3 at tag commit
+`6a7a9eec92331de5f57f78a258f36275a1aee1ff`. This release is v0.2.0, tagged `v0.2.0` on `main`; no tag has a
+GitHub Release entry. It pins `@runeditrun/rer` to 0.2.20. Scoped local migration and
 ledger recovery evidence is summarized under BASE-OPS-002. Current-candidate
 browser-flow recovery remains a separate release acceptance item. The earlier
 clause-labelled results below do not substitute for exact-candidate evidence.
 
 The release pack uses the official current Base CLI release producer,
-independent of Uptime's `@runeditrun/rer` 0.2.18 product pin. It frozen-installs
+independent of Uptime's `@runeditrun/rer` 0.2.20 product pin. It frozen-installs
 the candidate, runs `pnpm run verify` and `pnpm run verify:release`, scans the
 source and emits a local dry-run artifact. Exact-head CI, runtime/accessibility
 receipts and scan reports accompany candidate review as external evidence; a

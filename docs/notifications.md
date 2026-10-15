@@ -14,7 +14,9 @@ Destinations are installation-wide. An enabled destination applies to every moni
 
 Only scheduled incident changes produce notifications: a trigger when a failure is confirmed, and a recovery when it clears. Maintenance suppresses these events, and manual checks never create them.
 
-Delivery depends on the [private runner](/docs/runner). The Worker submits queued email through your selected mail provider and the runner sends signed JSON and Slack requests, both when the runner polls. Keep the runner running so queued notifications go out.
+On a hosted installation the Cloudflare Worker sends queued email, signed JSON and Slack requests itself, within a minute, with no runner needed. A [private runner](/docs/runner), if you keep one, also sends them when it polls; whichever claims a delivery first sends it, and nothing is sent twice. On your own computer the local runner sends signed JSON and Slack requests, and email goes to the development outbox.
+
+Each event gets one attempt per destination. A request that ends without a clear answer is Uncertain and is never sent again automatically.
 
 ## Send a test
 

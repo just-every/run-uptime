@@ -13,9 +13,10 @@ import {recordContact} from './runner-contact.server.ts'
 import {withDrillBody,retireDrillTokens} from './alert-drills.server.ts'
 import {storageOperation,classifyStorage} from './storage-error.ts'
 import type {Bindings} from './control.server.ts'
+import type {SubrequestBudget} from './worker-budget.ts'
 export function notificationRepository(env:Bindings){return new NotificationRepository(env)}
-class NotificationRepository extends IntegrationsRepository {
- private env:Bindings;
+export class NotificationRepository extends IntegrationsRepository {
+ protected env:Bindings;
  constructor(env:Bindings){super(new D1SqlDatabase(env.DB),NOTIFICATION_NAMESPACE);this.env=env}
  async insert(delivery:Delivery){
   await this.env.DB.prepare(`INSERT INTO integration_deliveries(namespace,id,fingerprint,destination_hash,envelope,state,created_at,next_at,max_attempts,retry_delays)
@@ -26,22 +27,29 @@ class NotificationRepository extends IntegrationsRepository {
  async claim(id:string,now:number,leaseMs:number){return claimNotification(this.env,id,now,leaseMs)}
  async recoverExpired(now:number){const recovered=await super.recoverExpired(now);await this.env.DB.batch(expireMailClaims(this.env,now));await retireObsoleteCredentials(this.env);return recovered}
 }
+/** Sends queued email, then prepares queued webhook and Slack jobs for whichever dispatcher claims them first: the
+ * hosted Worker's cron or a private runner's poll. Both use one Base delivery row, so a job is sent at most once. */
+export async function pollNotificationJobs(env:Bindings,budget?:SubrequestBudget){
+ const repository=notificationRepository(env),now=Date.now(),op=storageOperation;
+ await op('notifications.poll.recoverExpired',()=>repository.recoverExpired(now));await op('notifications.poll.custody',()=>ensureNotificationCustody(env));await dispatchNotificationMail(env,budget);
+ const rows=await op('notifications.poll.selectQueued',()=>env.DB.prepare(`SELECT j.*,c.id AS credential_record_id,c.destination_id AS credential_destination_id,c.created_at AS credential_created_at,c.endpoint,c.signing_secret,c.ciphertext,c.retired_at,c.unavailable_at FROM notification_jobs j JOIN notification_credentials c ON c.id=j.credential_id
+  WHERE j.kind IN ('webhook','slack') AND j.state='queued' AND NOT EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace=? AND d.id=j.id AND d.state<>'queued') ORDER BY j.created_at LIMIT 20`).bind(NOTIFICATION_NAMESPACE).all<any>());
+ const jobs=[];
+ // A job is rejected only for its own fault (an unreadable credential, an envelope that cannot be prepared). A storage fault is
+ // never recorded as a rejection: it surfaces typed and the next poll finds the job still queued.
+ for(const row of rows.results){let credential;try{credential=await readCredential(env,{...row,id:row.credential_record_id,destination_id:row.credential_destination_id,created_at:row.credential_created_at})}catch(error){if(classifyStorage(error))throw error;if(!notificationKeyPresent(env))continue;await op('notifications.poll.rejectCredential',()=>env.DB.batch([env.DB.prepare("UPDATE notification_jobs SET state='rejected',code='credential_unavailable',finished_at=? WHERE id=? AND state='queued' AND NOT EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace=? AND d.id=notification_jobs.id AND d.state<>'queued')").bind(now,row.id,NOTIFICATION_NAMESPACE),env.DB.prepare("UPDATE integration_deliveries SET state='rejected',next_at=? WHERE namespace=? AND id=? AND state='queued'").bind(now,NOTIFICATION_NAMESPACE,row.id)]));continue}const event=JSON.parse(row.event);
+  const service=new DeliveryService({repository,hashDestination:url=>notificationDestinationHash(env,url),protocols:notificationProtocols(credential,row.credential_id),transport:{async send(){throw Error('Preparing a job never sends it')}}});
+  try{await op('notifications.poll.enqueue',()=>service.enqueue({id:row.id,tenant:NOTIFICATION_NAMESPACE,destinationId:row.credential_id,event:event.eventType,protocol:row.kind==='slack'?SLACK_WEBHOOK_PROTOCOL:'webhook',body:row.kind==='slack'?slackContent(event):JSON.stringify(event)},{maxAttempts:1,retryDelaysMs:[]}))}
+  catch(error){if(classifyStorage(error))throw error;await op('notifications.poll.rejectPreparation',()=>env.DB.prepare("UPDATE notification_jobs SET state='rejected',code='preparation_failed',finished_at=? WHERE id=? AND state='queued'").bind(Date.now(),row.id).run());continue}
+  jobs.push({id:row.id,credentialId:row.credential_id,credential,destinationHash:await notificationDestinationHash(env,credential.endpoint)});
+ }
+ return jobs;
+}
 /** Scoped runner operations. The caller cannot supply SQL, tenant, endpoint, envelope or retry policy. */
 export async function notificationRpc(env:Bindings,input:any){
  const repository=notificationRepository(env),now=Date.now(),op=storageOperation;
  if(input?.operation==='poll'){
-  await op('notifications.poll.recoverExpired',()=>repository.recoverExpired(now));await op('notifications.poll.custody',()=>ensureNotificationCustody(env));await dispatchNotificationMail(env);
-  const rows=await op('notifications.poll.selectQueued',()=>env.DB.prepare(`SELECT j.*,c.id AS credential_record_id,c.destination_id AS credential_destination_id,c.created_at AS credential_created_at,c.endpoint,c.signing_secret,c.ciphertext,c.retired_at,c.unavailable_at FROM notification_jobs j JOIN notification_credentials c ON c.id=j.credential_id
-   WHERE j.kind IN ('webhook','slack') AND j.state='queued' AND NOT EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace=? AND d.id=j.id AND d.state<>'queued') ORDER BY j.created_at LIMIT 20`).bind(NOTIFICATION_NAMESPACE).all<any>());
-  const jobs=[];
-  // A job is rejected only for its own fault (an unreadable credential, an envelope that cannot be prepared). A storage fault is
-  // never recorded as a rejection: it surfaces typed and the next poll finds the job still queued.
-  for(const row of rows.results){let credential;try{credential=await readCredential(env,{...row,id:row.credential_record_id,destination_id:row.credential_destination_id,created_at:row.credential_created_at})}catch(error){if(classifyStorage(error))throw error;if(!notificationKeyPresent(env))continue;await op('notifications.poll.rejectCredential',()=>env.DB.batch([env.DB.prepare("UPDATE notification_jobs SET state='rejected',code='credential_unavailable',finished_at=? WHERE id=? AND state='queued' AND NOT EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace=? AND d.id=notification_jobs.id AND d.state<>'queued')").bind(now,row.id,NOTIFICATION_NAMESPACE),env.DB.prepare("UPDATE integration_deliveries SET state='rejected',next_at=? WHERE namespace=? AND id=? AND state='queued'").bind(now,NOTIFICATION_NAMESPACE,row.id)]));continue}const event=JSON.parse(row.event);
-   const service=new DeliveryService({repository,hashDestination:url=>notificationDestinationHash(env,url),protocols:notificationProtocols(credential,row.credential_id),transport:{async send(){throw Error('Notification transport requires the Node runner')}}});
-   try{await op('notifications.poll.enqueue',()=>service.enqueue({id:row.id,tenant:NOTIFICATION_NAMESPACE,destinationId:row.credential_id,event:event.eventType,protocol:row.kind==='slack'?SLACK_WEBHOOK_PROTOCOL:'webhook',body:row.kind==='slack'?slackContent(event):JSON.stringify(event)},{maxAttempts:1,retryDelaysMs:[]}))}
-   catch(error){if(classifyStorage(error))throw error;await op('notifications.poll.rejectPreparation',()=>env.DB.prepare("UPDATE notification_jobs SET state='rejected',code='preparation_failed',finished_at=? WHERE id=? AND state='queued'").bind(Date.now(),row.id).run());continue}
-   jobs.push({id:row.id,credentialId:row.credential_id,credential,destinationHash:await notificationDestinationHash(env,credential.endpoint)});
-  }
+  const jobs=await pollNotificationJobs(env);
   await op('notifications.poll.recordContact',()=>recordContact(env.DB));return {jobs,serverNow:Date.now()};
  }
  if(input?.operation==='recoverExpired')return op('notifications.recoverExpired',()=>repository.recoverExpired(now));

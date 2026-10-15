@@ -4,8 +4,9 @@ import {FLOW_LIMITS,FLOW_REASONS,validateFlowEvidence} from './flow.mjs'
 // @ts-ignore Bounded non-secret diagnostics are shared with the runner.
 import {validBindingDiagnostic, bindingReason, BINDING_DIAGNOSTIC_BYTES} from './credential-binding.mjs'
 const fields = new Set(['id', 'probe', 'outcome', 'completedAt', 'startedAt', 'durationMs', 'runnerVersion', 'status', 'bytes', 'checks', 'attempt', 'heartbeatReceivedAt', 'canary', 'flow', 'credentialBinding'])
-const targetErrors = new Set(['encoding', 'redirect', 'body-limit', 'transport', 'timeout', 'connection'])
-const runnerErrors = new Set(['custody', 'runner', 'network', 'dns', 'browser', 'credential', 'grant'])
+// unresolved: the public resolver answered NXDOMAIN or no address. budget: a Worker run spent its outbound requests first.
+const targetErrors = new Set(['encoding', 'redirect', 'body-limit', 'transport', 'timeout', 'connection', 'unresolved'])
+const runnerErrors = new Set(['custody', 'runner', 'network', 'dns', 'browser', 'credential', 'grant', 'budget'])
 const responseErrors = new Set(['encoding', 'redirect', 'body-limit'])
 /** Live completion accepts runner clocks up to this far ahead of control-plane time. */
 export const COMPLETION_CLOCK_ALLOWANCE_MS = 1000

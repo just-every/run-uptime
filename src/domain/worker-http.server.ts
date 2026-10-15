@@ -1,40 +1,34 @@
 // Hosted public probes use Workers' public Internet fetch transport (no VPC binding).
 // Node runners retain socket pinning for their separately authorized networks.
 import {ownOrigin,SELF_CHECK_REFUSAL} from './hosted-runner.ts'
+import {ProbeError,type PublicDNS} from './worker-dns.server.ts'
+import {BudgetExhausted,type Allowance} from './worker-budget.ts'
+import seed from '../../seed.json' with {type:'json'}
 // @ts-ignore Shared public-address policy.
-import {publicTarget,publicAddress} from './public-target.mjs'
+import {publicTarget} from './public-target.mjs'
 // @ts-ignore Shared assertion policy.
 import {httpAssertions} from './http-assertions.mjs'
 // @ts-ignore Shared evidence limits.
 import {MAX_BODY} from './policy.mjs'
-class ProbeError extends Error {constructor(readonly category:string){super(category)}}
-async function boundedBody(response:Response,max:number){
+// runnerVersion names the evidence protocol the validator accepts; the User-Agent names this release.
+const EVIDENCE_VERSION='uptime-worker/0.1.0',USER_AGENT=`uptime-worker/${seed.version}`
+const BUDGET_REASON='Not checked: this scheduled run reached its outbound request budget. This is not a target failure.'
+export async function boundedBody(response:Response,max:number){
  const reader=response.body?.getReader();if(!reader)return {body:'',bytes:0};
  const chunks:Uint8Array[]= [];let bytes=0;
  try{for(;;){const {value,done}=await reader.read();if(done)break;bytes+=value.byteLength;if(bytes>max)throw new ProbeError('body-limit');chunks.push(value)}}finally{await reader.cancel()}
  const all=new Uint8Array(bytes);let offset=0;for(const chunk of chunks){all.set(chunk,offset);offset+=chunk.byteLength}
  return {body:new TextDecoder().decode(all),bytes}
 }
-async function publicDNS(url:URL,signal:AbortSignal){
- const host=url.hostname.replace(/^\[|\]$/g,'');
- if(host.includes(':')||/^[0-9.]+$/.test(host)){if(!publicAddress(host))throw new ProbeError('network');return}
- const answers=await Promise.all(['A','AAAA'].map(async type=>{
-  const response=await fetch(`https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(host)}&type=${type}`,{headers:{accept:'application/dns-json'},redirect:'manual',signal});
-  if(!response.ok){await response.body?.cancel();throw new ProbeError('dns')}
-  const data=JSON.parse((await boundedBody(response,16384)).body);
-  if(![0,3].includes(data.Status)||data.TC)throw new ProbeError('dns');
-  return (data.Answer??[]).filter((row:any)=>[1,28].includes(row.type)).map((row:any)=>row.data);
- }));
- const addresses=answers.flat();if(!addresses.length)throw new ProbeError('dns');
- if(addresses.some(address=>!publicAddress(address)))throw new ProbeError('network');
-}
-async function publicResponse(def:any,signal:AbortSignal,statusOnly:boolean,appOrigin?:string){
+interface ProbeContext {dns:PublicDNS;allowance:Allowance;appOrigin?:string;statusOnly?:boolean}
+async function publicResponse(def:any,signal:AbortSignal,{dns,allowance,appOrigin,statusOnly}:ProbeContext){
  let url=publicTarget(def.url),method=def.method;
  for(let hop=0;hop<=5;hop++){
   // Existing revisions and redirects must not mistake Workers' self-fetch 404 for target evidence.
   if(ownOrigin(url.href,appOrigin))throw new ProbeError('runner');
-  await publicDNS(url,signal);
-  const response=await fetch(url.href,{method,redirect:'manual',signal,headers:{'user-agent':'uptime-worker/0.1.0',accept:'application/json,text/plain,*/*;q=0.1','accept-encoding':'identity'},cache:'no-store'});
+  await dns(url,signal,allowance);
+  allowance.spend();
+  const response=await fetch(url.href,{method,redirect:'manual',signal,headers:{'user-agent':USER_AGENT,accept:'application/json,text/plain,*/*;q=0.1','accept-encoding':'identity'},cache:'no-store'});
   if([301,302,303,307,308].includes(response.status)){
    const location=response.headers.get('location');await response.body?.cancel();
    if(hop===5||!location)throw new ProbeError('redirect');
@@ -51,11 +45,16 @@ async function publicResponse(def:any,signal:AbortSignal,statusOnly:boolean,appO
  }
  throw new ProbeError('redirect');
 }
-export async function workerProbe(def:any,probe:string,{statusOnly=false,appOrigin}:{statusOnly?:boolean;appOrigin?:string}={}){
+const runnerErrors=['dns','network','runner','budget']
+export async function workerProbe(def:any,probe:string,context:ProbeContext){
  const startedAt=Date.now(),signal=AbortSignal.timeout(def.timeoutMs);
- const evidence=(data:any,completedAt=Date.now())=>({id:crypto.randomUUID(),probe,startedAt,completedAt,durationMs:completedAt-startedAt,runnerVersion:'uptime-worker/0.1.0',...data});
+ const evidence=(data:any,completedAt=Date.now())=>({id:crypto.randomUUID(),probe,startedAt,completedAt,durationMs:completedAt-startedAt,runnerVersion:EVIDENCE_VERSION,...data});
  try{
-  const response=await publicResponse(def,signal,statusOnly,appOrigin),completedAt=Date.now(),checks=httpAssertions(def,response,completedAt-startedAt);
+  const response=await publicResponse(def,signal,context),completedAt=Date.now(),checks=httpAssertions(def,response,completedAt-startedAt);
   return evidence({outcome:checks.every((check:any)=>check.pass)?'pass':'target_failure',status:response.status,bytes:response.bytes,checks},completedAt);
- }catch(error){const category=signal.aborted?'timeout':error instanceof ProbeError?error.category:'connection';return evidence({outcome:['dns','network','runner'].includes(category)?'runner_error':'target_failure',checks:[{assertion:category,pass:false,reason:category==='runner'?SELF_CHECK_REFUSAL:`Probe ${category} check failed`}]})}
+ }catch(error){
+  const category=error instanceof BudgetExhausted?'budget':signal.aborted||(error as Error)?.name==='TimeoutError'?'timeout':error instanceof ProbeError?error.category:'connection';
+  const reason=category==='runner'?SELF_CHECK_REFUSAL:category==='budget'?BUDGET_REASON:error instanceof ProbeError&&error.reason?error.reason:`Probe ${category} check failed`;
+  return evidence({outcome:runnerErrors.includes(category)?'runner_error':'target_failure',checks:[{assertion:category,pass:false,reason}]});
+ }
 }
