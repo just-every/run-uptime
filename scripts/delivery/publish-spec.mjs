@@ -9,7 +9,7 @@ import { loadSetupManifest } from './base/setup-manifest.mjs';
 const root = process.cwd(), check = process.argv.includes('--check');
 const config = JSON.parse(await readFile(resolve(root, 'scripts/delivery/base/packaging.json'), 'utf8'));
 const { project, setup } = packagingConfig(config);
-const selected = await loadSetupManifest(root, setup);
+const selected = await loadSetupManifest(root, setup, config.artifact.specInputs.mail);
 const manifest = structuredClone(selected.manifest);
 const provider = manifest.fields.find(field => field.name === 'MAIL_PROVIDER');
 provider.default = 'development';

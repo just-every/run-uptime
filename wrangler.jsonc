@@ -18,5 +18,10 @@
     "crons": [
       "* * * * *"
     ]
+  },
+  "vars": {
+    "MAIL_PROVIDER": "rer",
+    "MAIL_FROM": "",
+    "MAIL_RELAY_URL": ""
   }
 }

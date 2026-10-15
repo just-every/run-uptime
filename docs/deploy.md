@@ -1,5 +1,11 @@
 You can deploy Uptime to your own Cloudflare account with one command. This page covers what you need, what the command creates, and how to confirm it worked. One thing to know up front: the hosted path has been exercised end to end only once, so treat your first deployment as a careful one.
 
+## Managed hosting mail
+
+For Managed hosting, RER supplies mail for sign-in links and email notifications through its relay. You do not need a mail-provider account or an API key to type. Configure fills and hides all four mail inputs: public `MAIL_PROVIDER=rer`, `MAIL_FROM` and `MAIL_RELAY_URL`, plus private `MAIL_API_KEY`. The key is a relay credential scoped to this installation and environment; RER keeps the upstream provider key. Assisted and Free hosting retain the existing SendGrid, Resend and Cloudflare Email Sending options.
+
+The account credentials and provider mail inputs below apply when deploying to your own Cloudflare account.
+
 ## What you need
 
 - A Cloudflare account ID and an API token for that account.
@@ -16,7 +22,7 @@ You can deploy Uptime to your own Cloudflare account with one command. This page
 - `MAIL_FROM` is your verified sender.
 - `MAIL_PROVIDER` selects `resend`, `sendgrid` (the existing-install default), or `cloudflare`.
 - Resend uses `MAIL_PROVIDER_API_KEY`; SendGrid uses `SENDGRID_API_KEY`; Cloudflare Email Sending uses `CLOUDFLARE_MAIL_API_KEY` and `MAIL_ACCOUNT_ID`.
-- rer 0.2.20 checks that production sign-in can send email before it builds, using its shared names: set `MAIL_PROVIDER` (also for SendGrid), `MAIL_FROM` and `MAIL_API_KEY`, the selected provider's API key, in the environment or an `--env-file` on every `rer deploy`, including updates. Uptime keeps `MAIL_API_KEY` under that provider's own name above, so an existing installation's saved key and the Worker's secrets do not change.
+- rer 0.2.22 checks the selected provider's mail configuration before it builds. Supply `MAIL_PROVIDER`, `MAIL_FROM` and that provider's key in the environment or an `--env-file`. The shared `MAIL_API_KEY` input can also supply a direct provider's key; Uptime keeps it under the selected provider's name above. Updates may reuse an existing deployment's mail credential.
 - Optional `UPTIME_START_URL` is a public `http` or `https` website for the owner to start with. Uptime asks the owner's runner to look at it when the owner opens first-run setup, and finishing setup opens the console on the monitors it proposes. A hosted address that is not public stops the deployment before anything is created. Set it before the first deploy: like the other saved inputs, it is kept in `.rer/deploy/production-secrets.json` from then on. Without it, `/setup` offers the same box.
 - Optional `UPTIME_HEARTBEAT_URL` enables the independent heartbeat described in [Watchers and independent checks](/docs/resilient-monitoring).
 
@@ -52,7 +58,7 @@ If the Uptime upload or health-check stage stops part way, inspect the reported 
 
 With rer's newer custom-deployment lifecycle (0.2.3 and later), `rer deploy` wraps Uptime's custom deployment hook, claims the owner automatically, then retires the one-use hosted `SETUP_TOKEN`. Inspect the CLI's `claimed` or `kept` owner outcome and token-retirement result. After successful admission, open `/login` on the reported hosted address and request an ordinary email sign-in link. Opening the link shows a confirmation page; choosing **Confirm** signs you in. Finish first-run setup at `/setup`, then use the console at `/app`. Permanent owner admission survives token retirement even before setup is finished, and remains claimed if the original owner is later erased.
 
-This checkout pins the unmodified published `@runeditrun/rer` 0.2.20. The lifecycle wraps Uptime's upload and health-check hook to perform owner claim and token retirement. If automatic claim or token retirement is incomplete, retain `.rer/deploy/<environment>.json` and private settings, rerun the same `rer deploy --environment NAME`, and inspect the new stage, owner outcome and retirement result. Do not enter a retired token at `/claim` as routine recovery.
+This checkout pins the unmodified published `@runeditrun/rer` exactly 0.2.22. The lifecycle wraps Uptime's upload and health-check hook to perform owner claim and token retirement. If automatic claim or token retirement is incomplete, retain `.rer/deploy/<environment>.json` and private settings, rerun the same `rer deploy --environment NAME`, and inspect the new stage, owner outcome and retirement result. Do not enter a retired token at `/claim` as routine recovery.
 
 ### Sign in without mail
 

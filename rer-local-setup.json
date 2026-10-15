@@ -70,6 +70,10 @@
           "label": "Local development outbox"
         },
         {
+          "value": "rer",
+          "label": "RER managed mail"
+        },
+        {
           "value": "sendgrid",
           "label": "SendGrid"
         },
@@ -91,6 +95,30 @@
       "required": true,
       "group": "mail",
       "default": "auth@localhost.test"
+    },
+    {
+      "name": "MAIL_RELAY_URL",
+      "label": "Managed mail relay URL",
+      "kind": "url",
+      "required": true,
+      "when": {
+        "field": "MAIL_PROVIDER",
+        "equals": "rer"
+      },
+      "group": "mail"
+    },
+    {
+      "name": "MAIL_API_KEY",
+      "label": "Managed mail key",
+      "kind": "secret",
+      "input": "entered",
+      "ownerVisible": true,
+      "required": true,
+      "when": {
+        "field": "MAIL_PROVIDER",
+        "equals": "rer"
+      },
+      "group": "mail"
     },
     {
       "name": "SENDGRID_API_KEY",

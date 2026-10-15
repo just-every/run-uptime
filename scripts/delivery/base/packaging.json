@@ -97,7 +97,8 @@
         "RER_OWNER_CLAIM_APP_ORIGIN",
         "RER_OWNER_CLAIM_PUBLIC_KEYS",
         "MAIL_ACCOUNT_ID",
-        "UPTIME_START_URL"
+        "UPTIME_START_URL",
+        "MAIL_RELAY_URL"
       ],
       "secretNames": [
         "SESSION_SECRET",
@@ -108,7 +109,8 @@
         "SENDGRID_API_KEY",
         "MAIL_PROVIDER_API_KEY",
         "CLOUDFLARE_MAIL_API_KEY",
-        "UPTIME_HEARTBEAT_URL"
+        "UPTIME_HEARTBEAT_URL",
+        "MAIL_API_KEY"
       ],
       "providerEffects": [
         "outbound-mail",
@@ -129,7 +131,12 @@
           ]
         }
       },
-      "recovery": "Preserve the private deployment receipt and D1 migration ledger. Restore archives into an empty installation with monitors paused and alerts quarantined."
+      "recovery": "Preserve the private deployment receipt and D1 migration ledger. Restore archives into an empty installation with monitors paused and alerts quarantined.",
+      "mail": {
+        "providers": [
+          "rer"
+        ]
+      }
     }
   }
 }

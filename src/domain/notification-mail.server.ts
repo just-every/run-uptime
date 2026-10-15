@@ -19,7 +19,7 @@ export const expireMailClaims=(env:Bindings,now:number)=>[
 export async function dispatchNotificationMail(env:Bindings,budget?:SubrequestBudget){
  const now=Date.now(),op=storageOperation;
  await op('notifications.mail.expireClaims',()=>env.DB.batch(expireMailClaims(env,now)));
- const rows=await op('notifications.mail.selectQueued',()=>env.DB.prepare("SELECT j.*,c.id AS credential_record_id,c.destination_id AS credential_destination_id,c.created_at AS credential_created_at,c.endpoint,c.signing_secret,c.ciphertext,c.retired_at,c.unavailable_at FROM notification_jobs j JOIN notification_credentials c ON c.id=j.credential_id WHERE j.kind='email' AND j.state='queued' ORDER BY j.created_at LIMIT 10").all<any>());
+ const rows=await op('notifications.mail.selectQueued',()=>env.DB.prepare("SELECT j.*,c.id AS credential_record_id,c.destination_id AS credential_destination_id,c.created_at AS credential_created_at,c.endpoint,c.signing_secret,c.ciphertext,c.retired_at,c.unavailable_at FROM notification_jobs j JOIN notification_credentials c ON c.id=j.credential_id WHERE j.kind='email' AND j.state='queued' AND (j.claim_until IS NULL OR j.claim_until<=?) ORDER BY j.created_at LIMIT 10").bind(now).all<any>());
  for(const row of rows.results){
   let credential;
   try{credential=await readCredential(env,{...row,id:row.credential_record_id,destination_id:row.credential_destination_id,created_at:row.credential_created_at})}
@@ -27,10 +27,10 @@ export async function dispatchNotificationMail(env:Bindings,budget?:SubrequestBu
   // A provider request the run cannot afford waits, still queued, for the next run.
   if(budget&&!budget.reserve(1))break;
   const claim=crypto.randomUUID();
-  const changes=await op('notifications.mail.claim',()=>env.DB.batch([env.DB.prepare("UPDATE notification_jobs SET state='sending',code='mail_claimed',attempts=attempts+1,claim=?,claim_until=? WHERE id=? AND state='queued' AND EXISTS(SELECT 1 FROM notification_destinations d WHERE d.id=notification_jobs.destination_id AND d.credential_id=notification_jobs.credential_id AND d.deleted_at IS NULL)").bind(claim,Date.now()+60000,row.id),auditStatement(env,automated,'notification_send','notification',crypto.randomUUID(),'changes()=1 AND ?=1',[Number(mailConfigured(env))])]));
+  const changes=await op('notifications.mail.claim',()=>env.DB.batch([env.DB.prepare("UPDATE notification_jobs SET state='sending',code='mail_claimed',attempts=attempts+1,claim=?,claim_until=? WHERE id=? AND state='queued' AND (claim_until IS NULL OR claim_until<=?) AND EXISTS(SELECT 1 FROM notification_destinations d WHERE d.id=notification_jobs.destination_id AND d.credential_id=notification_jobs.credential_id AND d.deleted_at IS NULL)").bind(claim,Date.now()+60000,row.id,Date.now()),auditStatement(env,automated,'notification_send','notification',crypto.randomUUID(),'changes()=1 AND ?=1',[Number(mailConfigured(env))])]));
   // Another dispatcher (the cron or a second poll) claimed this job first: nothing for this one to do.
   if(!changes[0].meta.changes)continue;
-  let state='rejected',code='mail_not_configured',sender:ReturnType<typeof mailSender>|null=null,content:any;
+  let retryAt:number|undefined,state='rejected',code='mail_not_configured',sender:ReturnType<typeof mailSender>|null=null,content:any;
   if(env.MAIL_FROM){
    try{
     sender=mailSender(env);
@@ -51,11 +51,15 @@ export async function dispatchNotificationMail(env:Bindings,budget?:SubrequestBu
     state=error instanceof MailValidationError?'rejected':'uncertain';code=error instanceof MailValidationError?'mail_input_invalid':'mail_result_unknown';sender=null
    }
    if(sender){
-    try{const result=await sender.send({deliveryId:row.id,from:env.MAIL_FROM,to:[credential.endpoint],...content});state=['accepted','development'].includes(result.status)?'accepted':result.status==='uncertain'?'uncertain':'rejected';code=result.status==='development'?'mail_development':result.code??`mail_${result.status}`}
+    try{const result=await sender.send({deliveryId:row.id,from:env.MAIL_FROM,to:[credential.endpoint],...content});state=['accepted','development'].includes(result.status)?'accepted':result.status==='uncertain'?'uncertain':'rejected';code=result.status==='development'?'mail_development':result.code??`mail_${result.status}`;
+     // A 429 confirms the relay did not accept the message. Keep it queued until Retry-After;
+     // claim_until is the queued job's not-before time and becomes a lease when claimed.
+     if(result.status==='rate_limited'&&result.retryAt!==undefined){state='queued';retryAt=result.retryAt}
+    }
     catch(error){state=error instanceof MailValidationError?'rejected':'uncertain';code=error instanceof MailValidationError?'mail_input_invalid':'mail_result_unknown'}
    }
   }
-  await op('notifications.mail.finish',()=>env.DB.prepare("UPDATE notification_jobs SET state=?,code=?,claim=NULL,claim_until=NULL,finished_at=? WHERE id=? AND state='sending' AND claim=? AND claim_until>?").bind(state,code,Date.now(),row.id,claim,Date.now()).run());
+  await op('notifications.mail.finish',()=>env.DB.prepare("UPDATE notification_jobs SET state=?,code=?,claim=NULL,claim_until=?,finished_at=? WHERE id=? AND state='sending' AND claim=? AND claim_until>?").bind(state,code,retryAt??null,retryAt===undefined?Date.now():null,row.id,claim,Date.now()).run());
  }
  await op('notifications.mail.retireCredentials',()=>retireObsoleteCredentials(env));await op('notifications.mail.retireDrillTokens',()=>retireDrillTokens(env));
 }

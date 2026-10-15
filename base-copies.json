@@ -213,9 +213,9 @@
     {
       "path": "scripts/delivery/base/export.mjs",
       "originPath": "modules/delivery-producer/export.mjs",
-      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "revision": "a1cde988c1be2c9f74ff5ca374dc47e044ba193c",
       "files": {
-        "scripts/delivery/base/export.mjs": "29529729881ec35c67e4875038e0450a3f0e658d90c00bf24f1de218ab15f469"
+        "scripts/delivery/base/export.mjs": "0e36cf60c02ff737528018c5f027b96970e9154dd9464d3de08c19c3a3a5f5a5"
       },
       "modes": {
         "scripts/delivery/base/export.mjs": "100644"
@@ -239,6 +239,17 @@
       }
     },
     {
+      "path": "scripts/delivery/base/mail.mjs",
+      "originPath": "modules/delivery-producer/mail.mjs",
+      "revision": "a1cde988c1be2c9f74ff5ca374dc47e044ba193c",
+      "files": {
+        "scripts/delivery/base/mail.mjs": "2323205c7cbc1aea81ec85509d597df2e486abfc9443981ceaee04950db913a4"
+      },
+      "modes": {
+        "scripts/delivery/base/mail.mjs": "100644"
+      }
+    },
+    {
       "path": "scripts/delivery/base/migrations.mjs",
       "originPath": "modules/delivery-producer/migrations.mjs",
       "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
@@ -252,9 +263,9 @@
     {
       "path": "scripts/delivery/base/package.mjs",
       "originPath": "modules/delivery-producer/package.mjs",
-      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "revision": "c306ef95288f795cf4074843871126026c95efb6",
       "files": {
-        "scripts/delivery/base/package.mjs": "8daa16d77dfd21ea918dd896b25bcf7e67627d7bf89933e5f5719fe9093e6ca8"
+        "scripts/delivery/base/package.mjs": "5a32dec3274b66474e12d5141e973542248ceeecf0f8464f6e9da87d60228cb4"
       },
       "modes": {
         "scripts/delivery/base/package.mjs": "100644"
@@ -329,9 +340,9 @@
     {
       "path": "scripts/delivery/base/spec.mjs",
       "originPath": "modules/delivery-producer/spec.mjs",
-      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "revision": "a1cde988c1be2c9f74ff5ca374dc47e044ba193c",
       "files": {
-        "scripts/delivery/base/spec.mjs": "4526a4d0f3ec141b4afa8d848badb12a08e42d60e1b00bd1db9e63064483428b"
+        "scripts/delivery/base/spec.mjs": "6a11b2986a98936f60c8984e73add5ba491002f0609fb0b478874967caaffd92"
       },
       "modes": {
         "scripts/delivery/base/spec.mjs": "100644"
@@ -598,18 +609,76 @@
       }
     },
     {
-      "path": "src/base/modules/mail",
-      "originPath": "modules/mail",
+      "path": "src/base/modules/mail/.gitignore",
+      "originPath": "modules/mail/.gitignore",
       "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
       "files": {
-        "src/base/modules/mail/.gitignore": "bac5cb305c3cbf6aa42e50e7f2c0f5331a71d70dac15f239b8ec6746afed0db5",
-        "src/base/modules/mail/doctor.mjs": "861a2be20c051247d590cc14d173037f648666fc28ac39f826d69e38e5e2f5d9",
-        "src/base/modules/mail/index.mjs": "085b8838752fd17fc8dfe0800b4808b322a1c9ccb921e676c507948b44e159f7",
-        "src/base/modules/mail/LICENSE": "2f5076ef027045b9e0e72df8aa61ca8551e54b1877d531656d6e7985b2c32324",
-        "src/base/modules/mail/live-proof/README.md": "2f6cf1d376a9356b24291765361930b502f8644a0dde4019650d5dddc7478a59",
-        "src/base/modules/mail/live-proof/run.mjs": "e0c9a4838d6e3ab467f98a7c5be3a74f874267ced6ec025e4de26e906fb45a04",
-        "src/base/modules/mail/package.json": "b099b75f009c5cfd41c42cccd748c8530fb6f1caf8444d3de82fbc42241e7dfe",
-        "src/base/modules/mail/pnpm-lock.yaml": "c87e27684086028e3ca9e088e5c14f786069a4cecf0e33467577cb91dfba42e8",
+        "src/base/modules/mail/.gitignore": "bac5cb305c3cbf6aa42e50e7f2c0f5331a71d70dac15f239b8ec6746afed0db5"
+      },
+      "modes": {
+        "src/base/modules/mail/.gitignore": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/mail/doctor.mjs",
+      "originPath": "modules/mail/doctor.mjs",
+      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "files": {
+        "src/base/modules/mail/doctor.mjs": "861a2be20c051247d590cc14d173037f648666fc28ac39f826d69e38e5e2f5d9"
+      },
+      "modes": {
+        "src/base/modules/mail/doctor.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/mail/index.mjs",
+      "originPath": "modules/mail/index.mjs",
+      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "files": {
+        "src/base/modules/mail/index.mjs": "085b8838752fd17fc8dfe0800b4808b322a1c9ccb921e676c507948b44e159f7"
+      },
+      "modes": {
+        "src/base/modules/mail/index.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/mail/LICENSE",
+      "originPath": "modules/mail/LICENSE",
+      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "files": {
+        "src/base/modules/mail/LICENSE": "2f5076ef027045b9e0e72df8aa61ca8551e54b1877d531656d6e7985b2c32324"
+      },
+      "modes": {
+        "src/base/modules/mail/LICENSE": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/mail/package.json",
+      "originPath": "modules/mail/package.json",
+      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "files": {
+        "src/base/modules/mail/package.json": "b099b75f009c5cfd41c42cccd748c8530fb6f1caf8444d3de82fbc42241e7dfe"
+      },
+      "modes": {
+        "src/base/modules/mail/package.json": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/mail/pnpm-lock.yaml",
+      "originPath": "modules/mail/pnpm-lock.yaml",
+      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "files": {
+        "src/base/modules/mail/pnpm-lock.yaml": "c87e27684086028e3ca9e088e5c14f786069a4cecf0e33467577cb91dfba42e8"
+      },
+      "modes": {
+        "src/base/modules/mail/pnpm-lock.yaml": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/mail/src/adapters",
+      "originPath": "modules/mail/src/adapters",
+      "revision": "a1cde988c1be2c9f74ff5ca374dc47e044ba193c",
+      "files": {
         "src/base/modules/mail/src/adapters/cloudflare/headers.mjs": "6bee46c1edb6228b9d3df8b26ca1acbb163c36d94ecbd8e28ace1a6811095f23",
         "src/base/modules/mail/src/adapters/cloudflare/index.mjs": "377e4a322ac7803a1c56986ac909c35c1328896cff07c0610abbad5e8f8c3f86",
         "src/base/modules/mail/src/adapters/cloudflare/README.md": "80531ce460180b853b7db0480b4ff3d4f919fa5ccc119f71255fb1ac13485c5a",
@@ -621,6 +690,8 @@
         "src/base/modules/mail/src/adapters/messaging/README.md": "b9dcfc5aeeb1ee2118486efa584b790cee9f77e1c7c95036d6ff99e48df317db",
         "src/base/modules/mail/src/adapters/messaging/request.mjs": "40a8a800c8791bceb8a9d7c86976693c9fb6eeb37d0b902c0fdab93b6b5c7f71",
         "src/base/modules/mail/src/adapters/messaging/serialize.mjs": "4ee46c1ccb75edfd53b94bfff67ccdb08196a3ee68576c1eb0aa2494f9d4e1f5",
+        "src/base/modules/mail/src/adapters/rer/contract.mjs": "b8ae90da173b40c7bde1a194ac35e9367802b9b608f050d63e2337a64e58454c",
+        "src/base/modules/mail/src/adapters/rer/index.mjs": "2f27ff23d1182b4792b13b777e44fe1de9f7568474df11f3b60655415d2a6635",
         "src/base/modules/mail/src/adapters/resend/index.mjs": "03d292468577cb51b012b2c71c13654cd7b0af82c240ec124921ee88e05639dc",
         "src/base/modules/mail/src/adapters/resend/README.md": "07487907a351cde380774bed9b1f7b8d387f55f19be02990a521e25bdb09d468",
         "src/base/modules/mail/src/adapters/resend/response.mjs": "a0f26cafacdae8c6b8070a9ddeb7c1a68a67b47310d27932e59f425450b4b650",
@@ -628,53 +699,9 @@
         "src/base/modules/mail/src/adapters/resend/size.mjs": "1726a4e7ce6ca1198dce3b0fcfe43e0d1e9795ca0e334824a61560318c2eabd5",
         "src/base/modules/mail/src/adapters/sendgrid/index.mjs": "bd94b2d46151ed35f4b0f8ba720588e4d64c899654111e114691b4c6421dfa4e",
         "src/base/modules/mail/src/adapters/sendgrid/README.md": "37a03786dd7cbc6d114a344389daa828334967642574f939df35219b094ad536",
-        "src/base/modules/mail/src/adapters/sendgrid/serialize.mjs": "60d7836f94068a92283b1b66ccd27efeb78173c013fd1c9a6caaef1b928e09c0",
-        "src/base/modules/mail/src/core/errors.mjs": "ad6d85870719774eff284328d54bdcb20cc9fb24faf790e3f1e934d19be5197c",
-        "src/base/modules/mail/src/core/transport.mjs": "3f7bf52854e4908bb69b93032ac65cbd90bba57d03a62da1c2652ef4e470a1f8",
-        "src/base/modules/mail/src/core/validation.mjs": "6a08d0f42f795b8e16520a3f7ea2a1accef17c91584f13f9be791c2d3e6f4f56",
-        "src/base/modules/mail/src/development/index.d.mts": "e34cb5efff777655bbe94ed9db6875bee8825ac420f4cc3ae49d14d948b69e1b",
-        "src/base/modules/mail/src/development/index.mjs": "d4e2cd5726291a63af51b09e1d8d6fd8212091a330f083782c84fe0c45fb8e2e",
-        "src/base/modules/mail/src/development/outbox.mjs": "ca97ec8816a03cd606c90a37a98d3764fab809dba73411922cbd6f7a3f314376",
-        "src/base/modules/mail/src/development/schema.sql": "45d6b03eadfe1e91737763ae85cdff74e7216f859869e34431550bba48294996",
-        "src/base/modules/mail/src/development/viewer-html.mjs": "34104c18566538d608695a2bf0a4d4bb8e95db5bc31a68efa477d10e782cbc29",
-        "src/base/modules/mail/src/development/viewer.mjs": "94b3096e3b8eb0e74e1cb8fe8a6feeea3f07a2b1e74329c2e31ca6980c66c8bd",
-        "src/base/modules/mail/src/doctor/common.mjs": "09d55a9065b133ca5e3c64e35a652cac6c5220cd1f130328c9014f994ebd1e23",
-        "src/base/modules/mail/src/doctor/dns.mjs": "dbbd30abedf91cbf041597be0016d8f308f86951685161af89eeee1e99a9450e",
-        "src/base/modules/mail/src/doctor/index.mjs": "bc7e27eb1066b48b0c10bf0d874e858016675124e87f9795b04aa90cd5a11860",
-        "src/base/modules/mail/src/doctor/probe.mjs": "8f784edc9b8b1d28543471a406bfb7539db0f4070cdd24065798804012b735c0",
-        "src/base/modules/mail/src/doctor/README.md": "03fbc37879c24a39d864147142b3474ade2f3611a3bc9343be214f2280619e14",
-        "src/base/modules/mail/src/doctor/receive.mjs": "c113c033011d3a98c4407c5d7bb5a1f7130de088620a03d36d9087fc536a24c7",
-        "src/base/modules/mail/src/doctor/records.mjs": "f5a8f43ab1d3e5a125056f34068380f7634ed178b238937eac26c92b67c686b1",
-        "src/base/modules/mail/src/events/d1-schema.sql": "c18a168f27d6994d2930730e775422d65cb97023f5550cdccc2d95fdf64440b1",
-        "src/base/modules/mail/src/events/d1-storage.mjs": "994d21831a0783e9338e2cc2832c4e4936b4a8b9f962938ed947a32923305fe5",
-        "src/base/modules/mail/src/events/index.mjs": "b59cbd19c3676bd36931929379e1a80605192ed4adb496fe39287e927b799ddc",
-        "src/base/modules/mail/src/events/intake.mjs": "27b4092955b0e9fe58ad860f9e386d9c57656816bd9855db62022455a6bab2b4",
-        "src/base/modules/mail/src/events/README.md": "31ca618acfcff4a9303772b31cf6ab4cec0c45d80e4ffb4eb5e1bbc8b97d8def",
-        "src/base/modules/mail/src/events/storage.mjs": "56a1befc9d7bb799de431d7e938bf84470cd10f891c5275cb0be89704f2de32b",
-        "src/base/modules/mail/src/events/verify.mjs": "d5ab927fdcca001bebdf1128e7cdf4c6006b49468406aff983c10957ef5bf286",
-        "src/base/modules/mail/src/inbound/bytes.mjs": "cf6d59fff8c693a2833d0015f134d5c2559ec749aeb69b292b38585be7b7db7f",
-        "src/base/modules/mail/src/inbound/headers.mjs": "79673d562647f4e15e7fe10ca3b13241acd5b2cc25a651a32918cee45e02235c",
-        "src/base/modules/mail/src/inbound/index.mjs": "6defd48ac74f7a267f63d84f5b7cc8c1acfecfb26940df1a200088aa8be9f824",
-        "src/base/modules/mail/src/inbound/mime.mjs": "743ae43126ba32aa0cbc00b3be738a7486612b220787c548455c7a778fa1803c",
-        "src/base/modules/mail/src/inbound/multipart.mjs": "3696b971db5cf7a8c43eae84faca32123645293dcf97304382359be501d19cca",
-        "src/base/modules/mail/src/inbound/README.md": "19f1c3448ae767095f257e2aa0bef8e19e94bd9d00fe0cd7515fb4d0d9f53eff",
-        "src/base/modules/mail/src/inbound/resend-attachment.mjs": "a2ca74f17f0018c96b12a6bcaadc31c9b20d870687c5a2d7374de50e4c8fbff3",
-        "src/base/modules/mail/src/inbound/resend.mjs": "7d279b6dcb1280b0c3902afc05c7356a9fbfcc015051a5c852fbfbb789a41e17",
-        "src/base/modules/mail/src/inbound/sendgrid.mjs": "b599533e99e7912adfd10fc7343ba59e9387d783a623af0c6ac0843314265118",
-        "src/base/modules/mail/src/sender.mjs": "1e4ec0a59b6a7a523ed929e56bc5a9433b039ff75c5611d8e1a9162d8a508a6b",
-        "src/base/modules/mail/src/sendgrid-email/index.d.mts": "65efe2ed9647dd24ce7a7c1055cc5d8213ce94061db7597fb0460309baaa48be",
-        "src/base/modules/mail/src/sendgrid-email/index.mjs": "4b0a9132941f0ba7a2f91b86b46b16bb0cdb5d3b9396b19ad13fb060bd02737d",
-        "src/base/modules/mail/src/unsubscribe/index.mjs": "4cd7c05a3a885d4d16cfcb50e623fdc201fe6c6bb8d9418502b0837161e55295"
+        "src/base/modules/mail/src/adapters/sendgrid/serialize.mjs": "60d7836f94068a92283b1b66ccd27efeb78173c013fd1c9a6caaef1b928e09c0"
       },
       "modes": {
-        "src/base/modules/mail/.gitignore": "100644",
-        "src/base/modules/mail/doctor.mjs": "100644",
-        "src/base/modules/mail/index.mjs": "100644",
-        "src/base/modules/mail/LICENSE": "100644",
-        "src/base/modules/mail/live-proof/README.md": "100644",
-        "src/base/modules/mail/live-proof/run.mjs": "100644",
-        "src/base/modules/mail/package.json": "100644",
-        "src/base/modules/mail/pnpm-lock.yaml": "100644",
         "src/base/modules/mail/src/adapters/cloudflare/headers.mjs": "100644",
         "src/base/modules/mail/src/adapters/cloudflare/index.mjs": "100644",
         "src/base/modules/mail/src/adapters/cloudflare/README.md": "100644",
@@ -686,6 +713,8 @@
         "src/base/modules/mail/src/adapters/messaging/README.md": "100644",
         "src/base/modules/mail/src/adapters/messaging/request.mjs": "100644",
         "src/base/modules/mail/src/adapters/messaging/serialize.mjs": "100644",
+        "src/base/modules/mail/src/adapters/rer/contract.mjs": "100644",
+        "src/base/modules/mail/src/adapters/rer/index.mjs": "100644",
         "src/base/modules/mail/src/adapters/resend/index.mjs": "100644",
         "src/base/modules/mail/src/adapters/resend/README.md": "100644",
         "src/base/modules/mail/src/adapters/resend/response.mjs": "100644",
@@ -693,30 +722,107 @@
         "src/base/modules/mail/src/adapters/resend/size.mjs": "100644",
         "src/base/modules/mail/src/adapters/sendgrid/index.mjs": "100644",
         "src/base/modules/mail/src/adapters/sendgrid/README.md": "100644",
-        "src/base/modules/mail/src/adapters/sendgrid/serialize.mjs": "100644",
+        "src/base/modules/mail/src/adapters/sendgrid/serialize.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/mail/src/core",
+      "originPath": "modules/mail/src/core",
+      "revision": "a1cde988c1be2c9f74ff5ca374dc47e044ba193c",
+      "files": {
+        "src/base/modules/mail/src/core/errors.mjs": "8ffe417be05ef9f9f6eae1f84641f8da0e3c244f0a5ee712befc979dec455869",
+        "src/base/modules/mail/src/core/transport.mjs": "aecc91b5b12c2f315a3154679bb6780518453d04516c750517f06f25548ebb18",
+        "src/base/modules/mail/src/core/validation.mjs": "382fe04dfa3dbcacb81b817e9d69ea5d4fd6542a887765078991c6fd0acc91b0"
+      },
+      "modes": {
         "src/base/modules/mail/src/core/errors.mjs": "100644",
         "src/base/modules/mail/src/core/transport.mjs": "100644",
-        "src/base/modules/mail/src/core/validation.mjs": "100644",
+        "src/base/modules/mail/src/core/validation.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/mail/src/development",
+      "originPath": "modules/mail/src/development",
+      "revision": "479094f0b26a639a1868fa521004581ec8dbcb63",
+      "files": {
+        "src/base/modules/mail/src/development/index.d.mts": "e34cb5efff777655bbe94ed9db6875bee8825ac420f4cc3ae49d14d948b69e1b",
+        "src/base/modules/mail/src/development/index.mjs": "d4e2cd5726291a63af51b09e1d8d6fd8212091a330f083782c84fe0c45fb8e2e",
+        "src/base/modules/mail/src/development/outbox.mjs": "ca97ec8816a03cd606c90a37a98d3764fab809dba73411922cbd6f7a3f314376",
+        "src/base/modules/mail/src/development/schema.sql": "45d6b03eadfe1e91737763ae85cdff74e7216f859869e34431550bba48294996",
+        "src/base/modules/mail/src/development/viewer-html.mjs": "34104c18566538d608695a2bf0a4d4bb8e95db5bc31a68efa477d10e782cbc29",
+        "src/base/modules/mail/src/development/viewer.mjs": "94b3096e3b8eb0e74e1cb8fe8a6feeea3f07a2b1e74329c2e31ca6980c66c8bd"
+      },
+      "modes": {
         "src/base/modules/mail/src/development/index.d.mts": "100644",
         "src/base/modules/mail/src/development/index.mjs": "100644",
         "src/base/modules/mail/src/development/outbox.mjs": "100644",
         "src/base/modules/mail/src/development/schema.sql": "100644",
         "src/base/modules/mail/src/development/viewer-html.mjs": "100644",
-        "src/base/modules/mail/src/development/viewer.mjs": "100644",
+        "src/base/modules/mail/src/development/viewer.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/mail/src/doctor",
+      "originPath": "modules/mail/src/doctor",
+      "revision": "a1cde988c1be2c9f74ff5ca374dc47e044ba193c",
+      "files": {
+        "src/base/modules/mail/src/doctor/common.mjs": "09d55a9065b133ca5e3c64e35a652cac6c5220cd1f130328c9014f994ebd1e23",
+        "src/base/modules/mail/src/doctor/dns.mjs": "dbbd30abedf91cbf041597be0016d8f308f86951685161af89eeee1e99a9450e",
+        "src/base/modules/mail/src/doctor/index.mjs": "bc7e27eb1066b48b0c10bf0d874e858016675124e87f9795b04aa90cd5a11860",
+        "src/base/modules/mail/src/doctor/probe.mjs": "8f784edc9b8b1d28543471a406bfb7539db0f4070cdd24065798804012b735c0",
+        "src/base/modules/mail/src/doctor/README.md": "03fbc37879c24a39d864147142b3474ade2f3611a3bc9343be214f2280619e14",
+        "src/base/modules/mail/src/doctor/receive.mjs": "c113c033011d3a98c4407c5d7bb5a1f7130de088620a03d36d9087fc536a24c7",
+        "src/base/modules/mail/src/doctor/records.mjs": "f5a8f43ab1d3e5a125056f34068380f7634ed178b238937eac26c92b67c686b1"
+      },
+      "modes": {
         "src/base/modules/mail/src/doctor/common.mjs": "100644",
         "src/base/modules/mail/src/doctor/dns.mjs": "100644",
         "src/base/modules/mail/src/doctor/index.mjs": "100644",
         "src/base/modules/mail/src/doctor/probe.mjs": "100644",
         "src/base/modules/mail/src/doctor/README.md": "100644",
         "src/base/modules/mail/src/doctor/receive.mjs": "100644",
-        "src/base/modules/mail/src/doctor/records.mjs": "100644",
+        "src/base/modules/mail/src/doctor/records.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/mail/src/events",
+      "originPath": "modules/mail/src/events",
+      "revision": "a1cde988c1be2c9f74ff5ca374dc47e044ba193c",
+      "files": {
+        "src/base/modules/mail/src/events/d1-schema.sql": "c18a168f27d6994d2930730e775422d65cb97023f5550cdccc2d95fdf64440b1",
+        "src/base/modules/mail/src/events/d1-storage.mjs": "994d21831a0783e9338e2cc2832c4e4936b4a8b9f962938ed947a32923305fe5",
+        "src/base/modules/mail/src/events/index.mjs": "b59cbd19c3676bd36931929379e1a80605192ed4adb496fe39287e927b799ddc",
+        "src/base/modules/mail/src/events/intake.mjs": "27b4092955b0e9fe58ad860f9e386d9c57656816bd9855db62022455a6bab2b4",
+        "src/base/modules/mail/src/events/README.md": "31ca618acfcff4a9303772b31cf6ab4cec0c45d80e4ffb4eb5e1bbc8b97d8def",
+        "src/base/modules/mail/src/events/storage.mjs": "56a1befc9d7bb799de431d7e938bf84470cd10f891c5275cb0be89704f2de32b",
+        "src/base/modules/mail/src/events/verify.mjs": "d5ab927fdcca001bebdf1128e7cdf4c6006b49468406aff983c10957ef5bf286"
+      },
+      "modes": {
         "src/base/modules/mail/src/events/d1-schema.sql": "100644",
         "src/base/modules/mail/src/events/d1-storage.mjs": "100644",
         "src/base/modules/mail/src/events/index.mjs": "100644",
         "src/base/modules/mail/src/events/intake.mjs": "100644",
         "src/base/modules/mail/src/events/README.md": "100644",
         "src/base/modules/mail/src/events/storage.mjs": "100644",
-        "src/base/modules/mail/src/events/verify.mjs": "100644",
+        "src/base/modules/mail/src/events/verify.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/mail/src/inbound",
+      "originPath": "modules/mail/src/inbound",
+      "revision": "a1cde988c1be2c9f74ff5ca374dc47e044ba193c",
+      "files": {
+        "src/base/modules/mail/src/inbound/bytes.mjs": "cf6d59fff8c693a2833d0015f134d5c2559ec749aeb69b292b38585be7b7db7f",
+        "src/base/modules/mail/src/inbound/headers.mjs": "79673d562647f4e15e7fe10ca3b13241acd5b2cc25a651a32918cee45e02235c",
+        "src/base/modules/mail/src/inbound/index.mjs": "6defd48ac74f7a267f63d84f5b7cc8c1acfecfb26940df1a200088aa8be9f824",
+        "src/base/modules/mail/src/inbound/mime.mjs": "743ae43126ba32aa0cbc00b3be738a7486612b220787c548455c7a778fa1803c",
+        "src/base/modules/mail/src/inbound/multipart.mjs": "3696b971db5cf7a8c43eae84faca32123645293dcf97304382359be501d19cca",
+        "src/base/modules/mail/src/inbound/README.md": "19f1c3448ae767095f257e2aa0bef8e19e94bd9d00fe0cd7515fb4d0d9f53eff",
+        "src/base/modules/mail/src/inbound/resend-attachment.mjs": "a2ca74f17f0018c96b12a6bcaadc31c9b20d870687c5a2d7374de50e4c8fbff3",
+        "src/base/modules/mail/src/inbound/resend.mjs": "7d279b6dcb1280b0c3902afc05c7356a9fbfcc015051a5c852fbfbb789a41e17",
+        "src/base/modules/mail/src/inbound/sendgrid.mjs": "b599533e99e7912adfd10fc7343ba59e9387d783a623af0c6ac0843314265118"
+      },
+      "modes": {
         "src/base/modules/mail/src/inbound/bytes.mjs": "100644",
         "src/base/modules/mail/src/inbound/headers.mjs": "100644",
         "src/base/modules/mail/src/inbound/index.mjs": "100644",
@@ -725,10 +831,41 @@
         "src/base/modules/mail/src/inbound/README.md": "100644",
         "src/base/modules/mail/src/inbound/resend-attachment.mjs": "100644",
         "src/base/modules/mail/src/inbound/resend.mjs": "100644",
-        "src/base/modules/mail/src/inbound/sendgrid.mjs": "100644",
-        "src/base/modules/mail/src/sender.mjs": "100644",
+        "src/base/modules/mail/src/inbound/sendgrid.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/mail/src/sender.mjs",
+      "originPath": "modules/mail/src/sender.mjs",
+      "revision": "a1cde988c1be2c9f74ff5ca374dc47e044ba193c",
+      "files": {
+        "src/base/modules/mail/src/sender.mjs": "32e35cd88b3b7199f5ce7ac7139be853890428549a84f70a733a5a9a0df6979d"
+      },
+      "modes": {
+        "src/base/modules/mail/src/sender.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/mail/src/sendgrid-email",
+      "originPath": "modules/mail/src/sendgrid-email",
+      "revision": "a1cde988c1be2c9f74ff5ca374dc47e044ba193c",
+      "files": {
+        "src/base/modules/mail/src/sendgrid-email/index.d.mts": "65efe2ed9647dd24ce7a7c1055cc5d8213ce94061db7597fb0460309baaa48be",
+        "src/base/modules/mail/src/sendgrid-email/index.mjs": "4b0a9132941f0ba7a2f91b86b46b16bb0cdb5d3b9396b19ad13fb060bd02737d"
+      },
+      "modes": {
         "src/base/modules/mail/src/sendgrid-email/index.d.mts": "100644",
-        "src/base/modules/mail/src/sendgrid-email/index.mjs": "100644",
+        "src/base/modules/mail/src/sendgrid-email/index.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/mail/src/unsubscribe",
+      "originPath": "modules/mail/src/unsubscribe",
+      "revision": "a1cde988c1be2c9f74ff5ca374dc47e044ba193c",
+      "files": {
+        "src/base/modules/mail/src/unsubscribe/index.mjs": "4cd7c05a3a885d4d16cfcb50e623fdc201fe6c6bb8d9418502b0837161e55295"
+      },
+      "modes": {
         "src/base/modules/mail/src/unsubscribe/index.mjs": "100644"
       }
     },

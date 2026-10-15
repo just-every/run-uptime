@@ -5,7 +5,7 @@ import { privateDirectory, readPrivateFile, writePrivateFile } from '@runeditrun
 
 export const secretsFile = '.rer/deploy/production-secrets.json';
 export const secretNames = ['SESSION_SECRET', 'SETUP_TOKEN', 'OWNER_EMAIL', 'MAIL_FROM', 'SENDGRID_API_KEY', 'UPTIME_RUNNER_KEY'];
-const allowedNames=[...secretNames, 'MAIL_PROVIDER', 'MAIL_PROVIDER_API_KEY', 'CLOUDFLARE_MAIL_API_KEY', 'MAIL_ACCOUNT_ID', 'UPTIME_HEARTBEAT_URL', 'UPTIME_START_URL'];
+const allowedNames=[...secretNames, 'MAIL_PROVIDER', 'MAIL_API_KEY', 'MAIL_RELAY_URL', 'MAIL_PROVIDER_API_KEY', 'CLOUDFLARE_MAIL_API_KEY', 'MAIL_ACCOUNT_ID', 'UPTIME_HEARTBEAT_URL', 'UPTIME_START_URL'];
 const generatedNames = ['SESSION_SECRET', 'SETUP_TOKEN', 'UPTIME_RUNNER_KEY'];
 const email = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
 const string = value => typeof value === 'string' && value.trim() && !/[\r\n\0]/.test(value);
@@ -20,8 +20,8 @@ export function validateAccount(env, store) {
 }
 
 function mailInputs(values) {
- const provider=values.MAIL_PROVIDER??'sendgrid';if(!['sendgrid','resend','cloudflare'].includes(provider))throw new Error('invalid-mail-provider');
- return provider==='sendgrid'?['SENDGRID_API_KEY']:provider==='resend'?['MAIL_PROVIDER_API_KEY']:['CLOUDFLARE_MAIL_API_KEY','MAIL_ACCOUNT_ID'];
+ const provider=values.MAIL_PROVIDER??'sendgrid';if(!['sendgrid','resend','cloudflare','rer'].includes(provider))throw new Error('invalid-mail-provider');
+ return provider==='rer'?['MAIL_API_KEY','MAIL_RELAY_URL']:provider==='sendgrid'?['SENDGRID_API_KEY']:provider==='resend'?['MAIL_PROVIDER_API_KEY']:['CLOUDFLARE_MAIL_API_KEY','MAIL_ACCOUNT_ID'];
 }
 function validateSecrets(values) {
   const absent = [...generatedNames,'OWNER_EMAIL','MAIL_FROM',...mailInputs(values)].filter(name => !string(values[name]));

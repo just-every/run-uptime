@@ -35,6 +35,12 @@ Unexpected state placement or multiple databases refuse rather than move or dele
 
 `rer verify` builds, typechecks and runs the complete product and browser checks, then serves the production build as `rer deploy` hosts it and fails if a built file would answer anything but 200 or `/health` lacks the deploy identity. Install pinned Playwright Chromium with `pnpm exec playwright install --only-shell chromium`; Linux CI also requires `--with-deps`. Shared caches can use `PLAYWRIGHT_SKIP_BROWSER_GC=1` during browser installation. Test transports replace only authorized network/provider edges; no live provider request is required.
 
+## Managed hosting mail
+
+Managed hosting uses the RER mail relay for sign-in links and email notifications, with no mail-provider account or API key for the owner to enter. Configure fills and hides public `MAIL_PROVIDER=rer`, `MAIL_FROM`, `MAIL_RELAY_URL` and private `MAIL_API_KEY`. The relay credential belongs to one installation and environment, is stored with encrypted private settings, and is indexed only by its hash at the relay. The upstream provider key stays with RER. Assisted and Free hosting retain the existing SendGrid, Resend and Cloudflare Email Sending options and their credentials.
+
+Production and preview share an allowance of 20 messages per minute, 200 per hour and 1,000 per day per installation; valid attempts consume allowance even when the provider fails. A 202 response means provider acceptance, not inbox receipt. Relay errors follow Uptime's normal mail delivery policy; uncertain notification attempts are never automatically resent. Disconnect or effective hosting exit revokes the relay credentials. Rotating a credential invalidates pending releases: build and publish again to bind the replacement. An ordinary Configure save preserves an existing credential and cannot revive one explicitly revoked.
+
 ## Deploy in your own Cloudflare account
 
 The owner-account path is `rer deploy`. Use `deploy --environment production` to select the environment; `deploy --dry-run` builds and prints the Worker, D1, migrations, Cron and binding plan with zero provider requests. Its hosted origin remains pending until Cloudflare assigns it; it does not establish current provider state. The `--json` result includes `plan` and `pendingVariables`. It builds with provider credentials
@@ -46,10 +52,11 @@ Hosted sign-in requires a configured Base mail adapter (Resend, SendGrid or Clou
 `MAIL_PROVIDER` selects `resend`, `sendgrid` (the existing-install default when
 unset) or `cloudflare`. Resend uses `MAIL_PROVIDER_API_KEY`; SendGrid uses
 `SENDGRID_API_KEY`; Cloudflare Email Sending uses `CLOUDFLARE_MAIL_API_KEY` and
-`MAIL_ACCOUNT_ID`. rer 0.2.20 refuses `rer deploy` before building unless
-`MAIL_PROVIDER`, `MAIL_FROM` and `MAIL_API_KEY` (the selected provider's key) are
-in the environment or `--env-file`, on updates too; Uptime stores `MAIL_API_KEY`
-under that provider's own name. There is no automatic fallback between providers. Locally the
+`MAIL_ACCOUNT_ID`. rer 0.2.22 checks the selected provider's mail configuration
+before building. Supply `MAIL_PROVIDER`, `MAIL_FROM` and the selected provider's
+key in the environment or `--env-file`; the shared `MAIL_API_KEY` input can also
+supply a direct provider's key. Updates may reuse the existing deployment's mail
+credential. There is no automatic fallback between providers. Locally the
 provider is the development outbox. Optional `UPTIME_HEARTBEAT_URL` enables the
 independent heartbeat.
 Cloudflare Workers is the default owner deployment target. Uptime also declares
@@ -63,7 +70,7 @@ back it up separately from D1.
 
 With rer's newer custom-deployment lifecycle (0.2.3 and later), `rer deploy` wraps Uptime's deployment hook, claims the owner automatically and retires the one-use hosted `SETUP_TOKEN` after permanent admission. Inspect the command's `claimed` or `kept` owner outcome and token-retirement result, then open the hosted `/login` for ordinary email-link sign-in and finish the signed-in `/setup` page to enter `/app`. Owner admission is the permanent `oa_bootstrap` singleton; first-run completion is the separate `uptime_first_run` record. Retirement works before first-run completion and after original-owner erasure, which anonymises but retains admission. App documents return unfinished owners to `/setup`; signed-out visitors go to `/login`.
 
-This checkout pins the unmodified published `@runeditrun/rer` 0.2.20. Its lifecycle wraps the Uptime upload and health-check hook to claim the owner and retire `SETUP_TOKEN`. If upload, health check, automatic claim or retirement is incomplete, retain `.rer/deploy/<environment>.json` and private settings, rerun the same deployment command with the same environment, and inspect the reported stage, owner outcome and retirement result. Never enter a retired token at `/claim`. See the [deployment guide](docs/deploy.md#owner-claim-and-sign-in). Other environments retain their own ownership record and their own `SESSION_SECRET`, `SETUP_TOKEN` and `UPTIME_RUNNER_KEY` in `.rer/deploy/environments/<environment>/secrets.json` (an environment deployed earlier keeps the values it was deployed with), and share the owner and mail inputs in `.rer/deploy/production-secrets.json`; back up both. Before `node scripts/runner-start.mjs --environment NAME`, export `UPTIME_CONTROL_ORIGIN` as that environment's exact hosted HTTPS origin, without a path or trailing slash. The wrapper reads its saved runner key privately; the complete example is in [the deployment guide](docs/deploy.md#start-the-runner).
+This checkout pins the unmodified published `@runeditrun/rer` exactly 0.2.22. Its lifecycle wraps the Uptime upload and health-check hook to claim the owner and retire `SETUP_TOKEN`. If upload, health check, automatic claim or retirement is incomplete, retain `.rer/deploy/<environment>.json` and private settings, rerun the same deployment command with the same environment, and inspect the reported stage, owner outcome and retirement result. Never enter a retired token at `/claim`. See the [deployment guide](docs/deploy.md#owner-claim-and-sign-in). Other environments retain their own ownership record and their own `SESSION_SECRET`, `SETUP_TOKEN` and `UPTIME_RUNNER_KEY` in `.rer/deploy/environments/<environment>/secrets.json` (an environment deployed earlier keeps the values it was deployed with), and share the owner and mail inputs in `.rer/deploy/production-secrets.json`; back up both. Before `node scripts/runner-start.mjs --environment NAME`, export `UPTIME_CONTROL_ORIGIN` as that environment's exact hosted HTTPS origin, without a path or trailing slash. The wrapper reads its saved runner key privately; the complete example is in [the deployment guide](docs/deploy.md#start-the-runner).
 
 Start the private runner separately on an authorized host. See [Runner and targets](#runner-and-targets). The owner-account deployment path was exercised end to end once on v0.1.1; that historical run and a local readiness result do not establish the newer lifecycle or hosted operation.
 

@@ -248,7 +248,11 @@
   ],
   "durableObjects": [],
   "durableObjectMigrations": [],
-  "publicVariables": {},
+  "publicVariables": {
+    "MAIL_PROVIDER": "rer",
+    "MAIL_FROM": "",
+    "MAIL_RELAY_URL": ""
+  },
   "secretNames": [
     "SESSION_SECRET",
     "SETUP_TOKEN",
@@ -258,7 +262,8 @@
     "SENDGRID_API_KEY",
     "MAIL_PROVIDER_API_KEY",
     "CLOUDFLARE_MAIL_API_KEY",
-    "UPTIME_HEARTBEAT_URL"
+    "UPTIME_HEARTBEAT_URL",
+    "MAIL_API_KEY"
   ],
   "schedules": [
     "* * * * *"
@@ -284,5 +289,10 @@
         }
       ]
     }
+  },
+  "mail": {
+    "providers": [
+      "rer"
+    ]
   }
 }

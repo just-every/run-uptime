@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Managed hosting sends sign-in links and email notifications through the RER mail relay, with no provider account or API key to enter. Configure fills and hides `MAIL_PROVIDER`, `MAIL_FROM`, `MAIL_RELAY_URL` and private `MAIL_API_KEY`; Assisted and Free keep their existing SendGrid, Resend and Cloudflare Email Sending options.
+- Pin `@runeditrun/rer` to exactly 0.2.22.
+
 ## 0.2.0 — 2026-10-15
 
 `@runeditrun/rer` is pinned to exactly 0.2.20.
