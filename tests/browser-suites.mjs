@@ -18,7 +18,7 @@ const origin = 'http://127.0.0.1:15482';
 const grantPath = join(root, 'data/synthetic-grant.json');
 const children = new Set();
 const results = [];
-let worker, directory, evidence, ownedGrant = false, interrupted = false;
+let worker, directory, evidence, mailLog, ownedGrant = false, interrupted = false;
 const env = Object.fromEntries([
   'PATH', 'HOME', 'SystemRoot',
   'PLAYWRIGHT_BROWSERS_PATH', 'UPTIME_BROWSER_EXECUTABLE',
@@ -142,7 +142,7 @@ async function runSuite(script, variable, label) {
   const output = join(evidence, label);
   await mkdir(output, {mode: 0o700});
   console.log(`Running ${script}`);
-  const child = launch(label, script, {[variable]: output});
+  const child = launch(label, script, {[variable]: output,UPTIME_TEST_MAIL_LOG:mailLog});
   let killTimer;
   const timer = setTimeout(() => {
     signalGroup(child, 'SIGTERM');
@@ -190,6 +190,7 @@ try {
   ownedGrant = true;
   await reservation.close();
   directory = await mkdtemp(join(tmpdir(), 'uptime-browser-suites-'));
+  mailLog=join(directory,'mail.jsonl');
   // Browser profiles and sockets belong to this run's OS temporary directory.
   // Do not forward a caller's work-tree scratch path to Chromium.
   Object.assign(env, {TMPDIR: directory, TMP: directory, TEMP: directory});
@@ -202,7 +203,7 @@ try {
     if (grant.pid !== synthetic.pid || grant.port !== 15481 || grant.expiresAt <= Date.now()) return false;
     return (await fetch('http://127.0.0.1:15481/health', {signal: AbortSignal.timeout(2000)})).status === 200;
   }, synthetic);
-  worker = await startLocalWorker({root, port: 15482, persist: join(directory, 'control'), bindings,
+  worker = await startLocalWorker({root, port: 15482, persist: join(directory, 'control'), bindings,mailLog,
     outboundService: () => { throw Error('Browser suite Worker external requests prohibited'); },
   });
   const DB = await worker.getD1Database('DB');

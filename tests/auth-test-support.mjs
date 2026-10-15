@@ -1,4 +1,4 @@
-import {allDeliveredMessages} from './mail-provider-fixture.mjs';
+import {readDeliveredMessages} from './mail-provider-fixture.mjs';
 import {randomBytes} from 'node:crypto';
 import {request as httpRequest} from 'node:http';
 import assert from 'node:assert/strict';
@@ -30,7 +30,7 @@ export function sessionCookie(response){
  const cookie=response.headers.get('set-cookie');assert.ok(cookie,'Base session cookie required');assert.ok(/HttpOnly/.test(cookie),'Base session is HttpOnly');return cookie.split(';')[0];
 }
 export async function deliveredLink(call,{email,kind='magic'}){
- const all=allDeliveredMessages();
+ const all=await readDeliveredMessages();
  const entry=all.findLast(({message})=>message.personalizations.some(p=>p.to.some(to=>to.email===email)) && (kind==='invite'?message.subject.startsWith("You're invited"):message.subject.startsWith('Your sign-in link')));
  assert.ok(entry,'provider received the requested authentication message');
  return new URL(entry.text.match(/https?:\/\/[^\s]+/)[0]);

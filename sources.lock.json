@@ -3111,7 +3111,7 @@
       "executable": false
     },
     "tests/auth-test-support.mjs": {
-      "sha256": "d864c66e45dc7051c68187336092a5d9821429b8c7e58eee69cd62ee8c74ef26",
+      "sha256": "8c12d1d0eae2c9644d700ce4ae62d462a058c60b4d3dc46a30f1122ccd39d64a",
       "executable": false
     },
     "tests/availability.mjs": {
@@ -3119,7 +3119,7 @@
       "executable": false
     },
     "tests/browser-suites.mjs": {
-      "sha256": "059b60fb762b025417dd94ca282ab358ea69501328ae0845c3770180a07bc90c",
+      "sha256": "62b9c17c2fe9de7f77b1d664c621c7ceec9017787a2f2a41836ce0c222c28b75",
       "executable": false
     },
     "tests/command-journey.mjs": {
@@ -3219,7 +3219,7 @@
       "executable": false
     },
     "tests/mail-provider-fixture.mjs": {
-      "sha256": "d2753b251d90a108ac66a1614c82d0032395479813eaf9926e184983cd56d46d",
+      "sha256": "c10a7f487b0a402ddeef36526566d230bcfcdf65c29b98212f021dfffcfb8221",
       "executable": false
     },
     "tests/migration-support.mjs": {
