@@ -33,7 +33,7 @@
 
 ## Run it on your computer
 
-Use Node 22 or later, pnpm 10.12.4 and Git on macOS, Linux or Windows with WSL2. The CLI selects the checkout's pinned Node 22.20.0 for application commands; direct `node` and `pnpm` contributor commands use that pinned runtime. Uptime is developed in its public repository, [just-every/run-uptime](https://github.com/just-every/run-uptime): candidate work on branches, accepted work on `main`, and each release is a version tag on `main`. Public v0.1.1 is the security predecessor that closed the local development file-exposure issue in v0.1.0. The previous published version is v0.1.3 at tag commit `6a7a9eec92331de5f57f78a258f36275a1aee1ff`. This release is v0.2.0, tagged `v0.2.0` on `main`; no tag has a GitHub Release entry.
+Use Node 22 or later, pnpm 10.12.4 and Git on macOS, Linux or Windows with WSL2. The CLI selects the checkout's pinned Node 22.20.0 for application commands; direct `node` and `pnpm` contributor commands use that pinned runtime. Uptime is developed in its public repository, [just-every/run-uptime](https://github.com/just-every/run-uptime): candidate work on branches, accepted work on `main`, and each release is a version tag on `main`. Public v0.1.1 is the security predecessor that closed the local development file-exposure issue in v0.1.0. The previous published version is v0.2.0. This release record is v0.3.0, with rer pinned to 0.2.24. See [the changelog](CHANGELOG.md) for changes and [the release procedure](RELEASE.md) for producing the annotated tag and bundle.
 
 ```sh
 git clone https://github.com/just-every/run-uptime.git uptime

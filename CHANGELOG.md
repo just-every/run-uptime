@@ -1,11 +1,19 @@
 # Changelog
 
-## Unreleased
+## 0.3.0 — 2026-10-16
+
+Minor release: adds the Managed mail provider. No migrations since 0.2.0; existing data and private settings are preserved.
+
+- Hosted public checks start during authenticated console activity while a new Cron schedule activates. Discovery and heartbeat screens explain their private runner requirement.
+- JSON assertion failures show bounded diagnostics, with values redacted for sensitive paths and credentialed requests.
+- Relay rate limits respect Retry-After; ambiguous sends remain uncertain and are never automatically resent.
+- Local sign-in uses rer dev’s private owner handoff; captured-mail pages are removed.
+- Product screenshot: [scheduled check and recovered incident at 1440 pixels](.github/assets/release/uptime-0.3.0-monitor-1440.png).
 
 - Mark credential fixtures and examples explicitly synthetic so hosted source checks accept them.
 
 - Managed hosting sends sign-in links and email notifications through the RER mail relay, with no provider account or API key to enter. Configure fills and hides `MAIL_PROVIDER`, `MAIL_FROM`, `MAIL_RELAY_URL` and private `MAIL_API_KEY`; Assisted and Free keep their existing SendGrid, Resend and Cloudflare Email Sending options.
-- Pin `@runeditrun/rer` to exactly 0.2.23 and adopt its Base mail adapter: Managed mail sends from Workers, refuses relay redirects and supports relay-stamped automatic-mail headers.
+- Pin `@runeditrun/rer` to exactly 0.2.24 and adopt its Base mail adapter: Managed mail sends from Workers, refuses relay redirects and supports relay-stamped automatic-mail headers.
 - RER Open app links to `/signin?login_hint=<email>` prefill the email field through Base's shared sign-in page.
 
 ## 0.2.0 — 2026-10-15

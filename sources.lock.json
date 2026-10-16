@@ -420,6 +420,10 @@
       "sha256": "70b9578b0de4c956ab6717a7f74e43faf75e82fd717e50899cd84e96fa2afa04",
       "executable": false
     },
+    ".github/assets/release/uptime-0.3.0-monitor-1440.png": {
+      "sha256": "f59beddeb102d70ede57b7c2a3049ee2ae7317b9d504fecb29074eae8278e410",
+      "executable": false
+    },
     ".github/scripts/verify-ci.mjs": {
       "sha256": "b5dab36358fe873930d7b82572f3956d7ca04d04e1930e7a2aaef013b5c7b935",
       "executable": false
@@ -469,7 +473,7 @@
       "executable": false
     },
     "CHANGELOG.md": {
-      "sha256": "90d56ac00d7f7fca728b5ab156401f4dacbd885277c04bbc16b783a05e39abd4",
+      "sha256": "174386405dcc7cf0c044915a4d6f2fe9a6a805bafa69f780eb67156c5c3479b7",
       "executable": false
     },
     "CLAUDE.md": {
@@ -729,7 +733,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "fc708437fe9c0c46112bdbd677db2697330e128cb86191834b3f5e2dc5963c59",
+      "sha256": "4925bfacf57aa430a2a7565e901c4acd9eb706d8b92472da6143210ae14bfe5f",
       "executable": false
     },
     "patches/README.md": {
@@ -901,11 +905,15 @@
       "executable": false
     },
     "README.md": {
-      "sha256": "e827bd3d1a75e43b8f31b2dc957179ce5fd861124d5283d12ae72ebc5aeb74d7",
+      "sha256": "fb1afff383644bb9080e70a2227b9f058a1de37fea24e1b8b8641dabd555fdac",
       "executable": false
     },
     "RELEASE.json": {
-      "sha256": "533aa704f688c164ece0530eb483298a7e6153aa5ee6bf47e03333bf6427ce0e",
+      "sha256": "a517b33fbb3fbb0dc8c253f5b2fc348be0605904e5b3d79dfbcab804f0f78336",
+      "executable": false
+    },
+    "RELEASE.md": {
+      "sha256": "a4b433ce4866898e7f554f85a3f296bd2806744e0a7803a287abfb0f41234c46",
       "executable": false
     },
     "rer-local-setup.json": {
@@ -1421,7 +1429,7 @@
       "executable": false
     },
     "seed.json": {
-      "sha256": "0d789a8818fe6144cb84323b9305528bd287a196b8604f6871da6bc67ff1e263",
+      "sha256": "905f34ce37efdf61cbec03a8ca461583bffbf3d86d846836101cd39cea0799dd",
       "executable": false
     },
     "src/base/deployment-health.ts": {
