@@ -1,4 +1,4 @@
-import {PROBE_ACCEPT,ProbeError,publicReport} from '../public-http.mjs';
+import {PROBE_ACCEPT,ProbeError} from '../probe-error.mjs';
 import {DiscoveryStop} from './budget.mjs';
 import {AUX_BODY_CAP,HOP_LIMIT,HOP_TIMEOUT_MS,MEMO_LIMIT,PARSE_BODY_CAP,PEEK_BODY_CAP,USER_AGENT} from './constants.mjs';
 import {bareHost,registrableDomain} from './domain.mjs';
@@ -8,9 +8,10 @@ export const isHtml=mime=>mime==='text/html'||mime==='application/xhtml+xml';
 export const isJson=mime=>mime==='application/json'||mime.endsWith('+json');
 export const isText=mime=>mime==='text/plain';
 const FAILURES={network:'refused',dns:'dns',timeout:'timeout',connection:'connection',redirect:'redirect',encoding:'encoding',transport:'transport',method:'method',runner:'runner'};
-// Every discovery request goes through here: one budget, robots.txt, back-off, and the pinned report transport.
+// Every discovery request goes through here: one budget, robots.txt, back-off, and the caller's report transport
+// (the runner's pinned socket, or the Worker's fetch in a hosted demo).
 // Results carry derived facts and, in memory only, the body for the caller to parse; nothing is stored or logged.
-export function createFetcher({budget,notes,scope,transport=publicReport}){
+export function createFetcher({budget,notes,scope,transport}){
   const robots=new Map(),stops=new Set(),memo=new Map();
   const failure=(reason,url,extra={})=>({ok:false,reason,url,...extra});
   async function robotsFor(url,quiet){

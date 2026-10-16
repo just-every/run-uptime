@@ -1,5 +1,5 @@
 import {publicTarget} from '../../../src/domain/public-target.mjs';
-import {PROBE_ACCEPT} from '../public-http.mjs';
+import {PROBE_ACCEPT} from '../probe-error.mjs';
 import {HTML_ACCEPT,JSON_ASSERT_LIMIT,PARSE_BODY_CAP} from './constants.mjs';
 import {bareHost,isApiHost,isStatusHost,registrableDomain} from './domain.mjs';
 import {isHtml,isJson} from './fetcher.mjs';

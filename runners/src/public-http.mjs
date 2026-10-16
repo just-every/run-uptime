@@ -5,9 +5,8 @@ import {isIP} from 'node:net';
 import {publicTarget,publicAddress} from '../../src/domain/public-target.mjs';
 import {MAX_BODY,RUNNER_VERSION} from '../../src/domain/policy.mjs';
 import {readCredentials} from './credentials.mjs';
-// JSON and text first, then anything: servers that negotiate on Accept (406 to a narrow list) still answer a probe as they answer a browser.
-export const PROBE_ACCEPT='application/json,text/plain,*/*;q=0.1';
-export class ProbeError extends Error {constructor(category,reason){super(category);this.category=category;this.reason=reason}}
+import {PROBE_ACCEPT,ProbeError} from './probe-error.mjs';
+export {PROBE_ACCEPT,ProbeError};
 export async function resolvePublic(url,signal) {
   const host=url.hostname.replace(/^\[|\]$/g,'');
   if(isIP(host)){if(!publicAddress(host))throw new ProbeError('network');return {address:host,family:isIP(host)}}

@@ -1,5 +1,6 @@
 import {validateDiscoveryResult} from '../../src/domain/discovery-result.mjs';
 import {discover as discoverSite} from './discovery/index.mjs';
+import {publicReport} from './public-http.mjs';
 // Answers the owner's "check this website" jobs. It runs beside the probe loop, never inside it: one claim route poll
 // at a time, one discovery at a time, and a slow crawl only delays the next discovery, never a probe or a notification.
 const ERROR_MAX=200,RUN_LIMIT_MS=100_000;
@@ -14,7 +15,7 @@ export async function runDiscoveryLoop({api,signal,pollMs=1000,discover=discover
   let body;
   try{
    const run=AbortSignal.any([AbortSignal.timeout(RUN_LIMIT_MS),...(signal?[signal]:[])]);
-   body={result:validateDiscoveryResult(await discover(job.url,{signal:run}))};
+   body={result:validateDiscoveryResult(await discover(job.url,{signal:run,transport:publicReport}))};
   }catch(error){
    if(signal?.aborted)return;
    body={error:failureText(error,'The runner could not check this website')};

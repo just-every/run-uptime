@@ -1,4 +1,4 @@
-import {PROBE_ACCEPT} from '../../public-http.mjs';
+import {PROBE_ACCEPT} from '../../probe-error.mjs';
 import {bareHost,isStatusHost} from '../domain.mjs';
 import {isJson} from '../fetcher.mjs';
 import {parseJson} from '../json-health.mjs';
