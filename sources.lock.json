@@ -489,7 +489,7 @@
       "executable": false
     },
     "deploy-demo.json": {
-      "sha256": "c4f6053e3749f840caf170dd563ffca064beba2e935b978d9ca50130c2c0babb",
+      "sha256": "b04c5c489efabb86dfa7104aa5203be925963ccfcf7f494dda227b2470615ad5",
       "executable": false
     },
     "deploy-site.json": {
@@ -2361,7 +2361,7 @@
       "executable": false
     },
     "src/demo.ts": {
-      "sha256": "c6b14121a1a36981f2d63472b7d32c2b062a937f0ffe1c669fa20f155bc41958",
+      "sha256": "c7214e6fa88c015556d6d18af0988e0622a75e0df96d765a0b742a21c1d93f8e",
       "executable": false
     },
     "src/domain/access-document.server.ts": {
@@ -2505,7 +2505,7 @@
       "executable": false
     },
     "src/domain/demo-history.server.ts": {
-      "sha256": "4ad9e1ad6159dc24fc4835875a73d688e6bea67ab20e940590c18a538152abf1",
+      "sha256": "441e2da9ddfca4d5fbc0a2a4030e2683400c58a92b1b7023ba020643459d7e94",
       "executable": false
     },
     "src/domain/demo.server.ts": {
@@ -3233,7 +3233,7 @@
       "executable": false
     },
     "tests/demo-scheduled.mjs": {
-      "sha256": "949d25a702982524860f5537675d8bf1cad248747f4c2aeb676d904aa9b53d9c",
+      "sha256": "4dbbac8aebc47167e0c34b36b39d57257bf47a55b7eaf9a923225bcb7cd19793",
       "executable": false
     },
     "tests/deployment-custody.mjs": {
