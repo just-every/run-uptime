@@ -224,9 +224,9 @@
     {
       "path": "scripts/delivery/base/declarations.mjs",
       "originPath": "modules/delivery-producer/declarations.mjs",
-      "revision": "1ee378e41142c673a9098f60af21664c6d8477d1",
+      "revision": "6b3e0f931ce69465496e2c4b05cd4bcaf530fff2",
       "files": {
-        "scripts/delivery/base/declarations.mjs": "00924a1564e172d4d210a32936afe757870e226796465c11ac148e39d0ea0a85"
+        "scripts/delivery/base/declarations.mjs": "d8cf67d18fdc6ff027d323d0986a7815b52c71df01c4cbb3dde428cfc7f55a0c"
       },
       "modes": {
         "scripts/delivery/base/declarations.mjs": "100644"

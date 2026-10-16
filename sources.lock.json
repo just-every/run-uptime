@@ -465,7 +465,7 @@
       "executable": false
     },
     "base-copies.json": {
-      "sha256": "c40eaac90c21bffcf26a753f3b3c3c0823b82958a46a97a0fcfad867b8bb77ea",
+      "sha256": "8bdc2311247c13df29aa8095701d8fb57d7b48bf9fc0d379b75e6af6a1b044db",
       "executable": false
     },
     "BASELINE.md": {
@@ -565,7 +565,7 @@
       "executable": false
     },
     "management/integration/deployment-spec.json": {
-      "sha256": "c4c4e5ee8232e829117b924b318e377b334e6b4ade3fec88c764923350ece7ca",
+      "sha256": "1fe6e0332244c99f812f3883241a5b442710039800f5d9cba9853de5e3224419",
       "executable": false
     },
     "migrations/0001_uptime.sql": {
@@ -733,7 +733,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "4925bfacf57aa430a2a7565e901c4acd9eb706d8b92472da6143210ae14bfe5f",
+      "sha256": "c96b66aecd488a8181f16394a62769bca54995baad9a04ec651e8d6a846c4e48",
       "executable": false
     },
     "patches/README.md": {
@@ -741,7 +741,7 @@
       "executable": false
     },
     "pnpm-lock.yaml": {
-      "sha256": "5f87e34c987993e99e52387b0f4c78234a34ac96a5af502de1f2f3b1b7a23d1b",
+      "sha256": "f34a4c1bebc34212cabe059106c4354434c91abf4be94229845360229378168c",
       "executable": false
     },
     "public/action-feedback.mjs": {
@@ -1185,7 +1185,7 @@
       "executable": false
     },
     "scripts/delivery/base/declarations.mjs": {
-      "sha256": "00924a1564e172d4d210a32936afe757870e226796465c11ac148e39d0ea0a85",
+      "sha256": "d8cf67d18fdc6ff027d323d0986a7815b52c71df01c4cbb3dde428cfc7f55a0c",
       "executable": false
     },
     "scripts/delivery/base/export.mjs": {
@@ -1221,7 +1221,7 @@
       "executable": false
     },
     "scripts/delivery/base/packaging.json": {
-      "sha256": "d52b15264fd51d3257ceab1be333e2e2fdd3cd519622689fd1bfc6fe98bcacba",
+      "sha256": "f760e2f9ae76d2d3575070720e703061312f1fe8ac8d55c9a10c0ce01dff5d7a",
       "executable": false
     },
     "scripts/delivery/base/paths.mjs": {
@@ -2473,7 +2473,7 @@
       "executable": false
     },
     "src/domain/auth-document.server.ts": {
-      "sha256": "caf77d58fa710cd6982e20b55924993ec59ee7c60bb032e0609ed6d13b53b802",
+      "sha256": "fcce92b91a3b68776337a640d4f527ae1066c2a79bdb503cdb70ef4ec05083a2",
       "executable": false
     },
     "src/domain/availability-query.ts": {
@@ -2665,7 +2665,7 @@
       "executable": false
     },
     "src/domain/operator-auth.server.ts": {
-      "sha256": "4639025b6d3341812533281f070ae73e85a72636fb554e3d798f3159579ae015",
+      "sha256": "2cbc52e0bdfa9d6880576ec214f90a2e9a020299e044c241a94f717b990ecf28",
       "executable": false
     },
     "src/domain/operator-mail-authority.ts": {
@@ -2817,7 +2817,7 @@
       "executable": false
     },
     "src/server.ts": {
-      "sha256": "6c8fa3d55e1c178718045d6e0631f5d3c87810a1736e95f7b3519e7978192297",
+      "sha256": "b13877ddedf8450b430c742cab862597348efa5920512b3e5e02a694c9f1fac1",
       "executable": false
     },
     "src/site/docs/build/manifest.ts": {
@@ -3249,7 +3249,7 @@
       "executable": false
     },
     "tests/hosted-auth-browser.mjs": {
-      "sha256": "f7c0821556a8eadec5aa380d7b70475027372529ebff6ccf52ce7563d9da1e81",
+      "sha256": "e46e63782f41a2de7902e2f4d47a4dbbbc7d5a7586cc79ccfc779e6b4269fb5a",
       "executable": false
     },
     "tests/hosted-auth-runtime.mjs": {

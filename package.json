@@ -65,7 +65,7 @@
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.62.2",
     "@cloudflare/workers-types": "5.20261006.1",
-    "@runeditrun/rer": "0.2.24",
+    "@runeditrun/rer": "0.2.25",
     "@types/node": "26.6.4",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.7",

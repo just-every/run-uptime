@@ -34,7 +34,7 @@ export async function authRoute(env:AuthBindings,request:Request){try{
 export function authFailure(error:unknown){return Response.json({error:error instanceof AuthError?error.code:'auth_unavailable'},{status:error instanceof AuthError?error.status:503,headers:{'cache-control':'no-store'}})}
 export async function signOut(env:AuthBindings,request:Request){return operatorAuth(env).signOut(request)}
 
-// RER's Open app uses /signin; /login remains the native auth return path.
+// Keep /signin as a browser alias; /login is the declared sign-in and native return path.
 // Render the alias through Base so validation, escaping and login_hint stay shared.
 export async function signInDocument(env:AuthBindings,request:Request){
  const url=new URL(request.url);url.pathname='/login';

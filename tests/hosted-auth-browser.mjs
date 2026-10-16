@@ -7,9 +7,11 @@ import {testAuthBindings} from './auth-test-support.mjs';
 import {hostedBrowserRuntime} from './hosted-browser-runtime.mjs';
 import {splitSql} from './migration-support.mjs';
 
-const directory = await mkdtemp(join(tmpdir(), 'uptime-hosted-browser-'));
 const mails = [];
-const bindings = {...testAuthBindings, MAIL_PROVIDER: 'sendgrid', UPTIME_LOCAL_REVIEW: 'false', OWNER_EMAIL: 'owner@example.test',
+const {surfaces: {app: {signIn}}} = JSON.parse(await readFile('management/integration/deployment-spec.json', 'utf8'));
+assert.equal(signIn.loginHint, true, 'Open app can carry the owner email');
+const directory = await mkdtemp(join(tmpdir(), 'uptime-hosted-browser-'));
+const bindings = {...testAuthBindings, MAIL_PROVIDER: 'sendgrid', UPTIME_LOCAL_REVIEW: 'false', OWNER_EMAIL: 'maya@northstar.example',
   MAIL_FROM: 'Uptime <auth@example.test>', SENDGRID_API_KEY: 'test-only-provider-key'};
 let runtime, browser;
 try {
@@ -68,12 +70,15 @@ try {
   assert.equal((await loginContext.request.get(runtime.origin + '/api/overview')).status(), 401);
   for (const width of [1440, 390]) {
     await login.setViewportSize({width, height: 900});
-    for (const query of ['', '?login_hint=not-an-email']) {
-      await login.goto(runtime.origin + '/signin' + query);
-      assert.equal(await login.getByLabel('Email', {exact: true}).inputValue(), '', 'only a complete explicit hint prefills');
+    for (const path of [signIn.path, '/signin']) {
+      for (const hint of ['', 'not-an-email', '"><script>alert(1)</script>@example.test']) {
+        await login.goto(runtime.origin + path + (hint ? '?login_hint=' + encodeURIComponent(hint) : ''));
+        assert.equal(await login.getByRole('textbox', {name: /^Email/}).inputValue(), '', 'only a complete explicit hint prefills');
+      }
     }
-    await login.goto(runtime.origin + '/signin?login_hint=' + encodeURIComponent(bindings.OWNER_EMAIL));
-    assert.equal(await login.getByLabel('Email', {exact: true}).inputValue(), bindings.OWNER_EMAIL);
+    await login.goto(runtime.origin + signIn.path + '?login_hint=' + encodeURIComponent(bindings.OWNER_EMAIL));
+    assert.equal(await login.getByLabel('Email address', {exact: true}).inputValue(), bindings.OWNER_EMAIL);
+    await login.evaluate(() => document.fonts.ready);
     assert.equal(await login.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     assert.equal(mails.length, 0, 'opening Open app never sends mail');
     assert.equal((await db.prepare('SELECT count(*) n FROM oa_tokens').first()).n, 0);
@@ -82,7 +87,7 @@ try {
       await login.screenshot({path: join(process.env.UPTIME_AUTH_SHOTS, `login-hint-${width}.png`), fullPage: true});
     }
   }
-  const sent = await nativePost(login, '/auth/magic-link', 'Email a sign-in link');
+  const sent = await nativePost(login, '/auth/magic-link', 'Send sign-in link');
   assert.equal(sent.status(), 303, 'native form redirects to its acknowledgement');
   const acknowledgement = new URL(sent.headers().location, runtime.origin);
   assert.equal(acknowledgement.origin, runtime.origin);

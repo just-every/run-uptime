@@ -120,6 +120,10 @@
       "surfaces": {
         "app": {
           "path": "/",
+          "signIn": {
+            "path": "/login",
+            "loginHint": true
+          },
           "originVariable": "UPTIME_ORIGIN",
           "readiness": [
             {
