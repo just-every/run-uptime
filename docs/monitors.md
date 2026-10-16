@@ -28,6 +28,26 @@ This requires the response's `status.indicator` value to equal `"none"` and its 
 
 A keyword monitor is an HTTP(S) check that requires specific text in the response body. Use it when a page can return 200 while the content is wrong.
 
+### TCP port
+
+A TCP monitor opens a connection to a host and port, for example a database, a mail server or an SSH service. It records the connection time and, if you choose, the first line the service sends (its banner, at most 256 characters), which can be required to contain some text. A refused connection, a connection that times out and a check that could not run (the runner's own DNS failed, or this vantage cannot reach the address) are separate outcomes; only the first two count against the target.
+
+### DNS record
+
+A DNS monitor asks public resolvers (Cloudflare and Google, over HTTPS) for an A, AAAA, CNAME, MX, TXT, NS, SOA, SRV or CAA record. Without expected values it needs at least one record; with them, the answer must match exactly or include them, or it may require that the record does not exist. A missing name (NXDOMAIN), a resolver failure (SERVFAIL), resolvers that disagree, and a resolver that could not be reached at all are reported separately; the last is a fault in the monitoring path and stays Unknown. Before a planned change, add the new values as an **approved change**: they pass as well, while a missing name or a failing resolver still fails. SOA compares the primary name server and the responsible mailbox, not the serial.
+
+### TLS certificate
+
+A TLS monitor connects to a host (port 443 unless you set another) and checks that the certificate chain is trusted, covers the host name and is within its validity dates. It warns before expiry at stages you choose (30, 14 and 7 days by default), once per certificate and stage, naming the certificate and its accountable owner. A warning stays open until a renewed certificate, valid beyond every stage, is observed; then one renewal notice closes it. Expiry checks run at least hourly.
+
+### Domain registration expiry
+
+A domain monitor reads the registration's expiry date from the registry's RDAP service (found through IANA's bootstrap) and from the registrar's RDAP record the registry links. It keeps each source and when that source last updated. It warns before expiry (60, 30, 14 and 7 days by default) and follows each warning until a renewed expiry date is observed. A redacted or missing date, registry data that could not be read, or a registry and registrar that disagree by more than a day are Unknown, never healthy. Certificate renewal is not domain renewal.
+
+### Where each check runs
+
+The Cloudflare Worker runs HTTP(S), keyword, TCP, TLS, DNS and domain checks at an interval of at least one minute. A Worker cannot open sockets to Cloudflare's own addresses, so a TCP or TLS check of a site hosted on Cloudflare is Unknown there and says so; a private runner can check it. The Worker reads a certificate from a TLS 1.2 handshake, so a server that accepts only TLS 1.3 is also Unknown at the Worker. A private runner runs every type. ICMP ping is not offered.
+
 ### Incoming heartbeat
 
 A heartbeat monitor waits for your own job to call Uptime. It suits cron jobs, backups and workers that should check in on a schedule. Creation and configuration use **Definitions**; the New monitor HTTP form does not create heartbeats.

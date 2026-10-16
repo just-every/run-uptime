@@ -17,7 +17,7 @@ export function validateNotificationTables(t:Tables){
  unique(t.notification_jobs,r=>`${r.event_id}:${r.destination_id}`,'event destination');
  for(const r of jobs.values()){
   const destination=destinations.get(r.destination_id),event=JSON.parse(r.event);
-  if(!destination||destination.kind!==r.kind||typeof r.destination_name!=='string'||!r.destination_name||r.destination_name.length>100||!object(event)||event.id!==r.event_id||event.visibility!=='private'||!['trigger','recovery','test'].includes(event.kind))throw Error('Invalid notification job reference');
+  if(!destination||destination.kind!==r.kind||typeof r.destination_name!=='string'||!r.destination_name||r.destination_name.length>100||!object(event)||event.id!==r.event_id||event.visibility!=='private'||!['trigger','recovery','test','expiry','renewal'].includes(event.kind))throw Error('Invalid notification job reference');
   shape(event,['schemaVersion','id','kind','eventType','incidentKey','state','title','monitorId','monitorRevision','monitorName','url','slotId','observedAt','visibility','evidenceRef','explanation','probes','consoleUrl'],'notification event');clock(event.observedAt,'notification event');
   if(event.schemaVersion!==2||!Array.isArray(event.probes)||event.probes.length>3||['title','monitorName','url','evidenceRef','explanation','consoleUrl','eventType'].some(k=>typeof event[k]!=='string'||event[k].length>4096))throw Error('Invalid notification event');
   if(event.kind!=='test'){const outbox=t.outbox.find(x=>x.id===r.event_id);if(!outbox||outbox.event!==r.event)throw Error('Invalid notification event history')}else if(event.monitorId!==null||event.slotId!==null||event.incidentKey!==null)throw Error('Invalid test event');

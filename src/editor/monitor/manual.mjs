@@ -1,12 +1,16 @@
 import {api} from './api.mjs';
 import {fillFields,readFields} from './fields.mjs';
 import {mountProbeControls} from './probes.mjs';
+import {showType,TYPE_TIMING} from './protocol-fields.mjs';
 // The full monitor form: what a new monitor starts from by hand, and the only way to edit an existing one.
 export const NEW_MONITOR={name:'',url:'',method:'GET',assertions:{status:200},intervalMs:60000,timeoutMs:2000,retries:1,probes:['local-a'],failureQuorum:1,confirmSlots:2,recoverSlots:2,freshnessMs:180000,enabled:true,maintenanceUntil:0};
 export function prepareManualForm(form,definition){
  fillFields(form,definition);
  form.elements.url.required=definition.type!=='heartbeat';
  form.querySelectorAll('input,select,textarea').forEach(control=>control.disabled=false);
+ showType(form,form.elements.checkType.value);
+ // A new monitor takes each type's usual timing when the type changes; an existing monitor keeps its own.
+ form.elements.checkType.onchange=()=>{const type=form.elements.checkType.value;showType(form,type);if(!definition.name)for(const [name,value] of Object.entries(TYPE_TIMING[type]))form.elements.namedItem(name).value=String(value)};
  form.querySelector('button[type=submit]').disabled=true;
  form.onsubmit=event=>event.preventDefault();
 }
@@ -25,6 +29,7 @@ export function mountManualForm({form,overview,definition,id,returnTo,message,pr
   }catch(error){message.textContent=error.message;message.setAttribute('data-error','');button.disabled=false;form.querySelector('.editor-footer').scrollIntoView({block:'end'})}
  };
  form.querySelectorAll('input,select,textarea,button[type="submit"]').forEach(control=>control.disabled=false);
+ showType(form,form.elements.checkType.value);
  for(const checkbox of probes.querySelectorAll('input[type=checkbox]'))checkbox.onchange();
  message.textContent='Request credentials stay in the runner installation.';
 }

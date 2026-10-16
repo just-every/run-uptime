@@ -168,6 +168,41 @@
       "adapters": []
     },
     {
+      "id": "public-protocol-targets",
+      "required": false,
+      "requiredWhen": "An owner enables a TCP or TLS monitor",
+      "why": "The hosted Worker or an assigned private runner opens a connection to the owner's public host and port to check that it accepts connections, its banner or its certificate.",
+      "data": [
+        "Target host name, port, the validated public address connected to, connection time and the vantage's source address",
+        "A TCP check sends no data; with banner reading on, it reads at most 512 bytes the service sends first and keeps at most 256 printable characters",
+        "A TLS check sends a TLS ClientHello naming the host (SNI); the Worker reads the certificate chain from a TLS 1.2 handshake it does not complete and then makes one verified connection without sending application data; certificate subject, issuer, names, validity and SHA-256 fingerprint are retained",
+        "Private, loopback, link-local and metadata addresses are refused before connecting; the Worker also refuses Cloudflare addresses, which its sockets cannot reach, and reports that vantage Unknown"
+      ],
+      "adapters": []
+    },
+    {
+      "id": "dns-over-https-resolvers",
+      "required": false,
+      "requiredWhen": "An owner enables a DNS monitor, or the Worker validates a TCP, TLS or registry host",
+      "why": "DNS monitors ask the owner-selected public resolvers (Cloudflare at cloudflare-dns.com, Google at dns.google) over HTTPS; the Worker also resolves TCP, TLS and registry hosts through Cloudflare before connecting.",
+      "data": [
+        "The queried name and record type, request time and the vantage's source address",
+        "The resolver returns its answer code and records; at most ten normalised records of at most 255 characters per resolver and the response time are retained"
+      ],
+      "adapters": []
+    },
+    {
+      "id": "rdap-registries",
+      "required": false,
+      "requiredWhen": "An owner enables a domain registration monitor",
+      "why": "Domain monitors read IANA's RDAP bootstrap (data.iana.org), the domain's registry RDAP service it names and the registrar RDAP record the registry links, over HTTPS only.",
+      "data": [
+        "The monitored domain name, request time and the vantage's source address",
+        "Registry and registrar answers are read up to 64 KiB (the bootstrap up to 256 KiB); retained are each source URL and update time, the expiry date, registry status values and whether the date is redacted or the sources conflict"
+      ],
+      "adapters": []
+    },
+    {
       "id": "site-discovery",
       "required": false,
       "requiredWhen": "An owner asks to check a public website or configures UPTIME_START_URL",
@@ -956,6 +991,14 @@
       },
       {
         "path": "/flow-panel.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/protocol-panel.js",
         "match": "exact",
         "kind": "asset",
         "class": "assets",

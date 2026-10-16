@@ -41,7 +41,8 @@ test('SSRF blocks all special IPv4 ranges and encoded literals, mapped/transitio
  for(const url of ['http://%31%32%37.0.0.1/','http://0x7f.1/','http://user:pass@public-a.test/','file:///etc/passwd','https://[fe80::1%25en0]/','http://public-a.test\\@127.0.0.1/'])assert.throws(()=>publicTarget(url));
 });
 test('definition types and request references validate without retaining plaintext settings',()=>{
- for(const type of ['dns','ping','tcp','domain-expiry','browser','unknown'])assert.throws(()=>def({type}),/Unsupported/);
+ for(const type of ['ping','udp','domain-expiry','browser','unknown'])assert.throws(()=>def({type}),/Unsupported/);
+ for(const type of ['tcp','dns','tls','domain'])assert.throws(()=>def({type}),new RegExp(`${type.toUpperCase()} settings required|Domain settings required`,'i'));
  assert.throws(()=>def({type:'keyword'}),/Keyword/);assert.equal(def({type:'keyword',assertions:{bodyIncludes:'word'}}).type,'keyword');
  for(const request of [{headers:{authorization:'secret'}},{body:'secret'},{credentialRef:'../escape'},{credentialRef:'a',auth:'secret'}])assert.throws(()=>def({request}));
  assert.throws(()=>def({headers:{a:'b'}}));assert.throws(()=>def({network:'synthetic'}));

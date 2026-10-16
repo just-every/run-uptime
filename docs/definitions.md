@@ -2,12 +2,12 @@ A definition file lists your monitors as reviewed text, so you can keep them in 
 
 ## The file
 
-The default name is `uptime.monitors.json`. New exports use version 2; version 1 files remain readable. The supported public monitor types are HTTP(S), keyword and heartbeat:
+The default name is `uptime.monitors.json`. New exports use version 3; version 1 and 2 files remain readable (a flow needs version 2 or later, and the TCP, DNS, TLS and domain types need version 3). The supported public monitor types are HTTP(S), keyword, heartbeat, TCP, DNS, TLS and domain:
 
 ```json
 {
   "format": "uptime.monitors",
-  "version": 2,
+  "version": 3,
   "monitors": [
     {
       "name": "Shop home",
@@ -29,12 +29,22 @@ The default name is `uptime.monitors.json`. New exports use version 2; version 1
       "type": "heartbeat",
       "heartbeat": { "maxAgeMs": 86400000 },
       "intervalMs": 3600000
+    },
+    {
+      "name": "Shop certificate",
+      "type": "tls",
+      "tls": { "host": "shop.example.com", "port": 443, "warnDays": [30, 14, 7], "owner": "Web team" }
+    },
+    {
+      "name": "Shop mail exchange",
+      "type": "dns",
+      "dns": { "name": "example.com", "recordType": "MX", "resolvers": ["cloudflare", "google"], "expect": { "values": ["10 mail.example.com"], "match": "exact" } }
     }
   ]
 }
 ```
 
-Each entry uses the same fields as the monitor editor, and the same validation checks them: `name`, `type` (`http`, `keyword` or `heartbeat`), `url`, `method`, `assertions`, `intervalMs`, `timeoutMs`, `retries`, `probes`, `failureQuorum`, `confirmSlots`, `recoverSlots`, `freshnessMs`, `heartbeat` (`maxAgeMs`, at most one day), `enabled` and `maintenanceUntil`. A header assertion takes only `name` and `equals`, and a JSON assertion only `path` and `equals`. Fields you leave out take the editor's defaults. Monitors are matched to your installation by name.
+Each entry uses the same fields as the monitor editor, and the same validation checks them: `name`, `type` (`http`, `keyword`, `heartbeat`, `tcp`, `dns`, `tls` or `domain`), `url`, `method`, `assertions`, `intervalMs`, `timeoutMs`, `retries`, `probes`, `failureQuorum`, `confirmSlots`, `recoverSlots`, `freshnessMs`, `heartbeat` (`maxAgeMs`, at most one day), `tcp` (`host`, `port`, `readBanner`, `bannerIncludes`), `dns` (`name`, `recordType`, `resolvers`, `expect`, `approved`), `tls` (`host`, `port`, `warnDays`, `owner`), `domain` (`name`, `warnDays`, `owner`), `enabled` and `maintenanceUntil`. A TCP, DNS, TLS or domain monitor takes its address from these settings and no `url` or `method`; its only assertion is `latencyMs`. A header assertion takes only `name` and `equals`, and a JSON assertion only `path` and `equals`. Fields you leave out take the editor's defaults. Monitors are matched to your installation by name.
 
 Some things never go in the file:
 

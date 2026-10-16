@@ -511,3 +511,9 @@
 .incident-record :is(p,li,dd) { overflow-wrap: anywhere; }
 .incident-record details { margin-top: 12px; }
 .heartbeat-key-dialog > .one-time-secret { grid-column: 1 / -1; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* A TLS or domain monitor's expiry warnings: each warning or renewal as a short entry. */
+.expiry-list { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.expiry-list li { display: grid; gap: 4px; padding-bottom: 12px; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+.expiry-list li:last-child { padding-bottom: 0; border-bottom: 0; }
+.expiry-list .muted { color: var(--muted); font-size: 14px; }

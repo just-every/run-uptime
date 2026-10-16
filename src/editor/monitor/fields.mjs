@@ -1,30 +1,40 @@
 import {additionalAssertions,assembleAssertions} from './definition.mjs';
 import {minutesToMilliseconds,secondsToMilliseconds} from './units.mjs';
+import {PROTOCOL_TYPES,fillProtocol,readProtocol,showType,checkTypeOf} from './protocol-fields.mjs';
 // The monitor fields, shared by the full form and by every proposal row that expands into the same fields. A root is
 // the form or a row's copy of the field markup; fields are found by name inside it.
 export const FIELD_NAMES=['name','url','method','status','body','headerName','headerValue','additional','intervalMinutes','timeoutSeconds','retries','confirmSlots','recoverSlots','freshnessMinutes'];
 const control=(root,name)=>root.querySelector(`[name="${name}"]`);
 export function fieldValues(definition){
  const {assertions}=definition;
- return {name:definition.name,url:definition.url,method:definition.method,status:assertions.status,body:assertions.bodyIncludes??'',headerName:assertions.header?.name??'',headerValue:assertions.header?.equals??'',additional:JSON.stringify(additionalAssertions(assertions),null,2),
+ return {name:definition.name,url:PROTOCOL_TYPES.includes(definition.type)?'':definition.url,method:definition.method??'GET',status:assertions.status??200,body:assertions.bodyIncludes??'',headerName:assertions.header?.name??'',headerValue:assertions.header?.equals??'',additional:JSON.stringify(additionalAssertions(assertions),null,2),
   intervalMinutes:definition.intervalMs/60000,timeoutSeconds:definition.timeoutMs/1000,retries:definition.retries,confirmSlots:definition.confirmSlots,recoverSlots:definition.recoverSlots,freshnessMinutes:definition.freshnessMs/60000};
 }
 export function fillFields(root,definition){
  const values=fieldValues(definition);
  for(const name of FIELD_NAMES){const element=control(root,name);if(element)element.value=String(values[name])}
+ if(control(root,'checkType')){fillProtocol(root,definition);showType(root,checkTypeOf(definition))}
 }
 // The definition the fields now describe, on top of the one they were filled from (type, network and the rest pass through).
 export function readFields(root,definition){
  const value=name=>control(root,name).value;
+ const type=control(root,'checkType')?.value??'http';
+ // Settings of other types never travel with the one selected.
+ const {url,method,tcp,dns,tls,domain,...rest}=definition;
+ const timing={name:value('name'),intervalMs:minutesToMilliseconds(value('intervalMinutes')),timeoutMs:secondsToMilliseconds(value('timeoutSeconds')),freshnessMs:minutesToMilliseconds(value('freshnessMinutes'))};
+ for(const name of ['retries','confirmSlots','recoverSlots'])timing[name]=Number(value(name));
+ if(PROTOCOL_TYPES.includes(type)){const {settings,assertions}=readProtocol(root,type);return {...rest,...timing,type,[type]:settings,assertions}}
+ if(PROTOCOL_TYPES.includes(rest.type))rest.type='http';
  const assertions=assembleAssertions({status:value('status'),body:value('body'),headerName:value('headerName'),headerValue:value('headerValue'),additional:value('additional')});
- const result={...definition,name:value('name'),url:value('url'),method:value('method'),assertions,intervalMs:minutesToMilliseconds(value('intervalMinutes')),timeoutMs:secondsToMilliseconds(value('timeoutSeconds')),freshnessMs:minutesToMilliseconds(value('freshnessMinutes'))};
- for(const name of ['retries','confirmSlots','recoverSlots'])result[name]=Number(value(name));
- return result;
+ return {...rest,...timing,url:value('url'),method:value('method'),assertions};
 }
 // A copy of the form's field cards for one proposal row: no runner boxes (the console assigns those), unique ids, enabled.
 export function cloneFields(form,suffix){
  const copy=form.querySelector('.editor-columns').cloneNode(true);
  copy.querySelector('#settings-probes')?.remove();
+ // A proposal is an HTTP or keyword monitor: its copy has no type choice and no other type's fields.
+ copy.querySelector('[name="checkType"]')?.closest('label')?.remove();copy.querySelector('.type-help')?.remove();
+ for(const group of copy.querySelectorAll('.type-fields'))if(group.dataset.types!=='http')group.remove();
  const policy=copy.querySelector('.policy-panel'),heading=document.createElement('h2');heading.textContent='When to alert';policy.prepend(heading);
  const renamed=new Map();
  for(const element of copy.querySelectorAll('[id]')){renamed.set(element.id,`${element.id}-${suffix}`);element.id=renamed.get(element.id)}

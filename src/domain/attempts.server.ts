@@ -9,6 +9,7 @@ import {classifyAttempts} from './attempt-classification.ts'
 import {incidentEvent} from './notification-content.ts'
 import {HOSTED_RUNNER_ID} from './hosted-runner.ts'
 import {definitionChange,definitionChangeNote} from './flow-changes.server.ts'
+import {expiryNotices,openExpiryWarnings} from './expiry-notices.server.ts'
 // @ts-ignore Edition flow vocabulary is JavaScript shared with the runner.
 import {flowDigest} from './flow.mjs'
 // A vantage only ever runs its newest scheduled slot of a monitor. Once a newer scheduled slot is assigned to its runner (the runner
@@ -77,7 +78,7 @@ export async function completeAttempts(env:Bindings,input:any,runnerId:string){
   for(const probe of definition.probes){const chain=combined.filter(o=>o.slot_id===slot.id&&o.probe===probe).map(o=>JSON.parse(o.evidence)).sort((a,b)=>a.attempt-b.attempt);if(chain.some((o,i)=>i<chain.length-1&&o.outcome!=='target_failure'))throw Error('Contradictory retry evidence')}
   const m=await get(env,slot.monitor_id);if(!m)throw Error('Monitor absent');
   const state=projectAttempts(definition,classifyAttempts(definition,snapshot.slots,combined,now),combined,now,snapshot.checkpoint),current=m.revision===slot.revision&&!slot.manual;
-  const last=await env.DB.prepare("SELECT kind,event FROM outbox WHERE monitor_id=? AND status<>'imported-inactive' ORDER BY rowid DESC LIMIT 1").bind(m.id).first<any>();
+  const last=await env.DB.prepare("SELECT kind,event FROM outbox WHERE monitor_id=? AND kind IN ('trigger','recovery') AND status<>'imported-inactive' ORDER BY rowid DESC LIMIT 1").bind(m.id).first<any>();
   const open=last?.kind==='trigger';if(open&&state.targetState==='Healthy'&&state.recoveryStreak<definition.recoverSlots){state.targetState=state.underlyingState='Recovering';if(!state.maintenance)state.state='Recovering';state.confirmedFailure=true}state.notificationOpen=open;state.incidentKey=open?JSON.parse(last.event).incidentKey:null;state.incidentRevision=open?JSON.parse(last.event).monitorRevision??null:null;const changed=open?await definitionChange(env,m.id,state.incidentRevision,slot.revision,definition):null;if(changed){state.definitionChange=changed;state.reason+=definitionChangeNote(changed)}
   const kind=current&&!state.maintenance?(state.targetState==='Failing'&&!open?'trigger':state.targetState==='Healthy'&&open?'recovery':null):null;
   if(kind){state.notificationOpen=kind==='trigger';if(kind==='trigger'){state.incidentKey=`incident:${slot.id}`;state.incidentRevision=slot.revision}}
@@ -95,6 +96,14 @@ export async function completeAttempts(env:Bindings,input:any,runnerId:string){
   if(kind){const event=incidentEvent({id:`${slot.id}:${kind}`,kind,monitor:m,slotId:slot.id,now,state,observations:finalAttempts(definition,combined.filter(o=>o.slot_id===slot.id).map(o=>JSON.parse(o.evidence))),origin:env.UPTIME_ORIGIN,incidentKey:state.incidentKey});
    statements.push(env.DB.prepare(`INSERT OR IGNORE INTO outbox(id,monitor_id,slot_id,kind,event) SELECT ?,?,?,?,? WHERE ${guard} AND EXISTS(SELECT 1 FROM monitors WHERE id=? AND revision=?)`).bind(event.id,m.id,slot.id,kind,JSON.stringify(event),...values,m.id,m.revision));
    statements.push(env.DB.prepare(`INSERT OR IGNORE INTO notification_jobs(id,event_id,destination_id,destination_name,kind,credential_id,event,created_at) SELECT ?||':'||id,?,id,name,kind,credential_id,?,? FROM notification_destinations WHERE enabled=1 AND deleted_at IS NULL AND EXISTS(SELECT 1 FROM outbox WHERE id=?) AND ${guard}`).bind(event.id,event.id,JSON.stringify(event),now,event.id,...values));
+  }
+  // Staged expiry warnings and renewals (TLS-001, DOMAIN-001) follow the same current-revision and maintenance rules as incidents.
+  if(current&&!state.maintenance&&['tls','domain'].includes(definition.type)){
+   const notices=expiryNotices({monitor:m,slotId:slot.id,observations:finalAttempts(definition,combined.filter(o=>o.slot_id===slot.id).map(o=>JSON.parse(o.evidence))),now,open:await openExpiryWarnings(env,m.id),origin:env.UPTIME_ORIGIN});
+   for(const {kind:noticeKind,event} of notices){
+    statements.push(env.DB.prepare(`INSERT OR IGNORE INTO outbox(id,monitor_id,slot_id,kind,event) SELECT ?,?,?,?,? WHERE ${guard} AND EXISTS(SELECT 1 FROM monitors WHERE id=? AND revision=?)`).bind(event.id,m.id,slot.id,noticeKind,JSON.stringify(event),...values,m.id,m.revision));
+    statements.push(env.DB.prepare(`INSERT OR IGNORE INTO notification_jobs(id,event_id,destination_id,destination_name,kind,credential_id,event,created_at) SELECT ?||':'||id,?,id,name,kind,credential_id,?,? FROM notification_destinations WHERE enabled=1 AND deleted_at IS NULL AND EXISTS(SELECT 1 FROM outbox WHERE id=? AND slot_id=?) AND ${guard}`).bind(event.id,event.id,JSON.stringify(event),now,event.id,slot.id,...values));
+   }
   }
   if(current){const started=Math.max(...combined.filter(o=>o.slot_id===slot.id&&o.attempt===0).map(o=>JSON.parse(o.evidence).startedAt));if(Number.isSafeInteger(started))statements.push(env.DB.prepare(`UPDATE monitors SET next_due=MAX(next_due,?) WHERE id=? AND revision=? AND ${guard}`).bind(started+definition.intervalMs,m.id,m.revision,...values))}
   if(terminalSlot(definition,combined.filter(o=>o.slot_id===slot.id).map(o=>JSON.parse(o.evidence))))statements.push(env.DB.prepare(`UPDATE slots SET status='complete' WHERE id=? AND ${guard}`).bind(slot.id,...values));

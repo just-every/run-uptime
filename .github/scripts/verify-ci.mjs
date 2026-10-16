@@ -33,6 +33,7 @@ export const plan = {
   shard('authority', ['test:base', 'test:admission', 'test:access', 'test:owner-deploy'], true),
   shard('archives', ['test:archive', 'test:definitions']),
   shard('runner-flows', ['test:runner', 'test:flow'], true),
+  shard('protocols', ['test:protocols']),
   shard('browser', ['test:browser'], true),
  ],
  nightly: [

@@ -3,6 +3,8 @@ import {readGrant} from './grants.mjs';
 import {probeHttp,probeHeartbeat} from './probes.mjs';
 import {validateDefinition} from '../../src/domain/policy.mjs';
 import {runFlow} from './flow/run-flow.mjs';
+import {probeProtocol} from './protocol-probes.mjs';
+import {isProtocol} from '../../src/domain/protocol/settings.mjs';
 export async function executeTaskProbe(task,probe,{grantPath,controlPort,flowWorkspace,statusOnly=false,signal,now=Date.now}){
  const definition=task.definition;
  // Only the authenticated claim envelope supplies local credential authority; editor fields never do.
@@ -22,6 +24,7 @@ export async function executeTaskProbe(task,probe,{grantPath,controlPort,flowWor
   validateDefinition(definition,grants);
   return runFlow(definition,probe,{grantPath,controlPort,workspace:flowWorkspace,monitorId,signal});
  }
+ if(isProtocol(definition.type))return probeProtocol(definition,probe,{signal});
  if(definition.network==='public')return probeHttp(definition,probe,[],{statusOnly,monitorId,signal});
  const grant=await readGrant(grantPath,controlPort),target=new URL(definition.url);
  if(Number(target.port)!==grant.port||!grant.paths.includes(target.pathname))throw Error('Grant mismatch');

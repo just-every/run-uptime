@@ -68,3 +68,11 @@
 .probe-assignment label { display: flex; flex-direction: column; gap: 4px; min-width: 0; overflow-wrap: anywhere; }
 .probe-assignment label:has(input[type="checkbox"]) { flex-direction: row; align-items: center; }
 .probe-assignment :is(input[type="url"],select) { width: 100%; min-width: 0; }
+
+/* The check type's own fields; checkbox rows and groups for TCP banners and DNS resolvers. */
+.type-fields[hidden] { display: none; }
+.check-row { display: flex; align-items: center; gap: 10px; color: var(--ink); }
+.editor-pair > .check-row { flex-direction: row; align-self: end; min-height: 44px; }
+.check-group { display: grid; gap: 8px; min-width: 0; }
+.check-group legend { margin-bottom: 6px; color: var(--ink); font-weight: 600; font-size: 14px; }
+.editor-panel :is(textarea[name="dnsExpected"], textarea[name="dnsApproved"]) { min-height: 80px; font-family: var(--mono); font-size: 14px; }

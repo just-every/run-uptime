@@ -1,7 +1,7 @@
 import {renderSlackEvent,serializeSlackMessage,escapeSlackText} from '../base/modules/integrations/slack/message.ts'
 export interface NotificationEvent {
- schemaVersion:2; id:string; kind:'trigger'|'recovery'|'test'; eventType:string;
- incidentKey:string|null; state:'firing'|'recovered'|'test'; title:string;
+ schemaVersion:2; id:string; kind:'trigger'|'recovery'|'test'|'expiry'|'renewal'; eventType:string;
+ incidentKey:string|null; state:'firing'|'recovered'|'test'|'warning'|'renewed'; title:string;
  monitorId:string|null; monitorRevision:number|null; monitorName:string; url:string;
  slotId:string|null; observedAt:number; visibility:'private'; evidenceRef:string;
  explanation:string; probes:{name:string;outcome:string;reason:string}[]; consoleUrl:string;
@@ -12,6 +12,18 @@ export function incidentEvent({id,kind,monitor,slotId,now,state,observations,ori
  monitorId:monitor.id,monitorRevision:monitor.revision,monitorName:monitor.definition.name,url:monitor.definition.url,
  slotId,observedAt:now,visibility:'private',evidenceRef:`/api/monitors/${monitor.id}/history`,explanation:state.reason,
  probes:observations.map((o:any)=>({name:o.probe,outcome:o.outcome,reason:o.checks.filter((c:any)=>!c.pass).map((c:any)=>c.reason).join('; ')||'All checks passed'})),consoleUrl:origin||''}
+}
+// A staged expiry warning (kind expiry, one per subject and stage) or the renewal that closes a subject's warnings
+// (kind renewal, sharing the warning's incidentKey). See expiry-notices.server.ts.
+const day=(at:number)=>new Date(at).toISOString().slice(0,10)
+export function expiryEvent({kind,monitor,slotId,now,origin,subject,label,expiresAt,stage,owner,previous}:{kind:'expiry'|'renewal';monitor:any;slotId:string;now:number;origin?:string;subject:string;label:string;expiresAt:number;stage?:number;owner?:string;previous?:NotificationEvent}):NotificationEvent {
+ const what=monitor.definition.type==='tls'?'Certificate':'Domain registration',left=Math.floor((expiresAt-now)/86400000),incidentKey=previous?.incidentKey??`expiry:${monitor.id}:${subject}`
+ const accountable=owner?` Accountable owner: ${owner}.`:''
+ return {schemaVersion:2,id:kind==='expiry'?`${incidentKey}:${stage}`:`renewal:${incidentKey}`,kind,eventType:kind==='expiry'?'uptime.expiry.warning':'uptime.expiry.renewed',incidentKey,state:kind==='expiry'?'warning':'renewed',
+  title:kind==='expiry'?`${what} expires in ${left} day${left===1?'':'s'}: ${monitor.definition.name}`:`${what} renewed: ${monitor.definition.name}`,
+  monitorId:monitor.id,monitorRevision:monitor.revision,monitorName:monitor.definition.name,url:monitor.definition.url,slotId,observedAt:now,visibility:'private',evidenceRef:`/api/monitors/${monitor.id}/history`,
+  explanation:kind==='expiry'?`${label[0].toUpperCase()}${label.slice(1)} expires on ${day(expiresAt)} (${left} day${left===1?'':'s'} left; the ${stage}-day warning).${accountable} The warning stays open until a renewed one is observed.`:`A renewed ${what.toLowerCase()} was observed: ${label}, valid until ${day(expiresAt)}. It replaces the one warned about earlier (${previous!.explanation.split(' expires on ')[0]}).${accountable}`,
+  probes:[],consoleUrl:origin||''}
 }
 export function testEvent(origin:string):NotificationEvent {
  return {schemaVersion:2,id:`test:${crypto.randomUUID()}`,kind:'test',eventType:'uptime.notification.test',incidentKey:null,state:'test',title:'Test notification: Uptime',monitorId:null,monitorRevision:null,monitorName:'Test notification',url:'',slotId:null,observedAt:Date.now(),visibility:'private',evidenceRef:'',explanation:'This is a test notification. No monitor state or incident was changed.',probes:[],consoleUrl:origin}

@@ -42,11 +42,39 @@
      <section class="editor-panel ui-card" aria-labelledby="editor-check-heading"><h2 id="editor-check-heading">What to check</h2>
       <div class="editor-fields">
        <label>Monitor name<input disabled name="name" maxlength="100" required></label>
-       <label>Target URL<input disabled name="url" type="url" placeholder="https://www.your-site.example/health" required></label>
-       <div class="editor-pair"><label>Request method<select disabled name="method"><option>GET</option><option>HEAD</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option><option>OPTIONS</option></select></label><label>Expected HTTP status<input disabled name="status" type="number" min="100" max="599" required></label></div>
-       <label>Body contains required text<textarea disabled name="body" maxlength="200"></textarea></label>
-       <div class="editor-pair header-fields"><label>Expected header name<input disabled name="headerName" maxlength="80"></label><label>Expected header value<input disabled name="headerValue" maxlength="200"></label></div>
-       <div class="editor-field"><label>Additional checks (JSON)<textarea disabled name="additional" aria-describedby="additional-help" placeholder='{"json":{"path":"$.status.indicator","equals":"none"},"latencyMs":1500}'></textarea></label><p id="additional-help" class="helper ui-helper">Optional example: <code>{"json":{"path":"$.status.indicator","equals":"none"},"latencyMs":1500}</code>. Use one <code>json</code> object with <code>path</code> and <code>equals</code> (a string, number or boolean); paths accept <code>$.status.indicator</code> or <code>status.indicator</code>. <code>latencyMs</code> is the maximum response time in milliseconds. Set status, body and headers above.</p></div>
+       <label>What to check<select disabled name="checkType" aria-describedby="check-type-help"><option value="http">Website or API (HTTP)</option><option value="tcp">TCP port</option><option value="dns">DNS record</option><option value="tls">TLS certificate</option><option value="domain">Domain registration expiry</option></select></label>
+       <p id="check-type-help" class="helper ui-helper type-help" data-type-help="http">Requests the URL and checks status, text, headers and JSON.</p>
+       <div class="type-fields editor-fields" data-types="http">
+        <label>Target URL<input disabled name="url" type="url" placeholder="https://www.your-site.example/health" required></label>
+        <div class="editor-pair"><label>Request method<select disabled name="method"><option>GET</option><option>HEAD</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option><option>OPTIONS</option></select></label><label>Expected HTTP status<input disabled name="status" type="number" min="100" max="599" required></label></div>
+        <label>Body contains required text<textarea disabled name="body" maxlength="200"></textarea></label>
+        <div class="editor-pair header-fields"><label>Expected header name<input disabled name="headerName" maxlength="80"></label><label>Expected header value<input disabled name="headerValue" maxlength="200"></label></div>
+        <div class="editor-field"><label>Additional checks (JSON)<textarea disabled name="additional" aria-describedby="additional-help" placeholder='{"json":{"path":"$.status.indicator","equals":"none"},"latencyMs":1500}'></textarea></label><p id="additional-help" class="helper ui-helper">Optional example: <code>{"json":{"path":"$.status.indicator","equals":"none"},"latencyMs":1500}</code>. Use one <code>json</code> object with <code>path</code> and <code>equals</code> (a string, number or boolean); paths accept <code>$.status.indicator</code> or <code>status.indicator</code>. <code>latencyMs</code> is the maximum response time in milliseconds. Set status, body and headers above.</p></div>
+       </div>
+       <div class="type-fields editor-fields" data-types="tcp" hidden>
+        <div class="editor-pair"><label>Host<input disabled name="tcpHost" maxlength="253" placeholder="db.your-site.example" autocapitalize="off" spellcheck="false"></label><label>Port<input disabled name="tcpPort" type="number" min="1" max="65535" placeholder="5432"></label></div>
+        <label class="check-row"><input disabled name="tcpReadBanner" type="checkbox">Read the service’s banner (SSH, SMTP, FTP)</label>
+        <label>Banner must contain (optional)<input disabled name="tcpBannerIncludes" maxlength="100" placeholder="SSH-2.0"></label>
+        <p class="helper ui-helper">Refused connections, timeouts and checks that could not run are reported separately.</p>
+       </div>
+       <div class="type-fields editor-fields" data-types="dns" hidden>
+        <div class="editor-pair"><label>Name<input disabled name="dnsName" maxlength="253" placeholder="your-site.example" autocapitalize="off" spellcheck="false"></label><label>Record type<select disabled name="dnsType"><option>A</option><option>AAAA</option><option>CNAME</option><option>MX</option><option>TXT</option><option>NS</option><option>SOA</option><option>SRV</option><option>CAA</option></select></label></div>
+        <fieldset class="check-group"><legend>Resolvers</legend><label class="check-row"><input disabled name="dnsResolver" type="checkbox" value="cloudflare">Cloudflare (1.1.1.1)</label><label class="check-row"><input disabled name="dnsResolver" type="checkbox" value="google">Google (8.8.8.8)</label></fieldset>
+        <div class="editor-field"><label>Expected values, one per line (optional)<textarea disabled name="dnsExpected" aria-describedby="dns-expected-help" placeholder="203.0.113.10"></textarea></label><p id="dns-expected-help" class="helper ui-helper">Without expected values the check needs at least one record. SOA compares the primary name server and mailbox.</p></div>
+        <div class="editor-pair"><label>Match<select disabled name="dnsMatch"><option value="exact">Exactly these values</option><option value="includes">Includes these values</option></select></label><label class="check-row"><input disabled name="dnsAbsent" type="checkbox">The record must not exist</label></div>
+        <div class="editor-field"><label>Approved change: also accept these values (optional)<textarea disabled name="dnsApproved" aria-describedby="dns-approved-help"></textarea></label><p id="dns-approved-help" class="helper ui-helper">For a planned change. It accepts only these values; a missing name, a resolver failure or a disagreement still fails.</p></div>
+       </div>
+       <div class="type-fields editor-fields" data-types="tls" hidden>
+        <div class="editor-pair"><label>Host<input disabled name="tlsHost" maxlength="253" placeholder="www.your-site.example" autocapitalize="off" spellcheck="false"></label><label>Port<input disabled name="tlsPort" type="number" min="1" max="65535" placeholder="443"></label></div>
+        <div class="editor-pair"><label>Warn this many days before expiry<input disabled name="tlsWarnDays" placeholder="30, 14, 7"></label><label>Accountable owner (optional)<input disabled name="tlsOwner" maxlength="100" placeholder="Name or team"></label></div>
+        <p class="helper ui-helper">Checks trust, the host name and validity on every check. Each warning stage alerts once and stays open until a renewed certificate is observed.</p>
+       </div>
+       <div class="type-fields editor-fields" data-types="domain" hidden>
+        <label>Domain<input disabled name="domainName" maxlength="253" placeholder="your-site.example" autocapitalize="off" spellcheck="false"></label>
+        <div class="editor-pair"><label>Warn this many days before expiry<input disabled name="domainWarnDays" placeholder="60, 30, 14, 7"></label><label>Accountable owner (optional)<input disabled name="domainOwner" maxlength="100" placeholder="Name or team"></label></div>
+        <p class="helper ui-helper">Reads the registry’s RDAP record and the registrar’s. A redacted, missing or conflicting date is Unknown, never healthy.</p>
+       </div>
+       <label class="type-fields" data-types="tcp dns tls" hidden>Slowest acceptable answer (milliseconds, optional)<input disabled name="protocolLatency" type="number" min="1" max="10000"></label>
       </div>
      </section>
      <section class="editor-panel ui-card" aria-labelledby="editor-timing-heading"><h2 id="editor-timing-heading">Check timing</h2>

@@ -3,11 +3,14 @@ import {claimAttempt,completeAttempts} from './attempts.server.ts'
 import {ensureFirstRunner} from './runner-registration.server.ts'
 import {HOSTED_RUNNER_ID,hostedHttp,hostedInstallation} from './hosted-runner.ts'
 import {workerProbe} from './worker-http.server.ts'
+import {workerProtocolProbe,protocolRequests} from './worker-protocols.server.ts'
+// @ts-ignore Shared protocol settings.
+import {isProtocol} from './protocol/settings.mjs'
 import {dnsCache} from './worker-dns.server.ts'
 import type {SubrequestBudget} from './worker-budget.ts'
 // Worst case without redirects: per probe, A+AAAA and one canary read, then A+AAAA and every target attempt.
 // Unspent reservation (cached DNS, a first attempt that passed) returns to the run for the next monitor.
-const worstCase=(definition:any,probes:string[])=>probes.reduce((sum,probe)=>sum+(definition.assignments?.[probe]?.canaryUrl?3:0)+2+definition.retries+1,0)
+const worstCase=(definition:any,probes:string[])=>probes.reduce((sum,probe)=>sum+(definition.assignments?.[probe]?.canaryUrl?3:0)+(isProtocol(definition.type)?protocolRequests(definition)*(definition.retries+1):2+definition.retries+1),0)
 // Cron uses the same immutable claims, retries, canaries and evidence acceptance as private runners.
 // Select only this Worker's assignments: it must never advance a private runner's schedule.
 export async function scheduledPublicChecks(env:Bindings,budget:SubrequestBudget){
@@ -28,9 +31,9 @@ export async function scheduledPublicChecks(env:Bindings,budget:SubrequestBudget
    const attempts=[];
    for(const probe of task.probes){
     const canaryUrl=task.definition.assignments[probe].canaryUrl,context={dns,allowance,appOrigin:env.UPTIME_ORIGIN};
-    const canary=canaryUrl?{...await workerProbe({...task.definition,url:canaryUrl,method:'GET',assertions:{status:200}},probe,{...context,statusOnly:true}),attempt:0}:undefined;
+    const canary=canaryUrl?{...await workerProbe({...task.definition,type:'http',url:canaryUrl,method:'GET',assertions:{status:200}},probe,{...context,statusOnly:true}),attempt:0}:undefined;
     for(let attempt=0;attempt<=task.definition.retries;attempt++){
-     const observation=await workerProbe(task.definition,probe,context);attempts.push({...observation,attempt,...(canary?{canary}:{})});
+     const observation=isProtocol(task.definition.type)?await workerProtocolProbe(task.definition,probe,allowance):await workerProbe(task.definition,probe,context);attempts.push({...observation,attempt,...(canary?{canary}:{})});
      if(observation.outcome!=='target_failure')break;
     }
    }

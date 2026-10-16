@@ -3,10 +3,18 @@
 import {FLOW_LIMITS,FLOW_REASONS,validateFlowEvidence} from './flow.mjs'
 // @ts-ignore Bounded non-secret diagnostics are shared with the runner.
 import {validBindingDiagnostic, bindingReason, BINDING_DIAGNOSTIC_BYTES} from './credential-binding.mjs'
-const fields = new Set(['id', 'probe', 'outcome', 'completedAt', 'startedAt', 'durationMs', 'runnerVersion', 'status', 'bytes', 'checks', 'attempt', 'heartbeatReceivedAt', 'canary', 'flow', 'credentialBinding'])
+// @ts-ignore Protocol evidence is evaluated by the same JavaScript in the Worker, the runner and here.
+import {isProtocol} from './protocol/settings.mjs'
+// @ts-ignore
+import {protocolChecks} from './protocol/evaluate.mjs'
+// @ts-ignore
+import {validateFacts} from './protocol/facts.mjs'
+const fields = new Set(['id', 'probe', 'outcome', 'completedAt', 'startedAt', 'durationMs', 'runnerVersion', 'status', 'bytes', 'checks', 'attempt', 'heartbeatReceivedAt', 'canary', 'flow', 'credentialBinding', 'protocol'])
 // unresolved: the public resolver answered NXDOMAIN or no address. budget: a Worker run spent its outbound requests first.
-const targetErrors = new Set(['encoding', 'redirect', 'body-limit', 'transport', 'timeout', 'connection', 'unresolved'])
-const runnerErrors = new Set(['custody', 'runner', 'network', 'dns', 'browser', 'credential', 'grant', 'budget'])
+// refused: the target's port refused the connection; tls: the TLS handshake failed before a certificate could be read.
+// vantage: this vantage cannot run the check (a Worker socket to a Cloudflare address); registry: RDAP data unavailable.
+const targetErrors = new Set(['encoding', 'redirect', 'body-limit', 'transport', 'timeout', 'connection', 'unresolved', 'refused', 'tls'])
+const runnerErrors = new Set(['custody', 'runner', 'network', 'dns', 'browser', 'credential', 'grant', 'budget', 'vantage', 'registry'])
 const responseErrors = new Set(['encoding', 'redirect', 'body-limit'])
 /** Live completion accepts runner clocks up to this far ahead of control-plane time. */
 export const COMPLETION_CLOCK_ALLOWANCE_MS = 1000
@@ -61,6 +69,16 @@ function validateFlowObservation(o: any, definition: any, checks: Map<string, Ch
   if (!passed && (!flow.failure || FLOW_REASONS[flow.failure.reason as keyof typeof FLOW_REASONS].runner)) throw Error('Inconsistent flow outcome')
 }
 
+// A protocol observation either ended before it had facts (one error check) or carries bounded facts whose checks and
+// outcome the shared evaluation must reproduce exactly at the observation's completion time.
+function validateProtocol(o: any, definition: any) {
+  if (o.status !== undefined || o.bytes !== undefined || o.heartbeatReceivedAt !== undefined) throw Error('Invalid protocol evidence')
+  if (o.protocol === undefined) return validateError(o, validateChecks(o.checks))
+  validateFacts(definition, o.protocol)
+  const expected = protocolChecks(definition, o.protocol, o.completedAt)
+  if (o.outcome !== expected.outcome || JSON.stringify(o.checks) !== JSON.stringify(expected.checks)) throw Error('Inconsistent protocol evidence')
+}
+
 function validateHeartbeat(o: any, definition: any, checks: Map<string, Check>) {
   if (o.outcome === 'runner_error') return validateError(o, checks, true)
   if (o.status !== undefined || o.bytes !== undefined || checks.size !== 1 || !checks.has('heartbeat') ||
@@ -109,7 +127,8 @@ export function validateEvidence(o: any, definition: any, dueAt: number, now: nu
       !['uptime-node/0.1.0','uptime-worker/0.1.0'].includes(o.runnerVersion) || !timestamp(o.startedAt) || !timestamp(o.completedAt) ||
       o.startedAt < dueAt || o.completedAt < o.startedAt || o.completedAt > now + COMPLETION_CLOCK_ALLOWANCE_MS ||
       !timestamp(o.durationMs) || !['pass', 'target_failure', 'runner_error'].includes(o.outcome) ||
-      JSON.stringify(o).length > ((definition.type === 'flow' ? 4000 + FLOW_LIMITS.traceBytes : 4000) + (binding ? BINDING_DIAGNOSTIC_BYTES : 0))) throw Error('Invalid observation evidence')
+      JSON.stringify(o).length > ((definition.type === 'flow' ? 4000 + FLOW_LIMITS.traceBytes : isProtocol(definition.type) ? 12000 : 4000) + (binding ? BINDING_DIAGNOSTIC_BYTES : 0))) throw Error('Invalid observation evidence')
+  if (o.protocol !== undefined && !isProtocol(definition.type)) throw Error('Unexpected protocol evidence')
   if(definition.assignments?.[o.probe]?.canaryUrl&&o.canary===undefined)throw Error('Configured canary evidence required');
   if(o.canary!==undefined){
     if(!definition.assignments?.[o.probe]?.canaryUrl||o.canary?.canary!==undefined)throw Error('Unexpected canary evidence');
@@ -120,6 +139,7 @@ export function validateEvidence(o: any, definition: any, dueAt: number, now: nu
   // Historical runners sampled completion and duration separately. Preserve a
   // single millisecond clock tick without relaxing any of the clock bounds.
   if (Math.abs(o.durationMs - elapsed) > 1) throw Error('Inconsistent observation timing')
+  if (isProtocol(definition.type)) return validateProtocol(o, definition)
   const checks = validateChecks(o.checks, binding !== undefined)
   if (definition.type === 'heartbeat') validateHeartbeat(o, definition, checks)
   else if (definition.type === 'flow') validateFlowObservation(o, definition, checks)

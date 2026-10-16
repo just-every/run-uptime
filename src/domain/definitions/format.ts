@@ -2,15 +2,16 @@
 // It uses only fields the editor's validateDefinition accepts; installation-local authority (runner assignments,
 // canaries, heartbeat tokens, credentials and destinations) never appears in it.
 export const DEFINITION_FORMAT='uptime.monitors'
-// Version 2 adds the flow type (FLOW-001). A version 1 file is still read; it just cannot hold a flow.
-export const DEFINITION_VERSION=2
-export const DEFINITION_READ_VERSIONS=[1,2]
+// Version 2 adds the flow type (FLOW-001); version 3 adds the tcp, dns, tls and domain types. Earlier files are still
+// read; they just cannot hold the types added after them.
+export const DEFINITION_VERSION=3
+export const DEFINITION_READ_VERSIONS=[1,2,3]
 export const DEFINITION_BYTES=2*1024*1024
 export const DEFINITION_MONITORS=500
-export const FILE_FIELDS=['name','type','url','method','request','heartbeat','assertions','intervalMs','timeoutMs','retries','probes','failureQuorum','confirmSlots','recoverSlots','freshnessMs','enabled','maintenanceUntil','flow']
+export const FILE_FIELDS=['name','type','url','method','request','heartbeat','assertions','intervalMs','timeoutMs','retries','probes','failureQuorum','confirmSlots','recoverSlots','freshnessMs','enabled','maintenanceUntil','flow','tcp','dns','tls','domain']
 // Compared to decide unchanged or change. `enabled` and `maintenanceUntil` stay with the installation: a file never
 // enables a monitor or changes its maintenance.
-export const COMPARED_FIELDS=['name','type','network','url','method','request','heartbeat','probes','assertions','intervalMs','timeoutMs','retries','failureQuorum','confirmSlots','recoverSlots','freshnessMs','flow']
+export const COMPARED_FIELDS=['name','type','network','url','method','request','heartbeat','probes','assertions','intervalMs','timeoutMs','retries','failureQuorum','confirmSlots','recoverSlots','freshnessMs','flow','tcp','dns','tls','domain']
 
 export class DefinitionFileError extends Error {status=400}
 const fileError=(message:string)=>new DefinitionFileError(message)

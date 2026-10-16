@@ -11,6 +11,7 @@ import {escape,icon,ago,duration,breakableUrl,checkTime,humaneDuration,shownStat
 import {COVERAGE_RULE,coverage,coverageLegend} from './monitor-coverage.js';
 import {buildTimeline,checkResultSummary} from './monitor-timeline.js';
 import {isFlow,flowSummary,flowPanel,flowRevisions,traceMarkup} from './flow-panel.js';
+import {PROTOCOL_KINDS,isProtocol,protocolExpectations,protocolFact,expiryPanel} from './protocol-panel.js';
 
 // The id in /app/monitors/<id>, or null on any other path. The server answers an id that does not decode with its 404
 // page, so this page only sees ids that decode.
@@ -19,7 +20,7 @@ export function monitorIdFromPath(pathname){
  return match?decodeURIComponent(match[1]):null;
 }
 
-const kinds={http:'HTTP check',keyword:'Keyword check',heartbeat:'Heartbeat',flow:'Browser flow'};
+const kinds={http:'HTTP check',keyword:'Keyword check',heartbeat:'Heartbeat',flow:'Browser flow',...PROTOCOL_KINDS};
 const backLink='<a class="back-link ui-link" id="monitor-back" href="/app"><span class="ui-icon" data-icon="chevron" aria-hidden="true"></span><span class="ui-visually-hidden">Back to </span>Monitors</a>';
 const hiddenDot='<span class="ui-visually-hidden"> · </span>',slash='<span class="ui-visually-hidden"> / </span>';
 const openHistory=new Set(),openIncidents=new Set();
@@ -34,9 +35,9 @@ function statusExplanation(m,readUnavailable,data){if(readUnavailable)return 'Th
 // Full check details still shows them.
 function assertionSummary(definition){
  if(isFlow(definition))return flowSummary(definition);
- const assertions=definition.assertions,checks=[];
+ const assertions=definition.assertions,checks=isProtocol(definition)?protocolExpectations(definition):[];
  if(definition.type==='heartbeat'){if(Number.isFinite(definition.heartbeat?.maxAgeMs))checks.push(['Heartbeat receipt','Received within '+humaneDuration(definition.heartbeat.maxAgeMs),false])}
- else{
+ else if(!isProtocol(definition)){
   checks.push(['HTTP status',String(assertions.status),true]);
   if(assertions.bodyIncludes!==undefined)checks.push(['Body contains',assertions.bodyIncludes,true]);
   if(assertions.header)checks.push(['Header',assertions.header.name+' = '+assertions.header.equals,true]);
@@ -71,8 +72,8 @@ function pageBody(m,readUnavailable,definitionOpen,data){
   +startup+'<div class="monitor-primary">'+coveragePanel(availability)+`<section class="ui-card panel incidents" aria-labelledby="incidents-heading"><h2 id="incidents-heading">Incidents</h2><div id="monitor-incidents">Loading incident history…</div><p>Latest 100 confirmed incidents. Times mark scheduled confirmation; manual checks do not open or close incidents.</p></section>`
   +`<section class="ui-card panel evidence" aria-labelledby="recent-checks-heading"><div class="panel-head"><h2 id="recent-checks-heading">Recent checks</h2><div class="history-strip" id="history-strip" aria-hidden="true"></div></div><div id="raw-history">Loading recent checks…</div></section></div>`
   +`<div class="monitor-secondary"><section class="ui-card panel detail" aria-labelledby="latest-check-heading"><h2 id="latest-check-heading">${lastLabel}</h2><dl class="detail-metrics"><div><dt class="ui-visually-hidden">${lastLabel}</dt><dd class="detail-time">${checkTime(m,{withLabel:false,readUnavailable})}</dd></div><div><dt>Response duration</dt><dd>${escape(duration(availability?.responseDurationMs))}</dd></div></dl></section>`
-  +`<section class="ui-card panel assertions" aria-labelledby="expects-heading"><h2 id="expects-heading">What the check expects</h2>${assertionSummary(m.definition)}<details id="assertion-definition" ${definitionOpen?'open':''}><summary id="assertion-definition-summary">Full check details</summary><pre>${escape(JSON.stringify(m.definition.assertions,null,2))}</pre></details></section>`
-  +(isFlow(m.definition)?flowPanel(m,data):'')+heartbeatPanel(m,data)+'</div></div>';
+  +`<section class="ui-card panel assertions" aria-labelledby="expects-heading"><h2 id="expects-heading">What the check expects</h2>${assertionSummary(m.definition)}<details id="assertion-definition" ${definitionOpen?'open':''}><summary id="assertion-definition-summary">Full check details</summary><pre>${escape(JSON.stringify(isProtocol(m.definition)?{[m.definition.type]:m.definition[m.definition.type],assertions:m.definition.assertions}:m.definition.assertions,null,2))}</pre></details></section>`
+  +expiryPanel(m,data)+(isFlow(m.definition)?flowPanel(m,data):'')+heartbeatPanel(m,data)+'</div></div>';
 }
 
 const clock=t=>new Date(t).toLocaleTimeString();
@@ -101,7 +102,7 @@ const probeNames={'local-a':'Check 1','local-b':'Check 2','local-c':'Check 3'};
 const attemptResults={pass:['passed','Passed'],target_failure:['failed','Target did not pass'],runner_error:['unknown','Check could not run']};
 function attemptMarkup(o){
  const [tone,result]=attemptResults[o.outcome]??['unknown','Unknown result'];
- const status=o.flow?`${escape(o.flow.pages)} page${o.flow.pages===1?'':'s'}`:o.status?`HTTP <span class="ui-mono">${escape(o.status)}</span>`:'No HTTP status';
+ const status=o.flow?`${escape(o.flow.pages)} page${o.flow.pages===1?'':'s'}`:o.protocol!==undefined?escape(protocolFact(o)):o.status?`HTTP <span class="ui-mono">${escape(o.status)}</span>`:'No HTTP status';
  return `<div class="attempt-group"><p class="attempt-line"><span class="attempt-name">${escape(probeNames[o.probe]??'Check')} attempt ${o.attempt+1}</span><span class="ui-visually-hidden">: </span><span class="ui-result ${tone}">${escape(result)}</span>${slash}<span>${status}</span>${slash}<span>${escape(duration(o.durationMs))}</span>${slash}<span class="attempt-age">${ago(o.completedAt)}</span></p><ul class="attempt-checks">${o.checks.map(c=>`<li><span class="attempt-mark ui-result ui-result--small ${c.pass?'passed':'failed'}">${c.pass?'PASS':'FAIL'}</span> ${escape(c.assertion)}: ${escape(c.reason)}</li>`).join('')}</ul>${o.credentialBinding?`<details class="credential-binding"><summary>Known monitors referencing this credential</summary>${o.credentialBinding.monitorIds.length>1?'<p>This file can serve only one monitor. For the other monitors, create separate owner-only credential files and references, review the intended account, then bind each explicitly.</p>':''}<ul>${o.credentialBinding.monitorIds.map(id=>`<li>${escape(id)}</li>`).join('')}</ul></details>`:''}${o.canary?`<p class="canary-result">External check: ${escape(o.canary.outcome==='pass'?'Passed':o.canary.outcome==='target_failure'?'Failed':'Could not run')}${o.canary.status?` · HTTP ${escape(o.canary.status)}`:''}. ${escape(o.canary.checks.map(check=>check.reason).join('; '))}</p>`:''}${traceMarkup(o)}</div>`;
 }
 // What a slot row says it is: its result word, and in the meta how it ended, when it was due if it ran late, its
