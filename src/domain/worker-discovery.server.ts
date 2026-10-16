@@ -1,5 +1,5 @@
 import {fetchDemoRead} from '@runeditrun/rer/modules/demo'
-import {HOSTED_RUNNER_ID,hostedInstallation,ownOrigin} from './hosted-runner.ts'
+import {HOSTED_RUNNER_ID,ownOrigin} from './hosted-runner.ts'
 import {dnsCache,ProbeError as WorkerProbeError} from './worker-dns.server.ts'
 import {SubrequestBudget} from './worker-budget.ts'
 import type {Runner} from './runner-registration.server.ts'
@@ -11,12 +11,11 @@ import {validateDiscoveryResult} from './discovery-result.mjs'
 // @ts-ignore The runner's discovery crawl; it fetches only through the transport it is given.
 import {discover} from '../../runners/src/discovery/index.mjs'
 // @ts-ignore The runner's failure wording, so a Worker answer reads like a runner's.
-import {failureText} from '../../runners/src/discovery-loop.mjs'
+import {failureText} from '../../runners/src/discovery/failure.mjs'
 // @ts-ignore Shared with the runner transport, so discovery reads the Worker's failures as its own.
 import {PROBE_ACCEPT,ProbeError} from '../../runners/src/probe-error.mjs'
 // A hosted demo has no private runner beside it, so the Worker answers the visitor's "check this website" itself, with the
 // runner's own crawl and limits, the way it already runs the demo's scheduled public checks. Production keeps runners.
-export const workerDiscovery=(env:Bindings)=>env.RER_DEMO==='1'&&hostedInstallation(env)
 // Discovery's 25 requests plus a DNS-over-HTTPS pair for each of its 10 hosts.
 const SUBREQUESTS=50,RUN_LIMIT_MS=100_000
 type ReportOptions={signal?:AbortSignal;accept?:string;userAgent:string;maxBody:number;method?:string;maxHops?:number;hopTimeoutMs?:number;

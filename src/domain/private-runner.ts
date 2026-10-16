@@ -1,5 +1,4 @@
-import {HOSTED_RUNNER_ID,hostedInstallation} from './hosted-runner.ts'
-import {workerDiscovery} from './worker-discovery.server.ts'
+import {HOSTED_RUNNER_ID,hostedInstallation,workerDiscovery} from './hosted-runner.ts'
 import type {Bindings} from './control.server.ts'
 export const privateRunnerReady=(runners:any[],now=Date.now(),staleMs=120000)=>runners.some(r=>r.runnerId!==HOSTED_RUNNER_ID&&r.revokedAt===null&&r.lastContactAt!==null&&r.lastContactAt<=now&&now-r.lastContactAt<=staleMs)
 export function runnerRuntime(env:Bindings,runners:any[]){
