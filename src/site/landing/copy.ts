@@ -92,7 +92,7 @@ export const included = {
 
 export const plainly = {
   title: "What it doesn't do (yet).",
-  text: 'No DNS, ping, TCP or browser checks, no SMS or on-call paging, and one runner is one network vantage.',
+  text: 'No ping or browser checks, no SMS or on-call paging, and one runner is one network vantage.',
   link: 'Read the limits',
 };
 
