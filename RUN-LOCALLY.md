@@ -86,6 +86,15 @@ Until first-run completion is stored durably, app routes send the signed-in owne
 to `/setup`; signed-out visitors sign in and return there. Once complete,
 `/setup` opens the app or settings.
 
+Invite another person from the app's operator access screen, then choose
+**Sign in as <name>** beside that person. The same action appears at `/signin`;
+it accepts their current invitation and opens `/app` with their assigned role.
+After opening `RER_OPEN`, this browser can switch people without email. A fresh
+browser profile first opens `RER_OPEN` to receive this checkout's key cookie.
+`rer dev --as person@example.com` also selects an invited or active person.
+Local dev and demos silently suppress mail; there is no mail-reading step.
+Cancelled or expired invitations and inactive people cannot use these actions.
+
 The saved local port is used; a first setup saves the first free port from 8787. Explicit ports are decimal
 integers from 1 through 65535 and must be free; a busy requested port fails
 instead of silently moving. Only `127.0.0.1`, `localhost` and `::1` are allowed.

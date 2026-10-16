@@ -5,6 +5,22 @@ including Base's default seed and composed foundation editions. Independently
 authored projects may use this CLI and installer, but RER does not require
 either; owners keep their own supported operations and integration choices.
 
+## Browser-free agent check
+
+After the pinned `pnpm install --frozen-lockfile`, run `pnpm run verify:agent`.
+The default seed and foundation export template run, in order: `build` (generates
+route/build inputs before checking types), `typecheck`, `source:check` (offline,
+frozen dependency-lock validation, with install scripts disabled), then
+`verify:base-source` (`rer check --profile first-party`: the command contract,
+recorded CLI/onboarding source inventory and recorded auth-copy custody).
+These templates have no edition-authoring source lock to refresh. An edition
+that adds one must declare `source:lock` and refresh it after its build and
+before checking it in `source:check`; never refresh custody records to hide drift.
+Platform recognizes `verify:agent` ahead of `verify:fast`, and also runs declared
+source/custody checks separately. No browser or external network is needed after
+the pinned install. This is not runtime, browser, migration, deployment or full
+product verification: full `rer verify` stays in trusted CI.
+
 ## Commands and flags
 
 Run from the project root, or use `--cwd PATH`. Every new verb accepts `--help`, `--cwd PATH`, `--non-interactive` and `--json`. Help exits before tools, configuration, adapters or effects run. Unknown flags, missing flag values and invalid values fail before effects. A single `--` separator is accepted for package-script forwarding. Flags belong only to the verbs listed below; there is no catch-all pass-through in the first-party profile.
@@ -99,6 +115,18 @@ Local setup and demo are exempt from production mail requirements.
 
 **Dev identity** (`commandAdapter.devIdentity`). The operator-auth `dev` layer, server-only in its own directory, serves `/auth/dev/enter?as=PERSONA`, which creates or reuses a real `oa_sessions` row of kind `dev` for the owner `rer setup` claimed, or for a persona, so version fences, revocation and deactivation behave exactly as in production. A dev session, and any credential minted while using one, is admitted only on a request that passes the key gate. Until first-run is finished the owner lands on `/setup`. The `owner` persona is the owner `rer setup` claimed while that owner is active; once that owner has left, it is the earliest-created active owner, and `rer dev` names that owner in `RER_SIGNED_IN`; with no active owner left, `rer dev` says so plainly and prints no `RER_SIGNED_IN`. `rer dev` also keeps its `RER_OPEN` link in `.rer/local/open-url` (mode 0600, inside the private `.rer/local`), which `rer reset --yes` removes with the rest of `.rer/local`; stdout, the JSON ready event and `RER_READY` are unchanged. `rer dev --as PERSONA` selects `owner`, `signed-out` or one of the seed's `devPersonas()`: real operators at `<as>@dev.localhost`, created only by local dev sign-in. The app name and browser title identify Dev mode. Export drops dev sessions and dev-minted credentials and marks personas suspended; import refuses an archive that holds either. Dev identity refuses to start when `RER_INSTALLATION_ID` is set beside a non-loopback `RER_MANAGEMENT_ORIGIN`. There is still no static session, sample owner or mail fallback: every dev session belongs to a real operator in the app's own database.
 
+**Invited people in dev and demo.** Every invited or active person appears as
+**Sign in as <name>** at `/signin` and, in Base's default app, beside their
+operator record. `/auth/one-click?as=EMAIL&returnTo=/app` accepts a live invitation
+and opens the app with that person's role. Local entry always needs the checkout's
+key cookie or header, including after the invitation is accepted; hosted demos
+use the visitor's isolated accounts and the installed demo guard. A local
+`/__dev/personas` list also includes these people by email, so
+`rer dev --as person@example.com` prints their one-click entry. Expiry,
+cancellation, current inviter authority, allow-list and domain restrictions
+still apply. Mail is silently suppressed and there is no mail-reading step.
+Production retains its normal email-link flow and refuses this one-click route.
+
 The seed loads the layer only through a local-only entry, never from the
 deployed main, and declares `devIdentity: {entry, output}`. `rer build` scans
 `output` and refuses any file containing the dev layer marker, naming the file.
@@ -148,7 +176,47 @@ Answer `/health` with `deploymentHealth(env)` from `foundation/runtime/deploymen
 
 A seed's own deploy hook (the `commandAdapter` option `deploy`) returns `{deployed: true, origin}` once its upload is live (an https origin; rer refuses an http one off loopback before sending it anything), plus `setupToken`, the setup token its Worker holds, when that is not the `SETUP_TOKEN` rer passed it in the environment. `rer deploy` then waits until the origin's `/health` names the checkout's commit and claims the owner with that token, needing no deployment record from the hook. A hook that deploys with the kit under its own state file also returns that file as `state` (the kit's `deploy` result names it); rer then reads that record for every later step, so it issues, claims with and retires the setup token, and `--set-secret`, `--unset-secret` and `rer deploy --remove --yes` act on what the hook deployed.
 
-Run `rer verify` after refreshing `scripts/base-cli/` from Base in vendored mode, or after updating the exact `@runeditrun/rer` pin in package mode. After the seed's own verification it serves `dist/` in Miniflare from the seed's own Wrangler, with the deploy kit's asset setting, the deploy declaration's vars and origin variable (at an https origin), stand-in secrets and a generated deploy identity, applies the D1 migrations, then requests every built file except dot paths (built `.html` documents included, each by its own path), every same-origin file linked from the built HTML and the home page, and `/health`, and fails on any answer but 200. A secret's stand-in follows the setup manifest's kind or default; when that value is one the hosted app refuses (a `MAIL_PROVIDER` whose setup default `development` a deployed app answers 503 for), the secret item in the deploy declaration names a hosted-valid one, `{"binding": "MAIL_PROVIDER", "environment": "MAIL_PROVIDER", "verifyStandIn": "resend"}`. `verifyStandIn` is used only by this check: `rer deploy` never sends it, never plans or prints it and never makes it a secret value. It needs no network and no account. The declaration is the one `ownerDeploy` reads (`deploy.json`); a seed with its own deploy command names its file with the `commandAdapter` option `deployDeclaration` (for example `deployDeclaration: 'owner-deployment.json'`). In vendored mode, `node scripts/base-cli/cli/hosted-output.mjs . [DECLARATION]` runs the same check on an existing build.
+Run `rer verify` after refreshing `scripts/base-cli/` from Base in vendored mode, or after updating the exact `@runeditrun/rer` pin in package mode. After the seed's own verification it serves `dist/` in Miniflare from the seed's own Wrangler, with the deploy kit's asset setting, the deploy declaration's vars and origin variable (at an https origin), stand-in secrets and a generated deploy identity, applies the D1 migrations, then requests every built file except dot paths (built `.html` documents included, each by its own path), every same-origin file linked from the built HTML and the home page, and `/health`, and fails on any answer but 200. It needs no network and no account. The declaration is the one `ownerDeploy` reads (`deploy.json`); a seed with its own deploy command names its file with the `commandAdapter` option `deployDeclaration` (for example `deployDeclaration: 'owner-deployment.json'`). In vendored mode, `node scripts/base-cli/cli/hosted-output.mjs . [DECLARATION]` runs the same check on an existing build.
+
+### Mail declarations: own-host and Managed
+
+For an own-host deploy, declare public `MAIL_PROVIDER` and `MAIL_FROM` in
+`deploy.json`'s `vars`, and the selected adapter's credential in `secrets` with
+its explicit `binding` and `environment` mapping. Base's shared adapters use
+`MAIL_API_KEY`; direct Resend and SendGrid adapters can use `RESEND_API_KEY`
+and `SENDGRID_API_KEY`, respectively. A seed adapter that instead reads
+`MAIL_PROVIDER_API_KEY` must declare that binding. Cloudflare mail also needs
+`MAIL_ACCOUNT_ID`; an own-host installation using the `rer` relay also needs
+its assigned HTTPS `MAIL_RELAY_URL`. Credentials stay private runtime inputs.
+Provider, sender and relay URL are public configuration, including in the
+mail spec and Wrangler vars; remove legacy `MAIL_PROVIDER` and `MAIL_FROM`
+entries from `deploy.json`'s secrets when adopting that layout.
+
+Managed mail is the explicit capability `mail: {"providers": ["rer"]}` in
+the seed's delivery spec. The platform supplies `MAIL_PROVIDER`, `MAIL_FROM`,
+`MAIL_RELAY_URL` and private `MAIL_API_KEY` at runtime; the seed need not list
+platform-supplied credentials in its own-host `deploy.json`. Declare the
+public names in `publicVariableNames` (or `publicVariables` in the integration
+projection), and credentials in `secretNames` or `optionalSecretNames`.
+The hosted check reads `artifact.specInputs` from `rer-packaging.json`,
+`packaging.json` or `scripts/delivery/base/packaging.json`, and the direct spec
+at `management/integration/deployment-spec.json`. When `mail.providers`
+includes `rer`, it adds stand-ins only for explicitly listed mail credentials:
+`MAIL_API_KEY`, `MAIL_PROVIDER_API_KEY`, `RESEND_API_KEY` and `SENDGRID_API_KEY`.
+This also supports a Managed-capable seed retaining a direct-provider adapter
+for its hosted check. It does not synthesize unrelated secrets, undeclared
+credentials or missing public configuration. An own-host seed without that
+Managed capability still needs its credential in `deploy.json`; omitting a
+required binding remains a failing `/health` check.
+
+A deploy secret's stand-in follows the setup manifest's kind or default;
+its nonempty `verifyStandIn` overrides that choice and any spec-derived
+stand-in. For example, the legacy declaration
+`{"binding": "MAIL_PROVIDER", "environment": "MAIL_PROVIDER", "verifyStandIn": "resend"}`
+selects a hosted-valid provider when the setup default `development` would
+answer 503. Stand-ins exist only in the local hosted check: `rer deploy` never
+sends, plans or prints them. Passing this check proves the declared runtime
+can become healthy; it does not prove live mail credentials or delivery.
 
 Start document responses send `Cache-Control` with `no-transform`, keeping their other directives (the reference's `uncachedStartResponse` sends `no-store, no-transform`). It stops any proxy rewriting the HTML React hydrates; Cloudflare's email address obfuscation honours it. Cloudflare documents that obfuscation does not apply to HTML a Worker generates, which is how `rer deploy` hosts every response. A Worker that proxies an origin on the same Cloudflare zone instead passes `fetch(url, { cf: { scrapeShield: false } })` on that subrequest, or the owner adds a Configuration Rule for the hostname with `email_obfuscation: false`. The deploy kit changes nothing for this.
 
@@ -269,6 +337,58 @@ vendored `mail` package), run `pnpm install`, and run the seed's suites. Base's
 own suites showed no behaviour change from undici 7.29.1; Mango's one red
 move-in journey on it did not reproduce.
 
+## Seed mark, readable actors and refresh-safe forms
+
+Three shared rules from the seed quality report. Each arrives with a Base refresh
+(vendored copies; `src/base` for the two runtime files) or the rer pin that
+contains it; Base's `default-seed` shows each one in use.
+
+**The seed's own mark (SC-14).** While a seed's logo, favicon or app mark is
+byte-equal to Base's placeholder "F" (`foundation/template/public/brand/mark.svg`),
+`rer check --profile first-party`, `rer build --site` and `rer deploy --site`
+print one warning line naming the files ("Base's placeholder mark is still in
+<files>; replace with the seed's own mark."; a `warning` event with code
+`placeholder_mark` under `--json`) and do not fail, so a live run site keeps
+redeploying. `rer release` refuses it unless `--allow-placeholder-mark` is
+given; the receipt then records `placeholderMark: { allowed: true, files }`.
+Base's own projects (`example/foundation`, `runeditrun/default-seed-reference`)
+are exempt. Adopt: when the seed's brand round comes, draw its mark, replace
+`public/brand/mark.svg` and every copy the warning names (favicons, site assets),
+and the warning stops; until then, release with `--allow-placeholder-mark`.
+
+**Names, times and labelled evidence.** `src/base/actor.ts`
+(`foundation/runtime/actor.ts`) turns an actor id and a timestamp into
+`actorLine(directory, id, at, timeZone)`: "Maya Chen · 16 Oct 2026, 3:04 pm
+AEDT". An id the directory does not hold (an erased, removed or unrestored
+person) reads "Former member", never the UUID. `evidenceHtml(details, {
+directory, timeZone })` renders an evidence, details or snapshot object (or its
+JSON text) as a labelled `<dl>`: nested fields read "Decision › Reviewed at",
+actor-shaped fields (`actor`, `approvedBy`, `operatorId`…) resolve to names,
+timestamps render in the business time zone, and nothing renders as raw JSON or
+`[object Object]` (`evidenceFields` returns the same as text for other
+renderers). `operatorDirectory(db)` reads operator-auth's display names; add the
+seed's own people (members, staff, agents) to that map. Declare the business
+time zone as `timeZone` in the seed's identity (`EditionIdentity`), or pass the
+installation's own setting. Adopt: replace every place a screen prints an actor
+id, `JSON.stringify` of evidence, a raw journal or a UTC timestamp with these.
+
+**Refresh-safe writes.** `src/base/command-receipts.ts`
+(`foundation/runtime/command-receipts.ts`) with its table
+`command-receipts.sql`. A create form carries `commandKeyInput()` (a fresh key
+each render); its handler runs the create through `runOnce(db, { actor, command,
+key: commandKey(form) }, create)` and answers `seeOther(location)` (303 to a
+GET), so a refresh reads the result and a resubmitted form (Back, a retried
+request, a double click) returns the first result instead of creating a second
+credential, publication or key. A key in flight answers 409; a failed create
+releases its key. `create` may return `once`, a part shown only to the first
+`readReceipt` (a new credential's token): redirect to `?done=<key>` and read it
+there, never in the POST's own response. JSON creates take the same key as an
+`Idempotency-Key` header (default seed: `POST /api/people`). Archives never
+carry `rer_command_receipts`. Adopt: apply `command-receipts.sql` as the seed's
+next numbered migration (new foundations get `0015_command_receipts.sql`), then
+route every create form through `runOnce` and 303, removing any branch that
+renders a result page from the POST itself.
+
 ## Hydration units
 
 A mismatch between the server HTML and what React hydrates (an extension linking an address, a translator, a proxy rewrite) makes React client-render the nearest Suspense boundary; under TanStack Router that is everything under the root route, and the root route's own chrome is in no boundary at all. Seeds wrap every page section and the root chrome in `HydrationUnit`, mark one-time entrance animations with `data-intro` under the root's intro guard, hydrate through a `src/client.tsx` that passes `createRecoverableErrorHandler()`, keep addresses as lone text and send `no-transform` on documents. The convention and the adoption steps are in Base's `foundation/runtime/hydration/README.md` (in an edition, `src/base/hydration/README.md`).
@@ -368,6 +488,7 @@ Independent projects without an adapter use `OPERATIONS.json` v2 `commands.NAME.
 - SC-08: complete local export/import, integrity, empty-destination/confirmation and credential exclusions.
 - SC-09: structural check rejects omissions, doctor names missing inputs, stable JSON and exits.
 - SC-10: optional independent execution uses only declared argv, preserves child outcomes and forces no stack.
+- SC-14: the seed carries its own mark; check and run site builds and deploys warn on Base's placeholder mark, and releases refuse it unless `--allow-placeholder-mark` is given, which the receipt records.
 
 ## Managed servers and bounded work
 
