@@ -6,6 +6,10 @@ on:
         description: 'Deploy a separate demo-test environment with Turnstile test keys'
         type: boolean
         default: false
+      observe:
+        description: 'Observe test-host admissions for 15 minutes before a start cohort'
+        type: boolean
+        default: false
       remove_test:
         description: 'Remove the separate test demo and read back resource absence (requires test_only)'
         type: boolean
@@ -39,6 +43,9 @@ jobs:
       - name: Scope test deployment
         if: inputs.test_only
         run: node --input-type=module -e "import fs from 'node:fs'; const p='deploy-demo.json'; const d=JSON.parse(fs.readFileSync(p)); d.domain='test.run-uptime.com'; fs.writeFileSync(p,JSON.stringify(d));"
+      - name: Prepare demo image variables
+        if: ${{ !inputs.remove_test }}
+        run: node scripts/demo/configure-image.mjs
       - name: Deploy demo
         if: ${{ !inputs.remove_test }}
         run: pnpm exec rer deploy --demo --environment "$DEMO_ENVIRONMENT"
@@ -56,11 +63,7 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         shell: bash
         run: |
-          set -o pipefail
-          if ! pnpm exec rer deploy --demo --environment demo-test --remove --yes 2>&1 | tee "$RUNNER_TEMP/demo-remove.log"; then
-            grep -q 'malformed-response' "$RUNNER_TEMP/demo-remove.log"
-            pnpm exec rer deploy --demo --environment demo-test --remove --yes
-          fi
+          pnpm exec rer deploy --demo --environment demo-test --remove --yes
           pnpm exec rer deploy --demo --environment demo-test --remove --yes
       - name: Public readback
         if: ${{ !inputs.remove_test }}
@@ -69,3 +72,16 @@ jobs:
           status=$(curl --fail --silent --show-error --retry 12 --retry-all-errors --retry-delay 5 --retry-max-time 120 --max-time 10 -D "$RUNNER_TEMP/demo-start.headers" -o /dev/null -w '%{http_code}' "https://$domain/")
           test "$status" = 200
           ! grep -qi '^set-cookie:' "$RUNNER_TEMP/demo-start.headers"
+      - name: Observe test-host admissions
+        if: inputs.test_only && inputs.observe && !inputs.remove_test
+        run: node scripts/demo/observe.mjs
+        env:
+          CLOUDFLARE_ACCOUNT_ID: b20c0ca9cab0c2b70e13d7cf724b89bd
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      - name: Save admission observation
+        if: always() && inputs.test_only && inputs.observe && !inputs.remove_test
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: demo-admissions
+          path: .rer/demo-observation/admissions.jsonl
+          include-hidden-files: true

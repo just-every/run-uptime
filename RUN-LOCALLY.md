@@ -296,3 +296,33 @@ addresses). `rer door restart` drains and restarts the door: checkouts that
 were starting finish starting, and open tabs reconnect. After a reboot or logout the door needs `rer door start` (or any
 `rer dev` in a checkout that uses it); `rer door stop` and `rer door disable`
 stop it and opt this computer out.
+
+## If hosted deployment stops
+
+Deploy and removal errors name the failing Cloudflare method and path (without
+credentials or query values), its error code and message when supplied, and the
+command that continues with the same environment. Keep `.rer/deploy/` private:
+it records ownership so a repeat reuses resources safely.
+
+`provider-incomplete-pagination` means Cloudflare advertised another list page
+but rer could not read a valid continuation, or returned a full page with no
+pagination information. A short list without `result_info`, a missing or empty
+terminal cursor, and a reached `total_pages` are complete. No resource is assumed
+absent from an incomplete list. Check the named call in Cloudflare, resolve the
+provider error or incomplete response, then rerun the printed command with the
+same account and environment. Do not delete the deployment record.
+
+`owner-claim-failed` means the hosted owner bootstrap did not confirm a claim.
+The app may already be deployed while sign-in remains unavailable. The error
+names the observed bootstrap POST, HTTP status and application error code when
+available; a seed hook that fails before an exchange can only report its hook
+cause. Correct that cause (for example, owner authorization or a supplied setup
+token that differs from the deployed token), then rerun the same deploy. Leave
+a stale supplied setup token unset so rer can issue a fresh token. A completed
+claim retires the one-time token; deploying again keeps an existing owner.
+
+`rer deploy --environment NAME --remove --yes` detaches the environment's queue
+consumers before deleting its queues, then confirms their absence in Cloudflare.
+It waits up to a minute for a deleted queue to disappear from the account list.
+If the provider still lists it, the error names the queue and the call; keep the
+record and rerun the printed removal command after resolving the cause.

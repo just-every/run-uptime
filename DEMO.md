@@ -90,17 +90,24 @@ stops early anyway also ends its demo and frees its place.
 The demo image carries its databases already migrated. Each visitor copies that
 prepared state, then gets a fresh owner, session and owner-dependent sample data.
 The start page polls progress on the same copy; a slow start does not leave a
-request waiting for minutes. Admission answers within 12 seconds, each progress
-poll within two seconds, and a copy that cannot start within 45 seconds is ended.
+request waiting for minutes. Admission answers within 12 seconds; each progress
+poll is held until the start changes (at most 1.5 seconds), so the page signs in
+as soon as the copy is ready. A copy that cannot boot within 45 seconds is ended.
 A retry while it is starting resumes that copy without taking a second place.
 
-Cloudflare prepares container capacity as demand grows. A temporary lack of
-available instances can occur below `maxInstances`; it is not an account cap.
-The host keeps the same visitor and reservation while requesting placement
-within the existing startup budget. It repeats placement only when Cloudflare
-explicitly reports that no instance is available, never after an application
-boot or health failure. If placement remains unavailable, the visitor gets
-"Every demo is in use right now" and the reservation is released.
+Cloudflare keeps a small prepared pool of instances (7 on a fresh host) and
+places more only as demand grows, so the eighth concurrent demo can wait while
+Cloudflare places a new instance (16 to 37 seconds measured); it is not an
+account cap. The host keeps the same visitor and reservation while requesting
+placement, and that wait renews the 45-second boot budget up to 90 seconds
+from the start. It repeats placement only when Cloudflare explicitly reports
+that no instance is available, never after an application boot or health
+failure. If placement remains unavailable, the visitor gets the failed-start
+page with Try again and the reservation is released.
+
+A redeploy leaves live demos running: Cloudflare replaces a container only
+after it has served its demo for an hour, so new visitors get the new version
+and current visitors keep theirs until their demo ends.
 
 At most `maxInstances` demos (10 unless set) run at once, and one IP starts at
 most 3 a minute.
@@ -114,7 +121,10 @@ The seed needs, beyond the adoption above:
    { "version": 1, "domain": "run-lamp.com", "name": "Lamp" }
    ```
 
-   Optional: `"maxInstances"`; `"instanceType"`, the Cloudflare Containers
+   Optional: `"maxInstances"`; `"ownerEmail"`, the address the demo's owner
+   signs in as and seed screens show (a plausible address for the product,
+   `owner@demo.invalid` unless set; demo mail is suppressed);
+   `"instanceType"`, the Cloudflare Containers
    instance type every visitor's container runs on (`lite`, `basic`,
    `standard-1`, `standard-2`, `standard-3` or `standard-4`; `basic` unless
    set); and `"settings"`, plain demo settings for the

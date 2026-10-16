@@ -7,5 +7,6 @@
     "MAIL_FROM": "Uptime demo <demo@demo.invalid>",
     "UPTIME_SYNTHETIC_PORT": "18081"
   },
-  "instanceType": "standard-3"
+  "instanceType": "basic",
+  "ownerEmail": "maya@northstar.example"
 }
