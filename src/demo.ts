@@ -2,7 +2,7 @@ import {demoBindings} from './domain/demo.server.ts'
 import {ensureFirstRunner} from './domain/runner-registration.server.ts'
 import {HOSTED_RUNNER_ID,hostedInstallation} from './domain/hosted-runner.ts'
 import {createDestination} from './domain/notification-destinations.server.ts'
-import {historyStatements,incidentEvents,incidentStatements,type HistoryMonitor} from './domain/demo-history.server.ts'
+import {historyPeriods,historyStatements,incidentEvents,incidentStatements,type HistoryMonitor} from './domain/demo-history.server.ts'
 import type {Bindings} from './domain/control.server.ts'
 // @ts-ignore Shared definition validation is JavaScript.
 import {validateDefinition} from './domain/policy.mjs'
@@ -14,8 +14,8 @@ const json={assertion:'json',reason:'JSON value matches assertion'},body={assert
 
 /**
  * A week-old workspace: the bundled service the runner checks beside it, the public site checked for real,
- * a resolved incident and the notifications it sent. Evidence stays fresh for three intervals, so the
- * week reads as covered rather than as the gaps a three-minute default leaves between five-minute checks. Live checks continue from now on the same monitors.
+ * a resolved incident and the notifications it sent. Older revisions sample less often; each stored
+ * definition covers its own interval. Live checks continue every five minutes on the same monitors.
  */
 export async function seedDemo(input:Bindings,{ownerEmail,now}:{ownerEmail:string;now:Date}){
  const env=await demoBindings(input),port=Number(env.UPTIME_SYNTHETIC_PORT)
@@ -39,15 +39,15 @@ export async function seedDemo(input:Bindings,{ownerEmail,now}:{ownerEmail:strin
  })
  const statements=[]
  for(const m of history){
-  const data=JSON.stringify(m.definition),last=`${m.id}:1:${start+(count-1)*INTERVAL}:local-a:0`
+  const periods=historyPeriods(m,start,count),revision=periods.at(-1)!.revision
+  const data=JSON.stringify(m.definition),last=`${m.id}:${revision}:${start+(count-1)*INTERVAL}:local-a:0`
   const state={state:'Healthy',targetState:'Healthy',underlyingState:'Healthy',evidenceState:'Healthy',coverageState:'Complete',candidate:'Healthy',
    regions:[{probe:'local-a',networkLabel:runner.network_label,canaryPassed:false,terminal:true,state:'Healthy',observationId:last,observedAt:start+(count-1)*INTERVAL+1000}],
    denominator:1,fails:0,unknown:0,failingVantages:0,failureStreak:0,recoveryStreak:m.incident?m.incident.slotsBeforeEnd-m.incident.failingSlots:count,notificationOpen:false,maintenance:false,
    reason:'0/1 selected probes failed; 0 unknown; coverage complete. 0 independent failing vantages; passing external check absent; scheduled-slot confirmation 0/2; recovery 2/2.',evaluatedAt:at,incidentKey:null,incidentRevision:null}
-  statements.push(env.DB.prepare('INSERT INTO monitors(id,revision,definition,next_due,state) VALUES(?,1,?,CAST(? AS INTEGER),?) ON CONFLICT(id) DO NOTHING').bind(m.id,data,at,JSON.stringify(state)),
-   env.DB.prepare('INSERT INTO revisions(monitor_id,revision,definition,created_at) VALUES(?,1,?,CAST(? AS INTEGER)) ON CONFLICT DO NOTHING').bind(m.id,data,created),
+  statements.push(env.DB.prepare('INSERT INTO monitors(id,revision,definition,next_due,state) VALUES(?,CAST(? AS INTEGER),?,CAST(? AS INTEGER),?) ON CONFLICT(id) DO NOTHING').bind(m.id,revision,data,at,JSON.stringify(state)),
    env.DB.prepare('INSERT INTO evidence_generation(monitor_id) VALUES(?) ON CONFLICT DO NOTHING').bind(m.id),
-   ...historyStatements(env,m,m.definition.assignments['local-a'].runnerId,start,count))
+   ...historyStatements(env,m,m.definition.assignments['local-a'].runnerId,start,count,periods))
  }
  statements.push(env.DB.prepare('INSERT INTO uptime_first_run(id,completed_at) VALUES(1,CAST(? AS INTEGER)) ON CONFLICT DO NOTHING').bind(created))
  await env.DB.batch(statements)
