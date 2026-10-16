@@ -481,7 +481,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "50a71588ef67ae3fc50b67cab4f8da78e1447bbe1cfa3be099edcf713a193c39",
+      "sha256": "45e909198c5110c6a186da1314b7757e0498ff95fc48d2ac013cc881ae1093d0",
       "executable": false
     },
     "DEMO.md": {
@@ -2704,6 +2704,10 @@
       "sha256": "3006059e2a04793301c2268235446d511f52cb8033a977bf769d1a29e9d0dd02",
       "executable": false
     },
+    "src/domain/protocol/dns-wire.mjs": {
+      "sha256": "03cf1a6e175dd014495aec3d1eafa5a814cddf840b014e34b0b9bd42cf141a8d",
+      "executable": false
+    },
     "src/domain/protocol/dns.mjs": {
       "sha256": "e24f61775b6691c105cc4ad92d334454e3735fe1512150a8f3dc23367f236db3",
       "executable": false
@@ -2817,7 +2821,7 @@
       "executable": false
     },
     "src/domain/worker-protocols.server.ts": {
-      "sha256": "5c8fcd6af0ca50fdaf4a86f401c8d5856995a120ed2fae7c192fa14ad3355493",
+      "sha256": "d9ffe8c94b441b3f39bb3cd7ffbc58c71360190262f242076bdd8e40e3920280",
       "executable": false
     },
     "src/editor/monitor/api.mjs": {

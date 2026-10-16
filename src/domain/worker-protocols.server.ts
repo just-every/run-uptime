@@ -24,7 +24,7 @@ import {readFramed} from './protocol/dns-wire.mjs'
 // @ts-ignore
 import {certificateFacts} from './protocol/x509.mjs'
 // The Cloudflare Worker's TCP, TLS, DNS and domain checks. What a Worker can do, measured on the RunEditRun account on
-// 17 October 2026 (work/sd-uptime-r19/evidence/worker-sockets.md): connect() reaches public addresses and verifies TLS
+// 17 October 2026 (docs/monitors.md, Where each check runs): connect() reaches public addresses and verifies TLS
 // certificates, but it cannot reach Cloudflare's own addresses, exposes no certificate, and reports a refused port with
 // the same "proxy request failed" error as an address it may not reach. So the Worker resolves the target itself, refuses
 // addresses it cannot reach before connecting (Unknown here, never a target failure), connects to the validated address,
