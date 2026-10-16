@@ -22,7 +22,7 @@ export function mountManualForm({form,overview,definition,id,returnTo,message,pr
    result.probes=[...probes.querySelectorAll('input:checked')].map(input=>input.value);
    result.assignments=Object.fromEntries(result.probes.map(name=>[name,{runnerId:value('runner-'+name),...(value('canary-'+name)?{canaryUrl:value('canary-'+name)}:{})}]));
    await api(id?`/api/monitors/${id}`:'/api/monitors',id?'PATCH':'POST',result);location.href=returnTo;
-  }catch(error){message.textContent=error.message;message.setAttribute('data-error','');button.disabled=false}
+  }catch(error){message.textContent=error.message;message.setAttribute('data-error','');button.disabled=false;form.querySelector('.editor-footer').scrollIntoView({block:'end'})}
  };
  form.querySelectorAll('input,select,textarea,button[type="submit"]').forEach(control=>control.disabled=false);
  for(const checkbox of probes.querySelectorAll('input[type=checkbox]'))checkbox.onchange();

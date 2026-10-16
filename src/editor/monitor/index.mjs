@@ -40,7 +40,13 @@ export async function mountMonitorEditor(signal){
   mountManualForm({form,overview,definition,id,returnTo,message,preserveFields:!id});
   document.querySelector('#editor-signout').onclick=async event=>{event.preventDefault();try{await api('/api/auth/sign-out','POST',{});window.dispatchEvent(new Event('uptime:auth-lost'));location.href='/login'}catch(error){notice.textContent=error.message;notice.hidden=false}};
   if(id)form.hidden=false;
-  else{
+  // Without a runner that can look at a website (a hosted installation with no private runner in contact, outside a demo),
+  // the form is the working path, so it comes first; public checks still run in the Cloudflare Worker.
+  else if(overview.runner.hosted&&!overview.runner.privateRunnerReady&&overview.runner.workerDiscovery!==true){
+   manual.onclick=null;showManualForm();
+   description.textContent='Fill in what to check. Public checks run in the Cloudflare Worker. Website discovery, which proposes monitors for you, needs a private runner: see ';
+   const link=Object.assign(document.createElement('a'),{href:'/docs/runner',textContent:'Private runner instructions'});description.append(link,'.');
+  }else{
    const opened=!form.hidden,focused=document.activeElement;
    manual.onclick=null;
    document.querySelector('#discovery-help').textContent='Your runner opens the site from your network, looks around, and proposes monitors that are already filled in.';

@@ -11,7 +11,7 @@
   <section id="discovery" class="discovery" aria-label="Check a website" hidden>
    <form id="discovery-form" class="discovery-panel ui-card" novalidate>
     <label for="discovery-url">Website URL</label>
-    <div class="discovery-url-row"><input id="discovery-url" name="website" type="text" inputmode="url" autocomplete="url" autocapitalize="off" spellcheck="false" placeholder="https://example.com" autofocus aria-describedby="discovery-status discovery-help"><button id="discovery-check" type="submit">Check</button></div>
+    <div class="discovery-url-row"><input id="discovery-url" name="website" type="text" inputmode="url" autocomplete="url" autocapitalize="off" spellcheck="false" placeholder="https://www.your-site.example" autofocus aria-describedby="discovery-status discovery-help"><button id="discovery-check" type="submit">Check</button></div>
     <p id="discovery-status" class="discovery-status" role="status" aria-atomic="true"><span id="discovery-elapsed" aria-live="off"></span></p>
     <p id="discovery-help" class="helper ui-helper">Your runner opens the site from your network, looks around, and proposes monitors that are already filled in.</p>
     <p class="discovery-manual"><button id="discovery-manual" class="ui-link" type="button">Fill in the form yourself</button></p>
@@ -42,7 +42,7 @@
      <section class="editor-panel ui-card" aria-labelledby="editor-check-heading"><h2 id="editor-check-heading">What to check</h2>
       <div class="editor-fields">
        <label>Monitor name<input disabled name="name" maxlength="100" required></label>
-       <label>Target URL<input disabled name="url" type="url" placeholder="https://example.com/health" required></label>
+       <label>Target URL<input disabled name="url" type="url" placeholder="https://www.your-site.example/health" required></label>
        <div class="editor-pair"><label>Request method<select disabled name="method"><option>GET</option><option>HEAD</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option><option>OPTIONS</option></select></label><label>Expected HTTP status<input disabled name="status" type="number" min="100" max="599" required></label></div>
        <label>Body contains required text<textarea disabled name="body" maxlength="200"></textarea></label>
        <div class="editor-pair header-fields"><label>Expected header name<input disabled name="headerName" maxlength="80"></label><label>Expected header value<input disabled name="headerValue" maxlength="200"></label></div>

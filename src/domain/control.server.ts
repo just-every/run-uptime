@@ -1,4 +1,5 @@
 import {runnerRuntime} from './private-runner.ts'
+import {cronStarted} from './cron-run.server.ts'
 import {notificationOverview} from './notifications.server.ts'
 import {mutationGuard,auditStatement,type AuditActor} from './audit.server.ts'
 import {availabilityOverview} from './availability.server.ts'
@@ -24,12 +25,14 @@ export async function sign(key:string,value:string){const secret=await crypto.su
 export function grants(env:Bindings){if(!env.UPTIME_SYNTHETIC_PORT)return [];const port=Number(env.UPTIME_SYNTHETIC_PORT),origin=new URL(env.UPTIME_ORIGIN??'http://localhost'),controlPort=Number(origin.port||(origin.protocol==='https:'?443:80));if(!Number.isInteger(port)||port<1||port>65535||port===controlPort)throw Error('Invalid local endpoint grant');return [port]}
 export async function session(env:Bindings,request:Request){return Boolean(await operatorSession(env,request))}
 export async function get(env:Bindings,id:string){const row=await env.DB.prepare('SELECT * FROM monitors WHERE id=?').bind(id).first<any>();return row?{id:row.id,revision:row.revision,definition:JSON.parse(row.definition),nextDue:row.next_due,storedState:JSON.parse(row.state)}:null}
-export async function overview(env:Bindings){
+// A monitor's page reads only its own monitor (`monitorId`): the same projection, its own alerts and no installation-wide
+// notification history, so opening one monitor costs one monitor's reads however many the installation has.
+export async function overview(env:Bindings,{monitorId}:{monitorId?:string}={}){
  await ensureFirstRunner(env);
  const now=Date.now(),runners=await listRunners(env),staleMs=Number(env.UPTIME_RUNNER_STALE_MS??120000);
  if(!Number.isSafeInteger(staleMs)||staleMs<=0)throw Error('Invalid monitoring watch interval');
  const legacy=await runnerIdentity(env);
- const rows=await env.DB.prepare('SELECT id FROM monitors ORDER BY rowid').all<any>(),monitors=[];
+ const rows=await (monitorId===undefined?env.DB.prepare('SELECT id FROM monitors ORDER BY rowid'):env.DB.prepare('SELECT id FROM monitors WHERE id=?').bind(monitorId)).all<any>(),monitors=[];
  for(const row of rows.results){
   const m=await get(env,row.id);if(!m)continue;
   const snapshot=await attemptSnapshot(env,m.id,m.revision,m.definition,now);
@@ -46,10 +49,10 @@ export async function overview(env:Bindings){
   monitors.push({...m,configurationWarning:m.definition.assignments?null:legacyWarning,activeVantages:activeLabels.size,state:m.definition.enabled?state:{...state,state:'Paused',targetState:'Unknown',reason:'Monitor paused; historical observations do not establish current target health.'}});
  }
  const availability=await availabilityOverview(env.DB,monitors,now);
- const alerts=await env.DB.prepare('SELECT * FROM outbox ORDER BY rowid DESC LIMIT 200').all<any>();
+ const alerts=await (monitorId===undefined?env.DB.prepare('SELECT * FROM outbox ORDER BY rowid DESC LIMIT 200'):env.DB.prepare('SELECT * FROM outbox WHERE monitor_id=? ORDER BY rowid DESC LIMIT 200').bind(monitorId)).all<any>();
  return {monitors:monitors.map(m=>({...m,availability:availability.get(m.id)})),alerts:alerts.results.map(r=>({...r,event:JSON.parse(r.event)})),
-  runner:{...runnerRuntime(env,runners),identity:'private-runner',version:'uptime-node/0.1.0',independentVantage:new Set(runners.filter((r:any)=>r.revokedAt===null).map((r:any)=>r.networkLabel)).size>1,runners,grants:grants(env),contact:await readContact(env.DB),externalCheckUrl:await externalCheckUrl(env)},
-  notifications:await notificationOverview(env),now};
+  runner:{...runnerRuntime(env,runners),cronStarted:await cronStarted(env),identity:'private-runner',version:'uptime-node/0.1.0',independentVantage:new Set(runners.filter((r:any)=>r.revokedAt===null).map((r:any)=>r.networkLabel)).size>1,runners,grants:grants(env),contact:await readContact(env.DB),externalCheckUrl:await externalCheckUrl(env)},
+  ...(monitorId===undefined?{notifications:await notificationOverview(env)}:{}),now};
 }
 export const MONITOR_LIMIT=100
 // The revision guard runs in the write transaction. A racing create returns the same useful capacity error as preflight.

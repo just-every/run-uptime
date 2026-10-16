@@ -4,6 +4,7 @@ import {destinations} from './notification-destinations.server.ts'
 import {testEvent,type NotificationEvent} from './notification-content.ts'
 import {readContact} from './runner-contact.server.ts'
 import {hostedInstallation} from './hosted-runner.ts'
+import {cronStarted} from './cron-run.server.ts'
 import {drillOverview} from './alert-drills.server.ts'
 import type {Bindings} from './control.server.ts'
 export const NOTIFICATION_NAMESPACE='uptime-notifications';
@@ -32,5 +33,5 @@ export async function notificationOverview(env:Bindings){
  (SELECT a.outcome FROM integration_attempts a WHERE a.namespace=? AND a.delivery_id=j.id ORDER BY a.number DESC LIMIT 1) outcome
  FROM notification_jobs j LEFT JOIN integration_deliveries d ON d.namespace=? AND d.id=j.id ORDER BY j.created_at DESC,j.id DESC LIMIT 200`).bind(NOTIFICATION_NAMESPACE,NOTIFICATION_NAMESPACE).all<any>();
  const drills=await drillOverview(env);
- return {destinations:(await destinations(env)).map(d=>({...d,...drills(d.id)})),mailConfigured:mailConfigured(env),workerSends:hostedInstallation(env),runnerContact:await readContact(env.DB),deliveries:rows.results.map(r=>({id:r.id,eventId:r.event_id,destinationId:r.destination_id,destinationName:r.destination_name,kind:r.kind,createdAt:r.created_at,event:JSON.parse(r.event),state:r.state,code:r.outcome?JSON.parse(r.outcome).code:r.state==='sending'?'delivery_sending':r.code,attempts:r.attempts}))}
+ return {destinations:(await destinations(env)).map(d=>({...d,...drills(d.id)})),mailConfigured:mailConfigured(env),workerSends:hostedInstallation(env),demo:env.RER_DEMO==='1',cronStarted:await cronStarted(env),runnerContact:await readContact(env.DB),deliveries:rows.results.map(r=>({id:r.id,eventId:r.event_id,destinationId:r.destination_id,destinationName:r.destination_name,kind:r.kind,createdAt:r.created_at,event:JSON.parse(r.event),state:r.state,code:r.outcome?JSON.parse(r.outcome).code:r.state==='sending'?'delivery_sending':r.code,attempts:r.attempts}))}
 }

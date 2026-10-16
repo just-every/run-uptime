@@ -5,6 +5,7 @@ import markup from './console.html?raw'
 import {useEffect} from 'react'
 import {useRouter} from '@tanstack/react-router'
 import {useEditorLeafReady} from '../base/modules/editor/react.tsx'
+import {consolePrefetchScript} from './console-prefetch.ts'
 export function ConsoleDocument(){
  const router=useRouter()
  useEditorLeafReady('/app')
@@ -21,6 +22,6 @@ export function ConsoleDocument(){
   document.body.appendChild(script)
   return()=>{mounted=false;window.removeEventListener('uptime:new-monitor',openMonitor);window.dispatchEvent(new Event('uptime:console-unmount'));script.remove()}
  },[router])
- return <><link rel="stylesheet" href="/app-theme.css"/><link rel="stylesheet" href="/style.css"/><link rel="stylesheet" href="/notifications.css"/><div dangerouslySetInnerHTML={{__html:markup}}/></>
+ return <><script dangerouslySetInnerHTML={{__html:consolePrefetchScript}}/><link rel="stylesheet" href="/app-theme.css"/><link rel="stylesheet" href="/style.css"/><link rel="stylesheet" href="/notifications.css"/><div dangerouslySetInnerHTML={{__html:markup}}/></>
 }
 export const consoleHead=()=>({meta:[{title:'Uptime'}],links:[{rel:'icon',href:'/favicon.svg',type:'image/svg+xml'},{rel:'preload',href:'/design-assets/fonts/plus-jakarta-sans-latin-wght-normal.woff2',as:'font',type:'font/woff2',crossOrigin:'anonymous' as const}]})
