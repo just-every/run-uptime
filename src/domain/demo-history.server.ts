@@ -1,12 +1,14 @@
 import type {Bindings} from './control.server.ts'
 import {incidentEvent} from './notification-content.ts'
+import {HOSTED_RUNNER_ID} from './hosted-runner.ts'
 
 // A demo opens on a workspace that has been running for a week: scheduled
 // slots with their observations and runner deliveries, one confirmed and
 // recovered incident, and the notifications that incident sent. Rows use the
 // shapes the runner and acceptance path write, so every view reads them as
 // ordinary evidence; live checks continue from the next due time.
-const PROBE='local-a',RUNNER_VERSION='uptime-node/0.1.0'
+// Evidence names the runner that made it: the private Node runner or the Worker's own checks.
+const PROBE='local-a',runnerVersion=(runnerId:string)=>runnerId===HOSTED_RUNNER_ID?'uptime-worker/0.1.0':'uptime-node/0.1.0'
 
 export type HistoryMonitor={id:string;definition:any;passChecks:any[];failChecks:any[];status:number;bytes:number;baseMs:number;spreadMs:number;incident?:{slotsBeforeEnd:number;failingSlots:number;status:number}}
 
@@ -46,7 +48,7 @@ export function historyStatements(env:Bindings,m:HistoryMonitor,runnerId:string,
     CASE WHEN t.n>=p.first AND t.n<p.last THEN p.failing_ms ELSE p.base+((t.n*104729+p.seed)%p.spread) END AS dur FROM t,p)
    INSERT INTO observations(id,slot_id,probe,attempt,evidence)
    SELECT e.id||':${PROBE}:0',e.id,'${PROBE}',0,json_object('id',e.id||':${PROBE}:0','probe','${PROBE}','startedAt',e.started,'completedAt',e.started+e.dur,'durationMs',e.dur,
-    'runnerVersion','${RUNNER_VERSION}','outcome',CASE WHEN e.pass THEN 'pass' ELSE 'target_failure' END,'status',CASE WHEN e.pass THEN p.status ELSE p.failing_status END,
+    'runnerVersion','${runnerVersion(runnerId)}','outcome',CASE WHEN e.pass THEN 'pass' ELSE 'target_failure' END,'status',CASE WHEN e.pass THEN p.status ELSE p.failing_status END,
     'bytes',CASE WHEN e.pass THEN p.bytes ELSE 61 END,'checks',json(CASE WHEN e.pass THEN ?11 ELSE ?12 END),'attempt',0) FROM e,p WHERE true ON CONFLICT(id) DO NOTHING`)
    .bind(m.id,start,interval,count,seed,first,end,m.baseMs,m.spreadMs,m.status,JSON.stringify(m.passChecks),JSON.stringify(m.failChecks),Math.min(m.definition.timeoutMs,1900),m.incident?.status??503,m.bytes,period.revision),
   env.DB.prepare(`INSERT INTO runner_assignments(slot_id,probe,runner_id,delivered_at,received_times)

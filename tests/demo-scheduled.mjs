@@ -11,15 +11,17 @@ import {splitSql} from './migration-support.mjs';
 const directory=await mkdtemp(join(tmpdir(),'uptime-demo-scheduled-')),origin='https://uptime.example.test';
 const reads=[];let worker;
 try{
- worker=await hostedRuntime(directory,{...testAuthBindings,UPTIME_LOCAL_REVIEW:'false',UPTIME_ORIGIN:origin,RER_DEMO:'1',UPTIME_SYNTHETIC_PORT:'18081'},request=>{
+ worker=await hostedRuntime(directory,{...testAuthBindings,UPTIME_LOCAL_REVIEW:'false',UPTIME_ORIGIN:origin,RER_DEMO:'1'},request=>{
   assert.equal(request.method,'GET','demo notifications must never reach the network');
   const url=new URL(request.url);
   if(url.origin==='https://cloudflare-dns.com'){
-   assert.ok(['run-uptime.com','example.com','example.org'].includes(url.searchParams.get('name')),'notification preflight must also stay mocked');
+   assert.ok(['run-uptime.com','app.runeditrun.com','www.githubstatus.com','example.com','example.org'].includes(url.searchParams.get('name')),'notification preflight must also stay mocked');
    return Response.json({Status:0,Answer:[{type:1,data:'93.184.215.14'}]});
   }
-  assert.ok(['https://run-uptime.com','https://example.com','https://example.org'].includes(url.origin),'only public monitor targets leave the Worker');
+  assert.ok(['https://run-uptime.com','https://app.runeditrun.com','https://www.githubstatus.com','https://example.com','https://example.org'].includes(url.origin),'only public monitor targets leave the Worker');
   reads.push(url.href);
+  if(url.origin==='https://app.runeditrun.com')return Response.json({status:'ok',service:'rer-management'});
+  if(url.origin==='https://www.githubstatus.com')return Response.json({page:{name:'GitHub'},status:{indicator:'none',description:'All Systems Operational'}});
   return new Response('Uptime service ready',{status:200,headers:{'content-type':'text/plain'}});
  });
  const db=await worker.getD1Database('DB');
@@ -36,7 +38,7 @@ try{
  const queued=await json(await call(`/api/notifications/destinations/${webhook.id}/test`,{},cookie));
  const scheduled=await worker.dispatchFetch('http://127.0.0.1:15504/',{method:'POST',body:JSON.stringify({scheduled:true})});
  assert.equal(scheduled.status,204,await scheduled.text());
- for(const id of [monitor.id,'docs-site','run-page']){
+ for(const id of [monitor.id,'checkout-api','status-endpoint','docs-site','run-page']){
   const complete=slot=>slot.manual===0&&slot.status==='complete'&&slot.due_at>=startedAt&&slot.observations.length>0&&slot.observations.every(o=>o.outcome==='pass'&&o.runnerVersion.startsWith('uptime-worker/'));
   let history=[];
   // Console waitUntil and Cron share claims; wait for whichever owns the check.
@@ -47,9 +49,9 @@ try{
   }
   assert.ok(history.some(complete),`${id} received a live scheduled Worker check: ${JSON.stringify(history.slice(0,1))}`);
  }
- assert.ok(reads.includes('https://example.com/')&&reads.includes('https://run-uptime.com/docs')&&reads.includes('https://run-uptime.com/run'));
+ assert.ok(['https://example.com/','https://app.runeditrun.com/health','https://www.githubstatus.com/api/v2/status.json','https://run-uptime.com/docs','https://run-uptime.com/run'].every(url=>reads.includes(url)));
  const notes=await json(await call('/api/notifications',undefined,cookie));
  assert.equal(notes.deliveries.find(d=>d.id===queued.deliveryId)?.state,'accepted','mocked notification completes normally');
  assert.equal(notes.runnerContact.state,'Never seen','no private runner checked or sent anything');
- console.log('PASS demo sample and visitor public monitors receive scheduled Worker results; notification accepted with no delivery reaching the network');
+ console.log('PASS all four demo samples and a visitor public monitor receive scheduled Worker results with no runner; notification accepted with no delivery reaching the network');
 }finally{await worker?.dispose();await rm(directory,{recursive:true,force:true})}
