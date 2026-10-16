@@ -1,3 +1,4 @@
+import {demoEffect} from '@runeditrun/rer/modules/demo'
 import {DeliveryService} from '../base/modules/integrations/core/delivery.ts'
 import {validateDestination} from '../base/modules/integrations/core/destination.ts'
 import type {TrustedTransport} from '../base/modules/integrations/core/types.ts'
@@ -29,9 +30,11 @@ function workerTransport(dns:PublicDNS,allowance:Allowance,start:()=>Promise<voi
   await start();
   const url=validateDestination(wire.url),signal=AbortSignal.timeout(15000);
   for(const name of Object.keys(wire.headers))if(/^(host|connection|transfer-encoding|content-length|proxy-authorization)$/i.test(name))throw Error('Forbidden transport header');
-  await dns(url,signal,allowance);allowance.spend();
-  const response=await fetch(url.href,{method:'POST',headers:wire.headers,body:wire.body,redirect:'manual',signal,cache:'no-store'});
-  return {status:response.status,headers:Object.fromEntries(response.headers),body:(await boundedBody(response,65536)).body};
+  return demoEffect(async()=>{
+   await dns(url,signal,allowance);allowance.spend();
+   const response=await fetch(url.href,{method:'POST',headers:wire.headers,body:wire.body,redirect:'manual',signal,cache:'no-store'});
+   return {status:response.status,headers:Object.fromEntries(response.headers),body:(await boundedBody(response,65536)).body};
+  },()=>({status:200,headers:{},body:url.hostname==='hooks.slack.com'?'ok':''}));
  }};
 }
 /** Hosted installs need no runner for alerts: each cron run sends queued email, webhook and Slack jobs it can afford. */

@@ -1,5 +1,6 @@
 import {demoBindings} from './domain/demo.server.ts'
 import {ensureFirstRunner} from './domain/runner-registration.server.ts'
+import {HOSTED_RUNNER_ID,hostedInstallation} from './domain/hosted-runner.ts'
 import {createDestination} from './domain/notification-destinations.server.ts'
 import {historyStatements,incidentEvents,incidentStatements,type HistoryMonitor} from './domain/demo-history.server.ts'
 import type {Bindings} from './domain/control.server.ts'
@@ -31,8 +32,11 @@ export async function seedDemo(input:Bindings,{ownerEmail,now}:{ownerEmail:strin
   {id:'run-page',input:{name:'Install guide',type:'http',url:'https://run-uptime.com/run',timeoutMs:10000,assertions:{status:200,latencyMs:3000}},
    passChecks:checks(latency,true),failChecks:checks(latency,false),status:200,bytes:8106,baseMs:88,spreadMs:190},
  ]
- const history:HistoryMonitor[]=monitors.map(({input:definition,...m})=>({...m,definition:validateDefinition({...definition,probes:['local-a'],intervalMs:INTERVAL,freshnessMs:3*INTERVAL,retries:0,confirmSlots:2,recoverSlots:2,
-  assignments:{'local-a':{runnerId:runner.runner_id,networkLabel:runner.network_label}}},[port])}))
+ const history:HistoryMonitor[]=monitors.map(({input:definition,...m})=>{
+  const worker=hostedInstallation(env)&&new URL(definition.url).protocol==='https:'
+  return {...m,definition:validateDefinition({...definition,probes:['local-a'],intervalMs:INTERVAL,freshnessMs:3*INTERVAL,retries:0,confirmSlots:2,recoverSlots:2,
+   assignments:{'local-a':worker?{runnerId:HOSTED_RUNNER_ID,networkLabel:'Cloudflare Worker'}:{runnerId:runner.runner_id,networkLabel:runner.network_label}}},[port])}
+ })
  const statements=[]
  for(const m of history){
   const data=JSON.stringify(m.definition),last=`${m.id}:1:${start+(count-1)*INTERVAL}:local-a:0`
@@ -43,7 +47,7 @@ export async function seedDemo(input:Bindings,{ownerEmail,now}:{ownerEmail:strin
   statements.push(env.DB.prepare('INSERT INTO monitors(id,revision,definition,next_due,state) VALUES(?,1,?,CAST(? AS INTEGER),?) ON CONFLICT(id) DO NOTHING').bind(m.id,data,at,JSON.stringify(state)),
    env.DB.prepare('INSERT INTO revisions(monitor_id,revision,definition,created_at) VALUES(?,1,?,CAST(? AS INTEGER)) ON CONFLICT DO NOTHING').bind(m.id,data,created),
    env.DB.prepare('INSERT INTO evidence_generation(monitor_id) VALUES(?) ON CONFLICT DO NOTHING').bind(m.id),
-   ...historyStatements(env,m,runner.runner_id,start,count))
+   ...historyStatements(env,m,m.definition.assignments['local-a'].runnerId,start,count))
  }
  statements.push(env.DB.prepare('INSERT INTO uptime_first_run(id,completed_at) VALUES(1,CAST(? AS INTEGER)) ON CONFLICT DO NOTHING').bind(created))
  await env.DB.batch(statements)

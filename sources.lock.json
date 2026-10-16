@@ -733,7 +733,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "c96b66aecd488a8181f16394a62769bca54995baad9a04ec651e8d6a846c4e48",
+      "sha256": "2f8f5f6f0dda89699aeed1cfcd2da4f34aa74d44d5ce0c74a3f76735be8a0d27",
       "executable": false
     },
     "patches/README.md": {
@@ -2389,7 +2389,7 @@
       "executable": false
     },
     "src/demo.ts": {
-      "sha256": "086da9828df9511209aaa66ae8073f7e0a1e79f57ff39737e2d4c168504d8f1d",
+      "sha256": "9be5180e33c3d88ebe2ad8eac5623f1c7d9fa177bb852783f6427bde49dc9c0c",
       "executable": false
     },
     "src/domain/access-document.server.ts": {
@@ -2597,7 +2597,7 @@
       "executable": false
     },
     "src/domain/hosted-runner.ts": {
-      "sha256": "9e9c6f1bbbec5f3e3901c86261724504a5b16195a6d0ac9a8671c0f71c66a569",
+      "sha256": "27db38aa5c1117cea5aa47722545f85c1006d8290edb3fd77177b1b7c9705b5a",
       "executable": false
     },
     "src/domain/http-assertions.mjs": {
@@ -2657,7 +2657,7 @@
       "executable": false
     },
     "src/domain/notification-worker.server.ts": {
-      "sha256": "0bfef71aad18ab7fd3199e25be3a1e105ec9bdfae3990e5eb512e6485be1bf50",
+      "sha256": "4fb8f62bb83d5d6d832121c8ad214f773799ed4070725391d2735bfbaec0ed6f",
       "executable": false
     },
     "src/domain/notifications.server.ts": {
@@ -3198,6 +3198,10 @@
     },
     "tests/definitions-journey.mjs": {
       "sha256": "4e934b786ab572a1e4ffda52184424973e4a4d55d6eab54a9e29be89692ef25e",
+      "executable": false
+    },
+    "tests/demo-scheduled.mjs": {
+      "sha256": "949d25a702982524860f5537675d8bf1cad248747f4c2aeb676d904aa9b53d9c",
       "executable": false
     },
     "tests/deployment-custody.mjs": {
