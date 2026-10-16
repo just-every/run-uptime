@@ -8,13 +8,13 @@ import {tmpdir} from 'node:os';
 import {testAuthBindings} from './auth-test-support.mjs';
 import {splitSql} from './migration-support.mjs';
 import {emittedRunnerWorker,request} from './signed-runner-runtime.mjs';
-import {certificates,listen,close,webServer,tcpServer,tlsServer} from './protocol-fixtures.mjs';
+import {certificates,listen,close,webServer,tcpServer,tlsServer,dnsServer} from './protocol-fixtures.mjs';
 // TCP-001, DNS-001, TLS-001 and DOMAIN-001 core flows: the owner API saves each monitor, the real Node runner checks
 // local fixtures through its production DNS pinning and sockets (only the network edge is routed), and its signed
 // results drive state, incidents and expiry warnings in the emitted production Worker with migrated D1.
 const directory=await mkdtemp(join(tmpdir(),'uptime-protocols-')),key='protocol-monitors-test-only-runner-key';
 const DAY=86400000,scenario={dns:{},registry:{},registrar:{},certificate:null};
-let worker,db,web,tcp,tlsService,cookie='',origin,passed=0;
+let worker,db,web,tcp,tlsService,dns,cookie='',origin,passed=0;
 const check=async(name,fn)=>{await fn();passed++;console.log('PASS '+name)};
 const signature=(path,body,stamp)=>createHmac('sha256',key).update(`${stamp}.${path==='/api/runner/enroll'?'runner-enrolment.':''}${JSON.stringify(body)}`).digest('hex');
 try{
@@ -26,14 +26,14 @@ try{
   res.writeHead(response.status,Object.fromEntries(response.headers));res.end(Buffer.from(await response.arrayBuffer()));
  });
  const webPort=await listen(web);origin=`https://localhost:${webPort}`;
- scenario.certificate=certs.expiring;const tlsPort=await listen(tlsService=tlsServer(scenario,certs.expiring));
+ scenario.certificate=certs.expiring;const tlsPort=await listen(tlsService=tlsServer(scenario,certs.expiring)),dnsPort=await listen(dns=dnsServer(scenario));
  const bindings={...testAuthBindings,MAIL_PROVIDER:'sendgrid',SENDGRID_API_KEY:'test-only-provider-not-contacted',UPTIME_LOCAL_REVIEW:'false',UPTIME_ORIGIN:origin,OWNER_EMAIL:'owner@example.test',UPTIME_RUNNER_KEY:key};
  worker=await emittedRunnerWorker(directory,bindings);db=await worker.getD1Database('DB');
  for(const file of(await readdir('migrations')).filter(n=>n.endsWith('.sql')).sort())for(const sql of splitSql(await readFile(join('migrations',file),'utf8')))await db.prepare(sql).run();
  const api=(path,body,headers={},method=body===undefined?'GET':'POST')=>request(origin,ca,path,{method,body,headers:{origin,cookie,'cf-connecting-ip':'192.0.2.1',...headers}});
  // One real runner process per scheduled check; `edge` selects what the routed network edge does for it.
  const runner=async(edge={})=>{
-  const child=spawn(process.execPath,['--import',resolve('tests/protocol-routing.mjs'),resolve('tests/signed-runner-child.mjs')],{env:{...process.env,UPTIME_CONTROL_ORIGIN:origin,UPTIME_RUNNER_KEY:key,NODE_EXTRA_CA_CERTS:certs.caPath,PROTOCOL_HTTPS_PORT:String(webPort),PROTOCOL_TCP_PORT:String(tcpPort),PROTOCOL_TLS_PORT:String(tlsPort),...edge},stdio:['ignore','pipe','pipe']});
+  const child=spawn(process.execPath,['--import',resolve('tests/protocol-routing.mjs'),resolve('tests/signed-runner-child.mjs')],{env:{...process.env,UPTIME_CONTROL_ORIGIN:origin,UPTIME_RUNNER_KEY:key,NODE_EXTRA_CA_CERTS:certs.caPath,PROTOCOL_HTTPS_PORT:String(webPort),PROTOCOL_TCP_PORT:String(tcpPort),PROTOCOL_TLS_PORT:String(tlsPort),PROTOCOL_DNS_PORT:String(dnsPort),...edge},stdio:['ignore','pipe','pipe']});
   let output='';child.stdout.on('data',b=>output+=b);child.stderr.on('data',b=>output+=b);
   const timer=setTimeout(()=>child.kill('SIGKILL'),40000);
   try{const [code]=await once(child,'exit');assert.equal(code,0,`runner failed: ${output.slice(0,2000)}`)}finally{clearTimeout(timer)}
@@ -62,16 +62,20 @@ try{
   await pause(m.id);
  });
 
- await check('DNS: expected values, change, owner-approved change, NXDOMAIN, resolver disagreement and resolver faults stay distinct',async()=>{
-  scenario.dns={cloudflare:{status:'answer',answers:['203.0.113.10']},google:{status:'answer',answers:['203.0.113.10']}};
-  const m=await create({name:'Shop address',type:'dns',dns:{name:'shop.protocol.test',recordType:'A',expect:{values:['203.0.113.10']}}});
-  let r=await step(m.id);assert.equal(r.o.outcome,'pass');assert.deepEqual(r.o.protocol.resolvers.map(x=>x.answers),[['203.0.113.10'],['203.0.113.10']]);assert.equal(r.state.state,'Healthy');
-  scenario.dns.cloudflare.answers=scenario.dns.google.answers=['203.0.113.99'];r=await step(m.id);assert.equal(r.o.outcome,'target_failure',JSON.stringify(r.o));assert.match(r.o.checks[0].reason,/changed: 203\.0\.113\.99; expected 203\.0\.113\.10/);assert.equal(r.state.state,'Failing');
+ await check('DNS: expected values, change, owner-approved change, propagation difference, NXDOMAIN, SERVFAIL and resolver faults stay distinct',async()=>{
+  const all=values=>({cloudflare:{status:'answer',answers:values},google:{status:'answer',answers:values},authoritative:{status:'answer',answers:values}});
+  scenario.dns=all(['203.0.113.10']);
+  const m=await create({name:'Shop address',type:'dns',dns:{name:'shop.protocol.test',recordType:'A',resolvers:['cloudflare','google','authoritative'],expect:{values:['203.0.113.10']}}});
+  let r=await step(m.id);assert.equal(r.o.outcome,'pass',JSON.stringify(r.o.checks));assert.deepEqual(r.o.protocol.resolvers.map(x=>x.answers),[['203.0.113.10'],['203.0.113.10'],['203.0.113.10']]);assert.equal(r.o.protocol.resolvers[2].server,'ns1.protocol.test 93.184.216.34');assert.equal(r.state.state,'Healthy');
+  scenario.dns=all(['203.0.113.99']);r=await step(m.id);assert.equal(r.o.outcome,'target_failure');assert.match(r.o.checks[0].reason,/changed: 203\.0\.113\.99; expected 203\.0\.113\.10/);assert.equal(r.state.state,'Failing');
   const approved=await api(`/api/monitors/${m.id}`,{...m.definition,dns:{...m.definition.dns,approved:{values:['203.0.113.99']}}},{},'PATCH');assert.equal(approved.status,200,JSON.stringify(approved.data));
   r=await step(m.id);assert.equal(r.o.outcome,'pass');assert.match(r.o.checks[0].reason,/owner-approved change/);assert.equal(r.state.state,'Healthy');assert.deepEqual(kinds(r.alerts),['trigger','recovery']);
-  scenario.dns={cloudflare:{status:'nxdomain'},google:{status:'nxdomain'}};r=await step(m.id);assert.equal(r.o.outcome,'target_failure',JSON.stringify(r.o.checks));assert.match(r.o.checks[0].reason,/NXDOMAIN/,'an approved value never suppresses a missing name');
-  scenario.dns={cloudflare:{status:'answer',answers:['203.0.113.99']},google:{status:'servfail'}};r=await step(m.id);assert.equal(r.o.outcome,'target_failure');assert.match(r.o.checks[1].reason,/SERVFAIL/);assert.equal(r.o.checks.find(c=>c.assertion==='agreement').pass,false);
-  scenario.dns={cloudflare:{status:'answer',answers:['203.0.113.99']},google:{status:'unavailable'}};r=await step(m.id);assert.equal(r.o.outcome,'runner_error');assert.match(r.o.checks[1].reason,/monitor infrastructure fault/);assert.equal(r.state.targetState,'Unknown');
+  // The zone changed at its server, but recursive resolvers still serve the cached record: each answer is acceptable,
+  // yet exact expectations make the propagation difference itself a failure.
+  scenario.dns={...all(['203.0.113.99']),authoritative:{status:'answer',answers:['203.0.113.10']}};r=await step(m.id);assert.equal(r.o.outcome,'target_failure');assert.match(r.o.checks.find(c=>c.assertion==='agreement').reason,/Resolvers disagree/);
+  scenario.dns={cloudflare:{status:'nxdomain'},google:{status:'nxdomain'},authoritative:{status:'nxdomain'}};r=await step(m.id);assert.equal(r.o.outcome,'target_failure',JSON.stringify(r.o.checks));assert.match(r.o.checks[2].reason,/NXDOMAIN/,'an approved value never suppresses a missing name');
+  scenario.dns={...all(['203.0.113.99']),google:{status:'servfail'}};r=await step(m.id);assert.equal(r.o.outcome,'target_failure');assert.match(r.o.checks[1].reason,/SERVFAIL/);assert.equal(r.o.checks.find(c=>c.assertion==='agreement').pass,false);
+  scenario.dns={...all(['203.0.113.99']),google:{status:'unavailable'}};r=await step(m.id);assert.equal(r.o.outcome,'runner_error');assert.match(r.o.checks[1].reason,/monitor infrastructure fault/);assert.equal(r.state.targetState,'Unknown');
   await pause(m.id);
  });
 
@@ -101,4 +105,4 @@ try{
   const renewal=r.alerts.find(a=>a.kind==='renewal');assert.ok(renewal);assert.equal(renewal.event.incidentKey,warning.event.incidentKey);assert.equal(r.alerts.filter(a=>a.kind==='trigger').length,0,'Unknown registry data never opened an incident');
  });
  console.log(`PROTOCOL-MONITORS passed ${passed} checks: emitted Worker + migrated D1, real Node runner per scheduled check, local TCP/TLS/DNS over HTTPS/RDAP fixtures behind production pinning.`);
-}finally{await close(web);await close(tcp);await close(tlsService);await worker?.dispose();await rm(directory,{recursive:true,force:true})}
+}finally{await close(web);await close(tcp);await close(tlsService);await close(dns);await worker?.dispose();await rm(directory,{recursive:true,force:true})}

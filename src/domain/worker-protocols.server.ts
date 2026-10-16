@@ -20,6 +20,8 @@ import {certificateCovers} from './protocol/hostname.mjs'
 // @ts-ignore
 import {clientHello,readCertificates,HandshakeError} from './protocol/tls12-certificates.mjs'
 // @ts-ignore
+import {readFramed} from './protocol/dns-wire.mjs'
+// @ts-ignore
 import {certificateFacts} from './protocol/x509.mjs'
 // The Cloudflare Worker's TCP, TLS, DNS and domain checks. What a Worker can do, measured on the RunEditRun account on
 // 17 October 2026 (work/sd-uptime-r19/evidence/worker-sockets.md): connect() reaches public addresses and verifies TLS
@@ -95,6 +97,21 @@ async function tlsFacts(s:any,context:Context){
  return {address,handshakeMs,certificate,chainLength:Math.min(der.length,10),trusted:verified?true:explained?null:false,hostnameMatch,
   ...(!verified&&!explained?{verifyError:'the Worker’s certificate verification failed: an untrusted or incomplete chain'}:{})}
 }
+// One DNS query over TCP to a name server address the shared code validated as public; Cloudflare's own name servers
+// are out of the Worker's reach, which the DNS evidence reports as that resolver being unavailable here.
+function asker(context:Context){
+ return async(address:string,bytes:Uint8Array)=>{
+  if(cloudflareAddress(address))throw new ProtocolError('vantage','the Cloudflare Worker cannot open sockets to this name server, a Cloudflare address')
+  context.allowance.spend()
+  const socket=connect({hostname:address,port:53})
+  try{
+   await open(socket,address,53,context.signal)
+   const writer=socket.writable.getWriter();await writer.write(bytes);writer.releaseLock()
+   const reader=socket.readable.getReader()
+   return await Promise.race([readFramed(()=>reader.read()),timeout(context.signal)])
+  }finally{socket.close().catch(()=>{})}
+ }
+}
 // Bounded reads for the shared DNS over HTTPS and RDAP code. Every hop's address is checked like a probe target's.
 function reader(context:Context){
  return async(url:string,{accept,maxBytes}:{accept:string;maxBytes:number})=>{
@@ -115,7 +132,7 @@ export async function workerProtocolProbe(def:any,probe:string,allowance:Allowan
  const evidence=(data:any,completedAt=Date.now())=>({id:crypto.randomUUID(),probe,startedAt,completedAt,durationMs:completedAt-startedAt,runnerVersion:EVIDENCE_VERSION,...data})
  try{
   const s=def[def.type]
-  const facts=def.type==='tcp'?await tcpFacts(s,context,startedAt+def.timeoutMs):def.type==='tls'?await tlsFacts(s,context):def.type==='dns'?await dnsFacts(reader(context),s):await domainFacts(reader(context),s.name)
+  const facts=def.type==='tcp'?await tcpFacts(s,context,startedAt+def.timeoutMs):def.type==='tls'?await tlsFacts(s,context):def.type==='dns'?await dnsFacts(reader(context),s,asker(context)):await domainFacts(reader(context),s.name)
   const completedAt=Date.now()
   return evidence({...protocolChecks(def,facts,completedAt),protocol:facts},completedAt)
  }catch(error:any){
@@ -126,5 +143,5 @@ export async function workerProtocolProbe(def:any,probe:string,allowance:Allowan
 }
 /** Outbound requests one attempt can use, for the scheduled run's budget. */
 export function protocolRequests(def:any){
- return def.type==='tcp'?3:def.type==='tls'?4:def.type==='dns'?def.dns.resolvers.length:9
+ return def.type==='tcp'?3:def.type==='tls'?4:def.type==='dns'?def.dns.resolvers.length+(def.dns.resolvers.includes('authoritative')?6:0):9
 }

@@ -8,7 +8,7 @@ import tls from 'node:tls';
 import {Resolver} from 'node:dns/promises';
 
 const PUBLIC='93.184.216.34';
-const HOSTS=['tcp.protocol.test','tls.protocol.test','canary.protocol.test','cloudflare-dns.com','dns.google','data.iana.org','rdap.registry.test','rdap.registrar.test'];
+const HOSTS=['ns1.protocol.test','tcp.protocol.test','tls.protocol.test','canary.protocol.test','cloudflare-dns.com','dns.google','data.iana.org','rdap.registry.test','rdap.registrar.test'];
 const env=process.env;
 Resolver.prototype.resolve4=async host=>{
  assert.ok(HOSTS.includes(host),`unexpected lookup ${host}`);
@@ -28,7 +28,8 @@ net.connect=function(options,...rest){
  // A port that drops every packet: the connection neither opens nor fails until the check's timeout.
  // Like a real connect attempt, it keeps the process alive until the check gives up and destroys it.
  if(env.PROTOCOL_TCP_MODE==='blackhole'){const socket=new net.Socket(),pending=setTimeout(()=>{},60000);socket.once('close',()=>clearTimeout(pending));return socket}
- return connect.call(this,{...options,host:'127.0.0.1',port:Number(env.PROTOCOL_TCP_PORT)},...rest);
+ // Port 53 is the zone's name server; any other port is the monitored TCP service.
+ return connect.call(this,{...options,host:'127.0.0.1',port:Number(options.port===53?env.PROTOCOL_DNS_PORT:env.PROTOCOL_TCP_PORT)},...rest);
 };
 const secure=tls.connect;
 tls.connect=function(options,...rest){

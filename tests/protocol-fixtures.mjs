@@ -38,6 +38,10 @@ export function webServer(tlsOptions,scenario,controlHandler){
   if(host==='localhost')return controlHandler(req,res);
   if(host==='canary.protocol.test'){res.writeHead(200);return res.end('ok')}
   if(host==='cloudflare-dns.com'||host==='dns.google'){
+   // The zone's name server and its address, for the authoritative query; every other question is the monitored record.
+   const name=url.searchParams.get('name'),type=url.searchParams.get('type');
+   if(type==='NS')return json(200,{Status:name==='protocol.test'?0:3,TC:false,...(name==='protocol.test'?{Answer:[{name,type:2,TTL:60,data:'ns1.protocol.test.'}]}:{})});
+   if(name==='ns1.protocol.test')return json(200,{Status:0,TC:false,Answer:[{name,type:1,TTL:60,data:'93.184.216.34'}]});
    const answer=scenario.dns[host==='dns.google'?'google':'cloudflare'];
    if(answer.status==='unavailable')return json(503,{error:'unavailable'});
    const code={answer:0,nxdomain:3,servfail:2}[answer.status];
@@ -53,6 +57,21 @@ export function webServer(tlsOptions,scenario,controlHandler){
     ...(host==='rdap.registry.test'?{links:[{rel:'related',type:'application/rdap+json',href:`https://rdap.registrar.test/domain/${url.pathname.split('/').pop()}`}]}:{})});
   }
   res.writeHead(404);res.end();
+ });
+}
+// The zone's authoritative name server over TCP: answers the monitored A record from scenario.dns.authoritative.
+export function dnsServer(scenario){
+ return net.createServer(socket=>{
+  socket.on('error',()=>{});let buffer=Buffer.alloc(0);
+  socket.on('data',chunk=>{
+   buffer=Buffer.concat([buffer,chunk]);if(buffer.length<2||buffer.length<2+buffer.readUInt16BE(0))return;
+   const query=buffer.subarray(2,2+buffer.readUInt16BE(0)),answer=scenario.dns.authoritative,end=12+query.subarray(12).indexOf(0)+5;
+   const rcode={answer:0,nxdomain:3,servfail:2}[answer.status],records=answer.status==='answer'?answer.answers:[];
+   const header=Buffer.from([query[0],query[1],0x84,rcode,0,1,0,records.length,0,0,0,0]);
+   const body=records.map(ip=>Buffer.from([0xc0,12,0,1,0,1,0,0,0,60,0,4,...ip.split('.').map(Number)]));
+   const message=Buffer.concat([header,query.subarray(12,end),...body]),framed=Buffer.alloc(2);framed.writeUInt16BE(message.length);
+   socket.end(Buffer.concat([framed,message]));
+  });
  });
 }
 export function tcpServer(){return net.createServer(socket=>{socket.on('error',()=>{});socket.write('READY protocol fixture service\r\n');socket.end()})}

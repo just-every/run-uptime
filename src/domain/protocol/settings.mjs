@@ -1,5 +1,5 @@
 import {publicTarget} from '../public-target.mjs';
-import {RESOLVERS,RECORD_TYPES} from './dns.mjs';
+import {RESOLVERS,RECORD_TYPES,DEFAULT_RESOLVERS} from './dns.mjs';
 // Settings of the protocol monitors (TCP-001, DNS-001, TLS-001, DOMAIN-001), validated by the same function on the
 // control plane, the Worker and the runner. Each type keeps its settings in one object named after it; `url` is derived
 // from them for display and identity (tcp://host:port, tls://host:port, dns://name/TYPE, domain://name).
@@ -54,8 +54,8 @@ export function protocolSettings(type,input){
   const s=fields(input.dns,['name','recordType','resolvers','expect','approved'],'DNS');
   const name=dnsName(s.name),recordType=s.recordType??'A';
   if(!RECORD_TYPES.includes(recordType))throw Error(`Record type must be one of ${RECORD_TYPES.join(', ')}`);
-  const resolvers=s.resolvers??Object.keys(RESOLVERS);
-  if(!Array.isArray(resolvers)||!resolvers.length||resolvers.length>Object.keys(RESOLVERS).length||new Set(resolvers).size!==resolvers.length||resolvers.some(r=>!Object.hasOwn(RESOLVERS,r)))throw Error(`Resolvers must be one or more of ${Object.keys(RESOLVERS).join(', ')}`);
+  const resolvers=s.resolvers??DEFAULT_RESOLVERS;
+  if(!Array.isArray(resolvers)||!resolvers.length||resolvers.length>3||new Set(resolvers).size!==resolvers.length||resolvers.some(r=>!Object.hasOwn(RESOLVERS,r)))throw Error(`Resolvers must be one or more of ${Object.keys(RESOLVERS).join(', ')}`);
   let expect;
   if(s.expect!==undefined){
    const e=fields(s.expect,['values','match','absent'],'Expected answer');

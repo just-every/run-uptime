@@ -6,6 +6,7 @@ import {protocolChecks} from '../../src/domain/protocol/evaluate.mjs';
 import {dnsFacts} from '../../src/domain/protocol/dns.mjs';
 import {domainFacts} from '../../src/domain/protocol/rdap.mjs';
 import {ProtocolError} from '../../src/domain/protocol/protocol-error.mjs';
+import {readFramed} from '../../src/domain/protocol/dns-wire.mjs';
 import {resolvePublic,publicReport,ProbeError} from './public-http.mjs';
 // The runner's TCP, TLS, DNS and domain checks. Sockets connect only to the address the public resolver validated
 // (resolvePublic pins it, as an HTTP probe's socket is pinned); DNS over HTTPS and RDAP reads go through publicReport's
@@ -70,6 +71,16 @@ async function tlsFacts(s,signal){
   return {address:pin.address,handshakeMs,certificate:certificateFacts(peer),chainLength,trusted:error===null?true:dated?null:false,hostnameMatch:tls.checkServerIdentity(s.host,peer)===undefined,...(error&&!dated?{verifyError:(VERIFY[error]??error.toLowerCase().replace(/_/g,' ')).slice(0,120)}:{})};
  }finally{socket.destroy()}
 }
+// One DNS query over TCP to a name server address the shared code validated as public.
+const asker=signal=>async(address,bytes)=>{
+ const socket=net.connect({host:address,port:53});
+ try{
+  await opened(socket,'connect',signal,53);socket.write(bytes);
+  const queue=[];let wake;socket.on('data',chunk=>{queue.push(new Uint8Array(chunk));wake?.()});socket.on('end',()=>{queue.push(null);wake?.()});
+  const read=async()=>{while(!queue.length){if(signal.aborted)throw new ProtocolError('timeout','No answer within the timeout');await new Promise(r=>{wake=r;signal.addEventListener('abort',r,{once:true})})}const value=queue.shift();return value?{value,done:false}:{done:true}};
+  return await readFramed(read);
+ }finally{socket.destroy()}
+};
 // Reads for the shared DNS over HTTPS and RDAP code: pinned, credential-free, read-only and bounded.
 const reader=signal=>async(url,{accept,maxBytes})=>{
  const response=await publicReport(url,{signal,accept,userAgent:RUNNER_VERSION,maxBody:maxBytes,maxHops:3});
@@ -82,7 +93,7 @@ export async function probeProtocol(input,probe,{signal}={}){
  const evidence=(data,completedAt=Date.now())=>({id:randomUUID(),probe,startedAt,completedAt,durationMs:completedAt-startedAt,runnerVersion:RUNNER_VERSION,...data});
  try{
   const s=def[def.type];
-  const facts=def.type==='tcp'?await tcpFacts(s,execution,deadline):def.type==='tls'?await tlsFacts(s,execution):def.type==='dns'?await dnsFacts(reader(execution),s):await domainFacts(reader(execution),s.name);
+  const facts=def.type==='tcp'?await tcpFacts(s,execution,deadline):def.type==='tls'?await tlsFacts(s,execution):def.type==='dns'?await dnsFacts(reader(execution),s,asker(execution)):await domainFacts(reader(execution),s.name);
   const completedAt=Date.now();
   return evidence({...protocolChecks(def,facts,completedAt),protocol:facts},completedAt);
  }catch(error){

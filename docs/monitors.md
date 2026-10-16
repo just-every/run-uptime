@@ -34,7 +34,7 @@ A TCP monitor opens a connection to a host and port, for example a database, a m
 
 ### DNS record
 
-A DNS monitor asks public resolvers (Cloudflare and Google, over HTTPS) for an A, AAAA, CNAME, MX, TXT, NS, SOA, SRV or CAA record. Without expected values it needs at least one record; with them, the answer must match exactly or include them, or it may require that the record does not exist. A missing name (NXDOMAIN), a resolver failure (SERVFAIL), resolvers that disagree, and a resolver that could not be reached at all are reported separately; the last is a fault in the monitoring path and stays Unknown. Before a planned change, add the new values as an **approved change**: they pass as well, while a missing name or a failing resolver still fails. SOA compares the primary name server and the responsible mailbox, not the serial.
+A DNS monitor asks public resolvers (Cloudflare and Google, over HTTPS), and if you choose the zone's own authoritative name server (asked directly over TCP), for an A, AAAA, CNAME, MX, TXT, NS, SOA, SRV or CAA record. Without expected values it needs at least one record; with them, the answer must match exactly or include them, or it may require that the record does not exist. A missing name (NXDOMAIN), a resolver failure (SERVFAIL), resolvers that disagree, and a resolver that could not be reached at all are reported separately; the last is a fault in the monitoring path and stays Unknown. Before a planned change, add the new values as an **approved change**: they pass as well, while a missing name or a failing resolver still fails. SOA compares the primary name server and the responsible mailbox, not the serial.
 
 ### TLS certificate
 
@@ -46,7 +46,7 @@ A domain monitor reads the registration's expiry date from the registry's RDAP s
 
 ### Where each check runs
 
-The Cloudflare Worker runs HTTP(S), keyword, TCP, TLS, DNS and domain checks at an interval of at least one minute. A Worker cannot open sockets to Cloudflare's own addresses, so a TCP or TLS check of a site hosted on Cloudflare is Unknown there and says so; a private runner can check it. The Worker reads a certificate from a TLS 1.2 handshake, so a server that accepts only TLS 1.3 is also Unknown at the Worker. A private runner runs every type. ICMP ping is not offered.
+The Cloudflare Worker runs HTTP(S), keyword, TCP, TLS, DNS and domain checks at an interval of at least one minute. A Worker cannot open sockets to Cloudflare's own addresses, so a TCP or TLS check of a site hosted on Cloudflare, or an authoritative DNS query to a Cloudflare name server, is Unknown there and says so; a private runner can check it. The Worker reads a certificate from a TLS 1.2 handshake, so a server that accepts only TLS 1.3 is also Unknown at the Worker. A private runner runs every type. ICMP ping is not offered.
 
 ### Incoming heartbeat
 

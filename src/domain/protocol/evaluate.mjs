@@ -58,7 +58,7 @@ function dns(definition,facts){
  if(facts.resolvers.length>1&&answering.length>1){
   // Resolvers can legitimately return different records (geographic answers); that differs from disagreeing about the
   // outcome. Different answer codes, or different values where exact values are expected, is a propagation difference.
-  const [a,b]=answering,codes=a.status!==b.status,values=!sameSet(a.answers,b.answers),exact=s.expect?.match==='exact';
+  const [a,...others]=answering,codes=others.some(b=>a.status!==b.status),values=others.some(b=>!sameSet(a.answers,b.answers)),exact=s.expect?.match==='exact';
   const shown=answering.map(r=>`${RESOLVERS[r.id].name} ${r.status==='answer'?shownValues(r.answers):r.status.toUpperCase()}`).join('; ');
   checks.push(check('agreement',!(codes||(values&&exact)),codes||values?`Resolvers disagree: ${shown}`:'Resolvers agree'));
  }

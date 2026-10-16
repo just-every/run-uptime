@@ -3,7 +3,7 @@ import {escape} from './console-format.js';
 // facts, and the staged expiry warnings with their renewal follow-through (from the monitor's own outbox events).
 export const PROTOCOL_KINDS={tcp:'TCP port check',dns:'DNS record check',tls:'TLS certificate check',domain:'Domain expiry check'};
 export const isProtocol=definition=>Object.hasOwn(PROTOCOL_KINDS,definition?.type);
-const RESOLVER_NAMES={cloudflare:'Cloudflare',google:'Google'};
+const RESOLVER_NAMES={cloudflare:'Cloudflare',google:'Google',authoritative:'Authoritative server'};
 const day=at=>new Date(at).toISOString().slice(0,10);
 const stages=list=>list.map(d=>`${d} days`).join(', ');
 /** [label, value, monospace] rows for "What the check expects". */

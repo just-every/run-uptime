@@ -1,10 +1,15 @@
-// DNS-001 lookups over DNS over HTTPS against named public recursive resolvers. The Worker and the runner run the same
+import {encodeQuery,decodeResponse} from './dns-wire.mjs';
+import {publicAddress} from '../public-target.mjs';
+// DNS-001 lookups over DNS over HTTPS against named public recursive resolvers, and optionally the zone's own
+// authoritative name server asked directly over TCP. The Worker and the runner run the same
 // code with their own `get` transport, so both report the same bounded evidence: each resolver's answer code, its
 // normalised records and its response time.
 export const RESOLVERS={
  cloudflare:{name:'Cloudflare',url:'https://cloudflare-dns.com/dns-query'},
  google:{name:'Google',url:'https://dns.google/resolve'},
+ authoritative:{name:'Authoritative server'},
 };
+export const DEFAULT_RESOLVERS=['cloudflare','google'];
 export const RECORD_TYPES=['A','AAAA','CNAME','MX','TXT','NS','SOA','SRV','CAA'];
 const CODES={A:1,AAAA:28,CNAME:5,MX:15,TXT:16,NS:2,SOA:6,SRV:33,CAA:257};
 export const MAX_ANSWERS=10,MAX_VALUE=255;
@@ -48,7 +53,40 @@ export async function queryResolver(get,id,name,type){
  const answers=[...new Set((Array.isArray(data.Answer)?data.Answer:[]).filter(row=>row?.type===CODES[type]&&typeof row.data==='string').map(row=>bound(normalizeValue(type,row.data))))].sort();
  return {id,status:'answer',rcode:0,answers:answers.slice(0,MAX_ANSWERS),...(answers.length>MAX_ANSWERS?{more:answers.length-MAX_ANSWERS}:{}),ms};
 }
+// The zone's first name server (lowest name) and its address: the nearest enclosing name with NS records, through
+// Cloudflare's resolver. Answers about where the zone is served are evidence too, so they are kept as `server`.
+async function zoneServer(get,name){
+ const labels=name.split('.');
+ for(let i=0;i<labels.length-1&&i<6;i++){
+  const zone=labels.slice(i).join('.'),ns=await queryResolver(get,'cloudflare',zone,'NS');
+  if(ns.status==='unavailable')return {detail:`its name servers could not be looked up (${ns.detail})`};
+  if(ns.status!=='answer'||!ns.answers.length)continue;
+  const host=ns.answers[0],a=await queryResolver(get,'cloudflare',host,'A');
+  if(a.status!=='answer'||!a.answers.length)return {detail:`name server ${host} has no address`};
+  if(!publicAddress(a.answers[0]))return {detail:`name server ${host} has an address this check never contacts`};
+  return {host,address:a.answers[0]};
+ }
+ return {detail:'no name server was found for the zone'};
+}
+/** The zone's authoritative server, asked without recursion. `ask(address,bytes)` sends one framed query over TCP port 53. */
+export async function queryAuthoritative(get,ask,name,type){
+ const started=Date.now(),unavailable=(detail,server)=>({id:'authoritative',status:'unavailable',answers:[],ms:Date.now()-started,detail:detail.slice(0,120),...(server?{server}:{})});
+ const zone=await zoneServer(get,name);if(!zone.host)return unavailable(zone.detail);
+ const server=`${zone.host} ${zone.address}`.slice(0,300),query=encodeQuery(name,type),asked=Date.now();
+ let response;
+ try{response=decodeResponse(await ask(zone.address,query.bytes),query.id,type)}
+ catch(error){return unavailable(error?.category==='vantage'?error.reason:`the name server could not be asked (${String(error?.reason??error?.message??'error').slice(0,60)})`,server)}
+ const ms=Date.now()-asked;
+ if(!response.authoritative)return {...unavailable('the name server did not answer authoritatively',server),ms};
+ const base={id:'authoritative',rcode:response.rcode,ms,server};
+ if(response.rcode===3)return {...base,status:'nxdomain',answers:[]};
+ if(response.rcode===2)return {...base,status:'servfail',answers:[]};
+ if(response.rcode===5)return {...base,status:'refused',answers:[]};
+ if(response.rcode!==0)return {...base,status:'rcode',answers:[]};
+ const answers=[...new Set(response.answers.map(v=>bound(normalizeValue(type,v))))].sort();
+ return {...base,status:'answer',answers:answers.slice(0,MAX_ANSWERS),...(answers.length>MAX_ANSWERS?{more:answers.length-MAX_ANSWERS}:{})};
+}
 /** DNS facts for one attempt: every selected resolver, queried together. */
-export async function dnsFacts(get,settings){
- return {name:settings.name,type:settings.recordType,resolvers:await Promise.all(settings.resolvers.map(id=>queryResolver(get,id,settings.name,settings.recordType)))};
+export async function dnsFacts(get,settings,ask){
+ return {name:settings.name,type:settings.recordType,resolvers:await Promise.all(settings.resolvers.map(id=>id==='authoritative'?queryAuthoritative(get,ask,settings.name,settings.recordType):queryResolver(get,id,settings.name,settings.recordType)))};
 }

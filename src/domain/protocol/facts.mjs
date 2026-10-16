@@ -29,7 +29,8 @@ function dns(f,s){
  object(f,['name','type','resolvers']);
  if(f.name!==s.name||f.type!==s.recordType||!Array.isArray(f.resolvers)||f.resolvers.map(r=>r?.id).join()!==s.resolvers.join())fail();
  for(const r of f.resolvers){
-  object(r,['id','status','answers','ms'],['rcode','more','detail']);
+  object(r,['id','status','answers','ms'],['rcode','more','detail','server']);
+  if(r.server!==undefined)str(r.server,300);
   if(!['answer','nxdomain','servfail','refused','rcode','unavailable'].includes(r.status))fail();
   if(r.rcode!==undefined)int(r.rcode,0,65535);if(r.more!==undefined)int(r.more,1,1000);if(r.detail!==undefined)str(r.detail,120);
   if((r.status==='unavailable')!==(r.detail!==undefined))fail();
