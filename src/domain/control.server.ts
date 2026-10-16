@@ -11,7 +11,7 @@ import {validateDefinition} from './policy.mjs'
 import {FLOW_LIMITS,requirementChange} from './flow.mjs'
 import {readContact} from './runner-contact.server.ts'
 import {externalCheckUrl} from './external-check.server.ts'
-import {assignDefinition,listRunners,ensureFirstRunner,runnerIdentity} from './runner-registration.server.ts'
+import {assignDefinition,listRunners,ensureFirstRunner} from './runner-registration.server.ts'
 import {attemptSnapshot} from './attempt-checkpoint.server.ts'
 import {legacyWarning} from './legacy-monitoring.server.ts'
 import {definitionChange,definitionChangeNote} from './flow-changes.server.ts'
@@ -24,35 +24,38 @@ export async function same(a:string,b:string){const [x,y]=await Promise.all([sha
 export async function sign(key:string,value:string){const secret=await crypto.subtle.importKey('raw',new TextEncoder().encode(key),{name:'HMAC',hash:'SHA-256'},false,['sign']);return [...new Uint8Array(await crypto.subtle.sign('HMAC',secret,new TextEncoder().encode(value)))].map(b=>b.toString(16).padStart(2,'0')).join('')}
 export function grants(env:Bindings){if(!env.UPTIME_SYNTHETIC_PORT)return [];const port=Number(env.UPTIME_SYNTHETIC_PORT),origin=new URL(env.UPTIME_ORIGIN??'http://localhost'),controlPort=Number(origin.port||(origin.protocol==='https:'?443:80));if(!Number.isInteger(port)||port<1||port>65535||port===controlPort)throw Error('Invalid local endpoint grant');return [port]}
 export async function session(env:Bindings,request:Request){return Boolean(await operatorSession(env,request))}
-export async function get(env:Bindings,id:string){const row=await env.DB.prepare('SELECT * FROM monitors WHERE id=?').bind(id).first<any>();return row?{id:row.id,revision:row.revision,definition:JSON.parse(row.definition),nextDue:row.next_due,storedState:JSON.parse(row.state)}:null}
-// A monitor's page reads only its own monitor (`monitorId`): the same projection, its own alerts and no installation-wide
-// notification history, so opening one monitor costs one monitor's reads however many the installation has.
-export async function overview(env:Bindings,{monitorId}:{monitorId?:string}={}){
- await ensureFirstRunner(env);
- const now=Date.now(),runners=await listRunners(env),staleMs=Number(env.UPTIME_RUNNER_STALE_MS??120000);
- if(!Number.isSafeInteger(staleMs)||staleMs<=0)throw Error('Invalid monitoring watch interval');
- const legacy=await runnerIdentity(env);
- const rows=await (monitorId===undefined?env.DB.prepare('SELECT id FROM monitors ORDER BY rowid'):env.DB.prepare('SELECT id FROM monitors WHERE id=?').bind(monitorId)).all<any>(),monitors=[];
- for(const row of rows.results){
-  const m=await get(env,row.id);if(!m)continue;
-  const snapshot=await attemptSnapshot(env,m.id,m.revision,m.definition,now);
-  const state:any={...projectRecentAttempts(m.definition,snapshot.slots,snapshot.observations,now,snapshot.checkpoint),notificationOpen:m.storedState.notificationOpen,incidentKey:m.storedState.incidentKey};
-  const changed=m.storedState.notificationOpen?await definitionChange(env,m.id,m.storedState.incidentRevision,m.revision,m.definition):null;if(changed){state.definitionChange=changed;state.reason+=definitionChangeNote(changed)}
-  if(state.notificationOpen&&state.targetState==='Healthy'&&state.recoveryStreak<m.definition.recoverSlots){
-   state.targetState=state.underlyingState='Recovering';if(!state.maintenance)state.state='Recovering';state.confirmedFailure=true;
-  }
-  const activeLabels=new Set();
-  for(const assignment of Object.values(m.definition.assignments??(legacy?{legacy:{runnerId:legacy.runner_id,networkLabel:legacy.network_label}}:{})) as any[]){
-   const runner=runners.find((r:any)=>r.runnerId===assignment.runnerId) as any;
-   if(runner&&runner.revokedAt===null&&runner.lastContactAt!==null&&runner.lastContactAt<=now&&now-runner.lastContactAt<=staleMs)activeLabels.add(assignment.networkLabel);
-  }
-  monitors.push({...m,configurationWarning:m.definition.assignments?null:legacyWarning,activeVantages:activeLabels.size,state:m.definition.enabled?state:{...state,state:'Paused',targetState:'Unknown',reason:'Monitor paused; historical observations do not establish current target health.'}});
+const monitorRow=(row:any)=>({id:row.id,revision:row.revision,definition:JSON.parse(row.definition),nextDue:row.next_due,storedState:JSON.parse(row.state)})
+export async function get(env:Bindings,id:string){const row=await env.DB.prepare('SELECT * FROM monitors WHERE id=?').bind(id).first<any>();return row?monitorRow(row):null}
+async function monitorState(env:Bindings,m:ReturnType<typeof monitorRow>,now:number,runners:any[],legacy:any,staleMs:number){
+ const snapshot=await attemptSnapshot(env,m.id,m.revision,m.definition,now);
+ const state:any={...projectRecentAttempts(m.definition,snapshot.slots,snapshot.observations,now,snapshot.checkpoint),notificationOpen:m.storedState.notificationOpen,incidentKey:m.storedState.incidentKey};
+ const changed=m.storedState.notificationOpen?await definitionChange(env,m.id,m.storedState.incidentRevision,m.revision,m.definition):null;if(changed){state.definitionChange=changed;state.reason+=definitionChangeNote(changed)}
+ if(state.notificationOpen&&state.targetState==='Healthy'&&state.recoveryStreak<m.definition.recoverSlots){
+  state.targetState=state.underlyingState='Recovering';if(!state.maintenance)state.state='Recovering';state.confirmedFailure=true;
  }
- const availability=await availabilityOverview(env.DB,monitors,now);
- const alerts=await (monitorId===undefined?env.DB.prepare('SELECT * FROM outbox ORDER BY rowid DESC LIMIT 200'):env.DB.prepare('SELECT * FROM outbox WHERE monitor_id=? ORDER BY rowid DESC LIMIT 200').bind(monitorId)).all<any>();
+ const activeLabels=new Set();
+ for(const assignment of Object.values(m.definition.assignments??(legacy?{legacy:{runnerId:legacy.runner_id,networkLabel:legacy.network_label}}:{})) as any[]){
+  const runner=runners.find((r:any)=>r.runnerId===assignment.runnerId) as any;
+  if(runner&&runner.revokedAt===null&&runner.lastContactAt!==null&&runner.lastContactAt<=now&&now-runner.lastContactAt<=staleMs)activeLabels.add(assignment.networkLabel);
+ }
+ return {...m,configurationWarning:m.definition.assignments?null:legacyWarning,activeVantages:activeLabels.size,state:m.definition.enabled?state:{...state,state:'Paused',targetState:'Unknown',reason:'Monitor paused; historical observations do not establish current target health.'}};
+}
+// A monitor's page reads only its own monitor (`monitorId`): the same projection, its own alerts and no installation-wide
+// notification history, so opening one monitor costs one monitor's reads however many the installation has. Reads that do
+// not depend on each other run together: each is a D1 round trip, and a hosted console waits for the slowest chain.
+export async function overview(env:Bindings,{monitorId}:{monitorId?:string}={}){
+ const legacy=await ensureFirstRunner(env);
+ const now=Date.now(),staleMs=Number(env.UPTIME_RUNNER_STALE_MS??120000);
+ if(!Number.isSafeInteger(staleMs)||staleMs<=0)throw Error('Invalid monitoring watch interval');
+ const [runners,rows,alerts,started,contact,external,notifications]=await Promise.all([listRunners(env),
+  (monitorId===undefined?env.DB.prepare('SELECT * FROM monitors ORDER BY rowid'):env.DB.prepare('SELECT * FROM monitors WHERE id=?').bind(monitorId)).all<any>(),
+  (monitorId===undefined?env.DB.prepare('SELECT * FROM outbox ORDER BY rowid DESC LIMIT 200'):env.DB.prepare('SELECT * FROM outbox WHERE monitor_id=? ORDER BY rowid DESC LIMIT 200').bind(monitorId)).all<any>(),
+  cronStarted(env),readContact(env.DB),externalCheckUrl(env),monitorId===undefined?notificationOverview(env):null]);
+ const basics=rows.results.map(monitorRow);
+ const [monitors,availability]=await Promise.all([Promise.all(basics.map(m=>monitorState(env,m,now,runners,legacy,staleMs))),availabilityOverview(env.DB,basics,now)]);
  return {monitors:monitors.map(m=>({...m,availability:availability.get(m.id)})),alerts:alerts.results.map(r=>({...r,event:JSON.parse(r.event)})),
-  runner:{...runnerRuntime(env,runners),cronStarted:await cronStarted(env),identity:'private-runner',version:'uptime-node/0.1.0',independentVantage:new Set(runners.filter((r:any)=>r.revokedAt===null).map((r:any)=>r.networkLabel)).size>1,runners,grants:grants(env),contact:await readContact(env.DB),externalCheckUrl:await externalCheckUrl(env)},
-  ...(monitorId===undefined?{notifications:await notificationOverview(env)}:{}),now};
+  runner:{...runnerRuntime(env,runners),cronStarted:started,identity:'private-runner',version:'uptime-node/0.1.0',independentVantage:new Set(runners.filter((r:any)=>r.revokedAt===null).map((r:any)=>r.networkLabel)).size>1,runners,grants:grants(env),contact,externalCheckUrl:external},
+  ...(notifications?{notifications}:{}),now};
 }
 export const MONITOR_LIMIT=100
 // The revision guard runs in the write transaction. A racing create returns the same useful capacity error as preflight.
