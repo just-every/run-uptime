@@ -49,6 +49,9 @@ export async function seedDemo(input:Bindings,{ownerEmail,now}:{ownerEmail:strin
    ...historyStatements(env,m,m.definition.assignments['local-a'].runnerId,start,count,periods))
  }
  statements.push(env.DB.prepare('INSERT INTO uptime_first_run(id,completed_at) VALUES(1,CAST(? AS INTEGER)) ON CONFLICT DO NOTHING').bind(created))
+ // example.com is the editor's own suggestion, so a hosted visitor's first monitor must not share a site with the
+ // installation's External check URL; the Worker confirms outages against example.org instead.
+ if(hosted)statements.push(env.DB.prepare("INSERT INTO external_check(id,url,updated_at) VALUES(1,'https://example.org/',CAST(? AS INTEGER)) ON CONFLICT(id) DO UPDATE SET url=excluded.url,updated_at=excluded.updated_at").bind(created))
  await env.DB.batch(statements)
  await seedDestinations(env,ownerEmail,created)
  const destinations=(await env.DB.prepare('SELECT id,name,kind,credential_id FROM notification_destinations WHERE deleted_at IS NULL ORDER BY created_at,id').all<any>()).results

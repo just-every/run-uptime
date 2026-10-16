@@ -20,10 +20,10 @@ const gate = (name: string) => process.env[name] ? { [name]: process.env[name] }
 // inspectorPort:false: the plugin otherwise serves /__debug (a devtools redirect for the workerd inspector) on the public dev port, before the Worker and unlimited.
 // docsSite: the public /docs pages, rendered from docs/site.json and docs/*.md at build time, never in the Worker or the browser.
 export default defineConfig(({ command, isPreview }) => ({ server: { fs: {
- // Runtime imports need the public manifest and maintained portability source.
- // Allow only those paths, never scripts or the checkout root; private settings
+ // Runtime imports need the public manifest and maintained portability source, and a hosted demo's Worker runs the
+ // runner's discovery crawl (pure code, no settings). Allow only those paths, never scripts or the checkout root; private settings
  // and archives remain outside the file allowlist and under the denies below.
- allow: ['src', 'public', 'node_modules', 'seed.json', 'node_modules/@runeditrun/rer/modules/portability'],
+ allow: ['src', 'public', 'node_modules', 'seed.json', 'node_modules/@runeditrun/rer/modules/portability', 'runners/src/discovery', 'runners/src/probe-error.mjs'],
  deny: ['**/.rer/**', '**/.seed/**', '**/exports/**', '**/*.rer'],
 } }, plugins: [
  demoSockets(),

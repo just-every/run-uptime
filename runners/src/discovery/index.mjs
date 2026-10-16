@@ -8,7 +8,7 @@ import {finalize} from './rank.mjs';
 import {createScope} from './scope.mjs';
 const integer=(value,min,max,label)=>{if(!Number.isInteger(value)||value<min||value>max)throw new RangeError(`Discovery budget ${label} must be an integer from ${min} to ${max}`);return value};
 // Checks one pasted URL from this runner and proposes monitors that are already filled in.
-// options: {budget:{requests,concurrency,totalMs},signal,transport}. `transport` replaces the pinned report fetch (for tests).
+// options: {budget:{requests,concurrency,totalMs},signal,transport}. `transport` is a report fetch shaped like public-http's publicReport.
 // Page bodies are parsed in memory and never returned, logged or stored; the result holds derived facts only.
 export async function discover(inputUrl,options={}){
   const started=Date.now(),limits={...DEFAULT_BUDGET,...options.budget};

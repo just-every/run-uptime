@@ -6,9 +6,11 @@ import {runnerRuntime} from './private-runner.ts'
 import {listRunners} from './runner-registration.server.ts'
 import {ensureFirstRunner,type Runner} from './runner-registration.server.ts'
 import type {Bindings} from './control.server.ts'
+import {answerInWorker} from './worker-discovery.server.ts'
 // A discovery job is the owner's console asking the owner's runner to check one URL. The Worker never fetches the
-// target: it queues the question, hands it to a runner that claims it, and keeps the runner's derived answer. No
-// monitor, slot, observation, state, outbox or notification row is written here.
+// target: it queues the question, hands it to a runner that claims it, and keeps the runner's derived answer. A hosted
+// demo has no runner, so there the Worker answers the job itself (worker-discovery.server.ts). No monitor, slot,
+// observation, state, outbox or notification row is written here.
 export const DISCOVERY_DEADLINE_MS=120_000,DISCOVERY_ACTIVE_LIMIT=5,DISCOVERY_ERROR_MAX=200,DISCOVERY_RESULT_BYTES=131_072;
 const UNCLAIMED='No runner picked this up. Check that your runner is running.',UNFINISHED='The runner did not finish in time. Check that your runner is running.';
 const refuse=(message:string,status:number)=>Object.assign(Error(message),{status});
@@ -39,11 +41,12 @@ function insertJob(env:Bindings,id:string,url:string,now:number,reuse:boolean){
 }
 export async function createDiscovery(env:Bindings,text:string){
  const runtime=runnerRuntime(env,await listRunners(env));
- if(runtime.hosted&&!runtime.privateRunnerReady)throw Error('Website discovery needs a connected private runner. Start it from the deploying checkout: '+runtime.privateRunnerCommand);
+ if(runtime.hosted&&!runtime.privateRunnerReady&&!runtime.workerDiscovery)throw Error('Website discovery needs a connected private runner. Start it from the deploying checkout: '+runtime.privateRunnerCommand);
  let input;try{input=JSON.parse(text)}catch{throw Error('Invalid discovery request')}
  const url=discoveryTarget(object(input,['url'],'discovery request').url).href,id=crypto.randomUUID(),now=Date.now();
  await expire(env,now);
  if(!(await insertJob(env,id,url,now,false)).meta.changes)throw refuse(FULL,429);
+ if(runtime.workerDiscovery){await answerInWorker(env,id,url,(answer,runner)=>completeDiscovery(env,id,answer,runner));return {id,status:(await readDiscovery(env,id)).status}}
  return {id,status:'queued'}
 }
 // First-run setup asks about the owner's site once: a queued, running or finished job for this address is reused, anything else queues a new one.

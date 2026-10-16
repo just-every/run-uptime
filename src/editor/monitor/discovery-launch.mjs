@@ -2,7 +2,8 @@ import {api} from './api.mjs';
 // Starting what the owner ticked: which runners check it, and one POST per monitor, exactly as the full form would send it.
 // A single network sends no external check URL: the server fills in the installation's External check URL.
 export function networkPlan(overview){
- const active=(overview.runner?.runners??[]).filter(runner=>!runner.revokedAt);
+ // Where the Worker answers website checks (a hosted demo), no private runner exists, so only the Worker can run what it found.
+ const active=(overview.runner?.runners??[]).filter(runner=>!runner.revokedAt&&(!overview.runner.workerDiscovery||runner.hosted));
  const labels=new Set(active.map(runner=>runner.networkLabel));
  return {active,labels:[...labels],singleNetwork:labels.size<2,externalCheckUrl:overview.runner?.externalCheckUrl??''};
 }
