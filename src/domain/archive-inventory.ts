@@ -16,6 +16,7 @@ export const installationLocalTables:Record<string,string>={
  runner_contact:'Installation runner contact, not product target evidence.',
  attempt_checkpoints:'Rebuildable installation-local scheduled evidence checkpoints.',
  runners:'Installation runner identities and encrypted per-runner keys.',runner_assignments:'Installation execution assignments; revisions retain their selected configuration.',evidence_generation:'Installation atomic evidence projection generations.',monitoring_watch:'Installation watch dispatch state; never portable authority.',
+ cron_runs:'Installation record of the latest Cron invocation; a receiving installation records its own.',
  heartbeat_authority:'Installation heartbeat token and receipt authority.',heartbeat_claims:'Installation heartbeat execution snapshots.',heartbeat_limits:'Installation ingress rate limits.',
  notification_credentials:'Installation destination ciphertext, webhook/Slack URLs and signing keys; email definition is separately exported.',
  notification_claim_custody:'Installation dispatch reservation hashes and claim authorization; product attempts and outcomes are retained separately.',

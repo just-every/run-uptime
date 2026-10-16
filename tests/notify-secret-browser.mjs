@@ -7,7 +7,7 @@ const directory=await runtimeDirectory(),[port]=await availablePorts(1),origin=`
 let worker,browser;
 try{
  ({worker}=await migratedWorker({port,persist:join(directory,'worker'),bindings:testAuthBindings}));
- browser=await chromium.launch({headless:true,args:['--disable-gpu'],...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{})});
+ browser=await chromium.launch({headless:true,args:['--disable-gpu','--use-mock-keychain','--password-store=basic'],...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{})});
  const context=await browser.newContext({permissions:['clipboard-read','clipboard-write']});const page=await context.newPage();
  await browserSignIn(page,origin);
  await page.goto(origin+'/app');await page.locator('html.signed-in').waitFor();await page.locator('[data-view=notifications]').click();

@@ -565,7 +565,7 @@
       "executable": false
     },
     "management/integration/deployment-spec.json": {
-      "sha256": "1fe6e0332244c99f812f3883241a5b442710039800f5d9cba9853de5e3224419",
+      "sha256": "d582328d43fae13a549463318d3b512ba9d4ec338d8b783c55690063e803e57c",
       "executable": false
     },
     "migrations/0001_uptime.sql": {
@@ -722,6 +722,10 @@
     },
     "migrations/0037_owner_signin.sql": {
       "sha256": "98da904e768e35b43fb1be83d9dcc9c9b5d86ab3a795234ed5223c4fddc567d9",
+      "executable": false
+    },
+    "migrations/0038_cron_runs.sql": {
+      "sha256": "284898ef5e3cda3cf3b9e757c9727ef5bdf511579c58efad6a2be8a93b730512",
       "executable": false
     },
     "OPERATIONS.json": {
@@ -2401,7 +2405,7 @@
       "executable": false
     },
     "src/domain/archive-inventory.ts": {
-      "sha256": "01654a6305bcf3d6a303e2e89abad430d671008eaf63a1eb402c5972b9e67006",
+      "sha256": "36e203ca19f8ff8f87847e048fd448a149c25d85e4542bd8b9008480146aebb8",
       "executable": false
     },
     "src/domain/archive-monitor-validation.ts": {
@@ -2473,7 +2477,7 @@
       "executable": false
     },
     "src/domain/cron-run.server.ts": {
-      "sha256": "78ac3102b8956554da535b64de5f664081391d8ecb014989c05f34dc3def8823",
+      "sha256": "d613071f9caac4682cb76672918464b2991c670b918c81baee1fd3b3332f6ff2",
       "executable": false
     },
     "src/domain/definitions/apply.server.ts": {
@@ -3381,7 +3385,7 @@
       "executable": false
     },
     "tests/notify-secret-browser.mjs": {
-      "sha256": "2549b9fd45259fd1f1124cd16c15c54ca5c2051c3981f22a7053b315621e2f85",
+      "sha256": "344cd5016c6fb74b71ab7a024897cc116499339cb60e34abe7a5ae17608bfbdc",
       "executable": false
     },
     "tests/notify-unit-database.mjs": {
@@ -3397,7 +3401,7 @@
       "executable": false
     },
     "tests/operator-browser.mjs": {
-      "sha256": "cfe60530b9ad1f85369909eff46c922348f71583264c43fab495a82a8c7ce51f",
+      "sha256": "030f8af9f5f9562ba46d2d500860ec9d38502b6d278e79f64ee59def3572c968",
       "executable": false
     },
     "tests/operator-security.mjs": {
@@ -3461,7 +3465,7 @@
       "executable": false
     },
     "tests/recovery-browser.mjs": {
-      "sha256": "26c93d82836edd87ccb7761257b667fed73d02a7b7496aaf1c8143027c39a681",
+      "sha256": "71ee592a6cbadfd1696cef015ffc4f62dae52ec26ae193cd5f7bea577013b222",
       "executable": false
     },
     "tests/resilience/attempts.mjs": {
