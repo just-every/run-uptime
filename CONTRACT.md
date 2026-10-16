@@ -340,7 +340,7 @@ New connectors send only owner-approved incident/evidence fields to the named pr
 
 ## Clause implementation status
 
-Audit baseline: `157686b52ecc652d64250a30ec224f1a47355a6c`. The branch is based on current main `b3d6a37f41b00f018194e9072a2e2ba9d755ee40`; none of the audit’s cited implementation or test paths changed between those commits. The intervening Base/demo update preserves these clause statuses. `done` means the stated bounded behavior has cited code/tests; `partial` identifies a shipped subset or unmet acceptance, and `missing` means the target capability has no implementation. Source citations are not assertions that these tests were re-run in this documentation round.
+Audit baseline: `157686b52ecc652d64250a30ec224f1a47355a6c`. The branch is based on current main `d647e31061bac894953bfbca7fa34bf5a1c70cfb`; none of the audit’s cited implementation or test paths changed between those commits. The intervening Base/demo update preserves these clause statuses. `done` means the stated bounded behavior has cited code/tests; `partial` identifies a shipped subset or unmet acceptance, and `missing` means the target capability has no implementation. Source citations are not assertions that these tests were re-run in this documentation round.
 
 **71 clauses: 19 done, 28 partial, 24 missing.**
 
