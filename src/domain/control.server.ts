@@ -1,4 +1,5 @@
 import {runnerRuntime} from './private-runner.ts'
+import {hostedInstallation} from './hosted-runner.ts'
 import {cronStarted} from './cron-run.server.ts'
 import {notificationOverview} from './notifications.server.ts'
 import {mutationGuard,auditStatement,type AuditActor} from './audit.server.ts'
@@ -11,7 +12,7 @@ import {validateDefinition} from './policy.mjs'
 import {FLOW_LIMITS,requirementChange} from './flow.mjs'
 import {readContact} from './runner-contact.server.ts'
 import {externalCheckUrl} from './external-check.server.ts'
-import {assignDefinition,listRunners,ensureFirstRunner} from './runner-registration.server.ts'
+import {assignDefinition,listRunners,ensureFirstRunner,runnerIdentity} from './runner-registration.server.ts'
 import {attemptSnapshot} from './attempt-checkpoint.server.ts'
 import {legacyWarning} from './legacy-monitoring.server.ts'
 import {definitionChange,definitionChangeNote} from './flow-changes.server.ts'
@@ -44,13 +45,15 @@ async function monitorState(env:Bindings,m:ReturnType<typeof monitorRow>,now:num
 // notification history, so opening one monitor costs one monitor's reads however many the installation has. Reads that do
 // not depend on each other run together: each is a D1 round trip, and a hosted console waits for the slowest chain.
 export async function overview(env:Bindings,{monitorId}:{monitorId?:string}={}){
- const legacy=await ensureFirstRunner(env);
  const now=Date.now(),staleMs=Number(env.UPTIME_RUNNER_STALE_MS??120000);
  if(!Number.isSafeInteger(staleMs)||staleMs<=0)throw Error('Invalid monitoring watch interval');
- const [runners,rows,alerts,started,contact,external,notifications]=await Promise.all([listRunners(env),
+ // The first runner rows exist after the first overview; only an installation still missing one writes them, then reads again.
+ const present=async()=>{const [runners,legacy]=await Promise.all([listRunners(env),runnerIdentity(env)]);return legacy&&(!hostedInstallation(env)||runners.some((r:any)=>r.hosted))?{runners,legacy}:null};
+ const [found,rows,alerts,started,contact,external,notifications]=await Promise.all([present(),
   (monitorId===undefined?env.DB.prepare('SELECT * FROM monitors ORDER BY rowid'):env.DB.prepare('SELECT * FROM monitors WHERE id=?').bind(monitorId)).all<any>(),
   (monitorId===undefined?env.DB.prepare('SELECT * FROM outbox ORDER BY rowid DESC LIMIT 200'):env.DB.prepare('SELECT * FROM outbox WHERE monitor_id=? ORDER BY rowid DESC LIMIT 200').bind(monitorId)).all<any>(),
   cronStarted(env),readContact(env.DB),externalCheckUrl(env),monitorId===undefined?notificationOverview(env):null]);
+ const {runners,legacy}=found??(await ensureFirstRunner(env),(await present())!);
  const basics=rows.results.map(monitorRow);
  const [monitors,availability]=await Promise.all([Promise.all(basics.map(m=>monitorState(env,m,now,runners,legacy,staleMs))),availabilityOverview(env.DB,basics,now)]);
  return {monitors:monitors.map(m=>({...m,availability:availability.get(m.id)})),alerts:alerts.results.map(r=>({...r,event:JSON.parse(r.event)})),
