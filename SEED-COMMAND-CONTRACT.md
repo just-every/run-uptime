@@ -40,11 +40,29 @@ Run from the project root, or use `--cwd PATH`. Every new verb accepts `--help`,
 | `doctor` | none | Read-only tool/version, local configuration and state-placement diagnostics, naming missing inputs and their documented sources, plus `warnings` for leftover Node quarantine copies, mismatched Node/pnpm/workerd pins across running checkouts and a checkout on another volume (warnings never change the exit code). No provider request. |
 | `describe` | none | Describes commands, flags, aliases, effects, pins and state without installing or executing project commands. |
 | `check` | `--profile first-party` | Read-only structural contract/operations validation, including required hooks, flags, aliases and pins. No credentials needed for a fresh clone. |
-| `release` | existing `--repo`, `--project`, `--repository`, `--output`, `--ref`, `--dry-run`, `--tag [vVERSION]`, `--clean-history`, `--onto`, `--env-file`, `--no-queue` | Existing Base release behavior, receipts, validation, gates, local tags and exit codes preserved. |
+| `release` | existing `--repo`, `--project`, `--repository`, `--output`, `--ref`, `--public-base`, `--dry-run`, `--local-verify`, `--verify-workflow NAME_OR_FILE`, `--tag [vVERSION]`, `--clean-history`, `--onto`, `--env-file`, `--no-queue` | Existing Base release behavior, receipts, validation, gates, local tags and exit codes preserved. |
 
 `signin` is rer's own verb, not a seed operation: no seed declares it and `check` does not ask for it. `rer signin [--environment NAME] [--env-file FILE]` gives the hosted owner a one-time sign-in link without mail when the seed uses operator-auth's `accounts/schema/owner-signin.sql` migration. It uses only the Cloudflare credentials that deployed that environment, writes a single-use grant for the recorded owner into the deployment's auth D1, and prints the link once to the terminal (never to a log or receipt). The link expires within 15 minutes and its use is recorded in the owner's audit log. Those seeds document `rer signin` in their README as the way into a hosted install whose mail is not working yet; after it, the owner corrects a wrong email in settings (`POST /auth/email`). A seed with native sign-in can declare its browser page with the `commandAdapter` option `signInPath: '/login'` (a same-origin path, not a magic-link API endpoint). When the owner sign-in table is absent, `rer signin` explains that the seed uses its own sign-in flow and points to that page on the recorded environment's origin, or to `/setup` for owner recovery when no page is declared. It exits 4 and issues no link.
 
 `release` is the compatibility exception: preserve its existing parser, required `--repo`/`--output`, JSON receipt and exit codes; do not retrofit the new common flags or infer publishing identities. Root help may list the new commands. Release never pushes or deploys. Source inspection and locking remain edition-authoring commands, not another implementation in `rer`.
+
+For GitHub sources, `release` selects its verification workflow in this order:
+`--verify-workflow NAME_OR_FILE`; optional top-level `verifyWorkflow` in the
+selected commit's `rer-project.json` (for example `"verifyWorkflow": "Verify Slate"`
+or `"verifyWorkflow": ".github/workflows/slate.yml"`); the workflow at
+`.github/workflows/verify.yml` or `.github/workflows/verify.yaml`; then exactly
+one workflow named `verify`. Names, full file paths and file basenames match
+case-insensitively. Explicit selections must resolve uniquely; they never fall
+through. Multiple conventional files or matching names are refused with the
+candidates and `--verify-workflow` remedy. This optional declaration does not
+change `operations.verify`, the seed's local command.
+
+The selected workflow must have a completed successful `push` or
+`workflow_dispatch` run for the exact source SHA in the same repository, on its
+default branch or the release tag when that tag resolves to the same commit.
+`gates.verify` in the receipt and site provenance records `workflowFile`,
+`workflowName`, `workflowId`, `runId` and `runUrl`. `--local-verify` explicitly
+runs frozen installation and the seed's local verification targets instead.
 
 `--no-queue` is available only on the heavy commands that list it and only
 when the original caller has `CI=true`. The actual descriptor is authoritative
@@ -164,9 +182,9 @@ The Worker mounts two shared responses before its documents: `setupStateResponse
 
 **Sign-in hint: `login_hint`.** The shared sign-in page (`createSignInHandler`, `modules/operator-auth/signin`) accepts one optional query parameter, `login_hint=<email>`, and uses it to fill in the email field of its email-link form. Only a complete email address is used; anything else is ignored, the form is never submitted for the visitor, and the visitor still presses **Email a sign-in link**. The platform's **Open app** link for a claimed owner, a seed's own links to its sign-in route and the Lobby all use this one name: `/signin?login_hint=owner%40example.com`, with `returnTo` alongside when needed. The Lobby adds it to its **Sign in** link only on an instance served on this computer (a loopback or `*.localhost` origin) with exactly one active owner; a hosted instance's Lobby stays the same page for every visitor and never names its owner.
 
-The **run site** (`run-<seed>.com`) is static: the seed's approved homepage with its primary action reading **Run <Seed>** and linking to `/run`, the Run page at `/run` (install rer, then get the seed and start it with `rer dev`; `foundation/runtime/run-site.ts`), its docs at `/docs/*` when it serves docs, and a `404` page. It never links an instance-only route (`/signin`, `/login`, `/sign-in`, `/setup`, `/app`, `/auth/*`). A seed opts in with the `commandAdapter` option `site: { entry, output, declaration, config }`: `entry` is a module whose `sitePages({ styles })` returns `{ pages: [{ path, html }], assets: [paths under public/] }`. `rer build --site` builds it for Node with the checkout's own Vite (TypeScript, TSX, JSON and CSS imports work, and a React page renders with `renderToStaticMarkup`); the optional `config` names a Vite config holding the plugins the site pages need, such as a docs virtual module or a CSS toolchain (never the app's own `vite.config.ts`, whose Worker plugins do not run in Node). The CSS the entry's modules import compiles to one stylesheet under `/site-assets/`, with the files it references; `styles` lists its site path for each page to link in its head. `output` is the ignored folder `rer build --site` writes (`dist/site` in Base's seeds), with `/` as `index.html`, `/run` as `run.html` and `/docs/a` as `docs/a.html`; `declaration` is the run site deploy declaration, `{"version": 1, "domain": "<apex hostname>"}` (`deploy-site.json`). The build reads no installation data. Before replacing the folder it refuses a site without an index or Run page, with a link that does not resolve on Cloudflare's static assets or reaches an instance-only route, with a page or style that loads from another origin, with server code, Wrangler configuration, migrations, settings or data files, with the dev layer, or with any of the checkout's owner identity, secrets or dev key. `rer dev` builds and serves it as `RER_SITE`; `rer deploy --site` publishes it (see the deploy-kit README, Run site). A Worker that reads `deploy-site.json` in `vite dev` lists it in `server.fs.allow`.
+The **run site** (`run-<seed>.com`) is static: the seed's approved homepage with its primary action reading **Run <Seed>** and linking to `/run`, the Run page at `/run` (step 1 is the installer, `curl -fsSL https://runeditrun.com/install.sh | sh`, which brings its own Node; step 2 is `rer dev <owner>/<repo>` for the seed's own repository, which needs nothing the installer did not put on PATH, with `cd <folder> && rer dev` to start it again; `npx -y @runeditrun/rer dev <owner>/<repo>` is offered only as the one-line alternative for someone who already has Node 22 or later; `foundation/runtime/run-site.ts`), its docs at `/docs/*` when it serves docs, and a `404` page. It never links an instance-only route (`/signin`, `/login`, `/sign-in`, `/setup`, `/app`, `/auth/*`). A seed opts in with the `commandAdapter` option `site: { entry, output, declaration, config }`: `entry` is a module whose `sitePages({ styles })` returns `{ pages: [{ path, html }], assets: [paths under public/] }`. `rer build --site` builds it for Node with the checkout's own Vite (TypeScript, TSX, JSON and CSS imports work, and a React page renders with `renderToStaticMarkup`); the optional `config` names a Vite config holding the plugins the site pages need, such as a docs virtual module or a CSS toolchain (never the app's own `vite.config.ts`, whose Worker plugins do not run in Node). The CSS the entry's modules import compiles to one stylesheet under `/site-assets/`, with the files it references; `styles` lists its site path for each page to link in its head. `output` is the ignored folder `rer build --site` writes (`dist/site` in Base's seeds), with `/` as `index.html`, `/run` as `run.html` and `/docs/a` as `docs/a.html`; `declaration` is the run site deploy declaration, `{"version": 1, "domain": "<apex hostname>"}` (`deploy-site.json`). The build reads no installation data. Before replacing the folder it refuses a site without an index or Run page, with a link that does not resolve on Cloudflare's static assets or reaches an instance-only route, with a page or style that loads from another origin, with server code, Wrangler configuration, migrations, settings or data files, with the dev layer, or with any of the checkout's owner identity, secrets or dev key. `rer dev` builds and serves it as `RER_SITE`; `rer deploy --site` publishes it (see the deploy-kit README, Run site). A Worker that reads `deploy-site.json` in `vite dev` lists it in `server.fs.allow`.
 
-**Deploying the run site from CI.** `rer deploy --site` keeps no state it depends on: it proves the site Worker and its Custom Domains are its own from the provider (the Worker's live version carries its `rer-site:` annotation; each domain's service is that Worker), so a fresh checkout, such as a GitHub Actions runner, deploys over the site it deployed before, and a Worker or domain of the same name it did not make is still refused. The www to apex 301 lives in the Base-generated site Worker, so the token needs only Workers Scripts: Edit on the account and Zone: Read and Workers Routes: Edit on the run site zone, with no Single Redirect permission. A seed's `.github/workflows/run-site.yml` runs, after `pnpm install --frozen-lockfile`, `pnpm exec rer deploy --site` with `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` in its environment (vendored mode: `node scripts/rer.mjs deploy --site`); `.rer/deploy/site-production.json` is a receipt for the person and needs no cache.
+**Deploying the run site from CI.** `rer deploy --site` keeps no state it depends on: it proves the site Worker and its Custom Domains are its own from the provider (the Worker's live version carries its `rer-site:` annotation; each domain's service is that Worker), so a fresh checkout, such as a GitHub Actions runner, deploys over the site it deployed before, and a Worker or domain of the same name it did not make is still refused. The www to apex 301 lives in the Base-generated site Worker. The run-site deploy token (the `run-site` environment's `CLOUDFLARE_API_TOKEN`) carries Workers Scripts: Edit on the account and Zone: Read, DNS: Edit, Workers Routes: Edit and Dynamic URL Redirects: Edit on the run site zones. A seed's `.github/workflows/run-site.yml` runs, after `pnpm install --frozen-lockfile`, `pnpm exec rer deploy --site` with `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` in its environment (vendored mode: `node scripts/rer.mjs deploy --site`); `.rer/deploy/site-production.json` is a receipt for the person and needs no cache.
 
 ## Hosted assets and deploy identity
 
@@ -174,7 +192,11 @@ The **run site** (`run-<seed>.com`) is static: the seed's approved homepage with
 
 Answer `/health` with `deploymentHealth(env)` from `foundation/runtime/deployment-health.ts` (`src/base/deployment-health.ts`): `{ok: true, deployment: {sourceSha, fingerprint, versionId}}` from the `RER_DEPLOY_SOURCE`, `RER_DEPLOY_FINGERPRINT` and `RER_VERSION` bindings the deploy kit sets. Spread it into a body that carries other fields (`{status: 'ok', ...deploymentHealth(env)}`) and run any readiness check first. Declare `RER_DEPLOY_SOURCE?: string`, `RER_DEPLOY_FINGERPRINT?: string` and `RER_VERSION?: { id: string }` in the bindings type too. `rer deploy` compares these three values with what it just deployed and exits 1 when they differ.
 
+For an optional canonical public origin, declare `"publicOriginSetting": "PUBLIC_ORIGIN"` beside `originVar` (`AUTH_ORIGIN` or `APP_ORIGIN`) in `deploy.json`. `rer deploy` reads `PUBLIC_ORIGIN` from the adapter's saved settings; the process environment overrides saved settings and `--env-file` wins over both. The value must be `https://host[:port]`, with no credentials, path (including a trailing `/`), query, fragment, whitespace or backslashes; it is normalized to `URL.origin`. When omitted, the origin remains workers.dev. This changes only `originVar`: readiness, health checks, the deployment target, recorded resource names and IDs, and the owner claim retain the kit's workers.dev origin and identity.
+
 A seed's own deploy hook (the `commandAdapter` option `deploy`) returns `{deployed: true, origin}` once its upload is live (an https origin; rer refuses an http one off loopback before sending it anything), plus `setupToken`, the setup token its Worker holds, when that is not the `SETUP_TOKEN` rer passed it in the environment. `rer deploy` then waits until the origin's `/health` names the checkout's commit and claims the owner with that token, needing no deployment record from the hook. A hook that deploys with the kit under its own state file also returns that file as `state` (the kit's `deploy` result names it); rer then reads that record for every later step, so it issues, claims with and retires the setup token, and `--set-secret`, `--unset-secret` and `rer deploy --remove --yes` act on what the hook deployed.
+
+A custom hook using a canonical URL puts it into `PUBLIC_ORIGIN` before invoking the owner kit and declares `"publicOriginSetting": "PUBLIC_ORIGIN"` in its generated deploy declaration. It returns the kit's workers.dev `origin` and `state` for finalization.
 
 Run `rer verify` after refreshing `scripts/base-cli/` from Base in vendored mode, or after updating the exact `@runeditrun/rer` pin in package mode. After the seed's own verification it serves `dist/` in Miniflare from the seed's own Wrangler, with the deploy kit's asset setting, the deploy declaration's vars and origin variable (at an https origin), stand-in secrets and a generated deploy identity, applies the D1 migrations, then requests every built file except dot paths (built `.html` documents included, each by its own path), every same-origin file linked from the built HTML and the home page, and `/health`, and fails on any answer but 200. It needs no network and no account. The declaration is the one `ownerDeploy` reads (`deploy.json`); a seed with its own deploy command names its file with the `commandAdapter` option `deployDeclaration` (for example `deployDeclaration: 'owner-deployment.json'`). In vendored mode, `node scripts/base-cli/cli/hosted-output.mjs . [DECLARATION]` runs the same check on an existing build.
 
@@ -217,6 +239,8 @@ selects a hosted-valid provider when the setup default `development` would
 answer 503. Stand-ins exist only in the local hosted check: `rer deploy` never
 sends, plans or prints them. Passing this check proves the declared runtime
 can become healthy; it does not prove live mail credentials or delivery.
+
+A deploy secret an app can run without (an integration's credential) adds `"optional": true`. When neither the Worker nor the deploy inputs hold it, `rer deploy` still deploys, names it as not set, and binds nothing for it, so the app must treat its absence as not connected; a required secret still stops the run before any write. `rer deploy --set-secret NAME` sets it later and `--unset-secret NAME` removes it, each recording the Worker version it makes, so the next deploy accepts that Worker and an unchanged repeat writes nothing.
 
 Start document responses send `Cache-Control` with `no-transform`, keeping their other directives (the reference's `uncachedStartResponse` sends `no-store, no-transform`). It stops any proxy rewriting the HTML React hydrates; Cloudflare's email address obfuscation honours it. Cloudflare documents that obfuscation does not apply to HTML a Worker generates, which is how `rer deploy` hosts every response. A Worker that proxies an origin on the same Cloudflare zone instead passes `fetch(url, { cf: { scrapeShield: false } })` on that subrequest, or the owner adds a Configuration Rule for the hostname with `email_obfuscation: false`. The deploy kit changes nothing for this.
 
@@ -475,6 +499,49 @@ Backup-only legacy recovery (`rer import --legacy-v1`) accepts a fresh installat
 An import job is bound to the principal that created it, and its plan and fingerprint carry that principal, so a restored job cannot be rebound to the new owner's operator row. Give the import context a principal that survives a restore: the operator's role, not the operator's row id (`principalId: 'role:' + operator.role`, with the authority predicate checking that this operator is still active in that role). A restored installation's owner then undoes, resumes and reads the originals of the restored jobs, a different role cannot, and an archive never chooses a principal. The default seed's people imports are the reference adoption; a seed that binds jobs to operator ids (Penny's UserVoice imports) adopts the same change, and jobs created before it stay bound to their operator.
 
 Independent projects without an adapter use `OPERATIONS.json` v2 `commands.NAME.argv`, `inputs`, effects, environmentSources and loops. Execute argv directly with shell false in the checkout, forwarding explicit arguments after `--` unchanged; never translate them into Cloudflare/pnpm/Base behavior. Common wrapper flags are consumed before the separator. No declared verb means exit 4, not an inferred command/fallback. Existing v1 inspection remains supported. Do not infer runnable commands from the platform registration descriptor's shell strings. No global pins, aliases, installer, state layout or required verb set is imposed on independent projects; runtime requirements remain project-owned. Independent check still validates the actual declaration and refuses missing/outside-checkout inputs.
+
+## Optional grant-authorised import door
+
+A seed may explicitly mount import-kit's D1-only
+`createImportDoorHandler(options)` from `modules/import-kit/src/door/index.ts`
+under POST `/api/rer/import/{uploads,plan,apply,status,reconcile,undo}`. This is
+an optional product import integration. The seed supplies its database, real
+target adapter, parser/mapping, destination and actual owner principal, and
+applies `importDoorSchema` in a new numbered migration after its D1 kit schemas.
+Base does not mount the door in a seed automatically. Copy the module's
+`CONTRACT.md` and `src/door/README.md` with its runtime and dependencies.
+
+The door returns 404 until the installation explicitly opts in. The seed's
+server-only existing owner session, or provisioning under the owner's approved
+plan, writes enablement through `writeImportDoorSettings` with a current owner
+SQL predicate. The same control revokes trusted key ids permanently; rotation
+uses a new id. The public door cannot enable itself. Each request requires a
+fresh single-use ES256 grant from the same trusted key ring as owner-claim,
+binding installation, owner, action, logical namespace, expiry and upload/record
+quotas. Grants last at most five minutes. Apply also binds the owner's approval
+record/time and exact retained plan fingerprint; the body's
+`reviewedFingerprint` must match. Mutation batches recheck enablement, revocation
+and expiry. Existing operator-session binding and authority remain intact.
+
+Uploads are resumable and check per-chunk and complete-bundle SHA-256. Plan
+reports server-derived counts, rejected rows and catch-up differences without
+native writes; apply runs bounded kit batches. Catch-up adds inert records and
+replaces only unchanged import-created records using original provenance revision
+and native-value fences; missing source records are listed without deletion.
+Bounded catch-up needs standing owner approval and a nonempty baseline, refuses
+missing/conflicting/rejected/unmapped records, and requires additions plus
+replacements to be strictly below 5% of baseline source count. Other changes
+require a new reviewed proposal. Reconcile derives source-id presence and
+disposition, native/provenance values, revisions, attachments and counts.
+
+Use `readImportDoorHistory` under owner authority to join approval metadata to
+real jobs, captioned "approved via Business by <owner> at <time>, fingerprint
+<x>". The ordinary seed owner can undo those jobs with the same configured
+principal; snapshots undo newest first. Original bytes stay in the seed and RER
+retains receipts only. The seed owns route integration, native field sampling
+and acceptance evidence. This module has no external side effects and makes no
+hosted capacity claim. See import-kit's copied contract and door README for the
+exact grant fields, request bodies and recovery rules.
 
 ## Acceptance clauses
 

@@ -1,8 +1,16 @@
 # Run it locally
 
-Install the `rer` command once using the [RER installer](https://runeditrun.com).
-After the script or `npx` install, activate it in the current shell with
-`export PATH="$HOME/.local/bin:$PATH"`. First-party commands fetch and verify
+Start a published seed in two lines. The [RER installer](https://runeditrun.com)
+(`curl -fsSL https://runeditrun.com/install.sh | sh`) installs `rer` in
+`~/.local/bin`, with its own Node when there is no Node 22 or later on PATH; it
+edits no shell profile, so run the `export PATH=…` line it prints when
+`~/.local/bin` is not on PATH. Then `rer dev <owner>/<repo>`, for example
+`rer dev just-every/run-inkwell`, clones the seed and starts it. To start it
+again later, run `cd <folder> && rer dev` (the folder is the repository name).
+With Node 22 or later already on PATH, `npx -y @runeditrun/rer dev <owner>/<repo>`
+does both in one line, and `npm install -g @runeditrun/rer` is another way to
+install `rer`. The installer's Node stays private to `rer`: it puts no `node`,
+`npm` or `npx` on PATH. First-party commands fetch and verify
 the exact pnpm version declared in `package.json` when it is missing, using
 `$HOME/.rer/pnpm`; no global pnpm installation or sudo is needed.
 First-party seeds pin the command implementation in either vendored mode or

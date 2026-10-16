@@ -86,7 +86,9 @@ visitor into their own native Worker Loader isolate and SQLite Durable Object
 storage. The ordinary production Worker bundle is built once, with static files
 served directly at the edge. The visitor lands signed in as the demo owner with
 sample data and `RER_DEMO=1`; account effects remain simulated by the demo guard.
-Each copy ends after 60 minutes or 15 idle minutes, when its storage is erased.
+Each copy ends after 60 minutes or 15 idle minutes, or when the visitor signs
+out (`POST /auth/signout`), when its storage is erased and the visitor sees the
+ended page with "Start a new demo".
 
 1. Adopt local demo mode above and the owner-claim endpoint. The hosted app must
    export its Worker entry and declare all resources in its Wrangler config.
@@ -135,7 +137,7 @@ rer deploy --demo --remove --yes --environment demo-test
 
 For the test command, set the declaration's domain to `test.<domain>`, as the
 workflow does. Removal needs only the Cloudflare account id and deploy token.
-It empties and removes the demo-owned R2 bucket, and deletes the exact Custom Domains and Worker covered by the deployment's
+It deletes the exact Custom Domains and Worker covered by the deployment's
 ownership record; the Worker's namespaces and visitor storage go with it. It
 reads back their absence and a repeat is a no-op. An existing legacy Container
 application is also removed when its namespace proves ownership. Unrelated
@@ -144,7 +146,17 @@ resources and host attachments are refused before any deletion.
 ### Seed bindings
 
 The seed's Wrangler configuration supplies all D1s, R2 buckets, queues and local
-DO classes. D1s and seed DOs get separate SQLite facets; R2 keys are prefixed by
-visitor and binding. Alarms deliver UTC crons and durable queue batches with
-ack/retry, delays and dead letters. Expiry deletes facets, queued work, multipart
-uploads and R2 prefixes. Unsupported bindings are refused by name at demo build.
+DO classes. D1s and seed DOs get separate SQLite facets. R2 objects, their
+metadata and multipart uploads are kept per binding in the visitor's own
+Durable Object storage, next to the app, so file reads and writes answer from
+where the visitor is; a visitor's objects may total 256 MiB, and a write past
+that fails as R2 does for an oversized upload. Alarms deliver UTC crons and
+durable queue batches with ack/retry, delays and dead letters. Expiry deletes
+facets, queued work and R2 objects with the visitor's storage. Unsupported
+bindings are refused by name at demo build. The Worker's build modules
+(JavaScript, text, WebAssembly and data) load as a normal deploy uploads them;
+a failed demo build prints its reason and file.
+
+Hosts deployed by rer 0.2.30-0.2.33 kept every visitor's R2 objects in one
+demo-owned bucket. The next `rer deploy --demo`, or a removal, empties and
+deletes that bucket while the deployed Worker still proves it owns it.
