@@ -5,7 +5,7 @@ import markup from './console.html?raw'
 import {useEffect} from 'react'
 import {useRouter} from '@tanstack/react-router'
 import {useEditorLeafReady} from '../base/modules/editor/react.tsx'
-import {consolePrefetchScript} from './console-prefetch.ts'
+import {consolePrefetchScript,CONSOLE_MODULES} from './console-prefetch.ts'
 export function ConsoleDocument(){
  const router=useRouter()
  useEditorLeafReady('/app')
@@ -24,4 +24,4 @@ export function ConsoleDocument(){
  },[router])
  return <><script dangerouslySetInnerHTML={{__html:consolePrefetchScript}}/><link rel="stylesheet" href="/app-theme.css"/><link rel="stylesheet" href="/style.css"/><link rel="stylesheet" href="/notifications.css"/><div dangerouslySetInnerHTML={{__html:markup}}/></>
 }
-export const consoleHead=()=>({meta:[{title:'Uptime'}],links:[{rel:'icon',href:'/favicon.svg',type:'image/svg+xml'},{rel:'preload',href:'/design-assets/fonts/plus-jakarta-sans-latin-wght-normal.woff2',as:'font',type:'font/woff2',crossOrigin:'anonymous' as const}]})
+export const consoleHead=()=>({meta:[{title:'Uptime'}],links:[{rel:'icon',href:'/favicon.svg',type:'image/svg+xml'},{rel:'preload',href:'/design-assets/fonts/plus-jakarta-sans-latin-wght-normal.woff2',as:'font',type:'font/woff2',crossOrigin:'anonymous' as const},...CONSOLE_MODULES.map(name=>({rel:'modulepreload',href:`/${name}`}))]})
