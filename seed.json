@@ -492,6 +492,14 @@
         "environment": "all"
       },
       {
+        "path": "/auth/one-click",
+        "match": "exact",
+        "kind": "authentication",
+        "class": "authentication",
+        "authentication": "Base one-click entry: a hosted demo visitor's own isolated copy, or the checkout's dev key locally; Base refuses it on any other installation.",
+        "environment": "all"
+      },
+      {
         "path": "/auth/session",
         "match": "exact",
         "kind": "authentication",
