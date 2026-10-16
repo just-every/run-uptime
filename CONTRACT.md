@@ -6,6 +6,14 @@ The product discovers, operates and maintains trustworthy monitoring of the actu
 
 This is a target contract, not a release verdict. Every named clause states the buyer behavior and its acceptance journey. The final table distinguishes done, partial and missing at current code; a cited local test does not establish hosted placement, live migration, provider receipt or accessibility certification. Existing clause IDs and the owner-accepted 13 October archive policy and 16 October three-second readiness budget are preserved. This documentation round changes no homepage, interface or runtime behavior.
 
+## Product target
+
+| | |
+| --- | --- |
+| Category | Website uptime and API monitoring |
+| Incumbents a buyer switches from | UptimeRobot, Pingdom (SolarWinds), Better Stack Uptime, Site24x7 (and the monitoring-as-code challengers Checkly, OpenStatus and Hyperping) |
+| First buyer | A US small-business site or application operator |
+
 ## Existing guarantees and supported customer journeys
 
 - **HTTP-001 — Signed HTTP monitoring.** Public hosted HTTP(S) and keyword checks run in the Cloudflare Worker; private checks use the separately scoped Node runner. They retain the exact immutable assertion bundle and bounded transport evidence, and require authenticated claims and signed results; the control plane must reject contradictory completion. Hosted Worker checks leave through Cloudflare's shared egress and have no dedicated source address; published allowlistable probe addresses and probe identification are PROBE-002's. See [Integrity and authority](#integrity-and-authority) and [Network and credentials](#network-and-credentials). **Acceptance evidence:** Create an HTTP(S) and keyword monitor through the owner API, run scheduled hosted and signed runner work against a controlled HTTPS service, fail its status/text, recover it and inspect the immutable assertions and transport evidence.
