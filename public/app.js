@@ -8,27 +8,37 @@ import {monitorIdFromPath,renderMonitorPage} from './monitor-page.js';
 import {renderDefinitions} from './definitions.js';
 // The console document serves two paths: /app (the monitor list, or #notifications / #runners / #definitions) and /app/monitors/<id>,
 // one monitor's page. The view is 'monitor' on a monitor's page; there the nav links are ordinary links back to /app.
-(()=>{if(window.uptimeBooted)return;window.uptimeBooted=true;const pageId=monitorIdFromPath(location.pathname);let data=null,view=pageId!==null?'monitor':['notifications','runners','definitions'].includes(location.hash.slice(1))?location.hash.slice(1):'monitors',feedback,readUnavailable=false,contactState=null,redirecting=false,closed=false,polling;const $=s=>document.querySelector(s);
+function mountConsole(){if(window.uptimeBooted)return;window.uptimeBooted=true;const pageId=monitorIdFromPath(location.pathname);let data=null,view=pageId!==null?'monitor':['notifications','runners','definitions'].includes(location.hash.slice(1))?location.hash.slice(1):'monitors',feedback,readUnavailable=false,contactState=null,redirecting=false,closed=false,polling;const $=s=>document.querySelector(s);
 async function api(path,method='GET',body){if(closed)throw Error('The console is closed. Sign in again to continue.');const response=await fetch(path,{method,headers:{'content-type':'application/json'},...(method==='GET'?{signal:AbortSignal.timeout(10000)}:{}),body:body===undefined?undefined:JSON.stringify(body)}),result=await response.json();if([401,403].includes(response.status))window.dispatchEvent(new Event('uptime:auth-lost'));if(!response.ok)throw Object.assign(Error(result.error??`Request ${response.status}`),{status:response.status});return result}
 const notice=text=>feedback?.announceBackground(text);
-function closeConsole(){
+function disposeConsole(){
  if(closed)return;closed=true;feedback?.dispose();clearInterval(polling);data=null;contactState=null;
+ window.uptimeBooted=false;
+ window.removeEventListener('pagehide',closeConsole);window.removeEventListener('pageshow',restored);window.removeEventListener('uptime:console-unmount',disposeConsole);
+ document.removeEventListener('click',guardBusyNavigation,true);
+ controlsObserver.disconnect();lockedControls.clear();lockedLinks.clear();
+ document.documentElement.classList.remove('signed-in');
+}
+function closeConsole(){
+ if(closed)return;disposeConsole();
  window.dispatchEvent(new Event('uptime:auth-lost'));window.dispatchEvent(new Event('uptime:console-closed'));
  document.documentElement.classList.remove('signed-in');
  for(const host of [area,right,header,actions,nav,n])host.replaceChildren();
  document.body.replaceChildren(...document.body.querySelectorAll('link[rel=stylesheet]'));
- controlsObserver.disconnect();lockedControls.clear();lockedLinks.clear();
 }
 const navigateToLogin=()=>{if(redirecting)return;redirecting=true;closeConsole();location.replace('/login')};
 window.addEventListener('pagehide',closeConsole);
+window.addEventListener('uptime:console-unmount',disposeConsole);
 // A history restore reloads through the document's server-side authority check.
-window.addEventListener('pageshow',event=>{if(event.persisted)location.reload()});
+function restored(event){if(event.persisted)location.reload()}
+window.addEventListener('pageshow',restored);
 async function refresh(options){if(closed||document.querySelector('dialog[open]'))return;return feedback.refresh(options)}
 async function action(fn,options){const focusId=document.activeElement?.id,result=await feedback.run(fn,options);if(result.accepted&&focusId)document.getElementById(focusId)?.focus({preventScroll:true});return result}
 const nav=$('.sidebar nav');const current=name=>name===view?' aria-current="page"':name==='monitors'&&view==='monitor'?' aria-current="true"':'';nav.innerHTML=`<a href="/app" data-view="monitors"${current('monitors')}>${icon('monitor')}Monitors</a><a href="/app#notifications" data-view="notifications"${current('notifications')}>${icon('bell')}Notifications</a><a href="/app#runners" data-view="runners"${current('runners')}>${icon('archive')}Runner / archive</a><a href="/app#definitions" data-view="definitions"${current('definitions')}>${icon('braces')}Definitions</a><a href="#signout" data-view="signout">${icon('sign-out')}Sign out</a>`;
 // While an action or its reconciliation is pending, lockControls marks every console link aria-disabled and this one
 // guard keeps it from leaving the view, so the action's outcome notice is shown where the action was requested.
-document.addEventListener('click',event=>{if(!feedback.busy||!event.target.closest('a[aria-disabled="true"]'))return;event.preventDefault();event.stopImmediatePropagation()},true);
+function guardBusyNavigation(event){if(!feedback.busy||!event.target.closest('a[aria-disabled="true"]'))return;event.preventDefault();event.stopImmediatePropagation()}
+document.addEventListener('click',guardBusyNavigation,true);
 // On /app a nav link switches the view in place and replaces the URL with the link's own (/app, /app#notifications or
 // /app#runners), so Back from a monitor's page returns to the view it was opened from. On a monitor's page a nav link
 // is an ordinary link to /app. A link opened in a new tab or window is left to the browser.
@@ -40,7 +50,7 @@ const title=$('.table-title');title.innerHTML='<h2 id="table-heading">Monitors</
 // The monitor list, a monitor's page and the definitions view use the full width; only the notifications and runner views have a side panel.
 right.hidden=['monitors','monitor','definitions'].includes(view);
 if(view==='monitor'){$('.cards').hidden=true;title.hidden=true;area.setAttribute('aria-label','Monitor details');area.querySelector('.loading-note').textContent='Loading monitor…';$('.top h1').textContent='Monitor';$('.subtitle').textContent='Loading…'}
-else{$('.top h1').textContent='Monitors';$('.subtitle').textContent='Runner networks · results and gaps shown';actions.innerHTML=`<button class="primary" id="new-monitor">${icon('plus')}New monitor</button>`;$('#new-monitor').onclick=()=>{location.href='/app/monitor'}}
+else{$('.top h1').textContent='Monitors';$('.subtitle').textContent='Runner networks · results and gaps shown';actions.innerHTML=`<button class="primary" id="new-monitor">${icon('plus')}New monitor</button>`;$('#new-monitor').onclick=()=>window.dispatchEvent(new Event('uptime:new-monitor'))}
 const lockedControls=new Map(),lockedLinks=new Map();
 // Async tasks and dialogs can insert controls without rendering the whole view.
 // Observe those insertions before the browser can offer a click on a busy console.
@@ -75,4 +85,5 @@ function render(){if(!data||document.querySelector('dialog[open]'))return;if(vie
   if(view==='monitors')renderMonitors();else if(view==='notifications')renderNotifications({area,right,data,api,action,escape,readUnavailable});else if(view==='definitions')renderDefinitions({area,action});else renderRunners()}
  if(feedback.busy)lockControls(true);if(focusId){const focused=document.getElementById(focusId);if(focused)focused.focus({preventScroll:true})}}
 refresh();polling=setInterval(refresh,5000);
-})();
+}
+window.addEventListener('uptime:console-mount',mountConsole);

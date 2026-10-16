@@ -1,5 +1,5 @@
-import {additionalAssertions,assembleAssertions} from '../editor-definition.mjs';
-import {minutesToMilliseconds,secondsToMilliseconds} from '../editor-units.mjs';
+import {additionalAssertions,assembleAssertions} from './definition.mjs';
+import {minutesToMilliseconds,secondsToMilliseconds} from './units.mjs';
 // The monitor fields, shared by the full form and by every proposal row that expands into the same fields. A root is
 // the form or a row's copy of the field markup; fields are found by name inside it.
 export const FIELD_NAMES=['name','url','method','status','body','headerName','headerValue','additional','intervalMinutes','timeoutSeconds','retries','confirmSlots','recoverSlots','freshnessMinutes'];

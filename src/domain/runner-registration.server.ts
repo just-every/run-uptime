@@ -10,9 +10,15 @@ const runnerOrder=`CASE runner_id WHEN '${HOSTED_RUNNER_ID}' THEN 0 ELSE 1 END,r
 const label=(value:unknown)=>{if(typeof value!=='string'||!value.trim()||value.length>80||/[\x00-\x1f\x7f]/.test(value))throw Error('Network label required (80 characters max)');return value.trim()}
 async function custody(env:Bindings){if(!env.SESSION_SECRET||env.SESSION_SECRET.length<32)throw Error('Runner key custody unavailable');return keyedHash(env.SESSION_SECRET,'uptime-runner-keys','aes-gcm-v1')}
 export async function runnerIdentity(env:Bindings){return env.DB.prepare('SELECT * FROM runners WHERE legacy_key=1').first<Runner>()}
+export function firstRunnerStatements(env:Bindings){
+ return [
+  ...(hostedInstallation(env)?[env.DB.prepare("INSERT OR IGNORE INTO runners(runner_id,registered_at,network_label,legacy_key) VALUES(?,?,'Cloudflare Worker',0)").bind(HOSTED_RUNNER_ID,Date.now())]:[]),
+  env.DB.prepare("INSERT INTO runners(runner_id,registered_at,network_label,legacy_key) SELECT ?,?,'owner-network',1 WHERE NOT EXISTS(SELECT 1 FROM runners WHERE legacy_key=1)").bind(`self-${crypto.randomUUID()}`,Date.now()),
+ ]
+}
 export async function ensureFirstRunner(env:Bindings){
- if(hostedInstallation(env))await env.DB.prepare("INSERT OR IGNORE INTO runners(runner_id,registered_at,network_label,legacy_key) VALUES(?,?,'Cloudflare Worker',0)").bind(HOSTED_RUNNER_ID,Date.now()).run();
- await env.DB.prepare("INSERT INTO runners(runner_id,registered_at,network_label,legacy_key) SELECT ?,?,'owner-network',1 WHERE NOT EXISTS(SELECT 1 FROM runners WHERE legacy_key=1)").bind(`self-${crypto.randomUUID()}`,Date.now()).run();return (await runnerIdentity(env))!
+ const rows=await env.DB.batch([...firstRunnerStatements(env),env.DB.prepare('SELECT * FROM runners WHERE legacy_key=1')]);
+ return rows.at(-1)!.results[0] as Runner
 }
 export async function runnerKey(env:Bindings,row:Runner){
  if(row.runner_id===HOSTED_RUNNER_ID||row.revoked_at!==null)return null;
@@ -46,7 +52,9 @@ export async function createRunner(env:Bindings,input:any){
  return {runnerId,networkLabel,key}
 }
 export async function revokeRunner(env:Bindings,id:string){if(id===HOSTED_RUNNER_ID)throw Error('The hosted Worker has no runner key to revoke');const result=await env.DB.prepare('UPDATE runners SET revoked_at=?,key_ciphertext=NULL WHERE runner_id=? AND revoked_at IS NULL').bind(Date.now(),id).run();if(!result.meta.changes)throw Error('Active runner not found');return {revoked:true}}
-export async function listRunners(env:Bindings){return (await env.DB.prepare(`SELECT runner_id AS runnerId,network_label AS networkLabel,registered_at AS registeredAt,revoked_at AS revokedAt,last_contact_at AS lastContactAt,capabilities FROM runners ORDER BY ${runnerOrder}`).all()).results.map((r:any)=>({...r,hosted:r.runnerId===HOSTED_RUNNER_ID,capabilities:capabilitiesOf(r.capabilities)}))}
+export const runnerListQuery=`SELECT runner_id AS runnerId,network_label AS networkLabel,registered_at AS registeredAt,revoked_at AS revokedAt,last_contact_at AS lastContactAt,capabilities FROM runners ORDER BY ${runnerOrder}`
+export const describeRunners=(rows:any[])=>rows.map(r=>({...r,hosted:r.runnerId===HOSTED_RUNNER_ID,capabilities:capabilitiesOf(r.capabilities)}))
+export async function listRunners(env:Bindings){return describeRunners((await env.DB.prepare(runnerListQuery).all()).results)}
 const capabilitiesOf=(value:unknown)=>{try{const parsed=JSON.parse(String(value));return {browser:parsed?.browser===true}}catch{return {browser:false}}}
 export async function assignDefinition(env:Bindings,definition:any,input:any){
  const first=await ensureFirstRunner(env),rows=(await env.DB.prepare(`SELECT * FROM runners ORDER BY ${runnerOrder}`).all<Runner>()).results;

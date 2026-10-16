@@ -665,22 +665,6 @@
         "environment": "all"
       },
       {
-        "path": "/editor-units.mjs",
-        "match": "exact",
-        "kind": "asset",
-        "class": "assets",
-        "authentication": "None; emitted static resource only.",
-        "environment": "all"
-      },
-      {
-        "path": "/editor.js",
-        "match": "exact",
-        "kind": "asset",
-        "class": "assets",
-        "authentication": "None; emitted static resource only.",
-        "environment": "all"
-      },
-      {
         "path": "/app-theme.css",
         "match": "exact",
         "kind": "asset",
@@ -705,11 +689,11 @@
         "environment": "all"
       },
       {
-        "path": "/editor/",
-        "match": "prefix",
+        "path": "/editor/discovery.css",
+        "match": "exact",
         "kind": "asset",
         "class": "assets",
-        "authentication": "None; emitted static resources only.",
+        "authentication": "None; emitted static resource only.",
         "environment": "all"
       },
       {
@@ -722,14 +706,6 @@
       },
       {
         "path": "/action-feedback.mjs",
-        "match": "exact",
-        "kind": "asset",
-        "class": "assets",
-        "authentication": "None; emitted static resource only.",
-        "environment": "all"
-      },
-      {
-        "path": "/editor-definition.mjs",
         "match": "exact",
         "kind": "asset",
         "class": "assets",

@@ -14,6 +14,7 @@ export const apiRoutes:readonly Route[]=[
  {method:'POST',path:'/api/heartbeats/:id',params:id,body:'empty'},
  {method:'POST',path:'/api/auth/sign-out',body:'empty'},
  {method:'GET',path:'/api/overview',body:'none'},
+ {method:'GET',path:'/api/monitor-editor',query:{monitor:identity},body:'none'},
  {method:'POST',path:'/api/monitors',body:'object'},
  {method:'PATCH',path:'/api/monitors/:id',params:id,body:'object'},
  {method:'POST',path:'/api/monitors/:id/heartbeat-key',params:id,body:'empty'},

@@ -3,12 +3,24 @@
 // @ts-ignore Vite raw asset import
 import markup from './console.html?raw'
 import {useEffect} from 'react'
+import {useRouter} from '@tanstack/react-router'
 import {useEditorLeafReady} from '../base/modules/editor/react.tsx'
 export function ConsoleDocument(){
+ const router=useRouter()
  useEditorLeafReady('/app')
  // The console mutates this markup. Start it after React hydrates the document,
  // just as the monitor form does, so it cannot race hydration on the save return.
- useEffect(()=>{const script=document.createElement('script');script.type='module';script.src='/app.js';script.dataset.uptime='true';document.body.appendChild(script);return()=>{script.remove()}},[])
+ useEffect(()=>{
+  let mounted=true
+  const openMonitor=()=>{void router.navigate({to:'/app/monitor'})}
+  window.addEventListener('uptime:new-monitor',openMonitor)
+  // Warm only the editor's static route code. Its configuration stays fresh.
+  void router.preloadRoute({to:'/app/monitor'}).catch(()=>{})
+  const script=document.createElement('script');script.type='module';script.src='/app.js';script.dataset.uptime='true'
+  script.onload=()=>{if(mounted)window.dispatchEvent(new Event('uptime:console-mount'))}
+  document.body.appendChild(script)
+  return()=>{mounted=false;window.removeEventListener('uptime:new-monitor',openMonitor);window.dispatchEvent(new Event('uptime:console-unmount'));script.remove()}
+ },[router])
  return <><link rel="stylesheet" href="/app-theme.css"/><link rel="stylesheet" href="/style.css"/><link rel="stylesheet" href="/notifications.css"/><div dangerouslySetInnerHTML={{__html:markup}}/></>
 }
 export const consoleHead=()=>({meta:[{title:'Uptime'}],links:[{rel:'icon',href:'/favicon.svg',type:'image/svg+xml'},{rel:'preload',href:'/design-assets/fonts/plus-jakarta-sans-latin-wght-normal.woff2',as:'font',type:'font/woff2',crossOrigin:'anonymous' as const}]})

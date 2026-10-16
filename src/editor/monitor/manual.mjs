@@ -3,9 +3,15 @@ import {fillFields,readFields} from './fields.mjs';
 import {mountProbeControls} from './probes.mjs';
 // The full monitor form: what a new monitor starts from by hand, and the only way to edit an existing one.
 export const NEW_MONITOR={name:'',url:'',method:'GET',assertions:{status:200},intervalMs:60000,timeoutMs:2000,retries:1,probes:['local-a'],failureQuorum:1,confirmSlots:2,recoverSlots:2,freshnessMs:180000,enabled:true,maintenanceUntil:0};
-export function mountManualForm({form,overview,definition,id,returnTo,message}){
+export function prepareManualForm(form,definition){
  fillFields(form,definition);
  form.elements.url.required=definition.type!=='heartbeat';
+ form.querySelectorAll('input,select,textarea').forEach(control=>control.disabled=false);
+ form.querySelector('button[type=submit]').disabled=true;
+ form.onsubmit=event=>event.preventDefault();
+}
+export function mountManualForm({form,overview,definition,id,returnTo,message,preserveFields=false}){
+ if(!preserveFields)prepareManualForm(form,definition);
  const probes=mountProbeControls(form.querySelector('#settings-probes'),overview,definition,id);
  const value=name=>form.elements.namedItem(name).value;
  form.onsubmit=async event=>{

@@ -107,5 +107,5 @@ export async function withinFlowCap<T>(env:Bindings,adding:number,batch:Promise<
   throw error
  }
 }
-export async function history(env:Bindings,id:string){const rows=await env.DB.prepare('SELECT * FROM slots WHERE monitor_id=? ORDER BY due_at DESC,rowid DESC LIMIT 100').bind(id).all<any>();const values=[];for(const row of rows.results){const os=await env.DB.prepare('SELECT evidence FROM observations WHERE slot_id=? ORDER BY probe,attempt').bind(row.id).all<any>();values.push({...row,definition:JSON.parse(row.definition),observations:os.results.map(o=>JSON.parse(o.evidence))})}return values}
+export {history} from './history.server.ts'
 export {archive,restore} from './archive.server.ts'

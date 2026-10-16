@@ -83,7 +83,10 @@ export async function ensureNotificationCustody(env:Bindings,{validate=true}:{va
 }
 /** Schema readiness remains distinct from individual destination availability. */
 export async function notificationReadiness(env:Bindings){
- const table=await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('notification_credentials','notification_credentials_legacy') ORDER BY name DESC LIMIT 1").first<{name:string}>();
- if(table?.name==='notification_credentials_legacy')throw unavailable();
- if(table){const columns=await env.DB.prepare('PRAGMA table_info(notification_credentials)').all<{name:string}>();if(!['ciphertext','retired_at','unavailable_at'].every(name=>columns.results.some(column=>column.name===name)))throw unavailable();if(!await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='notification_claim_custody'").first())throw unavailable()}
+ const row=await env.DB.prepare(`SELECT
+  EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='notification_credentials_legacy') AS legacy,
+  (SELECT COUNT(*) FROM pragma_table_info('notification_credentials') WHERE name IN ('ciphertext','retired_at','unavailable_at')) AS columns,
+  EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='notification_claim_custody') AS custody
+ `).first<{legacy:number;columns:number;custody:number}>();
+ if(!row||row.legacy||row.columns!==3||!row.custody)throw unavailable();
 }

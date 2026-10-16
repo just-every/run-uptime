@@ -77,4 +77,5 @@ export function mountDiscovery({form,overview,openCheck,showManualForm}){
  root.hidden=false;
  if(openCheck&&!needsRunner){restart();const say=showProgress('');say();watch(openCheck,say)}
  else{show('start');if(needsRunner){input.disabled=true;button.disabled=true;help.hidden=false}else input.focus()}
+ return ()=>{control?.abort();stopTimer()};
 }
