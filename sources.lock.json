@@ -513,7 +513,7 @@
       "executable": false
     },
     "docs/install.md": {
-      "sha256": "d0de6ce0067f93945f26938c55fda33cce1134979abd1067ef151d00173d5ad3",
+      "sha256": "65bae29a114007ce069bd80a0700d1c48d64613143dbcb2713a6f0143ca033eb",
       "executable": false
     },
     "docs/limits.md": {
@@ -853,7 +853,7 @@
       "executable": false
     },
     "README.md": {
-      "sha256": "fb1afff383644bb9080e70a2227b9f058a1de37fea24e1b8b8641dabd555fdac",
+      "sha256": "d99478f5ad20cf2331e0ffb7d3b04915559e0f5a31c7e4726f9b1f8bbb1fbd8c",
       "executable": false
     },
     "RELEASE.json": {
@@ -2981,7 +2981,7 @@
       "executable": false
     },
     "src/site/landing/copy.ts": {
-      "sha256": "0549a57731de1635b0b15ab619d59e8865baf606f0554b1e8426f2f8416de2c1",
+      "sha256": "4252f9b0027b26cca461b61e46299743398e70fdaf639961fe6e093b8b330fe2",
       "executable": false
     },
     "src/site/landing/hero/art/frame.ts": {
@@ -3101,7 +3101,7 @@
       "executable": false
     },
     "src/site/run.ts": {
-      "sha256": "386031564274c747863929d0077abead2d38b10185f3b2027b81cf8a63b70586",
+      "sha256": "2f12ba6fc5479baf8a6ce86ad8186a6929c34ab88df1021194946d8c64ab419e",
       "executable": false
     },
     "src/site/shell/Brand.tsx": {
@@ -3449,7 +3449,7 @@
       "executable": false
     },
     "tests/readme-journey.mjs": {
-      "sha256": "95abafee8da6983c9724bf9be4937292a05d7df43a28205db360f104a7a5d98f",
+      "sha256": "7a2a29a842ef7e09840bec73821e4131cd0d78619e4f8a0dab9373cf2bc04a58",
       "executable": false
     },
     "tests/recovery-browser.mjs": {

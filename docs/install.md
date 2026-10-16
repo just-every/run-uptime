@@ -10,17 +10,15 @@ The CLI selects the checkout's pinned Node 22.20.0 for application commands. Use
 
 ## Clone and start
 
-Install `rer` once if it is not on your PATH:
+One line installs `rer` if it is not on your PATH, clones Uptime and starts it:
 
 ```sh
-npx -y @runeditrun/rer cli install
+npx -y @runeditrun/rer dev just-every/run-uptime
 ```
 
-Then clone Uptime, install its dependencies, set it up and start it:
+To start it again later, run `cd run-uptime && rer dev`. To choose the owner yourself, run these from the checkout:
 
 ```sh
-git clone https://github.com/just-every/run-uptime.git uptime
-cd uptime
 rer install
 rer setup
 rer dev

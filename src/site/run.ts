@@ -4,8 +4,8 @@ import type { RunData } from '../base/run-site';
 export const run: RunData = {
   name: 'Uptime',
   repository: 'https://github.com/just-every/run-uptime',
-  clone: 'git clone https://github.com/just-every/run-uptime.git uptime',
-  folder: 'uptime',
+  clone: 'npx -y @runeditrun/rer dev just-every/run-uptime',
+  folder: 'run-uptime',
   requirements: 'Needs Node 22 or later and pnpm 10.12.4, on macOS, Linux or Windows with WSL2.',
   licence: 'MIT',
   docs: true,

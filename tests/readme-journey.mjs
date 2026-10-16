@@ -13,8 +13,9 @@ const readme = await readFile(join(repository, 'README.md'), 'utf8');
 const section = readme.match(/^## Run it on your computer\s*\n([\s\S]*?)(?=^## |$(?![\s\S]))/m)?.[1];
 assert.ok(section, 'README must provide local onboarding');
 const blocks = [...section.matchAll(/^\s*```(?:sh|bash)\s*\n([\s\S]*?)^\s*```/gm)].map(match => match[1].trim());
-const cloneUrl = blocks.join('\n').match(/\bgit clone\s+(https:\/\/[^\s]+|git@[^\s]+)/)?.[1];
-assert.ok(cloneUrl, 'README must clone a fresh checkout');
+const oneLine = blocks.join('\n').match(/^npx -y @runeditrun\/rer dev just-every\/([\w-]+)$/m)?.[1];
+assert.ok(oneLine, 'README must give the one-line install');
+const cloneUrl = `https://github.com/just-every/${oneLine}.git`;
 const scratch = await scratchInstallation({ mirror: true });
 const ports = new Set(), groups = new Set();
 let browser, dev, appRoot, caseError, stopApp;
@@ -25,7 +26,9 @@ try {
  await mkdir(bin, { mode: 0o700 });
  await writeFile(join(bin, 'rer'), `#!/bin/sh\nexec node "${fileURLToPath(new URL('../node_modules/@runeditrun/rer/global/rer.mjs', import.meta.url))}" "$@"\n`, { mode: 0o700 });
  const environment = { GIT_CONFIG_COUNT: '1', GIT_CONFIG_KEY_0: `url.${scratch.root}.insteadOf`, GIT_CONFIG_VALUE_0: cloneUrl, PATH: `${bin}:${process.env.PATH}` };
- for (const block of blocks) {
+ for (const original of blocks) {
+  // The one line clones, installs and starts; this journey clones the candidate snapshot and runs the README's explicit verbs in it.
+  const block = original.startsWith('npx -y @runeditrun/rer dev ') ? `git clone ${cloneUrl} ${oneLine}\ncd ${oneLine}` : original;
   // The README asks for the owner's identity at setup's prompt. Supply that
   // answer through the CLI's real saved-answer store in this non-TTY journey.
   if (/(?:^|\n)\s*rer\s+setup(?:\s|$)/.test(block)) {

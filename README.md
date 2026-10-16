@@ -36,9 +36,10 @@
 Use Node 22 or later, pnpm 10.12.4 and Git on macOS, Linux or Windows with WSL2. The CLI selects the checkout's pinned Node 22.20.0 for application commands; direct `node` and `pnpm` contributor commands use that pinned runtime. Uptime is developed in its public repository, [just-every/run-uptime](https://github.com/just-every/run-uptime): candidate work on branches, accepted work on `main`, and each release is a version tag on `main`. Public v0.1.1 is the security predecessor that closed the local development file-exposure issue in v0.1.0. The previous published version is v0.2.0. This release record is v0.3.0, with rer pinned to 0.2.24. See [the changelog](CHANGELOG.md) for changes and [the release procedure](RELEASE.md) for producing the annotated tag and bundle.
 
 ```sh
-git clone https://github.com/just-every/run-uptime.git uptime
-cd uptime
+npx -y @runeditrun/rer dev just-every/run-uptime
 ```
+
+That one line installs `rer`, clones Uptime and starts it; to start it again later, run `cd run-uptime && rer dev`. To choose the owner yourself, run these from the checkout instead:
 
 ```sh
 rer install
@@ -49,7 +50,7 @@ rer setup
 rer dev
 ```
 
-`rer` runs each verb with the `@runeditrun/rer` version this checkout pins in `package.json`. Without `rer` on your PATH, install it once with `npx -y @runeditrun/rer cli install`.
+`rer` runs each verb with the `@runeditrun/rer` version this checkout pins in `package.json`.
 
 `rer install` installs the frozen dependencies. `rer setup` creates the first owner and private local settings; follow its prompts. A checkout already set up keeps its existing owner and data. `rer dev` starts the app, private runner and practice target. In an interactive terminal it stays in the foreground; Control-C stops it. From a non-interactive shell it returns once ready and leaves the app running. Use `rer dev --detach` for an explicit background run. A first start can take several minutes; repeating `rer dev` resumes an interrupted setup.
 
