@@ -190,3 +190,6 @@
 .webhook-preview section { min-width:0; }
 .webhook-differences { padding-left:20px; font-size:13px; }
 @media(max-width:480px) { .webhook-pair { grid-template-columns:1fr; } }
+
+.notification-zone { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:12px; }
+.notification-zone p { margin:0; }

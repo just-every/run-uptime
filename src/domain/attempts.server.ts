@@ -1,3 +1,4 @@
+import {notificationPreferences} from './notification-preferences.server.ts'
 import {scheduleHeartbeatEvaluation} from './heartbeat-jobs.server.ts'
 // @ts-ignore Shared calendar is also used by the console preview.
 import {activeMaintenance,intervals} from './planned-maintenance.mjs'
@@ -106,7 +107,7 @@ export async function completeAttempts(env:Bindings,input:any,runnerId:string){
   if(current)statements.push(env.DB.prepare(`UPDATE monitors SET state=? WHERE id=? AND revision=? AND ${guard}`).bind(JSON.stringify(state),m.id,m.revision,...values));
   if(kind){
    const trigger=kind==='recovery'?await env.DB.prepare("SELECT event FROM outbox WHERE monitor_id=? AND kind='trigger' AND json_extract(event,'$.incidentKey')=? AND status<>'imported-inactive' ORDER BY rowid DESC LIMIT 1").bind(m.id,state.incidentKey).first<{event:string}>():null;
-   const event=incidentEvent({id:`${slot.id}:${kind}`,kind,monitor:m,slotId:slot.id,now,state,observations:finalAttempts(definition,combined.filter(o=>o.slot_id===slot.id).map(o=>JSON.parse(o.evidence))),origin:env.UPTIME_ORIGIN,incidentKey:state.incidentKey,contextVersion:1,trigger:trigger?JSON.parse(trigger.event):null});
+   const event=incidentEvent({id:`${slot.id}:${kind}`,kind,monitor:m,slotId:slot.id,now,state,observations:finalAttempts(definition,combined.filter(o=>o.slot_id===slot.id).map(o=>JSON.parse(o.evidence))),origin:env.UPTIME_ORIGIN,incidentKey:state.incidentKey,contextVersion:2,timeZone:(await notificationPreferences(env)).timeZone,trigger:trigger?JSON.parse(trigger.event):null});
    statements.push(env.DB.prepare(`INSERT OR IGNORE INTO outbox(id,monitor_id,slot_id,kind,event) SELECT ?,?,?,?,? WHERE ${guard} AND EXISTS(SELECT 1 FROM monitors WHERE id=? AND revision=?)`).bind(event.id,m.id,slot.id,kind,JSON.stringify(event),...values,m.id,m.revision));
    statements.push(...incidentDeliveryStatements(env,event,guard,values));
   }

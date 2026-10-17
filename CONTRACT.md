@@ -420,13 +420,13 @@ Protocol round (17 October 2026): TCP-001, DNS-001, TLS-001 and DOMAIN-001 moved
 
 ## Status
 
-Judged from the code and tests at commit `e0cf2054cee6cc5233a560defaf3d51b005b23b0` (17 October 2026).
+Updated 18 October 2026 for NOTICE-001; other rows retain their cited implementation and acceptance bounds.
 
 | Clauses | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
 | Published | 16 | 5 | 0 | 21 |
-| Target and push further | 11 | 32 | 24 | 67 |
-| All | 27 | 37 | 24 | 88 |
+| Target and push further | 12 | 31 | 24 | 67 |
+| All | 28 | 36 | 24 | 88 |
 
 | Clause | Title | Kind | Status | Evidence | Gap |
 | --- | --- | --- | --- | --- | --- |
@@ -487,7 +487,7 @@ Judged from the code and tests at commit `e0cf2054cee6cc5233a560defaf3d51b005b23
 | `DELIVERY-002` | Deduplicated retry and fallback contacts | target | partial | `src/domain/relay-mail.server.ts`; `src/domain/notification-claims.server.ts`; `tests/notify-delivery.mjs` | Only proven-unaccepted relay 429 mail requeues after Retry-After; deduplicated retry and fallback contact chains do not exist. |
 | `FOLLOWUP-001` | Ongoing outage follow-up and correlation | target | partial | `src/domain/incident-work/`; `tests/incident-work.mjs`; `public/incident-work.js` | Owner assignment, acknowledgement, stop/manual response resolution and actor/time timeline now retain private work with durable machine confirmation/recovery and delivery attempts/outcomes across restart and inactive archive restore. Scheduled reminders/escalations, next-due route policy, dependency correlation/group acknowledgement, responder roles and pause/maintenance timeline entries remain absent; response resolution never changes monitor health. |
 | `INCIDENT-001` | Incident comments, mentions and root cause | target | partial | `src/domain/incident-work/`; `public/incident-work.js`; `tests/incident-work.mjs`; `docs/evidence/contracts/incidents/` | Owner-only private comments, optimistic edits with visible history, deletion tombstones, editable root-cause categories, incident JSON, report filters and API reads now ship. Archives, operator anonymization, monitor erasure and unchanged machine evidence are proven through the Worker. Responder roles, member mention/email outcomes, status-page publication and sourced incumbent incident imports remain absent. |
-| `NOTICE-001` | Actionable trigger and recovery notice content | target | partial | `src/domain/notification-context.ts`; `src/domain/notification-webhook-context.ts`; `src/domain/webhook-template.mjs`; `tests/notify-delivery.mjs`; `tests/webhook-custom.mjs`; `docs/evidence/contracts/webhooks/`; `docs/evidence/contracts/jobs/` | Immutable original reason, failed locations, confirmed boundaries and exact downtime survive restart/restore. Custom webhooks expose these and measured HTTP/assertion/expiry/heartbeat facts through escaped variables with an owner IANA zone. Email/Slack still use UTC; other chat/SMS/voice/push channels and live provider/human receipt remain gaps. |
+| `NOTICE-001` | Actionable trigger and recovery notice content | target | done | `src/domain/notification-context.ts`; `src/domain/notification-preferences.server.ts`; `public/notification-preferences.js`; `tests/notify-delivery.mjs`; `tests/notification-preferences-browser.mjs`; `tests/webhook-custom.mjs` | Email, Slack and signed JSON preserve original failure, failed locations, authenticated incident link, owner IANA zone with UTC offsets, confirmed boundaries and exact downtime across restart and inactive restore. New incidents capture the selected zone; open and historical incidents keep theirs. Custom webhook variables expose the same immutable facts. Desktop/phone save/error/reload, focus, reflow and axe pass locally. Other channels follow their own implementation clauses; provider acknowledgement is not human receipt. |
 | `CHAT-001` | Teams, Discord, Telegram and workplace chat | target | missing |  | No implementation; acceptance journey above is required. |
 | `PHONE-001` | US SMS and voice alerts | target | missing |  | No implementation; acceptance journey above is required. |
 | `PHONE-002` | Uptime-provided compliant US sender | target | missing |  | No implementation; no telephony relay or registered sender exists. Acceptance journey above is required. |

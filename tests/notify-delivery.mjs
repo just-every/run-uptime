@@ -46,6 +46,8 @@ try{
  await startWorker();fixture=fixtureProcess(fixturePort,grantPath,directory);
  await waitFor(async()=> (await fetch(`http://127.0.0.1:${fixturePort}/health`)).ok,'live custody fixture');
  await signIn(bindings);
+ assert.equal((await api('/api/notifications/preferences','PATCH',{timeZone:'America/New_York'})).status,200);
+ assert.equal((await api('/api/notifications/preferences','PATCH',{timeZone:'not-a-zone'})).status,400);
  const added=await api('/api/runners','POST',{networkLabel:'notification-second-network'});assert.equal(added.status,201);secondRunner=added.data;credentials.push(secondRunner.key);
  const destinations=[];
  for(const value of[{name:'Acceptance email',kind:'email',address:'qa-inbox@example.test'},{name:'Acceptance signed JSON',kind:'webhook',url:webhookUrl},{name:'Acceptance Slack',kind:'slack',url:slackUrl}]){
@@ -90,8 +92,10 @@ try{
  assert.match(triggerContext.originalReason,/HTTP 503/);assert.equal(triggerContext.originalReason,triggerEvent.explanation);
  assert.equal(triggerContext.confirmedStartedAt,triggerEvent.observedAt);assert.equal(triggerContext.confirmedRecoveredAt,null);assert.equal(triggerContext.downtimeSeconds,null);assert.equal(triggerContext.downtimeHuman,null);
  const incidentUrl=`${origin}/app/monitors/${monitorId}#incident-${encodeURIComponent(triggerEvent.incidentKey)}`;
- assert.equal(triggerContext.incidentUrl,incidentUrl);assert.equal(triggerContext.timeZone,'UTC');assert.equal(triggerEvent.consoleUrl,origin);
+ assert.equal(triggerContext.incidentUrl,incidentUrl);assert.equal(triggerContext.timeZone,'America/New_York');assert.equal(triggerEvent.consoleUrl,origin);
  const signedOut=await fetch(incidentUrl,{redirect:'manual'});assert.ok([302,303,307].includes(signedOut.status),'incident link requires sign-in');assert.match(signedOut.headers.get('location'),/\/login/);
+ await stopRunner();
+ const changedZone=await api('/api/notifications/preferences','PATCH',{timeZone:'America/Los_Angeles'});assert.equal(changedZone.status,200,JSON.stringify(changedZone.data));
  await restart();await setFixture('healthy');
  await waitFor(async()=> (await overview()).monitors.find(m=>m.id===monitorId)?.state.state==='Healthy','real scheduled recovery after both runtime restarts');
  await check('NOTICE-001 restart retains original failure locations and exact confirmed downtime in email Slack and signed JSON',async()=>{
@@ -99,18 +103,19 @@ try{
   const rows=(await notifications()).deliveries.filter(row=>row.event.monitorId===monitorId);
   const recoveryEvent=rows.find(row=>row.event.kind==='recovery').event,recoveryContext=recoveryEvent.incidentContext;
   const elapsed=recoveryEvent.observedAt-triggerEvent.observedAt;
-  assert.ok(elapsed>0);assert.deepEqual(recoveryContext,{...triggerContext,confirmedRecoveredAt:recoveryEvent.observedAt,downtimeSeconds:elapsed/1000,downtimeHuman:recoveryContext.downtimeHuman});
+  assert.ok(elapsed>0);assert.deepEqual(recoveryContext,{...triggerContext,confirmedRecoveredAt:recoveryEvent.observedAt,confirmedRecoveredLocal:recoveryContext.confirmedRecoveredLocal,downtimeSeconds:elapsed/1000,downtimeHuman:recoveryContext.downtimeHuman});
   // Parse the human units independently against the two durable confirmed transitions, including milliseconds.
   const units={day:86400000,hour:3600000,minute:60000,second:1000};
   const durationParts=[...recoveryContext.downtimeHuman.matchAll(/(\d+(?:\.\d+)?) (day|hour|minute|second)s?/g)];
   assert.ok(durationParts.length);assert.equal(Math.round(durationParts.reduce((total,part)=>total+Number(part[1])*units[part[2]],0)),elapsed);
   assert.ok(recoveryEvent.probes.every(probe=>probe.outcome==='pass'),'current passing observations cannot supply the original failure context');
+  const local=at=>new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',timeZoneName:'longOffset'}).format(at);
   for(const row of rows){
    const context=row.event.kind==='trigger'?triggerContext:recoveryContext;assert.deepEqual(row.event.incidentContext,context);
    if(row.kind==='webhook'){const record=webhook.records.find(record=>record.body.id===row.eventId);assert.ok(record,'signed JSON carries this actual event');assert.equal(record.body.monitorId,monitorId);assert.equal(record.body.incidentKey,row.event.incidentKey);assert.equal(record.body.state,row.event.state);assert.deepEqual(record.body.incidentContext,context)}
    else{
     const records=row.kind==='email'?mail.records:slack.records;const record=records.find(record=>row.kind==='email'?record.body.custom_args.rer_delivery_id===row.id:record.body.text.includes(row.event.title.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')));assert.ok(record,'provider wire carries this actual incident');const text=row.kind==='email'?record.body.content.find(item=>item.type==='text/plain').value:record.body.blocks.map(block=>block.text.text).join('\n');assert.ok(text.includes(`Monitor: ${monitorId}`));assert.ok(text.includes(`Incident: ${row.event.incidentKey}`));assert.ok(text.includes(`State: ${row.event.state}`));
-    for(const value of [`Original down reason: ${context.originalReason}`,`Confirmed start (UTC): ${new Date(triggerEvent.observedAt).toISOString()}`,`Incident details: ${incidentUrl}`,...context.failedLocations.map(location=>`Failed location ${location.name} (${location.probe}): ${location.reason}`),...(row.event.kind==='recovery'?[`Confirmed recovery (UTC): ${new Date(recoveryEvent.observedAt).toISOString()}`,`Confirmed downtime: ${context.downtimeHuman} (${elapsed/1000} seconds)`]:['Recovery: not confirmed','Downtime: ongoing since confirmed start'])])assert.ok(text.includes(value),'wire text retains exact incident context');
+    for(const value of [`Original down reason: ${context.originalReason}`,`Confirmed start (America/New_York): ${local(triggerEvent.observedAt)}`,`Incident details: ${incidentUrl}`,...context.failedLocations.map(location=>`Failed location ${location.name} (${location.probe}): ${location.reason}`),...(row.event.kind==='recovery'?[`Confirmed recovery (America/New_York): ${local(recoveryEvent.observedAt)}`,`Confirmed downtime: ${context.downtimeHuman} (${elapsed/1000} seconds)`]:['Recovery: not confirmed','Downtime: ongoing since confirmed start'])])assert.ok(text.includes(value),'wire text retains exact incident context');
     if(row.kind==='email')assert.ok(record.body.content.find(item=>item.type==='text/html').value.includes(`href="${incidentUrl}"`),'email links directly to the authenticated incident');
    }
   }
@@ -163,7 +168,7 @@ try{
   assertNoSecrets((await api('/')).data);assertNoSecrets(fixture.getLogs());assertNoSecrets(runnerLogs);
  });
  await check('archive restoration leaves monitors paused events inactive and destinations unauthorised without replay',async()=>{
-  await stopRunner();const archive=(await api('/api/archive')).data;
+  await stopRunner();const exported=await api('/api/archive');assert.equal(exported.status,200,JSON.stringify(exported.data?.error));const archive=exported.data;
   const contextOrigin=`http://127.0.0.1:${restorePort}`,contextRestored=ownerAPI(contextOrigin);
   ({worker:restoreWorker}=await migratedWorker({port:restorePort,persist:join(directory,'restored-context'),bindings:{...bindings,UPTIME_ORIGIN:contextOrigin}}));
   await contextRestored.signIn(bindings);const imported=await contextRestored.api('/api/restore','POST',archive);assert.equal(imported.status,200,JSON.stringify(imported.data));

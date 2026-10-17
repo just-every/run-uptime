@@ -1,3 +1,4 @@
+import {notificationPreferences} from './notification-preferences.server.ts'
 import {mailConfigured} from './mail.server.ts'
 import {ensureNotificationCustody,readCredential} from './notification-credentials.server.ts'
 import {destinations} from './notification-destinations.server.ts'
@@ -35,5 +36,5 @@ export async function notificationOverview(env:Bindings){
  (SELECT a.outcome FROM integration_attempts a WHERE a.namespace=? AND a.delivery_id=j.id ORDER BY a.number DESC LIMIT 1) outcome
  FROM notification_jobs j LEFT JOIN integration_deliveries d ON d.namespace=? AND d.id=j.id ORDER BY j.created_at DESC,j.id DESC LIMIT 200`).bind(NOTIFICATION_NAMESPACE,NOTIFICATION_NAMESPACE).all<any>();
  const drills=await drillOverview(env);
- return {destinations:(await destinations(env)).map(d=>({...d,...drills(d.id)})),mailConfigured:mailConfigured(env),workerSends:hostedInstallation(env),demo:env.RER_DEMO==='1',cronStarted:await cronStarted(env),runnerContact:await readContact(env.DB),deliveries:rows.results.map(r=>({id:r.id,eventId:r.event_id,destinationId:r.destination_id,destinationName:r.destination_name,kind:r.kind,createdAt:r.created_at,event:JSON.parse(r.event),state:r.state,code:r.outcome?JSON.parse(r.outcome).code:r.state==='sending'?'delivery_sending':r.code,attempts:r.attempts,...(r.outcome&&JSON.parse(r.outcome).status!==undefined?{status:JSON.parse(r.outcome).status}:{}),...(r.outcome&&JSON.parse(r.outcome).responseExcerpt!==undefined?{responseExcerpt:JSON.parse(r.outcome).responseExcerpt}:{})}))}
+ return {preferences:await notificationPreferences(env),destinations:(await destinations(env)).map(d=>({...d,...drills(d.id)})),mailConfigured:mailConfigured(env),workerSends:hostedInstallation(env),demo:env.RER_DEMO==='1',cronStarted:await cronStarted(env),runnerContact:await readContact(env.DB),deliveries:rows.results.map(r=>({id:r.id,eventId:r.event_id,destinationId:r.destination_id,destinationName:r.destination_name,kind:r.kind,createdAt:r.created_at,event:JSON.parse(r.event),state:r.state,code:r.outcome?JSON.parse(r.outcome).code:r.state==='sending'?'delivery_sending':r.code,attempts:r.attempts,...(r.outcome&&JSON.parse(r.outcome).status!==undefined?{status:JSON.parse(r.outcome).status}:{}),...(r.outcome&&JSON.parse(r.outcome).responseExcerpt!==undefined?{responseExcerpt:JSON.parse(r.outcome).responseExcerpt}:{})}))}
 }

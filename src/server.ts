@@ -1,3 +1,4 @@
+import {saveNotificationPreferences} from './domain/notification-preferences.server.ts'
 import {proposedWebhookPreview,savedWebhookPreview} from './domain/notification-webhook.ts'
 // @ts-ignore Source definition parser shared with the owner preview.
 import {previewUptimeRobotWebhook} from './domain/webhook-contact-import.mjs'
@@ -126,6 +127,7 @@ api.get('/api/runners',async c=>c.json(await listRunners(c.env)))
 api.post('/api/runners',async c=>c.json(await createRunner(c.env,c.get('input')),201))
 api.delete('/api/runners/:id',async c=>c.json(await revokeRunner(c.env,c.req.param('id'))))
 // The installation-wide External check URL: owner session only, same origin, validated before it is stored.
+api.patch('/api/notifications/preferences',async c=>c.json(await saveNotificationPreferences(c.env,c.get('input'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 api.get('/api/external-check',async c=>c.json(await readExternalCheck(c.env)))
 api.post('/api/external-check',async c=>c.json(await saveExternalCheck(c.env,c.get('requestText'))))
 api.post('/api/runner/enroll',async c=>{const registration=await enrollRunner(c.env,c.get('requestText'),c.req.header('x-sent-at')??'',c.req.header('x-runner-signature')??'',c.get('runner'));return registration?c.json(registration):c.json({error:'Invalid signed enrolment'},403)})

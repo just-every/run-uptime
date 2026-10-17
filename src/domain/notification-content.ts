@@ -10,17 +10,17 @@ export interface NotificationEvent {
  incidentContext?:IncidentContext;
  webhookContext?:WebhookContext;
 }
-export function incidentEvent({id,kind,monitor,slotId,now,state,observations,origin,incidentKey,trigger,contextVersion}:any):NotificationEvent {
+export function incidentEvent({id,kind,monitor,slotId,now,state,observations,origin,incidentKey,trigger,contextVersion,timeZone}:any):NotificationEvent {
  const event:NotificationEvent={schemaVersion:2,id,kind,eventType:kind==='trigger'?'uptime.incident.firing':'uptime.incident.recovered',incidentKey,
  state:kind==='trigger'?'firing':'recovered',title:`${kind==='trigger'?'Down':'Recovered'}: ${monitor.definition.name}`,
  monitorId:monitor.id,monitorRevision:monitor.revision,monitorName:monitor.definition.name,url:monitor.definition.url,
  slotId,observedAt:now,visibility:'private',evidenceRef:`/api/monitors/${monitor.id}/history`,explanation:state.reason,
  probes:observations.map((o:any)=>({name:o.probe,outcome:o.outcome,reason:o.checks.filter((c:any)=>!c.pass).map((c:any)=>c.reason).join('; ')||'All checks passed'})),consoleUrl:origin||''}
  // Existing historical/demo event builders retain their original serialized representation.
- if(contextVersion!==1)return event;
+ if(![1,2].includes(contextVersion))return event;
  event.webhookContext=eventWebhookContext(monitor.definition,observations);
  if(kind==='recovery'&&(!trigger||trigger.kind!=='trigger'||trigger.incidentKey!==incidentKey))throw Error('Recovery requires its durable incident trigger');
- event.incidentContext=kind==='trigger'?triggerContext(event,state.regions):recoveryContext(trigger,now);
+ event.incidentContext=kind==='trigger'?triggerContext(event,state.regions,contextVersion===2?timeZone:undefined):recoveryContext(trigger,now);
  if(kind==='recovery')event.incidentContext.incidentUrl=incidentUrl(event.consoleUrl,event.monitorId!,incidentKey);
  return event;
 }

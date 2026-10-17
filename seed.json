@@ -48,7 +48,8 @@
       "description": "Send scheduled incident email, signed JSON, and Slack notifications to installation-wide destinations.",
       "clauses": [
         "NOTIFY-001",
-        "DELIVERY-001"
+        "DELIVERY-001",
+        "NOTICE-001"
       ]
     }
   ],
@@ -727,6 +728,14 @@
       },
       {
         "path": "/notification-dialogs.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/notification-preferences.js",
         "match": "exact",
         "kind": "asset",
         "class": "assets",

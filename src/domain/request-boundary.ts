@@ -67,6 +67,7 @@ export const apiRoutes:readonly Route[]=[
  {method:'POST',path:'/api/definitions/batches/:id/undo',params:id,body:'empty'},
  {method:'GET',path:'/api/erasure-journal',body:'none'},
  {method:'POST',path:'/api/operators/:id/erase',params:id,body:'empty'},
+ {method:'PATCH',path:'/api/notifications/preferences',body:'object'},
  {method:'POST',path:'/api/notifications/webhook-preview',body:'object'},
  {method:'POST',path:'/api/notifications/webhook-import-preview',body:'object'},
  {method:'POST',path:'/api/notifications/destinations/:id/preview',params:id,body:'object'},
