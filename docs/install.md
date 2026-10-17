@@ -1,8 +1,8 @@
-Uptime runs on your own computer first, which is the quickest way to try it. This page takes you from a fresh clone to a signed-in console. When you are ready to run it for real, continue to [Deploy to Cloudflare](/docs/deploy).
+Uptime runs on your own computer first, which is the quickest way to try it. This page takes you from nothing to a signed-in console. When you are ready to run it for real, continue to [Deploy to Cloudflare](/docs/deploy).
 
 ## What you need
 
-- Node 22 or later and pnpm 10.12.4.
+
 - macOS, Linux or Windows with WSL2.
 - Git, to clone the source from https://github.com/just-every/run-uptime.
 
@@ -16,10 +16,9 @@ One line installs `rer` if it is not on your PATH, clones Uptime and starts it:
 npx -y @runeditrun/rer dev just-every/run-uptime
 ```
 
-To start it again later, run `cd run-uptime && rer dev`. To choose the owner yourself, run these from the checkout:
+Without Node, `curl -fsSL https://runeditrun.com/install.sh | sh -s -- dev just-every/run-uptime` does the same. To start it again later, run `cd run-uptime && rer dev`. To choose the owner yourself, run `npx -y @runeditrun/rer install just-every/run-uptime`, then from the checkout:
 
 ```sh
-rer install
 rer setup
 rer dev
 ```
@@ -28,10 +27,9 @@ rer dev
 
 ## Explicit owner setup
 
-To choose an owner or supply setup answers yourself, run these before `rer dev`:
+To choose an owner or supply setup answers yourself, run `npx -y @runeditrun/rer install just-every/run-uptime`, then from the checkout, before `rer dev`:
 
 ```sh
-rer install
 rer setup --owner-email EMAIL --owner-name "NAME" --non-interactive
 ```
 

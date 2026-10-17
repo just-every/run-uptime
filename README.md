@@ -33,16 +33,15 @@
 
 ## Run it on your computer
 
-Use Node 22 or later, pnpm 10.12.4 and Git on macOS, Linux or Windows with WSL2. The CLI selects the checkout's pinned Node 22.20.0 for application commands; direct `node` and `pnpm` contributor commands use that pinned runtime. Uptime is developed in its public repository, [just-every/run-uptime](https://github.com/just-every/run-uptime): candidate work on branches, accepted work on `main`, and each release is a version tag on `main`. Public v0.1.1 is the security predecessor that closed the local development file-exposure issue in v0.1.0. The previous published version is v0.2.0. This release record is v0.3.0, with rer pinned to 0.2.24. See [the changelog](CHANGELOG.md) for changes and [the release procedure](RELEASE.md) for producing the annotated tag and bundle.
+Use Git on macOS, Linux or Windows with WSL2. The CLI selects the checkout's pinned Node 22.20.0 for application commands; direct `node` and `pnpm` contributor commands use that pinned runtime. Uptime is developed in its public repository, [just-every/run-uptime](https://github.com/just-every/run-uptime): candidate work on branches, accepted work on `main`, and each release is a version tag on `main`. Public v0.1.1 is the security predecessor that closed the local development file-exposure issue in v0.1.0. The previous published version is v0.2.0. This release record is v0.3.0, with rer pinned to 0.2.24. See [the changelog](CHANGELOG.md) for changes and [the release procedure](RELEASE.md) for producing the annotated tag and bundle.
 
 ```sh
 npx -y @runeditrun/rer dev just-every/run-uptime
 ```
 
-That one line installs `rer`, clones Uptime and starts it; to start it again later, run `cd run-uptime && rer dev`. To choose the owner yourself, run these from the checkout instead:
+That one line installs `rer`, clones Uptime and starts it. Without Node, `curl -fsSL https://runeditrun.com/install.sh | sh -s -- dev just-every/run-uptime` does the same. To start it again later, run `cd run-uptime && rer dev`. To choose the owner yourself, run `npx -y @runeditrun/rer install just-every/run-uptime`, then these from the checkout instead:
 
 ```sh
-rer install
 rer setup
 ```
 
@@ -64,10 +63,9 @@ Use `rer describe` for commands and flags, `rer check --profile first-party` for
 
 For a non-interactive setup, supply the owner explicitly. A checkout already set up preserves its existing owner.
 
-Use:
+After `npx -y @runeditrun/rer install just-every/run-uptime`, use, from the checkout:
 
 ```sh
-rer install
 rer setup --owner-email owner@example.test --owner-name "Local Owner" --non-interactive
 ```
 

@@ -7,10 +7,9 @@ Owner-console requests also prompt due hosted checks and sends. The one-minute C
 
 ## Run it locally
 
-Use Node 22 or later and pnpm 10.12.4; rer selects the pinned Node 22.20.0 runtime. From the repository root:
+rer brings the pinned Node 22.20.0 and pnpm 10.12.4. Get the checkout with `npx -y @runeditrun/rer install just-every/run-uptime` (or start it directly with `npx -y @runeditrun/rer dev just-every/run-uptime`), then from the repository root:
 
 ```sh
-rer install
 rer setup --owner-email owner@example.test --non-interactive
 rer dev
 ```
