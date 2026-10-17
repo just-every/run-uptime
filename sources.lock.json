@@ -1453,7 +1453,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "ab0538b4832a52039a3c83ab2ebcc465c8feddc4b5115b7251832b881b42437c",
+      "sha256": "5a6995abcc02d9e772b186af16c2c2a2cf72e53e3229c3c5caa1263a915eddf8",
       "executable": false
     },
     "patches/README.md": {
@@ -1617,7 +1617,7 @@
       "executable": false
     },
     "public/notifications.js": {
-      "sha256": "0032be23b6cef89a78a3bf28f9615479a60896de7f13ed5f425618845bc6cb29",
+      "sha256": "4559b957fec094f56830fc2876dd43ec93c8f42811e215129d0a0c7b15d999d3",
       "executable": false
     },
     "public/planned-maintenance.css": {
@@ -2253,7 +2253,7 @@
       "executable": false
     },
     "seed.json": {
-      "sha256": "bdb4e70ef5e9c2cdc00a86783f102d650d978fc49fc07514cc5a9ae4db60c99f",
+      "sha256": "7342703a017ed007dc6674e2daaa6080238232c58d7cb63c97391363cc6db2d3",
       "executable": false
     },
     "src/base/contract-filter.ts": {
@@ -4710,6 +4710,10 @@
     },
     "tests/tls-trust-journey.mjs": {
       "sha256": "d67019af65963aafe3e23cb453d2ca0a701cd0ca26104e75ca49cd4733dc4cf9",
+      "executable": false
+    },
+    "tests/webhook-browser.mjs": {
+      "sha256": "6c5d5ea2b63684993934dbc1cac26b59cfc9b847e705a8b6286f85fa099c7c87",
       "executable": false
     },
     "tests/webhook-custom-support.mjs": {
