@@ -2263,7 +2263,7 @@
       "executable": false
     },
     "seed.json": {
-      "sha256": "c226a1a7b622514d0029f217f9a08f775ff76a322521d828cb2177321bb6c401",
+      "sha256": "7c4b96d7fc5ee182323c4a1a0f193b131fdd9b04c121caff82279ae084a52c0a",
       "executable": false
     },
     "src/base/contract-filter.ts": {
@@ -5055,7 +5055,7 @@
       "executable": false
     },
     "tests/business-import-door.mjs": {
-      "sha256": "3a928e4da38f48462be798b57105ab051debc29652ab6b339313bb27297d7b49",
+      "sha256": "4bcbb2b5feb4b8f940f1e27ce14f478f6dbc7af46505f8bc056859a69b466c48",
       "executable": false
     },
     "tests/catalog.mjs": {
