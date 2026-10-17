@@ -1,4 +1,5 @@
 import { latencyQuery } from './latency-query.ts'
+import { maintenanceReportSnapshots } from '../planned-maintenance/report.server.ts'
 import { normalizePeriod, ReportInputError, type ReportPeriod } from './period.ts'
 
 const buckets = { raw: 0, '1m': 60000, '5m': 300000, '1h': 3600000, '1d': 86400000 }
@@ -38,7 +39,8 @@ function statistics(row: LatencyRow): LatencyStatistics {
 }
 
 export async function periodLatency(db: D1Database, id: string, period: ReportPeriod, options: LatencyOptions) {
-  const rows = (await db.prepare(latencyQuery).bind(period.to, id, period.from,
+  const snapshots = await maintenanceReportSnapshots(db,[id],period.from,period.to)
+  const rows = (await db.prepare(latencyQuery).bind(period.to, id, period.from, snapshots.get(id)!,
     buckets[options.bucket], options.location, REPORT_POINT_LIMIT).all<LatencyRow>()).results
   const summary = rows.find(row => row.kind === 'summary')
   if (!summary) throw Error(`Latency aggregate missing for monitor ${id}`)

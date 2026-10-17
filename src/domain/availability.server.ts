@@ -1,4 +1,5 @@
 import { availabilityQuery } from './availability-query.ts'
+import { maintenanceReportSnapshots } from './planned-maintenance/report.server.ts'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 const WEEK_MS = 7 * DAY_MS
@@ -68,7 +69,8 @@ export async function availabilityOverview(
   if (!Number.isSafeInteger(now) || now < 0) throw Error('Availability clock must be a nonnegative safe integer')
   const result = new Map<string, MonitorAvailability>()
   if (!monitors.length) return result
-  const statements = monitors.map(monitor => db.prepare(availabilityQuery).bind(now, monitor.id, now - WEEK_MS))
+  const snapshots = await maintenanceReportSnapshots(db,monitors.map(monitor=>monitor.id),now-WEEK_MS,now)
+  const statements = monitors.map(monitor => db.prepare(availabilityQuery).bind(now, monitor.id, now - WEEK_MS, snapshots.get(monitor.id)!))
   const rows = await db.batch(statements)
   for (const [index, monitor] of monitors.entries()) {
     const row = rows[index]?.results?.[0] as Record<string, unknown> | undefined

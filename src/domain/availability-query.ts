@@ -1,11 +1,18 @@
 // Historical coverage uses each immutable revision and ends at its next save.
 export const availabilityEvidenceCtes = `
 WITH params AS (
-  SELECT ? AS now_at, ? AS monitor_id, ? AS window_start
+  SELECT ? AS now_at, ? AS monitor_id, ? AS window_start, ? AS revision_json
 ), revision_windows AS (
-  SELECT revision, definition, created_at AS starts_at,
-    LEAD(created_at,1,p.now_at) OVER (ORDER BY revision) AS ends_at
-  FROM revisions r, params p WHERE r.monitor_id=p.monitor_id
+  SELECT json_extract(value,'$.revision') AS revision, json_extract(value,'$.definition') AS definition,
+    json_extract(value,'$.startsAt') AS starts_at, json_extract(value,'$.endsAt') AS ends_at,
+    json_extract(value,'$.maintenance') AS maintenance
+  FROM params p, json_each(p.revision_json)
+), maintenance_spans AS (
+  SELECT r.revision, json_extract(m.value,'$.startsAt') AS starts_at, json_extract(m.value,'$.endsAt') AS ends_at
+  FROM revision_windows r, json_each(r.maintenance) m
+), excluded_spans AS (
+  SELECT 'paused' AS kind, starts_at, ends_at FROM revision_windows WHERE json_extract(definition,'$.enabled')=0
+  UNION ALL SELECT 'maintenance' AS kind, starts_at, ends_at FROM maintenance_spans
 ), coverage_bound AS (
   SELECT COALESCE(MAX(json_extract(definition,'$.intervalMs') +
     MAX(30000,json_array_length(definition,'$.probes') *
@@ -27,7 +34,7 @@ WITH params AS (
 ), slot_params AS (
   SELECT s.id, q.now_at, r.ends_at AS revision_end,
     CASE WHEN json_extract(s.definition,'$.enabled')=0 THEN r.ends_at
-      ELSE MAX(r.starts_at,COALESCE(json_extract(s.definition,'$.maintenanceUntil'),0)) END AS active_from,
+      ELSE r.starts_at END AS active_from,
     json_extract(s.definition,'$.intervalMs') AS interval_ms,
     json_extract(s.definition,'$.freshnessMs') AS freshness_ms,
     json_array_length(s.definition,'$.probes') AS probe_count,
@@ -145,20 +152,27 @@ WITH params AS (
     MIN(completed_at) OVER (ORDER BY due_at DESC, id DESC
       ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING) AS next_completed_at
   FROM slot_summary
-), coverage_spans AS (
+), raw_coverage_spans AS (
   SELECT *, MAX(completed_at, active_from) AS coverage_start,
     MIN(now_at, revision_end, completed_at+interval_ms, COALESCE(next_completed_at, now_at),
       freshness_expires_at, CASE WHEN monitor_type='heartbeat' AND all_passing=1
         THEN COALESCE(heartbeat_pass_expires_at, now_at) ELSE now_at END) AS coverage_end
   FROM classified
+), coverage_spans AS (
+  SELECT c.*, CASE WHEN c.coverage_end>c.coverage_start THEN
+    (SELECT COALESCE(SUM(MAX(0,MIN(c.coverage_end,m.ends_at)-MAX(c.coverage_start,m.starts_at))),0)
+      FROM maintenance_spans m) ELSE 0 END AS maintenance_overlap_ms
+  FROM raw_coverage_spans c
 )`
 
 // Overview and arbitrary-period reports share the same immutable result classification and spans.
 export const availabilityQuery = `${availabilityEvidenceCtes}, durations AS (
   SELECT *,
-    CASE WHEN valid_result=1 THEN MAX(0, coverage_end-MAX(now_at-86400000, coverage_start)) ELSE 0 END AS day_known_ms,
-    CASE WHEN valid_result=1 THEN MAX(0, coverage_end-MAX(now_at-604800000, coverage_start)) ELSE 0 END AS week_known_ms
-  FROM coverage_spans
+    CASE WHEN valid_result=1 THEN MAX(0, coverage_end-MAX(now_at-86400000, coverage_start) -
+      (SELECT COALESCE(SUM(MAX(0,MIN(c.coverage_end,m.ends_at)-MAX(c.coverage_start,c.now_at-86400000,m.starts_at))),0) FROM maintenance_spans m)) ELSE 0 END AS day_known_ms,
+    CASE WHEN valid_result=1 THEN MAX(0, coverage_end-MAX(now_at-604800000, coverage_start) -
+      (SELECT COALESCE(SUM(MAX(0,MIN(c.coverage_end,m.ends_at)-MAX(c.coverage_start,c.now_at-604800000,m.starts_at))),0) FROM maintenance_spans m)) ELSE 0 END AS week_known_ms
+  FROM coverage_spans c
 ), windows AS (
   SELECT
     COALESCE(SUM(CASE WHEN all_passing=1 THEN day_known_ms ELSE 0 END), 0) AS day_up_ms,
@@ -186,11 +200,6 @@ export const availabilityQuery = `${availabilityEvidenceCtes}, durations AS (
   JOIN slot_params p ON p.id=l.id
   LEFT JOIN per_probe r ON r.slot_id=l.id
   GROUP BY l.id
-), excluded_spans AS (
-  SELECT CASE WHEN json_extract(definition,'$.enabled')=0 THEN 'paused' ELSE 'maintenance' END AS kind,
-    starts_at, MIN(ends_at,p.now_at,CASE WHEN json_extract(definition,'$.enabled')=0 THEN ends_at
-      ELSE COALESCE(json_extract(definition,'$.maintenanceUntil'),0) END) AS ends_at
-  FROM revision_windows CROSS JOIN params p
 ), excluded AS (
   SELECT COALESCE(SUM(CASE WHEN kind='paused' THEN MAX(0,ends_at-MAX(starts_at,p.now_at-86400000)) ELSE 0 END),0) AS day_paused_ms,
     COALESCE(SUM(CASE WHEN kind='maintenance' THEN MAX(0,ends_at-MAX(starts_at,p.now_at-86400000)) ELSE 0 END),0) AS day_maintenance_ms,

@@ -18,8 +18,8 @@
 //   claims it, the due times after it follow every interval. The due times from there to the save that ended the
 //   revision were scheduled and never ran (missed); for the newest revision they are the ongoing outage once a grace
 //   past due (overdue). See tailRuns.
-// - A paused revision is never claimed and cannot be run manually. Maintenance does not stop claims (checks continue,
-//   alerts are suppressed), but missed and overdue checks inside a maintenance span are not listed.
+// - A paused revision is never claimed and cannot be run manually. Planned maintenance can suppress notifications
+//   or pause execution; missed and overdue checks inside either maintenance span are not listed.
 // - Assigned attempts have a bounded acceptance window; an expired unfinished slot has no complete result.
 // - A manual check is its own slot (manual 1) queued at the click time; it never moves next_due, so it never fills or
 //   hides a gap and never counts as scheduled evidence.
@@ -166,6 +166,8 @@ function spans(scheduled,all,monitor,now,starts,known){
   const from=starts.get(revision)??earliest.get(revision)??null,fromKnown=starts.has(revision);
   if(from===null)continue;
   if(definition.enabled===false){if(revision===current||nextStart!==null)result.push({kind:'paused',revision,from,to:nextStart!==null&&nextStart<=now?nextStart:null,fromKnown});continue}
+  const calendar=known.find(row=>row.revision===revision)?.maintenanceIntervals;
+  if(Array.isArray(calendar)){for(const range of calendar)if(isTime(range.startsAt)&&isTime(range.endsAt)&&range.endsAt>range.startsAt)result.push({kind:'maintenance',revision,from:range.startsAt,to:range.endsAt>now?null:range.endsAt,fromKnown:true});continue}
   const until=definition.maintenanceUntil;
   if(!isTime(until)||until<=from||definition.enabled===false)continue;
   const end=Math.min(until,nextStart??Infinity);

@@ -1,3 +1,7 @@
+// @ts-ignore Shared monitor metadata vocabulary.
+import {MONITOR_METADATA_FIELDS} from './monitor-metadata.mjs'
+// @ts-ignore Shared immutable maintenance calendar.
+import {intervals as maintenanceIntervals} from './planned-maintenance.mjs'
 import {runnerRuntime} from './private-runner.ts'
 import {hostedInstallation} from './hosted-runner.ts'
 import {cronStarted} from './cron-run.server.ts'
@@ -88,7 +92,19 @@ export async function revisionStatements(env:Bindings,definition:any,old:Awaited
  const state=JSON.stringify({state:'Unknown',confirmedFailure:old?.storedState.confirmedFailure??false,notificationOpen:old?.storedState.notificationOpen??false,incidentKey:old?.storedState.incidentKey??null,incidentRevision:old?.storedState.incidentRevision??null});
  return {revision,statements:[...(old?[mutationGuard(env,'EXISTS(SELECT 1 FROM monitors WHERE id=? AND revision=?)',[key,old.revision])]:[mutationGuard(env,'(SELECT COUNT(*) FROM monitors)<?',[MONITOR_LIMIT])]),old?env.DB.prepare('UPDATE monitors SET revision=?,definition=?,next_due=?,state=? WHERE id=? AND revision=?').bind(revision,data,nextDue,state,key,old.revision):env.DB.prepare('INSERT INTO monitors VALUES(?,?,?,?,?)').bind(key,revision,data,nextDue,state),env.DB.prepare('INSERT INTO revisions VALUES(?,?,?,?)').bind(key,revision,data,now),env.DB.prepare('INSERT OR IGNORE INTO evidence_generation(monitor_id) VALUES(?)').bind(key),...(keepHeartbeatToken&&old?.definition.type==='heartbeat'&&definition.type==='heartbeat'?[env.DB.prepare('UPDATE heartbeat_authority SET revision=? WHERE monitor_id=? AND revision=?').bind(revision,key,old.revision)]:(old?.definition.type==='heartbeat'||definition.type==='heartbeat')?[auditStatement(env,actor,'credential_retire','credential',crypto.randomUUID(),'EXISTS(SELECT 1 FROM heartbeat_authority WHERE monitor_id=?)',[key],now),env.DB.prepare('DELETE FROM heartbeat_authority WHERE monitor_id=?').bind(key)]:[])]};
 }
-export async function save(env:Bindings,input:any,id?:string,actor:AuditActor={kind:'feature',ref:'cron-maintenance'}){const definition=await assignDefinition(env,validateDefinition(input,grants(env)),input),now=Date.now(),old=id?await get(env,id):null;if(id&&!old)throw Error('Monitor not found');const key=id??crypto.randomUUID();if(!old&&Number((await env.DB.prepare('SELECT COUNT(*) n FROM monitors').first<any>())?.n)>=MONITOR_LIMIT)throw Error('Monitor limit reached');await assertFlowCapacity(env,definition,id);const statements=(await revisionStatements(env,definition,old,key,now,actor)).statements,addsFlow=Number(definition.type==='flow'&&old?.definition.type!=='flow');if(addsFlow)statements.push(flowCapGuard(env));await withinMonitorCap(env,Number(!old),withinFlowCap(env,addsFlow,env.DB.batch(statements)));return get(env,key)}
+export async function save(env:Bindings,input:any,id?:string,actor:AuditActor={kind:'feature',ref:'cron-maintenance'}){
+ const old=id?await get(env,id):null;if(id&&!old)throw Error('Monitor not found');
+ // Ordinary monitor forms predate calendars. Omitting that field keeps the
+ // current windows; explicitly supplying [] cancels them as a new revision.
+ const source={...Object.fromEntries(MONITOR_METADATA_FIELDS.filter((field:string)=>old&&Object.hasOwn(old.definition,field)).map((field:string)=>[field,old!.definition[field]])),...input,...(old&&!Object.hasOwn(input,'maintenanceWindows')?{maintenanceWindows:old.definition.maintenanceWindows}:{})};
+ const definition=await assignDefinition(env,validateDefinition(source,grants(env)),input),now=Date.now(),key=id??crypto.randomUUID();
+ if(!old&&Number((await env.DB.prepare('SELECT COUNT(*) n FROM monitors').first<any>())?.n)>=MONITOR_LIMIT)throw Error('Monitor limit reached');
+ if(definition.dependencies?.length){if(id&&definition.dependencies.includes(id))throw Error('A monitor cannot depend on itself');const found=await env.DB.prepare('SELECT id FROM monitors WHERE id IN (SELECT value FROM json_each(?))').bind(JSON.stringify(definition.dependencies)).all<{id:string}>();if(found.results.length!==definition.dependencies.length)throw Error('Every dependency must name an existing monitor');}
+ await assertFlowCapacity(env,definition,id);
+ const statements=(await revisionStatements(env,definition,old,key,now,actor)).statements,addsFlow=Number(definition.type==='flow'&&old?.definition.type!=='flow');
+ if(JSON.stringify(old?.definition.maintenanceWindows??[])!==JSON.stringify(definition.maintenanceWindows??[]))statements.push(auditStatement(env,actor,definition.maintenanceWindows?.length?'maintenance_apply':'maintenance_cancel','monitor',crypto.randomUUID(),'1',[],now));
+ if(addsFlow)statements.push(flowCapGuard(env));await withinMonitorCap(env,Number(!old),withinFlowCap(env,addsFlow,env.DB.batch(statements)));return get(env,key)
+}
 export {claimAttempt as claim,completeAttempts as complete} from './attempts.server.ts'
 // A monitor's revisions, newest first: each save's number, time (its grid's start and next_due until the first claim) and
 // definition, so the monitor page can bound every revision's scheduled due times and show past pauses and maintenance.
@@ -97,6 +113,7 @@ export {claimAttempt as claim,completeAttempts as complete} from './attempts.ser
 // flow shows in the history.
 export async function revisions(env:Bindings,id:string){
  const rows=await env.DB.prepare('SELECT revision,definition,created_at FROM revisions WHERE monitor_id=? ORDER BY revision DESC LIMIT 100').bind(id).all<any>(),all=rows.results.map(r=>({revision:r.revision as number,start:r.created_at as number,definition:JSON.parse(r.definition)}))
+ const now=Date.now();for(let index=0;index<all.length;index++){const row=all[index];Object.assign(row,{maintenanceIntervals:maintenanceIntervals(row.definition,row.start,Math.min(now+1,index?all[index-1].start:now+1))})}
  const flowOf=(d:any)=>d?.type==='flow'?d.flow:null
  return all.map((r,i)=>{const before=all[i+1];return r.definition.type==='flow'||before?.definition.type==='flow'?{...r,flowChange:before?requirementChange(flowOf(before.definition),flowOf(r.definition)):null}:r})
 }

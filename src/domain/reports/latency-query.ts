@@ -16,6 +16,7 @@ export const latencyQuery = `${availabilityEvidenceCtes}, latency_settings AS (
   FROM per_probe r JOIN classified c ON c.id=r.slot_id CROSS JOIN params p
   WHERE c.valid_result=1 AND r.selected_probe=1 AND r.final_completed_at>=c.active_from
     AND r.final_completed_at>=p.window_start AND r.final_completed_at<p.now_at
+    AND NOT EXISTS(SELECT 1 FROM maintenance_spans m WHERE r.final_completed_at>=m.starts_at AND r.final_completed_at<m.ends_at)
 ), latency_samples AS (
   SELECT s.*, CASE WHEN t.bucket_ms=0 THEN s.sample_id
     ELSE CAST(CAST(s.at/t.bucket_ms AS INTEGER)*t.bucket_ms AS TEXT) END AS bucket_key

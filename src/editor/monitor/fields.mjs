@@ -1,3 +1,4 @@
+import {fillMetadata,readMetadata} from './metadata-fields.mjs';
 import {additionalAssertions,assembleAssertions} from './definition.mjs';
 import {minutesToMilliseconds,secondsToMilliseconds} from './units.mjs';
 import {PROTOCOL_TYPES,fillProtocol,readProtocol,showType,checkTypeOf} from './protocol-fields.mjs';
@@ -11,6 +12,7 @@ export function fieldValues(definition){
   intervalMinutes:definition.intervalMs/60000,timeoutSeconds:definition.timeoutMs/1000,retries:definition.retries,confirmSlots:definition.confirmSlots,recoverSlots:definition.recoverSlots,freshnessMinutes:definition.freshnessMs/60000};
 }
 export function fillFields(root,definition){
+ fillMetadata(root,definition);
  const values=fieldValues(definition);
  for(const name of FIELD_NAMES){const element=control(root,name);if(element)element.value=String(values[name])}
  if(control(root,'checkType')){fillProtocol(root,definition);showType(root,checkTypeOf(definition))}
@@ -21,7 +23,7 @@ export function readFields(root,definition){
  const type=control(root,'checkType')?.value??'http';
  // Settings of other types never travel with the one selected.
  const {url,method,tcp,dns,tls,domain,...rest}=definition;
- const timing={name:value('name'),intervalMs:minutesToMilliseconds(value('intervalMinutes')),timeoutMs:secondsToMilliseconds(value('timeoutSeconds')),freshnessMs:minutesToMilliseconds(value('freshnessMinutes'))};
+ const timing={...readMetadata(root,definition),name:value('name'),intervalMs:minutesToMilliseconds(value('intervalMinutes')),timeoutMs:secondsToMilliseconds(value('timeoutSeconds')),freshnessMs:minutesToMilliseconds(value('freshnessMinutes'))};
  for(const name of ['retries','confirmSlots','recoverSlots'])timing[name]=Number(value(name));
  if(PROTOCOL_TYPES.includes(type)){const {settings,assertions}=readProtocol(root,type);return {...rest,...timing,type,[type]:settings,assertions}}
  if(PROTOCOL_TYPES.includes(rest.type))rest.type='http';

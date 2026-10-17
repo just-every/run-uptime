@@ -54,7 +54,8 @@
     "test:baseline": "node tests/startup-config.mjs && node tests/public-paths.mjs && node tests/storage-faults.mjs && node tests/erasure-audit.mjs && node --test --test-concurrency=2 tests/erasure-races.mjs",
     "verify:release": "node tests/archive-release.mjs",
     "spec:generate": "node scripts/delivery/publish-spec.mjs",
-    "spec:check": "node scripts/delivery/publish-spec.mjs --check"
+    "spec:check": "node scripts/delivery/publish-spec.mjs --check",
+    "test:catalog": "node tests/catalog.mjs && node tests/maintenance-windows.mjs"
   },
   "dependencies": {
     "@tanstack/react-router": "1.170.33",

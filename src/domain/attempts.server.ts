@@ -1,3 +1,5 @@
+// @ts-ignore Shared calendar is also used by the console preview.
+import {activeMaintenance,intervals} from './planned-maintenance.mjs'
 import {get,type Bindings} from './control.server.ts'
 import {runnerIdentity} from './runner-registration.server.ts'
 import {snapshotHeartbeat,validateHeartbeatSnapshot} from './heartbeat.server.ts'
@@ -21,12 +23,16 @@ const newest=(slot:string)=>`NOT EXISTS(SELECT 1 FROM slots c JOIN slots n ON n.
 export async function claimAttempt(env:Bindings,runnerId:string,{monitorId=null}:{monitorId?:string|null}={}){
  const now=Date.now();
  await env.DB.prepare("UPDATE slots SET status='interrupted' WHERE status='running' AND lease_until<=?").bind(now).run();
- const pending=await env.DB.prepare(`SELECT s.* FROM slots s JOIN runner_assignments a ON a.slot_id=s.id WHERE a.runner_id=?2 AND a.delivered_at IS NULL AND s.status='running' AND s.lease_until>?3 AND (?4 IS NULL OR s.monitor_id=?4) AND ${newest('s.id')} ORDER BY s.manual,s.due_at LIMIT 1`).bind(null,runnerId,now,monitorId).first<any>();
+ const pendingRows=(await env.DB.prepare(`SELECT s.*,m.definition AS current_definition FROM slots s JOIN monitors m ON m.id=s.monitor_id JOIN runner_assignments a ON a.slot_id=s.id WHERE a.runner_id=?2 AND a.delivered_at IS NULL AND s.status='running' AND s.lease_until>?3 AND (?4 IS NULL OR s.monitor_id=?4) AND ${newest('s.id')} ORDER BY s.manual,s.due_at`).bind(null,runnerId,now,monitorId).all<any>()).results;
+ const pending=pendingRows.find(row=>activeMaintenance(JSON.parse(row.current_definition),now)?.mode!=='pause');
  let slot=pending;
  if(!slot){
-  const queued=await env.DB.prepare("SELECT * FROM slots WHERE status='queued' AND manual=1 AND (? IS NULL OR monitor_id=?) AND (json_extract(definition,'$.assignments') IS NULL OR EXISTS(SELECT 1 FROM json_each(json_extract(slots.definition,'$.assignments')) a WHERE json_extract(a.value,'$.runnerId')=?)) ORDER BY due_at LIMIT 1").bind(monitorId,monitorId,runnerId).first<any>();
-  if(queued){const m=await get(env,queued.monitor_id);if(!m?.definition.enabled||m.revision!==queued.revision){await env.DB.prepare("UPDATE slots SET status='interrupted' WHERE id=?").bind(queued.id).run()}else slot=queued}
-  if(!slot){const row=await env.DB.prepare("SELECT * FROM monitors WHERE next_due<=? AND json_extract(definition,'$.enabled')=1 AND (? IS NULL OR id=?) AND (json_extract(definition,'$.assignments') IS NULL OR EXISTS(SELECT 1 FROM json_each(json_extract(monitors.definition,'$.assignments')) a WHERE json_extract(a.value,'$.runnerId')=?)) ORDER BY next_due LIMIT 1").bind(now,monitorId,monitorId,runnerId).first<any>();
+  const queuedRows=(await env.DB.prepare("SELECT s.*,m.definition AS current_definition,m.revision AS current_revision FROM slots s JOIN monitors m ON m.id=s.monitor_id WHERE s.status='queued' AND s.manual=1 AND (? IS NULL OR s.monitor_id=?) AND (json_extract(s.definition,'$.assignments') IS NULL OR EXISTS(SELECT 1 FROM json_each(json_extract(s.definition,'$.assignments')) a WHERE json_extract(a.value,'$.runnerId')=?)) ORDER BY s.due_at").bind(monitorId,monitorId,runnerId).all<any>()).results;
+  for(const queued of queuedRows){const definition=JSON.parse(queued.current_definition);if(!definition.enabled||queued.current_revision!==queued.revision){await env.DB.prepare("UPDATE slots SET status='interrupted' WHERE id=?").bind(queued.id).run()}else if(activeMaintenance(definition,now)?.mode!=='pause'){slot=queued;break}}
+  if(!slot){const due=(await env.DB.prepare("SELECT * FROM monitors WHERE next_due<=? AND json_extract(definition,'$.enabled')=1 AND (? IS NULL OR id=?) AND (json_extract(definition,'$.assignments') IS NULL OR EXISTS(SELECT 1 FROM json_each(json_extract(monitors.definition,'$.assignments')) a WHERE json_extract(a.value,'$.runnerId')=?)) ORDER BY next_due").bind(now,monitorId,monitorId,runnerId).all<any>()).results;
+   // Calendar filtering considers every due monitor: a paused first row must
+   // never starve unrelated monitors, or move their configured schedule.
+   const row=due.find(row=>activeMaintenance(JSON.parse(row.definition),now)?.mode!=='pause');
    if(row){const definition=JSON.parse(row.definition),id=`${row.id}:${row.revision}:${row.next_due}`,until=now+acceptanceMs(definition);
     // The next scheduled check is due no sooner than one interval after this claim. Each vantage that takes its part of the check
     // later raises it to one interval after its own delivery, and completed results to one interval after the latest vantage's
@@ -45,8 +51,11 @@ export async function claimAttempt(env:Bindings,runnerId:string,{monitorId=null}
  if(!mine.length)return null;
  // Record delivery at the transaction, not request entry: a claim delayed past
  // an older slot's classification deadline must not retroactively skip it.
+ const current=await get(env,slot.monitor_id);if(!current||activeMaintenance(current.definition,Date.now())?.mode==='pause')return null;
+ const pauseRanges=intervals({...current.definition,maintenanceUntil:0,maintenanceWindows:(current.definition.maintenanceWindows??[]).filter((window:any)=>window.mode==='pause')},now,until);
  const deliveryTime="MAX(?3,CAST(ROUND((julianday('now')-2440587.5)*86400000) AS INTEGER))";
- const changes=await env.DB.batch([...mine.map((p:string)=>env.DB.prepare(`UPDATE runner_assignments SET delivered_at=${deliveryTime} WHERE slot_id=?1 AND probe=?4 AND runner_id=?2 AND delivered_at IS NULL AND ${newest('?1')} AND EXISTS(SELECT 1 FROM slots WHERE id=?1 AND lease_until>${deliveryTime})`).bind(slot.id,runnerId,now,p)),
+ const maintenanceGuard=`EXISTS(SELECT 1 FROM monitors WHERE id=?5 AND revision=?6) AND NOT EXISTS(SELECT 1 FROM json_each(?7) w WHERE ${deliveryTime}>=json_extract(w.value,'$.startsAt') AND ${deliveryTime}<json_extract(w.value,'$.endsAt'))`;
+ const changes=await env.DB.batch([...mine.map((p:string)=>env.DB.prepare(`UPDATE runner_assignments SET delivered_at=${deliveryTime} WHERE slot_id=?1 AND probe=?4 AND runner_id=?2 AND delivered_at IS NULL AND ${newest('?1')} AND EXISTS(SELECT 1 FROM slots WHERE id=?1 AND lease_until>${deliveryTime}) AND ${maintenanceGuard}`).bind(slot.id,runnerId,now,p,current.id,current.revision,JSON.stringify(pauseRanges))),
   // New delivery resolves older undelivered classifications. Fence snapshots
   // in the same transaction so a concurrent checkpoint cannot freeze an old
   // missing classification after this runner has demonstrably advanced.

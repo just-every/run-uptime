@@ -12,6 +12,7 @@ const uuid=(value:string)=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-
 const id={id:identity},source=(value:string)=>SOURCES.includes(value),digest=(value:string)=>/^[0-9a-f]{64}$/.test(value)
 const reportQuery={...Object.fromEntries(['period','from','to','timeZone','zone','sla','slaTarget','bucket','location'].map(name=>[name,(value:string)=>identity(value)&&value.length<=150])),format:(value:string)=>['csv','json'].includes(value)}
 export const apiRoutes:readonly Route[]=[
+ ...['catalog/preview','catalog/apply','catalog/add/preview','catalog/add/apply','maintenance/preview','maintenance/apply','maintenance/cancel'].map(path=>({method:'POST',path:'/api/'+path,body:'object' as const})),
  {method:'GET',path:'/api/v1/openapi.json',body:'none'},
  {method:'POST',path:'/api/heartbeats/:id',params:id,body:'empty'},
  {method:'POST',path:'/api/auth/sign-out',body:'empty'},

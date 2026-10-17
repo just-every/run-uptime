@@ -26,6 +26,7 @@ export const plan = {
   shard('baseline', ['test:baseline']),
   shard('runtime', ['test:resilience', 'test:runtime', 'test:intake', 'test:contact', 'test:availability']),
   shard('probes', ['test:probes']),
+  shard('catalog', ['test:catalog']),
   ...split('test:security', 3, true),
   ...split('test:notifications', 3, true),
   // The installer command journey is kept in the slow tier; mail settings stay on pushes.

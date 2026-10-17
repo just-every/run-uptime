@@ -39,7 +39,7 @@ export async function planDefinitions(env:Bindings,source:string,items:(SourceEn
   if('unsupported' in mapping){entries.push({index,label,action:'unsupported',reason:mapping.unsupported,differences});continue}
   const input:any=mapping.definition
   let normalized:any
-  try{normalized=validateDefinition({...input,enabled:false,maintenanceUntil:0},local)}catch(error){entries.push({index,label,action:'refused',reason:`${label}: ${message(error)}`,differences:[]});continue}
+  try{normalized=validateDefinition({...input,enabled:false,maintenanceUntil:0,maintenanceWindows:[]},local)}catch(error){entries.push({index,label,action:'refused',reason:`${label}: ${message(error)}`,differences:[]});continue}
   const name=normalized.name
   if(seen.has(name)){entries.push({index,label,name,action:'refused',reason:`${label}: duplicate name; ${seen.get(name)} already uses “${name}”.`,differences});continue}
   seen.set(name,label)
@@ -54,11 +54,12 @@ export async function planDefinitions(env:Bindings,source:string,items:(SourceEn
   }
   const current=matches[0],before=storedView(current.definition,local),after=compared(normalized)
   if(typeof input.enabled==='boolean'&&input.enabled!==current.definition.enabled)differences.push(`The file marks this monitor ${input.enabled?'enabled':'paused'}; it stays ${current.definition.enabled?'enabled':'paused'} because files never change that.`)
+  if(input.maintenanceWindows!==undefined&&JSON.stringify(input.maintenanceWindows)!==JSON.stringify(current.definition.maintenanceWindows??[]))differences.push('The file lists planned maintenance; files never change maintenance schedules.');
   if(input.maintenanceUntil!==undefined&&input.maintenanceUntil!==(current.definition.maintenanceUntil??0))differences.push('The file sets a different maintenance end; the monitor keeps its current maintenance.')
   if(same(before,after)){entries.push({index,label,name,action:'unchanged',monitorId:current.id,revision:current.revision,differences});continue}
   if(!flowRoom(normalized,current.definition.type==='flow')){entries.push({index,label,name,action:'refused',reason:`${label}: flow monitor limit reached (an installation runs at most ${FLOW_LIMITS.maxFlowsPerInstallation} flows).`,differences});continue}
   if(normalized.type==='flow'&&current.definition.type!=='flow')flowCreates++
-  const definition={...normalized,enabled:current.definition.enabled,maintenanceUntil:current.definition.maintenanceUntil??0}
+  const definition={...normalized,enabled:current.definition.enabled,maintenanceUntil:current.definition.maintenanceUntil??0,...(current.definition.maintenanceWindows?{maintenanceWindows:current.definition.maintenanceWindows}:{})}
   const token=tokenNote(current.definition,definition,tokens.has(current.id)).trim();if(token)differences.push(token)
   try{assignRunners(runners,first,definition,{assignments:keptAssignments(current.definition,definition)},external,env.RER_DEMO!=='1',env.UPTIME_ORIGIN)}catch(error){entries.push({index,label,name,action:'refused',reason:`${label}: ${message(error)}`,differences});continue}
   entries.push({index,label,name,action:'change',monitorId:current.id,revision:current.revision,differences,definition,

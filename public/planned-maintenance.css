@@ -1,0 +1,31 @@
+/* Extends the console's existing panel, native dialog and form styles. */
+.maintenance-dialog { max-width: 720px; }
+.maintenance-dialog > p { margin-top: 12px; }
+.maintenance-dialog form { display: grid; gap: 18px; margin-top: 20px; }
+.maintenance-dialog label { min-width: 0; }
+.maintenance-dialog input:not([type=checkbox]), .maintenance-dialog select { width: 100%; min-width: 0; }
+.maintenance-dialog fieldset { min-width: 0; padding: 12px; border: 1px solid var(--line); border-radius: 10px; }
+.maintenance-dialog legend { padding: 0 4px; color: var(--ink); }
+.maintenance-dialog [hidden] { display: none; }
+.maintenance-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.maintenance-weekdays { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-bottom: 14px; }
+.maintenance-weekdays label { display: flex; align-items: center; gap: 8px; min-height: 44px; }
+.maintenance-weekdays input { width: 20px; height: 20px; margin: 0; }
+.maintenance-scope, .maintenance-revisions { padding-left: 22px; max-height: 180px; overflow: auto; }
+.maintenance-scope li, .maintenance-revisions li { overflow-wrap: anywhere; margin-block: 6px; }
+.maintenance-dialog code { overflow-wrap: anywhere; }
+.maintenance-preview { padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--canvas, var(--card)); }
+.maintenance-preview p { margin-block: 10px; }
+.maintenance-occurrences { padding-left: 22px; max-height: 300px; overflow: auto; }
+.maintenance-occurrences li { padding-block: 8px; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+.maintenance-utc { display: block; font-size: 12px; margin-top: 4px; }
+.maintenance-windows { padding: 0; list-style: none; }
+.maintenance-windows li { padding-block: 14px; border-top: 1px solid var(--line); }
+.maintenance-windows p, .maintenance-panel > p { margin-block: 8px; overflow-wrap: anywhere; }
+.maintenance-dialog .buttons { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; }
+@media (max-width: 600px) {
+ .maintenance-grid { grid-template-columns: minmax(0, 1fr); }
+ .maintenance-dialog .buttons { flex-direction: column; }
+ .maintenance-dialog .buttons button { width: 100%; }
+ .maintenance-preview { padding: 12px; }
+}
