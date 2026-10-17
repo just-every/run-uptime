@@ -133,6 +133,7 @@ try{
   await reject(task,failed(task,'heartbeat','runner_error'),'heartbeat assertion cannot be a runner error');
   await reject(task,{...failed(task,'runner','runner_error'),heartbeatReceivedAt:task.dueAt},'runner error cannot claim a receipt');
   await accept(task,[failed(task,'runner','runner_error')],'Unknown');
+  await delay(Math.max(0,task.heartbeatReceipt.job.baselineAt+task.definition.heartbeat.maxAgeMs+(task.definition.heartbeat.graceMs??0)-Date.now()));
   task=await next(task);const absent={...probeHeartbeat(task.definition,'local-a',task.heartbeatReceipt),attempt:0};
   await reject(task,{...absent,outcome:'pass',checks:[assertion('heartbeat')]},'absent heartbeat cannot pass');
   await accept(task,[absent],'Failing');
@@ -194,6 +195,7 @@ try{
   // Build an old-format HTTP archive with no type/network fields, and the old
   // runner's separately sampled duration one millisecond after completion.
   const old=structuredClone(archive),tables=old.payload.tables;
+  delete old.payload.extensionVersion;delete old.payload.productTables;delete old.payload.erasureFence;
   const monitor=tables.monitors.find(row=>JSON.parse(row.definition).network==='synthetic');
   tables.monitors=tables.monitors.filter(row=>row.id===monitor.id);
   tables.revisions=tables.revisions.filter(row=>row.monitor_id===monitor.id);

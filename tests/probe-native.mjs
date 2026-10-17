@@ -12,6 +12,7 @@ const check=async(name,fn)=>{await fn();passed++;console.log('PASS '+name)};
 const canary=task=>({id:randomUUID(),probe:'local-a',attempt:0,startedAt:task.dueAt,completedAt:task.dueAt,durationMs:0,runnerVersion:'uptime-node/0.1.0',outcome:'pass',status:200,bytes:0,checks:[{assertion:'status',pass:true,reason:'Network-edge canary fixture'}]});
 const evidence=(task,changes={})=>({canary:canary(task),id:randomUUID(),probe:'local-a',attempt:0,startedAt:Date.now(),completedAt:Date.now(),durationMs:0,runnerVersion:'uptime-node/0.1.0',outcome:'pass',status:200,bytes:2,checks:[{assertion:'status',pass:true,reason:'Expected HTTP status'},{assertion:'body',pass:true,reason:'Body contains required text'}],...changes});
 const heartbeatEvidence=task=>({...probeHeartbeat(task.definition,'local-a',task.heartbeatReceipt),attempt:0,canary:canary(task)});
+const waitForDeadline=task=>new Promise(resolve=>setTimeout(resolve,Math.max(0,task.heartbeatReceipt.job.baselineAt+task.definition.heartbeat.maxAgeMs+(task.definition.heartbeat.graceMs??0)-Date.now())));
 let publicMonitor,heartbeat,key,exported;
 try{
  await migrate(join(dir,'source'));source=await installation(join(dir,'source'),15514);
@@ -40,9 +41,14 @@ try{
  await check('heartbeat has owner-issued per-monitor authority; missing receipt cannot pass signed validation',async()=>{
   const result=await source.api('/api/monitors','POST',{name:'Incoming job',type:'heartbeat',canaryUrl:'https://canary.example.test/health',heartbeat:{maxAgeMs:5000},retries:0,confirmSlots:2,recoverSlots:2,intervalMs:5000});assert.equal(result.status,201);heartbeat=result.data;
   assert.equal((await source.api(`/api/monitors/${heartbeat.id}/heartbeat-key`,'POST',{}, {},false)).status,401);
-  const task=await source.claim();assert.equal(task.heartbeatReceipt,null);
+  let task=await source.claim();assert.equal(task.heartbeatReceipt.receivedAt,null);assert.equal(task.heartbeatReceipt.job.receivedAt,null);
   const omitted={...heartbeatEvidence(task),outcome:'pass',checks:[{assertion:'heartbeat',pass:true,reason:'Receipt fresh'}]};assert.equal((await source.submit(task,[omitted])).status,400);
   const forged={...omitted,heartbeatReceivedAt:Date.now()};assert.equal((await source.submit(task,[forged])).status,400);
+  const pending=heartbeatEvidence(task);assert.equal(pending.outcome,'runner_error');
+  assert.equal((await source.submit(task,[pending])).status,200);assert.equal((await source.monitor(heartbeat.id)).state.state,'Unknown');
+  assert.equal((await source.api('/api/overview')).data.alerts.filter(a=>a.kind==='trigger').length,0);
+  await waitForDeadline(task);await source.due(heartbeat.id);task=await source.claim();
+  assert.equal(heartbeatEvidence(task).outcome,'target_failure');
   assert.equal((await source.submit(task,[heartbeatEvidence(task)])).status,200);assert.equal((await source.monitor(heartbeat.id)).state.state,'Degraded');
   await source.due(heartbeat.id);const second=await source.claim();assert.equal((await source.submit(second,[heartbeatEvidence(second)])).status,200);assert.equal((await source.monitor(heartbeat.id)).state.state,'Failing');
   assert.equal((await source.api('/api/overview')).data.alerts.filter(a=>a.kind==='trigger').length,1);
@@ -69,11 +75,11 @@ try{
  });
  await check('stale/future receipts, immutable snapshots and omitted pass assertions cannot manufacture healthy evidence',async()=>{
   const authority=await source.DB.prepare('SELECT * FROM heartbeat_authority WHERE monitor_id=?').bind(heartbeat.id).first();
-  for(const receivedAt of [Date.now()-6000,Date.now()+60000]){
+  for(const [receivedAt,outcome] of [[Date.now()-6000,'target_failure'],[Date.now()+60000,'runner_error']]){
    await source.DB.prepare('UPDATE heartbeat_authority SET received_at=? WHERE monitor_id=?').bind(receivedAt,heartbeat.id).run();await source.due(heartbeat.id);const task=await source.claim();
-   const observed=heartbeatEvidence(task);assert.equal(observed.outcome,'target_failure');
+   const observed=heartbeatEvidence(task);assert.equal(observed.outcome,outcome);
    assert.equal((await source.submit(task,[{...observed,outcome:'pass',checks:[{assertion:'heartbeat',pass:true,reason:'Claimed pass'}]}])).status,400);
-   assert.equal((await source.submit(task,[observed])).status,200);
+   assert.equal((await source.submit(task,[observed])).status,200);assert.notEqual((await source.monitor(heartbeat.id)).state.state,'Healthy');
   }
   await source.DB.prepare('UPDATE heartbeat_authority SET received_at=? WHERE monitor_id=?').bind(authority.received_at,heartbeat.id).run();await source.due(heartbeat.id);const task=await source.claim();
   const good=heartbeatEvidence(task);assert.equal(good.outcome,'pass');assert.equal((await source.submit(task,[{...good,checks:[]}])).status,400);
@@ -84,7 +90,7 @@ try{
   await source.due(heartbeat.id);const old=await source.claim();const paused=await source.api(`/api/monitors/${heartbeat.id}`,'PATCH',{...(await source.monitor(heartbeat.id)).definition,enabled:false});assert.equal(paused.status,200);
   assert.equal((await source.api(`/api/heartbeats/${heartbeat.id}`,'POST',{}, {authorization:`Bearer ${key}`,'x-heartbeat-sequence':'2'},false)).status,400);
   assert.equal((await source.submit(old,[heartbeatEvidence(old)])).status,200);assert.equal((await source.monitor(heartbeat.id)).state.state,'Paused');
-  await source.api(`/api/monitors/${heartbeat.id}`,'PATCH',{...paused.data.definition,enabled:true});await source.due(heartbeat.id);const task=await source.claim();assert.equal(task.heartbeatReceipt,null);assert.equal((await source.submit(task,[heartbeatEvidence(task)])).status,200);
+  await source.api(`/api/monitors/${heartbeat.id}`,'PATCH',{...paused.data.definition,enabled:true});await source.due(heartbeat.id);const task=await source.claim();assert.equal(task.heartbeatReceipt.receivedAt,null);assert.equal(task.heartbeatReceipt.job.receivedAt,null);assert.equal(heartbeatEvidence(task).outcome,'runner_error');assert.equal((await source.submit(task,[heartbeatEvidence(task)])).status,200);assert.equal((await source.monitor(heartbeat.id)).state.state,'Unknown');
   const before=(await source.monitor(heartbeat.id)).revision;const issued=await source.api(`/api/monitors/${heartbeat.id}/heartbeat-key`,'POST',{});key=issued.data.token;assert.equal(issued.data.revision,before+1);
   assert.equal((await source.api(`/api/heartbeats/${heartbeat.id}`,'POST',{}, {authorization:`Bearer ${key}`,'x-heartbeat-sequence':'1'},false)).status,200);
  });
@@ -102,6 +108,7 @@ try{
   const imported=await recovery.api('/api/restore','POST',exported);assert.equal(imported.status,200,JSON.stringify(imported.data));
   assert.deepEqual((await recovery.DB.prepare('SELECT * FROM d1_migrations').all()).results,ledger);
   assert.equal((await recovery.DB.prepare('SELECT COUNT(*) n FROM heartbeat_authority').first()).n,0);assert.equal((await recovery.DB.prepare('SELECT COUNT(*) n FROM heartbeat_claims').first()).n,0);
+  assert.deepEqual((await recovery.DB.prepare('SELECT * FROM heartbeat_runs ORDER BY rowid').all()).results,exported.payload.productTables.heartbeat_runs);
   const all=(await recovery.api('/api/overview')).data;assert.ok(all.monitors.every(m=>m.state.state==='Paused'));assert.ok(all.alerts.every(a=>a.status==='imported-inactive'));assert.equal(await recovery.claim(),null);
   const restored=await recovery.monitor(publicMonitor.id);assert.deepEqual(restored.definition.request,publicMonitor.definition.request);
   // The same restored monitor ID may use a separately retained local file after explicit reactivation.
@@ -111,7 +118,7 @@ try{
   await recovery.submit(publicTask,[evidence(publicTask)]);
   const resumed=await recovery.api(`/api/monitors/${heartbeat.id}`,'PATCH',{...(await recovery.monitor(heartbeat.id)).definition,assignments:assign((await recovery.monitor(heartbeat.id)).definition),enabled:true});assert.equal(resumed.status,200);
   assert.equal((await recovery.api(`/api/heartbeats/${heartbeat.id}`,'POST',{}, {authorization:`Bearer ${key}`,'x-heartbeat-sequence':'99'},false)).status,400);
-  const task=await recovery.claim();assert.equal(task.monitorId,heartbeat.id);assert.equal(task.heartbeatReceipt,null);assert.equal(heartbeatEvidence(task).outcome,'target_failure');
+  const task=await recovery.claim();assert.equal(task.monitorId,heartbeat.id);assert.equal(task.heartbeatReceipt.receivedAt,null);assert.equal(task.heartbeatReceipt.job.receivedAt,null);assert.equal(heartbeatEvidence(task).outcome,'runner_error');
   const replay=exported.payload.tables.observations.map(o=>JSON.parse(o.evidence)).find(o=>o.heartbeatReceivedAt&&o.outcome==='pass');assert.ok(replay);assert.equal((await recovery.submit(task,[{...replay,id:randomUUID(),startedAt:Date.now(),completedAt:Date.now()}])).status,400);
   assert.equal((await recovery.submit(task,[heartbeatEvidence(task)])).status,200);assert.notEqual((await recovery.monitor(heartbeat.id)).state.state,'Healthy');
   const poisoned=structuredClone(exported);poisoned.payload.tables.heartbeat_authority=[];poisoned.sha256=createHash('sha256').update(JSON.stringify(poisoned.payload)).digest('hex');assert.equal((await recovery.api('/api/restore','POST',poisoned)).status,400);

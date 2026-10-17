@@ -4233,7 +4233,7 @@
       "executable": false
     },
     "tests/probe-native-evidence.mjs": {
-      "sha256": "353a63e09eed0412abe329b7fee67360e5061b1cb3cb46af0cf0a23661e56c56",
+      "sha256": "704c2fb4cd4c385615e145467702995d51ffb39508e6223870308851541cf879",
       "executable": false
     },
     "tests/probe-native-support.mjs": {
@@ -4241,7 +4241,7 @@
       "executable": false
     },
     "tests/probe-native.mjs": {
-      "sha256": "8c3309983e6740c4d6fd0315e68dda2e68f286be654e644278904988a5ac088a",
+      "sha256": "b6727a472f3a67025b062f7b51bb7364c50c9a4877895aa9d126f3d0d7c51929",
       "executable": false
     },
     "tests/protocol-fixtures.mjs": {
