@@ -14,7 +14,7 @@ function digestValid(record,{nonce,algorithm,qop}){
  return values.response===hash(a1+':'+nonce+':'+values.nc+':'+values.cnonce+':'+qop+':'+a2);
 }
 export async function apiAuthJourney(){
- let edge,access='none',refresh='refresh-private-original',tokenCalls=0,redirectToken=false,invalidToken=false,stale=false,acceptedClient='client',jwtAlgorithm='HS256',jwtKey=jwtSecret,redirectApplication=false;
+ let edge,access='none',refresh='refresh-private-original',tokenCalls=0,redirectToken=false,invalidToken=false,stale=false,acceptedClient='client',jwtAlgorithm='HS256',jwtKey=jwtSecret,redirectApplication=false,slowToken=false;
  try{
   edge=await authFixture((record,res)=>{
    const path=new URL(record.url,'https://auth.example.test').pathname;
@@ -32,7 +32,7 @@ export async function apiAuthJourney(){
     if(record.headers.authorization!==basic&&!(form.get('client_id')==='client'&&form.get('client_secret')===clientSecret)){res.writeHead(400);res.end('{}');return}
     if(form.get('grant_type')==='refresh_token'&&form.get('refresh_token')!==refresh){res.writeHead(400);res.end('{}');return}
     access='oauth-access-private-'+tokenCalls;refresh='oauth-refresh-private-'+tokenCalls;
-    res.setHeader('content-type','application/json');res.end(JSON.stringify({access_token:access,refresh_token:refresh,token_type:'Bearer',expires_in:1}));return;
+    res.setHeader('content-type','application/json');const tokenBody=JSON.stringify({access_token:access,refresh_token:refresh,token_type:'Bearer',expires_in:1});if(slowToken)setTimeout(()=>res.end(tokenBody),500).unref();else res.end(tokenBody);return;
    }
    if(path==='/oauth'){
     if(invalidToken){invalidToken=false;res.writeHead(401,{'www-authenticate':'Bearer error="invalid_token"'});res.end();return}
@@ -63,6 +63,7 @@ export async function apiAuthJourney(){
    await write('oauth',credential(m,{...auth,clientSecret:'replaced-invalid-client-secret'}));const apps=records.filter(r=>r.url==='/oauth').length;assert.equal((await check(m)).outcome,'runner_error');assert.equal(records.filter(r=>r.url==='/oauth').length,apps);
    redirectToken=true;await write('oauth',credential(m,{...auth,scope:['changed.scope']}));assert.equal((await check(m)).outcome,'runner_error');assert.ok(!records.some(r=>r.url==='/stolen'));if(grant==='refresh_token'){const count=tokenCalls;assert.equal((await check(m)).outcome,'runner_error');assert.equal(tokenCalls,count,'an uncertain refresh exchange is never replayed')}redirectToken=false;const restored={...auth,...(grant==='refresh_token'?{refreshToken:refresh}:{})};await write('oauth',credential(m,restored));assert.equal((await check(m)).outcome,'pass');await write('oauth',credential(m,restored,{expiresAt:Date.now()-1}));const stopped=records.length;assert.equal((await check(m)).outcome,'runner_error');await rm(join(edge.directory,'oauth.json'));assert.equal((await check(m)).outcome,'runner_error');assert.equal(records.length,stopped);await f.pause(m);
   }
+  const deadlineMonitor=await create({name:'OAuth acquisition deadline',url:url('/oauth','auth.example.test'),timeoutMs:100,request:{credentialRef:'deadline'}});await write('deadline',credential(deadlineMonitor,{type:'oauth2',grant:'client_credentials',tokenUrl:url('/token','token.example.test'),clientId:'client',clientSecret,clientAuthentication:'basic'}));slowToken=true;const beforeApps=records.filter(r=>r.url==='/oauth').length,deadlineTask=await claim(deadlineMonitor.id),deadlineResult=await run(deadlineTask);slowToken=false;assert.equal(deadlineResult.outcome,'runner_error');assert.equal(deadlineResult.checks[0].assertion,'credential');assert.equal(records.filter(r=>r.url==='/oauth').length,beforeApps);await submit(deadlineTask,deadlineResult);assert.equal((await f.state(deadlineMonitor.id)).state,'Unknown');await f.pause(deadlineMonitor);
   for(const algorithm of ['HS256','RS256','ES256']){
    const pair=algorithm==='HS256'?null:generateKeyPairSync(algorithm==='RS256'?'rsa':'ec',algorithm==='RS256'?{modulusLength:2048}:{namedCurve:'P-256'});jwtAlgorithm=algorithm;jwtKey=pair?.publicKey??jwtSecret;
    const key=pair?pair.privateKey.export({format:'pem',type:'pkcs8'}).toString():jwtSecret,m=await create({name:algorithm+' signed API',url:url('/jwt','auth.example.test'),request:{credentialRef:'jwt'}}),auth={type:'jwt',algorithm,key,issuer:'uptime-test',subject:'monitor',audience:'checkout',lifetimeSeconds:60};

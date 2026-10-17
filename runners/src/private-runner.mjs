@@ -6,7 +6,7 @@ import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {executeTaskProbe} from './execute-task.mjs';
 import {dispatchNotifications} from './notification-dispatch.mjs';
-import {NodePinnedTransport} from '../../src/base/modules/integrations/core/node-transport.ts';
+import {NotificationTransport} from './notification-transport.mjs';
 import {createWatch} from './watch.mjs';
 import {runDiscoveryLoop} from './discovery-loop.mjs';
 import {createClock} from './clock.mjs';
@@ -14,7 +14,7 @@ import {browserCapability} from './flow/browser.mjs';
 import {prepareFlowWorkspace} from './flow/workspace.mjs';
 import {readControlResponse} from './control-response.mjs';
 import {evaluatedAt} from '../../src/domain/protocol/evaluate.mjs';
-export async function runRunner({origin,key,controlAddress,runnerId:configuredId,networkLabel,watch,grantPath=resolve('data/synthetic-grant.json'),localReview=false,transport=new NodePinnedTransport(),signal,once=false,pollMs=1000}){
+export async function runRunner({origin,key,controlAddress,runnerId:configuredId,networkLabel,watch,grantPath=resolve('data/synthetic-grant.json'),localReview=false,transport=new NotificationTransport(),signal,once=false,pollMs=1000}){
  validateConfiguration({UPTIME_CONTROL_ORIGIN:origin,UPTIME_RUNNER_KEY:key,UPTIME_LOCAL_REVIEW:String(localReview)},{scope:'runner'});
  const u=controlOrigin(origin,{localReview});
  if(demoMode()&&!controlAddress&&(u.protocol!=='http:'||u.hostname!=='127.0.0.1'||!u.port))throw Error('Demo control transport requires its exact loopback origin');

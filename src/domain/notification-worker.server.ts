@@ -13,6 +13,7 @@ import {boundedBody} from './worker-http.server.ts'
 import {dnsCache,type PublicDNS} from './worker-dns.server.ts'
 import type {Allowance,SubrequestBudget} from './worker-budget.ts'
 import type {Bindings} from './control.server.ts'
+import {checkedNotificationEndpoint,notificationResponseExcerpt} from './notification-webhook.ts'
 // The custody a private runner's dispatch keeps over the channel (runners/src/notification-dispatch.mjs), here direct:
 // claim, register a reservation, mark the claim started at the transport boundary, then exactly one attempt.
 class WorkerNotificationRepository extends NotificationRepository {
@@ -25,15 +26,17 @@ class WorkerNotificationRepository extends NotificationRepository {
 }
 // Validates every DoH answer as public and never follows a redirect; Workers fetch then resolves on its own, so
 // Cloudflare egress, not a pinned socket, is the boundary (the Node runner keeps NodePinnedTransport).
-function workerTransport(dns:PublicDNS,allowance:Allowance,start:()=>Promise<void>):TrustedTransport{
+function workerTransport(dns:PublicDNS,allowance:Allowance,start:()=>Promise<void>,received:(body:string,headers:Record<string,string>,requestBody:string)=>void):TrustedTransport{
  return {async send(wire){
   await start();
   const url=validateDestination(wire.url),signal=AbortSignal.timeout(15000);
+  const method=(wire as any).method??'POST';if(!['GET','POST','PUT','PATCH'].includes(method)||method==='GET'&&wire.body!=='')throw Error('Invalid webhook method or body');
   for(const name of Object.keys(wire.headers))if(/^(host|connection|transfer-encoding|content-length|proxy-authorization)$/i.test(name))throw Error('Forbidden transport header');
   return demoEffect(async()=>{
    await dns(url,signal,allowance);allowance.spend();
-   const response=await fetch(url.href,{method:'POST',headers:wire.headers,body:wire.body,redirect:'manual',signal,cache:'no-store'});
-   return {status:response.status,headers:Object.fromEntries(response.headers),body:(await boundedBody(response,65536)).body};
+   const response=await fetch(url.href,{method,headers:wire.headers,...(method==='GET'?{}:{body:wire.body}),redirect:'manual',signal,cache:'no-store'});
+   const body=(await boundedBody(response,65536)).body;received(body,wire.headers,wire.body);
+   return {status:response.status,headers:Object.fromEntries(response.headers),body};
   },()=>({status:200,headers:{},body:url.hostname==='hooks.slack.com'?'ok':''}));
  }};
 }
@@ -45,7 +48,7 @@ export async function scheduledNotifications(env:Bindings,budget:SubrequestBudge
   // A+AAAA and the POST. A job the run cannot afford stays queued for the next run or a private runner's poll.
   const allowance=budget.reserve(3);if(!allowance)break;
   try{
-   const service=new DeliveryService({repository,hashDestination:async url=>{if(url!==job.credential.endpoint)throw Error('Destination version mismatch');return job.destinationHash},protocols:notificationProtocols(job.credential,job.credentialId),transport:workerTransport(dns,allowance,()=>repository.start(job.id))});
+   const service=new DeliveryService({repository,hashDestination:async url=>{checkedNotificationEndpoint(job.credential,job.event,url);return job.destinationHash},protocols:notificationProtocols(job.credential,job.credentialId,job.event),transport:workerTransport(dns,allowance,()=>repository.start(job.id),(body,headers,requestBody)=>repository.responseExcerpt(job.id,notificationResponseExcerpt(body,job.credential,headers,requestBody)))});
    await service.dispatch(job.id);
   }finally{allowance.release()}
  }

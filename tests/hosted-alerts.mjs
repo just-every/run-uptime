@@ -19,7 +19,7 @@ try{
    return Response.json(name==='gone.example.test'?{Status:3}:{Status:0,Answer:[{type:a?1:28,data:a?'93.184.215.14':'2606:2800:21f:cb07:6820:80da:af6b:8b2c'}]});
   }
   if(['https://hooks.example.com','https://hooks.slack.com'].includes(url.origin)){
-   received.push({origin:url.origin,headers:Object.fromEntries(request.headers),body:await request.text()});
+   received.push({origin:url.origin,url:request.url,method:request.method,headers:Object.fromEntries(request.headers),body:await request.text()});
    return new Response('ok',{status:200});
   }
   assert.ok(url.origin==='https://example.com'||url.hostname.endsWith('.example.test'),'only declared targets and receivers leave the Worker');
@@ -56,6 +56,13 @@ try{
 
  // Nothing is sent twice: a later run finds no queued work.
  await scheduled();assert.equal(received.length,4);
+
+ // Custom query requests use the same hosted claim and attempt boundary, without a private runner.
+ const custom=await json(await call('/api/notifications/destinations',{name:'Custom query receiver',kind:'webhook',enabled:false,url:'https://hooks.example.com/custom?tenant=hosted-private',webhookTemplate:{version:1,method:'GET',mode:'query',template:{name:'{{monitor.name}}',kind:'{{alert.name}}'},headerNames:['X-Api-Key']},webhookHeaders:{'X-Api-Key':'hosted-header-private-sentinel'}},cookie));
+ await json(await call(`/api/notifications/destinations/${custom.id}/test`,{},cookie));await scheduled();
+ const sent=received.at(-1);assert.equal(received.length,5);assert.equal(sent.method,'GET');assert.equal(sent.body,'');assert.equal(new URL(sent.url).searchParams.get('kind'),'Test');assert.equal(sent.headers['x-api-key'],'hosted-header-private-sentinel');assert.equal(sent.headers['x-uptime-signature-input'],'query');
+ assert.equal(sent.headers['x-lamp-signature'],createHmac('sha256',custom.signingSecret).update(sent.headers['x-lamp-timestamp']+'.'+new URL(sent.url).search.slice(1)).digest('base64url'));
+ const customNotes=await json(await call('/api/notifications',undefined,cookie));assert.equal(customNotes.deliveries.find(d=>d.destinationId===custom.id).status,200);assert.ok(!JSON.stringify(customNotes).includes('hosted-header-private-sentinel'));
 
  // Twelve healthy one-minute monitors exceed one run's check budget: the rest wait, unclaimed and unfailed, for the next run.
  const services=[];for(let index=0;index<12;index++)services.push(await json(await call('/api/monitors',{name:`Service ${index}`,url:`https://service-${index}.example.test/health`},cookie)));

@@ -15,15 +15,37 @@ import {storageOperation,classifyStorage} from './storage-error.ts'
 import type {Bindings} from './control.server.ts'
 import type {SubrequestBudget} from './worker-budget.ts'
 import {recoveryAccepted,settleUnmatchedRecoveries} from './alert-route-delivery.server.ts'
+import {notificationEnvelopeBody,checkedNotificationEndpoint,webhookConfigText,notificationResponseExcerpt} from './notification-webhook.ts'
 export function notificationRepository(env:Bindings){return new NotificationRepository(env)}
 export class NotificationRepository extends IntegrationsRepository {
  protected env:Bindings;
+ private templates=new Map<string,string|null>();
+ private excerpts=new Map<string,string>();
  constructor(env:Bindings){super(new D1SqlDatabase(env.DB),NOTIFICATION_NAMESPACE);this.env=env}
+ setTemplateSnapshot(id:string,value:string|null){this.templates.set(id,value)}
+ responseExcerpt(id:string,value:string){this.excerpts.set(id,value)}
  async insert(delivery:Delivery){
-  await this.env.DB.prepare(`INSERT INTO integration_deliveries(namespace,id,fingerprint,destination_hash,envelope,state,created_at,next_at,max_attempts,retry_delays)
+  const template=this.templates.get(delivery.id)??null;
+  await this.env.DB.batch([
+   this.env.DB.prepare(`UPDATE notification_jobs SET webhook_template=? WHERE id=? AND credential_id=? AND state='queued'
+    AND NOT EXISTS(SELECT 1 FROM integration_deliveries WHERE namespace=? AND id=?)
+    AND EXISTS(SELECT 1 FROM notification_destinations d WHERE d.id=notification_jobs.destination_id AND d.credential_id=notification_jobs.credential_id AND d.deleted_at IS NULL)`)
+    .bind(template,delivery.id,delivery.destinationId,NOTIFICATION_NAMESPACE,delivery.id),
+   this.env.DB.prepare(`INSERT INTO integration_deliveries(namespace,id,fingerprint,destination_hash,envelope,state,created_at,next_at,max_attempts,retry_delays)
    SELECT ?,?,?,?,?,'queued',?,?,?,? WHERE EXISTS(SELECT 1 FROM notification_jobs j JOIN notification_destinations d ON d.id=j.destination_id WHERE j.id=? AND j.credential_id=? AND d.credential_id=j.credential_id AND d.deleted_at IS NULL) ON CONFLICT(namespace,id) DO NOTHING`)
-   .bind(NOTIFICATION_NAMESPACE,delivery.id,delivery.fingerprint,delivery.destinationHash,JSON.stringify(pickEnvelope(delivery)),delivery.createdAt,delivery.nextAt,delivery.maxAttempts,JSON.stringify(delivery.retryDelaysMs),delivery.id,delivery.destinationId).run();
+   .bind(NOTIFICATION_NAMESPACE,delivery.id,delivery.fingerprint,delivery.destinationHash,JSON.stringify(pickEnvelope(delivery)),delivery.createdAt,delivery.nextAt,delivery.maxAttempts,JSON.stringify(delivery.retryDelaysMs),delivery.id,delivery.destinationId),
+  ]);
   const current=await this.get(delivery.id);if(!current||current.fingerprint!==delivery.fingerprint)throw Error('Notification erased or changed');return current;
+ }
+ async finish(id:string,claim:string,outcome:any,now:number,nextAt:number|null){
+  const excerpt=outcome.responseExcerpt??this.excerpts.get(id);this.excerpts.delete(id);
+  if(excerpt!==undefined){
+   const row=await this.env.DB.prepare('SELECT c.* FROM notification_jobs j JOIN notification_credentials c ON c.id=j.credential_id WHERE j.id=?').bind(id).first<any>();
+   if(!row)throw Error('Notification erased or changed');const credential=await readCredential(this.env,row);
+   const raw=String(excerpt).replace(/&(?:amp|lt|gt|quot|#39);/g,entity=>({'&amp;':'&','&lt;':'<','&gt;':'>','&quot;':'"','&#39;':"'"}[entity]!));
+   outcome={...outcome,responseExcerpt:notificationResponseExcerpt(raw,credential)};
+  }
+  return super.finish(id,claim,outcome,now,nextAt);
  }
  async claim(id:string,now:number,leaseMs:number){return claimNotification(this.env,id,now,leaseMs)}
  async recoverExpired(now:number){const recovered=await super.recoverExpired(now);await this.env.DB.batch(expireMailClaims(this.env,now));await retireObsoleteCredentials(this.env);return recovered}
@@ -39,10 +61,11 @@ export async function pollNotificationJobs(env:Bindings,budget?:SubrequestBudget
  // A job is rejected only for its own fault (an unreadable credential, an envelope that cannot be prepared). A storage fault is
  // never recorded as a rejection: it surfaces typed and the next poll finds the job still queued.
  for(const row of rows.results){let credential;try{credential=await readCredential(env,{...row,id:row.credential_record_id,destination_id:row.credential_destination_id,created_at:row.credential_created_at})}catch(error){if(classifyStorage(error))throw error;if(!notificationKeyPresent(env))continue;await op('notifications.poll.rejectCredential',()=>env.DB.batch([env.DB.prepare("UPDATE notification_jobs SET state='rejected',code='credential_unavailable',finished_at=? WHERE id=? AND state='queued' AND NOT EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace=? AND d.id=notification_jobs.id AND d.state<>'queued')").bind(now,row.id,NOTIFICATION_NAMESPACE),env.DB.prepare("UPDATE integration_deliveries SET state='rejected',next_at=? WHERE namespace=? AND id=? AND state='queued'").bind(now,NOTIFICATION_NAMESPACE,row.id)]));continue}const event=JSON.parse(row.event);
-  const service=new DeliveryService({repository,hashDestination:url=>notificationDestinationHash(env,url),protocols:notificationProtocols(credential,row.credential_id),transport:{async send(){throw Error('Preparing a job never sends it')}}});
-  try{await op('notifications.poll.enqueue',()=>service.enqueue({id:row.id,tenant:NOTIFICATION_NAMESPACE,destinationId:row.credential_id,event:event.eventType,protocol:row.kind==='slack'?SLACK_WEBHOOK_PROTOCOL:'webhook',body:row.kind==='slack'?slackContent(event):JSON.stringify(event)},{maxAttempts:1,retryDelaysMs:[]}))}
+  repository.setTemplateSnapshot(row.id,row.kind==='webhook'?webhookConfigText(credential):null);
+  const service=new DeliveryService({repository,hashDestination:url=>notificationDestinationHash(env,checkedNotificationEndpoint(credential,event,url)),protocols:notificationProtocols(credential,row.credential_id,event),transport:{async send(){throw Error('Preparing a job never sends it')}}});
+  try{await op('notifications.poll.enqueue',()=>service.enqueue({id:row.id,tenant:NOTIFICATION_NAMESPACE,destinationId:row.credential_id,event:event.eventType,protocol:row.kind==='slack'?SLACK_WEBHOOK_PROTOCOL:'webhook',body:row.kind==='slack'?slackContent(event):notificationEnvelopeBody(credential,event)},{maxAttempts:1,retryDelaysMs:[]}))}
   catch(error){if(classifyStorage(error))throw error;await op('notifications.poll.rejectPreparation',()=>env.DB.prepare("UPDATE notification_jobs SET state='rejected',code='preparation_failed',finished_at=? WHERE id=? AND state='queued'").bind(Date.now(),row.id).run());continue}
-  jobs.push({id:row.id,credentialId:row.credential_id,credential,destinationHash:await notificationDestinationHash(env,credential.endpoint)});
+  jobs.push({id:row.id,credentialId:row.credential_id,credential,event,destinationHash:await notificationDestinationHash(env,credential.endpoint)});
  }
  return jobs;
 }
@@ -70,7 +93,7 @@ export async function notificationRpc(env:Bindings,input:any){
   case 'start':return op('notifications.start',()=>startClaim(env,input.id,input.claim,input.reservation,now));
   case 'finish':{
    const o=input.outcome;
-   if(typeof input.claim!=='string'||!o||!['accepted','rejected','retryable','uncertain'].includes(o.kind)||typeof o.code!=='string'||!/^[a-z][a-z0-9_]{0,79}$/.test(o.code)||Object.keys(o).some(k=>!['kind','code','status','retryAfterMs'].includes(k))||(o.status!==undefined&&(!Number.isInteger(o.status)||o.status<100||o.status>599))||(o.retryAfterMs!==undefined&&(!Number.isFinite(o.retryAfterMs)||o.retryAfterMs<0)))throw Error('Invalid notification outcome');
+   if(typeof input.claim!=='string'||!o||!['accepted','rejected','retryable','uncertain'].includes(o.kind)||typeof o.code!=='string'||!/^[a-z][a-z0-9_]{0,79}$/.test(o.code)||Object.keys(o).some(k=>!['kind','code','status','retryAfterMs','responseExcerpt'].includes(k))||(o.status!==undefined&&(!Number.isInteger(o.status)||o.status<100||o.status>599))||(o.retryAfterMs!==undefined&&(!Number.isFinite(o.retryAfterMs)||o.retryAfterMs<0))||(o.responseExcerpt!==undefined&&(typeof o.responseExcerpt!=='string'||o.responseExcerpt.length>512)))throw Error('Invalid notification outcome');
    return op('notifications.finish',async()=>{const finished=await repository.finish(input.id,input.claim,o,now,null);await retireObsoleteCredentials(env);await retireDrillTokens(env);return finished});
   }
   default:throw Error('Unknown notification operation');

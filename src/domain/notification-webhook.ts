@@ -1,0 +1,85 @@
+// @ts-ignore Shared versioned renderer also runs on the Node dispatcher.
+import {normalizeWebhookTemplate,renderWebhookTemplate,webhookTemplateWarnings,webhookTemplateSamples} from './webhook-template.mjs'
+import {validateDestination} from '../base/modules/integrations/core/destination.ts'
+import type {NotificationCredential} from './notification-credentials.server.ts'
+export type WebhookSnapshot={config:any;headers:Record<string,string>;signing:boolean};
+export function portableWebhookConfig(value:any){return value===null?null:normalizeWebhookTemplate(value)}
+export function webhookConfigText(credential:NotificationCredential){return credential.webhook?JSON.stringify(credential.webhook.config):null}
+export function normalizeWebhookSnapshot(value:any):WebhookSnapshot{
+ if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).sort().join(',')!=='config,headers,signing'||typeof value.signing!=='boolean')throw Error('Invalid webhook credential configuration');
+ const config=normalizeWebhookTemplate(value.config);
+ // Rendering validates exact header names, values and the total byte bound;
+ // its sample contains no installation or customer authority.
+ renderWebhookTemplate({config,event:webhookTemplateSamples()[0],baseUrl:'https://example.com/',headers:value.headers});
+ const headers=Object.fromEntries(Object.entries(value.headers).map(([name,value])=>[name.toLowerCase(),value])) as Record<string,string>;
+ return {config,headers,signing:value.signing};
+}
+export function webhookInput(input:any,current?:NotificationCredential):WebhookSnapshot|undefined{
+ const hasConfig=Object.hasOwn(input,'webhookTemplate'),config=hasConfig?portableWebhookConfig(input.webhookTemplate):current?.webhook?.config??null;
+ if(config===null){
+  if(input.webhookSigning===false||input.webhookHeaders!==undefined&&(!input.webhookHeaders||typeof input.webhookHeaders!=='object'||Array.isArray(input.webhookHeaders)||Object.keys(input.webhookHeaders).length))throw Error('Custom headers and optional signing require a webhook template');
+  return undefined;
+ }
+ const sameNames=current?.webhook&&JSON.stringify([...config.headerNames].sort())===JSON.stringify([...current.webhook.config.headerNames].sort());
+ const headers=input.webhookHeaders!==undefined?input.webhookHeaders:sameNames?current!.webhook!.headers:config.headerNames.length?undefined:{};
+ if(headers===undefined)throw Error('Re-enter custom header values when the configured header names change');
+ const signing=input.webhookSigning===undefined?current?.webhook?.signing??true:input.webhookSigning;
+ return normalizeWebhookSnapshot({config,headers,signing});
+}
+export function notificationEnvelopeBody(credential:NotificationCredential,event:any){
+ if(!credential.webhook)return JSON.stringify(event);
+ return renderWebhookTemplate({config:credential.webhook.config,event,baseUrl:credential.endpoint,headers:credential.webhook.headers}).body??'';
+}
+export function checkedNotificationEndpoint(credential:NotificationCredential,event:any,url:string){
+ const expected=credential.webhook?renderWebhookTemplate({config:credential.webhook.config,event,baseUrl:credential.endpoint,headers:credential.webhook.headers}).url:credential.endpoint;
+ if(url!==expected)throw Error('Destination version mismatch');return credential.endpoint;
+}
+export function webhookMetadata(credential:NotificationCredential|undefined,stored:string|null){
+ const config=stored===null?null:normalizeWebhookTemplate(JSON.parse(stored));
+ return {webhookTemplate:config,webhookSigning:credential?credential.webhook?.signing??true:null,
+  webhookHeaderAvailability:config?config.headerNames.map((name:string)=>({name,available:Boolean(credential?.webhook&&Object.hasOwn(credential.webhook.headers,name))})):[],
+  webhookWarnings:config?webhookTemplateWarnings(config,credential?.webhook?.headers??{}):[]};
+}
+function html(value:string){return value.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!))}
+/** Scrub before escaping/cutting, including receiver echoes of encoded local
+ * credentials. The persisted value is bounded inert text, never target HTML. */
+export function notificationResponseExcerpt(body:unknown,credential:NotificationCredential,wireHeaders:Record<string,string>={},wireBody?:string):string{
+ if(typeof body!=='string')return '';
+ const endpoint=new URL(credential.endpoint),values=[credential.endpoint,credential.signing_secret??'',...Object.values(credential.webhook?.headers??{}),...Object.entries(wireHeaders).filter(([name])=>!/^(content-type|webhook-id|webhook-tenant|webhook-destination|webhook-event|webhook-timestamp|x-lamp-timestamp)$/.test(name.toLowerCase())).map(([,value])=>value),...endpoint.searchParams.values(),...endpoint.pathname.split('/').filter(Boolean)];
+ if(wireBody){try{const drill=JSON.parse(wireBody).drill;if(typeof drill?.confirmUrl==='string'){values.push(drill.confirmUrl);values.push(new URL(drill.confirmUrl).searchParams.get('token')??'')}}catch{/* Ordinary form/template text has no JSON drill capability. */}}
+ let text=body.slice(0,65536);
+ const variants=new Set<string>();
+ for(const value of values.filter(Boolean)){
+  variants.add(value);variants.add(encodeURIComponent(value));variants.add(JSON.stringify(value).slice(1,-1));variants.add(html(value));
+  const encoded=btoa(String.fromCharCode(...new TextEncoder().encode(value)));variants.add(encoded);variants.add(encoded.replaceAll('+','-').replaceAll('/','_').replace(/=+$/,''));
+ }
+ for(const value of [...variants].sort((a,b)=>b.length-a.length)){const escaped=value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');text=text.replace(new RegExp(escaped,'gi'),'[redacted]')}
+ text=text.replace(/\b(?:bearer|basic)\s+[^\s<>"']+/gi,'[redacted]').replace(/\b(?:authorization|cookie|set-cookie|api[-_]?key|token|secret|password)["']?\s*[:=]\s*["']?[^\s<>]+/gi,'[redacted]').replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g,'');
+ let output='';for(const character of text){const escaped=html(character);if(output.length+escaped.length>512)break;output+=escaped}return output;
+}
+function maskedRequest(wire:any,secretNames:string[]){return {method:wire.method??'POST',url:wire.url,headers:Object.fromEntries(Object.entries(wire.headers).map(([name,value])=>[name,secretNames.includes(name)||['x-lamp-signature','webhook-signature'].includes(name)?'[masked]':value])),...(wire.body===undefined?{}:{body:wire.body})}}
+async function previewCredential(credential:NotificationCredential){
+ const {notificationProtocols}=await import('./notification-protocols.ts');
+ const samples=[];
+ for(const source of webhookTemplateSamples()){
+  const event={...source,eventType:`uptime.preview.${source.kind}`},body=notificationEnvelopeBody(credential,event),protocol=notificationProtocols(credential,'preview-credential',event)[0];
+  const request=await protocol.prepare({id:event.id,tenant:'uptime-notifications',destinationId:'preview-credential',event:event.eventType,protocol:'webhook',body},event.observedAt);
+  samples.push({kind:event.kind,request:maskedRequest(request,credential.webhook?.config.headerNames??[])});
+ }
+ return {webhookTemplate:credential.webhook?.config??null,webhookSigning:credential.webhook?.signing??true,warnings:credential.webhook?webhookTemplateWarnings(credential.webhook.config,credential.webhook.headers):[],samples};
+}
+export async function proposedWebhookPreview(input:any){
+ if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(k=>!['url','webhookTemplate','webhookHeaders','webhookSigning'].includes(k)))throw Error('Invalid webhook preview fields');
+ const endpoint=validateDestination(input.url).href,webhook=webhookInput(input),signing=webhook?.signing??true;
+ const signing_secret=signing?Array.from(crypto.getRandomValues(new Uint8Array(32)),b=>b.toString(16).padStart(2,'0')).join(''):null;
+ return previewCredential({endpoint,signing_secret,...(webhook?{webhook}:{})});
+}
+export async function savedWebhookPreview(env:any,id:string,input:any={}){
+ if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(k=>!['url','webhookTemplate','webhookHeaders','webhookSigning'].includes(k)))throw Error('Invalid webhook preview fields');
+ const {readCredential}=await import('./notification-credentials.server.ts');
+ const row=await env.DB.prepare("SELECT c.* FROM notification_destinations d JOIN notification_credentials c ON c.id=d.credential_id WHERE d.id=? AND d.kind='webhook' AND d.deleted_at IS NULL").bind(id).first();
+ if(!row)throw Error('Webhook destination not found');
+ const current=await readCredential(env,row,{repairUnavailable:false}),endpoint=input.url===undefined?current.endpoint:validateDestination(input.url).href,webhook=webhookInput(input,current),signing=webhook?.signing??true;
+ const signing_secret=signing?(current.signing_secret??Array.from(crypto.getRandomValues(new Uint8Array(32)),b=>b.toString(16).padStart(2,'0')).join('')):null;
+ return previewCredential({endpoint,signing_secret,...(webhook?{webhook}:{})});
+}

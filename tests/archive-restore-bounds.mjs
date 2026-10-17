@@ -31,8 +31,8 @@ export async function restoreBounds({dir,migrate,installation,dispose,command,se
   const target=join(dir,label),file=join(dir,`${label}-input.json`),output=join(dir,`${label}-output.json`);let input=await legacyArchive(options);
   if(label==='unavailable-definitions'){
    input=await portableArchive(await validateArchive(input));input.payload.productTables.notification_destinations=[
-    {id:'unavailable',name:'Unavailable email',kind:'email',enabled:0,created_at:1,deleted_at:null,address:null},
-    {id:'deleted',name:'Deleted email',kind:'email',enabled:0,created_at:1,deleted_at:2,address:'prior@example.test'},
+    {id:'unavailable',name:'Unavailable email',kind:'email',enabled:0,created_at:1,deleted_at:null,address:null,webhook_template:null},
+    {id:'deleted',name:'Deleted email',kind:'email',enabled:0,created_at:1,deleted_at:2,address:'prior@example.test',webhook_template:null},
    ];await rehashArchive(input);
   }
   await migrate(target);await writeFile(file,JSON.stringify(input),{mode:0o600});

@@ -1,5 +1,6 @@
 import {renderSlackEvent,serializeSlackMessage,escapeSlackText} from '../base/modules/integrations/slack/message.ts'
 import {triggerContext,recoveryContext,incidentContextText,incidentUrl,type IncidentContext} from './notification-context.ts'
+import {eventWebhookContext,type WebhookContext} from './notification-webhook-context.ts'
 export interface NotificationEvent {
  schemaVersion:2; id:string; kind:'trigger'|'recovery'|'test'|'expiry'|'renewal'; eventType:string;
  incidentKey:string|null; state:'firing'|'recovered'|'test'|'warning'|'renewed'; title:string;
@@ -7,6 +8,7 @@ export interface NotificationEvent {
  slotId:string|null; observedAt:number; visibility:'private'; evidenceRef:string;
  explanation:string; probes:{name:string;outcome:string;reason:string}[]; consoleUrl:string;
  incidentContext?:IncidentContext;
+ webhookContext?:WebhookContext;
 }
 export function incidentEvent({id,kind,monitor,slotId,now,state,observations,origin,incidentKey,trigger,contextVersion}:any):NotificationEvent {
  const event:NotificationEvent={schemaVersion:2,id,kind,eventType:kind==='trigger'?'uptime.incident.firing':'uptime.incident.recovered',incidentKey,
@@ -16,6 +18,7 @@ export function incidentEvent({id,kind,monitor,slotId,now,state,observations,ori
  probes:observations.map((o:any)=>({name:o.probe,outcome:o.outcome,reason:o.checks.filter((c:any)=>!c.pass).map((c:any)=>c.reason).join('; ')||'All checks passed'})),consoleUrl:origin||''}
  // Existing historical/demo event builders retain their original serialized representation.
  if(contextVersion!==1)return event;
+ event.webhookContext=eventWebhookContext(monitor.definition,observations);
  if(kind==='recovery'&&(!trigger||trigger.kind!=='trigger'||trigger.incidentKey!==incidentKey))throw Error('Recovery requires its durable incident trigger');
  event.incidentContext=kind==='trigger'?triggerContext(event,state.regions):recoveryContext(trigger,now);
  if(kind==='recovery')event.incidentContext.incidentUrl=incidentUrl(event.consoleUrl,event.monitorId!,incidentKey);
@@ -31,7 +34,7 @@ export function expiryEvent({kind,monitor,slotId,now,origin,subject,label,expire
   title:kind==='expiry'?`${what} expires in ${left} day${left===1?'':'s'}: ${monitor.definition.name}`:`${what} renewed: ${monitor.definition.name}`,
   monitorId:monitor.id,monitorRevision:monitor.revision,monitorName:monitor.definition.name,url:monitor.definition.url,slotId,observedAt:now,visibility:'private',evidenceRef:`/api/monitors/${monitor.id}/history`,
   explanation:kind==='expiry'?`${label[0].toUpperCase()}${label.slice(1)} expires on ${day(expiresAt)} (${left} day${left===1?'':'s'} left; the ${stage}-day warning).${accountable} The warning stays open until a renewed one is observed.`:`A renewed ${what.toLowerCase()} was observed: ${label}, valid until ${day(expiresAt)}. It replaces the one warned about earlier (${previous!.explanation.split(' expires on ')[0]}).${accountable}`,
-  probes:[],consoleUrl:origin||''}
+  probes:[],consoleUrl:origin||'',webhookContext:{...eventWebhookContext(monitor.definition),...(monitor.definition.type==='tls'?{sslExpiryDate:day(expiresAt),sslExpiryDaysLeft:left}:{domainExpiryDate:day(expiresAt),domainExpiryDaysLeft:left})}}
 }
 export function testEvent(origin:string):NotificationEvent {
  return {schemaVersion:2,id:`test:${crypto.randomUUID()}`,kind:'test',eventType:'uptime.notification.test',incidentKey:null,state:'test',title:'Test notification: Uptime',monitorId:null,monitorRevision:null,monitorName:'Test notification',url:'',slotId:null,observedAt:Date.now(),visibility:'private',evidenceRef:'',explanation:'This is a test notification. No monitor state or incident was changed.',probes:[],consoleUrl:origin}

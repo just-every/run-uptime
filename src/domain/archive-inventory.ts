@@ -24,7 +24,7 @@ export const installationLocalTables:Record<string,string>={
  notification_credentials:'Installation destination ciphertext, webhook/Slack URLs and signing keys; email definition is separately exported.',
  notification_claim_custody:'Installation dispatch reservation hashes and claim authorization; product attempts and outcomes are retained separately.',
  integration_tokens:'Installation integration token authority.',integration_token_usage:'Installation token authorization audit.',integration_token_events:'Installation token administration audit.',
- rer_mail_development_outbox:'Installation development captures, including sign-in/setup authority; retained until explicit erasure or reset.',
+ rer_mail_development_outbox:'Retired pre-v2 development-capture table; excluded from product archives. Current local sign-in uses automatic owner entry, with no captured-mail inbox.',
  oc_owner_claims:'Installation signed owner admission ledger; retain permanently, never export credentials or authority.',
  uptime_first_run:'Installation first-run completion; a receiving owner completes setup independently.',
  alert_drills:'Installation alert drill history and confirmation capability hashes; a restored destination starts never proven.',
@@ -40,7 +40,7 @@ export const installationLocalTables:Record<string,string>={
 export async function assertArchiveInventory(db:D1Database){
  const rows=await db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT GLOB '_cf_*' ORDER BY name").all<{name:string}>();
  for(const {name} of rows.results)if(!name.startsWith('rer_portability_')&&!TABLES.includes(name)&&!Object.hasOwn(installationLocalTables,name))throw Error(`Archive unclassified table: ${name}`);
- const sourceColumns:Record<string,string[]>={...columns,notification_destinations:['id','name','kind','enabled','credential_id','created_at','deleted_at'],notification_jobs:[...columns.notification_jobs,'credential_id','claim','claim_until'],integration_deliveries:[...columns.integration_deliveries,'fingerprint','destination_hash','claim','claim_until'],integration_replays:[...columns.integration_replays,'fingerprint']};
+ const sourceColumns:Record<string,string[]>={...columns,notification_destinations:['id','name','kind','enabled','credential_id','created_at','deleted_at','webhook_template'],notification_jobs:[...columns.notification_jobs,'credential_id','claim','claim_until'],integration_deliveries:[...columns.integration_deliveries,'fingerprint','destination_hash','claim','claim_until'],integration_replays:[...columns.integration_replays,'fingerprint']};
  const schemas=await db.batch(TABLES.map(name=>db.prepare(`PRAGMA table_info(${name})`)));
  for(let i=0;i<TABLES.length;i++){const name=TABLES[i],actual=schemas[i].results.map((r:any)=>r.name).sort().join(',');if(actual!==sourceColumns[name].slice().sort().join(','))throw Error(`Archive unsupported table columns: ${name}`)}
  for(const name of TABLES.filter(n=>n.startsWith('integration_'))){const row=await db.prepare(`SELECT COUNT(*) n FROM ${name} WHERE namespace <> 'uptime-notifications'`).first<{n:number}>();if(row?.n)throw Error(`Archive unsupported product namespace: ${name}`)}

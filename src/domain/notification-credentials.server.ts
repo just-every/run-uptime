@@ -3,9 +3,11 @@ import {auditStatement} from './audit.server.ts'
 import {keyedHash,seal,unseal,decode} from '../base/modules/operator-auth/identity/oidc/crypto.mjs'
 import {sha256} from '../base/modules/integrations/core/crypto.ts'
 import type {Bindings} from './control.server.ts'
+import {normalizeWebhookSnapshot,type WebhookSnapshot} from './notification-webhook.ts'
 type Identity={id:string;destination_id:string;created_at:number};
 export type CredentialRow=Identity&{endpoint:string|null;signing_secret:string|null;ciphertext:string|null;retired_at:number|null;unavailable_at?:number|null};
-type Credential={endpoint:string;signing_secret:string|null};
+export type NotificationCredential={endpoint:string;signing_secret:string|null;webhook?:WebhookSnapshot};
+type Credential=NotificationCredential;
 const unavailable=()=>Error('Notification credential custody unavailable');
 /** A missing or short key is a transient deployment fault, not evidence about any stored credential. */
 export const notificationKeyPresent=(env:Bindings)=>typeof env.SESSION_SECRET==='string'&&env.SESSION_SECRET.length>=32;
@@ -19,14 +21,16 @@ export async function sealCredential(env:Bindings,row:Identity,value:Credential)
  * in use at the time could not open it. A successful decrypt under the current
  * key clears it, so restoring the right key recovers the destination without
  * re-entering anything. Rows with no ciphertext can never recover. */
-export async function readCredential(env:Bindings,row:CredentialRow):Promise<Credential>{
+export async function readCredential(env:Bindings,row:CredentialRow,{repairUnavailable=true}:{repairUnavailable?:boolean}={}):Promise<Credential>{
  let value;
  try{
   if(row.retired_at!==null||row.endpoint!==null||row.signing_secret!==null||!row.ciphertext)throw unavailable();
   value=await unseal(await key(env),identity(row),row.ciphertext);
   if(!value||typeof value.endpoint!=='string'||!(value.signing_secret===null||typeof value.signing_secret==='string'))throw unavailable();
+  if(Object.keys(value).some(name=>!['endpoint','signing_secret','webhook'].includes(name)))throw unavailable();
+  if(value.webhook!==undefined){value.webhook=normalizeWebhookSnapshot(value.webhook);if(value.webhook.signing!==Boolean(value.signing_secret))throw unavailable()}
  }catch{throw unavailable()}
- if(row.unavailable_at!=null)await env.DB.prepare(`UPDATE notification_credentials SET unavailable_at=NULL
+ if(repairUnavailable&&row.unavailable_at!=null)await env.DB.prepare(`UPDATE notification_credentials SET unavailable_at=NULL
   WHERE id=? AND destination_id=? AND created_at=? AND ciphertext=? AND retired_at IS NULL AND unavailable_at IS NOT NULL`).bind(row.id,row.destination_id,row.created_at,row.ciphertext).run();
  return value;
 }
@@ -89,4 +93,6 @@ export async function notificationReadiness(env:Bindings){
   EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='notification_claim_custody') AS custody
  `).first<{legacy:number;columns:number;custody:number}>();
  if(!row||row.legacy||row.columns!==3||!row.custody)throw unavailable();
+ const template=await env.DB.prepare("SELECT COUNT(*) AS n FROM pragma_table_info('notification_destinations') WHERE name='webhook_template'").first<{n:number}>();
+ if(template?.n!==1)throw unavailable();
 }

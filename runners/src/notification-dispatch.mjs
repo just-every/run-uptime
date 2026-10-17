@@ -1,12 +1,13 @@
 import {demoEffect} from './demo-policy.mjs';
 import {IntegrationsRepository} from '../../src/base/modules/integrations/core/repository.ts';
 import {DeliveryService} from '../../src/base/modules/integrations/core/delivery.ts';
-import {NodePinnedTransport} from '../../src/base/modules/integrations/core/node-transport.ts';
+import {NotificationTransport} from './notification-transport.mjs';
 import {notificationProtocols} from '../../src/domain/notification-protocols.ts';
+import {checkedNotificationEndpoint,notificationResponseExcerpt} from '../../src/domain/notification-webhook.ts';
 // Only named, bounded repository operations cross this authenticated channel.
 // The authoritative database remains D1 across Node and Worker restarts.
 class RunnerNotificationRepository extends IntegrationsRepository {
- constructor(api,now){super({batch:async()=>{throw Error('SQL is unavailable over the runner channel')}},'uptime-notifications');this.api=api;this.now=now;this.unstarted=new Map();this.reservations=new Map()}
+ constructor(api,now){super({batch:async()=>{throw Error('SQL is unavailable over the runner channel')}},'uptime-notifications');this.api=api;this.now=now;this.unstarted=new Map();this.reservations=new Map();this.excerpts=new Map()}
  rpc(operation,fields={}){return this.api('/api/runner/notifications',{operation,...fields})}
  async get(id){
   const current=await this.rpc('get',{id}),claim=this.unstarted.get(id);
@@ -28,13 +29,13 @@ class RunnerNotificationRepository extends IntegrationsRepository {
   if(current?.state!=='sending'||current.claim!==claim){this.unstarted.delete(id);return null}
   return claim;
  }
- finish(id,claim,outcome){if(this.unstarted.get(id)===claim)this.unstarted.delete(id);return this.rpc('finish',{id,claim,outcome})}
+ finish(id,claim,outcome){if(this.unstarted.get(id)===claim)this.unstarted.delete(id);const excerpt=this.excerpts.get(id);this.excerpts.delete(id);return this.rpc('finish',{id,claim,outcome:{...outcome,...(excerpt===undefined?{}:{responseExcerpt:excerpt})}})}
  recoverExpired(){return this.rpc('recoverExpired')}
 }
-export async function dispatchNotifications(api,transport=new NodePinnedTransport(),{now=Date.now}={}){
+export async function dispatchNotifications(api,transport=new NotificationTransport(),{now=Date.now}={}){
  const {jobs,serverNow}=await api('/api/runner/notifications',{operation:'poll'});
  if(Number.isFinite(serverNow)&&now()-serverNow>=60000)return 0;
  const repository=new RunnerNotificationRepository(api,now);
- for(const job of jobs){const service=new DeliveryService({repository,hashDestination:async url=>{if(url!==job.credential.endpoint)throw Error('Destination version mismatch');return job.destinationHash},protocols:notificationProtocols(job.credential,job.credentialId),transport:{async send(wire){await repository.started(job.id);return demoEffect(()=>transport.send(wire),()=>({status:200,headers:{},body:new URL(wire.url).hostname==='hooks.slack.com'?'ok':''}))}},now});await service.dispatch(job.id)}
+ for(const job of jobs){const service=new DeliveryService({repository,hashDestination:async url=>{checkedNotificationEndpoint(job.credential,job.event,url);return job.destinationHash},protocols:notificationProtocols(job.credential,job.credentialId,job.event),transport:{async send(wire){await repository.started(job.id);const response=await demoEffect(()=>transport.send(wire),()=>({status:200,headers:{},body:new URL(wire.url).hostname==='hooks.slack.com'?'ok':''}));repository.excerpts.set(job.id,notificationResponseExcerpt(response.body,job.credential,wire.headers,wire.body));return response}},now});await service.dispatch(job.id)}
  return jobs.length;
 }

@@ -264,6 +264,12 @@
       "name": "0041_heartbeat_jobs.sql",
       "sha256": "b6d15ff7f496e6d2d3ec6925c5b3f450553e72a770f340a28d746fa58d3aa06f",
       "sql": "-- Immutable job receipt history is portable; all receipt/claim authority stays local.\nCREATE TABLE heartbeat_runs(\n id TEXT PRIMARY KEY,\n monitor_id TEXT NOT NULL REFERENCES monitors(id),\n revision INTEGER NOT NULL,\n sequence INTEGER NOT NULL,\n state TEXT NOT NULL CHECK(state IN ('start','success','fail')),\n received_at INTEGER NOT NULL,\n started_at INTEGER,\n duration_ms INTEGER,\n exit_code INTEGER,\n output TEXT NOT NULL,\n late INTEGER NOT NULL DEFAULT 0,\n UNIQUE(monitor_id,revision,sequence)\n);\nCREATE INDEX heartbeat_runs_history ON heartbeat_runs(monitor_id,received_at,id);\nALTER TABLE heartbeat_authority ADD COLUMN last_completed_id TEXT;\nALTER TABLE heartbeat_authority ADD COLUMN started_at INTEGER;\nALTER TABLE heartbeat_claims ADD COLUMN job_snapshot TEXT;\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0042_webhook_templates.sql",
+      "sha256": "cd9f2febd897f73b02ab4f19c24fdd96d71430194650c170ea96aaf42ae90867",
+      "sql": "-- Public request configuration is portable; endpoint/header values and signing\n-- authority remain in the immutable encrypted credential version.\nALTER TABLE notification_destinations ADD COLUMN webhook_template TEXT;\n-- A delivery's historical body is validated against its own configuration,\n-- including after the destination has been edited or restored inactive.\nALTER TABLE notification_jobs ADD COLUMN webhook_template TEXT;\n"
     }
   ],
   "compatibilityDate": "2026-09-08",

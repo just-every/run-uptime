@@ -52,16 +52,18 @@ try{
   DB.prepare('INSERT INTO notification_credentials VALUES(?,?,?,?,?)').bind(slackCredential,slackId,slackURL,unusedSlackKey,now),
   DB.prepare('INSERT INTO notification_credentials VALUES(?,?,?,?,?)').bind(emailCredential,emailId,email,null,now),
   DB.prepare('INSERT INTO notification_credentials VALUES(?,?,?,?,?)').bind(deletedCredential,deletedId,deletedURL,deletedKey,now),
-  DB.prepare('INSERT INTO notification_destinations VALUES(?,?,?,?,?,?,?)').bind(slackId,'Prior Slack','slack',1,slackCredential,now,null),
-  DB.prepare('INSERT INTO notification_destinations VALUES(?,?,?,?,?,?,?)').bind(emailId,'Prior email','email',1,emailCredential,now,null),
-  DB.prepare('INSERT INTO notification_destinations VALUES(?,?,?,?,?,?,?)').bind(deletedId,'Prior deleted','webhook',0,deletedCredential,now,now),
+  DB.prepare('INSERT INTO notification_destinations(id,name,kind,enabled,credential_id,created_at,deleted_at) VALUES(?,?,?,?,?,?,?)').bind(slackId,'Prior Slack','slack',1,slackCredential,now,null),
+  DB.prepare('INSERT INTO notification_destinations(id,name,kind,enabled,credential_id,created_at,deleted_at) VALUES(?,?,?,?,?,?,?)').bind(emailId,'Prior email','email',1,emailCredential,now,null),
+  DB.prepare('INSERT INTO notification_destinations(id,name,kind,enabled,credential_id,created_at,deleted_at) VALUES(?,?,?,?,?,?,?)').bind(deletedId,'Prior deleted','webhook',0,deletedCredential,now,now),
   DB.prepare('INSERT INTO notification_jobs(id,event_id,destination_id,destination_name,kind,credential_id,event,created_at) VALUES(?,?,?,?,?,?,?,?)').bind(eventId+':'+slackId,eventId,slackId,'Prior Slack','slack',slackCredential,JSON.stringify({...event,explanation:'Prior failure',consoleUrl:origin}),now),
   DB.prepare('INSERT INTO notification_credentials VALUES(?,?,?,?,?)').bind(old,id,endpoint,oldSecret,now-1),
   DB.prepare('INSERT INTO notification_credentials VALUES(?,?,?,?,?)').bind(current,id,endpoint,secret,now),
-  DB.prepare('INSERT INTO notification_destinations VALUES(?,?,?,?,?,?,NULL)').bind(id,'Prior webhook','webhook',1,current,now),
+  DB.prepare('INSERT INTO notification_destinations(id,name,kind,enabled,credential_id,created_at,deleted_at) VALUES(?,?,?,?,?,?,NULL)').bind(id,'Prior webhook','webhook',1,current,now),
  ]);
  const tables=(await DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_cf_%' AND name<>'notification_credentials' ORDER BY name").all()).results.map(row=>row.name);
  const before=await snapshot(tables),credentialsBefore=await raw();
+ // The additive template migration preserves every old value and adds only empty configuration.
+ const upgradedBefore={...before,notification_destinations:before.notification_destinations.map(row=>({...row,webhook_template:null})),notification_jobs:before.notification_jobs.map(row=>({...row,webhook_template:null}))};
  assert.equal(credentialsBefore.length,5);
  assert.deepEqual(Object.keys(credentialsBefore[0]).sort(),['id','destination_id','endpoint','signing_secret','created_at'].sort(),'genuine 0008 credentials are plaintext');
  assert.ok(credentialsBefore.every(row=>row.endpoint),'all five historical versions have plaintext endpoints');
@@ -94,11 +96,11 @@ try{
  assert.deepEqual(historyRead.data,before.slots.map(row=>({...row,definition:JSON.parse(row.definition),observations:before.observations.filter(observation=>observation.slot_id===row.id).map(observation=>JSON.parse(observation.evidence))})),'owner history exposes the exact original scheduled evidence');
  assert.equal((await owner.api('/api/notifications')).status,200);
  assert.equal((await call('/api/overview')).status,401);
- assert.deepEqual(await snapshot(tables),before,'complete historical authority and business snapshot survives encryption and owner reads without replay');
+ assert.deepEqual(await snapshot(tables),upgradedBefore,'complete historical authority and business snapshot survives encryption and owner reads without replay');
  assert.deepEqual((await DB.prepare('PRAGMA foreign_key_check').all()).results,[]);assert.deepEqual((await DB.prepare('PRAGMA quick_check').all()).results,[{quick_check:'ok'}]);
  await worker.dispose();({worker,DB}=await migratedWorker({port,persist,bindings}));assert.equal((await health()).status,200);
  assert.deepEqual(await raw(),protectedRows,'restart preserves ciphertext and identities');await nativeSession();
- assert.deepEqual(await snapshot(tables),before,'restart preserves historical rows and fixed native expiry');
+ assert.deepEqual(await snapshot(tables),upgradedBefore,'restart preserves historical rows and fixed native expiry');
  console.log('PASS complete additive upgrade and same-key restart preserve history, native authority and five credential identities without sending');
  const priorPoll=await runner('',{operation:'poll'});const priorSlack=priorPoll.jobs.find(j=>j.credentialId===slackCredential);
  assert.equal(priorPoll.jobs.length,1,'accepted webhook history is never polled again');

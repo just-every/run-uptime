@@ -17,7 +17,7 @@ export async function validateArchive(input:any){
  const extra=TABLES.filter(t=>!LEGACY_TABLES.includes(t)),expected=extended?extensionTables(p.extensionVersion):[];
  if(extended&&(!object(p.productTables)||Object.keys(p.productTables).sort().join(',')!==expected.slice().sort().join(',')))throw Error('Invalid archive product tables');
  const t:Tables={...structuredClone(p.tables),...Object.fromEntries(extra.map(name=>[name,extended?structuredClone(p.productTables[name]??[]):[]]))};
- for(const name of TABLES){if(!Array.isArray(t[name])||t[name].length>ARCHIVE_ROWS)throw Error(`Archive row bound exceeded: ${name} (${ARCHIVE_ROWS})`);for(const row of t[name]){if(p.schemaVersion===1&&name==='slots'&&!Object.hasOwn(row,'manual'))row.manual=row.id?.includes(':manual:')?1:0;shape(row,columns[name],name)}}
+ for(const name of TABLES){if(!Array.isArray(t[name])||t[name].length>ARCHIVE_ROWS)throw Error(`Archive row bound exceeded: ${name} (${ARCHIVE_ROWS})`);for(const row of t[name]){if(p.schemaVersion===1&&name==='slots'&&!Object.hasOwn(row,'manual'))row.manual=row.id?.includes(':manual:')?1:0;if((p.extensionVersion??0)<6&&['notification_destinations','notification_jobs'].includes(name)&&!Object.hasOwn(row,'webhook_template'))row.webhook_template=null;shape(row,columns[name],name)}}
  const receiptTables=new Set([...TABLES,...Object.keys(installationLocalTables)]);
  const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
  const receiptIds=new Set();
@@ -31,7 +31,7 @@ export async function validateArchive(input:any){
  const original:Tables=Object.fromEntries(TABLES.map(n=>[n,t[n].slice()]));
  for(const h of t.archive_history){
   if(!['monitors','slots','outbox','notification_destinations','notification_jobs','integration_deliveries'].includes(h.table_name)||typeof h.record!=='string'||h.id!==await digest(`${h.table_name}\n${h.record}`)||seen.has(h.id))throw Error('Invalid archive original history');seen.add(h.id);
-  const row=JSON.parse(h.record);shape(row,columns[h.table_name],h.table_name);if(h.table_name==='slots'&&(row.lease_owner!=='restored-inactive'||row.lease_until!==0))throw Error('Archive execution references forbidden');const list=original[h.table_name];const i=list.findIndex(r=>r.id===row.id);if(i<0)throw Error('Orphan archive original history');list[i]=row;const variant={...t,[h.table_name]:t[h.table_name].map(r=>r.id===row.id?row:r)};if(['monitors','slots','outbox'].includes(h.table_name))validateMonitorTables(variant,Date.now());else validateNotificationTables(variant);
+  const row=JSON.parse(h.record);if(['notification_destinations','notification_jobs'].includes(h.table_name)&&!Object.hasOwn(row,'webhook_template'))row.webhook_template=null;shape(row,columns[h.table_name],h.table_name);if(h.table_name==='slots'&&(row.lease_owner!=='restored-inactive'||row.lease_until!==0))throw Error('Archive execution references forbidden');const list=original[h.table_name];const i=list.findIndex(r=>r.id===row.id);if(i<0)throw Error('Orphan archive original history');list[i]=row;const variant={...t,[h.table_name]:t[h.table_name].map(r=>r.id===row.id?row:r)};if(['monitors','slots','outbox'].includes(h.table_name))validateMonitorTables(variant,Date.now());else validateNotificationTables(variant);
  }
  if(t.archive_history.length){validateMonitorTables(original,Date.now());validateNotificationTables(original)}
  return t;

@@ -6,6 +6,7 @@ import {queueTestEvent,NOTIFICATION_NAMESPACE} from './notifications.server.ts'
 import {drillEvent,drillMailContent,drillWebhookBody,drillSlackBody,type DrillDetails} from './alert-drill-content.ts'
 import {mailContent} from './notification-content.ts'
 import type {Bindings} from './control.server.ts'
+import {mutationGuard} from './audit.server.ts'
 // An alert drill is a labelled test send whose message carries a one-time confirmation link. The capability is random;
 // only its bound SHA-256 is kept for comparison, and a sealed copy lives only until the single send finishes.
 const DAY=86_400_000,PROOF_WINDOW=30*DAY;
@@ -17,10 +18,12 @@ const bound=(row:Omit<DrillRow,'delivery_id'>,secret:string)=>sha256(`uptime-ale
 function equal(a:string,b:string){if(a.length!==b.length)return false;let difference=0;for(let i=0;i<a.length;i++)difference|=a.charCodeAt(i)^b.charCodeAt(i);return difference===0}
 
 export async function startDrill(env:Bindings,destinationId:string,operatorId:string){
+ const destination=await env.DB.prepare('SELECT webhook_template FROM notification_destinations WHERE id=? AND deleted_at IS NULL').bind(destinationId).first<{webhook_template:string|null}>();
+ if(destination?.webhook_template!==null&&destination?.webhook_template!==undefined)throw Error('This custom webhook template has no acknowledgement-link field. Use its exact Test send, or choose default signed JSON for a recipient-acknowledged alert drill.');
  const event=drillEvent(env.UPTIME_ORIGIN??''),id=crypto.randomUUID(),secret=random() as string,now=event.observedAt;
  const {deliveryId}=await queueTestEvent(env,destinationId,event,async(deliveryId,credentialId)=>{
   const row={id,destination_id:destinationId,credential_id:credentialId,delivery_id:deliveryId};
-  return [env.DB.prepare(`INSERT INTO alert_drills(id,destination_id,credential_id,delivery_id,started_by,started_at,expires_at,token_hash,token_ciphertext)
+  return [mutationGuard(env,'EXISTS(SELECT 1 FROM notification_destinations WHERE id=? AND credential_id=? AND deleted_at IS NULL AND webhook_template IS NULL)',[destinationId,credentialId]),env.DB.prepare(`INSERT INTO alert_drills(id,destination_id,credential_id,delivery_id,started_by,started_at,expires_at,token_hash,token_ciphertext)
    SELECT ?,destination_id,credential_id,id,?,?,?,?,? FROM notification_jobs WHERE id=? AND destination_id=? AND credential_id=?`).bind(id,operatorId,now,now+DAY,await bound(row,secret),await seal(await key(env),identity(row),{secret}),deliveryId,destinationId,credentialId)];
  });
  return {queued:true,drillId:id,eventId:event.id,deliveryId};

@@ -177,3 +177,16 @@
 .drill-lines dt { color: var(--ink); font-weight: 600; }
 .drill-lines dd { margin: 0; min-width: 0; }
 @container destination (max-width: 360px) { .drill-lines div { grid-template-columns: minmax(0, 1fr); } }
+
+.webhook-editor { display:grid; gap:14px; min-width:0; border-block:1px solid var(--line); padding-block:18px; }
+.webhook-editor [data-custom-webhook] { display:grid; gap:14px; }
+.webhook-editor [hidden] { display:none; }
+.webhook-editor textarea { font-family:var(--mono); font-size:13px; max-width:100%; }
+.webhook-pair { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.webhook-preview-controls { display:flex; flex-wrap:wrap; align-items:center; gap:12px; }
+.webhook-source { min-width:0; }
+.webhook-source[open] { display:grid; gap:12px; }
+.webhook-preview pre { white-space:pre-wrap; overflow-wrap:anywhere; max-width:100%; font-size:12px; padding:12px; background:var(--code-bg); color:var(--code-ink); border-radius:8px; }
+.webhook-preview section { min-width:0; }
+.webhook-differences { padding-left:20px; font-size:13px; }
+@media(max-width:480px) { .webhook-pair { grid-template-columns:1fr; } }

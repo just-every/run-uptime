@@ -24,8 +24,9 @@ export async function resolvePublic(url,signal) {
   }finally{signal.removeEventListener('abort',cancel)}
 }
 // statusOnly: see requestOnce. Resolution, pinning, redirect validation and the downgrade refusal are the same as a probe's.
-export async function publicHttp(def,signal,onRequest,{statusOnly=false,monitorId}={}) {
+export async function publicHttp(def,signal,onRequest,{statusOnly=false,monitorId,onPhase}={}) {
  let url=publicTarget(def.url),method=def.method,trust=def.tlsTrust,credential;
+ if(def.request)onPhase?.('authentication');
  if(def.request)try{credential=await readCredentials(def.request.credentialRef,url.href,method,undefined,monitorId)}catch(error){if(!error.category)error.category='credential';throw error}
  let body=credential?.body;
  const facts=[];
@@ -38,7 +39,9 @@ export async function publicHttp(def,signal,onRequest,{statusOnly=false,monitorI
  const send=async(extraHeaders={},forceRefresh=false)=>{
   try{
   let prepared={headers:{}};
+  onPhase?.(credential?'authentication':'target');
   if(credential)try{prepared=await prepareAuthentication(credential,{url:url.href,method,body,signal,tokenRequest,forceRefresh})}catch{throw new ProbeError('credential','The local authentication could not be prepared.')}
+  onPhase?.('target');
   const pin=await resolvePublic(url,signal);
   const settings={...prepared,headers:{...prepared.headers,...extraHeaders},body,credentialsPresent:Boolean(credential),allowUnverifiedTls:credential?.allowUnverifiedTls===true,trackTlsFacts:Boolean(def.tlsTrust)};
   const response=await requestOnce(url,pin,method,settings,signal,onRequest,undefined,statusOnly,trust);facts.push(...(response.tlsTrust??[]));return response;

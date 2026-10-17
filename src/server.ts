@@ -1,3 +1,6 @@
+import {proposedWebhookPreview,savedWebhookPreview} from './domain/notification-webhook.ts'
+// @ts-ignore Source definition parser shared with the owner preview.
+import {previewUptimeRobotWebhook} from './domain/webhook-contact-import.mjs'
 import {configureHeartbeat,heartbeatRuns} from './domain/heartbeat-jobs.server.ts'
 import {catalogBulkPreview,catalogBulkApply,catalogAddPreview,catalogAddApply} from './domain/catalog.server.ts'
 import {readAlertRoute,previewAlertRoute,applyAlertRoute} from './domain/alert-routes.server.ts'
@@ -147,6 +150,9 @@ api.post('/api/definitions/batches/:id/undo',async c=>c.json(await undoBatch(c.e
 api.get('/api/erasure-journal',async c=>c.json(await exportJournal(c.env)))
 api.post('/api/monitors/:id/erase',async c=>c.json(await erase(c.env,'monitor',c.req.param('id'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id},c.get('input').name)))
 api.post('/api/operators/:id/erase',async c=>c.json(await erase(c.env,'operator',c.req.param('id'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
+api.post('/api/notifications/webhook-preview',async c=>c.json(await proposedWebhookPreview(c.get('input'))))
+api.post('/api/notifications/webhook-import-preview',async c=>c.json(previewUptimeRobotWebhook(c.get('input'))))
+api.post('/api/notifications/destinations/:id/preview',async c=>c.json(await savedWebhookPreview(c.env,c.req.param('id'),c.get('input'))))
 api.get('/api/notifications',async c=>c.json(await notificationOverview(c.env)))
 api.get('/api/notifications/destinations',async c=>c.json(await destinations(c.env)))
 api.post('/api/notifications/destinations',async c=>c.json(await createDestination(c.env,c.get('input')),201))

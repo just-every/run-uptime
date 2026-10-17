@@ -88,13 +88,14 @@
     {
       "id": "incident-webhook",
       "required": false,
-      "requiredWhen": "An owner enables a signed JSON webhook destination",
+      "requiredWhen": "An owner enables a default signed JSON or custom-template webhook destination",
       "why": "Owner-configured webhook (custom-webhook) sends to custom destination owner-configured-json-receiver: deliver scheduled incident events to the owner's public HTTPS endpoint. The endpoint runs outside this installation.",
       "data": [
-        "The configured endpoint receives the signed JSON request, signature and timestamp headers, source address, and delivery time",
+        "The configured public HTTPS endpoint receives the selected GET, POST, PUT or PATCH request with JSON, form or query parameters, configured local custom header values, optional signature/timestamp headers, source address and delivery time",
         "Event ID, type, incident key, monitor ID and revision, name, target URL, scheduled slot, state, observation time, probe outcomes and reasons, explanation, and private console URL",
+        "Versioned custom templates may send the documented monitor, incident, location, timing, certificate/domain expiry and heartbeat facts, including owner-zone times. Custom header values and signing keys stay encrypted locally and are excluded from lists and archives. Only an explicit owner request preview shows the receiver URL; its header secrets and signatures are masked.",
         "A drill event additionally carries the one-time recipient confirmation URL, start time, and expiry; ordinary incident and test events do not",
-        "The endpoint's bounded HTTP status, headers, and response body return to the runner for delivery classification"
+        "The endpoint's bounded HTTP status, headers and response body return to the dispatcher; the owner sees status and an escaped, secret-scrubbed excerpt of at most 512 characters"
       ],
       "adapters": []
     },
@@ -710,6 +711,14 @@
       },
       {
         "path": "/notifications.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/webhook-editor.js",
         "match": "exact",
         "kind": "asset",
         "class": "assets",

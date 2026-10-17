@@ -33,10 +33,10 @@ export async function probeHttp(input,probe,grants=[],{statusOnly=false,monitorI
   if(def.type==='heartbeat')throw Error('Heartbeat requires a signed scheduled receipt snapshot');
   const abort=new AbortController();let active;
   const executionSignal=signal?AbortSignal.any([signal,abort.signal]):abort.signal;
-  let timer;
-  const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>{abort.abort();active?.destroy();reject(new ProbeError('timeout'))},def.timeoutMs)});
+  let timer,phase=def.request?'authentication':'target';
+  const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>{abort.abort();active?.destroy();reject(new ProbeError(phase==='authentication'?'credential':'timeout',phase==='authentication'?'Authentication exceeded the check deadline before a target request could be prepared.':undefined))},def.timeoutMs)});
   try{
-    const response=await Promise.race([timeout,def.network==='public'?publicHttp(def,executionSignal,r=>active=r,{statusOnly,monitorId}):syntheticHttp({...def,fixtureIdentity:input.fixtureIdentity},executionSignal,r=>active=r)]);
+    const response=await Promise.race([timeout,def.network==='public'?publicHttp(def,executionSignal,r=>active=r,{statusOnly,monitorId,onPhase:value=>phase=value}):syntheticHttp({...def,fixtureIdentity:input.fixtureIdentity},executionSignal,r=>active=r)]);
     const completedAt=Date.now(),checks=assertions(def,response,completedAt-startedAt);
     if(response.authenticationRejected)for(const check of checks)if(check.assertion==='status')check.reason=`Authentication rejected (HTTP ${response.status}). ${check.reason}`.slice(0,300);
     return evidence({outcome:checks.every(c=>c.pass)?'pass':'target_failure',status:response.status,bytes:response.bytes,checks,...(response.tlsTrust?{tlsTrust:response.tlsTrust}:{})},completedAt);

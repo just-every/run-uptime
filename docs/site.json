@@ -57,6 +57,12 @@
           "summary": "Send confirmed failures to email, a signed webhook or Slack, and know what delivery claims mean."
         },
         {
+          "slug": "webhooks",
+          "title": "Custom webhook requests",
+          "file": "webhooks.md",
+          "summary": "Preview JSON, form or query templates, keep header secrets local, and test the exact signed request."
+        },
+        {
           "slug": "definitions",
           "title": "Definition files",
           "file": "definitions.md",

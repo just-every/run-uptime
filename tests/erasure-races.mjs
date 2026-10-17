@@ -23,9 +23,11 @@ test('a captured monitor edit cannot recreate revision or authority after erasur
 test('a prepared notification envelope cannot reappear after destination erasure',async()=>{
  const env=environment();try{
   const d=await createDestination(env,{name:'Erase race',kind:'webhook',url:'https://example.com/private'});await testDestination(env,d.id);let afterErasure,held=false;
-  const wrap=statement=>new Proxy(statement,{get(target,key){if(key==='bind')return(...values)=>wrap(target.bind(...values));if(key==='run')return async()=>{if(!held){held=true;await erase(env,'destination',d.id,actor);afterErasure=await snapshot(env.DB)}return target.run()};return Reflect.get(target,key)}});
-  const DB={batch:env.DB.batch.bind(env.DB),prepare(sql){const statement=env.DB.prepare(sql);return sql.startsWith('INSERT INTO integration_deliveries')?wrap(statement):statement}};
-  const result=await notificationRpc({...env,DB},{operation:'poll'});assert.deepEqual(result.jobs,[]);
+  const DB={prepare:env.DB.prepare.bind(env.DB),async batch(statements){
+   if(!held&&statements.some(statement=>statement.sql.startsWith('INSERT INTO integration_deliveries'))){held=true;await erase(env,'destination',d.id,actor);afterErasure=await snapshot(env.DB)}
+   return env.DB.batch(statements);
+  }};
+  const result=await notificationRpc({...env,DB},{operation:'poll'});assert.equal(held,true,'the destination was erased before envelope preparation');assert.deepEqual(result.jobs,[]);
   const current=await snapshot(env.DB);assert.deepEqual(current.filter(([table])=>table!=='runner_contact'),afterErasure.filter(([table])=>table!=='runner_contact'),'cached envelope inserts no product or audit record');
  }finally{env.DB.close()}
 });

@@ -11,7 +11,7 @@ import {projectRestore} from './archive-restore-projection.ts'
 export async function archive(env:Bindings){
  await assertArchiveInventory(env.DB);
  const queries=TABLES.map(name=>{
-  if(name==='notification_destinations')return env.DB.prepare(`SELECT d.id,d.name,d.kind,d.enabled,d.created_at,d.deleted_at,c.id credential_id,c.destination_id,c.created_at credential_created_at,c.endpoint,c.signing_secret,c.ciphertext,c.retired_at,c.unavailable_at FROM notification_destinations d LEFT JOIN notification_credentials c ON c.id=d.credential_id ORDER BY d.rowid LIMIT ${ARCHIVE_ROWS+1}`);
+  if(name==='notification_destinations')return env.DB.prepare(`SELECT d.id,d.name,d.kind,d.enabled,d.created_at,d.deleted_at,d.webhook_template,c.id credential_id,c.destination_id,c.created_at credential_created_at,c.endpoint,c.signing_secret,c.ciphertext,c.retired_at,c.unavailable_at FROM notification_destinations d LEFT JOIN notification_credentials c ON c.id=d.credential_id ORDER BY d.rowid LIMIT ${ARCHIVE_ROWS+1}`);
   return env.DB.prepare(`SELECT ${columns[name].join(',')} FROM ${name}${name.startsWith('integration_')?" WHERE namespace='uptime-notifications'":''} ORDER BY rowid LIMIT ${ARCHIVE_ROWS+1}`);
  });
  const results=await env.DB.batch(queries),t:Tables={};
