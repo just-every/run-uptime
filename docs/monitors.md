@@ -137,3 +137,21 @@ For public HTTP(S) targets, a private runner checks every DNS answer and every r
 A check tells you what one runner saw at one moment. It is sampled evidence, not a promise about every visitor, and a past success does not guarantee the target is up now. See [What Uptime does not do](/docs/limits).
 
 When a failure is confirmed, [notifications](/docs/notifications) tell you.
+
+
+## Period reports and v1 reads
+
+Each monitor has a **Period report** panel. Choose 24 hours, 7, 30 or 90 days, or a custom range, an IANA time zone, location and latency resolution. Generate a snapshot, inspect its timestamp, and download JSON or CSV. Local times use the selected zone; daylight-saving gaps and repeated times require an explicit UTC offset. Fixed latency buckets align to UTC and display in your selected zone.
+
+Passing is healthy time divided by observed scheduled time (healthy plus not passing). Unknown, maintenance and paused seconds remain separate; they do not turn into passing time. An optional SLA target uses this same explicit denominator and cannot certify unobserved time. Incident duration measures confirmed incident transitions, which differs from the per-slot not-passing total. Manual runs and retry attempts never add denominator time.
+
+The authenticated owner-session API returns the same figures:
+
+- `GET /api/v1/monitors/ID/uptime`
+- `GET /api/v1/monitors/ID/report`
+- `GET /api/v1/monitors/ID/response-times`
+- `GET /api/v1/openapi.json` (OpenAPI 3.1)
+
+For example, `/api/v1/monitors/ID/report?period=30d&timeZone=America%2FChicago&sla=99.9&bucket=1h&location=all`. A custom period takes `period=custom&from=2026-10-01T00:00:00-05:00&to=2026-10-15T00:00:00-05:00`; percent-encode query values in a client. `format=csv` or `Accept: text/csv` downloads report CSV. Latency supports `raw`, `1m`, `5m`, `1h` and `1d`, with min, mean, p50, p95, p99 and max. Percentiles use nearest rank. A response over 10,000 points refuses with HTTP 400 instead of truncating; select a coarser resolution. Incidents include every confirmed outage overlapping the period, rather than the monitor page's latest-100 list.
+
+These reads require the same active owner session as the console; signed-out, non-owner and revoked sessions are refused. API keys, tag scopes, bulk reads, per-key limits and incident cursor endpoints remain unimplemented. UptimeRobot's uptime ratios map to `/uptime`, response times to `/response-times`, and log-style incident information to the `incidents` section of `/report`. Imported source history, slow-time and root-cause segments, scheduled report delivery and server PDF export remain separate contract gaps.

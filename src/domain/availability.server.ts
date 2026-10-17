@@ -3,7 +3,7 @@ import { availabilityQuery } from './availability-query.ts'
 const DAY_MS = 24 * 60 * 60 * 1000
 const WEEK_MS = 7 * DAY_MS
 
-type WindowMetrics = {
+export type WindowMetrics = {
   uptimePercent: number | null
   unknownPercent: number
   notPassingPercent: number
@@ -32,7 +32,7 @@ function passingPercent(value: number, total: number): number {
   return Math.floor((value * 10000) / total) / 100
 }
 
-function windowMetrics(upMs: number, notPassingMs: number, windowMs: number, pausedMs: number, maintenanceMs: number): WindowMetrics {
+export function windowMetrics(upMs: number, notPassingMs: number, windowMs: number, pausedMs: number, maintenanceMs: number): WindowMetrics {
   const safeUpMs = Math.max(0, Math.min(windowMs, Math.trunc(upMs)))
   const safeNotPassingMs = Math.max(0, Math.min(windowMs - safeUpMs, Math.trunc(notPassingMs)))
   const observedMs = safeUpMs + safeNotPassingMs

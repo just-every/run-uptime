@@ -1,17 +1,25 @@
 import {renderSlackEvent,serializeSlackMessage,escapeSlackText} from '../base/modules/integrations/slack/message.ts'
+import {triggerContext,recoveryContext,incidentContextText,incidentUrl,type IncidentContext} from './notification-context.ts'
 export interface NotificationEvent {
  schemaVersion:2; id:string; kind:'trigger'|'recovery'|'test'|'expiry'|'renewal'; eventType:string;
  incidentKey:string|null; state:'firing'|'recovered'|'test'|'warning'|'renewed'; title:string;
  monitorId:string|null; monitorRevision:number|null; monitorName:string; url:string;
  slotId:string|null; observedAt:number; visibility:'private'; evidenceRef:string;
  explanation:string; probes:{name:string;outcome:string;reason:string}[]; consoleUrl:string;
+ incidentContext?:IncidentContext;
 }
-export function incidentEvent({id,kind,monitor,slotId,now,state,observations,origin,incidentKey}:any):NotificationEvent {
- return {schemaVersion:2,id,kind,eventType:kind==='trigger'?'uptime.incident.firing':'uptime.incident.recovered',incidentKey,
+export function incidentEvent({id,kind,monitor,slotId,now,state,observations,origin,incidentKey,trigger,contextVersion}:any):NotificationEvent {
+ const event:NotificationEvent={schemaVersion:2,id,kind,eventType:kind==='trigger'?'uptime.incident.firing':'uptime.incident.recovered',incidentKey,
  state:kind==='trigger'?'firing':'recovered',title:`${kind==='trigger'?'Down':'Recovered'}: ${monitor.definition.name}`,
  monitorId:monitor.id,monitorRevision:monitor.revision,monitorName:monitor.definition.name,url:monitor.definition.url,
  slotId,observedAt:now,visibility:'private',evidenceRef:`/api/monitors/${monitor.id}/history`,explanation:state.reason,
  probes:observations.map((o:any)=>({name:o.probe,outcome:o.outcome,reason:o.checks.filter((c:any)=>!c.pass).map((c:any)=>c.reason).join('; ')||'All checks passed'})),consoleUrl:origin||''}
+ // Existing historical/demo event builders retain their original serialized representation.
+ if(contextVersion!==1)return event;
+ if(kind==='recovery'&&(!trigger||trigger.kind!=='trigger'||trigger.incidentKey!==incidentKey))throw Error('Recovery requires its durable incident trigger');
+ event.incidentContext=kind==='trigger'?triggerContext(event,state.regions):recoveryContext(trigger,now);
+ if(kind==='recovery')event.incidentContext.incidentUrl=incidentUrl(event.consoleUrl,event.monitorId!,incidentKey);
+ return event;
 }
 // A staged expiry warning (kind expiry, one per subject and stage) or the renewal that closes a subject's warnings
 // (kind renewal, sharing the warning's incidentKey). See expiry-notices.server.ts.
@@ -30,13 +38,13 @@ export function testEvent(origin:string):NotificationEvent {
 }
 // Archive validation rebuilds every recorded Slack body from this text, so its
 // output must stay byte-stable or prior deliveries can no longer export or restore.
-export function notificationText(event:NotificationEvent){return [event.title,event.url?`URL: ${event.url}`:'',`State: ${event.state}`,event.monitorId?`Monitor: ${event.monitorId}`:'',event.incidentKey?`Incident: ${event.incidentKey}`:'',`Why: ${event.explanation}`,`Time: ${new Date(event.observedAt).toISOString()}`,...event.probes.map(p=>`Probe ${p.name}: ${p.outcome} — ${p.reason}`),event.consoleUrl?`Console: ${event.consoleUrl}`:''].filter(Boolean).join('\n')}
+export function notificationText(event:NotificationEvent){return [event.title,event.url?`URL: ${event.url}`:'',`State: ${event.state}`,event.monitorId?`Monitor: ${event.monitorId}`:'',event.incidentKey?`Incident: ${event.incidentKey}`:'',`Why: ${event.explanation}`,`Time: ${new Date(event.observedAt).toISOString()}`,...event.probes.map(p=>`Probe ${p.name}: ${p.outcome} — ${p.reason}`),event.consoleUrl?`Console: ${event.consoleUrl}`:'',...(event.incidentContext?incidentContextText(event.incidentContext):[])].filter(Boolean).join('\n')}
 export function escapeHtml(value:string){return value.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!))}
 export function mailContent(event:NotificationEvent){
  // Mail uses friendly check labels; persisted Slack envelopes retain their byte-stable rendering.
  const display={...event,probes:event.probes.map(p=>({...p,name:p.name==='local-a'&&event.explanation.includes('Cloudflare Worker')?'Cloudflare Worker':/^local-[a-z]$/.test(p.name)?`Check ${p.name.charCodeAt(6)-96}`:p.name}))};
  const text=notificationText(display);let link='';
- if(event.consoleUrl){const url=new URL(event.consoleUrl);if(!['https:','http:'].includes(url.protocol)||url.username||url.password||url.origin!==event.consoleUrl)throw Error('Invalid console origin');link=`<p><a href="${escapeHtml(event.consoleUrl)}/app">Open Uptime console</a></p>`}
+ if(event.consoleUrl){const url=new URL(event.consoleUrl);if(!['https:','http:'].includes(url.protocol)||url.username||url.password||url.origin!==event.consoleUrl)throw Error('Invalid console origin');link=event.incidentContext?`<p><a href="${escapeHtml(event.incidentContext.incidentUrl)}">Open incident in Uptime</a></p>`:`<p><a href="${escapeHtml(event.consoleUrl)}/app">Open Uptime console</a></p>`}
  return {subject:event.title.replace(/[\r\n\x00-\x1f\x7f]/g,' '),text,html:`<pre>${escapeHtml(text)}</pre>${link}`}
 }
 // Slack bounds the escaped text, so split complete Unicode code points after

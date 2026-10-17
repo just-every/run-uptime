@@ -1,5 +1,5 @@
 // Historical coverage uses each immutable revision and ends at its next save.
-export const availabilityQuery = `
+export const availabilityEvidenceCtes = `
 WITH params AS (
   SELECT ? AS now_at, ? AS monitor_id, ? AS window_start
 ), revision_windows AS (
@@ -145,17 +145,20 @@ WITH params AS (
     MIN(completed_at) OVER (ORDER BY due_at DESC, id DESC
       ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING) AS next_completed_at
   FROM slot_summary
-), durations AS (
-  SELECT *,
-    CASE WHEN valid_result=1 THEN MAX(0, MIN(now_at, revision_end, completed_at+interval_ms, COALESCE(next_completed_at, now_at),
+), coverage_spans AS (
+  SELECT *, MAX(completed_at, active_from) AS coverage_start,
+    MIN(now_at, revision_end, completed_at+interval_ms, COALESCE(next_completed_at, now_at),
       freshness_expires_at, CASE WHEN monitor_type='heartbeat' AND all_passing=1
-        THEN COALESCE(heartbeat_pass_expires_at, now_at) ELSE now_at END)-
-      MAX(now_at-86400000, completed_at, active_from)) ELSE 0 END AS day_known_ms,
-    CASE WHEN valid_result=1 THEN MAX(0, MIN(now_at, revision_end, completed_at+interval_ms, COALESCE(next_completed_at, now_at),
-      freshness_expires_at, CASE WHEN monitor_type='heartbeat' AND all_passing=1
-        THEN COALESCE(heartbeat_pass_expires_at, now_at) ELSE now_at END)-
-      MAX(now_at-604800000, completed_at, active_from)) ELSE 0 END AS week_known_ms
+        THEN COALESCE(heartbeat_pass_expires_at, now_at) ELSE now_at END) AS coverage_end
   FROM classified
+)`
+
+// Overview and arbitrary-period reports share the same immutable result classification and spans.
+export const availabilityQuery = `${availabilityEvidenceCtes}, durations AS (
+  SELECT *,
+    CASE WHEN valid_result=1 THEN MAX(0, coverage_end-MAX(now_at-86400000, coverage_start)) ELSE 0 END AS day_known_ms,
+    CASE WHEN valid_result=1 THEN MAX(0, coverage_end-MAX(now_at-604800000, coverage_start)) ELSE 0 END AS week_known_ms
+  FROM coverage_spans
 ), windows AS (
   SELECT
     COALESCE(SUM(CASE WHEN all_passing=1 THEN day_known_ms ELSE 0 END), 0) AS day_up_ms,

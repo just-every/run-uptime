@@ -82,14 +82,37 @@ try{
  });
  const triggerRows=(await notifications()).deliveries.filter(row=>row.event.monitorId===monitorId&&row.event.kind==='trigger');
  assert.equal(new Set(triggerRows.map(row=>row.event.incidentKey)).size,1);assert.ok(triggerRows[0].event.incidentKey);
+ const triggerEvent=triggerRows[0].event,triggerContext=triggerEvent.incidentContext;
+ const triggerHistory=await api(`/api/monitors/${monitorId}/history`);assert.equal(triggerHistory.status,200);
+ const failedSlot=triggerHistory.data.find(slot=>slot.id===triggerEvent.slotId),assignments=(await overview()).monitors.find(m=>m.id===monitorId).definition.assignments;
+ assert.ok(failedSlot,'trigger names retained signed failure evidence');
+ assert.deepEqual(triggerContext.failedLocations,failedSlot.observations.filter(observation=>observation.outcome==='target_failure').map(observation=>({probe:observation.probe,name:assignments[observation.probe].networkLabel,reason:observation.checks.filter(check=>!check.pass).map(check=>check.reason).join('; ')})));
+ assert.match(triggerContext.originalReason,/HTTP 503/);assert.equal(triggerContext.originalReason,triggerEvent.explanation);
+ assert.equal(triggerContext.confirmedStartedAt,triggerEvent.observedAt);assert.equal(triggerContext.confirmedRecoveredAt,null);assert.equal(triggerContext.downtimeSeconds,null);assert.equal(triggerContext.downtimeHuman,null);
+ const incidentUrl=`${origin}/app/monitors/${monitorId}#incident-${encodeURIComponent(triggerEvent.incidentKey)}`;
+ assert.equal(triggerContext.incidentUrl,incidentUrl);assert.equal(triggerContext.timeZone,'UTC');assert.equal(triggerEvent.consoleUrl,origin);
+ const signedOut=await fetch(incidentUrl,{redirect:'manual'});assert.ok([302,303,307].includes(signedOut.status),'incident link requires sign-in');assert.match(signedOut.headers.get('location'),/\/login/);
  await restart();await setFixture('healthy');
  await waitFor(async()=> (await overview()).monitors.find(m=>m.id===monitorId)?.state.state==='Healthy','real scheduled recovery after both runtime restarts');
- await check('restart preserves one trigger and one recovery per destination with stable monitor and incident identity',async()=>{
+ await check('NOTICE-001 restart retains original failure locations and exact confirmed downtime in email Slack and signed JSON',async()=>{
   await waitFor(async()=> (await notifications()).deliveries.filter(row=>row.event.monitorId===monitorId&&row.event.kind==='recovery'&&row.state==='accepted').length===3,'all automatic recovery deliveries');
   const rows=(await notifications()).deliveries.filter(row=>row.event.monitorId===monitorId);
+  const recoveryEvent=rows.find(row=>row.event.kind==='recovery').event,recoveryContext=recoveryEvent.incidentContext;
+  const elapsed=recoveryEvent.observedAt-triggerEvent.observedAt;
+  assert.ok(elapsed>0);assert.deepEqual(recoveryContext,{...triggerContext,confirmedRecoveredAt:recoveryEvent.observedAt,downtimeSeconds:elapsed/1000,downtimeHuman:recoveryContext.downtimeHuman});
+  // Parse the human units independently against the two durable confirmed transitions, including milliseconds.
+  const units={day:86400000,hour:3600000,minute:60000,second:1000};
+  const durationParts=[...recoveryContext.downtimeHuman.matchAll(/(\d+(?:\.\d+)?) (day|hour|minute|second)s?/g)];
+  assert.ok(durationParts.length);assert.equal(Math.round(durationParts.reduce((total,part)=>total+Number(part[1])*units[part[2]],0)),elapsed);
+  assert.ok(recoveryEvent.probes.every(probe=>probe.outcome==='pass'),'current passing observations cannot supply the original failure context');
   for(const row of rows){
-   if(row.kind==='webhook'){const record=webhook.records.find(record=>record.body.id===row.eventId);assert.ok(record,'signed JSON carries this actual event');assert.equal(record.body.monitorId,monitorId);assert.equal(record.body.incidentKey,row.event.incidentKey);assert.equal(record.body.state,row.event.state)}
-   else{const records=row.kind==='email'?mail.records:slack.records;const record=records.find(record=>row.kind==='email'?record.body.custom_args.rer_delivery_id===row.id:record.body.text.includes(row.event.title.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')));assert.ok(record,'provider wire carries this actual incident');const text=row.kind==='email'?record.body.content.find(item=>item.type==='text/plain').value:record.body.blocks.map(block=>block.text.text).join('\n');assert.ok(text.includes(`Monitor: ${monitorId}`));assert.ok(text.includes(`Incident: ${row.event.incidentKey}`));assert.ok(text.includes(`State: ${row.event.state}`))}
+   const context=row.event.kind==='trigger'?triggerContext:recoveryContext;assert.deepEqual(row.event.incidentContext,context);
+   if(row.kind==='webhook'){const record=webhook.records.find(record=>record.body.id===row.eventId);assert.ok(record,'signed JSON carries this actual event');assert.equal(record.body.monitorId,monitorId);assert.equal(record.body.incidentKey,row.event.incidentKey);assert.equal(record.body.state,row.event.state);assert.deepEqual(record.body.incidentContext,context)}
+   else{
+    const records=row.kind==='email'?mail.records:slack.records;const record=records.find(record=>row.kind==='email'?record.body.custom_args.rer_delivery_id===row.id:record.body.text.includes(row.event.title.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')));assert.ok(record,'provider wire carries this actual incident');const text=row.kind==='email'?record.body.content.find(item=>item.type==='text/plain').value:record.body.blocks.map(block=>block.text.text).join('\n');assert.ok(text.includes(`Monitor: ${monitorId}`));assert.ok(text.includes(`Incident: ${row.event.incidentKey}`));assert.ok(text.includes(`State: ${row.event.state}`));
+    for(const value of [`Original down reason: ${context.originalReason}`,`Confirmed start (UTC): ${new Date(triggerEvent.observedAt).toISOString()}`,`Incident details: ${incidentUrl}`,...context.failedLocations.map(location=>`Failed location ${location.name} (${location.probe}): ${location.reason}`),...(row.event.kind==='recovery'?[`Confirmed recovery (UTC): ${new Date(recoveryEvent.observedAt).toISOString()}`,`Confirmed downtime: ${context.downtimeHuman} (${elapsed/1000} seconds)`]:['Recovery: not confirmed','Downtime: ongoing since confirmed start'])])assert.ok(text.includes(value),'wire text retains exact incident context');
+    if(row.kind==='email')assert.ok(record.body.content.find(item=>item.type==='text/html').value.includes(`href="${incidentUrl}"`),'email links directly to the authenticated incident');
+   }
   }
   assert.equal(rows.length,6);assert.equal(new Set(rows.map(row=>row.event.incidentKey)).size,1);
   assert.equal(rows[0].event.incidentKey,triggerRows[0].event.incidentKey);
@@ -141,6 +164,14 @@ try{
  });
  await check('archive restoration leaves monitors paused events inactive and destinations unauthorised without replay',async()=>{
   await stopRunner();const archive=(await api('/api/archive')).data;
+  const contextOrigin=`http://127.0.0.1:${restorePort}`,contextRestored=ownerAPI(contextOrigin);
+  ({worker:restoreWorker}=await migratedWorker({port:restorePort,persist:join(directory,'restored-context'),bindings:{...bindings,UPTIME_ORIGIN:contextOrigin}}));
+  await contextRestored.signIn(bindings);const imported=await contextRestored.api('/api/restore','POST',archive);assert.equal(imported.status,200,JSON.stringify(imported.data));
+  const restoredIncidents=await contextRestored.api(`/api/monitors/${monitorId}/incidents`);assert.equal(restoredIncidents.status,200);
+  const originalIncidents=await api(`/api/monitors/${monitorId}/incidents`);
+  assert.deepEqual(restoredIncidents.data.map(row=>[row.trigger.incidentContext,row.recovery?.incidentContext]),originalIncidents.data.map(row=>[row.trigger.incidentContext,row.recovery?.incidentContext]),'exact original failure and confirmed duration survive inactive archive restore');
+  const restoredNotifications=(await contextRestored.api('/api/notifications')).data;assert.ok(restoredNotifications.deliveries.every(row=>row.state==='imported-inactive'));
+  await restoreWorker.dispose();restoreWorker=null;
   // Genuine pre-notification archives have no product extension or erasure fence; historical event values remain unchanged on restore.
   delete archive.payload.extensionVersion;delete archive.payload.productTables;delete archive.payload.erasureFence;
   for(const row of archive.payload.tables.outbox){const event=JSON.parse(row.event);row.event=JSON.stringify({id:event.id,kind:event.kind,monitorId:event.monitorId,monitorName:event.monitorName,state:event.state,slotId:event.slotId,observedAt:event.observedAt,visibility:'private',effect:['task','owned','handoff'].join('-'),peoplePaged:false});row.status='accepted';row.receipt=JSON.stringify({effect:['stored','task','owned','receiver'].join('-'),peoplePaged:false})}

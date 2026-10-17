@@ -1,3 +1,4 @@
+import {validateIncidentContext} from './notification-context.ts'
 import {slackContent} from './notification-content.ts'
 import {clock,identity,object,shape,unique,notificationNamespace,type Tables} from './archive-schema.ts'
 // @ts-expect-error Shared mailbox validation.
@@ -18,7 +19,7 @@ export function validateNotificationTables(t:Tables){
  for(const r of jobs.values()){
   const destination=destinations.get(r.destination_id),event=JSON.parse(r.event);
   if(!destination||destination.kind!==r.kind||typeof r.destination_name!=='string'||!r.destination_name||r.destination_name.length>100||!object(event)||event.id!==r.event_id||event.visibility!=='private'||!['trigger','recovery','test','expiry','renewal'].includes(event.kind))throw Error('Invalid notification job reference');
-  shape(event,['schemaVersion','id','kind','eventType','incidentKey','state','title','monitorId','monitorRevision','monitorName','url','slotId','observedAt','visibility','evidenceRef','explanation','probes','consoleUrl'],'notification event');clock(event.observedAt,'notification event');
+  shape(event,['schemaVersion','id','kind','eventType','incidentKey','state','title','monitorId','monitorRevision','monitorName','url','slotId','observedAt','visibility','evidenceRef','explanation','probes','consoleUrl',...(Object.hasOwn(event,'incidentContext')?['incidentContext']:[])],'notification event');validateIncidentContext(event);clock(event.observedAt,'notification event');
   if(event.schemaVersion!==2||!Array.isArray(event.probes)||event.probes.length>3||['title','monitorName','url','evidenceRef','explanation','consoleUrl','eventType'].some(k=>typeof event[k]!=='string'||event[k].length>4096))throw Error('Invalid notification event');
   if(event.kind!=='test'){const outbox=t.outbox.find(x=>x.id===r.event_id);if(!outbox||outbox.event!==r.event)throw Error('Invalid notification event history')}else if(event.monitorId!==null||event.slotId!==null||event.incidentKey!==null)throw Error('Invalid test event');
   if(!['queued','sending','accepted','rejected','uncertain','imported-inactive'].includes(r.state)||typeof r.code!=='string'||!/^[a-zA-Z0-9_.-]{1,100}$/.test(r.code)||!Number.isSafeInteger(r.attempts)||r.attempts<0||r.attempts>1)throw Error('Invalid notification job state');clock(r.created_at,'job');if(r.finished_at!==null){clock(r.finished_at,'job finish');if(r.finished_at<r.created_at)throw Error('Invalid notification job timing')}

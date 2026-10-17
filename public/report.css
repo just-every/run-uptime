@@ -1,0 +1,40 @@
+.period-report { min-width: 0; overflow-wrap: anywhere; }
+.period-report p { margin: 10px 0; }
+.report-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 18px; }
+.report-form label { min-width: 0; }
+.report-form input:not([type="checkbox"]), .report-form select { width: 100%; max-width: 100%; min-width: 0; }
+.report-form .report-help, .report-custom-range, .report-form > button { grid-column: 1 / -1; }
+.report-form .report-help { margin: 0; }
+.report-custom-range { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.period-report [hidden] { display: none !important; }
+.report-help, .report-chart figcaption { color: var(--muted); font-size: 13px; }
+#report-error { border-left: 3px solid var(--rose-text); padding: 10px 12px; color: var(--rose-text); }
+.report-snapshot { border-top: 1px solid var(--line); margin-top: 18px; padding-top: 18px; }
+.report-snapshot h3 { margin: 24px 0 10px; font-size: 17px; }
+.report-snapshot > h3:first-child { margin-top: 0; }
+.report-snapshot h4 { margin: 18px 0 8px; font-size: 15px; }
+.report-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 20px; margin: 16px 0; }
+.report-facts > div { min-width: 0; }
+.report-facts dt { color: var(--muted); font-size: 13px; }
+.report-facts dd { margin: 4px 0 0; font-variant-numeric: tabular-nums; }
+.report-downloads, .report-pagination { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 14px 0; }
+.report-pagination { justify-content: space-between; }
+.report-pagination > div { display: flex; flex-wrap: wrap; gap: 8px; }
+.report-pagination p { font-size: 13px; }
+.report-chart { margin: 18px 0; }
+.report-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.report-chart text { fill: var(--muted); font-size: 12px; }
+.report-chart-axis { stroke: var(--line-strong); fill: none; }
+.report-chart-points { fill: var(--ink); }
+.report-table-wrap { container: table-wrap / inline-size; min-width: 0; }
+.report-table-wrap .ui-table { font-size: 13px; table-layout: fixed; }
+.report-table-wrap .ui-table th { white-space: normal; }
+.report-table-wrap .ui-table :is(td,th) { padding: 10px 6px; overflow-wrap: anywhere; }
+.report-incident { border-top: 1px solid var(--line); padding: 4px 0 16px; }
+.report-incident details { margin-top: 12px; }
+@media (max-width: 540px) {
+ .report-form, .report-custom-range { grid-template-columns: minmax(0, 1fr); }
+ .report-facts { gap: 12px; }
+ .report-downloads { align-items: stretch; flex-direction: column; }
+ .report-downloads button { white-space: normal; }
+}

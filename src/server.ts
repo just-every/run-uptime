@@ -6,6 +6,8 @@ import {scheduledPublicChecks} from './domain/worker-checks.server.ts'
 import {seedDemo} from './demo.ts'
 import {demoBindings} from './domain/demo.server.ts'
 import {incidents} from './domain/incidents.server.ts'
+import {readApiOpenApi} from './domain/read-api-openapi.ts'
+import {monitorReport,monitorLatency,reportCsv,ReportInputError} from './domain/reports/index.server.ts'
 import {monitoringWatch} from './domain/monitoring-watch.server.ts'
 import {scheduledNotifications} from './domain/notification-worker.server.ts'
 import {SubrequestBudget,RUN_SUBREQUESTS,CHECK_SUBREQUESTS,WATCH_SUBREQUESTS} from './domain/worker-budget.ts'
@@ -70,6 +72,21 @@ api.post('/api/monitors/:id/heartbeat-key',async c=>c.json(await issueHeartbeatK
 api.get('/api/monitors/:id/history',async c=>c.json(await history(c.env,c.req.param('id'))))
 api.get('/api/monitors/:id/incidents',async c=>c.json(await incidents(c.env,c.req.param('id'))))
 api.get('/api/monitors/:id/revisions',async c=>c.json(await revisions(c.env,c.req.param('id'))))
+api.get('/api/v1/openapi.json',c=>c.json(readApiOpenApi))
+// Versioned reads use the same immutable period engine as console downloads.
+for(const suffix of ['uptime','report'] as const)api.get(`/api/v1/monitors/:id/${suffix}`,async c=>{
+ const report=await monitorReport(c.env,c.req.param('id'),new URL(c.req.url).searchParams)
+ if(!report)return c.json({error:'Monitor not found'},404)
+ if(c.req.query('format')==='csv'||c.req.header('accept')?.includes('text/csv')){
+  c.header('content-type','text/csv; charset=utf-8');c.header('content-disposition','attachment; filename="uptime-report.csv"');return c.body(reportCsv(report))
+ }
+ return c.json(report)
+})
+api.get('/api/v1/monitors/:id/response-times',async c=>{
+ const result=await monitorLatency(c.env,c.req.param('id'),new URL(c.req.url).searchParams)
+ return result?c.json(result):c.json({error:'Monitor not found'},404)
+})
+
 api.post('/api/monitors/:id/run',async c=>{const m=await get(c.env,c.req.param('id'));if(!m||!m.definition.enabled)return c.json({error:'Monitor unavailable or paused'},409);const id=`${m.id}:${m.revision}:manual:${crypto.randomUUID()}`;const inserted=await c.env.DB.prepare("INSERT INTO slots(id,monitor_id,revision,due_at,status,definition,lease_owner,lease_until,missed_count,manual) SELECT ?,?,?,?,'queued',?,'unclaimed',0,0,1 WHERE EXISTS(SELECT 1 FROM monitors WHERE id=?)").bind(id,m.id,m.revision,Date.now(),JSON.stringify(m.definition),m.id).run();if(!inserted.meta.changes)return c.json({error:'Monitor unavailable or erased'},409);return c.json({queued:true,slotId:id,policyAdvanced:false})})
 api.get('/api/runners',async c=>c.json(await listRunners(c.env)))
 api.post('/api/runners',async c=>c.json(await createRunner(c.env,c.get('input')),201))
@@ -111,6 +128,7 @@ api.post('/api/runner/notifications',async c=>c.json(await notificationRpc(c.env
 // A failed mutation guard or a racing writer's constraint means the installation changed between reading and writing: a conflict.
 // Any other D1 failure is a retryable storage fault. The log line names the operation, class, status and a sanitized cause, never values.
 api.onError((error,c)=>{
+ if(error instanceof ReportInputError)return c.json({error:error.message,code:error.code},400)
  const status=(error as Error&{status?:number}).status,limited=status===429,fault=classifyStorage(error)
  if(limited)c.header('retry-after','60')
  if(fault){
