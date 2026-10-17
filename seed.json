@@ -10,11 +10,11 @@
   },
   "replaces": [
     {
-      "name": "UptimeRobot",
+      "name": "Pingdom",
       "edition": null
     },
     {
-      "name": "Pingdom",
+      "name": "UptimeRobot",
       "edition": null
     },
     {

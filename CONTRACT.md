@@ -1,6 +1,6 @@
 # Product contract
 
-Target edition: 16 October 2026. Uptime is a complete website uptime and API monitoring product for a US small-business site or application operator replacing UptimeRobot, Pingdom (SolarWinds), Better Stack Uptime or Site24x7, with the monitoring-as-code and transaction depth buyers seek from Checkly, OpenStatus and Hyperping. Prices/budgets are USD, phone defaults are US numbers, and schedules/reports support US time zones and daylight saving.
+Target edition: 16 October 2026. Uptime is a complete website uptime and API monitoring product for a US small-business site or application operator replacing Pingdom (SolarWinds), UptimeRobot, Better Stack Uptime or Site24x7, with the monitoring-as-code and transaction depth buyers seek from Checkly, OpenStatus and Hyperping. Prices/budgets are USD, phone defaults are US numbers, and schedules/reports support US time zones and daylight saving.
 
 The product discovers, operates and maintains trustworthy monitoring of the actual customer outcome: HTTP/API, every named protocol below, job heartbeats, multi-region and private checks, browser transactions, expiring assets, actionable alerts and reporting. Oncall owns full responder coordination and Lamp owns customer-facing status communication; their integrations are part of Uptime's monitoring job. No gap in implementation reduces this destination.
 
@@ -11,7 +11,7 @@ This is a target contract, not a release verdict. Every named clause states the 
 | | |
 | --- | --- |
 | Category | Website uptime and API monitoring |
-| Incumbents a buyer switches from | UptimeRobot, Pingdom (SolarWinds), Better Stack Uptime, Site24x7 (and the monitoring-as-code challengers Checkly, OpenStatus and Hyperping) |
+| Incumbents a buyer switches from | Pingdom (SolarWinds), UptimeRobot, Better Stack Uptime, Site24x7 (and the monitoring-as-code challengers Checkly, OpenStatus and Hyperping) |
 | First buyer | A US small-business site or application operator |
 
 ## Existing guarantees and supported customer journeys
