@@ -2,6 +2,9 @@ import {TABLES,columns} from './archive-schema.ts'
 /** Every permanent schema table has a portability decision. Unknown tables and
  * foreign integration namespaces refuse export rather than silently lose data. */
 export const installationLocalTables:Record<string,string>={
+ alert_routes:'Installation alert recipient policy; a receiving owner configures local routes explicitly.',
+ alert_route_changes:'Installation detailed route history; opaque routing audit entries travel separately.',
+ alert_recovery_matches:'Installation dispatch pairing between a recovery and its original trigger job; never replay restored alerts.',
  public_rate_limits:'Installation public-path request counters; expire after their window.',
  _cf_METADATA:'D1 installation metadata; never product records.',
  _rer_deploy_migrations:'Historical deployment migration ledger; installation-local permanent history, never portable product records.',

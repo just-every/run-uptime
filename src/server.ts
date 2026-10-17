@@ -1,4 +1,5 @@
 import {catalogBulkPreview,catalogBulkApply,catalogAddPreview,catalogAddApply} from './domain/catalog.server.ts'
+import {readAlertRoute,previewAlertRoute,applyAlertRoute} from './domain/alert-routes.server.ts'
 import {previewMaintenance,applyMaintenance,cancelMaintenance} from './domain/planned-maintenance.server.ts'
 // The package's demo module: operator-auth runs from the package and reads demo mode from this same instance.
 import {withDemo} from '@runeditrun/rer/modules/demo'
@@ -77,6 +78,9 @@ for(const [path,preview,apply] of [
 }
 api.post('/api/maintenance/cancel',async c=>c.json(await cancelMaintenance(c.env,c.get('input'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 api.get('/api/monitor-editor',async c=>{c.header('cache-control','no-store, private');return c.json(await monitorEditor(c.env,c.req.query('monitor')))})
+api.get('/api/monitors/:id/alert-route',async c=>c.json(await storageOperation('alertRoutes.read',()=>readAlertRoute(c.env,c.req.param('id')))))
+api.post('/api/monitors/:id/alert-route/preview',async c=>c.json(await storageOperation('alertRoutes.preview',()=>previewAlertRoute(c.env,c.req.param('id'),c.get('input')))))
+api.post('/api/monitors/:id/alert-route/apply',async c=>{const actor={kind:'operator' as const,ref:(await operatorSession(c.env,c.req.raw))!.operator.id};return c.json(await storageOperation('alertRoutes.apply',()=>applyAlertRoute(c.env,c.req.param('id'),c.get('input'),actor)))})
 api.post('/api/monitors',async c=>c.json(await save(c.env,c.get('input'),undefined,{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id}),201))
 api.patch('/api/monitors/:id',async c=>c.json(await save(c.env,c.get('input'),c.req.param('id'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 api.post('/api/monitors/:id/heartbeat-key',async c=>c.json(await issueHeartbeatKey(c.env,c.req.param('id'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))

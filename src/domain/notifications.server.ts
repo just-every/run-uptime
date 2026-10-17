@@ -7,6 +7,7 @@ import {hostedInstallation} from './hosted-runner.ts'
 import {cronStarted} from './cron-run.server.ts'
 import {drillOverview} from './alert-drills.server.ts'
 import type {Bindings} from './control.server.ts'
+import {recoveryAccepted} from './alert-route-delivery.server.ts'
 export const NOTIFICATION_NAMESPACE='uptime-notifications';
 // Existing open incidents can predate notification delivery. Derive their stable
 // identity from the original trigger without rewriting or replaying that event.
@@ -29,7 +30,8 @@ export async function queueTestEvent(env:Bindings,id:string,event:NotificationEv
 export async function testDestination(env:Bindings,id:string){const event=testEvent(env.UPTIME_ORIGIN??''),{deliveryId}=await queueTestEvent(env,id,event);return {queued:true,eventId:event.id,deliveryId}}
 export async function notificationOverview(env:Bindings){
  const rows=await env.DB.prepare(`SELECT j.id,j.event_id,j.destination_id,j.destination_name,j.kind,j.created_at,j.event,
- CASE WHEN j.state<>'queued' THEN j.state ELSE COALESCE(d.state,j.state) END state,j.code,COALESCE(d.attempts,j.attempts) attempts,
+ CASE WHEN j.state<>'queued' THEN j.state ELSE COALESCE(d.state,j.state) END state,
+ CASE WHEN j.state='queued' AND NOT ${recoveryAccepted()} THEN 'waiting_for_trigger_acceptance' ELSE j.code END code,COALESCE(d.attempts,j.attempts) attempts,
  (SELECT a.outcome FROM integration_attempts a WHERE a.namespace=? AND a.delivery_id=j.id ORDER BY a.number DESC LIMIT 1) outcome
  FROM notification_jobs j LEFT JOIN integration_deliveries d ON d.namespace=? AND d.id=j.id ORDER BY j.created_at DESC,j.id DESC LIMIT 200`).bind(NOTIFICATION_NAMESPACE,NOTIFICATION_NAMESPACE).all<any>();
  const drills=await drillOverview(env);

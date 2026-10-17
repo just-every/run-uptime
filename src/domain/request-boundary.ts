@@ -23,6 +23,8 @@ export const apiRoutes:readonly Route[]=[
  {method:'DELETE',path:'/api/incidents/:id/comments/:commentId',params:{...id,commentId:identity},query:{version:value=>/^[1-9][0-9]*$/.test(value)},body:'none'},
  {method:'PATCH',path:'/api/incidents/:id/root-cause',params:id,body:'object'},
  {method:'POST',path:'/api/incidents/:id/actions',params:id,body:'object'},
+ {method:'GET',path:'/api/monitors/:id/alert-route',params:id,body:'none'},
+ ...['preview','apply'].map(action=>({method:'POST',path:`/api/monitors/:id/alert-route/${action}`,params:id,body:'object' as const})),
  ...['catalog/preview','catalog/apply','catalog/add/preview','catalog/add/apply','maintenance/preview','maintenance/apply','maintenance/cancel'].map(path=>({method:'POST',path:'/api/'+path,body:'object' as const})),
  {method:'GET',path:'/api/v1/openapi.json',body:'none'},
  {method:'POST',path:'/api/heartbeats/:id',params:id,body:'empty'},

@@ -170,8 +170,7 @@ Receipts do not change target health until the runner evaluates a scheduled slot
 The owner-only **Notifications** view manages destinations for every monitor in
 one installation. Email uses the same `MAIL_FROM` and selected mail provider
 configuration as operator sign-in. The hosted Worker sends email, signed JSON and Slack incoming webhooks without a private runner. Owner-console requests prompt due checks and sends while the console is open; the one-minute Cron trigger continues background work after activation, which Cloudflare can delay for up to about two hours on a new deployment. A private runner may also claim notifications when polling, using the same durable claim and attempt rules.
-Email, signed JSON, and Slack destinations are installation-wide, not
-per-monitor routes. The **Send test** action queues a separate test event and
+Email, signed JSON and Slack destinations are available installation-wide. Confirmed incidents select contacts through explicit monitor → service → group → installation inheritance in each monitor’s Alert recipients panel. Route previews disclose missing/disabled contacts and affected monitors; route changes are audited. Recovery uses only the accepted trigger’s unchanged contact/credential. Route settings and detailed matching/history stay installation-local; archives keep opaque audit, and restored monitoring remains inactive. Expiry/renewal notices still use installation-wide destinations. The **Send test** action queues a separate test event and
 does not change monitor state or incident history.
 
 Add a signed JSON destination with a public HTTPS URL and copy its displayed

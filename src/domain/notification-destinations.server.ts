@@ -15,7 +15,7 @@ async function endpointFor(kind:string,input:any){
 }
 export async function destinations(env:Bindings){
  await ensureNotificationCustody(env);
- const rows=await env.DB.prepare('SELECT d.id,d.name,d.kind,d.enabled,d.created_at,c.id credential_id,c.destination_id,c.created_at credential_created_at,c.endpoint,c.signing_secret,c.ciphertext,c.retired_at,c.unavailable_at FROM notification_destinations d JOIN notification_credentials c ON c.id=d.credential_id WHERE d.deleted_at IS NULL ORDER BY d.created_at,d.id').all<any>();
+ const rows=await env.DB.prepare('SELECT d.id,d.name,d.kind,d.enabled,d.created_at,c.id credential_id,c.destination_id,c.created_at credential_created_at,c.endpoint,c.signing_secret,c.ciphertext,c.retired_at,c.unavailable_at FROM notification_destinations d LEFT JOIN notification_credentials c ON c.id=d.credential_id WHERE d.deleted_at IS NULL ORDER BY d.created_at,d.id').all<any>();
  return Promise.all(rows.results.map(async r=>{
   let credential;try{credential=await readCredential(env,{...r,id:r.credential_id,created_at:r.credential_created_at})}catch{}
   return {id:r.id,name:r.name,kind:r.kind,enabled:Boolean(r.enabled),created_at:r.created_at,credentialsAvailable:Boolean(credential),credentialError:credential?null:'credential_unavailable',address:r.kind==='email'&&credential?credential.endpoint:null};

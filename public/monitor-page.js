@@ -1,3 +1,4 @@
+import {alertRoutePanel,bindAlertRoutePanel} from './assets/alert-route.js';
 import {maintenancePanel,bindMaintenancePanel} from './planned-maintenance.js';
 import {bindIncidentWork} from './incident-work.js';
 import {incidentMarkup} from './monitor-incidents.js';
@@ -78,7 +79,7 @@ function pageBody(m,readUnavailable,definitionOpen,data){
   +`<section class="ui-card panel evidence" aria-labelledby="recent-checks-heading"><div class="panel-head"><h2 id="recent-checks-heading">Recent checks</h2><div class="history-strip" id="history-strip" aria-hidden="true"></div></div><div id="raw-history">Loading recent checks…</div></section></div>`
   +`<div class="monitor-secondary"><section class="ui-card panel detail" aria-labelledby="latest-check-heading"><h2 id="latest-check-heading">${lastLabel}</h2><dl class="detail-metrics"><div><dt class="ui-visually-hidden">${lastLabel}</dt><dd class="detail-time">${checkTime(m,{withLabel:false,readUnavailable})}</dd></div><div><dt>Response duration</dt><dd>${escape(duration(availability?.responseDurationMs))}</dd></div></dl></section>`
   +`<section class="ui-card panel assertions" aria-labelledby="expects-heading"><h2 id="expects-heading">What the check expects</h2>${assertionSummary(m.definition)}<details id="assertion-definition" ${definitionOpen?'open':''}><summary id="assertion-definition-summary">Full check details</summary><pre>${escape(JSON.stringify(isProtocol(m.definition)?{[m.definition.type]:m.definition[m.definition.type],assertions:m.definition.assertions}:m.definition.assertions,null,2))}</pre></details></section>`
-  +maintenancePanel(m)+expiryPanel(m,data)+(isFlow(m.definition)?flowPanel(m,data):'')+heartbeatPanel(m,data)+'</div></div>';
+  +alertRoutePanel()+maintenancePanel(m)+expiryPanel(m,data)+(isFlow(m.definition)?flowPanel(m,data):'')+heartbeatPanel(m,data)+'</div></div>';
 }
 
 const clock=t=>new Date(t).toLocaleTimeString();
@@ -189,6 +190,7 @@ export function renderMonitorPage({header,actions,area,data,id,api,action,readUn
  mountReportPanel(area,m,api,retainedReport);
  bindHeartbeatKey(area,m,{api,action});
  bindMaintenancePanel(area,m,{api,action});
+ bindAlertRoutePanel(area,m,{api,action});
  const incidentHost=area.querySelector('#monitor-incidents');bindIncidentWork(incidentHost,api);api(`/api/monitors/${encodeURIComponent(m.id)}/incidents`).then(incidents=>{if(incidentHost.isConnected){incidentHost.innerHTML=incidentMarkup(incidents,openIncidents);if(historyFocus?.startsWith('incident-')&&document.activeElement?.tagName==='BODY')document.getElementById(historyFocus)?.focus({preventScroll:true})}},error=>{if(incidentHost.isConnected)incidentHost.textContent='Incident history unavailable: '+error.message});
  actions.querySelector('#run-monitor').onclick=()=>action(()=>api(`/api/monitors/${m.id}/run`,'POST',{}),{pending:'Requesting a manual check…',success:'Manual check queued. Manual checks do not change uptime.'});
  if(!isFlow(m.definition)&&m.definition.type!=='heartbeat')actions.querySelector('#edit').onclick=()=>{location.href='/app/monitor?monitor='+encodeURIComponent(m.id)};

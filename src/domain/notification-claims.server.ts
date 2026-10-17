@@ -2,6 +2,7 @@ import {auditStatement,automated} from './audit.server.ts'
 import {sha256} from '../base/modules/integrations/core/crypto.ts'
 import {readCredential,notificationKeyPresent,type CredentialRow} from './notification-credentials.server.ts'
 import type {Bindings} from './control.server.ts'
+import {recoveryAccepted} from './alert-route-delivery.server.ts'
 const namespace='uptime-notifications';
 // Both admission and release run this policy in their own atomic transaction.
 // Optional proof keeps unsuccessful releases from mutating unrelated queued work.
@@ -53,7 +54,7 @@ export async function claimNotification(env:Bindings,id:string,now:number,leaseM
    WHERE namespace=? AND id=? AND state='queued' AND next_at<=? AND attempts<max_attempts
    AND EXISTS(SELECT 1 FROM notification_jobs j JOIN notification_credentials c ON c.id=j.credential_id AND c.destination_id=j.destination_id
     WHERE j.id=? AND j.state='queued' AND c.id=? AND c.destination_id=? AND c.created_at=? AND c.ciphertext=?
-    AND c.retired_at IS NULL AND c.unavailable_at IS NULL AND c.endpoint IS NULL AND c.signing_secret IS NULL)`)
+    AND c.retired_at IS NULL AND c.unavailable_at IS NULL AND c.endpoint IS NULL AND c.signing_secret IS NULL AND ${recoveryAccepted()})`)
     // Bind the exact authenticated version and AAD identity in the transaction:
     // any mutation while decryption yielded requires a fresh validation.
     .bind(claim,now+leaseMs,namespace,id,now,id,verified?.id??null,verified?.destination_id??null,verified?.created_at??null,verified?.ciphertext??null),

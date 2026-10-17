@@ -73,3 +73,13 @@ Use the destination's signing secret as literal UTF-8 bytes. A test event is not
 ## What notifications do not cover
 
 There is no Teams, Discord, SMS, on-call paging, escalation or public status communication. See [What Uptime does not do](/docs/limits).
+
+## Route an incident to the right contacts
+
+Open a monitor and choose **Edit alert route** under **Alert recipients**. The first selected policy supplies the complete recipient list: monitor, then service, then group, then installation. Narrower scopes explicitly inherit until selected; the installation default selects all enabled destinations. An empty selected list deliberately leaves no recipient. New monitors with a service or group label inherit that label’s route. Catalog batch requests for a separately named route are not supported.
+
+Choose the scope and contacts, then **Preview route**. Review every selected/excluded contact, unavailable credential or mail sender, and every affected monitor before **Apply reviewed route**. A narrower monitor route remains visible when editing a broader scope. Any recipient, credential, monitor or policy change invalidates the preview. Changes are audited, and the panel retains recent before/after selections. Tests in the preview are labelled direct sends to the named contact, including disabled contacts; they neither activate the route nor change monitoring state.
+
+A confirmed incident binds its trigger’s recipients and credential versions. Recovery waits for provider acceptance of that trigger and goes only to the same still-enabled contact and credential. An unsuccessful or uncertain trigger, deleted/disabled contact or rotated credential cannot receive an orphan recovery; a newly selected contact cannot receive recovery for an incident it missed. Acceptance remains separate from human receipt. Pausing or changing the monitor never erases its observations.
+
+Owner APIs are `GET /api/monitors/{id}/alert-route` and POST `.../preview` and `.../apply`. Preview accepts `scope` (monitor/service/group/installation), `mode` (inherit or selected; all replaces inherit for installation), `destinationIds` and the current `expectedRevision`. Apply adds the reviewed `digest`. Route configuration, detailed history and trigger/recovery matching remain installation-local; opaque action audit is portable, and restored monitoring stays inactive. Team, environment/severity/region/origin/time rules, contact delays/repeats/retries/fallbacks and expiry/renewal routing remain unimplemented.

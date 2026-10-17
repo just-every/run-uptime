@@ -14,6 +14,7 @@ import {withDrillBody,retireDrillTokens} from './alert-drills.server.ts'
 import {storageOperation,classifyStorage} from './storage-error.ts'
 import type {Bindings} from './control.server.ts'
 import type {SubrequestBudget} from './worker-budget.ts'
+import {recoveryAccepted,settleUnmatchedRecoveries} from './alert-route-delivery.server.ts'
 export function notificationRepository(env:Bindings){return new NotificationRepository(env)}
 export class NotificationRepository extends IntegrationsRepository {
  protected env:Bindings;
@@ -31,9 +32,9 @@ export class NotificationRepository extends IntegrationsRepository {
  * hosted Worker's cron or a private runner's poll. Both use one Base delivery row, so a job is sent at most once. */
 export async function pollNotificationJobs(env:Bindings,budget?:SubrequestBudget){
  const repository=notificationRepository(env),now=Date.now(),op=storageOperation;
- await op('notifications.poll.recoverExpired',()=>repository.recoverExpired(now));await op('notifications.poll.custody',()=>ensureNotificationCustody(env));await dispatchNotificationMail(env,budget);
+ await op('notifications.poll.recoverExpired',()=>repository.recoverExpired(now));await op('notifications.poll.custody',()=>ensureNotificationCustody(env));await op('notifications.poll.recoveryMatches',()=>settleUnmatchedRecoveries(env));await dispatchNotificationMail(env,budget);
  const rows=await op('notifications.poll.selectQueued',()=>env.DB.prepare(`SELECT j.*,c.id AS credential_record_id,c.destination_id AS credential_destination_id,c.created_at AS credential_created_at,c.endpoint,c.signing_secret,c.ciphertext,c.retired_at,c.unavailable_at FROM notification_jobs j JOIN notification_credentials c ON c.id=j.credential_id
-  WHERE j.kind IN ('webhook','slack') AND j.state='queued' AND NOT EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace=? AND d.id=j.id AND d.state<>'queued') ORDER BY j.created_at LIMIT 20`).bind(NOTIFICATION_NAMESPACE).all<any>());
+  WHERE j.kind IN ('webhook','slack') AND j.state='queued' AND ${recoveryAccepted()} AND NOT EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace=? AND d.id=j.id AND d.state<>'queued') ORDER BY j.created_at LIMIT 20`).bind(NOTIFICATION_NAMESPACE).all<any>());
  const jobs=[];
  // A job is rejected only for its own fault (an unreadable credential, an envelope that cannot be prepared). A storage fault is
  // never recorded as a rejection: it surfaces typed and the next poll finds the job still queued.

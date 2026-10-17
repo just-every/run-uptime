@@ -55,7 +55,7 @@
     "verify:release": "node tests/archive-release.mjs",
     "spec:generate": "node scripts/delivery/publish-spec.mjs",
     "spec:check": "node scripts/delivery/publish-spec.mjs --check",
-    "test:catalog": "node tests/catalog.mjs && node tests/maintenance-windows.mjs"
+    "test:catalog": "node tests/catalog.mjs && node tests/maintenance-windows.mjs && node --test tests/alert-routes.mjs"
   },
   "dependencies": {
     "@tanstack/react-router": "1.170.33",
