@@ -397,11 +397,11 @@
   ],
   "files": {
     ".github/assets/banner-dark.webp": {
-      "sha256": "98ad34fd267b3c2def0cb36b00580f9e7aeb5053884b1e83c41135a21c1cc556",
+      "sha256": "0d5fc425bf057617a0e8518117b0907ca716bc4ce682bd0aa5778c576210f4b8",
       "executable": false
     },
     ".github/assets/banner-light.webp": {
-      "sha256": "4f2fa8459c1c12290284b96704563864293b7a1eb1630e045985bbc0222f643c",
+      "sha256": "f5a12c8bf94cb8961286603d0b84c96b73cfbc32ebcf680acefeae6a2ef81a20",
       "executable": false
     },
     ".github/assets/media/flow.webp": {
@@ -481,7 +481,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "c5231a472b1e1b3f8296a54b778886d3fdd258f3c6c299199f79f8e73667e090",
+      "sha256": "45bf48ce7ed8112ca86b5947a5c73055ecc3790ed0941b7468236df6f2c7a1cf",
       "executable": false
     },
     "DEMO.md": {
@@ -1657,7 +1657,7 @@
       "executable": false
     },
     "README.md": {
-      "sha256": "3e735f0f1d1cefe6f05a32e7f0d49f0f435966b5e85a501045ce50714cee88de",
+      "sha256": "4e1d04765f9ffa8f1c0b99d78ef575665d9f1d768c142ea0e0e7df3b851af832",
       "executable": false
     },
     "RELEASE.json": {
@@ -2253,7 +2253,7 @@
       "executable": false
     },
     "seed.json": {
-      "sha256": "7342703a017ed007dc6674e2daaa6080238232c58d7cb63c97391363cc6db2d3",
+      "sha256": "bbd69a5fa8fbbd35fdda277dccec2202764929612ee5c4ace73e584c5fdb2737",
       "executable": false
     },
     "src/base/contract-filter.ts": {
@@ -4121,7 +4121,7 @@
       "executable": false
     },
     "src/site/landing/copy.ts": {
-      "sha256": "edafa7ad1205f33bd9c77c8b6d902ca8f7403987b012b2879f2611a0b1dad3e5",
+      "sha256": "5ddf7a1c016b05eef238e1cdd4c722864aef379630cfe288c37100803beb03ad",
       "executable": false
     },
     "src/site/landing/hero/art/frame.ts": {
