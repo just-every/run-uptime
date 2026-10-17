@@ -84,8 +84,12 @@ real public fetch and a send: both flows complete, and only the fetch leaves.
 `rer deploy --demo` publishes the seed at `demo.<domain>`. Turnstile admits a
 visitor into their own native Worker Loader isolate and SQLite Durable Object
 storage. The ordinary production Worker bundle is built once, with static files
-served directly at the edge. The visitor lands signed in as the demo owner with
-sample data and `RER_DEMO=1`; account effects remain simulated by the demo guard.
+served directly at the edge. While the visitor waits for the human check and
+sign-in, the start page prefetches the console's hashed JS and CSS at idle
+priority (at most 1 MiB compressed, the `deploy.operatorPath` views first), so
+each view's first visit is served from the browser's cache. The visitor lands
+signed in as the demo owner with sample data and `RER_DEMO=1`; account effects
+remain simulated by the demo guard.
 Each copy ends after 60 minutes or 15 idle minutes, or when the visitor signs
 out (`POST /auth/signout`), when its storage is erased and the visitor sees the
 ended page with "Start a new demo".
@@ -100,7 +104,10 @@ ended page with "Start a new demo".
    locked dependencies and invokes `rer deploy --demo`; Docker is unnecessary.
    Set `RUN_DEMO_DEPLOY=true` to deploy on pushes to main. The manual `test_only`
    input targets `demo.test.<domain>` in the separate `demo-test` environment,
-   using Turnstile's always-passing test keys. Test starts require the private
+   using Turnstile's always-passing test keys. It moves the declaration's domain
+   to `test.<domain>` and every `settings` host under `demo.<domain>` (such as
+   a `container.hostVariables` host like `page.demo.<domain>`) to the same name
+   under `demo.test.<domain>`; production is unchanged. Test starts require the private
    measurement token, passed as `rer_demo_measure` cookie or
    `x-rer-demo-measurement` header. Do not commit that token.
 4. In the `run-demo` GitHub environment, set `CLOUDFLARE_ACCOUNT_ID`,

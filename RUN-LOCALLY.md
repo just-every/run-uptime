@@ -1,18 +1,27 @@
 # Run it locally
 
-Start a published seed in two lines. The [RER installer](https://runeditrun.com)
-(`curl -fsSL https://runeditrun.com/install.sh | sh`) installs `rer` in
-`~/.local/bin`, with its own Node when there is no Node 22 or later on PATH; it
-edits no shell profile, so run the `export PATH=…` line it prints when
-`~/.local/bin` is not on PATH. Then `rer dev <owner>/<repo>`, for example
-`rer dev just-every/run-inkwell`, clones the seed and starts it. To start it
-again later, run `cd <folder> && rer dev` (the folder is the repository name).
-With Node 22 or later already on PATH, `npx -y @runeditrun/rer dev <owner>/<repo>`
-does both in one line, and `npm install -g @runeditrun/rer` is another way to
+Start a published seed with one line:
+`npx -y @runeditrun/rer dev just-every/<repo>`, for example
+`npx -y @runeditrun/rer dev just-every/run-inkwell`. It clones the seed into
+`./<repo>`, installs its dependencies, sets up a local owner and starts the app.
+The clone has every commit and release tag (file contents arrive as a checkout
+needs them), so `git checkout <tag>` adopts an older release.
+To set up without starting, use `npx -y @runeditrun/rer setup just-every/<repo>`.
+Without Node 22 or later, the [RER installer](https://runeditrun.com) runs the
+same line: `curl -fsSL https://runeditrun.com/install.sh | sh -s -- dev just-every/<repo>`.
+It installs `rer` in `~/.local/bin` with its own Node and edits no shell
+profile: when `~/.local/bin` is not on PATH for new terminals, its install step
+ends with the one command that adds it for your shell (for zsh:
+`echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc && export PATH="$HOME/.local/bin:$PATH"`);
+run it once. To start the seed again later, run `cd <repo> && rer dev` (the
+folder is the repository name). `npm install -g @runeditrun/rer` is another way to
 install `rer`. The installer's Node stays private to `rer`: it puts no `node`,
 `npm` or `npx` on PATH. First-party commands fetch and verify
 the exact pnpm version declared in `package.json` when it is missing, using
-`$HOME/.rer/pnpm`; no global pnpm installation or sudo is needed.
+`$HOME/.rer/pnpm`; no global pnpm installation or sudo is needed. That pnpm stays
+off PATH, so where a project's docs say `pnpm run X -- ARGS`, run
+`rer run X -- ARGS`: the same script, with the pnpm and Node the project pins.
+`rer run` alone lists the scripts.
 First-party seeds pin the command implementation in either vendored mode or
 package mode. Vendored mode carries Base's exported CLI; package mode pins an
 exact `@runeditrun/rer` devDependency. In both modes the checkout's
@@ -32,7 +41,9 @@ with exit 3 and a message naming the field.
 
 - **Port.** The first port from 8787 that is free on both `127.0.0.1` and `::1`
   and held by no registered server. Override with `rer dev --port N`; start the
-  search elsewhere with `RER_DEV_PORT_FROM=N`.
+  search elsewhere with `RER_DEV_PORT_FROM=N`. The search moves past a port in
+  use as soon as it cannot bind it, and on a busy computer it allows longer (15
+  seconds, up to 60 at a high load per CPU) before it gives up.
 - **Detaching.** Without a terminal (an agent's shell tool) `rer dev` returns once
   the app is ready and leaves it running in the background, printing its
   private log path; in a terminal it stays in the foreground and Ctrl-C stops
@@ -43,7 +54,9 @@ with exit 3 and a message naming the field.
   reattach or to finish an install or setup that stopped. A second `rer dev`
   reprints the ready lines.
 - **Server limit.** Up to 10 dev or preview servers run on one computer. Set
-  `RER_SERVER_LIMIT=N` to change it.
+  `RER_SERVER_LIMIT=N` to change it. A fleet can instead set `RER_SERVER_LIMIT_FILE=PATH`,
+  a file holding the limit, read at every start and overriding `RER_SERVER_LIMIT`
+  and the limits other running servers recorded.
 - **Idle timeout.** A server stops after 12 hours (43200 seconds) without
   activity. Set `--idle-timeout SECONDS` or `RER_SERVER_IDLE_SECONDS=N` to change
   it.
@@ -59,8 +72,8 @@ with exit 3 and a message naming the field.
 
 ## Install for a real owner
 
-To install with a real owner mailbox, run the verbs yourself from the runnable
-edition's root: install locked dependencies, prepare its local owner, then start
+To install with a real owner mailbox instead, run the verbs yourself from the
+runnable edition's root: install locked dependencies, prepare its local owner, then start
 development:
 
 ```sh
@@ -68,6 +81,14 @@ rer install
 rer setup --owner-email you@example.com
 rer dev
 ```
+
+`rer install` installs the locked dependencies only. The Playwright browser a
+seed's tests use downloads the first time a command needs it (`rer verify`, or
+`rer run` of a script that runs Playwright), so an owner who only deploys never
+fetches it. `rer setup` ends by listing what a hosted deploy will still need,
+read from the deploy declaration: the Cloudflare account ID and API token (with
+the permissions, or the project's deploy guide), each required secret not yet
+set, and production sign-in's mail inputs.
 
 Commands that run project work select the exact Node version declared by the
 project. They use an exact matching installed runtime or a checksum-verified
@@ -99,7 +120,8 @@ Invite another person from the app's operator access screen, then choose
 it accepts their current invitation and opens `/app` with their assigned role.
 After opening `RER_OPEN`, this browser can switch people without email. A fresh
 browser profile first opens `RER_OPEN` to receive this checkout's key cookie.
-`rer dev --as person@example.com` also selects an invited or active person.
+`rer dev --as person@example.com` also selects an invited or active person;
+for an email that is no one in the local database, it lists the people it takes.
 Local dev and demos silently suppress mail; there is no mail-reading step.
 Cancelled or expired invitations and inactive people cannot use these actions.
 
@@ -138,7 +160,9 @@ private inputs and never go in command arguments. A setup rerun with the saved
 owner and origin preserves existing owner/data and exact private settings.
 Conflicting saved identity or origin reports an actionable recovery path.
 Review reset's exact removal inventory before confirmation; export domain data
-first if it should be restored, and import only into an empty destination.
+first if it should be restored, and import only into an empty destination. Rows
+the app's own migrations insert, such as default settings, do not count: the
+archive's rows replace them. Any other row refuses the import, naming its table.
 
 Queue waits report immediately with a reason and numeric one-based position,
 then refresh about every 15 seconds while waiting. The running command reports
@@ -188,6 +212,9 @@ servers with the command that stops each; start with `RER_SERVER_LIMIT=N` to
 allow more. Machine load alone never refuses a start or holds heavy work; a
 fleet that wants a load guard sets `RER_SERVERS_LOAD_THRESHOLD=N` and
 `RER_JOBS_LOAD_THRESHOLD=N` (the 1-minute load) in its own environment.
+A start needs 15 GiB free on the checkout and temporary volumes;
+`RER_SERVERS_DISK_FLOOR_GIB=N` changes that floor. A CI runner on a small disk
+may set it lower (for example 4); people should not.
 
 A new server is refused only when available memory is below 1.5 GiB. An idle
 dev server holds about 0.5-1.3 GiB and a preview about 0.4-0.8 GiB. The message
@@ -231,7 +258,10 @@ keeps source, dependencies, exports and deployment receipts. It refuses active
 operations and ambiguous or linked state.
 
 Local export creates a private archive with an integrity receipt and explicit
-exclusions. Import validates the archive and restores into an empty destination.
+exclusions. Export, reset and import print only their own steps: Node's
+"SQLite is an experimental feature" notice and wrangler's local-only hints
+(such as "Use --remote if you want to access the remote instance") are left out.
+They are local operations; nothing remote is read or changed. Import validates the archive and restores into an empty destination.
 After import, run setup to establish the owner and local configuration. Auth,
 private settings and transient runtime state are excluded. Remote
 transfer is unsupported by the maintained references and fails visibly.
@@ -343,7 +373,14 @@ token that differs from the deployed token), then rerun the same deploy. Leave
 a stale supplied setup token unset so rer can issue a fresh token. A completed
 claim retires the one-time token; deploying again keeps an existing owner.
 
-`rer deploy --environment NAME --remove --yes` detaches the environment's queue
+`rer deploy --environment NAME --remove --yes` deletes the hosted install's
+Worker and its databases and files. Save the hosted data first: `rer export`
+saves only the local copy on this computer, and refuses `--origin` or
+`--target remote` (exit 2), saving nothing. Its refusal names the command that
+exports each hosted database, with the Cloudflare credentials that deployed it:
+`npx wrangler d1 export DATABASE --remote --output exports/DATABASE.sql`.
+Files the hosted install keeps in R2 are not in that export. Removal
+detaches the environment's queue
 consumers before deleting its queues, then confirms their absence in Cloudflare.
 It waits up to a minute for a deleted queue to disappear from the account list.
 If the provider still lists it, the error names the queue and the call; keep the
