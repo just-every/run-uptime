@@ -2253,7 +2253,7 @@
       "executable": false
     },
     "seed.json": {
-      "sha256": "bbd69a5fa8fbbd35fdda277dccec2202764929612ee5c4ace73e584c5fdb2737",
+      "sha256": "0485064c09eba2346f3c78a235af1e5a392442b6bba9a7933e4a29048b6bf103",
       "executable": false
     },
     "src/base/contract-filter.ts": {
