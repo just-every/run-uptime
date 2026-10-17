@@ -3660,6 +3660,70 @@
       "sha256": "fe05cfd7af0de5b7f90a813ffb5bb64cfe8d0ff503cb1df83f14da201722b50a",
       "executable": false
     },
+    "work/sd-cp-uptime/shots/API-001/editor-1440.png": {
+      "sha256": "d25fb5d312d8099be6e83034d2f40426497a88343ba52fd0234aac833d96c964",
+      "executable": false
+    },
+    "work/sd-cp-uptime/shots/API-001/editor-390.png": {
+      "sha256": "80dc8906b595f478dcac7b494780d53b2723868c3af48131d74f8efa98922b01",
+      "executable": false
+    },
+    "work/sd-cp-uptime/shots/API-001/failure-1440.png": {
+      "sha256": "f9194fb46bb7b821148a271cf73c410068061be8d20a9cad360dcdf70c970c08",
+      "executable": false
+    },
+    "work/sd-cp-uptime/shots/API-001/failure-390.png": {
+      "sha256": "6dbff945a70e5e48fb5968e30ef1bb29f5df608ac12c13d80ee6b3653144918e",
+      "executable": false
+    },
+    "work/sd-cp-uptime/shots/API-001/healthy-1440.png": {
+      "sha256": "c96db99f7682b8037d9110cf1568b70d6da15cf28d379b7a979144033126cf05",
+      "executable": false
+    },
+    "work/sd-cp-uptime/shots/API-001/healthy-390.png": {
+      "sha256": "c58eb3efaf069eea8cf76acfa0be4a00b0fa5f6464acafdd0c52584f68b995b5",
+      "executable": false
+    },
+    "work/sd-cp-uptime/shots/API-001/invalid-regex-1440.png": {
+      "sha256": "4ae351618fbc6441b97a72c4044dd60a20598ceecc0ab254996a0d840ec86500",
+      "executable": false
+    },
+    "work/sd-cp-uptime/shots/API-001/invalid-regex-390.png": {
+      "sha256": "7ded68bd58f1a8126b7f2173b7133534311359a0dfe8c51466461a38590ebe12",
+      "executable": false
+    },
+    "work/sd-cp-uptime/shots/API-001/recovery-1440.png": {
+      "sha256": "a917fac4cb950c1d232c8c69f52fc94e4dd7147fe0857d0b92979385d8af50fe",
+      "executable": false
+    },
+    "work/sd-cp-uptime/shots/API-001/recovery-390.png": {
+      "sha256": "9402813c17feb26a2187a60559c60f4440a768ea4e1e802f5a089845a09af8d0",
+      "executable": false
+    },
+    "work/sd-cp-uptime/shots/MIGRATE-001/applied-1440.png": {
+      "sha256": "952d05ac11fab3ac57c32f8ebc945da3048f5e9652719dcd411873868d395f33",
+      "executable": false
+    },
+    "work/sd-cp-uptime/shots/MIGRATE-001/applied-390.png": {
+      "sha256": "801e4301aeb9ba3d50ba548ea83ae3341ffce5c34ec23ea1f1e1bcbe06cd8c5b",
+      "executable": false
+    },
+    "work/sd-cp-uptime/shots/MIGRATE-001/preview-1440.png": {
+      "sha256": "e6a36d038804700c004ade2c6f82564a94219cd5438fe9e05533defaea63fa77",
+      "executable": false
+    },
+    "work/sd-cp-uptime/shots/MIGRATE-001/preview-390.png": {
+      "sha256": "2e97202286e90c7e69c540a48f7cadf5d7b45f0c0a7279b6d6be271e31ddb10e",
+      "executable": false
+    },
+    "work/sd-cp-uptime/shots/MIGRATE-001/undone-1440.png": {
+      "sha256": "cce621edf1fd0dc62bd0bde4b70879ac22288a7f9503a4a6103ca2680271affb",
+      "executable": false
+    },
+    "work/sd-cp-uptime/shots/MIGRATE-001/undone-390.png": {
+      "sha256": "757678565d760ef3098318cd36fffee5e7043172957732087947b44738e6fee3",
+      "executable": false
+    },
     "wrangler.jsonc": {
       "sha256": "e1092a45cf67307de39f000ba147f1e95bedac5329bea03eb956884cc31d4338",
       "executable": false
