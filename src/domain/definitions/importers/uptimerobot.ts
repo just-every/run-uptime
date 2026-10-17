@@ -16,14 +16,22 @@ const seconds=(ms:number)=>`${(ms/1000).toLocaleString('en-US')} s`
 const list=(values:string[])=>values.join(', ')
 const present=(value:unknown)=>value!==null&&value!==undefined&&value!==''&&!(Array.isArray(value)&&!value.length)&&!(typeof value==='object'&&!Array.isArray(value)&&!Object.keys(value as object).length)
 
-// UptimeRobot accepts a list of exact codes and ranges such as "2xx"; Uptime checks one exact status.
-function expectedStatus(codes:unknown):{status:number;difference?:string}|{unsupported:string}{
- const values=Array.isArray(codes)&&codes.length?codes.map(String):['2xx','3xx'],described=list(values)
- if(values.length===1&&/^[1-5][0-9]{2}$/.test(values[0]))return {status:Number(values[0])}
- if(values.some(v=>v==='2xx'||v==='200'))return {status:200,difference:`UptimeRobot accepted ${described}; Uptime expects exactly status 200.`}
- const exact=values.find(v=>/^[1-5][0-9]{2}$/.test(v))
- if(exact)return {status:Number(exact),difference:`UptimeRobot accepted ${described}; Uptime expects exactly status ${exact}.`}
- return {unsupported:`Expected status codes ${described} cannot be expressed as one exact status.`}
+// Preserve the whole accepted set: exact codes, status classes and inclusive ranges. Missing/empty lists use
+// UptimeRobot's default 2xx/3xx set; an unrecognised value must never silently narrow or broaden that set.
+function expectedStatus(codes:unknown):{status:number|(number|string)[]}|{unsupported:string}{
+ if(codes!==undefined&&codes!==null&&!Array.isArray(codes))return {unsupported:'Expected status codes must be a list of exact HTTP codes, classes such as 2xx or ranges such as 200-299.'}
+ const values=Array.isArray(codes)&&codes.length?codes:['2xx','3xx'],accepted:(number|string)[]=[]
+ for(const value of values){
+  if(typeof value==='number'&&Number.isInteger(value)&&value>=100&&value<=599){accepted.push(value);continue}
+  if(typeof value==='string'){
+   if(/^[1-5][0-9]{2}$/.test(value)){accepted.push(Number(value));continue}
+   if(/^[1-5]xx$/.test(value)){accepted.push(value);continue}
+   const range=/^([1-5][0-9]{2})-([1-5][0-9]{2})$/.exec(value)
+   if(range&&Number(range[1])<=Number(range[2])){accepted.push(value);continue}
+  }
+  return {unsupported:'Expected status codes include an unsupported value; use exact HTTP codes, classes such as 2xx or ranges such as 200-299.'}
+ }
+ return {status:accepted.length===1&&typeof accepted[0]==='number'?accepted[0]:accepted}
 }
 
 function map(entry:SourceEntry):Mapping{
@@ -60,17 +68,16 @@ function map(entry:SourceEntry):Mapping{
  if(type==='KEYWORD'&&method==='HEAD'){method='GET';differences.push('Keyword checks need the page body: Uptime uses GET where UptimeRobot used HEAD.')}
  const status=expectedStatus(m.successHttpResponseCodes)
  if('unsupported' in status)return {unsupported:status.unsupported}
- if(status.difference)differences.push(status.difference)
  const assertions:Record<string,unknown>={status:status.status}
  if(type==='KEYWORD'){
-  // ALERT_NOT_EXISTS alerts when the keyword is missing, so the page must contain it. ALERT_EXISTS alerts when the
-  // keyword is present; Uptime has no "must not contain" assertion.
+  // ALERT_NOT_EXISTS requires the keyword; ALERT_EXISTS requires its absence.
   const keywordType=String(m.keywordType??'').toUpperCase()
-  if(keywordType==='ALERT_EXISTS')return {unsupported:'“Alert when the keyword exists” has no Uptime equivalent: Uptime checks that the page contains a keyword.'}
-  if(keywordType!=='ALERT_NOT_EXISTS')return {refused:`${label} has no recognised keywordType.`}
+  if(!['ALERT_NOT_EXISTS','ALERT_EXISTS'].includes(keywordType))return {refused:`${label} has no recognised keywordType.`}
   if(typeof m.keywordValue!=='string'||!m.keywordValue)return {refused:`${label} has no keyword.`}
-  assertions.bodyIncludes=m.keywordValue
-  if(m.keywordCaseType===0||m.keywordCaseType==='CaseInsensitive')differences.push('UptimeRobot matched the keyword ignoring case; Uptime matches it exactly.')
+  assertions[keywordType==='ALERT_EXISTS'?'bodyExcludes':'bodyIncludes']=m.keywordValue
+  const keywordCase=String(m.keywordCaseType??'').toLowerCase()
+  if(['0','caseinsensitive'].includes(keywordCase))differences.push('UptimeRobot matched the keyword ignoring case; Uptime matches it exactly.')
+  else if(!['1','casesensitive'].includes(keywordCase))differences.push('UptimeRobot did not specify a recognised keyword case-sensitivity setting; Uptime matches the text exactly. Check the condition before enabling it.')
  }
  const timeoutMs=typeof m.timeout==='number'&&m.timeout>0?Math.round(m.timeout*1000):null
  const chosenTimeout=Math.min(MAX_TIMEOUT_MS,Math.max(MIN_TIMEOUT_MS,timeoutMs??MAX_TIMEOUT_MS))

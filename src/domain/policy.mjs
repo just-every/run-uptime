@@ -2,18 +2,14 @@ import {publicTarget} from './public-target.mjs';
 import {FLOW_LIMITS,validateFlow} from './flow.mjs';
 import {policyReason} from './policy-reason.mjs';
 import {PROTOCOL_TYPES,PROTOCOL_TIMING,isProtocol,protocolSettings} from './protocol/settings.mjs';
+import {HTTP_ASSERTIONS,assertionObject} from './http-assertions/config.mjs';
+import {validateStatus} from './http-assertions/status.mjs';
+import {compileBodyRegex} from './http-assertions/regex.mjs';
+import {validateJsonPath} from './http-assertions/json.mjs';
+export {ASSERTION_FIELDS} from './http-assertions/config.mjs';
 export const RUNNER_VERSION = 'uptime-node/0.1.0';
 export const MAX_BODY = 65536;
 const integer = (v, min, max, label) => { if (!Number.isInteger(v) || v < min || v > max) throw Error(`Invalid ${label}`); return v; };
-// The only fields a header or JSON assertion holds. Anything else (an authorization value, a token) is refused by name
-// and never stored, so it cannot reach revisions, the runner or an exported file.
-export const ASSERTION_FIELDS = { header: ['name', 'equals'], json: ['path', 'equals'] };
-const assertionObject = (value, kind) => {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) throw Error(`Invalid ${kind === 'json' ? 'JSON' : kind} assertion`);
-  const unknown = Object.keys(value).filter(k => !ASSERTION_FIELDS[kind].includes(k));
-  if (unknown.length) throw Error(`Invalid ${kind === 'json' ? 'JSON' : kind} assertion: unknown field${unknown.length > 1 ? 's' : ''} ${unknown.map(k => `“${k.slice(0, 60)}”`).join(', ')}; it takes only ${ASSERTION_FIELDS[kind].join(' and ')}`);
-  return value;
-};
 export function validateDefinition(input, grants) {
   if (!input || typeof input !== 'object') throw Error('Definition required');
   const { name, url } = input;
@@ -65,15 +61,18 @@ export function validateDefinition(input, grants) {
   }
   if(protocol&&input.assertions!==undefined&&(!input.assertions||typeof input.assertions!=='object'||Array.isArray(input.assertions)||Object.keys(input.assertions).some(k=>k!=='latencyMs')))throw Error('A TCP, DNS, TLS or domain monitor takes only a latencyMs assertion');
   const assertions = input.assertions ?? (protocol?{}:{ status: 200 });
-  if (!assertions || typeof assertions !== 'object' || Array.isArray(assertions) || Object.keys(assertions).some(k => !['status','bodyIncludes','header','json','latencyMs'].includes(k))) throw Error('Invalid assertions');
-  if(!protocol)integer(assertions.status ?? 200, 100, 599, 'expected status');
-  if(type==='keyword'&&(typeof assertions.bodyIncludes!=='string'||!assertions.bodyIncludes.length))throw Error('Keyword requires bodyIncludes');
+  if (!assertions || typeof assertions !== 'object' || Array.isArray(assertions) || Object.keys(assertions).some(k => !Object.hasOwn(HTTP_ASSERTIONS,k))) throw Error('Invalid assertions');
+  if(!protocol)validateStatus(assertions.status ?? 200);
+  if(type==='keyword'&&![assertions.bodyIncludes,assertions.bodyExcludes].some(value=>typeof value==='string'&&value.length))throw Error('Keyword requires bodyIncludes or bodyExcludes');
   if(type==='heartbeat'&&Object.keys(assertions).some(k=>k!=='status'))throw Error('Heartbeat cannot have HTTP assertions');
   if (assertions.bodyIncludes !== undefined && (typeof assertions.bodyIncludes !== 'string' || assertions.bodyIncludes.length > 200)) throw Error('Invalid body assertion');
+  if (assertions.bodyExcludes !== undefined && (typeof assertions.bodyExcludes !== 'string' || assertions.bodyExcludes.length > 200)) throw Error('Invalid body absence assertion');
+  if (assertions.bodyRegex !== undefined) compileBodyRegex(assertionObject(assertions.bodyRegex,'bodyRegex'));
   if (assertions.header !== undefined && (!assertionObject(assertions.header, 'header') || !/^[a-zA-Z0-9-]{1,80}$/.test(assertions.header.name) || typeof assertions.header.equals !== 'string' || assertions.header.equals.length > 200)) throw Error('Invalid header assertion');
   if (assertions.json !== undefined) {
     const json=assertionObject(assertions.json, 'json');
-    if(typeof json.path!=='string'||json.path.length>120||!/^(?:\$\.)?[a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9_-]+)*$/.test(json.path)||!['string','number','boolean'].includes(typeof json.equals)||typeof json.equals==='number'&&!Number.isFinite(json.equals))throw Error('Invalid JSON assertion: use {"path":"$.status.indicator","equals":"none"}; equals must be a string, number or boolean.');
+    validateJsonPath(json.path);
+    if(!['string','number','boolean'].includes(typeof json.equals)||typeof json.equals==='number'&&!Number.isFinite(json.equals))throw Error('Invalid JSON assertion: equals must be a string, number or boolean.');
   }
   if (assertions.latencyMs !== undefined) integer(assertions.latencyMs, 1, 10000, 'latency assertion');
   let flow;

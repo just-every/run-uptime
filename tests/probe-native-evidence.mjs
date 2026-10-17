@@ -90,17 +90,19 @@ try{
   await accept(task,[outcome(task,{status:503,outcome:'target_failure',checks:[assertion('status',false)]})],'Failing');
  });
  await check('every configured assertion is required on success and failure; retries retain the original failure',async()=>{
-  let task=await create({type:'keyword',retries:1,assertions:{status:200,bodyIncludes:'ready',header:{name:'x-check',equals:'yes'},json:{path:'ready',equals:true},latencyMs:50}});
-  const names=['status','body','header','json','latency'],checks=names.map(name=>assertion(name));
+  let task=await create({type:'keyword',retries:1,assertions:{status:[200,'201-299'],bodyIncludes:'ready',bodyExcludes:'maintenance',bodyRegex:{pattern:'ready'},header:{name:'x-check',equals:'yes'},json:{path:'$.checks[*].ready',equals:true},latencyMs:50}});
+  const names=['status','body','body-absent','body-regex','header','json','latency'],checks=names.map(name=>assertion(name));
   for(const name of names){
    await reject(task,outcome(task,{checks:checks.filter(c=>c.assertion!==name)}),'omitted pass '+name);
    await reject(task,outcome(task,{status:503,outcome:'target_failure',checks:checks.filter(c=>c.assertion!==name).map(c=>c.assertion==='status'?assertion('status',false):c)}),'omitted failure '+name);
   }
   const failure=outcome(task,{outcome:'target_failure',checks:checks.map(c=>c.assertion==='body'?assertion('body',false):c)});
+  await reject(task,outcome(task,{status:299,outcome:'target_failure',checks:checks.map(c=>c.assertion==='status'?assertion('status',false):c)}),'a status in the saved range must pass');
+  await reject(task,outcome(task,{status:300,checks}),'a status outside the saved range must fail');
   await reject(task,{...failure,outcome:'pass'},'pass cannot include a failed assertion');
   await accept(task,[failure,outcome(task,{attempt:1,checks})],'Healthy');
   assert.equal((await source.api('/api/overview')).data.alerts.filter(a=>a.monitor_id===task.monitorId).length,0);
-  for(const name of ['body','header','json']){
+  for(const name of ['body','body-absent','body-regex','header','json']){
    task=await next(task);
    const exhausted=outcome(task,{outcome:'target_failure',checks:checks.map(c=>c.assertion===name?assertion(name,false):c)});await accept(task,[exhausted,{...exhausted,id:randomUUID(),attempt:1}],'Failing');
   }
@@ -162,7 +164,7 @@ try{
   await accept(task,[valid],'Healthy');
  });
  await check('real synthetic HTTP response assertions pass and fail through native signed completion',async()=>{
-  let task=await create({network:'synthetic',url:`http://127.0.0.1:${fixturePort}/health`,assertions:{status:200,bodyIncludes:'ready',header:{name:'x-check',equals:'yes'},json:{path:'ready',equals:true},latencyMs:10000}});
+  let task=await create({network:'synthetic',url:`http://127.0.0.1:${fixturePort}/health`,assertions:{status:[200,'201-202'],bodyIncludes:'ready',bodyExcludes:'maintenance',bodyRegex:{pattern:'"ready":true'},header:{name:'x-check',equals:'yes'},json:{path:'$["ready"]',equals:true},latencyMs:10000}});
   const execute=async()=>({...await probeHttp({...task.definition,fixtureIdentity:'signed-evidence-fixture'},'local-a',[fixturePort]),attempt:0});
   await accept(task,[await execute()],'Healthy');
   response={status:200,headers:{'x-check':'no'},body:'{"ready":false}'};task=await next(task);

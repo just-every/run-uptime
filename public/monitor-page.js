@@ -38,8 +38,10 @@ function assertionSummary(definition){
  const assertions=definition.assertions,checks=isProtocol(definition)?protocolExpectations(definition):[];
  if(definition.type==='heartbeat'){if(Number.isFinite(definition.heartbeat?.maxAgeMs))checks.push(['Heartbeat receipt','Received within '+humaneDuration(definition.heartbeat.maxAgeMs),false])}
  else if(!isProtocol(definition)){
-  checks.push(['HTTP status',String(assertions.status),true]);
+  checks.push(['HTTP status',Array.isArray(assertions.status)?assertions.status.join(', '):String(assertions.status),true]);
   if(assertions.bodyIncludes!==undefined)checks.push(['Body contains',assertions.bodyIncludes,true]);
+  if(assertions.bodyExcludes!==undefined)checks.push(['Body must not contain',assertions.bodyExcludes,true]);
+  if(assertions.bodyRegex)checks.push(['Body matches expression','/'+assertions.bodyRegex.pattern+'/'+(assertions.bodyRegex.flags??''),true]);
   if(assertions.header)checks.push(['Header',assertions.header.name+' = '+assertions.header.equals,true]);
   if(assertions.json)checks.push(['JSON value',assertions.json.path+' = '+JSON.stringify(assertions.json.equals),true]);
   if(assertions.latencyMs!==undefined)checks.push(['Response time',`At most ${assertions.latencyMs}\u00a0ms`,false]);

@@ -3,11 +3,11 @@ import {minutesToMilliseconds,secondsToMilliseconds} from './units.mjs';
 import {PROTOCOL_TYPES,fillProtocol,readProtocol,showType,checkTypeOf} from './protocol-fields.mjs';
 // The monitor fields, shared by the full form and by every proposal row that expands into the same fields. A root is
 // the form or a row's copy of the field markup; fields are found by name inside it.
-export const FIELD_NAMES=['name','url','method','status','body','headerName','headerValue','additional','intervalMinutes','timeoutSeconds','retries','confirmSlots','recoverSlots','freshnessMinutes'];
+export const FIELD_NAMES=['name','url','method','status','body','bodyExcludes','regexPattern','regexFlags','headerName','headerValue','additional','intervalMinutes','timeoutSeconds','retries','confirmSlots','recoverSlots','freshnessMinutes'];
 const control=(root,name)=>root.querySelector(`[name="${name}"]`);
 export function fieldValues(definition){
  const {assertions}=definition;
- return {name:definition.name,url:PROTOCOL_TYPES.includes(definition.type)?'':definition.url,method:definition.method??'GET',status:assertions.status??200,body:assertions.bodyIncludes??'',headerName:assertions.header?.name??'',headerValue:assertions.header?.equals??'',additional:JSON.stringify(additionalAssertions(assertions),null,2),
+ return {name:definition.name,url:PROTOCOL_TYPES.includes(definition.type)?'':definition.url,method:definition.method??'GET',status:Array.isArray(assertions.status)?assertions.status.join(', '):assertions.status??200,body:assertions.bodyIncludes??'',bodyExcludes:assertions.bodyExcludes??'',regexPattern:assertions.bodyRegex?.pattern??'',regexFlags:assertions.bodyRegex?.flags??'',headerName:assertions.header?.name??'',headerValue:assertions.header?.equals??'',additional:JSON.stringify(additionalAssertions(assertions),null,2),
   intervalMinutes:definition.intervalMs/60000,timeoutSeconds:definition.timeoutMs/1000,retries:definition.retries,confirmSlots:definition.confirmSlots,recoverSlots:definition.recoverSlots,freshnessMinutes:definition.freshnessMs/60000};
 }
 export function fillFields(root,definition){
@@ -25,7 +25,7 @@ export function readFields(root,definition){
  for(const name of ['retries','confirmSlots','recoverSlots'])timing[name]=Number(value(name));
  if(PROTOCOL_TYPES.includes(type)){const {settings,assertions}=readProtocol(root,type);return {...rest,...timing,type,[type]:settings,assertions}}
  if(PROTOCOL_TYPES.includes(rest.type))rest.type='http';
- const assertions=assembleAssertions({status:value('status'),body:value('body'),headerName:value('headerName'),headerValue:value('headerValue'),additional:value('additional')});
+ const assertions=assembleAssertions({status:value('status'),body:value('body'),bodyExcludes:value('bodyExcludes'),regexPattern:value('regexPattern'),regexFlags:value('regexFlags'),headerName:value('headerName'),headerValue:value('headerValue'),additional:value('additional')});
  return {...rest,...timing,url:value('url'),method:value('method'),assertions};
 }
 // A copy of the form's field cards for one proposal row: no runner boxes (the console assigns those), unique ids, enabled.

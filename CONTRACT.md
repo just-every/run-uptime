@@ -399,8 +399,8 @@ Judged from the code and tests at commit `e0cf2054cee6cc5233a560defaf3d51b005b23
 | Clauses | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
 | Published | 16 | 5 | 0 | 21 |
-| Target and push further | 7 | 33 | 27 | 67 |
-| All | 23 | 38 | 27 | 88 |
+| Target and push further | 8 | 32 | 27 | 67 |
+| All | 24 | 37 | 27 | 88 |
 
 | Clause | Title | Kind | Status | Evidence | Gap |
 | --- | --- | --- | --- | --- | --- |
@@ -428,7 +428,7 @@ Judged from the code and tests at commit `e0cf2054cee6cc5233a560defaf3d51b005b23
 | `PUBLIC-002` | Declared sessionless paths and rate limits | published | done | `src/domain/public-rate-limits.server.ts`; `tests/public-paths.mjs` |  |
 | `FLOW-001` | Supported isolated browser transactions | published | partial | `src/domain/flow.mjs`; `runners/src/flow/run-flow.mjs`; `src/domain/flow-changes.server.ts`; `tests/flow-journey.mjs` | Constrained Chromium implementation exists; supported browser qualification remains open. |
 | `MONITOR-001` | Owned monitor catalog and lifecycle | target | partial | `src/domain/control.server.ts`; `src/domain/definitions/apply.server.ts`; `tests/definitions-import.mjs` | CRUD and immutable definitions exist; grouping, ownership and bulk organization do not. |
-| `API-001` | Complete HTTP and API assertions | target | partial | `src/domain/http-assertions.mjs`; `src/domain/policy.mjs`; `tests/public-probes.mjs` | Status, contains, header equality, dot-path scalar JSON and latency exist; absence, status sets, full JSONPath and regex do not. |
+| `API-001` | Complete HTTP and API assertions | target | done | `src/domain/http-assertions.mjs`; `src/domain/http-assertions/`; `src/domain/evidence.server.ts`; `tests/public-probes.mjs`; `tests/probe-native-evidence.mjs`; `work/sd-cp-uptime/shots/API-001/` | Exact status codes, sets/ranges, required/forbidden text, response headers, nested/array JSONPath, bounded RE2 regex and latency share immutable Worker/runner validation. Unsupported script/regex constructs refuse on save. Owner console save/edit, independent assertion failures, scheduled failure/recovery and 1440/390 axe/reflow are proven locally; this is not hosted placement evidence. |
 | `SLOW-001` | Slow-response alerts distinct from outages | target | missing |  | No implementation; a latency assertion fails the monitor as down. Acceptance journey above is required. |
 | `API-002` | Authenticated monitoring and secret lifecycle | target | partial | `runners/src/credentials.mjs`; `src/domain/credential-binding.mjs`; `tests/monitor-credentials.mjs` | Basic/bearer and scoped files ship; Digest, automated OAuth/JWT and mTLS do not. |
 | `API-003` | Multi-step API transactions | target | missing |  | No implementation; acceptance journey above is required. |
@@ -475,7 +475,7 @@ Judged from the code and tests at commit `e0cf2054cee6cc5233a560defaf3d51b005b23
 | `CODE-001` | CLI, TypeScript and CI deployment | target | partial | `scripts/definitions.mjs`; `src/domain/definitions/apply.server.ts`; `tests/definitions-import.mjs` | JSON definitions CLI/API exists; TypeScript, CI credential scopes and Checkly CLI compatibility are absent. |
 | `CODE-002` | Terraform provider | target | missing |  | No implementation; acceptance journey above is required. |
 | `METRICS-001` | Grafana and Prometheus integration | target | partial | `src/domain/availability.server.ts`; `tests/availability.mjs` | Availability/history APIs exist; scrape/export adapters and supplied dashboards are absent. |
-| `MIGRATE-001` | Complete UptimeRobot migration | target | partial | `src/domain/definitions/importers/uptimerobot.ts`; `tests/definitions-import.mjs` | Saved synthetic v3 pages import HTTP/contains/heartbeat definitions only and name alert contacts and status pages as not imported; live extraction, contact mapping, Lamp status-page handoff and real migration/cutover are absent or unmeasured. |
+| `MIGRATE-001` | Complete UptimeRobot migration | target | partial | `src/domain/definitions/importers/uptimerobot.ts`; `tests/definitions-import.mjs`; `tests/definitions-journey.mjs`; `work/sd-cp-uptime/shots/MIGRATE-001/` | Reviewed saved-page imports now preserve complete status sets/ranges and positive/negative keyword criteria through paused apply, read, export and undo; the console shows those criteria. Case-insensitive keywords still name their difference. Live extraction, contacts, history, sibling handoff and a real authorized source-account cutover remain absent or unmeasured. |
 | `MIGRATE-002` | Pingdom migration | target | missing |  | No implementation; acceptance journey above is required. |
 | `MIGRATE-003` | Better Stack Uptime migration | target | missing |  | No implementation; acceptance journey above is required. |
 | `MIGRATE-004` | Site24x7 website monitoring migration | target | missing |  | No implementation; acceptance journey above is required. |

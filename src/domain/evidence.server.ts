@@ -1,4 +1,8 @@
 // Signed completion and portable history share the same evidence contract.
+// @ts-ignore HTTP bundle identities and status semantics are shared with both probes.
+import {httpAssertionNames} from './http-assertions/config.mjs'
+// @ts-ignore Portable status sets and ranges.
+import {statusMatches} from './http-assertions/status.mjs'
 // @ts-ignore Edition flow vocabulary is JavaScript shared with the runner.
 import {FLOW_LIMITS,FLOW_REASONS,validateFlowEvidence} from './flow.mjs'
 // @ts-ignore Bounded non-secret diagnostics are shared with the runner.
@@ -101,14 +105,12 @@ function validateHttp(o: any, definition: any, checks: Map<string, Check>, durat
   if (!Number.isInteger(o.status) || o.status < 100 || o.status > 599 ||
       !Number.isInteger(o.bytes) || o.bytes < 0 || o.bytes > 65536) throw Error('Invalid observation transport evidence')
   const assertions = definition.assertions
-  const expected = ['status', ...(assertions.bodyIncludes !== undefined ? ['body'] : []),
-    ...(assertions.header ? ['header'] : []), ...(assertions.json ? ['json'] : []),
-    ...(assertions.latencyMs !== undefined ? ['latency'] : [])]
+  const expected: string[] = httpAssertionNames(assertions)
   if (checks.size !== expected.length || expected.some(name => !checks.has(name))) throw Error('Incomplete HTTP assertion evidence')
   const latencyConsistent = duration === null || assertions.latencyMs === undefined || (checks.get('latency')!.pass
     ? duration.min <= assertions.latencyMs
     : duration.max > assertions.latencyMs)
-  if (checks.get('status')!.pass !== (o.status === assertions.status) || !latencyConsistent) {
+  if (checks.get('status')!.pass !== statusMatches(o.status, assertions.status) || !latencyConsistent) {
     throw Error('Inconsistent HTTP assertion evidence')
   }
   // Body/header/JSON content is deliberately not retained. Their signed booleans

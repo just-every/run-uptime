@@ -22,9 +22,21 @@ function countsMarkup(preview){
  return `<dl class="definition-counts" aria-label="Preview counts">${Object.entries(ACTIONS).map(([key,[label]])=>`<div><dt>${label}</dt><dd>${c[key]}</dd></div>`).join('')}</dl>
  <p class="definition-source">${escape(preview.sourceLabel)}: ${o.importable} importable, ${o.withDifferences} importable with listed differences, ${o.unsupported} unsupported, ${o.refused} refused. New monitors arrive paused.</p>`;
 }
+function criteriaMarkup(definition){
+ if(!definition||!['http','keyword'].includes(definition.type))return '';
+ const a=definition.assertions,items=[['HTTP status',Array.isArray(a.status)?a.status.join(', '):String(a.status)]];
+ if(a.bodyIncludes!==undefined)items.push(['Body contains',a.bodyIncludes]);
+ if(a.bodyExcludes!==undefined)items.push(['Body must not contain',a.bodyExcludes]);
+ if(a.bodyRegex)items.push(['Body expression','/'+a.bodyRegex.pattern+'/'+(a.bodyRegex.flags??'')]);
+ if(a.header)items.push(['Header',a.header.name+' = '+a.header.equals]);
+ if(a.json)items.push(['JSON',a.json.path+' = '+JSON.stringify(a.json.equals)]);
+ if(a.latencyMs!==undefined)items.push(['Response time','At most '+a.latencyMs+' ms']);
+ return '<p><strong>Reviewed check criteria</strong></p><ul>'+items.map(([label,text])=>`<li>${escape(label)}: <code>${escape(text)}</code></li>`).join('')+'</ul>';
+}
 function rowMarkup(e){
  const [label,pill]=ACTIONS[e.action],details=[
   ...(e.reason?[`<p>${escape(e.reason)}</p>`]:[]),
+  criteriaMarkup(e.target),
   ...(e.changes??[]).map(ch=>`<p><span class="field">${escape(ch.field)}</span>: ${value(ch.from)} → ${value(ch.to)}</p>`),
   ...(e.differences.length?[`<ul>${e.differences.map(d=>`<li>${escape(d)}</li>`).join('')}</ul>`]:[]),
  ];

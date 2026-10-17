@@ -6,13 +6,15 @@ A monitor describes what to check, how often, and what counts as success. Uptime
 
 An HTTP(S) monitor requests a URL and tests the response against rules you set. You can assert on:
 
-- the status code,
-- text in the body,
+- an expected status code, set or range,
+- required or forbidden body text and a safe regular expression,
 - a response header,
 - a value in a JSON response, and
 - latency.
 
-A monitor that sets no status rule expects 200.
+A monitor that sets no status rule expects 200. **Expected HTTP status** accepts `200`, `200, 201`, `2xx`, or `200-299`. In definition files, `status` is a number or an array such as `[200, 201, "3xx"]`. A response must satisfy every configured assertion, even when its status is accepted.
+
+Use **Body must not contain** for error text such as `temporarily unavailable`. **Body regular expression** supports bounded RE2 expressions and optional `i`, `m` and `s` flags. Backreferences and lookaround are refused. Saved definitions use `bodyExcludes` and `bodyRegex: {"pattern":"ready", "flags":"i"}`. Body and header values are never retained as raw response content.
 
 ### JSON values and latency
 
@@ -22,11 +24,11 @@ In the HTTP form's **Additional checks (JSON)** field, enter:
 {"json":{"path":"$.status.indicator","equals":"none"},"latencyMs":1500}
 ```
 
-This requires the response's `status.indicator` value to equal `"none"` and its response time to be at most 1,500 ms. Both `$.status.indicator` and `status.indicator` are accepted. `json` is a single object with `path` and `equals`, not an array; either the JSON check or `latencyMs` may be omitted. Keep the expected HTTP status in its separate field.
+This requires the response's `status.indicator` value to equal `"none"` and its response time to be at most 1,500 ms. Both `$.status.indicator` and `status.indicator` are accepted. `json` is a single object with `path` and `equals`, not an array; either the JSON check or `latencyMs` may be omitted. JSONPath also selects nested arrays, for example `$.items[0].ready`, wildcard children and filtered selections. Every selected value must equal the scalar; no selection fails. Unsupported path features are refused on save. Keep the expected HTTP status, body and header checks in their separate fields.
 
 ### Keyword
 
-A keyword monitor is an HTTP(S) check that requires specific text in the response body. Use it when a page can return 200 while the content is wrong.
+A keyword monitor is an HTTP(S) check that requires specific text to be present or absent in the response body. Use it when a page can return 200 while the content is wrong.
 
 ### TCP port
 

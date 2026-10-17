@@ -21,7 +21,7 @@ async function run(extra={}){return probeHttp(def(extra),'local-a',[],{monitorId
 before(async()=>{
  const result=spawnSync('openssl',['req','-x509','-newkey','rsa:2048','-nodes','-keyout',join(dir,'key.pem'),'-out',join(dir,'cert.pem'),'-days','1','-subj','/CN=public-a.test','-addext','subjectAltName=DNS:public-a.test,DNS:public-b.test'],{stdio:'ignore'});assert.equal(result.status,0);
  const key=await readFile(join(dir,'key.pem')),cert=await readFile(join(dir,'cert.pem'));
- const handler=(req,res)=>{let body='';req.on('data',b=>body+=b);req.on('end',()=>{requests.push({host:req.headers.host,headers:req.headers,method:req.method,body,path:req.url,sni:req.socket.servername});const response=route(req);if(response.hang)return;if(response.drip){res.writeHead(200);res.write('a');const timer=setInterval(()=>res.write('a'),10);res.on('close',()=>clearInterval(timer));return}res.writeHead(response.status,response.headers);res.end(response.body)})};
+ const handler=(req,res)=>{let body='';req.on('data',b=>body+=b);req.on('end',()=>{requests.push({host:req.headers.host,headers:req.headers,method:req.method,body,path:req.url,sni:req.socket.servername});const response=route(req);if(response.hang)return;if(response.drip){res.writeHead(200);res.write('a');const timer=setInterval(()=>res.write('a'),10);res.on('close',()=>clearInterval(timer));return}const send=()=>{res.writeHead(response.status,response.headers);res.end(response.body)};if(response.delay)setTimeout(send,response.delay);else send()})};
  servers=[http.createServer(handler),https.createServer({key,cert},handler)];await Promise.all(servers.map((server,i)=>new Promise(resolve=>server.listen(15512+i,'127.0.0.1',resolve))));
  mock.method(Resolver.prototype,'resolve4',async function(host){dns.push(host);return ['93.184.216.34']});
  mock.method(Resolver.prototype,'resolve6',async()=>[]);
@@ -44,6 +44,10 @@ test('definition types and request references validate without retaining plainte
  for(const type of ['ping','udp','domain-expiry','browser','unknown'])assert.throws(()=>def({type}),/Unsupported/);
  for(const type of ['tcp','dns','tls','domain'])assert.throws(()=>def({type}),new RegExp(`${type.toUpperCase()} settings required|Domain settings required`,'i'));
  assert.throws(()=>def({type:'keyword'}),/Keyword/);assert.equal(def({type:'keyword',assertions:{bodyIncludes:'word'}}).type,'keyword');
+ assert.equal(def({type:'keyword',assertions:{bodyExcludes:'outage'}}).type,'keyword');
+ for(const status of [[],['200'],['0xx'],['600-699'],['299-200'],[true],['2xx',{}]])assert.throws(()=>def({assertions:{status}}),/status/);
+ for(const bodyRegex of [{pattern:'['},{pattern:'(a)\\1'},{pattern:'(?=a)'},{pattern:'a',flags:'g'},{pattern:'a',flags:'ii'},{pattern:'(a{100}){100}'},{pattern:'a',token:'secret'}])assert.throws(()=>def({assertions:{bodyRegex}}),/regex|bodyRegex/i);
+ for(const path of ['$.items[','$.items[?(@.ready = true)]','$.items[?search(@.name, "(a+)+$")]'])assert.throws(()=>def({assertions:{json:{path,equals:true}}}),/JSONPath/);
  for(const request of [{headers:{authorization:'secret'}},{body:'secret'},{credentialRef:'../escape'},{credentialRef:'a',auth:'secret'}])assert.throws(()=>def({request}));
  assert.throws(()=>def({headers:{a:'b'}}));assert.throws(()=>def({network:'synthetic'}));
  assert.equal(def({method:'POST',request:{credentialRef:'request-a'}}).request.credentialRef,'request-a');
@@ -64,6 +68,43 @@ test('actual HTTP/HTTPS sockets use validated pin, original Host and verified SN
  for(const protocol of ['http','https']){const evidence=await run({url:`${protocol}://public-a.test/health`,type:'keyword',assertions:{status:200,bodyIncludes:'operational',header:{name:'x-check',equals:'yes'},json:{path:'ready',equals:true},latencyMs:1000}});assert.equal(evidence.outcome,'pass');assert.deepEqual(evidence.checks.map(c=>c.assertion),['status','body','header','json','latency']);assert.equal(evidence.body,undefined)}
  assert.equal(dns.length-start,2);assert.equal(requests.at(-1).host,'public-a.test');assert.equal(requests.at(-1).sni,'public-a.test');assert.equal(pins.at(-1).hostname,'93.184.216.34');
  const evidence=await run({url:'https://not-in-certificate.test/health'});assert.equal(evidence.outcome,'target_failure');assert.equal(evidence.checks[0].assertion,'connection');
+});
+test('the saved API assertion bundle independently fails each business check on real HTTP responses',async()=>{
+ const assertions={status:[200,'201-202'],bodyIncludes:'operational',bodyExcludes:'maintenance',bodyRegex:{pattern:'"trace":"[A-Z]{2}[0-9]{2}"',flags:'i'},header:{name:'x-check',equals:'yes'},json:{path:'$.data.items[*].ready',equals:true},latencyMs:500};
+ const definition=def({type:'keyword',assertions}),saved=structuredClone(definition);
+ const healthy={status:201,headers:{'x-check':'yes'},body:JSON.stringify({message:'operational',trace:'ab42',data:{items:[{ready:true},{ready:true}]}})};
+ const execute=async response=>{route=()=>response;return probeHttp(definition,'local-a',[],{monitorId:'probe-monitor'})};
+ let evidence=await execute(healthy);assert.equal(evidence.outcome,'pass');
+ assert.deepEqual(evidence.checks.map(c=>c.assertion),['status','body','body-absent','body-regex','header','json','latency']);
+ const replaceBody=change=>{const value=JSON.parse(healthy.body);change(value);return {...healthy,body:JSON.stringify(value)}};
+ for(const [name,response] of [
+  ['status',{...healthy,status:203}],
+  ['body',replaceBody(value=>value.message='quiet')],
+  ['body-absent',replaceBody(value=>value.notice='maintenance')],
+  ['body-regex',replaceBody(value=>value.trace='invalid')],
+  ['header',{...healthy,headers:{'x-check':'no'}}],
+  ['json',replaceBody(value=>value.data.items[1].ready=false)],
+  ['latency',{...healthy,delay:650}],
+ ]){
+  evidence=await execute(response);assert.equal(evidence.outcome,'target_failure',name);
+  assert.deepEqual(evidence.checks.filter(c=>!c.pass).map(c=>c.assertion),[name]);
+  assert.deepEqual(definition,saved,'execution must retain the saved criteria');assert.equal(evidence.body,undefined);
+ }
+ route=()=>healthy;
+ for(const status of [200,299,404]){route=()=>({...healthy,status});const result=await run({assertions:{status:['2xx',404]}});assert.equal(result.outcome,'pass')}
+ route=()=>({...healthy,status:500});assert.equal((await run({assertions:{status:['2xx',404]}})).outcome,'target_failure');
+ for(const path of ['data.items[0].ready',"$['data']['items'][-1]['ready']",'$.data.items[0:2].ready','$.data.items[?@.ready == true].ready','$..ready']){
+  route=()=>healthy;assert.equal((await run({assertions:{status:201,json:{path,equals:true}}})).outcome,'pass',path);
+ }
+ for(const body of ['not JSON','{"data":{"items":[]}}','{"data":{"items":[{"ready":false}]}}']){
+  route=()=>({...healthy,body});const result=await run({assertions:{status:201,json:assertions.json}});assert.equal(result.outcome,'target_failure');assert.deepEqual(result.checks.filter(c=>!c.pass).map(c=>c.assertion),['json']);
+ }
+ route=()=>({...healthy,body:'{"api_token":"private-response-sentinel"}'});
+ evidence=await run({assertions:{status:201,json:{path:'$.*',equals:'expected'}}});assert.equal(evidence.outcome,'target_failure');assert.doesNotMatch(JSON.stringify(evidence),/private-response-sentinel/);
+ for(const [body,pattern,flags] of [['FIRST\nsecond','^second$','m'],['first\nsecond','first.second','s']]){
+  route=()=>({status:200,body});assert.equal((await run({assertions:{bodyRegex:{pattern,flags}}})).outcome,'pass');
+ }
+ route=()=>({status:200,body:'a'.repeat(64000)+'!'});assert.equal((await run({assertions:{bodyRegex:{pattern:'(a+)+$'}}})).outcome,'target_failure');
 });
 test('credential files enforce owner-only scope, header/body/auth and origin binding',async()=>{
  await writeFile(join(dir,'request-a.json'),JSON.stringify({monitorId:'probe-monitor',origin:'https://public-a.test',headers:{'x-secret':'private-header','content-type':'application/json'},body:'private-body',auth:{type:'bearer',token:'private-token'}}),{mode:0o600});

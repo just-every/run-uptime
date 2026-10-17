@@ -26,7 +26,7 @@ export async function definitionsJourney(page, origin) {
  const evidence = process.env.UPTIME_DEFINITIONS_EVIDENCE;
  if (evidence) await mkdir(evidence, { recursive: true });
  const cases = [
-  { width: 1440, file: fixture, counts: { Create: '5', Unchanged: '0', Change: '0', Refused: '2', Unsupported: '5' }, apply: 'Apply: create 5, change 0', created: ['Shop home', 'Docs', 'Checkout keyword', 'Nightly backup', 'Partner API'] },
+  { width: 1440, file: fixture, counts: { Create: '6', Unchanged: '0', Change: '0', Refused: '2', Unsupported: '4' }, apply: 'Apply: create 6, change 0', created: ['Shop home', 'Docs', 'Checkout keyword', 'Error banner absent', 'Nightly backup', 'Partner API'] },
   { width: 390, file: { name: 'uptime.monitors.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify({ format: 'uptime.monitors', version: 1, monitors: [{ name: 'Phone import', url: 'https://phone.example.test/' }, { name: 'Shop home', url: 'https://shop.example.com/', method: 'GET', timeoutMs: 10000, freshnessMs: 900000, intervalMs: 300000 }] })) }, counts: { Create: '1', Unchanged: '1', Change: '0', Refused: '0', Unsupported: '0' }, apply: 'Apply: create 1, change 0', created: ['Phone import'] },
  ];
  for (const step of cases) {

@@ -1,31 +1,20 @@
-// The Worker and private runner evaluate exactly the same HTTP assertions.
-// Retain only a bounded scalar diagnostic, never a JSON subtree or parse error
-// (which can include response content). Sensitive paths and credentialed
-// responses reveal no value, including credentials echoed by the target.
-function jsonEvidence(value,redact){
- if(value===undefined)return 'missing';
- if(value===null)return 'null';
- if(typeof value==='object')return Array.isArray(value)?'array':'object';
- if(redact)return '[redacted]';
- const text=typeof value==='string'?JSON.stringify(value.replace(/[\x00-\x1f\x7f-\x9f\u202a-\u202e\u2066-\u2069]/g,' ')):String(value);
- return text.length>50?text.slice(0,49)+'…':text;
-}
-function jsonAssertion(assertion,body,credentialed){
- const {path,equals}=assertion;
- let value,invalid=false;
- try{
-  value=JSON.parse(body);
-  for(const key of path.replace(/^\$\./,'').split('.'))value=value!==null&&typeof value==='object'&&Object.hasOwn(value,key)?value[key]:undefined;
- }catch{invalid=true}
- const pass=!invalid&&value===equals,redact=credentialed||/(?:password|secret|token|authorization|cookie|credential|api[-_]?key)/i.test(path);
- return {assertion:'json',pass,reason:pass?'JSON value matches assertion':`JSON assertion failed at ${path}: actual ${invalid?'invalid JSON':jsonEvidence(value,redact)}; expected ${jsonEvidence(equals,redact)}`};
-}
+import {HTTP_ASSERTIONS} from './http-assertions/config.mjs';
+import {statusMatches} from './http-assertions/status.mjs';
+import {compileBodyRegex} from './http-assertions/regex.mjs';
+import {jsonAssertion} from './http-assertions/json.mjs';
+const result=(pass,yes,no)=>({pass,reason:pass?yes:no});
+// Worker, runner and control-plane evidence use one ordered saved bundle.
 export function httpAssertions(def,response,durationMs){
  const a=def.assertions,{body,headers,status}=response;
- const checks=[{assertion:'status',pass:status===a.status,reason:'Expected HTTP status'}];
- if(a.bodyIncludes!==undefined)checks.push({assertion:'body',pass:body.includes(a.bodyIncludes),reason:'Body contains required text'});
- if(a.header)checks.push({assertion:'header',pass:headers[a.header.name.toLowerCase()]===a.header.equals,reason:'Header equals required value'});
- if(a.json)checks.push(jsonAssertion(a.json,body,Boolean(def.request)));
- if(a.latencyMs)checks.push({assertion:'latency',pass:durationMs<=a.latencyMs,reason:'Response within required time'});
- return checks;
+ const evaluate={
+  status:()=>result(statusMatches(status,a.status),'HTTP status matches expected status or range','HTTP status is outside the expected status or range'),
+  bodyIncludes:()=>result(body.includes(a.bodyIncludes),'Body contains required text','Body is missing required text'),
+  bodyExcludes:()=>result(!body.includes(a.bodyExcludes),'Body excludes forbidden text','Body contains forbidden text'),
+  bodyRegex:()=>result(compileBodyRegex(a.bodyRegex).matcher(body).find(),'Body matches required regular expression','Body does not match the required regular expression'),
+  header:()=>result(headers[a.header.name.toLowerCase()]===a.header.equals,'Header equals required value','Header does not equal the required value'),
+  json:()=>jsonAssertion(a.json,body,Boolean(def.request)),
+  latencyMs:()=>result(durationMs<=a.latencyMs,'Response within required time','Response exceeded the required time'),
+ };
+ return Object.entries(HTTP_ASSERTIONS).filter(([key])=>key==='status'||a[key]!==undefined)
+  .map(([key,assertion])=>({assertion,...evaluate[key]()}));
 }
