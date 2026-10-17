@@ -319,7 +319,12 @@ stop it and opt this computer out.
 Deploy and removal errors name the failing Cloudflare method and path (without
 credentials or query values), its error code and message when supplied, and the
 command that continues with the same environment. Keep `.rer/deploy/` private:
-it records ownership so a repeat reuses resources safely.
+it records ownership so a repeat reuses resources safely, and
+`.rer/deploy/<environment>.secrets.env` keeps the secrets rer generated for that
+environment (session and link secrets), so a redeploy keeps sessions and emailed
+links working. To deploy the environment from another checkout, copy that file
+there. Without it, `rer deploy` refuses to replace secrets the live Worker holds;
+`rer deploy --rotate-secret NAME` replaces one on purpose.
 
 `provider-incomplete-pagination` means Cloudflare advertised another list page
 but rer could not read a valid continuation, or returned a full page with no

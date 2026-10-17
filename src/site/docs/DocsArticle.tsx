@@ -27,7 +27,7 @@ export function DocsArticle({ slug, variant = 'instance' }: { slug: string; vari
       <DocsDawn />
       <HydrationUnit><SiteHeader current="docs" variant={variant} /></HydrationUnit>
       <div className="ut-wrap docs-shell">
-        <HydrationUnit><DocsSidebar current={slug} /></HydrationUnit>
+        <HydrationUnit><DocsSidebar current={slug} variant={variant} /></HydrationUnit>
         <main id="main" className="docs-main">
           <HydrationUnit><DocsMenu current={slug} label={page.title} /></HydrationUnit>
           <HydrationUnit>

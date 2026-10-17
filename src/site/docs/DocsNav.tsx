@@ -1,4 +1,4 @@
-import { docsPath } from '../shell/links';
+import { docsPath, links, type SiteVariant } from '../shell/links';
 import { docsSections } from './pages';
 
 /** The sections and their pages, the current one marked. `idPrefix` keeps the sidebar's and the phone menu's ids apart. */
@@ -22,11 +22,12 @@ export function DocsNavList({ current, idPrefix }: { current?: string; idPrefix:
 }
 
 /** The section navigation beside the page on wide screens; it stays in view while the page scrolls. Without a current page it is the docs home's own sidebar, and "All docs" is the current one. */
-export function DocsSidebar({ current }: { current?: string }) {
+export function DocsSidebar({ current, variant = 'instance' }: { current?: string; variant?: SiteVariant }) {
   return (
     <nav className="docs-sidebar" aria-label="Docs">
       <a className="docs-sidebar-home" href="/docs" aria-current={current ? undefined : 'page'}>All docs</a>
       <DocsNavList current={current} idPrefix="docs-sidebar" />
+      {variant === 'site' && <a className="docs-sidebar-home docs-sidebar-contract" href={links.contract}>Contract</a>}
     </nav>
   );
 }

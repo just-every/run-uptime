@@ -31,4 +31,13 @@
   --rer-link: #14204a;
   --rer-radius: 18px;
   --rer-logo: url('/brand/mark.svg');
+  --rer-done: #2aa36b;
+  --rer-partial: #f2994a;
+  --rer-missing: #dc2e55;
+  --rer-done-ink: #1a7a4d;
+  --rer-partial-ink: #a8541a;
+  --rer-missing-ink: #b8284c;
+  --rer-on-done: #14204a;
+  --rer-on-partial: #14204a;
+  --rer-on-missing: #ffffff;
 }

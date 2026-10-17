@@ -21,7 +21,7 @@ export function DocsIndex({ variant = 'instance' }: { variant?: SiteVariant }) {
       <DocsDawn />
       <HydrationUnit><SiteHeader current="docs" variant={variant} /></HydrationUnit>
       <div className="ut-wrap docs-shell docs-shell--index">
-        <HydrationUnit><DocsSidebar /></HydrationUnit>
+        <HydrationUnit><DocsSidebar variant={variant} /></HydrationUnit>
         <main id="main" className="docs-main">
           <HydrationUnit>
             <header className="docs-page-head">

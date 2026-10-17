@@ -11,6 +11,7 @@ export function SiteFooter({ variant = 'instance' }: { variant?: SiteVariant }) 
           <p className="ut-footer-tagline">Self-hosted uptime and API monitoring.</p>
           <nav aria-label="Footer">
             <a href={links.docs}>Docs</a>
+            {variant === 'site' && <a href={links.contract}>Contract</a>}
             <a href={links.source}>Source</a>
             {variant === 'instance' && <a href={links.signIn}>Sign in</a>}
             <span className="ut-footer-licence">MIT licensed</span>
