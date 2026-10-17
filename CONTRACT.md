@@ -420,7 +420,7 @@ Protocol round (17 October 2026): TCP-001, DNS-001, TLS-001 and DOMAIN-001 moved
 
 ## Status
 
-Updated 18 October 2026 for NOTICE-001; other rows retain their cited implementation and acceptance bounds.
+Judged from the code and tests at commit `2f1f7a1bb259de2ac09a90b3a4f435cfe62240a0` (18 October 2026).
 
 | Clauses | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
