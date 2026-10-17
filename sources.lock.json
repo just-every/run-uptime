@@ -513,7 +513,7 @@
       "executable": false
     },
     "docs/install.md": {
-      "sha256": "65bae29a114007ce069bd80a0700d1c48d64613143dbcb2713a6f0143ca033eb",
+      "sha256": "5decf054133d3df1b24c95b1b63d7090d4461b470567298832ae705d5d41cfdd",
       "executable": false
     },
     "docs/limits.md": {
@@ -733,7 +733,7 @@
       "executable": false
     },
     "OPERATIONS.md": {
-      "sha256": "8e97ee6baeea7de60551b47b6b06eae042b08aa2bd80ee93aceb22c8f0d7bf8d",
+      "sha256": "26f5e350d2ca1e5d596ecade7cf971c84450d38cd344287904480767e219c584",
       "executable": false
     },
     "package.json": {
@@ -861,7 +861,7 @@
       "executable": false
     },
     "README.md": {
-      "sha256": "d99478f5ad20cf2331e0ffb7d3b04915559e0f5a31c7e4726f9b1f8bbb1fbd8c",
+      "sha256": "3e735f0f1d1cefe6f05a32e7f0d49f0f435966b5e85a501045ce50714cee88de",
       "executable": false
     },
     "RELEASE.json": {
@@ -885,7 +885,7 @@
       "executable": false
     },
     "RUN-LOCALLY.md": {
-      "sha256": "d9b761d7fa31f64f112fc3b44cb97ca497583f9f66752e5f7245b9af91d390aa",
+      "sha256": "495c58724f04484762270a50140f425a0d23ca031f137addd3c5c0bcf9188df4",
       "executable": false
     },
     "runners/migrations/0001-monitor-credentials.mjs": {
