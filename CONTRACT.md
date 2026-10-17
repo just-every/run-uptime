@@ -420,13 +420,13 @@ Protocol round (17 October 2026): TCP-001, DNS-001, TLS-001 and DOMAIN-001 moved
 
 ## Status
 
-Judged from the code and tests at commit `2f1f7a1bb259de2ac09a90b3a4f435cfe62240a0` (18 October 2026).
+Judged from the code and tests at commit `f0c10a97dd6362ab8cf64ba93c748ab21f720c3f` (18 October 2026).
 
 | Clauses | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
 | Published | 16 | 5 | 0 | 21 |
-| Target and push further | 12 | 31 | 24 | 67 |
-| All | 28 | 36 | 24 | 88 |
+| Target and push further | 13 | 30 | 24 | 67 |
+| All | 29 | 35 | 24 | 88 |
 
 | Clause | Title | Kind | Status | Evidence | Gap |
 | --- | --- | --- | --- | --- | --- |
@@ -495,7 +495,7 @@ Judged from the code and tests at commit `2f1f7a1bb259de2ac09a90b3a4f435cfe62240
 | `ONCALL-001` | Responder handoff and automatic resolution | target | missing |  | No implementation; acceptance journey above is required. |
 | `LAMP-001` | Status communication through Lamp | target | missing |  | No implementation; acceptance journey above is required. |
 | `AUTOMATION-001` | Zapier, Make and custom automation | target | missing |  | No implementation; acceptance journey above is required. |
-| `WEBHOOK-001` | Custom webhook requests and payload templates | target | partial | `src/domain/webhook-template.mjs`; `src/domain/notification-webhook.ts`; `src/domain/webhook-contact-import.mjs`; `runners/src/notification-transport.mjs`; `tests/webhook-custom.mjs`; `tests/hosted-alerts.mjs`; `docs/webhooks.md`; `docs/evidence/contracts/webhooks/` | Custom JSON/form/query requests, aliases, secret custody, preview and controlled/hosted receiver delivery are proven. The final emitted-UI heading-focus and specific header-error changes have not been personally inspected at 1440 and 390 after the last build; that proof remains pending. |
+| `WEBHOOK-001` | Custom webhook requests and payload templates | target | done | `src/domain/webhook-template.mjs`; `src/domain/notification-webhook.ts`; `src/domain/webhook-contact-import.mjs`; `runners/src/notification-transport.mjs`; `public/webhook-editor.js`; `public/notifications.js`; `tests/webhook-custom.mjs`; `tests/webhook-browser.mjs`; `tests/hosted-alerts.mjs`; `docs/webhooks.md` | Imported custom JSON, form and query requests, variable aliases and named unavailable values, exact-byte signing, encrypted masked headers, receiver status/redacted excerpts and inactive portable templates are proven through Worker and real runner routes. The emitted console import, specific header refusal inside its modal, heading focus at the top of each preview, return focus, JSON/query/form test delivery, reflow and zero axe violations are personally inspected at 1440/390. No live provider or human receipt is claimed. |
 | `MANAGE-001` | Monitor and contact API | target | done | `src/domain/control.server.ts`; `src/domain/notification-destinations.server.ts`; `tests/definitions-import.mjs`; `tests/notify-delivery.mjs` |  |
 | `READAPI-001` | Versioned read API for uptime, response times and incidents | target | partial | `src/server.ts`; `src/domain/incident-list.server.ts`; `src/domain/incident-work/`; `src/domain/reports/`; `src/domain/read-api-openapi.ts`; `tests/incident-work.mjs`; `tests/reporting.mjs` | Owner-session period reports and latency reads now include a stable cursor-paginated incident list with monitor/tag/date/response-state/root-cause filters and detail with comments, edit history, root cause, ownership and activity. API keys/scopes/step-up, bulk reads, incident-list CSV, source-history segments and documented per-key rate limits remain absent; series bounds and unavailable next-due policy are explicit. |
 | `CODE-001` | CLI, TypeScript and CI deployment | target | partial | `scripts/definitions.mjs`; `src/domain/definitions/apply.server.ts`; `tests/definitions-import.mjs` | JSON definitions CLI/API exists; TypeScript, CI credential scopes and Checkly CLI compatibility are absent. |
