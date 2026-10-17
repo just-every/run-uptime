@@ -79,7 +79,7 @@ export function assignRunners(rows:Runner[],firstRunnerId:string,definition:any,
  if(input.assignments!==undefined&&(!input.assignments||Array.isArray(input.assignments)||Object.keys(input.assignments).some(k=>!definition.probes.includes(k))))throw Error('Invalid probe assignments');
  for(const [i,probe] of definition.probes.entries()){
   const requested=input.assignments?.[probe],runnerId=typeof requested==='string'?requested:requested?.runnerId??hosted?.runner_id??available[i%available.length]?.runner_id??firstRunnerId;
-  const row=rows.find(r=>r.runner_id===runnerId);if(runnerId===HOSTED_RUNNER_ID&&(!hostedHttp(definition)||definition.intervalMs<60000))throw Error('Worker checks require public HTTP(S), no runner-local credentials, and an interval of at least one minute. Choose a private runner for other checks');if(!row||(definition.enabled&&row.revoked_at!==null))throw Error('Probe requires an active assigned runner');
+  const row=rows.find(r=>r.runner_id===runnerId);if(runnerId===HOSTED_RUNNER_ID&&(!hostedHttp(definition)||definition.intervalMs<60000))throw Error('Worker checks require supported public checks, default certificate trust, no runner-local credentials, and an interval of at least one minute. Choose a private runner for other checks');if(!row||(definition.enabled&&row.revoked_at!==null))throw Error('Probe requires an active assigned runner');
   if(definition.enabled&&runnerId===HOSTED_RUNNER_ID&&ownOrigin(definition.url,appOrigin))throw Error(SELF_CHECK_REFUSAL);
   const canaryUrl=requested?.canaryUrl??input.canaryUrl;
   const href=canaryUrl?publicTarget(canaryUrl).href:null;

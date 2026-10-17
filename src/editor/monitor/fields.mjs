@@ -1,3 +1,4 @@
+import {fillTlsFields,readTlsFields,showTlsFields} from './tls-fields.mjs';
 import {fillMetadata,readMetadata} from './metadata-fields.mjs';
 import {additionalAssertions,assembleAssertions} from './definition.mjs';
 import {minutesToMilliseconds,secondsToMilliseconds} from './units.mjs';
@@ -13,22 +14,23 @@ export function fieldValues(definition){
 }
 export function fillFields(root,definition){
  fillMetadata(root,definition);
+ fillTlsFields(root,definition);
  const values=fieldValues(definition);
  for(const name of FIELD_NAMES){const element=control(root,name);if(element)element.value=String(values[name])}
- if(control(root,'checkType')){fillProtocol(root,definition);showType(root,checkTypeOf(definition))}
+ if(control(root,'checkType')){fillProtocol(root,definition);showType(root,checkTypeOf(definition))}else showTlsFields(root);
 }
 // The definition the fields now describe, on top of the one they were filled from (type, network and the rest pass through).
 export function readFields(root,definition){
  const value=name=>control(root,name).value;
  const type=control(root,'checkType')?.value??'http';
  // Settings of other types never travel with the one selected.
- const {url,method,tcp,dns,tls,domain,...rest}=definition;
+ const {url,method,tcp,dns,tls,domain,tlsTrust,request,...rest}=definition;
  const timing={...readMetadata(root,definition),name:value('name'),intervalMs:minutesToMilliseconds(value('intervalMinutes')),timeoutMs:secondsToMilliseconds(value('timeoutSeconds')),freshnessMs:minutesToMilliseconds(value('freshnessMinutes'))};
  for(const name of ['retries','confirmSlots','recoverSlots'])timing[name]=Number(value(name));
  if(PROTOCOL_TYPES.includes(type)){const {settings,assertions}=readProtocol(root,type);return {...rest,...timing,type,[type]:settings,assertions}}
  if(PROTOCOL_TYPES.includes(rest.type))rest.type='http';
  const assertions=assembleAssertions({status:value('status'),body:value('body'),bodyExcludes:value('bodyExcludes'),regexPattern:value('regexPattern'),regexFlags:value('regexFlags'),headerName:value('headerName'),headerValue:value('headerValue'),additional:value('additional')});
- return {...rest,...timing,url:value('url'),method:value('method'),assertions};
+ return {...rest,...timing,...readTlsFields(root),url:value('url'),method:value('method'),assertions};
 }
 // A copy of the form's field cards for one proposal row: no runner boxes (the console assigns those), unique ids, enabled.
 export function cloneFields(form,suffix){

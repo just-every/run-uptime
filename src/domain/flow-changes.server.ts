@@ -18,9 +18,10 @@ export async function definitionChange(env:Bindings,monitorId:string,incidentRev
   const removed=earlier.type==='flow'?requirementChange(earlier.flow,null).removed:[]
   return {...from,removed:removed.length?removed:[typeName(earlier.type??'http')],fromType:earlier.type??'http',toType:definition.type??'http'}
  }
+ if(['http','keyword'].includes(definition.type??'http')&&JSON.stringify(earlier.tlsTrust??null)!==JSON.stringify(definition.tlsTrust??null))return {...from,removed:['the original HTTPS certificate trust policy'],fromType:earlier.type??'http',toType:definition.type??'http'};
  if(definition.type!=='flow')return null
  const change=requirementChange(earlier.flow,definition.flow)
  return change.change==='shrank'?{...from,removed:change.removed}:null
 }
-export const definitionChangeNote=(c:DefinitionChange)=>c.fromType?` Changed definition: revision ${c.toRevision} made this monitor ${typeName(c.toType!)} instead of ${typeName(c.fromType)} and no longer requires ${c.removed.join('; ')}, which revision ${c.fromRevision} required when this incident began, so a pass now is not evidence that the original ${c.fromType==='flow'?'flow':'check'} works.`
+export const definitionChangeNote=(c:DefinitionChange)=>c.removed.includes('the original HTTPS certificate trust policy')?` Changed definition: revision ${c.toRevision} uses a different HTTPS certificate trust policy from revision ${c.fromRevision}. A pass under this policy does not establish that the original certificate problem recovered.`:c.fromType?` Changed definition: revision ${c.toRevision} made this monitor ${typeName(c.toType!)} instead of ${typeName(c.fromType)} and no longer requires ${c.removed.join('; ')}, which revision ${c.fromRevision} required when this incident began, so a pass now is not evidence that the original ${c.fromType==='flow'?'flow':'check'} works.`
  :` Changed definition: revision ${c.toRevision} no longer requires ${c.removed.join('; ')}, which revision ${c.fromRevision} required when this incident began, so a pass now is not evidence that the original flow works.`

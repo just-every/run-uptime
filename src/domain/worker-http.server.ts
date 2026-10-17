@@ -46,11 +46,12 @@ async function publicResponse(def:any,signal:AbortSignal,{dns,allowance,appOrigi
  }
  throw new ProbeError('redirect');
 }
-const runnerErrors=['dns','network','runner','budget']
+const runnerErrors=['dns','network','runner','budget','vantage']
 export async function workerProbe(def:any,probe:string,context:ProbeContext){
  const startedAt=Date.now(),signal=AbortSignal.timeout(def.timeoutMs);
  const evidence=(data:any,completedAt=Date.now())=>({id:crypto.randomUUID(),probe,startedAt,completedAt,durationMs:completedAt-startedAt,runnerVersion:EVIDENCE_VERSION,...data});
  try{
+  if(def.tlsTrust)throw new ProbeError('vantage','This certificate trust setting requires a private runner; the Cloudflare Worker cannot apply it.');
   const response=await publicResponse(def,signal,context),completedAt=Date.now(),checks=httpAssertions(def,response,completedAt-startedAt);
   return evidence({outcome:checks.every((check:any)=>check.pass)?'pass':'target_failure',status:response.status,bytes:response.bytes,checks},completedAt);
  }catch(error){

@@ -1,3 +1,4 @@
+import {showTlsFields} from './tls-fields.mjs';
 // The TCP, DNS, TLS and domain fields of the monitor form. The check type selects one group of fields; the others are
 // hidden and disabled, so only the selected type's fields are validated and read.
 export const PROTOCOL_TYPES=['tcp','dns','tls','domain'];
@@ -21,6 +22,7 @@ export function showType(root,type){
  const url=control(root,'url');if(url)url.required=type==='http';
  for(const name of ['tcpHost','tcpPort','dnsName','tlsHost','domainName']){const field=control(root,name);if(field)field.required=name.startsWith(type)}
  const help=root.querySelector('.type-help');if(help)help.textContent=HELP[type];
+ showTlsFields(root);
 }
 export function fillProtocol(root,definition){
  const set=(name,value)=>{const field=control(root,name);if(field)field.value=value??''};

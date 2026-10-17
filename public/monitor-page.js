@@ -28,7 +28,7 @@ export function monitorIdFromPath(pathname){
 const kinds={http:'HTTP check',keyword:'Keyword check',heartbeat:'Heartbeat',flow:'Browser flow',...PROTOCOL_KINDS};
 const backLink='<a class="back-link ui-link" id="monitor-back" href="/app"><span class="ui-icon" data-icon="chevron" aria-hidden="true"></span><span class="ui-visually-hidden">Back to </span>Monitors</a>';
 const hiddenDot='<span class="ui-visually-hidden"> · </span>',slash='<span class="ui-visually-hidden"> / </span>';
-const openHistory=new Set(),openIncidents=new Set();
+const openHistory=new Set(),openIncidents=new Set(),openTls=new Set();
 
 // "every 1 minute", "every 15 seconds", "every 1 hour 30 minutes": the interval with its units spelled out.
 const unitWords={d:'day',h:'hour',min:'minute',s:'second'};
@@ -38,11 +38,17 @@ function statusExplanation(m,readUnavailable,data){if(readUnavailable)return 'Th
 // Each expectation as a label over a chip; codes, headers and JSON are monospace, prose limits are not. A heartbeat
 // check only reads its receipt (runners/src/probes.mjs probeHeartbeat), so its stored HTTP assertions are not listed;
 // Full check details still shows them.
+function tlsTrustMarkup(observation){
+ if(!observation.tlsTrust?.length)return '';
+ return `<details class="credential-binding" data-tls-observation="${escape(observation.id)}" ${openTls.has(observation.id)?'open':''}><summary id="tls-evidence-${escape(observation.id)}">Certificate trust for this attempt</summary><ul>${observation.tlsTrust.map(fact=>`<li><strong>${escape(fact.mode)}</strong> · ${escape(fact.origin)}<br>Leaf SHA-256: <code style="overflow-wrap:anywhere">${escape(fact.sha256)}</code><br>${fact.bypassed?'Bypassed verification errors: ':'Verification results: '}${escape(fact.errors.join(', ')||'No verification errors')}. ${fact.credentialsAllowed?'Credential authority permitted.':'No credential authority granted.'}</li>`).join('')}</ul></details>`;
+}
 function assertionSummary(definition){
  if(isFlow(definition))return flowSummary(definition);
  const assertions=definition.assertions,checks=isProtocol(definition)?protocolExpectations(definition):[];
  if(definition.type==='heartbeat'){if(Number.isFinite(definition.heartbeat?.maxAgeMs))checks.push(['Success period + grace',humaneDuration(definition.heartbeat.maxAgeMs+(definition.heartbeat.graceMs??0)),false]);if(definition.heartbeat?.maxRunDurationMs)checks.push(['Maximum run duration',humaneDuration(definition.heartbeat.maxRunDurationMs),false])}
  else if(!isProtocol(definition)){
+  if(definition.request)checks.push(['Local credential reference',definition.request.credentialRef,true]);
+  if(definition.tlsTrust)checks.push(['Certificate trust',definition.tlsTrust.mode==='fingerprint'?'Pinned SHA-256 leaf certificate':definition.tlsTrust.mode==='ca'?'Owner-supplied CA':'Certificate errors ignored',false]);
   checks.push(['HTTP status',Array.isArray(assertions.status)?assertions.status.join(', '):String(assertions.status),true]);
   if(assertions.bodyIncludes!==undefined)checks.push(['Body contains',assertions.bodyIncludes,true]);
   if(assertions.bodyExcludes!==undefined)checks.push(['Body must not contain',assertions.bodyExcludes,true]);
@@ -57,7 +63,7 @@ function assertionSummary(definition){
 function titleBlock(m,readUnavailable){
  const state=shownState(m,readUnavailable),heartbeat=m.definition.type==='heartbeat';
  const where=heartbeat?`<p class="subtitle monitor-target">Incoming heartbeat at <code class="ui-mono">/api/heartbeats/${escape(m.id)}</code></p>`:`<p class="subtitle monitor-target ui-url">${breakableUrl(m.definition.url)}</p>`;
- return `${backLink}<div class="monitor-title"><h1 id="monitor-detail-heading">${escape(m.definition.name)}</h1><span class="ui-pill badge ${escape(state.toLowerCase())}" id="monitor-state">${escape(state)}</span></div>${where}<p class="monitor-kind"><span class="keep-line">${escape(kinds[m.definition.type??'http']??'Check')} ·</span> every ${escape(spokenInterval(m.definition.intervalMs))}</p>`;
+ return `${backLink}<div class="monitor-title"><h1 id="monitor-detail-heading">${escape(m.definition.name)}</h1><span class="ui-pill badge ${escape(state.toLowerCase())}" id="monitor-state">${escape(state)}</span></div>${where}${m.definition.tlsTrust?`<p class="ui-callout">Certificate trust exception: ${escape(m.definition.tlsTrust.mode==='fingerprint'?'pinned leaf fingerprint':m.definition.tlsTrust.mode==='ca'?'owner-supplied CA':'certificate errors ignored')}. Initial HTTPS origin only; a private runner applies this setting. Full certificate results remain visible on TLS certificate monitors.</p>`:''}<p class="monitor-kind"><span class="keep-line">${escape(kinds[m.definition.type??'http']??'Check')} ·</span> every ${escape(spokenInterval(m.definition.intervalMs))}</p>`;
 }
 function actionButtons(m){
  const maintenance=m.definition.maintenanceUntil>Date.now();
@@ -110,7 +116,7 @@ const attemptResults={pass:['passed','Passed'],target_failure:['failed','Target 
 function attemptMarkup(o){
  const [tone,result]=attemptResults[o.outcome]??['unknown','Unknown result'];
  const status=o.flow?`${escape(o.flow.pages)} page${o.flow.pages===1?'':'s'}`:o.protocol!==undefined?escape(protocolFact(o)):o.status?`HTTP <span class="ui-mono">${escape(o.status)}</span>`:'No HTTP status';
- return `<div class="attempt-group"><p class="attempt-line"><span class="attempt-name">${escape(probeNames[o.probe]??'Check')} attempt ${o.attempt+1}</span><span class="ui-visually-hidden">: </span><span class="ui-result ${tone}">${escape(result)}</span>${slash}<span>${status}</span>${slash}<span>${escape(duration(o.durationMs))}</span>${slash}<span class="attempt-age">${ago(o.completedAt)}</span></p><ul class="attempt-checks">${o.checks.map(c=>`<li><span class="attempt-mark ui-result ui-result--small ${c.pass?'passed':'failed'}">${c.pass?'PASS':'FAIL'}</span> ${escape(c.assertion)}: ${escape(c.reason)}</li>`).join('')}</ul>${o.credentialBinding?`<details class="credential-binding"><summary>Known monitors referencing this credential</summary>${o.credentialBinding.monitorIds.length>1?'<p>This file can serve only one monitor. For the other monitors, create separate owner-only credential files and references, review the intended account, then bind each explicitly.</p>':''}<ul>${o.credentialBinding.monitorIds.map(id=>`<li>${escape(id)}</li>`).join('')}</ul></details>`:''}${o.canary?`<p class="canary-result">External check: ${escape(o.canary.outcome==='pass'?'Passed':o.canary.outcome==='target_failure'?'Failed':'Could not run')}${o.canary.status?` · HTTP ${escape(o.canary.status)}`:''}. ${escape(o.canary.checks.map(check=>check.reason).join('; '))}</p>`:''}${traceMarkup(o)}</div>`;
+ return `<div class="attempt-group"><p class="attempt-line"><span class="attempt-name">${escape(probeNames[o.probe]??'Check')} attempt ${o.attempt+1}</span><span class="ui-visually-hidden">: </span><span class="ui-result ${tone}">${escape(result)}</span>${slash}<span>${status}</span>${slash}<span>${escape(duration(o.durationMs))}</span>${slash}<span class="attempt-age">${ago(o.completedAt)}</span></p><ul class="attempt-checks">${o.checks.map(c=>`<li><span class="attempt-mark ui-result ui-result--small ${c.pass?'passed':'failed'}">${c.pass?'PASS':'FAIL'}</span> ${escape(c.assertion)}: ${escape(c.reason)}</li>`).join('')}</ul>${o.credentialBinding?`<details class="credential-binding"><summary>Known monitors referencing this credential</summary>${o.credentialBinding.monitorIds.length>1?'<p>This file can serve only one monitor. For the other monitors, create separate owner-only credential files and references, review the intended account, then bind each explicitly.</p>':''}<ul>${o.credentialBinding.monitorIds.map(id=>`<li>${escape(id)}</li>`).join('')}</ul></details>`:''}${o.canary?`<p class="canary-result">External check: ${escape(o.canary.outcome==='pass'?'Passed':o.canary.outcome==='target_failure'?'Failed':'Could not run')}${o.canary.status?` · HTTP ${escape(o.canary.status)}`:''}. ${escape(o.canary.checks.map(check=>check.reason).join('; '))}</p>`:''}${tlsTrustMarkup(o)}${traceMarkup(o)}</div>`;
 }
 // What a slot row says it is: its result word, and in the meta how it ended, when it was due if it ran late, its
 // attempts, and the revision it came from when the monitor was edited, paused or resumed since (its result is real but
@@ -177,7 +183,8 @@ function renderMissing({header,actions,area,id}){
 
 // header: the page header's title block (.top > div); actions: .actions; area: #content-area.
 export function renderMonitorPage({header,actions,area,data,id,api,action,readUnavailable}){
- for(const detail of area.querySelectorAll('#raw-history details')){if(detail.open)openHistory.add(detail.dataset.slot);else openHistory.delete(detail.dataset.slot)}
+ for(const detail of area.querySelectorAll('#raw-history details[data-slot]')){if(detail.open)openHistory.add(detail.dataset.slot);else openHistory.delete(detail.dataset.slot)}
+ for(const detail of area.querySelectorAll('[data-tls-observation]')){if(detail.open)openTls.add(detail.dataset.tlsObservation);else openTls.delete(detail.dataset.tlsObservation)}
  for(const detail of area.querySelectorAll('#monitor-incidents details')){if(detail.open)openIncidents.add(detail.dataset.incident);else openIncidents.delete(detail.dataset.incident)}
  const m=data.monitors.find(m=>m.id===id);
  if(!m){renderMissing({header,actions,area,id});return}
@@ -208,6 +215,6 @@ export function renderMonitorPage({header,actions,area,data,id,api,action,readUn
   const timeline=buildTimeline({slots,now:Number.isSafeInteger(data.now)?data.now:Date.now(),monitor:m,revisions});
   history.innerHTML=historyMarkup(timeline,m);history.style.minHeight='';strip.innerHTML=stripMarkup(timeline);
   const flowHistory=area.querySelector('#flow-revisions');if(flowHistory)flowHistory.innerHTML=flowRevisions(revisions);
-  if(historyFocus?.startsWith('history-')&&document.activeElement?.tagName==='BODY')document.getElementById(historyFocus)?.focus({preventScroll:true});
+  if((historyFocus?.startsWith('history-')||historyFocus?.startsWith('tls-evidence-'))&&document.activeElement?.tagName==='BODY')document.getElementById(historyFocus)?.focus({preventScroll:true});
  },error=>{if(history.isConnected){history.textContent=error.message;strip.innerHTML=''}});
 }

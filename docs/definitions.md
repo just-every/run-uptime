@@ -46,6 +46,8 @@ The default name is `uptime.monitors.json`. New exports use version 3; version 1
 
 Each entry uses the same fields as the monitor editor, and the same validation checks them: `name`, `type` (`http`, `keyword`, `heartbeat`, `tcp`, `dns`, `tls` or `domain`), `url`, `method`, `assertions`, `intervalMs`, `timeoutMs`, `retries`, `probes`, `failureQuorum`, `confirmSlots`, `recoverSlots`, `freshnessMs`, `heartbeat` (`maxAgeMs`, at most one day), `tcp` (`host`, `port`, `readBanner`, `bannerIncludes`), `dns` (`name`, `recordType`, `resolvers`, `expect`, `approved`), `tls` (`host`, `port`, `warnDays`, `owner`), `domain` (`name`, `warnDays`, `owner`), `enabled` and `maintenanceUntil`. A TCP, DNS, TLS or domain monitor takes its address from these settings and no `url` or `method`; its only assertion is `latencyMs`. A header assertion takes only `name` and `equals`, and a JSON assertion only `path` and `equals`. Fields you leave out take the editor's defaults. Monitors are matched to your installation by name.
 
+Public HTTPS HTTP and keyword entries may also contain `tlsTrust`: exactly `{"mode":"fingerprint","sha256":"…"}`, `{"mode":"ca","certificate":"…"}` or `{"mode":"ignore","acknowledged":true}`. Replace the ellipsis with a leaf SHA-256 fingerprint or one CA PEM certificate as appropriate. The fingerprint is 64 hex digits, optionally colon-separated; the CA PEM is limited to 16 KiB. Omitting the field restores normal certificate verification. These public trust settings are portable revision data and require a private runner. They never include a client private key or grant permission to send credentials through an exception. That separate owner grant, `allowUnverifiedTls`, belongs only in the monitor-bound local credential file. See [TLS trust and credential custody](/docs/runner#explicit-tls-trust-for-legacy-targets).
+
 Some things never go in the file:
 
 - **Secrets.** Request headers, bodies and passwords are refused. A check that needs them names an installation-local credential instead, with `"request": { "credentialRef": "partner-api" }`. The preview lists that entry as needing a local credential.
@@ -95,3 +97,30 @@ node scripts/definitions.mjs undo --batch BATCH_ID
 `validate` is `preview` that exits with status 1 when any entry is refused or unsupported, which suits a review check. Add `--json` for machine output. Changes from the command line are recorded as made by the local command.
 
 Moving from UptimeRobot uses the same preview and apply. See [Moving from UptimeRobot](/docs/moving-from-uptimerobot).
+
+## Saved incumbent HTTP definitions
+
+The same bounded preview/apply/undo engine also accepts the saved source formats below. File size remains 2 MiB and at most 500 entries; the installation's 100-monitor limit still applies. New entries stay paused, and importing never authorizes credentials, enables traffic, sends alerts or rewrites current monitoring evidence.
+
+### UptimeRobot certificate settings
+
+For supported saved UptimeRobot v3 monitor pages, an HTTPS monitor with `checkSSLErrors: false` maps to `tlsTrust: {"mode":"ignore","acknowledged":true}`. The preview names the source exception, its restriction to the initial HTTPS origin and the private-runner requirement. It grants no local credential authority. Authentication, request headers and body still need the previewed local credential reference to be filled by the receiving owner. A changed or copied monitor ID cannot inherit another monitor's credential file.
+
+### Pingdom HTTP check details
+
+Supply saved `GET /api/3.1/checks/{id}` response objects, each containing a `check` object. One object, an array of response objects or several complete JSON responses written in sequence are accepted. The source is detected automatically; API callers may select `source: "pingdom"`, and CLI preview/apply accept `--source pingdom`. Summary-list responses are refused because they lack complete HTTP settings. Uptime does not fetch the Pingdom account or its pages for you.
+
+The mapped check needs `name`, `hostname`, an integer `resolution` from 1 to 1,440 minutes, and HTTP detail at `check.type.http`. The HTTP detail must explicitly contain boolean `encryption` and `verify_certificate`; trust is never guessed. Optional `port` must be 1–65,535, and `url` is a path beginning with `/`, not `//` or a separate origin. Missing paths use `/` and missing ports use the selected protocol's default.
+
+| Source setting | Reviewed Uptime definition |
+| --- | --- |
+| `encryption`, `hostname`, `port`, `url` | Public HTTP or HTTPS URL. Unsafe targets still fail the editor's destination validation. |
+| `resolution` | Interval in minutes converted to milliseconds. |
+| `shouldcontain`, `shouldnotcontain` | Required/forbidden literal body text; either makes a keyword monitor. `useRegularExpression` is unsupported and is not silently converted to literal text. |
+| `verify_certificate: false` on HTTPS | Labelled initial-origin `ignore` trust policy, requiring a private runner and a separate local credential grant when credentials are used. On plain HTTP the preview explains that no TLS connection exists to exempt. |
+| `username`, `password`, nonempty `requestheaders` or `postdata` | A `pingdom-<source ID>` local credential reference; values are not imported. Re-enter them privately on the runner. `postdata` selects POST; otherwise the mapped method is GET. |
+| `sendnotificationwhendown` | Scheduled confirmation-slot count, subject to Uptime's normal validation. It defaults to two when absent. |
+
+Mapped definitions accept HTTP 2xx/3xx responses, use a ten-second timeout, no in-slot retries, two recovery slots and one initial `local-a` probe. Review these settings and independent-vantage/canary coverage before activation. A source certificate-expiry downtime setting is named separately in the preview; add a reviewed TLS certificate monitor. Source response-time thresholds are named as not imported; choose an explicit latency failure or supported slow-response policy before enabling.
+
+This is a saved HTTP-definition conversion, not complete Pingdom or UptimeRobot migration. Probe regions, contacts, teams, maintenance, scheduled reports and history are not transferred by the Pingdom adapter. Other Pingdom protocol checks and transaction/page-speed checks need reviewed conversion. Live extraction, account reconciliation, historical reports, provider reauthorization and side-by-side cutover remain broader migration work; the import does not establish that those journeys have been completed.

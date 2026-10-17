@@ -1,3 +1,5 @@
+// @ts-ignore Shared monitor-scoped certificate trust facts.
+import {validateTlsTrustEvidence,TLS_EVIDENCE_MAX_BYTES} from './tls-trust.mjs'
 // @ts-ignore Shared signed job snapshot evaluation.
 import {heartbeatEvaluation} from './heartbeat-job.mjs'
 // Signed completion and portable history share the same evidence contract.
@@ -15,7 +17,7 @@ import {isProtocol} from './protocol/settings.mjs'
 import {protocolChecks} from './protocol/evaluate.mjs'
 // @ts-ignore
 import {validateFacts} from './protocol/facts.mjs'
-const fields = new Set(['id', 'probe', 'outcome', 'completedAt', 'startedAt', 'durationMs', 'runnerVersion', 'status', 'bytes', 'checks', 'attempt', 'heartbeatReceivedAt', 'heartbeatJob', 'canary', 'flow', 'credentialBinding', 'protocol'])
+const fields = new Set(['id', 'probe', 'outcome', 'completedAt', 'startedAt', 'durationMs', 'runnerVersion', 'status', 'bytes', 'checks', 'attempt', 'heartbeatReceivedAt', 'heartbeatJob', 'tlsTrust', 'canary', 'flow', 'credentialBinding', 'protocol'])
 // unresolved: the public resolver answered NXDOMAIN or no address. budget: a Worker run spent its outbound requests first.
 // refused: the target's port refused the connection; tls: the TLS handshake failed before a certificate could be read.
 // vantage: this vantage cannot run the check (a Worker socket to a Cloudflare address); registry: RDAP data unavailable.
@@ -126,6 +128,17 @@ function validateHttp(o: any, definition: any, checks: Map<string, Check>, durat
   if (o.outcome !== (passing ? 'pass' : 'target_failure')) throw Error('Inconsistent HTTP outcome')
 }
 
+function validateTrust(o:any,definition:any){
+  if(o.tlsTrust!==undefined){
+    if(!['http','keyword'].includes(definition.type??'http'))throw Error('Unexpected TLS trust evidence');
+    validateTlsTrustEvidence(o.tlsTrust,definition);
+    if(o.status!==undefined&&o.tlsTrust.some((fact:any)=>fact.errors.length&&!fact.bypassed||definition.request&&!fact.credentialsAllowed))throw Error('Unverified TLS exchange cannot carry an HTTP response');
+    const mismatch=o.tlsTrust.some((fact:any)=>fact.errors.includes('TLS_FINGERPRINT_MISMATCH'));
+    if(mismatch&&(o.outcome!=='target_failure'||o.status!==undefined||o.checks?.length!==1||o.checks[0].assertion!=='tls'))throw Error('Certificate pin mismatch cannot pass');
+  }
+  if(definition.tlsTrust&&o.status!==undefined&&(!o.tlsTrust?.length||!o.tlsTrust.some((fact:any)=>fact.mode===definition.tlsTrust.mode)))throw Error('Configured TLS trust evidence required');
+}
+
 export function validateEvidence(o: any, definition: any, dueAt: number, now: number, mode: ValidationMode = 'live-completion') {
   const binding = o?.credentialBinding;
   if (binding !== undefined && (!validBindingDiagnostic(binding) || o.outcome !== 'runner_error' || o.checks?.length !== 1 || o.checks[0].assertion !== 'credential' || o.checks[0].reason !== bindingReason(binding) ||
@@ -136,13 +149,14 @@ export function validateEvidence(o: any, definition: any, dueAt: number, now: nu
       !['uptime-node/0.1.0','uptime-worker/0.1.0'].includes(o.runnerVersion) || !timestamp(o.startedAt) || !timestamp(o.completedAt) ||
       o.startedAt < dueAt || o.completedAt < o.startedAt || o.completedAt > now + COMPLETION_CLOCK_ALLOWANCE_MS ||
       !timestamp(o.durationMs) || !['pass', 'target_failure', 'runner_error'].includes(o.outcome) ||
-      JSON.stringify(o).length > ((definition.type === 'flow' ? 4000 + FLOW_LIMITS.traceBytes : isProtocol(definition.type) ? 12000 : 4000) + (binding ? BINDING_DIAGNOSTIC_BYTES : 0))) throw Error('Invalid observation evidence')
+      JSON.stringify(o).length > ((definition.type === 'flow' ? 4000 + FLOW_LIMITS.traceBytes : isProtocol(definition.type) ? 12000 : 4000) + (o.tlsTrust ? TLS_EVIDENCE_MAX_BYTES : 0) + (binding ? BINDING_DIAGNOSTIC_BYTES : 0))) throw Error('Invalid observation evidence')
+  validateTrust(o,definition);
   if(o.heartbeatJob!==undefined&&definition.type!=='heartbeat')throw Error('Unexpected heartbeat job evidence');
   if (o.protocol !== undefined && !isProtocol(definition.type)) throw Error('Unexpected protocol evidence')
   if(definition.assignments?.[o.probe]?.canaryUrl&&o.canary===undefined)throw Error('Configured canary evidence required');
   if(o.canary!==undefined){
     if(!definition.assignments?.[o.probe]?.canaryUrl||o.canary?.canary!==undefined)throw Error('Unexpected canary evidence');
-    validateEvidence(o.canary,{...definition,type:'http',network:'public',assignments:undefined,request:undefined,retries:0,assertions:{status:200}},dueAt,now,mode);
+    validateEvidence(o.canary,{...definition,type:'http',network:'public',url:definition.assignments[o.probe].canaryUrl,tlsTrust:undefined,assignments:undefined,request:undefined,retries:0,assertions:{status:200}},dueAt,now,mode);
     if(o.canary.probe!==o.probe||o.canary.attempt!==0)throw Error('Invalid canary identity');
   }
   const elapsed = o.completedAt - o.startedAt

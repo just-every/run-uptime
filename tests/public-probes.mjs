@@ -67,7 +67,7 @@ test('actual HTTP/HTTPS sockets use validated pin, original Host and verified SN
  const start=dns.length;
  for(const protocol of ['http','https']){const evidence=await run({url:`${protocol}://public-a.test/health`,type:'keyword',assertions:{status:200,bodyIncludes:'operational',header:{name:'x-check',equals:'yes'},json:{path:'ready',equals:true},latencyMs:1000}});assert.equal(evidence.outcome,'pass');assert.deepEqual(evidence.checks.map(c=>c.assertion),['status','body','header','json','latency']);assert.equal(evidence.body,undefined)}
  assert.equal(dns.length-start,2);assert.equal(requests.at(-1).host,'public-a.test');assert.equal(requests.at(-1).sni,'public-a.test');assert.equal(pins.at(-1).hostname,'93.184.216.34');
- const evidence=await run({url:'https://not-in-certificate.test/health'});assert.equal(evidence.outcome,'target_failure');assert.equal(evidence.checks[0].assertion,'connection');
+ const evidence=await run({url:'https://not-in-certificate.test/health'});assert.equal(evidence.outcome,'target_failure');assert.equal(evidence.checks[0].assertion,'tls');assert.match(evidence.checks[0].reason,/ERR_TLS_CERT_ALTNAME_INVALID/);
 });
 test('the saved API assertion bundle independently fails each business check on real HTTP responses',async()=>{
  const assertions={status:[200,'201-202'],bodyIncludes:'operational',bodyExcludes:'maintenance',bodyRegex:{pattern:'"trace":"[A-Z]{2}[0-9]{2}"',flags:'i'},header:{name:'x-check',equals:'yes'},json:{path:'$.data.items[*].ready',equals:true},latencyMs:500};

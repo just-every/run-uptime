@@ -25,6 +25,7 @@ function countsMarkup(preview){
 function criteriaMarkup(definition){
  if(!definition||!['http','keyword'].includes(definition.type))return '';
  const a=definition.assertions,items=[['HTTP status',Array.isArray(a.status)?a.status.join(', '):String(a.status)]];
+ if(definition.tlsTrust)items.push(['HTTPS trust',definition.tlsTrust.mode==='fingerprint'?'Pinned leaf SHA-256 '+definition.tlsTrust.sha256:definition.tlsTrust.mode==='ca'?'Owner-supplied CA; private runner required':'Certificate errors ignored for initial origin; private runner required']);
  if(a.bodyIncludes!==undefined)items.push(['Body contains',a.bodyIncludes]);
  if(a.bodyExcludes!==undefined)items.push(['Body must not contain',a.bodyExcludes]);
  if(a.bodyRegex)items.push(['Body expression','/'+a.bodyRegex.pattern+'/'+(a.bodyRegex.flags??'')]);
@@ -62,11 +63,11 @@ function batchesMarkup(batches){
 export function renderDefinitions({area,action}){
  if(area.querySelector('.definitions-panel'))return;
  area.innerHTML=`<section class="empty runner-panel definitions-panel"><h2>Monitor definitions</h2>
- <p>Preview a definition file or saved UptimeRobot v3 monitor pages before anything changes. New monitors arrive paused. A file never enables a monitor, issues a heartbeat token, sends a notification or changes a destination.</p>
+ <p>Preview a definition file or saved UptimeRobot v3 pages or Pingdom HTTP check details before anything changes. New monitors arrive paused. A file never enables a monitor, issues a heartbeat token, sends a notification or changes a destination.</p>
  <section class="archive-tools definition-input" aria-labelledby="definition-input-heading"><h3 id="definition-input-heading">Preview a file</h3>
- <label>Definition file, UptimeRobot monitor list or log export (2 MiB max)<input type="file" id="definition-file" accept=".json,.csv,application/json,text/csv"></label>
+ <label>Definition file, UptimeRobot list/log or Pingdom HTTP details (2 MiB max)<input type="file" id="definition-file" accept=".json,.csv,application/json,text/csv"></label>
  <label>Or paste the file<textarea id="definition-text" rows="5" spellcheck="false"></textarea></label>
- <label>Source<select id="definition-source"><option value="auto">Detect from the file</option><option value="uptime.monitors">Uptime definition file</option><option value="uptimerobot">UptimeRobot v3 monitor list</option><option value="uptimerobot-log">UptimeRobot log export (CSV)</option></select></label>
+ <label>Source<select id="definition-source"><option value="auto">Detect from the file</option><option value="uptime.monitors">Uptime definition file</option><option value="uptimerobot">UptimeRobot v3 monitor list</option><option value="pingdom">Pingdom HTTP check details</option><option value="uptimerobot-log">UptimeRobot log export (CSV)</option></select></label>
  <p><button id="definition-preview" class="primary">Preview</button> <button id="definition-export">${icon('export')}Export current definitions</button></p></section>
  <section aria-labelledby="definition-preview-heading"><h3 id="definition-preview-heading">Preview</h3><div id="definition-result">${state.preview?'':'<p>Nothing previewed yet.</p>'}</div></section>
  <section aria-labelledby="definition-batches-heading"><h3 id="definition-batches-heading">Applied batches</h3><p>Undo pauses monitors a batch created and restores monitors it changed, unless they were edited or enabled since. History is never removed.</p><div id="definition-batches"></div></section></section>`;

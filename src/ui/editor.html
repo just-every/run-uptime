@@ -48,6 +48,18 @@
         <label>Target URL<input disabled name="url" type="url" placeholder="https://www.your-site.example/health" required></label>
         <div class="editor-pair"><label>Request method<select disabled name="method"><option>GET</option><option>HEAD</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option><option>OPTIONS</option></select></label><label>Expected HTTP status<input disabled name="status" type="text" placeholder="200, 201, 2xx or 200-299" aria-describedby="status-help" required></label></div>
         <p id="status-help" class="helper ui-helper">Accept one code, several comma-separated codes, or ranges such as <code>2xx</code> or <code>200-299</code>.</p>
+        <details class="editor-field"><summary>Request credentials and certificate trust</summary>
+         <div class="editor-fields">
+          <label>Runner credential reference (optional)<input disabled name="credentialRef" maxlength="80" pattern="[a-zA-Z0-9_-]+" autocomplete="off" aria-describedby="credential-ref-help"></label>
+          <p id="credential-ref-help" class="helper ui-helper">Name an owner-only credential file bound to this monitor and exact origin. Basic, bearer, Digest, OAuth, JWT and client certificates stay on your runner. <a href="/docs/runner">Credential setup and rotation</a></p>
+          <label>HTTPS certificate trust<select disabled name="tlsTrustMode"><option value="default">Full certificate verification</option><option value="fingerprint">Pin a SHA-256 leaf fingerprint (preferred exception)</option><option value="ca">Trust a supplied CA certificate</option><option value="ignore">Ignore certificate errors</option></select></label>
+          <p class="helper ui-helper" data-trust-help>Certificate exceptions are available only for public HTTPS website/API checks.</p>
+          <div data-trust-mode="fingerprint" hidden><label>SHA-256 leaf fingerprint<input disabled name="tlsFingerprint" maxlength="95" autocomplete="off" spellcheck="false" placeholder="64 hexadecimal characters, with optional colons"></label></div>
+          <div data-trust-mode="ca" hidden><label>Public CA certificate (PEM)<textarea disabled name="tlsCaCertificate" maxlength="16384" spellcheck="false" placeholder="-----BEGIN CERTIFICATE-----"></textarea></label></div>
+          <div data-trust-mode="ignore" hidden><p class="helper ui-helper">Ignoring certificate errors can accept an expired certificate, the wrong host or an untrusted peer. Pin the certificate when possible. Every attempt keeps the actual verification errors.</p><label class="check-row"><input disabled name="tlsIgnoreConsent" type="checkbox">I authorize this monitor to ignore certificate errors for this HTTPS origin.</label></div>
+          <p class="helper ui-helper">An exception never authorizes credentials. A separate grant in the bound local credential file is required before headers, bodies or client identity can use an exception.</p>
+         </div>
+        </details>
         <label>Body contains required text<textarea disabled name="body" maxlength="200"></textarea></label>
         <label>Body must not contain<textarea disabled name="bodyExcludes" maxlength="200"></textarea></label>
         <div class="editor-pair"><label>Body regular expression<input disabled name="regexPattern" maxlength="500" placeholder="&quot;ready&quot;\s*:\s*true" aria-describedby="regex-help"></label><label>Regular expression flags<input disabled name="regexFlags" maxlength="3" placeholder="i" aria-describedby="regex-help"></label></div>

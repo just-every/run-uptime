@@ -2,7 +2,7 @@
 export const HOSTED_RUNNER_ID='self-00000000-0000-4000-8000-000000000019'
 // Checks the Cloudflare Worker runs: public HTTP(S) and keyword checks without runner-local credentials, and the TCP, TLS,
 // DNS and domain checks (worker-protocols.server.ts says what a Worker can and cannot reach).
-export const hostedHttp=(definition:any)=>definition.network==='public'&&['http','keyword','tcp','tls','dns','domain'].includes(definition.type??'http')&&!definition.request
+export const hostedHttp=(definition:any)=>definition.network==='public'&&['http','keyword','tcp','tls','dns','domain'].includes(definition.type??'http')&&!definition.request&&!definition.tlsTrust
 export const hostedInstallation=(env:{UPTIME_LOCAL_REVIEW?:string})=>env.UPTIME_LOCAL_REVIEW!=='true'
 // A hosted demo has no private runner beside it, so the Worker answers website checks itself (worker-discovery.server.ts).
 export const workerDiscovery=(env:{UPTIME_LOCAL_REVIEW?:string;RER_DEMO?:string})=>env.RER_DEMO==='1'&&hostedInstallation(env)

@@ -86,12 +86,12 @@ function map(entry:SourceEntry):Mapping{
  const secrets=[...(present(m.authType)&&String(m.authType).toUpperCase()!=='NONE'||present(m.httpUsername)||present(m.httpPassword)?['authentication']:[]),...(present(m.customHttpHeaders)?['custom request headers']:[]),...(present(m.postValueData)?['the request body']:[])]
  const request=secrets.length?{credentialRef:`uptimerobot-${String(m.id??entry.index+1).replace(/[^a-zA-Z0-9_-]/g,'').slice(0,60)||entry.index+1}`}:undefined
  if(request)differences.push(`Needs a local credential reference “${request.credentialRef}”: ${list(secrets)} ${secrets.length===1?'was':'were'} not imported.`)
- if(m.checkSSLErrors===false)differences.push('UptimeRobot ignored certificate errors; Uptime fails the check on them.')
+ if(m.checkSSLErrors===false&&/^https:/i.test(m.url))differences.push('Certificate errors were ignored in UptimeRobot. The reviewed exception is preserved for the initial HTTPS origin only, requires a private runner and grants no credential authority.')
  if(m.followRedirections===false)differences.push('UptimeRobot did not follow redirects; Uptime follows them, validating each hop.')
  if(m.sslExpirationReminder===true||m.domainExpirationReminder===true)differences.push('Certificate and domain expiry reminders are not reproduced.')
  const regions=Array.isArray(m.regionalData?.REGION)?m.regionalData.REGION.map(String):[]
  differences.push(`UptimeRobot's ${regions.length?`${list(regions)} region`:'own'} vantage is not reproduced. Uptime checks from probe local-a on your own runner; add a second runner network or a canary URL before enabling it.`)
- return {definition:{...common,type:type==='KEYWORD'?'keyword':'http',url:m.url,method,assertions,timeoutMs:chosenTimeout,probes:['local-a'],failureQuorum:1,...(request?{request}:{})},differences}
+ return {definition:{...common,type:type==='KEYWORD'?'keyword':'http',url:m.url,method,assertions,timeoutMs:chosenTimeout,probes:['local-a'],failureQuorum:1,...(request?{request}:{}),...(m.checkSSLErrors===false&&/^https:/i.test(m.url)?{tlsTrust:{mode:'ignore',acknowledged:true}}:{})},differences}
 }
 
 export const uptimeRobotImporter:Importer={

@@ -157,11 +157,12 @@
     {
       "id": "public-monitor-targets",
       "required": false,
-      "requiredWhen": "An owner enables a public HTTP(S) monitor or assigns an external canary",
-      "why": "The hosted Worker or an explicitly assigned private runner sends scheduled requests to the owner\u2019s public target and optional canary URLs.",
+      "requiredWhen": "An owner enables a public HTTP(S) monitor, assigns an external canary, or authorizes an OAuth HTTPS token endpoint in a monitor-bound runner credential file",
+      "why": "The hosted Worker or an explicitly assigned private runner sends scheduled requests to the owner\u2019s public target and optional canary URLs. A private runner also acquires or refreshes OAuth tokens only at the exact public HTTPS token URL authorized in that monitor's local credential file.",
       "data": [
         "Target hostname, path and query, method, request time and runner source address; configured headers and request body where the monitor has them",
-        "An owner-held request credential is sent only to its exact authorized target origin and monitor; credentials, custom headers and body are stripped on a cross-origin redirect",
+        "Owner-held Basic, bearer or Digest credentials, generated JWT authorization and configured headers/body are sent only to the exact authorized target origin and monitor; a configured client TLS certificate and proof of key possession may be sent there, while its private key remains local. Credentials, custom headers, body and client certificate are permanently stripped on a cross-origin redirect",
+        "Owner-authorized OAuth token acquisition and refresh send a form-encoded HTTPS POST to the exact public token URL: client ID and secret through the declared Basic or form authentication mode, grant type, requested scopes and the refresh token when applicable. Public DNS answers are validated and pinned; token redirects and target TLS trust exceptions are refused. Acquired access and rotated refresh tokens remain in owner-only runner-local state, outside observations, logs and product archives",
         "The target returns status and headers plus a bounded response body used for assertions; raw response bodies are not retained in observations",
         "An external canary is a status-only GET: it sends no request credential, custom header or body and reads zero response-body bytes; validated public redirect hops may also be contacted"
       ],

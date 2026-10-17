@@ -416,6 +416,8 @@
 /* As in design I, the bold PASS / FAIL word carries the result on its own, without a mark. */
 .attempt-checks .attempt-mark::before { content: none; }
 .credential-binding { overflow-wrap: anywhere; }
+#raw-history [data-tls-observation] > summary { grid-template-columns: minmax(0,1fr) 18px; min-height:44px; padding:10px 12px; }
+#raw-history [data-tls-observation] > summary::after { grid-column:2; grid-row:1; }
 .attempt-checks { display: grid; gap: 4px; padding: 9px 13px; border-radius: 10px; background: rgba(255, 255, 255, 0.85); color: var(--body); font-size: 13px; overflow-wrap: anywhere; }
 @container checks-card (max-width: 560px) {
   .slot-attempts { margin: 0 8px 10px; padding: 10px; }

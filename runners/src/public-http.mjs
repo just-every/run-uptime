@@ -1,5 +1,5 @@
-import http from 'node:http';
-import https from 'node:https';
+import {requestOnce} from './public-http-request.mjs';
+import {prepareAuthentication,digestChallengeAuthorization} from './auth/index.mjs';
 import {Resolver} from 'node:dns/promises';
 import {isIP} from 'node:net';
 import {publicTarget,publicAddress} from '../../src/domain/public-target.mjs';
@@ -23,59 +23,48 @@ export async function resolvePublic(url,signal) {
     return {address:addresses[0],family:isIP(addresses[0])};
   }finally{signal.removeEventListener('abort',cancel)}
 }
-function requestOnce(url,pin,method,settings,signal,onRequest,report,statusOnly=false) {
-  return new Promise((resolve,reject)=>{
-    let size=0,chunks=[],settled=false;
-    const fail=category=>{if(!settled){settled=true;reject(new ProbeError(category))}};
-    // A fresh agent with no proxyEnv bypasses both proxy environment and globals.
-    const transport=url.protocol==='https:'?https:http;
-    const agent=new transport.Agent({keepAlive:false,proxyEnv:{}});
-    const req=transport.request({protocol:url.protocol,hostname:pin.address,port:url.port||undefined,path:url.pathname+url.search,method,
-      agent,signal,maxHeaderSize:16384,servername:isIP(url.hostname.replace(/^\[|\]$/g,''))?'':url.hostname,
-      // TLS verifies original identity, not the pinned socket's address.
-      ...(url.protocol==='https:'?{rejectUnauthorized:true,checkServerIdentity:(_host,cert)=>checkIdentity(url.hostname.replace(/^\[|\]$/g,''),cert)}:{}),
-      headers:{'user-agent':report?.userAgent??RUNNER_VERSION,accept:report?.accept??PROBE_ACCEPT,'accept-encoding':'identity',...settings.headers,host:url.host}},res=>{
-      if([301,302,303,307,308].includes(res.statusCode)){
-        settled=true;resolve({redirect:res.headers.location,status:res.statusCode,...(report?{headers:res.headers}:{})});res.destroy();return;
-      }
-      if(res.headers['content-encoding']&&res.headers['content-encoding']!=='identity'){fail('encoding');res.destroy();return}
-      // Status-only mode answers at the headers and drops the socket without reading a body byte (bytes: 0): the caller asserts
-      // the status alone, so the body is neither bounded nor kept. Report mode reads up to its own cap and truncates there;
-      // scheduled probes still fail at MAX_BODY.
-      if(statusOnly){settled=true;resolve({status:res.statusCode,headers:res.headers,body:'',bytes:0});res.destroy();return}
-      if(report)res.on('data',chunk=>{
-        if(settled)return;
-        if(size+chunk.length>report.maxBody){chunks.push(chunk.subarray(0,report.maxBody-size));size=report.maxBody;settled=true;resolve({status:res.statusCode,headers:res.headers,body:Buffer.concat(chunks).toString('utf8'),bytes:size,truncated:true});res.destroy()}
-        else{size+=chunk.length;chunks.push(chunk)}
-      });
-      else res.on('data',chunk=>{size+=chunk.length;if(size>MAX_BODY){fail('body-limit');res.destroy()}else chunks.push(chunk)});
-      res.on('end',()=>{if(!settled){settled=true;resolve({status:res.statusCode,headers:res.headers,body:Buffer.concat(chunks).toString('utf8'),bytes:size})}});
-      res.on('error',()=>fail('transport'));
-      res.on('close',()=>{if(!res.complete)fail('transport')});
-    });
-    req.on('error',()=>fail(signal.aborted?'timeout':'connection'));
-    req.on('close',()=>agent.destroy());
-    onRequest(req);req.end(settings.body);
-  });
-}
-import {checkServerIdentity as checkIdentity} from 'node:tls';
 // statusOnly: see requestOnce. Resolution, pinning, redirect validation and the downgrade refusal are the same as a probe's.
 export async function publicHttp(def,signal,onRequest,{statusOnly=false,monitorId}={}) {
-  let url=publicTarget(def.url),method=def.method;
-  let settings=def.request?await readCredentials(def.request.credentialRef,url.href,method,undefined,monitorId):{headers:{}};
-  signal.throwIfAborted();
-  for(let hop=0;hop<=5;hop++){
-    const pin=await resolvePublic(url,signal),response=await requestOnce(url,pin,method,settings,signal,onRequest,undefined,statusOnly);
-    if(!Object.hasOwn(response,'redirect'))return response;
-    if(hop===5||!response.redirect)throw new ProbeError('redirect');
-    let next;try{next=publicTarget(new URL(response.redirect,url).href)}catch{throw new ProbeError('network')}
-    if(url.protocol==='https:'&&next.protocol!=='https:')throw new ProbeError('redirect');
-    if(next.origin!==url.origin){
-      // Never forward credentials, custom headers, request body, or a mutating method.
-      settings={headers:{}};method=method==='HEAD'?'HEAD':'GET';
-    }else if(response.status===303||(method==='POST'&&[301,302].includes(response.status))){settings={headers:settings.headers};method='GET'}
-    url=next;
-  }
+ let url=publicTarget(def.url),method=def.method,trust=def.tlsTrust,credential;
+ if(def.request)try{credential=await readCredentials(def.request.credentialRef,url.href,method,undefined,monitorId)}catch(error){if(!error.category)error.category='credential';throw error}
+ let body=credential?.body;
+ const facts=[];
+ const tokenRequest=async({url:tokenUrl,headers,body:tokenBody,signal:tokenSignal})=>{
+  const target=publicTarget(tokenUrl);if(target.protocol!=='https:')throw new ProbeError('credential','OAuth token endpoints require verified public HTTPS.');
+  const pin=await resolvePublic(target,tokenSignal),response=await requestOnce(target,pin,'POST',{headers,body:tokenBody},tokenSignal,onRequest,{maxBody:16384,accept:'application/json',userAgent:RUNNER_VERSION});
+  if(Object.hasOwn(response,'redirect')||response.truncated)throw new ProbeError('credential','The OAuth token endpoint redirected or exceeded its response bound.');
+  return response;
+ };
+ const send=async(extraHeaders={},forceRefresh=false)=>{
+  try{
+  let prepared={headers:{}};
+  if(credential)try{prepared=await prepareAuthentication(credential,{url:url.href,method,body,signal,tokenRequest,forceRefresh})}catch{throw new ProbeError('credential','The local authentication could not be prepared.')}
+  const pin=await resolvePublic(url,signal);
+  const settings={...prepared,headers:{...prepared.headers,...extraHeaders},body,credentialsPresent:Boolean(credential),allowUnverifiedTls:credential?.allowUnverifiedTls===true,trackTlsFacts:Boolean(def.tlsTrust)};
+  const response=await requestOnce(url,pin,method,settings,signal,onRequest,undefined,statusOnly,trust);facts.push(...(response.tlsTrust??[]));return response;
+  }catch(error){error.facts=[...facts,...(error.facts??[])];throw error}
+ };
+ signal.throwIfAborted();
+ try{for(let hop=0;hop<=5;hop++){
+  let response=await send();
+  if(credential?.auth?.type==='digest'&&response.status===401){
+   const authorization=digestChallengeAuthorization(credential,{url:url.href,method,body,responseHeaders:response.headers,nonceCount:1});
+   response=await send({authorization});
+   if(response.status===401&&/\bstale\s*=\s*"?true\b/i.test(String(response.headers['www-authenticate']??''))){
+    const next=digestChallengeAuthorization(credential,{url:url.href,method,body,responseHeaders:response.headers,nonceCount:2});response=await send({authorization:next});
+   }
+  }else if(credential?.auth?.type==='oauth2'&&response.status===401&&/\berror\s*=\s*"?invalid_token\b/i.test(String(response.headers['www-authenticate']??'')))response=await send({},true);
+  if(!Object.hasOwn(response,'redirect'))return {...response,...(facts.length?{tlsTrust:facts}:{}),...(credential&&[401,403].includes(response.status)?{authenticationRejected:true}:{})};
+  if(hop===5||!response.redirect)throw Object.assign(new ProbeError('redirect'),{facts});
+  let next;try{next=publicTarget(new URL(response.redirect,url).href)}catch{throw Object.assign(new ProbeError('network'),{facts})}
+  if(url.protocol==='https:'&&next.protocol!=='https:')throw Object.assign(new ProbeError('redirect'),{facts});
+  if(next.origin!==url.origin){
+   // A first origin change permanently drops every request secret and trust exception, even on a return redirect.
+   credential=undefined;body=undefined;trust=undefined;
+  }else if(response.status===303||(method==='POST'&&[301,302].includes(response.status))){body=undefined;method='GET'}
+  if(next.origin!==url.origin)method=method==='HEAD'?'HEAD':'GET';
+  url=next;
+ }}catch(error){error.facts??=facts;throw error}
 }
 // Report mode: one read-only fetch for discovery, never a scheduled probe. It reuses resolvePublic's validation and pinning
 // and requestOnce's pinned, identity-encoded, proxy-free socket. It sends no credentials, no cookies and no request body, and
