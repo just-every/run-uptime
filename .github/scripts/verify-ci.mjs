@@ -24,7 +24,11 @@ export const plan = {
  push: [
   { ...shard('hosted', ['build', 'spec:check', 'typecheck'], true), hosted: true },
   shard('baseline', ['test:baseline']),
-  shard('runtime', ['test:resilience', 'test:runtime', 'test:intake', 'test:contact', 'test:availability']),
+  // The combined runtime shard took 5m35s: resilience 2m18s, runtime 2m29s,
+  // and intake/contact/availability 42s. Each group builds and runs independently.
+  shard('resilience', ['test:resilience']),
+  shard('runtime', ['test:runtime']),
+  shard('intake', ['test:intake', 'test:contact', 'test:availability']),
   shard('probes', ['test:probes']),
   shard('catalog', ['test:catalog']),
   ...split('test:security', 3, true),

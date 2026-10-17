@@ -1,3 +1,4 @@
+import {incidentArchiveColumns} from './incident-work/portability.server.ts'
 /** Portable product records. Credential versions, claim tokens and deployment authority are never columns here. */
 export const ARCHIVE_VERSION=2;
 export const ARCHIVE_BYTES=2*1024*1024;
@@ -8,6 +9,7 @@ export const columns:Record<string,string[]>={
  revisions:['monitor_id','revision','definition','created_at'],
  slots:['id','monitor_id','revision','due_at','status','definition','lease_owner','lease_until','missed_count','manual'],
  observations:['id','slot_id','probe','attempt','evidence'],outbox:['id','monitor_id','slot_id','kind','event','status','lease_until','receipt'],
+ ...incidentArchiveColumns,
  notification_destinations:['id','name','kind','enabled','created_at','deleted_at','address'],
  notification_jobs:['id','event_id','destination_id','destination_name','kind','event','created_at','state','code','finished_at','attempts'],
  integration_deliveries:['namespace','id','envelope','state','attempts','created_at','next_at','max_attempts','retry_delays'],
@@ -22,8 +24,8 @@ export const columns:Record<string,string[]>={
 };
 export const TABLES=Object.keys(columns);
 // Product tables each extension version carries: 1 predates the audit, 2 predates definition batches.
-export const EXTENSION_VERSION=3;
-export const EXTENSION_TABLES:Record<number,string[]>={1:['uptime_audit','uptime_erasure_receipts','definition_batches','definition_batch_entries'],2:['definition_batches','definition_batch_entries'],3:[]};
+export const EXTENSION_VERSION=4;
+export const EXTENSION_TABLES:Record<number,string[]>={1:[...Object.keys(incidentArchiveColumns),'uptime_audit','uptime_erasure_receipts','definition_batches','definition_batch_entries'],2:[...Object.keys(incidentArchiveColumns),'definition_batches','definition_batch_entries'],3:Object.keys(incidentArchiveColumns),4:[]};
 export const extensionTables=(version:number)=>TABLES.filter(name=>!LEGACY_TABLES.includes(name)&&!EXTENSION_TABLES[version].includes(name));
 export const notificationNamespace='uptime-notifications';
 export type Tables=Record<string,any[]>;

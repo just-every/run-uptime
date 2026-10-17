@@ -10,8 +10,19 @@ interface Route{method:string;path:string;params?:Record<string,(value:string)=>
 const identity=(value:string)=>value.length>0&&value.length<=512&&!/[\x00-\x1f\x7f]/.test(value)
 const uuid=(value:string)=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(value)
 const id={id:identity},source=(value:string)=>SOURCES.includes(value),digest=(value:string)=>/^[0-9a-f]{64}$/.test(value)
-const reportQuery={...Object.fromEntries(['period','from','to','timeZone','zone','sla','slaTarget','bucket','location'].map(name=>[name,(value:string)=>identity(value)&&value.length<=150])),format:(value:string)=>['csv','json'].includes(value)}
+const reportQuery={...Object.fromEntries(['period','from','to','timeZone','zone','sla','slaTarget','bucket','location','rootCause'].map(name=>[name,(value:string)=>identity(value)&&value.length<=150])),format:(value:string)=>['csv','json'].includes(value)}
+const incidentQuery=Object.fromEntries(['monitor','tag','from','to','state','rootCause','cursor','limit'].map(name=>[name,identity]))
 export const apiRoutes:readonly Route[]=[
+ {method:'GET',path:'/api/incident-settings',body:'none'},
+ {method:'PATCH',path:'/api/incident-settings',body:'object'},
+ {method:'GET',path:'/api/incidents/:id',params:id,body:'none'},
+ {method:'GET',path:'/api/v1/incidents',query:incidentQuery,body:'none'},
+ {method:'GET',path:'/api/v1/incidents/:id',params:id,body:'none'},
+ {method:'POST',path:'/api/incidents/:id/comments',params:id,body:'object'},
+ {method:'PATCH',path:'/api/incidents/:id/comments/:commentId',params:{...id,commentId:identity},body:'object'},
+ {method:'DELETE',path:'/api/incidents/:id/comments/:commentId',params:{...id,commentId:identity},query:{version:value=>/^[1-9][0-9]*$/.test(value)},body:'none'},
+ {method:'PATCH',path:'/api/incidents/:id/root-cause',params:id,body:'object'},
+ {method:'POST',path:'/api/incidents/:id/actions',params:id,body:'object'},
  ...['catalog/preview','catalog/apply','catalog/add/preview','catalog/add/apply','maintenance/preview','maintenance/apply','maintenance/cancel'].map(path=>({method:'POST',path:'/api/'+path,body:'object' as const})),
  {method:'GET',path:'/api/v1/openapi.json',body:'none'},
  {method:'POST',path:'/api/heartbeats/:id',params:id,body:'empty'},

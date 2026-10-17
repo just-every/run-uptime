@@ -246,6 +246,12 @@
       "name": "0038_cron_runs.sql",
       "sha256": "284898ef5e3cda3cf3b9e757c9727ef5bdf511579c58efad6a2be8a93b730512",
       "sql": "-- The latest Cron invocation, so the console says Cloudflare's first-run delay applies only until a run is seen.\nCREATE TABLE cron_runs (\n  id INTEGER PRIMARY KEY CHECK (id = 1),\n  at INTEGER NOT NULL\n);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0039_incident_work.sql",
+      "sha256": "c4ede05472a8ced846a9fed5058291d2653c2722e9c49bc38b037080b61748f5",
+      "sql": "-- Human incident work is separate from immutable monitoring evidence.\nCREATE TABLE incident_work (\n incident_id TEXT PRIMARY KEY NOT NULL, monitor_id TEXT NOT NULL,\n version INTEGER NOT NULL DEFAULT 0, owner_id TEXT,\n status TEXT NOT NULL DEFAULT 'open' CHECK(status IN ('open','acknowledged','resolved')),\n stop_reason TEXT CHECK(stop_reason IN ('member_stop','manual_resolution')),\n acknowledged_at INTEGER, resolved_at INTEGER,\n root_version INTEGER NOT NULL DEFAULT 0, root_category_id TEXT, root_category_label TEXT,\n root_text TEXT NOT NULL DEFAULT '', root_updated_at INTEGER, root_editor_id TEXT\n);\nCREATE INDEX incident_work_monitor ON incident_work(monitor_id);\nCREATE TABLE incident_comments (\n id TEXT PRIMARY KEY NOT NULL, incident_id TEXT NOT NULL, monitor_id TEXT NOT NULL,\n author_id TEXT, text TEXT, version INTEGER NOT NULL DEFAULT 1,\n created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL, deleted_at INTEGER,\n CHECK((deleted_at IS NULL AND text IS NOT NULL AND length(text)<=5000) OR (deleted_at IS NOT NULL AND text IS NULL))\n);\nCREATE INDEX incident_comments_incident ON incident_comments(incident_id,created_at,id);\nCREATE TABLE incident_comment_history (\n id TEXT PRIMARY KEY NOT NULL, comment_id TEXT NOT NULL, incident_id TEXT NOT NULL, monitor_id TEXT NOT NULL,\n version INTEGER NOT NULL, text TEXT NOT NULL CHECK(length(text)<=5000), editor_id TEXT, edited_at INTEGER NOT NULL,\n UNIQUE(comment_id,version)\n);\nCREATE INDEX incident_comment_history_monitor ON incident_comment_history(monitor_id);\nCREATE TABLE incident_timeline (\n id TEXT PRIMARY KEY NOT NULL, incident_id TEXT NOT NULL, monitor_id TEXT NOT NULL,\n occurred_at INTEGER NOT NULL, actor_id TEXT, kind TEXT NOT NULL, data TEXT NOT NULL\n);\nCREATE INDEX incident_timeline_incident ON incident_timeline(incident_id,occurred_at,id);\nCREATE TABLE incident_settings (\n singleton INTEGER PRIMARY KEY CHECK(singleton=1), version INTEGER NOT NULL, categories TEXT NOT NULL\n);\n"
     }
   ],
   "compatibilityDate": "2026-09-08",

@@ -13,7 +13,7 @@ export async function incidents(env:Bindings,id:string,now=Date.now()){
   ORDER BY opened.rowid DESC LIMIT 100`).bind(id).all<{started:string;ended:string|null;status:string}>()
  return rows.results.map(row=>{
   const trigger=JSON.parse(row.started) as NotificationEvent,recovery=row.ended?JSON.parse(row.ended) as NotificationEvent:null
-  return {key:trigger.incidentKey,startedAt:trigger.observedAt,endedAt:recovery?.observedAt??null,
+  return {id:trigger.id,key:trigger.incidentKey,startedAt:trigger.observedAt,endedAt:recovery?.observedAt??null,
    durationMs:Math.max(0,(recovery?.observedAt??now)-trigger.observedAt),imported:row.status==='imported-inactive',trigger,recovery}
  })
 }

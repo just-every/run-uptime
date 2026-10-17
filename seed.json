@@ -1108,6 +1108,30 @@
         "class": "assets",
         "authentication": "None; emitted static resource only.",
         "environment": "all"
+      },
+      {
+        "path": "/incident-work.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/incident-work-markup.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/incident-work.css",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
       }
     ],
     "notes": "Console documents and APIs require a Base owner session; runner and heartbeat APIs use separately scoped credentials."

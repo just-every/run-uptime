@@ -117,8 +117,8 @@ try {
 
   // Hard stops mid-flow, while each runner's browser is signed in to a page that takes 20 s to answer.
   await create('Slow checkout flow', 'slow', flow('slow', 'login-password'));
-  // Mid-flow: each runner's browser has started and written its profile.
-  const signedIn = async dir => { const r = await runs(dir); return r.length === 1 && (await readdir(join(r[0], 'profile')).catch(() => [])).includes('Default') && r[0]; };
+  // Mid-flow: each runner's actual browser is running with its temporary profile in the owned run folder.
+  const signedIn = async dir => { const r = await runs(dir); return r.length === 1 && (await holders(r[0])).some(process=>process.command.includes('--remote-debugging-pipe')) && r[0]; };
   const live = await waitFor(async () => { const r = await Promise.all(flowDirs.map(signedIn)); return r.every(Boolean) && r; }, 'both runners started the slow flow', 60000);
   // What is left of a run folder, for a failure message.
   const left = async (dir, folder) => JSON.stringify({folders: await runs(dir), processes: (await holders(folder)).map(p => p.command.slice(0, 200))});

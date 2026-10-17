@@ -1,4 +1,5 @@
 import {maintenancePanel,bindMaintenancePanel} from './planned-maintenance.js';
+import {bindIncidentWork} from './incident-work.js';
 import {incidentMarkup} from './monitor-incidents.js';
 import {bindHeartbeatKey} from './heartbeat-key.js';
 import {retainReportPanel,mountReportPanel} from './monitor-report.js';
@@ -188,7 +189,7 @@ export function renderMonitorPage({header,actions,area,data,id,api,action,readUn
  mountReportPanel(area,m,api,retainedReport);
  bindHeartbeatKey(area,m,{api,action});
  bindMaintenancePanel(area,m,{api,action});
- const incidentHost=area.querySelector('#monitor-incidents');api(`/api/monitors/${encodeURIComponent(m.id)}/incidents`).then(incidents=>{if(incidentHost.isConnected){incidentHost.innerHTML=incidentMarkup(incidents,openIncidents);if(historyFocus?.startsWith('incident-')&&document.activeElement?.tagName==='BODY')document.getElementById(historyFocus)?.focus({preventScroll:true})}},error=>{if(incidentHost.isConnected)incidentHost.textContent='Incident history unavailable: '+error.message});
+ const incidentHost=area.querySelector('#monitor-incidents');bindIncidentWork(incidentHost,api);api(`/api/monitors/${encodeURIComponent(m.id)}/incidents`).then(incidents=>{if(incidentHost.isConnected){incidentHost.innerHTML=incidentMarkup(incidents,openIncidents);if(historyFocus?.startsWith('incident-')&&document.activeElement?.tagName==='BODY')document.getElementById(historyFocus)?.focus({preventScroll:true})}},error=>{if(incidentHost.isConnected)incidentHost.textContent='Incident history unavailable: '+error.message});
  actions.querySelector('#run-monitor').onclick=()=>action(()=>api(`/api/monitors/${m.id}/run`,'POST',{}),{pending:'Requesting a manual check…',success:'Manual check queued. Manual checks do not change uptime.'});
  if(!isFlow(m.definition)&&m.definition.type!=='heartbeat')actions.querySelector('#edit').onclick=()=>{location.href='/app/monitor?monitor='+encodeURIComponent(m.id)};
  actions.querySelector('#pause').onclick=()=>{if(!m.definition.enabled&&Object.values(m.definition.assignments??{}).some(a=>!(data.runner.runners??[]).some(r=>r.runnerId===a.runnerId&&!r.revokedAt))){location.href='/app/monitor?monitor='+encodeURIComponent(m.id);return}return action(()=>api(`/api/monitors/${m.id}`,'PATCH',{...m.definition,enabled:!m.definition.enabled}),{pending:m.definition.enabled?'Pausing monitor…':'Authorizing and resuming…',success:m.definition.enabled?'Monitor paused. Historical observations remain available.':'Monitor authorized and resumed. New scheduled results are required.'})};

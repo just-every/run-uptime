@@ -1,4 +1,4 @@
-// Runs one flow in its own process, the way the brief for FLOW-001 requires: a fresh private profile directory (mode 0700, inside
+// Runs one flow in its own process, the way the brief for FLOW-001 requires: a fresh private context and browser temporary directory (mode 0700, inside
 // the runner's own flow folder, deleted afterwards), a sanitized environment, one flow at a time (the runner awaits this), the
 // browser's whole network through the filtering proxy, and a process-tree kill at the wall-clock limit. Returns an observation in the
 // evidence format; it never throws for a failing flow, and it reports a runner-side problem (no browser, missing credential) as
@@ -69,9 +69,9 @@ export async function runFlow(definition, probe, {grantPath, controlPort, worksp
   // The proxy starts first, so the run folder exists for as short a time as possible before the process that cleans it up does.
   const proxy = await startFlowProxy({grant, maxBytes: FLOW_LIMITS.maxBytes});
   let base;
-  try { base = await mkdtemp(join(workspace, 'run-')); await chmod(base, 0o700); await mkdir(join(base, 'profile'), {mode: 0o700}); await mkdir(join(base, 'home'), {mode: 0o700}); }
+  try { base = await mkdtemp(join(workspace, 'run-')); await chmod(base, 0o700); await mkdir(join(base, 'home'), {mode: 0o700}); }
   catch { await proxy.close(); if (base) await rm(base, {recursive: true, force: true}); return runnerError('browser', 'The flow folder on this runner could not be prepared'); }
-  const profileDir = join(base, 'profile'), home = join(base, 'home');
+  const home = join(base, 'home');
   let child, timer, killedForTime = false, output = '', tooMuch = false, stats;
   const entries = [], arrivals = [];
   let done;
@@ -79,7 +79,7 @@ export async function runFlow(definition, probe, {grantPath, controlPort, worksp
   try {
     // The fourth pipe is the child's lifeline: it closes only when this process ends, however it ends, and the child then removes
     // its browser and this run's folder itself.
-    child = spawn(process.execPath, [here, base], {detached: true, stdio: ['pipe', 'pipe', process.env.UPTIME_FLOW_DEBUG ? 'inherit' : 'ignore', 'pipe'], cwd: home, env: {HOME: home, TMPDIR: home, LANG: 'C.UTF-8', ...(browser.browsersPath ? {PLAYWRIGHT_BROWSERS_PATH: browser.browsersPath} : {})}});
+    child = spawn(process.execPath, [here, base], {detached: true, stdio: ['pipe', 'pipe', process.env.UPTIME_FLOW_DEBUG ? 'inherit' : 'ignore', 'pipe'], cwd: home, env: {HOME: process.env.HOME, TMPDIR: home, LANG: 'C.UTF-8', ...(browser.browsersPath ? {PLAYWRIGHT_BROWSERS_PATH: browser.browsersPath} : {})}});
     const exited = new Promise(resolve => child.once('close', resolve));
     child.stdout.on('data', chunk => {
       output += chunk;
@@ -92,7 +92,7 @@ export async function runFlow(definition, probe, {grantPath, controlPort, worksp
     });
     child.on('error', () => {});
     child.stdin.on('error', () => {});
-    child.stdin.end(JSON.stringify({demo:demoMode(),flow, url: definition.url, profileDir, home, proxy: {port: proxy.port, username: proxy.username, password: proxy.password}, credentials, deadlineMs: deadlineMs - 3000, maxPages: FLOW_LIMITS.maxPages}));
+    child.stdin.end(JSON.stringify({demo:demoMode(),flow, url: definition.url, home, proxy: {port: proxy.port, username: proxy.username, password: proxy.password}, credentials, deadlineMs: deadlineMs - 3000, maxPages: FLOW_LIMITS.maxPages}));
     signal?.addEventListener('abort', stop, {once: true});
     if (signal?.aborted) stop();
     timer = setTimeout(() => { killedForTime = true; killTree(child.pid); }, deadlineMs);

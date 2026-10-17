@@ -142,6 +142,19 @@ try{
  capParams.set('bucket','1d');
  const coarse=await get('response-times',capParams,capId);
  assert.equal(coarse.status,200,await coarse.clone().text());assert.equal((await coarse.json()).statistics.count,10002);
+ // Root-cause filtering changes the incident account, never coverage or SLA.
+ const categorize=await fetch(origin+'/api/incidents/'+encodeURIComponent('outage:trigger')+'/root-cause',{method:'PATCH',headers:{cookie,origin,'content-type':'application/json'},body:JSON.stringify({version:0,categoryId:'hosting-provider',text:'Provider disk full'})});
+ assert.equal(categorize.status,200,await categorize.clone().text());
+ const categoryParams=new URLSearchParams(params);categoryParams.set('rootCause','hosting-provider');
+ const filtered=await (await get('report',categoryParams)).json();
+ assert.deepEqual(filtered.incidents.map(incident=>incident.key),['outage']);
+ assert.deepEqual(filtered.availability,report.availability);assert.deepEqual(filtered.sla,report.sla);
+ assert.equal(filtered.rootCauseGroups[0].durationInPeriodMs,3*minute);
+ const filteredCsv=await (await get('report',categoryParams,id,{Accept:'text/csv'})).text();assert.ok(filteredCsv.includes('Provider disk full'));
+ const incidentPage=async(query)=>{const response=await fetch(origin+'/api/v1/incidents?'+new URLSearchParams({monitor:id,limit:'1',...query}),{headers:{cookie}});assert.equal(response.status,200);return response.json()};
+ const firstPage=await incidentPage({}),nextPage=await incidentPage({cursor:firstPage.nextCursor});assert.equal(firstPage.items.length,1);assert.equal(nextPage.items.length,1);assert.notEqual(firstPage.items[0].id,nextPage.items[0].id);
+ const causePage=await incidentPage({rootCause:'hosting-provider'});assert.equal(causePage.items[0].id,'outage:trigger');assert.equal(causePage.nextCursor,null);
+ assert.equal((await fetch(origin+'/api/v1/incidents?limit=101',{headers:{cookie}})).status,400);
  console.log('REPORT-001 / READAPI-001 passed: owner period reports, full immutable coverage and incident overlap, SLA denominator, exact CSV/API/console figures, location latency percentiles at every resolution, Chicago DST validation, and oversized raw-series refusal.');
 }finally{
  await worker?.dispose();

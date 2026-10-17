@@ -7,6 +7,8 @@ import {recordCronRun} from './domain/cron-run.server.ts'
 import {scheduledPublicChecks} from './domain/worker-checks.server.ts'
 import {seedDemo} from './demo.ts'
 import {demoBindings} from './domain/demo.server.ts'
+import {incidentWorkRequest} from './domain/incident-work/handler.server.ts'
+import {incidentList} from './domain/incident-list.server.ts'
 import {incidents} from './domain/incidents.server.ts'
 import {readApiOpenApi} from './domain/read-api-openapi.ts'
 import {monitorReport,monitorLatency,reportCsv,ReportInputError} from './domain/reports/index.server.ts'
@@ -81,6 +83,14 @@ api.post('/api/monitors/:id/heartbeat-key',async c=>c.json(await issueHeartbeatK
 api.get('/api/monitors/:id/history',async c=>c.json(await history(c.env,c.req.param('id'))))
 api.get('/api/monitors/:id/incidents',async c=>c.json(await incidents(c.env,c.req.param('id'))))
 api.get('/api/monitors/:id/revisions',async c=>c.json(await revisions(c.env,c.req.param('id'))))
+api.get('/api/v1/incidents',async c=>c.json(await incidentList(c.env,new URL(c.req.url).searchParams)))
+for(const path of ['/api/incidents/:id','/api/v1/incidents/:id','/api/incident-settings'])api.get(path,c=>incidentWorkRequest(c.env,c.req.raw,c.get('input')))
+api.patch('/api/incident-settings',c=>incidentWorkRequest(c.env,c.req.raw,c.get('input')))
+api.post('/api/incidents/:id/comments',c=>incidentWorkRequest(c.env,c.req.raw,c.get('input')))
+api.patch('/api/incidents/:id/comments/:commentId',c=>incidentWorkRequest(c.env,c.req.raw,c.get('input')))
+api.delete('/api/incidents/:id/comments/:commentId',c=>incidentWorkRequest(c.env,c.req.raw,c.get('input')))
+api.patch('/api/incidents/:id/root-cause',c=>incidentWorkRequest(c.env,c.req.raw,c.get('input')))
+api.post('/api/incidents/:id/actions',c=>incidentWorkRequest(c.env,c.req.raw,c.get('input')))
 api.get('/api/v1/openapi.json',c=>c.json(readApiOpenApi))
 // Versioned reads use the same immutable period engine as console downloads.
 for(const suffix of ['uptime','report'] as const)api.get(`/api/v1/monitors/:id/${suffix}`,async c=>{

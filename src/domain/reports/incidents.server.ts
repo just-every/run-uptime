@@ -17,11 +17,13 @@ export async function periodIncidents(db: D1Database, id: string, period: Report
     ORDER BY json_extract(started,'$.observedAt'),json_extract(started,'$.id') LIMIT 10001`)
     .bind(now, id, period.to, period.from).all<{ started: string; ended: string | null; status: string }>()).results
   if (rows.length > 10000) throw new ReportInputError('More than 10000 incidents match this period; choose a shorter period', 'too_many_incidents')
+  const roots = (await db.prepare('SELECT incident_id,root_category_id,root_category_label,root_text FROM incident_work WHERE monitor_id=?').bind(id).all<{incident_id:string;root_category_id:string|null;root_category_label:string|null;root_text:string}>()).results
   return rows.map(row => {
     const trigger = JSON.parse(row.started) as NotificationEvent
     const recovery = row.ended ? JSON.parse(row.ended) as NotificationEvent : null
     const startedAt = trigger.observedAt, endedAt = recovery?.observedAt ?? null
-    return { key: trigger.incidentKey, startedAt, endedAt,
+    const root=roots.find(value=>value.incident_id===trigger.id)
+    return { id:trigger.id, rootCause:{categoryId:root?.root_category_id??null,categoryLabel:root?.root_category_label??null,text:root?.root_text??''}, key: trigger.incidentKey, startedAt, endedAt,
       durationMs: Math.max(0, (endedAt ?? now) - startedAt),
       durationInPeriodMs: Math.max(0, Math.min(endedAt ?? period.to, period.to) - Math.max(startedAt, period.from)),
       ongoingAtEnd: endedAt === null || endedAt > period.to,

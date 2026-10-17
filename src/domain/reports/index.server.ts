@@ -13,10 +13,15 @@ export async function monitorReport(env: { DB: D1Database }, id: string, params:
   const monitor = await env.DB.prepare('SELECT id,revision,definition FROM monitors WHERE id=?').bind(id)
     .first<{ id: string; revision: number; definition: string }>()
   if (!monitor) return null
-  const [availability, latency, incidents] = await Promise.all([
+  const [availability, latency, allIncidents] = await Promise.all([
     periodAvailability(env.DB, id, period), periodLatency(env.DB, id, period, options),
     periodIncidents(env.DB, id, period, now),
   ])
+  const rootCauseFilter=params instanceof URLSearchParams?params.get('rootCause'):null
+  const incidents=rootCauseFilter?allIncidents.filter(incident=>incident.rootCause.categoryId===rootCauseFilter):allIncidents
+  const rootCauseGroups=Object.values(incidents.reduce((groups:Record<string,{categoryId:string|null;categoryLabel:string;count:number;durationInPeriodMs:number}>,incident)=>{
+   const key=incident.rootCause.categoryId??'';const group=groups[key]??={categoryId:incident.rootCause.categoryId,categoryLabel:incident.rootCause.categoryLabel??'Not categorized',count:0,durationInPeriodMs:0};group.count++;group.durationInPeriodMs+=incident.durationInPeriodMs;return groups
+  },Object.create(null)))
   const targetPercent = period.slaTargetPercent
   return {
     schemaVersion: 1, generatedAt: now,
@@ -31,7 +36,7 @@ export async function monitorReport(env: { DB: D1Database }, id: string, params:
       allowedNotPassingMs: availability.observedMs * (100 - targetPercent) / 100,
       remainingBudgetMs: availability.observedMs * (100 - targetPercent) / 100 - availability.notPassingMs,
     },
-    latency, incidents,
+    latency, incidents, rootCauseFilter, rootCauseGroups,
     incidentSummary: { count: incidents.length, durationInPeriodMs: incidents.reduce((total, incident) => total + incident.durationInPeriodMs, 0) },
   }
 }

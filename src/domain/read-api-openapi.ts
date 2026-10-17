@@ -1,4 +1,5 @@
 const parameters = [
+ {name:'rootCause',in:'query',schema:{type:'string'},description:'Filter incident rows and their grouped downtime by category ID. Coverage and SLA denominators remain complete.'},
  {name:'id',in:'path',required:true,schema:{type:'string'},description:'Installation-local monitor ID.'},
  {name:'period',in:'query',schema:{type:'string',enum:['24h','7d','30d','90d','custom'],default:'24h'}},
  {name:'from',in:'query',schema:{type:'string'},description:'Custom start: ISO 8601 date/time or epoch milliseconds.'},
@@ -17,6 +18,8 @@ export const readApiOpenApi={
  openapi:'3.1.0',info:{title:'Uptime monitoring reads',version:'1.0.0',description:'Current v1 reads require an active owner session. API keys, scoped tokens and their rate-limit policy are not implemented. Local development uses an origin-specific session cookie. This document describes the implemented reads only.'},
  servers:[{url:'/'}],components:{securitySchemes:{ownerSession:{type:'apiKey',in:'cookie',name:'__Host-operator_session',description:'Native authenticated owner session. Signed-out and revoked sessions are refused; this is not an API key.'}}},
  paths:{
+  '/api/v1/incidents':{get:{summary:'Page through confirmed incidents and private root-cause accounts',security:[{ownerSession:[]}],parameters:['monitor','tag','from','to','state','rootCause','cursor','limit'].map(name=>({name,in:'query',schema:{type:'string'},description:name==='limit'?'1 to 100; defaults to 50.':name==='cursor'?'Opaque nextCursor returned by the preceding page; stable confirmation order.':'Optional incident filter.'})),responses:{'200':{description:'items, nextCursor, limit, from and to. Sources remain labelled; use each detailUrl for comments and timeline.'},'400':error,'401':error}}},
+  '/api/v1/incidents/{id}':{get:{summary:'Read one incident, comments, edit history, root cause and activity timeline',security:[{ownerSession:[]}],parameters:[{name:'id',in:'path',required:true,schema:{type:'string'},description:'Stable trigger event ID from the incident list.'}],responses:{'200':{description:'Private incident detail. Response resolution is separate from machine recovery. nextDue is null until reminder scheduling exists.'},'401':error,'404':error}}},
   '/api/v1/monitors/{id}/uptime':{get:operation('Read period availability and its supporting report',true)},
   '/api/v1/monitors/{id}/report':{get:operation('Read or download the same period report used by the console',true)},
   '/api/v1/monitors/{id}/response-times':{get:operation('Read response-time percentiles and series, up to 10,000 points',false)},

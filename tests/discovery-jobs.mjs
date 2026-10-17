@@ -101,7 +101,7 @@ test('the real runner claims a website check beside its probe loop, looks at the
 test('a new monitor starts from a pasted URL: the runner answers, the owner unticks one, and the rest start with no other input',async()=>{
  await clear();
  assert.equal((await f.request('/api/runners/'+f.second.runnerId,{method:'DELETE'})).status,200,'one runner network is left');
- const browser=await chromium.launch({headless:true,args:['--disable-gpu'],...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{})});
+ const browser=await chromium.launch({headless:true,args:['--disable-gpu','--use-mock-keychain','--password-store=basic'],...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{})});
  try{
   const page=await (await browser.newContext({viewport:{width:1440,height:900}})).newPage();
   await browserSignIn(page,f.origin,{bindings:f.bindings});

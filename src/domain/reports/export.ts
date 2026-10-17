@@ -17,6 +17,8 @@ export function reportCsv(report: MonitorReport): string {
   const add = (section: string, metric: string, value: unknown, unit = '', location = '', at: unknown = '', end: unknown = '', key: unknown = '') =>
     rows.push([section, report.monitor.id, report.monitor.name, report.period.from, report.period.to, report.period.timeZone,
       metric, value, unit, location, at, end, key])
+  add('policy','rootCauseFilter',report.rootCauseFilter)
+  for(const group of report.rootCauseGroups){add('root_cause',group.categoryLabel+' incident count',group.count);add('root_cause',group.categoryLabel+' downtime',group.durationInPeriodMs,'ms')}
   add('policy', 'denominator', report.denominatorPolicy)
   add('policy', 'percentileMethod', report.latency.percentileMethod)
   add('policy', 'samplePolicy', report.latency.samplePolicy)
@@ -29,6 +31,8 @@ export function reportCsv(report: MonitorReport): string {
     if (metric !== 'at' && metric !== 'to' && metric !== 'location') add('latency_series', metric, value, metric === 'count' ? 'samples' : 'ms', point.location, point.at, point.to)
   }
   for (const incident of report.incidents) {
+    add('incident','rootCauseCategory',incident.rootCause.categoryLabel,'','',incident.startedAt,incident.endedAt,incident.key)
+    add('incident','rootCauseAccount',incident.rootCause.text,'','',incident.startedAt,incident.endedAt,incident.key)
     for (const metric of ['durationMs', 'durationInPeriodMs', 'ongoingAtEnd', 'imported'] as const)
       add('incident', metric, incident[metric], metric.endsWith('Ms') ? 'ms' : '', '', incident.startedAt, incident.endedAt, incident.key)
   }

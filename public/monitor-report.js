@@ -17,6 +17,7 @@ function formMarkup(monitor){
  <label for="report-to">To (exclusive)<input id="report-to" name="to" type="text" placeholder="2026-10-08T00:00" required disabled aria-describedby="report-zone-help"></label></div>
  <label for="report-location">Response-time location<select id="report-location" name="location">${options(locations.map(id=>[id,id==='all'?'All checks':`${probeName(id)} (${id})`]))}</select></label>
  <label for="report-bucket">Response-time resolution<select id="report-bucket" name="bucket">${options([['5m','5 minutes'],['raw','Raw samples'],['1m','1 minute'],['1h','1 hour'],['1d','1 day']])}</select></label>
+ <label for="report-root-cause">Incident root-cause category<select id="report-root-cause" name="rootCause"><option value="">All categories</option></select></label>
  <label for="report-use-sla" class="report-sla-toggle"><input id="report-use-sla" type="checkbox">Include an SLA target</label>
  <label for="report-sla" id="report-sla-label" hidden>SLA target (%)<input id="report-sla" name="sla" type="number" min="0.000001" max="100" step="any" value="99.9" required disabled></label>
  <p class="report-help">Location filters response times. Availability and SLA always use all configured checks.</p>
@@ -48,6 +49,7 @@ function bindReport(panel,monitor,api){
  const endpoint=`/api/v1/monitors/${encodeURIComponent(monitor.id)}/report`;
  const showError=problem=>{error.textContent=problem instanceof Error?problem.message:String(problem);error.hidden=false};
  const field=name=>form.elements.namedItem(name);
+ api('/api/incident-settings').then(settings=>{for(const category of settings.categories)field('rootCause').add(new Option(category.label,category.id))},problem=>showError(problem));
  const resetError=()=>{error.hidden=true;error.textContent=''};
  panel.querySelector('#report-period').addEventListener('change',()=>{
   const custom=field('period').value==='custom';panel.querySelector('#report-custom-range').hidden=!custom;
@@ -60,7 +62,7 @@ function bindReport(panel,monitor,api){
   event.preventDefault();resetError();const button=panel.querySelector('#report-generate');button.disabled=true;
   status.textContent='Generating report…';
   try{
-   const params=new URLSearchParams(new FormData(form));
+   const params=new URLSearchParams(new FormData(form));if(!params.get('rootCause'))params.delete('rootCause');
    const report=await api(`${endpoint}?${params}`);
    const markup=renderReport(report);
    snapshot=report;seriesPage=0;incidentPage=0;results.innerHTML=markup;
@@ -89,6 +91,7 @@ function bindReport(panel,monitor,api){
    if(action==='csv'){
     const {period,latency}=snapshot;
     const params=new URLSearchParams({period:'custom',from:String(period.from),to:String(period.to),timeZone:period.timeZone,bucket:latency.bucket,location:latency.location,format:'csv'});
+    if(snapshot.rootCauseFilter)params.set('rootCause',snapshot.rootCauseFilter);
     if(period.slaTargetPercent!==null)params.set('sla',String(period.slaTargetPercent));
     const response=await fetch(`${endpoint}?${params}`,{headers:{Accept:'text/csv'},signal:AbortSignal.timeout(30000)});
     if(!response.ok){const problem=await response.json();throw Error(problem.error??`Download failed (${response.status})`)}

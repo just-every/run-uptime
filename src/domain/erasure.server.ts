@@ -1,3 +1,4 @@
+import {incidentMonitorErasureTables,incidentOperatorErasureStatements} from './incident-work/portability.server.ts'
 import {createPortability} from '@runeditrun/rer/modules/portability'
 import {erasureRelations,operatorMailRelated} from './erasure-relations.ts'
 import {TABLES} from './archive-schema.ts'
@@ -33,6 +34,7 @@ export async function erase(env:Bindings,kind:'monitor'|'destination'|'operator'
   for(const job of jobIds)plans.push(selection('notification_jobs','id=?',job));
  }
  if(kind==='monitor'){
+  plans.push(...incidentMonitorErasureTables.map(table=>selection(table,'monitor_id=?',id)));
   plans.push(selection('definition_batch_entries','monitor_id=?',id),selection('attempt_checkpoints','monitor_id=?',id),selection('runner_assignments','slot_id IN(SELECT id FROM slots WHERE monitor_id=?)',id),selection('evidence_generation','monitor_id=?',id),selection('heartbeat_claims','slot_id IN(SELECT id FROM slots WHERE monitor_id=?)',id),selection('heartbeat_authority','monitor_id=?',id),selection('heartbeat_limits','monitor_id=?',id),selection('observations','slot_id IN(SELECT id FROM slots WHERE monitor_id=?)',id),selection('outbox','monitor_id=?',id),selection('slots','monitor_id=?',id),selection('revisions','monitor_id=?',id));
  }
  if(kind==='destination')plans.push(selection('alert_drills','destination_id=?',id),selection('notification_credentials','destination_id=?',id));
@@ -72,7 +74,7 @@ export async function erase(env:Bindings,kind:'monitor'|'destination'|'operator'
  if(bootstrap)statements.push(env.DB.prepare('UPDATE oa_bootstrap SET claim_id=? WHERE singleton=? AND claim_id=?').bind(crypto.randomUUID(),bootstrap.singleton,id));
  for(const plan of plans)statements.push(env.DB.prepare(`DELETE FROM ${plan.table} WHERE ${plan.where}`).bind(...plan.args));
  const receipt={id:crypto.randomUUID(),entityKind:kind,counts,completedAt:Date.now()};
- if(kind==='operator')statements.push(env.DB.prepare("UPDATE uptime_audit SET actor_kind='anonymized',actor_ref=? WHERE actor_kind='operator' AND actor_ref=?").bind(crypto.randomUUID(),id),env.DB.prepare("UPDATE definition_batches SET actor_kind='anonymized',actor_ref=? WHERE actor_kind='operator' AND actor_ref=?").bind(crypto.randomUUID(),id),env.DB.prepare('UPDATE alert_drills SET started_by=NULL WHERE started_by=?').bind(id));
+ if(kind==='operator')statements.push(...incidentOperatorErasureStatements(env,id),env.DB.prepare("UPDATE uptime_audit SET actor_kind='anonymized',actor_ref=? WHERE actor_kind='operator' AND actor_ref=?").bind(crypto.randomUUID(),id),env.DB.prepare("UPDATE definition_batches SET actor_kind='anonymized',actor_ref=? WHERE actor_kind='operator' AND actor_ref=?").bind(crypto.randomUUID(),id),env.DB.prepare('UPDATE alert_drills SET started_by=NULL WHERE started_by=?').bind(id));
  statements.push(env.DB.prepare('INSERT INTO uptime_erasure_receipts(id,entity_kind,counts,completed_at) VALUES(?,?,?,?)').bind(receipt.id,kind,JSON.stringify(counts),receipt.completedAt),...await service.invalidateTransfersStatements(),auditStatement(env,kind==='operator'&&actor.ref===id?{kind:'anonymized',ref:crypto.randomUUID()}:actor,'erase',kind,receipt.id,'1',[],receipt.completedAt));
  try{await env.DB.batch(statements)}catch(error){if(String(error).includes('last_owner')||(kind==='operator'&&entity.role==='owner'&&entity.status==='active'&&Number((await env.DB.prepare("SELECT COUNT(*) n FROM oa_operators WHERE role='owner' AND status='active'").first<any>())?.n)<=1))throw Error('The last owner cannot be erased. Use rer reset --yes locally or redeploy hosted.');if(String(error).includes('uptime_audit.id'))throw Object.assign(Error('Installation changed during erasure. No data was erased; try again.'),{status:409});throw error}
  return {erased:true,receipt,selfErased:kind==='operator'&&actor.kind==='operator'&&actor.ref===id};

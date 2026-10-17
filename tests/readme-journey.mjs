@@ -61,7 +61,7 @@ try {
  if (site) ports.add(Number(new URL(site).port));
  ports.add(Number(new URL(origin).port));
  const settings = JSON.parse(await readFile(join(appRoot, 'data/local-secrets.json'), 'utf8'));
- browser = await chromium.launch({ headless: true });
+ browser = await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});
  const page = await browser.newPage();
  const devKey = await readCheckoutKey(appRoot);
  await openGate(page.context(), origin, devKey);

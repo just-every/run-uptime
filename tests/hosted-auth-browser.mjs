@@ -24,7 +24,7 @@ try {
   for (const file of (await readdir('migrations')).filter(file => file.endsWith('.sql')).sort()) {
     for (const sql of splitSql(await readFile(join('migrations', file), 'utf8'))) await db.prepare(sql).run();
   }
-  browser = await chromium.launch({headless: true});
+  browser = await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});
   const errors = [];
   const newContext = async () => {
     // Trust only the disposable test server's self-signed certificate. The

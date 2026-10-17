@@ -45,7 +45,7 @@ try {
  Object.assign(editorBindings,enabledBindings);await app.restart();
  const document=await app.call('/app',undefined,{cookie});
  assert.match(document.headers.get('content-security-policy'),new RegExp(`frame-ancestors 'self' ${edge.origin.replaceAll('.','\\.')}`));
- await mkdir(evidence,{recursive:true});browser=await chromium.launch({headless:true,args:['--disable-gpu']});
+ await mkdir(evidence,{recursive:true});browser=await chromium.launch({headless:true,args:['--disable-gpu','--use-mock-keychain','--password-store=basic']});
  const results=[];
  for(const width of [1440,390]) {
   cookie=await emailSignIn(app.origin);
