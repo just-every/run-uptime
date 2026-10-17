@@ -45,6 +45,12 @@
           "summary": "The four monitor kinds, how checks become incidents, and why Unknown is never green."
         },
         {
+          "slug": "heartbeat-jobs",
+          "title": "Heartbeat jobs",
+          "file": "heartbeat-jobs.md",
+          "summary": "Wrap a real command with start, success and exit-code failure receipts, explicit grace and immutable duration history."
+        },
+        {
           "slug": "notifications",
           "title": "Notifications",
           "file": "notifications.md",

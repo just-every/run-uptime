@@ -12,6 +12,7 @@ export function policyReason(def,observations,{candidate,targetState,agreement,f
   const label=def.assignments?.[probe]?.runnerId==='self-00000000-0000-4000-8000-000000000019'?'Cloudflare Worker':`Check ${def.probes.indexOf(probe)+1}`;
   const observation=observations.find(row=>row.probe===probe);
   if(!observation)continue;
+  if(observation.outcome==='pass'&&def.type==='heartbeat'&&observation.heartbeatJob?.late)reasons.push(`${label}: Late job success received.`);
   if(observation.outcome!=='pass')reasons.push(`${label}: ${failedChecks(observation)}.`);
   if(observation.retryComplete===false)reasons.push(`${label} has incomplete retry evidence.`);
   const canary=observation.canary;

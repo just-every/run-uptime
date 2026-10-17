@@ -1,7 +1,10 @@
+import {heartbeatEvaluation} from '../src/domain/heartbeat-job.mjs';
 import assert from 'node:assert/strict';
 import {createHmac,randomUUID} from 'node:crypto';
 import https from 'node:https';
-import {mkdtemp,readFile,readdir,rm} from 'node:fs/promises';
+import {spawn} from 'node:child_process';
+import {once} from 'node:events';
+import {mkdtemp,readFile,readdir,rm,writeFile,mkdir} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {testAuthBindings} from './auth-test-support.mjs';
@@ -95,11 +98,12 @@ try{
   const before=await snapshot(),start=Date.now();assert.equal((await api('/api/runner/results',body,signed('/api/runner/results',body,{'x-runner-id':`self-${randomUUID()}`}))).status,401);assertRunnerAdmissionOnly(before,await snapshot(),{secret:bindings.SESSION_SECRET,client:'192.0.2.1',requests:1,start});
   assert.equal((await api('/api/runner/results',body,signed('/api/runner/results',body))).status,200);assert.equal((await monitor()).state.state,'Healthy','manual execution cannot change scheduled state');
  });
- await check('a single-vantage heartbeat receipt completes through the real runner with its HTTP canary',async()=>{
+ await check('a sequence-protected job reports duration, bounded redacted failures and late recovery through real Bash and signed scheduled evaluation',async()=>{
   const current=await monitor();
   assert.equal((await api(`/api/monitors/${id}`,{...current.definition,enabled:false},{},'PATCH')).status,200);
-  const heartbeat=await api('/api/monitors',{name:'Nightly backup heartbeat',type:'heartbeat',heartbeat:{maxAgeMs:60000},canaryUrl:'https://canary.runner-target.test/canary',intervalMs:5000,timeoutMs:2000,retries:0,confirmSlots:1,recoverSlots:1});
+  const heartbeat=await api('/api/monitors',{name:'Nightly backup heartbeat',type:'heartbeat',heartbeat:{maxAgeMs:5000,graceMs:10000,maxRunDurationMs:1000,outputMasks:['private-word']},canaryUrl:'https://canary.runner-target.test/canary',intervalMs:5000,timeoutMs:2000,retries:0,confirmSlots:1,recoverSlots:1});
   assert.equal(heartbeat.status,201);
+  const configured=await api(`/api/monitors/${heartbeat.data.id}/heartbeat-settings`,{maxAgeMs:5000,graceMs:10000,maxRunDurationMs:1000,outputMasks:['private-word']});assert.equal(configured.status,200);
   const issued=await api(`/api/monitors/${heartbeat.data.id}/heartbeat-key`,{});assert.equal(issued.status,200);
   const receipt=await api(`/api/heartbeats/${heartbeat.data.id}`,{},{authorization:`Bearer ${issued.data.token}`,'x-heartbeat-sequence':'1'});assert.equal(receipt.status,200);assert.equal(receipt.data.received,true);
   await waitDue(heartbeat.data.id);await runner();
@@ -107,6 +111,70 @@ try{
   assert.equal(rows[0].status,'complete');assert.equal(rows[0].manual,0);
   assert.equal(rows[0].observations[0].outcome,'pass');assert.equal(rows[0].observations[0].canary.outcome,'pass');
   assert.equal((await api('/api/overview')).data.monitors.find(m=>m.id===heartbeat.data.id).state.state,'Healthy');
+  const heartbeatId=heartbeat.data.id,receiptPath=`/api/heartbeats/${heartbeatId}`;
+  const hheaders=sequence=>({authorization:`Bearer ${issued.data.token}`,'x-heartbeat-sequence':String(sequence)});
+  const state=async()=>(await api('/api/overview')).data.monitors.find(m=>m.id===heartbeatId).state.state;
+  assert.equal((await api(receiptPath+'/success',{},hheaders(1))).status,400,'header sequence replay refuses');
+  const before=await db.prepare('SELECT state FROM monitors WHERE id=?').bind(heartbeatId).first();
+  assert.equal((await api(receiptPath+'/start',{},hheaders(2))).status,200);
+  assert.deepEqual(await db.prepare('SELECT state FROM monitors WHERE id=?').bind(heartbeatId).first(),before,'start ingress cannot change health');
+  await waitDue(heartbeatId);await runner();
+  assert.equal(await state(),'Failing');
+  let events=(await api('/api/overview')).data.alerts.filter(a=>a.monitor_id===heartbeatId);
+  assert.match(events.find(a=>a.kind==='trigger').event.incidentContext.originalReason,/running too long/i);
+  const success=await api(receiptPath+'/success',{},hheaders(3));assert.equal(success.status,200);assert.ok(success.data.durationMs>=1000);assert.equal(success.data.late,true);
+  assert.equal(await state(),'Failing','completion ingress does not recover');
+  await waitDue(heartbeatId);await runner();assert.equal(await state(),'Healthy');
+  events=(await api('/api/overview')).data.alerts.filter(a=>a.monitor_id===heartbeatId);
+  assert.match(events.find(a=>a.kind==='recovery').event.explanation,/Late job success/);
+  assert.ok(events.find(a=>a.kind==='recovery').event.incidentContext.downtimeSeconds>=0);
+  const jobState=join(directory,'job-state');await mkdir(jobState,{mode:0o700});await writeFile(join(jobState,'sequence'),'3\n',{mode:0o600});
+  const wrapper=spawn('bash',['scripts/heartbeat/run-job.sh','bash','-c','printf "%s" "$JOB_TEST_OUTPUT"; exit 3'],{env:{...process.env,CURL_CA_BUNDLE:tls.caPath,UPTIME_HEARTBEAT_URL:origin+receiptPath,UPTIME_HEARTBEAT_TOKEN:issued.data.token,UPTIME_HEARTBEAT_STATE:jobState,JOB_TEST_OUTPUT:`token=planted-sensitive-token private-word ${issued.data.token}`},stdio:['ignore','pipe','pipe']});
+  let diagnostic='';wrapper.stdout.on('data',b=>diagnostic+=b);wrapper.stderr.on('data',b=>diagnostic+=b);
+  assert.equal((await once(wrapper,'exit'))[0],3,`Bash wrapper preserves job exit (private diagnostic bytes ${diagnostic.length})`);
+  assert.equal(await state(),'Healthy','failure ingress cannot open an incident');
+  resultHandler=async envelope=>{
+   const body=JSON.parse(envelope.body),forged=structuredClone(body),observation=forged.attempts.find(o=>o.heartbeatJob?.failure);
+   observation.heartbeatJob.failure.output+=' forged';const expected=heartbeatEvaluation(heartbeat.data.definition,observation.heartbeatJob,observation.completedAt);observation.checks=expected.checks;
+   const count=await db.prepare('SELECT COUNT(*) n FROM observations').first();
+   const refused=await dispatch({...envelope,body:JSON.stringify(forged),headers:{...envelope.headers,...signed('/api/runner/results',forged)}});assert.equal(refused.status,400);assert.deepEqual(await db.prepare('SELECT COUNT(*) n FROM observations').first(),count,'signed altered job snapshot cannot write observations');
+   return dispatch(envelope);
+  };
+  await waitDue(heartbeatId);await runner();assert.equal(await state(),'Failing');
+  const runs=(await api(`/api/monitors/${heartbeatId}/heartbeat-runs`)).data.runs;
+  const failed=runs.find(r=>r.state==='fail');assert.equal(failed.exitCode,3);assert.ok(failed.durationMs>=0);assert.match(failed.output,/redacted/);assert.ok(!failed.output.includes('planted-sensitive-token')&&!failed.output.includes('private-word')&&!failed.output.includes(issued.data.token));
+  assert.equal((await api(receiptPath+'/fail/3',{output:'x'.repeat(11000)},hheaders(6))).status,413);
+  assert.equal((await api(receiptPath+'/fail/256',{},hheaders(6))).status,400);
+  const lastSuccess=await api(receiptPath+'/success',{},hheaders(6));assert.equal(lastSuccess.status,200);await waitDue(heartbeatId);await runner();assert.equal(await state(),'Healthy');
+  await new Promise(resolve=>setTimeout(resolve,5100));await runner();assert.equal(await state(),'Healthy','expected period elapsed but explicit grace still applies');
+  const untilDeadline=lastSuccess.data.receivedAt+15020-Date.now();if(untilDeadline>0)await new Promise(resolve=>setTimeout(resolve,untilDeadline));
+  await runner();assert.equal(await state(),'Failing');
+  events=(await api('/api/overview')).data.alerts.filter(a=>a.monitor_id===heartbeatId);assert.match(events.find(a=>a.kind==='trigger').event.explanation,/Job missed/);
+  assert.equal((await api(receiptPath+'/success',{},hheaders(7))).data.late,true);await waitDue(heartbeatId);await runner();assert.equal(await state(),'Healthy');
+  const completeRuns=(await api(`/api/monitors/${heartbeatId}/heartbeat-runs`)).data.runs;
+  const report=(await api(`/api/v1/monitors/${heartbeatId}/report?period=24h`)).data;
+  assert.deepEqual(report.jobRuns,completeRuns);
+  const csv=await api(`/api/v1/monitors/${heartbeatId}/report?period=24h&format=csv`);assert.equal(csv.status,200);assert.match(csv.data,/job_run/);
+  const exported=await api('/api/archive');assert.equal(exported.status,200,JSON.stringify(exported.data.error));
+  assert.equal(exported.data.payload.productTables.heartbeat_runs.length,completeRuns.length);assert.ok(!JSON.stringify(exported.data).includes(issued.data.token));
+  const sourceWorker=worker,sourceDb=db,sourceCookie=cookie,restoreDirectory=join(directory,'restored');await mkdir(restoreDirectory);
+  worker=await emittedRunnerWorker(restoreDirectory,bindings);db=await worker.getD1Database('DB');
+  try{
+   for(const file of(await readdir('migrations')).filter(n=>n.endsWith('.sql')).sort())for(const sql of splitSql(await readFile(join('migrations',file),'utf8')))await db.prepare(sql).run();
+   const boot=await api('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'Receiving owner'});assert.equal(boot.status,303);cookie=boot.headers['set-cookie'][0].split(';')[0];
+   const restored=await api('/api/restore',exported.data);assert.equal(restored.status,200,JSON.stringify(restored.data.error));
+   assert.deepEqual((await api(`/api/monitors/${heartbeatId}/heartbeat-runs`)).data.runs,completeRuns);
+   assert.equal((await db.prepare('SELECT COUNT(*) n FROM heartbeat_authority').first()).n,0);assert.equal((await db.prepare('SELECT COUNT(*) n FROM heartbeat_claims').first()).n,0);
+   assert.equal((await api('/api/overview')).data.monitors.find(m=>m.id===heartbeatId).state.state,'Paused');
+   assert.equal((await api(receiptPath+'/success',{},hheaders(8))).status,400,'imported history cannot authorize a receipt');
+   const again=await api('/api/archive');assert.equal(again.status,200,JSON.stringify(again.data.error));assert.deepEqual(again.data.payload.productTables.heartbeat_runs,exported.data.payload.productTables.heartbeat_runs);
+  }finally{await worker.dispose();worker=sourceWorker;db=sourceDb;cookie=sourceCookie}
+  const rotated=await api(`/api/monitors/${heartbeatId}/heartbeat-key`,{});assert.equal(rotated.status,200);
+  assert.equal((await api(receiptPath+'/success',{},hheaders(8))).status,400);
+  assert.deepEqual((await api(`/api/monitors/${heartbeatId}/heartbeat-runs`)).data.runs,completeRuns,'immutable run history survives rotation');
+  const erased=await api(`/api/monitors/${heartbeatId}/erase`,{name:'Nightly backup heartbeat'});assert.equal(erased.status,200,JSON.stringify(erased.data.error));assert.equal(erased.data.receipt.counts.heartbeat_runs,completeRuns.length);
+  assert.equal((await db.prepare('SELECT COUNT(*) n FROM heartbeat_runs WHERE monitor_id=?').bind(heartbeatId).first()).n,0);
+
  });
  console.log('SIGNED-RUNNER results '+JSON.stringify(signatureReceipt));
  console.log(`SIGNED-RUNNER passed ${passed} checks: emitted Worker + migrated persistent D1, real Node process restarts, local HTTPS with verified certificates; no real account or public network deployment.`);

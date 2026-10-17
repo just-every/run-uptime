@@ -1,3 +1,4 @@
+import {heartbeatJobsPanel,retainHeartbeatJobs,bindHeartbeatJobs} from './heartbeat-jobs.js';
 import {alertRoutePanel,bindAlertRoutePanel} from './assets/alert-route.js';
 import {maintenancePanel,bindMaintenancePanel} from './planned-maintenance.js';
 import {bindIncidentWork} from './incident-work.js';
@@ -40,7 +41,7 @@ function statusExplanation(m,readUnavailable,data){if(readUnavailable)return 'Th
 function assertionSummary(definition){
  if(isFlow(definition))return flowSummary(definition);
  const assertions=definition.assertions,checks=isProtocol(definition)?protocolExpectations(definition):[];
- if(definition.type==='heartbeat'){if(Number.isFinite(definition.heartbeat?.maxAgeMs))checks.push(['Heartbeat receipt','Received within '+humaneDuration(definition.heartbeat.maxAgeMs),false])}
+ if(definition.type==='heartbeat'){if(Number.isFinite(definition.heartbeat?.maxAgeMs))checks.push(['Success period + grace',humaneDuration(definition.heartbeat.maxAgeMs+(definition.heartbeat.graceMs??0)),false]);if(definition.heartbeat?.maxRunDurationMs)checks.push(['Maximum run duration',humaneDuration(definition.heartbeat.maxRunDurationMs),false])}
  else if(!isProtocol(definition)){
   checks.push(['HTTP status',Array.isArray(assertions.status)?assertions.status.join(', '):String(assertions.status),true]);
   if(assertions.bodyIncludes!==undefined)checks.push(['Body contains',assertions.bodyIncludes,true]);
@@ -64,7 +65,7 @@ function actionButtons(m){
 }
 function heartbeatPanel(m,data){
  if(m.definition.type!=='heartbeat')return '';
- return `${data.runner.hosted?`<section class="ui-card panel"><h2>Private runner required</h2><p>The Cloudflare Worker accepts heartbeat receipts. A private runner evaluates them on schedule; receipts alone cannot make this monitor Healthy. ${data.runner.privateRunnerReady?'A private runner has fresh contact.':'No private runner has fresh contact. Start this command from the checkout that deployed this installation:'}</p><pre style="white-space:pre-wrap;overflow-wrap:anywhere"><code>${escape(data.runner.privateRunnerCommand)}</code></pre><a href="/docs/runner">Private runner instructions</a></section>`:''}<section class="ui-card panel heartbeat" aria-labelledby="heartbeat-heading"><h2 id="heartbeat-heading">Heartbeat receipts</h2><dl class="heartbeat-details ui-dl"><div><dt>Receipt path</dt><dd><code class="ui-mono">/api/heartbeats/${escape(m.id)}</code></dd></div><div><dt>Receipt must be newer than</dt><dd>${escape(humaneDuration(m.definition.heartbeat?.maxAgeMs))}</dd></div></dl><p>Your job sends an empty JSON object to the receipt path with its heartbeat key and an increasing <code>X-Heartbeat-Sequence</code>. A receipt alone does not change health; the next scheduled check reads it. <a id="heartbeat-docs-link" href="/docs/monitors">Heartbeat instructions</a></p><button id="issue-heartbeat-key">Issue heartbeat key</button><p>Issuing a key replaces the previous key and clears its receipts. Save the new key when it appears.</p></section>`;
+ return `${data.runner.hosted?`<section class="ui-card panel"><h2>Private runner required</h2><p>The Cloudflare Worker accepts heartbeat receipts. A private runner evaluates them on schedule; receipts alone cannot make this monitor Healthy. ${data.runner.privateRunnerReady?'A private runner has fresh contact.':'No private runner has fresh contact. Start this command from the checkout that deployed this installation:'}</p><pre style="white-space:pre-wrap;overflow-wrap:anywhere"><code>${escape(data.runner.privateRunnerCommand)}</code></pre><a href="/docs/runner">Private runner instructions</a></section>`:''}<section class="ui-card panel heartbeat" aria-labelledby="heartbeat-heading"><h2 id="heartbeat-heading">Heartbeat receipts</h2><dl class="heartbeat-details ui-dl"><div><dt>Receipt path</dt><dd><code class="ui-mono">/api/heartbeats/${escape(m.id)}</code></dd></div><div><dt>Success age limit (period + grace)</dt><dd>${escape(humaneDuration((m.definition.heartbeat?.maxAgeMs??0)+(m.definition.heartbeat?.graceMs??0)))}</dd></div></dl><p>Your job sends an empty JSON object to the receipt path with its heartbeat key and an increasing <code>X-Heartbeat-Sequence</code>. A receipt alone does not change health; the next scheduled check reads it. <a id="heartbeat-docs-link" href="/docs/monitors">Heartbeat instructions</a></p><button id="issue-heartbeat-key">Issue heartbeat key</button><p>Issuing a key replaces the previous key and clears its receipts. Save the new key when it appears.</p></section>`;
 }
 function coveragePanel(availability){
  const window=(label,metrics)=>`<div class="coverage-window"><h3>${label}</h3>${coverage(metrics,label,'large')}</div>`;
@@ -79,7 +80,7 @@ function pageBody(m,readUnavailable,definitionOpen,data){
   +`<section class="ui-card panel evidence" aria-labelledby="recent-checks-heading"><div class="panel-head"><h2 id="recent-checks-heading">Recent checks</h2><div class="history-strip" id="history-strip" aria-hidden="true"></div></div><div id="raw-history">Loading recent checks…</div></section></div>`
   +`<div class="monitor-secondary"><section class="ui-card panel detail" aria-labelledby="latest-check-heading"><h2 id="latest-check-heading">${lastLabel}</h2><dl class="detail-metrics"><div><dt class="ui-visually-hidden">${lastLabel}</dt><dd class="detail-time">${checkTime(m,{withLabel:false,readUnavailable})}</dd></div><div><dt>Response duration</dt><dd>${escape(duration(availability?.responseDurationMs))}</dd></div></dl></section>`
   +`<section class="ui-card panel assertions" aria-labelledby="expects-heading"><h2 id="expects-heading">What the check expects</h2>${assertionSummary(m.definition)}<details id="assertion-definition" ${definitionOpen?'open':''}><summary id="assertion-definition-summary">Full check details</summary><pre>${escape(JSON.stringify(isProtocol(m.definition)?{[m.definition.type]:m.definition[m.definition.type],assertions:m.definition.assertions}:m.definition.assertions,null,2))}</pre></details></section>`
-  +alertRoutePanel()+maintenancePanel(m)+expiryPanel(m,data)+(isFlow(m.definition)?flowPanel(m,data):'')+heartbeatPanel(m,data)+'</div></div>';
+  +alertRoutePanel()+maintenancePanel(m)+expiryPanel(m,data)+(isFlow(m.definition)?flowPanel(m,data):'')+heartbeatPanel(m,data)+heartbeatJobsPanel(m)+'</div></div>';
 }
 
 const clock=t=>new Date(t).toLocaleTimeString();
@@ -185,10 +186,11 @@ export function renderMonitorPage({header,actions,area,data,id,api,action,readUn
  header.innerHTML=titleBlock(m,readUnavailable);
  actions.innerHTML=actionButtons(m)+'<button id="erase-monitor" class="danger">Erase monitor</button>';
  actions.querySelector('#erase-monitor').onclick=()=>confirmErasure({kind:'monitor',name:m.definition.name,onConfirm:async name=>{const result=await action(()=>api(`/api/monitors/${encodeURIComponent(m.id)}/erase`,'POST',{name}),{pending:'Erasing monitor…',success:'Monitor and dependent records erased.'});if(result.ok){document.title='Monitor erased · Uptime';showErasureReceipt(result.result.receipt)}}});
- const retainedReport=retainReportPanel(area,m.id);
+ const retainedReport=retainReportPanel(area,m.id),retainedJobs=retainHeartbeatJobs(area,m);
  area.innerHTML=pageBody(m,readUnavailable,definitionOpen,data);
  mountReportPanel(area,m,api,retainedReport);
  bindHeartbeatKey(area,m,{api,action});
+ bindHeartbeatJobs(area,m,{api,action},retainedJobs);
  bindMaintenancePanel(area,m,{api,action});
  bindAlertRoutePanel(area,m,{api,action});
  const incidentHost=area.querySelector('#monitor-incidents');bindIncidentWork(incidentHost,api);api(`/api/monitors/${encodeURIComponent(m.id)}/incidents`).then(incidents=>{if(incidentHost.isConnected){incidentHost.innerHTML=incidentMarkup(incidents,openIncidents);if(historyFocus?.startsWith('incident-')&&document.activeElement?.tagName==='BODY')document.getElementById(historyFocus)?.focus({preventScroll:true})}},error=>{if(incidentHost.isConnected)incidentHost.textContent='Incident history unavailable: '+error.message});

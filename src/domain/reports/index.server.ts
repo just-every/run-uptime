@@ -1,3 +1,4 @@
+import {heartbeatRuns} from '../heartbeat-jobs.server.ts'
 import { periodAvailability } from './coverage.server.ts'
 import { periodLatency, latencyOptions } from './latency.server.ts'
 import { periodIncidents } from './incidents.server.ts'
@@ -22,6 +23,8 @@ export async function monitorReport(env: { DB: D1Database }, id: string, params:
   const rootCauseGroups=Object.values(incidents.reduce((groups:Record<string,{categoryId:string|null;categoryLabel:string;count:number;durationInPeriodMs:number}>,incident)=>{
    const key=incident.rootCause.categoryId??'';const group=groups[key]??={categoryId:incident.rootCause.categoryId,categoryLabel:incident.rootCause.categoryLabel??'Not categorized',count:0,durationInPeriodMs:0};group.count++;group.durationInPeriodMs+=incident.durationInPeriodMs;return groups
   },Object.create(null)))
+  const jobRuns=JSON.parse(monitor.definition).type==='heartbeat'?await heartbeatRuns(env,id,{from:period.from,to:period.to,limit:10000}):null
+  if(jobRuns?.nextCursor)throw Error('Heartbeat report exceeds 10,000 run records; choose a shorter period')
   const targetPercent = period.slaTargetPercent
   return {
     schemaVersion: 1, generatedAt: now,
@@ -37,6 +40,7 @@ export async function monitorReport(env: { DB: D1Database }, id: string, params:
       remainingBudgetMs: availability.observedMs * (100 - targetPercent) / 100 - availability.notPassingMs,
     },
     latency, incidents, rootCauseFilter, rootCauseGroups,
+    ...(jobRuns?{jobRuns:jobRuns.runs}:{}),
     incidentSummary: { count: incidents.length, durationInPeriodMs: incidents.reduce((total, incident) => total + incident.durationInPeriodMs, 0) },
   }
 }

@@ -258,6 +258,12 @@
       "name": "0040_alert_routes.sql",
       "sha256": "b9648bfe8fba6c5cc004b68583b6a4c1f507b7c74204da2c27db596154cc8a7b",
       "sql": "-- Route policy is installation-local. Restored destinations start disabled and\n-- the receiving owner must deliberately configure local routing again.\nCREATE TABLE alert_routes (\n scope_kind TEXT NOT NULL CHECK(scope_kind IN ('installation','monitor','service','group')),\n scope_value TEXT NOT NULL,\n mode TEXT NOT NULL CHECK(mode IN ('all','inherit','selected')),\n destination_ids TEXT NOT NULL,\n revision INTEGER NOT NULL,\n updated_at INTEGER NOT NULL,\n PRIMARY KEY(scope_kind,scope_value),\n CHECK((scope_kind='installation' AND scope_value='' AND mode IN ('all','selected')) OR (scope_kind<>'installation' AND scope_value<>'' AND mode IN ('inherit','selected')))\n);\nCREATE TABLE alert_route_changes (\n id TEXT PRIMARY KEY,scope_kind TEXT NOT NULL,scope_value TEXT NOT NULL,\n previous_policy TEXT NOT NULL,current_policy TEXT NOT NULL,\n changed_at INTEGER NOT NULL,actor_ref TEXT\n);\nCREATE INDEX alert_route_changes_scope ON alert_route_changes(scope_kind,scope_value,changed_at);\n-- A recovery belongs to the original matched destination and credential. It\n-- waits for provider acceptance of that destination's trigger before dispatch.\nCREATE TABLE alert_recovery_matches (\n recovery_job_id TEXT PRIMARY KEY,trigger_job_id TEXT NOT NULL\n);\nCREATE INDEX alert_recovery_matches_trigger ON alert_recovery_matches(trigger_job_id);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0041_heartbeat_jobs.sql",
+      "sha256": "b6d15ff7f496e6d2d3ec6925c5b3f450553e72a770f340a28d746fa58d3aa06f",
+      "sql": "-- Immutable job receipt history is portable; all receipt/claim authority stays local.\nCREATE TABLE heartbeat_runs(\n id TEXT PRIMARY KEY,\n monitor_id TEXT NOT NULL REFERENCES monitors(id),\n revision INTEGER NOT NULL,\n sequence INTEGER NOT NULL,\n state TEXT NOT NULL CHECK(state IN ('start','success','fail')),\n received_at INTEGER NOT NULL,\n started_at INTEGER,\n duration_ms INTEGER,\n exit_code INTEGER,\n output TEXT NOT NULL,\n late INTEGER NOT NULL DEFAULT 0,\n UNIQUE(monitor_id,revision,sequence)\n);\nCREATE INDEX heartbeat_runs_history ON heartbeat_runs(monitor_id,received_at,id);\nALTER TABLE heartbeat_authority ADD COLUMN last_completed_id TEXT;\nALTER TABLE heartbeat_authority ADD COLUMN started_at INTEGER;\nALTER TABLE heartbeat_claims ADD COLUMN job_snapshot TEXT;\n"
     }
   ],
   "compatibilityDate": "2026-09-08",

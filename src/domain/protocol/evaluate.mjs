@@ -1,3 +1,4 @@
+import {heartbeatEvaluation} from '../heartbeat-job.mjs';
 import {RESOLVERS,normalizeValue} from './dns.mjs';
 // One evaluation for protocol evidence: the Worker and the runner produce their checks with it, and the control plane runs
 // it again on the retained facts and refuses evidence whose checks or outcome differ. Facts are bounded (see evidence.server.ts).
@@ -97,4 +98,4 @@ export function expiryOf(definition,observation){
 }
 /** An observation's checks and outcome evaluated at its own completion time: a runner re-evaluates after moving its
  * timestamps into the control plane's clock, because a validity or day boundary can fall between the two clocks. */
-export const evaluatedAt=(definition,o)=>o.protocol===undefined?o:{...o,...protocolChecks(definition,o.protocol,o.completedAt)};
+export const evaluatedAt=(definition,o)=>o.heartbeatJob?(({outcome,checks})=>({...o,outcome,checks}))(heartbeatEvaluation(definition,o.heartbeatJob,o.completedAt)):o.protocol===undefined?o:{...o,...protocolChecks(definition,o.protocol,o.completedAt)};

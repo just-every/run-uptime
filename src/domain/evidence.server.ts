@@ -1,3 +1,5 @@
+// @ts-ignore Shared signed job snapshot evaluation.
+import {heartbeatEvaluation} from './heartbeat-job.mjs'
 // Signed completion and portable history share the same evidence contract.
 // @ts-ignore HTTP bundle identities and status semantics are shared with both probes.
 import {httpAssertionNames} from './http-assertions/config.mjs'
@@ -13,7 +15,7 @@ import {isProtocol} from './protocol/settings.mjs'
 import {protocolChecks} from './protocol/evaluate.mjs'
 // @ts-ignore
 import {validateFacts} from './protocol/facts.mjs'
-const fields = new Set(['id', 'probe', 'outcome', 'completedAt', 'startedAt', 'durationMs', 'runnerVersion', 'status', 'bytes', 'checks', 'attempt', 'heartbeatReceivedAt', 'canary', 'flow', 'credentialBinding', 'protocol'])
+const fields = new Set(['id', 'probe', 'outcome', 'completedAt', 'startedAt', 'durationMs', 'runnerVersion', 'status', 'bytes', 'checks', 'attempt', 'heartbeatReceivedAt', 'heartbeatJob', 'canary', 'flow', 'credentialBinding', 'protocol'])
 // unresolved: the public resolver answered NXDOMAIN or no address. budget: a Worker run spent its outbound requests first.
 // refused: the target's port refused the connection; tls: the TLS handshake failed before a certificate could be read.
 // vantage: this vantage cannot run the check (a Worker socket to a Cloudflare address); registry: RDAP data unavailable.
@@ -84,6 +86,11 @@ function validateProtocol(o: any, definition: any) {
 }
 
 function validateHeartbeat(o: any, definition: any, checks: Map<string, Check>) {
+  if(o.heartbeatJob!==undefined){
+    const expected=heartbeatEvaluation(definition,o.heartbeatJob,o.completedAt);
+    if(o.status!==undefined||o.bytes!==undefined||(o.heartbeatReceivedAt??null)!==o.heartbeatJob.receivedAt||o.outcome!==expected.outcome||JSON.stringify(o.checks)!==JSON.stringify(expected.checks))throw Error('Inconsistent heartbeat job evidence');
+    return;
+  }
   if (o.outcome === 'runner_error') return validateError(o, checks, true)
   if (o.status !== undefined || o.bytes !== undefined || checks.size !== 1 || !checks.has('heartbeat') ||
       (o.heartbeatReceivedAt !== undefined && !timestamp(o.heartbeatReceivedAt))) throw Error('Invalid heartbeat evidence')
@@ -130,6 +137,7 @@ export function validateEvidence(o: any, definition: any, dueAt: number, now: nu
       o.startedAt < dueAt || o.completedAt < o.startedAt || o.completedAt > now + COMPLETION_CLOCK_ALLOWANCE_MS ||
       !timestamp(o.durationMs) || !['pass', 'target_failure', 'runner_error'].includes(o.outcome) ||
       JSON.stringify(o).length > ((definition.type === 'flow' ? 4000 + FLOW_LIMITS.traceBytes : isProtocol(definition.type) ? 12000 : 4000) + (binding ? BINDING_DIAGNOSTIC_BYTES : 0))) throw Error('Invalid observation evidence')
+  if(o.heartbeatJob!==undefined&&definition.type!=='heartbeat')throw Error('Unexpected heartbeat job evidence');
   if (o.protocol !== undefined && !isProtocol(definition.type)) throw Error('Unexpected protocol evidence')
   if(definition.assignments?.[o.probe]?.canaryUrl&&o.canary===undefined)throw Error('Configured canary evidence required');
   if(o.canary!==undefined){

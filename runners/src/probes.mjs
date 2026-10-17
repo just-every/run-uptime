@@ -1,3 +1,4 @@
+import {heartbeatEvaluation} from '../../src/domain/heartbeat-job.mjs';
 import {randomUUID} from 'node:crypto';
 import http from 'node:http';
 import {CredentialBindingRequired} from './credential-diagnostic.mjs';
@@ -21,6 +22,7 @@ function syntheticHttp(def,signal,onRequest){
 }
 export function probeHeartbeat(def,probe,receipt){
   const now=Date.now(),receivedAt=receipt?.receivedAt;
+  if(receipt?.job){const evaluated=heartbeatEvaluation(def,receipt.job,now);return {id:randomUUID(),probe,startedAt:now,completedAt:now,durationMs:0,runnerVersion:RUNNER_VERSION,heartbeatJob:receipt.job,...(Number.isFinite(receivedAt)?{heartbeatReceivedAt:receivedAt}:{}),outcome:evaluated.outcome,checks:evaluated.checks}}
   const pass=Number.isFinite(receivedAt)&&receivedAt<=now&&now-receivedAt<=def.heartbeat.maxAgeMs;
   return {id:randomUUID(),probe,startedAt:now,completedAt:now,durationMs:0,runnerVersion:RUNNER_VERSION,outcome:pass?'pass':'target_failure',...(Number.isFinite(receivedAt)?{heartbeatReceivedAt:receivedAt}:{}),checks:[{assertion:'heartbeat',pass,reason:pass?'Authenticated receipt is fresh':'Authenticated receipt absent or stale'}]};
 }

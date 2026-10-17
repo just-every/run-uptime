@@ -1,3 +1,4 @@
+import {scheduleHeartbeatEvaluation} from './heartbeat-jobs.server.ts'
 // @ts-ignore Shared calendar is also used by the console preview.
 import {activeMaintenance,intervals} from './planned-maintenance.mjs'
 import {get,type Bindings} from './control.server.ts'
@@ -117,10 +118,10 @@ export async function completeAttempts(env:Bindings,input:any,runnerId:string){
     statements.push(env.DB.prepare(`INSERT OR IGNORE INTO notification_jobs(id,event_id,destination_id,destination_name,kind,credential_id,event,created_at) SELECT ?||':'||id,?,id,name,kind,credential_id,?,? FROM notification_destinations WHERE enabled=1 AND deleted_at IS NULL AND EXISTS(SELECT 1 FROM outbox WHERE id=? AND slot_id=?) AND ${guard}`).bind(event.id,event.id,JSON.stringify(event),now,event.id,slot.id,...values));
    }
   }
-  if(current){const started=Math.max(...combined.filter(o=>o.slot_id===slot.id&&o.attempt===0).map(o=>JSON.parse(o.evidence).startedAt));if(Number.isSafeInteger(started))statements.push(env.DB.prepare(`UPDATE monitors SET next_due=MAX(next_due,?) WHERE id=? AND revision=? AND ${guard}`).bind(started+definition.intervalMs,m.id,m.revision,...values))}
+  if(current){const started=Math.max(...combined.filter(o=>o.slot_id===slot.id&&o.attempt===0).map(o=>JSON.parse(o.evidence).startedAt));if(Number.isSafeInteger(started))statements.push(env.DB.prepare(`UPDATE monitors SET next_due=CASE WHEN json_extract(definition,'$.type')='heartbeat' AND next_due<=? THEN next_due ELSE MAX(next_due,?) END WHERE id=? AND revision=? AND ${guard}`).bind(slot.due_at,started+definition.intervalMs,m.id,m.revision,...values))}
   if(terminalSlot(definition,combined.filter(o=>o.slot_id===slot.id).map(o=>JSON.parse(o.evidence))))statements.push(env.DB.prepare(`UPDATE slots SET status='complete' WHERE id=? AND ${guard}`).bind(slot.id,...values));
   const results=await env.DB.batch([claim,...statements]);
-  if(results[0].meta.changes){await env.DB.prepare('UPDATE runners SET last_contact_at=? WHERE runner_id=? AND revoked_at IS NULL').bind(now,runnerId).run();
+  if(results[0].meta.changes){if(current&&definition.type==='heartbeat')await scheduleHeartbeatEvaluation(env,m.id,false,Math.max(...attempts.map((o:any)=>o.heartbeatJob?.failure?.at??o.heartbeatJob?.receivedAt??o.heartbeatJob?.baselineAt??0)));await env.DB.prepare('UPDATE runners SET last_contact_at=? WHERE runner_id=? AND revoked_at IS NULL').bind(now,runnerId).run();
    // Installation runner contact is an authenticated runner request; the Worker's own checks are not one.
    if(runnerId!==HOSTED_RUNNER_ID)await env.DB.prepare('INSERT INTO runner_contact(id,last_contact_at) VALUES(1,?) ON CONFLICT(id) DO UPDATE SET last_contact_at=excluded.last_contact_at').bind(now).run();return {accepted:true,state:current?state:null}}
   if(!await env.DB.prepare('SELECT 1 FROM slots JOIN runners ON runners.runner_id=? WHERE slots.id=? AND slots.lease_until>? AND runners.revoked_at IS NULL').bind(runnerId,slot.id,Date.now()).first())throw Error('Acceptance authority expired')

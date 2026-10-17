@@ -1,3 +1,4 @@
+import {heartbeatSettings,heartbeatEvaluation} from './heartbeat-job.mjs'
 import {validateMonitorMetadata} from './monitor-metadata.mjs';
 import {validateMaintenanceWindows,activeMaintenance} from './planned-maintenance.mjs';
 import {publicTarget} from './public-target.mjs';
@@ -51,8 +52,7 @@ export function validateDefinition(input, grants) {
   }
   let heartbeat;
   if(type==='heartbeat'){
-    if(input.heartbeat!==undefined&&(!input.heartbeat||Object.keys(input.heartbeat).some(k=>k!=='maxAgeMs')))throw Error('Invalid heartbeat configuration');
-    heartbeat={maxAgeMs:integer(input.heartbeat?.maxAgeMs??180000,5000,86400000,'heartbeat age')};
+    heartbeat=heartbeatSettings(input.heartbeat);
   }else if(input.heartbeat!==undefined)throw Error('Heartbeat settings require heartbeat type');
   const probes = input.probes ?? ['local-a'];
   if (!Array.isArray(probes) || probes.length < 1 || probes.length > 3 || new Set(probes).size !== probes.length || probes.some(p => !['local-a','local-b','local-c'].includes(p))) throw Error('Invalid local probes');
@@ -97,7 +97,7 @@ export function evaluate(def, observations, previous = {}, now = Date.now(), adv
     const retryComplete=observation?.retryComplete!==false;
     const canary=observation?.canary;
     const canaryFresh=canary?(canary.outcome==='pass'&&canary.completedAt<=evidenceThrough&&now-canary.completedAt<=def.freshnessMs):!def.assignments?.[probe]?.canaryUrl;
-    const fresh = canaryFresh && observation && (observation.outcome!=='pass'||retryComplete) && (def.type!=='heartbeat'||observation.outcome!=='pass'||(Number.isFinite(observation.heartbeatReceivedAt)&&observation.heartbeatReceivedAt<=now&&now-observation.heartbeatReceivedAt<=def.heartbeat.maxAgeMs)) && now - observation.completedAt <= def.freshnessMs && observation.completedAt <= evidenceThrough && !['runner_error','interrupted'].includes(observation.outcome);
+    const fresh = canaryFresh && observation && (observation.outcome!=='pass'||retryComplete) && (def.type!=='heartbeat'||observation.outcome!=='pass'||(Number.isFinite(observation.heartbeatReceivedAt)&&observation.heartbeatReceivedAt<=now&&now-observation.heartbeatReceivedAt<=def.heartbeat.maxAgeMs+(def.heartbeat.graceMs??0)&&(!observation.heartbeatJob||heartbeatEvaluation(def,observation.heartbeatJob,now).outcome==='pass'))) && now - observation.completedAt <= def.freshnessMs && observation.completedAt <= evidenceThrough && !['runner_error','interrupted'].includes(observation.outcome);
     return { probe, networkLabel:def.assignments?.[probe]?.networkLabel??'owner-network', canaryPassed:Boolean(canary&&canaryFresh),terminal:Boolean(observation)&&retryComplete&&(observation.outcome!=='target_failure'||observation.attempt===def.retries), state:!fresh?'Unknown':observation.outcome==='pass'?'Healthy':'Failing', observationId:observation?.id??null,observedAt:observation?.completedAt??null };
   });
   const fails=regions.filter(r=>r.state==='Failing').length,unknown=regions.filter(r=>r.state==='Unknown').length;

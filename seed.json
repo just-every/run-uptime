@@ -1132,6 +1132,22 @@
         "class": "assets",
         "authentication": "None; emitted static resource only.",
         "environment": "all"
+      },
+      {
+        "path": "/heartbeat-jobs.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/heartbeat-jobs.css",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
       }
     ],
     "notes": "Console documents and APIs require a Base owner session; runner and heartbeat APIs use separately scoped credentials."

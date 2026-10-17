@@ -36,5 +36,6 @@ export function reportCsv(report: MonitorReport): string {
     for (const metric of ['durationMs', 'durationInPeriodMs', 'ongoingAtEnd', 'imported'] as const)
       add('incident', metric, incident[metric], metric.endsWith('Ms') ? 'ms' : '', '', incident.startedAt, incident.endedAt, incident.key)
   }
+  for(const run of report.jobRuns??[]){for(const metric of ['state','durationMs','exitCode','late'] as const)add('job_run',metric,run[metric],metric==='durationMs'?'ms':'','',run.startedAt,run.receivedAt,run.id)}
   return `${rows.map(row => row.map(cell).join(',')).join('\r\n')}\r\n`
 }
