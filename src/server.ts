@@ -121,6 +121,10 @@ api.get('/api/v1/openapi.json',c=>c.json(readApiOpenApi))
 for(const suffix of ['uptime','report'] as const)api.get(`/api/v1/monitors/:id/${suffix}`,async c=>{
  const report=await monitorReport(c.env,c.req.param('id'),new URL(c.req.url).searchParams)
  if(!report)return c.json({error:'Monitor not found'},404)
+ if(c.req.query('format')==='pdf'||c.req.header('accept')?.includes('application/pdf')){
+  const {reportPdf}=await import('./domain/reports/pdf.ts')
+  c.header('content-type','application/pdf');c.header('content-disposition','attachment; filename="uptime-report.pdf"');return c.body(new Uint8Array(await reportPdf(report,c.env.ASSETS)).buffer)
+ }
  if(c.req.query('format')==='csv'||c.req.header('accept')?.includes('text/csv')){
   c.header('content-type','text/csv; charset=utf-8');c.header('content-disposition','attachment; filename="uptime-report.csv"');return c.body(reportCsv(report))
  }

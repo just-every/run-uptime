@@ -10,8 +10,8 @@ const parameters = [
  {name:'location',in:'query',schema:{type:'string',default:'all'},description:'all or a probe ID selected in this monitor’s retained revisions.'},
 ]
 const error={description:'Request refused',content:{'application/json':{schema:{type:'object',required:['error'],properties:{error:{type:'string'},code:{type:'string'}}}}}}
-const operation=(summary:string,report:boolean)=>({summary,security:[{ownerSession:[]}],parameters:[...parameters,...(report?[{name:'format',in:'query',schema:{type:'string',enum:['json','csv'],default:'json'}}]:[])],responses:{
- '200':{description:report?'Coverage, SLA, latency and incidents computed from immutable scheduled evidence.':'Bounded latency statistics and series; nearest-rank percentiles and UTC-aligned buckets.',content:{'application/json':{schema:{type:'object'}},...(report?{'text/csv':{schema:{type:'string'}}}:{})}},
+const operation=(summary:string,report:boolean)=>({summary,security:[{ownerSession:[]}],parameters:[...parameters,...(report?[{name:'format',in:'query',schema:{type:'string',enum:['json','csv','pdf'],default:'json'}}]:[])],responses:{
+ '200':{description:report?'Coverage, SLA, latency and incidents computed from immutable scheduled evidence.':'Bounded latency statistics and series; nearest-rank percentiles and UTC-aligned buckets.',content:{'application/json':{schema:{type:'object'}},...(report?{'text/csv':{schema:{type:'string'}},'application/pdf':{schema:{type:'string',format:'binary'}}}:{})}},
  '400':error,'401':error,'404':error,
 }})
 export const readApiOpenApi={

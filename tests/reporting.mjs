@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {PDFDocument} from 'pdf-lib';
 import {mkdtemp,rm} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
 import {tmpdir} from 'node:os';
@@ -15,7 +16,7 @@ const minute=60000,day=86400000,end=Date.now()-3600000,from=end-180*minute;
 let worker;
 try{
  await migrate(persist);
- worker=await startLocalWorker({root,persist,assets:false,bindings:testAuthBindings});
+ worker=await startLocalWorker({root,persist,bindings:testAuthBindings});
  const db=await worker.getD1Database('DB'),origin=(await worker.ready).origin;
  const cookie=await signInOwner(origin,{bindings:testAuthBindings});
  const id=`report-checkout-${end}`,capId=`report-volume-${end}`;
@@ -106,6 +107,12 @@ try{
   const row=csv.split('\r\n').find(line=>line.startsWith('availability,')&&line.split(',')[6]===metric);
   assert.ok(row,`CSV includes ${metric}`);assert.equal(row.split(',')[7],String(value));
  }
+ const pdfParams=new URLSearchParams(params);pdfParams.set('format','pdf');
+ assert.equal((await fetch(origin+path('report',pdfParams))).status,401,'PDF exports require the native owner session');
+ const pdfResponse=await get('report',pdfParams);
+ assert.equal(pdfResponse.status,200,await pdfResponse.clone().text());assert.match(pdfResponse.headers.get('content-type'),/application\/pdf/);
+ const pdf=await PDFDocument.load(await pdfResponse.arrayBuffer());assert.ok(pdf.getPageCount()>1,'response-time history continues onto subsequent pages');assert.equal(pdf.getTitle(),report.monitor.name+' - Uptime period report');
+ const negotiated=await get('report',params,id,{accept:'application/pdf'});assert.equal(negotiated.status,200);assert.match(negotiated.headers.get('content-disposition'),/attachment/);
  const overviewResponse=await fetch(origin+'/api/overview',{headers:{cookie}});assert.equal(overviewResponse.status,200,await overviewResponse.clone().text());const overview=await overviewResponse.json();
  const sameWindow=new URLSearchParams({from:String(overview.now-day),to:String(overview.now)});
  const sameReport=await (await get('uptime',sameWindow)).json();

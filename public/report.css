@@ -38,3 +38,5 @@
  .report-downloads { align-items: stretch; flex-direction: column; }
  .report-downloads button { white-space: normal; }
 }
+
+.report-job-output { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; margin: 0; }

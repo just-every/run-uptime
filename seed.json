@@ -722,6 +722,14 @@
         "environment": "all"
       },
       {
+        "path": "/report-jobs.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
         "path": "/report.css",
         "match": "exact",
         "kind": "asset",
