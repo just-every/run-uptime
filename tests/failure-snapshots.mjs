@@ -1,10 +1,11 @@
+import http from 'node:http';
 // EVIDENCE-002: owner -> real signed HTTP runner -> redacted diagnostic custody -> inactive archive.
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID,randomBytes} from 'node:crypto';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
-import {fixture} from './resilience/support.mjs';
+import {fixture,closeServer} from './resilience/support.mjs';
 import {snapshotBrowser} from './failure-snapshot-browser.mjs';
 
 test('failure snapshots are separately stored, masked, private, portable and erasable without altering evidence',{timeout:120000},async()=>{
@@ -35,4 +36,16 @@ test('failure snapshots are separately stored, masked, private, portable and era
   const journal=(await f.request('/api/erasure-journal')).data;const fresh=await fixture();try{assert.equal((await fresh.request('/api/restore',{body:{archive,laterJournal:journal}})).status,400)}finally{await fresh.close()}
   const erased=await receiving.request(`/api/monitors/${monitor.id}/erase`,{body:{name:monitor.definition.name}});assert.equal(erased.status,200);assert.equal(erased.data.receipt.counts.failure_snapshots,1);
  }finally{if(previous===undefined)delete process.env.UPTIME_CREDENTIAL_DIR;else process.env.UPTIME_CREDENTIAL_DIR=previous;await receiving?.close();await f.close()}
+});
+
+
+test('a cross-origin failure snapshot masks earlier request authority without forwarding it',{timeout:30000},async()=>{
+ const f=await fixture(),previous=process.env.UPTIME_CREDENTIAL_DIR,token=randomBytes(24).toString('hex'),seen=[];let receiver,original;
+ try{
+  receiver=http.createServer((req,res)=>{seen.push(Boolean(req.headers.authorization));if(req.url==='/start'){res.writeHead(302,{location:`http://93.184.216.37:${receiver.address().port}/${token}`});res.end()}else{res.writeHead(503,{'content-type':'text/html'});res.end(`<div>${token}</div>`)}});await new Promise(r=>receiver.listen(0,'127.0.0.1',r));
+  const port=receiver.address().port;original=http.request;http.request=function(options,...args){return original.call(this,['93.184.216.36','93.184.216.37'].includes(options?.hostname)?{...options,hostname:'127.0.0.1'}:options,...args)};
+  const monitor=await f.monitor({runners:[f.first],canary:true,url:`http://93.184.216.36:${port}/start`,request:{credentialRef:'redirect-auth'}});
+  const directory=join(f.directory,'redirect-credentials');await mkdir(directory,{mode:0o700});process.env.UPTIME_CREDENTIAL_DIR=directory;await writeFile(join(directory,'redirect-auth.json'),JSON.stringify({monitorId:monitor.id,origin:`http://93.184.216.36:${port}`,auth:{type:'bearer',token}}),{mode:0o600});
+  const task=await f.claim(f.first),observation=await f.evidence(task);assert.equal(observation.outcome,'target_failure');assert.deepEqual(seen,[true,false]);assert.ok(!JSON.stringify(observation.failureSnapshot).includes(token),'redirected evidence must mask authority sent to an earlier origin');assert.equal((await f.submit(f.first,task,[observation])).status,200);
+ }finally{if(original)http.request=original;if(previous===undefined)delete process.env.UPTIME_CREDENTIAL_DIR;else process.env.UPTIME_CREDENTIAL_DIR=previous;await closeServer(receiver);await f.close()}
 });

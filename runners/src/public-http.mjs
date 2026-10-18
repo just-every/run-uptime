@@ -51,7 +51,7 @@ export async function publicHttp(def,signal,onRequest,{statusOnly=false,monitorI
   onPhase?.('target');
   const pin=await (def.network==='private'?privateAccess(url,signal):resolvePublic(url,signal));
   const settings={...prepared,headers:{...prepared.headers,...extraHeaders},body,credentialsPresent:Boolean(credential),allowUnverifiedTls:credential?.allowUnverifiedTls===true,trackTlsFacts:Boolean(def.tlsTrust)};
-  sentHeaders={'user-agent':RUNNER_VERSION,accept:PROBE_ACCEPT,...settings.headers};sentSecrets=secretStrings(settings.headers).concat(secretStrings(credential));if(body){try{sentSecrets.push(...secretStrings(JSON.parse(body)))}catch{sentSecrets.push(String(body))}}sentSecrets=sentSecrets.filter(x=>x&&x.length<=16384).slice(0,128);
+  sentHeaders={'user-agent':RUNNER_VERSION,accept:PROBE_ACCEPT,...settings.headers};sentSecrets.push(...secretStrings(settings.headers),...secretStrings(credential));if(body){try{sentSecrets.push(...secretStrings(JSON.parse(body)))}catch{sentSecrets.push(String(body))}}sentSecrets=[...new Set(sentSecrets.filter(x=>x&&x.length<=16384))].slice(0,128);
   const response=await requestOnce(url,pin,method,settings,signal,req=>{sentHeaders=req.getHeaders();onRequest(req)},undefined,statusOnly,trust);facts.push(...(response.tlsTrust??[]));return response;
   }catch(error){error.facts=[...facts,...(error.facts??[])];throw error}
  };
@@ -96,7 +96,7 @@ export async function publicReport(rawUrl,{signal,accept=PROBE_ACCEPT,userAgent,
     // Timing is lookup plus the request, as a probe measures it; waiting in beforeRequest (robots, spacing) is not counted.
     const started=Date.now(),response=await requestOnce(url,pin,method,settings,hopSignal,()=>{},{accept,userAgent,maxBody}),durationMs=lookupMs+Date.now()-started;
     hops.push({url:url.href,status:response.status,durationMs});
-    if(!Object.hasOwn(response,'redirect'))return {...response,...(snapshotPolicy&&!statusOnly?{failureSnapshot:tryCaptureFailureSnapshot({method,url:url.href,redirects,requestHeaders:sentHeaders,responseHeaders:response.headers,status:response.status,body:response.body,durationMs:0,requestSecrets:sentSecrets,masks:snapshotPolicy.masks})}:{}),truncated:Boolean(response.truncated),url:url.href,hops,durationMs};
+    if(!Object.hasOwn(response,'redirect'))return {...response,truncated:Boolean(response.truncated),url:url.href,hops,durationMs};
     if(!response.redirect)throw new ProbeError('redirect');
     let next;try{next=new URL(response.redirect,url);next.hash='';next=publicTarget(next.href)}catch{throw new ProbeError('network')}
     if(url.protocol==='https:'&&next.protocol!=='https:')throw new ProbeError('redirect');

@@ -2665,7 +2665,7 @@
       "executable": false
     },
     "runners/src/public-http.mjs": {
-      "sha256": "5f49668d6ecc8357e3c6217c10892c9eb722603eac290daafcae77e713007150",
+      "sha256": "bc9e0e9cc04847f769ae826d013e44f905fe60c72ac65891452e385e9c5fe259",
       "executable": false
     },
     "runners/src/synthetic-server.mjs": {
@@ -5277,7 +5277,7 @@
       "executable": false
     },
     "tests/failure-snapshots.mjs": {
-      "sha256": "5ae77a3d55056282c088d6611d9fef0293a7cf81e0034b21bbdfea5741fe3496",
+      "sha256": "9acc3fab6753eee5b3b7904038a36289b315074f4531780642b347a558c4b19e",
       "executable": false
     },
     "tests/fixtures/README.md": {
@@ -5549,7 +5549,7 @@
       "executable": false
     },
     "tests/resilience/attempts.mjs": {
-      "sha256": "de243afc1be4b939cfc320cf75db19601b35abd4d64fa06a8f37b9960d30bca8",
+      "sha256": "736bda4d0194a09a31ae6aeec287c2ffa3e119a4c6aec6ec9f394360fc140ddb",
       "executable": false
     },
     "tests/resilience/support.mjs": {
