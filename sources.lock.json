@@ -5073,7 +5073,7 @@
       "executable": false
     },
     "tests/reporting.mjs": {
-      "sha256": "d5dd5a9ffbeb89a59c28adfa4ed3ff6d0911ef41051d021ccbb57766db5f8767",
+      "sha256": "f0ec02df537263220d8a3dd94130bddb5b12738b0d961ab68464d53690d56929",
       "executable": false
     },
     "tests/resilience/attempts.mjs": {

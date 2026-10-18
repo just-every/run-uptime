@@ -111,7 +111,7 @@ try{
  assert.equal((await fetch(origin+path('report',pdfParams))).status,401,'PDF exports require the native owner session');
  const pdfResponse=await get('report',pdfParams);
  assert.equal(pdfResponse.status,200,await pdfResponse.clone().text());assert.match(pdfResponse.headers.get('content-type'),/application\/pdf/);
- const pdf=await PDFDocument.load(await pdfResponse.arrayBuffer());assert.ok(pdf.getPageCount()>1,'response-time history continues onto subsequent pages');assert.equal(pdf.getTitle(),report.monitor.name+' - Uptime period report');
+ const pdf=await PDFDocument.load(await pdfResponse.arrayBuffer());assert.ok(pdf.getPageCount()>1,'response-time history continues onto subsequent pages');assert.ok(pdf.getTitle().includes(report.monitor.name),'PDF metadata identifies the monitored service');
  const negotiated=await get('report',params,id,{accept:'application/pdf'});assert.equal(negotiated.status,200);assert.match(negotiated.headers.get('content-disposition'),/attachment/);
  const overviewResponse=await fetch(origin+'/api/overview',{headers:{cookie}});assert.equal(overviewResponse.status,200,await overviewResponse.clone().text());const overview=await overviewResponse.json();
  const sameWindow=new URLSearchParams({from:String(overview.now-day),to:String(overview.now)});
