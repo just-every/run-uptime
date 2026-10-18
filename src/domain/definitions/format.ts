@@ -3,15 +3,15 @@
 // canaries, heartbeat tokens and credentials) never appears in it. Slow policies may name local destination IDs; a file never creates delivery credentials.
 export const DEFINITION_FORMAT='uptime.monitors'
 // Version 2 adds the flow type (FLOW-001); version 3 adds the tcp, dns, tls and domain types. Earlier files are still
-// read; they just cannot hold the types added after them.
-export const DEFINITION_VERSION=3
-export const DEFINITION_READ_VERSIONS=[1,2,3]
+// read; they just cannot hold the types added after them. Version 4 adds UDP.
+export const DEFINITION_VERSION=4
+export const DEFINITION_READ_VERSIONS=[1,2,3,4]
 export const DEFINITION_BYTES=2*1024*1024
 export const DEFINITION_MONITORS=500
-export const FILE_FIELDS=['name','type','url','method','request','tlsTrust','heartbeat','assertions','slow','intervalMs','timeoutMs','retries','probes','failureQuorum','confirmSlots','recoverSlots','freshnessMs','enabled','maintenanceUntil','maintenanceWindows','flow','tcp','dns','tls','domain','project','environment','service','group','tags','owner','outcome','dependencies']
+export const FILE_FIELDS=['name','type','url','method','request','tlsTrust','heartbeat','assertions','slow','intervalMs','timeoutMs','retries','probes','failureQuorum','confirmSlots','recoverSlots','freshnessMs','enabled','maintenanceUntil','maintenanceWindows','flow','tcp','udp','dns','tls','domain','project','environment','service','group','tags','owner','outcome','dependencies']
 // Compared to decide unchanged or change. `enabled` and `maintenanceUntil` stay with the installation: a file never
 // enables a monitor or changes its maintenance.
-export const COMPARED_FIELDS=['name','type','network','url','method','request','tlsTrust','heartbeat','probes','assertions','slow','intervalMs','timeoutMs','retries','failureQuorum','confirmSlots','recoverSlots','freshnessMs','flow','tcp','dns','tls','domain','project','environment','service','group','tags','owner','outcome','dependencies']
+export const COMPARED_FIELDS=['name','type','network','url','method','request','tlsTrust','heartbeat','probes','assertions','slow','intervalMs','timeoutMs','retries','failureQuorum','confirmSlots','recoverSlots','freshnessMs','flow','tcp','udp','dns','tls','domain','project','environment','service','group','tags','owner','outcome','dependencies']
 
 export class DefinitionFileError extends Error {status=400}
 const fileError=(message:string)=>new DefinitionFileError(message)

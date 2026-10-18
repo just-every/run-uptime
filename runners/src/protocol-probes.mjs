@@ -1,4 +1,5 @@
 import net from 'node:net';
+import {udpFacts} from './udp-probe.mjs';
 import tls from 'node:tls';
 import {randomUUID} from 'node:crypto';
 import {RUNNER_VERSION,validateDefinition} from '../../src/domain/policy.mjs';
@@ -12,7 +13,7 @@ import {resolvePublic,publicReport,ProbeError} from './public-http.mjs';
 // (resolvePublic pins it, as an HTTP probe's socket is pinned); DNS over HTTPS and RDAP reads go through publicReport's
 // pinned, read-only, bounded GET. Refused, timed out and unresolved targets are target failures; a check this runner could
 // not perform is a runner error and stays Unknown.
-const targetCategories=['refused','timeout','connection','unresolved','tls'];
+const targetCategories=['refused','timeout','connection','unresolved','tls','response_limit'];
 const pinned=host=>new URL(`https://${host.includes(':')?`[${host}]`:host}/`);
 const printable=text=>text.replace(/[\x00-\x1f\x7f]+/g,' ').replace(/\s+/g,' ').trim();
 function socketError(error,port){
@@ -93,7 +94,7 @@ export async function probeProtocol(input,probe,{signal}={}){
  const evidence=(data,completedAt=Date.now())=>({id:randomUUID(),probe,startedAt,completedAt,durationMs:completedAt-startedAt,runnerVersion:RUNNER_VERSION,...data});
  try{
   const s=def[def.type];
-  const facts=def.type==='tcp'?await tcpFacts(s,execution,deadline):def.type==='tls'?await tlsFacts(s,execution):def.type==='dns'?await dnsFacts(reader(execution),s,asker(execution)):await domainFacts(reader(execution),s.name);
+  const facts=def.type==='udp'?await udpFacts(s,execution):def.type==='tcp'?await tcpFacts(s,execution,deadline):def.type==='tls'?await tlsFacts(s,execution):def.type==='dns'?await dnsFacts(reader(execution),s,asker(execution)):await domainFacts(reader(execution),s.name);
   const completedAt=Date.now();
   return evidence({...protocolChecks(def,facts,completedAt),protocol:facts},completedAt);
  }catch(error){

@@ -21,8 +21,8 @@ const fields = new Set(['id', 'probe', 'outcome', 'completedAt', 'startedAt', 'd
 // unresolved: the public resolver answered NXDOMAIN or no address. budget: a Worker run spent its outbound requests first.
 // refused: the target's port refused the connection; tls: the TLS handshake failed before a certificate could be read.
 // vantage: this vantage cannot run the check (a Worker socket to a Cloudflare address); registry: RDAP data unavailable.
-const targetErrors = new Set(['encoding', 'redirect', 'body-limit', 'transport', 'timeout', 'connection', 'unresolved', 'refused', 'tls'])
-const runnerErrors = new Set(['custody', 'runner', 'network', 'dns', 'browser', 'credential', 'grant', 'budget', 'vantage', 'registry'])
+const targetErrors = new Set(['encoding', 'redirect', 'body-limit', 'transport', 'timeout', 'connection', 'unresolved', 'refused', 'tls', 'response_limit'])
+const runnerErrors = new Set(['custody', 'runner', 'network', 'dns', 'browser', 'credential', 'grant', 'budget', 'vantage', 'registry', 'capacity'])
 const responseErrors = new Set(['encoding', 'redirect', 'body-limit'])
 /** Live completion accepts runner clocks up to this far ahead of control-plane time. */
 export const COMPLETION_CLOCK_ALLOWANCE_MS = 1000

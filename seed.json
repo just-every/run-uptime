@@ -32,7 +32,8 @@
         "EVIDENCE-001",
         "STATE-001",
         "NETWORK-001",
-        "HEARTBEAT-001"
+        "HEARTBEAT-001",
+        "UDP-001"
       ]
     },
     {
@@ -297,6 +298,17 @@
         "Owner stale-runner identity/network-label notice or all-healthy digest text, including any monitoring-configuration warning"
       ],
       "adapters": []
+    },
+    {
+      "id": "public-udp-targets",
+      "requiredWhen": "An owner enables a UDP monitor on an authorized public service using a private runner",
+      "why": "A pinned UDP socket sends one owner-configured packet and reads one bounded response; all resolved addresses must be public.",
+      "data": [
+        "Target hostname, port, source address and request timing",
+        "Owner-configured request payload (at most 256 bytes); response at most 1024 bytes",
+        "Response bytes retained as hexadecimal in authenticated immutable evidence, archives and monitor erasure; never put secrets in UDP payloads"
+      ],
+      "required": false
     }
   ],
   "env": [

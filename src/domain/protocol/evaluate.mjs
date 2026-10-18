@@ -17,6 +17,12 @@ function tcp(definition,facts){
  if(definition.assertions.latencyMs!==undefined)checks.push(check('latency',facts.connectMs<=definition.assertions.latencyMs,`Connected in ${facts.connectMs} ms (limit ${definition.assertions.latencyMs} ms)`));
  return checks;
 }
+function udp(definition,facts){
+ const s=definition.udp,match=s.match==='exact'?facts.responseHex===s.expectedHex:Array.from({length:facts.responseHex.length/2},(_,i)=>i*2).some(i=>facts.responseHex.startsWith(s.expectedHex,i));
+ const checks=[check('response',match,`Received ${facts.receivedBytes} bytes from ${facts.address}:${s.port} in ${facts.roundTripMs} ms; response ${match?'matches':'does not match'} the expected ${s.match==='exact'?'bytes':'byte sequence'}`)];
+ if(definition.assertions.latencyMs!==undefined)checks.push(check('latency',facts.roundTripMs<=definition.assertions.latencyMs,`UDP response in ${facts.roundTripMs} ms (limit ${definition.assertions.latencyMs} ms)`));
+ return checks;
+}
 function tls(definition,facts,at){
  const cert=facts.certificate,issuer=cert.issuer.cn??cert.issuer.o??'an unnamed issuer',checks=[];
  if(facts.trusted!==null)checks.push(check('trust',facts.trusted,facts.trusted?`Chain trusted: ${plural(facts.chainLength,'certificate')}, issued by ${issuer}`:`Chain not trusted${facts.verifyError?` (${facts.verifyError})`:''}; issued by ${issuer}`));
@@ -78,6 +84,7 @@ function domain(definition,facts,at){
 /** {checks, outcome} for one protocol attempt's facts at completion time `at`. */
 export function protocolChecks(definition,facts,at){
  const type=definition.type;
+ if(type==='udp'){const checks=udp(definition,facts);return {checks,outcome:checks.every(c=>c.pass)?'pass':'target_failure'}}
  if(type==='tcp'||type==='tls'){const checks=type==='tcp'?tcp(definition,facts):tls(definition,facts,at);return {checks,outcome:checks.every(c=>c.pass)?'pass':'target_failure'}}
  if(type==='dns'){const {checks,infrastructure}=dns(definition,facts);return {checks,outcome:infrastructure?'runner_error':checks.every(c=>c.pass)?'pass':'target_failure'}}
  if(type==='domain'){const {checks,unknown}=domain(definition,facts,at);return {checks,outcome:unknown?'runner_error':checks.every(c=>c.pass)?'pass':'target_failure'}}

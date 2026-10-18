@@ -42,7 +42,7 @@
      <section class="editor-panel ui-card" aria-labelledby="editor-check-heading"><h2 id="editor-check-heading">What to check</h2>
       <div class="editor-fields">
        <label>Monitor name<input disabled name="name" maxlength="100" required></label>
-       <label>What to check<select disabled name="checkType" aria-describedby="check-type-help"><option value="http">Website or API (HTTP)</option><option value="tcp">TCP port</option><option value="dns">DNS record</option><option value="tls">TLS certificate</option><option value="domain">Domain registration expiry</option></select></label>
+       <label>What to check<select disabled name="checkType" aria-describedby="check-type-help"><option value="http">Website or API (HTTP)</option><option value="tcp">TCP port</option><option value="udp">UDP request and response</option><option value="dns">DNS record</option><option value="tls">TLS certificate</option><option value="domain">Domain registration expiry</option></select></label>
        <p id="check-type-help" class="helper ui-helper type-help" data-type-help="http">Requests the URL and checks status, text, headers and JSON.</p>
        <div class="type-fields editor-fields" data-types="http">
         <label>Target URL<input disabled name="url" type="url" placeholder="https://www.your-site.example/health" required></label>
@@ -73,6 +73,13 @@
         <label>Banner must contain (optional)<input disabled name="tcpBannerIncludes" maxlength="100" placeholder="SSH-2.0"></label>
         <p class="helper ui-helper">Refused connections, timeouts and checks that could not run are reported separately.</p>
        </div>
+       <div class="type-fields editor-fields" data-types="udp" hidden>
+        <div class="editor-pair"><label>UDP host<input disabled name="udpHost" maxlength="253" placeholder="service.your-site.example" autocapitalize="off" spellcheck="false"></label><label>UDP port<input disabled name="udpPort" type="number" min="1" max="65535" placeholder="9000"></label></div>
+        <label>Request bytes (hexadecimal)<textarea disabled name="udpPayload" maxlength="512" spellcheck="false" placeholder="50494e47"></textarea></label>
+        <label>Expected response bytes (hexadecimal)<textarea disabled name="udpExpected" maxlength="2048" spellcheck="false" placeholder="504f4e47"></textarea></label>
+        <label>Response match<select disabled name="udpMatch"><option value="exact">Exactly these bytes</option><option value="includes">Contains this byte sequence</option></select></label>
+        <p class="helper ui-helper">Use only a service you are authorized to check. One packet per attempt: at most 256 request bytes and 1,024 response bytes, every 30 seconds or slower, and at most 6 packets per minute to an endpoint on each runner. No response is a timeout, never proof of an open port. Requires a private runner; Cloudflare Workers cannot send UDP.</p>
+       </div>
        <div class="type-fields editor-fields" data-types="dns" hidden>
         <div class="editor-pair"><label>Name<input disabled name="dnsName" maxlength="253" placeholder="your-site.example" autocapitalize="off" spellcheck="false"></label><label>Record type<select disabled name="dnsType"><option>A</option><option>AAAA</option><option>CNAME</option><option>MX</option><option>TXT</option><option>NS</option><option>SOA</option><option>SRV</option><option>CAA</option></select></label></div>
         <fieldset class="check-group"><legend>Resolvers</legend><label class="check-row"><input disabled name="dnsResolver" type="checkbox" value="cloudflare">Cloudflare (1.1.1.1)</label><label class="check-row"><input disabled name="dnsResolver" type="checkbox" value="google">Google (8.8.8.8)</label><label class="check-row"><input disabled name="dnsResolver" type="checkbox" value="authoritative">The zone’s authoritative name server</label></fieldset>
@@ -90,7 +97,7 @@
         <div class="editor-pair"><label>Warn this many days before expiry<input disabled name="domainWarnDays" placeholder="60, 30, 14, 7"></label><label>Accountable owner (optional)<input disabled name="domainOwner" maxlength="100" placeholder="Name or team"></label></div>
         <p class="helper ui-helper">Reads the registry’s RDAP record and the registrar’s. A redacted, missing or conflicting date is Unknown, never healthy.</p>
        </div>
-       <label class="type-fields" data-types="tcp dns tls" hidden>Slowest acceptable answer (milliseconds, optional)<input disabled name="protocolLatency" type="number" min="1" max="10000"></label>
+       <label class="type-fields" data-types="tcp udp dns tls" hidden>Slowest acceptable answer (milliseconds, optional)<input disabled name="protocolLatency" type="number" min="1" max="10000"></label>
       </div>
      </section>
      <section class="editor-panel ui-card" data-monitor-metadata></section>

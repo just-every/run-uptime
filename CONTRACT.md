@@ -424,13 +424,13 @@ Protocol round (17 October 2026): TCP-001, DNS-001, TLS-001 and DOMAIN-001 moved
 
 ## Status
 
-Judged from the code and tests at commit `133aa4d855f7a1d554c326d3669038c7f2e239b6` (18 October 2026).
+Judged from the cited implementation and tests (18 October 2026).
 
 | Clauses | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
 | Published | 16 | 5 | 0 | 21 |
-| Target and push further | 14 | 31 | 22 | 67 |
-| All | 30 | 36 | 22 | 88 |
+| Target and push further | 15 | 31 | 21 | 67 |
+| All | 31 | 36 | 21 | 88 |
 
 | Clause | Title | Kind | Status | Evidence | Gap |
 | --- | --- | --- | --- | --- | --- |
@@ -468,7 +468,7 @@ Judged from the code and tests at commit `133aa4d855f7a1d554c326d3669038c7f2e239
 | `DNS-001` | DNS records and change detection | target | done | `src/domain/protocol/dns.mjs`; `src/domain/protocol/dns-wire.mjs`; `src/domain/protocol/evaluate.mjs`; `tests/protocol-monitors.mjs` | Cloudflare and Google over HTTPS plus the zone's authoritative server over TCP; nine record types, expected/absent values, owner-approved changes; NXDOMAIN, SERVFAIL, disagreement and resolver faults stay distinct. |
 | `TLS-001` | SSL certificate and chain monitoring | target | done | `src/domain/protocol/x509.mjs`; `src/domain/protocol/tls12-certificates.mjs`; `src/domain/expiry-notices.server.ts`; `tests/protocol-monitors.mjs` | Trust, host name and validity per location; staged warnings naming the certificate and accountable owner, one per certificate and stage, resolved only by a newly observed valid certificate. Stage progression is shown with certificates at different expiry distances, not a moved clock. A TLS 1.3-only server is Unknown at the Worker. |
 | `DOMAIN-001` | Domain registration expiry | target | done | `src/domain/protocol/rdap.mjs`; `src/domain/expiry-notices.server.ts`; `tests/protocol-monitors.mjs` | RDAP from IANA's bootstrap, the registry and the linked registrar record, with each source and update time; staged warnings followed until renewal is observed; redacted, missing, unreadable or conflicting data is Unknown. Registrar data comes from registrar RDAP: a TLD without RDAP reports Unknown (there is no WHOIS client). |
-| `UDP-001` | UDP request and response checks | target | missing |  | No implementation; acceptance journey above is required. |
+| `UDP-001` | UDP request and response checks | target | done | `runners/src/udp-probe.mjs`; `src/domain/protocol/settings.mjs`; `src/domain/protocol/facts.mjs`; `tests/udp-monitors.mjs`; `tests/udp-browser.mjs`; `docs/evidence/contracts/udp/` | Public DNS and numeric pinning, exact/contained byte matching and latency, one 256-byte request and bounded 1,024-byte response per attempt, a 30-second interval floor and per-runner endpoint packet caps. Signed scheduled mismatch, timeout, recovery, rejected private destinations, revoked authority, inactive archive round trip and desktop/phone configuration/evidence are proven. UDP requires a private Node runner; a Worker assignment refuses. Silence never establishes an open port. |
 | `MAIL-001` | SMTP and mailbox protocol checks | target | missing |  | No implementation; acceptance journey above is required. |
 | `HEARTBEAT-002` | Cron and job heartbeat monitoring | target | partial | `src/domain/heartbeat-job.mjs`; `src/domain/heartbeat-jobs.server.ts`; `public/heartbeat-jobs.js`; `scripts/heartbeat/run-job.sh`; `tests/signed-runner.mjs`; `docs/evidence/contracts/jobs/` | Fixed expected periods with explicit grace, sequence-protected header POST start/success/fail/exit states, server-time duration, bounded masked failure excerpts, missed/overlong scheduled evidence and late recovery now ship. Owner settings retire old keys; immutable paged run history, real Bash/curl wrapper and JSON/CSV report records preserve revision/import rules. Cron/IANA/DST schedules, GET/HEAD and URL capabilities, generated scheduler-specific snippets, migration mapping and hosted SCHEDULE-002 timing acceptance remain gaps. |
 | `SCHEDULE-001` | Explicit cadence, retries and confirmation | target | done | `src/domain/policy.mjs`; `src/domain/schedule.ts`; `tests/signed-runner.mjs`; `tests/resilience/attempts.mjs` |  |

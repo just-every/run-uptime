@@ -2,12 +2,12 @@ A definition file lists your monitors as reviewed text, so you can keep them in 
 
 ## The file
 
-The default name is `uptime.monitors.json`. New exports use version 3; version 1 and 2 files remain readable (a flow needs version 2 or later, and the TCP, DNS, TLS and domain types need version 3). The supported public monitor types are HTTP(S), keyword, heartbeat, TCP, DNS, TLS and domain:
+The default name is `uptime.monitors.json`. New exports use version 4; versions 1–3 remain readable (a flow needs version 2 or later, TCP, DNS, TLS and domain need version 3, and UDP needs version 4). Supported public monitor types are HTTP(S), keyword, heartbeat, TCP, UDP, DNS, TLS and domain. UDP requires a private runner and uses `udp: {"host":"service.example.com","port":9000,"payloadHex":"50494e47","expectedHex":"504f4e47","match":"exact"}`; bytes are hexadecimal (`PING` and `PONG` here), never credentials. Its minimum interval is 30 seconds.
 
 ```json
 {
   "format": "uptime.monitors",
-  "version": 3,
+  "version": 4,
   "monitors": [
     {
       "name": "Shop home",

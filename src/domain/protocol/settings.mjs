@@ -3,7 +3,7 @@ import {RESOLVERS,RECORD_TYPES,DEFAULT_RESOLVERS} from './dns.mjs';
 // Settings of the protocol monitors (TCP-001, DNS-001, TLS-001, DOMAIN-001), validated by the same function on the
 // control plane, the Worker and the runner. Each type keeps its settings in one object named after it; `url` is derived
 // from them for display and identity (tcp://host:port, tls://host:port, dns://name/TYPE, domain://name).
-export const PROTOCOL_TYPES=['tcp','dns','tls','domain'];
+export const PROTOCOL_TYPES=['tcp','udp','dns','tls','domain'];
 export const isProtocol=type=>PROTOCOL_TYPES.includes(type);
 const fields=(value,allowed,label)=>{
  if(!value||typeof value!=='object'||Array.isArray(value))throw Error(`${label} settings required`);
@@ -45,6 +45,14 @@ export function protocolSettings(type,input){
   const readBanner=Boolean(s.readBanner||bannerIncludes);
   return {settings:{host,port:p,...(readBanner?{readBanner}:{}),...(bannerIncludes?{bannerIncludes}:{})},url:`tcp://${host.includes(':')?`[${host}]`:host}:${p}`};
  }
+ if(type==='udp'){
+  const s=fields(input.udp,['host','port','payloadHex','expectedHex','match'],'UDP');
+  const host=publicHost(s.host),p=port(s.port,undefined,'UDP port');
+  const hex=(v,max,label)=>{if(typeof v!=='string'||!v.length||v.length>max*2||v.length%2||!/^[0-9a-f]+$/i.test(v))throw Error(`${label} must be hexadecimal bytes (1–${max} bytes)`);return v.toLowerCase()};
+  const payloadHex=hex(s.payloadHex,256,'UDP request'),expectedHex=hex(s.expectedHex,1024,'Expected UDP response'),match=s.match??'exact';
+  if(!['exact','includes'].includes(match))throw Error('UDP response match must be exact or includes');
+  return {settings:{host,port:p,payloadHex,expectedHex,match},url:`udp://${host.includes(':')?`[${host}]`:host}:${p}`};
+ }
  if(type==='tls'){
   const s=fields(input.tls,['host','port','warnDays','owner'],'TLS');
   const host=publicHost(s.host),p=port(s.port,443,'TLS port'),owner=text(s.owner,100,'Accountable owner');
@@ -81,6 +89,7 @@ export function protocolSettings(type,input){
 }
 // Cadence bounds by type. TLS and domain expiry checks run at least hourly (SCHEDULE-002).
 export const PROTOCOL_TIMING={
+ udp:{interval:[30000,86400000,60000],timeout:[50,10000,3000]},
  tcp:{interval:[5000,86400000,60000],timeout:[50,10000,3000]},
  dns:{interval:[5000,86400000,60000],timeout:[50,10000,3000]},
  tls:{interval:[5000,3600000,3600000],timeout:[50,10000,5000]},

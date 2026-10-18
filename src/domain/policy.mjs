@@ -21,13 +21,13 @@ export function validateDefinition(input, grants) {
   if (typeof name !== 'string' || !name.trim() || name.length > 100) throw Error('Name required (100 characters max)');
   const type=input.type??'http';
   if(!['http','keyword','heartbeat','flow',...PROTOCOL_TYPES].includes(type))throw Error('Unsupported monitor type');
-  // TCP, DNS, TLS and domain monitors check public targets with their own settings; they send no HTTP request.
+  // TCP, UDP, DNS, TLS and domain monitors check public targets with their own settings; they send no HTTP request.
   const protocol=isProtocol(type);
   for(const other of PROTOCOL_TYPES)if(other!==type&&input[other]!==undefined)throw Error(`${other.toUpperCase()} settings require the ${other} type`);
   let settings;
   if(protocol){
-   if(input.network!==undefined&&input.network!=='public')throw Error('TCP, DNS, TLS and domain monitors check public targets');
-   if(input.method!==undefined)throw Error('A TCP, DNS, TLS or domain monitor sends no HTTP request method');
+   if(input.network!==undefined&&input.network!=='public')throw Error('TCP, UDP, DNS, TLS and domain monitors check public targets');
+   if(input.method!==undefined)throw Error('A TCP, UDP, DNS, TLS or domain monitor sends no HTTP request method');
    if(input.flow!==undefined||input.heartbeat!==undefined)throw Error('Unsupported settings for this monitor type');
    settings=protocolSettings(type,input);
    if(url!==undefined&&url!==''&&url!==settings.url)throw Error(`This monitor's address is ${settings.url}, from its ${type.toUpperCase()} settings`);
@@ -47,7 +47,7 @@ export function validateDefinition(input, grants) {
   const method=input.method??'GET';
   if(!(network==='synthetic'?['GET','HEAD']:['GET','HEAD','POST','PUT','PATCH','DELETE','OPTIONS']).includes(method))throw Error('Invalid request method');
   if(['headers','body','auth'].some(k=>input[k]!==undefined))throw Error('Request secrets require an installation-local credential reference');
-  if(protocol&&input.request!==undefined)throw Error('A TCP, DNS, TLS or domain monitor takes no request credential');
+  if(protocol&&input.request!==undefined)throw Error('A TCP, UDP, DNS, TLS or domain monitor takes no request credential');
   let request;
   if(input.request!==undefined){
     if(type==='heartbeat'||network==='synthetic'||!input.request||Object.keys(input.request).join(',')!=='credentialRef'||typeof input.request.credentialRef!=='string'||!/^[a-zA-Z0-9_-]{1,80}$/.test(input.request.credentialRef))throw Error('Invalid request credential reference');
@@ -64,7 +64,7 @@ export function validateDefinition(input, grants) {
     if(!input.assignments||typeof input.assignments!=='object'||Array.isArray(input.assignments)||Object.keys(input.assignments).some(p=>!probes.includes(p)))throw Error('Invalid assignments');
     assignments=Object.fromEntries(probes.map(p=>{const a=input.assignments[p];if(typeof a==='string'){if(!/^self-[0-9a-f-]{36}$/.test(a))throw Error('Invalid runner assignment');return [p,{runnerId:a}];}if(!a||typeof a.runnerId!=='string'||!/^self-[0-9a-f-]{36}$/.test(a.runnerId)||(a.networkLabel!==undefined&&(typeof a.networkLabel!=='string'||!a.networkLabel.trim()||a.networkLabel.length>80||/[\x00-\x1f\x7f]/.test(a.networkLabel)))||Object.keys(a).some(k=>!['runnerId','networkLabel','canaryUrl'].includes(k)))throw Error('Invalid runner assignment');return [p,{runnerId:a.runnerId,...(a.networkLabel?{networkLabel:a.networkLabel}:{}),...(a.canaryUrl?{canaryUrl:publicTarget(a.canaryUrl).href}:{})}]}));
   }
-  if(protocol&&input.assertions!==undefined&&(!input.assertions||typeof input.assertions!=='object'||Array.isArray(input.assertions)||Object.keys(input.assertions).some(k=>k!=='latencyMs')))throw Error('A TCP, DNS, TLS or domain monitor takes only a latencyMs assertion');
+  if(protocol&&input.assertions!==undefined&&(!input.assertions||typeof input.assertions!=='object'||Array.isArray(input.assertions)||Object.keys(input.assertions).some(k=>k!=='latencyMs')))throw Error('A TCP, UDP, DNS, TLS or domain monitor takes only a latencyMs assertion');
   const assertions = input.assertions ?? (protocol?{}:{ status: 200 });
   if (!assertions || typeof assertions !== 'object' || Array.isArray(assertions) || Object.keys(assertions).some(k => !Object.hasOwn(HTTP_ASSERTIONS,k))) throw Error('Invalid assertions');
   if(!protocol)validateStatus(assertions.status ?? 200);

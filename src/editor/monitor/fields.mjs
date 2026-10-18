@@ -24,7 +24,7 @@ export function readFields(root,definition){
  const value=name=>control(root,name).value;
  const type=control(root,'checkType')?.value??'http';
  // Settings of other types never travel with the one selected.
- const {url,method,tcp,dns,tls,domain,tlsTrust,request,...rest}=definition;
+ const {url,method,tcp,udp,dns,tls,domain,tlsTrust,request,...rest}=definition;
  const timing={...readMetadata(root,definition),name:value('name'),intervalMs:minutesToMilliseconds(value('intervalMinutes')),timeoutMs:secondsToMilliseconds(value('timeoutSeconds')),freshnessMs:minutesToMilliseconds(value('freshnessMinutes'))};
  for(const name of ['retries','confirmSlots','recoverSlots'])timing[name]=Number(value(name));
  if(PROTOCOL_TYPES.includes(type)){const {settings,assertions}=readProtocol(root,type);return {...rest,...timing,type,[type]:settings,assertions}}

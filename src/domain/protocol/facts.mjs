@@ -14,6 +14,12 @@ function tcp(f){
  if(f.banner!==undefined&&(str(f.banner,256)===''||/[\x00-\x1f\x7f]/.test(f.banner)))fail();
  if(f.bannerNote!==undefined)str(f.bannerNote,80);
 }
+function udp(f,s){
+ object(f,['address','roundTripMs','sentBytes','receivedBytes','responseHex']);
+ if(!publicAddress(str(f.address,45)))fail();int(f.roundTripMs,0,60000);
+ if(int(f.sentBytes,1,256)!==s.payloadHex.length/2)fail();int(f.receivedBytes,0,1024);
+ if(!/^(?:[0-9a-f]{2})*$/.test(str(f.responseHex,2048))||f.responseHex.length!==f.receivedBytes*2)fail();
+}
 function tls(f){
  object(f,['handshakeMs','certificate','chainLength','trusted','hostnameMatch'],['address','verifyError']);
  if(f.address!==undefined&&!publicAddress(str(f.address,45)))fail();
@@ -49,5 +55,5 @@ function domain(f,s){
  if(f.conflict!==Boolean(f.expiresAt!==null&&f.registrar?.expiresAt!=null&&Math.abs(f.expiresAt-f.registrar.expiresAt)>86400000))fail();
 }
 export function validateFacts(definition,facts){
- ({tcp,tls,dns,domain})[definition.type](facts,definition[definition.type]);
+ ({tcp,udp,tls,dns,domain})[definition.type](facts,definition[definition.type]);
 }
