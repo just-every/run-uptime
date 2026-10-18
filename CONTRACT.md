@@ -426,13 +426,13 @@ Protocol round (17 October 2026): TCP-001, DNS-001, TLS-001 and DOMAIN-001 moved
 
 ## Status
 
-Judged from the code and tests at commit `6659fd2` (18 October 2026).
+Judged from the code and tests at commit `688640c` (18 October 2026).
 
 | Clauses | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
 | Published | 16 | 5 | 0 | 21 |
-| Target and push further | 18 | 30 | 19 | 67 |
-| All | 34 | 35 | 19 | 88 |
+| Target and push further | 19 | 29 | 19 | 67 |
+| All | 35 | 34 | 19 | 88 |
 
 | Clause | Title | Kind | Status | Evidence | Gap |
 | --- | --- | --- | --- | --- | --- |
@@ -506,7 +506,7 @@ Judged from the code and tests at commit `6659fd2` (18 October 2026).
 | `READAPI-001` | Versioned read API for uptime, response times and incidents | target | partial | `src/server.ts`; `src/domain/incident-list.server.ts`; `src/domain/incident-work/`; `src/domain/reports/`; `src/domain/read-api-openapi.ts`; `tests/incident-work.mjs`; `tests/reporting.mjs` | Owner-session period reports and latency reads now include a stable cursor-paginated incident list with monitor/tag/date/response-state/root-cause filters and detail with comments, edit history, root cause, ownership and activity. Incident detail now reports the earliest pending contact delay or reminder under ROUTING-002’s confirmation-time contact policy, or null when none is scheduled. API keys/scopes/step-up, bulk reads, incident-list CSV, source-history segments and documented per-key rate limits remain absent; series bounds are explicit and escalation/handoff next-due policy remains open. |
 | `CODE-001` | CLI, TypeScript and CI deployment | target | partial | `scripts/definitions.mjs`; `src/domain/definitions/apply.server.ts`; `tests/definitions-import.mjs` | JSON definitions CLI/API exists; TypeScript, CI credential scopes and Checkly CLI compatibility are absent. |
 | `CODE-002` | Terraform provider | target | missing |  | No implementation; acceptance journey above is required. |
-| `METRICS-001` | Grafana and Prometheus integration | target | partial | `src/domain/availability.server.ts`; `tests/availability.mjs` | Availability/history APIs exist; scrape/export adapters and supplied dashboards are absent. |
+| `METRICS-001` | Grafana and Prometheus integration | target | done | `src/domain/metrics/`; `scripts/metrics-export.mjs`; `docs/grafana/uptime-dashboard.json`; `tests/metrics.mjs`; `tests/metrics-browser.mjs`; `docs/evidence/contracts/metrics/` | Shown-once hashed, expiring and immediately revocable metrics:read keys authorize only bounded metrics snapshots. Prometheus text, JSON, the supplied Grafana dashboard and explicit Datadog/signed-webhook CLI exports share exact report availability, denominators, location latency, incidents, current probe freshness/state and delivery-cohort outcomes. Worker/provider-edge tests prove scope, isolation, bounds and failure uncertainty. Real Prometheus scraping/querying, Grafana import and key revocation pass; the panel, custody dialog and dashboard are inspected at 1440/390. No Datadog account receipt, managed probe placement or hosted capacity is claimed. |
 | `MIGRATE-001` | Complete UptimeRobot migration | target | partial | `src/domain/definitions/importers/uptimerobot.ts`; `src/domain/webhook-contact-import.mjs`; `tests/definitions-import.mjs`; `tests/tls-trust-journey.mjs`; `tests/webhook-custom.mjs`; `docs/evidence/contracts/trust-auth/`; `docs/evidence/contracts/webhooks/` | Reviewed saved monitor pages preserve supported assertions and initial-origin ignore-SSL policy. A documented saved webhook create payload preserves supported JSON/form/query templates and header names, discards source secrets, and names unmappable variables. Opaque integration detail fields and unsupported delivery modes refuse explicitly. Live extraction, all contacts/history, sibling handoff and an authorized source-account cutover remain gaps. |
 | `MIGRATE-002` | Pingdom migration | target | partial | `src/domain/definitions/importers/pingdom.ts`; `tests/tls-trust-journey.mjs`; `docs/definitions.md`; `docs/evidence/contracts/trust-auth/` | Saved HTTP check-detail responses map cadence, URL, literal criteria, local credential references and explicit certificate verification, with reviewed paused apply. Account extraction, transactions/page speed, locations, teams/contacts, schedules, source history, Lamp handoff and representative account cutover remain absent. |
 | `MIGRATE-003` | Better Stack Uptime migration | target | partial | `src/domain/definitions/importers/betterstack-heartbeats.ts`; `tests/heartbeat-schedules.mjs`; `tests/heartbeat-schedules-browser.mjs` | Saved Better Stack heartbeat pages preview and apply documented period/grace as paused definitions requiring a new local URL. Live extraction, non-heartbeat monitors, regions/groups, contacts/maintenance/history, Oncall/Lamp handoff and side-by-side cutover remain absent. |
