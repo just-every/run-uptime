@@ -1,3 +1,4 @@
+import {restoreAuxiliary} from './auxiliary-archive.ts'
 import {ARCHIVE_ROWS,TABLES,assertBytes,digest,portableArchive,type Tables} from './archive-schema.ts'
 import {validateArchive} from './archive-validation.ts'
 
@@ -37,6 +38,7 @@ export async function projectRestore(input:Tables,migrations:any[],now=Date.now(
  }
  // Imported batches stay history: restored_at keeps them from undoing anything in the receiving installation.
  for(const row of t.definition_batches)if(row.restored_at===null)row.restored_at=now;
+ restoreAuxiliary(t,now);
  t.archive_history=[...history.values()];
  for(const name of TABLES)if(t[name].length>ARCHIVE_ROWS)throw Error(`Archive row bound exceeded: ${name} (${ARCHIVE_ROWS})`);
  // Reserve the largest allowed export timestamp and the CLI's final newline.

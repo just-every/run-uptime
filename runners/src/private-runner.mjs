@@ -1,8 +1,8 @@
 import {demoMode} from './demo-policy.mjs';
 import {validateConfiguration} from '../../src/domain/startup-config.mjs';
 import {controlOrigin} from './control-origin.mjs';
-import {createHmac,randomUUID} from 'node:crypto';
-import {resolve} from 'node:path';
+import {createHmac,createHash,randomUUID} from 'node:crypto';
+import {resolve,dirname} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {executeTaskProbe} from './execute-task.mjs';
 import {dispatchNotifications} from './notification-dispatch.mjs';
@@ -24,10 +24,10 @@ export async function runRunner({origin,key,controlAddress,runnerId:configuredId
  let runnerId=configuredId,registered=false;
  // Flow profiles live in this runner's own folder, emptied now: a profile a hard stop left behind never outlives this start.
  const flowWorkspace=await prepareFlowWorkspace(key).catch(()=>{console.error('The flow folder is not a private folder this runner owns; flows will report Unknown until UPTIME_FLOW_DIR is fixed.');return undefined});
- const watcher=createWatch({...watch,transport:watch?.transport??transport}),clock=createClock();
+ const watcher=createWatch({identity:`${origin}\n${key}`,statePath:resolve(dirname(grantPath),'watch',createHash('sha256').update(`${origin}\n${key}\n${watch?.url??''}`).digest('hex')+'.sqlite'),...watch,transport:watch?.transport??transport}),clock=createClock();
  const api=async(path,data,signed=false,{shutdown=false}={})=>{const body=JSON.stringify(data),timestamp=String(clock.now()),headers={'content-type':'application/json','x-runner-key':key};if(runnerId)headers['x-runner-id']=runnerId;if(signed){headers['x-sent-at']=timestamp;headers['x-runner-signature']=createHmac('sha256',key).update(`${timestamp}.${path==='/api/runner/enroll'?'runner-enrolment.':''}${body}`).digest('hex')}const requestSignal=AbortSignal.any([AbortSignal.timeout(shutdown?2000:30000),...(!shutdown&&signal?[signal]:[])]),r=await fetch((controlAddress??origin)+path,{method:'POST',headers,body,redirect:'error',signal:requestSignal});if(!r.ok){const answer=await readControlResponse(r,requestSignal).catch(()=>null),pick=(value,pattern)=>typeof value==='string'&&pattern.test(value)?value:null,code=pick(answer?.code,/^[a-z_]{1,40}$/),operation=pick(answer?.operation,/^[a-z][A-Za-z0-9_.]{0,80}$/),kind=pick(answer?.class,/^[a-z_]{1,20}$/),cause=pick(answer?.cause,/^[\x20-\x7e]{1,200}$/);throw Object.assign(Error(`Control-plane response ${r.status}${code?` ${code}`:''}${kind?` (${kind})`:''}${operation?` in ${operation}`:''}${cause?`: ${cause}`:''} for ${path}`),{status:r.status,code,operation,class:kind})}return readControlResponse(r,requestSignal)};
  let discovering;
- do{
+ try{do{
   let task;
   try{
    if(!registered){const registration=await api('/api/runner/enroll',{version:1,...(networkLabel?{networkLabel}:{}),capabilities:{...await browserCapabilities(),privateNetwork:true,capacity:1,version:RUNNER_VERSION}},true);if(!/^self-[0-9a-f-]{36}$/.test(registration.runnerId)||registration.scope!=='self-runner')throw Error('Invalid runner registration');runnerId=registration.runnerId;registered=true}
@@ -56,6 +56,7 @@ export async function runRunner({origin,key,controlAddress,runnerId:configuredId
   await new Promise(resolve=>{const timer=setTimeout(done,pollMs);function done(){clearTimeout(timer);signal?.removeEventListener('abort',done);resolve()}signal?.addEventListener('abort',done,{once:true})});
  }while(!signal?.aborted)
  await discovering;
+ }finally{await watcher.close()}
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
  validateConfiguration(process.env,{scope:'runner'});

@@ -22,12 +22,14 @@ export const columns:Record<string,string[]>={
  failure_snapshots:['observation_id','monitor_id','slot_id','captured_at','expires_at','snapshot'],
  heartbeat_runs:['id','monitor_id','revision','sequence','state','received_at','started_at','duration_ms','exit_code','output','late'],
  definition_batches:['id','created_at','actor_kind','actor_ref','source','plan_digest','counts','undone_at','restored_at'],
+ auxiliary_attempts:['id','scope','job_id','started_at','lease_until','submitted_at','finished_at','outcome','code'],
  definition_batch_entries:['batch_id','monitor_id','action','revision','previous_revision','undo_outcome'],
 };
 export const TABLES=Object.keys(columns);
 // Product tables each extension version carries: 1 predates the audit, 2 predates definition batches.
-export const EXTENSION_VERSION=7;
-export const EXTENSION_TABLES:Record<number,string[]>={1:['failure_snapshots','heartbeat_runs',...Object.keys(incidentArchiveColumns),'uptime_audit','uptime_erasure_receipts','definition_batches','definition_batch_entries'],2:['failure_snapshots','heartbeat_runs',...Object.keys(incidentArchiveColumns),'definition_batches','definition_batch_entries'],3:['failure_snapshots','heartbeat_runs',...Object.keys(incidentArchiveColumns)],4:['failure_snapshots','heartbeat_runs'],5:['failure_snapshots'],6:['failure_snapshots'],7:[]};
+export const EXTENSION_VERSION=8;
+export const EXTENSION_TABLES:Record<number,string[]>={1:['failure_snapshots','heartbeat_runs',...Object.keys(incidentArchiveColumns),'uptime_audit','uptime_erasure_receipts','definition_batches','definition_batch_entries'],2:['failure_snapshots','heartbeat_runs',...Object.keys(incidentArchiveColumns),'definition_batches','definition_batch_entries'],3:['failure_snapshots','heartbeat_runs',...Object.keys(incidentArchiveColumns)],4:['failure_snapshots','heartbeat_runs'],5:['failure_snapshots'],6:['failure_snapshots'],7:[],8:[]};
+for(const version of [1,2,3,4,5,6,7])EXTENSION_TABLES[version].push('auxiliary_attempts');
 export const extensionTables=(version:number)=>TABLES.filter(name=>!LEGACY_TABLES.includes(name)&&!EXTENSION_TABLES[version].includes(name));
 export const notificationNamespace='uptime-notifications';
 export type Tables=Record<string,any[]>;

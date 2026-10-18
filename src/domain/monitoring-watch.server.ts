@@ -1,6 +1,6 @@
 import {demoEffect} from '@runeditrun/rer/modules/demo'
 import type {Bindings} from './control.server.ts'
-import {auditStatement,automated} from './audit.server.ts'
+import {claimAuxiliary,submitAuxiliary,finishAuxiliary,reconcileAuxiliary} from './auxiliary-execution.server.ts'
 import {mailSender} from './mail.server.ts'
 import {hostedInstallation} from './hosted-runner.ts'
 import {listRunners} from './runner-registration.server.ts'
@@ -9,12 +9,20 @@ import {legacyMonitoringWarning} from './legacy-monitoring.server.ts'
 import {publicTarget} from './public-target.mjs'
 export function watchDuration(value:string|undefined,fallback:number){const number=value===undefined?fallback:Number(value);if(!Number.isSafeInteger(number)||number<=0)throw Error('Invalid monitoring watch interval');return number}
 async function ownerNotice(env:Bindings,id:string,subject:string,text:string,now:number,retryMs:number){
- const sender=mailSender(env);if(!sender||!env.OWNER_EMAIL)return;
- const claims=await env.DB.batch([env.DB.prepare("INSERT INTO monitoring_watch(id,at,outcome) VALUES(?,?,'sending') ON CONFLICT(id) DO UPDATE SET at=excluded.at,outcome='sending' WHERE monitoring_watch.outcome='rejected' AND monitoring_watch.at<=?").bind(id,now,now-retryMs),auditStatement(env,automated,'notification_send','notification',crypto.randomUUID(),'changes()=1',[],now)]);if(!claims[0].meta.changes)return;
- let outcome='uncertain';try{const result=await sender.send({deliveryId:id,from:env.MAIL_FROM,to:[env.OWNER_EMAIL],subject,text});outcome=result.status}catch{}
- await env.DB.prepare("UPDATE monitoring_watch SET at=?,outcome=? WHERE id=? AND outcome='sending' AND at=?").bind(Date.now(),outcome,id,now).run()
+ if(!mailSender(env)||!env.OWNER_EMAIL)return;
+ const attempt=await claimAuxiliary(env,'watch',id,now,{retryMs});if(!attempt)return;
+ let submitted=false,outcome='expired',code='submission_not_started';
+ try{
+  const sender=mailSender(env,{fetch:async(url:RequestInfo|URL,init?:RequestInit)=>{await submitAuxiliary(env,attempt);submitted=true;return fetch(url,init)}})!;
+  // Development delivery has no network transport boundary.
+  if(env.MAIL_PROVIDER==='development'){await submitAuxiliary(env,attempt);submitted=true}
+  const result=await sender.send({deliveryId:id,from:env.MAIL_FROM,to:[env.OWNER_EMAIL],subject,text});
+  if(submitted){outcome=result.status;code=result.code??`mail_${result.status}`}
+ }catch{if(submitted){outcome='uncertain';code='mail_result_unknown'}}
+ await finishAuxiliary(env,attempt,outcome,code);
 }
 export async function monitoringWatch(env:Bindings,selfCheck:()=>Promise<Response>,healthy:()=>Promise<boolean>,now=Date.now()){
+ await reconcileAuxiliary(env,now);
  const staleMs=watchDuration(env.UPTIME_RUNNER_STALE_MS,120000),repeatMs=watchDuration(env.UPTIME_WATCH_REPEAT_MS,3600000),retryMs=10000,warning=await legacyMonitoringWarning(env);
  let runners=await listRunners(env);
  // A hosted install's dormant private-runner credential is optional. Watch the networks actually assigned to enabled checks.
@@ -27,8 +35,13 @@ export async function monitoringWatch(env:Bindings,selfCheck:()=>Promise<Respons
  if(env.UPTIME_HEARTBEAT_URL){
   const url=publicTarget(env.UPTIME_HEARTBEAT_URL);if(url.protocol!=='https:')throw Error('External heartbeat requires HTTPS');
   const id='external-heartbeat';
-  const claim=await env.DB.prepare("INSERT INTO monitoring_watch(id,at,outcome) VALUES(?,?,'sending') ON CONFLICT(id) DO UPDATE SET at=excluded.at,outcome='sending' WHERE monitoring_watch.at<=?").bind(id,now,now-pingMs).run();
-  if(claim.meta.changes){let outcome='failed';try{const result=await demoEffect(()=>fetch(url.href,{method:'GET',redirect:'manual',signal:AbortSignal.timeout(10000)}),()=>new Response(null,{status:200}));outcome=result.ok?'accepted':'rejected';await result.body?.cancel()}catch{}await env.DB.prepare('UPDATE monitoring_watch SET outcome=? WHERE id=? AND at=?').bind(outcome,id,now).run()}
+  const attempt=await claimAuxiliary(env,'watch',id,now,{repeatMs:pingMs});
+  if(attempt){
+   await submitAuxiliary(env,attempt);
+   let outcome='uncertain',code='heartbeat_result_unknown';
+   try{const result=await demoEffect(()=>fetch(url.href,{method:'GET',redirect:'manual',signal:AbortSignal.timeout(10000)}),()=>new Response(null,{status:200}));outcome=result.ok?'accepted':'rejected';code=result.ok?'heartbeat_accepted':'heartbeat_rejected';await result.body?.cancel()}catch{}
+   await finishAuxiliary(env,attempt,outcome,code);
+  }
  }
  const digestMs=watchDuration(env.UPTIME_DIGEST_INTERVAL_MS,604800000);
  const runnersHealthy=(runners as any[]).some(r=>r.revokedAt===null)&&(runners as any[]).filter(r=>r.revokedAt===null).every(r=>r.lastContactAt!==null&&r.lastContactAt<=now&&now-r.lastContactAt<=staleMs);

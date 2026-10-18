@@ -3,7 +3,7 @@ Phase 0 watches an ordinary single-site installation. It does not keep checks ru
 
 ## Watch setup
 
-Keep `UPTIME_WATCH_WEBHOOK_URL` or `UPTIME_WATCH_SLACK_URL` only in the private runner's environment. After three minutes of unsuccessful polls, it posts an unreachable notice. Rejected or failed notices retry on subsequent polls after a ten-second backoff; the hourly repeat starts only after acceptance. Restored-contact notices also retry until accepted. Set `UPTIME_WATCH_AFTER_MS` and `UPTIME_WATCH_REPEAT_MS` in that environment to change the outage and repeat intervals. A stopped runner cannot report a stopped Worker, so keep it supervised on an independent host.
+Keep `UPTIME_WATCH_WEBHOOK_URL` or `UPTIME_WATCH_SLACK_URL` only in the private runner's environment. After three minutes of unsuccessful polls, it posts an unreachable notice. Definite rejections retry on subsequent polls after a ten-second backoff. Accepted or uncertain unreachable notices start the hourly repeat interval; an uncertain send is never replayed as the same attempt. Restored-contact notices retry definite rejections; accepted or uncertain recovery closes the retained outage. Set `UPTIME_WATCH_AFTER_MS` and `UPTIME_WATCH_REPEAT_MS` in that environment to change the outage and repeat intervals. A stopped runner cannot report a stopped Worker, so keep it supervised on an independent host.
 
 The Worker emails `OWNER_EMAIL` when an enrolled runner's authenticated contact becomes stale. The default is two minutes, configurable with `UPTIME_RUNNER_STALE_MS`; notices repeat hourly (`UPTIME_WATCH_REPEAT_MS` on the Worker). A definite mail-provider rejection may retry in the same window after ten seconds. Accepted and uncertain outcomes do not automatically replay in that window. A fresh request proves contact, not target health.
 
@@ -36,3 +36,9 @@ C5's pinned address resolution and protected runner-local target credentials rem
 ## Mail
 
 Setup selects Base's `MAIL_PROVIDER`: `resend`, `sendgrid` or `cloudflare`, with `MAIL_FROM`. Resend uses `MAIL_PROVIDER_API_KEY`; SendGrid retains `SENDGRID_API_KEY`; Cloudflare Email Sending uses `CLOUDFLARE_MAIL_API_KEY` and `MAIL_ACCOUNT_ID`. Development uses the configured sender too; there is no captured-mail page. Managed hosting supplies its scoped RER relay configuration automatically. There is no automatic fallback between providers. Production mail acceptance needs the owner's verified sender and receiving-mailbox proof.
+
+## Durable auxiliary execution (OPS-001)
+
+Worker stale-contact notices, external heartbeat requests, healthy digests and authentication mail retain attempt identity, lease, submission boundary and outcome in `auxiliary_attempts`. Expired unsubmitted claims become expired; a submitted send without a durable result becomes uncertain and is not replayed. A later heartbeat interval or a newly requested sign-in is a separate execution. The journal stores no recipients, message bodies, webhook addresses or credentials. Product archives carry these outcomes as history; open attempts restore terminal and inactive. Archive capacity remains the separate ARCHIVE-002 requirement.
+
+The private runner keeps outage progress and attempts in a private SQLite journal in `watch/` beside its synthetic-grant file (normally `data/watch/`). Preserve that directory on the runner’s persistent volume. The filename is derived from installation/runner/endpoint identity without storing credentials or endpoint URLs. A hard stop after submission preserves uncertainty, and restart resumes the original outage and recovery without repeating that notice. Runner-local progress stays on its independent host; Worker product archives do not transfer runner authority or this local journal.

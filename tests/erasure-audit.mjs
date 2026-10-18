@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {join} from 'node:path';
 import {randomUUID,createHmac} from 'node:crypto';
 import {probeHeartbeat} from '../runners/src/probes.mjs';
-import {mkdir,writeFile} from 'node:fs/promises';
+import {mkdir,writeFile,readFile} from 'node:fs/promises';
 import {runRunner} from '../runners/src/private-runner.mjs';
 import {acceptanceReceiver,loopbackWireTransport} from './notify-acceptance-receivers.mjs';
 import {availablePorts,migratedWorker,runtimeDirectory,fixtureProcess,cleanupDirectory,ownerAPI,waitFor} from './notify-acceptance-runtime.mjs';
@@ -29,7 +29,7 @@ try{
  ({worker,DB}=await migratedWorker({port,persist,bindings,outboundService:async request=>{assert.equal(request.url,'https://api.sendgrid.com/v3/mail/send');mail.push(await request.json());return new Response(null,{status:202})}}));
  const env={...bindings,UPTIME_ORIGIN:origin,DB};
  await owner.signIn(bindings);
- fixture=fixtureProcess(targetPort,grantPath,directory);await waitFor(async()=>(await fetch(`http://127.0.0.1:${targetPort}/health`)).ok,'synthetic target');
+ fixture=fixtureProcess(targetPort,grantPath,directory);await waitFor(async()=>{const grant=JSON.parse(await readFile(grantPath,'utf8')),response=await fetch(`http://127.0.0.1:${targetPort}/health`);return grant.pid===fixture.child.pid&&grant.port===targetPort&&response.ok&&response.headers.get('x-uptime-fixture')===grant.identity},'owned synthetic target and completed grant');
  receiver=await acceptanceReceiver(webhookPort,record=>assert.ok(record.headers.get('x-lamp-signature')));
  const transport=loopbackWireTransport(new Map([[webhookUrl,{port:webhookPort,path:'/receiver'}]]));
  const destination=await ok('/api/notifications/destinations','POST',{name:canaries.destination,kind:'webhook',url:webhookUrl});
@@ -40,7 +40,7 @@ try{
  const monitor=await ok('/api/monitors','POST',{name:canaries.monitor,probes:['local-a','local-b'],url:`http://127.0.0.1:${targetPort}/health`,intervalMs:5000,retries:0,confirmSlots:1,recoverSlots:1,freshnessMs:15000});
  const keep=await ok('/api/monitors','POST',{name:'Retained monitor',url:'https://example.com/health',enabled:false});
  await runChecks();
- assert.ok((await ok(`/api/monitors/${monitor.id}/history`)).some(slot=>slot.status==='complete'&&slot.manual===0&&slot.observations.some(o=>o.outcome==='pass')),'real scheduled observation');
+ const initialHistory=await ok(`/api/monitors/${monitor.id}/history`);assert.ok(initialHistory.some(slot=>slot.status==='complete'&&slot.manual===0&&slot.observations.some(o=>o.outcome==='pass')),'real scheduled observation: '+JSON.stringify(initialHistory.map(s=>({status:s.status,manual:s.manual,observations:s.observations.map(o=>({outcome:o.outcome,checks:o.checks.map(c=>({assertion:c.assertion,pass:c.pass}))}))}))));
  await fetch(`http://127.0.0.1:${targetPort}/control`,{method:'POST',body:JSON.stringify({mode:'failing'})});
  await DB.prepare('UPDATE monitors SET next_due=? WHERE id=?').bind(Date.now(),monitor.id).run();
  await runChecks();
@@ -98,6 +98,7 @@ try{
   if(kind==='operator')beforeOperatorArchive=await ok('/api/archive');
   const started=Date.now(),result=await ok(path,kind==='destination'?'DELETE':'POST',body);assert.equal(result.erased,true);assert.ok(Date.now()-started<300000);receipts.push({...result.receipt,elapsedMs:Date.now()-started});
   if(kind==='monitor')for(const table of ['runner_assignments','evidence_generation','notification_jobs','integration_deliveries','integration_attempts','integration_resolutions','integration_replays','heartbeat_authority','heartbeat_claims','archive_history'])assert.ok(result.receipt.counts[table]>0,`${table} populated and removed by monitor erasure`);
+  if(kind==='operator')assert.ok(result.receipt.counts.auxiliary_attempts>0,'OPS-001 erasure removes authentication-mail attempts with their operator authority');
   if(id===destination.id)for(const table of ['notification_jobs','integration_deliveries','integration_replays','notification_credentials'])assert.ok(result.receipt.counts[table]>0,`${table} populated and removed by destination erasure`);
   const receipt=await DB.prepare('SELECT * FROM uptime_erasure_receipts WHERE id=?').bind(result.receipt.id).first();assert.deepEqual(JSON.parse(receipt.counts),result.receipt.counts);
   const audit=await DB.prepare('SELECT * FROM uptime_audit WHERE subject_ref=?').bind(result.receipt.id).first();assert.equal(audit.action,'erase');
@@ -128,7 +129,11 @@ try{
  assert.equal((await fresh.DB.prepare('SELECT COUNT(*) n FROM monitors').first()).n,0);
  await assert.rejects(restore(fresh,nativeBefore,undefined,{laterJournal:{...later,sourceIdentity:randomUUID()}}),/later_journal/);
  const freshOwner=ownerAPI(`http://127.0.0.1:${freshPort}`);await freshOwner.signIn(bindings);const refusedRoute=await freshOwner.api('/api/restore','POST',{archive:nativeBefore,laterJournal:later});assert.equal(refusedRoute.status,400);assert.match(refusedRoute.data.error,/erased/);assert.equal((await fresh.DB.prepare('SELECT COUNT(*) n FROM monitors').first()).n,0);
- const operatorRefusal=await freshOwner.api('/api/restore','POST',{archive:beforeOperatorArchive,laterJournal:later});assert.equal(operatorRefusal.status,400);assert.match(operatorRefusal.data.error,/erased operator/);assert.equal((await fresh.DB.prepare('SELECT COUNT(*) n FROM uptime_audit').first()).n,0,'old operator actor reference refused before audit writes');
+ const auxiliaryRefusal=await freshOwner.api('/api/restore','POST',{archive:beforeOperatorArchive,laterJournal:later});assert.equal(auxiliaryRefusal.status,400);assert.match(auxiliaryRefusal.data.error,/erased auxiliary_attempts record/,'OPS-001 later erasure journal fences old auth-mail attempt history');
+ // Remove the newly fenced auxiliary history in a separately rehashed fixture
+ // so the existing erased-actor fence still has its own public-door proof.
+ const actorArchive=structuredClone(beforeOperatorArchive);actorArchive.payload.productTables.auxiliary_attempts=[];actorArchive.sha256=await digest(JSON.stringify(actorArchive.payload));
+ const operatorRefusal=await freshOwner.api('/api/restore','POST',{archive:actorArchive,laterJournal:later});assert.equal(operatorRefusal.status,400);assert.match(operatorRefusal.data.error,/erased operator/);assert.equal((await fresh.DB.prepare('SELECT COUNT(*) n FROM uptime_audit').first()).n,0,'old operator actor reference refused before audit writes');
  const forged=structuredClone(afterArchive);forged.payload.productTables.uptime_audit[0].subject_ref=canaries.operator;forged.sha256=await digest(JSON.stringify(forged.payload));await assert.rejects(restore(fresh,forged),/anonymized archive audit/);
  let importId;const manifest=transferBefore.records[0],service=await createPortability({db:fresh.DB,policy:productPolicy(fresh,()=>importId,()=>({manifest,laterJournal:later}))});
  importId=await service.imports.create(manifest);for(const record of transferBefore.records)if(record.kind==='part')await service.imports.uploadPart(importId,record.index,record);

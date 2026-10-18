@@ -433,8 +433,8 @@ The READAPI-001 evidence and remaining scope include the 19 October read-API rou
 | Clauses | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
 | Published | 17 | 4 | 0 | 21 |
-| Target and push further | 21 | 28 | 18 | 67 |
-| All | 38 | 32 | 18 | 88 |
+| Target and push further | 22 | 27 | 18 | 67 |
+| All | 39 | 31 | 18 | 88 |
 
 | Clause | Title | Kind | Status | Evidence | Gap |
 | --- | --- | --- | --- | --- | --- |
@@ -519,7 +519,7 @@ The READAPI-001 evidence and remaining scope include the 19 October read-API rou
 | `ACCESS-002` | Enterprise identity lifecycle | target | missing |  | No implementation; acceptance journey above is required. |
 | `ACCESS-003` | Multi-factor sign-in and step-up | target | missing |  | No implementation; native sign-in is email link only. Acceptance journey above is required. |
 | `COST-001` | US buyer budgets and capacity transparency | target | missing |  | No implementation; acceptance journey above is required. |
-| `OPS-001` | Recovery of monitoring itself | target | partial | `src/domain/monitoring-watch.server.ts`; `runners/src/watch.mjs`; `tests/resilience/watches.mjs`; `tests/archive-roundtrip.mjs` | Independent watches and inactive backups ship; watch outcomes are latest-only/in-memory and auth mail lacks durable outcomes/crash reconciliation. |
+| `OPS-001` | Recovery of monitoring itself | target | done | `src/domain/auxiliary-execution.server.ts`; `src/domain/monitoring-watch.server.ts`; `src/domain/operator-mail.server.ts`; `runners/src/watch-store.mjs`; `tests/resilience/watches.mjs`; `tests/archive-roundtrip.mjs` | Durable Worker/auth-mail attempts and private-runner SQLite outage/recovery progress reconcile expired leases across independent process restarts. Submitted uncertainty never replays; retained outcomes distinguish control-plane contact from stale/Unknown target evidence. Auxiliary history restores inactive without alert replay at ARCHIVE-001 bounds; capacity remains ARCHIVE-002. |
 | `DISCOVERY-001` | Reviewed automatic endpoint discovery | target | partial | `src/domain/discovery.server.ts`; `runners/src/discovery/stages/status-page.mjs`; `tests/discovery-jobs.mjs` | Bounded website/status discovery and reviewed adoption ship; zone/spec/deploy integration and continuous upkeep do not. |
 | `AGENT-001` | Continuously maintain meaningful coverage | push-further | partial | `src/domain/discovery.server.ts`; `tests/discovery-jobs.mjs` | Reviewed one-shot discovery exists; continuous agent planning, analytics/deploy comparison and maintenance are absent. |
 | `AGENT-002` | Distinguish outage, network and broken check | push-further | partial | `src/domain/policy.mjs`; `src/domain/evidence.server.ts`; `tests/resilience/attempts.mjs` | Canary/network evidence exists; AI explanation and competing release/dependency investigation do not. |
