@@ -1,9 +1,9 @@
 import type {Bindings} from '../control.server.ts'
 import {writeImportDoorSettings} from '../../base/modules/import-kit/src/door/index.ts'
-import {businessClaim,businessOwnerAuthority} from './context.server.ts'
+import {businessClaim,businessOwnerAuthority,DOOR_KEY} from './context.server.ts'
 
 export async function businessImportSettings(env:Bindings,request:Request,input?:any){
- const authority=await businessOwnerAuthority(env,request),installation=env.RER_OWNER_CLAIM_INSTALLATION_ID??''
+ const authority=await businessOwnerAuthority(env,request),installation=DOOR_KEY
  let keys:string[]=[]
  try{keys=Object.keys(businessClaim(env).publicKeys)}catch{/* An unconfigured installation can still display its disabled setting. */}
  if(input!==undefined){

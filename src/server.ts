@@ -47,7 +47,7 @@ import {isPublicDocument,publicPath} from './domain/public-paths.ts'
 import {limitPublicRequest} from './domain/public-rate-limits.server.ts'
 import {erase} from './domain/erasure.server.ts'
 import {previewDefinitions,applyDefinitions,exportDefinitions} from './domain/definitions/index.server.ts'
-import {businessImportDoor} from './domain/business-import/door.server.ts'
+import {businessImportDoor,ownerImportDoor} from './domain/business-import/door.server.ts'
 import {businessImportSettings} from './domain/business-import/settings.server.ts'
 import {definitionImportHistory,undoDefinitionImport} from './domain/business-import/history.server.ts'
 import {exportJournal} from './domain/archive-fence.server.ts'
@@ -263,6 +263,7 @@ const handler={async fetch(request,env,execution){
  const bindings=env as Bindings,url=new URL(request.url),path=url.pathname,isEvidencePage=/^\/app\/evidence\/[^/]+$/.test(path);
  if(url.origin!==bindings.UPTIME_ORIGIN||(request.headers.has('host')&&request.headers.get('host')?.toLowerCase()!==url.host.toLowerCase()))return new Response('Invalid host',{status:403});
  if(path.startsWith('/api/rer/import/'))return businessImportDoor(bindings,request);
+ if(path.startsWith('/api/operator/import/'))return ownerImportDoor(bindings,request);
  // The Lobby at / and GET /setup/state: Base's shared responses, before the public-path guard and the document renderer.
  const lobbyBindings={DB:bindings.DB,AUTH_ORIGIN:bindings.UPTIME_ORIGIN!};
  const state=await setupStateResponse(request,lobbyBindings,claimed);if(state)return state;

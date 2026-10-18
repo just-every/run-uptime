@@ -34,8 +34,10 @@ export async function eraseBusinessCustody(env:Bindings,id:string,actor:AuditAct
   sql('DELETE FROM ik_door_uploads WHERE namespace IN(SELECT value FROM json_each(?))',selected),
   sql('DELETE FROM ik_door_plan_chunks WHERE plan_id IN(SELECT id FROM ik_door_plans WHERE namespace IN(SELECT value FROM json_each(?)))',selected),
   sql('DELETE FROM ik_door_approvals WHERE plan_id IN(SELECT id FROM ik_door_plans WHERE namespace IN(SELECT value FROM json_each(?)))',selected),
+  sql('DELETE FROM ik_door_apply_failures WHERE plan_id IN(SELECT id FROM ik_door_plans WHERE namespace IN(SELECT value FROM json_each(?)))',selected),
   sql('DELETE FROM ik_door_plans WHERE namespace IN(SELECT value FROM json_each(?))',selected),
   sql('DELETE FROM ik_door_namespaces WHERE namespace IN(SELECT value FROM json_each(?))',selected),
+  sql('DELETE FROM ik_door_scopes WHERE namespace IN(SELECT value FROM json_each(?))',selected),
  ]
  const predicate=sql("EXISTS(SELECT 1 FROM oa_operators WHERE id=? AND role='owner' AND status='active' AND version=?)",actor.ref,version)
  const receipt=crypto.randomUUID(),at=new Date().toISOString(),retire=retirementWrites(scope,BUSINESS_DESTINATION,receipt,at)

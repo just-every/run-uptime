@@ -1,5 +1,6 @@
-// One public-door journey: synthetic saved UptimeRobot pages, signed grants,
-// native zero-write preview, reviewed apply, server readback, and both undo doors.
+// One public-door journey: synthetic saved UptimeRobot pages, signed grants and the
+// owner's session, native zero-write preview, reviewed apply, server readback, both
+// undo doors, and Base's copied conformance check through the grant and owner mounts.
 import assert from 'node:assert/strict';
 import {createHash,randomUUID,webcrypto} from 'node:crypto';
 import {join} from 'node:path';
@@ -9,9 +10,10 @@ import {testAuthBindings,authRequest,sessionCookie,finishSetup} from './auth-tes
 const directory=await runtimeDirectory(),[port]=await availablePorts(1),origin=`http://127.0.0.1:${port}`;
 const keys=await webcrypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']);
 const publicKey=await webcrypto.subtle.exportKey('jwk',keys.publicKey),kid='business-test';
+const rotated=await webcrypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']),rotatedKid='business-test-2';
 const bindings={...testAuthBindings,UPTIME_ORIGIN:origin,RER_OWNER_CLAIM_ISSUER:'https://business.example.test',
  RER_OWNER_CLAIM_INSTALLATION_ID:'synthetic-uptime-installation',RER_OWNER_CLAIM_APP_ORIGIN:origin,
- RER_OWNER_CLAIM_PUBLIC_KEYS:JSON.stringify({[kid]:publicKey})};
+ RER_OWNER_CLAIM_PUBLIC_KEYS:JSON.stringify({[kid]:publicKey,[rotatedKid]:await webcrypto.subtle.exportKey('jwk',rotated.publicKey)})};
 const source=Buffer.from(JSON.stringify({data:[
  {id:1001,friendlyName:'Checkout API',type:'HTTP',url:'https://checkout.example.test/health',interval:300,timeout:5,httpMethodType:'GET',successHttpResponseCodes:['200','201']},
  {id:1002,friendlyName:'Storefront',type:'KEYWORD',url:'https://shop.example.test/',interval:300,timeout:5,httpMethodType:'GET',keywordType:'ALERT_NOT_EXISTS',keywordValue:'Add to cart',keywordCaseType:'CaseSensitive'},
@@ -19,17 +21,74 @@ const source=Buffer.from(JSON.stringify({data:[
 ],nextLink:null})+'\n');
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const approval={approvalRecordId:'synthetic-owner-browser-approval',approvedAt:new Date().toISOString()};
+// Copied from Base modules/import-kit/src/door/ADOPTING.md (rer 0.2.61); its imports are above.
+export async function checkDoor({request, bytes, name, nativeSnapshot,
+  assertApplied, assertUndone}) {
+  const hash = b => createHash('sha256').update(b).digest('hex');
+  const json = async (action, body, review, expected = 200) => {
+    const response = await request(action, body, review);
+    assert.equal(response.status, expected, `${action}: ${response.status}`);
+    return response.json();
+  };
+  const until = async (action, body, review, state) => {
+    for (let batch = 0; batch < 100; batch++) {
+      const result = await json(action, body, review);
+      if (result.job?.state === state) return result.job;
+      assert.ok(['queued','applying','undoing'].includes(result.job?.state));
+    }
+    assert.fail(`${action} did not finish`);
+  };
+  assert.ok(bytes.length > 0);
+  const before = await nativeSnapshot(), bundleSha256 = hash(bytes);
+  const totalChunks = Math.ceil(bytes.length / 65536);
+  let uploadId;
+  for (let index = 0; index < totalChunks; index++) {
+    const chunk = bytes.subarray(index * 65536, (index + 1) * 65536);
+    const uploaded = await json('uploads', {uploadId, name, bundleSha256,
+      totalBytes:bytes.length, totalChunks, index,
+      chunkSha256:hash(chunk), base64:chunk.toString('base64')});
+    uploadId = uploaded.uploadId;
+  }
+  const inventory = await json('uploads', {uploadId});
+  assert.equal(inventory.complete, true);
+  assert.equal(inventory.bundleSha256, bundleSha256);
+  assert.equal(inventory.received.reduce((n,c) => n + c.size, 0), bytes.length);
+  const plan = await json('plan', {uploadId});
+  assert.equal(plan.bundleSha256, bundleSha256);
+  assert.ok(plan.summary.sourceRecords > 0);
+  assert.deepEqual(await nativeSnapshot(), before);
+  const review = {fingerprint:plan.fingerprint,
+    approvalRecordId:randomUUID(), approvedAt:new Date().toISOString()};
+  const wrong = (plan.fingerprint[0] === '0' ? '1' : '0') + plan.fingerprint.slice(1);
+  await json('apply', {planId:plan.planId, reviewedFingerprint:wrong}, review, 403);
+  assert.deepEqual(await nativeSnapshot(), before);
+  const job = await until('apply', {planId:plan.planId,
+    reviewedFingerprint:plan.fingerprint}, review, 'completed');
+  const status = await json('status', {planId:plan.planId});
+  assert.equal(status.job.id, job.id);
+  assert.equal(status.job.state, 'completed');
+  const report = await json('reconcile', {planId:plan.planId});
+  assert.equal(report.ok, true);
+  assert.equal(report.fingerprint, plan.fingerprint);
+  assert.equal(report.bundleSha256, bundleSha256);
+  assert.equal(report.counts.sourceRecords, plan.summary.sourceRecords);
+  assert.equal(report.counts.present + report.counts.explained, report.counts.sourceRecords);
+  assert.equal(report.sourceIds.length, report.counts.sourceRecords);
+  await assertApplied(before, await nativeSnapshot(), report);
+  await until('undo', {planId:plan.planId}, undefined, 'undone');
+  await assertUndone(before, await nativeSnapshot());
+}
 let worker;
 try{
  const runtime=await migratedWorker({port,persist:join(directory,'local'),bindings});worker=runtime.worker;const {DB}=runtime;
  const cookie=sessionCookie(await authRequest(origin)('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'Migration owner'}));await finishSetup(origin,cookie);
  const owner=async(path,body)=>{const r=await fetch(origin+path,{method:body===undefined?'GET':'POST',headers:{origin,cookie,'content-type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});return {status:r.status,body:await r.json()}};
  const settings=body=>owner('/api/business-import-settings',body);
- async function grant(action,extra={},namespace='uptimerobot:saved-monitors'){
-  const now=Math.floor(Date.now()/1000),header=Buffer.from(JSON.stringify({alg:'ES256',typ:'rer-import-grant+jwt',kid})).toString('base64url');
+ async function grant(action,extra={},namespace='uptimerobot',signer=keys,signerKid=kid){
+  const now=Math.floor(Date.now()/1000),header=Buffer.from(JSON.stringify({alg:'ES256',typ:'rer-import-grant+jwt',kid:signerKid})).toString('base64url');
   const payload=Buffer.from(JSON.stringify({v:1,iss:bindings.RER_OWNER_CLAIM_ISSUER,aud:origin,installationId:bindings.RER_OWNER_CLAIM_INSTALLATION_ID,email:bindings.OWNER_EMAIL,
    jti:randomUUID(),iat:now,exp:now+300,action,namespace,maxBytes:2*1024*1024,maxChunks:32,maxRecords:500,...extra})).toString('base64url');
-  return header+'.'+payload+'.'+Buffer.from(await webcrypto.subtle.sign({name:'ECDSA',hash:'SHA-256'},keys.privateKey,Buffer.from(header+'.'+payload))).toString('base64url');
+  return header+'.'+payload+'.'+Buffer.from(await webcrypto.subtle.sign({name:'ECDSA',hash:'SHA-256'},signer.privateKey,Buffer.from(header+'.'+payload))).toString('base64url');
  }
  const door=async(action,body,extra={},namespace)=>{const token=await grant(action,extra,namespace);const r=await fetch(origin+'/api/rer/import/'+action,{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+token},body:JSON.stringify(body)});return {status:r.status,body:await r.json()}};
  const good=async(action,body,extra,namespace)=>{const r=await door(action,body,extra,namespace);assert.equal(r.status,200,`${action}: ${JSON.stringify(r.body)}`);return r.body};
@@ -54,6 +113,17 @@ try{
  assert.equal((await settings({enabled:true,revokedKeyIds:[]})).status,200);
  // Establish the actual runner using Uptime's ordinary console door.
  assert.equal((await owner('/api/overview')).status,200);
+ // One server-owned allow-list serves both mounts; other namespaces are refused before any write.
+ const custody=async()=>(await DB.prepare("SELECT (SELECT COUNT(*) FROM ik_door_grants)+(SELECT COUNT(*) FROM ik_door_uploads)+(SELECT COUNT(*) FROM ik_door_scopes) AS n").first()).n;
+ const custodyBefore=await custody();
+ const foreign=await door('uploads',{},{},'pagerduty');assert.equal(foreign.status,403);assert.equal(foreign.body.error,'unknown_import_source');
+ const ownerDoor=async(action,body,{source='uptimerobot',from=origin,session=cookie}={})=>{const r=await fetch(origin+'/api/operator/import/'+action,{method:'POST',
+  headers:{origin:from,...(session?{cookie:session}:{}),'content-type':'application/json','x-import-source':source},body:JSON.stringify(body)});return {status:r.status,body:await r.json()}};
+ assert.equal((await ownerDoor('status',{planId:'x'},{session:null})).status,401,'anonymous callers are refused');
+ assert.equal((await ownerDoor('status',{planId:'x'},{from:'https://elsewhere.example.test'})).body.error,'origin_required','cross-origin calls are refused');
+ assert.equal((await ownerDoor('status',{planId:'x'},{source:'pagerduty'})).body.error,'unknown_import_source');
+ assert.equal((await fetch(origin+'/api/rer/import/status',{method:'POST',headers:{origin,cookie,'content-type':'application/json'},body:'{}'})).status,401,'a session never stands in for a Business grant');
+ assert.equal(await custody(),custodyBefore,'refused calls write no door custody');
  const upload=await good('uploads',{name:'uptimerobot.synthetic.ndjson',bundleSha256:hash(source),totalBytes:source.length,totalChunks:1,index:0,chunkSha256:hash(source),base64:source.toString('base64')});
  const beforePlan=await snapshot(),plan=await good('plan',{uploadId:upload.uploadId});
  nativeUnchanged(beforePlan,await snapshot(),1,'planning writes no native or installation product state');
@@ -90,10 +160,34 @@ try{
  assert.equal((await settings({enabled:true,revokedKeyIds:[]})).status,200);
  assert.deepEqual((await settings()).body.revokedKeyIds,[kid]);
  assert.equal((await door('status',{planId:plan.planId})).status,403,'revoked keys remain revoked after re-enabling');
+ // Base's public HTTP conformance, once per mount, each on new synthetic source records.
+ const definitionFile=async()=>(await owner('/api/definitions/export')).body.monitors.map(m=>JSON.stringify(m)).sort();
+ const conformance=(from,names)=>({bytes:Buffer.from(JSON.stringify({data:names.map((name,i)=>({id:from+i,friendlyName:name,type:'HTTP',
+  url:`https://s${from+i}.example.test/health`,interval:300,timeout:30,httpMethodType:'GET',successHttpResponseCodes:['200']})),nextLink:null})+'\n'),
+  name:'uptimerobot.conformance.ndjson',nativeSnapshot:definitionFile,
+  async assertApplied(before,after,report){
+   const added=after.filter(row=>!before.includes(row)).map(row=>JSON.parse(row));
+   assert.deepEqual(added.map(m=>m.name).sort(),[...names].sort());assert.ok(added.every(m=>m.enabled===false&&m.type==='http'&&m.assertions.status===200));
+   assert.equal(report.counts.nativeTargets,(await DB.prepare('SELECT COUNT(*) n FROM uptime_business_import_targets WHERE retired=0').first()).n);
+  },
+  async assertUndone(before,after){
+   // Uptime's undo releases import ownership and keeps the paused monitors and their history.
+   const kept=after.filter(row=>!before.includes(row)).map(row=>JSON.parse(row));
+   assert.deepEqual(kept.map(m=>m.name).sort(),[...names].sort());assert.ok(kept.every(m=>m.enabled===false));
+  }});
+ await checkDoor({...conformance(2001,['Grant conformance A','Grant conformance B']),request:async(action,body,review)=>{
+  const extra=action==='apply'?{fingerprint:review.fingerprint,approvalRecordId:review.approvalRecordId,approvedAt:review.approvedAt}:{};
+  return fetch(origin+'/api/rer/import/'+action,{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+await grant(action,extra,'uptimerobot',rotated,rotatedKid)},body:JSON.stringify(body)});
+ }});
+ await checkDoor({...conformance(3001,['Owner conformance A','Owner conformance B']),request:(action,body)=>fetch(origin+'/api/operator/import/'+action,{method:'POST',
+  headers:{origin,cookie,'content-type':'application/json','x-import-source':'uptimerobot'},body:JSON.stringify(body)})});
+ const owned=(await owner('/api/definitions/batches')).body.filter(row=>row.businessApproval?.via==='owner');
+ assert.equal(owned.length,1,'the owner-session import is in the same history');assert.equal(owned[0].undone,true);
  const erased=rows.find(row=>JSON.parse(row.definition).name==='Checkout API');
  const erasure=await owner('/api/monitors/'+erased.id+'/erase',{name:'Checkout API'});assert.equal(erasure.status,200,JSON.stringify(erasure.body));
  assert.equal(await DB.prepare('SELECT id FROM monitors WHERE id=?').bind(erased.id).first(),null);
- assert.equal((await DB.prepare('SELECT COUNT(*) n FROM monitors').first()).n,1,'peer native monitor survives source custody retirement');
+ assert.deepEqual((await DB.prepare("SELECT json_extract(definition,'$.name') AS name FROM monitors ORDER BY name").all()).results.map(row=>row.name),
+  ['Grant conformance A','Grant conformance B','Owner conformance A','Owner conformance B','Storefront'],'peer native monitors survive source custody retirement');
  assert.equal((await DB.prepare('SELECT COUNT(*) n FROM ik_door_chunks').first()).n,0,'the whole source original is withdrawn');
  assert.equal((await DB.prepare('SELECT COUNT(*) n FROM ik_door_plan_chunks').first()).n,0,'retained door plan copies are withdrawn');
  assert.equal((await DB.prepare('SELECT COUNT(*) n FROM ik_jobs').first()).n,0,'affected import custody is retired');
