@@ -1,4 +1,5 @@
 import net from 'node:net';
+import {icmpFacts} from './icmp-probe.mjs';
 import {udpFacts} from './udp-probe.mjs';
 import tls from 'node:tls';
 import {randomUUID} from 'node:crypto';
@@ -95,12 +96,12 @@ export async function probeProtocol(input,probe,{signal,privateAccess}={}){
  try{
   if(def.network==='private'&&!privateAccess)throw new ProtocolError('grant','Private network grant unavailable');
   const s=def[def.type];
-  const facts=def.type==='udp'?await udpFacts(s,execution):def.type==='tcp'?await tcpFacts(s,execution,deadline,privateAccess):def.type==='tls'?await tlsFacts(s,execution):def.type==='dns'?await dnsFacts(reader(execution),s,asker(execution)):await domainFacts(reader(execution),s.name);
+  const facts=def.type==='ping'?await icmpFacts(s,execution):def.type==='udp'?await udpFacts(s,execution):def.type==='tcp'?await tcpFacts(s,execution,deadline,privateAccess):def.type==='tls'?await tlsFacts(s,execution):def.type==='dns'?await dnsFacts(reader(execution),s,asker(execution)):await domainFacts(reader(execution),s.name);
   const completedAt=Date.now();
   return evidence({...protocolChecks(def,facts,completedAt),protocol:facts},completedAt);
  }catch(error){
-  const category=error instanceof ProtocolError||error instanceof ProbeError?error.category:execution.aborted?'timeout':'runner';
-  const reason=error?.reason??(category==='timeout'?'No answer within the timeout':category==='unresolved'?'DNS: the host name does not resolve':category==='network'?'The host resolves to an address this check never contacts':category==='dns'?'The runner’s DNS resolver failed; this is not evidence about the target':'The runner could not perform this check');
+  const category=def.type==='ping'&&execution.aborted?'vantage':error instanceof ProtocolError||error instanceof ProbeError?error.category:execution.aborted?'timeout':'runner';
+  const reason=def.type==='ping'&&execution.aborted?'The ICMP sample was interrupted before completion; this location reports Unknown':error?.reason??(category==='timeout'?'No answer within the timeout':category==='unresolved'?'DNS: the host name does not resolve':category==='network'?'The host resolves to an address this check never contacts':category==='dns'?'The runner’s DNS resolver failed; this is not evidence about the target':'The runner could not perform this check');
   return evidence({outcome:targetCategories.includes(category)?'target_failure':'runner_error',checks:[{assertion:category,pass:false,reason}]});
  }
 }

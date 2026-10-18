@@ -8,9 +8,10 @@ import {MAX_BODY,RUNNER_VERSION} from '../../src/domain/policy.mjs';
 import {readCredentials} from './credentials.mjs';
 import {PROBE_ACCEPT,ProbeError} from './probe-error.mjs';
 export {PROBE_ACCEPT,ProbeError};
-export async function resolvePublic(url,signal) {
+export async function resolvePublic(url,signal,{family}={}) {
   const host=url.hostname.replace(/^\[|\]$/g,'');
-  if(isIP(host)){if(!publicAddress(host))throw new ProbeError('network');return {address:host,family:isIP(host)}}
+  if(family!==undefined&&![4,6].includes(family))throw new ProbeError('runner');
+  if(isIP(host)){if(!publicAddress(host))throw new ProbeError('network');if(family!==undefined&&isIP(host)!==family)throw new ProbeError('unresolved','DNS: the target has no address in the selected IP family');return {address:host,family:isIP(host)}}
   const resolver=new Resolver({timeout:1000,tries:1}),cancel=()=>resolver.cancel();
   signal.throwIfAborted();signal.addEventListener('abort',cancel,{once:true});
   try{
@@ -21,7 +22,9 @@ export async function resolvePublic(url,signal) {
     // The resolver answered for the name: it does not exist, or has no address. That is the target's outage, not the runner's.
     if(!addresses.length)throw new ProbeError('unresolved',results.some(r=>r.status==='rejected'&&r.reason.code==='ENOTFOUND')?'DNS: the hostname does not exist (NXDOMAIN)':'DNS: the hostname has no A or AAAA records');
     if(addresses.some(a=>!isIP(a)||!publicAddress(a)))throw new ProbeError('network');
-    return {address:addresses[0],family:isIP(addresses[0])};
+    const address=family===undefined?addresses[0]:addresses.find(a=>isIP(a)===family);
+    if(!address)throw new ProbeError('unresolved','DNS: the target has no address in the selected IP family');
+    return {address,family:isIP(address)};
   }finally{signal.removeEventListener('abort',cancel)}
 }
 // statusOnly: see requestOnce. Resolution, pinning, redirect validation and the downgrade refusal are the same as a probe's.

@@ -17,6 +17,12 @@ function tcp(definition,facts){
  if(definition.assertions.latencyMs!==undefined)checks.push(check('latency',facts.connectMs<=definition.assertions.latencyMs,`Connected in ${facts.connectMs} ms (limit ${definition.assertions.latencyMs} ms)`));
  return checks;
 }
+function ping(definition,facts){
+ const s=definition.ping,rtt=facts.rtt;
+ return [check('reachability',facts.received>0,facts.received?`ICMPv${facts.family}: ${facts.received}/${facts.transmitted} replies from ${facts.address}`:`No ICMPv${facts.family} replies from ${facts.address}; the target may be unreachable or ICMP may be filtered; this sample cannot distinguish them`),
+  check('packet_loss',facts.lossPercent<=s.maxLossPercent,`Packet loss ${facts.lossPercent.toFixed(2)}% (${facts.transmitted-facts.received}/${facts.transmitted}; limit ${s.maxLossPercent}%)`),
+  check('rtt',rtt!==null&&rtt.maxMs<=s.maxRttMs,rtt?`RTT min/mean/max ${rtt.minMs}/${rtt.meanMs}/${rtt.maxMs} ms (maximum limit ${s.maxRttMs} ms)`:'RTT unavailable: no ICMP replies')];
+}
 function udp(definition,facts){
  const s=definition.udp,match=s.match==='exact'?facts.responseHex===s.expectedHex:Array.from({length:facts.responseHex.length/2},(_,i)=>i*2).some(i=>facts.responseHex.startsWith(s.expectedHex,i));
  const checks=[check('response',match,`Received ${facts.receivedBytes} bytes from ${facts.address}:${s.port} in ${facts.roundTripMs} ms; response ${match?'matches':'does not match'} the expected ${s.match==='exact'?'bytes':'byte sequence'}`)];
@@ -84,7 +90,7 @@ function domain(definition,facts,at){
 /** {checks, outcome} for one protocol attempt's facts at completion time `at`. */
 export function protocolChecks(definition,facts,at){
  const type=definition.type;
- if(type==='udp'){const checks=udp(definition,facts);return {checks,outcome:checks.every(c=>c.pass)?'pass':'target_failure'}}
+ if(type==='ping'||type==='udp'){const checks=type==='ping'?ping(definition,facts):udp(definition,facts);return {checks,outcome:checks.every(c=>c.pass)?'pass':'target_failure'}}
  if(type==='tcp'||type==='tls'){const checks=type==='tcp'?tcp(definition,facts):tls(definition,facts,at);return {checks,outcome:checks.every(c=>c.pass)?'pass':'target_failure'}}
  if(type==='dns'){const {checks,infrastructure}=dns(definition,facts);return {checks,outcome:infrastructure?'runner_error':checks.every(c=>c.pass)?'pass':'target_failure'}}
  if(type==='domain'){const {checks,unknown}=domain(definition,facts,at);return {checks,outcome:unknown?'runner_error':checks.every(c=>c.pass)?'pass':'target_failure'}}

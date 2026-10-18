@@ -36,7 +36,8 @@
         "UDP-001",
         "PRIVATE-001",
         "HEARTBEAT-002",
-        "FLOW-004"
+        "FLOW-004",
+        "PING-001"
       ]
     },
     {
@@ -323,6 +324,17 @@
         "Private target address, bounded assertion facts and sanitized browser trace return as signed evidence to the configured control plane; retained definitions/evidence travel in owner archives and are erased with the monitor",
         "Grant files and credentials stay runner-local and never travel in archives; restored or imported references do not authorize execution"
       ]
+    },
+    {
+      "id": "icmp-targets",
+      "required": false,
+      "requiredWhen": "An owner configures a public ICMP ping monitor on a private runner",
+      "why": "The private runner sends one to five bounded ICMP echo packets to the validated numeric IPv4 or IPv6 target. Each location requires system ping permission; no HTTP substitute is used.",
+      "data": [
+        "Target IP address, source runner address, bounded echo packets and round-trip timing",
+        "Only sent/received counts, loss and minimum/mean/maximum RTT are retained in immutable observations; no raw packet capture. Evidence travels in inactive archives and is erased with its monitor."
+      ],
+      "adapters": []
     }
   ],
   "env": [

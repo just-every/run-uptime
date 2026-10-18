@@ -15,6 +15,16 @@ function tcp(f,s,definition){
  if(f.banner!==undefined&&(str(f.banner,256)===''||/[\x00-\x1f\x7f]/.test(f.banner)))fail();
  if(f.bannerNote!==undefined)str(f.bannerNote,80);
 }
+function ping(f,s){
+ object(f,['address','family','transmitted','received','lossPercent','rtt']);
+ if(!publicAddress(str(f.address,45))||f.family!==s.family||(f.address.includes(':')?6:4)!==s.family)fail();
+ if(int(f.transmitted,1,5)!==s.packets)fail();int(f.received,0,f.transmitted);
+ if(f.lossPercent!==(f.transmitted-f.received)*100/f.transmitted)fail();
+ if(!f.received){if(f.rtt!==null)fail();return}
+ const r=object(f.rtt,['minMs','meanMs','maxMs']);
+ for(const v of Object.values(r))if(typeof v!=='number'||!Number.isFinite(v)||v<0||v>60000)fail();
+ if(r.minMs>r.meanMs||r.meanMs>r.maxMs||(f.received===1&&(r.minMs!==r.meanMs||r.meanMs!==r.maxMs)))fail();
+}
 function udp(f,s){
  object(f,['address','roundTripMs','sentBytes','receivedBytes','responseHex']);
  if(!publicAddress(str(f.address,45)))fail();int(f.roundTripMs,0,60000);
@@ -56,5 +66,5 @@ function domain(f,s){
  if(f.conflict!==Boolean(f.expiresAt!==null&&f.registrar?.expiresAt!=null&&Math.abs(f.expiresAt-f.registrar.expiresAt)>86400000))fail();
 }
 export function validateFacts(definition,facts){
- ({tcp,udp,tls,dns,domain})[definition.type](facts,definition[definition.type],definition);
+ ({tcp,udp,ping,tls,dns,domain})[definition.type](facts,definition[definition.type],definition);
 }

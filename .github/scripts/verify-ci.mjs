@@ -42,6 +42,7 @@ export const plan = {
   shard('archives', ['test:archive', 'test:definitions']),
   shard('runner-flows', ['test:runner', 'test:flow'], true),
   shard('protocols', ['test:protocols'], true),
+  shard('icmp', ['test:ping'], true),
   shard('private-locations', ['test:private'], true),
   shard('browser', ['test:browser'], true),
  ],

@@ -2,7 +2,7 @@ A definition file lists your monitors as reviewed text, so you can keep them in 
 
 ## The file
 
-The default name is `uptime.monitors.json`. New exports use version 5; versions 1–4 remain readable (a flow needs version 2 or later, TCP, DNS, TLS and domain need version 3, UDP needs version 4, and private network scope and local grant references need version 5). Supported public monitor types are HTTP(S), keyword, heartbeat, TCP, UDP, DNS, TLS and domain. UDP requires a private runner and uses `udp: {"host":"service.example.com","port":9000,"payloadHex":"50494e47","expectedHex":"504f4e47","match":"exact"}`; bytes are hexadecimal (`PING` and `PONG` here), never credentials. Its minimum interval is 30 seconds.
+The default name is `uptime.monitors.json`. New exports use version 6; versions 1–5 remain readable (a flow needs version 2 or later, TCP, DNS, TLS and domain need version 3, UDP needs version 4, and private network scope and local grant references need version 5, and ICMP ping needs version 6). Supported public monitor types are HTTP(S), keyword, heartbeat, TCP, UDP, ICMP ping, DNS, TLS and domain. UDP requires a private runner and uses `udp: {"host":"service.example.com","port":9000,"payloadHex":"50494e47","expectedHex":"504f4e47","match":"exact"}`; bytes are hexadecimal (`PING` and `PONG` here), never credentials. Its minimum interval is 30 seconds.
 
 ```json
 {
@@ -126,3 +126,7 @@ The mapped check needs `name`, `hostname`, an integer `resolution` from 1 to 1,4
 Mapped definitions accept HTTP 2xx/3xx responses, use a ten-second timeout, no in-slot retries, two recovery slots and one initial `local-a` probe. Review these settings and independent-vantage/canary coverage before activation. A source certificate-expiry downtime setting is named separately in the preview; add a reviewed TLS certificate monitor. Source response-time thresholds are named as not imported; choose an explicit latency failure or supported slow-response policy before enabling.
 
 This is a saved HTTP-definition conversion, not complete Pingdom or UptimeRobot migration. Probe regions, contacts, teams, maintenance, scheduled reports and history are not transferred by the Pingdom adapter. Other Pingdom protocol checks and transaction/page-speed checks need reviewed conversion. Live extraction, account reconciliation, historical reports, provider reauthorization and side-by-side cutover remain broader migration work; the import does not establish that those journeys have been completed.
+
+### ICMP definitions
+
+Use version 6 and `type: "ping"` with `ping: {"host":"gateway.example.com","family":4,"packets":3,"maxLossPercent":0,"maxRttMs":1000}`. Select family 6 for IPv6. Ping requires an assigned private Linux/macOS runner with system ping permission. Definitions carry settings and immutable evidence, never executable paths or host privileges. Imports stay paused; the receiving installation must assign and authorize its own runner. The interval floor is 30 seconds and the timeout must be 8–10 seconds.

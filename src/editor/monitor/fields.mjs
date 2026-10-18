@@ -24,7 +24,7 @@ export function readFields(root,definition){
  const value=name=>control(root,name).value;
  const type=control(root,'checkType')?.value??'http';
  // Settings of other types never travel with the one selected.
- const {url,method,network:oldNetwork,privateGrantRef:oldGrant,tcp,udp,dns,tls,domain,tlsTrust,request,...rest}=definition;
+ const {url,method,network:oldNetwork,privateGrantRef:oldGrant,tcp,udp,ping,dns,tls,domain,tlsTrust,request,...rest}=definition;
  const privateScope=control(root,'networkScope')?.value==='private'&&['http','tcp'].includes(type);
  const timing={...(privateScope?{network:'private',privateGrantRef:control(root,'privateGrantRef').value.trim()}:{}),...readMetadata(root,definition),name:value('name'),intervalMs:minutesToMilliseconds(value('intervalMinutes')),timeoutMs:secondsToMilliseconds(value('timeoutSeconds')),freshnessMs:minutesToMilliseconds(value('freshnessMinutes'))};
  for(const name of ['retries','confirmSlots','recoverSlots'])timing[name]=Number(value(name));

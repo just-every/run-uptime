@@ -426,13 +426,13 @@ Protocol round (17 October 2026): TCP-001, DNS-001, TLS-001 and DOMAIN-001 moved
 
 ## Status
 
-Judged from the code and tests at commit `6ed3f0bbf5ae0d841a65b33fc64f00760b1eaf31` (18 October 2026).
+Judged from the code and tests at commit `6659fd2` (18 October 2026).
 
 | Clauses | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
 | Published | 16 | 5 | 0 | 21 |
-| Target and push further | 17 | 30 | 20 | 67 |
-| All | 33 | 35 | 20 | 88 |
+| Target and push further | 18 | 30 | 19 | 67 |
+| All | 34 | 35 | 19 | 88 |
 
 | Clause | Title | Kind | Status | Evidence | Gap |
 | --- | --- | --- | --- | --- | --- |
@@ -466,7 +466,7 @@ Judged from the code and tests at commit `6ed3f0bbf5ae0d841a65b33fc64f00760b1eaf
 | `API-003` | Multi-step API transactions | target | missing |  | No implementation; acceptance journey above is required. |
 | `API-004` | Safe setup and teardown | target | missing |  | No implementation; acceptance journey above is required. |
 | `TCP-001` | TCP service checks | target | done | `src/domain/protocol/settings.mjs`; `src/domain/protocol/evaluate.mjs`; `runners/src/protocol-probes.mjs`; `src/domain/worker-protocols.server.ts`; `tests/protocol-monitors.mjs` | Pinned connect, connect time and optional bounded banner from the Worker and private runners; refused, timeout and could-not-run stay distinct. A Worker cannot reach Cloudflare addresses and reports them Unknown. |
-| `PING-001` | ICMP reachability and packet quality | target | missing |  | No implementation. Workers have no ICMP or raw sockets; a private runner would depend on each host's ping binary or raw-socket privilege, which this round does not qualify. Acceptance journey above is required. |
+| `PING-001` | ICMP reachability and packet quality | target | done | `runners/src/icmp-probe.mjs`; `src/domain/protocol/`; `tests/ping-monitors.mjs`; `tests/ping-browser.mjs`; `docs/evidence/contracts/ping/` | Bounded public IPv4/IPv6 ICMP samples on assigned Linux/macOS runners retain sent/received counts, loss and min/mean/max RTT per location, with owner thresholds and exact signed-fact validation. DNS pinning, unsafe/mixed-answer refusal, native output/deadline bounds, cancellation, permission/tool Unknown, no-reply ambiguity, scheduled failure/recovery and inactive portability are proven through Worker/runner doors. Desktop/phone configuration, refusal, Healthy/Failing/Unknown evidence and edit/reload pass with axe/reflow. Workers cannot send ICMP. No hosted placement claim is made. |
 | `DNS-001` | DNS records and change detection | target | done | `src/domain/protocol/dns.mjs`; `src/domain/protocol/dns-wire.mjs`; `src/domain/protocol/evaluate.mjs`; `tests/protocol-monitors.mjs` | Cloudflare and Google over HTTPS plus the zone's authoritative server over TCP; nine record types, expected/absent values, owner-approved changes; NXDOMAIN, SERVFAIL, disagreement and resolver faults stay distinct. |
 | `TLS-001` | SSL certificate and chain monitoring | target | done | `src/domain/protocol/x509.mjs`; `src/domain/protocol/tls12-certificates.mjs`; `src/domain/expiry-notices.server.ts`; `tests/protocol-monitors.mjs` | Trust, host name and validity per location; staged warnings naming the certificate and accountable owner, one per certificate and stage, resolved only by a newly observed valid certificate. Stage progression is shown with certificates at different expiry distances, not a moved clock. A TLS 1.3-only server is Unknown at the Worker. |
 | `DOMAIN-001` | Domain registration expiry | target | done | `src/domain/protocol/rdap.mjs`; `src/domain/expiry-notices.server.ts`; `tests/protocol-monitors.mjs` | RDAP from IANA's bootstrap, the registry and the linked registrar record, with each source and update time; staged warnings followed until renewal is observed; redacted, missing, unreadable or conflicting data is Unknown. Registrar data comes from registrar RDAP: a TLD without RDAP reports Unknown (there is no WHOIS client). |
