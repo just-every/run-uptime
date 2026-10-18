@@ -27,6 +27,8 @@ export async function startFlowFixture({port = 0, grantPath, secondPort = 0}) {
     const send = (status, body, headers = {}) => { res.writeHead(status, {'content-type': 'text/html; charset=utf-8', 'x-uptime-fixture': identity, ...headers}); res.end(body); };
     if (!m) return send(404, page('Not found', '<h1>Not found</h1>'));
     const [, scenario, full] = m, path = full.replace(/^(?:\/p+)?\/u\/[^/]+\//, '/'), base = `/s/${scenario}`, signedIn = (req.headers.cookie ?? '').split(/;\s*/).some(c => c.startsWith('sid=') && sessions.has(c.slice(4)));
+    if(path==='/browser-checkout')return send(200,page('Checkout',`<meta name="viewport" content="width=device-width, initial-scale=1"><h1>Checkout</h1><style>@media(max-width:600px){#confirmation{display:none}}</style><p id="confirmation">Order confirmed</p><p id="transport-policy">${scenario==='transport-policy'?'<script>document.getElementById("transport-policy").textContent=typeof RTCPeerConnection===\'undefined\'&&typeof WebTransport===\'undefined\'?\'Direct transports disabled\':\'Direct transport available\'</script>':''}</p>`));
+    if(path==='/browser-metadata')return send(200,page('Blocked subresource','<h1>Checkout</h1><img alt="" src="http://169.254.169.254/latest/meta-data/"><p>Order confirmed</p>'));
     if (path === '/login' && req.method === 'GET') {
       const missing = scenario === 'missing-element';
       return send(200, page('Sign in', `<h1>Sign in</h1><form method="post" action="${base}/login" novalidate><label>Email <input name="email" type="email"></label><label>Password <input name="password" type="password"></label>${missing ? '' : '<button type="submit">Sign in</button>'}</form>`));

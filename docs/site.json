@@ -45,6 +45,12 @@
           "summary": "The four monitor kinds, how checks become incidents, and why Unknown is never green."
         },
         {
+          "slug": "browser-flows",
+          "title": "Browser journeys and devices",
+          "file": "browser-flows.md",
+          "summary": "Check Chromium, Firefox and WebKit on desktop or mobile, with separate evidence and honest missing-engine coverage."
+        },
+        {
           "slug": "heartbeat-jobs",
           "title": "Heartbeat jobs",
           "file": "heartbeat-jobs.md",

@@ -2,6 +2,7 @@ import {heartbeatRuns} from '../heartbeat-jobs.server.ts'
 import { periodAvailability } from './coverage.server.ts'
 import { periodLatency, latencyOptions } from './latency.server.ts'
 import {periodSlow} from './slow.server.ts'
+import {periodFlowProfiles} from './flow-profiles.server.ts'
 import { periodIncidents } from './incidents.server.ts'
 import { normalizePeriod, type ReportPeriod } from './period.ts'
 
@@ -15,9 +16,9 @@ export async function monitorReport(env: { DB: D1Database }, id: string, params:
   const monitor = await env.DB.prepare('SELECT id,revision,definition FROM monitors WHERE id=?').bind(id)
     .first<{ id: string; revision: number; definition: string }>()
   if (!monitor) return null
-  const [availability, latency, allIncidents, slow] = await Promise.all([
+  const [availability, latency, allIncidents, slow, flowProfiles] = await Promise.all([
     periodAvailability(env.DB, id, period), periodLatency(env.DB, id, period, options),
-    periodIncidents(env.DB, id, period, now),periodSlow(env.DB,id,period),
+    periodIncidents(env.DB, id, period, now),periodSlow(env.DB,id,period),periodFlowProfiles(env.DB,id,period,options),
   ])
   const rootCauseFilter=params instanceof URLSearchParams?params.get('rootCause'):null
   const incidents=rootCauseFilter?allIncidents.filter(incident=>incident.rootCause.categoryId===rootCauseFilter):allIncidents
@@ -41,6 +42,7 @@ export async function monitorReport(env: { DB: D1Database }, id: string, params:
       remainingBudgetMs: availability.observedMs * (100 - targetPercent) / 100 - availability.notPassingMs,
     },
     latency, slow, incidents, rootCauseFilter, rootCauseGroups,
+    ...(flowProfiles.length?{flowProfiles}:{}),
     ...(jobRuns?{jobRuns:jobRuns.runs}:{}),
     incidentSummary: { count: incidents.length, durationInPeriodMs: incidents.reduce((total, incident) => total + incident.durationInPeriodMs, 0) },
   }

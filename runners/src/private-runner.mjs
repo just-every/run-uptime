@@ -10,7 +10,7 @@ import {NotificationTransport} from './notification-transport.mjs';
 import {createWatch} from './watch.mjs';
 import {runDiscoveryLoop} from './discovery-loop.mjs';
 import {createClock} from './clock.mjs';
-import {browserCapability} from './flow/browser.mjs';
+import {browserCapabilities} from './flow/browser.mjs';
 import {prepareFlowWorkspace} from './flow/workspace.mjs';
 import {readControlResponse} from './control-response.mjs';
 import {RUNNER_VERSION} from '../../src/domain/policy.mjs';
@@ -30,7 +30,7 @@ export async function runRunner({origin,key,controlAddress,runnerId:configuredId
  do{
   let task;
   try{
-   if(!registered){const registration=await api('/api/runner/enroll',{version:1,...(networkLabel?{networkLabel}:{}),capabilities:{browser:(await browserCapability()).available,privateNetwork:true,capacity:1,version:RUNNER_VERSION}},true);if(!/^self-[0-9a-f-]{36}$/.test(registration.runnerId)||registration.scope!=='self-runner')throw Error('Invalid runner registration');runnerId=registration.runnerId;registered=true}
+   if(!registered){const registration=await api('/api/runner/enroll',{version:1,...(networkLabel?{networkLabel}:{}),capabilities:{...await browserCapabilities(),privateNetwork:true,capacity:1,version:RUNNER_VERSION}},true);if(!/^self-[0-9a-f-]{36}$/.test(registration.runnerId)||registration.scope!=='self-runner')throw Error('Invalid runner registration');runnerId=registration.runnerId;registered=true}
    {const sentAt=Date.now(),answer=await api('/api/runner/claim',{});clock.observe(sentAt,Date.now(),answer.now);({task}=answer)}await watcher.contacted();
   }catch(error){if(signal?.aborted)break;await watcher.failed();if(once)throw error;console.error('Runner poll failed; watching independently for loss of contact.')}
   // Website checks run in their own loop once the runner is enrolled, so a slow crawl never holds a probe claim.

@@ -146,3 +146,4 @@ try {
   for (const c of children) if (c.exitCode === null && c.signalCode === null) { c.kill('SIGTERM'); await once(c, 'exit'); }
   await fixture?.close(); await worker?.dispose(); await cleanupDirectory(directory);
 }
+await import('./flow-profiles.mjs');

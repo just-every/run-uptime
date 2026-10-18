@@ -28,7 +28,8 @@ process.on('uncaughtException', error => { if (abandoned) return; process.stderr
 // A runner that is gone closes the read end of stdout; a write then fails, and must not end this process before its cleanup.
 process.stdout.on('error', () => {});
 
-const {chromium} = await import('playwright');
+const engines = await import('playwright');
+const {flowLaunchOptions, disableDirectTransports} = await import('./launch.mjs');
 const {describeExpectation, plainUrl, FLOW_LIMITS} = await import('../../../src/domain/flow.mjs');
 const {credentialRedactor} = await import('./secrets.mjs');
 const read = async () => { const chunks = []; for await (const c of process.stdin) chunks.push(c); return JSON.parse(Buffer.concat(chunks).toString('utf8')); };
@@ -36,7 +37,7 @@ const emit = value => process.stdout.write(JSON.stringify(value) + '\n');
 // A job cut short means the runner died while handing it over: the lifeline's cleanup ends this process.
 const job = await read().catch(() => null);
 if (!job) { setTimeout(() => { if (!abandoned) process.exit(1); }, 1000); await new Promise(() => {}); }
-const {flow, url: startUrl, proxy, credentials, deadlineMs, maxPages, home} = job;
+const {flow, profile, url: startUrl, proxy, credentials, deadlineMs, maxPages, home} = job;
 const origins = new Set(flow.origins);
 // The page's URL as this process reports it: without query or fragment, every credential value removed, and only then cut.
 const redact = credentialRedactor(credentials), shownUrl = () => redact(plainUrl(page.url()), 300);
@@ -49,16 +50,11 @@ const target = (page, t) => t.css !== undefined ? page.locator(`css=${t.css}`) :
 const urlMatches = (page, value, match) => { try { const p = new URL(page.url()).pathname; return match === 'prefix' ? p.startsWith(value) : p === value; } catch { return false; } };
 
 try {
-  browser = await chromium.launch({
-    headless: true,
-    env: {HOME: process.env.HOME, TMPDIR: home, LANG: 'C.UTF-8', ...(process.env.PLAYWRIGHT_BROWSERS_PATH ? {PLAYWRIGHT_BROWSERS_PATH: process.env.PLAYWRIGHT_BROWSERS_PATH} : {})},
-    proxy: {server: `http://127.0.0.1:${proxy.port}`, username: proxy.username, password: proxy.password, bypass: '<-loopback>'},
-    args: ['--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1', '--disable-quic', '--disable-background-networking', '--disable-component-update', '--no-pings', '--disable-sync', '--no-first-run', '--no-default-browser-check',
-      '--force-webrtc-ip-handling-policy=disable_non_proxied_udp', '--webrtc-ip-handling-policy=disable_non_proxied_udp',
-      '--disable-default-apps', '--disable-domain-reliability', '--disable-client-side-phishing-detection', '--safebrowsing-disable-auto-update', '--metrics-recording-only', '--password-store=basic', '--use-mock-keychain',
-      '--disable-features=Translate,MediaRouter,OptimizationHints,InterestFeedContentSuggestions,AutofillServerCommunication,PasswordLeakDetection,SafeBrowsing,CertificateTransparencyComponentUpdater'],
-  });
-  context = await browser.newContext({acceptDownloads:false,serviceWorkers:'block',ignoreHTTPSErrors:false,viewport:{width:1280,height:800},locale:'en-US',timezoneId:'UTC',userAgent:'uptime-flow/0.1'});
+  browser = await engines[profile.browser].launch(flowLaunchOptions(profile.browser, {home, proxy}));
+  context = await browser.newContext({acceptDownloads:false,serviceWorkers:'block',ignoreHTTPSErrors:false,
+    viewport:profile.viewport,deviceScaleFactor:profile.device==='mobile'?3:1,hasTouch:profile.device==='mobile',
+    ...(profile.browser!=='firefox'?{isMobile:profile.device==='mobile'}:{}),locale:'en-US',timezoneId:'UTC'});
+  await context.addInitScript(disableDirectTransports);
 } catch { await browser?.close().catch(()=>{}); if (abandoned) await new Promise(() => {}); emit({t: 'done', launchFailed: true}); process.exit(0); }
 
 const page = context.pages()[0] ?? await context.newPage();

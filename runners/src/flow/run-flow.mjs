@@ -17,6 +17,7 @@ import {FLOW_LIMITS, describeExpectation, flowDigest, plainUrl} from '../../../s
 import {RUNNER_VERSION} from '../../../src/domain/policy.mjs';
 import {CredentialBindingRequired} from '../credential-diagnostic.mjs';
 import {readGrant} from '../grants.mjs';
+import {flowProfile} from '../../../src/domain/flow-profile.mjs';
 
 const here = new URL('./child.mjs', import.meta.url).pathname;
 const MAX_CHILD_OUTPUT = 256 * 1024;
@@ -42,13 +43,13 @@ const reasonText = (failure, flow, wallMs) => {
 };
 
 export async function runFlow(definition, probe, {grantPath, controlPort, workspace, credentialDir = process.env.UPTIME_CREDENTIAL_DIR, capability, monitorId, signal, privateAccess} = {}) {
-  const startedAt = Date.now(), flow = definition.flow;
+  const startedAt = Date.now(), flow = definition.flow, profile = flowProfile(flow);
   const observation = data => ({id: randomUUID(), probe, startedAt, completedAt: Date.now(), durationMs: 0, runnerVersion: RUNNER_VERSION, ...data});
   const finish = o => ({...o, durationMs: o.completedAt - o.startedAt});
   const runnerError = (assertion, reason) => finish(observation({outcome: 'runner_error', checks: [{assertion, pass: false, reason}]}));
   const interrupted = () => runnerError('runner', 'Runner stopped before the attempt completed');
   if (signal?.aborted) return interrupted();
-  const browser = capability ?? await browserCapability();
+  const browser = capability ?? await browserCapability(profile.browser);
   if (signal?.aborted) return interrupted();
   if (!browser.available) return runnerError('browser', browser.reason);
   if (!workspace) return runnerError('browser', 'This runner has no private flow folder (UPTIME_FLOW_DIR must be a folder this runner owns)');
@@ -92,7 +93,7 @@ export async function runFlow(definition, probe, {grantPath, controlPort, worksp
     });
     child.on('error', () => {});
     child.stdin.on('error', () => {});
-    child.stdin.end(JSON.stringify({demo:demoMode(),flow, url: definition.url, home, proxy: {port: proxy.port, username: proxy.username, password: proxy.password}, credentials, deadlineMs: deadlineMs - 3000, maxPages: FLOW_LIMITS.maxPages}));
+    child.stdin.end(JSON.stringify({demo:demoMode(),flow, profile, url: definition.url, home, proxy: {port: proxy.port, username: proxy.username, password: proxy.password}, credentials, deadlineMs: deadlineMs - 3000, maxPages: FLOW_LIMITS.maxPages}));
     signal?.addEventListener('abort', stop, {once: true});
     if (signal?.aborted) stop();
     timer = setTimeout(() => { killedForTime = true; killTree(child.pid); }, deadlineMs);
@@ -128,7 +129,7 @@ export async function runFlow(definition, probe, {grantPath, controlPort, worksp
   const outcomes = flow.outcomes.map(o => ({id: o.id, observed: !failure && Boolean(done?.outcomes?.find(x => x.id === o.id)?.observed)}));
   const passed = !failure && outcomes.every(o => o.observed) && trace.every(e => e.outcome !== 'fail');
   if (!passed && !failure) failure = {step: trace.find(e => e.outcome === 'fail')?.i, reason: 'outcome_missing'};
-  let result = {digest: await flowDigest(flow), trace, outcomes, ...(failure ? {failure: Object.fromEntries(Object.entries(failure).filter(([, v]) => v !== undefined))} : {}), finalUrl: text(done?.finalUrl ?? plainUrl(definition.url)), pages: Math.min(done?.pages ?? 0, FLOW_LIMITS.maxPages + 1), bytes: stats.bytes};
+  let result = {digest: await flowDigest(flow), profile, trace, outcomes, ...(failure ? {failure: Object.fromEntries(Object.entries(failure).filter(([, v]) => v !== undefined))} : {}), finalUrl: text(done?.finalUrl ?? plainUrl(definition.url)), pages: Math.min(done?.pages ?? 0, FLOW_LIMITS.maxPages + 1), bytes: stats.bytes};
   if (JSON.stringify(result).length > FLOW_LIMITS.traceBytes) {
     // Over the cap: keep the first entries and fail naming the limit; the trace never grows past its bound.
     result = {...result, trace: result.trace.slice(0, 10).map(({expect, ...e}) => e), failure: {reason: 'trace_limit', limit: 'traceBytes', ...(failure?.step !== undefined ? {step: failure.step} : {})}};

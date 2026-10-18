@@ -11,6 +11,14 @@ export async function reportPdf(report:MonitorReport,assets:Fetcher|undefined){
  pdf.text(`Monitor ${report.monitor.id} / revision ${report.monitor.revision}`)
  pdf.text(`Generated ${at(report.generatedAt)} / ${zone}`)
  pdf.text(`Period: ${at(report.period.from)} inclusive to ${at(report.period.to)} exclusive`)
+ if(report.flowProfiles?.length){
+  pdf.heading('Browser and device revisions')
+  pdf.text('Each profile has separate retained evidence. The whole-period figures combine revisions; they do not prove another browser or device passed.')
+  for(const segment of report.flowProfiles){
+   const p=segment.profile
+   pdf.text(`Revision ${segment.revision}: ${p.browser} / ${p.device} / ${p.viewport.width} x ${p.viewport.height}\n${at(segment.from)} to ${at(segment.to)}\nUptime: ${number(segment.availability.uptimePercent)}% / observed: ${duration(segment.availability.observedMs)} / not passing: ${duration(segment.availability.notPassingMs)} / Unknown: ${duration(segment.availability.unknownMs)}\nLatency samples: ${segment.latency.statistics.count} / p95: ${number(segment.latency.statistics.p95Ms)} ms`)
+  }
+ }
  pdf.heading('Availability and coverage')
  pdf.text(report.denominatorPolicy)
  for(const [label,key] of [['Uptime','uptimePercent'],['Healthy time','upMs'],['Not-passing time','notPassingMs'],['Observed denominator','observedMs'],['Unknown time','unknownMs'],['Paused time','pausedMs'],['Maintenance time','maintenanceMs'],['Entire period','windowMs']] as const){

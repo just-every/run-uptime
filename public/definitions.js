@@ -23,6 +23,7 @@ function countsMarkup(preview){
  <p class="definition-source">${escape(preview.sourceLabel)}: ${o.importable} importable, ${o.withDifferences} importable with listed differences, ${o.unsupported} unsupported, ${o.refused} refused. New monitors arrive paused.</p>`;
 }
 function criteriaMarkup(definition){
+ if(definition?.type==='flow')return `<p><strong>Reviewed browser journey</strong></p><ul><li>Browser: ${escape(definition.flow.browser)}</li><li>Device: ${escape(definition.flow.device)}</li><li>Intent: ${escape(definition.flow.intent)}</li><li>${definition.flow.steps} steps; ${definition.flow.outcomes} required outcomes. Each browser/device combination is a separate monitor.</li></ul>`;
  if(!definition||!['http','keyword'].includes(definition.type))return '';
  const a=definition.assertions,items=[['HTTP status',Array.isArray(a.status)?a.status.join(', '):String(a.status)]];
  if(definition.tlsTrust)items.push(['HTTPS trust',definition.tlsTrust.mode==='fingerprint'?'Pinned leaf SHA-256 '+definition.tlsTrust.sha256:definition.tlsTrust.mode==='ca'?'Owner-supplied CA; private runner required':'Certificate errors ignored for initial origin; private runner required']);

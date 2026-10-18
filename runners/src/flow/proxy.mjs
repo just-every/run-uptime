@@ -1,4 +1,4 @@
-// The one door a flow's browser has to the network. Chromium is started with this forward proxy and nothing else: every page,
+// The one door a flow's browser has to the network. Every engine uses this forward proxy: every page,
 // redirect, subresource and WebSocket becomes a CONNECT or an absolute-URI request here, so NETWORK-001 is checked once, in one
 // place, whatever the page does. The proxy resolves each destination itself and connects to the address it checked (a DNS answer
 // cannot change between check and use), refuses private, loopback, link-local and metadata addresses, and reaches the local

@@ -16,7 +16,7 @@ import {confirmErasure,showErasureReceipt} from './notification-dialogs.js';
 import {escape,icon,ago,duration,breakableUrl,checkTime,humaneDuration,shownState} from './console-format.js';
 import {COVERAGE_RULE,coverage,coverageLegend} from './monitor-coverage.js';
 import {buildTimeline,checkResultSummary} from './monitor-timeline.js';
-import {isFlow,flowSummary,flowPanel,flowRevisions,traceMarkup} from './flow-panel.js';
+import {isFlow,flowSummary,flowPanel,flowRevisions,traceMarkup,retainFlowProfile,bindFlowProfile} from './flow-panel.js';
 import {PROTOCOL_KINDS,isProtocol,protocolExpectations,protocolFact,expiryPanel} from './protocol-panel.js';
 
 // The id in /app/monitors/<id>, or null on any other path. The server answers an id that does not decode with its 404
@@ -194,11 +194,12 @@ export function renderMonitorPage({header,actions,area,data,id,api,action,readUn
  header.innerHTML=titleBlock(m,readUnavailable);
  actions.innerHTML=actionButtons(m)+'<button id="erase-monitor" class="danger">Erase monitor</button>';
  actions.querySelector('#erase-monitor').onclick=()=>confirmErasure({kind:'monitor',name:m.definition.name,onConfirm:async name=>{const result=await action(()=>api(`/api/monitors/${encodeURIComponent(m.id)}/erase`,'POST',{name}),{pending:'Erasing monitor…',success:'Monitor and dependent records erased.'});if(result.ok){document.title='Monitor erased · Uptime';showErasureReceipt(result.result.receipt)}}});
- const retainedReport=retainReportPanel(area,m.id),retainedJobs=retainHeartbeatJobs(area,m);
+ const retainedReport=retainReportPanel(area,m.id),retainedJobs=retainHeartbeatJobs(area,m),retainedFlow=retainFlowProfile(area,m);
  area.innerHTML=pageBody(m,readUnavailable,definitionOpen,data);
  mountReportPanel(area,m,api,retainedReport);
  bindHeartbeatKey(area,m,{api,action});
  bindHeartbeatJobs(area,m,{api,action},retainedJobs);
+ bindFlowProfile(area,m,{api,action},retainedFlow);
  bindMaintenancePanel(area,m,{api,action});
  bindAlertRoutePanel(area,m,{api,action});
  bindSlowPolicyPanel(area,m,{api,action});

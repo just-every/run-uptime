@@ -24,6 +24,12 @@ export function reportCsv(report: MonitorReport): string {
   add('policy', 'samplePolicy', report.latency.samplePolicy)
   add('policy', 'bucket', report.latency.bucket)
   add('policy', 'bucketAlignment', report.latency.bucketAlignment)
+  for(const segment of report.flowProfiles??[]){
+    const key=`revision ${segment.revision}: ${segment.profile.browser}/${segment.profile.device}`
+    add('browser_profile','profile',key,'','',segment.from,segment.to)
+    for(const [metric,value] of Object.entries(segment.availability))add('browser_profile',metric,value,metric.endsWith('Ms')?'ms':'percent','',segment.from,segment.to,key)
+    for(const [metric,value] of Object.entries(segment.latency.statistics))add('browser_profile_latency',metric,value,metric==='count'?'samples':'ms',segment.latency.location,segment.from,segment.to,key)
+  }
   for (const [metric, value] of Object.entries(report.availability)) add('availability', metric, value, metric.endsWith('Ms') ? 'ms' : 'percent')
   if (report.sla) for (const [metric, value] of Object.entries(report.sla)) add('sla', metric, value, metric.endsWith('Ms') ? 'ms' : metric.endsWith('Percent') ? 'percent' : '')
   for (const [metric, value] of Object.entries(report.latency.statistics)) add('latency', metric, value, metric === 'count' ? 'samples' : 'ms', report.latency.location)
