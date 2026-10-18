@@ -1,3 +1,5 @@
+// @ts-ignore Shared calendar.
+import {nextHeartbeatOccurrence} from './heartbeat-cron.mjs'
 import {get,save,type Bindings} from './control.server.ts'
 import type {AuditActor} from './audit.server.ts'
 // @ts-ignore Shared bounded heartbeat vocabulary.
@@ -27,8 +29,10 @@ export async function configureHeartbeat(env:Bindings,id:string,input:any,actor:
  const result=await save(env,{...monitor.definition,heartbeat},id,actor);
  await scheduleHeartbeatEvaluation(env,id);return result;
 }
-export async function heartbeatRuns(env:Pick<Bindings,'DB'>,id:string,{before,from,to,limit=50}:{before?:string;from?:number;to?:number;limit?:number}={}){
+export async function heartbeatRuns(env:Pick<Bindings,'DB'>,id:string,{before,from,to,limit=50,previewFrom}:{before?:string;from?:number;to?:number;limit?:number;previewFrom?:number}={}){
  const rows=(await env.DB.prepare('SELECT * FROM heartbeat_runs WHERE monitor_id=? AND (? IS NULL OR received_at>=?) AND (? IS NULL OR received_at<?) AND (? IS NULL OR (received_at,id)<(SELECT received_at,id FROM heartbeat_runs WHERE id=? AND monitor_id=?)) ORDER BY received_at DESC,id DESC LIMIT ?').bind(id,from??null,from??null,to??null,to??null,before??null,before??null,id,limit+1).all<any>()).results;
  const more=rows.length>limit,selected=rows.slice(0,limit);
- return {runs:selected.map(r=>({id:r.id,monitorId:r.monitor_id,revision:r.revision,sequence:r.sequence,state:r.state,receivedAt:r.received_at,startedAt:r.started_at,durationMs:r.duration_ms,exitCode:r.exit_code,output:r.output,late:Boolean(r.late)})),nextCursor:more?selected.at(-1)!.id:null};
+ const revision=await env.DB.prepare('SELECT definition FROM monitors WHERE id=?').bind(id).first<any>(),h=revision?JSON.parse(revision.definition).heartbeat:null;
+ const upcoming=[];let at=previewFrom??Date.now();if(h?.cron)for(let i=0;i<3;i++){at=nextHeartbeatOccurrence(h,at);upcoming.push({expectedAt:at,deadlineAt:at+(h.graceMs??0)})}
+ return {schedule:h?{...h,upcoming,dstPolicy:'Skip nonexistent local times; first occurrence of repeated local times only.'}:null,runs:selected.map(r=>({id:r.id,monitorId:r.monitor_id,revision:r.revision,sequence:r.sequence,state:r.state,receivedAt:r.received_at,startedAt:r.started_at,durationMs:r.duration_ms,exitCode:r.exit_code,output:r.output,late:Boolean(r.late)})),nextCursor:more?selected.at(-1)!.id:null};
 }

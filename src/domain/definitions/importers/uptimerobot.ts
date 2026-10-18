@@ -5,7 +5,7 @@ import type {Importer,Mapping,SourceEntry} from './types.ts'
 // pages saved one after another (or as one JSON array of pages). Field names follow UptimeRobot's published OpenAPI
 // document (https://cdn.uptimerobot.com/api/openapi.yaml, loaded by https://uptimerobot.com/api/v3/). Nothing here
 // calls UptimeRobot; the owner supplies the saved responses.
-const MIN_INTERVAL_S=5,MAX_INTERVAL_S=86400,MAX_TIMEOUT_MS=10000,MIN_TIMEOUT_MS=50,MAX_HEARTBEAT_AGE_MS=86400000
+const MIN_INTERVAL_S=5,MAX_INTERVAL_S=86400,MAX_TIMEOUT_MS=10000,MIN_TIMEOUT_MS=50
 const isPage=(value:any)=>Boolean(value)&&typeof value==='object'&&!Array.isArray(value)&&Array.isArray(value.data)&&Object.hasOwn(value,'nextLink')
 function pages(text:string){
  const values=jsonValues(text,'UptimeRobot file'),flat=values.length===1&&Array.isArray(values[0])?values[0] as unknown[]:values
@@ -55,12 +55,11 @@ function map(entry:SourceEntry):Mapping{
   [present(m.tags)||present(m.groupId),'Tags and groups are not imported.'],
  ] as [boolean,string][])if(present_)differences.push(text)
  if(type==='HEARTBEAT'){
-  const graceMs=typeof m.gracePeriod==='number'&&m.gracePeriod>0?Math.round(m.gracePeriod*1000):0
+  if(m.gracePeriod!==undefined&&(typeof m.gracePeriod!=='number'||!Number.isFinite(m.gracePeriod)||m.gracePeriod<0))return {refused:'Heartbeat grace must be from 0 to 86400 seconds.'}
+  const graceMs=Math.round((m.gracePeriod??0)*1000)
   differences.push(`Heartbeat jobs must be repointed: ${typeof m.heartbeatUrl==='string'&&m.heartbeatUrl?m.heartbeatUrl:'the UptimeRobot heartbeat URL'} stops being used. Issue a new Uptime heartbeat token on the monitor page after import; the old URL and token are not imported.`)
-  // Uptime waits at most one day for a heartbeat call; a longer interval plus grace keeps the interval and shortens the grace.
-  const wantedMs=intervalMs+graceMs,maxAgeMs=Math.min(wantedMs,MAX_HEARTBEAT_AGE_MS)
-  if(maxAgeMs<wantedMs)differences.push(`Grace period shortened: UptimeRobot waited ${seconds(intervalMs)} plus ${seconds(graceMs)} grace (${seconds(wantedMs)}) for a call; Uptime waits at most one day (${seconds(MAX_HEARTBEAT_AGE_MS)}), so the grace becomes ${seconds(maxAgeMs-intervalMs)}.${maxAgeMs===intervalMs?' A job that calls exactly once per interval then has no slack: have it call more often before enabling this monitor.':''}`)
-  return {definition:{...common,type:'heartbeat',heartbeat:{maxAgeMs},assertions:{status:200},probes:['local-a'],failureQuorum:1},differences}
+  if(!Number.isSafeInteger(graceMs)||graceMs>86400000)return {refused:'Heartbeat grace must be from 0 to 86400 seconds.'}
+  return {definition:{...common,type:'heartbeat',heartbeat:{maxAgeMs:intervalMs,graceMs},assertions:{status:200},probes:['local-a'],failureQuorum:1},differences}
  }
  if(typeof m.url!=='string'||!m.url)return {refused:`${label} has no URL.`}
  let method=String(m.httpMethodType??'HEAD').toUpperCase()

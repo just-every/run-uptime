@@ -33,6 +33,7 @@ export const plan = {
   shard('catalog', ['test:catalog']),
   shard('slow-responses',['test:slow'],true),
   shard('reports',['test:reports'],true),
+  shard('heartbeat-schedules',['test:heartbeat'],true),
   ...split('test:security', 3, true),
   ...split('test:notifications', 3, true),
   // The installer command journey is kept in the slow tier; mail settings stay on pushes.

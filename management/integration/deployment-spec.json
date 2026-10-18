@@ -288,6 +288,12 @@
       "name": "0045_slow_acknowledgements.sql",
       "sha256": "ad9b34dcb3bf90fa938e44841b3b49549dd675c316dbb808116361329bf98a6a",
       "sql": "-- Installation-local authority to stop selected performance reminders.\nCREATE TABLE slow_acknowledgements (\n opening_event_id TEXT PRIMARY KEY, monitor_id TEXT NOT NULL,\n actor_id TEXT, acknowledged_at INTEGER NOT NULL\n);\nCREATE INDEX slow_acknowledgements_monitor ON slow_acknowledgements(monitor_id);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0046_heartbeat_url.sql",
+      "sha256": "e94f5c533eff95b9713686453dd342c13697059ad9de7ac077c1b2dc9ff0c7cb",
+      "sql": "-- URL receipt capabilities are installation-local, hashed and revision scoped.\nALTER TABLE heartbeat_authority ADD COLUMN url_token_hash TEXT;\n"
     }
   ],
   "compatibilityDate": "2026-09-08",

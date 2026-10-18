@@ -1,1 +1,3 @@
 #heartbeat-jobs form{display:grid;gap:12px}#heartbeat-jobs label{display:grid;gap:6px}#heartbeat-jobs code{overflow-wrap:anywhere}.heartbeat-job-run{padding:12px 0;border-top:1px solid var(--line,#dfe1ee)}.heartbeat-job-run p{margin:0;overflow-wrap:anywhere}.heartbeat-job-run pre{white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0 0}
+
+.heartbeat-key-dialog pre.one-time-secret{max-height:240px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}.heartbeat-key-dialog select{min-width:0;width:100%}#heartbeat-settings-status{overflow-wrap:anywhere;color:var(--rose-text)}

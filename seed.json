@@ -34,7 +34,8 @@
         "NETWORK-001",
         "HEARTBEAT-001",
         "UDP-001",
-        "PRIVATE-001"
+        "PRIVATE-001",
+        "HEARTBEAT-002"
       ]
     },
     {
@@ -662,7 +663,7 @@
         "match": "prefix",
         "kind": "credentialed",
         "class": "heartbeats",
-        "authentication": "Revision-scoped bearer token and increasing sequence.",
+        "authentication": "Revision-scoped sequence-protected bearer or replay-unprotected hashed URL capability; GET/HEAD/POST; per-monitor durable ingress limit.",
         "environment": "all"
       },
       {
