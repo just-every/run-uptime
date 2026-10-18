@@ -147,3 +147,13 @@ The steps JSON has `variables` for non-secret fixed inputs and ordered `steps`. 
 ```
 
 Use a dedicated synthetic account and sandbox resource. A failed cleanup stays visible in the attempt history and needs attention from the owner. Time-limited live-action grants and a cleanup-debt resolution workflow remain API-004.
+
+## Mail protocols
+
+Choose **SMTP or mailbox protocol** in the owner editor and select a private runner. Set `protocol` to `smtp`, `pop3` or `imap`, `host`, an optional `port`, and `security` to `none`, `starttls` or `tls`. SMTP defaults to STARTTLS on 587; POP3 and IMAP default to implicit TLS on 995 and 993. Plain connections check only the connection and greeting; authentication requires verified TLS. Each `credentialRef` names a protected runner-local file containing Basic username/password authority bound to the exact monitor and origin `https://HOST:PORT`. Never put a password in monitor settings. The runner uses its normal trusted CA store, including an explicitly installed `NODE_EXTRA_CA_CERTS` file for a private CA.
+
+```json
+{"protocol":"smtp","host":"smtp.example.com","security":"starttls","credentialRef":"synthetic-sender","transaction":{"dedicatedMailbox":true,"from":"synthetic@example.com","to":"synthetic-inbox@example.com","receive":{"protocol":"imap","host":"imap.example.com","security":"tls","credentialRef":"synthetic-inbox","mailbox":"INBOX"},"receiptTimeoutMs":10000,"pollIntervalMs":500}}
+```
+
+Synthetic send/receive is optional and requires a dedicated test mailbox. An SMTP accept is recorded separately from receipt of the exact random Message-ID. POP3 removes only that message and commits deletion with QUIT; IMAP requires UIDPLUS and expunges only the matching UID. Unrelated messages remain untouched. The console retains Message-ID, per-step timing and distinct receipt/cleanup outcomes without mailbox content or passwords. A late message beyond the receipt deadline is not silently removed: inspect the dedicated mailbox using the recorded Message-ID when cleanup is unconfirmed. Checks have a total 60-second limit and no automatic write replay; SMTP/POP3/IMAP require a private runner.
