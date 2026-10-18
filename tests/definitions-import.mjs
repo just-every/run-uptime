@@ -171,5 +171,13 @@ try{
  const longerBatch=(await apply(longerPreview)).body;assert.equal(await ping(),200,'a pinged heartbeat keeps its token across apply');
  assert.equal((await undo(longerBatch)).status,200);assert.equal(await ping(),200,'and across undo');
  const toHttp=(await preview(file([{name:'Nightly job',url:'https://job.example.test/'}]))).body.entries[0];assert.equal(toHttp.action,'change');assert.equal(toHttp.differences.length,1,'the preview says when the token would be retired');
- console.log('IMPORT-001 / MIGRATE-001 passed: Worker-door refusals leave every table byte-identical; UptimeRobot preview, paused apply, export round-trip, change and undo with history intact.');
+ // A batch the importer wrote before the import door keeps its read and its undo, beside the door's imports.
+ const legacyDefinition=JSON.stringify({name:'Legacy import',type:'http',network:'public',url:'https://legacy.example.test/',method:'GET',probes:['local-a'],assertions:{status:200},intervalMs:60000,timeoutMs:2000,retries:1,failureQuorum:1,confirmSlots:2,recoverSlots:2,freshnessMs:180000,enabled:false,maintenanceUntil:0});
+ await DB.batch([DB.prepare("INSERT INTO monitors VALUES('legacy-import',1,?,0,'{\"state\":\"Unknown\"}')").bind(legacyDefinition),DB.prepare('INSERT INTO revisions VALUES(?,?,?,?)').bind('legacy-import',1,legacyDefinition,Date.now()),
+  DB.prepare("INSERT INTO definition_batches(id,created_at,actor_kind,actor_ref,source,plan_digest,counts) VALUES('legacy-batch',?,'feature','local-cli','uptime.monitors',?,?)").bind(Date.now(),'0'.repeat(64),JSON.stringify({create:1,unchanged:0,change:0,refused:0,unsupported:0})),
+  DB.prepare("INSERT INTO definition_batch_entries(batch_id,monitor_id,action,revision,previous_revision) VALUES('legacy-batch','legacy-import','create',1,NULL)")]);
+ const listed=(await json(await send('/api/definitions/batches',undefined,{method:'GET'}))).body;
+ assert.ok(listed.some(b=>b.id==='legacy-batch')&&listed.some(b=>b.businessApproval?.via==='owner'),'one history lists the earlier batch and door imports');
+ const legacyUndo=await json(await send('/api/definitions/batches/legacy-batch/undo','{}'));assert.equal(legacyUndo.status,200);assert.deepEqual(legacyUndo.body.outcomes.map(o=>o.outcome),['paused']);
+ console.log('IMPORT-001 / MIGRATE-001 passed through the import door: refusals leave every native table byte-identical; UptimeRobot preview, paused apply, export round-trip, change, strict undo with history intact, and earlier batches keep read and undo.');
 }finally{await worker?.dispose();await cleanupDirectory(directory)}

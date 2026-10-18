@@ -6151,7 +6151,7 @@
       "executable": false
     },
     "tests/definitions-import.mjs": {
-      "sha256": "ec02c638caa7108f81965f89eff8ca0363e2ea86b801106c328a6cf5e3d7cdca",
+      "sha256": "b881ecf68212070a9e5c96356a43d3e75b995f1ad56f449de9c03ecf67419be9",
       "executable": false
     },
     "tests/definitions-journey.mjs": {
