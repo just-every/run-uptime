@@ -11,6 +11,7 @@ import {assertNoCredentials} from '../../base/modules/import-kit/src/provenance/
 import type {ImportMapping,Json,MappingResult,ParsedRecord} from '../../base/modules/import-kit/src/types.ts'
 import type {ImportDoorSource} from '../../base/modules/import-kit/src/door/types.ts'
 import {DOOR_KEY} from './context.server.ts'
+import {withholdValue} from '../definitions/withhold.ts'
 
 /** The server-owned allow-list of door namespaces, shared by the grant mount and
  * the owner's move-in screen: one per vendor source, plus one per reviewed Uptime
@@ -51,18 +52,22 @@ export function historyRecord(value:Json){
  return history
 }
 const credential=(value:unknown)=>{try{assertNoCredentials(value);return false}catch{return true}}
-/** A source record as the kit retains it: a field that names or carries a credential (an authorization header, a
- * password, a URL with userinfo or a token query) is withheld. Uptime refuses such entries with their reason, read
- * from the source itself; no credential becomes durable import data. */
+/** A field that names or carries a credential (an authorization header, a password, a URL with userinfo or a token
+ * query) is withheld from what the kit retains. Uptime refuses such entries with their reason, read from the source
+ * itself; no credential becomes durable import data. */
 function withheld(value:Json):Json{
  if(Array.isArray(value))return value.map(withheld)
  if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).filter(([key])=>!credential({[key]:null})).map(([key,child])=>[key,withheld(child)]))
  return typeof value==='string'&&credential(value)?'[withheld]':value
 }
+/** A source record's payload as the kit retains and hashes it: its request secrets withheld, and any other credential-bearing
+ * field or URL withheld as well. The move-in screen and command upload the withheld file, so this changes nothing for them. */
+export const payloadOf=(value:Json):Json=>withheld(withholdValue(value))
 /** The monitor a source record creates: stable for its namespace and source id. */
 export const targetIdFor=(source:Source,namespace:string,id:string)=>`${source.prefix}-`+sha256(JSON.stringify([DOOR_KEY,namespace,id]))
-export function planned(state:PlanState,source:Source,namespace:string,items:PlanItem[]){
- return planEntries(state,items,{requireRunner:true,idFor:item=>targetIdFor(source,namespace,item.sourceId!)})
+/** A read-only preview of an installation with no runner yet assumes the first one an apply establishes. */
+export function planned(state:PlanState,source:Source,namespace:string,items:PlanItem[],requireRunner=true){
+ return planEntries(state,items,{requireRunner,idFor:item=>targetIdFor(source,namespace,item.sourceId!)})
 }
 function result(entry:PlanEntry):MappingResult{
  const unmapped=entry.differences.map(reason=>({reason}))
@@ -88,6 +93,6 @@ export async function importSource(env:Bindings,namespace:string):Promise<Import
  }}
  return {mapping,parse(value:Json,line:number):ParsedRecord[]{
   if(line===0){items.clear();entries=null}
-  return lineEntries(source,value,line).map(item=>{items.set(item.sourceId,item);return {kind:'monitor',sourceId:item.sourceId,payload:withheld(item.value),pointer:`/${line}/${item.index}`}})
+  return lineEntries(source,value,line).map(item=>{items.set(item.sourceId,item);return {kind:'monitor',sourceId:item.sourceId,payload:payloadOf(item.value),pointer:`/${line}/${item.index}`}})
  }}
 }

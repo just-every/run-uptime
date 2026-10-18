@@ -8,6 +8,8 @@ export const BUSINESS_DESTINATION='uptime-monitors'
 /** The permanent door key for settings, lineage, history and imported monitor ids.
  * It never follows the RER claim id, which an installation may receive later. */
 export const DOOR_KEY='uptime-monitor'
+/** Undo reverses every monitor still as its import left it and reports the rest: one edited or enabled since is kept. */
+export const REVERSAL_POLICY='preserve-conflicts' as const
 export function businessClaim(env:Bindings){
  return configureClaim({issuer:env.RER_OWNER_CLAIM_ISSUER??'',installationId:env.RER_OWNER_CLAIM_INSTALLATION_ID??'',
   appOrigin:env.RER_OWNER_CLAIM_APP_ORIGIN??'',expectedEmail:env.OWNER_EMAIL??'',publicKeys:JSON.parse(env.RER_OWNER_CLAIM_PUBLIC_KEYS??'null')})
@@ -33,7 +35,7 @@ export async function businessOwnerAuthority(env:Bindings,request:Request):Promi
 }
 export async function ownerImportContext(env:Bindings,request:Request,namespace:string,mappingVersion:string):Promise<D1ImportContext>{
  const predicate=await businessOwnerAuthority(env,request),owner=await businessOwner(env)
- return {destination:BUSINESS_DESTINATION,namespace,mappingVersion,batchSize:20,maxBatches:1,
+ return {destination:BUSINESS_DESTINATION,namespace,mappingVersion,batchSize:20,maxBatches:1,reversalPolicy:REVERSAL_POLICY,
   storage:{database:env.DB,targets:businessTargets(env,owner)},
   authorization:{principalId:owner,predicate:()=>predicate}}
 }

@@ -60,7 +60,7 @@ A file may be at most 2 MiB and list at most 500 monitors, and it must be UTF-8 
 
 ## Preview, then apply
 
-In the console, open **Definitions**, choose or paste a file and select **Preview**. Every import runs through Uptime's one import pipeline, the owner's import door, the same one Business uses: the file uploads exactly as chosen, the server plans it, and the preview shows that plan. A preview writes no monitor, check or evidence; the door keeps the uploaded file and its plan in this installation until they are applied, replaced by a newer preview of the same source, or erased. It shows the counts first, then one row per entry:
+In the console, open **Definitions**, choose or paste a file and select **Preview**. Every import runs through Uptime's one import pipeline, the owner's import door, the same one Business uses: the server recognises the file and withholds its request secrets, that text uploads, the server plans it, and the preview shows that plan. A preview writes no monitor, check or evidence. The door keeps the uploaded file and its plan in this installation until they are applied, cancelled, replaced by a newer preview of the same source (any definition file counts as one source) or erased; a preview with nothing to apply is cancelled as soon as it is shown, so the door keeps nothing of it. An upload that still carries a request secret is refused and discarded. It shows the counts first, then one row per entry:
 
 - **Create**: a new monitor, which arrives paused.
 - **Unchanged**: it matches the monitor of the same name (or, for an earlier import of the same source record, the monitor that import created).
@@ -76,7 +76,7 @@ For a newly created heartbeat, continue with [Incoming heartbeat](/docs/monitors
 
 ## Undo
 
-Each apply is recorded as a batch, "Approved by" the owner with its time and fingerprint, in the same list as Business imports. **Undo this batch** releases the monitors it created, which stay paused with their history, and restores the monitors it changed to their earlier settings, as a new revision. A restored heartbeat keeps its token. Undo never overrides an edit: it stops at the first monitor edited since the import, keeps that edit and reports it, and the batch stays partly undone. To undo the rest, erase or restore that monitor first. Batches applied before the import door keep their earlier undo, which leaves an edited or enabled monitor alone and says so. Undo never removes checks, results or incidents. To remove a monitor completely, erase it from its page.
+Each apply is recorded as a batch, "Approved by" the owner with its time and fingerprint, in the same list as Business imports. **Undo this batch** releases the monitors it created, which stay paused with their history, and restores the monitors it changed to their earlier settings, as a new revision. A restored heartbeat keeps its token. A monitor edited or enabled after the import is left alone, and the batch says so ("Edited since; left as is" or "Enabled since; left running"); undo never overrides an edit. The batch reads as undone, with its time. Batches applied before the import door keep their earlier undo, which works the same way. Undo never removes checks, results or incidents. To remove a monitor completely, erase it from its page.
 
 Batches travel in a private archive as history. In the installation that restores the archive they are marked as coming from an archive and cannot be undone there.
 
@@ -96,7 +96,7 @@ node scripts/definitions.mjs batches
 node scripts/definitions.mjs undo --batch BATCH_ID
 ```
 
-`validate` is `preview` that exits with status 1 when any entry is refused or unsupported, which suits a review check; both write nothing. `apply` plans the file through the import door as the installation's owner, refuses unless that plan reads exactly as the preview whose digest you give, then applies and reconciles it. Add `--json` for machine output. Command-line imports appear in the same history, approved by the owner; `undo` takes any batch ID that `batches` lists.
+`validate` is `preview` that exits with status 1 when any entry is refused or unsupported, which suits a review check; both write nothing. `preview` plans the file as the import door does, a catch-up of an earlier import of the same source included, with request secrets withheld. `apply` uploads the file with those secrets withheld, plans it through the import door as the installation's owner, refuses (and cancels that plan) unless it reads exactly as the preview whose digest you give, then applies and reconciles it. Add `--json` for machine output. Command-line imports appear in the same history, approved by the owner; `undo` takes any batch ID that `batches` lists.
 
 Moving from UptimeRobot uses the same preview and apply. See [Moving from UptimeRobot](/docs/moving-from-uptimerobot).
 

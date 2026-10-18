@@ -1,10 +1,12 @@
 // IMPORT-001: definition files and UptimeRobot imports through the owner's import door, the move-in screen's transport.
 // A preview writes no native record; hostile, malformed, stale, cross-origin and unauthenticated requests leave every
 // native table byte-identical; apply is exactly the reviewed plan, creates paused monitors and touches no destination,
-// heartbeat or notification; export round-trips; undo pauses or restores without removing history, and stops at a
-// monitor edited since; apply and undo keep a heartbeat's live token.
+// heartbeat or notification; export round-trips; undo pauses or restores without removing history, and keeps and reports
+// a monitor edited since; apply and undo keep a heartbeat's live token. Request secrets are withheld before upload and are
+// in no table, import custody included, after a preview, a refusal, an apply or a cancel.
 // MIGRATE-001 shares this journey: accepted status sets/ranges and both keyword conditions survive every door.
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import {join} from 'node:path';
 import {readFile} from 'node:fs/promises';
 import {migratedWorker,runtimeDirectory,cleanupDirectory,availablePorts} from './notify-acceptance-runtime.mjs';
@@ -47,6 +49,26 @@ try{
   return Object.fromEntries(rows);
  }
  const unchanged=async(label,attempt)=>{const before=await scan(),result=await attempt();assert.deepEqual(await scan(),before,`${label} leaves the installation byte-identical`);return result};
+ // Every table, every row, the door's own custody (ik_*) included: what a secret-bearing file may never leave behind.
+ async function scanAll(){
+  const names=(await DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name<>'_cf_METADATA' ORDER BY name").all()).results.map(r=>r.name);
+  const rows=[];
+  for(let offset=0;offset<names.length;offset+=32){const chunk=names.slice(offset,offset+32),results=await DB.batch(chunk.map(name=>DB.prepare(`SELECT * FROM "${name}" ORDER BY rowid`)));rows.push(...chunk.map((name,index)=>[name,results[index].results]))}
+  return Object.fromEntries(rows);
+ }
+ const untouched=async(label,attempt)=>{const before=await scanAll(),result=await attempt();assert.deepEqual(await scanAll(),before,`${label} leaves every table, import custody included, byte-identical`);return result};
+ // Every stored value as text, with base64 runs (an upload, a retained original inside a plan) and bytes decoded.
+ async function storedText(){
+  const parts=[],visit=value=>{
+   if(typeof value==='string'){parts.push(value);for(const run of value.match(/[A-Za-z0-9+/]{16,}={0,2}/g)??[])parts.push(Buffer.from(run,'base64').toString('latin1'))}
+   else if(Array.isArray(value)&&value.length&&value.every(item=>typeof item==='number'))parts.push(Buffer.from(value).toString('latin1'));
+   else if(value instanceof ArrayBuffer)parts.push(Buffer.from(value).toString('latin1'));
+   else if(ArrayBuffer.isView(value))parts.push(Buffer.from(value.buffer,value.byteOffset,value.byteLength).toString('latin1'));
+   else if(value&&typeof value==='object')Object.values(value).forEach(visit);
+  };
+  visit(await scanAll());return parts.join('\n');
+ }
+ const noSecrets=async(label,secrets)=>{const text=await storedText();for(const secret of secrets)assert.ok(!text.includes(secret),`${label}: “${secret}” is in no table`)};
  const imports=definitionDoor({origin,cookie}),preview=(text,source)=>imports.preview(text,source),apply=(view,fingerprint)=>imports.apply(view,fingerprint),undo=batch=>imports.undo(batch);
 
  // Refusals at the door.
@@ -59,12 +81,14 @@ try{
  const hostile=file([{name:'Private address',url:'http://10.0.0.8/'},{name:'Userinfo',url:'https://admin@intranet.example.test/'},{name:'Credential in URL',url:'https://user:secret@example.test/'},{name:'Not HTTP',url:'ftp://files.example.test/'},{name:'Loopback',url:'http://127.0.0.1:9/'},
   {name:'Header secret',url:'https://example.test/',headers:{authorization:'Bearer secret'}},{name:'Body secret',url:'https://example.test/',body:'password=secret'},{name:'Unknown field',url:'https://example.test/',assignments:{}},
   {name:'Header assertion secret',url:'https://example.test/',assertions:{header:{name:'x-a',equals:'b',authorization:'Bearer secret'}}},{name:'JSON assertion secret',url:'https://example.test/',assertions:{json:{path:'a',equals:1,token:'password=secret'}}}]);
- await unchanged('hostile and secret-bearing entries',async()=>{
+ // A preview with nothing to apply is cancelled at once: every table, import custody included, is as it was.
+ await untouched('hostile and secret-bearing entries',async()=>{
   const r=await preview(hostile);assert.equal(r.status,200,JSON.stringify(r.body));assert.equal(r.body.counts.refused,10);assert.equal(r.body.counts.create,0);
   for(const entry of r.body.entries)assert.match(entry.reason,/^Entry \d+ \(/,'each refusal names its entry');
   assert.match(r.body.entries[8].reason,/“authorization”/);assert.match(r.body.entries[9].reason,/“token”/);
   assert.ok(!JSON.stringify(r.body).includes('Bearer secret')&&!JSON.stringify(r.body).includes('password=secret'),'request secrets are never echoed');
   assert.equal(r.body.counts.create+r.body.counts.change,0,'the preview offers nothing to apply');
+  await noSecrets('after a refused preview',['Bearer secret','password=secret','user:secret']);
  });
  await unchanged('duplicate names in a preview',async()=>{const r=await preview(file([{name:'Twice',url:'https://a.example.test/'},{name:'Twice',url:'https://b.example.test/'}]));assert.deepEqual([r.body.entries[0].action,r.body.entries[1].action],['create','refused']);assert.match(r.body.entries[1].reason,/Entry 2 \(“Twice”\): duplicate name; Entry 1 \(“Twice”\)/)});
  const doorCall=(view,step,body,headers={})=>fetch(origin+'/api/operator/import/'+step,{method:'POST',headers:{origin,cookie,'content-type':'application/json','x-import-source':view.namespace,...headers},body:JSON.stringify(body)});
@@ -144,19 +168,21 @@ try{
  assert.deepEqual(await history(),historyBefore,'apply and undo never remove or rewrite history');
  await unchanged('undoing a batch again',async()=>assert.equal((await undo(changed.body)).body.job.state,'undone','a batch is undone once'));
 
- // Undo never overrides an edit: it stops at a monitor edited since the import, and that edit stays.
+ // Undo pauses what a batch created, and reports a monitor edited since instead of overriding it.
  const pair=file([{name:'Undo kept',url:'https://kept.example.test/'},{name:'Undo edited',url:'https://edited.example.test/'}]);
  const pairBatch=(await apply((await preview(pair)).body)).body;
  const editedId=pairBatch.created[1],editedDefinition=JSON.parse((await DB.prepare('SELECT definition FROM monitors WHERE id=?').bind(editedId).first()).definition);
  assert.equal((await json(await send(`/api/monitors/${editedId}`,JSON.stringify({...editedDefinition,timeoutMs:3000}),{method:'PATCH'}))).status,200);
  const pairUndo=await undo(pairBatch);
- assert.equal(pairUndo.status,409,'undo refuses to override the edited monitor');
+ assert.equal(pairUndo.status,200);assert.equal(pairUndo.body.job.state,'undone');
  assert.equal(JSON.parse((await DB.prepare('SELECT definition FROM monitors WHERE id=?').bind(editedId).first()).definition).timeoutMs,3000,'the edit is kept');
  const batches=(await json(await send('/api/definitions/batches',undefined,{method:'GET'}))).body;
- assert.equal(batches.find(b=>b.id===pairBatch.batchId).undone,false);assert.equal(batches.find(b=>b.id===changed.body.batchId).undone,true);
+ assert.deepEqual(batches.find(b=>b.id===pairBatch.batchId).entries.map(e=>[e.name,e.undoOutcome]),[['Undo kept','paused'],['Undo edited','edited-since']]);
+ assert.deepEqual([pairBatch.batchId,changed.body.batchId,applied.body.batchId].map(id=>batches.find(b=>b.id===id).undoneAt!==null),[true,true,false],'each undone batch keeps its undo time');
  const migrationUndo=await undo(applied.body);
  assert.equal(migrationUndo.status,200);assert.equal(migrationUndo.body.job.state,'undone');
- assert.ok((await json(await send('/api/definitions/batches',undefined,{method:'GET'}))).body.find(b=>b.id===applied.body.batchId).entries.every(e=>e.undoOutcome==='paused'));
+ const migrationEntries=(await json(await send('/api/definitions/batches',undefined,{method:'GET'}))).body.find(b=>b.id===applied.body.batchId).entries;
+ assert.equal(migrationEntries.length,9);assert.ok(migrationEntries.every(e=>e.action==='create'&&e.undoOutcome==='paused'));
  for(const definition of await readImported()){
   assert.equal(definition.enabled,false,'undo keeps the migrated monitor paused');
   if(expectedAssertions[definition.name])assert.deepEqual(definition.assertions,expectedAssertions[definition.name],'undo preserves the imported assertions and history');
@@ -179,5 +205,31 @@ try{
  const listed=(await json(await send('/api/definitions/batches',undefined,{method:'GET'}))).body;
  assert.ok(listed.some(b=>b.id==='legacy-batch')&&listed.some(b=>b.businessApproval?.via==='owner'),'one history lists the earlier batch and door imports');
  const legacyUndo=await json(await send('/api/definitions/batches/legacy-batch/undo','{}'));assert.equal(legacyUndo.status,200);assert.deepEqual(legacyUndo.body.outcomes.map(o=>o.outcome),['paused']);
- console.log('IMPORT-001 / MIGRATE-001 passed through the import door: refusals leave every native table byte-identical; UptimeRobot preview, paused apply, export round-trip, change, strict undo with history intact, and earlier batches keep read and undo.');
+ // Request secrets never become import data. Recognising a file withholds them, the screen uploads that text, and an
+ // upload still carrying one is refused and withdrawn; none is in any table after a preview, an apply or a cancel.
+ const secret=name=>`${name}-${crypto.randomUUID().slice(0,8)}`,secrets=['ur-password','ur-header','ur-body','pd-password','pd-header','pd-post'].map(secret);
+ const securedRobot=JSON.stringify({data:[{id:41,friendlyName:'Secured robot',type:'HTTP',url:'https://secured.example.test/health',interval:300,timeout:5,httpMethodType:'POST',successHttpResponseCodes:['200'],
+  authType:'BASIC',httpUsername:'robot-user',httpPassword:secrets[0],customHttpHeaders:{'x-api-key':secrets[1]},postValueData:secrets[2]}],nextLink:null});
+ const securedPingdom=JSON.stringify({check:{id:88,name:'Secured pingdom',hostname:'pingdom.example.test',resolution:5,
+  type:{http:{encryption:true,verify_certificate:true,url:'/health',username:'pingdom-user',password:secrets[3],requestheaders:{'x-api-key':secrets[4]},postdata:secrets[5]}}}});
+ const recognised=await json(await send('/api/definitions/recognise',securedRobot));
+ assert.equal(recognised.body.source,'uptimerobot');assert.ok(secrets.slice(0,3).every(value=>!recognised.body.text.includes(value)),'recognising withholds the secrets');
+ await untouched('an upload still carrying request secrets',async()=>{
+  const raw=Buffer.from(JSON.stringify(securedRobot)+'\n'),hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+  const refused=await imports.door('uptimerobot','uploads',{name:'raw.ndjson',bundleSha256:hash(raw),totalBytes:raw.length,totalChunks:1,index:0,chunkSha256:hash(raw),base64:raw.toString('base64')});
+  assert.equal(refused.status,400);assert.equal(refused.body.error,'source_secrets_withheld');
+ });
+ const securedView=(await preview(securedRobot)).body,securedEntry=securedView.entries.find(e=>e.name==='Secured robot');
+ assert.equal(securedEntry.action,'create');assert.equal(securedEntry.target.credentialRef,'uptimerobot-41');assert.ok(securedEntry.differences.some(d=>/authentication, custom request headers, the request body were not imported/.test(d)));
+ await noSecrets('after an UptimeRobot preview',secrets);
+ assert.equal((await imports.door(securedView.namespace,'undo',{planId:securedView.planId})).body.state,'cancelled');
+ assert.equal((await DB.prepare("SELECT COUNT(*) n FROM ik_door_uploads u WHERE namespace=? AND NOT EXISTS(SELECT 1 FROM ik_door_plans p WHERE p.namespace=u.namespace AND p.bundle_sha256=u.bundle_sha256)").bind(securedView.namespace).first()).n,0,'a cancelled preview leaves no upload');
+ await noSecrets('after a cancel',secrets);
+ const pingdomView=(await preview(securedPingdom)).body;
+ assert.equal(pingdomView.entries[0].action,'create');assert.equal(pingdomView.entries[0].target.credentialRef,'pingdom-88');
+ await noSecrets('after a Pingdom preview',secrets);
+ const pingdomBatch=await apply(pingdomView);assert.equal(pingdomBatch.status,200);assert.equal(pingdomBatch.body.report.ok,true);
+ assert.deepEqual(JSON.parse((await DB.prepare("SELECT definition FROM monitors WHERE json_extract(definition,'$.name')='Secured pingdom'").first()).definition).request,{credentialRef:'pingdom-88'});
+ await noSecrets('after an apply',secrets);
+ console.log('IMPORT-001 / MIGRATE-001 passed through the import door: refusals leave every table byte-identical; request secrets are withheld before upload and stored nowhere; UptimeRobot preview, paused apply, export round-trip, change, undo that keeps and reports edits, with history intact, and earlier batches keep read and undo.');
 }finally{await worker?.dispose();await cleanupDirectory(directory)}

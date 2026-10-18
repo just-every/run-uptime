@@ -18,10 +18,10 @@ import { localOperation } from '@runeditrun/rer/local/operation';
 import { privateFile, promote } from '@runeditrun/rer/modules/portability/cli-options';
 import { createHash, randomUUID } from 'node:crypto';
 import { decodeDefinitionBytes, DEFINITION_BYTES } from '../src/domain/definitions/format.ts';
-import { previewDefinitions, recogniseSource, exportDefinitions, undoBatch } from '../src/domain/definitions/index.server.ts';
+import { recogniseFile, exportDefinitions, undoBatch } from '../src/domain/definitions/index.server.ts';
 import { operatorImport } from '../src/domain/business-import/door.server.ts';
 import { ensureFirstRunner } from '../src/domain/runner-registration.server.ts';
-import { doorPlanView } from '../src/domain/business-import/plan-view.server.ts';
+import { doorPlanView, previewDefinitions } from '../src/domain/business-import/plan-view.server.ts';
 import { importHistory } from '../src/domain/business-import/history.server.ts';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -78,19 +78,22 @@ async function until(env, namespace, step, body, done) {
  for (let call = 0; call < 100; call++) { const { job } = await door(env, namespace, step, body); if (job?.state === done) return job; if (!['queued', 'applying', 'undoing'].includes(job?.state)) throw Error(`The import stopped (${job?.error ?? job?.state}).`); }
  throw Error('The import did not finish; run the command again to continue.');
 }
-async function applyThroughDoor(env, text, source = 'auto', digest) {
+async function applyThroughDoor(env, file, source = 'auto', digest) {
  // An import never creates a runner; the local command establishes the first one, as opening the console does.
  await ensureFirstRunner(env);
- const recognised = recogniseSource(text, source), namespace = recognised === 'uptime.monitors' ? `uptime.monitors:${randomUUID()}` : recognised;
+ // The file uploads as the console's does: recognised, with its request secrets withheld.
+ const { source: recognised, text } = recogniseFile(file, source), namespace = recognised === 'uptime.monitors' ? `uptime.monitors:${randomUUID()}` : recognised;
  const bytes = Buffer.from(JSON.stringify(text) + '\n'), hash = value => createHash('sha256').update(value).digest('hex'), totalChunks = Math.ceil(bytes.length / 65536);
  let uploadId;
  for (let index = 0; index < totalChunks; index++) { const chunk = bytes.subarray(index * 65536, (index + 1) * 65536); uploadId = (await door(env, namespace, 'uploads', { ...(uploadId ? { uploadId } : {}), name: 'definitions.ndjson', bundleSha256: hash(bytes), totalBytes: bytes.length, totalChunks, index, chunkSha256: hash(chunk), base64: chunk.toString('base64') })).uploadId; }
  const planned = await door(env, namespace, 'plan', { uploadId }).catch(error => /catchup_required/.test(error.message) ? door(env, namespace, 'plan', { uploadId, catchup: true }) : Promise.reject(error));
  const preview = await doorPlanView(env, planned.planId);
- if (preview.kind !== 'definitions') throw Error('A log export is history only; there is nothing to apply.');
+ // A plan that is not applied is cancelled at once, and the door keeps nothing of it.
+ const refuse = async message => { if (!preview.applied) await door(env, namespace, 'undo', { planId: planned.planId }); throw Object.assign(Error(message), { exitCode: 1 }); };
+ if (preview.kind !== 'definitions') await refuse('A log export is history only; there is nothing to apply.');
  // Apply exactly what was reviewed: the door's plan must read as the preview whose digest was given.
- if (preview.reviewDigest !== digest) { await door(env, namespace, 'undo', { planId: planned.planId }).catch(() => {}); throw Object.assign(Error('The installation or the file changed since this preview. Nothing was applied; preview again.'), { exitCode: 1 }); }
- if (!preview.counts.create && !preview.counts.change) { await door(env, namespace, 'undo', { planId: planned.planId }).catch(() => {}); throw Error('This preview has nothing to create or change.'); }
+ if (preview.reviewDigest !== digest) await refuse('The installation or the file changed since this preview. Nothing was applied; preview again.');
+ if (!preview.counts.create && !preview.counts.change) await refuse('This preview has nothing to create or change.');
  const job = await until(env, namespace, 'apply', { planId: planned.planId, reviewedFingerprint: planned.fingerprint }, 'completed');
  const report = await door(env, namespace, 'reconcile', { planId: planned.planId });
  if (!report.ok) throw Error('The import finished, but Uptime does not hold what was reviewed. Undo this batch.');

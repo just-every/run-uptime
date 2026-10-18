@@ -1,4 +1,4 @@
-import type { D1Database, D1Sql, D1TargetAdapter } from '../d1/types.ts';
+import type { D1Database, D1ImportContext, D1Sql, D1TargetAdapter } from '../d1/types.ts';
 import type { ImportMapping, ImportPlan, Json, ParsedRecord, ReaderLimits } from '../types.ts';
 import type { DoorGrant } from './protocol.ts';
 
@@ -16,6 +16,8 @@ export interface ImportDoorRuntimeOptions extends ImportDoorSource {
   destination: string;
   format: 'json' | 'ndjson';
   limits?: ReaderLimits;
+  /** The kit's reversal policy for this door's jobs (Uptime divergence until Base #298 ships). */
+  reversalPolicy?: D1ImportContext['reversalPolicy'];
 }
 /** Structurally identical to owner-claim's server-owned trust configuration. */
 export interface ImportDoorClaimConfig {

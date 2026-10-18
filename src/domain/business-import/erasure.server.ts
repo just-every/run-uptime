@@ -4,8 +4,25 @@ import type {D1Sql} from '../../base/modules/import-kit/src/d1/types.ts'
 import {retirementScope,scopeGuards,retirementWrites} from '../../base/modules/import-kit/src/d1/retirement-scope.ts'
 import {finalGuard,readonlyChecks} from '../../base/modules/import-kit/src/d1/database.ts'
 import {sha256} from '../../base/modules/import-kit/src/provenance/identity.ts'
-import {BUSINESS_DESTINATION} from './context.server.ts'
+import {BUSINESS_DESTINATION,DOOR_KEY} from './context.server.ts'
+import {lineEntries,sourceOf} from './mapping.server.ts'
+import {uploadBytes} from './custody.server.ts'
 
+// A source record names the monitor by its target or, in each reader's own field, by name.
+const named=(payload:any,name:string)=>[payload?.friendlyName,payload?.name,payload?.attributes?.name,payload?.check?.name].includes(name)
+/** Whether an upload no plan reads could hold this monitor: it names it, or it cannot be read (incomplete or not a
+ * source the allow-list reads), so it cannot be shown not to. */
+function uploadNames(namespace:string,bytes:Uint8Array|null,name:string){
+ const source=sourceOf(namespace)
+ if(!bytes||!source)return true
+ try{
+  const lines=new TextDecoder('utf-8',{fatal:true}).decode(bytes).split('\n').filter(line=>line.trim()).map(line=>JSON.parse(line))
+  if(!source.importer)return lines.some(line=>JSON.stringify(line).includes(name))
+  return lines.some((value,line)=>lineEntries(source,value,line).some(entry=>named(entry.value,name)))
+ }catch{return true}
+}
+/** The door custody an erasure of this monitor reaches: every namespace whose plan names it, and every upload no plan
+ * reads (an abandoned or interrupted preview) that names it or cannot be read. */
 export async function businessErasureScope(env:Bindings,id:string,name:string){
  const plans=(await env.DB.prepare('SELECT id,namespace,job_id,snapshot_hash FROM ik_door_plans WHERE complete=1').all<any>()).results
  const namespaces=new Set<string>()
@@ -14,11 +31,13 @@ export async function businessErasureScope(env:Bindings,id:string,name:string){
   const text=chunks.map(chunk=>chunk.body).join('')
   if(sha256(text)!==plan.snapshot_hash)throw Error('Business import custody changed; erasure was not applied.')
   const snapshot=JSON.parse(text)
-  // A source record names the monitor by its target or, in each reader's own field, by name.
-  const named=(payload:any)=>[payload?.friendlyName,payload?.name,payload?.attributes?.name].includes(name)
-  if(snapshot.plan.entries.some((entry:any)=>entry.effects.some((effect:any)=>effect.targetId===id)||named(entry.source.payload)))namespaces.add(plan.namespace)
+  if(snapshot.plan.entries.some((entry:any)=>entry.effects.some((effect:any)=>effect.targetId===id)||named(entry.source.payload,name)))namespaces.add(plan.namespace)
  }
- return [...namespaces]
+ const orphans=(await env.DB.prepare(`SELECT id,namespace FROM ik_door_uploads u WHERE installation_id=? AND NOT EXISTS(SELECT 1 FROM ik_door_plans p
+  WHERE p.installation_id=u.installation_id AND p.namespace=u.namespace AND p.bundle_sha256=u.bundle_sha256 AND p.complete=1) ORDER BY rowid`).bind(DOOR_KEY).all<{id:string;namespace:string}>()).results
+ const uploads:string[]=[]
+ for(const upload of orphans)if(!namespaces.has(upload.namespace)&&uploadNames(upload.namespace,await uploadBytes(env,upload.id),name))uploads.push(upload.id)
+ return {namespaces:[...namespaces],uploads}
 }
 
 /** A source export is an indivisible original. Erasing one of its monitors
@@ -37,6 +56,7 @@ export async function eraseBusinessCustody(env:Bindings,id:string,actor:AuditAct
   sql('DELETE FROM ik_door_plan_chunks WHERE plan_id IN(SELECT id FROM ik_door_plans WHERE namespace IN(SELECT value FROM json_each(?)))',selected),
   sql('DELETE FROM ik_door_approvals WHERE plan_id IN(SELECT id FROM ik_door_plans WHERE namespace IN(SELECT value FROM json_each(?)))',selected),
   sql('DELETE FROM ik_door_apply_failures WHERE plan_id IN(SELECT id FROM ik_door_plans WHERE namespace IN(SELECT value FROM json_each(?)))',selected),
+  sql('DELETE FROM uptime_business_import_undos WHERE plan_id IN(SELECT id FROM ik_door_plans WHERE namespace IN(SELECT value FROM json_each(?)))',selected),
   sql('DELETE FROM ik_door_plans WHERE namespace IN(SELECT value FROM json_each(?))',selected),
   sql('DELETE FROM ik_door_namespaces WHERE namespace IN(SELECT value FROM json_each(?))',selected),
   sql('DELETE FROM ik_door_scopes WHERE namespace IN(SELECT value FROM json_each(?))',selected),

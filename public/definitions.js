@@ -1,7 +1,7 @@
 import {escape,icon} from './console-format.js';
 // The Definitions view (/app#definitions): upload or paste a definition file or an UptimeRobot export, read the
 // preview, apply exactly that preview, and undo a batch. Every import runs through the owner's import door
-// (/api/operator/import/*): the file uploads as checked chunks, the server plans and validates, and this module only
+// (/api/operator/import/*): the file uploads, its request secrets withheld, as checked chunks, the server plans and validates, and this module only
 // shows the plan it returns and applies it with the fingerprint shown. Its state outlives the console's five-second
 // refresh, which never re-renders an open preview.
 const LIMIT=2*1024*1024,CHUNK=65536;
@@ -9,7 +9,7 @@ const ACTIONS={create:['Create','enabled'],unchanged:['Unchanged','queued'],chan
 const OUTCOMES={paused:'Paused, history kept',restored:'Restored to its earlier settings','edited-since':'Edited since; left as is','enabled-since':'Enabled since; left running',missing:'No longer present'};
 const MESSAGES={owner_required:'Sign in again as the owner to import.',review_fingerprint_mismatch:'The installation or the file changed since this preview. Nothing was applied; preview again.',
  import_door_apply_failed:'The installation changed since this preview, so nothing more was applied. Undo this batch, then preview again.',import_door_conflict:'The installation changed since this preview. Preview again.',
- import_attribution_missing:'A monitor this import created was edited since; undo stops there. Its edit was kept.',import_door_too_large:'This file is too large for one import.'};
+ import_attribution_missing:'A monitor this import created was edited since; undo stops there. Its edit was kept.',import_door_too_large:'This file is too large for one import.',source_secrets_withheld:'This upload still carried request secrets, so it was discarded. Preview the file again.'};
 let state={payload:null,preview:null,batches:null};
 const value=v=>escape(typeof v==='string'?v:JSON.stringify(v));
 
@@ -30,14 +30,18 @@ async function until(namespace,step,body,done){
   if(!['queued','applying','undoing'].includes(job?.state))throw Error(MESSAGES[job?.error]??`The import stopped (${job?.error??job?.state}).`)}
  throw Error('The import did not finish; choose the action again to continue.');
 }
-// The file goes to the door exactly as chosen: one NDJSON line holding its text, in checked 64 KiB chunks.
+// The file goes to the door as the server recognised it, with its request secrets withheld: one NDJSON line holding its
+// text, in checked 64 KiB chunks. An unapplied plan with nothing to apply (a log export, or no create or change) is shown,
+// then cancelled at once, so the door keeps nothing of it.
 async function plan(namespace,text){
  const bytes=new TextEncoder().encode(JSON.stringify(text)+'\n'),bundleSha256=await sha256(bytes),totalChunks=Math.ceil(bytes.length/CHUNK);let uploadId;
  for(let index=0;index<totalChunks;index++){const chunk=bytes.subarray(index*CHUNK,(index+1)*CHUNK);
   uploadId=(await door(namespace,'uploads',{...(uploadId?{uploadId}:{}),name:'definitions.ndjson',bundleSha256,totalBytes:bytes.length,totalChunks,index,chunkSha256:await sha256(chunk),base64:base64(chunk)})).uploadId}
  // A source the installation imported before is compared with that import (a catch-up).
  const planned=await door(namespace,'plan',{uploadId}).catch(error=>{if(error.code==='catchup_required')return door(namespace,'plan',{uploadId,catchup:true});throw error});
- return send(`/api/definitions/plans/${encodeURIComponent(planned.planId)}`);
+ const view=await send(`/api/definitions/plans/${encodeURIComponent(planned.planId)}`);
+ if(!view.applied&&(view.kind==='history'||!(view.counts.create+view.counts.change)))await door(namespace,'undo',{planId:planned.planId});
+ return view;
 }
 
 function countsMarkup(preview){
@@ -81,7 +85,7 @@ function previewMarkup(preview){
 function batchesMarkup(batches){
  if(!batches)return '<p>Loading batches…</p>';
  if(!batches.length)return '<p>No definition files have been applied.</p>';
- return `<ul class="definition-batches">${batches.map(b=>{const created=b.entries.filter(e=>e.action==='create').length,changed=b.entries.length-created,status=b.restoredAt?'From an archive (history only)':b.failed?'Apply failed':b.undone?'Undone':b.undoneAt?`Undone ${new Date(b.undoneAt).toLocaleString()}`:'Applied';
+ return `<ul class="definition-batches">${batches.map(b=>{const created=b.entries.filter(e=>e.action==='create').length,changed=b.entries.length-created,status=b.restoredAt?'From an archive (history only)':b.failed?'Apply failed':b.undoneAt?`Undone ${new Date(b.undoneAt).toLocaleString()}`:b.undone?'Undone':'Applied';
   return `<li><p><strong>${escape(new Date(b.createdAt).toLocaleString())}</strong> · ${escape(b.source)} · ${created} created, ${changed} changed · ${escape(status)}</p>
   ${b.businessApproval?`<p>Approved ${b.businessApproval.via==='owner'?'':'via Business '}by ${escape(b.businessApproval.owner)} at ${escape(new Date(b.businessApproval.approvedAt).toLocaleString())}, fingerprint <code>${escape(b.businessApproval.fingerprint)}</code>${b.failed?`, then failed (${escape(b.failed)})`:''}</p>`:''}
   <ul>${b.entries.map(e=>`<li>${escape(e.name??e.monitorId)} — ${e.action==='create'?'created':'changed'}${e.undoOutcome?`; ${escape(OUTCOMES[e.undoOutcome]??e.undoOutcome)}`:''}</li>`).join('')}</ul>
@@ -109,10 +113,9 @@ export function renderDefinitions({area,action}){
    if(file&&file.size>LIMIT)throw Error(`The file is ${file.size.toLocaleString()} bytes; files are limited to 2 MiB.`);
    const body=file??text,csv=file?/\.csv$/i.test(file.name)||file.type==='text/csv':!/^\s*[[{]/.test(text);
    // The server names the file's source, or says why no importer reads it; this writes nothing.
-   const recognised=(await send(`/api/definitions/recognise?${query({source})}`,{body,type:csv?'text/csv':'application/json'})).source;
-   const contents=file?new TextDecoder('utf-8',{fatal:true}).decode(await file.arrayBuffer()):text;
-   // A definition file is this installation's own source: each preview is its own import.
-   state.preview=await plan(recognised==='uptime.monitors'?`uptime.monitors:${crypto.randomUUID()}`:recognised,contents);state.payload={source:recognised};showPreview();
+   const recognised=await send(`/api/definitions/recognise?${query({source})}`,{body,type:csv?'text/csv':'application/json'});
+   // A definition file is this installation's own source: each preview is its own import, and replaces any earlier one.
+   state.preview=await plan(recognised.source==='uptime.monitors'?`uptime.monitors:${crypto.randomUUID()}`:recognised.source,recognised.text);state.payload={source:recognised.source};showPreview();
   },{pending:'Previewing…',success:'Preview ready. Nothing has changed yet.'});
  }
  async function applyPreview(){
@@ -126,8 +129,9 @@ export function renderDefinitions({area,action}){
  }
  async function undo(id){
   const batch=state.batches?.find(b=>b.id===id);
-  // Undo of a door import stops at a monitor edited since it was imported, and keeps that edit.
-  const doorUndo=()=>until(batch.namespace,'undo',{planId:id.slice('business:'.length)},'undone').catch(error=>{throw error.status===409?Error('A monitor this batch imported was edited since, so undo stopped there and kept that edit. Erase or restore that monitor first.'):error});
+  // Undo of a door import keeps each monitor edited or enabled since and undoes the rest. A newer batch from the same
+  // source still holding these monitors is undone first.
+  const doorUndo=()=>until(batch.namespace,'undo',{planId:id.slice('business:'.length)},'undone').catch(error=>{throw error.status===409?Error('A newer batch from this source still holds these monitors. Undo that batch first.'):error});
   const result=await action(()=>batch?.namespace?doorUndo():send(`/api/definitions/batches/${encodeURIComponent(id)}/undo`,{body:'{}',type:'application/json'}),{pending:'Undoing batch…',success:'Batch undone. Anything edited or enabled since was left as is.'});
   if(result.ok)await loadBatches();
  }

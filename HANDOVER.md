@@ -12,7 +12,7 @@ Package mode uses the published `@runeditrun/rer` 0.2.22 package for the CLI and
 
 The edition owns Start/React documents, Hono routing, monitor configuration, migrations, scheduling, incident policy, archives, notifications and operator feedback. `src/domain/policy.mjs` projects evidence and coverage; separate domain modules handle control, heartbeat, runner contact, evidence validation, notification custody/dispatch and runner RPC. `runners/src` owns real requests, destination guards, protected credential files, synthetic grants and signed claims/results.
 
-Base source selection supplies operator-auth, mail, integrations, owner claim, editor and lifecycle. `edition.json`, `sources.lock.json` and `base-copies.json` declare the seed adapter and retained source provenance. Refresh selected-source locks through `node scripts/edition-authoring/cli.mjs lock`; keep surviving verbatim source at its recorded pin.
+Base source selection supplies operator-auth, mail, integrations, owner claim, editor and lifecycle. `edition.json`, `sources.lock.json` and `base-copies.json` declare the seed adapter and retained source provenance. Refresh selected-source locks through `node scripts/edition-authoring/cli.mjs lock`; keep surviving verbatim source at its recorded pin. One divergence: the vendored import kit's `door/types.ts` and `door/authority.ts` add the optional `reversalPolicy` that `kitContext` passes to the kit, so Uptime's door undo keeps and reports a monitor edited or enabled since (`preserve-conflicts`); `base-copies.json` records every other import-kit file at its pin. Re-vendor both once Base #298, which takes a reversal policy, ships.
 
 ## Durable requirements
 

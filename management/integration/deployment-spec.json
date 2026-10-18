@@ -336,6 +336,12 @@
       "name": "0053_import_door_scopes.sql",
       "sha256": "7cafaf021f480ebe3711f7599d72b6bb6c35b11c3c466f2b50a0242221c4302b",
       "sql": "-- Base rer 0.2.61 importDoorScopesMigration: binds each door namespace to its destination for erasure.\nCREATE TABLE IF NOT EXISTS ik_door_scopes (\n    installation_id TEXT NOT NULL, namespace TEXT NOT NULL, destination TEXT NOT NULL,\n    PRIMARY KEY(installation_id,namespace));\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0054_business_import_undos.sql",
+      "sha256": "98165552550df85e808b48a0fa3fc68dbdb43a45fda626910b43fcd0284f1d16",
+      "sql": "-- IMPORT-001: when each import-door batch was undone, for the import history. Installation-local import custody,\n-- never archived; an erasure that retires a batch's source removes its row.\nCREATE TABLE uptime_business_import_undos (plan_id TEXT PRIMARY KEY, undone_at INTEGER NOT NULL);\n"
     }
   ],
   "compatibilityDate": "2026-09-08",

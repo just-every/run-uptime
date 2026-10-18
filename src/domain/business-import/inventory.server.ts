@@ -56,4 +56,5 @@ export const businessImportLocalTables:Record<string,string>={
  ik_stages:'Installation Business import custody and authority; never restored as authority.',
  ik_targets:'Installation Business import custody and authority; never restored as authority.',
  uptime_business_import_targets:'Installation Business import custody and authority; never restored as authority.',
+ uptime_business_import_undos:'Installation Business import custody and authority; never restored as authority.',
 }

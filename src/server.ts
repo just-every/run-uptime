@@ -46,7 +46,7 @@ import {configurationResponse,validateWorkerConfiguration} from './domain/startu
 import {isPublicDocument,publicPath} from './domain/public-paths.ts'
 import {limitPublicRequest} from './domain/public-rate-limits.server.ts'
 import {erase} from './domain/erasure.server.ts'
-import {recogniseSource,exportDefinitions} from './domain/definitions/index.server.ts'
+import {recogniseFile,exportDefinitions} from './domain/definitions/index.server.ts'
 import {doorPlanView} from './domain/business-import/plan-view.server.ts'
 import {businessImportDoor,ownerImportDoor} from './domain/business-import/door.server.ts'
 import {businessImportSettings} from './domain/business-import/settings.server.ts'
@@ -199,10 +199,10 @@ api.post('/api/runner/discoveries/claim',async c=>c.json(await claimDiscovery(c.
 api.post('/api/runner/discoveries/:id/result',async c=>{const text=c.get('requestText');if(!await signedRunnerBody(c.env,c.get('runner'),text,c.req.header('x-sent-at')??'',c.req.header('x-runner-signature')??'',DISCOVERY_RESULT_BYTES))return c.json({error:'Invalid signed result'},403);return c.json(await completeDiscovery(c.env,c.req.param('id'),discoveryAnswer(text),c.get('runner')))})
 api.get('/api/archive',async c=>c.json(await archive(c.env)))
 api.post('/api/restore',async c=>{const input=c.get('input');return c.json(await restore(c.env,input.archive??input,undefined,{laterJournal:input.laterJournal,actor:{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id}}))})
-// Definition files import through the owner's import door (/api/operator/import/*): recognising a file names its source
-// and writes nothing; a plan's preview reads the door's retained plan; export is read-only; undo pauses or restores.
+// Definition files import through the owner's import door (/api/operator/import/*): recognising a file names its source,
+// returns its text with request secrets withheld (the text the screen uploads) and writes nothing; a plan's preview reads the door's retained plan; export is read-only; undo pauses or restores.
 const operator=async(c:any)=>({kind:'operator' as const,ref:(await operatorSession(c.env,c.req.raw))!.operator.id})
-api.post('/api/definitions/recognise',async c=>c.json({source:recogniseSource(c.get('requestText'),c.req.query('source'))}))
+api.post('/api/definitions/recognise',async c=>c.json(recogniseFile(c.get('requestText'),c.req.query('source'))))
 api.get('/api/definitions/plans/:id',async c=>c.json(await doorPlanView(c.env,c.req.param('id'))))
 api.get('/api/definitions/export',async c=>{c.header('content-disposition','attachment; filename="uptime.monitors.json"');return c.json(await exportDefinitions(c.env))})
 api.get('/api/definitions/batches',async c=>c.json(await definitionImportHistory(c.env,c.req.raw)))

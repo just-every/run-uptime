@@ -62,6 +62,17 @@ export function businessTargets(env:Bindings,ownerId:string):D1TargetAdapter{
    })
   },
   matchesCount(count){return sql(`(SELECT COUNT(*) FROM ${markerTable} WHERE retired=0)=?`,count)},
+  // A preserving undo observes each imported monitor as read() does, fenced by the same exact native and marker guard.
+  // The kit reverses a monitor still as its import left it and keeps (and reports) one edited or enabled since.
+  async preparePreservedUndo(database,destination,effects){
+   const observations=[],guards=[]
+   for(const effect of effects){
+    const {targetKind:kind,targetId:id}=effect.expected,current=await adapter.read(database,destination,kind,id)??null
+    observations.push({effectId:effect.provenance.id,current,entity:{table:'monitors',recordId:id}})
+    guards.push(adapter.matches(current,destination,kind,id))
+   }
+   return {observations,dependencies:[],guards:guards.length?guards:[sql(`(SELECT COUNT(*) FROM ${markerTable})>=0`)]}
+  },
  }
  return adapter
 }
