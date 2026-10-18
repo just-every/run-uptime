@@ -426,13 +426,13 @@ Protocol round (17 October 2026): TCP-001, DNS-001, TLS-001 and DOMAIN-001 moved
 
 ## Status
 
-Judged from the code and tests at commit `688640c` (18 October 2026).
+Judged from the code and tests at commit `688640c`, with SLOW-001 requalified through its real-delay, saved-source and desktop/phone journeys on 18 October 2026.
 
 | Clauses | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
 | Published | 16 | 5 | 0 | 21 |
-| Target and push further | 19 | 29 | 19 | 67 |
-| All | 35 | 34 | 19 | 88 |
+| Target and push further | 20 | 28 | 19 | 67 |
+| All | 36 | 33 | 19 | 88 |
 
 | Clause | Title | Kind | Status | Evidence | Gap |
 | --- | --- | --- | --- | --- | --- |
@@ -461,7 +461,7 @@ Judged from the code and tests at commit `688640c` (18 October 2026).
 | `FLOW-001` | Supported isolated browser transactions | published | partial | `src/domain/flow.mjs`; `runners/src/flow/run-flow.mjs`; `src/domain/flow-changes.server.ts`; `tests/flow-journey.mjs` | Constrained three-engine desktop/mobile execution exists; supported login/signup/checkout qualification remains open. |
 | `MONITOR-001` | Owned monitor catalog and lifecycle | target | partial | `src/domain/catalog/`; `src/domain/alert-routes.server.ts`; `public/assets/alert-route.js`; `tests/catalog.mjs`; `tests/alert-routes.mjs`; `docs/evidence/contracts/routing/` | Catalog metadata, retained URL search/filter/selection and reviewed undoable lifecycle/URL/CSV batches ship. Monitor/service/group/installation recipient selection and auditable reviewed inheritance now operate real confirmed alerts with matched recovery. Batch requests for a separately named alert route, USD pricing, the 500-monitor target and hosted capacity/timing acceptance remain gaps; the current installation cap is 100 monitors. |
 | `API-001` | Complete HTTP and API assertions | target | done | `src/domain/http-assertions.mjs`; `src/domain/http-assertions/`; `src/domain/evidence.server.ts`; `tests/public-probes.mjs`; `tests/probe-native-evidence.mjs`; `docs/evidence/contracts/http-assertions/` | Exact status codes, sets/ranges, required/forbidden text, response headers, nested/array JSONPath, bounded RE2 regex and latency share immutable Worker/runner validation. Unsupported script/regex constructs refuse on save. Owner console save/edit, independent assertion failures, scheduled failure/recovery and 1440/390 axe/reflow are proven locally; this is not hosted placement evidence. |
-| `SLOW-001` | Slow-response alerts distinct from outages | target | partial | `src/domain/slow-evaluation.mjs`; `src/domain/slow-notices.server.ts`; `src/domain/slow-import.ts`; `src/domain/reports/slow.server.ts`; `public/slow-policy.js`; `tests/slow-responses.mjs`; `tests/slow-import.mjs`; `docs/evidence/contracts/slow-responses/` | Independent consecutive/percentile windows by selected/all local locations, own contacts and durable schedules, acknowledgement, matched recovery, separate JSON/CSV/console slow time, and saved Pingdom/Site24x7 static greater-than/consecutive mapping ship. Real 3-second responses over three slots preserve Healthy availability and zero incidents; restart, manual/missing-window exclusion and latency-as-downtime are proven. Better Stack separate slow-threshold mapping needs an authoritative source field/export; Site24x7 AI, average/time-window and percentile strategies remain unsupported and explicitly refuse. |
+| `SLOW-001` | Slow-response alerts distinct from outages | target | done | `src/domain/slow-evaluation.mjs`; `src/domain/slow-notices.server.ts`; `src/domain/slow-import.ts`; `src/domain/reports/slow.server.ts`; `public/slow-policy.js`; `tests/slow-responses.mjs`; `tests/slow-import.mjs`; `docs/evidence/contracts/slow-responses/` |  |
 | `API-002` | Authenticated monitoring and secret lifecycle | target | done | `runners/src/auth/`; `runners/src/credentials.mjs`; `src/domain/credential-binding.mjs`; `tests/monitor-credentials.mjs`; `tests/tls-auth.mjs`; `tests/api-auth-journey.mjs`; `docs/evidence/contracts/trust-auth/` |  |
 | `API-003` | Multi-step API transactions | target | missing |  | No implementation; acceptance journey above is required. |
 | `API-004` | Safe setup and teardown | target | missing |  | No implementation; acceptance journey above is required. |
