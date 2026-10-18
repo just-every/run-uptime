@@ -3,6 +3,7 @@ import {TABLES,columns} from './archive-schema.ts'
  * foreign integration namespaces refuse export rather than silently lose data. */
 export const installationLocalTables:Record<string,string>={
  notification_preferences:'Installation alert time zone; immutable event contexts preserve their own saved zone in archives.',
+ alert_contact_schedules:'Installation delayed-send and reminder dispatch authority; restored alert history never replays.',
  alert_routes:'Installation alert recipient policy; a receiving owner configures local routes explicitly.',
  alert_route_changes:'Installation detailed route history; opaque routing audit entries travel separately.',
  alert_recovery_matches:'Installation dispatch pairing between a recovery and its original trigger job; never replay restored alerts.',

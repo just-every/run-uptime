@@ -1,3 +1,4 @@
+import {nextContactFollowup} from '../contact-scheduler.server.ts'
 import type {Bindings} from '../control.server.ts'
 import {findIncident,defaultOwner} from './common.server.ts'
 export async function incidentDetail(env:Bindings,id:string){
@@ -17,6 +18,7 @@ export async function incidentDetail(env:Bindings,id:string){
    AND json_extract(j.event,'$.monitorId')=? AND json_extract(j.event,'$.incidentKey')=? ORDER BY a.at,a.id`).bind(incident.monitor_id,incident.trigger.incidentKey).all<any>(),
   defaultOwner(env)
  ])
+ const nextDue=incident.recovery?null:await nextContactFollowup(env,id)
  const people=new Map(operators.results.map(row=>[row.id,row.display_name]))
  const person=(id:string|null)=>({id:id&&people.has(id)?id:null,displayName:id&&people.has(id)?people.get(id)!:'Former member'})
  const feature=(displayName:string)=>({id:null,displayName,kind:'feature'})
@@ -34,13 +36,13 @@ export async function incidentDetail(env:Bindings,id:string){
   machineState:incident.recovery?'recovered':'open',trigger:incident.trigger,recovery:incident.recovery,imported:incident.status==='imported-inactive',
   version:work?.version??0,owner:work?work.owner_id?person(work.owner_id):null:fallbackOwner,
   status:incident.recovery?'resolved':work?.status??'open',stopReason:incident.recovery?'recovery':work?.stop_reason??null,
-  acknowledgedAt:work?.acknowledged_at??null,resolvedAt:incident.recovery?.observedAt??work?.resolved_at??null,nextDue:null,
-  nextDueReason:'No automatic follow-up scheduled',
+  acknowledgedAt:work?.acknowledged_at??null,resolvedAt:incident.recovery?.observedAt??work?.resolved_at??null,nextDue,
+  nextDueReason:nextDue?'Next contact delay or reminder':'No automatic follow-up scheduled',
   rootCause:{version:work?.root_version??0,categoryId:work?.root_category_id??null,categoryLabel:work?.root_category_label??null,text:work?.root_text??'',updatedAt:work?.root_updated_at??null,editor:work?.root_updated_at?person(work.root_editor_id):null},
   comments:comments.results.map(row=>({id:row.id,text:row.text,version:row.version,author:person(row.author_id),createdAt:row.created_at,updatedAt:row.updated_at,deletedAt:row.deleted_at,
    history:histories.results.filter(history=>history.comment_id===row.id).map(history=>({version:history.version,text:history.text,editor:person(history.editor_id),editedAt:history.edited_at}))})),
   timeline,deliveries:jobs.results.map(job=>({id:job.id,channel:job.kind,destinationName:job.destination_name,state:job.state==='queued'?job.delivery_state??job.state:job.state,code:job.code,attempts:job.attempts})),
-  capabilities:{comments:true,mentions:false,publication:false,responderRoles:false,scheduledFollowup:false}}
+  capabilities:{comments:true,mentions:false,publication:false,responderRoles:false,scheduledFollowup:true}}
 }
 
 export {incidentDetail as readIncidentDetail}

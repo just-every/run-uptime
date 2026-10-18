@@ -86,7 +86,7 @@ function localTime(at,zone){
 export function webhookTemplateVariables(event,{timeZone:zone='America/Chicago'}={}){
  if(!object(event))return invalid('Webhook event must be an object');
  zone=timeZone(zone);const context=event.webhookContext??{},incident=event.incidentContext??{};
- const type=({trigger:'down',recovery:'up',test:'test',expiry:'expiry',slow:'slow',renewal:'renewal'})[event.kind];
+ const type=({trigger:'down',reminder:'down',recovery:'up',test:'test',expiry:'expiry',slow:'slow',renewal:'renewal'})[event.kind];
  const started=incident.confirmedStartedAt??context.alertStartedAt??event.observedAt;
  const probes=Array.isArray(event.probes)?event.probes:undefined;
  const values={

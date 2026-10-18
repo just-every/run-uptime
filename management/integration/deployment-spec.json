@@ -276,6 +276,12 @@
       "name": "0043_notification_preferences.sql",
       "sha256": "2af9f9d4af38f5cfda4ef6296f8dd2022259a74dda987a53770b9ceb426c2871",
       "sql": "CREATE TABLE notification_preferences (\n singleton INTEGER PRIMARY KEY CHECK (singleton=1),\n time_zone TEXT NOT NULL\n);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0044_contact_schedules.sql",
+      "sha256": "84e2a688ef9177dada22b3960290f1f2bf4c359678373920a497050501b0d784",
+      "sql": "ALTER TABLE alert_routes ADD COLUMN contact_settings TEXT NOT NULL DEFAULT '{}';\n-- Installation-local dispatch authority, snapshotted at confirmation, never restored active.\nCREATE TABLE alert_contact_schedules (\n trigger_job_id TEXT PRIMARY KEY, monitor_id TEXT NOT NULL, incident_key TEXT NOT NULL,\n due_at INTEGER NOT NULL, repeat_ms INTEGER NOT NULL, max_repeats INTEGER,\n emitted_repeats INTEGER NOT NULL DEFAULT 0, next_at INTEGER,\n recovery INTEGER NOT NULL, stop_on_ack INTEGER NOT NULL\n);\nCREATE INDEX alert_contact_schedules_due ON alert_contact_schedules(next_at);\n"
     }
   ],
   "compatibilityDate": "2026-09-08",

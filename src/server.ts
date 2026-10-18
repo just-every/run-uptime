@@ -1,3 +1,4 @@
+import {importContactSchedule} from './domain/contact-schedule-import.ts'
 import {saveNotificationPreferences} from './domain/notification-preferences.server.ts'
 import {proposedWebhookPreview,savedWebhookPreview} from './domain/notification-webhook.ts'
 // @ts-ignore Source definition parser shared with the owner preview.
@@ -90,6 +91,7 @@ api.post('/api/maintenance/cancel',async c=>c.json(await cancelMaintenance(c.env
 api.get('/api/monitor-editor',async c=>{c.header('cache-control','no-store, private');return c.json(await monitorEditor(c.env,c.req.query('monitor')))})
 api.get('/api/monitors/:id/alert-route',async c=>c.json(await storageOperation('alertRoutes.read',()=>readAlertRoute(c.env,c.req.param('id')))))
 api.post('/api/monitors/:id/alert-route/preview',async c=>c.json(await storageOperation('alertRoutes.preview',()=>previewAlertRoute(c.env,c.req.param('id'),c.get('input')))))
+api.post('/api/monitors/:id/alert-route/import-preview',async c=>c.json(await storageOperation('alertRoutes.import',()=>previewAlertRoute(c.env,c.req.param('id'),importContactSchedule(c.get('input'))))))
 api.post('/api/monitors/:id/alert-route/apply',async c=>{const actor={kind:'operator' as const,ref:(await operatorSession(c.env,c.req.raw))!.operator.id};return c.json(await storageOperation('alertRoutes.apply',()=>applyAlertRoute(c.env,c.req.param('id'),c.get('input'),actor)))})
 api.post('/api/monitors',async c=>c.json(await save(c.env,c.get('input'),undefined,{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id}),201))
 api.patch('/api/monitors/:id',async c=>c.json(await save(c.env,c.get('input'),c.req.param('id'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))

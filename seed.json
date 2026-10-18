@@ -50,7 +50,8 @@
         "NOTIFY-001",
         "DELIVERY-001",
         "NOTICE-001",
-        "WEBHOOK-001"
+        "WEBHOOK-001",
+        "ROUTING-002"
       ]
     }
   ],

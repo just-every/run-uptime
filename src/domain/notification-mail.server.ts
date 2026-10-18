@@ -1,3 +1,4 @@
+import {contactReady,advanceContactSchedules} from './contact-scheduler.server.ts'
 import {auditStatement,automated} from './audit.server.ts'
 import {readCredential,retireObsoleteCredentials,notificationKeyPresent} from './notification-credentials.server.ts'
 // @ts-expect-error Base mail is portable JavaScript verified by the donor suite.
@@ -19,9 +20,10 @@ export const expireMailClaims=(env:Bindings,now:number)=>[
 ]
 export async function dispatchNotificationMail(env:Bindings,budget?:SubrequestBudget){
  const now=Date.now(),op=storageOperation;
+ await advanceContactSchedules(env);
  await op('notifications.mail.expireClaims',()=>env.DB.batch(expireMailClaims(env,now)));
  await op('notifications.mail.recoveryMatches',()=>settleUnmatchedRecoveries(env));
- const rows=await op('notifications.mail.selectQueued',()=>env.DB.prepare(`SELECT j.*,c.id AS credential_record_id,c.destination_id AS credential_destination_id,c.created_at AS credential_created_at,c.endpoint,c.signing_secret,c.ciphertext,c.retired_at,c.unavailable_at FROM notification_jobs j JOIN notification_credentials c ON c.id=j.credential_id WHERE j.kind='email' AND j.state='queued' AND ${recoveryAccepted()} AND (j.claim_until IS NULL OR j.claim_until<=?) ORDER BY j.created_at LIMIT 10`).bind(now).all<any>());
+ const rows=await op('notifications.mail.selectQueued',()=>env.DB.prepare(`SELECT j.*,c.id AS credential_record_id,c.destination_id AS credential_destination_id,c.created_at AS credential_created_at,c.endpoint,c.signing_secret,c.ciphertext,c.retired_at,c.unavailable_at FROM notification_jobs j JOIN notification_credentials c ON c.id=j.credential_id WHERE j.kind='email' AND j.state='queued' AND ${recoveryAccepted()} AND ${contactReady()} AND (j.claim_until IS NULL OR j.claim_until<=?) ORDER BY j.created_at LIMIT 10`).bind(now).all<any>());
  for(const row of rows.results){
   let credential;
   try{credential=await readCredential(env,{...row,id:row.credential_record_id,destination_id:row.credential_destination_id,created_at:row.credential_created_at})}
@@ -29,7 +31,7 @@ export async function dispatchNotificationMail(env:Bindings,budget?:SubrequestBu
   // A provider request the run cannot afford waits, still queued, for the next run.
   if(budget&&!budget.reserve(1))break;
   const claim=crypto.randomUUID();
-  const changes=await op('notifications.mail.claim',()=>env.DB.batch([env.DB.prepare(`UPDATE notification_jobs SET state='sending',code='mail_claimed',attempts=attempts+1,claim=?,claim_until=? WHERE id=? AND state='queued' AND ${recoveryAccepted('notification_jobs')} AND (claim_until IS NULL OR claim_until<=?) AND EXISTS(SELECT 1 FROM notification_destinations d WHERE d.id=notification_jobs.destination_id AND d.credential_id=notification_jobs.credential_id AND d.deleted_at IS NULL AND (d.enabled=1 OR json_extract(notification_jobs.event,'$.kind')='test'))`).bind(claim,Date.now()+60000,row.id,Date.now()),auditStatement(env,automated,'notification_send','notification',crypto.randomUUID(),'changes()=1 AND ?=1',[Number(mailConfigured(env))])]));
+  const changes=await op('notifications.mail.claim',()=>env.DB.batch([env.DB.prepare(`UPDATE notification_jobs SET state='sending',code='mail_claimed',attempts=attempts+1,claim=?,claim_until=? WHERE id=? AND state='queued' AND ${recoveryAccepted('notification_jobs')} AND ${contactReady('notification_jobs')} AND (claim_until IS NULL OR claim_until<=?) AND EXISTS(SELECT 1 FROM notification_destinations d WHERE d.id=notification_jobs.destination_id AND d.credential_id=notification_jobs.credential_id AND d.deleted_at IS NULL AND (d.enabled=1 OR json_extract(notification_jobs.event,'$.kind')='test'))`).bind(claim,Date.now()+60000,row.id,Date.now()),auditStatement(env,automated,'notification_send','notification',crypto.randomUUID(),'changes()=1 AND ?=1',[Number(mailConfigured(env))])]));
   // Another dispatcher (the cron or a second poll) claimed this job first: nothing for this one to do.
   if(!changes[0].meta.changes)continue;
   let retryAt:number|undefined,state='rejected',code='mail_not_configured',sender:ReturnType<typeof mailSender>|null=null,content:any;
@@ -40,7 +42,7 @@ export async function dispatchNotificationMail(env:Bindings,budget?:SubrequestBu
      content=await op('notifications.mail.prepare',()=>notificationMail(env,row));
      // The transport boundary: this claim, still live, becomes mail_sending in the same write as the drill's submitted mark. A
      // dispatcher whose claim expired meanwhile changes nothing and sends nothing.
-     const handed=await op('notifications.mail.markSubmitted',()=>env.DB.batch([env.DB.prepare("UPDATE notification_jobs SET code='mail_sending' WHERE id=? AND state='sending' AND code='mail_claimed' AND claim=? AND claim_until>?").bind(row.id,claim,Date.now()),markSubmitted(env,row.id,Date.now(),claim)]));
+     const handed=await op('notifications.mail.markSubmitted',()=>env.DB.batch([env.DB.prepare(`UPDATE notification_jobs SET code='mail_sending' WHERE id=? AND state='sending' AND code='mail_claimed' AND claim=? AND claim_until>? AND ${contactReady('notification_jobs')}`).bind(row.id,claim,Date.now()),markSubmitted(env,row.id,Date.now(),claim)]));
      if(!handed[0].meta.changes)continue
     }
    }catch(error){

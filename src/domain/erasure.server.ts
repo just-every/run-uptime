@@ -31,6 +31,7 @@ export async function erase(env:Bindings,kind:'monitor'|'destination'|'operator'
   for(const row of replays.results)if(relations.envelopeRelated(row.envelope))plans.push(selection('integration_replays','namespace=? AND id=?',row.namespace,row.id));
   const captures=await env.DB.prepare('SELECT sequence,message FROM rer_mail_development_outbox').all<any>();
   for(const capture of captures.results)if(jobIds.includes(JSON.parse(capture.message).deliveryId))plans.push(selection('rer_mail_development_outbox','sequence=?',capture.sequence));
+  plans.push(selection('alert_contact_schedules','trigger_job_id IN(SELECT value FROM json_each(?))',JSON.stringify(jobIds)));
   plans.push(selection('alert_recovery_matches','recovery_job_id IN(SELECT value FROM json_each(?)) OR trigger_job_id IN(SELECT value FROM json_each(?))',JSON.stringify(jobIds),JSON.stringify(jobIds)));
   for(const job of jobIds)plans.push(selection('notification_jobs','id=?',job));
  }
