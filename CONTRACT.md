@@ -424,13 +424,13 @@ Protocol round (17 October 2026): TCP-001, DNS-001, TLS-001 and DOMAIN-001 moved
 
 ## Status
 
-Judged from the code and tests at commit `f0c10a97dd6362ab8cf64ba93c748ab21f720c3f` (18 October 2026).
+Judged from the code and tests at commit `111a59538eccb7ea42858dcb2e522cae32a669e9` (18 October 2026).
 
 | Clauses | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
 | Published | 16 | 5 | 0 | 21 |
-| Target and push further | 13 | 30 | 24 | 67 |
-| All | 29 | 35 | 24 | 88 |
+| Target and push further | 14 | 30 | 23 | 67 |
+| All | 30 | 35 | 23 | 88 |
 
 | Clause | Title | Kind | Status | Evidence | Gap |
 | --- | --- | --- | --- | --- | --- |
@@ -487,7 +487,7 @@ Judged from the code and tests at commit `f0c10a97dd6362ab8cf64ba93c748ab21f720c
 | `FLOW-003` | Useful and safe browser failure artifacts | target | partial | `src/domain/flow.mjs`; `runners/src/flow/run-flow.mjs`; `tests/flow-journey.mjs` | Only sanitized step traces exist; screenshots, native traces, video and waterfalls are absent. |
 | `FLOW-004` | Cross-browser and mobile transactions | target | partial | `runners/src/flow/child.mjs` | Current flow is Chromium at 1280 by 800 only. |
 | `ROUTING-001` | Monitor, service and team alert routing | target | partial | `src/domain/alert-routes.server.ts`; `src/domain/alert-route-delivery.server.ts`; `public/assets/alert-route.js`; `tests/alert-routes.mjs`; `docs/evidence/contracts/routing/` | Monitor → service → group → installation inheritance, explicit empty selection, credential/disabled/missing exclusions, recipient and affected-monitor previews, stale-plan guards, labelled tests, durable audit and original accepted-trigger recipient/credential recovery now ship. Teams, environment/severity/region/origin/business and quiet-hour rules, contact schedules/retry/fallbacks, portable route settings/history and expiry/renewal routing remain absent; no live provider or human receipt claim is made. |
-| `ROUTING-002` | Per-contact alert delay and repeat | target | missing |  | No implementation; acceptance journey above is required. |
+| `ROUTING-002` | Per-contact alert delay and repeat | target | done | `src/domain/contact-scheduler.server.ts`; `src/domain/contact-schedule-import.ts`; `public/assets/alert-route.js`; `tests/contact-schedules.mjs`; `tests/contact-schedules-browser.mjs`; `docs/evidence/contracts/contact-schedules/` | Confirmation-time contact snapshots provide 0–24h delays, 1-minute–24h repeats with optional caps, recovery preference, acknowledgement stop, next-due incident reads and distinct durable reminder events. Early recovery suppresses delayed trigger and recovery; restart, uncertainty without replay, saved UptimeRobot threshold/recurrence and Pingdom result-count conversion are proven through Worker/runner routes and desktop/phone console. Named channels follow their own clauses; provider acknowledgement is not recipient receipt. |
 | `DELIVERY-002` | Deduplicated retry and fallback contacts | target | partial | `src/domain/relay-mail.server.ts`; `src/domain/notification-claims.server.ts`; `tests/notify-delivery.mjs` | Only proven-unaccepted relay 429 mail requeues after Retry-After; deduplicated retry and fallback contact chains do not exist. |
 | `FOLLOWUP-001` | Ongoing outage follow-up and correlation | target | partial | `src/domain/incident-work/`; `tests/incident-work.mjs`; `public/incident-work.js` | Owner assignment, acknowledgement, stop/manual response resolution and actor/time timeline now retain private work with durable machine confirmation/recovery and delivery attempts/outcomes across restart and inactive archive restore. Scheduled reminders/escalations, next-due route policy, dependency correlation/group acknowledgement, responder roles and pause/maintenance timeline entries remain absent; response resolution never changes monitor health. |
 | `INCIDENT-001` | Incident comments, mentions and root cause | target | partial | `src/domain/incident-work/`; `public/incident-work.js`; `tests/incident-work.mjs`; `docs/evidence/contracts/incidents/` | Owner-only private comments, optimistic edits with visible history, deletion tombstones, editable root-cause categories, incident JSON, report filters and API reads now ship. Archives, operator anonymization, monitor erasure and unchanged machine evidence are proven through the Worker. Responder roles, member mention/email outcomes, status-page publication and sourced incumbent incident imports remain absent. |

@@ -457,7 +457,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "427403bbad512a176e6bc484da65c95ab72ac918d4beac510fc529a0d50c31e7",
+      "sha256": "47a30a5d33ef762594e33bb9c3e240018405af54b6e2fd27ff6b4fa0096cb173",
       "executable": false
     },
     "AGENTS.md": {
@@ -481,7 +481,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "c406c54becfd751833f11862fbd9bba190c83600d968d246cb2acf62ff8078e9",
+      "sha256": "2356271238f566566272854a317230cc42289ff140a3142d0f587fa75d2be192",
       "executable": false
     },
     "DEMO.md": {
@@ -500,6 +500,10 @@
       "sha256": "bbc09130e676261796caf3890935338c7fedc7fa5dee15646dd5d31d49d00675",
       "executable": false
     },
+    "docs/CLAIMS.md": {
+      "sha256": "d00396d7c79b2ef44cf4c1ccbf5cabe886aca9054cfc37031d1891b7de856d4e",
+      "executable": false
+    },
     "docs/data.md": {
       "sha256": "4e5d8ab975842660ae65406249208414f4b5290035ee030fbd04f89fb691ba1e",
       "executable": false
@@ -512,52 +516,76 @@
       "sha256": "7b212a1079f5f1c9602f88d68928e1cced4870560b535c9bbb9a923d871b00c5",
       "executable": false
     },
+    "docs/evidence/contracts/contact-schedules/monitors-guide-1440.png": {
+      "sha256": "2a6a43de7359e9610e1900ac89918bcec655d653a532bf957246116947d3b570",
+      "executable": false
+    },
+    "docs/evidence/contracts/contact-schedules/monitors-guide-390.png": {
+      "sha256": "ca802327520bf30fe8dee4b5e3feeca9c826184534980f487f6da226982200cf",
+      "executable": false
+    },
+    "docs/evidence/contracts/contact-schedules/monitors-guide-end-390.png": {
+      "sha256": "aa0d54c5d5f1795d518119741528f04c37c9794251782e7d15530e63f4a4a417",
+      "executable": false
+    },
+    "docs/evidence/contracts/contact-schedules/notifications-guide-1440.png": {
+      "sha256": "0b890810fd4c3d48694f2b3c12f609eb7f1c669c317f5a1b08ed4dc7bd553b54",
+      "executable": false
+    },
+    "docs/evidence/contracts/contact-schedules/notifications-guide-390.png": {
+      "sha256": "7ef5df3be93a031f7e9cbaf9112f5358be2ec2217969788a3d750066caf1072c",
+      "executable": false
+    },
+    "docs/evidence/contracts/contact-schedules/notifications-guide-end-390.png": {
+      "sha256": "05dff0b70ae2e700e7f1912ca0665c425bdb34b9bc397c6f55c3c1ee000b26db",
+      "executable": false
+    },
     "docs/evidence/contracts/contact-schedules/schedule-fields-1440.png": {
-      "sha256": "42acdc846070931ce50eabbe436f2825562b8c1845f3589deb83df009374b925",
+      "sha256": "677bb46a0df3aa529695f496889fbb06a915e67c319fef027313a7f6ed198b2c",
       "executable": false
     },
     "docs/evidence/contracts/contact-schedules/schedule-fields-390.png": {
-      "sha256": "cd101ce909b6d8ec4bd94f42664434e389cb8a4b1dbfac8d23fe1757a6e20d53",
+      "sha256": "131464bc4c663d957e7fe602c220a29f1355da480a970ec20ed9e03cf30f3aa3",
       "executable": false
     },
     "docs/evidence/contracts/contact-schedules/schedule-form-1440.png": {
-      "sha256": "e0ac9411c2ad3beffb797cf7970fe037d1dea995d840c5e519e17a4738111b9a",
+      "sha256": "1e2de421bf5313ad835f6322428affe910cd805b25997e7abee147702a9a78c1",
       "executable": false
     },
     "docs/evidence/contracts/contact-schedules/schedule-form-390.png": {
-      "sha256": "746a69b6cf089549d38ac47e3391e12918d0de447c36d469339896b714cc7120",
+      "sha256": "71c8fc4d3cf8f3fdb14b712dbf6d0eea8316fd366045ad6cb50089f7ca5036a4",
       "executable": false
     },
     "docs/evidence/contracts/contact-schedules/schedule-import-1440.png": {
-      "sha256": "29c670e22020358ffc9c3542185e41ff804fdaca328dc76f2c10a5ebb1b630c2",
+      "sha256": "1d452c231529cbae31b066e6c96e204816139f40c8e50099e6d7a58513362174",
       "executable": false
     },
     "docs/evidence/contracts/contact-schedules/schedule-import-390.png": {
-      "sha256": "a9b12fa80e29060ce0d62e6c6e0a802cc244463f59749625ff91e965579ee5a2",
+      "sha256": "2cdf3533361158b295b5ec8ea69da728ec61d28e719ace4d73f0f1b5e5a60691",
       "executable": false
     },
     "docs/evidence/contracts/contact-schedules/schedule-preview-1440.png": {
-      "sha256": "f33591582a69e4eb7ca242fb5f9b45a3432a949ac7ad9f559350d38494a4985a",
+      "sha256": "6ed11f58787fad4bc6aa0469bebaa7cfffb073782469dc032c01133c69a184bb",
       "executable": false
     },
     "docs/evidence/contracts/contact-schedules/schedule-preview-390.png": {
-      "sha256": "71097d6ad08a5d9aab8ab2a68d5a99451c4eba93bcf0ab245f85e0a7dc0928c5",
+      "sha256": "eca9af071b1538f01f668b50204fe52dd40f129ed835a65193489ba3b706da4a",
       "executable": false
     },
     "docs/evidence/contracts/contact-schedules/schedule-reviewed-contact-1440.png": {
-      "sha256": "de8c20f530e8bd07ed332c5fdea03684e0480a163f26060846bee4ac8ce88890",
+      "sha256": "b7e5c6d8404d4986f51cacc4631a178bb55c0eecda77d325d72962bd7d1dc765",
       "executable": false
     },
     "docs/evidence/contracts/contact-schedules/schedule-reviewed-contact-390.png": {
-      "sha256": "fe4ae94b86d029b9e4c53ad3b9e900b3f40a0544c51c57e1ac25e4bb3bb42820",
+      "sha256": "f8d5ae08bf5e02921814fbf335b71e382255a4b24ce7d7031cb33b3d99cc415f",
       "executable": false
     },
     "docs/evidence/contracts/contact-schedules/schedule-saved-1440.png": {
-      "sha256": "ca194691a2ccdfb6a421167d124f8b4ea832ae8f20c9baf1c9c5d13e7372548e",
+      "sha256": "aa7d23172c609d12ebfb45d8101f49b409482481026f1b329e54825b97a4a627",
       "executable": false
     },
     "docs/evidence/contracts/contact-schedules/schedule-saved-390.png": {
-      "sha256": "787518011e3222b1112965890ac18cb0aa5534eca5d7f9a9c7cc1022fd0a10be",
+      "sha256": "b28b501220d4bfe13c2739e0dbeabd11c16e6ba70b888ece4c33138773a25347",
       "executable": false
     },
     "docs/evidence/contracts/http-assertions/editor-1440.png": {
@@ -4449,7 +4477,7 @@
       "executable": false
     },
     "tests/contact-schedules-browser.mjs": {
-      "sha256": "dd1c8fce7fe3f32125b21d3ac3506e2e067078334b408fa9fd3b8ad3ecb09376",
+      "sha256": "45e881e6d8e49316941d363f06e18e34f850a49da2ff28a1c445ac8093edff58",
       "executable": false
     },
     "tests/contact-schedules.mjs": {
