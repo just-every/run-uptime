@@ -1,3 +1,15 @@
+// Keep keyboard traversal inside an active modal at both ends of its controls.
+export function containModalKeyboard(dialog){
+ dialog.addEventListener('keydown',event=>{
+  if(event.key!=='Tab'||!dialog.matches(':modal'))return;
+  const controls=[...dialog.querySelectorAll('a[href],button,input,select,textarea,summary,[tabindex]')].filter(node=>!node.disabled&&node.tabIndex>=0&&node.getClientRects().length);
+  const first=controls[0],last=controls.at(-1);
+  if(!first){event.preventDefault();dialog.focus();return}
+  if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
+  else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
+ });
+}
+
 // Periodic console redraws can replace the opener while a native dialog is
 // open. Restore the current control with the same id when that happens.
 export function dialogFocusReturn(fallbackId) {
@@ -21,7 +33,7 @@ export function confirmDestination({title,explanation,button,tone,onConfirm}){
  const confirm=document.createElement('button');confirm.className=tone==='danger'?'primary danger':'primary';confirm.textContent=button;
  const mark=document.createElement('span');mark.className='dialog-mark'+(tone==='danger'?' danger':'');mark.setAttribute('aria-hidden','true');mark.innerHTML=`<span class="ui-icon" data-icon="${tone==='danger'?'alert':'restore'}"></span>`;
  const close=()=>dialog.close();cancel.onclick=close;dialog.addEventListener('close',()=>{dialog.remove();returnFocus()},{once:true});
- confirm.onclick=()=>{close();onConfirm()};buttons.append(cancel,confirm);dialog.append(mark,heading,text,buttons);document.body.append(dialog);dialog.showModal();cancel.focus();
+ confirm.onclick=()=>{close();returnFocus();onConfirm()};buttons.append(cancel,confirm);dialog.append(mark,heading,text,buttons);document.body.append(dialog);containModalKeyboard(dialog);dialog.showModal();cancel.focus();
 }
 export function showSecret(secret,destinationName){
  const returnFocus=dialogFocusReturn("add-destination");
@@ -35,7 +47,7 @@ export function showSecret(secret,destinationName){
  const help=document.createElement('div');help.innerHTML=verificationHelp;
  const close=document.createElement('button');close.className='primary secret-close';close.textContent='I saved it — close';
  const clear=()=>{code.textContent='';code.remove();secret='';status.textContent='';copy.onclick=null};close.onclick=()=>{clear();dialog.close()};dialog.oncancel=clear;dialog.onclose=()=>{clear();dialog.remove();returnFocus()};
- dialog.append(title,explanation,code,copy,status,help,close);document.body.append(dialog);dialog.showModal();
+ dialog.append(title,explanation,code,copy,status,help,close);document.body.append(dialog);containModalKeyboard(dialog);dialog.showModal();
 }
 
 export function showErasureReceipt(receipt,{onClose=()=>{}}={}){
@@ -54,7 +66,7 @@ export function showErasureReceipt(receipt,{onClose=()=>{}}={}){
   const help=document.createElement('a');help.href='/docs/data';help.textContent='Owner settings after erasure';guidance.append(help);dialog.append(guidance);
  }
  dialog.append(close);document.body.append(dialog);
- if(receipt.entityKind==='destination'){Object.assign(dialog.style,{position:'fixed',inset:'auto 16px 16px auto',maxWidth:'min(560px, calc(100vw - 32px))',maxHeight:'calc(100vh - 32px)',overflow:'auto',zIndex:'10'});dialog.show()}else dialog.showModal();
+ if(receipt.entityKind==='destination'){Object.assign(dialog.style,{position:'fixed',inset:'auto 16px 16px auto',maxWidth:'min(560px, calc(100vw - 32px))',maxHeight:'calc(100vh - 32px)',overflow:'auto',zIndex:'10'});dialog.show()}else{containModalKeyboard(dialog);dialog.showModal();}
 }
 export function confirmErasure({kind,name,onConfirm}){
  const returnFocus=dialogFocusReturn();
@@ -63,5 +75,5 @@ export function confirmErasure({kind,name,onConfirm}){
  const explanation=document.createElement('p');explanation.textContent=`This permanently erases ${name} and its dependent records. The anonymous audit remains. Requests already sent cannot be recalled.`;
  const label=document.createElement('label');label.textContent=`Type ${name} to confirm`;const input=document.createElement('input');input.autocomplete='off';label.append(input);
  const buttons=document.createElement('div');buttons.className='buttons';const cancel=document.createElement('button');cancel.textContent='Cancel';const confirm=document.createElement('button');confirm.className='primary danger';confirm.textContent=`Erase ${kind}`;confirm.disabled=true;
- input.oninput=()=>confirm.disabled=input.value!==name;cancel.onclick=()=>dialog.close();confirm.onclick=()=>{dialog.close();onConfirm(input.value)};dialog.onclose=()=>{dialog.remove();returnFocus()};buttons.append(cancel,confirm);dialog.append(heading,explanation,label,buttons);document.body.append(dialog);dialog.showModal();input.focus();
+ input.oninput=()=>confirm.disabled=input.value!==name;cancel.onclick=()=>dialog.close();confirm.onclick=()=>{dialog.close();onConfirm(input.value)};dialog.onclose=()=>{dialog.remove();returnFocus()};buttons.append(cancel,confirm);dialog.append(heading,explanation,label,buttons);document.body.append(dialog);containModalKeyboard(dialog);dialog.showModal();input.focus();
 }

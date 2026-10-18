@@ -195,9 +195,12 @@ export function renderMonitorPage({header,actions,area,data,id,api,action,readUn
  header.innerHTML=titleBlock(m,readUnavailable);
  actions.innerHTML=actionButtons(m)+'<button id="erase-monitor" class="danger">Erase monitor</button>';
  actions.querySelector('#erase-monitor').onclick=()=>confirmErasure({kind:'monitor',name:m.definition.name,onConfirm:async name=>{const result=await action(()=>api(`/api/monitors/${encodeURIComponent(m.id)}/erase`,'POST',{name}),{pending:'Erasing monitor…',success:'Monitor and dependent records erased.'});if(result.ok){document.title='Monitor erased · Uptime';showErasureReceipt(result.result.receipt)}}});
+ const previousHistory=area.querySelector('#raw-history'),retainedHistory=previousHistory?.dataset.monitorId===m.id?previousHistory:null;
+ retainedHistory?.remove();
  const retainedSnapshots=retainSnapshots(area,m.id);
  const retainedReport=retainReportPanel(area,m.id),retainedJobs=retainHeartbeatJobs(area,m),retainedFlow=retainFlowProfile(area,m);
  area.innerHTML=pageBody(m,readUnavailable,definitionOpen,data);
+ if(retainedHistory){area.querySelector('#raw-history').replaceWith(retainedHistory);if(historyFocus?.startsWith('history-')||historyFocus?.startsWith('tls-evidence-'))document.getElementById(historyFocus)?.focus({preventScroll:true})}
  mountReportPanel(area,m,api,retainedReport);
  mountSnapshots(area,m,api,retainedSnapshots);
  bindHeartbeatKey(area,m,{api,action});
@@ -212,6 +215,7 @@ export function renderMonitorPage({header,actions,area,data,id,api,action,readUn
  actions.querySelector('#pause').onclick=()=>{if(!m.definition.enabled&&Object.values(m.definition.assignments??{}).some(a=>!(data.runner.runners??[]).some(r=>r.runnerId===a.runnerId&&!r.revokedAt))){location.href='/app/monitor?monitor='+encodeURIComponent(m.id);return}return action(()=>api(`/api/monitors/${m.id}`,'PATCH',{...m.definition,enabled:!m.definition.enabled}),{pending:m.definition.enabled?'Pausing monitor…':'Authorizing and resuming…',success:m.definition.enabled?'Monitor paused. Historical observations remain available.':'Monitor authorized and resumed. New scheduled results are required.'})};
  actions.querySelector('#maintenance').onclick=()=>action(()=>api(`/api/monitors/${m.id}`,'PATCH',{...m.definition,maintenanceUntil:m.definition.maintenanceUntil>Date.now()?0:Date.now()+900000}));
  const history=area.querySelector('#raw-history'),strip=area.querySelector('#history-strip');
+ history.dataset.monitorId=m.id;
  // Keep the previous list height and strip while the history reloads, so the page does not jump on each refresh.
  if(historyHeight)history.style.minHeight=`${historyHeight}px`;
  strip.innerHTML=previousStrip;
@@ -219,8 +223,10 @@ export function renderMonitorPage({header,actions,area,data,id,api,action,readUn
  Promise.all([api(`/api/monitors/${key}/history`),api(`/api/monitors/${key}/revisions`)]).then(([slots,revisions])=>{
   if(!history.isConnected)return;
   const timeline=buildTimeline({slots,now:Number.isSafeInteger(data.now)?data.now:Date.now(),monitor:m,revisions});
+  const currentFocus=history.contains(document.activeElement)?document.activeElement.id:null;
   history.innerHTML=historyMarkup(timeline,m);history.style.minHeight='';strip.innerHTML=stripMarkup(timeline);
   const flowHistory=area.querySelector('#flow-revisions');if(flowHistory)flowHistory.innerHTML=flowRevisions(revisions);
+  if(currentFocus)document.getElementById(currentFocus)?.focus({preventScroll:true});
   if((historyFocus?.startsWith('history-')||historyFocus?.startsWith('tls-evidence-'))&&document.activeElement?.tagName==='BODY')document.getElementById(historyFocus)?.focus({preventScroll:true});
  },error=>{if(history.isConnected){history.textContent=error.message;strip.innerHTML=''}});
 }
