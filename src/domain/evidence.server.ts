@@ -1,3 +1,5 @@
+// @ts-ignore Shared transaction facts contain no extracted values.
+import {validateApiTransactionEvidence,apiTransactionChecks,apiTransactionOutcome} from './api-transaction.mjs'
 import {normalizeFailureSnapshot,FAILURE_SNAPSHOT_LIMITS} from './failure-snapshot.mjs'
 // @ts-ignore Shared monitor-scoped certificate trust facts.
 import {validateTlsTrustEvidence,TLS_EVIDENCE_MAX_BYTES} from './tls-trust.mjs'
@@ -18,7 +20,7 @@ import {isProtocol} from './protocol/settings.mjs'
 import {protocolChecks} from './protocol/evaluate.mjs'
 // @ts-ignore
 import {validateFacts} from './protocol/facts.mjs'
-const fields = new Set(['id', 'probe', 'outcome', 'completedAt', 'startedAt', 'durationMs', 'runnerVersion', 'status', 'bytes', 'checks', 'attempt', 'heartbeatReceivedAt', 'heartbeatJob', 'tlsTrust', 'canary', 'flow', 'credentialBinding', 'protocol','failureSnapshot'])
+const fields = new Set(['id', 'probe', 'outcome', 'completedAt', 'startedAt', 'durationMs', 'runnerVersion', 'status', 'bytes', 'checks', 'attempt', 'heartbeatReceivedAt', 'heartbeatJob', 'tlsTrust', 'canary', 'flow', 'credentialBinding', 'protocol','apiTransaction','failureSnapshot'])
 // unresolved: the public resolver answered NXDOMAIN or no address. budget: a Worker run spent its outbound requests first.
 // refused: the target's port refused the connection; tls: the TLS handshake failed before a certificate could be read.
 // vantage: this vantage cannot run the check (a Worker socket to a Cloudflare address); registry: RDAP data unavailable.
@@ -158,7 +160,7 @@ export function validateEvidence(o: any, definition: any, dueAt: number, now: nu
       !['uptime-node/0.1.0','uptime-worker/0.1.0'].includes(o.runnerVersion) || !timestamp(o.startedAt) || !timestamp(o.completedAt) ||
       o.startedAt < dueAt || o.completedAt < o.startedAt || o.completedAt > now + COMPLETION_CLOCK_ALLOWANCE_MS ||
       !timestamp(o.durationMs) || !['pass', 'target_failure', 'runner_error'].includes(o.outcome) ||
-      JSON.stringify(o).length > ((definition.type === 'flow' ? 4000 + FLOW_LIMITS.traceBytes : isProtocol(definition.type) ? 12000 : 4000) + (o.tlsTrust ? TLS_EVIDENCE_MAX_BYTES : 0) + (binding ? BINDING_DIAGNOSTIC_BYTES : 0) + (o.failureSnapshot ? FAILURE_SNAPSHOT_LIMITS.totalBytes : 0))) throw Error('Invalid observation evidence')
+      JSON.stringify(o).length > ((definition.type === 'flow' ? 4000 + FLOW_LIMITS.traceBytes : isProtocol(definition.type)||definition.type==='api' ? 16000 : 4000) + (o.tlsTrust ? TLS_EVIDENCE_MAX_BYTES : 0) + (binding ? BINDING_DIAGNOSTIC_BYTES : 0) + (o.failureSnapshot ? FAILURE_SNAPSHOT_LIMITS.totalBytes : 0))) throw Error('Invalid observation evidence')
   validateTrust(o,definition);
   if(o.heartbeatJob!==undefined&&definition.type!=='heartbeat')throw Error('Unexpected heartbeat job evidence');
   if (o.protocol !== undefined && !isProtocol(definition.type)) throw Error('Unexpected protocol evidence')
@@ -172,6 +174,15 @@ export function validateEvidence(o: any, definition: any, dueAt: number, now: nu
   // Historical runners sampled completion and duration separately. Preserve a
   // single millisecond clock tick without relaxing any of the clock bounds.
   if (Math.abs(o.durationMs - elapsed) > 1) throw Error('Inconsistent observation timing')
+  if(o.apiTransaction!==undefined&&definition.type!=='api')throw Error('Unexpected API transaction evidence');
+  if(definition.type==='api'){
+    if(!o.apiTransaction)return validateError(o,validateChecks(o.checks));
+    if(o.status!==undefined||o.bytes!==undefined||o.flow!==undefined)throw Error('Invalid API transaction observation');
+    validateApiTransactionEvidence(o.apiTransaction,definition);
+    if(o.apiTransaction.steps.some((step:any)=>step.startedAt<o.startedAt||step.completedAt>o.completedAt))throw Error('Invalid API transaction timing');
+    if(o.outcome!==apiTransactionOutcome(o.apiTransaction)||JSON.stringify(o.checks)!==JSON.stringify(apiTransactionChecks(definition,o.apiTransaction)))throw Error('Inconsistent API transaction evidence');
+    return;
+  }
   if (isProtocol(definition.type)) return validateProtocol(o, definition)
   const checks = validateChecks(o.checks, binding !== undefined)
   if (definition.type === 'heartbeat') validateHeartbeat(o, definition, checks)

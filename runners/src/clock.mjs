@@ -22,7 +22,7 @@ export function createClock({now = Date.now} = {}) {
     align(evidence, {dueAt} = {}) {
       const shift = Math.max(offsetMs(), Number.isFinite(dueAt) ? dueAt - evidence.startedAt : -Infinity);
       if (!shift) return evidence;
-      return {...evidence, startedAt: evidence.startedAt + shift, completedAt: evidence.completedAt + shift, ...(evidence.canary ? {canary: clock.align(evidence.canary, {dueAt})} : {})};
+      return {...evidence, startedAt: evidence.startedAt + shift, completedAt: evidence.completedAt + shift, ...(evidence.apiTransaction?{apiTransaction:{...evidence.apiTransaction,steps:evidence.apiTransaction.steps.map(step=>({...step,startedAt:step.startedAt+shift,completedAt:step.completedAt+shift}))}}:{}), ...(evidence.canary ? {canary: clock.align(evidence.canary, {dueAt})} : {})};
     },
   };
   return clock;

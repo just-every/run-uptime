@@ -130,3 +130,20 @@ This is a saved HTTP-definition conversion, not complete Pingdom or UptimeRobot 
 ### ICMP definitions
 
 Use version 6 and `type: "ping"` with `ping: {"host":"gateway.example.com","family":4,"packets":3,"maxLossPercent":0,"maxRttMs":1000}`. Select family 6 for IPv6. Ping requires an assigned private Linux/macOS runner with system ping permission. Definitions carry settings and immutable evidence, never executable paths or host privileges. Imports stay paused; the receiving installation must assign and authorize its own runner. The interval floor is 30 seconds and the timeout must be 8–10 seconds.
+
+## API transactions
+
+Choose **Multi-step API transaction** in the owner editor, set the exact HTTPS origin and select a private runner. The shared credential reference names an owner-only file bound to that monitor and origin (see [runner credentials](/docs/runner)). Credentials and extracted values stay on the runner. Do not put passwords or tokens in the configuration. Transactions run every minute or slower, with no automatic replay of writes and a total time limit of 60 seconds.
+
+The steps JSON has `variables` for non-secret fixed inputs and ordered `steps`. Each step names its `phase` (`setup`, `request`, `cleanup`), full same-origin URL, method, assertions and optional `extract` mapping from a variable name to JSONPath. Use `{{variable}}` in later paths, headers or JSON bodies. URL values are encoded and JSON values escaped. Authentication headers require HTTPS and a runtime variable. The runner reserves time for cleanup after a failure; history records each step, timing, skipped requirements and cleanup outcome without response content or extracted values. A later successful cleanup cannot clear a failed requirement.
+
+```json
+{"variables":{},"steps":[
+  {"name":"Log in","phase":"setup","url":"https://sandbox.example.com/login","method":"POST","assertions":{"status":200},"extract":{"token":"$.token"}},
+  {"name":"Create record","phase":"request","url":"https://sandbox.example.com/records","method":"POST","headers":{"authorization":"Bearer {{token}}"},"assertions":{"status":201},"extract":{"id":"$.id"}},
+  {"name":"Read record","phase":"request","url":"https://sandbox.example.com/records/{{id}}","method":"GET","headers":{"authorization":"Bearer {{token}}"},"assertions":{"status":200,"json":{"path":"$.ready","equals":true}}},
+  {"name":"Remove synthetic record","phase":"cleanup","url":"https://sandbox.example.com/records/{{id}}","method":"DELETE","headers":{"authorization":"Bearer {{token}}"},"assertions":{"status":204}}
+]}
+```
+
+Use a dedicated synthetic account and sandbox resource. A failed cleanup stays visible in the attempt history and needs attention from the owner. Time-limited live-action grants and a cleanup-debt resolution workflow remain API-004.

@@ -29,12 +29,13 @@ export async function resolvePublic(url,signal,{family}={}) {
   }finally{signal.removeEventListener('abort',cancel)}
 }
 // statusOnly: see requestOnce. Resolution, pinning, redirect validation and the downgrade refusal are the same as a probe's.
-export async function publicHttp(def,signal,onRequest,{statusOnly=false,monitorId,onPhase,privateAccess,snapshotPolicy,capture={}}={}) {
+export async function publicHttp(def,signal,onRequest,{statusOnly=false,monitorId,onPhase,privateAccess,snapshotPolicy,requestValues,capture={}}={}) {
  if(def.network==='private'&&typeof privateAccess!=='function')throw new ProbeError('grant','Private network grant unavailable');
  let url=def.network==='private'?privateTarget(def.url):publicTarget(def.url),method=def.method,trust=def.tlsTrust,credential;
  if(def.request)onPhase?.('authentication');
  if(def.request)try{credential=await readCredentials(def.request.credentialRef,url.href,method,undefined,monitorId)}catch(error){if(!error.category)error.category='credential';throw error}
- let body=credential?.body;
+ if(requestValues&&requestValues.origin!==url.origin)throw new ProbeError('credential','Transaction request values require their exact authorized origin');
+ let body=requestValues?.body??credential?.body;
  const facts=[],redirects=[];let sentHeaders={},sentSecrets=[];
  capture.method=method;capture.url=url.href;capture.redirects=redirects;capture.requestHeaders={};capture.requestSecrets=[];
  capture.phases??={dnsMs:null,connectMs:null,tlsMs:null,ttfbMs:null,totalMs:0};
@@ -54,7 +55,7 @@ export async function publicHttp(def,signal,onRequest,{statusOnly=false,monitorI
   capture.method=method;capture.url=url.href;capture.status=null;capture.responseHeaders={};capture.body='';
   const resolving=Date.now();let pin;try{pin=await (def.network==='private'?privateAccess(url,signal):resolvePublic(url,signal))}finally{capture.phases.dnsMs=Date.now()-resolving}
   capture.pin=pin;
-  const settings={...prepared,headers:{...prepared.headers,...extraHeaders},body,credentialsPresent:Boolean(credential),allowUnverifiedTls:credential?.allowUnverifiedTls===true,trackTlsFacts:Boolean(def.tlsTrust),capture};
+  const settings={...prepared,headers:{...prepared.headers,...(requestValues?.headers??{}),...extraHeaders},body,credentialsPresent:Boolean(credential||requestValues),allowUnverifiedTls:credential?.allowUnverifiedTls===true,trackTlsFacts:Boolean(def.tlsTrust),capture};
   sentHeaders={'user-agent':RUNNER_VERSION,accept:PROBE_ACCEPT,...settings.headers};const {headers:localHeaders,...privateCredential}=credential??{};const protectedHeaders=Object.fromEntries(Object.entries(settings.headers).filter(([name])=>!snapshotPolicy?.safeValues?.requestHeaders?.includes(name.toLowerCase())));sentSecrets.push(...secretStrings(protectedHeaders),...secretStrings(privateCredential));if(body){try{sentSecrets.push(...secretStrings(JSON.parse(body)))}catch{sentSecrets.push(String(body))}}sentSecrets=[...new Set(sentSecrets.filter(x=>x&&x.length<=16384))].slice(0,128);
   capture.requestSecrets=sentSecrets;
   const response=await requestOnce(url,pin,method,settings,signal,req=>{sentHeaders=req.getHeaders();capture.requestHeaders=sentHeaders;onRequest(req)},undefined,statusOnly,trust);facts.push(...(response.tlsTrust??[]));return response;
@@ -76,7 +77,7 @@ export async function publicHttp(def,signal,onRequest,{statusOnly=false,monitorI
   if(url.protocol==='https:'&&next.protocol!=='https:')throw Object.assign(new ProbeError('redirect'),{facts});
   if(next.origin!==url.origin){
    // A first origin change permanently drops every request secret and trust exception, even on a return redirect.
-   credential=undefined;body=undefined;trust=undefined;
+   credential=undefined;body=undefined;trust=undefined;requestValues=undefined;
   }else if(response.status===303||(method==='POST'&&[301,302].includes(response.status))){body=undefined;method='GET'}
   if(next.origin!==url.origin)method=method==='HEAD'?'HEAD':'GET';
   if(!redirects.length)redirects.push(url.href);redirects.push(next.href);url=next;

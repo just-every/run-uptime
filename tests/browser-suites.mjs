@@ -158,7 +158,8 @@ async function runSuite(script, variable, label) {
   }
   assert.equal(outcome.error, undefined, `${script}: process failed to start`);
   assert.equal(outcome.signal, null, `${script}: interrupted or timed out`);
-  assert.equal(outcome.code, 0, `${script}: failed; inspect its private suite.log`);
+  const failureLocation=[...child.log.matchAll(/(?:^|\n)\s+at [^\n]*?tests\/([^:\n]+\.mjs:\d+:\d+)/g)].at(-1)?.[1];
+  assert.equal(outcome.code, 0, `${script}: failed${failureLocation?` at tests/${failureLocation}`:''}; inspect its private suite.log`);
   await validateArtifacts(output);
   results.push({script, passed: true});
 }
