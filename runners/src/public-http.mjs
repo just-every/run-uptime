@@ -55,7 +55,7 @@ export async function publicHttp(def,signal,onRequest,{statusOnly=false,monitorI
   const resolving=Date.now();let pin;try{pin=await (def.network==='private'?privateAccess(url,signal):resolvePublic(url,signal))}finally{capture.phases.dnsMs=Date.now()-resolving}
   capture.pin=pin;
   const settings={...prepared,headers:{...prepared.headers,...extraHeaders},body,credentialsPresent:Boolean(credential),allowUnverifiedTls:credential?.allowUnverifiedTls===true,trackTlsFacts:Boolean(def.tlsTrust),capture};
-  sentHeaders={'user-agent':RUNNER_VERSION,accept:PROBE_ACCEPT,...settings.headers};sentSecrets.push(...secretStrings(settings.headers),...secretStrings(credential));if(body){try{sentSecrets.push(...secretStrings(JSON.parse(body)))}catch{sentSecrets.push(String(body))}}sentSecrets=[...new Set(sentSecrets.filter(x=>x&&x.length<=16384))].slice(0,128);
+  sentHeaders={'user-agent':RUNNER_VERSION,accept:PROBE_ACCEPT,...settings.headers};const {headers:localHeaders,...privateCredential}=credential??{};const protectedHeaders=Object.fromEntries(Object.entries(settings.headers).filter(([name])=>!snapshotPolicy?.safeValues?.requestHeaders?.includes(name.toLowerCase())));sentSecrets.push(...secretStrings(protectedHeaders),...secretStrings(privateCredential));if(body){try{sentSecrets.push(...secretStrings(JSON.parse(body)))}catch{sentSecrets.push(String(body))}}sentSecrets=[...new Set(sentSecrets.filter(x=>x&&x.length<=16384))].slice(0,128);
   capture.requestSecrets=sentSecrets;
   const response=await requestOnce(url,pin,method,settings,signal,req=>{sentHeaders=req.getHeaders();capture.requestHeaders=sentHeaders;onRequest(req)},undefined,statusOnly,trust);facts.push(...(response.tlsTrust??[]));return response;
   }catch(error){error.facts=[...facts,...(error.facts??[])];throw error}
@@ -70,7 +70,7 @@ export async function publicHttp(def,signal,onRequest,{statusOnly=false,monitorI
     const next=digestChallengeAuthorization(credential,{url:url.href,method,body,responseHeaders:response.headers,nonceCount:2});response=await send({authorization:next});
    }
   }else if(credential?.auth?.type==='oauth2'&&response.status===401&&/\berror\s*=\s*"?invalid_token\b/i.test(String(response.headers['www-authenticate']??'')))response=await send({},true);
-  if(!Object.hasOwn(response,'redirect'))return {...response,...(snapshotPolicy&&!statusOnly?{failureSnapshot:tryCaptureFailureSnapshot({method,url:url.href,redirects,requestHeaders:sentHeaders,responseHeaders:response.headers,status:response.status,body:response.body,durationMs:0,requestSecrets:sentSecrets,masks:snapshotPolicy.masks})}:{}),...(facts.length?{tlsTrust:facts}:{}),...(credential&&[401,403].includes(response.status)?{authenticationRejected:true}:{})};
+  if(!Object.hasOwn(response,'redirect'))return {...response,...(snapshotPolicy&&!statusOnly?{failureSnapshot:tryCaptureFailureSnapshot({method,url:url.href,redirects,requestHeaders:sentHeaders,responseHeaders:response.headers,status:response.status,body:response.body,durationMs:0,requestSecrets:sentSecrets,masks:snapshotPolicy.masks,safeValues:snapshotPolicy.safeValues,policyVersion:snapshotPolicy.version})}:{}),...(facts.length?{tlsTrust:facts}:{}),...(credential&&[401,403].includes(response.status)?{authenticationRejected:true}:{})};
   if(hop===5||!response.redirect)throw Object.assign(new ProbeError('redirect'),{facts});
   let next;try{next=(def.network==='private'?privateTarget:publicTarget)(new URL(response.redirect,url).href)}catch{throw Object.assign(new ProbeError('network'),{facts})}
   if(url.protocol==='https:'&&next.protocol!=='https:')throw Object.assign(new ProbeError('redirect'),{facts});
@@ -80,7 +80,7 @@ export async function publicHttp(def,signal,onRequest,{statusOnly=false,monitorI
   }else if(response.status===303||(method==='POST'&&[301,302].includes(response.status))){body=undefined;method='GET'}
   if(next.origin!==url.origin)method=method==='HEAD'?'HEAD':'GET';
   if(!redirects.length)redirects.push(url.href);redirects.push(next.href);url=next;
- }}catch(error){error.facts??=facts;if(snapshotPolicy&&!statusOnly)error.failureSnapshot=tryCaptureFailureSnapshot({method,url:url.href,redirects,requestHeaders:sentHeaders,status:null,body:'',durationMs:0,requestSecrets:sentSecrets,masks:snapshotPolicy.masks});throw error}
+ }}catch(error){error.facts??=facts;if(snapshotPolicy&&!statusOnly)error.failureSnapshot=tryCaptureFailureSnapshot({method,url:url.href,redirects,requestHeaders:sentHeaders,status:null,body:'',durationMs:0,requestSecrets:sentSecrets,masks:snapshotPolicy.masks,safeValues:snapshotPolicy.safeValues,policyVersion:snapshotPolicy.version});throw error}
 }
 // Report mode: one read-only fetch for discovery, never a scheduled probe. It reuses resolvePublic's validation and pinning
 // and requestOnce's pinned, identity-encoded, proxy-free socket. It sends no credentials, no cookies and no request body, and

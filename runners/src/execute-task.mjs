@@ -30,7 +30,7 @@ export async function executeTaskProbe(task,probe,{grantPath,controlPort,flowWor
   return runFlow(definition,probe,{privateAccess,grantPath,controlPort,workspace:flowWorkspace,monitorId,signal});
  }
  if(isProtocol(definition.type))return probeProtocol(definition,probe,{signal,privateAccess});
- if(['public','private'].includes(definition.network))return probeHttp(definition,probe,[],{statusOnly,monitorId,signal,privateAccess,snapshotPolicy:task.snapshotPolicy});
+ if(['public','private'].includes(definition.network))return probeHttp(definition,probe,[],{statusOnly,monitorId,signal,privateAccess,snapshotPolicy:task.snapshotPolicy?{...task.snapshotPolicy,artifactBudgetMs:Math.max(1,Math.min(8000/Math.max(1,task.probes.length*(definition.retries+1)),task.acceptUntil-now()-2000))}:undefined});
  const grant=await readGrant(grantPath,controlPort),target=new URL(definition.url);
  if(Number(target.port)!==grant.port||!grant.paths.includes(target.pathname))throw Error('Grant mismatch');
  return probeHttp({...definition,fixtureIdentity:grant.identity},probe,[grant.port],{signal});

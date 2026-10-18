@@ -30,13 +30,13 @@ function peerFacts(socket,hostname){
  if(nameError&&!errors.includes('ERR_TLS_CERT_ALTNAME_INVALID'))errors.push('ERR_TLS_CERT_ALTNAME_INVALID');
  return {sha256,errors};
 }
-function connect({url,pin,signal,ca,clientTls,rejectUnauthorized}){
+function connect({url,pin,signal,ca,clientTls,rejectUnauthorized,phases}){
  return new Promise((resolve,reject)=>{
   if(signal.aborted){reject(failure('TLS_HANDSHAKE_FAILED'));return}
-  const hostname=url.hostname.replace(/^\[|\]$/g,'');let socket,settled=false;
+  const hostname=url.hostname.replace(/^\[|\]$/g,'');let socket,settled=false,connectedAt;const started=Date.now();if(phases){phases.connectMs=null;phases.tlsMs=null}
   const cleanup=()=>{signal.removeEventListener('abort',aborted);socket?.off('secureConnect',ready);socket?.off('error',failed);socket?.off('close',closed)};
   const finish=(error)=>{
-   if(settled)return;settled=true;cleanup();
+   if(settled)return;settled=true;if(phases&&connectedAt!==undefined)phases.tlsMs=Date.now()-connectedAt;cleanup();
    if(error){socket?.destroy();reject(error)}else{
     // Keep the signal authoritative after handoff; the caller owns the socket and HTTP lifetime.
     const stop=()=>socket.destroy();signal.addEventListener('abort',stop,{once:true});
@@ -57,13 +57,13 @@ function connect({url,pin,signal,ca,clientTls,rejectUnauthorized}){
     servername:isIP(hostname)?'':hostname,rejectUnauthorized,
     checkServerIdentity:(_host,peer)=>tls.checkServerIdentity(hostname,peer),ALPNProtocols:['http/1.1'],
     ...(ca?{ca}:{}),...(clientTls?{cert:clientTls.cert,key:clientTls.key,...(clientTls.passphrase===undefined?{}:{passphrase:clientTls.passphrase})}:{})});
-   socket.once('secureConnect',ready);socket.once('error',failed);socket.once('close',closed);
+   socket.once('connect',()=>{connectedAt=Date.now();if(phases)phases.connectMs=connectedAt-started});socket.once('secureConnect',ready);socket.once('error',failed);socket.once('close',closed);
    signal.addEventListener('abort',aborted,{once:true});if(signal.aborted)aborted();
   }catch{finish(failure('TLS_HANDSHAKE_FAILED'))}
  });
 }
 /** Return an authenticated/gated actual application socket. No HTTP bytes are written by this helper. */
-export async function connectTrustedTls({url:inputUrl,pin,signal,trust,credentialsPresent=false,allowUnverifiedTls=false,clientTls}){
+export async function connectTrustedTls({url:inputUrl,pin,signal,trust,credentialsPresent=false,allowUnverifiedTls=false,clientTls,phases}){
  let url;try{url=new URL(inputUrl)}catch{throw failure('TLS_HANDSHAKE_FAILED')}
  if(url.protocol!=='https:'||url.username||url.password||!signal||!isIP(pin?.address)||isIP(pin.address)!==pin.family)throw failure('TLS_HANDSHAKE_FAILED');
  try{trust=normalizeTlsTrust(trust,{type:'http',network:'public',url:url.href})}catch{throw failure('TLS_HANDSHAKE_FAILED')}
@@ -79,14 +79,14 @@ export async function connectTrustedTls({url:inputUrl,pin,signal,trust,credentia
    const diagnostic=await connect({url,pin,signal,rejectUnauthorized:false});let observed;
    try{observed=peerFacts(diagnostic,hostname)}finally{diagnostic.destroy()}
    facts=[fact(observed)];
-   try{socket=await connect({url,pin,signal,ca:trust.certificate,clientTls,rejectUnauthorized:true})}
+   try{socket=await connect({url,pin,signal,ca:trust.certificate,clientTls,rejectUnauthorized:true,phases})}
    catch(error){facts[0].bypassed=false;facts[0].errors=[...new Set([...facts[0].errors,safeCode(error)])].slice(0,8);throw failure(safeCode(error),facts)}
    const actual=peerFacts(socket,hostname);
    if(actual.sha256!==observed.sha256){facts=[{...fact(actual),bypassed:false,errors:[...actual.errors,'TLS_CERTIFICATE_CHANGED']}];throw failure('TLS_CERTIFICATE_CHANGED',facts)}
    if(actual.errors.length)throw failure(actual.errors[0],[{...fact(actual),bypassed:false}]);
    signal.throwIfAborted();if(socket.destroyed)throw failure('TLS_HANDSHAKE_FAILED',facts);return {socket,facts};
   }
-  socket=await connect({url,pin,signal,clientTls,rejectUnauthorized:mode==='default'});
+  socket=await connect({url,pin,signal,clientTls,rejectUnauthorized:mode==='default',phases});
   const observed=peerFacts(socket,hostname);facts=[fact(observed)];
   if(mode==='fingerprint'&&observed.sha256!==trust.sha256){facts[0].errors.push('TLS_FINGERPRINT_MISMATCH');facts[0].bypassed=false;throw failure('TLS_FINGERPRINT_MISMATCH',facts)}
   if(mode==='default'&&observed.errors.length)throw failure(observed.errors[0],facts);

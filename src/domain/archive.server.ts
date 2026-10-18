@@ -1,3 +1,4 @@
+import {openSnapshot,storeSnapshot} from './failure-page-custody.server.ts'
 import {archiveInserts} from './archive-inserts.server.ts'
 import {exportJournal,productFence} from './archive-fence.server.ts'
 import {auditStatement,mutationGuard,type AuditActor} from './audit.server.ts'
@@ -17,6 +18,7 @@ export async function archive(env:Bindings){
  });
  const results=await env.DB.batch(queries),t:Tables={};
  for(let i=0;i<TABLES.length;i++){const name=TABLES[i],rows=results[i].results;if(rows.length>ARCHIVE_ROWS)throw Error(`Archive row bound exceeded: ${name} (${ARCHIVE_ROWS})`);t[name]=rows}
+ for(const row of t.failure_snapshots)row.snapshot=JSON.stringify(await openSnapshot(env,row,true));
  for(const row of t.notification_destinations){
   let address=null;
   const unavailableDefinition=row.ciphertext===null&&row.endpoint===null&&row.signing_secret===null&&row.retired_at===null&&row.unavailable_at!==null;
@@ -60,6 +62,7 @@ export async function restore(env:Bindings,input:any,receipt?:{id:string;sha256:
    if(row.kind==='email'&&address!==null&&row.deleted_at===null)credential.ciphertext=await sealCredential(env,credential,{endpoint:address,signing_secret:null});else credential.unavailable_at=now;
    collect('notification_credentials',credential);
   }
+  if(name==='failure_snapshots')row.snapshot=await storeSnapshot(env,row,JSON.parse(row.snapshot),true);
   if(name==='notification_jobs'){row.credential_id='restored-inactive';row.claim=null;row.claim_until=null}
   if(name==='integration_deliveries'){
    row.fingerprint='restored-inactive';row.destination_hash='unavailable:restored-inactive';row.claim=null;row.claim_until=null;

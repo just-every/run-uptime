@@ -1,3 +1,6 @@
+import {failureEvidenceDocument,failureEvidenceDenied} from './domain/failure-evidence-document.server.ts'
+import {evidencePrincipal,evidenceAccess,saveEvidenceAccess,evidenceSelection} from './domain/failure-evidence-access.server.ts'
+import {incidentDetail} from './domain/incident-work/read.server.ts'
 import {readSnapshots,saveSnapshotSettings,eraseSnapshots,incidentSnapshots} from './domain/failure-snapshots.server.ts'
 import {authorizeMetrics,metricsKeys,createMetricsKey,revokeMetricsKey} from './domain/metrics/auth.server.ts'
 import {metricsSnapshot} from './domain/metrics/snapshot.server.ts'
@@ -78,7 +81,7 @@ api.use('/api/*',async(c,next)=>{c.header('cache-control','no-store');const orig
 const boundary=async(c:any,next:()=>Promise<void>)=>{const headers=c.req.raw.headers,hasBody=Number(headers.get('content-length')??0)>0||headers.has('transfer-encoding');let checked;try{checked=checkInput(c.req.method==='HEAD'?'GET':c.req.method,new URL(c.req.url),c.get('requestText')??'',hasBody)}catch(error){if(error instanceof InputError)return c.json({error:error.message},400);throw error}if(!checked)return c.json({error:'Not found'},404);c.set('input',checked.body);await next()}
 api.use('/api/heartbeats/*',boundary)
 registerHeartbeatReceipts(api)
-api.use('/api/*',async(c,next)=>{if(c.req.header('authorization')?.toLowerCase().startsWith('bearer ')){if(c.req.path!=='/api/v1/metrics'||!['GET','HEAD'].includes(c.req.method))return c.json({error:'Metrics keys authorize only metrics reads'},403);if(!await authorizeMetrics(c.env,c.req.raw))return c.json({error:'Metrics authorization required'},401)}else if(c.req.path.startsWith('/api/runner/')){const row=await storageOperation('runner.authenticate',()=>authenticateRunner(c.env,c.req.header('x-runner-id'),c.req.header('x-runner-key')??''));if(!row)return c.json({error:'Runner authorization required'},401);c.set('runner',row)}else if(!await storageOperation('owner.session',()=>session(c.env,c.req.raw)))return c.json({error:'Owner session required'},401);await next()})
+api.use('/api/*',async(c,next)=>{if(c.req.header('authorization')?.toLowerCase().startsWith('bearer ')){if(c.req.path!=='/api/v1/metrics'||!['GET','HEAD'].includes(c.req.method))return c.json({error:'Metrics keys authorize only metrics reads'},403);if(!await authorizeMetrics(c.env,c.req.raw))return c.json({error:'Metrics authorization required'},401)}else if(/^\/api\/evidence\/monitors\/[^/]+$/.test(c.req.path)&&['GET','HEAD'].includes(c.req.method)){const id=decodeURIComponent(c.req.path.split('/').pop()!);if(!await evidencePrincipal(c.env,c.req.raw,id))return c.json({error:'Evidence access required'},await authenticatedSession(c.env,c.req.raw)?403:401)}else if(c.req.path.startsWith('/api/runner/')){const row=await storageOperation('runner.authenticate',()=>authenticateRunner(c.env,c.req.header('x-runner-id'),c.req.header('x-runner-key')??''));if(!row)return c.json({error:'Runner authorization required'},401);c.set('runner',row)}else if(!await storageOperation('owner.session',()=>session(c.env,c.req.raw)))return c.json({error:'Owner session required'},401);await next()})
 api.use('/api/*',boundary)
 // Only authenticated owner requests can kick hosted work; public traffic and private runners cannot.
 api.use('/api/*',async(c,next)=>{await next();if(c.res.ok&&(c.req.path==='/api/overview'||/^\/api\/(monitors|notifications)(\/|$)/.test(c.req.path))){c.executionCtx.waitUntil(kickHostedWork(c.env).catch(()=>console.error('Hosted console work failed; queued work remains available to Cron.')))}})
@@ -117,6 +120,10 @@ api.patch('/api/monitors/:id',async c=>c.json(await save(c.env,c.get('input'),c.
 api.post('/api/monitors/:id/heartbeat-key',async c=>c.json(await issueHeartbeatKey(c.env,c.req.param('id'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 api.post('/api/monitors/:id/heartbeat-settings',async c=>c.json(await configureHeartbeat(c.env,c.req.param('id'),c.get('input'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})));
 api.get('/api/monitors/:id/heartbeat-runs',async c=>{const monitor=await get(c.env,c.req.param('id'));if(!monitor)return c.json({error:'Monitor not found'},404);return c.json(await heartbeatRuns(c.env,monitor.id,{before:c.req.query('before'),previewFrom:c.req.query('previewFrom')?Number(c.req.query('previewFrom')):undefined}))});
+api.get('/api/evidence/monitors/:id',async c=>c.json(await evidenceSelection(c.env,c.req.param('id'),c.req.query('before'))))
+api.get('/api/monitors/:id/evidence-access',async c=>c.json(await evidenceAccess(c.env,c.req.param('id'))))
+api.post('/api/monitors/:id/evidence-access',async c=>c.json(await saveEvidenceAccess(c.env,c.req.param('id'),c.get('input'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
+api.get('/api/incidents/:id/failure-report',async c=>{const report={...await incidentDetail(c.env,c.req.param('id')),failureSnapshots:await incidentSnapshots(c.env,c.req.param('id'),true)},text=JSON.stringify(report);if(new TextEncoder().encode(text).length>2*1024*1024)throw Error('Incident report exceeds 2 MiB; export a bounded snapshot selection');return new Response(text,{headers:{'content-type':'application/json','content-disposition':'attachment; filename=uptime-incident-report.json','cache-control':'no-store'}})})
 api.get('/api/incidents/:id/failure-snapshots',async c=>c.json(await incidentSnapshots(c.env,c.req.param('id'))))
 api.get('/api/monitors/:id/failure-snapshots',async c=>c.json(await readSnapshots(c.env,c.req.param('id'),c.req.query('before'))))
 api.patch('/api/monitors/:id/failure-snapshots',async c=>c.json(await saveSnapshotSettings(c.env,c.req.param('id'),c.get('input'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
@@ -231,13 +238,14 @@ const handler={async fetch(request,env,execution){
  env=await demoBindings(env as Bindings);
  const invalid=await configurationResponse(env as Bindings);if(invalid)return invalid;
  const limited=await limitPublicRequest(env as Bindings,request);if(limited)return limited;
- const bindings=env as Bindings,url=new URL(request.url),path=url.pathname;
+ const bindings=env as Bindings,url=new URL(request.url),path=url.pathname,isEvidencePage=/^\/app\/evidence\/[^/]+$/.test(path);
  if(url.origin!==bindings.UPTIME_ORIGIN||(request.headers.has('host')&&request.headers.get('host')?.toLowerCase()!==url.host.toLowerCase()))return new Response('Invalid host',{status:403});
  // The Lobby at / and GET /setup/state: Base's shared responses, before the public-path guard and the document renderer.
  const lobbyBindings={DB:bindings.DB,AUTH_ORIGIN:bindings.UPTIME_ORIGIN!};
  const state=await setupStateResponse(request,lobbyBindings,claimed);if(state)return state;
  const lobby=await lobbyResponse(request,lobbyBindings,identity,claimed);if(lobby)return lobby;
- if(!publicPath(path,bindings.UPTIME_LOCAL_REVIEW==='true')&&!isConsoleDocument(path)&&!path.startsWith('/_serverFn/')&&path!=='/api'&&!path.startsWith('/api/'))return notFoundDocument();
+ if(!publicPath(path,bindings.UPTIME_LOCAL_REVIEW==='true')&&!isConsoleDocument(path)&&!isEvidencePage&&!path.startsWith('/_serverFn/')&&path!=='/api'&&!path.startsWith('/api/'))return notFoundDocument();
+ if(isEvidencePage){if(!['GET','HEAD'].includes(request.method))return new Response(null,{status:405});try{const id=decodeURIComponent(path.split('/').pop()!);if(!await evidencePrincipal(bindings,request,id)){if(!await authenticatedSession(bindings,request))return new Response(null,{status:303,headers:{location:'/login','cache-control':'no-store'}});return failureEvidenceDenied()}const response=failureEvidenceDocument(id);return request.method==='HEAD'?new Response(null,response):response}catch(error){return authFailure(error)}}
  if(path==='/auth/owner-claim')return (await ownerClaim(bindings,request))!;
  if(path==='/api/editor/config')return editorConfigResponse(bindings,request);
  if(path.startsWith('/auth/'))return nativeClaimFailure(request,(await authRoute(bindings,request))!,bindings.UPTIME_DEPLOY_ENVIRONMENT);

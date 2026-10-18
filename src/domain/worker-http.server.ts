@@ -16,14 +16,15 @@ import {MAX_BODY} from './policy.mjs'
 // runnerVersion names the evidence protocol the validator accepts; the User-Agent names this release.
 const EVIDENCE_VERSION='uptime-worker/0.1.0',USER_AGENT=`uptime-worker/${seed.version}`
 const BUDGET_REASON='Not checked: this scheduled run reached its outbound request budget. This is not a target failure.'
-export async function boundedBody(response:Response,max:number){
+export async function boundedBody(response:Response,max:number,onPartial?:(body:string)=>void){
  const reader=response.body?.getReader();if(!reader)return {body:'',bytes:0};
  const chunks:Uint8Array[]= [];let bytes=0;
- try{for(;;){const {value,done}=await reader.read();if(done)break;bytes+=value.byteLength;if(bytes>max)throw new ProbeError('body-limit');chunks.push(value)}}finally{await reader.cancel()}
+ const prefix=()=>{const all=new Uint8Array(Math.min(bytes,max));let offset=0;for(const chunk of chunks){all.set(chunk,offset);offset+=chunk.length}return new TextDecoder().decode(all)};
+ try{for(;;){const {value,done}=await reader.read();if(done)break;const before=bytes;bytes+=value.byteLength;chunks.push(value.subarray(0,Math.max(0,max-before)));if(bytes>max)throw new ProbeError('body-limit')}}catch(error){onPartial?.(prefix());throw error}finally{await reader.cancel()}
  const all=new Uint8Array(bytes);let offset=0;for(const chunk of chunks){all.set(chunk,offset);offset+=chunk.byteLength}
  return {body:new TextDecoder().decode(all),bytes}
 }
-interface ProbeContext {dns:PublicDNS;allowance:Allowance;appOrigin?:string;statusOnly?:boolean;snapshotPolicy?:{masks:string[]};capture?:any}
+interface ProbeContext {dns:PublicDNS;allowance:Allowance;appOrigin?:string;statusOnly?:boolean;snapshotPolicy?:{masks:string[];version?:number;safeValues?:any;screenshot?:boolean};capture?:any}
 async function publicResponse(def:any,signal:AbortSignal,{dns,allowance,appOrigin,statusOnly,snapshotPolicy,capture={}}:ProbeContext){
  let url=publicTarget(def.url),method=def.method;const redirects:string[]=[];
  for(let hop=0;hop<=5;hop++){
@@ -48,8 +49,8 @@ async function publicResponse(def:any,signal:AbortSignal,{dns,allowance,appOrigi
   const headers=Object.fromEntries(response.headers);
   if(statusOnly){await response.body?.cancel();return {status:response.status,headers,body:'',bytes:0}}
   if(headers['content-encoding']&&headers['content-encoding']!=='identity'){await response.body?.cancel();throw new ProbeError('encoding')}
-  const payload=await boundedBody(response,MAX_BODY);capture.body=payload.body;
-  return {status:response.status,headers,...payload,...(snapshotPolicy?{failureSnapshot:tryCaptureFailureSnapshot({method,url:url.href,redirects,requestHeaders:{'user-agent':USER_AGENT,accept:'application/json,text/plain,*/*;q=0.1','accept-encoding':'identity'},responseHeaders:headers,status:response.status,body:payload.body,durationMs:0,masks:snapshotPolicy.masks,phases:capture.phases})}:{})};
+  const payload=await boundedBody(response,MAX_BODY,body=>capture.body=body);capture.body=payload.body;
+  return {status:response.status,headers,...payload,...(snapshotPolicy?{failureSnapshot:tryCaptureFailureSnapshot({method,url:url.href,redirects,requestHeaders:{'user-agent':USER_AGENT,accept:'application/json,text/plain,*/*;q=0.1','accept-encoding':'identity'},responseHeaders:headers,status:response.status,body:payload.body,durationMs:0,masks:snapshotPolicy.masks,safeValues:snapshotPolicy.safeValues,policyVersion:snapshotPolicy.version,...(snapshotPolicy.screenshot?{screenshot:{unavailable:'browser_unavailable'}}:{}),phases:capture.phases})}:{})};
  }
  throw new ProbeError('redirect');
 }
@@ -65,6 +66,6 @@ export async function workerProbe(def:any,probe:string,context:ProbeContext){
   const category=error instanceof BudgetExhausted?'budget':signal.aborted||(error as Error)?.name==='TimeoutError'?'timeout':error instanceof ProbeError?error.category:'connection';
   const reason=category==='runner'?SELF_CHECK_REFUSAL:category==='budget'?BUDGET_REASON:error instanceof ProbeError&&error.reason?error.reason:`Probe ${category} check failed`;
   const completedAt=Date.now();
-  return evidence({...(context.snapshotPolicy&&!context.statusOnly&&!['network','runner','budget','vantage'].includes(category)?{failureSnapshot:tryCaptureFailureSnapshot({...capture,method:capture.method??def.method,url:capture.url??def.url,durationMs:completedAt-startedAt,masks:context.snapshotPolicy.masks,...(['timeout','connection','transport','unresolved','dns','tls'].includes(category)?{diagnostics:normalizeNetworkDiagnostics({version:1,category,phases:{...capture.phases,totalMs:completedAt-startedAt},route:{tool:'unavailable',reason:'hosted-transport',hops:[]}})}:{})})}:{}),outcome:runnerErrors.includes(category)?'runner_error':'target_failure',checks:[{assertion:category,pass:false,reason}]},completedAt);
+  return evidence({...(context.snapshotPolicy&&!context.statusOnly&&!['network','runner','budget','vantage'].includes(category)?{failureSnapshot:tryCaptureFailureSnapshot({...capture,method:capture.method??def.method,url:capture.url??def.url,durationMs:completedAt-startedAt,masks:context.snapshotPolicy.masks,safeValues:context.snapshotPolicy.safeValues,policyVersion:context.snapshotPolicy.version,...(context.snapshotPolicy.screenshot?{screenshot:{unavailable:'browser_unavailable'}}:{}),...(['timeout','connection','transport','unresolved','dns','tls'].includes(category)?{diagnostics:normalizeNetworkDiagnostics({version:1,category,phases:{...capture.phases,totalMs:completedAt-startedAt},route:{tool:'unavailable',reason:'hosted-transport',hops:[]}})}:{})})}:{}),outcome:runnerErrors.includes(category)?'runner_error':'target_failure',checks:[{assertion:category,pass:false,reason}]},completedAt);
  }
 }

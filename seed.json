@@ -252,7 +252,7 @@
         "Assigned monitor and flow definitions, canary URLs, retry and lease data, and signed attempt evidence, including status, assertions, timings, and bounded flow trace",
         "Discovery input URLs and derived host/proposal results",
         "For notification delivery, the claimed endpoint URL, signing credential and event payload are returned to the runner for the one configured send; signed outcome and bounded provider response details return to the Worker",
-        "Redacted HTTP failure snapshots (up to 16 KiB excerpt and 32 KiB total) with request header names, masked query values, bounded response headers and redirects return under the signed attempt envelope, then are stored separately under owner retention. Literal masks stay installation-local. Snapshots travel as inactive history in archives and are removed by owner erasure or expiry. No snapshot content is sent in alerts."
+        "Redacted HTTP failure snapshots (16 KiB text, optional 64 KiB PNG, 120 KiB total) carry final request details, owner-approved safe header/email exceptions, measured phases and bounded diagnostics under the signed envelope. Opt-in isolated screenshots render the already received excerpt after inert parsing/redaction, without fetching any target or subresource; scripts, styling and media are removed. Generated PNGs are authenticated-encrypted at rest, read only by owners and explicitly granted per-monitor evidence viewers, portable as redacted archive data, and subject to snapshot retention and erasure. Masks and access grants stay installation-local. Alerts carry no artifact content."
       ],
       "adapters": []
     },
@@ -1287,6 +1287,22 @@
       },
       {
         "path": "/network-diagnostics.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/evidence-viewer.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/evidence-access.js",
         "match": "exact",
         "kind": "asset",
         "class": "assets",

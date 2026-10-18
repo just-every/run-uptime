@@ -300,6 +300,12 @@
       "name": "0047_failure_snapshots.sql",
       "sha256": "ea9422db640242b88c62269b6a5097bc0ff05d22db612146ae6583ac301935c0",
       "sql": "CREATE TABLE failure_snapshots (\n observation_id TEXT PRIMARY KEY,\n monitor_id TEXT NOT NULL REFERENCES monitors(id),\n slot_id TEXT NOT NULL REFERENCES slots(id),\n captured_at INTEGER NOT NULL,\n expires_at INTEGER NOT NULL,\n snapshot TEXT NOT NULL\n);\nCREATE INDEX failure_snapshots_monitor ON failure_snapshots(monitor_id,captured_at DESC,observation_id);\nCREATE INDEX failure_snapshots_expiry ON failure_snapshots(expires_at);\nCREATE TABLE failure_snapshot_settings (\n monitor_id TEXT PRIMARY KEY REFERENCES monitors(id),\n version INTEGER NOT NULL DEFAULT 1,\n retention_days INTEGER NOT NULL DEFAULT 90,\n masks TEXT NOT NULL DEFAULT '[]'\n);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0048_failure_page_policy.sql",
+      "sha256": "953a96230cb1c91236ac84884868d4f28ae41440dcfa3037a5480077117436c1",
+      "sql": "ALTER TABLE failure_snapshot_settings ADD COLUMN safe_values TEXT NOT NULL DEFAULT '{\"requestHeaders\":[],\"responseHeaders\":[],\"email\":false}';\nALTER TABLE failure_snapshot_settings ADD COLUMN screenshot INTEGER NOT NULL DEFAULT 0;\nCREATE TABLE failure_evidence_grants (\n monitor_id TEXT NOT NULL REFERENCES monitors(id),\n operator_id TEXT NOT NULL REFERENCES oa_operators(id),\n granted_at INTEGER NOT NULL,\n PRIMARY KEY(monitor_id,operator_id)\n);\n"
     }
   ],
   "compatibilityDate": "2026-09-08",

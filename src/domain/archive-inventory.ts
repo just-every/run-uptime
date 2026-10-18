@@ -2,6 +2,7 @@ import {TABLES,columns} from './archive-schema.ts'
 /** Every permanent schema table has a portability decision. Unknown tables and
  * foreign integration namespaces refuse export rather than silently lose data. */
 export const installationLocalTables:Record<string,string>={
+ failure_evidence_grants:'Installation-local per-monitor evidence-viewer grants; never portable access authority.',
  failure_snapshot_settings:'Installation-local literal masks and retention policy; restored failure snapshots keep their original expiry, never execution authority.',
  notification_preferences:'Installation alert time zone; immutable event contexts preserve their own saved zone in archives.',
  slow_acknowledgements:'Installation Slow-notice acknowledgement and reminder authority; archived performance history never replays.',

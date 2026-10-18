@@ -62,7 +62,7 @@
     "test:heartbeat": "node tests/heartbeat-schedules.mjs && node tests/heartbeat-schedules-browser.mjs",
     "test:ping": "node tests/ping-monitors.mjs && node tests/ping-browser.mjs",
     "test:metrics": "node tests/metrics.mjs && node tests/metrics-browser.mjs",
-    "test:snapshots": "node --test --test-concurrency=1 tests/failure-snapshots.mjs tests/failure-snapshots-hosted.mjs tests/connection-diagnostics.mjs"
+    "test:snapshots": "node --test --test-concurrency=1 tests/failure-snapshots.mjs tests/failure-snapshots-hosted.mjs tests/connection-diagnostics.mjs tests/failure-page-journey.mjs"
   },
   "dependencies": {
     "@pdf-lib/fontkit": "1.1.1",

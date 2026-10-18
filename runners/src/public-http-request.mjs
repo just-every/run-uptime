@@ -12,7 +12,7 @@ export async function requestOnce(url,pin,method,settings,signal,onRequest,repor
  let socket,facts=[];const started=Date.now(),capture=settings.capture,phases=capture?.phases;
  if(phases){phases.connectMs=null;phases.tlsMs=null;phases.ttfbMs=null}
  if(url.protocol==='https:'&&(trust||settings.tls||settings.trackTlsFacts)){
-  try{const connected=await connectTrustedTls({url,pin,signal,trust,credentialsPresent:settings.credentialsPresent,allowUnverifiedTls:settings.allowUnverifiedTls,clientTls:settings.tls});socket=connected.socket;facts=connected.facts;if(phases)phases.tlsMs=Date.now()-started}
+  try{const connected=await connectTrustedTls({url,pin,signal,trust,credentialsPresent:settings.credentialsPresent,allowUnverifiedTls:settings.allowUnverifiedTls,clientTls:settings.tls,phases});socket=connected.socket;facts=connected.facts}
   catch(error){throw Object.assign(new ProbeError(signal.aborted?'timeout':error.category??'tls',error.reason),{facts:error.facts??[]})}
  }
  return new Promise((resolve,reject)=>{
@@ -37,7 +37,7 @@ export async function requestOnce(url,pin,method,settings,signal,onRequest,repor
      if(size+chunk.length>report.maxBody){chunks.push(chunk.subarray(0,report.maxBody-size));size=report.maxBody;finish({status:res.statusCode,headers:res.headers,body:Buffer.concat(chunks).toString('utf8'),bytes:size,truncated:true});res.destroy()}
      else{size+=chunk.length;chunks.push(chunk)}
     });
-    else res.on('data',chunk=>{size+=chunk.length;if(size>MAX_BODY){fail('body-limit');res.destroy()}else chunks.push(chunk)});
+    else res.on('data',chunk=>{size+=chunk.length;if(size>MAX_BODY){chunks.push(chunk.subarray(0,Math.max(0,MAX_BODY-(size-chunk.length))));fail('body-limit');res.destroy()}else chunks.push(chunk)});
     res.on('end',()=>finish({status:res.statusCode,headers:res.headers,body:Buffer.concat(chunks).toString('utf8'),bytes:size}));
     res.on('error',()=>fail('transport'));res.on('close',()=>{if(!res.complete)fail('transport')});
    });
