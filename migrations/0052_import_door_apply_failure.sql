@@ -1,4 +1,4 @@
--- Base rer 0.2.61 importDoorApplyFailureMigration, for the door 0049 installed. One atomic batch
+-- Base rer 0.2.61 importDoorApplyFailureMigration, for the door 0050 installed. One atomic batch
 -- with foreign keys on: it keeps every plan id, chunk and approval, drops the one-plan-per-bundle
 -- rule so a failed apply can be planned again, and adds ik_door_apply_failures.
 CREATE TABLE IF NOT EXISTS ik_door_plans_apply_failure (

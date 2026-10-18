@@ -178,14 +178,14 @@
       }
     },
     {
-      "path": "migrations/0050_import_custody_replace.sql",
+      "path": "migrations/0051_import_custody_replace.sql",
       "originPath": "default-seed/migrations/core/0026_import_custody_replace.sql",
       "revision": "3478fc15bb18c2f74def8e8906bd308320c7953b",
       "files": {
-        "migrations/0050_import_custody_replace.sql": "3c18b6de3352ded7465ff87b628d0cad84472f475fe545e98cce78407e9a38ea"
+        "migrations/0051_import_custody_replace.sql": "3c18b6de3352ded7465ff87b628d0cad84472f475fe545e98cce78407e9a38ea"
       },
       "modes": {
-        "migrations/0050_import_custody_replace.sql": "100644"
+        "migrations/0051_import_custody_replace.sql": "100644"
       }
     },
     {
