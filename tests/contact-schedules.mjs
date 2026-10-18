@@ -13,7 +13,7 @@ test('contact schedules survive restart, stop on recovery/ack, and never replay 
   for(const name of ['Operations now','Escalation delayed','No recovery','Stop on acknowledgement'])contacts.push(await ok('/api/notifications/destinations',{name,kind:'webhook',url:`https://alerts.example.com/${contacts.length}`}));
   const monitor=await f.monitor({name:'Checkout API',runners:[f.first],canary:true}),fast=await f.monitor({name:'Short outage',runners:[f.first],canary:true});
   const route=id=>`/api/monitors/${id}/alert-route`;
-  const settings=Object.fromEntries(contacts.map((c,i)=>[c.id,{delayMinutes:i===1?1:0,repeatMinutes:i===1||i===3?1:0,maxRepeats:1,recovery:i!==2,stopOnAck:i===3}]));
+  const settings=Object.fromEntries(contacts.map((c,i)=>[c.id,{delayMinutes:i===1||i===3?1:0,repeatMinutes:i===1||i===3?1:0,maxRepeats:1,recovery:i!==2,stopOnAck:i===3}]));
   for(const m of [monitor,fast]){
    const input={scope:'monitor',mode:'selected',destinationIds:contacts.map(c=>c.id),contactSettings:settings,expectedRevision:0};
    const plan=await ok(route(m.id)+'/preview',input);assert.deepEqual(plan.recipients.find(d=>d.id===contacts[1].id).contactSettings,settings[contacts[1].id]);
@@ -44,6 +44,7 @@ test('contact schedules survive restart, stop on recovery/ack, and never replay 
   const due=trigger.observedAt+60500;await new Promise(r=>setTimeout(r,Math.max(0,due-Date.now())));
   await dispatchNotifications(rpc,transport);
   assert.equal(received.filter(r=>r.event.monitorId===monitor.id&&r.url.endsWith('/1')&&r.event.kind==='trigger').length,1);
+  assert.equal(received.filter(r=>r.event.monitorId===monitor.id&&r.url.endsWith('/3')&&r.event.kind==='trigger').length,1,'acknowledgement stops repeats while preserving a delayed initial notice for an open incident');
   assert.equal(received.filter(r=>r.event.monitorId===monitor.id&&r.url.endsWith('/3')&&r.event.kind==='reminder').length,0,'selected acknowledgement policy stops reminders');
   await new Promise(r=>setTimeout(r,Math.max(0,trigger.observedAt+120500-Date.now())));
   await dispatchNotifications(rpc,transport);await dispatchNotifications(rpc,transport);

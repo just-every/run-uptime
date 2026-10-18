@@ -15,7 +15,7 @@ export async function advanceContactSchedules(env:Bindings){
  // Settle only queued work. Started/uncertain transports keep their own outcome.
  await env.DB.batch([
   env.DB.prepare(`UPDATE notification_jobs AS j SET state='rejected',code='contact_schedule_stopped',finished_at=? WHERE state='queued' AND NOT ${contactReady('j',String(now))}
-   AND EXISTS(SELECT 1 FROM alert_contact_schedules s JOIN notification_jobs t ON t.id=s.trigger_job_id WHERE t.destination_id=j.destination_id AND s.monitor_id=json_extract(j.event,'$.monitorId') AND s.incident_key=json_extract(j.event,'$.incidentKey') AND NOT (${active}))
+   AND EXISTS(SELECT 1 FROM alert_contact_schedules s JOIN notification_jobs t ON t.id=s.trigger_job_id WHERE t.destination_id=j.destination_id AND s.monitor_id=json_extract(j.event,'$.monitorId') AND s.incident_key=json_extract(j.event,'$.incidentKey') AND (EXISTS(SELECT 1 FROM outbox r WHERE r.monitor_id=s.monitor_id AND r.kind='recovery' AND json_extract(r.event,'$.incidentKey')=s.incident_key) OR (json_extract(j.event,'$.kind')='reminder' AND NOT (${active}))))
    AND NOT EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace='uptime-notifications' AND d.id=j.id AND d.state<>'queued')`).bind(now),
   env.DB.prepare(`UPDATE integration_deliveries SET state='rejected',next_at=? WHERE namespace='uptime-notifications' AND state='queued' AND id IN(SELECT id FROM notification_jobs WHERE code='contact_schedule_stopped')`).bind(now),
   env.DB.prepare(`UPDATE alert_contact_schedules AS s SET next_at=NULL WHERE NOT EXISTS(SELECT 1 FROM notification_jobs t WHERE t.id=s.trigger_job_id AND ${active})`),
