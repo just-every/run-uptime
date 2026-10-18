@@ -12,7 +12,7 @@ const directory=await runtimeDirectory(),[port]=await availablePorts(1);
 let worker;
 const documents=['/app','/app/','/app/monitor','/app/monitor/','/app/monitors/private','/_serverFn/private','/setup'];
 // Every owner route in the Worker's route table (runner and heartbeat routes carry their own credentials and are checked below).
-const ownerRoutes=apiRoutes.filter(route=>!route.path.startsWith('/api/runner/')&&!route.path.startsWith('/api/heartbeats/')&&!route.path.startsWith('/api/evidence/')).map(route=>[route.method,route.path.replace(':id',route.path.startsWith('/api/discoveries/')?'00000000-0000-0000-0000-000000000000':'private')]);
+const ownerRoutes=apiRoutes.filter(route=>route.path!=='/api/v1/openapi.json'&&!route.path.startsWith('/api/runner/')&&!route.path.startsWith('/api/heartbeats/')&&!route.path.startsWith('/api/evidence/')).map(route=>[route.method,route.path.replace(':id',route.path.startsWith('/api/discoveries/')?'00000000-0000-0000-0000-000000000000':'private')]);
 const reads=ownerRoutes.filter(([method])=>method==='GET').map(([,path])=>path),writes=ownerRoutes.filter(([method])=>method!=='GET');
 // Every durable table but the request counters a refused request may still advance.
 async function everything(DB){

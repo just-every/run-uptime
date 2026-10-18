@@ -1,3 +1,6 @@
+import {monitoringMonitors,monitoringMonitor} from './domain/read-api/monitors.server.ts'
+import {bulkUptime} from './domain/read-api/bulk.server.ts'
+import {bulkUptimeCsv,incidentListCsv} from './domain/read-api/csv.ts'
 import {failureEvidenceDocument,failureEvidenceDenied} from './domain/failure-evidence-document.server.ts'
 import {evidencePrincipal,evidenceAccess,saveEvidenceAccess,evidenceSelection} from './domain/failure-evidence-access.server.ts'
 import {incidentDetail} from './domain/incident-work/read.server.ts'
@@ -81,7 +84,7 @@ api.use('/api/*',async(c,next)=>{c.header('cache-control','no-store');const orig
 const boundary=async(c:any,next:()=>Promise<void>)=>{const headers=c.req.raw.headers,hasBody=Number(headers.get('content-length')??0)>0||headers.has('transfer-encoding');let checked;try{checked=checkInput(c.req.method==='HEAD'?'GET':c.req.method,new URL(c.req.url),c.get('requestText')??'',hasBody)}catch(error){if(error instanceof InputError)return c.json({error:error.message},400);throw error}if(!checked)return c.json({error:'Not found'},404);c.set('input',checked.body);await next()}
 api.use('/api/heartbeats/*',boundary)
 registerHeartbeatReceipts(api)
-api.use('/api/*',async(c,next)=>{if(c.req.header('authorization')?.toLowerCase().startsWith('bearer ')){if(c.req.path!=='/api/v1/metrics'||!['GET','HEAD'].includes(c.req.method))return c.json({error:'Metrics keys authorize only metrics reads'},403);if(!await authorizeMetrics(c.env,c.req.raw))return c.json({error:'Metrics authorization required'},401)}else if(/^\/api\/evidence\/monitors\/[^/]+$/.test(c.req.path)&&['GET','HEAD'].includes(c.req.method)){const id=decodeURIComponent(c.req.path.split('/').pop()!);if(!await evidencePrincipal(c.env,c.req.raw,id))return c.json({error:'Evidence access required'},await authenticatedSession(c.env,c.req.raw)?403:401)}else if(c.req.path.startsWith('/api/runner/')){const row=await storageOperation('runner.authenticate',()=>authenticateRunner(c.env,c.req.header('x-runner-id'),c.req.header('x-runner-key')??''));if(!row)return c.json({error:'Runner authorization required'},401);c.set('runner',row)}else if(!await storageOperation('owner.session',()=>session(c.env,c.req.raw)))return c.json({error:'Owner session required'},401);await next()})
+api.use('/api/*',async(c,next)=>{if(c.req.path==='/api/v1/openapi.json'&&['GET','HEAD'].includes(c.req.method)){await next();return}if(c.req.header('authorization')?.toLowerCase().startsWith('bearer ')){if(c.req.path!=='/api/v1/metrics'||!['GET','HEAD'].includes(c.req.method))return c.json({error:'Metrics keys authorize only metrics reads'},403);if(!await authorizeMetrics(c.env,c.req.raw))return c.json({error:'Metrics authorization required'},401)}else if(/^\/api\/evidence\/monitors\/[^/]+$/.test(c.req.path)&&['GET','HEAD'].includes(c.req.method)){const id=decodeURIComponent(c.req.path.split('/').pop()!);if(!await evidencePrincipal(c.env,c.req.raw,id))return c.json({error:'Evidence access required'},await authenticatedSession(c.env,c.req.raw)?403:401)}else if(c.req.path.startsWith('/api/runner/')){const row=await storageOperation('runner.authenticate',()=>authenticateRunner(c.env,c.req.header('x-runner-id'),c.req.header('x-runner-key')??''));if(!row)return c.json({error:'Runner authorization required'},401);c.set('runner',row)}else if(!await storageOperation('owner.session',()=>session(c.env,c.req.raw)))return c.json({error:'Owner session required'},401);await next()})
 api.use('/api/*',boundary)
 // Only authenticated owner requests can kick hosted work; public traffic and private runners cannot.
 api.use('/api/*',async(c,next)=>{await next();if(c.res.ok&&(c.req.path==='/api/overview'||/^\/api\/(monitors|notifications)(\/|$)/.test(c.req.path))){c.executionCtx.waitUntil(kickHostedWork(c.env).catch(()=>console.error('Hosted console work failed; queued work remains available to Cron.')))}})
@@ -131,7 +134,21 @@ api.delete('/api/monitors/:id/failure-snapshots',async c=>c.json(await eraseSnap
 api.get('/api/monitors/:id/history',async c=>c.json(await history(c.env,c.req.param('id'))))
 api.get('/api/monitors/:id/incidents',async c=>c.json(await incidents(c.env,c.req.param('id'))))
 api.get('/api/monitors/:id/revisions',async c=>c.json(await revisions(c.env,c.req.param('id'))))
-api.get('/api/v1/incidents',async c=>c.json(await incidentList(c.env,new URL(c.req.url).searchParams)))
+api.get('/api/v1/monitors',async c=>c.json(await monitoringMonitors(c.env,new URL(c.req.url).searchParams)))
+api.get('/api/v1/monitors/:id',async c=>{const monitor=await monitoringMonitor(c.env,c.req.param('id'));return monitor?c.json(monitor):c.json({error:'Monitor not found'},404)})
+api.get('/api/v1/uptime',async c=>{
+ try{
+  const result=await bulkUptime(c.env,new URL(c.req.url).searchParams)
+  if(c.req.query('format')==='csv'||c.req.header('accept')?.includes('text/csv'))return c.body(bulkUptimeCsv(result),200,{'content-type':'text/csv; charset=utf-8','content-disposition':'attachment; filename="uptime-bulk.csv"'})
+  return c.json(result)
+ }catch(error){if(error instanceof ReportInputError&&error.code==='monitor_not_found')return c.json({error:error.message,code:error.code},404);throw error}
+})
+api.get('/api/v1/incidents',async c=>{
+ const result=await incidentList(c.env,new URL(c.req.url).searchParams)
+ if(result.nextCursor){const next=new URL(c.req.url);next.searchParams.set('cursor',result.nextCursor);c.header('link',`<${next}>; rel="next"`);c.header('x-next-cursor',result.nextCursor)}
+ if(c.req.query('format')==='csv'||c.req.header('accept')?.includes('text/csv'))return c.body(incidentListCsv(result),200,{'content-type':'text/csv; charset=utf-8','content-disposition':'attachment; filename="uptime-incidents.csv"'})
+ return c.json(result)
+})
 for(const path of ['/api/incidents/:id','/api/v1/incidents/:id','/api/incident-settings'])api.get(path,c=>incidentWorkRequest(c.env,c.req.raw,c.get('input')))
 api.patch('/api/incident-settings',c=>incidentWorkRequest(c.env,c.req.raw,c.get('input')))
 api.post('/api/incidents/:id/comments',c=>incidentWorkRequest(c.env,c.req.raw,c.get('input')))

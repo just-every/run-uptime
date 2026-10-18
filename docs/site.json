@@ -97,6 +97,12 @@
           "title": "Metrics and dashboards",
           "file": "metrics.md",
           "summary": "Connect read-only Prometheus scrapes, Grafana dashboards and explicit Datadog or signed webhook exports."
+        },
+        {
+          "slug": "read-api",
+          "title": "Monitoring API and CSV",
+          "file": "read-api.md",
+          "summary": "Read current coverage, bulk uptime, incident CSV and calendar reports through authenticated versioned routes."
         }
       ]
     },

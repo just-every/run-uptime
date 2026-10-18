@@ -1,17 +1,18 @@
+import {configuredPeriod} from './configured-period.server.ts'
 import {heartbeatRuns} from '../heartbeat-jobs.server.ts'
 import { periodAvailability } from './coverage.server.ts'
 import { periodLatency, latencyOptions } from './latency.server.ts'
 import {periodSlow} from './slow.server.ts'
 import {periodFlowProfiles} from './flow-profiles.server.ts'
 import { periodIncidents } from './incidents.server.ts'
-import { normalizePeriod, type ReportPeriod } from './period.ts'
+import type {ReportPeriod} from './period.ts'
 
 export { reportPeriod, ReportInputError, type ReportPeriod } from './period.ts'
 export { monitorLatency, latencyOptions, REPORT_POINT_LIMIT, type LatencyBucket } from './latency.server.ts'
 export { reportCsv, reportJson } from './export.ts'
 
 export async function monitorReport(env: { DB: D1Database }, id: string, params: URLSearchParams | ReportPeriod, now = Date.now()) {
-  const period = normalizePeriod(params, now)
+  const period = await configuredPeriod(env, params, now)
   const options = latencyOptions(params instanceof URLSearchParams ? params : new URLSearchParams())
   const monitor = await env.DB.prepare('SELECT id,revision,definition FROM monitors WHERE id=?').bind(id)
     .first<{ id: string; revision: number; definition: string }>()

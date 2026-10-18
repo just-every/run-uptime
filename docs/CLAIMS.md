@@ -1,6 +1,6 @@
 # Implementation claims
 
-These claims track the daily-use clauses built in the 18 October 2026 round.
+These claims track the daily-use clauses built through the 19 October 2026 rounds.
 The complete target and current implementation status remain in CONTRACT.md.
 
 | Clause | Status | Proven behavior | Evidence |
@@ -20,3 +20,5 @@ The complete target and current implementation status remain in CONTRACT.md.
 | DIAG-001 | partial | HTTP/keyword connection phases and bounded numeric route hops attach to signed failure snapshots and incident detail. Blocked/missing/unsupported diagnostics stay unavailable; archive/erasure and 1440/390 journeys pass. Non-HTTP attachment and real independent-location route/TLS/DNS qualification remain open. | `tests/connection-diagnostics.mjs`; `tests/connection-diagnostics-browser.mjs` |
 
 | FLOW-001 | partial | Login, synthetic signup and sandbox order submission are qualified through the real Worker and two isolated signed runner processes. Numeric destination preflight preserves blocked metadata evidence across all three engines. The retained failure matrix distinguishes navigation timeout from a missing control; original-definition scheduled recovery and unavailable-browser Unknown are inspected at 1440/390. Independent network placement and hosted customer-path qualification remain open. | `tests/flow-qualification.mjs`; `tests/flow-qualification-browser.mjs`; `tests/flow-journey.mjs`; `docs/browser-flows.md` |
+
+| READAPI-001 | partial | Owner-session monitor/current-coverage cursors, tag and bulk uptime reads, filtered paged incident CSV and zoned calendar periods share exact report figures and denominators. Public OpenAPI, owner default zone, 90-day response-time refusal and 1440/390 report/download/guide journeys pass. Scoped keys, per-key limits, MFA step-up, sourced-history segments, hosted 500-monitor capacity and escalation/handoff next-due policy remain open. | `src/domain/read-api/`; `tests/read-api.mjs`; `tests/read-api-browser.mjs`; `docs/read-api.md`; `docs/evidence/contracts/read-api/` |
