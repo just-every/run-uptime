@@ -30,6 +30,9 @@ export function reportCsv(report: MonitorReport): string {
   for (const point of report.latency.series) for (const [metric, value] of Object.entries(point)) {
     if (metric !== 'at' && metric !== 'to' && metric !== 'location') add('latency_series', metric, value, metric === 'count' ? 'samples' : 'ms', point.location, point.at, point.to)
   }
+  add('slow','slowMs',report.slow.slowMs,'ms');
+  add('policy','slowPolicy',report.slow.policy);
+  for(const episode of report.slow.episodes)add('slow_episode','durationInPeriodMs',episode.durationInPeriodMs,'ms','',episode.startedAt,episode.endedAt,episode.key);
   for (const incident of report.incidents) {
     add('incident','rootCauseCategory',incident.rootCause.categoryLabel,'','',incident.startedAt,incident.endedAt,incident.key)
     add('incident','rootCauseAccount',incident.rootCause.text,'','',incident.startedAt,incident.endedAt,incident.key)

@@ -51,7 +51,8 @@
         "DELIVERY-001",
         "NOTICE-001",
         "WEBHOOK-001",
-        "ROUTING-002"
+        "ROUTING-002",
+        "SLOW-001"
       ]
     }
   ],
@@ -1164,6 +1165,22 @@
       },
       {
         "path": "/heartbeat-jobs.css",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/slow-policy.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/slow-policy.css",
         "match": "exact",
         "kind": "asset",
         "class": "assets",

@@ -10,6 +10,7 @@ import {acceptanceMs,missedSlots,nextDueAfter} from './schedule.ts'
 import {finalAttempts,terminalSlot,projectAttempts} from './attempt-projection.ts'
 import {attemptSnapshot,checkpointStatement} from './attempt-checkpoint.server.ts'
 import {classifyAttempts} from './attempt-classification.ts'
+import {slowNotice} from './slow-notices.server.ts'
 import {incidentEvent} from './notification-content.ts'
 import {incidentDeliveryStatements} from './alert-route-delivery.server.ts'
 import {HOSTED_RUNNER_ID} from './hosted-runner.ts'
@@ -110,6 +111,13 @@ export async function completeAttempts(env:Bindings,input:any,runnerId:string){
    const event=incidentEvent({id:`${slot.id}:${kind}`,kind,monitor:m,slotId:slot.id,now,state,observations:finalAttempts(definition,combined.filter(o=>o.slot_id===slot.id).map(o=>JSON.parse(o.evidence))),origin:env.UPTIME_ORIGIN,incidentKey:state.incidentKey,contextVersion:2,timeZone:(await notificationPreferences(env)).timeZone,trigger:trigger?JSON.parse(trigger.event):null});
    statements.push(env.DB.prepare(`INSERT OR IGNORE INTO outbox(id,monitor_id,slot_id,kind,event) SELECT ?,?,?,?,? WHERE ${guard} AND EXISTS(SELECT 1 FROM monitors WHERE id=? AND revision=?)`).bind(event.id,m.id,slot.id,kind,JSON.stringify(event),...values,m.id,m.revision));
    statements.push(...incidentDeliveryStatements(env,event,guard,values));
+  }
+  if(current&&!state.maintenance){
+   const event=await slowNotice(env,m,slot,fresh,now);
+   if(event){
+    statements.push(env.DB.prepare(`INSERT OR IGNORE INTO outbox(id,monitor_id,slot_id,kind,event) SELECT ?,?,?,?,? WHERE ${guard} AND EXISTS(SELECT 1 FROM monitors WHERE id=? AND revision=?)`).bind(event.id,m.id,slot.id,event.kind,JSON.stringify(event),...values,m.id,m.revision));
+    statements.push(...incidentDeliveryStatements(env,event,guard,values,definition.slow));
+   }
   }
   // Staged expiry warnings and renewals (TLS-001, DOMAIN-001) follow the same current-revision and maintenance rules as incidents.
   if(current&&!state.maintenance&&['tls','domain'].includes(definition.type)){

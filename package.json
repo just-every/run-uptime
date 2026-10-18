@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.runner.json",
     "verify": "rer verify",
     "setup": "rer setup",
+    "test:slow": "node --test tests/slow-import.mjs && node --test tests/slow-responses.mjs",
     "test:runtime": "node tests/control-runtime.mjs",
     "test:ui": "node tests/operator-browser.mjs",
     "test:intake": "node tests/worker-intake.mjs",

@@ -26,8 +26,14 @@ function map(entry:SourceEntry):Mapping{
  if(hasSecrets)differences.push(`Authentication, headers and request body are not imported. Re-enter them in the monitor-bound local credential file ${credentialRef}.`)
  if(http.verify_certificate===false)differences.push(http.encryption?'Certificate errors were ignored in Pingdom. The reviewed trust exception is preserved for the initial HTTPS origin only, requires a private runner, and grants no credential authority.':'The source disabled certificate verification on plain HTTP; there is no TLS connection to exempt.')
  if(http.ssl_down_days_before)differences.push('Pingdom certificate-expiry downtime threshold is not an HTTP trust exception. Add and review a separate TLS certificate monitor.')
- if(check.responsetime_threshold)differences.push('Pingdom response-time threshold is not imported. Choose an explicit latency failure or slow-response policy before enabling.')
+ const threshold=check.responsetime_threshold
+ let slow
+ if(threshold!==undefined&&threshold!==null&&threshold!==0){
+  if(!Number.isInteger(threshold)||threshold<1)return {refused:'Pingdom responsetime_threshold must be a positive whole number of milliseconds, or 0 to disable it.'}
+  if(threshold>=10000)return {refused:'Pingdom response-time threshold must be below the imported 10000 ms request timeout. Review the timeout and slow-response threshold before importing.'}
+  slow={thresholdMs:threshold,mode:'consecutive',slots:1,percentile:95,locations:'all',destinationIds:null,contactSettings:{}}
+ }
  if(check.notifyagainevery||check.notifywhenbackup===false)differences.push('Pingdom repeat and disabled recovery-notice settings are not carried into contact routing. Review the notification policy before enabling.')
- return {definition:{name:check.name,type:assertions.bodyIncludes||assertions.bodyExcludes?'keyword':'http',url:url.href,method:http.postdata?'POST':'GET',intervalMs:check.resolution*60000,timeoutMs:10000,retries:0,confirmSlots:check.sendnotificationwhendown??2,recoverSlots:2,probes:['local-a'],enabled:false,assertions,...(hasSecrets?{request:{credentialRef}}:{}),...(http.encryption&&http.verify_certificate===false?{tlsTrust:{mode:'ignore',acknowledged:true}}:{})},differences}
+ return {definition:{name:check.name,type:assertions.bodyIncludes||assertions.bodyExcludes?'keyword':'http',url:url.href,method:http.postdata?'POST':'GET',intervalMs:check.resolution*60000,timeoutMs:10000,retries:0,confirmSlots:check.sendnotificationwhendown??2,recoverSlots:2,probes:['local-a'],enabled:false,assertions,...(slow?{slow}:{}),...(hasSecrets?{request:{credentialRef}}:{}),...(http.encryption&&http.verify_certificate===false?{tlsTrust:{mode:'ignore',acknowledged:true}}:{})},differences}
 }
 export const pingdomImporter:Importer={source:'pingdom',label:'Pingdom saved HTTP check details',detect(text){try{records(text);return true}catch{return false}},entries(text){return boundEntries(records(text)).map((value:any,index)=>({index,label:`Pingdom check ${index+1}`,value}))},map}

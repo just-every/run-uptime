@@ -27,7 +27,7 @@ export async function closeServer(server){
 export async function fixture(extraBindings={},outbound){
  const directory=await mkdtemp(join(tmpdir(),'uptime-resilience-')),key='test-only-resilience-runner-key-0001',legacyId=`self-${randomUUID()}`;
  const modes={target:503,canary:200,canaryBytes:0},migratedContact=Date.now()-5;
- const target=http.createServer((req,res)=>{res.statusCode=req.url==='/canary'?modes.canary:modes.target;res.end(req.url==='/canary'&&modes.canaryBytes?Buffer.alloc(modes.canaryBytes,'x'):'local network edge')});
+ const target=http.createServer(async(req,res)=>{if(req.url!=='/canary'&&modes.delayMs)await new Promise(resolve=>setTimeout(resolve,modes.delayMs));res.statusCode=req.url==='/canary'?modes.canary:modes.target;res.end(req.url==='/canary'&&modes.canaryBytes?Buffer.alloc(modes.canaryBytes,'x'):'local network edge')});
  const original=http.request;let worker,port,closing;
  function close(){
   return closing??=(async()=>{

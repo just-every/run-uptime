@@ -282,6 +282,12 @@
       "name": "0044_contact_schedules.sql",
       "sha256": "84e2a688ef9177dada22b3960290f1f2bf4c359678373920a497050501b0d784",
       "sql": "ALTER TABLE alert_routes ADD COLUMN contact_settings TEXT NOT NULL DEFAULT '{}';\n-- Installation-local dispatch authority, snapshotted at confirmation, never restored active.\nCREATE TABLE alert_contact_schedules (\n trigger_job_id TEXT PRIMARY KEY, monitor_id TEXT NOT NULL, incident_key TEXT NOT NULL,\n due_at INTEGER NOT NULL, repeat_ms INTEGER NOT NULL, max_repeats INTEGER,\n emitted_repeats INTEGER NOT NULL DEFAULT 0, next_at INTEGER,\n recovery INTEGER NOT NULL, stop_on_ack INTEGER NOT NULL\n);\nCREATE INDEX alert_contact_schedules_due ON alert_contact_schedules(next_at);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0045_slow_acknowledgements.sql",
+      "sha256": "ad9b34dcb3bf90fa938e44841b3b49549dd675c316dbb808116361329bf98a6a",
+      "sql": "-- Installation-local authority to stop selected performance reminders.\nCREATE TABLE slow_acknowledgements (\n opening_event_id TEXT PRIMARY KEY, monitor_id TEXT NOT NULL,\n actor_id TEXT, acknowledged_at INTEGER NOT NULL\n);\nCREATE INDEX slow_acknowledgements_monitor ON slow_acknowledgements(monitor_id);\n"
     }
   ],
   "compatibilityDate": "2026-09-08",
