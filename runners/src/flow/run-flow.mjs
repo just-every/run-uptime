@@ -41,7 +41,7 @@ const reasonText = (failure, flow, wallMs) => {
   }
 };
 
-export async function runFlow(definition, probe, {grantPath, controlPort, workspace, credentialDir = process.env.UPTIME_CREDENTIAL_DIR, capability, monitorId, signal} = {}) {
+export async function runFlow(definition, probe, {grantPath, controlPort, workspace, credentialDir = process.env.UPTIME_CREDENTIAL_DIR, capability, monitorId, signal, privateAccess} = {}) {
   const startedAt = Date.now(), flow = definition.flow;
   const observation = data => ({id: randomUUID(), probe, startedAt, completedAt: Date.now(), durationMs: 0, runnerVersion: RUNNER_VERSION, ...data});
   const finish = o => ({...o, durationMs: o.completedAt - o.startedAt});
@@ -67,7 +67,7 @@ export async function runFlow(definition, probe, {grantPath, controlPort, worksp
   if (signal?.aborted) return interrupted();
   const deadlineMs = Math.min(definition.timeoutMs ?? FLOW_LIMITS.wallMs, FLOW_LIMITS.wallMs);
   // The proxy starts first, so the run folder exists for as short a time as possible before the process that cleans it up does.
-  const proxy = await startFlowProxy({grant, maxBytes: FLOW_LIMITS.maxBytes});
+  const proxy = await startFlowProxy({grant,privateAccess:privateAccess?(url,accessSignal)=>privateAccess(url,AbortSignal.any([accessSignal,...(signal?[signal]:[])])):undefined, maxBytes: FLOW_LIMITS.maxBytes});
   let base;
   try { base = await mkdtemp(join(workspace, 'run-')); await chmod(base, 0o700); await mkdir(join(base, 'home'), {mode: 0o700}); }
   catch { await proxy.close(); if (base) await rm(base, {recursive: true, force: true}); return runnerError('browser', 'The flow folder on this runner could not be prepared'); }
@@ -109,6 +109,7 @@ export async function runFlow(definition, probe, {grantPath, controlPort, worksp
     await rm(base, {recursive: true, force: true, maxRetries: 10, retryDelay: 100});
   }
   if (signal?.aborted) return interrupted();
+  if(stats.blocked.some(b=>b.class==='private_grant_refused'))return runnerError('grant','Private network permission was unavailable for a page request; no forbidden destination was contacted');
   const completedAt = Date.now();
   if (tooMuch || (!done && !killedForTime) || done?.launchFailed || done?.crashed) return runnerError('browser', done?.launchFailed ? 'The browser could not be started on this runner' : 'The browser process ended without a result');
   // Reasons and the step they belong to, in the order of authority: the clock, the byte limit, what the proxy refused, then the page.

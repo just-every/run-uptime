@@ -175,3 +175,29 @@ Add a [monitor](/docs/monitors) and watch its first checks arrive.
 ## Independent watches and runner vantages
 
 Since v0.1.2, Uptime uses per-runner keys, immutable probe assignments, stored-evidence state and independent-vantage failure agreement. Mail is selected through Base adapters. See [the monitoring setup and C3/C4 rules](/docs/resilient-monitoring).
+
+
+## Private network grants
+
+A private location uses an enrolled Node runner inside your network, with outbound access to Uptime. Update and restart the runner first: **Runner / archive** shows its version, private-network support, current check capacity and last contact. Contact means the control plane heard from the runner; it does not prove target health. You can run it beside an existing agent without giving Uptime that agent’s credentials.
+
+Start the runner with `UPTIME_PRIVATE_GRANT_DIR` set to an absolute, real directory you own, with permissions `0700`. Keep it outside your checkout. Grant files must be regular files you own, mode `0600`, with no symlinks or hard links. No grant is inferred from a network label or from enrollment.
+
+In **New monitor**, choose **Private network on an authorized runner** and a grant reference such as `warehouse-local`. Save the monitor to obtain its ID and assigned runner ID. Coverage stays Unknown until its matching grant exists. On that runner, create `warehouse-local.json` in the protected grant directory:
+
+```json
+{
+  "runnerId": "self-11111111-1111-4111-8111-111111111111",
+  "monitorId": "replace-with-this-monitor-id",
+  "hosts": ["checkout.internal.example"],
+  "cidrs": ["10.24.3.10/32"],
+  "ports": [8080],
+  "expiresAt": 1793404800000
+}
+```
+
+Replace both IDs, the exact service hostname, its private CIDR, its port and the UTC expiry in epoch milliseconds. Every dimension must match. Use narrow CIDRs and short expiry. All DNS answers must be authorized before any socket opens; a mixed answer refuses the check. Grant only services you own or are authorized to test.
+
+HTTP, keyword and TCP checks use the console form. A private browser flow uses a version 5 definition with `"network":"private"` and `"privateGrantRef":"warehouse-local"`; its preview names the scope and local reference. Every browser origin and dependency needs a matching host, CIDR and port in that monitor’s grant. Each request and redirect re-reads the protected file. Public checks cannot borrow private grants. Loopback, link-local, metadata, known management services and management ports remain forbidden even with a grant.
+
+To revoke permission, remove the grant file or let it expire. To revoke the runner, choose **Revoke runner**: later control-plane requests refuse. Lost permission, missing files and unavailable capacity stay Unknown; they never become a passing check or fabricated recovery. Work already in progress may finish its current connection. Grant references travel with definitions and inactive archives; grant files, runner keys and request credentials remain local. A receiving installation must authorize its own runner and grant before deliberately resuming checks. Remove the old local file when retiring its monitor.

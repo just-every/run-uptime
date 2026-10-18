@@ -35,12 +35,12 @@ export async function enrollRunner(env:Bindings,text:string,timestamp:string,sig
  if(!key||text.length>512||!/^\d{13}$/.test(timestamp)||Math.abs(Date.now()-Number(timestamp))>60000||!await same(signature,await sign(key,`${timestamp}.runner-enrolment.${text}`)))return null;
  let input;try{input=JSON.parse(text)}catch{return null}
  if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(k=>!['version','networkLabel','capabilities'].includes(k))||input.version!==1)return null;
- if(input.capabilities!==undefined&&(!input.capabilities||typeof input.capabilities!=='object'||Array.isArray(input.capabilities)||Object.keys(input.capabilities).join(',')!=='browser'||typeof input.capabilities.browser!=='boolean'))return null;
+ if(input.capabilities!==undefined&&(!input.capabilities||typeof input.capabilities!=='object'||Array.isArray(input.capabilities)||Object.keys(input.capabilities).some(k=>!['browser','privateNetwork','capacity','version'].includes(k))||typeof input.capabilities.browser!=='boolean'||input.capabilities.privateNetwork!==undefined&&typeof input.capabilities.privateNetwork!=='boolean'||input.capabilities.capacity!==undefined&&(!Number.isInteger(input.capabilities.capacity)||input.capabilities.capacity<1||input.capabilities.capacity>64)||input.capabilities.version!==undefined&&(typeof input.capabilities.version!=='string'||!/^[a-zA-Z0-9./_-]{1,60}$/.test(input.capabilities.version))))return null;
  // Provisioned labels cannot be rewritten by a compromised runner key.
  if(input.networkLabel!==undefined&&label(input.networkLabel)!==row.network_label)return null;
  if(!row.runner_id)row=await ensureFirstRunner(env);
  // A runner reports what it can run each time it enrols; a flow assigned to one without a browser stays Unknown (see docs/runner.md).
- if(input.capabilities!==undefined)await env.DB.prepare('UPDATE runners SET capabilities=? WHERE runner_id=?').bind(JSON.stringify({browser:input.capabilities.browser}),row.runner_id).run();
+ if(input.capabilities!==undefined)await env.DB.prepare('UPDATE runners SET capabilities=? WHERE runner_id=?').bind(JSON.stringify(input.capabilities),row.runner_id).run();
  return {runnerId:row.runner_id,registeredAt:row.registered_at,networkLabel:row.network_label,scope:'self-runner'}
 }
 export async function createRunner(env:Bindings,input:any){
@@ -55,7 +55,7 @@ export async function revokeRunner(env:Bindings,id:string){if(id===HOSTED_RUNNER
 export const runnerListQuery=`SELECT runner_id AS runnerId,network_label AS networkLabel,registered_at AS registeredAt,revoked_at AS revokedAt,last_contact_at AS lastContactAt,capabilities FROM runners ORDER BY ${runnerOrder}`
 export const describeRunners=(rows:any[])=>rows.map(r=>({...r,hosted:r.runnerId===HOSTED_RUNNER_ID,capabilities:capabilitiesOf(r.capabilities)}))
 export async function listRunners(env:Bindings){return describeRunners((await env.DB.prepare(runnerListQuery).all()).results)}
-const capabilitiesOf=(value:unknown)=>{try{const parsed=JSON.parse(String(value));return {browser:parsed?.browser===true}}catch{return {browser:false}}}
+const capabilitiesOf=(value:unknown)=>{try{const parsed=JSON.parse(String(value));return {browser:parsed?.browser===true,...(parsed?.privateNetwork!==undefined?{privateNetwork:parsed.privateNetwork===true}:{}),...(Number.isInteger(parsed?.capacity)?{capacity:parsed.capacity}:{}),...(typeof parsed?.version==='string'?{version:parsed.version}:{})}}catch{return {browser:false}}}
 export async function assignDefinition(env:Bindings,definition:any,input:any){
  const first=await ensureFirstRunner(env),rows=(await env.DB.prepare(`SELECT * FROM runners ORDER BY ${runnerOrder}`).all<Runner>()).results;
  return assignRunners(rows,first.runner_id,definition,input,await externalCheckUrl(env),env.RER_DEMO!=='1',env.UPTIME_ORIGIN);
@@ -80,6 +80,7 @@ export function assignRunners(rows:Runner[],firstRunnerId:string,definition:any,
  for(const [i,probe] of definition.probes.entries()){
   const requested=input.assignments?.[probe],runnerId=typeof requested==='string'?requested:requested?.runnerId??hosted?.runner_id??available[i%available.length]?.runner_id??firstRunnerId;
   const row=rows.find(r=>r.runner_id===runnerId);if(runnerId===HOSTED_RUNNER_ID&&(!hostedHttp(definition)||definition.intervalMs<60000))throw Error('Worker checks require supported public checks, default certificate trust, no runner-local credentials, and an interval of at least one minute. Choose a private runner for other checks');if(!row||(definition.enabled&&row.revoked_at!==null))throw Error('Probe requires an active assigned runner');
+  if(definition.enabled&&definition.network==='private'&&capabilitiesOf(row.capabilities).privateNetwork!==true)throw Error('Private checks require an enrolled runner with private-network grants. Update and restart that runner, then save again');
   if(definition.enabled&&runnerId===HOSTED_RUNNER_ID&&ownOrigin(definition.url,appOrigin))throw Error(SELF_CHECK_REFUSAL);
   const canaryUrl=requested?.canaryUrl??input.canaryUrl;
   const href=canaryUrl?publicTarget(canaryUrl).href:null;
@@ -87,7 +88,7 @@ export function assignRunners(rows:Runner[],firstRunnerId:string,definition:any,
   assignments[probe]={runnerId,networkLabel:row.network_label,...(href?{canaryUrl:href}:{})};
  }
  const labels=new Set(Object.values(assignments).map((a:any)=>a.networkLabel));
- const needsCanary=definition.network==='public'||(syntheticCanary&&definition.network==='synthetic'&&['http','keyword'].includes(definition.type));
+ const needsCanary=['public','private'].includes(definition.network)||(syntheticCanary&&definition.network==='synthetic'&&['http','keyword'].includes(definition.type));
  if(definition.enabled&&needsCanary&&labels.size<2&&!Object.values(assignments).some((a:any)=>a.canaryUrl)){
   if(!external)throw Error(`Production monitor requires two network vantages or an external check URL. ${EXTERNAL_CHECK_ABSENT}`);
   const href=publicTarget(external).href;

@@ -1,3 +1,4 @@
+import {privateTarget} from '../private-target.mjs';
 import {publicTarget} from '../public-target.mjs';
 import {RESOLVERS,RECORD_TYPES,DEFAULT_RESOLVERS} from './dns.mjs';
 // Settings of the protocol monitors (TCP-001, DNS-001, TLS-001, DOMAIN-001), validated by the same function on the
@@ -40,7 +41,9 @@ function values(value,label){
 export function protocolSettings(type,input){
  if(type==='tcp'){
   const s=fields(input.tcp,['host','port','readBanner','bannerIncludes'],'TCP');
-  const host=publicHost(s.host),p=port(s.port,undefined,'TCP port'),bannerIncludes=text(s.bannerIncludes,100,'Expected banner text');
+  const p=port(s.port,undefined,'TCP port');
+  const privateUrl=input.network==='private'?privateTarget(`http://${typeof s.host==='string'&&s.host.includes(':')&&!s.host.startsWith('[')?`[${s.host}]`:s.host}:${p}/`):null;
+  const host=privateUrl?privateUrl.hostname.replace(/^\[|\]$/g,''):publicHost(s.host),bannerIncludes=text(s.bannerIncludes,100,'Expected banner text');
   if(s.readBanner!==undefined&&typeof s.readBanner!=='boolean')throw Error('readBanner must be true or false');
   const readBanner=Boolean(s.readBanner||bannerIncludes);
   return {settings:{host,port:p,...(readBanner?{readBanner}:{}),...(bannerIncludes?{bannerIncludes}:{})},url:`tcp://${host.includes(':')?`[${host}]`:host}:${p}`};

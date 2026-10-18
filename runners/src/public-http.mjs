@@ -1,3 +1,4 @@
+import {privateTarget} from '../../src/domain/private-target.mjs';
 import {requestOnce} from './public-http-request.mjs';
 import {prepareAuthentication,digestChallengeAuthorization} from './auth/index.mjs';
 import {Resolver} from 'node:dns/promises';
@@ -24,8 +25,9 @@ export async function resolvePublic(url,signal) {
   }finally{signal.removeEventListener('abort',cancel)}
 }
 // statusOnly: see requestOnce. Resolution, pinning, redirect validation and the downgrade refusal are the same as a probe's.
-export async function publicHttp(def,signal,onRequest,{statusOnly=false,monitorId,onPhase}={}) {
- let url=publicTarget(def.url),method=def.method,trust=def.tlsTrust,credential;
+export async function publicHttp(def,signal,onRequest,{statusOnly=false,monitorId,onPhase,privateAccess}={}) {
+ if(def.network==='private'&&typeof privateAccess!=='function')throw new ProbeError('grant','Private network grant unavailable');
+ let url=def.network==='private'?privateTarget(def.url):publicTarget(def.url),method=def.method,trust=def.tlsTrust,credential;
  if(def.request)onPhase?.('authentication');
  if(def.request)try{credential=await readCredentials(def.request.credentialRef,url.href,method,undefined,monitorId)}catch(error){if(!error.category)error.category='credential';throw error}
  let body=credential?.body;
@@ -42,7 +44,7 @@ export async function publicHttp(def,signal,onRequest,{statusOnly=false,monitorI
   onPhase?.(credential?'authentication':'target');
   if(credential)try{prepared=await prepareAuthentication(credential,{url:url.href,method,body,signal,tokenRequest,forceRefresh})}catch{throw new ProbeError('credential','The local authentication could not be prepared.')}
   onPhase?.('target');
-  const pin=await resolvePublic(url,signal);
+  const pin=await (def.network==='private'?privateAccess(url,signal):resolvePublic(url,signal));
   const settings={...prepared,headers:{...prepared.headers,...extraHeaders},body,credentialsPresent:Boolean(credential),allowUnverifiedTls:credential?.allowUnverifiedTls===true,trackTlsFacts:Boolean(def.tlsTrust)};
   const response=await requestOnce(url,pin,method,settings,signal,onRequest,undefined,statusOnly,trust);facts.push(...(response.tlsTrust??[]));return response;
   }catch(error){error.facts=[...facts,...(error.facts??[])];throw error}
@@ -59,7 +61,7 @@ export async function publicHttp(def,signal,onRequest,{statusOnly=false,monitorI
   }else if(credential?.auth?.type==='oauth2'&&response.status===401&&/\berror\s*=\s*"?invalid_token\b/i.test(String(response.headers['www-authenticate']??'')))response=await send({},true);
   if(!Object.hasOwn(response,'redirect'))return {...response,...(facts.length?{tlsTrust:facts}:{}),...(credential&&[401,403].includes(response.status)?{authenticationRejected:true}:{})};
   if(hop===5||!response.redirect)throw Object.assign(new ProbeError('redirect'),{facts});
-  let next;try{next=publicTarget(new URL(response.redirect,url).href)}catch{throw Object.assign(new ProbeError('network'),{facts})}
+  let next;try{next=(def.network==='private'?privateTarget:publicTarget)(new URL(response.redirect,url).href)}catch{throw Object.assign(new ProbeError('network'),{facts})}
   if(url.protocol==='https:'&&next.protocol!=='https:')throw Object.assign(new ProbeError('redirect'),{facts});
   if(next.origin!==url.origin){
    // A first origin change permanently drops every request secret and trust exception, even on a return redirect.

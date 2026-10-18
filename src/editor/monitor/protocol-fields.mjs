@@ -22,10 +22,13 @@ export function showType(root,type){
  const url=control(root,'url');if(url)url.required=type==='http';
  for(const name of ['udpHost','udpPort','udpPayload','udpExpected','tcpHost','tcpPort','dnsName','tlsHost','domainName']){const field=control(root,name);if(field)field.required=name.startsWith(type)}
  const help=root.querySelector('.type-help');if(help)help.textContent=HELP[type];
+ const privateGroup=root.querySelector('[data-private-network]'),privateField=control(root,'privateGrantRef');
+ if(privateGroup){const shown=['http','tcp'].includes(type)&&control(root,'networkScope').value==='private';privateGroup.hidden=!shown;privateField.disabled=!shown;privateField.required=shown}
  showTlsFields(root);
 }
 export function fillProtocol(root,definition){
  const set=(name,value)=>{const field=control(root,name);if(field)field.value=value??''};
+ set('networkScope',definition.network==='private'?'private':'public');set('privateGrantRef',definition.privateGrantRef);
  const udp=definition.udp??{};set('udpHost',udp.host);set('udpPort',udp.port);set('udpPayload',udp.payloadHex);set('udpExpected',udp.expectedHex);set('udpMatch',udp.match??'exact');
  const tcp=definition.tcp??{},dns=definition.dns??{},tls=definition.tls??{},domain=definition.domain??{};
  set('tcpHost',tcp.host);set('tcpPort',tcp.port);control(root,'tcpReadBanner').checked=Boolean(tcp.readBanner);set('tcpBannerIncludes',tcp.bannerIncludes);

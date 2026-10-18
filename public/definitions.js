@@ -37,6 +37,7 @@ function criteriaMarkup(definition){
 function rowMarkup(e){
  const [label,pill]=ACTIONS[e.action],details=[
   ...(e.reason?[`<p>${escape(e.reason)}</p>`]:[]),
+  ...(e.target?.network==='private'?[`<p><strong>Private network</strong> · runner-local grant <code>${escape(e.target.privateGrantRef)}</code>. A new local grant is required before execution.</p>`]:[]),
   criteriaMarkup(e.target),
   ...(e.changes??[]).map(ch=>`<p><span class="field">${escape(ch.field)}</span>: ${value(ch.from)} → ${value(ch.to)}</p>`),
   ...(e.differences.length?[`<ul>${e.differences.map(d=>`<li>${escape(d)}</li>`).join('')}</ul>`]:[]),

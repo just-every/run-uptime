@@ -2,6 +2,7 @@
 // click, fill a field with a named runner-local credential, wait for or expect text, a URL or an element) and of the outcomes that
 // must all be observed for a pass. It carries no script, no expression and no secret. Shared by the Worker (validation, revisions,
 // evidence) and the runner (execution), so both read the same bounds.
+import {privateTarget} from './private-target.mjs';
 import {publicTarget} from './public-target.mjs';
 
 export const FLOW_LIMITS = Object.freeze({
@@ -90,7 +91,7 @@ export function validateFlow(input, {network, startUrl, synthetic = u => u}) {
     if (step.kind === 'fill' && 'value' in step) fail(`${label}: a fill step takes a credentialRef, never a value`);
     only(step, STEP_FIELDS[step.kind], label);
     if (step.kind === 'goto') {
-      const url = network === 'synthetic' ? synthetic(step.url) : publicTarget(step.url).href;
+      const url = network === 'synthetic' ? synthetic(step.url) : network==='private'?privateTarget(step.url).href:publicTarget(step.url).href;
       origins.add(new URL(url).origin);
       return {kind: 'goto', url};
     }

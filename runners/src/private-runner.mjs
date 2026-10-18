@@ -13,6 +13,7 @@ import {createClock} from './clock.mjs';
 import {browserCapability} from './flow/browser.mjs';
 import {prepareFlowWorkspace} from './flow/workspace.mjs';
 import {readControlResponse} from './control-response.mjs';
+import {RUNNER_VERSION} from '../../src/domain/policy.mjs';
 import {evaluatedAt} from '../../src/domain/protocol/evaluate.mjs';
 export async function runRunner({origin,key,controlAddress,runnerId:configuredId,networkLabel,watch,grantPath=resolve('data/synthetic-grant.json'),localReview=false,transport=new NotificationTransport(),signal,once=false,pollMs=1000}){
  validateConfiguration({UPTIME_CONTROL_ORIGIN:origin,UPTIME_RUNNER_KEY:key,UPTIME_LOCAL_REVIEW:String(localReview)},{scope:'runner'});
@@ -29,7 +30,7 @@ export async function runRunner({origin,key,controlAddress,runnerId:configuredId
  do{
   let task;
   try{
-   if(!registered){const registration=await api('/api/runner/enroll',{version:1,...(networkLabel?{networkLabel}:{}),capabilities:{browser:(await browserCapability()).available}},true);if(!/^self-[0-9a-f-]{36}$/.test(registration.runnerId)||registration.scope!=='self-runner')throw Error('Invalid runner registration');runnerId=registration.runnerId;registered=true}
+   if(!registered){const registration=await api('/api/runner/enroll',{version:1,...(networkLabel?{networkLabel}:{}),capabilities:{browser:(await browserCapability()).available,privateNetwork:true,capacity:1,version:RUNNER_VERSION}},true);if(!/^self-[0-9a-f-]{36}$/.test(registration.runnerId)||registration.scope!=='self-runner')throw Error('Invalid runner registration');runnerId=registration.runnerId;registered=true}
    {const sentAt=Date.now(),answer=await api('/api/runner/claim',{});clock.observe(sentAt,Date.now(),answer.now);({task}=answer)}await watcher.contacted();
   }catch(error){if(signal?.aborted)break;await watcher.failed();if(once)throw error;console.error('Runner poll failed; watching independently for loss of contact.')}
   // Website checks run in their own loop once the runner is enrolled, so a slow crawl never holds a probe claim.
@@ -41,9 +42,9 @@ export async function runRunner({origin,key,controlAddress,runnerId:configuredId
     const canaryUrl=task.definition.assignments?.[probe]?.canaryUrl;
     let canary;
     // The external check is HTTP even when the monitored task is a heartbeat, flow or protocol check.
-    if(canaryUrl){const canaryTask={...task,definition:{...task.definition,type:'http',network:'public',tlsTrust:undefined,url:canaryUrl,method:'GET',request:undefined,heartbeat:undefined,flow:undefined,tcp:undefined,udp:undefined,dns:undefined,tls:undefined,domain:undefined,assertions:{status:200},retries:0}};canary={...await executeTaskProbe(canaryTask,probe,{grantPath,controlPort:Number(u.port||(u.protocol==='https:'?443:80)),statusOnly:true,signal,now:clock.now}),attempt:0}}
+    if(canaryUrl){const canaryTask={...task,definition:{...task.definition,type:'http',network:'public',privateGrantRef:undefined,tlsTrust:undefined,url:canaryUrl,method:'GET',request:undefined,heartbeat:undefined,flow:undefined,tcp:undefined,udp:undefined,dns:undefined,tls:undefined,domain:undefined,assertions:{status:200},timeoutMs:Math.min(task.definition.timeoutMs,10000),retries:0}};canary={...await executeTaskProbe(canaryTask,probe,{grantPath,runnerId,controlOrigin:origin,controlPort:Number(u.port||(u.protocol==='https:'?443:80)),statusOnly:true,signal,now:clock.now}),attempt:0}}
     for(let attempt=0;attempt<=task.definition.retries;attempt++){
-     let evidence;try{evidence=await executeTaskProbe(task,probe,{grantPath,controlPort:Number(u.port||(u.protocol==='https:'?443:80)),flowWorkspace,signal,now:clock.now})}catch{const now=Date.now();evidence={id:randomUUID(),probe,startedAt:now,completedAt:now,durationMs:0,runnerVersion:'uptime-node/0.1.0',outcome:'runner_error',checks:[{assertion:'runner',pass:false,reason:signal?.aborted?'Runner stopped before the attempt completed':'Custody or runner execution unavailable'}]}}
+     let evidence;try{evidence=await executeTaskProbe(task,probe,{grantPath,runnerId,controlOrigin:origin,controlPort:Number(u.port||(u.protocol==='https:'?443:80)),flowWorkspace,signal,now:clock.now})}catch{const now=Date.now();evidence={id:randomUUID(),probe,startedAt:now,completedAt:now,durationMs:0,runnerVersion:'uptime-node/0.1.0',outcome:'runner_error',checks:[{assertion:'runner',pass:false,reason:signal?.aborted?'Runner stopped before the attempt completed':'Custody or runner execution unavailable'}]}}
      // Protocol checks depend on the time they ran, so they are evaluated again at the aligned completion time.
      attempts.push({...evaluatedAt(task.definition,clock.align(evidence,{dueAt:task.dueAt})),attempt,...(canary?{canary:clock.align(canary,{dueAt:task.dueAt})}:{})});if(signal?.aborted||evidence.outcome==='pass'||evidence.outcome==='runner_error')break;
     }

@@ -29,7 +29,7 @@ const outcomeCounts=(entries:{action:string;differences:string[]}[])=>({
 })
 function view(importer:Importer,plan:Awaited<ReturnType<typeof planDefinitions>>){
  return {kind:'definitions' as const,source:importer.source,sourceLabel:importer.label,digest:plan.digest,counts:plan.counts,outcomes:outcomeCounts(plan.entries),
-  entries:plan.entries.map(({definition,...entry})=>({...entry,...(definition?{target:{type:definition.type,assertions:definition.assertions,url:definition.url||null,intervalMs:definition.intervalMs,probes:definition.probes,credentialRef:definition.request?.credentialRef??null,tlsTrust:definition.tlsTrust??null,...(definition.flow?{flow:{intent:definition.flow.intent,steps:definition.flow.steps.length,outcomes:definition.flow.outcomes.length}}:{})}}:{})}))}
+  entries:plan.entries.map(({definition,...entry})=>({...entry,...(definition?{target:{type:definition.type,network:definition.network,privateGrantRef:definition.privateGrantRef??null,assertions:definition.assertions,url:definition.url||null,intervalMs:definition.intervalMs,probes:definition.probes,credentialRef:definition.request?.credentialRef??null,tlsTrust:definition.tlsTrust??null,...(definition.flow?{flow:{intent:definition.flow.intent,steps:definition.flow.steps.length,outcomes:definition.flow.outcomes.length}}:{})}}:{})}))}
 }
 // Writes nothing.
 export async function previewDefinitions(env:Bindings,text:string,source?:string){

@@ -43,6 +43,10 @@
       <div class="editor-fields">
        <label>Monitor name<input disabled name="name" maxlength="100" required></label>
        <label>What to check<select disabled name="checkType" aria-describedby="check-type-help"><option value="http">Website or API (HTTP)</option><option value="tcp">TCP port</option><option value="udp">UDP request and response</option><option value="dns">DNS record</option><option value="tls">TLS certificate</option><option value="domain">Domain registration expiry</option></select></label>
+       <div class="type-fields editor-fields" data-types="http tcp">
+        <label>Network location<select disabled name="networkScope"><option value="public">Public Internet</option><option value="private">Private network on an authorized runner</option></select></label>
+        <div data-private-network hidden><label>Private grant reference<input disabled name="privateGrantRef" maxlength="80" pattern="[A-Za-z0-9_-]+" aria-describedby="private-grant-help"></label><p id="private-grant-help" class="helper ui-helper">Name a protected grant file on this runner, bound to this monitor ID, exact hostnames, private CIDRs, ports and expiry. Save the monitor to get its ID. Until its grant is installed, coverage stays Unknown. Metadata, management services and ungranted neighbors are refused. <a href="/docs/runner#private-network-grants">Set up a private grant</a></p></div>
+       </div>
        <p id="check-type-help" class="helper ui-helper type-help" data-type-help="http">Requests the URL and checks status, text, headers and JSON.</p>
        <div class="type-fields editor-fields" data-types="http">
         <label>Target URL<input disabled name="url" type="url" placeholder="https://www.your-site.example/health" required></label>

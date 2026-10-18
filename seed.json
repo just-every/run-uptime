@@ -33,7 +33,8 @@
         "STATE-001",
         "NETWORK-001",
         "HEARTBEAT-001",
-        "UDP-001"
+        "UDP-001",
+        "PRIVATE-001"
       ]
     },
     {
@@ -309,6 +310,17 @@
         "Response bytes retained as hexadecimal in authenticated immutable evidence, archives and monitor erasure; never put secrets in UDP payloads"
       ],
       "required": false
+    },
+    {
+      "id": "authorized-private-targets",
+      "required": false,
+      "requiredWhen": "An owner selects private network scope and provisions a protected runner-local grant for the assigned runner and monitor",
+      "why": "Private HTTP, TCP and isolated browser checks pin only RFC1918 or ULA addresses authorized by exact hostname, CIDR, port and expiry. Metadata and management targets remain forbidden.",
+      "data": [
+        "Configured request paths, headers, bodies and origin-bound credentials reach only approved private targets; redirects and browser dependencies recheck the grant before connecting",
+        "Private target address, bounded assertion facts and sanitized browser trace return as signed evidence to the configured control plane; retained definitions/evidence travel in owner archives and are erased with the monitor",
+        "Grant files and credentials stay runner-local and never travel in archives; restored or imported references do not authorize execution"
+      ]
     }
   ],
   "env": [

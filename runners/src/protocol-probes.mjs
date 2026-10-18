@@ -32,8 +32,8 @@ function opened(socket,event,signal,port){
   socket.once(event,ok);socket.once('error',bad);socket.once('close',closed);signal.addEventListener('abort',aborted,{once:true});
  });
 }
-async function tcpFacts(s,signal,deadline){
- const pin=await resolvePublic(pinned(s.host),signal),started=Date.now();
+async function tcpFacts(s,signal,deadline,privateAccess){
+ const pin=await (privateAccess?privateAccess(new URL(`http://${s.host.includes(':')?`[${s.host}]`:s.host}:${s.port}/`),signal):resolvePublic(pinned(s.host),signal)),started=Date.now();
  const socket=net.connect({host:pin.address,port:s.port,family:pin.family});
  try{
   await opened(socket,'connect',signal,s.port);
@@ -88,13 +88,14 @@ const reader=signal=>async(url,{accept,maxBytes})=>{
  if(response.truncated||response.redirect)throw new ProtocolError('registry','The answer was larger than the check reads or redirected too often');
  return {status:response.status,text:response.body};
 };
-export async function probeProtocol(input,probe,{signal}={}){
+export async function probeProtocol(input,probe,{signal,privateAccess}={}){
  const def=validateDefinition(input,[]),startedAt=Date.now(),deadline=startedAt+def.timeoutMs;
  const execution=AbortSignal.any([AbortSignal.timeout(def.timeoutMs),...(signal?[signal]:[])]);
  const evidence=(data,completedAt=Date.now())=>({id:randomUUID(),probe,startedAt,completedAt,durationMs:completedAt-startedAt,runnerVersion:RUNNER_VERSION,...data});
  try{
+  if(def.network==='private'&&!privateAccess)throw new ProtocolError('grant','Private network grant unavailable');
   const s=def[def.type];
-  const facts=def.type==='udp'?await udpFacts(s,execution):def.type==='tcp'?await tcpFacts(s,execution,deadline):def.type==='tls'?await tlsFacts(s,execution):def.type==='dns'?await dnsFacts(reader(execution),s,asker(execution)):await domainFacts(reader(execution),s.name);
+  const facts=def.type==='udp'?await udpFacts(s,execution):def.type==='tcp'?await tcpFacts(s,execution,deadline,privateAccess):def.type==='tls'?await tlsFacts(s,execution):def.type==='dns'?await dnsFacts(reader(execution),s,asker(execution)):await domainFacts(reader(execution),s.name);
   const completedAt=Date.now();
   return evidence({...protocolChecks(def,facts,completedAt),protocol:facts},completedAt);
  }catch(error){
