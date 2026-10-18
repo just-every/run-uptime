@@ -457,7 +457,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "978a04dde0f373414c7a98845c3d9a4c8c4a9409f0c4f0d522c4d68f8ab65332",
+      "sha256": "ffa7c451774a4899b4796497f68df3033156f10ba3b3af3ab5eb04c3b6fe6ee2",
       "executable": false
     },
     "AGENTS.md": {
@@ -481,7 +481,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "9a54540ed839358c18c6bd28dc7106db58f3d6de5ecf3d5419b90a1dafdb6478",
+      "sha256": "6e5883a7e434c3b7be31968fd6eede1248357edba779c3a2e38876f0873a0ac2",
       "executable": false
     },
     "DEMO.md": {
@@ -505,7 +505,7 @@
       "executable": false
     },
     "docs/CLAIMS.md": {
-      "sha256": "663c49ad8a772c162d8a634c4c08e407c78e45b2acb60282d1bbe2197eed21c7",
+      "sha256": "2a70029d7d722735bea8214bead3a5b11c2de42841626df4bcd59f0fb93f9876",
       "executable": false
     },
     "docs/data.md": {
@@ -606,6 +606,22 @@
     },
     "docs/evidence/contracts/browser-profiles/saved-profile-390.png": {
       "sha256": "81a5697807ec7b05420ddb09ca8f345ea4875a2e28eb93a5bc78f4ec1f5729e6",
+      "executable": false
+    },
+    "docs/evidence/contracts/browser-qualification/credential-unavailable-1440.png": {
+      "sha256": "51227bb4c7de0fff0bfd1c809664afd936d6829fa854612758b434d3667c007c",
+      "executable": false
+    },
+    "docs/evidence/contracts/browser-qualification/credential-unavailable-390.png": {
+      "sha256": "30c70958ff5c32b9b86749d7883c517bf40fc8edd27f2f6d6d55b5ec4bc98bac",
+      "executable": false
+    },
+    "docs/evidence/contracts/browser-qualification/credentials-rejected-1440.png": {
+      "sha256": "61bfc0535088ce7b02e307467bd80fb992d065fb3cb9f19da82ff1229bf38a9b",
+      "executable": false
+    },
+    "docs/evidence/contracts/browser-qualification/credentials-rejected-390.png": {
+      "sha256": "98b347fd3aa143e73a39976c40535f7f8194073c5dae74c4f88f3164e09c38b6",
       "executable": false
     },
     "docs/evidence/contracts/browser-qualification/failure-guide-1440.png": {
@@ -2181,7 +2197,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "41e9f9880bd707b7417b2ae4db8d44d71a11b132e0e52307d34b8041b21d3f6a",
+      "sha256": "82ce42e574ed548109f7f6e469a3a6dba54c1290e3058eeef6992f062fd2ddd0",
       "executable": false
     },
     "patches/README.md": {
@@ -2189,7 +2205,7 @@
       "executable": false
     },
     "pnpm-lock.yaml": {
-      "sha256": "454d3374088d0b5e739f09d6ae103c34a33ce6f77d800c786564b3fa4097fa2b",
+      "sha256": "34869c1fcdada1c24df48cfa67e9e0f7e8cee127fc6fc85ca500b6702890f88c",
       "executable": false
     },
     "public/action-feedback.mjs": {
@@ -5445,7 +5461,7 @@
       "executable": false
     },
     "tests/flow-fixture.mjs": {
-      "sha256": "eb46fd6c504b8ba648a2fbd124fada6e9ee301632942d4524f50d883b8adaccb",
+      "sha256": "95ee02a8c99500b961d466a2bf48fd3629e6080af202fbf82eab64936fc20c36",
       "executable": false
     },
     "tests/flow-journey.mjs": {
@@ -5465,7 +5481,7 @@
       "executable": false
     },
     "tests/flow-qualification.mjs": {
-      "sha256": "421f0a42a1ad8218aa19fcc1f0397e1db7b6909f1fe40c90cc3edb75dc7360de",
+      "sha256": "aa888a6144e0e2bb1c8632880c5a00f9ef9c818ab33d26db85ed414e17bfccaf",
       "executable": false
     },
     "tests/heartbeat-schedules-browser.mjs": {

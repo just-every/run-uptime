@@ -10,7 +10,7 @@ import {open, rename, rm, mkdir} from 'node:fs/promises';
 import {constants} from 'node:fs';
 import {dirname} from 'node:path';
 
-export const FIXTURE_EMAIL = 'Émile.secret+person@example.test', FIXTURE_PASSWORD = randomUUID();
+export const FIXTURE_EMAIL = `Émile.secret+${randomUUID()}@example.test`, FIXTURE_PASSWORD = randomUUID();
 export const phrase = i => `phrase-${i}-${'x'.repeat(180)}`;
 const page = (title, body) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${title}</title></head><body>${body}</body></html>`;
 

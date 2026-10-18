@@ -27,10 +27,10 @@ try{
   if(checkout)steps.push({kind:'click',target:{role:'button',name:'Confirm sandbox order'}});
   return {url:base+entry,flow:{intent:signup?'Create an authorized synthetic account':checkout?'Submit an order in the authorized sandbox':'Sign in to the synthetic account',steps,outcomes:[{id:'customer-outcome',what:'text',value:checkout||confirmation?'Order confirmed':path?'Hostile page':'Welcome back'}]}};
  };
- const create=async(name,scenario,options={},timeoutMs=15000)=>{
+ const create=async(name,scenario,options={},timeoutMs=15000,{password=FIXTURE_PASSWORD,missingCredential=false}={})=>{
   const body=makeFlow(scenario,options),scope=crypto.randomUUID();body.flow.steps=body.flow.steps.map(step=>step.kind==='fill'?{...step,credentialRef:scope+'-'+step.credentialRef}:step);
   const monitor=await ok('/api/monitors','POST',{name,type:'flow',network:'synthetic',...body,probes:['local-a','local-b'],intervalMs:300000,timeoutMs,retries:0,confirmSlots:1,recoverSlots:1,freshnessMs:900000,enabled:false});
-  for(const [ref,value] of [['email',FIXTURE_EMAIL],['password',FIXTURE_PASSWORD]])await writeFile(join(credentialDir,scope+'-'+ref+'.json'),JSON.stringify({monitorId:monitor.id,origin:fixture.origin,value}),{mode:0o600});
+  for(const [ref,value] of [['email',FIXTURE_EMAIL],['password',password]].filter(([ref])=>!missingCredential||ref!=='password'))await writeFile(join(credentialDir,scope+'-'+ref+'.json'),JSON.stringify({monitorId:monitor.id,origin:fixture.origin,value}),{mode:0o600});
   await ok(`/api/monitors/${monitor.id}`,'PATCH',{...monitor.definition,enabled:true});return monitor;
  };
  const evidence=async monitor=>(await ok(`/api/monitors/${monitor.id}/history`)).flatMap(slot=>slot.observations);
@@ -38,6 +38,20 @@ try{
  const state=async monitor=>(await ok('/api/overview')).monitors.find(m=>m.id===monitor.id).state.state;
  const erase=monitor=>ok(`/api/monitors/${monitor.id}/erase`,'POST',{name:monitor.definition.name});
  start();
+ // A rejected account is a target failure, while absent local authority is Unknown.
+ // Neither case may count a reachable sign-in page as the required customer outcome.
+ const rejectedPassword=crypto.randomUUID();
+ const rejected=await create('Acme login with expired password','healthy',{},15000,{password:rejectedPassword});
+ const rejectedResults=await complete(rejected);
+ assert.ok(rejectedResults.every(o=>o.outcome==='target_failure'&&o.flow?.failure?.reason==='expectation_not_met'));
+ assert.ok(rejectedResults.every(o=>o.flow.outcomes.every(outcome=>!outcome.observed)));
+ assert.equal(await state(rejected),'Failing');
+ await qualificationBrowser({origin,monitors:[{id:rejected.id,label:'credentials-rejected'}],directory});await erase(rejected);
+ const missingCredential=await create('Acme login without local credential','healthy',{},15000,{missingCredential:true});
+ const missingResults=await complete(missingCredential);
+ assert.ok(missingResults.every(o=>o.outcome==='runner_error'&&!o.flow&&o.checks.some(check=>check.assertion==='credential'&&!check.pass)));
+ assert.equal(await state(missingCredential),'Unknown');
+ await qualificationBrowser({origin,monitors:[{id:missingCredential.id,label:'credential-unavailable'}],directory});await erase(missingCredential);
  // Keep this failing definition unchanged until its next scheduled slot. Fix
  // only the controlled site's behavior, so recovery proves the original intent.
  fixture.setScenario('recovery','checkout-failure');
@@ -70,6 +84,6 @@ try{
  start(false);const missing=await create('Checkout without browser capacity','healthy');
  const unavailable=await complete(missing);assert.ok(unavailable.every(o=>o.outcome==='runner_error'&&!o.flow));assert.equal(await state(missing),'Unknown');
  await qualificationBrowser({origin,monitors:[{id:missing.id,label:'browser-unavailable'}],directory});
- const bytes=JSON.stringify([await ok('/api/archive'),await ok('/api/overview')]);for(const secret of [FIXTURE_EMAIL,FIXTURE_PASSWORD])assert.ok(!bytes.includes(secret),'synthetic credentials remain outside product storage');
+ const bytes=JSON.stringify([await ok('/api/archive'),await ok('/api/overview')]);for(const secret of [FIXTURE_EMAIL,FIXTURE_PASSWORD,rejectedPassword])assert.ok(!bytes.includes(secret),'synthetic credentials remain outside product storage');
  console.log('FLOW-001 PASS login, signup and sandbox order submission; retained failure matrix, unchanged scheduled recovery, browser-capacity Unknown and desktop/phone evidence. Local runner processes do not certify geographic placement.');
 }finally{await closeQualificationBrowser();await stop();await fixture?.close();await worker?.dispose();await cleanupDirectory(directory)}
