@@ -39,7 +39,7 @@
     "artifact-prepare": "node scripts/deployment/prepare.mjs",
     "test:runner": "node tests/signed-runner.mjs",
     "test:flow": "node tests/flow-journey.mjs && node tests/api-transaction-journey.mjs && node tests/api-transaction-browser.mjs",
-    "test:protocols": "node tests/protocol-monitors.mjs && node tests/udp-monitors.mjs && node tests/udp-browser.mjs",
+    "test:protocols": "node tests/mail-journey.mjs && node tests/mail-browser.mjs && node tests/protocol-monitors.mjs && node tests/udp-monitors.mjs && node tests/udp-browser.mjs",
     "test:browser": "node tests/browser-suites.mjs",
     "release": "rer release",
     "build:app": "vite build",

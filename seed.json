@@ -43,7 +43,8 @@
         "DIAG-001",
         "FLOW-001",
         "READAPI-001",
-        "API-003"
+        "API-003",
+        "MAIL-001"
       ]
     },
     {
@@ -376,6 +377,19 @@
         "Public target host, pinned address, source address, request timing, configured methods, paths, headers and bodies; runtime extracted values may be sent to later requests on that same origin",
         "Local authentication is authorized for the monitor and exact origin; dynamic authentication headers require HTTPS and values extracted by earlier steps",
         "Only fixed outcome reasons, HTTP status, per-step timing and cleanup outcomes are retained; request/response content and extracted values never enter observations or archives"
+      ],
+      "adapters": []
+    },
+    {
+      "id": "mail-protocol-targets",
+      "required": false,
+      "requiredWhen": "An owner enables an SMTP, POP3 or IMAP monitor on a private runner",
+      "why": "The runner opens pinned public mail-protocol connections, verifies TLS and optionally authenticates and sends one synthetic message to an explicitly dedicated test mailbox.",
+      "data": [
+        "Mail server host, port, public pinned address, TLS SNI, source address and connection timing",
+        "Monitor-bound runner-local username/password sent only after verified TLS; protocol commands and optional synthetic sender, recipient, Message-ID and fixed synthetic message",
+        "Optional receiving mailbox authentication, Message-ID search and exact-message removal; no mailbox content, password, authentication exchange or server greeting is retained",
+        "Observations retain protocol step outcomes/timing, synthetic Message-ID, SMTP acceptance, mailbox receipt and cleanup confirmation; an unobserved late message needs owner attention in the dedicated mailbox"
       ],
       "adapters": []
     }
@@ -1334,6 +1348,14 @@
       },
       {
         "path": "/transaction-panel.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/mail-panel.js",
         "match": "exact",
         "kind": "asset",
         "class": "assets",

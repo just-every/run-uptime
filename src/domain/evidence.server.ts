@@ -1,3 +1,7 @@
+// @ts-ignore Shared native mail evidence.
+import {validateMailFacts} from './mail-probe/facts.mjs'
+// @ts-ignore
+import {mailChecks} from './mail-probe/evaluate.mjs'
 // @ts-ignore Shared transaction facts contain no extracted values.
 import {validateApiTransactionEvidence,apiTransactionChecks,apiTransactionOutcome} from './api-transaction.mjs'
 import {normalizeFailureSnapshot,FAILURE_SNAPSHOT_LIMITS} from './failure-snapshot.mjs'
@@ -160,10 +164,10 @@ export function validateEvidence(o: any, definition: any, dueAt: number, now: nu
       !['uptime-node/0.1.0','uptime-worker/0.1.0'].includes(o.runnerVersion) || !timestamp(o.startedAt) || !timestamp(o.completedAt) ||
       o.startedAt < dueAt || o.completedAt < o.startedAt || o.completedAt > now + COMPLETION_CLOCK_ALLOWANCE_MS ||
       !timestamp(o.durationMs) || !['pass', 'target_failure', 'runner_error'].includes(o.outcome) ||
-      JSON.stringify(o).length > ((definition.type === 'flow' ? 4000 + FLOW_LIMITS.traceBytes : isProtocol(definition.type)||definition.type==='api' ? 16000 : 4000) + (o.tlsTrust ? TLS_EVIDENCE_MAX_BYTES : 0) + (binding ? BINDING_DIAGNOSTIC_BYTES : 0) + (o.failureSnapshot ? FAILURE_SNAPSHOT_LIMITS.totalBytes : 0))) throw Error('Invalid observation evidence')
+      JSON.stringify(o).length > ((definition.type === 'flow' ? 4000 + FLOW_LIMITS.traceBytes : isProtocol(definition.type)||['api','mail'].includes(definition.type) ? 16000 : 4000) + (o.tlsTrust ? TLS_EVIDENCE_MAX_BYTES : 0) + (binding ? BINDING_DIAGNOSTIC_BYTES : 0) + (o.failureSnapshot ? FAILURE_SNAPSHOT_LIMITS.totalBytes : 0))) throw Error('Invalid observation evidence')
   validateTrust(o,definition);
   if(o.heartbeatJob!==undefined&&definition.type!=='heartbeat')throw Error('Unexpected heartbeat job evidence');
-  if (o.protocol !== undefined && !isProtocol(definition.type)) throw Error('Unexpected protocol evidence')
+  if (o.protocol !== undefined && !isProtocol(definition.type)&&definition.type!=='mail') throw Error('Unexpected protocol evidence')
   if(definition.assignments?.[o.probe]?.canaryUrl&&o.canary===undefined)throw Error('Configured canary evidence required');
   if(o.canary!==undefined){
     if(!definition.assignments?.[o.probe]?.canaryUrl||o.canary?.canary!==undefined||o.canary?.failureSnapshot!==undefined)throw Error('Unexpected canary evidence');
@@ -174,6 +178,15 @@ export function validateEvidence(o: any, definition: any, dueAt: number, now: nu
   // Historical runners sampled completion and duration separately. Preserve a
   // single millisecond clock tick without relaxing any of the clock bounds.
   if (Math.abs(o.durationMs - elapsed) > 1) throw Error('Inconsistent observation timing')
+  if(definition.type==='mail'){
+    if(o.status!==undefined||o.bytes!==undefined||o.flow!==undefined||o.apiTransaction!==undefined)throw Error('Invalid mail observation');
+    if(!o.protocol)return validateError(o,validateChecks(o.checks));
+    if(!validateMailFacts(o.protocol,definition.mail))throw Error('Invalid mail facts');
+    const expected=mailChecks(definition,o.protocol);
+    if(o.outcome!==expected.outcome||JSON.stringify(o.checks)!==JSON.stringify(expected.checks))throw Error('Inconsistent mail evidence');
+    for(const key of ['acceptedAt','receivedAt','cleanedAt']){const stamp=o.protocol.transaction?.[key];if(stamp!==undefined&&(stamp<o.startedAt||stamp>o.completedAt))throw Error('Invalid mail transaction timing')}
+    return;
+  }
   if(o.apiTransaction!==undefined&&definition.type!=='api')throw Error('Unexpected API transaction evidence');
   if(definition.type==='api'){
     if(!o.apiTransaction)return validateError(o,validateChecks(o.checks));

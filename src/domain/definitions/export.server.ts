@@ -13,6 +13,6 @@ const fileFlow=(f:any)=>known(f,['intent','steps','outcomes'])
 const fileAssertions=(a:any)=>({...a,...(a.header?{header:known(a.header,ASSERTION_FIELDS.header)}:{}),...(a.json?{json:known(a.json,ASSERTION_FIELDS.json)}:{})})
 export async function exportDefinitions(env:Bindings){
  const rows=(await env.DB.prepare('SELECT definition FROM monitors ORDER BY rowid').all<any>()).results
- const monitors=rows.map(row=>{const d=JSON.parse(row.definition);return Object.fromEntries(FILE_FIELDS.filter(k=>d[k]!==undefined&&!(k==='url'&&['heartbeat','tcp','ping','udp','dns','tls','domain'].includes(d.type))).map(k=>[k,k==='assertions'?fileAssertions(d[k]):k==='flow'?fileFlow(d[k]):d[k]]))})
+ const monitors=rows.map(row=>{const d=JSON.parse(row.definition);return Object.fromEntries(FILE_FIELDS.filter(k=>d[k]!==undefined&&!(k==='url'&&['heartbeat','mail','tcp','ping','udp','dns','tls','domain'].includes(d.type))).map(k=>[k,k==='assertions'?fileAssertions(d[k]):k==='flow'?fileFlow(d[k]):d[k]]))})
  return {format:DEFINITION_FORMAT,version:DEFINITION_VERSION,monitors}
 }
