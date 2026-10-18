@@ -5,6 +5,9 @@ import {proposedWebhookPreview,savedWebhookPreview} from './domain/notification-
 import {previewUptimeRobotWebhook} from './domain/webhook-contact-import.mjs'
 import {configureHeartbeat,heartbeatRuns} from './domain/heartbeat-jobs.server.ts'
 import {catalogBulkPreview,catalogBulkApply,catalogAddPreview,catalogAddApply} from './domain/catalog.server.ts'
+import {importSlowPolicy} from './domain/slow-import.ts'
+import {readSlowPolicy,saveSlowPolicy} from './domain/slow-config.server.ts'
+import {acknowledgeSlow} from './domain/slow-ack.server.ts'
 import {readAlertRoute,previewAlertRoute,applyAlertRoute} from './domain/alert-routes.server.ts'
 import {previewMaintenance,applyMaintenance,cancelMaintenance} from './domain/planned-maintenance.server.ts'
 // The package's demo module: operator-auth runs from the package and reads demo mode from this same instance.
@@ -89,6 +92,10 @@ for(const [path,preview,apply] of [
 }
 api.post('/api/maintenance/cancel',async c=>c.json(await cancelMaintenance(c.env,c.get('input'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 api.get('/api/monitor-editor',async c=>{c.header('cache-control','no-store, private');return c.json(await monitorEditor(c.env,c.req.query('monitor')))})
+api.get('/api/monitors/:id/slow-policy',async c=>c.json(await readSlowPolicy(c.env,c.req.param('id'))))
+api.post('/api/monitors/:id/slow-policy/import-preview',async c=>{const current=await readSlowPolicy(c.env,c.req.param('id'));return c.json({slow:importSlowPolicy(c.get('input'),current.definition),revision:current.revision})})
+api.post('/api/monitors/:id/slow-policy',async c=>c.json(await saveSlowPolicy(c.env,c.req.param('id'),c.get('input'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
+api.post('/api/monitors/:id/slow-ack',async c=>c.json(await acknowledgeSlow(c.env,c.req.param('id'),c.get('input'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 api.get('/api/monitors/:id/alert-route',async c=>c.json(await storageOperation('alertRoutes.read',()=>readAlertRoute(c.env,c.req.param('id')))))
 api.post('/api/monitors/:id/alert-route/preview',async c=>c.json(await storageOperation('alertRoutes.preview',()=>previewAlertRoute(c.env,c.req.param('id'),c.get('input')))))
 api.post('/api/monitors/:id/alert-route/import-preview',async c=>c.json(await storageOperation('alertRoutes.import',()=>previewAlertRoute(c.env,c.req.param('id'),importContactSchedule(c.get('input'))))))

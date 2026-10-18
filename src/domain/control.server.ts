@@ -96,7 +96,7 @@ export async function save(env:Bindings,input:any,id?:string,actor:AuditActor={k
  const old=id?await get(env,id):null;if(id&&!old)throw Error('Monitor not found');
  // Ordinary monitor forms predate calendars. Omitting that field keeps the
  // current windows; explicitly supplying [] cancels them as a new revision.
- const source={...Object.fromEntries(MONITOR_METADATA_FIELDS.filter((field:string)=>old&&Object.hasOwn(old.definition,field)).map((field:string)=>[field,old!.definition[field]])),...input,...(old&&!Object.hasOwn(input,'maintenanceWindows')?{maintenanceWindows:old.definition.maintenanceWindows}:{})};
+ const source={...Object.fromEntries(MONITOR_METADATA_FIELDS.filter((field:string)=>old&&Object.hasOwn(old.definition,field)).map((field:string)=>[field,old!.definition[field]])),...input,...(old&&!Object.hasOwn(input,'slow')?{slow:old.definition.slow}:{}),...(old&&!Object.hasOwn(input,'maintenanceWindows')?{maintenanceWindows:old.definition.maintenanceWindows}:{})};
  const definition=await assignDefinition(env,validateDefinition(source,grants(env)),input),now=Date.now(),key=id??crypto.randomUUID();
  if(!old&&Number((await env.DB.prepare('SELECT COUNT(*) n FROM monitors').first<any>())?.n)>=MONITOR_LIMIT)throw Error('Monitor limit reached');
  if(definition.dependencies?.length){if(id&&definition.dependencies.includes(id))throw Error('A monitor cannot depend on itself');const found=await env.DB.prepare('SELECT id FROM monitors WHERE id IN (SELECT value FROM json_each(?))').bind(JSON.stringify(definition.dependencies)).all<{id:string}>();if(found.results.length!==definition.dependencies.length)throw Error('Every dependency must name an existing monitor');}

@@ -51,6 +51,12 @@
           "summary": "Wrap a real command with start, success and exit-code failure receipts, explicit grace and immutable duration history."
         },
         {
+          "slug": "slow-responses",
+          "title": "Slow-response alerts",
+          "file": "slow-responses.md",
+          "summary": "Separate response-time degradations, contact schedules and slow time from outages and availability."
+        },
+        {
           "slug": "notifications",
           "title": "Notifications",
           "file": "notifications.md",

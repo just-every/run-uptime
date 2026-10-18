@@ -4,7 +4,7 @@ import type {Bindings} from '../control.server.ts'
 import {DEFINITION_FORMAT,DEFINITION_VERSION,FILE_FIELDS} from './format.ts'
 
 // Read-only: the installation's current definitions as the same reviewed file, so a file round-trips (export, then
-// preview shows every entry unchanged). Runner assignments, canaries, heartbeat tokens and destinations stay local.
+// preview shows every entry unchanged). Runner assignments, canaries, heartbeat tokens and credentials stay local; Slow recipient IDs are references only.
 // `enabled` and `maintenanceUntil` are written for the reader; importing a file never changes them. A header or JSON
 // assertion stored before unknown assertion fields were refused is written with its known fields only.
 const known=(value:any,fields:string[])=>Object.fromEntries(fields.filter(k=>value[k]!==undefined).map(k=>[k,value[k]]))

@@ -23,6 +23,8 @@ export const apiRoutes:readonly Route[]=[
  {method:'DELETE',path:'/api/incidents/:id/comments/:commentId',params:{...id,commentId:identity},query:{version:value=>/^[1-9][0-9]*$/.test(value)},body:'none'},
  {method:'PATCH',path:'/api/incidents/:id/root-cause',params:id,body:'object'},
  {method:'POST',path:'/api/incidents/:id/actions',params:id,body:'object'},
+ {method:'GET',path:'/api/monitors/:id/slow-policy',params:id,body:'none'},
+ ...['slow-policy','slow-policy/import-preview','slow-ack'].map(suffix=>({method:'POST',path:`/api/monitors/:id/${suffix}`,params:id,body:'object' as const})),
  {method:'GET',path:'/api/monitors/:id/alert-route',params:id,body:'none'},
  ...['preview','apply','import-preview'].map(action=>({method:'POST',path:`/api/monitors/:id/alert-route/${action}`,params:id,body:'object' as const})),
  ...['catalog/preview','catalog/apply','catalog/add/preview','catalog/add/apply','maintenance/preview','maintenance/apply','maintenance/cancel'].map(path=>({method:'POST',path:'/api/'+path,body:'object' as const})),

@@ -7,32 +7,33 @@ export const recoveryAccepted=(job='j')=>`(NOT EXISTS(SELECT 1 FROM alert_recove
  LEFT JOIN integration_deliveries td ON td.namespace='uptime-notifications' AND td.id=t.id
  WHERE rm.recovery_job_id=${job}.id AND t.credential_id=${job}.credential_id AND t.destination_id=${job}.destination_id
  AND (CASE WHEN t.kind='email' THEN t.state ELSE COALESCE(td.state,t.state) END)='accepted'))`;
-export function incidentDeliveryStatements(env:Bindings,event:NotificationEvent,guard:string,values:unknown[]){
- const eventJson=JSON.stringify(event);
- if(event.kind==='trigger')return [env.DB.prepare(`WITH selected AS (${selectedRouteSql})
+export function incidentDeliveryStatements(env:Bindings,event:NotificationEvent,guard:string,values:unknown[],slowRoute?:any){
+ const eventJson=JSON.stringify(event),openingKind=event.kind==='slow_recovery'?'slow':'trigger';
+ const custom=event.kind==='slow'&&Array.isArray(slowRoute?.destinationIds),selection=custom?`SELECT 'selected' mode,? destination_ids,? contact_settings`:selectedRouteSql,selectionValues=custom?[JSON.stringify(slowRoute.destinationIds),JSON.stringify(slowRoute.contactSettings??{})]:[event.monitorId];
+ if(event.kind==='trigger'||event.kind==='slow')return [env.DB.prepare(`WITH selected AS (${selection})
  INSERT OR IGNORE INTO notification_jobs(id,event_id,destination_id,destination_name,kind,credential_id,event,created_at)
  SELECT ?||':'||d.id,?,d.id,d.name,d.kind,d.credential_id,?,? FROM notification_destinations d
  WHERE d.enabled=1 AND d.deleted_at IS NULL
  AND (COALESCE((SELECT mode FROM selected),'all')='all' OR d.id IN(SELECT value FROM json_each((SELECT destination_ids FROM selected))))
  AND EXISTS(SELECT 1 FROM notification_credentials c WHERE c.id=d.credential_id AND c.retired_at IS NULL AND c.unavailable_at IS NULL AND (c.ciphertext IS NOT NULL OR c.endpoint IS NOT NULL))
- AND EXISTS(SELECT 1 FROM outbox WHERE id=?) AND ${guard}`).bind(event.monitorId,event.id,event.id,eventJson,event.observedAt,event.id,...values),
-  env.DB.prepare(`WITH selected AS (${selectedRouteSql}) INSERT OR IGNORE INTO alert_contact_schedules(trigger_job_id,monitor_id,incident_key,due_at,repeat_ms,max_repeats,next_at,recovery,stop_on_ack)
+ AND EXISTS(SELECT 1 FROM outbox WHERE id=?) AND ${guard}`).bind(...selectionValues,event.id,event.id,eventJson,event.observedAt,event.id,...values),
+  env.DB.prepare(`WITH selected AS (${selection}) INSERT OR IGNORE INTO alert_contact_schedules(trigger_job_id,monitor_id,incident_key,due_at,repeat_ms,max_repeats,next_at,recovery,stop_on_ack)
    SELECT j.id,?,?,?+COALESCE(json_extract(s.value,'$.delayMinutes'),0)*60000,COALESCE(json_extract(s.value,'$.repeatMinutes'),0)*60000,json_extract(s.value,'$.maxRepeats'),
     CASE WHEN COALESCE(json_extract(s.value,'$.repeatMinutes'),0)>0 THEN ?+(COALESCE(json_extract(s.value,'$.delayMinutes'),0)+json_extract(s.value,'$.repeatMinutes'))*60000 ELSE NULL END,
     COALESCE(json_extract(s.value,'$.recovery'),1),COALESCE(json_extract(s.value,'$.stopOnAck'),0)
    FROM notification_jobs j LEFT JOIN json_each(COALESCE((SELECT contact_settings FROM selected),'{}')) s ON s.key=j.destination_id
-   WHERE j.event_id=? AND ${guard}`).bind(event.monitorId,event.monitorId,event.incidentKey,event.observedAt,event.observedAt,event.id,...values)];
+   WHERE j.event_id=? AND ${guard}`).bind(...selectionValues,event.monitorId,event.incidentKey,event.observedAt,event.observedAt,event.id,...values)];
  return [
   env.DB.prepare(`INSERT OR IGNORE INTO notification_jobs(id,event_id,destination_id,destination_name,kind,credential_id,event,created_at)
    SELECT ?||':'||d.id,?,d.id,d.name,d.kind,t.credential_id,?,? FROM notification_jobs t
    JOIN notification_destinations d ON d.id=t.destination_id AND d.credential_id=t.credential_id
-   WHERE json_extract(t.event,'$.kind')='trigger' AND json_extract(t.event,'$.monitorId')=? AND json_extract(t.event,'$.incidentKey')=?
+   WHERE json_extract(t.event,'$.kind')=? AND json_extract(t.event,'$.monitorId')=? AND json_extract(t.event,'$.incidentKey')=?
    AND d.enabled=1 AND d.deleted_at IS NULL AND NOT EXISTS(SELECT 1 FROM alert_contact_schedules s WHERE s.trigger_job_id=t.id AND (s.recovery=0 OR s.due_at>=?)) AND EXISTS(SELECT 1 FROM outbox WHERE id=?) AND ${guard}`)
-   .bind(event.id,event.id,eventJson,event.observedAt,event.monitorId,event.incidentKey,event.observedAt,event.id,...values),
+   .bind(event.id,event.id,eventJson,event.observedAt,openingKind,event.monitorId,event.incidentKey,event.observedAt,event.id,...values),
   env.DB.prepare(`INSERT OR IGNORE INTO alert_recovery_matches(recovery_job_id,trigger_job_id)
    SELECT r.id,t.id FROM notification_jobs r JOIN notification_jobs t ON t.destination_id=r.destination_id AND t.credential_id=r.credential_id
-   WHERE r.event_id=? AND json_extract(t.event,'$.kind')='trigger' AND json_extract(t.event,'$.monitorId')=? AND json_extract(t.event,'$.incidentKey')=? AND ${guard}`)
-   .bind(event.id,event.monitorId,event.incidentKey,...values),
+   WHERE r.event_id=? AND json_extract(t.event,'$.kind')=? AND json_extract(t.event,'$.monitorId')=? AND json_extract(t.event,'$.incidentKey')=? AND ${guard}`)
+   .bind(event.id,openingKind,event.monitorId,event.incidentKey,...values),
  ];
 }
 /** A terminal unsuccessful trigger can never authorize its recovery. Pending

@@ -1,0 +1,34 @@
+.slow-policy-panel p { margin: 10px 0; line-height: 1.5; overflow-wrap: anywhere; }
+.slow-policy-panel details { margin: 12px 0; }
+.slow-policy-panel li { margin: 8px 0; line-height: 1.5; overflow-wrap: anywhere; }
+.slow-policy-dialog { box-sizing: border-box; width: min(680px, calc(100vw - 32px)); max-width: 680px; max-height: calc(100dvh - 32px); padding: 24px; overflow-y: auto; }
+.slow-policy-dialog > p { margin: 14px 0; overflow-wrap: anywhere; }
+.slow-policy-dialog h2 { overflow-wrap: anywhere; }
+.slow-policy-dialog form { display: grid; gap: 16px; min-width: 0; }
+.slow-policy-dialog fieldset { display: grid; gap: 14px; min-width: 0; margin: 0; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius-panel); }
+.slow-policy-dialog legend { max-width: 100%; padding: 0 4px; overflow-wrap: anywhere; }
+.slow-policy-dialog fieldset:disabled { opacity: .65; }
+.slow-field { display: grid; gap: 6px; min-width: 0; line-height: 1.5; }
+.slow-field input, .slow-field select, .slow-field textarea { box-sizing: border-box; width: 100%; min-width: 0; max-width: 100%; }
+.slow-field textarea { resize: vertical; }
+.slow-field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.slow-choice { display: flex; align-items: start; gap: 10px; min-width: 0; min-height: 44px; line-height: 1.5; cursor: pointer; }
+.slow-choice input { flex: none; width: 20px; height: 20px; margin: 2px 0 0; }
+.slow-choice span { min-width: 0; overflow-wrap: anywhere; }
+.slow-choice-detail { color: var(--body); font-size: 14px; }
+.slow-contact { min-width: 0; padding-top: 4px; }
+.slow-contact + .slow-contact { padding-top: 14px; border-top: 1px solid var(--line); }
+.slow-policy-dialog .slow-contact-schedule { margin-top: 6px; }
+.slow-import { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
+.slow-import p { margin: 12px 0; }
+.slow-import button { justify-self: start; }
+.slow-policy-dialog .ui-helper { margin: -6px 0 0; line-height: 1.5; }
+.slow-policy-dialog .buttons { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; margin-top: 12px; }
+.slow-policy-dialog .form-error:empty { display: none; }
+@media (max-width: 600px) {
+ .slow-policy-dialog { padding: 16px; }
+ .slow-policy-dialog fieldset { padding: 12px; }
+ .slow-field-grid { grid-template-columns: minmax(0, 1fr); }
+ .slow-policy-dialog .buttons { flex-direction: column; }
+ .slow-policy-dialog .buttons button { width: 100%; }
+}
