@@ -513,7 +513,7 @@
       "executable": false
     },
     "docs/deploy.md": {
-      "sha256": "7b212a1079f5f1c9602f88d68928e1cced4870560b535c9bbb9a923d871b00c5",
+      "sha256": "30a44fc74912a6784ac59d3a5ea946c170fdb615cf7cba5686c7253e5422f141",
       "executable": false
     },
     "docs/evidence/contracts/archives/archive-restored-1440.png": {
@@ -4989,7 +4989,7 @@
       "executable": false
     },
     "tests/owner-deploy-lifecycle.mjs": {
-      "sha256": "a1c24f7aa72fbc403451385ff98c523286440ddb3737422ac2e5dfc8da4e818f",
+      "sha256": "3711c95351ac2756bc2586c543a136edc5ff6fd3f4e58005db30ca5ffb84d218",
       "executable": false
     },
     "tests/owner-deploy-lifecycle/bridge.mjs": {
