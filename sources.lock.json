@@ -2811,7 +2811,7 @@
       "executable": false
     },
     "scripts/definitions.mjs": {
-      "sha256": "a5397fae45639cca7bc2e6b587b039271f5cfe31757c19bdafe7f40d95852efb",
+      "sha256": "b9d61b7001c21b9dceef06011246a47d5b5da1b264013fd2eb89e6b7e4d1a8cc",
       "executable": false
     },
     "scripts/delivery/base/artifact.mjs": {
@@ -5031,7 +5031,7 @@
       "executable": false
     },
     "src/domain/definitions/plan.server.ts": {
-      "sha256": "fc1d1538205be6766f0147a0232e33ee9d2673f556d2c64d81554f0abc896661",
+      "sha256": "23630966da2f56b9f9a4e93031a51cb2abf37022d0113650b7d96b6fd29a3309",
       "executable": false
     },
     "src/domain/demo-history.server.ts": {

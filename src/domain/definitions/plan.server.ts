@@ -107,7 +107,7 @@ export function planCounts(entries:{action:Action}[]){
 /** The digest a reviewed preview names: its source, the installation's monitor count and each entry's outcome. */
 export async function planDigest(source:string,monitorCount:number,entries:PlanEntry[]){
  return sha256(JSON.stringify(canonical({plan:'uptime.definitions',version:2,source,monitors:monitorCount,
-  entries:entries.map(e=>({index:e.index,action:e.action,monitorId:e.monitorId??null,revision:e.revision??null,definition:e.definition?compared(e.definition):null,enabled:e.definition?.enabled??null,reason:e.reason??null}))})))
+  entries:entries.map(e=>({index:e.index,action:e.action,monitorId:e.action==='create'?null:e.monitorId??null,revision:e.revision??null,definition:e.definition?compared(e.definition):null,enabled:e.definition?.enabled??null,reason:e.reason??null}))})))
 }
 // Monitors whose heartbeat token is live: issued for the monitor's current revision.
 export async function liveHeartbeatTokens(env:Bindings){return new Set((await env.DB.prepare('SELECT a.monitor_id FROM heartbeat_authority a JOIN monitors m ON m.id=a.monitor_id AND m.revision=a.revision').all<any>()).results.map(r=>r.monitor_id as string))}

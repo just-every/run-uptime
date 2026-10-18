@@ -20,6 +20,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { decodeDefinitionBytes, DEFINITION_BYTES } from '../src/domain/definitions/format.ts';
 import { previewDefinitions, recogniseSource, exportDefinitions, undoBatch } from '../src/domain/definitions/index.server.ts';
 import { operatorImport } from '../src/domain/business-import/door.server.ts';
+import { ensureFirstRunner } from '../src/domain/runner-registration.server.ts';
 import { doorPlanView } from '../src/domain/business-import/plan-view.server.ts';
 import { importHistory } from '../src/domain/business-import/history.server.ts';
 
@@ -78,6 +79,8 @@ async function until(env, namespace, step, body, done) {
  throw Error('The import did not finish; run the command again to continue.');
 }
 async function applyThroughDoor(env, text, source = 'auto', digest) {
+ // An import never creates a runner; the local command establishes the first one, as opening the console does.
+ await ensureFirstRunner(env);
  const recognised = recogniseSource(text, source), namespace = recognised === 'uptime.monitors' ? `uptime.monitors:${randomUUID()}` : recognised;
  const bytes = Buffer.from(JSON.stringify(text) + '\n'), hash = value => createHash('sha256').update(value).digest('hex'), totalChunks = Math.ceil(bytes.length / 65536);
  let uploadId;
