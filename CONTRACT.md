@@ -432,9 +432,9 @@ The READAPI-001 evidence and remaining scope include the 19 October read-API rou
 
 | Clauses | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
-| Published | 16 | 5 | 0 | 21 |
+| Published | 17 | 4 | 0 | 21 |
 | Target and push further | 21 | 28 | 18 | 67 |
-| All | 37 | 33 | 18 | 88 |
+| All | 38 | 32 | 18 | 88 |
 
 | Clause | Title | Kind | Status | Evidence | Gap |
 | --- | --- | --- | --- | --- | --- |
