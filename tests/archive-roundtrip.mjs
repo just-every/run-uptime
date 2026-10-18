@@ -39,6 +39,14 @@ try{
  await migrate(target);env=await installation(target);await restore(env,original);const roundtrip=await archive(env),b=tables(roundtrip);
 
  for(const name of ['migrations','observations','integration_attempts','integration_resolutions','integration_replays'])assert.deepEqual(b[name],a[name],`${name} retained byte for byte`);
+ for(const type of ['tcp','dns','tls','domain']){
+  const source=a.monitors.find(m=>JSON.parse(m.definition).type===type),restored=b.monitors.find(m=>m.id===source.id);
+  const definition=JSON.parse(source.definition);
+  assert.deepEqual(JSON.parse(restored.definition),{...definition,enabled:false},`${type}: exact settings, paused`);
+  assert.equal(JSON.parse(restored.state).state,'Unknown');
+  assert.deepEqual(b.revisions.find(r=>r.monitor_id===source.id&&r.revision===source.revision),a.revisions.find(r=>r.monitor_id===source.id&&r.revision===source.revision));
+  const slot=b.slots.find(s=>s.monitor_id===source.id);assert.equal(slot.status,'interrupted');assert.equal(slot.definition,source.definition);
+ }
  assert.equal(b.revisions.length,a.revisions.length+b.monitors.filter(m=>m.revision!==a.monitors.find(o=>o.id===m.id).revision).length);for(const revision of a.revisions)assert.deepEqual(b.revisions.find(r=>r.monitor_id===revision.monitor_id&&r.revision===revision.revision),revision);assert.equal(JSON.parse(b.monitors[0].definition).enabled,false);assert.equal(JSON.parse(b.monitors[0].state).state,'Unknown');assert.ok(b.notification_destinations.every(d=>d.enabled===0));assert.ok(b.notification_jobs.every(j=>j.state==='imported-inactive'));assert.ok(b.outbox.every(o=>o.status==='imported-inactive'));assert.ok(b.slots.every(s=>!['running','queued'].includes(s.status)));
  for(const name of ['monitors','slots','outbox','notification_destinations','notification_jobs','integration_deliveries']){
   assert.equal(b[name].length,a[name].length,`${name}: no omitted records`);

@@ -8,7 +8,7 @@ import {clock,identity,object,unique,type Tables} from './archive-schema.ts'
 export function historicalDefinition(text:any){
  if(typeof text!=='string')throw Error('Invalid archive definition');
  const definition=JSON.parse(text);
- if(!object(definition)||Object.keys(definition).some(k=>!['name','type','network','privateGrantRef','url','method','request','tlsTrust','heartbeat','probes','assertions','slow','intervalMs','timeoutMs','retries','failureQuorum','confirmSlots','recoverSlots','freshnessMs','enabled','maintenanceUntil','maintenanceWindows','assignments','flow','udp','tcp','project','environment','service','group','tags','owner','outcome','dependencies'].includes(k)))throw Error('Invalid archive definition fields');
+ if(!object(definition)||Object.keys(definition).some(k=>!['name','type','network','privateGrantRef','url','method','request','tlsTrust','heartbeat','probes','assertions','slow','intervalMs','timeoutMs','retries','failureQuorum','confirmSlots','recoverSlots','freshnessMs','enabled','maintenanceUntil','maintenanceWindows','assignments','flow','udp','tcp','dns','tls','domain','project','environment','service','group','tags','owner','outcome','dependencies'].includes(k)))throw Error('Invalid archive definition fields');
  const port=typeof definition.url==='string'&&/^http:\/\/127\.0\.0\.1:[0-9]+\//.test(definition.url)?Number(new URL(definition.url).port):null;
  validateDefinition(definition,port===null?[]:[port]);return definition;
 }
