@@ -42,7 +42,8 @@
         "EVIDENCE-002",
         "DIAG-001",
         "FLOW-001",
-        "READAPI-001"
+        "READAPI-001",
+        "API-003"
       ]
     },
     {
@@ -363,6 +364,18 @@
       "data": [
         "Target numeric address and probe source address, TTL and round-trip timing visible to the target and intermediate routers",
         "Only bounded numeric hops, one-sample packet loss, phase timings and fixed unavailable codes return in the signed failure snapshot; same retention, authenticated access, archive and erasure as that snapshot"
+      ],
+      "adapters": []
+    },
+    {
+      "id": "api-transaction-targets",
+      "required": false,
+      "requiredWhen": "An owner enables a multi-step API transaction on a private runner",
+      "why": "The runner performs the owner-configured ordered requests and cleanup against one exact public origin using monitor-bound local authentication and in-memory extracted values.",
+      "data": [
+        "Public target host, pinned address, source address, request timing, configured methods, paths, headers and bodies; runtime extracted values may be sent to later requests on that same origin",
+        "Local authentication is authorized for the monitor and exact origin; dynamic authentication headers require HTTPS and values extracted by earlier steps",
+        "Only fixed outcome reasons, HTTP status, per-step timing and cleanup outcomes are retained; request/response content and extracted values never enter observations or archives"
       ],
       "adapters": []
     }
@@ -1317,6 +1330,14 @@
         "kind": "api",
         "class": "documents",
         "authentication": "None; static OpenAPI description only, no installation records or credentials.",
+        "environment": "all"
+      },
+      {
+        "path": "/transaction-panel.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
         "environment": "all"
       }
     ],

@@ -1,3 +1,4 @@
+import {probeApiTransaction} from './api-transaction.mjs';
 import {createPrivateAccess} from './private-network.mjs';
 import {randomUUID} from 'node:crypto';
 import {readGrant} from './grants.mjs';
@@ -9,7 +10,7 @@ import {isProtocol} from '../../src/domain/protocol/settings.mjs';
 export async function executeTaskProbe(task,probe,{grantPath,controlPort,flowWorkspace,statusOnly=false,signal,now=Date.now,runnerId,controlOrigin,privateGrantDirectory}){
  const definition=task.definition;
  // Only the authenticated claim envelope supplies local credential authority; editor fields never do.
- const needsCredential=Boolean(definition.request)||definition.flow?.steps?.some(step=>step.kind==='fill');
+ const needsCredential=definition.type==='api'||Boolean(definition.request)||definition.flow?.steps?.some(step=>step.kind==='fill');
  if(needsCredential&&(typeof task.monitorId!=='string'||!task.monitorId||typeof task.id!=='string'||!task.id||!task.probes?.includes(probe)||!definition.probes?.includes(probe)||!Number.isSafeInteger(task.acceptUntil)||task.acceptUntil<=now()))throw Error('Credential claim unavailable');
  const privateCheck=definition.network==='private';
  const monitorId=needsCredential||privateCheck?task.monitorId:undefined;
@@ -29,6 +30,7 @@ export async function executeTaskProbe(task,probe,{grantPath,controlPort,flowWor
   if(privateAccess)try{await privateAccess(new URL(definition.url),signal)}catch(error){const at=Date.now();return {id:randomUUID(),probe,startedAt:at,completedAt:at,durationMs:0,runnerVersion:'uptime-node/0.1.0',outcome:'runner_error',checks:[{assertion:'grant',pass:false,reason:error.reason??'Private network grant unavailable'}]}}
   return runFlow(definition,probe,{privateAccess,grantPath,controlPort,workspace:flowWorkspace,monitorId,signal,snapshotPolicy:task.snapshotPolicy});
  }
+ if(definition.type==='api'){validateDefinition(definition,[]);return probeApiTransaction(definition,probe,{monitorId,signal,privateAccess})}
  if(isProtocol(definition.type))return probeProtocol(definition,probe,{signal,privateAccess});
  if(['public','private'].includes(definition.network))return probeHttp(definition,probe,[],{statusOnly,monitorId,signal,privateAccess,snapshotPolicy:task.snapshotPolicy?{...task.snapshotPolicy,artifactBudgetMs:Math.max(1,Math.min(8000/Math.max(1,task.probes.length*(definition.retries+1)),task.acceptUntil-now()-2000))}:undefined});
  const grant=await readGrant(grantPath,controlPort),target=new URL(definition.url);
