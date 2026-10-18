@@ -36,6 +36,7 @@ export async function erase(env:Bindings,kind:'monitor'|'destination'|'operator'
   for(const job of jobIds)plans.push(selection('notification_jobs','id=?',job));
  }
  if(kind==='monitor'){
+  plans.push(selection('failure_snapshots','monitor_id=?',id),selection('failure_snapshot_settings','monitor_id=?',id));
   plans.push(selection('slow_acknowledgements','monitor_id=?',id));
   plans.push(...incidentMonitorErasureTables.map(table=>selection(table,'monitor_id=?',id)));
   plans.push(selection('alert_routes',"scope_kind='monitor' AND scope_value=?",id),selection('alert_route_changes',"scope_kind='monitor' AND scope_value=?",id));

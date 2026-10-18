@@ -1,3 +1,4 @@
+import {incidentSnapshots} from '../failure-snapshots.server.ts'
 import {nextContactFollowup} from '../contact-scheduler.server.ts'
 import type {Bindings} from '../control.server.ts'
 import {findIncident,defaultOwner} from './common.server.ts'
@@ -41,7 +42,7 @@ export async function incidentDetail(env:Bindings,id:string){
   rootCause:{version:work?.root_version??0,categoryId:work?.root_category_id??null,categoryLabel:work?.root_category_label??null,text:work?.root_text??'',updatedAt:work?.root_updated_at??null,editor:work?.root_updated_at?person(work.root_editor_id):null},
   comments:comments.results.map(row=>({id:row.id,text:row.text,version:row.version,author:person(row.author_id),createdAt:row.created_at,updatedAt:row.updated_at,deletedAt:row.deleted_at,
    history:histories.results.filter(history=>history.comment_id===row.id).map(history=>({version:history.version,text:history.text,editor:person(history.editor_id),editedAt:history.edited_at}))})),
-  timeline,deliveries:jobs.results.map(job=>({id:job.id,channel:job.kind,destinationName:job.destination_name,state:job.state==='queued'?job.delivery_state??job.state:job.state,code:job.code,attempts:job.attempts})),
+  failureSnapshots:await incidentSnapshots(env,id),timeline,deliveries:jobs.results.map(job=>({id:job.id,channel:job.kind,destinationName:job.destination_name,state:job.state==='queued'?job.delivery_state??job.state:job.state,code:job.code,attempts:job.attempts})),
   capabilities:{comments:true,mentions:false,publication:false,responderRoles:false,scheduledFollowup:true}}
 }
 

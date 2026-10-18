@@ -31,6 +31,7 @@ export const plan = {
   shard('intake', ['test:intake', 'test:contact', 'test:availability']),
   shard('probes', ['test:probes']),
   shard('catalog', ['test:catalog']),
+  shard('failure-snapshots',['test:snapshots'],true),
   shard('slow-responses',['test:slow'],true),
   shard('reports',['test:reports'],true),
   shard('heartbeat-schedules',['test:heartbeat'],true),

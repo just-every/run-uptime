@@ -38,7 +38,8 @@
         "HEARTBEAT-002",
         "FLOW-004",
         "PING-001",
-        "METRICS-001"
+        "METRICS-001",
+        "EVIDENCE-002"
       ]
     },
     {
@@ -175,7 +176,8 @@
         "Owner-held Basic, bearer or Digest credentials, generated JWT authorization and configured headers/body are sent only to the exact authorized target origin and monitor; a configured client TLS certificate and proof of key possession may be sent there, while its private key remains local. Credentials, custom headers, body and client certificate are permanently stripped on a cross-origin redirect",
         "Owner-authorized OAuth token acquisition and refresh send a form-encoded HTTPS POST to the exact public token URL: client ID and secret through the declared Basic or form authentication mode, grant type, requested scopes and the refresh token when applicable. Public DNS answers are validated and pinned; token redirects and target TLS trust exceptions are refused. Acquired access and rotated refresh tokens remain in owner-only runner-local state, outside observations, logs and product archives",
         "The target returns status and headers plus a bounded response body used for assertions; raw response bodies are not retained in observations",
-        "An external canary is a status-only GET: it sends no request credential, custom header or body and reads zero response-body bytes; validated public redirect hops may also be contacted"
+        "An external canary is a status-only GET: it sends no request credential, custom header or body and reads zero response-body bytes; validated public redirect hops may also be contacted",
+        "Failing HTTP response excerpts are redacted before storage in a separate owner-only snapshot table; default retention is 90 days, configurable from 1 to 365 days. Body text is escaped in the console; no screenshot or script execution is enabled. Canary response bodies remain unread."
       ],
       "adapters": []
     },
@@ -248,7 +250,8 @@
         "Runner key authentication and signature, runner identity, declared network label, browser capability, request times, and claimed task identifiers",
         "Assigned monitor and flow definitions, canary URLs, retry and lease data, and signed attempt evidence, including status, assertions, timings, and bounded flow trace",
         "Discovery input URLs and derived host/proposal results",
-        "For notification delivery, the claimed endpoint URL, signing credential and event payload are returned to the runner for the one configured send; signed outcome and bounded provider response details return to the Worker"
+        "For notification delivery, the claimed endpoint URL, signing credential and event payload are returned to the runner for the one configured send; signed outcome and bounded provider response details return to the Worker",
+        "Redacted HTTP failure snapshots (up to 16 KiB excerpt and 32 KiB total) with request header names, masked query values, bounded response headers and redirects return under the signed attempt envelope, then are stored separately under owner retention. Literal masks stay installation-local. Snapshots travel as inactive history in archives and are removed by owner erasure or expiry. No snapshot content is sent in alerts."
       ],
       "adapters": []
     },
@@ -1260,6 +1263,14 @@
         "kind": "api",
         "class": "metrics",
         "authentication": "Owner session or installation-local hashed metrics:read bearer key; no mutation authority.",
+        "environment": "all"
+      },
+      {
+        "path": "/failure-snapshots.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
         "environment": "all"
       }
     ],

@@ -1,3 +1,4 @@
+import {snapshotPanel,retainSnapshots,mountSnapshots,bindIncidentSnapshots} from './failure-snapshots.js';
 import {heartbeatJobsPanel,retainHeartbeatJobs,bindHeartbeatJobs} from './heartbeat-jobs.js';
 import {alertRoutePanel,bindAlertRoutePanel} from './assets/alert-route.js';
 import {slowPolicyPanel,bindSlowPolicyPanel} from './slow-policy.js';
@@ -84,7 +85,7 @@ function pageBody(m,readUnavailable,definitionOpen,data){
  const startup=worker&&!data.runner.demo&&!data.runner.cronStarted&&!availability?.lastCheckAt&&m.state.targetState==='Unknown'?'<p class="status-explanation ui-callout">The Cloudflare Worker checks while you use this console. Cloudflare can take up to about two hours to activate a new Cron schedule; background checks continue automatically once it starts.</p>':'';
  return `<div class="monitor-page" id="monitor-page"><p class="status-explanation ui-callout" data-state="${escape(shownState(m,readUnavailable).toLowerCase())}">${escape(statusExplanation(m,readUnavailable,data))}</p>`
   +startup+'<div class="monitor-primary">'+coveragePanel(availability)+'<div id="monitor-report-slot"></div>'+`<section class="ui-card panel incidents" aria-labelledby="incidents-heading"><h2 id="incidents-heading">Incidents</h2><div id="monitor-incidents">Loading incident history…</div><p>Latest 100 confirmed incidents. Times mark scheduled confirmation; manual checks do not open or close incidents.</p></section>`
-  +`<section class="ui-card panel evidence" aria-labelledby="recent-checks-heading"><div class="panel-head"><h2 id="recent-checks-heading">Recent checks</h2><div class="history-strip" id="history-strip" aria-hidden="true"></div></div><div id="raw-history">Loading recent checks…</div></section></div>`
+  +`<section class="ui-card panel evidence" aria-labelledby="recent-checks-heading"><div class="panel-head"><h2 id="recent-checks-heading">Recent checks</h2><div class="history-strip" id="history-strip" aria-hidden="true"></div></div><div id="raw-history">Loading recent checks…</div></section>${snapshotPanel(m)}</div>`
   +`<div class="monitor-secondary"><section class="ui-card panel detail" aria-labelledby="latest-check-heading"><h2 id="latest-check-heading">${lastLabel}</h2><dl class="detail-metrics"><div><dt class="ui-visually-hidden">${lastLabel}</dt><dd class="detail-time">${checkTime(m,{withLabel:false,readUnavailable})}</dd></div><div><dt>Response duration</dt><dd>${escape(duration(availability?.responseDurationMs))}</dd></div></dl></section>`
   +`<section class="ui-card panel assertions" aria-labelledby="expects-heading"><h2 id="expects-heading">What the check expects</h2>${assertionSummary(m.definition)}<details id="assertion-definition" ${definitionOpen?'open':''}><summary id="assertion-definition-summary">Full check details</summary><pre>${escape(JSON.stringify(isProtocol(m.definition)?{[m.definition.type]:m.definition[m.definition.type],assertions:m.definition.assertions}:m.definition.assertions,null,2))}</pre></details></section>`
   +alertRoutePanel()+slowPolicyPanel(m)+maintenancePanel(m)+expiryPanel(m,data)+(isFlow(m.definition)?flowPanel(m,data):'')+heartbeatPanel(m,data)+heartbeatJobsPanel(m)+'</div></div>';
@@ -194,16 +195,18 @@ export function renderMonitorPage({header,actions,area,data,id,api,action,readUn
  header.innerHTML=titleBlock(m,readUnavailable);
  actions.innerHTML=actionButtons(m)+'<button id="erase-monitor" class="danger">Erase monitor</button>';
  actions.querySelector('#erase-monitor').onclick=()=>confirmErasure({kind:'monitor',name:m.definition.name,onConfirm:async name=>{const result=await action(()=>api(`/api/monitors/${encodeURIComponent(m.id)}/erase`,'POST',{name}),{pending:'Erasing monitor…',success:'Monitor and dependent records erased.'});if(result.ok){document.title='Monitor erased · Uptime';showErasureReceipt(result.result.receipt)}}});
+ const retainedSnapshots=retainSnapshots(area,m.id);
  const retainedReport=retainReportPanel(area,m.id),retainedJobs=retainHeartbeatJobs(area,m),retainedFlow=retainFlowProfile(area,m);
  area.innerHTML=pageBody(m,readUnavailable,definitionOpen,data);
  mountReportPanel(area,m,api,retainedReport);
+ mountSnapshots(area,m,api,retainedSnapshots);
  bindHeartbeatKey(area,m,{api,action});
  bindHeartbeatJobs(area,m,{api,action},retainedJobs);
  bindFlowProfile(area,m,{api,action},retainedFlow);
  bindMaintenancePanel(area,m,{api,action});
  bindAlertRoutePanel(area,m,{api,action});
  bindSlowPolicyPanel(area,m,{api,action});
- const incidentHost=area.querySelector('#monitor-incidents');bindIncidentWork(incidentHost,api);api(`/api/monitors/${encodeURIComponent(m.id)}/incidents`).then(incidents=>{if(incidentHost.isConnected){incidentHost.innerHTML=incidentMarkup(incidents,openIncidents);if(historyFocus?.startsWith('incident-')&&document.activeElement?.tagName==='BODY')document.getElementById(historyFocus)?.focus({preventScroll:true})}},error=>{if(incidentHost.isConnected)incidentHost.textContent='Incident history unavailable: '+error.message});
+ const incidentHost=area.querySelector('#monitor-incidents');bindIncidentWork(incidentHost,api);bindIncidentSnapshots(incidentHost,api);api(`/api/monitors/${encodeURIComponent(m.id)}/incidents`).then(incidents=>{if(incidentHost.isConnected){incidentHost.innerHTML=incidentMarkup(incidents,openIncidents);if(historyFocus?.startsWith('incident-')&&document.activeElement?.tagName==='BODY')document.getElementById(historyFocus)?.focus({preventScroll:true})}},error=>{if(incidentHost.isConnected)incidentHost.textContent='Incident history unavailable: '+error.message});
  actions.querySelector('#run-monitor').onclick=()=>action(()=>api(`/api/monitors/${m.id}/run`,'POST',{}),{pending:'Requesting a manual check…',success:'Manual check queued. Manual checks do not change uptime.'});
  if(!isFlow(m.definition)&&m.definition.type!=='heartbeat')actions.querySelector('#edit').onclick=()=>{location.href='/app/monitor?monitor='+encodeURIComponent(m.id)};
  actions.querySelector('#pause').onclick=()=>{if(!m.definition.enabled&&Object.values(m.definition.assignments??{}).some(a=>!(data.runner.runners??[]).some(r=>r.runnerId===a.runnerId&&!r.revokedAt))){location.href='/app/monitor?monitor='+encodeURIComponent(m.id);return}return action(()=>api(`/api/monitors/${m.id}`,'PATCH',{...m.definition,enabled:!m.definition.enabled}),{pending:m.definition.enabled?'Pausing monitor…':'Authorizing and resuming…',success:m.definition.enabled?'Monitor paused. Historical observations remain available.':'Monitor authorized and resumed. New scheduled results are required.'})};

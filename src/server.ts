@@ -1,3 +1,4 @@
+import {readSnapshots,saveSnapshotSettings,eraseSnapshots,incidentSnapshots} from './domain/failure-snapshots.server.ts'
 import {authorizeMetrics,metricsKeys,createMetricsKey,revokeMetricsKey} from './domain/metrics/auth.server.ts'
 import {metricsSnapshot} from './domain/metrics/snapshot.server.ts'
 import {prometheusMetrics} from './domain/metrics/prometheus.ts'
@@ -116,6 +117,10 @@ api.patch('/api/monitors/:id',async c=>c.json(await save(c.env,c.get('input'),c.
 api.post('/api/monitors/:id/heartbeat-key',async c=>c.json(await issueHeartbeatKey(c.env,c.req.param('id'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 api.post('/api/monitors/:id/heartbeat-settings',async c=>c.json(await configureHeartbeat(c.env,c.req.param('id'),c.get('input'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})));
 api.get('/api/monitors/:id/heartbeat-runs',async c=>{const monitor=await get(c.env,c.req.param('id'));if(!monitor)return c.json({error:'Monitor not found'},404);return c.json(await heartbeatRuns(c.env,monitor.id,{before:c.req.query('before'),previewFrom:c.req.query('previewFrom')?Number(c.req.query('previewFrom')):undefined}))});
+api.get('/api/incidents/:id/failure-snapshots',async c=>c.json(await incidentSnapshots(c.env,c.req.param('id'))))
+api.get('/api/monitors/:id/failure-snapshots',async c=>c.json(await readSnapshots(c.env,c.req.param('id'),c.req.query('before'))))
+api.patch('/api/monitors/:id/failure-snapshots',async c=>c.json(await saveSnapshotSettings(c.env,c.req.param('id'),c.get('input'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
+api.delete('/api/monitors/:id/failure-snapshots',async c=>c.json(await eraseSnapshots(c.env,c.req.param('id'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 api.get('/api/monitors/:id/history',async c=>c.json(await history(c.env,c.req.param('id'))))
 api.get('/api/monitors/:id/incidents',async c=>c.json(await incidents(c.env,c.req.param('id'))))
 api.get('/api/monitors/:id/revisions',async c=>c.json(await revisions(c.env,c.req.param('id'))))

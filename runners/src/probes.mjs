@@ -27,7 +27,7 @@ export function probeHeartbeat(def,probe,receipt){
   return {id:randomUUID(),probe,startedAt:now,completedAt:now,durationMs:0,runnerVersion:RUNNER_VERSION,outcome:pass?'pass':'target_failure',...(Number.isFinite(receivedAt)?{heartbeatReceivedAt:receivedAt}:{}),checks:[{assertion:'heartbeat',pass,reason:pass?'Authenticated receipt is fresh':'Authenticated receipt absent or stale'}]};
 }
 // statusOnly is for the external canary: it asserts the status alone, so the page's body is never read, bounded or kept.
-export async function probeHttp(input,probe,grants=[],{statusOnly=false,monitorId,signal,privateAccess}={}) {
+export async function probeHttp(input,probe,grants=[],{statusOnly=false,monitorId,signal,privateAccess,snapshotPolicy}={}) {
   const def=validateDefinition(input,grants),startedAt=Date.now();
   if(statusOnly&&(def.network!=='public'||Object.keys(def.assertions).some(key=>key!=='status')))throw Error('Status-only reads serve public status assertions only');
   if(def.type==='heartbeat')throw Error('Heartbeat requires a signed scheduled receipt snapshot');
@@ -36,11 +36,12 @@ export async function probeHttp(input,probe,grants=[],{statusOnly=false,monitorI
   let timer,phase=def.request?'authentication':'target';
   const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>{abort.abort();active?.destroy();reject(new ProbeError(phase==='authentication'?'credential':'timeout',phase==='authentication'?'Authentication exceeded the check deadline before a target request could be prepared.':undefined))},def.timeoutMs)});
   try{
-    const response=await Promise.race([timeout,def.network!=='synthetic'?publicHttp(def,executionSignal,r=>active=r,{statusOnly,monitorId,privateAccess,onPhase:value=>phase=value}):syntheticHttp({...def,fixtureIdentity:input.fixtureIdentity},executionSignal,r=>active=r)]);
+    const response=await Promise.race([timeout,def.network!=='synthetic'?publicHttp(def,executionSignal,r=>active=r,{statusOnly,monitorId,privateAccess,snapshotPolicy,onPhase:value=>phase=value}):syntheticHttp({...def,fixtureIdentity:input.fixtureIdentity},executionSignal,r=>active=r)]);
     const completedAt=Date.now(),checks=assertions(def,response,completedAt-startedAt);
     if(response.authenticationRejected)for(const check of checks)if(check.assertion==='status')check.reason=`Authentication rejected (HTTP ${response.status}). ${check.reason}`.slice(0,300);
-    return evidence({outcome:checks.every(c=>c.pass)?'pass':'target_failure',status:response.status,bytes:response.bytes,checks,...(response.tlsTrust?{tlsTrust:response.tlsTrust}:{})},completedAt);
-  }catch(error){if(error instanceof CredentialBindingRequired)return evidence({outcome:'runner_error',credentialBinding:error.diagnostic,checks:[{assertion:'credential',pass:false,reason:error.message}]});const category=error instanceof ProbeError?error.category:error.code==='credential'||error.category==='credential'?'credential':'runner';return evidence({outcome:['custody','runner','network','dns','credential','grant'].includes(category)?'runner_error':'target_failure',...(error.facts?.length?{tlsTrust:error.facts}:{}),checks:[{assertion:category,pass:false,reason:error instanceof ProbeError&&error.reason?error.reason:'Probe '+category+' check failed'}]})}
+    const failed=checks.some(c=>!c.pass);
+    return evidence({...(failed&&response.failureSnapshot?{failureSnapshot:response.failureSnapshot.unavailable?response.failureSnapshot:{...response.failureSnapshot,durationMs:completedAt-startedAt}}:{}),outcome:failed?'target_failure':'pass',status:response.status,bytes:response.bytes,checks,...(response.tlsTrust?{tlsTrust:response.tlsTrust}:{})},completedAt);
+  }catch(error){if(error instanceof CredentialBindingRequired)return evidence({outcome:'runner_error',credentialBinding:error.diagnostic,checks:[{assertion:'credential',pass:false,reason:error.message}]});const category=error instanceof ProbeError?error.category:error.code==='credential'||error.category==='credential'?'credential':'runner';return evidence({...(error.failureSnapshot&&!['custody','runner','network','dns','credential','grant'].includes(category)?{failureSnapshot:error.failureSnapshot}:{}),outcome:['custody','runner','network','dns','credential','grant'].includes(category)?'runner_error':'target_failure',...(error.facts?.length?{tlsTrust:error.facts}:{}),checks:[{assertion:category,pass:false,reason:error instanceof ProbeError&&error.reason?error.reason:'Probe '+category+' check failed'}]})}
   finally{clearTimeout(timer);abort.abort();active?.destroy()}
-  function evidence(data,completedAt=Date.now()){return {id:randomUUID(),probe,startedAt,completedAt,durationMs:completedAt-startedAt,runnerVersion:RUNNER_VERSION,...data}}
+  function evidence(data,completedAt=Date.now()){return {id:randomUUID(),probe,startedAt,completedAt,durationMs:completedAt-startedAt,runnerVersion:RUNNER_VERSION,...data,...(data.failureSnapshot&&!data.failureSnapshot.unavailable?{failureSnapshot:{...data.failureSnapshot,durationMs:completedAt-startedAt}}:{})}}
 }

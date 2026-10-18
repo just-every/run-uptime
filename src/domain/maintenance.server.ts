@@ -9,6 +9,7 @@ import {type Bindings} from './control.server.ts'
 export async function maintenance(env:Bindings,now=Date.now()){
  await cleanupPublicRateLimits(env,now);
  const results=await env.DB.batch([
+  env.DB.prepare('DELETE FROM failure_snapshots WHERE expires_at<=?').bind(now),
   env.DB.prepare("UPDATE slots SET status='interrupted' WHERE status='running' AND lease_until<=?").bind(now),
   env.DB.prepare('DELETE FROM oa_sessions WHERE expires_at<=?').bind(now),
   env.DB.prepare('DELETE FROM oa_limits WHERE window<?').bind(Math.floor(now/900000)-2),
@@ -19,5 +20,5 @@ export async function maintenance(env:Bindings,now=Date.now()){
  // Seal any plaintext credential left by an upgrade, without decrypting stored ones.
  await ensureNotificationCustody(env,{validate:false});
  await retireDrillTokens(env,now);
- return {interrupted:results[0].meta.changes};
+ return {interrupted:results[1].meta.changes};
 }
