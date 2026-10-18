@@ -1,6 +1,6 @@
 // PNG-only, fixed-size generated artifacts. No ancillary metadata or trailing payload.
 export const FAILURE_PAGE_BYTES=65536;
-const unavailable=new Set(['capture_limit','capture_timeout','capture_aborted','capture_invalid','browser_unavailable','capture_failed','cancelled','policy_changed','custody_unavailable']);
+const unavailable=new Set(['capture_limit','capture_timeout','capture_aborted','capture_invalid','browser_unavailable','capture_failed','cancelled','policy_changed','policy_disabled','custody_unavailable']);
 export function normalizeFailurePage(value){
  const fail=()=>{throw Error('Invalid failure page screenshot')};
  if(!value||typeof value!=='object'||Array.isArray(value))fail();

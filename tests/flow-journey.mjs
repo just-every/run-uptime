@@ -147,3 +147,5 @@ try {
   await fixture?.close(); await worker?.dispose(); await cleanupDirectory(directory);
 }
 await import('./flow-profiles.mjs');
+
+await import('./flow-artifact-journey.mjs');

@@ -11,6 +11,7 @@ import {constants} from 'node:fs';
 import {dirname} from 'node:path';
 
 export const FIXTURE_EMAIL = 'Émile.secret+person@example.test', FIXTURE_PASSWORD = randomUUID();
+export const FIXTURE_MASK='masked-order-'+randomUUID();
 export const phrase = i => `phrase-${i}-${'x'.repeat(180)}`;
 const page = (title, body) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${title}</title></head><body>${body}</body></html>`;
 
@@ -59,7 +60,7 @@ export async function startFlowFixture({port = 0, grantPath, secondPort = 0}) {
     if (path === '/order' && req.method === 'POST') { seen.orders++; return send(302, '', {location: `${base}/confirm`}); }
     if (path === '/confirm') {
       if (scenario === 'missing-outcome') return send(200, page('Pending', '<h1>Order pending</h1>'));
-      if (['confirm-500','checkout-failure'].includes(scenario)) return send(500, page('Error', '<h1>Internal error</h1>'));
+      if (['confirm-500','checkout-failure'].includes(scenario)) return send(500, page('Error', `<h1>Internal error</h1><p>${FIXTURE_MASK}</p><p>${FIXTURE_EMAIL}</p><p>${FIXTURE_PASSWORD}</p><script>console.error(${JSON.stringify('Checkout '+FIXTURE_MASK+' '+FIXTURE_EMAIL+' Authorization: Bearer '+FIXTURE_PASSWORD)})</script>`));
       if (scenario === 'slow') await new Promise(r => setTimeout(r, 20000));
       return send(200, page('Confirmed', '<h1>Order confirmed</h1><p>Thank you.</p>'));
     }
