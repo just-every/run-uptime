@@ -426,9 +426,9 @@ The READAPI-001 evidence and remaining scope and OPS-001 durable recovery includ
 
 | Clauses | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
-| Published | 17 | 4 | 0 | 21 |
+| Published | 18 | 3 | 0 | 21 |
 | Target and push further | 22 | 27 | 18 | 67 |
-| All | 39 | 31 | 18 | 88 |
+| All | 40 | 30 | 18 | 88 |
 
 | Clause | Title | Kind | Status | Evidence | Gap |
 | --- | --- | --- | --- | --- | --- |
@@ -446,7 +446,7 @@ The READAPI-001 evidence and remaining scope and OPS-001 durable recovery includ
 | `ERASURE-001` | Operator-directed entity erasure | published | done | `src/domain/erasure.server.ts`; `tests/erasure-audit.mjs`; `tests/erasure-races.mjs` |  |
 | `AUDIT-001` | Durable anonymised audit | published | done | `src/domain/audit.server.ts`; `tests/erasure-audit.mjs`; `tests/archive-roundtrip.mjs` |  |
 | `PRESENCE-001` | Contact separate from health | published | done | `src/domain/runner-contact.server.ts`; `tests/runner-contact.mjs` |  |
-| `INTERFACE-001` | Honest durable operator feedback | published | partial | `src/routes/app.index.tsx`; `tests/operator-browser.mjs`; `tests/recovery-browser.mjs`; `tests/notify-secret-browser.mjs` | Local browser suites exist; hosted and full accessibility acceptance remain open. |
+| `INTERFACE-001` | Honest durable operator feedback | published | done | `src/routes/app.index.tsx`; `public/monitor-page.js`; `tests/operator-browser.mjs`; `tests/recovery-browser.mjs`; `tests/notify-secret-browser.mjs` |  |
 | `NOTIFY-001` | Authorized installation-wide destinations | published | done | `src/domain/notification-destinations.server.ts`; `src/domain/notification-protocols.ts`; `tests/notify-delivery.mjs`; `tests/hosted-alerts.mjs` |  |
 | `DELIVERY-001` | Bounded notification acknowledgement | published | done | `src/domain/notification-claims.server.ts`; `tests/notify-delivery.mjs`; `tests/notify-custody-runtime.mjs` |  |
 | `PUBLIC-001` | Public landing and documentation | published | done | `src/server.ts`; `src/routes/docs.index.tsx`; `tests/readme-journey.mjs`; `tests/public-paths.mjs` |  |
