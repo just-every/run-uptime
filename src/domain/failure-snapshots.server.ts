@@ -1,3 +1,4 @@
+import {discardFlowArtifacts} from './flow-artifacts.mjs'
 import {storeSnapshot,openSnapshot} from './failure-page-custody.server.ts'
 import {createPortability} from '@runeditrun/rer/modules/portability'
 import {TABLES} from './archive-schema.ts'
@@ -7,7 +8,17 @@ import type {Bindings} from './control.server.ts'
 import {get} from './control.server.ts'
 import {auditStatement,mutationGuard,type AuditActor} from './audit.server.ts'
 import {normalizeFailureSnapshot,captureFailureSnapshot,normalizeSafeValues} from './failure-snapshot.mjs'
-function scrubSnapshot(value:any,masks:string[],safeValues?:any,policyVersion?:number,screenshotEnabled=true){const snapshot=normalizeFailureSnapshot(value);if('unavailable' in snapshot)return snapshot;if(snapshot.screenshot&&(!screenshotEnabled||policyVersion!==undefined&&snapshot.policyVersion!==policyVersion))snapshot.screenshot={unavailable:'policy_changed'};const scrubbed=captureFailureSnapshot({...snapshot,masks,safeValues});return {...scrubbed,bodyTruncated:snapshot.bodyTruncated||scrubbed.bodyTruncated}}
+function scrubSnapshot(value:any,masks:string[],safeValues?:any,policyVersion?:number,screenshotEnabled=true){
+ const snapshot=normalizeFailureSnapshot(value);if('unavailable' in snapshot)return snapshot
+ if(!screenshotEnabled||policyVersion!==undefined&&snapshot.policyVersion!==policyVersion){
+  const unavailable=screenshotEnabled?'policy_changed':'policy_disabled'
+  if(snapshot.screenshot)snapshot.screenshot={unavailable}
+  if(snapshot.artifacts)snapshot.artifacts=discardFlowArtifacts(snapshot.artifacts,unavailable)
+ }
+ const scrubbed=captureFailureSnapshot({...snapshot,masks,safeValues});return {...scrubbed,bodyTruncated:snapshot.bodyTruncated||scrubbed.bodyTruncated}
+}
+function snapshotRow(row:any,snapshot:any){const {evidence,...metadata}=row;const observation=JSON.parse(evidence);return {...metadata,...(observation.flow?{flow:observation.flow}:{}),snapshot}}
+
 const day=86400000
 const missing=()=>Object.assign(Error('Monitor not found'),{status:404})
 export async function snapshotSettings(env:Bindings,id:string){
@@ -16,9 +27,9 @@ export async function snapshotSettings(env:Bindings,id:string){
 }
 export async function readSnapshots(env:Bindings,id:string,before?:string){
  if(!await get(env,id))throw missing()
- const rows=await env.DB.prepare(`SELECT f.*,o.probe,o.attempt,s.revision FROM failure_snapshots f JOIN observations o ON o.id=f.observation_id JOIN slots s ON s.id=f.slot_id
+ const rows=await env.DB.prepare(`SELECT f.*,o.probe,o.attempt,o.evidence,s.revision FROM failure_snapshots f JOIN observations o ON o.id=f.observation_id JOIN slots s ON s.id=f.slot_id
  WHERE f.monitor_id=? AND f.expires_at>? ${before?'AND f.rowid < (SELECT rowid FROM failure_snapshots WHERE observation_id=? AND monitor_id=?)':''} ORDER BY f.rowid DESC LIMIT 21`).bind(id,Date.now(),...(before?[before,id]:[])).all<any>()
- return {settings:await snapshotSettings(env,id),items:await Promise.all(rows.results.slice(0,20).map(async row=>({...row,snapshot:await openSnapshot(env,row)}))),next:rows.results.length>20?rows.results[19].observation_id:null}
+ return {settings:await snapshotSettings(env,id),items:await Promise.all(rows.results.slice(0,20).map(async row=>snapshotRow(row,await openSnapshot(env,row)))),next:rows.results.length>20?rows.results[19].observation_id:null}
 }
 export async function saveSnapshotSettings(env:Bindings,id:string,input:any,actor:AuditActor){
  const monitor=await get(env,id);if(!monitor)throw missing()
@@ -31,7 +42,7 @@ export async function saveSnapshotSettings(env:Bindings,id:string,input:any,acto
  statements.push(mutationGuard(env,'(SELECT COUNT(*) FROM failure_snapshots WHERE monitor_id=?)=?',[id,(await env.DB.prepare('SELECT COUNT(*) n FROM failure_snapshots WHERE monitor_id=?').bind(id).first<{n:number}>())?.n??0]));
  // Newly added masks also scrub retained snapshots in the same guarded transaction.
  const rows=await env.DB.prepare('SELECT * FROM failure_snapshots WHERE monitor_id=?').bind(id).all<any>()
- for(const row of rows.results){const snapshot=await openSnapshot(env,row,true);if(!('unavailable' in snapshot)&&snapshot.screenshot&&(JSON.stringify(input.masks)!==JSON.stringify(settings.masks)||JSON.stringify(safeValues)!==JSON.stringify(settings.safeValues)))snapshot.screenshot={unavailable:'policy_changed'};statements.push(mutationGuard(env,'EXISTS(SELECT 1 FROM failure_snapshots WHERE monitor_id=? AND observation_id=?)',[id,row.observation_id]));statements.push(env.DB.prepare('UPDATE failure_snapshots SET snapshot=? WHERE observation_id=? AND monitor_id=?').bind(await storeSnapshot(env,row,scrubSnapshot(snapshot,input.masks,safeValues)),row.observation_id,id))}
+ for(const row of rows.results){const snapshot=await openSnapshot(env,row,true);if(!('unavailable' in snapshot)&&(JSON.stringify(input.masks)!==JSON.stringify(settings.masks)||JSON.stringify(safeValues)!==JSON.stringify(settings.safeValues)||!screenshot)){if(snapshot.screenshot)snapshot.screenshot={unavailable:'policy_changed'};if(snapshot.artifacts)snapshot.artifacts=discardFlowArtifacts(snapshot.artifacts)};statements.push(mutationGuard(env,'EXISTS(SELECT 1 FROM failure_snapshots WHERE monitor_id=? AND observation_id=?)',[id,row.observation_id]));statements.push(env.DB.prepare('UPDATE failure_snapshots SET snapshot=? WHERE observation_id=? AND monitor_id=?').bind(await storeSnapshot(env,row,scrubSnapshot(snapshot,input.masks,safeValues,undefined,screenshot)),row.observation_id,id))}
  await env.DB.batch(statements)
  return snapshotSettings(env,id)
 }
@@ -56,7 +67,7 @@ export async function snapshotStatements(env:Bindings,id:string,slotId:string,fr
 
 export async function incidentSnapshots(env:Bindings,id:string,all=false){
  const incident=await findIncident(env,id),end=incident.recovery?.observedAt??Date.now();
- const rows=await env.DB.prepare('SELECT f.*,o.probe,o.attempt,s.revision FROM failure_snapshots f JOIN observations o ON o.id=f.observation_id JOIN slots s ON s.id=f.slot_id WHERE f.monitor_id=? AND f.expires_at>? AND (f.slot_id=? OR f.captured_at BETWEEN ? AND ?) ORDER BY f.captured_at,f.observation_id LIMIT ?').bind(incident.monitor_id,Date.now(),incident.trigger.slotId,incident.trigger.observedAt,end,all?10001:21).all<any>();
+ const rows=await env.DB.prepare('SELECT f.*,o.probe,o.attempt,o.evidence,s.revision FROM failure_snapshots f JOIN observations o ON o.id=f.observation_id JOIN slots s ON s.id=f.slot_id WHERE f.monitor_id=? AND f.expires_at>? AND (f.slot_id=? OR f.captured_at BETWEEN ? AND ?) ORDER BY f.captured_at,f.observation_id LIMIT ?').bind(incident.monitor_id,Date.now(),incident.trigger.slotId,incident.trigger.observedAt,end,all?10001:21).all<any>();
  if(all&&rows.results.length>10000)throw Error('Incident report exceeds 10,000 snapshots; export a bounded selection');
- return {items:await Promise.all((all?rows.results:rows.results.slice(0,20)).map(async row=>({...row,snapshot:await openSnapshot(env,row)}))),more:!all&&rows.results.length>20};
+ return {items:await Promise.all((all?rows.results:rows.results.slice(0,20)).map(async row=>snapshotRow(row,await openSnapshot(env,row)))),more:!all&&rows.results.length>20};
 }

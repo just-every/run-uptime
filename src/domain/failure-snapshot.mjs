@@ -1,8 +1,9 @@
+import {normalizeFlowArtifacts} from './flow-artifacts.mjs';
 import {redactFailureText} from './failure-snapshot-text.mjs';
 import {normalizeFailurePage} from './failure-page.mjs';
 import {normalizeNetworkDiagnostics,normalizeDiagnosticPhases} from './network-diagnostics.mjs';
 // Shared by HTTP capture and signed intake. This is text evidence, never HTML.
-export const FAILURE_SNAPSHOT_LIMITS = Object.freeze({version: 1, bodyBytes: 16384, totalBytes: 122880, redirects: 10, headers: 32, urlBytes: 2048, masks: 20, maskLength: 128});
+export const FAILURE_SNAPSHOT_LIMITS = Object.freeze({version: 1, bodyBytes: 16384, totalBytes: 393216, redirects: 10, headers: 32, urlBytes: 2048, masks: 20, maskLength: 128});
 const L = FAILURE_SNAPSHOT_LIMITS, REDACTED = '[redacted]', encoder = new TextEncoder();
 const fields = ['version', 'method', 'url', 'redirects', 'requestHeaders', 'responseHeaders', 'status', 'durationMs', 'body', 'bodyTruncated'];
 const safeHeaders = new Set(['content-type', 'content-length', 'server', 'retry-after']);
@@ -67,7 +68,7 @@ function bounded(value) {
   value.body = clip(body, low);
   return value;
 }
-export function captureFailureSnapshot({method, url, redirects = [], requestHeaders = {}, responseHeaders = {}, status = null, body = '', durationMs, requestSecrets = [], masks = [], phases, diagnostics,safeValues,screenshot,policyVersion}) {
+export function captureFailureSnapshot({method, url, redirects = [], requestHeaders = {}, responseHeaders = {}, status = null, body = '', durationMs, requestSecrets = [], masks = [], phases, diagnostics,safeValues,screenshot,policyVersion,artifacts}) {
   const safe=normalizeSafeValues(safeValues);
   if(policyVersion!==undefined&&(!Number.isSafeInteger(policyVersion)||policyVersion<0))fail();
   const known=literals(requestSecrets,128,16384,true).flatMap(secret=>{const token=secret.replace(/^(?:Bearer|Basic)\s+/i,'');return [secret,token,encodeURIComponent(secret),encodeURIComponent(token)]});
@@ -78,11 +79,11 @@ export function captureFailureSnapshot({method, url, redirects = [], requestHead
   const redacted=redact(body,secrets,safe.email,clip(body,L.bodyBytes).length);
   return bounded({version: L.version, method: method.toUpperCase(), url: urlText(url, secrets), redirects: redirects.map(v => urlText(v, secrets)),
     requestHeaders: headers(requestHeaders, false, secrets,false,safe.requestHeaders,safe.email), responseHeaders: headers(responseHeaders, true, secrets,false,safe.responseHeaders,safe.email), status, durationMs,
-    body: clip(redacted, L.bodyBytes), bodyTruncated: truncated || bytes(redacted) > L.bodyBytes,...(safeValues?{safeValues:safe}:{}),...(policyVersion!==undefined?{policyVersion}:{}),...(screenshot?{screenshot:normalizeFailurePage(screenshot)}:{}),...(phases?{phases:normalizeDiagnosticPhases(phases)}:{}),...(diagnostics?{diagnostics:normalizeNetworkDiagnostics(diagnostics)}:{})});
+    body: clip(redacted, L.bodyBytes), bodyTruncated: truncated || bytes(redacted) > L.bodyBytes,...(safeValues?{safeValues:safe}:{}),...(policyVersion!==undefined?{policyVersion}:{}),...(screenshot?{screenshot:normalizeFailurePage(screenshot)}:{}),...(artifacts!==undefined?{artifacts:normalizeFlowArtifacts(artifacts,{secrets,allowEmail:safe.email})}:{}),...(phases?{phases:normalizeDiagnosticPhases(phases)}:{}),...(diagnostics?{diagnostics:normalizeNetworkDiagnostics(diagnostics)}:{})});
 }
 export function normalizeFailureSnapshot(value) {
   if(plain(value)&&Object.keys(value).join(',')==='unavailable'&&value.unavailable==='capture_limit')return {unavailable:'capture_limit'};
-  if (!plain(value) || Object.keys(value).some(k=>![...fields,'phases','diagnostics','safeValues','screenshot','policyVersion'].includes(k)) || fields.some(k => !Object.hasOwn(value, k)) || value.version !== L.version) fail();
+  if (!plain(value) || Object.keys(value).some(k=>![...fields,'phases','diagnostics','safeValues','screenshot','policyVersion','artifacts'].includes(k)) || fields.some(k => !Object.hasOwn(value, k)) || value.version !== L.version) fail();
   if (typeof value.body !== 'string' || bytes(value.body) > L.bodyBytes || typeof value.bodyTruncated !== 'boolean') fail();
   if (!Array.isArray(value.redirects) || value.redirects.length > L.redirects || bytes(JSON.stringify(value)) > L.totalBytes) fail();
   const safe=normalizeSafeValues(value.safeValues);

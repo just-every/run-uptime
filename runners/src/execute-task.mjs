@@ -27,7 +27,7 @@ export async function executeTaskProbe(task,probe,{grantPath,controlPort,flowWor
   const grants=definition.network==='synthetic'?[(await readGrant(grantPath,controlPort).catch(()=>({port:0}))).port]:[];
   validateDefinition(definition,grants);
   if(privateAccess)try{await privateAccess(new URL(definition.url),signal)}catch(error){const at=Date.now();return {id:randomUUID(),probe,startedAt:at,completedAt:at,durationMs:0,runnerVersion:'uptime-node/0.1.0',outcome:'runner_error',checks:[{assertion:'grant',pass:false,reason:error.reason??'Private network grant unavailable'}]}}
-  return runFlow(definition,probe,{privateAccess,grantPath,controlPort,workspace:flowWorkspace,monitorId,signal});
+  return runFlow(definition,probe,{privateAccess,grantPath,controlPort,workspace:flowWorkspace,monitorId,signal,snapshotPolicy:task.snapshotPolicy});
  }
  if(isProtocol(definition.type))return probeProtocol(definition,probe,{signal,privateAccess});
  if(['public','private'].includes(definition.network))return probeHttp(definition,probe,[],{statusOnly,monitorId,signal,privateAccess,snapshotPolicy:task.snapshotPolicy?{...task.snapshotPolicy,artifactBudgetMs:Math.max(1,Math.min(8000/Math.max(1,task.probes.length*(definition.retries+1)),task.acceptUntil-now()-2000))}:undefined});

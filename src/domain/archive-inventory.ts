@@ -5,7 +5,7 @@ import {TABLES,columns} from './archive-schema.ts'
 export const installationLocalTables:Record<string,string>={
  ...businessImportLocalTables,
  failure_evidence_grants:'Installation-local per-monitor evidence-viewer grants; never portable access authority.',
- failure_snapshot_settings:'Installation-local literal masks and retention policy; restored failure snapshots keep their original expiry, never execution authority.',
+ failure_snapshot_settings:'Installation-local literal masks, opt-in browser-artifact capture and bounded retention policy; restored HTTP/browser failure snapshots keep their original expiry, never execution or access authority.',
  notification_preferences:'Installation alert time zone; immutable event contexts preserve their own saved zone in archives.',
  slow_acknowledgements:'Installation Slow-notice acknowledgement and reminder authority; archived performance history never replays.',
  alert_contact_schedules:'Installation delayed-send and reminder dispatch authority; restored alert history never replays.',
