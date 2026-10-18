@@ -185,9 +185,13 @@ function renderMissing({header,actions,area,id}){
  area.innerHTML=`<section class="empty ui-empty monitor-missing"><p>No monitor has the id <code class="ui-mono">${escape(id)}</code>. It may have been deleted, or the link may be incomplete.</p><a class="ui-button primary" id="missing-back" href="/app">Back to monitors</a></section>`;
 }
 
+function retainHistoryDisclosures(history){
+ for(const detail of history?.querySelectorAll('details[data-slot]')??[]){if(detail.open)openHistory.add(detail.dataset.slot);else openHistory.delete(detail.dataset.slot)}
+}
+
 // header: the page header's title block (.top > div); actions: .actions; area: #content-area.
 export function renderMonitorPage({header,actions,area,data,id,api,action,readUnavailable}){
- for(const detail of area.querySelectorAll('#raw-history details[data-slot]')){if(detail.open)openHistory.add(detail.dataset.slot);else openHistory.delete(detail.dataset.slot)}
+ retainHistoryDisclosures(area.querySelector('#raw-history'));
  for(const detail of area.querySelectorAll('[data-tls-observation]')){if(detail.open)openTls.add(detail.dataset.tlsObservation);else openTls.delete(detail.dataset.tlsObservation)}
  for(const detail of area.querySelectorAll('#monitor-incidents details')){if(detail.open)openIncidents.add(detail.dataset.incident);else openIncidents.delete(detail.dataset.incident)}
  const m=data.monitors.find(m=>m.id===id);
@@ -226,6 +230,8 @@ export function renderMonitorPage({header,actions,area,data,id,api,action,readUn
   if(!history.isConnected)return;
   const timeline=buildTimeline({slots,now:Number.isSafeInteger(data.now)?data.now:Date.now(),monitor:m,revisions});
   const currentFocus=history.contains(document.activeElement)?document.activeElement.id:null;
+  // A disclosure can change while its refresh request is in flight. Preserve the current interaction.
+  retainHistoryDisclosures(history);
   history.innerHTML=historyMarkup(timeline,m);history.style.minHeight='';strip.innerHTML=stripMarkup(timeline);
   const flowHistory=area.querySelector('#flow-revisions');if(flowHistory)flowHistory.innerHTML=flowRevisions(revisions);
   if(currentFocus)document.getElementById(currentFocus)?.focus({preventScroll:true});

@@ -427,8 +427,8 @@ READAPI-001 evidence and remaining scope, OPS-001 durable recovery, INTERFACE-00
 | Clauses | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
 | Published | 18 | 3 | 0 | 21 |
-| Target and push further | 23 | 26 | 18 | 67 |
-| All | 41 | 29 | 18 | 88 |
+| Target and push further | 24 | 26 | 17 | 67 |
+| All | 42 | 29 | 17 | 88 |
 
 | Clause | Title | Kind | Status | Evidence | Gap |
 | --- | --- | --- | --- | --- | --- |
