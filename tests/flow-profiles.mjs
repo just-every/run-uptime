@@ -1,5 +1,6 @@
 // FLOW-004 through the migrated Worker and real production runner. A profile is
 // one monitor, so another engine's pass cannot clear a mobile-only outage.
+import {flowProfilesBrowser,flowMissingBrowser} from './flow-profiles-browser.mjs';
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
 import {once} from 'node:events';
@@ -61,6 +62,7 @@ try{
   assert.ok(report.flowProfiles.some(segment=>segment.profile.browser===monitor.definition.flow.browser&&segment.profile.device===monitor.definition.flow.device));
   assert.equal((await api(`/api/v1/monitors/${monitor.id}/report?period=24h&format=csv`)).status,200);
  }
+ await stop();await flowProfilesBrowser({origin,monitors,mobile,directory});start();
  // Each engine must send even a metadata subresource through the filtering
  // proxy. Manual results prove execution without changing scheduled health.
  for(const monitor of monitors){
@@ -88,7 +90,7 @@ try{
  }
  assert.equal((await ok('/api/overview')).monitors.find(m=>m.id===missing.id).state.state,'Unknown');
  await waitFor(async()=>{const current=await ok('/api/overview');return current.runner.runners.find(r=>!r.hosted).capabilities.browsers.webkit===false},'enrollment names lost engine capacity',30000);
- await stop();
+ await stop();await flowMissingBrowser({origin,missing,directory});
  const remaining=(await Promise.all((await readdir(flowDir)).map(folder=>readdir(join(flowDir,folder))))).flat().filter(name=>name.startsWith('run-'));assert.equal(remaining.length,0,'completed and failed profile runs leave no browser folders');
  const archive=await ok('/api/archive');assert.ok(archive.payload.productTables.observations.some(row=>JSON.parse(row.evidence).flow?.profile?.device==='mobile'),'archives retain immutable profile evidence');
  await worker.dispose();worker=null;
