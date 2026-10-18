@@ -1,7 +1,7 @@
 {
   "id": "uptime",
   "name": "Uptime",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "maturity": "local-installer-and-owner-deploy-implemented-hosted-unverified",
   "category": "monitoring",
   "spine": {
@@ -22,7 +22,7 @@
       "edition": null
     }
   ],
-  "description": "Private uptime console for scheduled HTTP(S), keyword, and heartbeat probes, with Base owner sign-in, installation-wide incident notifications, and portable product archives.",
+  "description": "Monitor your sites and scheduled jobs, track outages and notify your team.",
   "capabilities": [
     {
       "id": "scheduled-monitoring",

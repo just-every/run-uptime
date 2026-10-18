@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1 — 2026-10-18
+
+Description only; no product change. The catalogue description is now "Monitor your sites and scheduled jobs, track outages and notify your team.", the same sentence as main. The application, contract, migrations and configuration are identical to 0.3.0, so upgrading from 0.3.0 needs no migration, configuration or data step.
+
 ## 0.3.0 — 2026-10-16
 
 Minor release: adds the Managed mail provider. No migrations since 0.2.0; existing data and private settings are preserved.

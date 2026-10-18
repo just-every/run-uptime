@@ -1,5 +1,5 @@
 {
-  "version": "0.3.0",
-  "publicReleaseNotes": "Uptime 0.3.0 adds RER Managed relay mail for sign-in links and incident notifications without a separate provider account. Open app sign-in links prefill an explicit login_hint without sending mail until submitted. Hosted public checks start promptly while the owner uses the console, alongside Cron; website discovery and heartbeat evaluation clearly explain when a private runner is needed. Relay redirects are refused, confirmed rate limits respect Retry-After, and uncertain sends never replay. JSON assertion failures show bounded scalar diagnostics with credentials redacted. The release pins rer 0.2.24 and makes credential examples explicitly synthetic. This is a minor release for the new Managed mail provider. Upgrading from 0.2.0 adds no migrations and preserves monitors, history, destinations and private settings. Restored monitors stay paused and destinations disabled. Local development has no captured-mail page. Current 1440-pixel product screenshot: .github/assets/release/uptime-0.3.0-monitor-1440.png (Uptime Dev, a real scheduled local check and its recovered incident). Hosted recipient acceptance remains separate.",
+  "version": "0.3.1",
+  "publicReleaseNotes": "Uptime 0.3.1 changes only the catalogue description, which is now: Monitor your sites and scheduled jobs, track outages and notify your team. Description only; no product change. The application, contract, migrations and configuration are identical to 0.3.0.",
   "sourceRepository": "https://github.com/just-every/run-uptime"
 }
