@@ -1,3 +1,4 @@
+import {retentionCleanup} from './retention-cleanup-proof.mjs';
 import {allDeliveredMessages} from './mail-provider-fixture.mjs';
 import assert from 'node:assert/strict';
 import {join} from 'node:path';
@@ -117,6 +118,7 @@ try{
  assert.equal((await DB.prepare("SELECT COUNT(*) n FROM uptime_audit WHERE actor_ref=?").bind(other.id).first()).n,0);assert.ok((await DB.prepare("SELECT * FROM uptime_audit WHERE action='credential_rotate' AND actor_kind='anonymized'").all()).results.length);
  const ownerRow=(await ok('/auth/operators')).find(o=>o.role==='owner'&&o.status==='active');
  const beforeLast=await DB.prepare('SELECT COUNT(*) n FROM uptime_audit').first();const last=await api(`/api/operators/${ownerRow.id}/erase`,'POST',{});assert.equal(last.status,400);assert.match(last.data.error,/rer reset --yes/);assert.deepEqual(await DB.prepare('SELECT COUNT(*) n FROM uptime_audit').first(),beforeLast);
+ ({worker,DB}=await retentionCleanup({worker,DB,port,persist,bindings,owner,runChecks,origin,secondRunner}));env.DB=DB;
  const afterArchive=await ok('/api/archive');for(const canary of Object.values(canaries))assert.ok(!JSON.stringify(afterArchive).includes(canary));
  await assert.rejects(transferBefore.service.exports.download(transferBefore.id),'all previous transfer snapshots invalidated');
  const later=await ok('/api/erasure-journal');

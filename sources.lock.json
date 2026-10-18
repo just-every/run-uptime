@@ -457,7 +457,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "b81331eba5e88673041e296ce6d14118609d1214e83b00b2b27559bd16986d6b",
+      "sha256": "6be0a0c1f6ed2ff65d9262d21c0d54f8a97b8251e8af70e41682cd3a369f13a1",
       "executable": false
     },
     "AGENTS.md": {
@@ -481,7 +481,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "5124cdb4c3f05e60fb0c1b54525691347870330472282f0511e66c7ac979404a",
+      "sha256": "b1edc95f5d66dbbfdaaecbd71e51a6cf2ac4f5c27a80262fece5f5f0a0b0e343",
       "executable": false
     },
     "DEMO.md": {
@@ -505,7 +505,7 @@
       "executable": false
     },
     "docs/CLAIMS.md": {
-      "sha256": "663c49ad8a772c162d8a634c4c08e407c78e45b2acb60282d1bbe2197eed21c7",
+      "sha256": "0f7404e3d744278583b7eb9b0c226f6f718f82e90e31baff579a91cb1e7cade7",
       "executable": false
     },
     "docs/data.md": {
@@ -5405,7 +5405,7 @@
       "executable": false
     },
     "tests/erasure-audit.mjs": {
-      "sha256": "ec6e4994cc032898574b0b1b8b962c81692773a0329f3a709e493969f639785a",
+      "sha256": "ffb1e8c8e8662b3f8966e5132a5865af97092bf6db6693eaea8d1fc8992371c8",
       "executable": false
     },
     "tests/erasure-races.mjs": {
@@ -5730,6 +5730,14 @@
     },
     "tests/resilience/watches.mjs": {
       "sha256": "f87f7c9ae9c9f49025d1b08062f094922eace1264709d68e90b9709514f79925",
+      "executable": false
+    },
+    "tests/retention-browser-proof.mjs": {
+      "sha256": "2b89e283bbbb9e1ecf4cb78dbc073288ae975f1852999441f525d95b82bcb421",
+      "executable": false
+    },
+    "tests/retention-cleanup-proof.mjs": {
+      "sha256": "6618129b6260ea023fcf04f97919037c8492dbe5fb690e47355206ed95c1cb27",
       "executable": false
     },
     "tests/runner-contact.mjs": {
