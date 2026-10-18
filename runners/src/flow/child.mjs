@@ -63,7 +63,13 @@ context.on('page', p => { if (p !== page) { fail('extra_page'); p.close().catch(
 page.on('dialog', d => d.dismiss().catch(() => {}));
 // A request whose frame does not exist yet belongs to a window the flow did not open.
 const mainNavigation = q => { if (!q.isNavigationRequest()) return false; try { return q.frame() === page.mainFrame(); } catch { return null; } };
-page.on('response', r => { const q = r.request(); if (mainNavigation(q) === true && r.status() >= 400) fail('http_status', {status: r.status()}); });
+let proxyChallengePending=false;
+// Firefox exposes the proxy challenge before retrying with its bound credential.
+// Only a later navigation response clears it; an unresolved challenge is Unknown.
+page.on('response', r => {const q=r.request();if(mainNavigation(q)!==true)return;
+ if(r.status()===407&&r.headers()['proxy-authenticate']==='Basic realm=\"flow\"'){proxyChallengePending=true;return}
+ proxyChallengePending=false;if(r.status()>=400)fail('http_status',{status:r.status()});
+});
 await context.route('**/*', route => {
   const q = route.request(), u = new URL(q.url());
   if (!['http:', 'https:', 'data:', 'blob:', 'about:'].includes(u.protocol)) { fail('blocked_request'); return route.abort('blockedbyclient'); }
@@ -127,6 +133,7 @@ try {
       record({url: shownUrl()});
     }
   }
+  if(proxyChallengePending)throw Error('The filtering proxy did not authenticate the browser');
   const outcomes = [];
   if (!failure) {
     for (const [k, o] of flow.outcomes.entries()) {

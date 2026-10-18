@@ -76,7 +76,7 @@ export async function startFlowProxy({grant = null, privateAccess, maxBytes, max
   });
   server.on('connect', async (request, client, head) => {
     track(client);
-    const refuse = status => { client.end(`HTTP/1.1 ${status}\r\nconnection: close\r\n\r\n`); };
+    const refuse = status => { client.end(`HTTP/1.1 ${status}\r\n${status.startsWith('407 ')?'proxy-authenticate: Basic realm="flow"\r\n':''}connection: close\r\n\r\n`); };
     if (closed || !authorised(request)) return refuse('407 Proxy Authentication Required');
     const parsed = split(request.url);
     if (!parsed || !parsed.port || sockets.size > maxConnections || exceeded) return refuse('403 Forbidden');

@@ -35,7 +35,8 @@
         "HEARTBEAT-001",
         "UDP-001",
         "PRIVATE-001",
-        "HEARTBEAT-002"
+        "HEARTBEAT-002",
+        "FLOW-004"
       ]
     },
     {

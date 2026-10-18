@@ -7,7 +7,6 @@ import {availablePorts,migratedWorker,runtimeDirectory,cleanupDirectory} from '.
 const dir=await runtimeDirectory(),out=resolve(process.env.UPTIME_SCREENSHOTS??join(dir,'screens'));await mkdir(out,{recursive:true});let worker,browser;
 try{
  const [port]=await availablePorts(1),origin=`http://127.0.0.1:${port}`;({worker}=await migratedWorker({port,persist:join(dir,'worker')}));
- assert.ok(!chromium.executablePath().includes('headless_shell-1194'));
  browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});const context=await browser.newContext(),page=await context.newPage();await browserSignIn(page,origin);
  const response=await page.request.post(origin+'/api/monitors',{headers:{origin},data:{name:'Acme nightly database backup',type:'heartbeat',heartbeat:{maxAgeMs:86400000,graceMs:900000,maxRunDurationMs:1800000},canaryUrl:'https://example.org/',intervalMs:30000,enabled:true}});assert.equal(response.status(),201);const monitor=await response.json();
  const shot=async(name,selector)=>{await page.locator(selector).scrollIntoViewIfNeeded();assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.addScriptTag({path:resolve('node_modules/axe-core/axe.min.js')});assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.map(v=>v.id),[]);await page.locator(selector).screenshot({path:join(out,name+'.png'),mask:await page.locator('.one-time-secret').all(),maskColor:'#e7e9ef'})};

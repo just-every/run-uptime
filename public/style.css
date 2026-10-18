@@ -501,6 +501,12 @@
 }
 
 /* Browser flow (FLOW-001): the step trace and revision history on a monitor's page, in the page's own list and result styles. */
+.flow .detail-metrics{grid-template-columns:minmax(0,1fr)}
+.flow-expectations .expect-chip{white-space:normal;overflow-wrap:anywhere}
+#flow-profile-settings{display:grid;gap:12px;margin-top:12px}
+#flow-profile-settings p{margin:0}
+#flow-profile-settings label{display:block;margin-bottom:6px}
+#flow-profile-settings select{width:100%;min-width:0}
 .flow-limit{margin:0 0 .75rem;color:var(--ui-muted,inherit)}
 .flow-trace-wrap{margin:.5rem 0 0}
 .flow-trace-head,.flow-trace-foot{margin:.25rem 0;font-size:.875rem}

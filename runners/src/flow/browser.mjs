@@ -1,3 +1,6 @@
+import {mkdtemp,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 // Capability means the selected Playwright engine actually launched, not that
 // another browser happened to be installed. Missing engines produce Unknown.
 import {userInfo} from 'node:os';
@@ -11,14 +14,15 @@ export function browserCapability(engine = 'chromium') {
     const enabled = process.env.UPTIME_RUNNER_BROWSERS?.split(',').map(value => value.trim());
     if (enabled && (enabled.some(name => !FLOW_BROWSERS.includes(name)) || !enabled.includes(engine))) return {available: false, reason: `${engine} is not enabled in UPTIME_RUNNER_BROWSERS on this runner.`};
     if(process.platform==='darwin'&&process.env.HOME!==userInfo().homedir)return {available:false,reason:'Start this runner with the signed-in account HOME before using browser flows.'};
-    let browser;
+    let browser,home;
     try {
+      home=await mkdtemp(join(tmpdir(),'uptime-browser-capability-'));
       const engines = await import('playwright'), selected = engines[engine];
-      browser = await selected.launch(flowLaunchOptions(engine));
+      browser = await selected.launch(flowLaunchOptions(engine,{home}));
       const executable = selected.executablePath(), at = executable.indexOf('ms-playwright');
       return {available: true, engine, browsersPath: process.env.PLAYWRIGHT_BROWSERS_PATH ?? (at >= 0 ? executable.slice(0, at + 'ms-playwright'.length) : undefined)};
     } catch { return {available: false, reason: `This runner cannot start ${engine}: install it with pnpm exec playwright install ${engine}, then restart the runner.`}; }
-    finally { await browser?.close().catch(() => {}); }
+    finally { await browser?.close().catch(() => {});if(home)await rm(home,{recursive:true,force:true}); }
   })());
   return cached.get(engine);
 }

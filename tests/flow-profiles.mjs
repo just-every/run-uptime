@@ -41,8 +41,8 @@ try{
  for(const monitor of [...monitors,mobile])await waitFor(async()=>(await observations(monitor.id)).length>=2,'the selected browser profile completed',120000);
  const overview=await ok('/api/overview');
  for(const monitor of monitors){
-  const result=await latest(monitor.id);assert.equal(result.outcome,'pass',`${monitor.definition.flow.browser} must execute the real checkout`);
-  assert.equal(result.flow.profile.browser,monitor.definition.flow.browser);assert.equal(result.flow.profile.device,'desktop');
+  const result=await latest(monitor.id);assert.equal(result.outcome,'pass',`${monitor.definition.flow.browser} must execute the real checkout: ${JSON.stringify({checks:result.checks,failure:result.flow?.failure,trace:result.flow?.trace})}`);
+  assert.ok(result.flow.bytes>0,`${monitor.definition.flow.browser} must return bounded proxy-counted response bytes: ${JSON.stringify(result.flow)}`);assert.equal(result.flow.profile.browser,monitor.definition.flow.browser);assert.equal(result.flow.profile.device,'desktop');
   assert.equal(overview.monitors.find(m=>m.id===monitor.id).state.state,'Healthy');
  }
  const mobileResult=await latest(mobile.id);assert.equal(mobileResult.outcome,'target_failure');assert.equal(mobileResult.flow.failure.reason,'outcome_missing');
@@ -92,7 +92,7 @@ try{
  await waitFor(async()=>{const current=await ok('/api/overview');return current.runner.runners.find(r=>!r.hosted).capabilities.browsers.webkit===false},'enrollment names lost engine capacity',30000);
  await stop();await flowMissingBrowser({origin,missing,directory});
  const remaining=(await Promise.all((await readdir(flowDir)).map(folder=>readdir(join(flowDir,folder))))).flat().filter(name=>name.startsWith('run-'));assert.equal(remaining.length,0,'completed and failed profile runs leave no browser folders');
- const archive=await ok('/api/archive');assert.ok(archive.payload.productTables.observations.some(row=>JSON.parse(row.evidence).flow?.profile?.device==='mobile'),'archives retain immutable profile evidence');
+ const archive=await ok('/api/archive');assert.ok(archive.payload.tables.observations.some(row=>JSON.parse(row.evidence).flow?.profile?.device==='mobile'),'archives retain immutable profile evidence');
  await worker.dispose();worker=null;
  ({worker}=await migratedWorker({port,persist:join(directory,'receiver'),bindings}));await owner.signIn(bindings);
  await ok('/api/restore','POST',archive);

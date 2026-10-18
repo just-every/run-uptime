@@ -25,7 +25,7 @@ export function describeExpectation(item){
 }
 export function flowSummary(definition){
  const f=definition.flow;
- return '<dl class="assertion-summary">'
+ return '<dl class="assertion-summary flow-expectations">'
   +`<div><dt>Intent</dt><dd>${escape(f.intent)}</dd></div>`
   +`<div><dt>Required outcomes</dt><dd>${f.outcomes.map(o=>`<span class="expect-chip">${escape(o.id)}: ${escape(describeExpectation(o))}</span>`).join(' ')}</dd></div>`
   +`<div><dt>Steps</dt><dd>${f.steps.length}</dd></div></dl>`;
@@ -43,14 +43,14 @@ export function flowPanel(m,data){
   +`<p>Each monitor checks one browser and device combination. Create separate monitors for other combinations; each keeps its own health, incidents and report. <a href="/docs/browser-flows">Browser journey instructions</a></p>`
   +`<form id="flow-profile-settings" data-monitor-id="${escape(m.id)}" data-revision="${m.revision}" aria-describedby="flow-profile-help"><p><label for="flow-browser">Browser</label><select id="flow-browser" name="browser">${Object.entries(browsers).map(([value,label])=>`<option value="${value}" ${value===(m.definition.flow.browser??'chromium')?'selected':''}>${label}</option>`).join('')}</select></p><p><label for="flow-device">Device profile</label><select id="flow-device" name="device">${Object.entries(devices).map(([value,label])=>`<option value="${value}" ${value===(m.definition.flow.device??'desktop')?'selected':''}>${label}</option>`).join('')}</select></p><p id="flow-profile-help">Saving creates a new revision. A pass with another profile does not prove the earlier profile recovered. Mobile is a browser viewport and touch profile, not a native device test.</p><button type="submit" id="save-flow-profile">Save browser and device</button><p id="flow-profile-feedback" role="status"></p></form>`
   +(change?`<p class="ui-callout" id="flow-changed" data-state="degraded">Changed definition: revision ${escape(change.toRevision)} no longer requires ${escape(change.removed.join('; '))}, which revision ${escape(change.fromRevision)} required when this incident began. A pass now does not show the original flow works.</p>`:'')
-  +(noBrowser(m,data)?`<p class="ui-callout" id="flow-no-browser" data-state="unknown">An assigned runner cannot run ${escape(browsers[m.definition.flow.browser??'chromium'])}, so its coverage is Unknown. Install the selected engine with <code>pnpm exec playwright install ${escape(m.definition.flow.browser??'chromium')}</code> and restart that runner.</p>`:'')
+  +(noBrowser(m,data)?`<p class="ui-callout" id="flow-no-browser" data-state="unknown"><span>An assigned runner cannot run ${escape(browsers[m.definition.flow.browser??'chromium'])}, so its coverage is Unknown. Install the selected engine with <code>pnpm exec playwright install ${escape(m.definition.flow.browser??'chromium')}</code> and restart that runner.</span></p>`:'')
   +`<div id="flow-revisions" class="flow-revisions"></div></section>`;
 }
 export function flowRevisions(revisions){
  const rows=revisions.filter(r=>r.definition?.type==='flow');
  if(!rows.length)return '';
- const text=r=>{const c=r.flowChange;if(!c)return 'first revision';if(c.change==='shrank')return `required outcomes reduced from ${c.from} to ${c.to}; removed ${c.removed.join('; ')}`;if(c.change==='grew')return `required outcomes grew from ${c.from} to ${c.to}`;return 'required outcomes unchanged'};
- const weakened=rows[0]?.flowChange?.change==='shrank'?`<p class="ui-callout" id="flow-weakened" data-state="degraded">This revision requires less than revision ${escape(rows[1]?.revision??'')}: ${escape(rows[0].flowChange.removed.join('; '))} ${rows[0].flowChange.removed.length===1?'is':'are'} no longer required. A pass under it is a pass of a changed definition.</p>`:'';
+ const text=r=>{const c=r.flowChange;if(!c)return 'first revision';if(c.change==='shrank')return `requirements changed; no longer requires ${c.removed.join('; ')}`;if(c.change==='grew')return `required outcomes grew from ${c.from} to ${c.to}`;return 'required outcomes unchanged'};
+ const weakened=rows[0]?.flowChange?.change==='shrank'?`<p class="ui-callout" id="flow-weakened" data-state="degraded">Compared with revision ${escape(rows[1]?.revision??'')}, ${escape(rows[0].flowChange.removed.join('; '))} ${rows[0].flowChange.removed.length===1?'is':'are'} no longer required. A pass under this changed definition does not prove the earlier requirements recovered.</p>`:'';
  return `${weakened}<h3 id="flow-revisions-heading">Revision history</h3><ol class="flow-history">${rows.map(r=>`<li data-change="${escape(r.flowChange?.change??'first')}"><span class="ui-mono">Revision ${escape(r.revision)}</span> · ${escape(profileText(r.definition.flow))} · ${escape(new Date(r.start).toLocaleString())} · ${escape(text(r))}</li>`).join('')}</ol>`;
 }
 const outcomeWords={pass:['passed','Passed'],fail:['failed','Failed'],skipped:['unknown','Skipped']};
