@@ -16,6 +16,8 @@ The response includes each monitor's exact report availability, SLA target/resul
 
 Use `Accept: text/csv` or `format=csv` for the same bulk figures as CSV. Monitor names beginning with spreadsheet formula characters are escaped in CSV. JSON retains the original values.
 
+Single-monitor `/uptime` and `/report` return the same `seconds` object as each bulk row: `observed`, `up`, `down`, `unknown`, `paused`, `maintenance` and `slow`. Values retain fractional seconds without rounding. Existing `availability` fields keep their explicit millisecond units. The single-monitor CSV includes matching `availability_seconds` rows with unit `seconds`, alongside its millisecond rows. Its `source` is `Uptime`; imported source segments and blended figures are unavailable, and a `source` query parameter is refused.
+
 ## Calendar periods and time zones
 
 Uptime and per-monitor reports accept `24h`, `7d`, `30d`, `90d`, `mtd` (month to date), `qtd` (quarter to date), `ytd` (year to date) and `last-month`, or a custom `from` and `to`. The default is the owner-selected notification time zone. Set an IANA `timeZone`, such as `America/Chicago` or `America/New_York`. The console's **Period report** offers the same periods.

@@ -20,13 +20,17 @@ try{
    await page.getByText('Report generated. The snapshot below stays fixed until you generate another report.',{exact:true}).waitFor();assert.equal(report.period.period,period);assert.equal(report.period.timeZone,'America/New_York');
    await check('calendar-'+period+'-'+width,'#monitor-report');
    const query=new URLSearchParams({from:String(report.period.from),to:String(report.period.to),timeZone:report.period.timeZone,monitor:ids[0]});
-   const bulk=await page.request.get(origin+'/api/v1/uptime?'+query);assert.equal(bulk.status(),200);assert.deepEqual((await bulk.json()).monitors[0].availability,report.availability);
+   const bulk=await page.request.get(origin+'/api/v1/uptime?'+query);assert.equal(bulk.status(),200);const bulkRow=(await bulk.json()).monitors[0];assert.deepEqual(bulkRow.availability,report.availability);assert.deepEqual(bulkRow.seconds,report.seconds);
    const csv=await page.request.get(origin+'/api/v1/uptime?'+query,{headers:{accept:'text/csv'}});assert.equal(csv.status(),200);assert.match(await csv.text(),/observed_seconds/);
    const [download]=await Promise.all([page.waitForEvent('download'),page.locator('#report-json').click()]);const file=join(directory,'snapshot-'+width+'.json');await download.saveAs(file);assert.deepEqual(JSON.parse(await readFile(file,'utf8')).availability,report.availability);
+   assert.deepEqual(JSON.parse(await readFile(file,'utf8')).seconds,bulkRow.seconds);
+   const [csvDownload]=await Promise.all([page.waitForEvent('download'),page.locator('#report-csv').click()]);const csvFile=join(directory,'snapshot-'+width+'.csv');await csvDownload.saveAs(csvFile);const csvText=await readFile(csvFile,'utf8');
+   for(const [name,value] of Object.entries(bulkRow.seconds))assert.ok(csvText.includes(`,${name},${value},seconds,`));
   }
   await page.reload();await page.locator('#report-period').waitFor();
   await page.getByRole('link',{name:'Monitoring API and CSV guide',exact:true}).click();await page.getByRole('heading',{level:1,name:'Monitoring API and CSV',exact:true}).waitFor();
   await check('api-guide-'+width,'main');
+  await page.locator('p').filter({hasText:'Single-monitor /uptime'}).scrollIntoViewIfNeeded();await page.screenshot({path:join(out,'api-seconds-guide-'+width+'.png')});
   await page.getByRole('heading',{name:'Calendar periods and time zones',exact:true}).scrollIntoViewIfNeeded();await page.screenshot({path:join(out,'api-calendar-guide-'+width+'.png')});
   const specResponse=await fetch(origin+'/api/v1/openapi.json');assert.equal(specResponse.status,200,'OpenAPI requires no owner credential');const spec=await specResponse.json();assert.ok(spec.paths['/api/v1/uptime']);
   const incidents=await page.request.get(origin+'/api/v1/incidents?limit=1',{headers:{accept:'text/csv'}});assert.equal(incidents.status(),200);assert.match(incidents.headers()['content-type'],/text\/csv/);assert.ok(incidents.headers()['x-next-cursor']);

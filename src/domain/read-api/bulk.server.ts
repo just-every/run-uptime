@@ -28,7 +28,7 @@ export async function bulkUptime(env:Bindings, params:URLSearchParams, now=Date.
    if(!report)throw new ReportInputError('A selected monitor is unavailable','monitor_not_found')
    const a=report.availability
    return {monitor:report.monitor,availability:a,sla:report.sla,slow:{slowMs:report.slow.slowMs,policy:report.slow.policy},incidentSummary:report.incidentSummary,
-    seconds:{observed:a.observedMs/1000,up:a.upMs/1000,down:a.notPassingMs/1000,unknown:a.unknownMs/1000,paused:a.pausedMs/1000,maintenance:a.maintenanceMs/1000,slow:report.slow.slowMs/1000},
+    seconds:report.seconds,
     denominatorPolicy:report.denominatorPolicy}
   }))
   reports.push(...batch)

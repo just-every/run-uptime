@@ -457,7 +457,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "ffa7c451774a4899b4796497f68df3033156f10ba3b3af3ab5eb04c3b6fe6ee2",
+      "sha256": "f259df7bf5157cb0bbd8dd71dd93116cd5084e36afb76d848e00c4b14584239e",
       "executable": false
     },
     "AGENTS.md": {
@@ -481,7 +481,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "6e5883a7e434c3b7be31968fd6eede1248357edba779c3a2e38876f0873a0ac2",
+      "sha256": "04810d7c65905e5f99679d779e996b746f96a8f8001cba8e25661ea72c3a6623",
       "executable": false
     },
     "DEMO.md": {
@@ -505,7 +505,7 @@
       "executable": false
     },
     "docs/CLAIMS.md": {
-      "sha256": "2a70029d7d722735bea8214bead3a5b11c2de42841626df4bcd59f0fb93f9876",
+      "sha256": "1aa3f793265761cd4db6877cdb66c15bc958913a59410f8ae59c81e07c0df830",
       "executable": false
     },
     "docs/data.md": {
@@ -1384,6 +1384,14 @@
       "sha256": "c04687e0628403c67e2aef7ab7e0b9d3056d2397eaf66880bbbaead7ac579d3c",
       "executable": false
     },
+    "docs/evidence/contracts/read-api/api-seconds-guide-1440.png": {
+      "sha256": "580104489adc0c79d2dac81c05589f28b2b000d86b2bce61f6709d028658881f",
+      "executable": false
+    },
+    "docs/evidence/contracts/read-api/api-seconds-guide-390.png": {
+      "sha256": "f26be27400c330893f9ac529eeee658c714749f080e7b3b7d3dda595109c3a5e",
+      "executable": false
+    },
     "docs/evidence/contracts/read-api/calendar-last-month-1440.png": {
       "sha256": "2f9842d34253310401f439d8691380010cc8fdfa8c7139eb9b6cbebfe29e7cd6",
       "executable": false
@@ -1945,7 +1953,7 @@
       "executable": false
     },
     "docs/read-api.md": {
-      "sha256": "c587f3657ef683d37f70851fae148165f44b9ca9a24579515e925780e91758fb",
+      "sha256": "5042429c614811e3dd862fec6df71fc44e6664267f76d5e9239e6f109882fb79",
       "executable": false
     },
     "docs/resilient-monitoring.md": {
@@ -4697,11 +4705,11 @@
       "executable": false
     },
     "src/domain/read-api-openapi.ts": {
-      "sha256": "300bda3b2700a6ce34ecc6ec331ceb67567ba3adce802a6d0503d84223285420",
+      "sha256": "c98cee0d13d1926f81ec1db40f7028ddaccc9349d16740ac661234b9f5b8260d",
       "executable": false
     },
     "src/domain/read-api/bulk.server.ts": {
-      "sha256": "1650e9827e7ccf581914ed01101922a2aec089e7c9ef037750cc7290a47ee51e",
+      "sha256": "348d4d7a9bc00bd22117f6c6edfd2cd051ac2f392eb52b9b825d3a1e1ce46a38",
       "executable": false
     },
     "src/domain/read-api/csv.ts": {
@@ -4725,7 +4733,7 @@
       "executable": false
     },
     "src/domain/reports/export.ts": {
-      "sha256": "50cb14a4d5c16dad0986574b0be2af4f721aa4e027bcd5939baf6baafd60f2b8",
+      "sha256": "6f34f99f65cc755318617863ff16f9e23b975c572c3db83daf989367707e438e",
       "executable": false
     },
     "src/domain/reports/flow-profiles.server.ts": {
@@ -4737,7 +4745,7 @@
       "executable": false
     },
     "src/domain/reports/index.server.ts": {
-      "sha256": "94f98f393c5db62a34a4224a8a924e16d9f1663a4bc8ab7cb0f32185251a93b3",
+      "sha256": "203f8d8580be332ccd6986657e5f8d14341ac0ca2d5b4443789737c06ff4a0ef",
       "executable": false
     },
     "src/domain/reports/latency-query.ts": {
@@ -4758,6 +4766,10 @@
     },
     "src/domain/reports/period.ts": {
       "sha256": "ea2616c9983879f8700b88e4c9e8cbc00cd9c2c6ea0c4072a6f54c2522ef812d",
+      "executable": false
+    },
+    "src/domain/reports/seconds.ts": {
+      "sha256": "5732615af45301cf810a76845d54befb78e69f74323a2f023c736966f886b69f",
       "executable": false
     },
     "src/domain/reports/slow.server.ts": {
@@ -5709,11 +5721,11 @@
       "executable": false
     },
     "tests/read-api-browser.mjs": {
-      "sha256": "87af1136c20a10ed755944c3883d15ff0b28d9c57353b52c8ff04712d189775e",
+      "sha256": "18b8ceb6e419f32f66d7590090487795153b3d78c3d35543739698b2ea53e493",
       "executable": false
     },
     "tests/read-api.mjs": {
-      "sha256": "d972e6976137d71f087b31c1cc86b05f9590c30b8e950d8b21e7a3ba89046c35",
+      "sha256": "baad8f2ded42830f1b55fbfc12518cae66c6443547adfde28dc39ae566111042",
       "executable": false
     },
     "tests/readme-journey.mjs": {

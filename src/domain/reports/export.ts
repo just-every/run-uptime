@@ -20,6 +20,8 @@ export function reportCsv(report: MonitorReport): string {
   add('policy','rootCauseFilter',report.rootCauseFilter)
   for(const group of report.rootCauseGroups){add('root_cause',group.categoryLabel+' incident count',group.count);add('root_cause',group.categoryLabel+' downtime',group.durationInPeriodMs,'ms')}
   add('policy', 'denominator', report.denominatorPolicy)
+  add('policy', 'source', report.source)
+  for (const [metric, value] of Object.entries(report.seconds)) add('availability_seconds', metric, value, 'seconds')
   add('policy', 'percentileMethod', report.latency.percentileMethod)
   add('policy', 'samplePolicy', report.latency.samplePolicy)
   add('policy', 'bucket', report.latency.bucket)

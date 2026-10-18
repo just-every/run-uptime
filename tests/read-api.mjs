@@ -59,6 +59,11 @@ try{
  for(const row of bulk.monitors){
   const report=await json('/api/v1/monitors/'+row.monitor.id+'/report?'+query+'&bucket=1d');
   assert.deepEqual(row.availability,report.availability);assert.equal(row.slow.slowMs,report.slow.slowMs);assert.deepEqual(row.incidentSummary,report.incidentSummary);assert.equal(row.denominatorPolicy,report.denominatorPolicy);
+  assert.deepEqual(row.seconds,report.seconds);assert.equal(report.source,bulk.source);
+  const singleCsv=await read('/api/v1/monitors/'+row.monitor.id+'/uptime?'+query+'&bucket=1d',{accept:'text/csv'});assert.equal(singleCsv.status,200);
+  const singleRows=csvRows(await singleCsv.text()).filter(value=>value.section==='availability_seconds');
+  assert.deepEqual(Object.fromEntries(singleRows.map(value=>[value.metric,Number(value.value)])),row.seconds);
+  assert.ok(singleRows.every(value=>value.unit==='seconds'));
   for(const [key,metric] of Object.entries({observed:'observedMs',up:'upMs',down:'notPassingMs',unknown:'unknownMs',paused:'pausedMs',maintenance:'maintenanceMs'}))assert.equal(row.seconds[key],report.availability[metric]/1000);
  }
  const restricted=await json('/api/v1/uptime?'+query+'&monitor='+encodeURIComponent(firstId+','+secondId));assert.equal(restricted.monitors.length,2);

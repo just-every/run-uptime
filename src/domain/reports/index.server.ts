@@ -1,4 +1,5 @@
 import {configuredPeriod} from './configured-period.server.ts'
+import {uptimeSeconds} from './seconds.ts'
 import {heartbeatRuns} from '../heartbeat-jobs.server.ts'
 import { periodAvailability } from './coverage.server.ts'
 import { periodLatency, latencyOptions } from './latency.server.ts'
@@ -30,11 +31,11 @@ export async function monitorReport(env: { DB: D1Database }, id: string, params:
   if(jobRuns?.nextCursor)throw Error('Heartbeat report exceeds 10,000 run records; choose a shorter period')
   const targetPercent = period.slaTargetPercent
   return {
-    schemaVersion: 1, generatedAt: now,
+    schemaVersion: 1, generatedAt: now, source: 'Uptime' as const,
     monitor: { id: monitor.id, name: String(JSON.parse(monitor.definition).name), revision: monitor.revision },
     period,
     denominatorPolicy: 'Healthy time as a share of observed scheduled time (healthy + not passing). Unknown, paused and maintenance time are excluded from the uptime and SLA denominator and shown separately.',
-    availability,
+    availability, seconds: uptimeSeconds(availability, slow.slowMs),
     sla: targetPercent === null ? null : {
       targetPercent, actualPercent: availability.uptimePercent,
       met: availability.observedMs ? availability.upMs * 100 >= targetPercent * availability.observedMs : null,
