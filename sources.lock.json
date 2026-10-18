@@ -4609,7 +4609,7 @@
       "executable": false
     },
     "tests/monitor-credentials.mjs": {
-      "sha256": "442c3e00133c9713cec8973cae5e8ae7ed043acf986c674428fbb0078a0b607d",
+      "sha256": "253494a255633c90c897659a57d119def45bcf308849e85a22ed36c649818ce8",
       "executable": false
     },
     "tests/notification-preferences-browser.mjs": {
