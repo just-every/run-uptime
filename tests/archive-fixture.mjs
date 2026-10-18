@@ -16,6 +16,9 @@ export async function populateArchiveFixture(env){
  }
  statements.push(env.DB.prepare("UPDATE integration_deliveries SET state='accepted',claim=NULL,claim_until=NULL WHERE id='job-webhook'"),env.DB.prepare("UPDATE integration_attempts SET finished_at=?,outcome=? WHERE id='attempt-webhook'").bind(now,JSON.stringify({kind:'uncertain',code:'response_unknown'})),env.DB.prepare('INSERT INTO integration_resolutions VALUES(?,?,?,?,?)').bind('uptime-notifications','resolution-webhook','job-webhook',now,JSON.stringify({kind:'accepted',code:'owner_confirmed'})));
  await env.DB.batch(statements);
+}
+export async function populateProtocolArchiveFixture(env){
+ const now=Date.now()-1000;
  // Protocol settings must survive both the current definition and immutable slot/revision validation.
  for(const [type,settings] of [
   ['tcp',{host:'database.example.com',port:5432,readBanner:true,bannerIncludes:'READY'}],

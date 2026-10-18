@@ -9,7 +9,7 @@ import {startLocalWorker} from './mail-provider-fixture.mjs';
 import {archive,restore} from '../src/domain/archive.server.ts';
 import {digest,TABLES,LEGACY_TABLES,ARCHIVE_ROWS,extensionTables} from '../src/domain/archive-schema.ts';
 import {installationLocalTables,assertArchiveInventory} from '../src/domain/archive-inventory.ts';
-import {populateArchiveFixture} from './archive-fixture.mjs';
+import {populateArchiveFixture,populateProtocolArchiveFixture} from './archive-fixture.mjs';
 import {restoreBounds} from './archive-restore-bounds.mjs';
 import {applyDefinitions,previewDefinitions,undoBatch} from '../src/domain/definitions/index.server.ts';
 const parent=new URL('../../tmp/',import.meta.url).pathname;await mkdir(parent,{recursive:true});const dir=await mkdtemp(join(parent,'archive-roundtrip-'));let worker;
@@ -22,7 +22,7 @@ const tables=a=>({...a.payload.tables,...a.payload.productTables});
 async function rehash(a){a.sha256=await digest(JSON.stringify(a.payload));return a}
 try{
  const source=join(dir,'source'),target=join(dir,'target'),settings=join(dir,'settings.json'),file=join(dir,'archive.json');await writeFile(settings,JSON.stringify(values),{mode:0o600});
- await migrate(source);let env=await installation(source);await populateArchiveFixture(env);
+ await migrate(source);let env=await installation(source);await populateArchiveFixture(env);await populateProtocolArchiveFixture(env);
  // One applied-and-undone definition batch and one applied batch travel as history.
  const owner={kind:'feature',ref:'local-cli'},definitionFile=names=>JSON.stringify({format:'uptime.monitors',version:1,monitors:names.map(name=>({name,url:`https://example.test/${name}`}))});
  for(const [names,undo] of [[['imported-a','imported-b'],true],[['imported-c'],false]]){const text=definitionFile(names),applied=await applyDefinitions(env,text,'auto',(await previewDefinitions(env,text)).digest,owner);if(undo)await undoBatch(env,applied.batchId,owner)}

@@ -4697,7 +4697,7 @@
       "executable": false
     },
     "tests/archive-fixture.mjs": {
-      "sha256": "669741988307ead8fbff5b808c16dcacce25f14dec19343ab635dd6e18f2ddad",
+      "sha256": "66597f295a3c785c323fc5345c3b7857a2ef50389fee32df22dfd7ea175780a9",
       "executable": false
     },
     "tests/archive-release.mjs": {
@@ -4713,7 +4713,7 @@
       "executable": false
     },
     "tests/archive-roundtrip.mjs": {
-      "sha256": "731dd7ce70d4303121bcda08f09399779e986b7bd53351c494eca3917637ed7b",
+      "sha256": "75be853ae477f07de56ff3e8211956bf500126fca68cf83e6f7835667b0f4080",
       "executable": false
     },
     "tests/auth-input-boundary.mjs": {
