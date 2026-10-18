@@ -426,7 +426,7 @@ Protocol round (17 October 2026): TCP-001, DNS-001, TLS-001 and DOMAIN-001 moved
 
 ## Status
 
-Judged from the code and targeted product journeys in the 18 October 2026 diagnostics round.
+Judged from the code and tests at commit `816b3dd` (18 October 2026).
 
 | Clauses | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
