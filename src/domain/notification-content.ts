@@ -2,7 +2,7 @@ import {renderSlackEvent,serializeSlackMessage,escapeSlackText} from '../base/mo
 import {triggerContext,recoveryContext,incidentContextText,incidentUrl,type IncidentContext} from './notification-context.ts'
 import {eventWebhookContext,type WebhookContext} from './notification-webhook-context.ts'
 export interface NotificationEvent {
- schemaVersion:2; id:string; kind:'trigger'|'recovery'|'test'|'expiry'|'renewal'; eventType:string;
+ schemaVersion:2; id:string; kind:'trigger'|'recovery'|'test'|'expiry'|'renewal'|'reminder'|'slow'|'slow_recovery'|'slow_reminder'; eventType:string;
  incidentKey:string|null; state:'firing'|'recovered'|'test'|'warning'|'renewed'; title:string;
  monitorId:string|null; monitorRevision:number|null; monitorName:string; url:string;
  slotId:string|null; observedAt:number; visibility:'private'; evidenceRef:string;

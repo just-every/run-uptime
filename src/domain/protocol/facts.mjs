@@ -1,3 +1,4 @@
+import {privateAddress} from '../private-target.mjs';
 import {publicAddress} from '../public-target.mjs';
 import {MAX_ANSWERS,MAX_VALUE} from './dns.mjs';
 // The bounded shape of each protocol type's retained facts. Signed evidence that does not fit is refused before its
@@ -8,11 +9,27 @@ const int=(v,min,max)=>{if(!Number.isSafeInteger(v)||v<min||v>max)fail();return 
 const str=(v,max)=>{if(typeof v!=='string'||v.length>max)fail();return v};
 const time=v=>v===null?v:int(v,0,8640000000000000);
 const names=v=>{object(v,[],['cn','o']);for(const k of Object.keys(v))str(v[k],200)};
-function tcp(f){
+function tcp(f,s,definition){
  object(f,['address','connectMs'],['banner','bannerNote']);
- if(!publicAddress(str(f.address,45)))fail();int(f.connectMs,0,60000);
+ if(!(definition.network==='private'?privateAddress(str(f.address,45)):publicAddress(str(f.address,45))))fail();int(f.connectMs,0,60000);
  if(f.banner!==undefined&&(str(f.banner,256)===''||/[\x00-\x1f\x7f]/.test(f.banner)))fail();
  if(f.bannerNote!==undefined)str(f.bannerNote,80);
+}
+function ping(f,s){
+ object(f,['address','family','transmitted','received','lossPercent','rtt']);
+ if(!publicAddress(str(f.address,45))||f.family!==s.family||(f.address.includes(':')?6:4)!==s.family)fail();
+ if(int(f.transmitted,1,5)!==s.packets)fail();int(f.received,0,f.transmitted);
+ if(f.lossPercent!==(f.transmitted-f.received)*100/f.transmitted)fail();
+ if(!f.received){if(f.rtt!==null)fail();return}
+ const r=object(f.rtt,['minMs','meanMs','maxMs']);
+ for(const v of Object.values(r))if(typeof v!=='number'||!Number.isFinite(v)||v<0||v>60000)fail();
+ if(r.minMs>r.meanMs||r.meanMs>r.maxMs||(f.received===1&&(r.minMs!==r.meanMs||r.meanMs!==r.maxMs)))fail();
+}
+function udp(f,s){
+ object(f,['address','roundTripMs','sentBytes','receivedBytes','responseHex']);
+ if(!publicAddress(str(f.address,45)))fail();int(f.roundTripMs,0,60000);
+ if(int(f.sentBytes,1,256)!==s.payloadHex.length/2)fail();int(f.receivedBytes,0,1024);
+ if(!/^(?:[0-9a-f]{2})*$/.test(str(f.responseHex,2048))||f.responseHex.length!==f.receivedBytes*2)fail();
 }
 function tls(f){
  object(f,['handshakeMs','certificate','chainLength','trusted','hostnameMatch'],['address','verifyError']);
@@ -49,5 +66,5 @@ function domain(f,s){
  if(f.conflict!==Boolean(f.expiresAt!==null&&f.registrar?.expiresAt!=null&&Math.abs(f.expiresAt-f.registrar.expiresAt)>86400000))fail();
 }
 export function validateFacts(definition,facts){
- ({tcp,tls,dns,domain})[definition.type](facts,definition[definition.type]);
+ ({tcp,udp,ping,tls,dns,domain})[definition.type](facts,definition[definition.type],definition);
 }

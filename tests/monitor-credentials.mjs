@@ -63,7 +63,10 @@ test('claimed HTTP and browser checks require their own monitor-bound local cred
   const wrongTask=await manual(C.id),wrong=await run(wrongTask);assert.equal(wrong.outcome,'target_failure','rotation is read afresh by the browser');await submit(wrongTask,wrong);
   await rm(join(directory,'password.json'));const absentTask=await manual(C.id),absent=await run(absentTask);assert.equal(absent.outcome,'runner_error');await submit(absentTask,absent);
   assert.deepEqual(await readdir(workspace),[],'every browser profile is removed');
-  await new Promise(r=>setTimeout(r,Math.max(0,Math.max(taskA.acceptUntil,taskC.acceptUntil)-Date.now()+1)));
+  // A timer is a wake-up hint, not proof that the wall-clock claim expired.
+  const expiredAfter=Math.max(taskA.acceptUntil,taskC.acceptUntil);
+  while(Date.now()<=expiredAfter)await new Promise(r=>setTimeout(r,Math.max(1,expiredAfter-Date.now()+1)));
+  assert.ok(Date.now()>expiredAfter,'both real claimed-task deadlines have passed');
   for(const task of [taskA,taskC])await assert.rejects(run(task),/Credential claim unavailable/,'a genuinely expired claimed task cannot load a credential');
   const tables=(await f.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name<>'_cf_METADATA'").all()).results;
   const persisted=await Promise.all(tables.map(async({name})=>(await f.DB.prepare(`SELECT * FROM "${name}"`).all()).results));

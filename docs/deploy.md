@@ -121,3 +121,5 @@ A resource with a familiar name but mismatched identity must not be adopted or d
 ## About verification
 
 Local checks cover the deploy command and the installer. One fresh-account hosted installation of version 0.1.1 has been exercised end to end: claim, email sign-in, a signed runner, and down and recovery emails. Its first deploy attempt stopped part way and completed on the documented resume. If something does not behave as written here, open an issue at https://github.com/just-every/run-uptime.
+
+On a fresh checkout, unattended deployment with rer 0.2.54 or later also needs `--owner-name "Your name"` unless setup already saved that owner name. The CLI asks interactively when needed and keeps the answer for later deploys; it refuses before uploading when an unattended run has no name.

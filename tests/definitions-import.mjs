@@ -109,9 +109,9 @@ try{
  assert.notEqual(changedCodes.body.digest,currentPreview.body.digest,'accepted status ranges contribute to the review digest');
  await unchanged('a digest with changed status semantics',async()=>assert.equal((await apply(changedSource,currentPreview.body.digest)).status,409));
  assert.equal((await apply(uptimeRobot,imported.body.digest)).status,409,'a second apply of the same preview is stale');
- // A daily heartbeat with a grace period imports with the grace shortened to the one-day ceiling, and the preview names the numbers.
+ // Daily heartbeat migration preserves the expected period and grace as separate settings.
  const daily=await unchanged('a daily UptimeRobot heartbeat preview',()=>preview(JSON.stringify({data:[{id:1,friendlyName:'Daily export',type:'HEARTBEAT',interval:86400,gracePeriod:300}],nextLink:null})));
- assert.equal(daily.body.entries[0].action,'create');assert.ok(daily.body.entries[0].differences.some(d=>d.includes('86,700 s')),'the preview names interval plus grace');
+ assert.equal(daily.body.entries[0].action,'create');assert.deepEqual(daily.body.entries[0].target.heartbeat,{maxAgeMs:86400000,graceMs:300000,maxRunDurationMs:0,outputMasks:[]},'the preview preserves the whole period and grace');
 
  // Export round-trips: the exported file previews as all unchanged.
  const exported=await json(await send('/api/definitions/export',undefined,{method:'GET'}));

@@ -46,7 +46,7 @@ async function deploy(root, provider, signal, flags = []) {
     OWNER_EMAIL: 'owner@example.test', MAIL_FROM: 'sender@example.test', MAIL_PROVIDER: 'sendgrid', MAIL_API_KEY: 'test-only-sendgrid-key',
   };
   return new Promise((resolveResult, reject) => {
-    const child = spawn('rer', ['deploy', '--json', ...flags], { cwd: root, env, detached: true, stdio: ['ignore', 'pipe', 'pipe'] });
+    const child = spawn('rer', ['deploy', '--json', '--owner-name', 'Lifecycle owner', ...flags], { cwd: root, env, detached: true, stdio: ['ignore', 'pipe', 'pipe'] });
     const stop = () => { try { process.kill(-child.pid, 'SIGKILL'); } catch { /* Already reaped. */ } };
     signal.addEventListener('abort', stop, { once: true });
     let output = '', errors = '';

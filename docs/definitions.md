@@ -2,12 +2,12 @@ A definition file lists your monitors as reviewed text, so you can keep them in 
 
 ## The file
 
-The default name is `uptime.monitors.json`. New exports use version 3; version 1 and 2 files remain readable (a flow needs version 2 or later, and the TCP, DNS, TLS and domain types need version 3). The supported public monitor types are HTTP(S), keyword, heartbeat, TCP, DNS, TLS and domain:
+The default name is `uptime.monitors.json`. New exports use version 6; versions 1–5 remain readable (a flow needs version 2 or later, TCP, DNS, TLS and domain need version 3, UDP needs version 4, and private network scope and local grant references need version 5, and ICMP ping needs version 6). Supported public monitor types are HTTP(S), keyword, heartbeat, TCP, UDP, ICMP ping, DNS, TLS and domain. UDP requires a private runner and uses `udp: {"host":"service.example.com","port":9000,"payloadHex":"50494e47","expectedHex":"504f4e47","match":"exact"}`; bytes are hexadecimal (`PING` and `PONG` here), never credentials. Its minimum interval is 30 seconds.
 
 ```json
 {
   "format": "uptime.monitors",
-  "version": 3,
+  "version": 5,
   "monitors": [
     {
       "name": "Shop home",
@@ -44,7 +44,9 @@ The default name is `uptime.monitors.json`. New exports use version 3; version 1
 }
 ```
 
-Each entry uses the same fields as the monitor editor, and the same validation checks them: `name`, `type` (`http`, `keyword`, `heartbeat`, `tcp`, `dns`, `tls` or `domain`), `url`, `method`, `assertions`, `intervalMs`, `timeoutMs`, `retries`, `probes`, `failureQuorum`, `confirmSlots`, `recoverSlots`, `freshnessMs`, `heartbeat` (`maxAgeMs`, at most one day), `tcp` (`host`, `port`, `readBanner`, `bannerIncludes`), `dns` (`name`, `recordType`, `resolvers`, `expect`, `approved`), `tls` (`host`, `port`, `warnDays`, `owner`), `domain` (`name`, `warnDays`, `owner`), `enabled` and `maintenanceUntil`. A TCP, DNS, TLS or domain monitor takes its address from these settings and no `url` or `method`; its only assertion is `latencyMs`. A header assertion takes only `name` and `equals`, and a JSON assertion only `path` and `equals`. Fields you leave out take the editor's defaults. Monitors are matched to your installation by name.
+Each entry uses the same fields as the monitor editor, and the same validation checks them: `name`, `type` (`http`, `keyword`, `heartbeat`, `tcp`, `udp`, `dns`, `tls` or `domain`), `url`, `method`, `assertions`, `intervalMs`, `timeoutMs`, `retries`, `probes`, `failureQuorum`, `confirmSlots`, `recoverSlots`, `freshnessMs`, `heartbeat` (`maxAgeMs`, at most one day), `tcp` (`host`, `port`, `readBanner`, `bannerIncludes`), `dns` (`name`, `recordType`, `resolvers`, `expect`, `approved`), `tls` (`host`, `port`, `warnDays`, `owner`), `domain` (`name`, `warnDays`, `owner`), `enabled` and `maintenanceUntil`. A TCP, DNS, TLS or domain monitor takes its address from these settings and no `url` or `method`; its only assertion is `latencyMs`. A header assertion takes only `name` and `equals`, and a JSON assertion only `path` and `equals`. Fields you leave out take the editor's defaults. Monitors are matched to your installation by name.
+
+Private HTTP/keyword, TCP and browser-flow entries use `"network":"private"` and a non-secret `"privateGrantRef":"warehouse-local"`. The reference grants no access by itself: assign an enrolled private-capable Node runner and provision its protected monitor-bound local grant before resuming the paused import. Browser entries also carry their reviewed `flow` steps and outcomes. Grant files, runner identity and credentials never travel in the definition. See [Private network grants](/docs/runner#private-network-grants).
 
 Public HTTPS HTTP and keyword entries may also contain `tlsTrust`: exactly `{"mode":"fingerprint","sha256":"…"}`, `{"mode":"ca","certificate":"…"}` or `{"mode":"ignore","acknowledged":true}`. Replace the ellipsis with a leaf SHA-256 fingerprint or one CA PEM certificate as appropriate. The fingerprint is 64 hex digits, optionally colon-separated; the CA PEM is limited to 16 KiB. Omitting the field restores normal certificate verification. These public trust settings are portable revision data and require a private runner. They never include a client private key or grant permission to send credentials through an exception. That separate owner grant, `allowUnverifiedTls`, belongs only in the monitor-bound local credential file. See [TLS trust and credential custody](/docs/runner#explicit-tls-trust-for-legacy-targets).
 
@@ -124,3 +126,7 @@ The mapped check needs `name`, `hostname`, an integer `resolution` from 1 to 1,4
 Mapped definitions accept HTTP 2xx/3xx responses, use a ten-second timeout, no in-slot retries, two recovery slots and one initial `local-a` probe. Review these settings and independent-vantage/canary coverage before activation. A source certificate-expiry downtime setting is named separately in the preview; add a reviewed TLS certificate monitor. Source response-time thresholds are named as not imported; choose an explicit latency failure or supported slow-response policy before enabling.
 
 This is a saved HTTP-definition conversion, not complete Pingdom or UptimeRobot migration. Probe regions, contacts, teams, maintenance, scheduled reports and history are not transferred by the Pingdom adapter. Other Pingdom protocol checks and transaction/page-speed checks need reviewed conversion. Live extraction, account reconciliation, historical reports, provider reauthorization and side-by-side cutover remain broader migration work; the import does not establish that those journeys have been completed.
+
+### ICMP definitions
+
+Use version 6 and `type: "ping"` with `ping: {"host":"gateway.example.com","family":4,"packets":3,"maxLossPercent":0,"maxRttMs":1000}`. Select family 6 for IPv6. Ping requires an assigned private Linux/macOS runner with system ping permission. Definitions carry settings and immutable evidence, never executable paths or host privileges. Imports stay paused; the receiving installation must assign and authorize its own runner. The interval floor is 30 seconds and the timeout must be 8–10 seconds.

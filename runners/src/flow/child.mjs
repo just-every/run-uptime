@@ -1,3 +1,4 @@
+import {numericRequestRefusal} from './request-policy.mjs';
 // The browser process of one flow run. Started by run-flow.mjs with the run's folder as its argument, the signed-in account HOME and a private temporary directory, a sanitized environment, and the job on stdin (the flow, the credentials its fill steps name, the filtering proxy to use). It
 // reports one JSON line per finished step and a last line with the result, and exits. It evaluates nothing the flow's author wrote:
 // every step is one fixed Playwright call chosen by the step's kind. When the runner ends without ending this process (SIGKILL, a
@@ -28,7 +29,8 @@ process.on('uncaughtException', error => { if (abandoned) return; process.stderr
 // A runner that is gone closes the read end of stdout; a write then fails, and must not end this process before its cleanup.
 process.stdout.on('error', () => {});
 
-const {chromium} = await import('playwright');
+const engines = await import('playwright');
+const {flowLaunchOptions, disableDirectTransports} = await import('./launch.mjs');
 const {describeExpectation, plainUrl, FLOW_LIMITS} = await import('../../../src/domain/flow.mjs');
 const {credentialRedactor} = await import('./secrets.mjs');
 const read = async () => { const chunks = []; for await (const c of process.stdin) chunks.push(c); return JSON.parse(Buffer.concat(chunks).toString('utf8')); };
@@ -36,12 +38,12 @@ const emit = value => process.stdout.write(JSON.stringify(value) + '\n');
 // A job cut short means the runner died while handing it over: the lifeline's cleanup ends this process.
 const job = await read().catch(() => null);
 if (!job) { setTimeout(() => { if (!abandoned) process.exit(1); }, 1000); await new Promise(() => {}); }
-const {flow, url: startUrl, proxy, credentials, deadlineMs, maxPages, home} = job;
+const {flow, profile, url: startUrl, proxy, credentials, deadlineMs, maxPages, home} = job;
 const origins = new Set(flow.origins);
 // The page's URL as this process reports it: without query or fragment, every credential value removed, and only then cut.
 const redact = credentialRedactor(credentials), shownUrl = () => redact(plainUrl(page.url()), 300);
 const started = Date.now(), remaining = () => deadlineMs - (Date.now() - started);
-let failure, pages = 0, step = 0, current = null;
+let failure, pages = 0, step = 0, current = null, navigationStarted = false;
 const fail = (reason, extra = {}) => { failure ??= {step, reason, ...extra}; };
 const sleepless = ms => Math.max(500, Math.min(ms, 10000, remaining()));
 
@@ -49,16 +51,11 @@ const target = (page, t) => t.css !== undefined ? page.locator(`css=${t.css}`) :
 const urlMatches = (page, value, match) => { try { const p = new URL(page.url()).pathname; return match === 'prefix' ? p.startsWith(value) : p === value; } catch { return false; } };
 
 try {
-  browser = await chromium.launch({
-    headless: true,
-    env: {HOME: process.env.HOME, TMPDIR: home, LANG: 'C.UTF-8', ...(process.env.PLAYWRIGHT_BROWSERS_PATH ? {PLAYWRIGHT_BROWSERS_PATH: process.env.PLAYWRIGHT_BROWSERS_PATH} : {})},
-    proxy: {server: `http://127.0.0.1:${proxy.port}`, username: proxy.username, password: proxy.password, bypass: '<-loopback>'},
-    args: ['--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1', '--disable-quic', '--disable-background-networking', '--disable-component-update', '--no-pings', '--disable-sync', '--no-first-run', '--no-default-browser-check',
-      '--force-webrtc-ip-handling-policy=disable_non_proxied_udp', '--webrtc-ip-handling-policy=disable_non_proxied_udp',
-      '--disable-default-apps', '--disable-domain-reliability', '--disable-client-side-phishing-detection', '--safebrowsing-disable-auto-update', '--metrics-recording-only', '--password-store=basic', '--use-mock-keychain',
-      '--disable-features=Translate,MediaRouter,OptimizationHints,InterestFeedContentSuggestions,AutofillServerCommunication,PasswordLeakDetection,SafeBrowsing,CertificateTransparencyComponentUpdater'],
-  });
-  context = await browser.newContext({acceptDownloads:false,serviceWorkers:'block',ignoreHTTPSErrors:false,viewport:{width:1280,height:800},locale:'en-US',timezoneId:'UTC',userAgent:'uptime-flow/0.1'});
+  browser = await engines[profile.browser].launch(flowLaunchOptions(profile.browser, {home, proxy}));
+  context = await browser.newContext({acceptDownloads:false,serviceWorkers:'block',ignoreHTTPSErrors:false,
+    viewport:profile.viewport,deviceScaleFactor:profile.device==='mobile'?3:1,hasTouch:profile.device==='mobile',
+    ...(profile.browser!=='firefox'?{isMobile:profile.device==='mobile'}:{}),locale:'en-US',timezoneId:'UTC'});
+  await context.addInitScript(disableDirectTransports);
 } catch { await browser?.close().catch(()=>{}); if (abandoned) await new Promise(() => {}); emit({t: 'done', launchFailed: true}); process.exit(0); }
 
 const page = context.pages()[0] ?? await context.newPage();
@@ -67,16 +64,25 @@ context.on('page', p => { if (p !== page) { fail('extra_page'); p.close().catch(
 page.on('dialog', d => d.dismiss().catch(() => {}));
 // A request whose frame does not exist yet belongs to a window the flow did not open.
 const mainNavigation = q => { if (!q.isNavigationRequest()) return false; try { return q.frame() === page.mainFrame(); } catch { return null; } };
-page.on('response', r => { const q = r.request(); if (mainNavigation(q) === true && r.status() >= 400) fail('http_status', {status: r.status()}); });
+let proxyChallengePending=false;
+// Firefox exposes the proxy challenge before retrying with its bound credential.
+// Only a later navigation response clears it; an unresolved challenge is Unknown.
+page.on('response', r => {const q=r.request();if(mainNavigation(q)!==true)return;
+ if(r.status()===407&&r.headers()['proxy-authenticate']==='Basic realm=\"flow\"'){proxyChallengePending=true;return}
+ proxyChallengePending=false;if(r.status()>=400)fail('http_status',{status:r.status()});
+});
 await context.route('**/*', route => {
   const q = route.request(), u = new URL(q.url());
   if (!['http:', 'https:', 'data:', 'blob:', 'about:'].includes(u.protocol)) { fail('blocked_request'); return route.abort('blockedbyclient'); }
   const main = mainNavigation(q);
   if (main === null) { fail('extra_page'); return route.abort('blockedbyclient'); }
   if (main && ['http:', 'https:'].includes(u.protocol)) {
+    navigationStarted = true;
     if (!origins.has(u.origin)) { fail('undeclared_origin'); return route.abort('blockedbyclient'); }
     if (++pages > maxPages) { fail('pages_limit', {limit: 'maxPages'}); return route.abort('blockedbyclient'); }
   }
+  const blocked=numericRequestRefusal(u,{network:job.network,startUrl});
+  if(blocked){fail('blocked_request',{blocked});return route.abort('blockedbyclient')}
   if (job.demo && ['http:', 'https:'].includes(u.protocol) && (!['GET','HEAD','OPTIONS'].includes(q.method()) || u.hostname==='hooks.slack.com' || ['discord.com','discordapp.com'].includes(u.hostname)&&u.pathname.startsWith('/api/webhooks/') || u.hostname==='slack.com'&&u.pathname==='/api/chat.postMessage' || u.hostname==='api.telegram.org'&&/\/(?:sendMessage|sendPhoto|sendDocument)$/.test(u.pathname))) {
     return effectSuccess(new Request(q.url(),{method:q.method(),...(q.postData()?{body:q.postData()}:{}),headers:q.headers()})).then(async response=>route.fulfill({status:response.status,headers:Object.fromEntries(response.headers),body:await response.text()}));
   }
@@ -96,7 +102,7 @@ async function expectation(item, timeout) {
 
 try {
   for (const [i, s] of flow.steps.entries()) {
-    step = i; current = s;
+    step = i; current = s; navigationStarted = false;
     if (failure) break;
     if (remaining() < 500) { fail('wall_time_exceeded', {limit: 'wallMs'}); break; }
     const t0 = Date.now(), timeout = sleepless(remaining() - 500);
@@ -125,12 +131,13 @@ try {
     } catch (error) {
       if (!failure) {
         const timedOut = error?.name === 'TimeoutError';
-        const reason = s.kind === 'goto' ? 'navigation_failed' : (s.kind === 'click' || s.kind === 'fill') ? 'element_missing' : 'expectation_not_met';
+        const reason = timedOut && navigationStarted ? 'navigation_timeout' : s.kind === 'goto' ? 'navigation_failed' : (s.kind === 'click' || s.kind === 'fill') ? 'element_missing' : 'expectation_not_met';
         if (remaining() < 600) fail('wall_time_exceeded', {limit: 'wallMs'}); else fail(timedOut || s.kind !== 'goto' ? reason : 'navigation_failed');
       }
       record({url: shownUrl()});
     }
   }
+  if(proxyChallengePending)throw Error('The filtering proxy did not authenticate the browser');
   const outcomes = [];
   if (!failure) {
     for (const [k, o] of flow.outcomes.entries()) {

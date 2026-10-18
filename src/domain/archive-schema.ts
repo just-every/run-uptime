@@ -19,14 +19,15 @@ export const columns:Record<string,string[]>={
  archive_history:['id','table_name','record'],
  uptime_erasure_receipts:['id','entity_kind','counts','completed_at'],
  uptime_audit:['id','actor_kind','actor_ref','occurred_at','action','subject_kind','subject_ref'],
+ failure_snapshots:['observation_id','monitor_id','slot_id','captured_at','expires_at','snapshot'],
  heartbeat_runs:['id','monitor_id','revision','sequence','state','received_at','started_at','duration_ms','exit_code','output','late'],
  definition_batches:['id','created_at','actor_kind','actor_ref','source','plan_digest','counts','undone_at','restored_at'],
  definition_batch_entries:['batch_id','monitor_id','action','revision','previous_revision','undo_outcome'],
 };
 export const TABLES=Object.keys(columns);
 // Product tables each extension version carries: 1 predates the audit, 2 predates definition batches.
-export const EXTENSION_VERSION=6;
-export const EXTENSION_TABLES:Record<number,string[]>={1:['heartbeat_runs',...Object.keys(incidentArchiveColumns),'uptime_audit','uptime_erasure_receipts','definition_batches','definition_batch_entries'],2:['heartbeat_runs',...Object.keys(incidentArchiveColumns),'definition_batches','definition_batch_entries'],3:['heartbeat_runs',...Object.keys(incidentArchiveColumns)],4:['heartbeat_runs'],5:[],6:[]};
+export const EXTENSION_VERSION=7;
+export const EXTENSION_TABLES:Record<number,string[]>={1:['failure_snapshots','heartbeat_runs',...Object.keys(incidentArchiveColumns),'uptime_audit','uptime_erasure_receipts','definition_batches','definition_batch_entries'],2:['failure_snapshots','heartbeat_runs',...Object.keys(incidentArchiveColumns),'definition_batches','definition_batch_entries'],3:['failure_snapshots','heartbeat_runs',...Object.keys(incidentArchiveColumns)],4:['failure_snapshots','heartbeat_runs'],5:['failure_snapshots'],6:['failure_snapshots'],7:[]};
 export const extensionTables=(version:number)=>TABLES.filter(name=>!LEGACY_TABLES.includes(name)&&!EXTENSION_TABLES[version].includes(name));
 export const notificationNamespace='uptime-notifications';
 export type Tables=Record<string,any[]>;

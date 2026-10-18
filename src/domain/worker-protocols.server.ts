@@ -131,6 +131,7 @@ export async function workerProtocolProbe(def:any,probe:string,allowance:Allowan
  const startedAt=Date.now(),signal=AbortSignal.timeout(def.timeoutMs),context={allowance,signal}
  const evidence=(data:any,completedAt=Date.now())=>({id:crypto.randomUUID(),probe,startedAt,completedAt,durationMs:completedAt-startedAt,runnerVersion:EVIDENCE_VERSION,...data})
  try{
+  if(['ping','udp'].includes(def.type))throw new ProtocolError('vantage',`Cloudflare Workers cannot send ${def.type==='ping'?'ICMP echo requests':'UDP packets'}. Assign a private runner; this vantage reports Unknown.`)
   const s=def[def.type]
   const facts=def.type==='tcp'?await tcpFacts(s,context,startedAt+def.timeoutMs):def.type==='tls'?await tlsFacts(s,context):def.type==='dns'?await dnsFacts(reader(context),s,asker(context)):await domainFacts(reader(context),s.name)
   const completedAt=Date.now()
@@ -143,5 +144,5 @@ export async function workerProtocolProbe(def:any,probe:string,allowance:Allowan
 }
 /** Outbound requests one attempt can use, for the scheduled run's budget. */
 export function protocolRequests(def:any){
- return def.type==='tcp'?3:def.type==='tls'?4:def.type==='dns'?def.dns.resolvers.length+(def.dns.resolvers.includes('authoritative')?6:0):9
+ return ['ping','udp'].includes(def.type)?0:def.type==='tcp'?3:def.type==='tls'?4:def.type==='dns'?def.dns.resolvers.length+(def.dns.resolvers.includes('authoritative')?6:0):9
 }

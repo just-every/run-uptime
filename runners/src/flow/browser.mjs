@@ -1,20 +1,34 @@
-// Whether this runner can run flows: the pinned Playwright package and its Chromium must both be present. A runner reports this in
-// its enrolment; a flow assigned to one without a browser is Unknown with that reason, never a pass and never a failure.
+import {mkdtemp,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+// Capability means the selected Playwright engine actually launched, not that
+// another browser happened to be installed. Missing engines produce Unknown.
 import {userInfo} from 'node:os';
-let cached;
-/** {available:true, browsersPath} or {available:false, reason}. A runner can run flows when it can start the pinned Playwright's
- * Chromium, so that is what it tries, once. UPTIME_RUNNER_BROWSER=off keeps a runner from running flows. */
-export function browserCapability() {
-  cached ??= (async () => {
+import {FLOW_BROWSERS} from '../../../src/domain/flow-profile.mjs';
+import {flowLaunchOptions} from './launch.mjs';
+const cached = new Map();
+export function browserCapability(engine = 'chromium') {
+  if (!FLOW_BROWSERS.includes(engine)) return Promise.resolve({available: false, reason: 'Unsupported flow browser.'});
+  if (!cached.has(engine)) cached.set(engine, (async () => {
     if (/^(off|0|false)$/i.test(process.env.UPTIME_RUNNER_BROWSER ?? '')) return {available: false, reason: 'Flows are switched off on this runner (UPTIME_RUNNER_BROWSER).'};
+    const enabled = process.env.UPTIME_RUNNER_BROWSERS?.split(',').map(value => value.trim());
+    if (enabled && (enabled.some(name => !FLOW_BROWSERS.includes(name)) || !enabled.includes(engine))) return {available: false, reason: `${engine} is not enabled in UPTIME_RUNNER_BROWSERS on this runner.`};
     if(process.platform==='darwin'&&process.env.HOME!==userInfo().homedir)return {available:false,reason:'Start this runner with the signed-in account HOME before using browser flows.'};
+    let browser,home;
     try {
-      const {chromium} = await import('playwright');
-      const browser = await chromium.launch({headless:true,timeout:20000,args:['--use-mock-keychain','--password-store=basic']});
-      await browser.close();
-      const executable = chromium.executablePath(), at = executable.indexOf('ms-playwright');
-      return {available: true, browsersPath: process.env.PLAYWRIGHT_BROWSERS_PATH ?? (at >= 0 ? executable.slice(0, at + 'ms-playwright'.length) : undefined)};
-    } catch { return {available: false, reason: 'This runner has no browser: run pnpm exec playwright install chromium on it.'}; }
-  })();
-  return cached;
+      home=await mkdtemp(join(tmpdir(),'uptime-browser-capability-'));
+      const engines = await import('playwright'), selected = engines[engine];
+      browser = await selected.launch(flowLaunchOptions(engine,{home}));
+      const executable = selected.executablePath(), at = executable.indexOf('ms-playwright');
+      return {available: true, engine, browsersPath: process.env.PLAYWRIGHT_BROWSERS_PATH ?? (at >= 0 ? executable.slice(0, at + 'ms-playwright'.length) : undefined)};
+    } catch { return {available: false, reason: `This runner cannot start ${engine}: install it with pnpm exec playwright install ${engine}, then restart the runner.`}; }
+    finally { await browser?.close().catch(() => {});if(home)await rm(home,{recursive:true,force:true}); }
+  })());
+  return cached.get(engine);
+}
+export async function browserCapabilities() {
+  const engines = {};
+  // Probe sequentially: each runner owns at most one browser at a time.
+  for (const engine of FLOW_BROWSERS) engines[engine] = (await browserCapability(engine)).available;
+  return {browser: Object.values(engines).some(Boolean), browsers: engines};
 }

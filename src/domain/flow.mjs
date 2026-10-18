@@ -2,7 +2,9 @@
 // click, fill a field with a named runner-local credential, wait for or expect text, a URL or an element) and of the outcomes that
 // must all be observed for a pass. It carries no script, no expression and no secret. Shared by the Worker (validation, revisions,
 // evidence) and the runner (execution), so both read the same bounds.
+import {privateTarget} from './private-target.mjs';
 import {publicTarget} from './public-target.mjs';
+import {flowProfile, profileLabel, validateProfileEvidence} from './flow-profile.mjs';
 
 export const FLOW_LIMITS = Object.freeze({
   minIntervalMs: 300000,       // a flow runs at most once every 5 minutes
@@ -78,7 +80,8 @@ function expectation(item, label, startOrigin) {
 /** Normalise a flow. Throws a plain reason for anything outside the closed vocabulary; the caller prefixes the entry's name. */
 export function validateFlow(input, {network, startUrl, synthetic = u => u}) {
   // `origins` is derived from the steps on every save; a stored flow carries it, and it is recomputed, never trusted.
-  only(input, ['intent', 'steps', 'outcomes', 'origins'], 'flow');
+  only(input, ['intent', 'steps', 'outcomes', 'origins', 'browser', 'device'], 'flow');
+  const {browser, device} = flowProfile(input);
   const intent = text(input.intent, 'flow intent', FLOW_LIMITS.intentChars);
   if (!Array.isArray(input.steps) || !input.steps.length) fail('A flow needs at least one step');
   if (input.steps.length > FLOW_LIMITS.maxSteps) fail(`A flow has at most ${FLOW_LIMITS.maxSteps} steps (this one has ${input.steps.length})`);
@@ -90,7 +93,7 @@ export function validateFlow(input, {network, startUrl, synthetic = u => u}) {
     if (step.kind === 'fill' && 'value' in step) fail(`${label}: a fill step takes a credentialRef, never a value`);
     only(step, STEP_FIELDS[step.kind], label);
     if (step.kind === 'goto') {
-      const url = network === 'synthetic' ? synthetic(step.url) : publicTarget(step.url).href;
+      const url = network === 'synthetic' ? synthetic(step.url) : network==='private'?privateTarget(step.url).href:publicTarget(step.url).href;
       origins.add(new URL(url).origin);
       return {kind: 'goto', url};
     }
@@ -113,13 +116,14 @@ export function validateFlow(input, {network, startUrl, synthetic = u => u}) {
     const {id, ...rest} = outcome;
     return {id, ...expectation(rest, label, startUrl)};
   });
-  return {intent, steps, outcomes, origins: [...origins].sort()};
+  return {intent, browser, device, steps, outcomes, origins: [...origins].sort()};
 }
 
 const keyOf = item => JSON.stringify(Object.fromEntries(Object.entries(item).filter(([k]) => k !== 'id' && k !== 'origins').sort(([a], [b]) => a < b ? -1 : 1)));
 /** What a flow must observe to pass: each required outcome and each expect step, by content. Removing one weakens the flow. */
 export function requirements(flow) {
   return [
+    ...(flow ? [{key: `profile:${flowProfile(flow).browser}:${flowProfile(flow).device}`, label: `browser profile “${profileLabel(flow)}”`}] : []),
     ...(flow?.outcomes ?? []).map(o => ({key: `outcome:${o.id}:${keyOf(o)}`, label: `outcome “${o.id}”`})),
     ...(flow?.steps ?? []).filter(s => s.kind === 'expect').map(s => ({key: `expect:${keyOf(s)}`, label: `expectation ${describeExpectation(s)}`})),
   ];
@@ -156,7 +160,7 @@ export const FLOW_REASONS = Object.freeze({
   expectation_not_met: {runner: false}, element_missing: {runner: false}, outcome_missing: {runner: false}, http_status: {runner: false},
   wall_time_exceeded: {runner: false, limit: 'wallMs'}, steps_limit: {runner: false, limit: 'maxSteps'}, pages_limit: {runner: false, limit: 'maxPages'},
   bytes_limit: {runner: false, limit: 'maxBytes'}, trace_limit: {runner: false, limit: 'traceBytes'},
-  blocked_request: {runner: false}, undeclared_origin: {runner: false}, extra_page: {runner: false}, navigation_failed: {runner: false},
+  blocked_request: {runner: false}, undeclared_origin: {runner: false}, extra_page: {runner: false}, navigation_failed: {runner: false}, navigation_timeout: {runner: false},
   credential_origin_mismatch: {runner: false},
   browser_unavailable: {runner: true}, browser_failed: {runner: true}, credential_unavailable: {runner: true}, grant_unavailable: {runner: true},
 });
@@ -165,8 +169,9 @@ export const FLOW_OUTCOMES = Object.freeze(['pass', 'fail', 'skipped']);
 
 /** Validate the trace a runner reports, so an observation can only carry the fixed, sanitized shape. */
 export function validateFlowEvidence(flow, definition) {
-  const fields = ['digest', 'trace', 'outcomes', 'failure', 'finalUrl', 'pages', 'bytes'];
+  const fields = ['digest', 'trace', 'outcomes', 'failure', 'finalUrl', 'pages', 'bytes', 'profile'];
   only(flow, fields, 'flow evidence');
+  validateProfileEvidence(flow.profile, definition);
   if (typeof flow.digest !== 'string' || !/^[0-9a-f]{64}$/.test(flow.digest)) fail('Invalid flow evidence');
   if (!Array.isArray(flow.trace) || flow.trace.length > FLOW_LIMITS.maxSteps + FLOW_LIMITS.maxOutcomes) fail('Invalid flow trace');
   for (const entry of flow.trace) {

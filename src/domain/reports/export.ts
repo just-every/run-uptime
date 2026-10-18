@@ -24,12 +24,21 @@ export function reportCsv(report: MonitorReport): string {
   add('policy', 'samplePolicy', report.latency.samplePolicy)
   add('policy', 'bucket', report.latency.bucket)
   add('policy', 'bucketAlignment', report.latency.bucketAlignment)
+  for(const segment of report.flowProfiles??[]){
+    const key=`revision ${segment.revision}: ${segment.profile.browser}/${segment.profile.device}`
+    add('browser_profile','profile',key,'','',segment.from,segment.to)
+    for(const [metric,value] of Object.entries(segment.availability))add('browser_profile',metric,value,metric.endsWith('Ms')?'ms':'percent','',segment.from,segment.to,key)
+    for(const [metric,value] of Object.entries(segment.latency.statistics))add('browser_profile_latency',metric,value,metric==='count'?'samples':'ms',segment.latency.location,segment.from,segment.to,key)
+  }
   for (const [metric, value] of Object.entries(report.availability)) add('availability', metric, value, metric.endsWith('Ms') ? 'ms' : 'percent')
   if (report.sla) for (const [metric, value] of Object.entries(report.sla)) add('sla', metric, value, metric.endsWith('Ms') ? 'ms' : metric.endsWith('Percent') ? 'percent' : '')
   for (const [metric, value] of Object.entries(report.latency.statistics)) add('latency', metric, value, metric === 'count' ? 'samples' : 'ms', report.latency.location)
   for (const point of report.latency.series) for (const [metric, value] of Object.entries(point)) {
     if (metric !== 'at' && metric !== 'to' && metric !== 'location') add('latency_series', metric, value, metric === 'count' ? 'samples' : 'ms', point.location, point.at, point.to)
   }
+  add('slow','slowMs',report.slow.slowMs,'ms');
+  add('policy','slowPolicy',report.slow.policy);
+  for(const episode of report.slow.episodes)add('slow_episode','durationInPeriodMs',episode.durationInPeriodMs,'ms','',episode.startedAt,episode.endedAt,episode.key);
   for (const incident of report.incidents) {
     add('incident','rootCauseCategory',incident.rootCause.categoryLabel,'','',incident.startedAt,incident.endedAt,incident.key)
     add('incident','rootCauseAccount',incident.rootCause.text,'','',incident.startedAt,incident.endedAt,incident.key)

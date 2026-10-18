@@ -1,0 +1,12 @@
+import {escape,humaneDuration} from './console-format.js';
+
+const PAGE_SIZE=10;
+const timestamp=(value,zone)=>value===null?'Not reported':new Intl.DateTimeFormat('en-US',{timeZone:zone,dateStyle:'medium',timeStyle:'long'}).format(value);
+export function renderJobRuns(report,page=0){
+ if(!report.jobRuns)return '';
+ const all=report.jobRuns,runs=all.slice(page*PAGE_SIZE,(page+1)*PAGE_SIZE),pages=Math.max(1,Math.ceil(all.length/PAGE_SIZE));
+ const cell=(label,value)=>`<td data-label="${escape(label)}">${escape(value)}</td>`;
+ return `<h3 id="report-jobs-heading">Job runs in this period</h3><p>Server receipt times select this period. Runs keep their original revision and reported outcome; a receipt does not establish monitor health. Times use ${escape(report.period.timeZone)}.</p>
+ <div class="report-pagination"><p role="status">Showing ${all.length?page*PAGE_SIZE+1:0}–${Math.min(all.length,(page+1)*PAGE_SIZE)} of ${all.length} · Page ${page+1} of ${pages}</p><div><button type="button" id="report-jobs-prev" data-report-action="jobs-prev" aria-label="Previous job-run page" ${page===0?'disabled':''}>Previous</button><button type="button" id="report-jobs-next" data-report-action="jobs-next" aria-label="Next job-run page" ${page+1>=pages?'disabled':''}>Next</button></div></div>
+ ${runs.length?`<div class="report-table-wrap"><table class="ui-table ui-table--stack ui-table--stack-md"><caption class="ui-visually-hidden">Job runs, page ${page+1}, in ${escape(report.period.timeZone)}</caption><thead><tr>${['Receipt / start','Revision / sequence','Outcome','Duration','Exit code','Late run','Redacted output'].map(label=>`<th scope="col">${label}</th>`).join('')}</tr></thead><tbody>${runs.map(run=>`<tr>${cell('Receipt / start',`${timestamp(run.receivedAt,report.period.timeZone)} / ${timestamp(run.startedAt,report.period.timeZone)}`)}${cell('Revision / sequence',`${run.revision} / ${run.sequence}`)}${cell('Outcome',run.state)}${cell('Duration',run.durationMs===null?'Not reported':`${humaneDuration(run.durationMs)} (${run.durationMs} ms)`)}${cell('Exit code',run.exitCode===null?'Not reported':run.exitCode)}${cell('Late run',run.late?'Yes':'No')}<td data-label="Redacted output"><pre class="report-job-output">${escape(run.output||'No output retained')}</pre></td></tr>`).join('')}</tbody></table></div>`:'<p>No job receipts in this period. Missing runs and evidence coverage remain visible in availability above.</p>'}`;
+}

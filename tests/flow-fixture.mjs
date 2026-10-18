@@ -10,13 +10,15 @@ import {open, rename, rm, mkdir} from 'node:fs/promises';
 import {constants} from 'node:fs';
 import {dirname} from 'node:path';
 
-export const FIXTURE_EMAIL = 'Émile.secret+person@example.test', FIXTURE_PASSWORD = 'correct-horse-battery-staple';
+export const FIXTURE_EMAIL = 'Émile.secret+person@example.test', FIXTURE_PASSWORD = randomUUID();
 export const phrase = i => `phrase-${i}-${'x'.repeat(180)}`;
 const page = (title, body) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${title}</title></head><body>${body}</body></html>`;
 
 export async function startFlowFixture({port = 0, grantPath, secondPort = 0}) {
   const identity = randomUUID(), sessions = new Set(), seen = {secondOrigin: 0, requests: []};
   let accountLinks;
+  const modes = new Map();
+  seen.orders = 0; seen.signups = 0;
   // A second origin the flow does not declare and the grant does not cover: a hostile page tries to open it.
   const second = http.createServer((req, res) => { seen.secondOrigin++; res.writeHead(200, {'content-type': 'text/html'}); res.end(page('Second origin', '<h1>Second origin reached</h1>')); });
   await new Promise(r => second.listen(secondPort, '127.0.0.1', r));
@@ -26,7 +28,17 @@ export async function startFlowFixture({port = 0, grantPath, secondPort = 0}) {
     seen.requests.push(url.pathname);
     const send = (status, body, headers = {}) => { res.writeHead(status, {'content-type': 'text/html; charset=utf-8', 'x-uptime-fixture': identity, ...headers}); res.end(body); };
     if (!m) return send(404, page('Not found', '<h1>Not found</h1>'));
-    const [, scenario, full] = m, path = full.replace(/^(?:\/p+)?\/u\/[^/]+\//, '/'), base = `/s/${scenario}`, signedIn = (req.headers.cookie ?? '').split(/;\s*/).some(c => c.startsWith('sid=') && sessions.has(c.slice(4)));
+    const [, originalScenario, full] = m, scenario = modes.get(originalScenario) ?? originalScenario, path = full.replace(/^(?:\/p+)?\/u\/[^/]+\//, '/'), base = `/s/${originalScenario}`, signedIn = (req.headers.cookie ?? '').split(/;\s*/).some(c => c.startsWith('sid=') && sessions.has(c.slice(4)));
+    if (path === '/signup' && req.method === 'GET') return send(200, page('Create sandbox account', `<h1>Create sandbox account</h1><form method="post" action="${base}/signup" novalidate><label>Email <input name="email" type="email"></label><label>Password <input name="password" type="password"></label><button>Create account</button></form>`));
+    if (path === '/signup' && req.method === 'POST') {
+      let body = ''; for await (const c of req) body += c;
+      const form = new URLSearchParams(body);
+      if (form.get('email') !== FIXTURE_EMAIL || form.get('password') !== FIXTURE_PASSWORD) return send(400, page('Invalid signup', '<h1>Account refused</h1>'));
+      seen.signups++; const sid = randomUUID(); sessions.add(sid);
+      return send(302, '', {location: `${base}/dashboard`, 'set-cookie': `sid=${sid}; HttpOnly; Path=/`});
+    }
+    if(path==='/browser-checkout')return send(200,page('Checkout',`<meta name="viewport" content="width=device-width, initial-scale=1"><h1>Checkout</h1><style>@media(max-width:600px){#confirmation{display:none}}</style><p id="confirmation">Order confirmed</p><p id="transport-policy">${scenario==='transport-policy'?'<script>document.getElementById("transport-policy").textContent=typeof RTCPeerConnection===\'undefined\'&&typeof WebTransport===\'undefined\'?\'Direct transports disabled\':\'Direct transport available\'</script>':''}</p>`));
+    if(path==='/browser-metadata')return send(200,page('Blocked subresource','<h1>Checkout</h1><img alt="" src="http://169.254.169.254/latest/meta-data/"><p>Order confirmed</p>'));
     if (path === '/login' && req.method === 'GET') {
       const missing = scenario === 'missing-element';
       return send(200, page('Sign in', `<h1>Sign in</h1><form method="post" action="${base}/login" novalidate><label>Email <input name="email" type="email"></label><label>Password <input name="password" type="password"></label>${missing ? '' : '<button type="submit">Sign in</button>'}</form>`));
@@ -40,12 +52,14 @@ export async function startFlowFixture({port = 0, grantPath, secondPort = 0}) {
     if (!signedIn && !['/redirect-private', '/hostile', '/big', '/phrases', '/tunnel'].includes(path) && !path.startsWith('/bounce/') && !path.startsWith('/long-')) return send(302, '', {location: `${base}/login`});
     if (path === '/dashboard') {
       const extra = scenario === 'metadata-subresource' ? '<img alt="" src="http://169.254.169.254/latest/meta-data/">' : '';
-      return send(200, page('Dashboard', `<h1>Welcome back</h1>${extra}<a id="order" href="${base}/confirm">Confirm order</a>${scenario === 'profile-path' ? accountLinks(base) : ''}`));
+      return send(200, page('Dashboard', `<h1>Welcome back</h1>${extra}${['sandbox-checkout','checkout-failure'].includes(scenario) ? `<form method="post" action="${base}/order"><button>Confirm sandbox order</button></form>` : `<a id="order" href="${base}/confirm">Confirm order</a>`}${scenario === 'profile-path' ? accountLinks(base) : ''}`));
     }
     const accountPages = {'/settings': 'Account settings', '/mailbox': 'Your mailbox', '/profile': 'Full profile'};
     if (accountPages[path]) return send(200, page('Account', `<h1>${accountPages[path]}</h1>${accountLinks(base)}`));
+    if (path === '/order' && req.method === 'POST') { seen.orders++; return send(302, '', {location: `${base}/confirm`}); }
     if (path === '/confirm') {
-      if (scenario === 'confirm-500') return send(500, page('Error', '<h1>Internal error</h1>'));
+      if (scenario === 'missing-outcome') return send(200, page('Pending', '<h1>Order pending</h1>'));
+      if (['confirm-500','checkout-failure'].includes(scenario)) return send(500, page('Error', '<h1>Internal error</h1>'));
       if (scenario === 'slow') await new Promise(r => setTimeout(r, 20000));
       return send(200, page('Confirmed', '<h1>Order confirmed</h1><p>Thank you.</p>'));
     }
@@ -72,5 +86,5 @@ export async function startFlowFixture({port = 0, grantPath, secondPort = 0}) {
   const file = await open(temporary, constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY | constants.O_NOFOLLOW, 0o600);
   try { await file.writeFile(JSON.stringify({schemaVersion: 1, custody: 'local-uptime-synthetic', host: '127.0.0.1', port: actual, pid: process.pid, identity, expiresAt: Date.now() + 11 * 3600 * 1000, paths: []})); } finally { await file.close(); }
   await rename(temporary, grantPath);
-  return {port: actual, otherPort, identity, seen, origin: `http://127.0.0.1:${actual}`, async close() { for (const s of [server, second]) { s.closeAllConnections?.(); await new Promise(r => s.close(r)); } }};
+  return {port: actual, otherPort, identity, seen, setScenario(name, mode) { modes.set(name, mode); }, origin: `http://127.0.0.1:${actual}`, async close() { for (const s of [server, second]) { s.closeAllConnections?.(); await new Promise(r => s.close(r)); } }};
 }

@@ -1,3 +1,4 @@
+import {contactReady,advanceContactSchedules} from './contact-scheduler.server.ts'
 import {ensureNotificationCustody,readCredential,retireObsoleteCredentials,notificationDestinationHash,notificationKeyPresent} from './notification-credentials.server.ts'
 import {claimNotification,releaseUnstartedClaim,startClaim,registerClaim} from './notification-claims.server.ts'
 import {D1SqlDatabase} from '../base/modules/integrations/core/database.ts'
@@ -54,9 +55,10 @@ export class NotificationRepository extends IntegrationsRepository {
  * hosted Worker's cron or a private runner's poll. Both use one Base delivery row, so a job is sent at most once. */
 export async function pollNotificationJobs(env:Bindings,budget?:SubrequestBudget){
  const repository=notificationRepository(env),now=Date.now(),op=storageOperation;
+ await advanceContactSchedules(env);
  await op('notifications.poll.recoverExpired',()=>repository.recoverExpired(now));await op('notifications.poll.custody',()=>ensureNotificationCustody(env));await op('notifications.poll.recoveryMatches',()=>settleUnmatchedRecoveries(env));await dispatchNotificationMail(env,budget);
  const rows=await op('notifications.poll.selectQueued',()=>env.DB.prepare(`SELECT j.*,c.id AS credential_record_id,c.destination_id AS credential_destination_id,c.created_at AS credential_created_at,c.endpoint,c.signing_secret,c.ciphertext,c.retired_at,c.unavailable_at FROM notification_jobs j JOIN notification_credentials c ON c.id=j.credential_id
-  WHERE j.kind IN ('webhook','slack') AND j.state='queued' AND ${recoveryAccepted()} AND NOT EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace=? AND d.id=j.id AND d.state<>'queued') ORDER BY j.created_at LIMIT 20`).bind(NOTIFICATION_NAMESPACE).all<any>());
+  WHERE j.kind IN ('webhook','slack') AND j.state='queued' AND ${recoveryAccepted()} AND ${contactReady()} AND NOT EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace=? AND d.id=j.id AND d.state<>'queued') ORDER BY j.created_at LIMIT 20`).bind(NOTIFICATION_NAMESPACE).all<any>());
  const jobs=[];
  // A job is rejected only for its own fault (an unreadable credential, an envelope that cannot be prepared). A storage fault is
  // never recorded as a rejection: it surfaces typed and the next poll finds the job still queued.

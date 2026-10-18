@@ -1,5 +1,6 @@
 import {escape} from './console-format.js';
 import {renderReport,renderSeries,renderIncidents} from './report-render.js';
+import {renderJobRuns} from './report-jobs.js';
 
 const zones=['America/Chicago','America/New_York','America/Denver','America/Los_Angeles','America/Phoenix','America/Anchorage','Pacific/Honolulu','America/Detroit','America/Indiana/Indianapolis','UTC'];
 const probeName=id=>({'local-a':'Check 1','local-b':'Check 2','local-c':'Check 3'}[id]??id);
@@ -7,9 +8,9 @@ const options=values=>values.map(([value,label])=>`<option value="${escape(value
 
 function formMarkup(monitor){
  const locations=['all',...new Set(monitor.definition.probes??[])];
- return `<h2 id="report-heading">Period report</h2><p>Generate a snapshot from scheduled evidence. It changes only when you choose Generate report; the console refresh does not update it.</p>
+ return `<h2 id="report-heading">Period report</h2><p>Generate a snapshot from scheduled evidence. It changes only when you choose Generate report; the console refresh does not update it. <a href="/docs/read-api">Monitoring API and CSV guide</a>.</p>
  <form id="monitor-report-form" class="report-form">
- <label for="report-period">Period<select id="report-period" name="period">${options([['24h','Last 24 hours'],['7d','Last 7 days'],['30d','Last 30 days'],['90d','Last 90 days'],['custom','Custom range']])}</select></label>
+ <label for="report-period">Period<select id="report-period" name="period">${options([['24h','Last 24 hours'],['7d','Last 7 days'],['30d','Last 30 days'],['90d','Last 90 days'],['mtd','Month to date'],['qtd','Quarter to date'],['ytd','Year to date'],['last-month','Last month'],['custom','Custom range']])}</select></label>
  <label for="report-zone">Time zone<input id="report-zone" name="timeZone" list="report-zones" value="America/Chicago" required aria-describedby="report-zone-help"><datalist id="report-zones">${options(zones.map(zone=>[zone,zone]))}</datalist></label>
  <p id="report-zone-help" class="report-help">US zones are offered first. Enter any IANA zone. Custom times use this zone; for a repeated daylight-saving time, include its UTC offset.</p>
  <div id="report-custom-range" class="report-custom-range" hidden>
@@ -42,8 +43,13 @@ function saveBlob(blob,name){
  setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 
+function focusReportPage(results,action){
+ const requested=results.querySelector(`#report-${action}`);
+ (requested?.disabled?requested.parentElement.querySelector('button:not(:disabled)'):requested)?.focus({preventScroll:true});
+}
+
 function bindReport(panel,monitor,api){
- let snapshot=null,seriesPage=0,incidentPage=0;
+ let snapshot=null,seriesPage=0,incidentPage=0,jobsPage=0;
  const form=panel.querySelector('form'),results=panel.querySelector('#report-results');
  const status=panel.querySelector('#report-status'),error=panel.querySelector('#report-error');
  const endpoint=`/api/v1/monitors/${encodeURIComponent(monitor.id)}/report`;
@@ -65,7 +71,7 @@ function bindReport(panel,monitor,api){
    const params=new URLSearchParams(new FormData(form));if(!params.get('rootCause'))params.delete('rootCause');
    const report=await api(`${endpoint}?${params}`);
    const markup=renderReport(report);
-   snapshot=report;seriesPage=0;incidentPage=0;results.innerHTML=markup;
+   snapshot=report;seriesPage=0;incidentPage=0;jobsPage=0;results.innerHTML=markup;
    for(const id of report.latency.availableLocations){
     if(!Array.from(field('location').options).some(option=>option.value===id))field('location').add(new Option(`${probeName(id)} (${id})`,id));
    }
@@ -78,24 +84,28 @@ function bindReport(panel,monitor,api){
   const action=button.dataset.reportAction;
   if(action==='series-prev'||action==='series-next'){
    seriesPage+=action==='series-next'?1:-1;results.querySelector('#report-series').innerHTML=renderSeries(snapshot,seriesPage);
-   results.querySelector(`#report-${action}`)?.focus({preventScroll:true});return;
+   focusReportPage(results,action);return;
   }
   if(action==='incidents-prev'||action==='incidents-next'){
    incidentPage+=action==='incidents-next'?1:-1;results.querySelector('#report-period-incidents').innerHTML=renderIncidents(snapshot,incidentPage);
-   results.querySelector(`#report-${action}`)?.focus({preventScroll:true});return;
+   focusReportPage(results,action);return;
+  }
+  if(action==='jobs-prev'||action==='jobs-next'){
+   jobsPage+=action==='jobs-next'?1:-1;results.querySelector('#report-job-runs').innerHTML=renderJobRuns(snapshot,jobsPage);
+   focusReportPage(results,action);return;
   }
   resetError();button.disabled=true;
   try{
    const filename=`uptime-report-${snapshot.period.from}-${snapshot.period.to}`;
    if(action==='json')saveBlob(new Blob([JSON.stringify(snapshot,null,2)+'\n'],{type:'application/json'}),filename+'.json');
-   if(action==='csv'){
+   if(action==='csv'||action==='pdf'){
     const {period,latency}=snapshot;
-    const params=new URLSearchParams({period:'custom',from:String(period.from),to:String(period.to),timeZone:period.timeZone,bucket:latency.bucket,location:latency.location,format:'csv'});
+    const params=new URLSearchParams({period:'custom',from:String(period.from),to:String(period.to),timeZone:period.timeZone,bucket:latency.bucket,location:latency.location,format:action});
     if(snapshot.rootCauseFilter)params.set('rootCause',snapshot.rootCauseFilter);
     if(period.slaTargetPercent!==null)params.set('sla',String(period.slaTargetPercent));
-    const response=await fetch(`${endpoint}?${params}`,{headers:{Accept:'text/csv'},signal:AbortSignal.timeout(30000)});
+    const response=await fetch(`${endpoint}?${params}`,{headers:{Accept:action==='pdf'?'application/pdf':'text/csv'},signal:AbortSignal.timeout(30000)});
     if(!response.ok){const problem=await response.json();throw Error(problem.error??`Download failed (${response.status})`)}
-    saveBlob(await response.blob(),filename+'.csv');
+    saveBlob(await response.blob(),filename+'.'+action);
    }
   }catch(problem){showError(problem)}finally{button.disabled=false}
  });

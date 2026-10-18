@@ -5,6 +5,8 @@ import {externalCheckUrl,EXTERNAL_CHECK_ABSENT} from './external-check.server.ts
 import {keyedHash,seal,unseal} from '../base/modules/operator-auth/identity/oidc/crypto.mjs'
 // @ts-ignore Edition URL validation is JavaScript.
 import {publicTarget} from './public-target.mjs'
+// @ts-ignore Shared bounded runner capability vocabulary.
+import {validRunnerCapabilities,runnerCapabilities} from './runner-capabilities.mjs'
 export type Runner={runner_id:string;registered_at:number;network_label:string;key_ciphertext:string|null;legacy_key:number;revoked_at:number|null;last_contact_at:number|null;capabilities?:string}
 const runnerOrder=`CASE runner_id WHEN '${HOSTED_RUNNER_ID}' THEN 0 ELSE 1 END,registered_at,runner_id`
 const label=(value:unknown)=>{if(typeof value!=='string'||!value.trim()||value.length>80||/[\x00-\x1f\x7f]/.test(value))throw Error('Network label required (80 characters max)');return value.trim()}
@@ -35,12 +37,12 @@ export async function enrollRunner(env:Bindings,text:string,timestamp:string,sig
  if(!key||text.length>512||!/^\d{13}$/.test(timestamp)||Math.abs(Date.now()-Number(timestamp))>60000||!await same(signature,await sign(key,`${timestamp}.runner-enrolment.${text}`)))return null;
  let input;try{input=JSON.parse(text)}catch{return null}
  if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(k=>!['version','networkLabel','capabilities'].includes(k))||input.version!==1)return null;
- if(input.capabilities!==undefined&&(!input.capabilities||typeof input.capabilities!=='object'||Array.isArray(input.capabilities)||Object.keys(input.capabilities).join(',')!=='browser'||typeof input.capabilities.browser!=='boolean'))return null;
+ if(input.capabilities!==undefined&&!validRunnerCapabilities(input.capabilities))return null;
  // Provisioned labels cannot be rewritten by a compromised runner key.
  if(input.networkLabel!==undefined&&label(input.networkLabel)!==row.network_label)return null;
  if(!row.runner_id)row=await ensureFirstRunner(env);
  // A runner reports what it can run each time it enrols; a flow assigned to one without a browser stays Unknown (see docs/runner.md).
- if(input.capabilities!==undefined)await env.DB.prepare('UPDATE runners SET capabilities=? WHERE runner_id=?').bind(JSON.stringify({browser:input.capabilities.browser}),row.runner_id).run();
+ if(input.capabilities!==undefined)await env.DB.prepare('UPDATE runners SET capabilities=? WHERE runner_id=?').bind(JSON.stringify(input.capabilities),row.runner_id).run();
  return {runnerId:row.runner_id,registeredAt:row.registered_at,networkLabel:row.network_label,scope:'self-runner'}
 }
 export async function createRunner(env:Bindings,input:any){
@@ -53,9 +55,8 @@ export async function createRunner(env:Bindings,input:any){
 }
 export async function revokeRunner(env:Bindings,id:string){if(id===HOSTED_RUNNER_ID)throw Error('The hosted Worker has no runner key to revoke');const result=await env.DB.prepare('UPDATE runners SET revoked_at=?,key_ciphertext=NULL WHERE runner_id=? AND revoked_at IS NULL').bind(Date.now(),id).run();if(!result.meta.changes)throw Error('Active runner not found');return {revoked:true}}
 export const runnerListQuery=`SELECT runner_id AS runnerId,network_label AS networkLabel,registered_at AS registeredAt,revoked_at AS revokedAt,last_contact_at AS lastContactAt,capabilities FROM runners ORDER BY ${runnerOrder}`
-export const describeRunners=(rows:any[])=>rows.map(r=>({...r,hosted:r.runnerId===HOSTED_RUNNER_ID,capabilities:capabilitiesOf(r.capabilities)}))
+export const describeRunners=(rows:any[])=>rows.map(r=>({...r,hosted:r.runnerId===HOSTED_RUNNER_ID,capabilities:runnerCapabilities(r.capabilities)}))
 export async function listRunners(env:Bindings){return describeRunners((await env.DB.prepare(runnerListQuery).all()).results)}
-const capabilitiesOf=(value:unknown)=>{try{const parsed=JSON.parse(String(value));return {browser:parsed?.browser===true}}catch{return {browser:false}}}
 export async function assignDefinition(env:Bindings,definition:any,input:any){
  const first=await ensureFirstRunner(env),rows=(await env.DB.prepare(`SELECT * FROM runners ORDER BY ${runnerOrder}`).all<Runner>()).results;
  return assignRunners(rows,first.runner_id,definition,input,await externalCheckUrl(env),env.RER_DEMO!=='1',env.UPTIME_ORIGIN);
@@ -79,7 +80,9 @@ export function assignRunners(rows:Runner[],firstRunnerId:string,definition:any,
  if(input.assignments!==undefined&&(!input.assignments||Array.isArray(input.assignments)||Object.keys(input.assignments).some(k=>!definition.probes.includes(k))))throw Error('Invalid probe assignments');
  for(const [i,probe] of definition.probes.entries()){
   const requested=input.assignments?.[probe],runnerId=typeof requested==='string'?requested:requested?.runnerId??hosted?.runner_id??available[i%available.length]?.runner_id??firstRunnerId;
+  if(runnerId===HOSTED_RUNNER_ID&&definition.type==='ping')throw Error('Cloudflare Workers cannot send ICMP echo requests. Choose a private runner for ping checks');
   const row=rows.find(r=>r.runner_id===runnerId);if(runnerId===HOSTED_RUNNER_ID&&(!hostedHttp(definition)||definition.intervalMs<60000))throw Error('Worker checks require supported public checks, default certificate trust, no runner-local credentials, and an interval of at least one minute. Choose a private runner for other checks');if(!row||(definition.enabled&&row.revoked_at!==null))throw Error('Probe requires an active assigned runner');
+  if(definition.enabled&&definition.network==='private'&&runnerCapabilities(row.capabilities).privateNetwork!==true)throw Error('Private checks require an enrolled runner with private-network grants. Update and restart that runner, then save again');
   if(definition.enabled&&runnerId===HOSTED_RUNNER_ID&&ownOrigin(definition.url,appOrigin))throw Error(SELF_CHECK_REFUSAL);
   const canaryUrl=requested?.canaryUrl??input.canaryUrl;
   const href=canaryUrl?publicTarget(canaryUrl).href:null;
@@ -87,7 +90,7 @@ export function assignRunners(rows:Runner[],firstRunnerId:string,definition:any,
   assignments[probe]={runnerId,networkLabel:row.network_label,...(href?{canaryUrl:href}:{})};
  }
  const labels=new Set(Object.values(assignments).map((a:any)=>a.networkLabel));
- const needsCanary=definition.network==='public'||(syntheticCanary&&definition.network==='synthetic'&&['http','keyword'].includes(definition.type));
+ const needsCanary=['public','private'].includes(definition.network)||(syntheticCanary&&definition.network==='synthetic'&&['http','keyword'].includes(definition.type));
  if(definition.enabled&&needsCanary&&labels.size<2&&!Object.values(assignments).some((a:any)=>a.canaryUrl)){
   if(!external)throw Error(`Production monitor requires two network vantages or an external check URL. ${EXTERNAL_CHECK_ABSENT}`);
   const href=publicTarget(external).href;

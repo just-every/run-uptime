@@ -1,6 +1,7 @@
+import {configuredPeriod} from './configured-period.server.ts'
 import { latencyQuery } from './latency-query.ts'
 import { maintenanceReportSnapshots } from '../planned-maintenance/report.server.ts'
-import { normalizePeriod, ReportInputError, type ReportPeriod } from './period.ts'
+import { ReportInputError, type ReportPeriod } from './period.ts'
 
 const buckets = { raw: 0, '1m': 60000, '5m': 300000, '1h': 3600000, '1d': 86400000 }
 export const REPORT_POINT_LIMIT = 10000
@@ -56,7 +57,8 @@ export async function periodLatency(db: D1Database, id: string, period: ReportPe
 }
 
 export async function monitorLatency(env: { DB: D1Database }, id: string, params: URLSearchParams | ReportPeriod, now = Date.now()) {
-  const period = normalizePeriod(params, now)
+  const period = await configuredPeriod(env, params, now)
+  if (period.to - period.from > 90 * 86400000) throw new ReportInputError('Response-time ranges cannot exceed 90 days', 'range_too_long')
   const options = params instanceof URLSearchParams ? latencyOptions(params) : latencyOptions(new URLSearchParams())
   const exists = await env.DB.prepare('SELECT id FROM monitors WHERE id=?').bind(id).first()
   return exists ? periodLatency(env.DB, id, period, options) : null

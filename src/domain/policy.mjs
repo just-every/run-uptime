@@ -1,7 +1,9 @@
+import {normalizeSlow} from './slow-policy.mjs';
 import {normalizeTlsTrust} from './tls-trust.mjs';
 import {heartbeatSettings,heartbeatEvaluation} from './heartbeat-job.mjs'
 import {validateMonitorMetadata} from './monitor-metadata.mjs';
 import {validateMaintenanceWindows,activeMaintenance} from './planned-maintenance.mjs';
+import {privateTarget} from './private-target.mjs';
 import {publicTarget} from './public-target.mjs';
 import {FLOW_LIMITS,validateFlow} from './flow.mjs';
 import {policyReason} from './policy-reason.mjs';
@@ -20,33 +22,39 @@ export function validateDefinition(input, grants) {
   if (typeof name !== 'string' || !name.trim() || name.length > 100) throw Error('Name required (100 characters max)');
   const type=input.type??'http';
   if(!['http','keyword','heartbeat','flow',...PROTOCOL_TYPES].includes(type))throw Error('Unsupported monitor type');
-  // TCP, DNS, TLS and domain monitors check public targets with their own settings; they send no HTTP request.
+  // TCP, UDP, ping, DNS, TLS and domain monitors check public targets with their own settings; they send no HTTP request.
   const protocol=isProtocol(type);
   for(const other of PROTOCOL_TYPES)if(other!==type&&input[other]!==undefined)throw Error(`${other.toUpperCase()} settings require the ${other} type`);
   let settings;
   if(protocol){
-   if(input.network!==undefined&&input.network!=='public')throw Error('TCP, DNS, TLS and domain monitors check public targets');
-   if(input.method!==undefined)throw Error('A TCP, DNS, TLS or domain monitor sends no HTTP request method');
+   if(input.network!==undefined&&input.network!=='public'&&!(type==='tcp'&&input.network==='private'))throw Error('TCP, UDP, ping, DNS, TLS and domain monitors check public targets');
+   if(input.method!==undefined)throw Error('A TCP, UDP, ping, DNS, TLS or domain monitor sends no HTTP request method');
    if(input.flow!==undefined||input.heartbeat!==undefined)throw Error('Unsupported settings for this monitor type');
    settings=protocolSettings(type,input);
    if(url!==undefined&&url!==''&&url!==settings.url)throw Error(`This monitor's address is ${settings.url}, from its ${type.toUpperCase()} settings`);
   }
   if(type==='flow'){if(input.method!==undefined&&input.method!=='GET')throw Error('A flow starts with GET');if(input.request!==undefined)throw Error('A flow names its credentials in its fill steps');if(input.assertions!==undefined&&JSON.stringify(input.assertions)!=='{"status":200}')throw Error('A flow has required outcomes, not HTTP assertions')}else if(input.flow!==undefined)throw Error('Flow settings require the flow type');
-  const network=protocol?'public':input.network??(typeof url==='string'&&/^http:\/\/127\.0\.0\.1:[0-9]+\//.test(url)?'synthetic':'public');
-  if(!['public','synthetic'].includes(network))throw Error('Invalid network scope');
+  const network=protocol?(type==='tcp'&&input.network==='private'?'private':'public'):input.network??(typeof url==='string'&&/^http:\/\/127\.0\.0\.1:[0-9]+\//.test(url)?'synthetic':'public');
+  if(!['public','synthetic','private'].includes(network))throw Error('Invalid network scope');
+  let privateGrantRef;
+  if(network==='private'){
+    if(!['http','keyword','tcp','flow'].includes(type))throw Error('Private locations support HTTP, TCP and browser checks');
+    if(typeof input.privateGrantRef!=='string'||!/^[a-zA-Z0-9_-]{1,80}$/.test(input.privateGrantRef))throw Error('Private checks require a runner-local private grant reference');
+    privateGrantRef=input.privateGrantRef;
+  }else if(input.privateGrantRef!==undefined)throw Error('A private grant reference requires private network scope');
   let u;
   if(type!=='heartbeat'&&!protocol){
     if(network==='synthetic'){
       if(typeof url!=='string'||url.length>2048||!/^http:\/\/127\.0\.0\.1:[0-9]+\//.test(url))throw Error('Invalid URL');
       u=new URL(url);
       if(u.protocol!=='http:'||u.hostname!=='127.0.0.1'||u.username||u.password||u.hash||u.search||!grants.includes(Number(u.port)))throw Error('Target outside local synthetic grants');
-    }else u=publicTarget(url);
+    }else u=network==='private'?privateTarget(url):publicTarget(url);
   }else if(type==='heartbeat'&&url!==undefined&&url!=='')throw Error('Heartbeat has no outgoing URL');
   const tlsTrust=normalizeTlsTrust(input.tlsTrust,{type,network,url:u?.href});
   const method=input.method??'GET';
   if(!(network==='synthetic'?['GET','HEAD']:['GET','HEAD','POST','PUT','PATCH','DELETE','OPTIONS']).includes(method))throw Error('Invalid request method');
   if(['headers','body','auth'].some(k=>input[k]!==undefined))throw Error('Request secrets require an installation-local credential reference');
-  if(protocol&&input.request!==undefined)throw Error('A TCP, DNS, TLS or domain monitor takes no request credential');
+  if(protocol&&input.request!==undefined)throw Error('A TCP, UDP, ping, DNS, TLS or domain monitor takes no request credential');
   let request;
   if(input.request!==undefined){
     if(type==='heartbeat'||network==='synthetic'||!input.request||Object.keys(input.request).join(',')!=='credentialRef'||typeof input.request.credentialRef!=='string'||!/^[a-zA-Z0-9_-]{1,80}$/.test(input.request.credentialRef))throw Error('Invalid request credential reference');
@@ -63,7 +71,8 @@ export function validateDefinition(input, grants) {
     if(!input.assignments||typeof input.assignments!=='object'||Array.isArray(input.assignments)||Object.keys(input.assignments).some(p=>!probes.includes(p)))throw Error('Invalid assignments');
     assignments=Object.fromEntries(probes.map(p=>{const a=input.assignments[p];if(typeof a==='string'){if(!/^self-[0-9a-f-]{36}$/.test(a))throw Error('Invalid runner assignment');return [p,{runnerId:a}];}if(!a||typeof a.runnerId!=='string'||!/^self-[0-9a-f-]{36}$/.test(a.runnerId)||(a.networkLabel!==undefined&&(typeof a.networkLabel!=='string'||!a.networkLabel.trim()||a.networkLabel.length>80||/[\x00-\x1f\x7f]/.test(a.networkLabel)))||Object.keys(a).some(k=>!['runnerId','networkLabel','canaryUrl'].includes(k)))throw Error('Invalid runner assignment');return [p,{runnerId:a.runnerId,...(a.networkLabel?{networkLabel:a.networkLabel}:{}),...(a.canaryUrl?{canaryUrl:publicTarget(a.canaryUrl).href}:{})}]}));
   }
-  if(protocol&&input.assertions!==undefined&&(!input.assertions||typeof input.assertions!=='object'||Array.isArray(input.assertions)||Object.keys(input.assertions).some(k=>k!=='latencyMs')))throw Error('A TCP, DNS, TLS or domain monitor takes only a latencyMs assertion');
+  if(protocol&&input.assertions!==undefined&&(!input.assertions||typeof input.assertions!=='object'||Array.isArray(input.assertions)||Object.keys(input.assertions).some(k=>k!=='latencyMs')))throw Error('A TCP, UDP, ping, DNS, TLS or domain monitor takes only a latencyMs assertion');
+  if(type==='ping'&&input.assertions&&Object.keys(input.assertions).length)throw Error('Ping thresholds belong in ping.maxLossPercent and ping.maxRttMs');
   const assertions = input.assertions ?? (protocol?{}:{ status: 200 });
   if (!assertions || typeof assertions !== 'object' || Array.isArray(assertions) || Object.keys(assertions).some(k => !Object.hasOwn(HTTP_ASSERTIONS,k))) throw Error('Invalid assertions');
   if(!protocol)validateStatus(assertions.status ?? 200);
@@ -89,7 +98,10 @@ export function validateDefinition(input, grants) {
   }
   const maintenanceWindows=validateMaintenanceWindows(input.maintenanceWindows);
   const timing=PROTOCOL_TIMING[type];
-  return { ...validateMonitorMetadata(input), name:name.trim(), type, network, url:protocol?settings.url:u?.href??'', ...(protocol?{[type]:settings.settings}:{method}), ...(request?{request}:{}), ...(tlsTrust?{tlsTrust}:{}), ...(heartbeat?{heartbeat}:{}), ...(flow?{flow}:{}), probes, ...(assignments?{assignments}:{}), assertions:protocol?{...assertions}:{...assertions,status:assertions.status??200}, intervalMs:timing?integer(input.intervalMs??timing.interval[2],timing.interval[0],timing.interval[1],`interval (${type.toUpperCase()} checks run every ${timing.interval[0]/1000} seconds to ${timing.interval[1]/60000} minutes)`):type==='flow'?integer(input.intervalMs??FLOW_LIMITS.minIntervalMs,FLOW_LIMITS.minIntervalMs,86400000,'interval (a flow runs at most every 5 minutes)'):integer(input.intervalMs??60000,5000,86400000,'interval'), timeoutMs:timing?integer(input.timeoutMs??timing.timeout[2],timing.timeout[0],timing.timeout[1],'timeout'):type==='flow'?integer(input.timeoutMs??FLOW_LIMITS.wallMs,FLOW_LIMITS.minTimeoutMs,FLOW_LIMITS.wallMs,'flow time limit'):integer(input.timeoutMs??2000,50,10000,'timeout'), retries:type==='flow'?integer(input.retries??0,0,1,'flow retries'):integer(input.retries??1,0,2,'retries'), failureQuorum:integer(input.failureQuorum??probes.length,1,probes.length,'failure quorum'), confirmSlots:integer(input.confirmSlots??2,1,10,'confirmation'), recoverSlots:integer(input.recoverSlots??2,1,10,'recovery'), freshnessMs:integer(input.freshnessMs??(timing?Math.min(86400000,Math.max(180000,(input.intervalMs??timing.interval[2])*2)):type==='flow'?Math.min(86400000,Math.max(180000,integer(input.intervalMs??FLOW_LIMITS.minIntervalMs,0,86400000,'interval')*3)):180000),5000,86400000,'freshness'), enabled:input.enabled === undefined ? true : (()=>{if(typeof input.enabled!=='boolean')throw Error('Invalid enabled flag');return input.enabled;})(), maintenanceUntil:integer(input.maintenanceUntil??0,0,Number.MAX_SAFE_INTEGER,'maintenance end'), ...(input.maintenanceWindows!==undefined?{maintenanceWindows}:{}) };
+  const slow=normalizeSlow(input.slow,probes,type);
+  const timeout=input.timeoutMs??(timing?timing.timeout[2]:type==='flow'?FLOW_LIMITS.wallMs:2000);
+  if(slow&&slow.thresholdMs>=timeout)throw Error('Slow threshold must be below the saved request timeout');
+  return { ...(slow?{slow}:{}), ...validateMonitorMetadata(input), name:name.trim(), type, network, ...(privateGrantRef?{privateGrantRef}:{}), url:protocol?settings.url:u?.href??'', ...(protocol?{[type]:settings.settings}:{method}), ...(request?{request}:{}), ...(tlsTrust?{tlsTrust}:{}), ...(heartbeat?{heartbeat}:{}), ...(flow?{flow}:{}), probes, ...(assignments?{assignments}:{}), assertions:protocol?{...assertions}:{...assertions,status:assertions.status??200}, intervalMs:timing?integer(input.intervalMs??timing.interval[2],timing.interval[0],timing.interval[1],`interval (${type.toUpperCase()} checks run every ${timing.interval[0]/1000} seconds to ${timing.interval[1]/60000} minutes)`):type==='flow'?integer(input.intervalMs??FLOW_LIMITS.minIntervalMs,FLOW_LIMITS.minIntervalMs,86400000,'interval (a flow runs at most every 5 minutes)'):integer(input.intervalMs??60000,5000,86400000,'interval'), timeoutMs:timing?integer(input.timeoutMs??timing.timeout[2],timing.timeout[0],timing.timeout[1],'timeout'):type==='flow'?integer(input.timeoutMs??FLOW_LIMITS.wallMs,FLOW_LIMITS.minTimeoutMs,FLOW_LIMITS.wallMs,'flow time limit'):integer(input.timeoutMs??2000,50,10000,'timeout'), retries:type==='flow'?integer(input.retries??0,0,1,'flow retries'):integer(input.retries??1,0,2,'retries'), failureQuorum:integer(input.failureQuorum??probes.length,1,probes.length,'failure quorum'), confirmSlots:integer(input.confirmSlots??2,1,10,'confirmation'), recoverSlots:integer(input.recoverSlots??2,1,10,'recovery'), freshnessMs:integer(input.freshnessMs??(timing?Math.min(86400000,Math.max(180000,(input.intervalMs??timing.interval[2])*2)):type==='flow'?Math.min(86400000,Math.max(180000,integer(input.intervalMs??FLOW_LIMITS.minIntervalMs,0,86400000,'interval')*3)):180000),5000,86400000,'freshness'), enabled:input.enabled === undefined ? true : (()=>{if(typeof input.enabled!=='boolean')throw Error('Invalid enabled flag');return input.enabled;})(), maintenanceUntil:integer(input.maintenanceUntil??0,0,Number.MAX_SAFE_INTEGER,'maintenance end'), ...(input.maintenanceWindows!==undefined?{maintenanceWindows}:{}) };
 }
 // evidenceThrough only admits already accepted target/canary timestamps; it
 // never advances freshness ages, heartbeat receipt validity or maintenance.

@@ -1,0 +1,1383 @@
+{
+  "title": "Uptime \u2014 immutable monitoring figures",
+  "uid": "uptime-metrics-v1",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "tags": [
+    "uptime"
+  ],
+  "description": "Instant values use the authenticated scrape's configured report window. Unknown, paused and maintenance durations remain separate from observed availability. Probe IDs identify Uptime locations, not Datadog-managed probes.",
+  "__inputs": [
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "Prometheus",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    }
+  ],
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "refresh": "30s",
+  "templating": {
+    "list": [
+      {
+        "name": "monitor",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${DS_PROMETHEUS}"
+        },
+        "query": "label_values(uptime_availability_defined, monitor_id)",
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "refresh": 1
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Availability \u2014 report window",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 8,
+        "h": 5
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "uptime_availability_percent{monitor_id=~\"$monitor\"}",
+          "instant": true,
+          "legendFormat": "{{monitor_id}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "textMode": "auto",
+        "colorMode": "value"
+      }
+    },
+    {
+      "id": 2,
+      "title": "Current monitor state (1 = active)",
+      "type": "table",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 0,
+        "w": 8,
+        "h": 5
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "uptime_monitor_state{monitor_id=~\"$monitor\"} == 1",
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "state",
+                "monitor_id"
+              ]
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "indexByName": {
+              "state": 0,
+              "monitor_id": 1
+            },
+            "renameByName": {
+              "__name__": "Measure",
+              "Value": "Value",
+              "monitor_id": "Monitor",
+              "probe_id": "Location",
+              "statistic": "Statistic",
+              "outcome": "Outcome",
+              "state": "State"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Measure"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "uptime_availability_observed_seconds": {
+                        "text": "Observed"
+                      },
+                      "uptime_availability_healthy_seconds": {
+                        "text": "Healthy"
+                      },
+                      "uptime_availability_not_passing_seconds": {
+                        "text": "Not passing"
+                      },
+                      "uptime_availability_unknown_seconds": {
+                        "text": "Unknown"
+                      },
+                      "uptime_availability_paused_seconds": {
+                        "text": "Paused"
+                      },
+                      "uptime_availability_maintenance_seconds": {
+                        "text": "Maintenance"
+                      },
+                      "uptime_coverage_expected": {
+                        "text": "Expected probes"
+                      },
+                      "uptime_coverage_observed": {
+                        "text": "Fresh probes"
+                      },
+                      "uptime_probe_contact_fresh": {
+                        "text": "Contact fresh"
+                      },
+                      "uptime_probe_evidence_fresh": {
+                        "text": "Evidence fresh"
+                      },
+                      "uptime_window_from_timestamp_seconds": {
+                        "text": "Window starts"
+                      },
+                      "uptime_window_to_timestamp_seconds": {
+                        "text": "Window ends"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 170
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "State"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Scrape snapshot age",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 0,
+        "w": 8,
+        "h": 5
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "time() - uptime_snapshot_timestamp_seconds",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 4,
+      "title": "Observed, Unknown and excluded seconds \u2014 report window",
+      "type": "table",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{__name__=~\"uptime_availability_(observed|healthy|not_passing|unknown|paused|maintenance)_seconds\",monitor_id=~\"$monitor\"}",
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Measure"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "uptime_availability_observed_seconds": {
+                        "text": "Observed"
+                      },
+                      "uptime_availability_healthy_seconds": {
+                        "text": "Healthy"
+                      },
+                      "uptime_availability_not_passing_seconds": {
+                        "text": "Not passing"
+                      },
+                      "uptime_availability_unknown_seconds": {
+                        "text": "Unknown"
+                      },
+                      "uptime_availability_paused_seconds": {
+                        "text": "Paused"
+                      },
+                      "uptime_availability_maintenance_seconds": {
+                        "text": "Maintenance"
+                      },
+                      "uptime_coverage_expected": {
+                        "text": "Expected probes"
+                      },
+                      "uptime_coverage_observed": {
+                        "text": "Fresh probes"
+                      },
+                      "uptime_probe_contact_fresh": {
+                        "text": "Contact fresh"
+                      },
+                      "uptime_probe_evidence_fresh": {
+                        "text": "Evidence fresh"
+                      },
+                      "uptime_window_from_timestamp_seconds": {
+                        "text": "Window starts"
+                      },
+                      "uptime_window_to_timestamp_seconds": {
+                        "text": "Window ends"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 170
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "State"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "Value",
+                "__name__",
+                "monitor_id"
+              ]
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "indexByName": {
+              "Value": 0,
+              "__name__": 1,
+              "monitor_id": 2
+            },
+            "renameByName": {
+              "__name__": "Measure",
+              "Value": "Value",
+              "monitor_id": "Monitor",
+              "probe_id": "Location",
+              "statistic": "Statistic",
+              "outcome": "Outcome",
+              "state": "State"
+            }
+          }
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "id": 5,
+      "title": "Latency by Uptime location \u2014 report window",
+      "type": "table",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 5,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "uptime_latency_seconds{monitor_id=~\"$monitor\"}",
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Measure"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "uptime_availability_observed_seconds": {
+                        "text": "Observed"
+                      },
+                      "uptime_availability_healthy_seconds": {
+                        "text": "Healthy"
+                      },
+                      "uptime_availability_not_passing_seconds": {
+                        "text": "Not passing"
+                      },
+                      "uptime_availability_unknown_seconds": {
+                        "text": "Unknown"
+                      },
+                      "uptime_availability_paused_seconds": {
+                        "text": "Paused"
+                      },
+                      "uptime_availability_maintenance_seconds": {
+                        "text": "Maintenance"
+                      },
+                      "uptime_coverage_expected": {
+                        "text": "Expected probes"
+                      },
+                      "uptime_coverage_observed": {
+                        "text": "Fresh probes"
+                      },
+                      "uptime_probe_contact_fresh": {
+                        "text": "Contact fresh"
+                      },
+                      "uptime_probe_evidence_fresh": {
+                        "text": "Evidence fresh"
+                      },
+                      "uptime_window_from_timestamp_seconds": {
+                        "text": "Window starts"
+                      },
+                      "uptime_window_to_timestamp_seconds": {
+                        "text": "Window ends"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 170
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "State"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "Value",
+                "statistic",
+                "probe_id",
+                "monitor_id"
+              ]
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "indexByName": {
+              "Value": 0,
+              "statistic": 1,
+              "probe_id": 2,
+              "monitor_id": 3
+            },
+            "renameByName": {
+              "__name__": "Measure",
+              "Value": "Value",
+              "monitor_id": "Monitor",
+              "probe_id": "Location",
+              "statistic": "Statistic",
+              "outcome": "Outcome",
+              "state": "State"
+            }
+          }
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "id": 6,
+      "title": "Configured probe coverage",
+      "type": "table",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 13,
+        "w": 12,
+        "h": 7
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{__name__=~\"uptime_coverage_(expected|observed)\",monitor_id=~\"$monitor\"}",
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "Value",
+                "__name__",
+                "monitor_id"
+              ]
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "indexByName": {
+              "Value": 0,
+              "__name__": 1,
+              "monitor_id": 2
+            },
+            "renameByName": {
+              "__name__": "Measure",
+              "Value": "Value",
+              "monitor_id": "Monitor",
+              "probe_id": "Location",
+              "statistic": "Statistic",
+              "outcome": "Outcome",
+              "state": "State"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Measure"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "uptime_availability_observed_seconds": {
+                        "text": "Observed"
+                      },
+                      "uptime_availability_healthy_seconds": {
+                        "text": "Healthy"
+                      },
+                      "uptime_availability_not_passing_seconds": {
+                        "text": "Not passing"
+                      },
+                      "uptime_availability_unknown_seconds": {
+                        "text": "Unknown"
+                      },
+                      "uptime_availability_paused_seconds": {
+                        "text": "Paused"
+                      },
+                      "uptime_availability_maintenance_seconds": {
+                        "text": "Maintenance"
+                      },
+                      "uptime_coverage_expected": {
+                        "text": "Expected probes"
+                      },
+                      "uptime_coverage_observed": {
+                        "text": "Fresh probes"
+                      },
+                      "uptime_probe_contact_fresh": {
+                        "text": "Contact fresh"
+                      },
+                      "uptime_probe_evidence_fresh": {
+                        "text": "Evidence fresh"
+                      },
+                      "uptime_window_from_timestamp_seconds": {
+                        "text": "Window starts"
+                      },
+                      "uptime_window_to_timestamp_seconds": {
+                        "text": "Window ends"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 170
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "State"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "id": 7,
+      "title": "Runner contact and target evidence freshness",
+      "type": "table",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 13,
+        "w": 12,
+        "h": 7
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{__name__=~\"uptime_probe_(contact|evidence)_fresh\",monitor_id=~\"$monitor\"}",
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "Value",
+                "__name__",
+                "probe_id",
+                "monitor_id"
+              ]
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "indexByName": {
+              "Value": 0,
+              "__name__": 1,
+              "probe_id": 2,
+              "monitor_id": 3
+            },
+            "renameByName": {
+              "__name__": "Measure",
+              "Value": "Value",
+              "monitor_id": "Monitor",
+              "probe_id": "Location",
+              "statistic": "Statistic",
+              "outcome": "Outcome",
+              "state": "State"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Measure"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "uptime_availability_observed_seconds": {
+                        "text": "Observed"
+                      },
+                      "uptime_availability_healthy_seconds": {
+                        "text": "Healthy"
+                      },
+                      "uptime_availability_not_passing_seconds": {
+                        "text": "Not passing"
+                      },
+                      "uptime_availability_unknown_seconds": {
+                        "text": "Unknown"
+                      },
+                      "uptime_availability_paused_seconds": {
+                        "text": "Paused"
+                      },
+                      "uptime_availability_maintenance_seconds": {
+                        "text": "Maintenance"
+                      },
+                      "uptime_coverage_expected": {
+                        "text": "Expected probes"
+                      },
+                      "uptime_coverage_observed": {
+                        "text": "Fresh probes"
+                      },
+                      "uptime_probe_contact_fresh": {
+                        "text": "Contact fresh"
+                      },
+                      "uptime_probe_evidence_fresh": {
+                        "text": "Evidence fresh"
+                      },
+                      "uptime_window_from_timestamp_seconds": {
+                        "text": "Window starts"
+                      },
+                      "uptime_window_to_timestamp_seconds": {
+                        "text": "Window ends"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 170
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "State"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "id": 8,
+      "title": "Incidents overlapping report window",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 20,
+        "w": 8,
+        "h": 5
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "uptime_incidents{monitor_id=~\"$monitor\"}",
+          "instant": true,
+          "legendFormat": "{{monitor_id}}"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Delivery jobs created in report window by current outcome",
+      "type": "table",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 20,
+        "w": 16,
+        "h": 5
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "uptime_delivery_jobs{monitor_id=~\"$monitor\"}",
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "Value",
+                "outcome",
+                "monitor_id"
+              ]
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "indexByName": {
+              "Value": 0,
+              "outcome": 1,
+              "monitor_id": 2
+            },
+            "renameByName": {
+              "__name__": "Measure",
+              "Value": "Value",
+              "monitor_id": "Monitor",
+              "probe_id": "Location",
+              "statistic": "Statistic",
+              "outcome": "Outcome",
+              "state": "State"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Measure"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "uptime_availability_observed_seconds": {
+                        "text": "Observed"
+                      },
+                      "uptime_availability_healthy_seconds": {
+                        "text": "Healthy"
+                      },
+                      "uptime_availability_not_passing_seconds": {
+                        "text": "Not passing"
+                      },
+                      "uptime_availability_unknown_seconds": {
+                        "text": "Unknown"
+                      },
+                      "uptime_availability_paused_seconds": {
+                        "text": "Paused"
+                      },
+                      "uptime_availability_maintenance_seconds": {
+                        "text": "Maintenance"
+                      },
+                      "uptime_coverage_expected": {
+                        "text": "Expected probes"
+                      },
+                      "uptime_coverage_observed": {
+                        "text": "Fresh probes"
+                      },
+                      "uptime_probe_contact_fresh": {
+                        "text": "Contact fresh"
+                      },
+                      "uptime_probe_evidence_fresh": {
+                        "text": "Evidence fresh"
+                      },
+                      "uptime_window_from_timestamp_seconds": {
+                        "text": "Window starts"
+                      },
+                      "uptime_window_to_timestamp_seconds": {
+                        "text": "Window ends"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 170
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "State"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "id": 10,
+      "title": "Observed availability denominator present (0 = undefined)",
+      "type": "table",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 25,
+        "w": 12,
+        "h": 5
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "uptime_availability_defined{monitor_id=~\"$monitor\"}",
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "Value",
+                "monitor_id"
+              ]
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "indexByName": {
+              "Value": 0,
+              "monitor_id": 1
+            },
+            "renameByName": {
+              "__name__": "Measure",
+              "Value": "Value",
+              "monitor_id": "Monitor",
+              "probe_id": "Location",
+              "statistic": "Statistic",
+              "outcome": "Outcome",
+              "state": "State"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Measure"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "uptime_availability_observed_seconds": {
+                        "text": "Observed"
+                      },
+                      "uptime_availability_healthy_seconds": {
+                        "text": "Healthy"
+                      },
+                      "uptime_availability_not_passing_seconds": {
+                        "text": "Not passing"
+                      },
+                      "uptime_availability_unknown_seconds": {
+                        "text": "Unknown"
+                      },
+                      "uptime_availability_paused_seconds": {
+                        "text": "Paused"
+                      },
+                      "uptime_availability_maintenance_seconds": {
+                        "text": "Maintenance"
+                      },
+                      "uptime_coverage_expected": {
+                        "text": "Expected probes"
+                      },
+                      "uptime_coverage_observed": {
+                        "text": "Fresh probes"
+                      },
+                      "uptime_probe_contact_fresh": {
+                        "text": "Contact fresh"
+                      },
+                      "uptime_probe_evidence_fresh": {
+                        "text": "Evidence fresh"
+                      },
+                      "uptime_window_from_timestamp_seconds": {
+                        "text": "Window starts"
+                      },
+                      "uptime_window_to_timestamp_seconds": {
+                        "text": "Window ends"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 170
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "State"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "id": 11,
+      "title": "Configured report window bounds (epoch seconds)",
+      "type": "table",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 25,
+        "w": 12,
+        "h": 5
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{__name__=~\"uptime_window_(from|to)_timestamp_seconds\"}",
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "Value",
+                "__name__"
+              ]
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "indexByName": {
+              "Value": 0,
+              "__name__": 1
+            },
+            "renameByName": {
+              "__name__": "Measure",
+              "Value": "Value",
+              "monitor_id": "Monitor",
+              "probe_id": "Location",
+              "statistic": "Statistic",
+              "outcome": "Outcome",
+              "state": "State"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Measure"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "uptime_availability_observed_seconds": {
+                        "text": "Observed"
+                      },
+                      "uptime_availability_healthy_seconds": {
+                        "text": "Healthy"
+                      },
+                      "uptime_availability_not_passing_seconds": {
+                        "text": "Not passing"
+                      },
+                      "uptime_availability_unknown_seconds": {
+                        "text": "Unknown"
+                      },
+                      "uptime_availability_paused_seconds": {
+                        "text": "Paused"
+                      },
+                      "uptime_availability_maintenance_seconds": {
+                        "text": "Maintenance"
+                      },
+                      "uptime_coverage_expected": {
+                        "text": "Expected probes"
+                      },
+                      "uptime_coverage_observed": {
+                        "text": "Fresh probes"
+                      },
+                      "uptime_probe_contact_fresh": {
+                        "text": "Contact fresh"
+                      },
+                      "uptime_probe_evidence_fresh": {
+                        "text": "Evidence fresh"
+                      },
+                      "uptime_window_from_timestamp_seconds": {
+                        "text": "Window starts"
+                      },
+                      "uptime_window_to_timestamp_seconds": {
+                        "text": "Window ends"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 170
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "State"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    }
+  ]
+}

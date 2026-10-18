@@ -11,6 +11,7 @@ export function prepareManualForm(form,definition){
  showType(form,form.elements.checkType.value);
  // A new monitor takes each type's usual timing when the type changes; an existing monitor keeps its own.
  form.elements.checkType.onchange=()=>{const type=form.elements.checkType.value;showType(form,type);if(!definition.name)for(const [name,value] of Object.entries(TYPE_TIMING[type]))form.elements.namedItem(name).value=String(value)};
+ form.elements.networkScope.onchange=()=>showType(form,form.elements.checkType.value);
  form.querySelector('button[type=submit]').disabled=true;
  form.onsubmit=event=>event.preventDefault();
 }

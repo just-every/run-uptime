@@ -32,7 +32,17 @@
         "EVIDENCE-001",
         "STATE-001",
         "NETWORK-001",
-        "HEARTBEAT-001"
+        "HEARTBEAT-001",
+        "UDP-001",
+        "PRIVATE-001",
+        "HEARTBEAT-002",
+        "FLOW-004",
+        "PING-001",
+        "METRICS-001",
+        "EVIDENCE-002",
+        "DIAG-001",
+        "FLOW-001",
+        "READAPI-001"
       ]
     },
     {
@@ -50,7 +60,9 @@
         "NOTIFY-001",
         "DELIVERY-001",
         "NOTICE-001",
-        "WEBHOOK-001"
+        "WEBHOOK-001",
+        "ROUTING-002",
+        "SLOW-001"
       ]
     }
   ],
@@ -167,7 +179,8 @@
         "Owner-held Basic, bearer or Digest credentials, generated JWT authorization and configured headers/body are sent only to the exact authorized target origin and monitor; a configured client TLS certificate and proof of key possession may be sent there, while its private key remains local. Credentials, custom headers, body and client certificate are permanently stripped on a cross-origin redirect",
         "Owner-authorized OAuth token acquisition and refresh send a form-encoded HTTPS POST to the exact public token URL: client ID and secret through the declared Basic or form authentication mode, grant type, requested scopes and the refresh token when applicable. Public DNS answers are validated and pinned; token redirects and target TLS trust exceptions are refused. Acquired access and rotated refresh tokens remain in owner-only runner-local state, outside observations, logs and product archives",
         "The target returns status and headers plus a bounded response body used for assertions; raw response bodies are not retained in observations",
-        "An external canary is a status-only GET: it sends no request credential, custom header or body and reads zero response-body bytes; validated public redirect hops may also be contacted"
+        "An external canary is a status-only GET: it sends no request credential, custom header or body and reads zero response-body bytes; validated public redirect hops may also be contacted",
+        "Failing HTTP response excerpts are redacted before storage in a separate owner-only snapshot table; default retention is 90 days, configurable from 1 to 365 days. Body text is escaped in the console; no screenshot or script execution is enabled. Canary response bodies remain unread."
       ],
       "adapters": []
     },
@@ -240,7 +253,8 @@
         "Runner key authentication and signature, runner identity, declared network label, browser capability, request times, and claimed task identifiers",
         "Assigned monitor and flow definitions, canary URLs, retry and lease data, and signed attempt evidence, including status, assertions, timings, and bounded flow trace",
         "Discovery input URLs and derived host/proposal results",
-        "For notification delivery, the claimed endpoint URL, signing credential and event payload are returned to the runner for the one configured send; signed outcome and bounded provider response details return to the Worker"
+        "For notification delivery, the claimed endpoint URL, signing credential and event payload are returned to the runner for the one configured send; signed outcome and bounded provider response details return to the Worker",
+        "Redacted HTTP failure snapshots (16 KiB text, optional 64 KiB PNG, 120 KiB total) carry final request details, owner-approved safe header/email exceptions, measured phases and bounded diagnostics under the signed envelope. Opt-in isolated screenshots render the already received excerpt after inert parsing/redaction, without fetching any target or subresource; scripts, styling and media are removed. Generated PNGs are authenticated-encrypted at rest, read only by owners and explicitly granted per-monitor evidence viewers, portable as redacted archive data, and subject to snapshot retention and erasure. Masks and access grants stay installation-local. Alerts carry no artifact content."
       ],
       "adapters": []
     },
@@ -293,6 +307,62 @@
         "Incident/test title, target URL, state, monitor and incident identity when present, probe names/outcomes/reasons, explanation, observation time, and private console URL as rendered in message content",
         "For an owner-run drill, the one-time recipient confirmation link and drill time",
         "Owner stale-runner identity/network-label notice or all-healthy digest text, including any monitoring-configuration warning"
+      ],
+      "adapters": []
+    },
+    {
+      "id": "public-udp-targets",
+      "requiredWhen": "An owner enables a UDP monitor on an authorized public service using a private runner",
+      "why": "A pinned UDP socket sends one owner-configured packet and reads one bounded response; all resolved addresses must be public.",
+      "data": [
+        "Target hostname, port, source address and request timing",
+        "Owner-configured request payload (at most 256 bytes); response at most 1024 bytes",
+        "Response bytes retained as hexadecimal in authenticated immutable evidence, archives and monitor erasure; never put secrets in UDP payloads"
+      ],
+      "required": false
+    },
+    {
+      "id": "authorized-private-targets",
+      "required": false,
+      "requiredWhen": "An owner selects private network scope and provisions a protected runner-local grant for the assigned runner and monitor",
+      "why": "Private HTTP, TCP and isolated browser checks pin only RFC1918 or ULA addresses authorized by exact hostname, CIDR, port and expiry. Metadata and management targets remain forbidden.",
+      "data": [
+        "Configured request paths, headers, bodies and origin-bound credentials reach only approved private targets; redirects and browser dependencies recheck the grant before connecting",
+        "Private target address, bounded assertion facts and sanitized browser trace return as signed evidence to the configured control plane; retained definitions/evidence travel in owner archives and are erased with the monitor",
+        "Grant files and credentials stay runner-local and never travel in archives; restored or imported references do not authorize execution"
+      ]
+    },
+    {
+      "id": "icmp-targets",
+      "required": false,
+      "requiredWhen": "An owner configures a public ICMP ping monitor on a private runner",
+      "why": "The private runner sends one to five bounded ICMP echo packets to the validated numeric IPv4 or IPv6 target. Each location requires system ping permission; no HTTP substitute is used.",
+      "data": [
+        "Target IP address, source runner address, bounded echo packets and round-trip timing",
+        "Only sent/received counts, loss and minimum/mean/maximum RTT are retained in immutable observations; no raw packet capture. Evidence travels in inactive archives and is erased with its monitor."
+      ],
+      "adapters": []
+    },
+    {
+      "id": "metrics-export",
+      "required": false,
+      "requiredWhen": "Owner explicitly invokes scripts/metrics-export.mjs for Datadog or a signed HTTPS receiver",
+      "why": "One-shot metrics export from the same captured report window; no automatic scheduler or retries. Datadog sites are fixed and webhook DNS is validated and pinned.",
+      "data": [
+        "Bounded monitor/probe/runner identifiers, report window, availability and latency statistics, states, contact/evidence freshness, incident counts and delivery job counts",
+        "Datadog API key only to the selected official Datadog HTTPS API; HMAC signature to the owner-selected public webhook. Credentials are process environment values and never stored or archived.",
+        "No monitor names, target URLs, response bodies, provider credentials or Datadog-managed probe identities. The receiver owns its stored metrics; local erasure cannot recall exported data."
+      ],
+      "adapters": []
+    },
+    {
+      "id": "bounded-route-diagnostics",
+      "required": false,
+      "requiredWhen": "A private runner collects diagnostics for a failed HTTP connection",
+      "why": "Five numeric traceroute probes at most, using only the already validated public target address; no name lookup, request credentials or body. Private destinations and unsupported tools report unavailable.",
+      "data": [
+        "Target numeric address and probe source address, TTL and round-trip timing visible to the target and intermediate routers",
+        "Only bounded numeric hops, one-sample packet loss, phase timings and fixed unavailable codes return in the signed failure snapshot; same retention, authenticated access, archive and erasure as that snapshot"
       ],
       "adapters": []
     }
@@ -636,7 +706,7 @@
         "match": "prefix",
         "kind": "credentialed",
         "class": "heartbeats",
-        "authentication": "Revision-scoped bearer token and increasing sequence.",
+        "authentication": "Revision-scoped sequence-protected bearer or replay-unprotected hashed URL capability; GET/HEAD/POST; per-monitor durable ingress limit.",
         "environment": "all"
       },
       {
@@ -697,6 +767,14 @@
       },
       {
         "path": "/report-render.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/report-jobs.js",
         "match": "exact",
         "kind": "asset",
         "class": "assets",
@@ -1184,6 +1262,78 @@
         "class": "assets",
         "authentication": "None; emitted static resource only.",
         "environment": "all"
+      },
+      {
+        "path": "/slow-policy.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/slow-policy.css",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/metrics.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; static console module; the metrics operations require owner or scoped read authority.",
+        "environment": "all"
+      },
+      {
+        "path": "/api/v1/metrics",
+        "match": "exact",
+        "kind": "api",
+        "class": "metrics",
+        "authentication": "Owner session or installation-local hashed metrics:read bearer key; no mutation authority.",
+        "environment": "all"
+      },
+      {
+        "path": "/failure-snapshots.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/network-diagnostics.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/evidence-viewer.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/evidence-access.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/api/v1/openapi.json",
+        "match": "exact",
+        "kind": "api",
+        "class": "documents",
+        "authentication": "None; static OpenAPI description only, no installation records or credentials.",
+        "environment": "all"
       }
     ],
     "notes": "Console documents and APIs require a Base owner session; runner and heartbeat APIs use separately scoped credentials."
@@ -1210,7 +1360,8 @@
       "development": 600,
       "drills": 30,
       "development-assets": 1800,
-      "imports": 120
+      "imports": 120,
+      "metrics": 60
     },
     "notes": "Owner-tunable source settings; each class shares one fixed 60-second D1 window per client. Production assets retain their own budget. Local Vite compiler assets use a separate budget for the unbundled browser graph: about 140 module requests per console load, with room for twelve loads per minute. These defaults are estimated, not load tested. Hosted CF-Connecting-IP must be a valid single IP; missing/malformed values share an unknown-client bucket. Local mode ignores all forwarding headers and uses one loopback bucket. Only keyed hashes of client identities are stored."
   },

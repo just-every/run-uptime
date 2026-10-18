@@ -17,6 +17,7 @@ import {FLOW_LIMITS, describeExpectation, flowDigest, plainUrl} from '../../../s
 import {RUNNER_VERSION} from '../../../src/domain/policy.mjs';
 import {CredentialBindingRequired} from '../credential-diagnostic.mjs';
 import {readGrant} from '../grants.mjs';
+import {flowProfile} from '../../../src/domain/flow-profile.mjs';
 
 const here = new URL('./child.mjs', import.meta.url).pathname;
 const MAX_CHILD_OUTPUT = 256 * 1024;
@@ -35,20 +36,21 @@ const reasonText = (failure, flow, wallMs) => {
     case 'blocked_request': return `${at}: the page tried to reach a forbidden network address (${failure.blocked?.replace(/_/g, ' ') ?? 'blocked'}); nothing was fetched`;
     case 'undeclared_origin': return `${at}: the page tried to leave the origins the flow declares`;
     case 'extra_page': return `${at}: the page tried to open a second window`;
+    case 'navigation_timeout': return `${at}: the page did not finish loading within the bounded step timeout`;
     case 'navigation_failed': return `${at}: the page could not be loaded`;
     case 'credential_origin_mismatch': return `${at}: the named credential is bound to a different origin than the page`;
     default: return `The flow failed (${failure.reason})`;
   }
 };
 
-export async function runFlow(definition, probe, {grantPath, controlPort, workspace, credentialDir = process.env.UPTIME_CREDENTIAL_DIR, capability, monitorId, signal} = {}) {
-  const startedAt = Date.now(), flow = definition.flow;
+export async function runFlow(definition, probe, {grantPath, controlPort, workspace, credentialDir = process.env.UPTIME_CREDENTIAL_DIR, capability, monitorId, signal, privateAccess} = {}) {
+  const startedAt = Date.now(), flow = definition.flow, profile = flowProfile(flow);
   const observation = data => ({id: randomUUID(), probe, startedAt, completedAt: Date.now(), durationMs: 0, runnerVersion: RUNNER_VERSION, ...data});
   const finish = o => ({...o, durationMs: o.completedAt - o.startedAt});
   const runnerError = (assertion, reason) => finish(observation({outcome: 'runner_error', checks: [{assertion, pass: false, reason}]}));
   const interrupted = () => runnerError('runner', 'Runner stopped before the attempt completed');
   if (signal?.aborted) return interrupted();
-  const browser = capability ?? await browserCapability();
+  const browser = capability ?? await browserCapability(profile.browser);
   if (signal?.aborted) return interrupted();
   if (!browser.available) return runnerError('browser', browser.reason);
   if (!workspace) return runnerError('browser', 'This runner has no private flow folder (UPTIME_FLOW_DIR must be a folder this runner owns)');
@@ -67,7 +69,7 @@ export async function runFlow(definition, probe, {grantPath, controlPort, worksp
   if (signal?.aborted) return interrupted();
   const deadlineMs = Math.min(definition.timeoutMs ?? FLOW_LIMITS.wallMs, FLOW_LIMITS.wallMs);
   // The proxy starts first, so the run folder exists for as short a time as possible before the process that cleans it up does.
-  const proxy = await startFlowProxy({grant, maxBytes: FLOW_LIMITS.maxBytes});
+  const proxy = await startFlowProxy({grant,privateAccess:privateAccess?(url,accessSignal)=>privateAccess(url,AbortSignal.any([accessSignal,...(signal?[signal]:[])])):undefined, maxBytes: FLOW_LIMITS.maxBytes});
   let base;
   try { base = await mkdtemp(join(workspace, 'run-')); await chmod(base, 0o700); await mkdir(join(base, 'home'), {mode: 0o700}); }
   catch { await proxy.close(); if (base) await rm(base, {recursive: true, force: true}); return runnerError('browser', 'The flow folder on this runner could not be prepared'); }
@@ -92,7 +94,7 @@ export async function runFlow(definition, probe, {grantPath, controlPort, worksp
     });
     child.on('error', () => {});
     child.stdin.on('error', () => {});
-    child.stdin.end(JSON.stringify({demo:demoMode(),flow, url: definition.url, home, proxy: {port: proxy.port, username: proxy.username, password: proxy.password}, credentials, deadlineMs: deadlineMs - 3000, maxPages: FLOW_LIMITS.maxPages}));
+    child.stdin.end(JSON.stringify({demo:demoMode(),network:definition.network,flow, profile, url: definition.url, home, proxy: {port: proxy.port, username: proxy.username, password: proxy.password}, credentials, deadlineMs: deadlineMs - 3000, maxPages: FLOW_LIMITS.maxPages}));
     signal?.addEventListener('abort', stop, {once: true});
     if (signal?.aborted) stop();
     timer = setTimeout(() => { killedForTime = true; killTree(child.pid); }, deadlineMs);
@@ -109,6 +111,7 @@ export async function runFlow(definition, probe, {grantPath, controlPort, worksp
     await rm(base, {recursive: true, force: true, maxRetries: 10, retryDelay: 100});
   }
   if (signal?.aborted) return interrupted();
+  if(stats.blocked.some(b=>b.class==='private_grant_refused'))return runnerError('grant','Private network permission was unavailable for a page request; no forbidden destination was contacted');
   const completedAt = Date.now();
   if (tooMuch || (!done && !killedForTime) || done?.launchFailed || done?.crashed) return runnerError('browser', done?.launchFailed ? 'The browser could not be started on this runner' : 'The browser process ended without a result');
   // Reasons and the step they belong to, in the order of authority: the clock, the byte limit, what the proxy refused, then the page.
@@ -127,7 +130,7 @@ export async function runFlow(definition, probe, {grantPath, controlPort, worksp
   const outcomes = flow.outcomes.map(o => ({id: o.id, observed: !failure && Boolean(done?.outcomes?.find(x => x.id === o.id)?.observed)}));
   const passed = !failure && outcomes.every(o => o.observed) && trace.every(e => e.outcome !== 'fail');
   if (!passed && !failure) failure = {step: trace.find(e => e.outcome === 'fail')?.i, reason: 'outcome_missing'};
-  let result = {digest: await flowDigest(flow), trace, outcomes, ...(failure ? {failure: Object.fromEntries(Object.entries(failure).filter(([, v]) => v !== undefined))} : {}), finalUrl: text(done?.finalUrl ?? plainUrl(definition.url)), pages: Math.min(done?.pages ?? 0, FLOW_LIMITS.maxPages + 1), bytes: stats.bytes};
+  let result = {digest: await flowDigest(flow), profile, trace, outcomes, ...(failure ? {failure: Object.fromEntries(Object.entries(failure).filter(([, v]) => v !== undefined))} : {}), finalUrl: text(done?.finalUrl ?? plainUrl(definition.url)), pages: Math.min(done?.pages ?? 0, FLOW_LIMITS.maxPages + 1), bytes: stats.bytes};
   if (JSON.stringify(result).length > FLOW_LIMITS.traceBytes) {
     // Over the cap: keep the first entries and fail naming the limit; the trace never grows past its bound.
     result = {...result, trace: result.trace.slice(0, 10).map(({expect, ...e}) => e), failure: {reason: 'trace_limit', limit: 'traceBytes', ...(failure?.step !== undefined ? {step: failure.step} : {})}};

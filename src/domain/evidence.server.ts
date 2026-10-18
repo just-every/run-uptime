@@ -1,3 +1,4 @@
+import {normalizeFailureSnapshot,FAILURE_SNAPSHOT_LIMITS} from './failure-snapshot.mjs'
 // @ts-ignore Shared monitor-scoped certificate trust facts.
 import {validateTlsTrustEvidence,TLS_EVIDENCE_MAX_BYTES} from './tls-trust.mjs'
 // @ts-ignore Shared signed job snapshot evaluation.
@@ -17,12 +18,12 @@ import {isProtocol} from './protocol/settings.mjs'
 import {protocolChecks} from './protocol/evaluate.mjs'
 // @ts-ignore
 import {validateFacts} from './protocol/facts.mjs'
-const fields = new Set(['id', 'probe', 'outcome', 'completedAt', 'startedAt', 'durationMs', 'runnerVersion', 'status', 'bytes', 'checks', 'attempt', 'heartbeatReceivedAt', 'heartbeatJob', 'tlsTrust', 'canary', 'flow', 'credentialBinding', 'protocol'])
+const fields = new Set(['id', 'probe', 'outcome', 'completedAt', 'startedAt', 'durationMs', 'runnerVersion', 'status', 'bytes', 'checks', 'attempt', 'heartbeatReceivedAt', 'heartbeatJob', 'tlsTrust', 'canary', 'flow', 'credentialBinding', 'protocol','failureSnapshot'])
 // unresolved: the public resolver answered NXDOMAIN or no address. budget: a Worker run spent its outbound requests first.
 // refused: the target's port refused the connection; tls: the TLS handshake failed before a certificate could be read.
 // vantage: this vantage cannot run the check (a Worker socket to a Cloudflare address); registry: RDAP data unavailable.
-const targetErrors = new Set(['encoding', 'redirect', 'body-limit', 'transport', 'timeout', 'connection', 'unresolved', 'refused', 'tls'])
-const runnerErrors = new Set(['custody', 'runner', 'network', 'dns', 'browser', 'credential', 'grant', 'budget', 'vantage', 'registry'])
+const targetErrors = new Set(['encoding', 'redirect', 'body-limit', 'transport', 'timeout', 'connection', 'unresolved', 'refused', 'tls', 'response_limit'])
+const runnerErrors = new Set(['custody', 'runner', 'network', 'dns', 'browser', 'credential', 'grant', 'budget', 'vantage', 'registry', 'capacity'])
 const responseErrors = new Set(['encoding', 'redirect', 'body-limit'])
 /** Live completion accepts runner clocks up to this far ahead of control-plane time. */
 export const COMPLETION_CLOCK_ALLOWANCE_MS = 1000
@@ -140,6 +141,7 @@ function validateTrust(o:any,definition:any){
 }
 
 export function validateEvidence(o: any, definition: any, dueAt: number, now: number, mode: ValidationMode = 'live-completion') {
+  if(o?.failureSnapshot!==undefined){const snapshot=normalizeFailureSnapshot(o.failureSnapshot);if(!['http','keyword'].includes(definition.type??'http')||o.outcome==='pass'||!('unavailable' in snapshot)&&((o.status!==undefined?snapshot.status!==o.status:snapshot.status!==null&&!o.checks?.some((c:any)=>['timeout','connection','transport','encoding','body-limit'].includes(c.assertion)))||snapshot.durationMs!==o.durationMs||snapshot.diagnostics&&snapshot.diagnostics.category!==o.checks?.[0]?.assertion))throw Error('Invalid failure snapshot evidence')}
   const binding = o?.credentialBinding;
   if (binding !== undefined && (!validBindingDiagnostic(binding) || o.outcome !== 'runner_error' || o.checks?.length !== 1 || o.checks[0].assertion !== 'credential' || o.checks[0].reason !== bindingReason(binding) ||
       !(definition.request?.credentialRef === binding.reference || definition.flow?.steps.some((step: any) => step.kind === 'fill' && step.credentialRef === binding.reference)))) throw Error('Invalid credential binding diagnostic');
@@ -149,13 +151,13 @@ export function validateEvidence(o: any, definition: any, dueAt: number, now: nu
       !['uptime-node/0.1.0','uptime-worker/0.1.0'].includes(o.runnerVersion) || !timestamp(o.startedAt) || !timestamp(o.completedAt) ||
       o.startedAt < dueAt || o.completedAt < o.startedAt || o.completedAt > now + COMPLETION_CLOCK_ALLOWANCE_MS ||
       !timestamp(o.durationMs) || !['pass', 'target_failure', 'runner_error'].includes(o.outcome) ||
-      JSON.stringify(o).length > ((definition.type === 'flow' ? 4000 + FLOW_LIMITS.traceBytes : isProtocol(definition.type) ? 12000 : 4000) + (o.tlsTrust ? TLS_EVIDENCE_MAX_BYTES : 0) + (binding ? BINDING_DIAGNOSTIC_BYTES : 0))) throw Error('Invalid observation evidence')
+      JSON.stringify(o).length > ((definition.type === 'flow' ? 4000 + FLOW_LIMITS.traceBytes : isProtocol(definition.type) ? 12000 : 4000) + (o.tlsTrust ? TLS_EVIDENCE_MAX_BYTES : 0) + (binding ? BINDING_DIAGNOSTIC_BYTES : 0) + (o.failureSnapshot ? FAILURE_SNAPSHOT_LIMITS.totalBytes : 0))) throw Error('Invalid observation evidence')
   validateTrust(o,definition);
   if(o.heartbeatJob!==undefined&&definition.type!=='heartbeat')throw Error('Unexpected heartbeat job evidence');
   if (o.protocol !== undefined && !isProtocol(definition.type)) throw Error('Unexpected protocol evidence')
   if(definition.assignments?.[o.probe]?.canaryUrl&&o.canary===undefined)throw Error('Configured canary evidence required');
   if(o.canary!==undefined){
-    if(!definition.assignments?.[o.probe]?.canaryUrl||o.canary?.canary!==undefined)throw Error('Unexpected canary evidence');
+    if(!definition.assignments?.[o.probe]?.canaryUrl||o.canary?.canary!==undefined||o.canary?.failureSnapshot!==undefined)throw Error('Unexpected canary evidence');
     validateEvidence(o.canary,{...definition,type:'http',network:'public',url:definition.assignments[o.probe].canaryUrl,tlsTrust:undefined,assignments:undefined,request:undefined,retries:0,assertions:{status:200}},dueAt,now,mode);
     if(o.canary.probe!==o.probe||o.canary.attempt!==0)throw Error('Invalid canary identity');
   }

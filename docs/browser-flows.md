@@ -1,0 +1,87 @@
+A browser monitor checks a specific customer journey and every required outcome. Choose Chromium, Firefox or WebKit, then a desktop or mobile profile. Use separate monitors for each combination you need: a desktop success never clears a mobile checkout failure.
+
+## Create a journey
+
+Open **Definitions**, paste a definition file, preview it and apply the reviewed plan. New monitors start paused. A flow contains fixed steps and required outcomes, not executable JavaScript. For example:
+
+```json
+{
+  "format": "uptime.monitors",
+  "version": 5,
+  "monitors": [{
+    "name": "Checkout — WebKit mobile",
+    "type": "flow",
+    "url": "https://shop.example.com/checkout",
+    "intervalMs": 300000,
+    "timeoutMs": 60000,
+    "probes": ["local-a", "local-b"],
+    "flow": {
+      "browser": "webkit",
+      "device": "mobile",
+      "intent": "Confirm that sandbox checkout reaches its confirmation",
+      "steps": [
+        {"kind": "goto", "url": "https://shop.example.com/checkout"},
+        {"kind": "click", "target": {"role": "button", "name": "Confirm sandbox order"}}
+      ],
+      "outcomes": [
+        {"id": "order-confirmed", "what": "text", "value": "Sandbox order confirmed"}
+      ]
+    }
+  }]
+}
+```
+
+Use an authorized sandbox and synthetic accounts. Two independent runner networks, or one network with an independently passing external check, are required to confirm public failures. An imported file carries neither runner authority nor credentials. Review its local runner assignment and explicitly authorize and resume it.
+
+`browser` accepts `chromium`, `firefox` or `webkit`. `device` accepts `desktop` (1280 × 800, scale 1) or `mobile` (390 × 844, scale 3, touch). Mobile uses the chosen browser engine, not a native iOS or Android device. Firefox uses its supported viewport and touch emulation; Chromium and WebKit additionally enable their mobile layout mode. The browser's native User-Agent is retained. Definitions written before profiles were introduced mean Chromium desktop.
+
+The monitor’s **Browser flow** panel shows the current combination and lets you save another one as a new immutable revision. The earlier results keep their original combination. Changing it during an incident is labelled a changed definition: a pass on the replacement profile does not establish recovery of the original profile. To cover several combinations continuously, clone the monitor in the catalog and give each clone a distinct name and profile. The installation limit is five browser monitors, including paused ones.
+
+## Install and supervise engines
+
+From the installed checkout on every assigned runner machine:
+
+```sh
+pnpm exec playwright install chromium firefox webkit
+```
+
+Restart the private runner after installing or removing an engine. It tests each engine at enrollment and shows the available engines in **Runner / archive**. A missing, disabled or failed selected engine produces Unknown with that engine’s name; it never substitutes another browser. `UPTIME_RUNNER_BROWSER=off` disables all flows. Set `UPTIME_RUNNER_BROWSERS=chromium,firefox` to permit only those engines on a particular runner. The default permits all three. Keep the runner’s ordinary signed-in operating-system HOME; browser profiles and temporary files remain separate per-run directories.
+
+Credentials used by a `fill` step stay in protected runner-local files bound to the exact monitor ID and origin. A clone has a new ID and needs its own credential reference and file. See [runner credential custody](/docs/runner#request-secrets-stay-with-the-runner).
+
+## Evidence and safety
+
+Every completed browser attempt records its selected browser, device and viewport with its immutable flow digest and sanitized step trace. Selected network vantages check the same combination; they are never used to mix several engines into one health verdict. Missing coverage remains Unknown.
+
+All engines use the same authenticated filtering proxy for navigations, redirects, subresources and WebSockets. It validates destinations, pins connections and enforces byte and traffic limits. Service workers and downloads are disabled. Direct WebRTC and WebTransport page APIs are disabled, Firefox also disables peer connections and speculative networking, and Chromium disables direct UDP paths. Credentials remain restricted to their exact origin. Run each runner with the independent network isolation described in the runner instructions; a signed result identifies its key holder rather than proving an uncompromised host.
+
+**Recent checks** and **Revision history** name the combination each attempt used. Period reports retain separate browser/device revision segments, each with its own coverage, Unknown time and latency. Whole-period totals are explicitly across revisions. JSON, CSV and PDF retain the segments. Product archives retain these definitions and traces and restore the monitors paused; they never carry browser profiles, session cookies or runner credentials.
+
+
+## Login, signup and sandbox checkout
+
+Use a dedicated synthetic account on an explicitly authorized test service. A login journey opens the sign-in page, fills runner-local credential references, submits the form and requires the signed-in outcome. A successful response from the login page alone is insufficient. For example, put this `flow` in a browser monitor definition whose URL is your sign-in page:
+
+```json
+{
+  "intent": "Sign in and see the account dashboard",
+  "steps": [
+    {"kind": "goto", "url": "https://sandbox.example.com/login"},
+    {"kind": "fill", "target": {"label": "Email"}, "credentialRef": "synthetic-email"},
+    {"kind": "fill", "target": {"label": "Password"}, "credentialRef": "synthetic-password"},
+    {"kind": "click", "target": {"role": "button", "name": "Sign in"}},
+    {"kind": "waitFor", "what": "text", "value": "Welcome back"}
+  ],
+  "outcomes": [{"id": "signed-in", "what": "text", "value": "Welcome back"}]
+}
+```
+
+For signup, use your sandbox's account-creation URL and submit button, and require the account-created confirmation. Repeated scheduled signup needs an authorized reusable sandbox identity or reset policy; Uptime does not generate disposable identities or clean up accounts automatically. Never point a signup monitor at an ordinary customer's account.
+
+For checkout, continue the signed-in steps with the sandbox order button and require the final order confirmation, rather than merely the checkout form. Use test-mode payments and sandbox inventory only. Each required outcome is checked after the final step. Setup/teardown fixtures and production spend grants remain separate work under API-004; this constrained journey must not perform live purchases.
+
+## Read a failed journey
+
+Open its monitor, expand **Recent checks**, and read the failed step and every required outcome. Wrong credentials retain an unmet sign-in expectation. A removed button is an element failure; an HTTP error page records its status; missing confirmation is a required-outcome failure; a page that keeps loading records a navigation timeout instead of claiming that its clicked button was missing; the overall run deadline is a named time-limit failure. Private redirects, metadata subresources and an undeclared origin are blocked. Missing browser or credential capacity is a runner error and coverage is Unknown, never a successful transaction.
+
+Fix the controlled application and wait for fresh scheduled passing evidence from the saved profile and assigned probes. **Run now** gives manual evidence without advancing scheduled recovery. Removing or changing a required outcome creates a new immutable revision and a changed-definition recovery label; it never proves that the original customer outcome recovered. The local qualification suite exercises login, signup and sandbox submission through two isolated runner processes; independent geographic placement and hosted execution require their own acceptance.

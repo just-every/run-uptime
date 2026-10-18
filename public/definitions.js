@@ -23,6 +23,7 @@ function countsMarkup(preview){
  <p class="definition-source">${escape(preview.sourceLabel)}: ${o.importable} importable, ${o.withDifferences} importable with listed differences, ${o.unsupported} unsupported, ${o.refused} refused. New monitors arrive paused.</p>`;
 }
 function criteriaMarkup(definition){
+ if(definition?.type==='flow')return `<p><strong>Reviewed browser journey</strong></p><ul><li>Browser: ${escape(definition.flow.browser)}</li><li>Device: ${escape(definition.flow.device)}</li><li>Intent: ${escape(definition.flow.intent)}</li><li>${definition.flow.steps} steps; ${definition.flow.outcomes} required outcomes. Each browser/device combination is a separate monitor.</li></ul>`;
  if(!definition||!['http','keyword'].includes(definition.type))return '';
  const a=definition.assertions,items=[['HTTP status',Array.isArray(a.status)?a.status.join(', '):String(a.status)]];
  if(definition.tlsTrust)items.push(['HTTPS trust',definition.tlsTrust.mode==='fingerprint'?'Pinned leaf SHA-256 '+definition.tlsTrust.sha256:definition.tlsTrust.mode==='ca'?'Owner-supplied CA; private runner required':'Certificate errors ignored for initial origin; private runner required']);
@@ -37,6 +38,7 @@ function criteriaMarkup(definition){
 function rowMarkup(e){
  const [label,pill]=ACTIONS[e.action],details=[
   ...(e.reason?[`<p>${escape(e.reason)}</p>`]:[]),
+  ...(e.target?.network==='private'?[`<p><strong>Private network</strong> · runner-local grant <code>${escape(e.target.privateGrantRef)}</code>. A new local grant is required before execution.</p>`]:[]),
   criteriaMarkup(e.target),
   ...(e.changes??[]).map(ch=>`<p><span class="field">${escape(ch.field)}</span>: ${value(ch.from)} → ${value(ch.to)}</p>`),
   ...(e.differences.length?[`<ul>${e.differences.map(d=>`<li>${escape(d)}</li>`).join('')}</ul>`]:[]),
@@ -68,7 +70,7 @@ export function renderDefinitions({area,action}){
  <section class="archive-tools definition-input" aria-labelledby="definition-input-heading"><h3 id="definition-input-heading">Preview a file</h3>
  <label>Definition file, UptimeRobot list/log or Pingdom HTTP details (2 MiB max)<input type="file" id="definition-file" accept=".json,.csv,application/json,text/csv"></label>
  <label>Or paste the file<textarea id="definition-text" rows="5" spellcheck="false"></textarea></label>
- <label>Source<select id="definition-source"><option value="auto">Detect from the file</option><option value="uptime.monitors">Uptime definition file</option><option value="uptimerobot">UptimeRobot v3 monitor list</option><option value="pingdom">Pingdom HTTP check details</option><option value="uptimerobot-log">UptimeRobot log export (CSV)</option></select></label>
+ <label>Source<select id="definition-source"><option value="auto">Detect from the file</option><option value="uptime.monitors">Uptime definition file</option><option value="uptimerobot">UptimeRobot v3 monitor list</option><option value="pingdom">Pingdom HTTP check details</option><option value="betterstack-heartbeats">Better Stack heartbeat pages</option><option value="uptimerobot-log">UptimeRobot log export (CSV)</option></select></label>
  <p><button id="definition-preview" class="primary">Preview</button> <button id="definition-export">${icon('export')}Export current definitions</button></p></section>
  <section aria-labelledby="definition-preview-heading"><h3 id="definition-preview-heading">Preview</h3><div id="definition-result">${state.preview?'':'<p>Nothing previewed yet.</p>'}</div></section>
  <section aria-labelledby="definition-batches-heading"><h3 id="definition-batches-heading">Applied batches</h3><p>Undo pauses monitors a batch created and restores monitors it changed, unless they were edited or enabled since. History is never removed.</p><div id="definition-batches"></div></section></section>`;

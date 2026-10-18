@@ -1,9 +1,24 @@
+import {monitoringMonitors,monitoringMonitor} from './domain/read-api/monitors.server.ts'
+import {bulkUptime} from './domain/read-api/bulk.server.ts'
+import {bulkUptimeCsv,incidentListCsv} from './domain/read-api/csv.ts'
+import {failureEvidenceDocument,failureEvidenceDenied} from './domain/failure-evidence-document.server.ts'
+import {evidencePrincipal,evidenceAccess,saveEvidenceAccess,evidenceSelection} from './domain/failure-evidence-access.server.ts'
+import {incidentDetail} from './domain/incident-work/read.server.ts'
+import {readSnapshots,saveSnapshotSettings,eraseSnapshots,incidentSnapshots} from './domain/failure-snapshots.server.ts'
+import {authorizeMetrics,metricsKeys,createMetricsKey,revokeMetricsKey} from './domain/metrics/auth.server.ts'
+import {metricsSnapshot} from './domain/metrics/snapshot.server.ts'
+import {prometheusMetrics} from './domain/metrics/prometheus.ts'
+import {registerHeartbeatReceipts} from './domain/heartbeat-routes.server.ts'
+import {importContactSchedule} from './domain/contact-schedule-import.ts'
 import {saveNotificationPreferences} from './domain/notification-preferences.server.ts'
 import {proposedWebhookPreview,savedWebhookPreview} from './domain/notification-webhook.ts'
 // @ts-ignore Source definition parser shared with the owner preview.
 import {previewUptimeRobotWebhook} from './domain/webhook-contact-import.mjs'
 import {configureHeartbeat,heartbeatRuns} from './domain/heartbeat-jobs.server.ts'
 import {catalogBulkPreview,catalogBulkApply,catalogAddPreview,catalogAddApply} from './domain/catalog.server.ts'
+import {importSlowPolicy} from './domain/slow-import.ts'
+import {readSlowPolicy,saveSlowPolicy} from './domain/slow-config.server.ts'
+import {acknowledgeSlow} from './domain/slow-ack.server.ts'
 import {readAlertRoute,previewAlertRoute,applyAlertRoute} from './domain/alert-routes.server.ts'
 import {previewMaintenance,applyMaintenance,cancelMaintenance} from './domain/planned-maintenance.server.ts'
 // The package's demo module: operator-auth runs from the package and reads demo mode from this same instance.
@@ -66,22 +81,29 @@ import {session,overview,save,get,claim,complete,history,revisions,archive,resto
 import {checkInput,InputError} from './domain/request-boundary.ts'
 const api=new Hono<{Bindings:Bindings;Variables:{requestText:string;input:any;runner:Runner}}> ()
 api.get('/health',c=>health(c.env))
-api.use('/api/*',async(c,next)=>{c.header('cache-control','no-store');const origin=c.req.header('origin');if(c.env.UPTIME_LOCAL_REVIEW!=='true'&&['POST','PATCH','DELETE'].includes(c.req.method)&&!c.req.path.startsWith('/api/runner/')&&!c.req.path.startsWith('/api/heartbeats/')&&origin!==c.env.UPTIME_ORIGIN)return c.json({error:'Same origin required'},403);if(c.req.header('sec-fetch-site')==='cross-site'||(origin&&origin!==new URL(c.req.url).origin))return c.json({error:'Same origin required'},403);if(Number(c.req.header('content-length')??0)>2*1024*1024)return c.json({error:'Payload too large'},413);if(['POST','PATCH'].includes(c.req.method)&&c.req.header('content-type')!=='application/json'&&!(c.req.path==='/api/definitions/preview'&&c.req.header('content-type')==='text/csv'))return c.json({error:'JSON required'},415);if(['POST','PATCH'].includes(c.req.method)){const reader=c.req.raw.body?.getReader(),decoder=new TextDecoder('utf-8',{fatal:true});let size=0,text='';if(reader){try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>(c.req.path.startsWith('/api/heartbeats/')?10240:2*1024*1024)){return c.json({error:'Payload too large'},413)}text+=decoder.decode(value,{stream:true})}text+=decoder.decode()}catch(error){if(error instanceof TypeError)return c.json({error:'Invalid UTF-8 request body'},400);throw error}finally{reader.releaseLock()}}c.set('requestText',text)}await next()})
+api.use('/api/*',async(c,next)=>{c.header('cache-control','no-store');const origin=c.req.header('origin');if(c.env.UPTIME_LOCAL_REVIEW!=='true'&&['POST','PATCH','DELETE'].includes(c.req.method)&&!c.req.path.startsWith('/api/runner/')&&!c.req.path.startsWith('/api/heartbeats/')&&origin!==c.env.UPTIME_ORIGIN)return c.json({error:'Same origin required'},403);if(c.req.header('sec-fetch-site')==='cross-site'||(origin&&origin!==new URL(c.req.url).origin))return c.json({error:'Same origin required'},403);if(Number(c.req.header('content-length')??0)>2*1024*1024)return c.json({error:'Payload too large'},413);if(['POST','PATCH'].includes(c.req.method)&&!c.req.path.startsWith('/api/heartbeats/')&&c.req.header('content-type')!=='application/json'&&!(c.req.path==='/api/definitions/preview'&&c.req.header('content-type')==='text/csv'))return c.json({error:'JSON required'},415);if(['POST','PATCH'].includes(c.req.method)){const reader=c.req.raw.body?.getReader(),decoder=new TextDecoder('utf-8',{fatal:true});let size=0,text='';if(reader){try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>(c.req.path.startsWith('/api/heartbeats/')?10240:2*1024*1024)){return c.json({error:'Payload too large'},413)}text+=decoder.decode(value,{stream:true})}text+=decoder.decode()}catch(error){if(error instanceof TypeError)return c.json({error:'Invalid UTF-8 request body'},400);throw error}finally{reader.releaseLock()}}c.set('requestText',text)}await next()})
 // Every route's path, query and body schema, once the caller's authority is known and before any service (request-boundary.ts).
 // Heartbeats carry their own token, so their input is checked before their handler.
 const boundary=async(c:any,next:()=>Promise<void>)=>{const headers=c.req.raw.headers,hasBody=Number(headers.get('content-length')??0)>0||headers.has('transfer-encoding');let checked;try{checked=checkInput(c.req.method==='HEAD'?'GET':c.req.method,new URL(c.req.url),c.get('requestText')??'',hasBody)}catch(error){if(error instanceof InputError)return c.json({error:error.message},400);throw error}if(!checked)return c.json({error:'Not found'},404);c.set('input',checked.body);await next()}
 api.use('/api/heartbeats/*',boundary)
-api.post('/api/heartbeats/:id',async c=>{if(c.get('requestText')!=='{}')return c.json({error:'Empty JSON object required'},400);return c.json(await receiveHeartbeat(c.env,c.req.param('id'),c.req.header('authorization')??'',c.req.header('x-heartbeat-sequence')??''))})
-for(const state of ['start','success','fail'] as const)for(const path of state==='fail'?['/api/heartbeats/:id/fail','/api/heartbeats/:id/fail/:exitCode']:[`/api/heartbeats/:id/${state}`])api.post(path,async c=>{
- if(new TextEncoder().encode(c.get('requestText')).byteLength>10240)return c.json({error:'Heartbeat body exceeds 10 KiB'},413);
- const body=c.get('requestText')?JSON.parse(c.get('requestText')):{};
- return c.json(await receiveHeartbeat(c.env,c.req.param('id')!,c.req.header('authorization')??'',c.req.header('x-heartbeat-sequence')??'',state,c.req.param('exitCode')===undefined?null:Number(c.req.param('exitCode')),body));
-});
-api.use('/api/*',async(c,next)=>{if(c.req.path.startsWith('/api/runner/')){const row=await storageOperation('runner.authenticate',()=>authenticateRunner(c.env,c.req.header('x-runner-id'),c.req.header('x-runner-key')??''));if(!row)return c.json({error:'Runner authorization required'},401);c.set('runner',row)}else if(!await storageOperation('owner.session',()=>session(c.env,c.req.raw)))return c.json({error:'Owner session required'},401);await next()})
+registerHeartbeatReceipts(api)
+api.use('/api/*',async(c,next)=>{if(c.req.path==='/api/v1/openapi.json'&&['GET','HEAD'].includes(c.req.method)){await next();return}if(c.req.header('authorization')?.toLowerCase().startsWith('bearer ')){if(c.req.path!=='/api/v1/metrics'||!['GET','HEAD'].includes(c.req.method))return c.json({error:'Metrics keys authorize only metrics reads'},403);if(!await authorizeMetrics(c.env,c.req.raw))return c.json({error:'Metrics authorization required'},401)}else if(/^\/api\/evidence\/monitors\/[^/]+$/.test(c.req.path)&&['GET','HEAD'].includes(c.req.method)){const id=decodeURIComponent(c.req.path.split('/').pop()!);if(!await evidencePrincipal(c.env,c.req.raw,id))return c.json({error:'Evidence access required'},await authenticatedSession(c.env,c.req.raw)?403:401)}else if(c.req.path.startsWith('/api/runner/')){const row=await storageOperation('runner.authenticate',()=>authenticateRunner(c.env,c.req.header('x-runner-id'),c.req.header('x-runner-key')??''));if(!row)return c.json({error:'Runner authorization required'},401);c.set('runner',row)}else if(!await storageOperation('owner.session',()=>session(c.env,c.req.raw)))return c.json({error:'Owner session required'},401);await next()})
 api.use('/api/*',boundary)
 // Only authenticated owner requests can kick hosted work; public traffic and private runners cannot.
 api.use('/api/*',async(c,next)=>{await next();if(c.res.ok&&(c.req.path==='/api/overview'||/^\/api\/(monitors|notifications)(\/|$)/.test(c.req.path))){c.executionCtx.waitUntil(kickHostedWork(c.env).catch(()=>console.error('Hosted console work failed; queued work remains available to Cron.')))}})
 api.post('/api/auth/sign-out',async c=>{try{const result=await signOut(c.env,c.req.raw);c.header('set-cookie',result.cookie);return c.json({signedOut:true})}catch(error){return authFailure(error)}})
+api.get('/api/metrics/keys',async c=>c.json(await metricsKeys(c.env,c.req.raw)))
+api.post('/api/metrics/keys',async c=>c.json(await createMetricsKey(c.env,c.req.raw,c.get('input')),201))
+api.delete('/api/metrics/keys/:id',async c=>c.json(await revokeMetricsKey(c.env,c.req.raw,c.req.param('id'))))
+api.get('/api/v1/metrics',async c=>{
+ const params=new URL(c.req.url).searchParams
+ try{
+  const snapshot=await metricsSnapshot(c.env,params)
+  if(params.get('format')==='json'){const bytes=JSON.stringify(snapshot);if(new TextEncoder().encode(bytes).length>2*1024*1024)throw new ReportInputError('Metrics exceeds 2 MiB');return c.body(bytes,200,{'content-type':'application/json'})}
+  const text=prometheusMetrics(snapshot);if(new TextEncoder().encode(text).length>2*1024*1024)throw new ReportInputError('Metrics exceeds 2 MiB')
+  return c.body(text,200,{'content-type':'text/plain; version=0.0.4; charset=utf-8'})
+ }catch(error){if(error instanceof ReportInputError)return c.json({error:error.message,code:error.code},error.code==='monitor_not_found'?404:400);throw error}
+})
 api.get('/api/overview',async c=>{const monitorId=c.req.query('monitor');return c.json(await overview(c.env,monitorId===undefined?{}:{monitorId}))})
 for(const [path,preview,apply] of [
  ['/api/catalog',catalogBulkPreview,catalogBulkApply],['/api/catalog/add',catalogAddPreview,catalogAddApply],['/api/maintenance',previewMaintenance,applyMaintenance],
@@ -91,18 +113,45 @@ for(const [path,preview,apply] of [
 }
 api.post('/api/maintenance/cancel',async c=>c.json(await cancelMaintenance(c.env,c.get('input'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 api.get('/api/monitor-editor',async c=>{c.header('cache-control','no-store, private');return c.json(await monitorEditor(c.env,c.req.query('monitor')))})
+api.get('/api/monitors/:id/slow-policy',async c=>c.json(await readSlowPolicy(c.env,c.req.param('id'))))
+api.post('/api/monitors/:id/slow-policy/import-preview',async c=>{const current=await readSlowPolicy(c.env,c.req.param('id'));return c.json({slow:importSlowPolicy(c.get('input'),current.definition),revision:current.revision})})
+api.post('/api/monitors/:id/slow-policy',async c=>c.json(await saveSlowPolicy(c.env,c.req.param('id'),c.get('input'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
+api.post('/api/monitors/:id/slow-ack',async c=>c.json(await acknowledgeSlow(c.env,c.req.param('id'),c.get('input'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 api.get('/api/monitors/:id/alert-route',async c=>c.json(await storageOperation('alertRoutes.read',()=>readAlertRoute(c.env,c.req.param('id')))))
 api.post('/api/monitors/:id/alert-route/preview',async c=>c.json(await storageOperation('alertRoutes.preview',()=>previewAlertRoute(c.env,c.req.param('id'),c.get('input')))))
+api.post('/api/monitors/:id/alert-route/import-preview',async c=>c.json(await storageOperation('alertRoutes.import',()=>previewAlertRoute(c.env,c.req.param('id'),importContactSchedule(c.get('input'))))))
 api.post('/api/monitors/:id/alert-route/apply',async c=>{const actor={kind:'operator' as const,ref:(await operatorSession(c.env,c.req.raw))!.operator.id};return c.json(await storageOperation('alertRoutes.apply',()=>applyAlertRoute(c.env,c.req.param('id'),c.get('input'),actor)))})
 api.post('/api/monitors',async c=>c.json(await save(c.env,c.get('input'),undefined,{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id}),201))
 api.patch('/api/monitors/:id',async c=>c.json(await save(c.env,c.get('input'),c.req.param('id'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 api.post('/api/monitors/:id/heartbeat-key',async c=>c.json(await issueHeartbeatKey(c.env,c.req.param('id'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 api.post('/api/monitors/:id/heartbeat-settings',async c=>c.json(await configureHeartbeat(c.env,c.req.param('id'),c.get('input'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})));
-api.get('/api/monitors/:id/heartbeat-runs',async c=>{const monitor=await get(c.env,c.req.param('id'));if(!monitor)return c.json({error:'Monitor not found'},404);return c.json(await heartbeatRuns(c.env,monitor.id,{before:c.req.query('before')}))});
+api.get('/api/monitors/:id/heartbeat-runs',async c=>{const monitor=await get(c.env,c.req.param('id'));if(!monitor)return c.json({error:'Monitor not found'},404);return c.json(await heartbeatRuns(c.env,monitor.id,{before:c.req.query('before'),previewFrom:c.req.query('previewFrom')?Number(c.req.query('previewFrom')):undefined}))});
+api.get('/api/evidence/monitors/:id',async c=>c.json(await evidenceSelection(c.env,c.req.param('id'),c.req.query('before'))))
+api.get('/api/monitors/:id/evidence-access',async c=>c.json(await evidenceAccess(c.env,c.req.param('id'))))
+api.post('/api/monitors/:id/evidence-access',async c=>c.json(await saveEvidenceAccess(c.env,c.req.param('id'),c.get('input'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
+api.get('/api/incidents/:id/failure-report',async c=>{const report={...await incidentDetail(c.env,c.req.param('id')),failureSnapshots:await incidentSnapshots(c.env,c.req.param('id'),true)},text=JSON.stringify(report);if(new TextEncoder().encode(text).length>2*1024*1024)throw Error('Incident report exceeds 2 MiB; export a bounded snapshot selection');return new Response(text,{headers:{'content-type':'application/json','content-disposition':'attachment; filename=uptime-incident-report.json','cache-control':'no-store'}})})
+api.get('/api/incidents/:id/failure-snapshots',async c=>c.json(await incidentSnapshots(c.env,c.req.param('id'))))
+api.get('/api/monitors/:id/failure-snapshots',async c=>c.json(await readSnapshots(c.env,c.req.param('id'),c.req.query('before'))))
+api.patch('/api/monitors/:id/failure-snapshots',async c=>c.json(await saveSnapshotSettings(c.env,c.req.param('id'),c.get('input'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
+api.delete('/api/monitors/:id/failure-snapshots',async c=>c.json(await eraseSnapshots(c.env,c.req.param('id'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 api.get('/api/monitors/:id/history',async c=>c.json(await history(c.env,c.req.param('id'))))
 api.get('/api/monitors/:id/incidents',async c=>c.json(await incidents(c.env,c.req.param('id'))))
 api.get('/api/monitors/:id/revisions',async c=>c.json(await revisions(c.env,c.req.param('id'))))
-api.get('/api/v1/incidents',async c=>c.json(await incidentList(c.env,new URL(c.req.url).searchParams)))
+api.get('/api/v1/monitors',async c=>c.json(await monitoringMonitors(c.env,new URL(c.req.url).searchParams)))
+api.get('/api/v1/monitors/:id',async c=>{const monitor=await monitoringMonitor(c.env,c.req.param('id'));return monitor?c.json(monitor):c.json({error:'Monitor not found'},404)})
+api.get('/api/v1/uptime',async c=>{
+ try{
+  const result=await bulkUptime(c.env,new URL(c.req.url).searchParams)
+  if(c.req.query('format')==='csv'||c.req.header('accept')?.includes('text/csv'))return c.body(bulkUptimeCsv(result),200,{'content-type':'text/csv; charset=utf-8','content-disposition':'attachment; filename="uptime-bulk.csv"'})
+  return c.json(result)
+ }catch(error){if(error instanceof ReportInputError&&error.code==='monitor_not_found')return c.json({error:error.message,code:error.code},404);throw error}
+})
+api.get('/api/v1/incidents',async c=>{
+ const result=await incidentList(c.env,new URL(c.req.url).searchParams)
+ if(result.nextCursor){const next=new URL(c.req.url);next.searchParams.set('cursor',result.nextCursor);c.header('link',`<${next}>; rel="next"`);c.header('x-next-cursor',result.nextCursor)}
+ if(c.req.query('format')==='csv'||c.req.header('accept')?.includes('text/csv'))return c.body(incidentListCsv(result),200,{'content-type':'text/csv; charset=utf-8','content-disposition':'attachment; filename="uptime-incidents.csv"'})
+ return c.json(result)
+})
 for(const path of ['/api/incidents/:id','/api/v1/incidents/:id','/api/incident-settings'])api.get(path,c=>incidentWorkRequest(c.env,c.req.raw,c.get('input')))
 api.patch('/api/incident-settings',c=>incidentWorkRequest(c.env,c.req.raw,c.get('input')))
 api.post('/api/incidents/:id/comments',c=>incidentWorkRequest(c.env,c.req.raw,c.get('input')))
@@ -115,6 +164,10 @@ api.get('/api/v1/openapi.json',c=>c.json(readApiOpenApi))
 for(const suffix of ['uptime','report'] as const)api.get(`/api/v1/monitors/:id/${suffix}`,async c=>{
  const report=await monitorReport(c.env,c.req.param('id'),new URL(c.req.url).searchParams)
  if(!report)return c.json({error:'Monitor not found'},404)
+ if(c.req.query('format')==='pdf'||c.req.header('accept')?.includes('application/pdf')){
+  const {reportPdf}=await import('./domain/reports/pdf.ts')
+  c.header('content-type','application/pdf');c.header('content-disposition','attachment; filename="uptime-report.pdf"');return c.body(new Uint8Array(await reportPdf(report,c.env.ASSETS)).buffer)
+ }
  if(c.req.query('format')==='csv'||c.req.header('accept')?.includes('text/csv')){
   c.header('content-type','text/csv; charset=utf-8');c.header('content-disposition','attachment; filename="uptime-report.csv"');return c.body(reportCsv(report))
  }
@@ -207,14 +260,15 @@ const handler={async fetch(request,env,execution){
  env=await demoBindings(env as Bindings);
  const invalid=await configurationResponse(env as Bindings);if(invalid)return invalid;
  const limited=await limitPublicRequest(env as Bindings,request);if(limited)return limited;
- const bindings=env as Bindings,url=new URL(request.url),path=url.pathname;
+ const bindings=env as Bindings,url=new URL(request.url),path=url.pathname,isEvidencePage=/^\/app\/evidence\/[^/]+$/.test(path);
  if(url.origin!==bindings.UPTIME_ORIGIN||(request.headers.has('host')&&request.headers.get('host')?.toLowerCase()!==url.host.toLowerCase()))return new Response('Invalid host',{status:403});
  if(path.startsWith('/api/rer/import/'))return businessImportDoor(bindings,request);
  // The Lobby at / and GET /setup/state: Base's shared responses, before the public-path guard and the document renderer.
  const lobbyBindings={DB:bindings.DB,AUTH_ORIGIN:bindings.UPTIME_ORIGIN!};
  const state=await setupStateResponse(request,lobbyBindings,claimed);if(state)return state;
  const lobby=await lobbyResponse(request,lobbyBindings,identity,claimed);if(lobby)return lobby;
- if(!publicPath(path,bindings.UPTIME_LOCAL_REVIEW==='true')&&!isConsoleDocument(path)&&!path.startsWith('/_serverFn/')&&path!=='/api'&&!path.startsWith('/api/'))return notFoundDocument();
+ if(!publicPath(path,bindings.UPTIME_LOCAL_REVIEW==='true')&&!isConsoleDocument(path)&&!isEvidencePage&&!path.startsWith('/_serverFn/')&&path!=='/api'&&!path.startsWith('/api/'))return notFoundDocument();
+ if(isEvidencePage){if(!['GET','HEAD'].includes(request.method))return new Response(null,{status:405});try{const id=decodeURIComponent(path.split('/').pop()!);if(!await evidencePrincipal(bindings,request,id)){if(!await authenticatedSession(bindings,request))return new Response(null,{status:303,headers:{location:'/login','cache-control':'no-store'}});return failureEvidenceDenied()}const response=failureEvidenceDocument(id);return request.method==='HEAD'?new Response(null,response):response}catch(error){return authFailure(error)}}
  if(path==='/auth/owner-claim')return (await ownerClaim(bindings,request))!;
  if(path==='/api/editor/config')return editorConfigResponse(bindings,request);
  if(path.startsWith('/auth/'))return nativeClaimFailure(request,(await authRoute(bindings,request))!,bindings.UPTIME_DEPLOY_ENVIRONMENT);

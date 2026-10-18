@@ -28,7 +28,7 @@ export function checkpointStatement(env:Bindings,monitorId:string,revision:numbe
   ON CONFLICT(monitor_id,revision) DO UPDATE SET due_at=excluded.due_at,slot_id=excluded.slot_id,state=excluded.state,last_observations=excluded.last_observations`)
   .bind(monitorId,revision,update.dueAt,update.slotId,JSON.stringify(update.checkpoint.state),JSON.stringify(update.checkpoint.last),monitorId,generation,token)
 }
-export async function attemptSnapshot(env:Bindings,monitorId:string,revision:number,definition:any,now:number,extraSlot?:string){
+export async function attemptSnapshot(env:Bindings,monitorId:string,revision:number,definition:any,now:number,extraSlot?:string,readOnly=false){
  restart:for(;;){
   const initial=await env.DB.batch([
    env.DB.prepare('SELECT generation FROM evidence_generation WHERE monitor_id=?').bind(monitorId),
@@ -64,7 +64,7 @@ export async function attemptSnapshot(env:Bindings,monitorId:string,revision:num
    // Submission catch-up is read-only. Its checkpoint is committed by the
    // result transaction's runner/acceptance guard, so refused results write
    // neither derived state nor generation. Owner reads can checkpoint now.
-   if(extraSlot)continue;
+   if(extraSlot||readOnly)continue;
    const token=crypto.randomUUID();
    await env.DB.batch([
     env.DB.prepare('UPDATE evidence_generation SET generation=generation+1,projection_id=? WHERE monitor_id=? AND generation=?').bind(token,monitorId,generation),

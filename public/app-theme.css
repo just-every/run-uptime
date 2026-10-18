@@ -174,7 +174,7 @@
   --shadow-sm: 0 1px 2px rgba(20, 32, 74, 0.05), 0 6px 16px -12px rgba(20, 32, 74, 0.2); /* app */
 }
 
-/* Icons, pill marks, the mark and the select chevron, as data URIs so no file is requested. The line icons are drawn on
+/* Icons, pill marks, and the mark, as data URIs so no file is requested. The line icons are drawn on
    a 24px grid; those also in src/site/shell/Icon.tsx keep its paths, and the mark is src/site/shell/Mark.tsx. */
 :root {
   --icon-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6'/%3E%3C/svg%3E");
@@ -213,7 +213,6 @@
   --mark-tick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.2 8.4l3.1 3.1 6.5-6.8' fill='none' stroke='%23000' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   --mark-small: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='3.2'/%3E%3C/svg%3E");
   --mark-brand: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none'%3E%3Cpath d='M24.49 9.83A10.5 10.5 0 1 1 7.51 9.83' stroke='%2314204a' stroke-width='3.2' stroke-linecap='round'/%3E%3Cpath d='M11.73 6.41A10.5 10.5 0 0 1 20.27 6.41' stroke='%23e8894f' stroke-width='3.2' stroke-linecap='round'/%3E%3C/svg%3E");
-  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2314204a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
 }
 
 /* Layout and type sizes the area files share. */
@@ -323,7 +322,23 @@
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 :where(textarea) { min-height: 96px; resize: vertical; }
-:where(select) { appearance: none; padding-right: 44px; background-image: var(--select-chevron); background-repeat: no-repeat; background-position: right 14px center; background-size: 18px; cursor: pointer; }
+/* every single-choice select; multiple and size>1 lists keep their native look (Base #247 foundation/runtime/select-style.ts) */
+select:not([multiple],[size]:not([size="1"])) {
+  --rer-select-ink: var(--muted);
+  -webkit-appearance: none;
+  appearance: none;
+  padding-inline-end: 40px;
+  text-overflow: ellipsis;
+  background-image:
+    linear-gradient(to top right, transparent calc(50% - 1.1px), var(--rer-select-ink) calc(50% - .55px), var(--rer-select-ink) calc(50% + .55px), transparent calc(50% + 1.1px)),
+    linear-gradient(to top left, transparent calc(50% - 1.1px), var(--rer-select-ink) calc(50% - .55px), var(--rer-select-ink) calc(50% + .55px), transparent calc(50% + 1.1px));
+  background-repeat: no-repeat;
+  background-position: right 20px center, right 14px center;
+  background-size: 6px 6px;
+  cursor: pointer;
+}
+select:not([multiple],[size]:not([size="1"])):focus-visible { --rer-select-ink: var(--ink); }
+select:not([multiple],[size]:not([size="1"])):disabled { --rer-select-ink: color-mix(in srgb, var(--muted) 55%, transparent); }
 :where(input, select, textarea)::placeholder { color: var(--placeholder); opacity: 1; }
 :where(input:not([type="checkbox"], [type="radio"], [type="file"]):focus-visible, select:focus-visible, textarea:focus-visible) { border-color: var(--ink); box-shadow: var(--focus-halo); }
 :where(input[aria-invalid="true"], select[aria-invalid="true"], textarea[aria-invalid="true"]) { border-color: var(--rose-text); }

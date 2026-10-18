@@ -1,4 +1,6 @@
 import net from 'node:net';
+import {icmpFacts} from './icmp-probe.mjs';
+import {udpFacts} from './udp-probe.mjs';
 import tls from 'node:tls';
 import {randomUUID} from 'node:crypto';
 import {RUNNER_VERSION,validateDefinition} from '../../src/domain/policy.mjs';
@@ -12,7 +14,7 @@ import {resolvePublic,publicReport,ProbeError} from './public-http.mjs';
 // (resolvePublic pins it, as an HTTP probe's socket is pinned); DNS over HTTPS and RDAP reads go through publicReport's
 // pinned, read-only, bounded GET. Refused, timed out and unresolved targets are target failures; a check this runner could
 // not perform is a runner error and stays Unknown.
-const targetCategories=['refused','timeout','connection','unresolved','tls'];
+const targetCategories=['refused','timeout','connection','unresolved','tls','response_limit'];
 const pinned=host=>new URL(`https://${host.includes(':')?`[${host}]`:host}/`);
 const printable=text=>text.replace(/[\x00-\x1f\x7f]+/g,' ').replace(/\s+/g,' ').trim();
 function socketError(error,port){
@@ -31,8 +33,8 @@ function opened(socket,event,signal,port){
   socket.once(event,ok);socket.once('error',bad);socket.once('close',closed);signal.addEventListener('abort',aborted,{once:true});
  });
 }
-async function tcpFacts(s,signal,deadline){
- const pin=await resolvePublic(pinned(s.host),signal),started=Date.now();
+async function tcpFacts(s,signal,deadline,privateAccess){
+ const pin=await (privateAccess?privateAccess(new URL(`http://${s.host.includes(':')?`[${s.host}]`:s.host}:${s.port}/`),signal):resolvePublic(pinned(s.host),signal)),started=Date.now();
  const socket=net.connect({host:pin.address,port:s.port,family:pin.family});
  try{
   await opened(socket,'connect',signal,s.port);
@@ -87,18 +89,19 @@ const reader=signal=>async(url,{accept,maxBytes})=>{
  if(response.truncated||response.redirect)throw new ProtocolError('registry','The answer was larger than the check reads or redirected too often');
  return {status:response.status,text:response.body};
 };
-export async function probeProtocol(input,probe,{signal}={}){
+export async function probeProtocol(input,probe,{signal,privateAccess}={}){
  const def=validateDefinition(input,[]),startedAt=Date.now(),deadline=startedAt+def.timeoutMs;
  const execution=AbortSignal.any([AbortSignal.timeout(def.timeoutMs),...(signal?[signal]:[])]);
  const evidence=(data,completedAt=Date.now())=>({id:randomUUID(),probe,startedAt,completedAt,durationMs:completedAt-startedAt,runnerVersion:RUNNER_VERSION,...data});
  try{
+  if(def.network==='private'&&!privateAccess)throw new ProtocolError('grant','Private network grant unavailable');
   const s=def[def.type];
-  const facts=def.type==='tcp'?await tcpFacts(s,execution,deadline):def.type==='tls'?await tlsFacts(s,execution):def.type==='dns'?await dnsFacts(reader(execution),s,asker(execution)):await domainFacts(reader(execution),s.name);
+  const facts=def.type==='ping'?await icmpFacts(s,execution):def.type==='udp'?await udpFacts(s,execution):def.type==='tcp'?await tcpFacts(s,execution,deadline,privateAccess):def.type==='tls'?await tlsFacts(s,execution):def.type==='dns'?await dnsFacts(reader(execution),s,asker(execution)):await domainFacts(reader(execution),s.name);
   const completedAt=Date.now();
   return evidence({...protocolChecks(def,facts,completedAt),protocol:facts},completedAt);
  }catch(error){
-  const category=error instanceof ProtocolError||error instanceof ProbeError?error.category:execution.aborted?'timeout':'runner';
-  const reason=error?.reason??(category==='timeout'?'No answer within the timeout':category==='unresolved'?'DNS: the host name does not resolve':category==='network'?'The host resolves to an address this check never contacts':category==='dns'?'The runner’s DNS resolver failed; this is not evidence about the target':'The runner could not perform this check');
+  const category=def.type==='ping'&&execution.aborted?'vantage':error instanceof ProtocolError||error instanceof ProbeError?error.category:execution.aborted?'timeout':'runner';
+  const reason=def.type==='ping'&&execution.aborted?'The ICMP sample was interrupted before completion; this location reports Unknown':error?.reason??(category==='timeout'?'No answer within the timeout':category==='unresolved'?'DNS: the host name does not resolve':category==='network'?'The host resolves to an address this check never contacts':category==='dns'?'The runner’s DNS resolver failed; this is not evidence about the target':'The runner could not perform this check');
   return evidence({outcome:targetCategories.includes(category)?'target_failure':'runner_error',checks:[{assertion:category,pass:false,reason}]});
  }
 }

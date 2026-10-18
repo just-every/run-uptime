@@ -1,5 +1,7 @@
+import {snapshotPanel,retainSnapshots,mountSnapshots,bindIncidentSnapshots} from './failure-snapshots.js';
 import {heartbeatJobsPanel,retainHeartbeatJobs,bindHeartbeatJobs} from './heartbeat-jobs.js';
 import {alertRoutePanel,bindAlertRoutePanel} from './assets/alert-route.js';
+import {slowPolicyPanel,bindSlowPolicyPanel} from './slow-policy.js';
 import {maintenancePanel,bindMaintenancePanel} from './planned-maintenance.js';
 import {bindIncidentWork} from './incident-work.js';
 import {incidentMarkup} from './monitor-incidents.js';
@@ -15,7 +17,7 @@ import {confirmErasure,showErasureReceipt} from './notification-dialogs.js';
 import {escape,icon,ago,duration,breakableUrl,checkTime,humaneDuration,shownState} from './console-format.js';
 import {COVERAGE_RULE,coverage,coverageLegend} from './monitor-coverage.js';
 import {buildTimeline,checkResultSummary} from './monitor-timeline.js';
-import {isFlow,flowSummary,flowPanel,flowRevisions,traceMarkup} from './flow-panel.js';
+import {isFlow,flowSummary,flowPanel,flowRevisions,traceMarkup,retainFlowProfile,bindFlowProfile} from './flow-panel.js';
 import {PROTOCOL_KINDS,isProtocol,protocolExpectations,protocolFact,expiryPanel} from './protocol-panel.js';
 
 // The id in /app/monitors/<id>, or null on any other path. The server answers an id that does not decode with its 404
@@ -63,7 +65,7 @@ function assertionSummary(definition){
 function titleBlock(m,readUnavailable){
  const state=shownState(m,readUnavailable),heartbeat=m.definition.type==='heartbeat';
  const where=heartbeat?`<p class="subtitle monitor-target">Incoming heartbeat at <code class="ui-mono">/api/heartbeats/${escape(m.id)}</code></p>`:`<p class="subtitle monitor-target ui-url">${breakableUrl(m.definition.url)}</p>`;
- return `${backLink}<div class="monitor-title"><h1 id="monitor-detail-heading">${escape(m.definition.name)}</h1><span class="ui-pill badge ${escape(state.toLowerCase())}" id="monitor-state">${escape(state)}</span></div>${where}${m.definition.tlsTrust?`<p class="ui-callout">Certificate trust exception: ${escape(m.definition.tlsTrust.mode==='fingerprint'?'pinned leaf fingerprint':m.definition.tlsTrust.mode==='ca'?'owner-supplied CA':'certificate errors ignored')}. Initial HTTPS origin only; a private runner applies this setting. Full certificate results remain visible on TLS certificate monitors.</p>`:''}<p class="monitor-kind"><span class="keep-line">${escape(kinds[m.definition.type??'http']??'Check')} ·</span> every ${escape(spokenInterval(m.definition.intervalMs))}</p>`;
+ return `${backLink}<div class="monitor-title"><h1 id="monitor-detail-heading">${escape(m.definition.name)}</h1><span class="ui-pill badge ${escape(state.toLowerCase())}" id="monitor-state">${escape(state)}</span></div>${where}${m.definition.network==='private'?`<p class="ui-callout"><span>Private network · runner-local grant <code>${escape(m.definition.privateGrantRef)}</code>. Each connection requires its current host, address and port permission.</span></p>`:''}${m.definition.tlsTrust?`<p class="ui-callout">Certificate trust exception: ${escape(m.definition.tlsTrust.mode==='fingerprint'?'pinned leaf fingerprint':m.definition.tlsTrust.mode==='ca'?'owner-supplied CA':'certificate errors ignored')}. Initial HTTPS origin only; a private runner applies this setting. Full certificate results remain visible on TLS certificate monitors.</p>`:''}<p class="monitor-kind"><span class="keep-line">${escape(kinds[m.definition.type??'http']??'Check')} ·</span> every ${escape(spokenInterval(m.definition.intervalMs))}</p>`;
 }
 function actionButtons(m){
  const maintenance=m.definition.maintenanceUntil>Date.now();
@@ -83,10 +85,10 @@ function pageBody(m,readUnavailable,definitionOpen,data){
  const startup=worker&&!data.runner.demo&&!data.runner.cronStarted&&!availability?.lastCheckAt&&m.state.targetState==='Unknown'?'<p class="status-explanation ui-callout">The Cloudflare Worker checks while you use this console. Cloudflare can take up to about two hours to activate a new Cron schedule; background checks continue automatically once it starts.</p>':'';
  return `<div class="monitor-page" id="monitor-page"><p class="status-explanation ui-callout" data-state="${escape(shownState(m,readUnavailable).toLowerCase())}">${escape(statusExplanation(m,readUnavailable,data))}</p>`
   +startup+'<div class="monitor-primary">'+coveragePanel(availability)+'<div id="monitor-report-slot"></div>'+`<section class="ui-card panel incidents" aria-labelledby="incidents-heading"><h2 id="incidents-heading">Incidents</h2><div id="monitor-incidents">Loading incident history…</div><p>Latest 100 confirmed incidents. Times mark scheduled confirmation; manual checks do not open or close incidents.</p></section>`
-  +`<section class="ui-card panel evidence" aria-labelledby="recent-checks-heading"><div class="panel-head"><h2 id="recent-checks-heading">Recent checks</h2><div class="history-strip" id="history-strip" aria-hidden="true"></div></div><div id="raw-history">Loading recent checks…</div></section></div>`
+  +`<section class="ui-card panel evidence" aria-labelledby="recent-checks-heading"><div class="panel-head"><h2 id="recent-checks-heading">Recent checks</h2><div class="history-strip" id="history-strip" aria-hidden="true"></div></div><div id="raw-history">Loading recent checks…</div></section>${snapshotPanel(m)}</div>`
   +`<div class="monitor-secondary"><section class="ui-card panel detail" aria-labelledby="latest-check-heading"><h2 id="latest-check-heading">${lastLabel}</h2><dl class="detail-metrics"><div><dt class="ui-visually-hidden">${lastLabel}</dt><dd class="detail-time">${checkTime(m,{withLabel:false,readUnavailable})}</dd></div><div><dt>Response duration</dt><dd>${escape(duration(availability?.responseDurationMs))}</dd></div></dl></section>`
   +`<section class="ui-card panel assertions" aria-labelledby="expects-heading"><h2 id="expects-heading">What the check expects</h2>${assertionSummary(m.definition)}<details id="assertion-definition" ${definitionOpen?'open':''}><summary id="assertion-definition-summary">Full check details</summary><pre>${escape(JSON.stringify(isProtocol(m.definition)?{[m.definition.type]:m.definition[m.definition.type],assertions:m.definition.assertions}:m.definition.assertions,null,2))}</pre></details></section>`
-  +alertRoutePanel()+maintenancePanel(m)+expiryPanel(m,data)+(isFlow(m.definition)?flowPanel(m,data):'')+heartbeatPanel(m,data)+heartbeatJobsPanel(m)+'</div></div>';
+  +alertRoutePanel()+slowPolicyPanel(m)+maintenancePanel(m)+expiryPanel(m,data)+(isFlow(m.definition)?flowPanel(m,data):'')+heartbeatPanel(m,data)+heartbeatJobsPanel(m)+'</div></div>';
 }
 
 const clock=t=>new Date(t).toLocaleTimeString();
@@ -193,14 +195,18 @@ export function renderMonitorPage({header,actions,area,data,id,api,action,readUn
  header.innerHTML=titleBlock(m,readUnavailable);
  actions.innerHTML=actionButtons(m)+'<button id="erase-monitor" class="danger">Erase monitor</button>';
  actions.querySelector('#erase-monitor').onclick=()=>confirmErasure({kind:'monitor',name:m.definition.name,onConfirm:async name=>{const result=await action(()=>api(`/api/monitors/${encodeURIComponent(m.id)}/erase`,'POST',{name}),{pending:'Erasing monitor…',success:'Monitor and dependent records erased.'});if(result.ok){document.title='Monitor erased · Uptime';showErasureReceipt(result.result.receipt)}}});
- const retainedReport=retainReportPanel(area,m.id),retainedJobs=retainHeartbeatJobs(area,m);
+ const retainedSnapshots=retainSnapshots(area,m.id);
+ const retainedReport=retainReportPanel(area,m.id),retainedJobs=retainHeartbeatJobs(area,m),retainedFlow=retainFlowProfile(area,m);
  area.innerHTML=pageBody(m,readUnavailable,definitionOpen,data);
  mountReportPanel(area,m,api,retainedReport);
+ mountSnapshots(area,m,api,retainedSnapshots);
  bindHeartbeatKey(area,m,{api,action});
  bindHeartbeatJobs(area,m,{api,action},retainedJobs);
+ bindFlowProfile(area,m,{api,action},retainedFlow);
  bindMaintenancePanel(area,m,{api,action});
  bindAlertRoutePanel(area,m,{api,action});
- const incidentHost=area.querySelector('#monitor-incidents');bindIncidentWork(incidentHost,api);api(`/api/monitors/${encodeURIComponent(m.id)}/incidents`).then(incidents=>{if(incidentHost.isConnected){incidentHost.innerHTML=incidentMarkup(incidents,openIncidents);if(historyFocus?.startsWith('incident-')&&document.activeElement?.tagName==='BODY')document.getElementById(historyFocus)?.focus({preventScroll:true})}},error=>{if(incidentHost.isConnected)incidentHost.textContent='Incident history unavailable: '+error.message});
+ bindSlowPolicyPanel(area,m,{api,action});
+ const incidentHost=area.querySelector('#monitor-incidents');bindIncidentWork(incidentHost,api);bindIncidentSnapshots(incidentHost,api);api(`/api/monitors/${encodeURIComponent(m.id)}/incidents`).then(incidents=>{if(incidentHost.isConnected){incidentHost.innerHTML=incidentMarkup(incidents,openIncidents);if(historyFocus?.startsWith('incident-')&&document.activeElement?.tagName==='BODY')document.getElementById(historyFocus)?.focus({preventScroll:true})}},error=>{if(incidentHost.isConnected)incidentHost.textContent='Incident history unavailable: '+error.message});
  actions.querySelector('#run-monitor').onclick=()=>action(()=>api(`/api/monitors/${m.id}/run`,'POST',{}),{pending:'Requesting a manual check…',success:'Manual check queued. Manual checks do not change uptime.'});
  if(!isFlow(m.definition)&&m.definition.type!=='heartbeat')actions.querySelector('#edit').onclick=()=>{location.href='/app/monitor?monitor='+encodeURIComponent(m.id)};
  actions.querySelector('#pause').onclick=()=>{if(!m.definition.enabled&&Object.values(m.definition.assignments??{}).some(a=>!(data.runner.runners??[]).some(r=>r.runnerId===a.runnerId&&!r.revokedAt))){location.href='/app/monitor?monitor='+encodeURIComponent(m.id);return}return action(()=>api(`/api/monitors/${m.id}`,'PATCH',{...m.definition,enabled:!m.definition.enabled}),{pending:m.definition.enabled?'Pausing monitor…':'Authorizing and resuming…',success:m.definition.enabled?'Monitor paused. Historical observations remain available.':'Monitor authorized and resumed. New scheduled results are required.'})};

@@ -25,9 +25,9 @@ export async function closeServer(server){
  server.closeAllConnections();await closed;
 }
 export async function fixture(extraBindings={},outbound){
- const directory=await mkdtemp(join(tmpdir(),'uptime-resilience-')),key='test-only-resilience-runner-key-0001',legacyId=`self-${randomUUID()}`;
+ const directory=await mkdtemp(join(tmpdir(),'uptime-resilience-')),key=randomUUID()+randomUUID(),legacyId=`self-${randomUUID()}`;
  const modes={target:503,canary:200,canaryBytes:0},migratedContact=Date.now()-5;
- const target=http.createServer((req,res)=>{res.statusCode=req.url==='/canary'?modes.canary:modes.target;res.end(req.url==='/canary'&&modes.canaryBytes?Buffer.alloc(modes.canaryBytes,'x'):'local network edge')});
+ const target=http.createServer(async(req,res)=>{if(req.url!=='/canary'&&modes.delayMs)await new Promise(resolve=>setTimeout(resolve,modes.delayMs));res.statusCode=req.url==='/canary'?modes.canary:modes.target;if(req.url!=='/canary'&&modes.headers)for(const [name,value] of Object.entries(modes.headers))res.setHeader(name,value);res.end(req.url==='/canary'&&modes.canaryBytes?Buffer.alloc(modes.canaryBytes,'x'):modes.body??'local network edge')});
  const original=http.request;let worker,port,closing;
  function close(){
   return closing??=(async()=>{
@@ -53,7 +53,7 @@ export async function fixture(extraBindings={},outbound){
  const second=(await request('/api/runners',{body:{networkLabel:'second-network'}})).data;
  async function monitor({runners=[first,second],canary=false,...options}={}){const probes=runners.map((_,i)=>['local-a','local-b','local-c'][i]),assignments=Object.fromEntries(probes.map((p,i)=>[p,{runnerId:runners[i].runnerId,...(canary?{canaryUrl:`http://93.184.216.35:${port}/canary`}:{})}]));const result=await request('/api/monitors',{body:{name:'Network flow',url:`http://93.184.216.34:${port}/target`,probes,assignments,intervalMs:5000,retries:0,confirmSlots:1,recoverSlots:1,...options}});assert.equal(result.status,201,JSON.stringify(result.data));return result.data}
  async function claim(runner){const response=await request('/api/runner/claim',{runner,body:{}});assert.equal(response.status,200);return response.data.task}
- async function evidence(task,probe=task.probes[0]){const observation={...await executeTaskProbe(task,probe,{controlPort:Number(new URL(origin).port)}),attempt:0},canaryUrl=task.definition.assignments[probe].canaryUrl;if(canaryUrl)observation.canary={...await executeTaskProbe({...task,definition:{...task.definition,type:'http',url:canaryUrl,request:undefined,assertions:{status:200}}},probe,{controlPort:Number(new URL(origin).port)}),attempt:0};return observation}
+ async function evidence(task,probe=task.probes[0]){const observation={...await executeTaskProbe(task,probe,{controlPort:Number(new URL(origin).port)}),attempt:0},canaryUrl=task.definition.assignments[probe].canaryUrl;if(canaryUrl)observation.canary={...await executeTaskProbe({...task,definition:{...task.definition,type:'http',url:canaryUrl,request:undefined,assertions:{status:200}}},probe,{controlPort:Number(new URL(origin).port),statusOnly:true}),attempt:0};return observation}
  async function submit(runner,task,attempts){return request('/api/runner/results',{runner,signed:true,body:{slotId:task.id,attempts}})}
  async function state(id){const overview=await request('/api/overview');assert.equal(overview.status,200);return overview.data.monitors.find(m=>m.id===id).state}
  async function pause(m){assert.equal((await request('/api/monitors/'+m.id,{method:'PATCH',body:{...m.definition,enabled:false}})).status,200)}

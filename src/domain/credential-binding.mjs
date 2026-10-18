@@ -1,3 +1,4 @@
+import {normalizeFailureSnapshot} from './failure-snapshot.mjs';
 // Non-secret, bounded migration diagnostics shared by the runner and evidence validator.
 export const validReference = value => typeof value === 'string' && /^[a-zA-Z0-9_-]{1,80}$/.test(value);
 export const validMonitorId = value => typeof value === 'string' && /^[a-zA-Z0-9_-]{1,512}$/.test(value);
@@ -27,6 +28,8 @@ export function runnerResultLimit(text) {
     if (!Array.isArray(input.attempts) || input.attempts.length > 9) return 40000;
     const diagnostics = input.attempts.map(o => o?.credentialBinding).filter(value => value !== undefined);
     if (!diagnostics.every(validBindingDiagnostic)) return 40000;
-    return 40000 + diagnostics.reduce((bytes, value) => bytes + JSON.stringify(value).length, 0);
+    const snapshots=input.attempts.map(o=>o?.failureSnapshot).filter(value=>value!==undefined);
+    for(const snapshot of snapshots)normalizeFailureSnapshot(snapshot);
+    return 40000 + diagnostics.reduce((bytes, value) => bytes + JSON.stringify(value).length, 0) + snapshots.reduce((bytes,value)=>bytes+new TextEncoder().encode(JSON.stringify(value)).length,0);
   } catch { return 40000; }
 }

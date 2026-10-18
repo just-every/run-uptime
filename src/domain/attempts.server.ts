@@ -1,3 +1,4 @@
+import {snapshotSettings,snapshotStatements} from './failure-snapshots.server.ts'
 import {notificationPreferences} from './notification-preferences.server.ts'
 import {scheduleHeartbeatEvaluation} from './heartbeat-jobs.server.ts'
 // @ts-ignore Shared calendar is also used by the console preview.
@@ -10,6 +11,7 @@ import {acceptanceMs,missedSlots,nextDueAfter} from './schedule.ts'
 import {finalAttempts,terminalSlot,projectAttempts} from './attempt-projection.ts'
 import {attemptSnapshot,checkpointStatement} from './attempt-checkpoint.server.ts'
 import {classifyAttempts} from './attempt-classification.ts'
+import {slowNotice} from './slow-notices.server.ts'
 import {incidentEvent} from './notification-content.ts'
 import {incidentDeliveryStatements} from './alert-route-delivery.server.ts'
 import {HOSTED_RUNNER_ID} from './hosted-runner.ts'
@@ -67,7 +69,7 @@ export async function claimAttempt(env:Bindings,runnerId:string,{monitorId=null}
   ...(slot.manual?[]:[env.DB.prepare("UPDATE monitors SET next_due=MAX(next_due,(SELECT MAX(delivered_at) FROM runner_assignments WHERE slot_id=?4 AND runner_id=?5)+MIN(?2,json_extract(definition,'$.intervalMs'))) WHERE id=?3 AND EXISTS(SELECT 1 FROM runner_assignments WHERE slot_id=?4 AND runner_id=?5 AND delivered_at>=?1)").bind(now,definition.intervalMs,slot.monitor_id,slot.id,runnerId)])]);
  const probes=mine.filter((_:string,i:number)=>changes[i].meta.changes);
  if(!probes.length)return null;
- return snapshotHeartbeat(env,{id:slot.id,monitorId:slot.monitor_id,revision:slot.revision,dueAt:slot.due_at,definition:{...definition,assignments},probes,acceptUntil:until})
+ return snapshotHeartbeat(env,{snapshotPolicy:await snapshotSettings(env,slot.monitor_id),id:slot.id,monitorId:slot.monitor_id,revision:slot.revision,dueAt:slot.due_at,definition:{...definition,assignments},probes,acceptUntil:until})
 }
 export async function completeAttempts(env:Bindings,input:any,runnerId:string){
  const now=Date.now(),slot=await env.DB.prepare('SELECT * FROM slots WHERE id=?').bind(input.slotId).first<any>();
@@ -86,7 +88,7 @@ export async function completeAttempts(env:Bindings,input:any,runnerId:string){
   const {generation,observations:stored}=snapshot;
   const fresh=attempts.filter((o:any)=>!stored.some(s=>s.slot_id===slot.id&&s.probe===o.probe&&s.attempt===o.attempt));
   if(!fresh.length)return {accepted:true,duplicate:true};
-  const combined=[...stored,...fresh.map((o:any)=>({slot_id:slot.id,probe:o.probe,attempt:o.attempt,evidence:JSON.stringify(o),received_at:now}))];
+  const combined=[...stored,...fresh.map((o:any)=>({slot_id:slot.id,probe:o.probe,attempt:o.attempt,evidence:JSON.stringify(withoutSnapshot(o)),received_at:now}))];
   for(const probe of definition.probes){const chain=combined.filter(o=>o.slot_id===slot.id&&o.probe===probe).map(o=>JSON.parse(o.evidence)).sort((a,b)=>a.attempt-b.attempt);if(chain.some((o,i)=>i<chain.length-1&&o.outcome!=='target_failure'))throw Error('Contradictory retry evidence')}
   const m=await get(env,slot.monitor_id);if(!m)throw Error('Monitor absent');
   const state=projectAttempts(definition,classifyAttempts(definition,snapshot.slots,combined,now),combined,now,snapshot.checkpoint),current=m.revision===slot.revision&&!slot.manual;
@@ -101,7 +103,8 @@ export async function completeAttempts(env:Bindings,input:any,runnerId:string){
   const claim=env.DB.prepare("UPDATE evidence_generation SET generation=generation+1,projection_id=? WHERE monitor_id=? AND generation=? AND EXISTS(SELECT 1 FROM slots WHERE id=? AND lease_until>MAX(?,CAST((julianday('now')-2440587.5)*86400000 AS INTEGER))) AND EXISTS(SELECT 1 FROM runners WHERE runner_id=? AND revoked_at IS NULL)").bind(projectionId,slot.monitor_id,generation,slot.id,Date.now(),runnerId);
   const guard='EXISTS(SELECT 1 FROM evidence_generation WHERE monitor_id=? AND generation=? AND projection_id=?)';
   const values=[slot.monitor_id,generation+1,projectionId];
-  const statements=fresh.map((o:any)=>env.DB.prepare(`INSERT INTO observations(id,slot_id,probe,attempt,evidence) SELECT ?,?,?,?,? WHERE ${guard}`).bind(o.id,slot.id,o.probe,o.attempt,JSON.stringify(o),...values));
+  const statements=fresh.map((o:any)=>env.DB.prepare(`INSERT INTO observations(id,slot_id,probe,attempt,evidence) SELECT ?,?,?,?,? WHERE ${guard}`).bind(o.id,slot.id,o.probe,o.attempt,JSON.stringify(withoutSnapshot(o)),...values));
+  statements.push(...await snapshotStatements(env,slot.monitor_id,slot.id,fresh,guard,values));
   for(const o of fresh)statements.push(env.DB.prepare(`UPDATE runner_assignments SET received_times=json_set(received_times,?,?) WHERE slot_id=? AND probe=? AND ${guard}`).bind(`$."${o.attempt}"`,now,slot.id,o.probe,...values));
   if(snapshot.checkpointUpdate)statements.push(checkpointStatement(env,slot.monitor_id,slot.revision,snapshot.checkpointUpdate,generation+1,projectionId));
   if(current)statements.push(env.DB.prepare(`UPDATE monitors SET state=? WHERE id=? AND revision=? AND ${guard}`).bind(JSON.stringify(state),m.id,m.revision,...values));
@@ -110,6 +113,13 @@ export async function completeAttempts(env:Bindings,input:any,runnerId:string){
    const event=incidentEvent({id:`${slot.id}:${kind}`,kind,monitor:m,slotId:slot.id,now,state,observations:finalAttempts(definition,combined.filter(o=>o.slot_id===slot.id).map(o=>JSON.parse(o.evidence))),origin:env.UPTIME_ORIGIN,incidentKey:state.incidentKey,contextVersion:2,timeZone:(await notificationPreferences(env)).timeZone,trigger:trigger?JSON.parse(trigger.event):null});
    statements.push(env.DB.prepare(`INSERT OR IGNORE INTO outbox(id,monitor_id,slot_id,kind,event) SELECT ?,?,?,?,? WHERE ${guard} AND EXISTS(SELECT 1 FROM monitors WHERE id=? AND revision=?)`).bind(event.id,m.id,slot.id,kind,JSON.stringify(event),...values,m.id,m.revision));
    statements.push(...incidentDeliveryStatements(env,event,guard,values));
+  }
+  if(current&&!state.maintenance){
+   const event=await slowNotice(env,m,slot,fresh,now);
+   if(event){
+    statements.push(env.DB.prepare(`INSERT OR IGNORE INTO outbox(id,monitor_id,slot_id,kind,event) SELECT ?,?,?,?,? WHERE ${guard} AND EXISTS(SELECT 1 FROM monitors WHERE id=? AND revision=?)`).bind(event.id,m.id,slot.id,event.kind,JSON.stringify(event),...values,m.id,m.revision));
+    statements.push(...incidentDeliveryStatements(env,event,guard,values,definition.slow));
+   }
   }
   // Staged expiry warnings and renewals (TLS-001, DOMAIN-001) follow the same current-revision and maintenance rules as incidents.
   if(current&&!state.maintenance&&['tls','domain'].includes(definition.type)){
@@ -128,3 +138,5 @@ export async function completeAttempts(env:Bindings,input:any,runnerId:string){
   if(!await env.DB.prepare('SELECT 1 FROM slots JOIN runners ON runners.runner_id=? WHERE slots.id=? AND slots.lease_until>? AND runners.revoked_at IS NULL').bind(runnerId,slot.id,Date.now()).first())throw Error('Acceptance authority expired')
  }
 }
+
+function withoutSnapshot({failureSnapshot,...observation}:any){return observation}

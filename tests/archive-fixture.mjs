@@ -17,3 +17,20 @@ export async function populateArchiveFixture(env){
  statements.push(env.DB.prepare("UPDATE integration_deliveries SET state='accepted',claim=NULL,claim_until=NULL WHERE id='job-webhook'"),env.DB.prepare("UPDATE integration_attempts SET finished_at=?,outcome=? WHERE id='attempt-webhook'").bind(now,JSON.stringify({kind:'uncertain',code:'response_unknown'})),env.DB.prepare('INSERT INTO integration_resolutions VALUES(?,?,?,?,?)').bind('uptime-notifications','resolution-webhook','job-webhook',now,JSON.stringify({kind:'accepted',code:'owner_confirmed'})));
  await env.DB.batch(statements);
 }
+export async function populateProtocolArchiveFixture(env){
+ const now=Date.now()-1000;
+ // Protocol settings must survive both the current definition and immutable slot/revision validation.
+ for(const [type,settings] of [
+  ['tcp',{host:'database.example.com',port:5432,readBanner:true,bannerIncludes:'READY'}],
+  ['dns',{name:'shop.example.com',recordType:'A',resolvers:['cloudflare','google','authoritative'],expect:{values:['203.0.113.10']},approved:{values:['203.0.113.11']}}],
+  ['tls',{host:'shop.example.com',port:8443,warnDays:[30,14,7],owner:'Web team'}],
+  ['domain',{name:'example.com',warnDays:[60,30,7],owner:'Finance'}],
+ ]){
+  const id=`archive-${type}`,saved=JSON.stringify(validateDefinition({name:`Storefront ${type}`,type,[type]:settings,enabled:true},[]));
+  await env.DB.batch([
+   env.DB.prepare('INSERT INTO monitors VALUES(?,?,?,?,?)').bind(id,1,saved,now,JSON.stringify({state:'Unknown'})),
+   env.DB.prepare('INSERT INTO revisions VALUES(?,?,?,?)').bind(id,1,saved,now),
+   env.DB.prepare('INSERT INTO slots VALUES(?,?,?,?,?,?,?,?,?,?)').bind(`${id}-slot`,id,1,now,'queued',saved,'private-lease',now+60000,0,0),
+  ]);
+ }
+}

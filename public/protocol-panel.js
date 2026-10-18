@@ -1,7 +1,7 @@
 import {escape} from './console-format.js';
 // The TCP, DNS, TLS and domain parts of a monitor's page: what the check expects, a one-line summary of each attempt's
 // facts, and the staged expiry warnings with their renewal follow-through (from the monitor's own outbox events).
-export const PROTOCOL_KINDS={tcp:'TCP port check',dns:'DNS record check',tls:'TLS certificate check',domain:'Domain expiry check'};
+export const PROTOCOL_KINDS={ping:'ICMP ping check',udp:'UDP request and response check',tcp:'TCP port check',dns:'DNS record check',tls:'TLS certificate check',domain:'Domain expiry check'};
 export const isProtocol=definition=>Object.hasOwn(PROTOCOL_KINDS,definition?.type);
 const RESOLVER_NAMES={cloudflare:'Cloudflare',google:'Google',authoritative:'Authoritative server'};
 const day=at=>new Date(at).toISOString().slice(0,10);
@@ -13,6 +13,8 @@ export function protocolExpectations(definition){
   rows.push(['Connects to',`${s.host}:${s.port}`,true]);
   if(s.readBanner)rows.push(['Banner',s.bannerIncludes?`Contains ${s.bannerIncludes}`:'Read and shown',Boolean(s.bannerIncludes)]);
  }
+ if(definition.type==='ping')rows.push(['Echo target',s.host,true],['Address family',`IPv${s.family}`,false],['Requests per attempt',String(s.packets),false],['Maximum packet loss',`${s.maxLossPercent}%`,false],['Maximum round-trip time',`${s.maxRttMs} ms`,false],['Execution','Private runner with system ping permission',false]);
+ if(definition.type==='udp')rows.push(['Sends to',`${s.host}:${s.port}`,true],['Request bytes',s.payloadHex,true],['Expected response',`${s.match}: ${s.expectedHex}`,true],['Per attempt','One packet',false],['Packet bytes','256 out / 1,024 in',false],['Endpoint budget','6 packets / minute',false]);
  if(definition.type==='dns'){
   rows.push(['Record',`${s.name} ${s.recordType}`,true],['Resolvers',s.resolvers.map(r=>RESOLVER_NAMES[r]??r).join(' and '),false]);
   rows.push(['Expected',s.expect?.absent?'No such record':s.expect?`${s.expect.match==='includes'?'Includes ':''}${s.expect.values.join(', ')}`:'At least one record',Boolean(s.expect?.values)]);
@@ -32,6 +34,8 @@ export function protocolExpectations(definition){
 /** The attempt line's short fact in place of an HTTP status. */
 export function protocolFact(o){
  const f=o.protocol;if(!f)return 'No result details';
+ if(f.transmitted!==undefined)return `ICMP IPv${f.family}: ${f.received}/${f.transmitted} replies, ${Number(f.lossPercent.toFixed(2))}% loss${f.rtt?`; RTT ${f.rtt.minMs}/${f.rtt.meanMs}/${f.rtt.maxMs} ms (min/mean/max)`:'; no round-trip sample'}`;
+ if(f.roundTripMs!==undefined)return `UDP response: ${f.receivedBytes} bytes in ${f.roundTripMs} ms`;
  if(f.connectMs!==undefined)return `Connected in ${f.connectMs} ms`;
  if(f.certificate)return `Expires ${day(f.certificate.notAfter)}`;
  if(f.resolvers)return f.resolvers.map(r=>`${RESOLVER_NAMES[r.id]??r.id} ${r.status==='answer'?`${r.answers.length} record${r.answers.length===1?'':'s'}`:r.status.toUpperCase()}`).join(' · ');

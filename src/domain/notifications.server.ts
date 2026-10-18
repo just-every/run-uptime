@@ -1,3 +1,4 @@
+import {contactReady} from './contact-scheduler.server.ts'
 import {notificationPreferences} from './notification-preferences.server.ts'
 import {mailConfigured} from './mail.server.ts'
 import {ensureNotificationCustody,readCredential} from './notification-credentials.server.ts'
@@ -32,7 +33,7 @@ export async function testDestination(env:Bindings,id:string){const event=testEv
 export async function notificationOverview(env:Bindings){
  const rows=await env.DB.prepare(`SELECT j.id,j.event_id,j.destination_id,j.destination_name,j.kind,j.created_at,j.event,
  CASE WHEN j.state<>'queued' THEN j.state ELSE COALESCE(d.state,j.state) END state,
- CASE WHEN j.state='queued' AND NOT ${recoveryAccepted()} THEN 'waiting_for_trigger_acceptance' ELSE j.code END code,COALESCE(d.attempts,j.attempts) attempts,
+ CASE WHEN j.state='queued' AND NOT ${recoveryAccepted()} THEN 'waiting_for_trigger_acceptance' WHEN j.state='queued' AND NOT ${contactReady()} THEN 'waiting_for_contact_delay' ELSE j.code END code,COALESCE(d.attempts,j.attempts) attempts,
  (SELECT a.outcome FROM integration_attempts a WHERE a.namespace=? AND a.delivery_id=j.id ORDER BY a.number DESC LIMIT 1) outcome
  FROM notification_jobs j LEFT JOIN integration_deliveries d ON d.namespace=? AND d.id=j.id ORDER BY j.created_at DESC,j.id DESC LIMIT 200`).bind(NOTIFICATION_NAMESPACE,NOTIFICATION_NAMESPACE).all<any>();
  const drills=await drillOverview(env);

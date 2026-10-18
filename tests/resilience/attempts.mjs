@@ -71,7 +71,7 @@ test('C4: assigned-runner, signature and acceptance-window authority protect fir
  const m=await f.monitor(),task=await f.claim(f.first),o=await f.evidence(task);
  assert.equal((await f.submit(f.second,task,[o])).status,400);assert.equal((await f.request('/api/runner/results',{runner:f.first,body:{slotId:task.id,attempts:[o]}})).status,403);
  assert.equal((await f.submit(f.first,task,[o])).status,200);
- const duplicate={...o,id:'different-copy',outcome:'pass',status:200,checks:[{assertion:'status',pass:true,reason:'Expected HTTP status'}]};assert.equal((await f.submit(f.first,task,[duplicate])).status,200);
+ const duplicate={...o,failureSnapshot:undefined,id:'different-copy',outcome:'pass',status:200,checks:[{assertion:'status',pass:true,reason:'Expected HTTP status'}]};assert.equal((await f.submit(f.first,task,[duplicate])).status,200);
  const history=(await f.request('/api/monitors/'+m.id+'/history')).data;assert.equal(history[0].observations.length,1);assert.equal(history[0].observations[0].id,o.id);
  await f.DB.prepare('UPDATE slots SET lease_until=? WHERE id=?').bind(Date.now()-1,task.id).run();assert.equal((await f.submit(f.first,task,[o])).status,400);await f.pause(m);
 });
@@ -126,7 +126,7 @@ test('C4: reverse retry and scheduled-slot arrivals converge in state and incide
      const history=(await f.request('/api/monitors/'+m.id+'/history')).data;
      assert.equal(history.find(row=>row.id===task.id).status,'running');
     }
-    const duplicate={...observation,id:crypto.randomUUID(),outcome:observation.outcome==='pass'?'target_failure':'pass',status:observation.outcome==='pass'?503:200,checks:[{assertion:'status',pass:observation.outcome!=='pass',reason:'Different duplicate body'}]};
+    const duplicate={...observation,failureSnapshot:undefined,id:crypto.randomUUID(),outcome:observation.outcome==='pass'?'target_failure':'pass',status:observation.outcome==='pass'?503:200,checks:[{assertion:'status',pass:observation.outcome!=='pass',reason:'Different duplicate body'}]};
     assert.equal((await f.submit(f.first,task,[duplicate])).status,200);
     assert.deepEqual(await read(m),current,'first accepted copy wins without adding events or jobs');
    }

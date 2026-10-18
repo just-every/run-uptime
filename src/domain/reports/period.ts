@@ -1,5 +1,8 @@
 const DAY_MS = 86400000
 const periods = { '24h': DAY_MS, '7d': 7 * DAY_MS, '30d': 30 * DAY_MS, '90d': 90 * DAY_MS }
+const calendarPeriods = ['mtd', 'qtd', 'ytd', 'last-month'] as const
+type NamedPeriod = keyof typeof periods | typeof calendarPeriods[number]
+const isCalendarPeriod = (value: string) => calendarPeriods.some(period => period === value)
 
 export class ReportInputError extends Error {
   status = 400
@@ -12,7 +15,7 @@ export class ReportInputError extends Error {
 }
 
 export type ReportPeriod = {
-  period: keyof typeof periods | 'custom'
+  period: NamedPeriod | 'custom'
   from: number
   to: number
   timeZone: string
@@ -77,6 +80,36 @@ function instant(value: string, timeZone: string, field: string): number {
   throw new ReportInputError(`${field} is outside the supported timestamp range`)
 }
 
+function calendarStart(year: number, month: number, timeZone: string): number {
+  const date = new Date(0)
+  date.setUTCFullYear(year, month - 1, 1)
+  const target = year * 10000 + month * 100 + 1
+  const formatter = new Intl.DateTimeFormat('en-US', {timeZone, year: 'numeric', month: '2-digit', day: '2-digit'})
+  const localDate = (at: number) => {
+    const parts = formatter.formatToParts(at)
+    return Number(parts.find(part => part.type === 'year')!.value) * 10000
+      + Number(parts.find(part => part.type === 'month')!.value) * 100
+      + Number(parts.find(part => part.type === 'day')!.value)
+  }
+  // First instant of the local calendar date. This also covers zones whose
+  // midnight is repeated or skipped: use the earliest instant in that date.
+  let low = date.getTime() - 2 * DAY_MS, high = date.getTime() + 2 * DAY_MS
+  while (high - low > 1) {
+    const middle = Math.floor((low + high) / 2)
+    if (localDate(middle) < target) low = middle
+    else high = middle
+  }
+  return high
+}
+
+function namedRange(period: NamedPeriod, timeZone: string, now: number): {from: number; to: number} {
+  if (Object.hasOwn(periods, period)) return {from: now - periods[period as keyof typeof periods], to: now}
+  const [year, month] = wallParts(now, timeZone)
+  const monthStart = (year: number, month: number) => calendarStart(year, month, timeZone)
+  if (period === 'last-month') return {from: monthStart(month === 1 ? year - 1 : year, month === 1 ? 12 : month - 1), to: monthStart(year, month)}
+  return {from: monthStart(year, period === 'ytd' ? 1 : period === 'qtd' ? Math.floor((month - 1) / 3) * 3 + 1 : month), to: now}
+}
+
 export function reportPeriod(params: URLSearchParams, now = Date.now()): ReportPeriod {
   if (!clock(now)) throw new ReportInputError('Report clock must be a nonnegative timestamp')
   for (const key of ['period', 'from', 'to', 'timeZone', 'zone', 'sla', 'slaTarget']) {
@@ -86,7 +119,7 @@ export function reportPeriod(params: URLSearchParams, now = Date.now()): ReportP
   if (params.has('sla') && params.has('slaTarget')) throw new ReportInputError('Specify sla only once')
   const timeZone = zone(params.get('timeZone') ?? params.get('zone') ?? 'America/Chicago')
   const period = params.get('period') ?? (params.has('from') || params.has('to') ? 'custom' : '24h')
-  if (period !== 'custom' && !Object.hasOwn(periods, period)) throw new ReportInputError('period must be 24h, 7d, 30d, 90d or custom')
+  if (period !== 'custom' && !Object.hasOwn(periods, period) && !isCalendarPeriod(period)) throw new ReportInputError('period must be 24h, 7d, 30d, 90d, mtd, qtd, ytd, last-month or custom')
   let from: number, to: number
   if (period === 'custom') {
     if (!params.get('from') || !params.get('to')) throw new ReportInputError('Custom periods require from and to')
@@ -94,8 +127,7 @@ export function reportPeriod(params: URLSearchParams, now = Date.now()): ReportP
     to = instant(params.get('to')!, timeZone, 'to')
   } else {
     if (params.has('from') || params.has('to')) throw new ReportInputError('Use period=custom with from and to')
-    to = now
-    from = now - periods[period as keyof typeof periods]
+    ;({from, to} = namedRange(period as NamedPeriod, timeZone, now))
   }
   if (!clock(from) || !clock(to) || from >= to || to > now)
     throw new ReportInputError('Report range must satisfy 0 <= from < to <= now')
@@ -112,7 +144,12 @@ export function normalizePeriod(value: URLSearchParams | ReportPeriod, now: numb
     period: 'custom', from: String(value.from), to: String(value.to), timeZone: value.timeZone,
     ...(value.slaTargetPercent === null ? {} : { sla: String(value.slaTargetPercent) }),
   }), now)
-  if (value.period !== 'custom' && (!Object.hasOwn(periods, value.period) || value.to - value.from !== periods[value.period]))
-    throw new ReportInputError('Named report period does not match its range')
+  if (value.period !== 'custom') {
+    if (!Object.hasOwn(periods, value.period) && !isCalendarPeriod(value.period)) throw new ReportInputError('Named report period does not match its range')
+    // A named to-date report may be reused later, retaining its original clock.
+    // Last month's complete range instead depends on the current local month.
+    const expected = namedRange(value.period, normalized.timeZone, value.period === 'last-month' ? now : value.to)
+    if (value.from !== expected.from || value.to !== expected.to) throw new ReportInputError('Named report period does not match its range')
+  }
   return { ...normalized, period: value.period }
 }

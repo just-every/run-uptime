@@ -1,3 +1,4 @@
+import {contactReady,advanceContactSchedules} from './contact-scheduler.server.ts'
 import {auditStatement,automated} from './audit.server.ts'
 import {sha256} from '../base/modules/integrations/core/crypto.ts'
 import {readCredential,notificationKeyPresent,type CredentialRow} from './notification-credentials.server.ts'
@@ -54,7 +55,7 @@ export async function claimNotification(env:Bindings,id:string,now:number,leaseM
    WHERE namespace=? AND id=? AND state='queued' AND next_at<=? AND attempts<max_attempts
    AND EXISTS(SELECT 1 FROM notification_jobs j JOIN notification_credentials c ON c.id=j.credential_id AND c.destination_id=j.destination_id
     WHERE j.id=? AND j.state='queued' AND c.id=? AND c.destination_id=? AND c.created_at=? AND c.ciphertext=?
-    AND c.retired_at IS NULL AND c.unavailable_at IS NULL AND c.endpoint IS NULL AND c.signing_secret IS NULL AND ${recoveryAccepted()})`)
+    AND c.retired_at IS NULL AND c.unavailable_at IS NULL AND c.endpoint IS NULL AND c.signing_secret IS NULL AND ${recoveryAccepted()} AND ${contactReady()})`)
     // Bind the exact authenticated version and AAD identity in the transaction:
     // any mutation while decryption yielded requires a fresh validation.
     .bind(claim,now+leaseMs,namespace,id,now,id,verified?.id??null,verified?.destination_id??null,verified?.created_at??null,verified?.ciphertext??null),
@@ -73,7 +74,7 @@ export async function startClaim(env:Bindings,id:string,claim:unknown,reservatio
  if(typeof claim!=='string'||typeof reservation!=='string'||reservation.length>128)return false;
  const reservationHash=await sha256(reservation);
  const result=await env.DB.batch([env.DB.prepare(`UPDATE notification_claim_custody SET started_at=? WHERE delivery_id=? AND claim=? AND reservation_hash=? AND started_at IS NULL AND released_at IS NULL
-  AND EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace=? AND d.id=? AND d.claim=? AND d.state='sending' AND d.claim_until>?)`).bind(now,id,claim,reservationHash,namespace,id,claim,now),auditStatement(env,automated,'notification_send','notification',crypto.randomUUID(),'changes()=1',[],now),
+  AND EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace=? AND d.id=? AND d.claim=? AND d.state='sending' AND d.claim_until>? AND EXISTS(SELECT 1 FROM notification_jobs j WHERE j.id=d.id AND ${contactReady()}))`).bind(now,id,claim,reservationHash,namespace,id,claim,now),auditStatement(env,automated,'notification_send','notification',crypto.randomUUID(),'changes()=1',[],now),
   // A drill's Submitted time is the transport boundary of its one attempt, recorded only with a started claim.
   env.DB.prepare('UPDATE alert_drills SET submitted_at=? WHERE delivery_id=? AND submitted_at IS NULL AND EXISTS(SELECT 1 FROM notification_claim_custody WHERE delivery_id=? AND claim=? AND started_at=?)').bind(now,id,id,claim,now)]);
  return Boolean(result[0].meta.changes);

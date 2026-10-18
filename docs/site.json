@@ -45,10 +45,22 @@
           "summary": "The four monitor kinds, how checks become incidents, and why Unknown is never green."
         },
         {
+          "slug": "browser-flows",
+          "title": "Browser journeys and devices",
+          "file": "browser-flows.md",
+          "summary": "Check Chromium, Firefox and WebKit on desktop or mobile, with separate evidence and honest missing-engine coverage."
+        },
+        {
           "slug": "heartbeat-jobs",
           "title": "Heartbeat jobs",
           "file": "heartbeat-jobs.md",
           "summary": "Wrap a real command with start, success and exit-code failure receipts, explicit grace and immutable duration history."
+        },
+        {
+          "slug": "slow-responses",
+          "title": "Slow-response alerts",
+          "file": "slow-responses.md",
+          "summary": "Separate response-time degradations, contact schedules and slow time from outages and availability."
         },
         {
           "slug": "notifications",
@@ -79,6 +91,18 @@
           "title": "Move your data",
           "file": "data.md",
           "summary": "Export an archive, restore it into an empty installation, and keep your private settings separately."
+        },
+        {
+          "slug": "metrics",
+          "title": "Metrics and dashboards",
+          "file": "metrics.md",
+          "summary": "Connect read-only Prometheus scrapes, Grafana dashboards and explicit Datadog or signed webhook exports."
+        },
+        {
+          "slug": "read-api",
+          "title": "Monitoring API and CSV",
+          "file": "read-api.md",
+          "summary": "Read current coverage, bulk uptime, incident CSV and calendar reports through authenticated versioned routes."
         }
       ]
     },

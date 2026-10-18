@@ -1,11 +1,14 @@
+import {validateHeartbeatCron,nextHeartbeatOccurrence} from './heartbeat-cron.mjs';
 // Shared by the signed Node runner, live admission and inactive archive validation.
 export const HEARTBEAT_OUTPUT_BYTES=1024;
 export function heartbeatSettings(input={}){
  const integer=(value,min,max,label)=>{if(!Number.isSafeInteger(value)||value<min||value>max)throw Error(`Invalid heartbeat ${label}`);return value};
- if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(k=>!['maxAgeMs','graceMs','maxRunDurationMs','outputMasks'].includes(k)))throw Error('Invalid heartbeat configuration');
+ if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(k=>!['maxAgeMs','graceMs','maxRunDurationMs','outputMasks','cron','timeZone'].includes(k)))throw Error('Invalid heartbeat configuration');
  const outputMasks=input.outputMasks??[];
  if(!Array.isArray(outputMasks)||outputMasks.length>20||outputMasks.some(s=>typeof s!=='string'||!s||s.length>200||/[\x00-\x1f\x7f]/.test(s)))throw Error('Invalid heartbeat output masks');
- return {maxAgeMs:integer(input.maxAgeMs??180000,5000,2678400000,'expected period'),graceMs:integer(input.graceMs??0,0,86400000,'grace'),maxRunDurationMs:integer(input.maxRunDurationMs??0,0,2678400000,'maximum run duration'),outputMasks:[...new Set(outputMasks)]};
+ const calendar=input.cron!==undefined?validateHeartbeatCron(input):{};
+ if(input.timeZone&&!input.cron)throw Error('Heartbeat time zone requires a cron schedule');
+ return {...calendar,maxAgeMs:integer(input.maxAgeMs??180000,5000,2678400000,'expected period'),graceMs:integer(input.graceMs??0,0,86400000,'grace'),maxRunDurationMs:integer(input.maxRunDurationMs??0,0,2678400000,'maximum run duration'),outputMasks:[...new Set(outputMasks)]};
 }
 export function redactHeartbeatOutput(value,masks=[]){
  if(typeof value!=='string')throw Error('Failure output must be text');
@@ -15,6 +18,8 @@ export function redactHeartbeatOutput(value,masks=[]){
  .replace(/\b(?:Bearer|Basic)\s+[^\s"'<>]+/gi,'[redacted]')
  .replace(/((?:["']?)(?:authorization|password|passwd|secret|token|api[_-]?key|access[_-]?key|cookie|set-cookie)(?:["']?)\s*[:=]\s*)(?:"[^"\r\n]*"|'[^'\r\n]*'|[^\s,;]+)/gi,'$1[redacted]')
  .replace(/\b(?:gh[pousr]_[a-zA-Z0-9_]{10,}|github_pat_[a-zA-Z0-9_]+|AKIA[A-Z0-9]{16}|sk-[a-zA-Z0-9_-]{12,}|eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+)\b/g,'[redacted]')
+ .replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi,'[redacted]')
+ .replace(/\b(?:\d[ -]?){13,19}\b/g,'[redacted]')
  .replace(/(https?:\/\/)[^\s/@]+:[^\s/@]+@/gi,'$1[redacted]@');
  const encoder=new TextEncoder();let result='',size=0;
  for(const c of text){const bytes=encoder.encode(c).length;if(size+bytes>HEARTBEAT_OUTPUT_BYTES)break;result+=c;size+=bytes}
@@ -26,7 +31,7 @@ export function validateHeartbeatJob(job){
  if(job.failure!==null&&(!job.failure||Object.keys(job.failure).sort().join(',')!=='at,exitCode,output'||!clock(job.failure.at)||!(job.failure.exitCode===null||Number.isInteger(job.failure.exitCode)&&job.failure.exitCode>=0&&job.failure.exitCode<=255)||typeof job.failure.output!=='string'||new TextEncoder().encode(job.failure.output).length>HEARTBEAT_OUTPUT_BYTES))throw Error('Invalid heartbeat failure evidence');
  return job;
 }
-export function heartbeatDeadline(def,job){return (job.receivedAt??job.baselineAt)+def.heartbeat.maxAgeMs+(def.heartbeat.graceMs??0)}
+export function heartbeatDeadline(def,job){const anchor=job.receivedAt??job.baselineAt;return (def.heartbeat.cron?nextHeartbeatOccurrence(def.heartbeat,anchor):anchor+def.heartbeat.maxAgeMs)+(def.heartbeat.graceMs??0)}
 export function heartbeatEvaluation(def,job,at){
  validateHeartbeatJob(job);
  const check=(outcome,reason,cause)=>({outcome,cause,checks:[{assertion:'heartbeat',pass:outcome==='pass',reason}]});

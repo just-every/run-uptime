@@ -1,9 +1,10 @@
+import {privateTarget} from '../private-target.mjs';
 import {publicTarget} from '../public-target.mjs';
 import {RESOLVERS,RECORD_TYPES,DEFAULT_RESOLVERS} from './dns.mjs';
 // Settings of the protocol monitors (TCP-001, DNS-001, TLS-001, DOMAIN-001), validated by the same function on the
 // control plane, the Worker and the runner. Each type keeps its settings in one object named after it; `url` is derived
 // from them for display and identity (tcp://host:port, tls://host:port, dns://name/TYPE, domain://name).
-export const PROTOCOL_TYPES=['tcp','dns','tls','domain'];
+export const PROTOCOL_TYPES=['tcp','udp','ping','dns','tls','domain'];
 export const isProtocol=type=>PROTOCOL_TYPES.includes(type);
 const fields=(value,allowed,label)=>{
  if(!value||typeof value!=='object'||Array.isArray(value))throw Error(`${label} settings required`);
@@ -40,10 +41,30 @@ function values(value,label){
 export function protocolSettings(type,input){
  if(type==='tcp'){
   const s=fields(input.tcp,['host','port','readBanner','bannerIncludes'],'TCP');
-  const host=publicHost(s.host),p=port(s.port,undefined,'TCP port'),bannerIncludes=text(s.bannerIncludes,100,'Expected banner text');
+  const p=port(s.port,undefined,'TCP port');
+  const privateUrl=input.network==='private'?privateTarget(`http://${typeof s.host==='string'&&s.host.includes(':')&&!s.host.startsWith('[')?`[${s.host}]`:s.host}:${p}/`):null;
+  const host=privateUrl?privateUrl.hostname.replace(/^\[|\]$/g,''):publicHost(s.host),bannerIncludes=text(s.bannerIncludes,100,'Expected banner text');
   if(s.readBanner!==undefined&&typeof s.readBanner!=='boolean')throw Error('readBanner must be true or false');
   const readBanner=Boolean(s.readBanner||bannerIncludes);
   return {settings:{host,port:p,...(readBanner?{readBanner}:{}),...(bannerIncludes?{bannerIncludes}:{})},url:`tcp://${host.includes(':')?`[${host}]`:host}:${p}`};
+ }
+ if(type==='ping'){
+  const s=fields(input.ping,['host','family','packets','maxLossPercent','maxRttMs'],'Ping'),host=publicHost(s.host);
+  const family=s.family??4,packets=s.packets??3,maxLossPercent=s.maxLossPercent??0,maxRttMs=s.maxRttMs??1000;
+  if(![4,6].includes(family))throw Error('Ping family must be 4 or 6');
+  if((host.includes(':')&&family!==6)||(/^[0-9.]+$/.test(host)&&family!==4))throw Error('Ping host address must match the selected IP family');
+  if(!Number.isInteger(packets)||packets<1||packets>5)throw Error('Ping packets must be from 1 to 5');
+  if(!Number.isFinite(maxLossPercent)||maxLossPercent<0||maxLossPercent>100)throw Error('Ping loss limit must be from 0 to 100 percent');
+  if(!Number.isFinite(maxRttMs)||maxRttMs<1||maxRttMs>10000)throw Error('Ping RTT limit must be from 1 to 10000 ms');
+  return {settings:{host,family,packets,maxLossPercent,maxRttMs},url:`ping://${host.includes(':')?`[${host}]`:host}`};
+ }
+ if(type==='udp'){
+  const s=fields(input.udp,['host','port','payloadHex','expectedHex','match'],'UDP');
+  const host=publicHost(s.host),p=port(s.port,undefined,'UDP port');
+  const hex=(v,max,label)=>{if(typeof v!=='string'||!v.length||v.length>max*2||v.length%2||!/^[0-9a-f]+$/i.test(v))throw Error(`${label} must be hexadecimal bytes (1–${max} bytes)`);return v.toLowerCase()};
+  const payloadHex=hex(s.payloadHex,256,'UDP request'),expectedHex=hex(s.expectedHex,1024,'Expected UDP response'),match=s.match??'exact';
+  if(!['exact','includes'].includes(match))throw Error('UDP response match must be exact or includes');
+  return {settings:{host,port:p,payloadHex,expectedHex,match},url:`udp://${host.includes(':')?`[${host}]`:host}:${p}`};
  }
  if(type==='tls'){
   const s=fields(input.tls,['host','port','warnDays','owner'],'TLS');
@@ -81,6 +102,8 @@ export function protocolSettings(type,input){
 }
 // Cadence bounds by type. TLS and domain expiry checks run at least hourly (SCHEDULE-002).
 export const PROTOCOL_TIMING={
+ ping:{interval:[30000,86400000,60000],timeout:[8000,10000,10000]},
+ udp:{interval:[30000,86400000,60000],timeout:[50,10000,3000]},
  tcp:{interval:[5000,86400000,60000],timeout:[50,10000,3000]},
  dns:{interval:[5000,86400000,60000],timeout:[50,10000,3000]},
  tls:{interval:[5000,3600000,3600000],timeout:[50,10000,5000]},

@@ -87,3 +87,38 @@ Owner APIs are `GET /api/monitors/{id}/alert-route` and POST `.../preview` and `
 ## Alert time zone
 
 In Notifications, choose **Change alert time zone** and enter an IANA zone. US zones are offered first. New incident email, Slack and signed JSON context carry the confirmed start in that zone with its UTC offset. Recovery preserves the original reason, failed locations, start and zone, and adds the confirmed recovery time and exact downtime. Changing the setting affects new incidents. Old saved messages retain their original rendering. Custom webhook templates can select their own display zone and use the same immutable incident values; see [Webhook requests](/docs/webhooks).
+
+## Contact delays and reminders
+
+On a monitor, choose **Edit alert route**, select destinations at monitor, service,
+group or installation scope, and set each contact's delay and repeat in minutes.
+Delay ranges from 0 to 1,440 minutes. Repeats are off at 0, or run every 1 to
+1,440 minutes, with an optional maximum repeat count. Choose whether to send
+recovery and whether acknowledgement stops repeats. Preview shows each contact's
+schedule before **Apply reviewed route** saves it. Changes apply to new incidents;
+open incidents keep their confirmation-time policy and credential.
+
+Delays start at confirmed failure. Recovery before a delay expires cancels that
+contact's trigger and recovery. Recovery goes only to the original accepted
+trigger's contact, with recovery enabled. Every reminder is a new event with the
+same incident key and its own single transport attempt. An uncertain send is not
+retried. Worker restarts preserve schedules. Missed reminder windows produce one
+due reminder after restart, then resume the confirmation-anchored cadence rather
+than flooding contacts with every missed reminder. The incident shows the next
+contact follow-up; stop, manual resolution, recovery, or the selected
+acknowledgement policy ends reminders. Provider acknowledgement is not human
+receipt.
+
+**Import a saved contact schedule** accepts one saved UptimeRobot monitor (or a
+single-monitor v3 page), using `assignedAlertContacts` entries with
+`alertContactId`, `threshold` and `recurrence`. Map every source contact to a local
+destination; no source credential is imported. Pingdom accepts a saved `check`
+with `integrationids`, `resolution`, `sendnotificationwhendown`, `notifyagainevery`
+and `notifywhenbackup`. Pingdom result counts multiply its resolution to become
+minutes; Uptime starts that converted delay at confirmation, rather than at the
+first failed check. Preview this difference before applying. Unsupported ranges
+and unmapped contacts refuse the import.
+
+Routes and active schedules stay installation-local. Archives carry reminder
+events and delivery history as inactive records; they never resume reminders on
+restore. Monitor and destination erasure remove their schedules.

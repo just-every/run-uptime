@@ -1,4 +1,4 @@
-// The one door a flow's browser has to the network. Chromium is started with this forward proxy and nothing else: every page,
+// The one door a flow's browser has to the network. Every engine uses this forward proxy: every page,
 // redirect, subresource and WebSocket becomes a CONNECT or an absolute-URI request here, so NETWORK-001 is checked once, in one
 // place, whatever the page does. The proxy resolves each destination itself and connects to the address it checked (a DNS answer
 // cannot change between check and use), refuses private, loopback, link-local and metadata addresses, and reaches the local
@@ -24,7 +24,7 @@ const split = hostport => {
   return {host: m[1], port: m[2] === undefined ? undefined : Number(m[2])};
 };
 
-export async function startFlowProxy({grant = null, maxBytes, maxConnections = 64, resolver = new Resolver({timeout: 1500, tries: 1})}) {
+export async function startFlowProxy({grant = null, privateAccess, maxBytes, maxConnections = 64, resolver = new Resolver({timeout: 1500, tries: 1})}) {
   const username = 'flow', password = randomBytes(24).toString('hex'), expected = Buffer.from(`Basic ${Buffer.from(`${username}:${password}`).toString('base64')}`);
   const sockets = new Set(), blocked = [];
   let bytes = 0, exceeded = false, closed = false;
@@ -38,6 +38,7 @@ export async function startFlowProxy({grant = null, maxBytes, maxConnections = 6
   const block = (klass, host) => { blocked.push({class: klass, at: Date.now(), violation: klass !== 'not_granted' && klass !== 'unresolved_host'}); if (process.env.UPTIME_FLOW_DEBUG) console.error('flow-proxy blocked', klass, host); return null; };
   // The address to connect to, or null after recording why not. Never resolves for a destination the grant or policy refuses.
   async function destination(host, port) {
+    if(privateAccess)try{return await privateAccess(new URL(`http://${host.includes(':')?`[${host}]`:host}:${port}/`),AbortSignal.timeout(1500))}catch{return block('private_grant_refused',host)}
     if (grant) {
       if (host === '127.0.0.1' && port === grant.port) return {address: '127.0.0.1', family: 4};
       return block(isIP(host) ? addressClass(host) : 'not_granted', host);
@@ -75,7 +76,7 @@ export async function startFlowProxy({grant = null, maxBytes, maxConnections = 6
   });
   server.on('connect', async (request, client, head) => {
     track(client);
-    const refuse = status => { client.end(`HTTP/1.1 ${status}\r\nconnection: close\r\n\r\n`); };
+    const refuse = status => { client.end(`HTTP/1.1 ${status}\r\n${status.startsWith('407 ')?'proxy-authenticate: Basic realm="flow"\r\n':''}connection: close\r\n\r\n`); };
     if (closed || !authorised(request)) return refuse('407 Proxy Authentication Required');
     const parsed = split(request.url);
     if (!parsed || !parsed.port || sockets.size > maxConnections || exceeded) return refuse('403 Forbidden');
