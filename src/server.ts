@@ -1,3 +1,6 @@
+import {authorizeMetrics,metricsKeys,createMetricsKey,revokeMetricsKey} from './domain/metrics/auth.server.ts'
+import {metricsSnapshot} from './domain/metrics/snapshot.server.ts'
+import {prometheusMetrics} from './domain/metrics/prometheus.ts'
 import {registerHeartbeatReceipts} from './domain/heartbeat-routes.server.ts'
 import {importContactSchedule} from './domain/contact-schedule-import.ts'
 import {saveNotificationPreferences} from './domain/notification-preferences.server.ts'
@@ -74,11 +77,23 @@ api.use('/api/*',async(c,next)=>{c.header('cache-control','no-store');const orig
 const boundary=async(c:any,next:()=>Promise<void>)=>{const headers=c.req.raw.headers,hasBody=Number(headers.get('content-length')??0)>0||headers.has('transfer-encoding');let checked;try{checked=checkInput(c.req.method==='HEAD'?'GET':c.req.method,new URL(c.req.url),c.get('requestText')??'',hasBody)}catch(error){if(error instanceof InputError)return c.json({error:error.message},400);throw error}if(!checked)return c.json({error:'Not found'},404);c.set('input',checked.body);await next()}
 api.use('/api/heartbeats/*',boundary)
 registerHeartbeatReceipts(api)
-api.use('/api/*',async(c,next)=>{if(c.req.path.startsWith('/api/runner/')){const row=await storageOperation('runner.authenticate',()=>authenticateRunner(c.env,c.req.header('x-runner-id'),c.req.header('x-runner-key')??''));if(!row)return c.json({error:'Runner authorization required'},401);c.set('runner',row)}else if(!await storageOperation('owner.session',()=>session(c.env,c.req.raw)))return c.json({error:'Owner session required'},401);await next()})
+api.use('/api/*',async(c,next)=>{if(c.req.header('authorization')?.toLowerCase().startsWith('bearer ')){if(c.req.path!=='/api/v1/metrics'||!['GET','HEAD'].includes(c.req.method))return c.json({error:'Metrics keys authorize only metrics reads'},403);if(!await authorizeMetrics(c.env,c.req.raw))return c.json({error:'Metrics authorization required'},401)}else if(c.req.path.startsWith('/api/runner/')){const row=await storageOperation('runner.authenticate',()=>authenticateRunner(c.env,c.req.header('x-runner-id'),c.req.header('x-runner-key')??''));if(!row)return c.json({error:'Runner authorization required'},401);c.set('runner',row)}else if(!await storageOperation('owner.session',()=>session(c.env,c.req.raw)))return c.json({error:'Owner session required'},401);await next()})
 api.use('/api/*',boundary)
 // Only authenticated owner requests can kick hosted work; public traffic and private runners cannot.
 api.use('/api/*',async(c,next)=>{await next();if(c.res.ok&&(c.req.path==='/api/overview'||/^\/api\/(monitors|notifications)(\/|$)/.test(c.req.path))){c.executionCtx.waitUntil(kickHostedWork(c.env).catch(()=>console.error('Hosted console work failed; queued work remains available to Cron.')))}})
 api.post('/api/auth/sign-out',async c=>{try{const result=await signOut(c.env,c.req.raw);c.header('set-cookie',result.cookie);return c.json({signedOut:true})}catch(error){return authFailure(error)}})
+api.get('/api/metrics/keys',async c=>c.json(await metricsKeys(c.env,c.req.raw)))
+api.post('/api/metrics/keys',async c=>c.json(await createMetricsKey(c.env,c.req.raw,c.get('input')),201))
+api.delete('/api/metrics/keys/:id',async c=>c.json(await revokeMetricsKey(c.env,c.req.raw,c.req.param('id'))))
+api.get('/api/v1/metrics',async c=>{
+ const params=new URL(c.req.url).searchParams
+ try{
+  const snapshot=await metricsSnapshot(c.env,params)
+  if(params.get('format')==='json'){const bytes=JSON.stringify(snapshot);if(new TextEncoder().encode(bytes).length>2*1024*1024)throw new ReportInputError('Metrics exceeds 2 MiB');return c.body(bytes,200,{'content-type':'application/json'})}
+  const text=prometheusMetrics(snapshot);if(new TextEncoder().encode(text).length>2*1024*1024)throw new ReportInputError('Metrics exceeds 2 MiB')
+  return c.body(text,200,{'content-type':'text/plain; version=0.0.4; charset=utf-8'})
+ }catch(error){if(error instanceof ReportInputError)return c.json({error:error.message,code:error.code},error.code==='monitor_not_found'?404:400);throw error}
+})
 api.get('/api/overview',async c=>{const monitorId=c.req.query('monitor');return c.json(await overview(c.env,monitorId===undefined?{}:{monitorId}))})
 for(const [path,preview,apply] of [
  ['/api/catalog',catalogBulkPreview,catalogBulkApply],['/api/catalog/add',catalogAddPreview,catalogAddApply],['/api/maintenance',previewMaintenance,applyMaintenance],

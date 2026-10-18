@@ -91,6 +91,12 @@
           "title": "Move your data",
           "file": "data.md",
           "summary": "Export an archive, restore it into an empty installation, and keep your private settings separately."
+        },
+        {
+          "slug": "metrics",
+          "title": "Metrics and dashboards",
+          "file": "metrics.md",
+          "summary": "Connect read-only Prometheus scrapes, Grafana dashboards and explicit Datadog or signed webhook exports."
         }
       ]
     },

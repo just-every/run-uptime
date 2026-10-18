@@ -13,6 +13,10 @@ const id={id:identity},source=(value:string)=>SOURCES.includes(value),digest=(va
 const reportQuery={...Object.fromEntries(['period','from','to','timeZone','zone','sla','slaTarget','bucket','location','rootCause'].map(name=>[name,(value:string)=>identity(value)&&value.length<=150])),format:(value:string)=>['csv','json','pdf'].includes(value)}
 const incidentQuery=Object.fromEntries(['monitor','tag','from','to','state','rootCause','cursor','limit'].map(name=>[name,identity]))
 export const apiRoutes:readonly Route[]=[
+ {method:'GET',path:'/api/metrics/keys',body:'none'},
+ {method:'POST',path:'/api/metrics/keys',body:'object'},
+ {method:'DELETE',path:'/api/metrics/keys/:id',params:id,body:'none'},
+ {method:'GET',path:'/api/v1/metrics',query:{...Object.fromEntries(['period','from','to','timeZone','zone','sla','slaTarget'].map(name=>[name,(value:string)=>identity(value)&&value.length<=150])),monitor:(value:string)=>value.length>0&&value.length<=52000&&!/[\x00-\x1f\x7f]/.test(value),format:value=>['prometheus','json'].includes(value)},body:'none'},
  {method:'GET',path:'/api/incident-settings',body:'none'},
  {method:'PATCH',path:'/api/incident-settings',body:'object'},
  {method:'GET',path:'/api/incidents/:id',params:id,body:'none'},

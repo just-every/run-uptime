@@ -1,0 +1,12 @@
+- region "Metrics export":
+  - heading "Metrics export" [level=3]
+  - paragraph:
+    - text: Create a read-only key for Prometheus or another metrics client. Keys only authorize the metrics export; they cannot change monitors or settings.
+    - link "Metrics guide":
+      - /url: /docs/metrics
+  - text: Key name
+  - textbox "Key name": Prometheus 1440
+  - text: Days to expiry
+  - spinbutton "Days to expiry": "0"
+  - button "Create metrics key"
+  - paragraph: No metrics keys yet.

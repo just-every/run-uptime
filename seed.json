@@ -37,7 +37,8 @@
         "PRIVATE-001",
         "HEARTBEAT-002",
         "FLOW-004",
-        "PING-001"
+        "PING-001",
+        "METRICS-001"
       ]
     },
     {
@@ -333,6 +334,18 @@
       "data": [
         "Target IP address, source runner address, bounded echo packets and round-trip timing",
         "Only sent/received counts, loss and minimum/mean/maximum RTT are retained in immutable observations; no raw packet capture. Evidence travels in inactive archives and is erased with its monitor."
+      ],
+      "adapters": []
+    },
+    {
+      "id": "metrics-export",
+      "required": false,
+      "requiredWhen": "Owner explicitly invokes scripts/metrics-export.mjs for Datadog or a signed HTTPS receiver",
+      "why": "One-shot metrics export from the same captured report window; no automatic scheduler or retries. Datadog sites are fixed and webhook DNS is validated and pinned.",
+      "data": [
+        "Bounded monitor/probe/runner identifiers, report window, availability and latency statistics, states, contact/evidence freshness, incident counts and delivery job counts",
+        "Datadog API key only to the selected official Datadog HTTPS API; HMAC signature to the owner-selected public webhook. Credentials are process environment values and never stored or archived.",
+        "No monitor names, target URLs, response bodies, provider credentials or Datadog-managed probe identities. The receiver owns its stored metrics; local erasure cannot recall exported data."
       ],
       "adapters": []
     }
@@ -1232,6 +1245,22 @@
         "class": "assets",
         "authentication": "None; emitted static resource only.",
         "environment": "all"
+      },
+      {
+        "path": "/metrics.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; static console module; the metrics operations require owner or scoped read authority.",
+        "environment": "all"
+      },
+      {
+        "path": "/api/v1/metrics",
+        "match": "exact",
+        "kind": "api",
+        "class": "metrics",
+        "authentication": "Owner session or installation-local hashed metrics:read bearer key; no mutation authority.",
+        "environment": "all"
       }
     ],
     "notes": "Console documents and APIs require a Base owner session; runner and heartbeat APIs use separately scoped credentials."
@@ -1257,7 +1286,8 @@
       "assets": 600,
       "development": 600,
       "drills": 30,
-      "development-assets": 1800
+      "development-assets": 1800,
+      "metrics": 60
     },
     "notes": "Owner-tunable source settings; each class shares one fixed 60-second D1 window per client. Production assets retain their own budget. Local Vite compiler assets use a separate budget for the unbundled browser graph: about 140 module requests per console load, with room for twelve loads per minute. These defaults are estimated, not load tested. Hosted CF-Connecting-IP must be a valid single IP; missing/malformed values share an unknown-client bucket. Local mode ignores all forwarding headers and uses one loopback bucket. Only keyed hashes of client identities are stored."
   },

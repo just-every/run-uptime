@@ -60,7 +60,8 @@
     "test:private": "node tests/private-network.mjs && node tests/private-network-browser.mjs",
     "test:reports": "node tests/reporting.mjs && node tests/reporting-browser.mjs",
     "test:heartbeat": "node tests/heartbeat-schedules.mjs && node tests/heartbeat-schedules-browser.mjs",
-    "test:ping": "node tests/ping-monitors.mjs && node tests/ping-browser.mjs"
+    "test:ping": "node tests/ping-monitors.mjs && node tests/ping-browser.mjs",
+    "test:metrics": "node tests/metrics.mjs && node tests/metrics-browser.mjs"
   },
   "dependencies": {
     "@pdf-lib/fontkit": "1.1.1",

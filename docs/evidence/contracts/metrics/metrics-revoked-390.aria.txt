@@ -1,0 +1,19 @@
+- region "Metrics export":
+  - heading "Metrics export" [level=3]
+  - paragraph:
+    - text: Create a read-only key for Prometheus or another metrics client. Keys only authorize the metrics export; they cannot change monitors or settings.
+    - link "Metrics guide":
+      - /url: /docs/metrics
+  - text: Key name
+  - textbox "Key name"
+  - text: Days to expiry
+  - spinbutton "Days to expiry": "90"
+  - button "Create metrics key"
+  - heading "Prometheus 1440" [level=4]
+  - paragraph: "Scope: metrics:read (read only)"
+  - paragraph: "Created: 10/18/2026, 8:29:59 PM · Expires: 11/17/2026, 8:29:59 PM · Last used: 10/18/2026, 8:29:59 PM"
+  - paragraph: "Revoked: 10/18/2026, 8:29:59 PM"
+  - heading "Prometheus 390" [level=4]
+  - paragraph: "Scope: metrics:read (read only)"
+  - paragraph: "Created: 10/18/2026, 8:30:00 PM · Expires: 11/17/2026, 8:30:00 PM · Last used: 10/18/2026, 8:30:00 PM"
+  - paragraph: "Revoked: 10/18/2026, 8:30:00 PM"

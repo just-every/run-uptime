@@ -425,7 +425,7 @@
       "executable": false
     },
     ".github/scripts/verify-ci.mjs": {
-      "sha256": "cce280a1c51eb3dfc9fa824adf423fc771e24a2acdaf6426eeb12b7b64aac4e7",
+      "sha256": "fe5d22cb38d2a758aebcb879204e8660e976d4cc346eeb81ec8f5141fb2e0a68",
       "executable": false
     },
     ".github/workflows/rer-managed.yml": {
@@ -1038,6 +1038,118 @@
     },
     "docs/evidence/contracts/maintenance/weekly-form-390.png": {
       "sha256": "c9779c926b6d7345821cd639f7eb525bf520ee106c39390bee22a7cc8b47822f",
+      "executable": false
+    },
+    "docs/evidence/contracts/metrics/grafana-1440.png": {
+      "sha256": "85617755dcadcdac99783a414cfd6c7f02c3f684166107ba13d436422ecb0628",
+      "executable": false
+    },
+    "docs/evidence/contracts/metrics/grafana-390.png": {
+      "sha256": "1788e5e75b29d250cda00114b87c29decd435874b11de2b665d6e38becae9adf",
+      "executable": false
+    },
+    "docs/evidence/contracts/metrics/grafana-deliveries-1440.png": {
+      "sha256": "87e313bc253c493deade44d91328e3caddffd2dd3905789ba672eced4ea371cc",
+      "executable": false
+    },
+    "docs/evidence/contracts/metrics/grafana-deliveries-390.png": {
+      "sha256": "ec7c0f26a80243e61a6c7275736f4b8ed9f311c4af158934196184fb344f8666",
+      "executable": false
+    },
+    "docs/evidence/contracts/metrics/grafana-denominator-1440.png": {
+      "sha256": "87e313bc253c493deade44d91328e3caddffd2dd3905789ba672eced4ea371cc",
+      "executable": false
+    },
+    "docs/evidence/contracts/metrics/grafana-denominator-390.png": {
+      "sha256": "ec7c0f26a80243e61a6c7275736f4b8ed9f311c4af158934196184fb344f8666",
+      "executable": false
+    },
+    "docs/evidence/contracts/metrics/grafana-freshness-1440.png": {
+      "sha256": "87e313bc253c493deade44d91328e3caddffd2dd3905789ba672eced4ea371cc",
+      "executable": false
+    },
+    "docs/evidence/contracts/metrics/grafana-freshness-390.png": {
+      "sha256": "6ca16c5b85ae06ee143ac299263580eb59c3e30af45bdfb9784124ec76a145f5",
+      "executable": false
+    },
+    "docs/evidence/contracts/metrics/grafana-latency-1440.png": {
+      "sha256": "05fece4f0be674fdd61ec8a5b1c09eaefbe59723e484ff818f5546e15eb88b3a",
+      "executable": false
+    },
+    "docs/evidence/contracts/metrics/grafana-latency-390.png": {
+      "sha256": "b431380ac9d1e7b9daf7688533cfb86310cdc1fc3b21fa6e2fbb4ddce137a1f2",
+      "executable": false
+    },
+    "docs/evidence/contracts/metrics/grafana-window-1440.png": {
+      "sha256": "87e313bc253c493deade44d91328e3caddffd2dd3905789ba672eced4ea371cc",
+      "executable": false
+    },
+    "docs/evidence/contracts/metrics/grafana-window-390.png": {
+      "sha256": "ec7c0f26a80243e61a6c7275736f4b8ed9f311c4af158934196184fb344f8666",
+      "executable": false
+    },
+    "docs/evidence/contracts/metrics/metrics-guide-1440.png": {
+      "sha256": "9fae69f744fd0b1049a9c60de3f66a640d4a9f507900361ec7621ec9db21db17",
+      "executable": false
+    },
+    "docs/evidence/contracts/metrics/metrics-guide-390.png": {
+      "sha256": "927f84b5fb317d385f47c2c8717ae651e7997d0bb677f8c2801e8ce963eaedc2",
+      "executable": false
+    },
+    "docs/evidence/contracts/metrics/metrics-invalid-expiry-1440.aria.txt": {
+      "sha256": "f6788cf2439ccf77ae1d5968c4dae2aa90d43d921855ea46e2aa2ef5615340f7",
+      "executable": false
+    },
+    "docs/evidence/contracts/metrics/metrics-invalid-expiry-1440.png": {
+      "sha256": "56b7b41a3ee464cdb3ad93db05116f3818c3f8f5b167112f6559f1c2276ca868",
+      "executable": false
+    },
+    "docs/evidence/contracts/metrics/metrics-invalid-expiry-390.aria.txt": {
+      "sha256": "b0582b6852262a278d20ed47e5d9b9125b09527590cefd77ae0cee43c0bdc191",
+      "executable": false
+    },
+    "docs/evidence/contracts/metrics/metrics-invalid-expiry-390.png": {
+      "sha256": "072b16c3230e9baf40dbec263e410a57764405c1f39e99291ae0595c1f43e78c",
+      "executable": false
+    },
+    "docs/evidence/contracts/metrics/metrics-key-once-1440.png": {
+      "sha256": "0f94582351ccb6624289b5b37109dda571e2abb8886cb8930c5f30f1aa9d0ab9",
+      "executable": false
+    },
+    "docs/evidence/contracts/metrics/metrics-key-once-390.png": {
+      "sha256": "ad84e1e69a1ca5b3f6b12d7e99267d60c90352ab50c34ab188c04f7382320aac",
+      "executable": false
+    },
+    "docs/evidence/contracts/metrics/metrics-panel-1440.aria.txt": {
+      "sha256": "46922c04b63d895505f2922aebebd51495c81b935f0fe4fdcebf6399a23e2ae8",
+      "executable": false
+    },
+    "docs/evidence/contracts/metrics/metrics-panel-1440.png": {
+      "sha256": "4ad4b3b9d0fe1123e3558356d020179f435350d289d6a3e9a261d260278acca9",
+      "executable": false
+    },
+    "docs/evidence/contracts/metrics/metrics-panel-390.aria.txt": {
+      "sha256": "82f529dbdfb3d2d3d4bd17acbac8d30b1465e8b56041b369d70e469fafd24738",
+      "executable": false
+    },
+    "docs/evidence/contracts/metrics/metrics-panel-390.png": {
+      "sha256": "25e07e975e071489deed1dc9009f92275b75a9ac3abd4797e5fa4aa2dd6d1dfa",
+      "executable": false
+    },
+    "docs/evidence/contracts/metrics/metrics-revoked-1440.aria.txt": {
+      "sha256": "faa109985da1dc6299bf57db2423536c8438a6bfa75128a09a86e6672803d30a",
+      "executable": false
+    },
+    "docs/evidence/contracts/metrics/metrics-revoked-1440.png": {
+      "sha256": "50ba97df34411a8e0b30e51ff5fc4f29f8e5035f5a855ca03d6ed0cab4d2fde4",
+      "executable": false
+    },
+    "docs/evidence/contracts/metrics/metrics-revoked-390.aria.txt": {
+      "sha256": "6ef4b073119b05bb4464a38d44c67a934d6d2202a3239043d94f5566466f4dfd",
+      "executable": false
+    },
+    "docs/evidence/contracts/metrics/metrics-revoked-390.png": {
+      "sha256": "8cca557256d0e1ad3681bd004359215f80fe4cf8898bbf83c9b16da41e2da609",
       "executable": false
     },
     "docs/evidence/contracts/migration/applied-1440.png": {
@@ -1676,6 +1788,10 @@
       "sha256": "65d00d8d46784de4c6032f51d43727631f0557f1c242fc47533792e4bd857161",
       "executable": false
     },
+    "docs/grafana/uptime-dashboard.json": {
+      "sha256": "80b63b48791174b0bbbc896bf17f6e6dfba18d9a12e082df42b00fd6ec3d7841",
+      "executable": false
+    },
     "docs/heartbeat-jobs.md": {
       "sha256": "895705f0ea124198b6c94554be5f39d45867d6358a80ac9b903dd36550c7a24e",
       "executable": false
@@ -1686,6 +1802,10 @@
     },
     "docs/limits.md": {
       "sha256": "1dbad20035b16002b6a57058aed73403d3147c87d5617dd03c3798debd23b23f",
+      "executable": false
+    },
+    "docs/metrics.md": {
+      "sha256": "7685ba26518ffc6d6248fd5c1ccf9ea635dd633e9730ce0975f2b765812ba5e5",
       "executable": false
     },
     "docs/monitors.md": {
@@ -1717,7 +1837,7 @@
       "executable": false
     },
     "docs/site.json": {
-      "sha256": "70e1f681268d8718e08b50f388e0f12568147a0d05c2871deca1e590920beb0e",
+      "sha256": "08a25a054cdd71244e8d9cef151aaa0ed3812a9556541c7ddc28e668b57c419d",
       "executable": false
     },
     "docs/slow-responses.md": {
@@ -1945,7 +2065,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "ef3495aba5aa84ef40382d888802e3d7d0b62c1da023d7311ca12e58c265e079",
+      "sha256": "e957a8fb5faeeb005b8895191ad069817b72a8e5f17e30b4be6f2df819d4f0c5",
       "executable": false
     },
     "patches/README.md": {
@@ -1969,7 +2089,7 @@
       "executable": false
     },
     "public/app.js": {
-      "sha256": "a50c514d7e9fd9aca48e1c384270282497c1870849dcd91961f9b9b4f3f9c4a2",
+      "sha256": "7be70852e1fe2b99a0d878659019dc5e6ec3df5202231b8c10878d9b7e45d893",
       "executable": false
     },
     "public/assets/alert-route-markup.js": {
@@ -2082,6 +2202,10 @@
     },
     "public/maintenance-markup.js": {
       "sha256": "49a860a33a1053b266fc1d8fc3e8ef86829a91671cf736e312f6dc74a0a7775f",
+      "executable": false
+    },
+    "public/metrics.js": {
+      "sha256": "431484e0e898bc1f550a4ab9f092b1d29c983b009bf0d4c2a6daff256f83d295",
       "executable": false
     },
     "public/monitor-coverage.js": {
@@ -2772,6 +2896,10 @@
       "sha256": "0fe34aeba3991127ed13536a43a9c8b5aaf10795c0d9534ce191c21f831569b2",
       "executable": false
     },
+    "scripts/metrics-export.mjs": {
+      "sha256": "12388b41ba26d5c652b80b6a45154872c6c103e350c7d33b0f4ee27f5a59bc12",
+      "executable": false
+    },
     "scripts/runner-start.mjs": {
       "sha256": "6c9389e12c814f6381f8467fcbbc36dd45293381ad747e1d6e06fdc600a6e2f3",
       "executable": false
@@ -2781,7 +2909,7 @@
       "executable": false
     },
     "seed.json": {
-      "sha256": "b943713ae365b97a318c2c40da916644da66db9ab5d74bd28f0506c8ac406e64",
+      "sha256": "52db9203bd8d4ce06020c5206bb0f69e822df2af98980edb1712afa7f1fbb09a",
       "executable": false
     },
     "src/base/contract-filter.ts": {
@@ -3865,7 +3993,7 @@
       "executable": false
     },
     "src/domain/attempt-checkpoint.server.ts": {
-      "sha256": "aac8ed55342d8c3ab06a850bd7c6bac98196fbecdcdf0dfec3effedc0532efca",
+      "sha256": "2fe4a9c3ffc87e1c4f6f101709ba9167b512bf9c899e75f6dbcb8a43e2ad2591",
       "executable": false
     },
     "src/domain/attempt-classification.ts": {
@@ -4160,6 +4288,22 @@
       "sha256": "b5c95c42be0612849f0cefdd015978f59fee2da5bf826bc9065c48ef4b8d035a",
       "executable": false
     },
+    "src/domain/metrics/auth.server.ts": {
+      "sha256": "f29f93cd7c5c1d55ba9efc987a23b4ad490a616ba3b9508c305494c899b35d2a",
+      "executable": false
+    },
+    "src/domain/metrics/prometheus.ts": {
+      "sha256": "d0502c78ce666f2919c3fe319d9a9ea1204a1a32de62062a0301ae556e9ce309",
+      "executable": false
+    },
+    "src/domain/metrics/snapshot.server.ts": {
+      "sha256": "7b12b75a1c5a2adb842b0efe38baa187b1c2a44b09f5a715221567be3654bca2",
+      "executable": false
+    },
+    "src/domain/metrics/types.ts": {
+      "sha256": "0d4b658ba8d37b3e52dead47e6f5f569afc21e6eaba288fe6333b856fcadd284",
+      "executable": false
+    },
     "src/domain/monitor-editor.server.ts": {
       "sha256": "3b2fb06129d526414f8a142866acc0b3f1ec6201f63a0f353439fcd23b01277d",
       "executable": false
@@ -4337,7 +4481,7 @@
       "executable": false
     },
     "src/domain/read-api-openapi.ts": {
-      "sha256": "9dbd0049d691db0b9595a94884d195c07e2f1d717ca2066d475b7a3cf8848531",
+      "sha256": "a6f76d57e3ac89b3c5412dc060b3f928dd7a6e0a6d616b5313e5872057683944",
       "executable": false
     },
     "src/domain/relay-mail.server.ts": {
@@ -4389,7 +4533,7 @@
       "executable": false
     },
     "src/domain/request-boundary.ts": {
-      "sha256": "1cbfcdb0db06f5a35a9f8ef996280b8bef131bc7099d059c27c90351f2c2a64c",
+      "sha256": "308b74498a96540b0369245c1391269b1a74950212835aa3cee58f95a37d0ef2",
       "executable": false
     },
     "src/domain/runner-capabilities.mjs": {
@@ -4609,7 +4753,7 @@
       "executable": false
     },
     "src/server.ts": {
-      "sha256": "d55d837fa4e9b71903e6e9eccfea1143c9dd13ec5afc1d97ac01c5f24e8d449f",
+      "sha256": "527d4e24f2a8b9eccedacafe066e8fc21ca06cb366bb8ed76817ec8af687b2f1",
       "executable": false
     },
     "src/site/docs/build/manifest.ts": {
@@ -4909,7 +5053,7 @@
       "executable": false
     },
     "src/ui/console-prefetch.ts": {
-      "sha256": "be1e6c2d2b2b8d087c126661f96b512c08bdd63c6cc256d68d81e7a0642b619d",
+      "sha256": "6a3220a8dd2844ea79638376228f887a7e2eae59c612e8325fcc0beb90a21e11",
       "executable": false
     },
     "src/ui/console.html": {
@@ -5130,6 +5274,18 @@
     },
     "tests/maintenance-windows.mjs": {
       "sha256": "571395b797411171c172b59c2b83605fb3db21073df813b43167f5c2daa031ea",
+      "executable": false
+    },
+    "tests/metrics-browser.mjs": {
+      "sha256": "cfed05ec52aa6e6c0d86150fa202211ca77849242fdea712445f62dd5f779c90",
+      "executable": false
+    },
+    "tests/metrics-fixture.mjs": {
+      "sha256": "01e69811fd91c804fc347d4cdbdd057907754743b486b62f0788fe7c83fff228",
+      "executable": false
+    },
+    "tests/metrics.mjs": {
+      "sha256": "2bd31d446594b00fdb7c1348010e73aa1f07d76f4458a9649830a22f16f4368e",
       "executable": false
     },
     "tests/migration-support.mjs": {
