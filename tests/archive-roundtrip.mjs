@@ -11,7 +11,10 @@ import {digest,TABLES,LEGACY_TABLES,ARCHIVE_ROWS,extensionTables} from '../src/d
 import {installationLocalTables,assertArchiveInventory} from '../src/domain/archive-inventory.ts';
 import {populateArchiveFixture,populateProtocolArchiveFixture} from './archive-fixture.mjs';
 import {restoreBounds} from './archive-restore-bounds.mjs';
-import {applyDefinitions,previewDefinitions,undoBatch} from '../src/domain/definitions/index.server.ts';
+import {undoBatch} from '../src/domain/definitions/index.server.ts';
+import {revisionStatements} from '../src/domain/control.server.ts';
+import {assignDefinition} from '../src/domain/runner-registration.server.ts';
+import {validateDefinition} from '../src/domain/policy.mjs';
 const parent=new URL('../../tmp/',import.meta.url).pathname;await mkdir(parent,{recursive:true});const dir=await mkdtemp(join(parent,'archive-roundtrip-'));let worker;
 const controlPort=await freePort();
 const values={UPTIME_LOCAL_REVIEW:'true',SESSION_SECRET:randomBytes(32).toString('base64url'),SETUP_TOKEN:randomBytes(32).toString('base64url'),UPTIME_RUNNER_KEY:randomBytes(32).toString('base64url'),UPTIME_ORIGIN:`http://127.0.0.1:${controlPort}`,OWNER_EMAIL:'archive-owner@example.test',MAIL_PROVIDER:'development',MAIL_FROM:'auth@localhost.test'};
@@ -23,9 +26,19 @@ async function rehash(a){a.sha256=await digest(JSON.stringify(a.payload));return
 try{
  const source=join(dir,'source'),target=join(dir,'target'),settings=join(dir,'settings.json'),file=join(dir,'archive.json');await writeFile(settings,JSON.stringify(values),{mode:0o600});
  await migrate(source);let env=await installation(source);await populateArchiveFixture(env);await populateProtocolArchiveFixture(env);
- // One applied-and-undone definition batch and one applied batch travel as history.
- const owner={kind:'feature',ref:'local-cli'},definitionFile=names=>JSON.stringify({format:'uptime.monitors',version:1,monitors:names.map(name=>({name,url:`https://example.test/${name}`}))});
- for(const [names,undo] of [[['imported-a','imported-b'],true],[['imported-c'],false]]){const text=definitionFile(names),applied=await applyDefinitions(env,text,'auto',(await previewDefinitions(env,text)).digest,owner);if(undo)await undoBatch(env,applied.batchId,owner)}
+ // One applied-and-undone definition batch and one applied batch travel as history. Definition files now import through
+ // the import door, whose custody stays in the installation; these are the batches its earlier importer wrote, which the
+ // installation keeps with their read and undo: the same rows that importer committed in one batch.
+ const owner={kind:'feature',ref:'local-cli'};
+ async function legacyBatch(names){
+  const now=Date.now(),batchId=crypto.randomUUID(),statements=[],ids=[];
+  for(const name of names){const id=crypto.randomUUID(),definition=await assignDefinition(env,validateDefinition({name,url:`https://example.test/${name}`,enabled:false,maintenanceUntil:0,maintenanceWindows:[]},[]),{});
+   statements.push(...(await revisionStatements(env,definition,null,id,now,owner,{keepHeartbeatToken:true})).statements);ids.push(id)}
+  statements.push(env.DB.prepare('INSERT INTO definition_batches(id,created_at,actor_kind,actor_ref,source,plan_digest,counts) VALUES(?,?,?,?,?,?,?)').bind(batchId,now,owner.kind,owner.ref,'uptime.monitors','0'.repeat(64),JSON.stringify({create:names.length,unchanged:0,change:0,refused:0,unsupported:0})));
+  for(const id of ids)statements.push(env.DB.prepare('INSERT INTO definition_batch_entries(batch_id,monitor_id,action,revision,previous_revision) VALUES(?,?,?,?,?)').bind(batchId,id,'create',1,null));
+  await env.DB.batch(statements);return batchId;
+ }
+ for(const [names,undo] of [[['imported-a','imported-b'],true],[['imported-c'],false]]){const batchId=await legacyBatch(names);if(undo)await undoBatch(env,batchId,owner)}
  const original=await archive(env),a=tables(original);
  assert.equal(a.definition_batches.length,2);assert.equal(a.definition_batch_entries.length,3);assert.ok(a.definition_batches.every(b=>b.restored_at===null));const inventory=(await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name").all()).results;for(const {name} of inventory)assert.ok(TABLES.includes(name)||installationLocalTables[name]||name.startsWith('rer_portability_'),`Unclassified schema table: ${name}`);console.log('Archive schema inventory: '+inventory.map(({name})=>`${name}=${TABLES.includes(name)?'portable':'installation-local authority'}`).join(', '));
  // Real D1 carries Cloudflare's _cf_* tables (_cf_KV) that local D1 refuses to create, so inject their names under the real inventory query: platform tables are never refused, while any other unknown table, even one that merely resembles the prefix, still refuses.

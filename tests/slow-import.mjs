@@ -2,6 +2,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {fixture} from './resilience/support.mjs';
+import {definitionDoor} from './auth-test-support.mjs';
 
 test('saved Pingdom and Site24x7 thresholds preview without changing a monitor or inventing timeout semantics',{timeout:30000},async()=>{
  const f=await fixture();
@@ -22,9 +23,9 @@ test('saved Pingdom and Site24x7 thresholds preview without changing a monitor o
   const untouched=await f.request(`/api/monitors/${monitor.id}/slow-policy`);assert.equal(untouched.data.revision,monitor.revision);assert.equal(untouched.data.slow,null);
   const check={id:123,name:'Migrating checkout',hostname:'checkout.example.test',resolution:1,sendnotificationwhendown:2,type:{http:{encryption:true,verify_certificate:true,url:'/'}}};
   for(const threshold of [1500,10000,-1,'1500']){
-   const response=await f.request('/api/definitions/preview?source=pingdom',{body:{check:{...check,responsetime_threshold:threshold}}});
-   assert.equal(response.status,200);const plan=response.data;
-   if(threshold===1500){assert.equal(plan.entries[0].action,'create');const applied=await f.request(`/api/definitions/apply?source=pingdom&digest=${plan.digest}`,{body:{check:{...check,responsetime_threshold:threshold}}});assert.equal(applied.status,201);const saved=(await f.request('/api/overview')).data.monitors.find(m=>m.definition.name===check.name).definition;assert.equal(saved.slow.thresholdMs,1500);assert.deepEqual(saved.assertions.status,['2xx','3xx']);assert.equal(saved.timeoutMs,10000);assert.equal(saved.enabled,false)}else assert.equal(plan.entries[0].action,'refused');
+   const response=await definitionDoor({origin:f.origin,cookie:f.cookie}).preview({check:{...check,responsetime_threshold:threshold}},'pingdom');
+   assert.equal(response.status,200);const plan=response.body;
+   if(threshold===1500){assert.equal(plan.entries[0].action,'create');const applied=await definitionDoor({origin:f.origin,cookie:f.cookie}).apply(plan);assert.equal(applied.status,200);const saved=(await f.request('/api/overview')).data.monitors.find(m=>m.definition.name===check.name).definition;assert.equal(saved.slow.thresholdMs,1500);assert.deepEqual(saved.assertions.status,['2xx','3xx']);assert.equal(saved.timeoutMs,10000);assert.equal(saved.enabled,false)}else assert.equal(plan.entries[0].action,'refused');
   }
  }finally{await f.close()}
 });

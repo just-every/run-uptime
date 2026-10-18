@@ -8,18 +8,21 @@ import {sql} from './snapshots.ts'
 
 type AssignmentRunner=Pick<Runner,'runner_id'|'registered_at'|'network_label'|'legacy_key'|'revoked_at'|'capabilities'>
 export async function assignmentPolicy(database:D1Database){
- const {results}=await database.prepare('SELECT runner_id,registered_at,network_label,legacy_key,revoked_at,capabilities FROM runners ORDER BY registered_at,runner_id').all<AssignmentRunner>()
- return results
+ const [{results},external]=await Promise.all([
+  database.prepare('SELECT runner_id,registered_at,network_label,legacy_key,revoked_at,capabilities FROM runners ORDER BY registered_at,runner_id').all<AssignmentRunner>(),
+  database.prepare('SELECT url FROM external_check WHERE id=1').first<{url:string}>(),
+ ])
+ return {rows:results,external:external?.url??null}
 }
 /** Validate retained values against current real runners. No lifecycle writes or
  * implicit creation is permitted while an import is being reviewed/applied. */
-export function assignmentGuard(env:Bindings,definition:any,rows:AssignmentRunner[]):D1Sql{
- if(!['http','keyword','heartbeat'].includes(definition?.type)||definition.enabled!==false)throw Error('BUSINESS_IMPORT_UNSUPPORTED_DEFINITION')
+export function assignmentGuard(env:Bindings,definition:any,{rows,external}:Awaited<ReturnType<typeof assignmentPolicy>>):D1Sql{
+ if(!definition||typeof definition!=='object')throw Error('BUSINESS_IMPORT_UNSUPPORTED_DEFINITION')
  if(!rows.length)throw Error('BUSINESS_IMPORT_RUNNER_NOT_CONFIGURED')
  const runners:Runner[]=rows.map(row=>({...row,key_ciphertext:null,last_contact_at:null}))
  const first=rows.find(row=>row.legacy_key)?.runner_id??rows[0].runner_id
  const normalized=validateDefinition(definition,grants(env))
- const assigned=assignRunners(runners,first,normalized,{assignments:definition.assignments},null,env.RER_DEMO!=='1',env.UPTIME_ORIGIN)
+ const assigned=assignRunners(runners,first,normalized,{assignments:definition.assignments},external,env.RER_DEMO!=='1',env.UPTIME_ORIGIN)
  if(canonicalJson(assigned)!==canonicalJson(definition))throw Error('BUSINESS_IMPORT_ASSIGNMENTS_CHANGED_REVIEW_AGAIN')
  // Assignment authority is installation-local. Fence the set without selecting
  // runner secrets or noisy contact clocks into the retained import definition.
@@ -30,5 +33,6 @@ export function assignmentGuard(env:Bindings,definition:any,rows:AssignmentRunne
    AND r.network_label=json_extract(expected.value,'$.network_label')
    AND r.legacy_key=json_extract(expected.value,'$.legacy_key')
    AND r.revoked_at IS json_extract(expected.value,'$.revoked_at')
-   AND r.capabilities IS json_extract(expected.value,'$.capabilities')))`,rows.length,JSON.stringify(rows))
+   AND r.capabilities IS json_extract(expected.value,'$.capabilities')))
+  AND (SELECT url FROM external_check WHERE id=1) IS ?`,rows.length,JSON.stringify(rows),external)
 }

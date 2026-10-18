@@ -200,8 +200,8 @@ try{
       if(route.body==='empty')await send(route.method,valid,JSON.stringify({secret}));
       if(route.body==='object')for(const malformed of [secret,`["${secret}"]`,`{"value":"${secret}"`])await send(route.method,valid,malformed);
     }
-    await send('POST','/api/definitions/preview?source=uptime.monitors',secret);
-    await send('POST',`/api/definitions/apply?source=uptime.monitors&digest=${'0'.repeat(64)}`,secret);
+    await send('POST','/api/definitions/recognise?source=uptime.monitors',secret);
+    await send('POST','/api/operator/import/plan',secret);
     assert.equal(await tables(),before,'no refused input changed anything durable');
   });
   const claimed=await api('/api/runner/claim','POST',{}, {'x-runner-key':runner});

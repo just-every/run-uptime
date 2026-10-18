@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {authFixture} from './tls-auth-support.mjs';
 import {fixture} from './resilience/support.mjs';
+import {definitionDoor} from './auth-test-support.mjs';
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 export async function tlsTrustJourney(){
  let edge,receiving;
@@ -42,8 +43,8 @@ export async function tlsTrustJourney(){
    ['uptimerobot',JSON.stringify({data:[{id:46,friendlyName:'Imported legacy gateway',type:'HTTP',url:url(),interval:60,checkSSLErrors:false}],nextLink:null})],
    ['pingdom',JSON.stringify({check:{id:47,name:'Pingdom legacy gateway',hostname:'legacy.example.test',resolution:1,type:{http:{url:'/health',port:edge.server.address().port,encryption:true,verify_certificate:false,requestheaders:{'x-api-key':'source-secret-sentinel'}}}}})],
   ]){
-   const input=JSON.parse(text),preview=await f.request('/api/definitions/preview?source='+source,{body:input});assert.equal(preview.status,200);assert.equal(preview.data.entries[0].target.tlsTrust.mode,'ignore');if(source==='pingdom')assert.equal(preview.data.entries[0].target.credentialRef,'pingdom-47');assert.ok(!JSON.stringify(preview.data).includes('source-secret-sentinel'));
-   const applied=await f.request('/api/definitions/apply?source='+source+'&digest='+preview.data.digest,{body:input});assert.equal(applied.status,201,JSON.stringify(applied.data));
+   const imports=definitionDoor({origin:f.origin,cookie:f.cookie}),preview=await imports.preview(text,source);assert.equal(preview.status,200);assert.equal(preview.body.entries[0].target.tlsTrust.mode,'ignore');if(source==='pingdom')assert.equal(preview.body.entries[0].target.credentialRef,'pingdom-47');assert.ok(!JSON.stringify(preview.body).includes('source-secret-sentinel'));
+   const applied=await imports.apply(preview.body);assert.equal(applied.status,200,JSON.stringify(applied.body));
   }
   const archive=await f.request('/api/archive');assert.equal(archive.status,200);for(const secret of ['trust-private-sentinel','private-request-body','allowUnverifiedTls','source-secret-sentinel'])assert.ok(!JSON.stringify(archive.data).includes(secret));
   receiving=await fixture();assert.equal((await receiving.request('/api/restore',{body:archive.data})).status,200);const restored=await receiving.request('/api/overview');assert.ok(restored.data.monitors.every(m=>m.state.state==='Paused'));assert.ok(restored.data.monitors.some(m=>m.definition.tlsTrust?.mode==='ca'));

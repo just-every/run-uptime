@@ -37,6 +37,9 @@ export function sameTarget(left:TargetRow|undefined,right:TargetRow):boolean{
 /** Post-write values are derived from the real native definition and its numeric
  * revision. The marker holds kit identity only, never a second definition. */
 export function publishedPredicate(row:TargetRow):D1Sql{
+ // A restored pre-import state belongs to Uptime alone again: no marker remains.
+ if(row.revision.startsWith('native:'))return sql(`EXISTS(SELECT 1 FROM monitors WHERE id=? AND definition=?) AND NOT EXISTS(SELECT 1 FROM ${markerTable} WHERE monitor_id=?)`,
+  row.targetId,canonicalJson(row.value),row.targetId)
  return sql(`EXISTS(SELECT 1 FROM ${markerTable} b JOIN monitors m ON m.id=b.monitor_id
   WHERE b.monitor_id=? AND b.retired=0 AND b.kit_revision=? AND b.native_revision=m.revision AND m.definition=?)`,
   row.targetId,row.revision,canonicalJson(row.value))

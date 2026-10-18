@@ -179,11 +179,12 @@
         "node",
         "scripts/definitions.mjs"
       ],
-      "effects": "Monitor definition files for the local installation, through the same engine as the console Import view: validate and preview a file (uptime.monitors.json, saved UptimeRobot v3 GET /monitors pages, or an UptimeRobot log export counted as history) without writing; apply exactly the previewed plan digest as one batch with new monitors paused; export current definitions to a new file; list batches and undo one. Never enables a monitor, issues a heartbeat token, schedules a notification or touches a destination. Pass validate|preview|apply|export|batches|undo and their flags; stop dev or preview first.",
+      "effects": "Monitor definition files for the local installation, through the same planner and owner import door as the console Definitions view: validate and preview a file (uptime.monitors.json, saved UptimeRobot v3 GET /monitors pages, Pingdom check details, Better Stack heartbeat pages, or an UptimeRobot log export counted as history) without writing; apply plans through the import door as the owner and applies only a plan that reads as the previewed digest, with new monitors paused; export current definitions to a new file; list batches and undo one. Never enables a monitor, issues a heartbeat token, schedules a notification or touches a destination. Pass validate|preview|apply|export|batches|undo and their flags; stop dev or preview first.",
       "inputs": [
         "package.json",
         "scripts/definitions.mjs",
-        "src/domain/definitions/index.server.ts"
+        "src/domain/definitions/index.server.ts",
+        "src/domain/business-import/door.server.ts"
       ],
       "requiredEnvironment": []
     },

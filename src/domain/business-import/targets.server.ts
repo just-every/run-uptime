@@ -13,7 +13,7 @@ export function businessTargets(env:Bindings,ownerId:string):D1TargetAdapter{
  const remember=async(database:D1Database,id:string)=>{
   const [snapshot,currentRunners]=await Promise.all([readSnapshot(database,id),runners?Promise.resolve(runners):assignmentPolicy(database)])
   runners=currentRunners
-  if(snapshot.native&&snapshot.marker&&!snapshot.marker.retired)snapshot.started=await lastScheduledStart(env,id)
+  if(snapshot.native&&!snapshot.marker?.retired)snapshot.started=await lastScheduledStart(env,id)
   snapshots.set(id,snapshot);return snapshot
  }
  const need=(id:string)=>{const snapshot=snapshots.get(id);if(!snapshot)throw Error('BUSINESS_IMPORT_NATIVE_READ_REQUIRED');return snapshot}

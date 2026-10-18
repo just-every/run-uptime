@@ -152,6 +152,16 @@ try{
  const undone=await good('undo',{planId:plan.planId});assert.equal(undone.job.state,'undone');
  assert.deepEqual((await DB.prepare('SELECT * FROM monitors ORDER BY id').all()).results,rows,'undo keeps paused native monitors and their history');
  assert.equal((await owner('/api/definitions/batches')).body.find(row=>row.id===batch.id).undone,true);
+ // Undo released those monitors to Uptime: a changed export of the same records explains them at plan time instead of
+ // offering additions an apply would refuse, and the plan is cancelled without a write.
+ const changedSource=Buffer.from(source.toString().replaceAll('"timeout":5','"timeout":7'));
+ const changedUpload=await good('uploads',{name:'uptimerobot.changed.ndjson',bundleSha256:hash(changedSource),totalBytes:changedSource.length,totalChunks:1,index:0,chunkSha256:hash(changedSource),base64:changedSource.toString('base64')});
+ const beforeReplan=await snapshot(),released=await good('plan',{uploadId:changedUpload.uploadId});
+ assert.equal(released.counts.effects,0,'released monitors are never offered as additions');
+ assert.deepEqual(released.rejected.map(row=>row.sourceId).sort(),['1001','1002','1003']);
+ for(const row of released.rejected.filter(row=>row.sourceId!=='1003'))assert.match(row.reason,/released by undo or erasure; it stays in Uptime as its own monitor\. Erase that monitor to import it again\./);
+ assert.equal((await good('undo',{planId:released.planId})).state,'cancelled');
+ nativeUnchanged(beforeReplan,await snapshot(),2,'planning and cancelling the released export write nothing native');
  assert.ok(importAudit(await exported('after undo')).some(row=>row.action==='business_import_undo'&&row.actor_ref===ownerId));
  // The ordinary owner history remains an undo door after Business is disabled or its key revoked.
  assert.equal((await settings({enabled:false,revokedKeyIds:[kid]})).status,200);

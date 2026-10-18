@@ -1,5 +1,5 @@
 import {readDeliveredMessages} from './mail-provider-fixture.mjs';
-import {randomBytes} from 'node:crypto';
+import {randomBytes,randomUUID,createHash} from 'node:crypto';
 import {request as httpRequest} from 'node:http';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -75,4 +75,38 @@ export async function hostRequest(origin,path,host,extra={}){
   const request=httpRequest(origin+path,{headers:{host,...extra}},response=>{let body='';response.setEncoding('utf8');response.on('data',chunk=>body+=chunk);response.on('end',()=>resolve(new Response(body,{status:response.statusCode,headers:response.headers})));response.on('error',reject)});
   request.on('error',reject);request.end();
  });
+}
+
+// The Definitions view's transport, for HTTP journeys: the server names the file's source, the file goes to the owner's
+// import door exactly as chosen (one NDJSON line holding its text, in checked chunks), the door plans and the view reads
+// that plan; apply posts the reviewed fingerprint until the job completes and reconciles; undo runs through the door.
+export function definitionDoor({origin,cookie,fetcher=fetch}){
+ const call=async(path,{body,headers={}}={})=>{const response=await fetcher(origin+path,{method:body===undefined?'GET':'POST',headers:{origin,cookie,...(body===undefined?{}:{'content-type':'application/json'}),...headers},body});return {status:response.status,body:await response.json().catch(()=>null)}};
+ const door=(namespace,step,body)=>call('/api/operator/import/'+step,{body:JSON.stringify(body),headers:{'x-import-source':namespace}});
+ const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+ async function preview(file,source='auto'){
+  const raw=typeof file==='string'||file instanceof Uint8Array?file:JSON.stringify(file);
+  const recognised=await call('/api/definitions/recognise?source='+encodeURIComponent(source),{body:raw,headers:{'content-type':/^\s*[[{]/.test(Buffer.from(raw).toString('utf8'))?'application/json':'text/csv'}});
+  if(recognised.status!==200)return recognised;
+  const namespace=recognised.body.source==='uptime.monitors'?`uptime.monitors:${randomUUID()}`:recognised.body.source;
+  const bytes=Buffer.from(JSON.stringify(Buffer.from(raw).toString('utf8'))+'\n'),totalChunks=Math.ceil(bytes.length/65536);let uploadId;
+  for(let index=0;index<totalChunks;index++){const chunk=bytes.subarray(index*65536,(index+1)*65536),uploaded=await door(namespace,'uploads',{...(uploadId?{uploadId}:{}),name:'definitions.ndjson',bundleSha256:hash(bytes),totalBytes:bytes.length,totalChunks,index,chunkSha256:hash(chunk),base64:chunk.toString('base64')});if(uploaded.status!==200)return uploaded;uploadId=uploaded.body.uploadId}
+  let plan=await door(namespace,'plan',{uploadId});
+  if(plan.status===409&&plan.body?.error==='catchup_required')plan=await door(namespace,'plan',{uploadId,catchup:true});
+  if(plan.status!==200)return plan;
+  return call('/api/definitions/plans/'+encodeURIComponent(plan.body.planId));
+ }
+ async function until(namespace,step,body,state){
+  for(let n=0;n<100;n++){const result=await door(namespace,step,body);if(result.status!==200||result.body.job?.state===state||!['queued','applying','undoing'].includes(result.body.job?.state))return result}
+  throw Error(`${step} did not finish`);
+ }
+ async function apply(view,fingerprint=view.digest){
+  const applied=await until(view.namespace,'apply',{planId:view.planId,reviewedFingerprint:fingerprint},'completed');
+  if(applied.status!==200||applied.body.job.state!=='completed')return applied;
+  const report=await door(view.namespace,'reconcile',{planId:view.planId});
+  return {status:applied.status,body:{batchId:'business:'+view.planId,namespace:view.namespace,job:applied.body.job,report:report.body,
+   created:view.entries.filter(e=>e.action==='create').map(e=>e.monitorId),changed:view.entries.filter(e=>e.action==='change').map(e=>e.monitorId)}};
+ }
+ const undo=batch=>until(batch.namespace,'undo',{planId:batch.batchId.slice('business:'.length)},'undone');
+ return {call,door,preview,apply,undo};
 }

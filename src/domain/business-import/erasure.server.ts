@@ -14,7 +14,9 @@ export async function businessErasureScope(env:Bindings,id:string,name:string){
   const text=chunks.map(chunk=>chunk.body).join('')
   if(sha256(text)!==plan.snapshot_hash)throw Error('Business import custody changed; erasure was not applied.')
   const snapshot=JSON.parse(text)
-  if(snapshot.plan.entries.some((entry:any)=>entry.effects.some((effect:any)=>effect.targetId===id)||entry.source.payload?.friendlyName===name))namespaces.add(plan.namespace)
+  // A source record names the monitor by its target or, in each reader's own field, by name.
+  const named=(payload:any)=>[payload?.friendlyName,payload?.name,payload?.attributes?.name].includes(name)
+  if(snapshot.plan.entries.some((entry:any)=>entry.effects.some((effect:any)=>effect.targetId===id)||named(entry.source.payload)))namespaces.add(plan.namespace)
  }
  return [...namespaces]
 }

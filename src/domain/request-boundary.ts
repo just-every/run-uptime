@@ -9,7 +9,7 @@ type Body='none'|'empty'|'object'|'text'
 interface Route{method:string;path:string;params?:Record<string,(value:string)=>boolean>;query?:Record<string,(value:string)=>boolean>;body:Body}
 const identity=(value:string)=>value.length>0&&value.length<=512&&!/[\x00-\x1f\x7f]/.test(value)
 const uuid=(value:string)=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(value)
-const id={id:identity},source=(value:string)=>SOURCES.includes(value),digest=(value:string)=>/^[0-9a-f]{64}$/.test(value)
+const id={id:identity},source=(value:string)=>SOURCES.includes(value)
 const reportQuery={...Object.fromEntries(['period','from','to','timeZone','zone','sla','slaTarget','bucket','location','rootCause'].map(name=>[name,(value:string)=>identity(value)&&value.length<=150])),format:(value:string)=>['csv','json','pdf'].includes(value)}
 const incidentQuery=Object.fromEntries(['monitor','tag','from','to','state','rootCause','cursor','limit'].map(name=>[name,identity]))
 export const apiRoutes:readonly Route[]=[
@@ -76,9 +76,9 @@ export const apiRoutes:readonly Route[]=[
  {method:'POST',path:'/api/runner/discoveries/:id/result',params:{id:uuid},body:'object'},
  {method:'GET',path:'/api/archive',body:'none'},
  {method:'POST',path:'/api/restore',body:'object'},
- // A definitions file is JSON, NDJSON or CSV text; its importer parses it, refusing anything it cannot read.
- {method:'POST',path:'/api/definitions/preview',query:{source},body:'text'},
- {method:'POST',path:'/api/definitions/apply',query:{source,digest},body:'text'},
+ // A definitions file is JSON, NDJSON or CSV text; its importer reads it, refusing anything it cannot read.
+ {method:'POST',path:'/api/definitions/recognise',query:{source},body:'text'},
+ {method:'GET',path:'/api/definitions/plans/:id',params:id,body:'none'},
  {method:'GET',path:'/api/definitions/export',body:'none'},
  {method:'GET',path:'/api/definitions/batches',body:'none'},
  {method:'POST',path:'/api/definitions/batches/:id/undo',params:id,body:'empty'},

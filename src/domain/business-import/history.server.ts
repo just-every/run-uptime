@@ -4,21 +4,26 @@ import type {AuditActor} from '../audit.server.ts'
 import {readImportDoorHistory} from '../../base/modules/import-kit/src/door/index.ts'
 import {undoD1Import,rollbackD1Import} from '../../base/modules/import-kit/src/d1/reverse.ts'
 import {businessOwnerAuthority,ownerImportContext,DOOR_KEY} from './context.server.ts'
+import type {D1Sql} from '../../base/modules/import-kit/src/d1/types.ts'
 
-export async function definitionImportHistory(env:Bindings,request:Request){
+export async function definitionImportHistory(env:Bindings,request:Request){return importHistory(env,await businessOwnerAuthority(env,request))}
+/** Uptime's own definition batches and every import-door job, owner's and Business's, newest first. */
+export async function importHistory(env:Bindings,authority:D1Sql){
  const native=await listBatches(env),installation=DOOR_KEY
- const history=await readImportDoorHistory(env.DB,installation,await businessOwnerAuthority(env,request)) as Array<Record<string,any>>
+ const history=await readImportDoorHistory(env.DB,installation,authority) as Array<Record<string,any>>
  const business=await Promise.all(history.map(async item=>{
   const records=(await env.DB.prepare(`SELECT p.target_id,m.definition,m.revision,p.record_json FROM ik_provenance p
-   LEFT JOIN monitors m ON m.id=p.target_id WHERE p.job_id=? ORDER BY p.id`).bind(item.jobId).all<any>()).results
+   LEFT JOIN monitors m ON m.id=p.target_id WHERE p.job_id=? ORDER BY p.ordinal,p.effect_ordinal`).bind(item.jobId).all<any>()).results
   const undone=['undone','rolled_back'].includes(String(item.state))
-  return {id:'business:'+item.planId,createdAt:Date.parse(String(item.approvedAt)),source:item.namespace,
+  const entries=records.map(row=>{const provenance=JSON.parse(row.record_json);return {monitorId:row.target_id,
+   name:row.definition?JSON.parse(row.definition).name:null,action:provenance.before?'change':'create',
+   revision:row.revision,currentRevision:row.revision,undoOutcome:undone?(provenance.before?'restored':'paused'):null}})
+  // A reviewed definition file has its own namespace per preview; it reads as its source.
+  return {id:'business:'+item.planId,createdAt:Date.parse(String(item.approvedAt)),source:String(item.namespace).split(':')[0],namespace:item.namespace,
    failed:item.failureCode??(item.state==='failed'?item.error??'import_door_apply_failed':null),
-   counts:{create:records.length,change:0},undoneAt:null,undone,restoredAt:null,
+   counts:{create:entries.filter(e=>e.action==='create').length,change:entries.filter(e=>e.action==='change').length},undoneAt:null,undone,restoredAt:null,
    businessApproval:{owner:item.owner,approvedAt:item.approvedAt,fingerprint:item.fingerprint,approvalId:item.approvalRecordId,via:item.reviewer==='operator'?'owner':'business'},
-   entries:records.map(row=>{const provenance=JSON.parse(row.record_json);return {monitorId:row.target_id,
-    name:row.definition?JSON.parse(row.definition).name:null,action:provenance.before?'change':'create',
-    revision:row.revision,currentRevision:row.revision,undoOutcome:undone?'paused':null}})}
+   entries}
  }))
  return [...native,...business].sort((a,b)=>b.createdAt-a.createdAt)
 }
