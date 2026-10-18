@@ -4,7 +4,7 @@ export function flowLaunchOptions(engine, {home, proxy} = {}) {
   const env = {HOME: process.env.HOME, ...(home ? {TMPDIR: home} : {}), LANG: 'C.UTF-8',
     ...(process.env.PLAYWRIGHT_BROWSERS_PATH ? {PLAYWRIGHT_BROWSERS_PATH: process.env.PLAYWRIGHT_BROWSERS_PATH} : {})};
   const options = {headless: true, timeout: 20000, env,
-    ...(proxy ? {proxy: {server: `http://127.0.0.1:${proxy.port}`, username: proxy.username, password: proxy.password, bypass: ''}} : {})};
+    ...(proxy ? {proxy: {server: `http://127.0.0.1:${proxy.port}`, username: proxy.username, password: proxy.password, bypass: engine==='chromium'?'<-loopback>':''}} : {})};
   if (engine === 'chromium') options.args = [
     '--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1', '--disable-quic', '--disable-background-networking', '--disable-component-update', '--no-pings', '--disable-sync', '--no-first-run', '--no-default-browser-check',
     '--force-webrtc-ip-handling-policy=disable_non_proxied_udp', '--webrtc-ip-handling-policy=disable_non_proxied_udp',
