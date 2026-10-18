@@ -68,6 +68,13 @@ try{
  assert.equal(rows.length,2);assert.ok(rows.every(row=>JSON.parse(row.definition).enabled===false));
  assert.deepEqual(JSON.parse(rows.find(row=>JSON.parse(row.definition).name==='Checkout API').definition).assertions.status,[200,201]);
  for(const name of ['observations','slots','outbox','notification_jobs','notification_destinations','heartbeat_authority'])assert.deepEqual((await snapshot())[name],beforePlan[name],`${name} stays inert`);
+ // The owner's private archive stays exportable with door rows present, and carries no import custody.
+ const exported=async label=>{const archive=await owner('/api/archive');assert.equal(archive.status,200,`${label}: ${JSON.stringify(archive.body)}`);
+  assert.doesNotMatch(JSON.stringify(archive.body),/ik_(jobs|door|provenance)|uptime_business_import_targets/,`${label}: no import custody in the archive`);return archive.body};
+ const ownerId=(await DB.prepare('SELECT id FROM oa_operators').first()).id;
+ const importAudit=archive=>[...Object.values(archive.payload.tables),...Object.values(archive.payload.productTables??{})].flat().filter(row=>row?.action?.startsWith?.('business_import_'));
+ const afterApply=importAudit(await exported('after apply'));
+ assert.equal(afterApply.length,2);assert.ok(afterApply.every(row=>row.action==='business_import_create'&&row.actor_kind==='operator'&&row.actor_ref===ownerId&&row.subject_kind==='monitor'),'door audit names the owner operator');
  const reconciliation=await good('reconcile',{planId:plan.planId});assert.equal(reconciliation.ok,true);assert.equal(reconciliation.counts.sourceRecords,3);assert.equal(reconciliation.counts.nativeTargets,2);
  const status=await good('status',{planId:plan.planId});assert.equal(status.approval.approval_id,approval.approvalRecordId);
  const history=(await owner('/api/definitions/batches')).body,batch=history.find(row=>row.id==='business:'+plan.planId);
@@ -75,6 +82,7 @@ try{
  const undone=await good('undo',{planId:plan.planId});assert.equal(undone.job.state,'undone');
  assert.deepEqual((await DB.prepare('SELECT * FROM monitors ORDER BY id').all()).results,rows,'undo keeps paused native monitors and their history');
  assert.equal((await owner('/api/definitions/batches')).body.find(row=>row.id===batch.id).undone,true);
+ assert.ok(importAudit(await exported('after undo')).some(row=>row.action==='business_import_undo'&&row.actor_ref===ownerId));
  // The ordinary owner history remains an undo door after Business is disabled or its key revoked.
  assert.equal((await settings({enabled:false,revokedKeyIds:[kid]})).status,200);
  assert.equal((await door('status',{planId:plan.planId})).status,404);

@@ -7,7 +7,7 @@ import {markerTable,markerPredicate,nativePredicate,sql,together,type Snapshot} 
 const assert=(predicate:D1Sql)=>sql(`SELECT CASE WHEN (${predicate.sql}) THEN 1 ELSE json('BUSINESS_IMPORT_NATIVE_CONFLICT') END`,...predicate.params??[])
 function audit(ownerId:string,id:string,action:string,now:number):D1Sql{
  return sql(`INSERT INTO uptime_audit(id,actor_kind,actor_ref,occurred_at,action,subject_kind,subject_ref)
-  VALUES(?,'feature',?,?,?,?,?)`,crypto.randomUUID(),`business-import:${ownerId}`,now,action,'monitor',id)
+  VALUES(?,'operator',?,?,?,?,?)`,crypto.randomUUID(),ownerId,now,action,'monitor',id)
 }
 /** Pure SQL equivalent of revisionStatements: the async scheduled-start lookup
  * has already happened in read(). The kit executes these statements together
