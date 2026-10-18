@@ -1,3 +1,4 @@
+import {flowArtifacts} from './artifacts.mjs';
 import {numericRequestRefusal} from './request-policy.mjs';
 // The browser process of one flow run. Started by run-flow.mjs with the run's folder as its argument, the signed-in account HOME and a private temporary directory, a sanitized environment, and the job on stdin (the flow, the credentials its fill steps name, the filtering proxy to use). It
 // reports one JSON line per finished step and a last line with the result, and exits. It evaluates nothing the flow's author wrote:
@@ -59,6 +60,7 @@ try {
 } catch { await browser?.close().catch(()=>{}); if (abandoned) await new Promise(() => {}); emit({t: 'done', launchFailed: true}); process.exit(0); }
 
 const page = context.pages()[0] ?? await context.newPage();
+const artifacts=await flowArtifacts({context,page,credentials,policy:job.snapshotPolicy,base});
 // A second page (a popup or window.open) is a second origin the flow did not declare.
 context.on('page', p => { if (p !== page) { fail('extra_page'); p.close().catch(() => {}); } });
 page.on('dialog', d => d.dismiss().catch(() => {}));
@@ -136,6 +138,7 @@ try {
       }
       record({url: shownUrl()});
     }
+    await artifacts.frame();
   }
   if(proxyChallengePending)throw Error('The filtering proxy did not authenticate the browser');
   const outcomes = [];
@@ -149,7 +152,10 @@ try {
       if (!observed && !failure) { step = flow.steps.length + k; fail('outcome_missing'); }
     }
   } else for (const o of flow.outcomes) outcomes.push({id: o.id, observed: false});
-  emit({t: 'done', failure, finalUrl: shownUrl(), pages: Math.min(pages, FLOW_LIMITS.maxPages + 1), outcomes});
+  if(failure)await artifacts.frame();
+  emit({t:'done',completedAt:Date.now(),failure,finalUrl:shownUrl(),pages:Math.min(pages,FLOW_LIMITS.maxPages+1),outcomes});
+  const failureArtifacts=await artifacts.finish(Boolean(failure));
+  if(failureArtifacts)emit({t:'artifacts',value:failureArtifacts});
 } catch {
   emit({t: 'done', crashed: true});
 } finally {

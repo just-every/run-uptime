@@ -4,6 +4,7 @@
 // evidence format; it never throws for a failing flow, and it reports a runner-side problem (no browser, missing credential) as
 // runner_error, which the control plane shows as Unknown, never as a pass or a failure. No credential value leaves this function:
 // every URL, expectation and reason it returns has each named value replaced, in whatever encoding the site gave it.
+import {tryCaptureFailureSnapshot} from '../../../src/domain/failure-snapshot.mjs';
 import {demoMode} from '../demo-policy.mjs';
 import {spawn} from 'node:child_process';
 import {mkdtemp, mkdir, rm, chmod} from 'node:fs/promises';
@@ -20,7 +21,7 @@ import {readGrant} from '../grants.mjs';
 import {flowProfile} from '../../../src/domain/flow-profile.mjs';
 
 const here = new URL('./child.mjs', import.meta.url).pathname;
-const MAX_CHILD_OUTPUT = 256 * 1024;
+const MAX_CHILD_OUTPUT = 512 * 1024;
 
 const reasonText = (failure, flow, wallMs) => {
   const at = failure.step !== undefined ? `Step ${failure.step + 1}` : 'The run';
@@ -43,7 +44,7 @@ const reasonText = (failure, flow, wallMs) => {
   }
 };
 
-export async function runFlow(definition, probe, {grantPath, controlPort, workspace, credentialDir = process.env.UPTIME_CREDENTIAL_DIR, capability, monitorId, signal, privateAccess} = {}) {
+export async function runFlow(definition, probe, {grantPath, controlPort, workspace, credentialDir = process.env.UPTIME_CREDENTIAL_DIR, capability, monitorId, signal, privateAccess, snapshotPolicy} = {}) {
   const startedAt = Date.now(), flow = definition.flow, profile = flowProfile(flow);
   const observation = data => ({id: randomUUID(), probe, startedAt, completedAt: Date.now(), durationMs: 0, runnerVersion: RUNNER_VERSION, ...data});
   const finish = o => ({...o, durationMs: o.completedAt - o.startedAt});
@@ -76,7 +77,7 @@ export async function runFlow(definition, probe, {grantPath, controlPort, worksp
   const home = join(base, 'home');
   let child, timer, killedForTime = false, output = '', tooMuch = false, stats;
   const entries = [], arrivals = [];
-  let done;
+  let done, failureArtifacts;
   const stop = () => { if (child?.pid) void killTree(child.pid); };
   try {
     // The fourth pipe is the child's lifeline: it closes only when this process ends, however it ends, and the child then removes
@@ -89,12 +90,12 @@ export async function runFlow(definition, probe, {grantPath, controlPort, worksp
       let i;
       while ((i = output.indexOf('\n')) >= 0) {
         const line = output.slice(0, i); output = output.slice(i + 1);
-        try { const m = JSON.parse(line); if (m.t === 'entry') { entries.push(m.entry); arrivals.push(Date.now()); } else if (m.t === 'done') done = m; } catch {}
+        try { const m = JSON.parse(line); if (m.t === 'entry') { entries.push(m.entry); arrivals.push(Date.now()); } else if (m.t === 'done') done = m; else if(m.t==='artifacts')failureArtifacts=m.value; } catch {}
       }
     });
     child.on('error', () => {});
     child.stdin.on('error', () => {});
-    child.stdin.end(JSON.stringify({demo:demoMode(),network:definition.network,flow, profile, url: definition.url, home, proxy: {port: proxy.port, username: proxy.username, password: proxy.password}, credentials, deadlineMs: deadlineMs - 3000, maxPages: FLOW_LIMITS.maxPages}));
+    child.stdin.end(JSON.stringify({demo:demoMode(),network:definition.network,snapshotPolicy,flow, profile, url: definition.url, home, proxy: {port: proxy.port, username: proxy.username, password: proxy.password}, credentials, deadlineMs: deadlineMs - 3000, maxPages: FLOW_LIMITS.maxPages}));
     signal?.addEventListener('abort', stop, {once: true});
     if (signal?.aborted) stop();
     timer = setTimeout(() => { killedForTime = true; killTree(child.pid); }, deadlineMs);
@@ -112,15 +113,15 @@ export async function runFlow(definition, probe, {grantPath, controlPort, worksp
   }
   if (signal?.aborted) return interrupted();
   if(stats.blocked.some(b=>b.class==='private_grant_refused'))return runnerError('grant','Private network permission was unavailable for a page request; no forbidden destination was contacted');
-  const completedAt = Date.now();
-  if (tooMuch || (!done && !killedForTime) || done?.launchFailed || done?.crashed) return runnerError('browser', done?.launchFailed ? 'The browser could not be started on this runner' : 'The browser process ended without a result');
+  const completedAt = Number.isSafeInteger(done?.completedAt)?done.completedAt:Date.now();
+  if ((!done && (tooMuch || !killedForTime)) || done?.launchFailed || done?.crashed) return runnerError('browser', done?.launchFailed ? 'The browser could not be started on this runner' : 'The browser process ended without a result');
   // Reasons and the step they belong to, in the order of authority: the clock, the byte limit, what the proxy refused, then the page.
   let failure = done?.failure ?? undefined;
   const stepAt = at => Math.min(arrivals.filter(a => a <= at).length, flow.steps.length + flow.outcomes.length - 1);
   const violation = stats.blocked.find(b => b.violation);
   if (violation && !(failure && ['undeclared_origin', 'extra_page'].includes(failure.reason))) failure = {step: stepAt(violation.at), reason: 'blocked_request', blocked: violation.class};
   if (stats.exceeded) failure = {step: failure?.step ?? stepAt(completedAt), reason: 'bytes_limit', limit: 'maxBytes'};
-  if (killedForTime || done?.failure?.reason === 'wall_time_exceeded') failure = {step: failure?.reason === 'wall_time_exceeded' ? failure.step : stepAt(completedAt), reason: 'wall_time_exceeded', limit: 'wallMs'};
+  if (killedForTime&&!done || done?.failure?.reason === 'wall_time_exceeded') failure = {step: failure?.reason === 'wall_time_exceeded' ? failure.step : stepAt(completedAt), reason: 'wall_time_exceeded', limit: 'wallMs'};
   // The step a failure belongs to shows that failure's reason, whichever way the page first showed it.
   const redact = credentialRedactor(credentials), text = value => redact(value, 300);
   const trace = entries.map(e => ({...e, ...(e.url !== undefined ? {url: text(e.url)} : {}), ...(e.expect !== undefined ? {expect: text(e.expect)} : {})}))
@@ -137,5 +138,6 @@ export async function runFlow(definition, probe, {grantPath, controlPort, worksp
   }
   const ok = !result.failure && passed;
   const reason = ok ? `All ${flow.steps.length} steps passed and ${flow.outcomes.length} required outcome${flow.outcomes.length === 1 ? ' was' : 's were'} observed` : redact(reasonText(result.failure, flow, deadlineMs), 290);
-  return finish(observation({completedAt, outcome: ok ? 'pass' : 'target_failure', checks: [{assertion: 'flow', pass: ok, reason}], flow: result}));
+  const failureSnapshot=ok?undefined:tryCaptureFailureSnapshot({requestSecrets:Object.values(credentials).map(c=>c.value),masks:snapshotPolicy?.masks??[],version:1,method:'GET',url:text(plainUrl(definition.url)),redirects:[],requestHeaders:{},responseHeaders:{},status:null,durationMs:completedAt-startedAt,body:reason,bodyTruncated:false,policyVersion:snapshotPolicy?.version??0,...(failureArtifacts??{screenshot:{unavailable:'capture_failed'},artifacts:{video:{unavailable:'capture_failed'},trace:{unavailable:'capture_failed'},waterfall:[],console:[]}})});
+  return finish(observation({...(failureSnapshot?{failureSnapshot}:{}),completedAt, outcome: ok ? 'pass' : 'target_failure', checks: [{assertion: 'flow', pass: ok, reason}], flow: result}));
 }

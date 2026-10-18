@@ -307,7 +307,7 @@ Heartbeat tokens are owner-issued, hashed at rest, scoped to an immutable revisi
 
 ## Flows
 
-FLOW-004’s Chromium, Firefox and WebKit desktop/mobile execution is implemented. FLOW-001’s broader login/signup/checkout support qualification remains partial, and FLOW-002/FLOW-003 retain their separate Status-table gaps. The following describes the constrained implementation and its retained safety obligations.
+FLOW-004’s Chromium, Firefox and WebKit desktop/mobile execution and FLOW-003’s opt-in redacted failure artifacts are implemented. FLOW-001’s broader login/signup/checkout support qualification and FLOW-002’s reusable scripts retain their separate Status-table gaps. The following describes the constrained implementation and its retained safety obligations.
 
 A flow is validated by the same function in the Worker, the definitions engine and the runner. Steps are `goto`, `click`, `fill` (a `credentialRef`, never a value), `waitFor` and `expect`; a target is exactly one of a plain CSS selector, text, label, or a role with its name. Required outcomes have an id and an expectation, and every one must be observed after the last step. Unknown step kinds and fields, scripts, other selector engines, secrets, intervals under 5 minutes, more than 20 steps or 8 outcomes, and more than 5 flows in an installation are refused with the entry named. Bounds per run: 60 seconds of wall time, 8 top-level pages, 5 MiB of response bytes, an 8 KiB trace; exceeding one fails the run and names it.
 
@@ -422,13 +422,13 @@ Protocol round (17 October 2026): TCP-001, DNS-001, TLS-001 and DOMAIN-001 moved
 
 Judged from the code and tests at commit `c62a64e` (19 October 2026).
 
-The READAPI-001 evidence and remaining scope and OPS-001 durable recovery include their implementation rounds after that baseline.
+READAPI-001 evidence and remaining scope, OPS-001 durable recovery, INTERFACE-001 local owner-console acceptance and FLOW-003 safe failure artifacts include their implementation rounds after that baseline.
 
 | Clauses | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
 | Published | 18 | 3 | 0 | 21 |
-| Target and push further | 22 | 27 | 18 | 67 |
-| All | 40 | 30 | 18 | 88 |
+| Target and push further | 23 | 26 | 18 | 67 |
+| All | 41 | 29 | 18 | 88 |
 
 | Clause | Title | Kind | Status | Evidence | Gap |
 | --- | --- | --- | --- | --- | --- |
@@ -482,7 +482,7 @@ The READAPI-001 evidence and remaining scope and OPS-001 durable recovery includ
 | `DEPENDENCY-001` | External dependency checks | target | done | `runners/src/discovery/stages/status-page.mjs`; `tests/discovery-jobs.mjs` |  |
 | `DEPENDENCY-002` | Third-party service catalog | target | missing |  | No implementation; third-party status sources are reached only through DEPENDENCY-001 discovery proposals (`runners/src/discovery/stages/status-page.mjs`). Acceptance journey above is required. |
 | `FLOW-002` | Reusable Playwright monitoring as code | target | partial | `runners/src/flow/child.mjs`; `src/domain/flow.mjs`; `tests/flow-journey.mjs` | Internal Playwright executes constrained steps; suite/script and fixture reuse are absent. |
-| `FLOW-003` | Useful and safe browser failure artifacts | target | partial | `src/domain/flow.mjs`; `runners/src/flow/run-flow.mjs`; `tests/flow-journey.mjs` | Only sanitized step traces exist; screenshots, native traces, video and waterfalls are absent. |
+| `FLOW-003` | Useful and safe browser failure artifacts | target | done | `runners/src/flow/artifacts.mjs`; `src/domain/flow-artifacts.mjs`; `src/domain/failure-page-custody.server.ts`; `public/assets/failure-snapshot-view.js`; `tests/flow-journey.mjs`; `tests/flow-artifact-journey.mjs` |  |
 | `FLOW-004` | Cross-browser and mobile transactions | target | done | `src/domain/flow-profile.mjs`; `runners/src/flow/`; `src/domain/reports/flow-profiles.server.ts`; `tests/flow-profiles.mjs`; `tests/flow-profiles-browser.mjs`; `docs/evidence/contracts/browser-profiles/` | Each monitor selects Chromium, Firefox or WebKit and desktop/mobile (390 × 844 touch) context. Immutable signed evidence, independent consensus, revision-bounded console/JSON/CSV/PDF reports and inactive archives preserve that profile. The real three-engine checkout, mobile-only failure, denied metadata subresources, forged profile refusal and missing-engine Unknown are proven with desktop/phone configuration and evidence. Native devices remain a separate integration. |
 | `ROUTING-001` | Monitor, service and team alert routing | target | partial | `src/domain/alert-routes.server.ts`; `src/domain/alert-route-delivery.server.ts`; `public/assets/alert-route.js`; `tests/alert-routes.mjs`; `docs/evidence/contracts/routing/` | Monitor → service → group → installation inheritance, explicit empty selection, credential/disabled/missing exclusions, recipient and affected-monitor previews, stale-plan guards, labelled tests, durable audit and original accepted-trigger recipient/credential recovery now ship. ROUTING-002 now supplies per-contact delay/repeat/cap, recovery preference and acknowledgement-stop policies, plus reviewed saved UptimeRobot/Pingdom schedule previews. Teams, environment/severity/region/origin/business and quiet-hour rules, transport retry/fallbacks, portable route settings/history and expiry/renewal routing remain absent; no live provider or human receipt claim is made. |
 | `ROUTING-002` | Per-contact alert delay and repeat | target | done | `src/domain/contact-scheduler.server.ts`; `src/domain/contact-schedule-import.ts`; `public/assets/alert-route.js`; `tests/contact-schedules.mjs`; `tests/contact-schedules-browser.mjs`; `docs/evidence/contracts/contact-schedules/` | Confirmation-time contact snapshots provide 0–24h delays, 1-minute–24h repeats with optional caps, recovery preference, acknowledgement stop, next-due incident reads and distinct durable reminder events. Early recovery suppresses delayed trigger and recovery; restart, uncertainty without replay, saved UptimeRobot threshold/recurrence and Pingdom result-count conversion are proven through Worker/runner routes and desktop/phone console. Named channels follow their own clauses; provider acknowledgement is not recipient receipt. |
