@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {createHmac} from 'node:crypto';
+import {createHmac,randomBytes} from 'node:crypto';
 import {mkdtemp,readFile,readdir,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -9,6 +9,7 @@ import {splitSql} from './migration-support.mjs';
 // A hosted install with no private runner: HTTP setup -> real scheduled handler -> webhook and Slack receivers.
 // Only public DNS/HTTP network edges are faked.
 const directory=await mkdtemp(join(tmpdir(),'uptime-hosted-alerts-')),origin='https://uptime.example.test';
+const headerSecret=randomBytes(32).toString('hex');
 const received=[];let requests=0;
 let worker;
 try{
@@ -58,11 +59,11 @@ try{
  await scheduled();assert.equal(received.length,4);
 
  // Custom query requests use the same hosted claim and attempt boundary, without a private runner.
- const custom=await json(await call('/api/notifications/destinations',{name:'Custom query receiver',kind:'webhook',enabled:false,url:'https://hooks.example.com/custom?tenant=hosted-private',webhookTemplate:{version:1,method:'GET',mode:'query',template:{name:'{{monitor.name}}',kind:'{{alert.name}}'},headerNames:['X-Api-Key']},webhookHeaders:{'X-Api-Key':'hosted-header-private-sentinel'}},cookie));
+ const custom=await json(await call('/api/notifications/destinations',{name:'Custom query receiver',kind:'webhook',enabled:false,url:'https://hooks.example.com/custom?tenant=hosted-private',webhookTemplate:{version:1,method:'GET',mode:'query',template:{name:'{{monitor.name}}',kind:'{{alert.name}}'},headerNames:['X-Api-Key']},webhookHeaders:{'X-Api-Key':headerSecret}},cookie));
  await json(await call(`/api/notifications/destinations/${custom.id}/test`,{},cookie));await scheduled();
- const sent=received.at(-1);assert.equal(received.length,5);assert.equal(sent.method,'GET');assert.equal(sent.body,'');assert.equal(new URL(sent.url).searchParams.get('kind'),'Test');assert.equal(sent.headers['x-api-key'],'hosted-header-private-sentinel');assert.equal(sent.headers['x-uptime-signature-input'],'query');
+ const sent=received.at(-1);assert.equal(received.length,5);assert.equal(sent.method,'GET');assert.equal(sent.body,'');assert.equal(new URL(sent.url).searchParams.get('kind'),'Test');assert.equal(sent.headers['x-api-key'],headerSecret);assert.equal(sent.headers['x-uptime-signature-input'],'query');
  assert.equal(sent.headers['x-lamp-signature'],createHmac('sha256',custom.signingSecret).update(sent.headers['x-lamp-timestamp']+'.'+new URL(sent.url).search.slice(1)).digest('base64url'));
- const customNotes=await json(await call('/api/notifications',undefined,cookie));assert.equal(customNotes.deliveries.find(d=>d.destinationId===custom.id).status,200);assert.ok(!JSON.stringify(customNotes).includes('hosted-header-private-sentinel'));
+ const customNotes=await json(await call('/api/notifications',undefined,cookie));assert.equal(customNotes.deliveries.find(d=>d.destinationId===custom.id).status,200);assert.ok(!JSON.stringify(customNotes).includes(headerSecret));
 
  // Twelve healthy one-minute monitors exceed one run's check budget: the rest wait, unclaimed and unfailed, for the next run.
  const services=[];for(let index=0;index<12;index++)services.push(await json(await call('/api/monitors',{name:`Service ${index}`,url:`https://service-${index}.example.test/health`},cookie)));

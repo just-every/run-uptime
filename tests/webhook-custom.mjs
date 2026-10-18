@@ -1,5 +1,5 @@
-import {test} from 'node:test';import assert from 'node:assert/strict';import {createHmac} from 'node:crypto';import {webhookFixture} from './webhook-custom-support.mjs';import {fixture} from './resilience/support.mjs';
-const headerSecret='webhook-header-private-sentinel';
+import {test} from 'node:test';import assert from 'node:assert/strict';import {createHmac,randomBytes} from 'node:crypto';import {webhookFixture} from './webhook-custom-support.mjs';import {fixture} from './resilience/support.mjs';
+const headerSecret=randomBytes(32).toString('hex');
 test('reviewed custom webhooks preserve receiver formats, exact signed bytes, local secrets and inactive portable history',async()=>{
  let edge,receiving;try{edge=await webhookFixture();const {f,records,url}=edge;
  const request=async(path,body,method)=>{const r=await f.request(path,{...(body===undefined?{}:{body}),...(method?{method}:{})});assert.ok(r.status>=200&&r.status<300,JSON.stringify(r));return r.data};
