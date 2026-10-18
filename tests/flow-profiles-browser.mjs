@@ -3,6 +3,9 @@ import {mkdir} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
 import {chromium} from 'playwright';
 import {browserSignIn} from './auth-test-support.mjs';
+// A proof group loads several complete documents. Start each group in a fresh
+// public-admission window so the harness respects the production asset budget.
+const nextAdmissionWindow=()=>new Promise(resolve=>setTimeout(resolve,60000-Date.now()%60000));
 export async function flowProfilesBrowser({origin,monitors,mobile,directory}){
  const out=resolve(process.env.UPTIME_SCREENSHOTS??join(directory,'profile-screens'));await mkdir(out,{recursive:true});
  const browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});
@@ -10,7 +13,7 @@ export async function flowProfilesBrowser({origin,monitors,mobile,directory}){
   const context=await browser.newContext(),page=await context.newPage();await browserSignIn(page,origin);
   const shot=async(name,selector)=>{await page.locator(selector).first().scrollIntoViewIfNeeded();if(!await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)){await page.screenshot({path:join(out,'overflow.png'),fullPage:true});console.log('FLOW layout '+JSON.stringify(await page.evaluate(()=>({viewport:innerWidth,scroll:document.documentElement.scrollWidth,nodes:[...document.querySelectorAll('body *')].map(e=>({tag:e.tagName,id:e.id,cls:e.className,right:e.getBoundingClientRect().right,width:e.getBoundingClientRect().width})).filter(e=>e.right>innerWidth+1).slice(0,16)}))))}assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'page reflows');await page.addScriptTag({path:resolve('node_modules/axe-core/axe.min.js')});assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>n.target)})),[]);await page.locator(selector).first().screenshot({path:join(out,name+'.png')})};
   for(const width of [1440,390]){
-   await page.setViewportSize({width,height:1000});await page.goto(origin+`/app/monitors/${mobile.id}`);await page.locator('#flow-profile-settings').waitFor();
+   await nextAdmissionWindow();await page.setViewportSize({width,height:1000});await page.goto(origin+`/app/monitors/${mobile.id}`);await page.locator('#flow-profile-settings').waitFor();
    assert.match(await page.locator('#flow-selected-profile').textContent(),/Chromium.*Mobile/);assert.ok((await page.locator('.flow').ariaSnapshot()).includes('Device profile'));await shot(`mobile-profile-${width}`,'.flow');
    const details=page.locator('#raw-history details[data-slot]').first();if(!await details.evaluate(node=>node.open))await details.locator('summary').click();await shot(`mobile-failure-${width}`,'.flow-trace-wrap');
    await page.locator('#report-generate').click();await page.locator('section[aria-labelledby="report-browser-profiles"]').waitFor();await shot(`profile-report-${width}`,'section[aria-labelledby="report-browser-profiles"]');
@@ -30,6 +33,6 @@ export async function flowMissingBrowser({origin,missing,directory}){
  const out=resolve(process.env.UPTIME_SCREENSHOTS??join(directory,'profile-screens'));await mkdir(out,{recursive:true});
  const browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});
  try{const context=await browser.newContext(),page=await context.newPage();await browserSignIn(page,origin);
-  for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await page.goto(origin+`/app/monitors/${missing.id}`);await page.locator('#flow-no-browser').waitFor();assert.match(await page.locator('#flow-no-browser').textContent(),/WebKit.*Unknown/);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.addScriptTag({path:resolve('node_modules/axe-core/axe.min.js')});assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.map(v=>v.id),[]);await page.locator('.flow').screenshot({path:join(out,`missing-engine-${width}.png`)})}
+  await nextAdmissionWindow();for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await page.goto(origin+`/app/monitors/${missing.id}`);await page.locator('#flow-no-browser').waitFor();assert.match(await page.locator('#flow-no-browser').textContent(),/WebKit.*Unknown/);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.addScriptTag({path:resolve('node_modules/axe-core/axe.min.js')});assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.map(v=>v.id),[]);await page.locator('.flow').screenshot({path:join(out,`missing-engine-${width}.png`)})}
  }finally{await browser.close()}
 }

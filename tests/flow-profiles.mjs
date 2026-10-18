@@ -70,7 +70,7 @@ try{
   const revised=await ok(`/api/monitors/${monitor.id}`,'PATCH',{...monitor.definition,url,flow:{...monitor.definition.flow,steps:[{kind:'goto',url}],outcomes:[{id:'confirmed',what:'text',value:'Order confirmed'}]}});
   await ok(`/api/monitors/${monitor.id}/run`,'POST',{});
   const result=await waitFor(async()=>{const records=await slots(monitor.id);return records.find(slot=>slot.manual&&slot.revision===revised.revision&&slot.observations.length)?.observations[0]},'the engine refused a metadata subresource',60000);
-  assert.equal(result.outcome,'target_failure');assert.equal(result.flow.failure.reason,'blocked_request');assert.equal(result.flow.failure.blocked,'link_local_or_metadata_address');
+  assert.equal(result.outcome,'target_failure');assert.equal(result.flow.failure.reason,'blocked_request',JSON.stringify({browser:monitor.definition.flow.browser,checks:result.checks,flow:result.flow}));assert.equal(result.flow.failure.blocked,'link_local_or_metadata_address');
  }
  // A changed device is a changed assertion context, including recovery labels.
  const revision=await ok(`/api/monitors/${mobile.id}`,'PATCH',{...mobile.definition,flow:{...mobile.definition.flow,device:'desktop'}});

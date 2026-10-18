@@ -1,3 +1,4 @@
+import {numericRequestRefusal} from './request-policy.mjs';
 // The browser process of one flow run. Started by run-flow.mjs with the run's folder as its argument, the signed-in account HOME and a private temporary directory, a sanitized environment, and the job on stdin (the flow, the credentials its fill steps name, the filtering proxy to use). It
 // reports one JSON line per finished step and a last line with the result, and exits. It evaluates nothing the flow's author wrote:
 // every step is one fixed Playwright call chosen by the step's kind. When the runner ends without ending this process (SIGKILL, a
@@ -42,7 +43,7 @@ const origins = new Set(flow.origins);
 // The page's URL as this process reports it: without query or fragment, every credential value removed, and only then cut.
 const redact = credentialRedactor(credentials), shownUrl = () => redact(plainUrl(page.url()), 300);
 const started = Date.now(), remaining = () => deadlineMs - (Date.now() - started);
-let failure, pages = 0, step = 0, current = null;
+let failure, pages = 0, step = 0, current = null, navigationStarted = false;
 const fail = (reason, extra = {}) => { failure ??= {step, reason, ...extra}; };
 const sleepless = ms => Math.max(500, Math.min(ms, 10000, remaining()));
 
@@ -76,9 +77,12 @@ await context.route('**/*', route => {
   const main = mainNavigation(q);
   if (main === null) { fail('extra_page'); return route.abort('blockedbyclient'); }
   if (main && ['http:', 'https:'].includes(u.protocol)) {
+    navigationStarted = true;
     if (!origins.has(u.origin)) { fail('undeclared_origin'); return route.abort('blockedbyclient'); }
     if (++pages > maxPages) { fail('pages_limit', {limit: 'maxPages'}); return route.abort('blockedbyclient'); }
   }
+  const blocked=numericRequestRefusal(u,{network:job.network,startUrl});
+  if(blocked){fail('blocked_request',{blocked});return route.abort('blockedbyclient')}
   if (job.demo && ['http:', 'https:'].includes(u.protocol) && (!['GET','HEAD','OPTIONS'].includes(q.method()) || u.hostname==='hooks.slack.com' || ['discord.com','discordapp.com'].includes(u.hostname)&&u.pathname.startsWith('/api/webhooks/') || u.hostname==='slack.com'&&u.pathname==='/api/chat.postMessage' || u.hostname==='api.telegram.org'&&/\/(?:sendMessage|sendPhoto|sendDocument)$/.test(u.pathname))) {
     return effectSuccess(new Request(q.url(),{method:q.method(),...(q.postData()?{body:q.postData()}:{}),headers:q.headers()})).then(async response=>route.fulfill({status:response.status,headers:Object.fromEntries(response.headers),body:await response.text()}));
   }
@@ -98,7 +102,7 @@ async function expectation(item, timeout) {
 
 try {
   for (const [i, s] of flow.steps.entries()) {
-    step = i; current = s;
+    step = i; current = s; navigationStarted = false;
     if (failure) break;
     if (remaining() < 500) { fail('wall_time_exceeded', {limit: 'wallMs'}); break; }
     const t0 = Date.now(), timeout = sleepless(remaining() - 500);
@@ -127,7 +131,7 @@ try {
     } catch (error) {
       if (!failure) {
         const timedOut = error?.name === 'TimeoutError';
-        const reason = s.kind === 'goto' ? 'navigation_failed' : (s.kind === 'click' || s.kind === 'fill') ? 'element_missing' : 'expectation_not_met';
+        const reason = timedOut && navigationStarted ? 'navigation_timeout' : s.kind === 'goto' ? 'navigation_failed' : (s.kind === 'click' || s.kind === 'fill') ? 'element_missing' : 'expectation_not_met';
         if (remaining() < 600) fail('wall_time_exceeded', {limit: 'wallMs'}); else fail(timedOut || s.kind !== 'goto' ? reason : 'navigation_failed');
       }
       record({url: shownUrl()});

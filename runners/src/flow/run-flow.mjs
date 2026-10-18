@@ -36,6 +36,7 @@ const reasonText = (failure, flow, wallMs) => {
     case 'blocked_request': return `${at}: the page tried to reach a forbidden network address (${failure.blocked?.replace(/_/g, ' ') ?? 'blocked'}); nothing was fetched`;
     case 'undeclared_origin': return `${at}: the page tried to leave the origins the flow declares`;
     case 'extra_page': return `${at}: the page tried to open a second window`;
+    case 'navigation_timeout': return `${at}: the page did not finish loading within the bounded step timeout`;
     case 'navigation_failed': return `${at}: the page could not be loaded`;
     case 'credential_origin_mismatch': return `${at}: the named credential is bound to a different origin than the page`;
     default: return `The flow failed (${failure.reason})`;
@@ -93,7 +94,7 @@ export async function runFlow(definition, probe, {grantPath, controlPort, worksp
     });
     child.on('error', () => {});
     child.stdin.on('error', () => {});
-    child.stdin.end(JSON.stringify({demo:demoMode(),flow, profile, url: definition.url, home, proxy: {port: proxy.port, username: proxy.username, password: proxy.password}, credentials, deadlineMs: deadlineMs - 3000, maxPages: FLOW_LIMITS.maxPages}));
+    child.stdin.end(JSON.stringify({demo:demoMode(),network:definition.network,flow, profile, url: definition.url, home, proxy: {port: proxy.port, username: proxy.username, password: proxy.password}, credentials, deadlineMs: deadlineMs - 3000, maxPages: FLOW_LIMITS.maxPages}));
     signal?.addEventListener('abort', stop, {once: true});
     if (signal?.aborted) stop();
     timer = setTimeout(() => { killedForTime = true; killTree(child.pid); }, deadlineMs);

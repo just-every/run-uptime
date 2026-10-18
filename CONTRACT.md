@@ -426,7 +426,9 @@ Protocol round (17 October 2026): TCP-001, DNS-001, TLS-001 and DOMAIN-001 moved
 
 ## Status
 
-Judged from the code and tests at commit `99c4cac` (18 October 2026).
+Judged from the code and tests at commit `52aee11` (19 October 2026).
+
+The FLOW-001 evidence and remaining scope include the 19 October browser-qualification round below.
 
 | Clauses | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
@@ -458,7 +460,7 @@ Judged from the code and tests at commit `99c4cac` (18 October 2026).
 | `DRILL-001` | Recipient-reported alert drills | published | done | `src/domain/alert-drills.server.ts`; `tests/alert-drill.mjs` |  |
 | `STARTUP-001` | Required configuration diagnostics | published | done | `src/domain/startup-config.mjs`; `tests/startup-config.mjs` |  |
 | `PUBLIC-002` | Declared sessionless paths and rate limits | published | done | `src/domain/public-rate-limits.server.ts`; `tests/public-paths.mjs` |  |
-| `FLOW-001` | Supported isolated browser transactions | published | partial | `src/domain/flow.mjs`; `runners/src/flow/run-flow.mjs`; `src/domain/flow-changes.server.ts`; `tests/flow-journey.mjs` | Constrained three-engine desktop/mobile execution exists; supported login/signup/checkout qualification remains open. |
+| `FLOW-001` | Supported isolated browser transactions | published | partial | `src/domain/flow.mjs`; `runners/src/flow/run-flow.mjs`; `src/domain/flow-changes.server.ts`; `tests/flow-journey.mjs`; `tests/flow-qualification.mjs`; `tests/flow-qualification-browser.mjs`; `docs/browser-flows.md` | Login, synthetic signup and sandbox order submission now run through the real Worker and two isolated signed runner processes, with retained missing-control, HTTP-error, missing-outcome, navigation-timeout, private-redirect, metadata and extra-origin failures, unchanged-definition scheduled recovery and unavailable-browser Unknown. Navigation timeouts no longer claim a clicked control was missing; numeric forbidden destinations are refused before browser dispatch as well as at the proxy. Local 1440/390 evidence and guide journeys are proven; independently placed browser-vantage and hosted customer-path qualification remain open. |
 | `MONITOR-001` | Owned monitor catalog and lifecycle | target | partial | `src/domain/catalog/`; `src/domain/alert-routes.server.ts`; `public/assets/alert-route.js`; `tests/catalog.mjs`; `tests/alert-routes.mjs`; `docs/evidence/contracts/routing/` | Catalog metadata, retained URL search/filter/selection and reviewed undoable lifecycle/URL/CSV batches ship. Monitor/service/group/installation recipient selection and auditable reviewed inheritance now operate real confirmed alerts with matched recovery. Batch requests for a separately named alert route, USD pricing, the 500-monitor target and hosted capacity/timing acceptance remain gaps; the current installation cap is 100 monitors. |
 | `API-001` | Complete HTTP and API assertions | target | done | `src/domain/http-assertions.mjs`; `src/domain/http-assertions/`; `src/domain/evidence.server.ts`; `tests/public-probes.mjs`; `tests/probe-native-evidence.mjs`; `docs/evidence/contracts/http-assertions/` | Exact status codes, sets/ranges, required/forbidden text, response headers, nested/array JSONPath, bounded RE2 regex and latency share immutable Worker/runner validation. Unsupported script/regex constructs refuse on save. Owner console save/edit, independent assertion failures, scheduled failure/recovery and 1440/390 axe/reflow are proven locally; this is not hosted placement evidence. |
 | `SLOW-001` | Slow-response alerts distinct from outages | target | done | `src/domain/slow-evaluation.mjs`; `src/domain/slow-notices.server.ts`; `src/domain/slow-import.ts`; `src/domain/reports/slow.server.ts`; `public/slow-policy.js`; `tests/slow-responses.mjs`; `tests/slow-import.mjs`; `docs/evidence/contracts/slow-responses/` |  |

@@ -8,7 +8,7 @@ const reasons={
  expectation_not_met:'what the flow expects did not appear',element_missing:'no matching element was on the page',outcome_missing:'a required outcome was not observed',
  http_status:'the page answered with an error status',wall_time_exceeded:'the flow ran past its time limit',steps_limit:'the flow has more steps than the limit',pages_limit:'the flow loaded more pages than the limit',
  bytes_limit:'the flow downloaded more than the limit',trace_limit:'the step trace grew past its limit',blocked_request:'the page tried to reach a forbidden network address',undeclared_origin:'the page tried to leave the origins the flow declares',
- extra_page:'the page tried to open a second window',navigation_failed:'the page could not be loaded',credential_origin_mismatch:'the credential is bound to a different origin than the page',
+ extra_page:'the page tried to open a second window',navigation_failed:'the page could not be loaded',navigation_timeout:'the page did not finish loading within the step timeout',credential_origin_mismatch:'the credential is bound to a different origin than the page',
 };
 const limitNames={wallMs:'time (wallMs)',maxSteps:'steps (maxSteps)',maxPages:'pages (maxPages)',maxBytes:'response bytes (maxBytes)',traceBytes:'trace size (traceBytes)'};
 const blocked={private_address:'a private address',loopback_address:'a loopback address',link_local_or_metadata_address:'a link-local or metadata address',not_granted:'an address outside the local grant',unresolved_host:'an unresolvable host',custody:'a server that is not the granted fixture'};

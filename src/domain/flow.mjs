@@ -160,7 +160,7 @@ export const FLOW_REASONS = Object.freeze({
   expectation_not_met: {runner: false}, element_missing: {runner: false}, outcome_missing: {runner: false}, http_status: {runner: false},
   wall_time_exceeded: {runner: false, limit: 'wallMs'}, steps_limit: {runner: false, limit: 'maxSteps'}, pages_limit: {runner: false, limit: 'maxPages'},
   bytes_limit: {runner: false, limit: 'maxBytes'}, trace_limit: {runner: false, limit: 'traceBytes'},
-  blocked_request: {runner: false}, undeclared_origin: {runner: false}, extra_page: {runner: false}, navigation_failed: {runner: false},
+  blocked_request: {runner: false}, undeclared_origin: {runner: false}, extra_page: {runner: false}, navigation_failed: {runner: false}, navigation_timeout: {runner: false},
   credential_origin_mismatch: {runner: false},
   browser_unavailable: {runner: true}, browser_failed: {runner: true}, credential_unavailable: {runner: true}, grant_unavailable: {runner: true},
 });

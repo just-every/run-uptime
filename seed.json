@@ -40,7 +40,8 @@
         "PING-001",
         "METRICS-001",
         "EVIDENCE-002",
-        "DIAG-001"
+        "DIAG-001",
+        "FLOW-001"
       ]
     },
     {

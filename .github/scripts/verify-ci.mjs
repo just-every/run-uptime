@@ -42,6 +42,7 @@ export const plan = {
   shard('authority', ['test:base', 'test:admission', 'test:access', 'test:owner-deploy'], true),
   shard('archives', ['test:archive', 'test:definitions']),
   shard('runner-flows', ['test:runner', 'test:flow'], true),
+  shard('flow-qualification', ['test:flow:qualification'], true),
   shard('protocols', ['test:protocols'], true),
   shard('icmp', ['test:ping'], true),
   shard('metrics', ['test:metrics'], true),
