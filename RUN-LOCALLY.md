@@ -120,7 +120,7 @@ Invite another person from the app's operator access screen, then choose
 it accepts their current invitation and opens `/app` with their assigned role.
 After opening `RER_OPEN`, this browser can switch people without email. A fresh
 browser profile first opens `RER_OPEN` to receive this checkout's key cookie.
-`rer dev --as person@example.com` also selects an invited or active person;
+`rer dev --as person@example.com` also selects an invited or active person, including one invited at a built-in persona's address (the persona name selects them too);
 for an email that is no one in the local database, it lists the people it takes.
 Local dev and demos silently suppress mail; there is no mail-reading step.
 Cancelled or expired invitations and inactive people cannot use these actions.
@@ -212,6 +212,7 @@ servers with the command that stops each; start with `RER_SERVER_LIMIT=N` to
 allow more. Machine load alone never refuses a start or holds heavy work; a
 fleet that wants a load guard sets `RER_SERVERS_LOAD_THRESHOLD=N` and
 `RER_JOBS_LOAD_THRESHOLD=N` (the 1-minute load) in its own environment.
+When `rer dev` or `rer setup` holds a step 20 minutes for that guard, it stops with `Not started: this computer is busy`, the measured load, the threshold and the next step (run the same command again, or raise `RER_JOBS_LOAD_THRESHOLD`); it is never reported as a failed migration.
 A start needs 15 GiB free on the checkout and temporary volumes;
 `RER_SERVERS_DISK_FLOOR_GIB=N` changes that floor. A CI runner on a small disk
 may set it lower (for example 4); people should not.
@@ -262,14 +263,36 @@ exclusions. Export, reset and import print only their own steps: Node's
 "SQLite is an experimental feature" notice and wrangler's local-only hints
 (such as "Use --remote if you want to access the remote instance") are left out.
 They are local operations; nothing remote is read or changed. Import validates the archive and restores into an empty destination.
+A large install takes many minutes (about 30 for 1.2 GB on a busy machine), so export and import
+print a line every few seconds: the first says roughly how long an archive of that size takes, then
+parts done and bytes, and the time left once two samples exist. An export builds every part before it
+writes any, because the archive opens with a manifest that holds the final part count. If an import
+stops part-way (the machine slept, or the process was killed), run the same command again: it removes
+the unfinished import's staged data, says so, and starts over. An unexpected failure names its error
+class and code, never row data, and says to run the same command again.
 After import, run setup to establish the owner and local configuration. Auth,
 private settings and transient runtime state are excluded. Remote
 transfer is unsupported by the maintained references and fails visibly.
 
+Import defaults to the local copy. If you supply `--origin URL`, a local import
+accepts only HTTP on exactly `localhost`, `127.0.0.1` or `[::1]` at this
+checkout's configured local dev port. That is the saved port, or 8787 when no
+origin has been saved. Every HTTPS URL, other host (including a front-door
+`NAME.localhost`) or different port requires `--target remote`; without it,
+import refuses before reading the archive or preparing data. Leaving out
+`--origin`, or supplying a matching local origin, keeps the usual local restore
+behavior. `--target remote` still refuses when the adapter does not support
+complete remote import, as in the maintained references.
+
 Real deployment uses the owner-account procedure and its private credentials.
-`rer deploy --dry-run` validates and builds locally without a
-provider request. The default environment is `production`; select another with
-`--environment NAME`. Local validation does not establish provider acceptance,
+`rer deploy --dry-run` validates and builds locally, then reads the target
+secret bindings using `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`. It uses
+the same required-secret resolver as deploy: every missing binding and its input
+name is reported with the same nonzero exit and error, including in `--json` mode.
+Secrets held by the target are inherited; optional absent secrets stay unbound.
+Missing credentials or a refused secret-list read fail the dry run. It performs
+no provider writes, uploads, secret changes or resource creation. The default environment is `production`; select another with
+`--environment NAME`. The dry run does not establish upload acceptance,
 hosted health or mail delivery.
 
 `rer describe` reads the current checkout's actual verbs,
