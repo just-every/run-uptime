@@ -199,4 +199,12 @@ Each snapshot names the immutable revision, attempt, location and capture time, 
 
 **Download selection as JSON** exports the displayed selection. Full archives retain snapshots as inactive history. **Erase retained snapshots** returns a receipt and fences old copies when the later erasure journal accompanies restore. Erasing the monitor also erases its snapshots and settings, with receipt counts. Previously downloaded files remain outside local custody. Reads, settings and erasure require an owner session; runner authority and metrics keys cannot read snapshots. Snapshot text never enters alerts or observation rows and never changes monitoring state or availability.
 
-This is the text-snapshot subset of EVIDENCE-002. Screenshot capture, detailed DNS/connect/TLS phase timings, per-header safe-value exceptions and email-allowance controls, diagnostic attachments and evidence-specific team roles are not available. A runner predating snapshot support can still submit ordinary immutable evidence without a snapshot.
+This is the text-snapshot subset of EVIDENCE-002. Screenshot capture, per-header safe-value exceptions and email-allowance controls, complete incident-artifact export and evidence-specific team roles are not available. A runner predating snapshot support can still submit ordinary immutable evidence without a snapshot.
+
+### Connection diagnostics
+
+HTTP and keyword failures show the final exchange’s measured DNS lookup, TCP connection, TLS handshake and time to response headers beside the original check duration. A missing measurement says **Unavailable**. Cloudflare’s fetch transport exposes DNS and header timing, but no direct TCP/TLS timing or route tool. Diagnostics never decide health or clear an incident.
+
+On a private Node runner, a timeout, refused/reset connection, DNS or TLS failure also attempts a numeric traceroute to the address already validated for that request. It sends at most one probe per hop and five hops, with a three-second hard deadline and 16 KiB tool-output bound. There is no extra DNS lookup, request credential or body. The report retains numeric hop addresses, round-trip time and one-sample loss, not native output. A nonreply is ambiguous. A missing/blocked tool, a deadline or an unsupported platform/family is labelled unavailable; private-network targets are not traced. Install the host’s traceroute package and its ordinary permission to enable that measurement.
+
+The incident report keeps each location’s original outcome beside its diagnostic snapshot. Downloads, retention, archives and erasure use the snapshot’s existing custody. Non-HTTP attachment and real independent-location route/TLS/DNS qualification remain open under DIAG-001.

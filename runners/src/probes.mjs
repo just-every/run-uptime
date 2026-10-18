@@ -1,3 +1,5 @@
+import {tryCaptureFailureSnapshot} from '../../src/domain/failure-snapshot.mjs';
+import {collectNetworkDiagnostics} from './network-diagnostics.mjs';
 import {heartbeatEvaluation} from '../../src/domain/heartbeat-job.mjs';
 import {randomUUID} from 'node:crypto';
 import http from 'node:http';
@@ -31,17 +33,26 @@ export async function probeHttp(input,probe,grants=[],{statusOnly=false,monitorI
   const def=validateDefinition(input,grants),startedAt=Date.now();
   if(statusOnly&&(def.network!=='public'||Object.keys(def.assertions).some(key=>key!=='status')))throw Error('Status-only reads serve public status assertions only');
   if(def.type==='heartbeat')throw Error('Heartbeat requires a signed scheduled receipt snapshot');
-  const abort=new AbortController();let active;
+  const abort=new AbortController();let active;const capture={phases:{dnsMs:null,connectMs:null,tlsMs:null,ttfbMs:null,totalMs:0}};
   const executionSignal=signal?AbortSignal.any([signal,abort.signal]):abort.signal;
   let timer,phase=def.request?'authentication':'target';
   const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>{abort.abort();active?.destroy();reject(new ProbeError(phase==='authentication'?'credential':'timeout',phase==='authentication'?'Authentication exceeded the check deadline before a target request could be prepared.':undefined))},def.timeoutMs)});
   try{
-    const response=await Promise.race([timeout,def.network!=='synthetic'?publicHttp(def,executionSignal,r=>active=r,{statusOnly,monitorId,privateAccess,snapshotPolicy,onPhase:value=>phase=value}):syntheticHttp({...def,fixtureIdentity:input.fixtureIdentity},executionSignal,r=>active=r)]);
+    const response=await Promise.race([timeout,def.network!=='synthetic'?publicHttp(def,executionSignal,r=>active=r,{statusOnly,monitorId,privateAccess,snapshotPolicy,capture,onPhase:value=>phase=value}):syntheticHttp({...def,fixtureIdentity:input.fixtureIdentity},executionSignal,r=>active=r)]);
     const completedAt=Date.now(),checks=assertions(def,response,completedAt-startedAt);
     if(response.authenticationRejected)for(const check of checks)if(check.assertion==='status')check.reason=`Authentication rejected (HTTP ${response.status}). ${check.reason}`.slice(0,300);
     const failed=checks.some(c=>!c.pass);
     return evidence({...(failed&&response.failureSnapshot?{failureSnapshot:response.failureSnapshot.unavailable?response.failureSnapshot:{...response.failureSnapshot,durationMs:completedAt-startedAt}}:{}),outcome:failed?'target_failure':'pass',status:response.status,bytes:response.bytes,checks,...(response.tlsTrust?{tlsTrust:response.tlsTrust}:{})},completedAt);
-  }catch(error){if(error instanceof CredentialBindingRequired)return evidence({outcome:'runner_error',credentialBinding:error.diagnostic,checks:[{assertion:'credential',pass:false,reason:error.message}]});const category=error instanceof ProbeError?error.category:error.code==='credential'||error.category==='credential'?'credential':'runner';return evidence({...(error.failureSnapshot&&!['custody','runner','network','dns','credential','grant'].includes(category)?{failureSnapshot:error.failureSnapshot}:{}),outcome:['custody','runner','network','dns','credential','grant'].includes(category)?'runner_error':'target_failure',...(error.facts?.length?{tlsTrust:error.facts}:{}),checks:[{assertion:category,pass:false,reason:error instanceof ProbeError&&error.reason?error.reason:'Probe '+category+' check failed'}]})}
+  }catch(error){
+    if(error instanceof CredentialBindingRequired)return evidence({outcome:'runner_error',credentialBinding:error.diagnostic,checks:[{assertion:'credential',pass:false,reason:error.message}]});
+    const category=error instanceof ProbeError?error.category:error.code==='credential'||error.category==='credential'?'credential':'runner';
+    const runnerError=['custody','runner','network','dns','credential','grant'].includes(category),completedAt=Date.now();
+    capture.phases.totalMs=completedAt-startedAt;
+    let diagnostics;
+    if(snapshotPolicy&&!statusOnly&&['timeout','connection','transport','unresolved','dns','tls'].includes(category))diagnostics=await collectNetworkDiagnostics({category,phases:capture.phases,pin:capture.pin,privateNetwork:def.network==='private',signal});
+    const failureSnapshot=snapshotPolicy&&!statusOnly&&!['custody','runner','network','credential','grant'].includes(category)?tryCaptureFailureSnapshot({...capture,method:capture.method??def.method,url:capture.url??def.url,durationMs:completedAt-startedAt,masks:snapshotPolicy.masks,diagnostics}):undefined;
+    return evidence({...(failureSnapshot?{failureSnapshot}:{}),outcome:runnerError?'runner_error':'target_failure',...(error.facts?.length?{tlsTrust:error.facts}:{}),checks:[{assertion:category,pass:false,reason:error instanceof ProbeError&&error.reason?error.reason:'Probe '+category+' check failed'}]},completedAt)
+  }
   finally{clearTimeout(timer);abort.abort();active?.destroy()}
-  function evidence(data,completedAt=Date.now()){return {id:randomUUID(),probe,startedAt,completedAt,durationMs:completedAt-startedAt,runnerVersion:RUNNER_VERSION,...data,...(data.failureSnapshot&&!data.failureSnapshot.unavailable?{failureSnapshot:{...data.failureSnapshot,durationMs:completedAt-startedAt}}:{})}}
+  function evidence(data,completedAt=Date.now()){capture.phases.totalMs=completedAt-startedAt;return {id:randomUUID(),probe,startedAt,completedAt,durationMs:completedAt-startedAt,runnerVersion:RUNNER_VERSION,...data,...(data.failureSnapshot&&!data.failureSnapshot.unavailable?{failureSnapshot:{...data.failureSnapshot,durationMs:completedAt-startedAt,phases:capture.phases}}:{})}}
 }

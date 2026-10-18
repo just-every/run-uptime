@@ -1,4 +1,7 @@
+import type {DiagnosticPhases,NetworkDiagnostics} from './network-diagnostics.mjs';
 export interface FailureSnapshot {
+  phases?: DiagnosticPhases;
+  diagnostics?: NetworkDiagnostics;
   version: 1;
   method: string;
   url: string;
@@ -14,7 +17,7 @@ export const FAILURE_SNAPSHOT_LIMITS: Readonly<{version: 1; bodyBytes: 16384; to
 export function captureFailureSnapshot(input: {
   method: string; url: string; redirects?: string[]; requestHeaders?: Record<string, string> | Headers;
   responseHeaders?: Record<string, string> | Headers; status?: number | null; body?: string; durationMs: number;
-  requestSecrets?: string[]; masks?: string[];
+  requestSecrets?: string[]; masks?: string[]; phases?:DiagnosticPhases; diagnostics?:NetworkDiagnostics;
 }): FailureSnapshot;
 export type SnapshotResult = FailureSnapshot | {unavailable: 'capture_limit'};
 export function normalizeFailureSnapshot(value: unknown): SnapshotResult;

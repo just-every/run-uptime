@@ -1,3 +1,4 @@
+import {normalizeNetworkDiagnostics,normalizeDiagnosticPhases} from './network-diagnostics.mjs';
 // Shared by HTTP capture and signed intake. This is text evidence, never HTML.
 export const FAILURE_SNAPSHOT_LIMITS = Object.freeze({version: 1, bodyBytes: 16384, totalBytes: 32768, redirects: 10, headers: 32, urlBytes: 2048, masks: 20, maskLength: 128});
 const L = FAILURE_SNAPSHOT_LIMITS, REDACTED = '[redacted]', encoder = new TextEncoder();
@@ -84,7 +85,7 @@ function bounded(value) {
   value.body = clip(body, low);
   return value;
 }
-export function captureFailureSnapshot({method, url, redirects = [], requestHeaders = {}, responseHeaders = {}, status = null, body = '', durationMs, requestSecrets = [], masks = []}) {
+export function captureFailureSnapshot({method, url, redirects = [], requestHeaders = {}, responseHeaders = {}, status = null, body = '', durationMs, requestSecrets = [], masks = [], phases, diagnostics}) {
   const known=literals(requestSecrets,128,16384,true).flatMap(secret=>{const token=secret.replace(/^(?:Bearer|Basic)\s+/i,'');return [secret,token,encodeURIComponent(secret),encodeURIComponent(token)]});
   const secrets=[...new Set([...known,...literals(masks,L.masks,L.maskLength)])].filter(Boolean).sort((a,b)=>b.length-a.length);
   if (typeof method !== 'string' || !/^[A-Za-z]{1,16}$/.test(method) || !Array.isArray(redirects) || redirects.length > L.redirects || typeof body !== 'string') fail();
@@ -101,11 +102,11 @@ export function captureFailureSnapshot({method, url, redirects = [], requestHead
   const redacted = redact(excerpt, secrets);
   return bounded({version: L.version, method: method.toUpperCase(), url: urlText(url, secrets), redirects: redirects.map(v => urlText(v, secrets)),
     requestHeaders: headers(requestHeaders, false, secrets), responseHeaders: headers(responseHeaders, true, secrets), status, durationMs,
-    body: clip(redacted, L.bodyBytes), bodyTruncated: truncated || bytes(redacted) > L.bodyBytes});
+    body: clip(redacted, L.bodyBytes), bodyTruncated: truncated || bytes(redacted) > L.bodyBytes,...(phases?{phases:normalizeDiagnosticPhases(phases)}:{}),...(diagnostics?{diagnostics:normalizeNetworkDiagnostics(diagnostics)}:{})});
 }
 export function normalizeFailureSnapshot(value) {
   if(plain(value)&&Object.keys(value).join(',')==='unavailable'&&value.unavailable==='capture_limit')return {unavailable:'capture_limit'};
-  if (!plain(value) || Object.keys(value).length !== fields.length || fields.some(k => !Object.hasOwn(value, k)) || value.version !== L.version) fail();
+  if (!plain(value) || Object.keys(value).some(k=>![...fields,'phases','diagnostics'].includes(k)) || fields.some(k => !Object.hasOwn(value, k)) || value.version !== L.version) fail();
   if (typeof value.body !== 'string' || bytes(value.body) > L.bodyBytes || typeof value.bodyTruncated !== 'boolean') fail();
   if (!Array.isArray(value.redirects) || value.redirects.length > L.redirects || bytes(JSON.stringify(value)) > L.totalBytes) fail();
   const requestHeaders = headers(value.requestHeaders, false, [], true), responseHeaders = headers(value.responseHeaders, true, [], true);

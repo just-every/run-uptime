@@ -141,7 +141,7 @@ function validateTrust(o:any,definition:any){
 }
 
 export function validateEvidence(o: any, definition: any, dueAt: number, now: number, mode: ValidationMode = 'live-completion') {
-  if(o?.failureSnapshot!==undefined){const snapshot=normalizeFailureSnapshot(o.failureSnapshot);if(!['http','keyword'].includes(definition.type??'http')||o.outcome!=='target_failure'||!('unavailable' in snapshot)&&(snapshot.status!==(o.status??null)||snapshot.durationMs!==o.durationMs))throw Error('Invalid failure snapshot evidence')}
+  if(o?.failureSnapshot!==undefined){const snapshot=normalizeFailureSnapshot(o.failureSnapshot);if(!['http','keyword'].includes(definition.type??'http')||o.outcome==='pass'||!('unavailable' in snapshot)&&((o.status!==undefined?snapshot.status!==o.status:snapshot.status!==null&&!o.checks?.some((c:any)=>['timeout','connection','transport','encoding','body-limit'].includes(c.assertion)))||snapshot.durationMs!==o.durationMs||snapshot.diagnostics&&snapshot.diagnostics.category!==o.checks?.[0]?.assertion))throw Error('Invalid failure snapshot evidence')}
   const binding = o?.credentialBinding;
   if (binding !== undefined && (!validBindingDiagnostic(binding) || o.outcome !== 'runner_error' || o.checks?.length !== 1 || o.checks[0].assertion !== 'credential' || o.checks[0].reason !== bindingReason(binding) ||
       !(definition.request?.credentialRef === binding.reference || definition.flow?.steps.some((step: any) => step.kind === 'fill' && step.credentialRef === binding.reference)))) throw Error('Invalid credential binding diagnostic');

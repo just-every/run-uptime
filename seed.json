@@ -39,7 +39,8 @@
         "FLOW-004",
         "PING-001",
         "METRICS-001",
-        "EVIDENCE-002"
+        "EVIDENCE-002",
+        "DIAG-001"
       ]
     },
     {
@@ -349,6 +350,17 @@
         "Bounded monitor/probe/runner identifiers, report window, availability and latency statistics, states, contact/evidence freshness, incident counts and delivery job counts",
         "Datadog API key only to the selected official Datadog HTTPS API; HMAC signature to the owner-selected public webhook. Credentials are process environment values and never stored or archived.",
         "No monitor names, target URLs, response bodies, provider credentials or Datadog-managed probe identities. The receiver owns its stored metrics; local erasure cannot recall exported data."
+      ],
+      "adapters": []
+    },
+    {
+      "id": "bounded-route-diagnostics",
+      "required": false,
+      "requiredWhen": "A private runner collects diagnostics for a failed HTTP connection",
+      "why": "Five numeric traceroute probes at most, using only the already validated public target address; no name lookup, request credentials or body. Private destinations and unsupported tools report unavailable.",
+      "data": [
+        "Target numeric address and probe source address, TTL and round-trip timing visible to the target and intermediate routers",
+        "Only bounded numeric hops, one-sample packet loss, phase timings and fixed unavailable codes return in the signed failure snapshot; same retention, authenticated access, archive and erasure as that snapshot"
       ],
       "adapters": []
     }
@@ -1267,6 +1279,14 @@
       },
       {
         "path": "/failure-snapshots.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/network-diagnostics.js",
         "match": "exact",
         "kind": "asset",
         "class": "assets",

@@ -29,13 +29,15 @@ export async function resolvePublic(url,signal,{family}={}) {
   }finally{signal.removeEventListener('abort',cancel)}
 }
 // statusOnly: see requestOnce. Resolution, pinning, redirect validation and the downgrade refusal are the same as a probe's.
-export async function publicHttp(def,signal,onRequest,{statusOnly=false,monitorId,onPhase,privateAccess,snapshotPolicy}={}) {
+export async function publicHttp(def,signal,onRequest,{statusOnly=false,monitorId,onPhase,privateAccess,snapshotPolicy,capture={}}={}) {
  if(def.network==='private'&&typeof privateAccess!=='function')throw new ProbeError('grant','Private network grant unavailable');
  let url=def.network==='private'?privateTarget(def.url):publicTarget(def.url),method=def.method,trust=def.tlsTrust,credential;
  if(def.request)onPhase?.('authentication');
  if(def.request)try{credential=await readCredentials(def.request.credentialRef,url.href,method,undefined,monitorId)}catch(error){if(!error.category)error.category='credential';throw error}
  let body=credential?.body;
  const facts=[],redirects=[];let sentHeaders={},sentSecrets=[];
+ capture.method=method;capture.url=url.href;capture.redirects=redirects;capture.requestHeaders={};capture.requestSecrets=[];
+ capture.phases??={dnsMs:null,connectMs:null,tlsMs:null,ttfbMs:null,totalMs:0};
  const secretStrings=value=>typeof value==='string'?[value]:value&&typeof value==='object'?Object.values(value).flatMap(secretStrings):[];
  const tokenRequest=async({url:tokenUrl,headers,body:tokenBody,signal:tokenSignal})=>{
   const target=publicTarget(tokenUrl);if(target.protocol!=='https:')throw new ProbeError('credential','OAuth token endpoints require verified public HTTPS.');
@@ -49,10 +51,13 @@ export async function publicHttp(def,signal,onRequest,{statusOnly=false,monitorI
   onPhase?.(credential?'authentication':'target');
   if(credential)try{prepared=await prepareAuthentication(credential,{url:url.href,method,body,signal,tokenRequest,forceRefresh})}catch{throw new ProbeError('credential','The local authentication could not be prepared.')}
   onPhase?.('target');
-  const pin=await (def.network==='private'?privateAccess(url,signal):resolvePublic(url,signal));
-  const settings={...prepared,headers:{...prepared.headers,...extraHeaders},body,credentialsPresent:Boolean(credential),allowUnverifiedTls:credential?.allowUnverifiedTls===true,trackTlsFacts:Boolean(def.tlsTrust)};
+  capture.method=method;capture.url=url.href;capture.status=null;capture.responseHeaders={};capture.body='';
+  const resolving=Date.now();let pin;try{pin=await (def.network==='private'?privateAccess(url,signal):resolvePublic(url,signal))}finally{capture.phases.dnsMs=Date.now()-resolving}
+  capture.pin=pin;
+  const settings={...prepared,headers:{...prepared.headers,...extraHeaders},body,credentialsPresent:Boolean(credential),allowUnverifiedTls:credential?.allowUnverifiedTls===true,trackTlsFacts:Boolean(def.tlsTrust),capture};
   sentHeaders={'user-agent':RUNNER_VERSION,accept:PROBE_ACCEPT,...settings.headers};sentSecrets.push(...secretStrings(settings.headers),...secretStrings(credential));if(body){try{sentSecrets.push(...secretStrings(JSON.parse(body)))}catch{sentSecrets.push(String(body))}}sentSecrets=[...new Set(sentSecrets.filter(x=>x&&x.length<=16384))].slice(0,128);
-  const response=await requestOnce(url,pin,method,settings,signal,req=>{sentHeaders=req.getHeaders();onRequest(req)},undefined,statusOnly,trust);facts.push(...(response.tlsTrust??[]));return response;
+  capture.requestSecrets=sentSecrets;
+  const response=await requestOnce(url,pin,method,settings,signal,req=>{sentHeaders=req.getHeaders();capture.requestHeaders=sentHeaders;onRequest(req)},undefined,statusOnly,trust);facts.push(...(response.tlsTrust??[]));return response;
   }catch(error){error.facts=[...facts,...(error.facts??[])];throw error}
  };
  signal.throwIfAborted();
