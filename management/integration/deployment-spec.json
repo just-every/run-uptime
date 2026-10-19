@@ -312,6 +312,12 @@
       "name": "0049_auxiliary_attempts.sql",
       "sha256": "ed9352627364a607ef5ffb2d8b4b17b499a2735b96cf1d297339f00fa8485f12",
       "sql": "-- OPS-001: auxiliary execution history is evidence, not dispatch authority.\nCREATE TABLE auxiliary_attempts (\n id TEXT PRIMARY KEY,\n scope TEXT NOT NULL CHECK(scope IN ('watch','auth-mail')),\n job_id TEXT NOT NULL,\n started_at INTEGER NOT NULL,\n lease_until INTEGER NOT NULL,\n submitted_at INTEGER,\n finished_at INTEGER,\n outcome TEXT NOT NULL CHECK(outcome IN ('claimed','sending','accepted','development','rejected','rate_limited','uncertain','expired')),\n code TEXT NOT NULL\n);\nCREATE UNIQUE INDEX auxiliary_active_job ON auxiliary_attempts(scope,job_id) WHERE finished_at IS NULL;\nCREATE INDEX auxiliary_job_history ON auxiliary_attempts(scope,job_id,started_at);\nCREATE INDEX auxiliary_expiring ON auxiliary_attempts(lease_until) WHERE finished_at IS NULL;\n-- Preserve pre-upgrade deduplication. A legacy 'sending' row has no recoverable\n-- transport boundary, so it must remain uncertain rather than be replayed.\nINSERT INTO auxiliary_attempts(id,scope,job_id,started_at,lease_until,submitted_at,finished_at,outcome,code)\n SELECT lower(hex(randomblob(4)))||'-'||lower(hex(randomblob(2)))||'-'||lower(hex(randomblob(2)))||'-'||lower(hex(randomblob(2)))||'-'||lower(hex(randomblob(6))),\n 'watch',id,at,at+60000,NULL,at,\n CASE WHEN outcome IN ('accepted','development','rejected','rate_limited') THEN outcome ELSE 'uncertain' END,'migrated_latest_outcome'\n FROM monitoring_watch;\nUPDATE monitoring_watch SET outcome='uncertain' WHERE outcome NOT IN ('accepted','development','rejected','rate_limited');\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0050_auxiliary_kick_lease.sql",
+      "sha256": "8d9388d45986fc1827af3aac0118ba42f2ded9bcbdd415c11b8706543c556883",
+      "sql": "-- OPS-001: 0049 copied every monitoring_watch row, including the hosted console's\n-- 'console-worker-kick' concurrency lease. That lease never sends anything, so it\n-- is not auxiliary delivery evidence, and the archive refuses it on export.\nDELETE FROM auxiliary_attempts WHERE scope='watch' AND job_id='console-worker-kick';\n"
     }
   ],
   "compatibilityDate": "2026-09-08",

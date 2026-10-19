@@ -41,10 +41,13 @@ export async function restore(env:Bindings,input:any,receipt?:{id:string;sha256:
  const empty=TABLES.filter(n=>n!=='migrations'&&n!=='uptime_audit'&&n!=='uptime_erasure_receipts');
  // Installation auth/migration ledgers and runner registration/contact may
  // exist. Contact is recorded even by an idle fresh runner, not product data.
+ // The receiving owner's own sign-in mail attempts belong to that auth ledger:
+ // a hosted owner must sign in by email before restoring.
  // Every product/history table, including orphan observations and retired
  // credentials, must be empty; restore leaves local runner authority intact.
  const checks=[...empty,'notification_credentials','notification_claim_custody','heartbeat_authority','heartbeat_claims'];
- const counts=await env.DB.batch(checks.map(n=>env.DB.prepare(`SELECT COUNT(*) n FROM ${n}`)));
+ const occupied=(n:string)=>`SELECT COUNT(*) n FROM ${n}${n==='auxiliary_attempts'?" WHERE scope<>'auth-mail'":''}`;
+ const counts=await env.DB.batch(checks.map(n=>env.DB.prepare(occupied(n))));
  if(counts.some(r=>Number((r.results[0] as any).n)>0))throw Error('Restore requires empty installation');
  const migrations=await env.DB.prepare('SELECT version,applied_at FROM migrations ORDER BY rowid').all();
  const t=await projectRestore(inputTables,migrations.results,now),statements:D1PreparedStatement[]=[],groups=new Map<string,any[]>();
@@ -80,7 +83,7 @@ export async function restore(env:Bindings,input:any,receipt?:{id:string;sha256:
  statements.push(auditStatement(env,actor,'archive_restore','archive',auditReceipt,'1',[],now));
  // Guard inside the transaction as well: a concurrent product insertion must
  // make the entire restore fail rather than combine two installations.
- const guard=checks.map(n=>`(SELECT COUNT(*) FROM ${n})`).join('+');
+ const guard=checks.map(n=>`(${occupied(n)})`).join('+');
  statements.unshift(env.DB.prepare(`INSERT INTO archive_history(id,table_name,record) SELECT 'restore-guard','restore-guard',NULL WHERE (${guard})>0`));
  statements.push(env.DB.prepare('INSERT OR IGNORE INTO evidence_generation(monitor_id) SELECT id FROM monitors'));
  statements.unshift(...fenceStatements);

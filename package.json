@@ -1,6 +1,6 @@
 {
   "name": "@uptime/uptime-console",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -37,7 +37,7 @@
     "test:definitions": "node tests/definitions-import.mjs",
     "test:readme": "node tests/readme-journey.mjs",
     "artifact-prepare": "node scripts/deployment/prepare.mjs",
-    "test:runner": "node tests/signed-runner.mjs",
+    "test:runner": "node tests/signed-runner.mjs && node --test --test-concurrency=1 tests/discovery-jobs.mjs",
     "test:flow": "node tests/flow-journey.mjs && node tests/api-transaction-journey.mjs && node tests/api-transaction-browser.mjs",
     "test:protocols": "node tests/mail-journey.mjs && node tests/mail-browser.mjs && node tests/protocol-monitors.mjs && node tests/udp-monitors.mjs && node tests/udp-browser.mjs",
     "test:browser": "node tests/browser-suites.mjs",
@@ -80,7 +80,7 @@
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.62.2",
     "@cloudflare/workers-types": "5.20261006.1",
-    "@runeditrun/rer": "0.2.63",
+    "@runeditrun/rer": "0.2.65",
     "@types/node": "26.6.4",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.7",
