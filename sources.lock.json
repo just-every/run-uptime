@@ -3075,7 +3075,7 @@
       "executable": false
     },
     "scripts/deployment/secret-custody.mjs": {
-      "sha256": "3e6091f28866e99be1b5a906c62d416c031e2ab764928d6ccd16bf914ed91dd1",
+      "sha256": "102c5ec68f2ff04f4f8646c1d0c25ad129f1b1aa200874e7af34c050b754c6be",
       "executable": false
     },
     "scripts/dev/import-diagnostics.ts": {
@@ -6599,7 +6599,7 @@
       "executable": false
     },
     "tests/owner-deploy-lifecycle.mjs": {
-      "sha256": "a75b81123fb67e72675da7167a25547e4efd326a26d4e22ed4483af2cd53dede",
+      "sha256": "4622721c9374aee48a972e1b47ef129ac820a5f9b3b0c4b26e8d41c03c0ea78b",
       "executable": false
     },
     "tests/owner-deploy-lifecycle/bridge.mjs": {
