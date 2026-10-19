@@ -59,7 +59,7 @@ If the Uptime upload or health-check stage stops part way, inspect the reported 
 
 With rer's newer custom-deployment lifecycle (0.2.3 and later), `rer deploy` wraps Uptime's custom deployment hook, claims the owner automatically, then retires the one-use hosted `SETUP_TOKEN`. Inspect the CLI's `claimed` or `kept` owner outcome and token-retirement result. After successful admission, open `/login` on the reported hosted address and request an ordinary email sign-in link. Opening the link shows a confirmation page; choosing **Confirm** signs you in. Finish first-run setup at `/setup`, then use the console at `/app`. Permanent owner admission survives token retirement even before setup is finished, and remains claimed if the original owner is later erased.
 
-This checkout pins the unmodified published `@runeditrun/rer` exactly 0.2.22. The lifecycle wraps Uptime's upload and health-check hook to perform owner claim and token retirement. If automatic claim or token retirement is incomplete, retain `.rer/deploy/<environment>.json` and private settings, rerun the same `rer deploy --environment NAME`, and inspect the new stage, owner outcome and retirement result. Do not enter a retired token at `/claim` as routine recovery.
+This checkout pins the unmodified published `@runeditrun/rer` exactly 0.2.65. The lifecycle wraps Uptime's upload and health-check hook to perform owner claim and token retirement. If automatic claim or token retirement is incomplete, retain `.rer/deploy/<environment>.json` and private settings, rerun the same `rer deploy --environment NAME`, and inspect the new stage, owner outcome and retirement result. Do not enter a retired token at `/claim` as routine recovery.
 
 If mail is unavailable, restore the configured mail sender and verify the owner's email address, then request a new link at `/login`. Keep the deployment records and existing private settings when updating mail configuration; an ordinary update preserves the admitted owner.
 
@@ -97,7 +97,11 @@ git status --short
 git pull --ff-only origin main
 ```
 
-Alternatively, fetch from the public repository and check out a reviewed public commit. Refresh dependencies with `rer install` if the newer source requires it, then redeploy the same environment:
+Alternatively, fetch from the public repository and check out a reviewed public commit. Refresh dependencies with `rer install` if the newer source requires it.
+
+An installation first deployed with Uptime 0.3.0 or earlier keeps its generated secrets in `.rer/deploy/environments/<environment>/secrets.json` (production: `.rer/deploy/production-secrets.json`), and the pinned rer reads them from `.rer/deploy/<environment>.secrets.env`. Before its first update, create that file privately (mode 0600) with the old file's `SESSION_SECRET` and `UPTIME_RUNNER_KEY` as `NAME=value` lines; otherwise deploy refuses to replace the live Worker's values. Do not use `--rotate-secret` for this: it signs every operator out and invalidates the runner key.
+
+Then redeploy the same environment:
 
 ```sh
 rer deploy --environment NAME

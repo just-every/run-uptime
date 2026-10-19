@@ -1,7 +1,7 @@
 # Release Uptime
 
 Use the exact `@runeditrun/rer` version pinned in `package.json` (currently
-0.2.24), Node 22.20.0, pnpm 10.12.4, Git, Python 3, Gitleaks 8.30.1 and the
+0.2.65), Node 22.20.0, pnpm 10.12.4, Git, Python 3, Gitleaks 8.30.1 and the
 Playwright Chromium browser required by the lockfile.
 
 1. Review the changes since the previous release independently, including
@@ -40,7 +40,7 @@ Playwright Chromium browser required by the lockfile.
    private and outside the repository. The signer writes `rer-release.dsse.json`.
 
 Keep the complete bundle outside the source repository for catalogue import.
-The 0.2.24 producer leaves its presentation gallery empty; catalogue integration
+The producer leaves its presentation gallery empty; catalogue integration
 must pin the committed screenshot from the release tag. Release production and
 signing do not deploy the application. If Base's producer fails, retain its
 failure output and stop; do not bypass its verification or publication checks.

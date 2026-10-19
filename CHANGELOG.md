@@ -1,5 +1,52 @@
 # Changelog
 
+## 0.4.0 — 2026-10-19
+
+Minor release from `main`: many new check types, routing and reporting features, and thirteen additive migrations. `@runeditrun/rer` is pinned to exactly 0.2.65. Monitors, history, incidents, destinations and private settings are kept on upgrade.
+
+### Back up first
+
+Before upgrading a hosted installation, export the product archive from **Runner / archive** in the console and back up its database with `npx wrangler d1 export <database> --remote --output exports/<database>.sql`. Keep `.rer/deploy` and your private settings. For a local installation, stop dev and run `rer export --output exports/uptime.rer`.
+
+### What you get
+
+- **More check types.** TCP ports, DNS records (with an authoritative-server resolver), TLS certificates and domain registration expiry run in the hosted Worker or a private runner. UDP request/response, ICMP ping (IPv4 and IPv6), SMTP/POP3/IMAP mail checks and multi-step API transactions need a private runner.
+- **Fuller HTTP checks.** Complete status, body, regular-expression, header, JSON and response-time assertions; monitor-bound request credentials kept on the runner; explicit TLS trust exceptions (pinned fingerprint, private CA, or acknowledged ignore) for legacy targets.
+- **Slow-response alerts** separate from outages, with their own notices and report time.
+- **Heartbeat jobs.** Start, success and failure receipts with exit codes and a masked output excerpt, run durations and late runs, cron-style schedules, and a separately issued scheduler URL. The console shows each key once with ready-to-run curl, wget, Bash, crontab, systemd, Kubernetes, GitHub Actions and Windows examples.
+- **Alert routing.** Route confirmed incidents by monitor, service and group, with per-contact delays, outage reminders and recoveries sent to the same recipients as the trigger.
+- **Custom webhooks.** Request templates, methods, form or query delivery, local header values and optional HMAC signing, with a request preview.
+- **Incident work.** Owner-only notes and comments with visible edit history, root-cause categories and a timeline beside the monitoring evidence; incident notices in the owner's saved time zone.
+- **Failure evidence.** Redacted HTTP failure snapshots, bounded connection diagnostics and optional redacted failure-page screenshots, with scoped evidence sharing.
+- **Reports and reads.** Period reports with US time zones, SLA targets and PDF/CSV export; incident CSV; a versioned read API (`/api/v1`) for monitors, uptime, response times and incidents; scoped Prometheus metrics and a Grafana dashboard.
+- **Catalog operations.** Search and filter by project, environment, service, group, tag and owner; bulk add, label, pause, resume, clone and plan maintenance; recurring maintenance windows.
+- **Private locations.** Scoped buyer-network runner grants for private HTTP, TCP and browser checks.
+- **Browser flows** (runner only): isolated Chromium, Firefox and WebKit journeys with desktop and phone profiles and redacted failure artifacts. See [Browser flows](docs/browser-flows.md) for what is supported.
+- **Moving in.** Definitions previews read UptimeRobot v3 monitor lists and logs, Pingdom HTTP check details and Better Stack heartbeat pages. New monitors arrive paused.
+- **Fixed before release** (found by the release gate on a hosted installation upgraded from 0.3.0): the console archive export refused with "Invalid auxiliary archive attempt" because `0049` copied the console's check-start lease into the delivery history; `0050` removes it. Restoring an archive into a fresh hosted installation refused with "Restore requires empty installation" because the receiving owner's own sign-in email counted as data; it no longer does.
+- The catalogue line is now one plain sentence: "Monitor your sites and scheduled jobs, track outages and notify your team."
+- Product screenshot: [a recovered incident on a scheduled local check at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).
+
+### Upgrading from 0.3.0
+
+Migrations `0038_cron_runs`, `0039_incident_work`, `0040_alert_routes`, `0041_heartbeat_jobs`, `0042_webhook_templates`, `0043_notification_preferences`, `0044_contact_schedules`, `0045_slow_acknowledgements`, `0046_heartbeat_url`, `0047_failure_snapshots`, `0048_failure_page_policy`, `0049_auxiliary_attempts` and `0050_auxiliary_kick_lease` are applied. All are additive; existing rows are kept, except that `0050` removes the console's check-start lease, which `0049` had copied into the delivery history.
+
+A hosted installation deployed with 0.3.0 keeps its generated secrets in `.rer/deploy/environments/<environment>/secrets.json` (production: `.rer/deploy/production-secrets.json`). rer 0.2.65 reads them from `.rer/deploy/<environment>.secrets.env`, and refuses to deploy over a live Worker until it has them. Before the first 0.4.0 deploy, copy `SESSION_SECRET` and `UPTIME_RUNNER_KEY` from the old file into a private (0600) `.rer/deploy/<environment>.secrets.env` as `NAME=value` lines. Do not use `--rotate-secret` for this: it signs every operator out and breaks your runner's key.
+
+### Not in this release
+
+- No SMS, voice, phone push, Microsoft Teams, Discord, Telegram, Zapier or Make delivery; no on-call paging or Lamp status-page handoff; no Terraform provider; no page-speed or real-user monitoring; no third-party status catalog; no Site24x7 or Checkly-style migrations; no SSO, SCIM or multi-factor sign-in.
+- Several target clauses are partial: see the Status table in [CONTRACT.md](CONTRACT.md).
+- The homepage's "Pinned connections" applies to private-runner checks; hosted Worker checks validate every DNS answer and redirect but cannot pin the connection ([Security](docs/security.md)).
+- The homepage's heartbeat line needs a private runner on a hosted installation: the Worker alone does not evaluate heartbeats.
+- The homepage still says there are no ping or browser checks; this release adds both for private runners.
+
+### Known issues
+
+- Slack delivery is covered by local tests with a fake Slack edge; this release's gate did not post to a real Slack workspace.
+- A hosted Worker cannot reach another Worker's `workers.dev` address on the same Cloudflare account: monitors and webhooks aimed at one return HTTP 404 there.
+- Hosted scale beyond the documented [Limits](docs/limits.md) is not load-tested.
+
 ## 0.3.0 — 2026-10-16
 
 Minor release: adds the Managed mail provider. No migrations since 0.2.0; existing data and private settings are preserved.
