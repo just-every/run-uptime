@@ -23,6 +23,12 @@ async function snapshot(){
  const tables=(await db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name <> '_cf_METADATA' ORDER BY name").all()).results;
  return Promise.all(tables.map(async({name})=>[name,(await db.prepare(`SELECT * FROM "${name}" ORDER BY rowid`).all()).results]));
 }
+// Console requests start hosted work in waitUntil behind a 5 s claim on the console-worker-kick row. After a fresh
+// console request, a row claimed within 5 s and complete means no claim is pending or running.
+async function settleConsoleWork(api){
+ await api('/api/overview');const since=Date.now()-5000,until=Date.now()+20000;
+ for(;;){const row=await db.prepare("SELECT at,outcome FROM monitoring_watch WHERE id='console-worker-kick'").first();if(row?.at>since&&row.outcome==='complete')return;if(Date.now()>until)throw Error('console hosted work did not settle');await new Promise(r=>setTimeout(r,50))}
+}
 async function waitDue(id){const row=await db.prepare('SELECT next_due FROM monitors WHERE id=?').bind(id).first();const delay=row.next_due-Date.now()+20;if(delay>0)await new Promise(r=>setTimeout(r,delay))}
 try{
  const tls=await certificate(directory);
@@ -87,7 +93,7 @@ try{
   assert.equal(new Set(children).size,2);assert.deepEqual((await api(enrollPath,enrollBody,signed(enrollPath,enrollBody))).data,registration);
  });
  await check('Worker persistence restart retains registration and exact history; restarted runner records scheduled recovery without replay',async()=>{
-  const before=await snapshot(),old=await history();await worker.dispose();worker=await emittedRunnerWorker(directory,bindings);db=await worker.getD1Database('DB');assert.deepEqual(await snapshot(),before);
+  const old=await history();await settleConsoleWork(api);const before=await snapshot();await worker.dispose();worker=await emittedRunnerWorker(directory,bindings);db=await worker.getD1Database('DB');assert.deepEqual(await snapshot(),before);
   assert.deepEqual((await api(enrollPath,enrollBody,signed(enrollPath,enrollBody))).data,registration);mode=200;await waitDue(id);await runner();
   const rows=await history();for(const row of old)assert.deepEqual(rows.find(r=>r.id===row.id),row);assert.equal(rows.length,3);assert.equal((await monitor()).state.state,'Healthy');assert.equal((await api('/api/overview')).data.alerts.filter(a=>a.kind==='recovery').length,1);assert.equal(new Set(children).size,3);
  });
