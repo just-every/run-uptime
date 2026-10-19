@@ -57,7 +57,7 @@ export async function fixture(extraBindings={},outbound){
  async function submit(runner,task,attempts){return request('/api/runner/results',{runner,signed:true,body:{slotId:task.id,attempts}})}
  async function state(id){const overview=await request('/api/overview');assert.equal(overview.status,200);return overview.data.monitors.find(m=>m.id===id).state}
  async function pause(m){assert.equal((await request('/api/monitors/'+m.id,{method:'PATCH',body:{...m.definition,enabled:false}})).status,200)}
- return {worker,DB,origin,port,bindings,directory,migratedContact,first,second,modes,request,monitor,claim,evidence,submit,state,pause,run:runner=>runRunner({origin,key:runner.key,runnerId:runner.runnerId,localReview:true,once:true}),close}
+ return {worker,DB,origin,cookie,port,bindings,directory,migratedContact,first,second,modes,request,monitor,claim,evidence,submit,state,pause,run:runner=>runRunner({origin,key:runner.key,runnerId:runner.runnerId,localReview:true,once:true}),close}
  }catch(error){
   try{await close()}catch(cleanupError){throw new AggregateError([error,cleanupError],'Resilience fixture startup and cleanup failed')}
   throw error;

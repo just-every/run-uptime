@@ -5,6 +5,7 @@ import {once} from 'node:events';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {availablePorts,migratedWorker,runtimeDirectory,cleanupDirectory,ownerAPI} from './notify-acceptance-runtime.mjs';
+import {definitionDoor} from './auth-test-support.mjs';
 import {runRunner} from '../runners/src/private-runner.mjs';
 const directory=await runtimeDirectory(),[port]=await availablePorts(1),origin=`http://127.0.0.1:${port}`;
 let worker;
@@ -42,6 +43,6 @@ try{
  const rotated=await api(`/api/monitors/${id}/heartbeat-key`,'POST',{}, {origin});assert.equal(rotated.status,200);assert.equal((await receipt()).status,400);assert.equal((await fetch(origin+issued.receiptPath,{headers:{...protectedHeaders,'x-heartbeat-sequence':'200'}})).status,400);
  const robot=JSON.stringify({data:[{type:'HEARTBEAT',friendlyName:'Migrated robot backup',interval:86400,gracePeriod:3600}],nextLink:null});
  const better=JSON.stringify({data:[{type:'heartbeat',attributes:{name:'Migrated Better Stack backup',period:86400,grace:900}}]});
- for(const [source,body,grace] of [['uptimerobot',robot,3600000],['betterstack-heartbeats',better,900000]]){const response=await api(`/api/definitions/preview?source=${source}`,'POST',JSON.parse(body),{origin});assert.equal(response.status,200);const plan=response.data;assert.equal(plan.entries[0].target.heartbeat.maxAgeMs,86400000);assert.equal(plan.entries[0].target.heartbeat.graceMs,grace);const applied=await api(`/api/definitions/apply?source=${source}&digest=${plan.digest}`,'POST',JSON.parse(body),{origin});assert.equal(applied.status,201);const imported=(await api('/api/overview')).data.monitors.find(m=>m.definition.name.startsWith(source==='uptimerobot'?'Migrated robot':'Migrated Better'));assert.equal(imported.definition.enabled,false);assert.equal(imported.definition.heartbeat.graceMs,grace)}
+ for(const [source,body,grace] of [['uptimerobot',robot,3600000],['betterstack-heartbeats',better,900000]]){const imports=definitionDoor({origin,cookie:owner.cookie}),response=await imports.preview(body,source);assert.equal(response.status,200);const plan=response.body;assert.equal(plan.entries[0].target.heartbeat.maxAgeMs,86400000);assert.equal(plan.entries[0].target.heartbeat.graceMs,grace);const applied=await imports.apply(plan);assert.equal(applied.status,200);const imported=(await api('/api/overview')).data.monitors.find(m=>m.definition.name.startsWith(source==='uptimerobot'?'Migrated robot':'Migrated Better'));assert.equal(imported.definition.enabled,false);assert.equal(imported.definition.heartbeat.graceMs,grace)}
  console.log('HEARTBEAT-002: public Worker cron/DST preview, hashed rotated URL authority, GET/HEAD/POST, protected replay refusal, redacted history and real signed failure/recovery passed.');
 }finally{await worker?.dispose();await cleanupDirectory(directory)}

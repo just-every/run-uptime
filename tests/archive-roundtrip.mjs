@@ -11,7 +11,8 @@ import {digest,TABLES,LEGACY_TABLES,ARCHIVE_ROWS,extensionTables} from '../src/d
 import {installationLocalTables,assertArchiveInventory} from '../src/domain/archive-inventory.ts';
 import {populateArchiveFixture,populateProtocolArchiveFixture} from './archive-fixture.mjs';
 import {restoreBounds} from './archive-restore-bounds.mjs';
-import {applyDefinitions,previewDefinitions,undoBatch} from '../src/domain/definitions/index.server.ts';
+import {undoBatch} from '../src/domain/definitions/index.server.ts';
+import {signInOwner,definitionDoor} from './auth-test-support.mjs';
 const parent=new URL('../../tmp/',import.meta.url).pathname;await mkdir(parent,{recursive:true});const dir=await mkdtemp(join(parent,'archive-roundtrip-'));let worker;
 const controlPort=await freePort();
 const values={UPTIME_LOCAL_REVIEW:'true',SESSION_SECRET:randomBytes(32).toString('base64url'),SETUP_TOKEN:randomBytes(32).toString('base64url'),UPTIME_RUNNER_KEY:randomBytes(32).toString('base64url'),UPTIME_ORIGIN:`http://127.0.0.1:${controlPort}`,OWNER_EMAIL:'archive-owner@example.test',MAIL_PROVIDER:'development',MAIL_FROM:'auth@localhost.test'};
@@ -22,12 +23,36 @@ const tables=a=>({...a.payload.tables,...a.payload.productTables});
 async function rehash(a){a.sha256=await digest(JSON.stringify(a.payload));return a}
 try{
  const source=join(dir,'source'),target=join(dir,'target'),settings=join(dir,'settings.json'),file=join(dir,'archive.json');await writeFile(settings,JSON.stringify(values),{mode:0o600});
- await migrate(source);let env=await installation(source);await populateArchiveFixture(env);await populateProtocolArchiveFixture(env);
- // One applied-and-undone definition batch and one applied batch travel as history.
- const owner={kind:'feature',ref:'local-cli'},definitionFile=names=>JSON.stringify({format:'uptime.monitors',version:1,monitors:names.map(name=>({name,url:`https://example.test/${name}`}))});
- for(const [names,undo] of [[['imported-a','imported-b'],true],[['imported-c'],false]]){const text=definitionFile(names),applied=await applyDefinitions(env,text,'auto',(await previewDefinitions(env,text)).digest,owner);if(undo)await undoBatch(env,applied.batchId,owner)}
+ await migrate(source);let env=await installation(source);
+ // The owner opens the console first, which establishes the installation's runner; an import never creates one.
+ const origin=values.UPTIME_ORIGIN,cookie=await signInOwner(origin,{bindings:values,finishFirstRun:true});
+ assert.equal((await fetch(origin+'/api/overview',{headers:{origin,cookie}})).status,200);
+ await populateArchiveFixture(env);await populateProtocolArchiveFixture(env);
+ // One applied-and-undone definition batch and one applied batch travel as history, each imported through the owner's
+ // import door as the move-in screen imports.
+ const door=definitionDoor({origin,cookie}),definitionFile=names=>JSON.stringify({format:'uptime.monitors',version:1,monitors:names.map(name=>({name,url:`https://example.test/${name}`}))});
+ for(const [names,undo] of [[['imported-a','imported-b'],true],[['imported-c'],false]]){
+  const view=await door.preview(definitionFile(names));assert.equal(view.status,200,JSON.stringify(view.body));
+  const applied=await door.apply(view.body);assert.equal(applied.status,200,JSON.stringify(applied.body));
+  if(undo)assert.equal((await door.undo(applied.body)).body.job.state,'undone');
+ }
+ // A catch-up that is undone and then followed by another catch-up: each archived entry names the revision its own apply wrote,
+ // although the undo's restore took a revision between them.
+ const robot=timeout=>JSON.stringify({data:[{id:1,friendlyName:'Robot one',type:'HTTP',url:'https://robot-one.example.test/health',interval:300,timeout,httpMethodType:'GET',successHttpResponseCodes:['200']}],nextLink:null});
+ const robotBatches=[];
+ for(const [timeout,undo] of [[5,false],[7,true],[8,false]]){
+  const view=await door.preview(robot(timeout));assert.equal(view.status,200,JSON.stringify(view.body));
+  const applied=await door.apply(view.body);assert.equal(applied.status,200,JSON.stringify(applied.body));robotBatches.push(applied.body.batchId.slice('business:'.length));
+  if(undo)assert.equal((await door.undo(applied.body)).body.job.state,'undone');
+ }
  const original=await archive(env),a=tables(original);
- assert.equal(a.definition_batches.length,2);assert.equal(a.definition_batch_entries.length,3);assert.ok(a.definition_batches.every(b=>b.restored_at===null));const inventory=(await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name").all()).results;for(const {name} of inventory)assert.ok(TABLES.includes(name)||installationLocalTables[name]||name.startsWith('rer_portability_'),`Unclassified schema table: ${name}`);console.log('Archive schema inventory: '+inventory.map(({name})=>`${name}=${TABLES.includes(name)?'portable':'installation-local authority'}`).join(', '));
+ assert.equal(a.definition_batches.length,5);assert.equal(a.definition_batch_entries.length,6);assert.ok(a.definition_batches.every(b=>b.restored_at===null));const fileBatches=a.definition_batches.filter(b=>b.source==='uptime.monitors'),robotRows=robotBatches.map(id=>a.definition_batch_entries.filter(e=>e.batch_id===id));
+ assert.deepEqual(fileBatches.map(b=>[b.actor_kind,b.undone_at!==null]),[['operator',true],['operator',false]]);assert.deepEqual(a.definition_batch_entries.filter(e=>fileBatches.some(b=>b.id===e.batch_id)).map(e=>[e.action,e.revision,e.previous_revision,e.undo_outcome]),[['create',1,null,'paused'],['create',1,null,'paused'],['create',1,null,null]]);
+ // Revisions 1 to 4 of the robot: import, catch-up (undone), the undo's restore, the second catch-up. The archive names the revision each apply wrote.
+ const robotMonitor=a.definition_batch_entries.find(e=>e.batch_id===robotBatches[0]).monitor_id,timeoutOf=revision=>JSON.parse(a.revisions.find(r=>r.monitor_id===robotMonitor&&r.revision===revision).definition).timeoutMs;
+ assert.deepEqual(robotRows.map(rows=>rows.map(e=>[e.action,e.revision,e.previous_revision,e.undo_outcome])),[[['create',1,null,null]],[['change',2,1,'restored']],[['change',4,3,null]]]);
+ assert.deepEqual([timeoutOf(1),timeoutOf(2),timeoutOf(3),timeoutOf(4)],[5000,7000,5000,8000],'each named revision holds the definition its apply wrote');
+ const inventory=(await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name").all()).results;for(const {name} of inventory)assert.ok(TABLES.includes(name)||installationLocalTables[name]||name.startsWith('rer_portability_'),`Unclassified schema table: ${name}`);console.log('Archive schema inventory: '+inventory.map(({name})=>`${name}=${TABLES.includes(name)?'portable':'installation-local authority'}`).join(', '));
  // Real D1 carries Cloudflare's _cf_* tables (_cf_KV) that local D1 refuses to create, so inject their names under the real inventory query: platform tables are never refused, while any other unknown table, even one that merely resembles the prefix, still refuses.
  const withTables=(names,db=env.DB)=>({prepare:sql=>db.prepare(sql.replace('FROM sqlite_master',`FROM (SELECT name,type FROM sqlite_master${names.map(n=>` UNION ALL SELECT '${n}','table'`).join('')})`)),batch:statements=>db.batch(statements)});
  await assertArchiveInventory(withTables(['_cf_KV','_cf_FUTURE']));await assert.rejects(assertArchiveInventory(withTables(['_cf_KV','xcf_unknown'])),/Archive unclassified table: xcf_unknown/);

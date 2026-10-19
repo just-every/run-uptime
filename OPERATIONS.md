@@ -89,14 +89,16 @@ mail and notifications reached a person.
 
 ## Monitor definition files
 
-`node scripts/definitions.mjs validate|preview|apply|export|batches|undo` is
-the local door to the same engine as the console's Definitions view
-(`/api/definitions/*`, owner session and configured origin). Stop dev and
-preview first: it holds the local operation like export and import. Preview and
-validate write nothing; apply needs `--digest` from the preview and refuses a
-changed installation; export writes a new private file; apply and undo apply
-pending local migrations first. Batches applied from the command line record
-the actor as the local command. See `docs/definitions.md` and
+`node scripts/definitions.mjs validate|preview|apply|export|batches|undo` runs
+the same planner and the same import door as the console's Definitions view
+(`/api/operator/import/*`, owner session, configured origin and the source named
+in `X-Import-Source`; Business grants use the same door at `/api/rer/import/*`).
+Stop dev and preview first: it holds the local operation like export and import.
+Preview and validate write nothing; apply plans through the door as the owner,
+needs `--digest` from the preview and refuses a plan that reads differently;
+export writes a new private file; apply and undo apply pending local migrations
+first. Every import, from the console, the command line or Business, is one
+history with undo. See `docs/definitions.md` and
 `docs/moving-from-uptimerobot.md`.
 
 ## Artifact-controller deployment

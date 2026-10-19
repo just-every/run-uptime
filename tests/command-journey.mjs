@@ -121,6 +121,18 @@ try {
  const exportedFile = JSON.parse(await readFile(join(scratch.root, 'exports/uptime.monitors.json'), 'utf8'));
  const exported = JSON.parse((await scratch.run('node', ['scripts/definitions.mjs', 'preview', '--input', 'exports/uptime.monitors.json', '--json'])).split('\n').find(line => line.startsWith('{"kind"')));
  assert.ok(exportedFile.monitors.length >= 6); assert.deepEqual(exported.counts, { create: 0, unchanged: exportedFile.monitors.length, change: 0, refused: 0, unsupported: 0 });
+ // An UptimeRobot export applied with the digest its preview printed, then a catch-up of it with one monitor changed and
+ // two unchanged, applied the same way: the command applies exactly what it previewed, a catch-up included.
+ const robots = timeouts => JSON.stringify({ data: timeouts.map((timeout, i) => ({ id: 101 + i, friendlyName: `Command robot ${101 + i}`, type: 'HTTP', url: `https://robot-${101 + i}.example.test/health`, interval: 300, timeout, httpMethodType: 'GET', successHttpResponseCodes: ['200'] })), nextLink: null });
+ const definitionsCommand = async (args, prefix) => JSON.parse((await scratch.run('node', ['scripts/definitions.mjs', ...args, '--json'])).split('\n').find(line => line.startsWith(prefix)));
+ const robotApplies = [];
+ for (const [name, timeouts] of [['robots.json', [5, 5, 5]], ['robots-catchup.json', [7, 5, 5]]]) {
+  await writeFile(join(scratch.root, 'exports', name), robots(timeouts));
+  const reviewed = await definitionsCommand(['preview', '--input', `exports/${name}`], '{"kind"');
+  robotApplies.push({ counts: reviewed.counts, applied: await definitionsCommand(['apply', '--input', `exports/${name}`, '--digest', reviewed.reviewDigest], '{"batchId"') });
+ }
+ assert.deepEqual(robotApplies.map(step => step.counts), [{ create: 3, unchanged: 0, change: 0, refused: 0, unsupported: 0 }, { create: 0, unchanged: 2, change: 1, refused: 0, unsupported: 0 }]);
+ assert.ok(robotApplies.every(step => step.applied.job.state === 'completed'), 'each apply, the catch-up included, completes with the digest its preview printed');
  // Preview serves the fixed production build on the same origin, then stops with its owned processes.
  await machineAvailable(); let preview = scratch.start('node', [rer, 'preview']);
  try {
@@ -157,7 +169,10 @@ try {
   assert.ok(target.notification_destinations.every(row => row.enabled === 0));
   assert.ok(target.notification_jobs.every(row => row.state === 'imported-inactive'));
   assert.ok(target.outbox.every(row => row.status === 'imported-inactive'));
-  assert.equal(target.definition_batches.length, 2); assert.ok(target.definition_batches.every(row => row.undone_at !== null && row.restored_at !== null), 'applied-and-undone batches arrive as restored history');
+  // Every import-door batch arrives as restored history: the console's two applied-and-undone imports, then the command's
+  // UptimeRobot import and its catch-up, which stay applied.
+  assert.equal(target.definition_batches.length, 4); assert.ok(target.definition_batches.every(row => row.restored_at !== null), 'every batch arrives as restored history');
+  assert.deepEqual(target.definition_batches.map(row => [row.source, JSON.parse(row.counts), row.undone_at !== null]), [['uptimerobot', { create: 6, change: 0 }, true], ['uptime.monitors', { create: 1, change: 0 }, true], ['uptimerobot', { create: 3, change: 0 }, false], ['uptimerobot', { create: 0, change: 1 }, false]], 'applied-and-undone batches arrive as restored history, beside the command\'s applied ones');
   for (const name of ['monitors', 'slots', 'outbox', 'notification_destinations', 'notification_jobs', 'integration_deliveries']) for (const original of source[name]) {
    const current = target[name].find(row => row.id === original.id);
    if (JSON.stringify(current) !== JSON.stringify(original)) assert.ok(target.archive_history.some(row => row.table_name === name && row.record === JSON.stringify(original)));

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// Monitor definition files for a local installation, through the same engine as the console's Import view:
+// Monitor definition files for a local installation, through the same import door as the console's Definitions view:
 //   node scripts/definitions.mjs validate --input uptime.monitors.json   (writes nothing; exits 1 if any entry is refused or unsupported)
-//   node scripts/definitions.mjs preview  --input FILE [--source auto|uptime.monitors|uptimerobot|uptimerobot-log]
-//   node scripts/definitions.mjs apply    --input FILE --digest PLAN_DIGEST [--source SOURCE]
+//   node scripts/definitions.mjs preview  --input FILE [--source auto|uptime.monitors|uptimerobot|pingdom|betterstack-heartbeats|uptimerobot-log]
+//   node scripts/definitions.mjs apply    --input FILE --digest PLAN_DIGEST [--source SOURCE]   (plans through the door; applies only that reviewed plan)
 //   node scripts/definitions.mjs export   --output uptime.monitors.json   (read-only; a new file only)
 //   node scripts/definitions.mjs batches
 //   node scripts/definitions.mjs undo     --batch BATCH_ID
@@ -16,8 +16,13 @@ import { readLocalSettings } from './local-settings.mjs';
 import { startLocalWorker } from './local-worker.mjs';
 import { localOperation } from '@runeditrun/rer/local/operation';
 import { privateFile, promote } from '@runeditrun/rer/modules/portability/cli-options';
+import { createHash, randomUUID } from 'node:crypto';
 import { decodeDefinitionBytes, DEFINITION_BYTES } from '../src/domain/definitions/format.ts';
-import { previewDefinitions, applyDefinitions, exportDefinitions, listBatches, undoBatch } from '../src/domain/definitions/index.server.ts';
+import { recogniseFile, exportDefinitions, undoBatch } from '../src/domain/definitions/index.server.ts';
+import { operatorImport } from '../src/domain/business-import/door.server.ts';
+import { ensureFirstRunner } from '../src/domain/runner-registration.server.ts';
+import { doorPlanView, previewDefinitions } from '../src/domain/business-import/plan-view.server.ts';
+import { importHistory } from '../src/domain/business-import/history.server.ts';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const commands = { validate: ['--input', '--source'], preview: ['--input', '--source'], apply: ['--input', '--source', '--digest'], export: ['--output'], batches: [], undo: ['--batch'] };
@@ -58,6 +63,43 @@ async function syntheticGrant() {
  try { const grant = JSON.parse(await readFile(join(root, '.wrangler/state/synthetic-grant.json'), 'utf8')); return Number.isInteger(grant.port) ? { UPTIME_SYNTHETIC_PORT: String(grant.port) } : {}; } catch { return {}; }
 }
 
+// The local command holds the installation's operation and its own storage, so it acts as the installation's
+// owner. It imports through the same door as the console: upload, plan, the reviewed fingerprint, apply, reconcile.
+const ownerAuthority = env => async () => ({ sql: "EXISTS(SELECT 1 FROM oa_operators WHERE email=? AND role='owner' AND status='active')", params: [env.OWNER_EMAIL ?? ''] });
+const ownerRequest = (env, path, init = {}) => new Request(new URL(path, env.UPTIME_ORIGIN), { ...init, headers: { origin: env.UPTIME_ORIGIN, 'content-type': 'application/json', ...init.headers } });
+// History reads the owner's import history with the same local authority.
+async function door(env, namespace, step, body) {
+ const response = await operatorImport(env, ownerRequest(env, `/api/operator/import/${step}`, { method: 'POST', headers: { 'x-import-source': namespace }, body: JSON.stringify(body) }), ownerAuthority(env));
+ const result = await response.json();
+ if (!response.ok) throw Object.assign(Error(`The import door refused ${step}: ${result.error}.`), { exitCode: 1 });
+ return result;
+}
+async function until(env, namespace, step, body, done) {
+ for (let call = 0; call < 100; call++) { const { job } = await door(env, namespace, step, body); if (job?.state === done) return job; if (!['queued', 'applying', 'undoing'].includes(job?.state)) throw Error(`The import stopped (${job?.error ?? job?.state}).`); }
+ throw Error('The import did not finish; run the command again to continue.');
+}
+async function applyThroughDoor(env, file, source = 'auto', digest) {
+ // An import never creates a runner; the local command establishes the first one, as opening the console does.
+ await ensureFirstRunner(env);
+ // The file uploads as the console's does: recognised, with its request secrets withheld.
+ const { source: recognised, text } = recogniseFile(file, source), namespace = recognised === 'uptime.monitors' ? `uptime.monitors:${randomUUID()}` : recognised;
+ const bytes = Buffer.from(JSON.stringify(text) + '\n'), hash = value => createHash('sha256').update(value).digest('hex'), totalChunks = Math.ceil(bytes.length / 65536);
+ let uploadId;
+ for (let index = 0; index < totalChunks; index++) { const chunk = bytes.subarray(index * 65536, (index + 1) * 65536); uploadId = (await door(env, namespace, 'uploads', { ...(uploadId ? { uploadId } : {}), name: 'definitions.ndjson', bundleSha256: hash(bytes), totalBytes: bytes.length, totalChunks, index, chunkSha256: hash(chunk), base64: chunk.toString('base64') })).uploadId; }
+ const planned = await door(env, namespace, 'plan', { uploadId }).catch(error => /catchup_required/.test(error.message) ? door(env, namespace, 'plan', { uploadId, catchup: true }) : Promise.reject(error));
+ const preview = await doorPlanView(env, planned.planId);
+ // A plan that is not applied is cancelled at once, and the door keeps nothing of it.
+ const refuse = async message => { if (!preview.applied) await door(env, namespace, 'undo', { planId: planned.planId }); throw Object.assign(Error(message), { exitCode: 1 }); };
+ if (preview.kind !== 'definitions') await refuse('A log export is history only; there is nothing to apply.');
+ // Apply exactly what was reviewed: the door's plan must read as the preview whose digest was given.
+ if (preview.reviewDigest !== digest) await refuse('The installation or the file changed since this preview. Nothing was applied; preview again.');
+ if (!preview.counts.create && !preview.counts.change) await refuse('This preview has nothing to create or change.');
+ const job = await until(env, namespace, 'apply', { planId: planned.planId, reviewedFingerprint: planned.fingerprint }, 'completed');
+ const report = await door(env, namespace, 'reconcile', { planId: planned.planId });
+ if (!report.ok) throw Error('The import finished, but Uptime does not hold what was reviewed. Undo this batch.');
+ return { batchId: `business:${planned.planId}`, job, preview };
+}
+
 function printPreview(result) {
  if (result.kind === 'history') { console.log(result.note); return; }
  const c = result.counts;
@@ -68,7 +110,7 @@ function printPreview(result) {
   for (const change of e.changes ?? []) console.log(`    ${change.field}: ${JSON.stringify(change.from)} -> ${JSON.stringify(change.to)}`);
   for (const difference of e.differences) console.log(`    note: ${difference}`);
  }
- console.log(`Plan digest: ${result.digest}`);
+ console.log(`Plan digest: ${result.reviewDigest}`);
 }
 
 export async function run(argv = process.argv.slice(2)) {
@@ -89,8 +131,8 @@ export async function run(argv = process.argv.slice(2)) {
    return command === 'validate' && result.kind === 'definitions' && (result.counts.refused || result.counts.unsupported) ? 1 : 0;
   }
   if (command === 'apply') {
-   const result = await applyDefinitions(env, text, options.source, options.digest, actor);
-   if (options.json) console.log(JSON.stringify(result)); else console.log(`Applied batch ${result.batchId}: ${result.created.length} created (paused), ${result.changed.length} changed. Undo with: node scripts/definitions.mjs undo --batch ${result.batchId}`);
+   const result = await applyThroughDoor(env, text, options.source, options.digest);
+   if (options.json) console.log(JSON.stringify(result)); else console.log(`Applied batch ${result.batchId}: ${result.preview.counts.create} created (paused), ${result.preview.counts.change} changed. Undo with: node scripts/definitions.mjs undo --batch ${result.batchId}`);
    return 0;
   }
   if (command === 'export') {
@@ -100,7 +142,14 @@ export async function run(argv = process.argv.slice(2)) {
    if (!options.json) console.log(`Wrote ${options.output}.`); else console.log(JSON.stringify({ output: options.output }));
    return 0;
   }
-  if (command === 'batches') { const result = await listBatches(env); console.log(options.json ? JSON.stringify(result) : result.map(b => `${b.id} ${new Date(b.createdAt).toISOString()} ${b.source} ${b.entries.length} entries${b.undoneAt ? ' (undone)' : b.restoredAt ? ' (from archive)' : ''}`).join('\n') || 'No batches.'); return 0; }
+  if (command === 'batches') { const result = await importHistory(env, await ownerAuthority(env)()); console.log(options.json ? JSON.stringify(result) : result.map(b => `${b.id} ${new Date(b.createdAt).toISOString()} ${b.source} ${b.entries.length} entries${b.undone || b.undoneAt ? ' (undone)' : b.restoredAt ? ' (from archive)' : ''}`).join('\n') || 'No batches.'); return 0; }
+  if (options.batch.startsWith('business:')) {
+   const planId = options.batch.slice('business:'.length), batch = (await importHistory(env, await ownerAuthority(env)())).find(b => b.id === options.batch);
+   if (!batch) throw usage('No such batch.');
+   const job = await until(env, batch.namespace, 'undo', { planId }, 'undone');
+   if (options.json) console.log(JSON.stringify({ batchId: options.batch, job })); else console.log(`Undid batch ${options.batch}.`);
+   return 0;
+  }
   const result = await undoBatch(env, options.batch, actor);
   if (options.json) console.log(JSON.stringify(result)); else for (const o of result.outcomes) console.log(`- ${o.outcome.padEnd(13)} ${o.name ? `“${o.name}”` : o.monitorId}: ${o.reason}`);
   return 0;

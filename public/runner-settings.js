@@ -1,5 +1,7 @@
 import {dialogFocusReturn} from './notification-dialogs.js';
+import {businessImportSettings} from './business-import-settings.js';
 export function runnerSettings(container,runners,api,refresh){
+ businessImportSettings(container,api);
  const heading=document.createElement('h3');heading.textContent='Runner networks';container.append(heading);
  const list=document.createElement('ul');
  for(const runner of runners){const row=document.createElement('li'),engines=Object.entries(runner.capabilities?.browsers??{}).filter(([,available])=>available).map(([engine])=>engine);row.textContent=`${runner.networkLabel} · ${runner.runnerId} · ${runner.revokedAt?'Revoked':runner.lastContactAt?'Contact '+new Date(runner.lastContactAt).toLocaleString():'Never contacted'} · ${engines.length?'Flow browsers: '+engines.join(', '):'No browser for flows'} · ${runner.hosted?'Private networks require a Node runner':runner.capabilities?.privateNetwork?'Private network grants supported':'Update runner for private networks'}${runner.capabilities?.version?' · '+runner.capabilities.version:''}${runner.capabilities?.capacity?' · '+runner.capabilities.capacity+' check at a time':''}`;

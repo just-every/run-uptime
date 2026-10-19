@@ -1,41 +1,14 @@
 // @ts-ignore checked by family policy tests
 import {validateDefinition} from '../policy.mjs'
-import {get,grants,revisionStatements,flowCapGuard,withinFlowCap,withinMonitorCap,type Bindings} from '../control.server.ts'
+import {get,grants,revisionStatements,flowCapGuard,withinFlowCap,type Bindings} from '../control.server.ts'
 import {assignDefinition} from '../runner-registration.server.ts'
 import {mutationGuard,type AuditActor} from '../audit.server.ts'
-import {keptAssignments,liveHeartbeatTokens,tokenNote,type Plan} from './plan.server.ts'
+import {keptAssignments,liveHeartbeatTokens,tokenNote} from './plan.server.ts'
 // @ts-ignore Shared catalog metadata validation.
 import {validateMonitorMetadata} from '../monitor-metadata.mjs'
 
 const conflict=(message:string)=>Object.assign(Error(message),{status:409})
 export const STALE_PLAN='The installation or the file changed since this preview. Nothing was applied; preview again.'
-
-// Applies exactly the previewed plan in one D1 batch, or nothing. New monitors arrive paused; a change becomes a new
-// immutable revision that keeps the monitor's enabled and maintenance state, its runner assignments and, while it stays a
-// heartbeat, its heartbeat token. Nothing here issues a heartbeat token, schedules a notification or touches a destination.
-export async function applyPlan(env:Bindings,plan:Plan,digest:string,actor:AuditActor){
- if(plan.digest!==digest)throw conflict(STALE_PLAN)
- const actionable=plan.entries.filter(e=>e.action==='create'||e.action==='change')
- if(!actionable.length)throw Error('This preview has nothing to create or change.')
- const now=Date.now(),batchId=crypto.randomUUID(),statements:D1PreparedStatement[]=[mutationGuard(env,'(SELECT COUNT(*) FROM monitors)=?',[plan.monitorCount])],written:{monitorId:string;action:string;revision:number;previous:number|null}[]=[]
- for(const e of plan.entries.filter(e=>e.action==='unchanged'))statements.push(mutationGuard(env,'EXISTS(SELECT 1 FROM monitors WHERE id=? AND revision=?)',[e.monitorId,e.revision]))
- let addsFlows=0
- for(const e of actionable){
-  const old=e.action==='change'?await get(env,e.monitorId!):null
-  if(e.action==='change'&&old?.revision!==e.revision)throw conflict(STALE_PLAN)
-  if(e.definition.type==='flow'&&old?.definition.type!=='flow')addsFlows++
-  const key=old?.id??crypto.randomUUID()
-  const definition=await assignDefinition(env,e.definition,old?{assignments:keptAssignments(old.definition,e.definition)}:{})
-  const {revision,statements:revisionWrites}=await revisionStatements(env,definition,old,key,now,actor,{keepHeartbeatToken:true})
-  statements.push(...revisionWrites);written.push({monitorId:key,action:e.action,revision,previous:old?.revision??null})
- }
- statements.push(env.DB.prepare('INSERT INTO definition_batches(id,created_at,actor_kind,actor_ref,source,plan_digest,counts) VALUES(?,?,?,?,?,?,?)').bind(batchId,now,actor.kind,actor.ref,plan.source,plan.digest,JSON.stringify(plan.counts)))
- for(const w of written)statements.push(env.DB.prepare('INSERT INTO definition_batch_entries(batch_id,monitor_id,action,revision,previous_revision) VALUES(?,?,?,?,?)').bind(batchId,w.monitorId,w.action,w.revision,w.previous))
- // The preview counted room for its flows; a flow saved since then must not take the installation past the bound.
- if(addsFlows)statements.push(flowCapGuard(env))
- await withinMonitorCap(env,written.filter(w=>w.action==='create').length,withinFlowCap(env,addsFlows,env.DB.batch(statements)))
- return {batchId,created:written.filter(w=>w.action==='create').map(w=>w.monitorId),changed:written.filter(w=>w.action==='change').map(w=>w.monitorId),counts:plan.counts}
-}
 
 // Undo pauses what the batch created and restores what it changed, but only where the monitor's current revision is
 // still the one the batch produced. Everything else is reported, never forced. No observation, slot or incident is

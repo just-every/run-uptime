@@ -56,5 +56,5 @@ export function ownerAPI(origin){
   return {status:response.status,headers:response.headers,data};
  };
  // A fresh email-link sign-in: owner-authority changes (inviting another owner) need an app-local email proof from the last ten minutes, which the first-owner bootstrap session does not carry.
- return {api,async signIn(bindings=testAuthBindings){cookie=await signInOwner(origin,{bindings:{...testAuthBindings,...bindings}})},async freshSignIn(bindings=testAuthBindings){cookie=await emailSignIn(origin,{bindings:{...testAuthBindings,...bindings}})}};
+ return {api,get cookie(){return cookie},async signIn(bindings=testAuthBindings){cookie=await signInOwner(origin,{bindings:{...testAuthBindings,...bindings}})},async freshSignIn(bindings=testAuthBindings){cookie=await emailSignIn(origin,{bindings:{...testAuthBindings,...bindings}})}};
 }

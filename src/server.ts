@@ -46,7 +46,11 @@ import {configurationResponse,validateWorkerConfiguration} from './domain/startu
 import {isPublicDocument,publicPath} from './domain/public-paths.ts'
 import {limitPublicRequest} from './domain/public-rate-limits.server.ts'
 import {erase} from './domain/erasure.server.ts'
-import {previewDefinitions,applyDefinitions,exportDefinitions,listBatches,undoBatch} from './domain/definitions/index.server.ts'
+import {recogniseFile,exportDefinitions} from './domain/definitions/index.server.ts'
+import {doorPlanView} from './domain/business-import/plan-view.server.ts'
+import {businessImportDoor,ownerImportDoor} from './domain/business-import/door.server.ts'
+import {businessImportSettings} from './domain/business-import/settings.server.ts'
+import {definitionImportHistory,undoDefinitionImport} from './domain/business-import/history.server.ts'
 import {exportJournal} from './domain/archive-fence.server.ts'
 import {operatorSession,authenticatedSession} from './domain/operator-auth.server.ts'
 import {accessDeniedDocument} from './domain/access-document.server.ts'
@@ -78,7 +82,7 @@ import {session,overview,save,get,claim,complete,history,revisions,archive,resto
 import {checkInput,InputError} from './domain/request-boundary.ts'
 const api=new Hono<{Bindings:Bindings;Variables:{requestText:string;input:any;runner:Runner}}> ()
 api.get('/health',c=>health(c.env))
-api.use('/api/*',async(c,next)=>{c.header('cache-control','no-store');const origin=c.req.header('origin');if(c.env.UPTIME_LOCAL_REVIEW!=='true'&&['POST','PATCH','DELETE'].includes(c.req.method)&&!c.req.path.startsWith('/api/runner/')&&!c.req.path.startsWith('/api/heartbeats/')&&origin!==c.env.UPTIME_ORIGIN)return c.json({error:'Same origin required'},403);if(c.req.header('sec-fetch-site')==='cross-site'||(origin&&origin!==new URL(c.req.url).origin))return c.json({error:'Same origin required'},403);if(Number(c.req.header('content-length')??0)>2*1024*1024)return c.json({error:'Payload too large'},413);if(['POST','PATCH'].includes(c.req.method)&&!c.req.path.startsWith('/api/heartbeats/')&&c.req.header('content-type')!=='application/json'&&!(c.req.path==='/api/definitions/preview'&&c.req.header('content-type')==='text/csv'))return c.json({error:'JSON required'},415);if(['POST','PATCH'].includes(c.req.method)){const reader=c.req.raw.body?.getReader(),decoder=new TextDecoder('utf-8',{fatal:true});let size=0,text='';if(reader){try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>(c.req.path.startsWith('/api/heartbeats/')?10240:2*1024*1024)){return c.json({error:'Payload too large'},413)}text+=decoder.decode(value,{stream:true})}text+=decoder.decode()}catch(error){if(error instanceof TypeError)return c.json({error:'Invalid UTF-8 request body'},400);throw error}finally{reader.releaseLock()}}c.set('requestText',text)}await next()})
+api.use('/api/*',async(c,next)=>{c.header('cache-control','no-store');const origin=c.req.header('origin');if(c.env.UPTIME_LOCAL_REVIEW!=='true'&&['POST','PATCH','DELETE'].includes(c.req.method)&&!c.req.path.startsWith('/api/runner/')&&!c.req.path.startsWith('/api/heartbeats/')&&origin!==c.env.UPTIME_ORIGIN)return c.json({error:'Same origin required'},403);if(c.req.header('sec-fetch-site')==='cross-site'||(origin&&origin!==new URL(c.req.url).origin))return c.json({error:'Same origin required'},403);if(Number(c.req.header('content-length')??0)>2*1024*1024)return c.json({error:'Payload too large'},413);if(['POST','PATCH'].includes(c.req.method)&&!c.req.path.startsWith('/api/heartbeats/')&&c.req.header('content-type')!=='application/json'&&!(c.req.path==='/api/definitions/recognise'&&c.req.header('content-type')==='text/csv'))return c.json({error:'JSON required'},415);if(['POST','PATCH'].includes(c.req.method)){const reader=c.req.raw.body?.getReader(),decoder=new TextDecoder('utf-8',{fatal:true});let size=0,text='';if(reader){try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>(c.req.path.startsWith('/api/heartbeats/')?10240:2*1024*1024)){return c.json({error:'Payload too large'},413)}text+=decoder.decode(value,{stream:true})}text+=decoder.decode()}catch(error){if(error instanceof TypeError)return c.json({error:'Invalid UTF-8 request body'},400);throw error}finally{reader.releaseLock()}}c.set('requestText',text)}await next()})
 // Every route's path, query and body schema, once the caller's authority is known and before any service (request-boundary.ts).
 // Heartbeats carry their own token, so their input is checked before their handler.
 const boundary=async(c:any,next:()=>Promise<void>)=>{const headers=c.req.raw.headers,hasBody=Number(headers.get('content-length')??0)>0||headers.has('transfer-encoding');let checked;try{checked=checkInput(c.req.method==='HEAD'?'GET':c.req.method,new URL(c.req.url),c.get('requestText')??'',hasBody)}catch(error){if(error instanceof InputError)return c.json({error:error.message},400);throw error}if(!checked)return c.json({error:'Not found'},404);c.set('input',checked.body);await next()}
@@ -195,13 +199,16 @@ api.post('/api/runner/discoveries/claim',async c=>c.json(await claimDiscovery(c.
 api.post('/api/runner/discoveries/:id/result',async c=>{const text=c.get('requestText');if(!await signedRunnerBody(c.env,c.get('runner'),text,c.req.header('x-sent-at')??'',c.req.header('x-runner-signature')??'',DISCOVERY_RESULT_BYTES))return c.json({error:'Invalid signed result'},403);return c.json(await completeDiscovery(c.env,c.req.param('id'),discoveryAnswer(text),c.get('runner')))})
 api.get('/api/archive',async c=>c.json(await archive(c.env)))
 api.post('/api/restore',async c=>{const input=c.get('input');return c.json(await restore(c.env,input.archive??input,undefined,{laterJournal:input.laterJournal,actor:{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id}}))})
-// Definition files: preview writes nothing; apply takes the previewed digest; export is read-only; undo pauses or restores.
+// Definition files import through the owner's import door (/api/operator/import/*): recognising a file names its source,
+// returns its text with request secrets withheld (the text the screen uploads) and writes nothing; a plan's preview reads the door's retained plan; export is read-only; undo pauses or restores.
 const operator=async(c:any)=>({kind:'operator' as const,ref:(await operatorSession(c.env,c.req.raw))!.operator.id})
-api.post('/api/definitions/preview',async c=>c.json(await previewDefinitions(c.env,c.get('requestText'),c.req.query('source'))))
-api.post('/api/definitions/apply',async c=>c.json(await applyDefinitions(c.env,c.get('requestText'),c.req.query('source'),c.req.query('digest'),await operator(c)),201))
+api.post('/api/definitions/recognise',async c=>c.json(recogniseFile(c.get('requestText'),c.req.query('source'))))
+api.get('/api/definitions/plans/:id',async c=>c.json(await doorPlanView(c.env,c.req.param('id'))))
 api.get('/api/definitions/export',async c=>{c.header('content-disposition','attachment; filename="uptime.monitors.json"');return c.json(await exportDefinitions(c.env))})
-api.get('/api/definitions/batches',async c=>c.json(await listBatches(c.env)))
-api.post('/api/definitions/batches/:id/undo',async c=>c.json(await undoBatch(c.env,c.req.param('id'),await operator(c))))
+api.get('/api/definitions/batches',async c=>c.json(await definitionImportHistory(c.env,c.req.raw)))
+api.post('/api/definitions/batches/:id/undo',async c=>c.json(await undoDefinitionImport(c.env,c.req.raw,c.req.param('id'),await operator(c))))
+api.get('/api/business-import-settings',async c=>c.json(await businessImportSettings(c.env,c.req.raw)))
+api.post('/api/business-import-settings',async c=>c.json(await businessImportSettings(c.env,c.req.raw,c.get('input'))))
 api.get('/api/erasure-journal',async c=>c.json(await exportJournal(c.env)))
 api.post('/api/monitors/:id/erase',async c=>c.json(await erase(c.env,'monitor',c.req.param('id'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id},c.get('input').name)))
 api.post('/api/operators/:id/erase',async c=>c.json(await erase(c.env,'operator',c.req.param('id'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
@@ -257,6 +264,8 @@ const handler={async fetch(request,env,execution){
  const limited=await limitPublicRequest(env as Bindings,request);if(limited)return limited;
  const bindings=env as Bindings,url=new URL(request.url),path=url.pathname,isEvidencePage=/^\/app\/evidence\/[^/]+$/.test(path);
  if(url.origin!==bindings.UPTIME_ORIGIN||(request.headers.has('host')&&request.headers.get('host')?.toLowerCase()!==url.host.toLowerCase()))return new Response('Invalid host',{status:403});
+ if(path.startsWith('/api/rer/import/'))return businessImportDoor(bindings,request);
+ if(path.startsWith('/api/operator/import/'))return ownerImportDoor(bindings,request);
  // The Lobby at / and GET /setup/state: Base's shared responses, before the public-path guard and the document renderer.
  const lobbyBindings={DB:bindings.DB,AUTH_ORIGIN:bindings.UPTIME_ORIGIN!};
  const state=await setupStateResponse(request,lobbyBindings,claimed);if(state)return state;

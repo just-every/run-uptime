@@ -6,7 +6,7 @@ import {once} from 'node:events';
 import {mkdtemp,mkdir,readFile,readdir,rm} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
 import {tmpdir} from 'node:os';
-import {testAuthBindings} from './auth-test-support.mjs';
+import {testAuthBindings,definitionDoor} from './auth-test-support.mjs';
 import {splitSql} from './migration-support.mjs';
 import {emittedRunnerWorker,request,listen,close} from './signed-runner-runtime.mjs';
 import https from 'node:https';
@@ -76,7 +76,9 @@ try{
  await run({PING_MODE:'hang'},`import assert from 'node:assert/strict';import {probeProtocol} from './runners/src/protocol-probes.mjs';const c=new AbortController();setTimeout(()=>c.abort(),50);const o=await probeProtocol(${JSON.stringify(base)},'local-a',{signal:c.signal});assert.equal(o.outcome,'runner_error');assert.equal(o.checks[0].assertion,'vantage')`);
  const stopped=await create({name:'Stopped ICMP probe'});assert.equal((await api(`/api/overview?monitor=${stopped.id}`)).data.monitors[0].state.regions[0].state,'Unknown');await pause(stopped);
  const exported=(await api('/api/definitions/export')).data;assert.ok(exported.monitors.some(x=>x.ping?.family===6));
- const preview=await api('/api/definitions/preview?source=uptime.monitors',exported);assert.equal(preview.status,200,JSON.stringify(preview.data));
+ // The exported file previews through the owner's import door, over the same HTTPS origin.
+ const fetcher=(url,init)=>new Promise((resolve,reject)=>{const req=https.request(url,{method:init.method,ca,headers:{'cf-connecting-ip':'192.0.2.1',...init.headers}},res=>{let text='';res.on('data',b=>text+=b);res.on('end',()=>resolve({status:res.statusCode,json:async()=>JSON.parse(text)}))});req.on('error',reject);req.end(init.body)});
+ const preview=await definitionDoor({origin,cookie,fetcher}).preview(exported,'uptime.monitors');assert.equal(preview.status,200,JSON.stringify(preview.body));
  const archiveResponse=await api('/api/archive');assert.equal(archiveResponse.status,200);const archive=archiveResponse.data;
  await api(`/api/runners/${registration.runnerId}`,undefined,{},'DELETE');assert.equal((await api('/api/runner/claim',{}, {'x-runner-key':key})).status,401);
  await worker.dispose();worker=null;const receiving=join(directory,'receiving');await mkdir(receiving);worker=await emittedRunnerWorker(receiving,bindings);const receivingDB=await worker.getD1Database('DB');
