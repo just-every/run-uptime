@@ -479,7 +479,7 @@
       "executable": false
     },
     "CHANGELOG.md": {
-      "sha256": "f95738f05b77255f4c05bae0c0001b43e58ca307fc26c82c12931538c63dceac",
+      "sha256": "0436875273c7ef4e4fb4e843db10e9bd22dc0a31f34ea3be8233559e0edcae27",
       "executable": false
     },
     "CLAUDE.md": {
@@ -2531,7 +2531,7 @@
       "executable": false
     },
     "RELEASE.json": {
-      "sha256": "3c181e06a1c0aa9876dfaef547307e1ae10a8c911e5b9819003360aeeb6f7a2b",
+      "sha256": "80c5f8fe14403687de4e89531f7b40138ea00e948e433960e52c532230ba83a5",
       "executable": false
     },
     "RELEASE.md": {
@@ -6587,7 +6587,7 @@
       "executable": false
     },
     "tests/operator-browser.mjs": {
-      "sha256": "f5cb45f1da050ed9e4e3b5b4e445ea72735a67bdb8cb7d241a7c0886fe1f3eef",
+      "sha256": "71a7e59ac6876dfeee19fde952414e9b7370c7a8d927f528b8b39ab50efc7774",
       "executable": false
     },
     "tests/operator-security.mjs": {

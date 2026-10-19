@@ -13,6 +13,10 @@ const overviewRead=url=>url.origin===origin&&url.pathname==='/api/overview';
 const ready=page=>page.locator('.signed-in').waitFor({timeout:15000});
 const deferred=()=>{let resolve;const promise=new Promise(done=>resolve=done);return {promise,resolve}};
 async function audit(page,label,{state,reason}={}){
+ // Client navigation mounts the editor before its stylesheets finish loading.
+ await page.waitForFunction(()=>[...document.querySelectorAll('link[rel=stylesheet]')].every(link=>link.sheet));
+ await page.evaluate(()=>document.fonts.ready);
+ await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
  await page.addScriptTag({path:require.resolve('axe-core/axe.min.js')});
  const result=await page.evaluate(()=>axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21a','wcag21aa','wcag22aa']}}));
  const session=await page.context().newCDPSession(page);

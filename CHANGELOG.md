@@ -2,7 +2,6 @@
 
 ## Unreleased
 
-- Deployment automatically moves legacy `production-secrets.json` and `environments/<environment>/secrets.json` settings into `.rer/deploy/<environment>.secrets.env` on the next deploy. It preserves saved owner and mail inputs and every environment's keys, including production's, without manual conversion or rotation. A differing value already kept by rer stops the move with the key name and paths, never secret values. Old JSON files are removed only after verification and are never recreated; fresh installs use only the environment settings files.
 - **Business-provisioned installs.** When Run Edit Run installs Uptime for an approved Business plan (`RER_IMPORT_DOOR=on` with its owner-claim trust), the owner's first claim opens the Business import door. A later claim changes nothing, the owner can still switch it off and on in **Runner / archive → Business imports**, and a self-hosted `rer deploy` keeps it off.
 - **Runner status for Run Edit Run.** `POST /api/rer/runner-status` answers a signed `runner-status` grant with the private runner's contact state (`fresh`, `stale` or `never`) and time, never the runner key.
 - Every recorded Base copy moves to rer 0.2.66, keeping the door's reversal-policy divergence until Base #298 ships.
@@ -11,11 +10,12 @@
 
 Patch release from `main`; previous version 0.4.0. Back up the console archive and database first. Six additive import-door migrations preserve existing monitors, history, incidents, destinations and private settings. No new required settings.
 
+- Deployment automatically moves legacy `production-secrets.json` and `environments/<environment>/secrets.json` settings into `.rer/deploy/<environment>.secrets.env` on the next deploy. It preserves saved owner and mail inputs and every environment's keys, including production's, without manual conversion or rotation. A differing value already kept by rer stops the move with the key name and paths, never secret values. Old JSON files are removed only after verification and are never recreated; fresh installs use only the environment settings files.
 - Include the shared import door for moving monitor definitions. Migrations `0050_business_import_door`, `0051_import_custody_replace`, `0052_import_door_apply_failure`, `0053_import_door_scopes`, `0054_business_import_undos` and `0055_business_import_writes` are additive; retain all prior migration files and history.
 - Fix archive export and restore on Platform-managed installations by explicitly keeping the Platform migration ledger local. Restore preserves the receiving installation's own permanent migration history; unknown tables still refuse export.
 - Generate API and mail test credentials at runtime so Platform's hosted source scan accepts the source without scanner exceptions. Authentication, cleanup and secret-redaction assertions remain enforced.
 - Include the release installer journey's corrected label and the runner restart snapshot race fix.
-- Keep the recovery journey's keyboard-focus assertion on the same history entry while new scheduled checks arrive.
+- Keep the recovery journey's keyboard-focus assertion on the same history entry while new scheduled checks arrive. Wait for editor styles and fonts before checking accessibility during client navigation.
 - Pin `@runeditrun/rer` to exactly 0.2.66.
 - Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).
 
