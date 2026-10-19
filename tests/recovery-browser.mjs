@@ -71,11 +71,13 @@ try{
  await auditWidths(page,'reauthorized-current-evidence','Failing');
  for(const width of [1440,390]){
   await page.setViewportSize({width,height:900});
-  const evidence=page.locator('#raw-history details').first(),summary=evidence.locator('summary');await summary.focus();
-  if(!await evidence.evaluate(element=>element.open))await page.keyboard.press('Enter');
-  const evidenceId=await summary.getAttribute('id');
+  // Each poll rebuilds the list with newer checks first, so name the newest check once and keep acting on that row by its id.
+  const evidenceId=await page.locator('#raw-history details > summary').first().getAttribute('id'),summary=page.locator(`#raw-history summary[id=${JSON.stringify(evidenceId)}]`);await summary.focus();
+  if(!await summary.evaluate(element=>element.parentElement.open))await page.keyboard.press('Enter');
+  // The row as rendered now: the check below holds only once a later poll has rebuilt the list around it.
+  const rendered=await summary.elementHandle();
   await page.waitForResponse(response=>new URL(response.url()).pathname==='/api/overview'&&response.ok(),{timeout:12000});
-  await page.waitForFunction(id=>document.activeElement?.id===id&&document.querySelector('#raw-history details[open] summary')?.id===id,evidenceId,{timeout:10000});
+  await page.waitForFunction(([id,rendered])=>document.getElementById(id)!==rendered&&document.activeElement?.id===id&&document.querySelector('#raw-history details[open] summary')?.id===id,[evidenceId,rendered],{timeout:10000});
   assert.equal(await page.evaluate(()=>document.activeElement?.id),evidenceId,'confirmed failure evidence keeps keyboard focus through polling at '+width);
  }
  await page.getByRole('button',{name:'Pause',exact:true}).click();await page.getByRole('button',{name:'Authorize & resume',exact:true}).waitFor();
