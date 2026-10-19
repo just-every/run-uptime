@@ -8,10 +8,10 @@ export const DEFINITION_VERSION=6
 export const DEFINITION_READ_VERSIONS=[1,2,3,4,5,6]
 export const DEFINITION_BYTES=2*1024*1024
 export const DEFINITION_MONITORS=500
-export const FILE_FIELDS=['name','type','network','privateGrantRef','url','method','request','tlsTrust','heartbeat','assertions','slow','intervalMs','timeoutMs','retries','probes','failureQuorum','confirmSlots','recoverSlots','freshnessMs','enabled','maintenanceUntil','maintenanceWindows','flow','tcp','ping','udp','dns','tls','domain','project','environment','service','group','tags','owner','outcome','dependencies']
+export const FILE_FIELDS=['name','type','network','privateGrantRef','url','method','request','tlsTrust','heartbeat','assertions','slow','intervalMs','timeoutMs','retries','probes','failureQuorum','confirmSlots','recoverSlots','freshnessMs','enabled','maintenanceUntil','maintenanceWindows','api','mail','flow','tcp','ping','udp','dns','tls','domain','project','environment','service','group','tags','owner','outcome','dependencies']
 // Compared to decide unchanged or change. `enabled` and `maintenanceUntil` stay with the installation: a file never
 // enables a monitor or changes its maintenance.
-export const COMPARED_FIELDS=['name','type','network','privateGrantRef','url','method','request','tlsTrust','heartbeat','probes','assertions','slow','intervalMs','timeoutMs','retries','failureQuorum','confirmSlots','recoverSlots','freshnessMs','flow','tcp','ping','udp','dns','tls','domain','project','environment','service','group','tags','owner','outcome','dependencies']
+export const COMPARED_FIELDS=['name','type','network','privateGrantRef','url','method','request','tlsTrust','heartbeat','probes','assertions','slow','intervalMs','timeoutMs','retries','failureQuorum','confirmSlots','recoverSlots','freshnessMs','api','mail','flow','tcp','ping','udp','dns','tls','domain','project','environment','service','group','tags','owner','outcome','dependencies']
 
 export class DefinitionFileError extends Error {status=400}
 const fileError=(message:string)=>new DefinitionFileError(message)

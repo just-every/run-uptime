@@ -24,12 +24,14 @@ export function readFields(root,definition){
  const value=name=>control(root,name).value;
  const type=control(root,'checkType')?.value??'http';
  // Settings of other types never travel with the one selected.
- const {url,method,network:oldNetwork,privateGrantRef:oldGrant,tcp,udp,ping,dns,tls,domain,tlsTrust,request,...rest}=definition;
+ const {url,method,network:oldNetwork,privateGrantRef:oldGrant,api,mail,tcp,udp,ping,dns,tls,domain,tlsTrust,request,...rest}=definition;
  const privateScope=control(root,'networkScope')?.value==='private'&&['http','tcp'].includes(type);
  const timing={...(privateScope?{network:'private',privateGrantRef:control(root,'privateGrantRef').value.trim()}:{}),...readMetadata(root,definition),name:value('name'),intervalMs:minutesToMilliseconds(value('intervalMinutes')),timeoutMs:secondsToMilliseconds(value('timeoutSeconds')),freshnessMs:minutesToMilliseconds(value('freshnessMinutes'))};
  for(const name of ['retries','confirmSlots','recoverSlots'])timing[name]=Number(value(name));
+ if(type==='mail')return {...rest,...timing,type,network:'public',mail:JSON.parse(control(root,'mailSettings').value),assertions:{}};
+ if(type==='api'){const ref=control(root,'apiCredentialRef').value.trim();return {...rest,...timing,type,network:'public',url:control(root,'apiUrl').value,api:JSON.parse(control(root,'apiSettings').value),...(ref?{request:{credentialRef:ref}}:{}),assertions:{status:200}}}
  if(PROTOCOL_TYPES.includes(type)){const {settings,assertions}=readProtocol(root,type);return {...rest,...timing,type,[type]:settings,assertions}}
- if(PROTOCOL_TYPES.includes(rest.type))rest.type='http';
+ if([...PROTOCOL_TYPES,'api','mail'].includes(rest.type))rest.type='http';
  const assertions=assembleAssertions({status:value('status'),body:value('body'),bodyExcludes:value('bodyExcludes'),regexPattern:value('regexPattern'),regexFlags:value('regexFlags'),headerName:value('headerName'),headerValue:value('headerValue'),additional:value('additional')});
  return {...rest,...timing,...readTlsFields(root),url:value('url'),method:value('method'),assertions};
 }

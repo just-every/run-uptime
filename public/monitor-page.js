@@ -1,3 +1,5 @@
+import {mailSummary,mailTrace} from './mail-panel.js';
+import {transactionSummary,transactionTrace} from './transaction-panel.js';
 import {snapshotPanel,retainSnapshots,mountSnapshots,bindIncidentSnapshots} from './failure-snapshots.js';
 import {heartbeatJobsPanel,retainHeartbeatJobs,bindHeartbeatJobs} from './heartbeat-jobs.js';
 import {alertRoutePanel,bindAlertRoutePanel} from './assets/alert-route.js';
@@ -27,7 +29,7 @@ export function monitorIdFromPath(pathname){
  return match?decodeURIComponent(match[1]):null;
 }
 
-const kinds={http:'HTTP check',keyword:'Keyword check',heartbeat:'Heartbeat',flow:'Browser flow',...PROTOCOL_KINDS};
+const kinds={mail:'Mail protocol',api:'API transaction',http:'HTTP check',keyword:'Keyword check',heartbeat:'Heartbeat',flow:'Browser flow',...PROTOCOL_KINDS};
 const backLink='<a class="back-link ui-link" id="monitor-back" href="/app"><span class="ui-icon" data-icon="chevron" aria-hidden="true"></span><span class="ui-visually-hidden">Back to </span>Monitors</a>';
 const hiddenDot='<span class="ui-visually-hidden"> · </span>',slash='<span class="ui-visually-hidden"> / </span>';
 const openHistory=new Set(),openIncidents=new Set(),openTls=new Set();
@@ -45,6 +47,8 @@ function tlsTrustMarkup(observation){
  return `<details class="credential-binding" data-tls-observation="${escape(observation.id)}" ${openTls.has(observation.id)?'open':''}><summary id="tls-evidence-${escape(observation.id)}">Certificate trust for this attempt</summary><ul>${observation.tlsTrust.map(fact=>`<li><strong>${escape(fact.mode)}</strong> · ${escape(fact.origin)}<br>Leaf SHA-256: <code style="overflow-wrap:anywhere">${escape(fact.sha256)}</code><br>${fact.bypassed?'Bypassed verification errors: ':'Verification results: '}${escape(fact.errors.join(', ')||'No verification errors')}. ${fact.credentialsAllowed?'Credential authority permitted.':'No credential authority granted.'}</li>`).join('')}</ul></details>`;
 }
 function assertionSummary(definition){
+ if(definition.type==='mail')return mailSummary(definition);
+ if(definition.type==='api')return transactionSummary(definition);
  if(isFlow(definition))return flowSummary(definition);
  const assertions=definition.assertions,checks=isProtocol(definition)?protocolExpectations(definition):[];
  if(definition.type==='heartbeat'){if(Number.isFinite(definition.heartbeat?.maxAgeMs))checks.push(['Success period + grace',humaneDuration(definition.heartbeat.maxAgeMs+(definition.heartbeat.graceMs??0)),false]);if(definition.heartbeat?.maxRunDurationMs)checks.push(['Maximum run duration',humaneDuration(definition.heartbeat.maxRunDurationMs),false])}
@@ -87,7 +91,7 @@ function pageBody(m,readUnavailable,definitionOpen,data){
   +startup+'<div class="monitor-primary">'+coveragePanel(availability)+'<div id="monitor-report-slot"></div>'+`<section class="ui-card panel incidents" aria-labelledby="incidents-heading"><h2 id="incidents-heading">Incidents</h2><div id="monitor-incidents">Loading incident history…</div><p>Latest 100 confirmed incidents. Times mark scheduled confirmation; manual checks do not open or close incidents.</p></section>`
   +`<section class="ui-card panel evidence" aria-labelledby="recent-checks-heading"><div class="panel-head"><h2 id="recent-checks-heading">Recent checks</h2><div class="history-strip" id="history-strip" aria-hidden="true"></div></div><div id="raw-history">Loading recent checks…</div></section>${snapshotPanel(m)}</div>`
   +`<div class="monitor-secondary"><section class="ui-card panel detail" aria-labelledby="latest-check-heading"><h2 id="latest-check-heading">${lastLabel}</h2><dl class="detail-metrics"><div><dt class="ui-visually-hidden">${lastLabel}</dt><dd class="detail-time">${checkTime(m,{withLabel:false,readUnavailable})}</dd></div><div><dt>Response duration</dt><dd>${escape(duration(availability?.responseDurationMs))}</dd></div></dl></section>`
-  +`<section class="ui-card panel assertions" aria-labelledby="expects-heading"><h2 id="expects-heading">What the check expects</h2>${assertionSummary(m.definition)}<details id="assertion-definition" ${definitionOpen?'open':''}><summary id="assertion-definition-summary">Full check details</summary><pre>${escape(JSON.stringify(isProtocol(m.definition)?{[m.definition.type]:m.definition[m.definition.type],assertions:m.definition.assertions}:m.definition.assertions,null,2))}</pre></details></section>`
+  +`<section class="ui-card panel assertions" aria-labelledby="expects-heading"><h2 id="expects-heading">What the check expects</h2>${assertionSummary(m.definition)}<details id="assertion-definition" ${definitionOpen?'open':''}><summary id="assertion-definition-summary">Full check details</summary><pre>${escape(JSON.stringify(m.definition.type==='mail'?m.definition.mail:m.definition.type==='api'?m.definition.api:isProtocol(m.definition)?{[m.definition.type]:m.definition[m.definition.type],assertions:m.definition.assertions}:m.definition.assertions,null,2))}</pre></details></section>`
   +alertRoutePanel()+slowPolicyPanel(m)+maintenancePanel(m)+expiryPanel(m,data)+(isFlow(m.definition)?flowPanel(m,data):'')+heartbeatPanel(m,data)+heartbeatJobsPanel(m)+'</div></div>';
 }
 
@@ -117,8 +121,8 @@ const probeNames={'local-a':'Check 1','local-b':'Check 2','local-c':'Check 3'};
 const attemptResults={pass:['passed','Passed'],target_failure:['failed','Target did not pass'],runner_error:['unknown','Check could not run']};
 function attemptMarkup(o){
  const [tone,result]=attemptResults[o.outcome]??['unknown','Unknown result'];
- const status=o.flow?`${escape(o.flow.pages)} page${o.flow.pages===1?'':'s'}`:o.protocol!==undefined?escape(protocolFact(o)):o.status?`HTTP <span class="ui-mono">${escape(o.status)}</span>`:'No HTTP status';
- return `<div class="attempt-group"><p class="attempt-line"><span class="attempt-name">${escape(probeNames[o.probe]??'Check')} attempt ${o.attempt+1}</span><span class="ui-visually-hidden">: </span><span class="ui-result ${tone}">${escape(result)}</span>${slash}<span>${status}</span>${slash}<span>${escape(duration(o.durationMs))}</span>${slash}<span class="attempt-age">${ago(o.completedAt)}</span></p><ul class="attempt-checks">${o.checks.map(c=>`<li><span class="attempt-mark ui-result ui-result--small ${c.pass?'passed':'failed'}">${c.pass?'PASS':'FAIL'}</span> ${escape(c.assertion)}: ${escape(c.reason)}</li>`).join('')}</ul>${o.credentialBinding?`<details class="credential-binding"><summary>Known monitors referencing this credential</summary>${o.credentialBinding.monitorIds.length>1?'<p>This file can serve only one monitor. For the other monitors, create separate owner-only credential files and references, review the intended account, then bind each explicitly.</p>':''}<ul>${o.credentialBinding.monitorIds.map(id=>`<li>${escape(id)}</li>`).join('')}</ul></details>`:''}${o.canary?`<p class="canary-result">External check: ${escape(o.canary.outcome==='pass'?'Passed':o.canary.outcome==='target_failure'?'Failed':'Could not run')}${o.canary.status?` · HTTP ${escape(o.canary.status)}`:''}. ${escape(o.canary.checks.map(check=>check.reason).join('; '))}</p>`:''}${tlsTrustMarkup(o)}${traceMarkup(o)}</div>`;
+ const status=o.protocol?.steps?'Mail protocol':o.apiTransaction?'API transaction':o.flow?`${escape(o.flow.pages)} page${o.flow.pages===1?'':'s'}`:o.protocol!==undefined?escape(protocolFact(o)):o.status?`HTTP <span class="ui-mono">${escape(o.status)}</span>`:'No HTTP status';
+ return `<div class="attempt-group"><p class="attempt-line"><span class="attempt-name">${escape(probeNames[o.probe]??'Check')} attempt ${o.attempt+1}</span><span class="ui-visually-hidden">: </span><span class="ui-result ${tone}">${escape(result)}</span>${slash}<span>${status}</span>${slash}<span>${escape(duration(o.durationMs))}</span>${slash}<span class="attempt-age">${ago(o.completedAt)}</span></p><ul class="attempt-checks">${o.checks.map(c=>`<li><span class="attempt-mark ui-result ui-result--small ${c.pass?'passed':'failed'}">${c.pass?'PASS':'FAIL'}</span> ${escape(c.assertion)}: ${escape(c.reason)}</li>`).join('')}</ul>${o.credentialBinding?`<details class="credential-binding"><summary>Known monitors referencing this credential</summary>${o.credentialBinding.monitorIds.length>1?'<p>This file can serve only one monitor. For the other monitors, create separate owner-only credential files and references, review the intended account, then bind each explicitly.</p>':''}<ul>${o.credentialBinding.monitorIds.map(id=>`<li>${escape(id)}</li>`).join('')}</ul></details>`:''}${o.canary?`<p class="canary-result">External check: ${escape(o.canary.outcome==='pass'?'Passed':o.canary.outcome==='target_failure'?'Failed':'Could not run')}${o.canary.status?` · HTTP ${escape(o.canary.status)}`:''}. ${escape(o.canary.checks.map(check=>check.reason).join('; '))}</p>`:''}${tlsTrustMarkup(o)}${traceMarkup(o)}${transactionTrace(o)}${mailTrace(o)}</div>`;
 }
 // What a slot row says it is: its result word, and in the meta how it ended, when it was due if it ran late, its
 // attempts, and the revision it came from when the monitor was edited, paused or resumed since (its result is real but
@@ -183,9 +187,13 @@ function renderMissing({header,actions,area,id}){
  area.innerHTML=`<section class="empty ui-empty monitor-missing"><p>No monitor has the id <code class="ui-mono">${escape(id)}</code>. It may have been deleted, or the link may be incomplete.</p><a class="ui-button primary" id="missing-back" href="/app">Back to monitors</a></section>`;
 }
 
+function retainHistoryDisclosures(history){
+ for(const detail of history?.querySelectorAll('details[data-slot]')??[]){if(detail.open)openHistory.add(detail.dataset.slot);else openHistory.delete(detail.dataset.slot)}
+}
+
 // header: the page header's title block (.top > div); actions: .actions; area: #content-area.
 export function renderMonitorPage({header,actions,area,data,id,api,action,readUnavailable}){
- for(const detail of area.querySelectorAll('#raw-history details[data-slot]')){if(detail.open)openHistory.add(detail.dataset.slot);else openHistory.delete(detail.dataset.slot)}
+ retainHistoryDisclosures(area.querySelector('#raw-history'));
  for(const detail of area.querySelectorAll('[data-tls-observation]')){if(detail.open)openTls.add(detail.dataset.tlsObservation);else openTls.delete(detail.dataset.tlsObservation)}
  for(const detail of area.querySelectorAll('#monitor-incidents details')){if(detail.open)openIncidents.add(detail.dataset.incident);else openIncidents.delete(detail.dataset.incident)}
  const m=data.monitors.find(m=>m.id===id);
@@ -224,6 +232,8 @@ export function renderMonitorPage({header,actions,area,data,id,api,action,readUn
   if(!history.isConnected)return;
   const timeline=buildTimeline({slots,now:Number.isSafeInteger(data.now)?data.now:Date.now(),monitor:m,revisions});
   const currentFocus=history.contains(document.activeElement)?document.activeElement.id:null;
+  // A disclosure can change while its refresh request is in flight. Preserve the current interaction.
+  retainHistoryDisclosures(history);
   history.innerHTML=historyMarkup(timeline,m);history.style.minHeight='';strip.innerHTML=stripMarkup(timeline);
   const flowHistory=area.querySelector('#flow-revisions');if(flowHistory)flowHistory.innerHTML=flowRevisions(revisions);
   if(currentFocus)document.getElementById(currentFocus)?.focus({preventScroll:true});
