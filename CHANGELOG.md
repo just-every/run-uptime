@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.1 — 2026-10-19
+
+Patch release from `main`; previous version 0.4.0. No migrations or new required settings. Existing monitors, history, incidents, destinations and private settings are preserved.
+
+- Fix archive export and restore on Platform-managed installations by explicitly keeping the Platform migration ledger local. Restore preserves the receiving installation's own permanent migration history; unknown tables still refuse export.
+- Generate API and mail test credentials at runtime so Platform's hosted source scan accepts the source without scanner exceptions. Authentication, cleanup and secret-redaction assertions remain enforced.
+- Include the release installer journey's corrected label and the runner restart snapshot race fix.
+- Pin `@runeditrun/rer` to exactly 0.2.66. The hosted 0.3.0 upgrade secret-copy step documented below still applies.
+- Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).
+
 ## 0.4.0 — 2026-10-19
 
 Minor release from `main`: many new check types, routing and reporting features, and thirteen additive migrations. `@runeditrun/rer` is pinned to exactly 0.2.65. Monitors, history, incidents, destinations and private settings are kept on upgrade.

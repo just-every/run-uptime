@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
+import {randomBytes} from 'node:crypto';
 import {test} from 'node:test';
 import {createClock} from '../runners/src/clock.mjs';
 import {authFixture} from './tls-auth-support.mjs';
-const token='extracted-token-private-value', item='extracted-item-private-value', password='local-login-private-value', responseSecret='response-private-value';
+const [token,item,password,responseSecret]=Array.from({length:4},()=>randomBytes(24).toString('base64url'));
 const serializedSafe = value => {const text=JSON.stringify(value);for (const secret of [token,item,password,responseSecret]) assert.equal(text.includes(secret),false,'Transaction evidence retains no request or extracted values')};
 test('API-003 scheduled API login/create/read/delete retains failures, cleanup and expired authority without extracted secrets',async()=>{
   const state={wrong:false,expired:false,missing:false,deleted:0};

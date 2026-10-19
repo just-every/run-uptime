@@ -28,6 +28,8 @@ try{
  const origin=values.UPTIME_ORIGIN,cookie=await signInOwner(origin,{bindings:values,finishFirstRun:true});
  assert.equal((await fetch(origin+'/api/overview',{headers:{origin,cookie}})).status,200);
  await populateArchiveFixture(env);await populateProtocolArchiveFixture(env);
+ const platformLedger=async(db,name)=>{await db.prepare('CREATE TABLE rer_migrations(name TEXT PRIMARY KEY,sha256 TEXT NOT NULL,applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)').run();await db.prepare('INSERT INTO rer_migrations(name,sha256) VALUES(?,?)').bind(name,await digest(name)).run();return (await db.prepare('SELECT * FROM rer_migrations').all()).results};
+ const sourceLedger=await platformLedger(env.DB,'source.sql');
  // One applied-and-undone definition batch and one applied batch travel as history, each imported through the owner's
  // import door as the move-in screen imports.
  const door=definitionDoor({origin,cookie}),definitionFile=names=>JSON.stringify({format:'uptime.monitors',version:1,monitors:names.map(name=>({name,url:`https://example.test/${name}`}))});
@@ -45,7 +47,7 @@ try{
   const applied=await door.apply(view.body);assert.equal(applied.status,200,JSON.stringify(applied.body));robotBatches.push(applied.body.batchId.slice('business:'.length));
   if(undo)assert.equal((await door.undo(applied.body)).body.job.state,'undone');
  }
- const original=await archive(env),a=tables(original);
+ const original=await archive(env),a=tables(original);assert.ok(!JSON.stringify(original).includes('rer_migrations'));assert.deepEqual((await env.DB.prepare('SELECT * FROM rer_migrations').all()).results,sourceLedger);
  assert.equal(a.definition_batches.length,5);assert.equal(a.definition_batch_entries.length,6);assert.ok(a.definition_batches.every(b=>b.restored_at===null));const fileBatches=a.definition_batches.filter(b=>b.source==='uptime.monitors'),robotRows=robotBatches.map(id=>a.definition_batch_entries.filter(e=>e.batch_id===id));
  assert.deepEqual(fileBatches.map(b=>[b.actor_kind,b.undone_at!==null]),[['operator',true],['operator',false]]);assert.deepEqual(a.definition_batch_entries.filter(e=>fileBatches.some(b=>b.id===e.batch_id)).map(e=>[e.action,e.revision,e.previous_revision,e.undo_outcome]),[['create',1,null,'paused'],['create',1,null,'paused'],['create',1,null,null]]);
  // Revisions 1 to 4 of the robot: import, catch-up (undone), the undo's restore, the second catch-up. The archive names the revision each apply wrote.
@@ -61,7 +63,7 @@ try{
  await assert.rejects(archive({...env,SESSION_SECRET:'synthetic-incorrect-local-secret-that-cannot-decrypt-email'}),/email definition unavailable/);
  await worker.dispose();worker=null;
  await writeFile(file,JSON.stringify(original),{mode:0o600});assert.equal((await stat(file)).mode&0o777,0o600);assert.deepEqual(tables(JSON.parse(await readFile(file,'utf8'))),a);
- await migrate(target);env=await installation(target);await restore(env,original);const roundtrip=await archive(env),b=tables(roundtrip);
+ await migrate(target);env=await installation(target);const destinationLedger=await platformLedger(env.DB,'destination.sql');await restore(env,original);const roundtrip=await archive(env),b=tables(roundtrip);assert.deepEqual((await env.DB.prepare('SELECT * FROM rer_migrations').all()).results,destinationLedger,'ARCHIVE-ROUNDTRIP-001: preserve Platform destination migration history');
 
  for(const name of ['migrations','observations','integration_attempts','integration_resolutions','integration_replays'])assert.deepEqual(b[name],a[name],`${name} retained byte for byte`);
  for(const type of ['tcp','dns','tls','domain']){
