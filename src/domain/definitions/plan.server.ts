@@ -43,7 +43,9 @@ export async function planState(env:Bindings):Promise<PlanState>{
  * or says why it is refused or unsupported. An entry matches the monitor its source record created before (`idFor`),
  * otherwise the monitor with its name. A monitor an earlier import released is never taken over. Without a registered
  * runner a read-only preview assumes the first one saving would create; an import refuses instead. */
-export function planEntries(state:PlanState,items:PlanItem[],{idFor,requireRunner}:{idFor?:(item:PlanItem)=>string;requireRunner?:boolean}={}):PlanEntry[]{
+export function planEntries(state:PlanState,items:PlanItem[],{idFor,requireRunner,refusal}:{idFor?:(item:PlanItem)=>string;requireRunner?:boolean;
+ /** Why a definition this plan would write can never be stored, or null: such an entry is refused with that reason. */
+ refusal?:(definition:any)=>string|null}={}):PlanEntry[]{
  const {local,monitors}=state
  const runners=state.runners.length||requireRunner?state.runners:[{runner_id:'self-first-runner',registered_at:0,network_label:'owner-network',key_ciphertext:null,legacy_key:1,revoked_at:null,last_contact_at:null} as Runner]
  const first=state.first??(runners[0]?.runner_id??null)
@@ -75,6 +77,7 @@ export function planEntries(state:PlanState,items:PlanItem[],{idFor,requireRunne
    if(!flowRoom(normalized,false)){entries.push({index,label,name,action:'refused',reason:`${label}: flow monitor limit reached (an installation runs at most ${FLOW_LIMITS.maxFlowsPerInstallation} flows).`,differences});continue}
    let definition
    try{definition=assign(normalized,{})}catch(error){entries.push({index,label,name,action:'refused',reason:`${label}: ${message(error)}`,differences});continue}
+   const refused=refusal?.(definition);if(refused){entries.push({index,label,name,action:'refused',reason:`${label}: ${refused}`,differences});continue}
    if(input.enabled===true)differences.push('The file marks this monitor enabled; files never enable monitors, so it arrives paused.')
    creates++;if(normalized.type==='flow')flowCreates++;entries.push({index,label,name,action:'create',...(id?{monitorId:id}:{}),differences,definition});continue
   }
@@ -92,6 +95,7 @@ export function planEntries(state:PlanState,items:PlanItem[],{idFor,requireRunne
   const token=tokenNote(current.definition,kept,state.tokens.has(current.id)).trim();if(token)differences.push(token)
   let definition
   try{definition=assign(kept,{assignments:keptAssignments(current.definition,kept)})}catch(error){entries.push({index,label,name,action:'refused',reason:`${label}: ${message(error)}`,differences});continue}
+  const refused=refusal?.(definition);if(refused){entries.push({index,label,name,action:'refused',reason:`${label}: ${refused}`,differences});continue}
   if(normalized.type==='flow'&&current.definition.type!=='flow')flowCreates++
   entries.push({index,label,name,action:unchanged?'unchanged':'change',monitorId:current.id,revision:current.revision,
    expectedRevision:marker&&marker.native_revision===current.revision?marker.kit_revision:`native:${current.revision}`,differences,definition,

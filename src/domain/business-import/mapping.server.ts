@@ -7,7 +7,7 @@ import {HISTORY_SOURCE,type Importer} from '../definitions/importers/index.ts'
 import {recogniseHistory} from '../definitions/history.ts'
 import {planEntries,planState,type PlanEntry,type PlanItem,type PlanState} from '../definitions/plan.server.ts'
 import {sha256} from '../../base/modules/import-kit/src/provenance/identity.ts'
-import {assertNoCredentials} from '../../base/modules/import-kit/src/provenance/credentials.ts'
+import {assertNoCredentials,credentialQueryKey,decodedCredentialText} from '../../base/modules/import-kit/src/provenance/credentials.ts'
 import type {ImportMapping,Json,MappingResult,ParsedRecord} from '../../base/modules/import-kit/src/types.ts'
 import type {ImportDoorSource} from '../../base/modules/import-kit/src/door/types.ts'
 import {DOOR_KEY} from './context.server.ts'
@@ -65,9 +65,40 @@ function withheld(value:Json):Json{
 export const payloadOf=(value:Json):Json=>withheld(withholdValue(value))
 /** The monitor a source record creates: stable for its namespace and source id. */
 export const targetIdFor=(source:Source,namespace:string,id:string)=>`${source.prefix}-`+sha256(JSON.stringify([DOOR_KEY,namespace,id]))
+/** The first value in a definition that the import kit reads as a credential, and where it is. */
+function credentialAt(value:unknown,path:string[]):{path:string[];text?:string}|null{
+ if(Array.isArray(value)){for(const [i,child] of value.entries()){const found=credentialAt(child,[...path,String(i)]);if(found)return found}return null}
+ if(value&&typeof value==='object'){
+  for(const [key,child] of Object.entries(value)){
+   if(credential({[key]:null}))return {path:[...path,key]}
+   const found=credentialAt(child,[...path,key]);if(found)return found
+  }
+  return null
+ }
+ return typeof value==='string'&&credential(value)?{path,text:value}:null
+}
+const CREDENTIAL_WORD=/token|secret|key|auth|signature|credential|password|cookie/i
+/** Why the import door can never store this definition, in plain words, or null when it can. The import kit treats a URL
+ * with a user name or password, or with a query parameter whose name contains key, token, auth, secret, password,
+ * signature, credential or cookie (so “keyword” and “author” too), as a credential, and an import never stores one. Such an
+ * entry is refused on its own; the rest of the file previews and applies. */
+export function credentialRefusal(definition:unknown):string|null{
+ if(!credential(definition))return null
+ const found=credentialAt(definition,[])
+ const path=(found?.path??[]).filter(part=>!/^\d+$/.test(part)),field=path.join('.'),place=field==='url'?'its URL':field?`its “${field.slice(0,60)}” value`:'it'
+ const after='an import treats that as a credential and never stores it. Add or change this monitor in the editor instead.'
+ if(!found?.text)return field?`its “${field.slice(0,60)}” field is named like a credential; ${after}`:`it carries a credential; ${after}`
+ let url:URL|null=null
+ try{url=new URL(found.text,'https://credential-check.invalid')}catch{/* Not a URL: described as a value below. */}
+ if(url&&(url.username||url.password))return `${place} carries a user name or password; ${after}`
+ const key=url&&[...url.search.slice(1).split('&'),...decodedCredentialText(url.search).slice(1).split('&')].map(pair=>pair.split('=')[0]).find(key=>credentialQueryKey(key))
+ if(key!==undefined&&key!==null){const name=decodedCredentialText(key).slice(0,40),word=CREDENTIAL_WORD.exec(name)?.[0]??name
+  return `${place} has a query parameter named “${name}”, which contains “${word}”; ${after}`}
+ return `${place} reads as a credential; ${after}`
+}
 /** A read-only preview of an installation with no runner yet assumes the first one an apply establishes. */
 export function planned(state:PlanState,source:Source,namespace:string,items:PlanItem[],requireRunner=true){
- return planEntries(state,items,{requireRunner,idFor:item=>targetIdFor(source,namespace,item.sourceId!)})
+ return planEntries(state,items,{requireRunner,idFor:item=>targetIdFor(source,namespace,item.sourceId!),refusal:credentialRefusal})
 }
 function result(entry:PlanEntry):MappingResult{
  const unmapped=entry.differences.map(reason=>({reason}))

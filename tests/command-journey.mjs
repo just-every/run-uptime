@@ -169,7 +169,10 @@ try {
   assert.ok(target.notification_destinations.every(row => row.enabled === 0));
   assert.ok(target.notification_jobs.every(row => row.state === 'imported-inactive'));
   assert.ok(target.outbox.every(row => row.status === 'imported-inactive'));
-  assert.equal(target.definition_batches.length, 2); assert.ok(target.definition_batches.every(row => row.undone_at !== null && row.restored_at !== null), 'applied-and-undone batches arrive as restored history');
+  // Every import-door batch arrives as restored history: the console's two applied-and-undone imports, then the command's
+  // UptimeRobot import and its catch-up, which stay applied.
+  assert.equal(target.definition_batches.length, 4); assert.ok(target.definition_batches.every(row => row.restored_at !== null), 'every batch arrives as restored history');
+  assert.deepEqual(target.definition_batches.map(row => [row.source, JSON.parse(row.counts), row.undone_at !== null]), [['uptimerobot', { create: 6, change: 0 }, true], ['uptime.monitors', { create: 1, change: 0 }, true], ['uptimerobot', { create: 3, change: 0 }, false], ['uptimerobot', { create: 0, change: 1 }, false]], 'applied-and-undone batches arrive as restored history, beside the command\'s applied ones');
   for (const name of ['monitors', 'slots', 'outbox', 'notification_destinations', 'notification_jobs', 'integration_deliveries']) for (const original of source[name]) {
    const current = target[name].find(row => row.id === original.id);
    if (JSON.stringify(current) !== JSON.stringify(original)) assert.ok(target.archive_history.some(row => row.table_name === name && row.record === JSON.stringify(original)));

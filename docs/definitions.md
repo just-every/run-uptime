@@ -65,7 +65,7 @@ In the console, open **Definitions**, choose or paste a file and select **Previe
 - **Create**: a new monitor, which arrives paused.
 - **Unchanged**: it matches the monitor of the same name (or, for an earlier import of the same source record, the monitor that import created).
 - **Change**: the fields that differ. Applying it saves a new immutable revision, like an edit in the editor, and keeps the monitor's enabled and maintenance state and its runner assignments. A heartbeat keeps its token, so your jobs keep calling the same URL. A change that turns a heartbeat into another type retires its token, and the preview says so.
-- **Refused**: the entry is invalid; the reason says why.
+- **Refused**: the entry is invalid; the reason says why. An import never stores anything that reads as a credential: a URL with a user name or password, or a query parameter whose name contains key, token, auth, secret, password, signature, credential or cookie (so `?keyword=` and `?author=` too). Such an entry is refused on its own, with that reason, and the rest of the file previews and applies; add or change that monitor in the editor.
 - **Unsupported**: an imported entry Uptime cannot run.
 
 The preview ends with a plan digest, the plan's fingerprint. **Apply** sends that fingerprint back and applies exactly that plan in bounded batches. Each monitor it writes is guarded: if that monitor was edited since the preview, or another monitor took its name, the apply stops as **Apply failed** and the failing batch writes nothing; preview again. A file never enables a monitor, issues a heartbeat token, sends a notification or changes a destination. A monitor that an earlier import created and its undo or an erasure released stays in Uptime as its own monitor: a later preview explains it ("Imported before and released by undo or erasure") instead of changing it.
@@ -78,7 +78,7 @@ For a newly created heartbeat, continue with [Incoming heartbeat](/docs/monitors
 
 Each apply is recorded as a batch, "Approved by" the owner with its time and fingerprint, in the same list as Business imports. **Undo this batch** releases the monitors it created, which stay paused with their history, and restores the monitors it changed to their earlier settings, as a new revision. A restored heartbeat keeps its token. A monitor edited or enabled after the import is left alone, and the batch says so ("Edited since; left as is" or "Enabled since; left running"); undo never overrides an edit. The batch reads as undone, with its time. Batches applied before the import door keep their earlier undo, which works the same way. Undo never removes checks, results or incidents. To remove a monitor completely, erase it from its page.
 
-Batches travel in a private archive as history. In the installation that restores the archive they are marked as coming from an archive and cannot be undone there.
+Batches travel in a private archive as history, the import door's included: each with its approval time, the owner who approved it, its source, fingerprint, counts and undo time, and per monitor the revision it wrote. The door's uploads, plans and grants stay in this installation. In the installation that restores the archive the batches are marked as coming from an archive and cannot be undone there.
 
 ## Export
 

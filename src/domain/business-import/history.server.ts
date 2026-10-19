@@ -7,29 +7,38 @@ import {loadPlans} from '../../base/modules/import-kit/src/d1/plans.ts'
 import {businessOwnerAuthority,ownerImportContext,DOOR_KEY} from './context.server.ts'
 import {recordUndo} from './custody.server.ts'
 import type {D1Sql} from '../../base/modules/import-kit/src/d1/types.ts'
+import type {ImportPlan} from '../../base/modules/import-kit/src/types.ts'
+import {canonicalJson,sha256} from '../../base/modules/import-kit/src/provenance/identity.ts'
 
 type Applied={ordinal:number;effect_ordinal:number}
-/** One door batch as it was applied: each effect its job wrote, from that job's own plan, whatever a later import of the
- * same source did since. Undo outcomes come from the job's reversal report: a monitor reversed is paused (created) or
- * restored (changed); one kept was edited or enabled since, or is gone. */
-async function batchEntries(env:Bindings,jobId:string,undone:boolean){
- const job=await env.DB.prepare('SELECT id,plan_json FROM ik_jobs WHERE id=?').bind(jobId).first<{id:string;plan_json:string}>()
- if(!job)return []
- const plan=(await loadPlans([job],env.DB)).get(job.id)!
+type Job={id:string;plan_json:string}
+/** Each effect a door job applied, from that job's own plan, whatever a later import of the same source did since, with
+ * the kit's applied revision for it. Undo outcomes come from the job's reversal report: a monitor reversed is paused
+ * (created) or restored (changed); one kept was edited or enabled since, or is gone. */
+export async function appliedEntries(env:Bindings,job:Job,plan:ImportPlan,undone:boolean){
  // A catch-up moves an earlier import's provenance into its history; both still name this job's effects.
  const applied=(await env.DB.prepare(`SELECT ordinal,effect_ordinal FROM ik_provenance WHERE job_id=? UNION SELECT ordinal,effect_ordinal FROM ik_d1_history WHERE job_id=?
-  ORDER BY ordinal,effect_ordinal`).bind(jobId,jobId).all<Applied>()).results
- const effects=applied.map(row=>plan.entries[row.ordinal]?.effects[row.effect_ordinal]).filter(Boolean)
- const ids=JSON.stringify(effects.map(effect=>effect.targetId))
+  ORDER BY ordinal,effect_ordinal`).bind(job.id,job.id).all<Applied>()).results
+ const effects=applied.map(row=>{const entry=plan.entries[row.ordinal],effect=entry?.effects[row.effect_ordinal]
+  return effect&&{effect,appliedRevision:sha256(canonicalJson([job.id,entry.identity,row.effect_ordinal,'applied']))}}).filter(Boolean) as {effect:ImportPlan['entries'][number]['effects'][number];appliedRevision:string}[]
+ const ids=JSON.stringify(effects.map(({effect})=>effect.targetId))
  const monitors=new Map((await env.DB.prepare('SELECT id,revision,definition FROM monitors WHERE id IN(SELECT value FROM json_each(?))').bind(ids).all<{id:string;revision:number;definition:string}>()).results.map(row=>[row.id,row]))
- const reports=undone?new Map((await env.DB.prepare('SELECT record_json FROM ik_d1_reversal_reports WHERE job_id=? ORDER BY position').bind(jobId).all<{record_json:string}>()).results
+ const reports=undone?new Map((await env.DB.prepare('SELECT record_json FROM ik_d1_reversal_reports WHERE job_id=? ORDER BY position').bind(job.id).all<{record_json:string}>()).results
   .map(row=>JSON.parse(row.record_json)).filter(report=>typeof report.targetId==='string').map(report=>[report.targetId,report])):new Map()
- return effects.map(effect=>{
-  const current=monitors.get(effect.targetId),definition=current?JSON.parse(current.definition):null,action=effect.expectedRevision===undefined?'create':'change'
+ return effects.map(({effect,appliedRevision})=>{
+  const current=monitors.get(effect.targetId),definition=current?JSON.parse(current.definition):null,action:'create'|'change'=effect.expectedRevision===undefined?'create':'change'
   const report=reports.get(effect.targetId)
   const undoOutcome=!undone?null:report?.disposition==='retained'?(!current?'missing':action==='create'&&definition.enabled?'enabled-since':'edited-since'):action==='create'?'paused':'restored'
-  return {monitorId:effect.targetId,name:(effect.value as any)?.name??definition?.name??null,action,revision:current?.revision??null,currentRevision:current?.revision??null,undoOutcome}
+  return {monitorId:effect.targetId,name:(effect.value as any)?.name??definition?.name??null,action,currentRevision:current?.revision??null,undoOutcome,
+   appliedRevision,expectedRevision:effect.expectedRevision}
  })
+}
+/** One door batch as it was applied, as the history lists it. */
+async function batchEntries(env:Bindings,jobId:string,undone:boolean){
+ const job=await env.DB.prepare('SELECT id,plan_json FROM ik_jobs WHERE id=?').bind(jobId).first<Job>()
+ if(!job)return []
+ const plan=(await loadPlans([job],env.DB)).get(job.id)!
+ return (await appliedEntries(env,job,plan,undone)).map(({monitorId,name,action,currentRevision,undoOutcome})=>({monitorId,name,action,revision:currentRevision,currentRevision,undoOutcome}))
 }
 export async function definitionImportHistory(env:Bindings,request:Request){return importHistory(env,await businessOwnerAuthority(env,request))}
 /** Uptime's own definition batches and every import-door job, owner's and Business's, newest first. */

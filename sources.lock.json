@@ -515,7 +515,7 @@
       "executable": false
     },
     "docs/definitions.md": {
-      "sha256": "e5beb1d61b8fdc7ff7047c5ea3894d0d5a9eb7af637e9ec8edce5993bccf4e2b",
+      "sha256": "f896867f0248b466badfcc795882fb73153cfe15c663bf004185f8dd55320238",
       "executable": false
     },
     "docs/deploy.md": {
@@ -1963,7 +1963,7 @@
       "executable": false
     },
     "HANDOVER.md": {
-      "sha256": "fb55a021f490bf6739e4391f6aac8117df48e10c0538eaef8ca4ee7adc72fdc9",
+      "sha256": "e8ab15b151c187360300145f616812da4ad13cc200429f93475292a32325a9cc",
       "executable": false
     },
     "LICENSE": {
@@ -4923,7 +4923,7 @@
       "executable": false
     },
     "src/domain/archive.server.ts": {
-      "sha256": "016d2a1f6001b6b54abccd90cac9873a35643877980706ebc62eb88eeebeb984",
+      "sha256": "161bb61b050a6141708d533e7f905d964da7631561f1df2573065ed0f6c4885e",
       "executable": false
     },
     "src/domain/assets.server.ts": {
@@ -4987,7 +4987,7 @@
       "executable": false
     },
     "src/domain/business-import/history.server.ts": {
-      "sha256": "dff51d7c6b122e7397f7f8fd054312651752e98f844cb3e81a67ccc28bfeb819",
+      "sha256": "e857b28a9a36e98717cca3dc24ba2ee921b14843dc44b6431f144d94601a68d1",
       "executable": false
     },
     "src/domain/business-import/inventory.server.ts": {
@@ -4995,7 +4995,7 @@
       "executable": false
     },
     "src/domain/business-import/mapping.server.ts": {
-      "sha256": "16c83cd6370ae1efda9cab72b399ced3aeeb5275268aa3ed6d4c6cb5c66195bb",
+      "sha256": "c9352462bd2dcc7e20791e4b3964feea79369da78c4c8eedf432a4389f991953",
       "executable": false
     },
     "src/domain/business-import/plan-view.server.ts": {
@@ -5007,7 +5007,7 @@
       "executable": false
     },
     "src/domain/business-import/targets.server.ts": {
-      "sha256": "0cd8c0231098c481207ea75fc8836c7789a3043072992c5f46a499ecea67653f",
+      "sha256": "501c33c66708b86cc9da387256947fd74aa64ca8ae3bcceee38adb75e8cf2c42",
       "executable": false
     },
     "src/domain/business-import/targets/native-writes.ts": {
@@ -5111,7 +5111,7 @@
       "executable": false
     },
     "src/domain/definitions/plan.server.ts": {
-      "sha256": "23630966da2f56b9f9a4e93031a51cb2abf37022d0113650b7d96b6fd29a3309",
+      "sha256": "bd19cba83574fc3769a4d127dfedf9c90f009c6d6e59f6639707755d80b746ee",
       "executable": false
     },
     "src/domain/definitions/withhold.ts": {
@@ -6207,7 +6207,7 @@
       "executable": false
     },
     "tests/archive-roundtrip.mjs": {
-      "sha256": "1826154ac8eba3e9b27fe8282719adddfd6249dfc9b6ae664701929b512b238f",
+      "sha256": "35bfff1f8c7df0dbcd04e0721a2e8e5d16a8c11f222f94fb4ba547e782385fb5",
       "executable": false
     },
     "tests/auth-input-boundary.mjs": {
@@ -6235,7 +6235,7 @@
       "executable": false
     },
     "tests/command-journey.mjs": {
-      "sha256": "dd6b1c417c92a4d31a317bd9c639072921780908c33c0cf2c5ba3783d7620120",
+      "sha256": "3aabac3b0f0f2c50531701ef78e7460e0dcaf671b179345d5c1d8f4c83d2371b",
       "executable": false
     },
     "tests/connection-diagnostics-browser.mjs": {
@@ -6263,7 +6263,7 @@
       "executable": false
     },
     "tests/definitions-import.mjs": {
-      "sha256": "e597d24d471346ef01fae1b44df7aa3ce05fc3cd6e78ddb8ecc0856aeaf2b9fe",
+      "sha256": "fe9cd3fb356b1a4f9317bc42f91b3aa70d648d4749390b65adef00b06d1f7903",
       "executable": false
     },
     "tests/definitions-journey.mjs": {

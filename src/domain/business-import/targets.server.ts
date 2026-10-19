@@ -1,9 +1,23 @@
 import type {D1Database,D1TargetAdapter} from '../../base/modules/import-kit/src/d1/types.ts'
+import type {TargetRow} from '../../base/modules/import-kit/src/types.ts'
+import {assertNoCredentials} from '../../base/modules/import-kit/src/provenance/credentials.ts'
 import {lastScheduledStart,type Bindings} from '../control.server.ts'
 import {revisionWrites,retirementWrites} from './targets/native-writes.ts'
 import {assignmentGuard,assignmentPolicy} from './targets/policy.ts'
 import {markerTable,markerPredicate,nativePredicate,publishedPredicate,readSnapshot,sameTarget,sql,target,together,type Snapshot} from './targets/snapshots.ts'
 
+const credential=(value:unknown)=>{try{assertNoCredentials(value);return false}catch{return true}}
+const withheld=(value:any):any=>Array.isArray(value)?value.map(withheld):value&&typeof value==='object'
+ ?Object.fromEntries(Object.entries(value).filter(([key])=>!credential({[key]:null})).map(([key,child])=>[key,withheld(child)]))
+ :typeof value==='string'&&credential(value)?'[withheld]':value
+/** What an import owns of a monitor, as undo compares it. An imported value never holds anything the kit reads as a
+ * credential (the plan refuses such entries), so a row that does was edited since its import: its credential-shaped
+ * names and values are withheld and the projection is marked, which keeps the edit detected and nothing durable holds
+ * them. Every other row projects exactly as the kit's own default does, so existing jobs and reports are unchanged. */
+export function ownedContent(row:TargetRow){
+ const owned={revision:row.revision,value:row.value,attachment:row.attachment??null}
+ return credential(owned)?{...withheld(owned),withheld:true}:owned
+}
 /** Request-local adapter. Tombstones retain native monitors after undo and make
  * reusing their IDs an explicit refusal, never a hidden overwrite. */
 export function businessTargets(env:Bindings,ownerId:string):D1TargetAdapter{
@@ -61,6 +75,7 @@ export function businessTargets(env:Bindings,ownerId:string):D1TargetAdapter{
     return listed
    })
   },
+  ownedContent,
   matchesCount(count){return sql(`(SELECT COUNT(*) FROM ${markerTable} WHERE retired=0)=?`,count)},
   // A preserving undo observes each imported monitor as read() does, fenced by the same exact native and marker guard.
   // The kit reverses a monitor still as its import left it and keeps (and reports) one edited or enabled since.

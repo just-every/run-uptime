@@ -8,6 +8,7 @@ import {readCredential,sealCredential} from './notification-credentials.server.t
 import {ARCHIVE_ROWS,TABLES,columns,assertBytes,digest,portableArchive,type Tables} from './archive-schema.ts'
 import {validateArchive} from './archive-validation.ts'
 import {projectRestore} from './archive-restore-projection.ts'
+import {doorBatchArchive} from './business-import/archive.server.ts'
 /** Explicit projections prevent future credential columns silently becoming portable. */
 export async function archive(env:Bindings){
  await assertArchiveInventory(env.DB);
@@ -29,6 +30,9 @@ export async function archive(env:Bindings){
   const value={...Object.fromEntries(columns.notification_destinations.filter(k=>k!=='address').map(k=>[k,row[k]])),address};Object.keys(row).forEach(k=>delete row[k]);Object.assign(row,value);
  }
  for(const row of t.slots){row.lease_owner='restored-inactive';row.lease_until=0}
+ // Import-door batches travel as definition-batch history beside the batches Uptime wrote itself.
+ const door=await doorBatchArchive(env);t.definition_batches.push(...door.batches);t.definition_batch_entries.push(...door.entries);
+ for(const name of ['definition_batches','definition_batch_entries'])if(t[name].length>ARCHIVE_ROWS)throw Error(`Archive row bound exceeded: ${name} (${ARCHIVE_ROWS})`);
  for(const row of t.integration_deliveries){const e=JSON.parse(row.envelope),job=t.notification_jobs.find(j=>j.id===row.id);if(!job)throw Error('Archive notification delivery is orphaned');if(e.destinationId!==job.destination_id){e.destinationId=job.destination_id;row.envelope=JSON.stringify(e)}}
  for(const row of t.integration_replays){const envelope=JSON.parse(row.envelope);if(!t.notification_destinations.some(d=>d.id===envelope.destinationId)){const credential=await env.DB.prepare('SELECT destination_id FROM notification_credentials WHERE id=?').bind(envelope.destinationId).first<{destination_id:string}>();if(!credential)throw Error('Archive notification replay destination unavailable');envelope.destinationId=credential.destination_id;row.envelope=JSON.stringify(envelope)}}
  const result=await portableArchive(t,Date.now(),await exportJournal(env));assertBytes(result,1);await validateArchive(result);return result;
