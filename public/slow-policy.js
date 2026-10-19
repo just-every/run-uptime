@@ -18,7 +18,7 @@ function summaryMarkup(slow,destinations){
 }
 export function slowPolicyPanel(monitor){
  if(monitor.definition.type==='heartbeat')return '';
- return `<section class="ui-card panel slow-policy-panel" aria-labelledby="slow-policy-heading"><h2 id="slow-policy-heading">Slow-response notices</h2><div id="slow-policy-summary" role="status">${summaryMarkup(monitor.definition.slow)}</div><p>${explanation}</p><button type="button" id="edit-slow-policy">Edit slow-response policy</button><p><a href="/docs/slow-responses">Slow-response policy and reporting guide</a></p></section>`;
+ return `<section class="ui-card panel slow-policy-panel" aria-labelledby="slow-policy-heading"><h2 id="slow-policy-heading">Slow-response notices</h2><div id="slow-policy-summary" role="status">${summaryMarkup(monitor.definition.slow)}</div><p>${explanation}</p><button type="button" id="edit-slow-policy">Edit slow-response policy</button><p><a class="ui-link" href="/docs/slow-responses">Slow-response policy and reporting guide</a></p></section>`;
 }
 function locationMarkup(probes,slow){
  const selected=slow?.locations==='all'?[]:slow?.locations??[];
