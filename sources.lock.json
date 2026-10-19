@@ -5561,7 +5561,7 @@
       "executable": false
     },
     "tests/definitions-journey.mjs": {
-      "sha256": "7332b4f6d4a0b266cea31d34e15806d419826bd04dd1fef93e39cd909a2cf35f",
+      "sha256": "b7e058ab2e3af63f49b4b878b4f8cc6596a62ba696ef43cd47123671ff3010e7",
       "executable": false
     },
     "tests/demo-scheduled.mjs": {
@@ -5973,7 +5973,7 @@
       "executable": false
     },
     "tests/signed-runner.mjs": {
-      "sha256": "3758e7e1cf2af431d0ec5109e4a230ec97472abf2f22be33b821fafdf908a5a3",
+      "sha256": "44cb72d8bc63775ecb4a85bd3d6325f0b42107906d71b0db6227512be70430e5",
       "executable": false
     },
     "tests/slow-import.mjs": {
