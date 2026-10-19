@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- **Business-provisioned installs.** When Run Edit Run installs Uptime for an approved Business plan (`RER_IMPORT_DOOR=on` with its owner-claim trust), the owner's first claim opens the Business import door. A later claim changes nothing, the owner can still switch it off and on in **Runner / archive → Business imports**, and a self-hosted `rer deploy` keeps it off.
+- **Runner status for Run Edit Run.** `POST /api/rer/runner-status` answers a signed `runner-status` grant with the private runner's contact state (`fresh`, `stale` or `never`) and time, never the runner key.
+- Every recorded Base copy moves to rer 0.2.66, keeping the door's reversal-policy divergence until Base #298 ships.
+
 ## 0.4.1 — 2026-10-19
 
 Patch release from `main`; previous version 0.4.0. Back up the console archive and database first. Six additive import-door migrations preserve existing monitors, history, incidents, destinations and private settings. No new required settings.

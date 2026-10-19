@@ -58,6 +58,8 @@ export const configurationTable = Object.freeze([
  { name: 'RER_DEV_KEY', scopes: ['worker', 'settings'], required: 'conditional', when: env => env.RER_DEV_IDENTITY === 'on', valid: secret(32) },
  { name: 'UPTIME_SYNTHETIC_PORT', scopes: ['worker', 'settings', 'local-worker'], required: 'optional', valid: port },
  ...claimNames.map(name => ({ name, scopes: ['worker', 'settings'], required: 'conditional', when: any(claimNames), valid: name.endsWith('PUBLIC_KEYS') ? (value, env) => { try { configureClaim({ issuer: env.RER_OWNER_CLAIM_ISSUER, installationId: env.RER_OWNER_CLAIM_INSTALLATION_ID, appOrigin: env.RER_OWNER_CLAIM_APP_ORIGIN, expectedEmail: env.OWNER_EMAIL?.toLowerCase(), publicKeys: JSON.parse(value) }); return true; } catch { return false; } } : name.endsWith('ISSUER') || name.endsWith('APP_ORIGIN') ? externalOrigin : value => text(value) && value.length <= 256 })),
+ // Run Edit Run sets `on` only with the door's owner-claim trust, on an install a Business plan provisions; self-host never sets it.
+ { name: 'RER_IMPORT_DOOR', scopes: ['worker', 'settings'], required: 'optional', valid: (value, env) => value === 'off' || (value === 'on' && claimNames.every(name => env[name] !== undefined)) },
  ...editorNames.map(name => ({ name, scopes: ['worker', 'settings'], required: 'conditional', when: any(editorNames), valid: name.endsWith('ORIGIN') ? externalOrigin : text })),
  { name: 'ASSETS', scopes: ['worker'], required: 'optional', valid: value => value && typeof value.fetch === 'function' },
  { name: 'UPTIME_DEPLOY_ENVIRONMENT', scopes: ['worker'], required: 'optional', valid: value => text(value) && /^[a-z][a-z0-9-]{0,39}$/.test(value) },

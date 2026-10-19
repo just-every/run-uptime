@@ -50,6 +50,8 @@ import {recogniseFile,exportDefinitions} from './domain/definitions/index.server
 import {doorPlanView} from './domain/business-import/plan-view.server.ts'
 import {businessImportDoor,ownerImportDoor} from './domain/business-import/door.server.ts'
 import {businessImportSettings} from './domain/business-import/settings.server.ts'
+import {afterClaim,openDoorForOwner} from './domain/business-import/claim-door.server.ts'
+import {rerRunnerStatus} from './domain/rer-runner-status.server.ts'
 import {definitionImportHistory,undoDefinitionImport} from './domain/business-import/history.server.ts'
 import {exportJournal} from './domain/archive-fence.server.ts'
 import {operatorSession,authenticatedSession} from './domain/operator-auth.server.ts'
@@ -266,15 +268,18 @@ const handler={async fetch(request,env,execution){
  if(url.origin!==bindings.UPTIME_ORIGIN||(request.headers.has('host')&&request.headers.get('host')?.toLowerCase()!==url.host.toLowerCase()))return new Response('Invalid host',{status:403});
  if(path.startsWith('/api/rer/import/'))return businessImportDoor(bindings,request);
  if(path.startsWith('/api/operator/import/'))return ownerImportDoor(bindings,request);
+ // Run Edit Run's signed read of the private runner's contact: verified by its own grant, before the console's API policy.
+ if(path==='/api/rer/runner-status')return rerRunnerStatus(bindings,request);
  // The Lobby at / and GET /setup/state: Base's shared responses, before the public-path guard and the document renderer.
  const lobbyBindings={DB:bindings.DB,AUTH_ORIGIN:bindings.UPTIME_ORIGIN!};
  const state=await setupStateResponse(request,lobbyBindings,claimed);if(state)return state;
  const lobby=await lobbyResponse(request,lobbyBindings,identity,claimed);if(lobby)return lobby;
  if(!publicPath(path,bindings.UPTIME_LOCAL_REVIEW==='true')&&!isConsoleDocument(path)&&!isEvidencePage&&!path.startsWith('/_serverFn/')&&path!=='/api'&&!path.startsWith('/api/'))return notFoundDocument();
  if(isEvidencePage){if(!['GET','HEAD'].includes(request.method))return new Response(null,{status:405});try{const id=decodeURIComponent(path.split('/').pop()!);if(!await evidencePrincipal(bindings,request,id)){if(!await authenticatedSession(bindings,request))return new Response(null,{status:303,headers:{location:'/login','cache-control':'no-store'}});return failureEvidenceDenied()}const response=failureEvidenceDocument(id);return request.method==='HEAD'?new Response(null,response):response}catch(error){return authFailure(error)}}
- if(path==='/auth/owner-claim')return (await ownerClaim(bindings,request))!;
+ // On a Business-provisioned install the owner's first claim opens the import door (claim-door.server.ts).
+ if(path==='/auth/owner-claim')return afterClaim(bindings,request,(await ownerClaim(bindings,request))!);
  if(path==='/api/editor/config')return editorConfigResponse(bindings,request);
- if(path.startsWith('/auth/'))return nativeClaimFailure(request,(await authRoute(bindings,request))!,bindings.UPTIME_DEPLOY_ENVIRONMENT);
+ if(path.startsWith('/auth/'))return nativeClaimFailure(request,await afterClaim(bindings,request,(await authRoute(bindings,request))!),bindings.UPTIME_DEPLOY_ENVIRONMENT);
  if(path==='/signin')return signInDocument(bindings,request);
  if(path==='/setup')return firstRun(bindings,request);
  if(path==='/alert-drill')return alertDrillDocument(bindings,request);
@@ -285,7 +290,7 @@ const handler={async fetch(request,env,execution){
  if(path!=='/health'&&path!=='/api'&&!path.startsWith('/api/')&&!isPublicDocument(path)){
   // Only native document routes and Start transports reach the private renderer.
   if(!isConsoleDocument(path)&&!path.startsWith('/_serverFn/'))return notFoundDocument();
-  try{const principal=await authenticatedSession(bindings,request);if(!principal)return new Response(null,{status:303,headers:{location:'/login','cache-control':'no-store'}});if(principal.operator.role!=='owner')return accessDeniedDocument(principal.operator.displayName,request.method==='HEAD');if(!await firstRunComplete(bindings))return setupRedirect()}catch(error){return authFailure(error)}
+  try{const principal=await authenticatedSession(bindings,request);if(!principal)return new Response(null,{status:303,headers:{location:'/login','cache-control':'no-store'}});if(principal.operator.role!=='owner')return accessDeniedDocument(principal.operator.displayName,request.method==='HEAD');await openDoorForOwner(bindings);if(!await firstRunComplete(bindings))return setupRedirect()}catch(error){return authFailure(error)}
   if(isMonitorPage(path)&&undecodableMonitorId(path))return notFoundDocument();
  }
  const response=await dispatch(request,()=>api.fetch(request,bindings,execution),()=>start.fetch(request));

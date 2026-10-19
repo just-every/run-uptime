@@ -753,6 +753,14 @@
         "environment": "all"
       },
       {
+        "path": "/api/rer/runner-status",
+        "match": "exact",
+        "kind": "credentialed",
+        "class": "imports",
+        "authentication": "POST only. A short-lived installation-scoped ES256 Run Edit Run grant of action runner-status under the owner-claim key ring; answers the private runner's contact state and time only.",
+        "environment": "all"
+      },
+      {
         "path": "/app.js",
         "match": "exact",
         "kind": "asset",
