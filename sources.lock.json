@@ -479,7 +479,7 @@
       "executable": false
     },
     "CHANGELOG.md": {
-      "sha256": "0436875273c7ef4e4fb4e843db10e9bd22dc0a31f34ea3be8233559e0edcae27",
+      "sha256": "cfeddb76c144d5da19d9590b4d19c0c1968c5c93daf8c66a4e8aef0e5d4d5baf",
       "executable": false
     },
     "CLAUDE.md": {
@@ -523,7 +523,7 @@
       "executable": false
     },
     "docs/deploy.md": {
-      "sha256": "2454891b99816ce24990973fe544cbb6830f57af5d07f1225a297f3928632713",
+      "sha256": "823cd474c5c40bc896e5dcc0cc27cad9a7dd251f0ab43b2e5515ce135100a2ff",
       "executable": false
     },
     "docs/evidence/contracts/archives/archive-restored-1440.png": {
@@ -1995,7 +1995,7 @@
       "executable": false
     },
     "docs/security.md": {
-      "sha256": "39e5f11f61f00893174775ee632fc1dd6c876139a642956ef33fd8401a36e6d9",
+      "sha256": "478bef6a4d9491be5871f2cc47b8b7a57cb4018f8bc0423c2d7b90c265a0a39f",
       "executable": false
     },
     "docs/site.json": {
@@ -2263,11 +2263,11 @@
       "executable": false
     },
     "OPERATIONS.md": {
-      "sha256": "2d1cf7163cddbcc3526b50c6d0074ff1b98361aedcab0a216af26731c54b138e",
+      "sha256": "c34214d426d2bee92e3e2a07f4fc64003b23526034cc0363f6549ae2432e1b4e",
       "executable": false
     },
     "package.json": {
-      "sha256": "88f0ca4ff641d45857bede0bcbbc9257bb47d2b223daeb7dd0dcee9392967058",
+      "sha256": "782e5d7b19f2056a394cf6594819cb0bc57ed42ed1f49f62c4559432f9406cc7",
       "executable": false
     },
     "patches/README.md": {
@@ -2527,11 +2527,11 @@
       "executable": false
     },
     "README.md": {
-      "sha256": "3e47516ffc632963dd1e4cc27b597d8d5546d22dbffe7580fba20468bc35d4a3",
+      "sha256": "75717d77871b6f3ade981f018cc963fe011fb9c2e287c9b9e2526bd3af865005",
       "executable": false
     },
     "RELEASE.json": {
-      "sha256": "80c5f8fe14403687de4e89531f7b40138ea00e948e433960e52c532230ba83a5",
+      "sha256": "0e4711c84b0fc1d67a7c15cea871bd55ed8b10b3dceb9827e6fbdc575c8e54e3",
       "executable": false
     },
     "RELEASE.md": {
@@ -3203,7 +3203,7 @@
       "executable": false
     },
     "seed.json": {
-      "sha256": "98dcec2f1facadbcf4b6b5acc49fc21eb378005370669fa1abc602faa9b7bd5e",
+      "sha256": "37b0693658d5f2fa116e5fe66e7e63f3f9d9db546ba0bc79e092a3fd61321ce6",
       "executable": false
     },
     "src/base/contract-filter.ts": {

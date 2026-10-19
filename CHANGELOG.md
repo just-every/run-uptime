@@ -1,10 +1,22 @@
 # Changelog
 
-## Unreleased
+## 0.4.2 — 2026-10-19
+
+Patch release from `main`; previous version 0.4.1. No new migrations and no new required settings. Back up the console archive and database first, as for any upgrade; monitors, history, incidents, destinations and private settings are kept.
 
 - **Business-provisioned installs.** When Run Edit Run installs Uptime for an approved Business plan (`RER_IMPORT_DOOR=on` with its owner-claim trust), the owner's first claim opens the Business import door. A later claim changes nothing, the owner can still switch it off and on in **Runner / archive → Business imports**, and a self-hosted `rer deploy` keeps it off.
-- **Runner status for Run Edit Run.** `POST /api/rer/runner-status` answers a signed `runner-status` grant with the private runner's contact state (`fresh`, `stale` or `never`) and time, never the runner key.
-- Every recorded Base copy moves to rer 0.2.66, keeping the door's reversal-policy divergence until Base #298 ships.
+- **Runner status for Run Edit Run.** `POST /api/rer/runner-status` answers a signed `runner-status` grant with the private runner's contact state (`fresh`, `stale` or `never`) and time, never the runner key. Without a valid grant it refuses.
+- **Steadier pages on slow connections.** Moving between the monitor list and the monitor editor no longer drops the console theme while the editor loads, so navigation keeps full-size targets. The slow-response guide link on a monitor's page is a full-size target even before its panel styles arrive.
+- **Upgrading a 0.4.0 installation keeps its keys without a manual step.** Uptime 0.4.0 deployed its own saved session and runner keys over the ones rer generated beside them. The one-time move of those settings into `.rer/deploy/<environment>.secrets.env` now keeps the keys the installation actually uses, so signed-in owners, the private runner and saved owner and mail settings carry on after the upgrade. The deploy names the keys it kept, never their values. A differing owner input, such as the owner email, still stops the move without overwriting anything.
+- Every recorded Base copy moves to rer 0.2.66. `@runeditrun/rer` stays pinned to exactly 0.2.66.
+- Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).
+
+### Known issues
+
+- The Business import door keeps its recorded reversal-policy divergence from Base until Uptime adopts the rer release carrying Base #298 (rer 0.2.67).
+- The rer 0.2.67 deploy fixes (a declared `MAIL_PROVIDER_API_KEY` and a provider budget scaled to pending migrations) are not in this release; it stays on rer 0.2.66.
+- A response body larger than 64 KiB fails the check as a target failure (`body-limit`), even when the status is correct. Point a monitor at a smaller page, such as a health endpoint, until a later release reads large pages.
+- The limits listed under 0.4.0 still apply: hosted heartbeat evaluation needs a private runner, and hosted Worker checks cannot pin connections.
 
 ## 0.4.1 — 2026-10-19
 
