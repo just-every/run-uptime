@@ -23,10 +23,12 @@ async function rehash(a){a.sha256=await digest(JSON.stringify(a.payload));return
 try{
  const source=join(dir,'source'),target=join(dir,'target'),settings=join(dir,'settings.json'),file=join(dir,'archive.json');await writeFile(settings,JSON.stringify(values),{mode:0o600});
  await migrate(source);let env=await installation(source);await populateArchiveFixture(env);await populateProtocolArchiveFixture(env);
+ const platformLedger=async(db,name)=>{await db.prepare('CREATE TABLE rer_migrations(name TEXT PRIMARY KEY,sha256 TEXT NOT NULL,applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)').run();await db.prepare('INSERT INTO rer_migrations(name,sha256) VALUES(?,?)').bind(name,await digest(name)).run();return (await db.prepare('SELECT * FROM rer_migrations').all()).results};
+ const sourceLedger=await platformLedger(env.DB,'source.sql');
  // One applied-and-undone definition batch and one applied batch travel as history.
  const owner={kind:'feature',ref:'local-cli'},definitionFile=names=>JSON.stringify({format:'uptime.monitors',version:1,monitors:names.map(name=>({name,url:`https://example.test/${name}`}))});
  for(const [names,undo] of [[['imported-a','imported-b'],true],[['imported-c'],false]]){const text=definitionFile(names),applied=await applyDefinitions(env,text,'auto',(await previewDefinitions(env,text)).digest,owner);if(undo)await undoBatch(env,applied.batchId,owner)}
- const original=await archive(env),a=tables(original);
+ const original=await archive(env),a=tables(original);assert.ok(!JSON.stringify(original).includes('rer_migrations'));assert.deepEqual((await env.DB.prepare('SELECT * FROM rer_migrations').all()).results,sourceLedger);
  assert.equal(a.definition_batches.length,2);assert.equal(a.definition_batch_entries.length,3);assert.ok(a.definition_batches.every(b=>b.restored_at===null));const inventory=(await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name").all()).results;for(const {name} of inventory)assert.ok(TABLES.includes(name)||installationLocalTables[name]||name.startsWith('rer_portability_'),`Unclassified schema table: ${name}`);console.log('Archive schema inventory: '+inventory.map(({name})=>`${name}=${TABLES.includes(name)?'portable':'installation-local authority'}`).join(', '));
  // Real D1 carries Cloudflare's _cf_* tables (_cf_KV) that local D1 refuses to create, so inject their names under the real inventory query: platform tables are never refused, while any other unknown table, even one that merely resembles the prefix, still refuses.
  const withTables=(names,db=env.DB)=>({prepare:sql=>db.prepare(sql.replace('FROM sqlite_master',`FROM (SELECT name,type FROM sqlite_master${names.map(n=>` UNION ALL SELECT '${n}','table'`).join('')})`)),batch:statements=>db.batch(statements)});
@@ -36,7 +38,7 @@ try{
  await assert.rejects(archive({...env,SESSION_SECRET:'synthetic-incorrect-local-secret-that-cannot-decrypt-email'}),/email definition unavailable/);
  await worker.dispose();worker=null;
  await writeFile(file,JSON.stringify(original),{mode:0o600});assert.equal((await stat(file)).mode&0o777,0o600);assert.deepEqual(tables(JSON.parse(await readFile(file,'utf8'))),a);
- await migrate(target);env=await installation(target);await restore(env,original);const roundtrip=await archive(env),b=tables(roundtrip);
+ await migrate(target);env=await installation(target);const destinationLedger=await platformLedger(env.DB,'destination.sql');await restore(env,original);const roundtrip=await archive(env),b=tables(roundtrip);assert.deepEqual((await env.DB.prepare('SELECT * FROM rer_migrations').all()).results,destinationLedger,'ARCHIVE-ROUNDTRIP-001: preserve Platform destination migration history');
 
  for(const name of ['migrations','observations','integration_attempts','integration_resolutions','integration_replays'])assert.deepEqual(b[name],a[name],`${name} retained byte for byte`);
  for(const type of ['tcp','dns','tls','domain']){

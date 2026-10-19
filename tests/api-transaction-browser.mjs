@@ -1,18 +1,20 @@
 // API-003: owner editor -> real authenticated transaction -> signed history, desktop and phone.
 import assert from 'node:assert/strict';
+import {randomBytes} from 'node:crypto';
 import {mkdir} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
 import {chromium} from 'playwright';
 import {authFixture} from './tls-auth-support.mjs';
 import {browserSignIn} from './auth-test-support.mjs';
 let edge,browser,broken=false,objects=new Set();
+const token=randomBytes(24).toString('base64url');
 try{
  edge=await authFixture((record,res)=>{
   const path=record.url;
   res.setHeader('content-type','application/json');
   if(path==='/canary'){res.end('{}');return}
-  if(path==='/login'){res.end(JSON.stringify({token:'browser-extracted-token-private'}));return}
-  if(record.headers.authorization!=='Bearer browser-extracted-token-private'){res.writeHead(401);res.end('{}');return}
+  if(path==='/login'){res.end(JSON.stringify({token}));return}
+  if(record.headers.authorization!==`Bearer ${token}`){res.writeHead(401);res.end('{}');return}
   if(path==='/items'&&record.method==='POST'){objects.add('synthetic-42');res.writeHead(201);res.end('{"id":"synthetic-42"}');return}
   if(path==='/items/synthetic-42'&&record.method==='DELETE'){objects.delete('synthetic-42');res.writeHead(204);res.end();return}
   if(path==='/items/synthetic-42'){res.end(JSON.stringify({ready:!broken}));return}
@@ -34,7 +36,7 @@ try{
   let task=await edge.claim(m.id),result=await edge.run(task);assert.equal(result.outcome,'pass');await edge.submit(task,result);assert.equal(objects.size,0);
   broken=true;task=await edge.manual(m.id);result=await edge.run(task);assert.equal(result.outcome,'target_failure');await edge.submit(task,result);broken=false;assert.equal(objects.size,0);assert.equal(result.apiTransaction.cleanup.passed,1);
   await page.goto(edge.f.origin+`/app/monitors/${m.id}`);await page.locator('html.signed-in').waitFor();await page.locator('#raw-history details').first().evaluate(e=>e.open=true);
-  await page.getByText('Cleanup: 1 passed; 0 failed; 0 skipped.',{exact:true}).first().waitFor();assert.ok(!(await page.locator('body').innerText()).includes('browser-extracted-token-private'));await shot(`api-history-${width}.png`);
+  await page.getByText('Cleanup: 1 passed; 0 failed; 0 skipped.',{exact:true}).first().waitFor();assert.ok(!(await page.locator('body').innerText()).includes(token));await shot(`api-history-${width}.png`);
   await page.getByRole('button',{name:'Edit check',exact:true}).click();await page.locator('.editor-context-ready').waitFor();assert.equal(await page.locator('[name=checkType]').inputValue(),'api');assert.deepEqual(JSON.parse(await page.locator('[name=apiSettings]').inputValue()),m.definition.api);await shot(`api-edit-${width}.png`);await edge.f.pause(m);
  }
  console.log('API-003 browser PASS: owner create/edit, real login/create/read/delete, failed middle requirement with successful cleanup, signed retained step timing, no extracted secrets, axe/reflow at 1440/390.');
