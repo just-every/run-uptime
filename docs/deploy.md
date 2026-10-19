@@ -23,10 +23,10 @@ The account credentials and provider mail inputs below apply when deploying to y
 - `MAIL_PROVIDER` selects `resend`, `sendgrid` (the existing-install default), or `cloudflare`.
 - Resend uses `MAIL_PROVIDER_API_KEY`; SendGrid uses `SENDGRID_API_KEY`; Cloudflare Email Sending uses `CLOUDFLARE_MAIL_API_KEY` and `MAIL_ACCOUNT_ID`.
 - rer 0.2.22 checks the selected provider's mail configuration before it builds. Supply `MAIL_PROVIDER`, `MAIL_FROM` and that provider's key in the environment or an `--env-file`. The shared `MAIL_API_KEY` input can also supply a direct provider's key; Uptime keeps it under the selected provider's name above. Updates may reuse an existing deployment's mail credential.
-- Optional `UPTIME_START_URL` is a public `http` or `https` website for the owner to start with. Uptime asks the owner's runner to look at it when the owner opens first-run setup, and finishing setup opens the console on the monitors it proposes. A hosted address that is not public stops the deployment before anything is created. Set it before the first deploy: like the other saved inputs, it is kept in `.rer/deploy/production-secrets.json` from then on. Without it, `/setup` offers the same box.
+- Optional `UPTIME_START_URL` is a public `http` or `https` website for the owner to start with. Uptime asks the owner's runner to look at it when the owner opens first-run setup, and finishing setup opens the console on the monitors it proposes. A hosted address that is not public stops the deployment before anything is created. Set it before the first deploy: like the other saved inputs, it is kept in `.rer/deploy/<environment>.secrets.env` from then on (production: `.rer/deploy/production.secrets.env`). Without it, `/setup` offers the same box.
 - Optional `UPTIME_HEARTBEAT_URL` enables the independent heartbeat described in [Watchers and independent checks](/docs/resilient-monitoring).
 
-Uptime also needs three secrets of its own: `SESSION_SECRET`, `SETUP_TOKEN` and `UPTIME_RUNNER_KEY`. You do not make these up. They are generated for a new installation, or reused from `.rer/deploy/production-secrets.json` if you have deployed before. A separate environment keeps its own three (see below). Keep that file private and back it up separately from the database.
+Uptime also needs three secrets of its own: `SESSION_SECRET`, `SETUP_TOKEN` and `UPTIME_RUNNER_KEY`. You do not make these up. They are generated for a new installation; later deployments reuse the environment's saved keys, while the one-use setup token is retired after owner claim. The sole kept settings file is `.rer/deploy/<environment>.secrets.env` (production: `.rer/deploy/production.secrets.env`), private with mode 0600 and excluded from Git. Keep it private and back it up separately from the database. Fresh installations create no legacy JSON settings files.
 
 ## Deploy
 
@@ -53,13 +53,13 @@ If the Uptime upload or health-check stage stops part way, inspect the reported 
 
 ### A separate environment
 
-`rer deploy --environment staging` deploys a second installation named `uptime-monitor-staging` with the database `uptime-monitor-staging-db`. An environment name starts with a lowercase letter and has at most 40 lowercase letters, digits and hyphens. Each environment keeps its own ownership record in `.rer/deploy/<environment>.json` and its own `SESSION_SECRET`, `SETUP_TOKEN` and `UPTIME_RUNNER_KEY` in `.rer/deploy/environments/<environment>/secrets.json`, generated on its first deploy and kept for repeats, so a sign-in session, setup token or runner key from one environment is never valid on another. First-run setup names that file. An environment deployed before this change keeps the values it was deployed with, so nobody is signed out and its runner keeps working. The other saved inputs (owner email, sender, mail credentials) are shared: every environment deployed from this checkout uses them from `.rer/deploy/production-secrets.json`.
+`rer deploy --environment staging` deploys a second installation named `uptime-monitor-staging` with the database `uptime-monitor-staging-db`. An environment name starts with a lowercase letter and has at most 40 lowercase letters, digits and hyphens. Each environment keeps its own ownership record in `.rer/deploy/<environment>.json` and its private settings in `.rer/deploy/<environment>.secrets.env`. New environments generate their own session secret, setup token and runner key, so one environment's credentials cannot grant access to another. Repeat deployments reuse saved session and runner keys. Upgrading an existing environment preserves its deployed keys and saved owner and mail inputs; see the upgrade guidance below.
 
 ## Owner claim and sign-in
 
 With rer's newer custom-deployment lifecycle (0.2.3 and later), `rer deploy` wraps Uptime's custom deployment hook, claims the owner automatically, then retires the one-use hosted `SETUP_TOKEN`. Inspect the CLI's `claimed` or `kept` owner outcome and token-retirement result. After successful admission, open `/login` on the reported hosted address and request an ordinary email sign-in link. Opening the link shows a confirmation page; choosing **Confirm** signs you in. Finish first-run setup at `/setup`, then use the console at `/app`. Permanent owner admission survives token retirement even before setup is finished, and remains claimed if the original owner is later erased.
 
-This checkout pins the unmodified published `@runeditrun/rer` exactly 0.2.65. The lifecycle wraps Uptime's upload and health-check hook to perform owner claim and token retirement. If automatic claim or token retirement is incomplete, retain `.rer/deploy/<environment>.json` and private settings, rerun the same `rer deploy --environment NAME`, and inspect the new stage, owner outcome and retirement result. Do not enter a retired token at `/claim` as routine recovery.
+This checkout pins the unmodified published `@runeditrun/rer` exactly 0.2.66. The lifecycle wraps Uptime's upload and health-check hook to perform owner claim and token retirement. If automatic claim or token retirement is incomplete, retain `.rer/deploy/<environment>.json` and private settings, rerun the same `rer deploy --environment NAME`, and inspect the new stage, owner outcome and retirement result. Do not enter a retired token at `/claim` as routine recovery.
 
 If mail is unavailable, restore the configured mail sender and verify the owner's email address, then request a new link at `/login`. Keep the deployment records and existing private settings when updating mail configuration; an ordinary update preserves the admitted owner.
 
@@ -88,7 +88,7 @@ For a named environment, replace `production` with its name and use its own host
 
 ## Update an existing deployment
 
-Use the checkout that owns the existing deployment. Start with a clean tracked tree and preserve `.rer/deploy/<environment>.json` plus the private `.rer/deploy/production-secrets.json` and backups. Resolve local changes before updating; do not delete deployment records or replace private settings.
+Use the checkout that owns the existing deployment. Start with a clean tracked tree and preserve `.rer/deploy/<environment>.json`, the private `.rer/deploy/<environment>.secrets.env` and backups. If the checkout still has legacy JSON settings, preserve those too until deployment migrates them. Resolve local changes before updating; do not delete deployment records or replace private settings.
 
 On the public `main` branch, obtain newer public source:
 
@@ -99,7 +99,9 @@ git pull --ff-only origin main
 
 Alternatively, fetch from the public repository and check out a reviewed public commit. Refresh dependencies with `rer install` if the newer source requires it.
 
-An installation first deployed with Uptime 0.3.0 or earlier keeps its generated secrets in `.rer/deploy/environments/<environment>/secrets.json` (production: `.rer/deploy/production-secrets.json`), and the pinned rer reads them from `.rer/deploy/<environment>.secrets.env`. Before its first update, create that file privately (mode 0600) with the old file's `SESSION_SECRET` and `UPTIME_RUNNER_KEY` as `NAME=value` lines; otherwise deploy refuses to replace the live Worker's values. Do not use `--rotate-secret` for this: it signs every operator out and invalidates the runner key.
+The next deploy automatically moves legacy `.rer/deploy/production-secrets.json` and `.rer/deploy/environments/<environment>/secrets.json` settings into rer's `.rer/deploy/<environment>.secrets.env` files. No manual conversion is needed. The move preserves `OWNER_EMAIL`, `MAIL_FROM`, `SENDGRID_API_KEY` and every environment's saved keys and inputs; production keys are not regenerated. It verifies the saved values before removing the old JSON files, then stops reading or recreating them.
+
+If a legacy value differs from a value rer already keeps, deployment stops with the key name and file paths, without printing either value or overwriting rer's value. The legacy files remain available until the move is verified. Resolve the reported conflict privately, preserving the intended deployed credentials, then rerun the same deploy command. Do not use `--rotate-secret` to perform this migration: rotation signs operators out and invalidates the runner key.
 
 Then redeploy the same environment:
 
@@ -118,9 +120,9 @@ Export a hosted product archive from the owner console and back up D1 before rem
 rer deploy --environment NAME --remove --yes
 ```
 
-The command validates the selected environment's recorded ownership before deleting its Worker and D1 database, then reads back their absence. Its Cron trigger belongs to the Worker; Uptime creates no R2 buckets, queues, KV namespaces or Workflows. Inspect the command's outcome rather than assuming a successful request means everything is gone. A removed named environment's `.rer/deploy/environments/<environment>/secrets.json` stays on disk, but it no longer belongs to any Worker: the next `rer deploy --environment NAME` replaces it with fresh values, so the recreated installation never reuses the removed one's (or production's) session secret, setup token or runner key.
+The command validates the selected environment's recorded ownership before deleting its Worker and D1 database, then reads back their absence. Its Cron trigger belongs to the Worker; Uptime creates no R2 buckets, queues, KV namespaces or Workflows. Inspect the command's outcome rather than assuming a successful request means everything is gone. After successful removal, rer deletes that environment's `.rer/deploy/<environment>.secrets.env`. A later deployment creates a new installation with fresh generated keys. Keep the private backup if you need the saved owner and mail inputs, and supply those inputs again when recreating the environment.
 
-A resource with a familiar name but mismatched identity must not be adopted or deleted. If ownership cannot be established or removal is incomplete, keep the ownership record and settings; incomplete removal retains the record for recovery. Use manual provider inspection to reconcile that specific outcome. Keep shared settings while other environments still use them. Manual deletion is not the routine removal procedure.
+A resource with a familiar name but mismatched identity must not be adopted or deleted. If ownership cannot be established or removal is incomplete, keep the ownership record and settings; incomplete removal retains the record for recovery. Use manual provider inspection to reconcile that specific outcome. Keep other environments' records and settings. Manual deletion is not the routine removal procedure.
 
 ## About verification
 

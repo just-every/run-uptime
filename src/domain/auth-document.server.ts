@@ -13,7 +13,7 @@ button:focus-visible{outline-offset:4px}
 code{color:var(--ink);font:500 .9em/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow-wrap:anywhere}`;
 
 // A hosted Worker names its deploy environment (UPTIME_DEPLOY_ENVIRONMENT, validated at startup); each named environment keeps its own settings file.
-const hostedSettings=(environment?:string)=>environment&&environment!=='production'?`.rer/deploy/environments/${environment}/secrets.json`:'.rer/deploy/production-secrets.json';
+const hostedSettings=(environment?:string)=>`.rer/deploy/${environment??'production'}.secrets.env`;
 
 export function authDocument(setup=false,sent=false,localReview=false,invalidSetupToken=false,environment?:string,claimOpen=true,mailUnavailable=false,loginHint=''){
  const hosted=hostedSettings(environment);

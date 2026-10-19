@@ -2,14 +2,14 @@
 // drops NODE_OPTIONS; only the command's Cloudflare and hosted-app requests
 // cross this authenticated loopback bridge.
 import { readFile } from 'node:fs/promises';
-const { bridge, key } = JSON.parse(await readFile(new URL('../../.rer/owner-deploy-test-transport.json', import.meta.url), 'utf8'));
+const { bridge, key, origin } = JSON.parse(await readFile(new URL('../../.rer/owner-deploy-test-transport.json', import.meta.url), 'utf8'));
 if (!bridge || !key || new URL(bridge).hostname !== '127.0.0.1') throw Error('missing-test-transport');
 
 const actualFetch = globalThis.fetch;
 globalThis.fetch = async (input, init) => {
   const request = new Request(input, init);
   const url = new URL(request.url);
-  if (url.origin !== 'https://api.cloudflare.com' && url.origin !== 'https://uptime-monitor-production.fixture-account.workers.dev' && url.origin !== 'https://' + 'a'.repeat(32) + '.r2.cloudflarestorage.com') {
+  if (url.origin !== 'https://api.cloudflare.com' && url.origin !== origin && url.origin !== 'https://' + 'a'.repeat(32) + '.r2.cloudflarestorage.com') {
     throw Error('external-network-forbidden');
   }
   const response = await actualFetch(bridge, {

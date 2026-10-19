@@ -7,10 +7,23 @@ import { controlOrigin } from '../runners/src/control-origin.mjs';
 
 const processVariables = ['PATH', 'HOME', 'TMPDIR', 'LANG', 'LC_ALL', 'TZ'];
 const signals = ['SIGINT', 'SIGTERM', 'SIGHUP'];
-// Production's runner key is in the shared settings file; every other deploy
-// environment has its own (see scripts/deployment/owner-settings.mjs).
-const settingsPath = environment => environment === 'production' ? ['.rer', 'deploy', 'production-secrets.json'] : ['.rer', 'deploy', 'environments', environment, 'secrets.json'];
+// rer keeps deployment authority separately for each environment.
+const settingsPath = environment => ['.rer', 'deploy', `${environment}.secrets.env`];
 const settingsError = environment => Error(`Runner settings require an owned private regular ${settingsPath(environment).join('/')} file without symlinks.`);
+
+function runnerSettings(text) {
+  // Match rer's kept-secret KEY=VALUE format, including its duplicate refusal
+  // and optional double quotes. Parse the already bounded descriptor's bytes;
+  // readDeployEnvFile would reopen the path after our custody checks.
+  const settings = {};
+  for (const line of text.split(/\r?\n/)) {
+    if (!line.trim() || line.trim().startsWith('#')) continue;
+    const match = /^([A-Z][A-Z0-9_]*)=(.*)$/.exec(line);
+    if (!match || Object.hasOwn(settings, match[1])) throw Error('Invalid runner settings.');
+    settings[match[1]] = match[2].replace(/^"(.*)"$/, '$1');
+  }
+  return settings;
+}
 
 async function runnerKey(root, environment) {
   // Do not repair permissions while reading authority. Parent directories must
@@ -25,7 +38,7 @@ async function runnerKey(root, environment) {
     }
     file = await open(join(root, ...parts), constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
     const info = await file.stat();
-    if (!info.isFile() || info.uid !== process.getuid() || ![0o400, 0o600].includes(info.mode & 0o7777) || info.size > 65536) throw settingsError(environment);
+    if (!info.isFile() || info.nlink !== 1 || info.uid !== process.getuid() || ![0o400, 0o600].includes(info.mode & 0o7777) || info.size > 65536) throw settingsError(environment);
     const bytes = Buffer.alloc(65537);
     let length = 0;
     while (length < bytes.length) {
@@ -35,13 +48,13 @@ async function runnerKey(root, environment) {
     }
     if (length > 65536) throw settingsError(environment);
     let settings;
-    try { settings = JSON.parse(bytes.subarray(0, length).toString('utf8')); }
+    try { settings = runnerSettings(bytes.subarray(0, length).toString('utf8')); }
     finally { bytes.fill(0); }
-    const key = settings && !Array.isArray(settings) && settings.UPTIME_RUNNER_KEY;
+    const key = settings.UPTIME_RUNNER_KEY;
     if (typeof key !== 'string' || !/^[\x21-\x7e]{32,4096}$/.test(key)) throw Error('Runner settings require a valid UPTIME_RUNNER_KEY.');
     return key;
   } catch {
-    // JSON parser and filesystem errors can include private bytes or paths.
+    // Parser and filesystem errors can include private bytes or paths.
     throw settingsError(environment);
   } finally {
     await file?.close();

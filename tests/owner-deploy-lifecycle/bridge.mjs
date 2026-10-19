@@ -5,7 +5,7 @@ import { providerFixture } from './provider-fixture.mjs';
 
 // Keeps the canonical SQLite-backed provider alive across real CLI processes.
 // Only loopback RPC is used: neither the bridge nor preload contacts a provider.
-export async function providerBridge(t) {
+export async function providerBridge(t, environment = 'production') {
   const fixture = providerFixture();
   const key = randomBytes(32).toString('hex');
   const uploads = [], failures = [];
@@ -18,8 +18,8 @@ export async function providerBridge(t) {
       for await (const chunk of request) chunks.push(chunk);
       const input = JSON.parse(Buffer.concat(chunks).toString());
       const target = new URL(input.url);
-      assert.ok(['https://api.cloudflare.com', 'https://uptime-monitor-production.fixture-account.workers.dev', `https://${fixture.accountId}.r2.cloudflarestorage.com`].includes(target.origin));
-      if (target.origin === 'https://uptime-monitor-production.fixture-account.workers.dev') healthRequests++;
+      assert.ok(['https://api.cloudflare.com', `https://uptime-monitor-${environment}.fixture-account.workers.dev`, `https://${fixture.accountId}.r2.cloudflarestorage.com`].includes(target.origin));
+      if (target.origin === `https://uptime-monitor-${environment}.fixture-account.workers.dev`) healthRequests++;
       const headers = input.headers;
       const bytes = Buffer.from(input.body, 'base64');
       let body = target.hostname.endsWith('.r2.cloudflarestorage.com') ? bytes : bytes.length ? bytes.toString() : undefined;
@@ -28,7 +28,7 @@ export async function providerBridge(t) {
       }
       // The original fixture uses plain header objects with this casing.
       if (headers.authorization) { headers.Authorization = headers.authorization; delete headers.authorization; }
-      if (target.pathname === '/client/v4/accounts/' + fixture.accountId + '/workers/scripts/uptime-monitor-production' && input.method === 'PUT') {
+      if (target.pathname === `/client/v4/accounts/${fixture.accountId}/workers/scripts/uptime-monitor-${environment}` && input.method === 'PUT') {
         uploads.push({ method: input.method });
       }
       let result;
@@ -57,6 +57,6 @@ export async function providerBridge(t) {
   return { ...fixture, uploads, get healthRequests() { return healthRequests; },
     interruptBeforeSecondMigration() { interruptMigration = true; },
     get interruptedMigration() { return interruptedMigration; },
-    transport: { bridge: `http://127.0.0.1:${server.address().port}`, key },
+    transport: { origin: `https://uptime-monitor-${environment}.fixture-account.workers.dev`, bridge: `http://127.0.0.1:${server.address().port}`, key },
   };
 }

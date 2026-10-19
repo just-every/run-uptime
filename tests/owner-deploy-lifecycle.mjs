@@ -1,70 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { spawn, execFileSync } from 'node:child_process';
-import { mkdtemp, mkdir, cp, readFile, readdir, rm, symlink, realpath, appendFile, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { delimiter, dirname, join, resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { mkdir, readFile, rm, writeFile, stat } from 'node:fs/promises';
+import { randomBytes } from 'node:crypto';
+import { join } from 'node:path';
+import { readDeployEnvFile } from '@runeditrun/rer/internal/modules/deploy-kit/env-file.mjs';
 import { providerBridge } from './owner-deploy-lifecycle/bridge.mjs';
+import { checkout, deploy, git } from './owner-deploy-lifecycle/commands.mjs';
 
-const project = resolve(import.meta.dirname, '..');
-// Resolve the installed, package-pinned pnpm before moving into the isolated
-// HOME. pnpm's own exec PATH identifies its real binary, without a test stub.
-const commandPath = join(project, 'node_modules/.bin') + delimiter + execFileSync('pnpm', ['exec', process.execPath, '-p', 'process.env.PATH'], { cwd: project, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
-// Keep the already-prepared tool cache when isolating HOME. Otherwise Corepack
-// downloads pnpm inside the provider-only network preload before rer can start.
-const toolEnvironment = Object.fromEntries(['COREPACK_HOME', 'COREPACK_DEFAULT_TO_LATEST', 'COREPACK_ENABLE_AUTO_PIN', 'COREPACK_ENABLE_DOWNLOAD_PROMPT', 'COREPACK_ENV_FILE']
-  .filter(name => process.env[name] !== undefined).map(name => [name, process.env[name]]));
-const git = (root, ...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
-async function checkout(t) {
-  const root = await realpath(await mkdtemp(join(tmpdir(), 'uptime-owner-lifecycle-')));
-  t.after(() => rm(root, { recursive: true, force: true }));
-  const tracked = git(project, 'ls-files', '--cached', '--others', '--exclude-standard', '-z').split('\0').filter(Boolean);
-  // Include the new harness while it is being reviewed before its first commit.
-  const harness = ['tests/owner-deploy-lifecycle.mjs', ...(await readdir(join(project, 'tests/owner-deploy-lifecycle'))).map(name => `tests/owner-deploy-lifecycle/${name}`)];
-  for (const path of new Set([...tracked, ...harness])) {
-    await mkdir(dirname(join(root, path)), { recursive: true });
-    await cp(join(project, path), join(root, path));
-  }
-  git(root, 'init', '-q');
-  git(root, 'add', '.');
-  git(root, '-c', 'user.name=Uptime test', '-c', 'user.email=test@example.test', '-c', 'core.hooksPath=/dev/null', 'commit', '-qm', 'Isolated owner deployment lifecycle');
-  await symlink(join(project, 'node_modules'), join(root, 'node_modules'));
-  await appendFile(join(root, '.git/info/exclude'), '\n/node_modules\n');
-  return root;
-}
-async function deploy(root, provider, signal, flags = []) {
-  // Dependency probes keep NODE_OPTIONS but correctly discard application
-  // environment variables. Keep the test transport in this private checkout so
-  // the same preload also works in the real npm/pnpm probe processes.
-  await mkdir(join(root, '.rer'), { recursive: true, mode: 0o700 });
-  await writeFile(join(root, '.rer/owner-deploy-test-transport.json'), JSON.stringify(provider.transport), { mode: 0o600 });
-  const env = { PATH: commandPath, HOME: root, CI: 'true', ...toolEnvironment,
-    NODE_OPTIONS: `--import=${pathToFileURL(join(root, 'tests/owner-deploy-lifecycle/preload.mjs')).href}`,
-    CLOUDFLARE_ACCOUNT_ID: provider.accountId, CLOUDFLARE_API_TOKEN: provider.token,
-    // rer's shared production-mail names; Uptime keeps MAIL_API_KEY under the selected provider's own setting.
-    OWNER_EMAIL: 'owner@example.test', MAIL_FROM: 'sender@example.test', MAIL_PROVIDER: 'sendgrid', MAIL_API_KEY: 'test-only-sendgrid-key',
-  };
-  return new Promise((resolveResult, reject) => {
-    const child = spawn('rer', ['deploy', '--json', '--owner-name', 'Lifecycle owner', ...flags], { cwd: root, env, detached: true, stdio: ['ignore', 'pipe', 'pipe'] });
-    const stop = () => { try { process.kill(-child.pid, 'SIGKILL'); } catch { /* Already reaped. */ } };
-    signal.addEventListener('abort', stop, { once: true });
-    let output = '', errors = '';
-    child.stdout.on('data', bytes => { output += bytes; });
-    child.stderr.on('data', bytes => { errors += bytes; });
-    child.on('error', reject);
-    child.on('close', code => {
-      signal.removeEventListener('abort', stop);
-      const records = (output + '\n' + errors).split('\n').filter(line => line.startsWith('{')).flatMap(line => { try { return [JSON.parse(line)]; } catch { return []; } });
-      // Never expose raw child output: generated installation keys are private.
-      resolveResult({ code, errorCodes: records.filter(value => value.event === 'error').map(value => value.code), failureCodes: records.filter(value => value.event === 'error').flatMap(value => value.message?.match(/: ([a-zA-Z0-9_-]+)(?:[. ]|$)/)?.[1] ?? []), result: records.findLast(value => value.event === 'result') ?? null });
-    });
-  });
-}
 const state = async root => JSON.parse(await readFile(join(root, '.rer/deploy/production.json')));
 const migrationRows = provider => provider.state.databases[0].db.prepare('SELECT name, sha256, state FROM d1_migrations ORDER BY name').all().map(row => ({ ...row }));
 
-test('five real rer deploy cycles cover eventual D1 listing, exact repeat, partial migration resume and foreign ownership refusal', { timeout: 20 * 60_000 }, async t => {
+test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts, named keys, exact repeat, resume and foreign ownership refusal', { timeout: 20 * 60_000 }, async t => {
   const root = await checkout(t), provider = await providerBridge(t);
   assert.equal(provider.state.databases.length, 0);
   assert.equal(provider.uploads.length, 0);
@@ -74,6 +20,8 @@ test('five real rer deploy cycles cover eventual D1 listing, exact repeat, parti
   assert.equal(first.result?.ok, true);
   assert.equal(first.result.deployed, true);
   assert.equal(first.result.origin, 'https://uptime-monitor-production.fixture-account.workers.dev');
+  await assert.rejects(stat(join(root, '.rer/deploy/production-secrets.json')), { code: 'ENOENT' });
+  await assert.rejects(stat(join(root, '.rer/deploy/environments')), { code: 'ENOENT' });
   const receipt = await state(root);
   assert.equal(receipt.owned.worker.status, 'created');
   assert.equal(receipt.owned.d1['uptime-monitor-production-db'].status, 'created');
@@ -93,16 +41,56 @@ test('five real rer deploy cycles cover eventual D1 listing, exact repeat, parti
   assert.ok(migrations.length > 0, 'the real controller records applied migrations');
   assert.ok(migrations.every(row => row.state === 'applied'));
   const writes = provider.state.writes.length;
-  const secrets = await readFile(join(root, '.rer/deploy/production-secrets.json'));
   const receiptBytes = await readFile(join(root, '.rer/deploy/production.json'));
-  const repeated = await deploy(root, provider, t.signal);
-  assert.equal(repeated.code, 0);
+  // Recreate a 0.3.0 checkout after a successful hosted deploy. The only
+  // retained inputs are the two legacy JSON files, never fresh shell answers.
+  const production = await readDeployEnvFile(root, '.rer/deploy/production.secrets.env');
+  const named = { SESSION_SECRET: randomBytes(32).toString('hex'), SETUP_TOKEN: randomBytes(32).toString('hex'), UPTIME_RUNNER_KEY: randomBytes(32).toString('hex'), CUSTOM_ENV_SETTING: '"literal # and = content"' };
+  const legacyProduction = join(root, '.rer/deploy/production-secrets.json');
+  const legacyNamed = join(root, '.rer/deploy/environments/staging/secrets.json');
+  await mkdir(join(root, '.rer/deploy/environments/staging'), { recursive: true, mode: 0o700 });
+  const productionBytes = JSON.stringify(production), namedBytes = JSON.stringify(named);
+  await writeFile(legacyProduction, productionBytes, { mode: 0o600 });
+  await writeFile(legacyNamed, namedBytes, { mode: 0o600 });
+  await rm(join(root, '.rer/deploy/production.secrets.env'));
+  await rm(join(root, '.rer/deploy/.legacy-secrets-migrated'));
+  const conflictBytes = 'OWNER_EMAIL=different@example.test\n';
+  await writeFile(join(root, '.rer/deploy/production.secrets.env'), conflictBytes, { mode: 0o600 });
+  const conflict = await deploy(root, provider, t.signal, [], { inputs: false });
+  assert.equal(conflict.code, 4);
+  assert.ok(conflict.messages.some(message => /conflict.*production\.secrets\.env.*OWNER_EMAIL/.test(message)), 'conflict names the kept file and key plainly');
+  assert.ok(conflict.messages.every(message => !Object.values(production).some(value => message.includes(value))), 'conflict never prints saved values');
+  assert.ok((await readFile(legacyProduction, 'utf8')) === productionBytes, 'conflict keeps legacy production bytes');
+  assert.ok((await readFile(legacyNamed, 'utf8')) === namedBytes, 'conflict keeps every legacy environment');
+  assert.ok((await readFile(join(root, '.rer/deploy/production.secrets.env'), 'utf8')) === conflictBytes, 'conflict never overwrites rer custody');
+  assert.equal(provider.state.writes.length, writes, 'conflict makes no provider writes');
+  await rm(join(root, '.rer/deploy/production.secrets.env'));
+  const repeated = await deploy(root, provider, t.signal, [], { inputs: false });
+  assert.equal(repeated.code, 0, JSON.stringify({code:repeated.code,errorCodes:repeated.errorCodes}));
   assert.equal(repeated.result?.ok, true);
   assert.equal(repeated.result.deployed, true);
-  assert.equal(provider.state.writes.length, writes, 'exact successful repeat performs zero provider writes');
+  assert.equal(provider.state.writes.length, writes, 'upgrade repeat performs zero provider writes: ' + JSON.stringify(provider.state.writes.slice(writes).map(({method,path}) => ({method,path}))));
   assert.deepEqual(await readFile(join(root, '.rer/deploy/production.json')), receiptBytes);
-  assert.ok((await readFile(join(root, '.rer/deploy/production-secrets.json'))).equals(secrets), 'repeat preserves secret bytes');
+  const migrated = await readDeployEnvFile(root, '.rer/deploy/production.secrets.env');
+  assert.ok(Object.entries(production).every(([name, value]) => migrated[name] === value), 'upgrade keeps every production key and owner/mail input');
+  const staging = await readDeployEnvFile(root, '.rer/deploy/staging.secrets.env');
+  assert.ok(Object.entries({ ...production, ...named }).every(([name, value]) => staging[name] === value), 'upgrade keeps every named key and shared owner/mail input');
+  for (const path of [legacyProduction, legacyNamed]) await assert.rejects(stat(path), { code: 'ENOENT' });
+  const keptBytes = await readFile(join(root, '.rer/deploy/production.secrets.env'));
+  await writeFile(legacyProduction, 'old JSON is no longer an input', { mode: 0o600 });
+  const afterMove = await deploy(root, provider, t.signal, [], { inputs: false });
+  assert.equal(afterMove.code, 0);
+  assert.ok((await readFile(legacyProduction, 'utf8')) === 'old JSON is no longer an input', 'completed handoff stops reading old JSON even if a backup is restored');
+  await rm(legacyProduction);
+  assert.ok((await readFile(join(root, '.rer/deploy/production.secrets.env'))).equals(keptBytes), 'rer-only repeat preserves secret bytes');
+  assert.equal(provider.state.writes.length, writes, 'rer-only repeat performs zero provider writes');
+  for (const path of [legacyProduction, legacyNamed]) await assert.rejects(stat(path), { code: 'ENOENT' });
   assert.deepEqual(migrationRows(provider), migrations);
+  const namedProvider = await providerBridge(t, 'staging');
+  const namedDeploy = await deploy(root, namedProvider, t.signal, ['--environment', 'staging'], { inputs: false });
+  assert.equal(namedDeploy.code, 0, JSON.stringify({code:namedDeploy.code,errorCodes:namedDeploy.errorCodes}));
+  assert.ok(Object.entries(named).filter(([name]) => name !== 'CUSTOM_ENV_SETTING' && name !== 'SETUP_TOKEN').every(([name, value]) => namedProvider.state.secrets.find(item => item.name === name)?.value === value), 'named deploy uses its original environment authority');
+  assert.ok((await readDeployEnvFile(root, '.rer/deploy/staging.secrets.env')).CUSTOM_ENV_SETTING === named.CUSTOM_ENV_SETTING, 'undeclared per-environment inputs survive the real command');
 
   const interruptedRoot = await checkout(t), partialProvider = await providerBridge(t);
   partialProvider.interruptBeforeSecondMigration();
@@ -117,7 +105,7 @@ test('five real rer deploy cycles cover eventual D1 listing, exact repeat, parti
   const firstMigration = migrationRows(partialProvider);
   assert.equal(firstMigration.length, 1);
   assert.equal(firstMigration[0].state, 'applied');
-  const partialSecrets = await readFile(join(interruptedRoot, '.rer/deploy/production-secrets.json'));
+  const partialSecrets = await readFile(join(interruptedRoot, '.rer/deploy/production.secrets.env'));
   const resumed = await deploy(interruptedRoot, partialProvider, t.signal);
   assert.equal(resumed.code, 0, JSON.stringify(resumed));
   assert.equal(resumed.result?.ok, true);
@@ -132,7 +120,7 @@ test('five real rer deploy cycles cover eventual D1 listing, exact repeat, parti
   }
   assert.equal(partialProvider.uploads.length, 1);
   assert.ok((await state(interruptedRoot)).receipt);
-  assert.ok((await readFile(join(interruptedRoot, '.rer/deploy/production-secrets.json'))).equals(partialSecrets), 'resume preserves secret bytes');
+  assert.ok((await readFile(join(interruptedRoot, '.rer/deploy/production.secrets.env'))).equals(partialSecrets), 'resume preserves secret bytes');
   assert.ok(partialProvider.healthRequests > 0, 'resumed deployment verifies the served deployment identity');
   // Removing only our isolated local ownership proof makes the same provider
   // resource foreign; no controller may adopt it based on its name.
