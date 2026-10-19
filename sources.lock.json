@@ -2511,7 +2511,7 @@
       "executable": false
     },
     "public/slow-policy.js": {
-      "sha256": "779cb4d0933baa5ee7ffdd285229e220dcb3afbc3c4625072f480216c773b043",
+      "sha256": "077d38bbb5014bd4c54a48feb021d59a340c7c70dc4663f5c917073e99bab5de",
       "executable": false
     },
     "public/style.css": {
@@ -5895,7 +5895,7 @@
       "executable": false
     },
     "src/routes/app.monitor.tsx": {
-      "sha256": "cb83c9cf87fe3f5a65373901debe92dd41bfef0c51fad1f69deb2b75aec66641",
+      "sha256": "debd5caf796c03e3497419ee53fbe553d27fa1c4daa5fd0467363e0429076ac6",
       "executable": false
     },
     "src/routes/app.monitors.$id.tsx": {
@@ -6215,7 +6215,7 @@
       "executable": false
     },
     "src/ui/console-document.tsx": {
-      "sha256": "463b9acae486ca097011e7294a2a3c6397f7071d9ea5f7df279c378e2fcc9826",
+      "sha256": "0b0d30d20e981bca63c17f551d2dca900c3bed6b99249515202a2d4f66a14974",
       "executable": false
     },
     "src/ui/console-prefetch.ts": {
@@ -6587,7 +6587,7 @@
       "executable": false
     },
     "tests/operator-browser.mjs": {
-      "sha256": "71a7e59ac6876dfeee19fde952414e9b7370c7a8d927f528b8b39ab50efc7774",
+      "sha256": "f5cb45f1da050ed9e4e3b5b4e445ea72735a67bdb8cb7d241a7c0886fe1f3eef",
       "executable": false
     },
     "tests/operator-security.mjs": {
