@@ -16,6 +16,7 @@ export const installationLocalTables:Record<string,string>={
  _cf_METADATA:'D1 installation metadata; never product records.',
  _rer_deploy_migrations:'Historical deployment migration ledger; installation-local permanent history, never portable product records.',
  d1_migrations:'Receiving installation migration ledger; never replace applied migration history.',
+ rer_migrations:'Platform installation migration ledger; permanent destination history, never portable product records.',
  sessions:'Retired installation authentication sessions.',login_attempts:'Authentication rate-limit authority.',
  oa_operators:'Installation operator identities, roles and authorization.',oa_bootstrap:'Installation owner-claim authority.',
  oa_owner_signins:'Installation one-use hosted owner sign-in authority; never portable.',

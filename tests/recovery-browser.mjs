@@ -71,10 +71,15 @@ try{
  await auditWidths(page,'reauthorized-current-evidence','Failing');
  for(const width of [1440,390]){
   await page.setViewportSize({width,height:900});
-  // Each poll rebuilds the list with newer checks first, so name the newest check once and keep acting on that row by its id.
-  const evidenceId=await page.locator('#raw-history details > summary').first().getAttribute('id'),summary=page.locator(`#raw-history summary[id=${JSON.stringify(evidenceId)}]`);await summary.focus();
-  if(!await summary.evaluate(element=>element.parentElement.open))await page.keyboard.press('Enter');
-  // The row as rendered now: the check below holds only once a later poll has rebuilt the list around it.
+  // Scheduled checks can prepend a new row between browser commands. Keep the
+  // identity the owner focused instead of resolving the moving first row again.
+  const evidenceId=await page.locator('#raw-history details > summary').first().getAttribute('id');assert.ok(evidenceId);
+  const summary=page.locator(`#raw-history summary[id=${JSON.stringify(evidenceId)}]`);await summary.focus();
+  if(!await summary.evaluate(element=>element.parentElement.open))await summary.press('Enter');
+  const focusedDisclosure=id=>document.activeElement?.id===id&&document.getElementById(id)?.closest('details')?.open;
+  await page.waitForFunction(focusedDisclosure,evidenceId,{timeout:10000});
+  // The row as rendered now. The check after the poll holds only once that poll has rebuilt the list around this row,
+  // with focus still on it and no other row expanded above it.
   const rendered=await summary.elementHandle();
   await page.waitForResponse(response=>new URL(response.url()).pathname==='/api/overview'&&response.ok(),{timeout:12000});
   await page.waitForFunction(([id,rendered])=>document.getElementById(id)!==rendered&&document.activeElement?.id===id&&document.querySelector('#raw-history details[open] summary')?.id===id,[evidenceId,rendered],{timeout:10000});
