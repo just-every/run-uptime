@@ -52,6 +52,7 @@ import {businessImportDoor,ownerImportDoor} from './domain/business-import/door.
 import {businessImportSettings} from './domain/business-import/settings.server.ts'
 import {afterClaim,openDoorForOwner} from './domain/business-import/claim-door.server.ts'
 import {rerRunnerStatus} from './domain/rer-runner-status.server.ts'
+import {rerCutoverStatus} from './domain/rer-cutover-status.server.ts'
 import {definitionImportHistory,undoDefinitionImport} from './domain/business-import/history.server.ts'
 import {exportJournal} from './domain/archive-fence.server.ts'
 import {operatorSession,authenticatedSession} from './domain/operator-auth.server.ts'
@@ -268,8 +269,10 @@ const handler={async fetch(request,env,execution){
  if(url.origin!==bindings.UPTIME_ORIGIN||(request.headers.has('host')&&request.headers.get('host')?.toLowerCase()!==url.host.toLowerCase()))return new Response('Invalid host',{status:403});
  if(path.startsWith('/api/rer/import/'))return businessImportDoor(bindings,request);
  if(path.startsWith('/api/operator/import/'))return ownerImportDoor(bindings,request);
- // Run Edit Run's signed read of the private runner's contact: verified by its own grant, before the console's API policy.
+ // Run Edit Run's signed reads (the private runner's contact, and the cutover checks' deliveries and created records):
+ // each verified by its own grant, before the console's API policy.
  if(path==='/api/rer/runner-status')return rerRunnerStatus(bindings,request);
+ if(path==='/api/rer/cutover-status')return rerCutoverStatus(bindings,request);
  // The Lobby at / and GET /setup/state: Base's shared responses, before the public-path guard and the document renderer.
  const lobbyBindings={DB:bindings.DB,AUTH_ORIGIN:bindings.UPTIME_ORIGIN!};
  const state=await setupStateResponse(request,lobbyBindings,claimed);if(state)return state;

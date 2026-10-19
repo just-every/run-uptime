@@ -31,6 +31,8 @@ try{
  let DB;({worker,DB}=await migratedWorker({port,persist:join(directory,'local'),bindings:{UPTIME_ORIGIN:origin}}));
  const call=authRequest(origin);
  const cookie=sessionCookie(await call('/auth/bootstrap',{token:testAuthBindings.SETUP_TOKEN,displayName:'Import owner'}));
+ // A self-hosted install has no Run Edit Run trust, so RER's signed reads do not exist.
+ for(const path of ['/api/rer/runner-status','/api/rer/cutover-status'])assert.equal((await fetch(origin+path,{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer x.y.z'},body:JSON.stringify({since:new Date().toISOString()})})).status,404,path);
  await finishSetup(origin,cookie);
  // The owner opens the console first, which establishes the installation's runner; an import never creates one.
  assert.equal((await fetch(origin+'/api/overview',{headers:{origin,cookie}})).status,200);
@@ -81,14 +83,14 @@ try{
  const hostile=file([{name:'Private address',url:'http://10.0.0.8/'},{name:'Userinfo',url:'https://admin@intranet.example.test/'},{name:'Credential in URL',url:'https://user:secret@example.test/'},{name:'Not HTTP',url:'ftp://files.example.test/'},{name:'Loopback',url:'http://127.0.0.1:9/'},
   {name:'Header secret',url:'https://example.test/',headers:{authorization:'Bearer secret'}},{name:'Body secret',url:'https://example.test/',body:'password=secret'},{name:'Unknown field',url:'https://example.test/',assignments:{}},
   {name:'Header assertion secret',url:'https://example.test/',assertions:{header:{name:'x-a',equals:'b',authorization:'Bearer secret'}}},{name:'JSON assertion secret',url:'https://example.test/',assertions:{json:{path:'a',equals:1,token:'password=secret'}}},
-  {name:'Keyword query',url:'https://example.test/status?keyword=up'}]);
+  {name:'Key query',url:'https://example.test/status?api_key=up'}]);
  // A preview with nothing to apply is cancelled at once: every table, import custody included, is as it was.
  await untouched('hostile and secret-bearing entries',async()=>{
   const r=await preview(hostile);assert.equal(r.status,200,JSON.stringify(r.body));assert.equal(r.body.counts.refused,11);assert.equal(r.body.counts.create,0);
   for(const entry of r.body.entries)assert.match(entry.reason,/^Entry \d+ \(/,'each refusal names its entry');
   assert.match(r.body.entries[8].reason,/“authorization”/);assert.match(r.body.entries[9].reason,/“token”/);
-  // A query parameter whose name the import kit reads as a credential (“keyword” contains “key”) refuses that entry alone, with its reason.
-  assert.match(r.body.entries[10].reason,/^Entry 11 \(“Keyword query”\): its URL has a query parameter named “keyword”, which contains “key”; an import treats that as a credential and never stores it\./);
+  // A query parameter whose name names a credential by its whole parts refuses that entry alone, with its reason.
+  assert.match(r.body.entries[10].reason,/^Entry 11 \(“Key query”\): its URL has a query parameter named “api_key”, which names a credential; an import treats that as a credential and never stores it\./);
   assert.ok(!JSON.stringify(r.body).includes('Bearer secret')&&!JSON.stringify(r.body).includes('password=secret'),'request secrets are never echoed');
   assert.equal(r.body.counts.create+r.body.counts.change,0,'the preview offers nothing to apply');
   await noSecrets('after a refused preview',['Bearer secret','password=secret','user:secret']);
@@ -172,20 +174,21 @@ try{
  await unchanged('undoing a batch again',async()=>assert.equal((await undo(changed.body)).body.job.state,'undone','a batch is undone once'));
 
  // Undo pauses what a batch created, and reports a monitor edited since instead of overriding it.
- // A ?keyword= URL in the file refuses that entry alone; the rest previews and applies. An imported monitor the owner
- // later points at a ?keyword= URL is edited since, and kept, like any other edit.
- const pair=file([{name:'Undo kept',url:'https://kept.example.test/'},{name:'Undo edited',url:'https://edited.example.test/'},{name:'Undo keyword refused',url:'https://refused.example.test/status?keyword=up'},{name:'Undo keyword edited',url:'https://keyword.example.test/'}]);
+ // An ?api_key= URL in the file refuses that entry alone; the rest previews and applies, a ?keyword= URL among them (its
+ // name only contains “key”). An imported monitor the owner later points at an ?api_key= URL is edited since, and kept,
+ // like any other edit.
+ const pair=file([{name:'Undo kept',url:'https://kept.example.test/status?keyword=up'},{name:'Undo edited',url:'https://edited.example.test/'},{name:'Undo keyword refused',url:'https://refused.example.test/status?api_key=up'},{name:'Undo keyword edited',url:'https://keyword.example.test/'}]);
  const pairView=(await preview(pair)).body;
- assert.deepEqual(pairView.entries.map(e=>e.action),['create','create','refused','create']);assert.match(pairView.entries[2].reason,/^Entry 3 \(“Undo keyword refused”\): its URL has a query parameter named “keyword”/);
+ assert.deepEqual(pairView.entries.map(e=>e.action),['create','create','refused','create']);assert.match(pairView.entries[2].reason,/^Entry 3 \(“Undo keyword refused”\): its URL has a query parameter named “api_key”/);
  const pairBatch=(await apply(pairView)).body;assert.equal(pairBatch.job.state,'completed');assert.equal(pairBatch.created.length,3);
  const editedId=pairBatch.created[1],editedDefinition=JSON.parse((await DB.prepare('SELECT definition FROM monitors WHERE id=?').bind(editedId).first()).definition);
  assert.equal((await json(await send(`/api/monitors/${editedId}`,JSON.stringify({...editedDefinition,timeoutMs:3000}),{method:'PATCH'}))).status,200);
  const keywordId=pairBatch.created[2],keywordDefinition=JSON.parse((await DB.prepare('SELECT definition FROM monitors WHERE id=?').bind(keywordId).first()).definition);
- assert.equal((await json(await send(`/api/monitors/${keywordId}`,JSON.stringify({...keywordDefinition,url:'https://keyword.example.test/status?keyword=up'}),{method:'PATCH'}))).status,200);
+ assert.equal((await json(await send(`/api/monitors/${keywordId}`,JSON.stringify({...keywordDefinition,url:'https://keyword.example.test/status?api_key=up'}),{method:'PATCH'}))).status,200);
  const pairUndo=await undo(pairBatch);
  assert.equal(pairUndo.status,200);assert.equal(pairUndo.body.job.state,'undone');
  assert.equal(JSON.parse((await DB.prepare('SELECT definition FROM monitors WHERE id=?').bind(editedId).first()).definition).timeoutMs,3000,'the edit is kept');
- assert.equal(JSON.parse((await DB.prepare('SELECT definition FROM monitors WHERE id=?').bind(keywordId).first()).definition).url,'https://keyword.example.test/status?keyword=up','the ?keyword= edit is kept');
+ assert.equal(JSON.parse((await DB.prepare('SELECT definition FROM monitors WHERE id=?').bind(keywordId).first()).definition).url,'https://keyword.example.test/status?api_key=up','the ?api_key= edit is kept');
  const batches=(await json(await send('/api/definitions/batches',undefined,{method:'GET'}))).body;
  assert.deepEqual(batches.find(b=>b.id===pairBatch.batchId).entries.map(e=>[e.name,e.undoOutcome]),[['Undo kept','paused'],['Undo edited','edited-since'],['Undo keyword edited','edited-since']]);
  assert.deepEqual([pairBatch.batchId,changed.body.batchId,applied.body.batchId].map(id=>batches.find(b=>b.id===id).undoneAt!==null),[true,true,false],'each undone batch keeps its undo time');

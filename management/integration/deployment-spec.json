@@ -354,6 +354,12 @@
       "name": "0055_business_import_writes.sql",
       "sha256": "a9574c82bd33f1008f6d9d29e54f7f4c2fc2d26ef859b199f6ef7a9a6241dc72",
       "sql": "-- IMPORT-001: the native revision each import-door apply wrote, so an archived batch names exactly that revision.\n-- Installation-local import custody, never archived; an erasure of a monitor removes its rows.\nCREATE TABLE uptime_business_import_writes (kit_revision TEXT PRIMARY KEY, monitor_id TEXT NOT NULL, native_revision INTEGER NOT NULL);\nCREATE INDEX uptime_business_import_writes_monitor ON uptime_business_import_writes(monitor_id);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0056_import_door_archive.sql",
+      "sha256": "6a99800f2320007a4e784d896c9cb2bd96a48992b137289b090a9214f36b9e13",
+      "sql": "-- Business archives of a tool's final export (import door `archive`); the header stays, erasure withdraws the bytes.\nCREATE TABLE IF NOT EXISTS ik_door_archives (\n    id TEXT PRIMARY KEY, installation_id TEXT NOT NULL, namespace TEXT NOT NULL,\n    upload_id TEXT NOT NULL, tool TEXT NOT NULL, taken_at TEXT NOT NULL, name TEXT NOT NULL,\n    bundle_sha256 TEXT NOT NULL, total_bytes INTEGER NOT NULL, total_chunks INTEGER NOT NULL,\n    counts_json TEXT NOT NULL, UNIQUE(installation_id,namespace,upload_id));\n\nCREATE TABLE IF NOT EXISTS ik_door_archive_chunks (\n    archive_id TEXT NOT NULL REFERENCES ik_door_archives(id), ordinal INTEGER NOT NULL,\n    sha256 TEXT NOT NULL, size INTEGER NOT NULL, base64 TEXT NOT NULL,\n    PRIMARY KEY(archive_id,ordinal));\n"
     }
   ],
   "compatibilityDate": "2026-09-08",

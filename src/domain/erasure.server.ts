@@ -16,7 +16,7 @@ export async function erase(env:Bindings,kind:'monitor'|'destination'|'operator'
  if(kind==='operator'&&entity.role==='owner'&&entity.status==='active'&&Number((await env.DB.prepare("SELECT COUNT(*) n FROM oa_operators WHERE role='owner' AND status='active'").first<any>())?.n)<=1)throw Error(env.UPTIME_LOCAL_REVIEW==='true'?'The last owner cannot be erased. Use rer reset --yes to erase the local installation.':'The last owner cannot be erased. Redeploy to replace the hosted installation.');
  const actingOwner=actor.kind==='operator'?await env.DB.prepare("SELECT version FROM oa_operators WHERE id=? AND role='owner' AND status='active'").bind(actor.ref).first<any>():null;
  if(actor.kind==='operator'&&!actingOwner)throw Error('Owner authorization required');
- const business=kind==='monitor'?await businessErasureScope(env,id,JSON.parse(entity.definition).name):{namespaces:[],uploads:[]},businessNamespaces=business.namespaces;
+ const business=kind==='monitor'?await businessErasureScope(env,id,JSON.parse(entity.definition).name):{namespaces:[],uploads:[],archives:[]},businessNamespaces=business.namespaces;
  // Capture counts before discovering dependents: a job or credential arriving
  // while planning must invalidate the transaction, including uncaptured rows.
  const allNames=(await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'rer_portability_%' AND name NOT GLOB '_cf_*'").all<any>()).results;
@@ -42,6 +42,8 @@ export async function erase(env:Bindings,kind:'monitor'|'destination'|'operator'
   plans.push(selection('slow_acknowledgements','monitor_id=?',id));
   // Uploads no import plan reads (an abandoned or interrupted preview) that name this monitor go with it.
   if(business.uploads.length)plans.push(selection('ik_door_chunks','upload_id IN(SELECT value FROM json_each(?))',JSON.stringify(business.uploads)),selection('ik_door_uploads','id IN(SELECT value FROM json_each(?))',JSON.stringify(business.uploads)));
+  // So do the bytes of an archive outside the erased namespaces that names this monitor; its header stays.
+  if(business.archives.length)plans.push(selection('ik_door_archive_chunks','archive_id IN(SELECT value FROM json_each(?))',JSON.stringify(business.archives)));
   plans.push(...incidentMonitorErasureTables.map(table=>selection(table,'monitor_id=?',id)));
   plans.push(selection('alert_routes',"scope_kind='monitor' AND scope_value=?",id),selection('alert_route_changes',"scope_kind='monitor' AND scope_value=?",id));
   plans.push(selection('heartbeat_runs','monitor_id=?',id),selection('definition_batch_entries','monitor_id=?',id),selection('attempt_checkpoints','monitor_id=?',id),selection('runner_assignments','slot_id IN(SELECT id FROM slots WHERE monitor_id=?)',id),selection('evidence_generation','monitor_id=?',id),selection('heartbeat_claims','slot_id IN(SELECT id FROM slots WHERE monitor_id=?)',id),selection('heartbeat_authority','monitor_id=?',id),selection('heartbeat_limits','monitor_id=?',id),selection('observations','slot_id IN(SELECT id FROM slots WHERE monitor_id=?)',id),selection('outbox','monitor_id=?',id),selection('slots','monitor_id=?',id),selection('revisions','monitor_id=?',id));

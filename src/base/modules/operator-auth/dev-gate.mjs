@@ -81,7 +81,7 @@ export function devGate({ key, origin, local }) {
       return value !== null && constantEqual(value, await cookie());
     },
     setCookie,
-    // GET serves the exchange page, branded by the seed's `branding` ({ productName, theme }) when given; POST trades the key for the cookie.
+    // GET serves the exchange page with the seed's productName, mark and theme; POST trades the key for the cookie.
     async exchange(request, branding) {
       if (new URL(request.url).pathname !== DEV_KEY_PATH) return null;
       if (request.method === 'GET' || request.method === 'HEAD') {
@@ -89,9 +89,11 @@ export function devGate({ key, origin, local }) {
         // The seed's declared branding (its product name and theme) brands the page; without it the page is unnamed.
         const brand = branding === undefined ? undefined : configureBranding(branding);
         const theme = brand?.theme;
-        const body = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex, nofollow"><title>Opening the local app</title>${iconHead}${theme ? `<link rel="stylesheet" href="${escapeHtml(theme)}">` : ''}<style>${PAGE_STYLE}</style></head><body><main>${brand ? `<p class="brand"><span>${escapeHtml(brand.productName)}</span></p>` : ''}<h1>Opening the local app</h1><p>Open the RER_OPEN link that rer prints on this computer.</p></main>${theme ? `<script>${LOGO_SCRIPT}</script>` : ''}<script>${EXCHANGE_SCRIPT}</script></body></html>`;
+        const mark = brand?.mark ? `<img src="${escapeHtml(brand.mark)}" alt="${escapeHtml(brand.productName)}" width="40" height="40" decoding="async">` : '';
+        const themeLogo = theme && !brand.mark;
+        const body = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex, nofollow"><title>Opening the local app</title>${iconHead}${theme ? `<link rel="stylesheet" href="${escapeHtml(theme)}">` : ''}<style>${PAGE_STYLE}</style></head><body><main>${brand ? `<p class="brand">${mark}<span>${escapeHtml(brand.productName)}</span></p>` : ''}<h1>Opening the local app</h1><p>Open the RER_OPEN link that rer prints on this computer.</p></main>${themeLogo ? `<script>${LOGO_SCRIPT}</script>` : ''}<script>${EXCHANGE_SCRIPT}</script></body></html>`;
         return new Response(request.method === 'HEAD' ? null : body, { headers: { ...privateHeaders, 'content-type': 'text/html; charset=utf-8',
-          'content-security-policy': `default-src 'none'; img-src 'self'; script-src ${script}${theme ? ` ${logo}` : ''}; style-src ${theme ? "'self' " : ''}${style}${theme ? "; font-src 'self'" : ''}; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'` } });
+          'content-security-policy': `default-src 'none'; img-src 'self'; script-src ${script}${themeLogo ? ` ${logo}` : ''}; style-src ${theme ? "'self' " : ''}${style}${theme ? "; font-src 'self'" : ''}; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'` } });
       }
       if (request.method !== 'POST' || request.headers.get('sec-fetch-site') === 'cross-site' || !request.headers.get('content-type')?.startsWith('application/json')) return rejectedResponse(request, devNotFound());
       const text = await request.text();

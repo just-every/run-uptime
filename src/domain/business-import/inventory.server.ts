@@ -38,6 +38,8 @@ export const businessImportLocalTables:Record<string,string>={
  ik_d1_stream_sources:'Installation Business import custody and authority; never restored as authority.',
  ik_d1_streams:'Installation Business import custody and authority; never restored as authority.',
  ik_door_approvals:'Installation Business import custody and authority; never restored as authority.',
+ ik_door_archive_chunks:'Installation Business archive bytes of a tool\'s final export; an erasure withdraws them, never restored as authority.',
+ ik_door_archives:'Installation Business archive receipts (tool, time, hash, size and counts); never restored as authority.',
  ik_door_apply_failures:'Installation Business import custody and authority; never restored as authority.',
  ik_door_chunks:'Installation Business import custody and authority; never restored as authority.',
  ik_door_grants:'Installation Business import custody and authority; never restored as authority.',

@@ -1,11 +1,13 @@
 import {Buffer} from 'node:buffer'
 import type {Bindings} from '../control.server.ts'
-import {carriesSecrets} from '../definitions/withhold.ts'
+import {jsonValues} from '../definitions/format.ts'
+import {liveRequestSecret} from './credential-shapes.ts'
+import type {Json} from '../../base/modules/import-kit/src/types.ts'
 import {DOOR_KEY} from './context.server.ts'
 
 // What the import door keeps of an upload, besides its plans. An upload is held only while a plan of its namespace
 // reads it: a cancelled, replaced or refused preview's upload goes with it, a repeated upload of the same bytes goes
-// once its plan exists, and an upload that still carries a request secret never stays at all.
+// once its plan exists, and an upload that still carries a live request secret never stays at all.
 export const DEFINITION_FILE_PREFIX='uptime.monitors:'
 type Statement={sql:string;params:unknown[]}
 const statement=(sql:string,...params:unknown[]):Statement=>({sql,params})
@@ -18,15 +20,24 @@ export async function uploadBytes(env:Bindings,id:string){
  const parts=(await env.DB.prepare('SELECT base64 FROM ik_door_chunks WHERE upload_id=? ORDER BY ordinal').bind(id).all<{base64:string}>()).results
  return parts.length===upload.total_chunks?Buffer.concat(parts.map(part=>Buffer.from(part.base64,'base64'))):null
 }
-/** Whether a bundle still carries a request secret: a line holding a file's text, or a saved page, that withholding would change. */
+/** The JSON values a bundle line holds: a saved page itself, or each value of a file's text the move-in screen sends as one
+ * JSON string. Text that is not JSON (a CSV log export) holds none. */
+function lineValues(value:Json):Json[]{
+ if(typeof value!=='string')return [value]
+ if(!/^\s*[[{]/.test(value))return []
+ try{return jsonValues(value,'file') as Json[]}catch{return []}
+}
+/** Whether a bundle still carries a live request secret (see liveRequestSecret): an upload rer's vendor export produced,
+ * with its removal markers and the user names, plain headers and bodies it keeps, does not; nor does the text the move-in
+ * screen uploads, whose request secrets Uptime has withheld. */
 export function bundleCarriesSecrets(bytes:Uint8Array){
  let text:string
  try{text=new TextDecoder('utf-8',{fatal:true}).decode(bytes)}catch{return false}
  for(const line of text.split('\n')){
   if(!line.trim())continue
-  let value:unknown
+  let value:Json
   try{value=JSON.parse(line)}catch{continue}
-  if(carriesSecrets(value))return true
+  if(lineValues(value).some(liveRequestSecret))return true
  }
  return false
 }

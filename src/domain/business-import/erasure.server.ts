@@ -1,3 +1,4 @@
+import {Buffer} from 'node:buffer'
 import type {Bindings} from '../control.server.ts'
 import type {AuditActor} from '../audit.server.ts'
 import type {D1Sql} from '../../base/modules/import-kit/src/d1/types.ts'
@@ -21,8 +22,9 @@ function uploadNames(namespace:string,bytes:Uint8Array|null,name:string){
   return lines.some((value,line)=>lineEntries(source,value,line).some(entry=>named(entry.value,name)))
  }catch{return true}
 }
-/** The door custody an erasure of this monitor reaches: every namespace whose plan names it, and every upload no plan
- * reads (an abandoned or interrupted preview) that names it or cannot be read. */
+/** The door custody an erasure of this monitor reaches: every namespace whose plan names it, every upload no plan reads
+ * (an abandoned or interrupted preview) that names it or cannot be read, and every archive outside those namespaces that
+ * still holds bytes naming it or that cannot be read (an archive can be the only copy of a source left). */
 export async function businessErasureScope(env:Bindings,id:string,name:string){
  const plans=(await env.DB.prepare('SELECT id,namespace,job_id,snapshot_hash FROM ik_door_plans WHERE complete=1').all<any>()).results
  const namespaces=new Set<string>()
@@ -37,7 +39,15 @@ export async function businessErasureScope(env:Bindings,id:string,name:string){
   WHERE p.installation_id=u.installation_id AND p.namespace=u.namespace AND p.bundle_sha256=u.bundle_sha256 AND p.complete=1) ORDER BY rowid`).bind(DOOR_KEY).all<{id:string;namespace:string}>()).results
  const uploads:string[]=[]
  for(const upload of orphans)if(!namespaces.has(upload.namespace)&&uploadNames(upload.namespace,await uploadBytes(env,upload.id),name))uploads.push(upload.id)
- return {namespaces:[...namespaces],uploads}
+ // An archive is the same indivisible export: its bytes go and its header stays, as Base requires.
+ const archives:string[]=[]
+ const held=(await env.DB.prepare('SELECT id,namespace FROM ik_door_archives a WHERE installation_id=? AND EXISTS(SELECT 1 FROM ik_door_archive_chunks c WHERE c.archive_id=a.id) ORDER BY rowid').bind(DOOR_KEY).all<{id:string;namespace:string}>()).results
+ for(const archive of held){
+  if(namespaces.has(archive.namespace))continue
+  const parts=(await env.DB.prepare('SELECT base64 FROM ik_door_archive_chunks WHERE archive_id=? ORDER BY ordinal').bind(archive.id).all<{base64:string}>()).results
+  if(uploadNames(archive.namespace,Buffer.concat(parts.map(part=>Buffer.from(part.base64,'base64'))),name))archives.push(archive.id)
+ }
+ return {namespaces:[...namespaces],uploads,archives}
 }
 
 /** A source export is an indivisible original. Erasing one of its monitors
@@ -53,6 +63,8 @@ export async function eraseBusinessCustody(env:Bindings,id:string,actor:AuditAct
   sql('DELETE FROM uptime_business_import_targets WHERE monitor_id=?',id),
   sql('DELETE FROM uptime_business_import_writes WHERE monitor_id=?',id),
   sql('DELETE FROM ik_door_chunks WHERE upload_id IN(SELECT id FROM ik_door_uploads WHERE namespace IN(SELECT value FROM json_each(?)))',selected),
+  // An archive of an erased namespace keeps its receipt; its bytes are withdrawn.
+  sql('DELETE FROM ik_door_archive_chunks WHERE archive_id IN(SELECT id FROM ik_door_archives WHERE namespace IN(SELECT value FROM json_each(?)))',selected),
   sql('DELETE FROM ik_door_uploads WHERE namespace IN(SELECT value FROM json_each(?))',selected),
   sql('DELETE FROM ik_door_plan_chunks WHERE plan_id IN(SELECT id FROM ik_door_plans WHERE namespace IN(SELECT value FROM json_each(?)))',selected),
   sql('DELETE FROM ik_door_approvals WHERE plan_id IN(SELECT id FROM ik_door_plans WHERE namespace IN(SELECT value FROM json_each(?)))',selected),
