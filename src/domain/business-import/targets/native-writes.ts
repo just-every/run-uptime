@@ -49,6 +49,9 @@ export function revisionWrites(row:TargetRow,snapshot:Snapshot,ownerId:string):D
  statements.push(restore?sql(`DELETE FROM ${markerTable} WHERE monitor_id=?`,row.targetId):sql(`INSERT INTO ${markerTable}(monitor_id,kit_revision,native_revision,retired) VALUES(?,?,?,0)
   ON CONFLICT(monitor_id) DO UPDATE SET kit_revision=excluded.kit_revision,native_revision=excluded.native_revision,retired=0`,row.targetId,row.revision,revision),
   audit(ownerId,row.targetId,restore?'business_import_undo':old?'business_import_revision':'business_import_create',now))
+ // The revision this apply wrote, for the import history and the archive. Undoing a catch-up writes the monitor back under the
+ // earlier import's kit revision, which keeps the row that import recorded: a restore adds a revision but no apply of an import.
+ if(!restore)statements.push(sql('INSERT OR IGNORE INTO uptime_business_import_writes(kit_revision,monitor_id,native_revision) VALUES(?,?,?)',row.revision,row.targetId,revision))
  return statements
 }
 /** Undo of a create releases import ownership, while the paused native monitor,

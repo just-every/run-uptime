@@ -78,7 +78,7 @@ For a newly created heartbeat, continue with [Incoming heartbeat](/docs/monitors
 
 Each apply is recorded as a batch, "Approved by" the owner with its time and fingerprint, in the same list as Business imports. **Undo this batch** releases the monitors it created, which stay paused with their history, and restores the monitors it changed to their earlier settings, as a new revision. A restored heartbeat keeps its token. A monitor edited or enabled after the import is left alone, and the batch says so ("Edited since; left as is" or "Enabled since; left running"); undo never overrides an edit. The batch reads as undone, with its time. Batches applied before the import door keep their earlier undo, which works the same way. Undo never removes checks, results or incidents. To remove a monitor completely, erase it from its page.
 
-Batches travel in a private archive as history, the import door's included: each with its approval time, the owner who approved it, its source, fingerprint, counts and undo time, and per monitor the revision it wrote. The door's uploads, plans and grants stay in this installation. In the installation that restores the archive the batches are marked as coming from an archive and cannot be undone there.
+Batches travel in a private archive as history, the import door's included: each with its approval time, the owner who approved it, its source, fingerprint, counts and undo time, and per monitor the revision it wrote, as recorded when the apply wrote it (an undo adds revisions of its own between imports). The door's uploads, plans and grants stay in this installation. In the installation that restores the archive the batches are marked as coming from an archive and cannot be undone there.
 
 ## Export
 

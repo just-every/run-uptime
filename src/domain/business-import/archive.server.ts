@@ -19,22 +19,15 @@ export async function doorBatchArchive(env:Bindings){
   WHERE p.installation_id=? ORDER BY a.approved_at,p.id`).bind(DOOR_KEY).all<any>()).results
  const plans=await loadPlans(jobs,env.DB)
  const applied=await Promise.all(jobs.map(async job=>({job,entries:await appliedEntries(env,job,plans.get(job.id)!,job.state==='undone')})))
- // The native revision each apply wrote. Writes always add one to the revision they replace: a create writes 1, a change
- // of a monitor at native revision N writes N+1, and a catch-up of a monitor still as an earlier import left it writes one
- // more than that import did.
- const byApplied=new Map(applied.flatMap(({entries})=>entries.map(entry=>[entry.appliedRevision,entry] as const)))
- const written=(entry:typeof applied[number]['entries'][number],depth=0):number=>{
-  const expected=entry.expectedRevision
-  if(expected===undefined)return 1
-  if(expected.startsWith('native:'))return Number(expected.slice('native:'.length))+1
-  const earlier=byApplied.get(expected)
-  if(!earlier||depth>byApplied.size)throw Error('Archive import history is incomplete: a catch-up names an import this installation no longer holds.')
-  return written(earlier,depth+1)+1
- }
+ // The native revision each apply wrote, recorded when it wrote it: undo restores add revisions of their own, so it cannot be
+ // counted back from the plans.
+ const written=new Map((await env.DB.prepare('SELECT kit_revision,native_revision FROM uptime_business_import_writes').all<{kit_revision:string;native_revision:number}>()).results
+  .map(row=>[row.kit_revision,row.native_revision]))
  const batches:any[]=[],entries:any[]=[]
  for(const {job,entries:effects} of applied){
   if(!COMPLETED.includes(job.state))continue
-  const rows=effects.map(entry=>{const revision=written(entry)
+  const rows=effects.map(entry=>{const revision=written.get(entry.appliedRevision)
+   if(revision===undefined)throw Error('Archive import history is incomplete: an import this installation holds has no recorded revision.')
    return {batch_id:job.plan_id,monitor_id:entry.monitorId,action:entry.action,revision,previous_revision:entry.action==='change'?revision-1:null,undo_outcome:entry.undoOutcome}})
   batches.push({id:job.plan_id,created_at:Date.parse(job.approved_at),
    // An owner since erased is anonymous here too, as their own batches and audit entries are.

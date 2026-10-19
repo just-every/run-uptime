@@ -84,6 +84,17 @@ jobs:
         env:
           SHARD: ${{ matrix.name }}
         run: node .github/scripts/verify-ci.mjs "$SHARD"
+      - name: Retain browser suite logs of a failed shard
+        # Names the failing step of a browser suite: each suite's suite.log, with its RESULTS.json, from this local-only run.
+        if: ${{ failure() && matrix.name == 'browser' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: uptime-browser-suites-evidence-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            data/browser-suites-evidence-*/**/*.log
+            data/browser-suites-evidence-*/RESULTS.json
+          if-no-files-found: warn
+          retention-days: 7
   verify:
     needs: [plan, shards, prepare]
     if: ${{ always() }}

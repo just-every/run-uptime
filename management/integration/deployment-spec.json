@@ -348,6 +348,12 @@
       "name": "0054_business_import_undos.sql",
       "sha256": "98165552550df85e808b48a0fa3fc68dbdb43a45fda626910b43fcd0284f1d16",
       "sql": "-- IMPORT-001: when each import-door batch was undone, for the import history. Installation-local import custody,\n-- never archived; an erasure that retires a batch's source removes its row.\nCREATE TABLE uptime_business_import_undos (plan_id TEXT PRIMARY KEY, undone_at INTEGER NOT NULL);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0055_business_import_writes.sql",
+      "sha256": "a9574c82bd33f1008f6d9d29e54f7f4c2fc2d26ef859b199f6ef7a9a6241dc72",
+      "sql": "-- IMPORT-001: the native revision each import-door apply wrote, so an archived batch names exactly that revision.\n-- Installation-local import custody, never archived; an erasure of a monitor removes its rows.\nCREATE TABLE uptime_business_import_writes (kit_revision TEXT PRIMARY KEY, monitor_id TEXT NOT NULL, native_revision INTEGER NOT NULL);\nCREATE INDEX uptime_business_import_writes_monitor ON uptime_business_import_writes(monitor_id);\n"
     }
   ],
   "compatibilityDate": "2026-09-08",

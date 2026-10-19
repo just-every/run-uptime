@@ -51,6 +51,7 @@ export async function eraseBusinessCustody(env:Bindings,id:string,actor:AuditAct
   sql(`UPDATE uptime_business_import_targets SET retired=1 WHERE monitor_id IN(SELECT target_id FROM ik_provenance
    WHERE job_id IN(SELECT job_id FROM ik_door_plans WHERE namespace IN(SELECT value FROM json_each(?))))`,selected),
   sql('DELETE FROM uptime_business_import_targets WHERE monitor_id=?',id),
+  sql('DELETE FROM uptime_business_import_writes WHERE monitor_id=?',id),
   sql('DELETE FROM ik_door_chunks WHERE upload_id IN(SELECT id FROM ik_door_uploads WHERE namespace IN(SELECT value FROM json_each(?)))',selected),
   sql('DELETE FROM ik_door_uploads WHERE namespace IN(SELECT value FROM json_each(?))',selected),
   sql('DELETE FROM ik_door_plan_chunks WHERE plan_id IN(SELECT id FROM ik_door_plans WHERE namespace IN(SELECT value FROM json_each(?)))',selected),
