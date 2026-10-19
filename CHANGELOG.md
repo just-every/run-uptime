@@ -2,9 +2,22 @@
 
 ## Unreleased
 
+- Deployment automatically moves legacy `production-secrets.json` and `environments/<environment>/secrets.json` settings into `.rer/deploy/<environment>.secrets.env` on the next deploy. It preserves saved owner and mail inputs and every environment's keys, including production's, without manual conversion or rotation. A differing value already kept by rer stops the move with the key name and paths, never secret values. Old JSON files are removed only after verification and are never recreated; fresh installs use only the environment settings files.
 - **Business-provisioned installs.** When Run Edit Run installs Uptime for an approved Business plan (`RER_IMPORT_DOOR=on` with its owner-claim trust), the owner's first claim opens the Business import door. A later claim changes nothing, the owner can still switch it off and on in **Runner / archive → Business imports**, and a self-hosted `rer deploy` keeps it off.
 - **Runner status for Run Edit Run.** `POST /api/rer/runner-status` answers a signed `runner-status` grant with the private runner's contact state (`fresh`, `stale` or `never`) and time, never the runner key.
-- `@runeditrun/rer` is pinned to exactly 0.2.66; every recorded Base copy moves to rer 0.2.66, keeping the door's reversal-policy divergence until Base #298 ships.
+- Every recorded Base copy moves to rer 0.2.66, keeping the door's reversal-policy divergence until Base #298 ships.
+
+## 0.4.1 — 2026-10-19
+
+Patch release from `main`; previous version 0.4.0. Back up the console archive and database first. Six additive import-door migrations preserve existing monitors, history, incidents, destinations and private settings. No new required settings.
+
+- Include the shared import door for moving monitor definitions. Migrations `0050_business_import_door`, `0051_import_custody_replace`, `0052_import_door_apply_failure`, `0053_import_door_scopes`, `0054_business_import_undos` and `0055_business_import_writes` are additive; retain all prior migration files and history.
+- Fix archive export and restore on Platform-managed installations by explicitly keeping the Platform migration ledger local. Restore preserves the receiving installation's own permanent migration history; unknown tables still refuse export.
+- Generate API and mail test credentials at runtime so Platform's hosted source scan accepts the source without scanner exceptions. Authentication, cleanup and secret-redaction assertions remain enforced.
+- Include the release installer journey's corrected label and the runner restart snapshot race fix.
+- Keep the recovery journey's keyboard-focus assertion on the same history entry while new scheduled checks arrive.
+- Pin `@runeditrun/rer` to exactly 0.2.66.
+- Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).
 
 ## 0.4.0 — 2026-10-19
 
@@ -37,7 +50,7 @@ Before upgrading a hosted installation, export the product archive from **Runner
 
 Migrations `0038_cron_runs`, `0039_incident_work`, `0040_alert_routes`, `0041_heartbeat_jobs`, `0042_webhook_templates`, `0043_notification_preferences`, `0044_contact_schedules`, `0045_slow_acknowledgements`, `0046_heartbeat_url`, `0047_failure_snapshots`, `0048_failure_page_policy`, `0049_auxiliary_attempts` and `0050_auxiliary_kick_lease` are applied. All are additive; existing rows are kept, except that `0050` removes the console's check-start lease, which `0049` had copied into the delivery history.
 
-A hosted installation deployed with 0.3.0 keeps its generated secrets in `.rer/deploy/environments/<environment>/secrets.json` (production: `.rer/deploy/production-secrets.json`). rer 0.2.65 reads them from `.rer/deploy/<environment>.secrets.env`, and refuses to deploy over a live Worker until it has them. Before the first 0.4.0 deploy, copy `SESSION_SECRET` and `UPTIME_RUNNER_KEY` from the old file into a private (0600) `.rer/deploy/<environment>.secrets.env` as `NAME=value` lines. Do not use `--rotate-secret` for this: it signs every operator out and breaks your runner's key.
+A hosted installation deployed with 0.3.0 may still have `.rer/deploy/production-secrets.json` and `.rer/deploy/environments/<environment>/secrets.json`. The Unreleased deployment update moves their saved owner, mail and environment settings into `.rer/deploy/<environment>.secrets.env` automatically, preserving existing keys. Keep these files and the deployment records when upgrading; follow the [current upgrade guidance](docs/deploy.md#update-an-existing-deployment). No manual secret-copy step or rotation is needed with that update.
 
 ### Not in this release
 

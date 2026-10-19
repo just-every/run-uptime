@@ -1,16 +1,17 @@
 import { saveOwnerDeclaration,selectMailDeclaration,withProviderKey } from './mail-config.mjs';
 import { requiredConfiguration, validateConfiguration } from '../../src/domain/startup-config.mjs';
-import { readPrivateFile } from '@runeditrun/rer/private-files';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { ownerPlan, ownerWorkerName } from '@runeditrun/rer/modules/deploy-kit/owner';
 import { packageBuild } from '@runeditrun/rer/modules/deploy-kit/prepare';
 import { main, report } from '@runeditrun/rer/modules/deploy-kit/owner-cli';
-import { secretsFile, ownerSecrets, environmentSecrets, ownerEnvironment, validateAccount } from './owner-settings.mjs';
+import { ownerSecrets, ownerEnvironment, validateAccount } from './owner-settings.mjs';
 import { prepareOwnerBuild, ownerProduct } from './owner-prepare.mjs';
 import { missing, RerError } from '@runeditrun/rer/errors';
 import { ownerDeploy } from '@runeditrun/rer/deploy';
-export function deployment(lifecycle) {
+import { deployCommand } from '@runeditrun/rer/internal/cli/deploy-command.mjs';
+import { migrateSecrets, savedInputs } from './secret-custody.mjs';
+function upload(lifecycle) {
  const sharedDeploy = ownerDeploy('deploy.json', lifecycle);
  return async context => {
   const { root, options, store, signal, operationToken } = context;
@@ -19,20 +20,7 @@ export function deployment(lifecycle) {
   // The Worker learns its environment so first-run setup names that environment's settings file.
   const source = JSON.parse(await readFile(join(root, 'deploy.json'), 'utf8'));
   const declaration = { ...source, vars: { ...source.vars, UPTIME_DEPLOY_ENVIRONMENT: environment } };
-  // Saved mail/optional inputs win on real repeats, so plan those same bindings.
-  // Dry runs never require provider credentials or generate new private settings.
-  let planningEnvironment = processEnv;
-  if (options.dryRun) {
-   let contents;
-   try { contents = await readPrivateFile(join(root, secretsFile)); }
-   catch (error) { if (error.code !== 'ENOENT') throw error; }
-   if (contents !== undefined) {
-    let saved;
-    try { saved = JSON.parse(contents); } catch { throw missing('Invalid configuration: deployment secret settings must contain valid JSON'); }
-    if (!saved || typeof saved !== 'object' || Array.isArray(saved)) throw missing('Invalid configuration: deployment secret settings must contain an object');
-    planningEnvironment = { ...processEnv, ...saved };
-   }
-  }
+  const planningEnvironment = processEnv;
   const selectedDeclaration=selectMailDeclaration(declaration,planningEnvironment);
   const declared = new Set([declaration.originVar, ...selectedDeclaration.secrets.map(item => item.binding), ...declaration.d1.map(item => item.binding)]);
   for (const rule of requiredConfiguration({...planningEnvironment,UPTIME_LOCAL_REVIEW:'false'},'worker')) {
@@ -44,18 +32,8 @@ export function deployment(lifecycle) {
     // Owner deployments always use hosted mail, irrespective of local shell flags.
     const hosted = { ...processEnv, UPTIME_LOCAL_REVIEW: 'false' };
     validateConfiguration(hosted, { scope: 'deploy', suppliedOnly: true });
-    let saved;
-    try {
-     const contents = await readPrivateFile(join(root, secretsFile));
-     try { saved = JSON.parse(contents); } catch { throw Error('Invalid configuration: deployment secret settings must contain valid JSON'); }
-    } catch (error) { if (error.code !== 'ENOENT') throw error; }
-    if (!saved) for (const rule of requiredConfiguration(hosted, 'deploy')) {
-     if (!['SESSION_SECRET', 'SETUP_TOKEN', 'UPTIME_RUNNER_KEY'].includes(rule.name) && hosted[rule.name] === undefined) throw missing(`Required deployment configuration is missing: ${rule.name}. See OPERATIONS.md.`);
-    }
-    if (saved) validateConfiguration({ ...hosted, ...saved }, { scope: 'deploy' });
     validateAccount(process.env, store);
-    secrets = await ownerSecrets(root, { env: processEnv, store });
-    secrets = { ...secrets, ...await environmentSecrets(root, environment, secrets, { store }) };
+    secrets = await ownerSecrets(root, environment, { env: processEnv, store });
     validateConfiguration({ ...hosted, ...secrets }, { scope: 'deploy' });
    } catch (error) {
     if (error.message.startsWith('Invalid')) throw missing(error.message);
@@ -95,4 +73,24 @@ export function deployment(lifecycle) {
   // rer claims the owner with this token when it cannot read the kit record, and never prints it.
   return { deployed: true, origin: result.origin, worker: result.worker, environment, state: result.state, setupToken: secrets.SETUP_TOKEN };
  };
+}
+
+// rer normally plans generated values before calling a custom upload hook. This
+// boundary hands old custody over first, then uses that same real rer workflow.
+export function deployment(lifecycle) {
+ const hook = upload(lifecycle), sharedDeploy = ownerDeploy('deploy.json', lifecycle);
+ return Object.assign(async context => {
+  if (context.options.rotateSecret) return sharedDeploy(context);
+  const targets = await migrateSecrets(context.root, { store: context.store, dryRun: context.options.dryRun });
+  const inputs = await savedInputs(context.root, context.options.environment ?? 'production', targets);
+  context.store.addSecrets?.(Object.values(inputs));
+  const previous = { ...process.env };
+  try {
+   Object.assign(process.env, inputs);
+   return await deployCommand({ ...context, adapter: { ...context.adapter, deploy: hook } });
+  } finally {
+   for (const name of Object.keys(process.env)) if (!Object.hasOwn(previous, name)) delete process.env[name];
+   Object.assign(process.env, previous);
+  }
+ }, { managesHostedOwner: true, declaration: 'deploy.json' });
 }

@@ -71,11 +71,15 @@ try{
  await auditWidths(page,'reauthorized-current-evidence','Failing');
  for(const width of [1440,390]){
   await page.setViewportSize({width,height:900});
-  const evidence=page.locator('#raw-history details').first(),summary=evidence.locator('summary');await summary.focus();
-  if(!await evidence.evaluate(element=>element.open))await page.keyboard.press('Enter');
-  const evidenceId=await summary.getAttribute('id');
+  // Scheduled checks can prepend a new row between browser commands. Keep the
+  // identity the owner focused instead of resolving the moving first row again.
+  const evidenceId=await page.locator('#raw-history details > summary').first().getAttribute('id');assert.ok(evidenceId);
+  const summary=page.locator(`#raw-history summary[id=${JSON.stringify(evidenceId)}]`);await summary.focus();
+  if(!await summary.evaluate(element=>element.parentElement.open))await summary.press('Enter');
+  const focusedDisclosure=id=>document.activeElement?.id===id&&document.getElementById(id)?.closest('details')?.open;
+  await page.waitForFunction(focusedDisclosure,evidenceId,{timeout:10000});
   await page.waitForResponse(response=>new URL(response.url()).pathname==='/api/overview'&&response.ok(),{timeout:12000});
-  await page.waitForFunction(id=>document.activeElement?.id===id&&document.querySelector('#raw-history details[open] summary')?.id===id,evidenceId,{timeout:10000});
+  await page.waitForFunction(focusedDisclosure,evidenceId,{timeout:10000});
   assert.equal(await page.evaluate(()=>document.activeElement?.id),evidenceId,'confirmed failure evidence keeps keyboard focus through polling at '+width);
  }
  await page.getByRole('button',{name:'Pause',exact:true}).click();await page.getByRole('button',{name:'Authorize & resume',exact:true}).waitFor();
