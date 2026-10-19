@@ -34,7 +34,7 @@ export async function definitionsJourney(page, origin) {
   await page.goto(origin + '/app');
   await page.getByRole('link', { name: 'Definitions', exact: true }).click();
   await page.getByRole('heading', { name: 'Monitor definitions' }).waitFor();
-  await page.getByLabel('Definition file, UptimeRobot list/log or Pingdom HTTP details (2 MiB max)').setInputFiles(step.file);
+  await page.getByLabel(/^Definition file\b/).setInputFiles(step.file);
   await page.getByRole('button', { name: 'Preview', exact: true }).click();
   const apply = page.getByRole('button', { name: step.apply, exact: true });
   await apply.waitFor();
