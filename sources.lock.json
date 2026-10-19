@@ -6699,7 +6699,7 @@
       "executable": false
     },
     "tests/recovery-browser.mjs": {
-      "sha256": "415e840333e3ece6123d904a881580365c2205e09ae824a5565c2eb2d94ed962",
+      "sha256": "94f1e85243c6d1447d8a51330b8e0f9a2284a543f05747ca6a7d4213ec83a56d",
       "executable": false
     },
     "tests/reporting-browser.mjs": {

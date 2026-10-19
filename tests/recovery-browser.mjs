@@ -78,8 +78,11 @@ try{
   if(!await summary.evaluate(element=>element.parentElement.open))await summary.press('Enter');
   const focusedDisclosure=id=>document.activeElement?.id===id&&document.getElementById(id)?.closest('details')?.open;
   await page.waitForFunction(focusedDisclosure,evidenceId,{timeout:10000});
+  // The row as rendered now. The check after the poll holds only once that poll has rebuilt the list around this row,
+  // with focus still on it and no other row expanded above it.
+  const rendered=await summary.elementHandle();
   await page.waitForResponse(response=>new URL(response.url()).pathname==='/api/overview'&&response.ok(),{timeout:12000});
-  await page.waitForFunction(focusedDisclosure,evidenceId,{timeout:10000});
+  await page.waitForFunction(([id,rendered])=>document.getElementById(id)!==rendered&&document.activeElement?.id===id&&document.querySelector('#raw-history details[open] summary')?.id===id,[evidenceId,rendered],{timeout:10000});
   assert.equal(await page.evaluate(()=>document.activeElement?.id),evidenceId,'confirmed failure evidence keeps keyboard focus through polling at '+width);
  }
  await page.getByRole('button',{name:'Pause',exact:true}).click();await page.getByRole('button',{name:'Authorize & resume',exact:true}).waitFor();
