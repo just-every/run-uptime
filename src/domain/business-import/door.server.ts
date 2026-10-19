@@ -50,7 +50,7 @@ async function named(env:Bindings,request:Request,body:Body){
  return {body}
 }
 /** The custody every door answer leaves behind, on either mount, once the door has authorised and answered. An upload
- * that completes still carrying a request secret is withdrawn and refused; a plan settles its namespace; a cancel
+ * that completes still carrying a live request secret is withdrawn and refused; a plan settles its namespace; a cancel
  * withdraws the cancelled preview's upload; an undo records when it finished. */
 async function custody(env:Bindings,request:Request,body:Body,answer:()=>Promise<Response>){
  const step=action(request),before=await named(env,request,body),response=await answer()
@@ -113,7 +113,7 @@ async function cancel(env:Bindings,request:Request,namespace:string,planId:strin
  * plan nobody applied (an earlier preview, or a proposal still awaiting review): the
  * door's own cancel runs first, so a namespace never stays blocked by a stale preview.
  * Every definition file is one source: a new preview of one replaces any other unapplied
- * definition-file preview. An upload still carrying a request secret is never planned. */
+ * definition-file preview. An upload still carrying a live request secret is never planned. */
 export async function operatorImport(env:Bindings,request:Request,authorize:Authorize){
  const namespace=request.headers.get('X-Import-Source')??''
  try{

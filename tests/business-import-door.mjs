@@ -4,6 +4,7 @@
 import assert from 'node:assert/strict';
 import {createHash,randomUUID,webcrypto} from 'node:crypto';
 import {join} from 'node:path';
+import {pathToFileURL} from 'node:url';
 import {migratedWorker,runtimeDirectory,cleanupDirectory,availablePorts} from './notify-acceptance-runtime.mjs';
 import {testAuthBindings,authRequest,sessionCookie,finishSetup} from './auth-test-support.mjs';
 
@@ -201,5 +202,72 @@ try{
  assert.equal((await DB.prepare('SELECT COUNT(*) n FROM ik_door_chunks').first()).n,0,'the whole source original is withdrawn');
  assert.equal((await DB.prepare('SELECT COUNT(*) n FROM ik_door_plan_chunks').first()).n,0,'retained door plan copies are withdrawn');
  assert.equal((await DB.prepare('SELECT COUNT(*) n FROM ik_jobs').first()).n,0,'affected import custody is retired');
- console.log('Business import door passed: opt-in off 404; synthetic upload, zero-write native plan, fingerprint apply, reconciliation, Business history, undo, durable key revocation.');
+ // An archive that is the only copy naming a monitor goes with that monitor's erasure: its bytes are withdrawn, its header
+ // stays, and restore-check answers 410. First the archived upload is still held; then a later plan has settled it away.
+ const rotatedDoor=async(action,body,extra={})=>{const token=await grant(action,extra,'uptimerobot',rotated,rotatedKid);const r=await fetch(origin+'/api/rer/import/'+action,{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+token},body:JSON.stringify(body)});return {status:r.status,body:await r.json()}};
+ const sent=async bytes=>{const r=await rotatedDoor('uploads',{name:'uptimerobot.ndjson',bundleSha256:hash(bytes),totalBytes:bytes.length,totalChunks:1,index:0,chunkSha256:hash(bytes),base64:bytes.toString('base64')});return r};
+ const page=monitors=>Buffer.from(JSON.stringify({data:monitors,nextLink:null})+'\n');
+ const archiveHeld=async archiveId=>({chunks:(await DB.prepare('SELECT COUNT(*) n FROM ik_door_archive_chunks WHERE archive_id=?').bind(archiveId).first()).n,headers:(await DB.prepare('SELECT COUNT(*) n FROM ik_door_archives WHERE id=?').bind(archiveId).first()).n});
+ for(const [name,settled] of [['Archive only copy',false],['Archive settled copy',true]]){
+  const native=await owner('/api/monitors',{name,type:'http',url:'https://archive-copy.example.test/',intervalMs:300000,probes:['local-a'],enabled:false,assertions:{status:200}});assert.equal(native.status,201,JSON.stringify(native.body));
+  const archivedUpload=(await sent(page([{id:9001,friendlyName:'Archive peer',type:'HTTP',url:'https://archive-peer.example.test/',interval:300},{id:9002,friendlyName:name,type:'HTTP',url:'https://archive-copy.example.test/',interval:300}])));
+  assert.equal(archivedUpload.status,200,JSON.stringify(archivedUpload.body));
+  const archive=await rotatedDoor('archive',{uploadId:archivedUpload.body.uploadId,tool:'uptimerobot',takenAt:new Date(Date.now()+(settled?60000:0)).toISOString()});assert.equal(archive.status,200,JSON.stringify(archive.body));
+  if(settled){
+   const later=await sent(page([{id:9101,friendlyName:'Archive later',type:'HTTP',url:'https://archive-later.example.test/',interval:300}]));
+   const laterPlan=await rotatedDoor('plan',{uploadId:later.body.uploadId});assert.equal(laterPlan.status,200,JSON.stringify(laterPlan.body));
+   assert.equal(await DB.prepare('SELECT id FROM ik_door_uploads WHERE id=?').bind(archivedUpload.body.uploadId).first(),null,'a later plan settled the archived upload away: the archive is the only copy');
+   assert.equal((await rotatedDoor('undo',{planId:laterPlan.body.planId})).body.state,'cancelled');
+  }
+  assert.deepEqual(await archiveHeld(archive.body.archiveId),{chunks:1,headers:1});
+  assert.equal((await rotatedDoor('restore-check',{archiveId:archive.body.archiveId})).status,200);
+  const erasedCopy=await owner('/api/monitors/'+native.body.id+'/erase',{name});assert.equal(erasedCopy.status,200,JSON.stringify(erasedCopy.body));
+  assert.equal(await DB.prepare('SELECT id FROM ik_door_uploads WHERE id=?').bind(archivedUpload.body.uploadId).first(),null,'the upload naming the erased monitor is withdrawn');
+  assert.deepEqual(await archiveHeld(archive.body.archiveId),{chunks:0,headers:1},`${name}: the archive's bytes are withdrawn and its header kept`);
+  const withdrawn=await rotatedDoor('restore-check',{archiveId:archive.body.archiveId});
+  assert.equal(withdrawn.status,410);assert.equal(withdrawn.body.error,'archive_withdrawn');
+ }
+ // A bundle rer's UptimeRobot export produced (the released CLI adapter run on a saved response, with only the network faked)
+ // keeps a user name, a plain header and a request body, and marks what it removed. Uptime accepts it, imports it with every
+ // request field withheld, and still refuses the same response carrying its live credentials.
+ const response={data:[
+  {id:501,friendlyName:'Exported basic auth',type:'HTTP',url:'https://exported.example.test/health',interval:300,timeout:5,httpMethodType:'POST',successHttpResponseCodes:['200'],
+   authType:'BASIC',httpUsername:'exported-robot-user',httpPassword:'exported-live-password',customHttpHeaders:{Authorization:'Bearer exported-live-header',['X-Trace']:'exported-trace-value'},postValueData:'{"exported":"request-body"}'},
+  {id:502,friendlyName:'Exported userinfo URL',type:'HTTP',url:'https://admin:exported-url-password@private.example.test/status?api_key=exported-url-key&lang=en',interval:300,timeout:5,httpMethodType:'GET'},
+  {id:503,friendlyName:'Exported keyword',type:'KEYWORD',url:'https://keyword.example.test/',interval:300,timeout:5,httpMethodType:'GET',keywordType:'ALERT_NOT_EXISTS',keywordValue:'In stock',keywordCaseType:'CaseSensitive'},
+ ],nextLink:null};
+ const {exportVendor}=await import(pathToFileURL(join(process.cwd(),'node_modules/@runeditrun/rer/cli/business/vendors/index.mjs')).href);
+ const network=globalThis.fetch,exportedParts=[];
+ globalThis.fetch=async url=>{assert.equal(String(url),'https://api.uptimerobot.com/v3/monitors?limit=200');return new Response(JSON.stringify(response),{status:200,headers:{'content-type':'application/json'}})};
+ try{for await(const item of exportVendor('uptimerobot',{key:'synthetic-read-only-key'}))exportedParts.push(item.bytes)}finally{globalThis.fetch=network}
+ const rerBundle=Buffer.concat(exportedParts),exportedText=rerBundle.toString();
+ assert.ok(exportedText.includes('"httpUsername":"exported-robot-user"')&&exportedText.includes('"httpPassword":"[removed]"')&&exportedText.includes('https://removed@private.example.test/status?api_key=removed'),'the released export keeps the user name and marks what it removed');
+ const live=['exported-live-password','exported-live-header','exported-url-password','exported-url-key'],withheld=['exported-robot-user','exported-trace-value','request-body'];
+ // Every stored string, base64 decoded too; `originals` leaves out the door's byte-exact source originals, which Base keeps
+ // under the bundle hash unless they held a credential part.
+ const stored=async({originals=true}={})=>{const names=(await DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name<>'_cf_METADATA'").all()).results.map(row=>row.name)
+  .filter(name=>originals||!['ik_door_chunks','ik_door_archive_chunks'].includes(name));
+  const rows=[];for(const name of names)for(const row of (await DB.prepare(`SELECT * FROM "${name}"`).all()).results)rows.push(JSON.stringify(row),...Object.values(row).filter(v=>typeof v==='string'&&/^[A-Za-z0-9+/]+=*$/.test(v)&&v.length%4===0).map(v=>Buffer.from(v,'base64').toString()));return rows.join('\n')};
+ const uploadsBefore=(await DB.prepare('SELECT COUNT(*) n FROM ik_door_uploads').first()).n;
+ const liveResponse=page(response.data),refusedLive=await sent(liveResponse);
+ assert.equal(refusedLive.status,400);assert.equal(refusedLive.body.error,'source_secrets_withheld','a bundle carrying live credentials is still refused');
+ assert.equal((await DB.prepare('SELECT COUNT(*) n FROM ik_door_uploads').first()).n,uploadsBefore,'and nothing of it is kept');
+ const afterRefusal=await stored();for(const value of [...live,...withheld])assert.ok(!afterRefusal.includes(value),`the refused bundle leaves no ${value} anywhere`);
+ const exportedUpload=await sent(rerBundle);assert.equal(exportedUpload.status,200,JSON.stringify(exportedUpload.body));assert.equal(exportedUpload.body.complete,true);
+ const exportedPlan=await rotatedDoor('plan',{uploadId:exportedUpload.body.uploadId});assert.equal(exportedPlan.status,200,JSON.stringify(exportedPlan.body));
+ assert.equal(exportedPlan.body.counts.input,3);assert.equal(exportedPlan.body.counts.effects,2);
+ assert.deepEqual(exportedPlan.body.rejected.map(row=>row.sourceId),['502']);assert.match(exportedPlan.body.rejected[0].reason,/without URL credentials/,'a URL that carried credentials is refused alone, with its reason');
+ const exportedApproval={fingerprint:exportedPlan.body.fingerprint,approvalRecordId:randomUUID(),approvedAt:new Date().toISOString()};
+ let exportedJob=await rotatedDoor('apply',{planId:exportedPlan.body.planId,reviewedFingerprint:exportedPlan.body.fingerprint},exportedApproval);
+ for(let n=0;exportedJob.body.job?.state!=='completed'&&n<10;n++)exportedJob=await rotatedDoor('apply',{planId:exportedPlan.body.planId,reviewedFingerprint:exportedPlan.body.fingerprint},exportedApproval);
+ assert.equal(exportedJob.body.job?.state,'completed',JSON.stringify(exportedJob.body));
+ const definition=async name=>JSON.parse((await DB.prepare("SELECT definition FROM monitors WHERE json_extract(definition,'$.name')=?").bind(name).first()).definition);
+ const basic=await definition('Exported basic auth');
+ assert.deepEqual(basic.request,{credentialRef:'uptimerobot-501'},'authentication, headers and body are withheld behind a local credential reference');
+ assert.equal(basic.method,'POST');assert.equal(basic.enabled,false);
+ assert.deepEqual((await definition('Exported keyword')).assertions,{status:['2xx','3xx'],bodyIncludes:'In stock'});
+ const everything=await stored(),derived=await stored({originals:false});
+ for(const value of live)assert.ok(!everything.includes(value),`no table holds the live credential ${value}`);
+ for(const value of withheld)assert.ok(!derived.includes(value),`no monitor, revision, plan, record or history holds ${value}`);
+ console.log('Business import door passed: opt-in off 404; synthetic upload, zero-write native plan, fingerprint apply, reconciliation, Business history, undo, durable key revocation; erasure withdraws an archive that is the only copy naming a monitor; a rer UptimeRobot export imports with request fields withheld, its live response is refused.');
 }finally{await worker?.dispose();await cleanupDirectory(directory)}

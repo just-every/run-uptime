@@ -41,5 +41,3 @@ export function withholdText(source:string):string{
  if(JSON.stringify(withheld)===JSON.stringify(values))return source
  return withheld.map(value=>JSON.stringify(value)).join('\n')
 }
-/** Whether a value or text still carries a request secret that withholding would remove. */
-export const carriesSecrets=(value:unknown)=>typeof value==='string'?withholdText(value)!==value:JSON.stringify(withholdValue(value))!==JSON.stringify(value)
