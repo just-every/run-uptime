@@ -65,6 +65,8 @@ test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts,
   assert.ok((await readFile(join(root, '.rer/deploy/production.secrets.env'), 'utf8')) === conflictBytes, 'conflict never overwrites rer custody');
   assert.equal(provider.state.writes.length, writes, 'conflict makes no provider writes');
   await rm(join(root, '.rer/deploy/production.secrets.env'));
+  // rer also generated keys beside the legacy hook, which deployed its own named keys over them.
+  await writeFile(join(root, '.rer/deploy/staging.secrets.env'), `SESSION_SECRET=${randomBytes(32).toString('hex')}\nUPTIME_RUNNER_KEY=${randomBytes(32).toString('hex')}\n`, { mode: 0o600 });
   const repeated = await deploy(root, provider, t.signal, [], { inputs: false });
   assert.equal(repeated.code, 0, JSON.stringify({code:repeated.code,errorCodes:repeated.errorCodes}));
   assert.equal(repeated.result?.ok, true);

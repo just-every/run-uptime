@@ -18,17 +18,21 @@ export async function readSecrets(root, environment) {
   throw refuse(`Cannot read ${secretsFile(environment)}: restore an owned private file of NAME=VALUE lines. No legacy settings were removed.`);
  }
 }
-function merge(kept, incoming, environment) {
+function merge(kept, incoming, environment, replace = []) {
+ kept = Object.fromEntries(Object.entries(kept).filter(([name]) => !replace.includes(name)));
  const conflicts = Object.keys(incoming).filter(name => Object.hasOwn(kept, name) && kept[name] !== incoming[name]);
  if (conflicts.length) throw refuse(`Deployment secret conflict in ${secretsFile(environment)}: ${conflicts.join(', ')} differs from saved Uptime settings. No values were overwritten and no legacy settings were removed. Reconcile the named settings privately, then run the same deploy command again.`);
  return { ...incoming, ...kept };
 }
-export async function keepSecrets(root, environment, values, store) {
+// The legacy hook deployed its saved installation keys over any rer generated beside them, so the
+// Worker holds the legacy keys: those replace rer's undeployed copies once. Owner inputs still refuse.
+const replacedKeys = (kept, incoming) => [...generated].filter(name => Object.hasOwn(kept, name) && Object.hasOwn(incoming, name) && kept[name] !== incoming[name]);
+export async function keepSecrets(root, environment, values, store, replace = []) {
  register(store, values);
  if (Object.entries(values).some(([name, value]) => !validName(name) || !validValue(value))) throw refuse('Invalid deployment secret settings; names and single-line string values are required.');
  const directory = await privateDirectory(root, ['.rer', 'deploy']);
  await writePrivateFile(join(directory, '.gitignore'), '*\n');
- const kept = await readSecrets(root, environment), merged = merge(kept, values, environment);
+ const kept = await readSecrets(root, environment), merged = merge(kept, values, environment, replace);
  if (!same(kept, merged)) {
   // The kit removes one optional outer quote pair; wrapping preserves literal quotes too.
   await writePrivateFile(join(root, secretsFile(environment)), Object.entries(merged).map(([name, value]) => `${name}="${value}"\n`).join(''));
@@ -80,15 +84,21 @@ export async function migrateSecrets(root, { store, dryRun = false } = {}) {
   }
  }
  // Check every destination before writing any of them or removing any source.
- for (const [environment, values] of targets) targets.set(environment, merge(await readSecrets(root, environment), values, environment));
+ const replaced = new Map();
+ for (const [environment, values] of targets) {
+  const kept = await readSecrets(root, environment), replace = replacedKeys(kept, values);
+  replaced.set(environment, replace);
+  targets.set(environment, merge(kept, values, environment, replace));
+ }
  if (!dryRun) {
-  for (const [environment, values] of targets) await keepSecrets(root, environment, values, store);
+  for (const [environment, values] of targets) await keepSecrets(root, environment, values, store, replaced.get(environment));
   for (const [environment, values] of targets) if (!same(await readSecrets(root, environment), values)) throw refuse(`Deployment secret move could not be verified in ${secretsFile(environment)}. Legacy settings were kept.`);
   for (const path of sources) await rm(join(root, path));
   const directory = await privateDirectory(root, ['.rer', 'deploy']);
   await writePrivateFile(join(directory, '.gitignore'), '*\n');
   await writePrivateFile(join(root, marker), 'Legacy Uptime deployment settings have been handed to rer.\n');
   if (sources.length) store?.report(`deploy: moved saved Uptime settings to ${[...targets.keys()].map(secretsFile).join(', ')}; verified every value and removed the legacy JSON files.`);
+  for (const [environment, names] of replaced) if (names.length) store?.report(`deploy: ${secretsFile(environment)} now keeps the installation's deployed ${names.join(', ')} from the legacy settings in place of unused copies.`);
  }
  return targets;
 }
