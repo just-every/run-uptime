@@ -11,7 +11,7 @@ const headers={'cache-control':'no-store'}
 const limits={maxBytes:2*1024*1024,maxRecords:500}
 // Finish bounded rejected requests too. Leaving their body unread can reset an
 // HTTP keep-alive connection just as Business sends its next request.
-async function finishRequest(request:Request,response:Response){
+export async function finishRequest(request:Request,response:Response){
  if(request.body&&!request.bodyUsed){
   const reader=request.body.getReader();let bytes=0
   try{for(;;){const {done,value}=await reader.read();if(done)break;bytes+=value.byteLength;if(bytes>100_000){await reader.cancel();break}}}
