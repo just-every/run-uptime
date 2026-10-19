@@ -53,6 +53,8 @@ export async function eraseBusinessCustody(env:Bindings,id:string,actor:AuditAct
   sql('DELETE FROM uptime_business_import_targets WHERE monitor_id=?',id),
   sql('DELETE FROM uptime_business_import_writes WHERE monitor_id=?',id),
   sql('DELETE FROM ik_door_chunks WHERE upload_id IN(SELECT id FROM ik_door_uploads WHERE namespace IN(SELECT value FROM json_each(?)))',selected),
+  // An archive of an erased namespace keeps its receipt; its bytes are withdrawn.
+  sql('DELETE FROM ik_door_archive_chunks WHERE archive_id IN(SELECT id FROM ik_door_archives WHERE namespace IN(SELECT value FROM json_each(?)))',selected),
   sql('DELETE FROM ik_door_uploads WHERE namespace IN(SELECT value FROM json_each(?))',selected),
   sql('DELETE FROM ik_door_plan_chunks WHERE plan_id IN(SELECT id FROM ik_door_plans WHERE namespace IN(SELECT value FROM json_each(?)))',selected),
   sql('DELETE FROM ik_door_approvals WHERE plan_id IN(SELECT id FROM ik_door_plans WHERE namespace IN(SELECT value FROM json_each(?)))',selected),

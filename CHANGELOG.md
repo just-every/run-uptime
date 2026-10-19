@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+Adds one migration (`0056_import_door_archive.sql`, the import door's archives); no new required settings.
+
+- **Cutover status for Run Edit Run.** `POST /api/rer/cutover-status` answers a signed `cutover-status` grant and a `{since}` time with each alert destination's host and its deliveries sent and accepted since then, and the monitors and incidents created since. Counts, ids and hosts only; it writes nothing.
+- **The Business import door is Base's, byte for byte.** Every recorded Base copy moves to rer 0.2.71 and `@runeditrun/rer` is pinned to exactly 0.2.71. The door's reversal-policy divergence is gone: Uptime's undo keeps and reports a monitor edited or enabled since through Base's `reversalPolicy` option at job creation. The door gains Base's `archive` and `restore-check` actions.
+- **`?keyword=` and `?author=` URLs import.** The import kit now reads a query parameter as a credential only by its whole name parts, so a monitor URL such as `https://example.com/status?keyword=up` previews and imports like any other. A real credential parameter (`?api_key=`, `?access_token=`) still refuses its entry alone, with its reason.
+
 ## 0.4.2 — 2026-10-19
 
 Patch release from `main`; previous version 0.4.1. No new migrations and no new required settings. Back up the console archive and database first, as for any upgrade; monitors, history, incidents, destinations and private settings are kept.

@@ -80,7 +80,9 @@ const HOME = 'main{max-width:1360px;margin:0 auto;padding:0 56px calc(var(--art)
   + '.link{font-weight:500;text-decoration:underline;text-underline-offset:4px}'
   + '@media(max-width:760px){main{padding:0 16px calc(var(--art) + 40px)}.hero{padding-top:96px}.btn{min-height:56px;font-size:18px}}'
 
-const RUN = 'body{--art:max(20vh,150px)}main{max-width:1360px;margin:0 auto;padding:0 56px calc(var(--art) + 40px)}.intro{text-align:center;padding-top:36px}.intro h1{font-size:58px}.intro .sub{margin-inline:auto;max-width:760px;margin-top:20px}'
+// A seed's wordmark and optional navigation must reflow when their own fonts
+// need more room. Keep overflow visible so a layout defect cannot be clipped away.
+const RUN = 'body{--art:max(20vh,150px);overflow-x:visible}.bar,.bar nav{flex-wrap:wrap}main{max-width:1360px;margin:0 auto;padding:0 56px calc(var(--art) + 40px)}.intro{text-align:center;padding-top:36px}.intro h1{font-size:58px}.intro .sub{margin-inline:auto;max-width:760px;margin-top:20px}'
   + '.steps{max-width:990px;margin:34px auto 0;display:grid;gap:18px}'
   + '.step{position:relative;display:grid;grid-template-columns:62px 1fr;gap:0 32px;padding:24px 30px 24px 28px;border-radius:24px;background:color-mix(in srgb,var(--rer-surface,#fff) 86%,transparent);border:1px solid var(--site-line);box-shadow:0 24px 48px -36px color-mix(in srgb,var(--site-ink) 45%,transparent);backdrop-filter:blur(6px)}'
   + '.step.option{grid-template-columns:1fr;padding-left:124px}.body{min-width:0}'
@@ -121,6 +123,8 @@ export function header(identity: EditionIdentity, run: RunData, contract?: SeedC
 // Keep each word/path whole, leaving the original whitespace between words so
 // inline commands can wrap at spaces and selection copies the same text.
 const inlineCode = (value: string) => `<code>${escape(value).replace(/\S+/g, word => `<span class="code-word">${word}</span>`)}</code>`
+// The one-line alternative can break only before the repository; keep plain spaces for copying.
+const inlineStart = (run: RunData) => `<code><span class="code-word">${escape(npxStart)}dev</span> <span class="code-word">${escape(run.clone.slice(npxStart.length + 'dev '.length))}</span></code>`
 const codeBlock = (lines: string[], label: string) => `<div class="code"><pre aria-label="${escape(label)}"><code>${lines.map(escape).join('\n')}</code></pre>`
   + `<button class="copy" type="button" data-copy="${escape(lines.join('\n'))}"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="5" y="5" width="8.5" height="8.5" rx="2"/><path d="M3 10.5V4a1.5 1.5 0 0 1 1.5-1.5H10"/></svg><span>Copy</span></button></div>`
 
@@ -134,7 +138,7 @@ export function runPageHtml(identity: EditionIdentity, run: RunData, contract?: 
     + `<p class="note">It installs rer for you alone, with its own Node if you have no Node 22 or later. The installer does not edit your shell files itself. If it ends with a line to run, run it before step 2: it puts rer on your PATH now and appends the same setting to your shell's startup file (for example ~/.zshrc) for new terminals.</p></div></li>`
     + `<li class="step"><span class="num" aria-hidden="true">2</span><div class="body"><h2>Start ${name}</h2>${codeBlock([rerStart(run)], `Start ${run.name}`)}`
     + `<p class="note">rer gets ${name}, installs everything, makes you the owner and prints a link that opens ${name} signed in. To start it again later: ${inlineCode(`cd ${run.folder} && rer dev`)}</p>`
-    + `<p class="alt">Already have Node 22 or later? ${inlineCode(run.clone)} does both steps in one line.</p></div></li>${hosted}</ol>`
+    + `<p class="alt">Already have Node 22 or later? ${inlineStart(run)} does both steps in one line.</p></div></li>${hosted}</ol>`
     + `<footer class="facts"><p>${escape(run.requirements)}</p><p>Source: <a href="${escape(run.repository)}">${source}</a> · ${escape(run.licence)} license</p></footer></main>`
   return document(identity, `Run ${run.name}`, `Run ${run.name} on your computer. 100% free and open source.`, RUN, body, COPY_SCRIPT)
 }

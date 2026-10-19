@@ -761,6 +761,14 @@
         "environment": "all"
       },
       {
+        "path": "/api/rer/cutover-status",
+        "match": "exact",
+        "kind": "credentialed",
+        "class": "imports",
+        "authentication": "POST only. A short-lived installation-scoped ES256 Run Edit Run grant of action cutover-status under the owner-claim key ring; read-only, answers per-destination delivery counts and hosts and created monitor and incident counts since the body's ISO time, never content or secrets.",
+        "environment": "all"
+      },
+      {
         "path": "/app.js",
         "match": "exact",
         "kind": "asset",
