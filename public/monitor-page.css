@@ -1,7 +1,8 @@
 /* The monitor page's own additions: the action row with its More menu, fine print behind a "?", and the narrow-width order. */
 .top.ui-header:has(.monitor-title) .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; grid-template-columns: none; }
 .top.ui-header:has(.monitor-title) .actions :is(.actions > button, .actions > a, .more-menu > summary) { min-height: 46px; padding: 0 22px; font-size: 15px; }
-.more-menu { position: relative; }
+/* Keep the right-aligned dropdown inside the action row when More wraps. */
+.more-menu { position: relative; margin-inline-start: auto; }
 .more-menu > summary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--card); color: var(--ink); font-weight: 600; list-style: none; cursor: pointer; }
 .more-menu > summary:hover { background: var(--ground); }
 .more-menu > summary::-webkit-details-marker { display: none; }
