@@ -22,6 +22,7 @@
   .top.ui-header:has(.monitor-title) .actions > #run-monitor { flex-basis: 100%; }
   .top.ui-header:has(.monitor-title) .actions > :not(#run-monitor) { flex: 1 1 auto; }
   .top.ui-header:has(.monitor-title) .actions .more-menu > summary { box-sizing: border-box; width: 100%; }
+  .top.ui-header:has(.monitor-title) .actions .more-menu > summary::after { margin-inline-start: 0; }
 }
 .fine-print { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; color: var(--muted); font-size: 13px; line-height: 1.45; }
 .fine-print > p { margin: 0; }
