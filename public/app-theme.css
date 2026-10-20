@@ -614,13 +614,17 @@ body:has(.ui-sidebar)::before {
   .ui-sidebar { min-height: 0; gap: 12px; padding: 12px 16px 0; }
   .ui-brand { padding: 0; font-size: 22px; }
   .ui-brand .ui-mark { width: 26px; height: 26px; }
-  /* Two pills a row on a phone, whichever view is current: the current pill's dot adds 12px, and the widest row
-     (Runner / archive, current, beside Sign out) still fits at 320 with the smaller label below. */
-  .ui-sidebar nav { display: flex; flex-wrap: wrap; gap: 8px 6px; }
-  .ui-sidebar nav a { flex: 1 1 auto; gap: 6px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 999px; background: rgba(255, 255, 255, 0.6); font-size: 14.5px; }
+  /* One row on a phone: the sections scroll sideways when they do not fit, and Sign out sits beside the logo. The nav
+     stays unpositioned so the absolute Sign out is placed against the sidebar and is not clipped by the scrolling row. */
+  .ui-sidebar { position: relative; }
+  .ui-sidebar nav { display: flex; flex-wrap: nowrap; gap: 6px; margin: 0 -16px; padding: 0 16px 12px; overflow-x: auto; scrollbar-width: none; }
+  .ui-sidebar nav::-webkit-scrollbar { display: none; }
+  .ui-sidebar nav a { flex: none; gap: 6px; min-height: 40px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 999px; background: rgba(255, 255, 255, 0.6); font-size: 14.5px; }
   .ui-sidebar nav a:is([aria-current="page"], [aria-current="true"]) { padding-left: 24px; border-color: var(--line); background: var(--card); }
   .ui-sidebar nav a:is([aria-current="page"], [aria-current="true"])::before { left: 10px; }
-  .ui-sidebar nav .ui-icon { width: 18px; height: 18px; }
+  .ui-sidebar nav .ui-icon { display: none; }
+  .ui-sidebar nav a:is([data-view="signout"], #editor-signout) { position: absolute; top: 12px; right: 16px; min-height: 44px; padding: 0 4px; border: 0; background: none; }
+  .ui-sidebar nav a:is([data-view="signout"], #editor-signout) .ui-icon { display: block; width: 18px; height: 18px; }
   .ui-sidebar .environment { display: none; }
   .ui-main { padding: 20px 16px 40px; }
 }

@@ -9,6 +9,7 @@ import {consolePrefetchScript,CONSOLE_MODULES} from './console-prefetch.ts'
 export function ConsoleDocument(){
  const router=useRouter()
  useEditorLeafReady('/app')
+ // The markup's own script sets the requested section's title before React hydrates, hence suppressHydrationWarning.
  // The console mutates this markup. Start it after React hydrates the document,
  // just as the monitor form does, so it cannot race hydration on the save return.
  useEffect(()=>{
@@ -22,6 +23,6 @@ export function ConsoleDocument(){
   document.body.appendChild(script)
   return()=>{mounted=false;window.removeEventListener('uptime:new-monitor',openMonitor);window.dispatchEvent(new Event('uptime:console-unmount'));script.remove()}
  },[router])
- return <><script dangerouslySetInnerHTML={{__html:consolePrefetchScript}}/><link rel="stylesheet" href="/app-theme.css" precedence="default"/><link rel="stylesheet" href="/style.css"/><link rel="stylesheet" href="/notifications.css"/><link rel="stylesheet" href="/sections.css"/><div dangerouslySetInnerHTML={{__html:markup}}/></>
+ return <><script dangerouslySetInnerHTML={{__html:consolePrefetchScript}}/><link rel="stylesheet" href="/app-theme.css" precedence="default"/><link rel="stylesheet" href="/style.css"/><link rel="stylesheet" href="/notifications.css"/><link rel="stylesheet" href="/sections.css"/><div suppressHydrationWarning dangerouslySetInnerHTML={{__html:markup}}/></>
 }
 export const consoleHead=()=>({meta:[{title:'Uptime'}],links:[{rel:'icon',href:'/favicon.svg',type:'image/svg+xml'},{rel:'preload',href:'/design-assets/fonts/plus-jakarta-sans-latin-wght-normal.woff2',as:'font',type:'font/woff2',crossOrigin:'anonymous' as const},...CONSOLE_MODULES.map(name=>({rel:'modulepreload',href:`/${name}`}))]})

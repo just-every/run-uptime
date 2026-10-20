@@ -48,8 +48,8 @@ try{
  await waitFor('the renamed location to keep checking in',async()=>{const row=(await runners()).find(r=>r.runnerId===joined.runnerId);return row.networkLabel==='Sydney office'&&row.lastContactAt>renamedAt});
 
  // Remove: the location leaves the list and its key stops working.
- page.once('dialog',dialog=>dialog.accept());
  await page.locator(`[data-remove="${joined.runnerId}"]`).click();
+ await page.getByRole('dialog').getByRole('button',{name:'Remove',exact:true}).click();
  await page.locator(`tr[data-key="location-${joined.runnerId}"]`).waitFor({state:'detached'});
  const refused=await fetch(origin+'/api/runner/claim',{method:'POST',headers:{'content-type':'application/json','x-runner-id':joined.runnerId,'x-runner-key':settings.UPTIME_RUNNER_KEY},body:'{}'});
  assert.equal(refused.status,401,'a removed location cannot check in');

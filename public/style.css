@@ -90,7 +90,7 @@
 }
 
 /* The loading skeleton, shown until the first overview arrives: neutral bars, no sample data, no motion. */
-.loading-list { padding: 6px 24px 20px; }
+.loading-list { padding: 20px 24px; }
 .loading-note { color: var(--muted); font-size: 14px; }
 .loading-list.read-failed { padding-block: 14px 22px; }
 .read-failed .loading-note { color: var(--body); }
@@ -103,7 +103,7 @@
 .loading-panel .ui-skeleton--title { width: 58%; margin-bottom: 6px; }
 .loading-panel .ui-skeleton:last-child { width: 64%; }
 @media (max-width: 700px) {
-  .loading-list { padding: 4px 16px 16px; }
+  .loading-list { padding: 16px; }
   .loading-rows > div { grid-template-columns: 72px minmax(0, 1fr); gap: 12px; }
   .loading-rows .ui-skeleton:nth-child(3) { grid-column: 2; }
 }

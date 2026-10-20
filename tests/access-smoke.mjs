@@ -25,7 +25,7 @@ async function probe(call,settings,fetcher=fetch,requireRunner=false){
  }
  const legacy=await call('/monitor?monitor=x');assert.equal(legacy.status,308);assert.equal(legacy.headers.get('location'),'/app/monitor?monitor=x');
  const legacySlash=await call('/monitor/?monitor=x');assert.equal(legacySlash.status,308);assert.equal(legacySlash.headers.get('location'),'/app/monitor?monitor=x');
- const login=await call('/login');assert.equal(login.status,requireRunner?303:200);if(requireRunner)assert.equal(login.headers.get('location'),'/signin?returnTo=%2Fsetup');
+ const login=await call('/login');assert.equal(login.status,requireRunner?303:200);if(requireRunner)assert.equal(login.headers.get('location'),'/signin?returnTo=%2Fapp');
  assert.equal((await call('/does-not-exist')).status,404);
  // Before the owner confirms first-run setup the Lobby's one action is /setup; once confirmed it is sign-in,
  // which a local instance prefills with the owner's address.
