@@ -1,5 +1,14 @@
-export function additionalAssertions(assertions) {
-  return Object.fromEntries(['json','latencyMs'].filter(key=>assertions[key]!==undefined).map(key=>[key,assertions[key]]));
+// A JSON rule's value as typed: true, 12 or "12" are typed JSON; anything else (ok) is text.
+export function parseJsonValue(text) {
+  const value=String(text).trim();let parsed;
+  try{parsed=JSON.parse(value)}catch{return value}
+  if(!['string','number','boolean'].includes(typeof parsed))throw Error('JSON value: use text, a number, true or false.');
+  return parsed;
+}
+// The field's text for a saved value: text that would read as JSON keeps its quotes.
+export function showJsonValue(value) {
+  if(typeof value!=='string')return JSON.stringify(value);
+  try{JSON.parse(value);return JSON.stringify(value)}catch{return value}
 }
 
 export function parseStatus(value) {
@@ -9,12 +18,12 @@ export function parseStatus(value) {
   return codes.length===1&&typeof codes[0]==='number'?codes[0]:codes;
 }
 
-// Each assertion has one visible owner; JSON cannot silently replace a field.
-export function assembleAssertions({status,body='',bodyExcludes='',regexPattern='',regexFlags='',headerName='',headerValue='',additional='{}'}) {
-  const extra=JSON.parse(additional||'{}');
-  if(!extra||typeof extra!=='object'||Array.isArray(extra))throw Error('Additional checks must be a JSON object.');
-  if(['status','bodyIncludes','bodyExcludes','bodyRegex','header'].some(key=>Object.hasOwn(extra,key)))throw Error('Set status, body and headers using the fields above.');
-  if(Object.keys(extra).some(key=>!['json','latencyMs'].includes(key)))throw Error('Additional checks support json and latencyMs.');
-  if(regexFlags&&!regexPattern)throw Error('Enter a body regular expression before its flags.');
-  return {...extra,status:parseStatus(status),...(body?{bodyIncludes:body}:{}),...(bodyExcludes?{bodyExcludes}:{}),...(regexPattern?{bodyRegex:{pattern:regexPattern,flags:regexFlags}}:{}),...(headerName?{header:{name:headerName,equals:headerValue}}:{})};
+// Each assertion has one field; an empty field is no rule.
+export function assembleAssertions({status,body='',bodyExcludes='',regexPattern='',regexFlags='',headerName='',headerValue='',jsonPath='',jsonEquals='',latencyMs=''}) {
+  if(regexFlags&&!regexPattern)throw Error('Enter a pattern before its flags.');
+  if(headerValue&&!headerName)throw Error('Header: enter the header name.');
+  const path=jsonPath.trim(),equals=String(jsonEquals).trim(),latency=String(latencyMs).trim();
+  if(Boolean(path)!==Boolean(equals))throw Error('JSON value: enter both the path and the value it must equal.');
+  if(latency&&!/^\d+$/.test(latency))throw Error('Responds within: whole milliseconds, such as 3000.');
+  return {status:parseStatus(status),...(body?{bodyIncludes:body}:{}),...(bodyExcludes?{bodyExcludes}:{}),...(regexPattern?{bodyRegex:{pattern:regexPattern,flags:regexFlags}}:{}),...(headerName?{header:{name:headerName,equals:headerValue}}:{}),...(path?{json:{path,equals:parseJsonValue(equals)}}:{}),...(latency?{latencyMs:Number(latency)}:{})};
 }

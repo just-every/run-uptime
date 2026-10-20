@@ -31,10 +31,9 @@ export async function definitionsJourney(page, origin) {
  ];
  for (const step of cases) {
   await page.setViewportSize({ width: step.width, height: 900 });
-  await page.goto(origin + '/app');
-  await page.getByRole('link', { name: 'Definitions', exact: true }).click();
-  await page.getByRole('heading', { name: 'Monitor definitions' }).waitFor();
-  await page.getByLabel(/^Definition file\b/).setInputFiles(step.file);
+  await page.goto(origin + '/app#archive');
+  await page.getByRole('heading', { name: 'Monitor files' }).waitFor();
+  await page.getByLabel(/^A file from\b/).setInputFiles(step.file);
   await page.getByRole('button', { name: 'Preview', exact: true }).click();
   const apply = page.getByRole('button', { name: step.apply, exact: true });
   await apply.waitFor();
@@ -54,7 +53,7 @@ export async function definitionsJourney(page, origin) {
    await row.locator('.ui-pill.state').filter({ hasText: 'Paused' }).waitFor();
   }
   if (evidence) await page.screenshot({ path: join(evidence, `definitions-monitors-paused-${step.width}.png`), fullPage: true });
-  await page.getByRole('link', { name: 'Definitions', exact: true }).click();
+  await page.getByRole('link', { name: 'Archive', exact: true }).click();
   await page.locator('.definition-batches > li').first().getByRole('button', { name: 'Undo this batch' }).click();
   await page.locator('#action-notice').filter({ hasText: /^Batch undone/ }).waitFor();
   for (const name of step.created) await page.locator('.definition-batches > li').first().getByText(`${name} — created; Paused, history kept`, { exact: true }).waitFor();

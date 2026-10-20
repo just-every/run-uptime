@@ -27,8 +27,8 @@ export async function availablePorts(count){
   return custody.map(item=>item.port);
  }finally{await Promise.all(custody.map(({server})=>new Promise(resolve=>server.close(resolve))))}
 }
-export async function migratedWorker({port,persist,bindings,outboundService,baselineOnly=false}){
- const worker=await startLocalWorker({root,port,persist,bindings:{...testAuthBindings,...bindings},outboundService});
+export async function migratedWorker({port,persist,bindings,outboundService,baselineOnly=false,cf}){
+ const worker=await startLocalWorker({root,port,persist,bindings:{...testAuthBindings,...bindings},outboundService,cf});
  try{
   const DB=await worker.getD1Database('DB');
   const existing=await DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='monitors'").first();

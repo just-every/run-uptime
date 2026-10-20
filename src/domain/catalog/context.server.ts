@@ -27,7 +27,7 @@ export function checkDependencies(definition:any,context:Context,id?:string){
 // Assignment checks are pure in preview. An uninitialised installation is refused, never represented by a fake runner.
 export function assigned(env:Bindings,context:Context,definition:any,input:any={}){
  const first=context.runners.find(r=>r.legacy_key)
- if(!first)throw Error('No local runner is registered. Open Runner / archive before adding monitors.')
+ if(!first)throw Error('No location is set up. Open Locations before adding monitors.')
  return assignRunners(context.runners,first.runner_id,definition,input,context.external,env.RER_DEMO!=='1',env.UPTIME_ORIGIN)
 }
 export function publicChecks(){

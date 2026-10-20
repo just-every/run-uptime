@@ -1,5 +1,5 @@
 import {firstMount} from './dom-patch.js';
-// Business imports on Runner / archive. Its section is data-owned (public/runner-settings.js), so the console's refresh
+// Business imports in Settings. Its section is data-owned (public/settings-view.js), so the console's refresh
 // keeps a draft, an open disclosure or a pending request; this fills the section once, when it first appears.
 export function businessImportSettings(row,api){
  if(firstMount(row))createSettings(row,api);

@@ -360,6 +360,12 @@
       "name": "0056_import_door_archive.sql",
       "sha256": "6a99800f2320007a4e784d896c9cb2bd96a48992b137289b090a9214f36b9e13",
       "sql": "-- Business archives of a tool's final export (import door `archive`); the header stays, erasure withdraws the bytes.\nCREATE TABLE IF NOT EXISTS ik_door_archives (\n    id TEXT PRIMARY KEY, installation_id TEXT NOT NULL, namespace TEXT NOT NULL,\n    upload_id TEXT NOT NULL, tool TEXT NOT NULL, taken_at TEXT NOT NULL, name TEXT NOT NULL,\n    bundle_sha256 TEXT NOT NULL, total_bytes INTEGER NOT NULL, total_chunks INTEGER NOT NULL,\n    counts_json TEXT NOT NULL, UNIQUE(installation_id,namespace,upload_id));\n\nCREATE TABLE IF NOT EXISTS ik_door_archive_chunks (\n    archive_id TEXT NOT NULL REFERENCES ik_door_archives(id), ordinal INTEGER NOT NULL,\n    sha256 TEXT NOT NULL, size INTEGER NOT NULL, base64 TEXT NOT NULL,\n    PRIMARY KEY(archive_id,ordinal));\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0057_location_names.sql",
+      "sha256": "e347f1474ff961010aa7a1316eb36bac19e78b7e7df8224451838301906821b9",
+      "sql": "-- Locations are named after where their runner runs (owner, 20 Oct 2026). named_by says who chose a runner's label:\n-- 'default' (generated; the runner's place renames it when it next reaches Uptime), 'place' (named from that place) or\n-- 'owner' (typed by the owner; never renamed). Existing labels were typed by the owner, except the built-in\n-- 'owner-network', which takes a generated name now (the rule of src/domain/location-name.ts generatedName) and its\n-- place's name on its runner's next contact.\nALTER TABLE runners ADD COLUMN named_by TEXT NOT NULL DEFAULT 'owner';\nUPDATE runners SET named_by='default',\n network_label=json_extract('[\"Amber\",\"Brisk\",\"Cedar\",\"Coral\",\"Ember\",\"Fern\",\"Golden\",\"Harbor\",\"Jade\",\"Maple\",\"Misty\",\"Quiet\",\"River\",\"Silver\",\"Swift\",\"Willow\"]','$['||(instr('0123456789abcdef',lower(substr(runner_id,6,1)))-1)||']')||' '||json_extract('[\"Bay\",\"Brook\",\"Cove\",\"Crest\",\"Dale\",\"Field\",\"Glen\",\"Grove\",\"Hill\",\"Lake\",\"Meadow\",\"Peak\",\"Ridge\",\"Shore\",\"Vale\",\"Wood\"]','$['||(instr('0123456789abcdef',lower(substr(runner_id,7,1)))-1)||']')\n WHERE network_label='owner-network' AND runner_id LIKE 'self-%';\n"
     }
   ],
   "compatibilityDate": "2026-09-08",

@@ -1,17 +1,17 @@
 /* The console (/app and /app/monitors/<id>): its grid with the side column, the summary, the monitor list with its
-   coverage bars, a monitor's page and the runner and archive view. It builds on app-theme.css (tokens, element defaults, ui-* components and the shell), which
+   coverage bars, a monitor's page and the definition files on Archive (sections.css styles Locations, Settings and Archive). It builds on app-theme.css (tokens, element defaults, ui-* components and the shell), which
    loads first; notifications.css loads after it. The shell's single-column breakpoint is 700px, matching
    matchMedia('(max-width:700px)') in app.js and innerWidth<=700 in notifications.js. */
 
 /* ---------------------------------------------------------------- grid */
-/* The side column (.right) holds the notifications help and the runner limits; app.js hides it for the monitor list and
+/* The side column (.right) holds the notifications help and the add-a-location steps; app.js hides it for the monitor list and
    a monitor's page, which then take the full width. */
 @media (min-width: 1200px) {
   .app { grid-template-columns: var(--sidebar-w) minmax(0, 1fr) 360px; }
   .app:has(> .right[hidden]) { grid-template-columns: var(--sidebar-w) minmax(0, 1fr); }
   .right { padding: 32px 0 48px; }
-  /* The runner view's limits card lines up with the main card, under the page header. */
-  .app:has(.runner-panel) > .right { padding-top: 117px; }
+  /* The add-a-location steps line up with the list card, under the page header. */
+  .app:has(#add-location) > .right { padding-top: 117px; }
 }
 @media (min-width: 701px) and (max-width: 1199px) {
   .app > .ui-sidebar { grid-row: 1 / span 2; }
@@ -455,18 +455,7 @@
 .monitor-missing p { max-width: 56ch; overflow-wrap: anywhere; }
 .monitor-missing .ui-button { margin-top: 16px; }
 
-/* ---------------------------------------------------------------- runner and archive */
-.runner-panel { padding: 16px 24px 24px; }
-.runner-panel > h2 { margin-bottom: 6px; padding-top: 16px; border-top: 1px solid var(--line); }
-.runner-panel > p { max-width: 72ch; }
-.runner-panel > p + p { margin-top: 8px; }
-.runner-panel > section { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line); }
-.runner-panel h3 { margin-bottom: 10px; font-size: 17px; }
-.runner-panel section > p { max-width: 72ch; margin-top: 10px; }
-.runner-contact { display: grid; gap: 4px; margin-bottom: 4px; }
-.runner-contact > div { display: grid; grid-template-columns: minmax(150px, 220px) minmax(0, 1fr); align-items: baseline; gap: 4px 16px; padding: 6px 0; }
-.runner-contact dt { color: var(--muted); font-size: 14px; font-weight: 500; }
-.runner-contact dd { margin: 0; color: var(--ink); font-size: 15px; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+/* ---------------------------------------------------------------- settings and backup */
 .external-check form { max-width: 560px; margin-top: 14px; }
 .external-check label { display: block; margin-bottom: 6px; color: var(--body); font-weight: 500; }
 .external-check-row { display: flex; gap: 10px; }
@@ -493,11 +482,7 @@
 .definition-batches > li { padding: 12px 0; border-top: 1px solid var(--line); overflow-wrap: anywhere; }
 .definition-batches button { margin-top: 10px; }
 @media (max-width: 700px) {
-  .runner-panel { padding: 12px 16px 16px; }
   .archive-tools label { max-width: none; }
-}
-@media (max-width: 480px) {
-  .runner-contact > div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
 }
 
 /* Browser flow (FLOW-001): the step trace and revision history on a monitor's page, in the page's own list and result styles. */

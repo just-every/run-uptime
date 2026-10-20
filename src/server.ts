@@ -41,7 +41,7 @@ import {readExternalCheck,saveExternalCheck} from './domain/external-check.serve
 // @ts-ignore Shared bounded credential diagnostics.
 import {runnerResultLimit} from './domain/credential-binding.mjs'
 import {signedRunnerBody} from './domain/runner-signature.server.ts'
-import {enrollRunner,authenticateRunner,createRunner,revokeRunner,listRunners,ensureFirstRunner,type Runner} from './domain/runner-registration.server.ts'
+import {enrollRunner,authenticateRunner,createRunner,renameRunner,revokeRunner,listRunners,ensureFirstRunner,nameFromPlace,type Runner} from './domain/runner-registration.server.ts'
 import {configurationResponse,validateWorkerConfiguration} from './domain/startup-config.mjs'
 import {isPublicDocument,publicPath} from './domain/public-paths.ts'
 import {limitPublicRequest} from './domain/public-rate-limits.server.ts'
@@ -185,13 +185,14 @@ api.get('/api/v1/monitors/:id/response-times',async c=>{
 api.post('/api/monitors/:id/run',async c=>{const m=await get(c.env,c.req.param('id'));if(!m||!m.definition.enabled)return c.json({error:'Monitor unavailable or paused'},409);const id=`${m.id}:${m.revision}:manual:${crypto.randomUUID()}`;const inserted=await c.env.DB.prepare("INSERT INTO slots(id,monitor_id,revision,due_at,status,definition,lease_owner,lease_until,missed_count,manual) SELECT ?,?,?,?,'queued',?,'unclaimed',0,0,1 WHERE EXISTS(SELECT 1 FROM monitors WHERE id=?)").bind(id,m.id,m.revision,Date.now(),JSON.stringify(m.definition),m.id).run();if(!inserted.meta.changes)return c.json({error:'Monitor unavailable or erased'},409);return c.json({queued:true,slotId:id,policyAdvanced:false})})
 api.get('/api/runners',async c=>c.json(await listRunners(c.env)))
 api.post('/api/runners',async c=>c.json(await createRunner(c.env,c.get('input')),201))
+api.patch('/api/runners/:id',async c=>c.json(await renameRunner(c.env,c.req.param('id'),c.get('input'))))
 api.delete('/api/runners/:id',async c=>c.json(await revokeRunner(c.env,c.req.param('id'))))
 // The installation-wide External check URL: owner session only, same origin, validated before it is stored.
 api.patch('/api/notifications/preferences',async c=>c.json(await saveNotificationPreferences(c.env,c.get('input'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 api.get('/api/external-check',async c=>c.json(await readExternalCheck(c.env)))
 api.post('/api/external-check',async c=>c.json(await saveExternalCheck(c.env,c.get('requestText'))))
-api.post('/api/runner/enroll',async c=>{const registration=await enrollRunner(c.env,c.get('requestText'),c.req.header('x-sent-at')??'',c.req.header('x-runner-signature')??'',c.get('runner'));return registration?c.json(registration):c.json({error:'Invalid signed enrolment'},403)})
-api.post('/api/runner/claim',async c=>{const row=c.get('runner').runner_id?c.get('runner'):await ensureFirstRunner(c.env);const task=await storageOperation('runner.claim',()=>claim(c.env,row.runner_id));await storageOperation('runner.claim.contact',async()=>{await recordContact(c.env.DB);await c.env.DB.prepare('UPDATE runners SET last_contact_at=? WHERE runner_id=? AND revoked_at IS NULL').bind(Date.now(),row.runner_id).run()});
+api.post('/api/runner/enroll',async c=>{const registration=await enrollRunner(c.env,c.get('requestText'),c.req.header('x-sent-at')??'',c.req.header('x-runner-signature')??'',c.get('runner'),c.req.raw.cf);return registration?c.json(registration):c.json({error:'Invalid signed enrolment'},403)})
+api.post('/api/runner/claim',async c=>{const row=c.get('runner').runner_id?c.get('runner'):await ensureFirstRunner(c.env);const task=await storageOperation('runner.claim',()=>claim(c.env,row.runner_id));await storageOperation('runner.claim.contact',async()=>{await recordContact(c.env.DB);await c.env.DB.prepare('UPDATE runners SET last_contact_at=? WHERE runner_id=? AND revoked_at IS NULL').bind(Date.now(),row.runner_id).run();if(row.named_by==='default')await nameFromPlace(c.env,row,c.req.raw.cf)});
  // `now` is the Worker's clock at the claim: the runner aligns the times it reports to it (see docs/runner.md).
  return c.json({task,now:Date.now()})})
 api.post('/api/runner/results',async c=>{const text=c.get('requestText');if(!await signedRunnerBody(c.env,c.get('runner'),text,c.req.header('x-sent-at')??'',c.req.header('x-runner-signature')??'',runnerResultLimit(text)))return c.json({error:'Invalid signed result'},403);return c.json(await storageOperation('runner.results',()=>complete(c.env,c.get('input'),c.get('runner').runner_id)))})

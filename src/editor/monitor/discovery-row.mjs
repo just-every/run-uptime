@@ -1,4 +1,5 @@
 import {cloneFields,fieldControls,fillFields,readFields} from './fields.mjs';
+import {bindRules} from './rules.mjs';
 import {curlyQuotes,describeChecks} from './discovery-checks.mjs';
 // One proposed monitor: a tick, what it is and why, the checks in plain words, and a chevron that opens the same fields
 // as the full form. The row owns its fields; nothing is sent until the owner starts the monitors.
@@ -20,7 +21,7 @@ export function createRow({proposal,index,form,plan,onChange}){
  details.append(summary,fields);
  const outcome=element('p','proposal-outcome');outcome.id=`${id}-outcome`;outcome.setAttribute('role','status');outcome.hidden=true;
  item.append(pick,details,outcome);
- fillFields(copy,proposed);
+ bindRules(copy);fillFields(copy,proposed);
  const original=describeChecks(proposed).join('\n');
  // The summary follows the fields. Until the owner changes a check it keeps the runner's own wording for it.
  function refresh(){
@@ -46,7 +47,7 @@ export function createRow({proposal,index,form,plan,onChange}){
   problem(){
    let message='',bad=fieldControls(copy).find(control=>!control.checkValidity());
    if(bad)message=bad.validationMessage;
-   else try{readFields(copy,proposed)}catch(error){message=error.message;bad=copy.querySelector('[name=additional]')}
+   else try{readFields(copy,proposed)}catch(error){message=error.message;bad=copy.querySelector('.rule-row:not([hidden]) input')}
    if(!message)return null;
    details.open=true;return {control:bad,message};
   },

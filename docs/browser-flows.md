@@ -45,7 +45,7 @@ From the installed checkout on every assigned runner machine:
 pnpm exec playwright install chromium firefox webkit
 ```
 
-Restart the private runner after installing or removing an engine. It tests each engine at enrollment and shows the available engines in **Runner / archive**. A missing, disabled or failed selected engine produces Unknown with that engine’s name; it never substitutes another browser. `UPTIME_RUNNER_BROWSER=off` disables all flows. Set `UPTIME_RUNNER_BROWSERS=chromium,firefox` to permit only those engines on a particular runner. The default permits all three. Keep the runner’s ordinary signed-in operating-system HOME; browser profiles and temporary files remain separate per-run directories.
+Restart the private runner after installing or removing an engine. It tests each engine at enrollment and reports the available engines in `GET /api/runners`. A missing, disabled or failed selected engine produces Unknown with that engine’s name; it never substitutes another browser. `UPTIME_RUNNER_BROWSER=off` disables all flows. Set `UPTIME_RUNNER_BROWSERS=chromium,firefox` to permit only those engines on a particular runner. The default permits all three. Keep the runner’s ordinary signed-in operating-system HOME; browser profiles and temporary files remain separate per-run directories.
 
 Credentials used by a `fill` step stay in protected runner-local files bound to the exact monitor ID and origin. A clone has a new ID and needs its own credential reference and file. See [runner credential custody](/docs/runner#request-secrets-stay-with-the-runner).
 

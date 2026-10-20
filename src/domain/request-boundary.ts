@@ -63,6 +63,7 @@ export const apiRoutes:readonly Route[]=[
  {method:'POST',path:'/api/monitors/:id/erase',params:id,body:'object'},
  {method:'GET',path:'/api/runners',body:'none'},
  {method:'POST',path:'/api/runners',body:'object'},
+ {method:'PATCH',path:'/api/runners/:id',params:id,body:'object'},
  {method:'DELETE',path:'/api/runners/:id',params:id,body:'none'},
  {method:'GET',path:'/api/external-check',body:'none'},
  {method:'POST',path:'/api/external-check',body:'object'},

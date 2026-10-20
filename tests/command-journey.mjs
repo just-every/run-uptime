@@ -101,7 +101,7 @@ try {
  const nativeSetup = await browser.newContext({ javaScriptEnabled: false, storageState: await page.context().storageState() });
  try {
   const p = await nativeSetup.newPage(); await p.goto(origin + '/setup');
-  await p.getByRole('button', { name: 'Finish setup', exact: true }).click(); await p.waitForURL(url => url.origin === origin && url.pathname === '/app/monitor' && url.searchParams.has('discovery'));
+  await p.getByRole('button', { name: 'Continue', exact: true }).click(); await p.waitForURL(url => url.origin === origin && url.pathname === '/app/monitor' && url.searchParams.has('discovery'));
   const job = await page.request.get(origin + '/api/discoveries/' + new URL(p.url()).searchParams.get('discovery'));
   assert.equal(job.status(), 200); assert.equal((await job.json()).url, startSite, 'finishing setup lands on the discovery of the owner\'s website');
  } finally { await nativeSetup.close(); }
