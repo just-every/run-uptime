@@ -17,7 +17,7 @@ try{
  browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});
  const page=await (await browser.newContext({viewport:{width:1440,height:900}})).newPage(),errors=[];page.on('pageerror',error=>errors.push(error.message));
  await browserSignIn(page,origin);
- await page.waitForURL(url=>url.pathname==='/app/monitor');
+ await page.waitForURL(url=>url.pathname==='/app/monitor');await page.locator('html.editor-ready').waitFor();
  assert.equal(await page.locator('h1').textContent(),'Add your first monitor','with no monitors, finishing setup opens the new-monitor form');
  const runners=async()=>(await(await page.request.get(origin+'/api/runners')).json()).filter(r=>!r.revokedAt);
 

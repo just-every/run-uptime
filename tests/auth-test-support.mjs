@@ -38,7 +38,8 @@ export async function deliveredLink(call,{email,kind='magic'}){
 export async function finishSetup(origin,cookie,fetcher=fetch){
  const response=await fetcher(origin+'/setup',{method:'POST',redirect:'manual',headers:{host:new URL(origin).host,origin,cookie}});
  assert.equal(response.status,303,'owner completes the native first-run form');
- assert.equal(response.headers.get('location'),'/app');
+ // An installation with no monitors lands on the first monitor's form; one with monitors on the list.
+ assert.ok(['/app','/app/monitor?first=1'].includes(response.headers.get('location')),response.headers.get('location'));
 }
 export async function emailSignIn(origin,{bindings=testAuthBindings,fetcher=fetch}={}){
  const call=authRequest(origin,fetcher);
