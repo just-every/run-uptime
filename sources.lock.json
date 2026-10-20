@@ -2350,6 +2350,10 @@
       "sha256": "8e6db5d3eeaf59f53cb044353c62474a94696d3f0b07bb2999869bd39d3a3fcf",
       "executable": false
     },
+    "public/definition-changes.js": {
+      "sha256": "32eade108b4fc523b8c403d4428d2c0f66167253512934c567436fb629f3179d",
+      "executable": false
+    },
     "public/definitions.js": {
       "sha256": "109ef41d380c52ed7b2bca20981fa09df1826d57a4ddc74fee71a27890d1dbdd",
       "executable": false
@@ -2486,6 +2490,10 @@
       "sha256": "d0b45d1b28c4d8df499fa158dfe429e4dcf92e1fca1dee70c2b4e2a00b85faf9",
       "executable": false
     },
+    "public/notification-help.js": {
+      "sha256": "c79e80b06a2bda5bb350980b2fd17ae0002d8fb667f5ae0e250015cf279cd52d",
+      "executable": false
+    },
     "public/notification-preferences.js": {
       "sha256": "42bb41f31e1da369d9b5f94b7456d0d7a79bafeed052f063ed682fa80692ccad",
       "executable": false
@@ -2495,7 +2503,7 @@
       "executable": false
     },
     "public/notifications.js": {
-      "sha256": "a43b04925b2a0181507ab2762242599cbbe529bc00fe0d393bd4881b0dacd3de",
+      "sha256": "bde76f1cbb1d2d82af3b51d9846bafaeaaf195a6e59983434f01be1842ccf322",
       "executable": false
     },
     "public/planned-maintenance.css": {
