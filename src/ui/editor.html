@@ -5,7 +5,7 @@
  </aside>
  <main class="editor-main ui-main">
   <a class="editor-back ui-link" href="/app"><span class="ui-icon" data-icon="arrow-left" aria-hidden="true"></span>Back to monitors</a>
-  <header class="editor-header ui-header"><div><h1>New monitor</h1><p class="editor-description" hidden></p></div><p class="editor-first-links" hidden><button id="first-run-discovery" class="ui-link" type="button">Find monitors on a website</button><a class="ui-link" href="/app#archive">Import monitors</a></p></header>
+  <header class="editor-header ui-header"><div><h1>New monitor</h1><p class="editor-description" hidden></p></div><p class="editor-first-links" hidden><a class="ui-link" href="/app#archive">Import monitors</a></p></header>
   <p id="editor-notice" class="ui-callout error" role="alert" hidden></p>
   <section id="discovery" class="discovery" aria-label="Check a website" hidden>
    <form id="discovery-form" class="discovery-panel ui-card" novalidate>
@@ -20,12 +20,12 @@
     <ul id="discovery-notes" class="discovery-notes"></ul>
     <section id="discovery-proposal-section" class="discovery-proposals" aria-labelledby="discovery-proposals-heading">
      <h2 id="discovery-proposals-heading" tabindex="-1">Proposed monitors</h2>
-     <p class="discovery-intro">We checked your site and found these endpoints. Review and adjust as needed, then start the monitors.</p>
+     <p class="discovery-intro">Pick what to watch.</p>
      <ul id="discovery-proposals" class="proposal-list"></ul>
     </section>
     <div id="discovery-empty" class="discovery-empty ui-card" hidden>
      <h2 id="discovery-empty-heading" tabindex="-1">No monitors to propose</h2>
-     <p>The runner could not find anything it can watch on this site. The notes above say what it tried. You can set up a monitor by hand instead.</p>
+     <p>No public checks found. You can fill in a monitor yourself.</p>
      <button id="discovery-empty-manual" type="button">Fill in the form yourself</button>
     </div>
     <div class="editor-footer">

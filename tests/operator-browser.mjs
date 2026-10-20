@@ -117,7 +117,7 @@ try{
    const page=await context.newPage(),errors=[];page.on('pageerror',error=>errors.push(error.message));
    await browserSignIn(page,origin,{bootstrap:false});
    // The installation has no monitors before the first width: the console opens straight into the new-monitor form.
-   if(width===1440){await page.waitForURL(url=>url.pathname==='/app/monitor');await page.locator('.editor-context-ready').waitFor();assert.equal(await page.locator('h1').textContent(),'Add your first monitor');await audit(page,`editor-${width}`)}
+   if(width===1440){await page.waitForURL(url=>url.pathname==='/app/monitor');await page.locator('.editor-context-ready').waitFor();assert.equal(await page.locator('h1').textContent(),'Add your first monitor');await audit(page,`editor-${width}`);await page.locator('#discovery-manual').click()}
    else{await ready(page);await audit(page,`console-${width}`);
     await tabTo(page,page.getByRole('button',{name:'New monitor',exact:true}));await page.keyboard.press('Enter');
     await page.locator('.editor-ready').waitFor();await audit(page,`editor-${width}`);await page.locator('#discovery-manual').click()}

@@ -53,7 +53,7 @@ export async function firstRun(env:Bindings,request:Request){
     const completed=await env.DB.prepare('INSERT INTO uptime_first_run(id,completed_at) VALUES(1,?) ON CONFLICT(id) DO NOTHING').bind(Date.now()).run()
     // With no monitors yet, setup lands on the new-monitor form ("Add your first monitor") rather than an empty list.
     const empty=!(await env.DB.prepare('SELECT 1 FROM monitors LIMIT 1').first())
-    return redirect(completed.meta.changes&&job?`/app/monitor?discovery=${job}`:empty?'/app/monitor?first=1':'/app')
+    return redirect(completed.meta.changes&&job?`/app/monitor?${new URLSearchParams({discovery:job,website:new URL(address!).hostname,...(place?{from:place}:{})})}`:empty?'/app/monitor?first=1':'/app')
    }
    site={entered:typed??'',problem:BAD_SITE};status=400
   }else if(configured&&canDiscover&&request.method==='GET')await ensureDiscovery(env,configured)
