@@ -2535,7 +2535,7 @@
       "executable": false
     },
     "public/notifications.js": {
-      "sha256": "44d8b8e72fba5d22aa75d25f2ab8fc664be2ee826635bf3b4974bcb8abcfed06",
+      "sha256": "1fa1a69112ab1f525da2f72085132bf09326182704398f21d1803205436a4c40",
       "executable": false
     },
     "public/planned-maintenance.css": {
@@ -6764,6 +6764,10 @@
     },
     "tests/notify-delivery.mjs": {
       "sha256": "e3a062fc1c36bf4eb0bf202e89766405af5bb7a460a3b851486e40f48d80c421",
+      "executable": false
+    },
+    "tests/notify-retry-fixture.mjs": {
+      "sha256": "aae12359b54928c8a989cc320eaba6976ff12272ed88168ab5e51ccac95319bc",
       "executable": false
     },
     "tests/notify-secret-browser.mjs": {

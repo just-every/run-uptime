@@ -32,7 +32,7 @@ export async function proveNotificationRetry(){
   const monitor=await confirm();await dispatchNotifications(rpc,edge);
   let delivery=(await ok('/api/notifications')).deliveries.find(d=>d.event.monitorId===monitor.id);
   assert.equal(delivery.state,'queued');assert.equal(delivery.attempts,1);assert.equal(delivery.attemptHistory.length,2);
-  let scheduled=delivery.attemptHistory[1].scheduled_at;assert.ok(scheduled-receipts[0].at>=790&&scheduled-receipts[0].at<=1400);
+  let scheduled=delivery.attemptHistory[1].scheduled_at;assert.ok(scheduled-delivery.attemptHistory[0].finished_at>=800&&scheduled-delivery.attemptHistory[0].finished_at<=1200,'stored jitter is bounded independently of RPC latency');
   await f.worker.dispose();restarted=await startLocalWorker({persist:f.directory,port:Number(new URL(f.origin).port),bindings:f.bindings});await restarted.ready;
   if(Date.now()<scheduled){await dispatchNotifications(rpc,edge);assert.equal(receipts.length,1)}
   await new Promise(resolve=>setTimeout(resolve,Math.max(0,scheduled-Date.now()+20)));await dispatchNotifications(rpc,edge);
@@ -47,6 +47,7 @@ export async function proveNotificationRetry(){
   responses=[{status:500,headers:{}}];const capped=await confirm();await dispatchNotifications(rpc,edge);await dispatchNotifications(rpc,edge);
   const capRow=(await ok('/api/notifications')).deliveries.find(d=>d.event.monitorId===capped.id);assert.equal(capRow.state,'rejected');assert.equal(capRow.code,'retry_attempts_exhausted');assert.equal(capRow.attempts,1);
   await ok('/api/notifications/preferences',{retryPolicy:{maxAttempts:6,windowMs:600000}},'PATCH');
+  console.log('RETRY_PROOF stored retry, stable ID, Retry-After and restart passed');
   for(const status of [400,408]){
    responses=[{status,headers:{}}];const rejected=await confirm();await dispatchNotifications(rpc,edge);await dispatchNotifications(rpc,edge);
    const row=(await ok('/api/notifications')).deliveries.find(d=>d.event.monitorId===rejected.id);assert.equal(row.state,'rejected');assert.equal(row.status,status);assert.equal(row.attempts,1);
@@ -58,6 +59,7 @@ export async function proveNotificationRetry(){
   await ok('/api/notifications/preferences',{retryPolicy:{maxAttempts:6,windowMs:2000}},'PATCH');responses=[{status:500,headers:{}}];const overdue=await confirm();await dispatchNotifications(rpc,edge);
   const count=receipts.length;await new Promise(resolve=>setTimeout(resolve,2100));await dispatchNotifications(rpc,edge);assert.equal(receipts.length,count);
   assert.equal((await ok('/api/notifications')).deliveries.find(d=>d.event.monitorId===overdue.id).code,'retry_window_exhausted');
+  console.log('RETRY_PROOF client stop, owner cap and absolute window passed');
   const archive=await ok('/api/archive'),stored=archive.payload.productTables.notification_delivery_attempts;
   assert.ok(stored.length>=8);assert.ok(!JSON.stringify(stored).includes(contact.signingSecret));assert.ok(!JSON.stringify(stored).includes(receipts[0].body));
   const restoredPort=(await availablePorts(1)).find(port=>port!==Number(new URL(f.origin).port));assert.ok(restoredPort);
@@ -65,6 +67,7 @@ export async function proveNotificationRetry(){
   ({worker:restored}=await migratedWorker({port:restoredPort,persist:join(f.directory,'restore'),bindings:f.bindings}));await restoreAPI.signIn(f.bindings);
   assert.equal((await restoreAPI.api('/api/restore','POST',archive)).status,200);
   const after=(await restoreAPI.api('/api/archive')).data;assert.deepEqual(after.payload.productTables.notification_delivery_attempts,stored);
+  console.log('RETRY_PROOF inactive attempt archive restore passed');
   await restored.dispose();restored=null;
   const legacy=structuredClone(archive);legacy.payload.extensionVersion=9;delete legacy.payload.productTables.notification_delivery_attempts;legacy.sha256=createHash('sha256').update(JSON.stringify(legacy.payload)).digest('hex');
   ({worker:restored}=await migratedWorker({port:restoredPort,persist:join(f.directory,'legacy-restore'),bindings:f.bindings}));await restoreAPI.signIn(f.bindings);
