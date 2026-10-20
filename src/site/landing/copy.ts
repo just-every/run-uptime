@@ -9,7 +9,6 @@ export const hero = {
   primary: 'Run Uptime',
   demo: 'Try the demo',
   secondary: 'Read the docs',
-  fine: 'Free and open source, MIT licensed.',
 };
 
 export const evidence = {

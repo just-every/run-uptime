@@ -6055,7 +6055,7 @@
       "executable": false
     },
     "src/site/docs/styles/layout.css": {
-      "sha256": "fcee1d91ca0592a428fdbe4c3a43d5ecca13f60d6d68cad5d81be6259644246f",
+      "sha256": "add5081de222cdc01782e32cf040b2d725e0703dac0e1973c413d18bc4b3c699",
       "executable": false
     },
     "src/site/docs/styles/prose.css": {
@@ -6119,7 +6119,7 @@
       "executable": false
     },
     "src/site/landing/copy.ts": {
-      "sha256": "5ddf7a1c016b05eef238e1cdd4c722864aef379630cfe288c37100803beb03ad",
+      "sha256": "c1649076e002b1d8e030a40ce6ec84ba718017f2e0ef68fb976853500842db5c",
       "executable": false
     },
     "src/site/landing/hero/art/frame.ts": {
@@ -6187,7 +6187,7 @@
       "executable": false
     },
     "src/site/landing/sections/Hero.tsx": {
-      "sha256": "9b6150b1c940d1829d780281e2ac21d43a5c8937ded6f91dcdee733620aa2baa",
+      "sha256": "d9ae312636c55ee03a0f15e10ad00a79fa5e2fcf5714b527a91a4737acc817bc",
       "executable": false
     },
     "src/site/landing/sections/Included.tsx": {
@@ -6211,7 +6211,7 @@
       "executable": false
     },
     "src/site/landing/styles/hero.css": {
-      "sha256": "5a4e35869d8c491aca40fe47db0732576038470be3fae9fa68db80bd51aa87f8",
+      "sha256": "1200140fe5f05536834c9d9e0d9a30184aa85121a91a40509cdb498c24cf1fc9",
       "executable": false
     },
     "src/site/landing/styles/index.ts": {
