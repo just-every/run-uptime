@@ -162,7 +162,7 @@ test('DEPENDENCY-001 a linked provider status page is discovered, its component 
   assert.equal(revisions[0].assertions.json.path,payments.definition.assertions.json.path);assert.equal(revisions.at(-1).assertions.json.path,api.definition.assertions.json.path);
   edge.state.components.find(c=>c.id==='api').status='degraded_performance';
   await check(provider.id);const failed=await check(provider.id);
-  assert.equal(failed.observations[0].outcome,'target_failure');assert.ok(failed.observations[0].checks.some(c=>c.assertion==='json'&&!c.pass));
+  assert.equal(failed.definition.service,'Acme Cloud');assert.ok(failed.definition.outcome.includes(statusOrigin));assert.equal(failed.observations[0].outcome,'target_failure');assert.ok(failed.observations[0].checks.some(c=>c.assertion==='json'&&!c.pass));
   assert.equal((await g.state(provider.id)).state,'Failing');
   const failedMonitor=(await monitors()).find(m=>m.id===provider.id);assert.equal(failedMonitor.definition.service,'Acme Cloud');assert.ok(failedMonitor.definition.outcome.includes(statusOrigin));
   const alerts=(await g.request('/api/overview')).data.alerts;assert.ok(alerts.some(a=>a.monitor_id===provider.id&&a.kind==='trigger'),'ordinary separate provider monitor has its own incident');assert.ok(!alerts.some(a=>a.monitor_id===app.id));
