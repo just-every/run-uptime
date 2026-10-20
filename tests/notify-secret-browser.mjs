@@ -36,14 +36,14 @@ try{
    await browserSignIn(page,origin);await page.goto(origin+'/app#notifications');await page.locator('html.signed-in').waitFor();
    await page.getByRole('button',{name:'Add destination',exact:true}).focus();await page.keyboard.press('Enter');
    let dialog=page.getByRole('dialog');await dialog.waitFor();
-   assert.ok(await dialog.getByLabel('Name',{exact:true}).evaluate(element=>document.activeElement===element),'native dialog starts on its labelled name field');
+   assert.ok(await dialog.getByLabel('Name (optional)',{exact:true}).evaluate(element=>document.activeElement===element),'native dialog starts on its labelled name field');
    await page.keyboard.press('Shift+Tab');assert.ok(await dialog.evaluate(element=>element.contains(document.activeElement)),'reverse Tab remains inside modal');
    await page.keyboard.press('Tab');assert.ok(await dialog.evaluate(element=>element.contains(document.activeElement)),'Tab remains inside modal');
    await audit(page,`destination-dialog-${width}`,{dialogName:'Add destination'});
    await page.keyboard.press('Escape');await dialog.waitFor({state:'detached'});await focusReturns(page,'add-destination');
    async function create(kind,name,url){
     await page.getByRole('button',{name:'Add destination',exact:true}).click();const form=page.getByRole('dialog');
-    await form.getByLabel('Name',{exact:true}).fill(name);await form.getByLabel('Type',{exact:true}).selectOption(kind);await form.getByLabel('Destination URL',{exact:true}).fill(url);
+    await form.getByLabel('Name (optional)',{exact:true}).fill(name);await form.getByLabel('Type',{exact:true}).selectOption(kind);await form.getByLabel('Destination URL',{exact:true}).fill(url);
     let release;const gate=new Promise(resolve=>release=resolve),hold=async route=>{await gate;await route.continue()};
     await page.route(origin+'/api/overview',hold);
     try{

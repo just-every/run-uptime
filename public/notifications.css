@@ -30,7 +30,7 @@
 }
 
 /* Destination cards, each with its kind icon, name, kind and enabled pill, custody line, any warning and its actions.
-   Three across when the list is 700px or wider (the desktop main column beside the help aside), otherwise stacked. Delete stands apart at the end
+   Full-width rows. Delete stands apart at the end
    of the actions. */
 .notification-destinations { container: destinations / inline-size; }
 .destination-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 14px; min-width: 0; }
@@ -55,14 +55,6 @@
 .destination-controls button:not(:disabled):hover { border-color: transparent; background: var(--lavender); }
 .destination-controls [data-delete-destination] { margin-left: auto; color: var(--rose-text); }
 .destination-controls [data-delete-destination]:not(:disabled):hover { background: var(--rose-soft); }
-/* Three across, the cards line up. The pill takes its own line straight under the name, with the kind after it, so the
-   pills sit level even when one kind wraps. The controls sit at the foot of each card and Delete wraps right-aligned
-   onto their last row, so every card's bottom row sits level whatever the card holds above it. */
-@container destinations (min-width: 700px) {
-  .destination-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .destination-meta { flex-direction: column; align-items: flex-start; }
-  .destination-meta .ui-pill { order: -1; }
-}
 @container destination (max-width: 439px) {
   .destination-card > .email-setup-action { width: 100%; }
 }
@@ -79,10 +71,6 @@
 .delivery-when time { white-space: nowrap; }
 .delivery-destination strong { color: var(--body); font-weight: 600; }
 .delivery-reason { color: var(--body); font-size: 14px; line-height: 1.5; }
-/* "Code:" is a sans label; only the code is mono. A value too long for the label's line moves whole to the next line
-   and breaks inside itself only when it is wider than the chip. */
-.reason-code { display: block; width: fit-content; max-width: 100%; margin-top: 4px; padding: 1px 8px; border-radius: 6px; background: var(--neutral-soft); color: var(--muted); font-size: 12.5px; font-weight: 500; line-height: 1.6; }
-.reason-code-value { display: inline-block; max-width: 100%; color: var(--body); font-family: var(--mono); overflow-wrap: anywhere; }
 .delivery-outcome { display: grid; justify-items: start; gap: 2px; min-width: 0; }
 .delivery-outcome > .email-setup-action { min-height: 36px; }
 @container deliveries (min-width: 620px) {
@@ -101,7 +89,7 @@
 .destination-list > .notification-empty { grid-column: 1 / -1; margin-top: 0; }
 
 /* ---------------------------------------------------------------- help panel */
-/* One card, placed in the aside on wide screens and inline before the history at 700px and below; notifications.js
+/* One card, placed in the aside on wide screens and inline after the history at 700px and below; notifications.js
    picks the copy to open by the same 700px width. */
 .notification-help { padding: 22px 24px; color: var(--body); }
 .notification-help h2 { color: var(--ink); font-size: 18px; font-weight: 700; }

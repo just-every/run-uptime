@@ -26,19 +26,19 @@ Use **Send test** on a destination to queue a separate test event. A test does n
 
 ## Run an alert drill
 
-A test shows the provider answered. An alert drill also asks the person at the other end to say they got it. Use **Run alert drill** on a destination. Uptime sends one test event marked as a drill. It says who started the drill and when, and carries a one-time confirmation link. Ask whoever reads that inbox or channel to open the link and press **Confirm I received this drill**. They do not need to sign in. The page shows only the kind of destination and the drill time.
+A test shows the provider answered. An alert drill also asks the person at the other end to say they got it. Use **Send test** on a destination. Uptime sends one test event marked as a drill. It says who started the drill and when, and carries a one-time confirmation link. Ask whoever reads that inbox or channel to open the link and press **Confirm I received this drill**. They do not need to sign in. The page shows only the kind of destination and the drill time.
 
 The destination then shows the latest drill as three separate lines, because each proves something different:
 
 - **Submitted**: Uptime started sending it, at this time. It does not show the provider took it.
-- **Acknowledged**: the provider or your endpoint answered, at this time, with this code. It does not show the message reached an inbox. If there was no clear answer, the line says **Uncertain**; if the request was refused, **Failed**. Either way it is not sent again.
+- **Acknowledged**: the provider or your endpoint answered, at this time, with its result. It does not show the message reached an inbox. If there was no clear answer, the line says **Uncertain**; if the request was refused, **Failed**. Either way it is not sent again.
 - **Recipient confirmed**: someone used the link, at this time. This is what the recipient reported. It is not a check Uptime made itself.
 
 Whether anyone acted on the alert is not measured, so there is no line for it.
 
 A drill that nobody confirms stays "not confirmed yet" until its link expires after 24 hours. It then reads "not confirmed within 24 hours", and nothing is sent again.
 
-Each destination shows **Last proven** with the time of its latest confirmed drill, **Not proven in 30 days**, or **Never proven**. A proven destination says one message reached a person once. It says nothing about whether monitoring works, whether a later alert will arrive or whether anyone will respond. Changing an email address or webhook URL, or rotating a secret, makes the destination **Never proven** again. So does restoring it from an archive, because drill history stays with the installation that ran it.
+Each destination shows **Receipt confirmed** with the time of its latest confirmed drill, **No recent receipt confirmation**, or **No receipt confirmed yet**. A proven destination says one message reached a person once. It says nothing about whether monitoring works, whether a later alert will arrive or whether anyone will respond. Changing an email address or webhook URL, or rotating a secret, makes the destination **No receipt confirmed yet** again. So does restoring it from an archive, because drill history stays with the installation that ran it.
 
 The link holds a random one-time capability. Uptime keeps only a hash of it, plus a sealed copy that is deleted once the single send is over. Opening the link only shows the page; the button on it is what confirms. Mail scanners and link previews that open links therefore cannot confirm a drill. A link that was already used, has expired or is not a real drill link gets the ordinary "Page not found".
 

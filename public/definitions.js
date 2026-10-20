@@ -1,3 +1,4 @@
+import {changeMarkup} from './definition-changes.js';
 import {escape,icon} from './console-format.js';
 // Monitor files on Archive (/app#archive, public/archive-view.js): upload or paste a monitor file or an UptimeRobot export, read the
 // preview, apply exactly that preview, and undo a batch. Every import runs through the owner's import door
@@ -11,7 +12,6 @@ const MESSAGES={owner_required:'Sign in again as the owner to import.',review_fi
  import_door_apply_failed:'The installation changed since this preview, so nothing more was applied. Undo this batch, then preview again.',import_door_conflict:'The installation changed since this preview. Preview again.',
  import_attribution_missing:'A monitor this import created was edited since; undo stops there. Its edit was kept.',import_door_too_large:'This file is too large for one import.',source_secrets_withheld:'This upload still carried request secrets, so it was discarded. Preview the file again.'};
 let state={payload:null,preview:null,batches:null};
-const value=v=>escape(typeof v==='string'?v:JSON.stringify(v));
 
 async function send(path,{body,type,headers={}}={}){
  const response=await fetch(path,{method:body===undefined&&!type?'GET':'POST',headers:{...(type?{'content-type':type}:{}),...headers},body}),result=await response.json().catch(()=>({error:`Request ${response.status}`}));
@@ -46,9 +46,9 @@ async function plan(namespace,text){
 
 function countsMarkup(preview){
  if(preview.kind==='history')return `<p class="ui-callout">${escape(preview.note)}</p>`;
- const c=preview.counts,o=preview.outcomes;
+ const c=preview.counts;
  return `<dl class="definition-counts" aria-label="Preview counts">${Object.entries(ACTIONS).map(([key,[label]])=>`<div><dt>${label}</dt><dd>${c[key]}</dd></div>`).join('')}</dl>
- <p class="definition-source">${escape(preview.sourceLabel)}: ${o.importable} importable, ${o.withDifferences} importable with listed differences, ${o.unsupported} unsupported, ${o.refused} refused. New monitors arrive paused.</p>`;
+ <p class="definition-source">${escape(preview.sourceLabel)}: ${c.create} to create, ${c.unchanged} unchanged, ${c.change} to change, ${c.refused} refused, ${c.unsupported} unsupported. New monitors arrive paused.</p>`;
 }
 function criteriaMarkup(definition){
  if(definition?.type==='flow')return `<p><strong>Reviewed browser journey</strong></p><ul><li>Browser: ${escape(definition.flow.browser)}</li><li>Device: ${escape(definition.flow.device)}</li><li>Intent: ${escape(definition.flow.intent)}</li><li>${definition.flow.steps} steps; ${definition.flow.outcomes} required outcomes. Each browser/device combination is a separate monitor.</li></ul>`;
@@ -68,7 +68,7 @@ function rowMarkup(e){
   ...(e.reason?[`<p>${escape(e.reason)}</p>`]:[]),
   ...(e.target?.network==='private'?[`<p><strong>Private network</strong> · runner-local grant <code>${escape(e.target.privateGrantRef)}</code>. A new local grant is required before execution.</p>`]:[]),
   criteriaMarkup(e.target),
-  ...(e.changes??[]).map(ch=>`<p><span class="field">${escape(ch.field)}</span>: ${value(ch.from)} → ${value(ch.to)}</p>`),
+  ...(e.changes??[]).map(changeMarkup),
   ...(e.differences.length?[`<ul>${e.differences.map(d=>`<li>${escape(d)}</li>`).join('')}</ul>`]:[]),
  ];
  const target=e.target?(e.target.url?`<span class="url">${escape(e.target.url)}</span>`:'<span class="url url-prose">Incoming heartbeat</span>'):'';
@@ -79,7 +79,6 @@ function previewMarkup(preview){
  if(preview.kind==='history')return countsMarkup(preview);
  const c=preview.counts,applying=c.create+c.change;
  return `${countsMarkup(preview)}<p><button id="definition-apply" class="primary"${applying?'':' disabled'}>${icon('check')}Apply: create ${c.create}, change ${c.change}</button></p>
- <p class="definition-digest">Plan digest <code>${escape(preview.digest)}</code></p>
  <div class="table-scroll" tabindex="0" role="region" aria-label="Preview entries"><table class="ui-table ui-table--stack-md" aria-label="Preview entries"><thead><tr><th scope="col">Action</th><th scope="col">Monitor</th><th scope="col">Details</th></tr></thead><tbody>${preview.entries.map(rowMarkup).join('')}</tbody></table></div>`;
 }
 function batchesMarkup(batches){
@@ -87,7 +86,7 @@ function batchesMarkup(batches){
  if(!batches.length)return '<p>No imports yet.</p>';
  return `<ul class="definition-batches">${batches.map(b=>{const created=b.entries.filter(e=>e.action==='create').length,changed=b.entries.length-created,status=b.restoredAt?'From an archive (history only)':b.failed?'Apply failed':b.undoneAt?`Undone ${new Date(b.undoneAt).toLocaleString()}`:b.undone?'Undone':'Applied';
   return `<li><p><strong>${escape(new Date(b.createdAt).toLocaleString())}</strong> · ${escape(b.source)} · ${created} created, ${changed} changed · ${escape(status)}</p>
-  ${b.businessApproval?`<p>Approved ${b.businessApproval.via==='owner'?'':'via Business '}by ${escape(b.businessApproval.owner)} at ${escape(new Date(b.businessApproval.approvedAt).toLocaleString())}, fingerprint <code>${escape(b.businessApproval.fingerprint)}</code>${b.failed?`, then failed (${escape(b.failed)})`:''}</p>`:''}
+  ${b.businessApproval?`<p>Approved ${b.businessApproval.via==='owner'?'':'via Business '}by ${escape(b.businessApproval.owner)} at ${escape(new Date(b.businessApproval.approvedAt).toLocaleString())}${b.failed?`, then failed (${escape(b.failed)})`:''}</p>`:''}
   <ul>${b.entries.map(e=>`<li>${escape(e.name??e.monitorId)} — ${e.action==='create'?'created':'changed'}${e.undoOutcome?`; ${escape(OUTCOMES[e.undoOutcome]??e.undoOutcome)}`:''}</li>`).join('')}</ul>
   ${!b.undone&&!b.undoneAt&&!b.restoredAt?`<button class="definition-undo" data-batch="${escape(b.id)}">${icon('restore')}Undo this batch</button>`:''}</li>`}).join('')}</ul>`;
 }
@@ -99,8 +98,8 @@ export function renderDefinitions({area,action}){
  <label>A file from UptimeRobot, Pingdom, Better Stack or Uptime (2 MiB max)<input type="file" id="definition-file" accept=".json,.csv,application/json,text/csv"></label>
  <label>Or paste it<textarea id="definition-text" rows="5" spellcheck="false"></textarea></label>
  <label>Source<select id="definition-source"><option value="auto">Detect from the file</option><option value="uptime.monitors">Uptime monitor file</option><option value="uptimerobot">UptimeRobot v3 monitor list</option><option value="pingdom">Pingdom HTTP check details</option><option value="betterstack-heartbeats">Better Stack heartbeat pages</option><option value="uptimerobot-log">UptimeRobot log export (CSV)</option></select></label>
- <p><button id="definition-preview" class="primary">Preview</button> <button id="definition-export">${icon('export')}Export monitors</button></p></section>
- <section aria-labelledby="definition-preview-heading"><h3 id="definition-preview-heading">Preview</h3><div id="definition-result">${state.preview?'':'<p>Nothing previewed yet.</p>'}</div></section>
+ <p><button id="definition-preview" class="primary">Preview</button></p></section><section aria-labelledby="definition-export-heading"><h3 id="definition-export-heading">Export</h3><p><button id="definition-export">${icon('export')}Export monitors</button></p></section>
+ <section aria-labelledby="definition-preview-heading"><h3 id="definition-preview-heading">Preview</h3><p id="definition-applied" role="status"></p><div id="definition-result">${state.preview?'':'<p>Nothing previewed yet.</p>'}</div></section>
  <section aria-labelledby="definition-batches-heading"><h3 id="definition-batches-heading">Past imports</h3><p>Undo pauses what an import added and puts back what it changed, unless edited or enabled since.</p><div id="definition-batches"></div></section></section>`;
  const $=s=>area.querySelector(s);
  const showPreview=()=>{$('#definition-result').innerHTML=state.preview?previewMarkup(state.preview):'<p>Nothing previewed yet.</p>';const apply=$('#definition-apply');if(apply)apply.onclick=applyPreview};
@@ -125,7 +124,7 @@ export function renderDefinitions({area,action}){
    const report=await door(preview.namespace,'reconcile',{planId:preview.planId});
    if(!report.ok)throw Error('The import finished, but Uptime does not hold what it reviewed. Undo this batch.');
   },{pending:'Applying…',success:`Applied: ${preview.counts.create} created (paused), ${preview.counts.change} changed.`});
-  if(result.ok){state.preview=null;state.payload=null;showPreview();await loadBatches()}
+  if(result.ok){if(preview.counts.create){const created=preview.entries.filter(e=>e.action==='create');$('#definition-applied').innerHTML=`${preview.counts.create} created and paused. <a class="ui-link" href="${created.length===1?'/app/monitors/'+encodeURIComponent(created[0].monitorId):'/app'}">Review and start them →</a>`}state.preview=null;state.payload=null;showPreview();await loadBatches()}
  }
  async function undo(id){
   const batch=state.batches?.find(b=>b.id===id);

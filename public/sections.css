@@ -66,3 +66,9 @@
 .location-chip { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 999px; background: var(--ground); color: var(--ink); font-size: 14px; font-weight: 600; }
 .location-chip::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
 .rules-card details { margin-top: 14px; }
+
+/* Settings controls use the same spacing as the other forms. */
+.settings-panel form:not(#external-check-form) { display: grid; gap: 14px; max-width: 520px; margin-top: 14px; }
+.settings-panel form > button { justify-self: start; }
+.settings-buttons, .operator-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.settings-buttons { margin-top: 4px; }
