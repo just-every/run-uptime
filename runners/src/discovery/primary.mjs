@@ -27,7 +27,7 @@ export function normalizeInput(input){
 }
 export function explainFailure(failure,host){
   switch(failure.reason){
-    case 'refused':return `${host} points to a private address, so it was not contacted.`;
+    case 'refused':return failure.redirected?`${host} redirected to a private address, so the redirect was not followed.`:`${host} points to a private address, so it was not contacted.`;
     case 'unresolved':return `We couldn't find ${host}. Check the spelling.`;
     case 'dns':return `Could not look up ${host}.`;
     case 'timeout':case 'time':return `${host} did not answer in time.`;

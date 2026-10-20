@@ -2507,7 +2507,7 @@
       "executable": false
     },
     "public/monitor-page.css": {
-      "sha256": "0e27a0a2a70aba8cc62357f3ffdfb126191846d3533018d035df9e2a60a40a95",
+      "sha256": "a9b063d25b12dde4eb257c3739ff7ff965d4ad98e602b0948b327d2a3a5b957a",
       "executable": false
     },
     "public/monitor-page.js": {
@@ -2775,7 +2775,7 @@
       "executable": false
     },
     "runners/src/discovery/fetcher.mjs": {
-      "sha256": "af56017c57e5abb555003474cfe8835e7bf7a0d49b701c6730dd5c4d96af0623",
+      "sha256": "f998019768ef781963bc73a9195f56e9f5b9b32615288bec72886f1f4031fa99",
       "executable": false
     },
     "runners/src/discovery/html.mjs": {
@@ -2799,7 +2799,7 @@
       "executable": false
     },
     "runners/src/discovery/primary.mjs": {
-      "sha256": "52ce0a0fa8090bbbefd7ebf36d393621659274f47b29b4ef4f5d0046644cb529",
+      "sha256": "bb9385bf7d8cb4c5a60ebffa7c8ad53a95129d265559d10305de90c18e1710cb",
       "executable": false
     },
     "runners/src/discovery/proposal.mjs": {
@@ -6023,7 +6023,7 @@
       "executable": false
     },
     "src/editor/monitor/discovery.mjs": {
-      "sha256": "49ec904d736ee3032f622c53ef5fbb9498ce7d0b01211f2210c2f4efff6b7c7d",
+      "sha256": "6e65ffcbe0564be853b00cb69d6fd39df147c37bdeade6a2e3edaa42f9ce82f3",
       "executable": false
     },
     "src/editor/monitor/fields.mjs": {

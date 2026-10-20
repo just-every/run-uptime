@@ -11,8 +11,17 @@
 .top.ui-header:has(.monitor-title) .actions .more-menu-list button:not(:disabled):hover { background: var(--ground); }
 .top.ui-header:has(.monitor-title) .actions .more-menu-list button.danger { color: var(--rose-text); }
 @media (max-width: 700px) {
-  .top.ui-header:has(.monitor-title) .actions { gap: 8px; }
-  .top.ui-header:has(.monitor-title) .actions :is(.actions > button, .actions > a, .more-menu > summary) { min-height: 44px; padding: 0 12px; gap: 6px; font-size: 14px; }
+  /* A tighter gap and type keep Run now, Edit, Pause and More on one row at phone widths; Run now takes the spare width. */
+  .top.ui-header:has(.monitor-title) .actions { gap: 6px; }
+  .top.ui-header:has(.monitor-title) .actions :is(.actions > button, .actions > a, .more-menu > summary) { min-height: 44px; padding: 0 12px; gap: 4px; font-size: 13px; }
+  .top.ui-header:has(.monitor-title) .actions > :is(button, a) > .ui-icon { width: 16px; height: 16px; }
+  .top.ui-header:has(.monitor-title) .actions > #run-monitor { flex-grow: 1; }
+}
+/* Narrower than one row holds: Run now gets its own row and the other three share the second. */
+@media (max-width: 384px) {
+  .top.ui-header:has(.monitor-title) .actions > #run-monitor { flex-basis: 100%; }
+  .top.ui-header:has(.monitor-title) .actions > :not(#run-monitor) { flex: 1 1 auto; }
+  .top.ui-header:has(.monitor-title) .actions .more-menu > summary { box-sizing: border-box; width: 100%; }
 }
 .fine-print { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; color: var(--muted); font-size: 13px; line-height: 1.45; }
 .fine-print > p { margin: 0; }

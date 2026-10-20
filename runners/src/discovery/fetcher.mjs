@@ -41,6 +41,8 @@ export function createFetcher({budget,notes,scope,transport}){
     let start;
     try{start=new URL(rawUrl)}catch{return failure('refused',rawUrl)}
     if(remember&&method==='GET'&&memo.has(start.href))return memo.get(start.href);
+    // A refusal after a request went out came from a redirect hop: the address it named failed public validation.
+    let sent=0;
     const gate=async url=>{
       if(!owner){
         const host=bareHost(url.hostname),state=await robotsFor(url,quiet);
@@ -50,6 +52,7 @@ export function createFetcher({budget,notes,scope,transport}){
         }
       }
       await budget.admit(url);
+      sent++;
     };
     const followRedirect=next=>{
       if(follow==='none')return false;
@@ -69,7 +72,7 @@ export function createFetcher({budget,notes,scope,transport}){
       if(error instanceof DiscoveryStop){stops.add(error.reason);return failure(error.reason,rawUrl,{detail:error.detail})}
       if(budget.cancelled)throw budget.signal.reason;
       if(budget.timedOut){stops.add('time');return failure('time',rawUrl)}
-      if(error instanceof ProbeError)return failure(FAILURES[error.category]??'connection',rawUrl,{category:error.category});
+      if(error instanceof ProbeError)return failure(FAILURES[error.category]??'connection',rawUrl,{category:error.category,...(sent?{redirected:true}:{})});
       if(error?.name==='AbortError'||error?.name==='TimeoutError')return failure('timeout',rawUrl);
       // publicTarget's own refusals (private literal, bad host, credentials); anything else is a bug and must surface.
       if(error instanceof Error&&/^(Invalid public|Public target)/.test(error.message))return failure('refused',rawUrl);
