@@ -28,10 +28,10 @@ export async function proveNotificationRetry(){
   };
   const rpc=async(_path,body)=>{const result=await f.request('/api/runner/notifications',{body,runner:f.first});assert.equal(result.status,200);return result.data};
   const receipts=[],incidents=new Set();let responses=[{status:500,headers:{}},{status:429,headers:{'retry-after':'3'}},{status:202,headers:{}}];
-  const edge={async send(wire){const response=responses.shift();assert.ok(response,'unexpected extra send');receipts.push({at:Date.now(),id:wire.headers['webhook-id'],body:wire.body});if(response.status===202)incidents.add(wire.headers['webhook-id']);return {...response,body:''}}};
+  const edge={async send(wire){const response=responses.shift();assert.ok(response,'unexpected extra send');receipts.push({at:Date.now(),id:wire.headers['webhook-id'],body:wire.body});if(response.status>=500||response.status===202)incidents.add(wire.headers['webhook-id']);return {...response,body:''}}};
   const monitor=await confirm();await dispatchNotifications(rpc,edge);
   let delivery=(await ok('/api/notifications')).deliveries.find(d=>d.event.monitorId===monitor.id);
-  assert.equal(delivery.state,'queued');assert.equal(delivery.attempts,1);assert.equal(delivery.attemptHistory.length,2);
+  assert.equal(delivery.state,'queued');assert.equal(delivery.attempts,1);assert.equal(delivery.attemptHistory.length,2);assert.equal(incidents.size,1,'the receiver stored the incident before its uncertain 500 response');
   let scheduled=delivery.attemptHistory[1].scheduled_at;assert.ok(scheduled-delivery.attemptHistory[0].finished_at>=800&&scheduled-delivery.attemptHistory[0].finished_at<=1200,'stored jitter is bounded independently of RPC latency');
   await f.worker.dispose();restarted=await startLocalWorker({persist:f.directory,port:Number(new URL(f.origin).port),bindings:f.bindings});await restarted.ready;
   if(Date.now()<scheduled){await dispatchNotifications(rpc,edge);assert.equal(receipts.length,1)}
@@ -61,6 +61,7 @@ export async function proveNotificationRetry(){
   assert.equal((await ok('/api/notifications')).deliveries.find(d=>d.event.monitorId===overdue.id).code,'retry_window_exhausted');
   console.log('RETRY_PROOF client stop, owner cap and absolute window passed');
   const archive=await ok('/api/archive'),stored=archive.payload.productTables.notification_delivery_attempts;
+  for(const value of [archive,await ok('/api/notifications')])assert.ok(!JSON.stringify(value).includes(contact.signingSecret),'archive and console omit the signing credential');
   assert.ok(stored.length>=8);assert.ok(!JSON.stringify(stored).includes(contact.signingSecret));assert.ok(!JSON.stringify(stored).includes(receipts[0].body));
   const restoredPort=(await availablePorts(1)).find(port=>port!==Number(new URL(f.origin).port));assert.ok(restoredPort);
   const restoredOrigin=`http://127.0.0.1:${restoredPort}`,restoreAPI=ownerAPI(restoredOrigin);

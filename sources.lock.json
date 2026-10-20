@@ -6771,7 +6771,7 @@
       "executable": false
     },
     "tests/notify-retry-fixture.mjs": {
-      "sha256": "aae12359b54928c8a989cc320eaba6976ff12272ed88168ab5e51ccac95319bc",
+      "sha256": "bbf01aaa89e1d34c412bdacfa244f8e7d483fd4023203bbe154093925a6e7062",
       "executable": false
     },
     "tests/notify-secret-browser.mjs": {
