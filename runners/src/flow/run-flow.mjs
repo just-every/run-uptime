@@ -19,6 +19,13 @@ import {RUNNER_VERSION} from '../../../src/domain/policy.mjs';
 import {CredentialBindingRequired} from '../credential-diagnostic.mjs';
 import {readGrant} from '../grants.mjs';
 import {flowProfile} from '../../../src/domain/flow-profile.mjs';
+import {apiCleanupSummary} from '../../../src/domain/api-transaction-evidence.mjs';
+import {fixtureContext, runApiSteps, syntheticSend} from '../api-steps.mjs';
+import {cleanupReserve} from '../api-transaction.mjs';
+import {publicHttp} from '../public-http.mjs';
+
+// The least time a flow's setup leaves its browser steps.
+const FIXTURE_BROWSER_MS = 5000;
 
 const here = new URL('./child.mjs', import.meta.url).pathname;
 const MAX_CHILD_OUTPUT = 512 * 1024;
@@ -44,7 +51,7 @@ const reasonText = (failure, flow, wallMs) => {
   }
 };
 
-export async function runFlow(definition, probe, {grantPath, controlPort, workspace, credentialDir = process.env.UPTIME_CREDENTIAL_DIR, capability, monitorId, signal, privateAccess, snapshotPolicy} = {}) {
+export async function runFlow(definition, probe, {grantPath, controlPort, workspace, credentialDir = process.env.UPTIME_CREDENTIAL_DIR, capability, monitorId, signal, privateAccess, snapshotPolicy, grants, now = Date.now} = {}) {
   const startedAt = Date.now(), flow = definition.flow, profile = flowProfile(flow);
   const observation = data => ({id: randomUUID(), probe, startedAt, completedAt: Date.now(), durationMs: 0, runnerVersion: RUNNER_VERSION, ...data});
   const finish = o => ({...o, durationMs: o.completedAt - o.startedAt});
@@ -68,7 +75,28 @@ export async function runFlow(definition, probe, {grantPath, controlPort, worksp
   catch (error) { if (error instanceof CredentialBindingRequired) return {...runnerError('credential', error.message), credentialBinding: error.diagnostic}; return runnerError('credential', 'A credential this flow names is missing or invalid on this runner'); }
 
   if (signal?.aborted) return interrupted();
-  const deadlineMs = Math.min(definition.timeoutMs ?? FLOW_LIMITS.wallMs, FLOW_LIMITS.wallMs);
+  const wallMs = Math.min(definition.timeoutMs ?? FLOW_LIMITS.wallMs, FLOW_LIMITS.wallMs);
+  if (!flow.fixtures) return browserRun(wallMs);
+  // API-004: setup runs before the first page; teardown runs after the browser however it ended (a failure, a cancellation),
+  // inside a reserved share of the wall time, through the same pinned network door as every other request of this flow.
+  const allDeadline = startedAt + wallMs, reserve = cleanupReserve(wallMs, flow.fixtures.teardown.length), origin = new URL(definition.url).origin;
+  const send = grant ? syntheticSend(grant) : (step, values, o) => publicHttp({network: definition.network, url: values.url, method: step.method}, o.signal, o.onRequest, {monitorId, privateAccess, requestValues: values.requestValues, onPhase: o.onPhase, beforeSend: o.beforeSend});
+  const ctx = fixtureContext(flow.fixtures.variables), run = (steps, requestDeadline) => runApiSteps(steps, ctx, {origin, send, deadline: allDeadline, requestDeadline, signal, grants, now});
+  await run(flow.fixtures.setup, allDeadline - reserve - FIXTURE_BROWSER_MS);
+  const result = ctx.failed ? null : await browserRun(Math.max(1000, allDeadline - reserve - Date.now()));
+  const cancelled = ctx.cancelled || Boolean(signal?.aborted);
+  await run(flow.fixtures.teardown, allDeadline);
+  const fixtures = {steps: ctx.entries, cleanup: apiCleanupSummary(ctx.entries), ...(cancelled ? {cancelled: true} : {})}, completedAt = Date.now();
+  const timed = o => ({...o, completedAt, durationMs: completedAt - o.startedAt, fixtures, ...(o.failureSnapshot && !('unavailable' in o.failureSnapshot) ? {failureSnapshot: {...o.failureSnapshot, durationMs: completedAt - o.startedAt}} : {})});
+  // A cancelled journey is never a pass: it is Unknown, and its teardown is retained beside it.
+  if (cancelled) return timed(runnerError('runner', 'Cancelled: the runner stopped this journey before it completed; its teardown still ran'));
+  if (result) return timed(result);
+  const refused = ctx.entries.find(e => e.phase === 'setup' && e.outcome === 'runner_error');
+  if (refused) return timed(runnerError(refused.checks[0].assertion, `Setup could not run on this runner (${refused.checks[0].assertion}); its teardown still ran`));
+  return timed(observation({outcome: 'target_failure', checks: [{assertion: 'flow', pass: false, reason: 'Setup did not pass, so the browser steps did not run; teardown still ran'}],
+    flow: {digest: await flowDigest(flow), profile, trace: [], outcomes: flow.outcomes.map(o => ({id: o.id, observed: false})), failure: {reason: 'setup_failed'}, finalUrl: plainUrl(definition.url).slice(0, 300), pages: 0, bytes: 0}}));
+
+  async function browserRun(deadlineMs) {
   // The proxy starts first, so the run folder exists for as short a time as possible before the process that cleans it up does.
   const proxy = await startFlowProxy({grant,privateAccess:privateAccess?(url,accessSignal)=>privateAccess(url,AbortSignal.any([accessSignal,...(signal?[signal]:[])])):undefined, maxBytes: FLOW_LIMITS.maxBytes});
   let base;
@@ -140,4 +168,5 @@ export async function runFlow(definition, probe, {grantPath, controlPort, worksp
   const reason = ok ? `All ${flow.steps.length} steps passed and ${flow.outcomes.length} required outcome${flow.outcomes.length === 1 ? ' was' : 's were'} observed` : redact(reasonText(result.failure, flow, deadlineMs), 290);
   const failureSnapshot=ok?undefined:tryCaptureFailureSnapshot({requestSecrets:Object.values(credentials).map(c=>c.value),masks:snapshotPolicy?.masks??[],version:1,method:'GET',url:text(plainUrl(definition.url)),redirects:[],requestHeaders:{},responseHeaders:{},status:null,durationMs:completedAt-startedAt,body:reason,bodyTruncated:false,policyVersion:snapshotPolicy?.version??0,...(failureArtifacts??{screenshot:{unavailable:'capture_failed'},artifacts:{video:{unavailable:'capture_failed'},trace:{unavailable:'capture_failed'},waterfall:[],console:[]}})});
   return finish(observation({...(failureSnapshot?{failureSnapshot}:{}),completedAt, outcome: ok ? 'pass' : 'target_failure', checks: [{assertion: 'flow', pass: ok, reason}], flow: result}));
+  }
 }

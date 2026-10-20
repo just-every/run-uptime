@@ -78,7 +78,7 @@ Use a dedicated synthetic account on an explicitly authorized test service. A lo
 
 For signup, use your sandbox's account-creation URL and submit button, and require the account-created confirmation. Repeated scheduled signup needs an authorized reusable sandbox identity or reset policy; Uptime does not generate disposable identities or clean up accounts automatically. Never point a signup monitor at an ordinary customer's account.
 
-For checkout, continue the signed-in steps with the sandbox order button and require the final order confirmation, rather than merely the checkout form. Use test-mode payments and sandbox inventory only. Each required outcome is checked after the final step. Setup/teardown fixtures and production spend grants remain separate work under API-004; this constrained journey must not perform live purchases.
+For checkout, continue the signed-in steps with the sandbox order button and require the final order confirmation, rather than merely the checkout form. Use test-mode payments and sandbox inventory only. Each required outcome is checked after the final step. A flow may add `fixtures`: `setup` steps that create a synthetic account or a Stripe test-mode order before the first page, and `teardown` steps that delete or cancel them afterwards, written as API transaction steps on the flow's origin. Teardown runs whatever happened to the browser, including a cancelled run; values it extracts stay on the runner. A teardown that cannot finish becomes cleanup debt; it never changes the browser's verdict. Live purchases need an exact, expiring grant with a spend limit.
 
 ## Read a failed journey
 

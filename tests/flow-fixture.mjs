@@ -15,11 +15,29 @@ export const FIXTURE_MASK='masked-order-'+randomUUID();
 export const phrase = i => `phrase-${i}-${'x'.repeat(180)}`;
 const page = (title, body) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${title}</title></head><body>${body}</body></html>`;
 
+// A synthetic account and a Stripe test-mode order, created and removed through JSON calls. A denied teardown call is cut at
+// the socket, as a network edge refusing it would.
+async function sandboxApi(req, res, path, json) {
+  const sandbox = sandboxState.get(req.socket.localPort), m = /^\/api\/(accounts|orders)(?:\/([A-Za-z0-9_]+))?$/.exec(path);
+  sandbox.calls.push(`${req.method} ${m ? `/api/${m[1]}${m[2] ? '/:id' : ''}` : path}`);
+  let body = ''; for await (const c of req) body += c;
+  if (!m) return json(404, {});
+  const [, kind, id] = m, store = sandbox[kind];
+  if (req.method === 'POST' && !id) { const created = `${kind === 'accounts' ? 'acct' : 'ord'}_${randomUUID().replaceAll('-', '')}`; store.add(created); sandbox.created.push(created); return json(201, kind === 'orders' ? {id: created, livemode: false, amount: JSON.parse(body).amount} : {id: created}); }
+  if (req.method === 'DELETE' && id) {
+    if (sandbox.deny === 'all' || sandbox.deny === kind) return req.socket.destroy();
+    return json(store.delete(id) ? 200 : 404, {deleted: true});
+  }
+  return json(405, {});
+}
+const sandboxState = new Map();
 export async function startFlowFixture({port = 0, grantPath, secondPort = 0}) {
   const identity = randomUUID(), sessions = new Set(), seen = {secondOrigin: 0, requests: []};
   let accountLinks;
   const modes = new Map();
   seen.orders = 0; seen.signups = 0;
+  // API-004 sandbox resources a flow's setup creates and its teardown removes; `deny` refuses teardown at the network edge.
+  seen.sandbox = {accounts: new Set(), orders: new Set(), created: [], calls: [], deny: null};
   // A second origin the flow does not declare and the grant does not cover: a hostile page tries to open it.
   const second = http.createServer((req, res) => { seen.secondOrigin++; res.writeHead(200, {'content-type': 'text/html'}); res.end(page('Second origin', '<h1>Second origin reached</h1>')); });
   await new Promise(r => second.listen(secondPort, '127.0.0.1', r));
@@ -30,6 +48,7 @@ export async function startFlowFixture({port = 0, grantPath, secondPort = 0}) {
     const send = (status, body, headers = {}) => { res.writeHead(status, {'content-type': 'text/html; charset=utf-8', 'x-uptime-fixture': identity, ...headers}); res.end(body); };
     if (!m) return send(404, page('Not found', '<h1>Not found</h1>'));
     const [, originalScenario, full] = m, scenario = modes.get(originalScenario) ?? originalScenario, path = full.replace(/^(?:\/p+)?\/u\/[^/]+\//, '/'), base = `/s/${originalScenario}`, signedIn = (req.headers.cookie ?? '').split(/;\s*/).some(c => c.startsWith('sid=') && sessions.has(c.slice(4)));
+    if (path.startsWith('/api/')) return sandboxApi(req, res, path, (status, value) => send(status, JSON.stringify(value), {'content-type': 'application/json'}));
     if (path === '/signup' && req.method === 'GET') return send(200, page('Create sandbox account', `<h1>Create sandbox account</h1><form method="post" action="${base}/signup" novalidate><label>Email <input name="email" type="email"></label><label>Password <input name="password" type="password"></label><button>Create account</button></form>`));
     if (path === '/signup' && req.method === 'POST') {
       let body = ''; for await (const c of req) body += c;
@@ -78,6 +97,7 @@ export async function startFlowFixture({port = 0, grantPath, secondPort = 0}) {
   });
   await new Promise(r => server.listen(port, '127.0.0.1', r));
   const actual = server.address().port;
+  sandboxState.set(actual, seen.sandbox);
   // The full profile's padding puts the middle of the encoded address at character 300 of the page's URL.
   const encoded = encodeURIComponent(FIXTURE_EMAIL), start = 300 - Math.floor(encoded.length / 2);
   accountLinks = base => `<a href="${base}/u/${FIXTURE_EMAIL.replace('@', '%40')}/settings">Account settings</a><a href="${base}/u/${encodeURIComponent(FIXTURE_EMAIL.toLowerCase())}/mailbox">Mailbox</a><a href="${base}/${'p'.repeat(start - `http://127.0.0.1:${actual}${base}/`.length - '/u/'.length)}/u/${encoded}/profile">Full profile</a>`;

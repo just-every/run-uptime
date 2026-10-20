@@ -19,6 +19,8 @@ import {definitionChange,definitionChangeNote} from './flow-changes.server.ts'
 import {expiryNotices,openExpiryWarnings} from './expiry-notices.server.ts'
 // @ts-ignore Edition flow vocabulary is JavaScript shared with the runner.
 import {flowDigest} from './flow.mjs'
+import {claimDebt,debtStatements} from './cleanup-debt.server.ts'
+import {claimGrants,spendStatements} from './effect-grants.server.ts'
 // A vantage only ever runs its newest scheduled slot of a monitor. Once a newer scheduled slot is assigned to its runner (the runner
 // fell behind: a long flow on its machine, a stalled machine), its part of an older slot is never delivered, and that slot keeps the
 // part as missing evidence (coverage incomplete) rather than running it moments before the next one. Every scheduled slot is created
@@ -69,7 +71,7 @@ export async function claimAttempt(env:Bindings,runnerId:string,{monitorId=null}
   ...(slot.manual?[]:[env.DB.prepare("UPDATE monitors SET next_due=MAX(next_due,(SELECT MAX(delivered_at) FROM runner_assignments WHERE slot_id=?4 AND runner_id=?5)+MIN(?2,json_extract(definition,'$.intervalMs'))) WHERE id=?3 AND EXISTS(SELECT 1 FROM runner_assignments WHERE slot_id=?4 AND runner_id=?5 AND delivered_at>=?1)").bind(now,definition.intervalMs,slot.monitor_id,slot.id,runnerId)])]);
  const probes=mine.filter((_:string,i:number)=>changes[i].meta.changes);
  if(!probes.length)return null;
- return snapshotHeartbeat(env,{snapshotPolicy:await snapshotSettings(env,slot.monitor_id),id:slot.id,monitorId:slot.monitor_id,revision:slot.revision,dueAt:slot.due_at,definition:{...definition,assignments},probes,acceptUntil:until})
+ return snapshotHeartbeat(env,{...await claimDebt(env,slot.monitor_id,definition),...await claimGrants(env,slot.monitor_id,Date.now()),snapshotPolicy:await snapshotSettings(env,slot.monitor_id),id:slot.id,monitorId:slot.monitor_id,revision:slot.revision,dueAt:slot.due_at,definition:{...definition,assignments},probes,acceptUntil:until})
 }
 export async function completeAttempts(env:Bindings,input:any,runnerId:string){
  const now=Date.now(),slot=await env.DB.prepare('SELECT * FROM slots WHERE id=?').bind(input.slotId).first<any>();
@@ -105,6 +107,8 @@ export async function completeAttempts(env:Bindings,input:any,runnerId:string){
   const values=[slot.monitor_id,generation+1,projectionId];
   const statements=fresh.map((o:any)=>env.DB.prepare(`INSERT INTO observations(id,slot_id,probe,attempt,evidence) SELECT ?,?,?,?,? WHERE ${guard}`).bind(o.id,slot.id,o.probe,o.attempt,JSON.stringify(withoutSnapshot(o)),...values));
   statements.push(...await snapshotStatements(env,slot.monitor_id,slot.id,fresh,guard,values));
+  // API-004: incomplete cleanup becomes retained debt, and live steps spend their grant, with the observations or not at all.
+  statements.push(...debtStatements(env,slot,fresh,guard,values,now),...spendStatements(env,slot.monitor_id,fresh,guard,values));
   for(const o of fresh)statements.push(env.DB.prepare(`UPDATE runner_assignments SET received_times=json_set(received_times,?,?) WHERE slot_id=? AND probe=? AND ${guard}`).bind(`$."${o.attempt}"`,now,slot.id,o.probe,...values));
   if(snapshot.checkpointUpdate)statements.push(checkpointStatement(env,slot.monitor_id,slot.revision,snapshot.checkpointUpdate,generation+1,projectionId));
   if(current)statements.push(env.DB.prepare(`UPDATE monitors SET state=? WHERE id=? AND revision=? AND ${guard}`).bind(JSON.stringify(state),m.id,m.revision,...values));

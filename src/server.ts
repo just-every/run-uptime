@@ -19,6 +19,8 @@ import {catalogBulkPreview,catalogBulkApply,catalogAddPreview,catalogAddApply} f
 import {importSlowPolicy} from './domain/slow-import.ts'
 import {readSlowPolicy,saveSlowPolicy} from './domain/slow-config.server.ts'
 import {acknowledgeSlow} from './domain/slow-ack.server.ts'
+import {cleanupDebt,resolveCleanupDebt} from './domain/cleanup-debt.server.ts'
+import {effectGrants,grantEffect,revokeEffect} from './domain/effect-grants.server.ts'
 import {readAlertRoute,previewAlertRoute,applyAlertRoute} from './domain/alert-routes.server.ts'
 import {previewMaintenance,applyMaintenance,cancelMaintenance} from './domain/planned-maintenance.server.ts'
 // The package's demo module: operator-auth runs from the package and reads demo mode from this same instance.
@@ -131,6 +133,11 @@ api.post('/api/monitors/:id/heartbeat-key',async c=>c.json(await issueHeartbeatK
 api.post('/api/monitors/:id/heartbeat-settings',async c=>c.json(await configureHeartbeat(c.env,c.req.param('id'),c.get('input'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})));
 api.get('/api/monitors/:id/heartbeat-runs',async c=>{const monitor=await get(c.env,c.req.param('id'));if(!monitor)return c.json({error:'Monitor not found'},404);return c.json(await heartbeatRuns(c.env,monitor.id,{before:c.req.query('before'),previewFrom:c.req.query('previewFrom')?Number(c.req.query('previewFrom')):undefined}))});
 api.get('/api/evidence/monitors/:id',async c=>c.json(await evidenceSelection(c.env,c.req.param('id'),c.req.query('before'))))
+api.get('/api/monitors/:id/cleanup-debt',async c=>c.json(await cleanupDebt(c.env,c.req.param('id'))))
+api.post('/api/monitors/:id/cleanup-debt/:debtId/resolve',async c=>c.json(await resolveCleanupDebt(c.env,c.req.param('id'),c.req.param('debtId'),c.get('input'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
+api.get('/api/monitors/:id/effect-grants',async c=>c.json(await effectGrants(c.env,c.req.param('id'))))
+api.post('/api/monitors/:id/effect-grants',async c=>c.json(await grantEffect(c.env,c.req.param('id'),c.get('input'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id}),201))
+api.post('/api/monitors/:id/effect-grants/revoke',async c=>c.json(await revokeEffect(c.env,c.req.param('id'),c.get('input'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 api.get('/api/monitors/:id/evidence-access',async c=>c.json(await evidenceAccess(c.env,c.req.param('id'))))
 api.post('/api/monitors/:id/evidence-access',async c=>c.json(await saveEvidenceAccess(c.env,c.req.param('id'),c.get('input'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 api.get('/api/incidents/:id/failure-report',async c=>{const report={...await incidentDetail(c.env,c.req.param('id')),failureSnapshots:await incidentSnapshots(c.env,c.req.param('id'),true)},text=JSON.stringify(report);if(new TextEncoder().encode(text).length>2*1024*1024)throw Error('Incident report exceeds 2 MiB; export a bounded snapshot selection');return new Response(text,{headers:{'content-type':'application/json','content-disposition':'attachment; filename=uptime-incident-report.json','cache-control':'no-store'}})})

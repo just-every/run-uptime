@@ -1363,6 +1363,22 @@
         "environment": "all"
       },
       {
+        "path": "/cleanup-debt.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/cleanup-debt.css",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
         "path": "/metrics.js",
         "match": "exact",
         "kind": "asset",
