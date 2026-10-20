@@ -16,7 +16,7 @@ Only scheduled incident changes produce notifications: a trigger when a failure 
 
 On a hosted installation the Cloudflare Worker sends queued email, signed JSON and Slack requests itself, with no private runner needed. Owner-console requests prompt due checks and sends while you use it. The one-minute Cron schedule continues work afterwards, but Cloudflare can take up to about two hours to activate it after deployment; queued does not promise delivery within a minute. A [private runner](/docs/runner), if you keep one, also sends them when it polls; whichever claims a delivery first sends it, under the same claim and attempt rules. On your own computer the local runner sends signed JSON and Slack requests, and the Worker submits email through your configured mail sender.
 
-Each event gets one attempt per destination. When the RER Managed relay returns 429 with Retry-After, the unaccepted email stays queued until that delay expires. A request that ends without a clear answer is Uncertain and is never sent again automatically.
+Email, Slack, unsigned webhooks, tests and drills get one attempt per destination. Signed-webhook incident deliveries can retry with their stable ID. When the RER Managed relay returns 429 with Retry-After, the unaccepted email stays queued until that delay expires. For single-attempt destinations, a request that ends without a clear answer is Uncertain and is never sent again automatically.
 
 ## Send a test
 
@@ -31,7 +31,7 @@ A test shows the provider answered. An alert drill also asks the person at the o
 The destination then shows the latest drill as three separate lines, because each proves something different:
 
 - **Submitted**: Uptime started sending it, at this time. It does not show the provider took it.
-- **Acknowledged**: the provider or your endpoint answered, at this time, with this code. It does not show the message reached an inbox. If there was no clear answer, the line says **Uncertain**; if the request was refused, **Failed**. Either way it is not sent again.
+- **Acknowledged**: the provider or your endpoint answered, at this time, with this code. It does not show the message reached an inbox. If there was no clear answer, the line says **Uncertain**; if the request was refused, **Failed**. Single-attempt destinations are not sent again; signed-webhook incident deliveries follow their bounded retry policy.
 - **Recipient confirmed**: someone used the link, at this time. This is what the recipient reported. It is not a check Uptime made itself.
 
 Whether anyone acted on the alert is not measured, so there is no line for it.
@@ -44,9 +44,9 @@ The link holds a random one-time capability. Uptime keeps only a hash of it, plu
 
 A signed JSON webhook drill carries the link as an extra `drill` object (`startedBy`, `startedAt`, `expiresAt`, `confirmUrl`). Incident events never have this field, and their payload and signature are unchanged.
 
-## Uncertain results are not resent
+## Uncertain results
 
-Each event gets one automatic send attempt per destination. A server error, a timeout, a lost connection or an unrecognized response is marked uncertain, and Uptime never sends it again by itself. Look at the receiver before you decide what to do.
+Email, Slack, unsigned webhooks, test sends and drills get one automatic attempt. A server error, timeout, lost connection or unrecognized response stays Uncertain and is not resent automatically. Signed-webhook incident deliveries retry within their saved attempt and time limits, using the same stable ID. Look at the receiver before taking manual action.
 
 ## Keep secrets safe
 
@@ -82,7 +82,7 @@ Choose the scope and contacts, then **Preview route**. Review every selected/exc
 
 A confirmed incident binds its trigger’s recipients and credential versions. Recovery waits for provider acceptance of that trigger and goes only to the same still-enabled contact and credential. An unsuccessful or uncertain trigger, deleted/disabled contact or rotated credential cannot receive an orphan recovery; a newly selected contact cannot receive recovery for an incident it missed. Acceptance remains separate from human receipt. Pausing or changing the monitor never erases its observations.
 
-Owner APIs are `GET /api/monitors/{id}/alert-route` and POST `.../preview` and `.../apply`. Preview accepts `scope` (monitor/service/group/installation), `mode` (inherit or selected; all replaces inherit for installation), `destinationIds` and the current `expectedRevision`. Apply adds the reviewed `digest`. Route configuration, detailed history and trigger/recovery matching remain installation-local; opaque action audit is portable, and restored monitoring stays inactive. Team, environment/severity/region/origin/time rules, contact delays/repeats/retries/fallbacks and expiry/renewal routing remain unimplemented.
+Owner APIs are `GET /api/monitors/{id}/alert-route` and POST `.../preview` and `.../apply`. Preview accepts `scope` (monitor/service/group/installation), `mode` (inherit or selected; all replaces inherit for installation), `destinationIds` and the current `expectedRevision`. Apply adds the reviewed `digest`. Route configuration, detailed history and trigger/recovery matching remain installation-local; opaque action audit is portable, and restored monitoring stays inactive. Team, environment/severity/region/origin/time rules, fallback chains and expiry/renewal routing remain unimplemented.
 
 ## Alert time zone
 
@@ -101,8 +101,8 @@ open incidents keep their confirmation-time policy and credential.
 Delays start at confirmed failure. Recovery before a delay expires cancels that
 contact's trigger and recovery. Recovery goes only to the original accepted
 trigger's contact, with recovery enabled. Every reminder is a new event with the
-same incident key and its own single transport attempt. An uncertain send is not
-retried. Worker restarts preserve schedules. Missed reminder windows produce one
+same incident key and its own delivery. Signed webhooks can retry that delivery
+with the same stable ID; single-attempt destinations never replay an uncertain send. Worker restarts preserve schedules. Missed reminder windows produce one
 due reminder after restart, then resume the confirmation-anchored cadence rather
 than flooding contacts with every missed reminder. The incident shows the next
 contact follow-up; stop, manual resolution, recovery, or the selected
