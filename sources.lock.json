@@ -6343,7 +6343,7 @@
       "executable": false
     },
     "tests/access-matrix.mjs": {
-      "sha256": "36ca44d4f2796e94f03f1ae75630263cf4af6e4c6a071a0b55044c2a69ac741c",
+      "sha256": "cc64539ff7ae674c6d6f45552980319bc16c016d4bbb5bb9a032b1887aebcbc2",
       "executable": false
     },
     "tests/access-smoke.mjs": {

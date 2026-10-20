@@ -78,13 +78,15 @@ try{
    assert.equal((await call('/api/discoveries/'+jobId,undefined,{cookie:valid,...headers})).status,403,'cross-origin read');
   }
   // The External check URL: the same owner-only, same-origin rules, and a refused change leaves the stored value as it was.
-  const external=async()=>(await DB.prepare('SELECT url FROM external_check').first()).url;
+  // First-run stores its default URL, so each refused change asks for a different one.
+  const external=async()=>(await DB.prepare('SELECT url FROM external_check').first()).url,stored=await external(),attempt='https://example.net/';
+  assert.notEqual(stored,attempt);
   for(const headers of [{origin:'https://evil.example'},{'sec-fetch-site':'cross-site'}]){
-   assert.equal((await call('/api/external-check',{url:'https://example.org/'},{cookie:valid,...headers})).status,403,'cross-origin external check change');
+   assert.equal((await call('/api/external-check',{url:attempt},{cookie:valid,...headers})).status,403,'cross-origin external check change');
    assert.equal((await call('/api/external-check',undefined,{cookie:valid,...headers})).status,403,'cross-origin external check read');
   }
-  assert.equal((await call('/api/external-check',{url:'https://example.org/'},{'x-runner-key':runnerKey})).status,401,'a runner key is not an owner session');
-  assert.equal(await external(),'https://example.com/','refused requests leave the External check URL unchanged');
+  assert.equal((await call('/api/external-check',{url:attempt},{'x-runner-key':runnerKey})).status,401,'a runner key is not an owner session');
+  assert.equal(await external(),stored,'refused requests leave the External check URL unchanged');
   assert.equal((await call('/api/discoveries',{url:'https://example.com/'},{'x-runner-key':runnerKey})).status,401,'a runner key does not open owner routes');
   assert.equal((await call('/api/discoveries/'+jobId,undefined,{'x-runner-key':runnerKey})).status,401);
   for(const path of ['/api/runner/discoveries/claim',answerPath]){
@@ -119,7 +121,7 @@ try{
    assert.deepEqual({...erasure},{actor_kind:'operator',actor_ref:ownerId},'the erasure is recorded under the session operator');
    assert.ok(!JSON.stringify(await everything(DB)).includes(marker),'no forged claim is stored');
    assert.equal((await call('/api/discoveries',{url:'https://example.com/'},{cookie:memberCookie})).status,401,'member create');
-   assert.equal(await external(),'https://example.com/');
+   assert.equal(await external(),stored);
    assert.equal((await DB.prepare('SELECT COUNT(*) n FROM discovery_jobs').first()).n,0);
   }
   assert.equal((await call('/does-not-exist',undefined,{cookie:valid})).status,404);
