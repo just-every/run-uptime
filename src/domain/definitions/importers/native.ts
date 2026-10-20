@@ -5,11 +5,11 @@ import type {Importer} from './types.ts'
 function document(text:string){
  const value=parseJson(text,'file')
  if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).some(k=>!['format','version','monitors'].includes(k))||value.format!==DEFINITION_FORMAT||!DEFINITION_READ_VERSIONS.includes(value.version)||!Array.isArray(value.monitors))
-  throw new DefinitionFileError(`This is not an Uptime definition file: expected {"format": "${DEFINITION_FORMAT}", "version": ${DEFINITION_VERSION}, "monitors": [...]} (versions 1–5 also read) and no other top-level fields.`)
+  throw new DefinitionFileError(`This is not an Uptime monitor file: expected {"format": "${DEFINITION_FORMAT}", "version": ${DEFINITION_VERSION}, "monitors": [...]} (versions 1–5 also read) and no other top-level fields.`)
  return value
 }
 export const nativeImporter:Importer={
- source:DEFINITION_FORMAT,label:'Uptime definition file',
+ source:DEFINITION_FORMAT,label:'Uptime monitor file',
  detect(text){try{return JSON.parse(text)?.format===DEFINITION_FORMAT}catch{return false}},
  entries(text){const doc=document(text);return boundEntries(doc.monitors).map((value:any,index:number)=>({index,label:entryLabel(index,value),value,version:doc.version}))},
  map({label,value,version}){

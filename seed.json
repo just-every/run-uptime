@@ -873,6 +873,14 @@
         "environment": "all"
       },
       {
+        "path": "/notification-help.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
         "path": "/webhook-editor.js",
         "match": "exact",
         "kind": "asset",
@@ -1228,6 +1236,14 @@
       },
       {
         "path": "/definitions.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/definition-changes.js",
         "match": "exact",
         "kind": "asset",
         "class": "assets",

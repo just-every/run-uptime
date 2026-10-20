@@ -42,17 +42,7 @@ export async function restore(env:Bindings,input:any,receipt?:{id:string;sha256:
  const inputTables=await validateArchive(input),now=Date.now();
  const fenceStatements=await productFence(env,inputTables,input.payload.erasureFence??options.manifest,options.laterJournal);
  await assertArchiveInventory(env.DB);
- const empty=TABLES.filter(n=>n!=='migrations'&&n!=='uptime_audit'&&n!=='uptime_erasure_receipts');
- // Installation auth/migration ledgers and runner registration/contact may
- // exist. Contact is recorded even by an idle fresh runner, not product data.
- // The receiving owner's own sign-in mail attempts belong to that auth ledger:
- // a hosted owner must sign in by email before restoring.
- // Every product/history table, including orphan observations and retired
- // credentials, must be empty; restore leaves local runner authority intact.
- const checks=[...empty,'notification_credentials','notification_claim_custody','heartbeat_authority','heartbeat_claims'];
- const occupied=(n:string)=>`SELECT COUNT(*) n FROM ${n}${n==='auxiliary_attempts'?" WHERE scope<>'auth-mail'":''}`;
- const counts=await env.DB.batch(checks.map(n=>env.DB.prepare(occupied(n))));
- if(counts.some(r=>Number((r.results[0] as any).n)>0))throw Error('Restore requires empty installation');
+ if(!await archiveRestoreAvailable(env))throw Error('Restore requires empty installation');
  const migrations=await env.DB.prepare('SELECT version,applied_at FROM migrations ORDER BY rowid').all();
  const t=await projectRestore(inputTables,migrations.results,now),statements:D1PreparedStatement[]=[],groups=new Map<string,any[]>();
  const collect=(name:string,row:any)=>{if(!groups.has(name))groups.set(name,[]);groups.get(name)!.push(row)};
@@ -93,4 +83,18 @@ export async function restore(env:Bindings,input:any,receipt?:{id:string;sha256:
  statements.unshift(...fenceStatements);
  if(receipt)statements.push(env.DB.prepare('INSERT INTO rer_portability_product_restore(id,sha256) VALUES(?,?)').bind(receipt.id,receipt.sha256));
  if(statements.length)await env.DB.batch(statements);return {restored:true,enabled:false,executionReauthorizationRequired:true};
+}
+
+ const empty=TABLES.filter(n=>n!=='migrations'&&n!=='uptime_audit'&&n!=='uptime_erasure_receipts');
+ // Installation auth/migration ledgers and runner registration/contact may
+ // exist. Contact is recorded even by an idle fresh runner, not product data.
+ // The receiving owner's own sign-in mail attempts belong to that auth ledger:
+ // a hosted owner must sign in by email before restoring.
+ // Every product/history table, including orphan observations and retired
+ // credentials, must be empty; restore leaves local runner authority intact.
+ const checks=[...empty,'notification_credentials','notification_claim_custody','heartbeat_authority','heartbeat_claims'];
+ const occupied=(n:string)=>`SELECT COUNT(*) n FROM ${n}${n==='auxiliary_attempts'?" WHERE scope<>'auth-mail'":''}`;
+export async function archiveRestoreAvailable(env:Bindings){
+ const counts=await env.DB.batch(checks.map(n=>env.DB.prepare(occupied(n))));
+ return !counts.some(r=>Number((r.results[0] as any).n)>0);
 }

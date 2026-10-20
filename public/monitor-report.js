@@ -3,7 +3,8 @@ import {firstMount} from './dom-patch.js';
 import {renderReport,renderSeries,renderIncidents} from './report-render.js';
 import {renderJobRuns} from './report-jobs.js';
 
-const zones=['America/Chicago','America/New_York','America/Denver','America/Los_Angeles','America/Phoenix','America/Anchorage','Pacific/Honolulu','America/Detroit','America/Indiana/Indianapolis','UTC'];
+const browserZone=()=>Intl.DateTimeFormat().resolvedOptions().timeZone;
+const zones=()=>[...new Set([browserZone(),...Intl.supportedValuesOf('timeZone'),'UTC'])];
 import {locationNamer} from './monitor-rules.js';
 const options=values=>values.map(([value,label])=>`<option value="${escape(value)}">${escape(label)}</option>`).join('');
 
@@ -12,8 +13,8 @@ function formMarkup(monitor,probeName){
  return `<h2 id="report-heading">Period report</h2><p>A fixed snapshot of scheduled checks. <a href="/docs/read-api">Monitoring API and CSV guide</a></p>
  <form id="monitor-report-form" class="report-form">
  <label for="report-period">Period<select id="report-period" name="period">${options([['24h','Last 24 hours'],['7d','Last 7 days'],['30d','Last 30 days'],['90d','Last 90 days'],['mtd','Month to date'],['qtd','Quarter to date'],['ytd','Year to date'],['last-month','Last month'],['custom','Custom range']])}</select></label>
- <label for="report-zone">Time zone<input id="report-zone" name="timeZone" list="report-zones" value="America/Chicago" required aria-describedby="report-zone-help"><datalist id="report-zones">${options(zones.map(zone=>[zone,zone]))}</datalist></label>
- <p id="report-zone-help" class="report-help">Any IANA zone. Custom times use it.</p>
+ <label for="report-zone">Time zone<input id="report-zone" name="timeZone" list="report-zones" value="${escape(browserZone())}" required aria-describedby="report-zone-help"><datalist id="report-zones">${options(zones().map(zone=>[zone,zone]))}</datalist></label>
+ <p id="report-zone-help" class="report-help">Custom times use this zone. Include a UTC offset when a daylight-saving time repeats.</p>
  <div id="report-custom-range" class="report-custom-range" hidden>
  <label for="report-from">From (inclusive)<input id="report-from" name="from" type="text" placeholder="2026-10-01T00:00" required disabled aria-describedby="report-zone-help"></label>
  <label for="report-to">To (exclusive)<input id="report-to" name="to" type="text" placeholder="2026-10-08T00:00" required disabled aria-describedby="report-zone-help"></label></div>

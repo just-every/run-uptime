@@ -15,5 +15,5 @@ export async function businessImportSettings(env:Bindings,request:Request,input?
   env.DB.prepare('SELECT enabled FROM ik_door_settings WHERE installation_id=?').bind(installation).first<{enabled:number}>(),
   env.DB.prepare('SELECT kid FROM ik_door_revoked_keys WHERE installation_id=? ORDER BY kid').bind(installation).all<{kid:string}>(),
  ])
- return {enabled:settings?.enabled===1,revokedKeyIds:revoked.results.map(row=>row.kid),keys}
+ return {linked:env.RER_IMPORT_DOOR==='on'||keys.length>0,enabled:settings?.enabled===1,revokedKeyIds:revoked.results.map(row=>row.kid),keys}
 }

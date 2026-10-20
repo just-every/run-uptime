@@ -92,7 +92,7 @@ try {
   }
   assert.equal(state(bad).state, 'Failing');
   for (const o of await observations(tunnel)) assert.deepEqual([o.outcome, o.flow.failure?.reason, o.flow.failure?.blocked], ['target_failure', 'blocked_request', 'custody'], 'a tunnel to the fixture port is refused as a custody violation');
-  // One email, accepted by the development provider, for the incident of the failing flow only.
+  // One email, accepted by the network-edge provider fixture, for the incident of the failing flow only.
   await waitFor(async () => (await DB.prepare("SELECT state FROM notification_jobs WHERE kind='email' AND json_extract(event,'$.monitorName')=?").bind('Checkout flow, wrong password').first())?.state === 'accepted', 'the incident email was sent', 60000);
   assert.equal((await DB.prepare("SELECT COUNT(*) n FROM notification_jobs WHERE json_extract(event,'$.monitorName')=?").bind('Checkout flow').first()).n, 0, 'a passing flow sends nothing');
 

@@ -7,7 +7,7 @@ export function notificationTimeZone(value:unknown):string {
 }
 export async function notificationPreferences(env:Bindings){
  const row=await env.DB.prepare('SELECT time_zone FROM notification_preferences WHERE singleton=1').first<{time_zone:string}>();
- return {timeZone:row?.time_zone??'America/Chicago'};
+ return {timeZone:row?.time_zone??'UTC'};
 }
 export async function saveNotificationPreferences(env:Bindings,input:any,actor:AuditActor){
  if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).join(',')!=='timeZone')throw Error('Supply only the notification time zone');
@@ -17,4 +17,10 @@ export async function saveNotificationPreferences(env:Bindings,input:any,actor:A
   auditStatement(env,actor,'notification_time_zone_change','notification',crypto.randomUUID(),'1=1',[],now),
  ]);
  return {timeZone};
+}
+
+export async function initializeNotificationTimeZone(env:Bindings,value:string){
+ const timeZone=notificationTimeZone(value);
+ if(await env.DB.prepare('SELECT singleton FROM notification_preferences WHERE singleton=1').first())return;
+ await env.DB.prepare('INSERT INTO notification_preferences(singleton,time_zone) VALUES(1,?) ON CONFLICT(singleton) DO NOTHING').bind(timeZone).run();
 }

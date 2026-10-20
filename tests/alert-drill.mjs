@@ -28,7 +28,12 @@ const drillToken=link=>new URL(link).searchParams.get('token');
 const evidenceTables=['monitors','revisions','slots','observations','outbox','attempt_checkpoints','evidence_generation','runner_assignments','heartbeat_authority','heartbeat_claims','archive_history','definition_batches','monitoring_watch'];
 const evidence=async()=>Object.fromEntries(await Promise.all(evidenceTables.map(async name=>[name,(await DB.prepare(`SELECT * FROM "${name}" ORDER BY rowid`).all()).results])));
 // The public rate-limit counter is the one table a refused public request is meant to change.
-const allRows=async(skip=[])=>{const names=(await DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name<>'_cf_METADATA'").all()).results.filter(({name})=>!skip.includes(name));return JSON.stringify(await Promise.all(names.map(async({name})=>(await DB.prepare(`SELECT * FROM "${name}"`).all()).results)))};
+const allRows=async(skip=[])=>{
+ const names=(await DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name<>'_cf_METADATA'").all()).results.filter(({name})=>!skip.includes(name));
+ // Keep the complete snapshot without opening a bridge connection per table at once.
+ const rows=[];for(const {name}of names)rows.push((await DB.prepare(`SELECT * FROM "${name}"`).all()).results);
+ return JSON.stringify(rows);
+};
 const drillRow=id=>DB.prepare('SELECT * FROM alert_drills WHERE id=?').bind(id).first();
 function assertNoSecrets(value,label,allowed=null){const text=typeof value==='string'?value:JSON.stringify(value);for(const secret of [...secrets,...capabilities.filter(c=>c!==allowed)])assert.ok(!text.includes(secret),`${label}: credential, signing key or other capability absent`)}
 async function drill(d,receiver){
