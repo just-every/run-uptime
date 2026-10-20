@@ -6815,7 +6815,7 @@
       "executable": false
     },
     "tests/recovery-browser.mjs": {
-      "sha256": "14dcfbc58cec1b7dfedb2b47004fd485f48cd74d7712dd565583542213742b24",
+      "sha256": "c3e995c2310a95030d1d8a537e1d49500190688ea18313bf98146cca3b7d79ca",
       "executable": false
     },
     "tests/reporting-browser.mjs": {
@@ -6827,7 +6827,7 @@
       "executable": false
     },
     "tests/resilience/attempts.mjs": {
-      "sha256": "736bda4d0194a09a31ae6aeec287c2ffa3e119a4c6aec6ec9f394360fc140ddb",
+      "sha256": "08361e3763b739b5de4af3f6dffbd5293d9346146b66e418a434aefadfd5206c",
       "executable": false
     },
     "tests/resilience/support.mjs": {
