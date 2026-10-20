@@ -131,7 +131,7 @@ try{
    await page.locator('input[name=probes][value=local-b]:visible').check();await page.getByRole('button',{name:'Save monitor'}).click();await ready(page);
    const overview=await (await page.request.get(origin+'/api/overview')).json(),monitor=overview.monitors.find(m=>m.definition.name===name);
    assert.ok(monitor);assert.equal(monitor.definition.probes.length,2);assert.equal(Object.keys(monitor.definition.assignments).length,2);
-   await page.locator(`.monitor-list a.monitor-link[href="/app/monitors/${encodeURIComponent(monitor.id)}"]`).click();await ready(page);
+   await page.waitForURL(url=>url.pathname===`/app/monitors/${monitor.id}`);await ready(page);
    await page.locator('#monitor-state').filter({hasText:'Healthy'}).waitFor({timeout:18000});await page.locator('#raw-history details').first().waitFor();
    await audit(page,`healthy-${width}`,{state:'Healthy',reason:/^Up/});
    await unavailableJourney(page,width);await actionErrorJourney(page,monitor,width);
