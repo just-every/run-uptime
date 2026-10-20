@@ -128,6 +128,11 @@ test('a new monitor starts from a pasted URL: the runner answers, the owner unti
   const monitors=(await f.request('/api/overview')).data.monitors;
   assert.deepEqual(monitors.map(m=>m.definition.name).sort(),['Example dashboard','Example site']);
   for(const m of monitors){assert.equal(m.definition.enabled,true);assert.deepEqual(m.definition.assignments['local-a'],{runnerId:f.first.runnerId,networkLabel:f.first.networkLabel,canaryUrl:'https://example.org/'})}
+  await page.goto(f.origin+'/app/monitor');
+  await page.getByLabel('Website URL',{exact:true}).fill('http://10.0.0.5/status');await page.getByRole('button',{name:'Check',exact:true}).click();
+  await page.getByRole('link',{name:'Check a private address',exact:true}).click();await page.locator('html.editor-context-ready').waitFor();
+  assert.equal(await page.locator('[name=networkScope]').inputValue(),'private');assert.equal(await page.locator('[name=url]').inputValue(),'http://10.0.0.5/status');
+  assert.equal((await f.request('/api/overview')).data.monitors.length,monitors.length,'opening the private form creates nothing');
  }finally{await browser.close()}
 });
 // First-run setup through its public door: the owner's website, set at installation or typed into the form, becomes one discovery job.

@@ -24,20 +24,20 @@ export function mountDiscovery({form,overview,openCheck,showManualForm}){
   result.hidden=next!=='result';problem.hidden=next!=='problem';
   if(!busy){stopTimer();status.replaceChildren();status.removeAttribute('data-state')}
  }
- function privateLink(container,url,messages){
-  if(!messages.some(text=>/private|loopback|link-local/i.test(text)))return;
+ function privateLink(container,url){
+  try{if(!['http:','https:'].includes(new URL(url).protocol))return}catch{return}
   const link=document.createElement('a');link.className='ui-link';link.textContent='Check a private address';
   link.href='/app/monitor?'+new URLSearchParams({manual:'1',network:'private',url});container.append(link);
  }
  function fail(message){
   show('problem','Check again');
-  const text=document.createElement('p');text.textContent=message;problem.replaceChildren(text);privateLink(problem,input.value,[message]);
+  const text=document.createElement('p');text.textContent=message;problem.replaceChildren(text);privateLink(problem,input.value);
   problem.focus();
  }
  function succeed(job){
   show('result','Check again');
   status.textContent=checkedLine(job,job.result);
-  results.render(job);privateLink($('#discovery-empty'),job.url,job.result.notes);results.focusHeading();
+  results.render(job);if(!job.result.proposals.length)privateLink($('#discovery-empty'),job.url);results.focusHeading();
  }
  // The aria-live line: what is being checked and from which network, with the seconds so far beside it.
  function showProgress(url){

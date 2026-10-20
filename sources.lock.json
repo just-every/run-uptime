@@ -5939,7 +5939,7 @@
       "executable": false
     },
     "src/editor/monitor/discovery.mjs": {
-      "sha256": "736ce1f38fbe55320844baa3280bf07e0448792ac55c2ff322452b349be5f777",
+      "sha256": "49ec904d736ee3032f622c53ef5fbb9498ce7d0b01211f2210c2f4efff6b7c7d",
       "executable": false
     },
     "src/editor/monitor/fields.mjs": {
@@ -6487,7 +6487,7 @@
       "executable": false
     },
     "tests/discovery-jobs.mjs": {
-      "sha256": "9f898bdab54ae802b23d341bb14b8df43ca87292417a830b06e541a9ebea6a6a",
+      "sha256": "5ac86bdb4b62d742882ce92fbb6bf7efa3ca9b219878b103c6734fe47ec76284",
       "executable": false
     },
     "tests/editor-management-edge.mjs": {
