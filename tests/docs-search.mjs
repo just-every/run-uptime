@@ -55,7 +55,7 @@ test('a reader searches docs, dismisses results and follows a heading by keyboar
         const query = 'Start with a website';
         await input.fill(query);
         const list = page.locator(`#${await input.getAttribute('aria-controls')}`);
-        const result = list.getByRole('option').filter({ hasText: query });
+        const result = list.getByRole('option', { includeHidden: true }).filter({ hasText: query });
         await result.waitFor({ state: 'visible' });
         const href = await result.getAttribute('href');
         const target = new URL(href);
