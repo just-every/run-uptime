@@ -37,7 +37,7 @@ async function startRunner(){runnerAbort=new AbortController();runnerPromise=Pro
 async function stopRunner(){if(runnerAbort){runnerAbort.abort();await runnerPromise;runnerAbort=null}}
 async function restart(){await stopRunner();await worker.dispose();worker=null;await startWorker();await startRunner()}
 async function testDestination(destination){const result=await api(`/api/notifications/destinations/${destination.id}/test`,'POST',{});assert.equal(result.status,202);assert.equal(result.data.queued,true);return result.data.deliveryId}
-async function settle(id,state){return waitFor(async()=>{const row=(await notifications()).deliveries.find(row=>row.id===id);return row?.state===state?row:null},`delivery reaches ${state}`)}
+async function settle(id,state){let last;try{return await waitFor(async()=>{const row=(await notifications()).deliveries.find(row=>row.id===id);last=row;return row?.state===state?row:null},`delivery reaches ${state}`)}catch(error){throw Error(`${error.message}; observed ${JSON.stringify({kind:last?.kind,state:last?.state,code:last?.code,attempts:last?.attempts,status:last?.status})}`)}}
 function assertNoSecrets(value){const text=typeof value==='string'?value:JSON.stringify(value);for(const credential of credentials)assert.ok(!text.includes(credential),'private notification credential cannot enter operator reads or archive');assert.ok(!text.includes(slackUrl),'Slack capability URL cannot enter operator reads or archive')}
 try{
  const mail=await acceptanceReceiver(mailPort,verifySendGrid);receivers.push(mail);
