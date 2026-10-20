@@ -471,7 +471,7 @@
       "executable": false
     },
     "base-copies.json": {
-      "sha256": "684c9f8b345c6730f5c264736b14b3f85fbbba615981783b4069f41dc0d52719",
+      "sha256": "1dcd16521fe0fff5f6562179d2396c61a34806f7c1c8b7c2c90f4b35c3ebf3cf",
       "executable": false
     },
     "BASELINE.md": {
@@ -2303,7 +2303,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "a925505fe1239a657310f655f90071fd4883fc3fbb5fa1e05ecc5e86fdca5176",
+      "sha256": "4b9229681b189eee9836e2ed951875e210ed3e2b5e78acb27ef9f01797d6bdff",
       "executable": false
     },
     "patches/README.md": {
@@ -2311,7 +2311,7 @@
       "executable": false
     },
     "pnpm-lock.yaml": {
-      "sha256": "963e0651f58b4a3ab1a28acf13b28bea19612286bcc174ce38bfaaa7d141276e",
+      "sha256": "e1bd4b8af0a1a12a98c6e474929ea7bdf23e0b11c324ad305dabed31d24f8300",
       "executable": false
     },
     "public/action-feedback.mjs": {
