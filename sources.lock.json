@@ -463,7 +463,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "bf3d1729d937b52bb119c8b502a85e0b4462c8897b80949be93eae50bd13dce5",
+      "sha256": "36022788efc5e0cf52c23d4deae25f53838d9b064a7d217c464fc276463825f9",
       "executable": false
     },
     "AGENTS.md": {
@@ -487,7 +487,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "7e480f4d220c9b296b8d9814b1838b2143b31b6cdc2c712597e4c3f6f401ce2c",
+      "sha256": "b2cd00cc2de607805aa39dd4d2460a296e311dc27e73aeade53339e8f517f769",
       "executable": false
     },
     "DEMO.md": {
@@ -2392,6 +2392,10 @@
     },
     "public/definitions.js": {
       "sha256": "70db0150182d622d2da281ea1606236aacd923ec789f8980365e74a1030e760b",
+      "executable": false
+    },
+    "public/delivery-retry.js": {
+      "sha256": "af3be7372499bc848a813d916d9e7803599c34abb4c85f1c2cddb71d7f4a18f5",
       "executable": false
     },
     "public/design-assets/fonts/noto-sans-regular.ttf": {
