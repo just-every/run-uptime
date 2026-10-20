@@ -2,14 +2,27 @@
 
 ## Unreleased
 
-Adds two migrations (`0056_import_door_archive.sql`, the import door's archives; `0057_location_names.sql`, who named each location); no new required settings.
+Adds one migration (`0057_location_names.sql`, who named each location); no new required settings.
 
 - **The console follows the owner's three jobs: monitors, locations, and each monitor's pass/fail rules.** The sidebar reads Monitors · Locations · Notifications · Archive · Settings. Setup asks only for the website, and that is optional; the External check URL (https://example.org/ by default) moved to Settings. With no monitors, setup and `/app` open the form for the first monitor. **Locations** lists where checks run from, and **Add location** shows the runner command, watches the new location join, and renames or removes locations. A location is named after the place its runner connects from (Cloudflare's `request.cf` city, region or country), or a short generated name, and `PATCH /api/runners/:id` renames it. An existing `owner-network` location takes a generated name on upgrade and its place's name on its runner's next contact. Each monitor's **Up or down** card lists what one check must see, when it is down, when it is back up and where it is checked from. The editor shows the same rules as a list with **Add rule**; JSON value and response time replaced the raw "Additional checks (JSON)" box. **Archive** holds the backup and the monitor files (import, export, past imports) that were "Definitions"; **Settings** holds the External check URL, metrics keys, operators and Business imports. A runner's own `UPTIME_NETWORK_LABEL` is now ignored rather than checked, so a renamed location keeps working with its old command.
+
+## 0.4.3 — 2026-10-20
+
+Patch release from `main`; previous version 0.4.2. One additive migration, `0056_import_door_archive.sql` (the import door's archives); keep every earlier migration file and history. No new required settings. Back up the console archive and database first, as for any upgrade; monitors, history, incidents, destinations and private settings are kept, and a native or Platform-managed archive made by 0.4.2 restores into 0.4.3.
+
 - **Cutover status for Run Edit Run.** `POST /api/rer/cutover-status` answers a signed `cutover-status` grant and a `{since}` time with each alert destination's host and its deliveries sent and accepted since then, and the monitors and incidents created since. Counts, ids and hosts only; it writes nothing.
 - **The Business import door is Base's, byte for byte.** Every recorded Base copy moves to rer 0.2.71 and `@runeditrun/rer` is pinned to exactly 0.2.71. The door's reversal-policy divergence is gone: Uptime's undo keeps and reports a monitor edited or enabled since through Base's `reversalPolicy` option at job creation. The door gains Base's `archive` and `restore-check` actions.
 - **Run Edit Run's UptimeRobot exports import.** A Business upload is refused only when a request field Uptime withholds holds a live credential by the import door's own rule. An export from rer, which removes credentials and marks them (`[removed]`, `removed@`, `?api_key=removed`) but keeps user names, other headers and request bodies, now imports; Uptime withholds every request field from the monitors, plans and records it keeps, and a monitor whose URL carried credentials is refused alone with its reason.
 - **Erasure reaches every archive naming the monitor.** Erasing a monitor now also withdraws the bytes of a Business archive outside the source it retires when that archive names the monitor, including one that is the only copy left; the archive's header stays and `restore-check` answers 410.
 - **`?keyword=` and `?author=` URLs import.** The import kit now reads a query parameter as a credential only by its whole name parts, so a monitor URL such as `https://example.com/status?keyword=up` previews and imports like any other. A real credential parameter (`?api_key=`, `?access_token=`) still refuses its entry alone, with its reason.
+- **The console refreshes in place.** The console still reads new results every few seconds, but each view now updates only what changed instead of rebuilding itself. Open sections stay open, typed form values stay, and the page no longer flashes its loading placeholders or jumps its scroll position.
+- **Homepage and docs tidy-up.** The run site's hero drops its second free-and-open-source line (the alternative line keeps its place), and the docs menu no longer draws a marker over the current page's name.
+- Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).
+
+### Known issues
+
+- A response body larger than 64 KiB fails the check as a target failure (`body-limit`), even when the status is correct. Point a monitor at a smaller page, such as a health endpoint, until a later release reads large pages.
+- The limits listed under 0.4.0 still apply: hosted heartbeat evaluation needs a private runner, and hosted Worker checks cannot pin connections.
 
 ## 0.4.2 — 2026-10-19
 
