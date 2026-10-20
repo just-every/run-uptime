@@ -1955,7 +1955,7 @@
       "executable": false
     },
     "docs/install.md": {
-      "sha256": "6b2fbd506aa1873f22534c8ff8bbe5e5ab97b8e10c4272a3be1e91d3d98c7f2e",
+      "sha256": "8e23924af9657fed1e434e637ba6922fe7c408ab2a5ed61c0ef467bf128f72d9",
       "executable": false
     },
     "docs/limits.md": {
@@ -2291,7 +2291,7 @@
       "executable": false
     },
     "public/alert-drills.js": {
-      "sha256": "667513d23753f6787faa1f49723d05309698c06d5f162b9b4aab81ae4e873b8a",
+      "sha256": "ae5493b08d338d0788efa3218e65c5dc0b9f42848feedeb56f454e1fa0284cf5",
       "executable": false
     },
     "public/app-theme.css": {
@@ -2503,7 +2503,7 @@
       "executable": false
     },
     "public/notifications.js": {
-      "sha256": "bde76f1cbb1d2d82af3b51d9846bafaeaaf195a6e59983434f01be1842ccf322",
+      "sha256": "44d7d30bcf71f3b1e31300098267a2f0b3007b3aeab72bb8ed55426191272f1c",
       "executable": false
     },
     "public/planned-maintenance.css": {
@@ -2563,7 +2563,7 @@
       "executable": false
     },
     "README.md": {
-      "sha256": "29b3e02661544d0fae9e093ce4fb0e5acb1f4aa5b2007935050091908d824385",
+      "sha256": "12724147ba9cac7a310bee9cd6bb559c1a692b338f5f16a3aaf61a5abe7cd4f3",
       "executable": false
     },
     "RELEASE.json": {
