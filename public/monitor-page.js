@@ -79,7 +79,7 @@ function titleBlock(m,readUnavailable){
 }
 function actionButtons(m){
  const maintenance=m.definition.maintenanceUntil>Date.now();
- return `<button id="run-monitor" class="primary" ${m.definition.enabled?'':'disabled'}>${icon('play')}Run now</button>${(isFlow(m.definition)||m.definition.type==='heartbeat')?'<a class="ui-button" id="edit" href="/docs/definitions">'+icon('pencil')+'Edit in a file</a>':`<button id="edit">${icon('pencil')}Edit</button>`}<button id="pause"${m.definition.enabled?'':' class="resume"'}>${icon(m.definition.enabled?'pause':'play')}${m.definition.enabled?'Pause':'Resume'}</button><details class="more-menu" id="more-menu"><summary class="ui-button">More</summary><div class="more-menu-list"><button id="maintenance">${icon('moon')}${maintenance?'End maintenance':'Maintenance for 15 min'}</button><button id="erase-monitor" class="danger">Erase monitor</button></div></details>`;
+ return `<button id="run-monitor" class="primary" ${m.definition.enabled?'':'disabled'}>${icon('play')}Run now</button>${(isFlow(m.definition)||m.definition.type==='heartbeat')?'<a class="ui-button" id="edit" href="/docs/definitions">'+icon('pencil')+'Edit in a file</a>':`<button id="edit">${icon('pencil')}Edit</button>`}<button id="pause"${m.definition.enabled?'':' class="resume"'}>${icon(m.definition.enabled?'pause':'play')}${m.definition.enabled?'Pause':'Resume'}</button><details class="more-menu" id="more-menu"><summary class="ui-button">More</summary><div class="more-menu-list"><button id="maintenance">${icon('moon')}${maintenance?'End maintenance':'Maintenance 15 min'}</button><button id="erase-monitor" class="danger">Erase monitor</button></div></details>`;
 }
 function heartbeatPanel(m,data){
  if(m.definition.type!=='heartbeat')return '';

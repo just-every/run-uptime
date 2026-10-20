@@ -74,7 +74,7 @@ test('a job nobody claims, or nobody finishes, expires; refusals at create leave
  await age(fresh,'claimed_at',120_001);assert.equal((await read(fresh)).data.status,'expired');
  assert.equal((await post(f.first,fresh,{result:result()})).status,409,'an expired job is not stored');assert.equal((await read(fresh)).data.result,undefined);
  await clear();
- for(const url of ['http://10.0.0.1/','http://127.0.0.1:4795/','http://[::1]/','http://192.168.1.1/admin','file:///etc/passwd','ftp://example.com/','https://user:pw@example.com/','https://example.com/#top','not a url',7])assert.equal((await create(url)).status,400,String(url));
+ for(const url of ['http://localhost:3000/','http://shop.localhost./','http://10.0.0.1/','http://127.0.0.1:4795/','http://[::1]/','http://192.168.1.1/admin','file:///etc/passwd','ftp://example.com/','https://user:pw@example.com/','https://example.com/#top','not a url',7])assert.equal((await create(url)).status,400,String(url));
  assert.equal((await f.request('/api/discoveries',{body:{url:'https://example.com/',extra:true}})).status,400);
  assert.equal((await f.DB.prepare('SELECT COUNT(*) n FROM discovery_jobs').first()).n,0);
  assert.equal((await f.request('/api/discoveries',{body:{url:'https://example.com/'},headers:{origin:'https://evil.example'}})).status,403);

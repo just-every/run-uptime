@@ -65,7 +65,7 @@ import {notificationOverview,testDestination} from './domain/notifications.serve
 import {notificationRpc} from './domain/notification-rpc.server.ts'
 import {startDrill} from './domain/alert-drills.server.ts'
 import {alertDrillDocument} from './domain/alert-drill-document.server.ts'
-import {isPublicAsset} from './domain/assets.server.ts'
+import {isPublicAsset,publicAssetResponse} from './domain/assets.server.ts'
 import {classifyStorage,storageLogLine,storageOperation} from './domain/storage-error.ts'
 import {maintenance} from './domain/maintenance.server.ts'
 import {authRoute,authFailure,developmentMail,signOut,signInDocument} from './domain/operator-auth.server.ts'
@@ -293,7 +293,7 @@ const handler={async fetch(request,env,execution){
  if(path==='/alert-drill')return alertDrillDocument(bindings,request);
  // Once an owner is admitted the first-owner claim is spent, so sign-in stops offering it.
  if(path==='/login'||path==='/claim')return authDocument(path==='/claim',path==='/login'&&url.searchParams.get('notice')==='sent',developmentMail(bindings),false,bindings.UPTIME_DEPLOY_ENVIRONMENT,!await ownerAdmitted(bindings.DB),path==='/login'&&url.searchParams.get('notice')==='mail_unavailable',url.searchParams.get('login_hint')??'');
- if(isPublicAsset(path))return bindings.ASSETS?bindings.ASSETS.fetch(request):new Response('Not found',{status:404});
+ if(isPublicAsset(path))return publicAssetResponse(request,bindings.ASSETS);
  if(path==='/monitor'||path==='/monitor/')return new Response(null,{status:308,headers:{location:`/app/monitor${url.search}`,'cache-control':'no-store'}});
  if(path!=='/health'&&path!=='/api'&&!path.startsWith('/api/')&&!isPublicDocument(path)){
   // Only native document routes and Start transports reach the private renderer.

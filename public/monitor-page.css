@@ -1,6 +1,6 @@
 /* The monitor page's own additions: the action row with its More menu, fine print behind a "?", and the narrow-width order. */
 .top.ui-header:has(.monitor-title) .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; grid-template-columns: none; }
-.top.ui-header:has(.monitor-title) .actions > :is(button, a, .more-menu > summary) { min-height: 46px; padding: 0 22px; font-size: 15px; }
+.top.ui-header:has(.monitor-title) .actions :is(.actions > button, .actions > a, .more-menu > summary) { min-height: 46px; padding: 0 22px; font-size: 15px; }
 .more-menu { position: relative; }
 .more-menu > summary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--card); color: var(--ink); font-weight: 600; list-style: none; cursor: pointer; }
 .more-menu > summary:hover { background: var(--ground); }
@@ -11,7 +11,7 @@
 .top.ui-header:has(.monitor-title) .actions .more-menu-list button.danger { color: var(--rose-text); }
 @media (max-width: 700px) {
   .top.ui-header:has(.monitor-title) .actions { gap: 8px; }
-  .top.ui-header:has(.monitor-title) .actions > :is(button, a, .more-menu > summary) { min-height: 44px; padding: 0 12px; gap: 6px; font-size: 14px; }
+  .top.ui-header:has(.monitor-title) .actions :is(.actions > button, .actions > a, .more-menu > summary) { min-height: 44px; padding: 0 12px; gap: 6px; font-size: 14px; }
 }
 .fine-print { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; color: var(--muted); font-size: 13px; line-height: 1.45; }
 .fine-print > p { margin: 0; }

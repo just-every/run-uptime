@@ -54,7 +54,7 @@ export function validateIncidentContext(event:NotificationEvent){
  if(!object(context)||Object.keys(context).sort().join(',')!==(context.version===2?'confirmedRecoveredAt,confirmedRecoveredLocal,confirmedStartedAt,confirmedStartedLocal,downtimeHuman,downtimeSeconds,failedLocations,incidentUrl,originalReason,timeZone,version':'confirmedRecoveredAt,confirmedStartedAt,downtimeHuman,downtimeSeconds,failedLocations,incidentUrl,originalReason,timeZone,version')||![1,2].includes(context.version)||(context.version===1?context.timeZone!=='UTC':!validZone(context.timeZone))||!['trigger','recovery','reminder'].includes(event.kind)||!event.monitorId||!event.incidentKey||!clock(context.confirmedStartedAt)||!text(context.originalReason)||!Array.isArray(context.failedLocations)||context.failedLocations.length>3)return invalid();
  for(const location of context.failedLocations)if(!object(location)||Object.keys(location).sort().join(',')!=='name,probe,reason'||!text(location.probe)||!location.probe||!text(location.name)||!location.name||!text(location.reason))return invalid();
  if(new Set(context.failedLocations.map(p=>p.probe)).size!==context.failedLocations.length||context.incidentUrl!==incidentUrl(event.consoleUrl,event.monitorId,event.incidentKey))return invalid();
- if(context.version===2&&(context.confirmedStartedLocal!==notificationLocalTime(context.confirmedStartedAt,context.timeZone)||context.confirmedRecoveredLocal!==(context.confirmedRecoveredAt===null?null:notificationLocalTime(context.confirmedRecoveredAt,context.timeZone))))return invalid();
+ if(context.version===2&&(canonicalLocalTime(context.confirmedStartedLocal)!==notificationLocalTime(context.confirmedStartedAt,context.timeZone)||canonicalLocalTime(context.confirmedRecoveredLocal)!==(context.confirmedRecoveredAt===null?null:notificationLocalTime(context.confirmedRecoveredAt,context.timeZone))))return invalid();
  if(event.kind==='reminder'){
   if(context.confirmedStartedAt>event.observedAt||context.confirmedRecoveredAt!==null||context.downtimeSeconds!==null||context.downtimeHuman!==null||context.originalReason!==event.explanation)return invalid();
  }else if(event.kind==='trigger'){
@@ -70,6 +70,9 @@ export function validateIncidentContext(event:NotificationEvent){
 }
 
 function validZone(value:unknown){if(typeof value!=='string'||value.length>80)return false;try{new Intl.DateTimeFormat('en-US',{timeZone:value});return true}catch{return false}}
+// Older workerd contexts retain GMT+00:00. Compare only that equivalent suffix;
+// keep the stored context, zone, date, clock and every nonzero offset unchanged.
+function canonicalLocalTime(value:unknown){return typeof value==='string'?value.replace(/GMT[+-]00:00$/,'GMT'):value}
 export function notificationLocalTime(value:number,timeZone:string){
  // Workerd renders zero offset as GMT+00:00; Node renders GMT. Persist the
  // canonical spelling so the same immutable context validates in both runtimes.
