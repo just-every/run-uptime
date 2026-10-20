@@ -6455,7 +6455,7 @@
       "executable": false
     },
     "tests/api-transaction-journey.mjs": {
-      "sha256": "a2ce893930a3d62004b5d1f17f5f0c096b6ffeaade67f5b2253dca18e3ca24fd",
+      "sha256": "42c068a4d807577b8c2d69a2fac7e19fae14084991a573b2355caf73f580eb19",
       "executable": false
     },
     "tests/archive-fixture.mjs": {
