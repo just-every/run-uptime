@@ -857,7 +857,7 @@
         "environment": "all"
       },
       {
-        "path": "/delivery-retry.js",
+        "path": "/delivery-chain.js",
         "match": "exact",
         "kind": "asset",
         "class": "assets",

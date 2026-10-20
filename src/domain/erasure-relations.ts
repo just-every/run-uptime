@@ -4,6 +4,7 @@ import {slackContent} from './notification-content.ts'
 import {parseAddress} from '../base/modules/mail/src/core/validation.mjs'
 function object(value:any):any {if(typeof value==='string'){try{return JSON.parse(value)}catch{return null}}return value&&typeof value==='object'?value:null}
 const eventMonitor=(event:any,id:string)=>event?.monitorId===id||event?.monitor?.id===id;
+const followsDestination=(event:any,id:string)=>Array.isArray(event?.fallbackContext?.previous)&&event.fallbackContext.previous.some((p:any)=>p?.destinationId===id);
 export function erasureRelations(kind:'monitor'|'destination'|'operator',id:string,jobs:{id:string;event:string}[],credentials:string[]){
  const jobIds=new Set(jobs.map(row=>row.id)),credentialIds=new Set(credentials),bodies=new Set<string>();
  if(kind==='monitor')for(const row of jobs){bodies.add(row.event);const event=object(row.event);if(event)bodies.add(slackContent(event))}
@@ -22,7 +23,7 @@ export function erasureRelations(kind:'monitor'|'destination'|'operator',id:stri
   }
   if(kind==='destination'){
    if(table==='notification_destinations')return row.id===id;
-   if(table==='notification_jobs')return row.destination_id===id||jobIds.has(row.id);
+   if(table==='notification_jobs')return row.destination_id===id||jobIds.has(row.id)||followsDestination(object(row.event),id);
    if(table==='integration_deliveries')return jobIds.has(row.id)||envelopeRelated(row.envelope);
   }
   return false;

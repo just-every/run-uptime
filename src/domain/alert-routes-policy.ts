@@ -1,15 +1,28 @@
 import {normalizeContactSettings,type ContactSettings} from './contact-schedule.ts'
 export type RouteScope='monitor'|'service'|'group'|'installation';
 export type RouteMode='inherit'|'selected'|'all';
-export type RoutePolicy={scope:RouteScope;value:string;mode:RouteMode;destinationIds:string[];contactSettings:Record<string,ContactSettings>;revision:number;updatedAt:number|null};
+export type FallbackChain={destinationIds:string[];deadlineSeconds:number};
+export type RoutePolicy={scope:RouteScope;value:string;mode:RouteMode;destinationIds:string[];contactSettings:Record<string,ContactSettings>;fallback:FallbackChain;revision:number;updatedAt:number|null};
+export const defaultFallback:FallbackChain={destinationIds:[],deadlineSeconds:120};
 export const routeScopes:RouteScope[]=['monitor','service','group','installation'];
 export function scopeValue(scope:RouteScope,monitor:any):string{return scope==='installation'?'':scope==='monitor'?monitor.id:monitor.definition[scope]??''}
-export function defaultPolicy(scope:RouteScope,value:string):RoutePolicy{return {scope,value,mode:scope==='installation'?'all':'inherit',destinationIds:[],contactSettings:{},revision:0,updatedAt:null}}
-export function routePolicy(row:any):RoutePolicy{return {scope:row.scope_kind,value:row.scope_value,mode:row.mode,destinationIds:JSON.parse(row.destination_ids),contactSettings:normalizeContactSettings(JSON.parse(row.contact_settings??'{}'),JSON.parse(row.destination_ids)),revision:row.revision,updatedAt:row.updated_at}}
+export function defaultPolicy(scope:RouteScope,value:string):RoutePolicy{return {scope,value,mode:scope==='installation'?'all':'inherit',destinationIds:[],contactSettings:{},fallback:defaultFallback,revision:0,updatedAt:null}}
+/** DELIVERY-002: an ordered chain of named contacts after the selected ones, and how long an uncertain send waits. */
+export function normalizeFallback(raw:any,mode:RouteMode,selected:string[]):FallbackChain{
+ if(raw===undefined)return defaultFallback;
+ if(!raw||typeof raw!=='object'||Array.isArray(raw)||Object.keys(raw).some(k=>!['destinationIds','deadlineSeconds'].includes(k)))throw Error('A fallback chain names destinationIds and deadlineSeconds');
+ const ids=raw.destinationIds??[],deadlineSeconds=raw.deadlineSeconds??defaultFallback.deadlineSeconds;
+ if(!Array.isArray(ids)||ids.length>3||ids.some((id:any)=>typeof id!=='string'||!id||id.length>512||/[\x00-\x1f\x7f]/.test(id))||new Set(ids).size!==ids.length)throw Error('Use at most 3 distinct fallback destinations');
+ if(ids.length&&mode!=='selected')throw Error('Only a selected-destinations policy takes fallback contacts');
+ if(ids.some((id:string)=>selected.includes(id)))throw Error('A fallback contact cannot also be a selected contact');
+ if(!Number.isInteger(deadlineSeconds)||deadlineSeconds<5||deadlineSeconds>3600)throw Error('The uncertain deadline must be 5 to 3600 seconds');
+ return {destinationIds:[...ids],deadlineSeconds};
+}
+export function routePolicy(row:any):RoutePolicy{const ids=JSON.parse(row.destination_ids),fallback=normalizeFallback(JSON.parse(row.fallback??'{}'),row.mode,ids);return {scope:row.scope_kind,value:row.scope_value,mode:row.mode,destinationIds:ids,contactSettings:normalizeContactSettings(JSON.parse(row.contact_settings??'{}'),[...ids,...fallback.destinationIds]),fallback,revision:row.revision,updatedAt:row.updated_at}}
 export function effectivePolicy(policies:RoutePolicy[]){return policies.find(p=>p.mode!=='inherit')!}
 // Evaluated in the same D1 transaction as the confirmed event, against current
 // monitor labels and policies. Inherit skips that scope explicitly.
-export const selectedRouteSql=`SELECT r.mode,r.destination_ids,r.contact_settings FROM alert_routes r JOIN monitors m ON m.id=?
+export const selectedRouteSql=`SELECT r.mode,r.destination_ids,r.contact_settings,r.fallback FROM alert_routes r JOIN monitors m ON m.id=?
  WHERE r.mode<>'inherit' AND ((r.scope_kind='monitor' AND r.scope_value=m.id)
  OR (r.scope_kind='service' AND r.scope_value=json_extract(m.definition,'$.service'))
  OR (r.scope_kind='group' AND r.scope_value=json_extract(m.definition,'$.group'))

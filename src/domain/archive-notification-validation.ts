@@ -7,6 +7,16 @@ import {normalizeWebhookTemplate,renderWebhookTemplate} from './webhook-template
 // @ts-expect-error Shared mailbox validation.
 import {parseAddress} from '../base/modules/mail/src/core/validation.mjs'
 const integrationProtocols=new Map([['webhook','webhook'],['slack','slack.incoming-webhook.v1']]);
+const envelopeKeys=['id','tenant','destinationId','event','protocol'];
+// A fallback contact's job carries the confirmed trigger plus the earlier contacts it names; nothing else changes.
+function validateFallback(event:any,job:any){
+ const f=event.fallbackContext;
+ if(event.kind!=='trigger'||!object(f)||Object.keys(f).sort().join(',')!=='previous,step'||!Number.isInteger(f.step)||f.step<1||f.step>3||!Array.isArray(f.previous)||!f.previous.length||f.previous.length>100)throw Error('Invalid notification fallback context');
+ for(const p of f.previous){
+  shape(p,['deliveryId','destinationId','destinationName','kind','outcome','code'],'notification fallback contact');identity(p.deliveryId,'fallback delivery');identity(p.destinationId,'fallback destination');
+  if(p.destinationId===job.destination_id||typeof p.destinationName!=='string'||!p.destinationName||p.destinationName.length>100||/[\x00-\x1f\x7f]/.test(p.destinationName)||![null,'email','webhook','slack'].includes(p.kind)||!['failed','uncertain'].includes(p.outcome)||typeof p.code!=='string'||!/^[a-zA-Z0-9_.-]{1,100}$/.test(p.code))throw Error('Invalid notification fallback context');
+ }
+}
 export function validateOutcome(text:any){
  if(text===null)return;
  if(typeof text!=='string')throw Error('Invalid archive notification outcome');const o=JSON.parse(text);
@@ -18,7 +28,9 @@ function template(row:any){
  const config=normalizeWebhookTemplate(JSON.parse(row.webhook_template));
  if(JSON.stringify(config)!==row.webhook_template)throw Error('Noncanonical archive webhook template');return config;
 }
-function deliveryBody(job:any,event:any){
+/** The exact body a delivery sent is a pure function of its archived job event and portable template; archives carry
+ * envelopes without it (DELIVERY-002) and restore rebuilds it here. Older archives that still carry it must match. */
+export function deliveryBody(job:any,event:any){
  const config=template(job);if(!config)return job.kind==='slack'?slackContent(event):job.event;
  const headers=Object.fromEntries(config.headerNames.map((name:string)=>[name,'']));
  return renderWebhookTemplate({config,event,baseUrl:'https://example.com/',headers}).body??'';
@@ -35,16 +47,17 @@ export function validateNotificationTables(t:Tables){
   template(r);
   const destination=destinations.get(r.destination_id),event=JSON.parse(r.event);
   if(!destination||destination.kind!==r.kind||typeof r.destination_name!=='string'||!r.destination_name||r.destination_name.length>100||!object(event)||event.id!==r.event_id||event.visibility!=='private'||!['trigger','recovery','test','expiry','renewal','reminder','slow','slow_recovery','slow_reminder'].includes(event.kind))throw Error('Invalid notification job reference');
-  shape(event,['schemaVersion','id','kind','eventType','incidentKey','state','title','monitorId','monitorRevision','monitorName','url','slotId','observedAt','visibility','evidenceRef','explanation','probes','consoleUrl',...(Object.hasOwn(event,'incidentContext')?['incidentContext']:[]),...(Object.hasOwn(event,'webhookContext')?['webhookContext']:[])],'notification event');validateIncidentContext(event);validateWebhookContext(event);clock(event.observedAt,'notification event');
+  shape(event,['schemaVersion','id','kind','eventType','incidentKey','state','title','monitorId','monitorRevision','monitorName','url','slotId','observedAt','visibility','evidenceRef','explanation','probes','consoleUrl',...(Object.hasOwn(event,'incidentContext')?['incidentContext']:[]),...(Object.hasOwn(event,'webhookContext')?['webhookContext']:[]),...(Object.hasOwn(event,'fallbackContext')?['fallbackContext']:[])],'notification event');validateIncidentContext(event);validateWebhookContext(event);if(Object.hasOwn(event,'fallbackContext'))validateFallback(event,r);clock(event.observedAt,'notification event');
   if(event.schemaVersion!==2||!Array.isArray(event.probes)||event.probes.length>3||['title','monitorName','url','evidenceRef','explanation','consoleUrl','eventType'].some(k=>typeof event[k]!=='string'||event[k].length>4096))throw Error('Invalid notification event');
-  if(event.kind!=='test'){const outbox=t.outbox.find(x=>x.id===r.event_id);if(!outbox||outbox.event!==r.event)throw Error('Invalid notification event history')}else if(event.monitorId!==null||event.slotId!==null||event.incidentKey!==null)throw Error('Invalid test event');
+  if(event.kind!=='test'){const outbox=t.outbox.find(x=>x.id===r.event_id),{fallbackContext,...trigger}=event;if(!outbox||outbox.event!==(fallbackContext===undefined?r.event:JSON.stringify(trigger)))throw Error('Invalid notification event history')}else if(event.monitorId!==null||event.slotId!==null||event.incidentKey!==null)throw Error('Invalid test event');
   if(!['queued','sending','accepted','rejected','uncertain','imported-inactive'].includes(r.state)||typeof r.code!=='string'||!/^[a-zA-Z0-9_.-]{1,100}$/.test(r.code)||!Number.isSafeInteger(r.attempts)||r.attempts<0||r.attempts>1)throw Error('Invalid notification job state');clock(r.created_at,'job');if(r.finished_at!==null){clock(r.finished_at,'job finish');if(r.finished_at<r.created_at)throw Error('Invalid notification job timing')}
  }
  for(const r of deliveries.values()){
   const job=jobs.get(r.id),e=JSON.parse(r.envelope);
-  if(!job||!integrationProtocols.has(job.kind)||r.namespace!==notificationNamespace)throw Error('Invalid delivery reference');shape(e,['id','tenant','destinationId','event','protocol','body'],'notification envelope');
-  if(e.id!==r.id||e.tenant!==notificationNamespace||e.destinationId!==job.destination_id||typeof e.body!=='string'||!['webhook','slack.incoming-webhook.v1'].includes(e.protocol)||typeof e.event!=='string')throw Error('Invalid notification envelope');
-  const event=JSON.parse(job.event);if(e.event!==event.eventType||e.protocol!==integrationProtocols.get(job.kind)||e.body!==deliveryBody(job,event))throw Error('Notification envelope event mismatch');
+  const projected=object(e)&&!Object.hasOwn(e,'body');
+  if(!job||!integrationProtocols.has(job.kind)||r.namespace!==notificationNamespace)throw Error('Invalid delivery reference');shape(e,projected?envelopeKeys:[...envelopeKeys,'body'],'notification envelope');
+  if(e.id!==r.id||e.tenant!==notificationNamespace||e.destinationId!==job.destination_id||(!projected&&typeof e.body!=='string')||!['webhook','slack.incoming-webhook.v1'].includes(e.protocol)||typeof e.event!=='string')throw Error('Invalid notification envelope');
+  const event=JSON.parse(job.event);if(e.event!==event.eventType||e.protocol!==integrationProtocols.get(job.kind)||(!projected&&e.body!==deliveryBody(job,event)))throw Error('Notification envelope event mismatch');
   if(!['queued','sending','accepted','rejected','uncertain'].includes(r.state)||!Number.isSafeInteger(r.attempts)||r.attempts<0||r.attempts>r.max_attempts||!Number.isInteger(r.max_attempts)||r.max_attempts<1||r.max_attempts>10||(job.kind!=='webhook'&&r.max_attempts!==1)||!Array.isArray(JSON.parse(r.retry_delays))||JSON.parse(r.retry_delays).length!==r.max_attempts-1||JSON.parse(r.retry_delays).some((d:any)=>!Number.isSafeInteger(d)||d<1||d>86400000))throw Error('Invalid notification delivery state');clock(r.created_at,'delivery');clock(r.next_at,'delivery due');
  }
  for(const name of ['integration_attempts','integration_resolutions']){

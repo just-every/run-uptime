@@ -1,5 +1,6 @@
 import {deduplicatedNotification,notificationRetryTime} from './notification-retry.ts'
 import {contactReady,advanceContactSchedules} from './contact-scheduler.server.ts'
+import {advanceFallbackChains,attemptPhase} from './notification-fallback.server.ts'
 import {ensureNotificationCustody,readCredential,retireObsoleteCredentials,notificationDestinationHash,notificationKeyPresent} from './notification-credentials.server.ts'
 import {claimNotification,releaseUnstartedClaim,startClaim,registerClaim} from './notification-claims.server.ts'
 import {D1SqlDatabase} from '../base/modules/integrations/core/database.ts'
@@ -19,6 +20,7 @@ import type {SubrequestBudget} from './worker-budget.ts'
 import {recoveryAccepted,settleUnmatchedRecoveries} from './alert-route-delivery.server.ts'
 import {notificationEnvelopeBody,checkedNotificationEndpoint,webhookConfigText,notificationResponseExcerpt} from './notification-webhook.ts'
 export function notificationRepository(env:Bindings){return new NotificationRepository(env)}
+
 export class NotificationRepository extends IntegrationsRepository {
  protected env:Bindings;
  private templates=new Map<string,string|null>();
@@ -42,7 +44,7 @@ export class NotificationRepository extends IntegrationsRepository {
    this.env.DB.prepare(`INSERT OR IGNORE INTO notification_retry_policy(delivery_id,window_ms)
     SELECT ?,window_ms FROM notification_retry_settings WHERE singleton=1 AND ?=1 AND EXISTS(SELECT 1 FROM integration_deliveries WHERE namespace=? AND id=?)`).bind(delivery.id,Number(this.retryEligible.has(delivery.id)),NOTIFICATION_NAMESPACE,delivery.id),
    this.env.DB.prepare(`INSERT OR IGNORE INTO notification_delivery_attempts(delivery_id,destination_id,number,phase,scheduled_at,key_reference)
-    SELECT id,destination_id,1,'retry',?,event_id FROM notification_jobs WHERE id=? AND EXISTS(SELECT 1 FROM integration_deliveries WHERE namespace=? AND id=?)`).bind(delivery.nextAt,delivery.id,NOTIFICATION_NAMESPACE,delivery.id),
+    SELECT id,destination_id,1,${attemptPhase('notification_jobs')},?,event_id FROM notification_jobs WHERE id=? AND EXISTS(SELECT 1 FROM integration_deliveries WHERE namespace=? AND id=?)`).bind(delivery.nextAt,delivery.id,NOTIFICATION_NAMESPACE,delivery.id),
   ]);
   const current=await this.get(delivery.id);if(!current||current.fingerprint!==delivery.fingerprint)throw Error('Notification erased or changed');return current;
  }
@@ -67,7 +69,7 @@ export class NotificationRepository extends IntegrationsRepository {
   const result=await this.env.DB.batch([
    this.env.DB.prepare(`UPDATE integration_attempts SET finished_at=?,outcome=? WHERE namespace=? AND id=? AND finished_at IS NULL AND EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace=? AND d.id=? AND d.state='sending' AND d.claim=? AND d.claim_until>?)`).bind(now,JSON.stringify(outcome),NOTIFICATION_NAMESPACE,claim,NOTIFICATION_NAMESPACE,id,claim,now),
    this.env.DB.prepare(`INSERT OR IGNORE INTO notification_delivery_attempts(delivery_id,destination_id,number,phase,scheduled_at,key_reference)
-    SELECT j.id,j.destination_id,d.attempts+1,'retry',?,j.event_id FROM notification_jobs j JOIN integration_deliveries d ON d.id=j.id AND d.namespace=?
+    SELECT j.id,j.destination_id,d.attempts+1,${attemptPhase()},?,j.event_id FROM notification_jobs j JOIN integration_deliveries d ON d.id=j.id AND d.namespace=?
     WHERE j.id=? AND d.state='sending' AND d.claim=? AND d.claim_until>? AND ? IS NOT NULL AND EXISTS(SELECT 1 FROM integration_attempts a WHERE a.namespace=d.namespace AND a.id=d.claim AND a.finished_at=?)`).bind(nextAt,NOTIFICATION_NAMESPACE,id,claim,now,nextAt,now),
    this.env.DB.prepare(`UPDATE integration_deliveries SET state=?,claim=NULL,claim_until=NULL,next_at=? WHERE namespace=? AND id=? AND state='sending' AND claim=? AND claim_until>?`).bind(state,nextAt??now,NOTIFICATION_NAMESPACE,id,claim,now),
   ]);
@@ -80,7 +82,7 @@ export class NotificationRepository extends IntegrationsRepository {
  * hosted Worker's cron or a private runner's poll. Both use one Base delivery row, so a job is sent at most once. */
 export async function pollNotificationJobs(env:Bindings,budget?:SubrequestBudget){
  const repository=notificationRepository(env),now=Date.now(),op=storageOperation;
- await advanceContactSchedules(env);
+ await advanceContactSchedules(env);await op('notifications.poll.fallbacks',()=>advanceFallbackChains(env));
  await op('notifications.poll.recoverExpired',()=>repository.recoverExpired(now));await op('notifications.poll.custody',()=>ensureNotificationCustody(env));await op('notifications.poll.recoveryMatches',()=>settleUnmatchedRecoveries(env));await dispatchNotificationMail(env,budget);
  const rows=await op('notifications.poll.selectQueued',()=>env.DB.prepare(`SELECT j.*,c.id AS credential_record_id,c.destination_id AS credential_destination_id,c.created_at AS credential_created_at,c.endpoint,c.signing_secret,c.ciphertext,c.retired_at,c.unavailable_at FROM notification_jobs j JOIN notification_credentials c ON c.id=j.credential_id
   WHERE j.kind IN ('webhook','slack') AND j.state='queued' AND ${recoveryAccepted()} AND ${contactReady()} AND NOT EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace=? AND d.id=j.id AND d.state<>'queued') ORDER BY j.created_at LIMIT 20`).bind(NOTIFICATION_NAMESPACE).all<any>());

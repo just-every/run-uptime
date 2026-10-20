@@ -94,8 +94,8 @@ try{
 // The second added DELIVERY-002 case uses actual owner/runner doors and only receiver-edge fakes.
 const {test:retryOutcomeTest}=await import('node:test');
 const {proveNotificationRetry}=await import('./notify-retry-fixture.mjs');
-retryOutcomeTest('DELIVERY-002 accepted and failed retry outcomes reflow at 1440 and 390 without remounting an open dialog',{timeout:240000},async()=>{
- await proveNotificationRetry(async({origin:retryOrigin,bindings,acceptedId,failedId})=>{
+retryOutcomeTest('DELIVERY-002 retry and fallback-chain outcomes and the route chain editor reflow at 1440 and 390 without remounting an open dialog',{timeout:420000},async()=>{
+ await proveNotificationRetry(async({origin:retryOrigin,bindings,acceptedId,failedId,fallbackId,exhaustedId,chainMonitor})=>{
   const evidence=join(out,'retry-outcomes');await mkdir(evidence,{recursive:true});let retryBrowser;
   try{
    retryBrowser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});
@@ -108,6 +108,10 @@ retryOutcomeTest('DELIVERY-002 accepted and failed retry outcomes reflow at 1440
     await page.waitForFunction(key=>[...document.querySelectorAll('.delivery-card')].some(card=>card.dataset.key===key&&card.textContent.includes('Retry window exhausted')),'delivery-'+failedId);
     assert.ok((await page.locator('.notification-help:visible').textContent()).includes('Signed webhooks retry within saved limits.'),'visible help describes deduplicated retry');assert.equal(await accepted.locator('.delivery-state').textContent(),'Accepted');assert.equal(await failed.locator('.delivery-state').textContent(),'Failed');
     assert.equal(await failed.locator('.reason-code-value').textContent(),'retry_window_exhausted');await failed.getByText('HTTP 429',{exact:true}).waitFor();
+    const viaEmail=page.locator(`[data-key=${JSON.stringify('delivery-'+fallbackId)}] .delivery-chain`),ended=page.locator(`[data-key=${JSON.stringify('delivery-'+exhaustedId)}] .delivery-chain`);
+    await viaEmail.waitFor();assert.equal(await viaEmail.textContent(),'Fallback 1 after Dead Slack: Failed (slack_no_team). Fallback sent to Escalation webhook: Accepted.','both outcomes of the escalation are visible');
+    assert.equal(await ended.textContent(),'Fallback 1 after Dead Slack: Uncertain (response_unknown). Chain ended: no contact accepted. Follow up manually.');
+    const note=await viaEmail.elementHandle();
     await page.addScriptTag({path:require.resolve('axe-core/axe.min.js')});
     const violations=(await page.evaluate(()=>axe.run(document))).violations.map(v=>({id:v.id,targets:v.nodes.map(n=>n.target)}));assert.deepEqual(violations,[]);
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'retry outcomes reflow');
@@ -117,7 +121,22 @@ retryOutcomeTest('DELIVERY-002 accepted and failed retry outcomes reflow at 1440
     await page.getByRole('button',{name:'Add destination',exact:true}).click();const dialog=page.getByRole('dialog'),identity=await dialog.elementHandle();
     await dialog.getByLabel('Name',{exact:true}).fill('Keep this draft');await page.waitForTimeout(6000);
     assert.ok(await identity.evaluate(element=>element.isConnected&&element.open),'refresh preserves the same open dialog');assert.equal(await dialog.getByLabel('Name',{exact:true}).inputValue(),'Keep this draft');
+    assert.ok(await note.evaluate(element=>element.isConnected&&element.textContent.startsWith('Fallback 1 after Dead Slack')),'refresh keeps the same outcome note');
     await page.keyboard.press('Escape');await dialog.waitFor({state:'detached'});assert.equal(await page.evaluate(()=>document.activeElement?.id),'add-destination');
+    // The owner's route editor names the ordered chain, its deadline and each fallback contact's schedule.
+    await page.goto(retryOrigin+`/app/monitors/${chainMonitor.id}`);await page.locator('html.signed-in').waitFor();
+    await page.locator('#alert-route-summary').getByText('Fallback: On-call email → Escalation webhook; uncertain deadline 5 s.',{exact:true}).waitFor();
+    await page.getByRole('button',{name:'Edit alert route',exact:true}).click();const route=page.getByRole('dialog');await route.locator('#route-fallback-fields').waitFor();
+    assert.deepEqual(await Promise.all([0,1,2].map(i=>route.locator(`#route-fallback-${i} option:checked`).textContent())),['On-call email','Escalation webhook','None']);
+    assert.equal(await route.getByLabel('Uncertain deadline (seconds)',{exact:true}).inputValue(),'5');
+    await route.getByRole('button',{name:'Preview route',exact:true}).click();await route.locator('#route-preview').waitFor({state:'visible'});
+    assert.match(await route.locator('#route-preview').textContent(),/Fallback chainOn-call email email.*Fallback 1 · ReadyNow; no repeats; recovery on.*Escalation webhook webhook.*Fallback 2 · Ready/);
+    assert.match(await route.locator('#route-preview .route-recipients > li').filter({hasText:'On-call email'}).first().textContent(),/Fallback contact/);
+    await route.locator('#route-fallback-fields').scrollIntoViewIfNeeded();await route.screenshot({path:join(evidence,`route-chain-${width}.png`)});
+    await route.locator('#route-preview h3').filter({hasText:'Fallback chain'}).scrollIntoViewIfNeeded();await route.screenshot({path:join(evidence,`route-chain-preview-${width}.png`)});
+    await page.addScriptTag({path:require.resolve('axe-core/axe.min.js')});assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.map(v=>v.id),[]);
+    assert.ok(await route.evaluate(element=>element.scrollWidth<=element.clientWidth+1),'route chain editor reflows');assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'route page reflows');
+    await route.getByRole('button',{name:'Close',exact:true}).click();await route.waitFor({state:'detached'});
    }
   }finally{await retryBrowser?.close()}
  });

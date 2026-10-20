@@ -33,7 +33,14 @@ export async function archive(env:Bindings){
  // Import-door batches travel as definition-batch history beside the batches Uptime wrote itself.
  const door=await doorBatchArchive(env);t.definition_batches.push(...door.batches);t.definition_batch_entries.push(...door.entries);
  for(const name of ['definition_batches','definition_batch_entries'])if(t[name].length>ARCHIVE_ROWS)throw Error(`Archive row bound exceeded: ${name} (${ARCHIVE_ROWS})`);
- for(const row of t.integration_deliveries){const e=JSON.parse(row.envelope),job=t.notification_jobs.find(j=>j.id===row.id);if(!job)throw Error('Archive notification delivery is orphaned');if(e.destinationId!==job.destination_id){e.destinationId=job.destination_id;row.envelope=JSON.stringify(e)}}
+ // DELIVERY-002: a delivery travels without the body it sent; restore rebuilds it from the archived job event.
+ for(const row of t.integration_deliveries){const e=JSON.parse(row.envelope),job=t.notification_jobs.find(j=>j.id===row.id);if(!job)throw Error('Archive notification delivery is orphaned');e.destinationId=job.destination_id;delete e.body;row.envelope=JSON.stringify(e)}
+ const history=new Map<string,any>();
+ for(const row of t.archive_history){
+  if(row.table_name==='integration_deliveries'){const record=JSON.parse(row.record),e=JSON.parse(record.envelope);delete e.body;record.envelope=JSON.stringify(e);row.record=JSON.stringify(record);row.id=await digest(`${row.table_name}\n${row.record}`)}
+  history.set(row.id,row);
+ }
+ t.archive_history=[...history.values()];
  for(const row of t.integration_replays){const envelope=JSON.parse(row.envelope);if(!t.notification_destinations.some(d=>d.id===envelope.destinationId)){const credential=await env.DB.prepare('SELECT destination_id FROM notification_credentials WHERE id=?').bind(envelope.destinationId).first<{destination_id:string}>();if(!credential)throw Error('Archive notification replay destination unavailable');envelope.destinationId=credential.destination_id;row.envelope=JSON.stringify(envelope)}}
  const result=await portableArchive(t,Date.now(),await exportJournal(env));assertBytes(result,1);await validateArchive(result);return result;
 }

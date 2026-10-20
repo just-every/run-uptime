@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- Retry signed webhook incident deliveries with a stable ID, bounded stored backoff, Retry-After and owner-set limits; retain portable attempt metadata and erase it with its destination. Fallback contact chains remain pending.
+- Retry signed webhook incident deliveries with a stable ID, bounded stored backoff, Retry-After and owner-set limits; retain portable attempt metadata and erase it with its destination.
+- **Fallback contacts (DELIVERY-002).** A selected route can name up to three ordered fallback contacts and an uncertain deadline (default 2 minutes). A failed trigger escalates at once, an uncertain one after the deadline; the console shows both outcomes and an ended chain. Email attempts are recorded too, and archives carry delivery records without request bodies. Adds migration `0060_notification_fallback.sql`.
 
 Adds two migrations (`0057_location_names.sql`, who named each location; `0058_cleanup_debt_and_effect_grants.sql`, retained cleanup debt and live-effect grants); no new required settings.
 

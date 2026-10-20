@@ -9,7 +9,11 @@ export interface NotificationEvent {
  explanation:string; probes:{name:string;outcome:string;reason:string}[]; consoleUrl:string;
  incidentContext?:IncidentContext;
  webhookContext?:WebhookContext;
+ fallbackContext?:FallbackContext;
 }
+/** DELIVERY-002: a fallback contact's copy of the confirmed trigger names the earlier contacts that failed or stayed uncertain. */
+export interface FallbackContext {step:number;previous:{deliveryId:string;destinationId:string;destinationName:string;kind:string|null;outcome:'failed'|'uncertain';code:string}[]}
+export function fallbackText(context:FallbackContext){return context.previous.map(p=>`Fallback ${context.step}: ${p.destinationName}${p.kind?` (${p.kind})`:''} ${p.outcome==='failed'?'failed':'is still uncertain'} (${p.code}).`)}
 export function incidentEvent({id,kind,monitor,slotId,now,state,observations,origin,incidentKey,trigger,contextVersion,timeZone}:any):NotificationEvent {
  const event:NotificationEvent={schemaVersion:2,id,kind,eventType:kind==='trigger'?'uptime.incident.firing':'uptime.incident.recovered',incidentKey,
  state:kind==='trigger'?'firing':'recovered',title:`${kind==='trigger'?'Down':'Recovered'}: ${monitor.definition.name}`,
@@ -41,7 +45,7 @@ export function testEvent(origin:string):NotificationEvent {
 }
 // Archive validation rebuilds every recorded Slack body from this text, so its
 // output must stay byte-stable or prior deliveries can no longer export or restore.
-export function notificationText(event:NotificationEvent){return [event.title,event.url?`URL: ${event.url}`:'',`State: ${event.state}`,event.monitorId?`Monitor: ${event.monitorId}`:'',event.incidentKey?`Incident: ${event.incidentKey}`:'',`Why: ${event.explanation}`,`Time: ${new Date(event.observedAt).toISOString()}`,...event.probes.map(p=>`Probe ${p.name}: ${p.outcome} — ${p.reason}`),event.consoleUrl?`Console: ${event.consoleUrl}`:'',...(event.incidentContext?incidentContextText(event.incidentContext):[])].filter(Boolean).join('\n')}
+export function notificationText(event:NotificationEvent){return [event.title,...(event.fallbackContext?fallbackText(event.fallbackContext):[]),event.url?`URL: ${event.url}`:'',`State: ${event.state}`,event.monitorId?`Monitor: ${event.monitorId}`:'',event.incidentKey?`Incident: ${event.incidentKey}`:'',`Why: ${event.explanation}`,`Time: ${new Date(event.observedAt).toISOString()}`,...event.probes.map(p=>`Probe ${p.name}: ${p.outcome} — ${p.reason}`),event.consoleUrl?`Console: ${event.consoleUrl}`:'',...(event.incidentContext?incidentContextText(event.incidentContext):[])].filter(Boolean).join('\n')}
 export function escapeHtml(value:string){return value.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!))}
 export function mailContent(event:NotificationEvent){
  // Mail uses friendly check labels; persisted Slack envelopes retain their byte-stable rendering.

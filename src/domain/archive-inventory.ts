@@ -12,6 +12,7 @@ export const installationLocalTables:Record<string,string>={
  notification_preferences:'Installation alert time zone; immutable event contexts preserve their own saved zone in archives.',
  slow_acknowledgements:'Installation Slow-notice acknowledgement and reminder authority; archived performance history never replays.',
  alert_contact_schedules:'Installation delayed-send and reminder dispatch authority; restored alert history never replays.',
+ alert_fallback_chains:'Installation fallback-contact escalation authority (DELIVERY-002); fallback alerts and attempts travel as notification history and never replay.',
  alert_routes:'Installation alert recipient policy; a receiving owner configures local routes explicitly.',
  alert_route_changes:'Installation detailed route history; opaque routing audit entries travel separately.',
  alert_recovery_matches:'Installation dispatch pairing between a recovery and its original trigger job; never replay restored alerts.',
