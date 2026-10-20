@@ -487,7 +487,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "7d8ae099aa40a1786f9c99da050c0b17fe7446c1c1313ed53ffbb784aab4b4fa",
+      "sha256": "fe99ec69bd2558e5925ef46d290c819ed098b872e0dcc8db2c5dab468702403d",
       "executable": false
     },
     "DEMO.md": {
@@ -2298,6 +2298,10 @@
       "sha256": "db0c32af1f935425cbdf6557efa6efe9460a0f087c7cc9f8f65f03e8d252cbab",
       "executable": false
     },
+    "migrations/0060_notification_fallback.sql": {
+      "sha256": "020137f881122057faab9dfa1a0e08f50c90325bc863a63afcd397d15fecea22",
+      "executable": false
+    },
     "OPERATIONS.json": {
       "sha256": "61ba56de0f6cefb040131c53bde043bc4aa6b4edf6bdba50bc682eee244e45c3",
       "executable": false
@@ -2336,6 +2340,14 @@
     },
     "public/archive-view.js": {
       "sha256": "d21bb24dc60632ea9db1a7de901e0e7601ea786da054f9bac068ee8f0c8cb51e",
+      "executable": false
+    },
+    "public/assets/alert-route-fallback.css": {
+      "sha256": "6a31f7ef86f467ddaa26340afb0390da9f5c21f042e91ae2a6309e7a412da638",
+      "executable": false
+    },
+    "public/assets/alert-route-fallback.js": {
+      "sha256": "d73bf776f816dfbd1e443e4152b927ad904a6afaee4555230afcedc941ddd905",
       "executable": false
     },
     "public/assets/alert-route-markup.js": {
@@ -2392,6 +2404,10 @@
     },
     "public/definitions.js": {
       "sha256": "70db0150182d622d2da281ea1606236aacd923ec789f8980365e74a1030e760b",
+      "executable": false
+    },
+    "public/delivery-chain.js": {
+      "sha256": "06f06813fcca07244d5fb45204db3abf72f2995c5763b5ef7aaf62f80040b8ba",
       "executable": false
     },
     "public/design-assets/fonts/noto-sans-regular.ttf": {
@@ -5654,6 +5670,10 @@
       "sha256": "749331ec085d78b3c7ee631304d8f5573db31da346885dbd4db0dee23d07d5d4",
       "executable": false
     },
+    "src/domain/notification-fallback.server.ts": {
+      "sha256": "96bdba307cd78429d274c2a33295b90ad36307c953e22a06cf8e5705b2b5016f",
+      "executable": false
+    },
     "src/domain/notification-mail.server.ts": {
       "sha256": "252e893cfa0e25e445a6f4e54f9684a313299ccc1d4fb370c1f87c78c9336640",
       "executable": false
@@ -6764,6 +6784,10 @@
     },
     "tests/notify-delivery.mjs": {
       "sha256": "67ef076ca84fe41a7396b33b32172b357c88e5f5014c6a246d383536eca2f5f4",
+      "executable": false
+    },
+    "tests/notify-fallback-fixture.mjs": {
+      "sha256": "722c6ca471262c90b04e0249de33723ba4d4fc7d4201f1c0ab1500263a3e0166",
       "executable": false
     },
     "tests/notify-retry-fixture.mjs": {
