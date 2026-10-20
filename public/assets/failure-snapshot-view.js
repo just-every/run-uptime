@@ -30,14 +30,14 @@ function browserArtifacts(parent,s){
  node('h3','Browser console errors and warnings',parent);
  if(a.console.length){const list=node('ul',undefined,parent);for(const line of a.console){const item=node('li',`${line.type}: ${line.text}`,list);item.style.overflowWrap='anywhere'}}else paragraph(parent,'No retained console errors or warnings. Capture may be unavailable or removed by policy.');
 }
-export function renderSnapshots(target,items){
+export function renderSnapshots(target,items,name=probe=>probe){
  target.replaceChildren();
  if(!items.length){paragraph(target,'No retained failure snapshots in this selection. Missing snapshots are not evidence of success.');return}
  for(const row of items){
   const s=row.snapshot;
-  if(s.unavailable){paragraph(target,`Snapshot unavailable: capture failed its safety checks. The failed attempt remains recorded (${row.probe}).`);continue}
+  if(s.unavailable){paragraph(target,`Snapshot unavailable: capture failed its safety checks. The failed attempt remains recorded (${name(row.probe)}).`);continue}
   const flow=Boolean(s.artifacts||row.flow),details=node('details',undefined,target);details.className='failure-snapshot';
-  node('summary',`${flow?'Browser flow failure':`HTTP ${s.status??'unavailable'}`} · ${row.probe} · ${new Date(row.captured_at).toLocaleString()}`,details);
+  node('summary',`${flow?'Browser flow failure':`HTTP ${s.status??'unavailable'}`} · ${name(row.probe)} · ${new Date(row.captured_at).toLocaleString()}`,details);
   paragraph(details,`Revision ${row.revision} · attempt ${row.attempt+1} · ${s.durationMs} ms`);
   const reference=paragraph(details,`Immutable reference: observation ${row.observation_id} · slot ${row.slot_id}`);reference.style.overflowWrap='anywhere';
   paragraph(details,`${s.method} ${s.url}`).style.overflowWrap='anywhere';

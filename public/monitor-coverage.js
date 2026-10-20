@@ -41,12 +41,22 @@ function windowShares(metrics){
 // size 'compact' for a list cell: the bar over its label. 'large' for the monitor page: the bar with the label and the
 // Unknown share of the window beside it (under it in a narrow card). Only the share is shown for Unknown: the window
 // less the observed time is implied, and a rounded Unknown span beside a rounded observed time read as a contradiction.
-export function coverage(metrics,windowLabel,size='compact'){
- const large=size==='large',label=coverageLabel(metrics,{observed:large});
+// since: when the monitor's first revision was saved. While that is inside the window the monitor has not existed for the
+// whole window, so the time before it is neither passing nor missing: the bar covers the monitor's life so far and the label
+// says "Since 7:54 PM: 100% passing". now is the overview's server time.
+const startClock=t=>new Date(t).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+export function coverage(metrics,windowLabel,size='compact',{since,now}={}){
+ const large=size==='large',young=valid(metrics)&&Number.isFinite(since)&&Number.isFinite(now)&&since>now-metrics.windowMs;
+ let label;
+ if(young){
+  const before=since-(now-metrics.windowMs);
+  label=`<span class="keep-line">Since ${escape(startClock(since))}: ${metrics.observedMs>0?`${share(metrics.upMs,metrics.observedMs,Math.floor,{fixed:false})} passing`:'waiting for the first result'}</span>`;
+  metrics={...metrics,windowMs:metrics.windowMs-before,unknownMs:Math.max(0,metrics.unknownMs-before)};
+ }else label=coverageLabel(metrics,{observed:large});
  if(!valid(metrics))return `<div class="coverage ${size}"><div class="coverage-bar" role="img" aria-label="${escape(windowLabel)}: coverage Unknown"><span class="coverage-segment unknown" style="flex-grow:1"></span></div><div class="coverage-copy"><p class="coverage-label">${label}</p></div></div>`;
  const segments=[['passed',metrics.upMs],['failing',metrics.notPassingMs],['unknown',metrics.unknownMs],['maintenance',metrics.maintenanceMs??0],['paused',metrics.pausedMs??0]].filter(([,ms])=>ms>0);
  const bar=`<div class="coverage-bar" role="img" aria-label="${escape(`${windowLabel}: ${windowShares(metrics)}`)}">${segments.map(([kind,ms])=>`<span class="coverage-segment ${kind}" style="flex-grow:${ms}"></span>`).join('')}</div>`;
- const unknown=large?`<p class="coverage-unknown"><strong>${escape(unknownShare(metrics))}</strong> Unknown (no valid result)</p>`:'';
+ const unknown=large&&!(young&&(metrics.unknownMs<metrics.windowMs*0.2||metrics.unknownMs<300000))?`<p class="coverage-unknown"><strong>${escape(unknownShare(metrics))}</strong> Unknown (no valid result)</p>`:'';
  return `<div class="coverage ${size}">${bar}<div class="coverage-copy"><p class="coverage-label">${label}</p>${unknown}${[['Maintenance',metrics.maintenanceMs],['Paused',metrics.pausedMs]].filter(([,ms])=>ms>0).map(([label,ms])=>`<p class="coverage-excluded">${escape(humaneDuration(ms))} ${label}</p>`).join('')}</div></div>`;
 }
 

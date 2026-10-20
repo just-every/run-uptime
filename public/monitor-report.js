@@ -4,25 +4,25 @@ import {renderReport,renderSeries,renderIncidents} from './report-render.js';
 import {renderJobRuns} from './report-jobs.js';
 
 const zones=['America/Chicago','America/New_York','America/Denver','America/Los_Angeles','America/Phoenix','America/Anchorage','Pacific/Honolulu','America/Detroit','America/Indiana/Indianapolis','UTC'];
-const probeName=id=>({'local-a':'Check 1','local-b':'Check 2','local-c':'Check 3'}[id]??id);
+import {locationNamer} from './monitor-rules.js';
 const options=values=>values.map(([value,label])=>`<option value="${escape(value)}">${escape(label)}</option>`).join('');
 
-function formMarkup(monitor){
+function formMarkup(monitor,probeName){
  const locations=['all',...new Set(monitor.definition.probes??[])];
- return `<h2 id="report-heading">Period report</h2><p>Generate a snapshot from scheduled evidence. It changes only when you choose Generate report; the console refresh does not update it. <a href="/docs/read-api">Monitoring API and CSV guide</a>.</p>
+ return `<h2 id="report-heading">Period report</h2><p>A fixed snapshot of scheduled checks. <a href="/docs/read-api">Monitoring API and CSV guide</a></p>
  <form id="monitor-report-form" class="report-form">
  <label for="report-period">Period<select id="report-period" name="period">${options([['24h','Last 24 hours'],['7d','Last 7 days'],['30d','Last 30 days'],['90d','Last 90 days'],['mtd','Month to date'],['qtd','Quarter to date'],['ytd','Year to date'],['last-month','Last month'],['custom','Custom range']])}</select></label>
  <label for="report-zone">Time zone<input id="report-zone" name="timeZone" list="report-zones" value="America/Chicago" required aria-describedby="report-zone-help"><datalist id="report-zones">${options(zones.map(zone=>[zone,zone]))}</datalist></label>
- <p id="report-zone-help" class="report-help">US zones are offered first. Enter any IANA zone. Custom times use this zone; for a repeated daylight-saving time, include its UTC offset.</p>
+ <p id="report-zone-help" class="report-help">Any IANA zone. Custom times use it.</p>
  <div id="report-custom-range" class="report-custom-range" hidden>
  <label for="report-from">From (inclusive)<input id="report-from" name="from" type="text" placeholder="2026-10-01T00:00" required disabled aria-describedby="report-zone-help"></label>
  <label for="report-to">To (exclusive)<input id="report-to" name="to" type="text" placeholder="2026-10-08T00:00" required disabled aria-describedby="report-zone-help"></label></div>
- <label for="report-location">Response-time location<select id="report-location" name="location">${options(locations.map(id=>[id,id==='all'?'All checks':`${probeName(id)} (${id})`]))}</select></label>
+ <label for="report-location">Response-time location<select id="report-location" name="location">${options(locations.map(id=>[id,id==='all'?'All locations':probeName(id)]))}</select></label>
  <label for="report-bucket">Response-time resolution<select id="report-bucket" name="bucket">${options([['5m','5 minutes'],['raw','Raw samples'],['1m','1 minute'],['1h','1 hour'],['1d','1 day']])}</select></label>
  <label for="report-root-cause">Incident root-cause category<select id="report-root-cause" name="rootCause"><option value="">All categories</option></select></label>
  <label for="report-use-sla" class="report-sla-toggle"><input id="report-use-sla" type="checkbox">Include an SLA target</label>
  <label for="report-sla" id="report-sla-label" hidden>SLA target (%)<input id="report-sla" name="sla" type="number" min="0.000001" max="100" step="any" value="99.9" required disabled></label>
- <p class="report-help">Location filters response times. Availability and SLA always use all configured checks.</p>
+ <p class="report-help">The location filters response times only.</p>
  <button id="report-generate" class="primary" type="submit">Generate report</button></form>
  <p id="report-status" role="status" aria-live="polite"></p><p id="report-error" role="alert" hidden></p>
  <div id="report-results"></div>`;
@@ -42,7 +42,7 @@ function focusReportPage(results,action){
  (requested?.disabled?requested.parentElement.querySelector('button:not(:disabled)'):requested)?.focus({preventScroll:true});
 }
 
-function bindReport(panel,monitor,api){
+function bindReport(panel,monitor,api,probeName){
  let snapshot=null,seriesPage=0,incidentPage=0,jobsPage=0;
  const form=panel.querySelector('form'),results=panel.querySelector('#report-results');
  const status=panel.querySelector('#report-status'),error=panel.querySelector('#report-error');
@@ -67,9 +67,9 @@ function bindReport(panel,monitor,api){
    const markup=renderReport(report);
    snapshot=report;seriesPage=0;incidentPage=0;jobsPage=0;results.innerHTML=markup;
    for(const id of report.latency.availableLocations){
-    if(!Array.from(field('location').options).some(option=>option.value===id))field('location').add(new Option(`${probeName(id)} (${id})`,id));
+    if(!Array.from(field('location').options).some(option=>option.value===id))field('location').add(new Option(probeName(id),id));
    }
-   status.textContent='Report generated. The snapshot below stays fixed until you generate another report.';
+   status.textContent='Report generated.';
   }catch(problem){status.textContent=snapshot?'The previous snapshot is still shown.':'No report generated.';showError(problem)}
   finally{button.disabled=false}
  });
@@ -105,10 +105,10 @@ function bindReport(panel,monitor,api){
  });
 }
 
-export function mountReportPanel(area,monitor,api){
+export function mountReportPanel(area,monitor,api,runners){
  if(!document.querySelector('link[data-period-report]')){
   const css=document.createElement('link');css.rel='stylesheet';css.href='/report.css';css.dataset.periodReport='';document.head.append(css);
  }
  const panel=area.querySelector('#monitor-report');if(!firstMount(panel))return;
- panel.innerHTML=formMarkup(monitor);bindReport(panel,monitor,api);
+ const probeName=locationNamer(monitor.definition,runners);panel.innerHTML=formMarkup(monitor,probeName);bindReport(panel,monitor,api,probeName);
 }

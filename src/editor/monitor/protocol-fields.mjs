@@ -1,3 +1,4 @@
+import {optionalSecondsToMilliseconds} from './units.mjs';
 import {showTlsFields} from './tls-fields.mjs';
 // The TCP, DNS, TLS and domain fields of the monitor form. The check type selects one group of fields; the others are
 // hidden and disabled, so only the selected type's fields are validated and read.
@@ -41,7 +42,7 @@ export function fillProtocol(root,definition){
  set('dnsExpected',lines(dns.expect?.values));set('dnsMatch',dns.expect?.match??'exact');control(root,'dnsAbsent').checked=Boolean(dns.expect?.absent);set('dnsApproved',lines(dns.approved?.values));
  set('tlsHost',tls.host);set('tlsPort',tls.port??443);set('tlsWarnDays',days(tls.warnDays??[30,14,7]));set('tlsOwner',tls.owner);
  set('domainName',domain.name);set('domainWarnDays',days(domain.warnDays??[60,30,14,7]));set('domainOwner',domain.owner);
- set('protocolLatency',PROTOCOL_TYPES.includes(definition.type)?definition.assertions?.latencyMs:'');
+ set('protocolLatency',PROTOCOL_TYPES.includes(definition.type)&&definition.assertions?.latencyMs!==undefined?definition.assertions.latencyMs/1000:'');
  control(root,'checkType').value=checkTypeOf(definition);
 }
 const dayList=(value,label)=>{
@@ -54,7 +55,7 @@ const valueLines=value=>value.split('\n').map(v=>v.trim()).filter(Boolean);
 /** The selected protocol type's settings and optional latency limit, as the owner API takes them. */
 export function readProtocol(root,type){
  const value=name=>control(root,name).value.trim();
- const latency=value('protocolLatency');
+ const latency=optionalSecondsToMilliseconds(value('protocolLatency'));
  let settings;
  if(type==='ping')settings={host:value('pingHost'),family:Number(value('pingFamily')),packets:Number(value('pingPackets')),maxLossPercent:Number(value('pingLoss')),maxRttMs:Number(value('pingRtt'))};
  if(type==='udp')settings={host:value('udpHost'),port:Number(value('udpPort')),payloadHex:value('udpPayload'),expectedHex:value('udpExpected'),match:value('udpMatch')};

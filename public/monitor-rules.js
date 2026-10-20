@@ -37,6 +37,11 @@ export function checkedFrom(definition,runners=[]){
  const names=Object.values(definition.assignments??{}).map(a=>runners.find(r=>r.runnerId===a.runnerId)?.networkLabel??a.networkLabel).filter(Boolean);
  return [...new Set(names)];
 }
+// A probe slot (local-a) as the location it runs from: the runner's current name, else the name it had when assigned.
+const slotNames={'local-a':'Check 1','local-b':'Check 2','local-c':'Check 3'};
+export function locationNamer(definition,runners=[]){
+ return probe=>{const assignment=definition?.assignments?.[probe];return runners.find(r=>r.runnerId===assignment?.runnerId)?.networkLabel??assignment?.networkLabel??slotNames[probe]??probe};
+}
 const hostOf=url=>{try{return new URL(url).hostname}catch{return url}};
 // How an outage is agreed for this revision: two locations, or one plus its passing external check.
 export function agreementRule(definition){

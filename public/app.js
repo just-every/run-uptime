@@ -100,6 +100,7 @@ function render(){if(!data||document.querySelector('dialog[open]'))return;
   area.setAttribute('aria-label',{locations:'Locations',archive:'Archive',settings:'Settings',notifications:'Notifications'}[view]??'Monitor list');
   if(view==='monitors')renderMonitors();else if(view==='notifications')renderNotifications({area,right,data,api,action,escape,readUnavailable});else if(view==='locations')renderLocations();else if(view==='archive')renderArchive({area,api,action});else renderSettings({area,data,api,action,refresh:()=>refresh(),notice,closeConsole,navigateToLogin,closed:()=>closed})}
  if(feedback.busy)lockControls(true)}
+{const flash=sessionStorage.getItem('uptime-notice');if(flash){sessionStorage.removeItem('uptime-notice');notice(flash)}}
 refresh();polling=setInterval(refresh,5000);
 }
 window.addEventListener('uptime:console-mount',mountConsole);
