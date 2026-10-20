@@ -29,6 +29,8 @@ export async function mountMonitorEditor(signal){
  };
  try{
   const context=api('/api/monitor-editor'+(id?'?monitor='+encodeURIComponent(id):''),'GET',undefined,{signal});
+  // The other monitors, for the labels' "Depends on" list; the form works without them.
+  const others=api('/api/overview','GET',undefined,{signal}).then(all=>all.monitors.map(monitor=>({id:monitor.id,name:monitor.definition.name})),()=>[]);
   if(!id){
    prepareManualForm(form,NEW_MONITOR);
    const loading=document.createElement('p');loading.className='loading-note';loading.role='status';loading.textContent='Loading runners…';
@@ -49,7 +51,7 @@ export async function mountMonitorEditor(signal){
   const returnTo=id?'/app/monitors/'+encodeURIComponent(id):'/app',back=document.querySelector('.editor-back');
   back.href=returnTo;if(id)back.lastChild.textContent='Back to monitor';form.querySelector('.editor-cancel').href=returnTo;
   form.querySelector('.loading-note')?.remove();
-  mountManualForm({form,overview,definition,id,returnTo,message,preserveFields:!id});
+  mountManualForm({form,overview,definition,id,returnTo,message,monitors:await others,preserveFields:!id});
   document.querySelector('#editor-signout').onclick=async event=>{event.preventDefault();try{await api('/api/auth/sign-out','POST',{});window.dispatchEvent(new Event('uptime:auth-lost'));location.href='/login'}catch(error){notice.textContent=error.message;notice.hidden=false}};
   if(id)form.hidden=false;
   // Without a runner that can look at a website (a hosted installation with no private runner in contact, outside a demo),

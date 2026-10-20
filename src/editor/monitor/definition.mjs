@@ -24,6 +24,6 @@ export function assembleAssertions({status,body='',bodyExcludes='',regexPattern=
   if(headerValue&&!headerName)throw Error('Header: enter the header name.');
   const path=jsonPath.trim(),equals=String(jsonEquals).trim(),latency=String(latencyMs).trim();
   if(Boolean(path)!==Boolean(equals))throw Error('JSON value: enter both the path and the value it must equal.');
-  if(latency&&!/^\d+$/.test(latency))throw Error('Responds within: whole milliseconds, such as 3000.');
+  if(latency&&!/^\d+$/.test(latency))throw Error('Responds within: a number of seconds, such as 3.');
   return {status:parseStatus(status),...(body?{bodyIncludes:body}:{}),...(bodyExcludes?{bodyExcludes}:{}),...(regexPattern?{bodyRegex:{pattern:regexPattern,flags:regexFlags}}:{}),...(headerName?{header:{name:headerName,equals:headerValue}}:{}),...(path?{json:{path,equals:parseJsonValue(equals)}}:{}),...(latency?{latencyMs:Number(latency)}:{})};
 }

@@ -1,0 +1,29 @@
+/* The monitor page's own additions: the action row with its More menu, fine print behind a "?", and the narrow-width order. */
+.top.ui-header:has(.monitor-title) .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; grid-template-columns: none; }
+.top.ui-header:has(.monitor-title) .actions > :is(button, a, .more-menu > summary) { min-height: 46px; padding: 0 22px; font-size: 15px; }
+.more-menu { position: relative; }
+.more-menu > summary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--card); color: var(--ink); font-weight: 600; list-style: none; cursor: pointer; }
+.more-menu > summary:hover { background: var(--ground); }
+.more-menu > summary::-webkit-details-marker { display: none; }
+.more-menu-list { position: absolute; z-index: 5; top: calc(100% + 6px); right: 0; display: grid; gap: 2px; min-width: 250px; white-space: nowrap; padding: 6px; border: 1px solid var(--line); border-radius: var(--radius-panel); background: var(--card); box-shadow: var(--shadow); }
+.top.ui-header:has(.monitor-title) .actions .more-menu-list button { justify-content: flex-start; min-height: 44px; padding: 0 14px; border: 0; background: none; box-shadow: none; color: var(--ink); font-weight: 500; text-align: left; }
+.top.ui-header:has(.monitor-title) .actions .more-menu-list button:not(:disabled):hover { background: var(--ground); }
+.top.ui-header:has(.monitor-title) .actions .more-menu-list button.danger { color: var(--rose-text); }
+@media (max-width: 700px) {
+  .top.ui-header:has(.monitor-title) .actions { gap: 8px; }
+  .top.ui-header:has(.monitor-title) .actions > :is(button, a, .more-menu > summary) { min-height: 44px; padding: 0 12px; gap: 6px; font-size: 14px; }
+}
+.fine-print { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; color: var(--muted); font-size: 13px; line-height: 1.45; }
+.fine-print > p { margin: 0; }
+.more-info { display: inline-block; }
+.more-info[open] { display: block; flex-basis: 100%; }
+.more-info > summary { display: inline-grid; flex: none; box-sizing: border-box; min-height: 20px; place-items: center; width: 20px; height: 20px; padding: 0; border: 1px solid var(--line-strong); border-radius: 50%; color: var(--muted); font-size: 12px; font-weight: 700; line-height: 1; list-style: none; cursor: pointer; }
+.more-info > summary::-webkit-details-marker, .more-info > summary::after { display: none; }
+.more-info > p { margin: 6px 0 0; }
+.engine-status { margin: 8px 0; color: var(--muted); font-size: 12.5px; overflow-wrap: anywhere; }
+@container table-wrap (max-width: 719px) {
+  .monitor-page > :is(.monitor-primary, .monitor-secondary) { display: contents; }
+  .monitor-page > :is(.monitor-primary, .monitor-secondary) > * { order: 5; }
+  .monitor-page > :is(.monitor-primary, .monitor-secondary) > .rules-card { order: 1; }
+  .monitor-page > :is(.monitor-primary, .monitor-secondary) > .evidence { order: 2; }
+}

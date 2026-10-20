@@ -110,3 +110,6 @@
 .check-group { display: grid; gap: 8px; min-width: 0; }
 .check-group legend { margin-bottom: 6px; color: var(--ink); font-weight: 600; font-size: 14px; }
 .editor-panel :is(textarea[name="dnsExpected"], textarea[name="dnsApproved"]) { min-height: 80px; font-family: var(--mono); font-size: 14px; }
+.labels-fold > summary { font-weight: 600; }
+.dependency-picker { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; }
+.dependency-picker > legend { padding: 0; font-weight: 600; }

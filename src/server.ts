@@ -278,6 +278,8 @@ const handler={async fetch(request,env,execution){
  const lobbyBindings={DB:bindings.DB,AUTH_ORIGIN:bindings.UPTIME_ORIGIN!};
  const state=await setupStateResponse(request,lobbyBindings,claimed);if(state)return state;
  const lobby=await lobbyResponse(request,lobbyBindings,identity,claimed);if(lobby)return lobby;
+ // /app/monitors has no page of its own: a monitor's page is /app/monitors/<id>, and the list is /app.
+ if(path==='/app/monitors'||path==='/app/monitors/')return new Response(null,{status:303,headers:{location:'/app','cache-control':'no-store'}});
  if(!publicPath(path,bindings.UPTIME_LOCAL_REVIEW==='true')&&!isConsoleDocument(path)&&!isEvidencePage&&!path.startsWith('/_serverFn/')&&path!=='/api'&&!path.startsWith('/api/'))return notFoundDocument();
  if(isEvidencePage){if(!['GET','HEAD'].includes(request.method))return new Response(null,{status:405});try{const id=decodeURIComponent(path.split('/').pop()!);if(!await evidencePrincipal(bindings,request,id)){if(!await authenticatedSession(bindings,request))return new Response(null,{status:303,headers:{location:'/login','cache-control':'no-store'}});return failureEvidenceDenied()}const response=failureEvidenceDocument(id);return request.method==='HEAD'?new Response(null,response):response}catch(error){return authFailure(error)}}
  // On a Business-provisioned install the owner's first claim opens the import door (claim-door.server.ts).

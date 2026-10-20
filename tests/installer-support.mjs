@@ -83,8 +83,8 @@ export async function monitorHydration(ownerPage, origin, root) {
    const saved = page.waitForResponse(response => new URL(response.url()).pathname === '/api/monitors' && response.request().method() === 'POST');
    await page.getByRole('button', { name: 'Save monitor', exact: true }).click();
    const response = await saved; assert.equal(response.status(), 201, 'the UI saves through the real API');
-   await page.waitForURL(origin + '/app');
-   await page.getByRole('link', { name, exact: true }).waitFor();
+   await page.waitForURL(/\/app\/monitors\/[^/]+$/);
+   await page.getByRole('heading', { name, exact: true }).waitFor();
    await page.waitForLoadState('networkidle');
    const savedOverview = await page.request.get(origin + '/api/overview'); assert.equal(savedOverview.status(), 200);
    const monitor = (await savedOverview.json()).monitors.find(row => row.definition.name === name);
