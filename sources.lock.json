@@ -487,7 +487,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "6e36aa76275ac2ad36ffcb16eb6caf9c847d62a0e2d5aaab77d7e6ccf3bff318",
+      "sha256": "0bdeaa6c66dbfed59f709205aa0f116665beb97199e6de347a16c28c89552f14",
       "executable": false
     },
     "DEMO.md": {
@@ -636,6 +636,22 @@
     },
     "docs/evidence/contracts/browser-qualification/slow-390.png": {
       "sha256": "ba64ad7d6a508eb13c31f20d2ce5bf3c78656336d3e247973e7fa5a31a5626d0",
+      "executable": false
+    },
+    "docs/evidence/contracts/cleanup-debt/api-cleanup-debt-1440.png": {
+      "sha256": "4d2eb8e9e185dcfa2dc2a7a423c39b60bed2b10b7b429e5cfd6a611b2a24f242",
+      "executable": false
+    },
+    "docs/evidence/contracts/cleanup-debt/api-cleanup-debt-390.png": {
+      "sha256": "2d5670093eb26e3e8cd042f30e991157751a440a29fc47b73f38dc69f3c13359",
+      "executable": false
+    },
+    "docs/evidence/contracts/cleanup-debt/api-cleanup-debt-resolved-1440.png": {
+      "sha256": "de212ce314431fc5cbb8d3a96c7f2abdcf3aa34590715c0d7590187cc76f72ef",
+      "executable": false
+    },
+    "docs/evidence/contracts/cleanup-debt/api-cleanup-debt-resolved-390.png": {
+      "sha256": "4b1c6b558acb06ba4980d41946ca6ff8b67ed000988bf18b6628bc374d1e9abc",
       "executable": false
     },
     "docs/evidence/contracts/contact-schedules/monitors-guide-1440.png": {
@@ -2274,6 +2290,10 @@
       "sha256": "e347f1474ff961010aa7a1316eb36bac19e78b7e7df8224451838301906821b9",
       "executable": false
     },
+    "migrations/0058_cleanup_debt_and_effect_grants.sql": {
+      "sha256": "ec97c34e5ca8e7dbb433d67b4c00199e9f456ff09f826a33c6a72556b71cc496",
+      "executable": false
+    },
     "OPERATIONS.json": {
       "sha256": "61ba56de0f6cefb040131c53bde043bc4aa6b4edf6bdba50bc682eee244e45c3",
       "executable": false
@@ -2352,6 +2372,14 @@
     },
     "public/catalog.js": {
       "sha256": "95151573d0e7d429b3a128ce80d3fa72f5aefb6207e4e8f201e24654092dc2ea",
+      "executable": false
+    },
+    "public/cleanup-debt.css": {
+      "sha256": "7f9f8642b40a267a1e491d76cb7a3586deab3256ac604a7fadba54766c1236a5",
+      "executable": false
+    },
+    "public/cleanup-debt.js": {
+      "sha256": "98f47a1b2d18792a51a4c6148253678c772abb79ea431fafc2d4215453e77a4c",
       "executable": false
     },
     "public/console-format.js": {
@@ -2600,6 +2628,10 @@
     },
     "runners/migrations/credential-inventory.mjs": {
       "sha256": "adda8f76b728a3800f0bc4b20a5f22fb6abf9372ac8335265305f6651882cc1b",
+      "executable": false
+    },
+    "runners/src/api-steps.mjs": {
+      "sha256": "5d2c6cf90467108286bae5180aff16a3509121488981c5aca79c0e7aea79cb18",
       "executable": false
     },
     "runners/src/api-transaction-values.mjs": {
@@ -5034,6 +5066,10 @@
       "sha256": "c780289ca97d86430cf0ebd595ec85dd378f23b914cbd419c164c5a3b997c538",
       "executable": false
     },
+    "src/domain/api-effects.mjs": {
+      "sha256": "b6543ba30e427a46e051c55184757850a70ad13b95467b349a19800791795d0b",
+      "executable": false
+    },
     "src/domain/api-transaction-assertions.mjs": {
       "sha256": "15ebd8262433a986f48474199e77d6b361d209d1bb6e8e6b606e1d154027bcda",
       "executable": false
@@ -5218,6 +5254,18 @@
       "sha256": "40b5f0fe98d0c5cafe628459da276a7d72b1907384cbba30b6a2def9ea01c643",
       "executable": false
     },
+    "src/domain/cleanup-debt-archive.ts": {
+      "sha256": "cc2647f4435f81199344fc71ae91bfff18c6f27479d0898db731bcc1ba78b46f",
+      "executable": false
+    },
+    "src/domain/cleanup-debt.mjs": {
+      "sha256": "ec36dfa549b58eb435bfd2f564384317c5bed29f326a8d856f1a9e1b6d8607a7",
+      "executable": false
+    },
+    "src/domain/cleanup-debt.server.ts": {
+      "sha256": "72777ea0a40df938d8ffd1d6ca9a01aaee999218ad695051caf4afc83c251cec",
+      "executable": false
+    },
     "src/domain/contact-schedule-import.ts": {
       "sha256": "f7b911e3682e8dc6bc9ac43dd66885422781208dc41788fe25793abb8c0c8f42",
       "executable": false
@@ -5324,6 +5372,10 @@
     },
     "src/domain/editor.server.ts": {
       "sha256": "f90826ef97b4a06ac1972f12ec78522b87bb9d0317ccf9212f01f3f1ac020f1f",
+      "executable": false
+    },
+    "src/domain/effect-grants.server.ts": {
+      "sha256": "3dccd5b30fe553c3853b02ca363ff3f653098225057d444b365688dd14244049",
       "executable": false
     },
     "src/domain/erasure-relations.ts": {
