@@ -86,7 +86,7 @@ Owner APIs are `GET /api/monitors/{id}/alert-route` and POST `.../preview` and `
 
 ## Alert time zone
 
-In Notifications, choose **Change alert time zone** and enter an IANA zone. It defaults to your browser's zone until you save a choice. New incident email, Slack and signed JSON context carry the confirmed start in that zone with its UTC offset. Recovery preserves the original reason, failed locations, start and zone, and adds the confirmed recovery time and exact downtime. Changing the setting affects new incidents. Old saved messages retain their original rendering. Custom webhook templates can select their own display zone and use the same immutable incident values; see [Webhook requests](/docs/webhooks).
+In Notifications, choose **Change alert time zone** and enter an IANA zone. New installations start with your browser's zone. New incident email, Slack and signed JSON context carry the confirmed start in that zone with its UTC offset. Recovery preserves the original reason, failed locations, start and zone, and adds the confirmed recovery time and exact downtime. Changing the setting affects new incidents. Old saved messages retain their original rendering. Custom webhook templates can select their own display zone and use the same immutable incident values; see [Webhook requests](/docs/webhooks).
 
 ## Contact delays and reminders
 

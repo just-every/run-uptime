@@ -1975,7 +1975,7 @@
       "executable": false
     },
     "docs/notifications.md": {
-      "sha256": "1c7f92ea3c3fd2b9f440c2246d6d496af541a63cbad8bda3c30e0f6aa5ddb635",
+      "sha256": "81021ec0aadb45d58f7f17c5e2030541a1625d54847893607112e56ca3e7b137",
       "executable": false
     },
     "docs/overview.md": {
@@ -5579,7 +5579,7 @@
       "executable": false
     },
     "src/domain/notification-context.ts": {
-      "sha256": "fbde1a5aa92cd1dd5b981fe0a52e6da22a86c12d497eb6c130762b9408015f4d",
+      "sha256": "2ef33d63d1abd182f6672542c4eb10ef0310aa611c08e71144a5e978db0fd9d3",
       "executable": false
     },
     "src/domain/notification-credentials.server.ts": {

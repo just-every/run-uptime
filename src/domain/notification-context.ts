@@ -70,7 +70,11 @@ export function validateIncidentContext(event:NotificationEvent){
 }
 
 function validZone(value:unknown){if(typeof value!=='string'||value.length>80)return false;try{new Intl.DateTimeFormat('en-US',{timeZone:value});return true}catch{return false}}
-export function notificationLocalTime(value:number,timeZone:string){return new Intl.DateTimeFormat('en-US',{timeZone,year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',timeZoneName:'longOffset'}).format(value)}
+export function notificationLocalTime(value:number,timeZone:string){
+ // Workerd renders zero offset as GMT+00:00; Node renders GMT. Persist the
+ // canonical spelling so the same immutable context validates in both runtimes.
+ return new Intl.DateTimeFormat('en-US',{timeZone,year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',timeZoneName:'longOffset'}).format(value).replace(/GMT[+-]00:00$/,'GMT');
+}
 export function incidentContextText(context:IncidentContext){
  const at=(value:number)=>context.version===1?new Date(value).toISOString():notificationLocalTime(value,context.timeZone);
  return [`Original down reason: ${context.originalReason}`,...context.failedLocations.map(p=>`Failed location ${p.name} (${p.probe}): ${p.reason}`),
