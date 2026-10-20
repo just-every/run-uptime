@@ -29,7 +29,8 @@ const overview=async()=>{const result=await api('/api/overview');assert.equal(re
 const setFixture=async mode=>{assert.equal((await fetch(`http://127.0.0.1:${fixturePort}/control`,{method:'POST',body:JSON.stringify({mode})})).status,200)};
 async function startWorker(){({worker,DB}=await migratedWorker({port:controlPort,persist,bindings,outboundService:async request=>{
  assert.equal(request.url,'https://api.sendgrid.com/v3/mail/send','only Base SendGrid endpoint uses Worker outbound');
- return fetch(`http://127.0.0.1:${mailPort}/v3/mail/send`,{method:request.method,headers:request.headers,body:await request.arrayBuffer(),redirect:'error'});
+ const response=await fetch(`http://127.0.0.1:${mailPort}/v3/mail/send`,{method:request.method,headers:request.headers,body:await request.arrayBuffer(),redirect:'error'});
+ console.log('MAIL_EDGE '+JSON.stringify({status:response.status,received:receivers[0].records.length,invalid:receivers[0].errors.length}));return response;
  }}))}
 const runnerOptions=()=>[{origin,key,grantPath,localReview:true,transport},{origin,key:secondRunner.key,runnerId:secondRunner.runnerId,grantPath,localReview:true,transport}];
 async function runOnce(){const [first,second]=runnerOptions();await Promise.all([runRunner({...first,once:true}),runRunner({...first,once:true}),runRunner({...second,once:true})])}
