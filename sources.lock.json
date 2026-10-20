@@ -463,7 +463,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "c1fe8ec918d05ebcefe6d594ad33db02c244976d220e09c9838ac9de1bf34c0b",
+      "sha256": "bf3d1729d937b52bb119c8b502a85e0b4462c8897b80949be93eae50bd13dce5",
       "executable": false
     },
     "AGENTS.md": {
@@ -479,7 +479,7 @@
       "executable": false
     },
     "CHANGELOG.md": {
-      "sha256": "a0dae5cfe749fc9d3b6bbdb0ea39a1b4f1e4a034654fad91c645c87629ca09e3",
+      "sha256": "b7de79aced006b42caa30d8e739d2e0e937a467e4dbb600f72625263dba7f463",
       "executable": false
     },
     "CLAUDE.md": {
@@ -487,7 +487,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "0bdeaa6c66dbfed59f709205aa0f116665beb97199e6de347a16c28c89552f14",
+      "sha256": "ec07c420d3025d9c0e7c730f5396e946a12017789f535330fada61cfbbf005eb",
       "executable": false
     },
     "DEMO.md": {
@@ -1991,7 +1991,7 @@
       "executable": false
     },
     "docs/notifications.md": {
-      "sha256": "acb35826c379375747cd0c724a54fc50a7ba3580f3a07b6d93158453d690da69",
+      "sha256": "8ed1d26b2e5aaa6bf432f8af55c8341057b39b7d48f9ce34af9e2a85d665da25",
       "executable": false
     },
     "docs/overview.md": {
@@ -2295,7 +2295,7 @@
       "executable": false
     },
     "migrations/0059_notification_retry.sql": {
-      "sha256": "16f6a9200fb80782c8def56585a6a7ff5e41206934ede502bb67e27ffb5ec0b5",
+      "sha256": "db0c32af1f935425cbdf6557efa6efe9460a0f087c7cc9f8f65f03e8d252cbab",
       "executable": false
     },
     "OPERATIONS.json": {
@@ -5663,15 +5663,15 @@
       "executable": false
     },
     "src/domain/notification-protocols.ts": {
-      "sha256": "2071995ba1159cf9b83a88145eb3617b1ea5f5120f769d9bb3baaa8b41e56f41",
+      "sha256": "07fb12721341721fd9ab3f066df43ce3f38fca4121e43d8d0643e91e6c3e0b77",
       "executable": false
     },
     "src/domain/notification-retry.ts": {
-      "sha256": "fa3a313f72ad2ab42e37505247999e231722bdf4196bbf585aa9e0ada4dd9840",
+      "sha256": "f0b2c7ce2efac0c2568412734afb4548878129b6088d28027916f216a725b7cb",
       "executable": false
     },
     "src/domain/notification-rpc.server.ts": {
-      "sha256": "3697d859313b7cd0700a9adb7cdb5183efcf1d7cb2cc9aa1e9aaf3dea81a433a",
+      "sha256": "bbcfc837e1a36635a372c044328e25335d6555cf1c4a1f9c7b979c0c7ad721b9",
       "executable": false
     },
     "src/domain/notification-webhook-context.ts": {
@@ -5687,7 +5687,7 @@
       "executable": false
     },
     "src/domain/notifications.server.ts": {
-      "sha256": "361bd554891a8bf1fe72f4bd8d54b14d21a5807b9f7ca96424bdb882f1847e8b",
+      "sha256": "cf535001fae349314b4a0663d79b4d8dcf55a3647b01f5500a570aa6c961d568",
       "executable": false
     },
     "src/domain/operator-auth.server.ts": {
@@ -6759,11 +6759,11 @@
       "executable": false
     },
     "tests/notify-custody-runtime.mjs": {
-      "sha256": "954e7eb07aa4dac380f2bfa403a17a73ec2572cf090572e0b0341211e6b027c2",
+      "sha256": "b4dff8b1eecc42854a93eafd204694f7e54bdad51ef341034635db3d7e83f41e",
       "executable": false
     },
     "tests/notify-delivery.mjs": {
-      "sha256": "2d01041646bf20d0381510558a6c2baa968bf71a47011b7b92a930b7a1bbf6b0",
+      "sha256": "660e681b5af0021ad9b8faddbba45189ff71202270690c590325a66ed74ddd55",
       "executable": false
     },
     "tests/notify-secret-browser.mjs": {

@@ -10,6 +10,7 @@ export function notificationRetryPolicy(input:any){
 /** Injected randomness is bounded before use; only the resulting time is stored.
  * Retry-After is a minimum, including when jitter would otherwise shorten it. */
 export function notificationRetryTime(row:{attempts:number;max_attempts:number;created_at:number;window_ms:number},outcome:any,now:number,random:()=>number=Math.random){
+ if(outcome.code==='retry_window_exhausted')return {nextAt:null,exhausted:true};
  const retry=outcome.kind==='uncertain'||outcome.kind==='retryable'||outcome.status>=500&&outcome.status<=599||outcome.status===429;
  if(!retry||outcome.status>=400&&outcome.status<500&&outcome.status!==429)return {nextAt:null,exhausted:false};
  const end=row.created_at+row.window_ms;

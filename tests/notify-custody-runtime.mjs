@@ -119,6 +119,8 @@ try{
  history=(await owner.api('/api/notifications')).data.deliveries.find(j=>j.id===slow.deliveryId);assert.equal(history.code,'claim_expired');assert.equal(history.state,'uncertain');assert.equal(sends,3);
  await dispatchNotifications(runner,transport);assert.equal(sends,3);
  const queued=(await owner.api(`/api/notifications/destinations/${id}/test`,'POST',{})).data;await runner('',{operation:'poll'});
+ const scheduled=(await owner.api('/api/notifications')).data.deliveries.flatMap(row=>row.attemptHistory);
+ assert.ok(scheduled.length>0);assert.ok(!JSON.stringify(scheduled).includes(secret));assert.ok(scheduled.every(row=>row.phase==='retry'&&row.key_reference));
  assert.equal((await owner.api(`/api/notifications/destinations/${id}/rotate`,'POST',{})).status,200);
  let stored=await raw();assert.equal(stored.filter(r=>r.destination_id===id&&r.retired_at!==null).length,2);assert.ok(stored.filter(r=>r.retired_at!==null).every(r=>r.ciphertext===null&&r.endpoint===null&&r.signing_secret===null));
  await dispatchNotifications(runner,transport);assert.equal(sends,3);history=(await owner.api('/api/notifications')).data.deliveries.find(j=>j.id===queued.deliveryId);assert.equal(history.code,'credential_rotated');

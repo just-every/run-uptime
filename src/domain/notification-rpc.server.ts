@@ -23,7 +23,10 @@ export class NotificationRepository extends IntegrationsRepository {
  protected env:Bindings;
  private templates=new Map<string,string|null>();
  private excerpts=new Map<string,string>();
- constructor(env:Bindings,private random:()=>number=Math.random){super(new D1SqlDatabase(env.DB),NOTIFICATION_NAMESPACE);this.env=env}
+ private random:()=>number;
+ private retryEligible=new Set<string>();
+ setRetryEligibility(id:string,eligible:boolean){if(eligible)this.retryEligible.add(id)}
+ constructor(env:Bindings,random:()=>number=Math.random){super(new D1SqlDatabase(env.DB),NOTIFICATION_NAMESPACE);this.env=env;this.random=random}
  setTemplateSnapshot(id:string,value:string|null){this.templates.set(id,value)}
  responseExcerpt(id:string,value:string){this.excerpts.set(id,value)}
  async insert(delivery:Delivery){
@@ -37,7 +40,7 @@ export class NotificationRepository extends IntegrationsRepository {
    SELECT ?,?,?,?,?,'queued',?,?,?,? WHERE EXISTS(SELECT 1 FROM notification_jobs j JOIN notification_destinations d ON d.id=j.destination_id WHERE j.id=? AND j.credential_id=? AND d.credential_id=j.credential_id AND d.deleted_at IS NULL) ON CONFLICT(namespace,id) DO NOTHING`)
    .bind(NOTIFICATION_NAMESPACE,delivery.id,delivery.fingerprint,delivery.destinationHash,JSON.stringify(pickEnvelope(delivery)),delivery.createdAt,delivery.nextAt,delivery.maxAttempts,JSON.stringify(delivery.retryDelaysMs),delivery.id,delivery.destinationId),
    this.env.DB.prepare(`INSERT OR IGNORE INTO notification_retry_policy(delivery_id,window_ms)
-    SELECT ?,window_ms FROM notification_retry_settings WHERE singleton=1 AND ?>1 AND EXISTS(SELECT 1 FROM integration_deliveries WHERE namespace=? AND id=?)`).bind(delivery.id,delivery.maxAttempts,NOTIFICATION_NAMESPACE,delivery.id),
+    SELECT ?,window_ms FROM notification_retry_settings WHERE singleton=1 AND ?=1 AND EXISTS(SELECT 1 FROM integration_deliveries WHERE namespace=? AND id=?)`).bind(delivery.id,Number(this.retryEligible.has(delivery.id)),NOTIFICATION_NAMESPACE,delivery.id),
    this.env.DB.prepare(`INSERT OR IGNORE INTO notification_delivery_attempts(delivery_id,destination_id,number,phase,scheduled_at,key_reference)
     SELECT id,destination_id,1,'retry',?,event_id FROM notification_jobs WHERE id=? AND EXISTS(SELECT 1 FROM integration_deliveries WHERE namespace=? AND id=?)`).bind(delivery.nextAt,delivery.id,NOTIFICATION_NAMESPACE,delivery.id),
   ]);
@@ -89,7 +92,8 @@ export async function pollNotificationJobs(env:Bindings,budget?:SubrequestBudget
   const service=new DeliveryService({repository,hashDestination:url=>notificationDestinationHash(env,checkedNotificationEndpoint(credential,event,url)),protocols:notificationProtocols(credential,row.credential_id,event),transport:{async send(){throw Error('Preparing a job never sends it')}}});
   const existing=await repository.get(row.id);
   const settings=await env.DB.prepare('SELECT max_attempts FROM notification_retry_settings WHERE singleton=1').first<{max_attempts:number}>();
-  const maxAttempts=deduplicatedNotification(credential,event)?settings?.max_attempts??6:1;
+  const eligible=deduplicatedNotification(credential,event);repository.setRetryEligibility(row.id,eligible);
+  const maxAttempts=eligible?settings?.max_attempts??6:1;
   try{if(!existing)await op('notifications.poll.enqueue',()=>service.enqueue({id:row.id,tenant:NOTIFICATION_NAMESPACE,destinationId:row.credential_id,event:event.eventType,protocol:row.kind==='slack'?SLACK_WEBHOOK_PROTOCOL:'webhook',body:row.kind==='slack'?slackContent(event):notificationEnvelopeBody(credential,event)},{maxAttempts,retryDelaysMs:Array.from({length:maxAttempts-1},(_,i)=>1000*2**i)}))}
   catch(error){if(classifyStorage(error))throw error;await op('notifications.poll.rejectPreparation',()=>env.DB.prepare("UPDATE notification_jobs SET state='rejected',code='preparation_failed',finished_at=? WHERE id=? AND state='queued'").bind(Date.now(),row.id).run());continue}
   jobs.push({id:row.id,credentialId:row.credential_id,credential,event,destinationHash:await notificationDestinationHash(env,credential.endpoint)});

@@ -241,6 +241,10 @@ test('DELIVERY-002 deduplicated retry honors Retry-After and stops on 4xx across
   delivery=(await ok('/api/notifications')).deliveries.find(d=>d.event.monitorId===monitor.id);
   assert.equal(delivery.state,'accepted');assert.equal(delivery.attempts,3);assert.equal(incidents.size,1);assert.equal(new Set(receipts.map(r=>r.id)).size,1);assert.equal(new Set(receipts.map(r=>r.body)).size,1);assert.ok(receipts[2].at-receipts[1].at>=3000);
   for(const a of delivery.attemptHistory){assert.equal(a.key_reference,delivery.eventId);assert.equal(a.phase,'retry');assert.ok(a.started_at>=a.scheduled_at);assert.ok(a.finished_at>=a.started_at)}
+  await ok('/api/notifications/preferences',{retryPolicy:{maxAttempts:1,windowMs:600000}},'PATCH');
+  responses=[{status:500,headers:{}}];const capped=await confirm();await dispatchNotifications(rpc,edge);await dispatchNotifications(rpc,edge);
+  const capRow=(await ok('/api/notifications')).deliveries.find(d=>d.event.monitorId===capped.id);assert.equal(capRow.state,'rejected');assert.equal(capRow.code,'retry_attempts_exhausted');assert.equal(capRow.attempts,1);
+  await ok('/api/notifications/preferences',{retryPolicy:{maxAttempts:6,windowMs:600000}},'PATCH');
   for(const status of [400,408]){
    responses=[{status,headers:{}}];const rejected=await confirm();await dispatchNotifications(rpc,edge);await dispatchNotifications(rpc,edge);
    const row=(await ok('/api/notifications')).deliveries.find(d=>d.event.monitorId===rejected.id);assert.equal(row.state,'rejected');assert.equal(row.status,status);assert.equal(row.attempts,1);
@@ -259,6 +263,13 @@ test('DELIVERY-002 deduplicated retry honors Retry-After and stops on 4xx across
   ({worker:restored}=await migratedWorker({port:restoredPort,persist:join(f.directory,'restore'),bindings:f.bindings}));await restoreAPI.signIn(f.bindings);
   assert.equal((await restoreAPI.api('/api/restore','POST',archive)).status,200);
   const after=(await restoreAPI.api('/api/archive')).data;assert.deepEqual(after.payload.productTables.notification_delivery_attempts,stored);
+  await restored.dispose();restored=null;
+  const legacy=structuredClone(archive);legacy.payload.extensionVersion=9;delete legacy.payload.productTables.notification_delivery_attempts;legacy.sha256=createHash('sha256').update(JSON.stringify(legacy.payload)).digest('hex');
+  ({worker:restored}=await migratedWorker({port:restoredPort,persist:join(f.directory,'legacy-restore'),bindings:f.bindings}));await restoreAPI.signIn(f.bindings);
+  assert.equal((await restoreAPI.api('/api/restore','POST',legacy)).status,200);
+  const legacyAfter=(await restoreAPI.api('/api/archive')).data;
+  assert.deepEqual(legacyAfter.payload.productTables.integration_attempts,archive.payload.productTables.integration_attempts,'pre-migration archives preserve every historical attempt');
+  assert.deepEqual(legacyAfter.payload.productTables.notification_delivery_attempts,[],'restore never invents dispatch schedules');
   const erased=await ok(`/api/notifications/destinations/${contact.id}`,undefined,'DELETE');assert.equal(erased.counts.notification_delivery_attempts,stored.length);
   assert.deepEqual((await ok('/api/archive')).payload.productTables.notification_delivery_attempts,[]);
  }finally{await restored?.dispose();await restarted?.dispose();await f.close()}

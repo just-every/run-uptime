@@ -29,7 +29,7 @@ WHEN NEW.namespace='uptime-notifications'
 BEGIN
  INSERT OR IGNORE INTO notification_delivery_attempts(delivery_id,destination_id,number,phase,scheduled_at,key_reference)
  SELECT j.id,j.destination_id,NEW.number,'retry',d.next_at,j.event_id
- FROM notification_jobs j JOIN integration_deliveries d ON d.id=j.id AND d.namespace=NEW.namespace WHERE j.id=NEW.delivery_id;
+ FROM notification_jobs j JOIN integration_deliveries d ON d.id=j.id AND d.namespace=NEW.namespace WHERE j.id=NEW.delivery_id AND j.state<>'imported-inactive';
 END;
 CREATE TRIGGER notification_attempt_finished AFTER UPDATE OF outcome ON integration_attempts
 WHEN NEW.namespace='uptime-notifications' AND NEW.outcome IS NOT NULL

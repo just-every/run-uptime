@@ -1,4 +1,4 @@
-import {createWebhookProtocol} from '../base/modules/integrations/core/webhook.ts'
+import {createWebhookProtocol,retryAfter} from '../base/modules/integrations/core/webhook.ts'
 import {createSlackIncomingWebhookProtocol} from '../base/modules/integrations/slack/protocol.ts'
 import {hmacBytes} from '../base/modules/integrations/core/crypto.ts'
 // @ts-ignore Pure renderer shared with the Node dispatcher.
@@ -7,7 +7,12 @@ import type {NotificationCredential} from './notification-credentials.server.ts'
 export function notificationProtocols(credential:NotificationCredential,credentialId:string,event?:any){
  const resolve=async(id:string)=>{if(id!==credentialId)throw Error('Destination version mismatch');return credential.endpoint};
  const base=createWebhookProtocol({resolveDestination:resolve,signingKey:async envelope=>{await resolve(envelope.destinationId);if(!credential.signing_secret)throw Error('Signing credential unavailable');return new TextEncoder().encode(credential.signing_secret)},timestampedBodySignature:{timestampHeader:'x-lamp-timestamp',signatureHeader:'x-lamp-signature'}});
- const legacy={...base,classify(response:any,now:number){return response.status===408?{kind:'rejected' as const,code:'webhook_rejected',status:408}:base.classify(response,now)}};
+ const legacy={...base,classify(response:any,now:number){
+  const status=response.status;if(status>=400&&status<500&&status!==429)return {kind:'rejected' as const,code:'webhook_rejected',status};
+  const delay=retryAfter(response,now);
+  if(status===429&&delay!==undefined&&delay>86400000)return {kind:'rejected' as const,code:'retry_window_exhausted',status};
+  return {...base.classify(response,now),...(delay!==undefined&&(status===429||status>=500)?{retryAfterMs:delay}:{})};
+ }};
  if(!credential.webhook)return [legacy,createSlackIncomingWebhookProtocol({resolveDestination:resolve})];
  const webhook=credential.webhook;
  const custom={id:'webhook',classify:legacy.classify,async prepare(envelope:any,now:number){
