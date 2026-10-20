@@ -6763,7 +6763,7 @@
       "executable": false
     },
     "tests/notify-delivery.mjs": {
-      "sha256": "6c64c0fadb4eed1fce6633097ad67b3cafb090b9ee5ded93cf18ad3e4856a151",
+      "sha256": "e3a062fc1c36bf4eb0bf202e89766405af5bb7a460a3b851486e40f48d80c421",
       "executable": false
     },
     "tests/notify-secret-browser.mjs": {
