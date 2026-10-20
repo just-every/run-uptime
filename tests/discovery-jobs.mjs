@@ -151,7 +151,7 @@ test('DEPENDENCY-001 a linked provider status page is discovered, its component 
   // Complete each independent initial schedule, without waiting a minute between slots.
   for(const m of adopted)for(let i=0;i<2;i++)await check(m.id);
   assert.equal((await g.state(app.id)).state,'Healthy');assert.equal((await g.state(provider.id)).state,'Healthy');
-  const appSnapshot=async()=>({monitor:(await monitors()).find(m=>m.id===app.id),history:await history(app.id),revisions:(await g.DB.prepare('SELECT * FROM revisions WHERE monitor_id=? ORDER BY revision').bind(app.id).all()).results});
+  const appSnapshot=async()=>({monitor:await g.DB.prepare('SELECT * FROM monitors WHERE id=?').bind(app.id).first(),state:await g.state(app.id),history:await history(app.id),revisions:(await g.DB.prepare('SELECT * FROM revisions WHERE monitor_id=? ORDER BY revision').bind(app.id).all()).results});
   const before=await appSnapshot(),oldRevision=provider.revision;
   // The editor's ordinary PATCH saves a reviewed name, component label and assertion together.
   const changed=await g.request('/api/monitors/'+provider.id,{method:'PATCH',body:{...provider.definition,...api.definition,assignments:provider.definition.assignments}});
