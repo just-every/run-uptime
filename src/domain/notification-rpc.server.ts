@@ -62,7 +62,7 @@ export class NotificationRepository extends IntegrationsRepository {
    if(decision.exhausted)outcome={...outcome,kind:'rejected',code:'retry_window_exhausted'};
    else if(nextAt!==null)outcome={...outcome,kind:'retryable'};
    else if(outcome.kind==='retryable'||outcome.kind==='uncertain')outcome={...outcome,kind:'rejected',code:'retry_attempts_exhausted'};
-  }else if(outcome.kind==='retryable')outcome={...outcome,kind:'uncertain'};
+  }
   const state=outcome.kind==='retryable'?(nextAt===null?'rejected':'queued'):outcome.kind;
   const result=await this.env.DB.batch([
    this.env.DB.prepare(`UPDATE integration_attempts SET finished_at=?,outcome=? WHERE namespace=? AND id=? AND finished_at IS NULL AND EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace=? AND d.id=? AND d.state='sending' AND d.claim=? AND d.claim_until>?)`).bind(now,JSON.stringify(outcome),NOTIFICATION_NAMESPACE,claim,NOTIFICATION_NAMESPACE,id,claim,now),

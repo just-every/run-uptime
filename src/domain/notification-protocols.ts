@@ -10,7 +10,7 @@ export function notificationProtocols(credential:NotificationCredential,credenti
  const legacy={...base,classify(response:any,now:number){
   const status=response.status;if(status>=400&&status<500&&status!==429)return {kind:'rejected' as const,code:'webhook_rejected',status};
   const delay=retryAfter(response,now);
-  if(status===429&&delay!==undefined&&delay>86400000)return {kind:'rejected' as const,code:'retry_window_exhausted',status};
+  if(status===429&&delay!==undefined&&delay>86400000)return {kind:'rejected' as const,code:'retry_window_exhausted',status,retryAfterMs:delay};
   return {...base.classify(response,now),...(delay!==undefined&&(status===429||status>=500)?{retryAfterMs:delay}:{})};
  }};
  if(!credential.webhook)return [legacy,createSlackIncomingWebhookProtocol({resolveDestination:resolve})];

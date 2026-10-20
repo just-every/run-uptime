@@ -90,3 +90,35 @@ try{
  await writeFile(join(out,'RESULTS.json'),JSON.stringify({checks,externalNetwork:false,workflow:'1440/390 native destination/rotation/one-time-secret dialogs; keyboard modal navigation and close/focus return; exact native clipboard; clear on button Escape native close and reload; secret-redacted computed accessibility trees, axe and reflow'},null,2));
  console.log('INTERFACE-001 secret dialogs passed at 1440/390: keyboard/focus, axe/reflow/computed accessibility, native clipboard and one-time clearing.');
 }finally{if(browser)await browser.close();if(worker)await worker.dispose();await cleanupDirectory(directory)}
+
+// The second added DELIVERY-002 case uses actual owner/runner doors and only receiver-edge fakes.
+const {test:retryOutcomeTest}=await import('node:test');
+const {proveNotificationRetry}=await import('./notify-retry-fixture.mjs');
+retryOutcomeTest('DELIVERY-002 accepted and failed retry outcomes reflow at 1440 and 390 without remounting an open dialog',{timeout:240000},async()=>{
+ await proveNotificationRetry(async({origin:retryOrigin,bindings,acceptedId,failedId})=>{
+  const evidence=join(out,'retry-outcomes');await mkdir(evidence,{recursive:true});let retryBrowser;
+  try{
+   retryBrowser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});
+   const context=await retryBrowser.newContext(),page=await context.newPage();
+   await context.route('**/*',route=>new URL(route.request().url()).origin===retryOrigin?route.continue():route.abort());
+   await browserSignIn(page,retryOrigin,{bindings});
+   for(const width of [1440,390]){
+    await page.setViewportSize({width,height:900});await page.goto(retryOrigin+'/app#notifications');await page.locator('html.signed-in').waitFor();
+    const accepted=page.locator(`[data-key=${JSON.stringify('delivery-'+acceptedId)}]`),failed=page.locator(`[data-key=${JSON.stringify('delivery-'+failedId)}]`);
+    await page.waitForFunction(key=>[...document.querySelectorAll('.delivery-card')].some(card=>card.dataset.key===key&&card.textContent.includes('Retry window exhausted')),'delivery-'+failedId);
+    assert.equal(await accepted.locator('.delivery-state').textContent(),'Accepted');assert.equal(await failed.locator('.delivery-state').textContent(),'Failed');
+    assert.equal(await failed.locator('.reason-code-value').textContent(),'retry_window_exhausted');await failed.getByText('HTTP 429',{exact:true}).waitFor();
+    await page.addScriptTag({path:require.resolve('axe-core/axe.min.js')});
+    const violations=(await page.evaluate(()=>axe.run(document))).violations.map(v=>({id:v.id,targets:v.nodes.map(n=>n.target)}));assert.deepEqual(violations,[]);
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'retry outcomes reflow');
+    const session=await context.newCDPSession(page);let tree;try{tree=await session.send('Accessibility.getFullAXTree')}finally{await session.detach()}
+    assert.ok(tree.nodes.some(node=>!node.ignored&&node.name?.value?.includes('Retry window exhausted')),'computed tree names the failure');
+    await page.screenshot({path:join(evidence,`outcomes-${width}.png`),fullPage:true});await writeFile(join(evidence,`outcomes-${width}.json`),JSON.stringify({width,violations,tree},null,2));
+    await page.getByRole('button',{name:'Add destination',exact:true}).click();const dialog=page.getByRole('dialog'),identity=await dialog.elementHandle();
+    await dialog.getByLabel('Name',{exact:true}).fill('Keep this draft');await page.waitForTimeout(6000);
+    assert.ok(await identity.evaluate(element=>element.isConnected&&element.open),'refresh preserves the same open dialog');assert.equal(await dialog.getByLabel('Name',{exact:true}).inputValue(),'Keep this draft');
+    await page.keyboard.press('Escape');await dialog.waitFor({state:'detached'});assert.equal(await page.evaluate(()=>document.activeElement?.id),'add-destination');
+   }
+  }finally{await retryBrowser?.close()}
+ });
+});

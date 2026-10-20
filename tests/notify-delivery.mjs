@@ -129,11 +129,12 @@ try{
   const count=receivers.map(receiver=>receiver.records.length);await restart();
   await new Promise(resolve=>setTimeout(resolve,2500));assert.deepEqual(receivers.map(receiver=>receiver.records.length),count,'redispatch after restart cannot duplicate accepted delivery');
  });
- await check('500 responses and 4xx rejection remain visible failed history without false acceptance',async()=>{
+ await check('500, 4xx and single-attempt 429 outcomes remain visible without false acceptance',async()=>{
   for(let index=0;index<destinations.length;index++){
    const receiver=receivers[index],destination=destinations[index];receiver.setDisposition('failed');
    const failed=await settle(await testDestination(destination),'uncertain');assert.ok(failed.code);assert.ok(failed.attempts>0);
-   receiver.setDisposition('rejected');const rejected=await settle(await testDestination(destination),'rejected');assert.ok(rejected.code);assert.ok(rejected.attempts>0);receiver.setDisposition('accepted');
+   receiver.setDisposition('rejected');const rejected=await settle(await testDestination(destination),'rejected');assert.ok(rejected.code);assert.ok(rejected.attempts>0);
+   receiver.setDisposition('rate_limited');const limited=await settle(await testDestination(destination),'rejected');assert.equal(limited.attempts,1,'non-deduplicating test sends never requeue a 429');receiver.setDisposition('accepted');
   }
  });
  await check('lost responses including mail stay uncertain and never automatically resend after restart',async()=>{

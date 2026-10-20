@@ -7,7 +7,7 @@ import {dispatchNotifications} from '../runners/src/notification-dispatch.mjs';
 import {notificationRetryTime} from '../src/domain/notification-retry.ts';
 import {availablePorts,migratedWorker,ownerAPI} from './notify-acceptance-runtime.mjs';
 // Public owner/runner doors with fakes only at the receiver edge.
-export async function proveNotificationRetry(){
+export async function proveNotificationRetry(inspect){
  const f=await retryFixture();let restarted,restored;
  try{
   const ok=async(path,body,method)=>{const result=await f.request(path,{body,...(method?{method}:{})});assert.ok(result.status>=200&&result.status<300,`${path}: ${result.status} ${JSON.stringify(result.data)}`);return result.data};
@@ -53,13 +53,14 @@ export async function proveNotificationRetry(){
    const row=(await ok('/api/notifications')).deliveries.find(d=>d.event.monitorId===rejected.id);assert.equal(row.state,'rejected');assert.equal(row.status,status);assert.equal(row.attempts,1);
   }
   await ok('/api/notifications/preferences',{retryPolicy:{maxAttempts:6,windowMs:1000}},'PATCH');
-  responses=[{status:429,headers:{'retry-after':'5'}}];const exhausted=await confirm();await dispatchNotifications(rpc,edge);
-  const row=(await ok('/api/notifications')).deliveries.find(d=>d.event.monitorId===exhausted.id);assert.equal(row.state,'rejected');assert.equal(row.code,'retry_window_exhausted');assert.equal(row.status,429);assert.equal(row.attempts,1);
+  responses=[{status:429,headers:{'retry-after':'86401'}}];const exhausted=await confirm();await dispatchNotifications(rpc,edge);
+  const row=(await ok('/api/notifications')).deliveries.find(d=>d.event.monitorId===exhausted.id);assert.equal(row.state,'rejected');assert.equal(row.code,'retry_window_exhausted');assert.equal(row.status,429);assert.equal(row.attempts,1);assert.equal(row.attemptHistory[0].retry_after_seconds,86401,'long Retry-After remains audited');
   // A delivery that wakes after its window must not submit a stale retry.
   await ok('/api/notifications/preferences',{retryPolicy:{maxAttempts:6,windowMs:2000}},'PATCH');responses=[{status:500,headers:{}}];const overdue=await confirm();await dispatchNotifications(rpc,edge);
   const count=receipts.length;await new Promise(resolve=>setTimeout(resolve,2100));await dispatchNotifications(rpc,edge);assert.equal(receipts.length,count);
   assert.equal((await ok('/api/notifications')).deliveries.find(d=>d.event.monitorId===overdue.id).code,'retry_window_exhausted');
   console.log('RETRY_PROOF client stop, owner cap and absolute window passed');
+  if(typeof inspect==='function')await inspect({origin:f.origin,bindings:f.bindings,acceptedId:delivery.id,failedId:row.id});
   const archive=await ok('/api/archive'),stored=archive.payload.productTables.notification_delivery_attempts;
   for(const value of [archive,await ok('/api/notifications')])assert.ok(!JSON.stringify(value).includes(contact.signingSecret),'archive and console omit the signing credential');
   assert.ok(stored.length>=8);assert.ok(!JSON.stringify(stored).includes(contact.signingSecret));assert.ok(!JSON.stringify(stored).includes(receipts[0].body));
