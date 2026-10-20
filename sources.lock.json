@@ -2262,6 +2262,10 @@
       "sha256": "6a99800f2320007a4e784d896c9cb2bd96a48992b137289b090a9214f36b9e13",
       "executable": false
     },
+    "migrations/0057_location_names.sql": {
+      "sha256": "e347f1474ff961010aa7a1316eb36bac19e78b7e7df8224451838301906821b9",
+      "executable": false
+    },
     "OPERATIONS.json": {
       "sha256": "61ba56de0f6cefb040131c53bde043bc4aa6b4edf6bdba50bc682eee244e45c3",
       "executable": false
@@ -2295,7 +2299,11 @@
       "executable": false
     },
     "public/app.js": {
-      "sha256": "921df7f1bd97c1e160878b772dcc4da8f46e3a4d6a69e575329c5088d2372307",
+      "sha256": "62500a86dd39c185bcb05e1d64ce95b70dc1c9eae62b11589ab8511c8a1375d9",
+      "executable": false
+    },
+    "public/archive-view.js": {
+      "sha256": "d21bb24dc60632ea9db1a7de901e0e7601ea786da054f9bac068ee8f0c8cb51e",
       "executable": false
     },
     "public/assets/alert-route-markup.js": {
@@ -2371,7 +2379,7 @@
       "executable": false
     },
     "public/editor.css": {
-      "sha256": "3aa8f0ae113fa4a1ab6194e2538fad61eae06db2c67df6f4f60c377ad56621d6",
+      "sha256": "eaf8a23b5910e58089b7d1e76caa8352071e5cbce76de4604e054611e22b9911",
       "executable": false
     },
     "public/editor/discovery.css": {
@@ -2426,6 +2434,10 @@
       "sha256": "8b5541ab1e05e2205e44c834585ce93279b996093052fdffe434c4f171988f39",
       "executable": false
     },
+    "public/locations.js": {
+      "sha256": "9bfa8775034867966bc02806da9edf7ae8d4af5fc07974d49ce81f3c4cbaaafa",
+      "executable": false
+    },
     "public/mail-panel.js": {
       "sha256": "7bdaab8a53b063b594e8d90fb6c9dc089ab31d00293285a4f0949c40221bf345",
       "executable": false
@@ -2456,6 +2468,10 @@
     },
     "public/monitor-report.js": {
       "sha256": "422df2fcaa3a5ac37b6879f778abe3519b361095a221198c1943d03c8d4f207c",
+      "executable": false
+    },
+    "public/monitor-rules.js": {
+      "sha256": "a3e6fb2e45d1e045b95fe323a9888cb740e622bed86e117bc6f5938186baf12d",
       "executable": false
     },
     "public/monitor-timeline.js": {
@@ -2508,6 +2524,14 @@
     },
     "public/rer-theme.css": {
       "sha256": "6a672cdb653cba66e4fd8fdbb92ae0134e67913597376481150e40d62702e2e6",
+      "executable": false
+    },
+    "public/sections.css": {
+      "sha256": "a59254efd1680f269e3bccccb4d16e2547494b1e9d1102fbcac428fb3be5a131",
+      "executable": false
+    },
+    "public/settings-view.js": {
+      "sha256": "3475f04f4c8b34f1b1996b580f07d208333b35cb60a094aa711f212360aff812",
       "executable": false
     },
     "public/slow-policy.css": {
@@ -5474,6 +5498,10 @@
       "sha256": "cc79d47385f9a0b400dd14b297b5f9eae495881ae0d365653af2711a7185ab91",
       "executable": false
     },
+    "src/domain/location-name.ts": {
+      "sha256": "7010c5d029a99b585b142f9417cfe28d19934ca812321166fe674bf568f284bf",
+      "executable": false
+    },
     "src/domain/mail-probe/evaluate.mjs": {
       "sha256": "23da9c386f412be81498f4587b052dfbc75b2ae753f65507f6b759b58b614a28",
       "executable": false
@@ -5934,6 +5962,10 @@
       "sha256": "f937b315adc0c7123c80efb467783d92896f35eda04cd3ebe3cb896ecb6c280e",
       "executable": false
     },
+    "src/editor/monitor/rules.mjs": {
+      "sha256": "464780bb625595f35e5e26ffaa8104530848334d66a6f7020342144552f8e603",
+      "executable": false
+    },
     "src/editor/monitor/tls-fields.mjs": {
       "sha256": "5f7892bafe68c5c9651a90d97214ee97012915d048ad9a5f6f0de30ec651bffe",
       "executable": false
@@ -6299,7 +6331,7 @@
       "executable": false
     },
     "src/ui/console.html": {
-      "sha256": "04b6260bc8ba83982b7e8a4f656033044e5135be548ef6b518984741f2458100",
+      "sha256": "592aa955b0ce8aa878367f9edd6080076b55e8bd477106469773f438a4b960ae",
       "executable": false
     },
     "src/ui/editor.html": {
@@ -6316,6 +6348,10 @@
     },
     "tests/access-smoke.mjs": {
       "sha256": "a369dce207d5160e0a5a02cd2b2653bafba95d1a5d9864634bb58e66c74cf6bc",
+      "executable": false
+    },
+    "tests/add-location-browser.mjs": {
+      "sha256": "03cce716bc38e0eca87fefa03205fdd405ad123226e8350ff2b86feb1c47a9fe",
       "executable": false
     },
     "tests/admission-runtime.mjs": {
@@ -6367,7 +6403,7 @@
       "executable": false
     },
     "tests/auth-test-support.mjs": {
-      "sha256": "935cac34b3eac159ff090be281703543574c403105944c46f8af6ee39a110670",
+      "sha256": "68d82990f86e0f133329104004bbd20c468e5041ae19e70f98eeb4d9cd871e70",
       "executable": false
     },
     "tests/availability.mjs": {

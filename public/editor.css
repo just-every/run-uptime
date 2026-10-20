@@ -20,6 +20,13 @@
 @media (min-width: 1200px) {
   .editor-columns { grid-template-columns: minmax(0, 1.7fr) minmax(320px, 1fr); gap: 24px; }
 }
+/* One column: the rules follow what to check, before timing and labels. */
+@media (max-width: 1199px) {
+  .editor-stack { display: contents; }
+  .editor-stack > [aria-labelledby="editor-timing-heading"] { order: 2; }
+  .editor-stack > [data-monitor-metadata] { order: 3; }
+  .editor-columns > .rules-panel { order: 1; }
+}
 
 .editor-panel h2 { margin-bottom: 18px; }
 .editor-fields { display: grid; gap: 18px; }
