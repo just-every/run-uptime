@@ -28,9 +28,9 @@ export async function proveNotificationRetry(inspect){
   const slack=await ok('/api/notifications/destinations',{name:'Dead Slack',kind:'slack',url:'https://hooks.slack.com/services/TDEAD0000/BDEAD0000/deadwebhookdeadwebhook'});
   const hook=await ok('/api/notifications/destinations',{name:'Escalation webhook',kind:'webhook',url:'https://escalation.example.com/hook'});
   const secrets=[contact.signingSecret,hook.signingSecret];assert.ok(secrets.every(Boolean));
-  const confirm=async({destinationIds=[contact.id],fallback}={})=>{
+  const confirm=async({destinationIds=[contact.id],fallback,contactSettings}={})=>{
    const monitor=await f.monitor({runners:[f.first],canary:true});
-   const input={scope:'monitor',mode:'selected',destinationIds,expectedRevision:0,...(fallback?{fallback}:{})};
+   const input={scope:'monitor',mode:'selected',destinationIds,expectedRevision:0,...(fallback?{fallback}:{}),...(contactSettings?{contactSettings}:{})};
    const route=`/api/monitors/${monitor.id}/alert-route`,plan=await ok(route+'/preview',input);await ok(route+'/apply',{...input,digest:plan.digest});
    if(fallback)assert.deepEqual(plan.fallback.map(c=>c.id),fallback.destinationIds,'the reviewed preview names the ordered fallback chain');
    const task=await f.claim(f.first);assert.equal(task.monitorId,monitor.id);
@@ -76,11 +76,14 @@ export async function proveNotificationRetry(inspect){
    const row=(await ok('/api/notifications')).deliveries.find(d=>d.event.monitorId===rejected.id);assert.equal(row.state,'rejected');assert.equal(row.status,status);assert.equal(row.attempts,1);
   }
   await ok('/api/notifications/preferences',{retryPolicy:{maxAttempts:6,windowMs:1000}},'PATCH');
-  responses=[{status:429,headers:{'retry-after':'86401'}}];const exhausted=await confirm({fallback:{destinationIds:[email.id],deadlineSeconds:120}});await dispatchNotifications(rpc,edge);
+  responses=[{status:429,headers:{'retry-after':'86401'}}];const exhausted=await confirm({fallback:{destinationIds:[email.id],deadlineSeconds:120},contactSettings:{[email.id]:{delayMinutes:1}}});await dispatchNotifications(rpc,edge);
   const row=(await ok('/api/notifications')).deliveries.find(d=>d.event.monitorId===exhausted.id);assert.equal(row.state,'rejected');assert.equal(row.code,'retry_window_exhausted');assert.equal(row.status,429);assert.equal(row.attempts,1);assert.equal(row.attemptHistory[0].retry_after_seconds,86401,'long Retry-After remains audited');
   await dispatchNotifications(rpc,edge);
   const started=(await ok('/api/notifications')).deliveries.find(d=>d.event.monitorId===exhausted.id&&d.destinationId===email.id);
   assert.deepEqual(started.event.fallbackContext.previous.map(p=>[p.outcome,p.code]),[['failed','retry_window_exhausted']],'an exhausted retry window starts the fallback');
+  // The fallback contact's own ROUTING-002 delay still applies: created now, held until confirmation + 1 minute.
+  await dispatchNotifications(rpc,edge);const held=(await ok('/api/notifications')).deliveries.find(d=>d.id===started.id);
+  assert.equal(held.state,'queued');assert.equal(held.code,'waiting_for_contact_delay');assert.equal(mail.records.filter(r=>r.deliveryId===started.id).length,0);
   // A delivery that wakes after its window must not submit a stale retry.
   await ok('/api/notifications/preferences',{retryPolicy:{maxAttempts:6,windowMs:2000}},'PATCH');responses=[{status:500,headers:{}}];const overdue=await confirm();await dispatchNotifications(rpc,edge);
   const count=receipts.length;await sleep(2100);await dispatchNotifications(rpc,edge);assert.equal(receipts.length,count);
