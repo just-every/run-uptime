@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-Adds one migration (`0057_location_names.sql`, who named each location); no new required settings.
+Adds two migrations (`0057_location_names.sql`, who named each location; `0058_cleanup_debt_and_effect_grants.sql`, retained cleanup debt and live-effect grants); no new required settings.
+
+- **Safe setup and teardown (API-004).** API transactions and browser flows run bounded setup and cleanup fixtures (up to 3 attempts each); cleanup still runs after a failure or a cancellation, and a cancelled run reads Unknown. A cleanup that cannot finish becomes cleanup debt the owner resolves with a note on the monitor page; at 3 open debts setup stops. Stripe live-mode keys, `livemode: true` responses, refunds and steps marked `effect` need an exact, expiring grant with a spend limit.
 
 - **Reviewed provider components (DEPENDENCY-001).** Linked Statuspage-compatible sources now propose their overall status and a bounded set of separate component monitors, initially unticked and keyed by component ID. Adoption retains the provider name, `dependency` tag and a line identifying the status as the provider's own claim. Review another component before adoption, or change it later through an ordinary monitor revision. Provider failure has its own monitor state and ordinary incident policy; the claim is contextual evidence and does not change application state, evidence, routes or thresholds. Missing, renamed or removed components and unavailable sources are Unknown, never Healthy. DEPENDENCY-002's catalog and no-incident dependency notices and FOLLOWUP-001 correlation remain open. No migration or new setting is required for this change.
 

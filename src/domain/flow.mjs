@@ -5,6 +5,7 @@
 import {privateTarget} from './private-target.mjs';
 import {publicTarget} from './public-target.mjs';
 import {flowProfile, profileLabel, validateProfileEvidence} from './flow-profile.mjs';
+import {validateFlowFixtures} from './api-transaction.mjs';
 
 export const FLOW_LIMITS = Object.freeze({
   minIntervalMs: 300000,       // a flow runs at most once every 5 minutes
@@ -80,7 +81,7 @@ function expectation(item, label, startOrigin) {
 /** Normalise a flow. Throws a plain reason for anything outside the closed vocabulary; the caller prefixes the entry's name. */
 export function validateFlow(input, {network, startUrl, synthetic = u => u}) {
   // `origins` is derived from the steps on every save; a stored flow carries it, and it is recomputed, never trusted.
-  only(input, ['intent', 'steps', 'outcomes', 'origins', 'browser', 'device'], 'flow');
+  only(input, ['intent', 'steps', 'outcomes', 'origins', 'browser', 'device', 'fixtures'], 'flow');
   const {browser, device} = flowProfile(input);
   const intent = text(input.intent, 'flow intent', FLOW_LIMITS.intentChars);
   if (!Array.isArray(input.steps) || !input.steps.length) fail('A flow needs at least one step');
@@ -116,7 +117,9 @@ export function validateFlow(input, {network, startUrl, synthetic = u => u}) {
     const {id, ...rest} = outcome;
     return {id, ...expectation(rest, label, startUrl)};
   });
-  return {intent, browser, device, steps, outcomes, origins: [...origins].sort()};
+  // API-004: setup and teardown fixtures run on the runner around the browser, through the API step engine and its controls.
+  const fixtures = input.fixtures === undefined ? undefined : validateFlowFixtures(input.fixtures, {network, startUrl, synthetic});
+  return {intent, browser, device, steps, outcomes, origins: [...origins].sort(), ...(fixtures ? {fixtures} : {})};
 }
 
 const keyOf = item => JSON.stringify(Object.fromEntries(Object.entries(item).filter(([k]) => k !== 'id' && k !== 'origins').sort(([a], [b]) => a < b ? -1 : 1)));
@@ -161,7 +164,7 @@ export const FLOW_REASONS = Object.freeze({
   wall_time_exceeded: {runner: false, limit: 'wallMs'}, steps_limit: {runner: false, limit: 'maxSteps'}, pages_limit: {runner: false, limit: 'maxPages'},
   bytes_limit: {runner: false, limit: 'maxBytes'}, trace_limit: {runner: false, limit: 'traceBytes'},
   blocked_request: {runner: false}, undeclared_origin: {runner: false}, extra_page: {runner: false}, navigation_failed: {runner: false}, navigation_timeout: {runner: false},
-  credential_origin_mismatch: {runner: false},
+  credential_origin_mismatch: {runner: false}, setup_failed: {runner: false},
   browser_unavailable: {runner: true}, browser_failed: {runner: true}, credential_unavailable: {runner: true}, grant_unavailable: {runner: true},
 });
 export const FLOW_BLOCK_CLASSES = Object.freeze(['private_address', 'loopback_address', 'link_local_or_metadata_address', 'not_granted', 'unresolved_host', 'custody']);

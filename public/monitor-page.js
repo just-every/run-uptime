@@ -13,6 +13,7 @@ import {confirmErasure} from './notification-dialogs.js';
 import {patch,firstMount} from './dom-patch.js';
 import {rulesCard,locationNamer} from './monitor-rules.js';
 import {moreInfo,moreInfoText,statusLine,joinNames,failureOf,latestAttempts,waitForCheck,clock as shortClock} from './monitor-status.js';
+import {cleanupDebtPanel,mountCleanupDebt} from './cleanup-debt.js';
 // One monitor's page (/app/monitors/<id>), rendered by public/app.js into the console shell on every refresh: the page
 // header (back link, name with its state, URL, kind and interval, actions) and, in #content-area, the state notice, then
 // evidence coverage and recent checks with their attempts on the left, and the last check, what the check expects and,
@@ -102,7 +103,7 @@ function pageBody(m,readUnavailable,data){
   +'<div class="monitor-secondary">'
   +rulesCard(m,data.runner.runners,{editable:!isFlow(m.definition)&&m.definition.type!=='heartbeat',other:assertionSummary(m.definition),details:`<details id="assertion-definition"><summary id="assertion-definition-summary">Full check details</summary><p class="engine-status">${escape(m.state.reason)}</p><pre>${escape(JSON.stringify(m.definition.type==='mail'?m.definition.mail:m.definition.type==='api'?m.definition.api:isProtocol(m.definition)?{[m.definition.type]:m.definition[m.definition.type],assertions:m.definition.assertions}:m.definition.assertions,null,2))}</pre></details>`})
   +`<section class="ui-card panel detail" aria-labelledby="latest-check-heading"><h2 id="latest-check-heading">${lastLabel}</h2><dl class="detail-metrics"><div><dt class="ui-visually-hidden">${lastLabel}</dt><dd class="detail-time">${checkTime(m,{withLabel:false,readUnavailable})}</dd></div><div><dt>Response duration</dt><dd>${escape(duration(availability?.responseDurationMs))}</dd></div></dl></section>`
-  +alertRoutePanel(m)+slowPolicyPanel(m)+maintenancePanel(m)+expiryPanel(m,data)+(isFlow(m.definition)?flowPanel(m,data):'')+heartbeatPanel(m,data)+heartbeatJobsPanel(m)+'</div></div>';
+  +alertRoutePanel(m)+slowPolicyPanel(m)+maintenancePanel(m)+expiryPanel(m,data)+(isFlow(m.definition)?flowPanel(m,data):'')+cleanupDebtPanel(m)+heartbeatPanel(m,data)+heartbeatJobsPanel(m)+'</div></div>';
 }
 
 const clock=t=>new Date(t).toLocaleTimeString();
@@ -218,6 +219,7 @@ export function renderMonitorPage({header,actions,area,data,id,api,action,readUn
  bindAlertRoutePanel(area,m,{api,action});
  bindSlowPolicyPanel(area,m,{api,action});
  const key=encodeURIComponent(m.id),runners=data.runner.runners??[],name=locationNamer(m.definition,runners);
+ mountCleanupDebt(area,m,api);
  const facts=seen.get(m.id)??{},status=area.querySelector('#monitor-status');
  const refreshStatus=()=>{if(status.isConnected)status.textContent=statusLine(m,{readUnavailable,data,seen:facts})};
  const incidentHost=area.querySelector('#monitor-incidents');if(firstMount(incidentHost)){bindIncidentWork(incidentHost,api);bindIncidentSnapshots(incidentHost,api)}

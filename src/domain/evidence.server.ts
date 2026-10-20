@@ -3,7 +3,7 @@ import {validateMailFacts} from './mail-probe/facts.mjs'
 // @ts-ignore
 import {mailChecks} from './mail-probe/evaluate.mjs'
 // @ts-ignore Shared transaction facts contain no extracted values.
-import {validateApiTransactionEvidence,apiTransactionChecks,apiTransactionOutcome} from './api-transaction.mjs'
+import {validateApiTransactionEvidence,apiTransactionChecks,apiTransactionOutcome,validateFixtureEvidence} from './api-transaction.mjs'
 import {normalizeFailureSnapshot,FAILURE_SNAPSHOT_LIMITS} from './failure-snapshot.mjs'
 // @ts-ignore Shared monitor-scoped certificate trust facts.
 import {validateTlsTrustEvidence,TLS_EVIDENCE_MAX_BYTES} from './tls-trust.mjs'
@@ -26,12 +26,13 @@ import {isProtocol} from './protocol/settings.mjs'
 import {protocolChecks} from './protocol/evaluate.mjs'
 // @ts-ignore
 import {validateFacts} from './protocol/facts.mjs'
-const fields = new Set(['id', 'probe', 'outcome', 'completedAt', 'startedAt', 'durationMs', 'runnerVersion', 'status', 'bytes', 'checks', 'attempt', 'heartbeatReceivedAt', 'heartbeatJob', 'tlsTrust', 'canary', 'flow', 'credentialBinding', 'protocol','apiTransaction','failureSnapshot'])
+const fields = new Set(['id', 'probe', 'outcome', 'completedAt', 'startedAt', 'durationMs', 'runnerVersion', 'status', 'bytes', 'checks', 'attempt', 'heartbeatReceivedAt', 'heartbeatJob', 'tlsTrust', 'canary', 'flow', 'credentialBinding', 'protocol','apiTransaction','failureSnapshot','fixtures'])
 // unresolved: the public resolver answered NXDOMAIN or no address. budget: a Worker run spent its outbound requests first.
 // refused: the target's port refused the connection; tls: the TLS handshake failed before a certificate could be read.
 // vantage: this vantage cannot run the check (a Worker socket to a Cloudflare address); registry: RDAP data unavailable.
 const targetErrors = new Set(['encoding', 'redirect', 'body-limit', 'transport', 'timeout', 'connection', 'unresolved', 'refused', 'tls', 'response_limit'])
-const runnerErrors = new Set(['custody', 'runner', 'network', 'dns', 'browser', 'credential', 'grant', 'budget', 'vantage', 'registry', 'capacity'])
+// debt: API-004 refused new setup while three cleanup debts of the monitor are open.
+const runnerErrors = new Set(['custody', 'runner', 'network', 'dns', 'browser', 'credential', 'grant', 'budget', 'vantage', 'registry', 'capacity', 'debt'])
 const responseErrors = new Set(['encoding', 'redirect', 'body-limit'])
 /** Live completion accepts runner clocks up to this far ahead of control-plane time. */
 export const COMPLETION_CLOCK_ALLOWANCE_MS = 1000
@@ -75,15 +76,30 @@ function validateError(o: any, checks: Map<string, Check>, heartbeat = false) {
 
 // A flow observation carries its sanitized step trace. It passes only when every step passed and every required outcome was
 // observed; it fails with a reason the runner could not have chosen for itself (a runner-side reason is a runner_error, Unknown).
+// API-004: a flow with fixtures carries their step facts. Setup that did not pass ends the run before the browser
+// (setup_failed, or Unknown for a runner-side refusal); teardown never changes the browser's verdict, and one that did not
+// complete becomes cleanup debt. A cancelled run is Unknown and still carries the teardown it ran.
+function validateFixtures(o: any, definition: any) {
+  if (o.fixtures === undefined) return null
+  if (!definition.flow?.fixtures) throw Error('Unexpected flow fixture evidence')
+  const facts = validateFixtureEvidence(o.fixtures, definition)
+  if (facts.steps.some((step: any) => step.outcome !== 'skipped' && (step.startedAt < o.startedAt || step.completedAt > o.completedAt))) throw Error('Invalid flow fixture timing')
+  return facts
+}
 function validateFlowObservation(o: any, definition: any, checks: Map<string, Check>) {
+  const fixtures = validateFixtures(o, definition)
   if (o.outcome === 'runner_error') {
     if (o.flow !== undefined) throw Error('Invalid flow error evidence')
+    if (fixtures?.cancelled && (checks.size !== 1 || !checks.has('runner'))) throw Error('Invalid cancelled flow evidence')
     return validateError(o, checks)
   }
   if (o.status !== undefined || o.bytes !== undefined || o.heartbeatReceivedAt !== undefined || checks.size !== 1 || !checks.has('flow') || !o.flow) throw Error('Invalid flow evidence')
+  if (definition.flow.fixtures && (!fixtures || fixtures.cancelled)) throw Error('Flow fixture evidence required')
   const flow = validateFlowEvidence(o.flow, definition), passed = !flow.failure && flow.outcomes.every((x: any) => x.observed) && flow.trace.every((x: any) => x.outcome !== 'fail')
   if (o.outcome !== (passed ? 'pass' : 'target_failure') || checks.get('flow')!.pass !== passed) throw Error('Inconsistent flow outcome')
   if (!passed && (!flow.failure || FLOW_REASONS[flow.failure.reason as keyof typeof FLOW_REASONS].runner)) throw Error('Inconsistent flow outcome')
+  const setupFailed = Boolean(fixtures?.steps.some((step: any) => step.phase === 'setup' && step.outcome !== 'pass'))
+  if (setupFailed !== (flow.failure?.reason === 'setup_failed') || setupFailed && (flow.trace.length || fixtures!.steps.some((step: any) => step.outcome === 'runner_error' && step.phase === 'setup'))) throw Error('Inconsistent flow setup evidence')
 }
 
 // A protocol observation either ended before it had facts (one error check) or carries bounded facts whose checks and
@@ -171,7 +187,7 @@ export function validateEvidence(o: any, definition: any, dueAt: number, now: nu
       !['uptime-node/0.1.0','uptime-worker/0.1.0'].includes(o.runnerVersion) || !timestamp(o.startedAt) || !timestamp(o.completedAt) ||
       o.startedAt < dueAt || o.completedAt < o.startedAt || o.completedAt > now + COMPLETION_CLOCK_ALLOWANCE_MS ||
       !timestamp(o.durationMs) || !['pass', 'target_failure', 'runner_error'].includes(o.outcome) ||
-      JSON.stringify(o).length > ((definition.type === 'flow' ? 4000 + FLOW_LIMITS.traceBytes : isProtocol(definition.type)||['api','mail'].includes(definition.type) ? 16000 : 4000) + (o.tlsTrust ? TLS_EVIDENCE_MAX_BYTES : 0) + (binding ? BINDING_DIAGNOSTIC_BYTES : 0) + (o.failureSnapshot ? FAILURE_SNAPSHOT_LIMITS.totalBytes : 0))) throw Error('Invalid observation evidence')
+      JSON.stringify(o).length > ((definition.type === 'flow' ? 4000 + FLOW_LIMITS.traceBytes + (o.fixtures ? 12000 : 0) : isProtocol(definition.type)||['api','mail'].includes(definition.type) ? 16000 : 4000) + (o.tlsTrust ? TLS_EVIDENCE_MAX_BYTES : 0) + (binding ? BINDING_DIAGNOSTIC_BYTES : 0) + (o.failureSnapshot ? FAILURE_SNAPSHOT_LIMITS.totalBytes : 0))) throw Error('Invalid observation evidence')
   validateTrust(o,definition);
   if(o.heartbeatJob!==undefined&&definition.type!=='heartbeat')throw Error('Unexpected heartbeat job evidence');
   if (o.protocol !== undefined && !isProtocol(definition.type)&&definition.type!=='mail') throw Error('Unexpected protocol evidence')
@@ -195,6 +211,7 @@ export function validateEvidence(o: any, definition: any, dueAt: number, now: nu
     return;
   }
   if(o.apiTransaction!==undefined&&definition.type!=='api')throw Error('Unexpected API transaction evidence');
+  if(o.fixtures!==undefined&&definition.type!=='flow')throw Error('Unexpected flow fixture evidence');
   if(definition.type==='api'){
     if(!o.apiTransaction)return validateError(o,validateChecks(o.checks));
     if(o.status!==undefined||o.bytes!==undefined||o.flow!==undefined)throw Error('Invalid API transaction observation');
