@@ -1,5 +1,5 @@
 // @ts-ignore Edition URL validation is JavaScript.
-import {publicTarget} from './public-target.mjs'
+import {publicTarget,isLoopbackHostname} from './public-target.mjs'
 // @ts-ignore Shared with the runner; edition JavaScript.
 import {validateDiscoveryResult} from './discovery-result.mjs'
 import {runnerRuntime} from './private-runner.ts'
@@ -16,7 +16,11 @@ const UNCLAIMED='No runner picked this up. Check that your runner is running.',U
 const refuse=(message:string,status:number)=>Object.assign(Error(message),{status});
 // The owner reads this message under the address field, so a refused address says why in plain words, not the policy's own.
 function discoveryTarget(value:unknown){
- try{return publicTarget(value as string)}catch(error){
+ try{
+  const target=publicTarget(value as string);
+  if(isLoopbackHostname(target.hostname))throw Error('Public target address forbidden');
+  return target;
+ }catch(error){
   const reason=(error as Error).message;
   if(/forbidden/.test(reason))throw Error('That is a private, loopback or link-local address, so it was not contacted. Use a private-network monitor to check it.');
   if(/requires HTTP/.test(reason))throw Error('Only http and https addresses can be checked, without a username, password or # fragment.');

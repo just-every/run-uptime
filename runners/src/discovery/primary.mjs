@@ -1,4 +1,4 @@
-import {publicTarget} from '../../../src/domain/public-target.mjs';
+import {publicTarget,isLoopbackHostname} from '../../../src/domain/public-target.mjs';
 import {PROBE_ACCEPT} from '../probe-error.mjs';
 import {HTML_ACCEPT,JSON_ASSERT_LIMIT,PARSE_BODY_CAP} from './constants.mjs';
 import {bareHost,isApiHost,isStatusHost,registrableDomain} from './domain.mjs';
@@ -18,7 +18,10 @@ export function normalizeInput(input){
   if(!['http:','https:'].includes(url.protocol))return {note:'Only http and https addresses can be monitored.'};
   if(url.username||url.password)return {note:'Addresses with a username or password are not checked; credentials stay in the runner installation.'};
   url.hash='';
-  try{return {url:publicTarget(url.href)}}catch(error){
+  try{
+    if(isLoopbackHostname(url.hostname))throw Error('Public target address forbidden');
+    return {url:publicTarget(url.href)}
+  }catch(error){
     return {note:/forbidden/.test(error.message)?`${bareHost(url.hostname)} is a private, loopback or link-local address, so it was not contacted. Use a private-network monitor to check it.`:'That is not a valid public web address.'};
   }
 }
