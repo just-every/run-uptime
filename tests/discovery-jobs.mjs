@@ -151,7 +151,9 @@ test('DEPENDENCY-001 a linked provider status page is discovered, its component 
   // Complete each independent initial schedule, without waiting a minute between slots.
   for(const m of adopted)for(let i=0;i<2;i++)await check(m.id);
   assert.equal((await g.state(app.id)).state,'Healthy');assert.equal((await g.state(provider.id)).state,'Healthy');
-  const appSnapshot=async()=>({monitor:await g.DB.prepare('SELECT * FROM monitors WHERE id=?').bind(app.id).first(),state:await g.state(app.id),history:await history(app.id),revisions:(await g.DB.prepare('SELECT * FROM revisions WHERE monitor_id=? ORDER BY revision').bind(app.id).all()).results});
+  // Persisted state is compared byte-for-byte; the public projection's evaluation
+  // clock advances on each read, so compare its health separately below.
+  const appSnapshot=async()=>({monitor:await g.DB.prepare('SELECT * FROM monitors WHERE id=?').bind(app.id).first(),state:(await g.state(app.id)).state,history:await history(app.id),revisions:(await g.DB.prepare('SELECT * FROM revisions WHERE monitor_id=? ORDER BY revision').bind(app.id).all()).results});
   const before=await appSnapshot(),oldRevision=provider.revision;
   // The editor's ordinary PATCH saves a reviewed name, component label and assertion together.
   const changed=await g.request('/api/monitors/'+provider.id,{method:'PATCH',body:{...provider.definition,...api.definition,assignments:provider.definition.assignments}});
@@ -170,6 +172,7 @@ test('DEPENDENCY-001 a linked provider status page is discovered, its component 
   edge.state.components.push({id:'api',name:'Renamed API',status:'operational'});
   missing=await check(provider.id);assert.equal(missing.observations[0].outcome,'runner_error');assert.equal((await g.state(provider.id)).state,'Unknown','a renamed reviewed component never becomes Healthy');
   edge.state.source=503;missing=await check(provider.id);assert.match(missing.observations[0].checks[0].reason,/source is unavailable/);assert.equal((await g.state(provider.id)).state,'Unknown');
+  edge.state.source=null;missing=await check(provider.id);assert.match(missing.observations[0].checks[0].reason,/source is unavailable/);assert.equal((await g.state(provider.id)).state,'Unknown','a source that stops answering is missing evidence');
   assert.deepEqual(await appSnapshot(),before);
   // A provider's robots policy still gates component discovery while the overall proposal survives.
   edge.state.source=200;edge.state.robots=true;const requestCount=edge.requests.length;

@@ -24,6 +24,7 @@ export async function statuspageEdge(directory){
   if(host==='status.provider.test'){
    if(req.url==='/robots.txt'){res.writeHead(200,{'content-type':'text/plain'});res.end(state.robots?'User-agent: *\nDisallow: /api/v2/components.json\n':'User-agent: *\nAllow: /\n');return}
    if(req.url==='/api/v2/status.json'||req.url==='/api/v2/components.json'){
+    if(state.source===null){req.socket.destroy();return}
     res.writeHead(state.source,{'content-type':'application/json'});res.end(JSON.stringify(req.url.endsWith('/components.json')?{page:{name:'Acme Cloud'},components:state.components}:{page:{name:'Acme Cloud'},status:{indicator:'none',description:'All Systems Operational'}}));return
    }
   }
