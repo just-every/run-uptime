@@ -7,6 +7,8 @@ export const installationLocalTables:Record<string,string>={
  failure_evidence_grants:'Installation-local per-monitor evidence-viewer grants; never portable access authority.',
  effect_grants:'Installation-local live-effect grants (API-004); execution authority a receiving owner grants again, never portable.',
  failure_snapshot_settings:'Installation-local literal masks, opt-in browser-artifact capture and bounded retention policy; restored HTTP/browser failure snapshots keep their original expiry, never execution or access authority.',
+ notification_retry_settings:'Installation-owner retry limits; restored history cannot authorize a send.',
+ notification_retry_policy:'Immutable installation retry-window snapshots; restored delivery history never replays.',
  notification_preferences:'Installation alert time zone; immutable event contexts preserve their own saved zone in archives.',
  slow_acknowledgements:'Installation Slow-notice acknowledgement and reminder authority; archived performance history never replays.',
  alert_contact_schedules:'Installation delayed-send and reminder dispatch authority; restored alert history never replays.',

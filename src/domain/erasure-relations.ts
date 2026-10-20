@@ -13,6 +13,7 @@ export function erasureRelations(kind:'monitor'|'destination'|'operator',id:stri
   return kind==='monitor'&&(jobIds.has(envelope.id)||eventMonitor(body,id)||bodies.has(envelope.body)||slackMonitor);
  }
  function historyRelated(table:string,value:any){const row=object(value);if(!row)return false;
+  if(table==='notification_delivery_attempts')return jobIds.has(row.delivery_id)||(kind==='destination'&&row.destination_id===id);
   if(kind==='monitor'){
    if(table==='monitors')return row.id===id;
    if(table==='slots'||table==='outbox')return row.monitor_id===id;

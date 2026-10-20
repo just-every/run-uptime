@@ -47,6 +47,12 @@ export async function claimNotification(env:Bindings,id:string,now:number,leaseM
     AND retired_at IS NULL AND unavailable_at IS NULL`).bind(now,credential.id,credential.destination_id,credential.created_at,credential.ciphertext,credential.endpoint,credential.signing_secret));
   }
  }
+ // A restart after the absolute window cannot start an overdue stored retry.
+ await env.DB.batch([
+  env.DB.prepare(`UPDATE notification_delivery_attempts SET finished_at=?,outcome_category='rejected',code='retry_window_exhausted'
+   WHERE delivery_id=? AND started_at IS NULL AND finished_at IS NULL AND EXISTS(SELECT 1 FROM integration_deliveries d JOIN notification_retry_policy p ON p.delivery_id=d.id WHERE d.namespace=? AND d.id=? AND d.state='queued' AND d.created_at+p.window_ms<=?)`).bind(now,id,namespace,id,now),
+  env.DB.prepare(`UPDATE integration_deliveries SET state='rejected' WHERE namespace=? AND id=? AND state='queued' AND EXISTS(SELECT 1 FROM notification_retry_policy p WHERE p.delivery_id=integration_deliveries.id AND integration_deliveries.created_at+p.window_ms<=?)`).bind(namespace,id,now),
+ ]);
  const claim=crypto.randomUUID();
  const result=await env.DB.batch([
   ...invalid,
@@ -76,6 +82,7 @@ export async function startClaim(env:Bindings,id:string,claim:unknown,reservatio
  const result=await env.DB.batch([env.DB.prepare(`UPDATE notification_claim_custody SET started_at=? WHERE delivery_id=? AND claim=? AND reservation_hash=? AND started_at IS NULL AND released_at IS NULL
   AND EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace=? AND d.id=? AND d.claim=? AND d.state='sending' AND d.claim_until>? AND EXISTS(SELECT 1 FROM notification_jobs j WHERE j.id=d.id AND ${contactReady()}))`).bind(now,id,claim,reservationHash,namespace,id,claim,now),auditStatement(env,automated,'notification_send','notification',crypto.randomUUID(),'changes()=1',[],now),
   // A drill's Submitted time is the transport boundary of its one attempt, recorded only with a started claim.
+  env.DB.prepare(`UPDATE notification_delivery_attempts SET started_at=? WHERE delivery_id=? AND number=(SELECT attempts FROM integration_deliveries WHERE namespace=? AND id=? AND claim=?) AND EXISTS(SELECT 1 FROM notification_claim_custody WHERE delivery_id=? AND claim=? AND started_at=?)`).bind(now,id,namespace,id,claim,id,claim,now),
   env.DB.prepare('UPDATE alert_drills SET submitted_at=? WHERE delivery_id=? AND submitted_at IS NULL AND EXISTS(SELECT 1 FROM notification_claim_custody WHERE delivery_id=? AND claim=? AND started_at=?)').bind(now,id,id,claim,now)]);
  return Boolean(result[0].meta.changes);
 }

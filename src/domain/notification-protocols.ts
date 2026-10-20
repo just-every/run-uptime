@@ -6,7 +6,8 @@ import {renderWebhookTemplate} from './webhook-template.mjs'
 import type {NotificationCredential} from './notification-credentials.server.ts'
 export function notificationProtocols(credential:NotificationCredential,credentialId:string,event?:any){
  const resolve=async(id:string)=>{if(id!==credentialId)throw Error('Destination version mismatch');return credential.endpoint};
- const legacy=createWebhookProtocol({resolveDestination:resolve,signingKey:async envelope=>{await resolve(envelope.destinationId);if(!credential.signing_secret)throw Error('Signing credential unavailable');return new TextEncoder().encode(credential.signing_secret)},timestampedBodySignature:{timestampHeader:'x-lamp-timestamp',signatureHeader:'x-lamp-signature'}});
+ const base=createWebhookProtocol({resolveDestination:resolve,signingKey:async envelope=>{await resolve(envelope.destinationId);if(!credential.signing_secret)throw Error('Signing credential unavailable');return new TextEncoder().encode(credential.signing_secret)},timestampedBodySignature:{timestampHeader:'x-lamp-timestamp',signatureHeader:'x-lamp-signature'}});
+ const legacy={...base,classify(response:any,now:number){return response.status===408?{kind:'rejected' as const,code:'webhook_rejected',status:408}:base.classify(response,now)}};
  if(!credential.webhook)return [legacy,createSlackIncomingWebhookProtocol({resolveDestination:resolve})];
  const webhook=credential.webhook;
  const custom={id:'webhook',classify:legacy.classify,async prepare(envelope:any,now:number){

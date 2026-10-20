@@ -49,7 +49,7 @@ test('contact schedules survive restart, stop on recovery/ack, and never replay 
   await new Promise(r=>setTimeout(r,Math.max(0,trigger.observedAt+120500-Date.now())));
   await dispatchNotifications(rpc,transport);await dispatchNotifications(rpc,transport);
   const reminders=received.filter(r=>r.event.monitorId===monitor.id&&r.url.endsWith('/1')&&r.event.kind==='reminder');assert.equal(reminders.length,1);assert.equal(reminders[0].event.incidentKey,trigger.incidentKey);
-  const rows=(await ok('/api/notifications')).deliveries;assert.equal(rows.find(j=>j.event.id===reminders[0].event.id).state,'uncertain');
+  const rows=(await ok('/api/notifications')).deliveries;assert.equal(rows.find(j=>j.event.id===reminders[0].event.id).state,'queued','signed reminders reuse their stable key on bounded transport retries');
   const archived=await f.request('/api/archive');assert.equal(archived.status,200,JSON.stringify(archived.data));
   assert.ok(!received.some(r=>r.event.monitorId===fast.id&&r.url.endsWith('/1')),'early recovery suppresses delayed trigger and recovery');
  }finally{await restarted?.dispose();await f.close()}
