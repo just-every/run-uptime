@@ -33,7 +33,7 @@ try{
   await context.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
   try{
    const page=await context.newPage(),errors=[];page.on('pageerror',error=>errors.push(error.message));
-   await browserSignIn(page,origin);await page.goto(origin+'/app');await page.locator('html.signed-in').waitFor();await page.locator('[data-view=notifications]').click();
+   await browserSignIn(page,origin);await page.goto(origin+'/app#notifications');await page.locator('html.signed-in').waitFor();
    await page.getByRole('button',{name:'Add destination',exact:true}).focus();await page.keyboard.press('Enter');
    let dialog=page.getByRole('dialog');await dialog.waitFor();
    assert.ok(await dialog.getByLabel('Name',{exact:true}).evaluate(element=>document.activeElement===element),'native dialog starts on its labelled name field');

@@ -96,7 +96,7 @@ Each monitor has a schedule and a few knobs that decide when a bad check becomes
 - **Retries** are extra attempts inside a slot. A retry never erases an earlier failure and never counts as another slot.
 - **Confirmation** is how many consecutive scheduled slots must fail before the monitor is Failing.
 - **Recovery** is how many consecutive fresh, passing scheduled slots are needed before it recovers.
-- **Failure agreement** requires two independent network labels, or one failing vantage whose external check (canary) passed in the same slot. A monitor on one network gets that check from the installation's External check URL when you save it (default `https://example.org/`, changed on Runner / archive and applied to monitors saved afterwards), unless you give the monitor its own. Checks on the same network count once.
+- **Failure agreement** requires two independent network labels, or one failing vantage whose external check (canary) passed in the same slot. A monitor on one network gets that check from the installation's External check URL when you save it (default `https://example.org/`, changed in Settings and applied to monitors saved afterwards), unless you give the monitor its own. Checks on the same network count once.
 - **Freshness** is how long a result stays usable before it counts as expired.
 
 Because of confirmation and recovery, one blip does not wake you, and one lucky pass does not close an incident.

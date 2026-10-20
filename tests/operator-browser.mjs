@@ -11,6 +11,8 @@ await mkdir(out,{recursive:true});
 const browser=await chromium.launch({headless:true,args:['--disable-gpu','--use-mock-keychain','--password-store=basic'],...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{})});
 const overviewRead=url=>url.origin===origin&&url.pathname==='/api/overview';
 const ready=page=>page.locator('.signed-in').waitFor({timeout:15000});
+// A rule waits in the form's Add rule menu until the owner adds it.
+const addRule=async(page,name)=>{await page.locator('.add-rule summary:visible').click();await page.locator('.add-rule-menu:visible').getByRole('button',{name,exact:true}).click()};
 const deferred=()=>{let resolve;const promise=new Promise(done=>resolve=done);return {promise,resolve}};
 async function audit(page,label,{state,reason}={}){
  await page.addScriptTag({path:require.resolve('axe-core/axe.min.js')});
@@ -78,19 +80,18 @@ async function actionErrorJourney(page,monitor,width){
 }
 async function editJourney(page,monitor,width){
  await page.getByRole('button',{name:'Edit check',exact:true}).click();await page.locator('.editor-ready').waitFor();
- const fields={status:'200',body:'healthy',bodyExcludes:'unhealthy',regexPattern:'"ok":true',regexFlags:'i',headerName:'x-synthetic',headerValue:'local-review'};
+ const fields={status:'200',body:'healthy',bodyExcludes:'unhealthy',regexPattern:'"ok":true',regexFlags:'i',headerName:'x-synthetic',headerValue:'local-review',jsonPath:'$.ok',jsonEquals:'true'};
  for(const [name,value] of Object.entries(fields))assert.equal(await page.locator(`[name=${name}]:visible`).inputValue(),value,'editing preserves '+name);
- assert.deepEqual(JSON.parse(await page.locator('[name=additional]:visible').inputValue()),{json:{path:'$.ok',equals:true}});
- for(const key of ['status','bodyIncludes','bodyExcludes','bodyRegex','header']){
-  await page.locator('[name=additional]:visible').fill(JSON.stringify({[key]:key==='status'?201:'override'}));
-  await page.getByRole('button',{name:'Save monitor',exact:true}).click();
-  await page.locator('#editor-feedback[data-error]').waitFor();
-  assert.match(await page.locator('#editor-feedback').textContent(),/using the fields above/);
- }
+ // A JSON rule with no value to equal is refused in the form and makes no revision.
+ await page.locator('[name=jsonEquals]:visible').fill('');
+ await page.getByRole('button',{name:'Save monitor',exact:true}).click();
+ await page.locator('#editor-feedback[data-error]').waitFor();
+ assert.match(await page.locator('#editor-feedback').textContent(),/JSON value: enter both/);
  const before=await (await page.request.get(origin+'/api/overview')).json();
- assert.equal(before.monitors.find(m=>m.id===monitor.id).revision,monitor.revision,'reserved assertion overrides made no revision');
+ assert.equal(before.monitors.find(m=>m.id===monitor.id).revision,monitor.revision,'a refused rule made no revision');
  await audit(page,`assertion-refusal-${width}`);
- await page.locator('[name=additional]:visible').fill(JSON.stringify({json:{path:'$.ok',equals:true},latencyMs:10000}));
+ await page.locator('[name=jsonEquals]:visible').fill('true');
+ await addRule(page,'Responds within');await page.locator('[name=latencyMs]:visible').fill('10000');
  // A real scheduled pass will age out before the next one; no clocks or stored observations are fabricated.
  await page.locator('[name=intervalMinutes]:visible').fill('1');
  await page.locator('[name=confirmSlots]:visible').fill('1');await page.locator('[name=recoverSlots]:visible').fill('1');
@@ -99,7 +100,7 @@ async function editJourney(page,monitor,width){
  const after=await (await page.request.get(origin+'/api/overview')).json(),saved=after.monitors.find(m=>m.id===monitor.id);
  assert.equal(saved.revision,monitor.revision+1);assert.deepEqual(saved.definition.assertions,{...monitor.definition.assertions,latencyMs:10000});
  await page.getByRole('button',{name:'Edit check',exact:true}).click();await page.locator('.editor-ready').waitFor();
- assert.deepEqual(JSON.parse(await page.locator('[name=additional]:visible').inputValue()),{json:{path:'$.ok',equals:true},latencyMs:10000});
+ assert.equal(await page.locator('[name=jsonEquals]:visible').inputValue(),'true');assert.equal(await page.locator('[name=latencyMs]:visible').inputValue(),'10000');
  await page.locator('.editor-cancel:visible').click();await ready(page);
  await page.locator('#monitor-state').filter({hasText:'Unknown'}).waitFor({timeout:22000});
  await audit(page,`stale-${width}`,{state:'Unknown',reason:/fresh|stale|expired|missing/i});
@@ -114,14 +115,19 @@ try{
   await context.route('**/*',route=>{const u=new URL(route.request().url());return u.origin===origin?route.continue():route.abort()});
   try{
    const page=await context.newPage(),errors=[];page.on('pageerror',error=>errors.push(error.message));
-   await browserSignIn(page,origin,{bootstrap:false});await ready(page);await audit(page,`console-${width}`);
-   await tabTo(page,page.getByRole('button',{name:'New monitor',exact:true}));await page.keyboard.press('Enter');
-   await page.locator('.editor-ready').waitFor();await audit(page,`editor-${width}`);await page.locator('#discovery-manual').click();
+   await browserSignIn(page,origin,{bootstrap:false});
+   // The installation has no monitors before the first width: the console opens straight into the new-monitor form.
+   if(width===1440){await page.waitForURL(url=>url.pathname==='/app/monitor');await page.locator('.editor-context-ready').waitFor();assert.equal(await page.locator('h1').textContent(),'Add your first monitor');await audit(page,`editor-${width}`)}
+   else{await ready(page);await audit(page,`console-${width}`);
+    await tabTo(page,page.getByRole('button',{name:'New monitor',exact:true}));await page.keyboard.press('Enter');
+    await page.locator('.editor-ready').waitFor();await audit(page,`editor-${width}`);await page.locator('#discovery-manual').click()}
    const name=`Operator ${width} ${Date.now()}`;
    await page.locator('input[name=name]:visible').fill(name);await page.locator('input[name=url]:visible').fill('http://169.254.169.254/latest/meta-data/');
    await page.getByRole('button',{name:'Save monitor'}).click();await page.locator('#editor-feedback').filter({hasText:/grant|literal|target|URL|host|port|loopback/i}).waitFor();assert.equal(new URL(page.url()).pathname,'/app/monitor');
-   const values={url:'http://127.0.0.1:15481/health',intervalMinutes:String(5000/60000),freshnessMinutes:String(10000/60000),retries:'0',confirmSlots:'1',recoverSlots:'1',body:'healthy',bodyExcludes:'unhealthy',regexPattern:'"ok":true',regexFlags:'i',headerName:'x-synthetic',headerValue:'local-review',additional:JSON.stringify({json:{path:'$.ok',equals:true}})};
+   const values={url:'http://127.0.0.1:15481/health',intervalMinutes:String(5000/60000),freshnessMinutes:String(10000/60000),retries:'0',confirmSlots:'1',recoverSlots:'1'};
    for(const [field,value] of Object.entries(values))await page.locator(`[name=${field}]:visible`).fill(value);
+   const rules={'Page contains':{body:'healthy'},'Page must not contain':{bodyExcludes:'unhealthy'},Pattern:{regexPattern:'"ok":true',regexFlags:'i'},'Header equals':{headerName:'x-synthetic',headerValue:'local-review'},'JSON value':{jsonPath:'$.ok',jsonEquals:'true'}};
+   for(const [rule,fields] of Object.entries(rules)){await addRule(page,rule);for(const [field,value] of Object.entries(fields))await page.locator(`[name=${field}]:visible`).fill(value)}
    await page.locator('input[name=probes][value=local-b]:visible').check();await page.getByRole('button',{name:'Save monitor'}).click();await ready(page);
    const overview=await (await page.request.get(origin+'/api/overview')).json(),monitor=overview.monitors.find(m=>m.definition.name===name);
    assert.ok(monitor);assert.equal(monitor.definition.probes.length,2);assert.equal(Object.keys(monitor.definition.assignments).length,2);
@@ -138,8 +144,8 @@ try{
    await tabTo(page,page.getByRole('button',{name:'Pause',exact:true}));await page.keyboard.press('Enter');await page.locator('#monitor-state').filter({hasText:'Paused'}).waitFor();
    await page.getByRole('button',{name:'Authorize & resume',exact:true}).click();await page.getByRole('button',{name:'Maintenance 15m'}).click();await page.getByRole('button',{name:'End maintenance'}).waitFor();await page.getByRole('button',{name:'End maintenance'}).click();await page.getByRole('button',{name:'Pause',exact:true}).click();await page.getByRole('button',{name:'Authorize & resume',exact:true}).waitFor();
    await tabTo(page,page.getByRole('link',{name:'Notifications',exact:true}));await page.keyboard.press('Enter');await page.waitForURL(origin+'/app#notifications');await ready(page);await page.getByRole('heading',{name:'Destinations · all monitors',exact:true}).waitFor();await audit(page,`notifications-${width}`);
-   await page.getByRole('link',{name:'Runner / archive',exact:true}).click();await audit(page,`archive-${width}`);
-   const [download]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'Export private archive'}).click()]);await download.saveAs(resolve(out,`archive-${width}.json`));
+   await page.getByRole('link',{name:'Archive',exact:true}).click();await audit(page,`archive-${width}`);
+   const [download]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'Download backup'}).click()]);await download.saveAs(resolve(out,`archive-${width}.json`));
    await page.getByRole('link',{name:'Sign out',exact:true}).click();await page.getByLabel('Email address').waitFor();assert.equal((await page.request.get(origin+'/api/overview')).status(),401);assert.deepEqual(errors,[],'browser exceptions');
   }finally{await context.close()}
  }

@@ -8,24 +8,24 @@ Hosted email, signed JSON and Slack notifications are sent by the Worker without
 
 ## Start it
 
-In the signed-in console, open **Runner / Archive**, enter an **Independent network label**, and choose **Add runner**. The dialog shows a complete command with this app's origin, the new runner ID, its one-time key, the network label and the startup command. Save it privately before closing the dialog.
+In the signed-in console, open **Locations** and choose **Add location**. The panel shows a complete command with this app's origin, the new runner ID, its one-time key and the startup command. Copy it; the key is shown only until you choose **Done**.
 
-On the runner machine, use an installed Uptime source checkout with Node 22 or later. From its root, paste the command from the dialog. Its shape is:
+On the runner machine, use an installed Uptime source checkout with Node 22 or later. From its root, paste the command. Its shape is:
 
 ```sh
 export UPTIME_CONTROL_ORIGIN='https://your-uptime-address.example'
-export UPTIME_RUNNER_ID='the runner ID from the dialog'
-export UPTIME_RUNNER_KEY='the one-time key from the dialog'
-export UPTIME_NETWORK_LABEL='your independent network label'
+export UPTIME_RUNNER_ID='the runner ID from the panel'
+export UPTIME_RUNNER_KEY='the one-time key from the panel'
 node runners/src/private-runner.mjs
 ```
 
-- `UPTIME_CONTROL_ORIGIN` is the exact HTTPS origin of your Uptime app, without a path or trailing slash. The dialog fills in the origin you are signed into.
-- The runner ID and key authorize this runner in this installation. Never share its command or commit it to source control. Revoking the runner in the console refuses its future requests.
-- Give each independent network a separate runner and key. Labels identify network vantages; different labels alone do not make two runners independent.
+- `UPTIME_CONTROL_ORIGIN` is the exact HTTPS origin of your Uptime app, without a path or trailing slash. The panel fills in the origin you are signed into.
+- The runner ID and key authorize this runner in this installation. Never share its command or commit it to source control. **Remove** on Locations refuses its future requests.
+- When the runner first reaches Uptime, the location is named after where it connects from: the city of its public address (or region or country), such as "Sydney", with "Sydney 2" for a second one there. If no place is known it keeps a short generated name. **Rename** changes it any time; a name you give is never replaced. Monitors saved afterwards carry the new name; saved revisions keep the name they were saved with.
+- Give each independent network a separate runner and key. Names identify network vantages; different names alone do not make two runners independent. Older commands that set `UPTIME_NETWORK_LABEL` still work; the runner's own label is ignored.
 - For the original deployment runner, `node scripts/runner-start.mjs --environment NAME` reads that environment's saved key privately. Set `UPTIME_CONTROL_ORIGIN` first; omitting `--environment` selects production. See [Deploy to Cloudflare](/docs/deploy).
 
-`rer dev` starts a local runner for you. The manual steps above are for a separately operated runner. Local loopback review permits `http://127.0.0.1:PORT` only with `UPTIME_LOCAL_REVIEW=true`; the dialog includes this setting when opened at that local origin.
+`rer dev` starts a local runner for you. The manual steps above are for a separately operated runner. Local loopback review permits `http://127.0.0.1:PORT` only with `UPTIME_LOCAL_REVIEW=true`; the panel includes this setting when opened at that local origin.
 
 ## Heartbeat evaluation
 
@@ -41,7 +41,7 @@ Keep the runner's clock roughly in sync with real time, but it does not have to 
 
 ## One runner, one vantage
 
-Everything the runner checks, it checks from where the runner sits. A monitor can list up to three named probes and assign each to a separately keyed runner. Probes assigned to runners with the same network label share one vantage. Different labels should represent actual independent networks that the owner operates. To run more than one runner, give each its own `UPTIME_RUNNER_ID`, `UPTIME_RUNNER_KEY` and `UPTIME_NETWORK_LABEL`, as described in [Watchers and independent checks](/docs/resilient-monitoring).
+Everything the runner checks, it checks from where the runner sits. A monitor can list up to three named probes and assign each to a separately keyed runner. Probes assigned to locations with the same name share one vantage. Different names should represent actual independent networks that the owner operates. To run more than one runner, add a location for each, so each has its own `UPTIME_RUNNER_ID` and `UPTIME_RUNNER_KEY`, as described in [Watchers and independent checks](/docs/resilient-monitoring).
 
 ## Request secrets stay with the runner
 
@@ -179,7 +179,7 @@ Since v0.1.2, Uptime uses per-runner keys, immutable probe assignments, stored-e
 
 ## Private network grants
 
-A private location uses an enrolled Node runner inside your network, with outbound access to Uptime. Update and restart the runner first: **Runner / archive** shows its version, private-network support, current check capacity and last contact. Contact means the control plane heard from the runner; it does not prove target health. You can run it beside an existing agent without giving Uptime that agent’s credentials.
+A private location uses an enrolled Node runner inside your network, with outbound access to Uptime. Update and restart the runner first: **Locations** shows when it was last seen; its version, private-network support and current check capacity are in `GET /api/runners`. Contact means the control plane heard from the runner; it does not prove target health. You can run it beside an existing agent without giving Uptime that agent’s credentials.
 
 Start the runner with `UPTIME_PRIVATE_GRANT_DIR` set to an absolute, real directory you own, with permissions `0700`. Keep it outside your checkout. Grant files must be regular files you own, mode `0600`, with no symlinks or hard links. No grant is inferred from a network label or from enrollment.
 

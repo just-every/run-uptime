@@ -7,15 +7,18 @@ import {keyedHash,seal,unseal} from '../base/modules/operator-auth/identity/oidc
 import {publicTarget} from './public-target.mjs'
 // @ts-ignore Shared bounded runner capability vocabulary.
 import {validRunnerCapabilities,runnerCapabilities} from './runner-capabilities.mjs'
-export type Runner={runner_id:string;registered_at:number;network_label:string;key_ciphertext:string|null;legacy_key:number;revoked_at:number|null;last_contact_at:number|null;capabilities?:string}
+import {distinctName,generatedName,placeName} from './location-name.ts'
+export type Runner={runner_id:string;registered_at:number;network_label:string;key_ciphertext:string|null;legacy_key:number;revoked_at:number|null;last_contact_at:number|null;capabilities?:string;named_by?:string}
 const runnerOrder=`CASE runner_id WHEN '${HOSTED_RUNNER_ID}' THEN 0 ELSE 1 END,registered_at,runner_id`
-const label=(value:unknown)=>{if(typeof value!=='string'||!value.trim()||value.length>80||/[\x00-\x1f\x7f]/.test(value))throw Error('Network label required (80 characters max)');return value.trim()}
+const label=(value:unknown)=>{if(typeof value!=='string'||!value.trim()||value.length>80||/[\x00-\x1f\x7f]/.test(value))throw Error('Location name required (80 characters max)');return value.trim()}
 async function custody(env:Bindings){if(!env.SESSION_SECRET||env.SESSION_SECRET.length<32)throw Error('Runner key custody unavailable');return keyedHash(env.SESSION_SECRET,'uptime-runner-keys','aes-gcm-v1')}
 export async function runnerIdentity(env:Bindings){return env.DB.prepare('SELECT * FROM runners WHERE legacy_key=1').first<Runner>()}
+// The built-in runner starts with a generated name; its place renames it when it first reaches Uptime (nameFromPlace).
 export function firstRunnerStatements(env:Bindings){
+ const id=`self-${crypto.randomUUID()}`;
  return [
   ...(hostedInstallation(env)?[env.DB.prepare("INSERT OR IGNORE INTO runners(runner_id,registered_at,network_label,legacy_key) VALUES(?,?,'Cloudflare Worker',0)").bind(HOSTED_RUNNER_ID,Date.now())]:[]),
-  env.DB.prepare("INSERT INTO runners(runner_id,registered_at,network_label,legacy_key) SELECT ?,?,'owner-network',1 WHERE NOT EXISTS(SELECT 1 FROM runners WHERE legacy_key=1)").bind(`self-${crypto.randomUUID()}`,Date.now()),
+  env.DB.prepare("INSERT INTO runners(runner_id,registered_at,network_label,legacy_key,named_by) SELECT ?,?,?,1,'default' WHERE NOT EXISTS(SELECT 1 FROM runners WHERE legacy_key=1)").bind(id,Date.now(),generatedName(id)),
  ]
 }
 export async function ensureFirstRunner(env:Bindings){
@@ -29,33 +32,55 @@ export async function runnerKey(env:Bindings,row:Runner){
 }
 export async function authenticateRunner(env:Bindings,id:string|undefined,key:string){
  const row=id?await env.DB.prepare('SELECT * FROM runners WHERE runner_id=?').bind(id).first<Runner>():await runnerIdentity(env);
- if(!row){if(!id&&env.UPTIME_RUNNER_KEY?.length>=24&&await same(key,env.UPTIME_RUNNER_KEY))return {runner_id:'',registered_at:0,network_label:'owner-network',key_ciphertext:null,legacy_key:1,revoked_at:null,last_contact_at:null};return null}
+ if(!row){if(!id&&env.UPTIME_RUNNER_KEY?.length>=24&&await same(key,env.UPTIME_RUNNER_KEY))return {runner_id:'',registered_at:0,network_label:'',key_ciphertext:null,legacy_key:1,revoked_at:null,last_contact_at:null};return null}
  const expected=await runnerKey(env,row);return expected&&await same(key,expected)?row:null
 }
-export async function enrollRunner(env:Bindings,text:string,timestamp:string,signature:string,row:Runner){
+// A location's default name comes from where its runner connects from (`place` is the request's request.cf), the first
+// time that place is known. A name the owner typed, or one a place already gave, stays.
+export async function nameFromPlace(env:Bindings,row:Runner,place:unknown){
+ if(row.named_by!=='default'||!row.runner_id)return row;
+ const found=placeName(place);if(!found)return row;
+ const others=(await env.DB.prepare('SELECT network_label FROM runners WHERE runner_id<>?').bind(row.runner_id).all<{network_label:string}>()).results.map(r=>r.network_label);
+ const name=distinctName(found,others);
+ const updated=await env.DB.prepare("UPDATE runners SET network_label=?,named_by='place' WHERE runner_id=? AND named_by='default'").bind(name,row.runner_id).run();
+ return updated.meta.changes?{...row,network_label:name,named_by:'place'}:row;
+}
+export async function enrollRunner(env:Bindings,text:string,timestamp:string,signature:string,row:Runner,place?:unknown){
  const key=await runnerKey(env,row);
  if(!key||text.length>512||!/^\d{13}$/.test(timestamp)||Math.abs(Date.now()-Number(timestamp))>60000||!await same(signature,await sign(key,`${timestamp}.runner-enrolment.${text}`)))return null;
  let input;try{input=JSON.parse(text)}catch{return null}
  if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(k=>!['version','networkLabel','capabilities'].includes(k))||input.version!==1)return null;
  if(input.capabilities!==undefined&&!validRunnerCapabilities(input.capabilities))return null;
- // Provisioned labels cannot be rewritten by a compromised runner key.
- if(input.networkLabel!==undefined&&label(input.networkLabel)!==row.network_label)return null;
+ // A runner never names itself: a label it sends (UPTIME_NETWORK_LABEL, from older commands) is checked and ignored, so a
+ // location the owner renamed keeps working with the command it was started with.
+ if(input.networkLabel!==undefined)try{label(input.networkLabel)}catch{return null}
  if(!row.runner_id)row=await ensureFirstRunner(env);
+ row=await nameFromPlace(env,row,place);
  // A runner reports what it can run each time it enrols; a flow assigned to one without a browser stays Unknown (see docs/runner.md).
  if(input.capabilities!==undefined)await env.DB.prepare('UPDATE runners SET capabilities=? WHERE runner_id=?').bind(JSON.stringify(input.capabilities),row.runner_id).run();
  return {runnerId:row.runner_id,registeredAt:row.registered_at,networkLabel:row.network_label,scope:'self-runner'}
 }
+// A new location. Without a name it gets a generated one until its runner joins and its place names it.
 export async function createRunner(env:Bindings,input:any){
- if(!input||Object.keys(input).some(k=>k!=='networkLabel'))throw Error('Invalid runner settings');
+ if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(k=>k!=='networkLabel'))throw Error('Invalid runner settings');
  await ensureFirstRunner(env);
- const networkLabel=label(input.networkLabel),runnerId=`self-${crypto.randomUUID()}`,registeredAt=Date.now(),key=crypto.randomUUID()+crypto.randomUUID();
+ const runnerId=`self-${crypto.randomUUID()}`,registeredAt=Date.now(),key=crypto.randomUUID()+crypto.randomUUID(),named=input.networkLabel!==undefined;
+ const networkLabel=named?label(input.networkLabel):distinctName(generatedName(runnerId),(await env.DB.prepare('SELECT network_label FROM runners').all<{network_label:string}>()).results.map(r=>r.network_label));
  const ciphertext=await seal(await custody(env),JSON.stringify(['uptime-runner-key-v1',runnerId,registeredAt]),{key});
- await env.DB.prepare('INSERT INTO runners(runner_id,registered_at,network_label,key_ciphertext) VALUES(?,?,?,?)').bind(runnerId,registeredAt,networkLabel,ciphertext).run();
+ await env.DB.prepare('INSERT INTO runners(runner_id,registered_at,network_label,key_ciphertext,named_by) VALUES(?,?,?,?,?)').bind(runnerId,registeredAt,networkLabel,ciphertext,named?'owner':'default').run();
  return {runnerId,networkLabel,key}
 }
+// The owner's name for a location. Monitors saved from now on carry it; saved revisions keep the name they were saved with.
+export async function renameRunner(env:Bindings,id:string,input:any){
+ if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).join()!=='networkLabel')throw Error('Invalid location name');
+ const networkLabel=label(input.networkLabel);
+ const result=await env.DB.prepare("UPDATE runners SET network_label=?,named_by='owner' WHERE runner_id=? AND revoked_at IS NULL").bind(networkLabel,id).run();
+ if(!result.meta.changes)throw Error('Active location not found');
+ return {runnerId:id,networkLabel}
+}
 export async function revokeRunner(env:Bindings,id:string){if(id===HOSTED_RUNNER_ID)throw Error('The hosted Worker has no runner key to revoke');const result=await env.DB.prepare('UPDATE runners SET revoked_at=?,key_ciphertext=NULL WHERE runner_id=? AND revoked_at IS NULL').bind(Date.now(),id).run();if(!result.meta.changes)throw Error('Active runner not found');return {revoked:true}}
-export const runnerListQuery=`SELECT runner_id AS runnerId,network_label AS networkLabel,registered_at AS registeredAt,revoked_at AS revokedAt,last_contact_at AS lastContactAt,capabilities FROM runners ORDER BY ${runnerOrder}`
-export const describeRunners=(rows:any[])=>rows.map(r=>({...r,hosted:r.runnerId===HOSTED_RUNNER_ID,capabilities:runnerCapabilities(r.capabilities)}))
+export const runnerListQuery=`SELECT runner_id AS runnerId,network_label AS networkLabel,registered_at AS registeredAt,revoked_at AS revokedAt,last_contact_at AS lastContactAt,capabilities,legacy_key AS builtIn FROM runners ORDER BY ${runnerOrder}`
+export const describeRunners=(rows:any[])=>rows.map(r=>({...r,builtIn:r.builtIn===1,hosted:r.runnerId===HOSTED_RUNNER_ID,capabilities:runnerCapabilities(r.capabilities)}))
 export async function listRunners(env:Bindings){return describeRunners((await env.DB.prepare(runnerListQuery).all()).results)}
 export async function assignDefinition(env:Bindings,definition:any,input:any){
  const first=await ensureFirstRunner(env),rows=(await env.DB.prepare(`SELECT * FROM runners ORDER BY ${runnerOrder}`).all<Runner>()).results;
@@ -71,7 +96,7 @@ const site=(value:string)=>new URL(value).hostname.toLowerCase().replace(/\.$/,'
 export const sameSite=(a:string,b:string)=>site(a)===site(b)
 // A check on the monitored site fails whenever the monitor does, so the monitor could never be confirmed as Failing.
 function sameSiteRefusal(url:string,own:boolean){
- return Error(`The external check URL ${url} is the same site as this monitor, so an outage there could never be confirmed. ${own?'Choose an external check URL on a different site for this check.':'Choose a different external check URL on Runner / archive, or set one for this check.'}`)
+ return Error(`The external check URL ${url} is the same site as this monitor, so an outage there could never be confirmed. ${own?'Choose an external check URL on a different site for this check.':'Choose a different external check URL in Settings, or set one for this check.'}`)
 }
 export function assignRunners(rows:Runner[],firstRunnerId:string,definition:any,input:any,external:string|null=null,syntheticCanary=true,appOrigin?:string){
  const assignments:Record<string,any>={};

@@ -38,7 +38,8 @@ export async function deliveredLink(call,{email,kind='magic'}){
 export async function finishSetup(origin,cookie,fetcher=fetch){
  const response=await fetcher(origin+'/setup',{method:'POST',redirect:'manual',headers:{host:new URL(origin).host,origin,cookie}});
  assert.equal(response.status,303,'owner completes the native first-run form');
- assert.equal(response.headers.get('location'),'/app');
+ // An installation with no monitors lands on the first monitor's form; one with monitors on the list.
+ assert.ok(['/app','/app/monitor?first=1'].includes(response.headers.get('location')),response.headers.get('location'));
 }
 export async function emailSignIn(origin,{bindings=testAuthBindings,fetcher=fetch}={}){
  const call=authRequest(origin,fetcher);
@@ -57,7 +58,7 @@ export async function browserSignIn(page,origin,{bindings=testAuthBindings,boots
   // Bootstrap through Base, importing the returned cookie into this browser context.
   const response=await page.request.post(origin+'/auth/bootstrap',{headers:{origin},data:{token:bindings.SETUP_TOKEN,displayName:'Test owner',returnTo:'/app'},maxRedirects:0});
   assert.ok([303,409].includes(response.status()),'native bootstrap or already initialized');
-  if(response.status()===303){await page.goto(origin+'/app');if(new URL(page.url()).pathname==='/setup')await page.getByRole('button',{name:'Finish setup',exact:true}).click();await page.waitForURL(origin+'/app');return}
+  if(response.status()===303){await page.goto(origin+'/app');if(new URL(page.url()).pathname==='/setup')await page.getByRole('button',{name:'Continue',exact:true}).click();await page.waitForURL(url=>url.pathname.startsWith('/app'));return}
  }
  const call=authRequest(origin);
  assert.equal((await call('/auth/magic-link',{email:bindings.OWNER_EMAIL,returnTo:'/app'})).status,202);
@@ -65,8 +66,8 @@ export async function browserSignIn(page,origin,{bindings=testAuthBindings,boots
  await page.goto(link.href);
  await page.getByRole('button',{name:/confirm|sign in/i}).click();
  await page.waitForURL(url=>['/app','/setup'].includes(url.pathname));
- if(new URL(page.url()).pathname==='/setup')await page.getByRole('button',{name:'Finish setup',exact:true}).click();
- await page.waitForURL(origin+'/app');
+ if(new URL(page.url()).pathname==='/setup')await page.getByRole('button',{name:'Continue',exact:true}).click();
+ await page.waitForURL(url=>url.pathname.startsWith('/app'));
 }
 
 // Node fetch owns Host; raw HTTP is necessary to exercise the incoming Host boundary.

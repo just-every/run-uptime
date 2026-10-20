@@ -61,8 +61,8 @@ try {
   const bootstrapResponse = await nativePost(setup, '/auth/bootstrap', 'Create owner account');
   assert.equal(bootstrapResponse.status(), 303, bootstrapResponse.status() === 303 ? undefined : await bootstrapResponse.text());
   await setup.waitForURL(runtime.origin + '/setup');
-  await setup.getByRole('button', {name: 'Finish setup', exact: true}).click();
-  await setup.waitForURL(runtime.origin + '/app');
+  await setup.getByRole('button', {name: 'Continue', exact: true}).click();
+  await setup.waitForURL(url => url.pathname.startsWith('/app'));
   await assertSession(bootstrap);
   await bootstrap.close();
 

@@ -1,7 +1,7 @@
 /* The monitor editor (/app/monitor), loaded after app-theme.css, which gives it the fonts, tokens, element defaults and
-   the shell (.ui-sidebar, .ui-main, .ui-header). This file lays out the form: two cards for what to check and its
-   timing, the policy card beside them at 1200px and wider, and the footer with the feedback line, Cancel and Save.
-   Hooks editor.js relies on: #monitor-form, the field names, #settings-probes (it appends the Local check boxes),
+   the shell (.ui-sidebar, .ui-main, .ui-header). This file lays out the form: what to check, its timing and labels on
+   the left, the "Up or down" card beside them at 1200px and wider, and the footer with the feedback line, Cancel and
+   Save. Hooks the editor relies on: #monitor-form, the field names, #settings-probes (it appends the Check from rows),
    #editor-feedback[role=status] with data-error, #editor-signout, the first h1 and html.editor-ready. */
 
 /* Header */
@@ -9,12 +9,23 @@
 .editor-back .ui-icon { width: 16px; height: 16px; }
 .editor-header { margin-bottom: 24px; }
 .editor-description { max-width: 80ch; margin-top: 8px; color: var(--body); }
+.editor-header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; }
+.editor-first-links { display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 0; }
+.editor-first-links[hidden], .editor-back[hidden], .editor-cancel[hidden] { display: none; }
+.editor-first-links .ui-link { min-height: 44px; padding: 0; border: 0; background: none; box-shadow: none; font-weight: 600; }
 
 /* Columns: the check and timing cards, then the policy card beside them (≥1200px) or below. */
 .editor-columns { display: grid; gap: 20px; align-items: start; }
 .editor-stack { display: grid; gap: 20px; min-width: 0; }
 @media (min-width: 1200px) {
   .editor-columns { grid-template-columns: minmax(0, 1.7fr) minmax(320px, 1fr); gap: 24px; }
+}
+/* One column: the rules follow what to check, before timing and labels. */
+@media (max-width: 1199px) {
+  .editor-stack { display: contents; }
+  .editor-stack > [aria-labelledby="editor-timing-heading"] { order: 2; }
+  .editor-stack > [data-monitor-metadata] { order: 3; }
+  .editor-columns > .rules-panel { order: 1; }
 }
 
 .editor-panel h2 { margin-bottom: 18px; }
@@ -23,22 +34,41 @@
 
 /* Paired and timing fields share a row; labels that wrap keep the fields on one line by pushing them to the bottom. */
 .editor-pair, .timing-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 16px; }
-.timing-fields { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.timing-fields { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .editor-pair > label, .timing-fields > label { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .editor-pair > label > :is(input, select), .timing-fields > label > input { margin-top: auto; }
 .timing-fields + .helper { margin-top: 10px; }
+#freshness-help { margin-top: 2px; }
 
 /* Monospace only where the value is a URL or JSON. */
-.editor-panel :is(input[name="url"], textarea[name="additional"]) { font-family: var(--mono); font-size: 14px; }
-.editor-panel textarea[name="body"] { min-height: 88px; }
-.editor-panel textarea[name="additional"] { min-height: 104px; }
+.editor-panel :is(input[name="url"], input[name="jsonPath"], input[name="regexPattern"]) { font-family: var(--mono); font-size: 14px; }
 
-/* Policy card: the Local check boxes, a thin divider, then the alert policy. */
-.policy-panel fieldset { padding-bottom: 16px; border-bottom: 1px solid var(--line); }
-.policy-panel legend { margin-bottom: 4px; font-size: 18px; line-height: 1.3; letter-spacing: -0.01em; }
-.policy-panel fieldset p { margin-bottom: 6px; color: var(--muted); font-size: 14px; }
+/* Up or down: Up when (one row per rule, the Add rule menu), Down when, the fixed agreement line and Check from. */
+.rules-panel .rules-heading { display: block; margin: 22px 0 10px; padding: 0; color: var(--muted); font-size: 12.5px; font-weight: 700; letter-spacing: .06em; line-height: 1.3; text-transform: uppercase; }
+.rules-panel h2 + .rules-heading { margin-top: 0; }
+.rule-rows { display: grid; gap: 12px; }
+.rule-row { display: flex; align-items: flex-end; gap: 10px; min-width: 0; }
+.rule-row[hidden] { display: none; }
+.rule-row > label { display: flex; flex: 1 1 0; flex-direction: column; gap: 6px; min-width: 0; color: var(--ink); }
+.rule-row > label.rule-narrow { flex: 0 0 72px; }
+.rule-remove { flex: none; width: 44px; min-width: 44px; height: 44px; min-height: 44px; padding: 0; border-color: transparent; background: none; box-shadow: none; color: var(--muted); }
+.rule-remove:hover { color: var(--rose-text); background: var(--rose-soft); }
+.rule-rows > .helper { margin-top: -6px; }
+.add-rule { position: relative; justify-self: start; }
+.add-rule[hidden] { display: none; }
+.add-rule summary { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 16px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); color: var(--ink); font-weight: 600; cursor: pointer; list-style: none; }
+.add-rule summary::-webkit-details-marker { display: none; }
+.add-rule-menu { display: grid; gap: 2px; margin-top: 6px; padding: 6px; border: 1px solid var(--line); border-radius: var(--radius-panel); background: var(--card); box-shadow: var(--shadow); }
+.add-rule-menu button { justify-content: flex-start; min-height: 40px; border: 0; background: none; box-shadow: none; color: var(--ink); font-weight: 500; text-align: left; }
+.add-rule-menu button:hover { background: var(--ground); }
+.add-rule-menu button[hidden] { display: none; }
+.policy-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: 16px 20px; }
+.policy-fields > label { display: flex; flex-direction: column; gap: 6px; color: var(--ink); }
+.agreement-rule { margin-top: 10px; }
+.policy-panel fieldset { margin: 22px 0 0; padding: 0; border: 0; }
+.policy-panel legend.rules-heading { margin: 0 0 10px; }
 .policy-panel fieldset label { color: var(--ink); }
-.policy-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 20px 24px; margin-top: 20px; }
+.probe-more { margin: 4px 0 0; font-size: 14px; }
 
 /* Footer: the one live feedback line beside Cancel and Save, under a thin divider. */
 .editor-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
@@ -51,6 +81,9 @@
 .editor-cancel { display: inline-flex; align-items: center; min-height: 44px; padding: 0 10px; font-weight: 600; }
 .editor-actions button { min-width: 160px; padding: 0 28px; }
 
+@media (max-width: 1200px) {
+  .timing-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 @media (max-width: 700px) {
   .editor-header { margin-bottom: 20px; }
   .editor-columns, .editor-stack { gap: 16px; }
@@ -64,9 +97,10 @@
   .editor-actions button { flex: 1 1 auto; min-width: 0; }
 }
 
-.probe-assignment { display: grid; gap: 8px; margin: 12px 0; min-width: 0; }
-.probe-assignment label { display: flex; flex-direction: column; gap: 4px; min-width: 0; overflow-wrap: anywhere; }
-.probe-assignment label:has(input[type="checkbox"]) { flex-direction: row; align-items: center; }
+.probe-assignment { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-items: center; gap: 6px 12px; margin: 0 0 14px; min-width: 0; }
+.probe-assignment .probe-pick { display: flex; flex-direction: row; align-items: center; gap: 8px; white-space: nowrap; }
+.probe-assignment .probe-canary { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 4px; min-width: 0; color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+.probe-assignment.is-off .probe-canary { display: none; }
 .probe-assignment :is(input[type="url"],select) { width: 100%; min-width: 0; }
 
 /* The check type's own fields; checkbox rows and groups for TCP banners and DNS resolvers. */

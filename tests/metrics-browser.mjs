@@ -15,8 +15,8 @@ try{
  const context=await browser.newContext({permissions:['clipboard-read','clipboard-write']}),page=await context.newPage();
  await browserSignIn(page,origin);
  const enter=async()=>{
-  await page.goto(origin+'/app#runners');await page.locator('html.signed-in').waitFor();
-  await page.locator('[data-view="runners"]').click();await page.locator('#metrics-key-form').waitFor();
+  await page.goto(origin+'/app#settings');await page.locator('html.signed-in').waitFor();
+  await page.locator('[data-view="settings"]').click();await page.locator('#metrics-key-form').waitFor();
  };
  const checkPanel=async(width,stage='panel')=>{
   const panel=page.locator('#metrics-tools');
@@ -60,7 +60,7 @@ try{
   const snapshot=await fetch(origin+'/api/v1/metrics?format=json',{headers});assert.equal(snapshot.status,200);assert.ok(await snapshot.json(),'JSON metrics snapshot is available');
   const forbidden=await fetch(origin+'/api/monitors',{method:'POST',headers:{...headers,origin,'content-type':'application/json'},body:JSON.stringify({name:'Must not exist',type:'http',url:'https://example.com/'})});
   assert.equal(forbidden.status,403,'metrics key cannot mutate monitors');
-  await page.reload();await page.locator('html.signed-in').waitFor();await page.locator('[data-view="runners"]').click();
+  await page.reload();await page.locator('html.signed-in').waitFor();await page.locator('[data-view="settings"]').click();
   await page.getByRole('button',{name:'Revoke '+name,exact:true}).waitFor();
   assert.equal(await page.locator('code.token').count(),0,'reload never retrieves a secret');
   await checkPanel(width);
@@ -68,7 +68,7 @@ try{
   await page.getByRole('button',{name:'Revoke '+name,exact:true}).click();assert.equal((await revoked).status(),200);
   const refused=await fetch(origin+'/api/v1/metrics',{headers});assert.ok([401,403].includes(refused.status),'revocation refuses metrics immediately');
   token='';headers.authorization='';
-  await page.reload();await page.locator('html.signed-in').waitFor();await page.locator('[data-view="runners"]').click();
+  await page.reload();await page.locator('html.signed-in').waitFor();await page.locator('[data-view="settings"]').click();
   await page.locator('#metrics-key-list').getByRole('heading',{name,exact:true}).waitFor();
   assert.equal(await page.getByRole('button',{name:'Revoke '+name,exact:true}).count(),0,'revocation persists on reload');
   await checkPanel(width,'revoked');

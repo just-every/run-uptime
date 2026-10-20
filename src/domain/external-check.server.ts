@@ -1,9 +1,9 @@
 // @ts-ignore Edition URL validation is JavaScript.
 import {publicTarget} from './public-target.mjs'
 import type {Bindings} from './control.server.ts'
-// The installation-wide External check URL (migration 0029). A monitor on a single runner network with no URL of its own
+// The installation-wide External check URL (migration 0029). A monitor on a single location with no URL of its own
 // takes this value into its saved revision; revisions are immutable, so changing it affects only monitors saved afterwards.
-export const EXTERNAL_CHECK_ABSENT='The External check URL is not set. Set it on Runner / archive, or give this monitor its own external check URL.'
+export const EXTERNAL_CHECK_ABSENT='The External check URL is not set. Set it in Settings, or give this monitor its own external check URL.'
 export async function externalCheckUrl(env:Bindings):Promise<string|null>{
  return (await env.DB.prepare('SELECT url FROM external_check WHERE id=1').first<{url:string}>())?.url??null
 }

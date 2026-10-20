@@ -45,7 +45,7 @@ From the installed checkout on every assigned runner machine:
 pnpm exec playwright install chromium firefox webkit
 ```
 
-Restart the private runner after installing or removing an engine. It tests each engine at enrollment and shows the available engines in **Runner / archive**. A missing, disabled or failed selected engine produces Unknown with that engine’s name; it never substitutes another browser. `UPTIME_RUNNER_BROWSER=off` disables all flows. Set `UPTIME_RUNNER_BROWSERS=chromium,firefox` to permit only those engines on a particular runner. The default permits all three. Keep the runner’s ordinary signed-in operating-system HOME; browser profiles and temporary files remain separate per-run directories.
+Restart the private runner after installing or removing an engine. It tests each engine at enrollment and reports the available engines in `GET /api/runners`. A missing, disabled or failed selected engine produces Unknown with that engine’s name; it never substitutes another browser. `UPTIME_RUNNER_BROWSER=off` disables all flows. Set `UPTIME_RUNNER_BROWSERS=chromium,firefox` to permit only those engines on a particular runner. The default permits all three. Keep the runner’s ordinary signed-in operating-system HOME; browser profiles and temporary files remain separate per-run directories.
 
 Credentials used by a `fill` step stay in protected runner-local files bound to the exact monitor ID and origin. A clone has a new ID and needs its own credential reference and file. See [runner credential custody](/docs/runner#request-secrets-stay-with-the-runner).
 
@@ -78,7 +78,7 @@ Use a dedicated synthetic account on an explicitly authorized test service. A lo
 
 For signup, use your sandbox's account-creation URL and submit button, and require the account-created confirmation. Repeated scheduled signup needs an authorized reusable sandbox identity or reset policy; Uptime does not generate disposable identities or clean up accounts automatically. Never point a signup monitor at an ordinary customer's account.
 
-For checkout, continue the signed-in steps with the sandbox order button and require the final order confirmation, rather than merely the checkout form. Use test-mode payments and sandbox inventory only. Each required outcome is checked after the final step. Setup/teardown fixtures and production spend grants remain separate work under API-004; this constrained journey must not perform live purchases.
+For checkout, continue the signed-in steps with the sandbox order button and require the final order confirmation, rather than merely the checkout form. Use test-mode payments and sandbox inventory only. Each required outcome is checked after the final step. A flow may add `fixtures`: `setup` steps that create a synthetic account or a Stripe test-mode order before the first page, and `teardown` steps that delete or cancel them afterwards, written as API transaction steps on the flow's origin. Teardown runs whatever happened to the browser, including a cancelled run; values it extracts stay on the runner. A teardown that cannot finish becomes cleanup debt; it never changes the browser's verdict. Live purchases need an exact, expiring grant with a spend limit.
 
 ## Read a failed journey
 

@@ -1,5 +1,5 @@
 import {escape,icon} from './console-format.js';
-// The Definitions view (/app#definitions): upload or paste a definition file or an UptimeRobot export, read the
+// Monitor files on Archive (/app#archive, public/archive-view.js): upload or paste a monitor file or an UptimeRobot export, read the
 // preview, apply exactly that preview, and undo a batch. Every import runs through the owner's import door
 // (/api/operator/import/*): the file uploads, its request secrets withheld, as checked chunks, the server plans and validates, and this module only
 // shows the plan it returns and applies it with the fingerprint shown. Its state outlives the console's five-second
@@ -84,7 +84,7 @@ function previewMarkup(preview){
 }
 function batchesMarkup(batches){
  if(!batches)return '<p>Loading batches…</p>';
- if(!batches.length)return '<p>No definition files have been applied.</p>';
+ if(!batches.length)return '<p>No imports yet.</p>';
  return `<ul class="definition-batches">${batches.map(b=>{const created=b.entries.filter(e=>e.action==='create').length,changed=b.entries.length-created,status=b.restoredAt?'From an archive (history only)':b.failed?'Apply failed':b.undoneAt?`Undone ${new Date(b.undoneAt).toLocaleString()}`:b.undone?'Undone':'Applied';
   return `<li><p><strong>${escape(new Date(b.createdAt).toLocaleString())}</strong> · ${escape(b.source)} · ${created} created, ${changed} changed · ${escape(status)}</p>
   ${b.businessApproval?`<p>Approved ${b.businessApproval.via==='owner'?'':'via Business '}by ${escape(b.businessApproval.owner)} at ${escape(new Date(b.businessApproval.approvedAt).toLocaleString())}, fingerprint <code>${escape(b.businessApproval.fingerprint)}</code>${b.failed?`, then failed (${escape(b.failed)})`:''}</p>`:''}
@@ -93,15 +93,15 @@ function batchesMarkup(batches){
 }
 export function renderDefinitions({area,action}){
  if(area.querySelector('.definitions-panel'))return;
- area.innerHTML=`<section class="empty runner-panel definitions-panel"><h2>Monitor definitions</h2>
- <p>Preview a definition file or saved UptimeRobot v3 pages or Pingdom HTTP check details before anything changes. New monitors arrive paused. A file never enables a monitor, issues a heartbeat token, sends a notification or changes a destination.</p>
- <section class="archive-tools definition-input" aria-labelledby="definition-input-heading"><h3 id="definition-input-heading">Preview a file</h3>
- <label>Definition file, UptimeRobot list/log or Pingdom HTTP details (2 MiB max)<input type="file" id="definition-file" accept=".json,.csv,application/json,text/csv"></label>
- <label>Or paste the file<textarea id="definition-text" rows="5" spellcheck="false"></textarea></label>
- <label>Source<select id="definition-source"><option value="auto">Detect from the file</option><option value="uptime.monitors">Uptime definition file</option><option value="uptimerobot">UptimeRobot v3 monitor list</option><option value="pingdom">Pingdom HTTP check details</option><option value="betterstack-heartbeats">Better Stack heartbeat pages</option><option value="uptimerobot-log">UptimeRobot log export (CSV)</option></select></label>
- <p><button id="definition-preview" class="primary">Preview</button> <button id="definition-export">${icon('export')}Export current definitions</button></p></section>
+ area.innerHTML=`<section class="definitions-panel"><h2>Monitor files</h2>
+ <p>Move monitors in or out. Imported monitors start paused.</p>
+ <section class="archive-tools definition-input" aria-labelledby="definition-input-heading"><h3 id="definition-input-heading">Import</h3>
+ <label>A file from UptimeRobot, Pingdom, Better Stack or Uptime (2 MiB max)<input type="file" id="definition-file" accept=".json,.csv,application/json,text/csv"></label>
+ <label>Or paste it<textarea id="definition-text" rows="5" spellcheck="false"></textarea></label>
+ <label>Source<select id="definition-source"><option value="auto">Detect from the file</option><option value="uptime.monitors">Uptime monitor file</option><option value="uptimerobot">UptimeRobot v3 monitor list</option><option value="pingdom">Pingdom HTTP check details</option><option value="betterstack-heartbeats">Better Stack heartbeat pages</option><option value="uptimerobot-log">UptimeRobot log export (CSV)</option></select></label>
+ <p><button id="definition-preview" class="primary">Preview</button> <button id="definition-export">${icon('export')}Export monitors</button></p></section>
  <section aria-labelledby="definition-preview-heading"><h3 id="definition-preview-heading">Preview</h3><div id="definition-result">${state.preview?'':'<p>Nothing previewed yet.</p>'}</div></section>
- <section aria-labelledby="definition-batches-heading"><h3 id="definition-batches-heading">Applied batches</h3><p>Undo pauses monitors a batch created and restores monitors it changed, unless they were edited or enabled since. History is never removed.</p><div id="definition-batches"></div></section></section>`;
+ <section aria-labelledby="definition-batches-heading"><h3 id="definition-batches-heading">Past imports</h3><p>Undo pauses what an import added and puts back what it changed, unless edited or enabled since.</p><div id="definition-batches"></div></section></section>`;
  const $=s=>area.querySelector(s);
  const showPreview=()=>{$('#definition-result').innerHTML=state.preview?previewMarkup(state.preview):'<p>Nothing previewed yet.</p>';const apply=$('#definition-apply');if(apply)apply.onclick=applyPreview};
  const showBatches=()=>{$('#definition-batches').innerHTML=batchesMarkup(state.batches);for(const button of area.querySelectorAll('.definition-undo'))button.onclick=()=>undo(button.dataset.batch)};
@@ -136,6 +136,6 @@ export function renderDefinitions({area,action}){
   if(result.ok)await loadBatches();
  }
  $('#definition-preview').onclick=preview;
- $('#definition-export').onclick=()=>action(async()=>{const file=await send('/api/definitions/export'),url=URL.createObjectURL(new Blob([JSON.stringify(file,null,2)+'\n'],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='uptime.monitors.json';a.click();URL.revokeObjectURL(url)},{success:'Current definitions exported.'});
+ $('#definition-export').onclick=()=>action(async()=>{const file=await send('/api/definitions/export'),url=URL.createObjectURL(new Blob([JSON.stringify(file,null,2)+'\n'],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='uptime.monitors.json';a.click();URL.revokeObjectURL(url)},{success:'Monitors exported.'});
  showPreview();showBatches();loadBatches().catch(error=>{$('#definition-batches').innerHTML=`<p>${escape(error.message)}</p>`});
 }

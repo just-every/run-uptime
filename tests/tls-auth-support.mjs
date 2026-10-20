@@ -33,13 +33,13 @@ export async function certificates(directory){
  result.selfSigned={key:await readFile(join(directory,'self-signed.key'),'utf8'),cert:await readFile(join(directory,'self-signed.pem'),'utf8')};
  const {X509Certificate}=await import('node:crypto');result.fingerprint=createHash('sha256').update(new X509Certificate(result.server.cert).raw).digest('hex');result.selfSignedFingerprint=createHash('sha256').update(new X509Certificate(result.selfSigned.cert).raw).digest('hex');return result;
 }
-export async function authFixture(handler){
+export async function authFixture(handler,bindings={}){
  const directory=await mkdtemp(join(tmpdir(),'uptime-tls-auth-')),previous=process.env.UPTIME_CREDENTIAL_DIR,records=[];let f,server,restore;
  try{
   const certs=await certificates(directory);
   server=https.createServer({...certs.server,ca:certs.ca,requestCert:true,rejectUnauthorized:false},(req,res)=>{let body='';req.on('data',chunk=>body+=chunk);req.on('end',()=>{const record={host:req.headers.host,method:req.method,url:req.url,headers:req.headers,body,client:req.socket.getPeerCertificate()?.subject?.CN,authorized:req.socket.authorized};records.push(record);handler(record,res)})});
   server.on('tlsClientError',()=>{});await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const port=server.address().port;
-  f=await fixture();restore=socketEdge(port,certs.ca);process.env.UPTIME_CREDENTIAL_DIR=directory;
+  f=await fixture(bindings);restore=socketEdge(port,certs.ca);process.env.UPTIME_CREDENTIAL_DIR=directory;
   const url=(path='/health',host='legacy.example.test')=>`https://${host}:${port}${path}`;
   const create=async(options={})=>f.monitor({runners:[f.first],canary:true,url:url(),intervalMs:86400000,timeoutMs:10000,...options});
   const claim=async id=>{const task=await f.claim(f.first);assert.equal(task?.monitorId,id);return task};

@@ -42,14 +42,15 @@
  .catalog-bulk-actions button { flex: 1 1 130px; }
  .catalog-dialog-actions button { flex: 1 1 100%; }
 }
-/* The catalog adds selection to the existing six-column table. */
+/* The catalog adds selection to the seven-column table. */
 .catalog-console .monitor-list th { width: auto; }
 .catalog-console .monitor-list th:nth-child(1) { width: 54px; }
 .catalog-console .monitor-list th:nth-child(2) { width: 94px; }
-.catalog-console .monitor-list th:nth-child(3) { width: 25%; }
-.catalog-console .monitor-list th:nth-child(4) { width: 15%; }
-.catalog-console .monitor-list th:nth-child(5) { width: 10%; }
-.catalog-console .monitor-list th:nth-child(6), .catalog-console .monitor-list th:nth-child(7) { width: 17%; }
+.catalog-console .monitor-list th:nth-child(3) { width: 22%; }
+.catalog-console .monitor-list th:nth-child(4) { width: 14%; }
+.catalog-console .monitor-list th:nth-child(5) { width: 11%; }
+.catalog-console .monitor-list th:nth-child(6) { width: 12%; }
+.catalog-console .monitor-list th:nth-child(7), .catalog-console .monitor-list th:nth-child(8) { width: 14%; }
 .catalog-console .metric-basis { padding: 14px 24px; }
 @container table-wrap (max-width: 759px) {
  .catalog-console .monitor-list td[data-label="Select"] { grid-column: 1; }

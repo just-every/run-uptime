@@ -11,7 +11,8 @@ export function testMailOptions(options){
  const mailLog=options.mailLog??process.env.UPTIME_TEST_MAIL_LOG;
  const development=options.bindings?.MAIL_PROVIDER==='development'&&options.bindings?.UPTIME_LOCAL_REVIEW!=='false'&&options.bindings?.RER_DEMO!=='1';
  const bindings=development?{...options.bindings,MAIL_PROVIDER:'sendgrid',SENDGRID_API_KEY:'test-only-mail-provider-key'}:options.bindings;
- return {...options,bindings,outboundService:async request=>{
+ // Tests name no place unless they set one (tests/add-location-browser.mjs): no request reads this machine's location.
+ return {...options,bindings,cf:options.cf??{},outboundService:async request=>{
   if(new URL(request.url).hostname==='api.sendgrid.com'){
    const message=await request.clone().json();
    const response=development?new Response(null,{status:202}):await options.outboundService(request);

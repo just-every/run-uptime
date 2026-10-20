@@ -11,6 +11,8 @@ import {bindHeartbeatKey} from './heartbeat-key.js';
 import {reportPanel,mountReportPanel} from './monitor-report.js';
 import {confirmErasure,showErasureReceipt} from './notification-dialogs.js';
 import {patch,firstMount} from './dom-patch.js';
+import {rulesCard} from './monitor-rules.js';
+import {cleanupDebtPanel,mountCleanupDebt} from './cleanup-debt.js';
 // One monitor's page (/app/monitors/<id>), rendered by public/app.js into the console shell on every refresh: the page
 // header (back link, name with its state, URL, kind and interval, actions) and, in #content-area, the state notice, then
 // evidence coverage and recent checks with their attempts on the left, and the last check, what the check expects and,
@@ -91,9 +93,10 @@ function pageBody(m,readUnavailable,data){
  return `<div class="monitor-page" id="monitor-page"><p class="status-explanation ui-callout" data-state="${escape(shownState(m,readUnavailable).toLowerCase())}">${escape(statusExplanation(m,readUnavailable,data))}</p>`
   +startup+'<div class="monitor-primary">'+coveragePanel(availability)+reportPanel(m)+`<section class="ui-card panel incidents" aria-labelledby="incidents-heading"><h2 id="incidents-heading">Incidents</h2><div id="monitor-incidents" data-owned="${escape(m.id)}">Loading incident history…</div><p>Latest 100 confirmed incidents. Times mark scheduled confirmation; manual checks do not open or close incidents.</p></section>`
   +`<section class="ui-card panel evidence" aria-labelledby="recent-checks-heading"><div class="panel-head"><h2 id="recent-checks-heading">Recent checks</h2><div class="history-strip" id="history-strip" aria-hidden="true" data-owned="${escape(m.id)}"></div></div><div id="raw-history" data-owned="${escape(m.id)}">Loading recent checks…</div></section>${snapshotPanel(m)}</div>`
-  +`<div class="monitor-secondary"><section class="ui-card panel detail" aria-labelledby="latest-check-heading"><h2 id="latest-check-heading">${lastLabel}</h2><dl class="detail-metrics"><div><dt class="ui-visually-hidden">${lastLabel}</dt><dd class="detail-time">${checkTime(m,{withLabel:false,readUnavailable})}</dd></div><div><dt>Response duration</dt><dd>${escape(duration(availability?.responseDurationMs))}</dd></div></dl></section>`
-  +`<section class="ui-card panel assertions" aria-labelledby="expects-heading"><h2 id="expects-heading">What the check expects</h2>${assertionSummary(m.definition)}<details id="assertion-definition"><summary id="assertion-definition-summary">Full check details</summary><pre>${escape(JSON.stringify(m.definition.type==='mail'?m.definition.mail:m.definition.type==='api'?m.definition.api:isProtocol(m.definition)?{[m.definition.type]:m.definition[m.definition.type],assertions:m.definition.assertions}:m.definition.assertions,null,2))}</pre></details></section>`
-  +alertRoutePanel(m)+slowPolicyPanel(m)+maintenancePanel(m)+expiryPanel(m,data)+(isFlow(m.definition)?flowPanel(m,data):'')+heartbeatPanel(m,data)+heartbeatJobsPanel(m)+'</div></div>';
+  +'<div class="monitor-secondary">'
+  +rulesCard(m,data.runner.runners,{editable:!isFlow(m.definition)&&m.definition.type!=='heartbeat',other:assertionSummary(m.definition),details:`<details id="assertion-definition"><summary id="assertion-definition-summary">Full check details</summary><pre>${escape(JSON.stringify(m.definition.type==='mail'?m.definition.mail:m.definition.type==='api'?m.definition.api:isProtocol(m.definition)?{[m.definition.type]:m.definition[m.definition.type],assertions:m.definition.assertions}:m.definition.assertions,null,2))}</pre></details>`})
+  +`<section class="ui-card panel detail" aria-labelledby="latest-check-heading"><h2 id="latest-check-heading">${lastLabel}</h2><dl class="detail-metrics"><div><dt class="ui-visually-hidden">${lastLabel}</dt><dd class="detail-time">${checkTime(m,{withLabel:false,readUnavailable})}</dd></div><div><dt>Response duration</dt><dd>${escape(duration(availability?.responseDurationMs))}</dd></div></dl></section>`
+  +alertRoutePanel(m)+slowPolicyPanel(m)+maintenancePanel(m)+expiryPanel(m,data)+(isFlow(m.definition)?flowPanel(m,data):'')+cleanupDebtPanel(m)+heartbeatPanel(m,data)+heartbeatJobsPanel(m)+'</div></div>';
 }
 
 const clock=t=>new Date(t).toLocaleTimeString();
@@ -205,6 +208,7 @@ export function renderMonitorPage({header,actions,area,data,id,api,action,readUn
  bindMaintenancePanel(area,m,{api,action});
  bindAlertRoutePanel(area,m,{api,action});
  bindSlowPolicyPanel(area,m,{api,action});
+ mountCleanupDebt(area,m,api);
  const incidentHost=area.querySelector('#monitor-incidents');if(firstMount(incidentHost)){bindIncidentWork(incidentHost,api);bindIncidentSnapshots(incidentHost,api)}api(`/api/monitors/${encodeURIComponent(m.id)}/incidents`).then(incidents=>{if(incidentHost.isConnected)patch(incidentHost,incidentMarkup(incidents))},error=>{if(incidentHost.isConnected)incidentHost.textContent='Incident history unavailable: '+error.message});
  actions.querySelector('#run-monitor').onclick=()=>action(()=>api(`/api/monitors/${m.id}/run`,'POST',{}),{pending:'Requesting a manual check…',success:'Manual check queued. Manual checks do not change uptime.'});
  if(!isFlow(m.definition)&&m.definition.type!=='heartbeat')actions.querySelector('#edit').onclick=()=>{location.href='/app/monitor?monitor='+encodeURIComponent(m.id)};

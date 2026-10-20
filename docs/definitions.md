@@ -146,7 +146,7 @@ The steps JSON has `variables` for non-secret fixed inputs and ordered `steps`. 
 ]}
 ```
 
-Use a dedicated synthetic account and sandbox resource. A failed cleanup stays visible in the attempt history and needs attention from the owner. Time-limited live-action grants and a cleanup-debt resolution workflow remain API-004.
+Use a dedicated synthetic account and sandbox resource. Setup and cleanup steps make up to 3 attempts each; cleanup runs after a failure and after a cancellation. A cleanup that cannot finish stays visible in the attempt history and becomes cleanup debt on the monitor page: clean up by hand, then resolve it with a short note. At 3 open debts the monitor stops running setup and reads Unknown until you resolve one. A step marked `"effect"` (`live-payment`, `refund` or `destructive-write`), a refund path, a Stripe live-mode key or a `livemode: true` response needs an exact grant for that monitor and effect (`POST /api/monitors/<id>/effect-grants` with `effect`, an integer `spendLimit` and an `expiresAt` within 24 hours); without one the step is refused and nothing is sent. Stripe test mode needs no grant.
 
 ## Mail protocols
 

@@ -39,7 +39,7 @@ export async function erase(env:Bindings,kind:'monitor'|'destination'|'operator'
  }
  if(kind==='monitor'){
   plans.push(selection('failure_snapshots','monitor_id=?',id),selection('failure_snapshot_settings','monitor_id=?',id),selection('failure_evidence_grants','monitor_id=?',id));
-  plans.push(selection('slow_acknowledgements','monitor_id=?',id));
+  plans.push(selection('slow_acknowledgements','monitor_id=?',id),selection('cleanup_debt','monitor_id=?',id),selection('effect_grants','monitor_id=?',id));
   // Uploads no import plan reads (an abandoned or interrupted preview) that name this monitor go with it.
   if(business.uploads.length)plans.push(selection('ik_door_chunks','upload_id IN(SELECT value FROM json_each(?))',JSON.stringify(business.uploads)),selection('ik_door_uploads','id IN(SELECT value FROM json_each(?))',JSON.stringify(business.uploads)));
   // So do the bytes of an archive outside the erased namespaces that names this monitor; its header stays.

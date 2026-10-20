@@ -19,7 +19,7 @@ export type PlanState={local:number[];monitors:{id:string;revision:number;defini
 export type PlanItem=SourceEntry&{mapping:Mapping;sourceId?:string}
 
 export const RELEASED='Imported before and released by undo or erasure; it stays in Uptime as its own monitor. Erase that monitor to import it again.'
-export const NO_RUNNER='Open Runner / archive to establish this installation’s runner before importing.'
+export const NO_RUNNER='Open Locations to set up this installation’s first location before importing.'
 const compared=(definition:any)=>canonical(Object.fromEntries(COMPARED_FIELDS.map(k=>[k,definition[k]])))
 const storedView=(definition:any,local:number[])=>{try{return compared(validateDefinition(definition,local))}catch{return compared(definition)}}
 const same=(a:unknown,b:unknown)=>JSON.stringify(a)===JSON.stringify(b)

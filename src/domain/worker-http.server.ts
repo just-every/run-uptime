@@ -11,6 +11,8 @@ import seed from '../../seed.json' with {type:'json'}
 import {publicTarget} from './public-target.mjs'
 // @ts-ignore Shared assertion policy.
 import {httpAssertions} from './http-assertions.mjs'
+// @ts-ignore Provider evidence semantics are shared with signed Node probes.
+import {isDependencyStatus,dependencyMissingCheck,missingDependencyEvidence} from './dependency-status.mjs'
 // @ts-ignore Shared evidence limits.
 import {MAX_BODY} from './policy.mjs'
 // runnerVersion names the evidence protocol the validator accepts; the User-Agent names this release.
@@ -60,12 +62,15 @@ export async function workerProbe(def:any,probe:string,context:ProbeContext){
  const evidence=(data:any,completedAt=Date.now())=>{capture.phases.totalMs=completedAt-startedAt;return ({id:crypto.randomUUID(),probe,startedAt,completedAt,durationMs:completedAt-startedAt,runnerVersion:EVIDENCE_VERSION,...data,...(data.failureSnapshot&&!data.failureSnapshot.unavailable?{failureSnapshot:{...data.failureSnapshot,phases:capture.phases}}:{})})};
  try{
   if(def.tlsTrust)throw new ProbeError('vantage','This certificate trust setting requires a private runner; the Cloudflare Worker cannot apply it.');
-  const response=await publicResponse(def,signal,{...context,capture}),completedAt=Date.now(),checks=httpAssertions(def,response,completedAt-startedAt);
+  const response=await publicResponse(def,signal,{...context,capture}),completedAt=Date.now(),missing=!context.statusOnly&&missingDependencyEvidence(def,response);
+  if(missing)return evidence({outcome:'runner_error',checks:[missing]},completedAt);
+  const checks=httpAssertions(def,response,completedAt-startedAt);
   return evidence({...(checks.some((check:any)=>!check.pass)&&'failureSnapshot' in response?{failureSnapshot:response.failureSnapshot&&'unavailable' in response.failureSnapshot?response.failureSnapshot:{...response.failureSnapshot,durationMs:completedAt-startedAt}}:{}),outcome:checks.every((check:any)=>check.pass)?'pass':'target_failure',status:response.status,bytes:response.bytes,checks},completedAt);
  }catch(error){
   const category=error instanceof BudgetExhausted?'budget':signal.aborted||(error as Error)?.name==='TimeoutError'?'timeout':error instanceof ProbeError?error.category:'connection';
   const reason=category==='runner'?SELF_CHECK_REFUSAL:category==='budget'?BUDGET_REASON:error instanceof ProbeError&&error.reason?error.reason:`Probe ${category} check failed`;
   const completedAt=Date.now();
+  if(!context.statusOnly&&!runnerErrors.includes(category)&&isDependencyStatus(def))return evidence({outcome:'runner_error',checks:[dependencyMissingCheck(def)]},completedAt);
   return evidence({...(context.snapshotPolicy&&!context.statusOnly&&!['network','runner','budget','vantage'].includes(category)?{failureSnapshot:tryCaptureFailureSnapshot({...capture,method:capture.method??def.method,url:capture.url??def.url,durationMs:completedAt-startedAt,masks:context.snapshotPolicy.masks,safeValues:context.snapshotPolicy.safeValues,policyVersion:context.snapshotPolicy.version,...(context.snapshotPolicy.screenshot?{screenshot:{unavailable:'browser_unavailable'}}:{}),...(['timeout','connection','transport','unresolved','dns','tls'].includes(category)?{diagnostics:normalizeNetworkDiagnostics({version:1,category,phases:{...capture.phases,totalMs:completedAt-startedAt},route:{tool:'unavailable',reason:'hosted-transport',hops:[]}})}:{})})}:{}),outcome:runnerErrors.includes(category)?'runner_error':'target_failure',checks:[{assertion:category,pass:false,reason}]},completedAt);
  }
 }

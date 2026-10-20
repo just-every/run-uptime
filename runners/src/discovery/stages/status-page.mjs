@@ -4,10 +4,13 @@ import {isJson} from '../fetcher.mjs';
 import {parseJson} from '../json-health.mjs';
 import {named} from '../naming.mjs';
 import {chooseMethod,makeProposal,ms} from '../proposal.mjs';
+import {clip} from '../text.mjs';
+import {componentProposals,statusAttribution} from './status-components.mjs';
 const MAX_STATUS_HOSTS=2;
 const STATUSPAGE={path:'status.indicator',equals:'none'};
 const looksLikeStatusPage=({host,facts})=>host.includes('status')||/\bstatus\b/i.test(facts.title);
-// Atlassian Statuspage publishes /api/v2/status.json, a free upstream-health signal with a stable "none" indicator.
+const providerName=(value,fallback)=>typeof value==='string'&&value.trim()?clip(value.replace(/[\x00-\x1f\x7f]/g,' '),100)||fallback:fallback;
+// Atlassian Statuspage publishes /api/v2/status.json with a stable "none" indicator for the provider's own claim.
 // status.* hosts the page links to are checked; a page that is itself a status page is checked on its own host.
 export async function statusStage({fetcher,context}){
   const origins=new Map();
@@ -21,9 +24,10 @@ export async function statusStage({fetcher,context}){
       if(value&&typeof value.status?.indicator==='string'&&value.page&&typeof value.page==='object'){
         const choice=await chooseMethod(fetcher,response);
         if(!choice)continue;
-        const siteName=typeof value.page.name==='string'&&value.page.name.trim()?value.page.name.trim():context.brand;
-        found.push(makeProposal({kind:'status-page',name:named(siteName,'status page'),url:response.url,method:choice.method,status:choice.status,observedMs:choice.observedMs,json:STATUSPAGE,oversize:choice.oversize,
-          reason:`Official status page${typeof value.status.description==='string'?` · reports ${value.status.description.slice(0,60)}`:''} · ${choice.status} in ${ms(choice.observedMs)}`}));
+        const siteName=providerName(value.page.name,host===context.host?context.brand:host),metadata=statusAttribution(siteName,response.url);
+        found.push(makeProposal({kind:'status-page',name:named(siteName,'status page'),url:response.url,method:choice.method,status:choice.status,observedMs:choice.observedMs,json:STATUSPAGE,metadata,oversize:choice.oversize,
+          reason:`Provider status page · provider's own claim${typeof value.status.description==='string'?` · reports ${clip(value.status.description.replace(/[\x00-\x1f\x7f]/g,' '),60)}`:''} · ${choice.status} in ${ms(choice.observedMs)}`}));
+        found.push(...await componentProposals({fetcher,origin:new URL(response.url).origin,provider:siteName}));
         continue;
       }
     }
@@ -32,7 +36,7 @@ export async function statusStage({fetcher,context}){
       const page=await fetcher.get(`${origin}/`,{accept:PROBE_ACCEPT});
       if(page.ok&&page.status>=200&&page.status<300){
         const choice=await chooseMethod(fetcher,page);
-        if(choice)found.push(makeProposal({kind:'status-page',name:named(context.brand,'status page'),url:page.url,method:choice.method,status:choice.status,observedMs:choice.observedMs,oversize:choice.oversize,
+        if(choice)found.push(makeProposal({kind:'status-page',name:named(host,'status page'),url:page.url,method:choice.method,status:choice.status,observedMs:choice.observedMs,metadata:statusAttribution(host,page.url),oversize:choice.oversize,
           reason:`Status page linked from ${context.host} · ${choice.status} in ${ms(choice.observedMs)}`}));
       }
     }

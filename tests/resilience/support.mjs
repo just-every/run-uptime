@@ -44,7 +44,7 @@ export async function fixture(extraBindings={},outbound){
  const dispose=worker.dispose.bind(worker);let disposal;worker.dispose=()=>disposal??=Promise.resolve().then(dispose);
  const DB=await worker.getD1Database('DB'),names=(await readdir('migrations')).filter(n=>n.endsWith('.sql')).sort();
  for(const name of names){if(name.endsWith('_resilient_monitoring.sql')){await DB.prepare('INSERT INTO runner_registration(id,runner_id,registered_at) VALUES(1,?,?)').bind(legacyId,Date.now()).run();await DB.prepare('INSERT INTO runner_contact(id,last_contact_at) VALUES(1,?)').bind(migratedContact).run();}for(const sql of splitSql(await readFile(join('migrations',name),'utf8')))await DB.prepare(sql).run()}
- const origin=(await worker.ready).origin,cookie=await signInOwner(origin,{bindings}),first={runnerId:legacyId,key,networkLabel:'owner-network'};
+ const origin=(await worker.ready).origin,cookie=await signInOwner(origin,{bindings}),first={runnerId:legacyId,key,networkLabel:(await DB.prepare('SELECT network_label FROM runners WHERE runner_id=?').bind(legacyId).first()).network_label};
  async function request(path,{body,method=body===undefined?'GET':'POST',runner,signed=false,headers={}}={}){
   const text=body===undefined?undefined:JSON.stringify(body),timestamp=String(Date.now());
   const response=await fetch(origin+path,{method,headers:{'content-type':'application/json',origin,cookie,...(runner?{'x-runner-key':runner.key,'x-runner-id':runner.runnerId}:{}),...(signed?{'x-sent-at':timestamp,'x-runner-signature':createHmac('sha256',runner.key).update(`${timestamp}.${path==='/api/runner/enroll'?'runner-enrolment.':''}${text}`).digest('hex')}:{}),...headers},body:text});

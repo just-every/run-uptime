@@ -29,7 +29,8 @@ export async function resolvePublic(url,signal,{family}={}) {
   }finally{signal.removeEventListener('abort',cancel)}
 }
 // statusOnly: see requestOnce. Resolution, pinning, redirect validation and the downgrade refusal are the same as a probe's.
-export async function publicHttp(def,signal,onRequest,{statusOnly=false,monitorId,onPhase,privateAccess,snapshotPolicy,requestValues,capture={}}={}) {
+// beforeSend({headers,body}) sees every request exactly as it will be sent, credentials included, and may throw to send nothing.
+export async function publicHttp(def,signal,onRequest,{statusOnly=false,monitorId,onPhase,privateAccess,snapshotPolicy,requestValues,beforeSend,capture={}}={}) {
  if(def.network==='private'&&typeof privateAccess!=='function')throw new ProbeError('grant','Private network grant unavailable');
  let url=def.network==='private'?privateTarget(def.url):publicTarget(def.url),method=def.method,trust=def.tlsTrust,credential;
  if(def.request)onPhase?.('authentication');
@@ -58,6 +59,7 @@ export async function publicHttp(def,signal,onRequest,{statusOnly=false,monitorI
   const settings={...prepared,headers:{...prepared.headers,...(requestValues?.headers??{}),...extraHeaders},body,credentialsPresent:Boolean(credential||requestValues),allowUnverifiedTls:credential?.allowUnverifiedTls===true,trackTlsFacts:Boolean(def.tlsTrust),capture};
   sentHeaders={'user-agent':RUNNER_VERSION,accept:PROBE_ACCEPT,...settings.headers};const {headers:localHeaders,...privateCredential}=credential??{};const protectedHeaders=Object.fromEntries(Object.entries(settings.headers).filter(([name])=>!snapshotPolicy?.safeValues?.requestHeaders?.includes(name.toLowerCase())));sentSecrets.push(...secretStrings(protectedHeaders),...secretStrings(privateCredential));if(body){try{sentSecrets.push(...secretStrings(JSON.parse(body)))}catch{sentSecrets.push(String(body))}}sentSecrets=[...new Set(sentSecrets.filter(x=>x&&x.length<=16384))].slice(0,128);
   capture.requestSecrets=sentSecrets;
+  beforeSend?.({headers:settings.headers,body});
   const response=await requestOnce(url,pin,method,settings,signal,req=>{sentHeaders=req.getHeaders();capture.requestHeaders=sentHeaders;onRequest(req)},undefined,statusOnly,trust);facts.push(...(response.tlsTrust??[]));return response;
   }catch(error){error.facts=[...facts,...(error.facts??[])];throw error}
  };

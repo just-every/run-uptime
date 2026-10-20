@@ -18,7 +18,7 @@ try{
  }
  await mkdir(screens,{recursive:true});
  for(const width of [1440,390]){
-  await page.setViewportSize({width,height:1000});await page.goto(origin+'/app');await page.locator('html.signed-in').waitFor();await page.locator('[data-view=notifications]').click();
+  await page.setViewportSize({width,height:1000});await page.goto(origin+'/app#notifications');await page.locator('html.signed-in').waitFor();
   await page.getByRole('button',{name:'Change alert time zone'}).click();
   const dialog=page.getByRole('dialog');await dialog.getByLabel('IANA time zone').fill('Invalid/Zone');await dialog.getByRole('button',{name:'Save time zone'}).click();await dialog.locator('[role=alert]').filter({hasText:/valid IANA/}).waitFor();
   await page.screenshot({path:join(screens,`zone-error-${width}.png`),fullPage:true});
