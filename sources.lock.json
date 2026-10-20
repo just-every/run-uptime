@@ -6767,7 +6767,7 @@
       "executable": false
     },
     "tests/notify-delivery.mjs": {
-      "sha256": "3a53a89b6753d8593ad04d5078d89e1bf280435fa366a0107706234f8e3f220b",
+      "sha256": "b1be24688fde4661deab0321082633aab7a8d3c21d31df807eec9f25ee11d71a",
       "executable": false
     },
     "tests/notify-retry-fixture.mjs": {
