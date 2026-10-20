@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Retry signed webhook incident deliveries with a stable ID, bounded stored backoff, Retry-After and owner-set limits; retain portable attempt metadata and erase it with its destination. Fallback contact chains remain pending.
+
 Adds two migrations (`0057_location_names.sql`, who named each location; `0058_cleanup_debt_and_effect_grants.sql`, retained cleanup debt and live-effect grants); no new required settings.
 
 - **Safe setup and teardown (API-004).** API transactions and browser flows run bounded setup and cleanup fixtures (up to 3 attempts each); cleanup still runs after a failure or a cancellation, and a cancelled run reads Unknown. A cleanup that cannot finish becomes cleanup debt the owner resolves with a note on the monitor page; at 3 open debts setup stops. Stripe live-mode keys, `livemode: true` responses, refunds and steps marked `effect` need an exact, expiring grant with a spend limit.

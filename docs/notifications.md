@@ -122,3 +122,5 @@ and unmapped contacts refuse the import.
 Routes and active schedules stay installation-local. Archives carry reminder
 events and delivery history as inactive records; they never resume reminders on
 restore. Monitor and destination erasure remove their schedules.
+
+Signed webhook incident deliveries retry with the same stable webhook ID. The default is six attempts within ten minutes, with exponential backoff and at most 20% jitter. Retry-After is a minimum; a delay beyond the remaining window fails with `retry_window_exhausted`. Other 4xx responses stop immediately and retain their HTTP code. Email, Slack, unsigned webhook, test and drill sends keep one attempt; proven-unaccepted relay mail 429 requeue is unchanged. An owner can PATCH `/api/notifications/preferences` with `{"retryPolicy":{"maxAttempts":6,"windowMs":600000}}` (1–10 attempts; 1000–86400000 ms). Changes apply to newly prepared deliveries. Retry times and attempt metadata survive restart, are included in inactive archives, and are erased with their destination or monitor. Fallback chains and the console chain control remain unimplemented; DELIVERY-002 remains partial.
