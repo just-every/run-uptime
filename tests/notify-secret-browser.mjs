@@ -106,7 +106,7 @@ retryOutcomeTest('DELIVERY-002 accepted and failed retry outcomes reflow at 1440
     await page.setViewportSize({width,height:900});await page.goto(retryOrigin+'/app#notifications');await page.locator('html.signed-in').waitFor();
     const accepted=page.locator(`[data-key=${JSON.stringify('delivery-'+acceptedId)}]`),failed=page.locator(`[data-key=${JSON.stringify('delivery-'+failedId)}]`);
     await page.waitForFunction(key=>[...document.querySelectorAll('.delivery-card')].some(card=>card.dataset.key===key&&card.textContent.includes('Retry window exhausted')),'delivery-'+failedId);
-    assert.equal(await accepted.locator('.delivery-state').textContent(),'Accepted');assert.equal(await failed.locator('.delivery-state').textContent(),'Failed');
+    assert.ok((await page.locator('.notification-help:visible').textContent()).includes('Signed webhooks retry within saved limits.'),'visible help describes deduplicated retry');assert.equal(await accepted.locator('.delivery-state').textContent(),'Accepted');assert.equal(await failed.locator('.delivery-state').textContent(),'Failed');
     assert.equal(await failed.locator('.reason-code-value').textContent(),'retry_window_exhausted');await failed.getByText('HTTP 429',{exact:true}).waitFor();
     await page.addScriptTag({path:require.resolve('axe-core/axe.min.js')});
     const violations=(await page.evaluate(()=>axe.run(document))).violations.map(v=>({id:v.id,targets:v.nodes.map(n=>n.target)}));assert.deepEqual(violations,[]);
