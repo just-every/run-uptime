@@ -6783,7 +6783,7 @@
       "executable": false
     },
     "tests/recovery-browser.mjs": {
-      "sha256": "94f1e85243c6d1447d8a51330b8e0f9a2284a543f05747ca6a7d4213ec83a56d",
+      "sha256": "9b110bfc274c8a2e9c040e970a45505f8e37f9c68bd5b132f714e4fd54a30a34",
       "executable": false
     },
     "tests/reporting-browser.mjs": {
