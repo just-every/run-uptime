@@ -25,8 +25,10 @@ export async function retentionCleanup({worker,DB,port,persist,bindings,owner,ru
  await DB.prepare('UPDATE oa_tokens SET expires_at=1 WHERE id=?').bind(expiredSession.source_token_id).run();
  await DB.prepare('UPDATE oa_limits SET window=1').run();
  await owner.freshSignIn(bindings);
+ // Two registered runner assignments establish the independent-vantage failure
+ // whose retention is checked below; one uncorroborated probe is Degraded.
  // A bounded real failed check stores redacted target content separately.
- const monitor=await ok('/api/monitors','POST',{name:'Retained checkout history',url:`http://127.0.0.1:${bindings.UPTIME_SYNTHETIC_PORT}/health`,probes:['local-a'],intervalMs:86400000,retries:0,confirmSlots:1,recoverSlots:1});
+ const monitor=await ok('/api/monitors','POST',{name:'Retained checkout history',url:`http://127.0.0.1:${bindings.UPTIME_SYNTHETIC_PORT}/health`,probes:['local-a','local-b'],intervalMs:86400000,retries:0,confirmSlots:1,recoverSlots:1});
  await runChecks();
  const history=await ok(`/api/monitors/${monitor.id}/history`);assert.ok(history.some(s=>s.status==='complete'&&s.observations.some(o=>o.outcome==='target_failure')));
  await snapshotExpiry();

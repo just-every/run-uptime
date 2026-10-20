@@ -6935,7 +6935,7 @@
       "executable": false
     },
     "tests/retention-cleanup-proof.mjs": {
-      "sha256": "6618129b6260ea023fcf04f97919037c8492dbe5fb690e47355206ed95c1cb27",
+      "sha256": "64926e407891f60b1bf93e68e7f6747559de6358d1175dd37f2f90de9b3c8f18",
       "executable": false
     },
     "tests/runner-contact.mjs": {
