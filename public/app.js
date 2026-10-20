@@ -15,6 +15,7 @@ import {patch} from './dom-patch.js';
 // the locations they are checked from. Links from before the split (#runners, #definitions) open Locations and Archive.
 const VIEWS=['locations','notifications','archive','settings'],OLD_VIEWS={runners:'locations',definitions:'archive'};
 const viewOf=hash=>{const name=OLD_VIEWS[hash]??hash;return VIEWS.includes(name)?name:'monitors'};
+const TITLES={monitors:'Monitors',locations:'Locations',notifications:'Notifications',archive:'Archive',settings:'Settings'};
 function mountConsole(){if(window.uptimeBooted)return;window.uptimeBooted=true;const pageId=monitorIdFromPath(location.pathname);let data=null,view=pageId!==null?'monitor':viewOf(location.hash.slice(1)),feedback,readUnavailable=false,redirecting=false,closed=false,polling,shown=null;const $=s=>document.querySelector(s);
 // A monitor's page started its first reads while the document parsed (src/ui/console-prefetch.ts); each is used once.
 function takePrefetched(path){const early=window.uptimePrefetch?.[path];if(!early)return null;delete window.uptimePrefetch[path];return Date.now()-early.at<15000?early.response:null}
@@ -43,11 +44,18 @@ window.addEventListener('uptime:console-unmount',disposeConsole);
 // A history restore reloads through the document's server-side authority check.
 function restored(event){if(event.persisted)location.reload()}
 window.addEventListener('pageshow',restored);
-function syncLocation(){if(closed||pageId!==null)return;const next=viewOf(location.hash.slice(1));if(next===view)return;view=next;notice('');render()}
+function syncLocation(){if(closed||pageId!==null)return;const next=viewOf(location.hash.slice(1));if(next===view)return;view=next;leaveSection();render()}
 window.addEventListener('hashchange',syncLocation);
 async function refresh(options){if(closed||document.querySelector('dialog[open]'))return;return feedback.refresh(options)}
 async function action(fn,options){const focusId=document.activeElement?.id,result=await feedback.run(fn,options);if(result.accepted&&focusId)document.getElementById(focusId)?.focus({preventScroll:true});return result}
-const nav=$('.sidebar nav');const current=name=>name===view?' aria-current="page"':name==='monitors'&&view==='monitor'?' aria-current="true"':'';nav.innerHTML=`<a href="/app" data-view="monitors"${current('monitors')}>${icon('monitor')}Monitors</a><a href="/app#locations" data-view="locations"${current('locations')}>${icon('pin')}Locations</a><a href="/app#notifications" data-view="notifications"${current('notifications')}>${icon('bell')}Notifications</a><a href="/app#archive" data-view="archive"${current('archive')}>${icon('archive')}Archive</a><a href="/app#settings" data-view="settings"${current('settings')}>${icon('gear')}Settings</a><a href="#signout" data-view="signout">${icon('sign-out')}Sign out</a>`;
+// The nav is the document's own markup (src/ui/console.html), painted before this module loads; here it only follows the view.
+const nav=$('.sidebar nav');
+function markCurrent(){for(const link of nav.querySelectorAll('[data-view]')){if(link.dataset.view===view)link.setAttribute('aria-current','page');else if(link.dataset.view==='monitors'&&view==='monitor')link.setAttribute('aria-current','true');else link.removeAttribute('aria-current')}}
+// The heading and the tab title name the section being shown; a monitor's page names itself once it has read the monitor.
+function setHeading(){if(view==='monitor')return;$('.top h1').textContent=TITLES[view];document.title=TITLES[view]+' · Uptime'}
+// An outcome notice belongs to the section where the action ran.
+function leaveSection(){notice('');feedback?.clearAction()}
+markCurrent();
 // While an action or its reconciliation is pending, lockControls marks every console link aria-disabled and this one
 // guard keeps it from leaving the view, so the action's outcome notice is shown where the action was requested.
 function guardBusyNavigation(event){if(!feedback.busy||!event.target.closest('a[aria-disabled="true"]'))return;event.preventDefault();event.stopImmediatePropagation()}
@@ -55,7 +63,7 @@ document.addEventListener('click',guardBusyNavigation,true);
 // On /app a nav link switches the view in place and replaces the URL with the link's own (/app, /app#locations and so
 // on), so Back from a monitor's page returns to the view it was opened from. On a monitor's page a nav link
 // is an ordinary link to /app. A link opened in a new tab or window is left to the browser.
-nav.addEventListener('click',async event=>{const a=event.target.closest('a');if(!a)return;const signout=a.dataset.view==='signout';if(!signout&&(view==='monitor'||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey))return;event.preventDefault();if(signout){const result=await action(()=>api('/api/auth/sign-out','POST',{}),{pending:'Signing out…',success:'Signed out.'});if(result.ok)navigateToLogin();return}view=a.dataset.view;history.replaceState(history.state,'',a.href);notice('');render()});
+nav.addEventListener('click',async event=>{const a=event.target.closest('a');if(!a)return;const signout=a.dataset.view==='signout';if(!signout&&(view==='monitor'||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey))return;event.preventDefault();if(signout){const result=await action(()=>api('/api/auth/sign-out','POST',{}),{pending:'Signing out…',success:'Signed out.'});if(result.ok)navigateToLogin();return}view=a.dataset.view;history.replaceState(history.state,'',a.href);leaveSection();setHeading();markCurrent();render()});
 const header=$('.top > div'),actions=$('.actions');
 const n=document.createElement('div');n.id='notice';n.className='ui-notice';n.hidden=true;n.innerHTML='<p id="action-notice" role="status" hidden></p><p id="read-notice" role="status" hidden></p><p id="background-notice" role="status" hidden></p>';$('.top').after(n);
 const title=$('.table-title');title.innerHTML='<h2 id="table-heading">Monitors</h2>';const area=$('.table-scroll');area.id='content-area';const right=$('.right');right.id='side-panel';
@@ -65,7 +73,7 @@ right.hidden=sideHidden();
 // One line on the monitor list while every check runs from one place: a second location lets two places agree on an outage.
 const nudge=document.createElement('p');nudge.className='locations-nudge ui-callout';nudge.hidden=true;nudge.innerHTML=`<span>Checks run from one location.</span> <a class="ui-link" href="/app#locations">Add a location</a>`;n.after(nudge);
 if(view==='monitor'){$('.cards').hidden=true;title.hidden=true;area.setAttribute('aria-label','Monitor details');area.querySelector('.loading-note').textContent='Loading monitor…';$('.top h1').textContent='Monitor';$('.subtitle').textContent='Loading…';$('.subtitle').hidden=false}
-else{$('.top h1').textContent='Monitors';$('.subtitle').hidden=true;actions.addEventListener('click',event=>{const button=event.target.closest('button');if(!button)return;if(button.id==='new-monitor')window.dispatchEvent(new Event('uptime:new-monitor'));else if(button.id==='bulk-add-monitors')catalog.openAdd();else if(button.id==='add-location-button')startAdding({api,action,render})})}
+else{setHeading();$('.subtitle').hidden=true;actions.addEventListener('click',event=>{const button=event.target.closest('button');if(!button)return;if(button.id==='new-monitor')window.dispatchEvent(new Event('uptime:new-monitor'));else if(button.id==='bulk-add-monitors')catalog.openAdd();else if(button.id==='add-location-button')startAdding({api,action,render})})}
 // Each view's buttons beside its heading.
 const viewActions={monitors:()=>`<a class="ui-button" id="import-monitors" href="/app#archive">Import</a><button id="bulk-add-monitors">Bulk add</button><button class="primary" id="new-monitor">${icon('plus')}New monitor</button>`,locations:()=>`<button class="primary" id="add-location-button"${addingLocation()?' disabled':''}>${icon('plus')}Add location</button>`};
 const lockedControls=new Map(),lockedLinks=new Map();
@@ -75,7 +83,7 @@ const controlsObserver=new MutationObserver(records=>{if(!closed&&feedback?.busy
 controlsObserver.observe(document.body,{childList:true,subtree:true});
 // The first read failed, so nothing is loading any more: a static note replaces the skeleton until a read succeeds, and
 // a monitor's page drops its "Loading…" subtitle.
-function firstReadFailed(){const list=area.querySelector('.loading-list');if(!list)return;list.classList.add('read-failed');list.querySelector('.loading-note').textContent=view==='monitor'?'This monitor could not be read yet.':'Monitors could not be read yet.';if(view==='monitor')$('.subtitle').textContent='';right.querySelector('.loading-panel')?.remove()}
+function firstReadFailed(){const list=area.querySelector('.loading-list');if(!list)return;list.classList.add('read-failed');list.querySelector('.loading-note').textContent=view==='monitor'?'This monitor could not be read yet.':`${TITLES[view]} could not be read yet.`;if(view==='monitor')$('.subtitle').textContent='';right.querySelector('.loading-panel')?.remove()}
 // Busy disables every form control and marks every link aria-disabled (the click guard above blocks them); idle restores
 // each to what it was, then redraws, so a control whose state the action changed shows its current state. Links stay
 // focusable, so focus on a link survives the action.
@@ -92,10 +100,10 @@ function render(){if(!data||document.querySelector('dialog[open]'))return;
  // With no monitors yet, the list opens the new-monitor form instead of an empty table.
  if(view==='monitors'&&!readUnavailable&&!data.monitors.length){if(!redirecting){redirecting=true;location.replace('/app/monitor?first=1')}return}
  if(view!==shown){area.replaceChildren();right.replaceChildren();shown=view}right.hidden=sideHidden();
- for(const link of nav.querySelectorAll('[data-view]')){if(link.dataset.view===view)link.setAttribute('aria-current','page');else if(link.dataset.view==='monitors'&&view==='monitor')link.setAttribute('aria-current','true');else link.removeAttribute('aria-current')}
+ markCurrent();
  if(view==='monitor')renderMonitorPage({header,actions,area,data,id:pageId,api,action,readUnavailable});
  else{$('.cards').hidden=view!=='monitors'||!data.monitors.length;patch(actions,viewActions[view]?.()??'');actions.hidden=!viewActions[view];nudge.hidden=view!=='monitors'||!data.monitors.length||new Set(activeLocations(data).map(r=>r.networkLabel)).size>1;title.hidden=!['monitors','notifications'].includes(view);const states=['Healthy','Failing','Unknown','Degraded'];document.querySelectorAll('.cards .summary-tile').forEach((card,i)=>{const count=data.monitors.filter(m=>(readUnavailable&&m.definition.enabled?'Unknown':m.state.state)===states[i]).length;card.querySelector('strong').textContent=count;card.querySelector('.ui-ring').style.setProperty('--share',String(data.monitors.length?count/data.monitors.length:0))});$('.cards .refresh-time').textContent=new Date(data.now).toLocaleTimeString();
-  $('.top h1').textContent={notifications:'Notifications',locations:'Locations',archive:'Archive',settings:'Settings'}[view]??'Monitors';$('#table-heading').textContent=view==='notifications'?'Destinations & delivery':`Monitors (${data.monitors.length})`;
+  setHeading();$('#table-heading').textContent=view==='notifications'?'Destinations & delivery':`Monitors (${data.monitors.length})`;
   $('.subtitle').textContent=view==='notifications'?'Installation-wide destinations · delivery outcomes shown':'';$('.subtitle').hidden=view!=='notifications';
   area.setAttribute('aria-label',{locations:'Locations',archive:'Archive',settings:'Settings',notifications:'Notifications'}[view]??'Monitor list');
   if(view==='monitors')renderMonitors();else if(view==='notifications')renderNotifications({area,right,data,api,action,escape,readUnavailable});else if(view==='locations')renderLocations();else if(view==='archive')renderArchive({area,api,action});else renderSettings({area,data,api,action,refresh:()=>refresh(),notice,closeConsole,navigateToLogin,closed:()=>closed})}

@@ -1,8 +1,10 @@
 import {escape,icon,ago} from './console-format.js';
 import {firstMount} from './dom-patch.js';
+import {confirmDestination,containModalKeyboard,dialogFocusReturn} from './notification-dialogs.js';
 // Locations (/app#locations): where checks run from. Each location is a runner, named after where it runs
 // (src/domain/location-name.ts). The owner renames one, removes one, or adds another. The list is patched on each refresh
 // (public/dom-patch.js); the add panel keeps the new location's command, whose key is shown only there, until Done.
+// Closing the panel before the location has joined (Cancel) removes the location again.
 const FRESH_MS=120000;
 let adding=null;
 const monitorsUsing=(data,runnerId)=>data.monitors.filter(m=>Object.values(m.definition.assignments??{}).some(a=>a.runnerId===runnerId)).length;
@@ -21,7 +23,7 @@ export function locationsMarkup(data){
 export function addPanelMarkup(data){
  if(!adding)return '';
  const joined=activeLocations(data).find(r=>r.runnerId===adding.runnerId&&r.lastContactAt!==null);
- return `<section class="ui-card panel add-location" id="add-location" aria-labelledby="add-location-heading"><h2 id="add-location-heading">Add a location</h2><ol class="add-steps"><li><h3>Copy this command</h3><pre id="location-command">${escape(adding.command)}</pre><button type="button" id="copy-location-command">${icon('copy')}Copy</button></li><li><h3>Run it on the new machine</h3><p>In an Uptime folder, with Node 22.</p></li><li><h3>It joins here</h3>${joined?`<p class="location-joined" id="location-joined" role="status">${icon('check-circle')}${escape(joined.networkLabel)} joined</p>`:'<p class="location-waiting" id="location-waiting" role="status">Waiting for it to join…</p>'}</li></ol><button type="button" class="primary" id="add-location-done">Done</button></section>`;
+ return `<section class="ui-card panel add-location" id="add-location" aria-labelledby="add-location-heading"><h2 id="add-location-heading">Add a location</h2><ol class="add-steps"><li><h3>Copy this command</h3><pre id="location-command">${escape(adding.command)}</pre><button type="button" id="copy-location-command">${icon('copy')}Copy</button></li><li><h3>Run it on the new machine</h3><p>In an Uptime folder, with Node 22.</p></li><li><h3>It joins here</h3>${joined?`<p class="location-joined" id="location-joined" role="status">${icon('check-circle')}${escape(joined.networkLabel)} joined${joined.networkLabel===adding.name?'':' · named after where it runs'}</p>`:'<p class="location-waiting" id="location-waiting" role="status">Waiting for it to join…</p>'}</li></ol><button type="button" id="add-location-done"${joined?' class="primary"':''}>${joined?'Done':'Cancel'}</button></section>`;
 }
 export const addingLocation=()=>adding!==null;
 function command(runner){
@@ -32,10 +34,13 @@ function command(runner){
 }
 // A new location: the server makes its runner and key; its name follows from where it joins from.
 export async function startAdding({api,action,render}){
- const result=await action(()=>api('/api/runners','POST',{}),{pending:'Adding a location…',success:'Run the command on the machine you want to check from.'});
+ const result=await action(()=>api('/api/runners','POST',{}),{pending:'Adding a location…',success:''});
  if(!result.ok)return;
- adding={runnerId:result.result.runnerId,command:command(result.result)};render();
- document.querySelector('#copy-location-command')?.focus();
+ adding={runnerId:result.result.runnerId,name:result.result.networkLabel,command:command(result.result)};render();
+ // Below the list on a narrow screen: bring the panel to the top of the view.
+ const panel=document.querySelector('#add-location');
+ if(matchMedia('(max-width: 1199px)').matches)panel?.scrollIntoView({block:'start'});
+ document.querySelector('#copy-location-command')?.focus({preventScroll:true});
 }
 // `data` reads the latest overview, so a click acts on the list as it is now.
 export function bindLocations({area,right,data,api,action,refresh,render}){
@@ -44,13 +49,17 @@ export function bindLocations({area,right,data,api,action,refresh,render}){
   const rename=event.target.closest('[data-rename]'),remove=event.target.closest('[data-remove]');
   if(rename)renameDialog({runner:activeLocations(data()).find(r=>r.runnerId===rename.dataset.rename),api,action,refresh});
   if(remove){
-   if(!confirm('Remove this location? Its runner stops checking.'))return;
-   action(()=>api('/api/runners/'+encodeURIComponent(remove.dataset.remove),'DELETE'),{pending:'Removing location…',success:'Location removed.'});
+   const place=activeLocations(data()).find(r=>r.runnerId===remove.dataset.remove);
+   confirmDestination({title:`Remove ${place?.networkLabel??'this location'}?`,explanation:'Its runner stops checking.',button:'Remove',tone:'danger',
+    onConfirm:()=>action(()=>api('/api/runners/'+encodeURIComponent(remove.dataset.remove),'DELETE'),{pending:'Removing location…',success:'Location removed.'})});
   }
  });
  const panel=right.querySelector('#add-location');
  if(firstMount(panel))panel.addEventListener('click',async event=>{
-  if(event.target.closest('#add-location-done')){adding=null;render();document.querySelector('#add-location-button')?.focus();return}
+  if(event.target.closest('#add-location-done')){
+   const waiting=activeLocations(data()).some(r=>r.runnerId===adding.runnerId&&r.lastContactAt===null);
+   if(waiting)await action(()=>api('/api/runners/'+encodeURIComponent(adding.runnerId),'DELETE'),{pending:'Cancelling…',success:''});
+   adding=null;render();document.querySelector('#add-location-button')?.focus();return}
   const copy=event.target.closest('#copy-location-command');if(!copy)return;
   try{await navigator.clipboard.writeText(adding.command);copy.lastChild.textContent='Copied'}
   catch{getSelection().selectAllChildren(panel.querySelector('#location-command'));copy.lastChild.textContent='Selected: copy it'}
@@ -58,13 +67,12 @@ export function bindLocations({area,right,data,api,action,refresh,render}){
 }
 function renameDialog({runner,api,action,refresh}){
  if(!runner)return;
- const dialog=document.createElement('dialog'),form=document.createElement('form'),title=document.createElement('h3'),label=document.createElement('label'),input=document.createElement('input'),buttons=document.createElement('p'),save=document.createElement('button'),cancel=document.createElement('button');
- const returnTo=document.activeElement;
- dialog.id='rename-location-dialog';title.id='rename-location-heading';title.textContent='Rename location';dialog.setAttribute('aria-labelledby',title.id);
- input.id='location-name';input.name='networkLabel';input.required=true;input.maxLength=80;input.value=runner.networkLabel;label.append('Name',input);
- save.type='submit';save.className='primary';save.textContent='Save';cancel.type='button';cancel.textContent='Cancel';cancel.onclick=()=>dialog.close();
- buttons.className='dialog-actions';buttons.append(save,cancel);form.append(title,label,buttons);dialog.append(form);document.body.append(dialog);
+ const returnFocus=dialogFocusReturn(),dialog=document.createElement('dialog');dialog.className='editor notification-dialog';
+ dialog.innerHTML=`<form><h2 id="rename-location-heading">Rename location</h2><label>Name<input id="location-name" name="networkLabel" maxlength="80" required value="${escape(runner.networkLabel)}"></label><div class="buttons"><button type="button" class="secondary" data-cancel>Cancel</button><button type="submit" class="primary">Save</button></div></form>`;
+ dialog.id='rename-location-dialog';dialog.setAttribute('aria-labelledby','rename-location-heading');document.body.append(dialog);containModalKeyboard(dialog);
+ const form=dialog.querySelector('form'),input=form.elements.networkLabel;
+ dialog.querySelector('[data-cancel]').onclick=()=>dialog.close();
  form.onsubmit=async event=>{event.preventDefault();dialog.close();await action(()=>api('/api/runners/'+encodeURIComponent(runner.runnerId),'PATCH',{networkLabel:input.value}),{pending:'Renaming location…',success:'Location renamed.'})};
- dialog.addEventListener('close',()=>{dialog.remove();returnTo?.focus?.();refresh()},{once:true});
+ dialog.addEventListener('close',()=>{dialog.remove();returnFocus();refresh()},{once:true});
  dialog.showModal();input.select();
 }

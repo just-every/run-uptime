@@ -8,7 +8,7 @@ Hosted email, signed JSON and Slack notifications are sent by the Worker without
 
 ## Start it
 
-In the signed-in console, open **Locations** and choose **Add location**. The panel shows a complete command with this app's origin, the new runner ID, its one-time key and the startup command. Copy it; the key is shown only until you choose **Done**.
+In the signed-in console, open **Locations** and choose **Add location**. The panel shows a complete command with this app's origin, the new runner ID, its one-time key and the startup command. Copy it; the key is shown only until you close the panel (**Done**, or **Cancel** before the location joins, which removes it).
 
 On the runner machine, use an installed Uptime source checkout with Node 22 or later. From its root, paste the command. Its shape is:
 
