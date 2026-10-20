@@ -857,6 +857,14 @@
         "environment": "all"
       },
       {
+        "path": "/delivery-retry.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
         "path": "/webhook-editor.js",
         "match": "exact",
         "kind": "asset",
