@@ -6735,7 +6735,7 @@
       "executable": false
     },
     "tests/owner-editor-browser.mjs": {
-      "sha256": "fb677ae971b4dcad2738a4bf27a3000bb02eef5f4532a0a95b8b1e97fdf65c5a",
+      "sha256": "82c4ac5bd19bcae58a79262e996b1419a3857d217d391964eacaf963c710c1e7",
       "executable": false
     },
     "tests/ping-browser.mjs": {

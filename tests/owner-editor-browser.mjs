@@ -57,7 +57,9 @@ try {
     if(response.url()===app.origin+'/api/editor/config'&&response.status()===200)renewals.push({at:Date.now(),...(await response.json())});
     if(response.url()===app.origin+'/auth/session'&&response.status()===200)nativeChecks.push(Date.now());
    });
-   await page.goto(app.origin+'/app');
+   // An installation with no monitors sends /app to the first monitor's form as soon as the console reads the monitors,
+   // which would replace the open editor's document. Locations is a console page on the same document that stays put.
+   await page.goto(app.origin+'/app#locations');
    const host=page.locator('[data-rer-editor]');await host.waitFor();
    await page.waitForFunction(()=>document.querySelector('[data-rer-editor]')?.getAttribute('data-connection')==='connected');
    const launcher=host.getByRole('button',{name:'Open Run Edit Run'});await launcher.click();
@@ -94,7 +96,7 @@ try {
    const fresh=await emailSignIn(app.origin), [freshName,freshValue]=fresh.split('=');
    await context.addCookies([{name:freshName,value:freshValue,url:app.origin,httpOnly:true,sameSite:'Lax'}]);
    edge.state.denied=true;const violations=[];page.on('console',message=>{if(message.type()==='error'&&/frame-ancestors|framing/i.test(message.text()))violations.push(true)});
-   await page.goto(app.origin+'/app');await page.locator('[data-rer-editor]').waitFor();
+   await page.goto(app.origin+'/app#locations');await page.locator('[data-rer-editor]').waitFor();
    await page.waitForFunction(()=>document.querySelector('[data-rer-editor]')?.getAttribute('data-connection')!=='connected');
    await new Promise(resolve=>setTimeout(resolve,1000));assert.ok(violations.length,'Chromium enforces management frame-ancestors refusal');
    edge.state.denied=false;
