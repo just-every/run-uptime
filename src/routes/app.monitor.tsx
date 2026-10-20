@@ -1,5 +1,5 @@
 import {createFileRoute,useLocation} from '@tanstack/react-router'
-import {useEffect} from 'react'
+import {useEffect,useState} from 'react'
 import {useEditorLeafReady} from '../base/modules/editor/react.tsx'
 // @ts-ignore Bundled browser module, mounted only after hydration.
 import {mountMonitorEditor} from '../editor/monitor/index.mjs'
@@ -7,5 +7,5 @@ import {mountMonitorEditor} from '../editor/monitor/index.mjs'
 import markup from '../ui/editor.html?raw'
 // @ts-ignore Edition browser markup, also used during server rendering.
 import {initialMarkup} from '../editor/monitor/initial-markup.mjs'
-function Editor(){const search=useLocation({select:location=>location.searchStr});useEditorLeafReady('/app/monitor');useEffect(()=>{const controller=new AbortController();void mountMonitorEditor(controller.signal);return()=>{controller.abort();document.documentElement.classList.remove('editor-ready','editor-context-ready')}},[]);return <><link rel="stylesheet" href="/app-theme.css" precedence="default"/><link rel="stylesheet" href="/editor.css"/><link rel="stylesheet" href="/editor/discovery.css"/><div dangerouslySetInnerHTML={{__html:initialMarkup(markup,search)}}/></>}
+function Editor(){const search=useLocation({select:location=>location.searchStr});const [content]=useState(()=>({__html:initialMarkup(markup,search)}));useEditorLeafReady('/app/monitor');useEffect(()=>{const controller=new AbortController();void mountMonitorEditor(controller.signal);return()=>{controller.abort();document.documentElement.classList.remove('editor-ready','editor-context-ready')}},[]);return <><link rel="stylesheet" href="/app-theme.css" precedence="default"/><link rel="stylesheet" href="/editor.css"/><link rel="stylesheet" href="/editor/discovery.css"/><div dangerouslySetInnerHTML={content}/></>}
 export const Route=createFileRoute('/app/monitor')({head:()=>({meta:[{title:'Uptime'}],links:[{rel:'icon',href:'/favicon.svg',type:'image/svg+xml'},{rel:'preload',href:'/design-assets/fonts/plus-jakarta-sans-latin-wght-normal.woff2',as:'font',type:'font/woff2',crossOrigin:'anonymous'}]}),component:Editor})
