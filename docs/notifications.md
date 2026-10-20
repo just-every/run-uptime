@@ -4,7 +4,7 @@ Notifications are how Uptime tells you a failure has been confirmed, and when it
 
 Open **Notifications** in the console and add one or more destinations.
 
-- **Email** uses the same sender setup as sign-in: `MAIL_FROM` and the mail provider you chose with `MAIL_PROVIDER`, which is `resend`, `sendgrid` (the existing-install default) or `cloudflare`. Each has its own credential: `MAIL_PROVIDER_API_KEY`, `SENDGRID_API_KEY`, or `CLOUDFLARE_MAIL_API_KEY` with `MAIL_ACCOUNT_ID`. See [Deploy to Cloudflare](/docs/deploy). On your own computer, email also uses the configured sender; there is no captured-mail page. Until the sender is configured, the destination shows a warning and a **Set up email** step.
+- **Hosted email** uses the same sender setup as sign-in: `MAIL_FROM` and the mail provider you chose with `MAIL_PROVIDER`, which is `resend`, `sendgrid` (the existing-install default) or `cloudflare`. Each has its own credential: `MAIL_PROVIDER_API_KEY`, `SENDGRID_API_KEY`, or `CLOUDFLARE_MAIL_API_KEY` with `MAIL_ACCOUNT_ID`. See [Deploy to Cloudflare](/docs/deploy). Development and demo runs report successful sends without sending email. On a hosted installation, an unconfigured sender shows a warning and a **Set up email** step.
 - **Signed JSON webhook** posts a signed JSON event to a public HTTPS URL. Copy the signing secret when it is shown, because Uptime shows it only at creation or rotation.
 - **Slack incoming webhook** posts to an exact incoming-webhook URL on `hooks.slack.com`. Slack has no Uptime signing secret.
 
@@ -14,7 +14,7 @@ Destinations are installation-wide. An enabled destination applies to every moni
 
 Only scheduled incident changes produce notifications: a trigger when a failure is confirmed, and a recovery when it clears. Maintenance suppresses these events, and manual checks never create them.
 
-On a hosted installation the Cloudflare Worker sends queued email, signed JSON and Slack requests itself, with no private runner needed. Owner-console requests prompt due checks and sends while you use it. The one-minute Cron schedule continues work afterwards, but Cloudflare can take up to about two hours to activate it after deployment; queued does not promise delivery within a minute. A [private runner](/docs/runner), if you keep one, also sends them when it polls; whichever claims a delivery first sends it, under the same claim and attempt rules. On your own computer the local runner sends signed JSON and Slack requests, and the Worker submits email through your configured mail sender.
+On a hosted installation the Cloudflare Worker sends queued email, signed JSON and Slack requests itself, with no private runner needed. Owner-console requests prompt due checks and sends while you use it. The one-minute Cron schedule continues work afterwards, but Cloudflare can take up to about two hours to activate it after deployment; queued does not promise delivery within a minute. A [private runner](/docs/runner), if you keep one, also sends them when it polls; whichever claims a delivery first sends it, under the same claim and attempt rules. On your own computer the local runner sends signed JSON and Slack requests; development email completes without sending.
 
 Each event gets one attempt per destination. When the RER Managed relay returns 429 with Retry-After, the unaccepted email stays queued until that delay expires. A request that ends without a clear answer is Uncertain and is never sent again automatically.
 
@@ -22,11 +22,11 @@ Each event gets one attempt per destination. When the RER Managed relay returns 
 
 Use **Send test** on a destination to queue a separate test event. A test does not change monitor evidence, open an incident or recover one.
 
-"Accepted" means the provider or your endpoint acknowledged the request. It does not prove that a person read it or was woken up.
+For hosted sends, "Accepted" means the provider or your endpoint acknowledged the request. It does not prove that a person read it or was woken up.
 
 ## Run an alert drill
 
-A test shows the provider answered. An alert drill also asks the person at the other end to say they got it. Use **Send test** on a destination. Uptime sends one test event marked as a drill. It says who started the drill and when, and carries a one-time confirmation link. Ask whoever reads that inbox or channel to open the link and press **Confirm I received this drill**. They do not need to sign in. The page shows only the kind of destination and the drill time.
+For hosted sends, an alert drill asks the person at the other end to confirm receipt. Use **Send test** on a destination. Uptime sends one test event marked as a drill. It says who started the drill and when, and carries a one-time confirmation link. Ask whoever reads that inbox or channel to open the link and press **Confirm I received this drill**. They do not need to sign in. The page shows only the kind of destination and the drill time.
 
 The destination then shows the latest drill as three separate lines, because each proves something different:
 
@@ -86,7 +86,7 @@ Owner APIs are `GET /api/monitors/{id}/alert-route` and POST `.../preview` and `
 
 ## Alert time zone
 
-In Notifications, choose **Change alert time zone** and enter an IANA zone. US zones are offered first. New incident email, Slack and signed JSON context carry the confirmed start in that zone with its UTC offset. Recovery preserves the original reason, failed locations, start and zone, and adds the confirmed recovery time and exact downtime. Changing the setting affects new incidents. Old saved messages retain their original rendering. Custom webhook templates can select their own display zone and use the same immutable incident values; see [Webhook requests](/docs/webhooks).
+In Notifications, choose **Change alert time zone** and enter an IANA zone. It defaults to your browser's zone until you save a choice. New incident email, Slack and signed JSON context carry the confirmed start in that zone with its UTC offset. Recovery preserves the original reason, failed locations, start and zone, and adds the confirmed recovery time and exact downtime. Changing the setting affects new incidents. Old saved messages retain their original rendering. Custom webhook templates can select their own display zone and use the same immutable incident values; see [Webhook requests](/docs/webhooks).
 
 ## Contact delays and reminders
 

@@ -55,7 +55,7 @@ unset) or `cloudflare`. Resend uses `MAIL_PROVIDER_API_KEY`; SendGrid uses
 before building. Supply `MAIL_PROVIDER`, `MAIL_FROM` and the selected provider's
 key in the environment or `--env-file`; the shared `MAIL_API_KEY` input can also
 supply a direct provider's key. Updates may reuse the existing deployment's mail
-credential. There is no automatic fallback between providers. Development also uses the configured sender; it has no captured-mail viewer. Optional `UPTIME_HEARTBEAT_URL` enables the
+credential. There is no automatic fallback between providers. Development and demo email completes successfully without sending. Optional `UPTIME_HEARTBEAT_URL` enables the
 independent heartbeat.
 Cloudflare Workers is the default owner deployment target. Uptime also declares
 the container platform in `deploy.json`; see [the deployment guide](docs/deploy.md)
