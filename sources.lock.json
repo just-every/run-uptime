@@ -6367,7 +6367,7 @@
       "executable": false
     },
     "tests/alert-drill.mjs": {
-      "sha256": "a9c47dc7f33a9f064669ecb1a92c1b1083f2a146870330379d4d581c4b8563f5",
+      "sha256": "febadd564197e64721824ba159e4f88945f695bb03ce34b3ab5ff5fd094d6230",
       "executable": false
     },
     "tests/alert-routes.mjs": {
