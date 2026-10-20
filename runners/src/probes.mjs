@@ -8,6 +8,7 @@ import {CredentialBindingRequired} from './credential-diagnostic.mjs';
 import {RUNNER_VERSION,MAX_BODY,validateDefinition} from '../../src/domain/policy.mjs';
 import {publicHttp,ProbeError,PROBE_ACCEPT} from './public-http.mjs';
 import {httpAssertions as assertions} from '../../src/domain/http-assertions.mjs';
+import {isDependencyStatus,dependencyMissingCheck,missingDependencyEvidence} from '../../src/domain/dependency-status.mjs';
 function syntheticHttp(def,signal,onRequest){
   if(!def.fixtureIdentity)throw new ProbeError('custody');
   return new Promise((resolve,reject)=>{
@@ -41,7 +42,9 @@ export async function probeHttp(input,probe,grants=[],{statusOnly=false,monitorI
   const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>{abort.abort();active?.destroy();reject(new ProbeError(phase==='authentication'?'credential':'timeout',phase==='authentication'?'Authentication exceeded the check deadline before a target request could be prepared.':undefined))},def.timeoutMs)});
   try{
     const response=await Promise.race([timeout,def.network!=='synthetic'?publicHttp(def,executionSignal,r=>active=r,{statusOnly,monitorId,privateAccess,snapshotPolicy,capture,onPhase:value=>phase=value}):syntheticHttp({...def,fixtureIdentity:input.fixtureIdentity},executionSignal,r=>active=r)]);
-    const completedAt=Date.now(),checks=assertions(def,response,completedAt-startedAt);
+    const completedAt=Date.now(),missing=!statusOnly&&missingDependencyEvidence(def,response);
+    if(missing)return evidence({outcome:'runner_error',checks:[missing]},completedAt);
+    const checks=assertions(def,response,completedAt-startedAt);
     if(response.authenticationRejected)for(const check of checks)if(check.assertion==='status')check.reason=`Authentication rejected (HTTP ${response.status}). ${check.reason}`.slice(0,300);
     const failed=checks.some(c=>!c.pass);
     if(failed&&snapshotPolicy?.screenshot&&response.failureSnapshot&&!response.failureSnapshot.unavailable){const previous=response.failureSnapshot;const screenshot=await captureFailurePage({body:previous.body,requestSecrets:capture.requestSecrets??[],masks:snapshotPolicy.masks,allowEmail:snapshotPolicy.safeValues?.email??false,signal:artifactSignal()});response.failureSnapshot=tryCaptureFailureSnapshot({...previous,screenshot,requestSecrets:capture.requestSecrets??[],masks:snapshotPolicy.masks,safeValues:snapshotPolicy.safeValues});if(!response.failureSnapshot.unavailable)response.failureSnapshot.bodyTruncated ||= previous.bodyTruncated}
@@ -50,6 +53,7 @@ export async function probeHttp(input,probe,grants=[],{statusOnly=false,monitorI
     if(error instanceof CredentialBindingRequired)return evidence({outcome:'runner_error',credentialBinding:error.diagnostic,checks:[{assertion:'credential',pass:false,reason:error.message}]});
     const category=error instanceof ProbeError?error.category:error.code==='credential'||error.category==='credential'?'credential':'runner';
     const runnerError=['custody','runner','network','dns','credential','grant'].includes(category),completedAt=Date.now();
+    if(!statusOnly&&!runnerError&&isDependencyStatus(def))return evidence({outcome:'runner_error',checks:[dependencyMissingCheck(def)]},completedAt);
     capture.phases.totalMs=completedAt-startedAt;
     let diagnostics;
     if(snapshotPolicy&&!statusOnly&&['timeout','connection','transport','unresolved','dns','tls'].includes(category))diagnostics=await collectNetworkDiagnostics({category,phases:capture.phases,pin:capture.pin,privateNetwork:def.network==='private',signal:artifactSignal()});

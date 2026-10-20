@@ -13,9 +13,9 @@ export async function chooseMethod(fetcher,observation,{owner=false}={}){
 }
 // How the HEAD choice is explained to the owner: in the reason line, never among the checks, which only say what is asserted.
 const OVERSIZE_NOTE='Large page, so only the response is checked, not its text';
-export function makeProposal({kind,rank=RANK[kind],name,reason,url,method='GET',status,observedMs,keyword,json,oversize=false}){
+export function makeProposal({kind,rank=RANK[kind],name,reason,url,key=proposalKey(url),method='GET',status,observedMs,keyword,json,metadata={},autoSelect=true,oversize=false}){
   // A HEAD response has no body to assert on.
   const body=method==='GET',definition=buildDefinition({name:clip(name,100),url,kind,method,status,observedMs,keyword:body?keyword:undefined,json:body?json:undefined});
-  return {key:proposalKey(url),kind,selected:false,name:definition.name,reason:oversize?`${clip(reason,200-OVERSIZE_NOTE.length-3)} · ${OVERSIZE_NOTE}`:clip(reason,200),checks:describeChecks(definition),definition,rank};
+  return {key,kind,selected:false,name:definition.name,reason:oversize?`${clip(reason,200-OVERSIZE_NOTE.length-3)} · ${OVERSIZE_NOTE}`:clip(reason,200),checks:describeChecks(definition),definition:{...definition,...metadata},rank,autoSelect};
 }
 export const ms=value=>`${Math.round(value)} ms`;

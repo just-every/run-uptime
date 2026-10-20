@@ -14,6 +14,8 @@ import {heartbeatEvaluation} from './heartbeat-job.mjs'
 import {httpAssertionNames} from './http-assertions/config.mjs'
 // @ts-ignore Portable status sets and ranges.
 import {statusMatches} from './http-assertions/status.mjs'
+// @ts-ignore Provider claims can be absent without proving target failure.
+import {validDependencyMissingCheck} from './dependency-status.mjs'
 // @ts-ignore Edition flow vocabulary is JavaScript shared with the runner.
 import {FLOW_LIMITS,FLOW_REASONS,validateFlowEvidence} from './flow.mjs'
 // @ts-ignore Bounded non-secret diagnostics are shared with the runner.
@@ -114,6 +116,11 @@ function validateHeartbeat(o: any, definition: any, checks: Map<string, Check>) 
 
 function validateHttp(o: any, definition: any, checks: Map<string, Check>, duration: { min: number; max: number } | null) {
   if (o.heartbeatReceivedAt !== undefined) throw Error('Unexpected heartbeat evidence')
+  if(checks.has('dependency')){
+    if(checks.size!==1||o.outcome!=='runner_error'||o.status!==undefined||o.bytes!==undefined||
+      !validDependencyMissingCheck(definition,checks.get('dependency')))throw Error('Invalid dependency evidence');
+    return;
+  }
   // Transport/runner errors have a category instead of a completed response's
   // assertion bundle, including the bounded metadata on historical rejections.
   if ([...checks.keys()].some(name => targetErrors.has(name) || runnerErrors.has(name)) ||
