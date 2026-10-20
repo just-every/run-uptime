@@ -1,5 +1,6 @@
 import {escape} from '/console-format.js';
 import {dialogFocusReturn} from '/notification-dialogs.js';
+import {patch} from '/dom-patch.js';
 import {scopeNames,summaryMarkup,previewMarkup,historyMarkup,contactOptionsMarkup,importMarkup,importMappingMarkup} from './alert-route-markup.js';
 export {alertRoutePanel} from './alert-route-markup.js';
 const path=id=>`/api/monitors/${encodeURIComponent(id)}/alert-route`;
@@ -18,7 +19,7 @@ function readContactSettings(selected){
 export function bindAlertRoutePanel(area,monitor,{api,action}){
  styles();const host=area.querySelector('#alert-route-summary'),button=area.querySelector('#edit-alert-route');if(!host||!button)return;
  button.onclick=()=>openAlertRouteDialog({monitor,api,action});
- api(path(monitor.id)).then(data=>{if(!host.isConnected)return;host.innerHTML=summaryMarkup(data);button.disabled=false},error=>{if(host.isConnected){host.textContent=`Alert route unavailable: ${error.message}`;button.disabled=false}});
+ api(path(monitor.id)).then(data=>{if(!host.isConnected)return;patch(host,summaryMarkup(data));button.disabled=false},error=>{if(host.isConnected){host.textContent=`Alert route unavailable: ${error.message}`;button.disabled=false}});
 }
 // Attached to document.body, so the normal five-second monitor refresh cannot
 // replace the edited form, its preview or the current focus.

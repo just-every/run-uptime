@@ -1,5 +1,6 @@
 import {escape} from './console-format.js';
 import {dialogFocusReturn} from './notification-dialogs.js';
+import {patch} from './dom-patch.js';
 import {scheduleDescription} from './assets/alert-route-markup.js';
 
 const policyPath=id=>`/api/monitors/${encodeURIComponent(id)}/slow-policy`;
@@ -18,7 +19,7 @@ function summaryMarkup(slow,destinations){
 }
 export function slowPolicyPanel(monitor){
  if(monitor.definition.type==='heartbeat')return '';
- return `<section class="ui-card panel slow-policy-panel" aria-labelledby="slow-policy-heading"><h2 id="slow-policy-heading">Slow-response notices</h2><div id="slow-policy-summary" role="status">${summaryMarkup(monitor.definition.slow)}</div><p>${explanation}</p><button type="button" id="edit-slow-policy">Edit slow-response policy</button><p><a class="ui-link" href="/docs/slow-responses">Slow-response policy and reporting guide</a></p></section>`;
+ return `<section class="ui-card panel slow-policy-panel" aria-labelledby="slow-policy-heading" data-owned="${escape(monitor.id)}"><h2 id="slow-policy-heading">Slow-response notices</h2><div id="slow-policy-summary" role="status">${summaryMarkup(monitor.definition.slow)}</div><p>${explanation}</p><button type="button" id="edit-slow-policy">Edit slow-response policy</button><p><a class="ui-link" href="/docs/slow-responses">Slow-response policy and reporting guide</a></p></section>`;
 }
 function locationMarkup(probes,slow){
  const selected=slow?.locations==='all'?[]:slow?.locations??[];
@@ -170,7 +171,7 @@ export function bindSlowPolicyPanel(area,monitor,{api,action}){
  button.onclick=()=>openDialog(monitor,{api,action});
  api(policyPath(monitor.id)).then(data=>{
   if(!host.isConnected)return;
-  host.innerHTML=summaryMarkup(data.slow,data.destinations)+statusMarkup(data.status);
+  patch(host,summaryMarkup(data.slow,data.destinations)+statusMarkup(data.status));
   const ack=host.querySelector('#acknowledge-slow');
   if(ack)ack.onclick=()=>action(()=>api(`/api/monitors/${encodeURIComponent(monitor.id)}/slow-ack`,'POST',{eventId:data.status.id}),{pending:'Acknowledging Slow…',success:'Slow acknowledged. Reminders set to stop on acknowledgement will end; health is unchanged.'});
  },problem=>{if(host.isConnected)host.textContent=`Slow-response policy unavailable: ${problem.message}`});

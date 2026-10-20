@@ -1,17 +1,13 @@
-// renderRunners replaces its container on every poll. Reattach this row intact so a draft, an open disclosure or a
-// pending request survives that redraw. A different console API belongs to a new session and gets a fresh row.
-let mounted=null;
-window.addEventListener('uptime:auth-lost',()=>{mounted=null});
-window.addEventListener('uptime:console-unmount',()=>{mounted=null});
-
-export function businessImportSettings(container,api){
- if(!mounted||mounted.api!==api)mounted={api,row:createSettings(api)};
- container.append(mounted.row);
+import {firstMount} from './dom-patch.js';
+// Business imports on Runner / archive. Its section is data-owned (public/runner-settings.js), so the console's refresh
+// keeps a draft, an open disclosure or a pending request; this fills the section once, when it first appears.
+export function businessImportSettings(row,api){
+ if(firstMount(row))createSettings(row,api);
 }
 
-function createSettings(api){
- const row=document.createElement('section'),heading=document.createElement('h3'),form=document.createElement('form'),label=document.createElement('label'),enabled=document.createElement('input'),details=document.createElement('details'),summary=document.createElement('summary'),help=document.createElement('p'),keys=document.createElement('div'),actions=document.createElement('p'),save=document.createElement('button'),reload=document.createElement('button'),status=document.createElement('p');
- row.id='business-import-settings';heading.id='business-import-heading';heading.textContent='Business imports';row.setAttribute('aria-labelledby',heading.id);
+function createSettings(row,api){
+ const heading=document.createElement('h3'),form=document.createElement('form'),label=document.createElement('label'),enabled=document.createElement('input'),details=document.createElement('details'),summary=document.createElement('summary'),help=document.createElement('p'),keys=document.createElement('div'),actions=document.createElement('p'),save=document.createElement('button'),reload=document.createElement('button'),status=document.createElement('p');
+ heading.id='business-import-heading';heading.textContent='Business imports';
  form.id='business-import-form';enabled.type='checkbox';enabled.id='business-import-enabled';enabled.name='enabled';label.append(enabled,'Allow owner-approved imports from Business');
  summary.id='business-import-keys';summary.textContent='Grant signing keys';help.className='ui-helper';help.textContent='Revoke a signing key to refuse Business grants signed by that key. Revocation cannot be undone here.';
  details.append(summary,help,keys);save.type='submit';save.id='business-import-save';save.textContent='Save';reload.type='button';reload.id='business-import-reload';reload.textContent='Reload saved settings';actions.append(save,reload);
@@ -50,5 +46,4 @@ function createSettings(api){
   finally{busy=false;controls()}
  };
  reload.onclick=load;load();
- return row;
 }

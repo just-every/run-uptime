@@ -1,9 +1,10 @@
 import {escape} from './console-format.js';
+import {firstMount} from './dom-patch.js';
 
 export function heartbeatJobsPanel(m){
  if(m.definition.type!=='heartbeat')return '';
  const h=m.definition.heartbeat??{};
- return `<section class="ui-card panel" id="heartbeat-jobs" data-monitor-id="${escape(m.id)}" data-revision="${m.revision}" aria-labelledby="heartbeat-jobs-title"><h2 id="heartbeat-jobs-title">Job schedule and runs</h2>
+ return `<section class="ui-card panel" id="heartbeat-jobs" data-owned="${escape(m.id)}:${m.revision}" aria-labelledby="heartbeat-jobs-title"><h2 id="heartbeat-jobs-title">Job schedule and runs</h2>
  <p>A success is expected each period, with the grace below. A start measures duration; failure requests an immediate scheduled evaluation. Only signed scheduled results change health.</p>
  <form id="heartbeat-job-settings"><label for="job-mode">Schedule type<select id="job-mode" name="mode"><option value="period" ${h.cron?'':'selected'}>Expected period</option><option value="cron" ${h.cron?'selected':''}>Cron in a time zone</option></select></label>
  <label for="job-cron">Five-field cron expression<input id="job-cron" name="cron" value="${escape(h.cron??'0 2 * * *')}" maxlength="120"></label>
@@ -16,18 +17,11 @@ export function heartbeatJobsPanel(m){
  <p>Report with <code>POST /api/heartbeats/${escape(m.id)}/start</code>, <code>/success</code>, or <code>/fail/3</code>, using the same key and increasing sequence. Failure JSON accepts an <code>output</code> string. GET, HEAD and POST work with the sequence header or the separately issued URL capability. Capability URLs are replay-unprotected: anyone holding one can report a receipt. <a href="/docs/heartbeat-jobs">Runnable curl and Bash instructions</a></p>
  <div class="buttons"><button type="button" id="load-heartbeat-runs">Load run history</button><button type="button" id="earlier-heartbeat-runs" hidden>Load earlier runs</button></div><p id="heartbeat-run-status" role="status"></p><div id="heartbeat-run-history" aria-live="polite"></div></section>`;
 }
-// Preserve the actual controls and results while the console polls this revision.
-export function retainHeartbeatJobs(area,m){
- const panel=area.querySelector('#heartbeat-jobs');
- if(!panel||panel.dataset.monitorId!==m.id||panel.dataset.revision!==String(m.revision))return null;
- const focused=panel.contains(document.activeElement)?document.activeElement:null;
- const selection=focused&&typeof focused.selectionStart==='number'?[focused.selectionStart,focused.selectionEnd,focused.selectionDirection]:null;
- panel.remove();return {panel,focused,selection};
-}
-export function bindHeartbeatJobs(area,m,{api,action},retained){
+// The panel is data-owned by its monitor revision: refreshes keep its controls and loaded runs; a new revision remounts it.
+export function bindHeartbeatJobs(area,m,{api,action}){
  if(m.definition.type!=='heartbeat')return;
  if(!document.querySelector('link[data-heartbeat-jobs]')){const css=document.createElement('link');css.rel='stylesheet';css.href='/heartbeat-jobs.css';css.dataset.heartbeatJobs='';document.head.append(css)}
- if(retained){area.querySelector('#heartbeat-jobs')?.replaceWith(retained.panel);if(retained.focused){retained.focused.focus({preventScroll:true});if(retained.selection)retained.focused.setSelectionRange(...retained.selection)}return}
+ if(!firstMount(area.querySelector('#heartbeat-jobs')))return;
  const form=area.querySelector('#heartbeat-job-settings'),history=area.querySelector('#heartbeat-run-history'),load=area.querySelector('#load-heartbeat-runs'),earlier=area.querySelector('#earlier-heartbeat-runs'),status=area.querySelector('#heartbeat-run-status');
  if(!form)return;
  const mode=form.querySelector('#job-mode'),toggle=()=>{form.querySelector('#job-period').closest('label').hidden=mode.value==='cron';for(const id of ['job-cron','job-zone']){const field=form.querySelector('#'+id);field.closest('label').hidden=mode.value!=='cron';field.required=mode.value==='cron'}};mode.onchange=toggle;toggle();

@@ -35,6 +35,7 @@ export const plan = {
   shard('slow-responses',['test:slow'],true),
   shard('reports',['test:reports'],true),
   shard('read-api',['test:readapi'],true),
+  shard('console',['test:console'],true),
   shard('heartbeat-schedules',['test:heartbeat'],true),
   ...split('test:security', 3, true),
   ...split('test:notifications', 3, true),

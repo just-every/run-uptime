@@ -1,4 +1,5 @@
 import {escape} from './console-format.js';
+import {firstMount} from './dom-patch.js';
 import {renderReport,renderSeries,renderIncidents} from './report-render.js';
 import {renderJobRuns} from './report-jobs.js';
 
@@ -27,15 +28,8 @@ function formMarkup(monitor){
  <div id="report-results"></div>`;
 }
 
-// Keep the actual form and result nodes, including open disclosures, edits and caret, across console polling.
-export function retainReportPanel(area,id){
- const panel=area.querySelector('#monitor-report');
- if(!panel||panel.dataset.monitorId!==id)return null;
- const focused=panel.contains(document.activeElement)?document.activeElement:null;
- const selection=focused&&typeof focused.selectionStart==='number'?[focused.selectionStart,focused.selectionEnd,focused.selectionDirection]:null;
- panel.remove();
- return {panel,focused,selection};
-}
+// The panel is data-owned by its monitor: console refreshes keep its form, results, open disclosures and caret.
+export const reportPanel=monitor=>`<section class="ui-card panel period-report" id="monitor-report" aria-labelledby="report-heading" data-owned="${escape(monitor.id)}"></section>`;
 
 function saveBlob(blob,name){
  const url=URL.createObjectURL(blob),link=document.createElement('a');
@@ -111,17 +105,10 @@ function bindReport(panel,monitor,api){
  });
 }
 
-export function mountReportPanel(area,monitor,api,retained){
+export function mountReportPanel(area,monitor,api){
  if(!document.querySelector('link[data-period-report]')){
   const css=document.createElement('link');css.rel='stylesheet';css.href='/report.css';css.dataset.periodReport='';document.head.append(css);
  }
- const slot=area.querySelector('#monitor-report-slot');
- if(retained){
-  slot.replaceWith(retained.panel);
-  if(retained.focused){retained.focused.focus({preventScroll:true});if(retained.selection)retained.focused.setSelectionRange(...retained.selection)}
-  return;
- }
- const panel=document.createElement('section');panel.className='ui-card panel period-report';panel.id='monitor-report';
- panel.dataset.monitorId=monitor.id;panel.setAttribute('aria-labelledby','report-heading');panel.innerHTML=formMarkup(monitor);
- slot.replaceWith(panel);bindReport(panel,monitor,api);
+ const panel=area.querySelector('#monitor-report');if(!firstMount(panel))return;
+ panel.innerHTML=formMarkup(monitor);bindReport(panel,monitor,api);
 }

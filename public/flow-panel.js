@@ -41,10 +41,10 @@ export function flowPanel(m,data){
   +`<p class="flow-limit">A pass is evidence of this flow only. It says nothing about pages or steps the flow does not visit.</p>`
   +`<dl class="detail-metrics ui-dl"><div><dt>Revision running</dt><dd id="flow-revision">${escape(m.revision)}</dd></div><div><dt>Browser and device</dt><dd id="flow-selected-profile">${escape(profileText(m.definition.flow))}</dd></div></dl>`
   +`<p>Each monitor checks one browser and device combination. Create separate monitors for other combinations; each keeps its own health, incidents and report. <a href="/docs/browser-flows">Browser journey instructions</a></p>`
-  +`<form id="flow-profile-settings" data-monitor-id="${escape(m.id)}" data-revision="${m.revision}" aria-describedby="flow-profile-help"><p><label for="flow-browser">Browser</label><select id="flow-browser" name="browser">${Object.entries(browsers).map(([value,label])=>`<option value="${value}" ${value===(m.definition.flow.browser??'chromium')?'selected':''}>${label}</option>`).join('')}</select></p><p><label for="flow-device">Device profile</label><select id="flow-device" name="device">${Object.entries(devices).map(([value,label])=>`<option value="${value}" ${value===(m.definition.flow.device??'desktop')?'selected':''}>${label}</option>`).join('')}</select></p><p id="flow-profile-help">Saving creates a new revision. A pass with another profile does not prove the earlier profile recovered. Mobile is a browser viewport and touch profile, not a native device test.</p><button type="submit" id="save-flow-profile">Save browser and device</button><p id="flow-profile-feedback" role="status"></p></form>`
+  +`<form id="flow-profile-settings" data-owned="${escape(m.id)}:${m.revision}" aria-describedby="flow-profile-help"><p><label for="flow-browser">Browser</label><select id="flow-browser" name="browser">${Object.entries(browsers).map(([value,label])=>`<option value="${value}" ${value===(m.definition.flow.browser??'chromium')?'selected':''}>${label}</option>`).join('')}</select></p><p><label for="flow-device">Device profile</label><select id="flow-device" name="device">${Object.entries(devices).map(([value,label])=>`<option value="${value}" ${value===(m.definition.flow.device??'desktop')?'selected':''}>${label}</option>`).join('')}</select></p><p id="flow-profile-help">Saving creates a new revision. A pass with another profile does not prove the earlier profile recovered. Mobile is a browser viewport and touch profile, not a native device test.</p><button type="submit" id="save-flow-profile">Save browser and device</button><p id="flow-profile-feedback" role="status"></p></form>`
   +(change?`<p class="ui-callout" id="flow-changed" data-state="degraded">Changed definition: revision ${escape(change.toRevision)} no longer requires ${escape(change.removed.join('; '))}, which revision ${escape(change.fromRevision)} required when this incident began. A pass now does not show the original flow works.</p>`:'')
   +(noBrowser(m,data)?`<p class="ui-callout" id="flow-no-browser" data-state="unknown"><span>An assigned runner cannot run ${escape(browsers[m.definition.flow.browser??'chromium'])}, so its coverage is Unknown. Install the selected engine with <code>pnpm exec playwright install ${escape(m.definition.flow.browser??'chromium')}</code> and restart that runner.</span></p>`:'')
-  +`<div id="flow-revisions" class="flow-revisions"></div></section>`;
+  +`<div id="flow-revisions" class="flow-revisions" data-owned="${escape(m.id)}"></div></section>`;
 }
 export function flowRevisions(revisions){
  const rows=revisions.filter(r=>r.definition?.type==='flow');
@@ -64,15 +64,9 @@ export function traceMarkup(o){
   +`<p class="flow-trace-foot">Final page <span class="ui-mono">${escape(f.finalUrl||'none')}</span> · ${escape(f.pages)} page${f.pages===1?'':'s'} · ${escape(humaneDuration(Math.max(0,o.durationMs??0)))}</p></div>`;
 }
 
-export function retainFlowProfile(area,m){
- const form=area.querySelector('#flow-profile-settings');
- if(!form||form.dataset.monitorId!==m.id||form.dataset.revision!==String(m.revision))return null;
- const focused=form.contains(document.activeElement)?document.activeElement:null;
- form.remove();return {form,focused};
-}
-export function bindFlowProfile(area,m,{api,action},retained){
+// The form is data-owned by its monitor revision, so a refresh keeps the owner's choice; a new revision remounts it.
+export function bindFlowProfile(area,m,{api,action}){
  const form=area.querySelector('#flow-profile-settings');if(!form)return;
- if(retained){form.replaceWith(retained.form);retained.focused?.focus({preventScroll:true});return}
  form.onsubmit=async event=>{
   event.preventDefault();
   const fields=new FormData(form),browser=fields.get('browser'),device=fields.get('device'),feedback=form.querySelector('#flow-profile-feedback');
