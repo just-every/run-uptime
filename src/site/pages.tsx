@@ -5,13 +5,14 @@ import { runPageHtml, siteNotFoundHtml, type SiteBuild, type SiteContext } from 
 import { identity } from '../identity';
 import { DocsArticle } from './docs/DocsArticle';
 import { DocsIndex } from './docs/DocsIndex';
-import { docsHead, docsPages } from './docs/pages';
+import { docsHead, docsPages, getDocsPage } from './docs/pages';
+import type { SearchPage } from '../base/modules/site/docs-search/types';
 import { Landing } from './landing/Landing';
 import { run } from './run';
 
 /** The run site (run-uptime.com), built by `rer build --site`: the approved homepage, the Run page, the docs and a 404. */
-export function sitePages({ styles, contract }: SiteContext): SiteBuild {
-  const document = (title: string, description: string | undefined, body: ReactElement) => '<!doctype html>' + renderToStaticMarkup(
+export function sitePages({ styles, clients, contract }: SiteContext): SiteBuild & { searchPages: SearchPage[] } {
+  const document = (title: string, description: string | undefined, body: ReactElement, search = false) => '<!doctype html>' + renderToStaticMarkup(
     <html lang="en">
       <head>
         <meta charSet="utf-8" />
@@ -19,6 +20,7 @@ export function sitePages({ styles, contract }: SiteContext): SiteBuild {
         <title>{title}</title>
         {description ? <meta name="description" content={description} /> : null}
         {styles.map(href => <link key={href} rel="stylesheet" href={href} />)}
+        {search && <script type="module" src={clients.docsSearch} />}
       </head>
       <body>{body}</body>
     </html>,
@@ -32,10 +34,11 @@ export function sitePages({ styles, contract }: SiteContext): SiteBuild {
       { path: '/', html: document('Uptime — Sleep through the night', identity.tagline, <Landing />) },
       { path: '/run', html: runPageHtml(identity, run, contract) },
       ...(contract ? [{ path: '/contract', html: contractPageHtml(identity, run, contract) }] : []),
-      { path: '/docs', html: document(...head(), <DocsIndex variant="site" />) },
-      ...docsPages.map(page => ({ path: `/docs/${page.slug}`, html: document(...head(page.slug), <DocsArticle slug={page.slug} variant="site" />) })),
+      { path: '/docs', html: document(...head(), <DocsIndex variant="site" />, true) },
+      ...docsPages.map(page => ({ path: `/docs/${page.slug}`, html: document(...head(page.slug), <DocsArticle slug={page.slug} variant="site" />, true) })),
       { path: '/404', html: siteNotFoundHtml(identity, run, contract) },
     ],
     assets: ['rer-theme.css', 'brand', 'design-assets', 'favicon.svg'],
+    searchPages: docsPages.map(page => ({ href: `/docs/${page.slug}`, searchSections: getDocsPage(page.slug)!.searchSections })),
   };
 }

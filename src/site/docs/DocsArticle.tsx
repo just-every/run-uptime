@@ -29,7 +29,7 @@ export function DocsArticle({ slug, variant = 'instance' }: { slug: string; vari
       <div className="ut-wrap docs-shell">
         <HydrationUnit><DocsSidebar current={slug} variant={variant} /></HydrationUnit>
         <main id="main" className="docs-main">
-          <HydrationUnit><DocsMenu current={slug} label={page.title} /></HydrationUnit>
+          <HydrationUnit><DocsMenu current={slug} label={page.title} variant={variant} /></HydrationUnit>
           <HydrationUnit>
           <article className="docs-article" aria-labelledby="docs-title">
             <header className="docs-page-head">

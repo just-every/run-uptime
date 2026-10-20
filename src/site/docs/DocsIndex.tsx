@@ -5,7 +5,7 @@ import { SiteFooter } from '../shell/SiteFooter';
 import { SiteFrame } from '../shell/SiteFrame';
 import { SiteHeader } from '../shell/SiteHeader';
 import { DocsDawn } from './DocsDawn';
-import { DocsSidebar } from './DocsNav';
+import { DocsMenu, DocsSidebar } from './DocsNav';
 import { docsLead, docsSections } from './pages';
 import { TitleDots } from './TitleDots';
 import './styles';
@@ -23,6 +23,7 @@ export function DocsIndex({ variant = 'instance' }: { variant?: SiteVariant }) {
       <div className="ut-wrap docs-shell docs-shell--index">
         <HydrationUnit><DocsSidebar variant={variant} /></HydrationUnit>
         <main id="main" className="docs-main">
+          {variant === 'site' && <div data-search-index-menu><DocsMenu label="All docs" variant={variant} /></div>}
           <HydrationUnit>
             <header className="docs-page-head">
               <p className="ut-eyebrow docs-eyebrow">Uptime</p>

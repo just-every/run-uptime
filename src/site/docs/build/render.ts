@@ -1,12 +1,14 @@
-import { Marked } from 'marked';
+import { Marked, type Token } from 'marked';
 import type { DocsTocEntry } from '../types.ts';
 import { createSlugger } from './slug.ts';
+import { searchSections } from './search.ts';
+import type { SearchSection } from '../../../base/modules/site/docs-search/types';
 
 // One Markdown page to static HTML, at build time. Raw HTML in the Markdown is shown as text, never passed through.
 // Headings get GitHub-style ids, and the page's h2s and h3s become its contents list. Code blocks become the navy code
 // card, labelled with their language. Tables scroll inside a focusable region when they cannot fit.
 
-export type RenderedPage = { html: string; toc: DocsTocEntry[]; ids: string[]; links: string[]; problems: string[] };
+export type RenderedPage = { html: string; toc: DocsTocEntry[]; ids: string[]; links: string[]; problems: string[]; searchSections: SearchSection[] };
 
 const escapeHtml = (value: string) => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 const decodeHtml = (value: string) => value.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&');
@@ -18,20 +20,23 @@ const languageNames: Record<string, string> = {
   http: 'HTTP', sql: 'SQL', diff: 'Diff', text: 'Text', txt: 'Text', html: 'HTML', css: 'CSS',
 };
 
-export function renderMarkdown(markdown: string): RenderedPage {
+export function renderMarkdown(markdown: string, title = 'Docs'): RenderedPage {
   const slug = createSlugger();
   const toc: DocsTocEntry[] = [];
   const ids: string[] = [];
   const links: string[] = [];
   const problems: string[] = [];
+  const headingIds = new Map<Token, string>();
   const marked = new Marked({
     gfm: true,
     renderer: {
-      heading({ tokens, depth }) {
+      heading(token) {
+        const { tokens, depth } = token;
         if (depth === 1) problems.push('has a level-1 heading; the page title comes from docs/site.json');
         const text = collapse(decodeHtml(this.parser.parseInline(tokens, this.parser.textRenderer)));
         const id = slug(text);
         ids.push(id);
+        headingIds.set(token, id);
         if (depth === 2 || depth === 3) toc.push({ depth, id, text });
         const level = Math.max(2, depth);
         return `<h${level} id="${id}">${this.parser.parseInline(tokens)}</h${level}>\n`;
@@ -58,8 +63,9 @@ export function renderMarkdown(markdown: string): RenderedPage {
       },
     },
   });
-  const html = (marked.parse(markdown, { async: false }) as string)
+  const tokens = marked.lexer(markdown);
+  const html = marked.parser(tokens)
     .replace(/<table>/g, '<div class="docs-table" role="region" tabindex="0" aria-label="Table"><table>')
     .replace(/<\/table>/g, '</table></div>');
-  return { html, toc, ids, links, problems };
+  return { html, toc, ids, links, problems, searchSections: searchSections(tokens, headingIds, title) };
 }

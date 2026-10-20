@@ -19,7 +19,7 @@ export function buildDocs(root: string): DocsSite {
   const rendered = new Map(pages.map(page => {
     const file = join(root, docsDirectory, page.file);
     files.push(file);
-    return [page.slug, renderMarkdown(readFileSync(file, 'utf8'))] as const;
+    return [page.slug, renderMarkdown(readFileSync(file, 'utf8'), page.title)] as const;
   }));
   const problems: string[] = [];
   for (const page of pages) {
@@ -40,8 +40,8 @@ export function buildDocs(root: string): DocsSite {
   }
   if (problems.length) throw new Error(`Docs: ${problems.length} problem(s) in the Markdown:\n- ${problems.join('\n- ')}`);
   const bodies = Object.fromEntries(pages.map(page => {
-    const { html, toc } = rendered.get(page.slug)!;
-    return [page.slug, { html, toc }];
+    const { html, toc, searchSections } = rendered.get(page.slug)!;
+    return [page.slug, { html, toc, searchSections }];
   }));
   return { sections, bodies, files };
 }

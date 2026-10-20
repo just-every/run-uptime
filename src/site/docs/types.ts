@@ -9,6 +9,6 @@ export type DocsPageMeta = { slug: string; title: string; file: string; summary:
 export type DocsSection = { title: string; pages: DocsPageMeta[] };
 
 /** A page's body, rendered from Markdown at build time, and its contents list. */
-export type DocsBody = { html: string; toc: DocsTocEntry[] };
+export type DocsBody = { html: string; toc: DocsTocEntry[]; searchSections: import('../../base/modules/site/docs-search/types').SearchSection[] };
 
 export type DocsPage = DocsPageMeta & DocsBody;

@@ -7,6 +7,7 @@ import { features } from './ui/seed.mjs';
 import { prepare, runtimeTarget } from '../local/targets.mjs';
 import { portability } from '../local/portability.mjs';
 import { buildCommand, migrationCommand } from '../local/commands.mjs';
+import docsSearch from '../../src/site/docs-search.config.mjs';
 export const lifecycle = localInstaller({
  features, node: '22.20.0', tools: ['pnpm', 'node'], prepare,
  secrets: settingsDefinition(), build: buildCommand, migrate: async ({demo}) => {const [command,args]=migrationCommand(demo?.state ?? '.wrangler/state', !demo);return [command,args,{env:{...runtimeEnvironment(),...await demoEnvironment(demo)}}]},
@@ -24,6 +25,7 @@ export const commandAdapter = createCommandAdapter(lifecycle, {
  // The run site (run-uptime.com): rer build --site renders the approved homepage, /run and the docs into dist/site.
  // The hydration check's pages: the Lobby is plain HTML, so name the docs React hydrates.
  publicPages: ['/', '/docs', '/docs/install'],
- site: { entry: 'src/site/pages.tsx', output: 'dist/site', declaration: 'deploy-site.json', config: 'vite.site.config.ts' },
+ site: { entry: 'src/site/pages.tsx', output: 'dist/site', declaration: 'deploy-site.json', config: 'vite.site.config.ts',
+  runtime: docsSearch, clients: { docsSearch: 'src/base/modules/site/docs-search/client.ts' } },
  input: { names: { email: 'OWNER_EMAIL', name: 'displayName' } },
 });

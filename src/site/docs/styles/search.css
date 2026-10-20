@@ -1,0 +1,7 @@
+/* Base's search field uses Uptime's docs palette. */
+.ut-docs .docs-search {
+  --paper: var(--card-solid);
+  --ink: #14204a;
+  --ink-soft: var(--muted);
+  --rule: var(--line-strong);
+}

@@ -431,7 +431,7 @@
       "executable": false
     },
     ".github/scripts/verify-ci.mjs": {
-      "sha256": "dd8871cb036ea6fded7222f47cbc09906895a556fa4f7b2e88010cfbb4d99ba8",
+      "sha256": "5888cc5518e3dafd7ed8336587a2b6593ec6898123fe6c006d61ef880db883cb",
       "executable": false
     },
     ".github/workflows/rer-managed.yml": {
@@ -471,7 +471,7 @@
       "executable": false
     },
     "base-copies.json": {
-      "sha256": "9837d9b3e1b239770efc7f8acc1e20c19fd770a8775076b2914a0ee0b150341f",
+      "sha256": "684c9f8b345c6730f5c264736b14b3f85fbbba615981783b4069f41dc0d52719",
       "executable": false
     },
     "BASELINE.md": {
@@ -2271,7 +2271,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "2fafbe5d69b8d790c33ec9f87b9dc39a57b3ff2ba1bfa6a68169c3fc1acc8f12",
+      "sha256": "273f027cfa3bf578d165d6284093dc0cdad1b1027d49c295679c334626d7f30c",
       "executable": false
     },
     "patches/README.md": {
@@ -2279,7 +2279,7 @@
       "executable": false
     },
     "pnpm-lock.yaml": {
-      "sha256": "ebee2334774511c6f4ecbd138517dd83ff973465c6368403142fb24520f38fc0",
+      "sha256": "2f9f6843960d5e300adf61f3a9bfb5d4d4f5c1ec16cb1cd7b3280dc41635cc53",
       "executable": false
     },
     "public/action-feedback.mjs": {
@@ -3139,7 +3139,7 @@
       "executable": true
     },
     "scripts/installer/local.mjs": {
-      "sha256": "1d2761cdc3c489e5ac7fe0e8f28db575b4cce92659214a3ed9f848d0a4c26e5d",
+      "sha256": "ecc79107d9fae2c3f1199bc913ac87cfc5a24078d11c788d8b13a46e51fb8a57",
       "executable": false
     },
     "scripts/installer/ui/seed.mjs": {
@@ -6011,11 +6011,11 @@
       "executable": false
     },
     "src/site/docs/build/render.ts": {
-      "sha256": "2420938be46e24f749df2740fce8ba9c6c1e2183947df040f8fd803289156e4c",
+      "sha256": "86882cb0d55dc449fa42c216b4896c3742cc488ea331343147fcbb2adf641aa7",
       "executable": false
     },
     "src/site/docs/build/site.ts": {
-      "sha256": "c8036a0bc48dc9dbcaf58eeb14cb4f2cbd291f7ac69266fc4edb0e39347d4ac9",
+      "sha256": "f6c723cf5977e78c184e8e43f964d34022bb5b9a306775980514dbcc9c054d73",
       "executable": false
     },
     "src/site/docs/build/slug.ts": {
@@ -6023,7 +6023,7 @@
       "executable": false
     },
     "src/site/docs/DocsArticle.tsx": {
-      "sha256": "906506b47b3eb79fc18ac0220fd808a4e37dd59278ead7219f56fe327c927354",
+      "sha256": "fc5306517b5050a2a6df782a6fae8735e9c11086be36e55b941747958a792f9c",
       "executable": false
     },
     "src/site/docs/DocsDawn.tsx": {
@@ -6031,11 +6031,11 @@
       "executable": false
     },
     "src/site/docs/DocsIndex.tsx": {
-      "sha256": "9a4f9351f32df0c3e5c980e121606024cad8371741e3cb5ef30b20e575101b5c",
+      "sha256": "bc79f44f9c21a3bf285f223295b4f348a3c093b4ad29f3aa97efc4ca9ce0a5aa",
       "executable": false
     },
     "src/site/docs/DocsNav.tsx": {
-      "sha256": "20adc1960a65479437c4272aa5f5fe6e4f0a16262004fbe6c22d7ef77c43e234",
+      "sha256": "d18d5a1ebe56a8158c7606bb412b1d73f775cf21bf2a414d3b6090fd87fdd7a9",
       "executable": false
     },
     "src/site/docs/DocsPager.tsx": {
@@ -6067,7 +6067,7 @@
       "executable": false
     },
     "src/site/docs/types.ts": {
-      "sha256": "5c8442a702e2975c761af57015fa268cf5b27ebc7979eee460c1ac14a5d2ad7a",
+      "sha256": "c1a0776d0e53cd525f39762d7f1b2cf41cecdd739819c25e8656e53347eeea3e",
       "executable": false
     },
     "src/site/docs/useCopyButtons.ts": {
@@ -6235,7 +6235,7 @@
       "executable": false
     },
     "src/site/pages.tsx": {
-      "sha256": "b36d8b19559899786414be20bcd5ab43b98d4a9607c4f2d9359e945195c588e0",
+      "sha256": "2408adf8597db800af7d0a57c4725c71b82ad097a33c2c96c5b8c1a59d3275b4",
       "executable": false
     },
     "src/site/run.ts": {

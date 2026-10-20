@@ -1,5 +1,7 @@
 import { docsPath, links, type SiteVariant } from '../shell/links';
 import { docsSections } from './pages';
+import { SearchField } from '../../base/modules/site/docs-search/SearchField';
+import './styles/search.css';
 
 /** The sections and their pages, the current one marked. `idPrefix` keeps the sidebar's and the phone menu's ids apart. */
 export function DocsNavList({ current, idPrefix }: { current?: string; idPrefix: string }) {
@@ -25,6 +27,7 @@ export function DocsNavList({ current, idPrefix }: { current?: string; idPrefix:
 export function DocsSidebar({ current, variant = 'instance' }: { current?: string; variant?: SiteVariant }) {
   return (
     <nav className="docs-sidebar" aria-label="Docs">
+      {variant === 'site' && <SearchField id="docs-search-sidebar" />}
       <a className="docs-sidebar-home" href="/docs" aria-current={current ? undefined : 'page'}>All docs</a>
       <DocsNavList current={current} idPrefix="docs-sidebar" />
       {variant === 'site' && <a className="docs-sidebar-home docs-sidebar-contract" href={links.contract}>Contract</a>}
@@ -33,12 +36,15 @@ export function DocsSidebar({ current, variant = 'instance' }: { current?: strin
 }
 
 /** The same navigation on phones and narrow windows: one pill that opens the whole list. */
-export function DocsMenu({ current, label }: { current: string; label: string }) {
+export function DocsMenu({ current, label, variant = 'instance' }: { current?: string; label: string; variant?: SiteVariant }) {
   return (
     <nav className="docs-menu" aria-label="Docs">
       <details>
         <summary><span>Docs menu</span><span className="docs-menu-current">{label}</span></summary>
-        <div className="docs-menu-list"><DocsNavList current={current} idPrefix="docs-menu" /></div>
+        <div className="docs-menu-list">
+          {variant === 'site' && <SearchField id="docs-search-menu" />}
+          <DocsNavList current={current} idPrefix="docs-menu" />
+        </div>
       </details>
     </nav>
   );

@@ -50,6 +50,7 @@ export const plan = {
   shard('metrics', ['test:metrics'], true),
   shard('private-locations', ['test:private'], true),
   shard('browser', ['test:browser'], true),
+  shard('docs-search', ['test:docs-search'], true),
  ],
  nightly: [
   { name: 'installer', browser: true, commands: scripts['test:local'].split(/\s+&&\s+/).filter(item => item.includes('tests/command-journey.mjs')) },
