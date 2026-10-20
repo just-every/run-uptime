@@ -61,18 +61,24 @@ export async function advanceFallbackChains(env:Bindings){
  }
 }
 /** Console read: which earlier contacts a fallback names (with their outcome now), which fallbacks a delivery
- * started, and whether the chain ended after its last contact with nobody accepting. */
+ * started, and whether the chain ended after its last contact with nobody accepting. Linear in the rows read, with no
+ * extra query when no listed delivery belongs to a chain. */
 export async function fallbackOverview(env:Bindings,deliveries:{id:string;event_id:string;destination_id:string;event:string}[]){
  const events=[...new Set(deliveries.map(d=>d.event_id))];
  const chains=new Map((await env.DB.prepare('SELECT event_id,destination_ids,step,ended_at,end_reason FROM alert_fallback_chains WHERE event_id IN(SELECT value FROM json_each(?))').bind(JSON.stringify(events)).all<any>()).results.map(c=>[c.event_id,c]));
- const related=(await env.DB.prepare(`${jobRows} WHERE j.event_id IN(SELECT value FROM json_each(?))`).bind(JSON.stringify(events)).all<Job>()).results;
- const byId=new Map(related.map(j=>[j.id,j]));
+ if(!chains.size&&!deliveries.some(d=>d.event.includes('"fallbackContext"')))return ()=>undefined;
+ const chained=events.filter(id=>chains.has(id)||deliveries.some(d=>d.event_id===id&&d.event.includes('"fallbackContext"')));
+ const related=(await env.DB.prepare(`${jobRows} WHERE j.event_id IN(SELECT value FROM json_each(?))`).bind(JSON.stringify(chained)).all<Job>()).results;
+ const byId=new Map(related.map(j=>[j.id,j])),startedBy=new Map<string,{id:string;destinationName:string;state:string}[]>();
+ for(const j of related){
+  const context:FallbackContext|undefined=j.event.includes('"fallbackContext"')?JSON.parse(j.event).fallbackContext:undefined;
+  for(const p of context?.previous??[])startedBy.set(p.deliveryId,[...(startedBy.get(p.deliveryId)??[]),{id:j.id,destinationName:j.destination_name,state:j.state}]);
+ }
  return (delivery:{id:string;event_id:string;destination_id:string;event:string})=>{
-  const context:FallbackContext|undefined=JSON.parse(delivery.event).fallbackContext,chain=chains.get(delivery.event_id);
-  const started=related.filter(j=>JSON.parse(j.event).fallbackContext?.previous.some((p:any)=>p.deliveryId===delivery.id)).map(j=>({id:j.id,destinationName:j.destination_name,state:j.state}));
-  const ids:string[]=chain?JSON.parse(chain.destination_ids):[],step=context?.step??0;
+  const context:FallbackContext|undefined=delivery.event.includes('"fallbackContext"')?JSON.parse(delivery.event).fallbackContext:undefined,chain=chains.get(delivery.event_id);
+  const started=startedBy.get(delivery.id)??[],step=context?.step??0;
   const last=chain&&chain.end_reason==='exhausted'&&step===chain.step;
   if(!context&&!started.length&&!last)return undefined;
-  return {step,...(context?{after:context.previous.map(p=>({...p,stateNow:byId.get(p.deliveryId)?.state??null}))}:{}),fallbacks:started,...(chain?{chainLength:ids.length}:{}),...(last?{ended:'exhausted' as const}:{})};
+  return {step,...(context?{after:context.previous.map(p=>({...p,stateNow:byId.get(p.deliveryId)?.state??null}))}:{}),fallbacks:started,...(chain?{chainLength:JSON.parse(chain.destination_ids).length}:{}),...(last?{ended:'exhausted' as const}:{})};
  };
 }

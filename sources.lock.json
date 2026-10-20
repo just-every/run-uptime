@@ -5671,7 +5671,7 @@
       "executable": false
     },
     "src/domain/notification-fallback.server.ts": {
-      "sha256": "96bdba307cd78429d274c2a33295b90ad36307c953e22a06cf8e5705b2b5016f",
+      "sha256": "65091f361886b6d38b9e7411496a3496e74fb8f66bb1619d38453f4f1094bcf8",
       "executable": false
     },
     "src/domain/notification-mail.server.ts": {
@@ -5707,7 +5707,7 @@
       "executable": false
     },
     "src/domain/notifications.server.ts": {
-      "sha256": "1cea52eb1d57520d1e806d85818544d9a5efb008d858aeea73fb3dcecb1d504e",
+      "sha256": "8d8632f99e76aa44d1ce05fad86b9808bd7eec34599afb33ef3f172567a8206d",
       "executable": false
     },
     "src/domain/operator-auth.server.ts": {
