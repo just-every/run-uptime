@@ -35,7 +35,6 @@ export function Hero() {
           <a className="ut-link ut-link--large" href={links.demo}>{c.demo}</a>
           <a className="ut-link ut-link--large" href={links.docs}>{c.secondary}</a>
         </div>
-        <p className="ut-fine">{c.fine}</p>
       </div>
     </section>
   );

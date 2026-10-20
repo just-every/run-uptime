@@ -20,4 +20,3 @@
 .ut-hero .ut-hero-alt { margin-top: 14px; color: var(--body); text-wrap: balance; }
 .ut-hero-alt strong { font-weight: 700; }
 .ut-hero .ut-actions { justify-content: center; margin-top: clamp(26px, 2.2vw, 32px); }
-.ut-hero .ut-fine { margin-top: clamp(20px, 1.8vw, 26px); color: var(--body); }
