@@ -38,7 +38,8 @@ async function auditWidths(page,label,state){
 const runnerKey='synthetic-review-only-runner-key-20261002';
 let worker,sourceWorker,browser,runner,sourceRunner,logs='';const extraRunners=[];
 function additionalRunner(url,identity){const child=spawn(process.execPath,[join(root,'runners/src/private-runner.mjs')],{cwd:root,env:{...process.env,UPTIME_CONTROL_ORIGIN:url,UPTIME_RUNNER_KEY:identity.key,UPTIME_RUNNER_ID:identity.runnerId,UPTIME_GRANT_FILE:join(root,'data/synthetic-grant.json'),UPTIME_LOCAL_REVIEW:'true'},stdio:'ignore'});extraRunners.push(child);return child}
-async function login(page,url){await browserSignIn(page,url);await page.locator('.signed-in').waitFor({timeout:15000});}
+// An installation with no monitors signs in to the first monitor's form; this suite works from the console's Locations.
+async function login(page,url){await browserSignIn(page,url);await page.goto(url+'/app#locations');await page.locator('.signed-in').waitFor({timeout:15000});}
 try{
  await mkdir(out,{recursive:true});
  const bindings={...testAuthBindings,UPTIME_RUNNER_KEY:runnerKey,UPTIME_SYNTHETIC_PORT:'15481'};
