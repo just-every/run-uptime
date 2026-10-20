@@ -8,7 +8,8 @@ export function createRow({proposal,index,form,plan,onChange}){
  const proposed=proposal.definition,id=`proposal-${index}`;
  const item=element('li','proposal');item.dataset.key=proposal.key;
  const pick=element('input','proposal-pick');pick.type='checkbox';pick.id=`${id}-pick`;pick.checked=proposal.selected;pick.setAttribute('aria-labelledby',`${id}-name`);pick.setAttribute('aria-describedby',`${id}-url ${id}-outcome`);
- const details=element('details','proposal-details'),summary=element('summary','proposal-summary');
+ const summary=element('label','proposal-summary');summary.htmlFor=pick.id;
+ const details=element('details','proposal-details'),edit=element('summary','proposal-edit','Edit');
  const identity=element('span','proposal-identity'),name=element('span','proposal-name'),url=element('span','proposal-url'),reason=element('span','proposal-reason',proposal.reason);
  name.id=`${id}-name`;url.id=`${id}-url`;identity.append(name,url,reason);
  const checks=element('span','proposal-checks'),checksText=element('span','proposal-checks-text');checks.append(element('span','proposal-checks-label','Checks'),checksText);
@@ -18,15 +19,16 @@ export function createRow({proposal,index,form,plan,onChange}){
  external.type='url';external.name='externalCheck';external.placeholder=plan.externalCheckUrl;external.id=`${id}-external-check`;externalLabel.append(external);
  const externalHelp=element('p','', 'Use a public site independent of this monitor. Leave empty to use the installation External check URL shown above.');
  copy.querySelector('.policy-panel').append(externalLabel,externalHelp);
- details.append(summary,fields);
+ details.append(edit,fields);
  const outcome=element('p','proposal-outcome');outcome.id=`${id}-outcome`;outcome.setAttribute('role','status');outcome.hidden=true;
- item.append(pick,details,outcome);
+ item.append(pick,summary,details,outcome);
+ item.addEventListener('click',event=>{if(event.target===item&&!pick.disabled)pick.click()});
  bindRules(copy);fillFields(copy,proposed);
  const original=describeChecks(proposed).join('\n');
  // The summary follows the fields. Until the owner changes a check it keeps the runner's own wording for it.
  function refresh(){
   const text=copy.querySelector('[name=name]').value.trim(),address=copy.querySelector('[name=url]').value.trim();
-  name.textContent=text||'Unnamed monitor';url.textContent=address;
+  name.textContent=text||'Unnamed monitor';url.textContent=address;edit.setAttribute('aria-label',`Edit ${name.textContent}`);
   let words=proposal.checks.map(curlyQuotes);
   try{const now=describeChecks(readFields(copy,proposed));if(now.join('\n')!==original)words=now}catch{}
   checksText.textContent=words.join(' · ');

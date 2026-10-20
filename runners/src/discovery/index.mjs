@@ -19,8 +19,6 @@ export async function discover(inputUrl,options={}){
   const budget=createBudget({...limits,signal:options.signal}),scope=createScope(target.url.hostname);
   const fetcher=createFetcher({budget,notes,scope,transport:options.transport});
   const {finalUrl,proposals}=await crawl({target:target.url,fetcher,notes,scope});
-  const robotsRead=await fetcher.readRobots();
-  if(robotsRead)notes.add(`robots.txt was read on ${robotsRead} host${robotsRead===1?'':'s'} and honoured for everything except your own URL.`);
   if(fetcher.stops.has('budget'))notes.add(`Stopped at the ${limits.requests}-request limit, so some checks were skipped.`);
   if(fetcher.stops.has('time'))notes.add(`Stopped at the ${limits.totalMs/1000}-second limit, so some checks were skipped.`);
   if(fetcher.stops.has('hosts'))notes.add(`Stopped at ${MAX_HOSTS} hosts, so others were not contacted.`);

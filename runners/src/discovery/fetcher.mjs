@@ -7,7 +7,7 @@ const mimeOf=headers=>String(headers?.['content-type']??'').split(';')[0].trim()
 export const isHtml=mime=>mime==='text/html'||mime==='application/xhtml+xml';
 export const isJson=mime=>mime==='application/json'||mime.endsWith('+json');
 export const isText=mime=>mime==='text/plain';
-const FAILURES={network:'refused',dns:'dns',timeout:'timeout',connection:'connection',redirect:'redirect',encoding:'encoding',transport:'transport',method:'method',runner:'runner'};
+const FAILURES={network:'refused',unresolved:'unresolved',dns:'dns',timeout:'timeout',connection:'connection',redirect:'redirect',encoding:'encoding',transport:'transport',method:'method',runner:'runner'};
 // Every discovery request goes through here: one budget, robots.txt, back-off, and the caller's report transport
 // (the runner's pinned socket, or the Worker's fetch in a hosted demo).
 // Results carry derived facts and, in memory only, the body for the caller to parse; nothing is stored or logged.
@@ -76,7 +76,5 @@ export function createFetcher({budget,notes,scope,transport}){
       throw error;
     }
   }
-  // Counts the hosts whose robots.txt was actually read; a host that could not be reached or served none is not among them.
-  const readRobots=()=>Promise.allSettled([...robots.values()]).then(states=>states.filter(state=>state.status==='fulfilled'&&!state.value.blocked).length);
-  return {get,stops,readRobots};
+  return {get,stops};
 }

@@ -18,7 +18,7 @@ const refuse=(message:string,status:number)=>Object.assign(Error(message),{statu
 function discoveryTarget(value:unknown){
  try{return publicTarget(value as string)}catch(error){
   const reason=(error as Error).message;
-  if(/forbidden/.test(reason))throw Error('That is a private, loopback or link-local address, so it was not contacted. Uptime only checks public websites.');
+  if(/forbidden/.test(reason))throw Error('That is a private, loopback or link-local address, so it was not contacted. Use a private-network monitor to check it.');
   if(/requires HTTP/.test(reason))throw Error('Only http and https addresses can be checked, without a username, password or # fragment.');
   throw Error('That is not a web address Uptime can check. Use a full address such as https://example.com.')
  }

@@ -14,6 +14,7 @@ button{display:flex;align-items:center;justify-content:center;width:100%;min-hei
 button:hover{background:var(--ink-hover)}
 button:focus-visible{outline-offset:4px}
 button.skip{width:auto;min-height:44px;margin:12px auto 0;padding:0 16px;background:none;color:var(--ink);font-weight:500;box-shadow:none}
+.setup-progress[hidden]{display:none}.setup-progress{margin:20px 0 0;font-size:15px}.setup-progress::before{content:'';display:inline-block;width:12px;height:12px;margin-right:8px;border:2px solid var(--line);border-top-color:var(--ink);border-radius:50%;animation:setup-spin 1s linear infinite}@keyframes setup-spin{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){.setup-progress::before{animation:none}}
 button.skip:hover{background:none;text-decoration:underline;text-underline-offset:5px}`;
 
 // The owner's optional website. `checking` is the address Uptime is already looking at because the installation was set up with one;
@@ -25,5 +26,5 @@ export function setupDocument(displayName:string,site:StartSite={},status=200,{p
  const where=place?`<p class="place">${escapeHtml(checking?`Checking ${site.checking} from ${place}`:`Checking from ${place}`)}</p>`:'';
  const field=checking||!askSite?'':`<label for="start_url">Website to watch (optional)</label><input id="start_url" name="start_url" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="example.com" maxlength="2048" value="${escapeHtml(site.entered??'')}"${site.problem?' aria-invalid="true" aria-describedby="start_url_note"':''}>${site.problem?`<p class="problem" id="start_url_note" role="alert">${escapeHtml(site.problem)}</p>`:''}`;
  const skip=checking||!askSite?'':'<button class="skip" type="submit" name="skip" value="1">Skip</button>';
- return new Response(shellDocument({title:`Set up ${productName}`,style,card:`<h1>Welcome, ${escapeHtml(displayName)}</h1><form method="post" action="/setup">${field}${where}<button type="submit">Continue</button>${skip}</form>`}),{status,headers:{...documentHeaders,'x-content-type-options':'nosniff'}});
+ return new Response(shellDocument({title:`Set up ${productName}`,style,card:`<h1>Welcome, ${escapeHtml(displayName)}</h1><form method="post" action="/setup" data-website="${escapeHtml(checking?site.checking:'')}" data-place="${escapeHtml(place??'')}">${field}${where}<button type="submit">Continue</button>${skip}<p id="setup-progress" class="setup-progress" role="status" hidden></p></form><script src="/assets/setup.js" defer></script>`}),{status,headers:{...documentHeaders,'content-security-policy':documentHeaders['content-security-policy']+"; script-src 'self'",'x-content-type-options':'nosniff'}});
 }

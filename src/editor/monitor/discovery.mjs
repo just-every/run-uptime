@@ -24,15 +24,20 @@ export function mountDiscovery({form,overview,openCheck,showManualForm}){
   result.hidden=next!=='result';problem.hidden=next!=='problem';
   if(!busy){stopTimer();status.replaceChildren();status.removeAttribute('data-state')}
  }
+ function privateLink(container,url,messages){
+  if(!messages.some(text=>/private|loopback|link-local/i.test(text)))return;
+  const link=document.createElement('a');link.className='ui-link';link.textContent='Check a private address';
+  link.href='/app/monitor?'+new URLSearchParams({manual:'1',network:'private',url});container.append(link);
+ }
  function fail(message){
   show('problem','Check again');
-  const text=document.createElement('p');text.textContent=message;problem.replaceChildren(text);
+  const text=document.createElement('p');text.textContent=message;problem.replaceChildren(text);privateLink(problem,input.value,[message]);
   problem.focus();
  }
  function succeed(job){
   show('result','Check again');
   status.textContent=checkedLine(job,job.result);
-  results.render(job);results.focusHeading();
+  results.render(job);privateLink($('#discovery-empty'),job.url,job.result.notes);results.focusHeading();
  }
  // The aria-live line: what is being checked and from which network, with the seconds so far beside it.
  function showProgress(url){
@@ -43,7 +48,7 @@ export function mountDiscovery({form,overview,openCheck,showManualForm}){
   return job=>{
    const host=hostOf(job?.url??url);
    if(job?.url&&!input.value)input.value=job.url;
-   line.nodeValue=`Checking ${host||'your website'}${job?.networkLabel?` from ${job.networkLabel}`:''}…`;
+   line.nodeValue=`Looking at ${host||'your website'}${job?.networkLabel?` from ${job.networkLabel}`:''}…`;
   };
  }
  async function watch(id,say){
