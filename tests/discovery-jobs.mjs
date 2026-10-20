@@ -20,7 +20,12 @@ const result=(overrides={})=>({input:'https://example.com/',finalUrl:'https://ex
 // Every table but the one that holds jobs and the public request counter, which a refused public-path request may touch.
 async function everythingElse(){
  const names=(await f.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT IN ('_cf_METADATA','discovery_jobs','public_rate_limits') ORDER BY name").all()).results.map(r=>r.name);
- return Object.fromEntries(await Promise.all(names.map(async name=>[name,(await f.DB.prepare(`SELECT * FROM "${name}" ORDER BY rowid`).all()).results])));
+ const snapshots={};
+ for(let index=0;index<names.length;index+=2){
+  const rows=await Promise.all(names.slice(index,index+2).map(async name=>[name,(await f.DB.prepare(`SELECT * FROM "${name}" ORDER BY rowid`).all()).results]));
+  Object.assign(snapshots,Object.fromEntries(rows));
+ }
+ return snapshots;
 }
 const age=(id,column,ms)=>f.DB.prepare(`UPDATE discovery_jobs SET ${column}=${column}-? WHERE id=?`).bind(ms,id).run();
 const clear=()=>f.DB.prepare('DELETE FROM discovery_jobs').run();

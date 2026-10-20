@@ -6487,7 +6487,7 @@
       "executable": false
     },
     "tests/discovery-jobs.mjs": {
-      "sha256": "5ac86bdb4b62d742882ce92fbb6bf7efa3ca9b219878b103c6734fe47ec76284",
+      "sha256": "66af2373805bc9e7e9d192990bf5d8d6f58375cbc3b879653291214551d93d66",
       "executable": false
     },
     "tests/editor-management-edge.mjs": {
