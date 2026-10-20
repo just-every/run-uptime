@@ -48,7 +48,7 @@ test('C3: one network with no external check takes the installation External che
  const sameSite=/is the same site as this monitor, so an outage there could never be confirmed/;
  for(const url of ['https://example.org/','https://www.example.org/home','https://EXAMPLE.org:8443/x?y=1','https://example.org./']){
   const refused=await save('Same site '+url,{url});assert.equal(refused.status,400,url);assert.match(refused.data.error,sameSite);
-  assert.match(refused.data.error,/https:\/\/example\.org\/status/,'the message names the address');assert.match(refused.data.error,/Runner \/ archive/,'and says where to change it');
+  assert.match(refused.data.error,/https:\/\/example\.org\/status/,'the message names the address');assert.match(refused.data.error,/in Settings/,'and says where to change it');
  }
  const subdomain=await save('Other site',{url:'https://status.example.org/'});assert.equal(subdomain.status,201,JSON.stringify(subdomain.data));assert.equal(subdomain.data.definition.assignments['local-a'].canaryUrl,'https://example.org/status','a different hostname is a different site');
  const ownSame=await save('Own same site',{},{canaryUrl:'https://www.target.example.test/up'});assert.equal(ownSame.status,400);assert.match(ownSame.data.error,sameSite);assert.match(ownSame.data.error,/different site for this check/);
