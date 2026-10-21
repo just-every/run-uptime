@@ -17,7 +17,7 @@ function safeExcerpt(excerpt,body,secret){
  }
 }
 // Extends the existing DELIVERY-002 journey; no separate permanent test case.
-export async function proveEchoCustody({f,ok,rpc,database}){
+export async function proveEchoCustody({f,ok,rpc,database,inspectEcho}){
  const contact=await ok('/api/notifications/destinations',{name:'Echo custody receiver',kind:'webhook',url:'https://echo.example.com/receiver',webhookTemplate:{version:1,method:'POST',mode:'json',template:'{"event_id":"{{event.id}}","detail":"Echo \\"quoted\\" request"}'},webhookSigning:true});
  const records=[];let signingSecret=contact.signingSecret;
  for(const mode of ['full','prefix','interior','json','canonical','older-runner','marker-collision','drill']){
@@ -49,6 +49,13 @@ export async function proveEchoCustody({f,ok,rpc,database}){
   }
  };
  await check();
+ if(inspectEcho)await inspectEcho({f,records});
+ return {contact,secrets:[...new Set(records.map(r=>r.signingSecret))],bodies:records.map(r=>r.body),assertArchive(archive){for(const record of records){const rows=archive.payload.productTables.integration_attempts.filter(a=>a.delivery_id===record.id);assert.equal(rows.length,1);for(const row of rows)safeExcerpt(JSON.parse(row.outcome).responseExcerpt,record.body,record.signingSecret)}}};
+}
+
+// The delivery case owns this outcome-only browser proof; the separate browser
+// case keeps its existing dialogs, route editor and outcome journey.
+export async function inspectEchoCustody({f,records}){
  let browser;
  try{
   browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});
@@ -73,5 +80,4 @@ export async function proveEchoCustody({f,ok,rpc,database}){
    }finally{await context.close()}
   }
  }finally{await browser?.close()}
- return {contact,secrets:[...new Set(records.map(r=>r.signingSecret))],bodies:records.map(r=>r.body),assertArchive(archive){for(const record of records){const rows=archive.payload.productTables.integration_attempts.filter(a=>a.delivery_id===record.id);assert.equal(rows.length,1);for(const row of rows)safeExcerpt(JSON.parse(row.outcome).responseExcerpt,record.body,record.signingSecret)}}};
 }

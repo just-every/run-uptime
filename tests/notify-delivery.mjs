@@ -206,4 +206,5 @@ try{
 // One additional public-door journey; provider-edge responses are the only fake.
 const {test}=await import('node:test');
 const {proveNotificationRetry}=await import('./notify-retry-fixture.mjs');
-test('DELIVERY-002 deduplicated retry honors Retry-After and stops on 4xx, and fallback contacts fire once with both outcomes visible across restart',{timeout:420000},proveNotificationRetry);
+const {inspectEchoCustody}=await import('./notify-echo-fixture.mjs');
+test('DELIVERY-002 deduplicated retry honors Retry-After and stops on 4xx, and fallback contacts fire once with both outcomes visible across restart',{timeout:420000},()=>proveNotificationRetry(undefined,undefined,inspectEchoCustody));
