@@ -1,6 +1,6 @@
 import {api} from './api.mjs';
 import {fillFields,readFields} from './fields.mjs';
-import {mountProbeControls,agreementText,everyLocation} from './probes.mjs';
+import {mountCheckFrom,assignmentsFor} from './check-from.mjs';
 import {setDependencyChoices} from './metadata-fields.mjs';
 import {showType,TYPE_TIMING} from './protocol-fields.mjs';
 // The full monitor form: what a new monitor starts from by hand, and the only way to edit an existing one.
@@ -19,22 +19,22 @@ export function prepareManualForm(form,definition){
 export function mountManualForm({form,overview,definition,id,returnTo,message,monitors=[],preserveFields=false}){
  if(!preserveFields)prepareManualForm(form,definition);
  setDependencyChoices(form,monitors.filter(monitor=>monitor.id!==id),definition.dependencies);
- const probes=mountProbeControls(form.querySelector('#settings-probes'),overview,id?definition:everyLocation(overview,definition));
- form.querySelector('#agreement-rule').textContent=agreementText(overview);
- const value=name=>form.elements.namedItem(name).value;
+ const checkFrom=mountCheckFrom(form.querySelector('#check-from'),{overview,definition,externalCheck:overview.externalCheck,isNew:!id});
  form.onsubmit=async event=>{
   event.preventDefault();if(!form.reportValidity())return;
   const button=form.querySelector('button[type=submit]');button.disabled=true;message.removeAttribute('data-error');message.textContent='Saving monitor…';
   try{
-   const result=readFields(form,definition);
-   result.probes=[...probes.querySelectorAll('input[name=probes]:checked')].map(input=>input.value);
-   result.assignments=Object.fromEntries(result.probes.map(name=>[name,{runnerId:value('runner-'+name),...(value('canary-'+name)?{canaryUrl:value('canary-'+name)}:{})}]));
+   const runnerIds=checkFrom.runnerIds(),own=checkFrom.ownUrl();
+   if(!runnerIds.length)throw Error('Choose at least one location to check from.');
+   // The server decides whether the monitor follows Settings: it does unless it has its own External check URL.
+   const result={...readFields(form,definition),...assignmentsFor(definition,runnerIds),...(own?{canaryUrl:own}:{})};
+   delete result.externalCheck;result.failureQuorum=Math.min(result.failureQuorum??1,result.probes.length);
    const saved=await api(id?`/api/monitors/${id}`:'/api/monitors',id?'PATCH':'POST',result);location.href=id||!saved?.id?returnTo:`/app/monitors/${encodeURIComponent(saved.id)}`;
   }catch(error){message.textContent=error.message;message.setAttribute('data-error','');button.disabled=false;form.querySelector('.editor-footer').scrollIntoView({block:'end'})}
  };
  form.querySelectorAll('input,select,textarea,button[type="submit"]').forEach(control=>control.disabled=false);
  showType(form,form.elements.checkType.value);
- for(const checkbox of probes.querySelectorAll('input[type=checkbox]'))checkbox.onchange();
+ checkFrom.update();
  message.textContent='';
 }
 // A new monitor the owner fills in by hand, starting from the website address they already gave.

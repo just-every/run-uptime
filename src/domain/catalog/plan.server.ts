@@ -37,7 +37,7 @@ export async function planCatalogAdd(env:Bindings,input:any){
    const key=canonicalUrl(definition.url),duplicate=urls.get(key)
    if(duplicate){entries.push({index,label,name:definition.name,action:'duplicate',selected:false,...(duplicate.monitorId?{monitorId:duplicate.monitorId}:{duplicateIndex:duplicate.index}),reason:duplicate.monitorId?'This canonical URL already has a monitor.':'This canonical URL is already selected in this input.',differences:[]});continue}
    if(chosen)capacity(context,creates,0,definition)
-   const ready=assigned(env,context,definition)
+   const ready=assigned(env,context,definition,{assignments:definition.assignments})
    await checkPublic(ready)
    entries.push({index,label,name:definition.name,action:'create',selected:chosen,definition:ready,differences:[...unsupported]})
    if(chosen){urls.set(key,{index,name:definition.name});creates++}

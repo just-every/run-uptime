@@ -15,7 +15,7 @@ import {validateDefinition} from './policy.mjs'
 // @ts-ignore Edition flow vocabulary is JavaScript shared with the runner.
 import {FLOW_LIMITS,requirementChange} from './flow.mjs'
 import {readContact} from './runner-contact.server.ts'
-import {externalCheckUrl} from './external-check.server.ts'
+import {externalCheck,externalCheckOf} from './external-check.server.ts'
 import {assignDefinition,listRunners,ensureFirstRunner,runnerIdentity} from './runner-registration.server.ts'
 import {attemptSnapshot} from './attempt-checkpoint.server.ts'
 import {legacyWarning} from './legacy-monitoring.server.ts'
@@ -56,12 +56,12 @@ export async function overview(env:Bindings,{monitorId}:{monitorId?:string}={}){
  const [found,rows,alerts,started,contact,external,notifications]=await Promise.all([present(),
   (monitorId===undefined?env.DB.prepare('SELECT * FROM monitors ORDER BY rowid'):env.DB.prepare('SELECT * FROM monitors WHERE id=?').bind(monitorId)).all<any>(),
   (monitorId===undefined?env.DB.prepare('SELECT * FROM outbox ORDER BY rowid DESC LIMIT 200'):env.DB.prepare('SELECT * FROM outbox WHERE monitor_id=? ORDER BY rowid DESC LIMIT 200').bind(monitorId)).all<any>(),
-  cronStarted(env),readContact(env.DB),externalCheckUrl(env),monitorId===undefined?notificationOverview(env):null]);
+  cronStarted(env),readContact(env.DB),externalCheck(env),monitorId===undefined?notificationOverview(env):null]);
  const {runners,legacy}=found??(await ensureFirstRunner(env),(await present())!);
  const basics=rows.results.map(monitorRow);
  const [monitors,availability]=await Promise.all([Promise.all(basics.map(m=>monitorState(env,m,now,runners,legacy,staleMs))),availabilityOverview(env.DB,basics,now)]);
- return {monitors:monitors.map(m=>({...m,availability:availability.get(m.id)})),alerts:alerts.results.map(r=>({...r,event:JSON.parse(r.event)})),
-  runner:{...runnerRuntime(env,runners),cronStarted:started,identity:'private-runner',version:'uptime-node/0.1.0',independentVantage:new Set(runners.filter((r:any)=>r.revokedAt===null).map((r:any)=>r.networkLabel)).size>1,runners,grants:grants(env),contact,externalCheckUrl:external},
+ return {monitors:monitors.map(m=>({...m,availability:availability.get(m.id),externalCheck:externalCheckOf(m.definition,external)})),alerts:alerts.results.map(r=>({...r,event:JSON.parse(r.event)})),
+  runner:{...runnerRuntime(env,runners),cronStarted:started,identity:'private-runner',version:'uptime-node/0.1.0',independentVantage:new Set(runners.filter((r:any)=>r.revokedAt===null).map((r:any)=>r.networkLabel)).size>1,runners,grants:grants(env),contact,externalCheckUrl:external.url},
   ...(notifications?{notifications}:{}),now};
 }
 export const MONITOR_LIMIT=100

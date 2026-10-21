@@ -1,6 +1,6 @@
 import {HOSTED_RUNNER_ID,hostedHttp,hostedInstallation,ownOrigin,SELF_CHECK_REFUSAL} from './hosted-runner.ts'
-import {same,sign,type Bindings} from './control.server.ts'
-import {externalCheckUrl,EXTERNAL_CHECK_ABSENT} from './external-check.server.ts'
+import {same,sign,sha,type Bindings} from './control.server.ts'
+import {externalCheck,followsSettings,sameSite,EXTERNAL_CHECK_ABSENT,type ExternalCheck} from './external-check.server.ts'
 // @ts-expect-error Base authenticated encryption; separate product purpose.
 import {keyedHash,seal,unseal} from '../base/modules/operator-auth/identity/oidc/crypto.mjs'
 // @ts-ignore Edition URL validation is JavaScript.
@@ -8,7 +8,7 @@ import {publicTarget} from './public-target.mjs'
 // @ts-ignore Shared bounded runner capability vocabulary.
 import {validRunnerCapabilities,runnerCapabilities} from './runner-capabilities.mjs'
 import {distinctName,generatedName,placeName} from './location-name.ts'
-export type Runner={runner_id:string;registered_at:number;network_label:string;key_ciphertext:string|null;legacy_key:number;revoked_at:number|null;last_contact_at:number|null;capabilities?:string;named_by?:string}
+export type Runner={runner_id:string;registered_at:number;network_label:string;key_ciphertext:string|null;legacy_key:number;revoked_at:number|null;last_contact_at:number|null;capabilities?:string;named_by?:string;join_hash?:string|null}
 const runnerOrder=`CASE runner_id WHEN '${HOSTED_RUNNER_ID}' THEN 0 ELSE 1 END,registered_at,runner_id`
 const label=(value:unknown)=>{if(typeof value!=='string'||!value.trim()||value.length>80||/[\x00-\x1f\x7f]/.test(value))throw Error('Location name required (80 characters max)');return value.trim()}
 async function custody(env:Bindings){if(!env.SESSION_SECRET||env.SESSION_SECRET.length<32)throw Error('Runner key custody unavailable');return keyedHash(env.SESSION_SECRET,'uptime-runner-keys','aes-gcm-v1')}
@@ -60,15 +60,29 @@ export async function enrollRunner(env:Bindings,text:string,timestamp:string,sig
  if(input.capabilities!==undefined)await env.DB.prepare('UPDATE runners SET capabilities=? WHERE runner_id=?').bind(JSON.stringify(input.capabilities),row.runner_id).run();
  return {runnerId:row.runner_id,registeredAt:row.registered_at,networkLabel:row.network_label,scope:'self-runner'}
 }
-// A new location. Without a name it gets a generated one until its runner joins and its place names it.
+// A new location. Without a name it gets a generated one until its runner joins and its place names it. The console's Add
+// location command carries the one-time join key and this installation's address (origin); `key` serves runners started with
+// UPTIME_RUNNER_ID and UPTIME_RUNNER_KEY (docs/runner.md) and stops working when a runner joins with the join key.
+const joinHash=(joinKey:string)=>sha(`uptime-location-join.${joinKey}`)
 export async function createRunner(env:Bindings,input:any){
  if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(k=>k!=='networkLabel'))throw Error('Invalid runner settings');
  await ensureFirstRunner(env);
  const runnerId=`self-${crypto.randomUUID()}`,registeredAt=Date.now(),key=crypto.randomUUID()+crypto.randomUUID(),named=input.networkLabel!==undefined;
+ const joinKey=btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
  const networkLabel=named?label(input.networkLabel):distinctName(generatedName(runnerId),(await env.DB.prepare('SELECT network_label FROM runners').all<{network_label:string}>()).results.map(r=>r.network_label));
  const ciphertext=await seal(await custody(env),JSON.stringify(['uptime-runner-key-v1',runnerId,registeredAt]),{key});
- await env.DB.prepare('INSERT INTO runners(runner_id,registered_at,network_label,key_ciphertext,named_by) VALUES(?,?,?,?,?)').bind(runnerId,registeredAt,networkLabel,ciphertext,named?'owner':'default').run();
- return {runnerId,networkLabel,key}
+ await env.DB.prepare('INSERT INTO runners(runner_id,registered_at,network_label,key_ciphertext,named_by,join_hash) VALUES(?,?,?,?,?,?)').bind(runnerId,registeredAt,networkLabel,ciphertext,named?'owner':'default',await joinHash(joinKey)).run();
+ return {runnerId,networkLabel,key,joinKey,origin:env.UPTIME_ORIGIN}
+}
+// A runner joining with its command's join key, once: it receives this location's runner key, minted now, so the key that signs
+// its requests is known only to it, and the join key is spent. null when the key is unknown, spent, or its location removed.
+export async function joinRunner(env:Bindings,input:any){
+ if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).join()!=='joinKey'||typeof input.joinKey!=='string'||!/^[A-Za-z0-9_-]{43}$/.test(input.joinKey))throw Error('Invalid join key')
+ const hash=await joinHash(input.joinKey),row=await env.DB.prepare('SELECT * FROM runners WHERE join_hash=? AND revoked_at IS NULL').bind(hash).first<Runner>()
+ if(!row)return null
+ const key=crypto.randomUUID()+crypto.randomUUID(),ciphertext=await seal(await custody(env),JSON.stringify(['uptime-runner-key-v1',row.runner_id,row.registered_at]),{key})
+ const spent=await env.DB.prepare('UPDATE runners SET key_ciphertext=?,join_hash=NULL WHERE runner_id=? AND join_hash=? AND revoked_at IS NULL').bind(ciphertext,row.runner_id,hash).run()
+ return spent.meta.changes?{runnerId:row.runner_id,key}:null
 }
 // The owner's name for a location. Monitors saved from now on carry it; saved revisions keep the name they were saved with.
 export async function renameRunner(env:Bindings,id:string,input:any){
@@ -78,28 +92,25 @@ export async function renameRunner(env:Bindings,id:string,input:any){
  if(!result.meta.changes)throw Error('Active location not found');
  return {runnerId:id,networkLabel}
 }
-export async function revokeRunner(env:Bindings,id:string){if(id===HOSTED_RUNNER_ID)throw Error('The hosted Worker has no runner key to revoke');const result=await env.DB.prepare('UPDATE runners SET revoked_at=?,key_ciphertext=NULL WHERE runner_id=? AND revoked_at IS NULL').bind(Date.now(),id).run();if(!result.meta.changes)throw Error('Active runner not found');return {revoked:true}}
+export async function revokeRunner(env:Bindings,id:string){if(id===HOSTED_RUNNER_ID)throw Error('The hosted Worker has no runner key to revoke');const result=await env.DB.prepare('UPDATE runners SET revoked_at=?,key_ciphertext=NULL,join_hash=NULL WHERE runner_id=? AND revoked_at IS NULL').bind(Date.now(),id).run();if(!result.meta.changes)throw Error('Active runner not found');return {revoked:true}}
 export const runnerListQuery=`SELECT runner_id AS runnerId,network_label AS networkLabel,registered_at AS registeredAt,revoked_at AS revokedAt,last_contact_at AS lastContactAt,capabilities,legacy_key AS builtIn FROM runners ORDER BY ${runnerOrder}`
 export const describeRunners=(rows:any[])=>rows.map(r=>({...r,builtIn:r.builtIn===1,hosted:r.runnerId===HOSTED_RUNNER_ID,capabilities:runnerCapabilities(r.capabilities)}))
 export async function listRunners(env:Bindings){return describeRunners((await env.DB.prepare(runnerListQuery).all()).results)}
 export async function assignDefinition(env:Bindings,definition:any,input:any){
  const first=await ensureFirstRunner(env),rows=(await env.DB.prepare(`SELECT * FROM runners ORDER BY ${runnerOrder}`).all<Runner>()).results;
- return assignRunners(rows,first.runner_id,definition,input,await externalCheckUrl(env),env.RER_DEMO!=='1',env.UPTIME_ORIGIN);
+ return assignRunners(rows,first.runner_id,definition,input,await externalCheck(env),env.RER_DEMO!=='1',env.UPTIME_ORIGIN);
 }
 // The pure assignment step, shared by saving and by a definition-file preview that must not write. `external` is the
-// installation's External check URL: an enabled public monitor or local HTTP practice monitor on one network takes it.
-// Ephemeral demo mode never adds a public request to its closed synthetic fixture.
-// Two addresses are the same site when their hostnames match exactly, ignoring case, a leading `www.` and a trailing dot:
-// example.com and www.example.com are one site, while status.example.com and example.com are not. Ports and paths do not
-// matter: an outage on the host takes every page and port on it down for the owner's purposes.
-const site=(value:string)=>new URL(value).hostname.toLowerCase().replace(/\.$/,'').replace(/^www\./,'')
-export const sameSite=(a:string,b:string)=>site(a)===site(b)
+// installation's External check setting: an enabled public monitor or local HTTP practice monitor on one network with no
+// external check of its own follows it (externalCheck "settings"); a URL given for the monitor, or for one of its checks, is
+// its own (externalCheck "own"). A stored follower's copies are not its own URL. Ephemeral demo mode never adds a public
+// request to its closed synthetic fixture.
 // A check on the monitored site fails whenever the monitor does, so the monitor could never be confirmed as Failing.
 function sameSiteRefusal(url:string,own:boolean){
- return Error(`The external check URL ${url} is the same site as this monitor, so an outage there could never be confirmed. ${own?'Choose an external check URL on a different site for this check.':'Choose a different external check URL in Settings, or set one for this check.'}`)
+ return Error(`The external check URL ${url} is the same site as this monitor, so an outage there could never be confirmed. ${own?'Choose an external check URL on a different site for this monitor.':'Choose a different external check URL in Settings, or set one for this monitor.'}`)
 }
-export function assignRunners(rows:Runner[],firstRunnerId:string,definition:any,input:any,external:string|null=null,syntheticCanary=true,appOrigin?:string){
- const assignments:Record<string,any>={};
+export function assignRunners(rows:Runner[],firstRunnerId:string,definition:any,input:any,external:ExternalCheck|null=null,syntheticCanary=true,appOrigin?:string){
+ const assignments:Record<string,any>={},following=followsSettings(definition,external?.legacyUrl??null);
  const available=rows.filter(r=>r.revoked_at===null&&(r.runner_id!==HOSTED_RUNNER_ID||hostedHttp(definition)));
  const hosted=hostedHttp(definition)?available.find(r=>r.runner_id===HOSTED_RUNNER_ID):undefined;
  if(input.assignments!==undefined&&(!input.assignments||Array.isArray(input.assignments)||Object.keys(input.assignments).some(k=>!definition.probes.includes(k))))throw Error('Invalid probe assignments');
@@ -109,19 +120,21 @@ export function assignRunners(rows:Runner[],firstRunnerId:string,definition:any,
   const row=rows.find(r=>r.runner_id===runnerId);if(runnerId===HOSTED_RUNNER_ID&&(!hostedHttp(definition)||definition.intervalMs<60000))throw Error('Worker checks require supported public checks, default certificate trust, no runner-local credentials, and an interval of at least one minute. Choose a private runner for other checks');if(!row||(definition.enabled&&row.revoked_at!==null))throw Error('Probe requires an active assigned runner');
   if(definition.enabled&&definition.network==='private'&&runnerCapabilities(row.capabilities).privateNetwork!==true)throw Error('Private checks require an enrolled runner with private-network grants. Update and restart that runner, then save again');
   if(definition.enabled&&runnerId===HOSTED_RUNNER_ID&&ownOrigin(definition.url,appOrigin))throw Error(SELF_CHECK_REFUSAL);
-  const canaryUrl=requested?.canaryUrl??input.canaryUrl;
+  const canaryUrl=(following?undefined:requested?.canaryUrl)??input.canaryUrl;
   const href=canaryUrl?publicTarget(canaryUrl).href:null;
   if(href&&definition.enabled&&definition.url&&sameSite(href,definition.url))throw sameSiteRefusal(href,true);
   assignments[probe]={runnerId,networkLabel:row.network_label,...(href?{canaryUrl:href}:{})};
  }
  const labels=new Set(Object.values(assignments).map((a:any)=>a.networkLabel));
  const needsCanary=['public','private'].includes(definition.network)||(syntheticCanary&&definition.network==='synthetic'&&['http','keyword'].includes(definition.type));
- if(definition.enabled&&needsCanary&&labels.size<2&&!Object.values(assignments).some((a:any)=>a.canaryUrl)){
-  if(!external)throw Error(`Production monitor requires two network vantages or an external check URL. ${EXTERNAL_CHECK_ABSENT}`);
-  const href=publicTarget(external).href;
+ const own=Object.values(assignments).some((a:any)=>a.canaryUrl);
+ if(definition.enabled&&needsCanary&&labels.size<2&&!own){
+  if(!external?.url)throw Error(`Production monitor requires two network vantages or an external check URL. ${EXTERNAL_CHECK_ABSENT}`);
+  const href=publicTarget(external.url).href;
   if(definition.url&&sameSite(href,definition.url))throw sameSiteRefusal(href,false);
   for(const assignment of Object.values(assignments) as any[])assignment.canaryUrl=href;
  }
  for(const assignment of Object.values(assignments) as any[])if(definition.enabled&&assignment.runnerId===HOSTED_RUNNER_ID&&assignment.canaryUrl&&ownOrigin(assignment.canaryUrl,appOrigin))throw Error(SELF_CHECK_REFUSAL);
- return {...definition,assignments}
+ const {externalCheck:_,...rest}=definition,checked=Object.values(assignments).some((a:any)=>a.canaryUrl);
+ return {...rest,assignments,...(checked?{externalCheck:own?'own':'settings'}:{})}
 }

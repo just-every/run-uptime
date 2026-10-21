@@ -5,6 +5,7 @@ import {scheduleHeartbeatEvaluation} from './heartbeat-jobs.server.ts'
 import {activeMaintenance,intervals} from './planned-maintenance.mjs'
 import {get,type Bindings} from './control.server.ts'
 import {runnerIdentity} from './runner-registration.server.ts'
+import {externalCheck,liveExternalCheck} from './external-check.server.ts'
 import {snapshotHeartbeat,validateHeartbeatSnapshot} from './heartbeat.server.ts'
 import {validateEvidence} from './evidence.server.ts'
 import {acceptanceMs,missedSlots,nextDueAfter} from './schedule.ts'
@@ -60,9 +61,12 @@ export async function claimAttempt(env:Bindings,runnerId:string,{monitorId=null}
  // an older slot's classification deadline must not retroactively skip it.
  const current=await get(env,slot.monitor_id);if(!current||activeMaintenance(current.definition,Date.now())?.mode==='pause')return null;
  const pauseRanges=intervals({...current.definition,maintenanceUntil:0,maintenanceWindows:(current.definition.maintenanceWindows??[]).filter((window:any)=>window.mode==='pause')},now,until);
+ // A revision that follows Settings checks the External check URL Settings holds now, not the copy it was saved with; each
+ // delivered part records the URL it was handed, so its history says what was checked.
+ const task=Object.values(assignments).some((a:any)=>a.canaryUrl)?liveExternalCheck({...definition,assignments},await externalCheck(env)):{...definition,assignments};
  const deliveryTime="MAX(?3,CAST(ROUND((julianday('now')-2440587.5)*86400000) AS INTEGER))";
  const maintenanceGuard=`EXISTS(SELECT 1 FROM monitors WHERE id=?5 AND revision=?6) AND NOT EXISTS(SELECT 1 FROM json_each(?7) w WHERE ${deliveryTime}>=json_extract(w.value,'$.startsAt') AND ${deliveryTime}<json_extract(w.value,'$.endsAt'))`;
- const changes=await env.DB.batch([...mine.map((p:string)=>env.DB.prepare(`UPDATE runner_assignments SET delivered_at=${deliveryTime} WHERE slot_id=?1 AND probe=?4 AND runner_id=?2 AND delivered_at IS NULL AND ${newest('?1')} AND EXISTS(SELECT 1 FROM slots WHERE id=?1 AND lease_until>${deliveryTime}) AND ${maintenanceGuard}`).bind(slot.id,runnerId,now,p,current.id,current.revision,JSON.stringify(pauseRanges))),
+ const changes=await env.DB.batch([...mine.map((p:string)=>env.DB.prepare(`UPDATE runner_assignments SET delivered_at=${deliveryTime},external_check_url=?8 WHERE slot_id=?1 AND probe=?4 AND runner_id=?2 AND delivered_at IS NULL AND ${newest('?1')} AND EXISTS(SELECT 1 FROM slots WHERE id=?1 AND lease_until>${deliveryTime}) AND ${maintenanceGuard}`).bind(slot.id,runnerId,now,p,current.id,current.revision,JSON.stringify(pauseRanges),task.assignments[p].canaryUrl??null)),
   // New delivery resolves older undelivered classifications. Fence snapshots
   // in the same transaction so a concurrent checkpoint cannot freeze an old
   // missing classification after this runner has demonstrably advanced.
@@ -71,7 +75,7 @@ export async function claimAttempt(env:Bindings,runnerId:string,{monitorId=null}
   ...(slot.manual?[]:[env.DB.prepare("UPDATE monitors SET next_due=MAX(next_due,(SELECT MAX(delivered_at) FROM runner_assignments WHERE slot_id=?4 AND runner_id=?5)+MIN(?2,json_extract(definition,'$.intervalMs'))) WHERE id=?3 AND EXISTS(SELECT 1 FROM runner_assignments WHERE slot_id=?4 AND runner_id=?5 AND delivered_at>=?1)").bind(now,definition.intervalMs,slot.monitor_id,slot.id,runnerId)])]);
  const probes=mine.filter((_:string,i:number)=>changes[i].meta.changes);
  if(!probes.length)return null;
- return snapshotHeartbeat(env,{...await claimDebt(env,slot.monitor_id,definition),...await claimGrants(env,slot.monitor_id,Date.now()),snapshotPolicy:await snapshotSettings(env,slot.monitor_id),id:slot.id,monitorId:slot.monitor_id,revision:slot.revision,dueAt:slot.due_at,definition:{...definition,assignments},probes,acceptUntil:until})
+ return snapshotHeartbeat(env,{...await claimDebt(env,slot.monitor_id,definition),...await claimGrants(env,slot.monitor_id,Date.now()),snapshotPolicy:await snapshotSettings(env,slot.monitor_id),id:slot.id,monitorId:slot.monitor_id,revision:slot.revision,dueAt:slot.due_at,definition:task,probes,acceptUntil:until})
 }
 export async function completeAttempts(env:Bindings,input:any,runnerId:string){
  const now=Date.now(),slot=await env.DB.prepare('SELECT * FROM slots WHERE id=?').bind(input.slotId).first<any>();

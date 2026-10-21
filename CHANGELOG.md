@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-Adds two migrations (`0057_location_names.sql`, who named each location; `0058_cleanup_debt_and_effect_grants.sql`, retained cleanup debt and live-effect grants); no new required settings.
+Adds four migrations (`0057_location_names.sql`, who named each location; `0058_cleanup_debt_and_effect_grants.sql`, retained cleanup debt and live-effect grants; `0059_external_check_follow.sql`, monitors following the External check URL in Settings; `0060_location_join_keys.sql`, one-time location join keys); no new required settings.
+
+- **Locations and pass/fail, done properly.** A monitor's **Check from** is a tick list of your locations (up to three a monitor; two for a browser flow), with the rule for Down written beside it; new monitors start from every live location. When a location joins, **Check all monitors from here too** (on by default) adds it to every monitor with room, in one step. **Add location** gives one command that works from any machine with Node 22 and network access to this Uptime, with no checkout: it downloads the runner from `/uptime-runner.mjs` and joins with a one-time key, which the panel stops showing once the location joins. The External check URL lives in Settings and reaches every monitor's next check without saving the monitor; a monitor's own URL sits under **Advanced**. Monitors that copied the installation's URL before this follow Settings; other URLs stay their own.
 
 - **Safe setup and teardown (API-004).** API transactions and browser flows run bounded setup and cleanup fixtures (up to 3 attempts each); cleanup still runs after a failure or a cancellation, and a cancelled run reads Unknown. A cleanup that cannot finish becomes cleanup debt the owner resolves with a note on the monitor page; at 3 open debts setup stops. Stripe live-mode keys, `livemode: true` responses, refunds and steps marked `effect` need an exact, expiring grant with a spend limit.
 

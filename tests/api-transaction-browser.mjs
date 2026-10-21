@@ -31,7 +31,7 @@ try{
   const url=path=>edge.url(path,'auth.example.test'),auth={authorization:'Bearer {{token}}'};
   const api={variables:{},steps:[{name:'Log in',phase:'setup',url:url('/login'),method:'POST',assertions:{status:200},extract:{token:'$.token'}},{name:'Create order',phase:'request',url:url('/items'),method:'POST',headers:auth,assertions:{status:201},extract:{id:'$.id'}},{name:'Read order',phase:'request',url:url('/items/{{id}}'),headers:auth,method:'GET',assertions:{status:200,json:{path:'$.ready',equals:true}}},{name:'Delete synthetic order',phase:'cleanup',url:url('/items/{{id}}'),headers:auth,method:'DELETE',assertions:{status:204}}]};
   await page.getByLabel('API origin URL',{exact:true}).fill(url('/'));await page.getByLabel('Transaction steps (JSON)',{exact:true}).fill(JSON.stringify(api,null,2));
-  await page.locator('[name=canary-local-a]').fill(edge.url('/canary','token.example.test'));await page.locator('[name=confirmSlots]').fill('1');await page.locator('[name=recoverSlots]').fill('1');
+  await page.locator('.check-from-advanced summary').click();await page.locator('[name=externalCheckUrl]').fill(edge.url('/canary','token.example.test'));await page.locator('[name=confirmSlots]').fill('1');await page.locator('[name=recoverSlots]').fill('1');
   await shot(`api-editor-${width}.png`);await page.getByRole('button',{name:'Save monitor',exact:true}).click();await page.waitForURL(/\/app\/monitors\/[^/]+$/);
   const list=await(await page.request.get(edge.f.origin+'/api/overview')).json(),m=list.monitors.find(m=>m.definition.name===`Sandbox order API ${width}`);assert.ok(m);
   let task=await edge.claim(m.id),result=await edge.run(task);assert.equal(result.outcome,'pass');await edge.submit(task,result);assert.equal(objects.size,0);

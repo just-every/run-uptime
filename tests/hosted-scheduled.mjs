@@ -38,9 +38,9 @@ try{
  assert.equal(unchanged.revision,monitor.revision);assert.equal(unchanged.definition.url,monitor.definition.url,'refused edit leaves the saved monitor unchanged');
  const canaryRefused=await call('/api/monitors',{name:'Own canary',url:'https://public.example.test/health',canaryUrl:origin+'/health'},cookie);
  assert.equal(canaryRefused.status,400);assert.match((await canaryRefused.json()).error,/private runner/i);
- assert.equal((await call('/api/external-check',{url:origin+'/health'},cookie)).status,200);
- const defaultCanaryRefused=await call('/api/monitors',{name:'Default own canary',url:'https://public.example.test/health'},cookie);
- assert.equal(defaultCanaryRefused.status,400);assert.match((await defaultCanaryRefused.json()).error,/private runner/i);
+ // Monitors follow the setting live, so this app's own address is refused as the setting itself.
+ const ownSetting=await call('/api/external-check',{url:origin+'/health'},cookie);
+ assert.equal(ownSetting.status,400);assert.match((await ownSetting.json()).error,/own address/);
  assert.equal((await call('/api/external-check',{url:'https://example.com/'},cookie)).status,200);
  const runners=await (await call('/api/runners',undefined,cookie)).json(),privateRunner=runners.find(r=>!r.hosted);
  const privateCreated=await call('/api/monitors',{...selfInput,name:'Externally checked own health',assignments:Object.fromEntries(monitor.definition.probes.map(probe=>[probe,privateRunner.runnerId]))},cookie);

@@ -10,9 +10,9 @@ type AssignmentRunner=Pick<Runner,'runner_id'|'registered_at'|'network_label'|'l
 export async function assignmentPolicy(database:D1Database){
  const [{results},external]=await Promise.all([
   database.prepare('SELECT runner_id,registered_at,network_label,legacy_key,revoked_at,capabilities FROM runners ORDER BY registered_at,runner_id').all<AssignmentRunner>(),
-  database.prepare('SELECT url FROM external_check WHERE id=1').first<{url:string}>(),
+  database.prepare('SELECT url,legacy_url FROM external_check WHERE id=1').first<{url:string;legacy_url:string|null}>(),
  ])
- return {rows:results,external:external?.url??null}
+ return {rows:results,external:{url:external?.url??null,legacyUrl:external?.legacy_url??null}}
 }
 /** Validate retained values against current real runners. No lifecycle writes or
  * implicit creation is permitted while an import is being reviewed/applied. */
@@ -34,5 +34,5 @@ export function assignmentGuard(env:Bindings,definition:any,{rows,external}:Awai
    AND r.legacy_key=json_extract(expected.value,'$.legacy_key')
    AND r.revoked_at IS json_extract(expected.value,'$.revoked_at')
    AND r.capabilities IS json_extract(expected.value,'$.capabilities')))
-  AND (SELECT url FROM external_check WHERE id=1) IS ?`,rows.length,JSON.stringify(rows),external)
+  AND (SELECT url FROM external_check WHERE id=1) IS ?`,rows.length,JSON.stringify(rows),external.url)
 }

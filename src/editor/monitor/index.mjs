@@ -35,9 +35,9 @@ export async function mountMonitorEditor(signal){
   const others=api('/api/overview','GET',undefined,{signal}).then(all=>all.monitors.map(monitor=>({id:monitor.id,name:monitor.definition.name})),()=>[]);
   if(!id){
    prepareManualForm(form,NEW_MONITOR);
-   const loading=document.createElement('p');loading.className='loading-note';loading.role='status';loading.textContent='Loading runners…';
-   form.querySelector('#settings-probes').append(loading);
-   message.textContent='Runner settings are loading. You can fill in the monitor now.';
+   const loading=document.createElement('p');loading.className='loading-note';loading.role='status';loading.textContent='Loading locations…';
+   form.querySelector('#check-from').append(loading);
+   message.textContent='Locations are loading. You can fill in the monitor now.';
    description.hidden=true;discovery.hidden=false;
    document.querySelector('#discovery-url').disabled=true;document.querySelector('#discovery-check').disabled=true;
    document.querySelector('#discovery-help').textContent='Checking which runners are available…';

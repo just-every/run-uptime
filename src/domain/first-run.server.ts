@@ -3,7 +3,7 @@ import {ensureFirstRunner,listRunners} from './runner-registration.server.ts'
 import {authenticatedSession,authFailure} from './operator-auth.server.ts'
 import {accessDeniedDocument} from './access-document.server.ts'
 import {setupDocument,type StartSite} from './setup-document.server.ts'
-import {externalCheckUrl,saveExternalCheck} from './external-check.server.ts'
+import {externalCheck,saveExternalCheck} from './external-check.server.ts'
 import {ensureDiscovery} from './discovery.server.ts'
 import type {Bindings} from './control.server.ts'
 // @ts-ignore Edition URL validation is JavaScript.
@@ -47,7 +47,7 @@ export async function firstRun(env:Bindings,request:Request){
    let valid=typed!==null;
    if(valid&&address)try{publicTarget(address)}catch{valid=false}
    if(valid){
-    const saved=await externalCheckUrl(env);
+    const saved=(await externalCheck(env)).url;
     if(!saved||saved==='https://example.com/')await saveExternalCheck(env,JSON.stringify({url:DEFAULT_EXTERNAL}));
     const job=address?await ensureDiscovery(env,address):undefined
     const completed=await env.DB.prepare('INSERT INTO uptime_first_run(id,completed_at) VALUES(1,?) ON CONFLICT(id) DO NOTHING').bind(Date.now()).run()
