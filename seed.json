@@ -881,6 +881,14 @@
         "environment": "all"
       },
       {
+        "path": "/delivery-chain.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
         "path": "/notification-help.js",
         "match": "exact",
         "kind": "asset",

@@ -7,6 +7,8 @@ import {auditStatement,mutationGuard,type AuditActor} from './audit.server.ts'
 import type {Bindings} from './control.server.ts'
 import {businessErasureScope,eraseBusinessCustody} from './business-import/erasure.server.ts'
 type Selection={table:string;where:string;args:unknown[]};
+// A fallback contact's alert names the earlier contacts it followed (DELIVERY-002): it is dependent history of each.
+const fallbackJobs="EXISTS(SELECT 1 FROM json_each(json_extract(event,'$.fallbackContext.previous')) p WHERE json_extract(p.value,'$.destinationId')=?)";
 const selection=(table:string,where:string,...args:unknown[]):Selection=>({table,where,args});
 export async function erase(env:Bindings,kind:'monitor'|'destination'|'operator',id:string,actor:AuditActor,confirmation?:string){
  const table=kind==='monitor'?'monitors':kind==='destination'?'notification_destinations':'oa_operators';
@@ -24,10 +26,11 @@ export async function erase(env:Bindings,kind:'monitor'|'destination'|'operator'
  const plans:Selection[]=[],discoveryGuards:D1PreparedStatement[]=[],jobIds:string[]=[],jobRows:{id:string;event:string}[]=[],destinationCredentials:string[]=[];
  if(kind==='monitor'||kind==='destination'){
   const jobs=await env.DB.prepare(kind==='monitor'?"SELECT id,event FROM notification_jobs WHERE event_id IN(SELECT id FROM outbox WHERE monitor_id=?) OR json_extract(event,'$.monitor.id')=? OR json_extract(event,'$.monitorId')=?":"SELECT id,event FROM notification_jobs WHERE destination_id=?").bind(...(kind==='monitor'?[id,id,id]:[id])).all<any>();
+  if(kind==='destination')jobs.results.push(...(await env.DB.prepare(`SELECT id,event FROM notification_jobs WHERE ${fallbackJobs}`).bind(id).all<any>()).results);
   jobIds.push(...jobs.results.map(r=>r.id));jobRows.push(...jobs.results);
-  discoveryGuards.push(mutationGuard(env,kind==='monitor'?"(SELECT COUNT(*) FROM notification_jobs WHERE event_id IN(SELECT id FROM outbox WHERE monitor_id=?) OR json_extract(event,'$.monitor.id')=? OR json_extract(event,'$.monitorId')=?)=?":"(SELECT COUNT(*) FROM notification_jobs WHERE destination_id=?)=?",[...(kind==='monitor'?[id,id,id]:[id]),jobIds.length]));
+  discoveryGuards.push(mutationGuard(env,kind==='monitor'?"(SELECT COUNT(*) FROM notification_jobs WHERE event_id IN(SELECT id FROM outbox WHERE monitor_id=?) OR json_extract(event,'$.monitor.id')=? OR json_extract(event,'$.monitorId')=?)=?":`(SELECT COUNT(*) FROM notification_jobs WHERE destination_id=? OR ${fallbackJobs})=?`,[...(kind==='monitor'?[id,id,id]:[id,id]),jobIds.length]));
   if(kind==='destination')destinationCredentials.push(...(await env.DB.prepare('SELECT id FROM notification_credentials WHERE destination_id=?').bind(id).all<any>()).results.map(r=>r.id));
-  for(const job of jobIds){plans.push(selection('integration_attempts','namespace=? AND delivery_id=?','uptime-notifications',job),selection('integration_resolutions','namespace=? AND delivery_id=?','uptime-notifications',job),selection('notification_claim_custody','delivery_id=?',job),selection('integration_deliveries','namespace=? AND id=?','uptime-notifications',job));}
+  for(const job of jobIds){plans.push(selection('notification_delivery_attempts','delivery_id=?',job),selection('notification_retry_policy','delivery_id=?',job),selection('integration_attempts','namespace=? AND delivery_id=?','uptime-notifications',job),selection('integration_resolutions','namespace=? AND delivery_id=?','uptime-notifications',job),selection('notification_claim_custody','delivery_id=?',job),selection('integration_deliveries','namespace=? AND id=?','uptime-notifications',job));}
   const replays=await env.DB.prepare("SELECT * FROM integration_replays WHERE namespace='uptime-notifications'").all<any>();
   const relations=erasureRelations(kind,id,jobRows,destinationCredentials);
   for(const row of replays.results)if(relations.envelopeRelated(row.envelope))plans.push(selection('integration_replays','namespace=? AND id=?',row.namespace,row.id));
@@ -45,6 +48,7 @@ export async function erase(env:Bindings,kind:'monitor'|'destination'|'operator'
   // So do the bytes of an archive outside the erased namespaces that names this monitor; its header stays.
   if(business.archives.length)plans.push(selection('ik_door_archive_chunks','archive_id IN(SELECT value FROM json_each(?))',JSON.stringify(business.archives)));
   plans.push(...incidentMonitorErasureTables.map(table=>selection(table,'monitor_id=?',id)));
+  plans.push(selection('alert_fallback_chains','monitor_id=?',id));
   plans.push(selection('alert_routes',"scope_kind='monitor' AND scope_value=?",id),selection('alert_route_changes',"scope_kind='monitor' AND scope_value=?",id));
   plans.push(selection('heartbeat_runs','monitor_id=?',id),selection('definition_batch_entries','monitor_id=?',id),selection('attempt_checkpoints','monitor_id=?',id),selection('runner_assignments','slot_id IN(SELECT id FROM slots WHERE monitor_id=?)',id),selection('evidence_generation','monitor_id=?',id),selection('heartbeat_claims','slot_id IN(SELECT id FROM slots WHERE monitor_id=?)',id),selection('heartbeat_authority','monitor_id=?',id),selection('heartbeat_limits','monitor_id=?',id),selection('observations','slot_id IN(SELECT id FROM slots WHERE monitor_id=?)',id),selection('outbox','monitor_id=?',id),selection('slots','monitor_id=?',id),selection('revisions','monitor_id=?',id));
  }

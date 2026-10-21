@@ -2,6 +2,7 @@ import {escape} from '/console-format.js';
 import {dialogFocusReturn} from '/notification-dialogs.js';
 import {patch} from '/dom-patch.js';
 import {scopeNames,summaryMarkup,previewMarkup,historyMarkup,contactOptionsMarkup,importMarkup,importMappingMarkup} from './alert-route-markup.js';
+import {mountRouteFallback} from './alert-route-fallback.js';
 export {alertRoutePanel} from './alert-route-markup.js';
 const path=id=>`/api/monitors/${encodeURIComponent(id)}/alert-route`;
 function styles(){if(document.querySelector('link[href="/assets/alert-route.css"]'))return;const link=document.createElement('link');link.rel='stylesheet';link.href='/assets/alert-route.css';document.head.append(link)}
@@ -55,6 +56,7 @@ export async function openAlertRouteDialog({monitor,api,action}){
   };
   const lock=value=>{busy=value;dialog.setAttribute('aria-busy',String(value));for(const control of dialog.querySelectorAll('button,select,input,textarea'))control.disabled=value;if(!value){updateMode();apply.disabled=!preview;for(const option of scope.options)option.disabled=option.value!=='installation'&&!data.policies.find(p=>p.scope===option.value).value}};
   scope.onchange=updateScope;mode.onchange=()=>{updateMode();invalidate()};fields.onchange=()=>{updateContacts();invalidate()};body.addEventListener('input',()=>{updateContacts();invalidate()});importForm.onchange=invalidate;updateScope();
+  const fallback=mountRouteFallback(fields,data,scope,mode);
   const showPreview=result=>{
    preview=result;review.innerHTML=previewMarkup(preview);review.hidden=false;
    for(const button of review.querySelectorAll('[data-route-test]'))button.onclick=async()=>{
@@ -80,7 +82,7 @@ export async function openAlertRouteDialog({monitor,api,action}){
   form.onsubmit=async event=>{
    event.preventDefault();if(busy)return;invalidate();
    const policy=data.policies.find(p=>p.scope===scope.value),selected=mode.value==='selected'?[...fields.querySelectorAll('[name=destination]:checked')]:[];
-   const input={scope:scope.value,mode:mode.value,expectedRevision:policy.revision,destinationIds:selected.map(c=>c.value),contactSettings:readContactSettings(selected)};
+   const input=fallback.apply({scope:scope.value,mode:mode.value,expectedRevision:policy.revision,destinationIds:selected.map(c=>c.value),contactSettings:readContactSettings(selected)});
    lock(true);
    try{const result=await api(path(monitor.id)+'/preview','POST',input);if(dialog.isConnected)showPreview(result);
    }catch(problem){error.textContent=problem.message}finally{if(dialog.isConnected)lock(false)}

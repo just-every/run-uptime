@@ -1,6 +1,7 @@
 import {restoreAuxiliary} from './auxiliary-archive.ts'
 import {ARCHIVE_ROWS,TABLES,assertBytes,digest,portableArchive,type Tables} from './archive-schema.ts'
 import {validateArchive} from './archive-validation.ts'
+import {deliveryBody} from './archive-notification-validation.ts'
 
 const inactiveState=JSON.stringify({state:'Unknown',confirmedFailure:false,notificationOpen:false});
 /** Plan the complete portable result before generating credentials or SQL writes.
@@ -12,6 +13,8 @@ export async function projectRestore(input:Tables,migrations:any[],now=Date.now(
  const currentMigrations=new Map(migrations.map(row=>[row.version,row]));
  for(const row of t.migrations)currentMigrations.set(row.version,row);
  t.migrations=[...currentMigrations.values()].sort((a,b)=>a.version-b.version);
+ // Rebuild each delivery envelope's exact body from its validated job event before installing it.
+ for(const row of t.integration_deliveries){const e=JSON.parse(row.envelope);if(Object.hasOwn(e,'body'))continue;const job=t.notification_jobs.find(j=>j.id===row.id);row.envelope=JSON.stringify({id:e.id,tenant:e.tenant,destinationId:e.destinationId,event:e.event,protocol:e.protocol,body:deliveryBody(job,JSON.parse(job.event))})}
  async function remember(name:string,row:any){const record=JSON.stringify(row),id=await digest(`${name}\n${record}`);if(!history.has(id))history.set(id,{id,table_name:name,record})}
  for(const name of ['monitors','slots','outbox','notification_destinations','notification_jobs','integration_deliveries'])for(const row of t[name]){
   const original={...row};

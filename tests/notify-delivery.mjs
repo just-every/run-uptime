@@ -29,7 +29,10 @@ const overview=async()=>{const result=await api('/api/overview');assert.equal(re
 const setFixture=async mode=>{assert.equal((await fetch(`http://127.0.0.1:${fixturePort}/control`,{method:'POST',body:JSON.stringify({mode})})).status,200)};
 async function startWorker(){({worker,DB}=await migratedWorker({port:controlPort,persist,bindings,outboundService:async request=>{
  assert.equal(request.url,'https://api.sendgrid.com/v3/mail/send','only Base SendGrid endpoint uses Worker outbound');
- return fetch(`http://127.0.0.1:${mailPort}/v3/mail/send`,{method:request.method,headers:request.headers,body:await request.arrayBuffer(),redirect:'error'});
+ // The provider edge is a new HTTP hop: let fetch frame the unchanged bytes.
+ const headers=new Headers(request.headers);for(const name of ['host','connection','transfer-encoding','content-length'])headers.delete(name);
+ const response=await fetch(`http://127.0.0.1:${mailPort}/v3/mail/send`,{method:request.method,headers,body:await request.arrayBuffer(),redirect:'error'});
+ console.log('MAIL_EDGE '+JSON.stringify({status:response.status,received:receivers[0].records.length,invalid:receivers[0].errors.length}));return response;
  }}))}
 const runnerOptions=()=>[{origin,key,grantPath,localReview:true,transport},{origin,key:secondRunner.key,runnerId:secondRunner.runnerId,grantPath,localReview:true,transport}];
 async function runOnce(){const [first,second]=runnerOptions();await Promise.all([runRunner({...first,once:true}),runRunner({...first,once:true}),runRunner({...second,once:true})])}
@@ -37,7 +40,7 @@ async function startRunner(){runnerAbort=new AbortController();runnerPromise=Pro
 async function stopRunner(){if(runnerAbort){runnerAbort.abort();await runnerPromise;runnerAbort=null}}
 async function restart(){await stopRunner();await worker.dispose();worker=null;await startWorker();await startRunner()}
 async function testDestination(destination){const result=await api(`/api/notifications/destinations/${destination.id}/test`,'POST',{});assert.equal(result.status,202);assert.equal(result.data.queued,true);return result.data.deliveryId}
-async function settle(id,state){return waitFor(async()=>{const row=(await notifications()).deliveries.find(row=>row.id===id);return row?.state===state?row:null},`delivery reaches ${state}`)}
+async function settle(id,state){let last;try{return await waitFor(async()=>{const row=(await notifications()).deliveries.find(row=>row.id===id);last=row;return row?.state===state?row:null},`delivery reaches ${state}`)}catch(error){throw Error(`${error.message}; observed ${JSON.stringify({kind:last?.kind,state:last?.state,code:last?.code,attempts:last?.attempts,status:last?.status})}`)}}
 function assertNoSecrets(value){const text=typeof value==='string'?value:JSON.stringify(value);for(const credential of credentials)assert.ok(!text.includes(credential),'private notification credential cannot enter operator reads or archive');assert.ok(!text.includes(slackUrl),'Slack capability URL cannot enter operator reads or archive')}
 try{
  const mail=await acceptanceReceiver(mailPort,verifySendGrid);receivers.push(mail);
@@ -126,11 +129,12 @@ try{
   const count=receivers.map(receiver=>receiver.records.length);await restart();
   await new Promise(resolve=>setTimeout(resolve,2500));assert.deepEqual(receivers.map(receiver=>receiver.records.length),count,'redispatch after restart cannot duplicate accepted delivery');
  });
- await check('500 responses and 4xx rejection remain visible failed history without false acceptance',async()=>{
+ await check('500, 4xx and single-attempt 429 outcomes remain visible without false acceptance',async()=>{
   for(let index=0;index<destinations.length;index++){
    const receiver=receivers[index],destination=destinations[index];receiver.setDisposition('failed');
    const failed=await settle(await testDestination(destination),'uncertain');assert.ok(failed.code);assert.ok(failed.attempts>0);
-   receiver.setDisposition('rejected');const rejected=await settle(await testDestination(destination),'rejected');assert.ok(rejected.code);assert.ok(rejected.attempts>0);receiver.setDisposition('accepted');
+   receiver.setDisposition('rejected');const rejected=await settle(await testDestination(destination),'rejected');assert.ok(rejected.code);assert.ok(rejected.attempts>0);
+   receiver.setDisposition('rate_limited');const limited=await settle(await testDestination(destination),'rejected');assert.equal(limited.attempts,1,'non-deduplicating test sends never requeue a 429');receiver.setDisposition('accepted');
   }
  });
  await check('lost responses including mail stay uncertain and never automatically resend after restart',async()=>{
@@ -198,3 +202,9 @@ try{
  await stopRunner();if(restoreWorker)await restoreWorker.dispose();if(worker)await worker.dispose();if(fixture)await fixture.stop();
  await Promise.all(receivers.map(receiver=>receiver.close()));await cleanupDirectory(directory);console.error=originalConsoleError;
 }
+
+// One additional public-door journey; provider-edge responses are the only fake.
+const {test}=await import('node:test');
+const {proveNotificationRetry}=await import('./notify-retry-fixture.mjs');
+const {inspectEchoCustody}=await import('./notify-echo-fixture.mjs');
+test('DELIVERY-002 deduplicated retry honors Retry-After and stops on 4xx, and fallback contacts fire once with both outcomes visible across restart',{timeout:420000},()=>proveNotificationRetry(undefined,undefined,inspectEchoCustody));

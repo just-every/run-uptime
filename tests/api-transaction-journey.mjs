@@ -128,7 +128,7 @@ test('API-004 sandbox setup/teardown, cancellation, denied cleanup, retained deb
       assert.deepEqual((await receiving.DB.prepare('SELECT * FROM cleanup_debt ORDER BY rowid').all()).results,archived);
       assert.equal((await receiving.DB.prepare('SELECT COUNT(*) n FROM effect_grants').first()).n,0);
     } finally {await receiving.close()}
-    const prior=structuredClone(archive.data);prior.payload.extensionVersion=8;delete prior.payload.productTables.cleanup_debt;
+    const prior=structuredClone(archive.data);prior.payload.extensionVersion=8;delete prior.payload.productTables.cleanup_debt;delete prior.payload.productTables.notification_delivery_attempts;
     const older=await installation();
     try {
       assert.equal((await older.request('/api/restore',{body:{archive:rehash(prior)}})).status,200);

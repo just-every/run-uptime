@@ -1,0 +1,2 @@
+.route-fallback-contact { grid-column: span 2; }
+@media(max-width: 600px) { .route-fallback-contact { grid-column: auto; } }
