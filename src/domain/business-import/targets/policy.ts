@@ -2,6 +2,7 @@ import type {D1Database,D1Sql} from '../../../base/modules/import-kit/src/d1/typ
 import {canonicalJson} from '../../../base/modules/import-kit/src/provenance/identity.ts'
 import {grants,type Bindings} from '../../control.server.ts'
 import {assignRunners,type Runner} from '../../runner-registration.server.ts'
+import {actingExternalCheck} from '../../external-check.server.ts'
 // @ts-ignore Shared edition policy is JavaScript.
 import {validateDefinition} from '../../policy.mjs'
 import {sql} from './snapshots.ts'
@@ -23,7 +24,9 @@ export function assignmentGuard(env:Bindings,definition:any,{rows,external}:Awai
  const first=rows.find(row=>row.legacy_key)?.runner_id??rows[0].runner_id
  const normalized=validateDefinition(definition,grants(env))
  const assigned=assignRunners(runners,first,normalized,{assignments:definition.assignments},external,env.RER_DEMO!=='1',env.UPTIME_ORIGIN)
- if(canonicalJson(assigned)!==canonicalJson(definition))throw Error('BUSINESS_IMPORT_ASSIGNMENTS_CHANGED_REVIEW_AGAIN')
+ // A follower's copies, and the mode an older revision does not state, are not assignment changes: an undo restores such a
+ // revision as it was, and its checks follow Settings or keep their own URL as before.
+ if(canonicalJson(actingExternalCheck(assigned,external.legacyUrl))!==canonicalJson(actingExternalCheck(definition,external.legacyUrl)))throw Error('BUSINESS_IMPORT_ASSIGNMENTS_CHANGED_REVIEW_AGAIN')
  // Assignment authority is installation-local. Fence the set without selecting
  // runner secrets or noisy contact clocks into the retained import definition.
  return sql(`(SELECT COUNT(*) FROM runners)=? AND NOT EXISTS(

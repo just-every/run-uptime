@@ -30,6 +30,13 @@ export function followsSettings(definition:any,legacyUrl:string|null){
 export function externalCheckMode(definition:any,legacyUrl:string|null){
  return followsSettings(definition,legacyUrl)?'settings':canaries(definition).some(Boolean)?'own':undefined
 }
+// A revision with its external check as it acts: its mode stated, also for a revision saved before monitors followed Settings,
+// and no follower copies, which only record the URL in force when it was saved. Revisions that act alike compare equal.
+export function actingExternalCheck(definition:any,legacyUrl:string|null){
+ const mode=externalCheckMode(definition,legacyUrl),{externalCheck:_,...rest}=definition
+ if(mode!=='settings')return {...rest,...(mode?{externalCheck:mode}:{})}
+ return {...rest,externalCheck:mode,assignments:Object.fromEntries(Object.entries(definition.assignments).map(([probe,{canaryUrl:_copy,...assignment}]:[string,any])=>[probe,assignment]))}
+}
 // The definition a check of this revision runs: a follower's external checks use the URL in Settings now. Evidence and coverage
 // read only whether a check has an external check, which the stored copy already says.
 export function liveExternalCheck(definition:any,settings:ExternalCheck){
