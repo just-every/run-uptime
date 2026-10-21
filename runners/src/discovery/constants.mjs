@@ -17,7 +17,6 @@ export const MAX_HOSTS=10;
 export const MEMO_LIMIT=8;
 export const MAX_NOTES=10;
 export const MAX_PROPOSALS=12;
-export const MAX_SELECTED=4;
 export const HOP_LIMIT=4;
 export const HOST_GAP_MS=150;
 export const HOP_TIMEOUT_MS=8000;

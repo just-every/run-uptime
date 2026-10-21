@@ -20,7 +20,7 @@ try{
   await page.locator('#add-destination').click();let dialog=page.locator('dialog[aria-labelledby=destination-dialog-title]');await dialog.getByLabel('Type',{exact:true}).selectOption('webhook');
   await dialog.locator('summary').filter({hasText:'Import a saved UptimeRobot'}).click();
   const source={type:'Webhook',data:{friendlyName:`Payments receiver ${width}`,urlToNotify:url.href,postValue:'{"name":"*monitorFriendlyName*","type":*alertType*,"reason":"*alertDetails*","event":"{{event.id}}"}',sendAsQueryString:false,sendAsJSON:true,sendAsPostParameters:false,customHeaders:{'X-Api-Key':'source-value-discarded'}}};
-  await dialog.getByLabel('Saved webhook JSON').fill(JSON.stringify(source));await dialog.getByRole('button',{name:'Read source definition'}).click();await dialog.getByLabel('Name',{exact:true}).waitFor();
+  await dialog.getByLabel('Saved webhook JSON').fill(JSON.stringify(source));await dialog.getByRole('button',{name:'Read source definition'}).click();await dialog.getByLabel('Name (optional)',{exact:true}).waitFor();
   await page.waitForFunction(name=>document.querySelector('[name=name]')?.value===name,source.data.friendlyName);
   assert.equal(await dialog.getByLabel('Custom header values (JSON)').inputValue(),'');
   await dialog.getByLabel('Custom header values (JSON)').fill(JSON.stringify({'X-Api-Key':headerSecret+'\r\nInjected: true'}));

@@ -10,9 +10,6 @@ function chainLines(chain){
 // One note element per card for the page's lifetime: a refresh re-attaches the same node instead of creating another.
 const chainNotes=new WeakMap();
 export function mountDeliveryChain(area,notes,right){
- const history=area.querySelector('.notification-history > p');
- if(history)history.textContent='Email, Slack, unsigned webhooks, tests and drills use one attempt. Signed webhooks retry with a stable ID. Route fallbacks follow a failed or uncertain contact.';
- for(const title of [...area.querySelectorAll('.notification-help h3'),...(right?.querySelectorAll('.notification-help h3')??[])])if(title.textContent==='What delivery means')title.nextElementSibling.textContent='Accepted is a provider acknowledgment, not proof someone read it. Signed webhooks retry within saved limits. Other uncertain sends are never resent; a route fallback contact can be alerted instead.';
  const cards=new Map([...area.querySelectorAll('.delivery-card')].map(card=>[card.dataset.key,card]));
  for(const delivery of notes.deliveries){
   const card=cards.get(`delivery-${delivery.id}`);if(!card)continue;

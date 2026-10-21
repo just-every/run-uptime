@@ -1,4 +1,6 @@
 import {isPublicAddress} from '../base/modules/integrations/core/destination.ts';
+// Localhost is a loopback name even when a DNS-only resolver returns NXDOMAIN.
+export const isLoopbackHostname=host=>/(^|\.)localhost\.?$/i.test(host);
 // Preserve WHATWG numeric-address normalization for probe URLs; Base owns the
 // single conservative public-range policy shared with notification transports.
 export function publicAddress(address) {

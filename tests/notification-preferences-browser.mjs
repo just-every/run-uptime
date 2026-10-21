@@ -10,12 +10,13 @@ let worker,browser;
 try{
  ({worker}=await migratedWorker({port,persist:join(directory,'worker'),bindings:testAuthBindings}));
  browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});
- const context=await browser.newContext(),page=await context.newPage();
+ const browserZone='Australia/Brisbane',context=await browser.newContext({timezoneId:browserZone}),page=await context.newPage();
  assert.equal((await page.request.patch(origin+'/api/notifications/preferences',{headers:{origin},data:{timeZone:'America/New_York'}})).status(),401);
  await browserSignIn(page,origin);
  for(const [name,kind,address] of [['Checkout operations','email','operations@example.test'],['Payments Slack','slack','https://hooks.slack.com/services/TTEST/BTEST/local-test']]){
   assert.equal((await page.request.post(origin+'/api/notifications/destinations',{headers:{origin},data:{name,kind,...(kind==='email'?{address}:{url:address})}})).status(),201);
  }
+ await page.goto(origin+'/app#notifications');await page.locator('html.signed-in').waitFor();assert.equal((await (await page.request.get(origin+'/api/notifications')).json()).preferences.timeZone,browserZone,'fresh alert preferences use the browser zone');
  await mkdir(screens,{recursive:true});
  for(const width of [1440,390]){
   await page.setViewportSize({width,height:1000});await page.goto(origin+'/app#notifications');await page.locator('html.signed-in').waitFor();

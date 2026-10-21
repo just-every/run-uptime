@@ -43,5 +43,7 @@ export function createActionFeedback({load,render,publish,lock=()=>{}}) {
   return {get busy(){return busy},refresh,run,
     dispose(){disposed=true;++version;current=null;pendingRead=null;},
     announceBackground(message){if(disposed)return;feedback.background={message};emit();},
+    // An outcome belongs to the view where its action ran: the console clears it when the owner moves to another section.
+    clearAction(){if(disposed||busy||feedback.action.state==='idle')return;feedback.action={state:'idle',message:''};emit();},
   };
 }

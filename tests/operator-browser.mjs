@@ -45,7 +45,7 @@ async function unavailableJourney(page,width){
   assert.equal(await page.locator('#monitor-state').textContent(),'Unknown');
   assert.match(await page.locator('#read-notice').textContent(),/Last successful refresh/);
   assert.match(await page.locator('#latest-check-heading').textContent(),/Last recorded check/);
-  await audit(page,`unavailable-${width}`,{state:'Unknown',reason:/last successful refresh/i});
+  await audit(page,`unavailable-${width}`,{state:'Unknown',reason:/couldn.t refresh/i});
  }finally{await page.unroute(overviewRead)}
  await page.locator('#read-notice[data-state=recovered]').waitFor({timeout:12000});
  await page.locator('#monitor-state').filter({hasText:'Healthy'}).waitFor();
@@ -74,12 +74,12 @@ async function actionErrorJourney(page,monitor,width){
   const message=await page.locator('#action-notice').textContent();
   await nextPoll(page);assert.equal(await page.locator('#action-notice').textContent(),message,'successful polling preserves the failed action');
   assert.equal(await page.evaluate(()=>document.activeElement?.id),'run-monitor','action restores its initiating keyboard control');
-  await audit(page,`action-error-${width}`,{state:'Healthy',reason:/pass|coverage/i});
+  await audit(page,`action-error-${width}`,{state:'Healthy',reason:/^Up/});
  }finally{actionGate.resolve();readGate.resolve();await page.unroute(runURL,failAction);await page.unroute(overviewRead,holdRead)}
  assert.equal((await (await page.request.get(origin+`/api/monitors/${monitor.id}/history`)).json()).some(slot=>slot.manual),false,'failed action created no manual evidence');
 }
 async function editJourney(page,monitor,width){
- await page.getByRole('button',{name:'Edit check',exact:true}).click();await page.locator('.editor-ready').waitFor();
+ await page.getByRole('button',{name:'Edit',exact:true}).click();await page.locator('.editor-ready').waitFor();
  const fields={status:'200',body:'healthy',bodyExcludes:'unhealthy',regexPattern:'"ok":true',regexFlags:'i',headerName:'x-synthetic',headerValue:'local-review',jsonPath:'$.ok',jsonEquals:'true'};
  for(const [name,value] of Object.entries(fields))assert.equal(await page.locator(`[name=${name}]:visible`).inputValue(),value,'editing preserves '+name);
  // A JSON rule with no value to equal is refused in the form and makes no revision.
@@ -91,7 +91,7 @@ async function editJourney(page,monitor,width){
  assert.equal(before.monitors.find(m=>m.id===monitor.id).revision,monitor.revision,'a refused rule made no revision');
  await audit(page,`assertion-refusal-${width}`);
  await page.locator('[name=jsonEquals]:visible').fill('true');
- await addRule(page,'Responds within');await page.locator('[name=latencyMs]:visible').fill('10000');
+ await addRule(page,'Responds within');await page.locator('[name=latencyMs]:visible').fill('10');
  // A real scheduled pass will age out before the next one; no clocks or stored observations are fabricated.
  await page.locator('[name=intervalMinutes]:visible').fill('1');
  await page.locator('[name=confirmSlots]:visible').fill('1');await page.locator('[name=recoverSlots]:visible').fill('1');
@@ -99,11 +99,11 @@ async function editJourney(page,monitor,width){
  await page.locator('#monitor-state').filter({hasText:'Healthy'}).waitFor({timeout:18000});
  const after=await (await page.request.get(origin+'/api/overview')).json(),saved=after.monitors.find(m=>m.id===monitor.id);
  assert.equal(saved.revision,monitor.revision+1);assert.deepEqual(saved.definition.assertions,{...monitor.definition.assertions,latencyMs:10000});
- await page.getByRole('button',{name:'Edit check',exact:true}).click();await page.locator('.editor-ready').waitFor();
- assert.equal(await page.locator('[name=jsonEquals]:visible').inputValue(),'true');assert.equal(await page.locator('[name=latencyMs]:visible').inputValue(),'10000');
+ await page.getByRole('button',{name:'Edit',exact:true}).click();await page.locator('.editor-ready').waitFor();
+ assert.equal(await page.locator('[name=jsonEquals]:visible').inputValue(),'true');assert.equal(await page.locator('[name=latencyMs]:visible').inputValue(),'10');
  await page.locator('.editor-cancel:visible').click();await ready(page);
  await page.locator('#monitor-state').filter({hasText:'Unknown'}).waitFor({timeout:22000});
- await audit(page,`stale-${width}`,{state:'Unknown',reason:/fresh|stale|expired|missing/i});
+ await audit(page,`stale-${width}`,{state:'Unknown',reason:/recent result|waiting/i});
  assert.ok(await page.locator('.detail-time time').count(),'stale state retains the last real check time');
  const history=await (await page.request.get(origin+`/api/monitors/${monitor.id}/history`)).json();
  assert.ok(history.some(slot=>slot.revision===monitor.revision),'old assertion revision evidence remains');
@@ -117,7 +117,7 @@ try{
    const page=await context.newPage(),errors=[];page.on('pageerror',error=>errors.push(error.message));
    await browserSignIn(page,origin,{bootstrap:false});
    // The installation has no monitors before the first width: the console opens straight into the new-monitor form.
-   if(width===1440){await page.waitForURL(url=>url.pathname==='/app/monitor');await page.locator('.editor-context-ready').waitFor();assert.equal(await page.locator('h1').textContent(),'Add your first monitor');await audit(page,`editor-${width}`)}
+   if(width===1440){await page.waitForURL(url=>url.pathname==='/app/monitor');await page.locator('.editor-context-ready').waitFor();assert.equal(await page.locator('h1').textContent(),'Add your first monitor');await audit(page,`editor-${width}`);await page.locator('#discovery-manual').click()}
    else{await ready(page);await audit(page,`console-${width}`);
     await tabTo(page,page.getByRole('button',{name:'New monitor',exact:true}));await page.keyboard.press('Enter');
     await page.locator('.editor-ready').waitFor();await audit(page,`editor-${width}`);await page.locator('#discovery-manual').click()}
@@ -131,18 +131,18 @@ try{
    await page.locator('input[name=probes][value=local-b]:visible').check();await page.getByRole('button',{name:'Save monitor'}).click();await ready(page);
    const overview=await (await page.request.get(origin+'/api/overview')).json(),monitor=overview.monitors.find(m=>m.definition.name===name);
    assert.ok(monitor);assert.equal(monitor.definition.probes.length,2);assert.equal(Object.keys(monitor.definition.assignments).length,2);
-   await page.locator(`.monitor-list a.monitor-link[href="/app/monitors/${encodeURIComponent(monitor.id)}"]`).click();await ready(page);
+   await page.waitForURL(url=>url.pathname===`/app/monitors/${monitor.id}`);await ready(page);
    await page.locator('#monitor-state').filter({hasText:'Healthy'}).waitFor({timeout:18000});await page.locator('#raw-history details').first().waitFor();
-   await audit(page,`healthy-${width}`,{state:'Healthy',reason:/pass|coverage/i});
+   await audit(page,`healthy-${width}`,{state:'Healthy',reason:/^Up/});
    await unavailableJourney(page,width);await actionErrorJourney(page,monitor,width);
-   await page.getByRole('button',{name:'Run now',exact:true}).click();await page.locator('#raw-history summary').filter({hasText:/Manual check complete · \d+ attempts?/}).first().waitFor({timeout:12000});
+   await page.getByRole('button',{name:'Run now',exact:true}).click();await page.locator('#raw-history summary').filter({hasText:/Manual check complete · .+[✓✗]/}).first().waitFor({timeout:12000});
    await page.locator('#raw-history details').first().locator('summary').click();
    const summary=page.locator('#raw-history details[open] summary').first();await summary.focus();const summaryId=await summary.getAttribute('id');
    await nextPoll(page);assert.equal(await page.evaluate(()=>document.activeElement?.id),summaryId,'history keyboard focus survives polling');
    assert.ok(await page.locator('#raw-history details[open]').count()>0,'expanded immutable evidence survives polling');
    await editJourney(page,monitor,width);
    await tabTo(page,page.getByRole('button',{name:'Pause',exact:true}));await page.keyboard.press('Enter');await page.locator('#monitor-state').filter({hasText:'Paused'}).waitFor();
-   await page.getByRole('button',{name:'Authorize & resume',exact:true}).click();await page.getByRole('button',{name:'Maintenance 15m'}).click();await page.getByRole('button',{name:'End maintenance'}).waitFor();await page.getByRole('button',{name:'End maintenance'}).click();await page.getByRole('button',{name:'Pause',exact:true}).click();await page.getByRole('button',{name:'Authorize & resume',exact:true}).waitFor();
+   await page.getByRole('button',{name:'Resume',exact:true}).click();await page.getByText('More',{exact:true}).click();await page.getByRole('button',{name:'Maintenance 15 min'}).click();await page.getByText('More',{exact:true}).click();await page.getByRole('button',{name:'End maintenance'}).waitFor();await page.getByRole('button',{name:'End maintenance'}).click();await page.getByRole('button',{name:'Pause',exact:true}).click();await page.getByRole('button',{name:'Resume',exact:true}).waitFor();
    await tabTo(page,page.getByRole('link',{name:'Notifications',exact:true}));await page.keyboard.press('Enter');await page.waitForURL(origin+'/app#notifications');await ready(page);await page.getByRole('heading',{name:'Destinations · all monitors',exact:true}).waitFor();await audit(page,`notifications-${width}`);
    await page.getByRole('link',{name:'Archive',exact:true}).click();await audit(page,`archive-${width}`);
    const [download]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'Download backup'}).click()]);await download.saveAs(resolve(out,`archive-${width}.json`));

@@ -17,7 +17,7 @@ try{
   for(const period of ['last-month','ytd']){
    await page.locator('#report-period').selectOption(period);await page.locator('#report-zone').fill('America/New_York');await page.locator('#report-bucket').selectOption('1d');
    const ready=page.waitForResponse(r=>r.url().includes('/report?')&&r.request().method()==='GET');await page.locator('#report-generate').click();const response=await ready;assert.equal(response.status(),200);const report=await response.json();
-   await page.getByText('Report generated. The snapshot below stays fixed until you generate another report.',{exact:true}).waitFor();assert.equal(report.period.period,period);assert.equal(report.period.timeZone,'America/New_York');
+   await page.getByText('Report generated.',{exact:true}).waitFor();assert.equal(report.period.period,period);assert.equal(report.period.timeZone,'America/New_York');
    await check('calendar-'+period+'-'+width,'#monitor-report');
    const query=new URLSearchParams({from:String(report.period.from),to:String(report.period.to),timeZone:report.period.timeZone,monitor:ids[0]});
    const bulk=await page.request.get(origin+'/api/v1/uptime?'+query);assert.equal(bulk.status(),200);assert.deepEqual((await bulk.json()).monitors[0].availability,report.availability);

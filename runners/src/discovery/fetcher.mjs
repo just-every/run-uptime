@@ -7,7 +7,7 @@ const mimeOf=headers=>String(headers?.['content-type']??'').split(';')[0].trim()
 export const isHtml=mime=>mime==='text/html'||mime==='application/xhtml+xml';
 export const isJson=mime=>mime==='application/json'||mime.endsWith('+json');
 export const isText=mime=>mime==='text/plain';
-const FAILURES={network:'refused',dns:'dns',timeout:'timeout',connection:'connection',redirect:'redirect',encoding:'encoding',transport:'transport',method:'method',runner:'runner'};
+const FAILURES={network:'refused',unresolved:'unresolved',dns:'dns',timeout:'timeout',connection:'connection',redirect:'redirect',encoding:'encoding',transport:'transport',method:'method',runner:'runner'};
 // Every discovery request goes through here: one budget, robots.txt, back-off, and the caller's report transport
 // (the runner's pinned socket, or the Worker's fetch in a hosted demo).
 // Results carry derived facts and, in memory only, the body for the caller to parse; nothing is stored or logged.
@@ -41,6 +41,8 @@ export function createFetcher({budget,notes,scope,transport}){
     let start;
     try{start=new URL(rawUrl)}catch{return failure('refused',rawUrl)}
     if(remember&&method==='GET'&&memo.has(start.href))return memo.get(start.href);
+    // A refusal after a request went out came from a redirect hop: the address it named failed public validation.
+    let sent=0;
     const gate=async url=>{
       if(!owner){
         const host=bareHost(url.hostname),state=await robotsFor(url,quiet);
@@ -50,6 +52,7 @@ export function createFetcher({budget,notes,scope,transport}){
         }
       }
       await budget.admit(url);
+      sent++;
     };
     const followRedirect=next=>{
       if(follow==='none')return false;
@@ -69,14 +72,12 @@ export function createFetcher({budget,notes,scope,transport}){
       if(error instanceof DiscoveryStop){stops.add(error.reason);return failure(error.reason,rawUrl,{detail:error.detail})}
       if(budget.cancelled)throw budget.signal.reason;
       if(budget.timedOut){stops.add('time');return failure('time',rawUrl)}
-      if(error instanceof ProbeError)return failure(FAILURES[error.category]??'connection',rawUrl,{category:error.category});
+      if(error instanceof ProbeError)return failure(FAILURES[error.category]??'connection',rawUrl,{category:error.category,...(sent?{redirected:true}:{})});
       if(error?.name==='AbortError'||error?.name==='TimeoutError')return failure('timeout',rawUrl);
       // publicTarget's own refusals (private literal, bad host, credentials); anything else is a bug and must surface.
       if(error instanceof Error&&/^(Invalid public|Public target)/.test(error.message))return failure('refused',rawUrl);
       throw error;
     }
   }
-  // Counts the hosts whose robots.txt was actually read; a host that could not be reached or served none is not among them.
-  const readRobots=()=>Promise.allSettled([...robots.values()]).then(states=>states.filter(state=>state.status==='fulfilled'&&!state.value.blocked).length);
-  return {get,stops,readRobots};
+  return {get,stops};
 }

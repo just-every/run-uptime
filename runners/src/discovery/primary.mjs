@@ -1,4 +1,4 @@
-import {publicTarget} from '../../../src/domain/public-target.mjs';
+import {publicTarget,isLoopbackHostname} from '../../../src/domain/public-target.mjs';
 import {PROBE_ACCEPT} from '../probe-error.mjs';
 import {HTML_ACCEPT,JSON_ASSERT_LIMIT,PARSE_BODY_CAP} from './constants.mjs';
 import {bareHost,isApiHost,isStatusHost,registrableDomain} from './domain.mjs';
@@ -6,7 +6,7 @@ import {isHtml,isJson} from './fetcher.mjs';
 import {brandFromTitle,parseHtml} from './html.mjs';
 import {healthAssertion,parseJson} from './json-health.mjs';
 import {chooseMethod,makeProposal,ms,RANK} from './proposal.mjs';
-import {brandOf,pasteName} from './naming.mjs';
+import {pasteName} from './naming.mjs';
 const tidy=href=>{const url=new URL(href);return url.pathname==='/'&&!url.search?`${url.protocol}//${url.host}`:url.href};
 const hostOf=value=>bareHost(new URL(value).hostname);
 // The owner's text becomes a public http(s) URL, or a plain-language reason it cannot.
@@ -18,13 +18,17 @@ export function normalizeInput(input){
   if(!['http:','https:'].includes(url.protocol))return {note:'Only http and https addresses can be monitored.'};
   if(url.username||url.password)return {note:'Addresses with a username or password are not checked; credentials stay in the runner installation.'};
   url.hash='';
-  try{return {url:publicTarget(url.href)}}catch(error){
-    return {note:/forbidden/.test(error.message)?`${bareHost(url.hostname)} is a private, loopback or link-local address, so it was not contacted. Uptime only monitors public addresses.`:'That is not a valid public web address.'};
+  try{
+    if(isLoopbackHostname(url.hostname))throw Error('Public target address forbidden');
+    return {url:publicTarget(url.href)}
+  }catch(error){
+    return {note:/forbidden/.test(error.message)?`${bareHost(url.hostname)} is a private, loopback or link-local address, so it was not contacted. Use a private-network monitor to check it.`:'That is not a valid public web address.'};
   }
 }
 export function explainFailure(failure,host){
   switch(failure.reason){
-    case 'refused':return `${host} could not be found, or points to a private address, so it was not contacted.`;
+    case 'refused':return failure.redirected?`${host} redirected to a private address, so the redirect was not followed.`:`${host} points to a private address, so it was not contacted.`;
+    case 'unresolved':return `We couldn't find ${host}. Check the spelling.`;
     case 'dns':return `Could not look up ${host}.`;
     case 'timeout':case 'time':return `${host} did not answer in time.`;
     case 'connection':return `Could not connect to ${host}.`;
@@ -84,7 +88,7 @@ export async function runPrimary({target,fetcher,notes,scope}){
   }
   const kind=json?'health':isApi?'api':isStatusHost(host)||label.includes('status')||/\bstatus( page)?$/i.test(facts.title)?'status-page':'page';
   const evidence=authenticated?`answers ${choice.status} without a key, so it is alive · ${ms(observedMs)}`:`${choice.status} in ${ms(observedMs)}`;
-  const brand=brandOf({facts,label}),name=pasteName({brand,url:finalUrl,isApi});
+  const brand=host,name=pasteName({brand,url:finalUrl,isApi});
   const proposal=makeProposal({kind,rank:RANK.page,name,url:first.url,method:choice.method,status:choice.status,observedMs,keyword,json,oversize:choice.oversize,
     reason:redirected?`${tidy(target.href)} redirects here · ${evidence}`:evidence});
   return {finalUrl:first.url,context:{url:finalUrl,host,facts,isApi,brand,proposal}};

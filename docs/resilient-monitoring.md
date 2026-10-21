@@ -35,7 +35,7 @@ C5's pinned address resolution and protected runner-local target credentials rem
 
 ## Mail
 
-Setup selects Base's `MAIL_PROVIDER`: `resend`, `sendgrid` or `cloudflare`, with `MAIL_FROM`. Resend uses `MAIL_PROVIDER_API_KEY`; SendGrid retains `SENDGRID_API_KEY`; Cloudflare Email Sending uses `CLOUDFLARE_MAIL_API_KEY` and `MAIL_ACCOUNT_ID`. Development uses the configured sender too; there is no captured-mail page. Managed hosting supplies its scoped RER relay configuration automatically. There is no automatic fallback between providers. Production mail acceptance needs the owner's verified sender and receiving-mailbox proof.
+Setup selects Base's `MAIL_PROVIDER`: `resend`, `sendgrid` or `cloudflare`, with `MAIL_FROM`. Resend uses `MAIL_PROVIDER_API_KEY`; SendGrid retains `SENDGRID_API_KEY`; Cloudflare Email Sending uses `CLOUDFLARE_MAIL_API_KEY` and `MAIL_ACCOUNT_ID`. Development and demo email completes successfully without sending. Managed hosting supplies its scoped RER relay configuration automatically. There is no automatic fallback between providers. Production mail acceptance needs the owner's verified sender and receiving-mailbox proof.
 
 ## Durable auxiliary execution (OPS-001)
 

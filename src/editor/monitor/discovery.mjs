@@ -12,7 +12,8 @@ export function mountDiscovery({form,overview,openCheck,showManualForm}){
  const plan=networkPlan(overview),workerAnswers=overview.runner.workerDiscovery===true,needsRunner=overview.runner.hosted&&!overview.runner.privateRunnerReady&&!workerAnswers;
  if(overview.runner.hosted&&!workerAnswers){help.textContent='Website discovery needs a private runner. Public HTTP and keyword monitors can run in the Cloudflare Worker; choose Fill in the form yourself to add one.';const command=document.createElement('pre');command.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere';command.textContent=overview.runner.privateRunnerCommand;help.append(command)}
  const results=createResults({root,form,plan,onFeedback:text=>{feedback.textContent=text},onStarted:id=>{location.href=id?`/app/monitors/${encodeURIComponent(id)}`:'/app'}});
- let control,timer,state;
+ // What the owner typed: a private check of an address typed without a scheme opens as http://, as a local server usually is.
+ let control,timer,state,entered='';
  const stopTimer=()=>{clearInterval(timer);timer=undefined};
  const setCheckParam=id=>{const url=new URL(location.href);if(id)url.searchParams.set('discovery',id);else url.searchParams.delete('discovery');history.replaceState(null,'',url)};
  function show(next,label='Check'){
@@ -24,15 +25,20 @@ export function mountDiscovery({form,overview,openCheck,showManualForm}){
   result.hidden=next!=='result';problem.hidden=next!=='problem';
   if(!busy){stopTimer();status.replaceChildren();status.removeAttribute('data-state')}
  }
+ function privateLink(container,url){
+  try{if(!['http:','https:'].includes(new URL(url).protocol))return}catch{return}
+  const link=document.createElement('a');link.className='ui-link';link.textContent='Check a private address';
+  link.href='/app/monitor?'+new URLSearchParams({manual:'1',network:'private',url});container.append(link);
+ }
  function fail(message){
   show('problem','Check again');
-  const text=document.createElement('p');text.textContent=message;problem.replaceChildren(text);
+  const text=document.createElement('p');text.textContent=message;problem.replaceChildren(text);privateLink(problem,entered&&!SCHEME.test(entered)?`http://${entered}`:input.value);
   problem.focus();
  }
  function succeed(job){
   show('result','Check again');
   status.textContent=checkedLine(job,job.result);
-  results.render(job);results.focusHeading();
+  results.render(job);if(!job.result.proposals.length)privateLink($('#discovery-empty'),job.url);results.focusHeading();
  }
  // The aria-live line: what is being checked and from which network, with the seconds so far beside it.
  function showProgress(url){
@@ -43,7 +49,7 @@ export function mountDiscovery({form,overview,openCheck,showManualForm}){
   return job=>{
    const host=hostOf(job?.url??url);
    if(job?.url&&!input.value)input.value=job.url;
-   line.nodeValue=`Checking ${host||'your website'}${job?.networkLabel?` from ${job.networkLabel}`:''}…`;
+   line.nodeValue=`Looking at ${host||'your website'}${job?.networkLabel?` from ${job.networkLabel}`:''}…`;
   };
  }
  async function watch(id,say){
@@ -57,7 +63,7 @@ export function mountDiscovery({form,overview,openCheck,showManualForm}){
  }
  const restart=()=>{control?.abort();control=new AbortController();show('checking')};
  async function begin(){
-  const text=input.value.trim();
+  const text=input.value.trim();entered=text;
   if(!text){fail('Enter the address of your website, such as https://example.com.');input.focus();return}
   const url=SCHEME.test(text)?text:`https://${text}`;
   input.value=url;feedback.textContent='';

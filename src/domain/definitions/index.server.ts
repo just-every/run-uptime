@@ -15,7 +15,7 @@ export function recogniseSource(text:string,source='auto'):string{
   if((source==='auto'||source===HISTORY_SOURCE)&&recogniseHistory(text))return HISTORY_SOURCE
   // A JSON file no importer recognises: name the JSON error first, if there is one.
   if(source==='auto'&&/^\s*[[{]/.test(text))jsonValues(text,'file')
-  throw new DefinitionFileError(source===HISTORY_SOURCE?'This is not a recognised UptimeRobot log export (CSV with a date or time column and an event column).':'Unrecognised file. Use an Uptime definition file (uptime.monitors.json), saved UptimeRobot v3 GET /monitors pages, or an UptimeRobot log export (CSV).')
+  throw new DefinitionFileError(source===HISTORY_SOURCE?'This is not a recognised UptimeRobot log export (CSV with a date or time column and an event column).':'Unrecognised file. Use an Uptime monitor file (uptime.monitors.json), saved UptimeRobot v3 GET /monitors pages, or an UptimeRobot log export (CSV).')
  }
  importer.entries(text)
  return importer.source

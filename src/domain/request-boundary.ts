@@ -80,6 +80,7 @@ export const apiRoutes:readonly Route[]=[
  {method:'POST',path:'/api/runner/discoveries/claim',body:'empty'},
  {method:'POST',path:'/api/runner/discoveries/:id/result',params:{id:uuid},body:'object'},
  {method:'GET',path:'/api/archive',body:'none'},
+ {method:'GET',path:'/api/archive/restore-status',body:'none'},
  {method:'POST',path:'/api/restore',body:'object'},
  // A definitions file is JSON, NDJSON or CSV text; its importer reads it, refusing anything it cannot read.
  {method:'POST',path:'/api/definitions/recognise',query:{source},body:'text'},

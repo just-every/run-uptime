@@ -2,33 +2,37 @@ import {api} from './api.mjs';
 import {mountManualForm,prepareManualForm,prefillManualForm,NEW_MONITOR} from './manual.mjs';
 import {mountDiscovery} from './discovery.mjs';
 import {bindRules} from './rules.mjs';
+import {showType} from './protocol-fields.mjs';
 
 // Static fields are editable immediately. Current runner configuration and
 // existing definitions always come from the owner API before Save is enabled.
-// With no monitors yet, setup and the empty console send the owner here with ?first: the page is "Add your first
-// monitor", the form itself, with website discovery and import one click away.
+// Setup and the empty console send the owner to the same website-first create screen.
 export async function mountMonitorEditor(signal){
  const form=document.querySelector('#monitor-form'),message=document.querySelector('#editor-feedback'),notice=document.querySelector('#editor-notice');
  const params=new URL(location.href).searchParams,id=params.get('monitor'),discovery=document.querySelector('#discovery');
  const description=document.querySelector('.editor-description'),manual=document.querySelector('#discovery-manual');
+ const loading=document.querySelector('#editor-loading');
+ document.querySelector('h1').textContent=id?'Edit monitor':params.has('first')?'Add your first monitor':'New monitor';
  document.documentElement.classList.remove('editor-ready','editor-context-ready');
  if(!form.dataset.rulesBound){form.dataset.rulesBound='true';bindRules(form)}
  let first=!id&&params.has('first')&&!params.get('discovery');
- const showManualForm=({url:typed=''}={})=>{
+ const showManualForm=({url:typed='',network='public'}={})=>{
   const url=typed&&!/^[a-z][a-z0-9+.-]*:\/\//i.test(typed)?'https://'+typed:typed;
   discovery.hidden=true;description.hidden=!description.textContent;form.hidden=false;
   let host='';try{host=new URL(url).hostname.replace(/^www\./,'')}catch{}
   prefillManualForm(form,{url,name:host});
+  form.elements.networkScope.value=network;showType(form,form.elements.checkType.value);
   form.elements.namedItem(url?'name':'url').focus();
  };
  const firstLook=()=>{
   document.title='Add your first monitor · Uptime';document.querySelector('h1').textContent='Add your first monitor';
   document.querySelector('.editor-back').hidden=true;form.querySelector('.editor-cancel').hidden=true;
   const links=document.querySelector('.editor-first-links');links.hidden=false;
-  document.querySelector('#first-run-discovery').onclick=()=>{form.hidden=true;discovery.hidden=false;links.hidden=true;document.querySelector('#discovery-url').focus()};
  };
  try{
   const context=api('/api/monitor-editor'+(id?'?monitor='+encodeURIComponent(id):''),'GET',undefined,{signal});
+  // The other monitors, for the labels' "Depends on" list; the form works without them.
+  const others=api('/api/overview','GET',undefined,{signal}).then(all=>all.monitors.map(monitor=>({id:monitor.id,name:monitor.definition.name})),()=>[]);
   if(!id){
    prepareManualForm(form,NEW_MONITOR);
    const loading=document.createElement('p');loading.className='loading-note';loading.role='status';loading.textContent='Loading runners…';
@@ -38,18 +42,20 @@ export async function mountMonitorEditor(signal){
    document.querySelector('#discovery-url').disabled=true;document.querySelector('#discovery-check').disabled=true;
    document.querySelector('#discovery-help').textContent='Checking which runners are available…';
    manual.onclick=()=>showManualForm();
-   if(first){firstLook();showManualForm()}
+   if(first)firstLook();
+   if(params.has('manual'))showManualForm({url:params.get('url')??'',network:params.get('network')==='private'?'private':'public'});
    document.documentElement.classList.add('editor-ready');
   }
   const overview=await context;
   if(signal.aborted)return;
+  loading.hidden=true;
   const definition=id?overview.definition:NEW_MONITOR;
   if(!definition)throw Error('Monitor missing');
   if(!first){document.title=id?'Edit monitor · Uptime':'New monitor · Uptime';document.querySelector('h1').textContent=id?'Edit monitor':'New monitor'}
   const returnTo=id?'/app/monitors/'+encodeURIComponent(id):'/app',back=document.querySelector('.editor-back');
   back.href=returnTo;if(id)back.lastChild.textContent='Back to monitor';form.querySelector('.editor-cancel').href=returnTo;
   form.querySelector('.loading-note')?.remove();
-  mountManualForm({form,overview,definition,id,returnTo,message,preserveFields:!id});
+  mountManualForm({form,overview,definition,id,returnTo,message,monitors:await others,preserveFields:!id});
   document.querySelector('#editor-signout').onclick=async event=>{event.preventDefault();try{await api('/api/auth/sign-out','POST',{});window.dispatchEvent(new Event('uptime:auth-lost'));location.href='/login'}catch(error){notice.textContent=error.message;notice.hidden=false}};
   if(id)form.hidden=false;
   // Without a runner that can look at a website (a hosted installation with no private runner in contact, outside a demo),
@@ -68,5 +74,5 @@ export async function mountMonitorEditor(signal){
    if(opened){discovery.hidden=true;focused?.focus()}
   }
   document.documentElement.classList.add('editor-ready','editor-context-ready');
- }catch(error){if(signal.aborted)return;form.querySelector('.loading-note')?.remove();form.hidden=false;message.textContent=error.message+' — return to the console to sign in.';message.setAttribute('data-error','')}
+ }catch(error){if(signal.aborted)return;loading.hidden=true;form.querySelector('.loading-note')?.remove();form.hidden=false;message.textContent=error.message+' — return to the console to sign in.';message.setAttribute('data-error','')}
 }

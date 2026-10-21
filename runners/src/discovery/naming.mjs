@@ -1,15 +1,10 @@
-import {brandFromTitle} from './html.mjs';
 import {clip} from './text.mjs';
-// Names follow one style: the brand first, then plain words for what is watched ("Supabase API", "Supabase pricing page"), never a raw path or hostname.
+// Names start with the site's host, then plain words for what is watched.
 const PAGE_NOUN={pricing:'pricing page',docs:'docs',login:'login page',signin:'sign-in page','sign-in':'sign-in page',contact:'contact page',about:'about page',blog:'blog'};
 const HOST_NOUN={docs:'docs',app:'app',dashboard:'dashboard',console:'console',developers:'developer site',developer:'developer site',help:'help centre',support:'support site',portal:'portal'};
 export const pageNoun=key=>PAGE_NOUN[key];
 export const hostNoun=label=>HOST_NOUN[label];
 const readable=segment=>{try{segment=decodeURIComponent(segment)}catch{}return segment.replace(/[-_+]+/g,' ').replace(/\s+/g,' ').trim().toLowerCase()};
-// The brand of a site: its declared name, the title segment that names the domain, else the domain's own name capitalised.
-export function brandOf({facts,label}){
-  return facts.siteName||brandFromTitle(facts.title,label)||label.charAt(0).toUpperCase()+label.slice(1);
-}
 // "Supabase" + "status page" -> "Supabase status page"; a brand that already ends in the noun's first word is not doubled.
 export function named(brand,noun,max=100){
   const first=noun.split(' ')[0].toLowerCase(),words=brand.split(' ');

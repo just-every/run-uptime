@@ -21,7 +21,7 @@
 .discovery-status { min-height: 0; margin-top: 10px; color: var(--muted); font-size: 14px; line-height: 1.5; font-variant-numeric: tabular-nums; }
 .discovery-status:empty { display: none; }
 .discovery-status[data-state="checking"] { color: var(--ink); font-weight: 500; }
-.discovery-status[data-state="checking"]::before { content: ""; display: inline-block; width: 8px; height: 8px; margin: 0 8px 1px 0; border-radius: 50%; background: var(--peach); }
+.discovery-status[data-state="checking"]::before { content: ""; display: inline-block; width: 12px; height: 12px; margin: 0 8px 1px 0; border: 2px solid var(--line); border-top-color: var(--ink); border-radius: 50%; vertical-align: middle; animation: discovery-spin 1s linear infinite; }
 .discovery-panel .ui-helper { margin-top: 10px; }
 .discovery-manual { margin-top: 14px; }
 .discovery-manual .ui-link { font-size: 14px; font-weight: 500; }
@@ -39,12 +39,12 @@
 .proposal-list { display: grid; gap: 12px; }
 
 /* One proposed monitor: a card with the tick at its left, then the identity, the checks and the chevron. */
-.proposal { display: grid; grid-template-columns: 64px minmax(0, 1fr); align-items: center; border: 1px solid var(--line-strong); border-radius: var(--radius-panel); background: var(--card); box-shadow: var(--shadow-sm); }
+.proposal { position: relative; display: grid; grid-template-columns: 64px minmax(0, 1fr); align-items: center; border: 1px solid var(--line-strong); border-radius: var(--radius-panel); background: var(--card); box-shadow: var(--shadow-sm); }
 .proposal.is-started { background: var(--green-soft); border-color: transparent; }
 .proposal-pick { justify-self: center; align-self: start; margin-top: 29px; width: 26px; height: 26px; min-width: 26px; }
-.proposal-details { min-width: 0; }
-.proposal-summary { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) 36px; align-items: center; gap: 0; min-height: 84px; padding: 12px 0; border-radius: var(--radius-panel); }
-.proposal-summary::after { grid-column: 3; justify-self: center; width: 9px; height: 9px; margin: -4px 0 0; }
+.proposal-details { min-width: 0; grid-column: 2; }
+.proposal-summary { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: center; gap: 0; min-height: 84px; padding: 12px 64px 12px 0; cursor: pointer; border-radius: var(--radius-panel); }
+.proposal-edit { position: absolute; top: 20px; right: 12px; gap: 6px; font-size: 13px; }
 .proposal-identity { display: grid; gap: 2px; min-width: 0; padding-right: 20px; }
 .proposal-name { color: var(--ink); font-size: 16px; font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
 .proposal-url { color: var(--body); font-size: 14px; font-weight: 400; line-height: 1.45; overflow-wrap: anywhere; }
@@ -52,7 +52,7 @@
 .proposal-checks { display: grid; gap: 3px; align-content: center; min-width: 0; min-height: 52px; padding: 2px 16px 2px 28px; border-left: 1px solid var(--line); }
 .proposal-checks-label { color: var(--ink); font-size: 14px; font-weight: 600; }
 .proposal-checks-text { color: var(--muted); font-size: 13.5px; font-weight: 400; line-height: 1.45; }
-.proposal-details[open] > .proposal-summary::after { margin-top: 4px; }
+
 
 /* The expanded row holds the same fields as the full form, flattened out of their cards. */
 .proposal-fields { padding: 8px 24px 24px 0; }
@@ -82,10 +82,9 @@
 #discovery-result .editor-actions button { min-width: 190px; }
 
 @media (max-width: 960px) {
-  .proposal-summary { grid-template-columns: minmax(0, 1fr) 36px; }
+  .proposal-summary { grid-template-columns: minmax(0, 1fr); }
   .proposal-identity { grid-column: 1; }
   .proposal-checks { grid-column: 1; margin-top: 10px; padding: 10px 12px 0 0; border-left: 0; border-top: 1px solid var(--line); min-height: 0; }
-  .proposal-summary::after { grid-column: 2; grid-row: 1 / span 2; }
 }
 @media (max-width: 700px) {
   .discovery { gap: 16px; }
@@ -96,7 +95,8 @@
   .discovery-proposals h2 { font-size: 20px; }
   .proposal { grid-template-columns: 48px minmax(0, 1fr); }
   .proposal-pick { width: 24px; height: 24px; min-width: 24px; margin-top: 15px; }
-  .proposal-summary { min-height: 0; padding: 12px 0; }
+  .proposal-summary { min-height: 0; padding: 12px 56px 12px 0; }
+  .proposal-edit { top: 4px; right: 8px; }
   .proposal-identity { padding-right: 8px; }
   .proposal-name { font-size: 15px; }
   .proposal-fields { padding-right: 14px; }
@@ -105,3 +105,6 @@
   #discovery-result .editor-actions button { flex: 1 1 auto; min-width: 0; }
   #discovery-result .editor-cancel { flex: 0 0 auto; }
 }
+
+@keyframes discovery-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .discovery-status[data-state="checking"]::before { animation: none; } }

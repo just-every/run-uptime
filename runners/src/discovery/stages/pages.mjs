@@ -6,7 +6,7 @@ const WANTED=['pricing','docs','login','signin','sign-in','contact','about','blo
 const MAX_PAGES=2;
 const topLevel=url=>{const parts=url.pathname.split('/').filter(Boolean);return parts.length===1&&!url.search?parts[0].toLowerCase():null};
 // A couple of representative pages of the same site (pricing, docs, login ...), from the page's own links and, if those are
-// not enough, a plain sitemap. They are offered but never ticked by default.
+// not enough, a plain sitemap. Those that answer 200 are ticked by default.
 export async function pagesStage({fetcher,context,known}){
   const found=new Map(),add=(url,source)=>{const name=topLevel(url);if(name&&WANTED.includes(name)&&!found.has(name)&&!known.has(url.href))found.set(name,{url:url.href,source})};
   for(const link of context.facts.links){const url=new URL(link);if(bareHost(url.hostname)===context.host)add(url,'Linked from the home page')}

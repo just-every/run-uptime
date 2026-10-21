@@ -841,6 +841,22 @@
         "environment": "all"
       },
       {
+        "path": "/monitor-status.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/monitor-page.css",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
         "path": "/monitor-timeline.js",
         "match": "exact",
         "kind": "asset",
@@ -858,6 +874,14 @@
       },
       {
         "path": "/delivery-chain.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/notification-help.js",
         "match": "exact",
         "kind": "asset",
         "class": "assets",
@@ -1220,6 +1244,14 @@
       },
       {
         "path": "/definitions.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/definition-changes.js",
         "match": "exact",
         "kind": "asset",
         "class": "assets",

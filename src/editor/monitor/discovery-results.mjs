@@ -38,8 +38,10 @@ export function createResults({root,form,plan,onFeedback,onStarted}){
   render(job){
    const {result}=job;
    rows=[];list.replaceChildren();notes.replaceChildren();
-   for(const note of result.notes){const line=document.createElement('li');line.textContent=note;notes.append(line)}
-   notes.hidden=!result.notes.length;
+   empty.querySelector('a')?.remove();
+   const visibleNotes=result.notes.filter(note=>!/^robots\.txt was read on /.test(note));
+   for(const note of visibleNotes){const line=document.createElement('li');line.textContent=note;notes.append(line)}
+   notes.hidden=!visibleNotes.length;
    result.proposals.forEach((proposal,index)=>{const row=createRow({proposal,index,form,plan,onChange:update});rows.push(row);list.append(row.element)});
    const any=rows.length>0;
    proposals.hidden=!any;empty.hidden=any;start.hidden=!any;update();

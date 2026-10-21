@@ -36,14 +36,14 @@ try{
    await browserSignIn(page,origin);await page.goto(origin+'/app#notifications');await page.locator('html.signed-in').waitFor();
    await page.getByRole('button',{name:'Add destination',exact:true}).focus();await page.keyboard.press('Enter');
    let dialog=page.getByRole('dialog');await dialog.waitFor();
-   assert.ok(await dialog.getByLabel('Name',{exact:true}).evaluate(element=>document.activeElement===element),'native dialog starts on its labelled name field');
+   assert.ok(await dialog.getByLabel('Name (optional)',{exact:true}).evaluate(element=>document.activeElement===element),'native dialog starts on its labelled name field');
    await page.keyboard.press('Shift+Tab');assert.ok(await dialog.evaluate(element=>element.contains(document.activeElement)),'reverse Tab remains inside modal');
    await page.keyboard.press('Tab');assert.ok(await dialog.evaluate(element=>element.contains(document.activeElement)),'Tab remains inside modal');
    await audit(page,`destination-dialog-${width}`,{dialogName:'Add destination'});
    await page.keyboard.press('Escape');await dialog.waitFor({state:'detached'});await focusReturns(page,'add-destination');
    async function create(kind,name,url){
     await page.getByRole('button',{name:'Add destination',exact:true}).click();const form=page.getByRole('dialog');
-    await form.getByLabel('Name',{exact:true}).fill(name);await form.getByLabel('Type',{exact:true}).selectOption(kind);await form.getByLabel('Destination URL',{exact:true}).fill(url);
+    await form.getByLabel('Name (optional)',{exact:true}).fill(name);await form.getByLabel('Type',{exact:true}).selectOption(kind);await form.getByLabel('Destination URL',{exact:true}).fill(url);
     let release;const gate=new Promise(resolve=>release=resolve),hold=async route=>{await gate;await route.continue()};
     await page.route(origin+'/api/overview',hold);
     try{
@@ -107,7 +107,7 @@ retryOutcomeTest('DELIVERY-002 retry and fallback-chain outcomes and the route c
     const accepted=page.locator(`[data-key=${JSON.stringify('delivery-'+acceptedId)}]`),failed=page.locator(`[data-key=${JSON.stringify('delivery-'+failedId)}]`);
     await page.waitForFunction(key=>[...document.querySelectorAll('.delivery-card')].some(card=>card.dataset.key===key&&card.textContent.includes('Retry window exhausted')),'delivery-'+failedId);
     assert.ok((await page.locator('.notification-help:visible').textContent()).includes('Signed webhooks retry within saved limits.'),'visible help describes deduplicated retry');assert.equal(await accepted.locator('.delivery-state').textContent(),'Accepted');assert.equal(await failed.locator('.delivery-state').textContent(),'Failed');
-    assert.equal(await failed.locator('.reason-code-value').textContent(),'retry_window_exhausted');await failed.getByText('HTTP 429',{exact:true}).waitFor();
+    assert.match(await failed.locator('.delivery-reason').textContent(),/Retry window exhausted/);await failed.getByText('HTTP 429',{exact:true}).waitFor();
     const viaEmail=page.locator(`[data-key=${JSON.stringify('delivery-'+fallbackId)}] .delivery-chain`),ended=page.locator(`[data-key=${JSON.stringify('delivery-'+exhaustedId)}] .delivery-chain`);
     await viaEmail.waitFor();assert.equal(await viaEmail.textContent(),'Fallback 1 after Dead Slack: Failed (slack_no_team). Fallback sent to Escalation webhook: Accepted.','both outcomes of the escalation are visible');
     assert.equal(await ended.textContent(),'Fallback 1 after Dead Slack: Uncertain (response_unknown). Chain ended: no contact accepted. Follow up manually.');
@@ -119,8 +119,8 @@ retryOutcomeTest('DELIVERY-002 retry and fallback-chain outcomes and the route c
     assert.ok(tree.nodes.some(node=>!node.ignored&&node.name?.value?.includes('Retry window exhausted')),'computed tree names the failure');
     await page.screenshot({path:join(evidence,`outcomes-${width}.png`),fullPage:true});await writeFile(join(evidence,`outcomes-${width}.json`),JSON.stringify({width,violations,tree},null,2));
     await page.getByRole('button',{name:'Add destination',exact:true}).click();const dialog=page.getByRole('dialog'),identity=await dialog.elementHandle();
-    await dialog.getByLabel('Name',{exact:true}).fill('Keep this draft');await page.waitForTimeout(6000);
-    assert.ok(await identity.evaluate(element=>element.isConnected&&element.open),'refresh preserves the same open dialog');assert.equal(await dialog.getByLabel('Name',{exact:true}).inputValue(),'Keep this draft');
+    await dialog.getByLabel('Name (optional)',{exact:true}).fill('Keep this draft');await page.waitForTimeout(6000);
+    assert.ok(await identity.evaluate(element=>element.isConnected&&element.open),'refresh preserves the same open dialog');assert.equal(await dialog.getByLabel('Name (optional)',{exact:true}).inputValue(),'Keep this draft');
     assert.ok(await note.evaluate(element=>element.isConnected&&element.textContent.startsWith('Fallback 1 after Dead Slack')),'refresh keeps the same outcome note');
     await page.keyboard.press('Escape');await dialog.waitFor({state:'detached'});assert.equal(await page.evaluate(()=>document.activeElement?.id),'add-destination');
     // The owner's route editor names the ordered chain, its deadline and each fallback contact's schedule.

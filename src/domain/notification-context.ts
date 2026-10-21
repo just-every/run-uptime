@@ -54,7 +54,7 @@ export function validateIncidentContext(event:NotificationEvent){
  if(!object(context)||Object.keys(context).sort().join(',')!==(context.version===2?'confirmedRecoveredAt,confirmedRecoveredLocal,confirmedStartedAt,confirmedStartedLocal,downtimeHuman,downtimeSeconds,failedLocations,incidentUrl,originalReason,timeZone,version':'confirmedRecoveredAt,confirmedStartedAt,downtimeHuman,downtimeSeconds,failedLocations,incidentUrl,originalReason,timeZone,version')||![1,2].includes(context.version)||(context.version===1?context.timeZone!=='UTC':!validZone(context.timeZone))||!['trigger','recovery','reminder'].includes(event.kind)||!event.monitorId||!event.incidentKey||!clock(context.confirmedStartedAt)||!text(context.originalReason)||!Array.isArray(context.failedLocations)||context.failedLocations.length>3)return invalid();
  for(const location of context.failedLocations)if(!object(location)||Object.keys(location).sort().join(',')!=='name,probe,reason'||!text(location.probe)||!location.probe||!text(location.name)||!location.name||!text(location.reason))return invalid();
  if(new Set(context.failedLocations.map(p=>p.probe)).size!==context.failedLocations.length||context.incidentUrl!==incidentUrl(event.consoleUrl,event.monitorId,event.incidentKey))return invalid();
- if(context.version===2&&(context.confirmedStartedLocal!==notificationLocalTime(context.confirmedStartedAt,context.timeZone)||context.confirmedRecoveredLocal!==(context.confirmedRecoveredAt===null?null:notificationLocalTime(context.confirmedRecoveredAt,context.timeZone))))return invalid();
+ if(context.version===2&&(canonicalLocalTime(context.confirmedStartedLocal)!==notificationLocalTime(context.confirmedStartedAt,context.timeZone)||canonicalLocalTime(context.confirmedRecoveredLocal)!==(context.confirmedRecoveredAt===null?null:notificationLocalTime(context.confirmedRecoveredAt,context.timeZone))))return invalid();
  if(event.kind==='reminder'){
   if(context.confirmedStartedAt>event.observedAt||context.confirmedRecoveredAt!==null||context.downtimeSeconds!==null||context.downtimeHuman!==null||context.originalReason!==event.explanation)return invalid();
  }else if(event.kind==='trigger'){
@@ -70,12 +70,22 @@ export function validateIncidentContext(event:NotificationEvent){
 }
 
 function validZone(value:unknown){if(typeof value!=='string'||value.length>80)return false;try{new Intl.DateTimeFormat('en-US',{timeZone:value});return true}catch{return false}}
-export function notificationLocalTime(value:number,timeZone:string){return new Intl.DateTimeFormat('en-US',{timeZone,year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',timeZoneName:'longOffset'}).format(value)}
+// Older workerd contexts retain GMT+00:00. Compare only that equivalent suffix;
+// keep the stored context, zone, date, clock and every nonzero offset unchanged.
+function canonicalLocalTime(value:unknown){return typeof value==='string'?value.replace(/GMT[+-]00:00$/,'GMT'):value}
+export function notificationLocalTime(value:number,timeZone:string){
+ // Workerd (and Node 26) render zero offset as GMT+00:00; Node 22 renders GMT. Persist
+ // the canonical spelling so the same immutable context validates in every runtime.
+ return new Intl.DateTimeFormat('en-US',{timeZone,year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',timeZoneName:'longOffset'}).format(value).replace(/GMT[+-]00:00$/,'GMT');
+}
+// v2 text repeats the local times its context stored, which validateIncidentContext checks against
+// the timestamps, so a retained delivery body re-renders byte for byte in any runtime, whichever
+// spelling (GMT or an older GMT+00:00) the context was written with.
 export function incidentContextText(context:IncidentContext){
- const at=(value:number)=>context.version===1?new Date(value).toISOString():notificationLocalTime(value,context.timeZone);
+ const v1=context.version===1,iso=(value:number)=>new Date(value).toISOString();
  return [`Original down reason: ${context.originalReason}`,...context.failedLocations.map(p=>`Failed location ${p.name} (${p.probe}): ${p.reason}`),
-  `Confirmed start (${context.timeZone}): ${at(context.confirmedStartedAt)}`,
-  context.confirmedRecoveredAt===null?'Recovery: not confirmed':`Confirmed recovery (${context.timeZone}): ${at(context.confirmedRecoveredAt)}`,
+  `Confirmed start (${context.timeZone}): ${v1?iso(context.confirmedStartedAt):context.confirmedStartedLocal}`,
+  context.confirmedRecoveredAt===null?'Recovery: not confirmed':`Confirmed recovery (${context.timeZone}): ${v1?iso(context.confirmedRecoveredAt):context.confirmedRecoveredLocal}`,
   context.downtimeSeconds===null?'Downtime: ongoing since confirmed start':`Confirmed downtime: ${context.downtimeHuman} (${context.downtimeSeconds} seconds)`,
   context.incidentUrl?`Incident details: ${context.incidentUrl}`:''];
 }

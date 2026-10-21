@@ -20,9 +20,10 @@
 @media (max-width: 700px) { .section-panel { padding: 4px 16px 16px; } }
 
 /* ---------------------------------------------------------------- locations */
-.locations-table th:nth-child(1) { width: 38%; padding-left: 14px; }
+.locations-table th:nth-child(1) { width: 36%; padding-left: 14px; }
 .locations-table th:nth-child(2) { width: 20%; }
 .locations-table th:nth-child(3) { width: 12%; }
+.locations-table th:nth-child(4) { width: 32%; }
 .locations-table td { vertical-align: middle; }
 .location-name { color: var(--ink); font-size: 15px; font-weight: 700; }
 .location-badge { display: inline-block; margin-left: 10px; padding: 2px 10px; border-radius: 999px; background: var(--lavender); color: var(--body); font-size: 12px; font-weight: 600; vertical-align: 1px; }
@@ -47,7 +48,7 @@
 .location-joined, .location-waiting { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 12px; font-size: 14px; font-weight: 600; }
 .location-joined { background: var(--green-soft); color: var(--green-text); }
 .location-waiting { background: var(--ground); color: var(--muted); }
-.add-location > .primary { justify-self: start; min-width: 140px; }
+.add-location > button { justify-self: start; min-width: 140px; }
 
 /* ---------------------------------------------------------------- one-location nudge */
 .locations-nudge { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 0 0 16px; }
@@ -66,3 +67,9 @@
 .location-chip { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 999px; background: var(--ground); color: var(--ink); font-size: 14px; font-weight: 600; }
 .location-chip::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
 .rules-card details { margin-top: 14px; }
+
+/* Settings controls use the same spacing as the other forms. */
+.settings-panel form:not(#external-check-form) { display: grid; gap: 14px; max-width: 520px; margin-top: 14px; }
+.settings-panel form > button { justify-self: start; }
+.settings-buttons, .operator-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.settings-buttons { margin-top: 4px; }

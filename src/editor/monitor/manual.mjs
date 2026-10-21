@@ -1,6 +1,7 @@
 import {api} from './api.mjs';
 import {fillFields,readFields} from './fields.mjs';
-import {mountProbeControls,agreementText} from './probes.mjs';
+import {mountProbeControls,agreementText,everyLocation} from './probes.mjs';
+import {setDependencyChoices} from './metadata-fields.mjs';
 import {showType,TYPE_TIMING} from './protocol-fields.mjs';
 // The full monitor form: what a new monitor starts from by hand, and the only way to edit an existing one.
 export const NEW_MONITOR={name:'',url:'',method:'GET',assertions:{status:200},intervalMs:60000,timeoutMs:2000,retries:1,probes:['local-a'],failureQuorum:1,confirmSlots:2,recoverSlots:2,freshnessMs:180000,enabled:true,maintenanceUntil:0};
@@ -15,9 +16,10 @@ export function prepareManualForm(form,definition){
  form.querySelector('button[type=submit]').disabled=true;
  form.onsubmit=event=>event.preventDefault();
 }
-export function mountManualForm({form,overview,definition,id,returnTo,message,preserveFields=false}){
+export function mountManualForm({form,overview,definition,id,returnTo,message,monitors=[],preserveFields=false}){
  if(!preserveFields)prepareManualForm(form,definition);
- const probes=mountProbeControls(form.querySelector('#settings-probes'),overview,definition);
+ setDependencyChoices(form,monitors.filter(monitor=>monitor.id!==id),definition.dependencies);
+ const probes=mountProbeControls(form.querySelector('#settings-probes'),overview,id?definition:everyLocation(overview,definition));
  form.querySelector('#agreement-rule').textContent=agreementText(overview);
  const value=name=>form.elements.namedItem(name).value;
  form.onsubmit=async event=>{
@@ -27,7 +29,7 @@ export function mountManualForm({form,overview,definition,id,returnTo,message,pr
    const result=readFields(form,definition);
    result.probes=[...probes.querySelectorAll('input[name=probes]:checked')].map(input=>input.value);
    result.assignments=Object.fromEntries(result.probes.map(name=>[name,{runnerId:value('runner-'+name),...(value('canary-'+name)?{canaryUrl:value('canary-'+name)}:{})}]));
-   await api(id?`/api/monitors/${id}`:'/api/monitors',id?'PATCH':'POST',result);location.href=returnTo;
+   const saved=await api(id?`/api/monitors/${id}`:'/api/monitors',id?'PATCH':'POST',result);location.href=id||!saved?.id?returnTo:`/app/monitors/${encodeURIComponent(saved.id)}`;
   }catch(error){message.textContent=error.message;message.setAttribute('data-error','');button.disabled=false;form.querySelector('.editor-footer').scrollIntoView({block:'end'})}
  };
  form.querySelectorAll('input,select,textarea,button[type="submit"]').forEach(control=>control.disabled=false);

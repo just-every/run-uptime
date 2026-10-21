@@ -10,7 +10,7 @@ import {metricsSnapshot} from './domain/metrics/snapshot.server.ts'
 import {prometheusMetrics} from './domain/metrics/prometheus.ts'
 import {registerHeartbeatReceipts} from './domain/heartbeat-routes.server.ts'
 import {importContactSchedule} from './domain/contact-schedule-import.ts'
-import {saveNotificationPreferences} from './domain/notification-preferences.server.ts'
+import {saveNotificationPreferences,initializeNotificationTimeZone} from './domain/notification-preferences.server.ts'
 import {proposedWebhookPreview,savedWebhookPreview} from './domain/notification-webhook.ts'
 // @ts-ignore Source definition parser shared with the owner preview.
 import {previewUptimeRobotWebhook} from './domain/webhook-contact-import.mjs'
@@ -56,6 +56,7 @@ import {afterClaim,openDoorForOwner} from './domain/business-import/claim-door.s
 import {rerRunnerStatus} from './domain/rer-runner-status.server.ts'
 import {rerCutoverStatus} from './domain/rer-cutover-status.server.ts'
 import {definitionImportHistory,undoDefinitionImport} from './domain/business-import/history.server.ts'
+import {archiveRestoreAvailable} from './domain/archive.server.ts';
 import {exportJournal} from './domain/archive-fence.server.ts'
 import {operatorSession,authenticatedSession} from './domain/operator-auth.server.ts'
 import {accessDeniedDocument} from './domain/access-document.server.ts'
@@ -66,7 +67,7 @@ import {notificationOverview,testDestination} from './domain/notifications.serve
 import {notificationRpc} from './domain/notification-rpc.server.ts'
 import {startDrill} from './domain/alert-drills.server.ts'
 import {alertDrillDocument} from './domain/alert-drill-document.server.ts'
-import {isPublicAsset} from './domain/assets.server.ts'
+import {isPublicAsset,publicAssetResponse} from './domain/assets.server.ts'
 import {classifyStorage,storageLogLine,storageOperation} from './domain/storage-error.ts'
 import {maintenance} from './domain/maintenance.server.ts'
 import {authRoute,authFailure,developmentMail,signOut,signInDocument} from './domain/operator-auth.server.ts'
@@ -110,7 +111,7 @@ api.get('/api/v1/metrics',async c=>{
   return c.body(text,200,{'content-type':'text/plain; version=0.0.4; charset=utf-8'})
  }catch(error){if(error instanceof ReportInputError)return c.json({error:error.message,code:error.code},error.code==='monitor_not_found'?404:400);throw error}
 })
-api.get('/api/overview',async c=>{const monitorId=c.req.query('monitor');return c.json(await overview(c.env,monitorId===undefined?{}:{monitorId}))})
+api.get('/api/overview',async c=>{const zone=c.req.header('x-uptime-time-zone');if(zone)await initializeNotificationTimeZone(c.env,zone);const monitorId=c.req.query('monitor');return c.json(await overview(c.env,monitorId===undefined?{}:{monitorId}))})
 for(const [path,preview,apply] of [
  ['/api/catalog',catalogBulkPreview,catalogBulkApply],['/api/catalog/add',catalogAddPreview,catalogAddApply],['/api/maintenance',previewMaintenance,applyMaintenance],
 ] as const){
@@ -208,6 +209,7 @@ api.post('/api/discoveries',async c=>c.json(await createDiscovery(c.env,c.get('r
 api.get('/api/discoveries/:id',async c=>c.json(await readDiscovery(c.env,c.req.param('id'))))
 api.post('/api/runner/discoveries/claim',async c=>c.json(await claimDiscovery(c.env,c.get('requestText'),c.get('runner'))))
 api.post('/api/runner/discoveries/:id/result',async c=>{const text=c.get('requestText');if(!await signedRunnerBody(c.env,c.get('runner'),text,c.req.header('x-sent-at')??'',c.req.header('x-runner-signature')??'',DISCOVERY_RESULT_BYTES))return c.json({error:'Invalid signed result'},403);return c.json(await completeDiscovery(c.env,c.req.param('id'),discoveryAnswer(text),c.get('runner')))})
+api.get('/api/archive/restore-status',async c=>c.json({available:await archiveRestoreAvailable(c.env)}))
 api.get('/api/archive',async c=>c.json(await archive(c.env)))
 api.post('/api/restore',async c=>{const input=c.get('input');return c.json(await restore(c.env,input.archive??input,undefined,{laterJournal:input.laterJournal,actor:{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id}}))})
 // Definition files import through the owner's import door (/api/operator/import/*): recognising a file names its source,
@@ -285,6 +287,8 @@ const handler={async fetch(request,env,execution){
  const lobbyBindings={DB:bindings.DB,AUTH_ORIGIN:bindings.UPTIME_ORIGIN!};
  const state=await setupStateResponse(request,lobbyBindings,claimed);if(state)return state;
  const lobby=await lobbyResponse(request,lobbyBindings,identity,claimed);if(lobby)return lobby;
+ // /app/monitors has no page of its own: a monitor's page is /app/monitors/<id>, and the list is /app.
+ if(path==='/app/monitors'||path==='/app/monitors/')return new Response(null,{status:303,headers:{location:'/app','cache-control':'no-store'}});
  if(!publicPath(path,bindings.UPTIME_LOCAL_REVIEW==='true')&&!isConsoleDocument(path)&&!isEvidencePage&&!path.startsWith('/_serverFn/')&&path!=='/api'&&!path.startsWith('/api/'))return notFoundDocument();
  if(isEvidencePage){if(!['GET','HEAD'].includes(request.method))return new Response(null,{status:405});try{const id=decodeURIComponent(path.split('/').pop()!);if(!await evidencePrincipal(bindings,request,id)){if(!await authenticatedSession(bindings,request))return new Response(null,{status:303,headers:{location:'/login','cache-control':'no-store'}});return failureEvidenceDenied()}const response=failureEvidenceDocument(id);return request.method==='HEAD'?new Response(null,response):response}catch(error){return authFailure(error)}}
  // On a Business-provisioned install the owner's first claim opens the import door (claim-door.server.ts).
@@ -296,7 +300,7 @@ const handler={async fetch(request,env,execution){
  if(path==='/alert-drill')return alertDrillDocument(bindings,request);
  // Once an owner is admitted the first-owner claim is spent, so sign-in stops offering it.
  if(path==='/login'||path==='/claim')return authDocument(path==='/claim',path==='/login'&&url.searchParams.get('notice')==='sent',developmentMail(bindings),false,bindings.UPTIME_DEPLOY_ENVIRONMENT,!await ownerAdmitted(bindings.DB),path==='/login'&&url.searchParams.get('notice')==='mail_unavailable',url.searchParams.get('login_hint')??'');
- if(isPublicAsset(path))return bindings.ASSETS?bindings.ASSETS.fetch(request):new Response('Not found',{status:404});
+ if(isPublicAsset(path))return publicAssetResponse(request,bindings.ASSETS);
  if(path==='/monitor'||path==='/monitor/')return new Response(null,{status:308,headers:{location:`/app/monitor${url.search}`,'cache-control':'no-store'}});
  if(path!=='/health'&&path!=='/api'&&!path.startsWith('/api/')&&!isPublicDocument(path)){
   // Only native document routes and Start transports reach the private renderer.
