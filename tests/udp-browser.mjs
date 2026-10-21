@@ -25,7 +25,7 @@ try{
   await form.locator('[name=checkType]').selectOption('udp');await form.getByLabel('Monitor name',{exact:true}).fill(`US West game gateway ${width}`);
   await form.getByLabel('UDP host',{exact:true}).fill('udp.protocol.test');await form.getByLabel('UDP port',{exact:true}).fill('9000');
   await form.getByLabel('Request bytes (hexadecimal)',{exact:true}).fill('50494e47');await form.getByLabel('Expected response bytes (hexadecimal)',{exact:true}).fill('504f4e47');
-  await form.locator('[name=canary-local-a]').fill('https://canary.protocol.test/ok');await form.locator('[name=retries]').fill('0');await form.locator('[name=confirmSlots]').fill('1');await form.locator('[name=recoverSlots]').fill('1');
+  await form.locator('.check-from-advanced summary').click();await form.locator('[name=externalCheckUrl]').fill('https://canary.protocol.test/ok');await form.locator('[name=retries]').fill('0');await form.locator('[name=confirmSlots]').fill('1');await form.locator('[name=recoverSlots]').fill('1');
   await shot(`udp-editor-${width}.png`);
   await form.getByLabel('Expected response bytes (hexadecimal)',{exact:true}).fill('not hex');await page.getByRole('button',{name:'Save monitor',exact:true}).click();await page.locator('#editor-feedback[data-error]').waitFor();assert.match(await page.locator('#editor-feedback').textContent(),/hexadecimal/);
   await form.getByLabel('Expected response bytes (hexadecimal)',{exact:true}).fill('504f4e47');await page.getByRole('button',{name:'Save monitor',exact:true}).click();await page.waitForURL(/\/app\/monitors\/[^/]+$/);

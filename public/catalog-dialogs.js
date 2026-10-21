@@ -1,11 +1,20 @@
 import { escape } from './console-format.js';
 const metadata = ['project', 'environment', 'service', 'group', 'tags', 'owner', 'outcome', 'dependencies'];
 const labels = { project: 'Project', environment: 'Environment', service: 'Service', group: 'Group', tags: 'Tags (comma-separated)', owner: 'Accountable owner', outcome: 'Intended customer outcome', dependencies: 'Dependency monitor IDs (comma-separated)' };
-// The first three live locations, one per check slot in the order the console assigns them (see public/locations.js).
-const SLOTS = ['local-a', 'local-b', 'local-c'];
+// Check from: the live locations, in the console's order (see public/locations.js), the first three ticked: a monitor checks
+// from up to three. Each ticked location is sent as one check's runner, so the new monitors check from exactly those.
+const PROBES = ['local-a', 'local-b', 'local-c'];
 function locations(runners) {
-    const active = runners.filter(row => !row.revokedAt), joined = active.filter(row => row.lastContactAt !== null), live = joined.length ? joined : active.slice(0, 1);
-    return live.slice(0, SLOTS.length).map((row, i) => ({ id: SLOTS[i], name: row.networkLabel }));
+    const active = runners.filter(row => !row.revokedAt), joined = active.filter(row => row.lastContactAt !== null);
+    return (joined.length ? joined : active.slice(0, 1)).map(row => ({ id: row.runnerId, name: row.networkLabel }));
+}
+function chosenLocations(form) {
+    const ids = [...form.querySelectorAll('[name=locations]:checked')].map(box => box.value), probes = PROBES.slice(0, ids.length);
+    return { probes, assignments: Object.fromEntries(probes.map((probe, i) => [probe, ids[i]])) };
+}
+function limitLocations(form) {
+    const boxes = [...form.querySelectorAll('[name=locations]')], full = boxes.filter(box => box.checked).length >= PROBES.length;
+    for (const box of boxes) box.disabled = !box.checked && full;
 }
 const list = value => value.split(',').map(part => part.trim()).filter(Boolean);
 // New monitors take labels as an optional fold (and no dependencies: a list of new monitors has none yet); editing labels shows them all.
@@ -40,10 +49,12 @@ export function openCatalogDialog({ api, action, kind, monitors = [], runners = 
     const dialog = document.createElement('dialog');
     dialog.className = 'catalog-dialog';
     dialog.setAttribute('aria-labelledby', 'catalog-dialog-heading');
-    dialog.innerHTML = `<form><h2 id="catalog-dialog-heading">${escape(title)}</h2>${add ? `<p>Paste public URLs, one per line, or upload a CSV with up to 500 rows. Review the results before applying.</p><div class="catalog-grid"><label>Input format<select name="format"><option value="urls">URLs, one per line</option><option value="csv">CSV</option></select></label><label>Upload CSV (2 MiB max)<input type="file" name="file" accept=".csv,text/csv"></label></div><label>URLs or CSV<textarea name="text" rows="6" required spellcheck="false"></textarea></label><p class="ui-helper">CSV needs a url column. Optional columns: name, type, keyword, interval (seconds), tags and group. Rows can override the shared settings.</p><fieldset><legend>Shared settings</legend><div class="catalog-grid"><label>Type<select name="type"><option value="http">HTTP</option><option value="keyword">HTTP with keyword</option></select></label><label>Required keyword<input name="keyword" maxlength="200"></label><label>Check every (minutes)<input name="interval" type="number" min="0.0834" max="1440" step="any" value="1" required></label></div><fieldset class="catalog-locations"><legend>Check from</legend>${locations(runners).map(({ id, name }) => `<label><input name="locations" type="checkbox" value="${id}" checked>${escape(name)}</label>`).join('')}</fieldset></fieldset>` : `<p>${monitors.length} selected monitors:</p><ul class="catalog-selection">${monitors.map(m => `<li>${escape(m.definition.name)} <small>${escape(m.id)}</small></li>`).join('')}</ul>`}${add || edit || clone ? metadataMarkup(edit) : ''}${creating ? '<label><input name="enableAfterCreate" type="checkbox">Enable after create — start scheduled checks when this batch is applied</label>' : ''}<p class="catalog-dialog-error ui-callout error" role="alert" hidden></p><div class="catalog-preview" aria-live="polite"></div><p class="catalog-plan-status" role="status">Nothing has changed. Preview first.</p><div class="catalog-dialog-actions"><button type="button" data-close>Cancel</button><button type="submit" class="primary">Preview</button><button type="button" data-apply disabled>Apply selected accepted rows</button></div></form>`;
+    dialog.innerHTML = `<form><h2 id="catalog-dialog-heading">${escape(title)}</h2>${add ? `<p>Paste public URLs, one per line, or upload a CSV with up to 500 rows. Review the results before applying.</p><div class="catalog-grid"><label>Input format<select name="format"><option value="urls">URLs, one per line</option><option value="csv">CSV</option></select></label><label>Upload CSV (2 MiB max)<input type="file" name="file" accept=".csv,text/csv"></label></div><label>URLs or CSV<textarea name="text" rows="6" required spellcheck="false"></textarea></label><p class="ui-helper">CSV needs a url column. Optional columns: name, type, keyword, interval (seconds), tags and group. Rows can override the shared settings.</p><fieldset><legend>Shared settings</legend><div class="catalog-grid"><label>Type<select name="type"><option value="http">HTTP</option><option value="keyword">HTTP with keyword</option></select></label><label>Required keyword<input name="keyword" maxlength="200"></label><label>Check every (minutes)<input name="interval" type="number" min="0.0834" max="1440" step="any" value="1" required></label></div><fieldset class="catalog-locations"><legend>Check from</legend>${locations(runners).map(({ id, name }, i) => `<label><input name="locations" type="checkbox" value="${escape(id)}"${i < PROBES.length ? ' checked' : ''}>${escape(name)}</label>`).join('')}<p class="ui-helper">Up to ${PROBES.length} locations per monitor.</p></fieldset></fieldset>` : `<p>${monitors.length} selected monitors:</p><ul class="catalog-selection">${monitors.map(m => `<li>${escape(m.definition.name)} <small>${escape(m.id)}</small></li>`).join('')}</ul>`}${add || edit || clone ? metadataMarkup(edit) : ''}${creating ? '<label><input name="enableAfterCreate" type="checkbox">Enable after create — start scheduled checks when this batch is applied</label>' : ''}<p class="catalog-dialog-error ui-callout error" role="alert" hidden></p><div class="catalog-preview" aria-live="polite"></div><p class="catalog-plan-status" role="status">Nothing has changed. Preview first.</p><div class="catalog-dialog-actions"><button type="button" data-close>Cancel</button><button type="submit" class="primary">Preview</button><button type="button" data-apply disabled>Apply selected accepted rows</button></div></form>`;
     document.body.append(dialog);
     const form = dialog.querySelector('form'), resultHost = dialog.querySelector('.catalog-preview'), status = dialog.querySelector('.catalog-plan-status'), errorHost = dialog.querySelector('[role=alert]'), apply = dialog.querySelector('[data-apply]'), previewButton = form.querySelector('[type=submit]');
     let plan = null, payload = null, selectedIndexes, working = false;
+    if (add)
+        limitLocations(form);
     function close() {
         if (working)
             return;
@@ -68,6 +79,8 @@ export function openCatalogDialog({ api, action, kind, monitors = [], runners = 
         invalidate();
     });
     form.addEventListener('change', event => {
+        if (event.target.matches('[name=locations]'))
+            limitLocations(form);
         if (!event.target.matches('[data-plan-index]'))
             return;
         selectedIndexes = [...resultHost.querySelectorAll('[data-plan-index]:checked')].map(input => Number(input.dataset.planIndex));
@@ -99,7 +112,7 @@ export function openCatalogDialog({ api, action, kind, monitors = [], runners = 
             }
         };
     function input() {
-        const body = add ? { format: form.elements.format.value, text: form.elements.text.value, defaults: { ...readMetadata(form, false), type: form.elements.type.value, intervalMs: Math.round(Number(form.elements.interval.value) * 60000), locations: [...form.querySelectorAll('[name=locations]:checked')].map(box => box.value), ...(form.elements.keyword.value ? { keyword: form.elements.keyword.value } : {}) } } : { monitorIds: monitors.map(m => m.id), action: kind, ...(edit || clone ? { changes: readMetadata(form, true) } : {}) };
+        const body = add ? { format: form.elements.format.value, text: form.elements.text.value, defaults: { ...readMetadata(form, false), type: form.elements.type.value, intervalMs: Math.round(Number(form.elements.interval.value) * 60000), ...chosenLocations(form), ...(form.elements.keyword.value ? { keyword: form.elements.keyword.value } : {}) } } : { monitorIds: monitors.map(m => m.id), action: kind, ...(edit || clone ? { changes: readMetadata(form, true) } : {}) };
         if (creating)
             body.enableAfterCreate = form.elements.enableAfterCreate.checked;
         if (selectedIndexes !== undefined)

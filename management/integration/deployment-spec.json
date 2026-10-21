@@ -372,6 +372,18 @@
       "name": "0058_cleanup_debt_and_effect_grants.sql",
       "sha256": "ec97c34e5ca8e7dbb433d67b4c00199e9f456ff09f826a33c6a72556b71cc496",
       "sql": "-- API-004. cleanup_debt: one retained record per cleanup step a run could not complete. It names the monitor, revision,\n-- scheduled slot and attempt, the step and its bounded attempt count, and the last failure category; it holds no extracted\n-- value, credential or response body. Only an owner's resolution, with a short note, closes it.\nCREATE TABLE IF NOT EXISTS cleanup_debt (\n    id TEXT PRIMARY KEY, monitor_id TEXT NOT NULL, revision INTEGER NOT NULL, slot_id TEXT NOT NULL, probe TEXT NOT NULL,\n    attempt INTEGER NOT NULL, observation_id TEXT NOT NULL, step_name TEXT NOT NULL, attempts INTEGER NOT NULL,\n    category TEXT NOT NULL, created_at INTEGER NOT NULL, state TEXT NOT NULL DEFAULT 'open' CHECK (state IN ('open','resolved')),\n    resolver_note TEXT, resolved_at INTEGER);\nCREATE INDEX IF NOT EXISTS cleanup_debt_monitor ON cleanup_debt(monitor_id, state);\n-- effect_grants: an owner's exact, time-limited permission for one monitor's live effect, with an integer spend limit.\n-- Each change is a new revision; the installation default is no grant. Grants are execution authority and stay local.\nCREATE TABLE IF NOT EXISTS effect_grants (\n    id TEXT PRIMARY KEY, monitor_id TEXT NOT NULL, effect TEXT NOT NULL, revision INTEGER NOT NULL, spend_limit INTEGER NOT NULL,\n    spent INTEGER NOT NULL DEFAULT 0, expires_at INTEGER NOT NULL, created_at INTEGER NOT NULL, revoked_at INTEGER,\n    UNIQUE(monitor_id, effect, revision));\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0059_external_check_follow.sql",
+      "sha256": "cd60ec36a47c19a9ec362231660f2eaf0c9e324f16efe169ca827a55211def5f",
+      "sql": "-- Monitors follow the External check URL in Settings live (owner, 20 Oct 2026, U14): a revision saved from now on says\n-- externalCheck \"settings\" (each check is handed the URL Settings holds then) or \"own\". A revision saved before then copied\n-- the URL in force when it was saved; legacy_url records the URL in force now, so copies of it follow Settings too, and any\n-- other URL stays the monitor's own. Revisions, slots and evidence are untouched; this row stays installation-local. Each\n-- delivered part of a check records the external check URL its runner was handed (installation-local, like the assignment).\nALTER TABLE external_check ADD COLUMN legacy_url TEXT;\nUPDATE external_check SET legacy_url=url WHERE id=1;\nALTER TABLE runner_assignments ADD COLUMN external_check_url TEXT;\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0060_location_join_keys.sql",
+      "sha256": "57dc9b898f6d4a2604b95486ba614c5e2689f41188af6a31cb6b7fed89f18729",
+      "sql": "-- Adding a location from any machine (owner, 20 Oct 2026, U13): the Add location command carries a one-time join key. Only its\n-- hash is stored; the runner that joins with it receives the location's own runner key, minted then, and the hash is cleared,\n-- so the copied command cannot join again. Installation-local, like the runner row it extends.\nALTER TABLE runners ADD COLUMN join_hash TEXT;\n"
     }
   ],
   "compatibilityDate": "2026-09-08",

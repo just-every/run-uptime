@@ -49,6 +49,9 @@
 .location-joined { background: var(--green-soft); color: var(--green-text); }
 .location-waiting { background: var(--ground); color: var(--muted); }
 .add-location > button { justify-self: start; min-width: 140px; }
+.add-steps .location-local { color: var(--body); }
+.check-all { display: flex; align-items: center; gap: 10px; min-height: 44px; color: var(--ink); font-size: 15px; font-weight: 600; }
+.check-all + .helper, .location-joined + .helper { margin: -8px 0 0; }
 
 /* ---------------------------------------------------------------- one-location nudge */
 .locations-nudge { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 0 0 16px; }

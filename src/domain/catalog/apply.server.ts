@@ -19,7 +19,7 @@ export async function applyCatalogPlan(env:Bindings,plan:CatalogPlan,digest:unkn
  for(const monitor of context.monitors)statements.push(mutationGuard(env,'EXISTS(SELECT 1 FROM monitors WHERE id=? AND revision=?)',[monitor.id,monitor.revision]))
  statements.push(mutationGuard(env,'(SELECT COUNT(*) FROM runners)=?',[context.runners.length]))
  for(const runner of context.runners)statements.push(mutationGuard(env,'EXISTS(SELECT 1 FROM runners WHERE runner_id=? AND network_label=? AND revoked_at IS ?)',[runner.runner_id,runner.network_label,runner.revoked_at]))
- statements.push(context.external===null?mutationGuard(env,'NOT EXISTS(SELECT 1 FROM external_check WHERE id=1)'):mutationGuard(env,'EXISTS(SELECT 1 FROM external_check WHERE id=1 AND url=?)',[context.external]))
+ statements.push(context.external.url===null?mutationGuard(env,'NOT EXISTS(SELECT 1 FROM external_check WHERE id=1)'):mutationGuard(env,'EXISTS(SELECT 1 FROM external_check WHERE id=1 AND url=?)',[context.external.url]))
  const written:{monitorId:string;action:'create'|'change';revision:number;previous:number|null}[]=[]
  let addsFlows=0
  for(const entry of accepted){

@@ -16,9 +16,10 @@ export function addInput(input:any){
  boundDefinitionText(input.text)
  // A JSON string can contain a lone surrogate, which is not a UTF-8 source character.
  if(new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(new TextEncoder().encode(input.text))!==input.text)fail('The file is not UTF-8 text.')
- const defaults=fields(input.defaults??{},['type','intervalMs','locations','probes','keyword','alertRoute',...metadataFields],'shared default')
+ const defaults=fields(input.defaults??{},['type','intervalMs','locations','probes','assignments','keyword','alertRoute',...metadataFields],'shared default')
  if(defaults.locations!==undefined&&defaults.probes!==undefined)fail('Use locations or probes, not both.')
- const base={...metadata(defaults),type:defaults.type??'http',intervalMs:defaults.intervalMs??60000,probes:defaults.locations??defaults.probes??['local-a'],...(defaults.keyword!==undefined?{keyword:defaults.keyword}:{})}
+ // `assignments` names the runner of each probe (the console's Check from); without it the probes take runners in order.
+ const base={...metadata(defaults),type:defaults.type??'http',intervalMs:defaults.intervalMs??60000,probes:defaults.locations??defaults.probes??['local-a'],...(defaults.assignments!==undefined?{assignments:defaults.assignments}:{}),...(defaults.keyword!==undefined?{keyword:defaults.keyword}:{})}
  const text=input.text.replace(/^\uFEFF/,'')
  const rows=input.format==='urls'?text.split(/\r?\n/).map((url:string)=>url.trim()).filter(Boolean).map((url:string)=>({url})):csvRows(text)
  if(!rows.length)fail('Add at least one URL.')

@@ -7,6 +7,7 @@ import { readFileSync } from 'node:fs'
 import { docsSite } from './src/site/docs/build/plugin.ts'
 import { archiveOutputGuard } from '@runeditrun/rer/archive-output'
 import { developmentImportDiagnostics } from './scripts/dev/import-diagnostics.ts'
+import { runnerScript } from './scripts/build/runner-script.ts'
 
 const origin = process.env.RER_DEV_ORIGIN
 const local = origin ? {
@@ -19,6 +20,7 @@ const local = origin ? {
 const gate = (name: string) => process.env[name] ? { [name]: process.env[name] } : {}
 // inspectorPort:false: the plugin otherwise serves /__debug (a devtools redirect for the workerd inspector) on the public dev port, before the Worker and unlimited.
 // docsSite: the public /docs pages, rendered from docs/site.json and docs/*.md at build time, never in the Worker or the browser.
+// runnerScript: the location runner as one Node script, served at /uptime-runner.mjs for the Add location command.
 export default defineConfig(({ command, isPreview }) => ({ server: { fs: {
  // Runtime imports need the public manifest and maintained portability source, and a hosted demo's Worker runs the
  // runner's discovery crawl (pure code, no settings). Allow only those paths, never scripts or the checkout root; private settings
@@ -29,7 +31,7 @@ export default defineConfig(({ command, isPreview }) => ({ server: { fs: {
  demoSockets(),
  developmentImportDiagnostics(),
  cloudflare({ inspectorPort: false, viteEnvironment: { name: 'ssr' }, persistState: { path: process.env.RER_STATE_DIR ?? '.wrangler/state' }, config: command === 'serve' && !isPreview ? { main: './src/server.dev.ts', assets: { binding: 'ASSETS', run_worker_first: true }, ...(local ? { vars: { ...local, ...gate('RER_DEV_KEY'), ...gate('RER_DEV_IDENTITY'), ...gate('RER_DEMO'), ...gate('RER_DEMO_EXPIRES') } } : {}) } : local ? { vars: local } : {} }),
- docsSite(), tanstackStart(), react(),
+ docsSite(), runnerScript(), tanstackStart(), react(),
  // Refuses a build whose output (public/ copies included) holds an installation archive.
  archiveOutputGuard(),
 ] }))

@@ -40,10 +40,12 @@ import {scheduledNotifications} from './domain/notification-worker.server.ts'
 import {SubrequestBudget,RUN_SUBREQUESTS,CHECK_SUBREQUESTS,WATCH_SUBREQUESTS} from './domain/worker-budget.ts'
 import {createDiscovery,readDiscovery,claimDiscovery,completeDiscovery,discoveryAnswer,DISCOVERY_RESULT_BYTES} from './domain/discovery.server.ts'
 import {readExternalCheck,saveExternalCheck} from './domain/external-check.server.ts'
+import {checkAllFrom} from './domain/location-monitors.server.ts'
+import {runnerScriptResponse} from './domain/runner-script.server.ts'
 // @ts-ignore Shared bounded credential diagnostics.
 import {runnerResultLimit} from './domain/credential-binding.mjs'
 import {signedRunnerBody} from './domain/runner-signature.server.ts'
-import {enrollRunner,authenticateRunner,createRunner,renameRunner,revokeRunner,listRunners,ensureFirstRunner,nameFromPlace,type Runner} from './domain/runner-registration.server.ts'
+import {enrollRunner,authenticateRunner,createRunner,joinRunner,renameRunner,revokeRunner,listRunners,ensureFirstRunner,nameFromPlace,type Runner} from './domain/runner-registration.server.ts'
 import {configurationResponse,validateWorkerConfiguration} from './domain/startup-config.mjs'
 import {isPublicDocument,publicPath} from './domain/public-paths.ts'
 import {limitPublicRequest} from './domain/public-rate-limits.server.ts'
@@ -94,7 +96,7 @@ api.use('/api/*',async(c,next)=>{c.header('cache-control','no-store');const orig
 const boundary=async(c:any,next:()=>Promise<void>)=>{const headers=c.req.raw.headers,hasBody=Number(headers.get('content-length')??0)>0||headers.has('transfer-encoding');let checked;try{checked=checkInput(c.req.method==='HEAD'?'GET':c.req.method,new URL(c.req.url),c.get('requestText')??'',hasBody)}catch(error){if(error instanceof InputError)return c.json({error:error.message},400);throw error}if(!checked)return c.json({error:'Not found'},404);c.set('input',checked.body);await next()}
 api.use('/api/heartbeats/*',boundary)
 registerHeartbeatReceipts(api)
-api.use('/api/*',async(c,next)=>{if(c.req.path==='/api/v1/openapi.json'&&['GET','HEAD'].includes(c.req.method)){await next();return}if(c.req.header('authorization')?.toLowerCase().startsWith('bearer ')){if(c.req.path!=='/api/v1/metrics'||!['GET','HEAD'].includes(c.req.method))return c.json({error:'Metrics keys authorize only metrics reads'},403);if(!await authorizeMetrics(c.env,c.req.raw))return c.json({error:'Metrics authorization required'},401)}else if(/^\/api\/evidence\/monitors\/[^/]+$/.test(c.req.path)&&['GET','HEAD'].includes(c.req.method)){const id=decodeURIComponent(c.req.path.split('/').pop()!);if(!await evidencePrincipal(c.env,c.req.raw,id))return c.json({error:'Evidence access required'},await authenticatedSession(c.env,c.req.raw)?403:401)}else if(c.req.path.startsWith('/api/runner/')){const row=await storageOperation('runner.authenticate',()=>authenticateRunner(c.env,c.req.header('x-runner-id'),c.req.header('x-runner-key')??''));if(!row)return c.json({error:'Runner authorization required'},401);c.set('runner',row)}else if(!await storageOperation('owner.session',()=>session(c.env,c.req.raw)))return c.json({error:'Owner session required'},401);await next()})
+api.use('/api/*',async(c,next)=>{if(c.req.path==='/api/v1/openapi.json'&&['GET','HEAD'].includes(c.req.method)){await next();return}if(c.req.header('authorization')?.toLowerCase().startsWith('bearer ')){if(c.req.path!=='/api/v1/metrics'||!['GET','HEAD'].includes(c.req.method))return c.json({error:'Metrics keys authorize only metrics reads'},403);if(!await authorizeMetrics(c.env,c.req.raw))return c.json({error:'Metrics authorization required'},401)}else if(/^\/api\/evidence\/monitors\/[^/]+$/.test(c.req.path)&&['GET','HEAD'].includes(c.req.method)){const id=decodeURIComponent(c.req.path.split('/').pop()!);if(!await evidencePrincipal(c.env,c.req.raw,id))return c.json({error:'Evidence access required'},await authenticatedSession(c.env,c.req.raw)?403:401)}else if(c.req.path==='/api/runner/join'){/* The one-time join key in its body is its credential (joinRunner). */}else if(c.req.path.startsWith('/api/runner/')){const row=await storageOperation('runner.authenticate',()=>authenticateRunner(c.env,c.req.header('x-runner-id'),c.req.header('x-runner-key')??''));if(!row)return c.json({error:'Runner authorization required'},401);c.set('runner',row)}else if(!await storageOperation('owner.session',()=>session(c.env,c.req.raw)))return c.json({error:'Owner session required'},401);await next()})
 api.use('/api/*',boundary)
 // Only authenticated owner requests can kick hosted work; public traffic and private runners cannot.
 api.use('/api/*',async(c,next)=>{await next();if(c.res.ok&&(c.req.path==='/api/overview'||/^\/api\/(monitors|notifications)(\/|$)/.test(c.req.path))){c.executionCtx.waitUntil(kickHostedWork(c.env).catch(()=>console.error('Hosted console work failed; queued work remains available to Cron.')))}})
@@ -195,10 +197,13 @@ api.get('/api/runners',async c=>c.json(await listRunners(c.env)))
 api.post('/api/runners',async c=>c.json(await createRunner(c.env,c.get('input')),201))
 api.patch('/api/runners/:id',async c=>c.json(await renameRunner(c.env,c.req.param('id'),c.get('input'))))
 api.delete('/api/runners/:id',async c=>c.json(await revokeRunner(c.env,c.req.param('id'))))
+// "Check all monitors from here too": the location joins every monitor that has room for it, in one step.
+api.post('/api/runners/:id/check-all',async c=>c.json(await checkAllFrom(c.env,c.req.param('id'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 // The installation-wide External check URL: owner session only, same origin, validated before it is stored.
 api.patch('/api/notifications/preferences',async c=>c.json(await saveNotificationPreferences(c.env,c.get('input'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 api.get('/api/external-check',async c=>c.json(await readExternalCheck(c.env)))
 api.post('/api/external-check',async c=>c.json(await saveExternalCheck(c.env,c.get('requestText'))))
+api.post('/api/runner/join',async c=>{const joined=await joinRunner(c.env,c.get('input'));return joined?c.json(joined):c.json({error:'This join key was used already, or its location was removed. Add the location again.'},403)})
 api.post('/api/runner/enroll',async c=>{const registration=await enrollRunner(c.env,c.get('requestText'),c.req.header('x-sent-at')??'',c.req.header('x-runner-signature')??'',c.get('runner'),c.req.raw.cf);return registration?c.json(registration):c.json({error:'Invalid signed enrolment'},403)})
 api.post('/api/runner/claim',async c=>{const row=c.get('runner').runner_id?c.get('runner'):await ensureFirstRunner(c.env);const task=await storageOperation('runner.claim',()=>claim(c.env,row.runner_id));await storageOperation('runner.claim.contact',async()=>{await recordContact(c.env.DB);await c.env.DB.prepare('UPDATE runners SET last_contact_at=? WHERE runner_id=? AND revoked_at IS NULL').bind(Date.now(),row.runner_id).run();if(row.named_by==='default')await nameFromPlace(c.env,row,c.req.raw.cf)});
  // `now` is the Worker's clock at the claim: the runner aligns the times it reports to it (see docs/runner.md).
@@ -300,6 +305,7 @@ const handler={async fetch(request,env,execution){
  if(path==='/alert-drill')return alertDrillDocument(bindings,request);
  // Once an owner is admitted the first-owner claim is spent, so sign-in stops offering it.
  if(path==='/login'||path==='/claim')return authDocument(path==='/claim',path==='/login'&&url.searchParams.get('notice')==='sent',developmentMail(bindings),false,bindings.UPTIME_DEPLOY_ENVIRONMENT,!await ownerAdmitted(bindings.DB),path==='/login'&&url.searchParams.get('notice')==='mail_unavailable',url.searchParams.get('login_hint')??'');
+ if(path==='/uptime-runner.mjs')return runnerScriptResponse(request);
  if(isPublicAsset(path))return publicAssetResponse(request,bindings.ASSETS);
  if(path==='/monitor'||path==='/monitor/')return new Response(null,{status:308,headers:{location:`/app/monitor${url.search}`,'cache-control':'no-store'}});
  if(path!=='/health'&&path!=='/api'&&!path.startsWith('/api/')&&!isPublicDocument(path)){

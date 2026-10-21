@@ -81,7 +81,7 @@ The standalone native product has no operational marketplace or author dependenc
 
 ## Try the bundled local monitor
 
-After signing in, read the authorized local endpoint port from the local grant using the command below. The port is selected when `rer dev` starts. Before saving the monitor, set **External check URL** in **Settings** to a public site you do not run. **New monitor** first asks for a website address so it can suggest checks; choose **Fill in the form yourself** to open the full form. There, enter `http://127.0.0.1:<authorized-port>/health` as the **Target URL**, leave **Request method** at `GET` and **Expected HTTP status** at `200`, and keep only **Check 1** selected under **Checks to include**. Enter `0.1` for **Check every (minutes)**; that is a six-second interval. Set **Alert after this many failed checks** and **Recover after this many passing checks** to `1`, then choose **Save monitor**.
+After signing in, read the authorized local endpoint port from the local grant using the command below. The port is selected when `rer dev` starts. Before saving the monitor, set **External check URL** in **Settings** to a public site you do not run. **New monitor** first asks for a website address so it can suggest checks; choose **Fill in the form yourself** to open the full form. There, enter `http://127.0.0.1:<authorized-port>/health` as the **Target URL**, leave **Request method** at `GET` and **Expected HTTP status** at `200`, and keep only this computer's location ticked under **Check from**. Enter `0.1` for **Check every (minutes)**; that is a six-second interval. Set **Alert after this many failed checks** and **Recover after this many passing checks** to `1`, then choose **Save monitor**.
 
 The new scheduled check is due when you save. The private runner polls about once a second and the console refreshes every five seconds, so leave the monitor open until its first result appears. After changing the target mode below, wait for the next scheduled result; the six-second interval is followed by runner polling and the page refresh. **RUN NOW** creates a manual check and does not change scheduled health or incident thresholds.
 
@@ -97,7 +97,7 @@ Start in healthy mode and wait for a scheduled **Healthy** result:
 curl --fail --silent --show-error --request POST "http://127.0.0.1:${target_port}/control" --header 'content-type: application/json' --data '{"mode":"healthy"}'
 ```
 
-Switch the fixture to failing mode. `/health` now returns HTTP 503; the next completed scheduled check should make the monitor **Failing** and open an incident. Keep the installation's **External check URL** (in **Settings**) reachable. This independent check must pass in the same slot to confirm failure from one network; if it fails, the target failure stays **Degraded**, and missing evidence is **Unknown**. The monitor takes that URL when you save it:
+Switch the fixture to failing mode. `/health` now returns HTTP 503; the next completed scheduled check should make the monitor **Failing** and open an incident. Keep the installation's **External check URL** (in **Settings**) reachable. This independent check must pass in the same slot to confirm failure from one network; if it fails, the target failure stays **Degraded**, and missing evidence is **Unknown**. Monitors use the URL in Settings from their next check:
 
 ```sh
 curl --fail --silent --show-error --request POST "http://127.0.0.1:${target_port}/control" --header 'content-type: application/json' --data '{"mode":"failing"}'

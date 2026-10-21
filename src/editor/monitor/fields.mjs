@@ -41,7 +41,7 @@ export function readFields(root,definition){
 // Its rule list is bound by the row (bindRules).
 export function cloneFields(form,suffix){
  const copy=form.querySelector('.editor-columns').cloneNode(true);
- copy.querySelector('#settings-probes')?.remove();
+ copy.querySelector('#check-from')?.remove();
  // A proposal is an HTTP or keyword monitor: its copy has no type choice and no other type's fields.
  copy.querySelector('[name="checkType"]')?.closest('label')?.remove();copy.querySelector('.type-help')?.remove();
  for(const group of copy.querySelectorAll('.type-fields'))if(group.dataset.types!=='http')group.remove();

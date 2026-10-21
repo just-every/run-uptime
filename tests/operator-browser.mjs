@@ -128,9 +128,9 @@ try{
    for(const [field,value] of Object.entries(values))await page.locator(`[name=${field}]:visible`).fill(value);
    const rules={'Page contains':{body:'healthy'},'Page must not contain':{bodyExcludes:'unhealthy'},Pattern:{regexPattern:'"ok":true',regexFlags:'i'},'Header equals':{headerName:'x-synthetic',headerValue:'local-review'},'JSON value':{jsonPath:'$.ok',jsonEquals:'true'}};
    for(const [rule,fields] of Object.entries(rules)){await addRule(page,rule);for(const [field,value] of Object.entries(fields))await page.locator(`[name=${field}]:visible`).fill(value)}
-   await page.locator('input[name=probes][value=local-b]:visible').check();await page.getByRole('button',{name:'Save monitor'}).click();await ready(page);
+   await page.getByRole('button',{name:'Save monitor'}).click();await ready(page);
    const overview=await (await page.request.get(origin+'/api/overview')).json(),monitor=overview.monitors.find(m=>m.definition.name===name);
-   assert.ok(monitor);assert.equal(monitor.definition.probes.length,2);assert.equal(Object.keys(monitor.definition.assignments).length,2);
+   assert.ok(monitor);assert.deepEqual(Object.values(monitor.definition.assignments).map(a=>a.runnerId),overview.runner.runners.filter(r=>!r.revokedAt).map(r=>r.runnerId),'a new monitor checks from every location');
    await page.waitForURL(url=>url.pathname===`/app/monitors/${monitor.id}`);await ready(page);
    await page.locator('#monitor-state').filter({hasText:'Healthy'}).waitFor({timeout:18000});await page.locator('#raw-history details').first().waitFor();
    await audit(page,`healthy-${width}`,{state:'Healthy',reason:/^Up/});

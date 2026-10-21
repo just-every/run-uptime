@@ -2,7 +2,7 @@
 import {validateDefinition} from '../policy.mjs'
 import {grants,MONITOR_LIMIT,type Bindings} from '../control.server.ts'
 import {assignRunners,type Runner} from '../runner-registration.server.ts'
-import {externalCheckUrl} from '../external-check.server.ts'
+import {externalCheck,externalCheckMode,type ExternalCheck} from '../external-check.server.ts'
 // @ts-ignore Edition flow vocabulary is JavaScript shared with the runner.
 import {FLOW_LIMITS} from '../flow.mjs'
 import {COMPARED_FIELDS,canonical,sha256} from './format.ts'
@@ -15,7 +15,7 @@ export type PlanEntry={index:number;label:string;action:Action;name?:string;reas
 type Marker={kit_revision:string;native_revision:number;retired:number}
 /** Everything the planner reads, read once. Planning itself is synchronous and writes nothing. */
 export type PlanState={local:number[];monitors:{id:string;revision:number;definition:any}[];runners:Runner[];first:string|null;
- tokens:Set<string>;external:string|null;markers:Map<string,Marker>;demo:boolean;origin?:string}
+ tokens:Set<string>;external:ExternalCheck;markers:Map<string,Marker>;demo:boolean;origin?:string}
 export type PlanItem=SourceEntry&{mapping:Mapping;sourceId?:string}
 
 export const RELEASED='Imported before and released by undo or erasure; it stays in Uptime as its own monitor. Erase that monitor to import it again.'
@@ -29,7 +29,7 @@ export async function planState(env:Bindings):Promise<PlanState>{
  const [stored,registered,tokens,external,markers]=await Promise.all([
   env.DB.prepare('SELECT id,revision,definition FROM monitors ORDER BY rowid').all<any>(),
   env.DB.prepare('SELECT * FROM runners ORDER BY registered_at,runner_id').all<Runner>(),
-  liveHeartbeatTokens(env),externalCheckUrl(env),
+  liveHeartbeatTokens(env),externalCheck(env),
   env.DB.prepare('SELECT monitor_id,kit_revision,native_revision,retired FROM uptime_business_import_targets').all<any>(),
  ])
  const runners=registered.results
@@ -91,7 +91,9 @@ export function planEntries(state:PlanState,items:PlanItem[],{idFor,requireRunne
   if(!first){entries.push({index,label,name,action:'refused',reason:`${label}: ${NO_RUNNER}`,differences});continue}
   if(marker?.retired){entries.push({index,label,name,action:'refused',reason:`${label}: ${RELEASED}`,differences});continue}
   if(!flowRoom(normalized,current.definition.type==='flow')){entries.push({index,label,name,action:'refused',reason:`${label}: flow monitor limit reached (an installation runs at most ${FLOW_LIMITS.maxFlowsPerInstallation} flows).`,differences});continue}
-  const kept={...normalized,enabled:current.definition.enabled,maintenanceUntil:current.definition.maintenanceUntil??0,...(current.definition.maintenanceWindows?{maintenanceWindows:current.definition.maintenanceWindows}:{})}
+  // A file never carries the installation-local external check: the monitor keeps following Settings, or keeps its own URL.
+  const mode=externalCheckMode(current.definition,state.external.legacyUrl)
+  const kept={...normalized,enabled:current.definition.enabled,maintenanceUntil:current.definition.maintenanceUntil??0,...(current.definition.maintenanceWindows?{maintenanceWindows:current.definition.maintenanceWindows}:{}),...(mode?{externalCheck:mode}:{})}
   const token=tokenNote(current.definition,kept,state.tokens.has(current.id)).trim();if(token)differences.push(token)
   let definition
   try{definition=assign(kept,{assignments:keptAssignments(current.definition,kept)})}catch(error){entries.push({index,label,name,action:'refused',reason:`${label}: ${message(error)}`,differences});continue}

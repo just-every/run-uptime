@@ -1,7 +1,7 @@
 /* The monitor editor (/app/monitor), loaded after app-theme.css, which gives it the fonts, tokens, element defaults and
    the shell (.ui-sidebar, .ui-main, .ui-header). This file lays out the form: what to check, its timing and labels on
    the left, the "Up or down" card beside them at 1200px and wider, and the footer with the feedback line, Cancel and
-   Save. Hooks the editor relies on: #monitor-form, the field names, #settings-probes (it appends the Check from rows),
+   Save. Hooks the editor relies on: #monitor-form, the field names, #check-from (it fills the Check from list),
    #editor-feedback[role=status] with data-error, #editor-signout, the first h1 and html.editor-ready. */
 
 /* Header */
@@ -43,7 +43,7 @@
 /* Monospace only where the value is a URL or JSON. */
 .editor-panel :is(input[name="url"], input[name="jsonPath"], input[name="regexPattern"]) { font-family: var(--mono); font-size: 14px; }
 
-/* Up or down: Up when (one row per rule, the Add rule menu), Down when, the fixed agreement line and Check from. */
+/* Up or down: Up when (one row per rule, the Add rule menu), Down when, and Check from with its agreement line. */
 .rules-panel .rules-heading { display: block; margin: 22px 0 10px; padding: 0; color: var(--muted); font-size: 12.5px; font-weight: 700; letter-spacing: .06em; line-height: 1.3; text-transform: uppercase; }
 .rules-panel h2 + .rules-heading { margin-top: 0; }
 .rule-rows { display: grid; gap: 12px; }
@@ -97,11 +97,17 @@
   .editor-actions button { flex: 1 1 auto; min-width: 0; }
 }
 
-.probe-assignment { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-items: center; gap: 6px 12px; margin: 0 0 14px; min-width: 0; }
-.probe-assignment .probe-pick { display: flex; flex-direction: row; align-items: center; gap: 8px; white-space: nowrap; }
-.probe-assignment .probe-canary { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 4px; min-width: 0; color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
-.probe-assignment.is-off .probe-canary { display: none; }
-.probe-assignment :is(input[type="url"],select) { width: 100%; min-width: 0; }
+/* Check from: one row per location, the limit, the agreement line, and the monitor's own external check under Advanced. */
+.location-picks { display: grid; gap: 2px; }
+.location-pick { display: flex; align-items: center; gap: 10px; min-height: 40px; min-width: 0; }
+.location-pick-name { min-width: 0; overflow-wrap: anywhere; }
+.location-pick:has(input:disabled) { color: var(--muted); }
+.location-limit { margin-top: 6px; }
+.check-from-advanced { margin-top: 14px; }
+.check-from-advanced > summary { min-height: 40px; display: flex; align-items: center; font-weight: 600; cursor: pointer; }
+.check-from-advanced > label { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; min-width: 0; }
+.check-from-advanced input { width: 100%; min-width: 0; font-family: var(--mono); font-size: 14px; }
+.check-from-advanced > .helper { margin-top: 6px; }
 
 /* The check type's own fields; checkbox rows and groups for TCP banners and DNS resolvers. */
 .type-fields[hidden] { display: none; }

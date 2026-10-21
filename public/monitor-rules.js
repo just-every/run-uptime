@@ -37,17 +37,20 @@ export function checkedFrom(definition,runners=[]){
  const names=Object.values(definition.assignments??{}).map(a=>runners.find(r=>r.runnerId===a.runnerId)?.networkLabel??a.networkLabel).filter(Boolean);
  return [...new Set(names)];
 }
-// A probe slot (local-a) as the location it runs from: the runner's current name, else the name it had when assigned.
-const slotNames={'local-a':'Check 1','local-b':'Check 2','local-c':'Check 3'};
+// A probe (local-a) as the location it runs from: the runner's current name, else the name it had when assigned. A revision
+// from before assignments ran every probe on this computer's own location.
 export function locationNamer(definition,runners=[]){
- return probe=>{const assignment=definition?.assignments?.[probe];return runners.find(r=>r.runnerId===assignment?.runnerId)?.networkLabel??assignment?.networkLabel??slotNames[probe]??probe};
+ return probe=>{const assignment=definition?.assignments?.[probe];return runners.find(r=>assignment?r.runnerId===assignment.runnerId:r.builtIn)?.networkLabel??assignment?.networkLabel??probe};
 }
-const hostOf=url=>{try{return new URL(url).hostname}catch{return url}};
-// How an outage is agreed for this revision: two locations, or one plus its passing external check.
-export function agreementRule(definition){
- if(!definition.assignments)return `${definition.failureQuorum} failing checks agree`;
- const canary=Object.values(definition.assignments).find(a=>a.canaryUrl)?.canaryUrl;
- return canary?`Seen from 2 locations, or 1 plus ${hostOf(canary)}`:'Seen from 2 locations';
+const hostOf=url=>{try{return new URL(url).hostname.replace(/^www\./,'')}catch{return url}};
+// How an outage is agreed for this revision (src/domain/policy.mjs): two locations, or one while the external check its checks
+// use still loads there. A monitor that follows Settings names the URL Settings holds now (m.externalCheck, from the server).
+export function agreementRule(m,runners=[]){
+ const d=m.definition;
+ if(!d.assignments)return `${d.failureQuorum} failing checks agree`;
+ const host=m.externalCheck?.url?hostOf(m.externalCheck.url):'',networks=new Set(Object.values(d.assignments).map(a=>a.networkLabel));
+ if(networks.size<2)return host?`Fails from ${checkedFrom(d,runners)[0]} while ${host} still loads there`:`Fails from ${checkedFrom(d,runners)[0]}`;
+ return host?`Fails from 2 locations, or from 1 while ${host} still loads there`:'Fails from 2 locations';
 }
 const list=(kind,items)=>`<ul class="rule-list ${kind}">${items.map(text=>`<li><span class="rule-mark">${icon(kind==='up'?'check':'x-circle')}</span><span>${escape(text)}</span></li>`).join('')}</ul>`;
 // The monitor page's card. `other` is the existing summary markup for types whose rules are not HTTP assertions.
@@ -55,7 +58,7 @@ export function rulesCard(m,runners,{editable,other,details}){
  const d=m.definition,locations=checkedFrom(d,runners);
  const up=httpType(d)?list('up',httpRules(d)):other;
  return `<section class="ui-card panel assertions rules-card" aria-labelledby="expects-heading"><div class="panel-head"><h2 id="expects-heading">Up or down</h2>${editable?`<a class="ui-link" id="edit-rules" href="/app/monitor?monitor=${encodeURIComponent(m.id)}">Edit rules</a>`:''}</div>`
-  +`<h3>Up when</h3>${up}<h3>Down when</h3>${list('down',[`${d.confirmSlots} failed ${d.confirmSlots===1?'check':'checks in a row'}`,agreementRule(d)])}`
+  +`<h3>Up when</h3>${up}<h3>Down when</h3>${list('down',[`${d.confirmSlots} failed ${d.confirmSlots===1?'check':'checks in a row'}`,agreementRule(m,runners)])}`
   +`<h3>Back up after</h3>${list('up',[`${d.recoverSlots} passing ${d.recoverSlots===1?'check':'checks'}`])}`
   +(locations.length?`<h3>Checked from</h3><p class="location-chips">${locations.map(name=>`<span class="location-chip">${escape(name)}</span>`).join('')}</p>`:'')
   +details+'</section>';

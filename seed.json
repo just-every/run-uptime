@@ -741,7 +741,15 @@
         "match": "prefix",
         "kind": "credentialed",
         "class": "runner",
-        "authentication": "Installation runner key; scoped runner identity and signed enrolment/results where required.",
+        "authentication": "Installation runner key; scoped runner identity and signed enrolment/results where required. /api/runner/join takes a location's one-time join key instead.",
+        "environment": "all"
+      },
+      {
+        "path": "/uptime-runner.mjs",
+        "match": "exact",
+        "kind": "download",
+        "class": "assets",
+        "authentication": "None; the open-source location runner script, the same for every installation, which an Add location command downloads.",
         "environment": "all"
       },
       {

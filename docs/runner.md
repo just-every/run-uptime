@@ -8,24 +8,22 @@ Hosted email, signed JSON and Slack notifications are sent by the Worker without
 
 ## Start it
 
-In the signed-in console, open **Locations** and choose **Add location**. The panel shows a complete command with this app's origin, the new runner ID, its one-time key and the startup command. Copy it; the key is shown only until you close the panel (**Done**, or **Cancel** before the location joins, which removes it).
-
-On the runner machine, use an installed Uptime source checkout with Node 22 or later. From its root, paste the command. Its shape is:
+In the signed-in console, open **Locations** and choose **Add location**. Copy the command it shows and run it on the machine to check from. That machine needs Node 22 or later and network access to your Uptime address; it needs no Uptime checkout. Its shape is:
 
 ```sh
-export UPTIME_CONTROL_ORIGIN='https://your-uptime-address.example'
-export UPTIME_RUNNER_ID='the runner ID from the panel'
-export UPTIME_RUNNER_KEY='the one-time key from the panel'
-node runners/src/private-runner.mjs
+curl -fsSL https://your-uptime-address.example/uptime-runner.mjs -o uptime-runner.mjs && node uptime-runner.mjs https://your-uptime-address.example JOIN_KEY
 ```
 
-- `UPTIME_CONTROL_ORIGIN` is the exact HTTPS origin of your Uptime app, without a path or trailing slash. The panel fills in the origin you are signed into.
-- The runner ID and key authorize this runner in this installation. Never share its command or commit it to source control. **Remove** on Locations refuses its future requests.
+- The command downloads this installation's runner as one script and starts it with this installation's address and a one-time join key. The runner exchanges the key once for its location's own runner key and keeps that key in an owner-only `uptime-runner` folder beside the script. Run the same command again (after a restart, or under a supervisor) and it finds the saved key; the join key itself works only once, and the panel stops showing it once the location joins.
+- Once the location joins, the panel offers **Check all monitors from here too** (on by default). **Done** adds the location to every monitor that has room for it, in one step. A monitor checks from up to three locations (two for a browser flow); the panel counts those already full.
+- An Uptime reachable only on this computer (`http://127.0.0.1`, as `rer dev` serves it) cannot be reached from another machine; the panel says so. Deploy it, or make it reachable over HTTPS, to add other machines. The same command still adds a location on this computer.
+- **Cancel** before the location joins removes it again. **Remove** on Locations refuses its future requests.
 - When the runner first reaches Uptime, the location is named after where it connects from: the city of its public address (or region or country), such as "Sydney", with "Sydney 2" for a second one there. If no place is known it keeps a short generated name. **Rename** changes it any time; a name you give is never replaced. Monitors saved afterwards carry the new name; saved revisions keep the name they were saved with.
-- Give each independent network a separate runner and key. Names identify network vantages; different names alone do not make two runners independent. Older commands that set `UPTIME_NETWORK_LABEL` still work; the runner's own label is ignored.
-- For the original deployment runner, `node scripts/runner-start.mjs --environment NAME` reads that environment's saved key privately. Set `UPTIME_CONTROL_ORIGIN` first; omitting `--environment` selects production. See [Deploy to Cloudflare](/docs/deploy).
+- Give each independent network a separate location. Names identify network vantages; different names alone do not make two runners independent.
 
-`rer dev` starts a local runner for you. The manual steps above are for a separately operated runner. Local loopback review permits `http://127.0.0.1:PORT` only with `UPTIME_LOCAL_REVIEW=true`; the panel includes this setting when opened at that local origin.
+A runner can also start from an Uptime source checkout with its settings in the environment: `UPTIME_CONTROL_ORIGIN` (the exact HTTPS origin, without a path or trailing slash), `UPTIME_RUNNER_ID` and `UPTIME_RUNNER_KEY` (from `POST /api/runners`), then `node runners/src/private-runner.mjs`. Older commands that set `UPTIME_NETWORK_LABEL` still work; the runner's own label is ignored. For the original deployment runner, `node scripts/runner-start.mjs --environment NAME` reads that environment's saved key privately. Set `UPTIME_CONTROL_ORIGIN` first; omitting `--environment` selects production. See [Deploy to Cloudflare](/docs/deploy).
+
+`rer dev` starts a local runner for you. A checkout runner permits plain `http://127.0.0.1:PORT` only with `UPTIME_LOCAL_REVIEW=true`; the downloaded script permits it only for an Uptime on its own machine.
 
 ## Heartbeat evaluation
 

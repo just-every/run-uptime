@@ -26,7 +26,7 @@ try{
   const form=page.locator('form').filter({has:page.locator('[name=checkType]')});
   await form.locator('[name=checkType]').selectOption('ping');await form.getByLabel('Monitor name',{exact:true}).fill(`Chicago gateway IPv6 ${width}`);
   await form.getByLabel('Ping host',{exact:true}).fill('ping.protocol.test');await form.locator('[name=pingFamily]').selectOption('6');
-  await form.locator('[name=canary-local-a]').fill('https://canary.protocol.test/ok');await form.locator('[name=retries]').fill('0');await form.locator('[name=confirmSlots]').fill('1');await form.locator('[name=recoverSlots]').fill('1');
+  await form.locator('.check-from-advanced summary').click();await form.locator('[name=externalCheckUrl]').fill('https://canary.protocol.test/ok');await form.locator('[name=retries]').fill('0');await form.locator('[name=confirmSlots]').fill('1');await form.locator('[name=recoverSlots]').fill('1');
   await shot(`ping-editor-${width}.png`);
   // Transport-specific bounds are refused through the public save door.
   await form.locator('[name=timeoutSeconds]').fill('1');await page.getByRole('button',{name:'Save monitor',exact:true}).click();await page.locator('#editor-feedback[data-error]').waitFor();assert.match(await page.locator('#editor-feedback').textContent(),/timeout|8|8000/i);await shot(`ping-refused-${width}.png`);
