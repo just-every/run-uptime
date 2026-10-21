@@ -8,7 +8,7 @@ Hosted email, signed JSON and Slack notifications are sent by the Worker without
 
 ## Start it
 
-In the signed-in console, open **Locations** and choose **Add location**. Copy the command it shows and run it on the machine to check from. That machine needs Node 22 or later and network access to your Uptime address; it needs no Uptime checkout. Its shape is:
+In the signed-in console, open **Locations** and choose **Add location**. Copy the command it shows and run it on the machine to check from. That machine needs Node 22.13 or later and network access to your Uptime address; it needs no Uptime checkout. Its shape is:
 
 ```sh
 curl -fsSL https://your-uptime-address.example/uptime-runner.mjs -o uptime-runner.mjs && node uptime-runner.mjs https://your-uptime-address.example JOIN_KEY

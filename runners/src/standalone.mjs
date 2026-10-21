@@ -1,7 +1,7 @@
 // The runner the console's Add location command downloads: GET /uptime-runner.mjs serves this file built into one script, so a
-// machine needs Node 22 or later and network access to Uptime, and no Uptime checkout. `node uptime-runner.mjs <Uptime address>
-// <join key>` exchanges the one-time join key for this location's own runner key, keeps that key in uptime-runner/ beside the
-// script (owner-only), and runs. The same command run again finds the key and runs as the same location.
+// machine needs Node 22.13 or later (node:sqlite) and network access to Uptime, and no Uptime checkout. `node uptime-runner.mjs
+// <Uptime address> <join key>` exchanges the one-time join key for this location's own runner key, keeps that key in
+// uptime-runner/ beside the script (owner-only), and runs. The same command run again finds the key and runs as the same location.
 import {chmod,mkdir,readFile,writeFile} from 'node:fs/promises';
 import {dirname,join} from 'node:path';
 import {fileURLToPath} from 'node:url';

@@ -1,6 +1,6 @@
 import {revisionStatements,grants,type Bindings} from './control.server.ts'
 import {assignRunners,ensureFirstRunner,type Runner} from './runner-registration.server.ts'
-import {externalCheck,externalCheckOf} from './external-check.server.ts'
+import {externalCheck,externalCheckMode,externalCheckOf} from './external-check.server.ts'
 import {classifyStorage} from './storage-error.ts'
 import type {AuditActor} from './audit.server.ts'
 // @ts-ignore Shared edition policy is JavaScript.
@@ -26,10 +26,12 @@ export async function checkAllFrom(env:Bindings,runnerId:string,actor:AuditActor
   if(Object.values(assigned).some((a:any)=>a.runnerId===runnerId))continue
   if(d.probes.length>=(d.type==='flow'?2:PROBES.length)){full.push(d.name);continue}
   if(d.type==='flow'&&!runnerCapabilities(runner.capabilities).browser){refused.push({name:d.name,reason:'A browser flow needs a browser on that machine.'});continue}
-  const probe=PROBES.find(p=>!d.probes.includes(p))!,own=externalCheckOf(d,external).own
+  // The monitor keeps its external check, read from its revision before the new check joins: one following Settings (an older
+  // revision's copies of the installation's URL included) still follows it, and one with its own URL keeps that URL.
+  const probe=PROBES.find(p=>!d.probes.includes(p))!,mode=externalCheckMode(d,external.legacyUrl),own=externalCheckOf(d,external).own
   try{
    const requested={...assigned,[probe]:{runnerId}}
-   const definition=assignRunners(runners.results,first.runner_id,validateDefinition({...d,probes:[...d.probes,probe].sort(),assignments:requested},grants(env)),{assignments:requested,...(own?{canaryUrl:own}:{})},external,env.RER_DEMO!=='1',env.UPTIME_ORIGIN)
+   const definition=assignRunners(runners.results,first.runner_id,validateDefinition({...d,probes:[...d.probes,probe].sort(),assignments:requested,...(mode?{externalCheck:mode}:{})},grants(env)),{assignments:requested,...(own?{canaryUrl:own}:{})},external,env.RER_DEMO!=='1',env.UPTIME_ORIGIN)
    statements.push(...(await revisionStatements(env,definition,old,old.id,now,actor,{keepHeartbeatToken:true})).statements)
    added.push({id:old.id,name:d.name})
   }catch(error){refused.push({name:d.name,reason:(error as Error).message})}
