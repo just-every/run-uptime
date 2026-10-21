@@ -74,15 +74,18 @@ function validZone(value:unknown){if(typeof value!=='string'||value.length>80)re
 // keep the stored context, zone, date, clock and every nonzero offset unchanged.
 function canonicalLocalTime(value:unknown){return typeof value==='string'?value.replace(/GMT[+-]00:00$/,'GMT'):value}
 export function notificationLocalTime(value:number,timeZone:string){
- // Workerd renders zero offset as GMT+00:00; Node renders GMT. Persist the
- // canonical spelling so the same immutable context validates in both runtimes.
+ // Workerd (and Node 26) render zero offset as GMT+00:00; Node 22 renders GMT. Persist
+ // the canonical spelling so the same immutable context validates in every runtime.
  return new Intl.DateTimeFormat('en-US',{timeZone,year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',timeZoneName:'longOffset'}).format(value).replace(/GMT[+-]00:00$/,'GMT');
 }
+// v2 text repeats the local times its context stored, which validateIncidentContext checks against
+// the timestamps, so a retained delivery body re-renders byte for byte in any runtime, whichever
+// spelling (GMT or an older GMT+00:00) the context was written with.
 export function incidentContextText(context:IncidentContext){
- const at=(value:number)=>context.version===1?new Date(value).toISOString():notificationLocalTime(value,context.timeZone);
+ const v1=context.version===1,iso=(value:number)=>new Date(value).toISOString();
  return [`Original down reason: ${context.originalReason}`,...context.failedLocations.map(p=>`Failed location ${p.name} (${p.probe}): ${p.reason}`),
-  `Confirmed start (${context.timeZone}): ${at(context.confirmedStartedAt)}`,
-  context.confirmedRecoveredAt===null?'Recovery: not confirmed':`Confirmed recovery (${context.timeZone}): ${at(context.confirmedRecoveredAt)}`,
+  `Confirmed start (${context.timeZone}): ${v1?iso(context.confirmedStartedAt):context.confirmedStartedLocal}`,
+  context.confirmedRecoveredAt===null?'Recovery: not confirmed':`Confirmed recovery (${context.timeZone}): ${v1?iso(context.confirmedRecoveredAt):context.confirmedRecoveredLocal}`,
   context.downtimeSeconds===null?'Downtime: ongoing since confirmed start':`Confirmed downtime: ${context.downtimeHuman} (${context.downtimeSeconds} seconds)`,
   context.incidentUrl?`Incident details: ${context.incidentUrl}`:''];
 }

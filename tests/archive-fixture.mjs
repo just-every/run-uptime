@@ -1,4 +1,5 @@
 import {slackContent} from '../src/domain/notification-content.ts';
+import {incidentUrl,notificationLocalTime} from '../src/domain/notification-context.ts';
 import {validateDefinition} from '../src/domain/policy.mjs';
 import {sealCredential} from '../src/domain/notification-credentials.server.ts';
 export async function populateArchiveFixture(env){
@@ -14,6 +15,14 @@ export async function populateArchiveFixture(env){
   if(kind==='webhook')statements.push(env.DB.prepare('INSERT INTO integration_replays VALUES(?,?,?,?,?)').bind('uptime-notifications','replay-webhook','private-fingerprint',JSON.stringify({...JSON.parse(envelope),id:'replay-webhook'}),now));
   statements.push(env.DB.prepare('INSERT INTO integration_deliveries VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)').bind('uptime-notifications',`job-${kind}`,'private-fingerprint','private-destination-hash',envelope,'sending',1,now,now,'private-claim',now+60000,1,'[]'),env.DB.prepare('INSERT INTO integration_attempts VALUES(?,?,?,?,?,?,?)').bind('uptime-notifications',`attempt-${kind}`,`job-${kind}`,1,now,null,null));
  }
+ // Uptime on workerd stored a zero-offset zone's confirmed start as GMT+00:00 (Node 22 spells it GMT) in the incident
+ // context and in the Slack body it sent; that retained delivery must travel through every archive door unchanged.
+ const zeroOffset=JSON.stringify({...JSON.parse(event),id:'event-zero-offset',incidentKey:'incident:zero-offset',incidentContext:{version:2,confirmedStartedAt:now,confirmedRecoveredAt:null,downtimeSeconds:null,downtimeHuman:null,originalReason:'Target failed',failedLocations:[{probe:'local-a',name:'local-a',reason:'Status differs'}],timeZone:'UTC',incidentUrl:incidentUrl('http://127.0.0.1:15503','monitor','incident:zero-offset'),confirmedStartedLocal:notificationLocalTime(now,'UTC').replace(/GMT$/,'GMT+00:00'),confirmedRecoveredLocal:null}});
+ const zeroOffsetEnvelope=JSON.stringify({id:'job-zero-offset',tenant:'uptime-notifications',destinationId:'credential-slack',event:'uptime.incident.firing',protocol:'slack.incoming-webhook.v1',body:slackContent(JSON.parse(zeroOffset))});
+ statements.push(env.DB.prepare('INSERT INTO outbox VALUES(?,?,?,?,?,?,?,?)').bind('event-zero-offset','monitor','slot','trigger',zeroOffset,'sent',0,null),
+  env.DB.prepare('INSERT INTO notification_jobs(id,event_id,destination_id,destination_name,kind,credential_id,event,created_at,state,code,finished_at,attempts) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)').bind('job-zero-offset','event-zero-offset','slack','slack destination','slack','credential-slack',zeroOffset,now,'accepted','slack_webhook_accepted',now,1),
+  env.DB.prepare('INSERT INTO integration_deliveries VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)').bind('uptime-notifications','job-zero-offset','private-fingerprint-zero-offset','private-destination-hash',zeroOffsetEnvelope,'accepted',1,now,now,null,null,1,'[]'),
+  env.DB.prepare('INSERT INTO integration_attempts VALUES(?,?,?,?,?,?,?)').bind('uptime-notifications','attempt-zero-offset','job-zero-offset',1,now,now,JSON.stringify({kind:'accepted',code:'slack_webhook_accepted',status:200,responseExcerpt:'ok'})));
  statements.push(env.DB.prepare("UPDATE integration_deliveries SET state='accepted',claim=NULL,claim_until=NULL WHERE id='job-webhook'"),env.DB.prepare("UPDATE integration_attempts SET finished_at=?,outcome=? WHERE id='attempt-webhook'").bind(now,JSON.stringify({kind:'uncertain',code:'response_unknown'})),env.DB.prepare('INSERT INTO integration_resolutions VALUES(?,?,?,?,?)').bind('uptime-notifications','resolution-webhook','job-webhook',now,JSON.stringify({kind:'accepted',code:'owner_confirmed'})));
  await env.DB.batch(statements);
 }

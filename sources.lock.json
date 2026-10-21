@@ -5659,7 +5659,7 @@
       "executable": false
     },
     "src/domain/notification-context.ts": {
-      "sha256": "54de979d4dd999be2299de757acdf7542bea24cf235d77d14246f856ca1ff372",
+      "sha256": "c6b1db5951e95985659609fcefd8ac259e553e4657509bf1df826a4ee3922da0",
       "executable": false
     },
     "src/domain/notification-credentials.server.ts": {
@@ -5675,7 +5675,7 @@
       "executable": false
     },
     "src/domain/notification-preferences.server.ts": {
-      "sha256": "c97a40a03296cc01c5c850a28a1eddd445952c6c62144b4f62381d908239cdd4",
+      "sha256": "08440933eaa7a52e7917029a9c0e504436ca6079ce520c9af32d354ca9cc61f5",
       "executable": false
     },
     "src/domain/notification-protocols.ts": {
@@ -6471,7 +6471,7 @@
       "executable": false
     },
     "tests/archive-fixture.mjs": {
-      "sha256": "66597f295a3c785c323fc5345c3b7857a2ef50389fee32df22dfd7ea175780a9",
+      "sha256": "f069e3656f147da786c91cbdef5abdf0789e67bb3395f4914f0de4969ada2d12",
       "executable": false
     },
     "tests/archive-release.mjs": {
@@ -6487,7 +6487,7 @@
       "executable": false
     },
     "tests/archive-roundtrip.mjs": {
-      "sha256": "6026fabdff545207ecca07f4ccfefe3b306f2d4af68152074c320e3c72a42e1a",
+      "sha256": "3f94871b55b47dd9d42246760910e8cce4d5df230f0412b85e7ae459fd902d5b",
       "executable": false
     },
     "tests/auth-input-boundary.mjs": {

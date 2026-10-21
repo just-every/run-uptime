@@ -1,9 +1,13 @@
 import type {Bindings} from './control.server.ts'
 import {auditStatement,type AuditActor} from './audit.server.ts'
 
+function ianaTimeZone(value:unknown){
+ if(typeof value!=='string'||value.length>80||! /^(?:UTC|[A-Za-z_]+(?:\/[A-Za-z0-9_+.-]+)+)$/.test(value))return null;
+ try{return new Intl.DateTimeFormat('en-US',{timeZone:value}).resolvedOptions().timeZone}catch{return null}
+}
 export function notificationTimeZone(value:unknown):string {
- if(typeof value!=='string'||value.length>80||! /^(?:UTC|[A-Za-z_]+(?:\/[A-Za-z0-9_+.-]+)+)$/.test(value))throw Error('Choose an IANA time zone, such as America/Chicago');
- try{return new Intl.DateTimeFormat('en-US',{timeZone:value}).resolvedOptions().timeZone}catch{throw Error('Choose an IANA time zone, such as America/Chicago')}
+ const timeZone=ianaTimeZone(value);if(timeZone===null)throw Error('Choose an IANA time zone, such as America/Chicago');
+ return timeZone;
 }
 export async function notificationPreferences(env:Bindings){
  const row=await env.DB.prepare('SELECT time_zone FROM notification_preferences WHERE singleton=1').first<{time_zone:string}>();
@@ -19,8 +23,10 @@ export async function saveNotificationPreferences(env:Bindings,input:any,actor:A
  return {timeZone};
 }
 
+// The browser's zone only seeds a fresh installation's default and never fails the read it rides on:
+// a saved choice stands, and an absent or unusable zone (Chromium reports +00:00 for GMT, or EST5EDT) seeds nothing.
 export async function initializeNotificationTimeZone(env:Bindings,value:string){
- const timeZone=notificationTimeZone(value);
  if(await env.DB.prepare('SELECT singleton FROM notification_preferences WHERE singleton=1').first())return;
+ const timeZone=ianaTimeZone(value);if(timeZone===null)return;
  await env.DB.prepare('INSERT INTO notification_preferences(singleton,time_zone) VALUES(1,?) ON CONFLICT(singleton) DO NOTHING').bind(timeZone).run();
 }

@@ -48,6 +48,8 @@ try{
   if(undo)assert.equal((await door.undo(applied.body)).body.job.state,'undone');
  }
  const original=await archive(env),a=tables(original);assert.ok(!JSON.stringify(original).includes('rer_migrations'));assert.deepEqual((await env.DB.prepare('SELECT * FROM rer_migrations').all()).results,sourceLedger);
+ // A Slack body sent with workerd's zero-offset spelling exports as sent; the loops below restore and re-export it byte for byte.
+ assert.match(JSON.parse(a.integration_deliveries.find(d=>d.id==='job-zero-offset').envelope).body,/Confirmed start \(UTC\): [^\\]+ GMT\+00:00\\n/);
  assert.equal(a.definition_batches.length,5);assert.equal(a.definition_batch_entries.length,6);assert.ok(a.definition_batches.every(b=>b.restored_at===null));const fileBatches=a.definition_batches.filter(b=>b.source==='uptime.monitors'),robotRows=robotBatches.map(id=>a.definition_batch_entries.filter(e=>e.batch_id===id));
  assert.deepEqual(fileBatches.map(b=>[b.actor_kind,b.undone_at!==null]),[['operator',true],['operator',false]]);assert.deepEqual(a.definition_batch_entries.filter(e=>fileBatches.some(b=>b.id===e.batch_id)).map(e=>[e.action,e.revision,e.previous_revision,e.undo_outcome]),[['create',1,null,'paused'],['create',1,null,'paused'],['create',1,null,null]]);
  // Revisions 1 to 4 of the robot: import, catch-up (undone), the undo's restore, the second catch-up. The archive names the revision each apply wrote.
