@@ -102,7 +102,7 @@ export async function proveNotificationRetry(inspect){
   const archive=await ok('/api/archive'),stored=archive.payload.productTables.notification_delivery_attempts,overview=await ok('/api/notifications');
   const bodies=[...new Set(receipts.map(r=>r.body))];
   for(const value of [archive,overview,stored,overview.deliveries.flatMap(d=>d.attemptHistory)]){const found=strings(value);for(const forbidden of [...secrets,...bodies])assert.ok(!found.some(text=>text.includes(forbidden)),'no signing credential or webhook body')}
-  assert.ok(archive.payload.productTables.integration_deliveries.every(d=>!Object.hasOwn(JSON.parse(d.envelope),'body')),'archived envelopes are body-free');
+  assert.ok(archive.payload.productTables.integration_deliveries.every(d=>{const envelope=JSON.parse(d.envelope);return envelope.protocol==='webhook'?!Object.hasOwn(envelope,'body'):typeof envelope.body==='string'}),'webhook envelopes are body-free; Slack retains its historical message');
   assert.ok(stored.length>=12);assert.ok(stored.some(a=>a.phase==='fallback')&&stored.some(a=>a.delivery_id===late.id),'email and fallback attempts are durable records');
   const restoredPort=(await availablePorts(1)).find(port=>port!==Number(new URL(f.origin).port));assert.ok(restoredPort);
   const restoredOrigin=`http://127.0.0.1:${restoredPort}`,restoreAPI=ownerAPI(restoredOrigin);

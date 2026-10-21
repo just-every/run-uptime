@@ -33,11 +33,12 @@ export async function archive(env:Bindings){
  // Import-door batches travel as definition-batch history beside the batches Uptime wrote itself.
  const door=await doorBatchArchive(env);t.definition_batches.push(...door.batches);t.definition_batch_entries.push(...door.entries);
  for(const name of ['definition_batches','definition_batch_entries'])if(t[name].length>ARCHIVE_ROWS)throw Error(`Archive row bound exceeded: ${name} (${ARCHIVE_ROWS})`);
- // DELIVERY-002: a delivery travels without the body it sent; restore rebuilds it from the archived job event.
- for(const row of t.integration_deliveries){const e=JSON.parse(row.envelope),job=t.notification_jobs.find(j=>j.id===row.id);if(!job)throw Error('Archive notification delivery is orphaned');e.destinationId=job.destination_id;delete e.body;row.envelope=JSON.stringify(e)}
+ // DELIVERY-002: webhook envelopes omit their request body; restore rebuilds it from the archived job event.
+ // Slack retains its exact historical message, including the original local-time spelling (U10).
+ for(const row of t.integration_deliveries){const e=JSON.parse(row.envelope),job=t.notification_jobs.find(j=>j.id===row.id);if(!job)throw Error('Archive notification delivery is orphaned');e.destinationId=job.destination_id;if(e.protocol==='webhook')delete e.body;row.envelope=JSON.stringify(e)}
  const history=new Map<string,any>();
  for(const row of t.archive_history){
-  if(row.table_name==='integration_deliveries'){const record=JSON.parse(row.record),e=JSON.parse(record.envelope);delete e.body;record.envelope=JSON.stringify(e);row.record=JSON.stringify(record);row.id=await digest(`${row.table_name}\n${row.record}`)}
+  if(row.table_name==='integration_deliveries'){const record=JSON.parse(row.record),e=JSON.parse(record.envelope);if(e.protocol==='webhook')delete e.body;record.envelope=JSON.stringify(e);row.record=JSON.stringify(record);row.id=await digest(`${row.table_name}\n${row.record}`)}
   history.set(row.id,row);
  }
  t.archive_history=[...history.values()];
