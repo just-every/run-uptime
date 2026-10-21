@@ -66,7 +66,10 @@ try{
     if(mode!=='button'){
      await page.locator(`[data-rotate-destination="${webhook.id}"]`).focus();await page.keyboard.press('Enter');
      const confirmation=page.getByRole('dialog');await confirmation.waitFor();
+     const cancel=await confirmation.getByRole('button',{name:'Cancel',exact:true}).elementHandle();
+     await page.waitForFunction(element=>document.activeElement===element,cancel,{timeout:3000});
      assert.ok(await confirmation.getByRole('button',{name:'Cancel',exact:true}).evaluate(element=>document.activeElement===element),'rotation starts on its safe keyboard control');
+     await cancel.dispose();
      await audit(page,`rotation-${mode}-${width}`,{dialogName:`Rotate the secret for ${webhookName}?`});
      await confirmation.getByRole('button',{name:'Rotate signing secret',exact:true}).focus();await page.keyboard.press('Enter');
     }

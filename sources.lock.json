@@ -6835,7 +6835,7 @@
       "executable": false
     },
     "tests/notify-secret-browser.mjs": {
-      "sha256": "0fc2f16156011e6d5aa5b7c50112125b8f3f03448e0a785f9f78c0476c4c535e",
+      "sha256": "c44047dd4261862fed735d3810ce7092d0fd4d8b50be3b409c62ad83b419440f",
       "executable": false
     },
     "tests/notify-unit-database.mjs": {
