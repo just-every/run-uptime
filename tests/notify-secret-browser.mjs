@@ -125,10 +125,10 @@ retryOutcomeTest('DELIVERY-002 retry and fallback-chain outcomes and the route c
     await page.keyboard.press('Escape');await dialog.waitFor({state:'detached'});assert.equal(await page.evaluate(()=>document.activeElement?.id),'add-destination');
     // The owner's route editor names the ordered chain, its deadline and each fallback contact's schedule.
     await page.goto(retryOrigin+`/app/monitors/${chainMonitor.id}`);await page.locator('html.signed-in').waitFor();
-    await page.locator('#alert-route-summary').getByText('Fallback: On-call email → Escalation webhook; uncertain deadline 5 s.',{exact:true}).waitFor();
+    await page.locator('#alert-route-summary').getByText(`Fallback: On-call email → Escalation webhook; uncertain deadline ${width===1440?5:7} s.`,{exact:true}).waitFor();
     await page.getByRole('button',{name:'Edit alert route',exact:true}).click();const route=page.getByRole('dialog');await route.locator('#route-fallback-fields').waitFor();
     assert.deepEqual(await Promise.all([0,1,2].map(i=>route.locator(`#route-fallback-${i} option:checked`).textContent())),['On-call email','Escalation webhook','None']);
-    assert.equal(await route.getByLabel('Uncertain deadline (seconds)',{exact:true}).inputValue(),'5');
+    assert.equal(await route.getByLabel('Uncertain deadline (seconds)',{exact:true}).inputValue(),String(width===1440?5:7));
     await route.getByRole('button',{name:'Preview route',exact:true}).click();await route.locator('#route-preview').waitFor({state:'visible'});
     assert.match(await route.locator('#route-preview').textContent(),/Fallback chainOn-call email email.*Fallback 1 · ReadyNow; no repeats; recovery on.*Escalation webhook webhook.*Fallback 2 · Ready/);
     assert.match(await route.locator('#route-preview .route-recipients > li').filter({hasText:'On-call email'}).first().textContent(),/Fallback contact/);
@@ -136,7 +136,18 @@ retryOutcomeTest('DELIVERY-002 retry and fallback-chain outcomes and the route c
     await route.locator('#route-preview h3').filter({hasText:'Fallback chain'}).scrollIntoViewIfNeeded();await route.screenshot({path:join(evidence,`route-chain-preview-${width}.png`)});
     await page.addScriptTag({path:require.resolve('axe-core/axe.min.js')});assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.map(v=>v.id),[]);
     assert.ok(await route.evaluate(element=>element.scrollWidth<=element.clientWidth+1),'route chain editor reflows');assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'route page reflows');
-    await route.getByRole('button',{name:'Close',exact:true}).click();await route.waitFor({state:'detached'});
+    // Save an edited chain through the owner controls, then reopen it after a real page read.
+    const deadline=String(width===1440?7:9);
+    await route.getByLabel('Uncertain deadline (seconds)',{exact:true}).fill(deadline);
+    const savedContact=await route.locator('#route-fallback-0').inputValue();
+    await route.getByRole('button',{name:'Preview route',exact:true}).click();
+    await route.getByRole('button',{name:'Apply reviewed route',exact:true}).click();await route.waitFor({state:'detached'});
+    await page.reload();await page.locator('html.signed-in').waitFor();
+    await page.getByRole('button',{name:'Edit alert route',exact:true}).click();const reopened=page.getByRole('dialog');
+    assert.equal(await reopened.getByLabel('Uncertain deadline (seconds)',{exact:true}).inputValue(),deadline);
+    assert.equal(await reopened.locator('#route-fallback-0').inputValue(),savedContact);
+    await reopened.screenshot({path:join(evidence,`route-chain-saved-${width}.png`)});
+    await reopened.getByRole('button',{name:'Close',exact:true}).click();await reopened.waitFor({state:'detached'});
    }
   }finally{await retryBrowser?.close()}
  });

@@ -91,6 +91,12 @@ export async function proveNotificationRetry(inspect){
   await ok('/api/notifications/preferences',{retryPolicy:{maxAttempts:6,windowMs:600000}},'PATCH');
   console.log('RETRY_PROOF client stop, owner cap and absolute window passed');
   const chain=await proveFallbackChains({f,ok,rpc,edge,mail,confirm,restart,destinations:{slack,email,hook}});
+  // The stored fallback delay completes once after restart, using the original confirmation clock.
+  await restart();await sleep(held.event.observedAt+60000-Date.now()+50);
+  await dispatchNotifications(rpc,edge);await dispatchNotifications(rpc,edge);
+  const delayed=(await ok('/api/notifications')).deliveries.find(d=>d.id===held.id);
+  assert.equal(delayed.state,'accepted');assert.equal(mail.records.filter(r=>r.deliveryId===held.id).length,1);
+  assert.ok(delayed.attemptHistory[0].started_at>=held.event.observedAt+60000);
   if(typeof inspect==='function')await inspect({origin:f.origin,bindings:f.bindings,acceptedId:delivery.id,failedId:row.id,...chain});
   // Body-free custody: attempts, console and archive carry neither a signing credential nor the signed request body.
   const archive=await ok('/api/archive'),stored=archive.payload.productTables.notification_delivery_attempts,overview=await ok('/api/notifications');

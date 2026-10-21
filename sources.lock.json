@@ -6815,11 +6815,11 @@
       "executable": false
     },
     "tests/notify-retry-fixture.mjs": {
-      "sha256": "5f9478278a7699f24319b45e8d30a7d3c7b3bd7ff649fe7f4363e6f186ae7c12",
+      "sha256": "5682474be402c5f5d2301c72b6b4853240d9460b18674cf9c476bb48f3e40faf",
       "executable": false
     },
     "tests/notify-secret-browser.mjs": {
-      "sha256": "ecd5d79e92a70ca03a638d8601bdf1a75658e4959519808f9ef7847099c29bd3",
+      "sha256": "86eeb1a19afaf70f32f3aa35ebbc9f36f4532993aa82d5d45d76b61850a0e16a",
       "executable": false
     },
     "tests/notify-unit-database.mjs": {
