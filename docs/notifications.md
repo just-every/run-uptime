@@ -8,7 +8,7 @@ Open **Notifications** in the console and add one or more destinations.
 - **Signed JSON webhook** posts a signed JSON event to a public HTTPS URL. Copy the signing secret when it is shown, because Uptime shows it only at creation or rotation.
 - **Slack incoming webhook** posts to an exact incoming-webhook URL on `hooks.slack.com`. Slack has no Uptime signing secret.
 
-Destinations are installation-wide. An enabled destination applies to every monitor, and there are no per-monitor filters.
+Destinations are installation-wide. By default, enabled destinations apply to every monitor. A monitor’s alert route can select its contacts and fallbacks.
 
 ## How delivery works
 
