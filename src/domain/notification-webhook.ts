@@ -41,8 +41,28 @@ export function webhookMetadata(credential:NotificationCredential|undefined,stor
   webhookWarnings:config?webhookTemplateWarnings(config,credential?.webhook?.headers??{}):[]};
 }
 function html(value:string){return value.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!))}
+// At most eight UTF-16 code units of any request-derived substring may remain.
+// Short bodies are removed in full. Index fixed-size windows, then merge their
+// overlapping matches: full, prefix, interior and JSON-escaped echoes all use
+// the same rule, without a quadratic scan of every possible substring.
+function requestEchoes(wireBody:string,headers:Record<string,string>){
+ const values=[wireBody,JSON.stringify(wireBody).slice(1,-1)];
+ if(headers['webhook-id'])values.push(JSON.stringify(['integrations.webhook.v1',headers['webhook-tenant'],headers['webhook-destination'],headers['webhook-event'],headers['webhook-id'],headers['webhook-timestamp'],wireBody]));
+ const windows=new Map<number,Set<string>>();
+ for(const value of values){const size=Math.min(9,value.length);if(!size)continue;let set=windows.get(size);if(!set)windows.set(size,set=new Set());for(let i=0;i<=value.length-size;i++)set.add(value.slice(i,i+size))}
+ return (text:string,redact:boolean)=>{
+  const spans:Array<[number,number]>=[];
+  for(let i=0;i<text.length;i++)for(const [size,set] of windows){
+   if(!set.has(text.slice(i,i+size)))continue;
+   if(!redact)return '';
+   const previous=spans.at(-1);if(previous&&i<=previous[1])previous[1]=Math.max(previous[1],i+size);else spans.push([i,i+size]);
+  }
+  let result='',end=0;for(const [start,stop] of spans){result+=text.slice(end,start)+'[redacted: echoed request]';end=stop}return result+text.slice(end);
+ };
+}
 /** Scrub before escaping/cutting, including receiver echoes of encoded local
- * credentials. The persisted value is bounded inert text, never target HTML. */
+ * credentials and request-body windows. If even the marker or escaped output
+ * would reproduce a protected window, omit the excerpt instead. */
 export function notificationResponseExcerpt(body:unknown,credential:NotificationCredential,wireHeaders:Record<string,string>={},wireBody?:string):string{
  if(typeof body!=='string')return '';
  const endpoint=new URL(credential.endpoint),values=[credential.endpoint,credential.signing_secret??'',...Object.values(credential.webhook?.headers??{}),...Object.entries(wireHeaders).filter(([name])=>!/^(content-type|webhook-id|webhook-tenant|webhook-destination|webhook-event|webhook-timestamp|x-lamp-timestamp)$/.test(name.toLowerCase())).map(([,value])=>value),...endpoint.searchParams.values(),...endpoint.pathname.split('/').filter(Boolean)];
@@ -55,7 +75,9 @@ export function notificationResponseExcerpt(body:unknown,credential:Notification
  }
  for(const value of [...variants].sort((a,b)=>b.length-a.length)){const escaped=value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');text=text.replace(new RegExp(escaped,'gi'),'[redacted]')}
  text=text.replace(/\b(?:bearer|basic)\s+[^\s<>"']+/gi,'[redacted]').replace(/\b(?:authorization|cookie|set-cookie|api[-_]?key|token|secret|password)["']?\s*[:=]\s*["']?[^\s<>]+/gi,'[redacted]').replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g,'');
- let output='';for(const character of text){const escaped=html(character);if(output.length+escaped.length>512)break;output+=escaped}return output;
+ const echoes=wireBody?requestEchoes(wireBody,wireHeaders):undefined;
+ if(echoes){text=echoes(text,true);if(echoes(text,false)!==text)return ''}
+ let output='';for(const character of text){const escaped=html(character);if(output.length+escaped.length>512)break;output+=escaped}return echoes?echoes(output,false):output;
 }
 function maskedRequest(wire:any,secretNames:string[]){return {method:wire.method??'POST',url:wire.url,headers:Object.fromEntries(Object.entries(wire.headers).map(([name,value])=>[name,secretNames.includes(name)||['x-lamp-signature','webhook-signature'].includes(name)?'[masked]':value])),...(wire.body===undefined?{}:{body:wire.body})}}
 async function previewCredential(credential:NotificationCredential){

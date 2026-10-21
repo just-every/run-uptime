@@ -463,7 +463,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "c05624b52e5f986c356e36a667adf52f122ed5dbe0466c68eb8c4ce56d2337a4",
+      "sha256": "fe83a2392275822007be6ce93e316c6cf3a198a6c0156f92fab04a7d07df2ffb",
       "executable": false
     },
     "AGENTS.md": {
@@ -487,7 +487,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "d5c812ebf5482c3773aff3f74e7c954d8f3bf1631af8f836f02d20e8007467a0",
+      "sha256": "14ea9ca91b35a324ebcad6d142b80a7ca4d06c6a90c1a957559eeeb4454e87cd",
       "executable": false
     },
     "DEMO.md": {
@@ -2023,7 +2023,7 @@
       "executable": false
     },
     "docs/webhooks.md": {
-      "sha256": "2f3208de0eeb0cf4368537b4671685408ee1c288b8ef78287b61dae64db03fb8",
+      "sha256": "7d2921748ec1c6390dde8eb225757a5102b092222a3dd39676e7097f6aa156ba",
       "executable": false
     },
     "edition.json": {
@@ -5723,7 +5723,7 @@
       "executable": false
     },
     "src/domain/notification-rpc.server.ts": {
-      "sha256": "6af0073b1fdf61d3e5b04ed44d6860ce439795d6d94681760ebca79eaa4c3ae4",
+      "sha256": "763156d253362e7364a4d7751ad19c13146dbce7ae8a8f0ec97f1ab2b5de1987",
       "executable": false
     },
     "src/domain/notification-webhook-context.ts": {
@@ -5731,7 +5731,7 @@
       "executable": false
     },
     "src/domain/notification-webhook.ts": {
-      "sha256": "ae2d7a0016cfe3285ff42c8314bc2a552e6742b7319fe90876210959e689d662",
+      "sha256": "77f03e8113f12dea0af180c6dc067e17c998b4cf31a6d812b6326cde928311c1",
       "executable": false
     },
     "src/domain/notification-worker.server.ts": {
@@ -6822,6 +6822,10 @@
       "sha256": "67ef076ca84fe41a7396b33b32172b357c88e5f5014c6a246d383536eca2f5f4",
       "executable": false
     },
+    "tests/notify-echo-fixture.mjs": {
+      "sha256": "6483b2babbb09a6c244e886d43613b8e53b859b74b70828c04f1281fb6c796e8",
+      "executable": false
+    },
     "tests/notify-fallback-fixture.mjs": {
       "sha256": "722c6ca471262c90b04e0249de33723ba4d4fc7d4201f1c0ab1500263a3e0166",
       "executable": false
@@ -6831,7 +6835,7 @@
       "executable": false
     },
     "tests/notify-retry-fixture.mjs": {
-      "sha256": "7494517e0eda7c670dd5aae18dba3376e3bad9fa1fb6510b0a2248b7c224267a",
+      "sha256": "5f806db444836bca3a30bb90a989334d17e683e779ab6106cdc9404f5600235d",
       "executable": false
     },
     "tests/notify-secret-browser.mjs": {

@@ -51,10 +51,16 @@ export class NotificationRepository extends IntegrationsRepository {
  async finish(id:string,claim:string,outcome:any,now:number,nextAt:number|null){
   const excerpt=outcome.responseExcerpt??this.excerpts.get(id);this.excerpts.delete(id);
   if(excerpt!==undefined){
-   const row=await this.env.DB.prepare('SELECT c.* FROM notification_jobs j JOIN notification_credentials c ON c.id=j.credential_id WHERE j.id=?').bind(id).first<any>();
+   const row=await this.env.DB.prepare(`SELECT c.*,d.envelope FROM notification_jobs j JOIN notification_credentials c ON c.id=j.credential_id JOIN integration_deliveries d ON d.id=j.id AND d.namespace='uptime-notifications' WHERE j.id=?`).bind(id).first<any>();
    if(!row)throw Error('Notification erased or changed');const credential=await readCredential(this.env,row);
    const raw=String(excerpt).replace(/&(?:amp|lt|gt|quot|#39);/g,entity=>({'&amp;':'&','&lt;':'<','&gt;':'>','&quot;':'"','&#39;':"'"}[entity]!));
-   outcome={...outcome,responseExcerpt:notificationResponseExcerpt(raw,credential)};
+   // Use the immutable stored envelope, never a runner-supplied body or the
+   // destination's possibly edited current template. This also fences older
+   // runners that submit unsanitized excerpts through the finish RPC.
+   const envelope=JSON.parse(row.envelope);
+   // Drill links are augmented at send time and may already be retired or
+   // confirmed. Their complete sent body cannot always be reconstructed.
+   outcome={...outcome,responseExcerpt:envelope.event!=='uptime.notification.drill'&&typeof envelope.body==='string'?notificationResponseExcerpt(raw,credential,{},envelope.body):''};
   }
   const row=await this.env.DB.prepare(`SELECT d.*,p.window_ms FROM integration_deliveries d JOIN notification_retry_policy p ON p.delivery_id=d.id WHERE d.namespace=? AND d.id=?`).bind(NOTIFICATION_NAMESPACE,id).first<any>();
   // The policy was snapshotted when the immutable delivery was first prepared.

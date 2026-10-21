@@ -1,3 +1,4 @@
+import {proveEchoCustody} from './notify-echo-fixture.mjs';
 import assert from 'node:assert/strict';
 import {proveQuietFallback} from './notify-quiet-fixture.mjs';
 import {join} from 'node:path';
@@ -100,9 +101,10 @@ export async function proveNotificationRetry(inspect,inspectQuiet=undefined){
   assert.ok(delayed.attemptHistory[0].started_at>=held.event.observedAt+60000);
   await proveQuietFallback({ok,rpc,edge,mail,confirm,restart,destinations:{slack,email,hook},inspect:inspectQuiet?state=>inspectQuiet({origin:f.origin,bindings:f.bindings,...state}):undefined});
   if(typeof inspect==='function')await inspect({origin:f.origin,bindings:f.bindings,acceptedId:delivery.id,failedId:row.id,...chain});
+  const echo=await proveEchoCustody({f,ok,rpc,database:await (restarted??f.worker).getD1Database('DB')});
   // Body-free custody: attempts, console and archive carry neither a signing credential nor the signed request body.
   const archive=await ok('/api/archive'),stored=archive.payload.productTables.notification_delivery_attempts,overview=await ok('/api/notifications');
-  const bodies=[...new Set(receipts.map(r=>r.body))];
+  const bodies=[...new Set([...receipts.map(r=>r.body),...echo.bodies])];secrets.push(echo.contact.signingSecret);
   for(const value of [archive,overview,stored,overview.deliveries.flatMap(d=>d.attemptHistory)]){const found=strings(value);for(const forbidden of [...secrets,...bodies])assert.ok(!found.some(text=>text.includes(forbidden)),'no signing credential or webhook body')}
   assert.ok(archive.payload.productTables.integration_deliveries.every(d=>{const envelope=JSON.parse(d.envelope);return envelope.protocol==='webhook'?!Object.hasOwn(envelope,'body'):typeof envelope.body==='string'}),'webhook envelopes are body-free; Slack retains its historical message');
   assert.ok(stored.length>=12);assert.ok(stored.some(a=>a.phase==='fallback')&&stored.some(a=>a.delivery_id===late.id),'email and fallback attempts are durable records');
@@ -110,10 +112,10 @@ export async function proveNotificationRetry(inspect,inspectQuiet=undefined){
   const restoredOrigin=`http://127.0.0.1:${restoredPort}`,restoreAPI=ownerAPI(restoredOrigin);
   ({worker:restored}=await migratedWorker({port:restoredPort,persist:join(f.directory,'restore'),bindings:f.bindings}));await restoreAPI.signIn(f.bindings);
   assert.equal((await restoreAPI.api('/api/restore','POST',archive)).status,200);
-  const after=(await restoreAPI.api('/api/archive')).data;assert.deepEqual(after.payload.productTables.notification_delivery_attempts,stored);
+  const after=(await restoreAPI.api('/api/archive')).data;echo.assertArchive(after);assert.deepEqual(after.payload.productTables.notification_delivery_attempts,stored);
   assert.deepEqual(after.payload.productTables.integration_deliveries.map(d=>d.envelope),archive.payload.productTables.integration_deliveries.map(d=>d.envelope));
   assert.ok((await restoreAPI.api('/api/notifications')).data.deliveries.every(d=>d.state==='imported-inactive'),'restored fallback history never replays');
-  console.log('RETRY_PROOF inactive attempt archive restore passed');
+  console.log('RETRY_PROOF inactive attempt archive restore passed; durable attempts='+stored.length);
   await restored.dispose();restored=null;
   // A genuine pre-migration archive carries each envelope's body and no attempt table.
   const legacy=structuredClone(archive),sentEnvelopes=new Map((await (await (restarted??f.worker).getD1Database('DB')).prepare("SELECT id,envelope FROM integration_deliveries").all()).results.map(r=>[r.id,JSON.parse(r.envelope).body]));
@@ -128,7 +130,7 @@ export async function proveNotificationRetry(inspect,inspectQuiet=undefined){
   assert.deepEqual(legacyAfter.payload.productTables.notification_delivery_attempts,[],'restore never invents dispatch schedules');
   // Erasing a destination removes its attempts and every fallback alert that names it.
   const jobs=archive.payload.productTables.notification_jobs,names=(job,id)=>JSON.parse(job.event).fallbackContext?.previous.some(p=>p.destinationId===id);
-  for(const erased of [contact,slack]){
+  for(const erased of [contact,slack,echo.contact]){
    const dependent=new Set(jobs.filter(j=>j.destination_id===erased.id||names(j,erased.id)).map(j=>j.id));
    const receipt=(await ok(`/api/notifications/destinations/${erased.id}`,undefined,'DELETE')).receipt;
    const left=(await ok('/api/archive')).payload.productTables;
