@@ -104,7 +104,7 @@ export async function proveNotificationRetry(inspect,inspectQuiet=undefined){
   const echo=await proveEchoCustody({f,ok,rpc,database:await (restarted??f.worker).getD1Database('DB')});
   // Body-free custody: attempts, console and archive carry neither a signing credential nor the signed request body.
   const archive=await ok('/api/archive'),stored=archive.payload.productTables.notification_delivery_attempts,overview=await ok('/api/notifications');
-  const bodies=[...new Set([...receipts.map(r=>r.body),...echo.bodies])];secrets.push(echo.contact.signingSecret);
+  const bodies=[...new Set([...receipts.map(r=>r.body),...echo.bodies])];secrets.push(...echo.secrets);
   for(const value of [archive,overview,stored,overview.deliveries.flatMap(d=>d.attemptHistory)]){const found=strings(value);for(const forbidden of [...secrets,...bodies])assert.ok(!found.some(text=>text.includes(forbidden)),'no signing credential or webhook body')}
   assert.ok(archive.payload.productTables.integration_deliveries.every(d=>{const envelope=JSON.parse(d.envelope);return envelope.protocol==='webhook'?!Object.hasOwn(envelope,'body'):typeof envelope.body==='string'}),'webhook envelopes are body-free; Slack retains its historical message');
   assert.ok(stored.length>=12);assert.ok(stored.some(a=>a.phase==='fallback')&&stored.some(a=>a.delivery_id===late.id),'email and fallback attempts are durable records');

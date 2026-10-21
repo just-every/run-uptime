@@ -6823,7 +6823,7 @@
       "executable": false
     },
     "tests/notify-echo-fixture.mjs": {
-      "sha256": "6483b2babbb09a6c244e886d43613b8e53b859b74b70828c04f1281fb6c796e8",
+      "sha256": "6fa0b03a856f5035a99eb3499228deeff5aa96840970287a72f68935a4a633c7",
       "executable": false
     },
     "tests/notify-fallback-fixture.mjs": {
@@ -6835,7 +6835,7 @@
       "executable": false
     },
     "tests/notify-retry-fixture.mjs": {
-      "sha256": "5f806db444836bca3a30bb90a989334d17e683e779ab6106cdc9404f5600235d",
+      "sha256": "db953bfeca10edb5f007bbb8d11f7d668c18f9fbd2eb23a1e89e7403152e930b",
       "executable": false
     },
     "tests/notify-secret-browser.mjs": {

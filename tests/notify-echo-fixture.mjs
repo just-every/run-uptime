@@ -19,32 +19,33 @@ function safeExcerpt(excerpt,body,secret){
 // Extends the existing DELIVERY-002 journey; no separate permanent test case.
 export async function proveEchoCustody({f,ok,rpc,database}){
  const contact=await ok('/api/notifications/destinations',{name:'Echo custody receiver',kind:'webhook',url:'https://echo.example.com/receiver',webhookTemplate:{version:1,method:'POST',mode:'json',template:'{"event_id":"{{event.id}}","detail":"Echo \\"quoted\\" request"}'},webhookSigning:true});
- const records=[];
+ const records=[];let signingSecret=contact.signingSecret;
  for(const mode of ['full','prefix','interior','json','canonical','older-runner','marker-collision','drill']){
-  if(mode==='marker-collision')await ok(`/api/notifications/destinations/${contact.id}`,{name:contact.name,enabled:false,webhookTemplate:{version:1,method:'POST',mode:'json',template:'{"id":"{{event.id}}","detail":"[redacted: echoed request]"}'},webhookSigning:true},'PATCH');
-  if(mode==='drill')await ok(`/api/notifications/destinations/${contact.id}`,{name:contact.name,enabled:false,webhookTemplate:null},'PATCH');
+  if(mode==='marker-collision')signingSecret=(await ok(`/api/notifications/destinations/${contact.id}`,{name:contact.name,enabled:false,webhookTemplate:{version:1,method:'POST',mode:'json',template:'{"id":"{{event.id}}","detail":"[redacted: echoed request]"}'},webhookSigning:true},'PATCH')).signingSecret;
+  if(mode==='drill')signingSecret=(await ok(`/api/notifications/destinations/${contact.id}`,{name:contact.name,enabled:false,webhookTemplate:null},'PATCH')).signingSecret;
+  assert.ok(signingSecret,'each credential version returns its signing key');
   const queued=await ok(`/api/notifications/destinations/${contact.id}/${mode==='drill'?'drill':'test'}`,{});let sent;
   const edge={async send(wire,start){await start();assert.equal(wire.url,'https://echo.example.com/receiver');
-   assert.equal(wire.headers['x-lamp-signature'],createHmac('sha256',contact.signingSecret).update(wire.headers['x-lamp-timestamp']+'.'+wire.body).digest('base64url'),'receiver verifies exact signed request');
+   assert.equal(wire.headers['x-lamp-signature'],createHmac('sha256',signingSecret).update(wire.headers['x-lamp-timestamp']+'.'+wire.body).digest('base64url'),'receiver verifies exact signed request');
    const canonical=JSON.stringify(['integrations.webhook.v1',wire.headers['webhook-tenant'],wire.headers['webhook-destination'],wire.headers['webhook-event'],wire.headers['webhook-id'],wire.headers['webhook-timestamp'],wire.body]);
    const echo=mode==='prefix'?wire.body.slice(0,52):mode==='interior'?wire.body.slice(17,57):mode==='json'?JSON.stringify({echo:wire.body}):mode==='canonical'?canonical:wire.body;
-   sent={mode,id:queued.deliveryId,body:wire.body,response:echo+' '+contact.signingSecret,omitted:['marker-collision','drill'].includes(mode)};
+   sent={mode,id:queued.deliveryId,body:wire.body,response:echo+' '+signingSecret,signingSecret,omitted:['marker-collision','drill'].includes(mode)};
    return {status:202,headers:{},body:sent.response};
   }};
   // An older dispatcher can report raw text; the authoritative finish door
   // must independently scrub it using the stored immutable envelope.
   const finish=async(path,input)=>rpc(path,['older-runner','drill'].includes(mode)&&input.operation==='finish'?{...input,outcome:{...input.outcome,responseExcerpt:sent.response.slice(0,512)}}:input);
-  await dispatchNotifications(finish,edge);assert.ok(sent);records.push(sent);
+  await dispatchNotifications(finish,edge);assert.ok(sent,mode+' reached the validating receiver');records.push(sent);
  }
  const check=async()=>{
   const overview=await ok('/api/notifications'),archive=await ok('/api/archive');
   for(const record of records){
    const row=overview.deliveries.find(d=>d.id===record.id);assert.equal(row.state,'accepted');assert.equal(row.status,202);assert.equal(row.attempts,1);
-   safeExcerpt(row.responseExcerpt,record.body,contact.signingSecret);if(record.omitted)assert.equal(row.responseExcerpt,'','unsafe excerpts are omitted');
+   safeExcerpt(row.responseExcerpt,record.body,record.signingSecret);if(record.omitted)assert.equal(row.responseExcerpt,'','unsafe excerpts are omitted');
    const attempts=(await database.prepare('SELECT outcome FROM integration_attempts WHERE delivery_id=?').bind(record.id).all()).results;
-   assert.equal(attempts.length,1);for(const attempt of attempts)safeExcerpt(JSON.parse(attempt.outcome).responseExcerpt,record.body,contact.signingSecret);
+   assert.equal(attempts.length,1);for(const attempt of attempts)safeExcerpt(JSON.parse(attempt.outcome).responseExcerpt,record.body,record.signingSecret);
    const archived=archive.payload.productTables.integration_attempts.filter(a=>a.delivery_id===record.id);assert.equal(archived.length,1);
-   for(const attempt of archived)safeExcerpt(JSON.parse(attempt.outcome).responseExcerpt,record.body,contact.signingSecret);
+   for(const attempt of archived)safeExcerpt(JSON.parse(attempt.outcome).responseExcerpt,record.body,record.signingSecret);
   }
  };
  await check();
@@ -60,7 +61,7 @@ export async function proveEchoCustody({f,ok,rpc,database}){
      if(reload){await page.reload();await page.locator('html.signed-in').waitFor()}
      for(const record of records){
       const card=page.locator(`[data-key="delivery-${record.id}"]`);await card.getByText('HTTP 202',{exact:true}).waitFor();
-      const excerpt=card.locator('.webhook-response');if(record.omitted)assert.equal(await excerpt.count(),0);else{await excerpt.waitFor();const text=await excerpt.textContent();safeExcerpt(text,record.body,contact.signingSecret);assert.ok(text.includes('[redacted: echoed request]'))}
+      const excerpt=card.locator('.webhook-response');if(record.omitted)assert.equal(await excerpt.count(),0);else{await excerpt.waitFor();const text=await excerpt.textContent();safeExcerpt(text,record.body,record.signingSecret);assert.ok(text.includes('[redacted: echoed request]'))}
       assert.ok(!(await page.locator('body').textContent()).includes(record.body),'rendered console has no request body');
      }
     }
@@ -72,5 +73,5 @@ export async function proveEchoCustody({f,ok,rpc,database}){
    }finally{await context.close()}
   }
  }finally{await browser?.close()}
- return {contact,bodies:records.map(r=>r.body),assertArchive(archive){for(const record of records){const rows=archive.payload.productTables.integration_attempts.filter(a=>a.delivery_id===record.id);assert.equal(rows.length,1);for(const row of rows)safeExcerpt(JSON.parse(row.outcome).responseExcerpt,record.body,contact.signingSecret)}}};
+ return {contact,secrets:[...new Set(records.map(r=>r.signingSecret))],bodies:records.map(r=>r.body),assertArchive(archive){for(const record of records){const rows=archive.payload.productTables.integration_attempts.filter(a=>a.delivery_id===record.id);assert.equal(rows.length,1);for(const row of rows)safeExcerpt(JSON.parse(row.outcome).responseExcerpt,record.body,record.signingSecret)}}};
 }
