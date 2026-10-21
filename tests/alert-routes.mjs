@@ -43,7 +43,7 @@ test('owned routes preview inheritance, deliver matched triggers/recoveries and 
   const rpc=async(_path,body)=>ok('/api/runner/notifications',body,{runner:f.first});
   const received=[];let entered;
   const firstBoundary=new Promise(resolve=>entered=resolve),held=new Promise(resolve=>releaseTrigger=resolve);
-  const transport={async send(wire){
+  const transport={async send(wire,beforeRequest){await beforeRequest();
    const destination=contacts.find(d=>wire.url===`https://routing.example.com/${contacts.indexOf(d)}`);assert.ok(destination,'only configured recipient edges are reached');
    const expected=createHmac('sha256',destination.signingSecret).update(`${wire.headers['x-lamp-timestamp']}.${wire.body}`).digest('base64url');assert.equal(wire.headers['x-lamp-signature'],expected);
    const event=JSON.parse(wire.body);received.push({destinationId:destination.id,event});

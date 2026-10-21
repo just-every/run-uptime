@@ -2,7 +2,7 @@ import {deduplicatedNotification,notificationRetryTime} from './notification-ret
 import {contactReady,advanceContactSchedules} from './contact-scheduler.server.ts'
 import {advanceFallbackChains,attemptPhase} from './notification-fallback.server.ts'
 import {ensureNotificationCustody,readCredential,retireObsoleteCredentials,notificationDestinationHash,notificationKeyPresent} from './notification-credentials.server.ts'
-import {claimNotification,releaseUnstartedClaim,startClaim,registerClaim} from './notification-claims.server.ts'
+import {claimNotification,releaseUnstartedClaim,startClaim,registerClaim,releaseQuietClaims} from './notification-claims.server.ts'
 import {D1SqlDatabase} from '../base/modules/integrations/core/database.ts'
 import {pickEnvelope,IntegrationsRepository} from '../base/modules/integrations/core/repository.ts'
 import type {Delivery} from '../base/modules/integrations/core/types.ts'
@@ -76,7 +76,7 @@ export class NotificationRepository extends IntegrationsRepository {
   return Boolean(result[2].meta.changes);
  }
  async claim(id:string,now:number,leaseMs:number){return claimNotification(this.env,id,now,leaseMs)}
- async recoverExpired(now:number){const recovered=await super.recoverExpired(now);await this.env.DB.batch(expireMailClaims(this.env,now));await retireObsoleteCredentials(this.env);return recovered}
+ async recoverExpired(now:number){await releaseQuietClaims(this.env,now);const recovered=await super.recoverExpired(now);await this.env.DB.batch(expireMailClaims(this.env,now));await retireObsoleteCredentials(this.env);return recovered}
 }
 /** Sends queued email, then prepares queued webhook and Slack jobs for whichever dispatcher claims them first: the
  * hosted Worker's cron or a private runner's poll. Both use one Base delivery row, so a job is sent at most once. */

@@ -27,7 +27,7 @@ test('contact schedules survive restart, stop on recovery/ack, and never replay 
    assert.equal(plan.input.contactSettings[contacts[1].id].delayMinutes,10);assert.equal(plan.input.contactSettings[contacts[1].id].repeatMinutes,30);
   }
   for(let i=0;i<2;i++){const task=await f.claim(f.first);assert.ok(task);assert.equal((await f.submit(f.first,task,[await f.evidence(task)])).status,200)}
-  const received=[],transport={async send(wire){const event=JSON.parse(wire.body);received.push({url:wire.url,event});return {status:wire.url.endsWith('/1')&&event.kind==='reminder'?500:200,headers:{},body:''}}};
+  const received=[],transport={async send(wire,beforeRequest){await beforeRequest();const event=JSON.parse(wire.body);received.push({url:wire.url,event});return {status:wire.url.endsWith('/1')&&event.kind==='reminder'?500:200,headers:{},body:''}}};
   const rpc=async(_path,body)=>ok('/api/runner/notifications',body,{runner:f.first});
   await dispatchNotifications(rpc,transport);
   assert.equal(received.filter(r=>r.url.endsWith('/1')).length,0,'delay sends nothing at confirmation');

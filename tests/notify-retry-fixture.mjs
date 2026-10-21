@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {proveQuietFallback} from './notify-quiet-fixture.mjs';
 import {join} from 'node:path';
 import {createHash} from 'node:crypto';
 import {fixture as retryFixture} from './resilience/support.mjs';
@@ -12,7 +13,7 @@ const pagerDutyTemplate={version:1,method:'POST',mode:'json',template:'{"event_a
 // Strings anywhere in a value, including JSON nested inside string columns.
 const strings=value=>typeof value==='string'?[value,...(()=>{try{const parsed=JSON.parse(value);return typeof parsed==='object'&&parsed?strings(parsed):[]}catch{return []}})()]:value&&typeof value==='object'?Object.values(value).flatMap(strings):[];
 // Public owner/runner doors with fakes only at the receiver edge.
-export async function proveNotificationRetry(inspect){
+export async function proveNotificationRetry(inspect,inspectQuiet=undefined){
  const mail=mailEdge();
  const f=await retryFixture({MAIL_PROVIDER:'sendgrid',MAIL_FROM:'qa-sender@example.com',SENDGRID_API_KEY:'synthetic-fallback-provider-key-local-only'},mail.outbound);let restarted,restored;
  const restart=async()=>{await (restarted??f.worker).dispose();restarted=await startLocalWorker({persist:f.directory,port:Number(new URL(f.origin).port),bindings:f.bindings,outboundService:mail.outbound});await restarted.ready};
@@ -40,7 +41,7 @@ export async function proveNotificationRetry(inspect){
   };
   const rpc=async(_path,body)=>{const result=await f.request('/api/runner/notifications',{body,runner:f.first});assert.equal(result.status,200);return result.data};
   const receipts=[],incidents=new Set();let responses=[{status:500,headers:{}},{status:429,headers:{'retry-after':'3'}},{status:202,headers:{}}];
-  const edge={sent:[],slack:'dead',hookResponses:[],async send(wire){
+  const edge={sent:[],slack:'dead',hookResponses:[],async send(wire,beforeRequest){await beforeRequest();
    edge.sent.push({url:wire.url,id:wire.headers['webhook-id'],body:wire.body});
    if(wire.url.startsWith('https://hooks.slack.com/')){if(edge.slack==='timeout'){await sleep(200);throw Object.assign(Error('The operation timed out'),{name:'TimeoutError'})}return {status:404,headers:{},body:'no_team'}}
    if(wire.url.startsWith('https://escalation.example.com/'))return {...(edge.hookResponses.shift()??{status:202,headers:{}}),body:''};
@@ -97,6 +98,7 @@ export async function proveNotificationRetry(inspect){
   const delayed=(await ok('/api/notifications')).deliveries.find(d=>d.id===held.id);
   assert.equal(delayed.state,'accepted');assert.equal(mail.records.filter(r=>r.deliveryId===held.id).length,1);
   assert.ok(delayed.attemptHistory[0].started_at>=held.event.observedAt+60000);
+  await proveQuietFallback({ok,rpc,edge,mail,confirm,restart,destinations:{slack,email,hook},inspect:inspectQuiet?state=>inspectQuiet({origin:f.origin,bindings:f.bindings,...state}):undefined});
   if(typeof inspect==='function')await inspect({origin:f.origin,bindings:f.bindings,acceptedId:delivery.id,failedId:row.id,...chain});
   // Body-free custody: attempts, console and archive carry neither a signing credential nor the signed request body.
   const archive=await ok('/api/archive'),stored=archive.payload.productTables.notification_delivery_attempts,overview=await ok('/api/notifications');

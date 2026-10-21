@@ -384,6 +384,12 @@
       "name": "0060_notification_fallback.sql",
       "sha256": "020137f881122057faab9dfa1a0e08f50c90325bc863a63afcd397d15fecea22",
       "sql": "-- DELIVERY-002 fallback contacts: the route's ordered chain, its per-incident snapshot and escalation progress.\n-- No endpoint, body or key material: destinations are named by identity only.\nALTER TABLE alert_routes ADD COLUMN fallback TEXT NOT NULL DEFAULT '{\"destinationIds\":[],\"deadlineSeconds\":120}';\nCREATE TABLE alert_fallback_chains (\n event_id TEXT PRIMARY KEY,\n monitor_id TEXT NOT NULL,\n incident_key TEXT NOT NULL,\n destination_ids TEXT NOT NULL,\n deadline_ms INTEGER NOT NULL CHECK(deadline_ms BETWEEN 5000 AND 3600000),\n contact_settings TEXT NOT NULL,\n created_at INTEGER NOT NULL,\n step INTEGER NOT NULL DEFAULT 0 CHECK(step>=0),\n fired_at INTEGER,\n ended_at INTEGER,\n end_reason TEXT CHECK(end_reason IS NULL OR end_reason IN ('accepted','exhausted','closed'))\n);\n-- Attempts on a fallback contact's delivery are fallback-phase records.\nDROP TRIGGER IF EXISTS notification_attempt_reserved;\nCREATE TRIGGER notification_attempt_reserved AFTER INSERT ON integration_attempts\nWHEN NEW.namespace='uptime-notifications'\nBEGIN\n INSERT OR IGNORE INTO notification_delivery_attempts(delivery_id,destination_id,number,phase,scheduled_at,key_reference)\n SELECT j.id,j.destination_id,NEW.number,CASE WHEN json_extract(j.event,'$.fallbackContext') IS NULL THEN 'retry' ELSE 'fallback' END,d.next_at,j.event_id\n FROM notification_jobs j JOIN integration_deliveries d ON d.id=j.id AND d.namespace=NEW.namespace WHERE j.id=NEW.delivery_id AND j.state<>'imported-inactive';\nEND;\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0061_contact_quiet.sql",
+      "sha256": "f4636e861f2b99f335055afb60dbadea92b36c9aa3c73c3ff12e82743e813b22",
+      "sql": "-- Contact quiet policy is installation-local dispatch authority, never a portable replay grant.\n-- due_at remains the immutable confirmation anchor for delay and repeat cadence.\nALTER TABLE alert_contact_schedules ADD COLUMN quiet_rules TEXT;\nALTER TABLE alert_contact_schedules ADD COLUMN quiet_until INTEGER;\n-- A timezone evaluation is valid through this real minute only. SQL admission\n-- fails closed if a yielding claim crosses into the next minute before its write.\nALTER TABLE alert_contact_schedules ADD COLUMN quiet_checked_until INTEGER;\n"
     }
   ],
   "compatibilityDate": "2026-09-08",

@@ -55,8 +55,8 @@ export async function advanceFallbackChains(env:Bindings){
     SELECT ?,?,d.id,d.name,d.kind,d.credential_id,?,? FROM notification_destinations d WHERE d.id=? AND d.enabled=1 AND d.deleted_at IS NULL
     AND EXISTS(SELECT 1 FROM notification_credentials c WHERE c.id=d.credential_id AND c.retired_at IS NULL AND c.unavailable_at IS NULL AND (c.ciphertext IS NOT NULL OR c.endpoint IS NOT NULL))
     AND ${fired} AND NOT ${closedSql}`).bind(id,chain.event_id,JSON.stringify(event),now,next,chain.event_id,step,now,chain.monitor_id,chain.incident_key),
-   env.DB.prepare(`INSERT OR IGNORE INTO alert_contact_schedules(trigger_job_id,monitor_id,incident_key,due_at,repeat_ms,max_repeats,next_at,recovery,stop_on_ack)
-    SELECT ?,?,?,?,?,?,?,?,? WHERE EXISTS(SELECT 1 FROM notification_jobs WHERE id=?) AND ${fired}`).bind(id,chain.monitor_id,chain.incident_key,due,repeat,policy.maxRepeats,nextAt,Number(policy.recovery),Number(policy.stopOnAck),id,chain.event_id,step,now),
+   env.DB.prepare(`INSERT OR IGNORE INTO alert_contact_schedules(trigger_job_id,monitor_id,incident_key,due_at,repeat_ms,max_repeats,next_at,recovery,stop_on_ack,quiet_rules)
+    SELECT ?,?,?,?,?,?,?,?,?,? WHERE EXISTS(SELECT 1 FROM notification_jobs WHERE id=?) AND ${fired}`).bind(id,chain.monitor_id,chain.incident_key,due,repeat,policy.maxRepeats,nextAt,Number(policy.recovery),Number(policy.stopOnAck),policy.quietHours?JSON.stringify(policy.quietHours):null,id,chain.event_id,step,now),
   ]);
  }
 }

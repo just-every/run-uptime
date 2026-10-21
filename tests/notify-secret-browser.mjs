@@ -109,7 +109,7 @@ retryOutcomeTest('DELIVERY-002 retry and fallback-chain outcomes and the route c
     assert.ok((await page.locator('.notification-help:visible').textContent()).includes('Signed webhooks retry within saved limits.'),'visible help describes deduplicated retry');assert.equal(await accepted.locator('.delivery-state').textContent(),'Accepted');assert.equal(await failed.locator('.delivery-state').textContent(),'Failed');
     assert.match(await failed.locator('.delivery-reason').textContent(),/Retry window exhausted/);await failed.getByText('HTTP 429',{exact:true}).waitFor();
     const viaEmail=page.locator(`[data-key=${JSON.stringify('delivery-'+fallbackId)}] .delivery-chain`),ended=page.locator(`[data-key=${JSON.stringify('delivery-'+exhaustedId)}] .delivery-chain`);
-    await viaEmail.waitFor();assert.equal(await viaEmail.textContent(),'Fallback 1 after Dead Slack: Failed (slack_no_team). Fallback sent to Escalation webhook: Accepted.','both outcomes of the escalation are visible');
+    await viaEmail.waitFor();assert.equal(await viaEmail.textContent(),'Fallback 1 after Dead Slack: Failed (slack_no_team). Fallback to Escalation webhook: Accepted.','both outcomes of the escalation are visible');
     assert.equal(await ended.textContent(),'Fallback 1 after Dead Slack: Uncertain (response_unknown). Chain ended: no contact accepted. Follow up manually.');
     const stopped=page.locator('.delivery-card').filter({has:page.getByText('HTTP 404',{exact:true})});
     assert.ok(await stopped.count()>0);for(const card of await stopped.all())assert.equal(await card.locator('.delivery-state').textContent(),'Failed');
@@ -145,15 +145,39 @@ retryOutcomeTest('DELIVERY-002 retry and fallback-chain outcomes and the route c
     const deadline=String(width===1440?7:9);
     await route.getByLabel('Uncertain deadline (seconds)',{exact:true}).fill(deadline);
     const savedContact=await route.locator('#route-fallback-0').inputValue();
+    const quiet=route.locator('[data-route-fallback]').first().locator('[data-contact-quiet]');
+    await quiet.locator('summary').click();await quiet.getByLabel('Hold alerts during quiet hours',{exact:true}).check();
+    await quiet.getByLabel('Start',{exact:true}).fill('22:00');await quiet.getByLabel('End',{exact:true}).fill('07:00');await quiet.getByLabel('Time zone',{exact:true}).fill('Australia/Brisbane');
+    await quiet.scrollIntoViewIfNeeded();await route.screenshot({path:join(evidence,`route-quiet-${width}.png`)});
+    assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.map(v=>v.id),[]);
+    assert.ok(await route.evaluate(element=>element.scrollWidth<=element.clientWidth+1),'open quiet settings reflow');
     await route.getByRole('button',{name:'Preview route',exact:true}).click();
+    await route.locator('#route-preview').getByText(/quiet 22:00–07:00 \(Australia\/Brisbane\)/).waitFor();
+    await route.locator('#route-preview h3').filter({hasText:'Fallback chain'}).scrollIntoViewIfNeeded();await route.screenshot({path:join(evidence,`route-quiet-preview-${width}.png`)});
+    assert.ok(await route.evaluate(element=>element.scrollWidth<=element.clientWidth+1),'quiet preview reflows');
     await route.getByRole('button',{name:'Apply reviewed route',exact:true}).click();await route.waitFor({state:'detached'});
     await page.reload();await page.locator('html.signed-in').waitFor();
     await page.getByRole('button',{name:'Edit alert route',exact:true}).click();const reopened=page.getByRole('dialog');
     assert.equal(await reopened.getByLabel('Uncertain deadline (seconds)',{exact:true}).inputValue(),deadline);
     assert.equal(await reopened.locator('#route-fallback-0').inputValue(),savedContact);
-    await reopened.screenshot({path:join(evidence,`route-chain-saved-${width}.png`)});
+    const savedQuiet=reopened.locator('[data-route-fallback]').first().locator('[data-contact-quiet]');await savedQuiet.locator('summary').click();
+    assert.equal(await savedQuiet.getByLabel('Hold alerts during quiet hours',{exact:true}).isChecked(),true);
+    assert.equal(await savedQuiet.getByLabel('Start',{exact:true}).inputValue(),'22:00');assert.equal(await savedQuiet.getByLabel('End',{exact:true}).inputValue(),'07:00');assert.equal(await savedQuiet.getByLabel('Time zone',{exact:true}).inputValue(),'Australia/Brisbane');
+    await savedQuiet.scrollIntoViewIfNeeded();await reopened.screenshot({path:join(evidence,`route-chain-saved-${width}.png`)});
     await reopened.getByRole('button',{name:'Close',exact:true}).click();await reopened.waitFor({state:'detached'});
    }
   }finally{await retryBrowser?.close()}
+ },async({origin,bindings,quietId})=>{
+  const evidence=join(out,'retry-outcomes');await mkdir(evidence,{recursive:true});
+  const browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});
+  try{for(const width of [1440,390]){
+   const context=await browser.newContext({viewport:{width,height:900}}),page=await context.newPage();
+   await browserSignIn(page,origin,{bindings});await page.goto(origin+'/app#notifications');await page.locator('html.signed-in').waitFor();
+   const card=page.locator(`[data-key="delivery-${quietId}"]`);await card.getByText(/Quiet hours: waiting until/).waitFor();
+   assert.match(await card.textContent(),/Fallback 1 after Dead Slack: Failed/);
+   await card.screenshot({path:join(evidence,`quiet-hold-${width}.png`)});
+   await page.addScriptTag({path:require.resolve('axe-core/axe.min.js')});assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.map(v=>v.id),[]);
+   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'quiet hold reflows');await context.close();
+  }}finally{await browser.close()}
  });
 });

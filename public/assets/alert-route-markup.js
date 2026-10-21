@@ -1,11 +1,12 @@
 import {escape} from '/console-format.js';
+import {quietDescription} from './contact-quiet.js';
 import {fallbackSummaryMarkup,fallbackPreviewMarkup} from './alert-route-fallback.js';
 export const scopeNames={monitor:'This monitor',service:'Service',group:'Group',installation:'Installation'};
 export const reasons={ready:'Ready',not_selected:'Excluded by route',fallback_only:'Fallback contact',disabled:'Disabled — excluded',credentials_missing:'Missing credentials — excluded',mail_not_configured:'Mail sender unavailable — excluded',destination_missing:'Destination missing — excluded'};
 export const policyName=p=>`${scopeNames[p.scope]}${p.value&&p.scope!=='monitor'?` “${p.value}”`:''}: ${p.mode==='all'?'all enabled destinations':p.mode==='inherit'?'inherit':p.destinationIds.length?`${p.destinationIds.length} selected`:'no destinations'}`;
 export function scheduleDescription(settings={}){
  const delay=settings.delayMinutes??0,repeat=settings.repeatMinutes??0,max=settings.maxRepeats??null;
- return `${delay?`+${delay} minute${delay===1?'':'s'} after confirmation`:'Now'}; ${repeat?`repeat every ${repeat} minute${repeat===1?'':'s'} (${max===null?'unlimited':`max ${max}`})`:'no repeats'}; recovery ${settings.recovery===false?'off':'on'}; ${settings.stopOnAck?'stop on acknowledgement':'continue after acknowledgement'}`;
+ return `${delay?`+${delay} minute${delay===1?'':'s'} after confirmation`:'Now'}; ${repeat?`repeat every ${repeat} minute${repeat===1?'':'s'} (${max===null?'unlimited':`max ${max}`})`:'no repeats'}; recovery ${settings.recovery===false?'off':'on'}; ${settings.stopOnAck?'stop on acknowledgement':'continue after acknowledgement'}${quietDescription(settings)}`;
 }
 export function contactOptionsMarkup(contacts,policy){
  return contacts.map((d,index)=>{

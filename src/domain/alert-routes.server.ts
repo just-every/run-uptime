@@ -5,7 +5,7 @@ import {mailConfigured} from './mail.server.ts'
 import {auditStatement,mutationGuard,type AuditActor} from './audit.server.ts'
 import {digest} from './archive-schema.ts'
 import {routeScopes,scopeValue,defaultPolicy,routePolicy,effectivePolicy,normalizeFallback,type RouteScope,type RoutePolicy} from './alert-routes-policy.ts'
-const gaps=['These routes apply to confirmed incident triggers and recoveries. Expiry and renewal notices still use installation-wide destinations.','Team, environment, severity, region, incident origin and business/quiet-hour rules are not available.','Contact delays and reminders start at confirmation. Fallback contacts are named only in a selected policy and receive incident triggers, not reminders, slow notices or tests.','Route settings and detailed change history stay in this installation; archives retain opaque audit entries.'];
+const gaps=['These routes apply to confirmed incident triggers and recoveries. Expiry and renewal notices still use installation-wide destinations.','Team, environment, severity, region, incident origin and business-hour routing filters are not available. Saved contact quiet hours hold that contact’s alerts until its daily window ends.','Contact delays and reminders start at confirmation. Fallback contacts are named only in a selected policy and receive incident triggers, not reminders, slow notices or tests.','Route settings and detailed change history stay in this installation; archives retain opaque audit entries.'];
 // No secrets: only policy, monitor revisions and destination/custody identity.
 // Fencing this snapshot makes the reviewed affected set and readiness atomic
 // with a policy edit, even when another operator changes a broader scope.

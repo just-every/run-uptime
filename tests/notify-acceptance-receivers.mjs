@@ -74,7 +74,7 @@ export function verifySlack(record){
 export function loopbackWireTransport(routes){
  // Require a real three-second stall with timer-resolution margin, without relaxing the elapsed-time assertion.
  const timeoutMs=3500,timeouts=[];
- return {timeouts,async send(wire){
+ return {timeouts,async send(wire,beforeRequest){await beforeRequest();
   const route=routes.get(wire.url);assert.ok(route,'unapproved wire destination');
   const startedAt=performance.now(),signal=AbortSignal.timeout(timeoutMs);
   try{
