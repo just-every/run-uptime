@@ -111,6 +111,11 @@ retryOutcomeTest('DELIVERY-002 retry and fallback-chain outcomes and the route c
     const viaEmail=page.locator(`[data-key=${JSON.stringify('delivery-'+fallbackId)}] .delivery-chain`),ended=page.locator(`[data-key=${JSON.stringify('delivery-'+exhaustedId)}] .delivery-chain`);
     await viaEmail.waitFor();assert.equal(await viaEmail.textContent(),'Fallback 1 after Dead Slack: Failed (slack_no_team). Fallback sent to Escalation webhook: Accepted.','both outcomes of the escalation are visible');
     assert.equal(await ended.textContent(),'Fallback 1 after Dead Slack: Uncertain (response_unknown). Chain ended: no contact accepted. Follow up manually.');
+    const stopped=page.locator('.delivery-card').filter({has:page.getByText('HTTP 404',{exact:true})});
+    assert.ok(await stopped.count()>0);for(const card of await stopped.all())assert.equal(await card.locator('.delivery-state').textContent(),'Failed');
+    await stopped.first().screenshot({path:join(evidence,`slack-failure-${width}.png`)});
+    await page.locator(`[data-key=${JSON.stringify('delivery-'+fallbackId)}]`).screenshot({path:join(evidence,`fallback-outcome-${width}.png`)});
+    await page.locator(`[data-key=${JSON.stringify('delivery-'+exhaustedId)}]`).screenshot({path:join(evidence,`ended-chain-${width}.png`)});
     const note=await viaEmail.elementHandle();
     await page.addScriptTag({path:require.resolve('axe-core/axe.min.js')});
     const violations=(await page.evaluate(()=>axe.run(document))).violations.map(v=>({id:v.id,targets:v.nodes.map(n=>n.target)}));assert.deepEqual(violations,[]);

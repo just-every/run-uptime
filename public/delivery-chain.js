@@ -16,7 +16,7 @@ export function mountDeliveryChain(area,notes,right){
   const attempts=delivery.attemptHistory??[],next=attempts.at(-1);
   const message=delivery.code==='retry_window_exhausted'?'Retry window exhausted. No further automatic retry.':delivery.code==='retry_attempts_exhausted'?'Attempt limit reached. No further automatic retry.':delivery.state==='queued'&&delivery.attempts>0&&next?.started_at===null?`Retry scheduled: ${new Date(next.scheduled_at).toLocaleString()}.`:null;
   if(message){const reason=card.querySelector('.delivery-reason');if(reason?.firstChild?.nodeType===Node.TEXT_NODE)reason.firstChild.nodeValue=message+' '}
-  if(message&&delivery.state==='rejected')card.querySelector('.delivery-state').textContent='Failed';
+  if(delivery.state==='rejected')card.querySelector('.delivery-state').textContent='Failed';
   const outcome=card.querySelector('.delivery-outcome'),lines=delivery.chain?chainLines(delivery.chain):[];
   let note=chainNotes.get(card);
   if(!lines.length){note?.remove();continue}

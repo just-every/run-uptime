@@ -2415,7 +2415,7 @@
       "executable": false
     },
     "public/delivery-chain.js": {
-      "sha256": "bc5b5c234a4cf01e036c504c83a5f53e05a52a0c983354ceae2472a7fd6cb732",
+      "sha256": "ed39be8dcc103dbe3d49e2758d029299e702c70ade28af88d2655acde7dbe16d",
       "executable": false
     },
     "public/design-assets/fonts/noto-sans-regular.ttf": {
@@ -5147,7 +5147,7 @@
       "executable": false
     },
     "src/domain/archive-notification-validation.ts": {
-      "sha256": "b1bdcce51250d0061b25916d5b6793b30c1c4e8ec4aa1e12e1b44bf20007fab8",
+      "sha256": "ddb91de638902b09902d983802d528e030653a13276e1f0569d3c1aea2e5714e",
       "executable": false
     },
     "src/domain/archive-restore-projection.ts": {
@@ -6711,7 +6711,7 @@
       "executable": false
     },
     "tests/hosted-rer-mail.mjs": {
-      "sha256": "51e1e5d1010c0139cb0d01efdd61fddb1c30aecfa7f2450349cf0ff09934cc79",
+      "sha256": "13767906046aaf23364aa9818b740508a8f1625ca8d5dbcac375c00970e85392",
       "executable": false
     },
     "tests/hosted-scheduled.mjs": {
@@ -6819,7 +6819,7 @@
       "executable": false
     },
     "tests/notify-secret-browser.mjs": {
-      "sha256": "86eeb1a19afaf70f32f3aa35ebbc9f36f4532993aa82d5d45d76b61850a0e16a",
+      "sha256": "b4fe46aa9f0fe7fec7bb4befa3ac9c509da7f246724df9f6564022a90571969f",
       "executable": false
     },
     "tests/notify-unit-database.mjs": {
