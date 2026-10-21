@@ -8,7 +8,7 @@ Open **Notifications** in the console and add one or more destinations.
 - **Signed JSON webhook** posts a signed JSON event to a public HTTPS URL. Copy the signing secret when it is shown, because Uptime shows it only at creation or rotation.
 - **Slack incoming webhook** posts to an exact incoming-webhook URL on `hooks.slack.com`. Slack has no Uptime signing secret.
 
-Destinations are installation-wide. An enabled destination applies to every monitor, and there are no per-monitor filters.
+Destinations are installation-wide. By default, enabled destinations apply to every monitor. A monitor’s alert route can select its contacts and fallbacks.
 
 ## How delivery works
 
@@ -16,7 +16,7 @@ Only scheduled incident changes produce notifications: a trigger when a failure 
 
 On a hosted installation the Cloudflare Worker sends queued email, signed JSON and Slack requests itself, with no private runner needed. Owner-console requests prompt due checks and sends while you use it. The one-minute Cron schedule continues work afterwards, but Cloudflare can take up to about two hours to activate it after deployment; queued does not promise delivery within a minute. A [private runner](/docs/runner), if you keep one, also sends them when it polls; whichever claims a delivery first sends it, under the same claim and attempt rules. On your own computer the local runner sends signed JSON and Slack requests; development email completes without sending.
 
-Each event gets one attempt per destination. When the RER Managed relay returns 429 with Retry-After, the unaccepted email stays queued until that delay expires. A request that ends without a clear answer is Uncertain and is never sent again automatically.
+Email, Slack, unsigned webhooks, tests and drills get one attempt per destination. Signed-webhook incident deliveries can retry with their stable ID, and a route can name [fallback contacts](#fallback-contacts) for a failed or uncertain send. When the RER Managed relay returns 429 with Retry-After, the unaccepted email stays queued until that delay expires. For single-attempt destinations, a request that ends without a clear answer is Uncertain and is never sent again automatically.
 
 ## Send a test
 
@@ -44,9 +44,9 @@ The link holds a random one-time capability. Uptime keeps only a hash of it, plu
 
 A signed JSON webhook drill carries the link as an extra `drill` object (`startedBy`, `startedAt`, `expiresAt`, `confirmUrl`). Incident events never have this field, and their payload and signature are unchanged.
 
-## Uncertain results are not resent
+## Uncertain results
 
-Each event gets one automatic send attempt per destination. A server error, a timeout, a lost connection or an unrecognized response is marked uncertain, and Uptime never sends it again by itself. Look at the receiver before you decide what to do.
+Email, Slack, unsigned webhooks, test sends and drills get one automatic attempt. A server error, timeout, lost connection or unrecognized response stays Uncertain and is not resent automatically. Signed-webhook incident deliveries retry within their saved attempt and time limits, using the same stable ID. Look at the receiver before taking manual action.
 
 ## Keep secrets safe
 
@@ -82,7 +82,7 @@ Choose the scope and contacts, then **Preview route**. Review every selected/exc
 
 A confirmed incident binds its trigger’s recipients and credential versions. Recovery waits for provider acceptance of that trigger and goes only to the same still-enabled contact and credential. An unsuccessful or uncertain trigger, deleted/disabled contact or rotated credential cannot receive an orphan recovery; a newly selected contact cannot receive recovery for an incident it missed. Acceptance remains separate from human receipt. Pausing or changing the monitor never erases its observations.
 
-Owner APIs are `GET /api/monitors/{id}/alert-route` and POST `.../preview` and `.../apply`. Preview accepts `scope` (monitor/service/group/installation), `mode` (inherit or selected; all replaces inherit for installation), `destinationIds` and the current `expectedRevision`. Apply adds the reviewed `digest`. Route configuration, detailed history and trigger/recovery matching remain installation-local; opaque action audit is portable, and restored monitoring stays inactive. Team, environment/severity/region/origin/time rules, contact delays/repeats/retries/fallbacks and expiry/renewal routing remain unimplemented.
+Owner APIs are `GET /api/monitors/{id}/alert-route` and POST `.../preview` and `.../apply`. Preview accepts `scope` (monitor/service/group/installation), `mode` (inherit or selected; all replaces inherit for installation), `destinationIds`, an optional `fallback` (`{"destinationIds":[…],"deadlineSeconds":120}`) and the current `expectedRevision`. Apply adds the reviewed `digest`. Route configuration, detailed history and trigger/recovery matching remain installation-local; opaque action audit is portable, and restored monitoring stays inactive. Team, environment/severity/region/origin/time rules and expiry/renewal routing remain unimplemented.
 
 ## Alert time zone
 
@@ -101,8 +101,8 @@ open incidents keep their confirmation-time policy and credential.
 Delays start at confirmed failure. Recovery before a delay expires cancels that
 contact's trigger and recovery. Recovery goes only to the original accepted
 trigger's contact, with recovery enabled. Every reminder is a new event with the
-same incident key and its own single transport attempt. An uncertain send is not
-retried. Worker restarts preserve schedules. Missed reminder windows produce one
+same incident key and its own delivery. Signed webhooks can retry that delivery
+with the same stable ID; single-attempt destinations never replay an uncertain send. Worker restarts preserve schedules. Missed reminder windows produce one
 due reminder after restart, then resume the confirmation-anchored cadence rather
 than flooding contacts with every missed reminder. The incident shows the next
 contact follow-up; stop, manual resolution, recovery, or the selected
@@ -122,3 +122,19 @@ and unmapped contacts refuse the import.
 Routes and active schedules stay installation-local. Archives carry reminder
 events and delivery history as inactive records; they never resume reminders on
 restore. Monitor and destination erasure remove their schedules.
+
+Signed webhook incident deliveries retry with the same stable webhook ID. The default is six attempts within ten minutes, with exponential backoff and at most 20% jitter. Retry-After is a minimum; a delay beyond the remaining window fails with `retry_window_exhausted`. Other 4xx responses stop immediately and retain their HTTP code. Email, Slack, unsigned webhook, test and drill sends keep one attempt; proven-unaccepted relay mail 429 requeue is unchanged. An owner can PATCH `/api/notifications/preferences` with `{"retryPolicy":{"maxAttempts":6,"windowMs":600000}}` (1–10 attempts; 1000–86400000 ms). Changes apply to newly prepared deliveries. Retry times and attempt metadata survive restart, are included in inactive archives, and are erased with their destination or monitor.
+
+## Fallback contacts
+
+A route that selects its contacts can also name up to three fallback contacts, in order, and an uncertain deadline (5 to 3600 seconds; 120 by default). Set them under **Fallback contacts** in **Edit alert route**, or send `fallback` to the route API.
+
+When a selected contact's trigger fails, or is still uncertain at the deadline (a signed webhook that is still retrying counts), the first fallback gets the same incident with a line naming that contact and its outcome. If that fallback also fails or stays uncertain, the next one gets it. Each fallback keeps its own delay, quiet hours and recovery setting. Uptime messages only contacts the route names.
+
+Open **Quiet hours** under a fallback contact to hold its alerts during a daily window. Choose start and end times and an IANA time zone, such as `Australia/Brisbane`. An end earlier than the start means overnight; equal times are refused. Quiet hours are off by default. The API accepts `contactSettings[contactId].quietHours` as `{"timeZone":"Australia/Brisbane","start":"22:00","end":"07:00"}`. Omit it to turn quiet hours off.
+
+Quiet hours hold triggers, reminders and recoveries without changing the original delay or repeat cadence. Notification history shows the saved hold end. A restart retains that time, and a prepared send checks the quiet rule again immediately before handoff. Test sends and drills bypass contact schedules.
+
+Notification history shows both sides: the earlier contact lists the fallback it started, and the fallback names the contact it followed. A later acceptance of the earlier contact does not recall a fallback; both stay visible. When the last fallback also fails, the history says the chain ended and follow-up is yours.
+
+Reminders, slow notices, tests and drills never start a chain. Email and Slack are still never resent. Every attempt, including email and fallback attempts, is kept with its scheduled and start times, outcome, code and any Retry-After, but never a request body or credential. Archives carry these records and webhook deliveries without webhook request bodies; restore rebuilds webhook bodies from their archived events and never sends anything. Other historical message data is preserved. Erasing a destination also erases fallback alerts that name it.

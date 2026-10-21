@@ -17,12 +17,16 @@ export function incidentDeliveryStatements(env:Bindings,event:NotificationEvent,
  AND (COALESCE((SELECT mode FROM selected),'all')='all' OR d.id IN(SELECT value FROM json_each((SELECT destination_ids FROM selected))))
  AND EXISTS(SELECT 1 FROM notification_credentials c WHERE c.id=d.credential_id AND c.retired_at IS NULL AND c.unavailable_at IS NULL AND (c.ciphertext IS NOT NULL OR c.endpoint IS NOT NULL))
  AND EXISTS(SELECT 1 FROM outbox WHERE id=?) AND ${guard}`).bind(...selectionValues,event.id,event.id,eventJson,event.observedAt,event.id,...values),
-  env.DB.prepare(`WITH selected AS (${selection}) INSERT OR IGNORE INTO alert_contact_schedules(trigger_job_id,monitor_id,incident_key,due_at,repeat_ms,max_repeats,next_at,recovery,stop_on_ack)
+  env.DB.prepare(`WITH selected AS (${selection}) INSERT OR IGNORE INTO alert_contact_schedules(trigger_job_id,monitor_id,incident_key,due_at,repeat_ms,max_repeats,next_at,recovery,stop_on_ack,quiet_rules)
    SELECT j.id,?,?,?+COALESCE(json_extract(s.value,'$.delayMinutes'),0)*60000,COALESCE(json_extract(s.value,'$.repeatMinutes'),0)*60000,json_extract(s.value,'$.maxRepeats'),
     CASE WHEN COALESCE(json_extract(s.value,'$.repeatMinutes'),0)>0 THEN ?+(COALESCE(json_extract(s.value,'$.delayMinutes'),0)+json_extract(s.value,'$.repeatMinutes'))*60000 ELSE NULL END,
-    COALESCE(json_extract(s.value,'$.recovery'),1),COALESCE(json_extract(s.value,'$.stopOnAck'),0)
+    COALESCE(json_extract(s.value,'$.recovery'),1),COALESCE(json_extract(s.value,'$.stopOnAck'),0),json_extract(s.value,'$.quietHours')
    FROM notification_jobs j LEFT JOIN json_each(COALESCE((SELECT contact_settings FROM selected),'{}')) s ON s.key=j.destination_id
-   WHERE j.event_id=? AND ${guard}`).bind(...selectionValues,event.monitorId,event.incidentKey,event.observedAt,event.observedAt,event.id,...values)];
+   WHERE j.event_id=? AND ${guard}`).bind(...selectionValues,event.monitorId,event.incidentKey,event.observedAt,event.observedAt,event.id,...values),
+  // DELIVERY-002: snapshot the route's fallback chain with the confirmed trigger; slow notices have none.
+  ...(event.kind==='trigger'&&!custom?[env.DB.prepare(`WITH selected AS (${selection}) INSERT OR IGNORE INTO alert_fallback_chains(event_id,monitor_id,incident_key,destination_ids,deadline_ms,contact_settings,created_at)
+   SELECT ?,?,?,json_extract(s.fallback,'$.destinationIds'),json_extract(s.fallback,'$.deadlineSeconds')*1000,s.contact_settings,? FROM selected s
+   WHERE s.mode='selected' AND json_array_length(json_extract(s.fallback,'$.destinationIds'))>0 AND EXISTS(SELECT 1 FROM outbox WHERE id=?) AND ${guard}`).bind(...selectionValues,event.id,event.monitorId,event.incidentKey,event.observedAt,event.id,...values)]:[])];
  return [
   env.DB.prepare(`INSERT OR IGNORE INTO notification_jobs(id,event_id,destination_id,destination_name,kind,credential_id,event,created_at)
    SELECT ?||':'||d.id,?,d.id,d.name,d.kind,t.credential_id,?,? FROM notification_jobs t

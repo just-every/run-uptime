@@ -7,7 +7,7 @@ import {isPublicAddress,validateDestination} from '../../src/base/modules/integr
  * validate every DNS answer, pin a numeric socket, verify the original TLS
  * identity, bypass proxies, never follow redirects and bound the entire send. */
 export class NotificationTransport {
-  async send(wire) {
+  async send(wire,beforeRequest) {
     const url=validateDestination(wire.url),method=wire.method??'POST',body=wire.body??'';
     if(!['GET','POST','PUT','PATCH'].includes(method)||typeof body!=='string'||Buffer.byteLength(body)>65536||method==='GET'&&body!=='')throw Error('Invalid webhook request');
     for(const name of Object.keys(wire.headers))if(/^(host|connection|transfer-encoding|content-length|proxy-authorization)$/i.test(name))throw Error('Forbidden transport header');
@@ -20,6 +20,10 @@ export class NotificationTransport {
     signal.throwIfAborted();
     if(!addresses.length||addresses.some(value=>!isPublicAddress(value.address)||isIP(value.address)!==value.family))throw Error('Webhook DNS is not public');
     const pin=addresses[0];
+    // DNS can yield across a quiet boundary; obtain fresh sending custody only
+    // once the next operation is the actual pinned request.
+    await beforeRequest();
+    signal.throwIfAborted();
     return new Promise((resolve,reject)=>{
       let settled=false,size=0;const chunks=[];
       const agent=new https.Agent({keepAlive:false,proxyEnv:{},maxCachedSessions:0});

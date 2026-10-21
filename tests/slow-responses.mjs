@@ -19,7 +19,7 @@ test('Slow has its own contacts and report spans; recovery, percentile location 
   const route=`/api/monitors/${m.id}/alert-route`,selection={scope:'monitor',mode:'selected',destinationIds:[down.id],expectedRevision:0};
   await ok(route+'/apply',{...selection,digest:(await ok(route+'/preview',selection)).digest});
   const rpc=async(_path,body)=>ok('/api/runner/notifications',body,{runner:f.first}),received=[];
-  const transport={async send(wire){received.push({url:wire.url,event:JSON.parse(wire.body)});return {status:202,headers:{},body:''}}};
+  const transport={async send(wire,beforeRequest){await beforeRequest();received.push({url:wire.url,event:JSON.parse(wire.body)});return {status:202,headers:{},body:''}}};
   const check=async()=>{const task=await f.claim(f.first);assert.ok(task);assert.equal((await f.submit(f.first,task,[await f.evidence(task)])).status,200);return task};
   const next=async()=>{await new Promise(r=>setTimeout(r,5200));return check()};
   f.modes.target=200;f.modes.delayMs=3000;

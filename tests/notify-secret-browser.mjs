@@ -66,7 +66,10 @@ try{
     if(mode!=='button'){
      await page.locator(`[data-rotate-destination="${webhook.id}"]`).focus();await page.keyboard.press('Enter');
      const confirmation=page.getByRole('dialog');await confirmation.waitFor();
+     const cancel=await confirmation.getByRole('button',{name:'Cancel',exact:true}).elementHandle();
+     await page.waitForFunction(element=>document.activeElement===element,cancel,{timeout:3000});
      assert.ok(await confirmation.getByRole('button',{name:'Cancel',exact:true}).evaluate(element=>document.activeElement===element),'rotation starts on its safe keyboard control');
+     await cancel.dispose();
      await audit(page,`rotation-${mode}-${width}`,{dialogName:`Rotate the secret for ${webhookName}?`});
      await confirmation.getByRole('button',{name:'Rotate signing secret',exact:true}).focus();await page.keyboard.press('Enter');
     }
@@ -90,3 +93,94 @@ try{
  await writeFile(join(out,'RESULTS.json'),JSON.stringify({checks,externalNetwork:false,workflow:'1440/390 native destination/rotation/one-time-secret dialogs; keyboard modal navigation and close/focus return; exact native clipboard; clear on button Escape native close and reload; secret-redacted computed accessibility trees, axe and reflow'},null,2));
  console.log('INTERFACE-001 secret dialogs passed at 1440/390: keyboard/focus, axe/reflow/computed accessibility, native clipboard and one-time clearing.');
 }finally{if(browser)await browser.close();if(worker)await worker.dispose();await cleanupDirectory(directory)}
+
+// The second added DELIVERY-002 case uses actual owner/runner doors and only receiver-edge fakes.
+const {test:retryOutcomeTest}=await import('node:test');
+const {proveNotificationRetry}=await import('./notify-retry-fixture.mjs');
+retryOutcomeTest('DELIVERY-002 retry and fallback-chain outcomes and the route chain editor reflow at 1440 and 390 without remounting an open dialog',{timeout:420000},async()=>{
+ await proveNotificationRetry(async({origin:retryOrigin,bindings,acceptedId,failedId,fallbackId,exhaustedId,chainMonitor})=>{
+  const evidence=join(out,'retry-outcomes');await mkdir(evidence,{recursive:true});let retryBrowser;
+  try{
+   retryBrowser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});
+   const context=await retryBrowser.newContext(),page=await context.newPage();
+   await context.route('**/*',route=>new URL(route.request().url()).origin===retryOrigin?route.continue():route.abort());
+   await browserSignIn(page,retryOrigin,{bindings});
+   for(const width of [1440,390]){
+    await page.setViewportSize({width,height:900});await page.goto(retryOrigin+'/app#notifications');await page.locator('html.signed-in').waitFor();
+    const accepted=page.locator(`[data-key=${JSON.stringify('delivery-'+acceptedId)}]`),failed=page.locator(`[data-key=${JSON.stringify('delivery-'+failedId)}]`);
+    await page.waitForFunction(key=>[...document.querySelectorAll('.delivery-card')].some(card=>card.dataset.key===key&&card.textContent.includes('Retry window exhausted')),'delivery-'+failedId);
+    assert.ok((await page.locator('.notification-help:visible').textContent()).includes('Signed webhooks retry within saved limits.'),'visible help describes deduplicated retry');assert.equal(await accepted.locator('.delivery-state').textContent(),'Accepted');assert.equal(await failed.locator('.delivery-state').textContent(),'Failed');
+    assert.match(await failed.locator('.delivery-reason').textContent(),/Retry window exhausted/);await failed.getByText('HTTP 429',{exact:true}).waitFor();
+    const viaEmail=page.locator(`[data-key=${JSON.stringify('delivery-'+fallbackId)}] .delivery-chain`),ended=page.locator(`[data-key=${JSON.stringify('delivery-'+exhaustedId)}] .delivery-chain`);
+    await viaEmail.waitFor();assert.equal(await viaEmail.textContent(),'Fallback 1 after Dead Slack: Failed (slack_no_team). Fallback to Escalation webhook: Accepted.','both outcomes of the escalation are visible');
+    assert.equal(await ended.textContent(),'Fallback 1 after Dead Slack: Uncertain (response_unknown). Chain ended: no contact accepted. Follow up manually.');
+    const stopped=page.locator('.delivery-card').filter({has:page.getByText('HTTP 404',{exact:true})});
+    assert.ok(await stopped.count()>0);for(const card of await stopped.all())assert.equal(await card.locator('.delivery-state').textContent(),'Failed');
+    await stopped.first().screenshot({path:join(evidence,`slack-failure-${width}.png`)});
+    await page.locator(`[data-key=${JSON.stringify('delivery-'+fallbackId)}]`).screenshot({path:join(evidence,`fallback-outcome-${width}.png`)});
+    await page.locator(`[data-key=${JSON.stringify('delivery-'+exhaustedId)}]`).screenshot({path:join(evidence,`ended-chain-${width}.png`)});
+    const note=await viaEmail.elementHandle();
+    await page.addScriptTag({path:require.resolve('axe-core/axe.min.js')});
+    const violations=(await page.evaluate(()=>axe.run(document))).violations.map(v=>({id:v.id,targets:v.nodes.map(n=>n.target)}));assert.deepEqual(violations,[]);
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'retry outcomes reflow');
+    const session=await context.newCDPSession(page);let tree;try{tree=await session.send('Accessibility.getFullAXTree')}finally{await session.detach()}
+    assert.ok(tree.nodes.some(node=>!node.ignored&&node.name?.value?.includes('Retry window exhausted')),'computed tree names the failure');
+    await page.screenshot({path:join(evidence,`outcomes-${width}.png`),fullPage:true});await writeFile(join(evidence,`outcomes-${width}.json`),JSON.stringify({width,violations,tree},null,2));
+    await page.getByRole('button',{name:'Add destination',exact:true}).click();const dialog=page.getByRole('dialog'),identity=await dialog.elementHandle();
+    await dialog.getByLabel('Name (optional)',{exact:true}).fill('Keep this draft');await page.waitForTimeout(6000);
+    assert.ok(await identity.evaluate(element=>element.isConnected&&element.open),'refresh preserves the same open dialog');assert.equal(await dialog.getByLabel('Name (optional)',{exact:true}).inputValue(),'Keep this draft');
+    assert.ok(await note.evaluate(element=>element.isConnected&&element.textContent.startsWith('Fallback 1 after Dead Slack')),'refresh keeps the same outcome note');
+    await page.keyboard.press('Escape');await dialog.waitFor({state:'detached'});assert.equal(await page.evaluate(()=>document.activeElement?.id),'add-destination');
+    // The owner's route editor names the ordered chain, its deadline and each fallback contact's schedule.
+    await page.goto(retryOrigin+`/app/monitors/${chainMonitor.id}`);await page.locator('html.signed-in').waitFor();
+    await page.locator('#alert-route-summary').getByText(`Fallback: On-call email → Escalation webhook; uncertain deadline ${width===1440?5:7} s.`,{exact:true}).waitFor();
+    await page.getByRole('button',{name:'Edit alert route',exact:true}).click();const route=page.getByRole('dialog');await route.locator('#route-fallback-fields').waitFor();
+    assert.deepEqual(await Promise.all([0,1,2].map(i=>route.locator(`#route-fallback-${i} option:checked`).textContent())),['On-call email','Escalation webhook','None']);
+    assert.equal(await route.getByLabel('Uncertain deadline (seconds)',{exact:true}).inputValue(),String(width===1440?5:7));
+    await route.getByRole('button',{name:'Preview route',exact:true}).click();await route.locator('#route-preview').waitFor({state:'visible'});
+    assert.match(await route.locator('#route-preview').textContent(),/Fallback chainOn-call email email.*Fallback 1 · ReadyNow; no repeats; recovery on.*Escalation webhook webhook.*Fallback 2 · Ready/);
+    assert.match(await route.locator('#route-preview .route-recipients > li').filter({hasText:'On-call email'}).first().textContent(),/Fallback contact/);
+    await route.locator('#route-fallback-fields').scrollIntoViewIfNeeded();await route.screenshot({path:join(evidence,`route-chain-${width}.png`)});
+    await route.locator('#route-preview h3').filter({hasText:'Fallback chain'}).scrollIntoViewIfNeeded();await route.screenshot({path:join(evidence,`route-chain-preview-${width}.png`)});
+    await page.addScriptTag({path:require.resolve('axe-core/axe.min.js')});assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.map(v=>v.id),[]);
+    assert.ok(await route.evaluate(element=>element.scrollWidth<=element.clientWidth+1),'route chain editor reflows');assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'route page reflows');
+    // Save an edited chain through the owner controls, then reopen it after a real page read.
+    const deadline=String(width===1440?7:9);
+    await route.getByLabel('Uncertain deadline (seconds)',{exact:true}).fill(deadline);
+    const savedContact=await route.locator('#route-fallback-0').inputValue();
+    const quiet=route.locator('[data-route-fallback]').first().locator('[data-contact-quiet]');
+    await quiet.locator('summary').click();await quiet.getByLabel('Hold alerts during quiet hours',{exact:true}).check();
+    await quiet.getByLabel('Start',{exact:true}).fill('22:00');await quiet.getByLabel('End',{exact:true}).fill('07:00');await quiet.getByLabel('Time zone',{exact:true}).fill('Australia/Brisbane');
+    await quiet.scrollIntoViewIfNeeded();await route.screenshot({path:join(evidence,`route-quiet-${width}.png`)});
+    assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.map(v=>v.id),[]);
+    assert.ok(await route.evaluate(element=>element.scrollWidth<=element.clientWidth+1),'open quiet settings reflow');
+    await route.getByRole('button',{name:'Preview route',exact:true}).click();
+    await route.locator('#route-preview').getByText(/quiet 22:00–07:00 \(Australia\/Brisbane\)/).waitFor();
+    await route.locator('#route-preview h3').filter({hasText:'Fallback chain'}).scrollIntoViewIfNeeded();await route.screenshot({path:join(evidence,`route-quiet-preview-${width}.png`)});
+    assert.ok(await route.evaluate(element=>element.scrollWidth<=element.clientWidth+1),'quiet preview reflows');
+    await route.getByRole('button',{name:'Apply reviewed route',exact:true}).click();await route.waitFor({state:'detached'});
+    await page.reload();await page.locator('html.signed-in').waitFor();
+    await page.getByRole('button',{name:'Edit alert route',exact:true}).click();const reopened=page.getByRole('dialog');
+    assert.equal(await reopened.getByLabel('Uncertain deadline (seconds)',{exact:true}).inputValue(),deadline);
+    assert.equal(await reopened.locator('#route-fallback-0').inputValue(),savedContact);
+    const savedQuiet=reopened.locator('[data-route-fallback]').first().locator('[data-contact-quiet]');await savedQuiet.locator('summary').click();
+    assert.equal(await savedQuiet.getByLabel('Hold alerts during quiet hours',{exact:true}).isChecked(),true);
+    assert.equal(await savedQuiet.getByLabel('Start',{exact:true}).inputValue(),'22:00');assert.equal(await savedQuiet.getByLabel('End',{exact:true}).inputValue(),'07:00');assert.equal(await savedQuiet.getByLabel('Time zone',{exact:true}).inputValue(),'Australia/Brisbane');
+    await savedQuiet.scrollIntoViewIfNeeded();await reopened.screenshot({path:join(evidence,`route-chain-saved-${width}.png`)});
+    await reopened.getByRole('button',{name:'Close',exact:true}).click();await reopened.waitFor({state:'detached'});
+   }
+  }finally{await retryBrowser?.close()}
+ },async({origin,bindings,quietId})=>{
+  const evidence=join(out,'retry-outcomes');await mkdir(evidence,{recursive:true});
+  const browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});
+  try{for(const width of [1440,390]){
+   const context=await browser.newContext({viewport:{width,height:900}}),page=await context.newPage();
+   await browserSignIn(page,origin,{bindings});await page.goto(origin+'/app#notifications');await page.locator('html.signed-in').waitFor();
+   const card=page.locator(`[data-key="delivery-${quietId}"]`);await card.getByText(/Quiet hours: waiting until/).waitFor();
+   assert.match(await card.textContent(),/Fallback 1 after Dead Slack: Failed/);
+   await card.screenshot({path:join(evidence,`quiet-hold-${width}.png`)});
+   await page.addScriptTag({path:require.resolve('axe-core/axe.min.js')});assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.map(v=>v.id),[]);
+   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'quiet hold reflows');await context.close();
+  }}finally{await browser.close()}
+ });
+});

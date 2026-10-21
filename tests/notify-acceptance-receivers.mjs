@@ -24,12 +24,12 @@ export async function acceptanceReceiver(port,inspect){
     res.once('close',()=>{clearTimeout(timer);stalled.delete(res)});return;
    }
    const slack=req.url==='/slack';
-   res.writeHead(disposition==='accepted'?(slack?200:202):disposition==='rejected'?400:500,{'content-type':slack?'text/plain':'application/json'});
+   res.writeHead(disposition==='accepted'?(slack?200:202):disposition==='rejected'?400:disposition==='rate_limited'?429:500,{'content-type':slack?'text/plain':'application/json',...(disposition==='rate_limited'?{'retry-after':'1'}:{})});
    res.end(slack?(disposition==='accepted'?'ok':disposition==='rejected'?'invalid_payload':'fatal_error'):JSON.stringify({ok:disposition==='accepted'}));
   }catch(error){errors.push(error);res.writeHead(422);res.end('invalid wire')}
  });
  server.listen(port,'127.0.0.1');await once(server,'listening');
- return {records,errors,setDisposition(value){assert.ok(['accepted','rejected','failed','lost','stalled'].includes(value));disposition=value},releaseStalled(){for(const response of stalled)response.destroy()},assertValid(){assert.equal(errors.length,0,errors[0]?.message)},async close(){for(const response of stalled)response.destroy();server.closeAllConnections();await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()))}};
+ return {records,errors,setDisposition(value){assert.ok(['accepted','rejected','failed','lost','stalled','rate_limited'].includes(value));disposition=value},releaseStalled(){for(const response of stalled)response.destroy()},assertValid(){assert.equal(errors.length,0,errors[0]?.message)},async close(){for(const response of stalled)response.destroy();server.closeAllConnections();await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()))}};
 }
 
 export function verifySendGrid(record){
@@ -74,7 +74,7 @@ export function verifySlack(record){
 export function loopbackWireTransport(routes){
  // Require a real three-second stall with timer-resolution margin, without relaxing the elapsed-time assertion.
  const timeoutMs=3500,timeouts=[];
- return {timeouts,async send(wire){
+ return {timeouts,async send(wire,beforeRequest){await beforeRequest();
   const route=routes.get(wire.url);assert.ok(route,'unapproved wire destination');
   const startedAt=performance.now(),signal=AbortSignal.timeout(timeoutMs);
   try{

@@ -5,7 +5,7 @@ import type {Bindings} from './control.server.ts'
 // The installation-wide External check URL (migration 0029), set in Settings. Monitors follow it live: a revision whose external
 // check is the installation's says externalCheck "settings", keeps a copy of the URL in force when it was saved, and each check
 // is handed the URL Settings holds when it runs (liveExternalCheck). A monitor's own URL says externalCheck "own". Revisions saved
-// before monitors followed Settings carry no externalCheck; their copies of legacy_url (migration 0059) follow Settings too.
+// before monitors followed Settings carry no externalCheck; their copies of legacy_url (migration 0062) follow Settings too.
 export const EXTERNAL_CHECK_ABSENT='The External check URL is not set. Set it in Settings, or give this monitor its own external check URL.'
 export type ExternalCheck={url:string|null;legacyUrl:string|null}
 export async function externalCheck(env:Bindings):Promise<ExternalCheck>{

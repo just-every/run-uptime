@@ -1,4 +1,5 @@
-import {contactReady,advanceContactSchedules} from './contact-scheduler.server.ts'
+import {contactReady,advanceContactSchedules,refreshContactQuiet} from './contact-scheduler.server.ts'
+import {advanceFallbackChains,attemptPhase} from './notification-fallback.server.ts'
 import {auditStatement,automated} from './audit.server.ts'
 import {readCredential,retireObsoleteCredentials,notificationKeyPresent} from './notification-credentials.server.ts'
 // @ts-expect-error Base mail is portable JavaScript verified by the donor suite.
@@ -16,11 +17,19 @@ import {recoveryAccepted,settleUnmatchedRecoveries} from './alert-route-delivery
 // sent, so it ends uncertain and is never sent again.
 export const expireMailClaims=(env:Bindings,now:number)=>[
  env.DB.prepare("UPDATE notification_jobs SET state='queued',code='waiting_for_runner',claim=NULL,claim_until=NULL,attempts=attempts-1 WHERE kind='email' AND state='sending' AND code='mail_claimed' AND claim_until<=?").bind(now),
+ // A handed-over message whose claim expired may have been sent: its attempt record ends uncertain with the job.
+ env.DB.prepare("UPDATE notification_delivery_attempts SET finished_at=?,outcome_category='uncertain',code='claim_expired' WHERE finished_at IS NULL AND delivery_id IN(SELECT id FROM notification_jobs WHERE kind='email' AND state='sending' AND claim_until<=?)").bind(now,now),
  env.DB.prepare("UPDATE notification_jobs SET state='uncertain',code='claim_expired',claim=NULL,claim_until=NULL,finished_at=? WHERE kind='email' AND state='sending' AND claim_until<=?").bind(now,now),
 ]
+// DELIVERY-002 audits every email attempt like a webhook attempt: one durable record per hand-over to the provider,
+// with no address, body or provider credential. Email is never resent automatically (DELIVERY-001).
+const mailAttemptStart=(env:Bindings,id:string,claim:string,scheduledAt:number,now:number)=>env.DB.prepare(`INSERT OR IGNORE INTO notification_delivery_attempts(delivery_id,destination_id,number,phase,scheduled_at,started_at,key_reference)
+ SELECT j.id,j.destination_id,j.attempts,${attemptPhase()},?,?,j.event_id FROM notification_jobs j WHERE j.id=? AND j.claim=? AND j.code='mail_sending'`).bind(Math.min(scheduledAt,now),now,id,claim);
+const mailAttemptFinish=(env:Bindings,id:string,claim:string,category:string,code:string,retryAfterSeconds:number|null,now:number)=>env.DB.prepare(`UPDATE notification_delivery_attempts SET finished_at=?,outcome_category=?,code=?,retry_after_seconds=?
+ WHERE finished_at IS NULL AND (delivery_id,number) IN(SELECT id,attempts FROM notification_jobs WHERE id=? AND state='sending' AND claim=? AND claim_until>?)`).bind(now,category,code,retryAfterSeconds,id,claim,now);
 export async function dispatchNotificationMail(env:Bindings,budget?:SubrequestBudget){
  const now=Date.now(),op=storageOperation;
- await advanceContactSchedules(env);
+ await advanceContactSchedules(env);await op('notifications.mail.fallbacks',()=>advanceFallbackChains(env));await refreshContactQuiet(env);
  await op('notifications.mail.expireClaims',()=>env.DB.batch(expireMailClaims(env,now)));
  await op('notifications.mail.recoveryMatches',()=>settleUnmatchedRecoveries(env));
  const rows=await op('notifications.mail.selectQueued',()=>env.DB.prepare(`SELECT j.*,c.id AS credential_record_id,c.destination_id AS credential_destination_id,c.created_at AS credential_created_at,c.endpoint,c.signing_secret,c.ciphertext,c.retired_at,c.unavailable_at FROM notification_jobs j JOIN notification_credentials c ON c.id=j.credential_id WHERE j.kind='email' AND j.state='queued' AND ${recoveryAccepted()} AND ${contactReady()} AND (j.claim_until IS NULL OR j.claim_until<=?) ORDER BY j.created_at LIMIT 10`).bind(now).all<any>());
@@ -42,8 +51,14 @@ export async function dispatchNotificationMail(env:Bindings,budget?:SubrequestBu
      content=await op('notifications.mail.prepare',()=>notificationMail(env,row));
      // The transport boundary: this claim, still live, becomes mail_sending in the same write as the drill's submitted mark. A
      // dispatcher whose claim expired meanwhile changes nothing and sends nothing.
-     const handed=await op('notifications.mail.markSubmitted',()=>env.DB.batch([env.DB.prepare(`UPDATE notification_jobs SET code='mail_sending' WHERE id=? AND state='sending' AND code='mail_claimed' AND claim=? AND claim_until>? AND ${contactReady('notification_jobs')}`).bind(row.id,claim,Date.now()),markSubmitted(env,row.id,Date.now(),claim)]));
-     if(!handed[0].meta.changes)continue
+     await op('notifications.mail.quietPolicy',()=>refreshContactQuiet(env,row.id));
+     const handedAt=Date.now(),handed=await op('notifications.mail.markSubmitted',()=>env.DB.batch([env.DB.prepare(`UPDATE notification_jobs SET code='mail_sending' WHERE id=? AND state='sending' AND code='mail_claimed' AND claim=? AND claim_until>? AND ${contactReady('notification_jobs')}`).bind(row.id,claim,handedAt),markSubmitted(env,row.id,handedAt,claim),mailAttemptStart(env,row.id,claim,row.claim_until??row.created_at,handedAt)]));
+     if(!handed[0].meta.changes){
+      // A delay/quiet boundary can close while content is prepared. This
+      // reservation has no provider handover or attempt to preserve.
+      await op('notifications.mail.releaseClaim',()=>env.DB.prepare(`UPDATE notification_jobs SET state='queued',code='waiting_for_runner',claim=NULL,claim_until=NULL,attempts=attempts-1 WHERE id=? AND state='sending' AND code='mail_claimed' AND claim=?`).bind(row.id,claim).run());
+      continue
+     }
     }
    }catch(error){
     if(classifyStorage(error)){
@@ -63,7 +78,8 @@ export async function dispatchNotificationMail(env:Bindings,budget?:SubrequestBu
     catch(error){state=error instanceof MailValidationError?'rejected':'uncertain';code=error instanceof MailValidationError?'mail_input_invalid':'mail_result_unknown'}
    }
   }
-  await op('notifications.mail.finish',()=>env.DB.prepare("UPDATE notification_jobs SET state=?,code=?,claim=NULL,claim_until=?,finished_at=? WHERE id=? AND state='sending' AND claim=? AND claim_until>?").bind(state,code,retryAt??null,retryAt===undefined?Date.now():null,row.id,claim,Date.now()).run());
+  const finishedAt=Date.now();
+  await op('notifications.mail.finish',()=>env.DB.batch([mailAttemptFinish(env,row.id,claim,state==='queued'?'retryable':state,code,retryAt===undefined?null:Math.max(0,(retryAt-finishedAt)/1000),finishedAt),env.DB.prepare("UPDATE notification_jobs SET state=?,code=?,claim=NULL,claim_until=?,finished_at=? WHERE id=? AND state='sending' AND claim=? AND claim_until>?").bind(state,code,retryAt??null,retryAt===undefined?finishedAt:null,row.id,claim,finishedAt)]));
  }
  await op('notifications.mail.retireCredentials',()=>retireObsoleteCredentials(env));await op('notifications.mail.retireDrillTokens',()=>retireDrillTokens(env));
 }

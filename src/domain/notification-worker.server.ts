@@ -28,16 +28,17 @@ class WorkerNotificationRepository extends NotificationRepository {
 // Cloudflare egress, not a pinned socket, is the boundary (the Node runner keeps NodePinnedTransport).
 function workerTransport(dns:PublicDNS,allowance:Allowance,start:()=>Promise<void>,received:(body:string,headers:Record<string,string>,requestBody:string)=>void):TrustedTransport{
  return {async send(wire){
-  await start();
   const url=validateDestination(wire.url),signal=AbortSignal.timeout(15000);
   const method=(wire as any).method??'POST';if(!['GET','POST','PUT','PATCH'].includes(method)||method==='GET'&&wire.body!=='')throw Error('Invalid webhook method or body');
   for(const name of Object.keys(wire.headers))if(/^(host|connection|transfer-encoding|content-length|proxy-authorization)$/i.test(name))throw Error('Forbidden transport header');
   return demoEffect(async()=>{
-   await dns(url,signal,allowance);allowance.spend();
+   await dns(url,signal,allowance);
+   // Resolve first: quiet authority must be fresh at the request boundary.
+   await start();allowance.spend();
    const response=await fetch(url.href,{method,headers:wire.headers,...(method==='GET'?{}:{body:wire.body}),redirect:'manual',signal,cache:'no-store'});
    const body=(await boundedBody(response,65536)).body;received(body,wire.headers,wire.body);
    return {status:response.status,headers:Object.fromEntries(response.headers),body};
-  },()=>({status:200,headers:{},body:url.hostname==='hooks.slack.com'?'ok':''}));
+  },async()=>{await start();return {status:200,headers:{},body:url.hostname==='hooks.slack.com'?'ok':''}});
  }};
 }
 /** Hosted installs need no runner for alerts: each cron run sends queued email, webhook and Slack jobs it can afford. */

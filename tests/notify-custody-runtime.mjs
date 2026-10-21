@@ -106,7 +106,7 @@ try{
  assert.equal(priorPoll.jobs.length,1,'accepted webhook history is never polled again');
  assert.ok(priorSlack,'existing queued Slack job remains available without replaying completed history');assert.equal(priorSlack.credential.signing_secret,null,'obsolete Slack signing key was discarded');assert.ok(priorSlack.credential.endpoint===slackURL,'legacy capability decrypted correctly');
  await eraseAndAssert(DB,owner,slackId,{expectedCredentials:1});await eraseAndAssert(DB,owner,emailId,{expectedCredentials:1});
- let sends=0;const transport={async send(wire){sends++;assert.ok(wire.url===endpoint,'decrypted endpoint matches original');assert.ok(wire.headers['x-lamp-signature']===createHmac('sha256',secret).update(wire.headers['x-lamp-timestamp']+'.'+wire.body).digest('base64url'),'wire signature still authenticates the exact bytes');return {status:202,headers:{},body:''}}};
+ let sends=0;const transport={async send(wire,beforeRequest){await beforeRequest();sends++;assert.ok(wire.url===endpoint,'decrypted endpoint matches original');assert.ok(wire.headers['x-lamp-signature']===createHmac('sha256',secret).update(wire.headers['x-lamp-timestamp']+'.'+wire.body).digest('base64url'),'wire signature still authenticates the exact bytes');return {status:202,headers:{},body:''}}};
  const ahead=(await owner.api(`/api/notifications/destinations/${id}/test`,'POST',{})).data;
  await dispatchNotifications(runner,transport,{now:()=>Date.now()+61000});let history=(await owner.api('/api/notifications')).data.deliveries.find(j=>j.id===ahead.deliveryId);assert.equal(history.state,'queued');assert.equal(history.attempts,0);assert.equal(sends,0);
  await dispatchNotifications(runner,transport);assert.equal(sends,1,'correct runner can send the unsent job once');
@@ -119,6 +119,8 @@ try{
  history=(await owner.api('/api/notifications')).data.deliveries.find(j=>j.id===slow.deliveryId);assert.equal(history.code,'claim_expired');assert.equal(history.state,'uncertain');assert.equal(sends,3);
  await dispatchNotifications(runner,transport);assert.equal(sends,3);
  const queued=(await owner.api(`/api/notifications/destinations/${id}/test`,'POST',{})).data;await runner('',{operation:'poll'});
+ const scheduled=(await owner.api('/api/notifications')).data.deliveries.flatMap(row=>row.attemptHistory);
+ assert.ok(scheduled.length>0);assert.ok(!JSON.stringify(scheduled).includes(secret));assert.ok(scheduled.every(row=>row.phase==='retry'&&row.key_reference));
  assert.equal((await owner.api(`/api/notifications/destinations/${id}/rotate`,'POST',{})).status,200);
  let stored=await raw();assert.equal(stored.filter(r=>r.destination_id===id&&r.retired_at!==null).length,2);assert.ok(stored.filter(r=>r.retired_at!==null).every(r=>r.ciphertext===null&&r.endpoint===null&&r.signing_secret===null));
  await dispatchNotifications(runner,transport);assert.equal(sends,3);history=(await owner.api('/api/notifications')).data.deliveries.find(j=>j.id===queued.deliveryId);assert.equal(history.code,'credential_rotated');

@@ -60,6 +60,12 @@ try{
  await scheduled();assert.equal(requests.length,count+1);
  assert.deepEqual(requests.at(-1),requests.at(-2),'retry preserves the message');
  assert.equal((await row()).state,'accepted');assert.equal((await row()).attempts,2);
+ const exported=await call('/api/archive',undefined,cookie);
+ assert.equal(exported.status,200,'a proven-unaccepted relay submission and its accepted retry both archive');
+ const attempts=(await exported.json()).payload.productTables.notification_delivery_attempts.filter(a=>a.delivery_id===deliveryId);
+ assert.deepEqual(attempts.map(a=>[a.number,a.outcome_category]),[[1,'retryable'],[2,'accepted']]);
+ assert.ok(attempts[0].retry_after_seconds>0&&attempts[0].retry_after_seconds<=2);
+
 
  status=302;const beforeRedirect=requests.length;
  assert.equal((await call('/auth/magic-link',{email:bindings.OWNER_EMAIL})).status,503);
