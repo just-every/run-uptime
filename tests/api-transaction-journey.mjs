@@ -5,6 +5,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {test} from 'node:test';
 import {createClock} from '../runners/src/clock.mjs';
+import {extensionTables} from '../src/domain/archive-schema.ts';
 import {executeTaskProbe} from '../runners/src/execute-task.mjs';
 import {authFixture} from './tls-auth-support.mjs';
 import {fixture as installation} from './resilience/support.mjs';
@@ -128,7 +129,7 @@ test('API-004 sandbox setup/teardown, cancellation, denied cleanup, retained deb
       assert.deepEqual((await receiving.DB.prepare('SELECT * FROM cleanup_debt ORDER BY rowid').all()).results,archived);
       assert.equal((await receiving.DB.prepare('SELECT COUNT(*) n FROM effect_grants').first()).n,0);
     } finally {await receiving.close()}
-    const prior=structuredClone(archive.data);prior.payload.extensionVersion=8;delete prior.payload.productTables.cleanup_debt;delete prior.payload.productTables.notification_delivery_attempts;
+    const prior=structuredClone(archive.data);prior.payload.extensionVersion=8;prior.payload.productTables=Object.fromEntries(extensionTables(8).map(name=>[name,prior.payload.productTables[name]]));
     const older=await installation();
     try {
       assert.equal((await older.request('/api/restore',{body:{archive:rehash(prior)}})).status,200);

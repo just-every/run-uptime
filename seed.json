@@ -96,6 +96,7 @@
         "SendGrid API-key authorization, sender and recipient/operator email addresses, message subject and text/HTML body, and single-use sign-in links",
         "Delivery ID in the rer_delivery_id custom argument; click, open and analytics tracking are disabled in the submitted provider settings",
         "Incident/test title, target URL, state, monitor and incident identity when present, probe names/outcomes/reasons, explanation, observation time, and private console URL as rendered in message content",
+        "A dependency notice from a followed provider carries the provider and component names, the provider's stated status, its status-source URL and the catalog entry and version as rendered in message content",
         "For an owner-run drill, the one-time recipient confirmation link and drill time",
         "Owner stale-runner identity/network-label notice or all-healthy digest text, including any monitoring-configuration warning"
       ],
@@ -109,6 +110,7 @@
       "data": [
         "The configured public HTTPS endpoint receives the selected GET, POST, PUT or PATCH request with JSON, form or query parameters, configured local custom header values, optional signature/timestamp headers, source address and delivery time",
         "Event ID, type, incident key, monitor ID and revision, name, target URL, scheduled slot, state, observation time, probe outcomes and reasons, explanation, and private console URL",
+        "A dependency notice from a followed provider carries the provider and component names, the provider's stated status, its status-source URL and the catalog entry and version, with event type uptime.dependency.firing or uptime.dependency.recovered",
         "Versioned custom templates may send the documented monitor, incident, location, timing, certificate/domain expiry and heartbeat facts, including owner-zone times. Custom header values and signing keys stay encrypted locally and are excluded from lists and archives. Only an explicit owner request preview shows the receiver URL; its header secrets and signatures are masked.",
         "A drill event additionally carries the one-time recipient confirmation URL, start time, and expiry; ordinary incident and test events do not",
         "The endpoint's bounded HTTP status, headers and response body return to the dispatcher; the owner sees status and an escaped, secret-scrubbed excerpt of at most 512 characters"
@@ -123,6 +125,7 @@
       "data": [
         "The configured Slack webhook receives the escaped message body, source address, and delivery time",
         "Incident title and state, monitor identity and target URL, probe outcomes and reasons, explanation, observation time, and console URL",
+        "A dependency notice from a followed provider carries the provider and component names, the provider's stated status, its status-source URL and the catalog entry and version",
         "A drill message additionally carries the one-time recipient confirmation URL and drill time",
         "The endpoint's bounded HTTP status, headers, and response body return to the runner for delivery classification"
       ],
@@ -234,6 +237,18 @@
       "adapters": []
     },
     {
+      "id": "service-catalog-status-sources",
+      "required": false,
+      "requiredWhen": "An owner follows or reviews a provider from the third-party service catalog",
+      "why": "Before a provider is followed, the owner's runner (or a hosted demo's Worker) reads the catalog entry's own status source once to confirm it answers with the shape the catalog expects. A followed provider is then an ordinary public HTTP monitor of that status source.",
+      "data": [
+        "Only status-source addresses the catalog itself names (provider status APIs, feeds and pages), one read-only GET each, with the catalog check User-Agent; no owner data, credential or other address is sent",
+        "The provider's status service sees the request time and the runner's source address",
+        "Only derived facts return to the Worker: whether the source answered, whether it has the expected shape, the stated status and a Statuspage component's id; no body or header is kept"
+      ],
+      "adapters": []
+    },
+    {
       "id": "isolated-browser-flow-targets",
       "required": false,
       "requiredWhen": "An owner enables a browser-flow monitor on a runner with a browser",
@@ -254,7 +269,7 @@
       "data": [
         "Runner key authentication and signature, runner identity, declared network label, browser capability, request times, and claimed task identifiers",
         "Assigned monitor and flow definitions, canary URLs, retry and lease data, and signed attempt evidence, including status, assertions, timings, and bounded flow trace",
-        "Discovery input URLs and derived host/proposal results",
+        "Discovery input URLs and derived host/proposal results; for a service catalog check, the catalog entry and chosen parts, and the derived check result",
         "For notification delivery, the claimed endpoint URL, signing credential and event payload are returned to the runner for the one configured send; signed outcome and bounded provider response details return to the Worker",
         "Redacted HTTP failure snapshots (16 KiB text, optional 64 KiB PNG, 120 KiB total) carry final request details, owner-approved safe header/email exceptions, measured phases and bounded diagnostics under the signed envelope. Opt-in isolated screenshots render the already received excerpt after inert parsing/redaction, without fetching any target or subresource; scripts, styling and media are removed. Generated PNGs are authenticated-encrypted at rest, read only by owners and explicitly granted per-monitor evidence viewers, portable as redacted archive data, and subject to snapshot retention and erasure. Masks and access grants stay installation-local. Alerts carry no artifact content."
       ],
@@ -293,6 +308,7 @@
         "Resend API-key authorization, sender and recipient/operator email addresses, message subject and text/HTML body, and single-use sign-in links",
         "Delivery ID in the Idempotency-Key request header",
         "Incident/test title, target URL, state, monitor and incident identity when present, probe names/outcomes/reasons, explanation, observation time, and private console URL as rendered in message content",
+        "A dependency notice from a followed provider carries the provider and component names, the provider's stated status, its status-source URL and the catalog entry and version as rendered in message content",
         "For an owner-run drill, the one-time recipient confirmation link and drill time",
         "Owner stale-runner identity/network-label notice or all-healthy digest text, including any monitoring-configuration warning"
       ],
@@ -307,6 +323,7 @@
         "Cloudflare API-key authorization and configured account identity, sender and recipient/operator email addresses, message subject and text/HTML body, and single-use sign-in links",
         "Account-scoped email-sending API request with no Uptime attachment payload",
         "Incident/test title, target URL, state, monitor and incident identity when present, probe names/outcomes/reasons, explanation, observation time, and private console URL as rendered in message content",
+        "A dependency notice from a followed provider carries the provider and component names, the provider's stated status, its status-source URL and the catalog entry and version as rendered in message content",
         "For an owner-run drill, the one-time recipient confirmation link and drill time",
         "Owner stale-runner identity/network-label notice or all-healthy digest text, including any monitoring-configuration warning"
       ],
@@ -1404,6 +1421,38 @@
       },
       {
         "path": "/slow-policy.css",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/followed-service.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/followed-service.css",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/incident-dependencies.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/editor/catalog.css",
         "match": "exact",
         "kind": "asset",
         "class": "assets",

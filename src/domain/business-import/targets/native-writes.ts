@@ -4,6 +4,8 @@ import {canonicalJson} from '../../../base/modules/import-kit/src/provenance/ide
 import {MONITOR_LIMIT} from '../../control.server.ts'
 // @ts-ignore Edition flow vocabulary is JavaScript shared with the runner.
 import {FLOW_LIMITS} from '../../flow.mjs'
+// @ts-ignore Shared catalog recognition.
+import {followedMappingOf} from '../../service-catalog/match.mjs'
 import {markerTable,markerPredicate,nativePredicate,sql,together,type Snapshot} from './snapshots.ts'
 
 const assert=(predicate:D1Sql)=>sql(`SELECT CASE WHEN (${predicate.sql}) THEN 1 ELSE json('BUSINESS_IMPORT_NATIVE_CONFLICT') END`,...predicate.params??[])
@@ -46,6 +48,10 @@ export function revisionWrites(row:TargetRow,snapshot:Snapshot,ownerId:string):D
    SELECT ?,'feature',?,?,'credential_retire','credential',? WHERE EXISTS(SELECT 1 FROM heartbeat_authority WHERE monitor_id=?)`,
    crypto.randomUUID(),'business-import',now,crypto.randomUUID(),row.targetId),sql('DELETE FROM heartbeat_authority WHERE monitor_id=?',row.targetId))
  }
+ // DEPENDENCY-002: a new monitor that is exactly what following a catalog entry saves is that followed service (paused, like every
+ // import, and not yet checked live). The plan refused a part already followed; the unique part index refuses a race.
+ const followed=!old&&!restore?followedMappingOf(definition):null
+ if(followed)statements.push(sql('INSERT INTO followed_services(monitor_id,entry_id,catalog_version,scope,component_key,followed_at,checked_at) VALUES(?,?,?,?,?,?,NULL)',row.targetId,followed.entry_id,followed.catalog_version,followed.scope,followed.component_key,now))
  statements.push(restore?sql(`DELETE FROM ${markerTable} WHERE monitor_id=?`,row.targetId):sql(`INSERT INTO ${markerTable}(monitor_id,kit_revision,native_revision,retired) VALUES(?,?,?,0)
   ON CONFLICT(monitor_id) DO UPDATE SET kit_revision=excluded.kit_revision,native_revision=excluded.native_revision,retired=0`,row.targetId,row.revision,revision),
   audit(ownerId,row.targetId,restore?'business_import_undo':old?'business_import_revision':'business_import_create',now))

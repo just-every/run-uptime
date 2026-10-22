@@ -53,8 +53,28 @@ function jsonEvidence(value, redact) {
   const text = typeof value === 'string' ? JSON.stringify(value.replace(/[\x00-\x1f\x7f-\x9f\u202a-\u202e\u2066-\u2069]/g, ' ')) : String(value);
   return text.length > 50 ? text.slice(0, 49) + '…' : text;
 }
+// What a path selects in a parsed document: every selected value with the keys that reached it.
+function selectValues(document, path) {
+  if (legacyPath.test(path)) {
+    const keys = path.replace(/^\$\./, '').split('.');
+    let value = document;
+    for (const key of keys) value = value !== null && typeof value === 'object' && Object.hasOwn(value, key) ? value[key] : undefined;
+    return value === undefined ? [] : [{value, actualPath: keys}];
+  }
+  validateJsonPath(path);
+  return query(boundedDocument(document), normalize(path), {returnArray: true}).map(value => ({value, actualPath: []}));
+}
+// A provider's claim is present when the path selects something; absence is missing evidence, never a failed claim.
+export function jsonClaimPresent(path, body) {
+  let document;
+  try { document = JSON.parse(body); } catch { return false; }
+  try { return selectValues(document, path).length > 0; } catch { return false; }
+}
+// The one shape a dependency monitor's component claim takes (DEPENDENCY-001): its status is read for one provider id and shown.
+const componentClaim = /^components\[\?\(@\.id=="[^"\\]{1,100}"\)\]\.status$/;
 export function jsonAssertion({path, equals}, body, credentialed) {
   let document, count = 0, mismatch, problem;
+  // A provider's component status is public and chosen by id, so its value stays readable in the evidence unless credentials were sent.
   let redact = credentialed || sensitive.test(path);
   try { document = JSON.parse(body); } catch { problem = 'invalid JSON'; }
   const selected = (value, actualPath) => {
@@ -66,17 +86,9 @@ export function jsonAssertion({path, equals}, body, credentialed) {
   };
   if (!problem) {
     try {
-      if (legacyPath.test(path)) {
-        const keys = path.replace(/^\$\./, '').split('.');
-        let value = document;
-        for (const key of keys) value = value !== null && typeof value === 'object' && Object.hasOwn(value, key) ? value[key] : undefined;
-        if (value !== undefined) selected(value, keys);
-      } else {
-        validateJsonPath(path);
-        redact = true;
-        const values = query(boundedDocument(document), normalize(path), {returnArray: true});
-        for (const value of values) selected(value, []);
-      }
+      const values = selectValues(document, path);
+      if (!legacyPath.test(path) && !componentClaim.test(path)) redact = true;
+      for (const {value, actualPath} of values) selected(value, actualPath);
     } catch { problem = 'query evaluation limit or invalid expression'; }
   }
   const pass = !problem && count > 0 && !mismatch;

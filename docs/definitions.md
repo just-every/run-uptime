@@ -104,6 +104,14 @@ Moving from UptimeRobot uses the same preview and apply. See [Moving from Uptime
 
 The same bounded preview/apply/undo engine also accepts the saved source formats below. File size remains 2 MiB and at most 500 entries; the installation's 100-monitor limit still applies. New entries stay paused, and importing never authorizes credentials, enables traffic, sends alerts or rewrites current monitoring evidence.
 
+### Third-party service monitors
+
+A third-party service monitor in a saved incumbent file maps onto its [service catalog](/docs/monitors#following-a-third-party-provider) entry and applies as a paused followed service. Its status source has not been checked live yet, so its monitor page asks you to check it before you enable it. One monitor follows each catalog part; an entry for a part this installation already follows is refused.
+
+- **UptimeRobot** has no third-party monitor type. A saved v3 HTTP or keyword monitor of a provider's status address in the catalog maps onto that entry; any other status address stays an ordinary proposal.
+- **Better Stack** monitor pages map the same way. A status page's third-party service row (`resource_type` `ThirdPartyService`) is refused: [Better Stack's public API](https://betterstack.com/docs/uptime/api/get-a-single-status-page-resource/) names no vendor, region or service for it. Follow that provider from the catalog instead.
+- **Site24x7** monitor lists map a Website monitor of a provider's status address. StatusIQ third-party components a status page subscribes to map by their [published service id](https://www.site24x7.com/help/statusiq/api/) and the component's name, such as Stripe API or Amazon Elastic Compute Cloud (Ohio). A component the catalog follows by the provider's own component id, a provider the catalog lacks, an AWS Health monitor and an Office 365 monitor are refused with the reason. Other Site24x7 monitors are not converted.
+
 ### UptimeRobot certificate settings
 
 For supported saved UptimeRobot v3 monitor pages, an HTTPS monitor with `checkSSLErrors: false` maps to `tlsTrust: {"mode":"ignore","acknowledged":true}`. The preview names the source exception, its restriction to the initial HTTPS origin and the private-runner requirement. It grants no local credential authority. Authentication, request headers and body still need the previewed local credential reference to be filled by the receiving owner. A changed or copied monitor ID cannot inherit another monitor's credential file.

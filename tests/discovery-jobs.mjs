@@ -10,6 +10,7 @@ import {runRunner} from '../runners/src/private-runner.mjs';
 import {mkdir} from 'node:fs/promises';
 import {join} from 'node:path';
 import {statuspageEdge,applicationUrl,statusOrigin,canaryUrl} from './dependency-status-fixture.mjs';
+import {proveServiceCatalog} from './service-catalog-journey.mjs';
 let f;
 before(async()=>{f=await fixture()});
 after(async()=>{await f?.close()});
@@ -185,6 +186,11 @@ test('DEPENDENCY-001 a linked provider status page is discovered, its component 
   running=runRunner({origin:g.origin,key:g.first.key,runnerId:g.first.runnerId,localReview:true,signal:blockedController.signal,pollMs:20});
   try{const job=await waitUntil(async()=>{const job=(await g.request('/api/discoveries/'+blocked)).data;return ['done','failed'].includes(job.status)?job:null},'robots-honouring discovery',30000);assert.equal(job.status,'done',job.error);assert.ok(job.result.proposals.some(p=>p.definition.url===overall.definition.url));assert.ok(!job.result.proposals.some(p=>p.definition.url===provider.definition.url));assert.ok(!edge.requests.slice(requestCount).some(r=>r.path==='/api/v2/components.json'))}finally{blockedController.abort();await running;running=undefined}
  }finally{controller.abort();if(running)await running;await browser.close();await edge.close();await g.close()}
+});
+
+test('DEPENDENCY-002 catalog providers are followed after a live source check, notify every contact and fallback on their route without opening an incident, show linked and coincident notices on application incidents, go Unknown when a source fails, and a provider outside the catalog goes through the reviewed proposal',async()=>{
+ const launch=()=>chromium.launch({headless:true,args:['--disable-gpu','--use-mock-keychain','--password-store=basic'],...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{})});
+ await proveServiceCatalog({launch,evidence:process.env.UPTIME_DEPENDENCY_EVIDENCE});
 });
 
 test('a new monitor starts from a pasted URL: the runner answers, the owner unticks one, and the rest start with no other input',async()=>{

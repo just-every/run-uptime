@@ -6,6 +6,8 @@ import {externalCheck,externalCheckMode,type ExternalCheck} from '../external-ch
 // @ts-ignore Edition flow vocabulary is JavaScript shared with the runner.
 import {FLOW_LIMITS} from '../flow.mjs'
 import {COMPARED_FIELDS,canonical,sha256} from './format.ts'
+// @ts-ignore Shared catalog recognition; edition JavaScript.
+import {followedMappingOf,followedPart} from '../service-catalog/match.mjs'
 import type {Mapping,SourceEntry} from './importers/index.ts'
 
 export type Action='create'|'unchanged'|'change'|'refused'|'unsupported'
@@ -15,7 +17,9 @@ export type PlanEntry={index:number;label:string;action:Action;name?:string;reas
 type Marker={kit_revision:string;native_revision:number;retired:number}
 /** Everything the planner reads, read once. Planning itself is synchronous and writes nothing. */
 export type PlanState={local:number[];monitors:{id:string;revision:number;definition:any}[];runners:Runner[];first:string|null;
- tokens:Set<string>;external:ExternalCheck;markers:Map<string,Marker>;demo:boolean;origin?:string}
+ tokens:Set<string>;external:ExternalCheck;markers:Map<string,Marker>;demo:boolean;origin?:string;
+ /** DEPENDENCY-002: the catalog parts this installation follows, and the monitors that follow them. */
+ followed:{parts:Set<string>;monitors:Set<string>}}
 export type PlanItem=SourceEntry&{mapping:Mapping;sourceId?:string}
 
 export const RELEASED='Imported before and released by undo or erasure; it stays in Uptime as its own monitor. Erase that monitor to import it again.'
@@ -26,17 +30,19 @@ const same=(a:unknown,b:unknown)=>JSON.stringify(a)===JSON.stringify(b)
 const message=(error:unknown)=>error instanceof Error?error.message:'Invalid definition'
 
 export async function planState(env:Bindings):Promise<PlanState>{
- const [stored,registered,tokens,external,markers]=await Promise.all([
+ const [stored,registered,tokens,external,markers,followed]=await Promise.all([
   env.DB.prepare('SELECT id,revision,definition FROM monitors ORDER BY rowid').all<any>(),
   env.DB.prepare('SELECT * FROM runners ORDER BY registered_at,runner_id').all<Runner>(),
   liveHeartbeatTokens(env),externalCheck(env),
   env.DB.prepare('SELECT monitor_id,kit_revision,native_revision,retired FROM uptime_business_import_targets').all<any>(),
+  env.DB.prepare('SELECT monitor_id,entry_id,scope,component_key FROM followed_services').all<any>(),
  ])
  const runners=registered.results
  return {local:grants(env),monitors:stored.results.map(r=>({id:r.id as string,revision:r.revision as number,definition:JSON.parse(r.definition)})),
   runners,first:(runners.find(r=>r.legacy_key)??runners[0])?.runner_id??null,tokens,external,
   markers:new Map(markers.results.map(m=>[m.monitor_id,{kit_revision:m.kit_revision,native_revision:m.native_revision,retired:m.retired}])),
-  demo:env.RER_DEMO==='1',origin:env.UPTIME_ORIGIN}
+  demo:env.RER_DEMO==='1',origin:env.UPTIME_ORIGIN,
+  followed:{parts:new Set(followed.results.map(row=>followedPart(row))),monitors:new Set(followed.results.map(row=>row.monitor_id as string))}}
 }
 
 /** One source file's plan against the installation, in file order: each entry creates, changes or leaves one monitor,
@@ -51,7 +57,7 @@ export function planEntries(state:PlanState,items:PlanItem[],{idFor,requireRunne
  const first=state.first??(runners[0]?.runner_id??null)
  const byName=new Map<string,typeof monitors>()
  for(const m of monitors){const name=String(m.definition.name);byName.set(name,[...(byName.get(name)??[]),m])}
- const seen=new Map<string,string>(),entries:PlanEntry[]=[];let creates=0,flowCreates=0
+ const seen=new Map<string,string>(),entries:PlanEntry[]=[],following=new Set<string>(state.followed.parts);let creates=0,flowCreates=0
  const flows=monitors.filter(m=>m.definition.type==='flow').length
  // Browser runs cost minutes of runner time, so an installation holds a few flows. The count includes this file's own creates.
  const flowRoom=(definition:any,replacing:boolean)=>definition.type!=='flow'||replacing||flows+flowCreates<FLOW_LIMITS.maxFlowsPerInstallation
@@ -78,6 +84,10 @@ export function planEntries(state:PlanState,items:PlanItem[],{idFor,requireRunne
    let definition
    try{definition=assign(normalized,{})}catch(error){entries.push({index,label,name,action:'refused',reason:`${label}: ${message(error)}`,differences});continue}
    const refused=refusal?.(definition);if(refused){entries.push({index,label,name,action:'refused',reason:`${label}: ${refused}`,differences});continue}
+   // DEPENDENCY-002: one monitor follows each catalog part; a second never becomes an unfollowed copy.
+   const part=followedMappingOf(definition)
+   if(part&&following.has(followedPart(part))){entries.push({index,label,name,action:'refused',reason:`${label}: this installation already follows that catalog part. Review it on its followed service's monitor page.`,differences});continue}
+   if(part)following.add(followedPart(part))
    if(input.enabled===true)differences.push('The file marks this monitor enabled; files never enable monitors, so it arrives paused.')
    creates++;if(normalized.type==='flow')flowCreates++;entries.push({index,label,name,action:'create',...(id?{monitorId:id}:{}),differences,definition});continue
   }
@@ -98,6 +108,7 @@ export function planEntries(state:PlanState,items:PlanItem[],{idFor,requireRunne
   let definition
   try{definition=assign(kept,{assignments:keptAssignments(current.definition,kept)})}catch(error){entries.push({index,label,name,action:'refused',reason:`${label}: ${message(error)}`,differences});continue}
   const refused=refusal?.(definition);if(refused){entries.push({index,label,name,action:'refused',reason:`${label}: ${refused}`,differences});continue}
+  if(followedMappingOf(definition)&&!state.followed.monitors.has(current.id))differences.push('This changes an existing monitor, which stays an ordinary monitor and does not become a followed service. Follow the provider from the catalog to receive dependency notices.')
   if(normalized.type==='flow'&&current.definition.type!=='flow')flowCreates++
   entries.push({index,label,name,action:unchanged?'unchanged':'change',monitorId:current.id,revision:current.revision,
    expectedRevision:marker&&marker.native_revision===current.revision?marker.kit_revision:`native:${current.revision}`,differences,definition,
