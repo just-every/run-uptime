@@ -7367,7 +7367,7 @@
       "executable": false
     },
     "tests/service-catalog-journey.mjs": {
-      "sha256": "42d3c9669b0ac00bac70889df54c93fbe3dc4b0b4442ff4969c79d85c3424186",
+      "sha256": "6ee14cfcd4589262fa0709d2d10ba438f1c48a5efff8064e5ebed729448b12d0",
       "executable": false
     },
     "tests/service-catalog-portability.mjs": {

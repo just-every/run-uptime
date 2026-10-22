@@ -125,7 +125,8 @@ export async function proveServiceCatalog({launch,evidence}){
   for(const pick of await page.locator('#discovery-proposals .proposal-pick').all())if(await pick.isChecked())await pick.uncheck();
   await overall.locator('.proposal-pick').check();
   await page.locator('#discovery-start').click();
-  await page.waitForURL(/\/app\/monitors\//);
+  // The editor already sits under /app/monitors/new; the start ends on the started monitor's own page.
+  await page.waitForURL(url=>/^\/app\/monitors\/(?!new(?:\/|$))[^/]+\/?$/.test(url.pathname));
   const acme=(await monitors()).find(m=>m.definition.service==='Acme Cloud');
   assert.ok(acme?.definition.tags.includes('dependency')&&acme.definition.url===`https://${hosts.acme}/api/v2/status.json`,'the reviewed proposal adopted the provider’s own status claim');
   assert.equal((await rows(`SELECT monitor_id FROM followed_services WHERE monitor_id='${acme.id}'`)).length,0,'a provider added by address is an ordinary DEPENDENCY-001 monitor, not a catalog follow');
