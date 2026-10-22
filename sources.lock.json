@@ -430,6 +430,10 @@
       "sha256": "0269a0e480982211aa19e9a84caeeef052a2fd1bfb2ca24f2338b47615fb0196",
       "executable": false
     },
+    ".github/scripts/install-browsers.sh": {
+      "sha256": "b3956bec47bc4cf241319192f3d11f6f5e2e1afbe8c94676a9e899f1a6dee0f8",
+      "executable": false
+    },
     ".github/scripts/verify-ci.mjs": {
       "sha256": "6c6f97f399aa97aeff165606ea764f54ddc45ed8ffb3dd488cd3e6c6671f9264",
       "executable": false
@@ -451,7 +455,7 @@
       "executable": false
     },
     ".github/workflows/verify.yml": {
-      "sha256": "e0ea7b4e4516763ef55f007f2d52518210132aaf8e41a95807a4372723a07e71",
+      "sha256": "9c3d663988bff451c22b1cae058f2b9e24f236f5337f6f4e26d24ed9dfb4dbe6",
       "executable": false
     },
     ".gitignore": {
