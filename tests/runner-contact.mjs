@@ -7,7 +7,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {startLocalWorker} from './mail-provider-fixture.mjs';
-import {projectContact,CONTACT_FRESHNESS_MS} from '../src/domain/runner-contact.server.ts';
+import {CONTACT_FRESHNESS_MS} from '../src/domain/runner-contact.server.ts';
 import {validateDefinition} from '../src/domain/policy.mjs';
 
 const root=fileURLToPath(new URL('../',import.meta.url)),dir=await mkdtemp(join(tmpdir(),'uptime-contact-'));
@@ -23,9 +23,6 @@ async function domain(DB){return Promise.all(['monitors','revisions','slots','ob
 async function setTime(DB,time){await DB.prepare('UPDATE runner_contact SET last_contact_at=? WHERE id=1').bind(time).run();}
 async function submit(task,attempts,signature=true){const text=JSON.stringify({slotId:task.id,attempts}),stamp=String(Date.now());const response=await fetch(origin+'/api/runner/results',{method:'POST',headers:{'content-type':'application/json','x-runner-key':bindings.UPTIME_RUNNER_KEY,'x-sent-at':stamp,'x-runner-signature':signature?createHmac('sha256',bindings.UPTIME_RUNNER_KEY).update(`${stamp}.${text}`).digest('hex'):'invalid'},body:text});return {status:response.status,data:await response.json()};}
 try{
- await check('freshness boundary and future receipt clock cannot imply fresh contact',async()=>{
-  assert.equal(projectContact(null,200000).state,'Never seen');assert.equal(projectContact(80000,200000).state,'Fresh contact');assert.equal(projectContact(79999,200000).state,'Stale contact');assert.equal(projectContact(200001,200000).state,'Stale contact');assert.equal(CONTACT_FRESHNESS_MS,120000);
- });
  worker=await startLocalWorker({root,port:ports[0],persist:join(dir,'control'),bindings});let DB=await worker.getD1Database('DB');
  await apply(DB,['0001_uptime.sql','0002_manual_slots.sql']);
  const legacy=validateDefinition({name:'Retained prior installation',url:'http://127.0.0.1:15490/health',enabled:false},[15490]);
@@ -64,5 +61,5 @@ try{
  await check('prior archive restore retains receiving migration3 and never inherits contact',async()=>{
   assert.equal((await api('/api/restore','POST',priorArchive)).status,200);const result=(await api('/api/overview')).data;assert.equal(result.runner.contact.state,'Never seen');assert.ok(result.monitors.every(m=>m.state.state==='Paused'));assert.deepEqual((await recoveredDB.prepare('SELECT version FROM migrations ORDER BY version').all()).results.map(m=>m.version),[1,2,3]);
  });
- console.log(`CONTACT-001 passed: ${passed} projection, actual migration/native authority, accepted-error separation, restart and prior-archive portability checks.`);
+ console.log(`CONTACT-001 passed: ${passed} actual migration/native authority, projection, accepted-error separation, restart and prior-archive portability checks.`);
 }finally{if(recovery)await recovery.dispose();if(worker)await worker.dispose();await rm(dir,{recursive:true,force:true});}

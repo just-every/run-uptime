@@ -95,19 +95,6 @@ test('at most five discoveries wait or run at once, and a finished one frees its
 
 const waitUntil=async(read,label,ms=20000)=>{const until=Date.now()+ms;for(;;){const value=await read();if(value)return value;if(Date.now()>until)throw Error(`${label} did not happen`);await new Promise(r=>setTimeout(r,50))}};
 
-test('the real runner claims a website check beside its probe loop, looks at the site and posts an answer the console accepts',async()=>{
- await clear();
- f.modes.target=200;
- const id=(await create(`http://93.184.216.34:${f.port}/`)).data.id,controller=new AbortController();
- const running=runRunner({origin:f.origin,key:f.first.key,runnerId:f.first.runnerId,localReview:true,signal:controller.signal,pollMs:20});
- try{
-  const job=await waitUntil(async()=>{const read=(await f.request('/api/discoveries/'+id)).data;return ['done','failed'].includes(read.status)?read:null},'the runner answering the website check');
-  assert.equal(job.status,'done',job.error);assert.equal(job.networkLabel,f.first.networkLabel);
-  assert.equal(job.result.input,`http://93.184.216.34:${f.port}/`);assert.ok(job.result.requests>=1);
-  assert.ok(job.result.proposals.every(p=>p.definition.network==='public'&&p.definition.assignments===undefined));
- }finally{controller.abort();await running}
-});
-
 test('DEPENDENCY-001 a linked provider status page is discovered, its component adopted and changed, and its evidence stays separate from the application monitor',async()=>{
  const g=await fixture(),edge=await statuspageEdge(g.directory),controller=new AbortController();
  const browser=await chromium.launch({headless:true,args:['--disable-gpu','--use-mock-keychain','--password-store=basic'],...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{})});
@@ -123,6 +110,9 @@ test('DEPENDENCY-001 a linked provider status page is discovered, its component 
   running=runRunner({origin:g.origin,key:g.first.key,runnerId:g.first.runnerId,localReview:true,signal:controller.signal,pollMs:20});
   const job=await waitUntil(async()=>{const rows=(await g.DB.prepare('SELECT id FROM discovery_jobs').all()).results;if(!rows.length)return;const job=(await g.request('/api/discoveries/'+rows[0].id)).data;return ['done','failed'].includes(job.status)?job:null},'real runner discovery',30000);
   assert.equal(job.status,'done',job.error);
+  // The real runner claimed the console's website check beside its probe loop and posted an answer the console accepts.
+  assert.equal(job.networkLabel,g.first.networkLabel);assert.equal(job.result.input,applicationUrl);assert.ok(job.result.requests>=1);
+  assert.ok(job.result.proposals.every(p=>p.definition.network==='public'&&p.definition.assignments===undefined));
   controller.abort();await running;running=undefined;
   const proposals=job.result.proposals,overall=proposals.find(p=>p.definition.assertions.json?.path==='status.indicator');
   const components=proposals.filter(p=>p.definition.url===statusOrigin+'/api/v2/components.json');
