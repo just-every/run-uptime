@@ -76,6 +76,8 @@ export async function runPageSpeed(definition, probe, {grantPath, controlPort, w
   const refused = stats.blocked.filter(b => b.violation).map(b => ({kind: 'request', text: `A request to a forbidden destination was refused (${b.class.replace(/_/g, ' ')})`}));
   const errors = [...done.evidence.errors, ...refused], evidence = {...done.evidence, timings: {...done.evidence.timings, dnsMs: first?.dnsMs ?? null, connectMs: first?.connectMs ?? null},
     errors: errors.slice(0, PAGESPEED_LIMITS.maxErrors), errorCount: done.evidence.errorCount + refused.length};
+  // A waterfall is kept from its start: rows past the evidence bound are left out, and resourceCount still counts them.
+  while (JSON.stringify(evidence).length > PAGESPEED_LIMITS.evidenceBytes && evidence.resources.length > 1) evidence.resources.pop();
   try { validatePageSpeedEvidence(evidence, definition); }
   catch (error) { return failed('browser', `The browser reported page-speed facts outside their bounds (${error.message})`.slice(0, 300), 'runner_error'); }
   const checks = pageSpeedChecks(definition, evidence);

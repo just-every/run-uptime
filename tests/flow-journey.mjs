@@ -74,9 +74,10 @@ try {
   const account = await create('Account flow', 'profile-path', accountFlow);
   // A page that opens a tunnel to the fixture's port fails the run: nothing on a tunnel could prove it is the fixture.
   const tunnel = await create('Tunnel flow', 'tunnel', {intent: 'Open the tunnel page', steps: [{kind: 'goto', url: `${fixture.origin}/s/tunnel/tunnel`}, {kind: 'waitFor', what: 'text', value: 'Tunnel page'}], outcomes: [{id: 'page', what: 'text', value: 'Tunnel page'}]});
-  const speed = await startPageSpeed({ok, fixture});
   const observations = async id => (await ok(`/api/monitors/${id}/history`)).flatMap(slot => slot.observations);
   for (const id of [good, bad, account, tunnel]) await waitFor(async () => (await observations(id)).length >= 2, 'the flow ran on both runners', 120000);
+  // PERF-001's checks start once the flows have run, so they never queue the flows behind their own browser runs.
+  const speed = await startPageSpeed({ok, fixture});
   const overview = await ok('/api/overview'), state = id => overview.monitors.find(m => m.id === id).state;
   for (const id of [good, account]) {
     for (const o of await observations(id)) {

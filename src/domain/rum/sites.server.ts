@@ -9,7 +9,7 @@ import {RUM_LIMITS,validateSiteInput} from './privacy.mjs'
 import {budgetValues} from '../pagespeed.mjs'
 
 const shown=(env:Bindings,row:any)=>({id:row.id,origin:row.origin,enabled:Boolean(row.enabled),samplePercent:row.sample_percent,excludedPaths:JSON.parse(row.excluded_paths),
- snippet:`<script src="${env.UPTIME_ORIGIN}/rum/v1/s/${row.id}.js" data-consent="granted" async></script>`,createdAt:row.created_at,updatedAt:row.updated_at})
+ snippet:`<script src="${env.UPTIME_ORIGIN}/rum/v1/s/${row.id}.js" async></script>`,createdAt:row.created_at,updatedAt:row.updated_at})
 const notFound=()=>Object.assign(Error('Beacon site not found'),{status:404})
 export async function rumSites(env:Bindings){
  return {sites:(await env.DB.prepare('SELECT * FROM rum_sites ORDER BY origin').all<any>()).results.map(row=>shown(env,row)),

@@ -13,7 +13,7 @@ export const PAGESPEED_LIMITS = Object.freeze({
   maxResources: 40,            // waterfall rows retained (the document first, then by start time)
   maxErrors: 5,                // browser errors retained (the count keeps every one)
   textChars: 160,
-  evidenceBytes: 9000,
+  evidenceBytes: 12000,         // the waterfall's tail is left out to stay within it
 });
 export const PAGESPEED_DEVICES = Object.freeze(['mobile', 'desktop']);
 export const PAGESPEED_THROTTLES = Object.freeze(['none', 'slow-4g']);

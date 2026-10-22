@@ -60,7 +60,7 @@ function settingsMarkup(report,origin){
  return `<h3>Real-user beacon</h3><form id="pagespeed-beacon"><p>${escape(site.origin)} · ${site.enabled?'on':'off'}. Kept: anonymous hourly figures by route, device and country. Never kept: cookies, query strings, fragments, identifiers or IP addresses. Do Not Track, Global Privacy Control and automated browsers are never measured, and nothing is measured before the site records consent.</p>
 <label><input type="checkbox" name="enabled"${site.enabled?' checked':''}> Collect real-user figures</label><label for="pagespeed-sample">Sample (% of consenting visitors)</label><input id="pagespeed-sample" name="samplePercent" type="number" min="1" max="100" step="1" value="${site.samplePercent}">
 <label for="pagespeed-excluded">Excluded paths (one prefix per line)</label><textarea id="pagespeed-excluded" name="excludedPaths" rows="2">${escape(site.excludedPaths.join('\n'))}</textarea><p><button type="submit" class="ui-button">Save beacon settings</button></p>
-<p>Add to the site's pages: <code id="pagespeed-snippet">${escape(site.snippet)}</code></p></form>`;
+<p>Add to the site's pages: <code id="pagespeed-snippet">${escape(site.snippet)}</code></p><p>Then record consent: add <code>data-consent="granted"</code> to the tag only on pages served to a visitor who consented, or call <code>uptimeRum.consent()</code> from your consent banner.</p></form>`;
 }
 async function mount(m){
  const host=document.getElementById('pagespeed-panel');if(!host||!firstMount(host))return;

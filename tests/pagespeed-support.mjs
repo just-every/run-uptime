@@ -27,11 +27,11 @@ export async function startPageSpeed({ok, fixture}) {
     pagespeed: {device, budgets: device === 'mobile' ? {lcpMs: 2000, tbtMs: 200, browserErrors: 0} : {lcpMs: 2000, tbtMs: 200}}});
   const [mobile, desktop, health] = await Promise.all([speed('mobile'), speed('desktop'),
     ok('/api/monitors', 'POST', {name: 'Shop health endpoint', url: `${fixture.origin}/health`, network: 'synthetic', probes: ['local-a', 'local-b'], intervalMs: 300000, confirmSlots: 1, recoverSlots: 1})]);
-  return {mobile: mobile.id, desktop: desktop.id, health: health.id};
+  return {mobile: mobile.id, desktop: desktop.id, health: health.id, created: [mobile, desktop]};
 }
 
 export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, waitFor, observations}) {
-  for (const id of Object.values(ids)) await waitFor(async () => (await observations(id)).some(o => o.outcome !== 'runner_error'), 'the page-speed and health checks ran', 120000);
+  for (const id of [ids.mobile, ids.desktop, ids.health]) await waitFor(async () => (await observations(id)).some(o => o.outcome !== 'runner_error'), 'the page-speed and health checks ran', 120000);
   const [mobile] = (await observations(ids.mobile)).filter(o => o.outcome !== 'runner_error'), [desktop] = (await observations(ids.desktop)).filter(o => o.outcome !== 'runner_error');
   // The mobile check: slow 4G and a phone, the throttled mobile script in its waterfall (no query string kept), its exception kept.
   const m = mobile.pagespeed, d = desktop.pagespeed;
@@ -166,6 +166,8 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
     await page.getByText('Beacon settings saved.').waitFor();
     assert.ok((await (await fetch(`${origin}/rum/v1/s/${site.id}.js`)).text()).includes('"sample":0.2'));
   } finally { await consoleBrowser.close(); }
+  // Paused once proven, so the journey's later hard stops find only their own flow's run folder on each runner.
+  for (const monitor of ids.created) await ok(`/api/monitors/${monitor.id}`, 'PATCH', {...monitor.definition, enabled: false});
 }
 
 // A populated installation from before the beacon upgrades by one additive migration that rewrites nothing.
