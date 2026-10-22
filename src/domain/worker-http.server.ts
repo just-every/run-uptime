@@ -15,6 +15,9 @@ import {httpAssertions} from './http-assertions.mjs'
 import {isDependencyStatus,dependencyMissingCheck,missingDependencyEvidence} from './dependency-status.mjs'
 // @ts-ignore Shared evidence limits.
 import {MAX_BODY} from './policy.mjs'
+// @ts-ignore A followed service is read with the catalog's shared status-source reader.
+import {probeFollowed} from './service-catalog/followed.mjs'
+import {workerReport} from './worker-discovery.server.ts'
 // runnerVersion names the evidence protocol the validator accepts; the User-Agent names this release.
 const EVIDENCE_VERSION='uptime-worker/0.1.0',USER_AGENT=`uptime-worker/${seed.version}`
 const BUDGET_REASON='Not checked: this scheduled run reached its outbound request budget. This is not a target failure.'
@@ -63,6 +66,7 @@ export async function workerProbe(def:any,probe:string,context:ProbeContext){
  const evidence=(data:any,completedAt=Date.now())=>{capture.phases.totalMs=completedAt-startedAt;return ({id:crypto.randomUUID(),probe,startedAt,completedAt,durationMs:completedAt-startedAt,runnerVersion:EVIDENCE_VERSION,...data,...(data.failureSnapshot&&!data.failureSnapshot.unavailable?{failureSnapshot:{...data.failureSnapshot,phases:capture.phases}}:{})})};
  try{
   if(def.tlsTrust)throw new ProbeError('vantage','This certificate trust setting requires a private runner; the Cloudflare Worker cannot apply it.');
+  if(def.catalog&&!context.statusOnly)return await probeFollowed(def,probe,{transport:workerReport(context.appOrigin,{dns:context.dns,allowance:context.allowance}),runnerVersion:EVIDENCE_VERSION});
   const response=await publicResponse(def,signal,{...context,capture}),completedAt=Date.now(),missing=!context.statusOnly&&missingDependencyEvidence(def,response);
   if(missing)return evidence({outcome:'runner_error',checks:[missing]},completedAt);
   const checks=httpAssertions(def,response,completedAt-startedAt);

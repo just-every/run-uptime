@@ -16,6 +16,8 @@ import {httpAssertionNames} from './http-assertions/config.mjs'
 import {statusMatches} from './http-assertions/status.mjs'
 // @ts-ignore Provider claims can be absent without proving target failure.
 import {validDependencyMissingCheck} from './dependency-status.mjs'
+// @ts-ignore A followed service's claim is recomputed by the catalog's shared evidence rules.
+import {validateClaimEvidence} from './service-catalog/followed.mjs'
 // @ts-ignore Edition flow vocabulary is JavaScript shared with the runner.
 import {FLOW_LIMITS,FLOW_REASONS,validateFlowEvidence} from './flow.mjs'
 // @ts-ignore Bounded non-secret diagnostics are shared with the runner.
@@ -26,7 +28,7 @@ import {isProtocol} from './protocol/settings.mjs'
 import {protocolChecks} from './protocol/evaluate.mjs'
 // @ts-ignore
 import {validateFacts} from './protocol/facts.mjs'
-const fields = new Set(['id', 'probe', 'outcome', 'completedAt', 'startedAt', 'durationMs', 'runnerVersion', 'status', 'bytes', 'checks', 'attempt', 'heartbeatReceivedAt', 'heartbeatJob', 'tlsTrust', 'canary', 'flow', 'credentialBinding', 'protocol','apiTransaction','failureSnapshot','fixtures'])
+const fields = new Set(['id', 'probe', 'outcome', 'completedAt', 'startedAt', 'durationMs', 'runnerVersion', 'status', 'bytes', 'checks', 'attempt', 'heartbeatReceivedAt', 'heartbeatJob', 'tlsTrust', 'canary', 'flow', 'credentialBinding', 'protocol','apiTransaction','failureSnapshot','fixtures','claim'])
 // unresolved: the public resolver answered NXDOMAIN or no address. budget: a Worker run spent its outbound requests first.
 // refused: the target's port refused the connection; tls: the TLS handshake failed before a certificate could be read.
 // vantage: this vantage cannot run the check (a Worker socket to a Cloudflare address); registry: RDAP data unavailable.
@@ -137,6 +139,9 @@ function validateHttp(o: any, definition: any, checks: Map<string, Check>, durat
       !validDependencyMissingCheck(definition,checks.get('dependency')))throw Error('Invalid dependency evidence');
     return;
   }
+  // DEPENDENCY-002: a followed service's read carries the provider's claim, never an assertion bundle over the document.
+  if(o.claim!==undefined)return validateClaimEvidence(o,definition);
+  if(definition.catalog&&o.outcome!=='runner_error')throw Error('A followed service observation carries its provider claim');
   // Transport/runner errors have a category instead of a completed response's
   // assertion bundle, including the bounded metadata on historical rejections.
   if ([...checks.keys()].some(name => targetErrors.has(name) || runnerErrors.has(name)) ||
@@ -194,7 +199,7 @@ export function validateEvidence(o: any, definition: any, dueAt: number, now: nu
   if(definition.assignments?.[o.probe]?.canaryUrl&&o.canary===undefined)throw Error('Configured canary evidence required');
   if(o.canary!==undefined){
     if(!definition.assignments?.[o.probe]?.canaryUrl||o.canary?.canary!==undefined||o.canary?.failureSnapshot!==undefined)throw Error('Unexpected canary evidence');
-    validateEvidence(o.canary,{...definition,type:'http',network:'public',url:definition.assignments[o.probe].canaryUrl,tlsTrust:undefined,assignments:undefined,request:undefined,retries:0,assertions:{status:200}},dueAt,now,mode);
+    validateEvidence(o.canary,{...definition,type:'http',network:'public',url:definition.assignments[o.probe].canaryUrl,tlsTrust:undefined,assignments:undefined,request:undefined,catalog:undefined,retries:0,assertions:{status:200}},dueAt,now,mode);
     if(o.canary.probe!==o.probe||o.canary.attempt!==0)throw Error('Invalid canary identity');
   }
   const elapsed = o.completedAt - o.startedAt

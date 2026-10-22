@@ -93,7 +93,8 @@ export async function publicHttp(def,signal,onRequest,{statusOnly=false,monitorI
 // body past maxBody is cut there (truncated: true) instead of failing as a probe's body-limit does.
 // beforeRequest(url) runs after the address is validated and before anything is sent; it may throw to stop (budget, robots).
 // followRedirect(next,from,status) may return false to stop at a redirect without following it.
-export async function publicReport(rawUrl,{signal,accept=PROBE_ACCEPT,userAgent,maxBody,method='GET',maxHops=4,hopTimeoutMs=8000,beforeRequest,followRedirect}={}) {
+// onChunk(chunk) receives the body as it arrives instead of it being kept (body is then ''); returning false stops the read.
+export async function publicReport(rawUrl,{signal,accept=PROBE_ACCEPT,userAgent,maxBody,method='GET',maxHops=4,hopTimeoutMs=8000,beforeRequest,followRedirect,onChunk}={}) {
   if(!['GET','HEAD'].includes(method))throw new ProbeError('method');
   if(!Number.isInteger(maxBody)||maxBody<1||typeof userAgent!=='string'||!userAgent)throw new ProbeError('runner');
   let url=publicTarget(rawUrl);
@@ -104,7 +105,7 @@ export async function publicReport(rawUrl,{signal,accept=PROBE_ACCEPT,userAgent,
     await beforeRequest?.(url,hop);
     const hopSignal=AbortSignal.any([base,AbortSignal.timeout(hopTimeoutMs)]);
     // Timing is lookup plus the request, as a probe measures it; waiting in beforeRequest (robots, spacing) is not counted.
-    const started=Date.now(),response=await requestOnce(url,pin,method,settings,hopSignal,()=>{},{accept,userAgent,maxBody}),durationMs=lookupMs+Date.now()-started;
+    const started=Date.now(),response=await requestOnce(url,pin,method,settings,hopSignal,()=>{},{accept,userAgent,maxBody,onChunk}),durationMs=lookupMs+Date.now()-started;
     hops.push({url:url.href,status:response.status,durationMs});
     if(!Object.hasOwn(response,'redirect'))return {...response,truncated:Boolean(response.truncated),url:url.href,hops,durationMs};
     if(!response.redirect)throw new ProbeError('redirect');

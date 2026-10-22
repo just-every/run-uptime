@@ -4,9 +4,9 @@ import {followCheck} from './discovery-poll.mjs';
 // provider or chosen components, and follows. Following first has the owner's runner read the provider's own status source;
 // a source that fails is marked needs review and nothing is followed. A provider the catalog lacks, or one that publishes no
 // status Uptime can read, goes through the website check's reviewed proposal instead.
-const SOURCE={statuspage:'Statuspage-compatible JSON status API',json:'the provider’s own JSON status document',feed:'RSS/Atom status feed',page:'status page only (no status Uptime can read)'};
+const SOURCE={statuspage:'Statuspage-compatible JSON status API',json:'the provider’s own JSON status document',feed:'RSS/Atom status feed',paypal:'the provider’s component status JSON (production and sandbox)',gcp:'the provider’s incident and product JSON',page:'status page only (no status Uptime can read)'};
 const element=(tag,className,text)=>{const node=document.createElement(tag);if(className)node.className=className;if(text!==undefined)node.textContent=text;return node};
-const PROBLEM={unreachable:'did not answer',moved:'has moved',shape:'no longer has the shape the catalog expects','too-large':'is larger than a check can read','component-missing':'no longer lists that component'};
+const PROBLEM={unreachable:'did not answer',moved:'has moved',shape:'no longer has the shape the catalog expects','too-large':'is larger than a check reads','component-missing':'no longer lists that component'};
 // The panel, placed after the website check; it stays hidden until mounted.
 const MARKUP=`<section id="service-catalog" class="catalog-panel ui-card" aria-labelledby="service-catalog-heading" hidden>
  <h2 id="service-catalog-heading">Follow a third-party service</h2>
@@ -57,7 +57,14 @@ export function mountServiceCatalog({overview,opened}){
   if(entry.components.length){
    fieldset.append(choice('components','Chosen components',!entry.whole));
    const group=element('div','catalog-components');group.setAttribute('role','group');group.setAttribute('aria-label',`${entry.name} components`);
-   for(const component of entry.components){const label=element('label','check-row catalog-component'),box=document.createElement('input');box.type='checkbox';box.value=component.key;box.name=`component-${entry.id}`;label.append(box,component.region?`${component.name} · ${component.region}`:component.name);group.append(label)}
+   for(const component of entry.components){const label=element('label','check-row catalog-component'),box=document.createElement('input');box.type='checkbox';box.value=component.key;box.name=`component-${entry.id}`;if(component.region)label.dataset.region=component.region;label.append(box,component.region?`${component.name} · ${component.region}`:component.name);group.append(label)}
+   // A provider with parts in several regions, environments or locations lists one of them at a time when the owner picks it.
+   if(entry.regions.length>1){
+    const label=element('label','catalog-region'),select=document.createElement('select'),plural={Location:'locations',Environment:'environments'}[entry.dimension]??'regions';
+    select.name=`region-${entry.id}`;select.append(new Option(`All ${plural}`,''),...entry.regions.map(region=>new Option(region,region)));
+    select.addEventListener('change',()=>{for(const row of group.querySelectorAll('.catalog-component'))row.hidden=Boolean(select.value)&&row.dataset.region!==select.value});
+    label.append(`Show ${entry.dimension.toLowerCase()}`,select);fieldset.append(label);
+   }
    fieldset.append(group);
   }
   const feedback=element('p','catalog-feedback');feedback.setAttribute('role','status');if(told.has(entry.id))show(feedback,told.get(entry.id));

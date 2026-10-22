@@ -12,6 +12,7 @@ import {acceptanceReceiver,verifySlack,loopbackWireTransport} from './notify-acc
 import {availablePorts} from './notify-acceptance-runtime.mjs';
 import {catalogEdge,hosts} from './service-catalog-fixture.mjs';
 import {proveCatalogPortability,proveCatalogUpgrade,proveDependencyErasure} from './service-catalog-portability.mjs';
+import {proveFullSizeSources} from './service-catalog-sources.mjs';
 export const CLAUSE_PROVIDERS=['AWS','Google Cloud','Microsoft Azure','Microsoft 365','Cloudflare','Stripe','PayPal','Square','Shopify','GitHub','Vercel','Netlify','Twilio','SendGrid','Mailgun','Slack','Zoom','Atlassian','OpenAI','Anthropic','Okta','Auth0','DigitalOcean','Fastly'];
 const axe=async page=>{
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'no horizontal overflow');
@@ -62,10 +63,10 @@ export async function proveServiceCatalog({launch,evidence}){
   for(const name of CLAUSE_PROVIDERS)assert.ok(everyone.entries.some(entry=>entry.name===name),`${name} is in the catalog`);
   assert.deepEqual((await ok('/api/service-catalog?q=stripe')).entries.map(entry=>entry.name),['Stripe']);
   assert.ok((await ok('/api/service-catalog?q=us-east-1%20ec2')).entries.some(entry=>entry.name==='AWS'),'a component and region find the provider');
-  for(const entry of everyone.entries){assert.ok(['statuspage','json','feed','page'].includes(entry.source.kind));assert.match(entry.source.url,/^https:\/\//)}
+  for(const entry of everyone.entries){assert.ok(['statuspage','json','feed','paypal','gcp','page'].includes(entry.source.kind));assert.match(entry.source.url,/^https:\/\//)}
   // A provider the current catalog reader cannot follow is named but never followed through the catalog.
-  const okta=(await ok('/api/service-catalog?q=okta')).entries[0];assert.equal(okta.followable,false);
-  assert.equal((await g.request('/api/service-catalog/checks',{body:{entry:'okta',scope:'whole'}})).status,400);
+  const auth0=(await ok('/api/service-catalog?q=auth0')).entries[0];assert.equal(auth0.followable,false);
+  assert.equal((await g.request('/api/service-catalog/checks',{body:{entry:'auth0',scope:'whole'}})).status,400);
 
   startLooking();
   page=await (await browser.newContext({viewport:{width:1440,height:900}})).newPage();
@@ -85,11 +86,11 @@ export async function proveServiceCatalog({launch,evidence}){
   const followed=(await monitors()).filter(m=>m.definition.tags?.includes('dependency'));
   assert.equal(followed.length,1);
   const stripeMonitor=followed[0];
-  assert.equal(stripeMonitor.definition.service,'Stripe');assert.deepEqual(stripeMonitor.definition.tags,['dependency']);assert.deepEqual(stripeMonitor.definition.assertions.json,{path:'statuses.api',equals:'up'});
+  assert.equal(stripeMonitor.definition.service,'Stripe');assert.deepEqual(stripeMonitor.definition.tags,['dependency']);assert.deepEqual(stripeMonitor.definition.catalog,{entry:'stripe',scope:'component',key:'api',ref:null});
   assert.match(stripeMonitor.definition.outcome,/provider.*own claim.*never proof/i);assert.ok(stripeMonitor.definition.outcome.includes(stripeMonitor.definition.url));
   assert.equal(stripeMonitor.definition.assertions.latencyMs,undefined,'the provider’s claim is the only assertion');
   const stripeRow=(await rows('SELECT * FROM followed_services'))[0];
-  assert.deepEqual({entry:stripeRow.entry_id,scope:stripeRow.scope,component:stripeRow.component_key,version:stripeRow.catalog_version},{entry:'stripe',scope:'component',component:'api',version:1});
+  assert.deepEqual({entry:stripeRow.entry_id,scope:stripeRow.scope,component:stripeRow.component_key,version:stripeRow.catalog_version},{entry:'stripe',scope:'component',component:'api',version:everyone.version});
   assert.ok(Number.isSafeInteger(stripeRow.checked_at),'the follow records when its status source passed the live check');
   assert.ok(edge.requests.some(r=>r.host===hosts.stripe&&r.path==='/current'),'the runner read the status source before following');
   // Then AWS us-east-1 EC2.
@@ -99,7 +100,7 @@ export async function proveServiceCatalog({launch,evidence}){
   await entry('AWS').getByRole('button',{name:'Follow',exact:true}).click();
   await entry('AWS').locator('.catalog-feedback[data-state=done]').waitFor();
   const awsMonitor=(await monitors()).find(m=>m.definition.service==='AWS');assert.ok(awsMonitor);
-  assert.equal(awsMonitor.definition.type,'http');assert.ok(awsMonitor.definition.assertions.bodyRegex);assert.equal(awsMonitor.definition.url,'https://status.aws.amazon.com/rss/ec2-us-east-1.rss');
+  assert.equal(awsMonitor.definition.type,'http');assert.deepEqual(awsMonitor.definition.catalog,{entry:'aws',scope:'component',key:'ec2-us-east-1',ref:null});assert.equal(awsMonitor.definition.url,'https://status.aws.amazon.com/rss/ec2-us-east-1.rss');
   // A source that fails its live check is marked needs review and is never followed.
   edge.state.slack.mode=503;
   await search('slack');
@@ -114,9 +115,9 @@ export async function proveServiceCatalog({launch,evidence}){
   await entry('Slack').locator('.catalog-feedback[data-state=done]').waitFor();
   assert.equal((await ok('/api/service-catalog?q=slack')).entries[0].review,null,'a passing check clears the mark');
   // A provider the catalog cannot follow, or does not list, goes through the website check's reviewed proposal (DEPENDENCY-001).
-  await search('okta');
-  await entry('Okta').getByRole('button',{name:'Add its status page by address',exact:true}).click();
-  assert.equal(await page.locator('#discovery-url').inputValue(),'https://status.okta.com/');
+  await search('auth0');
+  await entry('Auth0').getByRole('button',{name:'Add its status page by address',exact:true}).click();
+  assert.equal(await page.locator('#discovery-url').inputValue(),'https://status.auth0.com/');
   await page.locator('#catalog-other').click();
   await page.locator('#discovery-url').fill(`https://${hosts.acme}/`);
   await page.locator('#discovery-check').click();
@@ -241,8 +242,9 @@ export async function proveServiceCatalog({launch,evidence}){
   await page.locator('.followed-notices').waitFor();
   assert.deepEqual(await page.locator('.followed-panel [data-unlink-monitor]').evaluateAll(buttons=>buttons.map(button=>button.dataset.unlinkMonitor).sort()),[shop.id,portal.id].sort(),'the followed service lists the monitors linked to it');
   await widths(page,'followed-notices',{evidence,target:page.locator('.followed-panel')});
+  const fullSize=await proveFullSizeSources({g,edge,page,catalog,search,entry,ok,rows,monitors,routeFor,check,twice,run,contact:contacts[0],receiver:receivers[0],widths,evidence,startLooking,stopLookingNow,snapshot});
   for(const receiver of receivers)receiver.assertValid();
-  await proveCatalogPortability({g,ids:{stripe:stripeMonitor.id,shop:shop.id},urls});
+  await proveCatalogPortability({g,ids:{stripe:stripeMonitor.id,shop:shop.id},urls,followed:3+fullSize});
   await proveCatalogUpgrade();
  }finally{
   controller.abort();if(stopLooking&&!stopLooking.signal.aborted)await stopLookingNow();

@@ -3,7 +3,7 @@
 // a Better Stack or Site24x7 monitor of a status address, a followed provider is an ordinary monitor of the provider's status
 // address: this recognises that address as a catalog entry. Site24x7 StatusIQ names its third-party services by a published
 // numeric id (STATUSIQ_SERVICES). A status address or service with no entry stays an ordinary reviewed proposal or is refused.
-import {catalogEntry, definitionFor, isFollowable, ENTRIES, CATALOG_VERSION} from './index.mjs';
+import {catalogEntry, definitionFor, followedTarget, isFollowable, needsProviderId, ENTRIES, CATALOG_VERSION} from './index.mjs';
 const hostOf = entry => [...new Set([entry.source.url, entry.source.page, entry.source.base, ...(entry.hosts ?? []).map(host => `https://${host}/`)].filter(Boolean).map(address => new URL(address).hostname))];
 const stable = value => JSON.stringify(value, (_key, item) => item && typeof item === 'object' && !Array.isArray(item) ? Object.fromEntries(Object.entries(item).sort(([a], [b]) => a < b ? -1 : 1)) : item);
 export function matchCatalogUrl(text) {
@@ -38,25 +38,20 @@ export function statusIqMapping(serviceId, componentName) {
   if (!entry) return {refused: 'The catalog has no entry for this Site24x7 third-party service.'};
   if (!isFollowable(entry)) return {refused: `${entry.name} is in the catalog, but it publishes no status Uptime can read. Add its status page by address to review a proposal instead.`};
   const wanted = plainName(componentName), component = entry.components.find(item => [item.name, item.published, item.region && `${item.name} (${item.region})`].some(name => name && plainName(name) === wanted));
-  // A Statuspage component is read by the id the provider gives it, which only a live check reads.
-  if (component && entry.source.kind === 'statuspage') return {refused: `${entry.name} components are followed by the id ${entry.name} publishes, which only a live check reads. Follow ${entry.name} ${component.name} from the catalog.`};
+  // A Statuspage or PayPal component, or a Google Cloud product, is read by the id the provider gives it, which only a live check reads.
+  if (component && needsProviderId(entry, {scope: 'component', component})) return {refused: `${entry.name} components are followed by the id ${entry.name} publishes, which only a live check reads. Follow ${entry.name} ${component.name} from the catalog.`};
   if (component) return {entry, target: {scope: 'component', component}, definition: definitionFor(entry, {scope: 'component', component}, null)};
   return {refused: `The catalog follows ${entry.name}${entry.components.length ? ` components by the names ${entry.name} publishes` : ' as one whole provider'}, and “${String(componentName).slice(0, 80)}” is not one of them. Follow ${entry.name} from the catalog and choose what to follow there.`};
 }
-// The catalog mapping a saved definition carries, when it is exactly what following that entry's part would save (a Statuspage
-// component needs the provider's own id from a live check, so only the other parts are recognised by shape).
+// The catalog mapping a saved definition carries, when it is exactly what following that entry's part would save (a part read
+// by the provider's own id carries that id from a live check).
 export function followedMappingOf(definition) {
-  if (!definition || definition.type !== 'http' || !definition.tags?.includes('dependency')) return null;
-  for (const entry of ENTRIES) {
-    if (!isFollowable(entry) || entry.name !== definition.service) continue;
-    const targets = [...(entry.whole ? [{scope: 'whole'}] : []), ...(entry.source.kind === 'statuspage' ? [] : entry.components.map(component => ({scope: 'component', component})))];
-    for (const target of targets) {
-      const expected = definitionFor(entry, target, null);
-      if (expected.url === definition.url && stable(expected.assertions) === stable(definition.assertions))
-        return {entry_id: entry.id, catalog_version: CATALOG_VERSION, scope: target.scope, component_key: target.component?.key ?? null};
-    }
-  }
-  return null;
+  if (!definition || definition.type !== 'http' || !definition.tags?.includes('dependency') || !definition.catalog) return null;
+  const followed = followedTarget(definition);
+  if (!followed || followed.entry.name !== definition.service || (needsProviderId(followed.entry, followed.target) && !definition.catalog.ref)) return null;
+  const expected = definitionFor(followed.entry, followed.target, definition.catalog.ref ? {id: definition.catalog.ref} : null);
+  if (stable(expected.assertions) !== stable(definition.assertions) || stable(expected.catalog) !== stable(definition.catalog)) return null;
+  return {entry_id: followed.entry.id, catalog_version: CATALOG_VERSION, scope: followed.target.scope, component_key: followed.target.component?.key ?? null};
 }
 export const followedPart = mapping => `${mapping.entry_id}:${mapping.scope}:${mapping.component_key ?? ''}`;
 export {catalogEntry};

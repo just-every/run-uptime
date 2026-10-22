@@ -12,12 +12,12 @@ import {startLocalWorker} from './mail-provider-fixture.mjs';
 import {splitSql} from './migration-support.mjs';
 import {testAuthBindings,signInOwner} from './auth-test-support.mjs';
 import {validateDefinition} from '../src/domain/policy.mjs';
-export async function proveCatalogPortability({g,ids,urls}){
+export async function proveCatalogPortability({g,ids,urls,followed}){
  const ok=async(path,body,options={})=>{const response=await g.request(path,{body,...options});assert.ok(response.status<300,`${path} ${response.status} ${JSON.stringify(response.data)}`);return response.data};
  const count=async(db,sql)=>Number((await db.prepare(sql).first()).n);
  const archive=await ok('/api/archive');
  const tables=archive.payload.productTables,text=JSON.stringify(archive);
- assert.equal(tables.followed_services.length,3,'every followed service travels');
+ assert.equal(tables.followed_services.length,followed,'every followed service travels');
  assert.equal(tables.dependency_acks.length,1,'the grouped acknowledgement travels');
  assert.ok(archive.payload.tables.outbox.some(r=>r.kind==='dependency')&&archive.payload.tables.outbox.some(r=>r.kind==='dependency_recovery'),'dependency notices travel');
  const linked=archive.payload.tables.monitors.map(r=>JSON.parse(r.definition)).filter(d=>d.dependencies?.includes(ids.stripe)).length;assert.equal(linked,2,'owner links travel in the linked monitors’ definitions');
@@ -28,20 +28,20 @@ export async function proveCatalogPortability({g,ids,urls}){
  try{
   await okH('/api/overview');
   const restored=await h.request('/api/restore',{body:archive});assert.equal(restored.status,200,JSON.stringify(restored.data));assert.equal(restored.data.enabled,false);
-  assert.equal(await count(h.DB,'SELECT COUNT(*) n FROM followed_services'),3);assert.equal(await count(h.DB,'SELECT COUNT(*) n FROM dependency_acks'),1);
+  assert.equal(await count(h.DB,'SELECT COUNT(*) n FROM followed_services'),followed);assert.equal(await count(h.DB,'SELECT COUNT(*) n FROM dependency_acks'),1);
   assert.equal(await count(h.DB,"SELECT COUNT(*) n FROM monitors WHERE json_extract(definition,'$.enabled')=1"),0,'every restored monitor, followed services included, is paused');
   assert.equal(await count(h.DB,"SELECT COUNT(*) n FROM outbox WHERE kind LIKE 'dependency%' AND status<>'imported-inactive'"),0);
   assert.equal(await count(h.DB,"SELECT COUNT(*) n FROM notification_jobs WHERE state NOT IN ('imported-inactive')"),0,'no restored send can resume');
   const before=await count(h.DB,'SELECT COUNT(*) n FROM notification_jobs');
   for(const m of (await okH('/api/overview')).monitors)assert.equal(m.definition.enabled,false);
   assert.equal(await count(h.DB,'SELECT COUNT(*) n FROM notification_jobs'),before,'opening the restored installation sends nothing');
-  const view=await h.request('/api/service-catalog');assert.equal(view.data.followed.length,3);assert.ok(view.data.notices.every(n=>n.imported),'restored notices are history');
+  const view=await h.request('/api/service-catalog');assert.equal(view.data.followed.length,followed);assert.ok(view.data.notices.every(n=>n.imported),'restored notices are history');
  }finally{await h.close()}
  // Erasing a followed service removes its row, its notices, their deliveries and the acknowledgement; the linked monitor keeps its history.
  const name=(await ok('/api/overview')).monitors.find(m=>m.id===ids.stripe).definition.name;
  await ok(`/api/monitors/${ids.stripe}/erase`,{name});
  for(const sql of [`SELECT COUNT(*) n FROM followed_services WHERE monitor_id='${ids.stripe}'`,`SELECT COUNT(*) n FROM dependency_acks WHERE monitor_id='${ids.stripe}'`,`SELECT COUNT(*) n FROM outbox WHERE monitor_id='${ids.stripe}'`,`SELECT COUNT(*) n FROM notification_jobs WHERE json_extract(event,'$.monitorId')='${ids.stripe}'`])assert.equal(await count(g.DB,sql),0,sql);
- assert.equal(await count(g.DB,'SELECT COUNT(*) n FROM followed_services'),2,'the other followed services remain');
+ assert.equal(await count(g.DB,'SELECT COUNT(*) n FROM followed_services'),followed-1,'the other followed services remain');
  const incident=(await ok(`/api/monitors/${ids.shop}/incidents`))[0].id;
  assert.deepEqual((await ok(`/api/incidents/${incident}`)).dependencies.linked,[],'an erased provider leaves no dangling notice on the incident');
  await ok('/api/archive');
