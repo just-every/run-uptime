@@ -431,7 +431,7 @@ Protocol round (17 October 2026): TCP-001, DNS-001, TLS-001 and DOMAIN-001 moved
 
 ## Status
 
-Judged from the code and tests at commit `edebd1f4cb0e731ce2d10b2ee56240a67ca9fb4a` (22 October 2026).
+Judged from the code and tests at commit `0847b85aad2b32a331e9dc7cf90232dfabac8ae4` (22 October 2026).
 
 READAPI-001 evidence and remaining scope, OPS-001 durable recovery, INTERFACE-001 local owner-console acceptance, FLOW-003 safe failure artifacts, API-003 ordered transactions and MAIL-001 mail checks include their implementation rounds after that baseline.
 
