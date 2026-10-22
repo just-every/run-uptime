@@ -11,6 +11,7 @@ import {mkdir} from 'node:fs/promises';
 import {join} from 'node:path';
 import {statuspageEdge,applicationUrl,statusOrigin,canaryUrl} from './dependency-status-fixture.mjs';
 import {proveServiceCatalog} from './service-catalog-journey.mjs';
+import {proveDiscoverySources} from './discovery-sources-journey.mjs';
 let f;
 before(async()=>{f=await fixture()});
 after(async()=>{await f?.close()});
@@ -191,6 +192,11 @@ test('DEPENDENCY-001 a linked provider status page is discovered, its component 
 test('DEPENDENCY-002 catalog providers are followed after a live source check, notify every contact and fallback on their route without opening an incident, show linked and coincident notices on application incidents, go Unknown when a source fails, and a provider outside the catalog goes through the reviewed proposal',async()=>{
  const launch=()=>chromium.launch({headless:true,args:['--disable-gpu','--use-mock-keychain','--password-store=basic'],...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{})});
  await proveServiceCatalog({launch,evidence:process.env.UPTIME_DEPENDENCY_EVIDENCE});
+});
+
+test('DISCOVERY-001 owner-authorized DNS, sitemap, OpenAPI and six provider sources propose reviewed monitors with provenance, duplicates, traffic and Unknown cost; rediscovery shows new routes and removed endpoints; only adopted monitors run and provider credentials stay on the runner',async()=>{
+ const launch=()=>chromium.launch({headless:true,args:['--disable-gpu','--use-mock-keychain','--password-store=basic'],...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{})});
+ await proveDiscoverySources({launch,evidence:process.env.UPTIME_DISCOVERY_EVIDENCE});
 });
 
 test('a new monitor starts from a pasted URL: the runner answers, the owner unticks one, and the rest start with no other input',async()=>{

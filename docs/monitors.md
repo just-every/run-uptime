@@ -178,6 +178,29 @@ Archives carry followed services, links (in the linked monitors' definitions), d
 
 The owner API is `GET /api/service-catalog?q=`, `POST /api/service-catalog/checks` (`{"entry":"stripe","scope":"components","components":["api"]}`), `POST /api/service-follows` (`{"check":"<check id>"}`), `POST /api/followed-services/{id}/review`, `POST /api/followed-services/{id}/links` (`{"kind":"monitor","target":"<monitor id>","linked":true}`) and `POST /api/dependency-notices/{id}/acknowledge`. Each requires an owner session.
 
+## Discovering endpoints from your DNS, spec and deploys
+
+On **New monitor**, **Discover from your DNS, spec and deploys** lets you authorize sources for discovery. A source is a domain (DNS lookups of its usual host names), a site's robots.txt and sitemap, a published OpenAPI document, an Amazon Route 53 or Cloudflare zone, or the deployments of a GitHub repository (GitHub Actions), a Vercel project, a Netlify site or an AWS CodeDeploy deployment group. Uptime keeps only the source's kind, identifiers, a name, who authorized it and when. A provider account's read-only credential stays in a file on your runner, named in the source by its reference; see [Discovery source credentials](/docs/runner#discovery-source-credentials). An address that is private, loopback or link-local is refused with the same plain message as the website check.
+
+Nothing is read until you choose **Run discovery**. Your runner then reads the source read-only and proposes HTTP, API, certificate, DNS-record and browser monitors. A domain, sitemap or specification is read with DNS lookups and GET requests under robots.txt and the discovery budget. A provider account is read only through its documented read requests:
+
+- Cloudflare: zone details and List DNS Records.
+- Route 53: GetHostedZone and ListResourceRecordSets.
+- GitHub: deployments, their statuses and workflow runs.
+- Vercel: deployments and project domains.
+- Netlify: the site and its deploys.
+- CodeDeploy: ListDeployments and BatchGetDeployments.
+
+The runner refuses any other method or path before it sends it, and nothing is ever written to a provider or to your site. Deployment sources read only events since the previous run, and read again the sites earlier runs found.
+
+Each proposal shows where it was found and when, its intended outcome, the checks it makes, and duplicates: your monitors that already check it and other sources that propose it. It also shows its expected traffic per day and month and from how many locations, the locations it would start on, and the credentials it needs, such as an API route that answers 401 without a key. Expected cost is COST-001's projected monitor-run, probe and browser-minute usage priced in USD. COST-001 has not published prices yet, so cost shows as Unknown with the projected runs and probes; a browser proposal's browser-minutes are Unknown too. Uptime never shows a cost of zero or an invented amount.
+
+Reject a proposal, or tick proposals and choose **Start** to add them through the same monitor door as any new monitor. Only what you start runs; a run, a proposal or a rejection never creates or enables a monitor. A second run is compared with the previous run and with your monitors. New routes are marked **New**, and an endpoint that disappeared from its source is listed as removed, with the monitors that still check it, for you to review. Rediscovery never pauses, archives or deletes anything, and it never runs on a schedule. Keeping coverage up to date continuously is AGENT-001's job.
+
+Revoking a source removes its authorization with its runs and decisions; monitors you started stay. Archives carry sources (identifiers and credential references only), run snapshots and decisions. A restore makes every source inactive until you authorize it again. Erasing a monitor removes the decisions that name it, and erasing an operator removes them from sources and decisions.
+
+The owner API is `GET` and `POST /api/discovery-sources`, `GET` and `DELETE /api/discovery-sources/{id}`, `POST /api/discovery-sources/{id}/runs`, `POST /api/discovery-sources/{id}/authorize` (for a restored source) and `POST /api/discovery-sources/{id}/decisions` (`{"key":"…","decision":"rejected"}`, or `"adopted"` with the `monitorId` you created). Each requires an owner session. No live provider account has been used to prove these adapters; they are proven against each provider's documented API shape.
+
 ## Plan maintenance
 
 Plan maintenance from a monitor or a selected catalog group. The preview freezes explicit monitor IDs and revisions; later group membership changes never widen that selection. A monitor can hold up to ten one-time or weekly windows. Choose an IANA zone, a calendar, and either **continue checks; suppress notifications** or **pause execution and notifications**. A weekly rule lasts at most 366 days and has an explicit first and last date. Preview lists actual UTC and local occurrences before apply. Weekly clocks that move forward skip a nonexistent start; repeated clocks use the first occurrence. One-time starts also use the first repeated time and refuse a nonexistent start. Durations are elapsed minutes, so a local end time can cross the clock change.

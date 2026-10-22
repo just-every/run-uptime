@@ -1,0 +1,43 @@
+/* DISCOVERY-001: discovery sources on the new-monitor page (/app/monitor), after the service catalog. Built from the same tokens as
+   discovery.css and catalog.css. Hooks editor/monitor/sources.mjs relies on: #discovery-sources, #source-form, #sources-list,
+   #source-review, .source-proposal[data-key], [data-adopt], [data-reject], .sources-feedback[data-state]. */
+.sources-panel { margin-top: 20px; padding: 18px 24px 20px; min-width: 0; }
+.sources-panel h2 { font-size: 22px; letter-spacing: -0.02em; }
+.sources-panel h3 { margin: 20px 0 8px; font-size: 17px; }
+.sources-panel h4 { margin: 16px 0 6px; font-size: 15px; }
+.sources-form { display: grid; gap: 6px; max-width: 640px; }
+.sources-form select, .sources-form input { width: 100%; font-size: 16px; }
+.sources-fields { display: grid; gap: 8px; }
+.sources-field { display: grid; gap: 4px; font-weight: 500; }
+.sources-feedback { margin: 0; font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.sources-feedback:empty { display: none; }
+.sources-feedback[data-state="error"] { padding: 8px 12px; border-radius: var(--radius-control); background: var(--rose-soft); color: var(--rose-text); font-weight: 600; }
+.sources-feedback[data-state="done"] { color: var(--green-text); font-weight: 600; }
+.sources-feedback[data-state="checking"] { color: var(--ink); font-weight: 500; }
+.sources-empty { margin: 0; color: var(--muted); }
+.sources-list, .sources-proposals, .sources-removed { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.sources-item, .source-proposal, .sources-removed li { display: grid; gap: 6px; padding: 14px 16px; border: 1px solid var(--line-strong); border-radius: var(--radius-panel); background: var(--card); min-width: 0; }
+.sources-item p, .source-proposal p, .sources-removed p { margin: 0; overflow-wrap: anywhere; line-height: 1.5; }
+.sources-item-head, .source-proposal-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.source-proposal-head label { font-weight: 700; color: var(--ink); }
+.sources-identifiers, .sources-status { color: var(--muted); font-size: 13px; }
+.sources-inactive { background: var(--amber-soft); color: var(--amber-text); }
+.sources-failure { font-size: 14px; }
+.sources-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.source-facts { display: grid; grid-template-columns: minmax(120px, max-content) minmax(0, 1fr); gap: 4px 14px; margin: 0; font-size: 14px; }
+.source-facts div { display: contents; }
+.source-facts dt { color: var(--muted); }
+.source-facts dd { margin: 0; overflow-wrap: anywhere; }
+.source-proposal.is-refused { background: var(--neutral-soft); }
+.source-refused { color: var(--rose-text); font-weight: 600; }
+.source-proposal > button { justify-self: start; }
+.source-outcome:empty { display: none; }
+.source-outcome[data-state="error"] { color: var(--rose-text); font-weight: 600; }
+.sources-start { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 14px; }
+@media (max-width: 700px) {
+  .sources-panel { padding: 14px 16px 16px; }
+  .source-facts { grid-template-columns: minmax(0, 1fr); }
+  .source-facts dt { margin-top: 6px; }
+  .sources-start { justify-content: stretch; }
+  .sources-start button { width: 100%; }
+}

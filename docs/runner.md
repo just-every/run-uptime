@@ -53,6 +53,21 @@ If a check needs headers, a body, Basic, bearer, Digest, OAuth 2.0, signed JWT o
 
 Raw credentials, acquired tokens and private keys never go into stored evidence, logs, definition exports or product archives. An origin-changing redirect permanently discards authentication, custom headers, body, client certificate and any TLS trust exception, including if a later redirect returns to the original origin. HTTPS downgrades are refused.
 
+### Discovery source credentials
+
+A discovery source that reads a provider account (a Route 53 or Cloudflare zone, or GitHub Actions, Vercel, Netlify or AWS CodeDeploy deployments) uses a read-only credential in `provider-<credentialRef>.json` in the same folder, under the same owner-only rules (8 KiB at most). The source names only the reference; the credential is read when you run the source, used for that run and never sent to Uptime, stored, exported or logged. The file names its provider and the identifiers it may be used for, so it is refused for any other zone, repository, project, site or application:
+
+| Provider | File |
+| --- | --- |
+| Cloudflare | `{"provider":"cloudflare","zoneId":"…","token":"…"}`, an API token with Zone Read and DNS Read for that zone |
+| Route 53 | `{"provider":"route53","zoneId":"…","accessKeyId":"…","secretAccessKey":"…"}` (optional `sessionToken`), an IAM key allowed only `route53:GetHostedZone` and `route53:ListResourceRecordSets` |
+| GitHub | `{"provider":"github","owner":"…","repo":"…","token":"…"}`, a fine-grained token for that repository with Deployments and Actions read-only |
+| Vercel | `{"provider":"vercel","projectId":"…","token":"…"}`, an access token scoped to the project's team |
+| Netlify | `{"provider":"netlify","siteId":"…","token":"…"}`, a personal access token |
+| CodeDeploy | `{"provider":"codedeploy","application":"…","region":"…","accessKeyId":"…","secretAccessKey":"…"}` (optional `sessionToken`), an IAM key allowed only `codedeploy:ListDeployments` and `codedeploy:BatchGetDeployments` |
+
+Vercel and Netlify tokens cannot be limited to reading, so whatever the token allows, the runner sends each provider only its documented read requests (listed in [Discovering endpoints from your DNS, spec and deploys](/docs/monitors#discovering-endpoints-from-your-dns-spec-and-deploys)) and refuses any other method or path before it leaves the machine. A missing or mismatched file fails the run with the file name it expects.
+
 ### HTTP credential fields
 
 An HTTP file accepts only `monitorId`, `origin`, `headers`, `body`, `auth`, `tls`, `expiresAt` and `allowUnverifiedTls`. Unknown fields refuse the file. At least one header, body, authentication mode or client certificate must be configured. `origin` is an exact origin such as `https://app.example.com`, without a path or trailing slash. OAuth, JWT and client-certificate files require an HTTPS target origin.
