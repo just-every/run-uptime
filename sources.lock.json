@@ -6567,7 +6567,7 @@
       "executable": false
     },
     "tests/add-location-browser.mjs": {
-      "sha256": "9eef419eb35647caf66545e68bda0c5a229e982634b9e300eed3a5d2b7659d1c",
+      "sha256": "4b14b83a56c9ed745ad0828b129d787cf0919750cb378e46b71e1a03975676a2",
       "executable": false
     },
     "tests/admission-runtime.mjs": {
