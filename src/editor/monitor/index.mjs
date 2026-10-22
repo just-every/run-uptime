@@ -15,6 +15,13 @@ export async function mountMonitorEditor(signal){
  const state=editorState(location.pathname),id=state.id,discovery=document.querySelector('#discovery');
  const description=document.querySelector('.editor-description'),manual=document.querySelector('#discovery-manual');
  const loading=document.querySelector('#editor-loading');
+ // A link to a console section pushes its path and the router swaps in the console without loading a document, as the
+ // console's own section links do (public/app.js). A link opened in a new tab is left to the browser.
+ document.addEventListener('click',event=>{
+  const a=event.target.closest('a[href]');if(!a||event.defaultPrevented||event.button||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||a.target&&a.target!=='_self')return;
+  const url=new URL(a.href);if(url.origin!==location.origin||!/^\/app\/(?:monitors|locations|notifications|archive|settings)\/?$/.test(url.pathname))return;
+  event.preventDefault();history.pushState(null,'',url.pathname+url.search);
+ },{signal});
  document.querySelector('h1').textContent=id?'Edit monitor':'New monitor';
  document.documentElement.classList.remove('editor-ready','editor-context-ready');
  if(!form.dataset.rulesBound){form.dataset.rulesBound='true';bindRules(form)}

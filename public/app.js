@@ -9,7 +9,12 @@ import {locationsMarkup,addPanelMarkup,addingLocation,startAdding,bindLocations,
 import {renderArchive} from './archive-view.js';
 import {renderSettings} from './settings-view.js';
 import {patch} from './dom-patch.js';
-// Each console screen has a stable path. Ordinary links preserve browser history and native copy-link behavior.
+// Each console screen has a stable path. On a section (/app/monitors, /app/locations, …) a link to another section switches
+// the view in place and pushes the link's path, so Back, Forward, reload and a copied link land on the same section without
+// loading a document. A monitor's page is a route of its own: a section link there pushes the path too, and the router
+// mounts the console afresh for that section (src/routes/_console.tsx). Links opened in a new tab are left to the browser.
+const SECTIONS=['monitors','locations','notifications','archive','settings'];
+const sectionOf=path=>{const name=/^\/app\/([a-z]+)\/?$/.exec(path)?.[1];return SECTIONS.includes(name)?name:null};
 const viewOf=path=>path.split('/')[2]||'monitors';
 const TITLES={monitors:'Monitors',locations:'Locations',notifications:'Notifications',archive:'Archive',settings:'Settings',signout:'Sign out'};
 function mountConsole(){if(window.uptimeBooted)return;window.uptimeBooted=true;const pageId=monitorIdFromPath(location.pathname);let data=null,view=pageId!==null?'monitor':viewOf(location.pathname),feedback,readUnavailable=false,redirecting=false,closed=false,polling,shown=null;const $=s=>document.querySelector(s);
@@ -22,8 +27,8 @@ if(!document.querySelector('link[href="/catalog.css"]')){const style=document.cr
 function disposeConsole(){
  if(closed)return;closed=true;feedback?.dispose();clearInterval(polling);data=null;
  window.uptimeBooted=false;
- window.removeEventListener('pagehide',closeConsole);window.removeEventListener('pageshow',restored);window.removeEventListener('uptime:console-unmount',disposeConsole);
- document.removeEventListener('click',guardBusyNavigation,true);
+ window.removeEventListener('pagehide',closeConsole);window.removeEventListener('pageshow',restored);window.removeEventListener('popstate',followHistory);window.removeEventListener('uptime:console-unmount',disposeConsole);
+ document.removeEventListener('click',guardBusyNavigation,true);document.removeEventListener('click',followSection);
  controlsObserver.disconnect();lockedControls.clear();lockedLinks.clear();
  document.documentElement.classList.remove('signed-in');
 }
@@ -57,6 +62,13 @@ document.addEventListener('click',guardBusyNavigation,true);
 // Sign out is a real destination too, so opening or reloading its URL completes the same action.
 async function signOut(){const result=await action(()=>api('/api/auth/sign-out','POST',{}),{pending:'Signing out…',success:'Signed out.'});if(result.ok)navigateToLogin()}
 nav.addEventListener('click',event=>{if(event.target.closest('a')?.dataset.view!=='signout'||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;event.preventDefault();void signOut()});
+function followSection(event){const a=event.target.closest('a[href]');if(!a||event.defaultPrevented||event.button||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||a.target&&a.target!=='_self'||a.hasAttribute('download'))return;const url=new URL(a.href),next=url.origin===location.origin?sectionOf(url.pathname):null;if(!next)return;event.preventDefault();if(url.pathname+url.search!==location.pathname+location.search)history.pushState(null,'',url.pathname+url.search);if(pageId===null)showSection(next)}
+document.addEventListener('click',followSection);
+// Back and Forward between sections switch in place too; any other entry (a monitor's page, the editor) is the router's.
+function followHistory(){if(closed||pageId!==null)return;const next=sectionOf(location.pathname);if(next)showSection(next)}
+window.addEventListener('popstate',followHistory);
+// The monitor list reads its search, filters and selection from the path it is entered at (public/catalog.js).
+function showSection(next){if(next==='monitors')catalog.read();view=next;leaveSection();setHeading();markCurrent();render()}
 const header=$('.top > div'),actions=$('.actions');
 const n=document.createElement('div');n.id='notice';n.className='ui-notice';n.hidden=true;n.innerHTML='<p id="action-notice" role="status" hidden></p><p id="read-notice" role="status" hidden></p><p id="background-notice" role="status" hidden></p>';$('.top').after(n);
 const title=$('.table-title');title.innerHTML='<h2 id="table-heading">Monitors</h2>';const area=$('.table-scroll');area.id='content-area';const right=$('.right');right.id='side-panel';

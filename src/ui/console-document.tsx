@@ -1,5 +1,6 @@
-// The console document, served for the monitor list (/app) and each monitor's page (/app/monitors/<id>). public/app.js
-// reads the path and renders the view; the markup is edition-owned trusted static markup, and all runtime data is escaped.
+// The console document, served for the console's sections (src/routes/_console.tsx) and each monitor's page
+// (/app/monitors/<id>). public/app.js reads the path and renders the view, and switches sections in place; the markup is
+// edition-owned trusted static markup, and all runtime data is escaped.
 // @ts-ignore Vite raw asset import
 import markup from './console.html?raw'
 import {useEffect} from 'react'

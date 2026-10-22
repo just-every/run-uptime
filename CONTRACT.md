@@ -469,7 +469,7 @@ Discovery sources round (22 October 2026): DISCOVERY-001 stays partial. Owners a
 | `ERASURE-001` | Operator-directed entity erasure | published | done | `src/domain/erasure.server.ts`; `tests/erasure-audit.mjs`; `tests/erasure-races.mjs` |  |
 | `AUDIT-001` | Durable anonymized audit | published | done | `src/domain/audit.server.ts`; `tests/erasure-audit.mjs`; `tests/archive-roundtrip.mjs` |  |
 | `PRESENCE-001` | Contact separate from health | published | done | `src/domain/runner-contact.server.ts`; `tests/runner-contact.mjs` |  |
-| `INTERFACE-001` | Honest durable operator feedback | published | done | `src/routes/app.index.tsx`; `public/monitor-page.js`; `public/dom-patch.js`; `tests/operator-browser.mjs`; `tests/console-polling-browser.mjs`; `tests/recovery-browser.mjs`; `tests/notify-secret-browser.mjs`; `docs/evidence/contracts/release-0.4.0/` |  |
+| `INTERFACE-001` | Honest durable operator feedback | published | done | `src/routes/_console.tsx`; `public/monitor-page.js`; `public/dom-patch.js`; `tests/operator-browser.mjs`; `tests/console-polling-browser.mjs`; `tests/recovery-browser.mjs`; `tests/notify-secret-browser.mjs`; `docs/evidence/contracts/release-0.4.0/` |  |
 | `NOTIFY-001` | Authorized installation-wide destinations | published | done | `src/domain/notification-destinations.server.ts`; `src/domain/notification-protocols.ts`; `tests/notify-delivery.mjs`; `tests/hosted-alerts.mjs`; `docs/evidence/contracts/release-0.4.0/` | The 0.4.0 gate received real hosted email and a runner-sent signed JSON webhook; Slack is proven only against the test edge. |
 | `DELIVERY-001` | Bounded notification acknowledgment | published | done | `src/domain/notification-claims.server.ts`; `tests/notify-delivery.mjs`; `tests/notify-custody-runtime.mjs`; `docs/evidence/contracts/release-0.4.0/` |  |
 | `PUBLIC-001` | Public landing and documentation | published | done | `src/server.ts`; `src/routes/docs.index.tsx`; `tests/readme-journey.mjs`; `tests/public-paths.mjs`; `docs/evidence/contracts/release-0.4.0/` |  |
@@ -516,7 +516,7 @@ Discovery sources round (22 October 2026): DISCOVERY-001 stays partial. Owners a
 | `CHAT-001` | Teams, Discord, Telegram and workplace chat | target | missing |  | No implementation; acceptance journey above is required. |
 | `PHONE-001` | US SMS and voice alerts | target | missing |  | No implementation; acceptance journey above is required. |
 | `PHONE-002` | Uptime-provided compliant US sender | target | missing |  | No implementation; no telephony relay or registered sender exists. Acceptance journey above is required. |
-| `MOBILE-001` | Mobile operator access and push | target | partial | `src/routes/app.index.tsx`; `tests/operator-browser.mjs` | Responsive web exists; native clients, APNs/FCM, Pushover and Pushbullet do not. |
+| `MOBILE-001` | Mobile operator access and push | target | partial | `src/routes/_console.tsx`; `tests/operator-browser.mjs` | Responsive web exists; native clients, APNs/FCM, Pushover and Pushbullet do not. |
 | `ONCALL-001` | Responder handoff and automatic resolution | target | missing |  | No implementation; acceptance journey above is required. |
 | `LAMP-001` | Status communication through Lamp | target | missing |  | No implementation; acceptance journey above is required. |
 | `AUTOMATION-001` | Zapier, Make and custom automation | target | missing |  | No implementation; acceptance journey above is required. |

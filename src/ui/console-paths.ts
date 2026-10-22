@@ -7,7 +7,12 @@ export const isConsoleDocument=(path:string)=>['/app','/app/','/app/monitor','/a
 export function canonicalConsolePath(url:URL){
  const path=url.pathname.replace(/\/$/,'');
  if(path==='/app/monitor'||path==='/monitor')return legacyEditorPath(url.searchParams)
- if(path==='/app')return url.searchParams.get('monitor')?`/app/monitors/${encodeURIComponent(url.searchParams.get('monitor')!)}`:'/app/monitors'
+ if(path==='/app'){
+  if(url.searchParams.get('monitor'))return `/app/monitors/${encodeURIComponent(url.searchParams.get('monitor')!)}`
+  // An old filtered-list bookmark keeps the list's own search, filters and selection (public/catalog.js).
+  const list=new URLSearchParams([...url.searchParams].filter(([key])=>key.startsWith('catalog-'))).toString()
+  return '/app/monitors'+(list?'?'+list:'')
+ }
  if(path!==url.pathname)return path+url.search
  return null
 }

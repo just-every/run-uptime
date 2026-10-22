@@ -14,8 +14,20 @@ export function catalogLabels(definition) {
 }
 // The toolbar stays mounted during the five-second refresh. Result rows are patched, so only changed cells change.
 export function createCatalog({ api, action, monitorRow, coverageRule }) {
-    const params = new URLSearchParams(location.search), values = Object.fromEntries(['search', ...filters].map(key => [key, params.get('catalog-' + key) ?? ''])), selected = new Set((params.get('catalog-selection') ?? '').split(',').filter(Boolean));
+    const values = {}, selected = new Set();
     let current = null, host = null, visible = [], lastBatch = null;
+    // The list's search, filters and selection live in its URL (catalog-*), so a copied, bookmarked or revisited list
+    // opens as it was left. Reading them rebuilds the toolbar on the next render.
+    function read() {
+        const params = new URLSearchParams(location.search);
+        for (const key of ['search', ...filters])
+            values[key] = params.get('catalog-' + key) ?? '';
+        selected.clear();
+        for (const id of (params.get('catalog-selection') ?? '').split(',').filter(Boolean))
+            selected.add(id);
+        host = null;
+    }
+    read();
     function remember() {
         const url = new URL(location.href);
         for (const [key, value] of Object.entries({ ...values, selection: [...selected].join(',') })) {
@@ -148,5 +160,5 @@ export function createCatalog({ api, action, monitorRow, coverageRule }) {
             showBatch();
         }, openAdd() {
             open('add');
-        } };
+        }, read };
 }
