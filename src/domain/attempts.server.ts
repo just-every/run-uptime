@@ -113,6 +113,12 @@ export async function completeAttempts(env:Bindings,input:any,runnerId:string){
   const guard='EXISTS(SELECT 1 FROM evidence_generation WHERE monitor_id=? AND generation=? AND projection_id=?)';
   const values=[slot.monitor_id,generation+1,projectionId];
   const statements=fresh.map((o:any)=>env.DB.prepare(`INSERT INTO observations(id,slot_id,probe,attempt,evidence) SELECT ?,?,?,?,? WHERE ${guard}`).bind(o.id,slot.id,o.probe,o.attempt,JSON.stringify(withoutSnapshot(o)),...values));
+  // A failed scheduled source invalidates its last live review durably, in the evidence transaction.
+  // Recovery never renews review; only the owner's successful live check does. This survives evidence retention.
+  if(followed&&current){
+   const failed=fresh.filter((o:any)=>o.outcome==='runner_error'||o.checks?.some((c:any)=>c.assertion==='dependency'));
+   if(failed.length)statements.push(env.DB.prepare(`UPDATE followed_services SET checked_at=NULL WHERE monitor_id=? AND checked_at<? AND EXISTS(SELECT 1 FROM monitors WHERE id=? AND revision=?) AND ${guard}`).bind(m.id,Math.max(...failed.map((o:any)=>o.completedAt)),m.id,slot.revision,...values));
+  }
   statements.push(...await snapshotStatements(env,slot.monitor_id,slot.id,fresh,guard,values));
   // API-004: incomplete cleanup becomes retained debt, and live steps spend their grant, with the observations or not at all.
   statements.push(...debtStatements(env,slot,fresh,guard,values,now),...spendStatements(env,slot.monitor_id,fresh,guard,values));

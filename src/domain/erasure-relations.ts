@@ -35,3 +35,8 @@ export function operatorMailRelated(value:string,email:string,tokenIds:Set<strin
  if(tokenIds.has(message.deliveryId))return true;
  return ['to','cc','bcc'].some(field=>(Array.isArray(message[field])?message[field]:[]).some((recipient:unknown)=>{try{return parseAddress(recipient).email.toLowerCase()===email.toLowerCase()}catch{return false}}));
 }
+
+// Catalog acknowledgments depend on both their provider monitor and the application incident that grouped them.
+export const dependencyAckErasure="monitor_id=? OR via_incident_id IN(SELECT value FROM json_each(?))";
+// An application timeline must not retain a notice ID after its provider is erased.
+export const dependencyTimelineErasure="monitor_id<>? AND kind='dependency_acknowledged' AND json_extract(data,'$.noticeId') IN(SELECT id FROM outbox WHERE monitor_id=?)";

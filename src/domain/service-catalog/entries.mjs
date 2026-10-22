@@ -5,8 +5,8 @@
 //   kind 'statuspage'  Statuspage-compatible JSON API: <base>/api/v2/status.json (whole) and components.json (a component, found by name)
 //   kind 'json'        the provider's own JSON status document; each followable part names the path it reads
 //   kind 'feed'        an RSS or Atom feed; `signal` names how the newest entry is read
-//   kind 'page'        a status page that publishes no status Uptime can read; it is named, searchable and linked, never followed
-// Each address was read with one plain public GET on 22 October 2026; ACCEPTANCE.md names the ones that answered only as a page.
+//   kind 'page'        a provider not yet supported by this catalog reader; it is named, searchable and linked, never followed
+// Sources and provider documentation were reviewed on 22 October 2026; ACCEPTANCE.md records the reader’s remaining coverage gaps.
 export const CATALOG_VERSION = 1;
 export const CATALOG_REVIEWED = '2026-10-22';
 
@@ -37,7 +37,7 @@ export const ENTRIES = [
     source: {kind: 'json', url: 'https://status.stripe.com/current', page: 'https://status.stripe.com/'},
     whole: {path: 'largestatus', equals: 'up'},
     components: [['api', 'API'], ['webhooks', 'Webhooks'], ['dashboard', 'Dashboard'], ['stripejs', 'Stripe.js and Elements'], ['checkout', 'Checkout'], ['supportsite', 'Support site']].map(([key, name]) => ({key, name, path: `statuses.${key}`, equals: 'up'}))},
-  {id: 'paypal', name: 'PayPal', aliases: ['venmo', 'braintree'], summary: 'Payments and checkout.', note: 'Publishes an event history, not a current status Uptime can read reliably.',
+  {id: 'paypal', name: 'PayPal', aliases: ['venmo', 'braintree'], summary: 'Payments and checkout.', note: 'Publishes per-component production and sandbox status JSON at paypal-status.com/api/v1/components; this catalog reader does not yet support it.',
     source: {kind: 'page', url: 'https://www.paypal-status.com/', page: 'https://www.paypal-status.com/'}, whole: false, components: []},
   statuspage('square', 'Square', 'https://issquareup.com', {aliases: ['squareup', 'point of sale'], summary: 'Payments and point of sale.', page: 'https://issquareup.com/', note: 'Publishes one overall status.'}),
   statuspage('shopify', 'Shopify', 'https://www.shopifystatus.com', {aliases: ['store', 'ecommerce'], summary: 'Online store, checkout and point of sale.', components: ['Admin', 'Checkout', 'Storefront', 'API & Mobile', 'Point of Sale', 'Support']}),
@@ -53,9 +53,9 @@ export const ENTRIES = [
   statuspage('atlassian', 'Atlassian', 'https://status.atlassian.com', {aliases: ['jira', 'confluence', 'bitbucket', 'trello'], summary: 'Jira, Confluence, Bitbucket and Trello.', note: 'Publishes one overall status.'}),
   statuspage('openai', 'OpenAI', 'https://status.openai.com', {aliases: ['chatgpt', 'gpt', 'api'], summary: 'ChatGPT and the OpenAI API.', components: ['Chat Completions', 'Responses', 'Embeddings', 'Images', 'Audio', 'Files', 'Realtime', 'Batch']}),
   statuspage('anthropic', 'Anthropic', 'https://status.claude.com', {aliases: ['claude'], summary: 'Claude and the Claude API.', components: ['claude.ai', 'Claude Console (platform.claude.com)', 'Claude API (api.anthropic.com)', 'Claude Code'], note: 'status.anthropic.com moved to status.claude.com; catalog version 1 names the new address.', hosts: ['status.anthropic.com']}),
-  {id: 'okta', name: 'Okta', aliases: ['sso', 'single sign-on', 'identity'], summary: 'Single sign-on and identity.', note: 'Publishes its status in a web page too large for a check to read.',
+  {id: 'okta', name: 'Okta', aliases: ['sso', 'single sign-on', 'identity'], summary: 'Single sign-on and identity.', note: 'Publishes the official OktaStatusRSS feed through FeedBurner; this catalog reader does not yet support it.',
     source: {kind: 'page', url: 'https://status.okta.com/', page: 'https://status.okta.com/'}, whole: false, components: []},
-  {id: 'auth0', name: 'Auth0', aliases: ['login', 'identity'], summary: 'Sign-in and identity.', note: 'Publishes its status in a web page too large for a check to read.',
+  {id: 'auth0', name: 'Auth0', aliases: ['login', 'identity'], summary: 'Sign-in and identity.', note: 'Publishes regional Atom and RSS feeds selected by tenant domain; this catalog reader does not yet support them.',
     source: {kind: 'page', url: 'https://status.auth0.com/', page: 'https://status.auth0.com/'}, whole: false, components: []},
   statuspage('digitalocean', 'DigitalOcean', 'https://status.digitalocean.com', {aliases: ['droplets', 'hosting'], summary: 'Cloud servers and managed databases.', note: 'Its component list is larger than a check can read, so only the whole provider is followed.'}),
   {id: 'fastly', name: 'Fastly', aliases: ['cdn', 'edge'], summary: 'CDN and edge cloud.', hosts: ['status.fastly.com'],
