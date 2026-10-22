@@ -26,7 +26,9 @@ const split = hostport => {
 
 export async function startFlowProxy({grant = null, privateAccess, maxBytes, maxConnections = 64, resolver = new Resolver({timeout: 1500, tries: 1})}) {
   const username = 'flow', password = randomBytes(24).toString('hex'), expected = Buffer.from(`Basic ${Buffer.from(`${username}:${password}`).toString('base64')}`);
-  const sockets = new Set(), blocked = [];
+  const sockets = new Set(), blocked = [], connections = [];
+  // PERF-001: the first connection to each destination, timed here because the browser resolves and connects only through this proxy.
+  const timed = (host, port, dnsMs, started) => () => { if (!connections.some(c => c.host === host && c.port === port)) connections.push({host, port, dnsMs, connectMs: Date.now() - started}); };
   let bytes = 0, exceeded = false, closed = false;
   const authorised = request => {
     const given = Buffer.from(request.headers['proxy-authorization'] ?? '');
@@ -59,7 +61,7 @@ export async function startFlowProxy({grant = null, privateAccess, maxBytes, max
     let url;
     try { url = new URL(request.url); } catch { response.writeHead(400); response.end(); return; }
     if (url.protocol !== 'http:' || sockets.size > maxConnections || exceeded) { response.writeHead(403); response.end(); return; }
-    const host = url.hostname.replace(/^\[|\]$/g, ''), port = Number(url.port || 80), target = await destination(host, port);
+    const host = url.hostname.replace(/^\[|\]$/g, ''), port = Number(url.port || 80), resolving = Date.now(), target = await destination(host, port), dnsMs = Date.now() - resolving;
     if (!target) { response.writeHead(403); response.end(); return; }
     const headers = Object.fromEntries(Object.entries(request.headers).filter(([k]) => !hop.has(k)));
     headers.host = url.host;
@@ -70,7 +72,7 @@ export async function startFlowProxy({grant = null, privateAccess, maxBytes, max
       reply.on('data', count); reply.pipe(response);
     });
     track(request.socket);
-    upstream.on('socket', track);
+    upstream.on('socket', socket => { track(socket); socket.once('connect', timed(host, port, dnsMs, Date.now())); });
     upstream.on('error', () => { if (!response.headersSent) response.writeHead(502); response.end(); });
     request.pipe(upstream);
   });
@@ -80,12 +82,13 @@ export async function startFlowProxy({grant = null, privateAccess, maxBytes, max
     if (closed || !authorised(request)) return refuse('407 Proxy Authentication Required');
     const parsed = split(request.url);
     if (!parsed || !parsed.port || sockets.size > maxConnections || exceeded) return refuse('403 Forbidden');
-    const target = await destination(parsed.host, parsed.port);
+    const resolving = Date.now(), target = await destination(parsed.host, parsed.port), dnsMs = Date.now() - resolving;
     if (!target) return refuse('403 Forbidden');
     // A tunnel's bytes never pass here as HTTP, so whatever answers on the granted port could not prove it is the fixture: the
     // fixture serves plain HTTP only, and a synthetic run never tunnels to it.
     if (grant) { block('custody', parsed.host); return refuse('403 Forbidden'); }
     const upstream = track(net.connect({host: target.address, family: target.family, port: parsed.port}));
+    upstream.once('connect', timed(parsed.host, parsed.port, dnsMs, Date.now()));
     upstream.once('connect', () => { client.write('HTTP/1.1 200 Connection Established\r\n\r\n'); if (head?.length) upstream.write(head); upstream.on('data', count); upstream.pipe(client); client.pipe(upstream); });
     upstream.once('error', () => client.destroy()); client.once('error', () => upstream.destroy());
   });
@@ -93,7 +96,7 @@ export async function startFlowProxy({grant = null, privateAccess, maxBytes, max
   await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', resolve); });
   return {
     port: server.address().port, username, password,
-    stats: () => ({bytes, exceeded, blocked: [...blocked]}),
+    stats: () => ({bytes, exceeded, blocked: [...blocked], connections: [...connections]}),
     async close() { closed = true; for (const s of sockets) s.destroy(); await new Promise(r => server.close(r)); },
   };
 }

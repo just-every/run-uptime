@@ -6,6 +6,7 @@ import {readGrant} from './grants.mjs';
 import {probeHttp,probeHeartbeat} from './probes.mjs';
 import {validateDefinition} from '../../src/domain/policy.mjs';
 import {runFlow} from './flow/run-flow.mjs';
+import {runPageSpeed} from './pagespeed/run.mjs';
 import {probeProtocol} from './protocol-probes.mjs';
 import {isProtocol} from '../../src/domain/protocol/settings.mjs';
 import {CLEANUP_DEBT_LIMIT,hasFixtures,debtRefusal} from '../../src/domain/cleanup-debt.mjs';
@@ -35,6 +36,12 @@ export async function executeTaskProbe(task,probe,{grantPath,controlPort,flowWor
   validateDefinition(definition,grants);
   if(privateAccess)try{await privateAccess(new URL(definition.url),signal)}catch(error){const at=Date.now();return {id:randomUUID(),probe,startedAt:at,completedAt:at,durationMs:0,runnerVersion:'uptime-node/0.1.0',outcome:'runner_error',checks:[{assertion:'grant',pass:false,reason:error.reason??'Private network grant unavailable'}]}}
   return runFlow(definition,probe,{privateAccess,grantPath,controlPort,workspace:flowWorkspace,monitorId,signal,snapshotPolicy:task.snapshotPolicy,grants,now});
+ }
+ // PERF-001: a page-speed check runs in the same isolated browser process, folder and filtering proxy as a flow.
+ if(definition.type==='pagespeed'){
+  validateDefinition(definition,definition.network==='synthetic'?[(await readGrant(grantPath,controlPort).catch(()=>({port:0}))).port]:[]);
+  if(privateAccess)try{await privateAccess(new URL(definition.url),signal)}catch(error){const at=Date.now();return {id:randomUUID(),probe,startedAt:at,completedAt:at,durationMs:0,runnerVersion:'uptime-node/0.1.0',outcome:'runner_error',checks:[{assertion:'grant',pass:false,reason:error.reason??'Private network grant unavailable'}]}}
+  return runPageSpeed(definition,probe,{privateAccess,grantPath,controlPort,workspace:flowWorkspace,signal});
  }
  if(definition.type==='mail'){validateDefinition(definition,[]);return probeMail(definition,probe,[],{monitorId,signal,privateAccess})}
  if(definition.type==='api'){validateDefinition(definition,[]);return probeApiTransaction(definition,probe,{monitorId,signal,privateAccess,grants,now})}

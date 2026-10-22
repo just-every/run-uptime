@@ -27,6 +27,7 @@ import {COVERAGE_RULE,coverage,coverageLegend} from './monitor-coverage.js';
 import {buildTimeline,checkResultSummary} from './monitor-timeline.js';
 import {isFlow,flowSummary,flowPanel,flowRevisions,traceMarkup,bindFlowProfile} from './flow-panel.js';
 import {PROTOCOL_KINDS,isProtocol,protocolExpectations,protocolFact,expiryPanel} from './protocol-panel.js';
+import {PAGESPEED_KINDS,pageSpeedPanel} from './pagespeed-panel.js';
 
 // The id in /app/monitors/<id>, or null on any other path. The server answers an id that does not decode with its 404
 // page, so this page only sees ids that decode.
@@ -35,7 +36,7 @@ export function monitorIdFromPath(pathname){
  return match?decodeURIComponent(match[1]):null;
 }
 
-const kinds={mail:'Mail protocol',api:'API transaction',http:'HTTP check',keyword:'Keyword check',heartbeat:'Heartbeat',flow:'Browser flow',...PROTOCOL_KINDS};
+const kinds={mail:'Mail protocol',api:'API transaction',http:'HTTP check',keyword:'Keyword check',heartbeat:'Heartbeat',flow:'Browser flow',...PROTOCOL_KINDS,...PAGESPEED_KINDS};
 const backLink='<a class="back-link ui-link" id="monitor-back" href="/app"><span class="ui-icon" data-icon="chevron" aria-hidden="true"></span><span class="ui-visually-hidden">Back to </span>Monitors</a>';
 const hiddenDot='<span class="ui-visually-hidden"> · </span>',slash='<span class="ui-visually-hidden"> / </span>';
 
@@ -104,7 +105,7 @@ function pageBody(m,readUnavailable,data){
   +'<div class="monitor-secondary">'
   +rulesCard(m,data.runner.runners,{editable:!isFlow(m.definition)&&m.definition.type!=='heartbeat',other:assertionSummary(m.definition),details:`<details id="assertion-definition"><summary id="assertion-definition-summary">Full check details</summary><p class="engine-status">${escape(m.state.reason)}</p><pre>${escape(JSON.stringify(m.definition.type==='mail'?m.definition.mail:m.definition.type==='api'?m.definition.api:isProtocol(m.definition)?{[m.definition.type]:m.definition[m.definition.type],assertions:m.definition.assertions}:m.definition.assertions,null,2))}</pre></details>`})
   +`<section class="ui-card panel detail" aria-labelledby="latest-check-heading"><h2 id="latest-check-heading">${lastLabel}</h2><dl class="detail-metrics"><div><dt class="ui-visually-hidden">${lastLabel}</dt><dd class="detail-time">${checkTime(m,{withLabel:false,readUnavailable})}</dd></div><div><dt>Response duration</dt><dd>${escape(duration(availability?.responseDurationMs))}</dd></div></dl></section>`
-  +followedServicePanel(m)+alertRoutePanel(m)+slowPolicyPanel(m)+maintenancePanel(m)+expiryPanel(m,data)+(isFlow(m.definition)?flowPanel(m,data):'')+cleanupDebtPanel(m)+heartbeatPanel(m,data)+heartbeatJobsPanel(m)+'</div></div>';
+  +followedServicePanel(m)+alertRoutePanel(m)+slowPolicyPanel(m)+maintenancePanel(m)+expiryPanel(m,data)+(isFlow(m.definition)?flowPanel(m,data):'')+pageSpeedPanel(m)+cleanupDebtPanel(m)+heartbeatPanel(m,data)+heartbeatJobsPanel(m)+'</div></div>';
 }
 
 const clock=t=>new Date(t).toLocaleTimeString();

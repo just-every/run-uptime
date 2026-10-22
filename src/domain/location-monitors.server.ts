@@ -24,8 +24,8 @@ export async function checkAllFrom(env:Bindings,runnerId:string,actor:AuditActor
   const old={id:row.id as string,revision:row.revision as number,definition:JSON.parse(row.definition),nextDue:row.next_due as number,storedState:JSON.parse(row.state)},d=old.definition
   const assigned=d.assignments??Object.fromEntries(d.probes.map((probe:string)=>[probe,{runnerId:first.runner_id}]))
   if(Object.values(assigned).some((a:any)=>a.runnerId===runnerId))continue
-  if(d.probes.length>=(d.type==='flow'?2:PROBES.length)){full.push(d.name);continue}
-  if(d.type==='flow'&&!runnerCapabilities(runner.capabilities).browser){refused.push({name:d.name,reason:'A browser flow needs a browser on that machine.'});continue}
+  if(d.probes.length>=(['flow','pagespeed'].includes(d.type)?2:PROBES.length)){full.push(d.name);continue}
+  if(['flow','pagespeed'].includes(d.type)&&!runnerCapabilities(runner.capabilities).browser){refused.push({name:d.name,reason:'A browser flow needs a browser on that machine.'});continue}
   // The monitor keeps its external check, read from its revision before the new check joins: one following Settings (an older
   // revision's copies of the installation's URL included) still follows it, and one with its own URL keeps that URL.
   const probe=PROBES.find(p=>!d.probes.includes(p))!,mode=externalCheckMode(d,external.legacyUrl),own=externalCheckOf(d,external).own

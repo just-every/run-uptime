@@ -1366,6 +1366,14 @@
         "environment": "all"
       },
       {
+        "path": "/pagespeed-panel.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
         "path": "/protocol-panel.js",
         "match": "exact",
         "kind": "asset",
@@ -1574,6 +1582,22 @@
         "environment": "all"
       },
       {
+        "path": "/rum/v1/s/",
+        "match": "prefix",
+        "kind": "beacon",
+        "class": "rum",
+        "authentication": "None; PERF-001 beacon script of one owner-registered site. Off (a script that does nothing) until the owner enables the site; carries only its sampling and excluded paths.",
+        "environment": "all"
+      },
+      {
+        "path": "/rum/v1/collect",
+        "match": "exact",
+        "kind": "beacon",
+        "class": "rum",
+        "authentication": "None; PERF-001 write door for one consented real-user beacon of at most 1 KiB, accepted only from the registered Origin of an enabled site. No cookie is read or set and no IP address, query string, fragment or identifier is stored; bots and excluded paths are only counted.",
+        "environment": "all"
+      },
+      {
         "path": "/failure-snapshots.js",
         "match": "exact",
         "kind": "asset",
@@ -1655,7 +1679,8 @@
       "drills": 30,
       "development-assets": 1800,
       "imports": 120,
-      "metrics": 60
+      "metrics": 60,
+      "rum": 120
     },
     "notes": "Owner-tunable source settings; each class shares one fixed 60-second D1 window per client. Production assets retain their own budget. Local Vite compiler assets use a separate budget for the unbundled browser graph: about 140 module requests per console load, with room for twelve loads per minute. These defaults are estimated, not load tested. Hosted CF-Connecting-IP must be a valid single IP; missing/malformed values share an unknown-client bucket. Local mode ignores all forwarding headers and uses one loopback bucket. Only keyed hashes of client identities are stored."
   },
