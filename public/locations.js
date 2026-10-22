@@ -1,7 +1,7 @@
 import {escape,icon,ago} from './console-format.js';
 import {firstMount} from './dom-patch.js';
 import {confirmDestination,containModalKeyboard,dialogFocusReturn} from './notification-dialogs.js';
-// Locations (/app#locations): where checks run from. Each location is a runner, named after where it runs
+// Locations (/app/locations): where checks run from. Each location is a runner, named after where it runs
 // (src/domain/location-name.ts). The owner renames one, removes one, or adds another. The list is patched on each refresh
 // (public/dom-patch.js). The add panel shows the new location's command, with its one-time join key, only until the location
 // joins; then it offers to check every monitor from there too, applied by Done. Closing the panel before the location has

@@ -35,7 +35,7 @@ export function monitorIdFromPath(pathname){
 }
 
 const kinds={mail:'Mail protocol',api:'API transaction',http:'HTTP check',keyword:'Keyword check',heartbeat:'Heartbeat',flow:'Browser flow',...PROTOCOL_KINDS};
-const backLink='<a class="back-link ui-link" id="monitor-back" href="/app"><span class="ui-icon" data-icon="chevron" aria-hidden="true"></span><span class="ui-visually-hidden">Back to </span>Monitors</a>';
+const backLink='<a class="back-link ui-link" id="monitor-back" href="/app/monitors"><span class="ui-icon" data-icon="chevron" aria-hidden="true"></span><span class="ui-visually-hidden">Back to </span>Monitors</a>';
 const hiddenDot='<span class="ui-visually-hidden"> · </span>',slash='<span class="ui-visually-hidden"> / </span>';
 
 // "every 1 minute", "every 15 seconds", "every 1 hour 30 minutes": the interval with its units spelled out.
@@ -193,7 +193,7 @@ function renderMissing({header,actions,area,id}){
  document.title='Monitor not found · Uptime';
  patch(header,`${backLink}<div class="monitor-title"><h1 id="monitor-detail-heading">Monitor not found</h1></div><p class="subtitle">This installation has no monitor at this address.</p>`);
  actions.replaceChildren();
- patch(area,`<section class="empty ui-empty monitor-missing"><p>No monitor has the id <code class="ui-mono">${escape(id)}</code>. It may have been deleted, or the link may be incomplete.</p><a class="ui-button primary" id="missing-back" href="/app">Back to monitors</a></section>`);
+ patch(area,`<section class="empty ui-empty monitor-missing"><p>No monitor has the id <code class="ui-mono">${escape(id)}</code>. It may have been deleted, or the link may be incomplete.</p><a class="ui-button primary" id="missing-back" href="/app/monitors">Back to monitors</a></section>`);
 }
 
 const readFailure=(host,what,retry)=>{
@@ -228,8 +228,8 @@ export function renderMonitorPage({header,actions,area,data,id,api,action,readUn
  const menu=actions.querySelector('#more-menu');
  if(!boundMenus.has(menu)){boundMenus.add(menu);menu.addEventListener('click',event=>{if(event.target.closest('button'))menu.open=false});document.addEventListener('click',event=>{if(menu.isConnected&&!menu.contains(event.target))menu.open=false})}
  actions.querySelector('#run-monitor').onclick=()=>action(async()=>{const queued=await api(`/api/monitors/${m.id}/run`,'POST',{});return await waitForCheck({api,id:m.id,slotId:queued.slotId,name})},{pending:`Checking from ${joinLocations(name,m.definition)}…`,success:outcome=>outcome??'Check queued. Its result will appear in Recent checks.'});
- if(!isFlow(m.definition)&&m.definition.type!=='heartbeat')actions.querySelector('#edit').onclick=()=>{location.href='/app/monitor?monitor='+encodeURIComponent(m.id)};
- actions.querySelector('#pause').onclick=()=>{if(!m.definition.enabled&&Object.values(m.definition.assignments??{}).some(a=>!(data.runner.runners??[]).some(r=>r.runnerId===a.runnerId&&!r.revokedAt))){location.href='/app/monitor?monitor='+encodeURIComponent(m.id);return}return action(()=>api(`/api/monitors/${m.id}`,'PATCH',{...m.definition,enabled:!m.definition.enabled}),{pending:m.definition.enabled?'Pausing monitor…':'Authorizing and resuming…',success:m.definition.enabled?'Monitor paused. Historical observations remain available.':'Monitor authorized and resumed. New scheduled results are required.'})};
+ if(!isFlow(m.definition)&&m.definition.type!=='heartbeat')actions.querySelector('#edit').onclick=()=>{location.href='/app/monitors/'+encodeURIComponent(m.id)+'/edit'};
+ actions.querySelector('#pause').onclick=()=>{if(!m.definition.enabled&&Object.values(m.definition.assignments??{}).some(a=>!(data.runner.runners??[]).some(r=>r.runnerId===a.runnerId&&!r.revokedAt))){location.href='/app/monitors/'+encodeURIComponent(m.id)+'/edit';return}return action(()=>api(`/api/monitors/${m.id}`,'PATCH',{...m.definition,enabled:!m.definition.enabled}),{pending:m.definition.enabled?'Pausing monitor…':'Authorizing and resuming…',success:m.definition.enabled?'Monitor paused. Historical observations remain available.':'Monitor authorized and resumed. New scheduled results are required.'})};
  actions.querySelector('#maintenance').onclick=()=>{const ending=m.definition.maintenanceUntil>Date.now(),until=ending?0:Date.now()+900000;return action(()=>api(`/api/monitors/${m.id}`,'PATCH',{...m.definition,maintenanceUntil:until}),{pending:ending?'Ending maintenance…':'Starting maintenance…',success:ending?'Maintenance ended.':`In maintenance until ${shortClock(until)}.`})};
  const history=area.querySelector('#raw-history'),strip=area.querySelector('#history-strip');
  const loadHistory=()=>Promise.all([api(`/api/monitors/${key}/history`),api(`/api/monitors/${key}/revisions`)]).then(([slots,revisions])=>{

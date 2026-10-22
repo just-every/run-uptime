@@ -73,7 +73,7 @@ try{
  };
  await notifications();
  const setup=await call('/setup',undefined,{cookie});
- assert.equal(setup.status,303);assert.equal(setup.headers.get('location'),'/app');
+ assert.equal(setup.status,303);assert.equal(setup.headers.get('location'),'/app/monitors');
  await unchanged(before,'read-only owner routes preserve every historical row and fixed session expiry');
  await noReplay();assert.deepEqual(await rows('runner_contact'),[]);
  const pollStarted=Date.now(),poll=await call('/api/runner/notifications',{operation:'poll'},{'x-runner-key':bindings.UPTIME_RUNNER_KEY});

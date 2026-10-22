@@ -16,10 +16,10 @@ try{
  for(const [name,kind,address] of [['Checkout operations','email','operations@example.test'],['Payments Slack','slack','https://hooks.slack.com/services/TTEST/BTEST/local-test']]){
   assert.equal((await page.request.post(origin+'/api/notifications/destinations',{headers:{origin},data:{name,kind,...(kind==='email'?{address}:{url:address})}})).status(),201);
  }
- await page.goto(origin+'/app#notifications');await page.locator('html.signed-in').waitFor();assert.equal((await (await page.request.get(origin+'/api/notifications')).json()).preferences.timeZone,browserZone,'fresh alert preferences use the browser zone');
+ await page.goto(origin+'/app/notifications');await page.locator('html.signed-in').waitFor();assert.equal((await (await page.request.get(origin+'/api/notifications')).json()).preferences.timeZone,browserZone,'fresh alert preferences use the browser zone');
  await mkdir(screens,{recursive:true});
  for(const width of [1440,390]){
-  await page.setViewportSize({width,height:1000});await page.goto(origin+'/app#notifications');await page.locator('html.signed-in').waitFor();
+  await page.setViewportSize({width,height:1000});await page.goto(origin+'/app/notifications');await page.locator('html.signed-in').waitFor();
   await page.getByRole('button',{name:'Change alert time zone'}).click();
   const dialog=page.getByRole('dialog');await dialog.getByLabel('IANA time zone').fill('Invalid/Zone');await dialog.getByRole('button',{name:'Save time zone'}).click();await dialog.locator('[role=alert]').filter({hasText:/valid IANA/}).waitFor();
   await page.screenshot({path:join(screens,`zone-error-${width}.png`),fullPage:true});

@@ -101,7 +101,7 @@ try {
   await login.goto(link.href);
   assert.equal((await db.prepare('SELECT consumed_at FROM oa_tokens').first()).consumed_at, null);
   assert.equal((await nativePost(login, '/auth/confirm', 'Confirm')).status(), 303);
-  await login.waitForURL(runtime.origin + '/app');
+  await login.waitForURL(runtime.origin + '/app/monitors');
   await assertSession(loginContext);
   assert.ok((await db.prepare('SELECT consumed_at FROM oa_tokens').first()).consumed_at);
   assert.deepEqual(runtime.errors, []);

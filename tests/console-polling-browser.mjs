@@ -25,26 +25,27 @@ try{
   await page.setViewportSize({width,height:900});
   await page.goto(origin+`/app/monitors/${monitor.id}`);await page.locator('html.signed-in').waitFor();await page.locator('#alert-route-summary details').waitFor();
   await page.locator('#assertion-definition-summary').click();await page.locator('#alert-route-summary summary').click();
+  await page.locator('#more-menu > summary').click();
   await page.locator('#assertion-definition').evaluate(details=>details.scrollIntoView({block:'center'}));
   const scrolled=await page.evaluate(()=>scrollY);assert.ok(scrolled>0,'the monitor page scrolls');
-  const disclosuresOpen=async()=>{assert.ok(await page.locator('#assertion-definition').evaluate(details=>details.open),'check details stay open');assert.ok(await page.locator('#alert-route-summary details').evaluate(details=>details.open),'alert recipients stay open')};
+  const disclosuresOpen=async()=>{assert.ok(await page.locator('#assertion-definition').evaluate(details=>details.open),'check details stay open');assert.ok(await page.locator('#alert-route-summary details').evaluate(details=>details.open),'alert recipients stay open');assert.ok(await page.locator('#more-menu').evaluate(details=>details.open),'the action menu stays open')};
   const panelsKept=async()=>assert.deepEqual(await page.evaluate(selectors=>selectors.filter((selector,i)=>window.__panels[i]!==document.querySelector(selector)),panels),[],'monitor page panels stay mounted');
   await page.evaluate(selectors=>{window.__panels=selectors.map(selector=>document.querySelector(selector))},panels);
   // Steady refreshes: nothing moves.
-  await twoPolls(page);await disclosuresOpen();await panelsKept();
+  const began=Date.now();do{await twoPolls(page);await disclosuresOpen();await panelsKept();assert.equal(await page.evaluate(()=>scrollY),scrolled,'scroll holds through 60 seconds of polls')}while(Date.now()-began<60000);
   assert.equal(await page.evaluate(()=>scrollY),scrolled,'the monitor page keeps its scroll position');
   // A pause made elsewhere changes the state, its notes and the history; it shows without a reload, in place.
   await enable(false);await twoPolls(page);
   assert.equal(await page.locator('#monitor-state').textContent(),'Paused','a pause made elsewhere shows without a reload');
   await disclosuresOpen();await panelsKept();
   await enable(true);
-  await page.goto(origin+'/app#notifications');await page.locator('html.signed-in').waitFor();const help=page.locator('.email-setup:visible');await help.waitFor();
+  await page.goto(origin+'/app/notifications');await page.locator('html.signed-in').waitFor();const help=page.locator('.email-setup:visible');await help.waitFor();
   await help.locator('summary').click();await mark(page);await twoPolls(page);
   assert.ok(await help.evaluate(details=>details.open),'the help disclosure stays open');
   assert.deepEqual(await replaced(page),[],'notifications view keeps every node');
-  await page.goto(origin+'/app');await page.locator('.catalog-rows tr').first().waitFor();
+  await page.goto(origin+'/app/monitors');await page.locator('.catalog-rows tr').first().waitFor();
   await mark(page);await twoPolls(page);
   assert.deepEqual(await replaced(page),[],'monitor list keeps every row');
-  console.log(`CONSOLE-POLL ${width}: disclosures, scroll and nodes survive refreshes; a background pause still shows.`);
+  console.log(`CONSOLE-POLL ${width}: menus, disclosures, scroll and nodes survive 60 seconds of refreshes; a background pause still shows.`);
  }
 }finally{await browser?.close();await worker?.dispose();await cleanupDirectory(directory)}

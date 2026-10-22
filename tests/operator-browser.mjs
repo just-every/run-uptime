@@ -117,13 +117,13 @@ try{
    const page=await context.newPage(),errors=[];page.on('pageerror',error=>errors.push(error.message));
    await browserSignIn(page,origin,{bootstrap:false});
    // The installation has no monitors before the first width: the console opens straight into the new-monitor form.
-   if(width===1440){await page.waitForURL(url=>url.pathname==='/app/monitor');await page.locator('.editor-context-ready').waitFor();assert.equal(await page.locator('h1').textContent(),'Add your first monitor');await audit(page,`editor-${width}`);await page.locator('#discovery-manual').click()}
+   if(width===1440){await page.waitForURL(url=>url.pathname==='/app/monitors/new');await page.locator('.editor-context-ready').waitFor();assert.equal(await page.locator('h1').textContent(),'Add your first monitor');await audit(page,`editor-${width}`);await page.locator('#discovery-manual').click()}
    else{await ready(page);await audit(page,`console-${width}`);
     await tabTo(page,page.getByRole('button',{name:'New monitor',exact:true}));await page.keyboard.press('Enter');
     await page.locator('.editor-ready').waitFor();await audit(page,`editor-${width}`);await page.locator('#discovery-manual').click()}
    const name=`Operator ${width} ${Date.now()}`;
    await page.locator('input[name=name]:visible').fill(name);await page.locator('input[name=url]:visible').fill('http://169.254.169.254/latest/meta-data/');
-   await page.getByRole('button',{name:'Save monitor'}).click();await page.locator('#editor-feedback').filter({hasText:/grant|literal|target|URL|host|port|loopback/i}).waitFor();assert.equal(new URL(page.url()).pathname,'/app/monitor');
+   await page.getByRole('button',{name:'Save monitor'}).click();await page.locator('#editor-feedback').filter({hasText:/grant|literal|target|URL|host|port|loopback/i}).waitFor();assert.equal(new URL(page.url()).pathname,'/app/monitors/new/manual');
    const values={url:'http://127.0.0.1:15481/health',intervalMinutes:String(5000/60000),freshnessMinutes:String(10000/60000),retries:'0',confirmSlots:'1',recoverSlots:'1'};
    for(const [field,value] of Object.entries(values))await page.locator(`[name=${field}]:visible`).fill(value);
    const rules={'Page contains':{body:'healthy'},'Page must not contain':{bodyExcludes:'unhealthy'},Pattern:{regexPattern:'"ok":true',regexFlags:'i'},'Header equals':{headerName:'x-synthetic',headerValue:'local-review'},'JSON value':{jsonPath:'$.ok',jsonEquals:'true'}};
@@ -143,7 +143,7 @@ try{
    await editJourney(page,monitor,width);
    await tabTo(page,page.getByRole('button',{name:'Pause',exact:true}));await page.keyboard.press('Enter');await page.locator('#monitor-state').filter({hasText:'Paused'}).waitFor();
    await page.getByRole('button',{name:'Resume',exact:true}).click();await page.getByText('More',{exact:true}).click();await page.getByRole('button',{name:'Maintenance 15 min'}).click();await page.getByText('More',{exact:true}).click();await page.getByRole('button',{name:'End maintenance'}).waitFor();await page.getByRole('button',{name:'End maintenance'}).click();await page.getByRole('button',{name:'Pause',exact:true}).click();await page.getByRole('button',{name:'Resume',exact:true}).waitFor();
-   await tabTo(page,page.getByRole('link',{name:'Notifications',exact:true}));await page.keyboard.press('Enter');await page.waitForURL(origin+'/app#notifications');await ready(page);await page.getByRole('heading',{name:'Destinations · all monitors',exact:true}).waitFor();await audit(page,`notifications-${width}`);
+   await tabTo(page,page.getByRole('link',{name:'Notifications',exact:true}));await page.keyboard.press('Enter');await page.waitForURL(origin+'/app/notifications');await ready(page);await page.getByRole('heading',{name:'Destinations · all monitors',exact:true}).waitFor();await audit(page,`notifications-${width}`);
    await page.getByRole('link',{name:'Archive',exact:true}).click();await audit(page,`archive-${width}`);
    const [download]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'Download backup'}).click()]);await download.saveAs(resolve(out,`archive-${width}.json`));
    await page.getByRole('link',{name:'Sign out',exact:true}).click();await page.getByLabel('Email address').waitFor();assert.equal((await page.request.get(origin+'/api/overview')).status(),401);assert.deepEqual(errors,[],'browser exceptions');

@@ -64,8 +64,8 @@ try{
    assert.deepEqual(await snapshot(DB),before,`${state} requests disclose no data and perform no mutation`);
    assert.equal((await call('/does-not-exist',undefined,{cookie})).status,404);
   }
-  for(const path of ['/app','/app/monitor','/app/monitors/private']){const response=await call(path,undefined,{cookie:valid});assert.equal(response.status,200);assert.match(response.headers.get('content-type'),/text\/html/)}
-  const canonical=await call('/app/monitor/',undefined,{cookie:valid});assert.equal(canonical.status,307);assert.equal(canonical.headers.get('location'),'/app/monitor');
+  for(const path of ['/app/monitors','/app/monitors/new','/app/monitors/private']){const response=await call(path,undefined,{cookie:valid});assert.equal(response.status,200);assert.match(response.headers.get('content-type'),/text\/html/)}
+  const canonical=await call('/app/monitor/',undefined,{cookie:valid});assert.equal(canonical.status,308);assert.equal(canonical.headers.get('location'),'/app/monitors/new');
   assert.equal((await call('/api/overview',undefined,{cookie:valid})).status,200);
   assert.equal((await call('/api/monitors',{name:'Authorized write',type:'heartbeat',canaryUrl:'https://canary.example.test/health',heartbeat:{maxAgeMs:60000}},{cookie:valid})).status,201);
   // Discovery: owner routes refuse a cross-origin caller even with a valid owner session, and a runner key is not an owner session.

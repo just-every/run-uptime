@@ -22,7 +22,7 @@ try{
  browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});
  const page=await (await browser.newContext({viewport:{width:1440,height:900}})).newPage(),errors=[];page.on('pageerror',error=>errors.push(error.message));
  await browserSignIn(page,origin);
- await page.waitForURL(url=>url.pathname==='/app/monitor');await page.locator('html.editor-ready').waitFor();
+ await page.waitForURL(url=>url.pathname==='/app/monitors/new');await page.locator('html.editor-ready').waitFor();
  assert.equal(await page.locator('h1').textContent(),'Add your first monitor','with no monitors, finishing setup opens the new-monitor form');
  const runners=async()=>(await(await page.request.get(origin+'/api/runners')).json()).filter(r=>!r.revokedAt);
  const builtIn=(await runners()).find(r=>r.builtIn);
@@ -39,7 +39,7 @@ try{
  assert.deepEqual(upgraded.get(carried.id).externalCheck,{url:settings,own:null},'a copy of the installation’s URL at the upgrade follows Settings');
  assert.deepEqual(upgraded.get(own.id).externalCheck,{url:'https://check.example.test/',own:'https://check.example.test/'});
 
- await page.goto(origin+'/app#locations');await page.locator('#locations-table').waitFor();
+ await page.goto(origin+'/app/locations');await page.locator('#locations-table').waitFor();
  const before=await runners();
  await page.getByRole('button',{name:'Add location',exact:true}).click();
  const command=(await page.locator('#location-command').textContent()).trim();
@@ -87,12 +87,12 @@ try{
  assert.deepEqual(Object.values(after.get(own.id).definition.assignments).map(a=>a.canaryUrl),['https://check.example.test/','https://check.example.test/']);
  assert.equal(after.get(sameCity.id).revision,sameCity.revision,'a monitor with three checks is left as it is');
  // Its edit view: both locations ticked, Advanced closed with no URL of its own.
- await page.goto(`${origin}/app/monitor?monitor=${encodeURIComponent(carried.id)}`);await page.locator('html.editor-context-ready').waitFor();
+ await page.goto(`${origin}/app/monitors/${encodeURIComponent(carried.id)}/edit`);await page.locator('html.editor-context-ready').waitFor();
  assert.deepEqual(await page.locator('input[name=locations]:checked').evaluateAll(boxes=>boxes.map(box=>box.value).sort()),[builtIn.runnerId,joined.runnerId].sort());
  assert.equal(await page.locator('details.check-from-advanced').evaluate(details=>details.open),false,'Advanced stays closed');
  assert.equal(await page.locator('#external-check-own').inputValue(),'');
  // A new URL in Settings: only the monitor with its own URL keeps it.
- await page.goto(origin+'/app#settings');const setting=page.locator('#external-check-url');await setting.waitFor();
+ await page.goto(origin+'/app/settings');const setting=page.locator('#external-check-url');await setting.waitFor();
  const saving=page.waitForResponse(response=>response.url()===origin+'/api/external-check'&&response.request().method()==='POST');
  await setting.fill('https://example.net/');await page.locator('#external-check-form button[type=submit]').click();
  const answer=await(await saving).json();assert.equal(answer.url,'https://example.net/');assert.equal(answer.own,1,'only the monitor with its own URL keeps its own');
@@ -107,7 +107,7 @@ try{
  assert.deepEqual(handed.get(carried.id),[null],'the old copy is not handed');
  assert.deepEqual(handed.get(own.id),['https://check.example.test/']);
  assert.deepEqual(handed.get(sameCity.id),['https://example.net/','https://example.net/','https://example.net/'],'the new Settings URL reaches its next check');
- await page.goto(origin+'/app#locations');await page.locator('#locations-table').waitFor();
+ await page.goto(origin+'/app/locations');await page.locator('#locations-table').waitFor();
 
  // Rename: the owner's name stays, and the running runner keeps checking in under it.
  await page.locator(`[data-rename="${joined.runnerId}"]`).click();await page.locator('#location-name').fill('Sydney office');await page.getByRole('button',{name:'Save',exact:true}).click();

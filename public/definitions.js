@@ -1,6 +1,6 @@
 import {changeMarkup} from './definition-changes.js';
 import {escape,icon} from './console-format.js';
-// Monitor files on Archive (/app#archive, public/archive-view.js): upload or paste a monitor file or an UptimeRobot export, read the
+// Monitor files on Archive (/app/archive, public/archive-view.js): upload or paste a monitor file or an UptimeRobot export, read the
 // preview, apply exactly that preview, and undo a batch. Every import runs through the owner's import door
 // (/api/operator/import/*): the file uploads, its request secrets withheld, as checked chunks, the server plans and validates, and this module only
 // shows the plan it returns and applies it with the fingerprint shown. Its state outlives the console's five-second

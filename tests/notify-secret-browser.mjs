@@ -33,7 +33,7 @@ try{
   await context.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
   try{
    const page=await context.newPage(),errors=[];page.on('pageerror',error=>errors.push(error.message));
-   await browserSignIn(page,origin);await page.goto(origin+'/app#notifications');await page.locator('html.signed-in').waitFor();
+   await browserSignIn(page,origin);await page.goto(origin+'/app/notifications');await page.locator('html.signed-in').waitFor();
    await page.getByRole('button',{name:'Add destination',exact:true}).focus();await page.keyboard.press('Enter');
    let dialog=page.getByRole('dialog');await dialog.waitFor();
    assert.ok(await dialog.getByLabel('Name (optional)',{exact:true}).evaluate(element=>document.activeElement===element),'native dialog starts on its labelled name field');
@@ -106,7 +106,7 @@ retryOutcomeTest('DELIVERY-002 retry and fallback-chain outcomes and the route c
    await context.route('**/*',route=>new URL(route.request().url()).origin===retryOrigin?route.continue():route.abort());
    await browserSignIn(page,retryOrigin,{bindings});
    for(const width of [1440,390]){
-    await page.setViewportSize({width,height:900});await page.goto(retryOrigin+'/app#notifications');await page.locator('html.signed-in').waitFor();
+    await page.setViewportSize({width,height:900});await page.goto(retryOrigin+'/app/notifications');await page.locator('html.signed-in').waitFor();
     const accepted=page.locator(`[data-key=${JSON.stringify('delivery-'+acceptedId)}]`),failed=page.locator(`[data-key=${JSON.stringify('delivery-'+failedId)}]`);
     await page.waitForFunction(key=>[...document.querySelectorAll('.delivery-card')].some(card=>card.dataset.key===key&&card.textContent.includes('Retry window exhausted')),'delivery-'+failedId);
     assert.ok((await page.locator('.notification-help:visible').textContent()).includes('Signed webhooks retry within saved limits.'),'visible help describes deduplicated retry');assert.equal(await accepted.locator('.delivery-state').textContent(),'Accepted');assert.equal(await failed.locator('.delivery-state').textContent(),'Failed');
@@ -175,7 +175,7 @@ retryOutcomeTest('DELIVERY-002 retry and fallback-chain outcomes and the route c
   const browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});
   try{for(const width of [1440,390]){
    const context=await browser.newContext({viewport:{width,height:900}}),page=await context.newPage();
-   await browserSignIn(page,origin,{bindings});await page.goto(origin+'/app#notifications');await page.locator('html.signed-in').waitFor();
+   await browserSignIn(page,origin,{bindings});await page.goto(origin+'/app/notifications');await page.locator('html.signed-in').waitFor();
    const card=page.locator(`[data-key="delivery-${quietId}"]`);await card.getByText(/Quiet hours: waiting until/).waitFor();
    assert.match(await card.textContent(),/Fallback 1 after Dead Slack: Failed/);
    await card.screenshot({path:join(evidence,`quiet-hold-${width}.png`)});

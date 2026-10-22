@@ -26,7 +26,7 @@ try{
  const context=await browser.newContext(),page=await context.newPage();await browserSignIn(page,edge.f.origin);
  const shot=async name=>{assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.addScriptTag({path:resolve('node_modules/axe-core/axe.min.js')});assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.map(v=>v.id),[]);await page.screenshot({path:join(screens,name),fullPage:true})};
  for(const width of [1440,390]){
-  await page.setViewportSize({width,height:1000});await page.goto(edge.f.origin+'/app/monitor');await page.locator('.editor-context-ready').waitFor();await page.locator('#discovery-manual').click();
+  await page.setViewportSize({width,height:1000});await page.goto(edge.f.origin+'/app/monitors/new');await page.locator('.editor-context-ready').waitFor();await page.locator('#discovery-manual').click();
   await page.locator('[name=checkType]').selectOption('api');await page.getByLabel('Monitor name',{exact:true}).fill(`Sandbox order API ${width}`);
   const url=path=>edge.url(path,'auth.example.test'),auth={authorization:'Bearer {{token}}'};
   const api={variables:{},steps:[{name:'Log in',phase:'setup',url:url('/login'),method:'POST',assertions:{status:200},extract:{token:'$.token'}},{name:'Create order',phase:'request',url:url('/items'),method:'POST',headers:auth,assertions:{status:201},extract:{id:'$.id'}},{name:'Read order',phase:'request',url:url('/items/{{id}}'),headers:auth,method:'GET',assertions:{status:200,json:{path:'$.ready',equals:true}}},{name:'Delete synthetic order',phase:'cleanup',url:url('/items/{{id}}'),headers:auth,method:'DELETE',assertions:{status:204}}]};

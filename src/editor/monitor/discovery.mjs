@@ -1,3 +1,4 @@
+import {newMonitorPath,discoveryPath,manualPath} from '../../ui/monitor-editor-path.mjs';
 import {followCheck,requestCheck} from './discovery-poll.mjs';
 import {networkPlan} from './discovery-launch.mjs';
 import {checkedLine,createResults} from './discovery-results.mjs';
@@ -11,11 +12,11 @@ export function mountDiscovery({form,overview,openCheck,showManualForm}){
  // A hosted demo's Worker answers the check itself; elsewhere a hosted installation needs a private runner with fresh contact.
  const plan=networkPlan(overview),workerAnswers=overview.runner.workerDiscovery===true,needsRunner=overview.runner.hosted&&!overview.runner.privateRunnerReady&&!workerAnswers;
  if(overview.runner.hosted&&!workerAnswers){help.textContent='Website discovery needs a private runner. Public HTTP and keyword monitors can run in the Cloudflare Worker; choose Fill in the form yourself to add one.';const command=document.createElement('pre');command.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere';command.textContent=overview.runner.privateRunnerCommand;help.append(command)}
- const results=createResults({root,form,plan,onFeedback:text=>{feedback.textContent=text},onStarted:id=>{location.href=id?`/app/monitors/${encodeURIComponent(id)}`:'/app'}});
+ const results=createResults({root,form,plan,onFeedback:text=>{feedback.textContent=text},onStarted:id=>{location.href=id?`/app/monitors/${encodeURIComponent(id)}`:'/app/monitors'}});
  // What the owner typed: a private check of an address typed without a scheme opens as http://, as a local server usually is.
  let control,timer,state,entered='';
  const stopTimer=()=>{clearInterval(timer);timer=undefined};
- const setCheckParam=id=>{const url=new URL(location.href);if(id)url.searchParams.set('discovery',id);else url.searchParams.delete('discovery');history.replaceState(null,'',url)};
+ const setCheckParam=id=>history.replaceState(history.state,'',id?discoveryPath(id):newMonitorPath);
  function show(next,label='Check'){
   state=next;root.dataset.state=next;
   const busy=next==='checking';
@@ -28,7 +29,7 @@ export function mountDiscovery({form,overview,openCheck,showManualForm}){
  function privateLink(container,url){
   try{if(!['http:','https:'].includes(new URL(url).protocol))return}catch{return}
   const link=document.createElement('a');link.className='ui-link';link.textContent='Check a private address';
-  link.href='/app/monitor?'+new URLSearchParams({manual:'1',network:'private',url});container.append(link);
+  link.href=manualPath({network:'private',url});container.append(link);
  }
  function fail(message){
   show('problem','Check again');

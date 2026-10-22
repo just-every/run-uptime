@@ -101,14 +101,14 @@ try {
  const nativeSetup = await browser.newContext({ javaScriptEnabled: false, storageState: await page.context().storageState() });
  try {
   const p = await nativeSetup.newPage(); await p.goto(origin + '/setup');
-  await p.getByRole('button', { name: 'Continue', exact: true }).click(); await p.waitForURL(url => url.origin === origin && url.pathname === '/app/monitor' && url.searchParams.has('discovery'));
-  const job = await page.request.get(origin + '/api/discoveries/' + new URL(p.url()).searchParams.get('discovery'));
+  await p.getByRole('button', { name: 'Continue', exact: true }).click(); await p.waitForURL(url => url.origin === origin && /^\/app\/monitors\/new\/discovery\/[^/]+$/.test(url.pathname));
+  const job = await page.request.get(origin + '/api/discoveries/' + decodeURIComponent(new URL(p.url()).pathname.split('/').at(-1)));
   assert.equal(job.status(), 200); assert.equal((await job.json()).url, startSite, 'finishing setup lands on the discovery of the owner\'s website');
  } finally { await nativeSetup.close(); }
  const finished = await page.request.get(origin + '/setup', { maxRedirects: 0 });
- assert.equal(finished.status(), 303); assert.equal(finished.headers().location, '/app');
+ assert.equal(finished.status(), 303); assert.equal(finished.headers().location, '/app/monitors');
  await page.goto(origin + '/app');
- if (setupEvidence) await writeFile(join(setupEvidence, 'RESULTS.json'), JSON.stringify({ widths: [1440, 390], freshRerSetup: true, devReturn: '/setup', unfinishedRoutes: true, unsignedReturn: true, csrfRefused: true, nativeCompletion: true, finishedReturn: '/app' }, null, 2));
+ if (setupEvidence) await writeFile(join(setupEvidence, 'RESULTS.json'), JSON.stringify({ widths: [1440, 390], freshRerSetup: true, devReturn: '/setup', unfinishedRoutes: true, unsignedReturn: true, csrfRefused: true, nativeCompletion: true, finishedReturn: '/app/monitors' }, null, 2));
  await smokeDocuments(page, origin);
  await monitorHydration(page, origin, scratch.root);
  await definitionsJourney(page, origin);

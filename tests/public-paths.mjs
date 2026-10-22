@@ -71,11 +71,12 @@ try{
  const candidates=new Set([...source.matchAll(/['"](\/[^'"\s]*)['"]/g)].map(match=>match[1].replace(/:[\w]+/g,'private').replace(/\*/g,'private')));
  for(const path of [...candidates,'/api','/api/overview','/app','/app/monitor','/app/monitors/private','/_serverFn/private','/unknown-path','/undeclared-public-probe.txt','/assets-private','/docs-private','/auth/undeclared-probe']){
   if(matches(path))continue;
-  const expected=path==='/api'||path.startsWith('/api/')?401:/^\/app\/monitors\/?$/.test(path)||/^\/app(?:\/|\/monitor\/?|\/monitors\/[^/]+\/?)?$/.test(path)||path.startsWith('/_serverFn/')?303:404;
+  const privateDocument=/^\/app(?:\/?|\/monitor\/?|\/(?:locations|notifications|archive|settings|signout)\/?|\/monitors(?:\/?|\/[^/]+\/?|\/[^/]+\/edit\/?|\/new\/discovery\/[^/]+\/?|\/new\/manual(?:\/(?:public|private)(?:\/[^/]+)?)?\/?))$/.test(path);
+  const expected=path==='/api'||path.startsWith('/api/')?401:privateDocument||path.startsWith('/_serverFn/')?303:404;
   for(const method of ['GET','POST']){
    const response=await call(path,{method,...(method==='POST'?{body:'{}'}:{})});
    assert.equal(response.status,expected,`undeclared/private ${method} ${path}`);
-   if(expected===303)assert.equal(response.headers.get('location'),/^\/app\/monitors\/?$/.test(path)?'/app':'/login');
+   if(expected===303)assert.equal(response.headers.get('location'),'/login');
    assert.doesNotMatch(await response.text(),/UNDECLARED ASSET MUST NOT BE SERVED/);
   }
   rows.push([path,'private/undeclared',expected,'n/a','n/a','GET/POST denied']);

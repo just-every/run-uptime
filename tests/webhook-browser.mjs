@@ -16,7 +16,7 @@ try{
  const audit=async()=>{await page.addScriptTag({path:new URL('../node_modules/axe-core/axe.min.js',import.meta.url).pathname});const result=await page.evaluate(()=>axe.run(document));assert.deepEqual(result.violations.map(v=>({id:v.id,targets:v.nodes.map(n=>n.target)})),[]);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'console reflows');};
  const notes=async()=>{const r=await f.request('/api/notifications');assert.equal(r.status,200);return r.data};
  for(const width of [1440,390]){
-  await page.setViewportSize({width,height:1000});await page.goto(f.origin+'/app#notifications');await page.locator('html.signed-in').waitFor();await page.locator('#add-destination').waitFor();
+  await page.setViewportSize({width,height:1000});await page.goto(f.origin+'/app/notifications');await page.locator('html.signed-in').waitFor();await page.locator('#add-destination').waitFor();
   await page.locator('#add-destination').click();let dialog=page.locator('dialog[aria-labelledby=destination-dialog-title]');await dialog.getByLabel('Type',{exact:true}).selectOption('webhook');
   await dialog.locator('summary').filter({hasText:'Import a saved UptimeRobot'}).click();
   const source={type:'Webhook',data:{friendlyName:`Payments receiver ${width}`,urlToNotify:url.href,postValue:'{"name":"*monitorFriendlyName*","type":*alertType*,"reason":"*alertDetails*","event":"{{event.id}}"}',sendAsQueryString:false,sendAsJSON:true,sendAsPostParameters:false,customHeaders:{'X-Api-Key':'source-value-discarded'}}};

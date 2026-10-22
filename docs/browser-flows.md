@@ -2,7 +2,7 @@ A browser monitor checks a specific customer journey and every required outcome.
 
 ## Create a journey
 
-Open **Definitions**, paste a definition file, preview it and apply the reviewed plan. New monitors start paused. A flow contains fixed steps and required outcomes, not executable JavaScript. For example:
+Open **Archive → Monitor files** at `/app/archive`, paste a definition file, preview it and apply the reviewed plan. New monitors start paused. A flow contains fixed steps and required outcomes, not executable JavaScript. For example:
 
 ```json
 {

@@ -1,3 +1,4 @@
+import {editorState,manualPath} from '../../ui/monitor-editor-path.mjs';
 import {api} from './api.mjs';
 import {mountManualForm,prepareManualForm,prefillManualForm,NEW_MONITOR} from './manual.mjs';
 import {mountDiscovery} from './discovery.mjs';
@@ -9,15 +10,16 @@ import {showType} from './protocol-fields.mjs';
 // Setup and the empty console send the owner to the same website-first create screen.
 export async function mountMonitorEditor(signal){
  const form=document.querySelector('#monitor-form'),message=document.querySelector('#editor-feedback'),notice=document.querySelector('#editor-notice');
- const params=new URL(location.href).searchParams,id=params.get('monitor'),discovery=document.querySelector('#discovery');
+ const state=editorState(location.pathname),id=state.id,discovery=document.querySelector('#discovery');
  const description=document.querySelector('.editor-description'),manual=document.querySelector('#discovery-manual');
  const loading=document.querySelector('#editor-loading');
- document.querySelector('h1').textContent=id?'Edit monitor':params.has('first')?'Add your first monitor':'New monitor';
+ document.querySelector('h1').textContent=id?'Edit monitor':'New monitor';
  document.documentElement.classList.remove('editor-ready','editor-context-ready');
  if(!form.dataset.rulesBound){form.dataset.rulesBound='true';bindRules(form)}
- let first=!id&&params.has('first')&&!params.get('discovery');
+ let first=false;
  const showManualForm=({url:typed='',network='public'}={})=>{
   const url=typed&&!/^[a-z][a-z0-9+.-]*:\/\//i.test(typed)?'https://'+typed:typed;
+  history.replaceState(history.state,'',manualPath({url,network}));
   discovery.hidden=true;description.hidden=!description.textContent;form.hidden=false;
   let host='';try{host=new URL(url).hostname.replace(/^www\./,'')}catch{}
   prefillManualForm(form,{url,name:host});
@@ -43,16 +45,16 @@ export async function mountMonitorEditor(signal){
    document.querySelector('#discovery-help').textContent='Checking which runners are available…';
    manual.onclick=()=>showManualForm();
    if(first)firstLook();
-   if(params.has('manual'))showManualForm({url:params.get('url')??'',network:params.get('network')==='private'?'private':'public'});
+   if(state.manual)showManualForm(state);
    document.documentElement.classList.add('editor-ready');
   }
   const overview=await context;
   if(signal.aborted)return;
-  loading.hidden=true;
+  loading.hidden=true;first=!id&&overview.first&&!state.discovery;if(first)firstLook();
   const definition=id?overview.definition:NEW_MONITOR;
   if(!definition)throw Error('Monitor missing');
   if(!first){document.title=id?'Edit monitor · Uptime':'New monitor · Uptime';document.querySelector('h1').textContent=id?'Edit monitor':'New monitor'}
-  const returnTo=id?'/app/monitors/'+encodeURIComponent(id):'/app',back=document.querySelector('.editor-back');
+  const returnTo=id?'/app/monitors/'+encodeURIComponent(id):'/app/monitors',back=document.querySelector('.editor-back');
   back.href=returnTo;if(id)back.lastChild.textContent='Back to monitor';form.querySelector('.editor-cancel').href=returnTo;
   form.querySelector('.loading-note')?.remove();
   mountManualForm({form,overview,definition,id,returnTo,message,monitors:await others,preserveFields:!id});
@@ -69,7 +71,7 @@ export async function mountMonitorEditor(signal){
    manual.onclick=null;
    document.querySelector('#discovery-help').textContent='Your runner opens the site from your network, looks around, and proposes monitors that are already filled in.';
    document.querySelector('#discovery-url').disabled=false;document.querySelector('#discovery-check').disabled=false;
-   const dispose=mountDiscovery({form,overview,openCheck:opened?null:params.get('discovery'),showManualForm});
+   const dispose=mountDiscovery({form,overview,openCheck:opened?null:state.discovery,showManualForm});
    signal.addEventListener('abort',dispose,{once:true});
    if(opened){discovery.hidden=true;focused?.focus()}
   }

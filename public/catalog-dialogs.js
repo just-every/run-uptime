@@ -169,7 +169,7 @@ export function openCatalogDialog({ api, action, kind, monitors = [], runners = 
         form.querySelectorAll('input,select,textarea').forEach(control => control.disabled = true);
         status.replaceChildren(document.createTextNode('Batch applied. '));
         const link = document.createElement('a');
-        link.href = '/app#definitions';
+        link.href = '/app/archive';
         link.textContent = 'Review or undo this batch in Definitions';
         link.addEventListener('click',close);
         status.append(link);

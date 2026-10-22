@@ -57,7 +57,7 @@ const list=(kind,items)=>`<ul class="rule-list ${kind}">${items.map(text=>`<li><
 export function rulesCard(m,runners,{editable,other,details}){
  const d=m.definition,locations=checkedFrom(d,runners);
  const up=httpType(d)?list('up',httpRules(d)):other;
- return `<section class="ui-card panel assertions rules-card" aria-labelledby="expects-heading"><div class="panel-head"><h2 id="expects-heading">Up or down</h2>${editable?`<a class="ui-link" id="edit-rules" href="/app/monitor?monitor=${encodeURIComponent(m.id)}">Edit rules</a>`:''}</div>`
+ return `<section class="ui-card panel assertions rules-card" aria-labelledby="expects-heading"><div class="panel-head"><h2 id="expects-heading">Up or down</h2>${editable?`<a class="ui-link" id="edit-rules" href="/app/monitors/${encodeURIComponent(m.id)}/edit">Edit rules</a>`:''}</div>`
   +`<h3>Up when</h3>${up}<h3>Down when</h3>${list('down',[`${d.confirmSlots} failed ${d.confirmSlots===1?'check':'checks in a row'}`,agreementRule(m,runners)])}`
   +`<h3>Back up after</h3>${list('up',[`${d.recoverSlots} passing ${d.recoverSlots===1?'check':'checks'}`])}`
   +(locations.length?`<h3>Checked from</h3><p class="location-chips">${locations.map(name=>`<span class="location-chip">${escape(name)}</span>`).join('')}</p>`:'')

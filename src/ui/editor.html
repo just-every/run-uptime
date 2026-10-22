@@ -1,11 +1,11 @@
 <div class="monitor-editor">
  <aside class="editor-sidebar ui-sidebar">
-  <a class="editor-brand ui-brand" href="/app"><svg class="ui-mark" viewBox="0 0 32 32" width="32" height="32" fill="none" aria-hidden="true" focusable="false"><path d="M24.49 9.83A10.5 10.5 0 1 1 7.51 9.83" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/><path d="M11.73 6.41A10.5 10.5 0 0 1 20.27 6.41" stroke="#e8894f" stroke-width="3.2" stroke-linecap="round"/></svg><span data-rer-name>Uptime</span></a>
-  <nav aria-label="Uptime navigation"><a href="/app" aria-current="true"><span class="ui-icon" data-icon="monitor" aria-hidden="true"></span>Monitors</a><a href="/app#locations"><span class="ui-icon" data-icon="pin" aria-hidden="true"></span>Locations</a><a href="/app#notifications"><span class="ui-icon" data-icon="bell" aria-hidden="true"></span>Notifications</a><a href="/app#archive"><span class="ui-icon" data-icon="archive" aria-hidden="true"></span>Archive</a><a href="/app#settings"><span class="ui-icon" data-icon="gear" aria-hidden="true"></span>Settings</a><a href="/login" id="editor-signout"><span class="ui-icon" data-icon="sign-out" aria-hidden="true"></span>Sign out</a></nav>
+  <a class="editor-brand ui-brand" href="/app/monitors"><svg class="ui-mark" viewBox="0 0 32 32" width="32" height="32" fill="none" aria-hidden="true" focusable="false"><path d="M24.49 9.83A10.5 10.5 0 1 1 7.51 9.83" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/><path d="M11.73 6.41A10.5 10.5 0 0 1 20.27 6.41" stroke="#e8894f" stroke-width="3.2" stroke-linecap="round"/></svg><span data-rer-name>Uptime</span></a>
+  <nav aria-label="Uptime navigation"><a href="/app/monitors" aria-current="true"><span class="ui-icon" data-icon="monitor" aria-hidden="true"></span>Monitors</a><a href="/app/locations"><span class="ui-icon" data-icon="pin" aria-hidden="true"></span>Locations</a><a href="/app/notifications"><span class="ui-icon" data-icon="bell" aria-hidden="true"></span>Notifications</a><a href="/app/archive"><span class="ui-icon" data-icon="archive" aria-hidden="true"></span>Archive</a><a href="/app/settings"><span class="ui-icon" data-icon="gear" aria-hidden="true"></span>Settings</a><a href="/app/signout" id="editor-signout"><span class="ui-icon" data-icon="sign-out" aria-hidden="true"></span>Sign out</a></nav>
  </aside>
  <main class="editor-main ui-main">
-  <a class="editor-back ui-link" href="/app"><span class="ui-icon" data-icon="arrow-left" aria-hidden="true"></span>Back to monitors</a>
-  <header class="editor-header ui-header"><div><h1>New monitor</h1><p class="editor-description" hidden></p></div><p class="editor-first-links" hidden><a class="ui-link" href="/app#archive">Import monitors</a></p></header>
+  <a class="editor-back ui-link" href="/app/monitors"><span class="ui-icon" data-icon="arrow-left" aria-hidden="true"></span>Back to monitors</a>
+  <header class="editor-header ui-header"><div><h1>New monitor</h1><p class="editor-description" hidden></p></div><p class="editor-first-links" hidden><a class="ui-link" href="/app/archive">Import monitors</a></p></header>
   <p id="editor-notice" class="ui-callout error" role="alert" hidden></p>
   <section id="discovery" class="discovery" aria-label="Check a website" hidden>
    <form id="discovery-form" class="discovery-panel ui-card" novalidate>
@@ -31,7 +31,7 @@
     <div class="editor-footer">
      <div id="discovery-summary" class="discovery-summary" role="status" tabindex="-1"></div>
      <p id="discovery-feedback" class="discovery-feedback" role="status"></p>
-     <div class="editor-actions"><a class="editor-cancel ui-button" href="/app">Cancel</a><button id="discovery-start" class="primary" type="button">Start 0 monitors</button></div>
+     <div class="editor-actions"><a class="editor-cancel ui-button" href="/app/monitors">Cancel</a><button id="discovery-start" class="primary" type="button">Start 0 monitors</button></div>
     </div>
    </div>
   </section>
@@ -137,7 +137,7 @@
      <fieldset id="check-from" class="check-from"><legend class="rules-heading">Check from</legend></fieldset>
     </section>
    </div>
-   <div class="editor-footer"><p id="editor-feedback" role="status"></p><div class="editor-actions"><a class="editor-cancel" href="/app">Cancel</a><button disabled type="submit">Save monitor</button></div></div>
+   <div class="editor-footer"><p id="editor-feedback" role="status"></p><div class="editor-actions"><a class="editor-cancel" href="/app/monitors">Cancel</a><button disabled type="submit">Save monitor</button></div></div>
   </form>
  </main>
 </div>

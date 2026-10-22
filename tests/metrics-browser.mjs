@@ -15,7 +15,7 @@ try{
  const context=await browser.newContext({permissions:['clipboard-read','clipboard-write']}),page=await context.newPage();
  await browserSignIn(page,origin);
  const enter=async()=>{
-  await page.goto(origin+'/app#settings');await page.locator('html.signed-in').waitFor();
+  await page.goto(origin+'/app/settings');await page.locator('html.signed-in').waitFor();
   await page.locator('[data-view="settings"]').click();await page.locator('#metrics-key-form').waitFor();
  };
  const checkPanel=async(width,stage='panel')=>{

@@ -31,7 +31,7 @@ export async function definitionsJourney(page, origin) {
  ];
  for (const step of cases) {
   await page.setViewportSize({ width: step.width, height: 900 });
-  await page.goto(origin + '/app#archive');
+  await page.goto(origin + '/app/archive');
   await page.getByRole('heading', { name: 'Monitor files' }).waitFor();
   await page.getByLabel(/^A file from\b/).setInputFiles(step.file);
   await page.getByRole('button', { name: 'Preview', exact: true }).click();

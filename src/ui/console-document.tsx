@@ -14,10 +14,10 @@ export function ConsoleDocument(){
  // just as the monitor form does, so it cannot race hydration on the save return.
  useEffect(()=>{
   let mounted=true
-  const openMonitor=()=>{void router.navigate({to:'/app/monitor'})}
+  const openMonitor=()=>{void router.navigate({to:'/app/monitors/new'})}
   window.addEventListener('uptime:new-monitor',openMonitor)
   // Warm only the editor's static route code. Its configuration stays fresh.
-  void router.preloadRoute({to:'/app/monitor'}).catch(()=>{})
+  void router.preloadRoute({to:'/app/monitors/new'}).catch(()=>{})
   const script=document.createElement('script');script.type='module';script.src='/app.js';script.dataset.uptime='true'
   script.onload=()=>{if(mounted)window.dispatchEvent(new Event('uptime:console-mount'))}
   document.body.appendChild(script)

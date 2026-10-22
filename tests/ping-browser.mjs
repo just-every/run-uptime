@@ -22,7 +22,7 @@ try{
   let output='';child.stdout.on('data',b=>output+=b);child.stderr.on('data',b=>output+=b);const timer=setTimeout(()=>child.kill('SIGKILL'),40000);try{assert.equal((await once(child,'exit'))[0],0,output.slice(0,1200))}finally{clearTimeout(timer)}
  };
  for(const width of [1440,390]){
-  await page.setViewportSize({width,height:1000});await page.goto(origin+'/app/monitor');await page.locator('.editor-ready').waitFor();await page.locator('#discovery-manual').click();
+  await page.setViewportSize({width,height:1000});await page.goto(origin+'/app/monitors/new');await page.locator('.editor-ready').waitFor();await page.locator('#discovery-manual').click();
   const form=page.locator('form').filter({has:page.locator('[name=checkType]')});
   await form.locator('[name=checkType]').selectOption('ping');await form.getByLabel('Monitor name',{exact:true}).fill(`Chicago gateway IPv6 ${width}`);
   await form.getByLabel('Ping host',{exact:true}).fill('ping.protocol.test');await form.locator('[name=pingFamily]').selectOption('6');

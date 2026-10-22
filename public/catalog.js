@@ -40,7 +40,7 @@ export function createCatalog({ api, action, monitorRow, coverageRule }) {
         if (!note)
             return;
         note.hidden = !lastBatch;
-        note.innerHTML = lastBatch ? '<p>Catalog batch applied. <a href="/app#archive">Review or undo it in Archive</a></p>' : '';
+        note.innerHTML = lastBatch ? '<p>Catalog batch applied. <a href="/app/archive">Review or undo it in Archive</a></p>' : '';
     }
     function selection() {
         const count = chosen().length, visibleSelected = visible.filter(m => selected.has(m.id)).length, box = host.querySelector('#catalog-select-visible');

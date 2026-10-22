@@ -23,8 +23,8 @@ async function probe(call,settings,fetcher=fetch,requireRunner=false){
  for(const path of ['/app','/app/','/app/monitor','/app/monitor/']){
   const denied=await call(path);assert.equal(denied.status,303,'signed-out '+path);assert.equal(denied.headers.get('location'),'/login');assert.equal(denied.headers.get('cache-control'),'no-store');
  }
- const legacy=await call('/monitor?monitor=x');assert.equal(legacy.status,308);assert.equal(legacy.headers.get('location'),'/app/monitor?monitor=x');
- const legacySlash=await call('/monitor/?monitor=x');assert.equal(legacySlash.status,308);assert.equal(legacySlash.headers.get('location'),'/app/monitor?monitor=x');
+ const legacy=await call('/monitor?monitor=x');assert.equal(legacy.status,308);assert.equal(legacy.headers.get('location'),'/app/monitors/x/edit');
+ const legacySlash=await call('/monitor/?monitor=x');assert.equal(legacySlash.status,308);assert.equal(legacySlash.headers.get('location'),'/app/monitors/x/edit');
  const login=await call('/login');assert.equal(login.status,requireRunner?303:200);if(requireRunner)assert.equal(login.headers.get('location'),'/signin?returnTo=%2Fapp');
  assert.equal((await call('/does-not-exist')).status,404);
  // Before the owner confirms first-run setup the Lobby's one action is /setup; once confirmed it is sign-in,
@@ -40,9 +40,10 @@ async function probe(call,settings,fetcher=fetch,requireRunner=false){
  }else cookie=await signInOwner(settings.UPTIME_ORIGIN,{bindings:settings,fetcher,finishFirstRun:true});
  await lobby('claimed');
  if(requireRunner)await waitFor(async()=>{const response=await call('/api/overview',undefined,{cookie});return response.ok&&(await response.json()).runner.contact.state==='Fresh contact'},'real private runner contact',60000);
- const response=await call('/app',undefined,{cookie});assert.equal(response.status,200);const html=await response.text();assert.match(html,/class="app"/);assert.match(html,/href="\/style\.css"/);assert.doesNotMatch(html,/<script[^>]*src="\/app\.js"/,'the DOM-mutating controller starts only after hydration');assert.doesNotMatch(html,/id="access-form"|id="owner-token"/);
+ const alias=await call('/app',undefined,{cookie});assert.equal(alias.status,308);assert.equal(alias.headers.get('location'),'/app/monitors');
+ const response=await call('/app/monitors',undefined,{cookie});assert.equal(response.status,200);const html=await response.text();assert.match(html,/class="app"/);assert.match(html,/href="\/style\.css"/);assert.doesNotMatch(html,/<script[^>]*src="\/app\.js"/,'the DOM-mutating controller starts only after hydration');assert.doesNotMatch(html,/id="access-form"|id="owner-token"/);
  const app=await call('/app.js',undefined,{cookie});assert.equal(app.status,200);assert.equal(await app.text(),await readFile('public/app.js','utf8'),'the deferred console controller is served intact');
- assert.equal((await call('/app/monitor',undefined,{cookie})).status,200);
+ const editorAlias=await call('/app/monitor',undefined,{cookie});assert.equal(editorAlias.status,308);assert.equal(editorAlias.headers.get('location'),'/app/monitors/new');assert.equal((await call('/app/monitors/new',undefined,{cookie})).status,200);
  assert.equal((await call('/docs/overview',undefined,{cookie})).status,200,'signed-in owner can still read the public docs');
  const missing=await call('/does-not-exist',undefined,{cookie});assert.equal(missing.status,404);assert.doesNotMatch(await missing.text(),/class="app"|src="\/app.js"/);
 }

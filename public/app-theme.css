@@ -13,7 +13,7 @@
    Shell (console.html with app.js, editor.html)
      <div class="app">                                   root, kept literal; or <div class="monitor-editor">
        <aside class="sidebar ui-sidebar">                 the grid starts as soon as the root has a .ui-sidebar child
-         <a class="brand ui-brand" href="/app"><span class="ui-mark" aria-hidden="true"></span>Uptime</a>
+         <a class="brand ui-brand" href="/app/monitors"><span class="ui-mark" aria-hidden="true"></span>Uptime</a>
          <nav aria-label="…">                             links: <span class="ui-icon" data-icon="bell" aria-hidden="true"></span>Notifications
                                                           the current link carries aria-current="page", or "true" for the
                                                           current section (the editor's Monitors): white pill, peach dot

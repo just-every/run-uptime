@@ -47,7 +47,7 @@ export function mountCheckFrom(fieldset,{overview,definition,externalCheck,isNew
  }
  const note=element('p','helper ui-helper location-limit',`Up to ${limit} locations per monitor.`);note.id='location-limit';
  const rule=element('p','agreement-rule helper ui-helper');rule.id='agreement-rule';rule.setAttribute('aria-live','polite');
- const more=element('p','probe-more');more.innerHTML='<a class="ui-link" href="/app#locations">Add a location</a>';
+ const more=element('p','probe-more');more.innerHTML='<a class="ui-link" href="/app/locations">Add a location</a>';
  const advanced=element('details','check-from-advanced'),summary=element('summary','', 'Advanced'),field=element('label','', 'External check URL (optional)'),own=element('input'),help=element('p','helper ui-helper','A site you do not run. Empty uses the one in Settings.');
  own.type='url';own.name='externalCheckUrl';own.id='external-check-own';own.placeholder=overview.runner.externalCheckUrl??'';own.value=externalCheck?.own??'';own.setAttribute('aria-describedby','external-check-own-help');help.id='external-check-own-help';
  field.append(own);advanced.append(summary,field,help);advanced.open=Boolean(own.value);

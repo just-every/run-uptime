@@ -1,7 +1,7 @@
 import {icon} from './console-format.js';
 import {renderDefinitions} from './definitions.js';
 import {patch,firstMount} from './dom-patch.js';
-// Archive (/app#archive): every file in and out of Uptime. The backup (the private archive, its erasure journal and
+// Archive (/app/archive): every file in and out of Uptime. The backup (the private archive, its erasure journal and
 // restore) and the monitor files (import, export and past imports, public/definitions.js, data-owned so a preview survives
 // the refresh).
 export function renderArchive({area,api,action}){

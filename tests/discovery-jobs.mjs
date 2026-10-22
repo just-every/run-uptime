@@ -115,7 +115,7 @@ test('DEPENDENCY-001 a linked provider status page is discovered, its component 
   assert.equal((await g.request('/api/external-check',{body:{url:canaryUrl}})).status,200);
   const page=await (await browser.newContext({viewport:{width:1440,height:900}})).newPage();
   await browserSignIn(page,g.origin,{bindings:g.bindings});
-  await page.goto(g.origin+'/app/monitor');
+  await page.goto(g.origin+'/app/monitors/new');
   await page.getByLabel('Website URL',{exact:true}).fill(applicationUrl);
   await page.getByRole('button',{name:'Check',exact:true}).click();
   running=runRunner({origin:g.origin,key:g.first.key,runnerId:g.first.runnerId,localReview:true,signal:controller.signal,pollMs:20});
@@ -141,7 +141,7 @@ test('DEPENDENCY-001 a linked provider status page is discovered, its component 
   const evidence=process.env.UPTIME_DEPENDENCY_EVIDENCE;
   if(evidence){await mkdir(evidence,{recursive:true});for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await page.screenshot({path:join(evidence,`component-review-${width}.png`),fullPage:true})}}
   await page.getByRole('button',{name:'Start 3 monitors',exact:true}).click();
-  await page.waitForURL(g.origin+'/app');
+  await page.waitForURL(g.origin+'/app/monitors');
   const monitors=async()=>(await g.request('/api/overview')).data.monitors;
   const adopted=await monitors(),app=adopted.find(m=>m.definition.url===applicationUrl),provider=adopted.find(m=>m.definition.url===payments.definition.url),whole=adopted.find(m=>m.definition.url===overall.definition.url);
   assert.equal(adopted.length,3);assert.ok(app&&provider&&whole);
@@ -194,7 +194,7 @@ test('a new monitor starts from a pasted URL: the runner answers, the owner unti
  try{
   const page=await (await browser.newContext({viewport:{width:1440,height:900}})).newPage();
   await browserSignIn(page,f.origin,{bindings:f.bindings});
-  await page.goto(f.origin+'/app/monitor');
+  await page.goto(f.origin+'/app/monitors/new');
   await page.getByLabel('Website URL',{exact:true}).fill('example.com');
   await page.getByRole('button',{name:'Check',exact:true}).click();
   // The test is the runner: it claims over the runner route and answers over the signed result route.
@@ -213,11 +213,11 @@ test('a new monitor starts from a pasted URL: the runner answers, the owner unti
   await page.getByRole('button',{name:'Start 2 monitors',exact:true}).waitFor();
   // The visible first-run default is independent of example.com; no extra input is required.
   await page.getByRole('button',{name:'Start 2 monitors',exact:true}).click();
-  await page.waitForURL(f.origin+'/app');
+  await page.waitForURL(f.origin+'/app/monitors');
   const monitors=(await f.request('/api/overview')).data.monitors;
   assert.deepEqual(monitors.map(m=>m.definition.name).sort(),['Example dashboard','Example site']);
   for(const m of monitors){assert.equal(m.definition.enabled,true);assert.deepEqual(m.definition.assignments['local-a'],{runnerId:f.first.runnerId,networkLabel:f.first.networkLabel,canaryUrl:'https://example.org/'})}
-  await page.goto(f.origin+'/app/monitor');
+  await page.goto(f.origin+'/app/monitors/new');
   await page.getByLabel('Website URL',{exact:true}).fill('http://10.0.0.5/status');await page.getByRole('button',{name:'Check',exact:true}).click();
   await page.getByRole('link',{name:'Check a private address',exact:true}).click();await page.locator('html.editor-context-ready').waitFor();
   assert.equal(await page.locator('[name=networkScope]').inputValue(),'private');assert.equal(await page.locator('[name=url]').inputValue(),'http://10.0.0.5/status');
@@ -239,9 +239,9 @@ test('first run with a website in the settings queues one job, however often the
   const [job]=await jobs();assert.deepEqual({url:job.url,status:job.status},{url:'https://example.com/shop',status:'queued'});
   // A site typed into a stale form is ignored: the installation's answer wins.
   const finished=await setup({method:'POST',headers:formHeaders,body:'start_url=other.example.org'});
-  assert.equal(finished.status,303);assert.equal(finished.headers.get('location'),'/app/monitor?'+new URLSearchParams({discovery:job.id,website:'example.com',from:g.first.networkLabel}));assert.equal((await jobs()).length,1);
-  assert.equal((await setup()).headers.get('location'),'/app','first run completes once');
-  assert.equal((await setup({method:'POST'})).headers.get('location'),'/app');assert.equal((await jobs()).length,1,'a second completion queues nothing');
+  assert.equal(finished.status,303);assert.equal(finished.headers.get('location'),'/app/monitors/new/discovery/'+encodeURIComponent(job.id));assert.equal((await jobs()).length,1);
+  assert.equal((await setup()).headers.get('location'),'/app/monitors','first run completes once');
+  assert.equal((await setup({method:'POST'})).headers.get('location'),'/app/monitors');assert.equal((await jobs()).length,1,'a second completion queues nothing');
   // Reuse covers queued, running and done jobs; one that failed or expired is asked again.
   await g.DB.prepare('DELETE FROM uptime_first_run').run();
   await g.DB.prepare("UPDATE discovery_jobs SET status='failed',error='x'").run();
@@ -259,9 +259,9 @@ test('first run without a website offers an optional field: filled it queues the
    const page=await fetch(g.origin+'/setup',{redirect:'manual',headers:{cookie}});assert.equal(page.status,200,label);
    const html=await page.text();assert.ok(html.includes('name="start_url"'),`${label}: the field is offered`);assert.ok(!html.includes('external_check_url'),`${label}: the external check URL is not asked in setup`);assert.deepEqual(await jobs(),[]);
    const done=await fetch(g.origin+'/setup',{method:'POST',redirect:'manual',headers:{origin:g.origin,cookie,...(form===undefined?{}:formHeaders)},...(form===undefined?{}:{body:form})});assert.equal(done.status,303,label);
-   if(form==='start_url=Example.com%2Fabout'){const all=await jobs();assert.deepEqual(all.map(j=>[j.url,j.status]),[['https://example.com/about','queued']]);assert.equal(done.headers.get('location'),'/app/monitor?'+new URLSearchParams({discovery:all[0].id,website:'example.com',from:g.first.networkLabel}))}
-   else{assert.equal(done.headers.get('location'),'/app/monitor?first=1',`${label}: an installation with no monitors opens the new-monitor form`);assert.deepEqual(await jobs(),[],`${label}: nothing is queued`)}
-   assert.equal((await fetch(g.origin+'/setup',{redirect:'manual',headers:{cookie}})).headers.get('location'),'/app');
+   if(form==='start_url=Example.com%2Fabout'){const all=await jobs();assert.deepEqual(all.map(j=>[j.url,j.status]),[['https://example.com/about','queued']]);assert.equal(done.headers.get('location'),'/app/monitors/new/discovery/'+encodeURIComponent(all[0].id))}
+   else{assert.equal(done.headers.get('location'),'/app/monitors/new',`${label}: an installation with no monitors opens the new-monitor form`);assert.deepEqual(await jobs(),[],`${label}: nothing is queued`)}
+   assert.equal((await fetch(g.origin+'/setup',{redirect:'manual',headers:{cookie}})).headers.get('location'),'/app/monitors');
    assert.equal((await g.DB.prepare('SELECT COUNT(*) n FROM monitors').first()).n,0,'nothing created a monitor');
   }finally{await g.close()}
  }

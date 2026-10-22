@@ -20,7 +20,7 @@ try{
  const context=await browser.newContext(),page=await context.newPage();await browserSignIn(page,origin);await mkdir(screens,{recursive:true});
  const shot=async(name)=>{assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.addScriptTag({path:resolve('node_modules/axe-core/axe.min.js')});assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.map(v=>v.id),[]);assert.match(await page.locator('body').ariaSnapshot(),/UDP/);await page.screenshot({path:join(screens,name),fullPage:true})};
  for(const width of [1440,390]){
-  await page.setViewportSize({width,height:1000});await page.goto(origin+'/app/monitor');await page.locator('.editor-ready').waitFor();await page.locator('#discovery-manual').click();
+  await page.setViewportSize({width,height:1000});await page.goto(origin+'/app/monitors/new');await page.locator('.editor-ready').waitFor();await page.locator('#discovery-manual').click();
   const form=page.locator('form').filter({has:page.locator('[name=checkType]')});
   await form.locator('[name=checkType]').selectOption('udp');await form.getByLabel('Monitor name',{exact:true}).fill(`US West game gateway ${width}`);
   await form.getByLabel('UDP host',{exact:true}).fill('udp.protocol.test');await form.getByLabel('UDP port',{exact:true}).fill('9000');

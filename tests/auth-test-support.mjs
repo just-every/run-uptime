@@ -39,7 +39,7 @@ export async function finishSetup(origin,cookie,fetcher=fetch){
  const response=await fetcher(origin+'/setup',{method:'POST',redirect:'manual',headers:{host:new URL(origin).host,origin,cookie}});
  assert.equal(response.status,303,'owner completes the native first-run form');
  // An installation with no monitors lands on the first monitor's form; one with monitors on the list.
- assert.ok(['/app','/app/monitor?first=1'].includes(response.headers.get('location')),response.headers.get('location'));
+ assert.ok(['/app/monitors','/app/monitors/new'].includes(response.headers.get('location')),response.headers.get('location'));
 }
 export async function emailSignIn(origin,{bindings=testAuthBindings,fetcher=fetch}={}){
  const call=authRequest(origin,fetcher);
@@ -65,7 +65,7 @@ export async function browserSignIn(page,origin,{bindings=testAuthBindings,boots
  const link=await deliveredLink(call,{email:bindings.OWNER_EMAIL});
  await page.goto(link.href);
  await page.getByRole('button',{name:/confirm|sign in/i}).click();
- await page.waitForURL(url=>['/app','/setup'].includes(url.pathname));
+ await page.waitForURL(url=>(url.pathname.startsWith('/app/')||url.pathname==='/setup'));
  if(new URL(page.url()).pathname==='/setup')await page.getByRole('button',{name:'Continue',exact:true}).click();
  await page.waitForURL(url=>url.pathname.startsWith('/app'));
 }

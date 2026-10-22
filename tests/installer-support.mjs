@@ -22,7 +22,7 @@ export async function devSignIn(page, url, owner = answers, { finishSetup = true
  const origin=new URL(url).origin;
  await openGate(page.context(),origin,key);
  await page.goto(origin+'/auth/dev/enter?as=owner&returnTo=%2Fsetup');
- await page.waitForURL(value=>['/app','/setup'].includes(value.pathname));
+ await page.waitForURL(value=>(value.pathname.startsWith('/app/')||value.pathname==='/setup'));
  if(finishSetup&&new URL(page.url()).pathname==='/setup'){await page.getByRole('button',{name:'Continue',exact:true}).click();await page.waitForURL(value=>value.pathname.startsWith('/app'));}
  const response = await page.request.get(new URL('/auth/session', url).href);
  assert.equal(response.status(), 200);
@@ -33,7 +33,7 @@ export async function devSignIn(page, url, owner = answers, { finishSetup = true
  return session;
 }
 export async function smokeDocuments(page, origin) {
- assert.equal((await page.request.get(origin + '/app')).status(), 200);
+ assert.equal((await page.request.get(origin + '/app/monitors')).status(), 200);
  assert.equal((await page.request.get(origin + '/login')).status(), 200);
  assert.equal((await page.request.get(origin + '/journey-missing-document')).status(), 404);
  const unsigned = await page.context().browser().newContext();
@@ -69,8 +69,8 @@ export async function monitorHydration(ownerPage, origin, root) {
   for (const width of [1440, 390]) {
    const name = `Hydration monitor ${width}`;
    await page.setViewportSize({ width, height: 900 });
-   await page.goto(origin + '/app/monitor');
-   assert.equal(new URL(page.url()).pathname, '/app/monitor', 'hydration proof must reach the authenticated editor');
+   await page.goto(origin + '/app/monitors/new');
+   assert.equal(new URL(page.url()).pathname, '/app/monitors/new', 'hydration proof must reach the authenticated editor');
    await page.getByLabel('Website URL', { exact: true }).fill(target);
    await page.waitForLoadState('networkidle');
    assert.equal(await page.evaluate(() => window.__rerHydration?.count ?? 0), 0, 'discovery has no recovered hydration mismatch');
@@ -89,7 +89,7 @@ export async function monitorHydration(ownerPage, origin, root) {
    const savedOverview = await page.request.get(origin + '/api/overview'); assert.equal(savedOverview.status(), 200);
    const monitor = (await savedOverview.json()).monitors.find(row => row.definition.name === name);
    assert.ok(monitor, 'the UI-created monitor is durably readable');
-   await page.goto(origin + '/app/monitor?monitor=' + encodeURIComponent(monitor.id));
+   await page.goto(origin + '/app/monitors/' + encodeURIComponent(monitor.id) + '/edit');
    await page.waitForFunction(() => document.documentElement.classList.contains('editor-ready'));
    await page.waitForLoadState('networkidle');
    assert.equal(await page.getByLabel('Monitor name', { exact: true }).inputValue(), name, 'saved name survives a fresh document load');
@@ -104,10 +104,10 @@ export async function monitorHydration(ownerPage, origin, root) {
   }
   assert.deepEqual(errors, [], 'authenticated monitor journey has no console/page errors');
   assert.deepEqual(failed, [], 'authenticated monitor journey has no failed client requests');
-  if (evidence) await writeFile(join(evidence, 'result.json'), JSON.stringify({ path: '/app/monitor', rows, errors, failed, cancellations }, null, 2));
-  console.log('HYDRATION /app/monitor PASS: authenticated discovery/manual forms, UI save and reload persistence at 1440/390; zero console/page errors and failed client loads; navigation/effect cancellations recorded separately.');
+  if (evidence) await writeFile(join(evidence, 'result.json'), JSON.stringify({ path: '/app/monitors/new', rows, errors, failed, cancellations }, null, 2));
+  console.log('HYDRATION /app/monitors/new PASS: authenticated discovery/manual forms, UI save and reload persistence at 1440/390; zero console/page errors and failed client loads; navigation/effect cancellations recorded separately.');
  } catch (error) {
-  if (evidence) await writeFile(join(evidence, 'failure.json'), JSON.stringify({ path: '/app/monitor', rows, errors, failed, cancellations }, null, 2));
+  if (evidence) await writeFile(join(evidence, 'failure.json'), JSON.stringify({ path: '/app/monitors/new', rows, errors, failed, cancellations }, null, 2));
   throw error;
  } finally {
   page.off('console', consoleError); page.off('pageerror', pageError); page.off('response', badResponse); page.off('requestfailed', failedRequest);

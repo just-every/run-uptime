@@ -63,7 +63,7 @@ export async function inspectEchoCustody({f,records}){
    const context=await browser.newContext({viewport:{width,height:900}}),page=await context.newPage();
    try{
     await context.route('**/*',route=>new URL(route.request().url()).origin===f.origin?route.continue():route.abort());
-    await browserSignIn(page,f.origin,{bindings:f.bindings});await page.goto(f.origin+'/app#notifications');await page.locator('html.signed-in').waitFor();
+    await browserSignIn(page,f.origin,{bindings:f.bindings});await page.goto(f.origin+'/app/notifications');await page.locator('html.signed-in').waitFor();
     for(const reload of [false,true]){
      if(reload){await page.reload();await page.locator('html.signed-in').waitFor()}
      for(const record of records){

@@ -1,3 +1,4 @@
+import {isConsoleDocument,isMonitorPage,canonicalConsolePath,consoleRedirect} from './ui/console-paths.ts'
 import {monitoringMonitors,monitoringMonitor} from './domain/read-api/monitors.server.ts'
 import {bulkUptime} from './domain/read-api/bulk.server.ts'
 import {bulkUptimeCsv,incidentListCsv} from './domain/read-api/csv.ts'
@@ -264,7 +265,6 @@ const ownerAdmitted=claimedWhen('SELECT 1 FROM oa_bootstrap WHERE singleton = 1'
 // The public docs carry no installation data and need no session.
 
 // One monitor's page in the console (/app/monitors/<id>); it is gated like /app.
-const isMonitorPage=(path:string)=>/^\/app\/monitors\/[^/]+\/?$/.test(path)
 // A monitor page whose id is not valid percent-encoding names no monitor; after the session check it gets the 404 page.
 const undecodableMonitorId=(path:string)=>{try{decodeURIComponent(path.slice('/app/monitors/'.length).replace(/\/$/,''));return false}catch{return true}}
 // The private console documents: the monitor list, the monitor editor and each monitor's page.
@@ -275,7 +275,6 @@ const noTransform=(response:Response)=>{
  headers.set('cache-control',policy?policy+', no-transform':'no-transform');
  return new Response(response.body,{status:response.status,statusText:response.statusText,headers})
 }
-const isConsoleDocument=(path:string)=>['/app','/app/','/app/monitor','/app/monitor/'].includes(path)||isMonitorPage(path)
 const handler={async fetch(request,env,execution){
  env=await demoBindings(env as Bindings);
  const invalid=await configurationResponse(env as Bindings);if(invalid)return invalid;
@@ -292,8 +291,7 @@ const handler={async fetch(request,env,execution){
  const lobbyBindings={DB:bindings.DB,AUTH_ORIGIN:bindings.UPTIME_ORIGIN!};
  const state=await setupStateResponse(request,lobbyBindings,claimed);if(state)return state;
  const lobby=await lobbyResponse(request,lobbyBindings,identity,claimed);if(lobby)return lobby;
- // /app/monitors has no page of its own: a monitor's page is /app/monitors/<id>, and the list is /app.
- if(path==='/app/monitors'||path==='/app/monitors/')return new Response(null,{status:303,headers:{location:'/app','cache-control':'no-store'}});
+ if(path==='/monitor'||path==='/monitor/')return consoleRedirect(canonicalConsolePath(url)!);
  if(!publicPath(path,bindings.UPTIME_LOCAL_REVIEW==='true')&&!isConsoleDocument(path)&&!isEvidencePage&&!path.startsWith('/_serverFn/')&&path!=='/api'&&!path.startsWith('/api/'))return notFoundDocument();
  if(isEvidencePage){if(!['GET','HEAD'].includes(request.method))return new Response(null,{status:405});try{const id=decodeURIComponent(path.split('/').pop()!);if(!await evidencePrincipal(bindings,request,id)){if(!await authenticatedSession(bindings,request))return new Response(null,{status:303,headers:{location:'/login','cache-control':'no-store'}});return failureEvidenceDenied()}const response=failureEvidenceDocument(id);return request.method==='HEAD'?new Response(null,response):response}catch(error){return authFailure(error)}}
  // On a Business-provisioned install the owner's first claim opens the import door (claim-door.server.ts).
@@ -307,11 +305,11 @@ const handler={async fetch(request,env,execution){
  if(path==='/login'||path==='/claim')return authDocument(path==='/claim',path==='/login'&&url.searchParams.get('notice')==='sent',developmentMail(bindings),false,bindings.UPTIME_DEPLOY_ENVIRONMENT,!await ownerAdmitted(bindings.DB),path==='/login'&&url.searchParams.get('notice')==='mail_unavailable',url.searchParams.get('login_hint')??'');
  if(path==='/uptime-runner.mjs')return runnerScriptResponse(request);
  if(isPublicAsset(path))return publicAssetResponse(request,bindings.ASSETS);
- if(path==='/monitor'||path==='/monitor/')return new Response(null,{status:308,headers:{location:`/app/monitor${url.search}`,'cache-control':'no-store'}});
  if(path!=='/health'&&path!=='/api'&&!path.startsWith('/api/')&&!isPublicDocument(path)){
   // Only native document routes and Start transports reach the private renderer.
   if(!isConsoleDocument(path)&&!path.startsWith('/_serverFn/'))return notFoundDocument();
   try{const principal=await authenticatedSession(bindings,request);if(!principal)return new Response(null,{status:303,headers:{location:'/login','cache-control':'no-store'}});if(principal.operator.role!=='owner')return accessDeniedDocument(principal.operator.displayName,request.method==='HEAD');await openDoorForOwner(bindings);if(!await firstRunComplete(bindings))return setupRedirect()}catch(error){return authFailure(error)}
+  const canonical=canonicalConsolePath(url);if(canonical)return consoleRedirect(canonical);
   if(isMonitorPage(path)&&undecodableMonitorId(path))return notFoundDocument();
  }
  const response=await dispatch(request,()=>api.fetch(request,bindings,execution),()=>start.fetch(request));

@@ -43,7 +43,7 @@ try {
  assert.equal((await app.call('/api/editor/config',undefined,{cookie:memberCookie})).status,403);
  assert.equal((await app.call('/api/editor/config',undefined,{cookie})).status,503,'malformed grant configuration cannot issue an owner grant');
  Object.assign(editorBindings,enabledBindings);await app.restart();
- const document=await app.call('/app',undefined,{cookie});
+ const document=await app.call('/app/monitors',undefined,{cookie});
  assert.match(document.headers.get('content-security-policy'),new RegExp(`frame-ancestors 'self' ${edge.origin.replaceAll('.','\\.')}`));
  await mkdir(evidence,{recursive:true});browser=await chromium.launch({headless:true,args:['--disable-gpu','--use-mock-keychain','--password-store=basic']});
  const results=[];
@@ -59,7 +59,7 @@ try {
    });
    // An installation with no monitors sends /app to the first monitor's form as soon as the console reads the monitors,
    // which would replace the open editor's document. Locations is a console page on the same document that stays put.
-   await page.goto(app.origin+'/app#locations');
+   await page.goto(app.origin+'/app/locations');
    const host=page.locator('[data-rer-editor]');await host.waitFor();
    await page.waitForFunction(()=>document.querySelector('[data-rer-editor]')?.getAttribute('data-connection')==='connected');
    const launcher=host.getByRole('button',{name:'Open Run Edit Run'});await launcher.click();
@@ -85,7 +85,7 @@ try {
    assert.ok(await frame.isVisible(),'already-open editor stays open');
    assert.deepEqual(await editorFrame.evaluate(()=>({sameDocument:window.renewalDocument===document,draft:document.getElementById('renewal-private-draft')?.value})),{sameDocument:true,draft:marker},'editor document identity and private draft survive renewal');
    await page.screenshot({path:join(evidence,`editor-${width}.png`)});
-   await page.goto(app.origin+'/app/monitor');await page.locator('[data-rer-editor]').waitFor();
+   await page.goto(app.origin+'/app/monitors/new');await page.locator('[data-rer-editor]').waitFor();
    // Native role loss is checked through the product route, then focus revokes immediately.
    assert.equal((await app.call('/auth/operator/role',{operatorId:primary,role:'member'},{cookie:secondOwner})).status,200);
    await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
@@ -96,7 +96,7 @@ try {
    const fresh=await emailSignIn(app.origin), [freshName,freshValue]=fresh.split('=');
    await context.addCookies([{name:freshName,value:freshValue,url:app.origin,httpOnly:true,sameSite:'Lax'}]);
    edge.state.denied=true;const violations=[];page.on('console',message=>{if(message.type()==='error'&&/frame-ancestors|framing/i.test(message.text()))violations.push(true)});
-   await page.goto(app.origin+'/app#locations');await page.locator('[data-rer-editor]').waitFor();
+   await page.goto(app.origin+'/app/locations');await page.locator('[data-rer-editor]').waitFor();
    await page.waitForFunction(()=>document.querySelector('[data-rer-editor]')?.getAttribute('data-connection')!=='connected');
    await new Promise(resolve=>setTimeout(resolve,1000));assert.ok(violations.length,'Chromium enforces management frame-ancestors refusal');
    edge.state.denied=false;

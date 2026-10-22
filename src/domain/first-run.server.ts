@@ -34,7 +34,7 @@ export async function firstRun(env:Bindings,request:Request){
   const owner=await authenticatedSession(env,request)
   if(!owner)return new Response(null,{status:303,headers:{location:'/login?returnTo=%2Fsetup','cache-control':'no-store'}})
   if(owner.operator.role!=='owner')return accessDeniedDocument(owner.operator.displayName,request.method==='HEAD')
-  if(await firstRunComplete(env))return redirect('/app')
+  if(await firstRunComplete(env))return redirect('/app/monitors')
   // A website set at installation is the owner's answer; otherwise the form may carry one. Either way one discovery job asks the owner's runner to look.
   const first=await ensureFirstRunner(env);
   const runtime=runnerRuntime(env,await listRunners(env)),canDiscover=!runtime.hosted||runtime.privateRunnerReady;
@@ -53,7 +53,7 @@ export async function firstRun(env:Bindings,request:Request){
     const completed=await env.DB.prepare('INSERT INTO uptime_first_run(id,completed_at) VALUES(1,?) ON CONFLICT(id) DO NOTHING').bind(Date.now()).run()
     // With no monitors yet, setup lands on the new-monitor form ("Add your first monitor") rather than an empty list.
     const empty=!(await env.DB.prepare('SELECT 1 FROM monitors LIMIT 1').first())
-    return redirect(completed.meta.changes&&job?`/app/monitor?${new URLSearchParams({discovery:job,website:new URL(address!).hostname,...(place?{from:place}:{})})}`:empty?'/app/monitor?first=1':'/app')
+    return redirect(completed.meta.changes&&job?`/app/monitors/new/discovery/${encodeURIComponent(job)}`:empty?'/app/monitors/new':'/app/monitors')
    }
    site={entered:typed??'',problem:BAD_SITE};status=400
   }else if(configured&&canDiscover&&request.method==='GET')await ensureDiscovery(env,configured)
