@@ -10,7 +10,11 @@ const out=resolve(process.env.UPTIME_UI_EVIDENCE??'data/operator-evidence'),chec
 await mkdir(out,{recursive:true});
 const browser=await chromium.launch({headless:true,args:['--disable-gpu','--use-mock-keychain','--password-store=basic'],...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{})});
 const overviewRead=url=>url.origin===origin&&url.pathname==='/api/overview';
-const ready=page=>page.locator('.signed-in').waitFor({timeout:15000});
+const failedReads=new WeakMap();
+const ready=async page=>{try{await page.locator('.signed-in').waitFor({timeout:15000})}catch(error){
+ console.error('Console readiness failure '+JSON.stringify({path:new URL(page.url()).pathname,failedReads:failedReads.get(page),state:await page.evaluate(()=>({booted:window.uptimeBooted===true,classes:document.documentElement.className,notice:document.querySelector('#read-notice')?.textContent,loading:document.querySelector('.loading-note')?.textContent}))}));
+ throw error;
+}};
 // A rule waits in the form's Add rule menu until the owner adds it.
 const addRule=async(page,name)=>{await page.locator('.add-rule summary:visible').click();await page.locator('.add-rule-menu:visible').getByRole('button',{name,exact:true}).click()};
 const deferred=()=>{let resolve;const promise=new Promise(done=>resolve=done);return {promise,resolve}};
@@ -114,7 +118,8 @@ try{
   const context=await browser.newContext({viewport:{width,height:900}});
   await context.route('**/*',route=>{const u=new URL(route.request().url());return u.origin===origin?route.continue():route.abort()});
   try{
-   const page=await context.newPage(),errors=[];page.on('pageerror',error=>errors.push(error.message));
+   const page=await context.newPage(),errors=[],failed=[];failedReads.set(page,failed);page.on('pageerror',error=>errors.push(error.message));
+   page.on('response',response=>{const path=new URL(response.url()).pathname;if(response.status()>=400&&(path.startsWith('/assets/')||path==='/app.js'||path==='/api/overview'))failed.push({path,status:response.status()})});
    await browserSignIn(page,origin,{bootstrap:false});
    // The installation has no monitors before the first width: the console opens straight into the new-monitor form.
    if(width===1440){await page.waitForURL(url=>url.pathname==='/app/monitors/new');await page.locator('.editor-context-ready').waitFor();assert.equal(await page.locator('h1').textContent(),'Add your first monitor');await audit(page,`editor-${width}`);await page.locator('#discovery-manual').click()}
