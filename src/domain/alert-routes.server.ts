@@ -28,9 +28,9 @@ function validate(input:any):Input{
 }
 async function context(env:Bindings,monitorId:string){
  const monitor=await get(env,monitorId);if(!monitor)throw Object.assign(Error('Monitor not found'),{status:404});
- const rows=await env.DB.prepare('SELECT * FROM alert_routes ORDER BY scope_kind,scope_value').all<any>();
+ const [rows,contacts]=await Promise.all([env.DB.prepare('SELECT * FROM alert_routes ORDER BY scope_kind,scope_value').all<any>(),destinations(env)]);
  const policies=routeScopes.map(scope=>{const value=scopeValue(scope,monitor);return rows.results.find(r=>r.scope_kind===scope&&r.scope_value===value)});
- return {monitor,rows:rows.results,policies:policies.map((row,i)=>row?routePolicy(row):defaultPolicy(routeScopes[i],scopeValue(routeScopes[i],monitor))),destinations:await destinations(env)};
+ return {monitor,rows:rows.results,policies:policies.map((row,i)=>row?routePolicy(row):defaultPolicy(routeScopes[i],scopeValue(routeScopes[i],monitor))),destinations:contacts};
 }
 function previewRecipients(policies:RoutePolicy[],contacts:any[],configured:boolean){
  const effective=effectivePolicy(policies),ids=effective.destinationIds;

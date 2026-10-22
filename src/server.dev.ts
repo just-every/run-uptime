@@ -14,7 +14,7 @@ import {devPersonas} from './domain/dev-personas.ts'
 const local=(env:AuthBindings)=>({...env,AUTH_ORIGIN:env.UPTIME_ORIGIN,AUTH_LOCAL:env.UPTIME_LOCAL_REVIEW})
 
 const developmentWorker=withDevIdentity<AuthBindings,typeof worker>(worker,{bindings:local as (env:AuthBindings)=>AuthBindings,config:authConfig,personas:devPersonas})
-const fetchDevelopment=async(request:Request,env:Bindings,execution:ExecutionContext)=>{
+const fetchDevelopment=async(request:Request<unknown,IncomingRequestCfProperties>,env:Bindings,execution:ExecutionContext)=>{
  const invalid=await configurationResponse(env);if(invalid)return invalid;
  const path=new URL(request.url).pathname;
  if(env.UPTIME_LOCAL_REVIEW==='true'&&path==='/login')return new Response(null,{status:303,headers:{location:'/signin?returnTo=%2Fapp','cache-control':'no-store'}});

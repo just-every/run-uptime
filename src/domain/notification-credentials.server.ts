@@ -8,6 +8,9 @@ type Identity={id:string;destination_id:string;created_at:number};
 export type CredentialRow=Identity&{endpoint:string|null;signing_secret:string|null;ciphertext:string|null;retired_at:number|null;unavailable_at?:number|null};
 export type NotificationCredential={endpoint:string;signing_secret:string|null;webhook?:WebhookSnapshot};
 type Credential=NotificationCredential;
+type ValidatedCredentials=Map<string,Credential>;
+// Reuse only within the current custody read and only for identical encrypted bytes and AAD.
+const credentialVersion=(row:CredentialRow)=>JSON.stringify([identity(row),row.ciphertext]);
 const unavailable=()=>Error('Notification credential custody unavailable');
 /** A missing or short key is a transient deployment fault, not evidence about any stored credential. */
 export const notificationKeyPresent=(env:Bindings)=>typeof env.SESSION_SECRET==='string'&&env.SESSION_SECRET.length>=32;
@@ -21,11 +24,11 @@ export async function sealCredential(env:Bindings,row:Identity,value:Credential)
  * in use at the time could not open it. A successful decrypt under the current
  * key clears it, so restoring the right key recovers the destination without
  * re-entering anything. Rows with no ciphertext can never recover. */
-export async function readCredential(env:Bindings,row:CredentialRow,{repairUnavailable=true}:{repairUnavailable?:boolean}={}):Promise<Credential>{
+export async function readCredential(env:Bindings,row:CredentialRow,{repairUnavailable=true,validated}:{repairUnavailable?:boolean;validated?:ValidatedCredentials}={}):Promise<Credential>{
  let value;
  try{
   if(row.retired_at!==null||row.endpoint!==null||row.signing_secret!==null||!row.ciphertext)throw unavailable();
-  value=await unseal(await key(env),identity(row),row.ciphertext);
+  value=validated?.get(credentialVersion(row))??await unseal(await key(env),identity(row),row.ciphertext);
   if(!value||typeof value.endpoint!=='string'||!(value.signing_secret===null||typeof value.signing_secret==='string'))throw unavailable();
   if(Object.keys(value).some(name=>!['endpoint','signing_secret','webhook'].includes(name)))throw unavailable();
   if(value.webhook!==undefined){value.webhook=normalizeWebhookSnapshot(value.webhook);if(value.webhook.signing!==Boolean(value.signing_secret))throw unavailable()}
@@ -59,24 +62,25 @@ export async function retireObsoleteCredentials(env:Bindings){await env.DB.batch
  * `validate:false` only seals plaintext (no decryption), for health and cron. */
 export async function ensureNotificationCustody(env:Bindings,{validate=true}:{validate?:boolean}={}){
  await retireObsoleteCredentials(env);
- const rows=await env.DB.prepare('SELECT * FROM notification_credentials WHERE retired_at IS NULL').all<CredentialRow>();
- for(const row of rows.results){
-  if(row.ciphertext&&!validate)continue;
-  if(row.unavailable_at!=null&&!row.ciphertext)continue;
+ const validated:ValidatedCredentials=new Map();
+ const [rows,hashes]=await Promise.all([env.DB.prepare('SELECT * FROM notification_credentials WHERE retired_at IS NULL').all<CredentialRow>(),
+  env.DB.prepare("SELECT id,destination_hash,envelope,max_attempts,retry_delays FROM integration_deliveries WHERE namespace='uptime-notifications' AND destination_hash NOT LIKE 'hmac-v1:%' AND destination_hash NOT LIKE 'unavailable:%'").all<any>()]);
+ await Promise.all(rows.results.map(async row=>{
+  if(row.ciphertext&&!validate)return;
+  if(row.unavailable_at!=null&&!row.ciphertext)return;
   try{
-   if(row.ciphertext){await readCredential(env,row);continue}
+   if(row.ciphertext){validated.set(credentialVersion(row),await readCredential(env,row));return}
    if(!row.endpoint)throw unavailable();
    const destination=await env.DB.prepare('SELECT kind FROM notification_destinations WHERE id=?').bind(row.destination_id).first<{kind:string}>();
    const ciphertext=await sealCredential(env,row,{endpoint:row.endpoint,signing_secret:destination?.kind==='webhook'?row.signing_secret:null});
    await env.DB.prepare(`UPDATE notification_credentials SET ciphertext=?,endpoint=NULL,signing_secret=NULL
     WHERE id=? AND retired_at IS NULL AND ciphertext IS NULL AND endpoint=?`).bind(ciphertext,row.id,row.endpoint).run();
   }catch{
-   if(!notificationKeyPresent(env))continue;
+   if(!notificationKeyPresent(env))return;
    await env.DB.prepare(`UPDATE notification_credentials SET unavailable_at=?,endpoint=NULL,signing_secret=NULL
     WHERE id=? AND retired_at IS NULL AND unavailable_at IS NULL AND ciphertext IS ?`).bind(Date.now(),row.id,row.ciphertext).run();
   }
- }
- const hashes=await env.DB.prepare("SELECT id,destination_hash,envelope,max_attempts,retry_delays FROM integration_deliveries WHERE namespace='uptime-notifications' AND destination_hash NOT LIKE 'hmac-v1:%' AND destination_hash NOT LIKE 'unavailable:%'").all<any>();
+ }));
  for(const row of hashes.results){
   // Without the key the historical digest stays until the key returns; replacing it would permanently fail the send.
   if(!notificationKeyPresent(env))break;
@@ -84,6 +88,7 @@ export async function ensureNotificationCustody(env:Bindings,{validate=true}:{va
   const fingerprint=await sha256(JSON.stringify({envelope:JSON.parse(row.envelope),destinationHash:hash,maxAttempts:row.max_attempts,retryDelaysMs:JSON.parse(row.retry_delays)}));
   await env.DB.prepare("UPDATE integration_deliveries SET destination_hash=?,fingerprint=? WHERE namespace='uptime-notifications' AND id=? AND destination_hash=?").bind(hash,fingerprint,row.id,row.destination_hash).run();
  }
+ return validated;
 }
 /** Schema readiness remains distinct from individual destination availability. */
 export async function notificationReadiness(env:Bindings){
