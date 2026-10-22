@@ -6659,7 +6659,7 @@
       "executable": false
     },
     "tests/console-routing-browser.mjs": {
-      "sha256": "47ed6d8f92234d9a9e6bec1f329e4dd99714a739b0e553e8469da61fd2914648",
+      "sha256": "cc2f6887a54d8a6116f89c25c7da63d031188df326b1190ee1d08065a8b67e17",
       "executable": false
     },
     "tests/contact-schedules-browser.mjs": {

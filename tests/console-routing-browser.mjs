@@ -10,7 +10,7 @@ test('console paths survive bookmarks, navigation, copied links, history and rel
  try{
   const [port]=await availablePorts(1),origin=`http://127.0.0.1:${port}`;
   ({worker}=await migratedWorker({port,persist:join(directory,'worker')}));
-  browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});
+  browser=await chromium.launch({headless:true,ignoreDefaultArgs:['--disable-back-forward-cache'],args:['--use-mock-keychain','--password-store=basic']});
   const context=await browser.newContext(),page=await context.newPage();await browserSignIn(page,origin);
   const created=await page.request.post(origin+'/api/monitors',{headers:{origin},data:{name:'Storefront availability',url:'https://example.com/',canaryUrl:'https://example.org/',enabled:false}});
   assert.equal(created.status(),201);const {id}=await created.json(),detail=`/app/monitors/${encodeURIComponent(id)}`,edit=detail+'/edit';
@@ -20,7 +20,7 @@ test('console paths survive bookmarks, navigation, copied links, history and rel
    await page.setViewportSize({width,height:900});
    for(const [old,to]of [['locations','locations'],['runners','locations'],['notifications','notifications'],['archive','archive'],['definitions','archive'],['settings','settings'],['monitors','monitors']]){
     await page.goto(origin+'/app#'+old);await page.waitForURL(origin+'/app/'+to);await page.locator('html.signed-in').waitFor();
-    assert.equal(await page.locator('.top h1').textContent(),to[0].toUpperCase()+to.slice(1));
+    assert.equal(await page.locator('.sidebar nav a[aria-current=page]').getAttribute('href'),'/app/'+to);
    }
    await page.getByRole('link',{name:'Locations',exact:true}).click();await page.waitForURL(origin+'/app/locations');await page.locator('html.signed-in').waitFor();
    await page.getByRole('link',{name:'Monitors',exact:true}).click();await page.locator('.catalog-rows .monitor-link').click();await page.waitForURL(origin+detail);await page.locator('#monitor-state').waitFor();
