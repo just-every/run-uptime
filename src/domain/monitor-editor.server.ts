@@ -13,7 +13,7 @@ export async function monitorEditor(env:Bindings,id?:string){
  ])
  const runners=describeRunners(rows[initialize.length].results),row=rows[initialize.length+1].results[0] as {url:string;legacy_url:string|null}|undefined
  const settings={url:row?.url??null,legacyUrl:row?.legacy_url??null},monitor=rows[initialize.length+2]?.results[0] as {definition:string}|undefined
- const definition=monitor?JSON.parse(monitor.definition):null
+ const definition=id&&monitor?JSON.parse(monitor.definition):null
  // The edited monitor's own external check URL, if it has one; empty means it follows Settings.
  return {now:Date.now(),runner:{...runnerRuntime(env,runners),runners,externalCheckUrl:settings.url},...(id?{definition,externalCheck:definition?externalCheckOf(definition,settings):null}:{first:!rows[initialize.length+2]?.results.length})}
 }
