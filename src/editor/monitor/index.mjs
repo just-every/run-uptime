@@ -4,6 +4,7 @@ import {mountDiscovery} from './discovery.mjs';
 import {bindRules} from './rules.mjs';
 import {showType} from './protocol-fields.mjs';
 import {mountServiceCatalog} from './catalog.mjs';
+import {mountDiscoverySources} from './sources.mjs';
 
 // Static fields are editable immediately. Current runner configuration and
 // existing definitions always come from the owner API before Save is enabled.
@@ -73,6 +74,7 @@ export async function mountMonitorEditor(signal){
    const dispose=mountDiscovery({form,overview,openCheck:opened?null:params.get('discovery'),showManualForm});
    signal.addEventListener('abort',dispose,{once:true});
    signal.addEventListener('abort',mountServiceCatalog({overview,opened}),{once:true});
+   signal.addEventListener('abort',mountDiscoverySources({overview,opened}),{once:true});
    if(opened){discovery.hidden=true;focused?.focus()}
   }
   document.documentElement.classList.add('editor-ready','editor-context-ready');

@@ -40,6 +40,7 @@ import {scheduledNotifications} from './domain/notification-worker.server.ts'
 import {SubrequestBudget,RUN_SUBREQUESTS,CHECK_SUBREQUESTS,WATCH_SUBREQUESTS} from './domain/worker-budget.ts'
 import {createDiscovery,createCatalogCheck,readDiscovery,claimDiscovery,completeDiscovery,discoveryAnswer,DISCOVERY_RESULT_BYTES} from './domain/discovery.server.ts'
 import {catalogDocument,followServices,reviewFollowed,linkDependency,acknowledgeNotice} from './domain/service-catalog.server.ts'
+import {sourcesDocument,authorizeSource,reauthorizeSource,revokeSource,startSourceRun,sourceDocument,decideProposal} from './domain/discovery-sources.server.ts'
 import {readExternalCheck,saveExternalCheck} from './domain/external-check.server.ts'
 import {checkAllFrom} from './domain/location-monitors.server.ts'
 import {runnerScriptResponse} from './domain/runner-script.server.ts'
@@ -219,6 +220,14 @@ api.post('/api/followed-services/:id/review',async c=>c.json(await reviewFollowe
 api.post('/api/followed-services/:id/links',async c=>c.json(await linkDependency(c.env,c.req.param('id'),c.get('requestText'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 api.post('/api/dependency-notices/:id/acknowledge',async c=>c.json(await acknowledgeNotice(c.env,c.req.param('id'),{id:(await operatorSession(c.env,c.req.raw))!.operator.id})))
 api.get('/api/discoveries/:id',async c=>c.json(await readDiscovery(c.env,c.req.param('id'))))
+// Discovery sources (DISCOVERY-001): the owner authorizes, runs and reviews; the owner's runner reads each source read-only.
+api.get('/api/discovery-sources',async c=>c.json(await sourcesDocument(c.env)))
+api.post('/api/discovery-sources',async c=>c.json(await authorizeSource(c.env,c.get('requestText'),await operator(c)),201))
+api.get('/api/discovery-sources/:id',async c=>c.json(await sourceDocument(c.env,c.req.param('id'))))
+api.delete('/api/discovery-sources/:id',async c=>c.json(await revokeSource(c.env,c.req.param('id'),await operator(c))))
+api.post('/api/discovery-sources/:id/authorize',async c=>c.json(await reauthorizeSource(c.env,c.req.param('id'),await operator(c))))
+api.post('/api/discovery-sources/:id/runs',async c=>c.json(await startSourceRun(c.env,c.req.param('id')),201))
+api.post('/api/discovery-sources/:id/decisions',async c=>c.json(await decideProposal(c.env,c.req.param('id'),c.get('requestText'),await operator(c))))
 api.post('/api/runner/discoveries/claim',async c=>c.json(await claimDiscovery(c.env,c.get('requestText'),c.get('runner'))))
 api.post('/api/runner/discoveries/:id/result',async c=>{const text=c.get('requestText');if(!await signedRunnerBody(c.env,c.get('runner'),text,c.req.header('x-sent-at')??'',c.req.header('x-runner-signature')??'',DISCOVERY_RESULT_BYTES))return c.json({error:'Invalid signed result'},403);return c.json(await completeDiscovery(c.env,c.req.param('id'),discoveryAnswer(text),c.get('runner')))})
 api.get('/api/archive/restore-status',async c=>c.json({available:await archiveRestoreAvailable(c.env)}))

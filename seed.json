@@ -232,7 +232,8 @@
       "data": [
         "The owner-selected URL, request host/path/query, GET or HEAD method, discovery User-Agent and other headers, request time, and runner source address",
         "The initial URL's public redirect chain, then robots files, pages, JSON/spec documents and redirect destinations on its permitted registrable domains and linked status hosts are read with bounded bodies in runner memory",
-        "Only the input/final URL, contacted hostnames, request count and duration, short notes, and validated proposed monitor definitions return to the console; raw target HTML, JSON and response headers are not returned, stored, logged, or rendered as console HTML"
+        "Only the input/final URL, contacted hostnames, request count and duration, short notes, and validated proposed monitor definitions return to the console; raw target HTML, JSON and response headers are not returned, stored, logged, or rendered as console HTML",
+        "An owner-started run of an authorized discovery source (DISCOVERY-001) sends DNS queries for the domain's usual host names and GET or HEAD requests to the hosts, sitemap routes, OpenAPI operations and deployed sites the source names, under the same robots, budget and public-address rules; only derived candidates with their provenance return"
       ],
       "adapters": []
     },
@@ -245,6 +246,78 @@
         "Only status-source addresses the catalog itself names (provider status APIs, feeds and pages), one read-only GET each, with the catalog check User-Agent; no owner data, credential or other address is sent",
         "The provider's status service sees the request time and the runner's source address",
         "Only derived facts return to the Worker: whether the source answered, whether it has the expected shape, the stated status and a Statuspage component's id; no body or header is kept"
+      ],
+      "adapters": []
+    },
+    {
+      "id": "discovery-cloudflare-dns",
+      "required": false,
+      "requiredWhen": "An owner authorizes a Cloudflare zone as a discovery source and runs it",
+      "why": "The owner's runner reads the zone and its DNS records read-only to propose monitors of the hosts the zone names.",
+      "data": [
+        "The zone ID, an API token holding Zone Read and DNS Read, GET /client/v4/zones/{zone_id} and GET /client/v4/zones/{zone_id}/dns_records, request time and the runner's source address",
+        "The provider credential stays in an owner-only file on the owner's runner; the Worker keeps only its reference name and never receives, stores, exports or logs the credential",
+        "Only A, AAAA and CNAME record names and values under the zone become candidates; nothing is written to Cloudflare"
+      ],
+      "adapters": []
+    },
+    {
+      "id": "discovery-route53",
+      "required": false,
+      "requiredWhen": "An owner authorizes an Amazon Route 53 hosted zone as a discovery source and runs it",
+      "why": "The owner's runner reads the hosted zone and its record sets read-only, signed with Signature Version 4, to propose monitors of the hosts the zone names.",
+      "data": [
+        "The hosted zone ID, an IAM access key id with a Signature Version 4 signature (the secret key never leaves the runner), GET /2013-04-01/hostedzone/{Id} and GET /2013-04-01/hostedzone/{Id}/rrset, request time and the runner's source address",
+        "The provider credential stays in an owner-only file on the owner's runner; the Worker keeps only its reference name and never receives, stores, exports or logs the credential",
+        "Only A, AAAA and CNAME record names and values under the zone become candidates; nothing is written to Route 53"
+      ],
+      "adapters": []
+    },
+    {
+      "id": "discovery-github-deployments",
+      "required": false,
+      "requiredWhen": "An owner authorizes a GitHub repository's Actions deployments as a discovery source and runs it",
+      "why": "The owner's runner reads the repository's deployments, their statuses and its workflow runs since the previous run, read-only, to propose monitors of the sites those deployments name.",
+      "data": [
+        "The repository owner and name, a fine-grained token with Deployments and Actions read, GET /repos/{owner}/{repo}/deployments, /deployments/{id}/statuses and /actions/runs, request time and the runner's source address",
+        "The provider credential stays in an owner-only file on the owner's runner; the Worker keeps only its reference name and never receives, stores, exports or logs the credential",
+        "Only deployment ids, times and environment URLs become candidates and notes; nothing is written to GitHub"
+      ],
+      "adapters": []
+    },
+    {
+      "id": "discovery-vercel-deployments",
+      "required": false,
+      "requiredWhen": "An owner authorizes a Vercel project's deployments as a discovery source and runs it",
+      "why": "The owner's runner lists the project's production deployments since the previous run and its domains, read-only, to propose monitors of the project's sites.",
+      "data": [
+        "The project ID, an access token, GET /v6/deployments and GET /v9/projects/{id}/domains, request time and the runner's source address",
+        "The provider credential stays in an owner-only file on the owner's runner; the Worker keeps only its reference name and never receives, stores, exports or logs the credential",
+        "Only deployment ids and times and verified domain names become candidates and notes; nothing is written to Vercel"
+      ],
+      "adapters": []
+    },
+    {
+      "id": "discovery-netlify-deploys",
+      "required": false,
+      "requiredWhen": "An owner authorizes a Netlify site's deploys as a discovery source and runs it",
+      "why": "The owner's runner lists the site's production deploys since the previous run and reads the site, read-only, to propose a monitor of its address.",
+      "data": [
+        "The site ID, a personal access token, GET /api/v1/sites/{site_id}/deploys and GET /api/v1/sites/{site_id}, request time and the runner's source address",
+        "The provider credential stays in an owner-only file on the owner's runner; the Worker keeps only its reference name and never receives, stores, exports or logs the credential",
+        "Only deploy ids and times and the site address become candidates and notes; nothing is written to Netlify"
+      ],
+      "adapters": []
+    },
+    {
+      "id": "discovery-codedeploy",
+      "required": false,
+      "requiredWhen": "An owner authorizes an AWS CodeDeploy application and deployment group as a discovery source and runs it",
+      "why": "The owner's runner lists the deployment group's successful deployments since the previous run, read-only and signed with Signature Version 4, to propose a monitor of the site the owner declared for it.",
+      "data": [
+        "The region, application and deployment group names, an IAM access key id with a Signature Version 4 signature (the secret key never leaves the runner), the ListDeployments and BatchGetDeployments operations, request time and the runner's source address",
+        "The provider credential stays in an owner-only file on the owner's runner; the Worker keeps only its reference name and never receives, stores, exports or logs the credential",
+        "Only deployment ids and times become notes, and the declared site the candidate; nothing is written to CodeDeploy"
       ],
       "adapters": []
     },
@@ -1453,6 +1526,14 @@
       },
       {
         "path": "/editor/catalog.css",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/editor/sources.css",
         "match": "exact",
         "kind": "asset",
         "class": "assets",
