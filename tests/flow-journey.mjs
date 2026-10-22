@@ -3,7 +3,9 @@
 // the site puts the signed-in account in the URL path, escapes only part of it, or puts it across the 300-character cut; the same flow with a wrong password fails at the step that shows it, confirms an
 // incident and sends one email through a destination, and editing it into a heartbeat recovers that incident only as a changed
 // definition. A runner killed outright mid-flow leaves no profile behind, one lost with its browser (a power loss) leaves none past its
-// next start, and concurrent creates never take the installation past its flow limit.
+// next start, and concurrent creates never take the installation past its flow limit. PERF-001's page-speed checks and real-user
+// beacon run beside the flows on the same Worker, runners and fixture (tests/pagespeed-support.mjs), and a populated installation
+// upgrades to the beacon tables by one additive migration.
 import assert from 'node:assert/strict';
 import {spawn, execFile} from 'node:child_process';
 import {once} from 'node:events';
@@ -14,6 +16,7 @@ import {testAuthBindings} from './auth-test-support.mjs';
 import {availablePorts, cleanupDirectory, migratedWorker, ownerAPI, root, runtimeDirectory, waitFor} from './notify-acceptance-runtime.mjs';
 import {FIXTURE_EMAIL, FIXTURE_PASSWORD, startFlowFixture} from './flow-fixture.mjs';
 import {FLOW_LIMITS} from '../src/domain/flow.mjs';
+import {startPageSpeed, provePageSpeed, proveRumUpgrade} from './pagespeed-support.mjs';
 
 const directory = await runtimeDirectory(), persist = join(directory, 'worker'), grantPath = join(directory, 'grant.json'), credentials = join(directory, 'credentials');
 const [port, fixturePort] = await availablePorts(2), origin = `http://127.0.0.1:${port}`;
@@ -31,7 +34,7 @@ const processes = async () => (await promisify(execFile)('ps', ['-A', '-ww', '-o
 const holders = async folder => (await processes()).filter(p => p.command.includes(folder));
 const below = async pid => { const all = await processes(), out = [], walk = id => { for (const p of all) if (p.ppid === id) { out.push(p.pid); walk(p.pid); } }; walk(pid); return out; };
 try {
-  ({worker, DB} = await migratedWorker({port, persist, bindings}));
+  ({worker, DB} = await migratedWorker({port, persist, bindings, cf: {country: 'US'}}));
   fixture = await startFlowFixture({port: fixturePort, grantPath});
   await mkdir(credentials, {mode: 0o700});
   await owner.signIn(bindings);
@@ -73,6 +76,8 @@ try {
   const tunnel = await create('Tunnel flow', 'tunnel', {intent: 'Open the tunnel page', steps: [{kind: 'goto', url: `${fixture.origin}/s/tunnel/tunnel`}, {kind: 'waitFor', what: 'text', value: 'Tunnel page'}], outcomes: [{id: 'page', what: 'text', value: 'Tunnel page'}]});
   const observations = async id => (await ok(`/api/monitors/${id}/history`)).flatMap(slot => slot.observations);
   for (const id of [good, bad, account, tunnel]) await waitFor(async () => (await observations(id)).length >= 2, 'the flow ran on both runners', 120000);
+  // PERF-001's checks start once the flows have run, so they never queue the flows behind their own browser runs.
+  const speed = await startPageSpeed({ok, fixture});
   const overview = await ok('/api/overview'), state = id => overview.monitors.find(m => m.id === id).state;
   for (const id of [good, account]) {
     for (const o of await observations(id)) {
@@ -95,6 +100,8 @@ try {
   // One email, accepted by the network-edge provider fixture, for the incident of the failing flow only.
   await waitFor(async () => (await DB.prepare("SELECT state FROM notification_jobs WHERE kind='email' AND json_extract(event,'$.monitorName')=?").bind('Checkout flow, wrong password').first())?.state === 'accepted', 'the incident email was sent', 60000);
   assert.equal((await DB.prepare("SELECT COUNT(*) n FROM notification_jobs WHERE json_extract(event,'$.monitorName')=?").bind('Checkout flow').first()).n, 0, 'a passing flow sends nothing');
+
+  await provePageSpeed({ids: speed, ok, api, DB, fixture, origin, owner, waitFor, observations});
 
   // Editing the failing flow into a heartbeat that then passes recovers the incident only as a changed definition: a heartbeat
   // requires none of the flow's outcomes.
@@ -142,10 +149,13 @@ try {
   assert.ok(results.filter(r => r.status !== 201).every(r => r.status === 400 && /limit/.test(r.data.error)), 'every refused create names the limit');
   assert.equal(Number((await DB.prepare("SELECT COUNT(*) n FROM monitors WHERE json_extract(definition,'$.type')='flow'").first()).n), FLOW_LIMITS.maxFlowsPerInstallation);
   console.log('FLOW-001 passed: browser flow through the production runner and Worker; healthy traces keep no query or credential, also with the account in the URL path; wrong password failed at its step and sent an incident email; a type change recovered only as a changed definition; hard stops left no profile; concurrent creates kept the flow limit; a tunnel to the fixture port failed as a custody violation.');
+  console.log('PERF-001 passed: mobile and desktop page-speed checks retained DNS/connect/TLS/TTFB, the waterfall, vitals and the mobile browser error; the slow mobile checkout breached its budgets and opened an incident with its email while desktop passed and the health endpoint stayed Healthy; the consented beacon counted real visitors by route, device and country with owner sampling and exclusions, sent nothing without consent, with GPC, from a bot, outside the sample or on an excluded path, kept no identifier, query or address, and its report kept its own denominator beside the synthetic one; the console showed both at 1440 and 390.');
 } finally {
   for (const c of children) if (c.exitCode === null && c.signalCode === null) { c.kill('SIGTERM'); await once(c, 'exit'); }
   await fixture?.close(); await worker?.dispose(); await cleanupDirectory(directory);
 }
+await proveRumUpgrade();
+console.log('PERF-001 upgrade passed: a populated installation gained the beacon tables by one additive migration that rewrote nothing.');
 await import('./flow-profiles.mjs');
 
 await import('./flow-artifact-journey.mjs');

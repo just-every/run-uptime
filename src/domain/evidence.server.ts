@@ -20,6 +20,8 @@ import {validDependencyMissingCheck} from './dependency-status.mjs'
 import {validateClaimEvidence} from './service-catalog/followed.mjs'
 // @ts-ignore Edition flow vocabulary is JavaScript shared with the runner.
 import {FLOW_LIMITS,FLOW_REASONS,validateFlowEvidence} from './flow.mjs'
+// @ts-ignore PERF-001 page-speed facts and budget decision are JavaScript shared with the runner.
+import {PAGESPEED_LIMITS,validatePageSpeedEvidence,pageSpeedChecks} from './pagespeed.mjs'
 // @ts-ignore Bounded non-secret diagnostics are shared with the runner.
 import {validBindingDiagnostic, bindingReason, BINDING_DIAGNOSTIC_BYTES} from './credential-binding.mjs'
 // @ts-ignore Protocol evidence is evaluated by the same JavaScript in the Worker, the runner and here.
@@ -28,7 +30,7 @@ import {isProtocol} from './protocol/settings.mjs'
 import {protocolChecks} from './protocol/evaluate.mjs'
 // @ts-ignore
 import {validateFacts} from './protocol/facts.mjs'
-const fields = new Set(['id', 'probe', 'outcome', 'completedAt', 'startedAt', 'durationMs', 'runnerVersion', 'status', 'bytes', 'checks', 'attempt', 'heartbeatReceivedAt', 'heartbeatJob', 'tlsTrust', 'canary', 'flow', 'credentialBinding', 'protocol','apiTransaction','failureSnapshot','fixtures','claim'])
+const fields = new Set(['id', 'probe', 'outcome', 'completedAt', 'startedAt', 'durationMs', 'runnerVersion', 'status', 'bytes', 'checks', 'attempt', 'heartbeatReceivedAt', 'heartbeatJob', 'tlsTrust', 'canary', 'flow', 'credentialBinding', 'protocol','apiTransaction','failureSnapshot','fixtures','claim','pagespeed'])
 // unresolved: the public resolver answered NXDOMAIN or no address. budget: a Worker run spent its outbound requests first.
 // refused: the target's port refused the connection; tls: the TLS handshake failed before a certificate could be read.
 // vantage: this vantage cannot run the check (a Worker socket to a Cloudflare address); registry: RDAP data unavailable.
@@ -102,6 +104,16 @@ function validateFlowObservation(o: any, definition: any, checks: Map<string, Ch
   if (!passed && (!flow.failure || FLOW_REASONS[flow.failure.reason as keyof typeof FLOW_REASONS].runner)) throw Error('Inconsistent flow outcome')
   const setupFailed = Boolean(fixtures?.steps.some((step: any) => step.phase === 'setup' && step.outcome !== 'pass'))
   if (setupFailed !== (flow.failure?.reason === 'setup_failed') || setupFailed && (flow.trace.length || fixtures!.steps.some((step: any) => step.outcome === 'runner_error' && step.phase === 'setup'))) throw Error('Inconsistent flow setup evidence')
+}
+
+// PERF-001: a page-speed observation either ended before the page loaded (one error check) or carries bounded facts whose
+// budget checks and outcome the shared decision must reproduce exactly.
+function validatePageSpeedObservation(o: any, definition: any) {
+  if (o.status !== undefined || o.bytes !== undefined || o.heartbeatReceivedAt !== undefined) throw Error('Invalid page-speed evidence')
+  if (o.pagespeed === undefined) return validateError(o, validateChecks(o.checks))
+  validatePageSpeedEvidence(o.pagespeed, definition)
+  const expected = pageSpeedChecks(definition, o.pagespeed)
+  if (o.outcome !== (expected.every((c: Check) => c.pass) ? 'pass' : 'target_failure') || JSON.stringify(o.checks) !== JSON.stringify(expected)) throw Error('Inconsistent page-speed evidence')
 }
 
 // A protocol observation either ended before it had facts (one error check) or carries bounded facts whose checks and
@@ -192,7 +204,7 @@ export function validateEvidence(o: any, definition: any, dueAt: number, now: nu
       !['uptime-node/0.1.0','uptime-worker/0.1.0'].includes(o.runnerVersion) || !timestamp(o.startedAt) || !timestamp(o.completedAt) ||
       o.startedAt < dueAt || o.completedAt < o.startedAt || o.completedAt > now + COMPLETION_CLOCK_ALLOWANCE_MS ||
       !timestamp(o.durationMs) || !['pass', 'target_failure', 'runner_error'].includes(o.outcome) ||
-      JSON.stringify(o).length > ((definition.type === 'flow' ? 4000 + FLOW_LIMITS.traceBytes + (o.fixtures ? 12000 : 0) : isProtocol(definition.type)||['api','mail'].includes(definition.type) ? 16000 : 4000) + (o.tlsTrust ? TLS_EVIDENCE_MAX_BYTES : 0) + (binding ? BINDING_DIAGNOSTIC_BYTES : 0) + (o.failureSnapshot ? FAILURE_SNAPSHOT_LIMITS.totalBytes : 0))) throw Error('Invalid observation evidence')
+      JSON.stringify(o).length > ((definition.type === 'flow' ? 4000 + FLOW_LIMITS.traceBytes + (o.fixtures ? 12000 : 0) : definition.type === 'pagespeed' ? 4000 + PAGESPEED_LIMITS.evidenceBytes : isProtocol(definition.type)||['api','mail'].includes(definition.type) ? 16000 : 4000) + (o.tlsTrust ? TLS_EVIDENCE_MAX_BYTES : 0) + (binding ? BINDING_DIAGNOSTIC_BYTES : 0) + (o.failureSnapshot ? FAILURE_SNAPSHOT_LIMITS.totalBytes : 0))) throw Error('Invalid observation evidence')
   validateTrust(o,definition);
   if(o.heartbeatJob!==undefined&&definition.type!=='heartbeat')throw Error('Unexpected heartbeat job evidence');
   if (o.protocol !== undefined && !isProtocol(definition.type)&&definition.type!=='mail') throw Error('Unexpected protocol evidence')
@@ -217,6 +229,8 @@ export function validateEvidence(o: any, definition: any, dueAt: number, now: nu
   }
   if(o.apiTransaction!==undefined&&definition.type!=='api')throw Error('Unexpected API transaction evidence');
   if(o.fixtures!==undefined&&definition.type!=='flow')throw Error('Unexpected flow fixture evidence');
+  if(o.pagespeed!==undefined&&definition.type!=='pagespeed')throw Error('Unexpected page-speed evidence');
+  if(definition.type==='pagespeed')return validatePageSpeedObservation(o,definition);
   if(definition.type==='api'){
     if(!o.apiTransaction)return validateError(o,validateChecks(o.checks));
     if(o.status!==undefined||o.bytes!==undefined||o.flow!==undefined)throw Error('Invalid API transaction observation');

@@ -3,7 +3,8 @@
 // The profile-path scenario signs in to /u/<email>/dashboard, the way many sites put the account in the path, and links to three more
 // such pages: settings, whose path escapes the address's '@' but keeps its '+', a mailbox whose path holds the address lowercased
 // (its accented capital becomes a lowercase letter's encoded bytes), and a full profile whose path is long enough that the
-// 300-character cut of a stored URL falls inside the encoded address.
+// 300-character cut of a stored URL falls inside the encoded address. The shop scenario is PERF-001's controlled site (below), and
+// /health, outside the scenarios, is the site's health endpoint.
 import http from 'node:http';
 import {randomUUID} from 'node:crypto';
 import {open, rename, rm, mkdir} from 'node:fs/promises';
@@ -35,6 +36,7 @@ export async function startFlowFixture({port = 0, grantPath, secondPort = 0}) {
   const identity = randomUUID(), sessions = new Set(), seen = {secondOrigin: 0, requests: []};
   let accountLinks;
   const modes = new Map();
+  let beaconSrc = null;
   seen.orders = 0; seen.signups = 0;
   // API-004 sandbox resources a flow's setup creates and its teardown removes; `deny` refuses teardown at the network edge.
   seen.sandbox = {accounts: new Set(), orders: new Set(), created: [], calls: [], deny: null};
@@ -46,8 +48,23 @@ export async function startFlowFixture({port = 0, grantPath, secondPort = 0}) {
     const url = new URL(req.url, 'http://x'), m = /^\/s\/([a-z0-9-]+)(\/.*)$/.exec(url.pathname);
     seen.requests.push(url.pathname);
     const send = (status, body, headers = {}) => { res.writeHead(status, {'content-type': 'text/html; charset=utf-8', 'x-uptime-fixture': identity, ...headers}); res.end(body); };
+    if (url.pathname === '/health') return send(200, 'ok', {'content-type': 'text/plain'});
     if (!m) return send(404, page('Not found', '<h1>Not found</h1>'));
     const [, originalScenario, full] = m, scenario = modes.get(originalScenario) ?? originalScenario, path = full.replace(/^(?:\/p+)?\/u\/[^/]+\//, '/'), base = `/s/${originalScenario}`, signedIn = (req.headers.cookie ?? '').split(/;\s*/).some(c => c.startsWith('sid=') && sessions.has(c.slice(4)));
+    // PERF-001: a small shop whose checkout loads a script sized for the visitor's screen. On a phone-width screen it is the throttled
+    // mobile asset: it arrives after 2.6 s, holds the main thread for 400 ms, renders the order summary (the page's largest text) and
+    // throws. On a wider screen the desktop script answers at once. "Place order" holds the main thread for 300 ms on a phone. Once
+    // the test gives it a beacon, the page carries it, with data-consent="granted" only for a visitor whose consent cookie is set.
+    if (originalScenario === 'shop' && (path === '/checkout' || path.startsWith('/account/'))) {
+      const consent = (req.headers.cookie ?? '').split(/;\s*/).includes('consent=granted');
+      const beacon = beaconSrc ? `<script src="${beaconSrc}"${consent ? ' data-consent="granted"' : ''} async></script>` : '';
+      return send(200, page('Checkout', `<meta name="viewport" content="width=device-width, initial-scale=1"><h1>Checkout</h1><p id="total">Order total: $42.00</p><div id="summary"></div><button id="place" type="button">Place order</button>${beacon}<script>var mobile=matchMedia('(max-width: 600px)').matches,s=document.createElement('script');s.src='${base}/assets/'+(mobile?'mobile':'desktop')+'.js?v=7&session=synthetic-uptime-1';document.body.append(s);document.getElementById('place').addEventListener('click',function(){var end=Date.now()+(mobile?300:0);while(Date.now()<end){}document.getElementById('total').textContent='Order placed'})</script>`));
+    }
+    if (originalScenario === 'shop' && ['/assets/mobile.js', '/assets/desktop.js'].includes(path)) {
+      const mobile = path === '/assets/mobile.js';
+      if (mobile) await new Promise(r => setTimeout(r, 2600));
+      return send(200, `(function(){var end=Date.now()+${mobile ? 400 : 0};while(Date.now()<end){}var p=document.createElement('p');p.style.fontSize='22px';p.textContent=${JSON.stringify('Your order: ' + 'one synthetic item, '.repeat(12))};document.getElementById('summary').append(p);${mobile ? "throw new Error('Mobile checkout script failed')" : ''}})();`, {'content-type': 'text/javascript'});
+    }
     if (path.startsWith('/api/')) return sandboxApi(req, res, path, (status, value) => send(status, JSON.stringify(value), {'content-type': 'application/json'}));
     if (path === '/signup' && req.method === 'GET') return send(200, page('Create sandbox account', `<h1>Create sandbox account</h1><form method="post" action="${base}/signup" novalidate><label>Email <input name="email" type="email"></label><label>Password <input name="password" type="password"></label><button>Create account</button></form>`));
     if (path === '/signup' && req.method === 'POST') {
@@ -101,11 +118,11 @@ export async function startFlowFixture({port = 0, grantPath, secondPort = 0}) {
   // The full profile's padding puts the middle of the encoded address at character 300 of the page's URL.
   const encoded = encodeURIComponent(FIXTURE_EMAIL), start = 300 - Math.floor(encoded.length / 2);
   accountLinks = base => `<a href="${base}/u/${FIXTURE_EMAIL.replace('@', '%40')}/settings">Account settings</a><a href="${base}/u/${encodeURIComponent(FIXTURE_EMAIL.toLowerCase())}/mailbox">Mailbox</a><a href="${base}/${'p'.repeat(start - `http://127.0.0.1:${actual}${base}/`.length - '/u/'.length)}/u/${encoded}/profile">Full profile</a>`;
-  // The same grant file the synthetic target writes: owner-only, naming this process and port, with no health paths.
+  // The same grant file the synthetic target writes: owner-only, naming this process and port; its one HTTP path is the site's /health.
   await mkdir(dirname(grantPath), {recursive: true, mode: 0o700});
   const temporary = `${grantPath}.${process.pid}.tmp`; await rm(temporary, {force: true});
   const file = await open(temporary, constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY | constants.O_NOFOLLOW, 0o600);
-  try { await file.writeFile(JSON.stringify({schemaVersion: 1, custody: 'local-uptime-synthetic', host: '127.0.0.1', port: actual, pid: process.pid, identity, expiresAt: Date.now() + 11 * 3600 * 1000, paths: []})); } finally { await file.close(); }
+  try { await file.writeFile(JSON.stringify({schemaVersion: 1, custody: 'local-uptime-synthetic', host: '127.0.0.1', port: actual, pid: process.pid, identity, expiresAt: Date.now() + 11 * 3600 * 1000, paths: ['/health']})); } finally { await file.close(); }
   await rename(temporary, grantPath);
-  return {port: actual, otherPort, identity, seen, setScenario(name, mode) { modes.set(name, mode); }, origin: `http://127.0.0.1:${actual}`, async close() { for (const s of [server, second]) { s.closeAllConnections?.(); await new Promise(r => s.close(r)); } }};
+  return {port: actual, otherPort, identity, seen, setScenario(name, mode) { modes.set(name, mode); }, setBeacon(src) { beaconSrc = src; }, origin: `http://127.0.0.1:${actual}`, async close() { for (const s of [server, second]) { s.closeAllConnections?.(); await new Promise(r => s.close(r)); } }};
 }

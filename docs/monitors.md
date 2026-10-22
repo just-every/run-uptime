@@ -87,6 +87,27 @@ A successful call returns `received: true` and the server's receipt time. It rec
 
 Each monitor accepts up to 60 calls per one-minute window. A window starts with the first call after the previous window has ended and lasts 60 seconds; further calls in a full window get HTTP 429. Replayed sequences and paused or foreign-revision tokens are refused. Ordinary saves, including pause/resume and maintenance changes, retire the token: issue a replacement after the final change and update your job. Applying a Definitions change that keeps the heartbeat type preserves its token and sequence. Restored archives have no heartbeat authority; resume, issue a new key and repoint the job.
 
+## Page speed and real users
+
+A page-speed monitor (`type: "pagespeed"`) loads one page in a real, isolated browser on your runner, the same way a browser flow runs: its own process and private folder, every request through the runner's filtering proxy, and a time limit. Choose the device and its budgets:
+
+```json
+{"name": "Checkout speed (mobile)", "type": "pagespeed", "url": "https://shop.example.com/checkout",
+ "probes": ["local-a", "local-b"], "pagespeed": {"device": "mobile", "budgets": {"lcpMs": 2500, "tbtMs": 200, "browserErrors": 0}}}
+```
+
+- **Device and network.** `mobile` emulates a 390 × 844 touch screen with a 4× CPU slowdown and, by default, a slow 4G network (150 ms round trip, 1.6 Mbit/s); `desktop` is a 1350 × 940 screen without throttling. Set `throttle` to `none` or `slow-4g` to choose.
+- **What each check keeps.** DNS and connect time (timed by the runner's proxy, which makes every connection), TLS handshake and time to first byte, first and largest contentful paint, cumulative layout shift, total blocking time, the page load time, transferred bytes, the resource waterfall (up to 40 requests, each without its query string or fragment) and up to five browser errors with their total count. Interaction to Next Paint needs a person's input, so a synthetic load reports total blocking time as its lab proxy; the real-user beacon reports INP.
+- **Budgets.** Each budget is its own check (`budget:lcpMs`, `budget:tbtMs` and so on, beside the page's HTTP status). A check over any budget fails, and failures confirm and alert through the monitor's ordinary incident rules and alert route. The Worker recomputes every budget decision from the kept figures. A page-speed check runs at most every 5 minutes, makes no retries and needs a runner with a browser.
+
+The **real-user beacon** is optional and off by default. On the page-speed monitor's page, register the site's origin; it stays off until you enable it. Then add the snippet it shows to your pages. The beacon:
+
+- measures nothing until your site records the visitor's consent (`data-consent="granted"` on the tag, or `uptimeRum.consent()` from your consent banner), and never measures a browser that sends Do Not Track or Global Privacy Control, or an automated browser or crawler;
+- samples the share of consenting visitors you choose (10% by default) and skips the path prefixes you exclude;
+- sends one small report per sampled view: the path (query string and fragment removed, identifier-like segments shown as `:id`), mobile or desktop, whether the page loaded, LCP, CLS, INP, time to first byte and a count of script errors. It uses no cookie or storage and sends no credentials.
+
+Uptime accepts a report only from the registered origin of an enabled site, at most 1 KiB, within the public request limit (120 a minute per client). It keeps anonymous hourly figures by route, device and country, never an IP address. Reports from bots and on excluded paths are only counted. The real-user report counts sampled page views; the synthetic report counts page-speed checks. The two never add together. Beacon settings and figures stay with the installation that collected them: an archive does not carry them.
+
 ## Schedules and thresholds
 
 Each monitor has a schedule and a few knobs that decide when a bad check becomes an incident.

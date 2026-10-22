@@ -22,6 +22,8 @@ import {readSlowPolicy,saveSlowPolicy} from './domain/slow-config.server.ts'
 import {acknowledgeSlow} from './domain/slow-ack.server.ts'
 import {cleanupDebt,resolveCleanupDebt} from './domain/cleanup-debt.server.ts'
 import {effectGrants,grantEffect,revokeEffect} from './domain/effect-grants.server.ts'
+import {rumDoor} from './domain/rum/door.server.ts'
+import {registerRumRoutes} from './domain/rum/routes.server.ts'
 import {readAlertRoute,previewAlertRoute,applyAlertRoute} from './domain/alert-routes.server.ts'
 import {previewMaintenance,applyMaintenance,cancelMaintenance} from './domain/planned-maintenance.server.ts'
 // The package's demo module: operator-auth runs from the package and reads demo mode from this same instance.
@@ -141,6 +143,7 @@ api.get('/api/monitors/:id/heartbeat-runs',async c=>{const monitor=await get(c.e
 api.get('/api/evidence/monitors/:id',async c=>c.json(await evidenceSelection(c.env,c.req.param('id'),c.req.query('before'))))
 api.get('/api/monitors/:id/cleanup-debt',async c=>c.json(await cleanupDebt(c.env,c.req.param('id'))))
 api.post('/api/monitors/:id/cleanup-debt/:debtId/resolve',async c=>c.json(await resolveCleanupDebt(c.env,c.req.param('id'),c.req.param('debtId'),c.get('input'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
+registerRumRoutes(api)
 api.get('/api/monitors/:id/effect-grants',async c=>c.json(await effectGrants(c.env,c.req.param('id'))))
 api.post('/api/monitors/:id/effect-grants',async c=>c.json(await grantEffect(c.env,c.req.param('id'),c.get('input'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id}),201))
 api.post('/api/monitors/:id/effect-grants/revoke',async c=>c.json(await revokeEffect(c.env,c.req.param('id'),c.get('input'),{kind:'operator',ref:(await operatorSession(c.env,c.req.raw))!.operator.id})))
@@ -303,6 +306,7 @@ const handler={async fetch(request,env,execution){
  // each verified by its own grant, before the console's API policy.
  if(path==='/api/rer/runner-status')return rerRunnerStatus(bindings,request);
  if(path==='/api/rer/cutover-status')return rerCutoverStatus(bindings,request);
+ if(path.startsWith('/rum/v1/'))return rumDoor(bindings,request);
  // The Lobby at / and GET /setup/state: Base's shared responses, before the public-path guard and the document renderer.
  const lobbyBindings={DB:bindings.DB,AUTH_ORIGIN:bindings.UPTIME_ORIGIN!};
  const state=await setupStateResponse(request,lobbyBindings,claimed);if(state)return state;
