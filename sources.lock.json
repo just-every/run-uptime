@@ -6619,7 +6619,7 @@
       "executable": false
     },
     "tests/control-runtime.mjs": {
-      "sha256": "24594215b2a5cd28c690a8f9164d41663f467e3173ec8eb9e6c62901ea0c52a7",
+      "sha256": "a49818e22baa30f2911c01a27cc569dedd8d765c03ffb7acec71eaf80ffee8d5",
       "executable": false
     },
     "tests/credential-upgrade.mjs": {
