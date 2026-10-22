@@ -22,7 +22,21 @@
   --horizon: calc(var(--land) * 0.258 + var(--apron));
 }
 .ut-dawn svg { display: block; max-width: none; }
-.ut-dawn-range, .ut-dawn-shore { overflow: visible; }
+/* External drawings include the 110-unit water apron that overflowed the original SVG box.
+   Match its meet scale and centring, including the rounded layer widths. */
+.ut-dawn-range img, .ut-dawn-shore img { position: absolute; display: block; max-width: none; }
+.ut-dawn-range img {
+  left: 0;
+  top: calc((var(--land) - var(--land) * 7.8095 * 504 / 3936) / 2);
+  width: 100%;
+  height: calc(var(--land) * 7.8095 * 614 / 3936);
+}
+.ut-dawn-shore img {
+  left: calc((100% - var(--shore) * 600 / 504) / 2);
+  top: 0;
+  width: calc(var(--shore) * 600 / 504);
+  height: calc(var(--shore) * 614 / 504);
+}
 
 /* Sky: peach at the horizon, through rose cream to the page's lavender, fading into the page at the top. */
 .ut-dawn-sky,
@@ -184,7 +198,7 @@
 @container ut-dawn (max-width: 599px) {
   .ut-dawn-wide { --focus: 1143; }
   .ut-dawn-shore { --shore: calc(var(--land) * 0.8); }
-  .ut-dawn-cloud { display: none; }
+  .ut-dawn-shore .ut-dawn-cloud { display: none; }
   .ut-dawn-watch { width: calc(100cqw - 72px); --dot: 11px; --lift: 22px; }
   .ut-dawn-check--extra,
   .ut-dawn-note--start,

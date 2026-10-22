@@ -2434,6 +2434,26 @@
       "sha256": "23a521b7e8b8461b5c1e5aca57bc26ad3dd56b8b1cc26daf0e931d3efb960f35",
       "executable": false
     },
+    "public/design-assets/dawn/left-clouds.a68fcb006c91.svg": {
+      "sha256": "ccf20ddbfc59f8bdea6c7c65e570cd27354a3e1db1aa4b6cee43531be1624d0e",
+      "executable": false
+    },
+    "public/design-assets/dawn/left.74dafaacb610.svg": {
+      "sha256": "a18d413a91e424f6471aa5b322c2a0d14fb8e608866cac0564e3567bbbc0889e",
+      "executable": false
+    },
+    "public/design-assets/dawn/range.91ba21d46842.svg": {
+      "sha256": "8b174b0eab37908a61ade69cd6eeadff3d9d8ac9ab762f260a3a54a2f2366713",
+      "executable": false
+    },
+    "public/design-assets/dawn/right-clouds.69e26545f5a0.svg": {
+      "sha256": "6f4f5e317346b205fc42a9931781d2552cd2fc90d32c0dcb1af7d14eae481f98",
+      "executable": false
+    },
+    "public/design-assets/dawn/right.743eda2631ae.svg": {
+      "sha256": "406e92a822d7dd4b795534bbc35754ab80db8986aebdd0f6d38e00c1b2bd5d56",
+      "executable": false
+    },
     "public/design-assets/fonts/noto-sans-regular.ttf": {
       "sha256": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
       "executable": false
@@ -6315,7 +6335,7 @@
       "executable": false
     },
     "src/site/landing/hero/art/frame.ts": {
-      "sha256": "a261582792aad096588ef92c15ce2b741277147d035e10db807b167d09fe9c7a",
+      "sha256": "61e9c33c67cd911feca72da48184b9afe949419cff28dd2aee09f084d5f8cc48",
       "executable": false
     },
     "src/site/landing/hero/art/Glints.tsx": {
@@ -6323,11 +6343,11 @@
       "executable": false
     },
     "src/site/landing/hero/art/pines.ts": {
-      "sha256": "cf40c79f440eb97d1c7eca1cc934dbd13259ab7754d084f0a59544eb79fd47e1",
+      "sha256": "6b7aba82b91a221f4560efd2bfd73d7bd5eca74ee15ad48ca4a3e3dd8434e678",
       "executable": false
     },
     "src/site/landing/hero/art/Range.tsx": {
-      "sha256": "1eb7abb38af8838f2131a958eeae7bf1edd6cf8a0a7b8c64b3a8dee764d6a090",
+      "sha256": "2baf8f3d3469b5cfeccc47f99eb687f3e4092a03e7232c44f731122f4bdb75a0",
       "executable": false
     },
     "src/site/landing/hero/art/ridge.ts": {
@@ -6335,7 +6355,7 @@
       "executable": false
     },
     "src/site/landing/hero/art/Shore.tsx": {
-      "sha256": "5a11ec66fefb52ff3edc488ccd587dfae0716c9722e9907562c690a0cc52b403",
+      "sha256": "d3bb483b6c8ca6eabe0bed664fbaf38f27856934f06534f54e0d659d6f4257e8",
       "executable": false
     },
     "src/site/landing/hero/art/Sun.tsx": {
@@ -6343,11 +6363,11 @@
       "executable": false
     },
     "src/site/landing/hero/dawn-scene.css": {
-      "sha256": "46c18c9d0b78f2f1e776507d980de8f64c8325991660f1c94e912bc22e86d8d4",
+      "sha256": "c32fc4c18f885fe1fc214f9f1904678032b21c86f9ed77012c31d69e4b399868",
       "executable": false
     },
     "src/site/landing/hero/DawnScene.tsx": {
-      "sha256": "a4c7f718dc96e98e601ad653dc2477eb4e0eed2e32e2cffe468ad469a9ff3008",
+      "sha256": "52ca25446d30a12165f8c9e7f331172cec204b9e2465df0f77581605960d9233",
       "executable": false
     },
     "src/site/landing/hero/useRestWhenUnseen.ts": {
