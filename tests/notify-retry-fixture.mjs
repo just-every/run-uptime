@@ -56,7 +56,8 @@ export async function proveNotificationRetry(inspect,inspectQuiet=undefined,insp
   const firstStart=delivery.attemptHistory[0].started_at;
   let scheduled=delivery.attemptHistory[1].scheduled_at;assert.ok(scheduled-delivery.attemptHistory[0].finished_at>=800&&scheduled-delivery.attemptHistory[0].finished_at<=1200,'stored jitter is bounded independently of RPC latency');
   await restart();
-  if(Date.now()<scheduled){await dispatchNotifications(rpc,edge);assert.equal(receipts.length,1)}
+  // The Worker's clock decides when a retry is due, so a dispatch that reaches it after the stored time may send it, and never before.
+  await dispatchNotifications(rpc,edge);assert.ok(receipts.length===1||receipts[1].at>=scheduled,'a restart keeps the stored retry time');
   await sleep(scheduled-Date.now()+20);await dispatchNotifications(rpc,edge);
   delivery=(await ok('/api/notifications')).deliveries.find(d=>d.event.monitorId===monitor.id&&d.destinationId===contact.id);
   scheduled=delivery.attemptHistory[2].scheduled_at;assert.equal(delivery.attempts,2);assert.equal(delivery.attemptHistory[1].retry_after_seconds,3);

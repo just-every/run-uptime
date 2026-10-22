@@ -7027,7 +7027,7 @@
       "executable": false
     },
     "tests/notify-retry-fixture.mjs": {
-      "sha256": "b31529ffb0590ee3675c457df96327cfc76d9c13dc51b4f7c0cc7bb4d171f528",
+      "sha256": "d5506719b8d3f4567bcfc32ad17d1926368b45e05ef20bf369c17d444ed2ff8c",
       "executable": false
     },
     "tests/notify-secret-browser.mjs": {
