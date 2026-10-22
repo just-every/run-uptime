@@ -751,7 +751,7 @@
       "executable": false
     },
     "docs/evidence/contracts/failure-snapshots/failure-snapshot-guide-bounds-1440.png": {
-      "sha256": "5caf243e79f432ee09cc05d424ec515cfcc86b544a21ba8d62c1b6f3862ec0fb",
+      "sha256": "071fc4b15758ab1230c241c938ddb0c343c830e022091a2d7ffba34d2167c926",
       "executable": false
     },
     "docs/evidence/contracts/failure-snapshots/failure-snapshot-guide-bounds-390.png": {
@@ -1411,7 +1411,7 @@
       "executable": false
     },
     "docs/evidence/contracts/release-0.4.0/hosted-restored-incident-390.png": {
-      "sha256": "ec542728e27df2fc5140a1a3ff571dd8c29c68fed1d107a168a433f0333f3771",
+      "sha256": "3f5f3d6520fd17571d65edc688fdef95704892b95c959d771fb2edfcefc48b11",
       "executable": false
     },
     "docs/evidence/contracts/release-0.4.0/hosted-restored-monitors-1440.png": {
@@ -7307,7 +7307,7 @@
       "executable": false
     },
     "work/sd-cp-uptime/shots/REPORT-001/custom-report-390.png": {
-      "sha256": "331747d2234ec7ff996098158e522f240041086b383e039cb211d761e227aee1",
+      "sha256": "574b763e1a689aea6f18bef40f7aa3cd0895f26c173a80586139efa374a178b1",
       "executable": false
     },
     "work/sd-cp-uptime/shots/REPORT-001/dst-refusal-1440.png": {
@@ -7315,7 +7315,7 @@
       "executable": false
     },
     "work/sd-cp-uptime/shots/REPORT-001/dst-refusal-390.png": {
-      "sha256": "86c57ed95d0d2312106ecaacb0bbeac26d806c4c56737dac6d3056bcdc6fc153",
+      "sha256": "6bed10465ea05b59af047dbe26265900b0c971716ae3c071957afbc724685049",
       "executable": false
     },
     "work/sd-cp-uptime/shots/REPORT-001/latency-page-two-1440.png": {
