@@ -9,11 +9,9 @@ test('migration preserves the existing runner and scoped key without putting cre
 test('C3: two real runners on independent networks agree on a failed target',async()=>{
  const m=await f.monitor();await f.run(f.first);assert.equal((await f.state(m.id)).targetState,'Degraded');await f.run(f.second);assert.equal((await f.state(m.id)).targetState,'Failing');await f.pause(m);
 });
-test('C3: one real runner with a passing external canary establishes failure',async()=>{
- const m=await f.monitor({runners:[f.first],canary:true});await f.run(f.first);assert.equal((await f.state(m.id)).targetState,'Failing');await f.pause(m);
-});
-test('C3: a canary page larger than the probe body limit still passes and witnesses the failure',async()=>{
- f.modes.canaryBytes=300000;const m=await f.monitor({runners:[f.first],canary:true});await f.run(f.first);const state=await f.state(m.id);assert.equal(state.targetState,'Failing');assert.equal(state.regions[0].canaryPassed,true);await f.pause(m);f.modes.canaryBytes=0;
+test('C3: one real runner with a passing external canary, even a page larger than the probe body limit, establishes failure',async()=>{
+ for(const bytes of [0,300000]){f.modes.canaryBytes=bytes;const m=await f.monitor({runners:[f.first],canary:true});await f.run(f.first);const state=await f.state(m.id);assert.equal(state.targetState,'Failing',`canary of ${bytes} bytes`);assert.equal(state.regions[0].canaryPassed,true);await f.pause(m)}
+ f.modes.canaryBytes=0;
 });
 test('C3: a failing canary leaves target failure visible as Degraded',async()=>{
  f.modes.canary=503;const m=await f.monitor({runners:[f.first],canary:true,retries:1}),task=await f.claim(f.first);assert.equal((await f.submit(f.first,task,[await f.evidence(task)])).status,200);f.modes.canary=200;assert.equal((await f.submit(f.first,task,[{...await f.evidence(task),attempt:1}])).status,200);const state=await f.state(m.id);assert.equal(state.targetState,'Degraded');assert.equal(state.unknown,1);const overview=(await f.request('/api/overview')).data.monitors.find(row=>row.id===m.id);assert.equal(overview.availability.last24h.observedMs,0);assert.equal(overview.availability.responseDurationMs,null);await f.pause(m);f.modes.canary=200;

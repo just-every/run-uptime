@@ -17,7 +17,7 @@ function exact(text:string,keys:string[],what:string){
  if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(key=>!keys.includes(key)))throw Error(`Invalid ${what}`)
  return input as Record<string,any>
 }
-const PROBLEM_TEXT:Record<string,string>={unreachable:'did not answer',moved:'moved',shape:'no longer has the shape the catalog expects','too-large':'is larger than a check can read','component-missing':'no longer lists that component'}
+const PROBLEM_TEXT:Record<string,string>={unreachable:'did not answer',moved:'moved',shape:'no longer has the shape the catalog expects','too-large':'is larger than a check reads','component-missing':'no longer lists that component'}
 const reviewText=(row:any)=>`The live check found the source ${PROBLEM_TEXT[row.problem]??'failing'}: ${row.detail}`
 const viewOf=(entry:any,target:any)=>({scope:target.scope,key:target.component?.key??null,component:target.component?.name??null,region:target.component?.region??null})
 type Followed={monitor_id:string;entry_id:string;catalog_version:number;scope:'whole'|'component';component_key:string|null;followed_at:number;checked_at:number|null}
@@ -107,7 +107,7 @@ export async function reviewFollowed(env:Bindings,id:string,text:string,actor:Au
  if(spec.entry!==row.entry_id||wanted.length!==1||wanted[0].scope!==row.scope||(wanted[0].component?.key??null)!==row.component_key)throw refuse('That check is for a different service.')
  const fresh=definitionFor(entry,wanted[0],result.targets[0]),old=await get(env,id)
  if(!old)throw refuse('That followed service was not found.',404)
- const saved=await save(env,{...old.definition,url:fresh.url,assertions:fresh.assertions,outcome:fresh.outcome,service:fresh.service,...(fresh.group?{group:fresh.group}:{})},id,actor)
+ const saved=await save(env,{...old.definition,url:fresh.url,assertions:fresh.assertions,catalog:fresh.catalog,timeoutMs:fresh.timeoutMs,outcome:fresh.outcome,service:fresh.service,...(fresh.group?{group:fresh.group}:{})},id,actor)
  await env.DB.prepare('UPDATE followed_services SET catalog_version=?,checked_at=? WHERE monitor_id=?').bind(CATALOG_VERSION,checkedAt,id).run()
  return {monitorId:id,revision:saved!.revision,catalogVersion:CATALOG_VERSION}
 }

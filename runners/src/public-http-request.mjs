@@ -32,10 +32,11 @@ export async function requestOnce(url,pin,method,settings,signal,onRequest,repor
     if([301,302,303,307,308].includes(res.statusCode)){finish({redirect:res.headers.location,status:res.statusCode,...(report?{headers:res.headers}:{})});res.destroy();return}
     if(res.headers['content-encoding']&&res.headers['content-encoding']!=='identity'){fail('encoding');res.destroy();return}
     if(statusOnly){finish({status:res.statusCode,headers:res.headers,body:'',bytes:0});res.destroy();return}
+    // report.onChunk streams the body to its reader instead of keeping it; returning false stops reading there.
     if(report)res.on('data',chunk=>{
      if(settled)return;
-     if(size+chunk.length>report.maxBody){chunks.push(chunk.subarray(0,report.maxBody-size));size=report.maxBody;finish({status:res.statusCode,headers:res.headers,body:Buffer.concat(chunks).toString('utf8'),bytes:size,truncated:true});res.destroy()}
-     else{size+=chunk.length;chunks.push(chunk)}
+     if(size+chunk.length>report.maxBody){if(!report.onChunk)chunks.push(chunk.subarray(0,report.maxBody-size));size=report.maxBody;finish({status:res.statusCode,headers:res.headers,body:Buffer.concat(chunks).toString('utf8'),bytes:size,truncated:true});res.destroy()}
+     else{size+=chunk.length;if(!report.onChunk)chunks.push(chunk);else if(report.onChunk(chunk)===false){finish({status:res.statusCode,headers:res.headers,body:'',bytes:size,stopped:true});res.destroy()}}
     });
     else res.on('data',chunk=>{size+=chunk.length;if(size>MAX_BODY){chunks.push(chunk.subarray(0,Math.max(0,MAX_BODY-(size-chunk.length))));fail('body-limit');res.destroy()}else chunks.push(chunk)});
     res.on('end',()=>finish({status:res.statusCode,headers:res.headers,body:Buffer.concat(chunks).toString('utf8'),bytes:size}));

@@ -241,11 +241,12 @@
       "id": "service-catalog-status-sources",
       "required": false,
       "requiredWhen": "An owner follows or reviews a provider from the third-party service catalog",
-      "why": "Before a provider is followed, the owner's runner (or a hosted demo's Worker) reads the catalog entry's own status source once to confirm it answers with the shape the catalog expects. A followed provider is then an ordinary public HTTP monitor of that status source.",
+      "why": "Before a provider is followed, the owner's runner (or a hosted demo's Worker) reads the catalog entry's own status source once to confirm it answers with the shape the catalog expects. Every scheduled check of a followed provider reads the same address with the same catalog reader.",
       "data": [
         "Only status-source addresses the catalog itself names (provider status APIs, feeds and pages), one read-only GET each, with the catalog check User-Agent; no owner data, credential or other address is sent",
         "The provider's status service sees the request time and the runner's source address",
-        "Only derived facts return to the Worker: whether the source answered, whether it has the expected shape, the stated status and a Statuspage component's id; no body or header is kept"
+        "The reader streams at most 1 MiB of a document, follows no redirect and keeps nothing but derived facts",
+  "Only derived facts return to the Worker: whether the source answered, whether it has the expected shape, what the provider states about the followed part and region, and the provider's own id for a component or product; no body or header is kept"
       ],
       "adapters": []
     },

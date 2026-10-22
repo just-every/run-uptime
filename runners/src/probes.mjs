@@ -9,6 +9,8 @@ import {RUNNER_VERSION,MAX_BODY,validateDefinition} from '../../src/domain/polic
 import {publicHttp,ProbeError,PROBE_ACCEPT} from './public-http.mjs';
 import {httpAssertions as assertions} from '../../src/domain/http-assertions.mjs';
 import {isDependencyStatus,dependencyMissingCheck,missingDependencyEvidence} from '../../src/domain/dependency-status.mjs';
+import {probeFollowed} from '../../src/domain/service-catalog/followed.mjs';
+import {publicReport} from './public-http.mjs';
 function syntheticHttp(def,signal,onRequest){
   if(!def.fixtureIdentity)throw new ProbeError('custody');
   return new Promise((resolve,reject)=>{
@@ -35,6 +37,8 @@ export async function probeHttp(input,probe,grants=[],{statusOnly=false,monitorI
   const def=validateDefinition(input,grants),startedAt=Date.now();
   if(statusOnly&&(def.network!=='public'||Object.keys(def.assertions).some(key=>key!=='status')))throw Error('Status-only reads serve public status assertions only');
   if(def.type==='heartbeat')throw Error('Heartbeat requires a signed scheduled receipt snapshot');
+  // DEPENDENCY-002: a followed service reads its catalog part with the catalog's streaming status-source reader.
+  if(def.catalog&&!statusOnly)return probeFollowed(def,probe,{transport:publicReport,signal,runnerVersion:RUNNER_VERSION});
   const abort=new AbortController();let active;const capture={phases:{dnsMs:null,connectMs:null,tlsMs:null,ttfbMs:null,totalMs:0}};
   const executionSignal=signal?AbortSignal.any([signal,abort.signal]):abort.signal;
   const artifactSignal=()=>AbortSignal.any([...(signal?[signal]:[]),AbortSignal.timeout(Math.max(1,Math.floor(snapshotPolicy?.artifactBudgetMs??8000)))]);

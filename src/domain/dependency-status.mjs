@@ -14,11 +14,14 @@ const clip = (text, max) => text.length <= max ? text : `${text.slice(0, max - 1
 // DEPENDENCY-001 attribution, shared by discovery proposals and the catalog (DEPENDENCY-002).
 export const dependencyAttribution = (provider, url) => ({service: provider, tags: ['dependency'],
   outcome: clip(`${provider}'s status is the provider's own claim; contextual evidence only, never proof that the application is up or down. Source: ${url}`, 500)});
+// Why a provider's claim is missing. The catalog reader (service-catalog/followed.mjs) also names a source over its read bound,
+// a moved address and a document without the expected shape.
+const MISSING={source:'source is unavailable or missing its claim',component:'component is missing or renamed','too-large':'source is larger than the catalog reader reads',moved:'source moved or redirected',shape:'source no longer has the shape the catalog expects'};
 export function dependencyMissingCheck(definition, problem='source') {
-  return {assertion:'dependency',pass:false,reason:`${definition.service}: provider status ${problem==='component'?'component is missing or renamed':'source is unavailable or missing its claim'}. This is Unknown evidence, not application health.`};
+  return {assertion:'dependency',pass:false,reason:`${definition.service}: provider status ${MISSING[problem]??MISSING.source}. This is Unknown evidence, not application health.`};
 }
 export function validDependencyMissingCheck(definition, check) {
-  return isDependencyStatus(definition) && ['source','component'].some(problem=>
+  return isDependencyStatus(definition) && Object.keys(MISSING).some(problem=>
     check?.assertion==='dependency'&&check.pass===false&&check.reason===dependencyMissingCheck(definition,problem).reason);
 }
 export function missingDependencyEvidence(definition,response) {

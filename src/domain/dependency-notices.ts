@@ -6,9 +6,11 @@ import type {NotificationEvent} from './notification-content.ts'
 // route the owner chose for that monitor.
 export const NOTICE_KINDS=['dependency','dependency_recovery'] as const
 export const noticeKind=(open:boolean)=>open?'dependency_recovery':'dependency'
-// The provider's value is kept in the evidence's own JSON check reason: `actual "degraded_performance"`.
+// A followed service's observation carries the provider's stated value in its claim; a DEPENDENCY-001 monitor keeps it in its
+// JSON check reason: `actual "degraded_performance"`.
 function stated(observations:any[],kind:'dependency'|'dependency_recovery'){
  if(kind==='dependency_recovery')return 'operational'
+ for(const observation of observations)if(observation.claim&&observation.claim.state!=='operational')return observation.claim.stated
  for(const observation of observations)for(const check of observation.checks??[]){
   if(check.pass!==false)continue
   const value=/\bactual "([^"]{1,60})"/.exec(check.reason)?.[1]

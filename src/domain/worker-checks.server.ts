@@ -31,7 +31,7 @@ export async function scheduledPublicChecks(env:Bindings,budget:SubrequestBudget
    const attempts=[];
    for(const probe of task.probes){
     const canaryUrl=task.definition.assignments[probe].canaryUrl,context={dns,allowance,appOrigin:env.UPTIME_ORIGIN,snapshotPolicy:task.snapshotPolicy};
-    const canary=canaryUrl?{...await workerProbe({...task.definition,type:'http',tlsTrust:undefined,url:canaryUrl,method:'GET',assertions:{status:200}},probe,{...context,statusOnly:true}),attempt:0}:undefined;
+    const canary=canaryUrl?{...await workerProbe({...task.definition,type:'http',tlsTrust:undefined,catalog:undefined,url:canaryUrl,method:'GET',assertions:{status:200}},probe,{...context,statusOnly:true}),attempt:0}:undefined;
     for(let attempt=0;attempt<=task.definition.retries;attempt++){
      const observation=isProtocol(task.definition.type)?await workerProtocolProbe(task.definition,probe,allowance):await workerProbe(task.definition,probe,context);attempts.push({...observation,attempt,...(canary?{canary}:{})});
      if(observation.outcome!=='target_failure')break;

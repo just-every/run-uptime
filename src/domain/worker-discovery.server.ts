@@ -1,7 +1,7 @@
 import {fetchDemoRead} from '@runeditrun/rer/modules/demo'
 import {HOSTED_RUNNER_ID,ownOrigin} from './hosted-runner.ts'
 import {dnsCache,ProbeError as WorkerProbeError} from './worker-dns.server.ts'
-import {SubrequestBudget} from './worker-budget.ts'
+import {SubrequestBudget,type Allowance} from './worker-budget.ts'
 import type {Runner} from './runner-registration.server.ts'
 import type {Bindings} from './control.server.ts'
 // @ts-ignore Edition URL validation is JavaScript.
@@ -21,19 +21,21 @@ import {PROBE_ACCEPT,ProbeError} from '../../runners/src/probe-error.mjs'
 // Discovery's 25 requests plus a DNS-over-HTTPS pair for each of its 10 hosts.
 const SUBREQUESTS=50,RUN_LIMIT_MS=100_000
 type ReportOptions={signal?:AbortSignal;accept?:string;userAgent:string;maxBody:number;method?:string;maxHops?:number;hopTimeoutMs?:number;
- beforeRequest?:(url:URL,hop:number)=>Promise<void>|void;followRedirect?:(next:URL,from:URL,status:number)=>boolean}
-async function truncatedBody(response:Response,max:number){
+ beforeRequest?:(url:URL,hop:number)=>Promise<void>|void;followRedirect?:(next:URL,from:URL,status:number)=>boolean;onChunk?:(chunk:Uint8Array)=>boolean|void}
+// onChunk receives the body as it arrives instead of it being kept, as the runner's publicReport does; false stops the read.
+async function truncatedBody(response:Response,max:number,onChunk?:(chunk:Uint8Array)=>boolean|void){
  const reader=response.body?.getReader();if(!reader)return {body:'',bytes:0,truncated:false};
  const chunks:Uint8Array[]=[];let bytes=0,truncated=false;
- try{for(;;){const {value,done}=await reader.read();if(done)break;if(bytes+value.byteLength>max){chunks.push(value.subarray(0,max-bytes));bytes=max;truncated=true;break}bytes+=value.byteLength;chunks.push(value)}}finally{await reader.cancel()}
- const all=new Uint8Array(bytes);let offset=0;for(const chunk of chunks){all.set(chunk,offset);offset+=chunk.byteLength}
+ try{for(;;){const {value,done}=await reader.read();if(done)break;if(bytes+value.byteLength>max){if(!onChunk)chunks.push(value.subarray(0,max-bytes));bytes=max;truncated=true;break}bytes+=value.byteLength;if(!onChunk)chunks.push(value);else if(onChunk(value)===false)break}}finally{await reader.cancel()}
+ const all=new Uint8Array(onChunk?0:bytes);let offset=0;for(const chunk of chunks){all.set(chunk,offset);offset+=chunk.byteLength}
  return {body:new TextDecoder().decode(all),bytes,truncated}
 }
 // The Worker's twin of the runner's publicReport: GET or HEAD only, no credentials, cookies or body; every hop's name is
 // validated as public before it is fetched, an HTTPS to HTTP downgrade is refused, and a body past maxBody is cut there.
-export function workerReport(appOrigin?:string){
- const dns=dnsCache(),allowance=new SubrequestBudget(SUBREQUESTS).reserve(SUBREQUESTS)!
- return async(rawUrl:string,{signal,accept=PROBE_ACCEPT,userAgent,maxBody,method='GET',maxHops=4,hopTimeoutMs=8000,beforeRequest,followRedirect}:ReportOptions)=>{
+// A scheduled run passes its own DNS cache and outbound allowance; a discovery job gets its own.
+export function workerReport(appOrigin?:string,run?:{dns:ReturnType<typeof dnsCache>;allowance:Allowance}){
+ const dns=run?.dns??dnsCache(),allowance=run?.allowance??new SubrequestBudget(SUBREQUESTS).reserve(SUBREQUESTS)!
+ return async(rawUrl:string,{signal,accept=PROBE_ACCEPT,userAgent,maxBody,method='GET',maxHops=4,hopTimeoutMs=8000,beforeRequest,followRedirect,onChunk}:ReportOptions)=>{
   if(!['GET','HEAD'].includes(method))throw new ProbeError('method')
   if(!Number.isInteger(maxBody)||maxBody<1||typeof userAgent!=='string'||!userAgent)throw new ProbeError('runner')
   let url:URL=publicTarget(rawUrl)
@@ -60,7 +62,7 @@ export function workerReport(appOrigin?:string){
     url=next;continue
    }
    if(headers['content-encoding']&&headers['content-encoding']!=='identity'){await response.body?.cancel();throw new ProbeError('encoding')}
-   return {status:response.status,headers,...await truncatedBody(response,maxBody),url:url.href,hops,durationMs}
+   return {status:response.status,headers,...await truncatedBody(response,maxBody,onChunk),url:url.href,hops,durationMs}
   }
   throw new ProbeError('redirect')
  }
