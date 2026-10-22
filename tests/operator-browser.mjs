@@ -115,6 +115,9 @@ async function editJourney(page,monitor,width){
 }
 try{
  for(const width of [1440,768,390,320]){
+  // These independent cold-browser journeys share the local installation's
+  // public asset bucket. Do not carry one viewport's loads into the next one.
+  await new Promise(resolve=>setTimeout(resolve,60000-Date.now()%60000));
   const context=await browser.newContext({viewport:{width,height:900}});
   await context.route('**/*',route=>{const u=new URL(route.request().url());return u.origin===origin?route.continue():route.abort()});
   try{
