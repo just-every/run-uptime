@@ -20,7 +20,7 @@ export async function mountMonitorEditor(signal){
  document.addEventListener('click',event=>{
   const a=event.target.closest('a[href]');if(!a||event.defaultPrevented||event.button||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||a.target&&a.target!=='_self')return;
   const url=new URL(a.href);if(url.origin!==location.origin||!/^\/app\/(?:monitors|locations|notifications|archive|settings)\/?$/.test(url.pathname))return;
-  event.preventDefault();history.pushState(null,'',url.pathname+url.search);
+  event.preventDefault();history.pushState(null,'',url.pathname+url.search+url.hash);
  },{signal});
  document.querySelector('h1').textContent=id?'Edit monitor':'New monitor';
  document.documentElement.classList.remove('editor-ready','editor-context-ready');

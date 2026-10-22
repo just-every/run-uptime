@@ -2355,7 +2355,7 @@
       "executable": false
     },
     "public/app.js": {
-      "sha256": "6892675e47114190fb711d9f8e7f5a1d8dfbb56df279c66598065c4a33b0c338",
+      "sha256": "369d09b4e21417281dfe3137ce4a6d274fc01956f01c4ad50fc8567a41a954be",
       "executable": false
     },
     "public/archive-view.js": {
@@ -6275,7 +6275,7 @@
       "executable": false
     },
     "src/editor/monitor/index.mjs": {
-      "sha256": "b3c6617c919cb2d87716f9b1fa6b957ac01e3edbb4ee3c9de2cd8146c297f6ed",
+      "sha256": "e9e6886ee3d6156d526f2e135dac1d782e3bcc5c024033af74ddccf01ea8d7ef",
       "executable": false
     },
     "src/editor/monitor/initial-markup.mjs": {
