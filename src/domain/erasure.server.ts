@@ -2,7 +2,7 @@ import {incidentMonitorErasureTables,incidentOperatorErasureStatements} from './
 import {dependencyMonitorErasureTables} from './dependency-archive.ts'
 import {discoveryMonitorErasureTables,discoveryOperatorErasure} from './discovery-sources-archive.ts'
 import {createPortability} from '@runeditrun/rer/modules/portability'
-import {erasureRelations,operatorMailRelated} from './erasure-relations.ts'
+import {erasureRelations,operatorMailRelated,dependencyAckErasure,dependencyTimelineErasure} from './erasure-relations.ts'
 import {TABLES} from './archive-schema.ts'
 import {installationLocalTables} from './archive-inventory.ts'
 import {auditStatement,mutationGuard,type AuditActor} from './audit.server.ts'
@@ -25,6 +25,7 @@ export async function erase(env:Bindings,kind:'monitor'|'destination'|'operator'
  // while planning must invalidate the transaction, including uncaptured rows.
  const allNames=(await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'rer_portability_%' AND name NOT GLOB '_cf_*'").all<any>()).results;
  const initialCounts=await env.DB.batch(allNames.map(({name})=>env.DB.prepare(`SELECT COUNT(*) n FROM "${name}"`)));
+ const incidentIds=kind==='monitor'?(await env.DB.prepare("SELECT id FROM outbox WHERE monitor_id=? AND kind='trigger'").bind(id).all<{id:string}>()).results.map(row=>row.id):[];
  const plans:Selection[]=[],discoveryGuards:D1PreparedStatement[]=[],jobIds:string[]=[],jobRows:{id:string;event:string}[]=[],destinationCredentials:string[]=[];
  if(kind==='monitor'||kind==='destination'){
   const jobs=await env.DB.prepare(kind==='monitor'?"SELECT id,event FROM notification_jobs WHERE event_id IN(SELECT id FROM outbox WHERE monitor_id=?) OR json_extract(event,'$.monitor.id')=? OR json_extract(event,'$.monitorId')=?":"SELECT id,event FROM notification_jobs WHERE destination_id=?").bind(...(kind==='monitor'?[id,id,id]:[id])).all<any>();
@@ -49,6 +50,9 @@ export async function erase(env:Bindings,kind:'monitor'|'destination'|'operator'
   if(business.uploads.length)plans.push(selection('ik_door_chunks','upload_id IN(SELECT value FROM json_each(?))',JSON.stringify(business.uploads)),selection('ik_door_uploads','id IN(SELECT value FROM json_each(?))',JSON.stringify(business.uploads)));
   // So do the bytes of an archive outside the erased namespaces that names this monitor; its header stays.
   if(business.archives.length)plans.push(selection('ik_door_archive_chunks','archive_id IN(SELECT value FROM json_each(?))',JSON.stringify(business.archives)));
+  plans.push(selection('dependency_acks',dependencyAckErasure,id,JSON.stringify(incidentIds)));
+  // Provider erasure also removes the surviving application's timeline reference to its notice.
+  plans.push(selection('incident_timeline',dependencyTimelineErasure,id,id));
   plans.push(...incidentMonitorErasureTables.map(table=>selection(table,'monitor_id=?',id)),...dependencyMonitorErasureTables.map(table=>selection(table,'monitor_id=?',id)),...discoveryMonitorErasureTables.map(table=>selection(table,'monitor_id=?',id)));
   plans.push(selection('alert_fallback_chains','monitor_id=?',id));
   plans.push(selection('alert_routes',"scope_kind='monitor' AND scope_value=?",id),selection('alert_route_changes',"scope_kind='monitor' AND scope_value=?",id));

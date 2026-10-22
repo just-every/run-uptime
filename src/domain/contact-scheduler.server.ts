@@ -4,10 +4,15 @@ import {auditStatement,automated} from './audit.server.ts'
 import type {NotificationEvent} from './notification-content.ts'
 // Every caller uses fixed module-owned SQL aliases. Check at claim AND at the
 // transport boundary so a recovered incident cannot send a previously polled delay.
-const closed=`EXISTS(SELECT 1 FROM outbox r WHERE r.monitor_id=s.monitor_id AND r.kind=CASE WHEN json_extract(t.event,'$.kind')='slow' THEN 'slow_recovery' ELSE 'recovery' END AND json_extract(r.event,'$.incidentKey')=s.incident_key)`;
+const closed=`EXISTS(SELECT 1 FROM outbox r WHERE r.monitor_id=s.monitor_id AND r.kind=CASE WHEN json_extract(t.event,'$.kind')='slow' THEN 'slow_recovery' WHEN json_extract(t.event,'$.kind')='dependency' THEN 'dependency_recovery' ELSE 'recovery' END AND json_extract(r.event,'$.incidentKey')=s.incident_key)`;
 const active=`NOT (${closed})
  AND NOT EXISTS(SELECT 1 FROM slow_acknowledgements a WHERE a.opening_event_id=t.event_id AND s.stop_on_ack=1)
  AND NOT EXISTS(SELECT 1 FROM incident_work w WHERE w.incident_id=t.event_id AND (w.stop_reason IS NOT NULL OR w.status='resolved' OR (s.stop_on_ack=1 AND w.status='acknowledged')))`;
+const dependencyPrimaryAccepted=(job:string)=>`(json_extract(${job}.event,'$.kind')='dependency' AND json_extract(${job}.event,'$.fallbackContext') IS NOT NULL
+ AND NOT EXISTS(SELECT 1 FROM json_each(json_extract(${job}.event,'$.fallbackContext.previous')) p
+  LEFT JOIN notification_jobs prior ON prior.id=json_extract(p.value,'$.deliveryId')
+  LEFT JOIN integration_deliveries delivery ON delivery.namespace='uptime-notifications' AND delivery.id=prior.id
+  WHERE COALESCE(CASE WHEN prior.state='queued' THEN delivery.state ELSE prior.state END,'queued')<>'accepted'))`;
 const databaseNow="CAST((julianday('now')-2440587.5)*86400000 AS INTEGER)";
 const contactMatch=(job:string)=>`t.destination_id=${job}.destination_id AND s.monitor_id=json_extract(${job}.event,'$.monitorId') AND s.incident_key=json_extract(${job}.event,'$.incidentKey')`;
 export function contactQuietReady(job='j',now=databaseNow){
@@ -16,9 +21,9 @@ export function contactQuietReady(job='j',now=databaseNow){
   AND (s.quiet_checked_until IS NULL OR s.quiet_checked_until<=${now} OR s.quiet_until>${now}))`;
 }
 export function contactReady(job='j',now=databaseNow){
- return `(${contactQuietReady(job,now)} AND NOT EXISTS(SELECT 1 FROM alert_contact_schedules s JOIN notification_jobs t ON t.id=s.trigger_job_id
+ return `(NOT ${dependencyPrimaryAccepted(job)} AND ${contactQuietReady(job,now)} AND NOT EXISTS(SELECT 1 FROM alert_contact_schedules s JOIN notification_jobs t ON t.id=s.trigger_job_id
   WHERE ${contactMatch(job)}
-  AND json_extract(${job}.event,'$.kind') IN ('trigger','reminder','slow','slow_reminder') AND (s.due_at>${now} OR ${closed} OR (json_extract(${job}.event,'$.kind') IN ('reminder','slow_reminder') AND NOT (${active})))))`;
+  AND json_extract(${job}.event,'$.kind') IN ('trigger','reminder','slow','slow_reminder','dependency') AND (s.due_at>${now} OR ${closed} OR (json_extract(${job}.event,'$.kind') IN ('reminder','slow_reminder') AND NOT (${active})))))`;
 }
 /** Refresh only live dispatch authority. Persist a hold's exact end, reuse it
  * across restarts, and make each evaluation expire at the next real minute so
@@ -44,8 +49,8 @@ export async function advanceContactSchedules(env:Bindings){
  const now=Date.now();
  // Settle only queued work. Started/uncertain transports keep their own outcome.
  await env.DB.batch([
-  env.DB.prepare(`UPDATE notification_jobs AS j SET state='rejected',code='contact_schedule_stopped',finished_at=? WHERE state='queued' AND json_extract(j.event,'$.kind') IN ('trigger','reminder','slow','slow_reminder') AND NOT ${contactReady('j',String(now))}
-   AND EXISTS(SELECT 1 FROM alert_contact_schedules s JOIN notification_jobs t ON t.id=s.trigger_job_id WHERE t.destination_id=j.destination_id AND s.monitor_id=json_extract(j.event,'$.monitorId') AND s.incident_key=json_extract(j.event,'$.incidentKey') AND (${closed} OR (json_extract(j.event,'$.kind') IN ('reminder','slow_reminder') AND NOT (${active}))))
+  env.DB.prepare(`UPDATE notification_jobs AS j SET state='rejected',code='contact_schedule_stopped',finished_at=? WHERE state='queued' AND json_extract(j.event,'$.kind') IN ('trigger','reminder','slow','slow_reminder','dependency') AND NOT ${contactReady('j',String(now))}
+   AND EXISTS(SELECT 1 FROM alert_contact_schedules s JOIN notification_jobs t ON t.id=s.trigger_job_id WHERE t.destination_id=j.destination_id AND s.monitor_id=json_extract(j.event,'$.monitorId') AND s.incident_key=json_extract(j.event,'$.incidentKey') AND (${closed} OR ${dependencyPrimaryAccepted('j')} OR (json_extract(j.event,'$.kind') IN ('reminder','slow_reminder') AND NOT (${active}))))
    AND NOT EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace='uptime-notifications' AND d.id=j.id AND d.state<>'queued')`).bind(now),
   env.DB.prepare(`UPDATE integration_deliveries SET state='rejected',next_at=? WHERE namespace='uptime-notifications' AND state='queued' AND id IN(SELECT id FROM notification_jobs WHERE code='contact_schedule_stopped')`).bind(now),
   env.DB.prepare(`UPDATE alert_contact_schedules AS s SET next_at=NULL WHERE NOT EXISTS(SELECT 1 FROM notification_jobs t WHERE t.id=s.trigger_job_id AND ${active})`),

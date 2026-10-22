@@ -40,7 +40,7 @@ export function publicEntry(entry) {
 }
 // One thing the owner follows: the whole provider or one component.
 export function targetsFor(entry, selection) {
-  if (!isFollowable(entry)) throw Error(`${entry.name} publishes no status Uptime can read. Add its status page by address instead.`);
+  if (!isFollowable(entry)) throw Error(`${entry.name} cannot yet be followed by this catalog reader. Add its status page by address to review a proposal.`);
   if (!selection || typeof selection !== 'object' || Array.isArray(selection) || Object.keys(selection).some(key => !['entry', 'scope', 'components'].includes(key))) throw Error('Choose the whole provider or its components.');
   if (selection.scope === 'whole') {
     if (selection.components !== undefined || !entry.whole) throw Error(`${entry.name} has no whole-provider status to follow.`);

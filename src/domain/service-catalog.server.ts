@@ -32,11 +32,11 @@ export async function recentNotices(env:Bindings,limit=50){
  return rows.results.map(row=>noticeView(row,row.ended,row))
 }
 // What the latest scheduled evidence of a followed monitor says about its source, without opening any provider.
-async function sourceState(env:Bindings,monitorId:string){
+async function sourceState(env:Bindings,monitorId:string,reviewedAt:number|null){
  const rows=(await env.DB.prepare("SELECT o.evidence FROM observations o WHERE o.slot_id=(SELECT id FROM slots WHERE monitor_id=? AND manual=0 AND lease_owner<>'restored-inactive' AND EXISTS(SELECT 1 FROM observations x WHERE x.slot_id=slots.id) ORDER BY due_at DESC LIMIT 1) ORDER BY o.attempt DESC").bind(monitorId).all<{evidence:string}>()).results.map(row=>JSON.parse(row.evidence))
- if(!rows.length)return {state:'waiting',readable:true}
- if(rows.some(o=>o.checks?.some((c:any)=>c.assertion==='dependency')))return {state:'unknown',readable:false}
- return {state:rows.every(o=>o.outcome==='pass')?'operational':rows.some(o=>o.outcome==='target_failure')?'issue':'unknown',readable:true}
+ if(!rows.length)return {state:'waiting',readable:true,needsReview:reviewedAt===null}
+ const readable=rows.every(o=>['pass','target_failure'].includes(o.outcome)&&!o.checks?.some((c:any)=>c.assertion==='dependency'))
+ return {state:!readable?'unknown':rows.every(o=>o.outcome==='pass')?'operational':'issue',readable,needsReview:reviewedAt===null||!readable}
 }
 async function followedView(env:Bindings,row:Followed,reviews:Map<string,any>,links:Map<string,string[]>){
  const monitor=await get(env,row.monitor_id),entry=catalogEntry(row.entry_id),reasons:string[]=[]
@@ -46,10 +46,10 @@ async function followedView(env:Bindings,row:Followed,reviews:Map<string,any>,li
   if(row.catalog_version<CATALOG_VERSION)reasons.push(`Followed under catalog version ${row.catalog_version}; the catalog is now at version ${CATALOG_VERSION}.`)
   if(monitor&&monitor.definition.url!==targetUrl(entry,target))reasons.push('The catalog now names a different status source address.')
  }
- if(row.checked_at===null)reasons.push('Imported from another product, so its status source has not been checked live yet. Check it before enabling this monitor.')
+ if(row.checked_at===null)reasons.push('This status source needs a successful live check and owner review.')
  const review=reviews.get(row.entry_id);if(review)reasons.push(reviewText(review))
- const source=await sourceState(env,row.monitor_id)
- if(!source.readable)reasons.push('The status source stopped answering, moved or no longer has the expected shape, so the provider’s status is Unknown.')
+ const source=await sourceState(env,row.monitor_id,row.checked_at)
+ if(source.needsReview)reasons.push(source.readable?'The status source failed since its last review. It answers again, but the owner must check and review it.':'The status source stopped answering, moved or no longer has the expected shape, so the provider’s status is Unknown.')
  return {monitorId:row.monitor_id,name:monitor?.definition.name??'',entryId:row.entry_id,entryName:entry?.name??row.entry_id,scope:row.scope,component:entry&&row.scope==='component'?viewOf(entry,target).component:null,
   region:entry&&row.scope==='component'?viewOf(entry,target).region:null,catalogVersion:row.catalog_version,followedAt:row.followed_at,source:monitor?.definition.url??null,sourceState:source.state,
   review:{state:reasons.length?'needs_review':'ok',reasons},linked:links.get(row.monitor_id)??[]}
@@ -63,7 +63,7 @@ export async function catalogDocument(env:Bindings,query:string){
  // What a provider can be linked to: every monitor that is not itself a provider's, with its service and group.
  const linkable=definitions.filter(row=>!row.definition.tags?.includes('dependency')).map(row=>({id:row.id,name:row.definition.name,service:row.definition.service??null,group:row.definition.group??null}))
  const followed=await Promise.all(followedRows.results.map(row=>followedView(env,row,reviews,links)))
- const entries=searchCatalog(query).map((entry:any)=>({...publicEntry(entry),review:reviews.has(entry.id)?{state:'needs_review',problem:reviews.get(entry.id).problem,detail:reviews.get(entry.id).detail,checkedAt:reviews.get(entry.id).checked_at}:null,
+ const entries=searchCatalog(query).map((entry:any)=>({...publicEntry(entry),review:reviews.has(entry.id)?{state:'needs_review',problem:reviews.get(entry.id).problem,detail:reviews.get(entry.id).detail,checkedAt:reviews.get(entry.id).checked_at}:followed.some(item=>item.entryId===entry.id&&item.review.state==='needs_review')?{state:'needs_review',problem:'unreachable',detail:'A followed status source needs review.',checkedAt:null}:null,
   followed:followed.filter(item=>item.entryId===entry.id).map(item=>item.monitorId)}))
  return {version:CATALOG_VERSION,reviewed:CATALOG_REVIEWED,entries,followed,notices,monitors:linkable}
 }

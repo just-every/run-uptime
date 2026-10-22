@@ -1,3 +1,4 @@
+import {isDependencyStatus} from '../../src/domain/dependency-status.mjs';
 import {tryCaptureFailureSnapshot} from '../../src/domain/failure-snapshot.mjs';
 import {privateTarget} from '../../src/domain/private-target.mjs';
 import {requestOnce} from './public-http-request.mjs';
@@ -74,6 +75,7 @@ export async function publicHttp(def,signal,onRequest,{statusOnly=false,monitorI
    }
   }else if(credential?.auth?.type==='oauth2'&&response.status===401&&/\berror\s*=\s*"?invalid_token\b/i.test(String(response.headers['www-authenticate']??'')))response=await send({},true);
   if(!Object.hasOwn(response,'redirect'))return {...response,...(snapshotPolicy&&!statusOnly?{failureSnapshot:tryCaptureFailureSnapshot({method,url:url.href,redirects,requestHeaders:sentHeaders,responseHeaders:response.headers,status:response.status,body:response.body,durationMs:0,requestSecrets:sentSecrets,masks:snapshotPolicy.masks,safeValues:snapshotPolicy.safeValues,policyVersion:snapshotPolicy.version})}:{}),...(facts.length?{tlsTrust:facts}:{}),...(credential&&[401,403].includes(response.status)?{authenticationRejected:true}:{})};
+  if(!statusOnly&&isDependencyStatus(def))throw Object.assign(new ProbeError('redirect'),{facts});
   if(hop===5||!response.redirect)throw Object.assign(new ProbeError('redirect'),{facts});
   let next;try{next=(def.network==='private'?privateTarget:publicTarget)(new URL(response.redirect,url).href)}catch{throw Object.assign(new ProbeError('network'),{facts})}
   if(url.protocol==='https:'&&next.protocol!=='https:')throw Object.assign(new ProbeError('redirect'),{facts});

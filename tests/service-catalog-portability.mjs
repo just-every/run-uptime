@@ -44,6 +44,7 @@ export async function proveCatalogPortability({g,ids,urls}){
  assert.equal(await count(g.DB,'SELECT COUNT(*) n FROM followed_services'),2,'the other followed services remain');
  const incident=(await ok(`/api/monitors/${ids.shop}/incidents`))[0].id;
  assert.deepEqual((await ok(`/api/incidents/${incident}`)).dependencies.linked,[],'an erased provider leaves no dangling notice on the incident');
+ await ok('/api/archive');
 }
 // A populated installation from before the catalog (DEPENDENCY-001 monitors, an incident, a website check) upgrades by one additive migration.
 export async function proveCatalogUpgrade(){
@@ -71,4 +72,57 @@ export async function proveCatalogUpgrade(){
   assert.equal((await api('/api/service-catalog')).followed.length,0,'a DEPENDENCY-001 monitor is an ordinary dependency monitor, not a followed service');
   const finished=await api('/api/overview');assert.ok(finished.monitors.some(m=>m.id==='dependency-one'));
  }finally{await worker?.dispose();await rm(directory,{recursive:true,force:true})}
+}
+
+export async function proveDependencyErasure(){
+ const {catalogRuntime,hosts}=await import('./service-catalog-fixture.mjs');
+ const f=await catalogRuntime(),{g,ok,id,edge,route,check}=f;
+ let restored,roundtrip;
+ try{
+  const app=await ok('/api/monitors',{name:'synthetic-uptime-3',url:`https://${hosts.app}/`,intervalMs:60000,retries:0,confirmSlots:1,recoverSlots:1,probes:['local-a'],assignments:{'local-a':g.first.runnerId},service:'synthetic-uptime-service',group:'synthetic-uptime-group'});
+  await route(app.id,{});
+  // Each existing service/group/monitor link door can remove membership without inventing an entity-erasure door.
+  for(const [kind,target] of [['service','synthetic-uptime-service'],['group','synthetic-uptime-group'],['monitor',app.id]]){
+   await ok(`/api/followed-services/${id}/links`,{kind,target,linked:true});
+   await ok(`/api/followed-services/${id}/links`,{kind,target,linked:false});
+   assert.deepEqual((await ok('/api/overview')).monitors.find(m=>m.id===app.id).definition.dependencies,[]);
+  }
+  await ok(`/api/followed-services/${id}/links`,{kind:'monitor',target:app.id,linked:true});
+  edge.state.stripe.statuses.api='degraded';await check(id);edge.state.app=503;await check(app.id);
+  const incident=(await ok(`/api/monitors/${app.id}/incidents`))[0].id,detail=await ok(`/api/incidents/${incident}`);
+  await ok(`/api/incidents/${incident}/actions`,{kind:'acknowledge',version:detail.version});
+  const count=async(db,sql)=>Number((await db.prepare(sql).first()).n);
+  assert.equal(await count(g.DB,'SELECT COUNT(*) n FROM dependency_acks'),1);
+  const {authRequest,deliveredLink,sessionCookie,emailSignIn}=await import('./auth-test-support.mjs');
+  const operators=await ok('/auth/operators'),actor=operators.find(o=>o.role==='owner'&&o.status==='active');
+  const ownerCookie=await emailSignIn(g.origin,{bindings:g.bindings}),baseRequest=g.request;g.request=(path,options={})=>baseRequest(path,{...options,headers:{...options.headers,cookie:ownerCookie}});
+  await ok('/auth/invite',{email:'synthetic-uptime-4@example.test',displayName:'synthetic-uptime-4',role:'owner'});
+  const call=authRequest(g.origin),link=await deliveredLink(call,{email:'synthetic-uptime-4@example.test',kind:'invite'}),cookie=sessionCookie(await call('/auth/confirm',{token:link.searchParams.get('token')}));
+  const successorCookie=await emailSignIn(g.origin,{bindings:{...g.bindings,OWNER_EMAIL:'synthetic-uptime-4@example.test'}});
+  const originalRequest=baseRequest;g.request=(path,options={})=>originalRequest(path,{...options,headers:{...options.headers,cookie:successorCookie}});
+  await ok(`/api/operators/${actor.id}/erase`,{});
+  assert.equal((await g.DB.prepare('SELECT actor_id FROM dependency_acks').first()).actor_id,null,'person erasure anonymizes the acknowledgment');
+  const before=await ok('/api/archive');
+  const receipt=(await ok(`/api/monitors/${app.id}/erase`,{name:app.definition.name})).receipt;
+  assert.equal(receipt.counts.dependency_acks,1,'application erasure truthfully counts its cross-incident acknowledgment');
+  assert.equal(await count(g.DB,'SELECT COUNT(*) n FROM dependency_acks'),0,'application erasure removes cross-incident references');
+  const after=await ok('/api/archive');assert.equal(after.payload.productTables.dependency_acks.length,0);
+  restored=await fixture();
+  const {digest}=await import('../src/domain/archive-schema.ts');
+  const malformed=structuredClone(before);malformed.payload.productTables.dependency_acks[0].via_incident_id='synthetic-uptime-absent-incident';malformed.sha256=await digest(JSON.stringify(malformed.payload));
+  let result=await restored.request('/api/restore',{body:malformed});assert.equal(result.status,400,'restore refuses a dangling cross-incident acknowledgment');assert.equal(await count(restored.DB,'SELECT COUNT(*) n FROM monitors'),0);
+  result=await restored.request('/api/restore',{body:before});assert.equal(result.status,200,JSON.stringify(result.data));
+  result=await restored.request(`/api/monitors/${app.id}/erase`,{body:{name:app.definition.name}});assert.equal(result.status,200,JSON.stringify(result.data));assert.equal(result.data.receipt.counts.dependency_acks,1);
+  const exported=(await restored.request('/api/archive')).data;
+  assert.equal(exported.payload.productTables.dependency_acks.length,0,'restored application erasure removes acknowledgments from the next archive');
+  assert.ok(!JSON.stringify(exported.payload.productTables.archive_history).includes(incident),'the erased incident has no archive-history copy');
+  roundtrip=await fixture();result=await roundtrip.request('/api/restore',{body:exported});assert.equal(result.status,200,JSON.stringify(result.data));assert.equal(await count(roundtrip.DB,'SELECT COUNT(*) n FROM dependency_acks'),0);
+  // Provider erasure still removes its notice and any remaining acknowledgment references.
+  const provider=(await ok('/api/overview')).monitors.find(m=>m.id===id);
+  const notice=(await ok('/api/service-catalog')).notices.find(n=>n.monitorId===id);
+  await ok(`/api/dependency-notices/${notice.id}/acknowledge`,{});
+  const erased=await ok(`/api/monitors/${id}/erase`,{name:provider.definition.name});assert.equal(erased.receipt.counts.dependency_acks,1);
+  assert.equal(await count(g.DB,'SELECT COUNT(*) n FROM dependency_acks'),0);await ok('/api/archive');
+  console.log('DEPENDENCY_ERASURE application and provider receipts=1; live/archive/restore acknowledgments=0; person anonymization, dangling-restore refusal and monitor/service/group unlink passed');
+ }finally{await roundtrip?.close();await restored?.close();await f.close()}
 }

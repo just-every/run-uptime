@@ -11,7 +11,7 @@ import {runRunner} from '../runners/src/private-runner.mjs';
 import {acceptanceReceiver,verifySlack,loopbackWireTransport} from './notify-acceptance-receivers.mjs';
 import {availablePorts} from './notify-acceptance-runtime.mjs';
 import {catalogEdge,hosts} from './service-catalog-fixture.mjs';
-import {proveCatalogPortability,proveCatalogUpgrade} from './service-catalog-portability.mjs';
+import {proveCatalogPortability,proveCatalogUpgrade,proveDependencyErasure} from './service-catalog-portability.mjs';
 export const CLAUSE_PROVIDERS=['AWS','Google Cloud','Microsoft Azure','Microsoft 365','Cloudflare','Stripe','PayPal','Square','Shopify','GitHub','Vercel','Netlify','Twilio','SendGrid','Mailgun','Slack','Zoom','Atlassian','OpenAI','Anthropic','Okta','Auth0','DigitalOcean','Fastly'];
 const axe=async page=>{
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'no horizontal overflow');
@@ -63,7 +63,7 @@ export async function proveServiceCatalog({launch,evidence}){
   assert.deepEqual((await ok('/api/service-catalog?q=stripe')).entries.map(entry=>entry.name),['Stripe']);
   assert.ok((await ok('/api/service-catalog?q=us-east-1%20ec2')).entries.some(entry=>entry.name==='AWS'),'a component and region find the provider');
   for(const entry of everyone.entries){assert.ok(['statuspage','json','feed','page'].includes(entry.source.kind));assert.match(entry.source.url,/^https:\/\//)}
-  // A provider that publishes no status Uptime can read is named but never followed through the catalog.
+  // A provider the current catalog reader cannot follow is named but never followed through the catalog.
   const okta=(await ok('/api/service-catalog?q=okta')).entries[0];assert.equal(okta.followable,false);
   assert.equal((await g.request('/api/service-catalog/checks',{body:{entry:'okta',scope:'whole'}})).status,400);
 
@@ -202,12 +202,20 @@ export async function proveServiceCatalog({launch,evidence}){
 
   // The status source stops answering, moves, then stops parsing as the expected shape: Unknown, never operational, and flagged for review.
   const noticesBefore=(await rows("SELECT id FROM outbox WHERE kind LIKE 'dependency%'")).length;
-  for(const mode of [503,'drop','moved','shape']){
+  for(const mode of [503,'drop','dns','refused','timeout','moved','shape']){
    edge.state.stripe.mode=mode;await twice(stripeMonitor.id);
    const state=(await ok('/api/overview')).monitors.find(m=>m.id===stripeMonitor.id).state;
    assert.equal(state.state,'Unknown',`status source ${mode}`);
    const view=(await ok('/api/service-catalog')).followed.find(f=>f.monitorId===stripeMonitor.id);
    assert.equal(view.review.state,'needs_review',`status source ${mode} needs review`);assert.equal(view.sourceState,'unknown');
+   assert.equal((await ok('/api/service-catalog?q=stripe')).entries[0].review.state,'needs_review');
+   if(mode==='moved'){
+    await page.goto(g.origin+'/app/monitor');await search('stripe');await page.locator('.catalog-review').first().waitFor();
+    await widths(page,'catalog-moved',{evidence,full:true});
+    await page.goto(g.origin+'/app/monitors/'+encodeURIComponent(stripeMonitor.id));await page.locator('.followed-review').waitFor();
+    await page.locator('[data-review-followed]').focus();assert.equal(await page.locator('[data-review-followed]').evaluate(e=>e===document.activeElement),true,'review is keyboard reachable');
+    await widths(page,'followed-moved',{evidence,full:true});
+   }
   }
   assert.equal((await rows("SELECT id FROM outbox WHERE kind LIKE 'dependency%'")).length,noticesBefore,'an unreadable source states nothing, so it sends no notice');
   await page.goto(g.origin+'/app/monitors/'+encodeURIComponent(stripeMonitor.id));
@@ -224,7 +232,10 @@ export async function proveServiceCatalog({launch,evidence}){
   // Quiet hours held Stripe's notice and recovery for the second contact; it received only AWS's notice, as the fallback of the dead hook.
   assert.equal(receivers[3].records.length,1,'the dead primary was tried once');
   assert.deepEqual(dependencyRecords(1).map(r=>[r.body.dependency.provider,r.body.fallbackContext?.previous?.[0]?.destinationId]),[['AWS',dead.id]]);
-  assert.equal((await ok('/api/service-catalog')).followed.find(f=>f.monitorId===stripeMonitor.id).review.state,'ok','the review mark clears once the source reads again');
+  assert.equal((await ok('/api/service-catalog')).followed.find(f=>f.monitorId===stripeMonitor.id).review.state,'needs_review','recovery retains the mark until owner review');
+  await page.goto(g.origin+'/app/monitors/'+encodeURIComponent(stripeMonitor.id));startLooking();
+  await page.locator('[data-review-followed]').click();await page.locator('.followed-review').waitFor({state:'detached'});await stopLookingNow();
+  assert.equal((await ok('/api/service-catalog')).followed.find(f=>f.monitorId===stripeMonitor.id).review.state,'ok','a successful owner review clears the mark');
   assert.ok(edge.requests.every(r=>['GET','HEAD'].includes(r.method)),'only read requests reached any status source');
   await page.goto(g.origin+'/app/monitors/'+encodeURIComponent(stripeMonitor.id));
   await page.locator('.followed-notices').waitFor();
@@ -237,4 +248,5 @@ export async function proveServiceCatalog({launch,evidence}){
   controller.abort();if(stopLooking&&!stopLooking.signal.aborted)await stopLookingNow();
   await browser.close();for(const receiver of receivers)await receiver.close();await edge.close();await g.close();
  }
+ await proveDependencyErasure();
 }

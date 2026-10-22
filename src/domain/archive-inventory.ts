@@ -42,6 +42,7 @@ export const installationLocalTables:Record<string,string>={
  alert_drills:'Installation alert drill history and confirmation capability hashes; a restored destination starts never proven.',
  external_check:'Installation External check URL: the receiving installation chooses its own network\'s default; restored monitors that follow Settings check it, and a monitor\'s own URL travels in its revisions.',
  discovery_jobs:'Installation discovery questions and the runner\'s derived answers (website checks and catalog status-source checks); transient, never evidence or definitions of record.',
+ // dependency_acks is portable through archive-schema/dependency-archive; via_incident_id must name an extant trigger.
  catalog_review:'Installation record of the latest failed live check of a catalog status source; rebuilt by checking again, never a portable verdict.',
  oa_identity_providers:'Installation linked-provider pin and endpoints; a restored installation must link again.',oa_identity_provider_health:'Installation provider reachability.',oa_oidc_transactions:'Installation in-flight provider sign-in state; expires.',oa_oidc_limits:'Installation provider sign-in rate limits.',
  oa_auth_settings:'Installation provider sign-in setting; a restored installation starts with it off.',oa_auth_audit:'Installation record of owner changes to provider sign-in and links.',

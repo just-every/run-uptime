@@ -1,11 +1,12 @@
 // DEPENDENCY-002 portability: followed services, dependency notice acknowledgements and the dependency context of notices.
+// A null checked_at also retains a failed-source review requirement after evidence cleanup.
 // Followed services restore with their monitors, paused and inactive: nothing here carries authority or resumes a send.
 export const dependencyArchiveColumns:Record<string,string[]>={
  followed_services:['monitor_id','entry_id','catalog_version','scope','component_key','followed_at','checked_at'],
  dependency_acks:['notice_id','monitor_id','acknowledged_at','actor_id','via_incident_id'],
 }
 // Monitor erasure removes a monitor's own rows in these tables.
-export const dependencyMonitorErasureTables=['followed_services','dependency_acks']
+export const dependencyMonitorErasureTables=['followed_services']
 export const DEPENDENCY_KINDS=['dependency','dependency_recovery']
 const object=(value:any)=>value!==null&&typeof value==='object'&&!Array.isArray(value)
 const clock=(value:any)=>Number.isSafeInteger(value)&&value>=0
@@ -24,11 +25,12 @@ export function validateDependencyArchive(t:Record<string,any[]>){
   const key=`${row.entry_id}:${row.scope}:${row.component_key??''}`;if(entries.has(key))fail()
   followed.add(row.monitor_id);entries.add(key)
  }
+ const incidents=new Set(t.outbox.filter(row=>row.kind==='trigger').map(row=>row.id))
  const notices=new Map(t.outbox.filter(row=>row.kind==='dependency').map(row=>[row.id,row]))
  const seen=new Set<string>()
  for(const row of t.dependency_acks){
   const notice=notices.get(row.notice_id)
-  if(!notice||notice.monitor_id!==row.monitor_id||seen.has(row.notice_id)||!clock(row.acknowledged_at)||!(row.actor_id===null||text(row.actor_id,512))||!(row.via_incident_id===null||text(row.via_incident_id,512)))fail()
+  if(!notice||notice.monitor_id!==row.monitor_id||seen.has(row.notice_id)||!clock(row.acknowledged_at)||!(row.actor_id===null||text(row.actor_id,512))||!(row.via_incident_id===null||incidents.has(row.via_incident_id)))fail()
   seen.add(row.notice_id)
  }
  for(const row of t.outbox)if(DEPENDENCY_KINDS.includes(row.kind)&&!followed.has(row.monitor_id))fail()

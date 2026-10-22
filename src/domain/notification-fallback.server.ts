@@ -46,8 +46,8 @@ export async function advanceFallbackChains(env:Bindings){
   const next=ids[chain.step],step=chain.step+1;
   const trigger=await env.DB.prepare('SELECT event FROM outbox WHERE id=?').bind(chain.event_id).first<{event:string}>();
   const event:NotificationEvent={...JSON.parse(trigger!.event),fallbackContext:{step,previous}};
-  // A dependency notice goes to each contact once, under its quiet hours; contact delay and repeat apply to incidents only.
-  const own={...defaultContactSettings,...settings[next]},policy=event.kind==='dependency'?{...own,delayMinutes:0,repeatMinutes:0,maxRepeats:null,recovery:true,stopOnAck:false}:own;
+  // A dependency notice goes to each contact once, under its quiet hours; its saved delay still applies; dependency notices do not repeat.
+  const own={...defaultContactSettings,...settings[next]},policy=event.kind==='dependency'?{...own,repeatMinutes:0,maxRepeats:null,recovery:true,stopOnAck:false}:own;
   const due=event.observedAt+policy.delayMinutes*60000,repeat=policy.repeatMinutes*60000;
   // Reminders keep the confirmation-anchored cadence, starting after this contact's first notice.
   const nextAt=repeat?due+(Math.max(0,Math.floor((now-due)/repeat))+1)*repeat:null;
