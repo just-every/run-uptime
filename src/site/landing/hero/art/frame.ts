@@ -8,9 +8,6 @@ export const HORIZON = 894
 export const WIDE_X = -1200
 export const WIDE_W = 3936
 
-/** Lake drawn on below the still's bottom edge, so a page can let the water run past the fold before it fades out (dawn-scene.css `--ut-dawn-apron`). Enough for about 70px at the smallest landscape scale. */
-export const APRON = 110
-
 /** The low sun on the right of the still, partly behind the far ridge. */
 export const SUN = { x: 1222, y: 835, r: 36 }
 
