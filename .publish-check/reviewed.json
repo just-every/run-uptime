@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "findings": [
+    {
+      "rule": "hygiene.email",
+      "path": "docs/evidence/contracts/failure-snapshots/failure-snapshot-guide-bounds-1440.png",
+      "blob": "2ece0beb1f3dc40e1916ebc7d2092e5982856b4d",
+      "reason": "False positive in compressed PNG IDAT bytes only. No PNG text metadata; rendered screenshot inspected and contains no email address. Exact existing image bytes are retained.",
+      "reviewer": "Run Edit Run fleet",
+      "date": "2026-10-22"
+    },
+    {
+      "rule": "hygiene.email",
+      "path": "docs/evidence/contracts/release-0.4.0/hosted-restored-incident-390.png",
+      "blob": "490442cd7707a688dbcbef260d8a26f4f03c902c",
+      "reason": "False positive in compressed PNG IDAT bytes only. No PNG text metadata; rendered screenshot inspected and contains no email address. Exact existing image bytes are retained.",
+      "reviewer": "Run Edit Run fleet",
+      "date": "2026-10-22"
+    },
+    {
+      "rule": "hygiene.email",
+      "path": "work/sd-cp-uptime/shots/REPORT-001/custom-report-390.png",
+      "blob": "5489a4574d9833ab82fd6866ade29e5f17bd6f48",
+      "reason": "False positive in compressed PNG IDAT bytes only. No PNG text metadata; rendered screenshot inspected and contains no email address. Exact existing image bytes are retained.",
+      "reviewer": "Run Edit Run fleet",
+      "date": "2026-10-22"
+    },
+    {
+      "rule": "hygiene.email",
+      "path": "work/sd-cp-uptime/shots/REPORT-001/dst-refusal-390.png",
+      "blob": "0bb0c706eeaec01a5d9034fdebcb9afcfc0c3469",
+      "reason": "False positive in compressed PNG IDAT bytes only. No PNG text metadata; rendered screenshot inspected and contains no email address. Exact existing image bytes are retained.",
+      "reviewer": "Run Edit Run fleet",
+      "date": "2026-10-22"
+    }
+  ]
+}
