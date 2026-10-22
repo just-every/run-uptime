@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Monitor definition files for a local installation, through the same import door as the console's Definitions view:
 //   node scripts/definitions.mjs validate --input uptime.monitors.json   (writes nothing; exits 1 if any entry is refused or unsupported)
-//   node scripts/definitions.mjs preview  --input FILE [--source auto|uptime.monitors|uptimerobot|pingdom|betterstack-heartbeats|uptimerobot-log]
+//   node scripts/definitions.mjs preview  --input FILE [--source auto|uptime.monitors|uptimerobot|pingdom|betterstack-heartbeats|site24x7|uptimerobot-log]
 //   node scripts/definitions.mjs apply    --input FILE --digest PLAN_DIGEST [--source SOURCE]   (plans through the door; applies only that reviewed plan)
 //   node scripts/definitions.mjs export   --output uptime.monitors.json   (read-only; a new file only)
 //   node scripts/definitions.mjs batches

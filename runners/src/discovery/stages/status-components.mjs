@@ -1,4 +1,5 @@
 import {GET_BODY_MARGIN} from '../constants.mjs';
+import {dependencyAttribution} from '../../../../src/domain/dependency-status.mjs';
 import {isJson} from '../fetcher.mjs';
 import {parseJson} from '../json-health.mjs';
 import {named} from '../naming.mjs';
@@ -6,8 +7,7 @@ import {makeProposal,ms,RANK} from '../proposal.mjs';
 import {clip,proposalKey} from '../text.mjs';
 const MAX_COMPONENTS=4;
 const componentName=value=>typeof value==='string'?clip(value.replace(/[\x00-\x1f\x7f]/g,' '),100):'';
-export const statusAttribution=(provider,url)=>({service:provider,tags:['dependency'],
-  outcome:clip(`${provider}'s status is the provider's own claim; contextual evidence only, never proof that the application is up or down. Source: ${url}`,500)});
+export const statusAttribution=dependencyAttribution;
 
 // Every component shares the provider's endpoint, but its stable id names a separate assertion and proposal.
 // Never offer a HEAD-only component: it could pass without reading the provider's status claim.

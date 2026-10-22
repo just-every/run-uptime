@@ -14,6 +14,7 @@ import {attemptSnapshot,checkpointStatement} from './attempt-checkpoint.server.t
 import {classifyAttempts} from './attempt-classification.ts'
 import {slowNotice} from './slow-notices.server.ts'
 import {incidentEvent} from './notification-content.ts'
+import {dependencyEvent} from './dependency-notices.ts'
 import {incidentDeliveryStatements} from './alert-route-delivery.server.ts'
 import {HOSTED_RUNNER_ID} from './hosted-runner.ts'
 import {definitionChange,definitionChangeNote} from './flow-changes.server.ts'
@@ -98,10 +99,12 @@ export async function completeAttempts(env:Bindings,input:any,runnerId:string){
   for(const probe of definition.probes){const chain=combined.filter(o=>o.slot_id===slot.id&&o.probe===probe).map(o=>JSON.parse(o.evidence)).sort((a,b)=>a.attempt-b.attempt);if(chain.some((o,i)=>i<chain.length-1&&o.outcome!=='target_failure'))throw Error('Contradictory retry evidence')}
   const m=await get(env,slot.monitor_id);if(!m)throw Error('Monitor absent');
   const state=projectAttempts(definition,classifyAttempts(definition,snapshot.slots,combined,now),combined,now,snapshot.checkpoint),current=m.revision===slot.revision&&!slot.manual;
-  const last=await env.DB.prepare("SELECT kind,event FROM outbox WHERE monitor_id=? AND kind IN ('trigger','recovery') AND status<>'imported-inactive' ORDER BY rowid DESC LIMIT 1").bind(m.id).first<any>();
-  const open=last?.kind==='trigger';if(open&&state.targetState==='Healthy'&&state.recoveryStreak<definition.recoverSlots){state.targetState=state.underlyingState='Recovering';if(!state.maintenance)state.state='Recovering';state.confirmedFailure=true}state.notificationOpen=open;state.incidentKey=open?JSON.parse(last.event).incidentKey:null;state.incidentRevision=open?JSON.parse(last.event).monitorRevision??null:null;const changed=open?await definitionChange(env,m.id,state.incidentRevision,slot.revision,definition):null;if(changed){state.definitionChange=changed;state.reason+=definitionChangeNote(changed)}
-  const kind=current&&!state.maintenance?(state.targetState==='Failing'&&!open?'trigger':state.targetState==='Healthy'&&open?'recovery':null):null;
-  if(kind){state.notificationOpen=kind==='trigger';if(kind==='trigger'){state.incidentKey=`incident:${slot.id}`;state.incidentRevision=slot.revision}}
+  // DEPENDENCY-002: a followed catalog service raises dependency notices on the same confirmed transitions, never incidents.
+  const followed=await env.DB.prepare('SELECT entry_id,catalog_version,scope FROM followed_services WHERE monitor_id=?').bind(m.id).first<any>(),openKind=followed?'dependency':'trigger',closeKind=followed?'dependency_recovery':'recovery';
+  const last=await env.DB.prepare("SELECT kind,event FROM outbox WHERE monitor_id=? AND kind IN (?,?) AND status<>'imported-inactive' ORDER BY rowid DESC LIMIT 1").bind(m.id,openKind,closeKind).first<any>();
+  const open=last?.kind===openKind;if(open&&state.targetState==='Healthy'&&state.recoveryStreak<definition.recoverSlots){state.targetState=state.underlyingState='Recovering';if(!state.maintenance)state.state='Recovering';state.confirmedFailure=true}state.notificationOpen=open;state.incidentKey=open?JSON.parse(last.event).incidentKey:null;state.incidentRevision=open?JSON.parse(last.event).monitorRevision??null:null;const changed=open?await definitionChange(env,m.id,state.incidentRevision,slot.revision,definition):null;if(changed){state.definitionChange=changed;state.reason+=definitionChangeNote(changed)}
+  const kind=current&&!state.maintenance?(state.targetState==='Failing'&&!open?openKind:state.targetState==='Healthy'&&open?closeKind:null):null;
+  if(kind){state.notificationOpen=kind===openKind;if(kind===openKind){state.incidentKey=`${followed?'dependency':'incident'}:${slot.id}`;state.incidentRevision=slot.revision}}
   const projectionId=crypto.randomUUID();
   // One authority decision at transaction entry applies to every following
   // write. A unique projection token prevents a losing generation from using
@@ -110,6 +113,12 @@ export async function completeAttempts(env:Bindings,input:any,runnerId:string){
   const guard='EXISTS(SELECT 1 FROM evidence_generation WHERE monitor_id=? AND generation=? AND projection_id=?)';
   const values=[slot.monitor_id,generation+1,projectionId];
   const statements=fresh.map((o:any)=>env.DB.prepare(`INSERT INTO observations(id,slot_id,probe,attempt,evidence) SELECT ?,?,?,?,? WHERE ${guard}`).bind(o.id,slot.id,o.probe,o.attempt,JSON.stringify(withoutSnapshot(o)),...values));
+  // A failed scheduled source invalidates its last live review durably, in the evidence transaction.
+  // Recovery never renews review; only the owner's successful live check does. This survives evidence retention.
+  if(followed&&current){
+   const failed=fresh.filter((o:any)=>o.outcome==='runner_error'||o.checks?.some((c:any)=>c.assertion==='dependency'));
+   if(failed.length)statements.push(env.DB.prepare(`UPDATE followed_services SET checked_at=NULL WHERE monitor_id=? AND checked_at<? AND EXISTS(SELECT 1 FROM monitors WHERE id=? AND revision=?) AND ${guard}`).bind(m.id,Math.max(...failed.map((o:any)=>o.completedAt)),m.id,slot.revision,...values));
+  }
   statements.push(...await snapshotStatements(env,slot.monitor_id,slot.id,fresh,guard,values));
   // API-004: incomplete cleanup becomes retained debt, and live steps spend their grant, with the observations or not at all.
   statements.push(...debtStatements(env,slot,fresh,guard,values,now),...spendStatements(env,slot.monitor_id,fresh,guard,values));
@@ -117,8 +126,9 @@ export async function completeAttempts(env:Bindings,input:any,runnerId:string){
   if(snapshot.checkpointUpdate)statements.push(checkpointStatement(env,slot.monitor_id,slot.revision,snapshot.checkpointUpdate,generation+1,projectionId));
   if(current)statements.push(env.DB.prepare(`UPDATE monitors SET state=? WHERE id=? AND revision=? AND ${guard}`).bind(JSON.stringify(state),m.id,m.revision,...values));
   if(kind){
-   const trigger=kind==='recovery'?await env.DB.prepare("SELECT event FROM outbox WHERE monitor_id=? AND kind='trigger' AND json_extract(event,'$.incidentKey')=? AND status<>'imported-inactive' ORDER BY rowid DESC LIMIT 1").bind(m.id,state.incidentKey).first<{event:string}>():null;
-   const event=incidentEvent({id:`${slot.id}:${kind}`,kind,monitor:m,slotId:slot.id,now,state,observations:finalAttempts(definition,combined.filter(o=>o.slot_id===slot.id).map(o=>JSON.parse(o.evidence))),origin:env.UPTIME_ORIGIN,incidentKey:state.incidentKey,contextVersion:2,timeZone:(await notificationPreferences(env)).timeZone,trigger:trigger?JSON.parse(trigger.event):null});
+   const trigger=kind===closeKind?await env.DB.prepare("SELECT event FROM outbox WHERE monitor_id=? AND kind=? AND json_extract(event,'$.incidentKey')=? AND status<>'imported-inactive' ORDER BY rowid DESC LIMIT 1").bind(m.id,openKind,state.incidentKey).first<{event:string}>():null;
+   const slotObservations=finalAttempts(definition,combined.filter(o=>o.slot_id===slot.id).map(o=>JSON.parse(o.evidence)));
+   const event=followed?dependencyEvent({kind:kind as 'dependency'|'dependency_recovery',monitor:m,followed,slotId:slot.id,now,origin:env.UPTIME_ORIGIN,observations:slotObservations,previous:trigger?JSON.parse(trigger.event):null}):incidentEvent({id:`${slot.id}:${kind}`,kind,monitor:m,slotId:slot.id,now,state,observations:slotObservations,origin:env.UPTIME_ORIGIN,incidentKey:state.incidentKey,contextVersion:2,timeZone:(await notificationPreferences(env)).timeZone,trigger:trigger?JSON.parse(trigger.event):null});
    statements.push(env.DB.prepare(`INSERT OR IGNORE INTO outbox(id,monitor_id,slot_id,kind,event) SELECT ?,?,?,?,? WHERE ${guard} AND EXISTS(SELECT 1 FROM monitors WHERE id=? AND revision=?)`).bind(event.id,m.id,slot.id,kind,JSON.stringify(event),...values,m.id,m.revision));
    statements.push(...incidentDeliveryStatements(env,event,guard,values));
   }

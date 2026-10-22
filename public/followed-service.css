@@ -1,0 +1,11 @@
+.followed-panel p { margin: 10px 0; line-height: 1.5; overflow-wrap: anywhere; }
+.followed-panel ul { margin: 8px 0; padding-left: 20px; }
+.followed-panel li { margin: 8px 0; line-height: 1.5; overflow-wrap: anywhere; }
+.followed-panel h3 { margin: 18px 0 6px; font-size: 16px; }
+.followed-panel form { display: grid; gap: 10px; max-width: 520px; }
+.followed-panel label { display: grid; gap: 6px; }
+.followed-panel select { max-width: 100%; }
+.followed-review { padding: 10px 14px; border-radius: var(--radius-control); background: var(--rose-soft); color: var(--rose-text); }
+.followed-review p { margin: 0 0 6px; }
+.followed-notices { list-style: none; padding-left: 0; }
+.followed-notices li { padding: 10px 0; border-top: 1px solid var(--line); }

@@ -7,6 +7,7 @@ import {fixture as retryFixture} from './resilience/support.mjs';
 import {startLocalWorker} from './mail-provider-fixture.mjs';
 import {dispatchNotifications} from '../runners/src/notification-dispatch.mjs';
 import {notificationRetryTime} from '../src/domain/notification-retry.ts';
+import {extensionTables} from '../src/domain/archive-schema.ts';
 import {availablePorts,migratedWorker,ownerAPI} from './notify-acceptance-runtime.mjs';
 import {mailEdge,proveFallbackChains,sleep} from './notify-fallback-fixture.mjs';
 // A PagerDuty Events v2-compatible signed receiver: dedup_key is the incident, webhook-id the delivery's stable event ID.
@@ -55,7 +56,8 @@ export async function proveNotificationRetry(inspect,inspectQuiet=undefined,insp
   const firstStart=delivery.attemptHistory[0].started_at;
   let scheduled=delivery.attemptHistory[1].scheduled_at;assert.ok(scheduled-delivery.attemptHistory[0].finished_at>=800&&scheduled-delivery.attemptHistory[0].finished_at<=1200,'stored jitter is bounded independently of RPC latency');
   await restart();
-  if(Date.now()<scheduled){await dispatchNotifications(rpc,edge);assert.equal(receipts.length,1)}
+  // The Worker's clock decides when a retry is due, so a dispatch that reaches it after the stored time may send it, and never before.
+  await dispatchNotifications(rpc,edge);assert.ok(receipts.length===1||receipts[1].at>=scheduled,'a restart keeps the stored retry time');
   await sleep(scheduled-Date.now()+20);await dispatchNotifications(rpc,edge);
   delivery=(await ok('/api/notifications')).deliveries.find(d=>d.event.monitorId===monitor.id&&d.destinationId===contact.id);
   scheduled=delivery.attemptHistory[2].scheduled_at;assert.equal(delivery.attempts,2);assert.equal(delivery.attemptHistory[1].retry_after_seconds,3);
@@ -119,7 +121,7 @@ export async function proveNotificationRetry(inspect,inspectQuiet=undefined,insp
   await restored.dispose();restored=null;
   // A genuine pre-migration archive carries each envelope's body and no attempt table.
   const legacy=structuredClone(archive),sentEnvelopes=new Map((await (await (restarted??f.worker).getD1Database('DB')).prepare("SELECT id,envelope FROM integration_deliveries").all()).results.map(r=>[r.id,JSON.parse(r.envelope).body]));
-  legacy.payload.extensionVersion=9;delete legacy.payload.productTables.notification_delivery_attempts;
+  legacy.payload.extensionVersion=9;legacy.payload.productTables=Object.fromEntries(extensionTables(9).map(name=>[name,legacy.payload.productTables[name]]));
   for(const d of legacy.payload.productTables.integration_deliveries){const e=JSON.parse(d.envelope);d.envelope=JSON.stringify({...e,body:sentEnvelopes.get(d.id)})}
   legacy.sha256=createHash('sha256').update(JSON.stringify(legacy.payload)).digest('hex');
   ({worker:restored}=await migratedWorker({port:restoredPort,persist:join(f.directory,'legacy-restore'),bindings:f.bindings}));await restoreAPI.signIn(f.bindings);
