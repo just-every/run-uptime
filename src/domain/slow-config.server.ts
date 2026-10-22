@@ -8,8 +8,8 @@ import {auditStatement,type AuditActor} from './audit.server.ts'
 import {normalizeSlow} from './slow-policy.mjs'
 export async function readSlowPolicy(env:Bindings,id:string){
  const monitor=await get(env,id);if(!monitor)throw Object.assign(Error('Monitor not found'),{status:404});
- const latest=await env.DB.prepare("SELECT kind,event FROM outbox WHERE monitor_id=? AND kind IN ('slow','slow_recovery') AND status<>'imported-inactive' ORDER BY rowid DESC LIMIT 1").bind(id).first<{kind:string;event:string}>();
- return {definition:monitor.definition,revision:monitor.revision,slow:monitor.definition.slow??null,destinations:await destinations(env),status:latest?{kind:latest.kind,...JSON.parse(latest.event),acknowledgedAt:(await env.DB.prepare('SELECT acknowledged_at FROM slow_acknowledgements WHERE opening_event_id=?').bind(JSON.parse(latest.event).id).first<{acknowledged_at:number}>())?.acknowledged_at??null}:null};
+ const [latest,contacts]=await Promise.all([env.DB.prepare("SELECT kind,event FROM outbox WHERE monitor_id=? AND kind IN ('slow','slow_recovery') AND status<>'imported-inactive' ORDER BY rowid DESC LIMIT 1").bind(id).first<{kind:string;event:string}>(),destinations(env)]);
+ return {definition:monitor.definition,revision:monitor.revision,slow:monitor.definition.slow??null,destinations:contacts,status:latest?{kind:latest.kind,...JSON.parse(latest.event),acknowledgedAt:(await env.DB.prepare('SELECT acknowledged_at FROM slow_acknowledgements WHERE opening_event_id=?').bind(JSON.parse(latest.event).id).first<{acknowledged_at:number}>())?.acknowledged_at??null}:null};
 }
 export async function saveSlowPolicy(env:Bindings,id:string,input:any,actor:AuditActor){
  if(!input||Object.keys(input).some(k=>!['expectedRevision','slow'].includes(k)))throw Error('Choose a slow policy and its current revision');

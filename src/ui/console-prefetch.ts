@@ -11,5 +11,14 @@ window.uptimePrefetch=early;
 // public/app.js and the modules it imports, so the browser fetches the whole graph while React hydrates instead of in
 // three waves after it (they are revalidated on each load). Keep it to app.js's static imports, all levels; a module left
 // out only loads later, a module that is no longer imported is fetched for nothing.
-export const CONSOLE_MODULES=['app.js','metrics.js','locations.js','settings-view.js','archive-view.js','monitor-rules.js','business-import-settings.js','notification-dialogs.js','notifications.js','action-feedback.mjs','console-format.js','dom-patch.js',
- 'notification-help.js','definition-changes.js','monitor-coverage.js','monitor-page.js','definitions.js','alert-drills.js','monitor-incidents.js','heartbeat-key.js','monitor-timeline.js','flow-panel.js','protocol-panel.js']
+// app.js first, then its complete static import/export closure in alphabetical order. Dynamic imports stay on demand.
+export const CONSOLE_MODULES=['app.js',
+ 'action-feedback.mjs','alert-drills.js','archive-view.js','assets/alert-route-fallback.js','assets/alert-route-markup.js',
+ 'assets/alert-route.js','assets/contact-quiet.js','assets/failure-snapshot-view.js','business-import-settings.js',
+ 'catalog-dialogs.js','catalog.js','cleanup-debt.js','console-format.js','definition-changes.js','definitions.js','dom-patch.js',
+ 'evidence-access.js','failure-snapshots.js','flow-panel.js','heartbeat-jobs.js','heartbeat-key.js','incident-work-markup.js',
+ 'incident-work.js','locations.js','mail-panel.js','maintenance-calendar.js','maintenance-markup.js','metrics.js',
+ 'monitor-coverage.js','monitor-incidents.js','monitor-page.js','monitor-report.js','monitor-rules.js','monitor-status.js',
+ 'monitor-timeline.js','notification-dialogs.js','notification-help.js','notification-preferences.js','notifications.js',
+ 'planned-maintenance.js','protocol-panel.js','report-jobs.js','report-render.js','settings-view.js','slow-policy.js',
+ 'transaction-panel.js','webhook-editor.js']

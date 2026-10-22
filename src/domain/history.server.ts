@@ -4,7 +4,7 @@ import type {Bindings} from './control.server.ts'
 // Bound the slot set first. The existing slot/observation indexes serve the
 // ordered join inside D1, replacing one remote request per history slot.
 export async function history(env:Bindings,id:string){
- const rows=await env.DB.prepare(`WITH recent AS (
+ const [rows,snapshotRows]=await env.DB.batch<any>([env.DB.prepare(`WITH recent AS (
   SELECT rowid AS history_order,* FROM slots WHERE monitor_id=?
   ORDER BY due_at DESC,rowid DESC LIMIT 100
  ) SELECT recent.*,
@@ -12,8 +12,9 @@ export async function history(env:Bindings,id:string){
    SELECT evidence FROM observations o WHERE o.slot_id=recent.id ORDER BY o.probe,o.attempt
   )) AS observations,
   (SELECT json_group_object(probe,external_check_url) FROM runner_assignments a WHERE a.slot_id=recent.id AND a.external_check_url IS NOT NULL) AS external_checks
- FROM recent ORDER BY due_at DESC,history_order DESC`).bind(id).all<any>()
- const snapshots=(await env.DB.prepare("SELECT observation_id,monitor_id,captured_at,json_remove(snapshot,'$.screenshot','$.artifacts') AS snapshot FROM failure_snapshots WHERE monitor_id=? AND expires_at>? AND slot_id IN(SELECT id FROM slots WHERE monitor_id=? ORDER BY due_at DESC,rowid DESC LIMIT 100)").bind(id,Date.now(),id).all<any>()).results;
+ FROM recent ORDER BY due_at DESC,history_order DESC`).bind(id),
+ env.DB.prepare("SELECT observation_id,monitor_id,captured_at,json_remove(snapshot,'$.screenshot','$.artifacts') AS snapshot FROM failure_snapshots WHERE monitor_id=? AND expires_at>? AND slot_id IN(SELECT id FROM slots WHERE monitor_id=? ORDER BY due_at DESC,rowid DESC LIMIT 100)").bind(id,Date.now(),id)]);
+ const snapshots=snapshotRows.results;
  // externalChecks: the external check URL each delivered probe was handed, which for a monitor following Settings can differ
  // from the copy in the slot's definition. A slot whose parts were handed none (or delivered before URLs were recorded) has none.
  const selected=rows.results.map(({history_order,external_checks,...row})=>{const handed=JSON.parse(external_checks);return {...row,definition:JSON.parse(row.definition),observations:JSON.parse(row.observations),...(Object.keys(handed).length?{externalChecks:handed}:{})}});
