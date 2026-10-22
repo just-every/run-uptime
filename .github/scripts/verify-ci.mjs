@@ -44,7 +44,10 @@ export const plan = {
   { name: 'local-settings', browser: false, commands: scripts['test:local'].split(/\s+&&\s+/).filter(item => !item.includes('tests/command-journey.mjs')) },
   shard('authority', ['test:base', 'test:admission', 'test:access', 'test:owner-deploy'], true),
   shard('archives', ['test:archive', 'test:definitions']),
-  shard('runner-flows', ['test:runner', 'test:flow'], true),
+  // The combined runner-flows shard took 9m10s of its 12 minutes once the catalog and discovery-source
+  // journeys joined: runner and discovery 2m58s, flows 4m38s. Flows keep the name the workflow installs all engines for.
+  shard('runner', ['test:runner'], true),
+  shard('runner-flows', ['test:flow'], true),
   shard('flow-qualification', ['test:flow:qualification'], true),
   shard('protocols', ['test:protocols'], true),
   shard('icmp', ['test:ping'], true),
