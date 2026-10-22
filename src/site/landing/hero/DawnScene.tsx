@@ -12,7 +12,7 @@ export type DawnVariant = 'night-watch' | 'risen'
 const LABEL = 'Overnight checks from 23:00 to 07:00: every check passed except one with no result, shown as Unknown'
 
 /**
- * The dawn lake behind the landing page: sky, a low sun, layered mountains, two wooded shores and a still lake, all inline SVG.
+ * The dawn lake behind the landing page: sky, a low sun, layered mountains, two wooded shores and a still lake, layered SVG.
  *
  * It fills the width of its positioned container and is anchored to its bottom; its height is the container's, or `--ut-dawn-height` when set. The landscape takes the lower part (a third of the width tall on wide screens, up to 330px on phones, never over 560px, or `--ut-dawn-land` when the page sets it) and the sky above it fades into the page over the top `--ut-dawn-fade` of its height, so headline text belongs over the sky. With `--ut-dawn-apron` the landscape stands that far above the bottom on open lake, for the page to fade out below the fold.
  *
@@ -28,10 +28,10 @@ export function DawnScene({ variant = 'night-watch' }: { variant?: DawnVariant }
     <div className="ut-dawn-sky" />
     <Sun id={id} />
     {watching ? <div className="ut-dawn-dusk" /> : null}
-    <Range id={id} />
+    <Range />
     <Glints />
-    <Shore id={id} side="left" />
-    <Shore id={id} side="right" />
+    <Shore side="left" />
+    <Shore side="right" />
     {watching ? <div className="ut-dawn-veil" /> : null}
   </>
   return watching

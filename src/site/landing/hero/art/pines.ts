@@ -50,22 +50,3 @@ export function pinePath(pine: Pine, seed: number): string {
   return d.join('') + 'Z'
 }
 
-/** The sunward half of a pine (tip, right side, down the trunk line), laid over it a shade lighter. */
-export function litHalfPath(pine: Pine, seed: number): string {
-  const [x, base, h] = pine
-  const right = tiers(pine, 1, seeded(seed))
-  const d = [`M${n(x)} ${n(base - h)}`]
-  right.forEach((t, i) => {
-    d.push(`Q${n(t.cx)} ${n(t.cy)} ${n(t.ox)} ${n(t.oy)}`)
-    if (i < right.length - 1) d.push(`L${n(t.nx)} ${n(t.ny)}`)
-  })
-  return d.join('') + `L${n(x + 0.5)} ${n(base - Math.max(2, h * 0.07))}Z`
-}
-
-/** A low rounded shrub on the ground at `base`. */
-export function bushPath(x: number, base: number, w: number, h: number): string {
-  const l = x - w / 2, r = x + w / 2
-  return `M${n(l)} ${n(base)}C${n(l)} ${n(base - h * 0.55)} ${n(l + w * 0.18)} ${n(base - h * 0.8)} ${n(x - w * 0.14)} ${n(base - h * 0.72)}`
-    + `C${n(x - w * 0.08)} ${n(base - h * 1.08)} ${n(x + w * 0.22)} ${n(base - h * 1.06)} ${n(x + w * 0.16)} ${n(base - h * 0.7)}`
-    + `C${n(r - w * 0.12)} ${n(base - h * 0.78)} ${n(r)} ${n(base - h * 0.5)} ${n(r)} ${n(base)}Z`
-}

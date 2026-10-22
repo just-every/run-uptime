@@ -86,13 +86,13 @@ function localTime(at,zone){
 export function webhookTemplateVariables(event,{timeZone:zone='America/Chicago'}={}){
  if(!object(event))return invalid('Webhook event must be an object');
  zone=timeZone(zone);const context=event.webhookContext??{},incident=event.incidentContext??{};
- const type=({trigger:'down',reminder:'down',recovery:'up',test:'test',expiry:'expiry',slow:'slow',slow_reminder:'slow',slow_recovery:'slow_recovered',renewal:'renewal'})[event.kind];
+ const type=({trigger:'down',reminder:'down',recovery:'up',test:'test',expiry:'expiry',slow:'slow',slow_reminder:'slow',slow_recovery:'slow_recovered',renewal:'renewal',dependency:'dependency',dependency_recovery:'dependency_recovered'})[event.kind];
  const started=incident.confirmedStartedAt??context.alertStartedAt??event.observedAt;
  const probes=Array.isArray(event.probes)?event.probes:undefined;
  const values={
   'monitor.id':event.monitorId,'monitor.name':event.monitorName,'monitor.url':event.url,'monitor.type':context.monitorType,
   'monitor.tags':context.monitorTags,'monitor.group':context.monitorGroup,'alert.type':type,
-  'alert.code':({down:1,up:2,expiry:3})[type],'alert.name':({down:'Down',up:'Up',test:'Test',expiry:'Expiry warning',slow:'Slow',renewal:'Renewal'})[type],
+  'alert.code':({down:1,up:2,expiry:3})[type],'alert.name':({down:'Down',up:'Up',test:'Test',expiry:'Expiry warning',slow:'Slow',renewal:'Renewal',dependency:'Provider issue',dependency_recovered:'Provider recovered'})[type],
   'alert.details':incident.originalReason??event.explanation,'alert.timestamp':clock(event.observedAt)?Math.floor(event.observedAt/1000):undefined,
   'alert.startedAtUtc':iso(started),'alert.startedAtLocal':localTime(started,zone),'alert.timeZone':zone,
   'alert.durationSeconds':incident.downtimeSeconds,'alert.durationHuman':incident.downtimeHuman,

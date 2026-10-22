@@ -1,4 +1,6 @@
 import {incidentArchiveColumns} from './incident-work/portability.server.ts'
+import {dependencyArchiveColumns} from './dependency-archive.ts'
+import {discoveryArchiveColumns} from './discovery-sources-archive.ts'
 /** Portable product records. Credential versions, claim tokens and deployment authority are never columns here. */
 export const ARCHIVE_VERSION=2;
 export const ARCHIVE_BYTES=2*1024*1024;
@@ -26,14 +28,20 @@ export const columns:Record<string,string[]>={
  auxiliary_attempts:['id','scope','job_id','started_at','lease_until','submitted_at','finished_at','outcome','code'],
  definition_batch_entries:['batch_id','monitor_id','action','revision','previous_revision','undo_outcome'],
  cleanup_debt:['id','monitor_id','revision','slot_id','probe','attempt','observation_id','step_name','attempts','category','created_at','state','resolver_note','resolved_at'],
+ ...dependencyArchiveColumns,
+ ...discoveryArchiveColumns,
 };
 export const TABLES=Object.keys(columns);
 // Product tables each extension version lacks: 1 predates the audit, 2 predates definition batches, 8 predates cleanup debt.
-export const EXTENSION_VERSION=10;
-export const EXTENSION_TABLES:Record<number,string[]>={1:['failure_snapshots','heartbeat_runs',...Object.keys(incidentArchiveColumns),'uptime_audit','uptime_erasure_receipts','definition_batches','definition_batch_entries'],2:['failure_snapshots','heartbeat_runs',...Object.keys(incidentArchiveColumns),'definition_batches','definition_batch_entries'],3:['failure_snapshots','heartbeat_runs',...Object.keys(incidentArchiveColumns)],4:['failure_snapshots','heartbeat_runs'],5:['failure_snapshots'],6:['failure_snapshots'],7:[],8:[],9:[],10:[]};
+export const EXTENSION_VERSION=12;
+export const EXTENSION_TABLES:Record<number,string[]>={1:['failure_snapshots','heartbeat_runs',...Object.keys(incidentArchiveColumns),'uptime_audit','uptime_erasure_receipts','definition_batches','definition_batch_entries'],2:['failure_snapshots','heartbeat_runs',...Object.keys(incidentArchiveColumns),'definition_batches','definition_batch_entries'],3:['failure_snapshots','heartbeat_runs',...Object.keys(incidentArchiveColumns)],4:['failure_snapshots','heartbeat_runs'],5:['failure_snapshots'],6:['failure_snapshots'],7:[],8:[],9:[],10:[],11:[],12:[]};
 for(const version of [1,2,3,4,5,6,7])EXTENSION_TABLES[version].push('auxiliary_attempts');
 for(const version of [1,2,3,4,5,6,7,8])EXTENSION_TABLES[version].push('cleanup_debt');
 for(const version of [1,2,3,4,5,6,7,8,9])EXTENSION_TABLES[version].push('notification_delivery_attempts');
+// Version 11 added the catalog's followed services and dependency notice acknowledgements.
+for(const version of [1,2,3,4,5,6,7,8,9,10])EXTENSION_TABLES[version].push(...Object.keys(dependencyArchiveColumns));
+// Version 12 added discovery sources, their run snapshots and the owner's decisions.
+for(const version of [1,2,3,4,5,6,7,8,9,10,11])EXTENSION_TABLES[version].push(...Object.keys(discoveryArchiveColumns));
 export const extensionTables=(version:number)=>TABLES.filter(name=>!LEGACY_TABLES.includes(name)&&!EXTENSION_TABLES[version].includes(name));
 export const notificationNamespace='uptime-notifications';
 export type Tables=Record<string,any[]>;

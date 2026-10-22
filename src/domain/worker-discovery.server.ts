@@ -10,6 +10,8 @@ import {publicTarget} from './public-target.mjs'
 import {validateDiscoveryResult} from './discovery-result.mjs'
 // @ts-ignore The runner's discovery crawl; it fetches only through the transport it is given.
 import {discover} from '../../runners/src/discovery/index.mjs'
+// @ts-ignore Shared catalog live check.
+import {checkCatalogSource} from './service-catalog/source-check.mjs'
 // @ts-ignore The runner's failure wording, so a Worker answer reads like a runner's.
 import {failureText} from '../../runners/src/discovery/failure.mjs'
 // @ts-ignore Shared with the runner transport, so discovery reads the Worker's failures as its own.
@@ -64,12 +66,15 @@ export function workerReport(appOrigin?:string){
  }
 }
 // Claims the job as the hosted Worker, crawls, and stores the answer exactly as a runner's signed answer is stored.
-export async function answerInWorker(env:Bindings,id:string,url:string,complete:(answer:{result:unknown}|{error:string},runner:Runner)=>Promise<unknown>){
+export async function answerInWorker(env:Bindings,id:string,job:{kind:'site';url:string}|{kind:'catalog';spec:any},complete:(answer:{result:unknown}|{error:string},runner:Runner)=>Promise<unknown>){
  const worker=await env.DB.prepare('SELECT * FROM runners WHERE runner_id=?').bind(HOSTED_RUNNER_ID).first<Runner>()
  if(!worker)throw Error('The hosted Worker runner is missing')
  await env.DB.prepare("UPDATE discovery_jobs SET status='running',claimed_at=?,runner_id=?,network_label=? WHERE id=? AND status='queued'").bind(Date.now(),worker.runner_id,worker.network_label,id).run()
  let answer:{result:unknown}|{error:string}
- try{answer={result:validateDiscoveryResult(await discover(url,{signal:AbortSignal.timeout(RUN_LIMIT_MS),transport:workerReport(env.UPTIME_ORIGIN)}))}}
- catch(error){answer={error:failureText(error,'Uptime could not check this website')}}
+ try{
+  const signal=AbortSignal.timeout(RUN_LIMIT_MS),transport=workerReport(env.UPTIME_ORIGIN)
+  answer={result:job.kind==='site'?validateDiscoveryResult(await discover(job.url,{signal,transport})):await checkCatalogSource(job.spec,{transport,signal})}
+ }
+ catch(error){answer={error:failureText(error,job.kind==='site'?'Uptime could not check this website':'Uptime could not read this status source')}}
  await complete(answer,worker)
 }

@@ -72,3 +72,38 @@ export async function proveFallbackChains({f,ok,rpc,edge,mail,confirm,restart,de
  console.log('FALLBACK_PROOF uncertain timeout deadline across restart and exhausted chain passed');
  return {chainMonitor:dead,fallbackId:viaEmail.id,exhaustedId:last.id};
 }
+
+// Dependency notices use the same saved fallback delay and transport-boundary decisions as incident alerts.
+export async function proveDependencyFallback(){
+ const {catalogRuntime}=await import('./service-catalog-fixture.mjs');
+ for(const scenario of ['delayed','primary-accepted','zero','quiet','recovered']){
+  const sent=[],transport={async send(wire,beforeRequest){await beforeRequest();const body=JSON.parse(wire.body),primary=new URL(wire.url).hostname==='primary.example.com';sent.push({primary,id:wire.headers['webhook-id'],body});return {status:primary?(scenario==='primary-accepted'&&sent.filter(s=>s.primary).length>1?202:scenario==='primary-accepted'?500:400):202,headers:scenario==='primary-accepted'?{'retry-after':'10'}:{},body:''}}};
+  const f=await catalogRuntime(transport),{g,ok,id,edge,route,check,run}=f;
+  try{
+   const primary=await ok('/api/notifications/destinations',{name:'synthetic-uptime-1',kind:'webhook',url:'https://primary.example.com/notice'});
+   const fallback=await ok('/api/notifications/destinations',{name:'synthetic-uptime-2',kind:'webhook',url:'https://fallback.example.com/notice'});
+   const time=at=>new Intl.DateTimeFormat('en-GB',{timeZone:'UTC',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(at);
+   const delayMinutes=['delayed','primary-accepted','recovered'].includes(scenario)?1:0;
+   const quiet=scenario==='quiet'?{quietHours:{timeZone:'UTC',start:time(Date.now()-3600000),end:time(Date.now()+3600000)}}:{};
+   await route(id,{destinationIds:[primary.id],fallback:{destinationIds:[fallback.id],deadlineSeconds:5},contactSettings:{[fallback.id]:{delayMinutes,...quiet}}});
+   edge.state.stripe.statuses.api='degraded';await check(id);
+   const deliveries=async()=>(await ok('/api/notifications')).deliveries.filter(d=>d.event.monitorId===id&&d.event.kind==='dependency');
+   const first=(await deliveries()).find(d=>d.destinationId===primary.id);assert.ok(first);
+   const due=first.event.observedAt+delayMinutes*60000;
+   // The deciding Worker's durable attempt time is authoritative, not the test process's receipt clock.
+   const assertTiming=async()=>{for(const d of await deliveries())if(d.destinationId===fallback.id)for(const a of d.attemptHistory)if(a.started_at!==null)assert.ok(a.started_at>=due,`${scenario}: fallback started ${a.started_at-first.event.observedAt} ms after confirmation; expected >= ${delayMinutes*60000}`)};
+   await run();await assertTiming();
+   if(scenario==='delayed')await f.restart();
+   if(scenario==='recovered'){edge.state.stripe.statuses.api='up';await check(id);await run();assert.equal((await deliveries()).find(d=>d.destinationId===fallback.id).state,'rejected','recovery durably cancels the queued fallback')}
+   const until=['delayed','primary-accepted'].includes(scenario)?due+1000:Date.now()+1000;
+   while(Date.now()<until){await run();await assertTiming();await sleep(Math.min(1000,until-Date.now()))}
+   await run();await assertTiming();
+   const fallbackSends=sent.filter(s=>!s.primary&&s.body.eventType==='uptime.dependency.firing');
+   assert.equal(fallbackSends.length,['delayed','zero'].includes(scenario)?1:0,`${scenario}: exact fallback count`);
+   if(scenario==='primary-accepted')assert.equal((await deliveries()).find(d=>d.destinationId===primary.id).state,'accepted');
+   if(scenario==='quiet')assert.equal((await deliveries()).find(d=>d.destinationId===fallback.id).code,'waiting_for_contact_quiet');
+   const started=(await deliveries()).find(d=>d.destinationId===fallback.id)?.attemptHistory.find(a=>a.started_at!==null)?.started_at;
+   console.log('DEPENDENCY_FALLBACK '+JSON.stringify({scenario,delayMinutes,sends:fallbackSends.length,workerElapsedMs:started===undefined?null:started-first.event.observedAt}));
+  }finally{await f.close()}
+ }
+}

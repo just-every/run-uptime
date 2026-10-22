@@ -2,6 +2,7 @@ import {incidentSnapshots} from '../failure-snapshots.server.ts'
 import {nextContactFollowup} from '../contact-scheduler.server.ts'
 import type {Bindings} from '../control.server.ts'
 import {findIncident,defaultOwner} from './common.server.ts'
+import {dependencyContext} from './dependencies.server.ts'
 export async function incidentDetail(env:Bindings,id:string){
  const incident=await findIncident(env,id)
  const [work,comments,histories,entries,operators,jobs,attempts,resolutions,fallbackOwner]=await Promise.all([
@@ -19,6 +20,7 @@ export async function incidentDetail(env:Bindings,id:string){
    AND json_extract(j.event,'$.monitorId')=? AND json_extract(j.event,'$.incidentKey')=? ORDER BY a.at,a.id`).bind(incident.monitor_id,incident.trigger.incidentKey).all<any>(),
   defaultOwner(env)
  ])
+ const dependencies=await dependencyContext(env,incident)
  const nextDue=incident.recovery?null:await nextContactFollowup(env,id)
  const people=new Map(operators.results.map(row=>[row.id,row.display_name]))
  const person=(id:string|null)=>({id:id&&people.has(id)?id:null,displayName:id&&people.has(id)?people.get(id)!:'Former member'})
@@ -43,7 +45,7 @@ export async function incidentDetail(env:Bindings,id:string){
   comments:comments.results.map(row=>({id:row.id,text:row.text,version:row.version,author:person(row.author_id),createdAt:row.created_at,updatedAt:row.updated_at,deletedAt:row.deleted_at,
    history:histories.results.filter(history=>history.comment_id===row.id).map(history=>({version:history.version,text:history.text,editor:person(history.editor_id),editedAt:history.edited_at}))})),
   failureSnapshots:await incidentSnapshots(env,id),timeline,deliveries:jobs.results.map(job=>({id:job.id,channel:job.kind,destinationName:job.destination_name,state:job.state==='queued'?job.delivery_state??job.state:job.state,code:job.code,attempts:job.attempts})),
-  capabilities:{comments:true,mentions:false,publication:false,responderRoles:false,scheduledFollowup:true}}
+  dependencies,capabilities:{comments:true,mentions:false,publication:false,responderRoles:false,scheduledFollowup:true,dependencyCorrelation:true}}
 }
 
 export {incidentDetail as readIncidentDetail}

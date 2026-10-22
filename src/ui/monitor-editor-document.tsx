@@ -21,6 +21,6 @@ function Editor({path}:{path:string}){
   void mountMonitorEditor(controller.signal)
   return()=>{controller.abort();document.documentElement.classList.remove('editor-ready','editor-context-ready')}
  },[])
- return <><link rel="stylesheet" href="/app-theme.css" precedence="default"/><link rel="stylesheet" href="/editor.css"/><link rel="stylesheet" href="/editor/discovery.css"/><div dangerouslySetInnerHTML={content}/></>
+ return <><link rel="stylesheet" href="/app-theme.css" precedence="default"/><link rel="stylesheet" href="/editor.css"/><link rel="stylesheet" href="/editor/discovery.css"/><link rel="stylesheet" href="/editor/catalog.css"/><div dangerouslySetInnerHTML={content}/></>
 }
 export const monitorEditorHead=()=>({meta:[{title:'Uptime'}],links:[{rel:'icon',href:'/favicon.svg',type:'image/svg+xml'},{rel:'preload',href:'/design-assets/fonts/plus-jakarta-sans-latin-wght-normal.woff2',as:'font',type:'font/woff2',crossOrigin:'anonymous' as const}]})

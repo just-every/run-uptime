@@ -1,5 +1,6 @@
 import {DEFINITION_MONITORS,DefinitionFileError,boundEntries,jsonValues} from '../format.ts'
 import type {Importer,Mapping,SourceEntry} from './types.ts'
+import {thirdPartyService} from './third-party.ts'
 
 // UptimeRobot API v3 `GET /monitors` responses: {"data": [monitor, ...], "nextLink": string|null}, one page or several
 // pages saved one after another (or as one JSON array of pages). Field names follow UptimeRobot's published OpenAPI
@@ -62,6 +63,9 @@ function map(entry:SourceEntry):Mapping{
   return {definition:{...common,type:'heartbeat',heartbeat:{maxAgeMs:intervalMs,graceMs},assertions:{status:200},probes:['local-a'],failureQuorum:1},differences}
  }
  if(typeof m.url!=='string'||!m.url)return {refused:`${label} has no URL.`}
+ // DEPENDENCY-002: a monitor of a provider's status address maps onto its catalog entry.
+ const third=thirdPartyService(m.url,m.friendlyName)
+ if(third&&'definition' in third)return {definition:third.definition,differences:[...third.differences,...differences]}
  let method=String(m.httpMethodType??'HEAD').toUpperCase()
  if(!['GET','HEAD','POST','PUT','PATCH','DELETE','OPTIONS'].includes(method))return {unsupported:`HTTP method ${method} is not supported.`}
  if(type==='KEYWORD'&&method==='HEAD'){method='GET';differences.push('Keyword checks need the page body: Uptime uses GET where UptimeRobot used HEAD.')}
@@ -90,6 +94,7 @@ function map(entry:SourceEntry):Mapping{
  if(m.sslExpirationReminder===true||m.domainExpirationReminder===true)differences.push('Certificate and domain expiry reminders are not reproduced.')
  const regions=Array.isArray(m.regionalData?.REGION)?m.regionalData.REGION.map(String):[]
  differences.push(`UptimeRobot's ${regions.length?`${list(regions)} region`:'own'} vantage is not reproduced. Uptime checks from probe local-a on your own runner; add a second runner network or a canary URL before enabling it.`)
+ if(third&&'notes' in third)differences.push(...third.notes)
  return {definition:{...common,type:type==='KEYWORD'?'keyword':'http',url:m.url,method,assertions,timeoutMs:chosenTimeout,probes:['local-a'],failureQuorum:1,...(request?{request}:{}),...(m.checkSSLErrors===false&&/^https:/i.test(m.url)?{tlsTrust:{mode:'ignore',acknowledged:true}}:{})},differences}
 }
 

@@ -41,6 +41,7 @@ async function publicResponse(def:any,signal:AbortSignal,{dns,allowance,appOrigi
   capture.phases.ttfbMs=Date.now()-sending;capture.status=response.status;capture.responseHeaders=Object.fromEntries(response.headers);
   if([301,302,303,307,308].includes(response.status)){
    const location=response.headers.get('location');await response.body?.cancel();
+   if(!statusOnly&&isDependencyStatus(def))throw new ProbeError('redirect');
    if(hop===5||!location)throw new ProbeError('redirect');
    let next;try{next=publicTarget(new URL(location,url).href)}catch{throw new ProbeError('network')}
    if(url.protocol==='https:'&&next.protocol!=='https:')throw new ProbeError('redirect');

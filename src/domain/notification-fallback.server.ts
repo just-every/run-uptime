@@ -21,7 +21,8 @@ function escalation(job:Job,deadlineMs:number,now:number):'failed'|'uncertain'|n
  const started=job.started_at??(job.state==='uncertain'?job.finished_at:null);
  return started!==null&&started+deadlineMs<=now?'uncertain':null;
 }
-const closedSql=`EXISTS(SELECT 1 FROM outbox r WHERE r.monitor_id=? AND r.kind='recovery' AND json_extract(r.event,'$.incidentKey')=?)`;
+// A dependency notice's chain closes on its own recovery notice (DEPENDENCY-002); incident and dependency keys never collide.
+const closedSql=`EXISTS(SELECT 1 FROM outbox r WHERE r.monitor_id=? AND r.kind IN ('recovery','dependency_recovery') AND json_extract(r.event,'$.incidentKey')=?)`;
 export async function advanceFallbackChains(env:Bindings){
  const now=Date.now();
  const chains=(await env.DB.prepare('SELECT * FROM alert_fallback_chains WHERE ended_at IS NULL ORDER BY created_at LIMIT 100').all<any>()).results;
@@ -45,7 +46,9 @@ export async function advanceFallbackChains(env:Bindings){
   const next=ids[chain.step],step=chain.step+1;
   const trigger=await env.DB.prepare('SELECT event FROM outbox WHERE id=?').bind(chain.event_id).first<{event:string}>();
   const event:NotificationEvent={...JSON.parse(trigger!.event),fallbackContext:{step,previous}};
-  const policy={...defaultContactSettings,...settings[next]},due=event.observedAt+policy.delayMinutes*60000,repeat=policy.repeatMinutes*60000;
+  // A dependency notice goes to each contact once, under its quiet hours; its saved delay still applies; dependency notices do not repeat.
+  const own={...defaultContactSettings,...settings[next]},policy=event.kind==='dependency'?{...own,repeatMinutes:0,maxRepeats:null,recovery:true,stopOnAck:false}:own;
+  const due=event.observedAt+policy.delayMinutes*60000,repeat=policy.repeatMinutes*60000;
   // Reminders keep the confirmation-anchored cadence, starting after this contact's first notice.
   const nextAt=repeat?due+(Math.max(0,Math.floor((now-due)/repeat))+1)*repeat:null;
   const fired=`EXISTS(SELECT 1 FROM alert_fallback_chains WHERE event_id=? AND step=? AND fired_at=?)`,id=`${chain.event_id}:${next}`;
