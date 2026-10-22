@@ -3,13 +3,18 @@
 // edition-owned trusted static markup, and all runtime data is escaped.
 // @ts-ignore Vite raw asset import
 import markup from './console.html?raw'
-import {useEffect} from 'react'
+import {useEffect,useLayoutEffect,useRef,useSyncExternalStore} from 'react'
 import {useRouter} from '@tanstack/react-router'
 import {useEditorLeafReady} from '../base/modules/editor/react.tsx'
 import {consolePrefetchScript,CONSOLE_MODULES} from './console-prefetch.ts'
+const unsubscribed=()=>()=>{}
 export function ConsoleDocument(){
- const router=useRouter()
+ const router=useRouter(),host=useRef<HTMLDivElement>(null),hydrating=useSyncExternalStore(unsubscribed,()=>false,()=>true)
  useEditorLeafReady('/app')
+ // A route swap (a section link from a monitor's page or the editor) renders the markup on the client, where its
+ // first-paint script, which names the section in the heading, the tab title and the nav, does not run; run it before
+ // that paint. A served document has already run it while parsing.
+ useLayoutEffect(()=>{const inert=host.current?.querySelector('script');if(!hydrating&&inert)inert.replaceWith(Object.assign(document.createElement('script'),{textContent:inert.textContent}))},[])
  // The markup's own script sets the requested section's title before React hydrates, hence suppressHydrationWarning.
  // The console mutates this markup. Start it after React hydrates the document,
  // just as the monitor form does, so it cannot race hydration on the save return.
@@ -24,6 +29,6 @@ export function ConsoleDocument(){
   document.body.appendChild(script)
   return()=>{mounted=false;window.removeEventListener('uptime:new-monitor',openMonitor);window.dispatchEvent(new Event('uptime:console-unmount'));script.remove()}
  },[router])
- return <><script dangerouslySetInnerHTML={{__html:consolePrefetchScript}}/><link rel="stylesheet" href="/app-theme.css" precedence="default"/><link rel="stylesheet" href="/style.css"/><link rel="stylesheet" href="/notifications.css"/><link rel="stylesheet" href="/sections.css"/><div suppressHydrationWarning dangerouslySetInnerHTML={{__html:markup}}/></>
+ return <><script dangerouslySetInnerHTML={{__html:consolePrefetchScript}}/><link rel="stylesheet" href="/app-theme.css" precedence="default"/><link rel="stylesheet" href="/style.css"/><link rel="stylesheet" href="/notifications.css"/><link rel="stylesheet" href="/sections.css"/><div ref={host} suppressHydrationWarning dangerouslySetInnerHTML={{__html:markup}}/></>
 }
 export const consoleHead=()=>({meta:[{title:'Uptime'}],links:[{rel:'icon',href:'/favicon.svg',type:'image/svg+xml'},{rel:'preload',href:'/design-assets/fonts/plus-jakarta-sans-latin-wght-normal.woff2',as:'font',type:'font/woff2',crossOrigin:'anonymous' as const},...CONSOLE_MODULES.map(name=>({rel:'modulepreload',href:`/${name}`}))]})

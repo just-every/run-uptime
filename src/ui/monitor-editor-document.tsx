@@ -8,7 +8,11 @@ import markup from './editor.html?raw'
 // @ts-ignore Edition browser markup shared with server rendering.
 import {initialMarkup} from '../editor/monitor/initial-markup.mjs'
 export function MonitorEditorDocument(){
- const path=useLocation({select:location=>location.pathname})
+ const location=useLocation({select:location=>location.pathname})
+ // A link to another route (a console section) moves the location just before the router swaps this route out; the
+ // editor keeps its own path for that moment instead of remounting for a path it does not edit.
+ const [path,setPath]=useState(location)
+ if(location!==path&&/^\/app\/monitors\/(?:new(?:\/.*)?|[^/]+\/edit)\/?$/.test(location))setPath(location)
  // Manual and discovery URL updates keep the current form, focus and pending reads.
  const identity=/^\/app\/monitors\/new(?:\/|$)/.test(path)?'/app/monitors/new':path
  return <Editor key={identity} path={path}/>

@@ -6703,7 +6703,7 @@
       "executable": false
     },
     "src/ui/console-document.tsx": {
-      "sha256": "f9c086e013434e918dee53e976152006de1757b745fbebafbbc204cf38652303",
+      "sha256": "e22b0f10d21313e849c895086e9021d0f92944c4c633fb5be33c3533ffc9974a",
       "executable": false
     },
     "src/ui/console-paths.ts": {
@@ -6723,7 +6723,7 @@
       "executable": false
     },
     "src/ui/monitor-editor-document.tsx": {
-      "sha256": "5d2845e64a8bfd81124be1f9086e6f9f37d151c483cc7fefed1f4a64f5d59f0f",
+      "sha256": "fd0a93426126ccdf4f6b1f4071b1004b13a9397fb64e654ec0bae6bd05e1dff8",
       "executable": false
     },
     "src/ui/monitor-editor-path.mjs": {
