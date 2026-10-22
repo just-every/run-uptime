@@ -6186,16 +6186,16 @@
       "sha256": "0233ba0211719390f0f6b737f108a31a2523b8767060b3360d06b4e12b368e6c",
       "executable": false
     },
-    "src/routes/app.monitors.new_.discovery.$job.tsx": {
-      "sha256": "077179505673cbc658ce0638dc40d87b9c028513154c3f05b944374adbe7eae6",
+    "src/routes/app.monitors.new.discovery.$job.tsx": {
+      "sha256": "bdadee6cc0387072773515c84abfc485d629ba83df3f33c6dbc871917ac76587",
       "executable": false
     },
-    "src/routes/app.monitors.new_.manual_.$.tsx": {
-      "sha256": "b29bbd3b72f1cfe7f7a7fa034ecbfdae3452fdac1a54ef645b23d91396cd534c",
+    "src/routes/app.monitors.new.manual.$.tsx": {
+      "sha256": "7fd861dc137f2936d99e12e2e7cab52543b4eda4af5889149a33a57d50569246",
       "executable": false
     },
-    "src/routes/app.monitors.new_.manual.tsx": {
-      "sha256": "7bf4f54964f728017dc49f2aab0bbb39b3f9a08297457146360797cbea508b69",
+    "src/routes/app.monitors.new.manual.tsx": {
+      "sha256": "9889f33e144f70ace0437f948724755c323562571f2601dff7989625323ac5fe",
       "executable": false
     },
     "src/routes/app.monitors.new.tsx": {
@@ -6223,7 +6223,7 @@
       "executable": false
     },
     "src/routeTree.gen.ts": {
-      "sha256": "9c42c9f703eb236d1c374535d3e33d2fd55ba986bcf03c41b51a23dbf4122dbb",
+      "sha256": "fea1010e1077ac83c766fdce53ae310d4b4cd3876035b054833df1033f79ae59",
       "executable": false
     },
     "src/server.dev.ts": {
@@ -6547,7 +6547,7 @@
       "executable": false
     },
     "src/ui/monitor-editor-document.tsx": {
-      "sha256": "aac6649fbdd786e7812ca89a633917f4839f8ec407396418327961deefafc15c",
+      "sha256": "e6a0fee608ea2176455354c4d59fbcc6dce95e6271641562746015922d02d996",
       "executable": false
     },
     "src/ui/monitor-editor-path.mjs": {

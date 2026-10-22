@@ -9,7 +9,9 @@ import markup from './editor.html?raw'
 import {initialMarkup} from '../editor/monitor/initial-markup.mjs'
 export function MonitorEditorDocument(){
  const path=useLocation({select:location=>location.pathname})
- return <Editor key={path} path={path}/>
+ // Manual and discovery URL updates keep the current form, focus and pending reads.
+ const identity=/^\/app\/monitors\/new(?:\/|$)/.test(path)?'/app/monitors/new':path
+ return <Editor key={identity} path={path}/>
 }
 function Editor({path}:{path:string}){
  const [content]=useState(()=>({__html:initialMarkup(markup,path)}))

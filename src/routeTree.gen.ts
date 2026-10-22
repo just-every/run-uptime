@@ -21,9 +21,9 @@ import { Route as AppMonitorsIndexRouteImport } from './routes/app.monitors.inde
 import { Route as AppMonitorsNewRouteImport } from './routes/app.monitors.new'
 import { Route as AppMonitorsIdIndexRouteImport } from './routes/app.monitors.$id.index'
 import { Route as AppMonitorsIdEditRouteImport } from './routes/app.monitors.$id.edit'
-import { Route as AppMonitorsNewManualRouteImport } from './routes/app.monitors.new_.manual'
-import { Route as AppMonitorsNewDiscoveryJobRouteImport } from './routes/app.monitors.new_.discovery.$job'
-import { Route as AppMonitorsNewManualSplatRouteImport } from './routes/app.monitors.new_.manual_.$'
+import { Route as AppMonitorsNewManualRouteImport } from './routes/app.monitors.new.manual'
+import { Route as AppMonitorsNewDiscoveryJobRouteImport } from './routes/app.monitors.new.discovery.$job'
+import { Route as AppMonitorsNewManualSplatRouteImport } from './routes/app.monitors.new.manual.$'
 
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/app/',
@@ -86,21 +86,21 @@ const AppMonitorsIdEditRoute = AppMonitorsIdEditRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppMonitorsNewManualRoute = AppMonitorsNewManualRouteImport.update({
-  id: '/app/monitors/new_/manual',
-  path: '/app/monitors/new/manual',
-  getParentRoute: () => rootRouteImport,
+  id: '/manual',
+  path: '/manual',
+  getParentRoute: () => AppMonitorsNewRoute,
 } as any)
 const AppMonitorsNewDiscoveryJobRoute =
   AppMonitorsNewDiscoveryJobRouteImport.update({
-    id: '/app/monitors/new_/discovery/$job',
-    path: '/app/monitors/new/discovery/$job',
-    getParentRoute: () => rootRouteImport,
+    id: '/discovery/$job',
+    path: '/discovery/$job',
+    getParentRoute: () => AppMonitorsNewRoute,
   } as any)
 const AppMonitorsNewManualSplatRoute =
   AppMonitorsNewManualSplatRouteImport.update({
-    id: '/app/monitors/new_/manual_/$',
-    path: '/app/monitors/new/manual/$',
-    getParentRoute: () => rootRouteImport,
+    id: '/$',
+    path: '/$',
+    getParentRoute: () => AppMonitorsNewManualRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -112,10 +112,10 @@ export interface FileRoutesByFullPath {
   '/docs/$slug': typeof DocsSlugRoute
   '/app/': typeof AppIndexRoute
   '/docs/': typeof DocsIndexRoute
-  '/app/monitors/new': typeof AppMonitorsNewRoute
+  '/app/monitors/new': typeof AppMonitorsNewRouteWithChildren
   '/app/monitors/': typeof AppMonitorsIndexRoute
   '/app/monitors/$id/edit': typeof AppMonitorsIdEditRoute
-  '/app/monitors/new/manual': typeof AppMonitorsNewManualRoute
+  '/app/monitors/new/manual': typeof AppMonitorsNewManualRouteWithChildren
   '/app/monitors/$id/': typeof AppMonitorsIdIndexRoute
   '/app/monitors/new/discovery/$job': typeof AppMonitorsNewDiscoveryJobRoute
   '/app/monitors/new/manual/$': typeof AppMonitorsNewManualSplatRoute
@@ -129,10 +129,10 @@ export interface FileRoutesByTo {
   '/docs/$slug': typeof DocsSlugRoute
   '/app': typeof AppIndexRoute
   '/docs': typeof DocsIndexRoute
-  '/app/monitors/new': typeof AppMonitorsNewRoute
+  '/app/monitors/new': typeof AppMonitorsNewRouteWithChildren
   '/app/monitors': typeof AppMonitorsIndexRoute
   '/app/monitors/$id/edit': typeof AppMonitorsIdEditRoute
-  '/app/monitors/new/manual': typeof AppMonitorsNewManualRoute
+  '/app/monitors/new/manual': typeof AppMonitorsNewManualRouteWithChildren
   '/app/monitors/$id': typeof AppMonitorsIdIndexRoute
   '/app/monitors/new/discovery/$job': typeof AppMonitorsNewDiscoveryJobRoute
   '/app/monitors/new/manual/$': typeof AppMonitorsNewManualSplatRoute
@@ -147,13 +147,13 @@ export interface FileRoutesById {
   '/docs/$slug': typeof DocsSlugRoute
   '/app/': typeof AppIndexRoute
   '/docs/': typeof DocsIndexRoute
-  '/app/monitors/new': typeof AppMonitorsNewRoute
+  '/app/monitors/new': typeof AppMonitorsNewRouteWithChildren
   '/app/monitors/': typeof AppMonitorsIndexRoute
   '/app/monitors/$id/edit': typeof AppMonitorsIdEditRoute
-  '/app/monitors/new_/manual': typeof AppMonitorsNewManualRoute
+  '/app/monitors/new/manual': typeof AppMonitorsNewManualRouteWithChildren
   '/app/monitors/$id/': typeof AppMonitorsIdIndexRoute
-  '/app/monitors/new_/discovery/$job': typeof AppMonitorsNewDiscoveryJobRoute
-  '/app/monitors/new_/manual_/$': typeof AppMonitorsNewManualSplatRoute
+  '/app/monitors/new/discovery/$job': typeof AppMonitorsNewDiscoveryJobRoute
+  '/app/monitors/new/manual/$': typeof AppMonitorsNewManualSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -203,10 +203,10 @@ export interface FileRouteTypes {
     | '/app/monitors/new'
     | '/app/monitors/'
     | '/app/monitors/$id/edit'
-    | '/app/monitors/new_/manual'
+    | '/app/monitors/new/manual'
     | '/app/monitors/$id/'
-    | '/app/monitors/new_/discovery/$job'
-    | '/app/monitors/new_/manual_/$'
+    | '/app/monitors/new/discovery/$job'
+    | '/app/monitors/new/manual/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -218,13 +218,10 @@ export interface RootRouteChildren {
   DocsSlugRoute: typeof DocsSlugRoute
   AppIndexRoute: typeof AppIndexRoute
   DocsIndexRoute: typeof DocsIndexRoute
-  AppMonitorsNewRoute: typeof AppMonitorsNewRoute
+  AppMonitorsNewRoute: typeof AppMonitorsNewRouteWithChildren
   AppMonitorsIndexRoute: typeof AppMonitorsIndexRoute
   AppMonitorsIdEditRoute: typeof AppMonitorsIdEditRoute
-  AppMonitorsNewManualRoute: typeof AppMonitorsNewManualRoute
   AppMonitorsIdIndexRoute: typeof AppMonitorsIdIndexRoute
-  AppMonitorsNewDiscoveryJobRoute: typeof AppMonitorsNewDiscoveryJobRoute
-  AppMonitorsNewManualSplatRoute: typeof AppMonitorsNewManualSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -313,29 +310,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMonitorsIdEditRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/app/monitors/new_/manual': {
-      id: '/app/monitors/new_/manual'
-      path: '/app/monitors/new/manual'
+    '/app/monitors/new/manual': {
+      id: '/app/monitors/new/manual'
+      path: '/manual'
       fullPath: '/app/monitors/new/manual'
       preLoaderRoute: typeof AppMonitorsNewManualRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AppMonitorsNewRoute
     }
-    '/app/monitors/new_/discovery/$job': {
-      id: '/app/monitors/new_/discovery/$job'
-      path: '/app/monitors/new/discovery/$job'
+    '/app/monitors/new/discovery/$job': {
+      id: '/app/monitors/new/discovery/$job'
+      path: '/discovery/$job'
       fullPath: '/app/monitors/new/discovery/$job'
       preLoaderRoute: typeof AppMonitorsNewDiscoveryJobRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AppMonitorsNewRoute
     }
-    '/app/monitors/new_/manual_/$': {
-      id: '/app/monitors/new_/manual_/$'
-      path: '/app/monitors/new/manual/$'
+    '/app/monitors/new/manual/$': {
+      id: '/app/monitors/new/manual/$'
+      path: '/$'
       fullPath: '/app/monitors/new/manual/$'
       preLoaderRoute: typeof AppMonitorsNewManualSplatRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AppMonitorsNewManualRoute
     }
   }
 }
+
+interface AppMonitorsNewManualRouteChildren {
+  AppMonitorsNewManualSplatRoute: typeof AppMonitorsNewManualSplatRoute
+}
+
+const AppMonitorsNewManualRouteChildren: AppMonitorsNewManualRouteChildren = {
+  AppMonitorsNewManualSplatRoute: AppMonitorsNewManualSplatRoute,
+}
+
+const AppMonitorsNewManualRouteWithChildren =
+  AppMonitorsNewManualRoute._addFileChildren(AppMonitorsNewManualRouteChildren)
+
+interface AppMonitorsNewRouteChildren {
+  AppMonitorsNewManualRoute: typeof AppMonitorsNewManualRouteWithChildren
+  AppMonitorsNewDiscoveryJobRoute: typeof AppMonitorsNewDiscoveryJobRoute
+}
+
+const AppMonitorsNewRouteChildren: AppMonitorsNewRouteChildren = {
+  AppMonitorsNewManualRoute: AppMonitorsNewManualRouteWithChildren,
+  AppMonitorsNewDiscoveryJobRoute: AppMonitorsNewDiscoveryJobRoute,
+}
+
+const AppMonitorsNewRouteWithChildren = AppMonitorsNewRoute._addFileChildren(
+  AppMonitorsNewRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   AppArchiveRoute: AppArchiveRoute,
@@ -346,13 +368,10 @@ const rootRouteChildren: RootRouteChildren = {
   DocsSlugRoute: DocsSlugRoute,
   AppIndexRoute: AppIndexRoute,
   DocsIndexRoute: DocsIndexRoute,
-  AppMonitorsNewRoute: AppMonitorsNewRoute,
+  AppMonitorsNewRoute: AppMonitorsNewRouteWithChildren,
   AppMonitorsIndexRoute: AppMonitorsIndexRoute,
   AppMonitorsIdEditRoute: AppMonitorsIdEditRoute,
-  AppMonitorsNewManualRoute: AppMonitorsNewManualRoute,
   AppMonitorsIdIndexRoute: AppMonitorsIdIndexRoute,
-  AppMonitorsNewDiscoveryJobRoute: AppMonitorsNewDiscoveryJobRoute,
-  AppMonitorsNewManualSplatRoute: AppMonitorsNewManualSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
