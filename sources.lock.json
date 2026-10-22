@@ -6887,7 +6887,7 @@
       "executable": false
     },
     "tests/heartbeat-schedules-browser.mjs": {
-      "sha256": "3c123ac2ae3a286efdbd6dc0a2a038e3e1d106d28509a68d0fbfda2cf0e7924a",
+      "sha256": "c11f0a6a537de6662c1875f1f6ba9fd60905d6b37f1ebc29aac8413edc50621e",
       "executable": false
     },
     "tests/heartbeat-schedules.mjs": {
