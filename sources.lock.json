@@ -7171,7 +7171,7 @@
       "executable": false
     },
     "tests/pagespeed-support.mjs": {
-      "sha256": "6e02d4200a9f4ba98299988f2409262a4886caf2ad5588a4f4e8a12bd07d281c",
+      "sha256": "80183425aff6f72b5f6606bb08618c2a36ca211983f4a4af0defdee4063734b4",
       "executable": false
     },
     "tests/ping-browser.mjs": {

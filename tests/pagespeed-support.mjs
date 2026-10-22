@@ -72,9 +72,13 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
   // Real visitors in a real browser. Each visitor's own coin is fixed, so the 50% sample is decided the same way every run.
   const browser = await chromium.launch({headless: true, args: ['--use-mock-keychain', '--password-store=basic']});
   try {
-    const visit = async ({phone = false, consent = true, coin = 0.25, gpc = false, dnt = false, agent, path = '/s/shop/checkout', click = true}) => {
+    const views = async () => Number((await DB.prepare('SELECT COALESCE(SUM(views),0) n FROM rum_aggregates WHERE site_id=?').bind(site.id).first()).n);
+    // One visitor in a fresh context. The context stays open until the view is counted (or, for a visitor whose beacon must stay
+    // silent, for a while), so closing it never cancels a beacon still in flight.
+    const visit = async ({phone = false, consent = true, coin = 0.25, gpc = false, dnt = false, agent, path = '/s/shop/checkout', click = true, counted = false}) => {
       const context = await browser.newContext(phone ? {viewport: {width: 390, height: 844}, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: agent ?? PHONE} : {viewport: {width: 1280, height: 800}, userAgent: agent ?? LAPTOP});
       try {
+        const before = await views();
         if (consent) await context.addCookies([{name: 'consent', value: 'granted', url: fixture.origin}]);
         // A browser with Global Privacy Control or Do Not Track switched on exposes it to the page this way.
         await context.addInitScript(([value, privacy, track]) => { Math.random = () => value; if (privacy) Object.defineProperty(Navigator.prototype, 'globalPrivacyControl', {get: () => true, configurable: true}); if (track) Object.defineProperty(Navigator.prototype, 'doNotTrack', {get: () => '1', configurable: true}); }, [coin, gpc, dnt]);
@@ -84,13 +88,12 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
         if (click) { await page.getByRole('button', {name: 'Place order'}).click(); await page.getByText('Order placed').waitFor(); await page.waitForTimeout(500); }
         // The visitor closes the tab: the page is hidden and the beacon sends its one view.
         await page.close({runBeforeUnload: true});
+        if (counted) await waitFor(async () => await views() === before + 1, 'the visitor was counted', 30000);
+        else await new Promise(r => setTimeout(r, 1500));
       } finally { await context.close(); }
     };
-    const views = async () => Number((await DB.prepare('SELECT COALESCE(SUM(views),0) n FROM rum_aggregates WHERE site_id=?').bind(site.id).first()).n);
-    await visit({phone: true});
-    await waitFor(async () => await views() === 1, 'the consenting phone visitor was counted', 30000);
-    await visit({});
-    await waitFor(async () => await views() === 2, 'the consenting desktop visitor was counted', 30000);
+    await visit({phone: true, counted: true});
+    await visit({counted: true});
     // Nothing is sent without consent, with Global Privacy Control or Do Not Track, from a bot, outside the sample, or on an excluded path.
     await visit({phone: true, consent: false});
     await visit({phone: true, gpc: true});
@@ -98,7 +101,6 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
     await visit({phone: true, agent: 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'});
     await visit({phone: true, coin: 0.75});
     await visit({phone: true, path: '/s/shop/account/88231/orders', click: false});
-    await new Promise(r => setTimeout(r, 1500));
     assert.equal(await views(), 2, 'no visitor without consent, with GPC or DNT, from a bot, outside the sample or on an excluded path was counted');
   } finally { await browser.close(); }
 
