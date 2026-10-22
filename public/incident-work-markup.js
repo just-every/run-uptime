@@ -1,4 +1,5 @@
 import {escape} from './console-format.js';
+import {dependencySections} from './incident-dependencies.js';
 const at=value=>value===null?'—':new Date(value).toLocaleString();
 const text=value=>escape(value??'');
 export function linkedText(value){
@@ -29,6 +30,7 @@ export function detailMarkup(d,settings){
  <section><h3>Follow-up</h3><dl class="ui-dl"><div><dt>Response state</dt><dd>${text(d.status)}</dd></div><div><dt>Owner</dt><dd>${text(d.owner?.displayName??'Unassigned')}</dd></div><div><dt>Next scheduled follow-up</dt><dd>${text(d.nextDue===null?d.nextDueReason:at(d.nextDue))}</dd></div>${d.stopReason?`<div><dt>Stopped by</dt><dd>${text(d.stopReason.replaceAll('_',' '))}</dd></div>`:''}</dl>
  <form data-assignment><label>Incident owner<select name="ownerId"><option value="">Unassigned</option>${settings.members.map(m=>`<option value="${text(m.id)}"${d.owner?.id===m.id?' selected':''}>${text(m.displayName)}</option>`).join('')}</select></label><button>Assign owner</button></form>
  <div class="incident-actions"><button type="button" data-incident-action="acknowledge"${d.status!=='open'?' disabled':''}>Acknowledge</button><button type="button" data-incident-action="stop"${d.stopReason?' disabled':''}>Stop follow-up</button><button type="button" data-incident-action="resolve"${d.status==='resolved'?' disabled':''}>Resolve response</button><button type="button" data-incident-export>Download incident JSON</button></div><p>Response actions record your team’s work. Scheduled evidence alone determines monitor health and recovery.</p></section>
+ ${dependencySections(d)}
  <section><h3>Root cause</h3><form data-root-cause><label>Category<select name="categoryId"><option value="">Not categorized</option>${categories}</select></label><label>Root-cause account<textarea name="text" maxlength="2000" rows="3">${text(d.rootCause.text)}</textarea></label><button>Save root cause</button></form><p>Private team account, separate from the machine’s observed cause.</p></section>
  <section><h3>Comments</h3>${d.comments.map(comment).join('')}<form data-comment-add><label>Add a comment<textarea name="text" maxlength="5000" rows="4" required></textarea></label><button>Add comment</button></form><p>Comments stay private. Member mentions, mention email and status-page publication are not available.</p></section>
  <section><h3>Activity timeline</h3><ol class="incident-timeline">${d.timeline.map(e=>`<li><p><strong>${text(e.kind.replaceAll('_',' '))}</strong> · ${text(e.actor.displayName)} · ${text(at(e.at))}</p><p class="incident-prose">${text(activity(e))}</p></li>`).join('')}</ol></section>

@@ -18,7 +18,7 @@ function Editor(){
   void mountMonitorEditor(controller.signal)
   return()=>{controller.abort();document.documentElement.classList.remove('editor-ready','editor-context-ready')}
  },[])
- return <><link rel="stylesheet" href="/app-theme.css" precedence="default"/><link rel="stylesheet" href="/editor.css"/><link rel="stylesheet" href="/editor/discovery.css"/><div dangerouslySetInnerHTML={content}/></>
+ return <><link rel="stylesheet" href="/app-theme.css" precedence="default"/><link rel="stylesheet" href="/editor.css"/><link rel="stylesheet" href="/editor/discovery.css"/><link rel="stylesheet" href="/editor/catalog.css"/><div dangerouslySetInnerHTML={content}/></>
 }
 export const Route=createFileRoute('/app/monitor')({
  loader:({location})=>({initialSearch:location.searchStr}),

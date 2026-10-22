@@ -150,7 +150,7 @@ Set the private runner's `UPTIME_CONTROL_ORIGIN` to the exact HTTPS origin and
 redirects and results are timestamped and HMAC signed. The limited HTTP loopback
 origin is only for local review. Probe credentials remain owner-only files in
 `UPTIME_CREDENTIAL_DIR`, referenced by immutable monitor definitions and bound
-to one monitor ID and a target origin. The first setup after an upgrade binds valid unbound files referenced by exactly one existing monitor, counting paused monitors, once; later setups and dev or preview starts only report. Shared or unused files remain unbound and report the intended IDs and numbered binding command with `runners/migrations/0001-monitor-credentials.mjs`; see docs/runner.md for the command, rotation and local erasure. Never put bearer credentials in a URL.
+to one monitor ID and a target origin. Discovery source credentials (DISCOVERY-001) are `provider-<reference>.json` files in the same folder, bound to their provider and the zone, repository, project, site or application they read; the runner uses them only for the documented read-only requests and the Worker never receives them. The first setup after an upgrade binds valid unbound files referenced by exactly one existing monitor, counting paused monitors, once; later setups and dev or preview starts only report. Shared or unused files remain unbound and report the intended IDs and numbered binding command with `runners/migrations/0001-monitor-credentials.mjs`; see docs/runner.md for the command, rotation and local erasure. Never put bearer credentials in a URL.
 
 The Worker's clock defines every time that sets a schedule. A claim answer carries the Worker's `now`; the runner measures its own offset from the quickest of its last twenty exchanges and reports attempt starts, completions and signature timestamps in the Worker's clock, so a runner whose clock is seconds off still has its evidence accepted and its checks start at least one interval apart by the Worker's claim times. A scheduled check never starts sooner than one interval after the previous one started (after an interval change, the shorter of the old and new interval; a manual Run now never moves the floor). Because each next due time slides to the runner-reported start plus one interval, real cadence is slightly slower than configured: about 0.26 s per check at the 5 s minimum interval (5 % slower) and about 0.4 s per check at 60 s on loopback, with the runner's 1 s poll (see docs/monitors.md).
 
@@ -270,6 +270,12 @@ service receives an empty HTTPS request but can see its configured capability
 path, source address and request time. Hosted deployment sends the Worker,
 migrations, configured secrets and resource settings to the owner's Cloudflare
 account. DNS resolvers see queried hostnames, source address and lookup timing.
+When the owner runs a discovery source, the runner reads the provider account
+it names (Cloudflare, Route 53, GitHub, Vercel, Netlify or CodeDeploy) with that
+account's identifiers and documented read-only requests, or the owner's own DNS
+names, sitemap and OpenAPI document; only derived candidates return to the Worker.
+Following a catalog provider has the runner read the catalog's own status-source
+address once before the provider is followed.
 
 The shared local lifecycle also requests readiness at the selected application
 origin (normally local loopback, possibly an owner-selected remote origin). It

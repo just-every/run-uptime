@@ -244,5 +244,38 @@ try{
  const pingdomBatch=await apply(pingdomView);assert.equal(pingdomBatch.status,200);assert.equal(pingdomBatch.body.report.ok,true);
  assert.deepEqual(JSON.parse((await DB.prepare("SELECT definition FROM monitors WHERE json_extract(definition,'$.name')='Secured pingdom'").first()).definition).request,{credentialRef:'pingdom-88'});
  await noSecrets('after an apply',secrets);
- console.log('IMPORT-001 / MIGRATE-001 passed through the import door: refusals leave every table byte-identical; request secrets are withheld before upload and stored nowhere; UptimeRobot preview, paused apply, export round-trip, change, undo that keeps and reports edits, with history intact, and earlier batches keep read and undo.');
+ // DEPENDENCY-002: an incumbent's third-party service monitors map onto catalog entries through the same reviewed door, paused and not
+ // yet checked live. UptimeRobot has no third-party monitor type, so there a followed provider is a monitor of its status address;
+ // Better Stack and Site24x7 monitors of a status address map the same way. Site24x7 StatusIQ third-party components map by their
+ // published service id and the component's name. A Better Stack status page's ThirdPartyService row names no vendor in Better
+ // Stack's public API, so it is refused with that documentation's address. One monitor follows each catalog part.
+ const followedRows=async()=>(await DB.prepare("SELECT f.entry_id,f.scope,f.component_key,f.checked_at,json_extract(m.definition,'$.enabled') enabled,json_extract(m.definition,'$.service') service FROM followed_services f JOIN monitors m ON m.id=f.monitor_id ORDER BY f.entry_id,f.scope,f.component_key").all()).results;
+ assert.deepEqual(await followedRows(),[],'no followed service before the catalog mappings');
+ const robotPage=monitors=>JSON.stringify({data:monitors.map((m,i)=>({id:9100+i,type:'HTTP',interval:300,timeout:5,httpMethodType:'GET',successHttpResponseCodes:['200'],...m})),nextLink:null});
+ const robotCatalog=(await preview(robotPage([{friendlyName:'Stripe status',url:'https://status.stripe.com/current'},{friendlyName:'AWS us-east-1 EC2',url:'https://status.aws.amazon.com/rss/ec2-us-east-1.rss'},{friendlyName:'Acme Cloud status',url:'https://status.synthetic-uptime-1.example/'}]))).body;
+ assert.deepEqual(robotCatalog.entries.map(e=>e.action),['create','create','create']);
+ assert.deepEqual(robotCatalog.entries.map(e=>e.target.service),['Stripe','AWS',null],'mapped entries carry the provider attribution; the unmatched status page stays an ordinary proposal');
+ assert.equal(robotCatalog.entries[0].target.url,'https://status.stripe.com/current','a mapped service reads the catalog source');
+ assert.equal((await apply(robotCatalog)).status,200);
+ const parts=rows=>rows.map(r=>[r.entry_id,r.scope,r.component_key,r.enabled,r.checked_at]);
+ assert.deepEqual(parts(await followedRows()),[['aws','component','ec2-us-east-1',0,null],['stripe','whole',null,0,null]],'Stripe and AWS us-east-1 EC2 are followed services, paused and not yet checked live');
+ const betterStack=[{data:[{id:'7001',type:'monitor',attributes:{pronounceable_name:'GitHub status',url:'https://www.githubstatus.com/',monitor_type:'status',check_frequency:180}},{id:'7002',type:'monitor',attributes:{pronounceable_name:'Our shop',url:'https://shop.synthetic-uptime-2.example/',monitor_type:'status',check_frequency:60}}],pagination:{next:null}},
+  {data:[{id:'7101',type:'status_page_resource',attributes:{status_page_section_id:1,resource_id:9001,resource_type:'ThirdPartyService',public_name:'Stripe',explanation:null,position:0}}],pagination:{next:null}}].map(page=>JSON.stringify(page)).join('\n');
+ const betterView=(await preview(betterStack)).body;assert.equal(betterView.source,'betterstack-heartbeats');
+ assert.deepEqual(betterView.entries.map(e=>e.action),['create','unsupported','refused']);assert.equal(betterView.entries[0].target.service,'GitHub');
+ assert.ok(betterView.entries[2].reason.includes('https://betterstack.com/docs/uptime/api/get-a-single-status-page-resource/'),'a third-party status page row is refused, citing the public API that names no vendor');
+ assert.equal((await apply(betterView)).status,200);
+ const site24x7=[{code:0,message:'success',data:[{monitor_id:'3001',display_name:'Slack status',type:'URL',website:'https://slack-status.com/api/v2.0.0/current'},{monitor_id:'3002',display_name:'Our AWS account',type:'AWSHEALTH'},{monitor_id:'3003',display_name:'Our shop',type:'URL',website:'https://shop.synthetic-uptime-2.example/'}]},
+  {code:0,message:'success',data:{thirdparty_service_id:27,thirdparty_service_display_name:'Stripe',thirdparty_components:[{thirdparty_component_id:'synthetic-uptime-3',thirdparty_component_display_name:'API'}]}},
+  {code:0,message:'success',data:{thirdparty_service_id:1,thirdparty_service_display_name:'Amazon Web Services (AWS)',thirdparty_components:[{thirdparty_component_id:'synthetic-uptime-4',thirdparty_component_display_name:'Amazon Elastic Compute Cloud (Ohio)'},{thirdparty_component_id:'synthetic-uptime-5',thirdparty_component_display_name:'Amazon Elastic Compute Cloud (N. Virginia)'}]}},
+  {code:0,message:'success',data:{thirdparty_service_id:28,thirdparty_service_display_name:'Github',thirdparty_components:[{thirdparty_component_id:'synthetic-uptime-6',thirdparty_component_display_name:'Actions'}]}},
+  {code:0,message:'success',data:{thirdparty_service_id:9,thirdparty_service_display_name:'Zoho-US',thirdparty_components:[{thirdparty_component_id:'synthetic-uptime-7',thirdparty_component_display_name:'Zoho CRM'}]}}].map(page=>JSON.stringify(page)).join('\n');
+ const siteView=(await preview(site24x7)).body;assert.equal(siteView.source,'site24x7');
+ // Slack's status address and StatusIQ's Stripe API and AWS Ohio EC2 map; an AWS Health monitor, a GitHub component (followed by an id only a
+ // live check reads), a provider the catalog lacks and a part already followed are refused; an ordinary monitor is unsupported.
+ assert.deepEqual(siteView.entries.map(e=>e.action),['create','refused','unsupported','create','create','refused','refused','refused']);
+ assert.deepEqual(siteView.entries.filter(e=>e.action==='create').map(e=>e.target.service),['Slack','Stripe','AWS']);
+ assert.equal((await apply(siteView)).status,200);
+ assert.deepEqual(parts(await followedRows()),[['aws','component','ec2-us-east-1',0,null],['aws','component','ec2-us-east-2',0,null],['github','whole',null,0,null],['slack','whole',null,0,null],['stripe','component','api',0,null],['stripe','whole',null,0,null]],'every mapped third-party monitor is a followed service of its own catalog part');
+ console.log('IMPORT-001 / MIGRATE-001 passed through the import door: refusals leave every table byte-identical; request secrets are withheld before upload and stored nowhere; UptimeRobot preview, paused apply, export round-trip, change, undo that keeps and reports edits, with history intact, and earlier batches keep read and undo. DEPENDENCY-002 passed: UptimeRobot, Better Stack and Site24x7 third-party service monitors map onto catalog entries as paused followed services, a Better Stack third-party status page row is refused citing its public API, and a part already followed is refused.');
 }finally{await worker?.dispose();await cleanupDirectory(directory)}

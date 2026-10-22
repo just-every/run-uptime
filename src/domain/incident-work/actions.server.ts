@@ -2,6 +2,7 @@ import type {Bindings} from '../control.server.ts'
 import {mutationGuard} from '../audit.server.ts'
 import {type Actor,IncidentWorkError,exact,integer,text,findIncident,member,defaultOwner,actorGuard,workSeed,timeline,audit,commit} from './common.server.ts'
 import {readSettings} from './settings.server.ts'
+import {groupAcknowledgeStatements} from './dependencies.server.ts'
 export async function rootCause(env:Bindings,id:string,input:any,actor:Actor){
  exact(input,['version','categoryId','text']);const version=integer(input.version),value=text(input.text,2000,'Root-cause text',true),incident=await findIncident(env,id),settings=await readSettings(env)
  const category=input.categoryId===null?null:settings.categories.find(item=>item.id===input.categoryId);if(category===undefined)throw new IncidentWorkError('Choose an available root-cause category')
@@ -17,5 +18,8 @@ export async function incidentAction(env:Bindings,id:string,input:any,actor:Acto
  const now=Date.now(),statements=[actorGuard(env,actor,id),workSeed(env,id,incident.monitor_id,owner?.id??null),mutationGuard(env,'EXISTS(SELECT 1 FROM incident_work WHERE incident_id=? AND version=?)',[id,version])]
  if(input.kind==='assign'){if(owner)statements.push(mutationGuard(env,"EXISTS(SELECT 1 FROM oa_operators WHERE id=? AND role='owner' AND status='active')",[owner.id]));statements.push(env.DB.prepare('UPDATE incident_work SET owner_id=?,version=version+1 WHERE incident_id=?').bind(owner?.id??null,id))}
  else {statements.push(mutationGuard(env,"NOT EXISTS(SELECT 1 FROM outbox WHERE monitor_id=? AND kind='recovery' AND json_extract(event,'$.incidentKey')=?)",[incident.monitor_id,incident.trigger.incidentKey]));if(input.kind==='acknowledge')statements.push(env.DB.prepare("UPDATE incident_work SET status='acknowledged',acknowledged_at=?,version=version+1 WHERE incident_id=?").bind(now,id));else if(input.kind==='stop')statements.push(env.DB.prepare("UPDATE incident_work SET stop_reason='member_stop',version=version+1 WHERE incident_id=?").bind(id));else statements.push(env.DB.prepare("UPDATE incident_work SET status='resolved',resolved_at=?,stop_reason='manual_resolution',version=version+1 WHERE incident_id=?").bind(now,id))}
- const kind={assign:'owner_assigned',acknowledge:'acknowledged',stop:'followup_stopped',resolve:'manual_resolution'}[input.kind as 'assign'|'acknowledge'|'stop'|'resolve'];statements.push(timeline(env,id,incident.monitor_id,actor,kind,input.kind==='assign'?{ownerId:owner?.id??null}:{channel:'console'},now),audit(env,actor,`incident_${input.kind}`,now));await commit(env,statements);return {version:version+1}
+ const kind={assign:'owner_assigned',acknowledge:'acknowledged',stop:'followup_stopped',resolve:'manual_resolution'}[input.kind as 'assign'|'acknowledge'|'stop'|'resolve'];statements.push(timeline(env,id,incident.monitor_id,actor,kind,input.kind==='assign'?{ownerId:owner?.id??null}:{channel:'console'},now),audit(env,actor,`incident_${input.kind}`,now));
+ // DEPENDENCY-002: acknowledging also acknowledges the linked provider notices and the other incidents linked to them (FOLLOWUP-001 grouped acknowledgment).
+ if(input.kind==='acknowledge')statements.push(...await groupAcknowledgeStatements(env,incident,actor,now));
+ await commit(env,statements);return {version:version+1}
 }
