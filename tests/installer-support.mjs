@@ -22,7 +22,7 @@ export async function devSignIn(page, url, owner = answers, { finishSetup = true
  const origin=new URL(url).origin;
  await openGate(page.context(),origin,key);
  await page.goto(origin+'/auth/dev/enter?as=owner&returnTo=%2Fsetup');
- await page.waitForURL(value=>(value.pathname.startsWith('/app/')||value.pathname==='/setup'));
+ await page.waitForURL(value=>['/app/monitors','/app/monitors/new','/setup'].includes(value.pathname));
  if(finishSetup&&new URL(page.url()).pathname==='/setup'){await page.getByRole('button',{name:'Continue',exact:true}).click();await page.waitForURL(value=>value.pathname.startsWith('/app'));}
  const response = await page.request.get(new URL('/auth/session', url).href);
  assert.equal(response.status(), 200);

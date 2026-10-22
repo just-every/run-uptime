@@ -6559,7 +6559,7 @@
       "executable": false
     },
     "tests/access-matrix.mjs": {
-      "sha256": "0f36bee914c9b394b85a7d6c1354caaef7bf2364dfb029a2eea7aefcf470f07a",
+      "sha256": "aa59cb851f6dff9d579915d5eb2b8efe94b6729d09f1831978bf36813d193169",
       "executable": false
     },
     "tests/access-smoke.mjs": {
@@ -6619,7 +6619,7 @@
       "executable": false
     },
     "tests/auth-test-support.mjs": {
-      "sha256": "a6a3639ae1d7b55fc08e1f8f76b65f4dc7b269e189e9ea0d1777aa03195f6e9d",
+      "sha256": "04397c0e70df1dce721a8f7b5550115ae0cfed715cf0ff435e549de894f4013f",
       "executable": false
     },
     "tests/availability.mjs": {
@@ -6823,7 +6823,7 @@
       "executable": false
     },
     "tests/installer-support.mjs": {
-      "sha256": "48c7292e29f43f387ab7a80140cfe0bd5cd8d76e94b30fc7fc34003061f19440",
+      "sha256": "1e2c744fe75a3c1530d81e88d6b56423f63f769c25abd8a5a71c214225e0e689",
       "executable": false
     },
     "tests/legacy-monitor-fixture.mjs": {

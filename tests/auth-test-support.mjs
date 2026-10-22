@@ -65,7 +65,7 @@ export async function browserSignIn(page,origin,{bindings=testAuthBindings,boots
  const link=await deliveredLink(call,{email:bindings.OWNER_EMAIL});
  await page.goto(link.href);
  await page.getByRole('button',{name:/confirm|sign in/i}).click();
- await page.waitForURL(url=>(url.pathname.startsWith('/app/')||url.pathname==='/setup'));
+ await page.waitForURL(url=>['/app/monitors','/app/monitors/new','/setup'].includes(url.pathname));
  if(new URL(page.url()).pathname==='/setup')await page.getByRole('button',{name:'Continue',exact:true}).click();
  await page.waitForURL(url=>url.pathname.startsWith('/app'));
 }
