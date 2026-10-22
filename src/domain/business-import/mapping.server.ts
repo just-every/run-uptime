@@ -2,6 +2,7 @@ import type {Bindings} from '../control.server.ts'
 import {uptimeRobotImporter} from '../definitions/importers/uptimerobot.ts'
 import {pingdomImporter} from '../definitions/importers/pingdom.ts'
 import {betterStackHeartbeatImporter} from '../definitions/importers/betterstack-heartbeats.ts'
+import {site24x7Importer} from '../definitions/importers/site24x7.ts'
 import {nativeImporter} from '../definitions/importers/native.ts'
 import {HISTORY_SOURCE,type Importer} from '../definitions/importers/index.ts'
 import {recogniseHistory} from '../definitions/history.ts'
@@ -24,6 +25,7 @@ const VENDORS:Record<string,Source>={
  uptimerobot:{importer:uptimeRobotImporter,mapping:'uptime-uptimerobot-definitions-v2',prefix:'uptimerobot'},
  pingdom:{importer:pingdomImporter,mapping:'uptime-pingdom-definitions-v1',prefix:'pingdom'},
  'betterstack-heartbeats':{importer:betterStackHeartbeatImporter,mapping:'uptime-betterstack-heartbeats-v1',prefix:'betterstack-heartbeats'},
+ site24x7:{importer:site24x7Importer,mapping:'uptime-site24x7-definitions-v1',prefix:'site24x7'},
  [HISTORY_SOURCE]:{importer:null,mapping:'uptime-uptimerobot-log-v1',prefix:HISTORY_SOURCE},
 }
 const DEFINITION_FILE=/^uptime\.monitors:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/

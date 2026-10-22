@@ -1,0 +1,32 @@
+/* DEPENDENCY-002: the third-party service catalog on the new-monitor page (/app/monitor). Loaded after discovery.css and
+   built from the same tokens. Hooks editor/monitor/catalog.mjs relies on: #service-catalog, #catalog-search,
+   #catalog-status[role=status], #catalog-results .catalog-entry, .catalog-form, .catalog-feedback[data-state]. */
+.catalog-panel { margin-top: 20px; padding: 18px 24px 20px; }
+.catalog-panel[hidden] { display: none; }
+.catalog-panel h2 { font-size: 22px; letter-spacing: -0.02em; }
+.catalog-panel input[type="search"] { display: block; width: 100%; margin-top: 6px; font-size: 16px; }
+.catalog-list { display: grid; gap: 12px; margin: 14px 0 0; padding: 0; list-style: none; }
+.catalog-entry { display: grid; gap: 6px; padding: 14px 16px; border: 1px solid var(--line-strong); border-radius: var(--radius-panel); background: var(--card); min-width: 0; }
+.catalog-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.catalog-name { margin: 0; font-size: 17px; font-weight: 700; color: var(--ink); }
+.catalog-summary { margin: 0; color: var(--body); font-size: 14px; }
+.catalog-source, .catalog-note, .catalog-followed { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.catalog-review { margin: 0; padding: 8px 12px; border-radius: var(--radius-control); background: var(--rose-soft); color: var(--rose-text); font-size: 13.5px; font-weight: 600; overflow-wrap: anywhere; }
+.catalog-form { display: grid; gap: 8px; margin-top: 4px; }
+.catalog-scope { margin: 0; padding: 0; border: 0; display: grid; gap: 6px; min-width: 0; }
+.catalog-scope legend { padding: 0; color: var(--ink); font-size: 14px; font-weight: 600; }
+.catalog-components { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 4px 16px; margin-left: 26px; }
+.catalog-component { font-size: 14px; }
+.catalog-form button.primary { justify-self: start; min-width: 140px; }
+.catalog-feedback { margin: 0; font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.catalog-feedback:empty { display: none; }
+.catalog-feedback[data-state="checking"] { color: var(--ink); font-weight: 500; }
+.catalog-feedback[data-state="error"] { padding: 8px 12px; border-radius: var(--radius-control); background: var(--rose-soft); color: var(--rose-text); font-weight: 600; }
+.catalog-feedback[data-state="done"] { color: var(--green-text); font-weight: 600; }
+.catalog-feedback[data-state="done"] a { color: var(--green-text); }
+.catalog-other { margin-top: 14px; }
+@media (max-width: 700px) {
+  .catalog-panel { padding: 14px 16px 16px; }
+  .catalog-components { margin-left: 0; grid-template-columns: minmax(0, 1fr); }
+  .catalog-form button.primary { justify-self: stretch; }
+}

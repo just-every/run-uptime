@@ -7,6 +7,7 @@ import {fixture as retryFixture} from './resilience/support.mjs';
 import {startLocalWorker} from './mail-provider-fixture.mjs';
 import {dispatchNotifications} from '../runners/src/notification-dispatch.mjs';
 import {notificationRetryTime} from '../src/domain/notification-retry.ts';
+import {extensionTables} from '../src/domain/archive-schema.ts';
 import {availablePorts,migratedWorker,ownerAPI} from './notify-acceptance-runtime.mjs';
 import {mailEdge,proveFallbackChains,sleep} from './notify-fallback-fixture.mjs';
 // A PagerDuty Events v2-compatible signed receiver: dedup_key is the incident, webhook-id the delivery's stable event ID.
@@ -119,7 +120,7 @@ export async function proveNotificationRetry(inspect,inspectQuiet=undefined,insp
   await restored.dispose();restored=null;
   // A genuine pre-migration archive carries each envelope's body and no attempt table.
   const legacy=structuredClone(archive),sentEnvelopes=new Map((await (await (restarted??f.worker).getD1Database('DB')).prepare("SELECT id,envelope FROM integration_deliveries").all()).results.map(r=>[r.id,JSON.parse(r.envelope).body]));
-  legacy.payload.extensionVersion=9;delete legacy.payload.productTables.notification_delivery_attempts;
+  legacy.payload.extensionVersion=9;legacy.payload.productTables=Object.fromEntries(extensionTables(9).map(name=>[name,legacy.payload.productTables[name]]));
   for(const d of legacy.payload.productTables.integration_deliveries){const e=JSON.parse(d.envelope);d.envelope=JSON.stringify({...e,body:sentEnvelopes.get(d.id)})}
   legacy.sha256=createHash('sha256').update(JSON.stringify(legacy.payload)).digest('hex');
   ({worker:restored}=await migratedWorker({port:restoredPort,persist:join(f.directory,'legacy-restore'),bindings:f.bindings}));await restoreAPI.signIn(f.bindings);
