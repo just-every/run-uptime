@@ -23,12 +23,23 @@ const failed=(task,category,outcomeName)=>{
  const value=outcome(task,{outcome:outcomeName,checks:[assertion(category,false)]});
  delete value.status;delete value.bytes;return value;
 };
+// The runner door claims the next eligible task across all monitors, not a
+// requested monitor. Earlier heartbeat evaluations can become due between cases.
+async function claimFor(monitorId){
+ const seen=new Set();
+ for(let count=0;count<100;count++){
+  const task=await source.claim();assert.ok(task,'the monitor under test must have an eligible task');
+  assert.ok(!seen.has(task.id),'a task must not be delivered twice');seen.add(task.id);
+  if(task.monitorId===monitorId)return task;
+ }
+ assert.fail('the monitor under test was not claimed within the installation monitor bound');
+}
 async function create(changes={}){
  const result=await source.api('/api/monitors','POST',{name:'Signed evidence contract',type:'http',network:'public',url:'https://evidence-only.test/health',canaryUrl:'https://canary.example.test/health',intervalMs:86400000,retries:0,confirmSlots:1,recoverSlots:1,...changes});
  assert.equal(result.status,201,JSON.stringify(result.data));
- const task=await source.claim();assert.equal(task.monitorId,result.data.id);return task;
+ const task=await claimFor(result.data.id);assert.equal(task.monitorId,result.data.id);return task;
 }
-async function next(task){await source.due(task.monitorId);const value=await source.claim();assert.equal(value.monitorId,task.monitorId);return value}
+async function next(task){await source.due(task.monitorId);const value=await claimFor(task.monitorId);assert.equal(value.monitorId,task.monitorId);return value}
 async function durable(){
  const tables=['monitors','slots','observations','outbox','runner_contact'];
  return Promise.all(tables.map(async name=>(await source.DB.prepare(`SELECT * FROM ${name} ORDER BY rowid`).all()).results));
