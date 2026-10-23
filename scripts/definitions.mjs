@@ -29,7 +29,7 @@ import {permission,accessFence} from '../src/domain/access.server.ts';
 import {authorizedDatabase,auditAccess} from '../src/domain/access-database.server.ts';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-const commands = { 'import-playwright': ['--input', '--fixtures', '--lock', '--output', '--base'], validate: ['--input', '--source'], preview: ['--input', '--source'], apply: ['--input', '--source', '--digest'], export: ['--output'], batches: [], undo: ['--batch'] };
+const commands = { 'import-playwright': ['--input', '--fixtures', '--lock', '--output', '--base'], validate: ['--input', '--source'], test: ['--input','--source'], preview: ['--input', '--source'], apply: ['--input', '--source', '--digest'], export: ['--output'], batches: [], undo: ['--batch'] };
 
 function parse(argv) {
  const [command, ...rest] = argv, options = {};
@@ -37,12 +37,12 @@ function parse(argv) {
  for (let i = 0; i < rest.length; i++) {
   const flag = rest[i];
   if (flag === '--json') { options.json = true; continue; }
-  if (!(commands[command].includes(flag) || flag === '--origin') || options[flag.slice(2)] !== undefined) throw usage(`Unsupported or repeated flag ${String(flag).slice(0, 40)} for ${command}.`);
+  if (!(commands[command].includes(flag) || flag === '--origin' || flag === '--environment') || options[flag.slice(2)] !== undefined) throw usage(`Unsupported or repeated flag ${String(flag).slice(0, 40)} for ${command}.`);
   const value = rest[++i];
   if (value === undefined || value.startsWith('--')) throw usage(`A value is required for ${flag}.`);
   options[flag.slice(2)] = value;
  }
- for (const required of { validate: ['input'], preview: ['input'], apply: ['input', 'digest'], export: ['output'], undo: ['batch'] }[command] ?? []) if (options[required] === undefined) throw usage(`${command} needs --${required}.`);
+ for (const required of { validate: ['input'], test:['input'], preview: ['input'], apply: ['input', 'digest'], export: ['output'], undo: ['batch'] }[command] ?? []) if (options[required] === undefined) throw usage(`${command} needs --${required}.`);
  return { command, options };
 }
 const usage = message => Object.assign(Error(message), { exitCode: 2 });
@@ -53,7 +53,9 @@ async function readInput(path) {
   const stat = await file.stat();
   if (!stat.isFile()) throw usage('The input must be a regular file.');
   if (stat.size > DEFINITION_BYTES) return decodeDefinitionBytes(new Uint8Array(stat.size));
-  return decodeDefinitionBytes(new Uint8Array(await file.readFile()));
+  const bytes=new Uint8Array(await file.readFile());
+  if(/\.(?:ts|mts)$/i.test(path)){const {loadTypeScriptDefinitions}=await import('./definitions-typescript.mjs');return loadTypeScriptDefinitions(resolve(path),bytes)}
+  return decodeDefinitionBytes(bytes);
  } finally { await file.close(); }
 }
 async function migrate() {
@@ -121,9 +123,10 @@ export async function run(argv = process.argv.slice(2)) {
  const { command, options } = parse(argv);
  if (options.origin) {
   const result = await remoteDefinitions(command, options, options.input === undefined ? null : await readInput(options.input));
-  if (options.json) console.log(JSON.stringify(result)); else if (command === 'preview' || command === 'validate') printPreview(result); else console.log(result.unchanged ? 'The reviewed definitions are unchanged.' : 'Definitions command completed.');
-  return command === 'validate' && result.kind === 'definitions' && (result.counts.refused || result.counts.unsupported) ? 1 : 0;
+  if (options.json) console.log(JSON.stringify(result)); else if (command === 'preview' || command === 'validate' || command === 'test') printPreview(result); else console.log(result.unchanged ? 'The reviewed definitions are unchanged.' : 'Definitions command completed.');
+  return ['validate','test'].includes(command) && result.kind === 'definitions' && (result.counts.refused || result.counts.unsupported) ? 1 : 0;
  }
+ if(process.env.UPTIME_CI_TOKEN)throw usage('CI credentials require --origin and an explicit --environment.');
  if (command === 'import-playwright') { console.log(JSON.stringify(await importPlaywright(options))); return 0; }
  await lstat(join(root, 'data/local-secrets.json')).catch(() => { throw usage('Run rer setup --owner-email EMAIL --non-interactive first.'); });
  const text = options.input === undefined ? null : await readInput(options.input);
@@ -138,10 +141,11 @@ export async function run(argv = process.argv.slice(2)) {
   const access=command==='export'?await permission(localEnv,ownerRequest(localEnv,'/api/definitions/export'),undefined,{action:'export',workspace:true}):await localAccess(localEnv);
   const env={...localEnv,DB:authorizedDatabase(localEnv,access)};
   const actor={kind:'operator',ref:access.session.operator.id};
-  if (command === 'validate' || command === 'preview') {
+  if (command === 'validate' || command === 'preview' || command === 'test') {
    const result = await previewDefinitions(env, text, options.source);
+   if(command==='test')result.test={kind:'schema-and-plan-validation',runtimeProbesExecuted:false};
    if (options.json) console.log(JSON.stringify(result)); else printPreview(result);
-   return command === 'validate' && result.kind === 'definitions' && (result.counts.refused || result.counts.unsupported) ? 1 : 0;
+   return ['validate','test'].includes(command) && result.kind === 'definitions' && (result.counts.refused || result.counts.unsupported) ? 1 : 0;
   }
   if (command === 'apply') {
    const result = await applyThroughDoor(env, text, options.source, options.digest);
