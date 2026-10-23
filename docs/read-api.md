@@ -33,3 +33,7 @@ Each row includes confirmation/recovery times, duration in seconds, the original
 ## Moving a monitoring script
 
 UptimeRobot uptime-ratio reads map to `/api/v1/monitors/{id}/uptime` for one monitor or `/api/v1/uptime` for a selection; response-time reads map to `/response-times`; incident/log reads map to `/api/v1/incidents` and its detail route. First map source monitor IDs to their new Uptime IDs and choose matching periods and time zones. Source incident-history segments and blended cross-cutover figures remain unavailable. Scoped API keys are required before a public dashboard can be safely repointed; the current owner-session API is for authenticated operator use.
+
+### Native admin summary access
+
+A live native Base `admin` session may read one monitor summary with `GET` or `HEAD /api/v1/monitors/ID`. The response is the same credential-free projection an owner sees; missing IDs return 404. Other API doors, lists, exports and mutations remain owner-only. Base status/session revocation is checked on every request. This limited permission is ACCESS-001 partial progress; it supplies neither service/team scopes nor a `monitoring:read` or CI token, and does not grant console access.

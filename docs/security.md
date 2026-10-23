@@ -49,3 +49,11 @@ If you find a security problem or anything that looks wrong, open an issue on Gi
 ## Related
 
 [What Uptime does not do](/docs/limits) lists what the security claims here do not cover.
+
+## Limited administrative monitoring reads
+
+Base still authenticates every request and owns invitation, acceptance, role/status changes and session revocation. An existing native `admin` can read only `GET` or `HEAD /api/v1/monitors/ID`, a monitoring summary without the target URL or request credentials. Missing IDs return 404. This permission does not open the monitor list, console, exports, definitions, writes, secret controls or incident operations. Unknown roles/actions are denied. Changing the admin's Base status or revoking its session blocks every subsequent read; an already-authorized response remains valid historical output.
+
+ACCESS-001 remains partial. This edition's Base OA schema supports `owner`, `admin` and `member`; editor/responder/read-only and service/team scope need edition-owned assignments to those authenticated identities. The default keeps those unimplemented roles denied and makes no Base schema or authentication change. The four-role invitation console, scoped reads/writes, least-scope read/CI credentials, mutation refusal audit, responder incident work and member/token revocation during a long job remain open.
+
+Background accountability is also incomplete. Contact reminders retain due/repeat/stop state and an incident owner, but incidents may be unassigned. Retries and fallback chains retain due times and terminal outcomes, but lack a responsible assignee and individual stop/resolution. Discovery retains source authorization and visible outcomes; website Cancel only stops polling, not server work, and individual runs do not retain their initiating owner. Cleanup debt is visible and manually resolvable but has no assignee or remediation due date. Authentication-mail and monitoring-watch attempts retain durable outcomes without a console job view or per-attempt control. Archive export/restore are synchronous operations, not durable jobs; exports lack durable actor/completion history. Definitions apply/undo retain approval identity, failure and undo history, but do not expose reloadable checkpoint progress and a general stop control.
