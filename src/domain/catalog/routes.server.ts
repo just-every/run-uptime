@@ -31,7 +31,7 @@ export async function applyCatalogRoutes(env:Bindings,raw:any,approved:unknown,a
  guards.push(mutationGuard(env,"EXISTS(SELECT 1 FROM oa_operators WHERE id=? AND role='owner' AND status='active')",[actor.ref]),mutationGuard(env,'EXISTS(SELECT 1 FROM alert_named_routes WHERE id=? AND name=? AND policy=?)',[prepared.route.id,prepared.route.name,JSON.stringify(prepared.route.policy)]));
  writes.push(env.DB.prepare('INSERT INTO catalog_route_batches(id,route_id,created_at,actor_kind,actor_ref,counts) VALUES(?,?,?,?,?,?)').bind(batchId,prepared.route.id,now,actor.kind,actor.ref,JSON.stringify(prepared.view.counts)));
  for(const entry of entries)writes.push(env.DB.prepare('INSERT INTO catalog_route_batch_entries(batch_id,monitor_id,monitor_revision,previous_policy,applied_policy,applied_revision) VALUES(?,?,?,?,?,?)').bind(batchId,entry.monitorId,entry.prepared.monitor.revision,JSON.stringify(entry.before),JSON.stringify(policy(entry.after)),entry.after.revision));
- try{await env.DB.batch([...guards,...writes,auditStatement(env,actor,'catalog_route_apply','alert_route_batch',batchId,'1',[],now)])}catch(error){if(String(error).includes('uptime_audit.id'))throw stale();throw error}
+ try{await env.DB.batch([...guards,...writes,auditStatement(env,actor,'catalog_route_apply','alert_route',batchId,'1',[],now)])}catch(error){if(String(error).includes('uptime_audit.id'))throw stale();throw error}
  return {batchId,changed:entries.map(e=>e.monitorId),preview:{...prepared.view,digest:prepared.digest}};
 }
 export async function undoCatalogRoutes(env:Bindings,raw:any,actor:AuditActor){
@@ -47,7 +47,7 @@ export async function undoCatalogRoutes(env:Bindings,raw:any,actor:AuditActor){
  }
  const now=Date.now(),guards=parts.flatMap(p=>p.guards),writes=parts.flatMap(p=>p.writes);
  guards.push(mutationGuard(env,"EXISTS(SELECT 1 FROM oa_operators WHERE id=? AND role='owner' AND status='active')",[actor.ref]),mutationGuard(env,'EXISTS(SELECT 1 FROM catalog_route_batches WHERE id=? AND undone_at IS NULL)',[raw.batchId]),mutationGuard(env,'(SELECT COUNT(*) FROM catalog_route_batch_entries WHERE batch_id=?)=?',[raw.batchId,entries.length]));
- writes.push(env.DB.prepare('UPDATE catalog_route_batches SET undone_at=? WHERE id=?').bind(now,raw.batchId),auditStatement(env,actor,'catalog_route_undo','alert_route_batch'));
+ writes.push(env.DB.prepare('UPDATE catalog_route_batches SET undone_at=? WHERE id=?').bind(now,raw.batchId),auditStatement(env,actor,'catalog_route_undo','alert_route'));
  try{await env.DB.batch([...guards,...writes])}catch(error){if(String(error).includes('uptime_audit.id'))throw stale();throw error}
  return {batchId:raw.batchId,undoneAt:now,restored:entries.map(e=>e.monitor_id)};
 }
