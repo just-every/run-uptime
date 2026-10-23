@@ -7,7 +7,7 @@ import {promisify} from 'node:util';
 import {fileURLToPath} from 'node:url';
 import {NodePinnedTransport} from '../src/base/modules/integrations/core/node-transport.ts';
 import {runRunner} from '../runners/src/private-runner.mjs';
-import {acceptanceReceiver,verifySendGrid,signedReceiverVerifier,verifySlack,loopbackWireTransport} from './notify-acceptance-receivers.mjs';
+import {acceptanceReceiver,verifySendGrid,verifySecurityNotice,signedReceiverVerifier,verifySlack,loopbackWireTransport} from './notify-acceptance-receivers.mjs';
 import {availablePorts,migratedWorker,runtimeDirectory,fixtureProcess,cleanupDirectory,ownerAPI,waitFor} from './notify-acceptance-runtime.mjs';
 
 const key='notification-acceptance-runner-local-only-20261007';
@@ -43,7 +43,7 @@ async function testDestination(destination){const result=await api(`/api/notific
 async function settle(id,state){let last;try{return await waitFor(async()=>{const row=(await notifications()).deliveries.find(row=>row.id===id);last=row;return row?.state===state?row:null},`delivery reaches ${state}`)}catch(error){throw Error(`${error.message}; observed ${JSON.stringify({kind:last?.kind,state:last?.state,code:last?.code,attempts:last?.attempts,status:last?.status})}`)}}
 function assertNoSecrets(value){const text=typeof value==='string'?value:JSON.stringify(value);for(const credential of credentials)assert.ok(!text.includes(credential),'private notification credential cannot enter operator reads or archive');assert.ok(!text.includes(slackUrl),'Slack capability URL cannot enter operator reads or archive')}
 try{
- const mail=await acceptanceReceiver(mailPort,verifySendGrid);receivers.push(mail);
+ const mail=await acceptanceReceiver(mailPort,record=>record.body.subject==='Uptime second-factor security change'?verifySecurityNotice(record,bindings.OWNER_EMAIL):verifySendGrid(record));receivers.push(mail);
  const webhook=await acceptanceReceiver(webhookPort,record=>signedReceiverVerifier({secret:webhookDestination.signingSecret,tenant:'uptime-notifications',destinationId:webhookDestination.credentialId})(record));receivers.push(webhook);
  const slack=await acceptanceReceiver(slackPort,verifySlack);receivers.push(slack);
  await startWorker();fixture=fixtureProcess(fixturePort,grantPath,directory);

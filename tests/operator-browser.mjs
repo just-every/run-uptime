@@ -1,4 +1,4 @@
-import {browserSignIn} from './auth-test-support.mjs';
+import {browserSignIn,testAuthBindings} from './auth-test-support.mjs';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
@@ -135,7 +135,7 @@ try{
   try{
    const page=await context.newPage(),errors=[],failed=[];failedReads.set(page,failed);page.on('pageerror',error=>errors.push(error.message));
    page.on('response',response=>{const path=new URL(response.url()).pathname;if(response.status()>=400&&(path.startsWith('/assets/')||path==='/app.js'||path==='/api/overview'))failed.push({path,status:response.status()})});
-   await browserSignIn(page,origin,{bootstrap:false});
+   await browserSignIn(page,origin,{bootstrap:false,bindings:{...testAuthBindings,OWNER_EMAIL:process.env.UPTIME_OPERATOR_OWNER_EMAIL??testAuthBindings.OWNER_EMAIL}});
    // The installation has no monitors before the first width: the console opens straight into the new-monitor form.
    if(width===1440){await page.waitForURL(url=>url.pathname==='/app/monitors/new');await page.locator('.editor-context-ready').waitFor();assert.equal(await page.locator('h1').textContent(),'Add your first monitor');await audit(page,`editor-${width}`);await bulkAddDoor(page);await page.locator('#discovery-manual').click()}
    else{await ready(page);await audit(page,`console-${width}`);await bulkAddDoor(page);

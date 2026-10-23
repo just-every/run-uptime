@@ -7,7 +7,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {startLocalWorker} from './mail-provider-fixture.mjs';
-import {testAuthBindings, signInOwner, authRequest} from './auth-test-support.mjs';
+import {testAuthBindings, signInOwner, authRequest, emailSignIn, deliveredLink, sessionCookie} from './auth-test-support.mjs';
 import {splitSql} from './migration-support.mjs';
 import {readProcessTable, sameProcess} from '@runeditrun/rer/internal/onboarding/process-table.mjs';
 
@@ -138,11 +138,11 @@ async function requireFreePort(port) {
   });
   await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
 }
-async function runSuite(script, variable, label) {
+async function runSuite(script, variable, label, extraEnv = {}) {
   const output = join(evidence, label);
   await mkdir(output, {mode: 0o700});
   console.log(`Running ${script}`);
-  const child = launch(label, script, {[variable]: output,UPTIME_TEST_MAIL_LOG:mailLog});
+  const child = launch(label, script, {[variable]: output,UPTIME_TEST_MAIL_LOG:mailLog,...extraEnv});
   let killTimer;
   const timer = setTimeout(() => {
     signalGroup(child, 'SIGTERM');
@@ -221,7 +221,13 @@ try {
     const response = await call('/api/overview', undefined, {cookie});
     return response.ok && (await response.json()).runner.contact.state === 'Fresh contact';
   }, runner);
-  await runSuite('tests/operator-browser.mjs', 'UPTIME_UI_EVIDENCE', 'operator');
+  // The child owns its authenticator map: hand off a distinct native owner, never parent factor material.
+  const operatorOwnerEmail='synthetic-uptime-browser-owner@example.test';
+  const invitingCookie=await emailSignIn(origin,{bindings});
+  assert.equal((await call('/auth/invite',{email:operatorOwnerEmail,displayName:'Synthetic browser owner',role:'owner'},{cookie:invitingCookie})).status,202);
+  const invitation=await deliveredLink(call,{email:operatorOwnerEmail,kind:'invite'});
+  sessionCookie(await call('/auth/confirm',{token:invitation.searchParams.get('token')}));
+  await runSuite('tests/operator-browser.mjs', 'UPTIME_UI_EVIDENCE', 'operator',{UPTIME_OPERATOR_OWNER_EMAIL:operatorOwnerEmail});
   await stopChild(runner);
   await worker.dispose(); worker = undefined;
   // Recovery owns its two independent Workers/runners, sharing only custody.
