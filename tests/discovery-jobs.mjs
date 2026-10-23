@@ -32,11 +32,26 @@ async function everythingElse(){
  }
  return snapshots;
 }
+// ACCESS-001 adds opaque actor receipts to the owner's committed discovery
+// batches. Keep every earlier row exact and account for each new receipt;
+// runner answers and refused inputs still have no unrelated durable effect.
+function assertDiscoveryReceipts(before,after,count,started){
+ const owner=before.oa_operators.find(row=>row.role==='owner'&&row.status==='active');assert.ok(owner);
+ const prior=new Set(before.uptime_audit.map(row=>row.id));
+ const receipts=after.uptime_audit.filter(row=>!prior.has(row.id));
+ assert.equal(receipts.length,count,'one opaque actor receipt per authorized discovery write batch');
+ for(const row of receipts){
+  assert.match(row.id,/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+  assert.ok(Number.isSafeInteger(row.occurred_at)&&row.occurred_at>=started&&row.occurred_at<=Date.now());
+  assert.deepEqual(row,{id:row.id,actor_kind:'operator',actor_ref:owner.id,occurred_at:row.occurred_at,action:'access_discovery_write',subject_kind:'operator',subject_ref:row.id});
+ }
+ assert.deepEqual(after,{...before,uptime_audit:[...before.uptime_audit,...receipts]},'every prior audit and every other non-counter table stays exact');
+}
 const age=(id,column,ms)=>f.DB.prepare(`UPDATE discovery_jobs SET ${column}=${column}-? WHERE id=?`).bind(ms,id).run();
 const clear=()=>f.DB.prepare('DELETE FROM discovery_jobs').run();
 
 test('the owner asks, a runner claims and answers, and the owner reads the proposals with the runner\'s network label',async()=>{
- await clear();const before=await everythingElse();
+ await clear();const started=Date.now(),before=await everythingElse();
  const made=await create('https://example.com');assert.equal(made.status,201);assert.equal(made.data.status,'queued');
  const id=made.data.id,queued=await read(id);assert.deepEqual(queued.data,{id,url:'https://example.com/',status:'queued'});
  const claimed=await claim(f.first);assert.deepEqual(claimed.data,{job:{id,url:'https://example.com/'}});
@@ -64,10 +79,10 @@ test('the owner asks, a runner claims and answers, and the owner reads the propo
  const failedId=(await create('https://example.org/')).data.id;assert.equal((await claim(f.second)).data.job.id,failedId);
  assert.equal((await post(f.second,failedId,{error:'The site did not answer.'})).status,200);
  assert.deepEqual((await read(failedId)).data,{id:failedId,url:'https://example.org/',status:'failed',networkLabel:'second-network',error:'The site did not answer.'});
- assert.deepEqual(await everythingElse(),before,'no monitor, slot, observation, state, outbox, audit or notification row was written');
+ assertDiscoveryReceipts(before,await everythingElse(),10,started);
 });
 test('a job nobody claims, or nobody finishes, expires; refusals at create leave nothing behind',async()=>{
- await clear();const before=await everythingElse();
+ await clear();const started=Date.now(),before=await everythingElse();
  const stale=(await create('https://example.com/')).data.id;await age(stale,'created_at',120_001);
  const expired=await read(stale);assert.equal(expired.data.status,'expired');assert.equal(expired.data.error,'No runner picked this up. Check that your runner is running.');
  const fresh=(await create('https://example.net/')).data.id,older=(await create('https://example.org/')).data.id;await age(older,'created_at',120_001);
@@ -75,14 +90,15 @@ test('a job nobody claims, or nobody finishes, expires; refusals at create leave
  assert.equal((await read(older)).data.status,'expired');
  await age(fresh,'claimed_at',120_001);assert.equal((await read(fresh)).data.status,'expired');
  assert.equal((await post(f.first,fresh,{result:result()})).status,409,'an expired job is not stored');assert.equal((await read(fresh)).data.result,undefined);
- await clear();
+ await clear();const beforeRefusals=await everythingElse();
  for(const url of ['http://localhost:3000/','http://shop.localhost./','http://10.0.0.1/','http://127.0.0.1:4795/','http://[::1]/','http://192.168.1.1/admin','file:///etc/passwd','ftp://example.com/','https://user:pw@example.com/','https://example.com/#top','not a url',7])assert.equal((await create(url)).status,400,String(url));
  assert.equal((await f.request('/api/discoveries',{body:{url:'https://example.com/',extra:true}})).status,400);
  assert.equal((await f.DB.prepare('SELECT COUNT(*) n FROM discovery_jobs').first()).n,0);
  assert.equal((await f.request('/api/discoveries',{body:{url:'https://example.com/'},headers:{origin:'https://evil.example'}})).status,403);
  assert.equal((await f.DB.prepare('SELECT COUNT(*) n FROM discovery_jobs').first()).n,0);
  assert.equal((await read('00000000-0000-0000-0000-000000000000')).status,404);assert.equal((await read('not-an-id')).status,400,'a malformed id is invalid input');
- assert.deepEqual(await everythingElse(),before);
+ const after=await everythingElse();assert.deepEqual(after,beforeRefusals,'refused inputs and missing discoveries change no non-counter table');
+ assertDiscoveryReceipts(before,after,10,started);
 });
 test('at most five discoveries wait or run at once, and a finished one frees its place',async()=>{
  await clear();const ids=[];
