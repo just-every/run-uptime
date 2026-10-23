@@ -34,6 +34,6 @@ Each row includes confirmation/recovery times, duration in seconds, the original
 
 UptimeRobot uptime-ratio reads map to `/api/v1/monitors/{id}/uptime` for one monitor or `/api/v1/uptime` for a selection; response-time reads map to `/response-times`; incident/log reads map to `/api/v1/incidents` and its detail route. First map source monitor IDs to their new Uptime IDs and choose matching periods and time zones. Source incident-history segments and blended cross-cutover figures remain unavailable. Scoped API keys are required before a public dashboard can be safely repointed; the current owner-session API is for authenticated operator use.
 
-### Native admin summary access
+### Role and scope limits
 
 Live Base owners/admins and assigned member roles use the same central permission function. Base deactivation, revocation or role/version changes take effect on the next request. Service scopes match monitor services; team scopes match existing group labels. An unassigned, stale or unknown member role is denied. Scoped members use individual monitor summary, uptime, report and response-time reads; workspace lists, exports and other unfiltered workspace doors refuse. Incident detail and private collaboration remain owner-only until INCIDENT-001 extends them. This replaces the interim admin-summary exception without granting API/CI token authority.
