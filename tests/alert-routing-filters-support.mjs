@@ -5,7 +5,7 @@ import {runRunner} from '../runners/src/private-runner.mjs';
 // Actual confirmed-event admission and production dispatch. A sample read is
 // not treated as a sent drill; only the target/provider and receiver are faked.
 export async function proveRoutingFilters(f,ok){
- const received=[],url='https://routing-filter.example.test/receive';
+ const received=[],url='https://routing-filter.example.com/receive';
  const destination=await ok('/api/notifications/destinations',{name:'Synthetic routing filter receiver',kind:'webhook',url,enabled:true});
  const transport={async send(wire,beforeRequest){assert.equal(wire.url,url);await beforeRequest();received.push(JSON.parse(wire.body));return {status:202,headers:{},body:''}}};
  const rpc=async(_path,body)=>ok('/api/runner/notifications',body,{runner:f.first});
@@ -42,7 +42,7 @@ export async function proveRoutingFilters(f,ok){
  // Disable an unsent primary during route quiet: its terminal failure advances
  // the real fallback chain, whose otherwise unrestricted contact must inherit
  // the route window. A sample preview alone cannot prove this path.
- const primary=await ok('/api/notifications/destinations',{name:'Synthetic disabled quiet primary',kind:'webhook',url:'https://routing-filter.example.test/primary',enabled:true});
+ const primary=await ok('/api/notifications/destinations',{name:'Synthetic disabled quiet primary',kind:'webhook',url:'https://routing-filter.example.com/primary',enabled:true});
  const fallbackMonitor=await f.monitor({name:'Route quiet fallback',enabled:false,runners:[f.first],canary:true,environment:'production'});
  const fallbackPath=`/api/monitors/${fallbackMonitor.id}/alert-route`,fallbackPolicy={scope:'monitor',mode:'selected',destinationIds:[primary.id],teamIds:[],filters:{environments:['production']},quietHours:quiet,fallback:{destinationIds:[destination.id],deadlineSeconds:5},expectedRevision:0};
  const fallbackPreview=await ok(fallbackPath+'/preview',fallbackPolicy);await ok(fallbackPath+'/apply',{...fallbackPolicy,digest:fallbackPreview.digest});
