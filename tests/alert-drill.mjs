@@ -3,6 +3,7 @@
 import {testAuthBindings} from './auth-test-support.mjs';
 import assert from 'node:assert/strict';
 import {join} from 'node:path';
+import http from 'node:http';
 import {runRunner} from '../runners/src/private-runner.mjs';
 import {acceptanceReceiver,verifySendGrid,signedReceiverVerifier,verifySlack,loopbackWireTransport} from './notify-acceptance-receivers.mjs';
 import {availablePorts,migratedWorker,runtimeDirectory,fixtureProcess,cleanupDirectory,ownerAPI,waitFor} from './notify-acceptance-runtime.mjs';
@@ -11,6 +12,7 @@ const key='alert-drill-runner-local-only-20261012';
 const webhookUrl='https://drills.example.com/receiver',slackUrl='https://hooks.slack.com/services/TDRILL/BDRILL/local-alert-drill';
 const directory=await runtimeDirectory(),[controlPort,fixturePort,mailPort,webhookPort,slackPort,restorePort]=await availablePorts(6);
 const origin=`http://127.0.0.1:${controlPort}`,grantPath=join(directory,'grant.json');
+const canaryHost='93.184.216.35',canaryUrl=`http://${canaryHost}:${fixturePort}/health`,nativeRequest=http.request;let canaryRequests=0;
 const bindings={...testAuthBindings,UPTIME_RUNNER_KEY:key,UPTIME_SYNTHETIC_PORT:String(fixturePort),MAIL_PROVIDER:'sendgrid',MAIL_FROM:'qa-sender@example.com',SENDGRID_API_KEY:'synthetic-alert-drill-provider-key-local-only'};
 const secrets=[bindings.SETUP_TOKEN,bindings.SESSION_SECRET,key,bindings.SENDGRID_API_KEY,slackUrl],capabilities=[],runnerLogs=[],receivers=[];
 const originalConsoleError=console.error;console.error=(...values)=>runnerLogs.push(values.map(String).join(' '));
@@ -46,13 +48,25 @@ async function drill(d,receiver){
  assert.ok(link.startsWith(origin+'/alert-drill?token='+started.drillId+'.'));capabilities.push(link.split('.').at(-1));
  return {...started,link,record};
 }
+// A controlled socket edge keeps the public canary's actual Host and bytes.
+// Single-vantage health must not depend on the build host's Internet DNS.
+http.request=function(options,...args){
+ if(options?.hostname===canaryHost&&Number(options.port)===fixturePort){
+  assert.equal(options.headers.host,new URL(canaryUrl).host,'the public canary retains its configured Host');canaryRequests++;
+  return nativeRequest.call(this,{...options,hostname:'127.0.0.1'},...args);
+ }
+ return nativeRequest.call(this,options,...args);
+};
 try{
  const mail=await acceptanceReceiver(mailPort,verifySendGrid);
  const webhook=await acceptanceReceiver(webhookPort,record=>signedReceiverVerifier({secret:webhookDestination.signingSecret,tenant:'uptime-notifications',destinationId:()=>webhookDestination.credentialId})(record));
  const slack=await acceptanceReceiver(slackPort,verifySlack);receivers.push(mail,webhook,slack);
- ({worker,DB}=await migratedWorker({port:controlPort,persist:join(directory,'worker'),bindings,outboundService:async request=>{assert.equal(request.url,'https://api.sendgrid.com/v3/mail/send');return fetch(`http://127.0.0.1:${mailPort}/v3/mail/send`,{method:request.method,headers:request.headers,body:await request.arrayBuffer(),redirect:'error'})}}));
+ ({worker,DB}=await migratedWorker({port:controlPort,persist:join(directory,'worker'),bindings,outboundService:async request=>{assert.equal(request.url,'https://api.sendgrid.com/v3/mail/send');// This is a new HTTP hop: fetch frames the unchanged production bytes.
+ const headers=new Headers(request.headers);for(const name of ['host','connection','transfer-encoding','content-length'])headers.delete(name);
+ return fetch(`http://127.0.0.1:${mailPort}/v3/mail/send`,{method:request.method,headers,body:await request.arrayBuffer(),redirect:'error'})}}));
  fixture=fixtureProcess(fixturePort,grantPath,directory);await waitFor(async()=>(await fetch(`http://127.0.0.1:${fixturePort}/health`)).ok,'synthetic target');
  await signIn(bindings);
+ await ok('/api/external-check','POST',{url:canaryUrl});
  const email=await ok('/api/notifications/destinations','POST',{name:'Drill inbox',kind:'email',address:'qa-inbox@example.test'});
  webhookDestination=await ok('/api/notifications/destinations','POST',{name:'Drill webhook',kind:'webhook',url:webhookUrl});secrets.push(webhookDestination.signingSecret);
  const credentialOf=async id=>(await DB.prepare('SELECT credential_id FROM notification_destinations WHERE id=?').bind(id).first()).credential_id;
@@ -60,6 +74,8 @@ try{
  const slackDestination=await ok('/api/notifications/destinations','POST',{name:'Drill Slack',kind:'slack',url:slackUrl,enabled:false});
  const monitor=await ok('/api/monitors','POST',{name:'Drill isolation target',url:`http://127.0.0.1:${fixturePort}/health`,probes:['local-a'],intervalMs:5000,retries:0,confirmSlots:1,recoverSlots:1,freshnessMs:15000});
  await waitFor(async()=>{await runOnce();return (await ok('/api/overview')).monitors.find(m=>m.id===monitor.id)?.state.state==='Healthy'},'real scheduled Healthy');
+ assert.ok(canaryRequests>0,'the real scheduled check contacts the controlled canary');
+ assert.ok((await ok(`/api/monitors/${monitor.id}/history`)).some(slot=>slot.observations.some(observation=>observation.canary?.outcome==='pass')),'passing external-check evidence is retained through the public history door');
  const drills={};
 
  await check('a destination starts never proven and a signed-out drill request is refused',async()=>{
@@ -146,6 +162,7 @@ try{
  });
  console.log('Alert drill passed: real Worker/D1, production runner, SendGrid, signed webhook and Slack receivers.');
 }finally{
+ http.request=nativeRequest;
  if(restoreWorker)await restoreWorker.dispose();if(worker)await worker.dispose();if(fixture)await fixture.stop();
  await Promise.all(receivers.map(receiver=>receiver.close()));await cleanupDirectory(directory);console.error=originalConsoleError;
 }
