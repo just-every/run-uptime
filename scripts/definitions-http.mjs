@@ -16,7 +16,11 @@ export async function remoteDefinitions(command, options, text) {
   const response = await fetch(origin + path, {method: body === undefined ? 'GET' : 'POST', redirect: 'error',
    headers: {origin, ...authority, ...(body === undefined ? {} : {'content-type': 'application/json'}), ...headers}, body});
   const result = await response.json();
-  if (!response.ok) throw Object.assign(Error(`The import door refused (HTTP ${response.status}).`),{code:result.error==='catchup_required'?'catchup_required':'refused',status:response.status});
+  if (!response.ok) {
+   const known=new Set(['catchup_required','namespace_has_pending_import','plan_custody_mismatch','job_binding_mismatch','import_door_conflict','import_door_plan_failed','import_door_apply_failed','import_door_apply_constraint','import_door_apply_stale','import_lineage_incomplete','earlier_import_holds_records']);
+   const code=known.has(result.error)?result.error:'request_refused',operation=path.includes('/recognise')?'recognise':path.includes('/plans/')?'plan read':path.split('/').at(-1);
+   throw Object.assign(Error(`The import ${operation} door refused (HTTP ${response.status}; ${code}).`),{code:result.error==='catchup_required'?'catchup_required':'refused',status:response.status});
+  }
   return result;
  }
  const door = (namespace, step, body) => call('/api/operator/import/' + step, JSON.stringify(body), {'x-import-source': namespace});
