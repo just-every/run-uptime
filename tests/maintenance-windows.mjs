@@ -134,6 +134,27 @@ try{
  const report=await good(path);assert.equal(report.availability.upMs,209900);assert.equal(report.availability.maintenanceMs,240000);assert.equal(report.availability.pausedMs,150000);assert.equal(report.availability.unknownMs,100);assert.equal(report.latency.statistics.count,4);
  const current=await monitor(fixtureId);for(const range of ['last24h','last7d']){assert.equal(current.availability[range].upMs,209900);assert.equal(current.availability[range].maintenanceMs,240000)}
  const csv=await good(path+'&format=csv');assert.ok(csv.includes(',maintenanceMs,240000,ms,'));assert.ok(csv.includes(',upMs,209900,ms,'));
+ // The private overview publishes one current end for planned, recurring and
+ // quick maintenance, including overlaps, and omits it outside a window.
+ const overviewNow=Date.now(),weeklyStart=new Date(overviewNow-60000),weeklyDate=weeklyStart.toISOString().slice(0,10);
+ const plannedEnd=overviewNow+3600000,quickEnd=overviewNow+900000;
+ const recurringEnd=Date.parse(weeklyStart.toISOString().slice(0,16)+':00Z')+120*60000;
+ const activeWeekly={id:'overview-weekly',name:'Overview weekly',timeZone:'UTC',mode:'suppress',weekly:{weekdays:[weeklyStart.getUTCDay()],localTime:weeklyStart.toISOString().slice(11,16),durationMinutes:120,fromDate:weeklyDate,untilDate:weeklyDate}};
+ const cases=[
+  {name:'none',settings:{},end:undefined},
+  {name:'planned',settings:{maintenanceWindows:[{id:'overview-planned',name:'Overview planned',timeZone:'UTC',mode:'suppress',startsAt:overviewNow-60000,endsAt:plannedEnd}]},end:plannedEnd},
+  {name:'weekly',settings:{maintenanceWindows:[activeWeekly]},end:recurringEnd},
+  {name:'quick',settings:{maintenanceUntil:quickEnd},end:quickEnd},
+  {name:'overlap',settings:{maintenanceUntil:quickEnd,maintenanceWindows:[activeWeekly]},end:recurringEnd},
+  {name:'expired',settings:{maintenanceUntil:overviewNow-60000},end:undefined},
+ ];
+ for(const item of cases){
+  const created=await good('/api/monitors',{name:`synthetic-uptime-overview-${item.name}`,url:'https://runner-target.test/overview',enabled:false,...item.settings},201);
+  const row=await monitor(created.id);
+  assert.equal(row.maintenanceEndsAt,item.end,`${item.name}: current maintenance end`);
+  assert.equal(Object.hasOwn(row,'maintenanceEndsAt'),item.end!==undefined,`${item.name}: absent when inactive`);
+  assert.equal(row.revision,created.revision,'reading the maintenance end creates no revision');
+ }
  console.log('MAINT-001 passed: DST review, exact group apply, real signed suppress/pause execution, in-flight retention, restart/cancel/expiry, no orphan recovery, immutable report/CSV counts.');
 }finally{
  releaseHeld?.();await Promise.all([...children].map(child=>child.stop()));await close(control);await worker?.dispose();await close(target);await rm(directory,{recursive:true,force:true});

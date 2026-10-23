@@ -1,7 +1,7 @@
 // @ts-ignore Shared monitor metadata vocabulary.
 import {MONITOR_METADATA_FIELDS} from './monitor-metadata.mjs'
 // @ts-ignore Shared immutable maintenance calendar.
-import {intervals as maintenanceIntervals} from './planned-maintenance.mjs'
+import {activeMaintenance,intervals as maintenanceIntervals} from './planned-maintenance.mjs'
 import {runnerRuntime} from './private-runner.ts'
 import {hostedInstallation} from './hosted-runner.ts'
 import {cronStarted} from './cron-run.server.ts'
@@ -43,7 +43,8 @@ async function monitorState(env:Bindings,m:ReturnType<typeof monitorRow>,now:num
   const runner=runners.find((r:any)=>r.runnerId===assignment.runnerId) as any;
   if(runner&&runner.revokedAt===null&&runner.lastContactAt!==null&&runner.lastContactAt<=now&&now-runner.lastContactAt<=staleMs)activeLabels.add(assignment.networkLabel);
  }
- return {...m,configurationWarning:m.definition.assignments?null:legacyWarning,activeVantages:activeLabels.size,state:m.definition.enabled?state:{...state,state:'Paused',targetState:'Unknown',reason:'Monitor paused; historical observations do not establish current target health.'}};
+ const maintenanceEndsAt:number|undefined=activeMaintenance(m.definition,now)?.endsAt;
+ return {...m,...(maintenanceEndsAt===undefined?{}:{maintenanceEndsAt}),configurationWarning:m.definition.assignments?null:legacyWarning,activeVantages:activeLabels.size,state:m.definition.enabled?state:{...state,state:'Paused',targetState:'Unknown',reason:'Monitor paused; historical observations do not establish current target health.'}};
 }
 // A monitor's page reads only its own monitor (`monitorId`): the same projection, its own alerts and no installation-wide
 // notification history, so opening one monitor costs one monitor's reads however many the installation has. Reads that do
