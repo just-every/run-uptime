@@ -28,7 +28,7 @@ export function productPolicy(env, importJob, importContext=()=>({})) {
      const metadata=context.manifest?{sourceIdentity:context.manifest.sourceIdentity,epoch:context.manifest.epoch,journal:context.manifest.journal}:value.payload.erasureFence;
      const guards=await productFence(env,await validateArchive(value),metadata,context.laterJournal);
      if(prior){if(guards.length)await env.DB.batch(guards);return}
-     await restore(env, value, { id, sha256: descriptor.sha256 },{manifest:metadata,laterJournal:context.laterJournal});
+     await restore(env, value, { id, sha256: descriptor.sha256 },{manifest:metadata,laterJournal:context.laterJournal,actor:context.actor});
     },
    },
   },

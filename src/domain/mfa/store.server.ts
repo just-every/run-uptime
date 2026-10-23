@@ -31,5 +31,5 @@ export async function readChallenge(env:AuthBindings,session:MfaSession,id:unkno
 export function consumeChallenge(env:AuthBindings,session:MfaSession,id:string){return [mutationGuard(env,'EXISTS(SELECT 1 FROM uptime_mfa_challenges WHERE id=? AND session_id=? AND operator_id=? AND operator_version=? AND consumed_at IS NULL AND expires_at>unixepoch()*1000)',[id,session.id,session.operator.id,session.operator.version]),env.DB.prepare('UPDATE uptime_mfa_challenges SET consumed_at=? WHERE id=?').bind(Date.now(),id)]}
 export async function recoveryCodes(env:AuthBindings,session:MfaSession){
  const codes=Array.from({length:10},()=>randomToken()),digests=await Promise.all(codes.map(code=>recoveryDigest(env,session.operator.id,code)))
- return {codes,statements:[env.DB.prepare('DELETE FROM uptime_mfa_recovery WHERE operator_id=?').bind(session.operator.id),...digests.map(digest=>env.DB.prepare('INSERT INTO uptime_mfa_recovery(operator_id,digest) VALUES(?,?)').bind(session.operator.id,digest))]}
+ return {codes,statements:[env.DB.prepare('DELETE FROM uptime_mfa_recovery WHERE operator_id=?').bind(session.operator.id),...digests.map((digest:string)=>env.DB.prepare('INSERT INTO uptime_mfa_recovery(operator_id,digest) VALUES(?,?)').bind(session.operator.id,digest))]}
 }

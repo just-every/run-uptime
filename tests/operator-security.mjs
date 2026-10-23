@@ -1,3 +1,5 @@
+import {proveMfaPolicy} from './mfa-policy-support.mjs';
+import {proveMfaWebAuthn} from './mfa-webauthn-support.mjs';
 import {testAuthBindings,signInOwner,emailSignIn} from './auth-test-support.mjs';
 import {maintenance} from '../src/domain/maintenance.server.ts';
 import assert from 'node:assert/strict';
@@ -37,5 +39,8 @@ try{
  token=(await (await call(`/api/monitors/${id}/heartbeat-key`,{},{cookie})).json()).token;assert.equal((await call(`/api/heartbeats/${id}`,{}, {authorization:`Bearer ${token}`,'x-heartbeat-sequence':'1'})).status,429)});
  await check('quota survives Worker restart and recovers only after the window',async()=>{await worker.dispose();worker=await startLocalWorker({port,persist:dir,bindings});const db2=await worker.getD1Database('DB');assert.equal((await call(`/api/heartbeats/${id}`,{}, {authorization:`Bearer ${token}`,'x-heartbeat-sequence':'1001'})).status,429);await db2.prepare('UPDATE heartbeat_limits SET window_start=? WHERE monitor_id=?').bind(Date.now()-60001,id).run();assert.equal((await call(`/api/heartbeats/${id}`,{}, {authorization:`Bearer ${token}`,'x-heartbeat-sequence':'1002'})).status,200);assert.equal((await db2.prepare('SELECT receipts FROM heartbeat_limits WHERE monitor_id=?').bind(id).first()).receipts,1)});
  await check('Cron expires abandoned leases without changing evidence or durable bootstrap',async()=>{const db3=await worker.getD1Database('DB');const before=(await db3.prepare('SELECT COUNT(*) n FROM oa_bootstrap').first()).n;await db3.prepare("INSERT INTO slots(id,monitor_id,revision,due_at,status,definition,lease_owner,lease_until,missed_count,manual) VALUES('expired-maintenance',?,1,?,'running','{}','lease',0,0,0)").bind(id,Date.now()).run();const result=await maintenance({DB:db3},Date.now());assert.equal(result.interrupted,1);assert.equal((await db3.prepare("SELECT status FROM slots WHERE id='expired-maintenance'").first()).status,'interrupted');assert.equal((await db3.prepare('SELECT COUNT(*) n FROM oa_bootstrap').first()).n,before);assert.equal((await db3.prepare('SELECT COUNT(*) n FROM observations').first()).n,0)});
+ await proveMfaPolicy({origin,bindings,call,cookie,DB:await worker.getD1Database('DB')});
+ await worker.dispose();worker=null;
+ await proveMfaWebAuthn();
  console.log(`OPERATOR-SECURITY passed ${passed} checks`);
 }finally{await worker?.dispose();await rm(dir,{recursive:true,force:true})}

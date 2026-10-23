@@ -1,7 +1,8 @@
 import {authenticatedSession,type AuthBindings} from '../operator-auth.server.ts'
 export type MfaSession=NonNullable<Awaited<ReturnType<typeof authenticatedSession>>>
 export class MfaError extends Error {
- constructor(public status:number,public code:string){super(code==='second_factor_required'?'Second-factor verification required':code==='fresh_second_factor_required'?'Verify a second factor within the last five minutes':code==='mfa_rate_limited'?'Too many second-factor attempts':code==='session_required'?'Owner session required':'Second-factor operation refused')}
+ status:number;code:string
+ constructor(status:number,code:string){super(code==='second_factor_required'?'Second-factor verification required':code==='fresh_second_factor_required'?'Verify a second factor within the last five minutes':code==='mfa_rate_limited'?'Too many second-factor attempts':code==='session_required'?'Owner session required':'Second-factor operation refused');this.status=status;this.code=code}
 }
 export function mfaResponse(error:unknown){return error instanceof MfaError?Response.json({error:error.message,code:error.code},{status:error.status,headers:{'cache-control':'no-store, private',...(error.status===429?{'retry-after':'600'}:{})}}):null}
 export function proofCondition(fresh=false){return `EXISTS(SELECT 1 FROM uptime_mfa_proofs mp WHERE mp.session_id=s.id AND mp.operator_id=o.id AND mp.operator_version=o.version${fresh?' AND mp.verified_at>=(unixepoch()*1000-300000)':''})`}
