@@ -22,7 +22,7 @@ export async function proveMfaPolicy({origin,bindings,call,cookie,DB}){
  // A code is atomically consumed even when two concurrent requests present it.
  const code=state.recoveryCodes.shift(),race=await Promise.all([emailMfa('/recovery/verify',{code}),emailMfa('/recovery/verify',{code})]);assert.equal(race.filter(r=>r.status===200).length,1);assert.ok(race.every(r=>[200,400,409].includes(r.status)));
  assert.equal((await emailMfa('/recovery/verify',{code})).status,400,'used recovery code is refused');
- const destination=await call('/api/notifications/destinations',{name:'Synthetic MFA rotation',kind:'webhook',url:'https://receiver.example.test/events'},{cookie});assert.equal(destination.status,201);const destinationId=(await destination.json()).id;
+ const destination=await call('/api/notifications/destinations',{name:'Synthetic MFA rotation',kind:'webhook',url:'https://receiver.example.com/events'},{cookie});assert.equal(destination.status,201,await destination.clone().text());const destinationId=(await destination.json()).id;
  const monitor=await call('/api/monitors',{name:'Synthetic MFA erase',type:'heartbeat',canaryUrl:'https://canary.example.test/health',heartbeat:{maxAgeMs:60000}},{cookie});assert.equal(monitor.status,201);const monitorId=(await monitor.json()).id;
  await DB.prepare('UPDATE uptime_mfa_proofs SET verified_at=? WHERE operator_id=?').bind(Date.now()-300001,owner).run();
  for(const [path,body] of [[`/api/monitors/${monitorId}/erase`,{name:'Synthetic MFA erase'}],[`/api/notifications/destinations/${destinationId}/rotate`,{}],['/api/restore',{}],['/api/runners',{name:'Synthetic denied runner'}],['/api/metrics/keys',{}],['/api/access/invitations',{email:'synthetic-denied-mfa@example.test',displayName:'Denied',role:'read-only'}]]){
@@ -33,7 +33,7 @@ export async function proveMfaPolicy({origin,bindings,call,cookie,DB}){
  assert.equal((await mfa('/recovery/verify',{code:state.recoveryCodes.shift()})).status,200);
  assert.equal((await call(`/api/notifications/destinations/${destinationId}/rotate`,{},{cookie})).status,200,'fresh second factor admits rotation');
  assert.equal((await call(`/api/monitors/${monitorId}/erase`,{name:'Synthetic MFA erase'},{cookie})).status,200,'fresh second factor admits erasure');
- const archiveResponse=await call('/api/archive',undefined,{cookie});assert.equal(archiveResponse.status,200);const archive=await archiveResponse.text();assert.ok(!archive.includes(state.secret));for(const value of state.recoveryCodes)assert.ok(!archive.includes(value));assert.ok(!archive.includes('uptime_mfa_factors'));
+ const archiveResponse=await call('/api/archive',undefined,{cookie});assert.equal(archiveResponse.status,200,archiveResponse.status===200?'':await archiveResponse.clone().text());const archive=await archiveResponse.text();assert.ok(!archive.includes(state.secret));for(const value of state.recoveryCodes)assert.ok(!archive.includes(value));assert.ok(!archive.includes('uptime_mfa_factors'));
  // Require-all revokes old factorless sessions. New email-only sessions can
  // enroll, including Base members who have not received a product role.
  const unverified=await emailSignIn(origin,{bindings,secondFactor:false});
