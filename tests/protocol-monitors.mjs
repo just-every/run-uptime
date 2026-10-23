@@ -1,3 +1,4 @@
+import {completeApiSecondFactor} from './mfa-auth-support.mjs';
 import assert from 'node:assert/strict';
 import {createHmac} from 'node:crypto';
 import {spawn} from 'node:child_process';
@@ -41,6 +42,7 @@ try{
  const enroll={version:1},stamp=String(Date.now());
  const registration=(await api('/api/runner/enroll',enroll,{'x-runner-key':key,'x-sent-at':stamp,'x-runner-signature':signature('/api/runner/enroll',enroll,stamp)})).data;
  const boot=await api('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'Protocol owner'});assert.equal(boot.status,303);cookie=boot.headers['set-cookie'][0].split(';')[0];
+ await completeApiSecondFactor(origin,cookie,api);
  const create=async input=>{const r=await api('/api/monitors',{assignments:{'local-a':registration.runnerId},canaryUrl:'https://canary.protocol.test/ok',intervalMs:5000,retries:0,confirmSlots:1,recoverSlots:1,...input});assert.equal(r.status,201,JSON.stringify(r.data));return r.data};
  const waitDue=async id=>{const row=await db.prepare('SELECT next_due FROM monitors WHERE id=?').bind(id).first();const delay=row.next_due-Date.now()+20;if(delay>0)await new Promise(r=>setTimeout(r,delay))};
  // One scheduled check: wait for the slot, run the runner, then read the newest scheduled attempt and the monitor.

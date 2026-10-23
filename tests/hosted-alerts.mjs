@@ -1,3 +1,4 @@
+import {completeSecondFactor} from './mfa-auth-support.mjs';
 import assert from 'node:assert/strict';
 import {createHmac,randomBytes} from 'node:crypto';
 import {mkdtemp,readFile,readdir,rm} from 'node:fs/promises';
@@ -14,7 +15,7 @@ const received=[];let requests=0;
 let worker;
 try{
  worker=await hostedRuntime(directory,{...testAuthBindings,UPTIME_LOCAL_REVIEW:'false',UPTIME_ORIGIN:origin,MAIL_PROVIDER:'sendgrid',SENDGRID_API_KEY:'test-only-provider-key'},async request=>{
-  requests++;const url=new URL(request.url);
+  requests++;const url=new URL(request.url);if(url.hostname==='api.sendgrid.com')return new Response(null,{status:202});
   if(url.origin==='https://cloudflare-dns.com'){
    const name=url.searchParams.get('name'),a=url.searchParams.get('type')==='A';
    return Response.json(name==='gone.example.test'?{Status:3}:{Status:0,Answer:[{type:a?1:28,data:a?'93.184.215.14':'2606:2800:21f:cb07:6820:80da:af6b:8b2c'}]});
@@ -32,6 +33,7 @@ try{
  const scheduled=async()=>{const response=await worker.dispatchFetch('http://127.0.0.1:15504/',{method:'POST',body:JSON.stringify({scheduled:true})});assert.equal(response.status,204,await response.text())};
  const owner=await call('/auth/bootstrap',{token:testAuthBindings.SETUP_TOKEN,displayName:'Owner'});assert.equal(owner.status,303,await owner.clone().text());
  const cookie=owner.headers.get('set-cookie').split(';')[0],json=async response=>{assert.ok(response.ok,await response.clone().text());return response.json()};
+ await completeSecondFactor(origin,cookie,(url,init)=>call(new URL(url).pathname,init.body===undefined?undefined:JSON.parse(init.body),cookie));
  const webhook=await json(await call('/api/notifications/destinations',{name:'Receiver',kind:'webhook',url:'https://hooks.example.com/uptime'},cookie));
  await json(await call('/api/notifications/destinations',{name:'Team channel',kind:'slack',url:'https://hooks.slack.com/services/T000/B000/XXXX'},cookie));
  const down=await json(await call('/api/monitors',{name:'Down service',url:'https://down.example.test/health',retries:0,confirmSlots:1,recoverSlots:1},cookie));

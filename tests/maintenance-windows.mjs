@@ -1,3 +1,4 @@
+import {completeApiSecondFactor} from './mfa-auth-support.mjs';
 // MAINT-001: one owner journey through the emitted Worker, durable D1 and a
 // real restarted, signed Node runner. Only DNS/socket routing is controlled.
 import assert from 'node:assert/strict';
@@ -39,6 +40,7 @@ try{
  const api=(path,body,headers={},method=body===undefined?'GET':'POST')=>request(origin,tls.cert,path,{method,body,headers:{origin,cookie,'cf-connecting-ip':'192.0.2.1',...headers}});
  const good=async(path,body,status=200,method)=>{const response=await api(path,body,{},method);assert.equal(response.status,status,`${path}: ${JSON.stringify(response.data)}`);return response.data};
  const boot=await api('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'Maintenance owner'});assert.equal(boot.status,303,JSON.stringify(boot.data));cookie=boot.headers['set-cookie'][0].split(';')[0];
+ await completeApiSecondFactor(origin,cookie,api);
  const enroll={version:1},stamp=String(Date.now()),signature=createHmac('sha256',key).update(`${stamp}.runner-enrolment.${JSON.stringify(enroll)}`).digest('hex');
  const enrollment=await api('/api/runner/enroll',enroll,{'x-runner-key':key,'x-sent-at':stamp,'x-runner-signature':signature});assert.equal(enrollment.status,200);const registration=enrollment.data;
  // Enrolment requires the runner-purpose signature, independently of owner authority.

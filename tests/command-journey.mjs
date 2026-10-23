@@ -1,3 +1,7 @@
+import {completeSecondFactor,completeBrowserSecondFactor,factorRequest} from './mfa-auth-support.mjs';
+import {createHmac} from 'node:crypto';
+import {emailSignIn,sessionCookie} from './auth-test-support.mjs';
+import {testMailOptions} from './mail-provider-fixture.mjs';
 import assert from 'node:assert/strict';
 import { readFile, readdir, stat, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -109,9 +113,15 @@ try {
  assert.equal(finished.status(), 303); assert.equal(finished.headers().location, '/app/monitors');
  await page.goto(origin + '/app');
  if (setupEvidence) await writeFile(join(setupEvidence, 'RESULTS.json'), JSON.stringify({ widths: [1440, 390], freshRerSetup: true, devReturn: '/setup', unfinishedRoutes: true, unsignedReturn: true, csrfRefused: true, nativeCompletion: true, finishedReturn: '/app/monitors' }, null, 2));
+ // Base's existing local CLI door issues a native session. A dev-persona
+ // session deliberately stops authenticating outside the dev key gate.
+ const cliAdmission=await fetch(origin+'/auth/local/cli-session',{method:'POST',redirect:'manual',headers:{origin,'content-type':'application/json','x-rer-local-cli':createHmac('sha256',JSON.parse(settings).SESSION_SECRET).update('local-cli\0sign-in').digest('hex')},body:JSON.stringify({returnTo:'/app'})});
+ scratch.env.UPTIME_ACCESS_COOKIE=sessionCookie(cliAdmission);
+ await completeSecondFactor(origin,scratch.env.UPTIME_ACCESS_COOKIE);
  await smokeDocuments(page, origin);
  await monitorHydration(page, origin, scratch.root);
  await definitionsJourney(page, origin);
+ await completeBrowserSecondFactor(page,origin);
  const before = await page.request.get(origin + '/api/archive'); assert.equal(before.status(), 200);
  let expected = await before.json();
  for (const group of await descendantGroups(dev.pid)) groups.add(group);
@@ -145,9 +155,16 @@ try {
  const { startLocalWorker } = await import(pathToFileURL(join(scratch.root, 'scripts/local-worker.mjs')));
  const values = JSON.parse(settings);
  let native = await startLocalWorker({ root: scratch.root, persist: join(scratch.root, '.wrangler/state'), bindings: values, assets: false });
- try { const env = { ...values, DB: await native.getD1Database('DB') }; await populateArchiveFixture(env); expected = await productArchive(env); }
+ try {
+  const env = { ...values, DB: await native.getD1Database('DB') }; await populateArchiveFixture(env); expected = await productArchive(env);
+  const fetcher=(url,init)=>native.dispatchFetch(url,init),cookie=scratch.env.UPTIME_ACCESS_COOKIE,state=await completeSecondFactor(origin,cookie,fetcher);
+  assert.equal((await factorRequest(origin,cookie,fetcher)('/recovery/verify',{code:state.recoveryCodes.shift()})).status,200,'refresh with real single-use recovery authority immediately before CLI export');
+ }
  finally { await native.dispose(); }
  const archive = join(scratch.root, 'exports/product.rer');
+ const unauthenticated=scratch.start('node',[rer,'export','--output','exports/refused.rer'],{environment:{UPTIME_ACCESS_COOKIE:''}});
+ try{assert.equal((await unauthenticated.done).code,4,'local archive export refuses absent session/factor authority')}finally{await scratch.stop(unauthenticated)}
+ assert.equal(await stat(join(scratch.root,'exports/refused.rer')).then(()=>true,error=>{if(error.code==='ENOENT')return false;throw error}),false,'refusal creates no archive');
  await invoke(['export', '--output', 'exports/product.rer']); assert.equal((await stat(archive)).mode & 0o777, 0o600);
  await mkdir(join(scratch.root, '.rer/deploy'), { recursive: true }); await writeFile(join(scratch.root, '.rer/deploy/receipt'), 'retained');
  await invoke(['reset', '--yes', '--non-interactive']);
@@ -155,9 +172,13 @@ try {
  await invoke(['reset', '--yes', '--non-interactive']);
  // Establish receiving authority and private settings while product data is empty.
  await invoke(['setup', '--owner-email', 'receiving@example.test', '--non-interactive']);
+ const receiving = JSON.parse(await readFile(settingsPath));
+ // The receiving owner signs in at the real Base door, with only its mail
+ // provider replaced. No session or MFA rows are inserted by the fixture.
+ native=await startLocalWorker(testMailOptions({root:scratch.root,persist:join(scratch.root,'.wrangler/state'),bindings:receiving,assets:false}));
+ try{scratch.env.UPTIME_ACCESS_COOKIE=await emailSignIn(receiving.UPTIME_ORIGIN,{bindings:receiving,fetcher:(url,init)=>native.dispatchFetch(url,init)})}finally{await native.dispose()}
  await invoke(['import', '--input', 'exports/product.rer', '--yes']);
  await invoke(['export', '--output', 'exports/restored.rer']);
- const receiving = JSON.parse(await readFile(settingsPath));
  native = await startLocalWorker({ root: scratch.root, persist: join(scratch.root, '.wrangler/state'), bindings: receiving, assets: false });
  try {
   const restored = await productArchive({ ...receiving, DB: await native.getD1Database('DB') });
