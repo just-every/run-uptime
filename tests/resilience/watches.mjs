@@ -116,11 +116,13 @@ test('setup-selected Base mail adapters send notification mail through only the 
    const body=await request.json();return Response.json({success:true,errors:[],result:{message_id:'test-provider-message',delivered:[],queued:body.to,permanent_bounces:[],suppressed_recipients:[]}})
   });
   try{
+   assert.equal(calls,1,'real factor enrollment sends one security notice through the selected provider');
+   const enrolledCalls=calls;
    const destination=await f.request('/api/notifications/destinations',{body:{name:'Owner mail',kind:'email',address:'owner@example.test',enabled:true}});assert.equal(destination.status,201,JSON.stringify(destination.data));
    assert.equal((await f.request('/api/notifications/destinations/'+destination.data.id+'/test',{body:{}})).status,202);
    assert.equal((await f.request('/api/runner/notifications',{runner:f.first,body:{operation:'poll'}})).status,200);
-   const jobs=(await f.request('/api/notifications')).data.deliveries;assert.equal(jobs.length,1);assert.equal(jobs[0].state,'accepted');assert.equal(calls,1);
-   assert.equal((await f.request('/auth/magic-link',{body:{email:f.bindings.OWNER_EMAIL}})).status,202);assert.equal(calls,2,'operator mail uses the selected provider too');
+   const jobs=(await f.request('/api/notifications')).data.deliveries;assert.equal(jobs.length,1);assert.equal(jobs[0].state,'accepted');assert.equal(calls,enrolledCalls+1,'the notification adds exactly one provider submission');
+   assert.equal((await f.request('/auth/magic-link',{body:{email:f.bindings.OWNER_EMAIL}})).status,202);assert.equal(calls,enrolledCalls+2,'operator mail adds exactly one submission through the selected provider too');
    assert.equal((await f.DB.prepare("SELECT COUNT(*) n FROM uptime_audit WHERE action='notification_send' AND actor_ref='operator-auth-mail'").first()).n,1,'auth authority is audited before provider submission');
   }finally{await f.close()}
  }
@@ -171,7 +173,7 @@ test('OPS-001 interrupted hosted auth mail and external heartbeat retain uncerta
   const pendingMail=call('/auth/magic-link',{email:bindings.OWNER_EMAIL}).catch(()=>null);await mailBoundary;
   const pendingHeartbeat=schedule().catch(()=>null);await heartbeatBoundary;
   const before=(await DB.prepare('SELECT * FROM auxiliary_attempts ORDER BY rowid').all()).results;assert.deepEqual(before.map(row=>row.outcome),['sending','sending']);assert.ok(before.every(row=>row.submitted_at!==null&&row.finished_at===null));
-  const exportResponse=await call('/api/archive',undefined,cookie);assert.equal(exportResponse.status,200);const exported=await exportResponse.json();assert.deepEqual(exported.payload.productTables.auxiliary_attempts,before,'archive retains each live auxiliary attempt without dispatch content');
+  const exportResponse=await call('/api/archive',undefined,cookie);assert.equal(exportResponse.status,200,exportResponse.status===200?'':(await exportResponse.clone().json()).error);const exported=await exportResponse.json();assert.deepEqual(exported.payload.productTables.auxiliary_attempts,before,'archive retains each live auxiliary attempt without dispatch content');
   await worker.dispose();worker=null;await Promise.all([pendingMail,pendingHeartbeat]);
   const now=Date.now()+61000;
   worker=await hostedRuntime(directory,bindings,async request=>{if(new URL(request.url).hostname==='api.sendgrid.com'){mailCalls++;return new Response(null,{status:202})}heartbeatCalls++;return new Response(null,{status:204})},{now});DB=await worker.getD1Database('DB');
