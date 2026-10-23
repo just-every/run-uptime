@@ -1,3 +1,4 @@
+import {completeSecondFactor} from './mfa-auth-support.mjs';
 import {retentionCleanup} from './retention-cleanup-proof.mjs';
 import {allDeliveredMessages} from './mail-provider-fixture.mjs';
 import assert from 'node:assert/strict';
@@ -66,7 +67,8 @@ try{
  const historicalRecord=JSON.stringify(await DB.prepare('SELECT * FROM monitors WHERE id=?').bind(monitor.id).first());
  await DB.prepare('INSERT INTO archive_history VALUES(?,?,?)').bind(await digest(`monitors\n${historicalRecord}`),'monitors',historicalRecord).run();
  const beforeAudit=(await DB.prepare('SELECT * FROM uptime_audit').all()).results;
- assert.equal(beforeAudit.filter(r=>r.action==='notification_send'&&r.actor_ref==='notification-dispatch').length,mail.length+receiver.records.length,'one permanent audit per actual attempt including tests');
+ const securityNotices=mail.filter(message=>message.subject==='Uptime second-factor security change');assert.ok(securityNotices.length);assert.equal((await DB.prepare("SELECT COUNT(*) n FROM uptime_mfa_notices WHERE outcome='accepted'").first()).n,securityNotices.length,'every real security notice retains its separate delivery outcome');
+ assert.equal(beforeAudit.filter(r=>r.action==='notification_send'&&r.actor_ref==='notification-dispatch').length,mail.filter(message=>message.subject!=='Uptime second-factor security change').length+receiver.records.length,'one permanent audit per actual notification attempt including tests');
  // The same selected adapter serves operator and notification mail. After
  // proving real sends, explicitly restart this local installation in capture
  // mode to prove permanent auth captures and their erasure as well.
@@ -76,6 +78,7 @@ try{
  await owner.freshSignIn(bindings);
  await ok('/auth/invite','POST',{email:canaries.operator,displayName:'erase-operator-name-canary',role:'owner'},{origin});
  const call=authRequest(origin),link=await deliveredLink(call,{email:canaries.operator,kind:'invite'}),erasedCookie=sessionCookie(await call('/auth/confirm',{token:link.searchParams.get('token')}));
+ await completeSecondFactor(origin,erasedCookie);
  const other=(await ok('/auth/operators')).find(o=>o.email===canaries.operator);assert.ok(other);
  await ok(`/api/notifications/destinations/${destination.id}/rotate`,'POST',{}, {cookie:erasedCookie});
  const otherSessions=await ok(`/auth/sessions?operatorId=${other.id}`);assert.ok(otherSessions.length);

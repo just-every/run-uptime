@@ -1,4 +1,5 @@
-import {testAuthBindings,authRequest,signInOwner} from './auth-test-support.mjs';
+import {completeSecondFactor} from './mfa-auth-support.mjs';
+import {testAuthBindings,authRequest,signInOwner,emailSignIn,deliveredLink,sessionCookie} from './auth-test-support.mjs';
 import assert from 'node:assert/strict';
 import {randomBytes,randomUUID,createHmac} from 'node:crypto';
 import {readFile,readdir} from 'node:fs/promises';
@@ -105,6 +106,7 @@ try{
  const priorPoll=await runner('',{operation:'poll'});const priorSlack=priorPoll.jobs.find(j=>j.credentialId===slackCredential);
  assert.equal(priorPoll.jobs.length,1,'accepted webhook history is never polled again');
  assert.ok(priorSlack,'existing queued Slack job remains available without replaying completed history');assert.equal(priorSlack.credential.signing_secret,null,'obsolete Slack signing key was discarded');assert.ok(priorSlack.credential.endpoint===slackURL,'legacy capability decrypted correctly');
+ await completeSecondFactor(origin,cookie);
  await eraseAndAssert(DB,owner,slackId,{expectedCredentials:1});await eraseAndAssert(DB,owner,emailId,{expectedCredentials:1});
  let sends=0;const transport={async send(wire,beforeRequest){await beforeRequest();sends++;assert.ok(wire.url===endpoint,'decrypted endpoint matches original');assert.ok(wire.headers['x-lamp-signature']===createHmac('sha256',secret).update(wire.headers['x-lamp-timestamp']+'.'+wire.body).digest('base64url'),'wire signature still authenticates the exact bytes');return {status:202,headers:{},body:''}}};
  const ahead=(await owner.api(`/api/notifications/destinations/${id}/test`,'POST',{})).data;
@@ -161,6 +163,13 @@ try{
  assert.equal((await health()).status,200,'changed ciphertext cannot disable health');
  await probeRoundTrip();
  await eraseAndAssert(DB,owner,recoveryHook.id,{expectedCredentials:2});
+ // A separately invited owner enrolls its own factor after the intentional sealing-key rotation.
+ // The original owner's inaccessible factor is retained; no proof, factor or MFA policy is bypassed.
+ cookie=await emailSignIn(origin,{bindings});
+ const recoveryOwnerEmail='synthetic-uptime-custody-owner@example.test';
+ assert.equal((await call('/auth/invite',{email:recoveryOwnerEmail,displayName:'Synthetic custody owner',role:'owner'},{cookie})).status,202);
+ const ownerInvite=await deliveredLink(call,{email:recoveryOwnerEmail,kind:'invite'});
+ sessionCookie(await call('/auth/confirm',{token:ownerInvite.searchParams.get('token')}));
  const retainedTables=['monitors','revisions','slots','observations','outbox','notification_jobs','integration_attempts','uptime_erasure_receipts'];
  const retainedSnapshot=await snapshot(retainedTables);
  // Change the actual Worker secret, invalidate the old cookie, then reauthenticate.
@@ -168,7 +177,7 @@ try{
  assert.equal((await health()).status,200,'session-key rotation cannot disable monitoring readiness');
  assert.equal((await owner.api('/api/overview')).status,401,'old authentication no longer works');
  assert.equal((await fetch(origin+'/login')).status,200);assert.equal((await fetch(origin+'/auth/session')).status,401,'authentication route is available');
- await owner.signIn(bindings);
+ await owner.signIn({...bindings,OWNER_EMAIL:recoveryOwnerEmail});
  overview=(await owner.api('/api/notifications')).data;assert.equal(overview.destinations.length,2);assert.ok(overview.destinations.every(d=>!d.credentialsAvailable),'owner sees each invalidated credential');
  assert.deepEqual(await snapshot(retainedTables),retainedSnapshot,'business tables remain intact across session-secret rotation');
  await probeRoundTrip();

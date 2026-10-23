@@ -1,3 +1,4 @@
+import {completeSecondFactor} from './mfa-auth-support.mjs';
 // A Business-provisioned install through its public doors: Run Edit Run sets RER_IMPORT_DOOR=on with the owner-claim
 // trust, the owner's first claim opens the import door, later claims change nothing, the owner still switches it off and
 // on, RER reads the private runner's state at POST /api/rer/runner-status with a signed runner-status grant, and the
@@ -40,6 +41,7 @@ try{
  assert.equal((await call('/auth/bootstrap',{token:'not-the-setup-token',displayName:'Intruder'})).status,403);
  assert.equal(await door(),404,'a refused claim leaves the door off');
  const cookie=sessionCookie(await call('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'Business owner'}));
+ await completeSecondFactor(origin,cookie);
  assert.notEqual(await door(),404,'the owner\'s first claim opens the door');
  const owner=async(path,body)=>{const r=await fetch(origin+path,{method:body===undefined?'GET':'POST',headers:{origin,cookie,'content-type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});return {status:r.status,body:await r.json()}};
  assert.equal((await owner('/api/business-import-settings')).body.enabled,true,'the owner sees Business imports on');
