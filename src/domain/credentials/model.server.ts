@@ -6,7 +6,7 @@ export class CredentialError extends Error {status:number;constructor(status:num
 export const credentialLimit=60
 // A durable live ceiling, shared by allowed-use admission and later mutation fences.
 export function credentialFence(authority:CredentialAuthority){return {sql:`EXISTS(SELECT 1 FROM uptime_credential_grants g JOIN uptime_credential_workspace w ON w.id=g.workspace_id AND w.singleton=1 JOIN integration_tokens t ON t.namespace=g.namespace JOIN oa_operators o ON o.id=g.issuer_id JOIN uptime_member_roles r ON r.operator_id=o.id
- WHERE g.id=? AND g.namespace=? AND g.workspace_id=? AND g.revision=? AND t.id=? AND t.revoked_at IS NULL AND t.expires_at>unixepoch()*1000
+ WHERE g.id=? AND g.namespace=? AND g.workspace_id=? AND g.revision=? AND t.id=? AND t.revoked_at IS NULL AND t.expires_at>(CAST(strftime('%s','now') AS INTEGER)*1000+CAST(substr(strftime('%f','now'),4,3) AS INTEGER))
  AND o.status='active' AND o.version=g.issuer_version AND o.version=? AND o.role=g.issuer_role AND o.role=? AND r.base_version=o.version AND r.base_role=o.role AND r.role=g.issuer_role AND r.revision=g.role_revision AND r.revision=?)`,params:[authority.id,authority.namespace,authority.workspaceId,authority.revision,authority.tokenId,authority.issuerVersion,authority.issuerRole,authority.roleRevision]}}
 // Alias is a source-code identifier, never request input. Selection=[] stays empty.
 export function credentialMonitorFilter(env:CredentialEnvironment,alias='monitors'){
