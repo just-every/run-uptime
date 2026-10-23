@@ -7139,7 +7139,7 @@
       "executable": false
     },
     "tests/browser-suites.mjs": {
-      "sha256": "14bc42bf329546c3f896a79740ee94fe8f1676510751644c2de22dc0020e9ae9",
+      "sha256": "3c53814d4f1149660543051bf44b527db7c5cc02ec2009600b397ed423aa14f8",
       "executable": false
     },
     "tests/business-import-door.mjs": {
@@ -7243,7 +7243,7 @@
       "executable": false
     },
     "tests/erasure-audit.mjs": {
-      "sha256": "e31b9fac0af3d37707db1cdfdb73b6a6c1f84407e43957cad9b5e6a03a090acb",
+      "sha256": "440972cfc464a76f480d522ddc3272de299976899d67295ddd463d1e305d2349",
       "executable": false
     },
     "tests/erasure-races.mjs": {
