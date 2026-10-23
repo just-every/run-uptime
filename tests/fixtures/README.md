@@ -22,3 +22,12 @@ responses wrap `check`; TMS detail responses are direct objects with `script` or
 `recording` type. HTTP tags are objects; TMS tags are strings. Probe filters retain
 their published `region: ...` spelling. No page-speed export shape was established
 in that schema, so no page-speed fixture or invented field is supplied.
+
+`uptimerobot-contacts.synthetic.json` and `uptimerobot-seats.synthetic.json` follow
+`AlertContactDto` and `AllAlertContactDto` from https://cdn.uptimerobot.com/api/openapi.yaml
+(read 23 October 2026), the response arrays for `/user/alert-contacts` and
+`/user/all-alert-contacts`. Personal contact kinds come from
+`CreatePersonalAlertContactDto`; integration kinds come from the integration
+request discriminator. Canonical and legacy mobile push spellings are documented
+on the response DTOs. Names, email addresses and connector paths are synthetic.
+No source status is treated as consent or a local role.

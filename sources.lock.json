@@ -471,7 +471,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "ca602d4cd3deb5d7f7a0b352f85f072c55e687536be7bc423297702e30ca9874",
+      "sha256": "851852e73460334ee3c6a4699d03407308fe3d40d3458e95c77abdb32c45a726",
       "executable": false
     },
     "AGENTS.md": {
@@ -495,7 +495,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "fca16b4d03e5db2764550d5da80184800519d977251d645dd3bb8a7e91a87257",
+      "sha256": "14c0c6f85dba5a92fc2561658253d5f1bcc5afcae71f2bb5fdc663d03e7038ab",
       "executable": false
     },
     "DEMO.md": {
@@ -5571,7 +5571,7 @@
       "executable": false
     },
     "src/domain/definitions/importers/uptimerobot.ts": {
-      "sha256": "7346e8123d9a01973fbf42fb1d5d815e9b24ed3a7c78f6d0947fb7bbeae004a2",
+      "sha256": "ad60521db08d62dbe95082f99c14af9e7de7f5a2b7a64dfbc86e29f2f6b8bdc6",
       "executable": false
     },
     "src/domain/definitions/index.server.ts": {
@@ -6307,7 +6307,7 @@
       "executable": false
     },
     "src/domain/webhook-contact-import.mjs": {
-      "sha256": "992124e287fe4afca6c0a2eee18e1ee49e1ecd7244481ece2db5f3d65ddaa4a3",
+      "sha256": "3208618252a3f5996197a84b36b63629845d93bc43989cbfd4e432c50e514566",
       "executable": false
     },
     "src/domain/webhook-template.mjs": {
@@ -7047,7 +7047,7 @@
       "executable": false
     },
     "tests/fixtures/README.md": {
-      "sha256": "e34e91805d13a34f193291babb6a0578e7cf34a9e23d5db65c6a67c760f0960d",
+      "sha256": "f6a9bf076984d991c7c2752704a821196c10e287f695928c7d6918ffdf3fbd40",
       "executable": false
     },
     "tests/fixtures/site24x7-monitors.synthetic.json": {
@@ -7523,7 +7523,7 @@
       "executable": false
     },
     "tests/webhook-custom.mjs": {
-      "sha256": "e1b9609e87330d62fe47b96ec93158057c179bd42abcbecd8a5cb8620557fc3f",
+      "sha256": "27ba8b2baaf50fd63b27ae022f3c1ff455a2c5c13bff59c6e50466b26cd168e6",
       "executable": false
     },
     "tests/worker-intake.mjs": {

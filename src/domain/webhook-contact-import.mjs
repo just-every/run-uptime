@@ -44,6 +44,7 @@ function formFields(text){
 }
 /** Read-only proposal from one saved official create payload. Source header values are never read, copied or returned. */
 export function previewUptimeRobotWebhook(input){
+ if(object(input)&&['AlertContacts','AllAlertContacts'].includes(input.type))return previewUptimeRobotContacts(input);
  if(!object(input)||input.type!=='Webhook')return fail('Expected one UptimeRobot v3 Webhook integration object');
  if(!object(input.data))return fail('The v3 integration detail response has opaque value/customValue fields. Supply the saved official {type:"Webhook",data:{urlToNotify,postValue,...}} create payload; their meanings cannot be inferred safely');
  if(Object.keys(input).some(key=>!['type','data'].includes(key))||Object.keys(input.data).some(key=>!fields.has(key)))return fail('Unsupported UptimeRobot webhook payload fields; use the documented CreateWebhookIntegrationDto shape');
@@ -81,4 +82,38 @@ export function previewUptimeRobotWebhook(input){
  if(mode==='form')differences.push('Custom JSON string fields become form parameters with the same names and variable tokens; Uptime percent-encodes their values.');
  if(warnings.length)differences.push('Named variables without immutable Uptime equivalents render Unavailable; review every warning.');
  return {name:data.friendlyName.trim(),url,webhookTemplate,headerNames:webhookTemplate.headerNames,warnings,differences};
+}
+
+// Saved GET /user/alert-contacts and /user/all-alert-contacts responses, respectively
+// AlertContactDto and AllAlertContactDto in https://cdn.uptimerobot.com/api/openapi.yaml
+// (read 23 October 2026). This proposal never stores, creates, confirms or sends a contact.
+export const CONTACT_EXPORT_GUIDANCE='Review saved /user/alert-contacts or /user/all-alert-contacts through the read-only contact preview. Email and webhook kinds need local destination review; CHAT-001, PHONE-001 and ACCESS-001 own unsupported contacts and seat handoffs.';
+const short=(value,fallback)=>typeof value==='string'&&value.trim()?value.replace(/[\x00-\x1f\x7f]/g,' ').trim().slice(0,100):fallback;
+function legacyTeams(value){try{const u=new URL(value);return u.protocol==='https:'&&(u.hostname.endsWith('.webhook.office.com')||u.hostname==='outlook.office.com'&&u.pathname.startsWith('/webhook/'))}catch{return false}}
+export function previewUptimeRobotContacts(input){
+ if(!object(input)||!['AlertContacts','AllAlertContacts'].includes(input.type)||Object.keys(input).some(k=>!['type','data'].includes(k))||!Array.isArray(input.data)||input.data.length>500)return fail('Supply {type:"AlertContacts"|"AllAlertContacts",data:<saved response array>} with at most 500 records.');
+ const seats=[],contacts=[],groups=input.type==='AllAlertContacts'?input.data:null;
+ if(groups){
+  for(const [index,seat] of groups.entries()){
+   if(!object(seat)||typeof seat.notifyOnly!=='boolean'||!object(seat.user)||!Array.isArray(seat.alertContacts))return fail(`Saved seat ${index+1} needs notifyOnly, user and alertContacts from AllAlertContactDto.`);
+   seats.push({index,id:Number.isSafeInteger(seat.user.id)&&seat.user.id>=0?seat.user.id:null,name:short(seat.user.name,`Seat ${index+1}`),notifyOnly:seat.notifyOnly,action:'refused',clause:'ACCESS-001',reason:seat.notifyOnly?'Notify-only seat needs explicit local destination and consent review; no destination is created.':'Login seat needs an owner-reviewed role and invitation; this response supplies no login role and creates no invitation.'});
+   for(const contact of seat.alertContacts)contacts.push({contact,seatIndex:index});
+  }
+ }else for(const contact of input.data)contacts.push({contact});
+ if(contacts.length>500)return fail('A saved contact preview accepts at most 500 contact records.');
+ const entries=contacts.map(({contact:c,seatIndex},index)=>{
+  const kind=short(c?.type,'Unknown'),base={index,id:Number.isSafeInteger(c?.id)&&c.id>=0?c.id:null,name:short(c?.friendlyName??c?.name,`Contact ${index+1}`),kind,...(seatIndex===undefined?{}:{seatIndex})};
+  if(!object(c))return {...base,action:'refused',clause:'MIGRATE-001',reason:'The saved contact is not an object.'};
+  if(legacyTeams(c.value))return {...base,action:'refused',clause:'CHAT-001',legacyTeams:true,reason:'Legacy Teams connector URL: create a replacement incoming-webhook workflow in Teams Workflows, review its owner and recipient, then configure and test a separate local destination. The legacy URL and its authority are not copied.'};
+  if(kind==='Email'){
+   if(typeof c.value!=='string'||c.value.length>254||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.value))return {...base,action:'refused',clause:'MIGRATE-001',reason:'Email contact has no usable email address.'};
+   return {...base,action:'review',destination:{kind:'email',address:c.value},reason:'Review a separately configured local email destination. Source status is not consent; no destination or confirmation is created.'};
+  }
+  if(kind==='Webhook')return {...base,action:'review',destination:{kind:'webhook'},reason:'Review the saved official Webhook create payload through the existing template preview. AlertContactDto value/customValue do not specify template semantics; no URL, credentials or send authority are copied.'};
+  const clause=['ProSms','SMS','Voice'].includes(kind)?'PHONE-001':['MobileAppOld','MobileApp','MobileAppIOS','MobileAppAndroid'].includes(kind)?'MOBILE-001':['Telegram','Slack','MSTeams','Discord','GoogleChat'].includes(kind)?'CHAT-001':'MIGRATE-001';
+  return {...base,action:'refused',clause,reason:`${kind} requires ${clause} migration and local recipient/consent review; no destination is created.`};
+ });
+ const counts={read:entries.length,review:entries.filter(e=>e.action==='review').length,refused:entries.filter(e=>e.action==='refused').length},byKind=Object.create(null);
+ for(const e of entries){const count=byKind[e.kind]??={read:0,review:0,refused:0};count.read++;count[e.action]++}
+ return {kind:'uptimerobot-contact-preview',readOnly:true,counts,byKind,entries,seats,seatCounts:{read:seats.length,login:seats.filter(s=>!s.notifyOnly).length,notifyOnly:seats.filter(s=>s.notifyOnly).length,refused:seats.length},differences:[CONTACT_EXPORT_GUIDANCE,'Contact status, contact thresholds/repeats, notification selections and source account membership do not authorize local delivery. Nothing is written, confirmed, invited or sent.','Incident comments and root cause are absent from these saved contact responses. The current published API exposes /incidents/{id}/comments and IncidentDetailDto.rootCause separately; importing them as labelled source history remains a HISTORY-001/INCIDENT-001 gap.']};
 }
