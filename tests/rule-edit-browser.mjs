@@ -56,8 +56,9 @@ try{
    assert.deepEqual(result.violations.map(v=>({id:v.id,targets:v.nodes.map(n=>n.target)})),[],`rule editor accessibility at ${width}`);
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`no sideways scroll at ${width}`);
    await page.screenshot({path:resolve(out,`rule-refused-${width}.png`),fullPage:true});
-   // Esc cancels: the editor closes and the saved value comes back.
-   await status.locator('input[name=status]').press('Escape');
+   // Focus stays in the field after the refusal, so Esc pressed on the page cancels: the editor closes and the saved value
+   // comes back.
+   await page.keyboard.press('Escape');
    assert.equal(await status.evaluate(details=>details.open),false);assert.equal(await status.locator('input[name=status]').inputValue(),'200');
    await page.screenshot({path:resolve(out,`rule-saved-${width}.png`),fullPage:true});
    assert.deepEqual(errors,[],'browser exceptions');

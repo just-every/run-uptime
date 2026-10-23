@@ -2387,7 +2387,7 @@
       "executable": false
     },
     "public/app.js": {
-      "sha256": "61fac7bc398ff49165883f24a259af2859de6249d2967dc10dadaebec87ffc72",
+      "sha256": "6d8cfe76aefc340ed7ccad891b052268752d42f9f0d5d14db5b8a3886bae81a4",
       "executable": false
     },
     "public/archive-view.js": {
@@ -7463,7 +7463,7 @@
       "executable": false
     },
     "tests/rule-edit-browser.mjs": {
-      "sha256": "d4cf623209af0000bae3f35ea8c0f78060bb4554c953d1037c3f8866545c513a",
+      "sha256": "ec11614c4f4712406c202dec2c43703203f0f3ea8e05013f3cda53c7f316dad9",
       "executable": false
     },
     "tests/runner-contact.mjs": {
