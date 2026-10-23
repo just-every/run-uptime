@@ -278,4 +278,31 @@ try{
  assert.equal((await apply(siteView)).status,200);
  assert.deepEqual(parts(await followedRows()),[['aws','component','ec2-us-east-1',0,null],['aws','component','ec2-us-east-2',0,null],['github','whole',null,0,null],['slack','whole',null,0,null],['stripe','component','api',0,null],['stripe','whole',null,0,null]],'every mapped third-party monitor is a followed service of its own catalog part');
  console.log('IMPORT-001 / MIGRATE-001 passed through the import door: refusals leave every table byte-identical; request secrets are withheld before upload and stored nowhere; UptimeRobot preview, paused apply, export round-trip, change, undo that keeps and reports edits, with history intact, and earlier batches keep read and undo. DEPENDENCY-002 passed: UptimeRobot, Better Stack and Site24x7 third-party service monitors map onto catalog entries as paused followed services, a Better Stack third-party status page row is refused citing its public API, and a part already followed is refused.');
+ // MIGRATE-004 saved monitor settings: the same Definitions door, in a fresh installation namespace.
+ await worker.dispose();({worker}=await migratedWorker({port,persist:join(directory,'site24x7'),bindings:{UPTIME_ORIGIN:origin}}));
+ {
+  const owner=sessionCookie(await authRequest(origin)('/auth/bootstrap',{token:testAuthBindings.SETUP_TOKEN,displayName:'Synthetic Site24x7 owner'}));await finishSetup(origin,owner);
+  const get=async path=>{const response=await fetch(origin+path,{headers:{origin,cookie:owner}});assert.equal(response.status,200);return response.json()};await get('/api/overview');
+  const door=definitionDoor({origin,cookie:owner}),saved=await readFile('tests/fixtures/site24x7-monitors.synthetic.json'),before=await get('/api/overview'),plan=await door.preview(saved);
+  assert.equal(plan.status,200,JSON.stringify(plan.body));assert.equal(plan.body.source,'site24x7');
+  assert.deepEqual(plan.body.counts,{create:5,unchanged:0,change:0,refused:2,unsupported:5});assert.equal(plan.body.entries.length,12);
+  assert.equal((await get('/api/overview')).monitors.length,before.monitors.length,'preview creates no monitor');
+  const names=['synthetic-uptime-1','synthetic-uptime-2','synthetic-uptime-3','synthetic-uptime-4','synthetic-uptime-5'];
+  for(const entry of plan.body.entries.slice(0,5)){assert.equal(entry.action,'create',entry.reason);assert.ok(entry.differences.some(d=>d.includes('timeout')));assert.ok(entry.differences.some(d=>d.includes('local-a')))}
+  for(const [index,clause] of [[7,'FLOW-001'],[8,'TLS-001'],[9,'DOMAIN-001'],[10,'HEARTBEAT-002'],[11,'DNS-001']])assert.ok(plan.body.entries[index].reason.includes(clause));
+  assert.ok(plan.body.entries[0].differences.some(d=>d.includes('location_profile_id')));
+  const applied=await door.apply(plan.body);assert.equal(applied.status,200,JSON.stringify(applied.body));assert.equal(applied.body.created.length,5);
+  const rows=(await get('/api/overview')).monitors.filter(m=>names.includes(m.definition.name)),defs=names.map(name=>rows.find(m=>m.definition.name===name).definition);
+  assert.equal(rows.length,5);assert.ok(defs.every(d=>d.enabled===false&&d.intervalMs===300000));
+  assert.deepEqual(defs.map(d=>d.type),['http','http','tcp','ping','dns']);
+  assert.equal(defs[0].url,'https://synthetic-uptime-1.example/');assert.equal(defs[0].method,'GET');assert.deepEqual(defs[0].assertions.status,['200-299']);
+  assert.equal(defs[1].method,'HEAD');assert.deepEqual(defs[1].assertions.status,[200,204]);
+  assert.deepEqual(defs[2].tcp,{host:'synthetic-uptime-3.example',port:443});
+  assert.deepEqual(defs[3].ping,{host:'synthetic-uptime-4.example',family:4,packets:3,maxLossPercent:0,maxRttMs:1000});
+  assert.deepEqual(defs[4].dns,{name:'synthetic-uptime-5.example',recordType:'A',resolvers:['cloudflare']});
+  assert.equal((await door.apply(plan.body)).status,200,'re-applying the reviewed batch is idempotent');
+  const again=await door.preview(saved);assert.equal(again.status,200);assert.deepEqual(again.body.counts,{create:0,unchanged:5,change:0,refused:2,unsupported:5});
+  assert.equal((await door.undo(applied.body)).status,200);assert.equal((await get('/api/overview')).monitors.length,before.monitors.length+5);assert.ok((await get('/api/overview')).monitors.every(m=>!m.definition.enabled));
+  console.log('MIGRATE-004 saved list: read 12 = converted 5 + refused 2 + unsupported 5; paused apply, unchanged re-import and retained-history undo.');
+ }
 }finally{await worker?.dispose();await cleanupDirectory(directory)}
