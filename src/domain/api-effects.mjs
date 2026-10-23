@@ -1,11 +1,13 @@
 // API-004: effects that need an owner's exact, time-limited grant. A step is live when the owner marks it with an effect, when
-// it is a refund, when anything it sends has the shape of a Stripe live-mode key, or when its response says livemode: true.
-// Stripe test mode and the buyer's own sandbox resources need no grant. Shared by the Worker (grant records) and the runner
-// (refusal before a request is sent, and on every attempt).
+// it is a refund, when anything it sends has the shape of a Stripe live-mode key (HTTP Basic credentials decoded), or when its
+// response says livemode: true. Stripe test mode and the buyer's own sandbox resources need no grant. Shared by the Worker
+// (grant records) and the runner (refusal before a request is sent, and on every attempt).
 export const API_EFFECTS = Object.freeze(['live-payment', 'refund', 'destructive-write']);
 export const GRANT_LIMITS = Object.freeze({maxMs: 24 * 60 * 60 * 1000, maxSpend: 100000000});
 const LIVE_KEY = /\b(?:sk|rk)_live_[0-9A-Za-z]{8,}/;
-export const liveCredentialShape = values => values.some(value => typeof value === 'string' && LIVE_KEY.test(value));
+// HTTP Basic authentication sends its user and password base64-encoded; they are checked as the provider decodes them.
+const basicCredentials = value => {const match = /^\s*basic\s+([A-Za-z0-9+/]+=*)\s*$/i.exec(value);try { return match ? atob(match[1]) : ''; } catch { return ''; }};
+export const liveCredentialShape = values => values.some(value => typeof value === 'string' && (LIVE_KEY.test(value) || LIVE_KEY.test(basicCredentials(value))));
 /** The effect a step declares by itself: the owner's mark, or a refund path. Live mode is found at run time. */
 export function declaredEffect(step) {
   if (step.effect) return step.effect;

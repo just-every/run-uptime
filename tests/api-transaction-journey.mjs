@@ -23,7 +23,7 @@ test('API-004 sandbox setup/teardown, cancellation, denied cleanup, retained deb
     if (request.url==='/login') {assert.deepEqual(JSON.parse(request.body),{password});res.end(JSON.stringify({token}));return}
     if (request.url==='/live-login') {res.end(JSON.stringify({token:liveToken}));return}
     if (request.url==='/test-login') {res.end(JSON.stringify({token:testToken}));return}
-    if (request.url==='/orders'&&request.method==='POST') {if(![`Bearer ${liveToken}`,`Bearer ${testToken}`].includes(request.headers.authorization)){res.statusCode=401;res.end('{}');return}res.statusCode=201;res.end(JSON.stringify({id:liveOrder,livemode:true}));return}
+    if (request.url==='/orders'&&request.method==='POST') {if(![`Bearer ${liveToken}`,`Bearer ${testToken}`,`Basic ${Buffer.from(`${liveToken}:`).toString('base64')}`].includes(request.headers.authorization)){res.statusCode=401;res.end('{}');return}res.statusCode=201;res.end(JSON.stringify({id:liveOrder,livemode:true}));return}
     if (request.url===`/orders/${liveOrder}`&&request.method==='DELETE') {res.end(JSON.stringify({cancelled:true}));return}
     if (request.url==='/records/stale'&&request.method==='DELETE') {res.end(JSON.stringify({deleted:true}));return}
     if (request.headers.authorization!==`Bearer ${token}` || state.expired) {res.statusCode=401;res.end(JSON.stringify({error:responseSecret}));return}
@@ -102,6 +102,13 @@ test('API-004 sandbox setup/teardown, cancellation, denied cleanup, retained deb
     const orders=()=>h.records.filter(r=>r.url==='/orders').length,grant=body=>h.f.request(`/api/monitors/${live.id}/effect-grants`,{body});
     task=await h.claim(live.id);assert.equal(task.effectGrants,undefined,'The installation default is no grant');let placed=orders();result=await h.run(task);
     assert.equal(result.outcome,'runner_error');assert.equal(result.apiTransaction.steps[1].checks[0].assertion,'grant');assert.equal(orders(),placed,'A live-mode credential sends nothing without a grant');assert.equal(result.apiTransaction.steps[2].outcome,'skipped');serializedSafe(result);await h.submit(task,result);
+    // The key is found in what is sent however the credential presents it: HTTP Basic authentication encodes it on the wire.
+    const basicCharge=await h.create({type:'api',name:'Live charge with Basic authentication',url:url('/orders'),request:{credentialRef:'live-basic'},timeoutMs:10000,retries:0,
+      api:{variables:{},steps:[{name:'Create order',phase:'request',url:url('/orders'),method:'POST',headers:{'content-type':'application/json'},body:'{"amount":1200}',assertions:{status:201}}]}});
+    await h.write('live-basic',{monitorId:basicCharge.id,origin:new URL(url('/orders')).origin,auth:{type:'basic',username:liveToken,password:''}});
+    task=await h.claim(basicCharge.id);placed=orders();result=await h.run(task);
+    assert.equal(orders(),placed,'A live-mode key in HTTP Basic authentication sends nothing without a grant');assert.equal(result.apiTransaction.steps[0].checks[0].assertion,'grant');
+    serializedSafe(result);await h.submit(task,result);await h.f.pause(basicCharge);
     assert.equal((await grant({effect:'live-payment',spendLimit:5000,expiresAt:Date.now()+48*3600000})).status,400,'A grant expires within its bound');
     assert.equal((await grant({effect:'live-payment',spendLimit:5000,expiresAt:Date.now()+60000})).status,201);
     task=await h.manual(live.id);assert.equal(task.effectGrants.length,1);result=await h.run(task);
