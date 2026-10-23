@@ -900,6 +900,14 @@
         "environment": "all"
       },
       {
+        "path": "/monitor-list.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
         "path": "/monitor-page.js",
         "match": "exact",
         "kind": "asset",

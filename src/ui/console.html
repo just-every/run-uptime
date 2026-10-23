@@ -4,14 +4,7 @@
 <nav aria-label="Main navigation"><a href="/app/monitors" data-view="monitors" aria-current="page"><span class="ui-icon" data-icon="monitor" aria-hidden="true"></span>Monitors</a><a href="/app/locations" data-view="locations"><span class="ui-icon" data-icon="pin" aria-hidden="true"></span>Locations</a><a href="/app/notifications" data-view="notifications"><span class="ui-icon" data-icon="bell" aria-hidden="true"></span>Notifications</a><a href="/app/archive" data-view="archive"><span class="ui-icon" data-icon="archive" aria-hidden="true"></span>Archive</a><a href="/app/settings" data-view="settings"><span class="ui-icon" data-icon="gear" aria-hidden="true"></span>Settings</a><a href="/app/signout" data-view="signout"><span class="ui-icon" data-icon="sign-out" aria-hidden="true"></span>Sign out</a></nav>
 </aside>
 <main class="main ui-main" id="overview">
-<header class="top ui-header"><div><h1>Monitors</h1><p class="subtitle" hidden></p></div><div class="actions"></div></header>
-<section class="cards" aria-label="Monitor health summary" hidden>
-<div class="ui-card card summary-tile"><span class="ui-ring healthy"><strong>–</strong></span><span class="tile-label">Healthy</span></div>
-<div class="ui-card card summary-tile"><span class="ui-ring failing"><strong>–</strong></span><span class="tile-label">Failing</span></div>
-<div class="ui-card card summary-tile"><span class="ui-ring unknown"><strong>–</strong></span><span class="tile-label">Unknown</span></div>
-<div class="ui-card card summary-tile"><span class="ui-ring degraded"><strong>–</strong></span><span class="tile-label">Degraded</span></div>
-<div class="ui-card card refresh"><span class="ui-icon" data-icon="clock" aria-hidden="true"></span><dl><div><dt>Last refresh</dt><dd class="refresh-time">–</dd></div><div><dt>Check frequency</dt><dd>Per monitor</dd></div></dl></div>
-</section>
+<header class="top ui-header"><div><h1>Monitors</h1><p class="subtitle" hidden></p></div><div class="actions"></div><p class="list-summary" hidden></p></header>
 <section class="ui-card monitors" id="monitors">
 <header class="table-title" hidden><h2>Monitors</h2></header>
 <div class="table-scroll" tabindex="0" role="region" aria-label="Loading">

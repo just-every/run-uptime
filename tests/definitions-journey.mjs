@@ -49,7 +49,7 @@ export async function definitionsJourney(page, origin) {
   // The monitor list shows every imported monitor paused.
   await page.getByRole('link', { name: 'Monitors', exact: true }).click();
   for (const name of step.created) {
-   const row = page.locator('tr.monitor-row').filter({ has: page.locator('.monitor-name', { hasText: name }) });
+   const row = page.locator('.monitor-row').filter({ has: page.locator('.monitor-name', { hasText: name }) });
    await row.locator('.ui-pill.state').filter({ hasText: 'Paused' }).waitFor();
   }
   if (evidence) await page.screenshot({ path: join(evidence, `definitions-monitors-paused-${step.width}.png`), fullPage: true });

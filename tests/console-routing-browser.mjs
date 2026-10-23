@@ -14,7 +14,7 @@ test('console paths survive bookmarks, navigation, copied links, history and rel
   const context=await browser.newContext(),page=await context.newPage();await browserSignIn(page,origin);
   const created=await page.request.post(origin+'/api/monitors',{headers:{origin},data:{name:'Storefront availability',url:'https://example.com/',canaryUrl:'https://example.org/',enabled:false}});
   assert.equal(created.status(),201);const {id}=await created.json(),detail=`/app/monitors/${encodeURIComponent(id)}`,edit=detail+'/edit';
-  const filtered='catalog-search=Storefront&catalog-selection='+encodeURIComponent(id);
+  const filtered='catalog-search=Storefront&catalog-state=Paused&catalog-selection='+encodeURIComponent(id);
   const aliases=[['/app','/app/monitors'],['/app/','/app/monitors'],['/app?'+filtered,'/app/monitors?'+filtered],['/monitor','/app/monitors/new'],['/monitor/?monitor='+encodeURIComponent(id),edit],['/app/monitor?monitor='+encodeURIComponent(id),edit],['/app/monitor/?first=1','/app/monitors/new']];
   for(const [old,to]of aliases){const response=await page.request.get(origin+old,{maxRedirects:0});assert.equal(response.status(),308,old);assert.equal(response.headers().location,to);}
   for(const width of [1440,390]){
@@ -23,9 +23,10 @@ test('console paths survive bookmarks, navigation, copied links, history and rel
     await page.goto(origin+'/app#'+old);await page.waitForURL(origin+'/app/'+to);await page.locator('html.signed-in').waitFor();
     assert.equal(await page.locator('.sidebar nav a[aria-current=page]').getAttribute('href'),'/app/'+to);
    }
-   // An old filtered-list bookmark opens the list with its search and selection.
+   // An old filtered-list bookmark opens the list with its search, its filters as chips and its selection.
    await page.goto(origin+'/app?'+filtered);await page.waitForURL(origin+'/app/monitors?'+filtered);await page.locator('.catalog-rows .monitor-row').waitFor();
    assert.equal(await page.locator('#catalog-search').inputValue(),'Storefront');assert.ok(await page.locator(`[data-monitor-select="${id}"]`).isChecked());
+   await page.getByRole('button',{name:'Remove filter: State: Paused',exact:true}).waitFor();assert.equal(await page.locator('.catalog-selected').textContent(),'1 selected');
    // Twelve section clicks inside one public-rate window switch the console in place: no document load and no 429. The
    // cache is off, as under rer dev where every asset revalidates on each load, so a document per click would run out.
    const cdp=await context.newCDPSession(page);await cdp.send('Network.enable');await cdp.send('Network.setCacheDisabled',{cacheDisabled:true});
@@ -110,7 +111,7 @@ test('console paths survive bookmarks, navigation, copied links, history and rel
      const pending=page.waitForResponse(response=>new URL(response.url()).pathname==='/api/catalog/preview');await dialog.getByRole('button',{name:'Preview',exact:true}).click();const response=await pending;assert.equal(response.status(),200);assert.deepEqual(response.request().postDataJSON(),{monitorIds:[source.id],action:kind,...(kind==='edit'?{changes:{project:'Edited project'}}:{})});
      await dialog.locator('.catalog-preview h3').waitFor();await dialog.getByRole('button',{name:'Cancel',exact:true}).click();
     }
-    await page.getByRole('button',{name:'Bulk add',exact:true}).click();
+    await page.getByRole('button',{name:'Add many monitors',exact:true}).click();
     {const dialog=page.getByRole('dialog');await dialog.locator('[name=text]').fill('https://93.184.216.34/bulk');const pending=page.waitForResponse(response=>new URL(response.url()).pathname==='/api/catalog/add/preview');await dialog.getByRole('button',{name:'Preview',exact:true}).click();const response=await pending;assert.equal(response.status(),200);assert.equal(response.request().postDataJSON().text,'https://93.184.216.34/bulk');await dialog.locator('.catalog-preview h3').waitFor();await dialog.getByRole('button',{name:'Cancel',exact:true}).click()}
     await page.getByRole('button',{name:'Plan maintenance',exact:true}).click();
     {const dialog=page.getByRole('dialog');await dialog.locator('[name=name]').fill('synthetic-uptime-maintenance');const pending=page.waitForResponse(response=>new URL(response.url()).pathname==='/api/maintenance/preview');await dialog.getByRole('button',{name:'Preview occurrences',exact:true}).click();const response=await pending;assert.equal(response.status(),200);assert.deepEqual(response.request().postDataJSON().monitorIds,[source.id]);await dialog.locator('#maintenance-preview:not([hidden])').waitFor();await dialog.getByRole('button',{name:'Cancel',exact:true}).click()}

@@ -1,20 +1,39 @@
+/* The monitor list's toolbar (public/catalog.js): search and Filter, or the selection's actions in the same row; the
+   filter panel; the filters that apply, as chips. Its rows are in style.css. Then the catalog dialogs. */
 .catalog-console { min-width: 0; }
-.catalog-toolbar { display: grid; gap: 14px; padding: 20px 24px; border-bottom: 1px solid var(--line); }
-.catalog-search { max-width: 640px; }
-.catalog-search input { width: 100%; }
-.catalog-filters, .catalog-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(160px,1fr)); gap: 14px; }
-.catalog-filters select, .catalog-grid input, .catalog-grid select { width: 100%; min-width: 0; }
-.catalog-tools, .catalog-bulk, .catalog-bulk-actions, .catalog-dialog-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-.catalog-tools { justify-content: space-between; }
-.catalog-bulk { padding: 18px 24px; border-bottom: 1px solid var(--line); background: var(--lavender-soft, #f8f7fc); }
-.catalog-bulk-actions { flex-basis: 100%; }
-.catalog-labels { display: block; margin-top: 8px; color: var(--muted); font-size: 12px; font-weight: 400; line-height: 1.5; overflow-wrap: anywhere; }
-.catalog-row-select span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-.catalog-console .ui-table td { min-width: 0; }
-.catalog-console .ui-table td[data-label=Monitor] { min-width: 180px; }
-.catalog-console .ui-table th:first-child { width: 62px; }
-.catalog-batch, .catalog-warning { margin: 16px 24px; }
+.catalog-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; min-height: 77px; padding: 16px 20px; border-bottom: 1px solid var(--line); border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0; }
+.catalog-toolbar.is-selecting { background: var(--lavender); }
+.catalog-tools { display: flex; flex: 1 1 auto; align-items: center; gap: 12px; min-width: 0; }
+.catalog-search { position: relative; flex: 0 1 520px; min-width: 0; }
+.catalog-search > .ui-icon { position: absolute; top: 13px; left: 14px; color: var(--muted); }
+.catalog-search input { margin-top: 0; padding-left: 42px; }
+#catalog-filter { flex: none; }
+#catalog-filter[aria-expanded="true"] { border-color: var(--lavender-deep); background: var(--lavender); }
+.catalog-filter-count { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: var(--ink); color: #fff; font-size: 13px; font-weight: 700; line-height: 1; }
+.catalog-selected { color: var(--ink); font-size: 15px; font-weight: 700; }
+/* The actions fill the row between the count and Clear and wrap inside it, so a narrow card grows the bar by one line. */
+.catalog-bulk-actions { display: flex; flex: 1 1 0; flex-wrap: wrap; gap: 8px; min-width: min-content; }
+.catalog-filters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px 16px; padding: 16px 20px 18px; border-bottom: 1px solid var(--line); background: #fbfbfe; }
+.catalog-filters label { font-size: 13.5px; }
+.catalog-chips.is-narrowed { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 20px; border-bottom: 1px solid var(--line); }
+.catalog-chip { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; min-height: 32px; padding: 0 4px 0 12px; border-radius: 999px; background: var(--lavender); color: var(--ink); font-size: 14px; font-weight: 600; }
+.catalog-chip-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.catalog-chip-remove { flex: none; width: 26px; min-height: 26px; height: 26px; padding: 0; border: 0; border-radius: 50%; background: none; }
+.catalog-chip-remove .ui-icon { width: 14px; height: 14px; }
+.catalog-chip-remove:hover { background: rgba(20, 32, 74, 0.08); }
+.catalog-result-count { margin-left: auto; color: var(--muted); font-size: 14px; }
+.catalog-batch { margin: 16px 20px; }
 .catalog-no-results { padding: 24px; }
+@media (max-width: 700px) {
+ .catalog-toolbar { min-height: 69px; padding: 12px 14px; }
+ .catalog-search { flex: 1 1 0; }
+ /* On a phone the actions take the lines under the count and Clear. */
+ .catalog-bulk-actions { order: 1; flex-basis: 100%; }
+ #catalog-clear-selection { margin-left: auto; }
+ .catalog-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 14px; }
+ .catalog-chips.is-narrowed { padding: 12px 14px; }
+ .catalog-batch { margin: 12px 14px; }
+}
 .catalog-dialog { max-width: 940px; }
 .catalog-dialog form { display: grid; gap: 20px; }
 .catalog-dialog h2 { font-size: 26px; }
@@ -22,6 +41,9 @@
 .catalog-dialog fieldset { min-width: 0; margin: 0; padding: 16px; border: 1px solid var(--line); border-radius: 12px; }
 .catalog-dialog legend { padding: 0 6px; font-weight: 600; }
 .catalog-dialog .catalog-metadata { display: grid; gap: 14px; }
+.catalog-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(160px,1fr)); gap: 14px; }
+.catalog-grid input, .catalog-grid select { width: 100%; min-width: 0; }
+.catalog-dialog-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: flex-end; }
 .catalog-locations { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 16px !important; }
 .catalog-selection { max-height: 160px; overflow: auto; padding-left: 24px; }
 .catalog-selection small, .catalog-plan-table small { display: block; color: var(--muted); overflow-wrap: anywhere; }
@@ -32,30 +54,10 @@
 .catalog-estimates { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; margin: 18px 0; }
 .catalog-estimates dt { color: var(--muted); font-size: 13px; }
 .catalog-estimates dd { margin: 4px 0 0; font-weight: 600; }
-.catalog-dialog-actions { justify-content: flex-end; }
 @media(max-width: 760px) {
- .catalog-toolbar, .catalog-bulk { padding: 16px; }
- .catalog-filters, .catalog-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+ .catalog-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
  .catalog-estimates { grid-template-columns: 1fr; }
- .catalog-console .ui-table td[data-label=Monitor] { min-width: 0; }
- .catalog-console .ui-table td[data-label=Select] { justify-content: flex-start; }
- .catalog-bulk-actions button { flex: 1 1 130px; }
  .catalog-dialog-actions button { flex: 1 1 100%; }
-}
-/* The catalog adds selection to the seven-column table. */
-.catalog-console .monitor-list th { width: auto; }
-.catalog-console .monitor-list th:nth-child(1) { width: 54px; }
-.catalog-console .monitor-list th:nth-child(2) { width: 94px; }
-.catalog-console .monitor-list th:nth-child(3) { width: 22%; }
-.catalog-console .monitor-list th:nth-child(4) { width: 14%; }
-.catalog-console .monitor-list th:nth-child(5) { width: 11%; }
-.catalog-console .monitor-list th:nth-child(6) { width: 12%; }
-.catalog-console .monitor-list th:nth-child(7), .catalog-console .monitor-list th:nth-child(8) { width: 14%; }
-.catalog-console .metric-basis { padding: 14px 24px; }
-@container table-wrap (max-width: 759px) {
- .catalog-console .monitor-list td[data-label="Select"] { grid-column: 1; }
- .catalog-console .monitor-list td[data-label="State"] { grid-column: 2 / -1; }
- .catalog-console .monitor-list td[data-label="Monitor"] { grid-column: 1 / -1; }
 }
 .catalog-dialog .catalog-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
 .catalog-dialog .catalog-grid > div { min-width: 0; display: grid; gap: 8px; align-content: start; }

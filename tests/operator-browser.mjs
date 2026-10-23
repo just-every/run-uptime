@@ -37,6 +37,18 @@ async function tabTo(page,locator){
  for(let i=0;i<100;i++){await page.keyboard.press('Tab');if(await locator.evaluate(element=>document.activeElement===element))return}
  assert.fail('Keyboard could not reach '+await locator.textContent());
 }
+// Bulk add's door, "Add many monitors": beside New monitor on the list, and on the first-monitor page an empty list opens.
+// Tab from the page's heading reaches it, its dialog previews pasted URLs, and Escape returns to it.
+async function bulkAddDoor(page){
+ const door=page.getByRole('button',{name:'Add many monitors',exact:true});
+ await page.locator('main h1').click();await tabTo(page,door);await page.keyboard.press('Enter');
+ const dialog=page.getByRole('dialog',{name:'Bulk add monitors',exact:true});await dialog.waitFor();
+ await dialog.getByLabel('URLs or CSV',{exact:true}).fill('https://93.184.216.34/operator-batch');
+ await dialog.getByRole('button',{name:'Preview',exact:true}).click();await dialog.getByRole('heading',{name:'Review the plan',exact:true}).waitFor();
+ assert.match(await dialog.locator('.catalog-preview > p').first().textContent(),/^1 create\b/,'Bulk add previews the pasted URL');
+ await page.keyboard.press('Escape');await dialog.waitFor({state:'detached'});
+ assert.ok(await door.evaluate(element=>document.activeElement===element),'closing Bulk add returns focus to its door');
+}
 async function nextPoll(page){
  await page.waitForResponse(response=>overviewRead(new URL(response.url()))&&response.request().method()==='GET'&&response.ok(),{timeout:12000});
  // The next keyboard action must see the completed redraw, not just headers.
@@ -126,8 +138,8 @@ try{
    page.on('response',response=>{const path=new URL(response.url()).pathname;if(response.status()>=400&&(path.startsWith('/assets/')||path==='/app.js'||path==='/api/overview'))failed.push({path,status:response.status()})});
    await browserSignIn(page,origin,{bootstrap:false});
    // The installation has no monitors before the first width: the console opens straight into the new-monitor form.
-   if(width===1440){await page.waitForURL(url=>url.pathname==='/app/monitors/new');await page.locator('.editor-context-ready').waitFor();assert.equal(await page.locator('h1').textContent(),'Add your first monitor');await audit(page,`editor-${width}`);await page.locator('#discovery-manual').click()}
-   else{await ready(page);await audit(page,`console-${width}`);
+   if(width===1440){await page.waitForURL(url=>url.pathname==='/app/monitors/new');await page.locator('.editor-context-ready').waitFor();assert.equal(await page.locator('h1').textContent(),'Add your first monitor');await audit(page,`editor-${width}`);await bulkAddDoor(page);await page.locator('#discovery-manual').click()}
+   else{await ready(page);await audit(page,`console-${width}`);await bulkAddDoor(page);
     await tabTo(page,page.getByRole('button',{name:'New monitor',exact:true}));await page.keyboard.press('Enter');
     await page.locator('.editor-ready').waitFor();await audit(page,`editor-${width}`);await page.locator('#discovery-manual').click()}
    const name=`Operator ${width} ${Date.now()}`;
