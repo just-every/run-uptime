@@ -450,6 +450,12 @@
       "name": "0071_edition_credentials.sql",
       "sha256": "1fad3925d5aa36cc3c67687856eb7818a179e0524e623e0f479ee94fd399af03",
       "sql": "CREATE TABLE uptime_credential_workspace(singleton INTEGER PRIMARY KEY CHECK(singleton=1),id TEXT NOT NULL);\nINSERT INTO uptime_credential_workspace VALUES(1,lower(hex(randomblob(16))));\nCREATE TABLE uptime_credential_grants(\n id TEXT PRIMARY KEY,namespace TEXT NOT NULL UNIQUE,workspace_id TEXT NOT NULL,\n issuer_id TEXT NOT NULL,issuer_version INTEGER NOT NULL,issuer_role TEXT NOT NULL,role_revision INTEGER NOT NULL,\n revision INTEGER NOT NULL DEFAULT 1,resources TEXT NOT NULL,environment TEXT,created_at INTEGER NOT NULL\n);\nCREATE TABLE uptime_credential_limits(grant_id TEXT PRIMARY KEY,window INTEGER NOT NULL,count INTEGER NOT NULL);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0072_named_alert_routes.sql",
+      "sha256": "c20e33a418b172e9f42ce55922e491f0eb7e6a2e19d55f37909293252a9ab72d",
+      "sql": "-- Immutable named copies and reviewed catalog assignments are local configuration, never restored authority.\nCREATE TABLE alert_named_routes(id TEXT PRIMARY KEY,name TEXT NOT NULL UNIQUE COLLATE NOCASE,policy TEXT NOT NULL,created_at INTEGER NOT NULL);\nALTER TABLE alert_routes ADD COLUMN named_route_id TEXT REFERENCES alert_named_routes(id);\nCREATE TABLE catalog_route_batches(id TEXT PRIMARY KEY,route_id TEXT NOT NULL REFERENCES alert_named_routes(id),created_at INTEGER NOT NULL,actor_kind TEXT NOT NULL,actor_ref TEXT NOT NULL,counts TEXT NOT NULL,undone_at INTEGER);\nCREATE TABLE catalog_route_batch_entries(batch_id TEXT NOT NULL REFERENCES catalog_route_batches(id),monitor_id TEXT NOT NULL REFERENCES monitors(id),monitor_revision INTEGER NOT NULL,previous_policy TEXT NOT NULL,applied_policy TEXT NOT NULL,applied_revision INTEGER NOT NULL,PRIMARY KEY(batch_id,monitor_id));\nCREATE INDEX catalog_route_entries_monitor ON catalog_route_batch_entries(monitor_id);\n"
     }
   ],
   "compatibilityDate": "2026-09-08",

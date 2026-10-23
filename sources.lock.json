@@ -2107,7 +2107,7 @@
       "executable": false
     },
     "management/integration/deployment-spec.json": {
-      "sha256": "014064ef30b1d8dddd9057fb7b4ab99674ed0d46e16d1592440ef67619d94e5d",
+      "sha256": "f7e78ffac22333876683a95df888ba5d561cb02bb45653a5190f4ed3a678d9cc",
       "executable": false
     },
     "migrations/0001_uptime.sql": {
@@ -5471,7 +5471,7 @@
       "executable": false
     },
     "src/domain/archive-validation.ts": {
-      "sha256": "dba28a8bbb793db4fdf8a25ed6bcc4a127e57e0b05fe94a8d49696136532488a",
+      "sha256": "62b091d9906aa4d89cda816a72b99ca7180f585c6450a0756c88e18a413b8bb8",
       "executable": false
     },
     "src/domain/archive.server.ts": {
@@ -5607,7 +5607,7 @@
       "executable": false
     },
     "src/domain/catalog/routes.server.ts": {
-      "sha256": "0b7cee188fdea48a7fd59b59362db66d41e0d9815d19676ea74dc2d0b44d39db",
+      "sha256": "3944abb8426df93fc4e3c8bb46c2c08986ef62cef77066c352365eb625509154",
       "executable": false
     },
     "src/domain/ci/door.server.ts": {
@@ -7164,6 +7164,10 @@
     },
     "tests/business-provisioned.mjs": {
       "sha256": "8a02a70dcbd9c6b5973ab930956f2e120e0bdd7c1822589c966d6aee3cc9bd28",
+      "executable": false
+    },
+    "tests/catalog-routes-support.mjs": {
+      "sha256": "10b1a23ba9141580bf25ffa943677b6e43dd1fb2c36698b2f05e47201bba4d0e",
       "executable": false
     },
     "tests/catalog.mjs": {
