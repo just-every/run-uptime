@@ -475,7 +475,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "77478a504c0972b72d22358acd10a1e2407bc333d056334b61537dcbd9bc4361",
+      "sha256": "1cde3cca0e175a369c253d70caafbfd73151326bd9d56accf091f15bea119743",
       "executable": false
     },
     "AGENTS.md": {
@@ -499,7 +499,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "164b69b278067d7f052f993119c572b77d089c3faf1a19f032ffd3f57280774c",
+      "sha256": "8886d6b6caa1e11cabf158d60d2888a08f05f7b86a55d27a7ca828581948e1fd",
       "executable": false
     },
     "DEMO.md": {
@@ -5347,7 +5347,7 @@
       "executable": false
     },
     "src/domain/access.server.ts": {
-      "sha256": "8698912449b207b41d168333ee0cebe6eee9a95b67bac467f1d1178c69ef9a5b",
+      "sha256": "5ad367f51d25535571aa1e389327f8ca747c257f56ad4e0ae499c5bc6f2c109a",
       "executable": false
     },
     "src/domain/alert-drill-content.ts": {
@@ -7747,7 +7747,7 @@
       "executable": false
     },
     "tests/worker-intake.mjs": {
-      "sha256": "ed3490152fce9d35d6cdad12a1c9b278352e929fe1efdbc61f71d817ed18e2b8",
+      "sha256": "a41bfb997c2f2434a597d03cd3c01e8ded956ac82d90096664fd995522a9e380",
       "executable": false
     },
     "tsconfig.json": {
