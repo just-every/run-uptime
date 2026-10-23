@@ -13,6 +13,7 @@ const id={id:identity},source=(value:string)=>SOURCES.includes(value)
 const reportQuery={...Object.fromEntries(['period','from','to','timeZone','zone','sla','slaTarget','bucket','location','rootCause'].map(name=>[name,(value:string)=>identity(value)&&value.length<=150])),format:(value:string)=>['csv','json','pdf'].includes(value)}
 const incidentQuery=Object.fromEntries(['monitor','tag','from','to','state','rootCause','cursor','limit'].map(name=>[name,identity]))
 export const apiRoutes:readonly Route[]=[
+ ...['teams','recipient'].flatMap(part=>[{method:'GET',path:'/api/routing/'+part,body:'none' as const},{method:'POST',path:'/api/routing/'+part,body:'object' as const}]),
  {method:'GET',path:'/api/access/self',body:'none'},
  {method:'GET',path:'/api/access/members',body:'none'},
  {method:'POST',path:'/api/access/invitations',body:'object'},
@@ -57,7 +58,7 @@ export const apiRoutes:readonly Route[]=[
  {method:'GET',path:'/api/monitors/:id/slow-policy',params:id,body:'none'},
  ...['slow-policy','slow-policy/import-preview','slow-ack'].map(suffix=>({method:'POST',path:`/api/monitors/:id/${suffix}`,params:id,body:'object' as const})),
  {method:'GET',path:'/api/monitors/:id/alert-route',params:id,body:'none'},
- ...['preview','apply','import-preview'].map(action=>({method:'POST',path:`/api/monitors/:id/alert-route/${action}`,params:id,body:'object' as const})),
+ ...['preview','apply','import-preview','sample'].map(action=>({method:'POST',path:`/api/monitors/:id/alert-route/${action}`,params:id,body:'object' as const})),
  ...['catalog/preview','catalog/apply','catalog/add/preview','catalog/add/apply','maintenance/preview','maintenance/apply','maintenance/cancel'].map(path=>({method:'POST',path:'/api/'+path,body:'object' as const})),
  {method:'GET',path:'/api/v1/openapi.json',body:'none'},
  ...['GET','POST'].flatMap(method=>['/api/heartbeats/:id','/api/heartbeats/:id/url/:token'].flatMap(base=>['','/start','/success','/fail','/fail/:exitCode'].map(suffix=>({method,path:base+suffix,params:{...id,...(base.includes(':token')?{token:(value:string)=>/^[0-9a-f-]{72}$/.test(value)}:{}),...(suffix.includes(':exitCode')?{exitCode:(value:string)=>/^(0|[1-9][0-9]{0,2})$/.test(value)&&Number(value)<=255}:{})},body:(method==='GET'?'none':'text') as Body})))),
