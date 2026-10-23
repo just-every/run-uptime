@@ -47,6 +47,7 @@ try{
   const applied=await door.apply(view.body);assert.equal(applied.status,200,JSON.stringify(applied.body));robotBatches.push(applied.body.batchId.slice('business:'.length));
   if(undo)assert.equal((await door.undo(applied.body)).body.job.state,'undone');
  }
+ const authorityMember=crypto.randomUUID();await env.DB.prepare("INSERT INTO oa_operators(id,email,display_name,role,status,version,created_at) VALUES(?,'synthetic-archive-member@example.test','Synthetic archive member','member','active',1,?)").bind(authorityMember,Date.now()).run();await env.DB.prepare("INSERT INTO uptime_member_roles(operator_id,role,base_role,base_version,updated_at) VALUES(?,'read-only','member',1,?)").bind(authorityMember,Date.now()).run();await env.DB.prepare("INSERT INTO uptime_member_scopes(operator_id,kind,value) VALUES(?,'service','synthetic-private-scope')").bind(authorityMember).run();
  const original=await archive(env),a=tables(original);assert.ok(!JSON.stringify(original).includes('rer_migrations'));assert.deepEqual((await env.DB.prepare('SELECT * FROM rer_migrations').all()).results,sourceLedger);
  // A Slack body sent with workerd's zero-offset spelling exports as sent; the loops below restore and re-export it byte for byte.
  assert.match(JSON.parse(a.integration_deliveries.find(d=>d.id==='job-zero-offset').envelope).body,/Confirmed start \(UTC\): [^\\]+ GMT\+00:00\\n/);
@@ -61,12 +62,13 @@ try{
  const withTables=(names,db=env.DB)=>({prepare:sql=>db.prepare(sql.replace('FROM sqlite_master',`FROM (SELECT name,type FROM sqlite_master${names.map(n=>` UNION ALL SELECT '${n}','table'`).join('')})`)),batch:statements=>db.batch(statements)});
  await assertArchiveInventory(withTables(['_cf_KV','_cf_FUTURE']));await assert.rejects(assertArchiveInventory(withTables(['_cf_KV','xcf_unknown'])),/Archive unclassified table: xcf_unknown/);
  assert.equal(original.payload.schemaVersion,2);assert.deepEqual(Object.keys(original.payload.tables),LEGACY_TABLES);assert.deepEqual(Object.keys(a),TABLES);
- const text=JSON.stringify(original);for(const secret of [values.SESSION_SECRET,values.SETUP_TOKEN,values.UPTIME_RUNNER_KEY,'private-lease','private-queued-lease','private-destination','private-fingerprint','fixture-signing-secret','credential-webhook','credential-slack','private-claim','/fixture/private/token'])assert.ok(!text.includes(secret),'Excluded credential or authority marker');assert.ok(text.includes('archive-owner@example.test'));
+ const text=JSON.stringify(original);assert.ok(!text.includes('synthetic-private-scope'));assert.ok(!Object.hasOwn(a,'uptime_member_roles'));assert.ok(!Object.hasOwn(a,'uptime_member_scopes'));for(const secret of [values.SESSION_SECRET,values.SETUP_TOKEN,values.UPTIME_RUNNER_KEY,'private-lease','private-queued-lease','private-destination','private-fingerprint','fixture-signing-secret','credential-webhook','credential-slack','private-claim','/fixture/private/token'])assert.ok(!text.includes(secret),'Excluded credential or authority marker');assert.ok(text.includes('archive-owner@example.test'));
  await assert.rejects(archive({...env,SESSION_SECRET:'synthetic-incorrect-local-secret-that-cannot-decrypt-email'}),/email definition unavailable/);
  await worker.dispose();worker=null;
  await writeFile(file,JSON.stringify(original),{mode:0o600});assert.equal((await stat(file)).mode&0o777,0o600);assert.deepEqual(tables(JSON.parse(await readFile(file,'utf8'))),a);
  await migrate(target);env=await installation(target);const destinationLedger=await platformLedger(env.DB,'destination.sql');await restore(env,original);const roundtrip=await archive(env),b=tables(roundtrip);assert.deepEqual((await env.DB.prepare('SELECT * FROM rer_migrations').all()).results,destinationLedger,'ARCHIVE-ROUNDTRIP-001: preserve Platform destination migration history');
 
+ for(const name of ['uptime_member_roles','uptime_member_scopes'])assert.equal((await env.DB.prepare(`SELECT COUNT(*) n FROM ${name}`).first()).n,0,'archive restore grants no receiving membership or scope');
  for(const name of ['migrations','observations','integration_attempts','integration_resolutions','integration_replays'])assert.deepEqual(b[name],a[name],`${name} retained byte for byte`);
  for(const type of ['tcp','dns','tls','domain']){
   const source=a.monitors.find(m=>JSON.parse(m.definition).type===type),restored=b.monitors.find(m=>m.id===source.id);

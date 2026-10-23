@@ -1,4 +1,6 @@
 import {auditStatement} from './audit.server.ts'
+import {permission,accessResponse} from './access.server.ts'
+import {authorizedDatabase} from './access-database.server.ts'
 // Edition wiring only. Credential, session and operator authority belongs to Base.
 import {mailSender} from './mail.server.ts'
 import branding from '../branding.json' with {type:'json'}
@@ -18,7 +20,8 @@ export function operatorAuth(env:AuthBindings){
  return createOperatorAuth({db:env.DB,config:authConfig(env),
  ...(mailSender(env)?{mailSender:operatorMailSender(env,development)}:{}),clientIp:(request:Request)=>local?'loopback':request.headers.get('CF-Connecting-IP')??''})
 }
-// Base validates the identity; the edition separately limits product access to owners.
+// Base validates identity. The shared product policy narrows ordinary access;
+// this owner-only helper remains for services with explicit owner contracts.
 // Document gates need the authenticated identity to distinguish a refused member from a signed-out visitor.
 export async function authenticatedSession(env:AuthBindings,request:Request){return operatorAuth(env).getSession(request)}
 export async function operatorSession(env:AuthBindings,request:Request){const session=await authenticatedSession(env,request);return session?.operator.role==='owner'?session:null}
@@ -26,9 +29,23 @@ const authPaths=new Set(['/auth/owner-signin','/auth/one-click','/auth/bootstrap
 export async function authRoute(env:AuthBindings,request:Request){try{
  if(!authPaths.has(new URL(request.url).pathname))return new Response('Not found',{status:404});
  let configured=env;
+ const path=new URL(request.url).pathname;
+ if((path==='/auth/operators'&&request.method==='GET')||(['/auth/invite','/auth/invite/cancel','/auth/operator/status','/auth/operator/role'].includes(path)&&request.method==='POST')){
+  try{const actor=await permission(env,request);configured={...env,DB:authorizedDatabase(env,actor)}}catch(error){const denied=accessResponse(error);if(denied)return Response.json({error:'forbidden'},{status:403,headers:{'cache-control':'no-store'}});throw error}
+ }
+ if(path==='/auth/sessions'||path==='/auth/session/revoke'){
+  const principal=await authenticatedSession(env,request)
+  let own=path==='/auth/sessions'&&(!new URL(request.url).searchParams.get('operatorId')||new URL(request.url).searchParams.get('operatorId')===principal?.operator.id)
+  if(path==='/auth/session/revoke'&&principal){
+   let input:any;try{const copy=request.clone();input=(copy.headers.get('content-type')??'').startsWith('application/json')?await copy.json():Object.fromEntries(await copy.formData())}catch{}
+   const target=typeof input?.sessionId==='string'?await env.DB.prepare('SELECT operator_id FROM oa_sessions WHERE id=?').bind(input.sessionId).first<{operator_id:string}>():null
+   own=target?.operator_id===principal.operator.id
+  }
+  if(!own){try{const actor=await permission(env,request,undefined,{action:'members',workspace:true});configured={...env,DB:authorizedDatabase(env,actor)}}catch(error){if(accessResponse(error))return Response.json({error:'forbidden'},{status:principal?403:401});throw error}}
+ }
  if(new URL(request.url).pathname==='/auth/session/revoke'){
   const actor=await operatorSession(env,request);
-  if(actor){const db=env.DB;configured={...env,DB:{prepare(sql:string){const statement=db.prepare(sql);if(!sql.startsWith('UPDATE oa_sessions SET revoked_at='))return statement;const wrap=(prepared:D1PreparedStatement):D1PreparedStatement=>new Proxy(prepared,{get(target,key){if(key==='bind')return (...values:any[])=>wrap(target.bind(...values));if(key==='run')return async()=>{const results=await db.batch([target,auditStatement(env,{kind:'operator',ref:actor.operator.id},'session_revoke','session',crypto.randomUUID(),'changes()>0')]);return results[0]};const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value}});return wrap(statement)},batch:db.batch.bind(db),exec:db.exec.bind(db),dump:db.dump.bind(db),withSession:db.withSession?.bind(db)} as D1Database}}
+  if(actor){const db=configured.DB;configured={...configured,DB:{prepare(sql:string){const statement=db.prepare(sql);if(!sql.startsWith('UPDATE oa_sessions SET revoked_at='))return statement;const wrap=(prepared:D1PreparedStatement):D1PreparedStatement=>new Proxy(prepared,{get(target,key){if(key==='bind')return (...values:any[])=>wrap(target.bind(...values));if(key==='run')return async()=>{const results=await db.batch([target,auditStatement(env,{kind:'operator',ref:actor.operator.id},'session_revoke','session',crypto.randomUUID(),'changes()>0')]);return results[0]};const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value}});return wrap(statement)},batch:db.batch.bind(db),exec:db.exec.bind(db),dump:db.dump.bind(db),withSession:db.withSession?.bind(db)} as D1Database}}
  }
  return await createAuthHandler(operatorAuth(configured))(request)
  }catch(error){return authFailure(error)}}

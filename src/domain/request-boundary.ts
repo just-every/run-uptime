@@ -13,6 +13,11 @@ const id={id:identity},source=(value:string)=>SOURCES.includes(value)
 const reportQuery={...Object.fromEntries(['period','from','to','timeZone','zone','sla','slaTarget','bucket','location','rootCause'].map(name=>[name,(value:string)=>identity(value)&&value.length<=150])),format:(value:string)=>['csv','json','pdf'].includes(value)}
 const incidentQuery=Object.fromEntries(['monitor','tag','from','to','state','rootCause','cursor','limit'].map(name=>[name,identity]))
 export const apiRoutes:readonly Route[]=[
+ {method:'GET',path:'/api/access/self',body:'none'},
+ {method:'GET',path:'/api/access/members',body:'none'},
+ {method:'POST',path:'/api/access/invitations',body:'object'},
+ {method:'POST',path:'/api/access/members/:id',params:id,body:'object'},
+ {method:'DELETE',path:'/api/access/members/:id',params:id,body:'none'},
  {method:'GET',path:'/api/business-import-settings',body:'none'},
  {method:'POST',path:'/api/business-import-settings',body:'object'},
  {method:'GET',path:'/api/v1/monitors',query:{limit:identity,cursor:identity,tag:identity},body:'none'},

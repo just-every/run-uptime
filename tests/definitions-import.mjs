@@ -11,6 +11,7 @@ import {join} from 'node:path';
 import {readFile} from 'node:fs/promises';
 import {migratedWorker,runtimeDirectory,cleanupDirectory,availablePorts} from './notify-acceptance-runtime.mjs';
 import {testAuthBindings,authRequest,sessionCookie,finishSetup,definitionDoor} from './auth-test-support.mjs';
+import {inviteDoorMember} from './access-door-support.mjs';
 import {populateArchiveFixture} from './archive-fixture.mjs';
 
 const directory=await runtimeDirectory(),[port]=await availablePorts(1),origin=`http://127.0.0.1:${port}`;
@@ -277,5 +278,16 @@ try{
  assert.deepEqual(siteView.entries.filter(e=>e.action==='create').map(e=>e.target.service),['Slack','Stripe','AWS']);
  assert.equal((await apply(siteView)).status,200);
  assert.deepEqual(parts(await followedRows()),[['aws','component','ec2-us-east-1',0,null],['aws','component','ec2-us-east-2',0,null],['github','whole',null,0,null],['slack','whole',null,0,null],['stripe','component','api',0,null],['stripe','whole',null,0,null]],'every mapped third-party monitor is a followed service of its own catalog part');
+ // Product roles and scopes never turn the owner import transport into a
+ // workspace-wide member door. Refused calls leave every durable row exact.
+ for(const role of ['admin','editor','responder','read-only']){
+  const member=await inviteDoorMember(origin,cookie,role,'definitions-'+role,role==='editor'?[{kind:'service',value:'synthetic-import-scope'}]:[]);
+  await unchanged(role+' import refusal',async()=>{const response=await fetch(origin+'/api/operator/import/upload',{method:'POST',headers:{origin,cookie:member.cookie,'content-type':'application/json','x-import-source':'uptime.monitors'},body:'{}'});assert.equal(response.status,403)});
+  if(role!=='admin')await unchanged(role+' export refusal',async()=>assert.equal((await fetch(origin+'/api/definitions/export',{headers:{cookie:member.cookie}})).status,403));
+ }
+ const actor=(await (await call('/auth/session',undefined,{cookie})).json()).operator.id;
+ const auditCount=async()=>Number((await DB.prepare("SELECT COUNT(*) n FROM uptime_audit WHERE action='access_export' AND actor_ref=?").bind(actor).first()).n),priorAudit=await auditCount();
+ assert.equal((await fetch(origin+'/api/definitions/export?unexpected=1',{headers:{cookie}})).status,400);assert.equal(await auditCount(),priorAudit,'invalid export writes no authorization audit');
+ assert.equal((await fetch(origin+'/api/definitions/export',{headers:{cookie}})).status,200);assert.equal(await auditCount(),priorAudit+1,'permitted definition export records one opaque live actor receipt');
  console.log('IMPORT-001 / MIGRATE-001 passed through the import door: refusals leave every table byte-identical; request secrets are withheld before upload and stored nowhere; UptimeRobot preview, paused apply, export round-trip, change, undo that keeps and reports edits, with history intact, and earlier batches keep read and undo. DEPENDENCY-002 passed: UptimeRobot, Better Stack and Site24x7 third-party service monitors map onto catalog entries as paused followed services, a Better Stack third-party status page row is refused citing its public API, and a part already followed is refused.');
 }finally{await worker?.dispose();await cleanupDirectory(directory)}
