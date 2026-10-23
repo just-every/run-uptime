@@ -471,7 +471,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "ad0c85117926604cd3e02a9713d00341c22bc72439b9720903059f3f6959ccc0",
+      "sha256": "dd05523a811918dca7a4c4e670d505b532cce0ed00c323371eae1e0fa93464e3",
       "executable": false
     },
     "AGENTS.md": {
@@ -495,7 +495,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "eed730bbb171ae44c5d52132525cd7ecb62716471ad1850a96d792ed7a5ae26a",
+      "sha256": "e9cabbfe855e77c3ea89574952523b93830c0ff78c8c97f890ab4f1299cfc137",
       "executable": false
     },
     "DEMO.md": {
@@ -7019,7 +7019,7 @@
       "executable": false
     },
     "tests/discovery-sources-fixture.mjs": {
-      "sha256": "72d599ec005ef9d99a817c894587fbff9c053d5a72469875623e07481f229e6f",
+      "sha256": "f7cba94e3cfc6932b9887948db6fd2c5167349dd6ba1b8d2fa308eb1c032f41b",
       "executable": false
     },
     "tests/discovery-sources-journey.mjs": {
@@ -7087,7 +7087,7 @@
       "executable": false
     },
     "tests/flow-journey.mjs": {
-      "sha256": "28e02c57007d7cf1023e550fd8616117a5fd48fa6e316272e49ca59a96b3f065",
+      "sha256": "2dda7b35a465cc73970b5713becdaeec6d90e6bf2361336c3521ee3c1977ef38",
       "executable": false
     },
     "tests/flow-profiles-browser.mjs": {
@@ -7302,8 +7302,20 @@
       "sha256": "b1380b2809f0076af27018bd3fb70451a5a3cbef0e64824245d374644b0db0ba",
       "executable": false
     },
+    "tests/pagespeed-network-fixture.mjs": {
+      "sha256": "39986a21a7d56f785d54e62c88a318a59ef607b3125a7d77f0096036aa3493f3",
+      "executable": false
+    },
+    "tests/pagespeed-network-trust.mjs": {
+      "sha256": "6523bb346ba9f55bc647c71fe016403749836e0b17d9c1570d73beb5d772c63c",
+      "executable": false
+    },
     "tests/pagespeed-support.mjs": {
       "sha256": "8d0d2a44ebc01b69bcd14799f65322c2a0b43d88b8d93d92e47c272b996d51dc",
+      "executable": false
+    },
+    "tests/pagespeed-timing-support.mjs": {
+      "sha256": "dd62b1d59cd04c2a334e21c7e0e0a729fa887ac34765c9254e1d32bcdcdbcbbe",
       "executable": false
     },
     "tests/ping-browser.mjs": {
