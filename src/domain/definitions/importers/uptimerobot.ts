@@ -1,3 +1,5 @@
+// @ts-ignore Shared read-only saved-contact guidance.
+import {CONTACT_EXPORT_GUIDANCE} from '../../webhook-contact-import.mjs'
 import {DEFINITION_MONITORS,DefinitionFileError,boundEntries,jsonValues} from '../format.ts'
 import type {Importer,Mapping,SourceEntry} from './types.ts'
 import {thirdPartyService} from './third-party.ts'
@@ -62,6 +64,7 @@ function map(entry:SourceEntry):Mapping{
   if(!Number.isSafeInteger(graceMs)||graceMs>86400000)return {refused:'Heartbeat grace must be from 0 to 86400 seconds.'}
   return {definition:{...common,type:'heartbeat',heartbeat:{maxAgeMs:intervalMs,graceMs},assertions:{status:200},probes:['local-a'],failureQuorum:1},differences}
  }
+ if(contacts)differences.push(CONTACT_EXPORT_GUIDANCE)
  if(typeof m.url!=='string'||!m.url)return {refused:`${label} has no URL.`}
  // DEPENDENCY-002: a monitor of a provider's status address maps onto its catalog entry.
  const third=thirdPartyService(m.url,m.friendlyName)

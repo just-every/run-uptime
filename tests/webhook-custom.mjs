@@ -20,5 +20,24 @@ test('reviewed custom webhooks preserve receiver formats, exact signed bytes, lo
  }
  const warning=await request('/api/notifications/webhook-preview',{url,webhookTemplate:{version:1,method:'POST',mode:'json',template:'{"unsupported":"*customFields*"}'}});assert.equal(warning.warnings.length,1);assert.match(warning.samples[0].request.body,/Unavailable/);
  const archive=await request('/api/archive');for(const secret of [headerSecret,'source-secret-not-carried','receiver-private-query',destination.signingSecret])assert.ok(!JSON.stringify(archive).includes(secret));assert.ok(archive.payload.productTables.notification_destinations[0].webhook_template);receiving=await fixture();assert.equal((await receiving.request('/api/restore',{body:archive})).status,200);const restored=(await receiving.request('/api/notifications')).data;assert.ok(restored.destinations.every(d=>!d.enabled&&!d.credentialsAvailable));assert.equal(restored.destinations[0].webhookTemplate.method,'PATCH');assert.equal(records.length,5);
+ // MIGRATE-001: saved contact/seat reconciliation is read-only and imports no consent.
+ const savedContacts=JSON.parse(await (await import('node:fs/promises')).readFile('tests/fixtures/uptimerobot-contacts.synthetic.json','utf8'));
+ const savedSeats=JSON.parse(await (await import('node:fs/promises')).readFile('tests/fixtures/uptimerobot-seats.synthetic.json','utf8'));
+ const beforeContacts=(await request('/api/notifications')).destinations,beforeCredentials=(await f.DB.prepare('SELECT count(*) n FROM notification_credentials').first()).n,beforeOperators=(await f.DB.prepare('SELECT count(*) n FROM oa_operators').first()).n,beforeSends=records.length;
+ const contacts=await request('/api/notifications/webhook-import-preview',{type:'AlertContacts',data:savedContacts});
+ assert.equal(contacts.readOnly,true);assert.deepEqual(contacts.counts,{read:10,review:2,refused:8});assert.equal(contacts.entries.length,10);
+ for(const entry of contacts.entries){assert.deepEqual(contacts.byKind[entry.kind],{read:1,review:entry.action==='review'?1:0,refused:entry.action==='refused'?1:0});assert.ok(entry.reason)}
+ assert.deepEqual(contacts.entries[0].destination,{kind:'email',address:'synthetic-uptime-1@example.test'});assert.deepEqual(contacts.entries[4].destination,{kind:'webhook'});
+ for(const [index,clause] of [[1,'PHONE-001'],[2,'CHAT-001'],[3,'CHAT-001'],[5,'CHAT-001'],[6,'MOBILE-001'],[7,'MOBILE-001'],[8,'MOBILE-001'],[9,'MOBILE-001']])assert.equal(contacts.entries[index].clause,clause);
+ assert.equal(contacts.entries[5].legacyTeams,true);assert.match(contacts.entries[5].reason,/Teams Workflows/);assert.ok(!JSON.stringify(contacts).includes(savedContacts[5].value),'legacy connector authority is never returned');
+ assert.ok(contacts.differences.some(d=>d.includes('/incidents/{id}/comments')&&d.includes('IncidentDetailDto.rootCause')&&d.includes('absent')));
+ const seats=await request('/api/notifications/webhook-import-preview',{type:'AllAlertContacts',data:savedSeats});assert.deepEqual(seats.seatCounts,{read:5,login:2,notifyOnly:3,refused:5});assert.deepEqual(seats.counts,{read:5,review:5,refused:0});
+ assert.deepEqual(seats.seats.map(s=>s.name),savedSeats.map(s=>s.user.name));assert.ok(seats.seats.every(s=>s.action==='refused'&&s.clause==='ACCESS-001'));assert.deepEqual(seats.entries.map(c=>c.seatIndex),[0,1,2,3,4]);
+ for(const entry of contacts.entries.filter(e=>e.action==='refused'))assert.equal(entry.destination,undefined,'a refused kind offers no destination to apply');
+ for(const [type,data] of [['AlertContacts',savedContacts],['AllAlertContacts',savedSeats]])assert.equal((await f.request('/api/notifications/webhook-import-preview',{body:{type,data,apply:true}})).status,400,'the read-only preview refuses an apply request');
+ const unknown=await request('/api/notifications/webhook-import-preview',{type:'AlertContacts',data:[{id:21,type:'__proto__',friendlyName:'synthetic-uptime-21'}]});assert.deepEqual(unknown.byKind.__proto__,{read:1,review:0,refused:1});assert.equal(unknown.entries[0].action,'refused');
+ const anonymous=await fetch(f.origin+'/api/notifications/webhook-import-preview',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({type:'AlertContacts',data:savedContacts})});assert.equal(anonymous.status,401);
+ assert.deepEqual((await request('/api/notifications')).destinations,beforeContacts);assert.equal((await f.DB.prepare('SELECT count(*) n FROM notification_credentials').first()).n,beforeCredentials);assert.equal((await f.DB.prepare('SELECT count(*) n FROM oa_operators').first()).n,beforeOperators);assert.equal(records.length,beforeSends);
+ console.log('MIGRATE-001 contacts: read 10 = review 2 + refused 8; seats 5 = login 2 + notify-only 3, all refused; no destination, member, confirmation or send created.');
  }finally{await receiving?.close();await edge?.close()}
 });

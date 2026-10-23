@@ -10,7 +10,7 @@ test('console paths survive bookmarks, navigation, copied links, history and rel
  try{
   const [port]=await availablePorts(1),origin=`http://127.0.0.1:${port}`;
   ({worker}=await migratedWorker({port,persist:join(directory,'worker')}));
-  browser=await chromium.launch({headless:true,ignoreDefaultArgs:['--disable-back-forward-cache'],args:['--use-mock-keychain','--password-store=basic']});
+  browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});
   const context=await browser.newContext(),page=await context.newPage();await browserSignIn(page,origin);
   const created=await page.request.post(origin+'/api/monitors',{headers:{origin},data:{name:'Storefront availability',url:'https://example.com/',canaryUrl:'https://example.org/',enabled:false}});
   assert.equal(created.status(),201);const {id}=await created.json(),detail=`/app/monitors/${encodeURIComponent(id)}`,edit=detail+'/edit';
@@ -55,6 +55,68 @@ test('console paths survive bookmarks, navigation, copied links, history and rel
    await page.goBack();await page.waitForURL(origin+detail);await page.locator('#monitor-state').waitFor();
    await page.goForward();await page.waitForURL(origin+edit);await page.locator('html.editor-context-ready').waitFor();
    assert.equal(new URL(page.url()).search,'');assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  }
+  // Clone is opened through the list selection, including the optional Labels
+  // fold. Keep this block at the end of the existing navigation registration.
+  {
+   const {readFile,mkdir,writeFile}=await import('node:fs/promises');
+   const axe=await readFile(new URL('../node_modules/axe-core/axe.min.js',import.meta.url),'utf8');
+   const evidence=process.env.UPTIME_CLONE_EVIDENCE;if(evidence)await mkdir(evidence,{recursive:true});
+   const problems=[],failed=[];page.on('pageerror',error=>problems.push(error.message));page.on('console',message=>{if(message.type()==='error')problems.push(message.text())});
+   page.on('requestfailed',request=>failed.push(request.url()));
+   const get=async path=>{const response=await page.request.get(origin+path);assert.equal(response.status(),200);return response.json()};
+   const post=async(path,data,status=200)=>{const response=await page.request.post(origin+path,{headers:{origin},data});assert.equal(response.status(),status);return response.json()};
+   const source=await post('/api/monitors',{name:'synthetic-uptime-1',url:'https://93.184.216.34/clone',canaryUrl:'https://93.184.216.35/',enabled:false,project:'Source project',tags:['source']},201);
+   await post('/api/monitors',{name:'synthetic-uptime-2',url:'https://93.184.216.34/spare',canaryUrl:'https://93.184.216.35/',enabled:false},201);
+   const read=async()=>(await get('/api/overview')).monitors;
+   const original=(await read()).find(row=>row.id===source.id);
+   const labels={project:'New project',environment:'staging',service:'Checkout',group:'Web',tags:['reviewed','clone'],owner:'Synthetic team',outcome:'Checkout stays available'};
+   const audit=async(label,width)=>{
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${label} fits ${width}`);
+    await page.evaluate(axe);const result=await page.evaluate(()=>axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21a','wcag21aa','wcag22aa']}}));
+    const severe=result.violations.filter(v=>['serious','critical'].includes(v.impact)).map(v=>v.id);assert.deepEqual(severe,[],`${label} has no serious axe findings`);
+    if(evidence){await page.screenshot({path:join(evidence,`${label}-${width}.png`),fullPage:true});await writeFile(join(evidence,`${label}-${width}-axe.json`),JSON.stringify({severe}))}
+   };
+   for(const width of [1440,390]){
+    await page.setViewportSize({width,height:900});await page.goto(origin+'/app/monitors');await page.locator('html.signed-in').waitFor();await page.locator(`[data-monitor-select="${source.id}"]`).check();
+    // Cancel and Escape discard an un-applied review and create no monitor.
+    for(const dismiss of ['cancel','escape']){
+     const before=await read();await page.getByRole('button',{name:'Clone',exact:true}).click();
+     if(dismiss==='cancel')await page.getByRole('dialog').getByRole('button',{name:'Cancel',exact:true}).click();else await page.keyboard.press('Escape');
+     await page.getByRole('dialog').waitFor({state:'detached'});assert.deepEqual((await read()).map(m=>({id:m.id,revision:m.revision})),before.map(m=>({id:m.id,revision:m.revision})));
+    }
+    for(const filled of [true,false]){
+     const before=await read(),enabled=filled;
+     await page.getByRole('button',{name:'Clone',exact:true}).click();const dialog=page.getByRole('dialog');
+     if(filled){await dialog.locator('summary').click();for(const [name,value]of Object.entries(labels))await dialog.locator(`[name="${name}"]`).fill(Array.isArray(value)?value.join(', '):value);await dialog.locator('[name=enableAfterCreate]').check()}
+     const pending=page.waitForResponse(response=>new URL(response.url()).pathname==='/api/catalog/preview'&&response.request().method()==='POST');
+     await dialog.getByRole('button',{name:'Preview',exact:true}).click();const response=await pending;assert.equal(response.status(),200);
+     assert.deepEqual(response.request().postDataJSON(),{monitorIds:[source.id],action:'clone',changes:filled?labels:{},enableAfterCreate:enabled});
+     const plan=await response.json();assert.equal(plan.counts.create,1);assert.equal(plan.entries.length,1);assert.equal(plan.entries[0].sourceMonitorId,source.id);assert.equal(plan.entries[0].target.url,original.definition.url);assert.ok(plan.entries[0].target.name.startsWith(original.definition.name));
+     for(const [name,value]of Object.entries(filled?labels:{project:original.definition.project,tags:original.definition.tags}))assert.deepEqual(plan.entries[0].target[name],value);
+     await dialog.locator('.catalog-preview h3').waitFor();await page.waitForFunction(()=>!document.querySelector('.catalog-dialog [data-apply]').disabled);
+     await audit(filled?'clone-labels-preview':'clone-empty-preview',width);
+     const applying=page.waitForResponse(response=>new URL(response.url()).pathname==='/api/catalog/apply'&&response.request().method()==='POST');await dialog.locator('[data-apply]').click();const applied=await applying;assert.equal(applied.status(),201);const batch=await applied.json();assert.equal(batch.created.length,1);
+     await dialog.getByRole('button',{name:'Done',exact:true}).waitFor();const after=await read();assert.equal(after.length,before.length+1);const clone=after.find(row=>row.id===batch.created[0]);assert.equal(clone.definition.enabled,enabled);assert.deepEqual(clone.definition,plan.entries[0].target);
+     assert.deepEqual(after.find(row=>row.id===source.id).definition,original.definition);assert.equal(after.find(row=>row.id===source.id).revision,original.revision);
+     await audit(filled?'clone-labels-applied':'clone-empty-applied',width);await dialog.getByRole('button',{name:'Done',exact:true}).click();
+     await post(`/api/definitions/batches/${batch.batchId}/undo`,{});const undone=(await read()).find(row=>row.id===clone.id);assert.equal(undone.definition.enabled,false,'batch undo pauses the clone and preserves its history');
+     const batches=await get('/api/definitions/batches');assert.ok(batches.find(row=>row.id===batch.batchId).undoneAt);assert.deepEqual((await read()).find(row=>row.id===source.id).definition,original.definition);
+     console.log(`CLONE ${width}: ${filled?'typed':'empty'} labels reviewed, one create, enabled=${enabled}, source unchanged, undo paused`);
+    }
+    // The unchanged dialog kinds still construct and preview their own payloads.
+    for(const kind of ['edit','pause','resume']){
+     await page.locator(`[data-bulk="${kind}"]`).click();const dialog=page.getByRole('dialog');
+     if(kind==='edit'){await dialog.locator('[name=set-project]').check();await dialog.locator('[name=project]').fill('Edited project')}
+     const pending=page.waitForResponse(response=>new URL(response.url()).pathname==='/api/catalog/preview');await dialog.getByRole('button',{name:'Preview',exact:true}).click();const response=await pending;assert.equal(response.status(),200);assert.deepEqual(response.request().postDataJSON(),{monitorIds:[source.id],action:kind,...(kind==='edit'?{changes:{project:'Edited project'}}:{})});
+     await dialog.locator('.catalog-preview h3').waitFor();await dialog.getByRole('button',{name:'Cancel',exact:true}).click();
+    }
+    await page.getByRole('button',{name:'Bulk add',exact:true}).click();
+    {const dialog=page.getByRole('dialog');await dialog.locator('[name=text]').fill('https://93.184.216.34/bulk');const pending=page.waitForResponse(response=>new URL(response.url()).pathname==='/api/catalog/add/preview');await dialog.getByRole('button',{name:'Preview',exact:true}).click();const response=await pending;assert.equal(response.status(),200);assert.equal(response.request().postDataJSON().text,'https://93.184.216.34/bulk');await dialog.locator('.catalog-preview h3').waitFor();await dialog.getByRole('button',{name:'Cancel',exact:true}).click()}
+    await page.getByRole('button',{name:'Plan maintenance',exact:true}).click();
+    {const dialog=page.getByRole('dialog');await dialog.locator('[name=name]').fill('synthetic-uptime-maintenance');const pending=page.waitForResponse(response=>new URL(response.url()).pathname==='/api/maintenance/preview');await dialog.getByRole('button',{name:'Preview occurrences',exact:true}).click();const response=await pending;assert.equal(response.status(),200);assert.deepEqual(response.request().postDataJSON().monitorIds,[source.id]);await dialog.locator('#maintenance-preview:not([hidden])').waitFor();await dialog.getByRole('button',{name:'Cancel',exact:true}).click()}
+    assert.deepEqual(problems,[],'no unexpected console error or hydration mismatch');assert.deepEqual(failed,[],'no failed browser request');
+   }
   }
  }finally{await browser?.close();await worker?.dispose();await cleanupDirectory(directory)}
 });

@@ -113,7 +113,7 @@ export function openCatalogDialog({ api, action, kind, monitors = [], runners = 
             }
         };
     function input() {
-        const body = add ? { format: form.elements.format.value, text: form.elements.text.value, defaults: { ...readMetadata(form, false), type: form.elements.type.value, intervalMs: Math.round(Number(form.elements.interval.value) * 60000), ...chosenLocations(form), ...(form.elements.keyword.value ? { keyword: form.elements.keyword.value } : {}) } } : { monitorIds: monitors.map(m => m.id), action: kind, ...(edit || clone ? { changes: readMetadata(form, true) } : {}) };
+        const body = add ? { format: form.elements.format.value, text: form.elements.text.value, defaults: { ...readMetadata(form, false), type: form.elements.type.value, intervalMs: Math.round(Number(form.elements.interval.value) * 60000), ...chosenLocations(form), ...(form.elements.keyword.value ? { keyword: form.elements.keyword.value } : {}) } } : { monitorIds: monitors.map(m => m.id), action: kind, ...(edit || clone ? { changes: readMetadata(form, edit) } : {}) };
         if (creating)
             body.enableAfterCreate = form.elements.enableAfterCreate.checked;
         if (selectedIndexes !== undefined)

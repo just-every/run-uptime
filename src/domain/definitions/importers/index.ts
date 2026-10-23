@@ -1,3 +1,4 @@
+import {betterStackMonitorImporter} from './betterstack-monitors.ts'
 import {betterStackHeartbeatImporter} from './betterstack-heartbeats.ts'
 import {pingdomImporter} from './pingdom.ts'
 import {site24x7Importer} from './site24x7.ts'
@@ -7,7 +8,7 @@ import {uptimeRobotImporter} from './uptimerobot.ts'
 import type {Importer} from './types.ts'
 export type {Importer,Mapping,SourceEntry} from './types.ts'
 
-export const importers:Importer[]=[nativeImporter,uptimeRobotImporter,pingdomImporter,betterStackHeartbeatImporter,site24x7Importer]
+export const importers:Importer[]=[nativeImporter,uptimeRobotImporter,pingdomImporter,betterStackMonitorImporter,betterStackHeartbeatImporter,site24x7Importer]
 export const HISTORY_SOURCE='uptimerobot-log'
 export const SOURCES=['auto',...importers.map(i=>i.source),HISTORY_SOURCE]
 export function selectImporter(text:string,source='auto'){

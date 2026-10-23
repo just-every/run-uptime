@@ -1,0 +1,97 @@
+[
+  {
+    "notifyOnly": false,
+    "orgAlertContactId": null,
+    "user": {
+      "id": 1,
+      "name": "synthetic-uptime-1"
+    },
+    "alertContacts": [
+      {
+        "id": 1,
+        "name": "synthetic-uptime-1",
+        "value": "synthetic-uptime-1@example.test",
+        "type": "Email",
+        "status": 2,
+        "threshold": 0,
+        "recurrence": 0
+      }
+    ]
+  },
+  {
+    "notifyOnly": false,
+    "orgAlertContactId": null,
+    "user": {
+      "id": 2,
+      "name": "synthetic-uptime-2"
+    },
+    "alertContacts": [
+      {
+        "id": 2,
+        "name": "synthetic-uptime-2",
+        "value": "synthetic-uptime-2@example.test",
+        "type": "Email",
+        "status": 2,
+        "threshold": 0,
+        "recurrence": 0
+      }
+    ]
+  },
+  {
+    "notifyOnly": true,
+    "orgAlertContactId": null,
+    "user": {
+      "id": 3,
+      "name": "synthetic-uptime-3"
+    },
+    "alertContacts": [
+      {
+        "id": 3,
+        "name": "synthetic-uptime-3",
+        "value": "synthetic-uptime-3@example.test",
+        "type": "Email",
+        "status": 2,
+        "threshold": 0,
+        "recurrence": 0
+      }
+    ]
+  },
+  {
+    "notifyOnly": true,
+    "orgAlertContactId": null,
+    "user": {
+      "id": 4,
+      "name": "synthetic-uptime-4"
+    },
+    "alertContacts": [
+      {
+        "id": 4,
+        "name": "synthetic-uptime-4",
+        "value": "synthetic-uptime-4@example.test",
+        "type": "Email",
+        "status": 2,
+        "threshold": 0,
+        "recurrence": 0
+      }
+    ]
+  },
+  {
+    "notifyOnly": true,
+    "orgAlertContactId": null,
+    "user": {
+      "id": 5,
+      "name": "synthetic-uptime-5"
+    },
+    "alertContacts": [
+      {
+        "id": 5,
+        "name": "synthetic-uptime-5",
+        "value": "synthetic-uptime-5@example.test",
+        "type": "Email",
+        "status": 2,
+        "threshold": 0,
+        "recurrence": 0
+      }
+    ]
+  }
+]
