@@ -431,7 +431,7 @@
       "executable": false
     },
     ".github/scripts/install-browsers.sh": {
-      "sha256": "b3956bec47bc4cf241319192f3d11f6f5e2e1afbe8c94676a9e899f1a6dee0f8",
+      "sha256": "1e692a1870aec452c972a1f5349287a5a188b86fd175b6623f5404f9e55cbe7c",
       "executable": false
     },
     ".github/scripts/verify-ci.mjs": {

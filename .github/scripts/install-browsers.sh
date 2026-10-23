@@ -8,13 +8,17 @@ set -euo pipefail
 # cannot finish in its share of the unchanged job budget. No test is retried.
 sudo python3 - <<'PY'
 from pathlib import Path
-sources = [Path('/etc/apt/sources.list'), *Path('/etc/apt/sources.list.d').glob('*.sources'), *Path('/etc/apt/sources.list.d').glob('*.list')]
+sources = [Path('/etc/apt/sources.list'), *Path('/etc/apt/sources.list.d').glob('*.sources'), *Path('/etc/apt/sources.list.d').glob('*.list'), *Path('/etc/apt').glob('apt-mirrors*.txt')]
+# Hosted Ubuntu selects its effective mirror through mirror+file entries.
+rewritten = 0
 for source in sources:
     if source.is_file():
         text = source.read_text()
         updated = text.replace('http://azure.archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu').replace('https://azure.archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu')
         if updated != text:
             source.write_text(updated)
+            rewritten += 1
+print(f'Prepared Ubuntu archive: {rewritten} source/mirror files rewritten')
 Path('/etc/apt/apt.conf.d/99-uptime-verify').write_text('Acquire::Retries "2";\nAcquire::http::Timeout "15";\nAcquire::https::Timeout "15";\n')
 PY
 
