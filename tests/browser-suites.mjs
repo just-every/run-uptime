@@ -222,6 +222,7 @@ try {
     return response.ok && (await response.json()).runner.contact.state === 'Fresh contact';
   }, runner);
   await runSuite('tests/operator-browser.mjs', 'UPTIME_UI_EVIDENCE', 'operator');
+  await runSuite('tests/rule-edit-browser.mjs', 'UPTIME_RULE_EDIT_EVIDENCE', 'rule-edit');
   await stopChild(runner);
   await worker.dispose(); worker = undefined;
   // Recovery owns its two independent Workers/runners, sharing only custody.

@@ -1,29 +1,361 @@
-/* The monitor page's own additions: the action row with its More menu, fine print behind a "?", and the narrow-width order. */
-.top.ui-header:has(.monitor-title) .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; grid-template-columns: none; }
-.top.ui-header:has(.monitor-title) .actions :is(.actions > button, .actions > a, .more-menu > summary) { min-height: 46px; padding: 0 22px; font-size: 15px; }
-/* Keep the right-aligned dropdown inside the action row when More wraps. */
-.more-menu { position: relative; margin-inline-start: auto; }
-.more-menu > summary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--card); color: var(--ink); font-weight: 600; list-style: none; cursor: pointer; }
-.more-menu > summary:hover { background: var(--ground); }
-.more-menu > summary::-webkit-details-marker { display: none; }
-.more-menu-list { position: absolute; z-index: 5; top: calc(100% + 6px); right: 0; display: grid; gap: 2px; min-width: 250px; white-space: nowrap; padding: 6px; border: 1px solid var(--line); border-radius: var(--radius-panel); background: var(--card); box-shadow: var(--shadow); }
-.top.ui-header:has(.monitor-title) .actions .more-menu-list button { justify-content: flex-start; min-height: 44px; padding: 0 14px; border: 0; background: none; box-shadow: none; color: var(--ink); font-weight: 500; text-align: left; }
-.top.ui-header:has(.monitor-title) .actions .more-menu-list button:not(:disabled):hover { background: var(--ground); }
-.top.ui-header:has(.monitor-title) .actions .more-menu-list button.danger { color: var(--rose-text); }
-@media (max-width: 700px) {
-  /* A tighter gap and type keep Run now, Edit, Pause and More on one row at phone widths; Run now takes the spare width. */
-  .top.ui-header:has(.monitor-title) .actions { gap: 6px; }
-  .top.ui-header:has(.monitor-title) .actions :is(.actions > button, .actions > a, .more-menu > summary) { min-height: 44px; padding: 0 12px; gap: 4px; font-size: 13px; }
-  .top.ui-header:has(.monitor-title) .actions > :is(button, a) > .ui-icon { width: 16px; height: 16px; }
-  .top.ui-header:has(.monitor-title) .actions > #run-monitor { flex-grow: 1; }
+/* A monitor's page (/app/monitors/<id>, public/monitor-page.js): the header, the status card, the "Up or down" table with
+   its in-place editors, Recent checks and the folds. Built on app-theme.css tokens and components only; style.css keeps the
+   shell and what the monitor list shares (the coverage bars). Two columns while #content-area (the table-wrap container) is
+   at least 720px wide; one below that, in the order header, status, table, Recent checks, folds. */
+
+/* ---------------------------------------------------------------- header */
+/* The back link, the name with its large state pill, the URL (or the heartbeat receipt path), the kind and interval with any
+   quiet chips, and Run now, Edit and Pause at the top right, under the title when the header is narrower. */
+.back-link { margin-bottom: 14px; font-size: 15px; font-weight: 500; text-decoration: none; }
+.back-link:where(:not([aria-disabled="true"])):hover { text-decoration: underline; }
+.back-link .ui-icon { width: 18px; height: 18px; transform: rotate(90deg); }
+.monitor-title { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.ui-header .monitor-title h1 { min-width: 0; font-size: clamp(26px, 2.5vw, 36px); letter-spacing: -0.03em; line-height: 1.2; overflow-wrap: anywhere; }
+.monitor-title .badge { flex: none; gap: 10px; min-height: 42px; padding: 6px 18px 6px 15px; border-color: var(--pill-line, var(--line-strong)); font-size: 16.5px; font-weight: 600; }
+.monitor-title .badge::before { width: 24px; height: 24px; }
+.monitor-title .badge.unknown { --pill-bg: rgba(255, 255, 255, 0.72); --pill-line: #cdd0e8; color: var(--ink); }
+/* The state pill sits on the page ground, so each tone gets a hairline in its own hue (Recovering has its own in the theme). */
+.badge.healthy { --pill-line: #c3e4d1; }
+.badge.failing { --pill-line: #f5c4cd; }
+.badge.degraded { --pill-line: #f1d79f; }
+.badge.maintenance { --pill-line: #f5cfb3; }
+.badge.paused { --pill-line: var(--line-strong); }
+.ui-header .monitor-target { max-width: 72ch; margin-top: 6px; color: var(--muted); font-size: 16px; font-weight: 500; line-height: 1.45; overflow-wrap: anywhere; }
+/* A mono chip that wraps keeps its padding and radius on each line piece. */
+.monitor-target code, .heartbeat-details code { -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.monitor-target code { font-size: 14.5px; overflow-wrap: anywhere; }
+.monitor-kind { margin-top: 6px; color: var(--muted); font-size: 14.5px; }
+/* A private network or a certificate exception: a quiet chip that opens Full check details, where its sentence is. */
+.header-chips { display: inline-flex; flex-wrap: wrap; gap: 6px; margin-left: 6px; vertical-align: middle; }
+.header-chip { display: inline-flex; align-items: center; min-height: 26px; padding: 0 10px; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--card); color: var(--body); font-size: 13px; font-weight: 600; text-decoration: none; }
+.header-chip:hover { border-color: var(--lavender-deep); color: var(--ink); }
+.top.ui-header:has(.monitor-title) .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.top.ui-header:has(.monitor-title) .actions > :is(button, a) { min-height: 46px; padding: 0 22px; font-size: 15px; }
+/* A paused monitor cannot run: its Run now drops the navy fill for a quiet outline, so it is never the heaviest action. */
+#run-monitor:disabled { border-color: var(--line-strong); background: var(--neutral-soft); box-shadow: none; color: var(--muted); }
+@media (min-width: 1200px) {
+  .ui-header:has(.monitor-title) { flex-wrap: nowrap; }
+  .ui-header:has(.monitor-title) > :first-child { flex: 1 1 auto; }
+  /* Level with the title (the back link is 24px with a 14px margin). */
+  .top.ui-header:has(.monitor-title) .actions { flex: none; margin-top: 32px; }
 }
-/* Narrower than one row holds: Run now gets its own row and the other three share the second. */
-@media (max-width: 384px) {
+/* Below the wide layout the heartbeat receipt path sits on its own line under "Incoming heartbeat at", so its chip
+   never starts mid-line. */
+@media (max-width: 1199px) {
+  .monitor-target code { display: block; width: fit-content; max-width: 100%; margin-top: 2px; }
+}
+@media (min-width: 701px) and (max-width: 1199px) {
+  .ui-header:has(.monitor-title) { display: block; }
+  .top.ui-header:has(.monitor-title) .actions { margin-top: 18px; }
+}
+@media (max-width: 700px) {
+  .ui-header:has(.monitor-title) { display: block; }
+  .back-link { margin-bottom: 10px; }
+  .monitor-title { gap: 8px 12px; }
+  .monitor-title .badge { min-height: 34px; padding: 4px 14px 4px 12px; font-size: 15px; }
+  .monitor-title .badge::before { width: 20px; height: 20px; }
+  .ui-header .monitor-target { font-size: 14px; }
+  .monitor-target code { font-size: 13px; }
+  .monitor-kind { font-size: 13.5px; }
+  .top.ui-header:has(.monitor-title) .actions { gap: 8px; margin-top: 16px; }
+  .top.ui-header:has(.monitor-title) .actions > :is(button, a) { min-height: 44px; padding: 0 16px; gap: 6px; font-size: 14px; }
+  .top.ui-header:has(.monitor-title) .actions > :is(button, a) > .ui-icon { width: 16px; height: 16px; }
+}
+/* Narrower than one row holds: Run now takes its own row and the other two share the second. */
+@media (max-width: 340px) {
   .top.ui-header:has(.monitor-title) .actions > #run-monitor { flex-basis: 100%; }
   .top.ui-header:has(.monitor-title) .actions > :not(#run-monitor) { flex: 1 1 auto; }
-  .top.ui-header:has(.monitor-title) .actions .more-menu > summary { box-sizing: border-box; width: 100%; }
-  .top.ui-header:has(.monitor-title) .actions .more-menu > summary::after { margin-inline-start: 0; }
 }
+
+/* ---------------------------------------------------------------- page */
+.monitor-page { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+.monitor-columns { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; gap: 18px; }
+.monitor-main, .monitor-side { display: grid; align-content: start; gap: 18px; min-width: 0; }
+@container table-wrap (min-width: 720px) {
+  .monitor-columns { grid-template-columns: minmax(0, 2.1fr) minmax(290px, 1fr); }
+}
+.monitor-page .panel { padding: 20px 24px 22px; border-radius: 16px; overflow-wrap: anywhere; }
+.monitor-page .panel > h2, .panel-head h2 { font-size: 19px; letter-spacing: -0.015em; line-height: 1.3; }
+.monitor-page .panel > h2 { margin-bottom: 12px; }
+/* A card header: the heading on the left, its one action on the right. */
+.panel-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px; margin-bottom: 14px; }
+.panel-head > h2 { flex: none; }
+@container table-wrap (max-width: 719px) {
+  .monitor-page, .monitor-columns, .monitor-main, .monitor-side { gap: 14px; }
+  .monitor-page .panel { padding: 18px 18px 20px; }
+  .monitor-page .panel > h2, .panel-head h2 { font-size: 18px; }
+}
+
+/* ---------------------------------------------------------------- status */
+/* One sentence with its mark, the 24-hour share at the right (under it in a narrow card), then what holds now and, while
+   nobody is told, the way to tell someone, each under a hairline. Rose while Failing, peach in maintenance, amber while a
+   Slow notice is open, white otherwise. */
+.status-card { display: grid; gap: 12px; padding: 16px 22px; border-radius: 16px; }
+.status-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px; }
+.state-line { --mark: var(--mark-dot); --mark-color: var(--green); display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 10px; min-width: 0; margin: 0; color: var(--ink); font-size: 16px; font-weight: 650; line-height: 1.45; }
+.state-text > .ui-link { margin-left: 6px; vertical-align: baseline; }
+.state-line::before { content: ""; flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--mark-color); box-shadow: 0 0 0 4px var(--green-soft); }
+.state-line .ui-link { font-size: 15px; font-weight: 600; white-space: nowrap; }
+.status-share { margin: 0; color: var(--muted); font-size: 14px; }
+.status-share strong { margin-right: 4px; color: var(--ink); font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.status-held, .status-told { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 0; padding-top: 12px; border-top: 1px solid var(--line); color: var(--ink); font-size: 15px; font-weight: 500; }
+.status-told .ui-icon { color: var(--rose-text); }
+.held-done { color: var(--muted); font-weight: 600; }
+.status-card.down { border-color: #f5c4cd; background: var(--rose-soft); }
+.status-card.down .state-line { --mark-color: var(--rose); color: var(--rose-text); }
+.status-card:is(.down, .slow) .state-line::before { box-shadow: 0 0 0 4px var(--card); }
+.status-card.down :is(.status-held, .status-told) { border-top-color: #f5c4cd; }
+.status-card.slow { border-color: #f1dcae; background: var(--amber-soft); }
+.status-card.slow .state-line { --mark-color: var(--amber); color: var(--amber-text); }
+.status-card.slow :is(.status-held, .status-told) { border-top-color: #f1dcae; }
+.status-card.maint { border-color: #f6d3bb; background: var(--peach-soft); }
+.status-card.maint .state-line { color: var(--peach-text); }
+.status-card.maint :is(.status-held, .status-told) { border-top-color: #f6d3bb; }
+/* Marks drawn as the state pills draw them: a moon in maintenance, pause bars, the hollow Unknown ring, the amber triangle,
+   the half-filled ring while recovering. */
+.status-card:is(.maint, .paused, .unknown, .degraded, .recovering) .state-line::before { width: 16px; height: 16px; border-radius: 0; box-shadow: none; -webkit-mask: var(--mark) center / contain no-repeat; mask: var(--mark) center / contain no-repeat; }
+.status-card.maint .state-line { --mark: var(--mark-moon); --mark-color: var(--peach); }
+.status-card.paused .state-line { --mark: var(--mark-pause); --mark-color: var(--muted); }
+.status-card.unknown .state-line { --mark: var(--mark-ring); --mark-color: var(--unknown); }
+.status-card.degraded .state-line { --mark: var(--mark-triangle); --mark-color: var(--amber); }
+.status-card.recovering .state-line { --mark: var(--mark-half); --mark-color: var(--green); }
+@container table-wrap (max-width: 719px) {
+  .status-card { padding: 14px 18px; }
+  .status-row { display: grid; gap: 8px; }
+}
+
+/* ---------------------------------------------------------------- up or down */
+/* A row per rule, a column per location; each cell is what that location saw on the newest complete scheduled check. */
+.rule-grid { width: 100%; border-collapse: collapse; font-size: 15px; }
+.rule-grid :is(th, td) { padding: 12px 10px; border-top: 1px solid var(--line); text-align: left; vertical-align: middle; font-weight: 500; }
+.rule-grid :is(th, td):first-child { padding-left: 0; }
+.rule-grid thead th { padding-top: 0; border-top: 0; vertical-align: bottom; color: var(--ink); font-size: 14px; font-weight: 650; }
+.rule-grid thead th:first-child { color: var(--muted); font-weight: 600; }
+.rule-grid tbody th { color: var(--ink); }
+.col-name { display: inline; min-height: 24px; padding: 0; border: 0; border-radius: 4px; background: none; box-shadow: none; color: var(--ink); font: inherit; font-weight: 650; text-align: left; text-decoration: underline dotted; text-decoration-color: var(--muted); text-underline-offset: 3px; cursor: pointer; }
+button.col-name:not(:disabled):hover { background: none; text-decoration-style: solid; }
+.col-age { display: block; color: var(--muted); font-size: 13px; font-weight: 500; }
+.rule-grid thead .ui-result { margin-top: 2px; font-size: 14px; }
+.rule-grid td .ui-result { font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.cell-none { color: var(--muted); }
+/* Each cell names its location only when the column heads are hidden (three locations in a phone-width card). */
+.cell-where { display: none; }
+.value-chip { display: inline-flex; align-items: center; min-height: 30px; margin-left: 6px; padding: 0 10px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--ground); color: var(--ink); font-size: 14px; font-weight: 650; line-height: 1.3; overflow-wrap: anywhere; }
+.value-chip.ui-mono { font-family: var(--mono); font-size: 13px; }
+/* A chip is the summary of its editor: no chevron, and gone while the editor is open, which shows the field in its place. */
+.editor > summary { display: inline; min-height: 0; padding: 0; color: inherit; font-weight: inherit; }
+.editor > summary::after { content: none; }
+.editor > summary:hover .value-chip { border-color: var(--lavender-deep); background: var(--lavender); }
+:is(.rule-edit, .num-edit)[open] > summary { display: none; }
+.inline-edit { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.edit-field { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; color: var(--ink); font-size: 15px; font-weight: 500; }
+.edit-field > input { width: 140px; max-width: 100%; min-height: 38px; margin: 0; padding: 0 10px; }
+.edit-field > input[type="number"] { width: 72px; }
+.edit-field > input.narrow { width: 56px; }
+.edit-unit { color: var(--ink); font-size: 15px; }
+.edit-buttons { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.edit-buttons .ui-compact { min-height: 36px; padding: 0 14px; }
+.edit-error { flex-basis: 100%; margin: 0; color: var(--rose-text); font-size: 14px; font-weight: 600; }
+.edit-error:empty { display: none; }
+/* "+ Location" and its tick list. */
+.loc-pick { position: relative; }
+.loc-pick > summary.loc-add { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 14px; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--card); color: var(--ink); font-size: 14px; font-weight: 600; }
+.loc-pick > summary.loc-add:hover { border-color: var(--lavender-deep); }
+.loc-pop { position: absolute; z-index: 6; top: calc(100% + 6px); right: 0; display: grid; gap: 10px; width: max-content; min-width: 240px; max-width: min(320px, calc(100vw - 64px)); padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius-panel); background: var(--card); box-shadow: var(--shadow); }
+.pop-title { margin: 0; color: var(--muted); font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.loc-ticks { display: grid; gap: 2px; }
+.loc-ticks .loc-tick { min-height: 40px; color: var(--ink); font-size: 15px; font-weight: 600; }
+.pop-note { margin: 0; color: var(--muted); font-size: 13px; }
+.pop-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }
+/* "+ Add a rule" and the kinds the monitor lacks. */
+.grid-add { position: relative; padding: 12px 0 2px; border-top: 1px solid var(--line); }
+.add-rule > summary.ui-link { display: inline-block; min-height: 32px; line-height: 32px; font-size: 15px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.add-menu { position: absolute; z-index: 5; top: calc(100% + 2px); left: 0; display: grid; gap: 2px; min-width: 240px; max-width: calc(100vw - 64px); padding: 6px; border: 1px solid var(--line); border-radius: var(--radius-panel); background: var(--card); box-shadow: var(--shadow); }
+.add-menu button { justify-content: flex-start; min-height: 40px; padding: 0 12px; border: 0; border-radius: 10px; background: none; box-shadow: none; color: var(--ink); font-weight: 500; }
+.add-menu button:not(:disabled):hover { background: var(--ground); }
+/* Down when and Back up after: the numbers are chips like the rules; the agreement between locations is stated, never set. */
+.grid-foot { display: grid; gap: 8px; margin: 14px 0 0; }
+.grid-foot > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
+.grid-foot dt { min-width: 120px; color: var(--muted); font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.grid-foot dd { flex: 1 1 260px; min-width: 0; margin: 0; color: var(--ink); font-size: 15px; line-height: 1.7; }
+.grid-foot .value-chip { margin: 0 4px 0 0; }
+.grid-foot .num-edit { display: inline-block; }
+@container table-wrap (max-width: 719px) {
+  .rule-grid { font-size: 14.5px; }
+  .grid-foot dt { flex-basis: 100%; min-width: 0; }
+  /* One or two locations: three columns, Rule at 44% and each location 28%; a rule's chip wraps under its name. */
+  .rule-grid, .rule-grid :is(thead, tbody) { display: block; }
+  .rule-grid tr { display: grid; grid-template-columns: minmax(0, 44fr) repeat(2, minmax(0, 28fr)); align-items: center; column-gap: 8px; border-top: 1px solid var(--line); }
+  .rule-grid[data-locations="1"] tr { grid-template-columns: minmax(0, 44fr) minmax(0, 28fr); }
+  .rule-grid[data-locations="0"] tr { grid-template-columns: minmax(0, 1fr); }
+  .rule-grid thead tr { border-top: 0; }
+  .rule-grid :is(th, td) { padding: 10px 0; border: 0; }
+  .rule-grid tbody th[colspan] { grid-column: 1 / -1; }
+  .rule-grid .value-chip { margin: 4px 6px 0 0; }
+  /* A rule being edited spans the card; what each location saw stays under its column. */
+  .rule-grid tr:has(.rule-edit[open]) th { grid-column: 1 / -1; padding-bottom: 2px; }
+  .rule-grid tr:has(.rule-edit[open]) td:first-of-type { grid-column: 2; }
+  /* Three locations do not fit three columns: each rule stacks over one line of what each location saw. */
+  .rule-grid[data-locations="3"] :is(tbody, tr, th, td) { display: block; }
+  .rule-grid[data-locations="3"] thead { display: none; }
+  .rule-grid[data-locations="3"] tr { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 12px 0; border-top: 1px solid var(--line); }
+  .rule-grid[data-locations="3"] tbody tr:first-child { padding-top: 0; border-top: 0; }
+  .rule-grid[data-locations="3"] tbody th { flex-basis: 100%; padding: 0; }
+  .rule-grid[data-locations="3"] td { display: inline-flex; align-items: center; gap: 6px; padding: 0; }
+  .rule-grid[data-locations="3"] .cell-where { display: inline; color: var(--muted); font-weight: 500; }
+}
+
+/* ---------------------------------------------------------------- recent checks */
+/* The strip of the last 30 checks (the newest 20 in a phone-width card) with its first and last times, the newest three as
+   short rows, and "All checks" at the card's top right, which opens the full list in place of the short rows. */
+.recent-checks { position: relative; container: checks-card / inline-size; }
+.history-strip { display: grid; gap: 6px; min-width: 0; margin-bottom: 4px; }
+.history-strip:empty { display: none; }
+.history-strip .ui-strip { gap: 4px; min-width: 0; padding: 0; overflow: hidden; }
+.history-strip .ui-dot { width: 13px; height: 13px; }
+/* Marks beyond passed, failed and the hollow no-result ring: an overdue check is an amber ring; a running check is half
+   filled; a manual check is a smaller diamond in its result's colour; a paused or maintenance span is a short bar. */
+.history-strip .ui-dot.overdue { box-shadow: inset 0 0 0 2px var(--amber), 0 0 0 3px var(--card); }
+.history-strip .ui-dot.running { background: linear-gradient(90deg, var(--ink) 50%, var(--card) 50%); box-shadow: inset 0 0 0 2px var(--ink), 0 0 0 3px var(--card); }
+.history-strip .ui-dot.manual { width: 10px; height: 10px; margin: 0 1.5px; border-radius: 2px; transform: rotate(45deg); }
+.history-strip .ui-dot.span { flex: 0 1 auto; width: 20px; min-width: 8px; height: 9px; border-radius: 999px; background: var(--neutral-soft); box-shadow: inset 0 0 0 2px var(--line-strong), 0 0 0 3px var(--card); }
+.history-strip .ui-dot.span.maintenance { background: var(--peach-soft); box-shadow: inset 0 0 0 2px var(--peach), 0 0 0 3px var(--card); }
+/* A run of two or more missed or overdue checks: one hollow ring with its count, in one place. */
+.strip-run { position: relative; flex: 0 1 auto; overflow: hidden; min-width: 24px; padding: 0 4px; border-radius: 999px; background: var(--card); box-shadow: inset 0 0 0 2px var(--unknown), 0 0 0 3px var(--card); color: var(--body); font-size: 11px; font-weight: 700; line-height: 16px; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+.strip-run.overdue { box-shadow: inset 0 0 0 2px var(--amber), 0 0 0 3px var(--card); color: var(--amber-text); }
+.strip-times { display: flex; justify-content: space-between; gap: 12px; margin: 0; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.strip-from.narrow { display: none; }
+.recent-rows { margin: 4px 0 0; padding: 0; list-style: none; }
+.recent-rows li { display: grid; grid-template-columns: minmax(84px, auto) minmax(0, 1fr) auto; align-items: center; gap: 4px 16px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 14.5px; }
+.recent-rows li:first-child { border-top: 0; }
+.recent-rows li.recent-empty { display: block; color: var(--muted); }
+.recent-rows time { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.recent-rows .check-result.running { --mark: var(--mark-half); --mark-color: var(--ink); color: var(--ink); }
+.recent-rows .check-result.overdue { --mark: var(--mark-triangle); --mark-color: var(--amber); color: var(--amber-text); }
+.recent-rows .check-result.paused { --mark: var(--mark-pause); --mark-color: var(--muted); color: var(--body); }
+.recent-rows .check-result.maintenance { --mark: var(--mark-moon); --mark-color: var(--peach); color: var(--peach-text); }
+.recent-detail { color: var(--ink); text-align: right; font-variant-numeric: tabular-nums; }
+.all-checks > summary { position: absolute; top: 20px; right: 24px; min-height: 30px; padding: 0; font-size: 15px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.all-checks > summary::after { content: none; }
+.recent-checks:has(> .all-checks[open]) > .recent-rows { display: none; }
+.all-checks[open] { margin-top: 10px; }
+@container checks-card (max-width: 480px) {
+  .history-strip .ui-strip > :nth-last-child(n+21) { display: none; }
+  .history-strip .ui-dot { width: 11px; height: 11px; }
+  .history-strip .ui-dot.manual { width: 8px; height: 8px; }
+  .strip-from.wide { display: none; }
+  .strip-from.narrow { display: inline; }
+  .recent-rows li { grid-template-columns: minmax(76px, auto) minmax(0, 1fr) auto; gap: 4px 12px; }
+  .all-checks > summary { top: 18px; right: 18px; }
+}
+/* The full list: one row per check with its time and age, result, what ran and a chevron; an open check shows its attempts. */
+.check-list { overflow: hidden; border: 1px solid var(--line); border-radius: 12px; }
+#raw-history .check-list > * + * { border-top: 1px solid var(--line); }
+/* Columns: time, result, what ran, chevron. The " · " separators stay in the text (the summary's name and text content
+   read as one line) but are visually hidden. */
+#raw-history :is(summary, .slot-row) { display: grid; grid-template-columns: minmax(7.5rem, 8.5rem) minmax(8.5rem, 10rem) minmax(0, 1fr) 18px; align-items: center; gap: 4px 14px; min-height: 54px; padding: 8px 16px 8px 18px; font-size: 14px; font-weight: 500; line-height: 1.35; }
+#raw-history summary:hover { background: #fafaff; }
+#raw-history summary::after { grid-column: 4; grid-row: 1; justify-self: center; margin: 0; transform: rotate(-45deg); }
+#raw-history details[open] > summary::after { margin: 0; transform: rotate(45deg); }
+.slot-time { display: grid; color: var(--ink); font-variant-numeric: tabular-nums; }
+.slot-clock { font-weight: 600; }
+.slot-age { color: var(--muted); font-size: 12.5px; font-weight: 400; }
+/* The label breaks only after "Failed ·" or before "(expected 201)", never inside "HTTP 503" (each is a .keep-line);
+   the code is monospace (DESIGN-PICKS rule 3). */
+#raw-history .check-result { gap: 9px; font-size: 14px; }
+#raw-history .result-label { min-width: 0; }
+/* A time or a result word wraps only between words, never inside one: each column is sized to hold its widest word. */
+#raw-history :is(.slot-time, .result-label) { overflow-wrap: normal; }
+.slot-code .ui-mono { font-size: 13.5px; }
+/* The mark box is 19px so the drawn dot or ring is about 13px, against the 14px label. */
+#raw-history .check-result::before { width: 19px; height: 19px; }
+.slot-meta { min-width: 0; color: var(--muted); font-size: 13.5px; font-weight: 400; }
+/* Results beyond passed, failed and no result: running (half filled, ink), overdue (amber warning), and the neutral
+   paused and maintenance spans with the marks their state pills use. */
+#raw-history .check-result.running { --mark: var(--mark-half); --mark-color: var(--ink); color: var(--ink); }
+#raw-history .check-result.overdue { --mark: var(--mark-triangle); --mark-color: var(--amber); color: var(--amber-text); }
+#raw-history .check-result.paused { --mark: var(--mark-pause); --mark-color: var(--muted); color: var(--body); }
+#raw-history .check-result.maintenance { --mark: var(--mark-moon); --mark-color: var(--peach); color: var(--peach-text); }
+@container checks-card (max-width: 560px) {
+  #raw-history :is(summary, .slot-row) { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) 16px; gap: 6px 10px; padding: 10px 12px; }
+  #raw-history summary::after { grid-column: 3; grid-row: 1 / span 2; }
+  .slot-meta { grid-column: 1 / 3; grid-row: 2; font-size: 12.5px; }
+}
+/* The narrowest card (a 320px phone, under 300px of content): every row has the same time column, wide enough for
+   "12:58:05 PM –" (the first line of a range) and set in em so it follows the clock's size, and the result column the
+   rest, with the row's padding, gaps, mark and label trimmed so "Maintenance" and "(expected 201)" fit on one line. A
+   range or a span's "since" then wraps inside its own column and the result column starts at the same place in every
+   row. A 390px phone's card is 328px and keeps the layout above. */
+@container checks-card (max-width: 300px) {
+  #raw-history :is(summary, .slot-row) { grid-template-columns: 6.8em minmax(0, 1fr) 14px; gap: 6px; padding: 10px 8px; font-size: 13.5px; }
+  #raw-history .check-result { gap: 6px; font-size: 13px; }
+  #raw-history .check-result::before { width: 17px; height: 17px; }
+  .slot-code .ui-mono { font-size: 12.5px; }
+}
+/* An open slot's attempts in a soft lavender inset: the attempt line, then its PASS / FAIL lines on white, all in the sans
+   with tabular numbers (monospace stays for the HTTP code, DESIGN-PICKS rule 3). */
+.slot-attempts { display: grid; gap: 12px; margin: 0 14px 14px; padding: 14px; border-radius: 12px; background: linear-gradient(115deg, #efeffa, #f3f3fb); color: var(--body); font-size: 13.5px; line-height: 1.5; font-variant-numeric: tabular-nums; }
+.slot-attempts:empty { display: none; }
+.attempt-group { display: grid; gap: 10px; }
+.attempt-group + .attempt-group { padding-top: 12px; border-top: 1px solid var(--lavender-deep); }
+.attempt-line { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 30px; }
+.attempt-name { color: var(--ink); font-weight: 500; }
+.attempt-line .ui-result::before { width: 16px; height: 16px; }
+.attempt-line .ui-mono { color: var(--ink); font-size: 13.5px; }
+.attempt-age { white-space: nowrap; }
+/* As in design I, the bold PASS / FAIL word carries the result on its own, without a mark. */
+.attempt-checks .attempt-mark::before { content: none; }
+.credential-binding { overflow-wrap: anywhere; }
+#raw-history [data-tls-observation] > summary { grid-template-columns: minmax(0,1fr) 18px; min-height:44px; padding:10px 12px; }
+#raw-history [data-tls-observation] > summary::after { grid-column:2; grid-row:1; }
+.attempt-checks { display: grid; gap: 4px; padding: 9px 13px; border-radius: 10px; background: rgba(255, 255, 255, 0.85); color: var(--body); font-size: 13px; overflow-wrap: anywhere; }
+@container checks-card (max-width: 560px) {
+  .slot-attempts { margin: 0 8px 10px; padding: 10px; }
+  .attempt-line { gap: 4px 16px; font-size: 12.5px; }
+  .attempt-checks { padding: 8px; font-size: 12px; }
+}
+.history-empty { padding: 4px 0; color: var(--muted); font-size: 14px; }
+
+/* ---------------------------------------------------------------- folds */
+/* One card, no heading: a row per fold with its title and its summary at the right. A panel inside drops its own card
+   chrome, and a heading that repeats the fold's title is left to assistive technology. */
+.folds-card { padding: 6px 22px; border-radius: 16px; }
+.fold { border-top: 1px solid var(--line); }
+.fold:first-child { border-top: 0; }
+.fold > summary { gap: 12px; min-height: 48px; padding: 10px 0; }
+.fold > summary::after { margin-left: 4px; }
+.fold-title { color: var(--ink); font-size: 15px; font-weight: 650; }
+.fold-sum { min-width: 0; margin-left: auto; color: var(--muted); font-size: 14px; font-weight: 500; text-align: right; overflow-wrap: anywhere; }
+.fold[open] > summary .fold-sum { color: var(--body); }
+.fold-body { min-width: 0; padding: 0 0 16px; overflow-wrap: anywhere; }
+.fold-body:empty { display: none; }
+.monitor-page .fold-body > .panel { padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
+.monitor-page .fold-body > .panel + .panel { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+.monitor-page .fold-body > .panel > h2, .monitor-page .fold-body > .panel > .panel-head h2 { font-size: 16px; }
+.fold-body.same-title > .panel > h2:first-child, .fold-body.same-title > .panel > .panel-head > h2 { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.fold-body > p + p, .fold-body > p + pre { margin-top: 10px; }
+.details-note { color: var(--body); font-size: 14px; }
+.details-erase { margin-top: 14px; }
+.maintenance-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.maintenance-actions button { min-height: 36px; padding: 0 14px; font-size: 14px; }
+.maintenance-actions .ui-icon { width: 16px; height: 16px; }
+/* Reports: the coverage bars, their key and the coverage rule, above the period report. */
+.report-coverage { container: coverage-card / inline-size; margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+.coverage-windows { display: grid; gap: 18px; }
+.coverage-window { display: grid; gap: 6px; min-width: 0; }
+.coverage-window h3 { color: var(--ink); font-size: 15.5px; font-weight: 600; }
+.coverage.large { grid-template-columns: minmax(0, 1fr) minmax(0, 296px); align-items: center; gap: 8px 20px; }
+.coverage.large .coverage-bar { height: 28px; }
+.coverage.large .coverage-label { font-size: 14px; font-weight: 500; }
+@container coverage-card (max-width: 639px) {
+  .coverage.large { grid-template-columns: minmax(0, 1fr); }
+  .coverage.large .coverage-bar { height: 22px; }
+}
+.coverage-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); }
+.coverage-note { color: var(--muted); font-size: 13px; line-height: 1.45; }
+
+/* ---------------------------------------------------------------- other parts */
+/* A short line with the rest behind a "?". */
 .fine-print { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; color: var(--muted); font-size: 13px; line-height: 1.45; }
 .fine-print > p { margin: 0; }
 .more-info { display: inline-block; }
@@ -31,10 +363,48 @@
 .more-info > summary { display: inline-grid; flex: none; box-sizing: border-box; min-height: 20px; place-items: center; width: 20px; height: 20px; padding: 0; border: 1px solid var(--line-strong); border-radius: 50%; color: var(--muted); font-size: 12px; font-weight: 700; line-height: 1; list-style: none; cursor: pointer; }
 .more-info > summary::-webkit-details-marker, .more-info > summary::after { display: none; }
 .more-info > p { margin: 6px 0 0; }
-.engine-status { margin: 8px 0; color: var(--muted); font-size: 12.5px; overflow-wrap: anywhere; }
-@container table-wrap (max-width: 719px) {
-  .monitor-page > :is(.monitor-primary, .monitor-secondary) { display: contents; }
-  .monitor-page > :is(.monitor-primary, .monitor-secondary) > * { order: 5; }
-  .monitor-page > :is(.monitor-primary, .monitor-secondary) > .rules-card { order: 1; }
-  .monitor-page > :is(.monitor-primary, .monitor-secondary) > .evidence { order: 2; }
-}
+.engine-status { margin: 0 0 10px; color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+.detail-metrics { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, auto); align-items: start; gap: 12px 20px; }
+.detail-metrics > div { min-width: 0; }
+.detail-metrics dt { color: var(--muted); font-size: 14px; font-weight: 400; line-height: 1.5; }
+.detail-metrics dd { margin: 0; color: var(--ink); font-size: 17px; font-weight: 600; line-height: 1.4; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+/* What the check expects: each value as a one-line chip under its label, two across; a value too wide for half the card
+   takes its own row (a code or JSON chip wraps only when it is wider than the card). The full definition folds below. */
+.assertion-summary { display: flex; flex-wrap: wrap; gap: 14px 18px; margin: 4px 0 18px; }
+.assertion-summary > div { flex: 1 1 auto; min-width: calc(50% - 9px); max-width: 100%; }
+.assertion-summary dt { margin-bottom: 6px; color: var(--muted); font-size: 14px; line-height: 1.4; }
+.assertion-summary dd { margin: 0; }
+.expect-chip { display: inline-block; max-width: 100%; padding: 5px 14px; border-radius: 14px; background: var(--lavender); color: var(--ink); font-size: 14px; font-weight: 500; line-height: 1.45; white-space: nowrap; }
+.expect-chip.ui-mono { font-size: 14px; white-space: normal; overflow-wrap: anywhere; }
+.heartbeat-details { grid-template-columns: minmax(0, 1fr); gap: 10px; margin-bottom: 12px; }
+.heartbeat-details code { overflow-wrap: anywhere; }
+.heartbeat > p { color: var(--body); font-size: 14px; }
+.monitor-missing { margin: 0; padding: 40px 24px; border-radius: var(--radius); background: var(--card); box-shadow: 0 0 0 1px var(--line), var(--shadow-sm); }
+.monitor-missing p { max-width: 56ch; overflow-wrap: anywhere; }
+.monitor-missing .ui-button { margin-top: 16px; }
+
+/* Browser flow (FLOW-001): the step trace and revision history on a monitor's page, in the page's own list and result styles. */
+.flow .detail-metrics{grid-template-columns:minmax(0,1fr)}
+.flow-expectations .expect-chip{white-space:normal;overflow-wrap:anywhere}
+#flow-profile-settings{display:grid;gap:12px;margin-top:12px}
+#flow-profile-settings p{margin:0}
+#flow-profile-settings label{display:block;margin-bottom:6px}
+#flow-profile-settings select{width:100%;min-width:0}
+.flow-limit{margin:0 0 .75rem;color:var(--ui-muted,inherit)}
+.flow-trace-wrap{margin:.5rem 0 0}
+.flow-trace-head,.flow-trace-foot{margin:.25rem 0;font-size:.875rem}
+.flow-trace,.flow-history{list-style:none;margin:.25rem 0;padding:0;display:grid;gap:.25rem}
+.flow-trace li,.flow-history li{font-size:.875rem;overflow-wrap:anywhere}
+.flow-revisions h3{margin:1rem 0 .25rem;font-size:1rem}
+
+.incident-record + .incident-record { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
+.incident-record h3 { margin: 0 0 10px; font-size: 16px; }
+.incident-record :is(p,li,dd) { overflow-wrap: anywhere; }
+.incident-record details { margin-top: 12px; }
+.heartbeat-key-dialog > .one-time-secret { grid-column: 1 / -1; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* A TLS or domain monitor's expiry warnings: each warning or renewal as a short entry. */
+.expiry-list { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.expiry-list li { display: grid; gap: 4px; padding-bottom: 12px; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+.expiry-list li:last-child { padding-bottom: 0; border-bottom: 0; }
+.expiry-list .muted { color: var(--muted); font-size: 14px; }

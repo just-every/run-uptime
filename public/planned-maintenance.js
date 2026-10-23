@@ -105,8 +105,13 @@ export async function cancelMaintenanceWindow({monitor,windowId,api,action}){
  return dialog;
 }
 
+// Quiet alerts for 15 min starts the quick window (a new revision with maintenanceUntil); End now ends it.
+const quietAlerts=(monitor,until,{api,action})=>action(()=>api(`/api/monitors/${encodeURIComponent(monitor.id)}`,'PATCH',{...monitor.definition,maintenanceUntil:until}),until?{pending:'Starting maintenance…',success:`In maintenance until ${new Date(until).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}.`}:{pending:'Ending maintenance…',success:'Maintenance ended.'});
 export function bindMaintenancePanel(area,monitor,{api,action}){
  ensureMaintenanceStyles();
  area.querySelector('#plan-maintenance').onclick=()=>openMaintenanceDialog({monitors:[monitor],api,action});
+ const quiet=area.querySelector('#quiet-alerts'),end=area.querySelector('#end-quiet-alerts');
+ if(quiet)quiet.onclick=()=>quietAlerts(monitor,Date.now()+900000,{api,action});
+ if(end)end.onclick=()=>quietAlerts(monitor,0,{api,action});
  for(const button of area.querySelectorAll('[data-cancel-maintenance]'))button.onclick=()=>cancelMaintenanceWindow({monitor,windowId:button.dataset.cancelMaintenance,api,action});
 }

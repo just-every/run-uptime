@@ -6,6 +6,7 @@ import {bindRules} from './rules.mjs';
 import {showType} from './protocol-fields.mjs';
 import {mountServiceCatalog} from './catalog.mjs';
 import {mountDiscoverySources} from './sources.mjs';
+import {mountErase} from './erase.mjs';
 
 // Static fields are editable immediately. Current runner configuration and
 // existing definitions always come from the owner API before Save is enabled.
@@ -67,6 +68,7 @@ export async function mountMonitorEditor(signal){
   back.href=returnTo;if(id)back.lastChild.textContent='Back to monitor';form.querySelector('.editor-cancel').href=returnTo;
   form.querySelector('.loading-note')?.remove();
   mountManualForm({form,overview,definition,id,returnTo,message,monitors:await others,preserveFields:!id});
+  mountErase(form,{id,name:definition.name,message});
   document.querySelector('#editor-signout').onclick=async event=>{event.preventDefault();try{await api('/api/auth/sign-out','POST',{});window.dispatchEvent(new Event('uptime:auth-lost'));location.href='/login'}catch(error){notice.textContent=error.message;notice.hidden=false}};
   if(id)form.hidden=false;
   // Without a runner that can look at a website (a hosted installation with no private runner in contact, outside a demo),

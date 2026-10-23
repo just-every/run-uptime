@@ -47,7 +47,7 @@ test('console paths survive bookmarks, navigation, copied links, history and rel
    await page.reload();await page.locator('html.signed-in').waitFor();assert.equal(await page.locator('h1').textContent(),'Notifications');
    await page.getByRole('link',{name:'Locations',exact:true}).click();await page.waitForURL(origin+'/app/locations');await page.locator('html.signed-in').waitFor();
    await page.getByRole('link',{name:'Monitors',exact:true}).click();await page.locator('.catalog-rows .monitor-link').click();await page.waitForURL(origin+detail);await page.locator('#monitor-state').waitFor();
-   await page.getByRole('link',{name:'Edit rules',exact:true}).click();await page.waitForURL(origin+edit);await page.locator('html.editor-context-ready').waitFor();
+   await page.getByRole('button',{name:'Edit',exact:true}).click();await page.waitForURL(origin+edit);await page.locator('html.editor-context-ready').waitFor();
    assert.equal(await page.locator('[name=name]').inputValue(),'Storefront availability');
    const copied=page.url(),copy=await context.newPage();assert.equal((await copy.goto(copied)).status(),200);await copy.locator('html.editor-context-ready').waitFor();assert.equal(await copy.locator('[name=name]').inputValue(),'Storefront availability');await copy.close();
    await page.reload();await page.locator('html.editor-context-ready').waitFor();assert.equal(page.url(),copied);

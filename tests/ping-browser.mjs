@@ -32,12 +32,12 @@ try{
   await form.locator('[name=timeoutSeconds]').fill('1');await page.getByRole('button',{name:'Save monitor',exact:true}).click();await page.locator('#editor-feedback[data-error]').waitFor();assert.match(await page.locator('#editor-feedback').textContent(),/timeout|8|8000/i);await shot(`ping-refused-${width}.png`);
   await form.locator('[name=timeoutSeconds]').fill('10');await page.getByRole('button',{name:'Save monitor',exact:true}).click();await page.waitForURL(/\/app\/monitors\/[^/]+$/);
   const list=await(await page.request.get(origin+'/api/overview')).json(),m=list.monitors.find(m=>m.definition.name===`Chicago gateway IPv6 ${width}`);assert.ok(m);assert.equal(m.definition.ping.family,6);
-  await run('healthy');await page.goto(origin+`/app/monitors/${m.id}`);await page.locator('#monitor-state').filter({hasText:'Healthy'}).waitFor();await page.locator('#raw-history details').first().evaluate(e=>e.open=true);assert.match(await page.locator('#raw-history').textContent(),/packet|repl|ICMP/i);await shot(`ping-healthy-${width}.png`);
+  await run('healthy');await page.goto(origin+`/app/monitors/${m.id}#all-checks`);await page.locator('#monitor-state').filter({hasText:'Healthy'}).waitFor();await page.locator('#raw-history details').first().evaluate(e=>e.open=true);assert.match(await page.locator('#raw-history').textContent(),/packet|repl|ICMP/i);await shot(`ping-healthy-${width}.png`);
   await page.getByRole('button',{name:'Edit',exact:true}).click();await page.locator('.editor-ready').waitFor();assert.equal(await page.locator('[name=pingFamily]').inputValue(),'6');assert.equal(await page.locator('[name=pingPackets]').inputValue(),'3');
   await page.request.patch(origin+`/api/monitors/${m.id}`,{headers:{origin},data:{...m.definition,enabled:false}});
   for(const [mode,state] of [['loss','Failing'],['denied','Unknown']]){
    const r=await page.request.post(origin+'/api/monitors',{headers:{origin},data:{...m.definition,name:`Dallas gateway ${mode} ${width}`,ping:{...m.definition.ping,family:4},enabled:true}});assert.equal(r.status(),201);const next=await r.json();await run(mode);
-   await page.goto(origin+`/app/monitors/${next.id}`);await page.locator('#monitor-state').filter({hasText:state}).waitFor();await page.locator('#raw-history details').first().evaluate(e=>e.open=true);await shot(`ping-${mode}-${width}.png`);
+   await page.goto(origin+`/app/monitors/${next.id}#all-checks`);await page.locator('#monitor-state').filter({hasText:state}).waitFor();await page.locator('#raw-history details').first().evaluate(e=>e.open=true);await shot(`ping-${mode}-${width}.png`);
    await page.request.patch(origin+`/api/monitors/${next.id}`,{headers:{origin},data:{...next.definition,enabled:false}});
   }
   await page.goto(origin+'/docs/monitors');await page.getByRole('heading',{name:'ICMP ping',exact:true}).scrollIntoViewIfNeeded();await shot(`ping-guide-${width}.png`);

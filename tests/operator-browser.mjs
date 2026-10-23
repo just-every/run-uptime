@@ -48,7 +48,8 @@ async function unavailableJourney(page,width){
   await page.locator('#read-notice[data-state=unavailable]').waitFor({timeout:12000});
   assert.equal(await page.locator('#monitor-state').textContent(),'Unknown');
   assert.match(await page.locator('#read-notice').textContent(),/Last successful refresh/);
-  assert.match(await page.locator('#latest-check-heading').textContent(),/Last recorded check/);
+  // The status line says the last result is shown, and the recorded checks stay listed with their times.
+  assert.match(await page.locator('#monitor-status').textContent(),/Showing the last result/);assert.ok(await page.locator('#recent-rows time').count(),'the last recorded checks stay listed');
   await audit(page,`unavailable-${width}`,{state:'Unknown',reason:/couldn.t refresh/i});
  }finally{await page.unroute(overviewRead)}
  await page.locator('#read-notice[data-state=recovered]').waitFor({timeout:12000});
@@ -108,7 +109,7 @@ async function editJourney(page,monitor,width){
  await page.locator('.editor-cancel:visible').click();await ready(page);
  await page.locator('#monitor-state').filter({hasText:'Unknown'}).waitFor({timeout:22000});
  await audit(page,`stale-${width}`,{state:'Unknown',reason:/recent result|waiting/i});
- assert.ok(await page.locator('.detail-time time').count(),'stale state retains the last real check time');
+ assert.ok(await page.locator('#recent-rows time').count(),'stale state retains the last real check time');
  const history=await (await page.request.get(origin+`/api/monitors/${monitor.id}/history`)).json();
  assert.ok(history.some(slot=>slot.revision===monitor.revision),'old assertion revision evidence remains');
  assert.ok(history.some(slot=>slot.revision===saved.revision&&slot.status==='complete'),'changed assertion revision has its own evidence');
@@ -139,7 +140,7 @@ try{
    await page.getByRole('button',{name:'Save monitor'}).click();await ready(page);
    const overview=await (await page.request.get(origin+'/api/overview')).json(),monitor=overview.monitors.find(m=>m.definition.name===name);
    assert.ok(monitor);assert.deepEqual(Object.values(monitor.definition.assignments).map(a=>a.runnerId),overview.runner.runners.filter(r=>!r.revokedAt).map(r=>r.runnerId),'a new monitor checks from every location');
-   await page.waitForURL(url=>url.pathname===`/app/monitors/${monitor.id}`);await ready(page);
+   await page.waitForURL(url=>url.pathname===`/app/monitors/${monitor.id}`);await ready(page);await page.locator('#all-checks > summary').click();
    await page.locator('#monitor-state').filter({hasText:'Healthy'}).waitFor({timeout:18000});await page.locator('#raw-history details').first().waitFor();
    await audit(page,`healthy-${width}`,{state:'Healthy',reason:/^Up/});
    await unavailableJourney(page,width);await actionErrorJourney(page,monitor,width);
@@ -150,7 +151,7 @@ try{
    assert.ok(await page.locator('#raw-history details[open]').count()>0,'expanded immutable evidence survives polling');
    await editJourney(page,monitor,width);
    await tabTo(page,page.getByRole('button',{name:'Pause',exact:true}));await page.keyboard.press('Enter');await page.locator('#monitor-state').filter({hasText:'Paused'}).waitFor();
-   await page.getByRole('button',{name:'Resume',exact:true}).click();await page.getByText('More',{exact:true}).click();await page.getByRole('button',{name:'Maintenance 15 min'}).click();await page.getByText('More',{exact:true}).click();await page.getByRole('button',{name:'End maintenance'}).waitFor();await page.getByRole('button',{name:'End maintenance'}).click();await page.getByRole('button',{name:'Pause',exact:true}).click();await page.getByRole('button',{name:'Resume',exact:true}).waitFor();
+   await page.getByRole('button',{name:'Resume',exact:true}).click();await page.locator('details#maintenance > summary').click();await page.getByRole('button',{name:'Quiet alerts for 15 min'}).click();await page.locator('#status-card').getByRole('button',{name:'End now',exact:true}).click();await page.getByRole('button',{name:'Quiet alerts for 15 min'}).waitFor();await page.getByRole('button',{name:'Pause',exact:true}).click();await page.getByRole('button',{name:'Resume',exact:true}).waitFor();
    await tabTo(page,page.getByRole('link',{name:'Notifications',exact:true}));await page.keyboard.press('Enter');await page.waitForURL(origin+'/app/notifications');await ready(page);await page.getByRole('heading',{name:'Destinations · all monitors',exact:true}).waitFor();await audit(page,`notifications-${width}`);
    await page.getByRole('link',{name:'Archive',exact:true}).click();await page.waitForURL(origin+'/app/archive');await ready(page);await page.getByRole('button',{name:'Download backup'}).waitFor();await audit(page,`archive-${width}`);
    const [download]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'Download backup'}).click()]);await download.saveAs(resolve(out,`archive-${width}.json`));
