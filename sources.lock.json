@@ -7007,7 +7007,7 @@
       "executable": false
     },
     "tests/command-journey.mjs": {
-      "sha256": "af19fb52e6cf807063eff77b77fcedfebe9f22f344f93d1b9c811bca9b6b9029",
+      "sha256": "1f0cc4717c0d56340eb26b5af07c5396d36f80ec85f1f545d2c3057d43c2142c",
       "executable": false
     },
     "tests/connection-diagnostics-browser.mjs": {
