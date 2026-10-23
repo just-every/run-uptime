@@ -2607,7 +2607,7 @@
       "executable": false
     },
     "public/monitor-page.js": {
-      "sha256": "c751c223d086336429d44d699e780a9dc8e05daea663d58e09221e9922f8e51e",
+      "sha256": "5a39aab24c5738215b7dd858c5ee91a6259951386e464575f5f3ad1debe177a9",
       "executable": false
     },
     "public/monitor-recent-checks.js": {

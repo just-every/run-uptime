@@ -140,8 +140,8 @@ function bindPage(root){
 function read(page,name,start,apply,fail){
  const ticket=page.tickets[name]=(page.tickets[name]??0)+1,ui=page.ui;
  if(!ui.started)(ui.reading??=new Set()).add(name);
- const answered=()=>{ui.reading?.delete(name);if(ui.reading&&!ui.reading.size&&ui.hash)followLink(page)};
- start().then(value=>{if(page.tickets[name]!==ticket)return;apply(value);answered();draw(page)},problem=>{answered();if(page.tickets[name]===ticket)fail?.(problem)});
+ // An answer is drawn before a waiting link gives up, so a fold that this read adds (Cleanup debt) is there to open.
+ start().then(value=>{if(page.tickets[name]!==ticket)return;apply(value);ui.reading?.delete(name);draw(page)},problem=>{ui.reading?.delete(name);if(page.tickets[name]===ticket)fail?.(problem);if(ui.reading&&!ui.reading.size&&ui.hash)followLink(page)});
 }
 const readFailure=(host,what,retry)=>{
  if(!host?.isConnected)return;
