@@ -4,6 +4,7 @@ import {TABLES,columns} from './archive-schema.ts'
  * foreign integration namespaces refuse export rather than silently lose data. */
 export const installationLocalTables:Record<string,string>={
  ...businessImportLocalTables,
+ ...Object.fromEntries(['policy','factors','challenges','proofs','recovery','limits','notices'].map(name=>['uptime_mfa_'+name,'Installation-local second-factor policy, sealed factors, challenges, session proof, recovery authority, rate limits or notice outcomes; never portable authentication.'])),
  uptime_member_roles:'Installation-local product role narrowings of live Base operator identities; never portable authority.',
  uptime_member_scopes:'Installation-local service/team permission scope; receiving owners establish their own membership.',
  failure_evidence_grants:'Installation-local per-monitor evidence-viewer grants; never portable access authority.',
