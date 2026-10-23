@@ -1,3 +1,4 @@
+import {credentialMonitorFilter} from '../credentials/model.server.ts'
 import type {Bindings} from '../control.server.ts'
 import {periodAvailability} from '../reports/coverage.server.ts'
 import {periodLatency} from '../reports/latency.server.ts'
@@ -20,8 +21,9 @@ export async function metricsSnapshot(env:Bindings,params:URLSearchParams,now=Da
  if(ids.length>METRICS_MONITOR_LIMIT||ids.some(id=>!id||id.length>512)||new Set(ids).size!==ids.length)throw new ReportInputError('Specify at most 100 distinct monitor identifiers')
  const staleMs=Number(env.UPTIME_RUNNER_STALE_MS??120000)
  if(!Number.isSafeInteger(staleMs)||staleMs<=0)throw Error('Invalid monitoring watch interval')
+ const filter=credentialMonitorFilter(env)
  const [population,runnersResult]=await Promise.all([
-  (ids.length?env.DB.prepare(`SELECT id,revision,definition,state FROM monitors WHERE id IN (${ids.map(()=>'?').join(',')}) ORDER BY id LIMIT 101`).bind(...ids):env.DB.prepare('SELECT id,revision,definition,state FROM monitors ORDER BY id LIMIT 101')).all<MonitorRow>(),
+  env.DB.prepare(`SELECT id,revision,definition,state FROM monitors WHERE ${filter.sql} ${ids.length?'AND id IN(SELECT value FROM json_each(?))':''} ORDER BY id LIMIT 101`).bind(...filter.params,...(ids.length?[JSON.stringify(ids)]:[])).all<MonitorRow>(),
   env.DB.prepare('SELECT runner_id,revoked_at,last_contact_at,legacy_key FROM runners').all<RunnerRow>(),
  ])
  if(population.results.length>METRICS_MONITOR_LIMIT)throw new ReportInputError('Metrics supports at most 100 monitors; select monitors explicitly')

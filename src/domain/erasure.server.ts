@@ -61,6 +61,8 @@ export async function erase(env:Bindings,kind:'monitor'|'destination'|'operator'
  }
  if(kind==='destination')plans.push(selection('alert_recipient_consents','destination_id=?',id),selection('alert_drills','destination_id=?',id),selection('notification_credentials','destination_id=?',id));
  if(kind==='operator'){
+  for(const table of ['integration_token_usage','integration_token_events','integration_tokens'])plans.push(selection(table,'namespace IN(SELECT namespace FROM uptime_credential_grants WHERE issuer_id=?)',id));
+  plans.push(selection('uptime_credential_limits','grant_id IN(SELECT id FROM uptime_credential_grants WHERE issuer_id=?)',id),selection('uptime_credential_grants','issuer_id=?',id));
   plans.push(selection('incident_mention_authority','id IN(SELECT id FROM incident_mentions WHERE recipient_id=?)',id),selection('incident_mentions','recipient_id=?',id));
   plans.push(selection('alert_team_members','operator_id=?',id),selection('alert_recipient_consents','operator_id=?',id));
   plans.push(...['challenges','proofs','recovery','factors','limits','notices'].map(name=>selection('uptime_mfa_'+name,'operator_id=?',id)));
@@ -91,6 +93,8 @@ export async function erase(env:Bindings,kind:'monitor'|'destination'|'operator'
  // Fence the source row without deleting or transferring bootstrap authority.
  const bootstrap=kind==='operator'?await env.DB.prepare('SELECT singleton,claim_id,claimed_at FROM oa_bootstrap WHERE claim_id=?').bind(id).first<{singleton:number;claim_id:string;claimed_at:number}>():null;
  if(kind==='operator'){
+  for(const table of ['integration_token_usage','integration_token_events','integration_tokens'])plans.push(selection(table,'namespace IN(SELECT namespace FROM uptime_credential_grants WHERE issuer_id=?)',id));
+  plans.push(selection('uptime_credential_limits','grant_id IN(SELECT id FROM uptime_credential_grants WHERE issuer_id=?)',id),selection('uptime_credential_grants','issuer_id=?',id));
   counts.alert_team_deliveries=Number((await env.DB.prepare('SELECT COUNT(*) n FROM alert_team_deliveries WHERE operator_id=?').bind(id).first<{n:number}>())?.n??0);
   statements.push(mutationGuard(env,'(SELECT COUNT(*) FROM alert_team_deliveries WHERE operator_id=?)=?',[id,counts.alert_team_deliveries]));
   counts.oa_bootstrap=bootstrap?1:0;

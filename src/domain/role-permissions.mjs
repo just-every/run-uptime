@@ -18,6 +18,7 @@ export function requestPermission(request,input){
  const url=new URL(request.url),path=url.pathname,method=request.method==='HEAD'?'GET':request.method,read=method==='GET';
  const monitor=/^\/api\/(?:v1\/)?monitors\/([^/]+)(?:\/(.*))?$/.exec(path);
  const decode=value=>{try{return decodeURIComponent(value)}catch{return ''}};
+ if(path.startsWith('/api/credentials'))return {action:'owner',workspace:true};
  if(path==='/api/routing/recipient')return {action:'receive',workspace:false};
  if(path==='/api/routing/teams')return {action:'members',workspace:true};
  if(path==='/api/access/self')return {action:'read',workspace:false};

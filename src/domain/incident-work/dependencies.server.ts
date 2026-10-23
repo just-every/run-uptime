@@ -1,3 +1,4 @@
+import {credentialMonitorFilter} from '../credentials/model.server.ts'
 import {inScope,type Scope} from '../access.server.ts'
 import type {Bindings} from '../control.server.ts'
 import type {NotificationEvent} from '../notification-content.ts'
@@ -21,7 +22,8 @@ export async function dependencyContext(env:Bindings,incident:Found,now=Date.now
  const from=incident.trigger.observedAt,to=incident.recovery?.observedAt??now
  const monitor=await env.DB.prepare('SELECT definition FROM monitors WHERE id=?').bind(incident.monitor_id).first<{definition:string}>()
  const linkedIds=new Set<string>(monitor?(JSON.parse(monitor.definition).dependencies??[]):[])
- const readable=new Set((await env.DB.prepare('SELECT id,definition FROM monitors').all<{id:string;definition:string}>()).results.filter(row=>inScope(JSON.parse(row.definition),scopes)).map(row=>row.id))
+ const filter=credentialMonitorFilter(env)
+ const readable=new Set((await env.DB.prepare(`SELECT id,definition FROM monitors WHERE ${filter.sql}`).bind(...filter.params).all<{id:string;definition:string}>()).results.filter(row=>inScope(JSON.parse(row.definition),scopes)).map(row=>row.id))
  const all=(await notices(env,incident.monitor_id)).filter(notice=>readable.has(notice.monitorId)).filter(notice=>overlaps(notice,from,to))
  const linked=all.filter(notice=>linkedIds.has(notice.monitorId)),coincident=all.filter(notice=>!linkedIds.has(notice.monitorId))
  return {linked,coincident,group:await groupIncidents(env,incident,linked,readable)}

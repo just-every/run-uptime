@@ -1,3 +1,6 @@
+import {credentialPermission} from './domain/access.server.ts'
+import {credentialKeys} from './domain/credentials/store.server.ts'
+import {monitoringCapability} from './domain/credentials/model.server.ts'
 import {readTeams,saveTeam,readRecipient,consentRecipient} from './domain/alert-teams.server.ts'
 import {mfaDoor,earlyMfaGate} from './domain/mfa/door.server.ts'
 import {isConsoleDocument,isMonitorPage,canonicalConsolePath,consoleRedirect} from './ui/console-paths.ts'
@@ -109,8 +112,10 @@ registerHeartbeatReceipts(api)
 api.use('/api/*',async(c,next)=>{
  if(c.req.path==='/api/v1/openapi.json'&&['GET','HEAD'].includes(c.req.method)){await next();return}
  if(c.req.header('authorization')?.toLowerCase().startsWith('bearer ')){
-  if(c.req.path!=='/api/v1/metrics'||!['GET','HEAD'].includes(c.req.method))return c.json({error:'Metrics keys authorize only metrics reads'},403)
-  if(!await authorizeMetrics(c.env,c.req.raw))return c.json({error:'Metrics authorization required'},401)
+  if(!monitoringCapability(c.req.raw))return c.json({error:'Credential does not authorize this method or path'},403)
+  const credential=await credentialPermission(c.env,c.req.raw)
+  if(credential){c.env={...c.env,readCredential:credential};c.header('ratelimit','limit=60, reset='+String(60-Math.floor(Date.now()/1000)%60));c.header('ratelimit-policy','60;w=60')}
+  else if(c.req.path!=='/api/v1/metrics'||!await authorizeMetrics(c.env,c.req.raw))return c.json({error:'Credential required'},401)
  }else if(/^\/api\/evidence\/monitors\/[^/]+$/.test(c.req.path)&&['GET','HEAD'].includes(c.req.method)){
   const id=decodeURIComponent(c.req.path.split('/').pop()!);if(!await evidencePrincipal(c.env,c.req.raw,id))return c.json({error:'Evidence access required'},await authenticatedSession(c.env,c.req.raw)?403:401)
  }else if(c.req.path==='/api/runner/join'){/* One-time join capability. */}
@@ -145,6 +150,9 @@ api.post('/api/access/invitations',c=>accessMembers(c.env,c.req.raw,c.get('input
 api.post('/api/access/members/:id',c=>accessMembers(c.env,c.req.raw,c.get('input')))
 api.delete('/api/access/members/:id',c=>accessMembers(c.env,c.req.raw))
 api.post('/api/auth/sign-out',async c=>{try{const result=await signOut(c.env,c.req.raw);c.header('set-cookie',result.cookie);return c.json({signedOut:true})}catch(error){return authFailure(error)}})
+api.get('/api/credentials',c=>credentialKeys(c.get('systemBindings'),c.req.raw))
+api.post('/api/credentials',c=>credentialKeys(c.get('systemBindings'),c.req.raw,c.get('input')))
+api.delete('/api/credentials/:id',c=>credentialKeys(c.get('systemBindings'),c.req.raw))
 api.get('/api/metrics/keys',async c=>c.json(await metricsKeys(c.env,c.req.raw)))
 api.post('/api/metrics/keys',async c=>c.json(await createMetricsKey(c.env,c.req.raw,c.get('input')),201))
 api.delete('/api/metrics/keys/:id',async c=>c.json(await revokeMetricsKey(c.env,c.req.raw,c.req.param('id'))))
@@ -211,7 +219,7 @@ api.get('/api/v1/incidents',async c=>{
  if(c.req.query('format')==='csv'||c.req.header('accept')?.includes('text/csv'))return c.body(incidentListCsv(result),200,{'content-type':'text/csv; charset=utf-8','content-disposition':'attachment; filename="uptime-incidents.csv"'})
  return c.json(result)
 })
-for(const path of ['/api/incidents/:id','/api/v1/incidents/:id','/api/incident-settings','/api/incidents/:id/mention-members'])api.get(path,c=>incidentWorkRequest(c.get('systemBindings'),c.req.raw,c.get('input')))
+for(const path of ['/api/incidents/:id','/api/v1/incidents/:id','/api/incident-settings','/api/incidents/:id/mention-members'])api.get(path,c=>incidentWorkRequest(c.env.readCredential?c.env:c.get('systemBindings'),c.req.raw,c.get('input')))
 api.patch('/api/incident-settings',c=>incidentWorkRequest(c.get('systemBindings'),c.req.raw,c.get('input')))
 api.post('/api/incidents/:id/comments',c=>incidentWorkRequest(c.get('systemBindings'),c.req.raw,c.get('input')))
 api.patch('/api/incidents/:id/comments/:commentId',c=>incidentWorkRequest(c.get('systemBindings'),c.req.raw,c.get('input')))
