@@ -5923,7 +5923,7 @@
       "executable": false
     },
     "src/domain/mfa/policy.server.ts": {
-      "sha256": "4b739b7a24dd155b5fae131f687ebec60476b25cfc7f52a703eb1c311c098492",
+      "sha256": "7a9524c493be81882988f7d1bbd423f2832fd392829788cbd9cd43715ff90bf9",
       "executable": false
     },
     "src/domain/mfa/store.server.ts": {
@@ -6995,7 +6995,7 @@
       "executable": false
     },
     "tests/command-journey.mjs": {
-      "sha256": "2f1f7d0a2bb478eb75a954744165e100d5227277f2159498f8b6e604b506a78a",
+      "sha256": "f4849eebeed920d4c61835a888b351ea1b9d6de6db703d800a70d4131a6da7bb",
       "executable": false
     },
     "tests/connection-diagnostics-browser.mjs": {
@@ -7039,7 +7039,7 @@
       "executable": false
     },
     "tests/demo-scheduled.mjs": {
-      "sha256": "2e5867a4ea655fe2e216f3adb83f7300ac5de8ff730e36ae0bed92fb3db917ac",
+      "sha256": "12182d7fa2f6c9cab0e7f67aaca8dd0f3323f12f578468b412ee988b51debfc4",
       "executable": false
     },
     "tests/dependency-status-fixture.mjs": {
@@ -7095,7 +7095,7 @@
       "executable": false
     },
     "tests/failure-snapshots-hosted.mjs": {
-      "sha256": "255904c982d0eac068d87d831bef62bfab5549f219e0cfeb222f4b38321ad2db",
+      "sha256": "606a6ccab4de46dd94d0af0c846f984ec9d740fec83b01af61f677735d6f3ae3",
       "executable": false
     },
     "tests/failure-snapshots.mjs": {
@@ -7155,11 +7155,11 @@
       "executable": false
     },
     "tests/hosted-alerts.mjs": {
-      "sha256": "0c3ede3700dfa68cd5887a787c3f5a70a8c37979db9a8a7973aee4056667554e",
+      "sha256": "424e6f945f38a58a22b046d66266af7912e51e83ca98a1ee0a5566b701dcc6de",
       "executable": false
     },
     "tests/hosted-auth-browser.mjs": {
-      "sha256": "72c7cbaf4fc930df9f34f0a14c65abf20002300b900fef27fead3085bf25aca0",
+      "sha256": "aa33217d3743be9b9d1cd995e8bb9f50cf2a7314adbc58cd0ddec51bcab08004",
       "executable": false
     },
     "tests/hosted-auth-runtime.mjs": {
@@ -7175,11 +7175,11 @@
       "executable": false
     },
     "tests/hosted-rer-mail.mjs": {
-      "sha256": "13767906046aaf23364aa9818b740508a8f1625ca8d5dbcac375c00970e85392",
+      "sha256": "9f4bdfb8542c947ae7ce9cc4124d475ecc170b61351a17599ffb067b0042903e",
       "executable": false
     },
     "tests/hosted-scheduled.mjs": {
-      "sha256": "7e4c5db87a99b80d8930740c932c7032b64f80012f8101603032ff79f6b19e01",
+      "sha256": "13de4b5656778e3c44799fe93f35b3804b7a0d73a831bd48b8ec1cc58545a995",
       "executable": false
     },
     "tests/incident-work.mjs": {
@@ -7187,7 +7187,7 @@
       "executable": false
     },
     "tests/installer-support.mjs": {
-      "sha256": "1e2c744fe75a3c1530d81e88d6b56423f63f769c25abd8a5a71c214225e0e689",
+      "sha256": "bd4e945aec447ec55e1f0a1b845eb54a38679cb5490a54c228f9c5fb1c8f7b50",
       "executable": false
     },
     "tests/legacy-monitor-fixture.mjs": {
@@ -7207,7 +7207,7 @@
       "executable": false
     },
     "tests/mail-journey.mjs": {
-      "sha256": "63ae064287e8a73cdbc933630889fbacd1ba0c4175dff329c98176885314b38b",
+      "sha256": "24821dfcee10d3e51f3e5397c48b938dacbd9c3a277c7b8645ff35536779841e",
       "executable": false
     },
     "tests/mail-provider-fixture.mjs": {
@@ -7219,7 +7219,7 @@
       "executable": false
     },
     "tests/maintenance-windows.mjs": {
-      "sha256": "571395b797411171c172b59c2b83605fb3db21073df813b43167f5c2daa031ea",
+      "sha256": "c82e952c65cbe378c200dde4417dd3fa0dc6fd9ea85c201cf78742f8b2ad496a",
       "executable": false
     },
     "tests/metrics-browser.mjs": {
@@ -7375,7 +7375,7 @@
       "executable": false
     },
     "tests/ping-monitors.mjs": {
-      "sha256": "dc798ad32e5dfbbd32ea596a2f56cc23f1433807e581c40156fa836bc03094af",
+      "sha256": "3721b80d477562115d2c102b58e62f508a5230f4d19c8a4e7286c8f89e942091",
       "executable": false
     },
     "tests/ping-routing.mjs": {
@@ -7423,7 +7423,7 @@
       "executable": false
     },
     "tests/protocol-monitors.mjs": {
-      "sha256": "28746a43c5d233033b545f2d590f7472ce2d2620c9b6ed616048515ec8145814",
+      "sha256": "004799836e381147bea9635ecb749189585718b29f77c8b9cf1bb69516fdfa37",
       "executable": false
     },
     "tests/protocol-routing.mjs": {
@@ -7483,7 +7483,7 @@
       "executable": false
     },
     "tests/resilience/watches.mjs": {
-      "sha256": "b78f14e87f8b5515622f6e1cd45dbe3c01e9bf534bd52f6d9b5ddf2ac2ae906c",
+      "sha256": "c75eee051f88efd59fd99c8dc80a6eab3bf71dc5938ac8805daf340b4eb1b180",
       "executable": false
     },
     "tests/retention-browser-proof.mjs": {
@@ -7539,11 +7539,11 @@
       "executable": false
     },
     "tests/signed-runner-runtime.mjs": {
-      "sha256": "a8a244ebd1aa7d961c8ae2d59ce10bd0fe46e7af7b1f677a85e74410e123ef59",
+      "sha256": "12e3cd14b04ecaed3039414182190f9c27fefba2cc2c34aa232de563d77c05d7",
       "executable": false
     },
     "tests/signed-runner.mjs": {
-      "sha256": "44cb72d8bc63775ecb4a85bd3d6325f0b42107906d71b0db6227512be70430e5",
+      "sha256": "ed07047a78e826f29b09b6272c42273fb61eae132e76dc4f120f47606e5892c4",
       "executable": false
     },
     "tests/slow-import.mjs": {
@@ -7583,7 +7583,7 @@
       "executable": false
     },
     "tests/udp-monitors.mjs": {
-      "sha256": "41d41f71011edc405e77090f58947230b378f9c6ee662f7e813c523f7cc7c630",
+      "sha256": "fb174c9ef86111dad7efbc36776e5259a6cc086e4bc28c3d2bc46d4dfaef81a9",
       "executable": false
     },
     "tests/udp-routing.mjs": {
