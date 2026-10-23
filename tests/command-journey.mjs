@@ -1,6 +1,5 @@
 import {completeSecondFactor,completeBrowserSecondFactor,factorRequest} from './mfa-auth-support.mjs';
-import {createHmac} from 'node:crypto';
-import {emailSignIn,sessionCookie} from './auth-test-support.mjs';
+import {emailSignIn} from './auth-test-support.mjs';
 import {testMailOptions} from './mail-provider-fixture.mjs';
 import assert from 'node:assert/strict';
 import { readFile, readdir, stat, writeFile, mkdir } from 'node:fs/promises';
@@ -115,8 +114,9 @@ try {
  if (setupEvidence) await writeFile(join(setupEvidence, 'RESULTS.json'), JSON.stringify({ widths: [1440, 390], freshRerSetup: true, devReturn: '/setup', unfinishedRoutes: true, unsignedReturn: true, csrfRefused: true, nativeCompletion: true, finishedReturn: '/app/monitors' }, null, 2));
  // Base's existing local CLI door issues a native session. A dev-persona
  // session deliberately stops authenticating outside the dev key gate.
- const cliAdmission=await fetch(origin+'/auth/local/cli-session',{method:'POST',redirect:'manual',headers:{origin,'content-type':'application/json','x-rer-local-cli':createHmac('sha256',JSON.parse(settings).SESSION_SECRET).update('local-cli\0sign-in').digest('hex')},body:JSON.stringify({returnTo:'/app'})});
- scratch.env.UPTIME_ACCESS_COOKIE=sessionCookie(cliAdmission);
+ const cliAdmission=JSON.parse(await scratch.run('node',['scripts/mfa.mjs','local-session','--origin',origin]));
+ assert.equal(cliAdmission.secondFactorRequired,true);scratch.env.UPTIME_ACCESS_COOKIE=cliAdmission.cookie;
+ assert.equal((await fetch(origin+'/api/archive',{headers:{origin,cookie:cliAdmission.cookie}})).status,403,'local installation sign-in does not bypass the second factor');
  await completeSecondFactor(origin,scratch.env.UPTIME_ACCESS_COOKIE);
  await smokeDocuments(page, origin);
  await monitorHydration(page, origin, scratch.root);
