@@ -471,7 +471,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "b10179a60d39bc7837fa4ef9f6d7a8827f1c5a41c1fa970595305042563bc831",
+      "sha256": "d20b657756dd210ff62840d98d2cbb53cf73c92d4c176735efae051c03f4d736",
       "executable": false
     },
     "AGENTS.md": {
@@ -495,7 +495,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "8e787048603766486b010cb799a490e441557ceb04a3718845c359550fa083d5",
+      "sha256": "bf85e0c563c4cfd3e97063051101fadd2318622d97e121c0b6ecb0ad672865f2",
       "executable": false
     },
     "DEMO.md": {
@@ -2031,7 +2031,7 @@
       "executable": false
     },
     "docs/read-api.md": {
-      "sha256": "78734781d4ab8d860a99ee4d0e94cf1002b3c486753ec215d3aaab82b15bac17",
+      "sha256": "f41f4ecafd5e3380b77b883a8bba0e8289476db0fc1902eebb2cacf5d1d2b8bf",
       "executable": false
     },
     "docs/resilient-monitoring.md": {
@@ -2043,7 +2043,7 @@
       "executable": false
     },
     "docs/security.md": {
-      "sha256": "740bd6b1b684199ade9790fc99ce7a4653122356054a23c66f1620ce1bb69f4c",
+      "sha256": "d0d7fd304d1e8e74824db00554d938789e5dc6772e529b55e9e3642129400d42",
       "executable": false
     },
     "docs/site.json": {
@@ -6123,7 +6123,7 @@
       "executable": false
     },
     "src/domain/read-api-openapi.ts": {
-      "sha256": "85332aef965f23d002a6ea93df77e371e5499ddccdb77ab35a197176d3176c58",
+      "sha256": "ca3aadf753f51b39d7806e5f5c3731834360c89a1cc42348cbec0cb2f1b789b7",
       "executable": false
     },
     "src/domain/read-api/bulk.server.ts": {
