@@ -37,7 +37,7 @@ export async function proveMemberLifecycle({origin,call,fetcher,DB,cookie,member
  assert.equal((await call('/api/v1/monitors/missing-monitor',undefined,{cookie:admin.cookie})).status,404);
  // C11's summary-only limit is deliberately replaced by the complete product
  // role policy. Identity/import/erasure remain explicit owner-only doors.
- for(const other of ['/api/overview','/api/archive','/api/definitions/export','/api/v1/monitors'])assert.equal((await call(other,undefined,{cookie:admin.cookie})).status,200,'workspace admin product read/export');
+ for(const other of ['/api/overview','/api/archive','/api/definitions/export','/api/v1/monitors']){const response=await call(other,undefined,{cookie:admin.cookie});assert.equal(response.status,200,`workspace admin product read/export ${other}: ${response.status===200?'':await response.text()}`)}
  for(const other of ['/api/business-import-settings','/api/metrics/keys'])assert.equal((await call(other,undefined,{cookie:admin.cookie})).status,403,'owner-only administration');
  const created=await call('/api/monitors',{name:'synthetic-uptime-admin-check',type:'heartbeat',canaryUrl:'https://canary.example.test/health',heartbeat:{maxAgeMs:60000}},{cookie:admin.cookie});assert.equal(created.status,201);
  const editor=await invite('editor'),responder=await invite('responder'),reader=await invite('read-only',[],true);

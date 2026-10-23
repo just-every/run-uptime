@@ -2,6 +2,8 @@ import type {AuthBindings} from '../operator-auth.server.ts'
 import {auditStatement,mutationGuard} from '../audit.server.ts'
 import {MfaError,proofCondition,type MfaSession} from './policy.server.ts'
 import {protect,reveal,randomToken,recoveryDigest} from './crypto.server.ts'
+// @ts-ignore Shared audit vocabulary is also used by archive validation.
+import {MFA_ACTIONS} from './actions.mjs'
 export function liveFence(session:MfaSession){return {sql:`EXISTS(SELECT 1 FROM oa_sessions s JOIN oa_operators o ON o.id=s.operator_id WHERE s.id=? AND o.id=? AND o.version=? AND s.operator_version=o.version AND o.status='active' AND s.revoked_at IS NULL AND s.expires_at>unixepoch()*1000)`,values:[session.id,session.operator.id,session.operator.version]}}
 export function liveGuard(env:AuthBindings,session:MfaSession){const f=liveFence(session);return mutationGuard(env,f.sql,f.values)}
 export function enrollmentGuard(env:AuthBindings,session:MfaSession){return mutationGuard(env,`NOT EXISTS(SELECT 1 FROM uptime_mfa_factors WHERE operator_id=?) OR EXISTS(SELECT 1 FROM oa_sessions s JOIN oa_operators o ON o.id=s.operator_id WHERE s.id=? AND ${proofCondition(true)})`,[session.operator.id,session.id])}
@@ -12,6 +14,7 @@ export async function limited(env:AuthBindings,session:MfaSession){
 }
 export function proof(env:AuthBindings,session:MfaSession,method:string){return env.DB.prepare(`INSERT INTO uptime_mfa_proofs(session_id,operator_id,operator_version,verified_at,method) VALUES(?,?,?,?,?) ON CONFLICT(session_id) DO UPDATE SET operator_version=excluded.operator_version,verified_at=excluded.verified_at,method=excluded.method`).bind(session.id,session.operator.id,session.operator.version,Date.now(),method)}
 export async function commit(env:AuthBindings,session:MfaSession,action:string,statements:D1PreparedStatement[],noticeOperator=session.operator.id){
+ if(!MFA_ACTIONS.includes(action))throw Error('Unknown second-factor audit action')
  const notice=crypto.randomUUID()
  try{await env.DB.batch([liveGuard(env,session),...statements,auditStatement(env,{kind:'operator',ref:session.operator.id},`mfa_${action}`,'operator'),env.DB.prepare('INSERT INTO uptime_mfa_notices(id,operator_id,action,created_at,outcome) VALUES(?,?,?,?,?)').bind(notice,noticeOperator,action,Date.now(),'pending')])}
  catch(error){if(/NOT NULL constraint failed: uptime_audit\.id/.test(String(error)))throw new MfaError(409,'mfa_authority_changed');throw error}
