@@ -1,13 +1,11 @@
 import type {Bindings} from './control.server.ts'
 import {get} from './control.server.ts'
+import {permission,accessResponse} from './access.server.ts'
 import {authenticatedSession} from './operator-auth.server.ts'
 import {auditStatement,mutationGuard,type AuditActor} from './audit.server.ts'
 import {readSnapshots} from './failure-snapshots.server.ts'
 export async function evidencePrincipal(env:Bindings,request:Request,id:string){
- const principal=await authenticatedSession(env,request);if(!principal)return null
- if(principal.operator.role==='owner')return principal
- const grant=await env.DB.prepare('SELECT 1 FROM failure_evidence_grants WHERE monitor_id=? AND operator_id=?').bind(id,principal.operator.id).first()
- return grant?principal:null
+ try{return (await permission(env,request,undefined,{action:'evidence',workspace:false,monitorIds:[id]})).session}catch(error){if(accessResponse(error))return null;throw error}
 }
 export async function evidenceAccess(env:Bindings,id:string){
  if(!await get(env,id))throw Object.assign(Error('Monitor not found'),{status:404})

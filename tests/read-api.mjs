@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {join} from 'node:path';
 import {availablePorts,migratedWorker,runtimeDirectory,cleanupDirectory} from './notify-acceptance-runtime.mjs';
 import {signInOwner} from './auth-test-support.mjs';
+import {inviteDoorMember} from './access-door-support.mjs';
 import {metricsFixture} from './metrics-fixture.mjs';
 
 function csvRows(text){
@@ -102,6 +103,17 @@ try{
  assert.equal(fallBack.period.to-fallBack.period.from,25*3600000);assert.equal(fallBack.monitors[0].availability.windowMs,25*3600000);
  const longRange=new URLSearchParams({from:String(from-91*86400000),to:String(to),bucket:'1d'});
  const tooLong=await read('/api/v1/monitors/'+firstId+'/response-times?'+longRange);assert.equal(tooLong.status,400);assert.ok(!('series' in await tooLong.json()),'over-90-day response times are refused without a partial series');
+ // A read-only role is still a live Base member. A service scope admits only
+ // the single-monitor report door; workspace/bulk APIs never silently widen it.
+ const scoped=JSON.parse((await db.prepare('SELECT definition FROM monitors WHERE id=?').bind(firstId).first()).definition);scoped.service='synthetic-report-service';
+ await db.prepare('UPDATE monitors SET definition=? WHERE id=?').bind(JSON.stringify(scoped),firstId).run();
+ const reader=await inviteDoorMember(origin,cookie,'read-only','readapi-reader',[{kind:'service',value:'synthetic-report-service'}]);
+ const memberRead=path=>fetch(origin+path,{headers:{cookie:reader.cookie}});
+ const permittedReport=await memberRead('/api/v1/monitors/'+firstId+'/report?'+query);assert.equal(permittedReport.status,200);assert.deepEqual((await permittedReport.json()).availability,(await json('/api/v1/monitors/'+firstId+'/report?'+query)).availability);
+ const permittedCsv=await memberRead('/api/v1/monitors/'+firstId+'/report?'+query+'&format=csv');assert.equal(permittedCsv.status,200);assert.match(permittedCsv.headers.get('content-type'),/text\/csv/);
+ for(const path of ['/api/v1/monitors','/api/v1/uptime','/api/v1/monitors/'+secondId+'/report','/api/archive'])assert.equal((await memberRead(path)).status,403);
+ for(const method of ['POST','PATCH','DELETE'])assert.equal((await fetch(origin+'/api/monitors/'+firstId,{method,headers:{cookie:reader.cookie,origin,'content-type':'application/json'},...(method==='DELETE'?{}:{body:'{}'})})).status,403);
+ assert.ok((await db.prepare("SELECT COUNT(*) n FROM uptime_audit WHERE actor_ref=? AND action='access_read'").bind(reader.id).first()).n>0,'scoped CSV export retains its actor without request values');
  assert.equal((await db.prepare('SELECT COUNT(*) n FROM attempt_checkpoints').first()).n,0,'monitoring reads do not checkpoint or mutate evidence');
  console.log('READAPI-001 subset passed: owner monitor cursors/current coverage, exact bulk/report figures and seconds, filtered paginated incident CSV, spreadsheet escaping, and zoned calendar periods. Keys and ACCESS-003 remain unavailable.');
 }finally{

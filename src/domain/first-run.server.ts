@@ -1,6 +1,7 @@
 import {runnerRuntime} from './private-runner.ts'
 import {ensureFirstRunner,listRunners} from './runner-registration.server.ts'
 import {authenticatedSession,authFailure} from './operator-auth.server.ts'
+import {permission,accessResponse} from './access.server.ts'
 import {accessDeniedDocument} from './access-document.server.ts'
 import {setupDocument,type StartSite} from './setup-document.server.ts'
 import {externalCheck,saveExternalCheck} from './external-check.server.ts'
@@ -33,7 +34,7 @@ export async function firstRun(env:Bindings,request:Request){
   if(request.method==='POST'&&(request.headers.get('origin')!==env.UPTIME_ORIGIN||request.headers.get('sec-fetch-site')==='cross-site'))return new Response('Same origin required',{status:403,headers:{'cache-control':'no-store'}})
   const owner=await authenticatedSession(env,request)
   if(!owner)return new Response(null,{status:303,headers:{location:'/login?returnTo=%2Fsetup','cache-control':'no-store'}})
-  if(owner.operator.role!=='owner')return accessDeniedDocument(owner.operator.displayName,request.method==='HEAD')
+  try{await permission(env,request)}catch(error){if(accessResponse(error))return accessDeniedDocument(owner.operator.displayName,request.method==='HEAD');throw error}
   if(await firstRunComplete(env))return redirect('/app/monitors')
   // A website set at installation is the owner's answer; otherwise the form may carry one. Either way one discovery job asks the owner's runner to look.
   const first=await ensureFirstRunner(env);
