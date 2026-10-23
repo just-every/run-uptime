@@ -3243,7 +3243,7 @@
       "executable": false
     },
     "scripts/definitions.mjs": {
-      "sha256": "bd8dd1c430b2090525275b9b8afac3cbf1460680ef43ee4de458b0a7a1189fe9",
+      "sha256": "178b61eccdc1e5ff91b1f384776b0b9e7ca923927aab91500e7d8f7faff3a7b9",
       "executable": false
     },
     "scripts/delivery/base/artifact.mjs": {
@@ -3503,7 +3503,7 @@
       "executable": false
     },
     "scripts/local/transfer.mjs": {
-      "sha256": "837a7f5645fbb51cc8afb2ddf45af7f40ca54440194ea4498e25cc1d06884aa5",
+      "sha256": "a18f3ab6630a9d7d33cb3543f3c821eaa2da2e49c4f250b57a591f90724be3d7",
       "executable": false
     },
     "scripts/local/worker.mjs": {

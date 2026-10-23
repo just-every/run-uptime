@@ -68,7 +68,7 @@ async function syntheticGrant() {
 
 // Holding local storage does not replace the live identity or second factor.
 // The same permission and transaction fence apply to each resumed import step.
-const ownerRequest = (env, path, init = {}) => new Request(new URL(path, env.UPTIME_ORIGIN), { ...init, headers: { origin: env.UPTIME_ORIGIN, cookie: process.env.UPTIME_ACCESS_COOKIE ?? '', 'content-type': 'application/json', ...init.headers } });
+const ownerRequest = (env, path, init = {}) => new Request(new URL(path, env.UPTIME_ORIGIN), { ...init, headers: { host:new URL(env.UPTIME_ORIGIN).host, origin: env.UPTIME_ORIGIN, cookie: process.env.UPTIME_ACCESS_COOKIE ?? '', 'content-type': 'application/json', ...init.headers } });
 const localAccess=env=>permission(env,ownerRequest(env,'/api/operator/import/local',{method:'POST'}),undefined,{action:'import',workspace:true});
 const ownerAuthority = env => async () => accessFence(await localAccess(env));
 // History reads the owner's import history with the same local authority.

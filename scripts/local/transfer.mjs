@@ -41,7 +41,7 @@ export async function transfer(direction, path) {
  const temporary = path + '.partial';
  try {
   const env = { ...settings, UPTIME_LOCAL_REVIEW:'true', DB: await worker.getD1Database('DB') };
-  const request=new Request(new URL(direction==='export'?'/api/archive':'/api/restore',settings.UPTIME_ORIGIN),{method:direction==='export'?'GET':'POST',headers:{cookie,origin:settings.UPTIME_ORIGIN}});
+  const request=new Request(new URL(direction==='export'?'/api/archive':'/api/restore',settings.UPTIME_ORIGIN),{method:direction==='export'?'GET':'POST',headers:{host:new URL(settings.UPTIME_ORIGIN).host,cookie,origin:settings.UPTIME_ORIGIN}});
   // A local filesystem command holds the same live Base session and five-minute
   // factor proof as HTTP. Re-read authority at every progress boundary. Product
   // writes also carry the session/version/factor fence in their D1 transaction.
