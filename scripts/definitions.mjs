@@ -23,9 +23,10 @@ import { operatorImport } from '../src/domain/business-import/door.server.ts';
 import { ensureFirstRunner } from '../src/domain/runner-registration.server.ts';
 import { doorPlanView, previewDefinitions } from '../src/domain/business-import/plan-view.server.ts';
 import { importHistory } from '../src/domain/business-import/history.server.ts';
+import { importPlaywright } from './playwright-import/cli.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-const commands = { validate: ['--input', '--source'], preview: ['--input', '--source'], apply: ['--input', '--source', '--digest'], export: ['--output'], batches: [], undo: ['--batch'] };
+const commands = { 'import-playwright': ['--input', '--fixtures', '--lock', '--output', '--base'], validate: ['--input', '--source'], preview: ['--input', '--source'], apply: ['--input', '--source', '--digest'], export: ['--output'], batches: [], undo: ['--batch'] };
 const actor = { kind: 'feature', ref: 'local-cli' };
 
 function parse(argv) {
@@ -115,6 +116,7 @@ function printPreview(result) {
 
 export async function run(argv = process.argv.slice(2)) {
  const { command, options } = parse(argv);
+ if (command === 'import-playwright') { console.log(JSON.stringify(await importPlaywright(options))); return 0; }
  await lstat(join(root, 'data/local-secrets.json')).catch(() => { throw usage('Run rer setup --owner-email EMAIL --non-interactive first.'); });
  const text = options.input === undefined ? null : await readInput(options.input);
  if (command === 'export') await lstat(resolve(options.output)).then(() => { throw usage('Export writes a new file; choose a path that does not exist.'); }, error => { if (error.code !== 'ENOENT') throw error; });

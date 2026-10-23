@@ -165,3 +165,7 @@ Choose **SMTP or mailbox protocol** in the owner editor and select a private run
 ```
 
 Synthetic send/receive is optional and requires a dedicated test mailbox. An SMTP accept is recorded separately from receipt of the exact random Message-ID. POP3 removes only that message and commits deletion with QUIT; IMAP requires UIDPLUS and expunges only the matching UID. Unrelated messages remain untouched. The console retains Message-ID, per-step timing and distinct receipt/cleanup outcomes without mailbox content or passwords. A late message beyond the receipt deadline is not silently removed: inspect the dedicated mailbox using the recorded Message-ID when cleanup is unconfirmed. Checks have a total 60-second limit and no automatic write replay; SMTP/POP3/IMAP require a private runner.
+
+### Playwright source imports
+
+Use the [supported Playwright import](/docs/browser-flows#import-a-supported-playwright-suite) to translate a suite into an ordinary monitor file before preview/apply. `import-playwright` is offline and writes a new file only; it requires `--input`, `--fixtures`, `--lock` and `--output`, with optional `--base` for API definitions. Unsupported source is refused by file and line, never executed. Source, JSON fixtures and npm v3 lock bytes remain in immutable flow revisions and definition exports under the ordinary revision digest; selected secret values remain runner-local. This is a constrained translation door; arbitrary script execution and the full FLOW-002 acceptance remain partial.

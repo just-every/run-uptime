@@ -6,6 +6,7 @@ import {privateTarget} from './private-target.mjs';
 import {publicTarget} from './public-target.mjs';
 import {flowProfile, profileLabel, validateProfileEvidence} from './flow-profile.mjs';
 import {validateFlowFixtures} from './api-transaction.mjs';
+import {validateFlowSource} from './flow-source.mjs';
 
 export const FLOW_LIMITS = Object.freeze({
   minIntervalMs: 300000,       // a flow runs at most once every 5 minutes
@@ -81,7 +82,7 @@ function expectation(item, label, startOrigin) {
 /** Normalise a flow. Throws a plain reason for anything outside the closed vocabulary; the caller prefixes the entry's name. */
 export function validateFlow(input, {network, startUrl, synthetic = u => u}) {
   // `origins` is derived from the steps on every save; a stored flow carries it, and it is recomputed, never trusted.
-  only(input, ['intent', 'steps', 'outcomes', 'origins', 'browser', 'device', 'fixtures'], 'flow');
+  only(input, ['intent', 'steps', 'outcomes', 'origins', 'browser', 'device', 'fixtures', 'source'], 'flow');
   const {browser, device} = flowProfile(input);
   const intent = text(input.intent, 'flow intent', FLOW_LIMITS.intentChars);
   if (!Array.isArray(input.steps) || !input.steps.length) fail('A flow needs at least one step');
@@ -119,13 +120,14 @@ export function validateFlow(input, {network, startUrl, synthetic = u => u}) {
   });
   // API-004: setup and teardown fixtures run on the runner around the browser, through the API step engine and its controls.
   const fixtures = input.fixtures === undefined ? undefined : validateFlowFixtures(input.fixtures, {network, startUrl, synthetic});
-  return {intent, browser, device, steps, outcomes, origins: [...origins].sort(), ...(fixtures ? {fixtures} : {})};
+  return {intent, browser, device, steps, outcomes, origins: [...origins].sort(), ...(fixtures ? {fixtures} : {}), ...(input.source ? {source:validateFlowSource(input.source)} : {})};
 }
 
 const keyOf = item => JSON.stringify(Object.fromEntries(Object.entries(item).filter(([k]) => k !== 'id' && k !== 'origins').sort(([a], [b]) => a < b ? -1 : 1)));
 /** What a flow must observe to pass: each required outcome and each expect step, by content. Removing one weakens the flow. */
 export function requirements(flow) {
   return [
+    ...(flow?.source ? [{key:'strict-playwright-locators',label:'unique Playwright locators'}] : []),
     ...(flow ? [{key: `profile:${flowProfile(flow).browser}:${flowProfile(flow).device}`, label: `browser profile “${profileLabel(flow)}”`}] : []),
     ...(flow?.outcomes ?? []).map(o => ({key: `outcome:${o.id}:${keyOf(o)}`, label: `outcome “${o.id}”`})),
     ...(flow?.steps ?? []).filter(s => s.kind === 'expect').map(s => ({key: `expect:${keyOf(s)}`, label: `expectation ${describeExpectation(s)}`})),

@@ -1,0 +1,23 @@
+name: Import a Playwright monitoring suite
+on:
+  workflow_dispatch:
+permissions: {}
+jobs:
+  import:
+    # An installation-owned runner, already set up by its owner. No checkout,
+    # hosted API request, provider credential or GitHub token is used here.
+    runs-on: [self-hosted, uptime-installation]
+    timeout-minutes: 5
+    env:
+      UPTIME_CHECKOUT: ${{ vars.UPTIME_CHECKOUT }}
+    steps:
+      - name: Import, review and deploy through the definitions CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$UPTIME_CHECKOUT"
+          output="$RUNNER_TEMP/uptime-playwright-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.json"
+          node scripts/definitions.mjs import-playwright --input suite.spec.ts --fixtures fixtures.json --lock package-lock.json --output "$output"
+          node scripts/definitions.mjs preview --input "$output" --json > "$output.preview"
+          digest=$(node -e 'const fs=require("node:fs");const p=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));if(p.counts.refused||p.counts.unsupported)process.exit(1);process.stdout.write(p.reviewDigest)' "$output.preview")
+          node scripts/definitions.mjs apply --input "$output" --digest "$digest" --json

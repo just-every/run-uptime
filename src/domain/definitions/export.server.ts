@@ -9,7 +9,7 @@ import {DEFINITION_FORMAT,DEFINITION_VERSION,FILE_FIELDS} from './format.ts'
 // assertion stored before unknown assertion fields were refused is written with its known fields only.
 const known=(value:any,fields:string[])=>Object.fromEntries(fields.filter(k=>value[k]!==undefined).map(k=>[k,value[k]]))
 // A flow's origins are derived from its steps on every save, so the file carries only what the owner wrote.
-const fileFlow=(f:any)=>known(f,['intent','steps','outcomes'])
+const fileFlow=(f:any)=>known(f,['intent','steps','outcomes','browser','device','fixtures','source'])
 const fileAssertions=(a:any)=>({...a,...(a.header?{header:known(a.header,ASSERTION_FIELDS.header)}:{}),...(a.json?{json:known(a.json,ASSERTION_FIELDS.json)}:{})})
 export async function exportDefinitions(env:Bindings){
  const rows=(await env.DB.prepare('SELECT definition FROM monitors ORDER BY rowid').all<any>()).results

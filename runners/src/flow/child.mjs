@@ -49,6 +49,8 @@ const fail = (reason, extra = {}) => { failure ??= {step, reason, ...extra}; };
 const sleepless = ms => Math.max(500, Math.min(ms, 10000, remaining()));
 
 const target = (page, t) => t.css !== undefined ? page.locator(`css=${t.css}`) : t.text !== undefined ? page.getByText(t.text) : t.label !== undefined ? page.getByLabel(t.label) : page.getByRole(t.role, {name: t.name});
+// Imported Playwright locators retain native strict matching; editor flows keep their existing first-match vocabulary.
+const selected = (page, t) => flow.source ? target(page, t) : target(page, t).first();
 const urlMatches = (page, value, match) => { try { const p = new URL(page.url()).pathname; return match === 'prefix' ? p.startsWith(value) : p === value; } catch { return false; } };
 
 try {
@@ -98,7 +100,7 @@ const entry = (i, kind, started0, data = {}) => {
 
 async function expectation(item, timeout) {
   if (item.what === 'text') await page.getByText(item.value).first().waitFor({state: 'visible', timeout});
-  else if (item.what === 'element') await target(page, item.target).first().waitFor({state: 'visible', timeout});
+  else if (item.what === 'element') await selected(page, item.target).waitFor({state: 'visible', timeout});
   else await page.waitForURL(() => urlMatches(page, item.value, item.match), {timeout, waitUntil: 'commit'});
 }
 
@@ -116,14 +118,14 @@ try {
         if (!failure && response && response.status() >= 400) fail('http_status', {status: response.status()});
         record({url: shownUrl()});
       } else if (s.kind === 'click') {
-        await target(page, s.target).first().click({timeout});
+        await selected(page, s.target).click({timeout});
         await page.waitForLoadState('load', {timeout: sleepless(3000)}).catch(() => {});
         record({url: shownUrl()});
       } else if (s.kind === 'fill') {
         const credential = credentials[s.credentialRef];
         if (!credential) fail('credential_unavailable');
         else if (new URL(page.url()).origin !== credential.origin) fail('credential_origin_mismatch');
-        else await target(page, s.target).first().fill(credential.value, {timeout});
+        else await selected(page, s.target).fill(credential.value, {timeout});
         record();
       } else {
         const text = describeExpectation(s);
