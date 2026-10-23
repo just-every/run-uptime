@@ -6983,7 +6983,7 @@
       "executable": false
     },
     "tests/catalog.mjs": {
-      "sha256": "a867b62ba1e67e417cdb2795edc2447e4e489c323727465f9e88c8ad7b286aa4",
+      "sha256": "184d3d8a87b772a9541520b34622bfb0daf53627fcd95c26657564e5c9a3f903",
       "executable": false
     },
     "tests/command-journey.mjs": {
