@@ -1,3 +1,5 @@
+import {namedAlertRoutes,saveNamedAlertRoute} from './domain/alert-routes.server.ts'
+import {previewCatalogRoutes,applyCatalogRoutes,undoCatalogRoutes} from './domain/catalog/routes.server.ts'
 import {ciDoor} from './domain/ci/door.server.ts'
 import {credentialPermission} from './domain/access.server.ts'
 import {credentialKeys} from './domain/credentials/store.server.ts'
@@ -140,6 +142,9 @@ api.use('/api/*',async(c,next)=>{
 })
 // Only authenticated owner requests can kick hosted work; public traffic and private runners cannot.
 api.use('/api/*',async(c,next)=>{await next();if(c.res.ok&&(c.req.path==='/api/overview'||/^\/api\/(monitors|notifications)(\/|$)/.test(c.req.path))){c.executionCtx.waitUntil(kickHostedWork(c.get('systemBindings')??c.env).catch(()=>console.error('Hosted console work failed; queued work remains available to Cron.')))}})
+api.get('/api/routing/named-routes',async c=>c.json(await namedAlertRoutes(c.env)))
+api.post('/api/routing/named-routes',async c=>c.json(await saveNamedAlertRoute(c.env,c.get('input'),{kind:'operator',ref:c.get('access').session.operator.id}),201))
+api.post('/api/catalog/routes/undo',async c=>c.json(await undoCatalogRoutes(c.env,c.get('input'),{kind:'operator',ref:c.get('access').session.operator.id})))
 api.get('/api/routing/teams',async c=>c.json(await readTeams(c.env)))
 api.post('/api/routing/teams',async c=>c.json(await saveTeam(c.env,c.get('input'),c.get('access'))))
 api.get('/api/routing/recipient',async c=>c.json(await readRecipient(c.env,c.get('access'))))
@@ -168,7 +173,7 @@ api.get('/api/v1/metrics',async c=>{
 })
 api.get('/api/overview',async c=>{const zone=c.req.header('x-uptime-time-zone');if(zone)await initializeNotificationTimeZone(c.env,zone);const monitorId=c.req.query('monitor');return c.json(await overview(c.env,monitorId===undefined?{}:{monitorId}))})
 for(const [path,preview,apply] of [
- ['/api/catalog',catalogBulkPreview,catalogBulkApply],['/api/catalog/add',catalogAddPreview,catalogAddApply],['/api/maintenance',previewMaintenance,applyMaintenance],
+ ['/api/catalog/routes',previewCatalogRoutes,applyCatalogRoutes],['/api/catalog',catalogBulkPreview,catalogBulkApply],['/api/catalog/add',catalogAddPreview,catalogAddApply],['/api/maintenance',previewMaintenance,applyMaintenance],
 ] as const){
  api.post(`${path}/preview`,async c=>c.json(await preview(c.env,c.get('input'))))
  api.post(`${path}/apply`,async c=>{const {digest,...input}=c.get('input') as any;return c.json(await apply(c.env,input,digest,{kind:'operator',ref:(await authenticatedSession(c.env,c.req.raw))!.operator.id}),201)})
