@@ -475,7 +475,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "18802aea50d64147621fd2f8ceeea96e72cbd283c885bd1648d2477b610a259f",
+      "sha256": "08378adf8883f7fcdd5a2545c8885e13b8b33dcaf364edad31dda4e4cd642db9",
       "executable": false
     },
     "AGENTS.md": {
@@ -499,7 +499,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "fa8f62f063db95172bbaab72f66a1d592494086ffe50fcc56ec4934b5f7cedd9",
+      "sha256": "7103871689eb37ab04ee87ab7ccfeb97eed0055ca747e9cd2497ebe4995638d7",
       "executable": false
     },
     "DEMO.md": {
@@ -5371,7 +5371,7 @@
       "executable": false
     },
     "src/domain/access.server.ts": {
-      "sha256": "8698912449b207b41d168333ee0cebe6eee9a95b67bac467f1d1178c69ef9a5b",
+      "sha256": "5ad367f51d25535571aa1e389327f8ca747c257f56ad4e0ae499c5bc6f2c109a",
       "executable": false
     },
     "src/domain/alert-drill-content.ts": {
