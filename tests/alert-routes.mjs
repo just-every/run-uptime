@@ -85,5 +85,5 @@ test('owned routes preview inheritance, deliver matched triggers/recoveries and 
   await f.pause(monitor);
   await proveRoutingTeams(f,ok);
   await proveRoutingFilters(f,ok);
- }finally{releaseTrigger?.();await dispatching;await f.close()}
+ }finally{releaseTrigger?.();try{await dispatching}finally{await f.close()}}
 });
