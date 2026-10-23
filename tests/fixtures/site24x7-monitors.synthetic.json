@@ -1,0 +1,112 @@
+{
+  "code": 0,
+  "message": "success",
+  "data": [
+    {
+      "check_frequency": "5",
+      "timeout": 10,
+      "monitor_id": "8000",
+      "display_name": "synthetic-uptime-1",
+      "monitor_type": "URL",
+      "website": "https://synthetic-uptime-1.example/",
+      "http_method": "G",
+      "up_status_codes": "200:299",
+      "location_profile_id": "synthetic-uptime-1"
+    },
+    {
+      "check_frequency": "5",
+      "timeout": 10,
+      "monitor_id": "8001",
+      "display_name": "synthetic-uptime-2",
+      "monitor_type": "RESTAPI",
+      "website": "https://synthetic-uptime-2.example/status",
+      "http_method": "H",
+      "up_status_codes": "200,204"
+    },
+    {
+      "check_frequency": "5",
+      "timeout": 10,
+      "monitor_id": "8002",
+      "display_name": "synthetic-uptime-3",
+      "monitor_type": "PORT",
+      "host_name": "synthetic-uptime-3.example",
+      "port": 443
+    },
+    {
+      "check_frequency": "5",
+      "timeout": 10,
+      "monitor_id": "8003",
+      "display_name": "synthetic-uptime-4",
+      "monitor_type": "PING",
+      "host_name": "synthetic-uptime-4.example",
+      "use_ipv6": false
+    },
+    {
+      "check_frequency": "5",
+      "timeout": 10,
+      "monitor_id": "8004",
+      "display_name": "synthetic-uptime-5",
+      "monitor_type": "DNS",
+      "dns_host": "1.1.1.1",
+      "dns_port": "53",
+      "domain_name": "synthetic-uptime-5.example",
+      "lookup_type": 1,
+      "protocol": 0
+    },
+    {
+      "check_frequency": "5",
+      "timeout": 10,
+      "monitor_id": "8005",
+      "display_name": "synthetic-uptime-6",
+      "monitor_type": "PORT",
+      "host_name": "synthetic-uptime-6.example",
+      "port": 0
+    },
+    {
+      "check_frequency": "5",
+      "timeout": 10,
+      "monitor_id": "8006",
+      "display_name": "synthetic-uptime-7",
+      "monitor_type": "AWSHEALTH"
+    },
+    {
+      "check_frequency": "5",
+      "timeout": 10,
+      "monitor_id": "8007",
+      "display_name": "synthetic-uptime-8",
+      "monitor_type": "REALBROWSER"
+    },
+    {
+      "check_frequency": "5",
+      "timeout": 10,
+      "monitor_id": "8008",
+      "display_name": "synthetic-uptime-9",
+      "monitor_type": "SSL_CERT"
+    },
+    {
+      "check_frequency": "5",
+      "timeout": 10,
+      "monitor_id": "8009",
+      "display_name": "synthetic-uptime-10",
+      "monitor_type": "DOMAINEXPIRY"
+    },
+    {
+      "check_frequency": "5",
+      "timeout": 10,
+      "monitor_id": "8010",
+      "display_name": "synthetic-uptime-11",
+      "monitor_type": "HEARTBEAT"
+    },
+    {
+      "check_frequency": "5",
+      "timeout": 10,
+      "monitor_id": "8011",
+      "display_name": "synthetic-uptime-12",
+      "monitor_type": "DNS",
+      "dns_host": "9.9.9.9",
+      "dns_port": "53",
+      "domain_name": "synthetic-uptime-12.example",
+      "lookup_type": 1
+    }
+  ]
+}

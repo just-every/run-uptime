@@ -1,3 +1,33 @@
 # Synthetic fixtures
 
 Every file here is synthetic. `uptimerobot-v3-monitors.synthetic.json` is two hand-written UptimeRobot API v3 `GET /monitors` pages saved one after the other, using the field names in UptimeRobot's published OpenAPI document (https://cdn.uptimerobot.com/api/openapi.yaml, read 12 Oct 2026). `uptimerobot-logs.synthetic.csv` imitates a log export; UptimeRobot does not publish its CSV columns, so its header is an assumption. Neither file came from a real account, and no real export has been tested.
+
+`site24x7-monitors.synthetic.json` is a synthetic saved monitor-list response from
+https://www.site24x7.com/help/api/ (read 23 October 2026), using its documented
+`monitor_type` response field, monitor parameters, method and DNS lookup constants.
+It contains Website, REST API, Port, Ping and DNS settings plus invalid/unsupported
+records. Every name and source identifier is synthetic; no account or provider key is used.
+
+`betterstack-monitors.synthetic.json` follows the saved `monitor` resources at
+https://betterstack.com/docs/uptime/api/list-all-existing-monitors/ and the field
+semantics at https://betterstack.com/docs/uptime/api/create-a-new-monitor/
+(read 23 October 2026). HTTP timeout is seconds; ping/TCP timeout is milliseconds.
+Names, group identifiers and request values are synthetic. The credential-bearing
+record proves values are withheld before import custody and never applied.
+
+`pingdom-checks.synthetic.json` uses the published `Check`, `Tag`,
+`DetailedCheckAttributes`, `CheckWithoutIDGET` and `Step` schemas from
+https://docs.pingdom.com/API_3.1.yaml (read 23 October 2026): saved HTTP detail
+responses wrap `check`; TMS detail responses are direct objects with `script` or
+`recording` type. HTTP tags are objects; TMS tags are strings. Probe filters retain
+their published `region: ...` spelling. No page-speed export shape was established
+in that schema, so no page-speed fixture or invented field is supplied.
+
+`uptimerobot-contacts.synthetic.json` and `uptimerobot-seats.synthetic.json` follow
+`AlertContactDto` and `AllAlertContactDto` from https://cdn.uptimerobot.com/api/openapi.yaml
+(read 23 October 2026), the response arrays for `/user/alert-contacts` and
+`/user/all-alert-contacts`. Personal contact kinds come from
+`CreatePersonalAlertContactDto`; integration kinds come from the integration
+request discriminator. Canonical and legacy mobile push spellings are documented
+on the response DTOs. Names, email addresses and connector paths are synthetic.
+No source status is treated as consent or a local role.

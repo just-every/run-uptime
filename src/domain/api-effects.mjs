@@ -1,11 +1,13 @@
 // API-004: effects that need an owner's exact, time-limited grant. A step is live when the owner marks it with an effect, when
-// it is a refund, when anything it sends has the shape of a Stripe live-mode key, or when its response says livemode: true.
-// Stripe test mode and the buyer's own sandbox resources need no grant. Shared by the Worker (grant records) and the runner
-// (refusal before a request is sent, and on every attempt).
+// it is a refund, when anything it sends has the shape of a Stripe live-mode key (HTTP Basic credentials decoded), or when its
+// response says livemode: true. Stripe test mode and the buyer's own sandbox resources need no grant. Shared by the Worker
+// (grant records) and the runner (refusal before a request is sent, and on every attempt).
 export const API_EFFECTS = Object.freeze(['live-payment', 'refund', 'destructive-write']);
 export const GRANT_LIMITS = Object.freeze({maxMs: 24 * 60 * 60 * 1000, maxSpend: 100000000});
 const LIVE_KEY = /\b(?:sk|rk)_live_[0-9A-Za-z]{8,}/;
-export const liveCredentialShape = values => values.some(value => typeof value === 'string' && LIVE_KEY.test(value));
+// HTTP Basic authentication sends its user and password base64-encoded; they are checked as the provider decodes them.
+const basicCredentials = value => {const match = /^\s*basic\s+([A-Za-z0-9+/]+=*)\s*$/i.exec(value);try { return match ? atob(match[1]) : ''; } catch { return ''; }};
+export const liveCredentialShape = values => values.some(value => typeof value === 'string' && (LIVE_KEY.test(value) || LIVE_KEY.test(basicCredentials(value))));
 /** The effect a step declares by itself: the owner's mark, or a refund path. Live mode is found at run time. */
 export function declaredEffect(step) {
   if (step.effect) return step.effect;
@@ -19,8 +21,9 @@ export function stepSpend(body) {
   return Number.isSafeInteger(amount) && amount > 0 ? amount : 1;
 }
 export const responseLivemode = body => { try { return JSON.parse(body)?.livemode === true; } catch { return false; } };
-/** The active grant for an effect at `now`, or null: unexpired, unrevoked and with spend left. */
-export const activeGrant = (grants, effect, now) => (grants ?? []).find(g => g.effect === effect && g.expiresAt > now && g.remaining > 0) ?? null;
+/** The grant a claim names for an effect, unexpired at `now`, or null. Revocation and the spend left are checked by the control
+ * plane when a request spends it; a claim carries no allowance a runner could spend by itself. */
+export const activeGrant = (grants, effect, now) => (grants ?? []).find(g => g.effect === effect && g.expiresAt > now) ?? null;
 export function validateGrantInput(input, now) {
   if (!input || typeof input !== 'object' || Array.isArray(input) || Object.keys(input).some(key => !['effect', 'spendLimit', 'expiresAt'].includes(key))) throw Error('A grant names one effect, an integer spend limit and an expiry');
   if (!API_EFFECTS.includes(input.effect)) throw Error(`A grant effect is one of ${API_EFFECTS.join(', ')}`);

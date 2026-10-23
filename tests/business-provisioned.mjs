@@ -87,7 +87,8 @@ try{
  fixture=fixtureProcess(fixturePort,grantPath,directory);await waitFor(async()=>(await fetch(`http://127.0.0.1:${fixturePort}/health`)).ok,'synthetic target');
  assert.equal((await fetch(`http://127.0.0.1:${fixturePort}/control`,{method:'POST',body:JSON.stringify({mode:'failing'})})).status,200);
  const transport=loopbackWireTransport(new Map([[newURL,{port:acceptPort,path:'/receiver'}],[oldURL,{port:failPort,path:'/receiver'}]]));
- const runOnce=()=>runRunner({origin,key:bindings.UPTIME_RUNNER_KEY,grantPath,localReview:true,transport,once:true});
+ let second;
+ const runOnce=async()=>{await runRunner({origin,key:bindings.UPTIME_RUNNER_KEY,grantPath,localReview:true,transport,once:true});if(second)await runRunner({origin,key:second.key,runnerId:second.runnerId,grantPath,localReview:true,transport,once:true})};
  const created=async(path,body)=>{const r=await owner(path,body);assert.ok(r.status>=200&&r.status<300,`${path}: ${r.status} ${JSON.stringify(r.body)}`);return r.body};
  const cutover=async(body,fields={},options)=>{const response=await fetch(origin+'/api/rer/cutover-status',{method:'POST',headers:{'content-type':'application/json',
   authorization:'Bearer '+await token('rer-import-grant+jwt',{action:'cutover-status',...fields},options)},body:typeof body==='string'?body:JSON.stringify(body)});return {status:response.status,text:await response.text()}};
@@ -102,7 +103,8 @@ try{
  await new Promise(resolve=>setTimeout(resolve,20));
  const since=new Date().toISOString();
  await created(`/api/notifications/destinations/${receiver.id}/test`,{});await created(`/api/notifications/destinations/${old.id}/test`,{});
- const monitor=await created('/api/monitors',{name:'Checkout behind cutover',url:`http://127.0.0.1:${fixturePort}/api/status`,probes:['local-a'],intervalMs:5000,retries:0,confirmSlots:1,recoverSlots:1,freshnessMs:15000});
+ const first=(await owner('/api/runners')).body.find(r=>r.revokedAt===null);second=await created('/api/runners',{networkLabel:'synthetic-uptime-2'});
+ const monitor=await created('/api/monitors',{name:'Checkout behind cutover',url:`http://127.0.0.1:${fixturePort}/api/status`,probes:['local-a','local-b'],assignments:{'local-a':{runnerId:first.runnerId},'local-b':{runnerId:second.runnerId}},intervalMs:5000,retries:0,confirmSlots:1,recoverSlots:1,freshnessMs:15000});
  const answer=await waitFor(async()=>{await runOnce();const r=await read(since);
   return r.body.created_since.incidents===1&&r.body.deliveries.every(d=>d.sent_since===(d.destination_id===inbox.id?0:1))&&r.body.deliveries.find(d=>d.destination_id===receiver.id).ok_since===1?r:null},
   'deliveries and the incident since the cutover began');

@@ -51,6 +51,11 @@ export async function publicRuntime(directory,bindings,port){
 export async function prefill(DB,classification,limit){
  const row=await DB.prepare('SELECT client_hash FROM public_rate_limits WHERE class=? LIMIT 1').bind(classification).first();
  assert.ok(row,`public request created a durable ${classification} counter`);
+ // The limit-th request and the refused one after it must share one fixed
+ // window: a rollover between them admits the refused one into the next
+ // window. Near a window's end, start the fixture in the next window.
+ const remaining=60_000-Date.now()%60_000;
+ if(remaining<5_000)await new Promise(resolve=>setTimeout(resolve,remaining+25));
  // Populate the current and next real window so wall-clock rollover between
  // two HTTP requests cannot invalidate the boundary fixture. No app test hook.
  const start=Math.floor(Date.now()/60_000)*60_000;
