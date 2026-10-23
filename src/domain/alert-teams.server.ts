@@ -1,10 +1,10 @@
 import type {Bindings} from './control.server.ts'
-import type {Access} from './access.server.ts'
+import {AccessError,type Access} from './access.server.ts'
 import {mutationGuard,auditStatement} from './audit.server.ts'
 import {destinations} from './notification-destinations.server.ts'
 import {readCredential,type CredentialRow} from './notification-credentials.server.ts'
 import {routeIds} from './alert-route-filters.ts'
-const fail=(message:string,status=400)=>Object.assign(Error(message),{status})
+const fail=(message:string,status=400)=>status===403?new AccessError():Object.assign(Error(message),{status})
 export async function readTeams(env:Bindings){
  const [teams,members]=await Promise.all([env.DB.prepare('SELECT * FROM alert_teams ORDER BY name,id').all<any>(),env.DB.prepare('SELECT tm.team_id,tm.operator_id,o.status,r.role FROM alert_team_members tm LEFT JOIN oa_operators o ON o.id=tm.operator_id LEFT JOIN uptime_member_roles r ON r.operator_id=o.id ORDER BY tm.team_id,tm.operator_id').all<any>()])
  return {teams:teams.results.map(t=>({id:t.id,name:t.name,enabled:!!t.enabled,revision:t.revision,members:members.results.filter(m=>m.team_id===t.id).map(m=>({operatorId:m.operator_id,status:m.status,role:m.role}))}))}
