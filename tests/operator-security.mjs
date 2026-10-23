@@ -31,7 +31,8 @@ try{
  for(const sql of splitSql(await readFile('migrations/0070_incident_mentions.sql','utf8')))await db.prepare(sql).run();
  for(const sql of splitSql(await readFile('migrations/0071_edition_credentials.sql','utf8')))await db.prepare(sql).run();
  const oldTables=(await db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT GLOB '_cf_*' ORDER BY name").all()).results.map(r=>r.name);
- const oldRows=async()=>Object.fromEntries(await Promise.all(oldTables.map(async name=>[name,(await db.prepare(`SELECT * FROM "${name}" ORDER BY rowid`).all()).results])));
+ const oldColumns=Object.fromEntries(await Promise.all(oldTables.map(async name=>[name,(await db.prepare(`PRAGMA table_info("${name}")`).all()).results.map(c=>c.name)])));
+ const oldRows=async()=>Object.fromEntries(await Promise.all(oldTables.map(async name=>[name,(await db.prepare(`SELECT ${oldColumns[name].map(c=>'"'+c+'"').join(',')} FROM "${name}" ORDER BY rowid`).all()).results])));
  const beforeNamedUpgrade=await oldRows();for(const sql of splitSql(await readFile('migrations/0072_named_alert_routes.sql','utf8')))await db.prepare(sql).run();
  assert.deepEqual(await oldRows(),beforeNamedUpgrade,'named-route upgrade preserves every populated preexisting row');
  for(const table of ['alert_named_routes','catalog_route_batches','catalog_route_batch_entries'])assert.equal((await db.prepare(`SELECT COUNT(*) n FROM ${table}`).first()).n,0,'upgrade creates no named route or assignment authority');
