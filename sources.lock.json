@@ -2011,7 +2011,7 @@
       "executable": false
     },
     "docs/read-api.md": {
-      "sha256": "f41f4ecafd5e3380b77b883a8bba0e8289476db0fc1902eebb2cacf5d1d2b8bf",
+      "sha256": "5661e03557593755822a6cb9cfddc7643da68f9a6aeed6039a41702f4d279e41",
       "executable": false
     },
     "docs/resilient-monitoring.md": {
@@ -2023,7 +2023,7 @@
       "executable": false
     },
     "docs/security.md": {
-      "sha256": "d0d7fd304d1e8e74824db00554d938789e5dc6772e529b55e9e3642129400d42",
+      "sha256": "49f3076b4815ce2310c16a8059070d14e9d23b5bfe473f1625cdb13f452e2651",
       "executable": false
     },
     "docs/site.json": {
