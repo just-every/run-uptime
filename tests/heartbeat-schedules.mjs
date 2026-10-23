@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import {randomBytes} from 'node:crypto';
 import {spawn} from 'node:child_process';
-import {once} from 'node:events';
 import {mkdir,writeFile} from 'node:fs/promises';
+import yaml from 'js-yaml';
+import {heartbeatSnippets} from '../src/domain/heartbeat-snippets.mjs';
 import {join} from 'node:path';
 import {availablePorts,migratedWorker,runtimeDirectory,cleanupDirectory,ownerAPI} from './notify-acceptance-runtime.mjs';
 import {definitionDoor} from './auth-test-support.mjs';
@@ -34,11 +35,58 @@ try{
  assert.equal((await fetch(origin+issued.receiptPath,{headers:protectedHeaders})).status,200);assert.equal((await fetch(origin+issued.receiptPath,{headers:protectedHeaders})).status,400);
  const stored=JSON.stringify((await DB.prepare('SELECT * FROM heartbeat_authority').all()).results);assert.ok(!stored.includes(issued.token)&&!stored.includes(issued.urlToken));
  const snippets=issued.snippets;const sample=snippets.find(s=>s.id==='curl');assert.ok(sample);
- // Execute each POSIX wrapper unchanged against the actual receipt endpoint.
- for(const snippet of snippets.filter(s=>['curl','wget','bash'].includes(s.id))){
-  if(snippet.id==='wget'){const available=spawn('which',['wget']);if((await once(available,'exit'))[0]!==0)continue}
-  const path=join(directory,snippet.id+'.sh');await writeFile(path,snippet.code,{mode:0o700});const child=spawn(snippet.id==='bash'?'bash':'sh',[path],{stdio:['ignore','pipe','pipe']});let size=0;child.stdout.on('data',b=>size+=b.length);child.stderr.on('data',b=>size+=b.length);assert.equal((await once(child,'exit'))[0],0,`generated ${snippet.id} executes (private diagnostics ${size} bytes)`);
- }
+ // Execute generated commands unchanged; public history must show both receipts.
+ const command=async(executable,args,environment={})=>{
+  const child=spawn(executable,args,{env:{...process.env,...environment},stdio:['ignore','pipe','pipe']});
+  let output='',errors='';child.stdout.on('data',b=>output+=b);child.stderr.on('data',b=>errors+=b);
+  const code=await new Promise((resolve,reject)=>{child.once('error',reject);child.once('close',resolve)});
+  return {code,output,diagnosticBytes:Buffer.byteLength(output)+Buffer.byteLength(errors)};
+ };
+ const successful=async(executable,args,environment={})=>{
+  const result=await command(executable,args,environment);
+  assert.equal(result.code,0,`${executable} succeeds (${result.diagnosticBytes} private diagnostic bytes)`);return result.output;
+ };
+ const history=async()=>{const response=await api(`/api/monitors/${id}/heartbeat-runs`);assert.equal(response.status,200);return response.data.runs};
+ const executeSnippet=async(snippet,expectedExit)=>{
+  const before=new Set((await history()).map(run=>run.id));let result;
+  if(['curl','wget','bash'].includes(snippet.id)){
+   const path=join(directory,`${snippet.id}-${expectedExit}.sh`);await writeFile(path,snippet.code,{mode:0o700});
+   result=await command(snippet.id==='bash'?'bash':'sh',[path]);
+  }else if(snippet.id==='github-actions'){
+   const workflow=yaml.load(snippet.code),step=workflow.jobs.job.steps[0];
+   assert.equal(typeof step.run,'string');assert.ok(workflow.on.schedule.length>0);
+   const path=join(directory,`github-${expectedExit}.sh`);await writeFile(path,step.run,{mode:0o700});
+   result=await command(step.shell,['--noprofile','--norc','-e','-o','pipefail',path],{UPTIME_HEARTBEAT_URL:origin+issued.capabilityPath});
+  }else if(snippet.id==='kubernetes'){
+   const manifest=yaml.load(snippet.code),container=manifest.spec.jobTemplate.spec.template.spec.containers[0];
+   assert.equal(manifest.kind,'CronJob');assert.equal(manifest.spec.schedule,configured.data.definition.heartbeat.cron);
+   assert.equal(manifest.spec.timeZone,'America/New_York');assert.ok(Array.isArray(container.command)&&Array.isArray(container.args));
+   result=await command(container.command[0],[...container.command.slice(1),...container.args]);
+  }else if(snippet.id==='systemd'){
+   const installation=join(directory,`systemd-${expectedExit}`);await mkdir(installation,{mode:0o700});
+   const script=join(directory,`systemd-install-${expectedExit}.sh`);
+   const boundary=snippet.code.indexOf('\nsystemctl --user daemon-reload');assert.ok(boundary>0);
+   await writeFile(script,snippet.code.slice(0,boundary),{mode:0o700});
+   await successful('sh',[script],{HOME:installation});
+   const unitDirectory=join(installation,'.config/systemd/user');
+   const parsed=JSON.parse(await successful('python3',['-c',
+    "import configparser,json,sys;from pathlib import Path;p=Path(sys.argv[1]);s=configparser.ConfigParser(interpolation=None);s.read(p/'uptime-heartbeat-job.service');t=configparser.ConfigParser(interpolation=None);t.read(p/'uptime-heartbeat-job.timer');print(json.dumps({'command':s['Service']['ExecStart'],'calendar':t['Timer']['OnCalendar'],'persistent':t['Timer'].getboolean('Persistent')}))",unitDirectory]));
+   assert.equal(parsed.persistent,false);
+   await successful('systemd-analyze',['calendar','--iterations=2',parsed.calendar]);
+   result=await command(parsed.command.replaceAll('%h',installation),[]);
+  }else assert.fail('unexpected executable scheduler');
+  assert.equal(result.code,expectedExit,`${snippet.id} preserves the job exit (${result.diagnosticBytes} private diagnostic bytes)`);
+  const added=(await history()).filter(run=>!before.has(run.id)).sort((a,b)=>a.sequence-b.sequence);
+  assert.deepEqual(added.map(run=>run.state),['start',expectedExit===0?'success':'fail'],`${snippet.id} records start and completion`);
+  assert.equal(added[1].exitCode,expectedExit===0?null:expectedExit);assert.equal(added[1].startedAt,added[0].receivedAt);
+  assert.equal(added[1].durationMs,added[1].receivedAt-added[0].receivedAt);assert.ok(added[1].durationMs>=0);
+  assert.equal(added[1].revision,issued.revision);assert.equal(added[1].output,'');
+ };
+ await successful('wget',['--version']);
+ const executableIds=['curl','wget','bash','github-actions','kubernetes','systemd'];
+ for(const id of executableIds){const snippet=snippets.find(s=>s.id===id);assert.ok(snippet,`${id} example is generated`);await executeSnippet(snippet,0)}
+ // The buyer supplies a failing job to the same renderer; no receipt is mocked.
+ for(const snippet of heartbeatSnippets({baseUrl:origin+issued.capabilityPath,cron:'30 1 * * *',timeZone:'America/New_York',command:'return 7'}).filter(s=>executableIds.includes(s.id)))await executeSnippet(snippet,7);
  const exported=await api('/api/archive');assert.equal(exported.status,200);assert.ok(!JSON.stringify(exported.data).includes(issued.urlToken));
  const rotated=await api(`/api/monitors/${id}/heartbeat-key`,'POST',{}, {origin});assert.equal(rotated.status,200);assert.equal((await receipt()).status,400);assert.equal((await fetch(origin+issued.receiptPath,{headers:{...protectedHeaders,'x-heartbeat-sequence':'200'}})).status,400);
  const robot=JSON.stringify({data:[{type:'HEARTBEAT',friendlyName:'Migrated robot backup',interval:86400,gracePeriod:3600}],nextLink:null});
