@@ -19,6 +19,7 @@ export function requestNeedsStepUp(request:Request,input?:any){
  if(path==='/api/archive'||path==='/api/restore')return true
  if(path.startsWith('/api/operator/import/')&&write)return true
  if(!write)return false
+ if(path==='/api/routing/named-routes'||path.startsWith('/api/catalog/routes/'))return true
  if(request.method==='DELETE'&&/^\/api\/notifications\/destinations\/[^/]+$/.test(path))return true
  if(/\/erase$/.test(path)||path==='/api/notifications/destinations'||/^\/api\/notifications\/destinations\/[^/]+\/(?:rotate|credentials)$/.test(path))return true
  if(path==='/api/routing/teams')return true

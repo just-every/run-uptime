@@ -4,11 +4,11 @@ import {normalizeContactSettings,type ContactSettings} from './contact-schedule.
 export type RouteScope='monitor'|'service'|'group'|'installation';
 export type RouteMode='inherit'|'selected'|'all';
 export type FallbackChain={destinationIds:string[];deadlineSeconds:number};
-export type RoutePolicy={scope:RouteScope;value:string;mode:RouteMode;destinationIds:string[];teamIds:string[];filters:RouteFilters;quietHours:ContactQuietHours|null;contactSettings:Record<string,ContactSettings>;fallback:FallbackChain;revision:number;updatedAt:number|null};
+export type RoutePolicy={namedRouteId?:string|null;scope:RouteScope;value:string;mode:RouteMode;destinationIds:string[];teamIds:string[];filters:RouteFilters;quietHours:ContactQuietHours|null;contactSettings:Record<string,ContactSettings>;fallback:FallbackChain;revision:number;updatedAt:number|null};
 export const defaultFallback:FallbackChain={destinationIds:[],deadlineSeconds:120};
 export const routeScopes:RouteScope[]=['monitor','service','group','installation'];
 export function scopeValue(scope:RouteScope,monitor:any):string{return scope==='installation'?'':scope==='monitor'?monitor.id:monitor.definition[scope]??''}
-export function defaultPolicy(scope:RouteScope,value:string):RoutePolicy{return {scope,value,mode:scope==='installation'?'all':'inherit',destinationIds:[],teamIds:[],filters:{},quietHours:null,contactSettings:{},fallback:defaultFallback,revision:0,updatedAt:null}}
+export function defaultPolicy(scope:RouteScope,value:string):RoutePolicy{return {namedRouteId:null,scope,value,mode:scope==='installation'?'all':'inherit',destinationIds:[],teamIds:[],filters:{},quietHours:null,contactSettings:{},fallback:defaultFallback,revision:0,updatedAt:null}}
 /** DELIVERY-002: an ordered chain of named contacts after the selected ones, and how long an uncertain send waits. */
 export function normalizeFallback(raw:any,mode:RouteMode,selected:string[]):FallbackChain{
  if(raw===undefined)return defaultFallback;
@@ -20,7 +20,7 @@ export function normalizeFallback(raw:any,mode:RouteMode,selected:string[]):Fall
  if(!Number.isInteger(deadlineSeconds)||deadlineSeconds<5||deadlineSeconds>3600)throw Error('The uncertain deadline must be 5 to 3600 seconds');
  return {destinationIds:[...ids],deadlineSeconds};
 }
-export function routePolicy(row:any):RoutePolicy{const ids=JSON.parse(row.destination_ids),fallback=normalizeFallback(JSON.parse(row.fallback??'{}'),row.mode,ids);return {scope:row.scope_kind,value:row.scope_value,mode:row.mode,destinationIds:ids,teamIds:routeIds(JSON.parse(row.team_ids??'[]'),'team IDs'),filters:normalizeRouteFilters(JSON.parse(row.filters??'{}')),quietHours:normalizeRouteQuiet(JSON.parse(row.quiet_hours??'null')),contactSettings:normalizeContactSettings(JSON.parse(row.contact_settings??'{}'),[...ids,...fallback.destinationIds]),fallback,revision:row.revision,updatedAt:row.updated_at}}
+export function routePolicy(row:any):RoutePolicy{const ids=JSON.parse(row.destination_ids),fallback=normalizeFallback(JSON.parse(row.fallback??'{}'),row.mode,ids);return {namedRouteId:row.named_route_id??null,scope:row.scope_kind,value:row.scope_value,mode:row.mode,destinationIds:ids,teamIds:routeIds(JSON.parse(row.team_ids??'[]'),'team IDs'),filters:normalizeRouteFilters(JSON.parse(row.filters??'{}')),quietHours:normalizeRouteQuiet(JSON.parse(row.quiet_hours??'null')),contactSettings:normalizeContactSettings(JSON.parse(row.contact_settings??'{}'),[...ids,...fallback.destinationIds]),fallback,revision:row.revision,updatedAt:row.updated_at}}
 export function effectivePolicy(policies:RoutePolicy[]){return policies.find(p=>p.mode!=='inherit')!}
 // Evaluated in the same D1 transaction as the confirmed event, against current
 // monitor labels and policies. Inherit skips that scope explicitly.
