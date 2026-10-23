@@ -330,4 +330,21 @@ try{
   await noSecrets('Better Stack apply and undo',['synthetic-uptime-98','synthetic-uptime-99']);
   console.log('MIGRATE-003 saved monitors: read 12 = converted 7 + refused 1 + unsupported 4; groups/regions labelled, paused apply, unchanged re-import and retained-history undo.');
  }
+ // MIGRATE-002 saved check details reconcile tags, geographic filters and TMS checks.
+ await worker.dispose();({worker,DB}=await migratedWorker({port,persist:join(directory,'pingdom-details'),bindings:{UPTIME_ORIGIN:origin}}));
+ {
+  const owner=sessionCookie(await authRequest(origin)('/auth/bootstrap',{token:testAuthBindings.SETUP_TOKEN,displayName:'Synthetic Pingdom owner'}));await finishSetup(origin,owner);
+  const get=async path=>{const response=await fetch(origin+path,{headers:{origin,cookie:owner}});assert.equal(response.status,200);return response.json()};await get('/api/overview');
+  const door=definitionDoor({origin,cookie:owner}),saved=await readFile('tests/fixtures/pingdom-checks.synthetic.json'),plan=await door.preview(saved);
+  assert.equal(plan.status,200,JSON.stringify(plan.body));assert.equal(plan.body.source,'pingdom');assert.deepEqual(plan.body.counts,{create:1,unchanged:0,change:0,refused:3,unsupported:3});assert.equal(plan.body.entries.length,7);assert.equal((await get('/api/overview')).monitors.length,0);
+  for(const filter of ['region: EU','region: NA'])assert.ok(plan.body.entries[1].reason.includes(filter));assert.ok(plan.body.entries[2].reason.includes('region: APAC'));assert.ok(plan.body.entries[1].reason.includes('PROBE-001'));
+  assert.ok(plan.body.entries[3].reason.includes('tcp')&&plan.body.entries[3].reason.includes('TCP-001'));
+  for(const [index,kind] of [[4,'script'],[5,'recording']]){assert.ok(plan.body.entries[index].reason.includes(kind)&&plan.body.entries[index].reason.includes('FLOW-001/FLOW-002'));assert.ok(plan.body.entries[index].label.includes(`synthetic-uptime-${index+1}`))}
+  const applied=await door.apply(plan.body);assert.equal(applied.status,200,JSON.stringify(applied.body));assert.equal(applied.body.created.length,1);
+  const definition=(await get('/api/overview')).monitors[0].definition;assert.equal(definition.name,'synthetic-uptime-1');assert.equal(definition.enabled,false);assert.deepEqual(definition.tags,['synthetic-uptime-1','synthetic-uptime-2']);assert.equal(definition.intervalMs,300000);assert.equal(definition.method,'GET');assert.equal(definition.timeoutMs,10000);assert.deepEqual(definition.assertions,{status:['2xx','3xx'],bodyIncludes:'ready',bodyExcludes:'failure'});
+  const again=await door.preview(saved);assert.equal(again.status,200);assert.deepEqual(again.body.counts,{create:0,unchanged:1,change:0,refused:3,unsupported:3});assert.equal((await door.apply(plan.body)).status,200);assert.equal((await door.undo(applied.body)).status,200);assert.equal((await get('/api/overview')).monitors.length,1);assert.equal((await get('/api/overview')).monitors[0].definition.enabled,false);
+  const transaction=JSON.parse(saved)[4];transaction.steps=[{fn:'go_to',args:{url:'https://synthetic-uptime-97.example/'}}];
+  const recognised=await fetch(origin+'/api/definitions/recognise?source=pingdom',{method:'POST',headers:{origin,cookie:owner,'content-type':'application/json'},body:JSON.stringify(transaction)});assert.equal(recognised.status,200);assert.ok(!(await recognised.text()).includes('synthetic-uptime-97'),'unsupported transaction script values are withheld before upload');
+  console.log('MIGRATE-002 saved checks: read 7 = converted 1 + refused 3 + unsupported 3; tags retained, every probe filter named, TMS refused, paused apply and undo.');
+ }
 }finally{await worker?.dispose();await cleanupDirectory(directory)}

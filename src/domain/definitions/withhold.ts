@@ -24,7 +24,10 @@ export function withholdValue(value:unknown):any{
  if(Array.isArray(value))return value.map(withholdValue)
  if(typeof value==='string')return text(value)
  if(!value||typeof value!=='object')return value
- return Object.fromEntries(Object.entries(value).map(([key,child])=>{
+ // Unsupported Pingdom TMS steps may contain typed passwords or arbitrary form values.
+ // Keep their presence for recognition, never their script payload in import custody.
+ const record=['script','recording'].includes((value as any).type)&&Array.isArray((value as any).steps)?{...value,steps:WITHHELD}:value
+ return Object.fromEntries(Object.entries(record).map(([key,child])=>{
   if((FIELDS.has(key)||CREDENTIAL.test(key))&&present(child))return [key,WITHHELD]
   // Pingdom request headers keep their names; their values are the secrets.
   if(key==='requestheaders'&&child&&typeof child==='object'&&!Array.isArray(child))return [key,Object.fromEntries(Object.keys(child).map(name=>[name,present((child as any)[name])?WITHHELD:(child as any)[name]]))]

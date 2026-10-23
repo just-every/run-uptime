@@ -1994,6 +1994,10 @@
       "sha256": "924fdc6fb96ffe473509290ca659bbece684f328958b38a78e2e36af4f1ee816",
       "executable": false
     },
+    "docs/migrating-pingdom.md": {
+      "sha256": "22b31e766d4fe0b7cdeef1ed45ffce296041debc9ecc2b2ae056be815fba488c",
+      "executable": false
+    },
     "docs/migrating-site24x7.md": {
       "sha256": "a572ec0a88ddbd3950d7e56c9a55b814fb758265dc0bf1e636053601f28623ab",
       "executable": false
@@ -5551,7 +5555,7 @@
       "executable": false
     },
     "src/domain/definitions/importers/pingdom.ts": {
-      "sha256": "1ef3f0409d9a8466c6ac1673af0b161ec5fbd41e85070b0e82bd2ff0c3234ac9",
+      "sha256": "e4f37514dd7c79311436ec30bea6e992038c824da4a2b6c74f8d0155c1d31a4f",
       "executable": false
     },
     "src/domain/definitions/importers/site24x7.ts": {
@@ -5579,7 +5583,7 @@
       "executable": false
     },
     "src/domain/definitions/withhold.ts": {
-      "sha256": "1296c55ffd0e3388ed30af93e9b31941057460a3d32650df464c1bff3e9498fb",
+      "sha256": "84e984b1dcc75ed2d49fe0815a602da5884be1518f4526ac5c70d81d391bb8a3",
       "executable": false
     },
     "src/domain/demo-history.server.ts": {
@@ -6963,7 +6967,7 @@
       "executable": false
     },
     "tests/definitions-import.mjs": {
-      "sha256": "99a1f13f08624543c185afa0a67f8c8824b903ce5446b95a35015d596259338e",
+      "sha256": "6f58263e6c36c9b56dd78077ae984a6c6876300faa2e0b7e01b78f0b56917e82",
       "executable": false
     },
     "tests/definitions-journey.mjs": {
@@ -7038,8 +7042,12 @@
       "sha256": "20ae622738eccc5ba83b6756c39e7cc51d1e311a4fb23f2f41cfad2ec1a68eed",
       "executable": false
     },
+    "tests/fixtures/pingdom-checks.synthetic.json": {
+      "sha256": "207d5357868a4ac328ab45f6a3decafe468595a858d0ab5463c5eb727e4e8c10",
+      "executable": false
+    },
     "tests/fixtures/README.md": {
-      "sha256": "c4403b0cb463291a4f06e029f24f787ac0ba7863705a6a6acd226a605a9f2d23",
+      "sha256": "e34e91805d13a34f193291babb6a0578e7cf34a9e23d5db65c6a67c760f0960d",
       "executable": false
     },
     "tests/fixtures/site24x7-monitors.synthetic.json": {

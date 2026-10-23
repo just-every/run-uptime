@@ -14,3 +14,11 @@ semantics at https://betterstack.com/docs/uptime/api/create-a-new-monitor/
 (read 23 October 2026). HTTP timeout is seconds; ping/TCP timeout is milliseconds.
 Names, group identifiers and request values are synthetic. The credential-bearing
 record proves values are withheld before import custody and never applied.
+
+`pingdom-checks.synthetic.json` uses the published `Check`, `Tag`,
+`DetailedCheckAttributes`, `CheckWithoutIDGET` and `Step` schemas from
+https://docs.pingdom.com/API_3.1.yaml (read 23 October 2026): saved HTTP detail
+responses wrap `check`; TMS detail responses are direct objects with `script` or
+`recording` type. HTTP tags are objects; TMS tags are strings. Probe filters retain
+their published `region: ...` spelling. No page-speed export shape was established
+in that schema, so no page-speed fixture or invented field is supplied.
