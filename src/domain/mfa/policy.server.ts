@@ -21,6 +21,7 @@ export function requestNeedsStepUp(request:Request,input?:any){
  if(!write)return false
  if(request.method==='DELETE'&&/^\/api\/notifications\/destinations\/[^/]+$/.test(path))return true
  if(/\/erase$/.test(path)||path==='/api/notifications/destinations'||/^\/api\/notifications\/destinations\/[^/]+\/(?:rotate|credentials)$/.test(path))return true
+ if(path==='/api/routing/teams')return true
  if(path.startsWith('/api/access/')||/^\/auth\/(?:invite|operator\/role|operator\/status)/.test(path))return true
  if(/^\/api\/(?:metrics\/keys|runners|private-|synthetic-|credentials|tokens|ci\/)/.test(path))return true
  if(/\/(?:effect-grants|heartbeat-key)(?:\/|$)/.test(path))return true

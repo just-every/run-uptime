@@ -5,7 +5,8 @@ const primary:Record<string,readonly string[]>={
  route_write:['alert_routes'],respond:['slots','slow_acknowledgements','outbox'],
  secret_write:['notification_destinations','runners','heartbeat_authority','effect_grants','failure_evidence_grants','failure_snapshot_settings','failure_snapshots','notification_preferences'],
  import:['monitors','revisions','uptime_business_import_targets'],
- members:['oa_operators','oa_tokens','oa_sessions','uptime_member_roles','uptime_member_scopes'],
+ receive:['alert_recipient_consents'],
+ members:['alert_teams','alert_team_members','oa_operators','oa_tokens','oa_sessions','uptime_member_roles','uptime_member_scopes'],
 }
 export function auditsMutation(action:string,statements:({sql:string;write:boolean}|undefined)[],additional:boolean){
  if(additional)return true

@@ -5,6 +5,8 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createHmac} from 'node:crypto';
 import {fixture} from './resilience/support.mjs';
+import {proveRoutingFilters} from './alert-routing-filters-support.mjs';
+import {proveRoutingTeams} from './alert-routing-teams-support.mjs';
 import {dispatchNotifications} from '../runners/src/notification-dispatch.mjs';
 
 test('owned routes preview inheritance, deliver matched triggers/recoveries and retain auditable changes',{timeout:90000},async()=>{
@@ -80,5 +82,8 @@ test('owned routes preview inheritance, deliver matched triggers/recoveries and 
   await ok(`/api/notifications/destinations/${d.id}`,undefined,{method:'DELETE'});
   current=await read();assert.equal(current.recipients.find(r=>r.id===d.id).reason,'destination_missing','erasure cannot silently count as coverage');
   assert.equal((await f.request('/api/archive')).status,200,'routing tables have an explicit archive inventory decision');
+  await f.pause(monitor);
+  await proveRoutingTeams(f,ok);
+  await proveRoutingFilters(f,ok);
  }finally{releaseTrigger?.();await dispatching;await f.close()}
 });
