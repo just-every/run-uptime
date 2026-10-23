@@ -6,7 +6,7 @@ import {proveScopedAccess} from './access-scope-support.mjs';
 
 // Extend the existing access matrix, with real Base invitations and mail only
 // faked at the authorized provider edge. No extra registration or fake session.
-export async function proveAdminMonitorRead({origin,call,fetcher,DB,cookie,memberCookie,hosted,mails}) {
+export async function proveMemberLifecycle({origin,call,fetcher,DB,cookie,memberCookie,hosted,mails}) {
  async function accept(email){
   const delivered=hosted?mails.findLast(m=>m.personalizations.some(p=>p.to.some(to=>to.email===email))): (await readDeliveredMessages()).findLast(m=>m.origin===origin&&m.message.personalizations.some(p=>p.to.some(to=>to.email===email)))?.message;
   assert.ok(delivered,'invitation reached the authorized mail edge');
