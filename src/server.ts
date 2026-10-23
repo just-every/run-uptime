@@ -1,3 +1,4 @@
+import {mfaDoor,earlyMfaGate} from './domain/mfa/door.server.ts'
 import {isConsoleDocument,isMonitorPage,canonicalConsolePath,consoleRedirect} from './ui/console-paths.ts'
 import {monitoringMonitors,monitoringMonitor} from './domain/read-api/monitors.server.ts'
 import {bulkUptime} from './domain/read-api/bulk.server.ts'
@@ -333,6 +334,8 @@ const handler={async fetch(request,env,execution){
  const limited=await limitPublicRequest(env as Bindings,request);if(limited)return limited;
  const bindings=env as Bindings,url=new URL(request.url),path=url.pathname,isEvidencePage=/^\/app\/evidence\/[^/]+$/.test(path);
  if(url.origin!==bindings.UPTIME_ORIGIN||(request.headers.has('host')&&request.headers.get('host')?.toLowerCase()!==url.host.toLowerCase()))return new Response('Invalid host',{status:403});
+ const mfa=await mfaDoor(bindings,request);if(mfa)return mfa;
+ const factorDenial=await earlyMfaGate(bindings,request);if(factorDenial)return factorDenial;
  if(path.startsWith('/api/rer/import/'))return businessImportDoor(bindings,request);
  if(path.startsWith('/api/operator/import/'))return ownerImportDoor(bindings,request);
  // Run Edit Run's signed reads (the private runner's contact, and the cutover checks' deliveries and created records):
