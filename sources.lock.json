@@ -438,6 +438,10 @@
       "sha256": "6c6f97f399aa97aeff165606ea764f54ddc45ed8ffb3dd488cd3e6c6671f9264",
       "executable": false
     },
+    ".github/workflows/import-playwright.yml": {
+      "sha256": "6650f11e4a1d33f42a0a0bc8b7b51ae1f575391c9d070ac2230ad346fbd4ebc6",
+      "executable": false
+    },
     ".github/workflows/rer-managed.yml": {
       "sha256": "4438b6e2ab1aa8eac1ccb92a7a6063ed222ac3b8575417824951e80a0bf4c40a",
       "executable": false
@@ -467,7 +471,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "014edd114c2195a0a2b24fa99293c4764c4d6a1eb96460de15e1eb35e929dc87",
+      "sha256": "9d51006003ca8c101d1c0f412a1d7f648320cc8185bc05ba30e886764ca10e1a",
       "executable": false
     },
     "AGENTS.md": {
@@ -491,7 +495,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "501c59c7c33e8f7b356eacca98f4359ca5e8d62f66204003d616e80b081050d1",
+      "sha256": "cff47692738cd7c72113039e37a9c44bf3a8bf55fa45617fb224f839e6bfe594",
       "executable": false
     },
     "DEMO.md": {
@@ -511,7 +515,7 @@
       "executable": false
     },
     "docs/browser-flows.md": {
-      "sha256": "b089b54879e7a46ebdcfb2ee346928f7fee35af5218703b42c47b289b4c1a6a9",
+      "sha256": "2d716f0fbbc158cd69202d8308adfd3ebcc578aac3e1498a1a3141b001258323",
       "executable": false
     },
     "docs/CLAIMS.md": {
@@ -523,7 +527,7 @@
       "executable": false
     },
     "docs/definitions.md": {
-      "sha256": "89ef8e6f7bf777bced3de04d5429964a04a1d09df5c7715fa6683b1d8f80d593",
+      "sha256": "8b9e2c59ce3ea59b55b6bd3a59eb53db726090655e71b206dd43eb5944dc7372",
       "executable": false
     },
     "docs/deploy.md": {
@@ -2819,7 +2823,7 @@
       "executable": false
     },
     "runners/src/clock.mjs": {
-      "sha256": "a7046a43a08862f405c59b5d4b2c2931abc61c55915b78c2f2e4529647d8b5db",
+      "sha256": "45f5b85fd682a8641aed7d40137c5418d829db0233c0619633c8040948e2a894",
       "executable": false
     },
     "runners/src/control-origin.mjs": {
@@ -3055,7 +3059,7 @@
       "executable": false
     },
     "runners/src/flow/child.mjs": {
-      "sha256": "9cf809c6ae59c1c37356b9e1362da02831c6fd36e0bd211472293a43d34f0e94",
+      "sha256": "e3e5dd7baed615f0f9b79d72b01a963a4f066804bc423c3541884a16bffa4887",
       "executable": false
     },
     "runners/src/flow/launch.mjs": {
@@ -3206,8 +3210,12 @@
       "sha256": "80798719316b1ce6643c9a116bbbfb0873710531bcf5470e1b64312e90dd6a79",
       "executable": false
     },
+    "scripts/definitions-http.mjs": {
+      "sha256": "12f9700ade20c9e05704fe23e2318e87c628aa2b3cdcc320b619e7ec2fcf9a3b",
+      "executable": false
+    },
     "scripts/definitions.mjs": {
-      "sha256": "fd822e1fb0b254708d28bc4d6e8e840fc50347ba54fc7399773671353a165cd5",
+      "sha256": "3ca805c48ba73fe116515a753dc9448d8e866f55ef0407cf3cf0ebcc07ab001d",
       "executable": false
     },
     "scripts/delivery/base/artifact.mjs": {
@@ -3476,6 +3484,18 @@
     },
     "scripts/metrics-export.mjs": {
       "sha256": "12388b41ba26d5c652b80b6a45154872c6c103e350c7d33b0f4ee27f5a59bc12",
+      "executable": false
+    },
+    "scripts/playwright-import/cli.mjs": {
+      "sha256": "5d5673bd7fa04678d91c4620b8d41f674084829bd15438f30d59a115f6ff3451",
+      "executable": false
+    },
+    "scripts/playwright-import/parse.mjs": {
+      "sha256": "e55e988b77b5705338122df0c87ca08b15884f5b528d4bba97c43497e0be6a98",
+      "executable": false
+    },
+    "scripts/playwright-import/values.mjs": {
+      "sha256": "f678d5d4ea269adfd1a582ca3e7ec48f6dd75a3a6a53e54eb948928f541e0937",
       "executable": false
     },
     "scripts/runner-start.mjs": {
@@ -5511,7 +5531,7 @@
       "executable": false
     },
     "src/domain/definitions/export.server.ts": {
-      "sha256": "514d72feca69d5f1f6e622a552d912229a05cc19cb630a176ecf0c2ed73e8673",
+      "sha256": "3154b6143e16b46c2ca73b30a6e7d7acf5349e74cfb5d650bb56cb2699d86b8a",
       "executable": false
     },
     "src/domain/definitions/format.ts": {
@@ -5555,7 +5575,7 @@
       "executable": false
     },
     "src/domain/definitions/index.server.ts": {
-      "sha256": "c3d69471603eb700c22eb1ba51140ad19393d15d7b3cc26ae3dc675b57b18cbc",
+      "sha256": "b671e5eec4b1e451e31a9c2be58f324a059fece35f1d341630d7fe8616c803c8",
       "executable": false
     },
     "src/domain/definitions/plan.server.ts": {
@@ -5714,8 +5734,12 @@
       "sha256": "fdf753b5456e15369456c91bc75de2f6d3b9c96aca29f5e2db33a829c79b010b",
       "executable": false
     },
+    "src/domain/flow-source.mjs": {
+      "sha256": "d380ef10bf6fcb4566b145e7d5d335482f628437f39eedf7c982c46e64bc4322",
+      "executable": false
+    },
     "src/domain/flow.mjs": {
-      "sha256": "f9969e6f27c7c95530c74fe4ab29ec0817b53c0e42f5871258dbf56f1ec9cd27",
+      "sha256": "56a780f998530b4f633fcb0d9b8252a9d13b09251a6e6f77e2c478b74e1b9288",
       "executable": false
     },
     "src/domain/health.server.ts": {
@@ -7039,11 +7063,11 @@
       "executable": false
     },
     "tests/flow-fixture.mjs": {
-      "sha256": "55566422c29a21d1528b68dfe183b950f246bd77640d1069ea6a3828a33fcc2b",
+      "sha256": "4cb7c806d6c0d5bac2c4117c1bbfdb2e1fb4e16bce49733a9a231931c2204406",
       "executable": false
     },
     "tests/flow-journey.mjs": {
-      "sha256": "1404d45b19664874884e200b1243504379aa875dbada93246c9be21de4e315b0",
+      "sha256": "28e02c57007d7cf1023e550fd8616117a5fd48fa6e316272e49ca59a96b3f065",
       "executable": false
     },
     "tests/flow-profiles-browser.mjs": {
@@ -7272,6 +7296,18 @@
     },
     "tests/ping-routing.mjs": {
       "sha256": "f3cf51d37ac1e1d4f5eebbef6349206888c39dce3e9f757dc50b4385e40726e0",
+      "executable": false
+    },
+    "tests/playwright-custody-support.mjs": {
+      "sha256": "76506a7fdd2cda31e9fbac2cc8c2575f08647e8b5d632ee94d37bef88e7e1f82",
+      "executable": false
+    },
+    "tests/playwright-import-support.mjs": {
+      "sha256": "7a8ca9c6e73f416c96eff8cee8f14d1ed33e77b5692b1e0f003c455fe47061ff",
+      "executable": false
+    },
+    "tests/playwright-workflow-support.mjs": {
+      "sha256": "f4c5d1a139138cef2ec22f61bf811e83e147173bdcedda31d5e0df268bfe10b6",
       "executable": false
     },
     "tests/private-network-browser.mjs": {

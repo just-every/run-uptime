@@ -15,6 +15,7 @@ import {promisify} from 'node:util';
 import {testAuthBindings} from './auth-test-support.mjs';
 import {availablePorts, cleanupDirectory, migratedWorker, ownerAPI, root, runtimeDirectory, waitFor} from './notify-acceptance-runtime.mjs';
 import {FIXTURE_EMAIL, FIXTURE_PASSWORD, startFlowFixture} from './flow-fixture.mjs';
+import {importedCheckout} from './playwright-import-support.mjs';
 import {FLOW_LIMITS} from '../src/domain/flow.mjs';
 import {startPageSpeed, provePageSpeed, proveRumUpgrade} from './pagespeed-support.mjs';
 
@@ -70,7 +71,8 @@ try {
     await ok(`/api/monitors/${created.id}`, 'PATCH', {...created.definition, enabled: extra.enabled ?? true});
     return created.id;
   };
-  const good = await create('Checkout flow', 'healthy', flow('healthy', 'login-password')), bad = await create('Checkout flow, wrong password', 'wrong-password', flow('wrong-password', 'wrong-password'));
+  const imported = await importedCheckout({directory,fixture,owner:{cookie:owner.cookie,controlOrigin:origin},ok,credentials,observations:async id=>(await ok(`/api/monitors/${id}/history`)).flatMap(s=>s.observations),waitFor});
+  const good=imported.id, bad = await create('Checkout flow, wrong password', 'wrong-password', flow('wrong-password', 'wrong-password'));
   const account = await create('Account flow', 'profile-path', accountFlow);
   // A page that opens a tunnel to the fixture's port fails the run: nothing on a tunnel could prove it is the fixture.
   const tunnel = await create('Tunnel flow', 'tunnel', {intent: 'Open the tunnel page', steps: [{kind: 'goto', url: `${fixture.origin}/s/tunnel/tunnel`}, {kind: 'waitFor', what: 'text', value: 'Tunnel page'}], outcomes: [{id: 'page', what: 'text', value: 'Tunnel page'}]});
@@ -101,6 +103,7 @@ try {
   await waitFor(async () => (await DB.prepare("SELECT state FROM notification_jobs WHERE kind='email' AND json_extract(event,'$.monitorName')=?").bind('Checkout flow, wrong password').first())?.state === 'accepted', 'the incident email was sent', 60000);
   assert.equal((await DB.prepare("SELECT COUNT(*) n FROM notification_jobs WHERE json_extract(event,'$.monitorName')=?").bind('Checkout flow').first()).n, 0, 'a passing flow sends nothing');
 
+  await imported.finish();
   await provePageSpeed({ids: speed, ok, api, DB, fixture, origin, owner, waitFor, observations});
 
   // Editing the failing flow into a heartbeat that then passes recovers the incident only as a changed definition: a heartbeat
