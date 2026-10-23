@@ -28,7 +28,7 @@ export function failureOf(slot,name){
  }
  return [...groups].map(([what,locations])=>({what,locations}));
 }
-export const failureText=groups=>groups.map(g=>`${g.what} from ${joinNames(g.locations)}`).join('; ');
+const failureText=groups=>groups.map(g=>`${g.what} from ${joinNames(g.locations)}`).join('; ');
 // "Passed in 120 ms from Brisbane and Back office", "Failed: returns 404 (expected 200) from Brisbane".
 export function checkOutcome(slot,name){
  const attempts=latestAttempts(slot),where=joinNames([...new Set(attempts.map(o=>name(o.probe)))]);
@@ -65,5 +65,5 @@ export function statusLine(m,{readUnavailable,data,seen={}}){
 }
 // A short line with the longer explanation behind a "?" disclosure, so fine print is there when wanted and not read
 // otherwise. `name` says what the "?" explains (its accessible name).
-export const moreInfo=(line,more,cls='',name='More about this')=>`<div class="fine-print${cls?' '+cls:''}"><p>${line}</p><details class="more-info"><summary aria-label="${escape(name)}"><span aria-hidden="true">?</span></summary><p>${more}</p></details></div>`;
+export const moreInfo=(line,more,cls,name)=>`<div class="fine-print${cls?' '+cls:''}"><p>${line}</p><details class="more-info"><summary aria-label="${escape(name)}"><span aria-hidden="true">?</span></summary><p>${more}</p></details></div>`;
 export const moreInfoText=(line,more,cls,name)=>moreInfo(escape(line),escape(more),cls,name);

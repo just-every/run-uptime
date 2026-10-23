@@ -2,9 +2,9 @@
 // when it is back up, and the locations it is checked from. Shown as a short line on the monitor list and as the rows of
 // the "Up or down" table on the monitor's page. Only rules the code applies are named: the agreement between locations is
 // fixed (src/domain/policy.mjs), so it is stated, not offered as a setting.
-export const quoted=(text,max=40)=>`“${text.length>max?text.slice(0,max-1)+'…':text}”`;
+const quoted=(text,max=40)=>`“${text.length>max?text.slice(0,max-1)+'…':text}”`;
 export const responseTime=ms=>ms<1000?`${ms.toLocaleString()} ms`:`${(ms/1000).toLocaleString()} s`;
-export const statusText=status=>(Array.isArray(status)?status:[status]).map(code=>String(code).replace(/^(\d{3})-(\d{3})$/,'$1–$2')).join(', ');
+const statusText=status=>(Array.isArray(status)?status:[status]).map(code=>String(code).replace(/^(\d{3})-(\d{3})$/,'$1–$2')).join(', ');
 const OTHER_TYPES={heartbeat:'Heartbeat arrives',mail:'Mail checks pass',api:'Every step passes',flow:'Every flow step passes',tcp:'Port connects',udp:'Expected reply',ping:'Echo replies',dns:'Expected answer',tls:'Valid certificate',domain:'Registration in date'};
 export const httpType=definition=>!definition.type||['http','keyword'].includes(definition.type);
 // The HTTP rules, one per assertion, in the order they are checked (src/domain/http-assertions.mjs): the assertion key, the

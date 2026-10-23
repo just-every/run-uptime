@@ -14,10 +14,10 @@ export const ADDABLE={bodyIncludes:'Page contains',bodyExcludes:'Page does not c
 const PROBES=['local-a','local-b','local-c'];
 // Kept in step with src/editor/monitor/check-from.mjs (the full form's Check from), which the console's static modules cannot
 // import: three locations a monitor, two for a browser flow.
-export const locationLimit=type=>type==='flow'?2:PROBES.length;
+const locationLimit=type=>type==='flow'?2:PROBES.length;
 // What the page may change in place: HTTP and keyword rules, a protocol check's response time and the two numbers. Browser
 // flows and heartbeats stay read-only here, and a followed service's rule is its provider's claim.
-export function editing(d){
+function editing(d){
  const fixed=isFlow(d)||d.type==='heartbeat';
  return {rules:!fixed&&httpType(d)&&!d.tags?.includes('dependency'),latency:!fixed&&['tcp','udp','dns','tls'].includes(d.type),numbers:!fixed,locations:!fixed};
 }
