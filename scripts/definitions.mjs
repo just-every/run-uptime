@@ -23,6 +23,7 @@ import { operatorImport } from '../src/domain/business-import/door.server.ts';
 import { ensureFirstRunner } from '../src/domain/runner-registration.server.ts';
 import { doorPlanView, previewDefinitions } from '../src/domain/business-import/plan-view.server.ts';
 import { importHistory } from '../src/domain/business-import/history.server.ts';
+import {remoteDefinitions} from './definitions-http.mjs';
 import { importPlaywright } from './playwright-import/cli.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -35,7 +36,7 @@ function parse(argv) {
  for (let i = 0; i < rest.length; i++) {
   const flag = rest[i];
   if (flag === '--json') { options.json = true; continue; }
-  if (!commands[command].includes(flag) || options[flag.slice(2)] !== undefined) throw usage(`Unsupported or repeated flag ${String(flag).slice(0, 40)} for ${command}.`);
+  if (!(commands[command].includes(flag) || flag === '--origin') || options[flag.slice(2)] !== undefined) throw usage(`Unsupported or repeated flag ${String(flag).slice(0, 40)} for ${command}.`);
   const value = rest[++i];
   if (value === undefined || value.startsWith('--')) throw usage(`A value is required for ${flag}.`);
   options[flag.slice(2)] = value;
@@ -94,7 +95,7 @@ async function applyThroughDoor(env, file, source = 'auto', digest) {
  if (preview.kind !== 'definitions') await refuse('A log export is history only; there is nothing to apply.');
  // Apply exactly what was reviewed: the door's plan must read as the preview whose digest was given.
  if (preview.reviewDigest !== digest) await refuse('The installation or the file changed since this preview. Nothing was applied; preview again.');
- if (!preview.counts.create && !preview.counts.change) await refuse('This preview has nothing to create or change.');
+ if (!preview.counts.create && !preview.counts.change) { if (!preview.applied) await door(env, namespace, 'undo', {planId: planned.planId}); return {unchanged: true, preview}; }
  const job = await until(env, namespace, 'apply', { planId: planned.planId, reviewedFingerprint: planned.fingerprint }, 'completed');
  const report = await door(env, namespace, 'reconcile', { planId: planned.planId });
  if (!report.ok) throw Error('The import finished, but Uptime does not hold what was reviewed. Undo this batch.');
@@ -116,6 +117,11 @@ function printPreview(result) {
 
 export async function run(argv = process.argv.slice(2)) {
  const { command, options } = parse(argv);
+ if (options.origin) {
+  const result = await remoteDefinitions(command, options, options.input === undefined ? null : await readInput(options.input));
+  if (options.json) console.log(JSON.stringify(result)); else if (command === 'preview' || command === 'validate') printPreview(result); else console.log(result.unchanged ? 'The reviewed definitions are unchanged.' : 'Definitions command completed.');
+  return command === 'validate' && result.kind === 'definitions' && (result.counts.refused || result.counts.unsupported) ? 1 : 0;
+ }
  if (command === 'import-playwright') { console.log(JSON.stringify(await importPlaywright(options))); return 0; }
  await lstat(join(root, 'data/local-secrets.json')).catch(() => { throw usage('Run rer setup --owner-email EMAIL --non-interactive first.'); });
  const text = options.input === undefined ? null : await readInput(options.input);
@@ -134,7 +140,7 @@ export async function run(argv = process.argv.slice(2)) {
   }
   if (command === 'apply') {
    const result = await applyThroughDoor(env, text, options.source, options.digest);
-   if (options.json) console.log(JSON.stringify(result)); else console.log(`Applied batch ${result.batchId}: ${result.preview.counts.create} created (paused), ${result.preview.counts.change} changed. Undo with: node scripts/definitions.mjs undo --batch ${result.batchId}`);
+   if (options.json) console.log(JSON.stringify(result)); else console.log(result.unchanged ? 'The reviewed definitions are unchanged.' : `Applied batch ${result.batchId}: ${result.preview.counts.create} created (paused), ${result.preview.counts.change} changed. Undo with: node scripts/definitions.mjs undo --batch ${result.batchId}`);
    return 0;
   }
   if (command === 'export') {

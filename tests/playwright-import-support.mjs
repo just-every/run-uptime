@@ -3,9 +3,10 @@ import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {readFile,writeFile,mkdir,access} from 'node:fs/promises';
 import {join} from 'node:path';
-import {definitionDoor} from './auth-test-support.mjs';
 import {FIXTURE_EMAIL,FIXTURE_PASSWORD} from './flow-fixture.mjs';
 import {flowDigest} from '../src/domain/flow.mjs';
+import {workflowImport} from './playwright-workflow-support.mjs';
+import {proveImportedCustody} from './playwright-custody-support.mjs';
 const exec=promisify(execFile);
 
 export async function importedCheckout({directory,fixture,owner,ok,credentials,observations,waitFor}) {
@@ -21,9 +22,8 @@ export async function importedCheckout({directory,fixture,owner,ok,credentials,o
  const compiled=await compile();
  compiled.monitors.push({name:'synthetic-uptime-api',network:'synthetic',url:fixture.origin+'/health',probes:['local-a','local-b']});
  // The caller supplies the real Worker origin; no direct service or test-only execution path.
- const imports=definitionDoor({origin:owner.controlOrigin,cookie:owner.cookie});
- const preview=await imports.preview(JSON.stringify(compiled));assert.equal(preview.status,200);assert.equal(preview.body.counts.create,4);
- const deployed=await imports.apply(preview.body);assert.equal(deployed.status,200);assert.equal(deployed.body.report.ok,true);
+ await workflowImport({folder,owner,compiled,ok});
+ await ok('/api/monitors','POST',compiled.monitors.at(-1));
  const monitors=(await ok('/api/overview')).monitors;
  for(const kind of ['login','signup','checkout']) {
   const m=monitors.find(m=>m.definition.name===(kind==='checkout'?'Checkout flow':`synthetic-uptime-${kind}`));assert.ok(m);
@@ -57,6 +57,22 @@ export async function importedCheckout({directory,fixture,owner,ok,credentials,o
   const result=await waitFor(async()=>{const slot=(await ok(`/api/monitors/${checkout.id}/history`)).find(s=>s.id===queued.slotId);last=slot&&{status:slot.status,observations:slot.observations.map(o=>({outcome:o.outcome,failure:o.flow?.failure}))};return slot?.observations.length>=2&&slot;},`imported ${expected} was retained`,120000).catch(error=>{throw Error(`${error.message}: ${JSON.stringify(last)}`)});
   assert.ok(result.observations.every(o=>o.outcome==='target_failure'&&o.flow?.failure?.reason===expected),JSON.stringify(result.observations.map(o=>({outcome:o.outcome,failure:o.flow?.failure}))));
   failures.push(result);
+  if(failures.length<=3){
+   // A fresh imported revision is due immediately under the unchanged five-minute
+   // cadence. This proves scheduled execution without moving a clock or cadence.
+   const savedSource=await readFile(input,'utf8'),savedFixtures=await readFile(fixtures,'utf8'),name=`synthetic-uptime-failure-${failures.length}`;
+   const data=JSON.parse(savedFixtures);data.credentialRefs.CHECKOUT_EMAIL=name+'-email';data.credentialRefs.CHECKOUT_PASSWORD=name+'-password';
+   await writeFile(input,savedSource.replace("test('Checkout flow'",`test('${name}'`));await writeFile(fixtures,JSON.stringify(data));
+   let scheduled;
+   try{scheduled=(await compile()).monitors.find(m=>m.name===name)}finally{await writeFile(input,savedSource);await writeFile(fixtures,savedFixtures)}
+   const monitor=await ok('/api/monitors','POST',{...scheduled,enabled:false});
+   for(const [suffix,value]of [['email',FIXTURE_EMAIL],['password',FIXTURE_PASSWORD]])await writeFile(join(credentials,`${name}-${suffix}.json`),JSON.stringify({monitorId:monitor.id,origin:fixture.origin,value}),{mode:0o600});
+   await ok(`/api/monitors/${monitor.id}`,'PATCH',{...monitor.definition,enabled:true});
+   const slot=await waitFor(async()=>(await ok(`/api/monitors/${monitor.id}/history`)).find(s=>!s.manual&&s.observations.length>=2),`scheduled imported ${expected}`,120000);
+   assert.ok(slot.observations.every(o=>o.outcome==='target_failure'&&o.flow?.failure?.reason===expected));
+   const digest=await flowDigest(monitor.definition.flow);assert.ok(slot.observations.every(o=>o.flow.digest===digest),'scheduled outcomes retain their imported revision digest');
+   await ok(`/api/monitors/${monitor.id}/erase`,'POST',{name});
+  }
  }
  fixtureData.flowFixtures={setup:[{name:'synthetic-uptime-setup',url:fixture.origin+'/health',assertions:{status:201}}],teardown:[{name:'synthetic-uptime-teardown',url:fixture.origin+'/health',assertions:{status:200}}]};
  await writeFile(fixtures,JSON.stringify(fixtureData));await retainFailure('setup_failed');
@@ -68,6 +84,7 @@ export async function importedCheckout({directory,fixture,owner,ok,credentials,o
 
  const retained=JSON.stringify([failures,await ok(`/api/monitors/${checkout.id}/revisions`)]);
  assert.ok(!retained.includes(FIXTURE_PASSWORD)&&!retained.includes(FIXTURE_EMAIL),'selected secret values never enter imported revision or result custody');
+ await proveImportedCustody({directory,id:checkout.id,ok});
  console.log('FLOW-002 broken fixture, assertion and metadata network call retained three distinct outcomes through the existing runner request policy; selected secrets stayed out of revision and result evidence.');
 
  };

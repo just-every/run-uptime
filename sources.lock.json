@@ -439,7 +439,7 @@
       "executable": false
     },
     ".github/workflows/import-playwright.yml": {
-      "sha256": "863aeb817038f3c7d2c0e7125b98b443da3f0b48c3b9257a94cb563069a7877b",
+      "sha256": "6650f11e4a1d33f42a0a0bc8b7b51ae1f575391c9d070ac2230ad346fbd4ebc6",
       "executable": false
     },
     ".github/workflows/rer-managed.yml": {
@@ -515,7 +515,7 @@
       "executable": false
     },
     "docs/browser-flows.md": {
-      "sha256": "05437d3edfbae1f7a6d8c760f2b0ae2233d7b31522d91e2c7ea7e348595245e2",
+      "sha256": "2d716f0fbbc158cd69202d8308adfd3ebcc578aac3e1498a1a3141b001258323",
       "executable": false
     },
     "docs/CLAIMS.md": {
@@ -3190,8 +3190,12 @@
       "sha256": "80798719316b1ce6643c9a116bbbfb0873710531bcf5470e1b64312e90dd6a79",
       "executable": false
     },
+    "scripts/definitions-http.mjs": {
+      "sha256": "12f9700ade20c9e05704fe23e2318e87c628aa2b3cdcc320b619e7ec2fcf9a3b",
+      "executable": false
+    },
     "scripts/definitions.mjs": {
-      "sha256": "eca637a0dc0348ab9e327122912e152b82750d372558183f81652bd23b7189fa",
+      "sha256": "3ca805c48ba73fe116515a753dc9448d8e866f55ef0407cf3cf0ebcc07ab001d",
       "executable": false
     },
     "scripts/delivery/base/artifact.mjs": {
@@ -5551,7 +5555,7 @@
       "executable": false
     },
     "src/domain/definitions/index.server.ts": {
-      "sha256": "c3d69471603eb700c22eb1ba51140ad19393d15d7b3cc26ae3dc675b57b18cbc",
+      "sha256": "b671e5eec4b1e451e31a9c2be58f324a059fece35f1d341630d7fe8616c803c8",
       "executable": false
     },
     "src/domain/definitions/plan.server.ts": {
@@ -7270,8 +7274,16 @@
       "sha256": "f3cf51d37ac1e1d4f5eebbef6349206888c39dce3e9f757dc50b4385e40726e0",
       "executable": false
     },
+    "tests/playwright-custody-support.mjs": {
+      "sha256": "76506a7fdd2cda31e9fbac2cc8c2575f08647e8b5d632ee94d37bef88e7e1f82",
+      "executable": false
+    },
     "tests/playwright-import-support.mjs": {
-      "sha256": "e739494f3f870c32472a04be8908f1700f5edec72160fd0ac2935b080bfb2143",
+      "sha256": "7a8ca9c6e73f416c96eff8cee8f14d1ed33e77b5692b1e0f003c455fe47061ff",
+      "executable": false
+    },
+    "tests/playwright-workflow-support.mjs": {
+      "sha256": "f4c5d1a139138cef2ec22f61bf811e83e147173bdcedda31d5e0df268bfe10b6",
       "executable": false
     },
     "tests/private-network-browser.mjs": {
