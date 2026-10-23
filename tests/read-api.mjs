@@ -5,7 +5,7 @@ import {availablePorts,migratedWorker,runtimeDirectory,cleanupDirectory} from '.
 import {signInOwner} from './auth-test-support.mjs';
 import {inviteDoorMember} from './access-door-support.mjs';
 import {metricsFixture} from './metrics-fixture.mjs';
-import {proveReadKeys} from './read-keys-support.mjs';
+import {proveReadKeys,proveCredentialArchive} from './read-keys-support.mjs';
 
 function csvRows(text){
  const rows=[];let row=[],value='',quoted=false;
@@ -29,6 +29,7 @@ try{
  const origin='http://127.0.0.1:'+port,db=await worker.getD1Database('DB'),cookie=await signInOwner(origin);
  const read=(path,extra={})=>fetch(origin+path,{headers:{cookie,...extra}});
  const json=async path=>{const response=await read(path);assert.equal(response.status,200,await response.clone().text());return response.json()};
+ await proveCredentialArchive({origin,cookie});
  const {ids,from,to}=await metricsFixture(db,origin);
  const preferredZone='America/Los_Angeles';
  assert.equal((await fetch(origin+'/api/notifications/preferences',{method:'PATCH',headers:{cookie,origin,'content-type':'application/json'},body:JSON.stringify({timeZone:preferredZone})})).status,200);

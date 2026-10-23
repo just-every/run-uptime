@@ -52,6 +52,12 @@ export async function proveReadKeys({origin,db,cookie,ids,from,to}){
  const fresh=await emailSignIn(origin),other=await inviteDoorMember(origin,fresh,'owner','read-key-issuer');await completeSecondFactor(origin,other.cookie);
  const issuedOther=await issue(spec('Separate issuer'),other.cookie);assert.equal((await read(issuedOther,single)).status,200);
  assert.equal((await owner('/auth/operator/status','POST',{operatorId:other.id,status:'inactive'},fresh)).status,200);assert.equal((await read(issuedOther,single)).status,401);
- const archive=await owner('/api/archive','GET',undefined,fresh);assert.equal(archive.status,200);const archiveText=await archive.text();assert.ok(!archiveText.includes(selected.token)&&!archiveText.includes(stored.token_hash)&&!archiveText.includes('uptime_credential_grants'));
  console.log('READAPI key slice: native owner/fresh-factor issuance, CLI, immutable resource pagination, GET/HEAD shared figures, format reads, per-key limits, no-write denial, expiry/revocation/issuer removal and local-only archive authority.');
+}
+
+// The reporting fixture intentionally contains partial historical events. Prove
+// archive custody through the valid native installation before seeding it.
+export async function proveCredentialArchive({origin,cookie}){
+ const created=await fetch(origin+'/api/credentials',{method:'POST',headers:{origin,cookie,'content-type':'application/json'},body:JSON.stringify({name:'Local authority archive exclusion',scopes:['monitoring:read'],expiresAt:Date.now()+3600000,resources:{mode:'workspace',monitorIds:[],tags:[]}})});assert.equal(created.status,201);const key=await created.json();
+ const response=await fetch(origin+'/api/archive',{headers:{origin,cookie}});assert.equal(response.status,200);const text=await response.text();assert.ok(!text.includes(key.token)&&!text.includes('uptime_credential_grants')&&!text.includes('uptime_credential_workspace'));
 }
