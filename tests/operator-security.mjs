@@ -39,7 +39,7 @@ try{
  assert.equal((await db.prepare('SELECT (SELECT COUNT(*) FROM incident_mentions)+(SELECT COUNT(*) FROM incident_mention_authority) n').first()).n,0,'populated upgrade creates no mention or sending authority');
  const upgradedRoute=await db.prepare('SELECT * FROM alert_routes WHERE scope_kind=? AND scope_value=?').bind(upgradeRoute.scope_kind,upgradeRoute.scope_value).first();
  assert.deepEqual(Object.fromEntries(Object.keys(upgradeRoute).map(k=>[k,upgradedRoute[k]])),upgradeRoute,'populated route policy survives additive upgrade unchanged');
- assert.deepEqual(JSON.parse(upgradedRoute.team_ids),[],'upgrade never opts a recipient into a team route');assert.deepEqual(JSON.parse(upgradedRoute.filters),{});assert.equal(upgradedRoute.quiet_hours,null);
+ assert.deepEqual(JSON.parse(upgradedRoute.team_ids),[],'upgrade never opts a recipient into a team route');assert.deepEqual(JSON.parse(upgradedRoute.filters),{});assert.equal(upgradedRoute.quiet_hours,null);assert.equal(upgradedRoute.named_route_id,null,'upgrade never assigns a named route');
  assert.equal((await db.prepare('SELECT COUNT(*) n FROM alert_recipient_consents').first()).n,0,'upgrade creates no member delivery consent');
  await db.prepare('DELETE FROM alert_routes WHERE scope_kind=? AND scope_value=?').bind(upgradeRoute.scope_kind,upgradeRoute.scope_value).run();
 

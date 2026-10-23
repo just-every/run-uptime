@@ -13,7 +13,7 @@ async function plan(env:Bindings,raw:any){
  const route=await namedAlertRoute(env,raw.routeId),entries:any[]=[];
  for(const monitorId of [...raw.monitorIds].sort()){
   try{
-   const prepared=await prepareNamedAlertRouteAssignment(env,monitorId,route),unchanged=JSON.stringify(policy(prepared.previous))===JSON.stringify(policy(prepared.current));
+   const prepared=await prepareNamedAlertRouteAssignment(env,monitorId,route),unchanged=prepared.previous.namedRouteId===route.id&&JSON.stringify(policy(prepared.previous))===JSON.stringify(policy(prepared.current));
    entries.push({monitorId,name:prepared.monitor.definition.name,action:unchanged?'unchanged':'change',before:prepared.previous,after:prepared.current,readyCount:prepared.readyCount,prepared});
   }catch(error){entries.push({monitorId,action:'refused',reason:error instanceof Error?error.message:'The route cannot be assigned'})}
  }
@@ -26,7 +26,7 @@ export async function applyCatalogRoutes(env:Bindings,raw:any,approved:unknown,a
  if(typeof approved!=='string'||approved!==prepared.digest)throw stale();
  if(prepared.view.counts.refused)fail('A refused monitor makes the whole route batch unavailable. Review a valid selection.');
  const entries=prepared.entries.filter(e=>e.action==='change');if(!entries.length)fail('This batch has no route changes.');
- const batchId=crypto.randomUUID(),now=Date.now(),parts=entries.map(e=>alertRouteAssignmentStatements(env,e.prepared,actor));
+ const batchId=crypto.randomUUID(),now=Date.now(),parts=entries.map(e=>alertRouteAssignmentStatements(env,e.prepared,actor,false,prepared.route.id));
  const guards=parts.flatMap(p=>p.guards),writes=parts.flatMap(p=>p.writes);
  guards.push(mutationGuard(env,"EXISTS(SELECT 1 FROM oa_operators WHERE id=? AND role='owner' AND status='active')",[actor.ref]),mutationGuard(env,'EXISTS(SELECT 1 FROM alert_named_routes WHERE id=? AND name=? AND policy=?)',[prepared.route.id,prepared.route.name,JSON.stringify(prepared.route.policy)]));
  writes.push(env.DB.prepare('INSERT INTO catalog_route_batches(id,route_id,created_at,actor_kind,actor_ref,counts) VALUES(?,?,?,?,?,?)').bind(batchId,prepared.route.id,now,actor.kind,actor.ref,JSON.stringify(prepared.view.counts)));
@@ -41,10 +41,10 @@ export async function undoCatalogRoutes(env:Bindings,raw:any,actor:AuditActor){
  const parts=[];
  for(const entry of entries){
   const read=await readAlertRoute(env,entry.monitor_id,{readOnly:true}),current=read.policies.find(p=>p.scope==='monitor')!;
-  if(current.revision!==entry.applied_revision||JSON.stringify(policy(current))!==entry.applied_policy)throw stale();
+  if(current.namedRouteId!==batch.route_id||current.revision!==entry.applied_revision||JSON.stringify(policy(current))!==entry.applied_policy)throw stale();
   const previous=JSON.parse(entry.previous_policy),prepared=await prepareAlertRouteAssignment(env,entry.monitor_id,{scope:'monitor',expectedRevision:current.revision,...policy(previous)});
   if(prepared.monitor.revision!==entry.monitor_revision)throw stale();
-  parts.push(alertRouteAssignmentStatements(env,prepared,actor,previous.revision===0));
+  parts.push(alertRouteAssignmentStatements(env,prepared,actor,previous.revision===0,previous.namedRouteId??null));
  }
  const now=Date.now(),guards=parts.flatMap(p=>p.guards),writes=parts.flatMap(p=>p.writes);
  guards.push(mutationGuard(env,"EXISTS(SELECT 1 FROM oa_operators WHERE id=? AND role='owner' AND status='active')",[actor.ref]),mutationGuard(env,'EXISTS(SELECT 1 FROM catalog_route_batches WHERE id=? AND undone_at IS NULL)',[raw.batchId]),mutationGuard(env,'(SELECT COUNT(*) FROM catalog_route_batch_entries WHERE batch_id=?)=?',[raw.batchId,entries.length]));

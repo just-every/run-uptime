@@ -12,7 +12,7 @@ const gaps=['These routes apply to confirmed incident triggers and recoveries. E
 // Fencing this snapshot makes the reviewed affected set and readiness atomic
 // with a policy edit, even when another operator changes a broader scope.
 const snapshotSql=`SELECT json_array(
- (SELECT json_group_array(json_array(scope_kind,scope_value,mode,destination_ids,contact_settings,fallback,team_ids,filters,quiet_hours,revision,updated_at)) FROM (SELECT * FROM alert_routes ORDER BY scope_kind,scope_value)),
+ (SELECT json_group_array(json_array(scope_kind,scope_value,mode,destination_ids,contact_settings,fallback,team_ids,filters,quiet_hours,revision,updated_at,named_route_id)) FROM (SELECT * FROM alert_routes ORDER BY scope_kind,scope_value)),
  (SELECT json_group_array(json_array(id,revision,definition)) FROM (SELECT id,revision,definition FROM monitors ORDER BY id)),
  (SELECT json_group_array(json_array(id,name,kind,enabled,credential_id,deleted_at,cid,retired_at,unavailable_at,has_ciphertext,has_endpoint)) FROM
   (SELECT d.*,c.id cid,c.retired_at,c.unavailable_at,c.ciphertext IS NOT NULL has_ciphertext,c.endpoint IS NOT NULL has_endpoint FROM notification_destinations d LEFT JOIN notification_credentials c ON c.id=d.credential_id ORDER BY d.id))
@@ -98,13 +98,13 @@ async function plan(env:Bindings,monitorId:string,raw:any,{readOnly=false}={}){
 export async function previewAlertRoute(env:Bindings,monitorId:string,input:any){const {monitor,snapshot,...result}=await plan(env,monitorId,input);return result}
 export async function prepareAlertRouteAssignment(env:Bindings,monitorId:string,input:any){return plan(env,monitorId,input,{readOnly:true})}
 // Batch callers run every guard before any write, then commit all assignments together.
-export function alertRouteAssignmentStatements(env:Bindings,prepared:Awaited<ReturnType<typeof plan>>,actor:AuditActor,remove=false){
- const {previous,current,value,monitor,input}=prepared,now=Date.now(),changeId=crypto.randomUUID();
+export function alertRouteAssignmentStatements(env:Bindings,prepared:Awaited<ReturnType<typeof plan>>,actor:AuditActor,remove=false,namedRouteId:string|null=null){
+ const {previous,value,monitor,input}=prepared,current={...prepared.current,namedRouteId},now=Date.now(),changeId=crypto.randomUUID();
  if(remove&&input.scope!=='monitor')throw Error('Only an absent monitor override can be restored by removal');
  const guard=previous.revision?'EXISTS(SELECT 1 FROM alert_routes WHERE scope_kind=? AND scope_value=? AND revision=?)':'NOT EXISTS(SELECT 1 FROM alert_routes WHERE scope_kind=? AND scope_value=?)';
  const guards=[mutationGuard(env,`(${snapshotSql})=?`,[prepared.snapshot]),mutationGuard(env,guard,[input.scope,value,...(previous.revision?[previous.revision]:[])]),mutationGuard(env,'EXISTS(SELECT 1 FROM monitors WHERE id=? AND revision=?)',[monitor.id,monitor.revision])];
  const writes=[
-  remove?env.DB.prepare("DELETE FROM alert_routes WHERE scope_kind='monitor' AND scope_value=?").bind(value):env.DB.prepare(`INSERT INTO alert_routes(scope_kind,scope_value,mode,destination_ids,contact_settings,fallback,team_ids,filters,quiet_hours,revision,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(scope_kind,scope_value) DO UPDATE SET mode=excluded.mode,destination_ids=excluded.destination_ids,contact_settings=excluded.contact_settings,fallback=excluded.fallback,team_ids=excluded.team_ids,filters=excluded.filters,quiet_hours=excluded.quiet_hours,revision=excluded.revision,updated_at=excluded.updated_at`).bind(input.scope,value,input.mode,JSON.stringify(current.destinationIds),JSON.stringify(current.contactSettings),JSON.stringify(current.fallback),JSON.stringify(current.teamIds),JSON.stringify(current.filters),current.quietHours?JSON.stringify(current.quietHours):null,current.revision,now),
+  remove?env.DB.prepare("DELETE FROM alert_routes WHERE scope_kind='monitor' AND scope_value=?").bind(value):env.DB.prepare(`INSERT INTO alert_routes(scope_kind,scope_value,mode,destination_ids,contact_settings,fallback,team_ids,filters,quiet_hours,revision,updated_at,named_route_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(scope_kind,scope_value) DO UPDATE SET mode=excluded.mode,destination_ids=excluded.destination_ids,contact_settings=excluded.contact_settings,fallback=excluded.fallback,team_ids=excluded.team_ids,filters=excluded.filters,quiet_hours=excluded.quiet_hours,revision=excluded.revision,updated_at=excluded.updated_at,named_route_id=excluded.named_route_id`).bind(input.scope,value,input.mode,JSON.stringify(current.destinationIds),JSON.stringify(current.contactSettings),JSON.stringify(current.fallback),JSON.stringify(current.teamIds),JSON.stringify(current.filters),current.quietHours?JSON.stringify(current.quietHours):null,current.revision,now,namedRouteId),
   env.DB.prepare('INSERT INTO alert_route_changes VALUES(?,?,?,?,?,?,?)').bind(changeId,input.scope,value,JSON.stringify(previous),JSON.stringify({...current,updatedAt:now}),now,actor.ref),
   auditStatement(env,actor,'alert_route_change','alert_route',changeId,'1',[],now),
  ];return {guards,writes,changeId,revision:current.revision};
@@ -155,5 +155,5 @@ export async function saveNamedAlertRoute(env:Bindings,raw:any,actor:AuditActor)
 }
 export async function prepareNamedAlertRouteAssignment(env:Bindings,monitorId:string,route:Awaited<ReturnType<typeof namedAlertRoute>>){
  const current=await readAlertRoute(env,monitorId,{readOnly:true}),previous=current.policies.find(p=>p.scope==='monitor')!;
- return plan(env,monitorId,{scope:'monitor',expectedRevision:previous.revision,...route.policy},{readOnly:true});
+ const prepared=await plan(env,monitorId,{scope:'monitor',expectedRevision:previous.revision,...route.policy},{readOnly:true});prepared.current.namedRouteId=route.id;return prepared;
 }
