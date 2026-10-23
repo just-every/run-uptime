@@ -5623,7 +5623,7 @@
       "executable": false
     },
     "src/domain/credentials/auth.server.ts": {
-      "sha256": "8bacea2388ada16c273b18bcdb3dd202598ca553d99c908e3851666c802d5c19",
+      "sha256": "463d09467beb5bde273550ada7fd73790f5d7675e22a47702488bb4f5e448237",
       "executable": false
     },
     "src/domain/credentials/model.server.ts": {
@@ -5959,7 +5959,7 @@
       "executable": false
     },
     "src/domain/incident-work/read.server.ts": {
-      "sha256": "9b23c87ad32ff5a9c668d87a7747c9c20c29f6ee5fc9c8e0d405220b1c710797",
+      "sha256": "174a1148e594d9181cde18965bebba91f380afc095c9e76f56663b5cef733150",
       "executable": false
     },
     "src/domain/incident-work/settings.server.ts": {
@@ -7475,7 +7475,7 @@
       "executable": false
     },
     "tests/operator-security.mjs": {
-      "sha256": "d86aa2f3a9e46008222825bf29fa469e862ad1462236436481cc1508610816bd",
+      "sha256": "325fecb889aa4b04584d95796e45b3485510b18f6c65ab4e81f18bbed5f6beca",
       "executable": false
     },
     "tests/owner-claim-admission.mjs": {
@@ -7607,7 +7607,7 @@
       "executable": false
     },
     "tests/read-keys-support.mjs": {
-      "sha256": "e7f95471fe3102ab4ed5a6ce077858b54ca36010c04a02f4f25d31a48bbf43db",
+      "sha256": "d7bdc46a4fbf2f14efcbaeaec9398e9a63110401e48cb89e0da9f57eea786c28",
       "executable": false
     },
     "tests/readme-journey.mjs": {
