@@ -471,7 +471,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "4bb5be391a7790a7ac8deeffb448df770a0bf51b73d5ad1b1c8f249c6d6f7c0c",
+      "sha256": "d2fde1d5bfb76c9f400fc410345d289c45e7851046e69102a468f75c54c4275c",
       "executable": false
     },
     "AGENTS.md": {
@@ -495,7 +495,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "74f7f686300b1c4df226891be7df9088a0f0941884c1b37ad02f007e686dd90d",
+      "sha256": "a03f112f11525b3801073024872b5350133c01bec433accd0599d40ce3b13755",
       "executable": false
     },
     "DEMO.md": {
@@ -516,6 +516,10 @@
     },
     "docs/access.md": {
       "sha256": "855aee58cd3c677576d176bad588caf9573fa62949a0f90a049c975765c0c21c",
+      "executable": false
+    },
+    "docs/api-keys.md": {
+      "sha256": "3a777dd97f10e8721fb5f9cc1dd44690e66c67757f55f73c7e69c409b9465832",
       "executable": false
     },
     "docs/browser-flows.md": {
@@ -3242,6 +3246,10 @@
       "sha256": "252cd632469e5d33cb367b8df1f1858391673ea8a4d1697476b8dbbc5766f5e6",
       "executable": false
     },
+    "scripts/api-keys.mjs": {
+      "sha256": "f6f6299359608576ab5b99692677aa653cdab8dce677b5c61f1adcebfa8d30e4",
+      "executable": false
+    },
     "scripts/build-delivery-artifact.mjs": {
       "sha256": "772ba8a61abab49f0a57b54d6ff4685f02d8f4a51f064452cfadaf687b7285e0",
       "executable": false
@@ -5615,7 +5623,7 @@
       "executable": false
     },
     "src/domain/credentials/model.server.ts": {
-      "sha256": "e72be981c22567e6fae63b87ab4f9e1c32ac56fa640f6f36105bbdf0c3117dc5",
+      "sha256": "1bd532089c7999602ddf6a4fa19b6bcbc0f1ad6eaef3f7de5bcee659c11a3ff6",
       "executable": false
     },
     "src/domain/credentials/store.server.ts": {
@@ -7591,7 +7599,11 @@
       "executable": false
     },
     "tests/read-api.mjs": {
-      "sha256": "f9ac7c6ee078265a20224f4a505838f6f5272f24b753124467acd106af8f7b03",
+      "sha256": "1f4df8d9180a0c816875700ac8ab6869c1f5804bd74ccc5f2cc4aef32b29d558",
+      "executable": false
+    },
+    "tests/read-keys-support.mjs": {
+      "sha256": "e76f4684b027f56cd238125046d94dc9f900905cc72c84b7216703dbced8bfd1",
       "executable": false
     },
     "tests/readme-journey.mjs": {
