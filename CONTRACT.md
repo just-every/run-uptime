@@ -460,8 +460,8 @@ Page-speed round (22 October 2026): PERF-001 moves from missing to partial. A pa
 | Clauses | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
 | Published | 18 | 3 | 0 | 21 |
-| Target and push further | 28 | 27 | 12 | 67 |
-| All | 46 | 30 | 12 | 88 |
+| Target and push further | 28 | 28 | 11 | 67 |
+| All | 46 | 31 | 11 | 88 |
 
 | Clause | Title | Kind | Status | Evidence | Gap |
 | --- | --- | --- | --- | --- | --- |
