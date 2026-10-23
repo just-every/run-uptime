@@ -154,10 +154,10 @@ try {
  await assertGroupsGone(groups);
  const { startLocalWorker } = await import(pathToFileURL(join(scratch.root, 'scripts/local-worker.mjs')));
  const values = JSON.parse(settings);
- let native = await startLocalWorker({ root: scratch.root, persist: join(scratch.root, '.wrangler/state'), bindings: values, assets: false });
+ let native = await startLocalWorker({ root: scratch.root, port:Number(new URL(values.UPTIME_ORIGIN).port), persist: join(scratch.root, '.wrangler/state'), bindings: values, assets: false });
  try {
   const env = { ...values, DB: await native.getD1Database('DB') }; await populateArchiveFixture(env); expected = await productArchive(env);
-  const fetcher=(url,init)=>native.dispatchFetch(url,init),cookie=scratch.env.UPTIME_ACCESS_COOKIE,state=await completeSecondFactor(origin,cookie,fetcher);
+  const fetcher=fetch,cookie=scratch.env.UPTIME_ACCESS_COOKIE,state=await completeSecondFactor(origin,cookie,fetcher);
   assert.equal((await factorRequest(origin,cookie,fetcher)('/recovery/verify',{code:state.recoveryCodes.shift()})).status,200,'refresh with real single-use recovery authority immediately before CLI export');
  }
  finally { await native.dispose(); }
@@ -175,8 +175,8 @@ try {
  const receiving = JSON.parse(await readFile(settingsPath));
  // The receiving owner signs in at the real Base door, with only its mail
  // provider replaced. No session or MFA rows are inserted by the fixture.
- native=await startLocalWorker(testMailOptions({root:scratch.root,persist:join(scratch.root,'.wrangler/state'),bindings:receiving,assets:false}));
- try{scratch.env.UPTIME_ACCESS_COOKIE=await emailSignIn(receiving.UPTIME_ORIGIN,{bindings:receiving,fetcher:(url,init)=>native.dispatchFetch(url,init)})}finally{await native.dispose()}
+ native=await startLocalWorker(testMailOptions({root:scratch.root,port:Number(new URL(receiving.UPTIME_ORIGIN).port),persist:join(scratch.root,'.wrangler/state'),bindings:receiving,assets:false}));
+ try{scratch.env.UPTIME_ACCESS_COOKIE=await emailSignIn(receiving.UPTIME_ORIGIN,{bindings:receiving})}finally{await native.dispose()}
  await invoke(['import', '--input', 'exports/product.rer', '--yes']);
  await invoke(['export', '--output', 'exports/restored.rer']);
  native = await startLocalWorker({ root: scratch.root, persist: join(scratch.root, '.wrangler/state'), bindings: receiving, assets: false });
