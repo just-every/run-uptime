@@ -6855,7 +6855,7 @@
       "executable": false
     },
     "tests/api-transaction-browser.mjs": {
-      "sha256": "448111f339cb2db82e55803b18faa61681413d5602fbd299190cb2ea6a4a489a",
+      "sha256": "b574c29435e0c24fa16ece866430a40addc746035ed3776f88170a105944ebf5",
       "executable": false
     },
     "tests/api-transaction-journey.mjs": {
@@ -7115,7 +7115,7 @@
       "executable": false
     },
     "tests/mail-browser.mjs": {
-      "sha256": "3cb293873c1848ecb84bd51f7c1986daea64cd87a1056375cae9a03d6c537a80",
+      "sha256": "763df3bceafefa73215c390780d70eaefabe26ea60f1094cc6787102d944fa37",
       "executable": false
     },
     "tests/mail-edges.mjs": {
@@ -7263,7 +7263,7 @@
       "executable": false
     },
     "tests/ping-browser.mjs": {
-      "sha256": "6a403fe800b730bd4691f4a5957253203384afe6f25d0d7189ffa205cad3aa7b",
+      "sha256": "60e9856acae91bd9a4e93c2e3b6abb667bc035bd214a1b8d5bbc2949f783294b",
       "executable": false
     },
     "tests/ping-monitors.mjs": {
@@ -7275,7 +7275,7 @@
       "executable": false
     },
     "tests/private-network-browser.mjs": {
-      "sha256": "c937ded1b90765f79d4e26ec84484759a8c2f79ccf409280be7f1f06695388b2",
+      "sha256": "2da4843801266fe423559a237ae4d728d5437aaa27eb9bbb0ba5f409f8fc940e",
       "executable": false
     },
     "tests/private-network-routing.mjs": {
@@ -7463,7 +7463,7 @@
       "executable": false
     },
     "tests/udp-browser.mjs": {
-      "sha256": "0b9ac802bc0bf5d60c7c24361a2b01ddaf04892ffcc3192f31f2b7782c32c31c",
+      "sha256": "465307380997ca12848ba5059df5bfd2d91082ba5a269d8309d41d8afc9cbb4d",
       "executable": false
     },
     "tests/udp-monitors.mjs": {

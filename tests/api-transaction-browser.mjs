@@ -36,7 +36,7 @@ try{
   const list=await(await page.request.get(edge.f.origin+'/api/overview')).json(),m=list.monitors.find(m=>m.definition.name===`Sandbox order API ${width}`);assert.ok(m);
   let task=await edge.claim(m.id),result=await edge.run(task);assert.equal(result.outcome,'pass');await edge.submit(task,result);assert.equal(objects.size,0);
   broken=true;task=await edge.manual(m.id);result=await edge.run(task);assert.equal(result.outcome,'target_failure');await edge.submit(task,result);broken=false;assert.equal(objects.size,0);assert.equal(result.apiTransaction.cleanup.passed,1);
-  await page.goto(edge.f.origin+`/app/monitors/${m.id}#all-checks`);await page.locator('html.signed-in').waitFor();await page.locator('#raw-history details').first().evaluate(e=>e.open=true);
+  await page.goto(edge.f.origin+`/app/monitors/${m.id}`);await page.evaluate(()=>{location.hash='all-checks'});await page.locator('html.signed-in').waitFor();await page.locator('#raw-history details').first().evaluate(e=>e.open=true);
   await page.getByText('Cleanup: 1 passed; 0 failed; 0 skipped.',{exact:true}).first().waitFor();assert.ok(!(await page.locator('body').innerText()).includes(token));await shot(`api-history-${width}.png`);
   await page.getByRole('button',{name:'Edit',exact:true}).click();await page.locator('.editor-context-ready').waitFor();assert.equal(await page.locator('[name=checkType]').inputValue(),'api');assert.deepEqual(JSON.parse(await page.locator('[name=apiSettings]').inputValue()),m.definition.api);await shot(`api-edit-${width}.png`);
   denied=true;task=await edge.manual(m.id);result=await edge.run(task);await edge.submit(task,result);denied=false;objects.clear();assert.equal(result.apiTransaction.cleanup.failed,1);
