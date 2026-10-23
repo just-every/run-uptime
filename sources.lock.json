@@ -7142,6 +7142,10 @@
       "sha256": "faaf13de092f83e18b479c8678b8a043ec7435c9db6c4d4af8bd1582afe791d4",
       "executable": false
     },
+    "tests/browser-canary-edge.mjs": {
+      "sha256": "9c73435d9feb5c76bc32178a55a8c0a4a61a075347e29b1f39f8d041d4cd29f9",
+      "executable": false
+    },
     "tests/browser-suites.mjs": {
       "sha256": "3c53814d4f1149660543051bf44b527db7c5cc02ec2009600b397ed423aa14f8",
       "executable": false
@@ -7707,7 +7711,7 @@
       "executable": false
     },
     "tests/scratch-installation.mjs": {
-      "sha256": "ad4f234cebd351237a6284aa545490aef7dc98f09934906da177fb320d7297b9",
+      "sha256": "808161656377e6b47e0e8ef5b1abe4bf95337ea45acf9dedb646dfbdd7c2e3fe",
       "executable": false
     },
     "tests/service-catalog-fixture.mjs": {
