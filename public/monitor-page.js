@@ -55,16 +55,8 @@ function actionButtons(m){
  const d=m.definition,edit=isFlow(d)||d.type==='heartbeat'?`<a class="ui-button" id="edit" href="/docs/definitions">${icon('pencil')}Edit in a file</a>`:`<button id="edit">${icon('pencil')}Edit</button>`;
  return `<button id="run-monitor" class="primary" ${d.enabled?'':'disabled'}>${icon('play')}Run now</button>${edit}<button id="pause"${d.enabled?'':' class="resume"'}>${icon(d.enabled?'pause':'play')}${d.enabled?'Pause':'Resume'}</button>`;
 }
-// When the running maintenance ends: the quick quiet-alerts window, or the calendar window running now (the revisions read
-// gives the current revision's maintenance intervals).
-function maintenanceEnd(m,seen,now){
- const quick=m.definition.maintenanceUntil>now?m.definition.maintenanceUntil:null;
- const planned=seen.revisions?.find(r=>r.revision===m.revision)?.maintenanceIntervals?.find(i=>i.startsAt<=now&&now<i.endsAt)?.endsAt??null;
- return Math.max(quick??0,planned??0)||null;
-}
 function pageMarkup(page){
- const {m,data,readUnavailable,seen,ui}=page,now=Number.isSafeInteger(data.now)?data.now:Date.now();
- seen.maintenanceEnd=maintenanceEnd(m,seen,now);
+ const {m,data,readUnavailable,seen,ui}=page;
  page.folds=foldsFor(m,data,seen);
  return `<div class="monitor-page" id="monitor-page" data-monitor="${escape(m.id)}">${statusCard(m,{readUnavailable,data,seen})}${expiryPanel(m,data)}${pageSpeedPanel(m)}`
   +`<div class="monitor-columns"><div class="monitor-main">${rulesTable(m,{data,newest:seen.newest,earlier:seen.earlier,ui})}${recentChecks(m,seen.timeline)}</div>`

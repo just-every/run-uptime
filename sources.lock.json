@@ -2619,7 +2619,7 @@
       "executable": false
     },
     "public/monitor-folds.js": {
-      "sha256": "4d32552b37ca2e2979eb3f2fbecb6dedaf5839fca4615ae1d9c260b9171213f0",
+      "sha256": "443ea87e0bf9e25169b3bf8ceeb1886486032d5dea1a1e1d0e915d8f7dc0159c",
       "executable": false
     },
     "public/monitor-incidents.js": {
@@ -2635,7 +2635,7 @@
       "executable": false
     },
     "public/monitor-page.js": {
-      "sha256": "5a39aab24c5738215b7dd858c5ee91a6259951386e464575f5f3ad1debe177a9",
+      "sha256": "944be21e70f1938ec8e4320c1ffcaacbf3ca47e190f346b6f565e6fb39cd4a0e",
       "executable": false
     },
     "public/monitor-recent-checks.js": {
@@ -2663,7 +2663,7 @@
       "executable": false
     },
     "public/monitor-status.js": {
-      "sha256": "81841945f65fe9d43ebada5e4951687cfcea278343e0837cb8344b09a7c48f8b",
+      "sha256": "5ac154dfe274dc4dcf0268fe6b443c286d69d7911c81755608e65c68148e5d22",
       "executable": false
     },
     "public/monitor-timeline.js": {

@@ -1,5 +1,5 @@
 import {escape,humaneDuration} from './console-format.js';
-import {moreInfo,clock} from './monitor-status.js';
+import {moreInfo,clock,endClock} from './monitor-status.js';
 import {openSlow} from './monitor-status-line.js';
 import {responseTime} from './monitor-rules.js';
 import {COVERAGE_RULE,coverage,coverageLegend} from './monitor-coverage.js';
@@ -52,7 +52,7 @@ const summaries={
  snapshots:({snapshots})=>snapshots?snapshots.count?`${snapshots.count}${snapshots.more?'+':''} saved`:'None saved':'',
  slow:(seen,now,m)=>{const slow=openSlow(m,seen.slow);return slow?`Open since ${clock(slow.observedAt)}`:m.definition.slow?`Over ${responseTime(m.definition.slow.thresholdMs)}`:'Off'},
  maintenance:(seen,now,m)=>{
-  if(seen.maintenanceEnd)return `Until ${clock(seen.maintenanceEnd)}`;
+  if(m.maintenanceEndsAt)return `Until ${endClock(m.maintenanceEndsAt,now)}`;
   const windows=(m.definition.maintenanceWindows??[]).filter(w=>w.weekly||w.endsAt>now),next=windows.filter(w=>!w.weekly).sort((a,b)=>a.startsAt-b.startsAt)[0];
   return !windows.length?'None planned':next&&windows.length===1?day(next.startsAt,now):`${windows.length} planned`;
  },

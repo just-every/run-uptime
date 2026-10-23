@@ -5,6 +5,8 @@ import {checkResultSummary} from './monitor-timeline.js';
 // explanation stays in Full check details; nothing here parses it.
 export const joinNames=names=>names.length<3?names.join(' and '):`${names.slice(0,-1).join(', ')} and ${names.at(-1)}`;
 export const clock=t=>new Date(t).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+// When a running maintenance ends: its time, with the day too when that is a day or more away.
+export const endClock=(t,now)=>t-now<86400000?clock(t):new Date(t).toLocaleString([],{weekday:'short',day:'numeric',month:'short',hour:'numeric',minute:'2-digit'});
 const lowerFirst=text=>text.charAt(0).toLowerCase()+text.slice(1);
 // The newest attempt of each location in a slot.
 export function latestAttempts(slot){
@@ -45,8 +47,9 @@ export async function waitForCheck({api,id,slotId,name,limit=20000}){
  }
  return null;
 }
-// The status sentence. `seen` is what the page's own reads found: the newest failed scheduled check's failures, the open
-// incident's start and when the running maintenance ends.
+// The status sentence. `seen` is what the page's own reads found: the newest failed scheduled check's failures and the open
+// incident's start. A running maintenance ends at the monitor read's maintenanceEndsAt: the latest end of its running windows
+// (a weekly one's running occurrence) and its quick window, taken from the definition.
 export function statusLine(m,{readUnavailable,data,seen={}}){
  const d=m.definition,state=m.state,runners=data.runner.runners??[],where=joinNames(checkedFrom(d,runners))||'your locations';
  const last=m.availability?.lastCheckAt,checked=Number.isSafeInteger(last)&&last<=Date.now()?last:null;
@@ -58,7 +61,7 @@ export function statusLine(m,{readUnavailable,data,seen={}}){
   case 'Failing':return `Down${seen.since?` since ${clock(seen.since)}`:''}: ${seen.failure?.length?failureText(seen.failure):'the latest checks did not pass'}`;
   case 'Degraded':return 'Some checks failed. Waiting to confirm.';
   case 'Recovering':return `Passing again. Confirming recovery (${Math.min(state.recoveryStreak??0,d.recoverSlots)} of ${d.recoverSlots} checks).`;
-  case 'Maintenance':return `In maintenance${seen.maintenanceEnd?` until ${clock(seen.maintenanceEnd)}`:''}`;
+  case 'Maintenance':return `In maintenance${m.maintenanceEndsAt?` until ${endClock(m.maintenanceEndsAt,data.now)}`:''}`;
   case 'Unknown':return checked?'No recent result. Waiting for the next check.':`Waiting for the first check from ${where}.`;
   default:return 'Status unavailable.';
  }
