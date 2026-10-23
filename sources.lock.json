@@ -2006,6 +2006,10 @@
       "sha256": "dbd396336192c25457c85b16d83de49a1a32b8d932b5e6d36c063c408319f86a",
       "executable": false
     },
+    "docs/private-overview.md": {
+      "sha256": "44fb9a2670856cf2f7883d80bfbfe91ac8bf3b7069ad4d89638ae3cf92891a46",
+      "executable": false
+    },
     "docs/read-api.md": {
       "sha256": "c587f3657ef683d37f70851fae148165f44b9ca9a24579515e925780e91758fb",
       "executable": false
@@ -5495,7 +5499,7 @@
       "executable": false
     },
     "src/domain/control.server.ts": {
-      "sha256": "24cb08cca2ae58d8f872e45df832c61f2a47038632200ff49715b8a08faef125",
+      "sha256": "c18e35b6b6258a66647f785465ec537c008f94f06a5f457c61c712536da3cc3f",
       "executable": false
     },
     "src/domain/credential-binding.mjs": {
@@ -7135,7 +7139,7 @@
       "executable": false
     },
     "tests/maintenance-windows.mjs": {
-      "sha256": "571395b797411171c172b59c2b83605fb3db21073df813b43167f5c2daa031ea",
+      "sha256": "6faea08a9bf9adccc8973d3f520018fc581bf42c01d81f34a0fcdc2bfdf15dc5",
       "executable": false
     },
     "tests/metrics-browser.mjs": {
