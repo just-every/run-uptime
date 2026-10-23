@@ -21,7 +21,7 @@ import {importSlowPolicy} from './domain/slow-import.ts'
 import {readSlowPolicy,saveSlowPolicy} from './domain/slow-config.server.ts'
 import {acknowledgeSlow} from './domain/slow-ack.server.ts'
 import {cleanupDebt,resolveCleanupDebt} from './domain/cleanup-debt.server.ts'
-import {effectGrants,grantEffect,revokeEffect} from './domain/effect-grants.server.ts'
+import {effectGrants,grantEffect,revokeEffect,spendGrant} from './domain/effect-grants.server.ts'
 import {rumDoor} from './domain/rum/door.server.ts'
 import {registerRumRoutes} from './domain/rum/routes.server.ts'
 import {readAlertRoute,previewAlertRoute,applyAlertRoute} from './domain/alert-routes.server.ts'
@@ -215,6 +215,8 @@ api.post('/api/runner/claim',async c=>{const row=c.get('runner').runner_id?c.get
  // `now` is the Worker's clock at the claim: the runner aligns the times it reports to it (see docs/runner.md).
  return c.json({task,now:Date.now()})})
 api.post('/api/runner/results',async c=>{const text=c.get('requestText');if(!await signedRunnerBody(c.env,c.get('runner'),text,c.req.header('x-sent-at')??'',c.req.header('x-runner-signature')??'',runnerResultLimit(text)))return c.json({error:'Invalid signed result'},403);return c.json(await storageOperation('runner.results',()=>complete(c.env,c.get('input'),c.get('runner').runner_id)))})
+// API-004: before each live request the runner spends its amount from the exact grant its claim named, signed like a result.
+api.post('/api/runner/effect-spend',async c=>{const text=c.get('requestText');if(!await signedRunnerBody(c.env,c.get('runner'),text,c.req.header('x-sent-at')??'',c.req.header('x-runner-signature')??'',4096))return c.json({error:'Invalid signed spend'},403);return c.json(await storageOperation('runner.effectSpend',()=>spendGrant(c.env,c.get('input'),c.get('runner').runner_id)))})
 // Discovery: the owner's console asks, the owner's runner claims and answers; the Worker never fetches the target.
 api.post('/api/discoveries',async c=>c.json(await createDiscovery(c.env,c.get('requestText')),201))
 api.get('/api/service-catalog',async c=>c.json(await catalogDocument(c.env,c.req.query('q')??'')))

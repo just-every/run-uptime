@@ -19,8 +19,9 @@ export function stepSpend(body) {
   return Number.isSafeInteger(amount) && amount > 0 ? amount : 1;
 }
 export const responseLivemode = body => { try { return JSON.parse(body)?.livemode === true; } catch { return false; } };
-/** The active grant for an effect at `now`, or null: unexpired, unrevoked and with spend left. */
-export const activeGrant = (grants, effect, now) => (grants ?? []).find(g => g.effect === effect && g.expiresAt > now && g.remaining > 0) ?? null;
+/** The grant a claim names for an effect, unexpired at `now`, or null. Revocation and the spend left are checked by the control
+ * plane when a request spends it; a claim carries no allowance a runner could spend by itself. */
+export const activeGrant = (grants, effect, now) => (grants ?? []).find(g => g.effect === effect && g.expiresAt > now) ?? null;
 export function validateGrantInput(input, now) {
   if (!input || typeof input !== 'object' || Array.isArray(input) || Object.keys(input).some(key => !['effect', 'spendLimit', 'expiresAt'].includes(key))) throw Error('A grant names one effect, an integer spend limit and an expiry');
   if (!API_EFFECTS.includes(input.effect)) throw Error(`A grant effect is one of ${API_EFFECTS.join(', ')}`);

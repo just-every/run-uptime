@@ -1,6 +1,7 @@
 // API-004: the one engine for API transaction steps and for the setup/teardown fixtures around a browser flow. Setup and cleanup
 // steps make bounded attempts; cleanup runs after a failure and after a cancellation, inside its reserved budget and outside the
-// cancelled signal; a live effect is refused before anything is sent unless an exact grant covers it, rechecked on every attempt.
+// cancelled signal; a live effect is refused before anything is sent unless its exact grant covers it, and every attempt takes
+// its spend from that grant at the control plane before the request leaves.
 // Extracted values stay in `ctx.variables` on this runner and never enter a step's evidence.
 import http from 'node:http';
 import {httpAssertions} from '../../src/domain/http-assertions.mjs';
@@ -20,7 +21,7 @@ const names = step => [...templateVariables(step.url),...Object.values(step.head
 export const fixtureContext = variables => ({variables:{...variables},pending:new Set(),failed:false,cancelled:false,entries:[]});
 
 /** Run `steps` in order into `ctx.entries`. `send(step,values,options)` makes one request and returns {status,headers,body}. */
-export async function runApiSteps(steps,ctx,{origin,send,deadline,requestDeadline=deadline,signal,grants=[],now=Date.now}) {
+export async function runApiSteps(steps,ctx,{origin,send,deadline,requestDeadline=deadline,signal,grants=[],spend,now=Date.now}) {
   for (const step of steps) {
     const at = Date.now(), cleanup = step.phase === 'cleanup';
     const entry = {name:step.name,phase:step.phase,startedAt:at,completedAt:at,durationMs:0,outcome:'skipped',checks:[apiSkippedCheck()],attempts:0};
@@ -40,7 +41,7 @@ export async function runApiSteps(steps,ctx,{origin,send,deadline,requestDeadlin
     for (;;) {
       if (Date.now() >= stepDeadline) {if (!entry.attempts) done('target_failure',apiErrorCheck('timeout'));break}
       entry.attempts++;delete entry.status;
-      await attempt(step,values,entry,ctx,{send,stepDeadline,signal:cleanup?undefined:signal,declared,grants,now});
+      await attempt(step,values,entry,ctx,{send,stepDeadline,signal:cleanup?undefined:signal,declared,grants,spend,now});
       const wait = API_FIXTURE_BACKOFF_MS*entry.attempts;
       if (entry.outcome === 'pass' || entry.attempts >= limit || !retryable(entry) || !cleanup && signal?.aborted || Date.now()+wait >= stepDeadline) break;
       await sleep(wait,cleanup?undefined:signal);
@@ -54,25 +55,27 @@ export async function runApiSteps(steps,ctx,{origin,send,deadline,requestDeadlin
   return ctx;
 }
 
-async function attempt(step,values,entry,ctx,{send,stepDeadline,signal,declared,grants,now}) {
+async function attempt(step,values,entry,ctx,{send,stepDeadline,signal,declared,grants,spend,now}) {
   const started = Date.now(), abort = new AbortController();
   let active, timer, phase = 'target';
   const executionSignal = AbortSignal.any([...(signal ? [signal] : []),abort.signal]);
   const timeout = new Promise((_,reject) => {timer = setTimeout(() => {abort.abort();active?.destroy();reject({category:phase === 'authentication' ? 'credential' : 'timeout'})},Math.max(1,stepDeadline-Date.now()))});
-  // Spend is taken from the grant before the request leaves, so an exhausted or expired grant sends nothing.
-  const charge = (effect,amount) => {
+  // Spend is taken from the exact grant at the control plane before the request leaves, so a grant that is exhausted (by any
+  // probe or attempt), expired or revoked since the claim sends nothing.
+  const charge = async (effect,amount) => {
     const grant = activeGrant(grants,effect,now());
-    if (!grant || grant.remaining < amount) throw new ProbeError('grant','No active grant covers this live effect');
-    grant.remaining -= amount;entry.effect = effect;entry.spend = (entry.spend ?? 0)+amount;
+    if (!grant || !spend) throw new ProbeError('grant','No active grant covers this live effect');
+    try {await spend({grantId:grant.id,effect,amount})} catch {throw new ProbeError('grant','No active grant covers this live effect')}
+    entry.effect = effect;entry.spend = (entry.spend ?? 0)+amount;
   };
-  const beforeSend = ({headers,body}) => {
+  const beforeSend = async ({headers,body}) => {
     const effect = declared ?? (liveCredentialShape([...Object.values(headers ?? {}),body]) ? 'live-payment' : null);
-    if (effect) charge(effect,stepSpend(body));
+    if (effect) await charge(effect,stepSpend(body));
   };
   try {
     const response = await Promise.race([timeout,send(step,values,{signal:executionSignal,onRequest:request => active = request,onPhase:value => phase = value,beforeSend})]);
     // A response that says it is live mode is a live effect even when nothing sent showed it.
-    if (!entry.effect && responseLivemode(response.body)) try {charge('live-payment',stepSpend(values.requestValues.body))} catch {
+    if (!entry.effect && responseLivemode(response.body)) try {await charge('live-payment',stepSpend(values.requestValues.body))} catch {
       // What the live response created is never cleaned up without a grant either: its cleanup stays visible as debt.
       for (const name of Object.keys(step.extract ?? {})) ctx.pending.add(name);
       entry.outcome = 'runner_error';entry.checks = [apiErrorCheck('grant')];return;
@@ -100,19 +103,21 @@ async function attempt(step,values,entry,ctx,{send,stepDeadline,signal,declared,
 
 /** One fixture request to the granted local synthetic endpoint: plain HTTP, no redirects, every response proving its identity. */
 export function syntheticSend(grant) {
-  return (step,values,{signal,onRequest,beforeSend}) => new Promise((resolve,reject) => {
+  return async (step,values,{signal,onRequest,beforeSend}) => {
     const url = new URL(values.url), body = values.requestValues.body, headers = {'user-agent':RUNNER_VERSION,accept:'application/json',...values.requestValues.headers};
-    if (url.protocol !== 'http:' || url.hostname !== '127.0.0.1' || Number(url.port) !== grant.port) {reject(new ProbeError('network'));return}
-    try {beforeSend({headers,body})} catch (error) {reject(error);return}
-    let size = 0;const chunks = [], fail = category => reject(new ProbeError(category));
-    const request = http.request(url,{method:step.method,agent:new http.Agent({keepAlive:false,proxyEnv:{}}),signal,headers:{...headers,...(body !== undefined ? {'content-length':Buffer.byteLength(body)} : {})}},response => {
-      if (response.headers['x-uptime-fixture'] !== grant.identity) {fail('custody');response.destroy();return}
-      if (response.headers['content-encoding'] && response.headers['content-encoding'] !== 'identity') {fail('encoding');response.destroy();return}
-      if (response.statusCode >= 300 && response.statusCode < 400) {fail('redirect');response.destroy();return}
-      response.on('data',chunk => {size += chunk.length;if (size > MAX_BODY) {fail('body-limit');response.destroy()} else chunks.push(chunk)});
-      response.on('end',() => resolve({status:response.statusCode,headers:response.headers,body:Buffer.concat(chunks).toString('utf8'),bytes:size}));
-      response.on('error',() => fail('transport'));
+    if (url.protocol !== 'http:' || url.hostname !== '127.0.0.1' || Number(url.port) !== grant.port) throw new ProbeError('network');
+    await beforeSend({headers,body});if (signal.aborted) throw new ProbeError('timeout');
+    return new Promise((resolve,reject) => {
+      let size = 0;const chunks = [], fail = category => reject(new ProbeError(category));
+      const request = http.request(url,{method:step.method,agent:new http.Agent({keepAlive:false,proxyEnv:{}}),signal,headers:{...headers,...(body !== undefined ? {'content-length':Buffer.byteLength(body)} : {})}},response => {
+        if (response.headers['x-uptime-fixture'] !== grant.identity) {fail('custody');response.destroy();return}
+        if (response.headers['content-encoding'] && response.headers['content-encoding'] !== 'identity') {fail('encoding');response.destroy();return}
+        if (response.statusCode >= 300 && response.statusCode < 400) {fail('redirect');response.destroy();return}
+        response.on('data',chunk => {size += chunk.length;if (size > MAX_BODY) {fail('body-limit');response.destroy()} else chunks.push(chunk)});
+        response.on('end',() => resolve({status:response.statusCode,headers:response.headers,body:Buffer.concat(chunks).toString('utf8'),bytes:size}));
+        response.on('error',() => fail('transport'));
+      });
+      request.on('error',() => fail(signal.aborted ? 'timeout' : 'connection'));request.on('close',() => request.agent.destroy());onRequest(request);request.end(body);
     });
-    request.on('error',() => fail(signal.aborted ? 'timeout' : 'connection'));request.on('close',() => request.agent.destroy());onRequest(request);request.end(body);
-  });
+  };
 }

@@ -25,6 +25,7 @@ test('API-004 sandbox setup/teardown, cancellation, denied cleanup, retained deb
     if (request.url==='/test-login') {res.end(JSON.stringify({token:testToken}));return}
     if (request.url==='/orders'&&request.method==='POST') {if(![`Bearer ${liveToken}`,`Bearer ${testToken}`].includes(request.headers.authorization)){res.statusCode=401;res.end('{}');return}res.statusCode=201;res.end(JSON.stringify({id:liveOrder,livemode:true}));return}
     if (request.url===`/orders/${liveOrder}`&&request.method==='DELETE') {res.end(JSON.stringify({cancelled:true}));return}
+    if (request.url==='/records/stale'&&request.method==='DELETE') {res.end(JSON.stringify({deleted:true}));return}
     if (request.headers.authorization!==`Bearer ${token}` || state.expired) {res.statusCode=401;res.end(JSON.stringify({error:responseSecret}));return}
     if (request.url==='/items'&&request.method==='POST') {assert.deepEqual(JSON.parse(request.body),{label:'scheduled item'});res.statusCode=201;res.end(JSON.stringify(state.missing?{}:{id:item}));return}
     if (request.url===`/items/${item}`&&request.method==='GET') {if(state.hold)return;res.end(JSON.stringify({ready:state.wrong?responseSecret:true}));return}
@@ -114,6 +115,19 @@ test('API-004 sandbox setup/teardown, cancellation, denied cleanup, retained deb
     task=await h.manual(live.id);assert.equal(task.effectGrants,undefined);result=await h.run(task);assert.equal(result.apiTransaction.steps[1].checks[0].assertion,'grant');await h.submit(task,result);
     const grants=(await h.f.request(`/api/monitors/${live.id}/effect-grants`)).data.grants;assert.deepEqual(grants.map(g=>g.revision),[3,2,1],'Grants are revisioned');
     assert.equal((await h.f.DB.prepare("SELECT COUNT(*) n FROM uptime_audit WHERE action='effect_grant_change'").first()).n,3);
+    // One spend limit holds for every probe of a slot, even when one runner reports them together after all have run, and a
+    // grant revoked after a claim stops the run that already holds it: each live request spends its exact grant before it leaves.
+    const erasing=await h.f.monitor({type:'api',name:'Stale record erasure',url:url('/records/stale'),runners:[h.f.first,h.f.first],intervalMs:86400000,timeoutMs:10000,retries:0,
+      api:{variables:{},steps:[{name:'Delete stale record',phase:'request',url:url('/records/stale'),method:'DELETE',effect:'destructive-write',assertions:{status:200}}]}});
+    const erasures=()=>h.records.filter(r=>r.url==='/records/stale').length,erasingGrants=`/api/monitors/${erasing.id}/effect-grants`;
+    assert.equal((await h.f.request(erasingGrants,{body:{effect:'destructive-write',spendLimit:1,expiresAt:Date.now()+60000}})).status,201);
+    await h.f.run(h.f.first);
+    assert.equal(erasures(),1,'Every probe of a slot draws on the one spend limit');
+    assert.equal((await h.f.request(erasingGrants)).data.grants[0].spent,1,'The grant records each effect sent');
+    assert.equal((await h.f.request(erasingGrants,{body:{effect:'destructive-write',spendLimit:5,expiresAt:Date.now()+60000}})).status,201);
+    task=await h.manual(erasing.id);assert.equal(task.effectGrants.length,1);assert.equal((await h.f.request(`${erasingGrants}/revoke`,{body:{effect:'destructive-write'}})).status,200);
+    result=await h.run(task);assert.equal(erasures(),1,'A grant revoked after the claim sends nothing');assert.equal(result.apiTransaction.steps[0].checks[0].assertion,'grant');
+    await h.submit(task,result);await h.f.pause(erasing);
     // A test-mode key whose response says livemode: true is refused after the fact, and what it created is retained as debt.
     assert.equal((await h.f.request(`/api/monitors/${live.id}/effect-grants/revoke`,{body:{effect:'live-payment'}})).status,200);
     assert.equal((await h.f.request(`/api/monitors/${live.id}`,{method:'PATCH',body:{...live.definition,url:url('/test-login'),api:liveApi('/test-login')}})).status,200);

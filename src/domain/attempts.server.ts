@@ -22,7 +22,7 @@ import {expiryNotices,openExpiryWarnings} from './expiry-notices.server.ts'
 // @ts-ignore Edition flow vocabulary is JavaScript shared with the runner.
 import {flowDigest} from './flow.mjs'
 import {claimDebt,debtStatements} from './cleanup-debt.server.ts'
-import {claimGrants,spendStatements} from './effect-grants.server.ts'
+import {claimGrants} from './effect-grants.server.ts'
 // A vantage only ever runs its newest scheduled slot of a monitor. Once a newer scheduled slot is assigned to its runner (the runner
 // fell behind: a long flow on its machine, a stalled machine), its part of an older slot is never delivered, and that slot keeps the
 // part as missing evidence (coverage incomplete) rather than running it moments before the next one. Every scheduled slot is created
@@ -120,8 +120,9 @@ export async function completeAttempts(env:Bindings,input:any,runnerId:string){
    if(failed.length)statements.push(env.DB.prepare(`UPDATE followed_services SET checked_at=NULL WHERE monitor_id=? AND checked_at<? AND EXISTS(SELECT 1 FROM monitors WHERE id=? AND revision=?) AND ${guard}`).bind(m.id,Math.max(...failed.map((o:any)=>o.completedAt)),m.id,slot.revision,...values));
   }
   statements.push(...await snapshotStatements(env,slot.monitor_id,slot.id,fresh,guard,values));
-  // API-004: incomplete cleanup becomes retained debt, and live steps spend their grant, with the observations or not at all.
-  statements.push(...debtStatements(env,slot,fresh,guard,values,now),...spendStatements(env,slot.monitor_id,fresh,guard,values));
+  // API-004: incomplete cleanup becomes retained debt with the observations or not at all. Live steps spent their grant before
+  // they were sent (spendGrant), so a result never adds to or caps that spend.
+  statements.push(...debtStatements(env,slot,fresh,guard,values,now));
   for(const o of fresh)statements.push(env.DB.prepare(`UPDATE runner_assignments SET received_times=json_set(received_times,?,?) WHERE slot_id=? AND probe=? AND ${guard}`).bind(`$."${o.attempt}"`,now,slot.id,o.probe,...values));
   if(snapshot.checkpointUpdate)statements.push(checkpointStatement(env,slot.monitor_id,slot.revision,snapshot.checkpointUpdate,generation+1,projectionId));
   if(current)statements.push(env.DB.prepare(`UPDATE monitors SET state=? WHERE id=? AND revision=? AND ${guard}`).bind(JSON.stringify(state),m.id,m.revision,...values));
