@@ -444,6 +444,12 @@
       "name": "0070_incident_mentions.sql",
       "sha256": "e120beb54378febcc7b5ddd41629041b6f42072535b455b190e6f46f72e841a4",
       "sql": "-- Mention history travels; live recipient admission and dispatch authority do not.\nCREATE TABLE incident_mentions(\n id TEXT PRIMARY KEY,comment_id TEXT NOT NULL,incident_id TEXT NOT NULL,monitor_id TEXT NOT NULL,\n comment_version INTEGER NOT NULL,recipient_id TEXT NOT NULL,created_at INTEGER NOT NULL,\n submitted_at INTEGER,finished_at INTEGER,outcome TEXT NOT NULL,\n UNIQUE(comment_id,comment_version,recipient_id),\n CHECK(outcome IN('pending','submitting','accepted','development','rejected','rate_limited','uncertain','cancelled','unavailable','imported-inactive'))\n);\nCREATE INDEX incident_mentions_comment ON incident_mentions(comment_id,created_at,id);\nCREATE TABLE incident_mention_authority(\n id TEXT PRIMARY KEY REFERENCES incident_mentions(id),monitor_id TEXT NOT NULL,\n operator_version INTEGER NOT NULL,role_revision INTEGER NOT NULL\n);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0071_edition_credentials.sql",
+      "sha256": "1fad3925d5aa36cc3c67687856eb7818a179e0524e623e0f479ee94fd399af03",
+      "sql": "CREATE TABLE uptime_credential_workspace(singleton INTEGER PRIMARY KEY CHECK(singleton=1),id TEXT NOT NULL);\nINSERT INTO uptime_credential_workspace VALUES(1,lower(hex(randomblob(16))));\nCREATE TABLE uptime_credential_grants(\n id TEXT PRIMARY KEY,namespace TEXT NOT NULL UNIQUE,workspace_id TEXT NOT NULL,\n issuer_id TEXT NOT NULL,issuer_version INTEGER NOT NULL,issuer_role TEXT NOT NULL,role_revision INTEGER NOT NULL,\n revision INTEGER NOT NULL DEFAULT 1,resources TEXT NOT NULL,environment TEXT,created_at INTEGER NOT NULL\n);\nCREATE TABLE uptime_credential_limits(grant_id TEXT PRIMARY KEY,window INTEGER NOT NULL,count INTEGER NOT NULL);\n"
     }
   ],
   "compatibilityDate": "2026-09-08",
