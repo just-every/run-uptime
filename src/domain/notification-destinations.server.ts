@@ -17,11 +17,11 @@ async function endpointFor(kind:string,input:any){
  if(kind==='email'){try{const parsed=parseAddress(input.address);if(parsed.name||parsed.email!==input.address)throw Error();return parsed.email as string}catch{throw Error('Enter a single email address')}}
  try{const endpoint=validateDestination(input.url).href;return kind==='slack'?await resolveSlackWebhook(async()=>endpoint,'validation'):endpoint}catch{throw Error(kind==='slack'?'Enter a valid hooks.slack.com incoming webhook URL':'Enter a public HTTPS URL without credentials or fragments')}
 }
-export async function destinations(env:Bindings){
- const validated=await ensureNotificationCustody(env);
+export async function destinations(env:Bindings,{readOnly=false}:{readOnly?:boolean}={}){
+ const validated=readOnly?undefined:await ensureNotificationCustody(env);
  const rows=await env.DB.prepare('SELECT d.id,d.name,d.kind,d.enabled,d.created_at,d.webhook_template,c.id credential_id,c.destination_id,c.created_at credential_created_at,c.endpoint,c.signing_secret,c.ciphertext,c.retired_at,c.unavailable_at FROM notification_destinations d LEFT JOIN notification_credentials c ON c.id=d.credential_id WHERE d.deleted_at IS NULL ORDER BY d.created_at,d.id').all<any>();
  return Promise.all(rows.results.map(async r=>{
-  let credential;try{credential=await readCredential(env,{...r,id:r.credential_id,created_at:r.credential_created_at},{validated})}catch{}
+  let credential;try{credential=await readCredential(env,{...r,id:r.credential_id,created_at:r.credential_created_at},{validated,repairUnavailable:!readOnly})}catch{}
   return {id:r.id,name:r.name,kind:r.kind,enabled:Boolean(r.enabled),created_at:r.created_at,credentialsAvailable:Boolean(credential),credentialError:credential?null:'credential_unavailable',address:r.kind==='email'&&credential?credential.endpoint:null,...(r.kind==='webhook'?webhookMetadata(credential,r.webhook_template):{})};
  }));
 }

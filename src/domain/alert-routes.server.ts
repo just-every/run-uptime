@@ -36,9 +36,9 @@ function validate(input:any):Input{
  const filters=input.filters===undefined?undefined:normalizeRouteFilters(input.filters),quietHours=input.quietHours===undefined?undefined:normalizeRouteQuiet(input.quietHours);
  return {...input,teamIds,filters,quietHours,destinationIds:[...input.destinationIds].sort(),fallback,contactSettings:normalizeContactSettings(input.contactSettings??{},[...input.destinationIds,...fallback.destinationIds])};
 }
-async function context(env:Bindings,monitorId:string){
+async function context(env:Bindings,monitorId:string,{readOnly=false}={}){
  const monitor=await get(env,monitorId);if(!monitor)throw Object.assign(Error('Monitor not found'),{status:404});
- const [rows,contacts]=await Promise.all([env.DB.prepare('SELECT * FROM alert_routes ORDER BY scope_kind,scope_value').all<any>(),destinations(env)]);
+ const [rows,contacts]=await Promise.all([env.DB.prepare('SELECT * FROM alert_routes ORDER BY scope_kind,scope_value').all<any>(),destinations(env,{readOnly})]);
  const policies=routeScopes.map(scope=>{const value=scopeValue(scope,monitor);return rows.results.find(r=>r.scope_kind===scope&&r.scope_value===value)});
  return {monitor,rows:rows.results,policies:policies.map((row,i)=>row?routePolicy(row):defaultPolicy(routeScopes[i],scopeValue(routeScopes[i],monitor))),destinations:contacts};
 }
@@ -60,16 +60,16 @@ function previewRecipients(policies:RoutePolicy[],contacts:any[],configured:bool
  });
  return {effective,recipients,fallback,quietHours:effective.quietHours,fallbackDeadlineSeconds:effective.fallback.deadlineSeconds,readyCount:recipients.filter(d=>d.eligible).length};
 }
-export async function readAlertRoute(env:Bindings,monitorId:string){
- const ctx=await context(env,monitorId);
+export async function readAlertRoute(env:Bindings,monitorId:string,{readOnly=false}={}){
+ const ctx=await context(env,monitorId,{readOnly});
  const changes=await env.DB.prepare(`SELECT * FROM alert_route_changes WHERE (scope_kind='monitor' AND scope_value=?) OR (scope_kind='service' AND scope_value=?) OR (scope_kind='group' AND scope_value=?) OR scope_kind='installation' ORDER BY changed_at DESC,rowid DESC LIMIT 30`).bind(monitorId,scopeValue('service',ctx.monitor),scopeValue('group',ctx.monitor)).all<any>();
  return {monitorId,policies:ctx.policies,...previewRecipients(ctx.policies,ctx.destinations,mailConfigured(env),await teamCandidates(env,monitorId)),gaps,changes:changes.results.map(r=>({id:r.id,scope:r.scope_kind,value:r.scope_value,previous:JSON.parse(r.previous_policy),current:JSON.parse(r.current_policy),changedAt:r.changed_at,actorRef:r.actor_ref}))};
 }
-async function plan(env:Bindings,monitorId:string,raw:any){
+async function plan(env:Bindings,monitorId:string,raw:any,{readOnly=false}={}){
  const input=validate(raw);
  // Custody validation may clear a prior unavailable marker before we snapshot.
- await destinations(env);
- const before=await snapshot(env),ctx=await context(env,monitorId),value=scopeValue(input.scope,ctx.monitor);
+ await destinations(env,{readOnly});
+ const before=await snapshot(env),ctx=await context(env,monitorId,{readOnly}),value=scopeValue(input.scope,ctx.monitor);
  if(input.scope!=='installation'&&!value)throw Error(`Set this monitor's ${input.scope} before choosing that route scope`);
  const previous=ctx.policies.find(p=>p.scope===input.scope)!;
  if(previous.revision!==input.expectedRevision)throw Object.assign(Error('Route changed; refresh and preview again'),{status:409});
@@ -96,20 +96,25 @@ async function plan(env:Bindings,monitorId:string,raw:any){
  return {...result,digest:await digest(JSON.stringify({...result,monitorRevision:ctx.monitor.revision})),monitor:ctx.monitor,snapshot:before};
 }
 export async function previewAlertRoute(env:Bindings,monitorId:string,input:any){const {monitor,snapshot,...result}=await plan(env,monitorId,input);return result}
+export async function prepareAlertRouteAssignment(env:Bindings,monitorId:string,input:any){return plan(env,monitorId,input,{readOnly:true})}
+// Batch callers run every guard before any write, then commit all assignments together.
+export function alertRouteAssignmentStatements(env:Bindings,prepared:Awaited<ReturnType<typeof plan>>,actor:AuditActor,remove=false){
+ const {previous,current,value,monitor,input}=prepared,now=Date.now(),changeId=crypto.randomUUID();
+ if(remove&&input.scope!=='monitor')throw Error('Only an absent monitor override can be restored by removal');
+ const guard=previous.revision?'EXISTS(SELECT 1 FROM alert_routes WHERE scope_kind=? AND scope_value=? AND revision=?)':'NOT EXISTS(SELECT 1 FROM alert_routes WHERE scope_kind=? AND scope_value=?)';
+ const guards=[mutationGuard(env,`(${snapshotSql})=?`,[prepared.snapshot]),mutationGuard(env,guard,[input.scope,value,...(previous.revision?[previous.revision]:[])]),mutationGuard(env,'EXISTS(SELECT 1 FROM monitors WHERE id=? AND revision=?)',[monitor.id,monitor.revision])];
+ const writes=[
+  remove?env.DB.prepare("DELETE FROM alert_routes WHERE scope_kind='monitor' AND scope_value=?").bind(value):env.DB.prepare(`INSERT INTO alert_routes(scope_kind,scope_value,mode,destination_ids,contact_settings,fallback,team_ids,filters,quiet_hours,revision,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(scope_kind,scope_value) DO UPDATE SET mode=excluded.mode,destination_ids=excluded.destination_ids,contact_settings=excluded.contact_settings,fallback=excluded.fallback,team_ids=excluded.team_ids,filters=excluded.filters,quiet_hours=excluded.quiet_hours,revision=excluded.revision,updated_at=excluded.updated_at`).bind(input.scope,value,input.mode,JSON.stringify(current.destinationIds),JSON.stringify(current.contactSettings),JSON.stringify(current.fallback),JSON.stringify(current.teamIds),JSON.stringify(current.filters),current.quietHours?JSON.stringify(current.quietHours):null,current.revision,now),
+  env.DB.prepare('INSERT INTO alert_route_changes VALUES(?,?,?,?,?,?,?)').bind(changeId,input.scope,value,JSON.stringify(previous),JSON.stringify({...current,updatedAt:now}),now,actor.ref),
+  auditStatement(env,actor,'alert_route_change','alert_route',changeId,'1',[],now),
+ ];return {guards,writes,changeId,revision:current.revision};
+}
 export async function applyAlertRoute(env:Bindings,monitorId:string,raw:any,actor:AuditActor){
  const {digest:approved,...input}=raw,prepared=await plan(env,monitorId,input);
  if(typeof approved!=='string'||approved!==prepared.digest)throw Object.assign(Error('Preview changed; review recipients again'),{status:409});
- const {previous,current,value,monitor}=prepared,now=Date.now(),changeId=crypto.randomUUID();
- const guard=previous.revision?'EXISTS(SELECT 1 FROM alert_routes WHERE scope_kind=? AND scope_value=? AND revision=?)':'NOT EXISTS(SELECT 1 FROM alert_routes WHERE scope_kind=? AND scope_value=?)';
- try{await env.DB.batch([
-  mutationGuard(env,`(${snapshotSql})=?`,[prepared.snapshot]),
-  mutationGuard(env,guard,[input.scope,value,...(previous.revision?[previous.revision]:[])]),
-  mutationGuard(env,'EXISTS(SELECT 1 FROM monitors WHERE id=? AND revision=?)',[monitorId,monitor.revision]),
-  env.DB.prepare(`INSERT INTO alert_routes(scope_kind,scope_value,mode,destination_ids,contact_settings,fallback,team_ids,filters,quiet_hours,revision,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(scope_kind,scope_value) DO UPDATE SET mode=excluded.mode,destination_ids=excluded.destination_ids,contact_settings=excluded.contact_settings,fallback=excluded.fallback,team_ids=excluded.team_ids,filters=excluded.filters,quiet_hours=excluded.quiet_hours,revision=excluded.revision,updated_at=excluded.updated_at`).bind(input.scope,value,input.mode,JSON.stringify(current.destinationIds),JSON.stringify(current.contactSettings),JSON.stringify(current.fallback),JSON.stringify(current.teamIds),JSON.stringify(current.filters),current.quietHours?JSON.stringify(current.quietHours):null,current.revision,now),
-  env.DB.prepare('INSERT INTO alert_route_changes VALUES(?,?,?,?,?,?,?)').bind(changeId,input.scope,value,JSON.stringify(previous),JSON.stringify({...current,updatedAt:now}),now,actor.ref),
-  auditStatement(env,actor,'alert_route_change','alert_route',changeId,'1',[],now),
- ])}catch(error){if(String(error).includes('uptime_audit.id'))throw Object.assign(Error('Route or monitor changed; preview again'),{status:409});throw error}
- return {saved:true,changeId,revision:current.revision,...await readAlertRoute(env,monitorId)};
+ const statements=alertRouteAssignmentStatements(env,prepared,actor);
+ try{await env.DB.batch([...statements.guards,...statements.writes])}catch(error){if(String(error).includes('uptime_audit.id'))throw Object.assign(Error('Route or monitor changed; preview again'),{status:409});throw error}
+ return {saved:true,changeId:statements.changeId,revision:statements.revision,...await readAlertRoute(env,monitorId)};
 }
 
 async function teamCandidates(env:Bindings,monitorId?:string){
@@ -122,4 +127,33 @@ export async function sampleAlertRoute(env:Bindings,monitorId:string,raw:any){
  const override=sample.kind==='slow'&&Array.isArray(ctx.monitor.definition.slow?.destinationIds)?{...effectivePolicy(ctx.policies),destinationIds:ctx.monitor.definition.slow.destinationIds,teamIds:[],contactSettings:ctx.monitor.definition.slow.contactSettings??{},mode:'selected' as const,fallback:{destinationIds:[],deadlineSeconds:120}}:null
  const result=previewRecipients(override?[override]:ctx.policies,ctx.destinations,mailConfigured(env),candidates,sample,ctx.monitor.definition.environment)
  return {...result,sample,excludedMembers:candidates.filter(c=>result.effective.teamIds.includes(c.team_id)&&(!c.destination_id||!c.live||!c.team_enabled||!c.credential_current)).map(c=>({teamId:c.team_id,operatorId:c.operator_id,reason:!c.destination_id?'no_consent':!c.team_enabled?'team_disabled':'consent_inactive_or_out_of_scope'})),gaps}
+}
+
+// Named routes keep an immutable copy of an already reviewed explicit route.
+// They contain recipient IDs and policy only, never endpoints, consent or sending authority.
+const namedPolicy=(policy:RoutePolicy)=>({mode:policy.mode,destinationIds:policy.destinationIds,contactSettings:policy.contactSettings,fallback:policy.fallback,teamIds:policy.teamIds,filters:policy.filters,quietHours:policy.quietHours});
+export async function namedAlertRoutes(env:Bindings){return (await env.DB.prepare('SELECT id,name,policy,created_at FROM alert_named_routes ORDER BY name,id').all<any>()).results.map(row=>({id:row.id,name:row.name,policy:JSON.parse(row.policy),createdAt:row.created_at}))}
+export async function namedAlertRoute(env:Bindings,id:string){
+ const row=await env.DB.prepare('SELECT id,name,policy,created_at FROM alert_named_routes WHERE id=?').bind(id).first<any>();
+ if(!row)throw Object.assign(Error('Named alert route not found'),{status:404});
+ return {id:row.id,name:row.name,policy:JSON.parse(row.policy),createdAt:row.created_at};
+}
+export async function saveNamedAlertRoute(env:Bindings,raw:any,actor:AuditActor){
+ if(actor.kind!=='operator')throw Object.assign(Error('Owner required'),{status:403});
+ if(!raw||typeof raw!=='object'||Array.isArray(raw)||Object.keys(raw).some(k=>!['name','monitorId'].includes(k))||typeof raw.monitorId!=='string'||!raw.monitorId||raw.monitorId.length>512||typeof raw.name!=='string'||!raw.name.trim()||raw.name!==raw.name.trim()||raw.name.length>100||/[\x00-\x1f\x7f]/.test(raw.name))throw Error('Name an existing monitor route with a distinct name of at most 100 characters');
+ const current=await readAlertRoute(env,raw.monitorId,{readOnly:true}),source=current.policies.find(p=>p.scope==='monitor')!;
+ if(source.mode!=='selected'||source.revision===0)throw Error('Save an explicit reviewed monitor route before naming it');
+ const prepared=await plan(env,raw.monitorId,{scope:'monitor',expectedRevision:source.revision,...namedPolicy(source)},{readOnly:true}),id=crypto.randomUUID(),now=Date.now();
+ if(await env.DB.prepare('SELECT 1 FROM alert_named_routes WHERE name=? COLLATE NOCASE').bind(raw.name).first())throw Object.assign(Error('That alert route name already exists'),{status:409});
+ await env.DB.batch([
+  mutationGuard(env,`(${snapshotSql})=?`,[prepared.snapshot]),
+  mutationGuard(env,"EXISTS(SELECT 1 FROM oa_operators WHERE id=? AND role='owner' AND status='active')",[actor.ref]),
+  env.DB.prepare('INSERT INTO alert_named_routes(id,name,policy,created_at) VALUES(?,?,?,?)').bind(id,raw.name,JSON.stringify(namedPolicy(source)),now),
+  auditStatement(env,actor,'alert_route_name','alert_route',id,'1',[],now),
+ ]);
+ return namedAlertRoute(env,id);
+}
+export async function prepareNamedAlertRouteAssignment(env:Bindings,monitorId:string,route:Awaited<ReturnType<typeof namedAlertRoute>>){
+ const current=await readAlertRoute(env,monitorId,{readOnly:true}),previous=current.policies.find(p=>p.scope==='monitor')!;
+ return plan(env,monitorId,{scope:'monitor',expectedRevision:previous.revision,...route.policy},{readOnly:true});
 }
