@@ -53,7 +53,8 @@ export async function importedCheckout({directory,fixture,owner,ok,credentials,o
   const candidate=(await compile()).monitors.find(m=>m.name==='Checkout flow');
   await ok(`/api/monitors/${checkout.id}`,'PATCH',{...checkout.definition,url:candidate.url,flow:candidate.flow,enabled:true});
   const queued=await ok(`/api/monitors/${checkout.id}/run`,'POST',{});
-  const result=await waitFor(async()=>{const slot=(await ok(`/api/monitors/${checkout.id}/history`)).find(s=>s.id===queued.slotId);return slot?.observations.length>=2&&slot;},`imported ${expected} was retained`,120000);
+  let last;
+  const result=await waitFor(async()=>{const slot=(await ok(`/api/monitors/${checkout.id}/history`)).find(s=>s.id===queued.slotId);last=slot&&{status:slot.status,observations:slot.observations.map(o=>({outcome:o.outcome,failure:o.flow?.failure}))};return slot?.observations.length>=2&&slot;},`imported ${expected} was retained`,120000).catch(error=>{throw Error(`${error.message}: ${JSON.stringify(last)}`)});
   assert.ok(result.observations.every(o=>o.outcome==='target_failure'&&o.flow?.failure?.reason===expected),JSON.stringify(result.observations.map(o=>({outcome:o.outcome,failure:o.flow?.failure}))));
   failures.push(result);
  }
