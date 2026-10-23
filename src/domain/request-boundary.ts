@@ -47,6 +47,7 @@ export const apiRoutes:readonly Route[]=[
  {method:'GET',path:'/api/v1/metrics',query:{...Object.fromEntries(['period','from','to','timeZone','zone','sla','slaTarget'].map(name=>[name,(value:string)=>identity(value)&&value.length<=150])),monitor:(value:string)=>value.length>0&&value.length<=52000&&!/[\x00-\x1f\x7f]/.test(value),format:value=>['prometheus','json'].includes(value)},body:'none'},
  {method:'GET',path:'/api/incident-settings',body:'none'},
  {method:'PATCH',path:'/api/incident-settings',body:'object'},
+ {method:'GET',path:'/api/incidents/:id/mention-members',params:id,query:{q:value=>value.length<=80},body:'none'},
  {method:'GET',path:'/api/incidents/:id',params:id,body:'none'},
  {method:'GET',path:'/api/v1/incidents',query:{...incidentQuery,format:value=>['csv','json'].includes(value)},body:'none'},
  {method:'GET',path:'/api/v1/incidents/:id',params:id,body:'none'},

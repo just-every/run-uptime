@@ -25,6 +25,7 @@ export async function productFence(env:Bindings,tables:Tables,metadata:any,later
  // must not restore an actor identifier after its account was erased.
  const actors=[...new Set([
  ...(tables.uptime_audit??[]).filter(row=>row.actor_kind==='operator').map(row=>row.actor_ref as string),
+ ...(tables.incident_mentions??[]).map(row=>row.recipient_id),
  ...(tables.incident_comments??[]).map(row=>row.author_id),...(tables.incident_comment_history??[]).map(row=>row.editor_id),
  ...(tables.incident_timeline??[]).flatMap(row=>[row.actor_id,row.kind==='owner_assigned'?JSON.parse(row.data).ownerId:null]),
  ...(tables.dependency_acks??[]).map(row=>row.actor_id),

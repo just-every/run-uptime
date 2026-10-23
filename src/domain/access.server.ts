@@ -25,6 +25,11 @@ export async function permission(env:AuthBindings,request:Request,input?:unknown
  if(!row||row.base_role!==session.operator.role||row.base_version!==session.operator.version||baseRole(row.role)!==session.operator.role)throw new AccessError(401)
  const scopes=(await env.DB.prepare('SELECT kind,value FROM uptime_member_scopes WHERE operator_id=? ORDER BY kind,value').bind(session.operator.id).all<Scope>()).results
  const wanted=override??requestPermission(request,input)
+ if((wanted as any).incidentId){
+  const incident=await env.DB.prepare("SELECT o.monitor_id FROM outbox o JOIN monitors m ON m.id=o.monitor_id WHERE o.id=? AND o.kind='trigger'").bind((wanted as any).incidentId).first<{monitor_id:string}>()
+  if(!incident)throw new AccessError(404)
+  wanted.monitorIds=[incident.monitor_id]
+ }
  if(!(wanted.action==='evidence'||permitted(row.role,wanted.action))||(scopes.length&&wanted.workspace))throw new AccessError()
  const ids=[...(wanted.monitorIds??[])]
  if(!['owner','admin'].includes(row.role)&&wanted.action==='check_write'){

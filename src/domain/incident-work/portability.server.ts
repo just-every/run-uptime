@@ -1,3 +1,4 @@
+import {mentionColumns,validateMentionArchive} from './mention-archive.ts'
 import type {Bindings} from '../control.server.ts'
 import {categories} from './settings.server.ts'
 export const incidentArchiveColumns:Record<string,string[]>={
@@ -5,9 +6,10 @@ export const incidentArchiveColumns:Record<string,string[]>={
  incident_comments:['id','incident_id','monitor_id','author_id','text','version','created_at','updated_at','deleted_at'],
  incident_comment_history:['id','comment_id','incident_id','monitor_id','version','text','editor_id','edited_at'],
  incident_timeline:['id','incident_id','monitor_id','occurred_at','actor_id','kind','data'],
- incident_settings:['singleton','version','categories']
+ incident_settings:['singleton','version','categories'],
+ incident_mentions:mentionColumns
 }
-export const incidentMonitorErasureTables=['incident_comment_history','incident_comments','incident_timeline','incident_work']
+export const incidentMonitorErasureTables=['incident_mention_authority','incident_mentions','incident_comment_history','incident_comments','incident_timeline','incident_work']
 // Actor erasure retains the team account while removing the erased identity.
 // Timeline assignment payloads carry only opaque IDs, which must also be removed.
 export function incidentOperatorErasureStatements(env:Bindings,id:string){return [
@@ -31,5 +33,6 @@ export function validateIncidentArchive(t:Record<string,any[]>){
  for(const row of t.incident_comment_history){linked(row);const comment=comments.get(row.comment_id),key=`${row.comment_id}:${row.version}`;if(!ref(row.id)||!comment||comment.incident_id!==row.incident_id||comment.deleted_at!==null||!clock(row.version)||row.version<1||row.version>=comment.version||versions.has(key)||!short(row.text,5000)||!ref(row.editor_id)||!clock(row.edited_at))fail();versions.add(key)}
  const kinds=['comment_added','comment_edited','comment_deleted','root_cause_changed','owner_assigned','acknowledged','followup_stopped','manual_resolution','dependency_acknowledged']
  for(const row of t.incident_timeline){linked(row);if(!ref(row.id)||!clock(row.occurred_at)||!ref(row.actor_id)||!kinds.includes(row.kind))fail();let data:any;try{data=JSON.parse(row.data)}catch{fail()}if(!object(data))fail();const keys=row.kind.startsWith('comment_')?['commentId','version']:row.kind==='root_cause_changed'?['version','categoryId','categoryLabel']:row.kind==='owner_assigned'?['ownerId']:row.kind==='dependency_acknowledged'?['noticeId']:['channel'];if(Object.keys(data).sort().join(',')!==keys.sort().join(','))fail();if(row.kind.startsWith('comment_')){const comment=comments.get(data.commentId);if(!comment||comment.incident_id!==row.incident_id||!clock(data.version)||data.version<1||data.version>comment.version)fail()}else if(row.kind==='root_cause_changed'){if(!clock(data.version)||!(data.categoryId===null||short(data.categoryId,80))||!(data.categoryLabel===null||short(data.categoryLabel,100)))fail()}else if(row.kind==='owner_assigned'){if(!ref(data.ownerId))fail()}else if(row.kind==='dependency_acknowledged'){if(!t.outbox.some(notice=>notice.id===data.noticeId&&notice.kind==='dependency'))fail()}else if(!['console','group'].includes(data.channel))fail()}
+ validateMentionArchive(t)
  if(t.incident_settings.length>1)fail();for(const row of t.incident_settings){if(row.singleton!==1||!clock(row.version))fail();categories(JSON.parse(row.categories))}
 }
