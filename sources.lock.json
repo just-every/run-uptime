@@ -6999,7 +6999,7 @@
       "executable": false
     },
     "tests/alert-routes.mjs": {
-      "sha256": "70146eeb40efd1d96f879bf9b757ea53bbf1ebee679b90b84c194930031030e5",
+      "sha256": "53a65ca2bf852e3ddc1dce578650e018e5ba0e32439459e8c449fa801158f642",
       "executable": false
     },
     "tests/alert-routing-filters-support.mjs": {
