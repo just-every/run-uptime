@@ -471,7 +471,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "f5f3fe81f309450d982942af58dabf97561d9b7b7719ee6813ea6d89702f8a30",
+      "sha256": "a7493206989b92053a9a05a94a3c1244f45a3ea0d99f65509689203d2c477000",
       "executable": false
     },
     "AGENTS.md": {
@@ -495,7 +495,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "28d7e3bee797db55499448c84108d9fd3016aa919cdef0c39ce838c387fa96ac",
+      "sha256": "fe0269ac4d1f914e9bc58b90851e6fb5995887c95d71e94264a2b3186c2f2806",
       "executable": false
     },
     "DEMO.md": {
@@ -516,6 +516,10 @@
     },
     "docs/access.md": {
       "sha256": "855aee58cd3c677576d176bad588caf9573fa62949a0f90a049c975765c0c21c",
+      "executable": false
+    },
+    "docs/api-keys.md": {
+      "sha256": "3a777dd97f10e8721fb5f9cc1dd44690e66c67757f55f73c7e69c409b9465832",
       "executable": false
     },
     "docs/browser-flows.md": {
@@ -2019,7 +2023,7 @@
       "executable": false
     },
     "docs/read-api.md": {
-      "sha256": "58e1b2c2f499bbb89dec1100dd1e7e50048045e2edd7adfed352fc64c57343ea",
+      "sha256": "410523191fa16e5f6c9328b1498a2d52bd0325cce9409c78cdeb01f5613d8ea3",
       "executable": false
     },
     "docs/resilient-monitoring.md": {
@@ -3216,6 +3220,10 @@
     },
     "scripts/access.mjs": {
       "sha256": "252cd632469e5d33cb367b8df1f1858391673ea8a4d1697476b8dbbc5766f5e6",
+      "executable": false
+    },
+    "scripts/api-keys.mjs": {
+      "sha256": "f6f6299359608576ab5b99692677aa653cdab8dce677b5c61f1adcebfa8d30e4",
       "executable": false
     },
     "scripts/build-delivery-artifact.mjs": {
@@ -5591,7 +5599,7 @@
       "executable": false
     },
     "src/domain/credentials/model.server.ts": {
-      "sha256": "e72be981c22567e6fae63b87ab4f9e1c32ac56fa640f6f36105bbdf0c3117dc5",
+      "sha256": "abf8c3cd55bddc37c3975ce064ba0e4d653a6204f745f6d2bbd20b3e8cbedc6a",
       "executable": false
     },
     "src/domain/credentials/store.server.ts": {
@@ -7539,7 +7547,11 @@
       "executable": false
     },
     "tests/read-api.mjs": {
-      "sha256": "f9ac7c6ee078265a20224f4a505838f6f5272f24b753124467acd106af8f7b03",
+      "sha256": "da1e082ba6db16ec126c519b13d7d1fcf206684d1b0ce1c8b28be15e8419b47e",
+      "executable": false
+    },
+    "tests/read-keys-support.mjs": {
+      "sha256": "e7f95471fe3102ab4ed5a6ce077858b54ca36010c04a02f4f25d31a48bbf43db",
       "executable": false
     },
     "tests/readme-journey.mjs": {

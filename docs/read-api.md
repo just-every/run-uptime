@@ -2,6 +2,22 @@ Use the versioned `/api/v1` reads to inspect the same immutable monitoring figur
 
 The OpenAPI description at `/api/v1/openapi.json` is public and contains no installation data. Private reads send `Cache-Control: no-store`. Signed-out or revoked sessions, expired or revoked keys and keys whose issuing operator no longer holds the saved authority cannot read monitoring records.
 
+## Scoped read keys
+
+The Base owner creates a key with `POST /api/credentials`, after verifying a second factor within the previous five minutes. Supply a name, exactly `monitoring:read`, an explicit future `expiresAt` in epoch milliseconds and a resource selection. Creation returns the random token once. `GET /api/credentials` lists safe metadata and last allowed use; `DELETE /api/credentials/{id}` revokes it immediately. These management doors use the owner's native session, rather than a read key.
+
+A selection with monitor IDs only admits those IDs. Tags only admit monitors with any listed current tag. When both lists are nonempty, a monitor must match an ID **and** a tag. Two empty selection lists grant no monitor access. An explicit workspace selection uses `{"mode":"workspace","monitorIds":[],"tags":[]}`. Every selection also stays within the issuer's live service/team authority. Reads outside it return the same 404 as a missing resource, including an explicit bulk selection; lists and totals contain only authorized monitors.
+
+The CLI calls those same doors. First complete the MFA flow and keep the native cookie in `UPTIME_ACCESS_COOKIE`. Create a key specification with a future expiry and the smallest required selection, then run:
+
+```sh
+node scripts/api-keys.mjs --origin "$UPTIME_ORIGIN" create < key-specification.json
+node scripts/api-keys.mjs --origin "$UPTIME_ORIGIN" list
+node scripts/api-keys.mjs --origin "$UPTIME_ORIGIN" revoke --id CREDENTIAL_ID
+```
+
+Creation output contains the token; keep it with private server configuration. Send it as `Authorization: Bearer TOKEN` for versioned monitoring GET/HEAD requests, including scoped report formats and metrics. Each allowed request rechecks expiry, revocation and the issuer's live Base and edition authority. `RateLimit`, `RateLimit-Policy` and 429 `Retry-After` describe the key's separate request budget. Key metadata records the last allowed use. Bearer mutations and other private product doors are refused before token-use or product writes. Existing `metrics:read` keys retain their separate metrics-only scope. Console key management and delegated issuance remain open.
+
 ## Monitors and current coverage
 
 `GET /api/v1/monitors?limit=50&tag=production` returns `items`, `nextCursor`, `limit` and `generatedAt`. Each item includes its ID, name, kind, revision, enabled setting and tags, plus current textual state, last scheduled check time and fixed selected-location coverage. Missing or stale evidence stays Unknown. Monitor summaries contain no request credentials or target URL.
