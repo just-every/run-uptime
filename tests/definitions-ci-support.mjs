@@ -4,6 +4,7 @@ import {promisify} from 'node:util';
 import {readFile,writeFile} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
 import {createHash} from 'node:crypto';
+import {definitionDoor} from './auth-test-support.mjs';
 const exec=promisify(execFile);
 export async function proveDefinitionCI({directory,origin,cookie,DB,typed}){
  const owner=async(path,body,method=body===undefined?'GET':'POST')=>{const response=await fetch(origin+path,{method,headers:{origin,cookie,'content-type':'application/json'},...(body===undefined?{}:{body:JSON.stringify(body)})});assert.ok(response.ok,`Owner fixture ${path}: ${response.status}`);return response.json()};
@@ -47,6 +48,7 @@ export async function proveDefinitionCI({directory,origin,cookie,DB,typed}){
  await owner('/api/monitors/'+moved.id,definition,'PATCH');
  // Owners retain ordinary export and preserving undo of the real CI batch.
  const exported=await owner('/api/definitions/export');for(const input of typed.document.monitors)assert.ok(exported.monitors.some(m=>m.name===input.name&&m.environment===input.environment));
+ const roundtrip={...exported,monitors:exported.monitors.filter(m=>typed.document.monitors.some(input=>input.name===m.name))},roundtripView=await definitionDoor({origin,cookie}).preview(JSON.stringify(roundtrip),'uptime.monitors');assert.equal(roundtripView.status,200);assert.equal(roundtripView.body.counts.unchanged,typed.document.monitors.length,'typed deployment survives owner export and native preview roundtrip');
  let undone;for(let n=0;n<100;n++){const response=await fetch(origin+'/api/operator/import/undo',{method:'POST',headers:{origin,cookie,'content-type':'application/json','x-import-source':namespace},body:JSON.stringify({planId})});assert.equal(response.status,200);undone=await response.json();if(undone.job?.state==='undone')break;assert.ok(['queued','undoing'].includes(undone.job?.state))}assert.equal(undone.job.state,'undone');
  console.log('CODE-001 bounded CI: actual workflow preview/semantic test/apply with least-scope token, typed JSON parity, paused deployment, replay/drift and environment/tag refusals, token revocation before resumed apply, owner export/undo. Runtime probe execution and hosted Actions remain gaps.');
 }
