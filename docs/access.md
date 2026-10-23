@@ -63,7 +63,9 @@ mail is sent. Accepting the invitation binds the assignment to the accepted
 Base version. Base deactivation/reactivation does not resurrect an old member
 narrowing: grant it again. Base protects the last owner. Only another
 administrator can change your product assignment. Base's fresh email proof
-still applies to changes involving owner authority; it is not second-factor MFA.
+still applies to changes involving owner authority. In addition, member changes
+require Uptime second-factor verification within five minutes. The API/CLI
+workflow is described in the repository's `docs/mfa.md`.
 
 With `UPTIME_ACCESS_COOKIE` holding your live Base session cookie, the same
 operations are available through `pnpm access -- --origin https://your-app.example
