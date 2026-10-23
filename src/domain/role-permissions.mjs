@@ -48,9 +48,14 @@ export function requestPermission(request,input){
   return {action:read?'settings_write':'check_write',workspace:true};
  }
  if(path==='/api/v1/monitors'||path==='/api/v1/uptime'||path==='/api/v1/incidents')return {action:'read',workspace:true};
- // Existing incident collaboration has owner-only actor guards. Do not promise
- // responder admission until those guards implement the same live permission.
- if(/^\/api\/(?:v1\/)?incidents\//.test(path)||path==='/api/incident-settings')return {action:'owner',workspace:true};
+ // Collaboration resolves its incident to one monitor before scoped permission.
+ const incident=/^\/api\/(?:v1\/)?incidents\/([^/]+)(?:\/(.*))?$/.exec(path);
+ if(incident){const suffix=incident[2]??'';
+  if(read&&['','mention-members'].includes(suffix))return {action:'read',workspace:false,incidentId:decode(incident[1])};
+  if(!path.startsWith('/api/v1/')&&!read&&(/^(?:comments(?:\/[^/]+)?|root-cause)$/.test(suffix)))return {action:'respond',workspace:false,incidentId:decode(incident[1])};
+  return {action:'owner',workspace:true};
+ }
+ if(path==='/api/incident-settings')return {action:'owner',workspace:true};
  if(path.startsWith('/api/notifications')||path.startsWith('/api/runners'))return {action:'secret_write',workspace:true};
  if(path.startsWith('/api/discover')||path.startsWith('/api/service-')||path.startsWith('/api/followed-services')||path.startsWith('/api/dependency-notices'))return {action:'discovery_write',workspace:true};
  if(path==='/api/monitor-editor')return {action:'check_write',workspace:true};

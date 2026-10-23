@@ -3,6 +3,7 @@ import {TABLES,columns} from './archive-schema.ts'
 /** Every permanent schema table has a portability decision. Unknown tables and
  * foreign integration namespaces refuse export rather than silently lose data. */
 export const installationLocalTables:Record<string,string>={
+ incident_mention_authority:"Installation-local live recipient version and scope admission; imported mentions never acquire sending authority.",
  ...businessImportLocalTables,
  ...Object.fromEntries(['alert_teams','alert_team_members','alert_recipient_consents','alert_team_deliveries'].map(name=>[name,'Installation-local team membership, recipient consent and live dispatch authority; receiving installations establish these explicitly.'])),
  ...Object.fromEntries(['policy','factors','challenges','proofs','recovery','limits','notices'].map(name=>['uptime_mfa_'+name,'Installation-local second-factor policy, sealed factors, challenges, session proof, recovery authority, rate limits or notice outcomes; never portable authentication.'])),
