@@ -13,6 +13,8 @@ import {migratedWorker,runtimeDirectory,cleanupDirectory,availablePorts} from '.
 import {testAuthBindings,authRequest,sessionCookie,finishSetup,definitionDoor} from './auth-test-support.mjs';
 import {inviteDoorMember} from './access-door-support.mjs';
 import {populateArchiveFixture} from './archive-fixture.mjs';
+import {typeScriptDefinitionsProof} from './definitions-typescript-support.mjs';
+import {proveDefinitionCI} from './definitions-ci-support.mjs';
 
 const directory=await runtimeDirectory(),[port]=await availablePorts(1),origin=`http://127.0.0.1:${port}`;
 const savedRobot=await readFile('tests/fixtures/uptimerobot-v3-monitors.synthetic.json');
@@ -289,5 +291,7 @@ try{
  const auditCount=async()=>Number((await DB.prepare("SELECT COUNT(*) n FROM uptime_audit WHERE action='access_export' AND actor_ref=?").bind(actor).first()).n),priorAudit=await auditCount();
  assert.equal((await fetch(origin+'/api/definitions/export?unexpected=1',{headers:{cookie}})).status,400);assert.equal(await auditCount(),priorAudit,'invalid export writes no authorization audit');
  assert.equal((await fetch(origin+'/api/definitions/export',{headers:{cookie}})).status,200);assert.equal(await auditCount(),priorAudit+1,'permitted definition export records one opaque live actor receipt');
+ const typed=await typeScriptDefinitionsProof({directory,preview});
+ await proveDefinitionCI({directory,origin,cookie,DB,typed});
  console.log('IMPORT-001 / MIGRATE-001 passed through the import door: refusals leave every table byte-identical; request secrets are withheld before upload and stored nowhere; UptimeRobot preview, paused apply, export round-trip, change, undo that keeps and reports edits, with history intact, and earlier batches keep read and undo. DEPENDENCY-002 passed: UptimeRobot, Better Stack and Site24x7 third-party service monitors map onto catalog entries as paused followed services, a Better Stack third-party status page row is refused citing its public API, and a part already followed is refused.');
 }finally{await worker?.dispose();await cleanupDirectory(directory)}
