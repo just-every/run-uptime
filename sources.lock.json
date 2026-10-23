@@ -495,7 +495,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "73d329de4882e2304c6b09dd8a4920da6f73af6e124a8b884f2de1724f039c30",
+      "sha256": "f24d0a5dc29ef5a4b94d7b46c6e5aeb93eb0a4748744cbc8fea3707112c2c055",
       "executable": false
     },
     "DEMO.md": {
@@ -5671,7 +5671,7 @@
       "executable": false
     },
     "src/domain/discovery.server.ts": {
-      "sha256": "4c84d38d8d72837ac33a28db9bc9d1b23fbeb50fa479ea12d8944ae45550554a",
+      "sha256": "7d1afa1ef1027309cc73232c36931b3ccf665270a5c87fbab3d1002c5710f206",
       "executable": false
     },
     "src/domain/document-shell.server.ts": {
@@ -7047,7 +7047,7 @@
       "executable": false
     },
     "tests/discovery-jobs.mjs": {
-      "sha256": "e6af5654a92d946264ff7ac28ec4b2f3e32f1a8527a14896f3e2e080880851ae",
+      "sha256": "4c34116f514379b1c1f8c792a94ddf0be9aac9354bbbaba8e2ce589c9ace90c1",
       "executable": false
     },
     "tests/discovery-sources-fixture.mjs": {
@@ -7067,7 +7067,7 @@
       "executable": false
     },
     "tests/erasure-audit.mjs": {
-      "sha256": "ab3acb409a048fddf1b9ea1ade02eaf895ccccdfe106da759bba4a8ef51c392f",
+      "sha256": "e8b78077e1c20ac8b17ae20c799ed14bde0952dff2562652943ffa5b36332265",
       "executable": false
     },
     "tests/erasure-races.mjs": {
@@ -7603,7 +7603,7 @@
       "executable": false
     },
     "tests/worker-intake.mjs": {
-      "sha256": "ed3490152fce9d35d6cdad12a1c9b278352e929fe1efdbc61f71d817ed18e2b8",
+      "sha256": "a41bfb997c2f2434a597d03cd3c01e8ded956ac82d90096664fd995522a9e380",
       "executable": false
     },
     "tsconfig.json": {
