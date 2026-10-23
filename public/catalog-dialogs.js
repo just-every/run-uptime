@@ -44,7 +44,7 @@ function entryMarkup(entry, selectable, runners) {
 function previewMarkup(plan, runners) {
     return `<h3 tabindex="-1">Review the plan</h3><p>${Object.entries(plan.counts).map(([key, n]) => `${escape(n)} ${escape(key)}`).join(' · ')}</p>${trafficMarkup(plan)}${(plan.unsupported ?? []).map(text => `<p class="ui-callout">${escape(text)}</p>`).join('')}<div class="catalog-plan-table"><table class="ui-table ui-table--stack-md"><thead><tr><th scope="col">Row</th><th scope="col">Monitor</th><th scope="col">Result</th><th scope="col">Review</th></tr></thead><tbody>${plan.entries.map(entry => entryMarkup(entry, plan.source.startsWith('catalog.add.'), runners)).join('')}</tbody></table></div>`;
 }
-export function openCatalogDialog({ api, action, kind, monitors = [], runners = [], onApplied }) {
+export function openCatalogDialog({ api, action, kind, monitors = [], runners = [], onApplied, onClosed }) {
     const add = kind === 'add', edit = kind === 'edit', clone = kind === 'clone', creating = add || clone, title = add ? 'Bulk add monitors' : edit ? 'Edit monitor labels' : `${kind[0].toUpperCase() + kind.slice(1)} selected monitors`, opener = document.activeElement;
     const dialog = document.createElement('dialog');
     dialog.className = 'catalog-dialog';
@@ -61,6 +61,7 @@ export function openCatalogDialog({ api, action, kind, monitors = [], runners = 
         dialog.close();
         dialog.remove();
         opener?.focus({ preventScroll: true });
+        onClosed?.();
     }
     dialog.querySelector('[data-close]').onclick = close;
     dialog.addEventListener('cancel', event => {

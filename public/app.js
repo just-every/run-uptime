@@ -77,9 +77,10 @@ right.hidden=sideHidden();
 // The monitor list's one summary line, under its heading (public/monitor-list.js).
 const summary=$('.list-summary');
 if(view==='monitor'){title.hidden=true;area.setAttribute('aria-label','Monitor details');area.querySelector('.loading-note').textContent='Loading monitor…';$('.top h1').textContent='Monitor';$('.subtitle').textContent='Loading…';$('.subtitle').hidden=false}
-else{setHeading();$('.subtitle').hidden=true;actions.addEventListener('click',event=>{const button=event.target.closest('button');if(!button)return;if(button.id==='new-monitor')window.dispatchEvent(new Event('uptime:new-monitor'));else if(button.id==='add-location-button')startAdding({api,action,render})})}
-// Each view's buttons beside its heading.
-const viewActions={monitors:()=>`<button class="primary" id="new-monitor">${icon('plus')}New monitor</button>`,locations:()=>`<button class="primary" id="add-location-button"${addingLocation()?' disabled':''}>${icon('plus')}Add location</button>`};
+else{setHeading();$('.subtitle').hidden=true;actions.addEventListener('click',event=>{const button=event.target.closest('button');if(!button)return;if(button.id==='new-monitor')window.dispatchEvent(new Event('uptime:new-monitor'));else if(button.id==='add-many-monitors')catalog.openAdd();else if(button.id==='add-location-button')startAdding({api,action,render})})}
+// Each view's buttons beside its heading. "Add many monitors" is the list's door to the Bulk add dialog until New monitor's
+// "Other ways to add" holds it as "Paste many URLs or a CSV"; U21 round R3's "Other ways to add" commit removes it.
+const viewActions={monitors:()=>`<button type="button" class="ui-link" id="add-many-monitors">Add many monitors</button><button class="primary" id="new-monitor">${icon('plus')}New monitor</button>`,locations:()=>`<button class="primary" id="add-location-button"${addingLocation()?' disabled':''}>${icon('plus')}Add location</button>`};
 const lockedControls=new Map(),lockedLinks=new Map();
 // Async tasks and dialogs can insert controls without rendering the whole view.
 // Observe those insertions before the browser can offer a click on a busy console.

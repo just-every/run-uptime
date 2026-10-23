@@ -2367,7 +2367,7 @@
       "executable": false
     },
     "public/app.js": {
-      "sha256": "3809deddd4a32b7ba7f96c8e890a4cac27eb0fb52b523a9093230a7448dec710",
+      "sha256": "61fac7bc398ff49165883f24a259af2859de6249d2967dc10dadaebec87ffc72",
       "executable": false
     },
     "public/archive-view.js": {
@@ -2419,7 +2419,7 @@
       "executable": false
     },
     "public/catalog-dialogs.js": {
-      "sha256": "e2dcab6d876d9c5b3e5e9095f0287aa16ef3ea5a5b9ed42dfe82f1dfb1a16cb3",
+      "sha256": "4f30804f4179ccd5cb83cc5375634a436b8909cd6c9d353951f23afc7326693d",
       "executable": false
     },
     "public/catalog.css": {
@@ -2427,7 +2427,7 @@
       "executable": false
     },
     "public/catalog.js": {
-      "sha256": "168dbfe97d6720dc55ecc1506cf69a1c94aef2a6bd21ee4903064e10f9cec8cb",
+      "sha256": "84a6c0847828217f67b49dcc8b78c0a5073fadc14fb23fcfaeb1df43f923b1a1",
       "executable": false
     },
     "public/cleanup-debt.css": {
@@ -6326,6 +6326,10 @@
       "sha256": "52a74d5f87dba0b012d4f2bfd276a35e65d3d5379621a6e5666680298e9fde62",
       "executable": false
     },
+    "src/editor/monitor/add-many.mjs": {
+      "sha256": "12eafa335bbf77f003853a9139f810e6ea21e579cca992ca711cb251ee9147ec",
+      "executable": false
+    },
     "src/editor/monitor/api.mjs": {
       "sha256": "786edf9b921361950ebe932636c04a56422b871223542d828778e8efa425c84f",
       "executable": false
@@ -6371,7 +6375,7 @@
       "executable": false
     },
     "src/editor/monitor/index.mjs": {
-      "sha256": "e9e6886ee3d6156d526f2e135dac1d782e3bcc5c024033af74ddccf01ea8d7ef",
+      "sha256": "79510e4562e3a556ecd03a54dcf985d1d307be8e2b32b61dbaf6f1edc7bc1467",
       "executable": false
     },
     "src/editor/monitor/initial-markup.mjs": {
@@ -6815,7 +6819,7 @@
       "executable": false
     },
     "src/ui/editor.html": {
-      "sha256": "e9dcd0ff9ab84e55018491547c3098bd7311fe73d8bd4311786110f6cc662af8",
+      "sha256": "17d914f8d7cae8db5cf9824549f4baeb41d5c5c7127f379dc3c1d3406dffd03f",
       "executable": false
     },
     "src/ui/monitor-editor-document.tsx": {
@@ -7227,7 +7231,7 @@
       "executable": false
     },
     "tests/operator-browser.mjs": {
-      "sha256": "f61bffd8581a5f42b6b2aed1cbb4a064d95793369d719d3a2e2725435e41a5d1",
+      "sha256": "bc923ed890f7b7a859920128d7f58d9e2fd74dfa350ca28b99f397118b7b5ed9",
       "executable": false
     },
     "tests/operator-security.mjs": {

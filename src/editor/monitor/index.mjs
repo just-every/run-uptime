@@ -1,5 +1,6 @@
 import {editorState,manualPath} from '../../ui/monitor-editor-path.mjs';
 import {api} from './api.mjs';
+import {mountAddMany} from './add-many.mjs';
 import {mountManualForm,prepareManualForm,prefillManualForm,NEW_MONITOR} from './manual.mjs';
 import {mountDiscovery} from './discovery.mjs';
 import {bindRules} from './rules.mjs';
@@ -59,7 +60,7 @@ export async function mountMonitorEditor(signal){
   }
   const overview=await context;
   if(signal.aborted)return;
-  loading.hidden=true;first=!id&&overview.first&&!state.discovery;if(first)firstLook();
+  loading.hidden=true;first=!id&&overview.first&&!state.discovery;if(first){firstLook();mountAddMany(document.querySelector('#editor-add-many'),{runners:overview.runner.runners,notice})}
   const definition=id?overview.definition:NEW_MONITOR;
   if(!definition)throw Error('Monitor missing');
   if(!first){document.title=id?'Edit monitor · Uptime':'New monitor · Uptime';document.querySelector('h1').textContent=id?'Edit monitor':'New monitor'}
