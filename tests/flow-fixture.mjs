@@ -78,7 +78,7 @@ export async function startFlowFixture({port = 0, grantPath, secondPort = 0}) {
     if(path==='/browser-metadata')return send(200,page('Blocked subresource','<h1>Checkout</h1><img alt="" src="http://169.254.169.254/latest/meta-data/"><p>Order confirmed</p>'));
     if (path === '/login' && req.method === 'GET') {
       const missing = scenario === 'missing-element';
-      return send(200, page('Sign in', `<h1>Sign in</h1><form method="post" action="${base}/login" novalidate><label>Email <input name="email" type="email"></label><label>Password <input name="password" type="password"></label>${missing ? '' : '<button type="submit">Sign in</button>'}</form>`));
+      return send(200, page('Sign in', `<h1>Sign in</h1><form method="post" action="${base}/login" novalidate><label>Email <input name="email" type="email"></label><label>Password <input name="password" type="password"></label>${missing ? '' : '<button type="submit">Sign in</button>'}${scenario==='duplicate-controls'?'<button type="submit">Sign in</button>':''}</form>`));
     }
     if (path === '/login' && req.method === 'POST') {
       let body = ''; for await (const c of req) body += c;
