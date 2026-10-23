@@ -76,3 +76,39 @@ team dispatch bindings so they stay denied. Monitor/destination erasure removes
 dependent bindings. Business-hour calendars, expiry/renewal routing, portable
 route settings/history, richer provenance, geographic filters, configurable
 severity and the held console UI remain ROUTING-001 gaps.
+
+## Assign a named route to an existing selection
+
+An owner with a live session and a second-factor proof from the last five
+minutes can name an already reviewed, explicit monitor route. Names hold
+immutable policy copies; changing the source monitor later does not change a
+saved name. No command below creates, confirms or messages a recipient.
+Existing team membership, consent, filters, quiet hours and recipient proof
+continue to govern delivery.
+
+Use `node scripts/routing.mjs COMMAND --origin ORIGIN --input FILE` with the
+existing `UPTIME_ACCESS_COOKIE` session. Keep session authority out of input
+files and command arguments.
+
+| Command | JSON input | Result |
+| --- | --- | --- |
+| `name-route` | `{"name":"Payments","monitorId":"MONITOR_ID"}` | Saves the existing explicit selected-recipient policy under a distinct name. |
+| `named` | No input file | Lists saved route IDs, names and policies. |
+| `preview-batch` | `{"routeId":"ROUTE_ID","monitorIds":["MONITOR_ID"]}` | Read-only counts, each monitor's before/after, refusals and a warning that assignment establishes no confirmed recipient. |
+| `apply-batch` | The same selection plus its reviewed `digest` | Applies every selected change in one transaction and returns a `batchId`. A refused row, changed review or concurrent write applies nothing. |
+| `undo-batch` | `{"batchId":"BATCH_ID"}` | Restores the prior explicit overrides, including absence/inheritance, while keeping monitor definitions and history. |
+
+The corresponding doors are `GET/POST /api/routing/named-routes` and
+`POST /api/catalog/routes/preview`, `/apply` and `/undo`. Admins, members,
+monitoring credentials and an email-only session cannot use the owner batch
+mutation doors. Manual route edits detach the saved-name association. If an
+assigned route was edited or a selected monitor was erased, undo refuses the
+whole batch rather than overwriting later work. Enabling a monitor and its
+subsequent checks do not prevent routing undo.
+
+Named configuration and batch undo authority stay installation-local. Export
+keeps only their opaque audit events. Monitor erasure removes its batch entries;
+operator erasure anonymizes retained batch ownership. The console batch control,
+editing/removing saved names, and route defaults during URL/CSV bulk creation
+remain unavailable. This slice assigns existing monitors and does not claim
+MONITOR-001 complete.
