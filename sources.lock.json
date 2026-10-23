@@ -471,7 +471,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "36d8dae09097b315ed33a1ad51d8327d94332e0d0497fe6d4fecdf5b839e5b37",
+      "sha256": "17fa52a8797133db115f7a0da79c83ab5a3b08e24d155ba29ae987ce93fdb0e4",
       "executable": false
     },
     "AGENTS.md": {
@@ -495,7 +495,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "1be4bed8afe00bf1bdd13351d49c6ef0b5813ee5f48ba0316faa22e493d854ff",
+      "sha256": "944f60949d455177624e2f146d8d4f0fff16077d4cd88654ad87aec3323034ee",
       "executable": false
     },
     "DEMO.md": {
@@ -1999,7 +1999,7 @@
       "executable": false
     },
     "docs/mfa.md": {
-      "sha256": "6fefdfffbc0c5d3da8d650571ff7debae16b83bfb5dca024d9928bbf9bfe56ba",
+      "sha256": "2a42eff9436270b77d12f8ad617c72112a06d68722283a3ead48dbcb2a15cf21",
       "executable": false
     },
     "docs/migrating-betterstack.md": {
@@ -2051,7 +2051,7 @@
       "executable": false
     },
     "docs/security.md": {
-      "sha256": "03fffdceb45bbe33ff77fa7acb959991b3b28dbc51d2823a75162b123f1fbf28",
+      "sha256": "e5c370d44976f913685239a30af7c1f830319dde31a7c1ad9071d5d84aba1070",
       "executable": false
     },
     "docs/site.json": {
