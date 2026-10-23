@@ -62,7 +62,7 @@ jobs:
       - run: pnpm exec rer install
       - name: Install Chromium and system libraries
         if: matrix.browser
-        run: pnpm exec playwright install --with-deps --only-shell chromium ${{ matrix.name == 'runner-flows' && 'firefox webkit' || '' }}
+        run: bash .github/scripts/install-browsers.sh ${{ matrix.name == 'runner-flows' && 'firefox webkit' || '' }}
       - name: Reserve disk for native runtime journeys
         run: |
           free_kib() { df -Pk "$GITHUB_WORKSPACE" | awk 'END { print $4 }'; }
