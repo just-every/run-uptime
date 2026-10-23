@@ -1,3 +1,4 @@
+import {checkInput,InputError} from './request-boundary.ts'
 import {credentialFence,CredentialError,type CredentialAuthority} from './credentials/model.server.ts'
 export {credentialPermission} from './credentials/auth.server.ts'
 import {checkSecondFactor,requestNeedsStepUp,mfaCondition,mfaResponse} from './mfa/policy.server.ts'
@@ -28,6 +29,9 @@ export async function permission(env:AuthBindings,request:Request,input?:unknown
  const scopes=(await env.DB.prepare('SELECT kind,value FROM uptime_member_scopes WHERE operator_id=? ORDER BY kind,value').bind(session.operator.id).all<Scope>()).results
  const wanted=override??requestPermission(request,input)
  if((wanted as any).incidentId){
+  // Resolve resource scope only after the shared input schema has refused bad
+  // identities, query values and bodies; malformed input cannot become a lookup.
+  checkInput(request.method==='HEAD'?'GET':request.method,new URL(request.url),input===undefined?'':JSON.stringify(input),request.body!==null)
   const incident=await env.DB.prepare("SELECT o.monitor_id FROM outbox o JOIN monitors m ON m.id=o.monitor_id WHERE o.id=? AND o.kind='trigger'").bind((wanted as any).incidentId).first<{monitor_id:string}>()
   if(!incident)throw new AccessError(404)
   wanted.monitorIds=[incident.monitor_id]
@@ -79,4 +83,4 @@ export function accessFence(access:Access|CredentialAuthority){
  OR (p.kind='team' AND p.value=json_extract(m.definition,'$.group')) THEN 1 ELSE 0 END)=0))`
  return {sql:`${sql} AND ${monitors}`,params:[...params,JSON.stringify(access.monitorIds),session.operator.id]}
 }
-export const accessResponse=(error:unknown)=>error instanceof CredentialError?Response.json({error:error.message},{status:error.status,headers:{'cache-control':'no-store',...(error.status===429?{'retry-after':String(60-Math.floor(Date.now()/1000)%60),'ratelimit':'limit=60, remaining=0, reset=60'}:{})}}):error instanceof AccessError?Response.json({error:error.message},{status:error.status,headers:{'cache-control':'no-store'}}):mfaResponse(error)
+export const accessResponse=(error:unknown)=>error instanceof InputError?Response.json({error:error.message},{status:400,headers:{'cache-control':'no-store'}}):error instanceof CredentialError?Response.json({error:error.message},{status:error.status,headers:{'cache-control':'no-store',...(error.status===429?{'retry-after':String(60-Math.floor(Date.now()/1000)%60),'ratelimit':'limit=60, remaining=0, reset=60'}:{})}}):error instanceof AccessError?Response.json({error:error.message},{status:error.status,headers:{'cache-control':'no-store'}}):mfaResponse(error)
