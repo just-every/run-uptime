@@ -471,7 +471,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "9d51006003ca8c101d1c0f412a1d7f648320cc8185bc05ba30e886764ca10e1a",
+      "sha256": "ca602d4cd3deb5d7f7a0b352f85f072c55e687536be7bc423297702e30ca9874",
       "executable": false
     },
     "AGENTS.md": {
@@ -495,7 +495,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "cff47692738cd7c72113039e37a9c44bf3a8bf55fa45617fb224f839e6bfe594",
+      "sha256": "fca16b4d03e5db2764550d5da80184800519d977251d645dd3bb8a7e91a87257",
       "executable": false
     },
     "DEMO.md": {
@@ -1988,6 +1988,10 @@
     },
     "docs/metrics.md": {
       "sha256": "40d4b94a8200bf393aadb9e569cb7ebdd30e2f24efaeafa028ce17c239288997",
+      "executable": false
+    },
+    "docs/migrating-betterstack.md": {
+      "sha256": "924fdc6fb96ffe473509290ca659bbece684f328958b38a78e2e36af4f1ee816",
       "executable": false
     },
     "docs/migrating-site24x7.md": {
@@ -5534,6 +5538,10 @@
       "sha256": "a9540c35811346f521f823fbee7ee3458207dabb72b456fdbf04047b2e100691",
       "executable": false
     },
+    "src/domain/definitions/importers/betterstack-monitors.ts": {
+      "sha256": "877ecef2ee0b78e8582f49b00bfced8dde546c5130d66ea61f30d9f163d8801c",
+      "executable": false
+    },
     "src/domain/definitions/importers/index.ts": {
       "sha256": "1db7a5bf9897f20694cfb42c7421685275e726b422bca9d7dd04381dc827b8ed",
       "executable": false
@@ -6911,7 +6919,7 @@
       "executable": false
     },
     "tests/business-provisioned.mjs": {
-      "sha256": "9cd5b72e9620c99319e54afd95e9d40971aff17ceb6a616dea59a5e889c43bc3",
+      "sha256": "72ca06ccb6aa4e025039c1a4acc91038083de152cf030950fd8f69310fd0be8e",
       "executable": false
     },
     "tests/catalog.mjs": {
@@ -7024,6 +7032,10 @@
     },
     "tests/failure-snapshots.mjs": {
       "sha256": "9acc3fab6753eee5b3b7904038a36289b315074f4531780642b347a558c4b19e",
+      "executable": false
+    },
+    "tests/fixtures/betterstack-monitors.synthetic.json": {
+      "sha256": "20ae622738eccc5ba83b6756c39e7cc51d1e311a4fb23f2f41cfad2ec1a68eed",
       "executable": false
     },
     "tests/fixtures/README.md": {

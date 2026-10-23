@@ -34,6 +34,7 @@ function map(value:any):Mapping{
  if(present(a.domain_expiration))differences.push('domain_expiration requires a separate reviewed DOMAIN-001 expiry monitor.')
  if(a.effective_check_frequency!==undefined&&a.effective_check_frequency!==a.check_frequency)differences.push(`effective_check_frequency is ${a.effective_check_frequency}; the saved requested frequency is ${a.check_frequency}. Review the source frequency reason before enabling.`)
  const mapped=new Set(['url','pronounceable_name','monitor_type','check_frequency','request_timeout','regions','monitor_group_id','verify_ssl','http_method','required_keyword','expected_status_codes','port'])
+ if(kind==='ping')mapped.add('ip_version')
  for(const key of Object.keys(a))if(!mapped.has(key)&&present(a[key]))differences.push(`Source field ${key} is not converted; retain it for review before cutover.`)
  const common={name:a.pronounceable_name,enabled:false,intervalMs:a.check_frequency*1000,timeoutMs,probes:['local-a'],failureQuorum:1,retries:0,confirmSlots:2,recoverSlots:2,freshnessMs:Math.min(86400000,Math.max(180000,a.check_frequency*3000)),tags:regions.map((r:string)=>`betterstack-region:${r}`),...(group==null?{}:{group:`Better Stack group ${group}`})}
  if(kind==='ping'){
@@ -55,7 +56,7 @@ function map(value:any):Mapping{
  }
  if(kind==='keyword'||kind==='keyword_absence'){
   if(method==='HEAD')return {refused:'Better Stack keyword checks require a response body; HEAD is not a valid keyword method.'}
-  differences.push('The required keyword becomes a literal, case-sensitive Uptime body assertion; review source matching before enabling.')
+  differences.push('The required keyword becomes a literal, case-sensitive Uptime body assertion and also requires a 2xx response; review source matching and status behavior before enabling.')
   if(typeof a.required_keyword!=='string'||!a.required_keyword)return {refused:'Better Stack keyword checks require required_keyword.'}
   assertions[kind==='keyword'?'bodyIncludes':'bodyExcludes']=a.required_keyword
  }
