@@ -14,7 +14,7 @@ export async function proveReadKeys({origin,db,cookie,ids,from,to}){
  assert.equal((await owner('/api/credentials','POST',spec('stale proof'))).status,403);await completeSecondFactor(origin,cookie);
  for(const body of [{...spec('missing expiry'),expiresAt:undefined},{...spec('expired'),expiresAt:Date.now()-1},{...spec('write scope'),scopes:['definitions:apply']}])assert.equal((await owner('/api/credentials','POST',body)).status,400);
  const selected=await keysCommand(['--origin',origin,'create'],{UPTIME_ACCESS_COOKIE:cookie},fetch,spec('Selected monitor'));
- const stored=await db.prepare('SELECT token_hash FROM integration_tokens WHERE namespace=(SELECT namespace FROM uptime_credential_grants WHERE id=?)').bind(selected.credential.id).first();assert.notEqual(stored.token_hash,selected.token);
+ const stored=await db.prepare('SELECT token_hash FROM integration_tokens WHERE namespace=(SELECT namespace FROM uptime_credential_grants WHERE id=?)').bind(selected.credential.id).first();assert.ok(stored.token_hash!==selected.token,'the stored verifier is not the bearer token');
  let metadata=await keysCommand(['--origin',origin,'list'],{UPTIME_ACCESS_COOKIE:cookie});assert.ok(!JSON.stringify(metadata).includes(selected.token));assert.ok(!JSON.stringify(metadata).includes(stored.token_hash));assert.equal(metadata.find(k=>k.id===selected.credential.id).lastUsedAt,null);
  const before=evidence(),usedBefore=await usage();
  for(const path of ['/api/monitors/'+ids[0],'/api/incidents/unknown/comments','/api/credentials'])for(const method of ['POST','PATCH','DELETE'])assert.equal((await read(selected,path,method,method==='DELETE'?undefined:{})).status,403);

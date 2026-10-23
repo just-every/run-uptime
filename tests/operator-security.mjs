@@ -17,7 +17,7 @@ const check=async(name,run)=>{await run();passed++;console.log('PASS '+name)};
 try{
  worker=await startLocalWorker({port,persist:dir,bindings});const db=await worker.getD1Database('DB');
  const files=(await readdir('migrations')).filter(f=>f.endsWith('.sql')).sort();
- for(const file of files.filter(f=>!['0067_edition_access.sql','0068_mfa.sql','0069_alert_teams_filters.sql','0070_incident_mentions.sql'].includes(f)))for(const sql of splitSql(await readFile(join('migrations',file),'utf8')))await db.prepare(sql).run();
+ for(const file of files.filter(f=>!['0067_edition_access.sql','0068_mfa.sql','0069_alert_teams_filters.sql','0070_incident_mentions.sql','0071_edition_credentials.sql'].includes(f)))for(const sql of splitSql(await readFile(join('migrations',file),'utf8')))await db.prepare(sql).run();
  const call=(path,body,headers={})=>fetch(origin+path,{method:body===undefined?'GET':'POST',redirect:'manual',headers:{origin,'content-type':'application/json',...headers},body:body===undefined?undefined:JSON.stringify(body)});
  let cookie=sessionCookie(await call('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'Upgrade owner'}));
  const originalOwner=await db.prepare("SELECT id,version FROM oa_operators WHERE role='owner'").first();
@@ -29,6 +29,8 @@ try{
  await db.prepare('INSERT INTO alert_routes(scope_kind,scope_value,mode,destination_ids,revision,updated_at) VALUES(?,?,?,?,?,?)').bind(...Object.values(upgradeRoute)).run();
  for(const sql of splitSql(await readFile('migrations/0069_alert_teams_filters.sql','utf8')))await db.prepare(sql).run();
  for(const sql of splitSql(await readFile('migrations/0070_incident_mentions.sql','utf8')))await db.prepare(sql).run();
+ for(const sql of splitSql(await readFile('migrations/0071_edition_credentials.sql','utf8')))await db.prepare(sql).run();
+ assert.equal((await db.prepare('SELECT COUNT(*) n FROM uptime_credential_grants').first()).n,0,'populated upgrade creates no API credential grant');
  assert.equal((await db.prepare('SELECT (SELECT COUNT(*) FROM incident_mentions)+(SELECT COUNT(*) FROM incident_mention_authority) n').first()).n,0,'populated upgrade creates no mention or sending authority');
  const upgradedRoute=await db.prepare('SELECT * FROM alert_routes WHERE scope_kind=? AND scope_value=?').bind(upgradeRoute.scope_kind,upgradeRoute.scope_value).first();
  assert.deepEqual(Object.fromEntries(Object.keys(upgradeRoute).map(k=>[k,upgradedRoute[k]])),upgradeRoute,'populated route policy survives additive upgrade unchanged');
