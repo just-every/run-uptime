@@ -2,7 +2,7 @@ Uptime is built to fail closed: if something is not configured or not authorized
 
 ## Who can reach what
 
-The console and private product APIs are owner-only; runner and heartbeat APIs use separate scoped credentials. Each private page, read, change and export is checked on the server on every request. Authentication routes and public information are listed separately in `seed.json`; a public route declaration never grants private product access. Hiding a button in the browser is never the protection.
+The console and product mutations require an owner. Private reads enforce their route authority: the exact versioned monitor-summary GET/HEAD door also accepts native Base admins, and evidence retains its explicit monitor grants. Runner and heartbeat APIs use separate scoped credentials. Each private page, read, change and export is checked on the server on every request. Authentication routes and public information are listed separately in `seed.json`; a public route declaration never grants private product access. Hiding a button in the browser is never the protection.
 
 - Required configuration is checked before the Worker handles a request or scheduled run. Setup checks generated or saved settings before opening its temporary runtime; the local app, preview, deployment and runner check their configuration before serving or starting operational work. Missing or malformed configuration stops that entry point and names the variable; the Worker returns 503, including at `/health`, without returning a configured value.
 - Running on a loopback address is not authentication.

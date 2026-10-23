@@ -1,4 +1,4 @@
-Use the versioned `/api/v1` reads to inspect the same immutable monitoring figures shown in the console. These reads currently require an active owner session. General-purpose `monitoring:read` keys, their per-key limits and second-factor step-up are not available yet; a metrics key authorizes only `/api/v1/metrics`. Keep owner cookies private and do not embed them in public dashboards.
+Use the versioned `/api/v1` reads to inspect the same immutable monitoring figures shown in the console. These reads require an active owner session, with one exception: native Base admins may GET or HEAD a single monitor summary. General-purpose `monitoring:read` keys, their per-key limits and second-factor step-up are not available yet; a metrics key authorizes only `/api/v1/metrics`. Keep owner cookies private and do not embed them in public dashboards.
 
 The OpenAPI description at `/api/v1/openapi.json` is public and contains no installation data. Private reads send `Cache-Control: no-store`. Signed-out and revoked sessions cannot read monitoring records.
 
