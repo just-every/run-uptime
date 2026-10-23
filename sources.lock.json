@@ -2423,7 +2423,7 @@
       "executable": false
     },
     "public/catalog-dialogs.js": {
-      "sha256": "4621bcb438870ec43a4a14f366f2ea0b07d1fe4b0602d91cabfb60fb0265ffdf",
+      "sha256": "b44f8f05e6df702c0e0734dd192c5a156f44223457e9cbf82b66e1cac8637215",
       "executable": false
     },
     "public/catalog.css": {
@@ -6931,7 +6931,7 @@
       "executable": false
     },
     "tests/console-routing-browser.mjs": {
-      "sha256": "fa05594a703b434682e01c89438b6a3cd179e44c9a22f86fa1992c94e2591e22",
+      "sha256": "89c4621f4a081d26603522afdf9cda486d9afb4e3901cca3716ecaabdc0f7bba",
       "executable": false
     },
     "tests/contact-schedules-browser.mjs": {
