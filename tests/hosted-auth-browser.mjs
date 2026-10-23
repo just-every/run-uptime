@@ -1,3 +1,4 @@
+import {completeBrowserSecondFactor} from './mfa-auth-support.mjs';
 import assert from 'node:assert/strict';
 import {mkdtemp, readFile, readdir, rm, mkdir} from 'node:fs/promises';
 import {join} from 'node:path';
@@ -60,6 +61,8 @@ try {
   await setup.getByLabel('Your name').fill('Native browser owner');
   const bootstrapResponse = await nativePost(setup, '/auth/bootstrap', 'Create owner account');
   assert.equal(bootstrapResponse.status(), 303, bootstrapResponse.status() === 303 ? undefined : await bootstrapResponse.text());
+  await completeBrowserSecondFactor(setup,runtime.origin);
+  await setup.goto(runtime.origin+'/setup');
   await setup.waitForURL(runtime.origin + '/setup');
   await setup.getByRole('button', {name: 'Continue', exact: true}).click();
   await setup.waitForURL(url => url.pathname.startsWith('/app'));
@@ -80,7 +83,7 @@ try {
     assert.equal(await login.getByLabel('Email address', {exact: true}).inputValue(), bindings.OWNER_EMAIL);
     await login.evaluate(() => document.fonts.ready);
     assert.equal(await login.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
-    assert.equal(mails.length, 0, 'opening Open app never sends mail');
+    assert.equal(mails.filter(m=>m.subject.startsWith('Your sign-in link')).length, 0, 'opening Open app never sends mail');
     assert.equal((await db.prepare('SELECT count(*) n FROM oa_tokens').first()).n, 0);
     if (process.env.UPTIME_AUTH_SHOTS) {
       await mkdir(process.env.UPTIME_AUTH_SHOTS, {recursive: true});
@@ -95,12 +98,13 @@ try {
   assert.equal(acknowledgement.searchParams.get('notice'), 'sent');
   await login.waitForURL(acknowledgement.href);
   await login.getByRole('status').waitFor();
-  assert.equal(mails.length, 1);
-  const link = new URL(mails[0].content.find(content => content.type === 'text/plain').value.match(/https:\/\/[^\s]+/)[0]);
+  assert.equal(mails.filter(m=>m.subject.startsWith('Your sign-in link')).length, 1);
+  const link = new URL(mails.find(m=>m.subject.startsWith('Your sign-in link')).content.find(content => content.type === 'text/plain').value.match(/https:\/\/[^\s]+/)[0]);
   assert.equal(link.origin, runtime.origin);
   await login.goto(link.href);
   assert.equal((await db.prepare('SELECT consumed_at FROM oa_tokens').first()).consumed_at, null);
   assert.equal((await nativePost(login, '/auth/confirm', 'Confirm')).status(), 303);
+  await completeBrowserSecondFactor(login,runtime.origin);await login.goto(runtime.origin+'/app');
   await login.waitForURL(runtime.origin + '/app/monitors');
   await assertSession(loginContext);
   assert.ok((await db.prepare('SELECT consumed_at FROM oa_tokens').first()).consumed_at);
