@@ -2631,7 +2631,7 @@
       "executable": false
     },
     "public/monitor-list.js": {
-      "sha256": "c868eb494746ca9510f4743c7b279c16f0d40121b42b90aadb6ca7f2e1024d9c",
+      "sha256": "63959f505f74682373dcd829fbcb903201756dd947a8012aedeb238e5614e5db",
       "executable": false
     },
     "public/monitor-page.css": {
@@ -7003,7 +7003,7 @@
       "executable": false
     },
     "tests/console-routing-browser.mjs": {
-      "sha256": "b8a4f6665d123b599b4039db654fa86e435e83e2407e376e75da77b56be185a6",
+      "sha256": "d3ca067747be19ea367beffde61eda8337f7fbedb788295a30502f0da851583f",
       "executable": false
     },
     "tests/contact-schedules-browser.mjs": {

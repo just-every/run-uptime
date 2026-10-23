@@ -115,6 +115,23 @@ test('console paths survive bookmarks, navigation, copied links, history and rel
     {const dialog=page.getByRole('dialog');await dialog.locator('[name=text]').fill('https://93.184.216.34/bulk');const pending=page.waitForResponse(response=>new URL(response.url()).pathname==='/api/catalog/add/preview');await dialog.getByRole('button',{name:'Preview',exact:true}).click();const response=await pending;assert.equal(response.status(),200);assert.equal(response.request().postDataJSON().text,'https://93.184.216.34/bulk');await dialog.locator('.catalog-preview h3').waitFor();await dialog.getByRole('button',{name:'Cancel',exact:true}).click()}
     await page.getByRole('button',{name:'Plan maintenance',exact:true}).click();
     {const dialog=page.getByRole('dialog');await dialog.locator('[name=name]').fill('synthetic-uptime-maintenance');const pending=page.waitForResponse(response=>new URL(response.url()).pathname==='/api/maintenance/preview');await dialog.getByRole('button',{name:'Preview occurrences',exact:true}).click();const response=await pending;assert.equal(response.status(),200);assert.deepEqual(response.request().postDataJSON().monitorIds,[source.id]);await dialog.locator('#maintenance-preview:not([hidden])').waitFor();await dialog.getByRole('button',{name:'Cancel',exact:true}).click()}
+    // The overview's current end covers all maintenance forms, while an ordinary row has no end.
+    const now=Date.now(),end=now+3600000,weeklyStart=new Date(now-60000),date=weeklyStart.toISOString().slice(0,10);
+    const maintenanceCases=[
+     ['planned',{maintenanceWindows:[{id:'list-planned',name:'Planned list window',timeZone:'UTC',mode:'suppress',startsAt:now-60000,endsAt:end}]}],
+     ['recurring',{maintenanceWindows:[{id:'list-weekly',name:'Recurring list window',timeZone:'UTC',mode:'suppress',weekly:{weekdays:[weeklyStart.getUTCDay()],localTime:weeklyStart.toISOString().slice(11,16),durationMinutes:120,fromDate:date,untilDate:date}}]}],
+     ['quick',{maintenanceUntil:end}],['none',{}],
+    ];
+    const maintenanceRows=[];
+    for(const [kind,settings]of maintenanceCases){const row=await post('/api/monitors',{name:`synthetic-uptime-list-${kind}-${width}`,url:'https://93.184.216.34/list',enabled:true,...settings},201);maintenanceRows.push({id:row.id,kind})}
+    const overview=await read();await page.goto(origin+'/app/monitors');await page.locator('html.signed-in').waitFor();
+    for(const {id,kind}of maintenanceRows){
+     const row=page.locator(`.monitor-row[data-key="${id}"]`);await row.waitFor();
+     if(kind==='none')assert.equal(await row.locator('.monitor-note.maintenance').count(),0);
+     else {const expected=await page.evaluate(t=>new Date(t).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}),overview.find(m=>m.id===id).maintenanceEndsAt);assert.equal((await row.locator('.monitor-note.maintenance').textContent()).trim(),`· until ${expected}`)}
+    }
+    await audit('maintenance-list',width);
+    await page.evaluate(axe);assert.deepEqual(await page.evaluate(async()=>(await axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21a','wcag21aa','wcag22aa']}})).violations.map(v=>v.id)),[],'maintenance list has zero axe violations');
     assert.deepEqual(problems,[],'no unexpected console error or hydration mismatch');assert.deepEqual(failed,[],'no failed browser request');
    }
   }
