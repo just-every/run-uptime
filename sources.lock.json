@@ -7323,7 +7323,7 @@
       "executable": false
     },
     "tests/public-paths-support.mjs": {
-      "sha256": "8a4fd166d8e76e1f5880ab8e4a9d4537f14086ad97aa340ad8f08145adb06a0a",
+      "sha256": "45807e88cd87fe5543ad3ab0114a9b5905214d354a3e3c0b3caa3ad35fb40960",
       "executable": false
     },
     "tests/public-paths.mjs": {
