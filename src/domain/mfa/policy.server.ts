@@ -5,7 +5,7 @@ export class MfaError extends Error {
  constructor(status:number,code:string){super(code==='second_factor_required'?'Second-factor verification required':code==='fresh_second_factor_required'?'Verify a second factor within the last five minutes':code==='mfa_rate_limited'?'Too many second-factor attempts':code==='session_required'?'Owner session required':'Second-factor operation refused');this.status=status;this.code=code}
 }
 export function mfaResponse(error:unknown){return error instanceof MfaError?Response.json({error:error.message,code:error.code},{status:error.status,headers:{'cache-control':'no-store, private',...(error.status===429?{'retry-after':'600'}:{})}}):null}
-export function proofCondition(fresh=false){return `EXISTS(SELECT 1 FROM uptime_mfa_proofs mp WHERE mp.session_id=s.id AND mp.operator_id=o.id AND mp.operator_version=o.version${fresh?' AND mp.verified_at>=(unixepoch()*1000-300000)':''})`}
+export function proofCondition(fresh=false){return `EXISTS(SELECT 1 FROM uptime_mfa_proofs mp WHERE mp.session_id=s.id AND mp.operator_id=o.id AND mp.operator_version=o.version${fresh?` AND mp.verified_at>=${Date.now()-300000}`:''})`}
 export function mfaCondition(fresh=false){return fresh?proofCondition(true):`((SELECT required FROM uptime_mfa_policy WHERE singleton=1)=0 AND NOT EXISTS(SELECT 1 FROM uptime_mfa_factors mf WHERE mf.operator_id=o.id) OR ${proofCondition()})`}
 export async function checkSecondFactor(env:AuthBindings,session:MfaSession,fresh=false){
  const sql=`SELECT 1 FROM oa_sessions s JOIN oa_operators o ON o.id=s.operator_id WHERE s.id=? AND o.id=? AND s.revoked_at IS NULL AND s.expires_at>? AND o.status='active' AND s.operator_version=o.version AND o.version=? AND ${mfaCondition(fresh)}`

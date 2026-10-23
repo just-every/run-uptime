@@ -1,3 +1,4 @@
+import {completeSecondFactor} from './mfa-auth-support.mjs';
 import assert from 'node:assert/strict';
 import {mkdtemp,readFile,readdir,rm} from 'node:fs/promises';
 import {join} from 'node:path';
@@ -37,9 +38,10 @@ try{
  const scheduled=async()=>{const r=await worker.dispatchFetch('http://127.0.0.1:15504/',{method:'POST',body:JSON.stringify({scheduled:true})});assert.equal(r.status,204,await r.text())};
  const owner=await call('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'Relay owner'});
  assert.equal(owner.status,303,await owner.clone().text());const cookie=owner.headers.get('set-cookie').split(';')[0];
+ await completeSecondFactor(origin,cookie,(url,init)=>call(new URL(url).pathname,init.body===undefined?undefined:JSON.parse(init.body),cookie));
  const signIn=await call('/auth/magic-link',{email:bindings.OWNER_EMAIL});
  assert.deepEqual(edgeErrors,[]);assert.equal(signIn.status,202,await signIn.clone().text());
- const message=requests[0],link=new URL(message.text.match(/https:\/\/[^\s]+/)[0]);
+ const message=requests.find(m=>m.subject.startsWith('Your sign-in link')),link=new URL(message.text.match(/https:\/\/[^\s]+/)[0]);
  assert.equal(link.origin,origin);assert.equal(link.pathname,'/auth/confirm');
  assert.ok(link.searchParams.get('token'));
  assert.equal(message.to,bindings.OWNER_EMAIL);

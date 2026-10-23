@@ -1,3 +1,4 @@
+import {completeApiSecondFactor} from './mfa-auth-support.mjs';
 import {heartbeatEvaluation} from '../src/domain/heartbeat-job.mjs';
 import assert from 'node:assert/strict';
 import {createHmac,randomUUID} from 'node:crypto';
@@ -75,6 +76,7 @@ try{
   assert.equal((await db.prepare('SELECT COUNT(*) n FROM runner_contact').first()).n,0,'enrolment is not contact or health');
  });
  const boot=await api('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'Runner acceptance owner'});assert.equal(boot.status,303);cookie=boot.headers['set-cookie'][0].split(';')[0];
+ await completeApiSecondFactor(origin,cookie,api);
  const created=await api('/api/monitors',{name:'Actual verified HTTPS',assignments:{'local-a':registration.runnerId},url:'https://runner-target.test/health',network:'public',canaryUrl:'https://canary.runner-target.test/canary',intervalMs:5000,timeoutMs:2000,retries:0,confirmSlots:1,recoverSlots:1});assert.equal(created.status,201);
  const id=created.data.id;
  const history=async()=>{const r=await api(`/api/monitors/${id}/history`);assert.equal(r.status,200);return r.data};
@@ -168,6 +170,7 @@ try{
   try{
    for(const file of(await readdir('migrations')).filter(n=>n.endsWith('.sql')).sort())for(const sql of splitSql(await readFile(join('migrations',file),'utf8')))await db.prepare(sql).run();
    const boot=await api('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'Receiving owner'});assert.equal(boot.status,303);cookie=boot.headers['set-cookie'][0].split(';')[0];
+ await completeApiSecondFactor(origin,cookie,api);
    const restored=await api('/api/restore',exported.data);assert.equal(restored.status,200,JSON.stringify(restored.data.error));
    assert.deepEqual((await api(`/api/monitors/${heartbeatId}/heartbeat-runs`)).data.runs,completeRuns);
    assert.equal((await db.prepare('SELECT COUNT(*) n FROM heartbeat_authority').first()).n,0);assert.equal((await db.prepare('SELECT COUNT(*) n FROM heartbeat_claims').first()).n,0);
