@@ -56,7 +56,7 @@ Some things never go in the file:
 - **Installation authority.** Runner assignments, canary URLs, heartbeat tokens and notification destinations stay with the installation.
 - **On and off.** `enabled` and `maintenanceUntil` are written when you export, so you can read them, but a file never changes them. New monitors always arrive paused, and an existing monitor keeps its current state.
 
-A file may be at most 2 MiB and list at most 500 monitors, and it must be UTF-8 JSON. An unknown field, including one inside a header or JSON assertion, or a duplicate name refuses that entry, and the reason names it. An installation still holds at most 100 monitors.
+A file may be at most 2 MiB and list at most 500 monitors, and its evaluated form must be UTF-8 JSON. The CLI also accepts a trusted local TypeScript module as described below; the Worker receives only its evaluated definition file. An unknown field, including one inside a header or JSON assertion, or a duplicate name refuses that entry, and the reason names it. An installation still holds at most 100 monitors.
 
 ## Preview, then apply
 
@@ -171,3 +171,61 @@ Synthetic send/receive is optional and requires a dedicated test mailbox. An SMT
 ### Playwright source imports
 
 Use the [supported Playwright import](/docs/browser-flows#import-a-supported-playwright-suite) to translate a suite into an ordinary monitor file before preview/apply. `import-playwright` is offline and writes a new file only; it requires `--input`, `--fixtures`, `--lock` and `--output`, with optional `--base` for API definitions. Unsupported source is refused by file and line, never executed. Source, JSON fixtures and npm v3 lock bytes remain in immutable flow revisions and definition exports under the ordinary revision digest; selected secret values remain runner-local. This is a constrained translation door; arbitrary script execution and the full FLOW-002 acceptance remain partial.
+
+
+## TypeScript definitions and CI
+
+Keep a typed definition module in the checkout when your monitors share settings or derive names and URLs from reviewed configuration. The module runs on the buyer's machine before the CLI sends the resulting native definition file to Uptime. The Worker never executes the module. Only run source you trust with the authority of the local user.
+
+The same planner validates the evaluated definition file, and the review digest binds that file and the installation revisions it would change. A changed evaluated definition or live revision requires a new preview. The digest does not attest to every imported TypeScript dependency: review that source in version control too.
+
+New monitors still arrive paused. A definition never supplies request secrets, runner authority or notification credentials, and applying one never enables traffic. Alert-route and maintenance TypeScript deployment and Checkly suite migration remain outside this bounded monitor-definition slice.
+
+
+For a module at the checkout root:
+
+```ts
+import type { NativeDefinitions } from './src/domain/definitions/types.ts';
+
+const environment = 'staging';
+export default {
+  format: 'uptime.monitors',
+  version: 8,
+  monitors: [{
+    name: 'Staging API',
+    type: 'http',
+    url: 'https://example.com/health',
+    environment,
+    tags: ['ci-team'],
+    assertions: { status: 200 },
+  }],
+} satisfies NativeDefinitions;
+```
+
+Use the TypeScript file as `--input` for the same preview and apply commands. The loader accepts `.ts` and `.mts` with Node 22.20's supported type stripping and relative imports. Run your TypeScript compiler separately to check the declared types; runtime validation still checks every evaluated entry. Module output and thrown source values are withheld from CLI errors.
+
+### CI credentials
+
+The Base owner creates a credential through `POST /api/credentials` after a second-factor check within five minutes. Give it an expiry, one environment and a tag selection. For example, the request shape is:
+
+```json
+{
+  "name": "Staging definitions",
+  "scopes": ["definitions:preview", "definitions:apply"],
+  "expiresAt": 1792800000000,
+  "environment": "staging",
+  "resources": { "mode": "selection", "monitorIds": [], "tags": ["ci-team"] }
+}
+```
+
+Choose an expiry in the future when creating your own credential. Creation shows the token once. Store it in the CI secret named `UPTIME_CI_TOKEN`; never commit it or put it in a command argument. Set `UPTIME_ORIGIN` to the installation origin and select the environment on each command:
+
+```sh
+node scripts/definitions.mjs preview --origin "$UPTIME_ORIGIN" --environment staging --input uptime.monitors.ts --json
+node scripts/definitions.mjs test --origin "$UPTIME_ORIGIN" --environment staging --input uptime.monitors.ts --json
+node scripts/definitions.mjs apply --origin "$UPTIME_ORIGIN" --environment staging --input uptime.monitors.ts --digest REVIEWED_DIGEST --json
+```
+
+`test` performs the shared definition validation and planning checks and refuses invalid or unsupported entries. It does not run a network check or browser journey. CI authority covers only native monitor definitions in the saved environment and tag selection. Both a changed monitor's current definition and its proposed definition must remain in scope. The credential cannot read secrets, export definitions, change roles or undo an applied batch. Revocation, expiry and changes to the issuing owner's authority block the next operation. Preview-only credentials cannot apply.
+
+An owner can still export and undo through the ordinary session-authorized commands. A changed live revision or evaluated file refuses a previously reviewed apply. The supplied CI workflow exercises preview, definition validation and apply with the same credential and explicit environment; GitHub execution against a live installation remains the buyer's deployment step.
