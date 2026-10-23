@@ -40,7 +40,7 @@ Destructive actions and automated notification attempts, including test sends, a
 
 ## Rotating the session secret
 
-Rotating `SESSION_SECRET` signs everyone out and makes stored notification credentials unreadable. Sign in again, open **Notifications**, and re-enter each affected destination. Monitoring stays available in the meantime. Do not restore a compromised old key.
+`SESSION_SECRET` protects sessions, notification credentials and second-factor state. Keep it with the installation backup. Rotating it signs everyone out, makes stored notification credentials and factors unreadable, and invalidates recovery-code hashes. A member whose factors are unreadable cannot complete MFA. Recovery after losing that key is not implemented in this slice: restore the correct key from the installation backup or replace the installation, then enroll fresh factors and re-enter destination credentials. Monitoring keeps its separate runner authority. Do not restore a compromised old key.
 
 ## Report a problem
 

@@ -113,10 +113,10 @@ Origin and `Content-Type: application/json`. Unknown fields and queries refuse.
 
 Mutations share a durable limit of 30 attempts per operator per ten minutes;
 429 includes `Retry-After`. Factor and challenge material is sealed with a
-purpose-specific key derived from the installation secret. Recovery codes are
+purpose-specific key derived from `SESSION_SECRET`. Recovery codes are
 stored only as keyed hashes. All factor authority is installation-local and
 excluded from product archives; operator erasure removes it. Keep the
-installation secret when recovering the database.
+installation secret when recovering the database. Rotating or losing it makes sealed factors unreadable and invalidates the recovery-code hashes; recovery from that key loss is not implemented. Product archives restore into the receiving installation without importing factor authority.
 
 Successful enrollment, verification, recovery, removal, reset and policy
 operations record opaque audit and send a separate member security notice.
