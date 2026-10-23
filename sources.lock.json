@@ -471,7 +471,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "87b3b04dbdf99944ee9072333cf38f1b10391f45cb90a6e9c7db15e57cbf3ccd",
+      "sha256": "01cc140fcb7b165cdb6e586eb9a018580a64462b248b11d208a6005237d874dc",
       "executable": false
     },
     "AGENTS.md": {
@@ -495,7 +495,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "64b8aa9d54dce612817780ffc184cf7168478036c4940c5e04234313519fdbed",
+      "sha256": "742e1f342fa23365d985ec6f314064ac1821cb80b09d370981c58c89aeb65e2e",
       "executable": false
     },
     "DEMO.md": {
@@ -1982,6 +1982,10 @@
       "sha256": "895705f0ea124198b6c94554be5f39d45867d6358a80ac9b903dd36550c7a24e",
       "executable": false
     },
+    "docs/incident-api.md": {
+      "sha256": "e84bfda09eb396bdcae0f45ab616bb5a4f8daef0f6561cb13479a22ee3a3f658",
+      "executable": false
+    },
     "docs/install.md": {
       "sha256": "dcd6ca751ab76682f2dd0f4e4f291ca7d550a2974d3a8e83d5cebf0fd7ed8ee9",
       "executable": false
@@ -3457,6 +3461,10 @@
     "scripts/heartbeat/run-job.sh": {
       "sha256": "1ce5c844c089d1069786e0cff1868254134b96a82cacdc2884dbbaa4eb719cc4",
       "executable": true
+    },
+    "scripts/incidents.mjs": {
+      "sha256": "ae833f729da986adee0bd6526512923b1f3e60316a29286c69f3a94a79648896",
+      "executable": false
     },
     "scripts/installer/local.mjs": {
       "sha256": "1d2761cdc3c489e5ac7fe0e8f28db575b4cce92659214a3ed9f848d0a4c26e5d",
@@ -5455,7 +5463,7 @@
       "executable": false
     },
     "src/domain/audit.server.ts": {
-      "sha256": "86f84c9cdb41c9e3f27f952a65d025065b7579377707d896f2d4638da447526c",
+      "sha256": "8e73c185590c37cfb4e2797be8dbe6dc989942a5b1a716a744bc362ed9f8137b",
       "executable": false
     },
     "src/domain/auth-document.server.ts": {
@@ -7294,8 +7302,12 @@
       "sha256": "13de4b5656778e3c44799fe93f35b3804b7a0d73a831bd48b8ec1cc58545a995",
       "executable": false
     },
+    "tests/incident-members-support.mjs": {
+      "sha256": "d5de302bbcf6ac0d54a79ed1356ec9d2dc24c9950ac2ede4f0c4add48592aedd",
+      "executable": false
+    },
     "tests/incident-work.mjs": {
-      "sha256": "8231d596fb4c9706343fd976615a7f52563e17f988000e05d91e608d45dddb39",
+      "sha256": "a365ed342dc824dadd0137a2770f2f208eea13e7c89338c022173b9c75e7e2fa",
       "executable": false
     },
     "tests/installer-support.mjs": {
