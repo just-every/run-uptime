@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { cp, mkdir, mkdtemp, rm, realpath } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, rm, realpath, readFile } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 import { loadavg, tmpdir } from 'node:os';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -50,7 +50,18 @@ export async function scratchInstallation({ mirror = false } = {}) {
  }
  async function run(command, args, options) {
   const child = start(command, args, options);
-  try { const result = await child.done; assert.equal(result.code, 0, 'scratch command failed; inspect the private scratch output'); return child.output; }
+  try { const result = await child.done;
+   if(result.code!==0){
+    // Retain the cause after cleanup without exposing this installation's
+    // generated credentials or a newly issued session in an assertion.
+    const settings=await readFile(join(root,'data/local-secrets.json'),'utf8').then(JSON.parse).catch(()=>({}));
+    let diagnostic=child.output;
+    for(const value of [...Object.values(settings),env.UPTIME_ACCESS_COOKIE])if(typeof value==='string'&&value)diagnostic=diagnostic.replaceAll(value,'[private]');
+    diagnostic=diagnostic.replace(/\b[A-Za-z0-9_-]{24,}\b/g,'[private]');
+    assert.equal(result.code,0,'scratch command failed: '+diagnostic.slice(-2400));
+   }
+   return child.output;
+  }
   finally { await stop(child); }
  }
  async function close() {

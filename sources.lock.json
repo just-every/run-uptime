@@ -7571,7 +7571,7 @@
       "executable": false
     },
     "tests/scratch-installation.mjs": {
-      "sha256": "ed57747113815dae768057352d7171e89116de2b5b3c9ee169474058105e2fa0",
+      "sha256": "ad4f234cebd351237a6284aa545490aef7dc98f09934906da177fb320d7297b9",
       "executable": false
     },
     "tests/service-catalog-fixture.mjs": {
