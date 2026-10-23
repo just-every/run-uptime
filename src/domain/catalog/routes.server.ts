@@ -43,7 +43,6 @@ export async function undoCatalogRoutes(env:Bindings,raw:any,actor:AuditActor){
   const read=await readAlertRoute(env,entry.monitor_id,{readOnly:true}),current=read.policies.find(p=>p.scope==='monitor')!;
   if(current.namedRouteId!==batch.route_id||current.revision!==entry.applied_revision||JSON.stringify(policy(current))!==entry.applied_policy)throw stale();
   const previous=JSON.parse(entry.previous_policy),prepared=await prepareAlertRouteAssignment(env,entry.monitor_id,{scope:'monitor',expectedRevision:current.revision,...policy(previous)});
-  if(prepared.monitor.revision!==entry.monitor_revision)throw stale();
   parts.push(alertRouteAssignmentStatements(env,prepared,actor,previous.revision===0,previous.namedRouteId??null));
  }
  const now=Date.now(),guards=parts.flatMap(p=>p.guards),writes=parts.flatMap(p=>p.writes);
