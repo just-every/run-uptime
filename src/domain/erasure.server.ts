@@ -61,6 +61,7 @@ export async function erase(env:Bindings,kind:'monitor'|'destination'|'operator'
  }
  if(kind==='destination')plans.push(selection('alert_recipient_consents','destination_id=?',id),selection('alert_drills','destination_id=?',id),selection('notification_credentials','destination_id=?',id));
  if(kind==='operator'){
+  plans.push(selection('incident_mention_authority','id IN(SELECT id FROM incident_mentions WHERE recipient_id=?)',id),selection('incident_mentions','recipient_id=?',id));
   plans.push(selection('alert_team_members','operator_id=?',id),selection('alert_recipient_consents','operator_id=?',id));
   plans.push(...['challenges','proofs','recovery','factors','limits','notices'].map(name=>selection('uptime_mfa_'+name,'operator_id=?',id)));
   plans.push(selection('auxiliary_attempts',"scope='auth-mail' AND (job_id IN(SELECT id FROM oa_tokens WHERE operator_id=? OR issuer_id=?) OR job_id IN(SELECT id FROM oa_step_up_challenges WHERE operator_id=? OR session_id IN(SELECT id FROM oa_sessions WHERE operator_id=?)))",id,id,id,id));
