@@ -1,3 +1,5 @@
+import {routeFilterSql} from './alert-route-filters.ts'
+import {selectedTeamRecipientSql} from './alert-team-policy.ts'
 import {selectedRouteSql} from './alert-routes-policy.ts'
 import type {NotificationEvent} from './notification-content.ts'
 import type {Bindings} from './control.server.ts'
@@ -9,29 +11,33 @@ export const recoveryAccepted=(job='j')=>`(NOT EXISTS(SELECT 1 FROM alert_recove
  AND (CASE WHEN t.kind='email' THEN t.state ELSE COALESCE(td.state,t.state) END)='accepted'))`;
 export function incidentDeliveryStatements(env:Bindings,event:NotificationEvent,guard:string,values:unknown[],slowRoute?:any){
  const eventJson=JSON.stringify(event),openingKind=event.kind==='slow_recovery'?'slow':event.kind==='dependency_recovery'?'dependency':'trigger';
- const custom=event.kind==='slow'&&Array.isArray(slowRoute?.destinationIds),selection=custom?`SELECT 'selected' mode,? destination_ids,? contact_settings`:selectedRouteSql,selectionValues=custom?[JSON.stringify(slowRoute.destinationIds),JSON.stringify(slowRoute.contactSettings??{})]:[event.monitorId];
- if(event.kind==='trigger'||event.kind==='slow'||event.kind==='dependency')return [env.DB.prepare(`WITH selected AS (${selection})
+ const custom=event.kind==='slow'&&Array.isArray(slowRoute?.destinationIds),selection=custom?`SELECT 'selected' mode,? destination_ids,? contact_settings,'{}' fallback,'[]' team_ids,normal.filters,normal.quiet_hours FROM (SELECT 1) seed LEFT JOIN (${selectedRouteSql}) normal ON 1`:selectedRouteSql,selectionValues=custom?[JSON.stringify(slowRoute.destinationIds),JSON.stringify(slowRoute.contactSettings??{}),event.monitorId]:[event.monitorId];
+ if(event.kind==='trigger'||event.kind==='slow'||event.kind==='dependency')return [env.DB.prepare(`WITH selected AS (${selection}), incoming AS (SELECT ? event)
  INSERT OR IGNORE INTO notification_jobs(id,event_id,destination_id,destination_name,kind,credential_id,event,created_at)
- SELECT ?||':'||d.id,?,d.id,d.name,d.kind,d.credential_id,?,? FROM notification_destinations d
+ SELECT ?||':'||d.id,?,d.id,d.name,d.kind,d.credential_id,?,? FROM notification_destinations d JOIN monitors m ON m.id=? CROSS JOIN incoming
  WHERE d.enabled=1 AND d.deleted_at IS NULL
- AND (COALESCE((SELECT mode FROM selected),'all')='all' OR d.id IN(SELECT value FROM json_each((SELECT destination_ids FROM selected))))
+ AND (COALESCE((SELECT mode FROM selected),'all')='all' OR d.id IN(SELECT value FROM json_each((SELECT destination_ids FROM selected))) OR ${selectedTeamRecipientSql('(SELECT team_ids FROM selected)')})
+ AND ${routeFilterSql("COALESCE((SELECT filters FROM selected),'{}')",'incoming.event','m.definition')}
  AND EXISTS(SELECT 1 FROM notification_credentials c WHERE c.id=d.credential_id AND c.retired_at IS NULL AND c.unavailable_at IS NULL AND (c.ciphertext IS NOT NULL OR c.endpoint IS NOT NULL))
- AND EXISTS(SELECT 1 FROM outbox WHERE id=?) AND ${guard}`).bind(...selectionValues,event.id,event.id,eventJson,event.observedAt,event.id,...values),
+ AND EXISTS(SELECT 1 FROM outbox WHERE id=?) AND ${guard}`).bind(...selectionValues,eventJson,event.id,event.id,eventJson,event.observedAt,event.monitorId,event.id,...values),
+  env.DB.prepare(`WITH selected AS (${selection}) INSERT OR IGNORE INTO alert_team_deliveries(trigger_job_id,operator_id,team_ids)
+   SELECT j.id,rc.operator_id,(SELECT team_ids FROM selected) FROM notification_jobs j JOIN notification_destinations d ON d.id=j.destination_id JOIN alert_recipient_consents rc ON rc.destination_id=d.id JOIN monitors m ON m.id=?
+   WHERE j.event_id=? AND COALESCE((SELECT mode FROM selected),'all')='selected' AND d.id NOT IN(SELECT value FROM json_each((SELECT destination_ids FROM selected))) AND ${selectedTeamRecipientSql('(SELECT team_ids FROM selected)')} AND ${guard}`).bind(...selectionValues,event.monitorId,event.id,...values),
   // DEPENDENCY-002: a dependency notice is sent once at its transition to every contact the route selects, and once more on recovery;
   // the contact's delay and repeat do not apply, but its quiet hours do.
-  ...(event.kind==='dependency'?[env.DB.prepare(`WITH selected AS (${selection}) INSERT OR IGNORE INTO alert_contact_schedules(trigger_job_id,monitor_id,incident_key,due_at,repeat_ms,max_repeats,next_at,recovery,stop_on_ack,quiet_rules)
-   SELECT j.id,?,?,?,0,NULL,NULL,1,0,json_extract(s.value,'$.quietHours')
+  ...(event.kind==='dependency'?[env.DB.prepare(`WITH selected AS (${selection}) INSERT OR IGNORE INTO alert_contact_schedules(trigger_job_id,monitor_id,incident_key,due_at,repeat_ms,max_repeats,next_at,recovery,stop_on_ack,quiet_rules,route_quiet_rules)
+   SELECT j.id,?,?,?,0,NULL,NULL,1,0,json_extract(s.value,'$.quietHours'),(SELECT quiet_hours FROM selected)
    FROM notification_jobs j LEFT JOIN json_each(COALESCE((SELECT contact_settings FROM selected),'{}')) s ON s.key=j.destination_id
-   WHERE j.event_id=? AND ${guard}`).bind(...selectionValues,event.monitorId,event.incidentKey,event.observedAt,event.id,...values)]:[env.DB.prepare(`WITH selected AS (${selection}) INSERT OR IGNORE INTO alert_contact_schedules(trigger_job_id,monitor_id,incident_key,due_at,repeat_ms,max_repeats,next_at,recovery,stop_on_ack,quiet_rules)
+   WHERE j.event_id=? AND ${guard}`).bind(...selectionValues,event.monitorId,event.incidentKey,event.observedAt,event.id,...values)]:[env.DB.prepare(`WITH selected AS (${selection}) INSERT OR IGNORE INTO alert_contact_schedules(trigger_job_id,monitor_id,incident_key,due_at,repeat_ms,max_repeats,next_at,recovery,stop_on_ack,quiet_rules,route_quiet_rules)
    SELECT j.id,?,?,?+COALESCE(json_extract(s.value,'$.delayMinutes'),0)*60000,COALESCE(json_extract(s.value,'$.repeatMinutes'),0)*60000,json_extract(s.value,'$.maxRepeats'),
     CASE WHEN COALESCE(json_extract(s.value,'$.repeatMinutes'),0)>0 THEN ?+(COALESCE(json_extract(s.value,'$.delayMinutes'),0)+json_extract(s.value,'$.repeatMinutes'))*60000 ELSE NULL END,
-    COALESCE(json_extract(s.value,'$.recovery'),1),COALESCE(json_extract(s.value,'$.stopOnAck'),0),json_extract(s.value,'$.quietHours')
+    COALESCE(json_extract(s.value,'$.recovery'),1),COALESCE(json_extract(s.value,'$.stopOnAck'),0),json_extract(s.value,'$.quietHours'),(SELECT quiet_hours FROM selected)
    FROM notification_jobs j LEFT JOIN json_each(COALESCE((SELECT contact_settings FROM selected),'{}')) s ON s.key=j.destination_id
    WHERE j.event_id=? AND ${guard}`).bind(...selectionValues,event.monitorId,event.incidentKey,event.observedAt,event.observedAt,event.id,...values)]),
   // DELIVERY-002: snapshot the route's fallback chain with the confirmed trigger or dependency notice; slow notices have none.
-  ...((event.kind==='trigger'||event.kind==='dependency')&&!custom?[env.DB.prepare(`WITH selected AS (${selection}) INSERT OR IGNORE INTO alert_fallback_chains(event_id,monitor_id,incident_key,destination_ids,deadline_ms,contact_settings,created_at)
-   SELECT ?,?,?,json_extract(s.fallback,'$.destinationIds'),json_extract(s.fallback,'$.deadlineSeconds')*1000,s.contact_settings,? FROM selected s
-   WHERE s.mode='selected' AND json_array_length(json_extract(s.fallback,'$.destinationIds'))>0 AND EXISTS(SELECT 1 FROM outbox WHERE id=?) AND ${guard}`).bind(...selectionValues,event.id,event.monitorId,event.incidentKey,event.observedAt,event.id,...values)]:[])];
+  ...((event.kind==='trigger'||event.kind==='dependency')&&!custom?[env.DB.prepare(`WITH selected AS (${selection}) INSERT OR IGNORE INTO alert_fallback_chains(event_id,monitor_id,incident_key,destination_ids,deadline_ms,contact_settings,created_at,route_quiet_rules)
+   SELECT ?,?,?,json_extract(s.fallback,'$.destinationIds'),json_extract(s.fallback,'$.deadlineSeconds')*1000,s.contact_settings,?,s.quiet_hours FROM selected s
+   WHERE EXISTS(SELECT 1 FROM notification_jobs WHERE event_id=?) AND s.mode='selected' AND json_array_length(json_extract(s.fallback,'$.destinationIds'))>0 AND EXISTS(SELECT 1 FROM outbox WHERE id=?) AND ${guard}`).bind(...selectionValues,event.id,event.monitorId,event.incidentKey,event.observedAt,event.id,event.id,...values)]:[])];
  return [
   env.DB.prepare(`INSERT OR IGNORE INTO notification_jobs(id,event_id,destination_id,destination_name,kind,credential_id,event,created_at)
    SELECT ?||':'||d.id,?,d.id,d.name,d.kind,t.credential_id,?,? FROM notification_jobs t

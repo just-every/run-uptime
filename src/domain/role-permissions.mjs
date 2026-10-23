@@ -1,13 +1,13 @@
 // Product roles never replace Base authentication or its owner/admin/member ceiling.
 export const PRODUCT_ROLES=Object.freeze(['owner','admin','editor','responder','read-only']);
-export const ACCESS_ACTIONS=Object.freeze(['read','check_write','respond','maintenance_write','route_write','secret_write','discovery_write','settings_write','export','archive_restore','import','members','owner','evidence']);
+export const ACCESS_ACTIONS=Object.freeze(['read','check_write','respond','maintenance_write','route_write','secret_write','discovery_write','settings_write','export','archive_restore','import','members','owner','evidence','receive']);
 export const baseRole=role=>role==='owner'||role==='admin'?role:PRODUCT_ROLES.includes(role)?'member':null;
 export function permitted(role,action){
  if(!PRODUCT_ROLES.includes(role)||!ACCESS_ACTIONS.includes(action))return false;
  if(role==='owner')return true;
  if(action==='owner'||action==='import')return false;
  if(role==='admin')return true;
- if(action==='read')return true;
+ if(action==='read'||action==='receive')return true;
  if(role==='read-only')return false;
  if(['respond','maintenance_write'].includes(action))return true;
  return role==='editor'&&['check_write','route_write'].includes(action);
@@ -18,6 +18,8 @@ export function requestPermission(request,input){
  const url=new URL(request.url),path=url.pathname,method=request.method==='HEAD'?'GET':request.method,read=method==='GET';
  const monitor=/^\/api\/(?:v1\/)?monitors\/([^/]+)(?:\/(.*))?$/.exec(path);
  const decode=value=>{try{return decodeURIComponent(value)}catch{return ''}};
+ if(path==='/api/routing/recipient')return {action:'receive',workspace:false};
+ if(path==='/api/routing/teams')return {action:'members',workspace:true};
  if(path==='/api/access/self')return {action:'read',workspace:false};
  if(path.startsWith('/api/access/'))return {action:'members',workspace:true};
  if(path==='/api/auth/sign-out'||path==='/auth/signout')return {action:'read',workspace:false};

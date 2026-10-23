@@ -1,3 +1,4 @@
+import {readTeams,saveTeam,readRecipient,consentRecipient} from './domain/alert-teams.server.ts'
 import {mfaDoor,earlyMfaGate} from './domain/mfa/door.server.ts'
 import {isConsoleDocument,isMonitorPage,canonicalConsolePath,consoleRedirect} from './ui/console-paths.ts'
 import {monitoringMonitors,monitoringMonitor} from './domain/read-api/monitors.server.ts'
@@ -25,7 +26,7 @@ import {cleanupDebt,resolveCleanupDebt} from './domain/cleanup-debt.server.ts'
 import {effectGrants,grantEffect,revokeEffect,spendGrant} from './domain/effect-grants.server.ts'
 import {rumDoor} from './domain/rum/door.server.ts'
 import {registerRumRoutes} from './domain/rum/routes.server.ts'
-import {readAlertRoute,previewAlertRoute,applyAlertRoute} from './domain/alert-routes.server.ts'
+import {readAlertRoute,previewAlertRoute,applyAlertRoute,sampleAlertRoute} from './domain/alert-routes.server.ts'
 import {previewMaintenance,applyMaintenance,cancelMaintenance} from './domain/planned-maintenance.server.ts'
 // The package's demo module: operator-auth runs from the package and reads demo mode from this same instance.
 import {withDemo} from '@runeditrun/rer/modules/demo'
@@ -133,6 +134,11 @@ api.use('/api/*',async(c,next)=>{
 })
 // Only authenticated owner requests can kick hosted work; public traffic and private runners cannot.
 api.use('/api/*',async(c,next)=>{await next();if(c.res.ok&&(c.req.path==='/api/overview'||/^\/api\/(monitors|notifications)(\/|$)/.test(c.req.path))){c.executionCtx.waitUntil(kickHostedWork(c.get('systemBindings')??c.env).catch(()=>console.error('Hosted console work failed; queued work remains available to Cron.')))}})
+api.get('/api/routing/teams',async c=>c.json(await readTeams(c.env)))
+api.post('/api/routing/teams',async c=>c.json(await saveTeam(c.env,c.get('input'),c.get('access'))))
+api.get('/api/routing/recipient',async c=>c.json(await readRecipient(c.env,c.get('access'))))
+api.post('/api/routing/recipient',async c=>c.json(await consentRecipient(c.env,c.get('input'),c.get('access'))))
+api.post('/api/monitors/:id/alert-route/sample',async c=>c.json(await sampleAlertRoute(c.env,c.req.param('id'),c.get('input'))))
 api.get('/api/access/self',c=>accessMembers(c.env,c.req.raw))
 api.get('/api/access/members',c=>accessMembers(c.env,c.req.raw))
 api.post('/api/access/invitations',c=>accessMembers(c.env,c.req.raw,c.get('input')))

@@ -36,7 +36,7 @@ export async function permission(env:AuthBindings,request:Request,input?:unknown
  if(scopes.length&&!wanted.workspace&&wanted.action==='maintenance_write'&&!ids.length)throw new AccessError()
  if(ids.some((id:unknown)=>typeof id!=='string'||!id||id.length>512)||ids.length>100)throw new AccessError()
  if(scopes.length){
-  if(!ids.length&&wanted.action!=='read')throw new AccessError()
+  if(!ids.length&&!['read','receive'].includes(wanted.action))throw new AccessError()
   for(const id of ids){const row=await env.DB.prepare('SELECT definition FROM monitors WHERE id=?').bind(id).first<{definition:string}>();if(!row||!inScope(JSON.parse(row.definition),scopes))throw new AccessError()}
   const definition=(wanted as any).definition
   if(definition){
