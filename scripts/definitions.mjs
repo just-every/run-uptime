@@ -25,10 +25,11 @@ import { doorPlanView, previewDefinitions } from '../src/domain/business-import/
 import { importHistory } from '../src/domain/business-import/history.server.ts';
 import {remoteDefinitions} from './definitions-http.mjs';
 import { importPlaywright } from './playwright-import/cli.mjs';
+import {permission,accessFence} from '../src/domain/access.server.ts';
+import {authorizedDatabase,auditAccess} from '../src/domain/access-database.server.ts';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const commands = { 'import-playwright': ['--input', '--fixtures', '--lock', '--output', '--base'], validate: ['--input', '--source'], preview: ['--input', '--source'], apply: ['--input', '--source', '--digest'], export: ['--output'], batches: [], undo: ['--batch'] };
-const actor = { kind: 'feature', ref: 'local-cli' };
 
 function parse(argv) {
  const [command, ...rest] = argv, options = {};
@@ -65,10 +66,11 @@ async function syntheticGrant() {
  try { const grant = JSON.parse(await readFile(join(root, '.wrangler/state/synthetic-grant.json'), 'utf8')); return Number.isInteger(grant.port) ? { UPTIME_SYNTHETIC_PORT: String(grant.port) } : {}; } catch { return {}; }
 }
 
-// The local command holds the installation's operation and its own storage, so it acts as the installation's
-// owner. It imports through the same door as the console: upload, plan, the reviewed fingerprint, apply, reconcile.
-const ownerAuthority = env => async () => ({ sql: "EXISTS(SELECT 1 FROM oa_operators WHERE email=? AND role='owner' AND status='active')", params: [env.OWNER_EMAIL ?? ''] });
-const ownerRequest = (env, path, init = {}) => new Request(new URL(path, env.UPTIME_ORIGIN), { ...init, headers: { origin: env.UPTIME_ORIGIN, 'content-type': 'application/json', ...init.headers } });
+// Holding local storage does not replace the live identity or second factor.
+// The same permission and transaction fence apply to each resumed import step.
+const ownerRequest = (env, path, init = {}) => new Request(new URL(path, env.UPTIME_ORIGIN), { ...init, headers: { origin: env.UPTIME_ORIGIN, cookie: process.env.UPTIME_ACCESS_COOKIE ?? '', 'content-type': 'application/json', ...init.headers } });
+const localAccess=env=>permission(env,ownerRequest(env,'/api/operator/import/local',{method:'POST'}),undefined,{action:'import',workspace:true});
+const ownerAuthority = env => async () => accessFence(await localAccess(env));
 // History reads the owner's import history with the same local authority.
 async function door(env, namespace, step, body) {
  const response = await operatorImport(env, ownerRequest(env, `/api/operator/import/${step}`, { method: 'POST', headers: { 'x-import-source': namespace }, body: JSON.stringify(body) }), ownerAuthority(env));
@@ -132,7 +134,10 @@ export async function run(argv = process.argv.slice(2)) {
   if (['apply', 'undo'].includes(command)) await migrate();
   const settings = await readLocalSettings();
   worker = await startLocalWorker({ bindings: { ...settings, ...await syntheticGrant() }, assets: false });
-  const env = { ...settings, ...await syntheticGrant(), DB: await worker.getD1Database('DB') };
+  const localEnv = { ...settings, ...await syntheticGrant(), DB: await worker.getD1Database('DB') };
+  const access=command==='export'?await permission(localEnv,ownerRequest(localEnv,'/api/definitions/export'),undefined,{action:'export',workspace:true}):await localAccess(localEnv);
+  const env={...localEnv,DB:authorizedDatabase(localEnv,access)};
+  const actor={kind:'operator',ref:access.session.operator.id};
   if (command === 'validate' || command === 'preview') {
    const result = await previewDefinitions(env, text, options.source);
    if (options.json) console.log(JSON.stringify(result)); else printPreview(result);
@@ -144,6 +149,7 @@ export async function run(argv = process.argv.slice(2)) {
    return 0;
   }
   if (command === 'export') {
+   await auditAccess(localEnv,access);
    const temporary = resolve(options.output) + '.partial', file = await privateFile(temporary, false);
    try { await file.writeFile(JSON.stringify(await exportDefinitions(env), null, 2) + '\n'); await file.sync(); } finally { await file.close(); }
    await promote(temporary, resolve(options.output));
