@@ -5811,7 +5811,7 @@
       "executable": false
     },
     "src/domain/erasure.server.ts": {
-      "sha256": "3b36ad440aedb358f4e469fb2ab0aff50feac8922390e533abbcc95da16180d3",
+      "sha256": "f1815aa8993ff969008a8342738f4b5e5ec16e78d99edab017c4008f53a5651e",
       "executable": false
     },
     "src/domain/evidence.server.ts": {
@@ -7163,7 +7163,7 @@
       "executable": false
     },
     "tests/catalog-routes-support.mjs": {
-      "sha256": "10b1a23ba9141580bf25ffa943677b6e43dd1fb2c36698b2f05e47201bba4d0e",
+      "sha256": "658cd8722a6e5fbe68e95ae33a2e2bac9b09581dda15fdb57c3ceba6183c12be",
       "executable": false
     },
     "tests/catalog.mjs": {
