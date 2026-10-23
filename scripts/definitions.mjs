@@ -134,7 +134,7 @@ export async function run(argv = process.argv.slice(2)) {
   if (['apply', 'undo'].includes(command)) await migrate();
   const settings = await readLocalSettings();
   worker = await startLocalWorker({ bindings: { ...settings, ...await syntheticGrant() }, assets: false });
-  const localEnv = { ...settings, ...await syntheticGrant(), DB: await worker.getD1Database('DB') };
+  const localEnv = { ...settings, UPTIME_LOCAL_REVIEW:'true', ...await syntheticGrant(), DB: await worker.getD1Database('DB') };
   const access=command==='export'?await permission(localEnv,ownerRequest(localEnv,'/api/definitions/export'),undefined,{action:'export',workspace:true}):await localAccess(localEnv);
   const env={...localEnv,DB:authorizedDatabase(localEnv,access)};
   const actor={kind:'operator',ref:access.session.operator.id};
