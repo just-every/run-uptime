@@ -45,6 +45,8 @@ export async function proveReadKeys({origin,db,cookie,ids,from,to}){
  for(let n=0;n<130;n++){rate=await read(limited,single,'HEAD');if(rate.status===429)break;assert.equal(rate.status,200)}
  assert.equal(rate.status,429);assert.ok(Number(rate.headers.get('retry-after'))>0);assert.equal((await read(tagged,single,'HEAD')).status,200,'independent key budget');
  await keysCommand(['--origin',origin,'revoke','--id',selected.credential.id],{UPTIME_ACCESS_COOKIE:cookie});assert.equal((await read(selected,single)).status,401);
+ const expiresAt=(Math.floor(Date.now()/1000)+1)*1000+500,expiring=await issue({...spec('Exact millisecond expiry'),expiresAt});
+ await new Promise(resolve=>setTimeout(resolve,Math.max(0,expiresAt-Date.now()+5)));assert.equal((await read(expiring,single)).status,401,'public request after exact subsecond expiry is refused');
  await db.prepare('UPDATE integration_tokens SET expires_at=? WHERE namespace=(SELECT namespace FROM uptime_credential_grants WHERE id=?)').bind(Date.now()-1,tagged.credential.id).run();assert.equal((await read(tagged,single)).status,401);
  // Native second owner admission gives a separate accountable issuer to revoke.
  const fresh=await emailSignIn(origin),other=await inviteDoorMember(origin,fresh,'owner','read-key-issuer');await completeSecondFactor(origin,other.cookie);
