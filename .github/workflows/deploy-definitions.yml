@@ -1,0 +1,26 @@
+name: Deploy scoped monitor definitions
+on:
+  workflow_dispatch:
+permissions: {}
+jobs:
+  definitions:
+    runs-on: [self-hosted, uptime-installation]
+    timeout-minutes: 5
+    env:
+      UPTIME_CHECKOUT: ${{ vars.UPTIME_CHECKOUT }}
+      UPTIME_ORIGIN: ${{ vars.UPTIME_ORIGIN }}
+      UPTIME_DEFINITIONS_FILE: ${{ vars.UPTIME_DEFINITIONS_FILE }}
+      UPTIME_ENVIRONMENT: ${{ vars.UPTIME_ENVIRONMENT }}
+      UPTIME_CI_TOKEN: ${{ secrets.UPTIME_CI_TOKEN }}
+    steps:
+      - name: Preview, validate and apply scoped definitions
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          cd "$UPTIME_CHECKOUT"
+          preview="$RUNNER_TEMP/uptime-definitions-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.preview.json"
+          node scripts/definitions.mjs preview --origin "$UPTIME_ORIGIN" --environment "$UPTIME_ENVIRONMENT" --input "$UPTIME_DEFINITIONS_FILE" --json > "$preview"
+          node scripts/definitions.mjs test --origin "$UPTIME_ORIGIN" --environment "$UPTIME_ENVIRONMENT" --input "$UPTIME_DEFINITIONS_FILE" --json > "$preview.validation"
+          digest=$(node -e 'const fs=require("node:fs");const p=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));if(p.counts.refused||p.counts.unsupported)process.exit(1);process.stdout.write(p.reviewDigest)' "$preview")
+          node scripts/definitions.mjs apply --origin "$UPTIME_ORIGIN" --environment "$UPTIME_ENVIRONMENT" --input "$UPTIME_DEFINITIONS_FILE" --digest "$digest" --json
