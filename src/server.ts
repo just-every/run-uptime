@@ -1,3 +1,4 @@
+import {ciDoor} from './domain/ci/door.server.ts'
 import {credentialPermission} from './domain/access.server.ts'
 import {credentialKeys} from './domain/credentials/store.server.ts'
 import {monitoringCapability} from './domain/credentials/model.server.ts'
@@ -349,6 +350,7 @@ const handler={async fetch(request,env,execution){
  const bindings=env as Bindings,url=new URL(request.url),path=url.pathname,isEvidencePage=/^\/app\/evidence\/[^/]+$/.test(path);
  if(url.origin!==bindings.UPTIME_ORIGIN||(request.headers.has('host')&&request.headers.get('host')?.toLowerCase()!==url.host.toLowerCase()))return new Response('Invalid host',{status:403});
  const mfa=await mfaDoor(bindings,request);if(mfa)return mfa;
+ const ci=await ciDoor(bindings,request);if(ci)return ci;
  const factorDenial=await earlyMfaGate(bindings,request);if(factorDenial)return factorDenial;
  if(path.startsWith('/api/rer/import/'))return businessImportDoor(bindings,request);
  if(path.startsWith('/api/operator/import/'))return ownerImportDoor(bindings,request);

@@ -1,13 +1,13 @@
 import type {Scope} from '../access.server.ts'
 export type Resources={mode:'workspace'|'selection';monitorIds:string[];tags:string[]}
-export type CredentialAuthority={kind:'credential';id:string;namespace:string;tokenId:string;workspaceId:string;issuerId:string;issuerVersion:number;issuerRole:string;roleRevision:number;revision:number;resources:Resources;scopes:Scope[];role:'read-only';action:string;monitorIds:string[]}
+export type CredentialAuthority={kind:'credential';id:string;namespace:string;tokenId:string;workspaceId:string;issuerId:string;issuerVersion:number;issuerRole:string;roleRevision:number;revision:number;resources:Resources;environment:string|null;tokenScopes:string[];requiredScope:string;scopes:Scope[];role:'read-only';action:string;monitorIds:string[]}
 export type CredentialEnvironment={DB:D1Database;readCredential?:CredentialAuthority}
 export class CredentialError extends Error {status:number;constructor(status:number,message:string){super(message);this.status=status}}
 export const credentialLimit=60
 // A durable live ceiling, shared by allowed-use admission and later mutation fences.
 export function credentialFence(authority:CredentialAuthority){return {sql:`EXISTS(SELECT 1 FROM uptime_credential_grants g JOIN uptime_credential_workspace w ON w.id=g.workspace_id AND w.singleton=1 JOIN integration_tokens t ON t.namespace=g.namespace JOIN oa_operators o ON o.id=g.issuer_id JOIN uptime_member_roles r ON r.operator_id=o.id
- WHERE g.id=? AND g.namespace=? AND g.workspace_id=? AND g.revision=? AND t.id=? AND t.revoked_at IS NULL AND t.expires_at>(CAST(strftime('%s','now') AS INTEGER)*1000+CAST(substr(strftime('%f','now'),4,3) AS INTEGER))
- AND o.status='active' AND o.version=g.issuer_version AND o.version=? AND o.role=g.issuer_role AND o.role=? AND r.base_version=o.version AND r.base_role=o.role AND r.role=g.issuer_role AND r.revision=g.role_revision AND r.revision=?)`,params:[authority.id,authority.namespace,authority.workspaceId,authority.revision,authority.tokenId,authority.issuerVersion,authority.issuerRole,authority.roleRevision]}}
+ WHERE g.id=? AND g.namespace=? AND g.workspace_id=? AND g.revision=? AND t.id=? AND ? IN(SELECT value FROM json_each(t.scopes)) AND g.environment IS ? AND t.revoked_at IS NULL AND t.expires_at>(CAST(strftime('%s','now') AS INTEGER)*1000+CAST(substr(strftime('%f','now'),4,3) AS INTEGER))
+ AND o.status='active' AND o.version=g.issuer_version AND o.version=? AND o.role=g.issuer_role AND o.role=? AND r.base_version=o.version AND r.base_role=o.role AND r.role=g.issuer_role AND r.revision=g.role_revision AND r.revision=?)`,params:[authority.id,authority.namespace,authority.workspaceId,authority.revision,authority.tokenId,authority.requiredScope,authority.environment,authority.issuerVersion,authority.issuerRole,authority.roleRevision]}}
 // Alias is a source-code identifier, never request input. Selection=[] stays empty.
 export function credentialMonitorFilter(env:CredentialEnvironment,alias='monitors'){
  const a=env.readCredential;if(!a)return {sql:'1',params:[] as (string|number)[]}
