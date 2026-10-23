@@ -50,7 +50,10 @@ export async function ciDoor(system:Bindings,request:Request):Promise<Response|n
   if(step==='uploads'&&input.uploadId){const row=await env.DB.prepare('SELECT namespace FROM ik_door_uploads WHERE id=?').bind(input.uploadId).first<{namespace:string}>();if(row?.namespace!==namespace)throw new CredentialError(404,'Import upload not found')}
   if(step==='plan')await checkedUpload(env,a,input.uploadId)
   if(['apply','reconcile','undo'].includes(step!)){const checked=await checkedPlan(env,a,input.planId);if(step==='undo'){if(checked.view.applied)throw new CredentialError(403,'CI can cancel only unapplied previews');cancellation=checked.row}}
-  const base=credentialFence(a),authorize=async()=>({sql:base.sql+(step==='undo'?" AND EXISTS(SELECT 1 FROM ik_door_plans p WHERE p.id=? AND p.namespace=? AND p.job_id IS NULL AND NOT EXISTS(SELECT 1 FROM ik_jobs j WHERE j.operation_key='door:'||p.id))":''),params:[...base.params,...(step==='undo'?[input.planId,namespace]:[])]})
+  // Cancellation deletes its plan before the remaining custody cleanup. Preserve
+  // the no-job guard after that deletion so the transaction can finish, while
+  // any concurrently started apply still refuses cancellation atomically.
+  const base=credentialFence(a),authorize=async()=>({sql:base.sql+(step==='undo'?" AND NOT EXISTS(SELECT 1 FROM ik_door_plans p WHERE p.id=? AND (p.namespace<>? OR p.job_id IS NOT NULL)) AND NOT EXISTS(SELECT 1 FROM ik_jobs j WHERE j.operation_key='door:'||?)":''),params:[...base.params,...(step==='undo'?[input.planId,namespace,input.planId]:[])]})
   const source=await importSource(env,namespace);if(!source)throw new CredentialError(400,'Native import source required')
   const handler=createImportOperatorHandler({database:env.DB,targets:ciTargets(env,a),ownerPrincipalId:a.issuerId,destination:BUSINESS_DESTINATION,format:'ndjson',limits:{maxBytes:2*1024*1024,maxRecords:500},reversalPolicy:REVERSAL_POLICY,...source,installationId:DOOR_KEY,appOrigin:system.UPTIME_ORIGIN??'',ownerEmail:system.OWNER_EMAIL??'',namespace,authorize})
   await admitCredential(system,a,step==='apply'?'definitions.apply':'definitions.preview')
