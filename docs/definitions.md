@@ -88,6 +88,8 @@ Batches travel in a private archive as history, the import door's included: each
 
 With `rer dev` and `rer preview` stopped, the same planner and import door run from a terminal:
 
+Set `UPTIME_ACCESS_COOKIE` to your current installation session in the command's environment. Local commands check the live product permission; imports also require a second factor verified within five minutes. Holding the local files alone does not authorize an import.
+
 ```sh
 node scripts/definitions.mjs preview --input uptime.monitors.json
 node scripts/definitions.mjs apply --input uptime.monitors.json --digest PLAN_DIGEST
