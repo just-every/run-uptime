@@ -18,6 +18,7 @@ async function transfer(context, direction) {
  if (result.code !== 0 || !value.ok) {
   if (value.reason === 'legacy_archive_unbound') throw refuse('This archive was exported by Uptime 0.1.2 or earlier, before archives bound their metadata, and cannot be imported. Upgrade the source installation to this version and export it again. A console archive (Runner / archive) still restores into an empty installation.');
   if (['session_required','second_factor_required','fresh_second_factor_required'].includes(value.reason)) throw refuse('Set UPTIME_ACCESS_COOKIE to a live Base session cookie after verifying a second factor within five minutes. See docs/mfa.md; keep the cookie private.');
+  if (value.reason==='permission_required') throw refuse('This session does not have workspace archive permission.');
   if (value.refused) throw refuse('Uptime refused the transfer: preserve the archive, restore only into an empty destination, and inspect the private capture.');
   throw new RerError('transfer_failed', `The Uptime transfer failed (${/^[a-zA-Z_]+$/.test(value.reason) ? value.reason : 'product_transfer_failed'}); inspect the private capture.`, 1);
  }

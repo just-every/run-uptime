@@ -13,7 +13,7 @@ import { catalogue, policy as archivePolicy } from '@runeditrun/rer/modules/port
 import { appliedMigrations, sameSchemaMigrations, additiveBridge } from '@runeditrun/rer/internal/modules/portability/bridge.mjs';
 import { migrationHistory } from './migration-history.mjs';
 import { fileURLToPath } from 'node:url';
-import {permission} from '../../src/domain/access.server.ts';
+import {permission,AccessError} from '../../src/domain/access.server.ts';
 import {authorizedDatabase,auditAccess} from '../../src/domain/access-database.server.ts';
 import {MfaError} from '../../src/domain/mfa/policy.server.ts';
 import {validateJournal} from '../../src/domain/archive-fence.server.ts';
@@ -102,5 +102,5 @@ export async function transfer(direction, path) {
 }
 if (import.meta.url === new URL(process.argv[1], 'file:').href) {
  try { console.log(JSON.stringify({ ok: true, ...await transfer(process.argv[2], process.argv[3]) })); }
- catch (error) { console.log(JSON.stringify({ ok: false, refused: error instanceof PortabilityError || error instanceof MfaError || /Restore requires empty|EEXIST/.test(error.message), reason: error instanceof PortabilityError ? error.code.split(':')[0] : error.code ?? error.name })); process.exitCode = 1; }
+ catch (error) { console.log(JSON.stringify({ ok: false, refused: error instanceof PortabilityError || error instanceof MfaError || error instanceof AccessError || /Restore requires empty|EEXIST/.test(error.message), reason: error instanceof PortabilityError ? error.code.split(':')[0] : error instanceof AccessError ? (error.status===401?'session_required':'permission_required') : error.code ?? error.name })); process.exitCode = 1; }
 }
