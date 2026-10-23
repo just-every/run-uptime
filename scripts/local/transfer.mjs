@@ -40,7 +40,7 @@ export async function transfer(direction, path) {
  let service, id, complete = false, manifest, closing;
  const temporary = path + '.partial';
  try {
-  const env = { ...settings, DB: await worker.getD1Database('DB') };
+  const env = { ...settings, UPTIME_LOCAL_REVIEW:'true', DB: await worker.getD1Database('DB') };
   const request=new Request(new URL(direction==='export'?'/api/archive':'/api/restore',settings.UPTIME_ORIGIN),{method:direction==='export'?'GET':'POST',headers:{cookie,origin:settings.UPTIME_ORIGIN}});
   // A local filesystem command holds the same live Base session and five-minute
   // factor proof as HTTP. Re-read authority at every progress boundary. Product
