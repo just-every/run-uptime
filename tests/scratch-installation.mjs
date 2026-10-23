@@ -25,6 +25,9 @@ export async function scratchInstallation({ mirror = false } = {}) {
  const env = { PATH: process.env.PATH, HOME: process.env.HOME, CI: 'true', RER_SERVER_JOURNEY: '1', TMPDIR: temporary, TMP: temporary, TEMP: temporary,
   npm_config_child_concurrency: '1', npm_config_network_concurrency: '2', WRANGLER_SEND_METRICS: 'false', WRANGLER_LOG_PATH: join(temporary, 'wrangler.log'),
   ...(process.env.PLAYWRIGHT_BROWSERS_PATH ? { PLAYWRIGHT_BROWSERS_PATH: process.env.PLAYWRIGHT_BROWSERS_PATH } : {}) };
+ // Clean installer commands still need the host's network proxy and CA trust.
+ // These standard transport settings carry no product/provider credential authority.
+ for(const name of ['HTTP_PROXY','HTTPS_PROXY','ALL_PROXY','NO_PROXY','http_proxy','https_proxy','all_proxy','no_proxy','NODE_EXTRA_CA_CERTS','SSL_CERT_FILE','SSL_CERT_DIR'])if(process.env[name]!==undefined)env[name]=process.env[name];
  const children = new Set();
  const commands = await createCommands(temporary, { logs: [] }, { terminal: () => {} });
  function start(command, args, { cwd = root, environment = {}, stdio = ['ignore', 'pipe', 'pipe'] } = {}) {
