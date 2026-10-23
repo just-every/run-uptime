@@ -1,3 +1,4 @@
+import {completeSecondFactor} from './mfa-auth-support.mjs';
 import assert from 'node:assert/strict';
 import {sessionCookie} from './auth-test-support.mjs';
 import {readDeliveredMessages} from './mail-provider-fixture.mjs';
@@ -13,6 +14,7 @@ export async function proveMemberLifecycle({origin,call,fetcher,DB,cookie,member
   const link=new URL(delivered.content.find(c=>c.type==='text/plain').value.match(/https?:\/\/[^\s]+/)[0]);
   const accepted=await call('/auth/confirm',{token:link.searchParams.get('token')});
   const acceptedCookie=sessionCookie(accepted);assert.ok(acceptedCookie);
+  await completeSecondFactor(origin,acceptedCookie,fetcher);
   const person=await DB.prepare('SELECT id,role,version FROM oa_operators WHERE email=?').bind(email).first();
   return {id:person.id,cookie:acceptedCookie,baseRole:person.role};
  }

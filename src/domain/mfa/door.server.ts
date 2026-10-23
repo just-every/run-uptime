@@ -1,5 +1,5 @@
 import {authenticatedSession,authFailure,type AuthBindings} from '../operator-auth.server.ts'
-import {checkSecondFactor,MfaError,mfaResponse} from './policy.server.ts'
+import {checkSecondFactor,requestNeedsStepUp,MfaError,mfaResponse} from './policy.server.ts'
 import {limited} from './store.server.ts'
 import {beginTotp,finishTotp,verifyTotp} from './totp.server.ts'
 import {beginWebAuthn,finishWebAuthn} from './webauthn.server.ts'
@@ -52,5 +52,5 @@ export async function mfaDoor(env:AuthBindings,request:Request){
 export async function earlyMfaGate(env:AuthBindings,request:Request){
  const path=new URL(request.url).pathname
  if(!(path==='/setup'||path==='/api/editor/config'||path==='/alert-drill'||path.startsWith('/api/operator/import/')||/^\/app\/evidence\//.test(path)||/^\/auth\/(?:session|operators|sessions|invite|invite\/cancel|operator\/status|operator\/role|session\/revoke|setup-complete)$/.test(path)))return null
- try{const session=await authenticatedSession(env,request);if(session)await checkSecondFactor(env,session);return null}catch(error){return mfaResponse(error)??authFailure(error)}
+ try{const session=await authenticatedSession(env,request);if(session)await checkSecondFactor(env,session,requestNeedsStepUp(request));return null}catch(error){return mfaResponse(error)??authFailure(error)}
 }

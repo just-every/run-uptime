@@ -1,3 +1,4 @@
+import {completeSecondFactor} from './mfa-auth-support.mjs';
 // BASE-ACCESS-002 and BASE-ACCESS-004: native session denial, fixed expiry, revocation, member refusal and forged claims, with no denied mutation.
 import assert from 'node:assert/strict';
 import {createHmac} from 'node:crypto';
@@ -51,7 +52,7 @@ try{
    if(!hosted)return emailSignIn(origin,{bindings,fetcher});
    assert.equal((await call('/auth/magic-link',{email:bindings.OWNER_EMAIL})).status,202);
    const link=new URL(mails.at(-1).content.find(c=>c.type==='text/plain').value.match(/https:\/\/[^\s]+/)[0]);
-   return sessionCookie(await call('/auth/confirm',{token:link.searchParams.get('token')}));
+   const cookie=sessionCookie(await call('/auth/confirm',{token:link.searchParams.get('token')}));await completeSecondFactor(origin,cookie,fetcher);return cookie;
   }
   const revoked=await login();assert.equal((await call('/auth/signout',{}, {cookie:revoked})).status,204);
   const valid=await login();await finishSetup(origin,valid,fetcher);

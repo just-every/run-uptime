@@ -11,14 +11,14 @@ export function authenticatorCode(secret,now=Date.now(),digits=6){
  return String((hmac.readUInt32BE(offset)&0x7fffffff)%(10**digits)).padStart(digits,'0');
 }
 export function factorRequest(origin,cookie,fetcher=fetch){return (path,body,method=body===undefined?'GET':'POST')=>fetcher(origin+'/api/access/mfa'+path,{method,redirect:'manual',headers:{host:new URL(origin).host,origin,cookie,'content-type':'application/json'},...(body===undefined?{}:{body:JSON.stringify(body)})})}
-export async function completeSecondFactor(origin,cookie,fetcher=fetch){
+export async function completeSecondFactor(origin,cookie,fetcher=fetch,now=Date.now()){
  const call=factorRequest(origin,cookie,fetcher),statusResponse=await call('/status');assert.equal(statusResponse.status,200,'live Base session reaches factor status');
  const status=await statusResponse.json(),key=origin+'\0'+status.operatorId;
  if(status.fresh)return authenticators.get(key);
  let state=authenticators.get(key);
  if(!status.factors.length){
   const pendingResponse=await call('/totp/enroll',{});assert.equal(pendingResponse.status,200,'real TOTP enrollment starts');const pending=await pendingResponse.json();
-  const confirmed=await call('/totp/confirm',{challengeId:pending.challengeId,code:authenticatorCode(pending.secret)});assert.equal(confirmed.status,200,'authenticator proves the enrolled seed');const enrolled=await confirmed.json();
+  const confirmed=await call('/totp/confirm',{challengeId:pending.challengeId,code:authenticatorCode(pending.secret,now)});assert.equal(confirmed.status,200,'authenticator proves the enrolled seed');const enrolled=await confirmed.json();
   assert.equal(enrolled.recoveryCodes?.length,10,'initial enrollment returns ten recovery codes once');
   state={id:enrolled.id,secret:pending.secret,recoveryCodes:enrolled.recoveryCodes};authenticators.set(key,state);return state;
  }
@@ -30,4 +30,17 @@ export async function completeSecondFactor(origin,cookie,fetcher=fetch){
  if(state.recoveryCodes.length<3){const rotated=await call('/recovery/rotate',{});assert.equal(rotated.status,200,'fresh second factor rotates recovery codes');state.recoveryCodes=(await rotated.json()).recoveryCodes}
  return state;
 }
-export async function completeBrowserSecondFactor(page,origin){const cookies=await page.context().cookies(origin);const cookie=cookies.map(c=>c.name+'='+c.value).join('; ');return completeSecondFactor(origin,cookie)}
+export async function completeBrowserSecondFactor(page,origin){
+ const cookies=await page.context().cookies(origin),cookie=cookies.map(c=>c.name+'='+c.value).join('; ');
+ // Use this context's transport, including its explicitly trusted test TLS edge.
+ const fetcher=async(url,init)=>{const response=await page.context().request.fetch(url,{method:init.method,headers:init.headers,data:init.body,maxRedirects:0});return new Response(await response.body(),{status:response.status(),headers:response.headers()})};
+ return completeSecondFactor(origin,cookie,fetcher);
+}
+// Adapt the existing certificate-checked Node HTTPS fixture transport. It still
+// calls the application's public factor endpoints and produces real TOTP proof.
+export async function completeApiSecondFactor(origin,cookie,api){
+ return completeSecondFactor(origin,cookie,async(url,init)=>{
+  const response=await api(new URL(url).pathname,init.body===undefined?undefined:JSON.parse(init.body),init.headers,init.method);
+  return new Response(JSON.stringify(response.data),{status:response.status});
+ });
+}
