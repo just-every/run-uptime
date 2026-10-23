@@ -11,7 +11,12 @@ export function credentialFence(authority:CredentialAuthority){return {sql:`EXIS
 // Alias is a source-code identifier, never request input. Selection=[] stays empty.
 export function credentialMonitorFilter(env:CredentialEnvironment,alias='monitors'){
  const a=env.readCredential;if(!a)return {sql:'1',params:[] as (string|number)[]}
- const live=credentialFence(a),r=a.resources;
- return {sql:`${live.sql} AND (?='workspace' OR ${alias}.id IN(SELECT value FROM json_each(?)) OR EXISTS(SELECT 1 FROM json_each(json_extract(${alias}.definition,'$.tags')) mt WHERE mt.value IN(SELECT value FROM json_each(?)))) AND NOT EXISTS(SELECT 1 FROM uptime_member_scopes s WHERE s.operator_id=? GROUP BY s.kind HAVING MAX(CASE WHEN s.kind='service' AND s.value=json_extract(${alias}.definition,'$.service') OR s.kind='team' AND s.value=json_extract(${alias}.definition,'$.group') THEN 1 ELSE 0 END)=0)`,params:[...live.params,r.mode,JSON.stringify(r.monitorIds),JSON.stringify(r.tags),a.issuerId]}
+ const live=credentialFence(a),r=a.resources,conditions:string[]=[],values:string[]=[]
+ if(r.mode==='selection'){
+  if(r.monitorIds.length){conditions.push(`${alias}.id IN(SELECT value FROM json_each(?))`);values.push(JSON.stringify(r.monitorIds))}
+  if(r.tags.length){conditions.push(`EXISTS(SELECT 1 FROM json_each(json_extract(${alias}.definition,'$.tags')) mt WHERE mt.value IN(SELECT value FROM json_each(?)))`);values.push(JSON.stringify(r.tags))}
+  if(!conditions.length)conditions.push('0')
+ }
+ return {sql:`${live.sql} AND (${conditions.join(' AND ')||'1'}) AND NOT EXISTS(SELECT 1 FROM uptime_member_scopes s WHERE s.operator_id=? GROUP BY s.kind HAVING MAX(CASE WHEN s.kind='service' AND s.value=json_extract(${alias}.definition,'$.service') OR s.kind='team' AND s.value=json_extract(${alias}.definition,'$.group') THEN 1 ELSE 0 END)=0)`,params:[...live.params,...values,a.issuerId]}
 }
 export function monitoringCapability(request:Request){const p=new URL(request.url).pathname;return ['GET','HEAD'].includes(request.method)&&(/^\/api\/v1\/(?:monitors|uptime|incidents|metrics)$/.test(p)||/^\/api\/v1\/monitors\/[^/]+(?:\/(?:uptime|report|response-times))?$/.test(p)||/^\/api\/v1\/incidents\/[^/]+$/.test(p))}
