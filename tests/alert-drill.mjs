@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import {join} from 'node:path';
 import http from 'node:http';
 import {runRunner} from '../runners/src/private-runner.mjs';
-import {acceptanceReceiver,verifySendGrid,signedReceiverVerifier,verifySlack,loopbackWireTransport} from './notify-acceptance-receivers.mjs';
+import {acceptanceReceiver,verifySendGrid,verifySecurityNotice,signedReceiverVerifier,verifySlack,loopbackWireTransport} from './notify-acceptance-receivers.mjs';
 import {availablePorts,migratedWorker,runtimeDirectory,fixtureProcess,cleanupDirectory,ownerAPI,waitFor} from './notify-acceptance-runtime.mjs';
 
 const key='alert-drill-runner-local-only-20261012';
@@ -58,7 +58,7 @@ http.request=function(options,...args){
  return nativeRequest.call(this,options,...args);
 };
 try{
- const mail=await acceptanceReceiver(mailPort,verifySendGrid);
+ const mail=await acceptanceReceiver(mailPort,record=>record.body.subject==='Uptime second-factor security change'?verifySecurityNotice(record,bindings.OWNER_EMAIL):verifySendGrid(record));
  const webhook=await acceptanceReceiver(webhookPort,record=>signedReceiverVerifier({secret:webhookDestination.signingSecret,tenant:'uptime-notifications',destinationId:()=>webhookDestination.credentialId})(record));
  const slack=await acceptanceReceiver(slackPort,verifySlack);receivers.push(mail,webhook,slack);
  ({worker,DB}=await migratedWorker({port:controlPort,persist:join(directory,'worker'),bindings,outboundService:async request=>{assert.equal(request.url,'https://api.sendgrid.com/v3/mail/send');// This is a new HTTP hop: fetch frames the unchanged production bytes.
