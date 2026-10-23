@@ -158,6 +158,7 @@ try {
   await fixture?.close(); await worker?.dispose(); await cleanupDirectory(directory);
 }
 await proveRumUpgrade();
+await (await import('./pagespeed-timing-support.mjs')).provePageSpeedTimings();
 console.log('PERF-001 upgrade passed: a populated installation gained the beacon tables by one additive migration that rewrote nothing.');
 await import('./flow-profiles.mjs');
 
