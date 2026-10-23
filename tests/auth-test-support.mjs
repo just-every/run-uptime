@@ -1,3 +1,4 @@
+import {completeSecondFactor,completeBrowserSecondFactor} from './mfa-auth-support.mjs';
 import {readDeliveredMessages} from './mail-provider-fixture.mjs';
 import {randomBytes,randomUUID,createHash} from 'node:crypto';
 import {request as httpRequest} from 'node:http';
@@ -36,35 +37,39 @@ export async function deliveredLink(call,{email,kind='magic'}){
  return new URL(entry.text.match(/https?:\/\/[^\s]+/)[0]);
 }
 export async function finishSetup(origin,cookie,fetcher=fetch){
+ await completeSecondFactor(origin,cookie,fetcher);
  const response=await fetcher(origin+'/setup',{method:'POST',redirect:'manual',headers:{host:new URL(origin).host,origin,cookie}});
  assert.equal(response.status,303,'owner completes the native first-run form');
  // An installation with no monitors lands on the first monitor's form; one with monitors on the list.
  assert.ok(['/app/monitors','/app/monitors/new'].includes(response.headers.get('location')),response.headers.get('location'));
 }
-export async function emailSignIn(origin,{bindings=testAuthBindings,fetcher=fetch}={}){
+export async function emailSignIn(origin,{bindings=testAuthBindings,fetcher=fetch,secondFactor=true}={}){
  const call=authRequest(origin,fetcher);
  assert.equal((await call('/auth/magic-link',{email:bindings.OWNER_EMAIL,returnTo:'/app'})).status,202,'Base accepted link request');
  const link=await deliveredLink(call,{email:bindings.OWNER_EMAIL,key:bindings.RER_DEV_KEY});
  assert.equal((await call(link.pathname+link.search)).status,200,'link preview does not consume');
- return sessionCookie(await call('/auth/confirm',{token:link.searchParams.get('token')}));
+ const cookie=sessionCookie(await call('/auth/confirm',{token:link.searchParams.get('token')}));
+ if(secondFactor)await completeSecondFactor(origin,cookie,fetcher);return cookie;
 }
 export async function signInOwner(origin,{bindings=testAuthBindings,fetcher=fetch,finishFirstRun=false}={}){
  const response=await authRequest(origin,fetcher)('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'Test owner',returnTo:'/app'});
  const cookie=response.status===409?await emailSignIn(origin,{bindings,fetcher}):sessionCookie(response);
- if(finishFirstRun)await finishSetup(origin,cookie,fetcher);return cookie;
+ await completeSecondFactor(origin,cookie,fetcher);if(finishFirstRun)await finishSetup(origin,cookie,fetcher);return cookie;
 }
 export async function browserSignIn(page,origin,{bindings=testAuthBindings,bootstrap=true}={}){
  if(bootstrap){
   // Bootstrap through Base, importing the returned cookie into this browser context.
   const response=await page.request.post(origin+'/auth/bootstrap',{headers:{origin},data:{token:bindings.SETUP_TOKEN,displayName:'Test owner',returnTo:'/app'},maxRedirects:0});
   assert.ok([303,409].includes(response.status()),'native bootstrap or already initialized');
-  if(response.status()===303){await page.goto(origin+'/app');if(new URL(page.url()).pathname==='/setup')await page.getByRole('button',{name:'Continue',exact:true}).click();await page.waitForURL(url=>url.pathname.startsWith('/app'));return}
+  if(response.status()===303){await completeBrowserSecondFactor(page,origin);await page.goto(origin+'/app');if(new URL(page.url()).pathname==='/setup')await page.getByRole('button',{name:'Continue',exact:true}).click();await page.waitForURL(url=>url.pathname.startsWith('/app'));return}
  }
  const call=authRequest(origin);
  assert.equal((await call('/auth/magic-link',{email:bindings.OWNER_EMAIL,returnTo:'/app'})).status,202);
  const link=await deliveredLink(call,{email:bindings.OWNER_EMAIL});
  await page.goto(link.href);
  await page.getByRole('button',{name:/confirm|sign in/i}).click();
+ await completeBrowserSecondFactor(page,origin);
+ await page.goto(origin+'/app');
  await page.waitForURL(url=>['/app/monitors','/app/monitors/new','/setup'].includes(url.pathname));
  if(new URL(page.url()).pathname==='/setup')await page.getByRole('button',{name:'Continue',exact:true}).click();
  await page.waitForURL(url=>url.pathname.startsWith('/app'));
