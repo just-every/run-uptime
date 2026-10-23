@@ -69,7 +69,7 @@ try {
  for (const [, specifier] of imports) assert.equal((await fetch(origin + specifier)).status, 200, 'the Vite client import ' + specifier + ' is served');
  const resetActive = scratch.start('node', [rer, 'reset', '--yes', '--non-interactive']);
  try { assert.equal((await resetActive.done).code, 4); } finally { await scratch.stop(resetActive); }
- browser = await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']}); const page = await browser.newPage();
+ browser = await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']}); const context=await browser.newContext(),page=await context.newPage();
  const devKey = await readCheckoutKey(scratch.root);
  await openGate(page.context(), origin, devKey);
  await devSignIn(page, origin + '/__dev/key', { displayName: 'Command Owner', OWNER_EMAIL: 'journey@example.test' }, { finishSetup: false, key: devKey });

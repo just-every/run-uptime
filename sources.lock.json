@@ -5942,6 +5942,10 @@
       "sha256": "0d4b658ba8d37b3e52dead47e6f5f569afc21e6eaba288fe6333b856fcadd284",
       "executable": false
     },
+    "src/domain/mfa/actions.mjs": {
+      "sha256": "fde7e98aca7a7654a26f056dd4c6cc2151a3ce6141c9c34a718a6d443142a374",
+      "executable": false
+    },
     "src/domain/mfa/crypto.server.ts": {
       "sha256": "405271c259f279c27975b57cc1fa55bc97398728aa9e54beea08d84faa1ca5af",
       "executable": false
@@ -7035,7 +7039,7 @@
       "executable": false
     },
     "tests/command-journey.mjs": {
-      "sha256": "9f99ebc383dd36c196c377cb404c62da1a9f88ac7385ba492d7e0e528b36af95",
+      "sha256": "af19fb52e6cf807063eff77b77fcedfebe9f22f344f93d1b9c811bca9b6b9029",
       "executable": false
     },
     "tests/connection-diagnostics-browser.mjs": {
@@ -7299,7 +7303,7 @@
       "executable": false
     },
     "tests/mfa-policy-support.mjs": {
-      "sha256": "8a67aef7960a40fb01dbe9bd24ab4befe468f8b7c7ce975c9c30a859f332b50d",
+      "sha256": "fa1818152e5c0652bfcefa308659d3a753c26696da63e31e326d859b990e8034",
       "executable": false
     },
     "tests/mfa-webauthn-support.mjs": {
@@ -7383,7 +7387,7 @@
       "executable": false
     },
     "tests/operator-security.mjs": {
-      "sha256": "22a1c32fda98153223327b706991e2558c2117cf44769e1538aa3b95abe6db3b",
+      "sha256": "9b8ea333c11246c6930a9d9dce8a709a76a5541a8c7ebac9af43fdc48cf156ea",
       "executable": false
     },
     "tests/owner-claim-admission.mjs": {
