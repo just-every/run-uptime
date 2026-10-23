@@ -475,7 +475,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "0aaa71bc8f9cf461ba2e554400333c132596309514e702898ce674a9411207db",
+      "sha256": "3d5d2b703b847302687e046ba38f49cc440e1b4f0269cbff01c79cf5bd768993",
       "executable": false
     },
     "AGENTS.md": {
@@ -499,7 +499,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "6a80972c6b93b98d2f4bab61c03da273b7705c24fcc391c1b6e9262009788cae",
+      "sha256": "557215f4348c5bf6ddf11e405ccacb89f43bfa680e79a5f91d1100bbe597277a",
       "executable": false
     },
     "DEMO.md": {
@@ -3271,7 +3271,7 @@
       "executable": false
     },
     "scripts/definitions-http.mjs": {
-      "sha256": "0bff0cb628406b825cba4a6f8ce18bd5c07145bb53a109afc1e9c9b64eb6f06f",
+      "sha256": "1f7b5549ff31ad5344fa16178ef7bb7cd1313a5725c754827d688ba1ab092e95",
       "executable": false
     },
     "scripts/definitions-typescript-child.mjs": {
@@ -5599,7 +5599,7 @@
       "executable": false
     },
     "src/domain/ci/door.server.ts": {
-      "sha256": "f7be34ca06e752c5f36d84b7dd9f1f02fc83c97263ecd329048369fa1f59359e",
+      "sha256": "7f7454df1fd3fcc87e0d5a29fd029c04090af533dcbcf1b91abbbc5dae5ac0a6",
       "executable": false
     },
     "src/domain/ci/scope.server.ts": {
