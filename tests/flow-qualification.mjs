@@ -1,3 +1,4 @@
+import {completeSecondFactor} from './mfa-auth-support.mjs';
 // FLOW-001 qualification through migrated Worker routes and two production
 // runner processes. Network placement is a separate hosted acceptance boundary.
 import assert from 'node:assert/strict';
@@ -28,6 +29,7 @@ try{
   return {url:base+entry,flow:{intent:signup?'Create an authorized synthetic account':checkout?'Submit an order in the authorized sandbox':'Sign in to the synthetic account',steps,outcomes:[{id:'customer-outcome',what:'text',value:checkout||confirmation?'Order confirmed':path?'Hostile page':'Welcome back'}]}};
  };
  const create=async(name,scenario,options={},timeoutMs=15000)=>{
+  await completeSecondFactor(origin,owner.cookie);
   const body=makeFlow(scenario,options),scope=crypto.randomUUID();body.flow.steps=body.flow.steps.map(step=>step.kind==='fill'?{...step,credentialRef:scope+'-'+step.credentialRef}:step);
   const monitor=await ok('/api/monitors','POST',{name,type:'flow',network:'synthetic',...body,probes:['local-a','local-b'],intervalMs:300000,timeoutMs,retries:0,confirmSlots:1,recoverSlots:1,freshnessMs:900000,enabled:false});
   for(const [ref,value] of [['email',FIXTURE_EMAIL],['password',FIXTURE_PASSWORD]])await writeFile(join(credentialDir,scope+'-'+ref+'.json'),JSON.stringify({monitorId:monitor.id,origin:fixture.origin,value}),{mode:0o600});
@@ -36,7 +38,7 @@ try{
  const evidence=async monitor=>(await ok(`/api/monitors/${monitor.id}/history`)).flatMap(slot=>slot.observations);
  const complete=async monitor=>{await waitFor(async()=>(await evidence(monitor)).length>=2,'both assigned browsers returned immutable evidence',90000);return evidence(monitor)};
  const state=async monitor=>(await ok('/api/overview')).monitors.find(m=>m.id===monitor.id).state.state;
- const erase=monitor=>ok(`/api/monitors/${monitor.id}/erase`,'POST',{name:monitor.definition.name});
+ const erase=async monitor=>{await completeSecondFactor(origin,owner.cookie);return ok(`/api/monitors/${monitor.id}/erase`,'POST',{name:monitor.definition.name})};
  start();
  // Keep this failing definition unchanged until its next scheduled slot. Fix
  // only the controlled site's behavior, so recovery proves the original intent.
