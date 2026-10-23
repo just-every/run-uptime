@@ -1990,6 +1990,10 @@
       "sha256": "40d4b94a8200bf393aadb9e569cb7ebdd30e2f24efaeafa028ce17c239288997",
       "executable": false
     },
+    "docs/migrating-site24x7.md": {
+      "sha256": "a572ec0a88ddbd3950d7e56c9a55b814fb758265dc0bf1e636053601f28623ab",
+      "executable": false
+    },
     "docs/monitors.md": {
       "sha256": "41f17599ca2fa82251e208e0f9afbfdb53357c9a78b676ed716d8b4e3c3d57ce",
       "executable": false
@@ -5423,7 +5427,7 @@
       "executable": false
     },
     "src/domain/business-import/mapping.server.ts": {
-      "sha256": "61016dbd9b4661a7c11ce9b4178f3bac572b95b02c530fce316b94755b2d5577",
+      "sha256": "750ad2655f91bdb6792a482cf69f3b08a4153648bdf477b5fc8f7dd3b242f524",
       "executable": false
     },
     "src/domain/business-import/plan-view.server.ts": {
@@ -5531,7 +5535,7 @@
       "executable": false
     },
     "src/domain/definitions/importers/index.ts": {
-      "sha256": "e2068750351a612771488833357eddc7834d210d3ac147df2eee85d753ed41e2",
+      "sha256": "1db7a5bf9897f20694cfb42c7421685275e726b422bca9d7dd04381dc827b8ed",
       "executable": false
     },
     "src/domain/definitions/importers/native.ts": {
@@ -6951,7 +6955,7 @@
       "executable": false
     },
     "tests/definitions-import.mjs": {
-      "sha256": "b856e8229227015b81621089cbf32730d0ab088ddfec2ac34d919bb7a055a538",
+      "sha256": "99a1f13f08624543c185afa0a67f8c8824b903ce5446b95a35015d596259338e",
       "executable": false
     },
     "tests/definitions-journey.mjs": {
@@ -7023,7 +7027,11 @@
       "executable": false
     },
     "tests/fixtures/README.md": {
-      "sha256": "586cd52ffab2a1328484ac00daff7c8dc8dacd4d9223e3e888a8d00e31d4cf42",
+      "sha256": "c4403b0cb463291a4f06e029f24f787ac0ba7863705a6a6acd226a605a9f2d23",
+      "executable": false
+    },
+    "tests/fixtures/site24x7-monitors.synthetic.json": {
+      "sha256": "dd95dcc90e2ad2142b747d789b3420a2031217a4dac4dda524db578fd41a8ccc",
       "executable": false
     },
     "tests/fixtures/uptimerobot-logs.synthetic.csv": {

@@ -7,3 +7,10 @@ https://www.site24x7.com/help/api/ (read 23 October 2026), using its documented
 `monitor_type` response field, monitor parameters, method and DNS lookup constants.
 It contains Website, REST API, Port, Ping and DNS settings plus invalid/unsupported
 records. Every name and source identifier is synthetic; no account or provider key is used.
+
+`betterstack-monitors.synthetic.json` follows the saved `monitor` resources at
+https://betterstack.com/docs/uptime/api/list-all-existing-monitors/ and the field
+semantics at https://betterstack.com/docs/uptime/api/create-a-new-monitor/
+(read 23 October 2026). HTTP timeout is seconds; ping/TCP timeout is milliseconds.
+Names, group identifiers and request values are synthetic. The credential-bearing
+record proves values are withheld before import custody and never applied.

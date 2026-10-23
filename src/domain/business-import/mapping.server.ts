@@ -1,3 +1,4 @@
+import {betterStackMonitorImporter} from '../definitions/importers/betterstack-monitors.ts'
 import type {Bindings} from '../control.server.ts'
 import {uptimeRobotImporter} from '../definitions/importers/uptimerobot.ts'
 import {pingdomImporter} from '../definitions/importers/pingdom.ts'
@@ -24,6 +25,7 @@ type Source={importer:Importer|null;mapping:string;prefix:string}
 const VENDORS:Record<string,Source>={
  uptimerobot:{importer:uptimeRobotImporter,mapping:'uptime-uptimerobot-definitions-v2',prefix:'uptimerobot'},
  pingdom:{importer:pingdomImporter,mapping:'uptime-pingdom-definitions-v1',prefix:'pingdom'},
+ 'betterstack-monitors':{importer:betterStackMonitorImporter,mapping:'uptime-betterstack-monitors-v1',prefix:'betterstack-monitors'},
  'betterstack-heartbeats':{importer:betterStackHeartbeatImporter,mapping:'uptime-betterstack-heartbeats-v1',prefix:'betterstack-heartbeats'},
  site24x7:{importer:site24x7Importer,mapping:'uptime-site24x7-definitions-v1',prefix:'site24x7'},
  [HISTORY_SOURCE]:{importer:null,mapping:'uptime-uptimerobot-log-v1',prefix:HISTORY_SOURCE},

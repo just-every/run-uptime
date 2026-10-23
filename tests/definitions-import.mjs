@@ -305,4 +305,29 @@ try{
   assert.equal((await door.undo(applied.body)).status,200);assert.equal((await get('/api/overview')).monitors.length,before.monitors.length+5);assert.ok((await get('/api/overview')).monitors.every(m=>!m.definition.enabled));
   console.log('MIGRATE-004 saved list: read 12 = converted 5 + refused 2 + unsupported 5; paused apply, unchanged re-import and retained-history undo.');
  }
+ // MIGRATE-003 saved monitor pages preserve each supported check through the Definitions door.
+ await worker.dispose();({worker,DB}=await migratedWorker({port,persist:join(directory,'betterstack-monitors'),bindings:{UPTIME_ORIGIN:origin}}));
+ {
+  const owner=sessionCookie(await authRequest(origin)('/auth/bootstrap',{token:testAuthBindings.SETUP_TOKEN,displayName:'Synthetic Better Stack owner'}));await finishSetup(origin,owner);
+  const get=async path=>{const response=await fetch(origin+path,{headers:{origin,cookie:owner}});assert.equal(response.status,200);return response.json()};await get('/api/overview');
+  const door=definitionDoor({origin,cookie:owner}),saved=await readFile('tests/fixtures/betterstack-monitors.synthetic.json'),plan=await door.preview(saved);
+  assert.equal(plan.status,200,JSON.stringify(plan.body));assert.equal(plan.body.source,'betterstack-monitors');assert.deepEqual(plan.body.counts,{create:7,unchanged:0,change:0,refused:1,unsupported:4});assert.equal(plan.body.entries.length,12);
+  assert.equal((await get('/api/overview')).monitors.length,0);await noSecrets('Better Stack preview',['synthetic-uptime-98','synthetic-uptime-99']);
+  for(const entry of plan.body.entries.slice(0,6)){assert.equal(entry.action,'create',entry.reason);for(const region of ['us','eu'])assert.ok(entry.differences.some(d=>d.includes(`Region ${region}`)));assert.ok(entry.differences.some(d=>d.includes('Group 31')))}
+  for(const [index,clause] of [[7,'FLOW-001'],[8,'UDP-001'],[9,'DNS-001'],[11,'API-002']])assert.ok(plan.body.entries[index].reason.includes(clause));
+  assert.equal(plan.body.entries[6].target.service,'GitHub','provider status addresses still use the catalog');
+  const applied=await door.apply(plan.body);assert.equal(applied.status,200,JSON.stringify(applied.body));assert.equal(applied.body.created.length,7);
+  const rows=(await get('/api/overview')).monitors,defs=Array.from({length:7},(_,i)=>rows.find(m=>m.definition.name===`synthetic-uptime-${i+1}`).definition);
+  assert.deepEqual(defs.map(d=>d.type),['http','keyword','keyword','ping','tcp','http','http']);assert.ok(defs.every(d=>!d.enabled));
+  for(const d of defs.slice(0,6)){assert.equal(d.intervalMs,60000);assert.equal(d.group,'Better Stack group 31');assert.deepEqual(d.tags,['betterstack-region:us','betterstack-region:eu'])}
+  assert.deepEqual(defs[0].assertions.status,['2xx']);assert.equal(defs[0].method,'GET');assert.equal(defs[0].timeoutMs,5000);
+  assert.equal(defs[1].assertions.bodyIncludes,'ready');assert.equal(defs[2].assertions.bodyExcludes,'error');
+  assert.deepEqual(defs[3].ping,{host:'synthetic-uptime-4.example',family:4,packets:3,maxLossPercent:0,maxRttMs:1000});assert.equal(defs[3].timeoutMs,8000);
+  assert.deepEqual(defs[4].tcp,{host:'synthetic-uptime-5.example',port:443});assert.equal(defs[4].timeoutMs,3000);assert.deepEqual(defs[5].assertions.status,[201,204]);
+  assert.equal(defs[6].catalog.entry,'github');
+  const again=await door.preview(saved);assert.equal(again.status,200);assert.deepEqual(again.body.counts,{create:0,unchanged:7,change:0,refused:1,unsupported:4});
+  assert.equal((await door.apply(plan.body)).status,200);assert.equal((await door.undo(applied.body)).status,200);assert.equal((await get('/api/overview')).monitors.length,7);assert.ok((await get('/api/overview')).monitors.every(m=>!m.definition.enabled));
+  await noSecrets('Better Stack apply and undo',['synthetic-uptime-98','synthetic-uptime-99']);
+  console.log('MIGRATE-003 saved monitors: read 12 = converted 7 + refused 1 + unsupported 4; groups/regions labelled, paused apply, unchanged re-import and retained-history undo.');
+ }
 }finally{await worker?.dispose();await cleanupDirectory(directory)}
