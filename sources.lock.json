@@ -7551,7 +7551,7 @@
       "executable": false
     },
     "tests/resilience/watches.mjs": {
-      "sha256": "c75eee051f88efd59fd99c8dc80a6eab3bf71dc5938ac8805daf340b4eb1b180",
+      "sha256": "b91010f2e1d24f35b0ad07c5c32601e7f2824c9525d917baadbac3de641a12bb",
       "executable": false
     },
     "tests/retention-browser-proof.mjs": {
