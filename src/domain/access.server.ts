@@ -1,3 +1,5 @@
+import {credentialFence,CredentialError,type CredentialAuthority} from './credentials/model.server.ts'
+export {credentialPermission} from './credentials/auth.server.ts'
 import {checkSecondFactor,requestNeedsStepUp,mfaCondition,mfaResponse} from './mfa/policy.server.ts'
 import {authenticatedSession,type AuthBindings} from './operator-auth.server.ts'
 // @ts-ignore Edition role vocabulary is shared with command helpers.
@@ -61,11 +63,13 @@ export function inScope(definition:any,scopes:Scope[]){
  // intersect; alternatives within a kind are a union. No rows means workspace.
  return (['service','team'] as const).every(kind=>{const values=scopes.filter(s=>s.kind===kind);return !values.length||values.some(s=>s.value===definition[kind==='team'?'group':'service'])})
 }
-export function accessFence(access:Access){
- const {session,revision}=access
+export function accessFence(access:Access|CredentialAuthority){
+ if('kind' in access&&access.kind==='credential')return credentialFence(access)
+
+ const {session,revision}=access as Access
  const sql=`EXISTS(SELECT 1 FROM oa_sessions s JOIN oa_operators o ON o.id=s.operator_id JOIN uptime_member_roles r ON r.operator_id=o.id
  WHERE s.id=? AND o.id=? AND s.revoked_at IS NULL AND s.expires_at>unixepoch()*1000 AND o.status='active'
- AND s.operator_version=o.version AND o.version=? AND o.role=? AND r.base_version=o.version AND r.base_role=o.role AND r.role=? AND r.revision=? AND ${mfaCondition(access.fresh)})`
+ AND s.operator_version=o.version AND o.version=? AND o.role=? AND r.base_version=o.version AND r.base_role=o.role AND r.role=? AND r.revision=? AND ${mfaCondition((access as Access).fresh)})`
  const params:any[]=[session.id,session.operator.id,session.operator.version,session.operator.role,access.role,revision]
  // One bound selection avoids a parameter per monitor/scope on D1's bounded
  // statement interface, while checking the whole bulk set at the write point.
@@ -75,4 +79,4 @@ export function accessFence(access:Access){
  OR (p.kind='team' AND p.value=json_extract(m.definition,'$.group')) THEN 1 ELSE 0 END)=0))`
  return {sql:`${sql} AND ${monitors}`,params:[...params,JSON.stringify(access.monitorIds),session.operator.id]}
 }
-export const accessResponse=(error:unknown)=>error instanceof AccessError?Response.json({error:error.message},{status:error.status,headers:{'cache-control':'no-store'}}):mfaResponse(error)
+export const accessResponse=(error:unknown)=>error instanceof CredentialError?Response.json({error:error.message},{status:error.status,headers:{'cache-control':'no-store',...(error.status===429?{'retry-after':String(60-Math.floor(Date.now()/1000)%60),'ratelimit':'limit=60, remaining=0, reset=60'}:{})}}):error instanceof AccessError?Response.json({error:error.message},{status:error.status,headers:{'cache-control':'no-store'}}):mfaResponse(error)

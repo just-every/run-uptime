@@ -14,6 +14,7 @@ export {validateIncidentArchive,incidentArchiveColumns,incidentMonitorErasureTab
 export async function incidentWorkRequest(system:Bindings,request:Request,input?:unknown):Promise<Response>{
  const headers={'cache-control':'no-store, private'}
  try{
+  if(system.readCredential){const url=new URL(request.url),match=/^\/api\/v1\/incidents\/([^/]+)$/.exec(url.pathname);if(!match||!['GET','HEAD'].includes(request.method))throw new IncidentWorkError('Credential read required',403);return Response.json(await incidentDetail(system,decodeURIComponent(match[1]),system.readCredential),{headers})}
   const access=await permission(system,request,input),env={...system,DB:authorizedDatabase(system,access)}
   const actor={id:access.session.operator.id,displayName:access.session.operator.displayName,access},url=new URL(request.url),path=url.pathname,method=request.method
   let result:any,status=200,notify=false

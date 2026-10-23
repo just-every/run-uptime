@@ -5,7 +5,7 @@ import {nextContactFollowup} from '../contact-scheduler.server.ts'
 import type {Bindings} from '../control.server.ts'
 import {findIncident,defaultOwner} from './common.server.ts'
 import {dependencyContext} from './dependencies.server.ts'
-export async function incidentDetail(env:Bindings,id:string,access?:Access){
+export async function incidentDetail(env:Bindings,id:string,access?:Pick<Access,'role'|'scopes'>){
  const incident=await findIncident(env,id)
  const [work,comments,histories,entries,operators,jobs,attempts,resolutions,fallbackOwner]=await Promise.all([
   env.DB.prepare('SELECT * FROM incident_work WHERE incident_id=?').bind(id).first<any>(),
