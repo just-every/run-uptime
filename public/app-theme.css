@@ -40,8 +40,9 @@
      .ui-compact         36px control for toolbars and cards (still above the 24px target size)
      .ui-link            text action (a or button) in the underlined link style
      .ui-icon[data-icon] 18px line icon drawn with a CSS mask in currentColor: arrow, arrow-left, archive, bell, braces,
-                         chat, check, check-circle, chevron, clock, copy, export, info, mail, monitor, moon, pause,
-                         pencil, pin, gear, play, plus, pulse, restore, server, sign-out, alert, x-circle. Always aria-hidden.
+                         chat, check, check-circle, chevron, clock, copy, export, funnel, info, mail, monitor, moon,
+                         pause, pencil, pin, gear, play, plus, pulse, restore, search, server, sign-out, alert, x,
+                         x-circle. Always aria-hidden.
      .ui-mark            the ring-and-peach-arc mark (28px); an inline <svg class="ui-mark"> is sized the same
      .ui-card            white card, 1px --line, --radius, --shadow-sm; .ui-card--raised uses --shadow
      .ui-inset           quiet lavender inner panel (--radius-panel)
@@ -57,12 +58,11 @@
      .ui-strip > .ui-dot.passed|failed|unknown   dot strip on a rail, oldest first, aria-hidden
      .ui-empty           centred empty state (put a .ui-strip of .ui-dot.unknown in it as the illustration)
      .ui-skeleton        static loading bar in --neutral-soft; size it with width or .ui-skeleton--title
-     .ui-table           dense table: sentence-case th, row separators, hover, selected row (tr.is-selected,
-                         tr[aria-selected=true] or a row holding [aria-pressed=true]); .ui-table--stack turns rows
-                         into stacked cards at ≤700px with td[data-label] captions; .ui-table--stack-md does it when
-                         its table-wrap container (container: table-wrap / inline-size on a wrapper) is under 760px,
-                         so a table squeezed between the sidebar and the inspector stacks at any viewport;
-                         a stacked row carries the selected bar itself, not its first cell
+     .ui-table           dense table: sentence-case th, row separators, hover, selected row as a lavender highlight
+                         (tr.is-selected, tr[aria-selected=true] or a row holding [aria-pressed=true]); .ui-table--stack
+                         turns rows into stacked cards at ≤700px with td[data-label] captions; .ui-table--stack-md does
+                         it when its table-wrap container (container: table-wrap / inline-size on a wrapper) is under
+                         760px, so a table squeezed between the sidebar and the inspector stacks at any viewport
      .ui-list            stacked rows with separators
      .ui-dl              label-over-value pairs (dl > div > dt + dd)
      .ui-code            block code or secret on --code-bg (pre already looks like this)
@@ -205,6 +205,9 @@
   --icon-alert: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 4 21 19.5H3ZM12 10v4.5M12 17h.01'/%3E%3C/svg%3E");
   --icon-x-circle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18ZM9 9l6 6M15 9l-6 6'/%3E%3C/svg%3E");
   --icon-check-circle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18ZM8 12.3l2.7 2.7L16 9.5'/%3E%3C/svg%3E");
+  --icon-search: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14ZM20 20l-4-4'/%3E%3C/svg%3E");
+  --icon-funnel: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5h16l-6 7.5V19l-4 1.5v-8L4 5Z'/%3E%3C/svg%3E");
+  --icon-x: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 7l10 10M17 7 7 17'/%3E%3C/svg%3E");
   --mark-dot: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='5.5'/%3E%3C/svg%3E");
   --mark-ring: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='5' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E");
   --mark-half: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='5' fill='none' stroke='%23000' stroke-width='2'/%3E%3Cpath d='M8 3a5 5 0 0 0 0 10Z'/%3E%3C/svg%3E");
@@ -411,6 +414,9 @@ select:not([multiple],[size]:not([size="1"])):disabled { --rer-select-ink: color
 .ui-icon[data-icon="sign-out"] { --i: var(--icon-sign-out); }
 .ui-icon[data-icon="alert"] { --i: var(--icon-alert); }
 .ui-icon[data-icon="x-circle"] { --i: var(--icon-x-circle); }
+.ui-icon[data-icon="search"] { --i: var(--icon-search); }
+.ui-icon[data-icon="funnel"] { --i: var(--icon-funnel); }
+.ui-icon[data-icon="x"] { --i: var(--icon-x); }
 
 .ui-mark { display: inline-block; flex: none; width: 28px; height: 28px; }
 .ui-mark:not(svg) { background: var(--mark-brand) center / contain no-repeat; }
@@ -509,7 +515,6 @@ select:not([multiple],[size]:not([size="1"])):disabled { --rer-select-ink: color
 .ui-table tbody tr:last-child td { border-bottom: 0; }
 .ui-table tbody tr:hover { background: var(--row-hover); }
 .ui-table tbody tr:is(.is-selected, [aria-selected="true"], :has([aria-pressed="true"])) { background: var(--lavender); }
-.ui-table tbody tr:is(.is-selected, [aria-selected="true"], :has([aria-pressed="true"])) > :first-child { box-shadow: inset 3px 0 0 var(--ink); }
 @media (max-width: 700px) {
   .ui-table--stack thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .ui-table--stack, .ui-table--stack tbody, .ui-table--stack tr, .ui-table--stack td { display: block; width: 100%; }
@@ -517,8 +522,6 @@ select:not([multiple],[size]:not([size="1"])):disabled { --rer-select-ink: color
   .ui-table--stack tbody tr:last-child { border-bottom: 0; }
   .ui-table--stack td { padding: 6px 0; border: 0; }
   .ui-table--stack td[data-label]::before { content: attr(data-label); display: block; margin-bottom: 2px; color: var(--muted); font-size: 12px; font-weight: 600; line-height: 1.3; }
-  .ui-table--stack tbody tr:is(.is-selected, [aria-selected="true"], :has([aria-pressed="true"])) { box-shadow: inset 3px 0 0 var(--ink); }
-  .ui-table--stack tbody tr:is(.is-selected, [aria-selected="true"], :has([aria-pressed="true"])) > :first-child { box-shadow: none; }
 }
 @container table-wrap (max-width: 759px) {
   .ui-table--stack-md thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
@@ -527,8 +530,6 @@ select:not([multiple],[size]:not([size="1"])):disabled { --rer-select-ink: color
   .ui-table--stack-md tbody tr:last-child { border-bottom: 0; }
   .ui-table--stack-md td { padding: 6px 0; border: 0; }
   .ui-table--stack-md td[data-label]::before { content: attr(data-label); display: block; margin-bottom: 2px; color: var(--muted); font-size: 12px; font-weight: 600; line-height: 1.3; }
-  .ui-table--stack-md tbody tr:is(.is-selected, [aria-selected="true"], :has([aria-pressed="true"])) { box-shadow: inset 3px 0 0 var(--ink); }
-  .ui-table--stack-md tbody tr:is(.is-selected, [aria-selected="true"], :has([aria-pressed="true"])) > :first-child { box-shadow: none; }
 }
 
 .ui-list > * { padding: 12px 0; border-top: 1px solid var(--line); }

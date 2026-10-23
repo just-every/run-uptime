@@ -1,5 +1,7 @@
 // The console's five-second refresh updates data in place: an open disclosure stays open, the page keeps its nodes and
-// its scroll position, and a change made elsewhere (a pause) still appears without a reload. At 1440 and 390.
+// its scroll position, and a change made elsewhere (a pause) still appears without a reload. The monitor list keeps its
+// filters folded behind Filter and its selection actions out of sight until a monitor is ticked; an open filter panel
+// and a ticked monitor survive the refresh. At 1440 and 390.
 import assert from 'node:assert/strict';
 import {join} from 'node:path';
 import {chromium} from 'playwright';
@@ -43,9 +45,17 @@ try{
   await help.locator('summary').click();await mark(page);await twoPolls(page);
   assert.ok(await help.evaluate(details=>details.open),'the help disclosure stays open');
   assert.deepEqual(await replaced(page),[],'notifications view keeps every node');
-  await page.goto(origin+'/app/monitors');await page.locator('.catalog-rows tr').first().waitFor();
+  await page.goto(origin+'/app/monitors');await page.locator('.catalog-rows .monitor-row').first().waitFor();
+  const filter=page.getByRole('button',{name:'Filter',exact:true}),panel=page.locator('#catalog-filters');
+  assert.ok(await panel.isHidden(),'the filters start folded');
+  assert.equal(await page.getByRole('button',{name:'Pause',exact:true}).count(),0,'nothing acts on a selection before a monitor is ticked');
+  await filter.click();await page.locator('#catalog-filter-state').focus();await page.keyboard.press('Escape');
+  assert.ok(await panel.isHidden(),'Escape folds the filters');assert.ok(await filter.evaluate(button=>document.activeElement===button),'Escape returns focus to Filter');
+  await filter.click();await page.getByRole('checkbox',{name:'Select monitor',exact:true}).check();
+  await page.getByRole('button',{name:'Pause',exact:true}).waitFor();
   await mark(page);await twoPolls(page);
   assert.deepEqual(await replaced(page),[],'monitor list keeps every row');
+  assert.ok(await panel.isVisible(),'the open filters stay open');assert.equal(await page.locator('.catalog-selected').textContent(),'1 selected','the ticked monitor stays ticked');
   console.log(`CONSOLE-POLL ${width}: menus, disclosures, scroll and nodes survive 60 seconds of refreshes; a background pause still shows.`);
  }
 }finally{await browser?.close();await worker?.dispose();await cleanupDirectory(directory)}

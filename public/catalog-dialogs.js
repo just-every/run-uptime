@@ -156,7 +156,7 @@ export function openCatalogDialog({ api, action, kind, monitors = [], runners = 
         if (working || !plan || !payload)
             return;
         const reviewed = plan;
-        const response = await run(() => api(`/api/catalog/${add ? 'add/' : ''}apply`, 'POST', { ...payload, digest: reviewed.digest }), { pending: 'Applying reviewed catalog changes…', success: 'Catalog batch applied. Review or undo it in Definitions.' });
+        const response = await run(() => api(`/api/catalog/${add ? 'add/' : ''}apply`, 'POST', { ...payload, digest: reviewed.digest }), { pending: 'Applying reviewed catalog changes…', success: 'Catalog batch applied. Review or undo it in Archive.' });
         if (!response.ok) {
             plan = null;
             apply.disabled = true;
@@ -170,7 +170,7 @@ export function openCatalogDialog({ api, action, kind, monitors = [], runners = 
         status.replaceChildren(document.createTextNode('Batch applied. '));
         const link = document.createElement('a');
         link.href = '/app/archive';
-        link.textContent = 'Review or undo this batch in Definitions';
+        link.textContent = 'Review or undo this batch in Archive';
         link.addEventListener('click',close);
         status.append(link);
         dialog.querySelector('[data-close]').textContent = 'Done';

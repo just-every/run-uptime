@@ -1,6 +1,6 @@
-/* The console sections around the owner's three jobs: Locations (list and add panel), Settings and Archive panels, the
-   one-location nudge on the monitor list, and a monitor's "Up or down" rules (public/locations.js, settings-view.js,
-   archive-view.js, monitor-rules.js). Tokens and components come from app-theme.css. */
+/* The console sections around the owner's three jobs: Locations (list and add panel), Settings and Archive panels, and a
+   monitor's "Up or down" rules (public/locations.js, settings-view.js, archive-view.js, monitor-rules.js). Tokens and
+   components come from app-theme.css. */
 
 /* ---------------------------------------------------------------- section panels (Settings, Archive) */
 .section-panel { padding: 8px 24px 24px; }
@@ -52,10 +52,6 @@
 .add-steps .location-local { color: var(--body); }
 .check-all { display: flex; align-items: center; gap: 10px; min-height: 44px; color: var(--ink); font-size: 15px; font-weight: 600; }
 .check-all + .helper, .location-joined + .helper { margin: -8px 0 0; }
-
-/* ---------------------------------------------------------------- one-location nudge */
-.locations-nudge { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 0 0 16px; }
-.locations-nudge[hidden] { display: none; }
 
 /* ---------------------------------------------------------------- a monitor's Up or down */
 .rules-card h3 { margin: 16px 0 8px; color: var(--muted); font-size: 12.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }

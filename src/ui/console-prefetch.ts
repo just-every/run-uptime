@@ -19,7 +19,7 @@ export const CONSOLE_MODULES=['app.js',
  'evidence-access.js','failure-snapshots.js','flow-panel.js','followed-service.js','heartbeat-jobs.js','heartbeat-key.js',
  'incident-dependencies.js','incident-work-markup.js',
  'incident-work.js','locations.js','mail-panel.js','maintenance-calendar.js','maintenance-markup.js','metrics.js',
- 'monitor-coverage.js','monitor-incidents.js','monitor-page.js','monitor-report.js','monitor-rules.js','monitor-status.js',
+ 'monitor-coverage.js','monitor-incidents.js','monitor-list.js','monitor-page.js','monitor-report.js','monitor-rules.js','monitor-status.js',
  'monitor-timeline.js','notification-dialogs.js','notification-help.js','notification-preferences.js','notifications.js',
  'pagespeed-panel.js','planned-maintenance.js','protocol-panel.js','report-jobs.js','report-render.js','settings-view.js','slow-policy.js',
  'transaction-panel.js','webhook-editor.js']
