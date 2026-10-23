@@ -471,7 +471,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "851852e73460334ee3c6a4699d03407308fe3d40d3458e95c77abdb32c45a726",
+      "sha256": "5535669083b04def42a6e36ca45aca29364a58658ee8bed4d11d77db0fb35ebe",
       "executable": false
     },
     "AGENTS.md": {
@@ -495,7 +495,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "14c0c6f85dba5a92fc2561658253d5f1bcc5afcae71f2bb5fdc663d03e7038ab",
+      "sha256": "fa91cc8b68d6a3d16fd0dbc798ce7617e2c6c253161a7f02406315d1e55c671f",
       "executable": false
     },
     "DEMO.md": {
@@ -2000,6 +2000,10 @@
     },
     "docs/migrating-site24x7.md": {
       "sha256": "a572ec0a88ddbd3950d7e56c9a55b814fb758265dc0bf1e636053601f28623ab",
+      "executable": false
+    },
+    "docs/migrating-uptimerobot-contacts.md": {
+      "sha256": "6c97d438d603874f08b4823bd883516c67d832ad213d2dba0e6fe4e24c876c39",
       "executable": false
     },
     "docs/monitors.md": {
@@ -7054,8 +7058,16 @@
       "sha256": "dd95dcc90e2ad2142b747d789b3420a2031217a4dac4dda524db578fd41a8ccc",
       "executable": false
     },
+    "tests/fixtures/uptimerobot-contacts.synthetic.json": {
+      "sha256": "d6977b653daab92d135855e8ed2a1b2865b64d19e8cc45b6e70dce62f4c8e662",
+      "executable": false
+    },
     "tests/fixtures/uptimerobot-logs.synthetic.csv": {
       "sha256": "b849bd6f75c7d5bee3fe3f9d0f243137912944465f80071724986c1391e9c7f8",
+      "executable": false
+    },
+    "tests/fixtures/uptimerobot-seats.synthetic.json": {
+      "sha256": "d6fd1e41168ccd68d0e4bc0b0e376cdb4f8c53326536c239ada5b4fdf5155d86",
       "executable": false
     },
     "tests/fixtures/uptimerobot-v3-monitors.synthetic.json": {
