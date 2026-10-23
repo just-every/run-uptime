@@ -1,3 +1,4 @@
+import {credentialMonitorFilter,type CredentialEnvironment} from '../credentials/model.server.ts'
 import {configuredPeriod} from './configured-period.server.ts'
 import { latencyQuery } from './latency-query.ts'
 import { maintenanceReportSnapshots } from '../planned-maintenance/report.server.ts'
@@ -56,10 +57,11 @@ export async function periodLatency(db: D1Database, id: string, period: ReportPe
   }
 }
 
-export async function monitorLatency(env: { DB: D1Database }, id: string, params: URLSearchParams | ReportPeriod, now = Date.now()) {
+export async function monitorLatency(env: CredentialEnvironment, id: string, params: URLSearchParams | ReportPeriod, now = Date.now()) {
   const period = await configuredPeriod(env, params, now)
   if (period.to - period.from > 90 * 86400000) throw new ReportInputError('Response-time ranges cannot exceed 90 days', 'range_too_long')
   const options = params instanceof URLSearchParams ? latencyOptions(params) : latencyOptions(new URLSearchParams())
-  const exists = await env.DB.prepare('SELECT id FROM monitors WHERE id=?').bind(id).first()
+  const filter=credentialMonitorFilter(env)
+  const exists = await env.DB.prepare(`SELECT id FROM monitors WHERE id=? AND ${filter.sql}`).bind(id,...filter.params).first()
   return exists ? periodLatency(env.DB, id, period, options) : null
 }

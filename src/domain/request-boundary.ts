@@ -13,6 +13,9 @@ const id={id:identity},source=(value:string)=>SOURCES.includes(value)
 const reportQuery={...Object.fromEntries(['period','from','to','timeZone','zone','sla','slaTarget','bucket','location','rootCause'].map(name=>[name,(value:string)=>identity(value)&&value.length<=150])),format:(value:string)=>['csv','json','pdf'].includes(value)}
 const incidentQuery=Object.fromEntries(['monitor','tag','from','to','state','rootCause','cursor','limit'].map(name=>[name,identity]))
 export const apiRoutes:readonly Route[]=[
+ {method:'GET',path:'/api/credentials',body:'none'},
+ {method:'POST',path:'/api/credentials',body:'object'},
+ {method:'DELETE',path:'/api/credentials/:id',params:id,body:'none'},
  ...['teams','recipient'].flatMap(part=>[{method:'GET',path:'/api/routing/'+part,body:'none' as const},{method:'POST',path:'/api/routing/'+part,body:'object' as const}]),
  {method:'GET',path:'/api/access/self',body:'none'},
  {method:'GET',path:'/api/access/members',body:'none'},
