@@ -1,3 +1,4 @@
+import {proveCatalogRoutes} from './catalog-routes-support.mjs';
 // One owner flow through the emitted API, signed runner evidence and production
 // notification dispatcher. Only the public target socket and recipient edge
 // are controlled by the fixture; route decisions and delivery state are real.
@@ -85,5 +86,6 @@ test('owned routes preview inheritance, deliver matched triggers/recoveries and 
   await f.pause(monitor);
   await proveRoutingTeams(f,ok);
   await proveRoutingFilters(f,ok);
+  await proveCatalogRoutes();
  }finally{releaseTrigger?.();try{await dispatching}finally{await f.close()}}
 });
