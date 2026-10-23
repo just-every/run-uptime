@@ -173,9 +173,10 @@ Every request is a `POST` with a JSON body and the header `x-runner-key: <runner
 | Enrol | `/api/runner/enroll` | `{"version": 1}`, optionally with `"networkLabel"` and `"capabilities": {"browser": true}` | Yes, over `TIMESTAMP.runner-enrolment.BODY` |
 | Claim a check | `/api/runner/claim` | `{}` | No |
 | Send results | `/api/runner/results` | `{"slotId": "...", "attempts": [...]}` | Yes, over `TIMESTAMP.BODY` |
+| Spend a live effect | `/api/runner/effect-spend` | `{"slotId": "...", "probe": "...", "attempt": 0, "grantId": "...", "effect": "live-payment", "amount": 1200}` | Yes, over `TIMESTAMP.BODY` |
 | Notification work | `/api/runner/notifications` | `{"operation": "poll"}` and the named follow-up operations | No |
 
-A signed request adds `x-sent-at`, the current time in milliseconds, and `x-runner-signature`, the hex HMAC-SHA256 of the text shown, keyed with the runner key. `BODY` is the exact bytes sent. Enrolment returns the `runnerId` to use as `x-runner-id`. A claim returns `{"task": ..., "now": MS}` or `{"task": null, "now": MS}`, where `now` is the Worker's clock; results must name a check the runner currently holds and arrive inside its acceptance window.
+A signed request adds `x-sent-at`, the current time in milliseconds, and `x-runner-signature`, the hex HMAC-SHA256 of the text shown, keyed with the runner key. `BODY` is the exact bytes sent. Enrolment returns the `runnerId` to use as `x-runner-id`. A claim returns `{"task": ..., "now": MS}` or `{"task": null, "now": MS}`, where `now` is the Worker's clock; results must name a check the runner currently holds and arrive inside its acceptance window. Before each live request of an API transaction, the runner spends its amount from the exact grant its claim named; the Worker refuses a grant that is revoked, expired or short of the amount, or a check part the runner no longer holds, and the runner then sends nothing.
 
 To check that the Worker rejects a forged result, take a real result for a check your runner currently holds, change only one character of its signature and send it: the Worker answers 403 `Invalid signed result` and stores nothing. Sending the same body with its correct signature is then accepted, and the monitor's history shows one result for that check. Do this against a check that is in flight; an old or invented check is refused for other reasons.
 

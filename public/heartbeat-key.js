@@ -1,5 +1,8 @@
 import {confirmDestination} from './notification-dialogs.js';
 
+// POSIX single quoting: each value reaches the command as one literal word, whatever characters a monitor id holds.
+const shellQuote=value=>`'${String(value).replaceAll("'","'\\''")}'`;
+
 // Keep the revision-scoped credential only in this one-time dialog. Polling and
 // navigation must never retain it in the console's overview or history.
 function showHeartbeatKey(m,result){
@@ -10,7 +13,7 @@ function showHeartbeatKey(m,result){
  const label=document.createElement('p');label.textContent='Heartbeat key';
  const key=document.createElement('code');key.className='one-time-secret';key.textContent=token;
  const command=document.createElement('pre');command.className='one-time-secret';command.tabIndex=0;command.setAttribute('aria-label','Heartbeat command');
- command.textContent=`curl -X POST '${location.origin}${result.receiptPath}' \\\n  -H 'Content-Type: application/json' \\\n  -H 'Authorization: Bearer ${token}' \\\n  -H 'X-Heartbeat-Sequence: 1' --data '{}'`;
+ command.textContent=`curl -X POST ${shellQuote(location.origin+result.receiptPath)} \\\n  -H 'Content-Type: application/json' \\\n  -H ${shellQuote(`Authorization: Bearer ${token}`)} \\\n  -H 'X-Heartbeat-Sequence: 1' --data '{}'`;
  const choice=document.createElement('select');choice.setAttribute('aria-label','Heartbeat command or scheduler');
  let original=command.textContent,snippets=result.snippets??[];choice.add(new Option('Sequence-protected curl', 'header'));for(const snippet of snippets)choice.add(new Option(snippet.name,snippet.id));
  const guidance=document.createElement('p');choice.onchange=()=>{const snippet=snippets.find(s=>s.id===choice.value);command.textContent=snippet?.code??original;guidance.textContent=snippet?'Replay-unprotected URL capability. '+snippet.instructions:'';hint.textContent=snippet?'This wrapper uses its private URL capability and needs no sequence header. Scheduled evaluation determines health.':headerHint};

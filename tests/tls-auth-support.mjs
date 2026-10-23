@@ -44,7 +44,9 @@ export async function authFixture(handler,bindings={}){
   const create=async(options={})=>f.monitor({runners:[f.first],canary:true,url:url(),intervalMs:86400000,timeoutMs:10000,...options});
   const claim=async id=>{const task=await f.claim(f.first);assert.equal(task?.monitorId,id);return task};
   const manual=async id=>{assert.equal((await f.request(`/api/monitors/${id}/run`,{body:{}})).status,200);return claim(id)};
-  const run=task=>executeTaskProbe(task,task.probes[0],{controlPort:Number(new URL(f.origin).port)});
+  // As the runner does, a live effect is spent from its grant at the control plane, signed as the runner, before it is sent.
+  const spend=(task,probe,attempt=0)=>async body=>{const response=await f.request('/api/runner/effect-spend',{runner:f.first,signed:true,body:{slotId:task.id,probe,attempt,...body}});if(response.status!==200)throw Error(response.data.error)};
+  const run=(task,probe=task.probes[0])=>executeTaskProbe(task,probe,{controlPort:Number(new URL(f.origin).port),spend:spend(task,probe)});
   const canary=async task=>{const probe=task.probes[0],canaryUrl=task.definition.assignments[probe].canaryUrl;return {...await executeTaskProbe({...task,definition:{...task.definition,type:'http',api:undefined,mail:undefined,url:canaryUrl,tlsTrust:undefined,request:undefined,timeoutMs:Math.min(task.definition.timeoutMs,10000),retries:0,assertions:{status:200}}},probe,{statusOnly:true}),attempt:0}};
   const submit=async(task,result)=>{const probe=task.probes[0],canaryUrl=task.definition.assignments[probe].canaryUrl;const canary=await executeTaskProbe({...task,definition:{...task.definition,type:'http',api:undefined,mail:undefined,url:canaryUrl,tlsTrust:undefined,request:undefined,timeoutMs:Math.min(task.definition.timeoutMs,10000),retries:0,assertions:{status:200}}},probe,{statusOnly:true});const response=await f.submit(f.first,task,[{...result,attempt:0,canary:{...canary,attempt:0}}]);assert.equal(response.status,200,JSON.stringify(response.data));return response};
   const write=(ref,input)=>writeFile(join(directory,ref+'.json'),JSON.stringify(input),{mode:0o600});

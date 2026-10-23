@@ -1,14 +1,29 @@
 import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
 import {mkdir} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
 import {chromium} from 'playwright';
 import {browserSignIn} from './auth-test-support.mjs';
-import {availablePorts,migratedWorker,runtimeDirectory,cleanupDirectory} from './notify-acceptance-runtime.mjs';
+import {availablePorts,migratedWorker,runtimeDirectory,cleanupDirectory,ownerAPI} from './notify-acceptance-runtime.mjs';
+import {rehashArchive} from './archive-restore-fixtures.mjs';
 const dir=await runtimeDirectory(),out=resolve(process.env.UPTIME_SCREENSHOTS??join(dir,'screens'));await mkdir(out,{recursive:true});let worker,browser;
 try{
- const [port]=await availablePorts(1),origin=`http://127.0.0.1:${port}`;({worker}=await migratedWorker({port,persist:join(dir,'worker')}));
+ const [port,sourcePort]=await availablePorts(2),origin=`http://127.0.0.1:${port}`;
+ // A restored archive keeps the monitor ids it was exported with, whatever characters they hold.
+ const importedId=`nightly'$(printf\${IFS}substituted)'`,sourceOrigin=`http://127.0.0.1:${sourcePort}`,source=await migratedWorker({port:sourcePort,persist:join(dir,'source')});let archive;
+ try{
+  const owner=ownerAPI(sourceOrigin);await owner.signIn();
+  const created=await owner.api('/api/monitors','POST',{name:'Imported nightly export',type:'heartbeat',heartbeat:{maxAgeMs:86400000},canaryUrl:'https://example.org/',intervalMs:30000,enabled:true},{origin:sourceOrigin});assert.equal(created.status,201);
+  const exported=await owner.api('/api/archive','GET',undefined,{origin:sourceOrigin});assert.equal(exported.status,200);
+  archive=await rehashArchive(JSON.parse(JSON.stringify(exported.data).replaceAll(created.data.id,importedId)));
+ }finally{await source.worker.dispose()}
+ ({worker}=await migratedWorker({port,persist:join(dir,'worker')}));
  browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});const context=await browser.newContext(),page=await context.newPage();await browserSignIn(page,origin);
+ const restored=await page.request.post(origin+'/api/restore',{headers:{origin},data:{archive}});assert.equal(restored.status(),200,await restored.text());
  const response=await page.request.post(origin+'/api/monitors',{headers:{origin},data:{name:'Acme nightly database backup',type:'heartbeat',heartbeat:{maxAgeMs:86400000,graceMs:900000,maxRunDurationMs:1800000},canaryUrl:'https://example.org/',intervalMs:30000,enabled:true}});assert.equal(response.status(),201);const monitor=await response.json();
+ // A restored monitor keeps its source's locations; its owner assigns this installation's before issuing it a key.
+ const [imported]=(await (await page.request.get(origin+`/api/overview?monitor=${encodeURIComponent(importedId)}`,{headers:{origin}})).json()).monitors;
+ const assigned=await page.request.patch(origin+`/api/monitors/${encodeURIComponent(importedId)}`,{headers:{origin},data:{...imported.definition,probes:monitor.definition.probes,assignments:monitor.definition.assignments}});assert.equal(assigned.status(),200,await assigned.text());
  const shot=async(name,selector)=>{await page.locator(selector).scrollIntoViewIfNeeded();assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.addScriptTag({path:resolve('node_modules/axe-core/axe.min.js')});assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.map(v=>v.id),[]);await page.locator(selector).screenshot({path:join(out,name+'.png'),mask:await page.locator('.one-time-secret').all(),maskColor:'#e7e9ef'})};
  for(const width of [1440,390]){
   await page.setViewportSize({width,height:1000});await page.goto(origin+`/app/monitors/${monitor.id}`);await page.locator('#job-mode').waitFor();
@@ -25,4 +40,11 @@ try{
   await page.goto(origin+'/docs/heartbeat-jobs');await page.getByText(/Choose Cron in a time zone/).first().waitFor();await shot(`heartbeat-guide-${width}`,'main');
   console.log(`HEARTBEAT-002 browser ${width}: cron save/reload, deadline preview, invalid-date refusal, one-time scheduler selection, focus, source preview, axe and reflow passed.`);
  }
+ // The copied heartbeat command hands curl its receipt URL as one literal argument; the shell runs nothing the id spells.
+ await page.goto(origin+`/app/monitors/${encodeURIComponent(importedId)}`);await page.locator('#issue-heartbeat-key').click();await page.getByRole('button',{name:'Issue key',exact:true}).click();
+ const keyDialog=page.locator('.heartbeat-key-dialog');await keyDialog.waitFor();
+ const copied=spawnSync('/bin/sh',['-c',`curl() { printf '%s\\n' "$@"; }\n${await keyDialog.locator('pre').textContent()}`],{encoding:'utf8'});assert.equal(copied.status,0);
+ assert.equal(copied.stdout.split('\n')[2],`${origin}/api/heartbeats/${importedId}`,'The copied heartbeat command passes its receipt URL to curl as one literal argument');
+ await keyDialog.getByRole('button',{name:'I saved it — close'}).click();await keyDialog.waitFor({state:'detached'});
+ console.log('Heartbeat key: the copied curl command quotes a restored monitor id as one shell word.');
 }finally{await browser?.close();await worker?.dispose();await cleanupDirectory(dir)}

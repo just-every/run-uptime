@@ -81,6 +81,7 @@ export const apiRoutes:readonly Route[]=[
  {method:'POST',path:'/api/runner/enroll',body:'object'},
  {method:'POST',path:'/api/runner/claim',body:'empty'},
  {method:'POST',path:'/api/runner/results',body:'object'},
+ {method:'POST',path:'/api/runner/effect-spend',body:'object'},
  {method:'POST',path:'/api/runner/notifications',body:'object'},
  {method:'POST',path:'/api/discoveries',body:'object'},
  {method:'GET',path:'/api/service-catalog',query:{q:value=>value.length<=100&&!/[\x00-\x1f\x7f]/.test(value)},body:'none'},
