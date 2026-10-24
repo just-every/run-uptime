@@ -81,7 +81,12 @@ export async function advanceContactSchedules(env:Bindings){
   ]);
  }
 }
-export async function nextContactFollowup(env:Bindings,incidentId:string){
- const row=await env.DB.prepare(`SELECT MIN(CASE WHEN t.state='queued' AND (s.due_at>? OR s.quiet_until>?) THEN MAX(s.due_at,COALESCE(s.quiet_until,s.due_at)) WHEN ${active} AND s.next_at IS NOT NULL THEN MAX(s.next_at,COALESCE(s.quiet_until,s.next_at)) ELSE NULL END) due FROM alert_contact_schedules s JOIN notification_jobs t ON t.id=s.trigger_job_id WHERE t.event_id=? AND NOT ${closed}`).bind(Date.now(),Date.now(),incidentId).first<{due:number|null}>();
- return row?.due??null;
+export async function nextContactFollowupDetail(env:Bindings,incidentId:string){
+ const now=Date.now();
+ const row=await env.DB.prepare(`SELECT t.id AS deliveryId,
+  CASE WHEN t.state='queued' AND (s.due_at>? OR s.quiet_until>?) THEN MAX(s.due_at,COALESCE(s.quiet_until,s.due_at)) WHEN ${active} AND s.next_at IS NOT NULL THEN MAX(s.next_at,COALESCE(s.quiet_until,s.next_at)) ELSE NULL END AS due,
+  CASE WHEN t.state='queued' AND (s.due_at>? OR s.quiet_until>?) THEN 'notification' ELSE 'reminder' END AS kind
+  FROM alert_contact_schedules s JOIN notification_jobs t ON t.id=s.trigger_job_id WHERE t.event_id=? AND NOT ${closed} ORDER BY due IS NULL,due,t.id LIMIT 1`).bind(now,now,now,now,incidentId).first<{deliveryId:string;due:number|null;kind:'notification'|'reminder'}>();
+ return row?.due===null||!row?null:row;
 }
+export async function nextContactFollowup(env:Bindings,incidentId:string){return (await nextContactFollowupDetail(env,incidentId))?.due??null}

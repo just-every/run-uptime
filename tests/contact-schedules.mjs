@@ -32,7 +32,9 @@ test('contact schedules survive restart, stop on recovery/ack, and never replay 
   await dispatchNotifications(rpc,transport);
   assert.equal(received.filter(r=>r.url.endsWith('/1')).length,0,'delay sends nothing at confirmation');
   const initial=await ok('/api/notifications'),trigger=initial.deliveries.find(j=>j.event.monitorId===monitor.id&&j.event.kind==='trigger').event;
-  assert.equal((await ok(`/api/v1/incidents/${encodeURIComponent(trigger.id)}`)).nextDue>trigger.observedAt,true);
+  const followup=await ok(`/api/v1/incidents/${encodeURIComponent(trigger.id)}`);
+  assert.equal(followup.nextDue,trigger.observedAt+60000,'next-due follows the exact confirmation-anchored delay');
+  assert.equal(followup.nextDueKind,'notification');
   // Recover the short outage inside the one-minute delay through real scheduled work.
   f.modes.target=200;await new Promise(r=>setTimeout(r,5200));
   for(let i=0;i<2;i++){const task=await f.claim(f.first);if(!task)break;if(task.monitorId===fast.id)await f.submit(f.first,task,[await f.evidence(task)]);else{f.modes.target=503;await f.submit(f.first,task,[await f.evidence(task)]);f.modes.target=200}}
