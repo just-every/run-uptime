@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
 import {join} from 'node:path';
 import {chromium} from 'playwright';
+import {finishSetup} from './auth-test-support.mjs';
 
 // Part of the existing incident-work public-door journey, not a new registration.
 export async function proveOwnIncidentCorrelation(f){
@@ -19,6 +20,7 @@ export async function proveOwnIncidentCorrelation(f){
  assert.deepEqual((await ok(path(2))).dependencies.group,[],'unrelated simultaneous failure never joins');
  const evidence=async()=> (await f.DB.prepare('SELECT * FROM observations ORDER BY id').all()).results;
  const before=await evidence();
+ await finishSetup(f.origin,f.cookie);
  let browser;
  try{
   browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});
