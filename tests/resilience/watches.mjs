@@ -1,3 +1,4 @@
+import {completeSecondFactor} from '../mfa-auth-support.mjs';
 import {DatabaseSync} from 'node:sqlite';
 import {spawn} from 'node:child_process';
 import {join} from 'node:path';
@@ -62,7 +63,7 @@ test('OPS-001 the Worker mails stale runner contact once per incident window and
   assert.equal((await f.request('/api/runner/claim',{runner:f.first,body:{}})).status,200);assert.equal((await f.request('/api/runner/claim',{runner:f.second,body:{}})).status,200);await tick(boundary-2);await tick(boundary-1);
   await Promise.all([tick(boundary-1),tick(boundary-1)]);
   const digests=async()=>(await DB.prepare("SELECT id,outcome FROM monitoring_watch WHERE id LIKE 'healthy-digest:%' ORDER BY id").all()).results;
-  const envelopes=async()=>deliveredMessages(f.origin).map(({message})=>({deliveryId:message.custom_args.rer_delivery_id,to:message.personalizations.flatMap(p=>p.to.map(to=>to.email))}));
+  const envelopes=async()=>deliveredMessages(f.origin).filter(({message})=>message.subject!=='Uptime second-factor security change').map(({message})=>({deliveryId:message.custom_args.rer_delivery_id,to:message.personalizations.flatMap(p=>p.to.map(to=>to.email))}));
   const digestEnvelopes=async()=>(await envelopes()).filter(e=>e.deliveryId.startsWith('healthy-digest:'));
   assert.equal((await DB.prepare("SELECT COUNT(*) n FROM monitoring_watch WHERE id LIKE 'healthy-digest:%'").first()).n,1);
   assert.equal((await digestEnvelopes()).length,1,'repeated and concurrent ticks emit one digest in the same window');
@@ -115,11 +116,13 @@ test('setup-selected Base mail adapters send notification mail through only the 
    const body=await request.json();return Response.json({success:true,errors:[],result:{message_id:'test-provider-message',delivered:[],queued:body.to,permanent_bounces:[],suppressed_recipients:[]}})
   });
   try{
+   assert.equal(calls,1,'real factor enrollment sends one security notice through the selected provider');
+   const enrolledCalls=calls;
    const destination=await f.request('/api/notifications/destinations',{body:{name:'Owner mail',kind:'email',address:'owner@example.test',enabled:true}});assert.equal(destination.status,201,JSON.stringify(destination.data));
    assert.equal((await f.request('/api/notifications/destinations/'+destination.data.id+'/test',{body:{}})).status,202);
    assert.equal((await f.request('/api/runner/notifications',{runner:f.first,body:{operation:'poll'}})).status,200);
-   const jobs=(await f.request('/api/notifications')).data.deliveries;assert.equal(jobs.length,1);assert.equal(jobs[0].state,'accepted');assert.equal(calls,1);
-   assert.equal((await f.request('/auth/magic-link',{body:{email:f.bindings.OWNER_EMAIL}})).status,202);assert.equal(calls,2,'operator mail uses the selected provider too');
+   const jobs=(await f.request('/api/notifications')).data.deliveries;assert.equal(jobs.length,1);assert.equal(jobs[0].state,'accepted');assert.equal(calls,enrolledCalls+1,'the notification adds exactly one provider submission');
+   assert.equal((await f.request('/auth/magic-link',{body:{email:f.bindings.OWNER_EMAIL}})).status,202);assert.equal(calls,enrolledCalls+2,'operator mail adds exactly one submission through the selected provider too');
    assert.equal((await f.DB.prepare("SELECT COUNT(*) n FROM uptime_audit WHERE action='notification_send' AND actor_ref='operator-auth-mail'").first()).n,1,'auth authority is audited before provider submission');
   }finally{await f.close()}
  }
@@ -157,7 +160,7 @@ test('OPS-001 interrupted hosted auth mail and external heartbeat retain uncerta
  const bindings={...testAuthBindings,UPTIME_LOCAL_REVIEW:'false',UPTIME_ORIGIN:origin,MAIL_PROVIDER:'sendgrid',SENDGRID_API_KEY:'test-only-ops-key',UPTIME_HEARTBEAT_URL:'https://heartbeat.example.test/ping',UPTIME_HEARTBEAT_INTERVAL_MS:'3600000'};
  let worker,mailStarted,heartbeatStarted,mailCalls=0,heartbeatCalls=0;const mailBoundary=new Promise(resolve=>mailStarted=resolve),heartbeatBoundary=new Promise(resolve=>heartbeatStarted=resolve);
  const outbound=async request=>{
-  if(new URL(request.url).hostname==='api.sendgrid.com'){mailCalls++;mailStarted();return new Promise(()=>{})}
+  if(new URL(request.url).hostname==='api.sendgrid.com'){if((await request.clone().json()).subject==='Uptime second-factor security change')return new Response(null,{status:202});mailCalls++;mailStarted();return new Promise(()=>{})}
   assert.equal(new URL(request.url).hostname,'heartbeat.example.test');heartbeatCalls++;heartbeatStarted();return new Promise(()=>{});
  };
  const call=(path,body,cookie)=>worker.dispatchFetch('http://127.0.0.1:15504/',{method:'POST',redirect:'manual',headers:{'content-type':'application/json'},body:JSON.stringify({url:origin+path,method:body===undefined?'GET':'POST',headers:{host:'uptime.example.test',origin,'content-type':'application/json','cf-connecting-ip':'192.0.2.1',...(cookie?{cookie}:{})},...(body===undefined?{}:{body:JSON.stringify(body)})})});
@@ -166,10 +169,11 @@ test('OPS-001 interrupted hosted auth mail and external heartbeat retain uncerta
   worker=await hostedRuntime(directory,bindings,outbound);let DB=await worker.getD1Database('DB');
   for(const file of (await readdir('migrations')).filter(name=>name.endsWith('.sql')).sort())for(const sql of splitSql(await readFile(join('migrations',file),'utf8')))await DB.prepare(sql).run();
   const bootstrap=await call('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'OPS owner'});assert.equal(bootstrap.status,303,await bootstrap.clone().text());const cookie=bootstrap.headers.get('set-cookie').split(';')[0];
+ await completeSecondFactor(origin,cookie,(url,init)=>call(new URL(url).pathname,init.body===undefined?undefined:JSON.parse(init.body),cookie));
   const pendingMail=call('/auth/magic-link',{email:bindings.OWNER_EMAIL}).catch(()=>null);await mailBoundary;
   const pendingHeartbeat=schedule().catch(()=>null);await heartbeatBoundary;
   const before=(await DB.prepare('SELECT * FROM auxiliary_attempts ORDER BY rowid').all()).results;assert.deepEqual(before.map(row=>row.outcome),['sending','sending']);assert.ok(before.every(row=>row.submitted_at!==null&&row.finished_at===null));
-  const exportResponse=await call('/api/archive',undefined,cookie);assert.equal(exportResponse.status,200);const exported=await exportResponse.json();assert.deepEqual(exported.payload.productTables.auxiliary_attempts,before,'archive retains each live auxiliary attempt without dispatch content');
+  const exportResponse=await call('/api/archive',undefined,cookie);assert.equal(exportResponse.status,200,exportResponse.status===200?'':(await exportResponse.clone().json()).error);const exported=await exportResponse.json();assert.deepEqual(exported.payload.productTables.auxiliary_attempts,before,'archive retains each live auxiliary attempt without dispatch content');
   await worker.dispose();worker=null;await Promise.all([pendingMail,pendingHeartbeat]);
   const now=Date.now()+61000;
   worker=await hostedRuntime(directory,bindings,async request=>{if(new URL(request.url).hostname==='api.sendgrid.com'){mailCalls++;return new Response(null,{status:202})}heartbeatCalls++;return new Response(null,{status:204})},{now});DB=await worker.getD1Database('DB');
@@ -182,9 +186,10 @@ test('OPS-001 interrupted hosted auth mail and external heartbeat retain uncerta
   // Restore the interrupted executions into a receiving installation whose
   // independent heartbeat is deliberately not configured.
   const receiving={...bindings};delete receiving.UPTIME_HEARTBEAT_URL;
-  worker=await hostedRuntime(restored,receiving,async()=>{throw Error('Restored auxiliary execution must never replay')},{now});DB=await worker.getD1Database('DB');
+  worker=await hostedRuntime(restored,receiving,async request=>{if(new URL(request.url).hostname==='api.sendgrid.com'&&(await request.json()).subject==='Uptime second-factor security change')return new Response(null,{status:202});throw Error('Restored auxiliary execution must never replay')},{now});DB=await worker.getD1Database('DB');
   for(const file of (await readdir('migrations')).filter(name=>name.endsWith('.sql')).sort())for(const sql of splitSql(await readFile(join('migrations',file),'utf8')))await DB.prepare(sql).run();
   const receivedOwner=await call('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'Receiving owner'});assert.equal(receivedOwner.status,303);const receivedCookie=receivedOwner.headers.get('set-cookie').split(';')[0];
+ await completeSecondFactor(origin,receivedCookie,(url,init)=>call(new URL(url).pathname,init.body===undefined?undefined:JSON.parse(init.body),receivedCookie),now);
   const restoredResponse=await call('/api/restore',{archive:exported},receivedCookie);assert.equal(restoredResponse.status,200,await restoredResponse.clone().text());
   const imported=(await DB.prepare('SELECT * FROM auxiliary_attempts ORDER BY rowid').all()).results;assert.equal(imported.length,2);assert.ok(imported.every(row=>row.finished_at===now&&row.outcome==='uncertain'&&row.code==='restored_inactive'));assert.deepEqual(imported.map(row=>row.id),before.map(row=>row.id));
   assert.equal((await schedule()).status,204);assert.deepEqual((await DB.prepare('SELECT * FROM auxiliary_attempts ORDER BY rowid').all()).results,imported);

@@ -1,3 +1,4 @@
+import {credentialMonitorFilter} from '../credentials/model.server.ts'
 import type {Bindings} from '../control.server.ts'
 import {availabilityOverview} from '../availability.server.ts'
 import {attemptSnapshot} from '../attempt-checkpoint.server.ts'
@@ -30,7 +31,7 @@ export async function monitoringMonitors(env:Bindings, params:URLSearchParams, n
  const limit=params.has('limit')?Number(params.get('limit')):50,cursor=params.get('cursor'),tag=params.get('tag')
  if(!Number.isSafeInteger(limit)||limit<1||limit>100)throw new ReportInputError('Monitor page size must be between 1 and 100')
  if(cursor!==null&&(!cursor||cursor.length>512||/[\x00-\x1f\x7f]/.test(cursor)))throw new ReportInputError('Invalid monitor cursor')
- const where:string[]=[],values:(string|number)[]=[]
+ const filter=credentialMonitorFilter(env),where:string[]=[filter.sql],values:(string|number|null)[]=[...filter.params]
  if(cursor!==null){where.push('id>?');values.push(cursor)}
  if(tag!==null){where.push("EXISTS(SELECT 1 FROM json_each(json_extract(definition,'$.tags')) WHERE value=?)");values.push(tag)}
  const rows=(await env.DB.prepare(`SELECT id,revision,definition,state FROM monitors ${where.length?'WHERE '+where.join(' AND '):''} ORDER BY id LIMIT ?`).bind(...values,limit+1).all<MonitorRow>()).results
@@ -39,6 +40,7 @@ export async function monitoringMonitors(env:Bindings, params:URLSearchParams, n
 }
 
 export async function monitoringMonitor(env:Bindings, id:string, now=Date.now()) {
- const row=await env.DB.prepare('SELECT id,revision,definition,state FROM monitors WHERE id=?').bind(id).first<MonitorRow>()
+ const filter=credentialMonitorFilter(env)
+ const row=await env.DB.prepare(`SELECT id,revision,definition,state FROM monitors WHERE id=? AND ${filter.sql}`).bind(id,...filter.params).first<MonitorRow>()
  return row?(await summaries(env,[row],now))[0]:null
 }

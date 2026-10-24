@@ -1,3 +1,4 @@
+import {credentialMonitorFilter,type CredentialEnvironment} from '../credentials/model.server.ts'
 import {configuredPeriod} from './configured-period.server.ts'
 import {heartbeatRuns} from '../heartbeat-jobs.server.ts'
 import { periodAvailability } from './coverage.server.ts'
@@ -11,10 +12,11 @@ export { reportPeriod, ReportInputError, type ReportPeriod } from './period.ts'
 export { monitorLatency, latencyOptions, REPORT_POINT_LIMIT, type LatencyBucket } from './latency.server.ts'
 export { reportCsv, reportJson } from './export.ts'
 
-export async function monitorReport(env: { DB: D1Database }, id: string, params: URLSearchParams | ReportPeriod, now = Date.now()) {
+export async function monitorReport(env: CredentialEnvironment, id: string, params: URLSearchParams | ReportPeriod, now = Date.now()) {
   const period = await configuredPeriod(env, params, now)
   const options = latencyOptions(params instanceof URLSearchParams ? params : new URLSearchParams())
-  const monitor = await env.DB.prepare('SELECT id,revision,definition FROM monitors WHERE id=?').bind(id)
+  const filter=credentialMonitorFilter(env)
+  const monitor = await env.DB.prepare(`SELECT id,revision,definition FROM monitors WHERE id=? AND ${filter.sql}`).bind(id,...filter.params)
     .first<{ id: string; revision: number; definition: string }>()
   if (!monitor) return null
   const [availability, latency, allIncidents, slow, flowProfiles] = await Promise.all([

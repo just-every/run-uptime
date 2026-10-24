@@ -1,3 +1,4 @@
+import {credentialMonitorFilter} from './credentials/model.server.ts'
 import type {Bindings} from './control.server.ts'
 import {ReportInputError} from './reports/period.ts'
 
@@ -10,7 +11,8 @@ export async function incidentList(env:Bindings,params:URLSearchParams,now=Date.
  const from=instant(params.get('from'),0),to=instant(params.get('to'),now),state=params.get('state');
  if(from>=to||to>now)throw new ReportInputError('Incident range must satisfy 0 <= from < to <= now')
  if(state&&!['open','acknowledged','resolved'].includes(state))throw new ReportInputError('Incident state must be open, acknowledged or resolved')
- const where=["opened.kind='trigger'","json_extract(opened.event,'$.observedAt')<?"],values:unknown[]=[to];
+ const filter=credentialMonitorFilter(env,'m')
+ const where=[filter.sql,"opened.kind='trigger'","json_extract(opened.event,'$.observedAt')<?"],values:unknown[]=[...filter.params,to];
  if(cursor){where.push('opened.rowid<?');values.push(Number(cursor))}
  if(params.has('monitor')){where.push('opened.monitor_id=?');values.push(params.get('monitor'))}
  if(params.has('tag')){where.push("EXISTS(SELECT 1 FROM json_each(json_extract(m.definition,'$.tags')) WHERE value=?)");values.push(params.get('tag'))}

@@ -1,4 +1,7 @@
-import {testAuthBindings,signInOwner,emailSignIn} from './auth-test-support.mjs';
+import {proveMfaPolicy} from './mfa-policy-support.mjs';
+import {proveMfaWebAuthn} from './mfa-webauthn-support.mjs';
+import {testAuthBindings,emailSignIn,sessionCookie} from './auth-test-support.mjs';
+import {completeSecondFactor} from './mfa-auth-support.mjs';
 import {maintenance} from '../src/domain/maintenance.server.ts';
 import assert from 'node:assert/strict';
 import {mkdtemp,readFile,readdir,rm} from 'node:fs/promises';
@@ -8,20 +11,42 @@ import {createRequire} from 'node:module';
 import {startLocalWorker} from './mail-provider-fixture.mjs';
 const {unstable_splitSqlQuery:splitSql}=createRequire(import.meta.url)('wrangler');
 const dir=await mkdtemp(join(tmpdir(),'uptime-security-')),port=15503,origin=`http://127.0.0.1:${port}`;
-const bindings={...testAuthBindings,UPTIME_RUNNER_KEY:'test-only-loopback-runner-credential'};
+const bindings={...testAuthBindings,UPTIME_ORIGIN:origin,UPTIME_RUNNER_KEY:'test-only-loopback-runner-credential'};
 let worker,passed=0;
 const check=async(name,run)=>{await run();passed++;console.log('PASS '+name)};
 try{
  worker=await startLocalWorker({port,persist:dir,bindings});const db=await worker.getD1Database('DB');
  const files=(await readdir('migrations')).filter(f=>f.endsWith('.sql')).sort();
- for(const file of files.filter(f=>f!=='0067_edition_access.sql'))for(const sql of splitSql(await readFile(join('migrations',file),'utf8')))await db.prepare(sql).run();
+ for(const file of files.filter(f=>!['0067_edition_access.sql','0068_mfa.sql','0069_alert_teams_filters.sql','0070_incident_mentions.sql','0071_edition_credentials.sql','0072_named_alert_routes.sql'].includes(f)))for(const sql of splitSql(await readFile(join('migrations',file),'utf8')))await db.prepare(sql).run();
  const call=(path,body,headers={})=>fetch(origin+path,{method:body===undefined?'GET':'POST',redirect:'manual',headers:{origin,'content-type':'application/json',...headers},body:body===undefined?undefined:JSON.stringify(body)});
- let cookie=await signInOwner(origin,{bindings});
+ let cookie=sessionCookie(await call('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'Upgrade owner'}));
  const originalOwner=await db.prepare("SELECT id,version FROM oa_operators WHERE role='owner'").first();
  const legacyAdmin=crypto.randomUUID(),legacyMember=crypto.randomUUID();
  await db.batch([db.prepare("INSERT INTO oa_operators(id,email,display_name,role,status,version,created_at) VALUES(?,?,'Upgrade admin','admin','active',1,?)").bind(legacyAdmin,'synthetic-upgrade-admin@example.test',Date.now()),db.prepare("INSERT INTO oa_operators(id,email,display_name,role,status,version,created_at) VALUES(?,?,'Upgrade member','member','active',1,?)").bind(legacyMember,'synthetic-upgrade-member@example.test',Date.now())]);
- for(const sql of splitSql(await readFile(join('migrations','0067_edition_access.sql'),'utf8')))await db.prepare(sql).run();
- await check('loopback bootstrap uses Base native session and protects private APIs',async()=>{assert.equal((await call('/api/overview')).status,401);assert.match(cookie,/^operator_session_local(_\d+)?=/);assert.equal((await db.prepare('SELECT kind FROM oa_sessions').first()).kind,'native');assert.equal((await db.prepare('SELECT COUNT(*) n FROM sessions').first()).n,0);assert.equal((await call('/api/overview',undefined,{cookie})).status,200);const people=await (await call('/api/access/members',undefined,{cookie})).json();assert.ok(people.some(p=>p.id===originalOwner.id&&p.productRole==='owner'&&p.version===originalOwner.version&&p.assignmentCurrent));assert.ok(people.some(p=>p.id===legacyAdmin&&p.productRole==='admin'&&p.assignmentCurrent));assert.ok(people.some(p=>p.id===legacyMember&&p.productRole===null&&!p.assignmentCurrent));await db.batch([db.prepare('DELETE FROM uptime_member_roles WHERE operator_id=?').bind(legacyAdmin),db.prepare('DELETE FROM oa_operators WHERE id IN (?,?)').bind(legacyAdmin,legacyMember)])});
+ for(const file of ['0067_edition_access.sql','0068_mfa.sql'])for(const sql of splitSql(await readFile(join('migrations',file),'utf8')))await db.prepare(sql).run();
+
+ const upgradeRoute={scope_kind:'service',scope_value:'synthetic-uptime-upgrade',mode:'selected',destination_ids:'[]',revision:3,updated_at:Date.now()};
+ await db.prepare('INSERT INTO alert_routes(scope_kind,scope_value,mode,destination_ids,revision,updated_at) VALUES(?,?,?,?,?,?)').bind(...Object.values(upgradeRoute)).run();
+ for(const sql of splitSql(await readFile('migrations/0069_alert_teams_filters.sql','utf8')))await db.prepare(sql).run();
+ for(const sql of splitSql(await readFile('migrations/0070_incident_mentions.sql','utf8')))await db.prepare(sql).run();
+ for(const sql of splitSql(await readFile('migrations/0071_edition_credentials.sql','utf8')))await db.prepare(sql).run();
+ const oldTables=(await db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT GLOB '_cf_*' ORDER BY name").all()).results.map(r=>r.name);
+ const oldColumns=Object.fromEntries(await Promise.all(oldTables.map(async name=>[name,(await db.prepare(`PRAGMA table_info("${name}")`).all()).results.map(c=>c.name)])));
+ const oldRows=async()=>Object.fromEntries(await Promise.all(oldTables.map(async name=>[name,(await db.prepare(`SELECT ${oldColumns[name].map(c=>'"'+c+'"').join(',')} FROM "${name}" ORDER BY rowid`).all()).results])));
+ const beforeNamedUpgrade=await oldRows();for(const sql of splitSql(await readFile('migrations/0072_named_alert_routes.sql','utf8')))await db.prepare(sql).run();
+ assert.deepEqual(await oldRows(),beforeNamedUpgrade,'named-route upgrade preserves every populated preexisting row');
+ for(const table of ['alert_named_routes','catalog_route_batches','catalog_route_batch_entries'])assert.equal((await db.prepare(`SELECT COUNT(*) n FROM ${table}`).first()).n,0,'upgrade creates no named route or assignment authority');
+ assert.equal((await db.prepare('SELECT COUNT(*) n FROM uptime_credential_grants').first()).n,0,'populated upgrade creates no API credential grant');
+ assert.equal((await db.prepare('SELECT (SELECT COUNT(*) FROM incident_mentions)+(SELECT COUNT(*) FROM incident_mention_authority) n').first()).n,0,'populated upgrade creates no mention or sending authority');
+ const upgradedRoute=await db.prepare('SELECT * FROM alert_routes WHERE scope_kind=? AND scope_value=?').bind(upgradeRoute.scope_kind,upgradeRoute.scope_value).first();
+ assert.deepEqual(Object.fromEntries(Object.keys(upgradeRoute).map(k=>[k,upgradedRoute[k]])),upgradeRoute,'populated route policy survives additive upgrade unchanged');
+ assert.deepEqual(JSON.parse(upgradedRoute.team_ids),[],'upgrade never opts a recipient into a team route');assert.deepEqual(JSON.parse(upgradedRoute.filters),{});assert.equal(upgradedRoute.quiet_hours,null);assert.equal(upgradedRoute.named_route_id,null,'upgrade never assigns a named route');
+ assert.equal((await db.prepare('SELECT COUNT(*) n FROM alert_recipient_consents').first()).n,0,'upgrade creates no member delivery consent');
+ await db.prepare('DELETE FROM alert_routes WHERE scope_kind=? AND scope_value=?').bind(upgradeRoute.scope_kind,upgradeRoute.scope_value).run();
+
+ assert.equal((await call('/api/overview',undefined,{cookie})).status,200,'populated upgrade leaves the existing unfactored session admitted while policy is off');
+ await completeSecondFactor(origin,cookie);
+ await check('populated installation upgrade preserves native authority and saved routes',async()=>{assert.equal((await call('/api/overview')).status,401);assert.match(cookie,/^operator_session_local(_\d+)?=/);assert.equal((await db.prepare('SELECT kind FROM oa_sessions').first()).kind,'native');assert.equal((await db.prepare('SELECT COUNT(*) n FROM sessions').first()).n,0);assert.equal((await call('/api/overview',undefined,{cookie})).status,200);const people=await (await call('/api/access/members',undefined,{cookie})).json();assert.ok(people.some(p=>p.id===originalOwner.id&&p.productRole==='owner'&&p.version===originalOwner.version&&p.assignmentCurrent));assert.ok(people.some(p=>p.id===legacyAdmin&&p.productRole==='admin'&&p.assignmentCurrent));assert.ok(people.some(p=>p.id===legacyMember&&p.productRole===null&&!p.assignmentCurrent));await db.batch([db.prepare('DELETE FROM uptime_member_roles WHERE operator_id=?').bind(legacyAdmin),db.prepare('DELETE FROM oa_operators WHERE id IN (?,?)').bind(legacyAdmin,legacyMember)])});
  await check('cross-origin Base public mutation requests are rejected',async()=>{assert.equal((await call('/auth/magic-link',{email:bindings.OWNER_EMAIL},{origin:'https://attacker.test'})).status,403);assert.equal((await call('/auth/bootstrap',{token:'wrong'})).status,403);assert.equal((await call('/auth/confirm',{token:'wrong'},{origin:'https://attacker.test'})).status,403)});
  await check('one-time setup remains claimed and provider sign-in uses Base durable native session',async()=>{assert.equal((await call('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'Other owner'})).status,409);cookie=await emailSignIn(origin,{bindings});assert.equal((await db.prepare("SELECT COUNT(*) n FROM oa_sessions WHERE kind='native'").first()).n,2);assert.equal((await db.prepare('SELECT COUNT(*) n FROM oa_bootstrap').first()).n,1)});
  let id,token;
@@ -36,6 +61,9 @@ try{
  const other=await (await call('/api/monitors',{name:'Independent heartbeat',type:'heartbeat',canaryUrl:'https://canary.example.test/health',heartbeat:{maxAgeMs:60000}},{cookie})).json();const otherKey=await (await call(`/api/monitors/${other.id}/heartbeat-key`,{},{cookie})).json();assert.equal((await call(`/api/heartbeats/${other.id}`,{}, {authorization:`Bearer ${otherKey.token}`,'x-heartbeat-sequence':'1'})).status,200);
  token=(await (await call(`/api/monitors/${id}/heartbeat-key`,{},{cookie})).json()).token;assert.equal((await call(`/api/heartbeats/${id}`,{}, {authorization:`Bearer ${token}`,'x-heartbeat-sequence':'1'})).status,429)});
  await check('quota survives Worker restart and recovers only after the window',async()=>{await worker.dispose();worker=await startLocalWorker({port,persist:dir,bindings});const db2=await worker.getD1Database('DB');assert.equal((await call(`/api/heartbeats/${id}`,{}, {authorization:`Bearer ${token}`,'x-heartbeat-sequence':'1001'})).status,429);await db2.prepare('UPDATE heartbeat_limits SET window_start=? WHERE monitor_id=?').bind(Date.now()-60001,id).run();assert.equal((await call(`/api/heartbeats/${id}`,{}, {authorization:`Bearer ${token}`,'x-heartbeat-sequence':'1002'})).status,200);assert.equal((await db2.prepare('SELECT receipts FROM heartbeat_limits WHERE monitor_id=?').bind(id).first()).receipts,1)});
- await check('Cron expires abandoned leases without changing evidence or durable bootstrap',async()=>{const db3=await worker.getD1Database('DB');const before=(await db3.prepare('SELECT COUNT(*) n FROM oa_bootstrap').first()).n;await db3.prepare("INSERT INTO slots(id,monitor_id,revision,due_at,status,definition,lease_owner,lease_until,missed_count,manual) VALUES('expired-maintenance',?,1,?,'running','{}','lease',0,0,0)").bind(id,Date.now()).run();const result=await maintenance({DB:db3},Date.now());assert.equal(result.interrupted,1);assert.equal((await db3.prepare("SELECT status FROM slots WHERE id='expired-maintenance'").first()).status,'interrupted');assert.equal((await db3.prepare('SELECT COUNT(*) n FROM oa_bootstrap').first()).n,before);assert.equal((await db3.prepare('SELECT COUNT(*) n FROM observations').first()).n,0)});
+ await check('Cron expires abandoned leases without changing evidence or durable bootstrap',async()=>{const db3=await worker.getD1Database('DB');const before=(await db3.prepare('SELECT COUNT(*) n FROM oa_bootstrap').first()).n;await db3.prepare("INSERT INTO slots(id,monitor_id,revision,due_at,status,definition,lease_owner,lease_until,missed_count,manual) VALUES('expired-maintenance',?,1,?,'running','{}','lease',0,0,0)").bind(id,Date.now()).run();const result=await maintenance({DB:db3},Date.now());assert.equal(result.interrupted,1);assert.equal((await db3.prepare("SELECT status FROM slots WHERE id='expired-maintenance'").first()).status,'interrupted');assert.equal((await db3.prepare('SELECT COUNT(*) n FROM oa_bootstrap').first()).n,before);assert.equal((await db3.prepare('SELECT COUNT(*) n FROM observations').first()).n,0);await db3.prepare("DELETE FROM slots WHERE id='expired-maintenance'").run()});
+ await proveMfaPolicy({origin,bindings,call,cookie,DB:await worker.getD1Database('DB')});
+ await worker.dispose();worker=null;
+ await proveMfaWebAuthn();
  console.log(`OPERATOR-SECURITY passed ${passed} checks`);
 }finally{await worker?.dispose();await rm(dir,{recursive:true,force:true})}

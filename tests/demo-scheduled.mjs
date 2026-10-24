@@ -1,3 +1,4 @@
+import {completeSecondFactor} from './mfa-auth-support.mjs';
 import assert from 'node:assert/strict';
 import {mkdtemp,readFile,readdir,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
@@ -35,6 +36,7 @@ try{
  const startedAt=Date.now(),owner=await call('/auth/bootstrap',{token:testAuthBindings.SETUP_TOKEN,displayName:'Owner'});
  assert.equal(owner.status,303,await owner.clone().text());
  const cookie=owner.headers.get('set-cookie').split(';')[0];
+ await completeSecondFactor(origin,cookie,(url,init)=>call(new URL(url).pathname,init.body===undefined?undefined:JSON.parse(init.body),cookie));
  // The editor's first path: the Worker checks the visitor's site itself (no private runner exists) and its proposal
  // starts on the Worker, confirmed against the demo's External check URL, which is not the editor's example.com.
  const editor=await json(await call('/api/monitor-editor',undefined,cookie));

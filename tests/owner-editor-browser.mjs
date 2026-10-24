@@ -1,3 +1,4 @@
+import {completeSecondFactor} from './mfa-auth-support.mjs';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
@@ -24,6 +25,7 @@ try {
  // Inviting an owner needs an email proof from the last ten minutes; the first-owner bootstrap session carries none.
  cookie=await emailSignIn(app.origin);
  const secondOwner=await invite('owner','other-owner@example.test');
+ await completeSecondFactor(app.origin,secondOwner);
  assert.equal((await app.call('/api/editor/config',undefined,{cookie:memberCookie})).status,403,'a native member session has no editor authority');
  const enabledBindings={...editorBindings};
  for(const name of Object.keys(editorBindings))delete editorBindings[name];
@@ -87,6 +89,7 @@ try {
    await page.screenshot({path:join(evidence,`editor-${width}.png`)});
    await page.goto(app.origin+'/app/monitors/new');await page.locator('[data-rer-editor]').waitFor();
    // Native role loss is checked through the product route, then focus revokes immediately.
+   await completeSecondFactor(app.origin,secondOwner);
    assert.equal((await app.call('/auth/operator/role',{operatorId:primary,role:'member'},{cookie:secondOwner})).status,200);
    await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
    await page.waitForFunction(()=>!document.querySelector('[data-rer-editor]'));

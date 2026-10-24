@@ -1,3 +1,4 @@
+import {teamDeliveryReady} from './alert-team-policy.ts'
 import {contactQuietUntil,type ContactQuietHours} from './contact-quiet.ts'
 import type {Bindings} from './control.server.ts'
 import {auditStatement,automated} from './audit.server.ts'
@@ -17,11 +18,11 @@ const databaseNow="CAST((julianday('now')-2440587.5)*86400000 AS INTEGER)";
 const contactMatch=(job:string)=>`t.destination_id=${job}.destination_id AND s.monitor_id=json_extract(${job}.event,'$.monitorId') AND s.incident_key=json_extract(${job}.event,'$.incidentKey')`;
 export function contactQuietReady(job='j',now=databaseNow){
  return `NOT EXISTS(SELECT 1 FROM alert_contact_schedules s JOIN notification_jobs t ON t.id=s.trigger_job_id
-  WHERE ${contactMatch(job)} AND s.quiet_rules IS NOT NULL
+  WHERE ${contactMatch(job)} AND (s.quiet_rules IS NOT NULL OR s.route_quiet_rules IS NOT NULL)
   AND (s.quiet_checked_until IS NULL OR s.quiet_checked_until<=${now} OR s.quiet_until>${now}))`;
 }
 export function contactReady(job='j',now=databaseNow){
- return `(NOT ${dependencyPrimaryAccepted(job)} AND ${contactQuietReady(job,now)} AND NOT EXISTS(SELECT 1 FROM alert_contact_schedules s JOIN notification_jobs t ON t.id=s.trigger_job_id
+ return `(NOT EXISTS(SELECT 1 FROM scheduled_reports report WHERE report.delivery_id=${job}.id AND report.due_at>${now}) AND ${teamDeliveryReady(job)} AND NOT ${dependencyPrimaryAccepted(job)} AND ${contactQuietReady(job,now)} AND NOT EXISTS(SELECT 1 FROM alert_contact_schedules s JOIN notification_jobs t ON t.id=s.trigger_job_id
   WHERE ${contactMatch(job)}
   AND json_extract(${job}.event,'$.kind') IN ('trigger','reminder','slow','slow_reminder','dependency') AND (s.due_at>${now} OR ${closed} OR (json_extract(${job}.event,'$.kind') IN ('reminder','slow_reminder') AND NOT (${active})))))`;
 }
@@ -30,18 +31,19 @@ export function contactReady(job='j',now=databaseNow){
  * claims cannot reuse an earlier poll on the other side of a quiet boundary. */
 export async function refreshContactQuiet(env:Bindings,id?:string){
  const now=Date.now();
- const rows=(await env.DB.prepare(`SELECT s.trigger_job_id,s.quiet_rules,s.quiet_until FROM alert_contact_schedules s JOIN notification_jobs t ON t.id=s.trigger_job_id
-  WHERE s.quiet_rules IS NOT NULL AND (s.quiet_checked_until IS NULL OR s.quiet_checked_until<=?)
+ const rows=(await env.DB.prepare(`SELECT s.trigger_job_id,s.quiet_rules,s.route_quiet_rules,s.quiet_until FROM alert_contact_schedules s JOIN notification_jobs t ON t.id=s.trigger_job_id
+  WHERE (s.quiet_rules IS NOT NULL OR s.route_quiet_rules IS NOT NULL) AND (s.quiet_checked_until IS NULL OR s.quiet_checked_until<=?)
   AND (EXISTS(SELECT 1 FROM notification_jobs j WHERE ${contactMatch('j')} AND j.state IN ('queued','sending')
    ${id===undefined?'':'AND j.id=?'} AND NOT EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace='uptime-notifications' AND d.id=j.id AND d.state NOT IN ('queued','sending'))) ${id===undefined?`OR (s.next_at IS NOT NULL AND ${active})`:''})`)
-  .bind(now,...(id===undefined?[]:[id])).all<{trigger_job_id:string;quiet_rules:string;quiet_until:number|null}>()).results;
+  .bind(now,...(id===undefined?[]:[id])).all<{trigger_job_id:string;quiet_rules:string|null;route_quiet_rules:string|null;quiet_until:number|null}>()).results;
  if(!rows.length)return;
  const checkedUntil=Math.floor(now/60000)*60000+60000,ends=new Map<string,number|null>();
  await env.DB.batch(rows.map(row=>{
-  if(!ends.has(row.quiet_rules))ends.set(row.quiet_rules,row.quiet_until!==null&&row.quiet_until>now?row.quiet_until:contactQuietUntil(JSON.parse(row.quiet_rules) as ContactQuietHours,now));
-  const until=ends.get(row.quiet_rules)!;
-  return env.DB.prepare(`UPDATE alert_contact_schedules SET quiet_until=?,quiet_checked_until=? WHERE trigger_job_id=? AND quiet_rules=? AND (quiet_checked_until IS NULL OR quiet_checked_until<=?)`)
-   .bind(until,checkedUntil,row.trigger_job_id,row.quiet_rules,now);
+  const key=JSON.stringify([row.quiet_rules,row.route_quiet_rules]);
+  if(!ends.has(key)){const holds=[row.quiet_rules,row.route_quiet_rules].filter((v):v is string=>v!==null).map(v=>contactQuietUntil(JSON.parse(v) as ContactQuietHours,now)).filter((v):v is number=>v!==null);ends.set(key,holds.length?Math.max(...holds):null)}
+  const until=ends.get(key)!;
+  return env.DB.prepare(`UPDATE alert_contact_schedules SET quiet_until=?,quiet_checked_until=? WHERE trigger_job_id=? AND quiet_rules IS ? AND route_quiet_rules IS ? AND (quiet_checked_until IS NULL OR quiet_checked_until<=?)`)
+   .bind(until,checkedUntil,row.trigger_job_id,row.quiet_rules,row.route_quiet_rules,now);
  }));
 }
 export async function advanceContactSchedules(env:Bindings){
@@ -49,6 +51,8 @@ export async function advanceContactSchedules(env:Bindings){
  const now=Date.now();
  // Settle only queued work. Started/uncertain transports keep their own outcome.
  await env.DB.batch([
+  env.DB.prepare(`UPDATE notification_jobs AS j SET state='rejected',code='team_recipient_ineligible',finished_at=? WHERE state='queued' AND NOT ${teamDeliveryReady()} AND NOT EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace='uptime-notifications' AND d.id=j.id AND d.state<>'queued')`).bind(now),
+  env.DB.prepare(`UPDATE integration_deliveries SET state='rejected',next_at=? WHERE namespace='uptime-notifications' AND state='queued' AND id IN(SELECT id FROM notification_jobs WHERE code='team_recipient_ineligible')`).bind(now),
   env.DB.prepare(`UPDATE notification_jobs AS j SET state='rejected',code='contact_schedule_stopped',finished_at=? WHERE state='queued' AND json_extract(j.event,'$.kind') IN ('trigger','reminder','slow','slow_reminder','dependency') AND NOT ${contactReady('j',String(now))}
    AND EXISTS(SELECT 1 FROM alert_contact_schedules s JOIN notification_jobs t ON t.id=s.trigger_job_id WHERE t.destination_id=j.destination_id AND s.monitor_id=json_extract(j.event,'$.monitorId') AND s.incident_key=json_extract(j.event,'$.incidentKey') AND (${closed} OR ${dependencyPrimaryAccepted('j')} OR (json_extract(j.event,'$.kind') IN ('reminder','slow_reminder') AND NOT (${active}))))
    AND NOT EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace='uptime-notifications' AND d.id=j.id AND d.state<>'queued')`).bind(now),
@@ -56,7 +60,7 @@ export async function advanceContactSchedules(env:Bindings){
   env.DB.prepare(`UPDATE alert_contact_schedules AS s SET next_at=NULL WHERE NOT EXISTS(SELECT 1 FROM notification_jobs t WHERE t.id=s.trigger_job_id AND ${active})`),
  ]);
  const rows=await env.DB.prepare(`SELECT s.*,t.event,t.event_id,t.destination_id,t.destination_name,t.kind,t.credential_id FROM alert_contact_schedules s JOIN notification_jobs t ON t.id=s.trigger_job_id
-  WHERE s.next_at<=? AND s.repeat_ms>0 AND (s.quiet_rules IS NULL OR (s.quiet_checked_until>? AND (s.quiet_until IS NULL OR s.quiet_until<=?))) AND ${active} AND t.state<>'imported-inactive'
+  WHERE s.next_at<=? AND s.repeat_ms>0 AND ((s.quiet_rules IS NULL AND s.route_quiet_rules IS NULL) OR (s.quiet_checked_until>? AND (s.quiet_until IS NULL OR s.quiet_until<=?))) AND ${active} AND t.state<>'imported-inactive'
   AND EXISTS(SELECT 1 FROM notification_destinations d WHERE d.id=t.destination_id AND d.credential_id=t.credential_id AND d.enabled=1 AND d.deleted_at IS NULL)
   ORDER BY s.next_at LIMIT 100`).bind(now,now,now).all<any>();
  for(const row of rows.results){
@@ -77,7 +81,12 @@ export async function advanceContactSchedules(env:Bindings){
   ]);
  }
 }
-export async function nextContactFollowup(env:Bindings,incidentId:string){
- const row=await env.DB.prepare(`SELECT MIN(CASE WHEN t.state='queued' AND (s.due_at>? OR s.quiet_until>?) THEN MAX(s.due_at,COALESCE(s.quiet_until,s.due_at)) WHEN ${active} AND s.next_at IS NOT NULL THEN MAX(s.next_at,COALESCE(s.quiet_until,s.next_at)) ELSE NULL END) due FROM alert_contact_schedules s JOIN notification_jobs t ON t.id=s.trigger_job_id WHERE t.event_id=? AND NOT ${closed}`).bind(Date.now(),Date.now(),incidentId).first<{due:number|null}>();
- return row?.due??null;
+export async function nextContactFollowupDetail(env:Bindings,incidentId:string){
+ const now=Date.now();
+ const row=await env.DB.prepare(`SELECT t.id AS deliveryId,
+  CASE WHEN t.state='queued' AND (s.due_at>? OR s.quiet_until>?) THEN MAX(s.due_at,COALESCE(s.quiet_until,s.due_at)) WHEN ${active} AND s.next_at IS NOT NULL THEN MAX(s.next_at,COALESCE(s.quiet_until,s.next_at)) ELSE NULL END AS due,
+  CASE WHEN t.state='queued' AND (s.due_at>? OR s.quiet_until>?) THEN 'notification' ELSE 'reminder' END AS kind
+  FROM alert_contact_schedules s JOIN notification_jobs t ON t.id=s.trigger_job_id WHERE t.event_id=? AND NOT ${closed} ORDER BY due IS NULL,due,t.id LIMIT 1`).bind(now,now,now,now,incidentId).first<{deliveryId:string;due:number|null;kind:'notification'|'reminder'}>();
+ return row?.due===null||!row?null:row;
 }
+export async function nextContactFollowup(env:Bindings,incidentId:string){return (await nextContactFollowupDetail(env,incidentId))?.due??null}

@@ -1,3 +1,5 @@
+**Or let Run Edit Run host it.** [Run Edit Run](https://app.runeditrun.com/?product=uptime&plan=assisted) can set Uptime up on your own Cloudflare account and keep it updated; sign-ups are by request for now.
+
 You can deploy Uptime to your own Cloudflare account with one command. This page covers what you need, what the command creates, and how to confirm it worked. Stop local dev or preview before any deployment command, including a dry run: run `rer dev --stop` or `rer preview --stop` first.
 
 ## Managed hosting mail

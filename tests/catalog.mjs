@@ -1,3 +1,6 @@
+import http from 'node:http';
+import {createHmac} from 'node:crypto';
+import {executeTaskProbe} from '../runners/src/execute-task.mjs';
 // MONITOR-001: the owner reviews and atomically applies a catalog batch, then organises its retained history.
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
@@ -6,8 +9,10 @@ import {migratedWorker,runtimeDirectory,cleanupDirectory,availablePorts} from '.
 import {testAuthBindings,authRequest,sessionCookie,finishSetup} from './auth-test-support.mjs';
 
 test('MONITOR-001 catalog adds, metadata, lifecycle and undo keep reviewed revisions and history',async()=>{
- const directory=await runtimeDirectory(),[port]=await availablePorts(1),origin=`http://127.0.0.1:${port}`;let worker;
+ const directory=await runtimeDirectory(),[port]=await availablePorts(1),origin=`http://127.0.0.1:${port}`;let worker,edge;const originalRequest=http.request;
  try{
+  edge=http.createServer((_request,response)=>{response.writeHead(200);response.end('synthetic-uptime-clone-result')});await new Promise(resolve=>edge.listen(0,'127.0.0.1',resolve));const edgePort=edge.address().port;
+  http.request=function(options,...args){if(['93.184.216.34','93.184.216.35'].includes(options?.hostname)&&Number(options.port)===edgePort){assert.equal(options.headers.host,`${options.hostname}:${edgePort}`);return originalRequest.call(this,{...options,hostname:'127.0.0.1'},...args)}return originalRequest.call(this,options,...args)};
   let DB;({worker,DB}=await migratedWorker({port,persist:join(directory,'local'),bindings:{UPTIME_ORIGIN:origin},outboundService:async request=>{
    const url=new URL(request.url);assert.equal(url.hostname,'cloudflare-dns.com','catalog only resolves the requested target');
    assert.equal(url.searchParams.get('name'),'private.catalog.example.test');
@@ -79,7 +84,7 @@ test('MONITOR-001 catalog adds, metadata, lifecycle and undo keep reviewed revis
   await bulk({monitorIds:[selected],action:'pause'});
   const resumed=await bulk({monitorIds:[selected],action:'resume'});assert.equal((await monitor(selected)).definition.enabled,true);
   await undo(resumed.batchId);assert.equal((await monitor(selected)).definition.enabled,false);
-  await ok(`/api/monitors/${selected}`,{...(await monitor(selected)).definition,maintenanceWindows:[{id:'source-deploy',name:'Source deployment',timeZone:'America/New_York',mode:'pause',startsAt:Date.now()+3600000,endsAt:Date.now()+7200000}]},{method:'PATCH'});
+  await ok(`/api/monitors/${selected}`,{...(await monitor(selected)).definition,url:`http://93.184.216.34:${edgePort}/clone`,canaryUrl:`http://93.184.216.35:${edgePort}/canary`,maintenanceWindows:[{id:'source-deploy',name:'Source deployment',timeZone:'America/New_York',mode:'pause',startsAt:Date.now()+3600000,endsAt:Date.now()+7200000}]},{method:'PATCH'});
   const sourceBefore=await monitor(selected),sourceRevisions=await DB.prepare('SELECT * FROM revisions WHERE monitor_id=? ORDER BY revision').bind(selected).all();
   const cloned=await bulk({monitorIds:[selected],action:'clone',changes:{environment:'production'},enableAfterCreate:true});
   assert.equal(cloned.created.length,1);assert.deepEqual((await monitor(cloned.created[0])).definition.maintenanceWindows,[],'a clone needs its own explicitly planned maintenance');assert.deepEqual(await monitor(selected),sourceBefore);
@@ -87,7 +92,11 @@ test('MONITOR-001 catalog adds, metadata, lifecycle and undo keep reviewed revis
   let cloneTask;
   for(let remaining=100;remaining>0;remaining--){const next=await ok('/api/runner/claim',{}, {headers:{'x-runner-key':testAuthBindings.UPTIME_RUNNER_KEY,'x-runner-id':first.runner_id}});if(next.task?.monitorId===cloned.created[0]){cloneTask=next.task;break}if(!next.task)break}
   assert.ok(cloneTask,'the clone has its own scheduled slot before undo');
-  const cloneHistory=await ok(`/api/monitors/${cloned.created[0]}/history`);assert.ok(cloneHistory.some(slot=>slot.id===cloneTask.id));
+  const attempts=await Promise.all(cloneTask.probes.map(async probe=>{const observation=await executeTaskProbe(cloneTask,probe,{controlPort:port}),canaryUrl=cloneTask.definition.assignments[probe].canaryUrl;assert.equal(observation.outcome,'pass');return {...observation,attempt:0,...(canaryUrl?{canary:{...await executeTaskProbe({...cloneTask,definition:{...cloneTask.definition,url:canaryUrl,request:undefined,assertions:{status:200}}},probe,{controlPort:port,statusOnly:true}),attempt:0}}:{})}}));
+  const result={slotId:cloneTask.id,attempts},stamp=String(Date.now()),signature=createHmac('sha256',testAuthBindings.UPTIME_RUNNER_KEY).update(`${stamp}.${JSON.stringify(result)}`).digest('hex');
+  assert.equal((await ok('/api/runner/results',result,{headers:{'x-runner-key':testAuthBindings.UPTIME_RUNNER_KEY,'x-runner-id':first.runner_id,'x-sent-at':stamp,'x-runner-signature':signature}})).accepted,true,'real clone HTTP evidence is accepted through the signed result door');
+
+  const cloneHistory=await ok(`/api/monitors/${cloned.created[0]}/history`);assert.ok(cloneHistory.some(slot=>slot.id===cloneTask.id&&slot.observations.length>0&&slot.observations.every(o=>o.outcome==='pass')));
   history=await DB.prepare('SELECT * FROM slots ORDER BY rowid').all();
   await undo(cloned.batchId);assert.equal((await monitor(cloned.created[0])).definition.enabled,false);
   assert.deepEqual(await ok(`/api/monitors/${cloned.created[0]}/history`),cloneHistory,'undo retains the clone and every scheduled history record');
@@ -106,5 +115,5 @@ test('MONITOR-001 catalog adds, metadata, lifecycle and undo keep reviewed revis
   const quota=await unchanged(()=>preview({format:'urls',text:'https://93.184.216.34/no-room\nhttps://93.184.216.34/no-room-either'},true));
   assert.equal(quota.counts.refused,2);assert.equal(quota.quota.available,0);
   assert.ok(quota.entries.every(e=>/quota/.test(e.reason)));
- }finally{await worker?.dispose();await cleanupDirectory(directory)}
+ }finally{http.request=originalRequest;await worker?.dispose();if(edge){edge.closeAllConnections();await new Promise(resolve=>edge.close(resolve))}await cleanupDirectory(directory)}
 });

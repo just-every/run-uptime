@@ -1,3 +1,4 @@
+import {completeApiSecondFactor} from './mfa-auth-support.mjs';
 import assert from 'node:assert/strict';
 import {createHmac} from 'node:crypto';
 import {spawn} from 'node:child_process';
@@ -30,6 +31,7 @@ try{
  const enroll={version:1},stamp=String(Date.now()),signature=createHmac('sha256',key).update(`${stamp}.runner-enrolment.${JSON.stringify(enroll)}`).digest('hex');
  const registration=(await api('/api/runner/enroll',enroll,{'x-runner-key':key,'x-sent-at':stamp,'x-runner-signature':signature})).data;
  const boot=await api('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'Mail owner'});assert.equal(boot.status,303,JSON.stringify(boot.data));cookie=boot.headers['set-cookie'][0].split(';')[0];
+ await completeApiSecondFactor(origin,cookie,api);
  const endpoint=(protocol,ref)=>({protocol,host:'canary.protocol.test',port:edge.ports[protocol],security:protocol==='smtp'?'starttls':'tls',credentialRef:ref});
  const credentials=async(id,s)=>{
   for(const target of [s,...(s.transaction?[s.transaction.receive]:[])])if(target.credentialRef)await writeFile(join(credentialDir,`${target.credentialRef}.json`),JSON.stringify({monitorId:id,origin:`https://${target.host}:${target.port}`,auth:{type:'basic',username:'synthetic-user',password:'planted-private-password'}}),{mode:0o600});

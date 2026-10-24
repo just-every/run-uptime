@@ -2,10 +2,11 @@
 // authentication counters, upload custody or repair work preceding validation.
 const primary:Record<string,readonly string[]>={
  check_write:['monitors','revisions'],maintenance_write:['monitors','revisions'],
- route_write:['alert_routes'],respond:['slots','slow_acknowledgements','outbox'],
+ route_write:['alert_routes'],respond:['slots','slow_acknowledgements','outbox','incident_comments','incident_comment_history','incident_work','incident_timeline','incident_mentions'],
  secret_write:['notification_destinations','runners','heartbeat_authority','effect_grants','failure_evidence_grants','failure_snapshot_settings','failure_snapshots','notification_preferences'],
  import:['monitors','revisions','uptime_business_import_targets'],
- members:['oa_operators','oa_tokens','oa_sessions','uptime_member_roles','uptime_member_scopes'],
+ receive:['alert_recipient_consents'],
+ members:['alert_teams','alert_team_members','oa_operators','oa_tokens','oa_sessions','uptime_member_roles','uptime_member_scopes'],
 }
 export function auditsMutation(action:string,statements:({sql:string;write:boolean}|undefined)[],additional:boolean){
  if(additional)return true

@@ -1,3 +1,4 @@
+import {completeApiSecondFactor} from './mfa-auth-support.mjs';
 // UDP-001: owner API -> real signed Node runner -> migrated emitted Worker.
 import assert from 'node:assert/strict';
 import dgram from 'node:dgram';
@@ -39,6 +40,7 @@ try{
  const enrollment={version:1},stamp=String(Date.now()),sig=createHmac('sha256',key).update(`${stamp}.runner-enrolment.${JSON.stringify(enrollment)}`).digest('hex');
  const registration=(await api('/api/runner/enroll',enrollment,{'x-runner-key':key,'x-sent-at':stamp,'x-runner-signature':sig})).data;
  const boot=await api('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'Network operations'});assert.equal(boot.status,303,JSON.stringify(boot.data));cookie=boot.headers['set-cookie'][0].split(';')[0];
+ await completeApiSecondFactor(origin,cookie,api);
  const base={name:'West coast game service',type:'udp',udp:{host:'udp.protocol.test',port:9000,payloadHex:'50494e47',expectedHex:'504f4e47',match:'exact'},assignments:{'local-a':registration.runnerId},canaryUrl:'https://canary.protocol.test/ok',intervalMs:30000,timeoutMs:150,retries:0,confirmSlots:1,recoverSlots:1};
  const create=async value=>{const r=await api('/api/monitors',{...base,...value});assert.equal(r.status,201,JSON.stringify(r.data));return r.data};
  const step=async(m,extra)=>{await run(extra);const slots=(await api(`/api/monitors/${m.id}/history`)).data;return slots.find(s=>!s.manual).observations[0]};
@@ -64,6 +66,7 @@ try{
  await worker.dispose();worker=null;const receiving=join(directory,'receiving');await mkdir(receiving);worker=await emittedRunnerWorker(receiving,bindings);const receivingDB=await worker.getD1Database('DB');
  for(const file of(await readdir('migrations')).filter(n=>n.endsWith('.sql')).sort())for(const sql of splitSql(await readFile(join('migrations',file),'utf8')))await receivingDB.prepare(sql).run();
  const receivingBoot=await api('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'Receiving network owner'});assert.equal(receivingBoot.status,303);cookie=receivingBoot.headers['set-cookie'][0].split(';')[0];
+ await completeApiSecondFactor(origin,cookie,api);
  const restored=await api('/api/restore',archive);assert.equal(restored.status,200,JSON.stringify(restored.data));const receivingMonitors=(await api('/api/overview')).data.monitors;assert.ok(receivingMonitors.length);assert.ok(receivingMonitors.every(x=>x.definition.enabled===false));assert.ok(receivingMonitors.every(x=>x.definition.udp.expectedHex===base.udp.expectedHex));assert.equal(packets,count);const roundtrip=await api('/api/archive');assert.equal(roundtrip.status,200);assert.ok(JSON.stringify(roundtrip.data).includes('57524f4e47'));
  console.log('UDP-001 PASS: signed scheduled match/mismatch/timeout/recovery, immutable facts, destination rejection, one-packet/rate/size caps, cancellation, portable settings and revoked authority.');
 }finally{udp.close();await close(web);await worker?.dispose();await rm(directory,{recursive:true,force:true})}

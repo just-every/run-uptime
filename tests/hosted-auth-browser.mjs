@@ -1,3 +1,4 @@
+import {completeBrowserSecondFactor} from './mfa-auth-support.mjs';
 import assert from 'node:assert/strict';
 import {mkdtemp, readFile, readdir, rm, mkdir} from 'node:fs/promises';
 import {join} from 'node:path';
@@ -51,8 +52,39 @@ try {
     assert.equal(session.path, '/');
     const result = await context.request.get(runtime.origin + '/auth/session');
     assert.equal(result.status(), 200);
-    assert.equal((await result.json()).operator.role, 'owner');
+    const identity = (await result.json()).operator;
+    assert.equal(identity.role, 'owner');
+    assert.equal(identity.displayName, 'Native browser owner', 'setup preserves the typed name in the live session');
     assert.equal((await context.request.get(runtime.origin + '/api/overview')).status(), 200);
+  };
+  const assertSignInForward = async (page, complete) => {
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({width, height: 900});
+      for (const path of [signIn.path, '/signin']) {
+        const url = runtime.origin + path + '?login_hint=' + encodeURIComponent(bindings.OWNER_EMAIL);
+        for (const method of ['GET', 'HEAD']) {
+          const response = await page.request.fetch(url, {method, maxRedirects: 0});
+          assert.equal(response.status(), complete ? 303 : 200, `${path} ${method}: only a complete owner session forwards`);
+          if (complete) {
+            assert.equal(response.headers().location, '/app');
+            assert.match(response.headers()['cache-control'], /no-store/);
+          }
+        }
+        // The empty-list console deliberately forwards to first-monitor onboarding.
+        // Commit observes the server redirect without racing that document's navigation.
+        await page.goto(url, {waitUntil: 'commit'});
+        if (complete) {
+          await page.waitForURL(runtime.origin + '/app/monitors/new');
+          await page.getByRole('heading', {name: 'Add your first monitor', exact: true}).waitFor();
+        }
+        else assert.equal(await page.getByRole('textbox', {name: /^Email/}).inputValue(), bindings.OWNER_EMAIL, 'incomplete session keeps the sign-in form and prefill');
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+        if (process.env.UPTIME_AUTH_SHOTS) {
+          await mkdir(process.env.UPTIME_AUTH_SHOTS, {recursive: true});
+          await page.screenshot({path: join(process.env.UPTIME_AUTH_SHOTS, `${complete ? 'forwarded' : 'factor-owed'}-${path.slice(1)}-${width}.png`), fullPage: true});
+        }
+      }
+    }
   };
   const bootstrap = await newContext(), setup = await bootstrap.newPage();
   await setup.goto(runtime.origin + '/claim');
@@ -60,7 +92,18 @@ try {
   await setup.getByLabel('Your name').fill('Native browser owner');
   const bootstrapResponse = await nativePost(setup, '/auth/bootstrap', 'Create owner account');
   assert.equal(bootstrapResponse.status(), 303, bootstrapResponse.status() === 303 ? undefined : await bootstrapResponse.text());
+  await completeBrowserSecondFactor(setup,runtime.origin);
+  await setup.goto(runtime.origin+'/setup');
   await setup.waitForURL(runtime.origin + '/setup');
+  for (const width of [1440, 390]) {
+    await setup.setViewportSize({width, height: 900});
+    await setup.getByRole('heading', {name: 'Welcome, Native browser owner', exact: true}).waitFor();
+    assert.equal(await setup.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    if (process.env.UPTIME_AUTH_SHOTS) {
+      await mkdir(process.env.UPTIME_AUTH_SHOTS, {recursive: true});
+      await setup.screenshot({path: join(process.env.UPTIME_AUTH_SHOTS, `setup-name-${width}.png`), fullPage: true});
+    }
+  }
   await setup.getByRole('button', {name: 'Continue', exact: true}).click();
   await setup.waitForURL(url => url.pathname.startsWith('/app'));
   await assertSession(bootstrap);
@@ -80,7 +123,7 @@ try {
     assert.equal(await login.getByLabel('Email address', {exact: true}).inputValue(), bindings.OWNER_EMAIL);
     await login.evaluate(() => document.fonts.ready);
     assert.equal(await login.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
-    assert.equal(mails.length, 0, 'opening Open app never sends mail');
+    assert.equal(mails.filter(m=>m.subject.startsWith('Your sign-in link')).length, 0, 'opening Open app never sends mail');
     assert.equal((await db.prepare('SELECT count(*) n FROM oa_tokens').first()).n, 0);
     if (process.env.UPTIME_AUTH_SHOTS) {
       await mkdir(process.env.UPTIME_AUTH_SHOTS, {recursive: true});
@@ -95,15 +138,39 @@ try {
   assert.equal(acknowledgement.searchParams.get('notice'), 'sent');
   await login.waitForURL(acknowledgement.href);
   await login.getByRole('status').waitFor();
-  assert.equal(mails.length, 1);
-  const link = new URL(mails[0].content.find(content => content.type === 'text/plain').value.match(/https:\/\/[^\s]+/)[0]);
+  assert.equal(mails.filter(m=>m.subject.startsWith('Your sign-in link')).length, 1);
+  const link = new URL(mails.find(m=>m.subject.startsWith('Your sign-in link')).content.find(content => content.type === 'text/plain').value.match(/https:\/\/[^\s]+/)[0]);
   assert.equal(link.origin, runtime.origin);
   await login.goto(link.href);
   assert.equal((await db.prepare('SELECT consumed_at FROM oa_tokens').first()).consumed_at, null);
   assert.equal((await nativePost(login, '/auth/confirm', 'Confirm')).status(), 303);
-  await login.waitForURL(runtime.origin + '/app/monitors');
+  await assertSignInForward(login, false);
+  assert.equal((await loginContext.request.get(runtime.origin + '/api/overview')).status(), 403, 'first-factor session cannot enter the console');
+  await completeBrowserSecondFactor(login,runtime.origin);await login.goto(runtime.origin+'/app', {waitUntil: 'commit'});
+  await login.waitForURL(runtime.origin + '/app/monitors/new');
+  await login.getByRole('heading', {name: 'Add your first monitor', exact: true}).waitFor();
   await assertSession(loginContext);
+  await assertSignInForward(login, true);
   assert.ok((await db.prepare('SELECT consumed_at FROM oa_tokens').first()).consumed_at);
+  const invitation = await loginContext.request.post(runtime.origin + '/auth/invite', {
+    headers: {origin: runtime.origin}, data: {email: 'synthetic-uptime-20@example.test', displayName: 'Synthetic colleague', role: 'member'},
+  });
+  assert.equal(invitation.status(), 202, 'native invitation makes operator management visible');
+  const members = await loginContext.request.get(runtime.origin + '/api/incident-settings');
+  assert.equal(members.status(), 200);
+  assert.ok((await members.json()).members.some(member => member.displayName === 'Native browser owner'), 'incident assignment uses the typed owner name');
+  for (const width of [1440, 390]) {
+    await login.setViewportSize({width, height: 900});
+    await login.goto(runtime.origin + '/app/settings');
+    await login.getByRole('button', {name: 'Manage operators', exact: true}).click();
+    await login.locator('.operator-row').filter({hasText: 'Native browser owner'}).waitFor();
+    const people = await loginContext.request.get(runtime.origin + '/auth/operators');
+    assert.equal(people.status(), 200);
+    assert.ok((await people.json()).some(person => person.email === bindings.OWNER_EMAIL && person.displayName === 'Native browser owner'), 'member directory keeps the typed owner name');
+    assert.equal(await login.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    if (process.env.UPTIME_AUTH_SHOTS) await login.screenshot({path: join(process.env.UPTIME_AUTH_SHOTS, `settings-name-${width}.png`), fullPage: true});
+  }
+
   assert.deepEqual(runtime.errors, []);
   assert.deepEqual(errors, []);
   await loginContext.close();

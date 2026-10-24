@@ -1,3 +1,4 @@
+import {createServer as httpServer} from 'node:http';
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
 import {randomUUID} from 'node:crypto';
@@ -7,7 +8,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {startLocalWorker} from './mail-provider-fixture.mjs';
-import {testAuthBindings, signInOwner, authRequest} from './auth-test-support.mjs';
+import {testAuthBindings, signInOwner, authRequest, emailSignIn, deliveredLink, sessionCookie} from './auth-test-support.mjs';
 import {splitSql} from './migration-support.mjs';
 import {readProcessTable, sameProcess} from '@runeditrun/rer/internal/onboarding/process-table.mjs';
 
@@ -18,7 +19,7 @@ const origin = 'http://127.0.0.1:15482';
 const grantPath = join(root, 'data/synthetic-grant.json');
 const children = new Set();
 const results = [];
-let worker, directory, evidence, mailLog, ownedGrant = false, interrupted = false;
+let worker, directory, evidence, mailLog, canary, canaryRequests=0, ownedGrant = false, interrupted = false;
 const env = Object.fromEntries([
   'PATH', 'HOME', 'SystemRoot',
   'PLAYWRIGHT_BROWSERS_PATH', 'UPTIME_BROWSER_EXECUTABLE',
@@ -138,11 +139,11 @@ async function requireFreePort(port) {
   });
   await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
 }
-async function runSuite(script, variable, label) {
+async function runSuite(script, variable, label, extraEnv = {}) {
   const output = join(evidence, label);
   await mkdir(output, {mode: 0o700});
   console.log(`Running ${script}`);
-  const child = launch(label, script, {[variable]: output,UPTIME_TEST_MAIL_LOG:mailLog});
+  const child = launch(label, script, {[variable]: output,UPTIME_TEST_MAIL_LOG:mailLog,...extraEnv});
   let killTimer;
   const timer = setTimeout(() => {
     signalGroup(child, 'SIGTERM');
@@ -213,16 +214,31 @@ try {
   }
   const cookie = await signInOwner(origin, {bindings,finishFirstRun:true});
   const call = authRequest(origin);
+  canary=httpServer((request,response)=>{assert.equal(request.url,'/canary');canaryRequests++;response.writeHead(200);response.end('synthetic-uptime-canary')});
+  await new Promise(resolve=>canary.listen(0,'127.0.0.1',resolve));const canaryPort=canary.address().port;
+  assert.equal((await call('/api/external-check',{url:`http://93.184.216.35:${canaryPort}/canary`},{cookie})).status,200);
   const runner = launch('runner', 'runners/src/private-runner.mjs', {
     UPTIME_CONTROL_ORIGIN: origin, UPTIME_RUNNER_KEY: bindings.UPTIME_RUNNER_KEY,
     UPTIME_GRANT_FILE: grantPath, UPTIME_LOCAL_REVIEW: 'true',
+    UPTIME_BROWSER_CANARY_PORT:String(canaryPort),NODE_OPTIONS:'--import='+join(root,'tests/browser-canary-edge.mjs'),
   });
   await waitFor('authenticated runner contact', async () => {
     const response = await call('/api/overview', undefined, {cookie});
     return response.ok && (await response.json()).runner.contact.state === 'Fresh contact';
   }, runner);
-  await runSuite('tests/operator-browser.mjs', 'UPTIME_UI_EVIDENCE', 'operator');
-  await runSuite('tests/rule-edit-browser.mjs', 'UPTIME_RULE_EDIT_EVIDENCE', 'rule-edit');
+  // The child owns its authenticator map: hand off a distinct native owner, never parent factor material.
+  const operatorOwnerEmail='synthetic-uptime-browser-owner@example.test';
+  const invitingCookie=await emailSignIn(origin,{bindings});
+  assert.equal((await call('/auth/invite',{email:operatorOwnerEmail,displayName:'Synthetic browser owner',role:'owner'},{cookie:invitingCookie})).status,202);
+  const invitation=await deliveredLink(call,{email:operatorOwnerEmail,kind:'invite'});
+  sessionCookie(await call('/auth/confirm',{token:invitation.searchParams.get('token')}));
+  const ruleEditOwnerEmail='synthetic-uptime-rule-edit-owner@example.test';
+  assert.equal((await call('/auth/invite',{email:ruleEditOwnerEmail,displayName:'Synthetic rule-edit owner',role:'owner'},{cookie:invitingCookie})).status,202);
+  const ruleEditInvitation=await deliveredLink(call,{email:ruleEditOwnerEmail,kind:'invite'});
+  sessionCookie(await call('/auth/confirm',{token:ruleEditInvitation.searchParams.get('token')}));
+  await runSuite('tests/operator-browser.mjs', 'UPTIME_UI_EVIDENCE', 'operator',{UPTIME_OPERATOR_OWNER_EMAIL:operatorOwnerEmail});
+  assert.ok(canaryRequests>0,'Healthy waits used the controlled public canary');
+  await runSuite('tests/rule-edit-browser.mjs', 'UPTIME_RULE_EDIT_EVIDENCE', 'rule-edit',{UPTIME_RULE_EDIT_OWNER_EMAIL:ruleEditOwnerEmail});
   await stopChild(runner);
   await worker.dispose(); worker = undefined;
   // Recovery owns its two independent Workers/runners, sharing only custody.
@@ -237,6 +253,7 @@ try {
     if (evidence) await writeFile(join(evidence, `${child.label}.log`), child.log, {mode: 0o600});
   }
   if (worker) { try { await worker.dispose(); } catch (error) { cleanup.push(error); } }
+  if(canary){canary.closeAllConnections();await new Promise(resolve=>canary.close(resolve))}
   if (directory) await rm(directory, {recursive: true, force: true});
   if (ownedGrant) await rm(grantPath, {force: true});
   for (const signal of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.removeListener(signal, interrupt);

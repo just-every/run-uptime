@@ -1,3 +1,4 @@
+import {completeSecondFactor} from './mfa-auth-support.mjs';
 import {retentionCleanup} from './retention-cleanup-proof.mjs';
 import {allDeliveredMessages} from './mail-provider-fixture.mjs';
 import assert from 'node:assert/strict';
@@ -38,6 +39,7 @@ try{
  const secondRunner=await ok('/api/runners','POST',{networkLabel:'erasure-second-network'});
  const runChecks=async()=>{await runRunner({origin,key:bindings.UPTIME_RUNNER_KEY,grantPath,localReview:true,transport,once:true});await runRunner({origin,key:secondRunner.key,runnerId:secondRunner.runnerId,grantPath,localReview:true,transport,once:true})};
  const monitor=await ok('/api/monitors','POST',{name:canaries.monitor,probes:['local-a','local-b'],url:`http://127.0.0.1:${targetPort}/health`,intervalMs:5000,retries:0,confirmSlots:1,recoverSlots:1,freshnessMs:15000});
+ const scheduledReport=await ok(`/api/monitors/${monitor.id}/report-schedules`,'POST',{destinationId:email.id,dueAt:Date.now()+3600000,period:{period:'24h',timeZone:'America/Chicago'}});
  const keep=await ok('/api/monitors','POST',{name:'Retained monitor',url:'https://example.com/health',enabled:false});
  await runChecks();
  const initialHistory=await ok(`/api/monitors/${monitor.id}/history`);assert.ok(initialHistory.some(slot=>slot.status==='complete'&&slot.manual===0&&slot.observations.some(o=>o.outcome==='pass')),'real scheduled observation: '+JSON.stringify(initialHistory.map(s=>({status:s.status,manual:s.manual,observations:s.observations.map(o=>({outcome:o.outcome,checks:o.checks.map(c=>({assertion:c.assertion,pass:c.pass}))}))}))));
@@ -66,7 +68,8 @@ try{
  const historicalRecord=JSON.stringify(await DB.prepare('SELECT * FROM monitors WHERE id=?').bind(monitor.id).first());
  await DB.prepare('INSERT INTO archive_history VALUES(?,?,?)').bind(await digest(`monitors\n${historicalRecord}`),'monitors',historicalRecord).run();
  const beforeAudit=(await DB.prepare('SELECT * FROM uptime_audit').all()).results;
- assert.equal(beforeAudit.filter(r=>r.action==='notification_send'&&r.actor_ref==='notification-dispatch').length,mail.length+receiver.records.length,'one permanent audit per actual attempt including tests');
+ const securityNotices=mail.filter(message=>message.subject==='Uptime second-factor security change');assert.ok(securityNotices.length);assert.equal((await DB.prepare("SELECT COUNT(*) n FROM uptime_mfa_notices WHERE outcome='accepted'").first()).n,securityNotices.length,'every real security notice retains its separate delivery outcome');
+ assert.equal(beforeAudit.filter(r=>r.action==='notification_send'&&r.actor_ref==='notification-dispatch').length,mail.filter(message=>message.subject!=='Uptime second-factor security change').length+receiver.records.length,'one permanent audit per actual notification attempt including tests');
  // The same selected adapter serves operator and notification mail. After
  // proving real sends, explicitly restart this local installation in capture
  // mode to prove permanent auth captures and their erasure as well.
@@ -76,6 +79,7 @@ try{
  await owner.freshSignIn(bindings);
  await ok('/auth/invite','POST',{email:canaries.operator,displayName:'erase-operator-name-canary',role:'owner'},{origin});
  const call=authRequest(origin),link=await deliveredLink(call,{email:canaries.operator,kind:'invite'}),erasedCookie=sessionCookie(await call('/auth/confirm',{token:link.searchParams.get('token')}));
+ await completeSecondFactor(origin,erasedCookie);
  const other=(await ok('/auth/operators')).find(o=>o.email===canaries.operator);assert.ok(other);
  await ok(`/api/notifications/destinations/${destination.id}/rotate`,'POST',{}, {cookie:erasedCookie});
  const otherSessions=await ok(`/auth/sessions?operatorId=${other.id}`);assert.ok(otherSessions.length);
@@ -83,6 +87,7 @@ try{
  const revoked=await api('/auth/session/revoke','POST',{sessionId:otherSessions[0].id},{origin});assert.equal(revoked.status,204);
  assert.ok((await DB.prepare("SELECT * FROM uptime_audit WHERE action='session_revoke'").all()).results.length);
  const auditBeforeRefused=await DB.prepare('SELECT COUNT(*) n FROM uptime_audit').first();
+ assert.equal((await DB.prepare('SELECT COUNT(*) n FROM scheduled_reports WHERE id=?').bind(scheduledReport.id).first()).n,1);
  const unsigned=await fetch(origin+`/api/monitors/${monitor.id}/erase`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({name:canaries.monitor})});assert.equal(unsigned.status,401);
  assert.equal((await api(`/api/monitors/${monitor.id}/erase`,'POST',{name:'wrong current name'})).status,400);
  assert.deepEqual(await DB.prepare('SELECT COUNT(*) n FROM uptime_audit').first(),auditBeforeRefused,'unauthorized and refused erasures create no audit');
@@ -118,6 +123,7 @@ try{
  assert.deepEqual(await DB.prepare('SELECT * FROM notification_destinations WHERE id=?').bind(retainedDestination.id).first(),destinationKeeper);
  assert.equal((await DB.prepare("SELECT COUNT(*) n FROM uptime_audit WHERE actor_ref=?").bind(other.id).first()).n,0);assert.ok((await DB.prepare("SELECT * FROM uptime_audit WHERE action='credential_rotate' AND actor_kind='anonymized'").all()).results.length);
  const ownerRow=(await ok('/auth/operators')).find(o=>o.role==='owner'&&o.status==='active');
+ assert.equal((await DB.prepare('SELECT COUNT(*) n FROM scheduled_reports WHERE id=?').bind(scheduledReport.id).first()).n,0,'monitor erasure removes the scheduled snapshot');
  const beforeLast=await DB.prepare('SELECT COUNT(*) n FROM uptime_audit').first();const last=await api(`/api/operators/${ownerRow.id}/erase`,'POST',{});assert.equal(last.status,400);assert.match(last.data.error,/rer reset --yes/);assert.deepEqual(await DB.prepare('SELECT COUNT(*) n FROM uptime_audit').first(),beforeLast);
  ({worker,DB}=await retentionCleanup({worker,DB,port,persist,bindings,owner,runChecks,origin,secondRunner}));env.DB=DB;
  const afterArchive=await ok('/api/archive');for(const canary of Object.values(canaries))assert.ok(!JSON.stringify(afterArchive).includes(canary));
@@ -137,18 +143,18 @@ try{
  await assert.rejects(restore(fresh,nativeBefore,undefined,{laterJournal:later}),/erased/);
  assert.equal((await fresh.DB.prepare('SELECT COUNT(*) n FROM monitors').first()).n,0);
  await assert.rejects(restore(fresh,nativeBefore,undefined,{laterJournal:{...later,sourceIdentity:randomUUID()}}),/later_journal/);
- const freshOwner=ownerAPI(`http://127.0.0.1:${freshPort}`);await freshOwner.signIn(bindings);const refusedRoute=await freshOwner.api('/api/restore','POST',{archive:nativeBefore,laterJournal:later});assert.equal(refusedRoute.status,400);assert.match(refusedRoute.data.error,/erased/);assert.equal((await fresh.DB.prepare('SELECT COUNT(*) n FROM monitors').first()).n,0);
+ const freshOwner=ownerAPI(`http://127.0.0.1:${freshPort}`);await freshOwner.signIn(bindings);const freshAuditBefore=(await fresh.DB.prepare('SELECT * FROM uptime_audit ORDER BY rowid').all()).results;const refusedRoute=await freshOwner.api('/api/restore','POST',{archive:nativeBefore,laterJournal:later});assert.equal(refusedRoute.status,400);assert.match(refusedRoute.data.error,/erased/);assert.equal((await fresh.DB.prepare('SELECT COUNT(*) n FROM monitors').first()).n,0);
  const auxiliaryRefusal=await freshOwner.api('/api/restore','POST',{archive:beforeOperatorArchive,laterJournal:later});assert.equal(auxiliaryRefusal.status,400);assert.match(auxiliaryRefusal.data.error,/erased auxiliary_attempts record/,'OPS-001 later erasure journal fences old auth-mail attempt history');
  // Remove the newly fenced auxiliary history in a separately rehashed fixture
  // so the existing erased-actor fence still has its own public-door proof.
  const actorArchive=structuredClone(beforeOperatorArchive);actorArchive.payload.productTables.auxiliary_attempts=[];actorArchive.sha256=await digest(JSON.stringify(actorArchive.payload));
- const operatorRefusal=await freshOwner.api('/api/restore','POST',{archive:actorArchive,laterJournal:later});assert.equal(operatorRefusal.status,400);assert.match(operatorRefusal.data.error,/erased operator/);assert.equal((await fresh.DB.prepare('SELECT COUNT(*) n FROM uptime_audit').first()).n,0,'old operator actor reference refused before audit writes');
+ const operatorRefusal=await freshOwner.api('/api/restore','POST',{archive:actorArchive,laterJournal:later});assert.equal(operatorRefusal.status,400);assert.match(operatorRefusal.data.error,/erased operator/);assert.deepEqual((await fresh.DB.prepare('SELECT * FROM uptime_audit ORDER BY rowid').all()).results,freshAuditBefore,'old operator actor reference refused before audit writes');
  const forged=structuredClone(afterArchive);forged.payload.productTables.uptime_audit[0].subject_ref=canaries.operator;forged.sha256=await digest(JSON.stringify(forged.payload));await assert.rejects(restore(fresh,forged),/anonymized archive audit/);
  let importId;const manifest=transferBefore.records[0],service=await createPortability({db:fresh.DB,policy:productPolicy(fresh,()=>importId,()=>({manifest,laterJournal:later}))});
  importId=await service.imports.create(manifest);for(const record of transferBefore.records)if(record.kind==='part')await service.imports.uploadPart(importId,record.index,record);
  await assert.rejects(service.imports.finalize(importId,{contentHash:transferBefore.records.at(-1).contentHash,archiveHash:transferBefore.records.at(-1).archiveHash,laterJournal:later}),/erased/);
  assert.equal((await fresh.DB.prepare('SELECT COUNT(*) n FROM monitors').first()).n,0,'native payload fence precedes product writes');await service.imports.abort(importId);
- await restore(fresh,afterArchive);const restoredAudit=(await fresh.DB.prepare('SELECT * FROM uptime_audit').all()).results;for(const row of savedAudit)assert.deepEqual(restoredAudit.find(item=>item.id===row.id),row,'portable audit rows survive import unchanged');assert.equal(restoredAudit.length,savedAudit.length+1);const restoreAudit=restoredAudit.find(row=>row.action==='archive_restore');assert.ok(restoreAudit);
+ await restore(fresh,afterArchive);const restoredAudit=(await fresh.DB.prepare('SELECT * FROM uptime_audit').all()).results;for(const row of savedAudit)assert.deepEqual(restoredAudit.find(item=>item.id===row.id),row,'portable audit rows survive import unchanged');for(const row of freshAuditBefore)assert.deepEqual(restoredAudit.find(item=>item.id===row.id),row,'receiving owner enrollment audit survives restore');assert.equal(restoredAudit.length,new Set([...savedAudit,...freshAuditBefore].map(row=>row.id)).size+1);const restoreAudit=restoredAudit.find(row=>row.action==='archive_restore');assert.ok(restoreAudit);
  const evidence={receipts,scan,audit:savedAudit,restoreAudit,signedResult:{realClaimedHeartbeat:true,validSignaturePassed:true,refusedStatus:signedRefusal.status,unchangedNonCounterTables:true,runnerAdmissions:5},notificationAttempts:{mail:mail.length,webhook:receiver.records.length,authCaptures,authAudits},erasedActorArchiveRefusedBeforeWrites:true,historicalFixtures:'Two replay envelopes cloned from actual deliveries, one delivery resolution, and an original monitor archive_history copy were inserted in real D1; owner and runner APIs populated all other dependents.',attachments:'No R2 buckets or uploads exist.'};
  if(process.env.UPTIME_ERASURE_EVIDENCE){await mkdir(process.env.UPTIME_ERASURE_EVIDENCE,{recursive:true});await writeFile(join(process.env.UPTIME_ERASURE_EVIDENCE,'erasure-audit.json'),JSON.stringify(evidence,null,2)+'\n')}
  console.log(`BASE-DATA-003 / BASE-OPS-005 PASS erasure public owner routes, ${scan.length} physical table canary scan, real scheduled probe and ${mail.length+receiver.records.length} network-edge sends, durable receipts/audit, last owner and late claims refused, native/custom payload later-journal fences.`);

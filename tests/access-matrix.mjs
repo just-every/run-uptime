@@ -1,3 +1,4 @@
+import {completeSecondFactor} from './mfa-auth-support.mjs';
 // BASE-ACCESS-002 and BASE-ACCESS-004: native session denial, fixed expiry, revocation, member refusal and forged claims, with no denied mutation.
 import assert from 'node:assert/strict';
 import {createHmac} from 'node:crypto';
@@ -51,7 +52,7 @@ try{
    if(!hosted)return emailSignIn(origin,{bindings,fetcher});
    assert.equal((await call('/auth/magic-link',{email:bindings.OWNER_EMAIL})).status,202);
    const link=new URL(mails.at(-1).content.find(c=>c.type==='text/plain').value.match(/https:\/\/[^\s]+/)[0]);
-   return sessionCookie(await call('/auth/confirm',{token:link.searchParams.get('token')}));
+   const cookie=sessionCookie(await call('/auth/confirm',{token:link.searchParams.get('token')}));await completeSecondFactor(origin,cookie,fetcher);return cookie;
   }
   const revoked=await login();assert.equal((await call('/auth/signout',{}, {cookie:revoked})).status,204);
   const valid=await login();await finishSetup(origin,valid,fetcher);
@@ -122,9 +123,10 @@ try{
    const erasure=await DB.prepare("SELECT actor_kind,actor_ref FROM uptime_audit WHERE action LIKE '%erase%' ORDER BY rowid DESC").first();
    assert.deepEqual({...erasure},{actor_kind:'operator',actor_ref:ownerId},'the erasure is recorded under the session operator');
    assert.ok(!JSON.stringify(await everything(DB)).includes(marker),'no forged claim is stored');
+   const discoveryJobsBefore=(await DB.prepare('SELECT * FROM discovery_jobs ORDER BY id').all()).results;
    assert.equal((await call('/api/discoveries',{url:'https://example.com/'},{cookie:memberCookie})).status,401,'member create');
    assert.equal(await external(),stored);
-   assert.equal((await DB.prepare('SELECT COUNT(*) n FROM discovery_jobs').first()).n,0);
+   assert.deepEqual((await DB.prepare('SELECT * FROM discovery_jobs ORDER BY id').all()).results,discoveryJobsBefore,'refused member creation preserves every existing job byte for byte');
   }
   assert.equal((await call('/does-not-exist',undefined,{cookie:valid})).status,404);
   assert.equal((await call('/login')).status,200);

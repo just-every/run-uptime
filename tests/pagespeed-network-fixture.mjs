@@ -15,9 +15,9 @@ export async function timingNetwork(directory){
  await promisify(childProcess.execFile)('openssl',['req','-x509','-newkey','rsa:2048','-nodes','-keyout',keyFile,'-out',certFile,'-days','1','-subj','/CN='+host,'-addext','subjectAltName=DNS:'+host]);
  await chmod(keyFile,0o600);
  const key=await readFile(keyFile),cert=await readFile(certFile),spki=createHash('sha256').update(new X509Certificate(cert).publicKey.export({type:'spki',format:'der'})).digest('base64');
- const state={dns:20,tls:30},queries=[],sockets=new Set();
+ const state={dns:20,tls:30,connect:0,firstByte:0},queries=[],sockets=new Set();
  const track=socket=>{sockets.add(socket);socket.on('error',()=>{});socket.once('close',()=>sockets.delete(socket));return socket};
- const serve=(_request,response)=>{response.writeHead(200,{'content-type':'text/html','cache-control':'no-store'});response.end('<!doctype html><html lang="en"><title>Timing fixture</title><h1>Timing fixture</h1></html>')};
+ const serve=async(_request,response)=>{await new Promise(resolve=>setTimeout(resolve,state.firstByte));response.writeHead(200,{'content-type':'text/html','cache-control':'no-store'});response.end('<!doctype html><html lang="en"><title>Timing fixture</title><h1>Timing fixture</h1></html>')};
  const secure=https.createServer({key,cert},serve),plain=http.createServer(serve);
  const listen=server=>new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve)});
  await listen(secure);await listen(plain);
@@ -39,7 +39,13 @@ export async function timingNetwork(directory){
  };
  // The DNS answer stays publicly routable; only this network edge directs its
  // packets to our controlled listeners. The runner still pins that answer.
- net.connect=function(options,...args){return connect.call(this,options?.host===address?{...options,host:'127.0.0.1'}:options,...args)};
+ net.connect=function(options,...args){
+  if(options?.host!==address)return connect.call(this,options,...args);
+  // Delay connection initiation at the existing wire edge, before the real socket connects.
+  const socket=track(new net.Socket());
+  const timer=setTimeout(()=>{if(!socket.destroyed)socket.connect({...options,host:'127.0.0.1'},...args)},state.connect);
+  socket.once('close',()=>clearTimeout(timer));return socket;
+ };
  http.request=function(options,...args){return request.call(this,options?.host===address?{...options,host:'127.0.0.1'}:options,...args)};
  const child=new URL('../runners/src/pagespeed/child.mjs',import.meta.url).pathname,preload=new URL('./pagespeed-network-trust.mjs',import.meta.url).pathname;
  childProcess.spawn=function(executable,args,options){

@@ -5,6 +5,7 @@ import {availablePorts,migratedWorker,runtimeDirectory,cleanupDirectory} from '.
 import {signInOwner} from './auth-test-support.mjs';
 import {inviteDoorMember} from './access-door-support.mjs';
 import {metricsFixture} from './metrics-fixture.mjs';
+import {proveReadKeys,proveCredentialArchive} from './read-keys-support.mjs';
 
 function csvRows(text){
  const rows=[];let row=[],value='',quoted=false;
@@ -28,6 +29,7 @@ try{
  const origin='http://127.0.0.1:'+port,db=await worker.getD1Database('DB'),cookie=await signInOwner(origin);
  const read=(path,extra={})=>fetch(origin+path,{headers:{cookie,...extra}});
  const json=async path=>{const response=await read(path);assert.equal(response.status,200,await response.clone().text());return response.json()};
+ await proveCredentialArchive({origin,cookie});
  const {ids,from,to}=await metricsFixture(db,origin);
  const preferredZone='America/Los_Angeles';
  assert.equal((await fetch(origin+'/api/notifications/preferences',{method:'PATCH',headers:{cookie,origin,'content-type':'application/json'},body:JSON.stringify({timeZone:preferredZone})})).status,200);
@@ -115,7 +117,8 @@ try{
  for(const method of ['POST','PATCH','DELETE'])assert.equal((await fetch(origin+'/api/monitors/'+firstId,{method,headers:{cookie:reader.cookie,origin,'content-type':'application/json'},...(method==='DELETE'?{}:{body:'{}'})})).status,403);
  assert.ok((await db.prepare("SELECT COUNT(*) n FROM uptime_audit WHERE actor_ref=? AND action='access_read'").bind(reader.id).first()).n>0,'scoped CSV export retains its actor without request values');
  assert.equal((await db.prepare('SELECT COUNT(*) n FROM attempt_checkpoints').first()).n,0,'monitoring reads do not checkpoint or mutate evidence');
- console.log('READAPI-001 subset passed: owner monitor cursors/current coverage, exact bulk/report figures and seconds, filtered paginated incident CSV, spreadsheet escaping, and zoned calendar periods. Keys and ACCESS-003 remain unavailable.');
+ await proveReadKeys({origin,db,cookie,ids,from,to});
+ console.log('READAPI-001 subset passed: owner monitor cursors/current coverage, exact bulk/report figures and seconds, filtered paginated incident CSV, spreadsheet escaping, and zoned calendar periods. Monitoring keys use live owner issuance and fresh second-factor proof.');
 }finally{
  await worker?.dispose();await cleanupDirectory(directory);
 }

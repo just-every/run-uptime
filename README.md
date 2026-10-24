@@ -111,6 +111,8 @@ curl --fail --silent --show-error --request POST "http://127.0.0.1:${target_port
 
 The synthetic target binds only to `127.0.0.1`. Its owner-only grant at `.wrangler/state/synthetic-grant.json` records the current process, port, allowed paths and expiry; each probe must match that grant, and the runner checks the fixture's process and response identity. `/health` is an allowed monitor path. `POST /control` is a local fixture control, not a probe target. This walkthrough demonstrates the bundled fixture only; it does not establish the health of an external service or another network vantage.
 
+Local archive export and import require `UPTIME_ACCESS_COOKIE` holding a live native Base session cookie with second-factor verification from the previous five minutes. Obtain a native session with `node scripts/mfa.mjs local-session --origin APP_ORIGIN` and verify before stopping dev, keep the cookie in your private terminal environment, and then run the transfer. A receiving installation needs its own freshly verified owner. See the repository's `docs/mfa.md` for the API/CLI enrollment and verification workflow; console MFA screens are pending.
+
 ## Reset the local installation
 
 Stop dev first, then export to a new private file under exports/ within the checkout:

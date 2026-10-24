@@ -1,7 +1,7 @@
 // A monitor's pass/fail rules change in place on its page (U15). Through the built page at 1440 and 390: Responds within is
 // changed and saved; the page shows the new rule and its new revision, and the next scheduled check is judged by it. A value
 // the server refuses keeps what was typed, shows the server's reason in the rule's row and makes no revision.
-import {browserSignIn} from './auth-test-support.mjs';
+import {browserSignIn,testAuthBindings} from './auth-test-support.mjs';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
@@ -23,7 +23,7 @@ try{
   await context.route('**/*',route=>{const u=new URL(route.request().url());return u.origin===origin?route.continue():route.abort()});
   try{
    const page=await context.newPage(),errors=[];page.on('pageerror',error=>errors.push(error.message));
-   await browserSignIn(page,origin,{bootstrap:false});
+   await browserSignIn(page,origin,{bootstrap:false,bindings:{...testAuthBindings,OWNER_EMAIL:process.env.UPTIME_RULE_EDIT_OWNER_EMAIL??testAuthBindings.OWNER_EMAIL}});
    const created=await page.request.post(origin+'/api/monitors',{headers:{origin},data:{name:`Rules in place ${width}`,url:'http://127.0.0.1:15481/health',intervalMs:5000,timeoutMs:2000,retries:0,confirmSlots:1,recoverSlots:1,freshnessMs:10000,assertions:{status:200,latencyMs:2000},enabled:true}});
    assert.equal(created.status(),201);const monitor=await created.json();
    await page.goto(origin+`/app/monitors/${monitor.id}`);await page.locator('html.signed-in').waitFor({timeout:15000});

@@ -53,7 +53,7 @@ const clear=()=>f.DB.prepare('DELETE FROM discovery_jobs').run();
 test('the owner asks, a runner claims and answers, and the owner reads the proposals with the runner\'s network label',async()=>{
  await clear();const started=Date.now(),before=await everythingElse();
  const made=await create('https://example.com');assert.equal(made.status,201);assert.equal(made.data.status,'queued');
- const id=made.data.id,queued=await read(id);assert.deepEqual(queued.data,{id,url:'https://example.com/',status:'queued'});
+ const id=made.data.id,queued=await read(id);assert.deepEqual(queued.data,{id,url:'https://example.com/',status:'queued',initiatingOwnerId:before.oa_operators.find(o=>o.role==='owner'&&o.status==='active').id,stoppedAt:null,stopReason:null});
  const claimed=await claim(f.first);assert.deepEqual(claimed.data,{job:{id,url:'https://example.com/'}});
  assert.deepEqual((await claim(f.second)).data,{job:null},'a claimed job is handed out once');
  const running=await read(id);assert.equal(running.data.status,'running');assert.equal(running.data.networkLabel,f.first.networkLabel);
@@ -78,7 +78,7 @@ test('the owner asks, a runner claims and answers, and the owner reads the propo
  // A runner may also report that it could not look.
  const failedId=(await create('https://example.org/')).data.id;assert.equal((await claim(f.second)).data.job.id,failedId);
  assert.equal((await post(f.second,failedId,{error:'The site did not answer.'})).status,200);
- assert.deepEqual((await read(failedId)).data,{id:failedId,url:'https://example.org/',status:'failed',networkLabel:'second-network',error:'The site did not answer.'});
+ assert.deepEqual((await read(failedId)).data,{id:failedId,url:'https://example.org/',status:'failed',initiatingOwnerId:before.oa_operators.find(o=>o.role==='owner'&&o.status==='active').id,stoppedAt:null,stopReason:null,networkLabel:'second-network',error:'The site did not answer.'});
  assertDiscoveryReceipts(before,await everythingElse(),10,started);
 });
 test('a job nobody claims, or nobody finishes, expires; refusals at create leave nothing behind',async()=>{

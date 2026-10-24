@@ -68,6 +68,7 @@ export async function restore(env:Bindings,input:any,receipt?:{id:string;sha256:
    collect('notification_credentials',credential);
   }
   if(name==='failure_snapshots')row.snapshot=await storeSnapshot(env,row,JSON.parse(row.snapshot),true);
+  if(name==='scheduled_reports')row.actor_id=null;
   if(name==='notification_jobs'){row.credential_id='restored-inactive';row.claim=null;row.claim_until=null}
   if(name==='integration_deliveries'){
    row.fingerprint='restored-inactive';row.destination_hash='unavailable:restored-inactive';row.claim=null;row.claim_until=null;

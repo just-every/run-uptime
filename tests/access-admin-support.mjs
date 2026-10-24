@@ -1,3 +1,5 @@
+import {completeSecondFactor} from './mfa-auth-support.mjs';
+import {startMemberDiscoveryProof} from './access-discovery-job-support.mjs';
 import assert from 'node:assert/strict';
 import {sessionCookie} from './auth-test-support.mjs';
 import {readDeliveredMessages} from './mail-provider-fixture.mjs';
@@ -13,6 +15,7 @@ export async function proveMemberLifecycle({origin,call,fetcher,DB,cookie,member
   const link=new URL(delivered.content.find(c=>c.type==='text/plain').value.match(/https?:\/\/[^\s]+/)[0]);
   const accepted=await call('/auth/confirm',{token:link.searchParams.get('token')});
   const acceptedCookie=sessionCookie(accepted);assert.ok(acceptedCookie);
+  await completeSecondFactor(origin,acceptedCookie,fetcher);
   const person=await DB.prepare('SELECT id,role,version FROM oa_operators WHERE email=?').bind(email).first();
   return {id:person.id,cookie:acceptedCookie,baseRole:person.role};
  }
@@ -35,7 +38,7 @@ export async function proveMemberLifecycle({origin,call,fetcher,DB,cookie,member
  assert.equal((await call('/api/v1/monitors/missing-monitor',undefined,{cookie:admin.cookie})).status,404);
  // C11's summary-only limit is deliberately replaced by the complete product
  // role policy. Identity/import/erasure remain explicit owner-only doors.
- for(const other of ['/api/overview','/api/archive','/api/definitions/export','/api/v1/monitors'])assert.equal((await call(other,undefined,{cookie:admin.cookie})).status,200,'workspace admin product read/export');
+ for(const other of ['/api/overview','/api/archive','/api/definitions/export','/api/v1/monitors']){const response=await call(other,undefined,{cookie:admin.cookie});assert.equal(response.status,200,`workspace admin product read/export ${other}: ${response.status===200?'':await response.text()}`)}
  for(const other of ['/api/business-import-settings','/api/metrics/keys'])assert.equal((await call(other,undefined,{cookie:admin.cookie})).status,403,'owner-only administration');
  const created=await call('/api/monitors',{name:'synthetic-uptime-admin-check',type:'heartbeat',canaryUrl:'https://canary.example.test/health',heartbeat:{maxAgeMs:60000}},{cookie:admin.cookie});assert.equal(created.status,201);
  const editor=await invite('editor'),responder=await invite('responder'),reader=await invite('read-only',[],true);
@@ -68,12 +71,14 @@ export async function proveMemberLifecycle({origin,call,fetcher,DB,cookie,member
  assert.equal((await call(`/api/access/members/${editor.id}`,{role:'read-only'},{cookie})).status,200);
  assert.equal((await patch(editor,target.definition)).status,403);assert.equal((await held.json()).id,monitor.id);
  const authorized=await call(path,undefined,{cookie:admin.cookie});assert.equal(authorized.status,200);
+ const finishDiscovery=await startMemberDiscoveryProof({origin,call,fetcher,cookie,admin});
  assert.equal((await call('/auth/operator/status',{operatorId:admin.id,status:'inactive'},{cookie})).status,200);
+ await finishDiscovery();
  assert.equal((await authorized.json()).id,monitor.id);
  for(const verb of ['GET','HEAD'])assert.equal((await fetcher(origin+path,{method:verb,headers:{host:new URL(origin).host,origin,cookie:admin.cookie}})).status,401);
  assert.equal((await call(path,undefined,{cookie})).status,200);
  const audits=(await DB.prepare("SELECT actor_kind,actor_ref,action,subject_ref FROM uptime_audit WHERE action LIKE 'access_%'").all()).results;
  for(const [person,action] of [[editor,'access_check_write'],[editor,'access_route_write'],[responder,'access_maintenance_write'],[admin,'access_secret_write'],[admin,'access_export']])assert.ok(audits.some(a=>a.actor_kind==='operator'&&a.actor_ref===person.id&&a.action===action),action+' retains its live actor');
  assert.ok(!JSON.stringify(audits).includes('synthetic-uptime-contact@example.test'),'permission audit contains no request values');
- console.log('ACCESS-001 lifecycle/API/CLI: live owner/admin/editor/responder/read-only, invitations, assignment/removal, role actions/refusals, scope boundaries, stale/forged authority and opaque mutation/export audit. UI and API/CI credentials remain gaps.');
+ console.log('ACCESS-001 lifecycle/API/CLI: live owner/admin/editor/responder/read-only, invitations, assignment/removal, role actions/refusals, scope boundaries, stale/forged authority and opaque mutation/export audit. Member/scope/key UI, delegated issuance and general background stop-state presentation remain gaps.');
 }

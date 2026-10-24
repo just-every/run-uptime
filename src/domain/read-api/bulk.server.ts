@@ -1,3 +1,4 @@
+import {credentialMonitorFilter} from '../credentials/model.server.ts'
 import {configuredPeriod} from '../reports/configured-period.server.ts'
 import type {Bindings} from '../control.server.ts'
 import {monitorReport,ReportInputError} from '../reports/index.server.ts'
@@ -9,7 +10,7 @@ export async function bulkUptime(env:Bindings, params:URLSearchParams, now=Date.
  const period=await configuredPeriod(env,params,now)
  const requested=params.has('monitor')?params.get('monitor')!.split(','):null,tag=params.get('tag')
  if(requested&&(requested.length>BULK_MONITOR_LIMIT||new Set(requested).size!==requested.length||requested.some(id=>!id||id.length>512||/[\x00-\x1f\x7f]/.test(id))))throw new ReportInputError('Specify at most 500 distinct monitor identifiers')
- const conditions:string[]=[],values:string[]=[]
+ const filter=credentialMonitorFilter(env),conditions:string[]=[filter.sql],values:(string|number|null)[]=[...filter.params]
  if(requested){conditions.push('id IN (SELECT value FROM json_each(?))');values.push(JSON.stringify(requested))}
  if(tag!==null){conditions.push("EXISTS(SELECT 1 FROM json_each(json_extract(definition,'$.tags')) WHERE value=?)");values.push(tag)}
  const population=(await env.DB.prepare(`SELECT id FROM monitors ${conditions.length?'WHERE '+conditions.join(' AND '):''} ORDER BY id LIMIT 501`).bind(...values).all<{id:string}>()).results

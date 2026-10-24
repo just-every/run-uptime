@@ -1,3 +1,12 @@
+import {scheduleReport,readScheduledReport} from './domain/reports/schedules.server.ts'
+import {namedAlertRoutes,saveNamedAlertRoute} from './domain/alert-routes.server.ts'
+import {previewCatalogRoutes,applyCatalogRoutes,undoCatalogRoutes} from './domain/catalog/routes.server.ts'
+import {ciDoor} from './domain/ci/door.server.ts'
+import {credentialPermission} from './domain/access.server.ts'
+import {credentialKeys} from './domain/credentials/store.server.ts'
+import {monitoringCapability} from './domain/credentials/model.server.ts'
+import {readTeams,saveTeam,readRecipient,consentRecipient} from './domain/alert-teams.server.ts'
+import {mfaDoor,earlyMfaGate} from './domain/mfa/door.server.ts'
 import {isConsoleDocument,isMonitorPage,canonicalConsolePath,consoleRedirect} from './ui/console-paths.ts'
 import {monitoringMonitors,monitoringMonitor} from './domain/read-api/monitors.server.ts'
 import {bulkUptime} from './domain/read-api/bulk.server.ts'
@@ -24,7 +33,7 @@ import {cleanupDebt,resolveCleanupDebt} from './domain/cleanup-debt.server.ts'
 import {effectGrants,grantEffect,revokeEffect,spendGrant} from './domain/effect-grants.server.ts'
 import {rumDoor} from './domain/rum/door.server.ts'
 import {registerRumRoutes} from './domain/rum/routes.server.ts'
-import {readAlertRoute,previewAlertRoute,applyAlertRoute} from './domain/alert-routes.server.ts'
+import {readAlertRoute,previewAlertRoute,applyAlertRoute,sampleAlertRoute} from './domain/alert-routes.server.ts'
 import {previewMaintenance,applyMaintenance,cancelMaintenance} from './domain/planned-maintenance.server.ts'
 // The package's demo module: operator-auth runs from the package and reads demo mode from this same instance.
 import {withDemo} from '@runeditrun/rer/modules/demo'
@@ -41,7 +50,7 @@ import {monitorReport,monitorLatency,reportCsv,ReportInputError} from './domain/
 import {monitoringWatch} from './domain/monitoring-watch.server.ts'
 import {scheduledNotifications} from './domain/notification-worker.server.ts'
 import {SubrequestBudget,RUN_SUBREQUESTS,CHECK_SUBREQUESTS,WATCH_SUBREQUESTS} from './domain/worker-budget.ts'
-import {createDiscovery,createCatalogCheck,readDiscovery,claimDiscovery,completeDiscovery,discoveryAnswer,DISCOVERY_RESULT_BYTES} from './domain/discovery.server.ts'
+import {createDiscovery,cancelDiscovery,createCatalogCheck,readDiscovery,claimDiscovery,completeDiscovery,discoveryAnswer,DISCOVERY_RESULT_BYTES} from './domain/discovery.server.ts'
 import {catalogDocument,followServices,reviewFollowed,linkDependency,acknowledgeNotice} from './domain/service-catalog.server.ts'
 import {sourcesDocument,authorizeSource,reauthorizeSource,revokeSource,startSourceRun,sourceDocument,decideProposal} from './domain/discovery-sources.server.ts'
 import {readExternalCheck,saveExternalCheck} from './domain/external-check.server.ts'
@@ -80,7 +89,7 @@ import {alertDrillDocument} from './domain/alert-drill-document.server.ts'
 import {isPublicAsset,publicAssetResponse} from './domain/assets.server.ts'
 import {classifyStorage,storageLogLine,storageOperation} from './domain/storage-error.ts'
 import {maintenance} from './domain/maintenance.server.ts'
-import {authRoute,authFailure,developmentMail,signOut,signInDocument} from './domain/operator-auth.server.ts'
+import {authRoute,authFailure,developmentMail,signOut,signInDocument,signedInOwnerRedirect} from './domain/operator-auth.server.ts'
 import {authDocument,nativeClaimFailure} from './domain/auth-document.server.ts'
 import {firstRun,firstRunComplete,setupRedirect} from './domain/first-run.server.ts'
 import {ownerClaim} from './domain/owner-claim.server.ts'
@@ -107,8 +116,10 @@ registerHeartbeatReceipts(api)
 api.use('/api/*',async(c,next)=>{
  if(c.req.path==='/api/v1/openapi.json'&&['GET','HEAD'].includes(c.req.method)){await next();return}
  if(c.req.header('authorization')?.toLowerCase().startsWith('bearer ')){
-  if(c.req.path!=='/api/v1/metrics'||!['GET','HEAD'].includes(c.req.method))return c.json({error:'Metrics keys authorize only metrics reads'},403)
-  if(!await authorizeMetrics(c.env,c.req.raw))return c.json({error:'Metrics authorization required'},401)
+  if(!monitoringCapability(c.req.raw))return c.json({error:'Credential does not authorize this method or path'},403)
+  const credential=await credentialPermission(c.env,c.req.raw)
+  if(credential){c.env={...c.env,readCredential:credential};c.header('ratelimit','limit=60, reset='+String(60-Math.floor(Date.now()/1000)%60));c.header('ratelimit-policy','60;w=60')}
+  else if(c.req.path!=='/api/v1/metrics'||!await authorizeMetrics(c.env,c.req.raw))return c.json({error:'Credential required'},401)
  }else if(/^\/api\/evidence\/monitors\/[^/]+$/.test(c.req.path)&&['GET','HEAD'].includes(c.req.method)){
   const id=decodeURIComponent(c.req.path.split('/').pop()!);if(!await evidencePrincipal(c.env,c.req.raw,id))return c.json({error:'Evidence access required'},await authenticatedSession(c.env,c.req.raw)?403:401)
  }else if(c.req.path==='/api/runner/join'){/* One-time join capability. */}
@@ -132,12 +143,23 @@ api.use('/api/*',async(c,next)=>{
 })
 // Only authenticated owner requests can kick hosted work; public traffic and private runners cannot.
 api.use('/api/*',async(c,next)=>{await next();if(c.res.ok&&(c.req.path==='/api/overview'||/^\/api\/(monitors|notifications)(\/|$)/.test(c.req.path))){c.executionCtx.waitUntil(kickHostedWork(c.get('systemBindings')??c.env).catch(()=>console.error('Hosted console work failed; queued work remains available to Cron.')))}})
+api.get('/api/routing/named-routes',async c=>c.json(await namedAlertRoutes(c.env)))
+api.post('/api/routing/named-routes',async c=>c.json(await saveNamedAlertRoute(c.env,c.get('input'),{kind:'operator',ref:c.get('access').session.operator.id}),201))
+api.post('/api/catalog/routes/undo',async c=>c.json(await undoCatalogRoutes(c.env,c.get('input'),{kind:'operator',ref:c.get('access').session.operator.id})))
+api.get('/api/routing/teams',async c=>c.json(await readTeams(c.env)))
+api.post('/api/routing/teams',async c=>c.json(await saveTeam(c.env,c.get('input'),c.get('access'))))
+api.get('/api/routing/recipient',async c=>c.json(await readRecipient(c.env,c.get('access'))))
+api.post('/api/routing/recipient',async c=>c.json(await consentRecipient(c.env,c.get('input'),c.get('access'))))
+api.post('/api/monitors/:id/alert-route/sample',async c=>c.json(await sampleAlertRoute(c.env,c.req.param('id'),c.get('input'))))
 api.get('/api/access/self',c=>accessMembers(c.env,c.req.raw))
 api.get('/api/access/members',c=>accessMembers(c.env,c.req.raw))
 api.post('/api/access/invitations',c=>accessMembers(c.env,c.req.raw,c.get('input')))
 api.post('/api/access/members/:id',c=>accessMembers(c.env,c.req.raw,c.get('input')))
 api.delete('/api/access/members/:id',c=>accessMembers(c.env,c.req.raw))
 api.post('/api/auth/sign-out',async c=>{try{const result=await signOut(c.env,c.req.raw);c.header('set-cookie',result.cookie);return c.json({signedOut:true})}catch(error){return authFailure(error)}})
+api.get('/api/credentials',c=>credentialKeys(c.get('systemBindings'),c.req.raw))
+api.post('/api/credentials',c=>credentialKeys(c.get('systemBindings'),c.req.raw,c.get('input')))
+api.delete('/api/credentials/:id',c=>credentialKeys(c.get('systemBindings'),c.req.raw))
 api.get('/api/metrics/keys',async c=>c.json(await metricsKeys(c.env,c.req.raw)))
 api.post('/api/metrics/keys',async c=>c.json(await createMetricsKey(c.env,c.req.raw,c.get('input')),201))
 api.delete('/api/metrics/keys/:id',async c=>c.json(await revokeMetricsKey(c.env,c.req.raw,c.req.param('id'))))
@@ -152,7 +174,7 @@ api.get('/api/v1/metrics',async c=>{
 })
 api.get('/api/overview',async c=>{const zone=c.req.header('x-uptime-time-zone');if(zone)await initializeNotificationTimeZone(c.env,zone);const monitorId=c.req.query('monitor');return c.json(await overview(c.env,monitorId===undefined?{}:{monitorId}))})
 for(const [path,preview,apply] of [
- ['/api/catalog',catalogBulkPreview,catalogBulkApply],['/api/catalog/add',catalogAddPreview,catalogAddApply],['/api/maintenance',previewMaintenance,applyMaintenance],
+ ['/api/catalog/routes',previewCatalogRoutes,applyCatalogRoutes],['/api/catalog',catalogBulkPreview,catalogBulkApply],['/api/catalog/add',catalogAddPreview,catalogAddApply],['/api/maintenance',previewMaintenance,applyMaintenance],
 ] as const){
  api.post(`${path}/preview`,async c=>c.json(await preview(c.env,c.get('input'))))
  api.post(`${path}/apply`,async c=>{const {digest,...input}=c.get('input') as any;return c.json(await apply(c.env,input,digest,{kind:'operator',ref:(await authenticatedSession(c.env,c.req.raw))!.operator.id}),201)})
@@ -204,13 +226,13 @@ api.get('/api/v1/incidents',async c=>{
  if(c.req.query('format')==='csv'||c.req.header('accept')?.includes('text/csv'))return c.body(incidentListCsv(result),200,{'content-type':'text/csv; charset=utf-8','content-disposition':'attachment; filename="uptime-incidents.csv"'})
  return c.json(result)
 })
-for(const path of ['/api/incidents/:id','/api/v1/incidents/:id','/api/incident-settings'])api.get(path,c=>incidentWorkRequest(c.env,c.req.raw,c.get('input')))
-api.patch('/api/incident-settings',c=>incidentWorkRequest(c.env,c.req.raw,c.get('input')))
-api.post('/api/incidents/:id/comments',c=>incidentWorkRequest(c.env,c.req.raw,c.get('input')))
-api.patch('/api/incidents/:id/comments/:commentId',c=>incidentWorkRequest(c.env,c.req.raw,c.get('input')))
-api.delete('/api/incidents/:id/comments/:commentId',c=>incidentWorkRequest(c.env,c.req.raw,c.get('input')))
-api.patch('/api/incidents/:id/root-cause',c=>incidentWorkRequest(c.env,c.req.raw,c.get('input')))
-api.post('/api/incidents/:id/actions',c=>incidentWorkRequest(c.env,c.req.raw,c.get('input')))
+for(const path of ['/api/incidents/:id','/api/v1/incidents/:id','/api/incident-settings','/api/incidents/:id/mention-members'])api.get(path,c=>incidentWorkRequest(c.env.readCredential?c.env:c.get('systemBindings'),c.req.raw,c.get('input')))
+api.patch('/api/incident-settings',c=>incidentWorkRequest(c.get('systemBindings'),c.req.raw,c.get('input')))
+api.post('/api/incidents/:id/comments',c=>incidentWorkRequest(c.get('systemBindings'),c.req.raw,c.get('input')))
+api.patch('/api/incidents/:id/comments/:commentId',c=>incidentWorkRequest(c.get('systemBindings'),c.req.raw,c.get('input')))
+api.delete('/api/incidents/:id/comments/:commentId',c=>incidentWorkRequest(c.get('systemBindings'),c.req.raw,c.get('input')))
+api.patch('/api/incidents/:id/root-cause',c=>incidentWorkRequest(c.get('systemBindings'),c.req.raw,c.get('input')))
+api.post('/api/incidents/:id/actions',c=>incidentWorkRequest(c.get('systemBindings'),c.req.raw,c.get('input')))
 api.get('/api/v1/openapi.json',c=>c.json(readApiOpenApi))
 // Versioned reads use the same immutable period engine as console downloads.
 for(const suffix of ['uptime','report'] as const)api.get(`/api/v1/monitors/:id/${suffix}`,async c=>{
@@ -250,13 +272,17 @@ api.post('/api/runner/results',async c=>{const text=c.get('requestText');if(!awa
 // API-004: before each live request the runner spends its amount from the exact grant its claim named, signed like a result.
 api.post('/api/runner/effect-spend',async c=>{const text=c.get('requestText');if(!await signedRunnerBody(c.env,c.get('runner'),text,c.req.header('x-sent-at')??'',c.req.header('x-runner-signature')??'',4096))return c.json({error:'Invalid signed spend'},403);return c.json(await storageOperation('runner.effectSpend',()=>spendGrant(c.env,c.get('input'),c.get('runner').runner_id)))})
 // Discovery: the owner's console asks, the owner's runner claims and answers; the Worker never fetches the target.
-api.post('/api/discoveries',async c=>c.json(await createDiscovery(c.env,c.get('requestText')),201))
+api.post('/api/monitors/:id/report-schedules',async c=>c.json(await scheduleReport(c.env,c.req.param('id'),c.get('input'),(await authenticatedSession(c.env,c.req.raw))!.operator.id),201))
+api.get('/api/monitors/:id/report-schedules',async c=>c.json(await readScheduledReport(c.env,c.req.param('id'))))
+api.get('/api/monitors/:id/report-schedules/:scheduleId',async c=>{const report=await readScheduledReport(c.env,c.req.param('id'),c.req.param('scheduleId'));return report?c.json(report):c.json({error:'Report not found'},404)})
+api.post('/api/discoveries',async c=>c.json(await createDiscovery(c.env,c.get('requestText'),c.get('access')),201))
 api.get('/api/service-catalog',async c=>c.json(await catalogDocument(c.env,c.req.query('q')??'')))
 api.post('/api/service-catalog/checks',async c=>c.json(await createCatalogCheck(c.env,c.get('requestText')),201))
 api.post('/api/service-follows',async c=>c.json(await followServices(c.env,c.get('requestText'),{kind:'operator',ref:(await authenticatedSession(c.env,c.req.raw))!.operator.id}),201))
 api.post('/api/followed-services/:id/review',async c=>c.json(await reviewFollowed(c.env,c.req.param('id'),c.get('requestText'),{kind:'operator',ref:(await authenticatedSession(c.env,c.req.raw))!.operator.id})))
 api.post('/api/followed-services/:id/links',async c=>c.json(await linkDependency(c.env,c.req.param('id'),c.get('requestText'),{kind:'operator',ref:(await authenticatedSession(c.env,c.req.raw))!.operator.id})))
 api.post('/api/dependency-notices/:id/acknowledge',async c=>c.json(await acknowledgeNotice(c.env,c.req.param('id'),{id:(await authenticatedSession(c.env,c.req.raw))!.operator.id})))
+api.delete('/api/discoveries/:id',async c=>c.json(await cancelDiscovery(c.env,c.req.param('id'))))
 api.get('/api/discoveries/:id',async c=>c.json(await readDiscovery(c.env,c.req.param('id'))))
 // Discovery sources (DISCOVERY-001): the owner authorizes, runs and reviews; the owner's runner reads each source read-only.
 api.get('/api/discovery-sources',async c=>c.json(await sourcesDocument(c.env)))
@@ -335,6 +361,9 @@ const handler={async fetch(request,env,execution){
  const limited=await limitPublicRequest(env as Bindings,request);if(limited)return limited;
  const bindings=env as Bindings,url=new URL(request.url),path=url.pathname,isEvidencePage=/^\/app\/evidence\/[^/]+$/.test(path);
  if(url.origin!==bindings.UPTIME_ORIGIN||(request.headers.has('host')&&request.headers.get('host')?.toLowerCase()!==url.host.toLowerCase()))return new Response('Invalid host',{status:403});
+ const mfa=await mfaDoor(bindings,request);if(mfa)return mfa;
+ const ci=await ciDoor(bindings,request);if(ci)return ci;
+ const factorDenial=await earlyMfaGate(bindings,request);if(factorDenial)return factorDenial;
  if(path.startsWith('/api/rer/import/'))return businessImportDoor(bindings,request);
  if(path.startsWith('/api/operator/import/'))return ownerImportDoor(bindings,request);
  // Run Edit Run's signed reads (the private runner's contact, and the cutover checks' deliveries and created records):
@@ -357,6 +386,7 @@ const handler={async fetch(request,env,execution){
  if(path==='/setup')return firstRun(bindings,request);
  if(path==='/alert-drill')return alertDrillDocument(bindings,request);
  // Once an owner is admitted the first-owner claim is spent, so sign-in stops offering it.
+ if(path==='/login'){const forward=await signedInOwnerRedirect(bindings,request);if(forward)return forward;}
  if(path==='/login'||path==='/claim')return authDocument(path==='/claim',path==='/login'&&url.searchParams.get('notice')==='sent',developmentMail(bindings),false,bindings.UPTIME_DEPLOY_ENVIRONMENT,!await ownerAdmitted(bindings.DB),path==='/login'&&url.searchParams.get('notice')==='mail_unavailable',url.searchParams.get('login_hint')??'');
  if(path==='/uptime-runner.mjs')return runnerScriptResponse(request);
  if(isPublicAsset(path))return publicAssetResponse(request,bindings.ASSETS);

@@ -3,7 +3,12 @@ import {TABLES,columns} from './archive-schema.ts'
 /** Every permanent schema table has a portability decision. Unknown tables and
  * foreign integration namespaces refuse export rather than silently lose data. */
 export const installationLocalTables:Record<string,string>={
+ ...Object.fromEntries(['alert_named_routes','catalog_route_batches','catalog_route_batch_entries'].map(name=>[name,'Installation-local named route policy and undo authority; receiving owners review and configure routes independently.'])),
+ ...Object.fromEntries(['uptime_credential_workspace','uptime_credential_grants','uptime_credential_limits'].map(name=>[name,'Installation-local API/CI credential identity, immutable grants and limits; never restored authority.'])),
+ incident_mention_authority:"Installation-local live recipient version and scope admission; imported mentions never acquire sending authority.",
  ...businessImportLocalTables,
+ ...Object.fromEntries(['alert_teams','alert_team_members','alert_recipient_consents','alert_team_deliveries'].map(name=>[name,'Installation-local team membership, recipient consent and live dispatch authority; receiving installations establish these explicitly.'])),
+ ...Object.fromEntries(['policy','factors','challenges','proofs','recovery','limits','notices'].map(name=>['uptime_mfa_'+name,'Installation-local second-factor policy, sealed factors, challenges, session proof, recovery authority, rate limits or notice outcomes; never portable authentication.'])),
  uptime_member_roles:'Installation-local product role narrowings of live Base operator identities; never portable authority.',
  uptime_member_scopes:'Installation-local service/team permission scope; receiving owners establish their own membership.',
  failure_evidence_grants:'Installation-local per-monitor evidence-viewer grants; never portable access authority.',

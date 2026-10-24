@@ -1,3 +1,4 @@
+import {completeSecondFactor} from './mfa-auth-support.mjs';
 // EVIDENCE-002: emitted hosted Worker probes use the same separate diagnostic store.
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
@@ -13,7 +14,7 @@ test('hosted HTTP failure capture, unavailable diagnostics and retention preserv
  const directory=await mkdtemp(join(tmpdir(),'uptime-snapshots-hosted-')),origin='https://uptime.example.test',secret=randomBytes(24).toString('hex');let worker;
  try{
   worker=await hostedRuntime(directory,{...testAuthBindings,UPTIME_LOCAL_REVIEW:'false',UPTIME_ORIGIN:origin,MAIL_PROVIDER:'sendgrid',SENDGRID_API_KEY:randomBytes(24).toString('hex')},request=>{
-   const url=new URL(request.url);if(url.hostname==='cloudflare-dns.com')return Response.json({Status:0,Answer:[{type:1,data:'93.184.215.14'}]});
+   const url=new URL(request.url);if(url.hostname==='api.sendgrid.com')return new Response(null,{status:202});if(url.hostname==='cloudflare-dns.com')return Response.json({Status:0,Answer:[{type:1,data:'93.184.215.14'}]});
    if(url.hostname==='public.example.test')return new Response(`Service Unavailable\napi_key=${secret}`,{status:503,headers:{'content-type':'text/plain','set-cookie':`session=${secret}`}});
    return new Response('canary ready',{status:200});
   });
@@ -23,6 +24,7 @@ test('hosted HTTP failure capture, unavailable diagnostics and retention preserv
    return response;
   };
   const auth=await call('/auth/bootstrap',{token:testAuthBindings.SETUP_TOKEN,displayName:'Hosted owner'});assert.equal(auth.status,303);const cookie=auth.headers.get('set-cookie').split(';')[0];
+ await completeSecondFactor(origin,cookie,(url,init)=>call(new URL(url).pathname,init.body===undefined?undefined:JSON.parse(init.body),cookie));
   const create=async url=>{const response=await call('/api/monitors',{name:'Hosted API',url,canaryUrl:'https://canary.example.test/',intervalMs:60000,retries:0,confirmSlots:1,recoverSlots:1},cookie);assert.equal(response.status,201);return response.json()};
   const monitor=await create('https://public.example.test/health');
   const snapshots=async()=>{const response=await call(`/api/monitors/${monitor.id}/failure-snapshots`,undefined,cookie);assert.equal(response.status,200);return response.json()};

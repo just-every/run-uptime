@@ -67,13 +67,14 @@ export const ownership = {
   eyebrow: 'Ownership',
   title: 'Yours, start to finish.',
   body: 'Run Uptime on your own computer. A small private runner checks your targets from a machine you choose, and you can export monitors, evidence and delivery history whenever you like.',
-  commands: ['npx -y @runeditrun/rer dev just-every/run-uptime'],
+  commands: ['curl -fsSL https://runeditrun.com/install.sh | sh -s -- dev just-every/run-uptime'],
+  alternative: 'Already have Node 22 or later? npx -y @runeditrun/rer dev just-every/run-uptime',
   points: [
     { icon: 'cloud', text: 'Your own computer' },
     { icon: 'server', text: 'Your runner, your network' },
     { icon: 'export', text: 'Export any time' },
   ] as const,
-  label: 'A terminal running one command: npx -y @runeditrun/rer dev just-every/run-uptime.',
+  label: 'A terminal running one command: curl -fsSL https://runeditrun.com/install.sh | sh -s -- dev just-every/run-uptime. Already have Node 22 or later? npx -y @runeditrun/rer dev just-every/run-uptime does the same.',
 };
 
 export const included = {

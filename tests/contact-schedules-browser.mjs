@@ -1,3 +1,6 @@
+import {fixture} from './resilience/support.mjs';
+import {proveOwnIncidentCorrelation} from './incident-correlation-support.mjs';
+import {proveOwnIncidentCorrelationConsole} from './incident-correlation-browser-support.mjs';
 // ROUTING-002: reviewed schedules through the real console at desktop and phone widths.
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
@@ -41,3 +44,7 @@ try{
  }
  console.log(`ROUTING-002 desktop/phone journeys passed; screenshots: ${screens}`);
 }finally{await browser?.close();await worker?.dispose();await cleanupDirectory(directory)}
+
+// Keep browser execution in this existing matrix.browser=true journey.
+const correlation=await fixture();
+try{await proveOwnIncidentCorrelation(correlation,proveOwnIncidentCorrelationConsole)}finally{await correlation.close()}

@@ -25,9 +25,11 @@ export async function productFence(env:Bindings,tables:Tables,metadata:any,later
  // must not restore an actor identifier after its account was erased.
  const actors=[...new Set([
  ...(tables.uptime_audit??[]).filter(row=>row.actor_kind==='operator').map(row=>row.actor_ref as string),
+ ...(tables.incident_mentions??[]).map(row=>row.recipient_id),
  ...(tables.incident_comments??[]).map(row=>row.author_id),...(tables.incident_comment_history??[]).map(row=>row.editor_id),
  ...(tables.incident_timeline??[]).flatMap(row=>[row.actor_id,row.kind==='owner_assigned'?JSON.parse(row.data).ownerId:null]),
  ...(tables.dependency_acks??[]).map(row=>row.actor_id),
+ ...(tables.scheduled_reports??[]).map(row=>row.actor_id),
  ...(tables.incident_work??[]).flatMap(row=>[row.owner_id,row.root_editor_id]),
  ].filter((id):id is string=>typeof id==='string'))];
  for(let offset=0;offset<actors.length;offset+=99){const keys=await Promise.all(actors.slice(offset,offset+99).map(id=>tombstone(metadata.sourceIdentity,'oa_operators',{id})));if(keys.some((hash:string)=>hashes.has(hash)))throw new PortabilityError('Archive references erased operator');guards.push(mutationGuard(env,`NOT EXISTS(SELECT 1 FROM rer_portability_journal WHERE source=? AND tombstone IN (${keys.map(()=>'?').join(',')}))`,[metadata.sourceIdentity,...keys]));}

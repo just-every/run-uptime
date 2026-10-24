@@ -53,8 +53,13 @@ export async function startFlowFixture({port = 0, grantPath, secondPort = 0}) {
     const [, originalScenario, full] = m, scenario = modes.get(originalScenario) ?? originalScenario, path = full.replace(/^(?:\/p+)?\/u\/[^/]+\//, '/'), base = `/s/${originalScenario}`, signedIn = (req.headers.cookie ?? '').split(/;\s*/).some(c => c.startsWith('sid=') && sessions.has(c.slice(4)));
     // PERF-001: a small shop whose checkout loads a script sized for the visitor's screen. On a phone-width screen it is the throttled
     // mobile asset: it arrives after 2.6 s, holds the main thread for 400 ms, renders the order summary (the page's largest text) and
-    // throws. On a wider screen the desktop script answers at once. "Place order" holds the main thread for 300 ms on a phone. Once
+    // throws. The mobile asset also moves the existing checkout content down 360 px, a known layout shift; desktop gets none.
+    // On a wider screen the desktop script answers at once. "Place order" holds the main thread for 300 ms on a phone. Once
     // the test gives it a beacon, the page carries it, with data-consent="granted" only for a visitor whose consent cookie is set.
+    if (originalScenario === 'shop' && path === '/unavailable') {
+      const consent = (req.headers.cookie ?? '').split(/;\s*/).includes('consent=granted');
+      return send(500, page('Checkout unavailable', `<meta name="viewport" content="width=device-width, initial-scale=1"><h1>Checkout unavailable</h1>${beaconSrc ? `<script src="${beaconSrc}"${consent ? ' data-consent="granted"' : ''} async></script>` : ''}`));
+    }
     if (originalScenario === 'shop' && (path === '/checkout' || path.startsWith('/account/'))) {
       const consent = (req.headers.cookie ?? '').split(/;\s*/).includes('consent=granted');
       const beacon = beaconSrc ? `<script src="${beaconSrc}"${consent ? ' data-consent="granted"' : ''} async></script>` : '';
@@ -63,7 +68,7 @@ export async function startFlowFixture({port = 0, grantPath, secondPort = 0}) {
     if (originalScenario === 'shop' && ['/assets/mobile.js', '/assets/desktop.js'].includes(path)) {
       const mobile = path === '/assets/mobile.js';
       if (mobile) await new Promise(r => setTimeout(r, 2600));
-      return send(200, `(function(){var end=Date.now()+${mobile ? 400 : 0};while(Date.now()<end){}var p=document.createElement('p');p.style.fontSize='22px';p.textContent=${JSON.stringify('Your order: ' + 'one synthetic item, '.repeat(12))};document.getElementById('summary').append(p);${mobile ? "throw new Error('Mobile checkout script failed')" : ''}})();`, {'content-type': 'text/javascript'});
+      return send(200, `(function(){var end=Date.now()+${mobile ? 400 : 0};while(Date.now()<end){}${mobile ? "document.body.style.paddingTop='360px';" : ''}var p=document.createElement('p');p.style.fontSize='22px';p.textContent=${JSON.stringify('Your order: ' + 'one synthetic item, '.repeat(12))};document.getElementById('summary').append(p);${mobile ? "throw new Error('Mobile checkout script failed')" : ''}})();`, {'content-type': 'text/javascript'});
     }
     if (path.startsWith('/api/')) return sandboxApi(req, res, path, (status, value) => send(status, JSON.stringify(value), {'content-type': 'application/json'}));
     if (path === '/signup' && req.method === 'GET') return send(200, page('Create sandbox account', `<h1>Create sandbox account</h1><form method="post" action="${base}/signup" novalidate><label>Email <input name="email" type="email"></label><label>Password <input name="password" type="password"></label><button>Create account</button></form>`));

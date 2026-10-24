@@ -32,6 +32,14 @@ export async function acceptanceReceiver(port,inspect){
  return {records,errors,setDisposition(value){assert.ok(['accepted','rejected','failed','lost','stalled','rate_limited'].includes(value));disposition=value},releaseStalled(){for(const response of stalled)response.destroy()},assertValid(){assert.equal(errors.length,0,errors[0]?.message)},async close(){for(const response of stalled)response.destroy();server.closeAllConnections();await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()))}};
 }
 
+export function verifySecurityNotice(record,email){
+ assert.equal(record.path,'/v3/mail/send');assert.equal(record.headers.get('content-type'),'application/json');
+ const body=record.body;assert.equal(body.subject,'Uptime second-factor security change');assert.deepEqual(body.personalizations[0].to,[{email}]);
+ assert.ok(body.custom_args.rer_delivery_id,'security notices retain their own delivery correlation');
+ assert.deepEqual(body.tracking_settings.click_tracking,{enable:false,enable_text:false});assert.equal(body.tracking_settings.open_tracking.enable,false);
+ assert.match(body.content.find(item=>item.type==='text/plain')?.value??'',/No sign-in credentials are included in this notice\./);
+}
+
 export function verifySendGrid(record){
  assert.equal(record.path,'/v3/mail/send');
  assert.equal(record.headers.get('content-type'),'application/json');

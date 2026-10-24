@@ -25,10 +25,11 @@ import { doorPlanView, previewDefinitions } from '../src/domain/business-import/
 import { importHistory } from '../src/domain/business-import/history.server.ts';
 import {remoteDefinitions} from './definitions-http.mjs';
 import { importPlaywright } from './playwright-import/cli.mjs';
+import {permission,accessFence} from '../src/domain/access.server.ts';
+import {authorizedDatabase,auditAccess} from '../src/domain/access-database.server.ts';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-const commands = { 'import-playwright': ['--input', '--fixtures', '--lock', '--output', '--base'], validate: ['--input', '--source'], preview: ['--input', '--source'], apply: ['--input', '--source', '--digest'], export: ['--output'], batches: [], undo: ['--batch'] };
-const actor = { kind: 'feature', ref: 'local-cli' };
+const commands = { 'import-playwright': ['--input', '--fixtures', '--lock', '--output', '--base'], validate: ['--input', '--source'], test: ['--input','--source'], preview: ['--input', '--source'], apply: ['--input', '--source', '--digest'], export: ['--output'], batches: [], undo: ['--batch'] };
 
 function parse(argv) {
  const [command, ...rest] = argv, options = {};
@@ -36,12 +37,12 @@ function parse(argv) {
  for (let i = 0; i < rest.length; i++) {
   const flag = rest[i];
   if (flag === '--json') { options.json = true; continue; }
-  if (!(commands[command].includes(flag) || flag === '--origin') || options[flag.slice(2)] !== undefined) throw usage(`Unsupported or repeated flag ${String(flag).slice(0, 40)} for ${command}.`);
+  if (!(commands[command].includes(flag) || flag === '--origin' || flag === '--environment') || options[flag.slice(2)] !== undefined) throw usage(`Unsupported or repeated flag ${String(flag).slice(0, 40)} for ${command}.`);
   const value = rest[++i];
   if (value === undefined || value.startsWith('--')) throw usage(`A value is required for ${flag}.`);
   options[flag.slice(2)] = value;
  }
- for (const required of { validate: ['input'], preview: ['input'], apply: ['input', 'digest'], export: ['output'], undo: ['batch'] }[command] ?? []) if (options[required] === undefined) throw usage(`${command} needs --${required}.`);
+ for (const required of { validate: ['input'], test:['input'], preview: ['input'], apply: ['input', 'digest'], export: ['output'], undo: ['batch'] }[command] ?? []) if (options[required] === undefined) throw usage(`${command} needs --${required}.`);
  return { command, options };
 }
 const usage = message => Object.assign(Error(message), { exitCode: 2 });
@@ -52,7 +53,9 @@ async function readInput(path) {
   const stat = await file.stat();
   if (!stat.isFile()) throw usage('The input must be a regular file.');
   if (stat.size > DEFINITION_BYTES) return decodeDefinitionBytes(new Uint8Array(stat.size));
-  return decodeDefinitionBytes(new Uint8Array(await file.readFile()));
+  const bytes=new Uint8Array(await file.readFile());
+  if(/\.(?:ts|mts)$/i.test(path)){const {loadTypeScriptDefinitions}=await import('./definitions-typescript.mjs');return loadTypeScriptDefinitions(resolve(path),bytes)}
+  return decodeDefinitionBytes(bytes);
  } finally { await file.close(); }
 }
 async function migrate() {
@@ -65,10 +68,11 @@ async function syntheticGrant() {
  try { const grant = JSON.parse(await readFile(join(root, '.wrangler/state/synthetic-grant.json'), 'utf8')); return Number.isInteger(grant.port) ? { UPTIME_SYNTHETIC_PORT: String(grant.port) } : {}; } catch { return {}; }
 }
 
-// The local command holds the installation's operation and its own storage, so it acts as the installation's
-// owner. It imports through the same door as the console: upload, plan, the reviewed fingerprint, apply, reconcile.
-const ownerAuthority = env => async () => ({ sql: "EXISTS(SELECT 1 FROM oa_operators WHERE email=? AND role='owner' AND status='active')", params: [env.OWNER_EMAIL ?? ''] });
-const ownerRequest = (env, path, init = {}) => new Request(new URL(path, env.UPTIME_ORIGIN), { ...init, headers: { origin: env.UPTIME_ORIGIN, 'content-type': 'application/json', ...init.headers } });
+// Holding local storage does not replace the live identity or second factor.
+// The same permission and transaction fence apply to each resumed import step.
+const ownerRequest = (env, path, init = {}) => new Request(new URL(path, env.UPTIME_ORIGIN), { ...init, headers: { host:new URL(env.UPTIME_ORIGIN).host, origin: env.UPTIME_ORIGIN, cookie: process.env.UPTIME_ACCESS_COOKIE ?? '', 'content-type': 'application/json', ...init.headers } });
+const localAccess=env=>permission(env,ownerRequest(env,'/api/operator/import/local',{method:'POST'}),undefined,{action:'import',workspace:true});
+const ownerAuthority = env => async () => accessFence(await localAccess(env));
 // History reads the owner's import history with the same local authority.
 async function door(env, namespace, step, body) {
  const response = await operatorImport(env, ownerRequest(env, `/api/operator/import/${step}`, { method: 'POST', headers: { 'x-import-source': namespace }, body: JSON.stringify(body) }), ownerAuthority(env));
@@ -119,9 +123,10 @@ export async function run(argv = process.argv.slice(2)) {
  const { command, options } = parse(argv);
  if (options.origin) {
   const result = await remoteDefinitions(command, options, options.input === undefined ? null : await readInput(options.input));
-  if (options.json) console.log(JSON.stringify(result)); else if (command === 'preview' || command === 'validate') printPreview(result); else console.log(result.unchanged ? 'The reviewed definitions are unchanged.' : 'Definitions command completed.');
-  return command === 'validate' && result.kind === 'definitions' && (result.counts.refused || result.counts.unsupported) ? 1 : 0;
+  if (options.json) console.log(JSON.stringify(result)); else if (command === 'preview' || command === 'validate' || command === 'test') printPreview(result); else console.log(result.unchanged ? 'The reviewed definitions are unchanged.' : 'Definitions command completed.');
+  return ['validate','test'].includes(command) && result.kind === 'definitions' && (result.counts.refused || result.counts.unsupported) ? 1 : 0;
  }
+ if(process.env.UPTIME_CI_TOKEN)throw usage('CI credentials require --origin and an explicit --environment.');
  if (command === 'import-playwright') { console.log(JSON.stringify(await importPlaywright(options))); return 0; }
  await lstat(join(root, 'data/local-secrets.json')).catch(() => { throw usage('Run rer setup --owner-email EMAIL --non-interactive first.'); });
  const text = options.input === undefined ? null : await readInput(options.input);
@@ -132,11 +137,15 @@ export async function run(argv = process.argv.slice(2)) {
   if (['apply', 'undo'].includes(command)) await migrate();
   const settings = await readLocalSettings();
   worker = await startLocalWorker({ bindings: { ...settings, ...await syntheticGrant() }, assets: false });
-  const env = { ...settings, ...await syntheticGrant(), DB: await worker.getD1Database('DB') };
-  if (command === 'validate' || command === 'preview') {
+  const localEnv = { ...settings, UPTIME_LOCAL_REVIEW:'true', ...await syntheticGrant(), DB: await worker.getD1Database('DB') };
+  const access=command==='export'?await permission(localEnv,ownerRequest(localEnv,'/api/definitions/export'),undefined,{action:'export',workspace:true}):await localAccess(localEnv);
+  const env={...localEnv,DB:authorizedDatabase(localEnv,access)};
+  const actor={kind:'operator',ref:access.session.operator.id};
+  if (command === 'validate' || command === 'preview' || command === 'test') {
    const result = await previewDefinitions(env, text, options.source);
+   if(command==='test')result.test={kind:'schema-and-plan-validation',runtimeProbesExecuted:false};
    if (options.json) console.log(JSON.stringify(result)); else printPreview(result);
-   return command === 'validate' && result.kind === 'definitions' && (result.counts.refused || result.counts.unsupported) ? 1 : 0;
+   return ['validate','test'].includes(command) && result.kind === 'definitions' && (result.counts.refused || result.counts.unsupported) ? 1 : 0;
   }
   if (command === 'apply') {
    const result = await applyThroughDoor(env, text, options.source, options.digest);
@@ -144,6 +153,7 @@ export async function run(argv = process.argv.slice(2)) {
    return 0;
   }
   if (command === 'export') {
+   await auditAccess(localEnv,access);
    const temporary = resolve(options.output) + '.partial', file = await privateFile(temporary, false);
    try { await file.writeFile(JSON.stringify(await exportDefinitions(env), null, 2) + '\n'); await file.sync(); } finally { await file.close(); }
    await promote(temporary, resolve(options.output));

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { cp, mkdir, mkdtemp, rm, realpath } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, rm, realpath, readFile } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 import { loadavg, tmpdir } from 'node:os';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -25,6 +25,9 @@ export async function scratchInstallation({ mirror = false } = {}) {
  const env = { PATH: process.env.PATH, HOME: process.env.HOME, CI: 'true', RER_SERVER_JOURNEY: '1', TMPDIR: temporary, TMP: temporary, TEMP: temporary,
   npm_config_child_concurrency: '1', npm_config_network_concurrency: '2', WRANGLER_SEND_METRICS: 'false', WRANGLER_LOG_PATH: join(temporary, 'wrangler.log'),
   ...(process.env.PLAYWRIGHT_BROWSERS_PATH ? { PLAYWRIGHT_BROWSERS_PATH: process.env.PLAYWRIGHT_BROWSERS_PATH } : {}) };
+ // Clean installer commands still need the host's network proxy and CA trust.
+ // These standard transport settings carry no product/provider credential authority.
+ for(const name of ['HTTP_PROXY','HTTPS_PROXY','ALL_PROXY','NO_PROXY','http_proxy','https_proxy','all_proxy','no_proxy','NODE_EXTRA_CA_CERTS','SSL_CERT_FILE','SSL_CERT_DIR'])if(process.env[name]!==undefined)env[name]=process.env[name];
  const children = new Set();
  const commands = await createCommands(temporary, { logs: [] }, { terminal: () => {} });
  function start(command, args, { cwd = root, environment = {}, stdio = ['ignore', 'pipe', 'pipe'] } = {}) {
@@ -50,7 +53,18 @@ export async function scratchInstallation({ mirror = false } = {}) {
  }
  async function run(command, args, options) {
   const child = start(command, args, options);
-  try { const result = await child.done; assert.equal(result.code, 0, 'scratch command failed; inspect the private scratch output'); return child.output; }
+  try { const result = await child.done;
+   if(result.code!==0){
+    // Retain the cause after cleanup without exposing this installation's
+    // generated credentials or a newly issued session in an assertion.
+    const settings=await readFile(join(root,'data/local-secrets.json'),'utf8').then(JSON.parse).catch(()=>({}));
+    let diagnostic=child.output;
+    for(const value of [...Object.values(settings),env.UPTIME_ACCESS_COOKIE])if(typeof value==='string'&&value)diagnostic=diagnostic.replaceAll(value,'[private]');
+    diagnostic=diagnostic.replace(/\b[A-Za-z0-9_-]{24,}\b/g,'[private]');
+    assert.equal(result.code,0,'scratch command failed: '+diagnostic.slice(-2400));
+   }
+   return child.output;
+  }
   finally { await stop(child); }
  }
  async function close() {

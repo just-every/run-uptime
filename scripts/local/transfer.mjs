@@ -13,6 +13,9 @@ import { catalogue, policy as archivePolicy } from '@runeditrun/rer/modules/port
 import { appliedMigrations, sameSchemaMigrations, additiveBridge } from '@runeditrun/rer/internal/modules/portability/bridge.mjs';
 import { migrationHistory } from './migration-history.mjs';
 import { fileURLToPath } from 'node:url';
+import {permission,AccessError} from '../../src/domain/access.server.ts';
+import {authorizedDatabase,auditAccess} from '../../src/domain/access-database.server.ts';
+import {MfaError} from '../../src/domain/mfa/policy.server.ts';
 import {validateJournal} from '../../src/domain/archive-fence.server.ts';
 async function* records(path, reader = readArchive) {
  const file = await open(path, constants.O_RDONLY | constants.O_NOFOLLOW);
@@ -30,13 +33,22 @@ export async function transfer(direction, path) {
   let legacy = false; try { for await (const record of records(path, readLegacyArchive)) {} legacy = true; } catch {}
   throw legacy ? new PortabilityError('legacy_archive_unbound', 409) : error;
  }
+ const cookie=process.env.UPTIME_ACCESS_COOKIE;
+ if(!cookie||/[\r\n]/.test(cookie))throw new MfaError(401,'session_required');
  const settings = await readLocalSettings();
  const worker = await startLocalWorker({ bindings: settings, assets: false });
  let service, id, complete = false, manifest, closing;
  const temporary = path + '.partial';
  try {
-  const env = { ...settings, DB: await worker.getD1Database('DB') };
-  const policy = productPolicy(env, () => id, () => ({manifest,laterJournal}));
+  const env = { ...settings, UPTIME_LOCAL_REVIEW:'true', DB: await worker.getD1Database('DB') };
+  const request=new Request(new URL(direction==='export'?'/api/archive':'/api/restore',settings.UPTIME_ORIGIN),{method:direction==='export'?'GET':'POST',headers:{host:new URL(settings.UPTIME_ORIGIN).host,cookie,origin:settings.UPTIME_ORIGIN}});
+  // A local filesystem command holds the same live Base session and five-minute
+  // factor proof as HTTP. Re-read authority at every progress boundary. Product
+  // writes also carry the session/version/factor fence in their D1 transaction.
+  const authorize=()=>permission(env,request);
+  const access=await authorize();
+  await auditAccess(env,access);
+  const policy = productPolicy({...env,DB:authorizedDatabase(env,access)}, () => id, () => ({manifest,laterJournal,actor:{kind:'operator',ref:access.session.operator.id}}));
   // The migrations this installation applied, in Wrangler's applied order, so an archive made before later additive migrations
   // (new tables, columns with defaults, indexes) restores into it instead of being refused for a ledger it has outgrown.
   const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -60,17 +72,18 @@ export async function transfer(direction, path) {
    await mkdir(dirname(path), { recursive: true, mode: 0o700 });
    const file = await privateFile(temporary, false);
    try {
-    id = await service.exports.create();
-    while ((await service.exports.advance(id, { maxParts: 16 })).phase === 'building') {}
-    const reader = (await service.exports.download(id)).getReader();
-    try { for (;;) { const { done, value } = await reader.read(); if (done) break; await file.writeFile(value); } }
+    await authorize();id = await service.exports.create();
+    for(;;){await authorize();if((await service.exports.advance(id, { maxParts: 16 })).phase!=='building')break}
+    await authorize();const reader = (await service.exports.download(id)).getReader();
+    try { for (;;) { const { done, value } = await reader.read(); if (done) break; await authorize();await file.writeFile(value); } }
     finally { await reader.cancel(); reader.releaseLock(); }
     await file.sync();
    } finally { await file.close(); }
    for await (const record of records(temporary)) { if (record.kind === 'manifest') manifest = record; if (record.kind === 'closing') closing = record; }
-   await promote(temporary, path); complete = true;
+   await authorize();await promote(temporary, path); complete = true;
   } else {
    for await (const record of records(path)) {
+    await authorize();
     if (record.kind === 'manifest') {
      if (canonicalJson(record) !== canonicalJson(validatedManifest)) throw new PortabilityError('archive_changed');
      manifest = record; id = await service.imports.create(manifest);
@@ -78,7 +91,7 @@ export async function transfer(direction, path) {
     else if (record.kind === 'part') await service.imports.uploadPart(id, record.index, record);
     else closing = record;
    }
-   await service.imports.finalize(id, { contentHash: closing.contentHash, archiveHash: closing.archiveHash, laterJournal }); complete = true;
+   await authorize();await service.imports.finalize(id, { contentHash: closing.contentHash, archiveHash: closing.archiveHash, laterJournal }); complete = true;
   }
   return { contentHash: closing.contentHash, payloads: manifest.payloads.map(({ name, size }) => ({ name, size })), exclusions: Object.values((await import('../../src/domain/archive-inventory.ts')).installationLocalTables), requiredConfiguration: manifest.requiredConfiguration };
  } finally {
@@ -89,5 +102,5 @@ export async function transfer(direction, path) {
 }
 if (import.meta.url === new URL(process.argv[1], 'file:').href) {
  try { console.log(JSON.stringify({ ok: true, ...await transfer(process.argv[2], process.argv[3]) })); }
- catch (error) { console.log(JSON.stringify({ ok: false, refused: error instanceof PortabilityError || /Restore requires empty|EEXIST/.test(error.message), reason: error instanceof PortabilityError ? error.code.split(':')[0] : error.code ?? error.name })); process.exitCode = 1; }
+ catch (error) { console.log(JSON.stringify({ ok: false, refused: error instanceof PortabilityError || error instanceof MfaError || error instanceof AccessError || /Restore requires empty|EEXIST/.test(error.message), reason: error instanceof PortabilityError ? error.code.split(':')[0] : error instanceof AccessError ? (error.status===401?'session_required':'permission_required') : error.code ?? error.name })); process.exitCode = 1; }
 }

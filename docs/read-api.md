@@ -1,6 +1,22 @@
-Use the versioned `/api/v1` reads to inspect the same immutable monitoring figures shown in the console. Reads require a live Base session and the edition permission. Owner/admin and explicitly assigned editor, responder and read-only members may use permitted reads; service/team scopes restrict individual monitor reads and refuse workspace lists. Incident-detail reads remain owner-only. General-purpose `monitoring:read` keys, their per-key limits and second-factor step-up are not available yet; a metrics key authorizes only `/api/v1/metrics`. Keep session cookies private and do not embed them in public dashboards.
+Use the versioned `/api/v1` reads to inspect the same immutable monitoring figures shown in the console. A live Base session uses the edition role and monitor scope. A `monitoring:read` key gives a separate script read access within its saved monitor or tag selection. Owner/admin and explicitly assigned editor, responder and read-only members may use permitted reads; service/team scopes restrict individual monitor reads and refuse unfiltered workspace lists. Incident reads use the same monitor permission. Keep session cookies and keys in a server-side environment variable.
 
-The OpenAPI description at `/api/v1/openapi.json` is public and contains no installation data. Private reads send `Cache-Control: no-store`. Signed-out and revoked sessions cannot read monitoring records.
+The OpenAPI description at `/api/v1/openapi.json` is public and contains no installation data. Private reads send `Cache-Control: no-store`. Signed-out or revoked sessions, expired or revoked keys and keys whose issuing operator no longer holds the saved authority cannot read monitoring records.
+
+## Scoped read keys
+
+The Base owner creates a key with `POST /api/credentials`, after verifying a second factor within the previous five minutes. Supply a name, exactly `monitoring:read`, an explicit future `expiresAt` in epoch milliseconds and a resource selection. Creation returns the random token once. `GET /api/credentials` lists safe metadata and last allowed use; `DELETE /api/credentials/{id}` revokes it immediately. These management doors use the owner's native session, rather than a read key.
+
+A selection with monitor IDs only admits those IDs. Tags only admit monitors with any listed current tag. When both lists are nonempty, a monitor must match an ID **and** a tag. Two empty selection lists grant no monitor access. An explicit workspace selection uses `{"mode":"workspace","monitorIds":[],"tags":[]}`. Every selection also stays within the issuer's live service/team authority. Reads outside it return the same 404 as a missing resource, including an explicit bulk selection; lists and totals contain only authorized monitors.
+
+The CLI calls those same doors. First complete the MFA flow and keep the native cookie in `UPTIME_ACCESS_COOKIE`. Create a key specification with a future expiry and the smallest required selection, then run:
+
+```sh
+node scripts/api-keys.mjs --origin "$UPTIME_ORIGIN" create < key-specification.json
+node scripts/api-keys.mjs --origin "$UPTIME_ORIGIN" list
+node scripts/api-keys.mjs --origin "$UPTIME_ORIGIN" revoke --id CREDENTIAL_ID
+```
+
+Creation output contains the token; keep it with private server configuration. Send it as `Authorization: Bearer TOKEN` for versioned monitoring GET/HEAD requests, including scoped report formats and metrics. Each allowed request rechecks expiry, revocation and the issuer's live Base and edition authority. `RateLimit`, `RateLimit-Policy` and 429 `Retry-After` describe the key's separate request budget. Key metadata records the last allowed use. Bearer mutations and other private product doors are refused before token-use or product writes. Existing `metrics:read` keys retain their separate metrics-only scope. Console key management and delegated issuance remain open.
 
 ## Monitors and current coverage
 
@@ -32,8 +48,8 @@ Each row includes confirmation/recovery times, duration in seconds, the original
 
 ## Moving a monitoring script
 
-UptimeRobot uptime-ratio reads map to `/api/v1/monitors/{id}/uptime` for one monitor or `/api/v1/uptime` for a selection; response-time reads map to `/response-times`; incident/log reads map to `/api/v1/incidents` and its detail route. First map source monitor IDs to their new Uptime IDs and choose matching periods and time zones. Source incident-history segments and blended cross-cutover figures remain unavailable. Scoped API keys are required before a public dashboard can be safely repointed; the current owner-session API is for authenticated operator use.
+UptimeRobot uptime-ratio reads map to `/api/v1/monitors/{id}/uptime` for one monitor or `/api/v1/uptime` for a selection; response-time reads map to `/response-times`; incident/log reads map to `/api/v1/incidents` and its detail route. First map source monitor IDs to their new Uptime IDs and choose matching periods and time zones. Source incident-history segments and blended cross-cutover figures remain unavailable. Use a scoped read key in the trusted service that supplies a dashboard, with the smallest monitor or tag selection it needs.
 
 ### Role and scope limits
 
-Live Base owners/admins and assigned member roles use the same central permission function. Base deactivation, revocation or role/version changes take effect on the next request. Service scopes match monitor services; team scopes match existing group labels. An unassigned, stale or unknown member role is denied. Scoped members use individual monitor summary, uptime, report and response-time reads; workspace lists, exports and other unfiltered workspace doors refuse. Incident detail and private collaboration remain owner-only until INCIDENT-001 extends them. This replaces the interim admin-summary exception without granting API/CI token authority.
+Live Base owners/admins and assigned member roles use the same central permission function. Base deactivation, revocation or role/version changes take effect on the next request. Service scopes match monitor services; team scopes match existing group labels. An unassigned, stale or unknown member role is denied. Scoped members use individual monitor summary, uptime, report and response-time reads; workspace lists, exports and other unfiltered workspace doors refuse. Incident detail follows the same monitor scope. Responders and editors can add comments, change their own comments and set root causes; owners/admins can also change other authors' comments. Follow-up and category administration remain owner-only, and incident snapshots are withheld from nonowners. This replaces the interim admin-summary exception. Read keys cannot perform incident mutations or manage members, credentials or installation archives.

@@ -1,3 +1,4 @@
+import {restoreMentions} from './incident-work/mention-archive.ts'
 import {restoreAuxiliary} from './auxiliary-archive.ts'
 import {restoreDiscoverySources} from './discovery-sources-archive.ts'
 import {ARCHIVE_ROWS,TABLES,assertBytes,digest,portableArchive,type Tables} from './archive-schema.ts'
@@ -43,6 +44,7 @@ export async function projectRestore(input:Tables,migrations:any[],now=Date.now(
  // Imported batches stay history: restored_at keeps them from undoing anything in the receiving installation.
  for(const row of t.definition_batches)if(row.restored_at===null)row.restored_at=now;
  restoreAuxiliary(t,now);
+ restoreMentions(t,now);
  // A restored discovery source reads nothing until the receiving owner authorizes it again.
  restoreDiscoverySources(t);
  t.archive_history=[...history.values()];
