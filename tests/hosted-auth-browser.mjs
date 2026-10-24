@@ -70,8 +70,13 @@ try {
             assert.match(response.headers()['cache-control'], /no-store/);
           }
         }
-        await page.goto(url);
-        if (complete) await page.waitForURL(runtime.origin + '/app/monitors');
+        // The empty-list console deliberately forwards to first-monitor onboarding.
+        // Commit observes the server redirect without racing that document's navigation.
+        await page.goto(url, {waitUntil: 'commit'});
+        if (complete) {
+          await page.waitForURL(runtime.origin + '/app/monitors/new');
+          await page.getByRole('heading', {name: 'Add your first monitor', exact: true}).waitFor();
+        }
         else assert.equal(await page.getByRole('textbox', {name: /^Email/}).inputValue(), bindings.OWNER_EMAIL, 'incomplete session keeps the sign-in form and prefill');
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
         if (process.env.UPTIME_AUTH_SHOTS) {
@@ -141,8 +146,9 @@ try {
   assert.equal((await nativePost(login, '/auth/confirm', 'Confirm')).status(), 303);
   await assertSignInForward(login, false);
   assert.equal((await loginContext.request.get(runtime.origin + '/api/overview')).status(), 403, 'first-factor session cannot enter the console');
-  await completeBrowserSecondFactor(login,runtime.origin);await login.goto(runtime.origin+'/app');
-  await login.waitForURL(runtime.origin + '/app/monitors');
+  await completeBrowserSecondFactor(login,runtime.origin);await login.goto(runtime.origin+'/app', {waitUntil: 'commit'});
+  await login.waitForURL(runtime.origin + '/app/monitors/new');
+  await login.getByRole('heading', {name: 'Add your first monitor', exact: true}).waitFor();
   await assertSession(loginContext);
   await assertSignInForward(login, true);
   assert.ok((await db.prepare('SELECT consumed_at FROM oa_tokens').first()).consumed_at);

@@ -7379,7 +7379,7 @@
       "executable": false
     },
     "tests/hosted-auth-browser.mjs": {
-      "sha256": "dd3511c50961c10b40bc922793c4c30710e6ec4c966d0e03e1761c5068d27f2d",
+      "sha256": "38cdbd55657f6dd5911869e2292f12a93ec608cc154939763c671e86bdff3262",
       "executable": false
     },
     "tests/hosted-auth-runtime.mjs": {
