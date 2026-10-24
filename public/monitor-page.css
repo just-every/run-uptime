@@ -71,8 +71,9 @@
 .monitor-page { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
 .monitor-columns { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; gap: 18px; }
 /* Only the page's own columns: this sheet is linked on every console page, and the monitor list's rows use .monitor-main
-   too (public/monitor-list.js). */
+   too (public/monitor-list.js). The main column is the Up or down table's container (main-column). */
 .monitor-columns > :is(.monitor-main, .monitor-side) { display: grid; align-content: start; gap: 18px; min-width: 0; }
+.monitor-columns > .monitor-main { container: main-column / inline-size; }
 @container table-wrap (min-width: 720px) {
   .monitor-columns { grid-template-columns: minmax(0, 2.1fr) minmax(290px, 1fr); }
 }
@@ -129,6 +130,13 @@
 /* ---------------------------------------------------------------- up or down */
 /* A row per rule, a column per location; each cell is what that location saw on the newest complete scheduled check. */
 .rule-grid { width: 100%; border-collapse: collapse; font-size: 15px; }
+/* In two columns the table is laid out by its content, so its words break only when they cannot fit (break-word: under the
+   panel's anywhere a location column is squeezed below its longest word), and a rule being edited and its refusal wrap in
+   the rule cell instead. In one column the columns are fixed shares (below), where anywhere breaks only a word too long for
+   its share. */
+@container table-wrap (min-width: 720px) {
+  .rule-grid { overflow-wrap: break-word; }
+}
 .rule-grid :is(th, td) { padding: 12px 10px; border-top: 1px solid var(--line); text-align: left; vertical-align: middle; font-weight: 500; }
 .rule-grid :is(th, td):first-child { padding-left: 0; }
 .rule-grid thead th { padding-top: 0; border-top: 0; vertical-align: bottom; color: var(--ink); font-size: 14px; font-weight: 650; }
@@ -138,9 +146,9 @@
 button.col-name:not(:disabled):hover { background: none; text-decoration-style: solid; }
 .col-age { display: block; color: var(--muted); font-size: 13px; font-weight: 500; }
 .rule-grid thead .ui-result { margin-top: 2px; font-size: 14px; }
-.rule-grid td .ui-result { font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.rule-grid td .ui-result { font-variant-numeric: tabular-nums; }
 .cell-none { color: var(--muted); }
-/* Each cell names its location only when the column heads are hidden (three locations in a phone-width card). */
+/* Each cell names its location only when the column heads are hidden (three locations in a narrow card, below). */
 .cell-where { display: none; }
 .value-chip { display: inline-flex; align-items: center; min-height: 30px; margin-left: 6px; padding: 0 10px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--ground); color: var(--ink); font-size: 14px; font-weight: 650; line-height: 1.3; overflow-wrap: anywhere; }
 .value-chip.ui-mono { font-family: var(--mono); font-size: 13px; }
@@ -205,6 +213,22 @@ button.col-name:not(:disabled):hover { background: none; text-decoration-style: 
   .rule-grid[data-locations="3"] tbody th { flex-basis: 100%; padding: 0; }
   .rule-grid[data-locations="3"] td { display: inline-flex; align-items: center; gap: 6px; padding: 0; }
   .rule-grid[data-locations="3"] .cell-where { display: inline; color: var(--muted); font-weight: 500; }
+}
+/* In two columns, three location columns beside a rule being edited need about 430px of table (each column holds its
+   longest word: 82px for a marked Found, 107px for Christchurch; the editor 150px), so under a 540px main column
+   (#content-area under about 850px) each rule stacks over one line of what each location saw, as at 390. Only a table with a
+   cell per location: a protocol check's locations are its column heads. */
+@container table-wrap (min-width: 720px) {
+  @container main-column (max-width: 539px) {
+    .rule-grid[data-locations="3"]:has(td), .rule-grid[data-locations="3"]:has(td) :is(tbody, tr, th, td) { display: block; }
+    .rule-grid[data-locations="3"]:has(td) thead { display: none; }
+    .rule-grid[data-locations="3"]:has(td) tr { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 12px 0; border-top: 1px solid var(--line); }
+    .rule-grid[data-locations="3"]:has(td) tbody tr:first-child { padding-top: 0; border-top: 0; }
+    .rule-grid[data-locations="3"]:has(td) :is(th, td) { padding: 0; border: 0; }
+    .rule-grid[data-locations="3"]:has(td) tbody th { flex-basis: 100%; }
+    .rule-grid[data-locations="3"]:has(td) td { display: inline-flex; align-items: center; gap: 6px; }
+    .rule-grid[data-locations="3"]:has(td) .cell-where { display: inline; color: var(--muted); font-weight: 500; }
+  }
 }
 
 /* ---------------------------------------------------------------- recent checks */
