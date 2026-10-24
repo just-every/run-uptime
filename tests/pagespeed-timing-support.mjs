@@ -10,8 +10,8 @@ export async function provePageSpeedTimings(){
  try{
   assert.equal((await f.request('/api/runner/enroll',{runner:f.first,signed:true,body:{version:1,capabilities:{browser:true}}})).status,200);
   network=await timingNetwork(f.directory);const workspace=join(f.directory,'timing-browsers');await mkdir(workspace,{mode:0o700});
-  async function measure(label,url,dns,tls){
-   network.state.dns=dns;network.state.tls=tls;
+  async function measure(label,url,dns,tls,connect=0,firstByte=0){
+   network.state.dns=dns;network.state.tls=tls;network.state.connect=connect;network.state.firstByte=firstByte;
    const monitor=await f.monitor({runners:[f.first],name:label,type:'pagespeed',network:'public',url,intervalMs:300000,timeoutMs:20000,pagespeed:{device:'desktop',budgets:{lcpMs:5000}}});
    const task=await f.claim(f.first);assert.equal(task.monitorId,monitor.id);
    const observation={...await executeTaskProbe(task,task.probes[0],{controlPort:Number(new URL(f.origin).port),flowWorkspace:workspace}),attempt:0};
@@ -31,9 +31,15 @@ export async function provePageSpeedTimings(){
   assert.ok(delayedDns.dnsMs>base.dnsMs+200,`delayed DNS answer moves retained DNS timing: ${JSON.stringify({base,delayedDns})}`);
   const delayedTls=await measure('synthetic-uptime-timing-tls',network.https,20,400);
   assert.ok(delayedTls.tlsMs>base.tlsMs+200,`delayed handshake moves retained TLS timing: ${JSON.stringify({base,delayedTls})}`);
+  const delayedConnect=await measure('synthetic-uptime-timing-connect',network.https,20,30,400);
+  assert.ok(delayedConnect.connectMs>base.connectMs+200,`delayed connection moves retained connect timing: ${JSON.stringify({base,delayedConnect})}`);
+  const delayedFirstByte=await measure('synthetic-uptime-timing-first-byte',network.https,20,30,0,400);
+  assert.ok(delayedFirstByte.ttfbMs>base.ttfbMs+200,`delayed first byte moves retained TTFB: ${JSON.stringify({base,delayedFirstByte})}`);
+  assert.ok(Math.abs(delayedConnect.ttfbMs-base.ttfbMs)<200 && Math.abs(delayedFirstByte.connectMs-base.connectMs)<200,`connect and first-byte delays stay in their own retained phases: ${JSON.stringify({base,delayedConnect,delayedFirstByte})}`);
   const plain=await measure('synthetic-uptime-timing-http',network.http,20,0);
   assert.equal(plain.tlsMs,null);assert.ok(plain.dnsMs>0);
   assert.ok(network.queries.some(q=>q.type==='A')&&network.queries.some(q=>q.type==='AAAA'),'the runner resolves the hostname over the real DNS wire protocol');
-  console.log('PERF-001 DNS/TLS passed: generated fixture certificate trusted only by this browser, hostname and controlled wire DNS, non-zero retained DNS/TLS, independent delayed answers/handshakes and honest plain HTTP.');
+  console.log('PERF-001 retained timing samples:', JSON.stringify({base,delayedDns,delayedTls,delayedConnect,delayedFirstByte,plain}));
+  console.log('PERF-001 DNS/connect/TLS/TTFB passed: generated fixture certificate trusted only by this browser, hostname and controlled wire DNS, non-zero retained DNS/TLS, independent delayed answers/handshakes and honest plain HTTP.');
  }finally{await network?.close();await f.close()}
 }

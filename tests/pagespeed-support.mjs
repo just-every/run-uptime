@@ -9,7 +9,7 @@
 // axe finding. Assertions read retained structure and budget decisions against the fixture's fixed delays, not absolute timings.
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import {mkdtemp,readFile,readdir,rm} from 'node:fs/promises';
+import {mkdir,mkdtemp,readFile,readdir,rm,writeFile} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
 import {tmpdir} from 'node:os';
 import {chromium} from 'playwright';
@@ -24,20 +24,20 @@ const LAPTOP = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.
 /** Creates the three monitors as soon as the flows are created, so they run beside them. */
 export async function startPageSpeed({ok, fixture}) {
   const speed = device => ok('/api/monitors', 'POST', {name: `Shop checkout speed (${device})`, type: 'pagespeed', url: `${fixture.origin}/s/shop/checkout`, network: 'synthetic', probes: ['local-a', 'local-b'], confirmSlots: 1, recoverSlots: 1,
-    pagespeed: {device, budgets: device === 'mobile' ? {lcpMs: 2000, tbtMs: 200, browserErrors: 0} : {lcpMs: 2000, tbtMs: 200}}});
+    pagespeed: {device, budgets: device === 'mobile' ? {lcpMs: 2000, cls: 0.1, tbtMs: 200, browserErrors: 0} : {lcpMs: 2000, cls: 0.1, tbtMs: 200}}});
   const [mobile, desktop, health] = await Promise.all([speed('mobile'), speed('desktop'),
     ok('/api/monitors', 'POST', {name: 'Shop health endpoint', url: `${fixture.origin}/health`, network: 'synthetic', probes: ['local-a', 'local-b'], intervalMs: 300000, confirmSlots: 1, recoverSlots: 1})]);
   return {mobile: mobile.id, desktop: desktop.id, health: health.id, created: [mobile, desktop]};
 }
 
-export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, waitFor, observations}) {
+export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, waitFor, observations, worker}) {
   for (const id of [ids.mobile, ids.desktop, ids.health]) await waitFor(async () => (await observations(id)).some(o => o.outcome !== 'runner_error'), 'the page-speed and health checks ran', 120000);
   const [mobile] = (await observations(ids.mobile)).filter(o => o.outcome !== 'runner_error'), [desktop] = (await observations(ids.desktop)).filter(o => o.outcome !== 'runner_error');
   // The mobile check: slow 4G and a phone, the throttled mobile script in its waterfall (no query string kept), its exception kept.
   const m = mobile.pagespeed, d = desktop.pagespeed;
   assert.deepEqual([mobile.outcome, m.device, m.throttle, m.status], ['target_failure', 'mobile', 'slow-4g', 200]);
-  assert.deepEqual(mobile.checks.map(c => [c.assertion, c.pass]), [['status', true], ['budget:lcpMs', false], ['budget:tbtMs', false], ['budget:browserErrors', false]], 'each budget is its own named check');
-  assert.ok(m.vitals.lcpMs >= 2600 && m.vitals.tbtMs >= 300 && m.vitals.inpMs === null && m.vitals.fcpMs < m.vitals.lcpMs, `the 2.6 s mobile script sets LCP and its 400 ms task sets TBT: ${JSON.stringify(m.vitals)}`);
+  assert.deepEqual(mobile.checks.map(c => [c.assertion, c.pass]), [['status', true], ['budget:lcpMs', false], ['budget:cls', false], ['budget:tbtMs', false], ['budget:browserErrors', false]], 'each budget is its own named check');
+  assert.ok(m.vitals.lcpMs >= 2600 && m.vitals.tbtMs >= 300 && m.vitals.inpMs === null && Number.isInteger(m.vitals.fcpMs) && m.vitals.fcpMs > 0 && m.vitals.cls > 0.1 && m.vitals.fcpMs < m.vitals.lcpMs, `the 2.6 s mobile script sets LCP and its 400 ms task sets TBT: ${JSON.stringify(m.vitals)}`);
   assert.ok([m.timings.dnsMs, m.timings.connectMs, m.timings.ttfbMs].every(Number.isInteger) && m.timings.tlsMs === null, `DNS, connect and TTFB are retained; TLS is absent on plain HTTP: ${JSON.stringify(m.timings)}`);
   assert.equal(m.resources[0].type, 'document');
   const script = m.resources.find(r => r.url.endsWith('/s/shop/assets/mobile.js'));
@@ -46,7 +46,8 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
   assert.ok(m.errors.some(e => e.kind === 'exception' && /Mobile checkout script failed/.test(e.text)) && m.errorCount >= 1, 'the browser error is retained');
   // The desktop check of the same page passes its budgets with the desktop script.
   assert.deepEqual([desktop.outcome, d.device, d.throttle, d.errorCount], ['pass', 'desktop', 'none', 0]);
-  assert.ok(d.vitals.lcpMs < 2000 && d.resources.some(r => r.url.endsWith('/s/shop/assets/desktop.js')), `desktop LCP is within budget: ${JSON.stringify(d.vitals)}`);
+  assert.ok(d.vitals.lcpMs < 2000 && d.vitals.cls <= 0.1 && d.resources.some(r => r.url.endsWith('/s/shop/assets/desktop.js')), `desktop LCP is within budget: ${JSON.stringify(d.vitals)}`);
+  assert.ok(desktop.checks.some(c => c.assertion === 'budget:cls' && c.pass), 'desktop CLS stays within its budget');
   // The budget alert goes through the ordinary incident path and the installation's destination; the health endpoint stays Healthy.
   const state = async id => (await ok('/api/overview')).monitors.find(x => x.id === id).state.state;
   await waitFor(async () => await state(ids.mobile) === 'Failing' && await state(ids.health) === 'Healthy', 'the slow mobile checkout is Failing while the health endpoint is Healthy', 60000)
@@ -75,16 +76,23 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
     const views = async () => Number((await DB.prepare('SELECT COALESCE(SUM(views),0) n FROM rum_aggregates WHERE site_id=?').bind(site.id).first()).n);
     // One visitor in a fresh context. The context stays open until the view is counted (or, for a visitor whose beacon must stay
     // silent, for a while), so closing it never cancels a beacon still in flight.
-    const visit = async ({phone = false, consent = true, coin = 0.25, gpc = false, dnt = false, agent, path = '/s/shop/checkout', click = true, counted = false}) => {
+    const visit = async ({phone = false, consent = true, coin = 0.25, gpc = false, dnt = false, agent, path = '/s/shop/checkout', click = true, counted = false, country = 'US', unavailable = false}) => {
       const context = await browser.newContext(phone ? {viewport: {width: 390, height: 844}, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: agent ?? PHONE} : {viewport: {width: 1280, height: 800}, userAgent: agent ?? LAPTOP});
       try {
         const before = await views();
         if (consent) await context.addCookies([{name: 'consent', value: 'granted', url: fixture.origin}]);
         // A browser with Global Privacy Control or Do Not Track switched on exposes it to the page this way.
         await context.addInitScript(([value, privacy, track]) => { Math.random = () => value; if (privacy) Object.defineProperty(Navigator.prototype, 'globalPrivacyControl', {get: () => true, configurable: true}); if (track) Object.defineProperty(Navigator.prototype, 'doNotTrack', {get: () => '1', configurable: true}); }, [coin, gpc, dnt]);
+        if (country !== 'US') await context.route(`${origin}/rum/v1/collect`, async route => {
+          // Forward the actual shipped beacon request unchanged through the controlled country edge.
+          const request = route.request(), response = await worker.dispatchFetch(request.url(), {method: request.method(), headers: request.headers(), body: request.postDataBuffer(), cf: {country}});
+          await route.fulfill({status: response.status, headers: Object.fromEntries(response.headers), body: Buffer.from(await response.arrayBuffer())});
+        });
         const page = await context.newPage();
-        await page.goto(fixture.origin + path);
-        await page.getByText('Your order', {exact: false}).waitFor({timeout: 20000});
+        const response = await page.goto(fixture.origin + path);
+        assert.equal(response.status(), unavailable ? 500 : 200, 'the visitor receives the actual document status');
+        if (unavailable) { await page.getByRole('heading', {name: 'Checkout unavailable'}).waitFor(); await page.waitForFunction(() => Boolean(window.uptimeRum)); await page.waitForTimeout(500); }
+        else await page.getByText('Your order', {exact: false}).waitFor({timeout: 20000});
         if (click) { await page.getByRole('button', {name: 'Place order'}).click(); await page.getByText('Order placed').waitFor(); await page.waitForTimeout(500); }
         // The visitor closes the tab: the page is hidden and the beacon sends its one view.
         await page.close({runBeforeUnload: true});
@@ -102,6 +110,8 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
     await visit({phone: true, coin: 0.75});
     await visit({phone: true, path: '/s/shop/account/88231/orders', click: false});
     assert.equal(await views(), 2, 'no visitor without consent, with GPC or DNT, from a bot, outside the sample or on an excluded path was counted');
+    await visit({phone: true, country: 'CA', counted: true});
+    await visit({phone: true, path: '/s/shop/unavailable', unavailable: true, click: false, counted: true});
   } finally { await browser.close(); }
 
   // The door's own rules: only the registered origin, a bounded body, bots and excluded paths counted but not aggregated, and a
@@ -118,18 +128,21 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
   const stored = JSON.stringify([(await DB.prepare('SELECT * FROM rum_aggregates').all()).results, (await DB.prepare('SELECT * FROM rum_dropped').all()).results]);
   assert.ok(!stored.includes(order) && !stored.includes('synthetic-uptime-2') && !stored.includes('receipt') && !stored.includes('127.0.0.1'), 'no identifier, query, fragment or address is stored');
   const report = await ok(`/api/rum/sites/${site.id}/report?hours=24`);
-  assert.deepEqual([report.kind, report.denominator, report.views, report.dropped], ['real-user', 'sampled page views', 3, {bot: 1, excluded: 1}]);
-  const row = (route, device) => report.rows.find(r => r.route === route && r.device === device);
+  assert.deepEqual([report.kind, report.denominator, report.views, report.dropped], ['real-user', 'sampled page views', 5, {bot: 1, excluded: 1}]);
+  const row = (route, device, country = 'US') => report.rows.find(r => r.route === route && r.device === device && r.region === country);
   const phone = row('/s/shop/checkout', 'mobile'), laptop = row('/s/shop/checkout', 'desktop'), failed = row('/s/shop/orders/:id', 'desktop');
   assert.ok(phone && laptop && failed, `rows by route and device: ${JSON.stringify(report.rows)}`);
   assert.equal(phone.region, 'US', 'the visitor country comes from the edge, not from an address');
-  assert.ok(phone.views === 1 && phone.lcpMs.average >= 2600 && phone.lcpMs.poorPercent === 100 && phone.inpMs.average >= 250 && phone.availability.percent === 100, `the slow mobile checkout shows in real-user figures: ${JSON.stringify(phone)}`);
+  assert.ok(phone.views === 1 && phone.lcpMs.average >= 2600 && phone.lcpMs.poorPercent === 100 && phone.inpMs.average >= 250 && phone.cls.average > 0.1 && phone.availability.percent === 100, `the slow mobile checkout shows in real-user figures: ${JSON.stringify(phone)}`);
   assert.ok(laptop.lcpMs.average < 2500 && laptop.lcpMs.poorPercent === 0, `desktop visitors load fast: ${JSON.stringify(laptop)}`);
   assert.deepEqual(failed.availability, {loaded: 0, of: 1, percent: 0}, 'real-user availability counts a failed page load');
+  const canada = row('/s/shop/checkout', 'mobile', 'CA'), unavailable = row('/s/shop/unavailable', 'mobile');
+  assert.ok(canada && canada.views === 1 && phone.views === 1 && canada.cls.average > 0.1, 'the actual Canadian beacon stays separate and leaves the US denominator at one');
+  assert.deepEqual(unavailable?.availability, {loaded: 0, of: 1, percent: 0}, 'the shipped beacon reports its real consenting phone HTTP500 visit as unavailable');
   // Two reports, two denominators, never summed.
   const both = await ok(`/api/monitors/${ids.mobile}/pagespeed`);
   assert.deepEqual([both.kind, both.denominator, both.checks, both.overBudget], ['synthetic', 'page-speed checks', (await observations(ids.mobile)).filter(o => o.outcome !== 'runner_error').length, (await observations(ids.mobile)).filter(o => o.outcome === 'target_failure').length]);
-  assert.deepEqual([both.realUser.report.denominator, both.realUser.report.views], ['sampled page views', 3]);
+  assert.deepEqual([both.realUser.report.denominator, both.realUser.report.views], ['sampled page views', 5]);
   assert.ok(!('total' in both) && !('views' in both), 'the synthetic report never adds page views to checks');
 
   // The console at 1440 and 390: budgets, the waterfall, the browser error, both reports and the beacon's privacy and sampling settings.
@@ -147,11 +160,18 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
       const panel = page.locator('#pagespeed-panel');
       await panel.locator('#pagespeed-waterfall').waitFor({timeout: 30000});
       assert.match(await panel.locator('[data-check="budget:lcpMs"]').textContent(), /Over budget/);
+      assert.match(await panel.locator('[data-check="budget:cls"]').textContent(), /Over budget/);
       assert.ok(await panel.locator('#pagespeed-waterfall li').count() >= 2);
       assert.match(await panel.locator('#pagespeed-errors').textContent(), /Mobile checkout script failed/);
       assert.equal(await panel.locator('#pagespeed-synthetic-denominator').textContent(), `${both.checks} page-speed checks, ${both.overBudget} over budget.`);
-      assert.match(await panel.locator('#pagespeed-rum-denominator').textContent(), /^3 sampled page views/);
-      assert.equal(await panel.locator('#pagespeed-rum tr[data-route="/s/shop/checkout"][data-device="mobile"]').count(), 1);
+      assert.match(await panel.locator('#pagespeed-rum-denominator').textContent(), /^5 sampled page views/);
+      assert.equal(await panel.locator('#pagespeed-rum tr[data-route="/s/shop/checkout"][data-device="mobile"]').count(), 2);
+      for (const country of ['US', 'CA']) {
+        const countryRow = panel.locator('#pagespeed-rum tr[data-route="/s/shop/checkout"][data-device="mobile"]').filter({has: page.getByRole('cell', {name: country, exact: true})});
+        assert.equal(await countryRow.locator('td').nth(2).textContent(), '1');
+        assert.ok(Number(await countryRow.locator('td').last().textContent()) > 0.1, `real CLS displayed for ${country} at ${width}`);
+      }
+      assert.match(await panel.locator('#pagespeed-rum tr[data-route="/s/shop/unavailable"]').textContent(), /0% of 1/);
       assert.equal(await panel.locator('#pagespeed-sample').inputValue(), '50');
       assert.match(await panel.locator('#pagespeed-beacon').textContent(), /Never kept: cookies, query strings, fragments, identifiers or IP addresses/);
       await panel.scrollIntoViewIfNeeded();
@@ -159,6 +179,9 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
       await page.addScriptTag({content: axeSource});
       const result = await page.evaluate(() => axe.run(document.querySelector('#pagespeed-panel'), {runOnly: {type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']}}));
       assert.deepEqual(result.violations.filter(v => ['serious', 'critical'].includes(v.impact)).map(v => v.id), [], `no serious axe finding at ${width}`);
+      const evidence = resolve(process.env.UPTIME_PERF_UI_EVIDENCE ?? 'data/pagespeed-evidence'); await mkdir(evidence, {recursive: true});
+      await page.screenshot({path: join(evidence, `pagespeed-${width}.png`), fullPage: true});
+      await writeFile(join(evidence, `pagespeed-${width}.json`), JSON.stringify({width, mobile: m, desktop: d, rows: report.rows, violations: result.violations.map(v => v.id)}, null, 2));
     }
     // The owner changes sampling in the console; the next served beacon carries it.
     await page.locator('#pagespeed-sample').fill('20');
