@@ -7095,7 +7095,7 @@
       "executable": false
     },
     "tests/access-admin-support.mjs": {
-      "sha256": "7ffcf9af50e4739dd0791341f64b7d0bb94f3bcb5d63a5ca7334c268ad0729ae",
+      "sha256": "780a039f9f295d3d70884baacb6bfdc23c6e04a4221379dd1165a72b8a78f3f8",
       "executable": false
     },
     "tests/access-discovery-job-support.mjs": {
@@ -7247,7 +7247,7 @@
       "executable": false
     },
     "tests/definitions-ci-support.mjs": {
-      "sha256": "b1fb6a522f48ac0a243ba6a2e6b65971545036dd6a9a17f727877206189127b9",
+      "sha256": "098826822e38141c3b835091a5999b8e805679af4d09b2132c63d7fe6bc83ed2",
       "executable": false
     },
     "tests/definitions-import.mjs": {
