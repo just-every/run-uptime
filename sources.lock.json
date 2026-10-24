@@ -487,7 +487,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "f1fd89b6f33186ef4f75d47556b97a5bb3adcaf66997b95f9a4cf53410b0e129",
+      "sha256": "dfb10ec1ad355ea771cd45c3a13f71d4a4f32d9e9fd5eb1502d29085b0aec4c4",
       "executable": false
     },
     "AGENTS.md": {
@@ -511,7 +511,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "0ba2ae762f00e27eccbaf1a0d73ef221f129192088ecb4c6c9cbc96481d8eafa",
+      "sha256": "9986a7a1749815a7b580041978cf41877221b8c46298f33f046cd419036382e7",
       "executable": false
     },
     "DEMO.md": {
@@ -7231,7 +7231,7 @@
       "executable": false
     },
     "tests/contact-schedules-browser.mjs": {
-      "sha256": "45e881e6d8e49316941d363f06e18e34f850a49da2ff28a1c445ac8093edff58",
+      "sha256": "139c8dc994e6f49ab629743bca1b28c647bed1984327e03113e74a68a35d0a45",
       "executable": false
     },
     "tests/contact-schedules.mjs": {
@@ -7427,7 +7427,7 @@
       "executable": false
     },
     "tests/incident-correlation-support.mjs": {
-      "sha256": "9f13eac15c43c588503509c30b6c3ad0e7736ac3e133332edb3ffad03ab99087",
+      "sha256": "168fa36cc8eb2d27b8cf425988787059967a30cd17717fcccd1eabf810a87062",
       "executable": false
     },
     "tests/incident-members-support.mjs": {

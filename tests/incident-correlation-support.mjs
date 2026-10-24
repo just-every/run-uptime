@@ -1,12 +1,8 @@
 import assert from 'node:assert/strict';
-import {mkdir} from 'node:fs/promises';
-import {join} from 'node:path';
-import {chromium} from 'playwright';
 import {main as incidentCommand} from '../scripts/incidents.mjs';
-import {finishSetup} from './auth-test-support.mjs';
 
 // Part of the existing incident-work public-door journey, not a new registration.
-export async function proveOwnIncidentCorrelation(f){
+export async function proveOwnIncidentCorrelation(f,inspect=async()=>{}){
  const ok=async(path,options={})=>{const r=await f.request(path,options);assert.ok(r.status>=200&&r.status<300,`${path}: ${r.status} ${JSON.stringify(r.data)}`);return r.data};
  const monitors=[];
  for(const [n,service] of [[1,'synthetic-uptime-shared'],[2,'synthetic-uptime-shared'],[3,'synthetic-uptime-unrelated']])monitors.push(await f.monitor({name:`synthetic-uptime-${n}`,service,runners:[f.first],canary:true,enabled:false}));
@@ -26,27 +22,7 @@ export async function proveOwnIncidentCorrelation(f){
  assert.deepEqual((await ok(path(2))).dependencies.group,[],'unrelated simultaneous failure never joins');
  const evidence=async()=> (await f.DB.prepare('SELECT * FROM observations ORDER BY id').all()).results;
  const before=await evidence();
- await finishSetup(f.origin,f.cookie);
- let browser;
- try{
-  browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});
-  const context=await browser.newContext();
-  const [name,...value]=f.cookie.split('=');await context.addCookies([{name,value:value.join('='),url:f.origin}]);
-  const page=await context.newPage();
-  await context.route('**/*',route=>new URL(route.request().url()).origin===f.origin?route.continue():route.abort());
-  for(const width of [1440,390]){
-   await page.setViewportSize({width,height:1000});await page.goto(f.origin+`/app/monitors/${monitors[0].id}`);await page.locator('html.signed-in').waitFor();
-   await page.getByRole('button',{name:'Notes and follow-up',exact:true}).click();
-   const dialog=page.locator('#incident-work-dialog');await dialog.locator('[data-correlation-group]').waitFor();
-   assert.match(await dialog.locator('[data-correlation-group]').textContent(),/synthetic-uptime-2/);await dialog.getByText(/^Notification · /).waitFor();
-   assert.ok(!(await dialog.locator('[data-correlation-group]').textContent()).includes('synthetic-uptime-3'));
-   await page.addScriptTag({path:new URL('../node_modules/axe-core/axe.min.js',import.meta.url).pathname});
-   assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>n.target)})),[]);
-   assert.ok(await dialog.evaluate(e=>e.scrollWidth<=e.clientWidth+1));assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
-   if(process.env.UPTIME_SCREENSHOTS){await mkdir(process.env.UPTIME_SCREENSHOTS,{recursive:true});await dialog.screenshot({path:join(process.env.UPTIME_SCREENSHOTS,`correlation-${width}.png`)})}
-   await dialog.getByRole('button',{name:'Close incident notes',exact:true}).click();await dialog.waitFor({state:'detached'});
-  }
- }finally{await browser?.close()}
+ await inspect({f,monitors,incidents});
  await ok(path(0)+'/actions',{body:{kind:'acknowledge',version:first.version}});
  second=await ok('/api/v1/incidents/'+encodeURIComponent(incidents[1].id));
  assert.equal(second.status,'acknowledged');assert.equal((await ok(path(2))).status,'open');
@@ -63,5 +39,5 @@ export async function proveOwnIncidentCorrelation(f){
  f.modes.target=200;task=await f.claim(f.first);assert.equal(task.monitorId,monitors[0].id);assert.equal((await f.submit(f.first,task,[await f.evidence(task)])).status,200);
  first=await ok(path(0));second=await ok(path(1));assert.equal(first.machineState,'recovered');assert.equal(second.machineState,'open','one recovery closes only its own child');
  await f.pause(monitors[0]);
- console.log('FOLLOWUP-001 own incident correlation PASS: shared service within confirmation window, unrelated/late isolation, grouped actor acknowledgment without evidence changes, one-child recovery; console axe/reflow at 1440/390.');
+ console.log('FOLLOWUP-001 own incident correlation PASS: shared service within confirmation window, unrelated/late isolation, grouped actor acknowledgment without evidence changes, one-child recovery; API/CLI next-due kind and time.');
 }
