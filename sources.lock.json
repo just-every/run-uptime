@@ -7426,6 +7426,10 @@
       "sha256": "13de4b5656778e3c44799fe93f35b3804b7a0d73a831bd48b8ec1cc58545a995",
       "executable": false
     },
+    "tests/incident-correlation-browser-support.mjs": {
+      "sha256": "cc1f8dfe18e2d76d10ae660cf0e05cf73693458c6d9f1ea6d76e1fa633efdbe4",
+      "executable": false
+    },
     "tests/incident-correlation-support.mjs": {
       "sha256": "168fa36cc8eb2d27b8cf425988787059967a30cd17717fcccd1eabf810a87062",
       "executable": false
