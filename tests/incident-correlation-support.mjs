@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
 import {join} from 'node:path';
 import {chromium} from 'playwright';
+import {main as incidentCommand} from '../scripts/incidents.mjs';
 import {finishSetup} from './auth-test-support.mjs';
 
 // Part of the existing incident-work public-door journey, not a new registration.
@@ -18,6 +19,7 @@ export async function proveOwnIncidentCorrelation(f){
  const incidents=await Promise.all(monitors.map(async m=>(await ok(`/api/monitors/${m.id}/incidents`))[0]));
  const path=i=>'/api/incidents/'+encodeURIComponent(incidents[i].id);
  let first=await ok(path(0)),second=await ok(path(1));
+ const commandRead=await incidentCommand(['read','--origin',f.origin,'--id',incidents[0].id],{UPTIME_ACCESS_COOKIE:f.cookie});assert.deepEqual(commandRead.dependencies.group,first.dependencies.group);assert.equal(commandRead.nextDue,first.nextDue);assert.equal(commandRead.nextDueKind,'notification','existing CLI exposes the same scheduled follow-up kind');
  assert.equal(first.nextDueKind,'notification');assert.equal(first.nextDue,first.trigger.observedAt+60000,'next-due time follows the exact route delay');
  assert.deepEqual(first.dependencies.group.map(g=>g.incidentId),[incidents[1].id],'own simultaneous outages group without any provider notice');
  assert.deepEqual(second.dependencies.group.map(g=>g.incidentId),[incidents[0].id]);
