@@ -11,7 +11,7 @@ export async function proveScheduledReports({worker,persist,origin,cookie,id,par
  const bindings={...testAuthBindings,MAIL_PROVIDER:'sendgrid',MAIL_FROM:'Uptime <synthetic-uptime-1@example.test>',SENDGRID_API_KEY:'test-only-report-mail'};
  const edge=async request=>{assert.equal(new URL(request.url).hostname,'api.sendgrid.com');const body=await request.json();submitted.push(body);return new Response(null,{status:500})};
  const restart=async()=>{await (resumed??worker).dispose();resumed=await startLocalWorker({persist,port:Number(new URL(origin).port),bindings,outboundService:edge});await resumed.ready};
- const call=async(path,method='GET',body,headers={})=>{const response=await fetch(origin+path,{method,headers:{cookie,origin,'content-type':'application/json',...headers},...(body?{body:JSON.stringify(body)}:{})});const data=await response.json();assert.ok(response.ok(),`${path}: ${response.status} ${JSON.stringify(data)}`);return data};
+ const call=async(path,method='GET',body,headers={})=>{const response=await fetch(origin+path,{method,headers:{cookie,origin,'content-type':'application/json',...headers},...(body?{body:JSON.stringify(body)}:{})});const data=await response.json();assert.ok(response.ok,`${path}: ${response.status} ${JSON.stringify(data)}`);return data};
  try{
   await restart();
   const email=await call('/api/notifications/destinations','POST',{name:'synthetic-uptime-report-email',kind:'email',address:'synthetic-uptime-1@example.test'});

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {mkdir,readFile,writeFile} from 'node:fs/promises';import {join,resolve} from 'node:path';
-import {chromium} from 'playwright';import {browserSignIn} from './auth-test-support.mjs';import {availablePorts,migratedWorker,runtimeDirectory,cleanupDirectory} from './notify-acceptance-runtime.mjs';
+import {chromium} from 'playwright';import {testAuthBindings,browserSignIn} from './auth-test-support.mjs';import {availablePorts,migratedWorker,runtimeDirectory,cleanupDirectory} from './notify-acceptance-runtime.mjs';
 const dir=await runtimeDirectory(),out=resolve(process.env.UPTIME_SCREENSHOTS??join(dir,'screens'));await mkdir(out,{recursive:true});let worker,browser;
 try{
  const [port]=await availablePorts(1),origin=`http://127.0.0.1:${port}`;({worker}=await migratedWorker({port,persist:join(dir,'worker')}));
@@ -22,6 +22,13 @@ try{
   const pdfResponse=page.waitForResponse(r=>r.url().includes('/report?')&&r.url().includes('format=pdf'));
   const download=page.waitForEvent('download',{timeout:30000}).catch(()=>null);await page.locator('#report-pdf').click();const response=await pdfResponse;assert.equal(response.status(),200,response.ok()?'':await response.text());const pdf=await download;assert.ok(pdf,'successful PDF response downloads');await pdf.saveAs(join(out,`report-${width}.pdf`));
   const text=await page.locator('#report-job-runs').textContent();assert.ok(!text.includes('planted-secret'));
+  const recipient=await page.request.post(origin+'/api/notifications/destinations',{headers:{origin},data:{name:`synthetic-uptime-report-${width}`,kind:'email',address:`synthetic-uptime-${width}@example.test`}});assert.equal(recipient.status(),201);const destination=await recipient.json();
+  const scheduled=await page.request.post(origin+`/api/monitors/${monitor.id}/report-schedules`,{headers:{origin},data:{destinationId:destination.id,dueAt:Date.now()+1000,period:{period:'24h',timeZone:'America/Chicago'}}});assert.equal(scheduled.status(),201);const run=await scheduled.json();
+  await page.waitForTimeout(1100);const polled=await page.request.post(origin+'/api/runner/notifications',{headers:{'x-runner-key':testAuthBindings.UPTIME_RUNNER_KEY},data:{operation:'poll'}});assert.equal(polled.status(),200);
+  await page.goto(origin+'/app/notifications');await page.locator('html.signed-in').waitFor();
+  const delivery=page.locator(`[data-key="delivery-${run.deliveryId}"]`);await delivery.waitFor();assert.match(await delivery.textContent(),/Scheduled report/);assert.equal(await delivery.locator('.delivery-state').textContent(),'Accepted');
+  await page.addScriptTag({path:resolve('node_modules/axe-core/axe.min.js')});assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.map(v=>v.id),[]);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await delivery.screenshot({path:join(out,`scheduled-report-outcome-${width}.png`)});
+
   console.log(`REPORT-001 browser ${width}: all ${total} receipt records paged, focus and snapshot retained, escaped/masked output, PDF/JSON downloaded, axe/reflow passed.`);
  }
 }finally{await browser?.close();await worker?.dispose();await cleanupDirectory(dir)}

@@ -2422,6 +2422,10 @@
       "sha256": "c20e33a418b172e9f42ce55922e491f0eb7e6a2e19d55f37909293252a9ab72d",
       "executable": false
     },
+    "migrations/0073_scheduled_reports.sql": {
+      "sha256": "1ecbd3132947bc4208c389e211913c0a689eb0ce94400a6e18cdc951136463f2",
+      "executable": false
+    },
     "OPERATIONS.json": {
       "sha256": "61ba56de0f6cefb040131c53bde043bc4aa6b4edf6bdba50bc682eee244e45c3",
       "executable": false
@@ -3596,6 +3600,10 @@
     },
     "scripts/playwright-import/values.mjs": {
       "sha256": "f678d5d4ea269adfd1a582ca3e7ec48f6dd75a3a6a53e54eb948928f541e0937",
+      "executable": false
+    },
+    "scripts/reports.mjs": {
+      "sha256": "67b82c8a33dd15667be515a65a866f42b733457cf8e5079f806f304b125736fc",
       "executable": false
     },
     "scripts/routing.mjs": {
@@ -6370,6 +6378,10 @@
       "sha256": "ea2616c9983879f8700b88e4c9e8cbc00cd9c2c6ea0c4072a6f54c2522ef812d",
       "executable": false
     },
+    "src/domain/reports/schedules.server.ts": {
+      "sha256": "2d31f97271b5adaf283380c510743ee83e18cd989e48825d31d37526bd11721a",
+      "executable": false
+    },
     "src/domain/reports/slow.server.ts": {
       "sha256": "2a613efd9bca560a77a9f7464d353773d13d9b5bb234c163d15b4c268c160110",
       "executable": false
@@ -7694,8 +7706,12 @@
       "sha256": "c2412c06ea533e2e4f3ca92eb6bb3dcb73938a8bcd7d4488a1ac5432d9758c39",
       "executable": false
     },
+    "tests/report-schedules-support.mjs": {
+      "sha256": "64e076b747a74410f03be42e9671681e89ec6d560ee8834725bffb30d7d37780",
+      "executable": false
+    },
     "tests/reporting-browser.mjs": {
-      "sha256": "fb44ca39218ef1deaea7e143cdf013056d63114318a9443d25a9126c75481636",
+      "sha256": "3e265c0cdca4364581655bd231258af7c84470de5a9dc56a5d817b4bba722119",
       "executable": false
     },
     "tests/reporting.mjs": {
