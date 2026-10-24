@@ -7719,11 +7719,11 @@
       "executable": false
     },
     "tests/report-schedules-support.mjs": {
-      "sha256": "1d99ede8b219abc2040ba45372332b2ce77b11fa5d9344d0fe2496ae27c673d8",
+      "sha256": "70bb698dfab413cf3b604c9c2bd7f89d89cdd75e4e34a6bebe54ba29ead380c8",
       "executable": false
     },
     "tests/reporting-browser.mjs": {
-      "sha256": "3e265c0cdca4364581655bd231258af7c84470de5a9dc56a5d817b4bba722119",
+      "sha256": "073ebee17fd5cdfeb5fa78896e6b360a54687e83cb414e2173ce62338c278652",
       "executable": false
     },
     "tests/reporting.mjs": {

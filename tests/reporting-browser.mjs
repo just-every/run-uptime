@@ -3,7 +3,7 @@ import {mkdir,readFile,writeFile} from 'node:fs/promises';import {join,resolve} 
 import {chromium} from 'playwright';import {testAuthBindings,browserSignIn} from './auth-test-support.mjs';import {availablePorts,migratedWorker,runtimeDirectory,cleanupDirectory} from './notify-acceptance-runtime.mjs';
 const dir=await runtimeDirectory(),out=resolve(process.env.UPTIME_SCREENSHOTS??join(dir,'screens'));await mkdir(out,{recursive:true});let worker,browser;
 try{
- const [port]=await availablePorts(1),origin=`http://127.0.0.1:${port}`;({worker}=await migratedWorker({port,persist:join(dir,'worker')}));
+ const [port]=await availablePorts(1),origin=`http://127.0.0.1:${port}`;({worker}=await migratedWorker({port,persist:join(dir,'worker'),bindings:{...testAuthBindings,MAIL_PROVIDER:'sendgrid',SENDGRID_API_KEY:'synthetic-uptime-1'},outboundService:async request=>{assert.equal(new URL(request.url).hostname,'api.sendgrid.com');const message=await request.json();const failed=message.subject.startsWith('Scheduled report:')&&message.personalizations.some(p=>p.to.some(to=>to.email.includes('-failed-')));return new Response(null,{status:failed?500:202})}}));
  browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});const context=await browser.newContext(),page=await context.newPage();await browserSignIn(page,origin);
  const created=await page.request.post(origin+'/api/monitors',{headers:{origin},data:{name:'Nightly backup — Montréal',type:'heartbeat',heartbeat:{maxAgeMs:5000,graceMs:0,maxRunDurationMs:30000,outputMasks:['company-private']},canaryUrl:'https://example.org/',intervalMs:60000,enabled:true}});assert.equal(created.status(),201);const monitor=await created.json();
  const issue=await page.request.post(origin+`/api/monitors/${monitor.id}/heartbeat-key`,{headers:{origin},data:{}});assert.equal(issue.status(),200);const {token}=await issue.json();let sequence=0;
@@ -28,6 +28,12 @@ try{
   await page.goto(origin+'/app/notifications');await page.locator('html.signed-in').waitFor();
   const delivery=page.locator(`[data-key="delivery-${run.deliveryId}"]`);await delivery.waitFor();assert.match(await delivery.textContent(),/Scheduled report/);assert.equal(await delivery.locator('.delivery-state').textContent(),'Accepted');
   await page.addScriptTag({path:resolve('node_modules/axe-core/axe.min.js')});assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.map(v=>v.id),[]);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await delivery.screenshot({path:join(out,`scheduled-report-outcome-${width}.png`)});
+  const failedRecipient=await post('/api/notifications/destinations',{name:`synthetic-uptime-report-failed-${width}`,kind:'email',address:`synthetic-uptime-failed-${width}@example.test`});
+  const failedRun=await post(`/api/monitors/${monitor.id}/report-schedules`,{destinationId:failedRecipient.id,dueAt:Date.now()+1000,period:{period:'24h',timeZone:'America/Chicago'}});
+  await page.waitForTimeout(1100);assert.equal((await page.request.post(origin+'/api/runner/notifications',{headers:{'x-runner-key':testAuthBindings.UPTIME_RUNNER_KEY},data:{operation:'poll'}})).status(),200);
+  await page.reload();await page.locator('html.signed-in').waitFor();const failedDelivery=page.locator(`[data-key="delivery-${failedRun.deliveryId}"]`);await failedDelivery.waitFor();assert.match(await failedDelivery.textContent(),/Scheduled report/);assert.equal(await failedDelivery.locator('.delivery-state').textContent(),'Uncertain');
+  await page.addScriptTag({path:resolve('node_modules/axe-core/axe.min.js')});assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.map(v=>v.id),[]);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await failedDelivery.screenshot({path:join(out,`scheduled-report-failed-${width}.png`)});
+
 
   console.log(`REPORT-001 browser ${width}: all ${total} receipt records paged, focus and snapshot retained, escaped/masked output, PDF/JSON downloaded, axe/reflow passed.`);
  }

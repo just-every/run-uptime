@@ -16,6 +16,12 @@ export async function proveScheduledReports({worker,persist,origin,cookie,id,par
   await restart();
   const email=await call('/api/notifications/destinations','POST',{name:'synthetic-uptime-report-email',kind:'email',address:'synthetic-uptime-1@example.test'});
   const destination=await call('/api/notifications/destinations','POST',{name:'synthetic-uptime-report-slack',kind:'slack',url:'https://hooks.slack.com/services/synthetic-uptime-1/synthetic-uptime-2/synthetic-uptime-3'});
+  const disabled=await call('/api/notifications/destinations','POST',{name:'synthetic-uptime-report-disabled',kind:'email',address:'synthetic-uptime-disabled@example.test',enabled:false});
+  const database=await resumed.getD1Database('DB'),queuedBefore=(await database.prepare('SELECT COUNT(*) n FROM notification_jobs').first()).n;
+  for(const destinationId of [disabled.id,'synthetic-uptime-unavailable']){
+   const refused=await fetch(origin+`/api/monitors/${id}/report-schedules`,{method:'POST',headers:{cookie,origin,'content-type':'application/json'},body:JSON.stringify({destinationId,dueAt:Date.now()+10000,period:Object.fromEntries(params)})});assert.equal(refused.status,400,'unavailable or disabled recipient cannot receive a report');
+  }
+  assert.equal((await database.prepare('SELECT COUNT(*) n FROM notification_jobs').first()).n,queuedBefore,'refused recipient schedules no delivery');assert.equal((await database.prepare('SELECT COUNT(*) n FROM scheduled_reports').first()).n,0);
   const dueAt=Date.now()+4000,input=join(persist,'report-schedule.json');await writeFile(input,JSON.stringify({dueAt,destinationId:email.id,period:Object.fromEntries(params)}));
   const scheduled=await reportsCommand(['schedule','--origin',origin,'--monitor',id,'--input',input],{UPTIME_REPORT_COOKIE:cookie});
   const slackReport=await call(`/api/monitors/${id}/report-schedules`,'POST',{dueAt,destinationId:destination.id,period:Object.fromEntries(params)});
