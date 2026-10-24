@@ -45,7 +45,7 @@ export async function proveDefinitionCI({directory,origin,cookie,DB,typed}){
  const authorizedResults=await before();assert.equal(authorizedResults.filter(row=>JSON.parse(row.definition).name.startsWith('synthetic-uptime-background-')).length,20,'first authorized batch persists');
  await owner('/api/credentials/'+suspended.credential.id,undefined,'DELETE');
  const revoked=await call(suspended,'/api/operator/import/apply',{planId:saved.planId,reviewedFingerprint:saved.fingerprint},'staging',{'x-import-source':source.namespace});assert.equal(revoked.status,401);assert.deepEqual(await before(),authorizedResults,'revoked next batch writes no monitor/revision and preserves the authorized batch');
- const batches=(await DB.prepare('SELECT actor_kind,actor_ref FROM definition_batches WHERE id=?').bind(saved.planId).all()).results;assert.ok(batches.every(row=>row.actor_kind==='operator'&&row.actor_ref));
+ const retainedJob=await DB.prepare('SELECT j.principal_id,j.state FROM ik_door_plans p JOIN ik_jobs j ON j.id=p.job_id WHERE p.id=?').bind(saved.planId).first();assert.ok(retainedJob,'partially applied job retains its initiating principal');assert.equal(retainedJob.principal_id,(await owner('/auth/session')).operator.id);assert.equal(retainedJob.state,progress.job.state);
  // A current monitor moved out by its owner is no longer writable by CI.
  const moved=added[0],definition=JSON.parse(moved.definition);await owner('/api/monitors/'+moved.id,{...definition,environment:'production'},'PATCH');
  assert.equal((await call(key,'/api/definitions/recognise',typed.text)).status,403);

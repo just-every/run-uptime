@@ -2078,6 +2078,10 @@
       "sha256": "4e0ea3b018a3331de0bad011c71a08d9776aca450cb24cb3cf4ea3d5325d827b",
       "executable": false
     },
+    "docs/scheduled-reports.md": {
+      "sha256": "52c035fc6656a9b75ee4b217be9849265b8690c00113c0da53a4451cb31a2c74",
+      "executable": false
+    },
     "docs/security.md": {
       "sha256": "dd81e407b412c818a162d74885c56bffab2e3af137a1d0bc58431487e1bb1162",
       "executable": false
@@ -7243,7 +7247,7 @@
       "executable": false
     },
     "tests/definitions-ci-support.mjs": {
-      "sha256": "424f0a7da4ede0118b410524992b83bcd53ef8a1d183893aceddf157b6acde6d",
+      "sha256": "a7819a03bf4691dadd7dc04848e9cf9f8c9bf9c1838920367e0a9a82e808d895",
       "executable": false
     },
     "tests/definitions-import.mjs": {
@@ -7715,7 +7719,7 @@
       "executable": false
     },
     "tests/report-schedules-support.mjs": {
-      "sha256": "64e076b747a74410f03be42e9671681e89ec6d560ee8834725bffb30d7d37780",
+      "sha256": "772a13b6f6895c8fa253dd03df84dff9d6a674dccca9958d064f927b03e9e42d",
       "executable": false
     },
     "tests/reporting-browser.mjs": {
