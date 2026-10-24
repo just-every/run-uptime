@@ -434,6 +434,14 @@
       "sha256": "1e692a1870aec452c972a1f5349287a5a188b86fd175b6623f5404f9e55cbe7c",
       "executable": false
     },
+    ".github/scripts/measure-notifications.mjs": {
+      "sha256": "4780d972cbb48e589ed8af2c67acdba0998b4e3e4cba2f25a8b2a803e2940e7b",
+      "executable": false
+    },
+    ".github/scripts/notification-measurement-browser.mjs": {
+      "sha256": "0bd74b6e5ac1f60bdf4cb6150ddc0f94be2d7aaa1054117257ddf0fb4f3aef0d",
+      "executable": false
+    },
     ".github/scripts/verify-ci.mjs": {
       "sha256": "6c6f97f399aa97aeff165606ea764f54ddc45ed8ffb3dd488cd3e6c6671f9264",
       "executable": false
@@ -444,6 +452,10 @@
     },
     ".github/workflows/import-playwright.yml": {
       "sha256": "6650f11e4a1d33f42a0a0bc8b7b51ae1f575391c9d070ac2230ad346fbd4ebc6",
+      "executable": false
+    },
+    ".github/workflows/nightly-measurements.yml": {
+      "sha256": "5a1f7d6a30a7fb71d542e125256d4fc1cf5f85a6f5e06522005b6e634db8913f",
       "executable": false
     },
     ".github/workflows/rer-managed.yml": {
