@@ -147,7 +147,7 @@ export async function completeDiscovery(env:Bindings,id:string,answer:{result:un
  const status='error' in answer?'failed':'done',text='result' in answer?JSON.stringify(result):null,error='error' in answer?answer.error:null;
  const update=env.DB.prepare(`UPDATE discovery_jobs SET status=?,finished_at=?,result=?,error=? WHERE id=? AND status='running' AND runner_id=? AND ${liveInitiator('discovery_jobs')}`).bind(status,now,text,error,id,row.runner_id);
  const stored=job.kind==='source'?(await env.DB.batch([update,env.DB.prepare(`INSERT INTO discovery_source_runs(id,source_id,started_at,finished_at,since,status,result,error)
-  SELECT j.id,json_extract(j.spec,'$.source'),j.created_at,?,json_extract(j.spec,'$.since'),?,?,? FROM discovery_jobs j WHERE j.id=? AND j.status=? AND j.finished_at=? AND j.runner_id=?
+  SELECT j.id,json_extract(j.spec,'$.source'),j.created_at,?,json_extract(j.spec,'$.since'),?,?,? FROM discovery_jobs j WHERE j.id=? AND j.status=? AND j.finished_at=? AND j.runner_id=? AND j.stop_reason IS NULL AND ${liveInitiator('j')}
   AND EXISTS(SELECT 1 FROM discovery_sources s WHERE s.id=json_extract(j.spec,'$.source') AND s.state='active')`).bind(now,status,text,error,id,status,now,row.runner_id)]))[0]:await update.run();
  if(!stored.meta.changes)throw refuse('This runner has no running discovery with that id',409);
  // A catalog source that fails its live check is marked needs review for this installation; one that passes clears the mark.

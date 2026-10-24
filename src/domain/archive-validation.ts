@@ -32,6 +32,7 @@ export async function validateArchive(input:any){
  for(const name of TABLES){if(!Array.isArray(t[name])||t[name].length>ARCHIVE_ROWS)throw Error(`Archive row bound exceeded: ${name} (${ARCHIVE_ROWS})`);for(const row of t[name]){if(p.schemaVersion===1&&name==='slots'&&!Object.hasOwn(row,'manual'))row.manual=row.id?.includes(':manual:')?1:0;if((p.extensionVersion??0)<6&&['notification_destinations','notification_jobs'].includes(name)&&!Object.hasOwn(row,'webhook_template'))row.webhook_template=null;shape(row,columns[name],name)}}
  const receiptTables=new Set([...TABLES,...Object.keys(installationLocalTables)]);
  const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
+ const scheduledIds=new Set(),scheduledDeliveries=new Set();for(const row of t.scheduled_reports){if(scheduledIds.has(row.id)||scheduledDeliveries.has(row.delivery_id))throw Error('Duplicate scheduled report');scheduledIds.add(row.id);scheduledDeliveries.add(row.delivery_id)}
  const receiptIds=new Set();
  for(const r of t.uptime_erasure_receipts){if(!uuid.test(r.id)||receiptIds.has(r.id)||!['monitor','destination','operator'].includes(r.entity_kind)||typeof r.counts!=='string')throw Error('Invalid archive erasure receipt');const counts=JSON.parse(r.counts);if(!object(counts)||Object.entries(counts).some(([name,n])=>!receiptTables.has(name)||!Number.isSafeInteger(n)||Number(n)<0))throw Error('Invalid archive erasure receipt counts');clock(r.completed_at,'receipt');receiptIds.add(r.id)}
  const auditIds=new Set();
