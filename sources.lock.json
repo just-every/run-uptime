@@ -435,7 +435,7 @@
       "executable": false
     },
     ".github/scripts/measure-notifications.mjs": {
-      "sha256": "bdfe4e8fac57f5d13d4bae43920a776eeec3d0c3702579db1effa80e478e9c0f",
+      "sha256": "673ebd3b129ea98bce496b826b342bbe4fd24969a2502392d2bdb7c0051b6f80",
       "executable": false
     },
     ".github/scripts/notification-measurement-browser.mjs": {
