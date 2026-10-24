@@ -16,4 +16,4 @@ Supply the live native owner session only through `UPTIME_REPORT_COOKIE`. The in
 
 A restart preserves the snapshot, due condition and single delivery identity. Failed and uncertain outcomes remain readable through this API and the existing Notifications console. Email and Slack uncertainty never causes an automatic duplicate; the existing proven-unaccepted mail-relay 429 rule still applies. Archive restore retains the snapshot and quarantines delivery; it cannot send an imported report. Monitor/destination erasure removes dependent snapshots; owner erasure anonymizes attribution.
 
-Recurring schedules, service-aggregated reports and incumbent-history source segments are not implemented. Schedule creation currently uses API/CLI; the report console control remains pending.
+Cancellation and initiating-member revocation of an already scheduled report remain pending under ACCESS-001. Recurring schedules, service-aggregated reports and incumbent-history source segments are not implemented. Schedule creation currently uses API/CLI; the report console control remains pending.
