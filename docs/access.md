@@ -93,3 +93,9 @@ reading their data; this records authorization, not later download receipt.
 Existing domain audit and conflict guards remain in place. Erasure retains its
 own owner/version transaction guard and domain receipt. Runner, heartbeat,
 recipient-drill and signed Run Edit Run capabilities remain separate.
+
+## Discovery job cancellation and revocation
+
+Explicit `POST /api/discoveries` jobs retain the initiating operator ID and authority revision. A live owner/admin can cancel queued or running work with `DELETE /api/discoveries/:id`. Reads include `initiatingOwnerId`, `stoppedAt` and `stopReason`; cancellation is a retained failed job, not deletion. A claiming runner cannot submit a result after cancellation or after the initiating member's identity/role authority is revoked. The next claim or result boundary records the stop. Outcomes completed while authorized remain unchanged. Initiator erasure stops active work before anonymizing its owner.
+
+Setup, catalog and source discovery creation still use their preceding installation-owned lifecycle. CI definition imports recheck token authority at each batch; revoked tokens cannot resume a later batch. Their general durable revoked-job stop presentation and member/job console controls remain open work.

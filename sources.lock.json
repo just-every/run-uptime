@@ -487,7 +487,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "5e7fc2c49f74865ba74010d7ca94f825c9c804cdfbdb6246bc05bdd8bec27512",
+      "sha256": "082a8841be20e215bc9d5ab2c8cab5805c635aababce2563a99327984292a904",
       "executable": false
     },
     "AGENTS.md": {
@@ -511,7 +511,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "990982f20a245e7cf12965450a71bf9c93ed2759e3a5ff898a7ef2d8ee91404a",
+      "sha256": "8767bef7d28e28bdd6626b3c2c34bb131e6a07866db469131e0046c96b0c3dd4",
       "executable": false
     },
     "DEMO.md": {
@@ -531,7 +531,7 @@
       "executable": false
     },
     "docs/access.md": {
-      "sha256": "855aee58cd3c677576d176bad588caf9573fa62949a0f90a049c975765c0c21c",
+      "sha256": "d618cf52ad1f8f9acab34a37fc06d7587fa6a3b7bdd214a3dbab0ab224c56f59",
       "executable": false
     },
     "docs/api-keys.md": {
@@ -2007,7 +2007,7 @@
       "executable": false
     },
     "docs/incident-api.md": {
-      "sha256": "e84bfda09eb396bdcae0f45ab616bb5a4f8daef0f6561cb13479a22ee3a3f658",
+      "sha256": "760353f71234fb968f9fe78a6ce6dce0dc2ef4f35cc1280e3e9df8c9e27260f7",
       "executable": false
     },
     "docs/install.md": {
@@ -5467,7 +5467,7 @@
       "executable": false
     },
     "src/domain/archive-fence.server.ts": {
-      "sha256": "e90ce948097c7db5c2d21bc51d7fb9e7219622dcd6a6b5d5e6305c6e242ac3fd",
+      "sha256": "456f00df64ecc3c438876d81a4c6a309affe51705d1ccd843a2dc6fdcfee77cc",
       "executable": false
     },
     "src/domain/archive-inserts.server.ts": {
@@ -7167,7 +7167,7 @@
       "executable": false
     },
     "tests/archive-roundtrip.mjs": {
-      "sha256": "8f8869c376d373a86eab8ca220f8b97d28b7d19d7bea79aac74cba515a721cf9",
+      "sha256": "5c32fd201b7007ede0365245859628e9ff349a81d3d58b7eaa663e6c650e5b41",
       "executable": false
     },
     "tests/auth-input-boundary.mjs": {
@@ -7295,7 +7295,7 @@
       "executable": false
     },
     "tests/erasure-audit.mjs": {
-      "sha256": "440972cfc464a76f480d522ddc3272de299976899d67295ddd463d1e305d2349",
+      "sha256": "a8647e8fb6700832dd75d2e0f018a339311732cf59fa03c7e95145e052f8ae44",
       "executable": false
     },
     "tests/erasure-races.mjs": {
@@ -7807,7 +7807,7 @@
       "executable": false
     },
     "tests/slow-responses.mjs": {
-      "sha256": "0ead76076a5d04dee5eadfbd8a1f52313c514e6ca4a866a6fe4a1244029f0a52",
+      "sha256": "587c6944e569794ae6f473b7955a7cfa8c24bb17d7246c1da02cc3911f95cdd4",
       "executable": false
     },
     "tests/startup-config.mjs": {

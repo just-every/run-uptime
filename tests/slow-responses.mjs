@@ -21,7 +21,9 @@ test('Slow has its own contacts and report spans; recovery, percentile location 
   const rpc=async(_path,body)=>ok('/api/runner/notifications',body,{runner:f.first}),received=[];
   const transport={async send(wire,beforeRequest){await beforeRequest();received.push({url:wire.url,event:JSON.parse(wire.body)});return {status:202,headers:{},body:''}}};
   const check=async()=>{const task=await f.claim(f.first);assert.ok(task);assert.equal((await f.submit(f.first,task,[await f.evidence(task)])).status,200);return task};
-  const next=async()=>{await new Promise(r=>setTimeout(r,5200));return check()};
+  // Wait for the persisted schedule, rather than adding a full interval after
+  // a slow request and dispatch: that can skip a slot and invalidate the window.
+  const next=async()=>{const monitor=(await ok('/api/overview')).monitors.find(row=>row.id===m.id);await new Promise(r=>setTimeout(r,Math.max(0,monitor.nextDue-Date.now()+10)));return check()};
   f.modes.target=200;f.modes.delayMs=3000;
   await check();await dispatchNotifications(rpc,transport);assert.ok(!received.some(r=>r.event.kind==='slow'));
   await next();await dispatchNotifications(rpc,transport);assert.ok(!received.some(r=>r.event.kind==='slow'));

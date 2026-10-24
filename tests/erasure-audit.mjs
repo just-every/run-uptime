@@ -39,6 +39,7 @@ try{
  const secondRunner=await ok('/api/runners','POST',{networkLabel:'erasure-second-network'});
  const runChecks=async()=>{await runRunner({origin,key:bindings.UPTIME_RUNNER_KEY,grantPath,localReview:true,transport,once:true});await runRunner({origin,key:secondRunner.key,runnerId:secondRunner.runnerId,grantPath,localReview:true,transport,once:true})};
  const monitor=await ok('/api/monitors','POST',{name:canaries.monitor,probes:['local-a','local-b'],url:`http://127.0.0.1:${targetPort}/health`,intervalMs:5000,retries:0,confirmSlots:1,recoverSlots:1,freshnessMs:15000});
+ const scheduledReport=await ok(`/api/monitors/${monitor.id}/report-schedules`,'POST',{destinationId:email.id,dueAt:Date.now()+3600000,period:{period:'24h',timeZone:'America/Chicago'}});
  const keep=await ok('/api/monitors','POST',{name:'Retained monitor',url:'https://example.com/health',enabled:false});
  await runChecks();
  const initialHistory=await ok(`/api/monitors/${monitor.id}/history`);assert.ok(initialHistory.some(slot=>slot.status==='complete'&&slot.manual===0&&slot.observations.some(o=>o.outcome==='pass')),'real scheduled observation: '+JSON.stringify(initialHistory.map(s=>({status:s.status,manual:s.manual,observations:s.observations.map(o=>({outcome:o.outcome,checks:o.checks.map(c=>({assertion:c.assertion,pass:c.pass}))}))}))));
@@ -86,6 +87,7 @@ try{
  const revoked=await api('/auth/session/revoke','POST',{sessionId:otherSessions[0].id},{origin});assert.equal(revoked.status,204);
  assert.ok((await DB.prepare("SELECT * FROM uptime_audit WHERE action='session_revoke'").all()).results.length);
  const auditBeforeRefused=await DB.prepare('SELECT COUNT(*) n FROM uptime_audit').first();
+ assert.equal((await DB.prepare('SELECT COUNT(*) n FROM scheduled_reports WHERE id=?').bind(scheduledReport.id).first()).n,1);
  const unsigned=await fetch(origin+`/api/monitors/${monitor.id}/erase`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({name:canaries.monitor})});assert.equal(unsigned.status,401);
  assert.equal((await api(`/api/monitors/${monitor.id}/erase`,'POST',{name:'wrong current name'})).status,400);
  assert.deepEqual(await DB.prepare('SELECT COUNT(*) n FROM uptime_audit').first(),auditBeforeRefused,'unauthorized and refused erasures create no audit');
@@ -121,6 +123,7 @@ try{
  assert.deepEqual(await DB.prepare('SELECT * FROM notification_destinations WHERE id=?').bind(retainedDestination.id).first(),destinationKeeper);
  assert.equal((await DB.prepare("SELECT COUNT(*) n FROM uptime_audit WHERE actor_ref=?").bind(other.id).first()).n,0);assert.ok((await DB.prepare("SELECT * FROM uptime_audit WHERE action='credential_rotate' AND actor_kind='anonymized'").all()).results.length);
  const ownerRow=(await ok('/auth/operators')).find(o=>o.role==='owner'&&o.status==='active');
+ assert.equal((await DB.prepare('SELECT COUNT(*) n FROM scheduled_reports WHERE id=?').bind(scheduledReport.id).first()).n,0,'monitor erasure removes the scheduled snapshot');
  const beforeLast=await DB.prepare('SELECT COUNT(*) n FROM uptime_audit').first();const last=await api(`/api/operators/${ownerRow.id}/erase`,'POST',{});assert.equal(last.status,400);assert.match(last.data.error,/rer reset --yes/);assert.deepEqual(await DB.prepare('SELECT COUNT(*) n FROM uptime_audit').first(),beforeLast);
  ({worker,DB}=await retentionCleanup({worker,DB,port,persist,bindings,owner,runChecks,origin,secondRunner}));env.DB=DB;
  const afterArchive=await ok('/api/archive');for(const canary of Object.values(canaries))assert.ok(!JSON.stringify(afterArchive).includes(canary));
