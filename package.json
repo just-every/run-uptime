@@ -56,6 +56,7 @@
     "verify:release": "node tests/archive-release.mjs",
     "spec:generate": "node scripts/delivery/publish-spec.mjs",
     "spec:check": "node scripts/delivery/publish-spec.mjs --check",
+    "source:check": "node scripts/edition-authoring/cli.mjs check",
     "test:catalog": "node tests/catalog.mjs && node tests/maintenance-windows.mjs && node --test tests/alert-routes.mjs && node --test tests/contact-schedules.mjs",
     "test:private": "node tests/private-network.mjs && node tests/private-network-browser.mjs",
     "test:reports": "node tests/reporting.mjs && node tests/reporting-browser.mjs",
