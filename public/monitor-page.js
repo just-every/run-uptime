@@ -57,7 +57,7 @@ function actionButtons(m){
 }
 function pageMarkup(page){
  const {m,data,readUnavailable,seen,ui}=page;
- page.folds=foldsFor(m,data,seen);
+ page.folds=foldsFor(m,data,seen,ui);
  return `<div class="monitor-page" id="monitor-page" data-monitor="${escape(m.id)}">${statusCard(m,{readUnavailable,data,seen})}${expiryPanel(m,data)}${pageSpeedPanel(m)}`
   +`<div class="monitor-columns"><div class="monitor-main">${rulesTable(m,{data,newest:seen.newest,earlier:seen.earlier,ui})}${recentChecks(m,seen.timeline)}</div>`
   +`<div class="monitor-side">${foldsCard(page.folds,id=>ui.probing||ui.mounted.has(id))}</div></div></div>`;
@@ -124,7 +124,13 @@ function bindPage(root){
   if(link&&link.hash===location.hash){page.ui.hash=linkTarget();followLink(page)}
   if(!event.target.closest('[data-action="erase-monitor"]'))return;
   const {m,api,action}=page;
-  confirmErasure({kind:'monitor',name:m.definition.name,onConfirm:name=>action(()=>api(`/api/monitors/${encodeURIComponent(m.id)}/erase`,'POST',{name}),{pending:'Erasing monitor…',success:`Erased ${m.definition.name}.`,onSuccess:()=>{sessionStorage.setItem('uptime-notice',`Erased ${m.definition.name}.`);location.assign('/app/monitors')}})});
+  // A refusal (a fresh second factor, say) is kept for Full check details to show under the button, as an editor's is, and
+  // brought into view there.
+  confirmErasure({kind:'monitor',name:m.definition.name,onConfirm:async name=>{
+   delete page.ui.errors.erase;
+   const result=await action(async()=>{try{return await api(`/api/monitors/${encodeURIComponent(m.id)}/erase`,'POST',{name})}catch(problem){page.ui.errors.erase=problem.message;throw problem}},{pending:'Erasing monitor…',success:`Erased ${m.definition.name}.`,onSuccess:()=>{sessionStorage.setItem('uptime-notice',`Erased ${m.definition.name}.`);location.assign('/app/monitors')}});
+   if(result.accepted&&!result.ok)document.getElementById('edit-error-erase')?.scrollIntoView({block:'nearest'});
+  }});
  });
 }
 // One read of the page's own: its newest answer wins; an older answer that lands late is dropped. ui.reading holds the reads

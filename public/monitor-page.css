@@ -129,14 +129,10 @@
 
 /* ---------------------------------------------------------------- up or down */
 /* A row per rule, a column per location; each cell is what that location saw on the newest complete scheduled check. */
-.rule-grid { width: 100%; border-collapse: collapse; font-size: 15px; }
-/* In two columns the table is laid out by its content, so its words break only when they cannot fit (break-word: under the
-   panel's anywhere a location column is squeezed below its longest word), and a rule being edited and its refusal wrap in
-   the rule cell instead. In one column the columns are fixed shares (below), where anywhere breaks only a word too long for
-   its share. */
-@container table-wrap (min-width: 720px) {
-  .rule-grid { overflow-wrap: break-word; }
-}
+/* Words break only when they cannot fit (break-word: under the panel's anywhere a location column is squeezed below its
+   longest word), so a location's column holds its longest word, and a rule being edited and its refusal wrap in the rule
+   cell instead. */
+.rule-grid { width: 100%; border-collapse: collapse; font-size: 15px; overflow-wrap: break-word; }
 .rule-grid :is(th, td) { padding: 12px 10px; border-top: 1px solid var(--line); text-align: left; vertical-align: middle; font-weight: 500; }
 .rule-grid :is(th, td):first-child { padding-left: 0; }
 .rule-grid thead th { padding-top: 0; border-top: 0; vertical-align: bottom; color: var(--ink); font-size: 14px; font-weight: 650; }
@@ -193,26 +189,46 @@ button.col-name:not(:disabled):hover { background: none; text-decoration-style: 
 @container table-wrap (max-width: 719px) {
   .rule-grid { font-size: 14.5px; }
   .grid-foot dt { flex-basis: 100%; min-width: 0; }
-  /* One or two locations: three columns, Rule at 44% and each location 28%; a rule's chip wraps under its name. */
-  .rule-grid, .rule-grid :is(thead, tbody) { display: block; }
-  .rule-grid tr { display: grid; grid-template-columns: minmax(0, 44fr) repeat(2, minmax(0, 28fr)); align-items: center; column-gap: 8px; border-top: 1px solid var(--line); }
-  .rule-grid[data-locations="1"] tr { grid-template-columns: minmax(0, 44fr) minmax(0, 28fr); }
-  .rule-grid[data-locations="0"] tr { grid-template-columns: minmax(0, 1fr); }
+  /* One or two locations: three columns, Rule at 44% and each location 28%; a rule's chip wraps under its name. The rows
+     share one grid (each a subgrid) and a location's column is never narrower than its longest word, so a long name
+     (Christchurch, Johannesburg) stays whole: its column widens and the Rule column gives way. */
+  .rule-grid { display: grid; grid-template-columns: minmax(0, 44fr) repeat(2, minmax(min-content, 28fr)); column-gap: 8px; }
+  .rule-grid[data-locations="1"] { grid-template-columns: minmax(0, 44fr) minmax(min-content, 28fr); }
+  .rule-grid[data-locations="0"] { grid-template-columns: minmax(0, 1fr); }
+  .rule-grid :is(thead, tbody, tr) { display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; }
+  .rule-grid tr { align-items: center; border-top: 1px solid var(--line); }
   .rule-grid thead tr { border-top: 0; }
   .rule-grid :is(th, td) { padding: 10px 0; border: 0; }
   .rule-grid tbody th[colspan] { grid-column: 1 / -1; }
+  /* A rule's cell never sizes the location columns: its words wrap in the Rule column, and a row that spans the card (a
+     protocol check's rows, a rule being edited) takes the card's width. */
+  .rule-grid tbody th { contain: inline-size; }
   .rule-grid .value-chip { margin: 4px 6px 0 0; }
   /* A rule being edited spans the card; what each location saw stays under its column. */
   .rule-grid tr:has(.rule-edit[open]) th { grid-column: 1 / -1; padding-bottom: 2px; }
   .rule-grid tr:has(.rule-edit[open]) td:first-of-type { grid-column: 2; }
-  /* Three locations do not fit three columns: each rule stacks over one line of what each location saw. */
-  .rule-grid[data-locations="3"] :is(tbody, tr, th, td) { display: block; }
-  .rule-grid[data-locations="3"] thead { display: none; }
+  /* Narrower than two long names need beside a rule (Johannesburg and Albuquerque take 184px of the 250px table at 320):
+     the two locations share the card under their heads, and every rule spans the card over what each location saw, as a
+     rule being edited does. */
+  @container main-column (max-width: 349px) {
+    .rule-grid[data-locations="2"] { grid-template-columns: repeat(2, minmax(min-content, 1fr)); }
+    .rule-grid[data-locations="2"] thead th:first-child { display: none; }
+    .rule-grid[data-locations="2"] tbody th { grid-column: 1 / -1; padding-bottom: 2px; }
+    .rule-grid[data-locations="2"] tr:has(.rule-edit[open]) td:first-of-type { grid-column: auto; }
+  }
+  /* Three locations do not fit three columns: each rule stacks over one line of what each location saw, each cell naming
+     its location, and the column heads hide. A protocol check has no cell per location (its results are its column heads),
+     so there the heads stay, as one wrapping line of each location's result under the title. */
+  .rule-grid[data-locations="3"], .rule-grid[data-locations="3"] :is(thead, tbody, tr, th, td) { display: block; }
+  .rule-grid[data-locations="3"]:has(td) thead { display: none; }
   .rule-grid[data-locations="3"] tr { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 12px 0; border-top: 1px solid var(--line); }
-  .rule-grid[data-locations="3"] tbody tr:first-child { padding-top: 0; border-top: 0; }
+  .rule-grid[data-locations="3"] thead tr, .rule-grid[data-locations="3"]:has(td) tbody tr:first-child { padding-top: 0; border-top: 0; }
   .rule-grid[data-locations="3"] tbody th { flex-basis: 100%; padding: 0; }
   .rule-grid[data-locations="3"] td { display: inline-flex; align-items: center; gap: 6px; padding: 0; }
   .rule-grid[data-locations="3"] .cell-where { display: inline; color: var(--muted); font-weight: 500; }
+  .rule-grid[data-locations="3"] thead th { display: inline-flex; flex-wrap: wrap; align-items: center; column-gap: 6px; padding: 0; }
+  .rule-grid[data-locations="3"] thead th:first-child { display: none; }
+  .rule-grid[data-locations="3"] thead .col-age::before { content: "· " / ""; }
 }
 /* In two columns, three location columns beside a rule being edited need about 430px of table (each column holds its
    longest word: 82px for a marked Found, 107px for Christchurch; the editor 150px), so under a 540px main column

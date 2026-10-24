@@ -32,14 +32,15 @@ function coverageWindows(m,{since,now}){
 }
 const reportsCoverage=(m,seen,data)=>`<div class="report-coverage"><div class="coverage-windows">${coverageWindows(m,{since:seen.start,now:data.now})}</div><div class="coverage-foot">${coverageLegend}${moreInfo('Uptime counts only observed time.',escape(COVERAGE_RULE)+' Passing is the share of observed time when every configured check passed. Percentages are rounded to two decimals, passing down and failing and Unknown up, and never to 0% or 100% unless exact. Manual runs and retries do not add observed time.','coverage-note','About coverage')}</div></div>`;
 // Full check details: the engine's own reason and the saved check as JSON; a private network grant and a certificate trust
-// exception say what they mean here (the header shows each as a chip). A monitor edited in a file erases from here.
-function details(m){
+// exception say what they mean here (the header shows each as a chip). A monitor edited in a file erases from here, and a
+// refused erase says why under its button (the console's notice is at the top of the page, out of view down here).
+function details(m,ui){
  const d=m.definition,trust=d.tlsTrust?.mode==='fingerprint'?'a pinned leaf fingerprint':d.tlsTrust?.mode==='ca'?'an owner-supplied CA':'certificate errors ignored';
  const json=JSON.stringify(d.type==='mail'?d.mail:d.type==='api'?d.api:isProtocol(d)?{[d.type]:d[d.type],assertions:d.assertions}:d.assertions,null,2);
  return (d.network==='private'?`<p class="details-note">Private network: runner-local grant <code>${escape(d.privateGrantRef)}</code>. Each connection requires its current host, address and port permission.</p>`:'')
   +(d.tlsTrust?`<p class="details-note">Certificate trust exception: ${trust}, for the initial HTTPS origin only; a private runner applies it. TLS certificate monitors still show full certificate results.</p>`:'')
   +`<p class="engine-status">${escape(m.state.reason)}</p><pre>${escape(json)}</pre>`
-  +(isFlow(d)||d.type==='heartbeat'?'<p class="details-erase"><button type="button" class="ui-link danger" id="erase-monitor" data-action="erase-monitor">Erase monitor…</button></p>':'');
+  +(isFlow(d)||d.type==='heartbeat'?`<p class="details-erase"><button type="button" class="ui-link danger" id="erase-monitor" data-action="erase-monitor">Erase monitor…</button></p><p class="edit-error" role="alert" id="edit-error-erase">${escape(ui.errors.erase??'')}</p>`:'');
 }
 // "Today", "Yesterday" or "Mon 20 Oct".
 function day(t,now){
@@ -61,7 +62,7 @@ const summaries={
  heartbeat:({receipt})=>receipt===false?'No receipt yet':'',
 };
 // The folds this monitor has, in order: its type's own first, then the ones every monitor has.
-export function foldsFor(m,data,seen){
+export function foldsFor(m,data,seen,ui){
  const d=m.definition,list=[];
  if(d.type==='heartbeat')list.push({id:'heartbeat',title:'Heartbeat',body:()=>receipts(m,data)+heartbeatJobsPanel(m),mount:(area,o)=>{bindHeartbeatKey(area,m,o);bindHeartbeatJobs(area,m,o)}});
  if(isFlow(d))list.push({id:'flow',title:'Browser flow',same:true,body:()=>flowPanel(m,data),mount:(area,o)=>bindFlowProfile(area,m,o)});
@@ -73,7 +74,7 @@ export function foldsFor(m,data,seen){
  if(['http','keyword','flow'].includes(d.type))list.push({id:'snapshots',title:'Failure snapshots',same:true,body:()=>snapshotPanel(m),mount:(area,{api})=>mountSnapshots(area,m,api,data.runner.runners)});
  if(d.type!=='heartbeat')list.push({id:'slow',title:'Slow-response notices',same:true,body:()=>slowPolicyPanel(m),mount:(area,o)=>bindSlowPolicyPanel(area,m,o)});
  list.push({id:'maintenance',title:'Planned maintenance',same:true,body:()=>maintenancePanel(m),mount:(area,o)=>bindMaintenancePanel(area,m,o)});
- list.push({id:'details',title:'Full check details',always:true,body:()=>details(m)});
+ list.push({id:'details',title:'Full check details',always:true,body:()=>details(m,ui)});
  return list.map(fold=>({...fold,summary:summaries[fold.id]?.(seen,data.now,m)??''}));
 }
 export const FOLD_IDS=['heartbeat','flow','followed','cleanup','alerts','incidents','reports','snapshots','slow','maintenance','details'];

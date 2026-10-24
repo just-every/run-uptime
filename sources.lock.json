@@ -2699,7 +2699,7 @@
       "executable": false
     },
     "public/monitor-folds.js": {
-      "sha256": "443ea87e0bf9e25169b3bf8ceeb1886486032d5dea1a1e1d0e915d8f7dc0159c",
+      "sha256": "13dd565cbb125ceecf0918a059cc2770beaab78234a991659e2755ba154223e6",
       "executable": false
     },
     "public/monitor-incidents.js": {
@@ -2711,11 +2711,11 @@
       "executable": false
     },
     "public/monitor-page.css": {
-      "sha256": "b53a768ffd2903cfbc6305e51c846f3571a032941c906d36ece97a92a6f0c99c",
+      "sha256": "2309e1a7802e6f35a8488f0993c43d9f2289f402b7933a8ca2af93d83aea7603",
       "executable": false
     },
     "public/monitor-page.js": {
-      "sha256": "944be21e70f1938ec8e4320c1ffcaacbf3ca47e190f346b6f565e6fb39cd4a0e",
+      "sha256": "02a03acfc89e240c4a8c3d90afa145787741e1cae1ef0061c68b104ba13ad6ba",
       "executable": false
     },
     "public/monitor-recent-checks.js": {
