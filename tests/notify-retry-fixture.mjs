@@ -104,11 +104,11 @@ export async function proveNotificationRetry(inspect,inspectQuiet=undefined,insp
   assert.ok(delayed.attemptHistory[0].started_at>=held.event.observedAt+60000);
   await proveQuietFallback({ok,rpc,edge,mail,confirm,restart,destinations:{slack,email,hook},inspect:inspectQuiet?state=>inspectQuiet({origin:f.origin,bindings:f.bindings,...state}):undefined});
   if(typeof inspect==='function')await inspect({origin:f.origin,bindings:f.bindings,acceptedId:delivery.id,failedId:row.id,...chain});
-  const echo=await proveEchoCustody({f,ok,rpc,inspectEcho,database:await (restarted??f.worker).getD1Database('DB')});
-  // Body-free custody: attempts, console and archive carry neither a signing credential nor the signed request body.
   // Real delay/quiet-hour journeys can outlive the five-minute owner proof.
   // Obtain fresh proof through the same public factor door before step-up work.
   await completeSecondFactor(f.origin,f.cookie);
+  const echo=await proveEchoCustody({f,ok,rpc,inspectEcho,database:await (restarted??f.worker).getD1Database('DB')});
+  // Body-free custody: attempts, console and archive carry neither a signing credential nor the signed request body.
   const archive=await ok('/api/archive'),stored=archive.payload.productTables.notification_delivery_attempts,overview=await ok('/api/notifications');
   const bodies=[...new Set([...receipts.map(r=>r.body),...echo.bodies])];secrets.push(...echo.secrets);
   for(const value of [archive,overview,stored,overview.deliveries.flatMap(d=>d.attemptHistory)]){const found=strings(value);for(const forbidden of [...secrets,...bodies])assert.ok(!found.some(text=>text.includes(forbidden)),'no signing credential or webhook body')}
