@@ -12,7 +12,7 @@ function hereDoc(path, value) {
 
 function shellWrapper(baseUrl, command, client = 'curl') {
   const request = client === 'wget'
-    ? 'wget --quiet --timeout=10 --tries=1 --output-document=/dev/null -- "$heartbeat_url$1"'
+    ? 'wget --quiet --timeout=10 --tries=1 --output-document=/dev/null --post-data="" -- "$heartbeat_url$1"'
     : 'curl --fail --silent --show-error --max-time 10 --output /dev/null -- "$heartbeat_url$1"';
   return `#!/bin/sh
 # Executable sample: true. Replace it in run_job with your real command.

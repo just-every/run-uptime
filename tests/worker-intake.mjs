@@ -224,8 +224,16 @@ try{
     assert.equal(history.data[0].observations[0].checks[0].reason,observation.checks[0].reason);
     assert.equal(history.data[0].observations[0].outcome,'pass');
   });
-  await check('export counts UTF8 bytes before returning a multibyte archive',async()=>{
+  await check('export bounds UTF8 bytes while auditing every owner attempt',async()=>{
+    const actor=await api('/auth/session');assert.equal(actor.status,200);const started=Date.now();
     const before=await api('/api/archive');assert.equal(before.status,200,JSON.stringify(before.data));
+    const baselineAudit=before.data.payload.productTables.uptime_audit;
+    const exportReceipts=(rows,count)=>{
+      assert.deepEqual(rows.slice(0,baselineAudit.length),baselineAudit,'existing audit history is immutable');
+      const added=rows.slice(baselineAudit.length);assert.equal(added.length,count,'each authorized export attempt adds exactly one receipt');
+      assert.equal(new Set(added.map(row=>row.id)).size,count);
+      for(const row of added){assert.ok(typeof row.id==='string'&&row.id);assert.ok(row.occurred_at>=started&&row.occurred_at<=Date.now());assert.deepEqual(row,{id:row.id,actor_kind:'operator',actor_ref:actor.data.operator.id,occurred_at:row.occurred_at,action:'access_export',subject_kind:'operator',subject_ref:row.id})}
+    };
     const {state}=await DB.prepare('SELECT state FROM monitors WHERE id=?').bind(monitor.id).first();
     const oversizedState=JSON.stringify({...JSON.parse(state),reason:padding});
     const oversizedArchive=structuredClone(before.data);
@@ -237,13 +245,15 @@ try{
     try{
       const result=await api('/api/archive');assert.equal(result.status,400);
       assert.match(result.data.error,/Archive exceeds 2 MiB/);
+      exportReceipts((await DB.prepare('SELECT * FROM uptime_audit ORDER BY rowid').all()).results,1);
       assert.equal((await DB.prepare('SELECT state FROM monitors WHERE id=?').bind(monitor.id).first()).state,oversizedState,'export refusal preserves the stored evidence');
     }finally{
       await DB.prepare('UPDATE monitors SET state=? WHERE id=?').bind(state,monitor.id).run();
     }
     const after=await api('/api/archive');assert.equal(after.status,200,JSON.stringify(after.data));
     assert.deepEqual(after.data.payload.tables,before.data.payload.tables);
-    assert.deepEqual(after.data.payload.productTables,before.data.payload.productTables);
+    exportReceipts(after.data.payload.productTables.uptime_audit,2);
+    assert.deepEqual(after.data.payload.productTables,{...before.data.payload.productTables,uptime_audit:after.data.payload.productTables.uptime_audit},'all other product rows remain byte-identical');
     assert.deepEqual(after.data.payload.erasureFence,before.data.payload.erasureFence);
   });
   console.log(`INTAKE-001 passed: ${passed} UTF8 byte, chunked HTTP, post413 lifecycle, actualD1 and signed real-probe checks on the recommended emitted Worker path.`);

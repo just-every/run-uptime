@@ -2,7 +2,7 @@ Uptime is built to fail closed: if something is not configured or not authorized
 
 ## Who can reach what
 
-The console and private product APIs are owner-only; runner and heartbeat APIs use separate scoped credentials. Each private page, read, change and export is checked on the server on every request. Authentication routes and public information are listed separately in `seed.json`; a public route declaration never grants private product access. Hiding a button in the browser is never the protection.
+Private product documents, reads, mutations and exports require the live edition permission derived from Base identity and narrowed scopes. Owner/admin ceilings and explicit editor, responder and read-only member assignments follow the product role assignment; sensitive services still require the owner, and scoped workspace doors refuse rather than return unfiltered data. Evidence retains its explicit monitor grants. Runner and heartbeat APIs use separate scoped credentials. Every private operation checks server-side authority on each request and repeats it in later mutation batches. Authentication routes and public information are listed separately in `seed.json`; a public route declaration never grants private product access. Hiding a button in the browser is never the protection.
 
 - Required configuration is checked before the Worker handles a request or scheduled run. Setup checks generated or saved settings before opening its temporary runtime; the local app, preview, deployment and runner check their configuration before serving or starting operational work. Missing or malformed configuration stops that entry point and names the variable; the Worker returns 503, including at `/health`, without returning a configured value.
 - Running on a loopback address is not authentication.
@@ -49,3 +49,13 @@ If you find a security problem or anything that looks wrong, open an issue on Gi
 ## Related
 
 [What Uptime does not do](/docs/limits) lists what the security claims here do not cover.
+
+## Product roles and scopes
+
+Base authenticates every request and owns invitation acceptance, operator identity, role/status changes and session revocation. Edition assignments narrow active Base members to editor, responder or read-only permissions. Owners and admins keep their Base ceiling. Unknown or stale assignments refuse access; request-supplied role claims grant nothing. Changing the Base identity or edition assignment blocks the next operation, while already-authorized results remain historical output.
+
+Service scopes match a monitor's service and team scopes match its group label. Alternatives within a scope kind form a union; different kinds intersect. No scope rows means workspace authority. Scoped reads and permitted mutations operate on those monitors only; workspace documents, lists, exports and other unfiltered workspace services refuse. Transaction fences repeat live identity, role, scope and revision checks before writes. Authorized mutations and exports record an opaque actor without secret values.
+
+ACCESS-001 remains partial. Member controls are available through the API and CLI; the members console, general read/CI credentials, responder incident collaboration and long-job token revocation remain gaps. Sensitive services named in the permission table remain owner-only. The interim admin-summary exception has been replaced by this role lifecycle without changing Base authentication.
+
+Background accountability is also incomplete. Contact reminders retain due/repeat/stop state and an incident owner, but incidents may be unassigned. Retries and fallback chains retain due times and terminal outcomes, but lack a responsible assignee and individual stop/resolution. Discovery retains source authorization and visible outcomes; website Cancel only stops polling, not server work, and individual runs do not retain their initiating owner. Cleanup debt is visible and manually resolvable but has no assignee or remediation due date. Authentication-mail and monitoring-watch attempts retain durable outcomes without a console job view or per-attempt control. Archive export/restore are synchronous operations, not durable jobs; exports record their authorized actor but lack durable completion history. Definitions apply/undo retain approval identity, failure and undo history, but do not expose reloadable checkpoint progress and a general stop control.

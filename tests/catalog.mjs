@@ -70,7 +70,7 @@ test('MONITOR-001 catalog adds, metadata, lifecycle and undo keep reviewed revis
   const selected=added.created[0],first=afterApply.runners.find(r=>r.legacy_key);
   const task=await ok('/api/runner/claim',{}, {headers:{'x-runner-key':testAuthBindings.UPTIME_RUNNER_KEY,'x-runner-id':first.runner_id}});
   assert.ok(task.task,'an enabled batch has its first scheduled slot ready');
-  const history=await DB.prepare('SELECT * FROM slots ORDER BY rowid').all();assert.ok(history.results.length);
+  let history=await DB.prepare('SELECT * FROM slots ORDER BY rowid').all();assert.ok(history.results.length);
   const edited=await bulk({monitorIds:[selected],action:'edit',changes:{project:'Storefront',tags:['release'],outcome:'Shoppers can pay'}});
   const editRevision=(await monitor(selected)).revision;assert.ok(editRevision>1);assert.equal((await monitor(selected)).definition.enabled,true);
   await undo(edited.batchId);assert.deepEqual((await monitor(selected)).definition.tags,['catalog']);
@@ -84,7 +84,13 @@ test('MONITOR-001 catalog adds, metadata, lifecycle and undo keep reviewed revis
   const cloned=await bulk({monitorIds:[selected],action:'clone',changes:{environment:'production'},enableAfterCreate:true});
   assert.equal(cloned.created.length,1);assert.deepEqual((await monitor(cloned.created[0])).definition.maintenanceWindows,[],'a clone needs its own explicitly planned maintenance');assert.deepEqual(await monitor(selected),sourceBefore);
   assert.deepEqual((await DB.prepare('SELECT * FROM revisions WHERE monitor_id=? ORDER BY revision').bind(selected).all()).results,sourceRevisions.results);
+  let cloneTask;
+  for(let remaining=100;remaining>0;remaining--){const next=await ok('/api/runner/claim',{}, {headers:{'x-runner-key':testAuthBindings.UPTIME_RUNNER_KEY,'x-runner-id':first.runner_id}});if(next.task?.monitorId===cloned.created[0]){cloneTask=next.task;break}if(!next.task)break}
+  assert.ok(cloneTask,'the clone has its own scheduled slot before undo');
+  const cloneHistory=await ok(`/api/monitors/${cloned.created[0]}/history`);assert.ok(cloneHistory.some(slot=>slot.id===cloneTask.id));
+  history=await DB.prepare('SELECT * FROM slots ORDER BY rowid').all();
   await undo(cloned.batchId);assert.equal((await monitor(cloned.created[0])).definition.enabled,false);
+  assert.deepEqual(await ok(`/api/monitors/${cloned.created[0]}/history`),cloneHistory,'undo retains the clone and every scheduled history record');
   await undo(added.batchId);
   for(const id of added.created.filter(id=>id!==selected))assert.equal((await monitor(id)).definition.enabled,false);
   assert.deepEqual((await DB.prepare('SELECT * FROM slots ORDER BY rowid').all()).results,history.results,'pause, clone and undo retain scheduled evidence');

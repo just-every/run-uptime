@@ -1,4 +1,5 @@
 import {parseConfig} from '../base/modules/editor/config.ts'
+import {permission,accessResponse} from './access.server.ts'
 import {operatorSession, type AuthBindings} from './operator-auth.server.ts'
 
 function editorConfig(env:AuthBindings) {
@@ -8,13 +9,14 @@ function editorConfig(env:AuthBindings) {
 export async function editorConfigResponse(env:AuthBindings, request:Request) {
  const headers={'cache-control':'no-store, private',vary:'Cookie'}
  try {
+  await permission(env,request)
   const session=await operatorSession(env,request)
   if(!session)return Response.json({error:'Owner authorization required'},{status:403,headers})
   if(request.method!=='GET')return Response.json({error:'GET required'},{status:405,headers:{...headers,allow:'GET'}})
   const config=editorConfig(env)
   if(!config)return new Response(null,{status:204,headers})
   return Response.json({config,expiresAt:Math.min(session.expiresAt,Date.now()+30_000)},{headers})
- } catch {return Response.json({error:'Editor authorization unavailable'},{status:503,headers})}
+ } catch(error) {if(accessResponse(error))return Response.json({error:'Owner authorization required'},{status:403,headers});return Response.json({error:'Editor authorization unavailable'},{status:503,headers})}
 }
 /** Restrict both embedding directions to the exact trusted management origin. */
 export function editorDocument(response:Response, env:AuthBindings) {

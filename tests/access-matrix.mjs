@@ -7,6 +7,7 @@ import {migratedWorker,runtimeDirectory,cleanupDirectory,availablePorts} from '.
 import {testAuthBindings,authRequest,sessionCookie,emailSignIn,finishSetup} from './auth-test-support.mjs';
 import {hostedRuntime} from './hosted-auth-runtime.mjs';
 import {splitSql} from './migration-support.mjs';
+import {proveMemberLifecycle} from './access-admin-support.mjs';
 import {apiRoutes} from '../src/domain/request-boundary.ts';
 const directory=await runtimeDirectory(),[port]=await availablePorts(1);
 let worker;
@@ -111,6 +112,7 @@ try{
    for(const [path,body] of [['/auth/operator/role',{operatorId:'member',role:'owner'}],['/auth/operator/status',{operatorId:ownerId,status:'inactive'}],['/auth/invite',{email:'friend@example.test',displayName:'Friend',role:'owner'}],['/auth/invite/cancel',{operatorId:ownerId}]])assert.equal((await call(path,body,{cookie:memberCookie})).status,403,`member ${path}`);
    assert.equal((await call('/setup',{}, {cookie:memberCookie})).status,403,'member first-run setup');
    assert.deepEqual(await everything(DB),memberBefore,'a member changes nothing durable');
+   await proveMemberLifecycle({origin,call,fetcher,DB,cookie:valid,memberCookie,hosted,mails});
    // Identity, role and ownership claims a client sends are never authority: an owner's request carrying forged claims in its
    // headers and body is recorded under the session's own operator, and no claim is stored anywhere.
    const marker='forged-claim-0001',claims={'x-operator-id':marker,'x-user-id':marker,'x-forwarded-user':marker,'x-forwarded-email':`${marker}@example.test`,'cf-access-authenticated-user-email':`${marker}@example.test`,'x-runner-id':marker};

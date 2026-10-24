@@ -38,7 +38,7 @@ function latest(m,state,runners){
   const name=locationNamer(d,runners),where=[...new Set((m.state.regions??[]).filter(region=>region.state==='Failing').map(region=>name(region.probe)))];
   if(where.length)return `<span class="monitor-note failing">failing from ${escape(joinNames(where))}</span>`;
  }
- if(state==='Maintenance'&&d.maintenanceUntil>Date.now())return `<span class="monitor-note maintenance">until ${escape(clock(d.maintenanceUntil))}</span>`;
+ if(state==='Maintenance'&&m.maintenanceEndsAt>Date.now())return `<span class="monitor-note maintenance">until ${escape(clock(m.maintenanceEndsAt))}</span>`;
  if(state==='Paused')return '';
  return `<span class="monitor-checked">${Number.isSafeInteger(t)&&t>=0&&t<=Date.now()?`checked ${escape(ago(t))}`:'no check yet'}</span>`;
 }

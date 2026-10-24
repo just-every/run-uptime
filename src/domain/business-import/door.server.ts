@@ -1,3 +1,5 @@
+import {permission,accessResponse} from '../access.server.ts'
+import {authorizedDatabase} from '../access-database.server.ts'
 import type {Bindings} from '../control.server.ts'
 import {createImportDoorHandler} from '../../base/modules/import-kit/src/door/index.ts'
 import {createImportOperatorHandler} from '../../base/modules/import-kit/src/door/operator.ts'
@@ -85,6 +87,7 @@ export async function businessImportDoor(env:Bindings,request:Request){
 /** The owner's own imports at /api/operator/import/*: the same pipeline under the
  * owner's session and exact Origin, with the source named on every call. */
 export async function ownerImportDoor(env:Bindings,request:Request){
+ try{const access=await permission(env,request,undefined,{action:'import',workspace:true});env={...env,DB:authorizedDatabase(env,access)}}catch(error){const denied=accessResponse(error);if(denied)return finishRequest(request,denied);throw error}
  // Nothing is read for a caller without an owner session; the door rechecks it inside every batch.
  if(!await ownerSessionPredicate(env,request))return finishRequest(request,Response.json({error:'owner_required'},{status:401,headers}))
  // The console's own request policy: no cross-site request, whatever Origin it claims.

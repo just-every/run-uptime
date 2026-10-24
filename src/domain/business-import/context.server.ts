@@ -1,5 +1,5 @@
 import type {Bindings} from '../control.server.ts'
-import {operatorSession} from '../operator-auth.server.ts'
+import {permission,accessResponse,accessFence} from '../access.server.ts'
 import {configureClaim} from '../../base/modules/owner-claim/verify.mjs'
 import type {D1Sql,D1ImportContext} from '../../base/modules/import-kit/src/d1/types.ts'
 import {businessTargets} from './targets.server.ts'
@@ -21,11 +21,7 @@ export async function businessOwner(env:Bindings){
 }
 /** The current owner session as a same-database predicate, or null for anyone else. */
 export async function ownerSessionPredicate(env:Bindings,request:Request):Promise<D1Sql|null>{
- const principal=await operatorSession(env,request)
- if(!principal||principal.operator.role!=='owner')return null
- return {sql:`EXISTS(SELECT 1 FROM oa_sessions s JOIN oa_operators o ON o.id=s.operator_id
-  WHERE s.id=? AND s.operator_id=? AND s.operator_version=o.version AND o.role='owner' AND o.status='active'
-  AND s.revoked_at IS NULL AND s.expires_at>unixepoch()*1000)`,params:[principal.id,principal.operator.id]}
+ try{const access=await permission(env,request,undefined,{action:'import',workspace:true});return accessFence(access)}catch(error){if(accessResponse(error))return null;throw error}
 }
 // A native browser session remains live throughout each owner mutation batch.
 export async function businessOwnerAuthority(env:Bindings,request:Request):Promise<D1Sql>{

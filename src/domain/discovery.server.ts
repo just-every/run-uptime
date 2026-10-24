@@ -96,6 +96,8 @@ export async function ensureDiscovery(env:Bindings,address:string){
 }
 export async function readDiscovery(env:Bindings,id:string){
  if(!idShape.test(id))throw refuse('Discovery not found',404);
+ // A missing resource must not run expiry writes or create an actor receipt.
+ if(!await env.DB.prepare('SELECT 1 FROM discovery_jobs WHERE id=?').bind(id).first())throw refuse('Discovery not found',404);
  await expire(env,Date.now());
  const row=await env.DB.prepare('SELECT id,url,status,network_label,result,error,kind,spec FROM discovery_jobs WHERE id=?').bind(id).first<any>();
  if(!row)throw refuse('Discovery not found',404);

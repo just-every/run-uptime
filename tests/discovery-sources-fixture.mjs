@@ -28,7 +28,7 @@ function readName(buffer,offset){const labels=[];for(;;){const length=buffer[off
 const record=(name,type,ttl,data)=>{const head=Buffer.alloc(10);head.writeUInt16BE(type,0);head.writeUInt16BE(1,2);head.writeUInt32BE(ttl,4);head.writeUInt16BE(data.length,8);return Buffer.concat([encodeName(name),head,data])};
 const address=(type,value)=>type===1?Buffer.from(value.split('.').map(Number)):Buffer.from(value.split(':').flatMap(part=>[parseInt(part.padStart(4,'0').slice(0,2),16),parseInt(part.padStart(4,'0').slice(2),16)]));
 // A real DNS listener: one question per message, CNAME chains followed inside the zone, NXDOMAIN for a name the zone lacks.
-async function dnsListener(zone,queries){
+export async function dnsListener(zone,queries,delay=()=>0){
  const socket=dgram.createSocket('udp4');
  socket.on('message',(message,from)=>{
   const id=message.readUInt16BE(0),flags=message.readUInt16BE(2),{name,offset}=readName(message,12),qtype=message.readUInt16BE(offset);
@@ -41,7 +41,8 @@ async function dnsListener(zone,queries){
    break;
   }
   const header=Buffer.alloc(12);header.writeUInt16BE(id,0);header.writeUInt16BE(0x8400|(flags&0x0100)|0x0080|code,2);header.writeUInt16BE(1,4);header.writeUInt16BE(answers.length,6);
-  socket.send(Buffer.concat([header,message.subarray(12,offset+4),...answers]),from.port,from.address);
+  const send=()=>socket.send(Buffer.concat([header,message.subarray(12,offset+4),...answers]),from.port,from.address);
+  const waiting=delay();if(waiting>0)setTimeout(send,waiting);else send();
  });
  socket.bind(0,'127.0.0.1');await once(socket,'listening');
  return socket;

@@ -122,8 +122,17 @@ try{
  ({worker,DB}=await retentionCleanup({worker,DB,port,persist,bindings,owner,runChecks,origin,secondRunner}));env.DB=DB;
  const afterArchive=await ok('/api/archive');for(const canary of Object.values(canaries))assert.ok(!JSON.stringify(afterArchive).includes(canary));
  await assert.rejects(transferBefore.service.exports.download(transferBefore.id),'all previous transfer snapshots invalidated');
- const later=await ok('/api/erasure-journal');
- const savedAudit=(await DB.prepare('SELECT * FROM uptime_audit').all()).results;await worker.dispose();worker=null;
+ // The journal read is a later export with its own required authority receipt;
+ // it cannot retroactively appear in the archive that preceded it.
+ const journalStarted=Date.now(),later=await ok('/api/erasure-journal');
+ const savedAudit=afterArchive.payload.productTables.uptime_audit,sourceAudit=(await DB.prepare('SELECT * FROM uptime_audit ORDER BY rowid').all()).results;
+ const savedIds=new Set(savedAudit.map(row=>row.id)),journalReceipts=sourceAudit.filter(row=>!savedIds.has(row.id));
+ assert.deepEqual(sourceAudit.filter(row=>savedIds.has(row.id)),savedAudit,'the exported audit snapshot keeps every source row unchanged');
+ assert.equal(journalReceipts.length,1,'the later journal export adds exactly one permanent actor receipt');
+ const [journalReceipt]=journalReceipts;assert.match(journalReceipt.id,/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+ assert.ok(journalReceipt.occurred_at>=journalStarted&&journalReceipt.occurred_at<=Date.now());
+ assert.deepEqual(journalReceipt,{id:journalReceipt.id,actor_kind:'operator',actor_ref:ownerRow.id,occurred_at:journalReceipt.occurred_at,action:'access_export',subject_kind:'operator',subject_ref:journalReceipt.id});
+ await worker.dispose();worker=null;
  ({worker:freshWorker,DB:globalThis.freshDB}=await migratedWorker({port:freshPort,persist:join(directory,'fresh'),bindings}));const fresh={...env,DB:globalThis.freshDB};
  await assert.rejects(restore(fresh,nativeBefore,undefined,{laterJournal:later}),/erased/);
  assert.equal((await fresh.DB.prepare('SELECT COUNT(*) n FROM monitors').first()).n,0);
