@@ -9,7 +9,8 @@ const [mode,option,...extra]=process.argv.slice(2),quotas={normal:30,cpu:10};
 if(!Object.hasOwn(quotas,mode)||extra.length||(option!==undefined&&option!=='--one-sample'))throw Error('Usage: measure-notifications.mjs normal|cpu [--one-sample]');
 const root=fileURLToPath(new URL('../../',import.meta.url)),sha=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
 const quota=option==='--one-sample'?1:quotas[mode],output=resolve(process.env.UPTIME_MEASUREMENT_EVIDENCE??'data/notification-measurements',mode);
-await mkdir(output,{recursive:true});
+await mkdir(resolve(output,'..'),{recursive:true});
+await mkdir(output); // Never overwrite a previous invocation or its failed sample.
 const commands=plan.push.find(shard=>shard.name==='notifications-2').commands;
 const summary={sha,mode,cpuRate:mode==='cpu'?5:1,shard:'notifications-2',commands,requiredSamples:quotas[mode],requestedSamples:quota,localSmoke:option==='--one-sample',startedAt:new Date().toISOString(),samples:[],completedSamples:0,passedSamples:0,failedSamples:0};
 const save=()=>writeFile(join(output,'RESULTS.json'),JSON.stringify(summary,null,2)+'\n');
