@@ -7583,7 +7583,7 @@
       "executable": false
     },
     "tests/pagespeed-support.mjs": {
-      "sha256": "37f2473c4f5a0ccc6a3cb851fa29d516365b758ff3dbe0171a3a785dc744e5e2",
+      "sha256": "97db3883b23b3c76251387d0ae6f1e2c95e496d559792d35ae6a98a18bc70858",
       "executable": false
     },
     "tests/pagespeed-timing-support.mjs": {

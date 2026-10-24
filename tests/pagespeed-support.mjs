@@ -8,6 +8,7 @@
 // shows the waterfall, the budgets and the two reports with their own denominators at 1440 and 390, with no overflow or serious
 // axe finding. Assertions read retained structure and budget decisions against the fixture's fixed delays, not absolute timings.
 import assert from 'node:assert/strict';
+import {createServer} from 'node:http';
 import {randomUUID} from 'node:crypto';
 import {mkdir,mkdtemp,readFile,readdir,rm,writeFile} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
@@ -20,6 +21,28 @@ import {validateDefinition} from '../src/domain/policy.mjs';
 
 const PHONE = 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36';
 const LAPTOP = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
+
+// An actual HTTP proxy at the controlled Miniflare edge. Unlike DevTools interception,
+// it remains alive for a tab's keepalive beacon after the tab target closes.
+async function countryEdge(worker, origin, fixtureOrigin, country) {
+  let beacons = 0;
+  const server = createServer(async (request, response) => {
+    try {
+      const url = new URL(request.url);
+      if (![origin, fixtureOrigin].includes(url.origin)) { response.writeHead(403).end(); return; }
+      const chunks = []; for await (const chunk of request) chunks.push(chunk);
+      const headers = Object.fromEntries(Object.entries(request.headers).filter(([key]) => !['connection', 'proxy-connection'].includes(key)));
+      const init = {method: request.method, headers, ...(!['GET', 'HEAD'].includes(request.method) ? {body: Buffer.concat(chunks)} : {})};
+      if (url.origin === origin && url.pathname === '/rum/v1/collect' && request.method === 'POST') beacons++;
+      const reply = url.origin === origin ? await worker.dispatchFetch(url.href, {...init, cf: {country}}) : await fetch(url, init);
+      const keptHeaders = Object.fromEntries([...reply.headers].filter(([key]) => !['connection', 'content-encoding', 'content-length', 'transfer-encoding'].includes(key)));
+      response.writeHead(reply.status, keptHeaders); response.end(Buffer.from(await reply.arrayBuffer()));
+    } catch { response.writeHead(502).end(); }
+  });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  return {proxy: {server: `http://127.0.0.1:${server.address().port}`, bypass: '<-loopback>'}, beacons: () => beacons,
+    async close() { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); }};
+}
 
 /** Creates the three monitors as soon as the flows are created, so they run beside them. */
 export async function startPageSpeed({ok, fixture}) {
@@ -77,37 +100,25 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
     // One visitor in a fresh context. The context stays open until the view is counted (or, for a visitor whose beacon must stay
     // silent, for a while), so closing it never cancels a beacon still in flight.
     const visit = async ({phone = false, consent = true, coin = 0.25, gpc = false, dnt = false, agent, path = '/s/shop/checkout', click = true, counted = false, country = 'US', unavailable = false}) => {
-      const context = await browser.newContext(phone ? {viewport: {width: 390, height: 844}, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: agent ?? PHONE} : {viewport: {width: 1280, height: 800}, userAgent: agent ?? LAPTOP});
+      const edge = country !== 'US' ? await countryEdge(worker, origin, fixture.origin, country) : null;
+      const context = await browser.newContext({... (phone ? {viewport: {width: 390, height: 844}, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: agent ?? PHONE} : {viewport: {width: 1280, height: 800}, userAgent: agent ?? LAPTOP}), ...(edge ? {proxy: edge.proxy} : {})});
       try {
         const before = await views();
         if (consent) await context.addCookies([{name: 'consent', value: 'granted', url: fixture.origin}]);
         // A browser with Global Privacy Control or Do Not Track switched on exposes it to the page this way.
         await context.addInitScript(([value, privacy, track]) => { Math.random = () => value; if (privacy) Object.defineProperty(Navigator.prototype, 'globalPrivacyControl', {get: () => true, configurable: true}); if (track) Object.defineProperty(Navigator.prototype, 'doNotTrack', {get: () => '1', configurable: true}); }, [coin, gpc, dnt]);
-        let countryRequests = 0;
-        if (country !== 'US') await context.route(`${origin}/rum/v1/collect`, async route => {
-          // Forward the actual shipped beacon request unchanged through the controlled country edge.
-          countryRequests++;
-          const request = route.request(), response = await worker.dispatchFetch(request.url(), {method: request.method(), headers: request.headers(), body: request.postDataBuffer(), cf: {country}});
-          await route.fulfill({status: response.status, headers: Object.fromEntries(response.headers), body: Buffer.from(await response.arrayBuffer())});
-        });
         const page = await context.newPage();
         const response = await page.goto(fixture.origin + path);
         assert.equal(response.status(), unavailable ? 500 : 200, 'the visitor receives the actual document status');
         if (unavailable) { await page.getByRole('heading', {name: 'Checkout unavailable'}).waitFor(); await page.waitForFunction(() => Boolean(window.uptimeRum)); await page.waitForTimeout(500); }
         else await page.getByText('Your order', {exact: false}).waitFor({timeout: 20000});
         if (click) { await page.getByRole('button', {name: 'Place order'}).click(); await page.getByText('Order placed').waitFor(); await page.waitForTimeout(500); }
-        // Keep the routing target alive while this visitor leaves the page. Chromium may
-        // bypass interception for keepalive requests once the tab target is destroyed.
-        if (country !== 'US') {
-          await page.goto('about:blank');
-          await waitFor(async () => await views() === before + 1, 'the country-edge visitor was counted', 30000);
-          assert.equal(countryRequests, 1, 'the actual browser beacon crossed the controlled country edge once');
-        }
         // The visitor closes the tab: the page is hidden and the beacon sends its one view.
         await page.close({runBeforeUnload: true});
         if (counted) await waitFor(async () => await views() === before + 1, 'the visitor was counted', 30000);
         else await new Promise(r => setTimeout(r, 1500));
-      } finally { await context.close(); }
+        if (edge) assert.equal(edge.beacons(), 1, 'the actual browser beacon crossed the controlled country edge once');
+      } finally { await context.close(); await edge?.close(); }
     };
     await visit({phone: true, counted: true});
     await visit({counted: true});
