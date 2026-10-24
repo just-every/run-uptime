@@ -7723,7 +7723,7 @@
       "executable": false
     },
     "tests/reporting-browser.mjs": {
-      "sha256": "073ebee17fd5cdfeb5fa78896e6b360a54687e83cb414e2173ce62338c278652",
+      "sha256": "7d4d9113c75007a70e2b707155e326a01b474c847b5a5d6f6291e56e244f5736",
       "executable": false
     },
     "tests/reporting.mjs": {
