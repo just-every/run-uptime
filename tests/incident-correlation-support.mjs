@@ -9,12 +9,16 @@ export async function proveOwnIncidentCorrelation(f){
  const ok=async(path,options={})=>{const r=await f.request(path,options);assert.ok(r.status>=200&&r.status<300,`${path}: ${r.status} ${JSON.stringify(r.data)}`);return r.data};
  const monitors=[];
  for(const [n,service] of [[1,'synthetic-uptime-shared'],[2,'synthetic-uptime-shared'],[3,'synthetic-uptime-unrelated']])monitors.push(await f.monitor({name:`synthetic-uptime-${n}`,service,runners:[f.first],canary:true,enabled:false}));
+ const contact=await ok('/api/notifications/destinations',{body:{name:'synthetic-uptime-followup',kind:'email',address:'synthetic-uptime-followup@example.test'}});
+ const route={scope:'monitor',mode:'selected',destinationIds:[contact.id],expectedRevision:0,contactSettings:{[contact.id]:{delayMinutes:1,repeatMinutes:1,maxRepeats:1,stopOnAck:true}}};
+ const reviewed=await ok(`/api/monitors/${monitors[0].id}/alert-route/preview`,{body:route});await ok(`/api/monitors/${monitors[0].id}/alert-route/apply`,{body:{...route,digest:reviewed.digest}});
  for(const m of monitors)await ok('/api/monitors/'+m.id,{method:'PATCH',body:{...m.definition,enabled:true}});
  f.modes.target=503;
  for(let i=0;i<monitors.length;i++){const task=await f.claim(f.first);assert.ok(task);assert.equal((await f.submit(f.first,task,[await f.evidence(task)])).status,200)}
  const incidents=await Promise.all(monitors.map(async m=>(await ok(`/api/monitors/${m.id}/incidents`))[0]));
  const path=i=>'/api/incidents/'+encodeURIComponent(incidents[i].id);
  let first=await ok(path(0)),second=await ok(path(1));
+ assert.equal(first.nextDueKind,'notification');assert.equal(first.nextDue,first.trigger.observedAt+60000,'next-due time follows the exact route delay');
  assert.deepEqual(first.dependencies.group.map(g=>g.incidentId),[incidents[1].id],'own simultaneous outages group without any provider notice');
  assert.deepEqual(second.dependencies.group.map(g=>g.incidentId),[incidents[0].id]);
  assert.deepEqual((await ok(path(2))).dependencies.group,[],'unrelated simultaneous failure never joins');
@@ -32,7 +36,7 @@ export async function proveOwnIncidentCorrelation(f){
    await page.setViewportSize({width,height:1000});await page.goto(f.origin+`/app/monitors/${monitors[0].id}`);await page.locator('html.signed-in').waitFor();
    await page.getByRole('button',{name:'Notes and follow-up',exact:true}).click();
    const dialog=page.locator('#incident-work-dialog');await dialog.locator('[data-correlation-group]').waitFor();
-   assert.match(await dialog.locator('[data-correlation-group]').textContent(),/synthetic-uptime-2/);
+   assert.match(await dialog.locator('[data-correlation-group]').textContent(),/synthetic-uptime-2/);await dialog.getByText(/^Notification · /).waitFor();
    assert.ok(!(await dialog.locator('[data-correlation-group]').textContent()).includes('synthetic-uptime-3'));
    await page.addScriptTag({path:new URL('../node_modules/axe-core/axe.min.js',import.meta.url).pathname});
    assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>n.target)})),[]);
