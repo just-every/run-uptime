@@ -2426,6 +2426,10 @@
       "sha256": "1ecbd3132947bc4208c389e211913c0a689eb0ce94400a6e18cdc951136463f2",
       "executable": false
     },
+    "migrations/0074_discovery_authority.sql": {
+      "sha256": "1ca56266a126be1f07f952d748d6b4945b1cdc2480bafd898938f6bfb8237042",
+      "executable": false
+    },
     "OPERATIONS.json": {
       "sha256": "61ba56de0f6cefb040131c53bde043bc4aa6b4edf6bdba50bc682eee244e45c3",
       "executable": false
@@ -7090,12 +7094,16 @@
       "sha256": "7ffcf9af50e4739dd0791341f64b7d0bb94f3bcb5d63a5ca7334c268ad0729ae",
       "executable": false
     },
+    "tests/access-discovery-job-support.mjs": {
+      "sha256": "1750bdd2d064306d26d6550f3a0112dab8dee90d7aa02a0d974bb80b1a6e11ed",
+      "executable": false
+    },
     "tests/access-door-support.mjs": {
       "sha256": "dde9d4653bdfaeb10a3626cc87255083b18d4b8de9e8ad90d1b054a8152d4602",
       "executable": false
     },
     "tests/access-matrix.mjs": {
-      "sha256": "928dfcc719565e33ff92ec865539a6f50f042b2190fc309f206fcd2e3658b9bc",
+      "sha256": "8bfe0c49e2cff071e65b35af04338997de36f340c4b5b54c0daee3cf306efff2",
       "executable": false
     },
     "tests/access-scope-support.mjs": {
@@ -7267,7 +7275,7 @@
       "executable": false
     },
     "tests/discovery-jobs.mjs": {
-      "sha256": "4c34116f514379b1c1f8c792a94ddf0be9aac9354bbbaba8e2ce589c9ace90c1",
+      "sha256": "249426e5503eb94f962ee7060fac756019eba81a1baae3d5b01749f5685e17f7",
       "executable": false
     },
     "tests/discovery-sources-fixture.mjs": {
