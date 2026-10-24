@@ -7247,7 +7247,7 @@
       "executable": false
     },
     "tests/definitions-ci-support.mjs": {
-      "sha256": "a7819a03bf4691dadd7dc04848e9cf9f8c9bf9c1838920367e0a9a82e808d895",
+      "sha256": "b1fb6a522f48ac0a243ba6a2e6b65971545036dd6a9a17f727877206189127b9",
       "executable": false
     },
     "tests/definitions-import.mjs": {
