@@ -50,7 +50,7 @@ import {monitorReport,monitorLatency,reportCsv,ReportInputError} from './domain/
 import {monitoringWatch} from './domain/monitoring-watch.server.ts'
 import {scheduledNotifications} from './domain/notification-worker.server.ts'
 import {SubrequestBudget,RUN_SUBREQUESTS,CHECK_SUBREQUESTS,WATCH_SUBREQUESTS} from './domain/worker-budget.ts'
-import {createDiscovery,createCatalogCheck,readDiscovery,claimDiscovery,completeDiscovery,discoveryAnswer,DISCOVERY_RESULT_BYTES} from './domain/discovery.server.ts'
+import {createDiscovery,cancelDiscovery,createCatalogCheck,readDiscovery,claimDiscovery,completeDiscovery,discoveryAnswer,DISCOVERY_RESULT_BYTES} from './domain/discovery.server.ts'
 import {catalogDocument,followServices,reviewFollowed,linkDependency,acknowledgeNotice} from './domain/service-catalog.server.ts'
 import {sourcesDocument,authorizeSource,reauthorizeSource,revokeSource,startSourceRun,sourceDocument,decideProposal} from './domain/discovery-sources.server.ts'
 import {readExternalCheck,saveExternalCheck} from './domain/external-check.server.ts'
@@ -275,13 +275,14 @@ api.post('/api/runner/effect-spend',async c=>{const text=c.get('requestText');if
 api.post('/api/monitors/:id/report-schedules',async c=>c.json(await scheduleReport(c.env,c.req.param('id'),c.get('input'),(await authenticatedSession(c.env,c.req.raw))!.operator.id),201))
 api.get('/api/monitors/:id/report-schedules',async c=>c.json(await readScheduledReport(c.env,c.req.param('id'))))
 api.get('/api/monitors/:id/report-schedules/:scheduleId',async c=>{const report=await readScheduledReport(c.env,c.req.param('id'),c.req.param('scheduleId'));return report?c.json(report):c.json({error:'Report not found'},404)})
-api.post('/api/discoveries',async c=>c.json(await createDiscovery(c.env,c.get('requestText')),201))
+api.post('/api/discoveries',async c=>c.json(await createDiscovery(c.env,c.get('requestText'),c.get('access')),201))
 api.get('/api/service-catalog',async c=>c.json(await catalogDocument(c.env,c.req.query('q')??'')))
 api.post('/api/service-catalog/checks',async c=>c.json(await createCatalogCheck(c.env,c.get('requestText')),201))
 api.post('/api/service-follows',async c=>c.json(await followServices(c.env,c.get('requestText'),{kind:'operator',ref:(await authenticatedSession(c.env,c.req.raw))!.operator.id}),201))
 api.post('/api/followed-services/:id/review',async c=>c.json(await reviewFollowed(c.env,c.req.param('id'),c.get('requestText'),{kind:'operator',ref:(await authenticatedSession(c.env,c.req.raw))!.operator.id})))
 api.post('/api/followed-services/:id/links',async c=>c.json(await linkDependency(c.env,c.req.param('id'),c.get('requestText'),{kind:'operator',ref:(await authenticatedSession(c.env,c.req.raw))!.operator.id})))
 api.post('/api/dependency-notices/:id/acknowledge',async c=>c.json(await acknowledgeNotice(c.env,c.req.param('id'),{id:(await authenticatedSession(c.env,c.req.raw))!.operator.id})))
+api.delete('/api/discoveries/:id',async c=>c.json(await cancelDiscovery(c.env,c.req.param('id'))))
 api.get('/api/discoveries/:id',async c=>c.json(await readDiscovery(c.env,c.req.param('id'))))
 // Discovery sources (DISCOVERY-001): the owner authorizes, runs and reviews; the owner's runner reads each source read-only.
 api.get('/api/discovery-sources',async c=>c.json(await sourcesDocument(c.env)))

@@ -1,4 +1,5 @@
 import {completeSecondFactor} from './mfa-auth-support.mjs';
+import {startMemberDiscoveryProof} from './access-discovery-job-support.mjs';
 import assert from 'node:assert/strict';
 import {sessionCookie} from './auth-test-support.mjs';
 import {readDeliveredMessages} from './mail-provider-fixture.mjs';
@@ -70,7 +71,9 @@ export async function proveMemberLifecycle({origin,call,fetcher,DB,cookie,member
  assert.equal((await call(`/api/access/members/${editor.id}`,{role:'read-only'},{cookie})).status,200);
  assert.equal((await patch(editor,target.definition)).status,403);assert.equal((await held.json()).id,monitor.id);
  const authorized=await call(path,undefined,{cookie:admin.cookie});assert.equal(authorized.status,200);
+ const finishDiscovery=await startMemberDiscoveryProof({origin,call,fetcher,cookie,admin});
  assert.equal((await call('/auth/operator/status',{operatorId:admin.id,status:'inactive'},{cookie})).status,200);
+ await finishDiscovery();
  assert.equal((await authorized.json()).id,monitor.id);
  for(const verb of ['GET','HEAD'])assert.equal((await fetcher(origin+path,{method:verb,headers:{host:new URL(origin).host,origin,cookie:admin.cookie}})).status,401);
  assert.equal((await call(path,undefined,{cookie})).status,200);

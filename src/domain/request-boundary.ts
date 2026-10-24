@@ -113,6 +113,7 @@ export const apiRoutes:readonly Route[]=[
  {method:'POST',path:'/api/discovery-sources/:id/authorize',params:{id:uuid},body:'empty'},
  {method:'POST',path:'/api/discovery-sources/:id/runs',params:{id:uuid},body:'empty'},
  {method:'POST',path:'/api/discovery-sources/:id/decisions',params:{id:uuid},body:'object'},
+ {method:'DELETE',path:'/api/discoveries/:id',params:{id:uuid},body:'none'},
  {method:'GET',path:'/api/discoveries/:id',params:{id:uuid},body:'none'},
  {method:'POST',path:'/api/runner/discoveries/claim',body:'empty'},
  {method:'POST',path:'/api/runner/discoveries/:id/result',params:{id:uuid},body:'object'},
