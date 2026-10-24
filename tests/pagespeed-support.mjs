@@ -83,8 +83,10 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
         if (consent) await context.addCookies([{name: 'consent', value: 'granted', url: fixture.origin}]);
         // A browser with Global Privacy Control or Do Not Track switched on exposes it to the page this way.
         await context.addInitScript(([value, privacy, track]) => { Math.random = () => value; if (privacy) Object.defineProperty(Navigator.prototype, 'globalPrivacyControl', {get: () => true, configurable: true}); if (track) Object.defineProperty(Navigator.prototype, 'doNotTrack', {get: () => '1', configurable: true}); }, [coin, gpc, dnt]);
+        let countryRequests = 0;
         if (country !== 'US') await context.route(`${origin}/rum/v1/collect`, async route => {
           // Forward the actual shipped beacon request unchanged through the controlled country edge.
+          countryRequests++;
           const request = route.request(), response = await worker.dispatchFetch(request.url(), {method: request.method(), headers: request.headers(), body: request.postDataBuffer(), cf: {country}});
           await route.fulfill({status: response.status, headers: Object.fromEntries(response.headers), body: Buffer.from(await response.arrayBuffer())});
         });
@@ -94,6 +96,13 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
         if (unavailable) { await page.getByRole('heading', {name: 'Checkout unavailable'}).waitFor(); await page.waitForFunction(() => Boolean(window.uptimeRum)); await page.waitForTimeout(500); }
         else await page.getByText('Your order', {exact: false}).waitFor({timeout: 20000});
         if (click) { await page.getByRole('button', {name: 'Place order'}).click(); await page.getByText('Order placed').waitFor(); await page.waitForTimeout(500); }
+        // Keep the routing target alive while this visitor leaves the page. Chromium may
+        // bypass interception for keepalive requests once the tab target is destroyed.
+        if (country !== 'US') {
+          await page.goto('about:blank');
+          await waitFor(async () => await views() === before + 1, 'the country-edge visitor was counted', 30000);
+          assert.equal(countryRequests, 1, 'the actual browser beacon crossed the controlled country edge once');
+        }
         // The visitor closes the tab: the page is hidden and the beacon sends its one view.
         await page.close({runBeforeUnload: true});
         if (counted) await waitFor(async () => await views() === before + 1, 'the visitor was counted', 30000);
