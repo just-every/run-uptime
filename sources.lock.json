@@ -535,7 +535,7 @@
       "executable": false
     },
     "docs/deploy.md": {
-      "sha256": "d03ec1fda66698e3d0147b44c95730cc3be554c32b5da187afb1c58ca912f74b",
+      "sha256": "87b68abdd9258a31531f81b07ccf52b48236fb6008a028d9eb4aac90653605aa",
       "executable": false
     },
     "docs/evidence/contracts/archives/archive-restored-1440.png": {
@@ -1974,6 +1974,10 @@
       "sha256": "65d00d8d46784de4c6032f51d43727631f0557f1c242fc47533792e4bd857161",
       "executable": false
     },
+    "docs/getting-started.md": {
+      "sha256": "b988b07e34c112e6ed793f8fa9260eb8efb4d066bf7c9cc4dae8699ffdc9d59d",
+      "executable": false
+    },
     "docs/grafana/uptime-dashboard.json": {
       "sha256": "80b63b48791174b0bbbc896bf17f6e6dfba18d9a12e082df42b00fd6ec3d7841",
       "executable": false
@@ -1983,7 +1987,7 @@
       "executable": false
     },
     "docs/install.md": {
-      "sha256": "dcd6ca751ab76682f2dd0f4e4f291ca7d550a2974d3a8e83d5cebf0fd7ed8ee9",
+      "sha256": "f2a51872748dd48de01b1cfa022282ff93bfdeed4362c3d9b2029372503b1b23",
       "executable": false
     },
     "docs/limits.md": {
@@ -2047,7 +2051,7 @@
       "executable": false
     },
     "docs/site.json": {
-      "sha256": "2f6a2539804a7455d4b2f5c55b070b20495efd684071fd833f70bbe4442fc298",
+      "sha256": "30b621ea683e7a8c279afd7fbd0e1f38f5a359a365a65d77762fe18708ab849f",
       "executable": false
     },
     "docs/slow-responses.md": {
@@ -6679,11 +6683,11 @@
       "executable": false
     },
     "src/site/landing/cards/TerminalCard.tsx": {
-      "sha256": "081d1717449210d0a943f83c28672e26e612ce6170243581399f847f4bcb7baf",
+      "sha256": "4b74714e098a9575ecd47aaa0d050d8b6afa1facffe86bafffc144f81df7c475",
       "executable": false
     },
     "src/site/landing/copy.ts": {
-      "sha256": "c1649076e002b1d8e030a40ce6ec84ba718017f2e0ef68fb976853500842db5c",
+      "sha256": "94c21d6173f334c666f707cf5bffa4373ce721747257ce4363af01dfdb076d0b",
       "executable": false
     },
     "src/site/landing/hero/art/frame.ts": {
@@ -6767,7 +6771,7 @@
       "executable": false
     },
     "src/site/landing/styles/cards.css": {
-      "sha256": "4e477e3cf4577a1e78133c5fa0f257dbabbb141a02da39bc427bed9b9e8409de",
+      "sha256": "1aaef99555b64b2e83301956d2d69a5d2b3739ae66616ccbc20bd6f2d266ab8e",
       "executable": false
     },
     "src/site/landing/styles/closing.css": {

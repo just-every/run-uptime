@@ -58,3 +58,5 @@
 .ut-terminal pre { padding: 20px clamp(18px, 2.4vw, 30px) clamp(24px, 2.6vw, 34px); color: var(--code-ink); font-family: var(--mono); font-size: clamp(13.5px, 1.12vw, 15.5px); line-height: 2; white-space: pre-wrap; overflow-wrap: break-word; }
 .ut-terminal-line { display: block; padding-left: 1.5em; text-indent: -1.5em; }
 .ut-terminal-prompt { display: inline-block; width: 1.5em; text-indent: 0; color: #7fd6a8; }
+.ut-terminal-word { white-space: nowrap; }
+.ut-terminal-comment, .ut-terminal-comment .ut-terminal-prompt { color: #a3aad0; }

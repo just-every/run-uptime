@@ -10,6 +10,12 @@
           "summary": "What Uptime is, how its pieces fit together, and who it is for."
         },
         {
+          "slug": "getting-started",
+          "title": "Getting started",
+          "file": "getting-started.md",
+          "summary": "Start Uptime on your computer with one line, sign in, then stop and start it again."
+        },
+        {
           "slug": "install",
           "title": "Install Uptime",
           "file": "install.md",
