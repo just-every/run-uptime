@@ -7,7 +7,7 @@ import {chromium} from 'playwright';
 export async function proveOwnIncidentCorrelation(f){
  const ok=async(path,options={})=>{const r=await f.request(path,options);assert.ok(r.status>=200&&r.status<300,`${path}: ${r.status} ${JSON.stringify(r.data)}`);return r.data};
  const monitors=[];
- for(const [n,service] of [[1,'synthetic-uptime-shared'],[2,'synthetic-uptime-shared'],[3,'synthetic-uptime-unrelated']])monitors.push(await f.monitor({name:`synthetic-uptime-${n}`,service,runners:[f.first],enabled:false}));
+ for(const [n,service] of [[1,'synthetic-uptime-shared'],[2,'synthetic-uptime-shared'],[3,'synthetic-uptime-unrelated']])monitors.push(await f.monitor({name:`synthetic-uptime-${n}`,service,runners:[f.first],canary:true,enabled:false}));
  for(const m of monitors)await ok('/api/monitors/'+m.id,{method:'PATCH',body:{...m.definition,enabled:true}});
  f.modes.target=503;
  for(let i=0;i<monitors.length;i++){const task=await f.claim(f.first);assert.ok(task);assert.equal((await f.submit(f.first,task,[await f.evidence(task)])).status,200)}
@@ -46,7 +46,7 @@ export async function proveOwnIncidentCorrelation(f){
  assert.deepEqual(await evidence(),before,'group acknowledgment preserves every monitor observation');
  // A later same-service outage falls outside the five-second confirmation window.
  await new Promise(resolve=>setTimeout(resolve,5200));
- const late=await f.monitor({name:'synthetic-uptime-4',service:'synthetic-uptime-shared',runners:[f.first]});
+ const late=await f.monitor({name:'synthetic-uptime-4',service:'synthetic-uptime-shared',runners:[f.first],canary:true});
  for(const m of monitors)await f.pause(m);
  let task=await f.claim(f.first);assert.equal(task.monitorId,late.id);assert.equal((await f.submit(f.first,task,[await f.evidence(task)])).status,200);
  const lateIncident=(await ok(`/api/monitors/${late.id}/incidents`))[0];assert.deepEqual((await ok('/api/incidents/'+encodeURIComponent(lateIncident.id))).dependencies.group,[],'same label outside confirmation window never joins');
