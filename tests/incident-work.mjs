@@ -7,6 +7,7 @@ import {fixture} from './resilience/support.mjs';
 import {authRequest,deliveredLink,sessionCookie,signInOwner} from './auth-test-support.mjs';
 import {startLocalWorker} from './mail-provider-fixture.mjs';
 import {migratedWorker} from './notify-acceptance-runtime.mjs';
+import {proveOwnIncidentCorrelation} from './incident-correlation-support.mjs';
 import {incidentMailEdge,proveIncidentMembers,proveMentionErasure} from './incident-members-support.mjs';
 
 // One end-to-end incident collaboration journey: actual scheduled probes at a
@@ -72,5 +73,6 @@ try{
  const receipt=await ok(`/api/monitors/${monitor.id}/erase`,{body:{name:monitor.definition.name}});for(const table of ['incident_work','incident_comments','incident_timeline'])assert.ok(receipt.receipt.counts[table]>0,`${table} counted in erasure`);
  assert.equal((await f.request(path)).status,404);for(const table of ['incident_work','incident_comments','incident_comment_history','incident_timeline','incident_mentions','incident_mention_authority'])assert.equal((await f.DB.prepare(`SELECT COUNT(*) n FROM ${table} WHERE monitor_id=?`).bind(monitor.id).first()).n,0);
  const audits=(await f.DB.prepare("SELECT * FROM uptime_audit WHERE action LIKE 'incident_%'").all()).results;assert.ok(audits.length);assert.ok(!JSON.stringify(audits).includes('php-fpm'),'audit contains opaque references only');
+ await proveOwnIncidentCorrelation(f);
  console.log('INCIDENT-001 / FOLLOWUP-001 / READAPI-001 PASS scoped responder/editor/admin collaboration, live member/key refusal, single-attempt mentions, optimistic edits, category filters, distinct human and machine resolution, restart, archive and erasure through real Worker routes.');
 }finally{await fresh?.dispose();await resumed?.dispose();await f.close();await rm(destination,{recursive:true,force:true})}

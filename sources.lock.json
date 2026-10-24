@@ -2647,7 +2647,7 @@
       "executable": false
     },
     "public/incident-dependencies.js": {
-      "sha256": "02dde98e61e82a44bf9fafaec17fbc53d7bb4a66341e169894c1fae77b96eca4",
+      "sha256": "651ff387cd4d97a33935a6c9a2c0f78a32e8115c205b6268b7fc45585e3e409e",
       "executable": false
     },
     "public/incident-work-markup.js": {
@@ -5991,7 +5991,7 @@
       "executable": false
     },
     "src/domain/incident-work/dependencies.server.ts": {
-      "sha256": "41118f7d811f264108fdd92edaa06f068cc38993de485511a1af751ebaf554cd",
+      "sha256": "08a296fbac34912a3822e4f914d1f02476156cbf51d4bd448f7849055c531330",
       "executable": false
     },
     "src/domain/incident-work/handler.server.ts": {
@@ -7407,7 +7407,7 @@
       "executable": false
     },
     "tests/incident-work.mjs": {
-      "sha256": "a365ed342dc824dadd0137a2770f2f208eea13e7c89338c022173b9c75e7e2fa",
+      "sha256": "9cfe1571474fc6fca0ab2d4cf485272da0249148b53c5fe547a4ceedc6a0b11d",
       "executable": false
     },
     "tests/installer-support.mjs": {

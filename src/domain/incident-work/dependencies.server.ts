@@ -26,27 +26,31 @@ export async function dependencyContext(env:Bindings,incident:Found,now=Date.now
  const readable=new Set((await env.DB.prepare(`SELECT id,definition FROM monitors WHERE ${filter.sql}`).bind(...filter.params).all<{id:string;definition:string}>()).results.filter(row=>inScope(JSON.parse(row.definition),scopes)).map(row=>row.id))
  const all=(await notices(env,incident.monitor_id)).filter(notice=>readable.has(notice.monitorId)).filter(notice=>overlaps(notice,from,to))
  const linked=all.filter(notice=>linkedIds.has(notice.monitorId)),coincident=all.filter(notice=>!linkedIds.has(notice.monitorId))
- return {linked,coincident,group:await groupIncidents(env,incident,linked,readable)}
+ return {linked,coincident,group:await groupIncidents(env,incident,linked,readable,monitor?JSON.parse(monitor.definition):{})}
 }
 // Other open incidents whose monitors the owner linked to the same provider notices, still waiting for a response.
-async function groupIncidents(env:Bindings,incident:Found,linked:DependencyNotice[],readable:Set<string>){
- if(!linked.length)return []
- const members=(await env.DB.prepare("SELECT id,definition FROM monitors WHERE id<>? AND json_extract(definition,'$.dependencies') IS NOT NULL").bind(incident.monitor_id).all<any>()).results.map(row=>({id:row.id,name:JSON.parse(row.definition).name as string,dependencies:JSON.parse(row.definition).dependencies as string[]}))
+async function groupIncidents(env:Bindings,incident:Found,linked:DependencyNotice[],readable:Set<string>,definition:any){
+ const members=(await env.DB.prepare("SELECT id,definition FROM monitors WHERE id<>?").bind(incident.monitor_id).all<any>()).results.map(row=>({id:row.id,name:JSON.parse(row.definition).name as string,definition:JSON.parse(row.definition),dependencies:(JSON.parse(row.definition).dependencies??[]) as string[]}))
  const found:{incidentId:string;monitorId:string;monitorName:string;status:string}[]=[]
  for(const member of members){
   if(!readable.has(member.id))continue
-  const notice=linked.filter(item=>member.dependencies.includes(item.monitorId));if(!notice.length)continue
+  const notice=linked.filter(item=>member.dependencies.includes(item.monitorId));
+  const shared=(definition.dependencies??[]).some((id:string)=>member.dependencies.includes(id))||['service','group'].some(key=>typeof definition[key]==='string'&&definition[key].trim()&&definition[key]===member.definition[key]);
+  if(!notice.length&&!shared)continue
   const open=await env.DB.prepare(`SELECT o.id,o.event,w.status FROM outbox o LEFT JOIN incident_work w ON w.incident_id=o.id WHERE o.monitor_id=? AND o.kind='trigger' AND o.status<>'imported-inactive'
    AND NOT EXISTS(SELECT 1 FROM outbox r WHERE r.monitor_id=o.monitor_id AND r.kind='recovery' AND json_extract(r.event,'$.incidentKey')=json_extract(o.event,'$.incidentKey')) ORDER BY o.rowid DESC LIMIT 1`).bind(member.id).first<any>()
   if(!open)continue
   const started=(JSON.parse(open.event) as NotificationEvent).observedAt
-  if(notice.some(item=>overlaps(item,started,Date.now())))found.push({incidentId:open.id,monitorId:member.id,monitorName:member.name,status:open.status??'open'})
+  // Simultaneous means within the larger of the two confirmation windows.
+  // Matching labels/dependencies are owner links, never an inferred common cause.
+  const window=Math.max(definition.intervalMs*definition.confirmSlots,member.definition.intervalMs*member.definition.confirmSlots);
+  if(notice.some(item=>overlaps(item,started,Date.now()))||shared&&Math.abs(started-incident.trigger.observedAt)<=window)found.push({incidentId:open.id,monitorId:member.id,monitorName:member.name,status:open.status??'open'})
  }
  return found
 }
 // One acknowledgment of the incident also acknowledges its linked provider notices and the other open incidents in the same group.
 export async function groupAcknowledgeStatements(env:Bindings,incident:Found,actor:Actor,now:number){
- const context=await dependencyContext(env,incident,now),statements:D1PreparedStatement[]=[]
+ const context=await dependencyContext(env,incident,now,actor.access.scopes),statements:D1PreparedStatement[]=[]
  for(const notice of context.linked.filter(item=>item.acknowledgedAt===null))
   statements.push(env.DB.prepare('INSERT OR IGNORE INTO dependency_acks(notice_id,monitor_id,acknowledged_at,actor_id,via_incident_id) VALUES(?,?,?,?,?)').bind(notice.noticeId,notice.monitorId,now,actor.id,incident.id),
    timeline(env,incident.id,incident.monitor_id,actor,'dependency_acknowledged',{noticeId:notice.noticeId},now))
