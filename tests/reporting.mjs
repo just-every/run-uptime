@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {proveScheduledReports} from './report-schedules-support.mjs';
 import {PDFDocument} from 'pdf-lib';
 import {mkdtemp,rm} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
@@ -162,6 +163,7 @@ try{
  const firstPage=await incidentPage({}),nextPage=await incidentPage({cursor:firstPage.nextCursor});assert.equal(firstPage.items.length,1);assert.equal(nextPage.items.length,1);assert.notEqual(firstPage.items[0].id,nextPage.items[0].id);
  const causePage=await incidentPage({rootCause:'hosting-provider'});assert.equal(causePage.items[0].id,'outage:trigger');assert.equal(causePage.nextCursor,null);
  assert.equal((await fetch(origin+'/api/v1/incidents?limit=101',{headers:{cookie}})).status,400);
+ worker=await proveScheduledReports({worker,persist,origin,cookie,id,params,report});
  console.log('REPORT-001 / READAPI-001 passed: owner period reports, full immutable coverage and incident overlap, SLA denominator, exact CSV/API/console figures, location latency percentiles at every resolution, Chicago DST validation, and oversized raw-series refusal.');
 }finally{
  await worker?.dispose();

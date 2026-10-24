@@ -39,6 +39,7 @@ export function requestPermission(request,input){
  if(path.startsWith('/api/maintenance/'))return {action:'maintenance_write',workspace:false,monitorIds:Array.isArray(input?.monitorIds)?input.monitorIds:[]};
  if(monitor){
   const id=decode(monitor[1]),suffix=monitor[2]??'';
+  if(suffix.startsWith('report-schedules'))return {action:'owner',workspace:true};
   if(read&&((path.startsWith('/api/v1/')&&['','uptime','report','response-times'].includes(suffix))||['history','incidents','heartbeat-runs'].includes(suffix)))return {action:'read',workspace:false,monitorIds:[id]};
   if(!read&&suffix==='run')return {action:'respond',workspace:false,monitorIds:[id]};
   if(!read&&suffix==='slow-ack')return {action:'respond',workspace:false,monitorIds:[id]};

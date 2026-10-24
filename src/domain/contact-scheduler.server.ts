@@ -22,7 +22,7 @@ export function contactQuietReady(job='j',now=databaseNow){
   AND (s.quiet_checked_until IS NULL OR s.quiet_checked_until<=${now} OR s.quiet_until>${now}))`;
 }
 export function contactReady(job='j',now=databaseNow){
- return `(${teamDeliveryReady(job)} AND NOT ${dependencyPrimaryAccepted(job)} AND ${contactQuietReady(job,now)} AND NOT EXISTS(SELECT 1 FROM alert_contact_schedules s JOIN notification_jobs t ON t.id=s.trigger_job_id
+ return `(NOT EXISTS(SELECT 1 FROM scheduled_reports report WHERE report.delivery_id=${job}.id AND report.due_at>${now}) AND ${teamDeliveryReady(job)} AND NOT ${dependencyPrimaryAccepted(job)} AND ${contactQuietReady(job,now)} AND NOT EXISTS(SELECT 1 FROM alert_contact_schedules s JOIN notification_jobs t ON t.id=s.trigger_job_id
   WHERE ${contactMatch(job)}
   AND json_extract(${job}.event,'$.kind') IN ('trigger','reminder','slow','slow_reminder','dependency') AND (s.due_at>${now} OR ${closed} OR (json_extract(${job}.event,'$.kind') IN ('reminder','slow_reminder') AND NOT (${active})))))`;
 }

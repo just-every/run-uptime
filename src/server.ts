@@ -1,3 +1,4 @@
+import {scheduleReport,readScheduledReport} from './domain/reports/schedules.server.ts'
 import {namedAlertRoutes,saveNamedAlertRoute} from './domain/alert-routes.server.ts'
 import {previewCatalogRoutes,applyCatalogRoutes,undoCatalogRoutes} from './domain/catalog/routes.server.ts'
 import {ciDoor} from './domain/ci/door.server.ts'
@@ -271,6 +272,9 @@ api.post('/api/runner/results',async c=>{const text=c.get('requestText');if(!awa
 // API-004: before each live request the runner spends its amount from the exact grant its claim named, signed like a result.
 api.post('/api/runner/effect-spend',async c=>{const text=c.get('requestText');if(!await signedRunnerBody(c.env,c.get('runner'),text,c.req.header('x-sent-at')??'',c.req.header('x-runner-signature')??'',4096))return c.json({error:'Invalid signed spend'},403);return c.json(await storageOperation('runner.effectSpend',()=>spendGrant(c.env,c.get('input'),c.get('runner').runner_id)))})
 // Discovery: the owner's console asks, the owner's runner claims and answers; the Worker never fetches the target.
+api.post('/api/monitors/:id/report-schedules',async c=>c.json(await scheduleReport(c.env,c.req.param('id'),c.get('input'),(await authenticatedSession(c.env,c.req.raw))!.operator.id),201))
+api.get('/api/monitors/:id/report-schedules',async c=>c.json(await readScheduledReport(c.env,c.req.param('id'))))
+api.get('/api/monitors/:id/report-schedules/:scheduleId',async c=>{const report=await readScheduledReport(c.env,c.req.param('id'),c.req.param('scheduleId'));return report?c.json(report):c.json({error:'Report not found'},404)})
 api.post('/api/discoveries',async c=>c.json(await createDiscovery(c.env,c.get('requestText')),201))
 api.get('/api/service-catalog',async c=>c.json(await catalogDocument(c.env,c.req.query('q')??'')))
 api.post('/api/service-catalog/checks',async c=>c.json(await createCatalogCheck(c.env,c.get('requestText')),201))
