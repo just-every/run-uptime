@@ -7171,7 +7171,7 @@
       "executable": false
     },
     "tests/archive-roundtrip.mjs": {
-      "sha256": "5c32fd201b7007ede0365245859628e9ff349a81d3d58b7eaa663e6c650e5b41",
+      "sha256": "dee823d64aa36c97086ea18b7ae5467b7d2a0e7bc0d707ecbd235944ac7dcaad",
       "executable": false
     },
     "tests/auth-input-boundary.mjs": {
