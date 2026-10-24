@@ -2123,7 +2123,7 @@
       "executable": false
     },
     "management/integration/deployment-spec.json": {
-      "sha256": "f7e78ffac22333876683a95df888ba5d561cb02bb45653a5190f4ed3a678d9cc",
+      "sha256": "6227b4f3c582e8e6234aa669215e8593cdff879a7784a7145c83c31b67665029",
       "executable": false
     },
     "migrations/0001_uptime.sql": {

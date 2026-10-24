@@ -456,6 +456,18 @@
       "name": "0072_named_alert_routes.sql",
       "sha256": "c20e33a418b172e9f42ce55922e491f0eb7e6a2e19d55f37909293252a9ab72d",
       "sql": "-- Immutable named copies and reviewed catalog assignments are local configuration, never restored authority.\nCREATE TABLE alert_named_routes(id TEXT PRIMARY KEY,name TEXT NOT NULL UNIQUE COLLATE NOCASE,policy TEXT NOT NULL,created_at INTEGER NOT NULL);\nALTER TABLE alert_routes ADD COLUMN named_route_id TEXT REFERENCES alert_named_routes(id);\nCREATE TABLE catalog_route_batches(id TEXT PRIMARY KEY,route_id TEXT NOT NULL REFERENCES alert_named_routes(id),created_at INTEGER NOT NULL,actor_kind TEXT NOT NULL,actor_ref TEXT NOT NULL,counts TEXT NOT NULL,undone_at INTEGER);\nCREATE TABLE catalog_route_batch_entries(batch_id TEXT NOT NULL REFERENCES catalog_route_batches(id),monitor_id TEXT NOT NULL REFERENCES monitors(id),monitor_revision INTEGER NOT NULL,previous_policy TEXT NOT NULL,applied_policy TEXT NOT NULL,applied_revision INTEGER NOT NULL,PRIMARY KEY(batch_id,monitor_id));\nCREATE INDEX catalog_route_entries_monitor ON catalog_route_batch_entries(monitor_id);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0073_scheduled_reports.sql",
+      "sha256": "1ecbd3132947bc4208c389e211913c0a689eb0ce94400a6e18cdc951136463f2",
+      "sql": "-- One-time report snapshots use the existing single-attempt delivery custody.\nCREATE TABLE scheduled_reports (\n id TEXT PRIMARY KEY,\n monitor_id TEXT NOT NULL,\n destination_id TEXT NOT NULL,\n actor_id TEXT,\n due_at INTEGER NOT NULL,\n created_at INTEGER NOT NULL,\n delivery_id TEXT NOT NULL UNIQUE,\n report TEXT NOT NULL\n);\nCREATE INDEX scheduled_reports_monitor ON scheduled_reports(monitor_id,created_at);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0074_discovery_authority.sql",
+      "sha256": "1ca56266a126be1f07f952d748d6b4945b1cdc2480bafd898938f6bfb8237042",
+      "sql": "-- Discovery is installation-local; initiator authority is rechecked at claim/result.\nALTER TABLE discovery_jobs ADD COLUMN initiator_id TEXT;\nALTER TABLE discovery_jobs ADD COLUMN initiator_version INTEGER;\nALTER TABLE discovery_jobs ADD COLUMN initiator_role TEXT;\nALTER TABLE discovery_jobs ADD COLUMN initiator_revision INTEGER;\nALTER TABLE discovery_jobs ADD COLUMN initiator_base_role TEXT;\nALTER TABLE discovery_jobs ADD COLUMN stopped_at INTEGER;\nALTER TABLE discovery_jobs ADD COLUMN stop_reason TEXT;\n"
     }
   ],
   "compatibilityDate": "2026-09-08",
