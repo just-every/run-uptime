@@ -104,7 +104,7 @@ try {
   assert.equal((await DB.prepare("SELECT COUNT(*) n FROM notification_jobs WHERE json_extract(event,'$.monitorName')=?").bind('Checkout flow').first()).n, 0, 'a passing flow sends nothing');
 
   await imported.finish();
-  await provePageSpeed({ids: speed, ok, api, DB, fixture, origin, owner, waitFor, observations});
+  await provePageSpeed({worker, ids: speed, ok, api, DB, fixture, origin, owner, waitFor, observations});
 
   // Editing the failing flow into a heartbeat that then passes recovers the incident only as a changed definition: a heartbeat
   // requires none of the flow's outcomes.

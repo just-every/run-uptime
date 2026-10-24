@@ -475,7 +475,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "71685ba3838cc73a3199c012b0f1e1501b3584ed3e4b1810a62c9c6ee47c9a23",
+      "sha256": "811316758c242bc7794f833748d9d218c6d68d0e6982e3f78fa971e7db32f0f4",
       "executable": false
     },
     "AGENTS.md": {
@@ -499,7 +499,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "e80fdbaffa0ed1361dde7ae04408462aa16383e7f163f3b03948c820a12270e3",
+      "sha256": "1d1fc4dfcfd32b07f148c7f5c4ac7390d6de9ed7818778af08fd124f3424f184",
       "executable": false
     },
     "DEMO.md": {
@@ -2415,7 +2415,7 @@
       "executable": false
     },
     "OPERATIONS.md": {
-      "sha256": "d8777db84ca98ea7e5cfcea3e7595aa9d32a24a4c9f817fcf06df9f1ec4f016f",
+      "sha256": "4bf3c7bff753203eef9c4a80eb09cc0dee05e1fefb88972d9fabb3223304a231",
       "executable": false
     },
     "package.json": {
@@ -7331,11 +7331,11 @@
       "executable": false
     },
     "tests/flow-fixture.mjs": {
-      "sha256": "4cb7c806d6c0d5bac2c4117c1bbfdb2e1fb4e16bce49733a9a231931c2204406",
+      "sha256": "d0d48abdb56b5fb73544d1dcd78f2fc6ebe0c49320235825f5cd7b7f0e4d39ee",
       "executable": false
     },
     "tests/flow-journey.mjs": {
-      "sha256": "2dda7b35a465cc73970b5713becdaeec6d90e6bf2361336c3521ee3c1977ef38",
+      "sha256": "f92b393253cbc9591ef7961798db43f80f0414fba12cb2020e6164a6ca597236",
       "executable": false
     },
     "tests/flow-profiles-browser.mjs": {
@@ -7567,7 +7567,7 @@
       "executable": false
     },
     "tests/pagespeed-network-fixture.mjs": {
-      "sha256": "39986a21a7d56f785d54e62c88a318a59ef607b3125a7d77f0096036aa3493f3",
+      "sha256": "a2b7267e4f753cfafc286fa0c462b513534105f149aa723fbed925646aaf596e",
       "executable": false
     },
     "tests/pagespeed-network-trust.mjs": {
@@ -7575,11 +7575,11 @@
       "executable": false
     },
     "tests/pagespeed-support.mjs": {
-      "sha256": "8d0d2a44ebc01b69bcd14799f65322c2a0b43d88b8d93d92e47c272b996d51dc",
+      "sha256": "dc6173429a7beaaba71893aebcbf8ca4cb176b76a15825484065011046910538",
       "executable": false
     },
     "tests/pagespeed-timing-support.mjs": {
-      "sha256": "dd62b1d59cd04c2a334e21c7e0e0a729fa887ac34765c9254e1d32bcdcdbcbbe",
+      "sha256": "56a5d5b086d9694776c7079ef359db8406a6975f2efdf7a27f68403d31cb4f43",
       "executable": false
     },
     "tests/ping-browser.mjs": {
