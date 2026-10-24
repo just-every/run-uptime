@@ -88,7 +88,7 @@ import {alertDrillDocument} from './domain/alert-drill-document.server.ts'
 import {isPublicAsset,publicAssetResponse} from './domain/assets.server.ts'
 import {classifyStorage,storageLogLine,storageOperation} from './domain/storage-error.ts'
 import {maintenance} from './domain/maintenance.server.ts'
-import {authRoute,authFailure,developmentMail,signOut,signInDocument} from './domain/operator-auth.server.ts'
+import {authRoute,authFailure,developmentMail,signOut,signInDocument,signedInOwnerRedirect} from './domain/operator-auth.server.ts'
 import {authDocument,nativeClaimFailure} from './domain/auth-document.server.ts'
 import {firstRun,firstRunComplete,setupRedirect} from './domain/first-run.server.ts'
 import {ownerClaim} from './domain/owner-claim.server.ts'
@@ -381,6 +381,7 @@ const handler={async fetch(request,env,execution){
  if(path==='/setup')return firstRun(bindings,request);
  if(path==='/alert-drill')return alertDrillDocument(bindings,request);
  // Once an owner is admitted the first-owner claim is spent, so sign-in stops offering it.
+ if(path==='/login'){const forward=await signedInOwnerRedirect(bindings,request);if(forward)return forward;}
  if(path==='/login'||path==='/claim')return authDocument(path==='/claim',path==='/login'&&url.searchParams.get('notice')==='sent',developmentMail(bindings),false,bindings.UPTIME_DEPLOY_ENVIRONMENT,!await ownerAdmitted(bindings.DB),path==='/login'&&url.searchParams.get('notice')==='mail_unavailable',url.searchParams.get('login_hint')??'');
  if(path==='/uptime-runner.mjs')return runnerScriptResponse(request);
  if(isPublicAsset(path))return publicAssetResponse(request,bindings.ASSETS);

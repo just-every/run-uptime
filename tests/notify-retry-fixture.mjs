@@ -1,3 +1,4 @@
+import {completeSecondFactor} from './mfa-auth-support.mjs';
 import {proveEchoCustody} from './notify-echo-fixture.mjs';
 import assert from 'node:assert/strict';
 import {proveQuietFallback} from './notify-quiet-fixture.mjs';
@@ -105,6 +106,9 @@ export async function proveNotificationRetry(inspect,inspectQuiet=undefined,insp
   if(typeof inspect==='function')await inspect({origin:f.origin,bindings:f.bindings,acceptedId:delivery.id,failedId:row.id,...chain});
   const echo=await proveEchoCustody({f,ok,rpc,inspectEcho,database:await (restarted??f.worker).getD1Database('DB')});
   // Body-free custody: attempts, console and archive carry neither a signing credential nor the signed request body.
+  // Real delay/quiet-hour journeys can outlive the five-minute owner proof.
+  // Obtain fresh proof through the same public factor door before step-up work.
+  await completeSecondFactor(f.origin,f.cookie);
   const archive=await ok('/api/archive'),stored=archive.payload.productTables.notification_delivery_attempts,overview=await ok('/api/notifications');
   const bodies=[...new Set([...receipts.map(r=>r.body),...echo.bodies])];secrets.push(...echo.secrets);
   for(const value of [archive,overview,stored,overview.deliveries.flatMap(d=>d.attemptHistory)]){const found=strings(value);for(const forbidden of [...secrets,...bodies])assert.ok(!found.some(text=>text.includes(forbidden)),'no signing credential or webhook body')}
@@ -131,6 +135,7 @@ export async function proveNotificationRetry(inspect,inspectQuiet=undefined,insp
   assert.deepEqual(legacyAfter.payload.productTables.integration_deliveries.map(d=>d.envelope),archive.payload.productTables.integration_deliveries.map(d=>d.envelope),'a pre-migration body re-exports as the same body-free delivery');
   assert.deepEqual(legacyAfter.payload.productTables.notification_delivery_attempts,[],'restore never invents dispatch schedules');
   // Erasing a destination removes its attempts and every fallback alert that names it.
+  await completeSecondFactor(f.origin,f.cookie);
   const jobs=archive.payload.productTables.notification_jobs,names=(job,id)=>JSON.parse(job.event).fallbackContext?.previous.some(p=>p.destinationId===id);
   for(const erased of [contact,slack,echo.contact]){
    const dependent=new Set(jobs.filter(j=>j.destination_id===erased.id||names(j,erased.id)).map(j=>j.id));

@@ -1,3 +1,4 @@
+import {checkSecondFactor,MfaError} from './mfa/policy.server.ts'
 import {auditStatement} from './audit.server.ts'
 import {permission,accessResponse} from './access.server.ts'
 import {authorizedDatabase} from './access-database.server.ts'
@@ -52,9 +53,22 @@ export async function authRoute(env:AuthBindings,request:Request){try{
 export function authFailure(error:unknown){return Response.json({error:error instanceof AuthError?error.code:'auth_unavailable'},{status:error instanceof AuthError?error.status:503,headers:{'cache-control':'no-store'}})}
 export async function signOut(env:AuthBindings,request:Request){return operatorAuth(env).signOut(request)}
 
+// A Base session may still owe its installation's second factor. Reuse the
+// console's proof gate before forwarding either sign-in document.
+export async function signedInOwnerRedirect(env:AuthBindings,request:Request){
+ if(!['GET','HEAD'].includes(request.method))return null;
+ try{
+  const session=await authenticatedSession(env,request);
+  if(session?.operator.role!=='owner')return null;
+  await checkSecondFactor(env,session);
+  return new Response(null,{status:303,headers:{location:'/app','cache-control':'no-store, private'}});
+ }catch(error){if(error instanceof MfaError&&error.code==='second_factor_required')return null;return authFailure(error)}
+}
+
 // Keep /signin as a browser alias; /login is the declared sign-in and native return path.
 // Render the alias through Base so validation, escaping and login_hint stay shared.
 export async function signInDocument(env:AuthBindings,request:Request){
+ const forward=await signedInOwnerRedirect(env,request);if(forward)return forward;
  const url=new URL(request.url);url.pathname='/login';
  if(!['GET','HEAD'].includes(request.method))return new Response(null,{status:405,headers:{allow:'GET, HEAD'}});
  return (await createSignInHandler(operatorAuth(env),{defaultReturnTo:'/setup'})(new Request(url,request)))!;
