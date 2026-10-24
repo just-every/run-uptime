@@ -475,7 +475,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "15d2053f38852aaec96e2931d6f6490d9adba528f6be79e794fda05522cf01fd",
+      "sha256": "71685ba3838cc73a3199c012b0f1e1501b3584ed3e4b1810a62c9c6ee47c9a23",
       "executable": false
     },
     "AGENTS.md": {
@@ -499,7 +499,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "d76a4d1664fcb9bcfc82ab977e19515007913be087885ab9c9ba9eaca864e2ac",
+      "sha256": "e80fdbaffa0ed1361dde7ae04408462aa16383e7f163f3b03948c820a12270e3",
       "executable": false
     },
     "DEMO.md": {
@@ -2415,7 +2415,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "c3debed6eb80ad2a0cbdf30f88676b269cdd014ec06a668eb802c2030a60a7cd",
+      "sha256": "375fccd665aba64554f8e642c225bd28770ac76d489f88a2e93888054a84e039",
       "executable": false
     },
     "patches/README.md": {
@@ -6179,7 +6179,7 @@
       "executable": false
     },
     "src/domain/operator-auth.server.ts": {
-      "sha256": "fbb820e94c256a0a86e1f11ff1eaf936088e87ee1a74faea0ce22d714690645c",
+      "sha256": "246e8e644dc9aeddf3756ebeeb86a8efd30e1fbc9e8499a6e4116698871a24ac",
       "executable": false
     },
     "src/domain/operator-mail-authority.ts": {
@@ -6731,7 +6731,7 @@
       "executable": false
     },
     "src/server.ts": {
-      "sha256": "d95e2fd3a45e3306cbf8f8711218fc929365a3e19a685311a82a6ddf507b1bca",
+      "sha256": "6006de1a6382dd4e343d060e2b0945e0f52950df3dafcc9947db88303f650417",
       "executable": false
     },
     "src/site/docs/build/manifest.ts": {
@@ -7363,7 +7363,7 @@
       "executable": false
     },
     "tests/hosted-auth-browser.mjs": {
-      "sha256": "aa33217d3743be9b9d1cd995e8bb9f50cf2a7314adbc58cd0ddec51bcab08004",
+      "sha256": "dd3511c50961c10b40bc922793c4c30710e6ec4c966d0e03e1761c5068d27f2d",
       "executable": false
     },
     "tests/hosted-auth-runtime.mjs": {
@@ -7507,7 +7507,7 @@
       "executable": false
     },
     "tests/notify-retry-fixture.mjs": {
-      "sha256": "d5506719b8d3f4567bcfc32ad17d1926368b45e05ef20bf369c17d444ed2ff8c",
+      "sha256": "0a5be6ed2d226e0888bdd9c5a61c8941f6198c5090e7dd8cc42e77b858bad161",
       "executable": false
     },
     "tests/notify-secret-browser.mjs": {

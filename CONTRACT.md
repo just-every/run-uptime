@@ -439,7 +439,7 @@ Protocol round (17 October 2026): TCP-001, DNS-001, TLS-001 and DOMAIN-001 moved
 
 ## Status
 
-Judged from the code and tests at commit `4cbe03759df266cea6e344bb274115d744fc0cf5` (23 October 2026).
+Judged from the code and tests at commit `56497f8d6716dbe16437095f61a923266fd9b347` (24 October 2026).
 
 READAPI-001 evidence and remaining scope, OPS-001 durable recovery, INTERFACE-001 local owner-console acceptance, FLOW-003 safe failure artifacts, API-003 ordered transactions and MAIL-001 mail checks include their implementation rounds after that baseline.
 
@@ -481,7 +481,7 @@ Page-speed round (22 October 2026): PERF-001 moves from missing to partial. A pa
 | `ERASURE-001` | Operator-directed entity erasure | published | done | `src/domain/erasure.server.ts`; `tests/erasure-audit.mjs`; `tests/erasure-races.mjs` |  |
 | `AUDIT-001` | Durable anonymized audit | published | done | `src/domain/audit.server.ts`; `tests/erasure-audit.mjs`; `tests/archive-roundtrip.mjs` |  |
 | `PRESENCE-001` | Contact separate from health | published | done | `src/domain/runner-contact.server.ts`; `tests/runner-contact.mjs` |  |
-| `INTERFACE-001` | Honest durable operator feedback | published | done | `src/routes/_console.tsx`; `public/monitor-page.js`; `public/dom-patch.js`; `tests/operator-browser.mjs`; `tests/console-polling-browser.mjs`; `tests/recovery-browser.mjs`; `tests/notify-secret-browser.mjs`; `docs/evidence/contracts/release-0.4.0/` |  |
+| `INTERFACE-001` | Honest durable operator feedback | published | done | `src/routes/_console.tsx`; `public/monitor-page.js`; `public/dom-patch.js`; `tests/operator-browser.mjs`; `tests/console-polling-browser.mjs`; `tests/recovery-browser.mjs`; `tests/notify-secret-browser.mjs`; `docs/evidence/contracts/release-0.4.0/`  `tests/hosted-auth-browser.mjs` (native complete-owner sign-in forwarding, MFA-owed refusal and typed setup name in setup, Settings and member/incident-assignment data at 1440/390);|  |
 | `NOTIFY-001` | Authorized installation-wide destinations | published | done | `src/domain/notification-destinations.server.ts`; `src/domain/notification-protocols.ts`; `tests/notify-delivery.mjs`; `tests/hosted-alerts.mjs`; `docs/evidence/contracts/release-0.4.0/` | The 0.4.0 gate received real hosted email and a runner-sent signed JSON webhook; Slack is proven only against the test edge. |
 | `DELIVERY-001` | Bounded notification acknowledgment | published | done | `src/domain/notification-claims.server.ts`; `tests/notify-delivery.mjs`; `tests/notify-custody-runtime.mjs`; `docs/evidence/contracts/release-0.4.0/` |  |
 | `PUBLIC-001` | Public landing and documentation | published | done | `src/server.ts`; `src/routes/docs.index.tsx`; `tests/readme-journey.mjs`; `tests/public-paths.mjs`; `docs/evidence/contracts/release-0.4.0/` |  |
