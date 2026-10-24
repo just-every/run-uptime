@@ -31,8 +31,8 @@ export async function proveScheduledReports({worker,persist,origin,cookie,id,par
   assert.equal(submitted.length,1);assert.equal(slack.length,1);assert.match(submitted[0].subject,/Scheduled report/);
   assert.ok(JSON.stringify(slack[0]).includes('uptimePercent'),'Slack uses the same retained report figures');
   const list=()=>reportsCommand(['list','--origin',origin,'--monitor',id],{UPTIME_REPORT_COOKIE:cookie});
-  const before=await list();assert.equal(before.find(r=>r.id===scheduled.id).state,'uncertain','lost/5xx email response remains uncertain');assert.equal(before.find(r=>r.id===slackReport.id).state,'rejected','Slack 4xx remains failed');
-  await restart();await dispatchNotifications(rpc,transport);await dispatchNotifications(rpc,transport);assert.deepEqual(await list(),before,'delivery failure and snapshot survive restart');assert.equal(submitted.length,1,'uncertain email never replays');assert.equal(slack.length,1,'failed Slack never replays');
+  const before=await list();assert.ok(before.every(run=>!Object.hasOwn(run,'report')),'bounded list returns metadata, with snapshots available by identity');assert.equal(before.find(r=>r.id===scheduled.id).state,'uncertain','lost/5xx email response remains uncertain');assert.equal(before.find(r=>r.id===slackReport.id).state,'rejected','Slack 4xx remains failed');
+  await restart();await dispatchNotifications(rpc,transport);await dispatchNotifications(rpc,transport);const retained=await reportsCommand(['show','--origin',origin,'--monitor',id,'--id',scheduled.id],{UPTIME_REPORT_COOKIE:cookie});assert.deepEqual(retained.report,scheduled.report,'immutable snapshot survives restart through its own read door');assert.deepEqual(await list(),before,'delivery failure and snapshot survive restart');assert.equal(submitted.length,1,'uncertain email never replays');assert.equal(slack.length,1,'failed Slack never replays');
   console.log('REPORT-001 scheduled API/CLI PASS: same period/zone/denominator figures, authorized email/Slack, due gating across restart, durable uncertain/failed outcomes and no duplicate sends.');
   return resumed;
  }catch(error){await resumed?.dispose();throw error}

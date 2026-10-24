@@ -2,7 +2,7 @@
 
 An owner can schedule a one-time per-monitor report for an enabled email or Slack destination already configured in Notifications. The report freezes the requested period, time zone, denominator and figures when scheduled. It sends at or after the chosen due time through Uptime's ordinary mail or Slack transport. Provider acknowledgment does not establish human receipt.
 
-`POST /api/monitors/:id/report-schedules` accepts `destinationId`, `dueAt` (epoch milliseconds, within the next 31 days), and `period` (the existing report query fields as strings). The response includes its initiating `ownerId`, due time, immutable `report`, delivery ID, state and outcome metadata. `GET` on the same path lists the latest 100 snapshots; `GET /api/monitors/:id/report-schedules/:scheduleId` reads one snapshot and its current durable delivery outcome. All three require a live owner session. The installation retains at most 1,000 snapshots and refuses another schedule at the bound.
+`POST /api/monitors/:id/report-schedules` accepts `destinationId`, `dueAt` (epoch milliseconds, within the next 31 days), and `period` (the existing report query fields as strings). The response includes its initiating `ownerId`, due time, immutable `report`, delivery ID, state and outcome metadata. `GET` on the same path lists metadata for the latest 100 snapshots, excluding their potentially large report bodies; `GET /api/monitors/:id/report-schedules/:scheduleId` reads one snapshot and its current durable delivery outcome. All three require a live owner session. The installation retains at most 1,000 snapshots and refuses another schedule at the bound.
 
 The CLI uses the same routes:
 

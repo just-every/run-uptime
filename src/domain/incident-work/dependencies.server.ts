@@ -30,21 +30,27 @@ export async function dependencyContext(env:Bindings,incident:Found,now=Date.now
 }
 // Other open incidents whose monitors the owner linked to the same provider notices, still waiting for a response.
 async function groupIncidents(env:Bindings,incident:Found,linked:DependencyNotice[],readable:Set<string>,definition:any){
- const members=(await env.DB.prepare("SELECT id,definition FROM monitors WHERE id<>?").bind(incident.monitor_id).all<any>()).results.map(row=>({id:row.id,name:JSON.parse(row.definition).name as string,definition:JSON.parse(row.definition),dependencies:(JSON.parse(row.definition).dependencies??[]) as string[]}))
+ // Read the latest open incident per monitor in one bounded database call.
+ // A shared service can contain every monitor; it must not require one remote
+ // D1 query per child merely to read the incident or acknowledge its group.
+ const members=(await env.DB.prepare(`WITH open AS (
+  SELECT m.id,m.definition,m.rowid AS monitor_order,o.id AS incident_id,o.event,w.status,
+   ROW_NUMBER() OVER(PARTITION BY m.id ORDER BY o.rowid DESC) AS rank
+  FROM monitors m JOIN outbox o ON o.monitor_id=m.id LEFT JOIN incident_work w ON w.incident_id=o.id
+  WHERE m.id<>? AND o.kind='trigger' AND o.status<>'imported-inactive'
+   AND NOT EXISTS(SELECT 1 FROM outbox r WHERE r.monitor_id=o.monitor_id AND r.kind='recovery' AND json_extract(r.event,'$.incidentKey')=json_extract(o.event,'$.incidentKey'))
+ ) SELECT * FROM open WHERE rank=1 ORDER BY monitor_order`).bind(incident.monitor_id).all<any>()).results.map(row=>({...row,name:JSON.parse(row.definition).name as string,definition:JSON.parse(row.definition),dependencies:(JSON.parse(row.definition).dependencies??[]) as string[]}))
  const found:{incidentId:string;monitorId:string;monitorName:string;status:string}[]=[]
  for(const member of members){
   if(!readable.has(member.id))continue
   const notice=linked.filter(item=>member.dependencies.includes(item.monitorId));
   const shared=(definition.dependencies??[]).some((id:string)=>member.dependencies.includes(id))||['service','group'].some(key=>typeof definition[key]==='string'&&definition[key].trim()&&definition[key]===member.definition[key]);
   if(!notice.length&&!shared)continue
-  const open=await env.DB.prepare(`SELECT o.id,o.event,w.status FROM outbox o LEFT JOIN incident_work w ON w.incident_id=o.id WHERE o.monitor_id=? AND o.kind='trigger' AND o.status<>'imported-inactive'
-   AND NOT EXISTS(SELECT 1 FROM outbox r WHERE r.monitor_id=o.monitor_id AND r.kind='recovery' AND json_extract(r.event,'$.incidentKey')=json_extract(o.event,'$.incidentKey')) ORDER BY o.rowid DESC LIMIT 1`).bind(member.id).first<any>()
-  if(!open)continue
-  const started=(JSON.parse(open.event) as NotificationEvent).observedAt
+  const started=(JSON.parse(member.event) as NotificationEvent).observedAt
   // Simultaneous means within the larger of the two confirmation windows.
   // Matching labels/dependencies are owner links, never an inferred common cause.
   const window=Math.max(definition.intervalMs*definition.confirmSlots,member.definition.intervalMs*member.definition.confirmSlots);
-  if(notice.some(item=>overlaps(item,started,Date.now()))||shared&&Math.abs(started-incident.trigger.observedAt)<=window)found.push({incidentId:open.id,monitorId:member.id,monitorName:member.name,status:open.status??'open'})
+  if(notice.some(item=>overlaps(item,started,Date.now()))||shared&&Math.abs(started-incident.trigger.observedAt)<=window)found.push({incidentId:member.incident_id,monitorId:member.id,monitorName:member.name,status:member.status??'open'})
  }
  return found
 }
