@@ -85,3 +85,20 @@ export async function fallbackOverview(env:Bindings,deliveries:{id:string;event_
   return {step,...(context?{after:context.previous.map(p=>({...p,stateNow:byId.get(p.deliveryId)?.state??null}))}:{}),fallbacks:started,...(chain?{chainLength:JSON.parse(chain.destination_ids).length}:{}),...(last?{ended:'exhausted' as const}:{})};
  };
 }
+
+/** Read the same durable start/deadline decision advanceFallbackChains uses. */
+export async function nextFallbackDue(env:Bindings,eventId:string){
+ const chain=await env.DB.prepare('SELECT * FROM alert_fallback_chains WHERE event_id=? AND ended_at IS NULL').bind(eventId).first<any>()
+ if(!chain)return null
+ const ids:string[]=JSON.parse(chain.destination_ids)
+ if(chain.step>=ids.length)return null
+ const jobs=(await env.DB.prepare(`${jobRows} WHERE j.event_id=?`).bind(eventId).all<Job>()).results
+ const current=chain.step===0?jobs.filter(j=>!ids.includes(j.destination_id)):jobs.filter(j=>j.destination_id===ids[chain.step-1])
+ const due=current.flatMap(job=>{
+  if(job.state==='rejected'&&!settled.includes(job.code))return [job.finished_at??chain.fired_at??chain.created_at]
+  if(!['uncertain','sending','queued'].includes(job.state))return []
+  const started=job.started_at??(job.state==='uncertain'?job.finished_at:null)
+  return started===null?[]:[started+chain.deadline_ms]
+ })
+ return due.length?{due:Math.min(...due),kind:'escalation' as const}:null
+}

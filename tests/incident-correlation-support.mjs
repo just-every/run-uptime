@@ -27,6 +27,9 @@ async function proveCorrelationBranch(f,inspect,link){
  assert.deepEqual((await ok(path(2))).dependencies.group,[],'unrelated simultaneous failure never joins');
  const evidence=async()=> (await f.DB.prepare('SELECT * FROM observations ORDER BY id').all()).results;
  const before=await evidence();
+ const maintained=await ok('/api/monitors/'+monitors[0].id,{method:'PATCH',body:{...monitors[0].definition,maintenanceUntil:Date.now()+60000}});
+ await ok('/api/monitors/'+monitors[0].id,{method:'PATCH',body:{...maintained.definition,enabled:false}});
+ await ok('/api/monitors/'+monitors[0].id,{method:'PATCH',body:{...monitors[0].definition,maintenanceUntil:0,enabled:true}});
  await inspect({f,monitors,incidents,link});
  await ok(path(0)+'/actions',{body:{kind:'acknowledge',version:first.version}});
  second=await ok('/api/v1/incidents/'+encodeURIComponent(incidents[1].id));

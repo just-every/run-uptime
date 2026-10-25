@@ -11,9 +11,10 @@ function activity(entry){
  if(entry.kind==='owner_assigned')return 'Owner: '+(d.owner?.displayName??'Unassigned');
  if(entry.kind.startsWith('comment_'))return 'Comment '+(d.version?'version '+d.version:'');
  if(entry.kind==='root_cause_changed')return 'Category: '+(d.categoryLabel??'Not categorized');
- if(entry.kind==='notification_queued')return (d.channel??'')+' · '+(d.destinationName??'');
- if(entry.kind==='notification_attempt')return 'Delivery attempt '+d.number;
- if(entry.kind==='notification_outcome'||entry.kind==='delivery_resolution'){const outcome=d.outcome;return typeof outcome==='string'?outcome:outcome?.code??outcome?.status??outcome?.kind??'Outcome recorded'}
+ if(['maintenance_applied','pause_applied'].includes(entry.kind))return 'Revision '+d.revision+' · '+d.outcome;
+ if(entry.kind==='notification_queued'||entry.kind==='escalation_queued')return (d.channel??'')+' · '+(d.destinationName??'');
+ if(entry.kind==='notification_attempt'||entry.kind==='escalation_attempt')return 'Delivery attempt '+d.number;
+ if(entry.kind==='notification_outcome'||entry.kind==='escalation_outcome'||entry.kind==='delivery_resolution'){const outcome=d.outcome;return typeof outcome==='string'?outcome:outcome?.code??outcome?.status??outcome?.kind??'Outcome recorded'}
  return d.channel?'Recorded through '+d.channel:'';
 }
 function comment(c){
@@ -27,7 +28,7 @@ export function detailMarkup(d,settings){
  const retired=d.rootCause.categoryId&&!settings.categories.some(c=>c.id===d.rootCause.categoryId)?`<option value="${text(d.rootCause.categoryId)}" selected>${text(d.rootCause.categoryLabel)} (removed; choose a current category)</option>`:'';
  const categories=retired+settings.categories.map(c=>`<option value="${text(c.id)}"${d.rootCause.categoryId===c.id?' selected':''}>${text(c.label)}</option>`).join('');
  return `<p>Confirmed ${text(at(d.startedAt))} · ${d.machineState==='recovered'?`Recovered ${text(at(d.endedAt))}`:'Monitoring incident remains open'}</p><p>${text(d.trigger.explanation)}</p>
- <section><h3>Follow-up</h3><dl class="ui-dl"><div><dt>Response state</dt><dd>${text(d.status)}</dd></div><div><dt>Owner</dt><dd>${text(d.owner?.displayName??'Unassigned')}</dd></div><div><dt>Next scheduled follow-up</dt><dd>${text(d.nextDue===null?d.nextDueReason:(d.nextDueKind==='reminder'?'Reminder · ':'Notification · ')+at(d.nextDue))}</dd></div>${d.stopReason?`<div><dt>Stopped by</dt><dd>${text(d.stopReason.replaceAll('_',' '))}</dd></div>`:''}</dl>
+ <section><h3>Follow-up</h3><dl class="ui-dl"><div><dt>Response state</dt><dd>${text(d.status)}</dd></div><div><dt>Owner</dt><dd>${text(d.owner?.displayName??'Unassigned')}</dd></div><div><dt>Next scheduled follow-up</dt><dd>${text(d.nextDue===null?d.nextDueReason:(d.nextDueKind==='reminder'?'Reminder · ':d.nextDueKind==='escalation'?'Escalation · ':'Notification · ')+at(d.nextDue))}</dd></div>${d.stopReason?`<div><dt>Stopped by</dt><dd>${text(d.stopReason.replaceAll('_',' '))}</dd></div>`:''}</dl>
  ${d.capabilities.assignment?'<form data-assignment>':'<form data-assignment hidden>'}<label>Incident owner<select name="ownerId"><option value="">Unassigned</option>${d.assignmentMembers.map(m=>`<option value="${text(m.id)}"${d.owner?.id===m.id?' selected':''}>${text(m.displayName)}</option>`).join('')}</select></label><button>Assign owner</button></form>
  <div class="incident-actions"><button${d.capabilities.scheduledFollowup?'':' hidden'} type="button" data-incident-action="acknowledge"${d.status!=='open'?' disabled':''}>Acknowledge</button><button${d.capabilities.scheduledFollowup?'':' hidden'} type="button" data-incident-action="stop"${d.stopReason?' disabled':''}>Stop follow-up</button><button${d.capabilities.scheduledFollowup?'':' hidden'} type="button" data-incident-action="resolve"${d.status==='resolved'?' disabled':''}>Resolve response</button><button type="button" data-incident-export>Download incident JSON</button></div><p>Response actions record your team’s work. Scheduled evidence alone determines monitor health and recovery.</p></section>
  ${dependencySections(d)}
