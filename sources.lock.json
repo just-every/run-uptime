@@ -2755,7 +2755,7 @@
       "executable": false
     },
     "public/monitor-status-line.js": {
-      "sha256": "edfde431943f979ef4bc4c728d787655b8115262036272977caf38941c486331",
+      "sha256": "f5387866a1f2783f1d64002a5d2934a1b97b8c8a7435e55f472278e419904e8e",
       "executable": false
     },
     "public/monitor-status.js": {

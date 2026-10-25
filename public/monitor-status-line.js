@@ -45,9 +45,18 @@ export function statusCard(m,{readUnavailable,data,seen}){
   +held.map(([key,html])=>`<p class="status-held" data-key="held-${key}">${html}</p>`).join('')+told+'</section>';
 }
 // Where focus goes once a card action is done and its button has gone: the "Acknowledged" that replaced Acknowledge, else
-// the status sentence (the console puts focus back itself when the pressed control is still there).
+// the status sentence (the console puts focus back itself when the pressed control is still there). The replacing text can
+// come a read later than the action (an acknowledged Slow notice arrives with the page's next Slow read), so it is waited
+// for, up to five seconds, and focused once it is there and focus has dropped to the page.
 function settle(root,{to}){
- requestAnimationFrame(()=>{if(root.isConnected&&(document.activeElement===document.body||!document.activeElement))(root.querySelector(to)??root.querySelector('#monitor-status'))?.focus({preventScroll:true})});
+ const until=Date.now()+5000;
+ const tick=()=>{
+  if(!root.isConnected)return;
+  const lost=!document.activeElement||document.activeElement===document.body,target=root.querySelector(to);
+  if(target){if(lost)target.focus({preventScroll:true});return}
+  if(Date.now()<until)setTimeout(tick,100);else if(lost)root.querySelector('#monitor-status')?.focus({preventScroll:true});
+ };
+ requestAnimationFrame(tick);
 }
 // The card's own actions: End now for the quick quiet-alerts maintenance, acknowledging an open Slow notice, and Retry for a
 // read that failed.
