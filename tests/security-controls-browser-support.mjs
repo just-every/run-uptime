@@ -25,6 +25,7 @@ export async function proveSecurityControls(){
    await page.goto(origin+'/app/settings');const panel=page.locator('#security-controls');await panel.locator('[data-factor-state]').getByText(/Second factors: 0/).waitFor();
    const shot=async(gap,step)=>{if(process.env.UPTIME_SCREENSHOTS){const out=join(process.env.UPTIME_SCREENSHOTS,gap);await mkdir(out,{recursive:true});await page.screenshot({path:join(out,step+'-'+width+'.png'),mask:[panel.locator('[data-totp-secret]')]})}};
    assert.equal(await panel.getByText('Verify a second factor',{exact:true}).isVisible(),false);assert.equal(await panel.getByRole('button',{name:'Replace recovery codes',exact:true}).isVisible(),false);
+   await panel.getByText('Manage second factors',{exact:true}).click();await shot('G1','factorless-owner');
    const enroll=async()=>{
     const manage=panel.getByText('Manage second factors',{exact:true});if(!await manage.evaluate(e=>e.parentElement.open))await manage.click();
     await panel.getByRole('button',{name:'Enroll authenticator',exact:true}).click();const secret=await panel.locator('[data-totp-secret]').textContent();assert.ok(secret);
@@ -32,7 +33,7 @@ export async function proveSecurityControls(){
     const recovery=(await panel.locator('[data-secret-once] pre').textContent()).split('\n');assert.equal(new Set(recovery).size,10);await panel.getByRole('button',{name:'I saved this',exact:true}).click();assert.equal(await panel.locator('[data-totp-secret]').count(),0);assert.ok(!await panel.textContent().then(text=>text.includes(secret)||recovery.some(code=>text.includes(code))));return {secret,recovery};
    };
    const owner=await enroll();await panel.getByRole('button',{name:'Enroll passkey',exact:true}).click();await panel.getByText('Passkey enrolled.',{exact:true}).waitFor();
-   const state=await(await call('/api/access/mfa/status',undefined,{cookie})).json();assert.deepEqual(state.factors.map(f=>f.kind).sort(),['totp','webauthn']);
+   const state=await(await call('/api/access/mfa/status',undefined,{cookie})).json();assert.deepEqual(state.factors.map(f=>f.kind).sort(),['totp','webauthn']);assert.equal(state.passkeysAvailable,true);await shot('G1','allowed-passkeys');
    await DB.prepare('UPDATE uptime_mfa_proofs SET verified_at=?').bind(Date.now()-300001).run();
    const denied=await call('/api/access/mfa/policy',{required:true},{cookie});assert.equal(denied.status,403);const reason=(await denied.json()).error;
    await panel.getByLabel('Require second factors for all members',{exact:true}).check();await panel.getByRole('button',{name:'Save factor policy',exact:true}).click();await panel.getByText(reason,{exact:true}).waitFor();

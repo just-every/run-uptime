@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
+import {mkdir} from 'node:fs/promises';
 import {join} from 'node:path';
 export async function proveReportScheduleControls({page,origin,monitor,destination,width,out}){
+ const created=await page.request.post(origin+'/api/monitors',{headers:{origin},data:{name:'synthetic-uptime-'+(width+940),url:'https://example.org/',enabled:false,service:'synthetic-uptime-940'}});assert.equal(created.status(),201);const withService=await created.json();await page.reload();
  const panel=page.locator('#report-schedule-controls');await panel.getByText('Schedule a report',{exact:true}).click();
- const form=panel.locator('form');assert.equal(await form.locator('[data-report-service]').isVisible(),false);await form.getByLabel('Monitor',{exact:true}).selectOption(monitor.id);await form.getByLabel('Destination',{exact:true}).selectOption(destination.id);
+ const form=panel.locator('form');await form.getByLabel('Monitor',{exact:true}).selectOption(withService.id);const serviceChoice=form.getByLabel('Include all of synthetic-uptime-940',{exact:true});await serviceChoice.waitFor();await serviceChoice.check();await mkdir(join(out,'G4'),{recursive:true});await panel.screenshot({path:join(out,'G4','service-choice-'+width+'.png')});await form.getByLabel('Monitor',{exact:true}).selectOption(monitor.id);assert.equal(await form.locator('[data-report-service]').isVisible(),false);assert.equal(await form.locator('[name=aggregate]').isChecked(),false);await panel.screenshot({path:join(out,'G4','serviceless-choice-'+width+'.png')});await form.getByLabel('Destination',{exact:true}).selectOption(destination.id);
  const local=new Date(Date.now()+600000);local.setMinutes(local.getMinutes()-local.getTimezoneOffset());const due=local.toISOString().slice(0,16);
  await form.getByLabel('Send at (local time)',{exact:true}).fill(due);await form.getByLabel('Report time zone',{exact:true}).fill('America/New_York');
  await page.waitForTimeout(5500);assert.equal(await form.getByLabel('Report time zone',{exact:true}).inputValue(),'America/New_York','polling retains schedule draft');

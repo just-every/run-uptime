@@ -7151,7 +7151,7 @@
       "executable": false
     },
     "tests/access-member-controls-browser-support.mjs": {
-      "sha256": "5b4889de63037b9da178fa4d9095faf1eaaf864ed22ee071c06eaa3b37667501",
+      "sha256": "2de99057f9a6e782b8f0e34f92923a084b8dff48669ef3ac47671d492c77a741",
       "executable": false
     },
     "tests/access-scope-support.mjs": {
@@ -7475,7 +7475,7 @@
       "executable": false
     },
     "tests/incident-correlation-browser-support.mjs": {
-      "sha256": "3723448bb843ff3f56a66b3b86e370521ad63912e0441e26e799a76a85931764",
+      "sha256": "9d0a2c3859f577821ebbab6c10d8b3f40c19d1497e01cb2e8a6df8168dc0a0e9",
       "executable": false
     },
     "tests/incident-correlation-support.mjs": {
@@ -7775,7 +7775,7 @@
       "executable": false
     },
     "tests/report-schedule-controls-browser-support.mjs": {
-      "sha256": "eede49edc5a51a7f21af736c74e5e055b0267f723fe6177f4a8f094543e42564",
+      "sha256": "59d76e483576d6d8aeb5a210b752b1b420bcf0a8397527c0b90bf7479b810768",
       "executable": false
     },
     "tests/report-schedules-support.mjs": {
@@ -7835,7 +7835,7 @@
       "executable": false
     },
     "tests/security-controls-browser-support.mjs": {
-      "sha256": "ea83c2a5a559a06aa185ce95a8629a69ed8601595f5c969f53a4394e080ad17e",
+      "sha256": "c23cf14d8ca4c26f13d51df2cf4152eae089e06b70688a7a16068a7c756cef22",
       "executable": false
     },
     "tests/service-catalog-fixture.mjs": {
