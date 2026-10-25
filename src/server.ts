@@ -157,6 +157,7 @@ api.post('/api/access/invitations',c=>accessMembers(c.env,c.req.raw,c.get('input
 api.post('/api/access/members/:id',c=>accessMembers(c.env,c.req.raw,c.get('input')))
 api.delete('/api/access/members/:id',c=>accessMembers(c.env,c.req.raw))
 api.post('/api/auth/sign-out',async c=>{try{const result=await signOut(c.env,c.req.raw);c.header('set-cookie',result.cookie);return c.json({signedOut:true})}catch(error){return authFailure(error)}})
+api.get('/api/credentials/:id/jobs',c=>credentialKeys(c.get('systemBindings'),c.req.raw))
 api.get('/api/credentials',c=>credentialKeys(c.get('systemBindings'),c.req.raw))
 api.post('/api/credentials',c=>credentialKeys(c.get('systemBindings'),c.req.raw,c.get('input')))
 api.delete('/api/credentials/:id',c=>credentialKeys(c.get('systemBindings'),c.req.raw))

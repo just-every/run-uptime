@@ -10,7 +10,8 @@ export async function main(argv=process.argv.slice(2),env=process.env,fetcher=fe
  let method='GET',path='/api/credentials';
  if(command==='create'){method='POST';if(!input||typeof input!=='object'||Array.isArray(input))throw new KeyCommandError('Supply the key specification JSON on standard input')}
  else if(command==='revoke'){method='DELETE';if(!flags.id)throw new KeyCommandError('Use --id with the credential ID');path+='/'+encodeURIComponent(flags.id)}
- else if(command!=='list')throw new KeyCommandError('Use list, create or revoke');
+ else if(command==='jobs'){if(!flags.id)throw new KeyCommandError('Use --id with the credential ID');path+='/'+encodeURIComponent(flags.id)+'/jobs'}
+ else if(command!=='list')throw new KeyCommandError('Use list, create, revoke or jobs');
  const response=await fetcher(origin+path,{method,redirect:'manual',headers:{origin,cookie,'content-type':'application/json'},...(command==='create'?{body:JSON.stringify(input)}:{})});
  if(!response.ok)throw new KeyCommandError(`Credential operation refused (HTTP ${response.status})`);return response.json();
 }

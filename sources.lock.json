@@ -2475,7 +2475,7 @@
       "executable": false
     },
     "public/assets/access-member-controls.js": {
-      "sha256": "7cb10f9fc651704a81cdf106c99917f43483847473bd27f35bbf7c335e727417",
+      "sha256": "0784c12f55ad5fe2c14bb76316c0965bb5ba3c07e7014e735799a6305716c9f2",
       "executable": false
     },
     "public/assets/alert-route-fallback.css": {
@@ -2508,6 +2508,14 @@
     },
     "public/assets/report-schedule-controls.js": {
       "sha256": "3867de097701093fd97685820331717527b2d5f226ccb60a28943ef1fe58ae4c",
+      "executable": false
+    },
+    "public/assets/security-controls.css": {
+      "sha256": "70903ecf0c08229f6d54331a7a96f1e9e11854e3806ea8da2eb4e1f3dd9dd17c",
+      "executable": false
+    },
+    "public/assets/security-controls.js": {
+      "sha256": "b35a86f6ac1223d2069272b19e842aa28ce6a1b4a8a569b9430dea26f8d0d472",
       "executable": false
     },
     "public/assets/setup.js": {
@@ -3295,7 +3303,7 @@
       "executable": false
     },
     "scripts/api-keys.mjs": {
-      "sha256": "f6f6299359608576ab5b99692677aa653cdab8dce677b5c61f1adcebfa8d30e4",
+      "sha256": "c89a6676286226e15e2fe0245050a6d0327f79b1cc3d2b0344921ee70faf9424",
       "executable": false
     },
     "scripts/build-delivery-artifact.mjs": {
@@ -5707,7 +5715,7 @@
       "executable": false
     },
     "src/domain/credentials/store.server.ts": {
-      "sha256": "b6f25f4d5cfb5a100cc9ee40183ca0318763f707e85d2dabb6948ba6346a5a48",
+      "sha256": "72b9e4151688fee8eacd58eaa3e019b408b28d90d4e62ab196d02a8d9ba60373",
       "executable": false
     },
     "src/domain/cron-run.server.ts": {
@@ -6411,7 +6419,7 @@
       "executable": false
     },
     "src/domain/request-boundary.ts": {
-      "sha256": "c8efd06a3bd721d9ad9666cb96f7fb87b0181398018abc0edfe0902e417f843a",
+      "sha256": "4c32e4923ef08222e802048de579735de90ad4858cfaf7667f0dd8a06bb149cd",
       "executable": false
     },
     "src/domain/rer-cutover-status.server.ts": {
@@ -6783,7 +6791,7 @@
       "executable": false
     },
     "src/server.ts": {
-      "sha256": "2072160c4611b29fa7cc3562a7d79baf5679dba77d7deea0b8be797d65ba72c9",
+      "sha256": "02f454d02d119a488f610ae964055a6ffa8dd18f6801ddb7655d1d0d230b497e",
       "executable": false
     },
     "src/site/docs/build/manifest.ts": {

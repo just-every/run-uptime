@@ -17,6 +17,7 @@ export const apiRoutes:readonly Route[]=[
  {method:'POST',path:'/api/routing/named-routes',body:'object'},
  ...['preview','apply','undo'].map(action=>({method:'POST',path:'/api/catalog/routes/'+action,body:'object' as const})),
  {method:'GET',path:'/api/credentials',body:'none'},
+ {method:'GET',path:'/api/credentials/:id/jobs',params:id,body:'none'},
  {method:'POST',path:'/api/credentials',body:'object'},
  {method:'DELETE',path:'/api/credentials/:id',params:id,body:'none'},
  ...['teams','recipient'].flatMap(part=>[{method:'GET',path:'/api/routing/'+part,body:'none' as const},{method:'POST',path:'/api/routing/'+part,body:'object' as const}]),

@@ -15,6 +15,12 @@ function resources(input:any):Resources{
 export async function credentialKeys(system:Bindings,request:Request,input?:any){
  const access=await permission(system,request,input);if(access.role!=='owner')throw new AccessError()
  const env={...system,DB:authorizedDatabase(system,access)},path=new URL(request.url).pathname
+ if(request.method==='GET'&&path.endsWith('/jobs')){
+  const id=decodeURIComponent(path.split('/').at(-2)!),key=await env.DB.prepare('SELECT g.issuer_id,t.revoked_at FROM uptime_credential_grants g JOIN integration_tokens t ON t.namespace=g.namespace WHERE g.id=?').bind(id).first<any>()
+  if(!key)throw new CredentialError(404,'Key not found')
+  const jobs=(await env.DB.prepare(`SELECT p.id,j.principal_id,j.state,j.checkpoint,j.total FROM ik_door_plans p JOIN ik_jobs j ON j.id=p.job_id WHERE p.namespace=? ORDER BY p.id`).bind('uptime.monitors:'+id).all<any>()).results
+  return Response.json(jobs.map(job=>({id:job.id,initiatingOwnerId:job.principal_id,executionState:job.state,state:key.revoked_at&&job.checkpoint<job.total?'stopped':job.state,authorizedOperations:job.checkpoint,total:job.total,nextOperation:key.revoked_at?'refused':job.checkpoint<job.total?'authorized':'complete',stopReason:key.revoked_at&&job.checkpoint<job.total?'credential_revoked':null,stoppedAt:key.revoked_at&&job.checkpoint<job.total?key.revoked_at:null})))
+ }
  if(request.method==='POST'){
   await requireFreshSecondFactor(system,request);access.fresh=true
   if(!input||Object.keys(input).some(k=>!['name','scopes','expiresAt','resources','environment'].includes(k))||typeof input.name!=='string'||!input.name.trim()||input.name.length>100||/[\x00-\x1f\x7f]/.test(input.name))throw new CredentialError(400,'Provide a printable credential name')

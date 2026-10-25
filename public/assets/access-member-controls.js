@@ -1,3 +1,4 @@
+import {securityControls} from './security-controls.js';
 import {firstMount} from '../dom-patch.js';
 let nextField=0;
 const roles=['admin','editor','responder','read-only'];
@@ -15,6 +16,7 @@ export function accessMemberControls(host,api){
  const showError=error=>{status.textContent=error.message||'This action was refused.'};
  async function load(){
   try{
+   const self=await api('/api/access/self');if(!['owner','admin'].includes(self.role)){status.textContent='An owner or administrator manages members.';return}
    const members=await api('/api/access/members');if(!host.isConnected)return;list.replaceChildren();
    for(const member of members){
     const row=document.createElement('details'),summary=document.createElement('summary'),form=document.createElement('form');row.dataset.memberId=member.id;summary.textContent=`${member.displayName} · ${member.email} · ${member.productRole??'Unassigned'} · ${member.status}`;row.append(summary,form);fields(form,member);
@@ -26,5 +28,6 @@ export function accessMemberControls(host,api){
   }catch(error){showError(error)}
  }
  invite.onsubmit=async event=>{event.preventDefault();inviteButton.disabled=true;try{await api('/api/access/invitations','POST',{email:invite.elements.email.value,displayName:invite.elements.displayName.value,role:invite.elements.role.value,scopes:scopes(invite),returnTo:'/app'});status.textContent='Invitation sent. The member can accept the emailed link.';await load()}catch(error){showError(error)}finally{inviteButton.disabled=false}};
+ const security=document.createElement('section');security.id='security-controls';host.append(security);securityControls(security,api);
  void load();
 }
