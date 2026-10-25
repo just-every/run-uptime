@@ -1,3 +1,4 @@
+import {proveRecurringReports} from './report-recurrences-support.mjs';
 import assert from 'node:assert/strict';
 import {proveScheduledReports} from './report-schedules-support.mjs';
 import {PDFDocument} from 'pdf-lib';
@@ -164,6 +165,7 @@ try{
  const causePage=await incidentPage({rootCause:'hosting-provider'});assert.equal(causePage.items[0].id,'outage:trigger');assert.equal(causePage.nextCursor,null);
  assert.equal((await fetch(origin+'/api/v1/incidents?limit=101',{headers:{cookie}})).status,400);
  worker=await proveScheduledReports({worker,persist,origin,cookie,id,params,report});
+ await proveRecurringReports();
  console.log('REPORT-001 / READAPI-001 passed: owner period reports, full immutable coverage and incident overlap, SLA denominator, exact CSV/API/console figures, location latency percentiles at every resolution, Chicago DST validation, and oversized raw-series refusal.');
 }finally{
  await worker?.dispose();

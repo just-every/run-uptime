@@ -7770,6 +7770,10 @@
       "sha256": "c2412c06ea533e2e4f3ca92eb6bb3dcb73938a8bcd7d4488a1ac5432d9758c39",
       "executable": false
     },
+    "tests/report-recurrences-support.mjs": {
+      "sha256": "84fdb9ab92efd5def11b02fc95fe0f4d1d4233953b0cb334981ecf6c5eea327d",
+      "executable": false
+    },
     "tests/report-schedule-controls-browser-support.mjs": {
       "sha256": "541c54ddb8095aac7a433e72b42a24f35c1340190cfe1a864fb92ac436a8df0e",
       "executable": false
@@ -7783,7 +7787,7 @@
       "executable": false
     },
     "tests/reporting.mjs": {
-      "sha256": "0b992b1ef747e3dd6f4dd7180543298280ea683b273edb9960583066b51eb522",
+      "sha256": "e9b7c220e815a8147a5671ab61c9727e91d6548ba3b11bd43bd1b27deb0a0686",
       "executable": false
     },
     "tests/resilience/attempts.mjs": {
