@@ -15,10 +15,10 @@ export async function proveMemberControls({origin,cookie,accept,call,DB}){
    const denied=page.waitForResponse(r=>r.url().endsWith(`/api/access/members/${self.id}`)&&r.request().method()==='POST');await own.getByRole('button',{name:'Save assignment',exact:true}).click();assert.equal((await denied).status(),409);
    await panel.getByRole('status').filter({hasText:'Another administrator'}).waitFor();assert.equal((await call(`/api/access/members/${self.id}`,{role:'admin',scopes:[]},{cookie})).status,409,'same self-assignment refused at direct route');
    await own.locator('summary').click();
-   let reader;
+   let reader,fixtureNumber=width===1440?100:200;
    for(const role of ['admin','editor','responder','read-only']){
-    const email=`synthetic-uptime-ui-${role}-${width}@example.test`;
-    await invite.getByLabel('Name',{exact:true}).fill(`synthetic-uptime-${role}-${width}`);await invite.getByLabel('Email',{exact:true}).fill(email);await invite.getByLabel('Role',{exact:true}).selectOption(role);
+    const fixtureName=`synthetic-uptime-${++fixtureNumber}`,email=fixtureName+'@example.test';
+    await invite.getByLabel('Name',{exact:true}).fill(fixtureName);await invite.getByLabel('Email',{exact:true}).fill(email);await invite.getByLabel('Role',{exact:true}).selectOption(role);
     const sent=page.waitForResponse(r=>r.url().endsWith('/api/access/invitations')&&r.request().method()==='POST');await invite.getByRole('button',{name:'Send invitation',exact:true}).click();assert.equal((await sent).status(),202);
     await panel.getByRole('status').filter({hasText:'Invitation sent.'}).waitFor();const person=await accept(email);
     const self=await call('/api/access/self',undefined,{cookie:person.cookie});assert.equal((await self.json()).role,role);
