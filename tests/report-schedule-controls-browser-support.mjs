@@ -6,7 +6,7 @@ export async function proveReportScheduleControls({page,origin,monitor,destinati
  const local=new Date(Date.now()+600000);local.setMinutes(local.getMinutes()-local.getTimezoneOffset());const due=local.toISOString().slice(0,16);
  await form.getByLabel('Send at (local time)',{exact:true}).fill(due);await form.getByLabel('Report time zone',{exact:true}).fill('America/New_York');
  await page.waitForTimeout(5500);assert.equal(await form.getByLabel('Report time zone',{exact:true}).inputValue(),'America/New_York','polling retains schedule draft');
- await panel.screenshot({path:join(out,`schedule-form-${width}.png`)});
+ await panel.screenshot({path:join(out,`report-schedule-form-${width}.png`)});
  await form.getByRole('button',{name:'Schedule report',exact:true}).click();await panel.getByRole('status').filter({hasText:'Report scheduled.'}).waitFor();
  const schedules=await(await page.request.get(origin+`/api/monitors/${monitor.id}/report-schedules`)).json();const saved=schedules.find(s=>s.dueAt===new Date(due).getTime());assert.ok(saved);assert.equal(saved.state,'queued');
  await panel.getByRole('button',{name:'Cancel scheduled report',exact:true}).click();await panel.getByRole('status').filter({hasText:'Report cancelled.'}).waitFor();

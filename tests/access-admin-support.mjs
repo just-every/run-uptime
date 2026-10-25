@@ -82,5 +82,5 @@ export async function proveMemberLifecycle({origin,call,fetcher,DB,cookie,member
  const audits=(await DB.prepare("SELECT actor_kind,actor_ref,action,subject_ref FROM uptime_audit WHERE action LIKE 'access_%'").all()).results;
  for(const [person,action] of [[editor,'access_check_write'],[editor,'access_route_write'],[responder,'access_maintenance_write'],[admin,'access_secret_write'],[admin,'access_export']])assert.ok(audits.some(a=>a.actor_kind==='operator'&&a.actor_ref===person.id&&a.action===action),action+' retains its live actor');
  assert.ok(!JSON.stringify(audits).includes('synthetic-uptime-contact@example.test'),'permission audit contains no request values');
- console.log('ACCESS-001 lifecycle/API/CLI: live owner/admin/editor/responder/read-only, invitations, assignment/removal, role actions/refusals, scope boundaries, stale/forged authority and opaque mutation/export audit. Member/scope/key UI, delegated issuance and general background stop-state presentation remain gaps.');
+ console.log('ACCESS-001 lifecycle/API/CLI: live owner/admin/editor/responder/read-only, invitations, assignment/removal, role actions/refusals, scope boundaries, stale/forged authority and opaque mutation/export audit. Key-management UI, broader refusal coverage, delegated issuance and token-job durable stop presentation remain gaps.');
 }
