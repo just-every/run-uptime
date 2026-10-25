@@ -2751,7 +2751,7 @@
       "executable": false
     },
     "public/notifications.js": {
-      "sha256": "0f6a87e8a5f94d7449dbab8da6dbdd15cdf3f6288e25f1bd0ced55e66e3f3d4b",
+      "sha256": "f9edb5580e456cb0000912f41707ad96c66e8741e303afd98d0918f4dce33989",
       "executable": false
     },
     "public/pagespeed-panel.js": {
@@ -2776,6 +2776,10 @@
     },
     "public/report-render.js": {
       "sha256": "d824b2f3ec31f451e6067d8b1edfafdc817f827517ee6a71675e6a0de8932e2c",
+      "executable": false
+    },
+    "public/report-schedule-controls.js": {
+      "sha256": "e30c9955ceee2d58fe9720b588cd4a17e041b4445c276fd67761ad955a564f95",
       "executable": false
     },
     "public/report.css": {
@@ -3611,7 +3615,7 @@
       "executable": false
     },
     "scripts/reports.mjs": {
-      "sha256": "67b82c8a33dd15667be515a65a866f42b733457cf8e5079f806f304b125736fc",
+      "sha256": "7352ec8c16d7b9dc24eda86f9a00afb75d5cc175852094e0f4e53cb9ac198a58",
       "executable": false
     },
     "scripts/routing.mjs": {
@@ -6387,7 +6391,7 @@
       "executable": false
     },
     "src/domain/reports/schedules.server.ts": {
-      "sha256": "27409be68294130a1f14746ab7f5b77e76bab592aff125e7a420094ef7ece32d",
+      "sha256": "d82ff80a653e7e9902782032ff4e98e143619ec04095eaa200ffcf7220631f3c",
       "executable": false
     },
     "src/domain/reports/slow.server.ts": {
@@ -6395,7 +6399,7 @@
       "executable": false
     },
     "src/domain/request-boundary.ts": {
-      "sha256": "2e200d854106b41d2e631f9024fc9c3031146e864569b712a7232939d981e5d3",
+      "sha256": "c8efd06a3bd721d9ad9666cb96f7fb87b0181398018abc0edfe0902e417f843a",
       "executable": false
     },
     "src/domain/rer-cutover-status.server.ts": {
@@ -6767,7 +6771,7 @@
       "executable": false
     },
     "src/server.ts": {
-      "sha256": "1f7f7c7ab8207d67d4a5991eaf0ff8cc8f0e738bc5b375c9e23710f34e3cd826",
+      "sha256": "2072160c4611b29fa7cc3562a7d79baf5679dba77d7deea0b8be797d65ba72c9",
       "executable": false
     },
     "src/site/docs/build/manifest.ts": {
@@ -7722,12 +7726,16 @@
       "sha256": "c2412c06ea533e2e4f3ca92eb6bb3dcb73938a8bcd7d4488a1ac5432d9758c39",
       "executable": false
     },
+    "tests/report-schedule-controls-browser-support.mjs": {
+      "sha256": "5869f1d94aa40b9ddf73f0cb1fb87584c1b97b6ea5ca82b8538b62dbec7d8fba",
+      "executable": false
+    },
     "tests/report-schedules-support.mjs": {
-      "sha256": "70bb698dfab413cf3b604c9c2bd7f89d89cdd75e4e34a6bebe54ba29ead380c8",
+      "sha256": "706e937da995438c5dbef84dac78a3a70561e835564b894e1c8a2d58e502b7c4",
       "executable": false
     },
     "tests/reporting-browser.mjs": {
-      "sha256": "7d4d9113c75007a70e2b707155e326a01b474c847b5a5d6f6291e56e244f5736",
+      "sha256": "a136fb3f8ea2c04bea84b4b476adb291e15dc8c6f4d000e789460f484b103942",
       "executable": false
     },
     "tests/reporting.mjs": {

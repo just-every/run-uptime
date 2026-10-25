@@ -1,3 +1,4 @@
+import {proveReportScheduleControls} from './report-schedule-controls-browser-support.mjs';
 import assert from 'node:assert/strict';
 import {mkdir,readFile,writeFile} from 'node:fs/promises';import {join,resolve} from 'node:path';
 import {chromium} from 'playwright';import {testAuthBindings,browserSignIn} from './auth-test-support.mjs';import {availablePorts,migratedWorker,runtimeDirectory,cleanupDirectory} from './notify-acceptance-runtime.mjs';
@@ -36,6 +37,7 @@ try{
   await page.addScriptTag({path:resolve('node_modules/axe-core/axe.min.js')});assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.map(v=>v.id),[]);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await failedDelivery.screenshot({path:join(out,`scheduled-report-failed-${width}.png`)});
 
 
+  await proveReportScheduleControls({page,origin,monitor,destination,width,out});
   console.log(`REPORT-001 browser ${width}: all ${total} receipt records paged, focus and snapshot retained, escaped/masked output, PDF/JSON downloaded, axe/reflow passed.`);
  }
 }finally{await browser?.close();await worker?.dispose();await cleanupDirectory(dir)}

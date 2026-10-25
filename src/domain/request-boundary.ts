@@ -99,6 +99,7 @@ export const apiRoutes:readonly Route[]=[
  {method:'POST',path:'/api/monitors/:id/report-schedules',params:id,body:'object'},
  {method:'GET',path:'/api/monitors/:id/report-schedules',params:id,body:'none'},
  {method:'GET',path:'/api/monitors/:id/report-schedules/:scheduleId',params:{...id,scheduleId:uuid},body:'none'},
+ {method:'DELETE',path:'/api/monitors/:id/report-schedules/:scheduleId',params:{...id,scheduleId:uuid},body:'none'},
  {method:'POST',path:'/api/discoveries',body:'object'},
  {method:'GET',path:'/api/service-catalog',query:{q:value=>value.length<=100&&!/[\x00-\x1f\x7f]/.test(value)},body:'none'},
  {method:'POST',path:'/api/service-catalog/checks',body:'object'},

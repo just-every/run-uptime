@@ -22,6 +22,10 @@ export async function proveScheduledReports({worker,persist,origin,cookie,id,par
    const refused=await fetch(origin+`/api/monitors/${id}/report-schedules`,{method:'POST',headers:{cookie,origin,'content-type':'application/json'},body:JSON.stringify({destinationId,dueAt:Date.now()+10000,period:Object.fromEntries(params)})});assert.equal(refused.status,400,'unavailable or disabled recipient cannot receive a report');
   }
   assert.equal((await database.prepare('SELECT COUNT(*) n FROM notification_jobs').first()).n,queuedBefore,'refused recipient schedules no delivery');assert.equal((await database.prepare('SELECT COUNT(*) n FROM scheduled_reports').first()).n,0);
+  const cancelled=await call(`/api/monitors/${id}/report-schedules`,'POST',{dueAt:Date.now()+60000,destinationId:email.id,period:Object.fromEntries(params)});
+  const stopped=await reportsCommand(['cancel','--origin',origin,'--monitor',id,'--id',cancelled.id],{UPTIME_REPORT_COOKIE:cookie});
+  assert.equal(stopped.code,'report_cancelled');assert.equal(stopped.state,'rejected');assert.equal(stopped.attempts,0);
+  assert.deepEqual(await reportsCommand(['cancel','--origin',origin,'--monitor',id,'--id',cancelled.id],{UPTIME_REPORT_COOKIE:cookie}),stopped,'cancellation is idempotent');
   const dueAt=Date.now()+4000,input=join(persist,'report-schedule.json');await writeFile(input,JSON.stringify({dueAt,destinationId:email.id,period:Object.fromEntries(params)}));
   const scheduled=await reportsCommand(['schedule','--origin',origin,'--monitor',id,'--input',input],{UPTIME_REPORT_COOKIE:cookie});
   const slackReport=await call(`/api/monitors/${id}/report-schedules`,'POST',{dueAt,destinationId:destination.id,period:Object.fromEntries(params)});
@@ -37,8 +41,9 @@ export async function proveScheduledReports({worker,persist,origin,cookie,id,par
   assert.equal(submitted.length,1);assert.equal(slack.length,1);assert.match(submitted[0].subject,/Scheduled report/);
   assert.ok(JSON.stringify(slack[0]).includes('uptimePercent'),'Slack uses the same retained report figures');
   const list=()=>reportsCommand(['list','--origin',origin,'--monitor',id],{UPTIME_REPORT_COOKIE:cookie});
-  const before=await list();assert.ok(before.every(run=>!Object.hasOwn(run,'report')),'bounded list returns metadata, with snapshots available by identity');assert.equal(before.find(r=>r.id===scheduled.id).state,'uncertain','lost/5xx email response remains uncertain');assert.equal(before.find(r=>r.id===slackReport.id).state,'rejected','Slack 4xx remains failed');
+  const before=await list();assert.equal(before.find(r=>r.id===cancelled.id).code,'report_cancelled');assert.ok(before.every(run=>!Object.hasOwn(run,'report')),'bounded list returns metadata, with snapshots available by identity');assert.equal(before.find(r=>r.id===scheduled.id).state,'uncertain','lost/5xx email response remains uncertain');assert.equal(before.find(r=>r.id===slackReport.id).state,'rejected','Slack 4xx remains failed');
   await restart();await dispatchNotifications(rpc,transport);await dispatchNotifications(rpc,transport);const retained=await reportsCommand(['show','--origin',origin,'--monitor',id,'--id',scheduled.id],{UPTIME_REPORT_COOKIE:cookie});assert.deepEqual(retained.report,scheduled.report,'immutable snapshot survives restart through its own read door');assert.deepEqual(await list(),before,'delivery failure and snapshot survive restart');assert.equal(submitted.length,1,'uncertain email never replays');assert.equal(slack.length,1,'failed Slack never replays');
+  assert.equal((await reportsCommand(['show','--origin',origin,'--monitor',id,'--id',cancelled.id],{UPTIME_REPORT_COOKIE:cookie})).code,'report_cancelled','cancellation survives restart');
   console.log('REPORT-001 scheduled API/CLI PASS: same period/zone/denominator figures, authorized email/Slack, due gating across restart, durable uncertain/failed outcomes and no duplicate sends.');
   return resumed;
  }catch(error){await resumed?.dispose();throw error}

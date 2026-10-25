@@ -1,4 +1,4 @@
-import {scheduleReport,readScheduledReport} from './domain/reports/schedules.server.ts'
+import {scheduleReport,readScheduledReport,cancelScheduledReport} from './domain/reports/schedules.server.ts'
 import {namedAlertRoutes,saveNamedAlertRoute} from './domain/alert-routes.server.ts'
 import {previewCatalogRoutes,applyCatalogRoutes,undoCatalogRoutes} from './domain/catalog/routes.server.ts'
 import {ciDoor} from './domain/ci/door.server.ts'
@@ -275,6 +275,7 @@ api.post('/api/runner/effect-spend',async c=>{const text=c.get('requestText');if
 api.post('/api/monitors/:id/report-schedules',async c=>c.json(await scheduleReport(c.env,c.req.param('id'),c.get('input'),(await authenticatedSession(c.env,c.req.raw))!.operator.id),201))
 api.get('/api/monitors/:id/report-schedules',async c=>c.json(await readScheduledReport(c.env,c.req.param('id'))))
 api.get('/api/monitors/:id/report-schedules/:scheduleId',async c=>{const report=await readScheduledReport(c.env,c.req.param('id'),c.req.param('scheduleId'));return report?c.json(report):c.json({error:'Report not found'},404)})
+api.delete('/api/monitors/:id/report-schedules/:scheduleId',async c=>c.json(await cancelScheduledReport(c.env,c.req.param('id'),c.req.param('scheduleId'))))
 api.post('/api/discoveries',async c=>c.json(await createDiscovery(c.env,c.get('requestText'),c.get('access')),201))
 api.get('/api/service-catalog',async c=>c.json(await catalogDocument(c.env,c.req.query('q')??'')))
 api.post('/api/service-catalog/checks',async c=>c.json(await createCatalogCheck(c.env,c.get('requestText')),201))

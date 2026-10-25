@@ -31,3 +31,17 @@ export async function readScheduledReport(env:Bindings,monitorId:string,id?:stri
  const result=rows.map(row=>({id:row.id,monitorId:row.monitor_id,destinationId:row.destination_id,ownerId:row.actor_id,dueAt:row.due_at,createdAt:row.created_at,deliveryId:row.delivery_id,state:row.state==='queued'?row.transport_state??row.state:row.state,code:row.transport_outcome?JSON.parse(row.transport_outcome).code:row.code,outcome:row.transport_outcome?((value:any)=>({kind:value.kind,code:value.code,...(value.status===undefined?{}:{status:value.status})}))(JSON.parse(row.transport_outcome)):null,attempts:row.attempts,finishedAt:row.finished_at,...(id?{report:JSON.parse(row.report)}:{})}))
  return id?result[0]??null:result
 }
+
+// Cancellation withdraws queued work atomically with its ordinary transport.
+// Once handed to a provider, the retained outcome cannot be recalled.
+export async function cancelScheduledReport(env:Bindings,monitorId:string,id:string){
+ const saved=await readScheduledReport(env,monitorId,id);if(!saved||Array.isArray(saved))throw fail('Report not found',404)
+ const now=Date.now()
+ await env.DB.batch([
+  env.DB.prepare("UPDATE notification_jobs SET state='rejected',code='report_cancelled',finished_at=? WHERE id=? AND state='queued' AND NOT EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace='uptime-notifications' AND d.id=notification_jobs.id AND (d.state<>'queued' OR d.attempts>0))").bind(now,saved.deliveryId),
+  env.DB.prepare("UPDATE integration_deliveries SET state='rejected',next_at=? WHERE namespace='uptime-notifications' AND id=? AND state='queued' AND EXISTS(SELECT 1 FROM notification_jobs j WHERE j.id=integration_deliveries.id AND j.code='report_cancelled')").bind(now,saved.deliveryId),
+ ])
+ const result=await readScheduledReport(env,monitorId,id)
+ if(!result||Array.isArray(result)||result.code!=='report_cancelled')throw fail('Report delivery has already started; its outcome is retained',409)
+ return result
+}
