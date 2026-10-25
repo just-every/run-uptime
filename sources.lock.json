@@ -7815,7 +7815,7 @@
       "executable": false
     },
     "tests/security-controls-browser-support.mjs": {
-      "sha256": "f1f874b53151cb9a1b81d0a3bb9b9c86d484e102b2ba752b134348eff03f04f8",
+      "sha256": "dbb90cc5293c1f333bacbf46284562b85df0e8e85f3f54c8d9fdf7f835144a9c",
       "executable": false
     },
     "tests/service-catalog-fixture.mjs": {

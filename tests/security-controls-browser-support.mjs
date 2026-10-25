@@ -1,3 +1,4 @@
+import {createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
 import {mkdtemp,mkdir,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
@@ -14,7 +15,7 @@ export async function proveSecurityControls(){
  for(const width of [1440,390]){
   const directory=await mkdtemp(join(tmpdir(),'uptime-security-console-')),origin='http://localhost:15503',bindings={...testAuthBindings,UPTIME_ORIGIN:origin};let worker,browser;
   try{
-   ({worker}=await migratedWorker({port:15503,persist:directory,bindings}));const DB=await worker.getD1Database('DB'),call=authRequest(origin);
+   ({worker}=await migratedWorker({port:15503,persist:directory,bindings}));let DB=await worker.getD1Database('DB');const call=authRequest(origin);
    const cookie=sessionCookie(await call('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'synthetic-uptime-601'}));
    assert.equal((await fetch(origin+'/setup',{method:'POST',redirect:'manual',headers:{origin,cookie}})).status,303);
    const monitorResponse=await call('/api/monitors',{name:'synthetic-uptime-602',url:'https://example.com/',enabled:false,tags:['synthetic-uptime-603']},{cookie});assert.equal(monitorResponse.status,201);const monitor=await monitorResponse.json();
@@ -47,6 +48,18 @@ export async function proveSecurityControls(){
    await row.getByRole('button',{name:'Revoke key',exact:true}).click();await panel.getByText('Key revoked. Further operations are refused.',{exact:true}).waitFor();assert.equal((await fetch(origin+'/api/v1/monitors/'+monitor.id,{headers:{authorization:'Bearer '+token}})).status,401);assert.match(await panel.locator(`[data-credential-id="${key.id}"]`).textContent(),/Revoked/);
    if(process.env.UPTIME_SCREENSHOTS){await mkdir(process.env.UPTIME_SCREENSHOTS,{recursive:true});await panel.screenshot({path:join(process.env.UPTIME_SCREENSHOTS,`security-keys-${width}.png`)})}
    await panel.getByLabel('Require second factors for all members',{exact:true}).uncheck();await panel.getByRole('button',{name:'Save factor policy',exact:true}).click();await panel.getByText('Factor policy saved.',{exact:true}).waitFor();
+   // The CI key created above starts a real 21-record definitions job. Revoke
+   // it after the native 20-record transaction, then inspect that exact job.
+   const ciCall=(path,body,source)=>fetch(origin+path,{method:'POST',headers:{origin,authorization:'Bearer '+ciToken,'content-type':'application/json','x-uptime-environment':'synthetic-uptime-607',...(source?{'x-import-source':source}:{})},body:typeof body==='string'?body:JSON.stringify(body)});
+   const document={format:'uptime.monitors',version:1,monitors:Array.from({length:21},(_,i)=>({name:`synthetic-uptime-${800+i}`,url:'https://example.com/',enabled:false,environment:'synthetic-uptime-607',tags:['synthetic-uptime-603']}))};
+   const recognised=await ciCall('/api/definitions/recognise',JSON.stringify(document));assert.equal(recognised.status,200);const source=await recognised.json(),bytes=Buffer.from(JSON.stringify(source.text)+'\n'),hash=value=>createHash('sha256').update(value).digest('hex');
+   const uploaded=await ciCall('/api/operator/import/uploads',{name:'definitions.ndjson',bundleSha256:hash(bytes),totalBytes:bytes.length,totalChunks:1,index:0,chunkSha256:hash(bytes),base64:bytes.toString('base64')},source.namespace);assert.equal(uploaded.status,200);const upload=await uploaded.json();
+   const planned=await ciCall('/api/operator/import/plan',{uploadId:upload.uploadId},source.namespace);assert.equal(planned.status,200);const plan=await planned.json(),applyBody={planId:plan.planId,reviewedFingerprint:plan.fingerprint};assert.equal((await ciCall('/api/operator/import/apply',applyBody,source.namespace)).status,200);
+   const ciKey=(await(await call('/api/credentials',undefined,{cookie})).json()).find(key=>key.name==='synthetic-uptime-606');let ciRow=panel.locator(`[data-credential-id="${ciKey.id}"]`);await ciRow.locator('summary').click();await ciRow.getByRole('button',{name:'Show definition jobs',exact:true}).click();await ciRow.getByText(/Authorized 20\/21/).waitFor();
+   await ciRow.getByRole('button',{name:'Revoke key',exact:true}).click();await panel.getByText('Key revoked. Further operations are refused.',{exact:true}).waitFor();await ciRow.locator('summary').click();await ciRow.getByRole('button',{name:'Show definition jobs',exact:true}).click();const jobText=ciRow.getByText(/credential_revoked/);await jobText.waitFor();const stoppedText=await jobText.textContent();assert.match(stoppedText,/stopped.*Authorized 20\/21.*Next operation: refused/);
+   assert.equal((await ciCall('/api/operator/import/apply',applyBody,source.namespace)).status,401);
+   await worker.dispose();({worker,DB}=await migratedWorker({port:15503,persist:directory,bindings}));await page.reload();ciRow=panel.locator(`[data-credential-id="${ciKey.id}"]`);await ciRow.locator('summary').click();await ciRow.getByRole('button',{name:'Show definition jobs',exact:true}).click();await ciRow.getByText(stoppedText,{exact:true}).waitFor();
+   if(process.env.UPTIME_SCREENSHOTS)await panel.screenshot({path:join(process.env.UPTIME_SCREENSHOTS,`security-job-stopped-${width}.png`)});
    const manage=panel.getByText('Manage second factors',{exact:true});if(!await manage.evaluate(e=>e.parentElement.open))await manage.click();const ownerFactor=panel.locator('[data-factors] p').filter({hasText:'Authenticator'});await ownerFactor.getByRole('button',{name:'Remove factor',exact:true}).click();await panel.getByText('Factor removed.',{exact:true}).waitFor();assert.equal((await(await call('/api/access/mfa/status',undefined,{cookie})).json()).factors.length,1);
    const member=await inviteDoorMember(origin,cookie,'responder',`uptime-${width+610}`);const [mn,...mv]=member.cookie.split('=');await context.addCookies([{name:mn,value:mv.join('='),url:origin}]);const memberFactor=await enroll();
    const before=(await DB.prepare('SELECT COUNT(*) n FROM uptime_credential_grants').first()).n;
