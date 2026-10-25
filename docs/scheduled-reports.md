@@ -1,5 +1,3 @@
-# Scheduled reports
-
 An owner schedules reports for an enabled email or Slack destination in Notifications. Choose one monitor or its named service. A one-time report freezes its figures when created. A recurring report freezes a new snapshot at each due instant. Delivery uses the existing mail/Slack transport; provider acknowledgment does not establish human receipt.
 
 `POST /api/monitors/:id/report-schedules` accepts `destinationId`, `dueAt` (epoch milliseconds within the next 31 days), and `period` (existing report query fields as strings). Add `service` with the selected monitor's current service name for an aggregate. Add `recurrence: {"frequency":"daily","timeZone":"America/New_York"}` for recurrence; `weekly` and `monthly` are also supported. Recurring periods use named periods such as `24h` or `last-month`, calculated at the due instant.
