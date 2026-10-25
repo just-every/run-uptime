@@ -5,7 +5,7 @@ import {chromium} from 'playwright';
 import {finishSetup} from './auth-test-support.mjs';
 
 // Invoked unconditionally by the existing browser-enabled contact-schedules journey.
-export async function proveOwnIncidentCorrelationConsole({f,monitors}){
+export async function proveOwnIncidentCorrelationConsole({f,monitors,link}){
  await finishSetup(f.origin,f.cookie);
  let browser;
  try{
@@ -23,7 +23,7 @@ export async function proveOwnIncidentCorrelationConsole({f,monitors}){
    await page.addScriptTag({path:new URL('../node_modules/axe-core/axe.min.js',import.meta.url).pathname});
    assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>n.target)})),[]);
    assert.ok(await dialog.evaluate(e=>e.scrollWidth<=e.clientWidth+1));assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
-   if(process.env.UPTIME_SCREENSHOTS){await mkdir(process.env.UPTIME_SCREENSHOTS,{recursive:true});await dialog.screenshot({path:join(process.env.UPTIME_SCREENSHOTS,`correlation-${width}.png`)})}
+   if(process.env.UPTIME_SCREENSHOTS){await mkdir(process.env.UPTIME_SCREENSHOTS,{recursive:true});await dialog.screenshot({path:join(process.env.UPTIME_SCREENSHOTS,`correlation-${link}-${width}.png`)})}
    await dialog.getByRole('button',{name:'Close incident notes',exact:true}).click();await dialog.waitFor({state:'detached'});
   }
  }finally{await browser?.close()}
