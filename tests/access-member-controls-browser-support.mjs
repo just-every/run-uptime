@@ -27,6 +27,7 @@ export async function proveMemberControls({origin,cookie,accept,call,DB}){
    // Reload reads the accepted Base lifecycle, then assign and narrow both scope kinds.
    await page.reload();const row=panel.locator(`[data-member-id="${reader.id}"]`);await row.locator('summary').click();
    const form=row.locator('form');await form.getByLabel('Service scope (blank = all)',{exact:true}).fill('synthetic-service-a');await form.getByLabel('Team scope (blank = all)',{exact:true}).fill('synthetic-team-a');
+   if(process.env.UPTIME_SCREENSHOTS){await mkdir(process.env.UPTIME_SCREENSHOTS,{recursive:true});await panel.screenshot({path:join(process.env.UPTIME_SCREENSHOTS,`member-scopes-${width}.png`)})}
    await form.getByRole('button',{name:'Save assignment',exact:true}).click();await panel.getByRole('status').filter({hasText:'Assignment saved.'}).waitFor();
    const narrowed=await call('/api/access/self',undefined,{cookie:reader.cookie});assert.deepEqual((await narrowed.json()).scopes,[{kind:'service',value:'synthetic-service-a'},{kind:'team',value:'synthetic-team-a'}]);
    await row.locator('summary').click();const before=(await DB.prepare('SELECT * FROM uptime_member_roles WHERE operator_id=?').bind(reader.id).first());
