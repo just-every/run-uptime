@@ -9,7 +9,7 @@ import {proveScopedAccess} from './access-scope-support.mjs';
 
 // Extend the existing access matrix, with real Base invitations and mail only
 // faked at the authorized provider edge. No extra registration or fake session.
-export async function proveMemberLifecycle({origin,call,fetcher,DB,cookie,memberCookie,hosted,mails}) {
+export async function proveMemberLifecycle({origin,call,fetcher,DB,cookie,memberCookie,hosted,mails,browserOnly=false}) {
  async function accept(email){
   const delivered=hosted?mails.findLast(m=>m.personalizations.some(p=>p.to.some(to=>to.email===email))): (await readDeliveredMessages()).findLast(m=>m.origin===origin&&m.message.personalizations.some(p=>p.to.some(to=>to.email===email)))?.message;
   assert.ok(delivered,'invitation reached the authorized mail edge');
@@ -29,7 +29,7 @@ export async function proveMemberLifecycle({origin,call,fetcher,DB,cookie,member
   assert.deepEqual(await response.json(),{id:person.id,role,scopes,revision:(await DB.prepare('SELECT revision FROM uptime_member_roles WHERE operator_id=?').bind(person.id).first()).revision});
   return person;
  }
- if(!hosted)await proveMemberControls({origin,cookie,accept,call,DB});
+ if(browserOnly){await proveMemberControls({origin,cookie,accept,call,DB});return}
  // The original Base admin invitation door remains public and authoritative.
  const email='synthetic-uptime-admin@example.test';
  assert.equal((await call('/auth/invite',{email,displayName:'Synthetic Uptime Admin',role:'admin'},{cookie})).status,202);

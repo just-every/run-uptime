@@ -56,6 +56,7 @@ try{
   }
   const revoked=await login();assert.equal((await call('/auth/signout',{}, {cookie:revoked})).status,204);
   const valid=await login();await finishSetup(origin,valid,fetcher);
+  if(!hosted)await proveMemberLifecycle({origin,call,fetcher,DB,cookie:valid,hosted,mails,browserOnly:true});
   assert.equal((await call('/api/monitors',{name:'Private access evidence',type:'heartbeat',canaryUrl:'https://canary.example.test/health',heartbeat:{maxAgeMs:60000}},{cookie:valid})).status,201);
   const before=await snapshot(DB);
   for(const [state,cookie] of [['missing',''],['expired',expired],['revoked',revoked]]){

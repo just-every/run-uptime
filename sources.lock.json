@@ -7103,7 +7103,7 @@
       "executable": false
     },
     "tests/access-admin-support.mjs": {
-      "sha256": "56cdf32ef03ff3413c97a21ff87cc7b7d5845c29a9eefdc67f97ac2e4594550f",
+      "sha256": "3f4e9592c7727223f3e1c648391ce79966d7dd9f8cf21400ce39c9aae68bde4e",
       "executable": false
     },
     "tests/access-discovery-job-support.mjs": {
@@ -7115,7 +7115,7 @@
       "executable": false
     },
     "tests/access-matrix.mjs": {
-      "sha256": "8bfe0c49e2cff071e65b35af04338997de36f340c4b5b54c0daee3cf306efff2",
+      "sha256": "3226e8db8c11d828a95cc3ea2e0a3408e1caf8b5ad85b36585a24369ed1ab7fa",
       "executable": false
     },
     "tests/access-member-controls-browser-support.mjs": {
