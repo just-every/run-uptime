@@ -273,13 +273,15 @@
 
 /* ---------------------------------------------------------------- folds */
 /* One card, no heading: each fold a title and its one-line summary over a hairline, its panel inside without a card of its
-   own. A panel whose heading repeats the fold's title keeps it for assistive technology only. */
+   own. A panel whose heading repeats the fold's title keeps it for assistive technology only. A panel's body is one track
+   no wider than the fold, so its own wide content (a failure snapshot's 42rem waterfall table, its replay video) scrolls or
+   scales in its own box and never widens the column or the page. */
 .monitor-page .folds-card { padding: 6px 22px; border-radius: 16px; }
 .monitor-page .fold + .fold { border-top: 1px solid var(--line); border-radius: 0; }
 .monitor-page .fold > summary { min-height: 48px; padding: 12px 0; gap: 12px; font-size: 15px; }
 .monitor-page .fold-title { flex: 1 1 auto; min-width: 0; color: var(--ink); font-weight: 650; }
 .monitor-page .fold-sum { flex: 0 1 auto; min-width: 0; color: var(--muted); font-size: 14px; font-weight: 500; text-align: right; overflow-wrap: break-word; }
-.monitor-page .fold-body { display: grid; gap: 16px; padding: 4px 0 18px; overflow-wrap: anywhere; }
+.monitor-page .fold-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 4px 0 18px; overflow-wrap: anywhere; }
 .monitor-page .fold-body:empty { display: none; }
 .monitor-page .fold-body > .panel { padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
 .monitor-page .fold-body > .panel > h2 { margin-bottom: 8px; font-size: 16px; }
