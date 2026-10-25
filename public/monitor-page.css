@@ -327,7 +327,7 @@
 @media (max-width: 700px) {
   .monitor-page :is(.state-text > .ui-link, .status-held .ui-link, .status-told .ui-link, .details-erase .ui-link) { min-height: 44px; }
   .monitor-page #add-notification { display: inline-flex; align-items: center; min-height: 44px; }
-  .monitor-page .rule-grid .col-pick { min-height: 44px; justify-content: center; }
+  .monitor-page .rule-grid .col-pick { min-width: 44px; min-height: 44px; justify-content: center; }
   .monitor-page details:is(.rule-edit, .num-edit) > summary { min-height: 44px; }
   .monitor-page .loc-pick > summary.loc-add, .monitor-page .add-rule > summary.ui-link, .monitor-page .all-checks > summary { min-height: 44px; }
   .monitor-page .all-checks > summary { top: 8px; }
