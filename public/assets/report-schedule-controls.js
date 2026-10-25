@@ -30,7 +30,7 @@ export function reportScheduleControls(host,{data,api}){
  form.querySelector('[data-preview-report]').onclick=async()=>{try{if(form.elements.frequency.value==='once')throw Error('Choose a recurring frequency to preview dates.');const result=await api(`/api/monitors/${encodeURIComponent(form.elements.monitor.value)}/report-schedules/preview`,'POST',{dueAt:new Date(form.elements.due.value).getTime(),recurrence:{frequency:form.elements.frequency.value,timeZone:form.elements.zone.value}});form.querySelector('[data-report-preview]').textContent=result.times.map(at=>new Date(at).toLocaleString('en-US',{timeZone:result.timeZone})).join(' · ')+' · '+result.timeZone}catch(error){status.textContent=error.message}};
  form.elements.monitor.onchange=()=>void load();
  form.onsubmit=async event=>{
-  event.preventDefault();const button=form.querySelector('button');button.disabled=true;
+  event.preventDefault();const button=form.querySelector('button.primary');button.disabled=true;
   try{await api(`/api/monitors/${encodeURIComponent(form.elements.monitor.value)}/report-schedules`,'POST',{destinationId:form.elements.destination.value,dueAt:new Date(form.elements.due.value).getTime(),period:{period:'24h',timeZone:form.elements.zone.value},...(form.elements.frequency.value!=='once'?{recurrence:{frequency:form.elements.frequency.value,timeZone:form.elements.zone.value}}:{}),...(form.elements.aggregate.checked?{service:data.monitors.find(m=>m.id===form.elements.monitor.value)?.definition.service??''}:{})});status.textContent='Report scheduled.';await load()}catch(error){status.textContent=error.message}finally{button.disabled=false}
  };
  void load();

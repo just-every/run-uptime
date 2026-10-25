@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import {writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {fixture} from './resilience/support.mjs';
+import {migratedWorker} from './notify-acceptance-runtime.mjs';
+import {signInOwner} from './auth-test-support.mjs';
 import {startLocalWorker} from './mail-provider-fixture.mjs';
 import {dispatchNotifications} from '../runners/src/notification-dispatch.mjs';
 import {main as reportsCommand} from '../scripts/reports.mjs';
@@ -14,7 +16,7 @@ import {completeSecondFactor} from './mfa-auth-support.mjs';
 // edges supply email 500 and Slack 400 outcomes.
 export async function proveRecurringReports(inspect=async()=>{}){
  const mail=[],slack=[];const outbound=async request=>{if(new URL(request.url).hostname==='api.sendgrid.com'){const body=await request.json();if(body.subject.startsWith('Scheduled report:')){mail.push(body);return new Response(null,{status:500})}return new Response(null,{status:202})}assert.match(new URL(request.url).hostname,/^(watch|heartbeat)\.example\.test$/);return new Response('',{status:200})};
- const f=await fixture({MAIL_PROVIDER:'sendgrid',MAIL_FROM:'synthetic-uptime-901@example.test',SENDGRID_API_KEY:'synthetic-uptime-901'},outbound);let restarted;
+ const f=await fixture({MAIL_PROVIDER:'sendgrid',MAIL_FROM:'synthetic-uptime-901@example.test',SENDGRID_API_KEY:'synthetic-uptime-901'},outbound);let restarted,restored;
  const ok=async(path,options={})=>{const r=await f.request(path,options);assert.ok(r.status>=200&&r.status<300,`${path}: ${r.status} ${JSON.stringify(r.data)}`);return r.data};
  const restart=async()=>{await(restarted??f.worker).dispose();restarted=await startLocalWorker({persist:f.directory,port:Number(new URL(f.origin).port),bindings:f.bindings,outboundService:outbound});await restarted.ready;f.DB=await restarted.getD1Database('DB')};
  try{
@@ -57,7 +59,9 @@ export async function proveRecurringReports(inspect=async()=>{}){
   assert.equal((await read(cancelled)).code,'report_cancelled');assert.equal((await read(revoked)).code,'report_destination_revoked');const stopped=await read(narrowed);assert.equal(stopped.code,'report_initiator_revoked');assert.equal(stopped.ownerId,other.id);assert.ok(stopped.stoppedAt);assert.equal(stopped.runs.length,0);assert.equal(mail.length,2);assert.equal(slack.length,1);
   await restart();await dispatchNotifications(rpc,edge);assert.deepEqual(await read(narrowed),stopped);await inspect({f,monitors,email,destination,phase:'stopped',schedules:[await read(cancelled),await read(revoked),stopped]});
   const archive=await ok('/api/archive');assert.ok(!Object.hasOwn(archive.payload.productTables,'report_recurrences'));assert.ok(archive.payload.productTables.scheduled_reports.some(row=>row.id===frozen[0].runs[0].reportId),'frozen snapshots retain ordinary inactive archive history');
+  const key=await ok('/api/credentials',{body:{name:'synthetic-uptime-910',scopes:['monitoring:read'],expiresAt:Date.now()+3600000,resources:{mode:'selection',monitorIds:[id],tags:[]}}});const selection=await fetch(f.origin+'/api/v1/services/report?service=synthetic-uptime-902&period=24h&timeZone='+zone,{headers:{authorization:'Bearer '+key.token}});assert.equal(selection.status,200);assert.deepEqual((await selection.json()).service.monitors.map(m=>m.id),[id],'service reads never disclose a monitor outside a read-key selection');
+  ({worker:restored}=await migratedWorker({persist:join(f.directory,'restore'),bindings:f.bindings,outboundService:outbound}));const restoredOrigin=(await restored.ready).origin,restoredCookie=await signInOwner(restoredOrigin,{bindings:f.bindings});const imported=await fetch(restoredOrigin+'/api/restore',{method:'POST',headers:{origin:restoredOrigin,cookie:restoredCookie,'content-type':'application/json'},body:JSON.stringify({archive})});assert.equal(imported.status,200);const importedRun=await(await fetch(restoredOrigin+path+'/'+frozen[1].runs[0].reportId,{headers:{cookie:restoredCookie}})).json();assert.equal(importedRun.state,'imported-inactive');assert.deepEqual(importedRun.report,frozen[1].runs[0].report);assert.equal((await restored.getD1Database('DB')).prepare===undefined,false);assert.equal((await(await restored.getD1Database('DB')).prepare('SELECT COUNT(*) n FROM report_recurrences').first()).n,0,'restore carries frozen history without recurring send authority');await restored.dispose();restored=null;
   const erased=await ok('/api/monitors/'+monitors[1].id+'/erase',{body:{name:monitors[1].definition.name}});assert.ok(erased.receipt.counts.scheduled_reports>=2,'erasing a service member removes every aggregate snapshot that names it');const afterErase=await ok('/api/archive');assert.ok(!afterErase.payload.productTables.scheduled_reports.some(row=>JSON.parse(row.report).service?.monitors?.some(member=>member.id===monitors[1].id)));
   console.log('REPORT-001 recurring API/CLI PASS: daily/weekly/monthly IANA DST and month-end times, per-monitor/service shared denominators and CSV/JSON reads, due snapshots, single sends across restart, durable failures, cancellation, destination revocation and initiating-owner narrowing.');
- }finally{await restarted?.dispose();await f.close()}
+ }finally{await restored?.dispose();await restarted?.dispose();await f.close()}
 }
