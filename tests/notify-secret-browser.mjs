@@ -132,7 +132,7 @@ retryOutcomeTest('DELIVERY-002 retry and fallback-chain outcomes and the route c
     assert.ok(await note.evaluate(element=>element.isConnected&&element.textContent.startsWith('Fallback 1 after Dead Slack')),'refresh keeps the same outcome note');
     await page.keyboard.press('Escape');await dialog.waitFor({state:'detached'});assert.equal(await page.evaluate(()=>document.activeElement?.id),'add-destination');
     // The owner's route editor names the ordered chain, its deadline and each fallback contact's schedule.
-    await page.goto(retryOrigin+`/app/monitors/${chainMonitor.id}`);await page.locator('html.signed-in').waitFor();
+    await page.goto(retryOrigin+`/app/monitors/${chainMonitor.id}#alerts`);await page.locator('html.signed-in').waitFor();
     await page.locator('#alert-route-summary').getByText(`Fallback: On-call email → Escalation webhook; uncertain deadline ${width===1440?5:7} s.`,{exact:true}).waitFor();
     await page.getByRole('button',{name:'Edit alert route',exact:true}).click();const route=page.getByRole('dialog');await route.locator('#route-fallback-fields').waitFor();
     assert.deepEqual(await Promise.all([0,1,2].map(i=>route.locator(`#route-fallback-${i} option:checked`).textContent())),['On-call email','Escalation webhook','None']);

@@ -8,7 +8,8 @@ import {useRouter} from '@tanstack/react-router'
 import {useEditorLeafReady} from '../base/modules/editor/react.tsx'
 import {consolePrefetchScript,CONSOLE_MODULES} from './console-prefetch.ts'
 const unsubscribed=()=>()=>{}
-export function ConsoleDocument(){
+// monitor: a monitor's own page (src/routes/app.monitors.$id.index.tsx), the only document that links its stylesheet.
+export function ConsoleDocument({monitor=false}:{monitor?:boolean}){
  const router=useRouter(),host=useRef<HTMLDivElement>(null),hydrating=useSyncExternalStore(unsubscribed,()=>false,()=>true)
  useEditorLeafReady('/app')
  // A route swap (a section link from a monitor's page or the editor) renders the markup on the client, where its
@@ -29,6 +30,7 @@ export function ConsoleDocument(){
   document.body.appendChild(script)
   return()=>{mounted=false;window.removeEventListener('uptime:new-monitor',openMonitor);window.dispatchEvent(new Event('uptime:console-unmount'));script.remove()}
  },[router])
- return <><script dangerouslySetInnerHTML={{__html:consolePrefetchScript}}/><link rel="stylesheet" href="/app-theme.css" precedence="default"/><link rel="stylesheet" href="/style.css"/><link rel="stylesheet" href="/notifications.css"/><link rel="stylesheet" href="/sections.css"/><div ref={host} suppressHydrationWarning dangerouslySetInnerHTML={{__html:markup}}/></>
+ return <><script dangerouslySetInnerHTML={{__html:consolePrefetchScript}}/><link rel="stylesheet" href="/app-theme.css" precedence="default"/><link rel="stylesheet" href="/style.css"/><link rel="stylesheet" href="/notifications.css"/><link rel="stylesheet" href="/sections.css"/>{monitor?<link rel="stylesheet" href="/monitor-page.css"/>:null}<div ref={host} suppressHydrationWarning dangerouslySetInnerHTML={{__html:markup}}/></>
 }
+export function MonitorPageDocument(){return <ConsoleDocument monitor/>}
 export const consoleHead=()=>({meta:[{title:'Uptime'}],links:[{rel:'icon',href:'/favicon.svg',type:'image/svg+xml'},{rel:'preload',href:'/design-assets/fonts/plus-jakarta-sans-latin-wght-normal.woff2',as:'font',type:'font/woff2',crossOrigin:'anonymous' as const},...CONSOLE_MODULES.map(name=>({rel:'modulepreload',href:`/${name}`}))]})

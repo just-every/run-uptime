@@ -73,6 +73,8 @@ try{
  const history=await (await page.request.get(origin+`/api/monitors/${first.id}/history`)).json();assert.ok(history.some(slot=>!slot.manual&&slot.revision===first.revision+2&&slot.status==='complete'&&slot.observations.some(o=>o.outcome==='target_failure'&&o.status===200)),'new current-custody scheduled evidence required');
  overview=await (await page.request.get(origin+'/api/overview')).json();assert.equal(overview.runner.contact.state,'Fresh contact');assert.ok(archive.payload.tables.outbox.every(old=>overview.alerts.some(a=>a.id===old.id&&a.status==='imported-inactive')),'old alerts must not replay after deliberate resume');assert.ok(overview.alerts.some(a=>a.kind==='trigger'&&a.status==='pending'&&a.event.monitorRevision===first.revision+2),'a new confirmed failure must create a distinct current trigger');assert.equal(overview.monitors[0].definition.assertions.status,201,'success criteria must remain unchanged');
  await auditWidths(page,'reauthorized-current-evidence','Failing');
+ // The full list of checks opens once from Recent checks and stays open through polling.
+ await page.locator('#all-checks > summary').click();
  for(const width of [1440,390]){
   await page.setViewportSize({width,height:900});
   // Scheduled checks can prepend a new row between browser commands. Keep the

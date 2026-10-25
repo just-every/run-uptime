@@ -86,6 +86,8 @@
 }
 @media (max-width: 700px) {
   .editor-header { margin-bottom: 20px; }
+  /* Erase monitor… (an existing monitor's foot) is a phone-sized target like Cancel and Save. */
+  .editor-footer > .editor-erase { min-height: 44px; }
   .editor-columns, .editor-stack { gap: 16px; }
   .timing-fields { grid-template-columns: 1fr; }
 }

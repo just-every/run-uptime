@@ -188,7 +188,7 @@ export async function proveServiceCatalog({launch,evidence}){
   assert.equal(detail.dependencies.group.length,1,'the other application linked to the same notice is in the group');
   const portalIncident=(await ok(`/api/monitors/${portal.id}/incidents`))[0].id;
   // The incident view: Stripe linked and grouped, AWS coincident in time and outside the group.
-  await page.goto(g.origin+'/app/monitors/'+encodeURIComponent(shop.id));
+  await page.goto(g.origin+'/app/monitors/'+encodeURIComponent(shop.id));await page.evaluate(()=>{location.hash='incidents'});
   await page.locator(`button[data-incident-work="${incidentId}"]`).click();
   const dialog=page.locator('#incident-work-dialog'),context=dialog.locator('[data-dependency-context]');await context.waitFor();
   const shown=await context.locator('li[data-key]').evaluateAll(items=>items.map(item=>[item.dataset.key.split('-')[0],item.querySelector('strong')?.textContent.split(' · ')[0]]));
@@ -214,13 +214,13 @@ export async function proveServiceCatalog({launch,evidence}){
    if(mode==='moved'){
     await page.goto(g.origin+'/app/monitors/new');await search('stripe');await page.locator('.catalog-review').first().waitFor();
     await widths(page,'catalog-moved',{evidence,full:true});
-    await page.goto(g.origin+'/app/monitors/'+encodeURIComponent(stripeMonitor.id));await page.locator('.followed-review').waitFor();
+    await page.goto(g.origin+'/app/monitors/'+encodeURIComponent(stripeMonitor.id));await page.evaluate(()=>{location.hash='followed'});await page.locator('.followed-review').waitFor();
     await page.locator('[data-review-followed]').focus();assert.equal(await page.locator('[data-review-followed]').evaluate(e=>e===document.activeElement),true,'review is keyboard reachable');
     await widths(page,'followed-moved',{evidence,full:true});
    }
   }
   assert.equal((await rows("SELECT id FROM outbox WHERE kind LIKE 'dependency%'")).length,noticesBefore,'an unreadable source states nothing, so it sends no notice');
-  await page.goto(g.origin+'/app/monitors/'+encodeURIComponent(stripeMonitor.id));
+  await page.goto(g.origin+'/app/monitors/'+encodeURIComponent(stripeMonitor.id));await page.evaluate(()=>{location.hash='followed'});
   await page.locator('.followed-panel .followed-review').waitFor();
   await widths(page,'followed-unknown',{evidence,target:page.locator('.followed-panel')});
   // The provider recovers: the source answers again, the claim is operational, and one recovery notice goes out.
@@ -235,11 +235,11 @@ export async function proveServiceCatalog({launch,evidence}){
   assert.equal(receivers[3].records.length,1,'the dead primary was tried once');
   assert.deepEqual(dependencyRecords(1).map(r=>[r.body.dependency.provider,r.body.fallbackContext?.previous?.[0]?.destinationId]),[['AWS',dead.id]]);
   assert.equal((await ok('/api/service-catalog')).followed.find(f=>f.monitorId===stripeMonitor.id).review.state,'needs_review','recovery retains the mark until owner review');
-  await page.goto(g.origin+'/app/monitors/'+encodeURIComponent(stripeMonitor.id));startLooking();
+  await page.goto(g.origin+'/app/monitors/'+encodeURIComponent(stripeMonitor.id));await page.evaluate(()=>{location.hash='followed'});startLooking();
   await page.locator('[data-review-followed]').click();await page.locator('.followed-review').waitFor({state:'detached'});await stopLookingNow();
   assert.equal((await ok('/api/service-catalog')).followed.find(f=>f.monitorId===stripeMonitor.id).review.state,'ok','a successful owner review clears the mark');
   assert.ok(edge.requests.every(r=>['GET','HEAD'].includes(r.method)),'only read requests reached any status source');
-  await page.goto(g.origin+'/app/monitors/'+encodeURIComponent(stripeMonitor.id));
+  await page.goto(g.origin+'/app/monitors/'+encodeURIComponent(stripeMonitor.id));await page.evaluate(()=>{location.hash='followed'});
   await page.locator('.followed-notices').waitFor();
   assert.deepEqual(await page.locator('.followed-panel [data-unlink-monitor]').evaluateAll(buttons=>buttons.map(button=>button.dataset.unlinkMonitor).sort()),[shop.id,portal.id].sort(),'the followed service lists the monitors linked to it');
   await widths(page,'followed-notices',{evidence,target:page.locator('.followed-panel')});
