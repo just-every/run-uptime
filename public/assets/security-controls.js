@@ -126,6 +126,6 @@ export function securityControls(host,transport){
    }
   }catch(problem){list.textContent=problem.message}
  }
- void run(async()=>{await factorState();if(owner){monitors=await api('/api/monitors');for(const monitor of monitors){const option=document.createElement('option');option.value=monitor.id;option.textContent=monitor.definition.name;keyForm.elements.monitorIds.append(option)}}await keyList()});
+ void run(async()=>{await factorState();if(owner){monitors=(await api('/api/overview')).monitors;for(const monitor of monitors){const option=document.createElement('option');option.value=monitor.id;option.textContent=monitor.definition.name;keyForm.elements.monitorIds.append(option)}}await keyList()});
  return {request:async(path,method,body)=>{try{return await api(path,method,body)}catch(problem){if(!['fresh_second_factor_required','second_factor_required'].includes(problem.code))throw problem;return new Promise((resolve,reject)=>{void fresh(async()=>{try{resolve(await api(path,method,body))}catch(error){reject(error)}}).catch(reject)})}}};
 }
