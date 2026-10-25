@@ -1,6 +1,6 @@
 import {startLocalWorker} from './mail-provider-fixture.mjs';
 import {fixture} from './resilience/support.mjs';
-import {proveOwnIncidentCorrelation} from './incident-correlation-support.mjs';
+import {proveCorrelationBranch} from './incident-correlation-support.mjs';
 import {proveOwnIncidentCorrelationConsole} from './incident-correlation-browser-support.mjs';
 // ROUTING-002: reviewed schedules through the real console at desktop and phone widths.
 import assert from 'node:assert/strict';
@@ -47,9 +47,14 @@ try{
 }finally{await browser?.close();await worker?.dispose();await cleanupDirectory(directory)}
 
 // Keep browser execution in this existing matrix.browser=true journey.
-const correlation=await fixture();let correlationWorker;
-const restartCorrelation=async()=>{await(correlationWorker??correlation.worker).dispose();correlationWorker=await startLocalWorker({persist:correlation.directory,port:Number(new URL(correlation.origin).port),bindings:correlation.bindings,outboundService:async request=>{assert.match(new URL(request.url).hostname,/^(watch|heartbeat)\.example\.test$/);return new Response('',{status:200})}});await correlationWorker.ready;correlation.DB=await correlationWorker.getD1Database('DB')};
-try{await proveOwnIncidentCorrelation(correlation,info=>proveOwnIncidentCorrelationConsole({...info,restart:restartCorrelation}))}finally{await correlationWorker?.dispose();await correlation.close()}
+// Each independent correlation scenario owns its installation and public-client
+// asset budget. Keep that installation, native sessions and counters across its
+// real Worker restart; do not spend three scenarios' module loads on one client.
+for(const link of ['service','dependency','group']){
+ const correlation=await fixture();let correlationWorker;
+ const restartCorrelation=async()=>{await(correlationWorker??correlation.worker).dispose();correlationWorker=await startLocalWorker({persist:correlation.directory,port:Number(new URL(correlation.origin).port),bindings:correlation.bindings,outboundService:async request=>{assert.match(new URL(request.url).hostname,/^(watch|heartbeat)\.example\.test$/);return new Response('',{status:200})}});await correlationWorker.ready;correlation.DB=await correlationWorker.getD1Database('DB')};
+ try{await proveCorrelationBranch(correlation,info=>proveOwnIncidentCorrelationConsole({...info,restart:restartCorrelation}),link)}finally{await correlationWorker?.dispose();await correlation.close()}
+}
 
 const {proveCombinedIncident}=await import('./incident-combined-support.mjs');
 const {proveCombinedIncidentConsole}=await import('./incident-correlation-browser-support.mjs');

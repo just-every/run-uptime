@@ -7275,7 +7275,7 @@
       "executable": false
     },
     "tests/contact-schedules-browser.mjs": {
-      "sha256": "0f751b82c187d111ee1696dc9f0a690a6ae91621c8455fadc3808aa675e554f2",
+      "sha256": "b45bc825e5fd3d5e297173ce0716552fc9dfa843022b297764bcb16af227505c",
       "executable": false
     },
     "tests/contact-schedules.mjs": {
@@ -7479,7 +7479,7 @@
       "executable": false
     },
     "tests/incident-correlation-support.mjs": {
-      "sha256": "2e47664ebe1c03829b4664cc69e684382344e7dde1c0681934d2e2faee28cfe2",
+      "sha256": "9a454bd272ee5296bc5bf4013ea9fcb78df1d2366a108e60311d82d00f7fc415",
       "executable": false
     },
     "tests/incident-members-support.mjs": {

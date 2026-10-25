@@ -5,7 +5,7 @@ import {main as incidentCommand} from '../scripts/incidents.mjs';
 export async function proveOwnIncidentCorrelation(f,inspect=async()=>{}){
  for(const link of ['service','dependency','group'])await proveCorrelationBranch(f,inspect,link);
 }
-async function proveCorrelationBranch(f,inspect,link){
+export async function proveCorrelationBranch(f,inspect,link){
  const ok=async(path,options={})=>{const r=await f.request(path,options);assert.ok(r.status>=200&&r.status<300,`${path}: ${r.status} ${JSON.stringify(r.data)}`);return r.data};
  const monitors=[];
  const dependency=link==='dependency'?await f.monitor({name:'synthetic-uptime-dependency',runners:[f.first],canary:true,enabled:false}):null;
