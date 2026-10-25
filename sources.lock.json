@@ -2515,7 +2515,7 @@
       "executable": false
     },
     "public/assets/security-controls.js": {
-      "sha256": "b35a86f6ac1223d2069272b19e842aa28ce6a1b4a8a569b9430dea26f8d0d472",
+      "sha256": "6889e158f53f7bfbce351ff53971ecffb0061eec28e571bb5702fb1de3fdb15e",
       "executable": false
     },
     "public/assets/setup.js": {
@@ -7459,7 +7459,7 @@
       "executable": false
     },
     "tests/incident-correlation-browser-support.mjs": {
-      "sha256": "22693d07a348b794f120e0e1a578d02302732a9df47104fd3b2b4df61180f311",
+      "sha256": "b8c36f7809c372e582570f57676bc9a25e6002bfe2f3ab3599116ce3b4eda984",
       "executable": false
     },
     "tests/incident-correlation-support.mjs": {
@@ -7815,7 +7815,7 @@
       "executable": false
     },
     "tests/security-controls-browser-support.mjs": {
-      "sha256": "d4d69b7f3cca18b797a07871b63fbb147d6966aa10c16bed74ae6534e822de88",
+      "sha256": "ec273e11e9927b8466389410a52e9139c1bdb78f890eeb90aedda3eeed9e5687",
       "executable": false
     },
     "tests/service-catalog-fixture.mjs": {

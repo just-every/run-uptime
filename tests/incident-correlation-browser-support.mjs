@@ -14,7 +14,7 @@ export async function proveOwnIncidentCorrelationConsole({f,monitors,link}){
   browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});
   const context=await browser.newContext();
   const [name,...value]=f.cookie.split('=');await context.addCookies([{name,value:value.join('='),url:f.origin}]);
-  const responder=await inviteDoorMember(f.origin,f.cookie,'responder',`uptime-${link}-ownership`);await completeSecondFactor(f.origin,responder.cookie);
+  const responder=await inviteDoorMember(f.origin,f.cookie,'responder',`uptime-${{service:701,dependency:702,group:703}[link]}`);await completeSecondFactor(f.origin,responder.cookie);
   const page=await context.newPage();
   await context.route('**/*',route=>new URL(route.request().url()).origin===f.origin?route.continue():route.abort());
   for(const width of [1440,390]){
