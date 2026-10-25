@@ -487,7 +487,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "72e5fd5547bfcd11ae5a46211f2df51d5267ee57453ee47aa1f1fcaeec2c03f5",
+      "sha256": "2c3e9d8574d5928c15533abf93182e8c03e93dee653c5807237e692d50870ed2",
       "executable": false
     },
     "AGENTS.md": {
@@ -511,7 +511,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "83b4d559b38786839560e5496b5468cf86a96137a08b40e82497e32ffd692fb1",
+      "sha256": "9e075faee2ef8dc005da18b60123a2928b479eaf70c00cd1ac66774b1601740b",
       "executable": false
     },
     "DEMO.md": {
@@ -6419,7 +6419,7 @@
       "executable": false
     },
     "src/domain/reports/recurring.server.ts": {
-      "sha256": "506621950833888433b3762665ba7b8415c873f50dd01c4b94e06f38640876d7",
+      "sha256": "2e17a492c2d9681bdc9fb3fff1677369af09eb301ea924938645a6b289980e3d",
       "executable": false
     },
     "src/domain/reports/schedules.server.ts": {
@@ -7771,7 +7771,7 @@
       "executable": false
     },
     "tests/report-recurrences-support.mjs": {
-      "sha256": "e1f6580ee1ced848d99baa5e36b17e0358157577a438b7535fae9e31a0cbe60f",
+      "sha256": "4c4d061e7a080cfc1baf5b5061b99da2b95cc1dc74cd297c5c1df5ad082963fc",
       "executable": false
     },
     "tests/report-schedule-controls-browser-support.mjs": {
