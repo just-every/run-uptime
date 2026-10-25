@@ -173,7 +173,7 @@
 .monitor-page .rule-grid .cell-none { color: var(--muted); }
 .monitor-page .rule-grid .cell-where { display: none; }
 /* A rule: its words, then its expected value as a chip, which wraps under the words when the two do not fit one line. */
-.monitor-page .value-chip { display: inline-flex; align-items: center; max-width: 100%; min-height: 30px; margin: 3px 0; padding: 2px 10px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--ground); color: var(--ink); font-size: 14px; font-weight: 650; line-height: 1.3; vertical-align: middle; }
+.monitor-page .value-chip { display: inline-block; align-content: center; min-width: 0; max-width: 100%; min-height: 30px; margin: 3px 0; padding: 2px 10px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--ground); color: var(--ink); font-size: 14px; font-weight: 650; line-height: 1.3; vertical-align: middle; }
 .monitor-page .value-chip.ui-mono { font-family: var(--mono); font-size: 13px; }
 
 /* In-place editors. A rule's chip, a number's chip, "+ Add a rule" and "+ Location" are each a <details>; the chip is its
@@ -181,6 +181,7 @@
 .monitor-page details.in-place > summary { min-height: 0; padding: 0; color: inherit; font-weight: inherit; }
 .monitor-page details.in-place > summary::after { content: none; }
 .monitor-page :is(.rule-edit, .num-edit) > summary { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0 6px; max-width: 100%; border-radius: 8px; }
+.monitor-page :is(.rule-edit, .num-edit) > summary > * { min-width: 0; }
 .monitor-page :is(.rule-edit, .num-edit) > summary:hover .value-chip { border-color: var(--lavender-deep); background: var(--lavender); }
 .monitor-page :is(.rule-edit, .num-edit)[open] > summary { display: none; }
 .monitor-page .num-edit { display: inline-block; }
@@ -213,9 +214,10 @@
 .monitor-page .add-menu > button:not(:disabled):hover { background: var(--ground); }
 /* Down when and Back up after: the numbers are chips like the rules; the agreement between locations is stated, never set. */
 .monitor-page .grid-foot { display: grid; gap: 8px; margin: 14px 0 0; }
-.monitor-page .grid-foot > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
+.monitor-page .grid-foot > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; min-width: 0; }
 .monitor-page .grid-foot dt { min-width: 120px; color: var(--muted); font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
 .monitor-page .grid-foot dd { flex: 1 1 260px; min-width: 0; margin: 0; color: var(--ink); font-size: 15px; line-height: 1.7; }
+.monitor-page .grid-foot dd > * { min-width: 0; }
 .monitor-page .grid-foot .value-chip { margin: 0 4px 0 0; }
 @container table-wrap (max-width: 719px) {
   .monitor-page .grid-foot dt { flex-basis: 100%; min-width: 0; }
@@ -283,6 +285,8 @@
 .monitor-page .fold-sum { flex: 0 1 auto; min-width: 0; color: var(--muted); font-size: 14px; font-weight: 500; text-align: right; overflow-wrap: break-word; }
 .monitor-page .fold-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 4px 0 18px; overflow-wrap: anywhere; }
 .monitor-page .fold-body:empty { display: none; }
+.monitor-page .fold-body .keep-line { white-space: normal; }
+.monitor-page .fold-body :is(#snapshot-viewer-link, .incident-record p > a:only-child) { display: inline-flex; align-items: center; min-height: 24px; }
 .monitor-page .fold-body > .panel { padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
 .monitor-page .fold-body > .panel > h2 { margin-bottom: 8px; font-size: 16px; }
 .monitor-page .fold-body.same-title > .panel > h2 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
@@ -325,6 +329,7 @@
 /* At phone width every control the page draws is at least 44px tall (TMPL-001); the height comes from the target's own
    box, and a chip keeps its 30px look inside a 44px summary. */
 @media (max-width: 700px) {
+  .monitor-page .fold-body :is(#snapshot-viewer-link, .incident-record p > a:only-child) { min-height: 44px; }
   .monitor-page :is(.state-text > .ui-link, .status-held .ui-link, .status-told .ui-link, .details-erase .ui-link) { min-height: 44px; }
   .monitor-page #add-notification { display: inline-flex; align-items: center; min-height: 44px; }
   .monitor-page .rule-grid .col-pick { min-width: 44px; min-height: 44px; justify-content: center; }
