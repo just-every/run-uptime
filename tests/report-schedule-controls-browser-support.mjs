@@ -10,7 +10,7 @@ export async function proveReportScheduleControls({page,origin,monitor,destinati
  await form.getByRole('button',{name:'Schedule report',exact:true}).click();await panel.getByRole('status').filter({hasText:'Report scheduled.'}).waitFor();
  const schedules=await(await page.request.get(origin+`/api/monitors/${monitor.id}/report-schedules`)).json();const saved=schedules.find(s=>s.dueAt===new Date(due).getTime());assert.ok(saved);assert.equal(saved.state,'queued');
  await panel.getByRole('button',{name:'Cancel scheduled report',exact:true}).click();await panel.getByRole('status').filter({hasText:'Report cancelled.'}).waitFor();
- await page.reload();await panel.getByText(/Cancelled by owner/).waitFor();
+ await page.reload();await panel.locator(`[data-report-id="${saved.id}"]`).getByText(/Cancelled by owner/).waitFor();
  const retained=await(await page.request.get(origin+`/api/monitors/${monitor.id}/report-schedules/${saved.id}`)).json();assert.equal(retained.code,'report_cancelled');assert.equal(retained.attempts,0);
  await page.addScriptTag({path:new URL('../node_modules/axe-core/axe.min.js',import.meta.url).pathname});assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.map(v=>v.id),[]);
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert.ok(await panel.evaluate(e=>e.scrollWidth<=e.clientWidth));

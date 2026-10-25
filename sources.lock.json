@@ -2507,7 +2507,7 @@
       "executable": false
     },
     "public/assets/report-schedule-controls.js": {
-      "sha256": "d84cae6468c18a2177022a2ead071f8a40377fd146e2fb428dcef91a5d4f7c37",
+      "sha256": "3867de097701093fd97685820331717527b2d5f226ccb60a28943ef1fe58ae4c",
       "executable": false
     },
     "public/assets/setup.js": {
@@ -7735,7 +7735,7 @@
       "executable": false
     },
     "tests/report-schedule-controls-browser-support.mjs": {
-      "sha256": "21435aa2bd43e9e96281f338a243431de27074cdca9c20dc40da7ba35761cbd2",
+      "sha256": "b5eb8a30314848b5ee3eaf52c622eb75cf87e90d7c6ee1a72b94a3fc97e33d10",
       "executable": false
     },
     "tests/report-schedules-support.mjs": {

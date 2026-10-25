@@ -12,8 +12,8 @@ export function reportScheduleControls(host,{data,api}){
    const reports=await api(`/api/monitors/${encodeURIComponent(monitor)}/report-schedules`);
    if(!host.isConnected)return;list.replaceChildren();
    for(const report of reports){
-    const row=document.createElement('p'),label=document.createElement('span');
-    label.textContent=`${new Date(report.dueAt).toLocaleString()} · ${report.code==='report_cancelled'?'Cancelled by owner':report.state} `;row.append(label);
+    const row=document.createElement('p'),label=document.createElement('span');row.dataset.reportId=report.id;
+    label.textContent=`${data.notifications.destinations.find(d=>d.id===report.destinationId)?.name??'Unavailable destination'} · ${new Date(report.dueAt).toLocaleString()} · ${report.code==='report_cancelled'?'Cancelled by owner':report.state} `;row.append(label);
     if(report.state==='queued'){
      const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Cancel scheduled report';
      cancel.onclick=async()=>{cancel.disabled=true;try{await api(`/api/monitors/${encodeURIComponent(monitor)}/report-schedules/${encodeURIComponent(report.id)}`,'DELETE');status.textContent='Report cancelled. No delivery will start.';await load()}catch(error){status.textContent=error.message;cancel.disabled=false}};row.append(cancel);
