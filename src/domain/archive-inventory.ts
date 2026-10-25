@@ -3,6 +3,8 @@ import {TABLES,columns} from './archive-schema.ts'
 /** Every permanent schema table has a portability decision. Unknown tables and
  * foreign integration namespaces refuse export rather than silently lose data. */
 export const installationLocalTables:Record<string,string>={
+ report_recurrences:'Installation-local recurring report authority and owner admission; frozen scheduled report snapshots travel as inactive history.',
+ report_occurrences:'Installation-local unique recurrence occurrence dispatch linkage; restored snapshots never authorize another send.',
  ...Object.fromEntries(['alert_named_routes','catalog_route_batches','catalog_route_batch_entries'].map(name=>[name,'Installation-local named route policy and undo authority; receiving owners review and configure routes independently.'])),
  ...Object.fromEntries(['uptime_credential_workspace','uptime_credential_grants','uptime_credential_limits'].map(name=>[name,'Installation-local API/CI credential identity, immutable grants and limits; never restored authority.'])),
  incident_mention_authority:"Installation-local live recipient version and scope admission; imported mentions never acquire sending authority.",

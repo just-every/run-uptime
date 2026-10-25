@@ -28,6 +28,7 @@ export const apiRoutes:readonly Route[]=[
  {method:'DELETE',path:'/api/access/members/:id',params:id,body:'none'},
  {method:'GET',path:'/api/business-import-settings',body:'none'},
  {method:'POST',path:'/api/business-import-settings',body:'object'},
+ {method:'GET',path:'/api/v1/services/report',query:{...reportQuery,format:value=>['json','csv'].includes(value),service:identity},body:'none'},
  {method:'GET',path:'/api/v1/monitors',query:{limit:identity,cursor:identity,tag:identity},body:'none'},
  {method:'GET',path:'/api/v1/monitors/:id',params:id,body:'none'},
  {method:'GET',path:'/api/v1/uptime',query:{...Object.fromEntries(['period','from','to','timeZone','zone','sla','slaTarget','rootCause','tag'].map(name=>[name,identity])),monitor:value=>value.length>0&&value.length<=256500&&!/[\x00-\x1f\x7f]/.test(value),format:value=>['json','csv'].includes(value)},body:'none'},

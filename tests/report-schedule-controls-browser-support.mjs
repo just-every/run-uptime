@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {join} from 'node:path';
 export async function proveReportScheduleControls({page,origin,monitor,destination,width,out}){
- const panel=page.locator('#report-schedule-controls');await panel.getByText('Schedule a one-time report',{exact:true}).click();
+ const panel=page.locator('#report-schedule-controls');await panel.getByText('Schedule a report',{exact:true}).click();
  const form=panel.locator('form');await form.getByLabel('Monitor',{exact:true}).selectOption(monitor.id);await form.getByLabel('Destination',{exact:true}).selectOption(destination.id);
  const local=new Date(Date.now()+600000);local.setMinutes(local.getMinutes()-local.getTimezoneOffset());const due=local.toISOString().slice(0,16);
  await form.getByLabel('Send at (local time)',{exact:true}).fill(due);await form.getByLabel('Report time zone',{exact:true}).fill('America/New_York');

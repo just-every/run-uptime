@@ -50,7 +50,7 @@ export function requestPermission(request,input){
   if(['heartbeat-key','effect-grants','effect-grants/revoke','evidence-access'].includes(suffix))return {action:'secret_write',workspace:true};
   return {action:read?'settings_write':'check_write',workspace:true};
  }
- if(path==='/api/v1/monitors'||path==='/api/v1/uptime'||path==='/api/v1/incidents')return {action:'read',workspace:true};
+ if(path==='/api/v1/services/report'||path==='/api/v1/monitors'||path==='/api/v1/uptime'||path==='/api/v1/incidents')return {action:'read',workspace:true};
  // Collaboration resolves its incident to one monitor before scoped permission.
  const incident=/^\/api\/(?:v1\/)?incidents\/([^/]+)(?:\/(.*))?$/.exec(path);
  if(incident){const suffix=incident[2]??'';

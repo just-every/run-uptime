@@ -1,3 +1,4 @@
+import {advanceRecurringReports} from './reports/recurring.server.ts'
 import {contactReady,advanceContactSchedules,refreshContactQuiet} from './contact-scheduler.server.ts'
 import {advanceFallbackChains,attemptPhase} from './notification-fallback.server.ts'
 import {auditStatement,automated} from './audit.server.ts'
@@ -29,7 +30,7 @@ const mailAttemptFinish=(env:Bindings,id:string,claim:string,category:string,cod
  WHERE finished_at IS NULL AND (delivery_id,number) IN(SELECT id,attempts FROM notification_jobs WHERE id=? AND state='sending' AND claim=? AND claim_until>?)`).bind(now,category,code,retryAfterSeconds,id,claim,now);
 export async function dispatchNotificationMail(env:Bindings,budget?:SubrequestBudget){
  const now=Date.now(),op=storageOperation;
- await advanceContactSchedules(env);await op('notifications.mail.fallbacks',()=>advanceFallbackChains(env));await refreshContactQuiet(env);
+ await advanceRecurringReports(env);await advanceContactSchedules(env);await op('notifications.mail.fallbacks',()=>advanceFallbackChains(env));await refreshContactQuiet(env);
  await op('notifications.mail.expireClaims',()=>env.DB.batch(expireMailClaims(env,now)));
  await op('notifications.mail.recoveryMatches',()=>settleUnmatchedRecoveries(env));
  const rows=await op('notifications.mail.selectQueued',()=>env.DB.prepare(`SELECT j.*,c.id AS credential_record_id,c.destination_id AS credential_destination_id,c.created_at AS credential_created_at,c.endpoint,c.signing_secret,c.ciphertext,c.retired_at,c.unavailable_at FROM notification_jobs j JOIN notification_credentials c ON c.id=j.credential_id WHERE j.kind='email' AND j.state='queued' AND ${recoveryAccepted()} AND ${contactReady()} AND (j.claim_until IS NULL OR j.claim_until<=?) ORDER BY j.created_at LIMIT 10`).bind(now).all<any>());

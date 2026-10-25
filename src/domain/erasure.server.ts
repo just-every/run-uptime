@@ -44,6 +44,7 @@ export async function erase(env:Bindings,kind:'monitor'|'destination'|'operator'
   plans.push(selection('alert_recovery_matches','recovery_job_id IN(SELECT value FROM json_each(?)) OR trigger_job_id IN(SELECT value FROM json_each(?))',JSON.stringify(jobIds),JSON.stringify(jobIds)));
   for(const job of jobIds)plans.push(selection('notification_jobs','id=?',job));
  }
+ if(['monitor','destination','operator'].includes(kind)){const column=kind==='monitor'?'monitor_id':kind==='destination'?'destination_id':'actor_id';plans.push(selection('report_occurrences',`recurrence_id IN(SELECT id FROM report_recurrences WHERE ${column}=?)`,id),selection('report_recurrences',`${column}=?`,id));}
  if(kind==='monitor'){
   plans.push(selection('scheduled_reports','monitor_id=?',id));
   plans.push(selection('failure_snapshots','monitor_id=?',id),selection('failure_snapshot_settings','monitor_id=?',id),selection('failure_evidence_grants','monitor_id=?',id));

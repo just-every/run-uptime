@@ -19,4 +19,4 @@ export function credentialMonitorFilter(env:CredentialEnvironment,alias='monitor
  }
  return {sql:`${live.sql} AND (${conditions.join(' AND ')||'1'}) AND NOT EXISTS(SELECT 1 FROM uptime_member_scopes s WHERE s.operator_id=? GROUP BY s.kind HAVING MAX(CASE WHEN s.kind='service' AND s.value=json_extract(${alias}.definition,'$.service') OR s.kind='team' AND s.value=json_extract(${alias}.definition,'$.group') THEN 1 ELSE 0 END)=0)`,params:[...live.params,...values,a.issuerId]}
 }
-export function monitoringCapability(request:Request){const p=new URL(request.url).pathname;return ['GET','HEAD'].includes(request.method)&&(/^\/api\/v1\/(?:monitors|uptime|incidents|metrics)$/.test(p)||/^\/api\/v1\/monitors\/[^/]+(?:\/(?:uptime|report|response-times))?$/.test(p)||/^\/api\/v1\/incidents\/[^/]+$/.test(p))}
+export function monitoringCapability(request:Request){const p=new URL(request.url).pathname;return ['GET','HEAD'].includes(request.method)&&(/^\/api\/v1\/(?:monitors|uptime|incidents|metrics|services\/report)$/.test(p)||/^\/api\/v1\/monitors\/[^/]+(?:\/(?:uptime|report|response-times))?$/.test(p)||/^\/api\/v1\/incidents\/[^/]+$/.test(p))}
