@@ -14,20 +14,22 @@ export function accessMemberControls(host,api){
  const invite=host.querySelector('[data-member-invite]'),status=host.querySelector('[data-member-status]'),list=host.querySelector('[data-member-list]');fields(invite);
  const inviteButton=document.createElement('button');inviteButton.textContent='Send invitation';inviteButton.className='primary';invite.append(inviteButton);
  const showError=error=>{status.textContent=error.message||'This action was refused.'};
- async function load(){
+ // A completion notice also means the replacement rows are ready for the next action.
+ async function load(message){
   try{
    const self=await api('/api/access/self');if(!['owner','admin'].includes(self.role)){status.textContent='An owner or administrator manages members.';return}
    const members=await api('/api/access/members');if(!host.isConnected)return;list.replaceChildren();
    for(const member of members){
     const row=document.createElement('details'),summary=document.createElement('summary'),form=document.createElement('form');row.dataset.memberId=member.id;summary.textContent=`${member.displayName} · ${member.email} · ${member.productRole??'Unassigned'} · ${member.status}`;row.append(summary,form);fields(form,member);
     const save=document.createElement('button'),remove=document.createElement('button');save.textContent='Save assignment';remove.textContent='Remove member';remove.type='button';form.append(save,remove);
-    form.onsubmit=async event=>{event.preventDefault();save.disabled=true;try{const result=await api(`/api/access/members/${encodeURIComponent(member.id)}`,'POST',{role:form.elements.role.value,scopes:scopes(form)});status.textContent=result.unchanged?'Assignment unchanged.':'Assignment saved.';await load()}catch(error){showError(error)}finally{save.disabled=false}};
-    remove.onclick=async()=>{remove.disabled=true;try{await api(`/api/access/members/${encodeURIComponent(member.id)}`,'DELETE');status.textContent='Member removed.';await load()}catch(error){showError(error);remove.disabled=false}};
+    form.onsubmit=async event=>{event.preventDefault();save.disabled=true;try{const result=await api(`/api/access/members/${encodeURIComponent(member.id)}`,'POST',{role:form.elements.role.value,scopes:scopes(form)});await load(result.unchanged?'Assignment unchanged.':'Assignment saved.')}catch(error){showError(error)}finally{save.disabled=false}};
+    remove.onclick=async()=>{remove.disabled=true;try{await api(`/api/access/members/${encodeURIComponent(member.id)}`,'DELETE');await load('Member removed.')}catch(error){showError(error);remove.disabled=false}};
     list.append(row);
    }
+   if(message)status.textContent=message;
   }catch(error){showError(error)}
  }
- invite.onsubmit=async event=>{event.preventDefault();inviteButton.disabled=true;try{await api('/api/access/invitations','POST',{email:invite.elements.email.value,displayName:invite.elements.displayName.value,role:invite.elements.role.value,scopes:scopes(invite),returnTo:'/app'});status.textContent='Invitation sent. The member can accept the emailed link.';await load()}catch(error){showError(error)}finally{inviteButton.disabled=false}};
+ invite.onsubmit=async event=>{event.preventDefault();inviteButton.disabled=true;try{await api('/api/access/invitations','POST',{email:invite.elements.email.value,displayName:invite.elements.displayName.value,role:invite.elements.role.value,scopes:scopes(invite),returnTo:'/app'});await load('Invitation sent. The member can accept the emailed link.')}catch(error){showError(error)}finally{inviteButton.disabled=false}};
  const security=document.createElement('section');security.id='security-controls';host.append(security);securityControls(security,api);
  void load();
 }
