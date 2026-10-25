@@ -7775,7 +7775,7 @@
       "executable": false
     },
     "tests/report-schedule-controls-browser-support.mjs": {
-      "sha256": "59d76e483576d6d8aeb5a210b752b1b420bcf0a8397527c0b90bf7479b810768",
+      "sha256": "2b4799bc28fb07c77c6d924768f4be8960d3ae16bec2ce17121297a20567ae2c",
       "executable": false
     },
     "tests/report-schedules-support.mjs": {
