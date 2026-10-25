@@ -20,7 +20,8 @@ async function openIncidentWork(id,api,opener){
  let detail,settings,busy=false;
  const showError=problem=>{error.textContent=problem.message??String(problem);error.hidden=false;status.textContent='Changes were not saved.'};
  async function load(){
-  [detail,settings]=await Promise.all([api(endpoint),api('/api/incident-settings')]);
+  detail=await api(endpoint);
+  settings=detail.capabilities.categoryAdministration?await api('/api/incident-settings'):{categories:detail.rootCauseCategories,members:detail.assignmentMembers};
   if(!dialog.isConnected)return;
   content.innerHTML=detailMarkup(detail,settings);status.textContent='Incident loaded.';
  }

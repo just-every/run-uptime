@@ -55,6 +55,7 @@ export function requestPermission(request,input){
  const incident=/^\/api\/(?:v1\/)?incidents\/([^/]+)(?:\/(.*))?$/.exec(path);
  if(incident){const suffix=incident[2]??'';
   if(read&&['','mention-members'].includes(suffix))return {action:'read',workspace:false,incidentId:decode(incident[1])};
+  if(!path.startsWith('/api/v1/')&&method==='POST'&&suffix==='actions'&&input?.kind==='assign')return {action:'respond',workspace:false,incidentId:decode(incident[1])};
   if(!path.startsWith('/api/v1/')&&!read&&(/^(?:comments(?:\/[^/]+)?|root-cause)$/.test(suffix)))return {action:'respond',workspace:false,incidentId:decode(incident[1])};
   return {action:'owner',workspace:true};
  }

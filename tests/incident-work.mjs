@@ -62,6 +62,9 @@ try{
  const recoveredComment=await ok(path+'/comments',{body:{text:'Recovered incident remains editable'}});
  await ok(path+'/root-cause',{method:'PATCH',body:{categoryId:'hosting-provider',text:'Provider disk full',version:1}});
  const collaboration=await proveIncidentMembers(f,monitor,id,mail);
+ const assignedBeforeRestart=(await ok('/api/v1/incidents/'+encodeURIComponent(id))).timeline.filter(row=>row.kind==='owner_assigned');
+ await resumed.dispose();resumed=await startLocalWorker({port:Number(new URL(f.origin).port),persist:f.directory,bindings:f.bindings,outboundService:mail.fetch});f.DB=await resumed.getD1Database('DB');
+ assert.deepEqual((await ok('/api/v1/incidents/'+encodeURIComponent(id))).timeline.filter(row=>row.kind==='owner_assigned'),assignedBeforeRestart,'responder ownership actor/order/time survive restart');
  // Round-trip an edited comment and human root cause through owner archive routes.
  const beforeExport=await ok(path),archive=await ok('/api/archive');const restored=await migratedWorker({persist:destination,bindings:f.bindings,outboundService:mail.fetch});fresh=restored.worker;
  const freshOrigin=(await fresh.ready).origin,freshCookie=await signInOwner(freshOrigin,{bindings:f.bindings});

@@ -1,4 +1,5 @@
 import type {Access} from '../access.server.ts'
+import {assignmentMembers} from './ownership.server.ts'
 import {readSettings} from './settings.server.ts'
 import {incidentSnapshots} from '../failure-snapshots.server.ts'
 import {nextContactFollowupDetail} from '../contact-scheduler.server.ts'
@@ -51,7 +52,8 @@ export async function incidentDetail(env:Bindings,id:string,access?:Pick<Access,
    history:histories.results.filter(history=>history.comment_id===row.id).map(history=>({version:history.version,text:history.text,editor:person(history.editor_id),editedAt:history.edited_at}))})),
   rootCauseCategories:(await readSettings(env)).categories,
   failureSnapshots:access&&access.role!=='owner'?[]:await incidentSnapshots(env,id),timeline,deliveries:jobs.results.map(job=>({id:job.id,channel:job.kind,destinationName:job.destination_name,state:job.state==='queued'?job.delivery_state??job.state:job.state,code:job.code,attempts:job.attempts})),
-  dependencies,capabilities:{comments:!access||access.role!=='read-only',mentions:true,publication:false,responderRoles:true,scheduledFollowup:!access||access.role==='owner',dependencyCorrelation:true,failureSnapshots:!access||access.role==='owner'}}
+  assignmentMembers:access?.role==='read-only'||env.readCredential?[]:await assignmentMembers(env,incident.monitor_id),
+  dependencies,capabilities:{assignment:!env.readCredential&&(!access||access.role!=='read-only'),categoryAdministration:!env.readCredential&&(!access||access.role==='owner'),comments:!access||access.role!=='read-only',mentions:true,publication:false,responderRoles:true,scheduledFollowup:!access||access.role==='owner',dependencyCorrelation:true,failureSnapshots:!access||access.role==='owner'}}
 }
 
 export {incidentDetail as readIncidentDetail}

@@ -40,10 +40,20 @@ export async function proveIncidentMembers(f,monitor,id,edge){
  assert.equal(edge.mentions.length,1);const email=edge.mentions[0].content.find(part=>part.type==='text/plain').value;
  assert.ok(email.includes('restarted php-fpm'));assert.ok(email.includes(path));assert.ok(email.length<1500);
  let detail=await ok(path,{headers:{cookie:reader.cookie}}),visible=detail.comments.find(row=>row.id===comment.id);assert.equal(visible.mentions[0].outcome,'accepted');
+ // Responder ownership follows live Base membership and the monitor scope.
+ const assignment=async(cookie,ownerId)=>{const current=await ok(path,{headers:{cookie}});return incidentCommand(['--origin',f.origin,'assign','--id',id],{UPTIME_ACCESS_COOKIE:cookie},fetch,{ownerId,version:current.version})};
+ await assignment(responder.cookie,responder.id);await assignment(responder.cookie,editor.id);
+ let assigned=await ok('/api/v1/incidents/'+encodeURIComponent(id),{headers:{cookie:responder.cookie}});
+ const changes=assigned.timeline.filter(row=>row.kind==='owner_assigned').slice(-2);
+ assert.deepEqual(changes.map(row=>row.data.owner.id),[responder.id,editor.id]);assert.ok(changes.every(row=>row.actor.id===responder.id&&row.at>0));
+ assert.equal(assigned.owner.id,editor.id);
+ assert.equal((await f.request(path+'/actions',{body:{kind:'assign',ownerId:outside.id,version:assigned.version},headers:{cookie:responder.cookie}})).status,400,'out-of-scope responder cannot own this incident');
+ assert.equal((await f.request(path+'/actions',{body:{kind:'assign',ownerId:reader.id,version:assigned.version},headers:{cookie:responder.cookie}})).status,400,'read-only members cannot own response work');
+ const readKey=await ok('/api/credentials',{body:{name:'synthetic-uptime-301',scopes:['monitoring:read'],expiresAt:Date.now()+3600000,resources:{mode:'selection',monitorIds:[monitor.id],tags:[]}}});
  const deniedSnapshot=async()=>Object.fromEntries(await Promise.all(['incident_comments','incident_comment_history','incident_work','incident_mentions','incident_timeline'].map(async table=>[table,(await f.DB.prepare(`SELECT * FROM ${table} ORDER BY rowid`).all()).results])));
  const metrics=await ok('/api/metrics/keys',{body:{name:'Incident read-only refusal'}}),deniedBefore=await deniedSnapshot();
- for(const headers of [{cookie:reader.cookie},{cookie:outside.cookie},{cookie:'',authorization:'Bearer '+metrics.token},{cookie:''}]){
-  for(const [method,suffix,body] of [['POST','/comments',{text:'refused'}],['PATCH','/comments/'+comment.id,{text:'refused',version:1}],['DELETE','/comments/'+comment.id+'?version=1',undefined],['PATCH','/root-cause',{categoryId:'unknown',text:'refused',version:detail.rootCause.version}]]){
+ for(const headers of [{cookie:reader.cookie},{cookie:outside.cookie},{cookie:'',authorization:'Bearer '+metrics.token},{cookie:'',authorization:'Bearer '+readKey.token},{cookie:''}]){
+  for(const [method,suffix,body] of [['POST','/actions',{kind:'assign',ownerId:responder.id,version:assigned.version}],['POST','/comments',{text:'refused'}],['PATCH','/comments/'+comment.id,{text:'refused',version:1}],['DELETE','/comments/'+comment.id+'?version=1',undefined],['PATCH','/root-cause',{categoryId:'unknown',text:'refused',version:detail.rootCause.version}]]){
    const result=await f.request(path+suffix,{method,body,headers});assert.ok([401,403].includes(result.status),'read-only/scoped/bearer/signed-out writes refused');
   }
  }
@@ -66,7 +76,7 @@ export async function proveIncidentMembers(f,monitor,id,edge){
  await ok('/auth/operator/status',{body:{operatorId:admin.id,status:'inactive'}});
  assert.equal((await f.request(path+'/comments',{body:{text:'Stale Base session'},headers:{cookie:admin.cookie}})).status,401);
  assert.deepEqual(await machine(),before,'collaboration never changes monitoring evidence');
- return {responder,reader,commentId:comment.id,sent};
+ return {responder,reader,commentId:comment.id,sent,ownership:changes};
 }
 export async function proveMentionErasure(f,path,members){
  for(const member of [members.responder,members.reader]){

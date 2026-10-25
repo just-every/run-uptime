@@ -21,8 +21,9 @@ export async function main(argv=process.argv.slice(2),env=process.env,fetcher=fe
   if(!flags.comment)throw new IncidentCommandError('Use --comment with a comment ID');path+='/comments/'+encodeURIComponent(flags.comment);method=command==='edit'?'PATCH':'DELETE';
   if(command==='edit')body=input;
   else {if(!/^[1-9]\d*$/.test(flags.version??''))throw new IncidentCommandError('Use --version with the current comment version');path+='?version='+flags.version}
- }else if(command==='root-cause'){path+='/root-cause';method='PATCH';body=input}
- else if(command!=='read')throw new IncidentCommandError('Use read, members, comment, edit, delete or root-cause');
+ }else if(command==='assign'){path+='/actions';method='POST';body={...input,kind:'assign'}}
+ else if(command==='root-cause'){path+='/root-cause';method='PATCH';body=input}
+ else if(command!=='read')throw new IncidentCommandError('Use read, members, comment, edit, delete, assign or root-cause');
  if(['POST','PATCH'].includes(method)&&(!body||typeof body!=='object'||Array.isArray(body)))throw new IncidentCommandError('Supply the operation JSON on standard input');
  const response=await fetcher(origin+path,{method,redirect:'manual',headers:{origin,cookie,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});
  if(!response.ok)throw new IncidentCommandError(`Incident operation refused (HTTP ${response.status})`);
@@ -30,7 +31,7 @@ export async function main(argv=process.argv.slice(2),env=process.env,fetcher=fe
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
  try{
-  let input;if(process.argv.slice(2).some(value=>['comment','edit','root-cause'].includes(value))){let text='';for await(const chunk of process.stdin){text+=chunk;if(Buffer.byteLength(text)>32768)throw new IncidentCommandError('Input exceeds the operation limit')}try{input=JSON.parse(text)}catch{throw new IncidentCommandError('Supply valid JSON on standard input')}}
+  let input;if(process.argv.slice(2).some(value=>['comment','edit','assign','root-cause'].includes(value))){let text='';for await(const chunk of process.stdin){text+=chunk;if(Buffer.byteLength(text)>32768)throw new IncidentCommandError('Input exceeds the operation limit')}try{input=JSON.parse(text)}catch{throw new IncidentCommandError('Supply valid JSON on standard input')}}
   console.log(JSON.stringify(await main(undefined,undefined,undefined,input),null,2));
  }catch(error){console.error(error instanceof IncidentCommandError?error.message:'Incident operation failed');process.exitCode=1}
 }
