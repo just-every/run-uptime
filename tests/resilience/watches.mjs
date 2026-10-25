@@ -15,6 +15,7 @@ import http from 'node:http';
 import {runRunner} from '../../runners/src/private-runner.mjs';
 import {fixture,cleanup,closeServer} from './support.mjs';
 import {startLocalWorker} from '../mail-provider-fixture.mjs';
+import {withStartupPortCollision} from './port-collision.mjs';
 import {startWatchClockWorker} from './watch-clock.mjs';
 const wait=async(fn)=>{for(let i=0;i<200;i++){if(await fn())return;await new Promise(r=>setTimeout(r,20))}throw Error('Expected watch event did not arrive')};
 test('OPS-001 stopping the real Worker retries a rejected independent notice, repeats accepted notices and reports restored contact',async()=>{
@@ -101,7 +102,7 @@ test('OPS-001 self-check-gated external heartbeat pings contain no product data 
  let last=null,alarm=false,alarmTimer,f;
  const fake=http.createServer((req,res)=>{assert.equal(req.method,'GET');assert.equal(req.url,'/ping');last=Date.now();alarm=false;clearTimeout(alarmTimer);alarmTimer=setTimeout(()=>{alarm=true},250);res.end('ok')});await new Promise(r=>fake.listen(0,'127.0.0.1',r));
  try{
-  f=await fixture({UPTIME_HEARTBEAT_URL:'https://heartbeat.example.test/ping',UPTIME_HEARTBEAT_INTERVAL_MS:'20'},async request=>{assert.equal(request.method,'GET');assert.equal(await request.text(),'');return fetch(`http://127.0.0.1:${fake.address().port}/ping`)});
+  f=await withStartupPortCollision(()=>fixture({UPTIME_HEARTBEAT_URL:'https://heartbeat.example.test/ping',UPTIME_HEARTBEAT_INTERVAL_MS:'20'},async request=>{assert.equal(request.method,'GET');assert.equal(await request.text(),'');return fetch(`http://127.0.0.1:${fake.address().port}/ping`)}));
   await (await f.worker.getWorker()).scheduled();assert.notEqual(last,null);assert.equal(alarm,false);
   await f.worker.dispose();await wait(()=>alarm);assert.equal(alarm,true);
  }finally{await cleanup([()=>f?.close(),()=>closeServer(fake)],()=>clearTimeout(alarmTimer))}

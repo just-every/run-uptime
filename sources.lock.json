@@ -3543,7 +3543,7 @@
       "executable": false
     },
     "scripts/local-worker.mjs": {
-      "sha256": "76ba2b2d89f50100300a0feda43b5d2f9903e9841e87f5566b96d7962d8dcb0a",
+      "sha256": "6ac827c976a736eadd818f2503be3f1760f97c62561fd6c5857f9195915d9c95",
       "executable": false
     },
     "scripts/local/commands.mjs": {
@@ -7738,6 +7738,10 @@
       "sha256": "b202b8c6777303c0ccb56196b7d2d065565172ca15410cb94cdf141704285699",
       "executable": false
     },
+    "tests/resilience/port-collision.mjs": {
+      "sha256": "5bf545413c0e949b4824170db466b5692d3007e3d7faeb9abce712b6d03b2dda",
+      "executable": false
+    },
     "tests/resilience/support.mjs": {
       "sha256": "a629af0b1f5cbdea1a656be7ac53d8ba970b5c482cfb170dd9e4ba2c90b14b6d",
       "executable": false
@@ -7747,7 +7751,7 @@
       "executable": false
     },
     "tests/resilience/watches.mjs": {
-      "sha256": "b91010f2e1d24f35b0ad07c5c32601e7f2824c9525d917baadbac3de641a12bb",
+      "sha256": "1b17efea93556c67bee43b68d9b28bba2f7bb678a08bd065d3ad47d64d6725b5",
       "executable": false
     },
     "tests/retention-browser-proof.mjs": {
