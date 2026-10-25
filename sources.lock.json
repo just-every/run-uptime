@@ -2519,7 +2519,7 @@
       "executable": false
     },
     "public/assets/security-controls.js": {
-      "sha256": "cef73af109e8b26982724e8c7160b60a8d426c01fa2ace56d8521e80615ab7b9",
+      "sha256": "ab45f67000c9ee7f6bbfba83be998391ea17a619b6f030a39ff6530754b3b88e",
       "executable": false
     },
     "public/assets/setup.js": {
@@ -7835,7 +7835,7 @@
       "executable": false
     },
     "tests/security-controls-browser-support.mjs": {
-      "sha256": "c6a4d39947312a5c78225816f36c65df92c48526740a1db2a603528194e77bbc",
+      "sha256": "c6b76c80e99edce1ed1b75337b4fa60ca17de211af5cd03d27ca1479f9bd5940",
       "executable": false
     },
     "tests/service-catalog-fixture.mjs": {
