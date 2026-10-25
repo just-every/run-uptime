@@ -7475,7 +7475,7 @@
       "executable": false
     },
     "tests/incident-correlation-browser-support.mjs": {
-      "sha256": "9d0a2c3859f577821ebbab6c10d8b3f40c19d1497e01cb2e8a6df8168dc0a0e9",
+      "sha256": "59fadc17f1fb5aa909be89ce5f216ee7f0d7852448467900428a2e075485117c",
       "executable": false
     },
     "tests/incident-correlation-support.mjs": {
@@ -7835,7 +7835,7 @@
       "executable": false
     },
     "tests/security-controls-browser-support.mjs": {
-      "sha256": "c23cf14d8ca4c26f13d51df2cf4152eae089e06b70688a7a16068a7c756cef22",
+      "sha256": "2d266f5a09fa9e92627f2ee69b6a6ba42d91d43bbf0b66aa19e5e3abb7f75f6f",
       "executable": false
     },
     "tests/service-catalog-fixture.mjs": {

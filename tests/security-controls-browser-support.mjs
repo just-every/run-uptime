@@ -25,7 +25,7 @@ export async function proveSecurityControls(){
    await page.goto(origin+'/app/settings');const panel=page.locator('#security-controls');await panel.locator('[data-factor-state]').getByText(/Second factors: 0/).waitFor();
    const shot=async(gap,step)=>{if(process.env.UPTIME_SCREENSHOTS){const out=join(process.env.UPTIME_SCREENSHOTS,gap);await mkdir(out,{recursive:true});await page.screenshot({path:join(out,step+'-'+width+'.png'),mask:[panel.locator('[data-totp-secret]')]})}};
    assert.equal(await panel.getByText('Verify a second factor',{exact:true}).isVisible(),false);assert.equal(await panel.getByRole('button',{name:'Replace recovery codes',exact:true}).isVisible(),false);
-   await panel.getByText('Manage second factors',{exact:true}).click();await shot('G1','factorless-owner');
+   await panel.getByText('Manage second factors',{exact:true}).click();await panel.getByRole('button',{name:'Enroll authenticator',exact:true}).scrollIntoViewIfNeeded();await shot('G1','factorless-owner');
    const enroll=async()=>{
     const manage=panel.getByText('Manage second factors',{exact:true});if(!await manage.evaluate(e=>e.parentElement.open))await manage.click();
     await panel.getByRole('button',{name:'Enroll authenticator',exact:true}).click();const secret=await panel.locator('[data-totp-secret]').textContent();assert.ok(secret);
