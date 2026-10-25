@@ -2,7 +2,7 @@ import {authenticatedSession,authFailure,type AuthBindings} from '../operator-au
 import {checkSecondFactor,requestNeedsStepUp,MfaError,mfaResponse} from './policy.server.ts'
 import {limited} from './store.server.ts'
 import {beginTotp,finishTotp,verifyTotp} from './totp.server.ts'
-import {beginWebAuthn,finishWebAuthn} from './webauthn.server.ts'
+import {beginWebAuthn,finishWebAuthn,passkeysAvailable} from './webauthn.server.ts'
 import {useRecovery,rotateRecovery,removeFactor,resetMember,changePolicy} from './manage.server.ts'
 const prefix='/api/access/mfa'
 const routes:Record<string,{method:string;fields:string[]}>= {
@@ -23,7 +23,7 @@ export async function mfaDoor(env:AuthBindings,request:Request){
   if(path==='/status'){
    const factors=(await env.DB.prepare('SELECT id,kind,created_at AS createdAt FROM uptime_mfa_factors WHERE operator_id=? ORDER BY created_at,id').bind(session.operator.id).all()).results
    const policy=await env.DB.prepare('SELECT required,revision FROM uptime_mfa_policy WHERE singleton=1').first<any>(),proof=await env.DB.prepare('SELECT verified_at FROM uptime_mfa_proofs WHERE session_id=? AND operator_version=?').bind(session.id,session.operator.version).first<{verified_at:number}>()
-   return Response.json({operatorId:session.operator.id,factors,required:policy.required===1,policyRevision:policy.revision,verified:!!proof,fresh:!!proof&&proof.verified_at>=Date.now()-300000},{headers})
+   return Response.json({operatorId:session.operator.id,owner:session.operator.role==='owner',passkeysAvailable:passkeysAvailable(env),factors,required:policy.required===1,policyRevision:policy.revision,verified:!!proof,fresh:!!proof&&proof.verified_at>=Date.now()-300000},{headers})
   }
   // Read a bounded UTF-8 JSON body, including callers without Content-Length.
   if(route.method==='POST'&&request.headers.get('content-type')!=='application/json')throw new MfaError(415,'json_required')

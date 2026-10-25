@@ -5,9 +5,13 @@ import {checkSecondFactor,MfaError,type MfaSession} from './policy.server.ts'
 import {protect,reveal,encode,decode} from './crypto.server.ts'
 import {challenge,readChallenge,consumeChallenge,commit,enrollmentGuard,proof,recoveryCodes} from './store.server.ts'
 import {sendNotice} from './notices.server.ts'
+export function passkeysAvailable(env:AuthBindings){
+ const origin=new URL(env.UPTIME_ORIGIN!)
+ return origin.protocol==='https:'||origin.protocol==='http:'&&origin.hostname==='localhost'
+}
 function relyingParty(env:AuthBindings){
  const origin=new URL(env.UPTIME_ORIGIN!)
- if(origin.protocol!=='https:'&&!(origin.protocol==='http:'&&origin.hostname==='localhost'))throw new MfaError(400,'webauthn_requires_https_or_localhost')
+ if(!passkeysAvailable(env))throw new MfaError(400,'webauthn_requires_https_or_localhost')
  return {origin:origin.origin,rpID:origin.hostname}
 }
 async function factors(env:AuthBindings,session:MfaSession){return (await env.DB.prepare("SELECT id,credential_id,secret,counter FROM uptime_mfa_factors WHERE operator_id=? AND kind='webauthn'").bind(session.operator.id).all<{id:string;credential_id:string;secret:string;counter:number}>()).results}

@@ -1,15 +1,20 @@
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
 import {join} from 'node:path';
+import {completeSecondFactor} from './mfa-auth-support.mjs';
 import {chromium} from 'playwright';
 export async function proveMemberControls({origin,cookie,accept,call,DB}){
  const browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});
  try{
   const context=await browser.newContext(),[name,...parts]=cookie.split('=');await context.addCookies([{name,value:parts.join('='),url:origin}]);const page=await context.newPage();
   await context.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
+  const factor=await completeSecondFactor(origin,cookie);
   for(const width of [1440,390]){
    await page.setViewportSize({width,height:1000});await page.goto(origin+'/app/settings');
-   const panel=page.locator('#access-member-controls');await panel.getByText('Invite a member',{exact:true}).click();const invite=panel.locator('[data-member-invite]');
+   const panel=page.locator('#access-member-controls');
+   const stepup=async(action,method,path)=>{await DB.prepare('UPDATE uptime_mfa_proofs SET verified_at=?').bind(Date.now()-300001).run();const direct=await fetch(origin+path,{method,headers:{origin,cookie,'content-type':'application/json'},...(method==='DELETE'?{}:{body:JSON.stringify({role:'read-only',scopes:[]})})});assert.equal(direct.status,403);assert.equal((await direct.json()).code,'fresh_second_factor_required');let writes=0;const count=response=>{if(response.url()===origin+path&&response.request().method()===method&&response.ok())writes++};page.on('response',count);await action();const verify=panel.locator('[data-stepup]'),field=verify.getByLabel('Authenticator or recovery code',{exact:true});await field.waitFor();assert.equal(await field.evaluate(e=>e===document.activeElement),true);await field.fill('wrong-code');await verify.getByRole('button',{name:'Verify code',exact:true}).click();await verify.getByText(/code didn't match/).waitFor();assert.equal(await field.inputValue(),'wrong-code');assert.equal(writes,0);await field.fill(factor.recoveryCodes.shift());await verify.getByRole('button',{name:'Verify code',exact:true}).click();return ()=>{page.off('response',count);assert.equal(writes,1,'pending member write completes exactly once')}};
+   const shot=async step=>{if(process.env.UPTIME_SCREENSHOTS){const out=join(process.env.UPTIME_SCREENSHOTS,'G2');await mkdir(out,{recursive:true});await page.screenshot({path:join(out,step+'-'+width+'.png')})}};
+   await panel.getByText('Invite a member',{exact:true}).click();const invite=panel.locator('[data-member-invite]');
    const self=await(await call('/api/access/self',undefined,{cookie})).json(),own=panel.locator(`[data-member-id="${self.id}"]`);
    await own.locator('summary').click();await own.getByLabel('Role',{exact:true}).selectOption('admin');
    const denied=page.waitForResponse(r=>r.url().endsWith(`/api/access/members/${self.id}`)&&r.request().method()==='POST');await own.getByRole('button',{name:'Save assignment',exact:true}).click();assert.equal((await denied).status(),409);
@@ -28,11 +33,11 @@ export async function proveMemberControls({origin,cookie,accept,call,DB}){
    await page.reload();const row=panel.locator(`[data-member-id="${reader.id}"]`);await row.locator('summary').click();
    const form=row.locator('form');await form.getByLabel('Service scope (blank = all)',{exact:true}).fill('synthetic-service-a');await form.getByLabel('Team scope (blank = all)',{exact:true}).fill('synthetic-team-a');
    if(process.env.UPTIME_SCREENSHOTS){await mkdir(process.env.UPTIME_SCREENSHOTS,{recursive:true});await panel.screenshot({path:join(process.env.UPTIME_SCREENSHOTS,`member-scopes-${width}.png`)})}
-   await form.getByRole('button',{name:'Save assignment',exact:true}).click();await panel.getByRole('status').filter({hasText:'Assignment saved.'}).waitFor();
+   await form.getByLabel('Role',{exact:true}).selectOption('responder');const saved=await stepup(()=>form.getByRole('button',{name:'Save assignment',exact:true}).click(),'POST','/api/access/members/'+reader.id);await panel.getByRole('status').filter({hasText:'Assignment saved.'}).waitFor();saved();const line=panel.getByRole('status').filter({hasText:'Assignment saved.'});assert.equal(await line.evaluate((e,id)=>e.previousElementSibling?.dataset.memberId===id,reader.id),true);await shot('assignment-complete');
    const narrowed=await call('/api/access/self',undefined,{cookie:reader.cookie});assert.deepEqual((await narrowed.json()).scopes,[{kind:'service',value:'synthetic-service-a'},{kind:'team',value:'synthetic-team-a'}]);
    await row.locator('summary').click();const before=(await DB.prepare('SELECT * FROM uptime_member_roles WHERE operator_id=?').bind(reader.id).first());
    await row.getByRole('button',{name:'Save assignment',exact:true}).click();await panel.getByRole('status').filter({hasText:'Assignment unchanged.'}).waitFor();assert.deepEqual(await DB.prepare('SELECT * FROM uptime_member_roles WHERE operator_id=?').bind(reader.id).first(),before);
-   await row.locator('summary').click();await row.getByRole('button',{name:'Remove member',exact:true}).click();await panel.getByRole('status').filter({hasText:'Member removed.'}).waitFor();assert.equal((await call('/api/access/self',undefined,{cookie:reader.cookie})).status,401);
+   await row.locator('summary').click();const removed=await stepup(()=>row.getByRole('button',{name:'Remove member',exact:true}).click(),'DELETE','/api/access/members/'+reader.id);await panel.getByRole('status').filter({hasText:'Member removed.'}).waitFor();removed();await shot('removal-complete');assert.equal((await call('/api/access/self',undefined,{cookie:reader.cookie})).status,401);
    await page.addScriptTag({path:new URL('../node_modules/axe-core/axe.min.js',import.meta.url).pathname});assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.filter(v=>['serious','critical'].includes(v.impact)).map(v=>v.id),[]);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
    if(process.env.UPTIME_SCREENSHOTS){await mkdir(process.env.UPTIME_SCREENSHOTS,{recursive:true});await panel.screenshot({path:join(process.env.UPTIME_SCREENSHOTS,`member-lifecycle-${width}.png`)})}
   }

@@ -13,23 +13,23 @@ export function accessMemberControls(host,api){
  host.innerHTML='<h3>Members and roles</h3><details><summary>Invite a member</summary><form data-member-invite><label>Name<input name="displayName" required maxlength="100"></label><label>Email<input name="email" type="email" required></label><p>Invitations use the emailed sign-in link.</p></form></details><p role="status" data-member-status></p><div data-member-list></div>';
  const invite=host.querySelector('[data-member-invite]'),status=host.querySelector('[data-member-status]'),list=host.querySelector('[data-member-list]');fields(invite);
  const inviteButton=document.createElement('button');inviteButton.textContent='Send invitation';inviteButton.className='primary';invite.append(inviteButton);
- const showError=error=>{status.textContent=error.message||'This action was refused.'};
+ const showError=(error,target=invite)=>{target.append(status);status.textContent=error.message||'This action was refused.';status.scrollIntoView({block:'nearest'})};
  // A completion notice also means the replacement rows are ready for the next action.
- async function load(message){
+ async function load(message,memberId){
   try{
    const self=await api('/api/access/self');if(!['owner','admin'].includes(self.role)){status.textContent='An owner or administrator manages members.';return}
    const members=await api('/api/access/members');if(!host.isConnected)return;list.replaceChildren();
    for(const member of members){
     const row=document.createElement('details'),summary=document.createElement('summary'),form=document.createElement('form');row.dataset.memberId=member.id;summary.textContent=`${member.displayName} · ${member.email} · ${member.productRole??'Unassigned'} · ${member.status}`;row.append(summary,form);fields(form,member);
     const save=document.createElement('button'),remove=document.createElement('button');save.textContent='Save assignment';remove.textContent='Remove member';remove.type='button';form.append(save,remove);
-    form.onsubmit=async event=>{event.preventDefault();save.disabled=true;try{const result=await api(`/api/access/members/${encodeURIComponent(member.id)}`,'POST',{role:form.elements.role.value,scopes:scopes(form)});await load(result.unchanged?'Assignment unchanged.':'Assignment saved.')}catch(error){showError(error)}finally{save.disabled=false}};
-    remove.onclick=async()=>{remove.disabled=true;try{await api(`/api/access/members/${encodeURIComponent(member.id)}`,'DELETE');await load('Member removed.')}catch(error){showError(error);remove.disabled=false}};
+    form.onsubmit=async event=>{event.preventDefault();save.disabled=true;try{const result=await securityApi.request(`/api/access/members/${encodeURIComponent(member.id)}`,'POST',{role:form.elements.role.value,scopes:scopes(form)});await load(result.unchanged?'Assignment unchanged.':'Assignment saved.',member.id)}catch(error){showError(error,form)}finally{save.disabled=false}};
+    remove.onclick=async()=>{remove.disabled=true;try{await securityApi.request(`/api/access/members/${encodeURIComponent(member.id)}`,'DELETE');await load('Member removed.',member.id)}catch(error){showError(error,form);remove.disabled=false}};
     list.append(row);
    }
-   if(message)status.textContent=message;
+   if(message){const row=memberId&&list.querySelector('[data-member-id="'+memberId+'"]');if(row)row.after(status);else invite.append(status);status.textContent=message;status.scrollIntoView({block:'nearest'})}
   }catch(error){showError(error)}
  }
- invite.onsubmit=async event=>{event.preventDefault();inviteButton.disabled=true;try{await api('/api/access/invitations','POST',{email:invite.elements.email.value,displayName:invite.elements.displayName.value,role:invite.elements.role.value,scopes:scopes(invite),returnTo:'/app'});await load('Invitation sent. The member can accept the emailed link.')}catch(error){showError(error)}finally{inviteButton.disabled=false}};
- const security=document.createElement('section');security.id='security-controls';host.append(security);securityControls(security,api);
+ invite.onsubmit=async event=>{event.preventDefault();inviteButton.disabled=true;try{await securityApi.request('/api/access/invitations','POST',{email:invite.elements.email.value,displayName:invite.elements.displayName.value,role:invite.elements.role.value,scopes:scopes(invite),returnTo:'/app'});await load('Invitation sent. The member can accept the emailed link.')}catch(error){showError(error)}finally{inviteButton.disabled=false}};
+ const security=document.createElement('section');security.id='security-controls';host.append(security);const securityApi=securityControls(security,api);
  void load();
 }
