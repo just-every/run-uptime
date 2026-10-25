@@ -1,8 +1,9 @@
 import {firstMount} from '../dom-patch.js';
+let nextField=0;
 const roles=['admin','editor','responder','read-only'];
 const scopes=form=>['service','team'].flatMap(kind=>form.elements[kind].value.split('\n').map(value=>value.trim()).filter(Boolean).map(value=>({kind,value})));
 function fields(form,person={}){
- const field=(text,name,tag='input')=>{const label=document.createElement('label'),input=document.createElement(tag);label.append(text,input);input.name=name;form.append(label);return input};
+ const field=(text,name,tag='input')=>{const label=document.createElement('label'),input=document.createElement(tag);const caption=document.createElement('span');caption.id='access-member-field-'+(++nextField);caption.textContent=text;input.setAttribute('aria-labelledby',caption.id);label.append(caption,input);input.name=name;form.append(label);return input};
  const role=field('Role','role','select');for(const value of (person.productRole==='owner'?['owner',...roles]:roles)){const option=document.createElement('option');option.value=value;option.textContent=value;role.append(option)}role.value=person.productRole??'read-only';
  for(const kind of ['service','team']){const input=field(kind==='service'?'Service scope (blank = all)':'Team scope (blank = all)',kind,'textarea');input.rows=2;input.maxLength=3100;input.value=(person.scopes??[]).filter(s=>s.kind===kind).map(s=>s.value).join('\n')}
 }
