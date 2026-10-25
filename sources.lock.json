@@ -2454,6 +2454,10 @@
       "sha256": "5d9a0dc00450351e30e68ad9a1dcf52557db3519e8832afd4bef34072586899c",
       "executable": false
     },
+    "public/access-member-controls.js": {
+      "sha256": "8a80273f0072b524cfbfa79ce90c12fb4a6ee30ff6111361589811a3e09c3e0d",
+      "executable": false
+    },
     "public/action-feedback.mjs": {
       "sha256": "1526ee1caace7b1eb4c3a21e9fc5f94ed3d7846fb10fa29e8f5e699c482b2a5c",
       "executable": false
@@ -2795,7 +2799,7 @@
       "executable": false
     },
     "public/settings-view.js": {
-      "sha256": "0dd124f726938a534d04137aadc2e2fb90c718856a1f0d4f4025a851ba426bbb",
+      "sha256": "324f74aa7e74ef45fa5088847e0745c7a4ea9fdf32eacf18953e25ab6265c346",
       "executable": false
     },
     "public/slow-policy.css": {
@@ -7099,7 +7103,7 @@
       "executable": false
     },
     "tests/access-admin-support.mjs": {
-      "sha256": "780a039f9f295d3d70884baacb6bfdc23c6e04a4221379dd1165a72b8a78f3f8",
+      "sha256": "56cdf32ef03ff3413c97a21ff87cc7b7d5845c29a9eefdc67f97ac2e4594550f",
       "executable": false
     },
     "tests/access-discovery-job-support.mjs": {
@@ -7112,6 +7116,10 @@
     },
     "tests/access-matrix.mjs": {
       "sha256": "8bfe0c49e2cff071e65b35af04338997de36f340c4b5b54c0daee3cf306efff2",
+      "executable": false
+    },
+    "tests/access-member-controls-browser-support.mjs": {
+      "sha256": "280daacc8e6d9b7719cb3fa97be40a9fd3407bace9beb0365ac84380485b4f3a",
       "executable": false
     },
     "tests/access-scope-support.mjs": {

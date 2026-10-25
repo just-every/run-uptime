@@ -1,3 +1,4 @@
+import {proveMemberControls} from './access-member-controls-browser-support.mjs';
 import {completeSecondFactor} from './mfa-auth-support.mjs';
 import {startMemberDiscoveryProof} from './access-discovery-job-support.mjs';
 import assert from 'node:assert/strict';
@@ -28,6 +29,7 @@ export async function proveMemberLifecycle({origin,call,fetcher,DB,cookie,member
   assert.deepEqual(await response.json(),{id:person.id,role,scopes,revision:(await DB.prepare('SELECT revision FROM uptime_member_roles WHERE operator_id=?').bind(person.id).first()).revision});
   return person;
  }
+ if(!hosted)await proveMemberControls({origin,cookie,accept,call,DB});
  // The original Base admin invitation door remains public and authoritative.
  const email='synthetic-uptime-admin@example.test';
  assert.equal((await call('/auth/invite',{email,displayName:'Synthetic Uptime Admin',role:'admin'},{cookie})).status,202);
