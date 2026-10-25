@@ -9,7 +9,7 @@ export function reportScheduleControls(host,{data,api}){
  for(const destination of data.notifications.destinations.filter(d=>d.enabled&&['email','slack'].includes(d.kind)))option(form.elements.destination,destination.id,destination.name);
  const selectedMonitor=()=>data.monitors.find(m=>m.id===form.elements.monitor.value);
  const serviceField=()=>{const service=selectedMonitor()?.definition.service,label=form.querySelector('[data-report-service]');label.hidden=!service;label.querySelector('span').textContent=service?'Include all of '+service:'';if(!service)form.elements.aggregate.checked=false};
- const cadence=report=>({daily:'Daily',weekly:'Weekly',monthly:'Monthly'}[report.frequency]??'One time')+' '+new Date(report.dueAt??report.nextDueAt??report.createdAt).toLocaleTimeString([], {timeZone:report.timeZone,hour:'numeric',minute:'2-digit'})+' '+report.timeZone;
+ const cadence=report=>({daily:'Daily',weekly:'Weekly',monthly:'Monthly'}[report.frequency]??'One time')+' '+new Date(report.anchorAt??report.dueAt??report.nextDueAt??report.createdAt).toLocaleTimeString([], {timeZone:report.timeZone,hour:'numeric',minute:'2-digit'})+' '+report.timeZone;
  const outcome=run=>run.state==='accepted'?'Sent '+new Date(run.finishedAt??run.dueAt).toLocaleString():run.state==='queued'?'Waiting to send':run.state==='sending'?'Sending report':run.state==='uncertain'?'Delivery could not be confirmed':run.code==='report_cancelled'?'Not sent: cancelled by owner':run.code==='report_destination_revoked'?'Not sent: destination unavailable':run.code==='report_initiator_revoked'?'Not sent: owner authority changed':'Not sent: delivery could not finish';
  async function load(){
   try{
@@ -23,7 +23,7 @@ export function reportScheduleControls(host,{data,api}){
      if(report.state==='active'){const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Cancel recurring report';cancel.onclick=async()=>{cancel.disabled=true;try{await api(`/api/monitors/${encodeURIComponent(monitor)}/report-schedules/${encodeURIComponent(report.id)}`,'DELETE');await load();status.textContent='Recurring report cancelled.'}catch(error){status.textContent=error.message;cancel.disabled=false}};row.append(cancel)}
      list.append(row);continue;
     }
-    label.textContent=`${data.notifications.destinations.find(d=>d.id===report.destinationId)?.name??'Unavailable destination'} · ${new Date(report.dueAt).toLocaleString()} · ${report.code==='report_cancelled'?'Cancelled by owner':outcome(report)} `;row.append(label);
+    label.textContent=`One time · ${report.service?'Service '+report.service:selectedMonitor()?.definition.name??'Unavailable monitor'} → ${data.notifications.destinations.find(d=>d.id===report.destinationId)?.name??'Unavailable destination'} · ${new Date(report.dueAt).toLocaleString()} ${report.timeZone} · ${report.code==='report_cancelled'?'Cancelled by owner':outcome(report)} `;row.append(label);
     if(report.state==='queued'){
      const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Cancel scheduled report';
      cancel.onclick=async()=>{cancel.disabled=true;try{await api(`/api/monitors/${encodeURIComponent(monitor)}/report-schedules/${encodeURIComponent(report.id)}`,'DELETE');status.textContent='Report cancelled. No delivery will start.';await load()}catch(error){status.textContent=error.message;cancel.disabled=false}};row.append(cancel);
