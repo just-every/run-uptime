@@ -5519,7 +5519,7 @@
       "executable": false
     },
     "src/domain/archive-validation.ts": {
-      "sha256": "45998c8fc66470d4318c3cb75cdd6218dc3347389b70c090951211b888596fee",
+      "sha256": "c42bd87636b610a6f1ef02a4b0f160edfa77c5979db28c6236915c4bceb9dc37",
       "executable": false
     },
     "src/domain/archive.server.ts": {
@@ -7771,7 +7771,7 @@
       "executable": false
     },
     "tests/report-recurrences-support.mjs": {
-      "sha256": "4c4d061e7a080cfc1baf5b5061b99da2b95cc1dc74cd297c5c1df5ad082963fc",
+      "sha256": "68b9f2a439a6fad3109bf3283d204d1cd1079834d3bfb4c4de5d8d80e93c8e40",
       "executable": false
     },
     "tests/report-schedule-controls-browser-support.mjs": {
