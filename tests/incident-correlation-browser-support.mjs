@@ -15,10 +15,10 @@ export async function proveOwnIncidentCorrelationConsole({f,monitors,link,restar
   const context=await browser.newContext();
   const [name,...value]=f.cookie.split('=');await context.addCookies([{name,value:value.join('='),url:f.origin}]);
   const responder=await inviteDoorMember(f.origin,f.cookie,'responder',`uptime-${{service:701,dependency:702,group:703}[link]}`);await completeSecondFactor(f.origin,responder.cookie);
-  const page=await context.newPage();
+  const page=await context.newPage(),pageErrors=[];page.on('pageerror',error=>pageErrors.push(error.message));
   await context.route('**/*',route=>new URL(route.request().url()).origin===f.origin?route.continue():route.abort());
   for(const width of [1440,390]){
-   await page.setViewportSize({width,height:1000});await page.goto(f.origin+`/app/monitors/${monitors[0].id}`);await page.locator('html.signed-in').waitFor();
+   await page.setViewportSize({width,height:1000});const navigation=await page.goto(f.origin+`/app/monitors/${monitors[0].id}`);assert.equal(navigation.status(),200,`${link}/${width} owner document`);await page.locator('html.signed-in').waitFor();assert.deepEqual(pageErrors,[]);
    await page.getByRole('button',{name:'Notes and follow-up',exact:true}).click();
    const dialog=page.locator('#incident-work-dialog');await dialog.locator('[data-correlation-group]').waitFor();
    assert.match(await dialog.locator('[data-correlation-group]').textContent(),/synthetic-uptime-2/);await dialog.getByText(/^Notification · /).waitFor();
@@ -35,7 +35,7 @@ export async function proveOwnIncidentCorrelationConsole({f,monitors,link,restar
    assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>n.target)})),[]);
    assert.ok(await dialog.evaluate(e=>e.scrollWidth<=e.clientWidth+1));assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
    if(process.env.UPTIME_SCREENSHOTS){await mkdir(process.env.UPTIME_SCREENSHOTS,{recursive:true});await dialog.screenshot({path:join(process.env.UPTIME_SCREENSHOTS,`correlation-${link}-${width}.png`)})}
-   await dialog.getByRole('button',{name:'Close incident notes',exact:true}).click();await dialog.waitFor({state:'detached'});await context.addCookies([{name,value:value.join('='),url:f.origin}]);
+   await context.addCookies([{name,value:value.join('='),url:f.origin}]);await dialog.getByRole('button',{name:'Close incident notes',exact:true}).click();await dialog.waitFor({state:'detached'});
   }
   const incidentId=(await f.request('/api/monitors/'+monitors[0].id+'/incidents')).data[0].id,endpoint='/api/v1/incidents/'+encodeURIComponent(incidentId),before=(await f.request(endpoint)).data.timeline;
   assert.ok(restart,'the existing console registration supplies a real Worker restart');await restart();const after=(await f.request(endpoint)).data.timeline;assert.deepEqual(after,before,'owner changes and applied timeline kinds retain their actor/time/data after restart');
