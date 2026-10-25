@@ -40,3 +40,27 @@ export async function proveOwnIncidentCorrelationConsole({f,monitors,link}){
  }finally{await browser?.close()}
  console.log('FOLLOWUP-001 console PASS correlation group and next-due notification at 1440/390, axe and reflow.');
 }
+
+export async function proveCombinedIncidentConsole({f,monitors,ids,phase,detail}){
+ await finishSetup(f.origin,f.cookie);
+ const browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});
+ try{
+  const context=await browser.newContext(),[name,...parts]=f.cookie.split('=');await context.addCookies([{name,value:parts.join('='),url:f.origin}]);const page=await context.newPage();
+  await context.route('**/*',route=>new URL(route.request().url()).origin===f.origin?route.continue():route.abort());
+  for(const width of [1440,390]){
+   await page.setViewportSize({width,height:1000});await page.goto(f.origin+'/app/monitors/'+monitors[0].id);await page.locator('html.signed-in').waitFor();
+   await page.getByRole('button',{name:'Notes and follow-up',exact:true}).click();const dialog=page.locator('#incident-work-dialog');await dialog.getByText('Incident loaded.',{exact:true}).waitFor();
+   if(phase==='escalation'||phase==='reminder'){
+    await dialog.getByText(new RegExp('^'+(phase==='escalation'?'Escalation':'Reminder')+' · ')).waitFor();
+    const live=await page.request.get(f.origin+'/api/v1/incidents/'+encodeURIComponent(ids[0]));const read=await live.json();assert.equal(read.nextDue,detail.nextDue);assert.equal(read.nextDueKind,phase);
+   }
+   if(phase==='reminder'){await dialog.getByText('escalation attempt',{exact:true}).waitFor();await dialog.getByText('escalation outcome',{exact:true}).waitFor()}
+   if(phase==='one-recovered'){assert.match(await dialog.textContent(),/Recovered/);assert.equal((await(await page.request.get(f.origin+'/api/v1/incidents/'+encodeURIComponent(ids[1]))).json()).machineState,'open')}
+   await page.addScriptTag({path:new URL('../node_modules/axe-core/axe.min.js',import.meta.url).pathname});assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.map(v=>v.id),[]);
+   assert.ok(await dialog.evaluate(e=>e.scrollWidth<=e.clientWidth+1));assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+   if(process.env.UPTIME_SCREENSHOTS){await mkdir(process.env.UPTIME_SCREENSHOTS,{recursive:true});await dialog.screenshot({path:join(process.env.UPTIME_SCREENSHOTS,`combined-${phase}-${width}.png`)})}
+   await dialog.getByRole('button',{name:'Close incident notes',exact:true}).click();await dialog.waitFor({state:'detached'});
+  }
+ }finally{await browser.close()}
+ console.log(`FOLLOWUP-001 combined console ${phase} PASS at 1440/390 with shared READAPI next-due, axe and reflow.`);
+}

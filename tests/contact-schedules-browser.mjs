@@ -48,3 +48,7 @@ try{
 // Keep browser execution in this existing matrix.browser=true journey.
 const correlation=await fixture();
 try{await proveOwnIncidentCorrelation(correlation,proveOwnIncidentCorrelationConsole)}finally{await correlation.close()}
+
+const {proveCombinedIncident}=await import('./incident-combined-support.mjs');
+const {proveCombinedIncidentConsole}=await import('./incident-correlation-browser-support.mjs');
+await proveCombinedIncident(proveCombinedIncidentConsole);
