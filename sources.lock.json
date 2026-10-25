@@ -2511,7 +2511,7 @@
       "executable": false
     },
     "public/assets/report-schedule-controls.js": {
-      "sha256": "768d8420233e8af107c913f2c455333472a581d3777c2a94061a17a9bb603c30",
+      "sha256": "d11bbd9b0a927819508995e79536b7b4e12db2a5960b81612ca44d87b6375a7b",
       "executable": false
     },
     "public/assets/security-controls.css": {
@@ -2519,7 +2519,7 @@
       "executable": false
     },
     "public/assets/security-controls.js": {
-      "sha256": "3f80e81b21125eadbaa2fb0407feffaf9ac10aab29849ad3c78af00d3af72892",
+      "sha256": "cef73af109e8b26982724e8c7160b60a8d426c01fa2ace56d8521e80615ab7b9",
       "executable": false
     },
     "public/assets/setup.js": {
@@ -7775,7 +7775,7 @@
       "executable": false
     },
     "tests/report-schedule-controls-browser-support.mjs": {
-      "sha256": "04edd67cdf09cd9a0e171f705a6875fca49b4bab13a5fa94e2e021f18f48e175",
+      "sha256": "7307b2f91e5608546feea00f7ea196abc29afae09c8a58d1bc4bb410c8b33fae",
       "executable": false
     },
     "tests/report-schedules-support.mjs": {
@@ -7835,7 +7835,7 @@
       "executable": false
     },
     "tests/security-controls-browser-support.mjs": {
-      "sha256": "dbb90cc5293c1f333bacbf46284562b85df0e8e85f3f54c8d9fdf7f835144a9c",
+      "sha256": "c6a4d39947312a5c78225816f36c65df92c48526740a1db2a603528194e77bbc",
       "executable": false
     },
     "tests/service-catalog-fixture.mjs": {
