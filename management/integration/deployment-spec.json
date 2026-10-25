@@ -468,6 +468,12 @@
       "name": "0074_discovery_authority.sql",
       "sha256": "1ca56266a126be1f07f952d748d6b4945b1cdc2480bafd898938f6bfb8237042",
       "sql": "-- Discovery is installation-local; initiator authority is rechecked at claim/result.\nALTER TABLE discovery_jobs ADD COLUMN initiator_id TEXT;\nALTER TABLE discovery_jobs ADD COLUMN initiator_version INTEGER;\nALTER TABLE discovery_jobs ADD COLUMN initiator_role TEXT;\nALTER TABLE discovery_jobs ADD COLUMN initiator_revision INTEGER;\nALTER TABLE discovery_jobs ADD COLUMN initiator_base_role TEXT;\nALTER TABLE discovery_jobs ADD COLUMN stopped_at INTEGER;\nALTER TABLE discovery_jobs ADD COLUMN stop_reason TEXT;\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0075_recurring_reports.sql",
+      "sha256": "c4d828c039fa56b8c74bd91f1fe6bcedc433ca46db6a327efd1a46b851025f93",
+      "sql": "-- Local recurring send authority; frozen report snapshots keep their existing\n-- portable scheduled_reports history, while restored installations never send.\nCREATE TABLE report_recurrences (\n id TEXT PRIMARY KEY, monitor_id TEXT NOT NULL, service TEXT,\n destination_id TEXT NOT NULL, credential_id TEXT NOT NULL,\n actor_id TEXT NOT NULL, actor_version INTEGER NOT NULL, role_revision INTEGER NOT NULL,\n frequency TEXT NOT NULL CHECK(frequency IN ('daily','weekly','monthly')),\n time_zone TEXT NOT NULL, anchor_at INTEGER NOT NULL, next_at INTEGER NOT NULL,\n period TEXT NOT NULL, created_at INTEGER NOT NULL, stopped_at INTEGER, stop_reason TEXT\n);\nCREATE TABLE report_occurrences (\n recurrence_id TEXT NOT NULL, due_at INTEGER NOT NULL, report_id TEXT NOT NULL UNIQUE,\n PRIMARY KEY(recurrence_id,due_at)\n);\nCREATE INDEX report_recurrences_due ON report_recurrences(next_at) WHERE stopped_at IS NULL;\n"
     }
   ],
   "compatibilityDate": "2026-09-08",
