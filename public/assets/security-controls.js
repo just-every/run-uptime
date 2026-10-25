@@ -99,7 +99,7 @@ export function securityControls(host,transport){
   if(!state.factors.length){outcome('Enroll an authenticator before continuing.');const button=host.querySelector('[data-enroll-totp]');button.closest('details').open=true;button.focus();return}
   outcome('Verify a second factor within the last five minutes');const form=host.querySelector('[data-stepup]');form.closest('details').open=true;form.elements.code.focus();
  }
- async function verified(){status.textContent='Second factor verified.';await factorState();const action=pendingAction;pendingAction=null;if(action)await action()}
+ async function verified(){status.textContent='Second factor verified.';await factorState();const action=pendingAction;pendingAction=null;if(action){await action();host.querySelector('[data-stepup]').closest('details').open=false}}
  host.querySelector('[data-stepup]').onsubmit=event=>{event.preventDefault();const form=event.currentTarget;void run(async()=>{const code=form.elements.code.value;await api(prefix+(code.length===32?'/recovery/verify':'/totp/verify'),'POST',{code});form.reset();await verified()})};
  host.querySelector('[data-verify-passkey]').onclick=()=>run(async()=>{await passkey(api,false);await verified()});
  host.querySelector('[data-enroll-totp]').onclick=()=>run(async()=>{
