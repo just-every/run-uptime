@@ -109,6 +109,12 @@
           "title": "Monitoring API and CSV",
           "file": "read-api.md",
           "summary": "Read current coverage, bulk uptime, incident CSV and calendar reports through authenticated versioned routes."
+        },
+        {
+          "slug": "scheduled-reports",
+          "title": "Scheduled reports",
+          "file": "scheduled-reports.md",
+          "summary": "Schedule monitor or service reports, inspect frozen runs, and cancel future delivery."
         }
       ]
     },

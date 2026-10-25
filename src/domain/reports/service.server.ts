@@ -8,7 +8,8 @@ export async function serviceReport(env:CredentialEnvironment,service:string,par
  const filter=credentialMonitorFilter(env),rows=(await env.DB.prepare(`SELECT id FROM monitors WHERE json_extract(definition,'$.service')=? AND ${filter.sql} ORDER BY id`).bind(service,...filter.params).all<{id:string}>()).results
  if(!rows.length)return null
  const period=await configuredPeriod(env,params,now),members:MonitorReport[]=[]
- for(const row of rows){const report=await monitorReport(env,row.id,period,now);if(report)members.push(report)}
+ const selected=new URLSearchParams(params);selected.delete('zone');selected.set('timeZone',period.timeZone)
+ for(const row of rows){const report=await monitorReport(env,row.id,selected,now);if(report)members.push(report)}
  const sum=(key:'upMs'|'notPassingMs'|'windowMs'|'pausedMs'|'maintenanceMs')=>members.reduce((sum,m)=>sum+m.availability[key],0)
  const availability=windowMetrics(sum('upMs'),sum('notPassingMs'),sum('windowMs'),sum('pausedMs'),sum('maintenanceMs')),target=period.slaTargetPercent
  return {schemaVersion:1,generatedAt:now,service:{name:service,monitors:members.map(m=>m.monitor)},period,denominatorPolicy:'Sum of member-monitor time, with each member calculated by the same immutable period engine. Unknown, paused and maintenance time remain separate; no average of percentages or percentiles.',availability,

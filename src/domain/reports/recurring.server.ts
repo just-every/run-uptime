@@ -1,4 +1,5 @@
 import type {Bindings} from '../control.server.ts'
+import {classifyStorage} from '../storage-error.ts'
 import {mutationGuard} from '../audit.server.ts'
 import {ReportInputError,reportPeriod} from './period.ts'
 import {recurrenceZone,nextReportOccurrence} from './recurrence.ts'
@@ -53,8 +54,13 @@ export async function advanceRecurringReports(env:Bindings){
  await stopRevokedReports(env)
  const now=Date.now(),rows=(await env.DB.prepare('SELECT * FROM report_recurrences WHERE stopped_at IS NULL AND next_at<=? ORDER BY next_at,id LIMIT 100').bind(now).all<any>()).results
  for(const row of rows){
+  const stop=async(reason:string)=>env.DB.prepare('UPDATE report_recurrences SET stopped_at=?,stop_reason=? WHERE id=? AND next_at=? AND stopped_at IS NULL').bind(Date.now(),reason,row.id,row.next_at).run()
+  if(Number((await env.DB.prepare('SELECT COUNT(*) n FROM scheduled_reports').first<{n:number}>())?.n)>=1000){await stop('report_snapshot_limit');continue}
   const digest=new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(`recurring:${row.id}:${row.next_at}`)));digest[6]=(digest[6]&15)|80;digest[8]=(digest[8]&63)|128;const hex=[...digest.slice(0,16)].map(n=>n.toString(16).padStart(2,'0')).join('');const id=`${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`,next=nextReportOccurrence(row.anchor_at,row.frequency,row.time_zone,Math.max(now,row.next_at)),guard=`EXISTS(SELECT 1 FROM report_recurrences r WHERE r.id=? AND r.next_at=? AND r.stopped_at IS NULL AND ${authority} AND ${destination})`
   try{await scheduleReport(env,row.monitor_id,{dueAt:row.next_at,destinationId:row.destination_id,period:JSON.parse(row.period),...(row.service?{service:row.service}:{})},row.actor_id,{id,snapshotAt:row.next_at,guard:{sql:guard,params:[row.id,row.next_at]},tail:[env.DB.prepare('INSERT INTO report_occurrences(recurrence_id,due_at,report_id) VALUES(?,?,?)').bind(row.id,row.next_at,id),env.DB.prepare('UPDATE report_recurrences SET next_at=? WHERE id=? AND next_at=?').bind(next,row.id,row.next_at)]})}
-  catch(error){if(await env.DB.prepare('SELECT 1 FROM report_occurrences WHERE recurrence_id=? AND due_at=?').bind(row.id,row.next_at).first())continue;throw error}
+  catch(error){if(await env.DB.prepare('SELECT 1 FROM report_occurrences WHERE recurrence_id=? AND due_at=?').bind(row.id,row.next_at).first())continue;
+   if(error instanceof ReportInputError||(error as any)?.status===400){await stop('report_snapshot_refused');continue}
+   if(classifyStorage(error)?.class==='guard_conflict'){await stopRevokedReports(env);const current=await env.DB.prepare('SELECT next_at,stopped_at FROM report_recurrences WHERE id=?').bind(row.id).first<any>();if(!current||current.stopped_at!==null||current.next_at!==row.next_at)continue;if(Number((await env.DB.prepare('SELECT COUNT(*) n FROM scheduled_reports').first<{n:number}>())?.n)>=1000){await stop('report_snapshot_limit');continue}}
+   throw error}
  }
 }

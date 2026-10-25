@@ -551,7 +551,7 @@
       "executable": false
     },
     "docs/definitions.md": {
-      "sha256": "3bd082a576c34480dc097f216df7e3747fadc29b579153a203447b40dd7f41e0",
+      "sha256": "20b89bf221bd8dce42ebdeb13816382c12cde892d4c7d0e89df61d6eb89fe4cd",
       "executable": false
     },
     "docs/deploy.md": {
@@ -2063,7 +2063,7 @@
       "executable": false
     },
     "docs/read-api.md": {
-      "sha256": "410523191fa16e5f6c9328b1498a2d52bd0325cce9409c78cdeb01f5613d8ea3",
+      "sha256": "9b3b52c66b8eb8021a6a9f035f3f3a252ec7cb098abd8e7956a1f062e2834a65",
       "executable": false
     },
     "docs/resilient-monitoring.md": {
@@ -2079,15 +2079,15 @@
       "executable": false
     },
     "docs/scheduled-reports.md": {
-      "sha256": "88c51c04a2253b521baed7dd657afabd1f8d3dc3889e5f26b9fce0f38c01f544",
+      "sha256": "8e89e41e7dd731c0f0833ddbd81495967dbc642304be1d9293d2cf942b237cb8",
       "executable": false
     },
     "docs/security.md": {
-      "sha256": "dd81e407b412c818a162d74885c56bffab2e3af137a1d0bc58431487e1bb1162",
+      "sha256": "6fbbe69a9fc672071eea4017cdc6479ea7667d2903d6a08ad2d4d74fad768511",
       "executable": false
     },
     "docs/site.json": {
-      "sha256": "30b621ea683e7a8c279afd7fbd0e1f38f5a359a365a65d77762fe18708ab849f",
+      "sha256": "3c4a381bcd402b717abfa24c2743b7b258da5c4155fdb1941ab22e17bdcb544f",
       "executable": false
     },
     "docs/slow-responses.md": {
@@ -6419,7 +6419,7 @@
       "executable": false
     },
     "src/domain/reports/recurring.server.ts": {
-      "sha256": "2e17a492c2d9681bdc9fb3fff1677369af09eb301ea924938645a6b289980e3d",
+      "sha256": "35944aea6a4e79f6b0a0f814b77afb80c3317463580acb43ebd03c008b95092a",
       "executable": false
     },
     "src/domain/reports/schedules.server.ts": {
@@ -6427,7 +6427,7 @@
       "executable": false
     },
     "src/domain/reports/service.server.ts": {
-      "sha256": "473b6bc200fa52ad98343ac4eb348986d79edf181d96f0741dea86f98676fab8",
+      "sha256": "900edea4cd6bea263ad7ebd4eef24e6dfe0a66049596a1b59fa836e36b562791",
       "executable": false
     },
     "src/domain/reports/slow.server.ts": {
@@ -7775,7 +7775,7 @@
       "executable": false
     },
     "tests/report-schedule-controls-browser-support.mjs": {
-      "sha256": "ebb5ff7b09c3b6fa30fa024153fdf9169a983f85e5d17e89adaab33429b4ff86",
+      "sha256": "04edd67cdf09cd9a0e171f705a6875fca49b4bab13a5fa94e2e021f18f48e175",
       "executable": false
     },
     "tests/report-schedules-support.mjs": {
