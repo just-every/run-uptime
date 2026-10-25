@@ -1,3 +1,4 @@
+import {previewReportRecurrence} from './domain/reports/recurring.server.ts'
 import {serviceReport,serviceReportCsv} from './domain/reports/service.server.ts'
 import {scheduleReport,readScheduledReport,cancelScheduledReport} from './domain/reports/schedules.server.ts'
 import {namedAlertRoutes,saveNamedAlertRoute} from './domain/alert-routes.server.ts'
@@ -275,6 +276,7 @@ api.post('/api/runner/results',async c=>{const text=c.get('requestText');if(!awa
 api.post('/api/runner/effect-spend',async c=>{const text=c.get('requestText');if(!await signedRunnerBody(c.env,c.get('runner'),text,c.req.header('x-sent-at')??'',c.req.header('x-runner-signature')??'',4096))return c.json({error:'Invalid signed spend'},403);return c.json(await storageOperation('runner.effectSpend',()=>spendGrant(c.env,c.get('input'),c.get('runner').runner_id)))})
 // Discovery: the owner's console asks, the owner's runner claims and answers; the Worker never fetches the target.
 api.get('/api/v1/services/report',async c=>{const query=new URL(c.req.url).searchParams,report=await serviceReport(c.env,query.get('service')??'',query);if(!report)return c.json({error:'Service not found'},404);if(query.get('format')==='csv'){c.header('content-type','text/csv; charset=utf-8');c.header('content-disposition','attachment; filename="uptime-service-report.csv"');return c.body(serviceReportCsv(report))}return c.json(report)})
+api.post('/api/monitors/:id/report-schedules/preview',async c=>{if(!await c.env.DB.prepare('SELECT 1 FROM monitors WHERE id=?').bind(c.req.param('id')).first())return c.json({error:'Monitor not found'},404);return c.json(previewReportRecurrence(c.get('input')))})
 api.post('/api/monitors/:id/report-schedules',async c=>c.json(await scheduleReport(c.env,c.req.param('id'),c.get('input'),(await authenticatedSession(c.env,c.req.raw))!.operator.id),201))
 api.get('/api/monitors/:id/report-schedules',async c=>c.json(await readScheduledReport(c.env,c.req.param('id'))))
 api.get('/api/monitors/:id/report-schedules/:scheduleId',async c=>{const report=await readScheduledReport(c.env,c.req.param('id'),c.req.param('scheduleId'));return report?c.json(report):c.json({error:'Report not found'},404)})

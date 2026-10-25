@@ -14,7 +14,7 @@ export function erasureRelations(kind:'monitor'|'destination'|'operator',id:stri
   return kind==='monitor'&&(jobIds.has(envelope.id)||eventMonitor(body,id)||bodies.has(envelope.body)||slackMonitor);
  }
  function historyRelated(table:string,value:any){const row=object(value);if(!row)return false;
-  if(table==='scheduled_reports')return kind==='monitor'?row.monitor_id===id:kind==='destination'&&row.destination_id===id;
+  if(table==='scheduled_reports')return kind==='monitor'?(row.monitor_id===id||object(row.report)?.service?.monitors?.some((monitor:any)=>monitor.id===id)):kind==='destination'&&row.destination_id===id;
   if(table==='notification_delivery_attempts')return jobIds.has(row.delivery_id)||(kind==='destination'&&row.destination_id===id);
   if(kind==='monitor'){
    if(table==='monitors')return row.id===id;

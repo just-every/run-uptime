@@ -41,3 +41,7 @@ try{
   console.log(`REPORT-001 browser ${width}: all ${total} receipt records paged, focus and snapshot retained, escaped/masked output, PDF/JSON downloaded, axe/reflow passed.`);
  }
 }finally{await browser?.close();await worker?.dispose();await cleanupDirectory(dir)}
+
+const {proveRecurringReports}=await import('./report-recurrences-support.mjs');
+const {proveRecurringReportConsole}=await import('./report-schedule-controls-browser-support.mjs');
+await proveRecurringReports(proveRecurringReportConsole);

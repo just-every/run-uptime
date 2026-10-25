@@ -10,6 +10,8 @@ import type {Bindings} from './control.server.ts'
 import {businessErasureScope,eraseBusinessCustody} from './business-import/erasure.server.ts'
 type Selection={table:string;where:string;args:unknown[]};
 // A fallback contact's alert names the earlier contacts it followed (DELIVERY-002): it is dependent history of each.
+const serviceReportJobs="EXISTS(SELECT 1 FROM scheduled_reports sr JOIN json_each(json_extract(sr.report,'$.service.monitors')) member WHERE sr.delivery_id=notification_jobs.id AND json_extract(member.value,'$.id')=?)";
+const scheduledMonitor="monitor_id=? OR EXISTS(SELECT 1 FROM json_each(json_extract(scheduled_reports.report,'$.service.monitors')) member WHERE json_extract(member.value,'$.id')=?)";
 const fallbackJobs="EXISTS(SELECT 1 FROM json_each(json_extract(event,'$.fallbackContext.previous')) p WHERE json_extract(p.value,'$.destinationId')=?)";
 const selection=(table:string,where:string,...args:unknown[]):Selection=>({table,where,args});
 export async function erase(env:Bindings,kind:'monitor'|'destination'|'operator',id:string,actor:AuditActor,confirmation?:string){
@@ -28,10 +30,10 @@ export async function erase(env:Bindings,kind:'monitor'|'destination'|'operator'
  const incidentIds=kind==='monitor'?(await env.DB.prepare("SELECT id FROM outbox WHERE monitor_id=? AND kind='trigger'").bind(id).all<{id:string}>()).results.map(row=>row.id):[];
  const plans:Selection[]=[],discoveryGuards:D1PreparedStatement[]=[],jobIds:string[]=[],jobRows:{id:string;event:string}[]=[],destinationCredentials:string[]=[];
  if(kind==='monitor'||kind==='destination'){
-  const jobs=await env.DB.prepare(kind==='monitor'?"SELECT id,event FROM notification_jobs WHERE event_id IN(SELECT id FROM outbox WHERE monitor_id=?) OR json_extract(event,'$.monitor.id')=? OR json_extract(event,'$.monitorId')=?":"SELECT id,event FROM notification_jobs WHERE destination_id=?").bind(...(kind==='monitor'?[id,id,id]:[id])).all<any>();
+  const jobs=await env.DB.prepare(kind==='monitor'?"SELECT id,event FROM notification_jobs WHERE event_id IN(SELECT id FROM outbox WHERE monitor_id=?) OR json_extract(event,'$.monitor.id')=? OR json_extract(event,'$.monitorId')=? OR "+serviceReportJobs:"SELECT id,event FROM notification_jobs WHERE destination_id=?").bind(...(kind==='monitor'?[id,id,id,id]:[id])).all<any>();
   if(kind==='destination')jobs.results.push(...(await env.DB.prepare(`SELECT id,event FROM notification_jobs WHERE ${fallbackJobs}`).bind(id).all<any>()).results);
   jobIds.push(...jobs.results.map(r=>r.id));jobRows.push(...jobs.results);
-  discoveryGuards.push(mutationGuard(env,kind==='monitor'?"(SELECT COUNT(*) FROM notification_jobs WHERE event_id IN(SELECT id FROM outbox WHERE monitor_id=?) OR json_extract(event,'$.monitor.id')=? OR json_extract(event,'$.monitorId')=?)=?":`(SELECT COUNT(*) FROM notification_jobs WHERE destination_id=? OR ${fallbackJobs})=?`,[...(kind==='monitor'?[id,id,id]:[id,id]),jobIds.length]));
+  discoveryGuards.push(mutationGuard(env,kind==='monitor'?"(SELECT COUNT(*) FROM notification_jobs WHERE event_id IN(SELECT id FROM outbox WHERE monitor_id=?) OR json_extract(event,'$.monitor.id')=? OR json_extract(event,'$.monitorId')=? OR "+serviceReportJobs+")=?":`(SELECT COUNT(*) FROM notification_jobs WHERE destination_id=? OR ${fallbackJobs})=?`,[...(kind==='monitor'?[id,id,id,id]:[id,id]),jobIds.length]));
   if(kind==='destination')destinationCredentials.push(...(await env.DB.prepare('SELECT id FROM notification_credentials WHERE destination_id=?').bind(id).all<any>()).results.map(r=>r.id));
   for(const job of jobIds){plans.push(selection('notification_delivery_attempts','delivery_id=?',job),selection('notification_retry_policy','delivery_id=?',job),selection('integration_attempts','namespace=? AND delivery_id=?','uptime-notifications',job),selection('integration_resolutions','namespace=? AND delivery_id=?','uptime-notifications',job),selection('notification_claim_custody','delivery_id=?',job),selection('integration_deliveries','namespace=? AND id=?','uptime-notifications',job));}
   const replays=await env.DB.prepare("SELECT * FROM integration_replays WHERE namespace='uptime-notifications'").all<any>();
@@ -46,7 +48,7 @@ export async function erase(env:Bindings,kind:'monitor'|'destination'|'operator'
  }
  if(['monitor','destination','operator'].includes(kind)){const column=kind==='monitor'?'monitor_id':kind==='destination'?'destination_id':'actor_id';plans.push(selection('report_occurrences',`recurrence_id IN(SELECT id FROM report_recurrences WHERE ${column}=?)`,id),selection('report_recurrences',`${column}=?`,id));}
  if(kind==='monitor'){
-  plans.push(selection('scheduled_reports','monitor_id=?',id));
+  plans.push(selection('report_occurrences',`report_id IN(SELECT id FROM scheduled_reports WHERE ${scheduledMonitor})`,id,id),selection('scheduled_reports',scheduledMonitor,id,id));
   plans.push(selection('failure_snapshots','monitor_id=?',id),selection('failure_snapshot_settings','monitor_id=?',id),selection('failure_evidence_grants','monitor_id=?',id));
   plans.push(selection('slow_acknowledgements','monitor_id=?',id),selection('cleanup_debt','monitor_id=?',id),selection('effect_grants','monitor_id=?',id));
   // Uploads no import plan reads (an abandoned or interrupted preview) that name this monitor go with it.
