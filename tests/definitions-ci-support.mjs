@@ -1,3 +1,4 @@
+import {main as keyCommand} from '../scripts/api-keys.mjs';
 import assert from 'node:assert/strict';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
@@ -6,7 +7,7 @@ import {join,resolve} from 'node:path';
 import {createHash} from 'node:crypto';
 import {definitionDoor} from './auth-test-support.mjs';
 const exec=promisify(execFile);
-export async function proveDefinitionCI({directory,origin,cookie,DB,typed}){
+export async function proveDefinitionCI({directory,origin,cookie,DB,typed,restart}){
  const owner=async(path,body,method=body===undefined?'GET':'POST')=>{const response=await fetch(origin+path,{method,headers:{origin,cookie,'content-type':'application/json'},...(body===undefined?{}:{body:JSON.stringify(body)})});assert.ok(response.ok,`Owner fixture ${path}: ${response.status}`);return response.json()};
  const issue=scopes=>owner('/api/credentials',{name:'Synthetic definitions deployment',scopes,expiresAt:Date.now()+3600000,environment:'staging',resources:{mode:'selection',monitorIds:[],tags:['ci-team']}});
  const key=await issue(['definitions:preview','definitions:apply']),previewKey=await issue(['definitions:preview']);
@@ -48,6 +49,8 @@ export async function proveDefinitionCI({directory,origin,cookie,DB,typed}){
  const beforeRefusedBatch=await productDigest();
  const revoked=await call(suspended,'/api/operator/import/apply',{planId:saved.planId,reviewedFingerprint:saved.fingerprint},'staging',{'x-import-source':source.namespace});assert.equal(revoked.status,401);assert.deepEqual(await productDigest(),beforeRefusedBatch,'revoked next operation writes no durable product, job or authority rows');assert.deepEqual(await before(),authorizedResults,'revoked next batch writes no monitor/revision and preserves the authorized batch');
  const retainedJob=await DB.prepare('SELECT j.principal_id,j.state FROM ik_door_plans p JOIN ik_jobs j ON j.id=p.job_id WHERE p.id=?').bind(saved.planId).first();assert.ok(retainedJob,'partially applied job retains its initiating principal');assert.equal(retainedJob.principal_id,(await owner('/auth/session')).operator.id);assert.equal(retainedJob.state,progress.job.state);
+ const stoppedJobs=await keyCommand(['jobs','--origin',origin,'--id',suspended.credential.id],{UPTIME_ACCESS_COOKIE:cookie});const stoppedJob=stoppedJobs.find(job=>job.id===saved.planId);assert.equal(stoppedJob.state,'stopped');assert.equal(stoppedJob.stopReason,'credential_revoked');assert.ok(stoppedJob.stoppedAt);assert.equal(stoppedJob.nextOperation,'refused');assert.equal(stoppedJob.authorizedOperations,20);assert.equal(stoppedJob.initiatingOwnerId,retainedJob.principal_id);
+ await restart();assert.deepEqual(await keyCommand(['jobs','--origin',origin,'--id',suspended.credential.id],{UPTIME_ACCESS_COOKIE:cookie}),stoppedJobs,'durable revoked stop and authorized checkpoint read identically after restart');
  // A current monitor moved out by its owner is no longer writable by CI.
  const moved=added[0],definition=JSON.parse(moved.definition);await owner('/api/monitors/'+moved.id,{...definition,environment:'production'},'PATCH');
  assert.equal((await call(key,'/api/definitions/recognise',typed.text)).status,403);

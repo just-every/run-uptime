@@ -1,3 +1,4 @@
+import {proveSecurityControls} from './security-controls-browser-support.mjs';
 import {proveMfaPolicy} from './mfa-policy-support.mjs';
 import {proveMfaWebAuthn} from './mfa-webauthn-support.mjs';
 import {testAuthBindings,emailSignIn,sessionCookie} from './auth-test-support.mjs';
@@ -65,5 +66,6 @@ try{
  await proveMfaPolicy({origin,bindings,call,cookie,DB:await worker.getD1Database('DB')});
  await worker.dispose();worker=null;
  await proveMfaWebAuthn();
+ await proveSecurityControls();
  console.log(`OPERATOR-SECURITY passed ${passed} checks`);
 }finally{await worker?.dispose();await rm(dir,{recursive:true,force:true})}

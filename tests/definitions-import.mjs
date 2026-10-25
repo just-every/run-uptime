@@ -292,7 +292,7 @@ try{
  assert.equal((await fetch(origin+'/api/definitions/export?unexpected=1',{headers:{cookie}})).status,400);assert.equal(await auditCount(),priorAudit,'invalid export writes no authorization audit');
  assert.equal((await fetch(origin+'/api/definitions/export',{headers:{cookie}})).status,200);assert.equal(await auditCount(),priorAudit+1,'permitted definition export records one opaque live actor receipt');
  const typed=await typeScriptDefinitionsProof({directory,preview});
- await proveDefinitionCI({directory,origin,cookie,DB,typed});
+ await proveDefinitionCI({directory,origin,cookie,DB,typed,restart:async()=>{await worker.dispose();({worker,DB}=await migratedWorker({port,persist:join(directory,'local'),bindings:{UPTIME_ORIGIN:origin}}))}});
  console.log('IMPORT-001 / MIGRATE-001 passed through the import door: refusals leave every table byte-identical; request secrets are withheld before upload and stored nowhere; UptimeRobot preview, paused apply, export round-trip, change, undo that keeps and reports edits, with history intact, and earlier batches keep read and undo. DEPENDENCY-002 passed: UptimeRobot, Better Stack and Site24x7 third-party service monitors map onto catalog entries as paused followed services, a Better Stack third-party status page row is refused citing its public API, and a part already followed is refused.');
  // MIGRATE-004 saved monitor settings: the same Definitions door, in a fresh installation namespace.
  await worker.dispose();({worker}=await migratedWorker({port,persist:join(directory,'site24x7'),bindings:{UPTIME_ORIGIN:origin}}));
