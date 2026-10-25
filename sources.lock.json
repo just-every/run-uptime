@@ -2454,10 +2454,6 @@
       "sha256": "5d9a0dc00450351e30e68ad9a1dcf52557db3519e8832afd4bef34072586899c",
       "executable": false
     },
-    "public/access-member-controls.js": {
-      "sha256": "8a80273f0072b524cfbfa79ce90c12fb4a6ee30ff6111361589811a3e09c3e0d",
-      "executable": false
-    },
     "public/action-feedback.mjs": {
       "sha256": "1526ee1caace7b1eb4c3a21e9fc5f94ed3d7846fb10fa29e8f5e699c482b2a5c",
       "executable": false
@@ -2476,6 +2472,10 @@
     },
     "public/archive-view.js": {
       "sha256": "07d64b36d9e902dc88d9d1df503e70c249f357108d194e9817733ed4f6dc62f0",
+      "executable": false
+    },
+    "public/assets/access-member-controls.js": {
+      "sha256": "5962f4501e6881debf6c583d639e285372b7497ea3aa6fc569efe1cffd1a53f0",
       "executable": false
     },
     "public/assets/alert-route-fallback.css": {
@@ -2504,6 +2504,10 @@
     },
     "public/assets/failure-snapshot-view.js": {
       "sha256": "1582a23b207e0820e724c604f522034f70b7ab90941a43683ed1dc9a084a6a9a",
+      "executable": false
+    },
+    "public/assets/report-schedule-controls.js": {
+      "sha256": "76e7bc842a4c5f115c82bc8c83513ad44804966085debbaf95c5e8b77fe58764",
       "executable": false
     },
     "public/assets/setup.js": {
@@ -2755,7 +2759,7 @@
       "executable": false
     },
     "public/notifications.js": {
-      "sha256": "f9edb5580e456cb0000912f41707ad96c66e8741e303afd98d0918f4dce33989",
+      "sha256": "a6996a5796e5f5e2dde99de401f26f78706b7c7f3c836cef647c87cf9f2d130b",
       "executable": false
     },
     "public/pagespeed-panel.js": {
@@ -2782,10 +2786,6 @@
       "sha256": "d824b2f3ec31f451e6067d8b1edfafdc817f827517ee6a71675e6a0de8932e2c",
       "executable": false
     },
-    "public/report-schedule-controls.js": {
-      "sha256": "e30c9955ceee2d58fe9720b588cd4a17e041b4445c276fd67761ad955a564f95",
-      "executable": false
-    },
     "public/report.css": {
       "sha256": "3842b20453b44c06c3dd9cd9ae9ebbed369c28f1c5efcb71ca78d4507bf1f3b4",
       "executable": false
@@ -2799,7 +2799,7 @@
       "executable": false
     },
     "public/settings-view.js": {
-      "sha256": "324f74aa7e74ef45fa5088847e0745c7a4ea9fdf32eacf18953e25ab6265c346",
+      "sha256": "01465d2e726630a90b989c24727fa92660ec7f42fbfbb09aa736656938b6da42",
       "executable": false
     },
     "public/slow-policy.css": {

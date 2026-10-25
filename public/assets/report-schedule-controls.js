@@ -1,4 +1,4 @@
-import {firstMount} from './dom-patch.js';
+import {firstMount} from '../dom-patch.js';
 export function reportScheduleControls(host,{data,api}){
  if(!firstMount(host))return;
  host.innerHTML='<h3>Scheduled reports</h3><details><summary>Schedule a one-time report</summary><form class="notification-form"><label>Monitor<select name="monitor" required></select></label><label>Destination<select name="destination" required></select></label><label>Send at (local time)<input name="due" type="datetime-local" required></label><label>Report time zone<input name="zone" value="UTC" required></label><p>Send a snapshot of the last 24 hours, calculated when scheduled.</p><button class="primary">Schedule report</button></form></details><p role="status" data-report-status></p><div data-report-list></div>';

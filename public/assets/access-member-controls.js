@@ -1,4 +1,4 @@
-import {firstMount} from './dom-patch.js';
+import {firstMount} from '../dom-patch.js';
 const roles=['admin','editor','responder','read-only'];
 const scopes=form=>['service','team'].flatMap(kind=>form.elements[kind].value.split('\n').map(value=>value.trim()).filter(Boolean).map(value=>({kind,value})));
 function fields(form,person={}){
