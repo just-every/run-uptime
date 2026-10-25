@@ -1,3 +1,4 @@
+import {startLocalWorker} from './mail-provider-fixture.mjs';
 import {fixture} from './resilience/support.mjs';
 import {proveOwnIncidentCorrelation} from './incident-correlation-support.mjs';
 import {proveOwnIncidentCorrelationConsole} from './incident-correlation-browser-support.mjs';
@@ -46,8 +47,9 @@ try{
 }finally{await browser?.close();await worker?.dispose();await cleanupDirectory(directory)}
 
 // Keep browser execution in this existing matrix.browser=true journey.
-const correlation=await fixture();
-try{await proveOwnIncidentCorrelation(correlation,proveOwnIncidentCorrelationConsole)}finally{await correlation.close()}
+const correlation=await fixture();let correlationWorker;
+const restartCorrelation=async()=>{await(correlationWorker??correlation.worker).dispose();correlationWorker=await startLocalWorker({persist:correlation.directory,port:Number(new URL(correlation.origin).port),bindings:correlation.bindings,outboundService:async request=>{assert.match(new URL(request.url).hostname,/^(watch|heartbeat)\.example\.test$/);return new Response('',{status:200})}});await correlationWorker.ready;correlation.DB=await correlationWorker.getD1Database('DB')};
+try{await proveOwnIncidentCorrelation(correlation,info=>proveOwnIncidentCorrelationConsole({...info,restart:restartCorrelation}))}finally{await correlationWorker?.dispose();await correlation.close()}
 
 const {proveCombinedIncident}=await import('./incident-combined-support.mjs');
 const {proveCombinedIncidentConsole}=await import('./incident-correlation-browser-support.mjs');
