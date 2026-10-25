@@ -31,6 +31,7 @@ async function proveCorrelationBranch(f,inspect,link){
  await ok('/api/monitors/'+monitors[0].id,{method:'PATCH',body:{...maintained.definition,enabled:false}});
  await ok('/api/monitors/'+monitors[0].id,{method:'PATCH',body:{...monitors[0].definition,maintenanceUntil:0,enabled:true}});
  await inspect({f,monitors,incidents,link});
+ first=await ok(path(0));
  await ok(path(0)+'/actions',{body:{kind:'acknowledge',version:first.version}});
  second=await ok('/api/v1/incidents/'+encodeURIComponent(incidents[1].id));
  assert.equal(second.status,'acknowledged');assert.equal((await ok(path(2))).status,'open');
