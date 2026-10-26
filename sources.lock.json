@@ -431,19 +431,27 @@
       "executable": false
     },
     ".github/scripts/install-browsers.sh": {
-      "sha256": "1e692a1870aec452c972a1f5349287a5a188b86fd175b6623f5404f9e55cbe7c",
+      "sha256": "e78b53474abd7dc47d5a198a0103f19558c89408182b786a22edd0bc0b824b7b",
       "executable": false
     },
     ".github/scripts/measure-notifications.mjs": {
-      "sha256": "673ebd3b129ea98bce496b826b342bbe4fd24969a2502392d2bdb7c0051b6f80",
+      "sha256": "c4c19b720e721bc9d4be017c805285612dd992a55d559b332cb43f9e0cd5cc1c",
       "executable": false
     },
     ".github/scripts/notification-measurement-browser.mjs": {
       "sha256": "0bd74b6e5ac1f60bdf4cb6150ddc0f94be2d7aaa1054117257ddf0fb4f3aef0d",
       "executable": false
     },
+    ".github/scripts/verify-build.mjs": {
+      "sha256": "7cf9251deb57acee135c35f9feee931d8274020987502ecc6c212dae93ecc437",
+      "executable": false
+    },
     ".github/scripts/verify-ci.mjs": {
-      "sha256": "6c6f97f399aa97aeff165606ea764f54ddc45ed8ffb3dd488cd3e6c6671f9264",
+      "sha256": "a759441c20ad7fb1dee6663751c1d102a307e760aa43208c5db872c788125468",
+      "executable": false
+    },
+    ".github/scripts/verify-reuse.sh": {
+      "sha256": "0d1befdd9246efa3504ad76cf5f7ec20873ef3c1f48a3cae8f7ba036f2f3ecc8",
       "executable": false
     },
     ".github/workflows/deploy-definitions.yml": {
@@ -455,7 +463,7 @@
       "executable": false
     },
     ".github/workflows/nightly-measurements.yml": {
-      "sha256": "5a1f7d6a30a7fb71d542e125256d4fc1cf5f85a6f5e06522005b6e634db8913f",
+      "sha256": "4ef3bc3f08209b9ce3ce07ddbfe42a93858f4aa88f1c5d9e13e2a0c0c054eec2",
       "executable": false
     },
     ".github/workflows/rer-managed.yml": {
@@ -475,7 +483,7 @@
       "executable": false
     },
     ".github/workflows/verify.yml": {
-      "sha256": "9c3d663988bff451c22b1cae058f2b9e24f236f5337f6f4e26d24ed9dfb4dbe6",
+      "sha256": "7844d09d084b60ec7cbe7a1380a3e97201ddb23997efc575bcec10a73b4b3f18",
       "executable": false
     },
     ".gitignore": {
@@ -3350,6 +3358,10 @@
       "sha256": "6237f40fd485bf185dc794c2de0b7f06b415d4276d5fc8160b3587d6ee98222c",
       "executable": false
     },
+    "scripts/chromium-probe.mjs": {
+      "sha256": "02b9f04559ec2631d4a33f131db7ed6b91e5f5e6fa2b314653eca164d34acce7",
+      "executable": false
+    },
     "scripts/data-files.mjs": {
       "sha256": "80798719316b1ce6643c9a116bbbfb0873710531bcf5470e1b64312e90dd6a79",
       "executable": false
@@ -3578,6 +3590,10 @@
       "sha256": "feda1014cc82b32bba3da72843b40df1c568704d293ce4bb823c753c850226cd",
       "executable": false
     },
+    "scripts/install-chromium-deps.py": {
+      "sha256": "5fdc45715d97de90f1c38f19bb724798fd118cb0f9dd87d162809be116f98c87",
+      "executable": false
+    },
     "scripts/installer/local.mjs": {
       "sha256": "1d2761cdc3c489e5ac7fe0e8f28db575b4cce92659214a3ed9f848d0a4c26e5d",
       "executable": false
@@ -3672,6 +3688,10 @@
     },
     "scripts/runner-start.mjs": {
       "sha256": "77b7ea3fde9a0deee9fdb1f232585b52baf73f7646e6e1238c63872176b4bdea",
+      "executable": false
+    },
+    "scripts/verification-plan.mjs": {
+      "sha256": "a07afd6ce288a421979089e92aead6f47c59ee0dc0633484e30ac221c487917a",
       "executable": false
     },
     "SEED-COMMAND-CONTRACT.md": {

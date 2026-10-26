@@ -3,23 +3,37 @@ on:
   push:
   pull_request:
   schedule:
-    - cron: '17 18 * * *'
+    - cron: '17 3 * * 1,4'
   workflow_dispatch:
 permissions:
   contents: read
 concurrency:
-  group: uptime-verify-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  group: uptime-verify-${{ github.workflow }}-${{ github.event_name }}-${{ github.ref == 'refs/heads/main' && github.run_id || github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 jobs:
   plan:
     runs-on: ubuntu-24.04
-    timeout-minutes: 1
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: read
     outputs:
+      skip: ${{ steps.reuse.outputs.skip }}
       matrix: ${{ steps.plan.outputs.matrix }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          fetch-depth: 2
           persist-credentials: false
+      - id: reuse
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+          SAME_REPO: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          WF_REF: ${{ github.workflow_ref }}
+        run: bash .github/scripts/verify-reuse.sh
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version: '22.20.0'
@@ -28,10 +42,44 @@ jobs:
         env:
           TIER: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')) && 'all' || 'push' }}
         run: echo "matrix=$(node .github/scripts/verify-ci.mjs --matrix "$TIER")" >> "$GITHUB_OUTPUT"
-  shards:
+  build:
     needs: plan
+    if: needs.plan.outputs.skip != 'true'
     runs-on: ubuntu-24.04
-    timeout-minutes: 12
+    timeout-minutes: 5
+    env:
+      CI: 'true'
+      WRANGLER_SEND_METRICS: 'false'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '22.20.0'
+          cache: pnpm
+      - run: node scripts/edition-authoring/cli.mjs check
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec rer install
+      - name: Build exact verification checkout once
+        run: pnpm build
+      - name: Bind shared output to this source and run
+        run: node .github/scripts/verify-build.mjs create "$RUNNER_TEMP/uptime-verify-build"
+      - name: Share verification output with this run's shards
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: uptime-verify-build-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/uptime-verify-build/
+          if-no-files-found: error
+          retention-days: 1
+  shards:
+    needs: [plan, build]
+    if: needs.plan.outputs.skip != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
@@ -56,21 +104,22 @@ jobs:
         if: matrix.browser
         uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
         with:
-          path: ~/.cache/ms-playwright
-          key: uptime-ubuntu24-${{ runner.arch }}-browser-${{ hashFiles('pnpm-lock.yaml') }}-${{ matrix.name == 'runner-flows' && 'all-engines' || 'chromium' }}
+          path: |
+            ~/.cache/ms-playwright
+            ${{ runner.temp }}/rer-apt/archives
+          key: uptime-ubuntu24-${{ runner.arch }}-browser-${{ hashFiles('pnpm-lock.yaml') }}-${{ matrix.engines }}
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec rer install
-      - name: Install Chromium and system libraries
+      - name: Install browsers and probe bundled engines
         if: matrix.browser
-        run: bash .github/scripts/install-browsers.sh ${{ matrix.name == 'runner-flows' && 'firefox webkit' || '' }}
-      - name: Reserve disk for native runtime journeys
-        run: |
-          free_kib() { df -Pk "$GITHUB_WORKSPACE" | awk 'END { print $4 }'; }
-          for unused_tools in /usr/local/lib/android /usr/share/dotnet /opt/ghc /opt/hostedtoolcache/CodeQL; do
-            if [ "$(free_kib)" -ge "$((20 * 1024 * 1024))" ]; then break; fi
-            sudo rm -rf -- "$unused_tools"
-          done
-          test "$(free_kib)" -ge "$((15 * 1024 * 1024))"
+        run: bash .github/scripts/install-browsers.sh ${{ matrix.engines == 'all' && 'firefox webkit' || '' }}
+      - name: Download this run's shared verification build
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: uptime-verify-build-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/uptime-verify-build
+      - name: Validate and restore the exact build
+        run: node .github/scripts/verify-build.mjs restore "$RUNNER_TEMP/uptime-verify-build"
       - name: Prepare canonical temporary directory
         run: |
           node --input-type=module <<'NODE'
@@ -83,10 +132,11 @@ jobs:
       - name: Run this shard
         env:
           SHARD: ${{ matrix.name }}
+          UPTIME_VERIFY_BUILD: ${{ runner.temp }}/uptime-verify-build
         run: node .github/scripts/verify-ci.mjs "$SHARD"
       - name: Retain browser suite logs of a failed shard
         # Names the failing step of a browser suite: each suite's suite.log, with its RESULTS.json, from this local-only run.
-        if: ${{ failure() && matrix.name == 'browser' }}
+        if: ${{ failure() && matrix.evidence }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: uptime-browser-suites-evidence-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -96,7 +146,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
   verify:
-    needs: [plan, shards, prepare]
+    needs: [plan, build, shards, prepare]
     if: ${{ always() }}
     runs-on: ubuntu-24.04
     timeout-minutes: 1
@@ -104,10 +154,17 @@ jobs:
       - name: Require every shard and the inert artifact
         env:
           PLAN: ${{ needs.plan.result }}
+          SKIP: ${{ needs.plan.outputs.skip }}
+          BUILD: ${{ needs.build.result }}
           SHARDS: ${{ needs.shards.result }}
           PREPARE: ${{ needs.prepare.result }}
-        run: test "$PLAN" = success && test "$SHARDS" = success && test "$PREPARE" = success
+        run: |
+          test "$PLAN" = success
+          if [ "$SKIP" = true ]; then exit 0; fi
+          test "$BUILD" = success && test "$SHARDS" = success && test "$PREPARE" = success
   prepare:
+    needs: plan
+    if: needs.plan.outputs.skip != 'true'
     # This job has no provider credentials and never deploys. Its artifact must
     # pass independent source, run and digest checks in a trusted controller.
     runs-on: ubuntu-24.04

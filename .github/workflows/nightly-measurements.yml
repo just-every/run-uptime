@@ -1,7 +1,7 @@
 name: Nightly notification measurements
 on:
   schedule:
-    - cron: '43 19 * * *'
+    - cron: '43 6 * * 1,4'
 permissions:
   contents: read
 concurrency:
@@ -35,7 +35,7 @@ jobs:
       - run: node scripts/edition-authoring/cli.mjs check
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec rer install
-      - name: Install Chromium and system libraries
+      - name: Install Chromium and probe bundled engine
         run: bash .github/scripts/install-browsers.sh
       - name: Build exact checkout once
         run: pnpm run build
