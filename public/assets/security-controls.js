@@ -110,7 +110,7 @@ export function securityControls(host,transport){
  });
  host.querySelector('[data-enroll-passkey]').onclick=()=>run(async()=>{const state=await factorState();const enroll=async()=>{showCodes(await passkey(api,true));status.textContent='Passkey enrolled.';await factorState()};if(state.factors.length)await fresh(enroll);else await enroll()});
  host.querySelector('[data-recovery]').onclick=()=>run(()=>fresh(async()=>{showCodes(await api(prefix+'/recovery/rotate','POST',{}));status.textContent='Recovery codes replaced.'}));
- host.querySelector('[data-mfa-policy]').onsubmit=event=>{event.preventDefault();const required=event.currentTarget.elements.required.checked;void run(()=>fresh(async()=>{await api(prefix+'/policy','POST',{required});status.textContent='Factor policy saved.';await factorState()}))};
+ host.querySelector('[data-mfa-policy]').onsubmit=event=>{event.preventDefault();const required=event.currentTarget.elements.required.checked;void run(()=>fresh(async()=>{await api(prefix+'/policy','POST',{required});await factorState();outcome('Factor policy saved.')}))};
  const lines=value=>value.split('\n').map(v=>v.trim()).filter(Boolean);
  const keyForm=host.querySelector('[data-key-create]');
  const scopeLabel=scopes=>scopes.includes('monitoring:read')?'Monitoring read':scopes.includes('definitions:apply')?'CI preview and apply':'CI preview';
