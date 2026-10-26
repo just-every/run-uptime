@@ -43,7 +43,7 @@ test('SSRF blocks all special IPv4 ranges and encoded literals, mapped/transitio
 test('definition types and request references validate without retaining plaintext settings',()=>{
  for(const type of ['domain-expiry','browser','unknown'])assert.throws(()=>def({type}),/Unsupported/);
  for(const type of ['tcp','udp','ping','dns','tls','domain'])assert.throws(()=>def({type}),new RegExp(`${type.toUpperCase()} settings required|Domain settings required`,'i'));
- assert.throws(()=>def({type:'keyword'}),/Keyword/);assert.equal(def({type:'keyword',assertions:{bodyIncludes:'word'}}).type,'keyword');
+ assert.throws(()=>def({type:'keyword'}),/A keyword check needs Page contains or Page does not contain/);assert.equal(def({type:'keyword',assertions:{bodyIncludes:'word'}}).type,'keyword');
  assert.equal(def({type:'keyword',assertions:{bodyExcludes:'outage'}}).type,'keyword');
  for(const status of [[],['200'],['0xx'],['600-699'],['299-200'],[true],['2xx',{}]])assert.throws(()=>def({assertions:{status}}),/status/);
  for(const bodyRegex of [{pattern:'['},{pattern:'(a)\\1'},{pattern:'(?=a)'},{pattern:'a',flags:'g'},{pattern:'a',flags:'ii'},{pattern:'(a{100}){100}'},{pattern:'a',token:'secret'}])assert.throws(()=>def({assertions:{bodyRegex}}),/regex|bodyRegex/i);

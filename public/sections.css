@@ -1,6 +1,5 @@
-/* The console sections around the owner's three jobs: Locations (list and add panel), Settings and Archive panels, and a
-   monitor's "Up or down" rules (public/locations.js, settings-view.js, archive-view.js, monitor-rules.js). Tokens and
-   components come from app-theme.css. */
+/* The console sections around the owner's jobs: Locations (list and add panel), Settings and Archive panels
+   (public/locations.js, settings-view.js, archive-view.js). Tokens and components come from app-theme.css. */
 
 /* ---------------------------------------------------------------- section panels (Settings, Archive) */
 .section-panel { padding: 8px 24px 24px; }
@@ -52,20 +51,6 @@
 .add-steps .location-local { color: var(--body); }
 .check-all { display: flex; align-items: center; gap: 10px; min-height: 44px; color: var(--ink); font-size: 15px; font-weight: 600; }
 .check-all + .helper, .location-joined + .helper { margin: -8px 0 0; }
-
-/* ---------------------------------------------------------------- a monitor's Up or down */
-.rules-card h3 { margin: 16px 0 8px; color: var(--muted); font-size: 12.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
-.rules-card .panel-head + h3 { margin-top: 0; }
-.rule-list { display: grid; gap: 8px; margin: 0; padding: 0 0 4px; list-style: none; }
-.rule-list li { display: flex; align-items: flex-start; gap: 10px; color: var(--ink); font-size: 15px; line-height: 1.45; overflow-wrap: anywhere; }
-.rule-mark { display: grid; flex: none; place-items: center; width: 24px; height: 24px; border-radius: 50%; }
-.rule-mark .ui-icon { width: 15px; height: 15px; }
-.rule-list.up .rule-mark { background: var(--green-soft); color: var(--green-text); }
-.rule-list.down .rule-mark { background: var(--rose-soft); color: var(--rose-text); }
-.location-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }
-.location-chip { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 999px; background: var(--ground); color: var(--ink); font-size: 14px; font-weight: 600; }
-.location-chip::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
-.rules-card details { margin-top: 14px; }
 
 /* Settings controls use the same spacing as the other forms. */
 .settings-panel form:not(#external-check-form) { display: grid; gap: 14px; max-width: 520px; margin-top: 14px; }

@@ -95,7 +95,7 @@ export function validateDefinition(input, grants) {
   const assertions = input.assertions ?? (protocol?{}:{ status: 200 });
   if (!assertions || typeof assertions !== 'object' || Array.isArray(assertions) || Object.keys(assertions).some(k => !Object.hasOwn(HTTP_ASSERTIONS,k))) throw Error('Invalid assertions');
   if(!protocol)validateStatus(assertions.status ?? 200);
-  if(type==='keyword'&&![assertions.bodyIncludes,assertions.bodyExcludes].some(value=>typeof value==='string'&&value.length))throw Error('Keyword requires bodyIncludes or bodyExcludes');
+  if(type==='keyword'&&![assertions.bodyIncludes,assertions.bodyExcludes].some(value=>typeof value==='string'&&value.length))throw Error('A keyword check needs Page contains or Page does not contain');
   if(type==='heartbeat'&&Object.keys(assertions).some(k=>k!=='status'))throw Error('Heartbeat cannot have HTTP assertions');
   if (assertions.bodyIncludes !== undefined && (typeof assertions.bodyIncludes !== 'string' || assertions.bodyIncludes.length > 200)) throw Error('Invalid body assertion');
   if (assertions.bodyExcludes !== undefined && (typeof assertions.bodyExcludes !== 'string' || assertions.bodyExcludes.length > 200)) throw Error('Invalid body absence assertion');

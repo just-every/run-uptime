@@ -3,7 +3,7 @@
 // check passed; Unknown is the hatched grey gap of time with no valid result, never counted as up.
 import {escape,humaneDuration} from './console-format.js';
 
-// The rule the coverage figures follow, stated once on the list and once on the monitor page.
+// The rule the coverage figures follow, stated once on the list and once in a monitor page's Reports.
 export const COVERAGE_RULE='Uptime counts only observed time. History keeps earlier revisions. Maintenance and paused time are shown separately; missing results stay Unknown.';
 
 const valid=metrics=>metrics&&[metrics.upMs,metrics.notPassingMs,metrics.unknownMs,metrics.observedMs,metrics.windowMs].every(Number.isFinite)&&metrics.windowMs>0;
@@ -12,7 +12,7 @@ const valid=metrics=>metrics&&[metrics.upMs,metrics.notPassingMs,metrics.unknown
 // 100% "over 99.99%", so neither rounds to a figure it is not; otherwise a passing share is rounded down and a failing
 // or Unknown share up, so a rounded figure never claims more passing or less missing evidence than there was. fixed
 // gives "0.00%" and "100.00%" for the whole-window shares; the passing share of observed time reads "100%".
-function share(part,whole,round,{fixed=true}={}){
+export function share(part,whole,round,{fixed=true}={}){
  const hundredths=part*10000/whole;
  if(hundredths>0&&hundredths<1)return 'under 0.01%';
  if(hundredths>9999&&hundredths<10000)return 'over 99.99%';

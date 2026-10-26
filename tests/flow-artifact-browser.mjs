@@ -11,7 +11,7 @@ export async function artifactBrowser(f,monitor,{failedStorage=false,erased=fals
   for(const width of [1440,390]){
    await page.setViewportSize({width,height:1000});await page.goto(f.origin+`/app/monitors/${monitor.id}`);
    if(erased){await page.getByRole('heading',{name:'Monitor not found',exact:true}).waitFor();await page.screenshot({path:join(output,`erased-${width}.png`)});continue}
-   const incident=page.locator('#monitor-incidents');await incident.getByText('Incident evidence',{exact:true}).click();await incident.getByRole('button',{name:'Load incident failure snapshots'}).click();
+   await page.evaluate(()=>{location.hash='incidents'});const incident=page.locator('#monitor-incidents');await incident.getByText('Incident evidence',{exact:true}).click();await incident.getByRole('button',{name:'Load incident failure snapshots'}).click();
    const detail=incident.locator('.failure-snapshot').filter({hasText:failedStorage?'Trace unavailable: capture_failed':'Download sanitized trace ZIP'}).first();await detail.locator('summary').click();
    await detail.getByText('Immutable reference:',{exact:false}).waitFor();assert.ok(await detail.getByRole('table',{name:'Step duration from the signed observation'}).count());
    if(failedStorage){await detail.getByText('Video unavailable: capture_failed',{exact:false}).waitFor();assert.match(await detail.innerText(),/failed check/)}else{

@@ -1,12 +1,10 @@
 import {escape} from './console-format.js';
-import {moreInfoText} from './monitor-status.js';
 import {dialogFocusReturn} from './notification-dialogs.js';
 import {patch} from './dom-patch.js';
 import {scheduleDescription} from './assets/alert-route-markup.js';
 
 const policyPath=id=>`/api/monitors/${encodeURIComponent(id)}/slow-policy`;
 const explanation='Slow notices track response time separately from downtime. They do not open outage incidents or reduce uptime. A latency assertion can still fail a check as down.';
-const explanationLine='Tracked apart from downtime.';
 function styles(){
  if(document.querySelector('link[href="/slow-policy.css"]'))return;
  const link=document.createElement('link');link.rel='stylesheet';link.href='/slow-policy.css';document.head.append(link);
@@ -21,7 +19,7 @@ function summaryMarkup(slow,destinations){
 }
 export function slowPolicyPanel(monitor){
  if(monitor.definition.type==='heartbeat')return '';
- return `<section class="ui-card panel slow-policy-panel" aria-labelledby="slow-policy-heading" data-owned="${escape(monitor.id)}"><h2 id="slow-policy-heading">Slow-response notices</h2><div id="slow-policy-summary" role="status">${summaryMarkup(monitor.definition.slow)}</div>${moreInfoText(explanationLine,explanation)}<button type="button" id="edit-slow-policy">Edit slow-response policy</button></section>`;
+ return `<section class="ui-card panel slow-policy-panel" aria-labelledby="slow-policy-heading" data-owned="${escape(monitor.id)}"><h2 id="slow-policy-heading">Slow-response notices</h2><div id="slow-policy-summary" role="status">${summaryMarkup(monitor.definition.slow)}</div><button type="button" id="edit-slow-policy">Edit slow-response policy</button></section>`;
 }
 function locationMarkup(probes,slow){
  const selected=slow?.locations==='all'?[]:slow?.locations??[];

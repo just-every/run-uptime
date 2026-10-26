@@ -12,7 +12,7 @@ try{
  browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});const context=await browser.newContext(),page=await context.newPage();await browserSignIn(page,origin);
  const check=async(name,selector)=>{assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.addScriptTag({path:resolve('node_modules/axe-core/axe.min.js')});assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.map(v=>v.id),[]);await page.locator(selector).screenshot({path:join(out,name+'.png')})};
  for(const width of [1440,390]){
-  await page.setViewportSize({width,height:1000});await page.goto(origin+'/app/monitors/'+ids[0]);await page.locator('#report-period').waitFor();
+  await page.setViewportSize({width,height:1000});await page.goto(origin+'/app/monitors/'+ids[0]);await page.evaluate(()=>{location.hash='reports'});await page.locator('#report-period').waitFor();
   assert.ok((await page.locator('#monitor-report').ariaSnapshot()).includes('Month to date'));
   for(const period of ['last-month','ytd']){
    await page.locator('#report-period').selectOption(period);await page.locator('#report-zone').fill('America/New_York');await page.locator('#report-bucket').selectOption('1d');

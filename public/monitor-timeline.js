@@ -27,8 +27,8 @@
 const isTime=Number.isSafeInteger;
 
 // The strip's places: each row of the list is one place (a check, one missed or overdue check, a collapsed run of them
-// marked "+N", or a paused or maintenance span), so the list holds at most this many rows.
-export const STRIP_PLACES=12;
+// marked "+N", or a paused or maintenance span), so the list holds at most this many rows: the last 30 checks.
+export const STRIP_PLACES=30;
 
 // The acceptance budget matches src/domain/schedule.ts: target retries and each configured canary, plus the completion margin.
 export function acceptanceMs(definition){

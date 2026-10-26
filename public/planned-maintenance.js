@@ -2,6 +2,7 @@ import {escape} from './console-format.js';
 import {dialogFocusReturn} from './notification-dialogs.js';
 import {localDateTime,localStart,modeDescription,windowDescription} from './maintenance-calendar.js';
 import {plannerFields,previewMarkup} from './maintenance-markup.js';
+import {clock,dayClock} from './monitor-status.js';
 export {maintenancePanel} from './maintenance-markup.js';
 
 function ensureMaintenanceStyles(){if(document.querySelector('link[href="/planned-maintenance.css"]'))return;const style=document.createElement('link');style.rel='stylesheet';style.href='/planned-maintenance.css';document.head.append(style)}
@@ -105,8 +106,24 @@ export async function cancelMaintenanceWindow({monitor,windowId,api,action}){
  return dialog;
 }
 
+// Quiet alerts for 15 min starts the quick window: one new revision changing only maintenanceUntil. End now ends it, then
+// reads the monitor again, so its notice says when a planned window that still runs ends.
+export function quietAlerts(monitor,{end=false,api,action}){
+ const id=encodeURIComponent(monitor.id),save=until=>api(`/api/monitors/${id}`,'PATCH',{...monitor.definition,maintenanceUntil:until});
+ if(!end){const until=Date.now()+900000;return action(()=>save(until),{pending:'Starting maintenance…',success:`Alerts quiet until ${clock(until)}.`})}
+ return action(async()=>{
+  await save(0);
+  const planned=(await api(`/api/overview?monitor=${id}`)).monitors.find(m=>m.id===monitor.id)?.maintenanceEndsAt;
+  return planned>Date.now()?planned:null;
+ },{pending:'Ending maintenance…',success:planned=>planned?`Quick maintenance ended; the planned window runs until ${dayClock(planned,Date.now())}.`:'Maintenance ended.'});
+}
+// The pressed button is gone once its action has redrawn the panel: focus moves to the control that took its place.
+const focusAfter=(area,selector)=>requestAnimationFrame(()=>{if(document.activeElement===document.body||!document.activeElement)area.querySelector(selector)?.focus({preventScroll:true})});
 export function bindMaintenancePanel(area,monitor,{api,action}){
  ensureMaintenanceStyles();
  area.querySelector('#plan-maintenance').onclick=()=>openMaintenanceDialog({monitors:[monitor],api,action});
+ const quiet=area.querySelector('#quiet-alerts'),end=area.querySelector('#end-quiet-alerts');
+ if(quiet)quiet.onclick=async()=>{await quietAlerts(monitor,{api,action});focusAfter(area,'#end-quiet-alerts')};
+ if(end)end.onclick=async()=>{await quietAlerts(monitor,{end:true,api,action});focusAfter(area,'#quiet-alerts')};
  for(const button of area.querySelectorAll('[data-cancel-maintenance]'))button.onclick=()=>cancelMaintenanceWindow({monitor,windowId:button.dataset.cancelMaintenance,api,action});
 }

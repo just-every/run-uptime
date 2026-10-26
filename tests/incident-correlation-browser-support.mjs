@@ -64,6 +64,8 @@ export async function proveCombinedIncidentConsole({f,monitors,ids,phase,detail}
   await context.route('**/*',route=>new URL(route.request().url()).origin===f.origin?route.continue():route.abort());
   for(const width of [1440,390]){
    await page.setViewportSize({width,height:1000});await page.goto(f.origin+'/app/monitors/'+monitors[0].id);await page.locator('html.signed-in').waitFor();
+   // The Incidents fold opens itself only while the monitor's incident is open (public/monitor-reads.js); once it has recovered, the owner opens the fold by its summary.
+   if(phase==='one-recovered'){const fold=page.locator('details.fold#incidents');await fold.locator('.incident-record').first().waitFor({state:'attached'});assert.equal(await fold.evaluate(e=>e.open),false,'a recovered incident leaves the Incidents fold closed');await fold.locator(':scope > summary').click()}
    await page.getByRole('button',{name:'Notes and follow-up',exact:true}).click();const dialog=page.locator('#incident-work-dialog');await dialog.getByText('Incident loaded.',{exact:true}).waitFor();
    if(phase==='escalation'||phase==='reminder'){
     await dialog.getByText(new RegExp('^'+(phase==='escalation'?'Escalation':'Reminder')+' · ')).waitFor();
