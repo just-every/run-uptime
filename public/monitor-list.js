@@ -1,12 +1,12 @@
 import {escape,ago,monitorHref,shownState} from './console-format.js';
 import {checkedFrom,locationNamer} from './monitor-rules.js';
+import {dayClock} from './monitor-status.js';
 import {activeLocations} from './locations.js';
 // The monitor list's markup (public/catalog.js mounts the rows, public/app.js the summary): one quiet line under the
 // heading that counts the monitors by state, and one row per monitor that leads with its name over one quiet line,
 // with its last 24 hours as a bar and a share. The monitor's own page holds everything else.
 
 const joinNames=names=>names.length<3?names.join(' and '):`${names.slice(0,-1).join(', ')} and ${names.at(-1)}`;
-const clock=t=>new Date(t).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
 
 // "14 monitors · 11 healthy · 1 failing · from Brisbane and Sydney": only the states some monitor is in. With one
 // location it offers a second (two places agree on an outage before it counts).
@@ -38,7 +38,7 @@ function latest(m,state,runners){
   const name=locationNamer(d,runners),where=[...new Set((m.state.regions??[]).filter(region=>region.state==='Failing').map(region=>name(region.probe)))];
   if(where.length)return `<span class="monitor-note failing">failing from ${escape(joinNames(where))}</span>`;
  }
- if(state==='Maintenance'&&m.maintenanceEndsAt>Date.now())return `<span class="monitor-note maintenance">until ${escape(clock(m.maintenanceEndsAt))}</span>`;
+ if(state==='Maintenance'&&m.maintenanceEndsAt>Date.now())return `<span class="monitor-note maintenance">until ${escape(dayClock(m.maintenanceEndsAt,Date.now()))}</span>`;
  if(state==='Paused')return '';
  return `<span class="monitor-checked">${Number.isSafeInteger(t)&&t>=0&&t<=Date.now()?`checked ${escape(ago(t))}`:'no check yet'}</span>`;
 }

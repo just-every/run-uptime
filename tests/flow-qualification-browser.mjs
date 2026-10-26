@@ -10,7 +10,7 @@ export async function qualificationBrowser({origin,monitors,directory}){
  if(!browser){browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});const context=await browser.newContext();page=await context.newPage();await browserSignIn(page,origin)}
  {
   for(const width of [1440,390]){await page.setViewportSize({width,height:1000});
-   for(const monitor of monitors){const response=await page.goto(origin+'/app/monitors/'+monitor.id);assert.equal(response.status(),200,'monitor document is available');await page.locator('.flow').waitFor();
+   for(const monitor of monitors){const response=await page.goto(origin+'/app/monitors/'+monitor.id);assert.equal(response.status(),200,'monitor document is available');await page.evaluate(()=>{location.hash='flow'});await page.locator('.flow').waitFor();await page.evaluate(()=>{location.hash='all-checks'});
     const details=page.locator('#raw-history details[data-slot]').first();await details.waitFor();if(!await details.evaluate(node=>node.open))await details.locator('summary').click();
     assert.ok((await page.locator('main').ariaSnapshot()).includes('Browser flow'));assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
     await page.addScriptTag({path:resolve('node_modules/axe-core/axe.min.js')});assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.map(v=>v.id),[]);

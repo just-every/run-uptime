@@ -11,7 +11,7 @@ export async function retentionBrowser(origin,bindings,monitor){
  try{for(const width of [1440,390]){
   const context=await browser.newContext({viewport:{width,height:1000}}),page=await context.newPage();
   await browserSignIn(page,origin,{bindings,bootstrap:false});
-  await page.goto(`${origin}/app/monitors/${monitor.id}`);await page.locator('.signed-in').waitFor();
+  await page.goto(`${origin}/app/monitors/${monitor.id}#all-checks`);await page.locator('.signed-in').waitFor();
   await page.locator('#monitor-state.badge').filter({hasText:'Failing'}).waitFor();
   assert.ok((await page.locator('#raw-history details').count())>0,'retained check history remains visible');
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));

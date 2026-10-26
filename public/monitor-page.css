@@ -1,40 +1,343 @@
-/* The monitor page's own additions: the action row with its More menu, fine print behind a "?", and the narrow-width order. */
-.top.ui-header:has(.monitor-title) .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; grid-template-columns: none; }
-.top.ui-header:has(.monitor-title) .actions :is(.actions > button, .actions > a, .more-menu > summary) { min-height: 46px; padding: 0 22px; font-size: 15px; }
-/* Keep the right-aligned dropdown inside the action row when More wraps. */
-.more-menu { position: relative; margin-inline-start: auto; }
-.more-menu > summary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--card); color: var(--ink); font-weight: 600; list-style: none; cursor: pointer; }
-.more-menu > summary:hover { background: var(--ground); }
-.more-menu > summary::-webkit-details-marker { display: none; }
-.more-menu-list { position: absolute; z-index: 5; top: calc(100% + 6px); right: 0; display: grid; gap: 2px; min-width: 250px; white-space: nowrap; padding: 6px; border: 1px solid var(--line); border-radius: var(--radius-panel); background: var(--card); box-shadow: var(--shadow); }
-.top.ui-header:has(.monitor-title) .actions .more-menu-list button { justify-content: flex-start; min-height: 44px; padding: 0 14px; border: 0; background: none; box-shadow: none; color: var(--ink); font-weight: 500; text-align: left; }
-.top.ui-header:has(.monitor-title) .actions .more-menu-list button:not(:disabled):hover { background: var(--ground); }
-.top.ui-header:has(.monitor-title) .actions .more-menu-list button.danger { color: var(--rose-text); }
+/* A monitor's page (/app/monitors/<id>, public/monitor-page.js): the header's actions and chips, the status card, the "Up or
+   down" table with its in-place editors, Recent checks and the folds. Only a monitor's own document links this sheet
+   (src/ui/console-document.tsx), and every rule starts at one of the page's two roots: .monitor-page, the page itself in
+   #content-area, or .monitor-page-header, the class the page puts on the console's header while it shows a monitor. No rule
+   here reaches another console page, and none restyles a shared class outside these roots. Built on app-theme.css tokens and
+   components. Two columns while #content-area (the shell's table-wrap container) is at least 720px wide; one below that, in
+   the order header, status, table, Recent checks, folds. Controls are at least 44px tall at phone width (the shell's 700px). */
+
+/* ---------------------------------------------------------------- header */
+/* Run now, Edit and Pause in one row; a quiet chip for a private network or a certificate exception opens Full check
+   details, where its sentence is. */
+.monitor-page-header.top.ui-header > .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; grid-template-columns: none; }
+.monitor-page-header.top.ui-header > .actions > :is(button, a) { min-height: 46px; padding: 0 22px; font-size: 15px; }
+.monitor-page-header .header-chips { display: inline-flex; flex-wrap: wrap; gap: 6px; margin-left: 6px; vertical-align: middle; }
+.monitor-page-header .header-chip { display: inline-flex; align-items: center; min-height: 26px; padding: 0 10px; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--card); color: var(--body); font-size: 13px; font-weight: 600; text-decoration: none; }
+.monitor-page-header .header-chip:hover { border-color: var(--lavender-deep); color: var(--ink); }
 @media (max-width: 700px) {
-  /* A tighter gap and type keep Run now, Edit, Pause and More on one row at phone widths; Run now takes the spare width. */
-  .top.ui-header:has(.monitor-title) .actions { gap: 6px; }
-  .top.ui-header:has(.monitor-title) .actions :is(.actions > button, .actions > a, .more-menu > summary) { min-height: 44px; padding: 0 12px; gap: 4px; font-size: 13px; }
-  .top.ui-header:has(.monitor-title) .actions > :is(button, a) > .ui-icon { width: 16px; height: 16px; }
-  .top.ui-header:has(.monitor-title) .actions > #run-monitor { flex-grow: 1; }
+  /* A tighter gap keeps the three actions on one row at phone widths; Run now takes the spare width. */
+  .monitor-page-header.top.ui-header > .actions { gap: 6px; }
+  .monitor-page-header.top.ui-header > .actions > :is(button, a) { min-width: 0; min-height: 44px; padding: 0 14px; gap: 6px; font-size: 14px; white-space: nowrap; }
+  .monitor-page-header.top.ui-header > .actions > :is(button, a) > .ui-icon { width: 16px; height: 16px; }
+  .monitor-page-header.top.ui-header > .actions > #run-monitor { flex-grow: 1; }
+  .monitor-page-header .back-link { min-height: 44px; margin-bottom: 0; }
+  .monitor-page-header .header-chip { min-height: 44px; }
 }
-/* Narrower than one row holds: Run now gets its own row and the other three share the second. */
-@media (max-width: 384px) {
-  .top.ui-header:has(.monitor-title) .actions > #run-monitor { flex-basis: 100%; }
-  .top.ui-header:has(.monitor-title) .actions > :not(#run-monitor) { flex: 1 1 auto; }
-  .top.ui-header:has(.monitor-title) .actions .more-menu > summary { box-sizing: border-box; width: 100%; }
-  .top.ui-header:has(.monitor-title) .actions .more-menu > summary::after { margin-inline-start: 0; }
+/* Narrower than one row holds: Run now gets its own row and the other two share the second. */
+@media (max-width: 340px) {
+  .monitor-page-header.top.ui-header > .actions > #run-monitor { flex-basis: 100%; }
+  .monitor-page-header.top.ui-header > .actions > :not(#run-monitor) { flex: 1 1 auto; }
 }
-.fine-print { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; color: var(--muted); font-size: 13px; line-height: 1.45; }
-.fine-print > p { margin: 0; }
-.more-info { display: inline-block; }
-.more-info[open] { display: block; flex-basis: 100%; }
-.more-info > summary { display: inline-grid; flex: none; box-sizing: border-box; min-height: 20px; place-items: center; width: 20px; height: 20px; padding: 0; border: 1px solid var(--line-strong); border-radius: 50%; color: var(--muted); font-size: 12px; font-weight: 700; line-height: 1; list-style: none; cursor: pointer; }
-.more-info > summary::-webkit-details-marker, .more-info > summary::after { display: none; }
-.more-info > p { margin: 6px 0 0; }
-.engine-status { margin: 8px 0; color: var(--muted); font-size: 12.5px; overflow-wrap: anywhere; }
+
+/* ---------------------------------------------------------------- page */
+/* --monitor-columns tells the table's measure (public/monitor-table-fit.js) which layout the page is in. */
+.monitor-page { --monitor-columns: 1; display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+.monitor-page > .monitor-columns { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; gap: 18px; }
+.monitor-page > .monitor-columns > :is(.monitor-column-main, .monitor-column-side) { display: grid; align-content: start; gap: 18px; min-width: 0; }
+@container table-wrap (min-width: 720px) {
+  .monitor-page { --monitor-columns: 2; }
+  .monitor-page > .monitor-columns { grid-template-columns: minmax(0, 2.1fr) minmax(290px, 1fr); }
+}
+.monitor-page .panel { padding: 20px 24px 22px; border-radius: 16px; }
+.monitor-page .panel > h2, .monitor-page .panel-head > h2 { font-size: 19px; letter-spacing: -0.015em; line-height: 1.3; }
+.monitor-page .panel > h2 { margin-bottom: 12px; }
+/* A card header: the heading on the left, its one action on the right. */
+.monitor-page .panel-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px; margin-bottom: 14px; }
+.monitor-page .panel-head > h2 { flex: none; }
 @container table-wrap (max-width: 719px) {
-  .monitor-page > :is(.monitor-primary, .monitor-secondary) { display: contents; }
-  .monitor-page > :is(.monitor-primary, .monitor-secondary) > * { order: 5; }
-  .monitor-page > :is(.monitor-primary, .monitor-secondary) > .rules-card { order: 1; }
-  .monitor-page > :is(.monitor-primary, .monitor-secondary) > .evidence { order: 2; }
+  .monitor-page, .monitor-page > .monitor-columns, .monitor-page > .monitor-columns > :is(.monitor-column-main, .monitor-column-side) { gap: 14px; }
+  .monitor-page .panel { padding: 18px 18px 20px; }
+  .monitor-page .panel > h2, .monitor-page .panel-head > h2 { font-size: 18px; }
+}
+
+/* ---------------------------------------------------------------- status */
+/* One sentence with its mark, the 24-hour share at the right (under it in a narrow card), then what holds now, a read that
+   failed and, while nobody is told, the way to tell someone, each under a hairline. Rose while Failing, peach in maintenance,
+   amber while a Slow notice is open, white otherwise. A long word in the sentence (a JSON path) breaks at its dots, and any
+   word wider than the card breaks rather than run past it. */
+.monitor-page .status-card { display: grid; gap: 12px; padding: 16px 22px; border-radius: 16px; }
+.monitor-page .status-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px; }
+.monitor-page .state-line { --mark: var(--mark-dot); --mark-color: var(--green); display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 10px; min-width: 0; margin: 0; color: var(--ink); font-size: 16px; font-weight: 650; line-height: 1.45; overflow-wrap: break-word; }
+.monitor-page .state-line::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--mark-color); box-shadow: 0 0 0 4px var(--green-soft); }
+.monitor-page .state-text { min-width: 0; }
+.monitor-page .state-text > .ui-link { margin-left: 6px; font-size: 15px; font-weight: 600; white-space: nowrap; vertical-align: baseline; }
+.monitor-page .status-share { margin: 0; color: var(--muted); font-size: 14px; }
+.monitor-page .status-share strong { margin-right: 4px; color: var(--ink); font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.monitor-page :is(.status-held, .status-told) { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 0; padding-top: 12px; border-top: 1px solid var(--line); border-radius: 0; color: var(--ink); font-size: 15px; font-weight: 500; overflow-wrap: break-word; }
+.monitor-page .status-told .ui-icon { color: var(--rose-text); }
+.monitor-page .held-done { color: var(--muted); font-weight: 600; }
+.monitor-page .status-card.down { border-color: #f5c4cd; background: var(--rose-soft); }
+.monitor-page .status-card.down .state-line { --mark-color: var(--rose); color: var(--rose-text); }
+.monitor-page .status-card:is(.down, .slow) .state-line::before { box-shadow: 0 0 0 4px var(--card); }
+.monitor-page .status-card.down :is(.status-held, .status-told) { border-top-color: #f5c4cd; }
+.monitor-page .status-card.slow { border-color: #f1dcae; background: var(--amber-soft); }
+.monitor-page .status-card.slow .state-line { --mark-color: var(--amber); color: var(--amber-text); }
+.monitor-page .status-card.slow :is(.status-held, .status-told) { border-top-color: #f1dcae; }
+.monitor-page .status-card.maint { border-color: #f6d3bb; background: var(--peach-soft); }
+.monitor-page .status-card.maint .state-line { color: var(--peach-text); }
+.monitor-page .status-card.maint :is(.status-held, .status-told) { border-top-color: #f6d3bb; }
+/* Marks drawn as the state pills draw them: a moon in maintenance, pause bars, the hollow Unknown ring, the amber triangle,
+   the half-filled ring while recovering. */
+.monitor-page .status-card:is(.maint, .paused, .unknown, .degraded, .recovering) .state-line::before { width: 16px; height: 16px; border-radius: 0; box-shadow: none; -webkit-mask: var(--mark) center / contain no-repeat; mask: var(--mark) center / contain no-repeat; }
+.monitor-page .status-card.maint .state-line { --mark: var(--mark-moon); --mark-color: var(--peach); }
+.monitor-page .status-card.paused .state-line { --mark: var(--mark-pause); --mark-color: var(--muted); }
+.monitor-page .status-card.unknown .state-line { --mark: var(--mark-ring); --mark-color: var(--unknown); }
+.monitor-page .status-card.degraded .state-line { --mark: var(--mark-triangle); --mark-color: var(--amber); }
+.monitor-page .status-card.recovering .state-line { --mark: var(--mark-half); --mark-color: var(--green); }
+@container table-wrap (max-width: 719px) {
+  .monitor-page .status-card { padding: 14px 18px; }
+  .monitor-page .status-row { display: grid; gap: 8px; }
+}
+
+/* ---------------------------------------------------------------- up or down */
+/* A row per rule, a column per location; each cell is what that location saw on the newest complete scheduled check. The
+   table is one grid: its head and every row are subgrids, so a location's column is as wide as its widest word in any row
+   (a name never splits) and the Rule column takes what is left. How it sits is measured in the page (data-fit, from
+   public/monitor-table-fit.js): beside, over or stacked, and in "beside" a rule whose own words do not fit the Rule column
+   spans the card over its values. Words break only when one is wider than the whole card (break-word keeps every word's
+   width in the measure). */
+.monitor-page .rules-table { overflow-wrap: break-word; }
+.monitor-page .rule-grid { display: grid; column-gap: 12px; width: 100%; font-size: 15px; overflow-wrap: break-word; }
+.monitor-page .rule-grid > :is(thead, tbody), .monitor-page .rule-grid > * > tr { display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; }
+.monitor-page .rule-grid > * > tr { align-items: center; }
+.monitor-page .rule-grid > tbody > tr { border-top: 1px solid var(--line); border-radius: 0; }
+.monitor-page .rule-grid :is(th, td) { min-width: 0; padding: 12px 0; text-align: left; font-weight: 500; }
+.monitor-page .rule-grid > thead th { align-self: end; padding-top: 0; color: var(--ink); font-size: 14px; font-weight: 650; }
+.monitor-page .rule-grid > thead .rule-head { color: var(--muted); font-weight: 600; }
+.monitor-page .rule-grid > thead th[data-key] { display: flex; flex-direction: column; align-items: flex-start; }
+.monitor-page .rule-grid > tbody th { color: var(--ink); }
+.monitor-page .rule-grid > tbody > tr.whole > th { grid-column: 1 / -1; }
+/* A rule cell that spans the card never sizes the location columns: an item spanning flexible tracks would grow them
+   (CSS Grid's intrinsic sizing), which would move the Rule column the measure just read. */
+.monitor-page .rule-grid > tbody > tr:is(.whole, .spans) > th, .monitor-page .rule-grid[data-fit="over"] > tbody > tr > th { contain: inline-size; }
+/* Beside: in two columns the Rule column takes what the locations leave (as the renders draw 1440); in one column the spec's
+   44% / 28% / 28%. A location's column is never narrower than its widest word. */
+.monitor-page .rule-grid[data-locations="0"] { grid-template-columns: minmax(0, 1fr); }
+.monitor-page .rule-grid[data-locations="1"] { grid-template-columns: minmax(0, 2.8fr) minmax(min-content, 1fr); }
+.monitor-page .rule-grid[data-locations="2"] { grid-template-columns: minmax(0, 2.8fr) repeat(2, minmax(min-content, 1fr)); }
+.monitor-page .rule-grid[data-locations="3"] { grid-template-columns: minmax(0, 2.8fr) repeat(3, minmax(min-content, 1fr)); }
+@container table-wrap (max-width: 719px) {
+  .monitor-page .rule-grid { font-size: 14.5px; }
+  .monitor-page .rule-grid[data-locations="1"] { grid-template-columns: minmax(0, 44fr) minmax(min-content, 28fr); }
+  .monitor-page .rule-grid[data-locations="2"] { grid-template-columns: minmax(0, 44fr) repeat(2, minmax(min-content, 28fr)); }
+  .monitor-page .rule-grid[data-locations="3"] { grid-template-columns: minmax(0, 44fr) repeat(3, minmax(min-content, 18.67fr)); }
+}
+.monitor-page .rule-grid[data-fit="beside"] > tbody > tr.spans > th { grid-column: 1 / -1; padding-bottom: 2px; }
+.monitor-page .rule-grid[data-fit="beside"] > tbody > tr.spans > td { padding-top: 2px; }
+.monitor-page .rule-grid[data-fit="beside"] > tbody > tr.spans > td:first-of-type { grid-column-start: 2; }
+/* Over: the locations share the card's width under their heads, and every rule spans the card over its values. */
+.monitor-page .rule-grid[data-fit="over"][data-locations="1"] { grid-template-columns: minmax(min-content, 1fr); }
+.monitor-page .rule-grid[data-fit="over"][data-locations="2"] { grid-template-columns: repeat(2, minmax(min-content, 1fr)); }
+.monitor-page .rule-grid[data-fit="over"] > thead .rule-head { display: none; }
+.monitor-page .rule-grid[data-fit="over"] > tbody > tr > th { grid-column: 1 / -1; padding-bottom: 2px; }
+.monitor-page .rule-grid[data-fit="over"] > tbody > tr > td { padding-top: 2px; }
+/* The probe layout the measure reads in the same task: every column at its widest word, each rule cell at its own (a chip
+   and an open editor's row each on one line, so a rule whose chip does not fit beside the locations spans the card and its
+   chip wraps only when it is wider than the whole table), the rows without a cell per location left out. Never painted. */
+.monitor-page .rule-grid[data-fit="measure"][data-locations="1"] { grid-template-columns: repeat(2, min-content); }
+.monitor-page .rule-grid[data-fit="measure"][data-locations="2"] { grid-template-columns: repeat(3, min-content); }
+.monitor-page .rule-grid[data-fit="measure"][data-locations="3"] { grid-template-columns: repeat(4, min-content); }
+.monitor-page .rule-grid[data-fit="measure"] > tbody > tr.whole { display: none; }
+.monitor-page .rule-grid[data-fit="measure"] > tbody > tr > th { grid-column: auto; justify-self: start; width: min-content; contain: none; }
+.monitor-page .rule-grid[data-fit="measure"] .inline-edit { flex-wrap: nowrap; width: max-content; }
+.monitor-page .rule-grid[data-fit="measure"] .value-chip { white-space: nowrap; }
+.monitor-page .rule-grid[data-fit="measure"] .edit-error { display: none; }
+/* Stacked: each rule over one wrapping line of what each location saw, each value naming its location; the heads hide. A
+   protocol check's heads stay, as that one wrapping line under the table's title. */
+.monitor-page .rule-grid[data-fit="stacked"], .monitor-page .rule-grid[data-fit="stacked"] > :is(thead, tbody) { display: block; }
+.monitor-page .rule-grid[data-fit="stacked"] > * > tr { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; padding: 12px 0; }
+.monitor-page .rule-grid[data-fit="stacked"] > * > tr > :is(th, td) { padding: 0; }
+.monitor-page .rule-grid[data-fit="stacked"] > tbody > tr > th { flex: 1 1 100%; }
+.monitor-page .rule-grid[data-fit="stacked"] > tbody > tr > td { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0 6px; }
+.monitor-page .rule-grid[data-fit="stacked"]:not([data-whole]) > thead { display: none; }
+.monitor-page .rule-grid[data-fit="stacked"]:not([data-whole]) > tbody > tr:first-child { padding-top: 0; border-top: 0; }
+.monitor-page .rule-grid[data-fit="stacked"] > thead > tr { padding-top: 0; }
+.monitor-page .rule-grid[data-fit="stacked"] > thead .rule-head { display: none; }
+.monitor-page .rule-grid[data-fit="stacked"] > thead th[data-key] { display: inline-flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 0 6px; }
+.monitor-page .rule-grid[data-fit="stacked"] :is(.col-pick, .col-where) { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 0 6px; }
+.monitor-page .rule-grid[data-fit="stacked"] .col-age::before { content: "· " / ""; }
+.monitor-page .rule-grid[data-fit="stacked"] .cell-where { display: inline; color: var(--muted); font-weight: 500; }
+/* A location's head: its name (a button over its check age that opens the location picker), and for a check whose results
+   are not per rule, what it found. An age stays whole. */
+.monitor-page .rule-grid :is(.col-pick, .col-where) { display: inline-flex; flex-direction: column; align-items: flex-start; }
+.monitor-page .rule-grid .col-pick { gap: 0; min-height: 24px; margin: 0; padding: 0; border: 0; border-radius: 6px; background: none; box-shadow: none; color: var(--ink); font: inherit; font-weight: 650; line-height: 1.35; text-align: left; cursor: pointer; }
+.monitor-page .rule-grid .col-pick:not(:disabled):hover { background: none; }
+.monitor-page .rule-grid .col-pick:not(:disabled):hover .col-name { text-decoration-style: solid; }
+.monitor-page .rule-grid .col-name { color: var(--ink); font-weight: 650; }
+.monitor-page .rule-grid .col-pick .col-name { text-decoration: underline dotted; text-decoration-color: var(--muted); text-underline-offset: 3px; }
+.monitor-page .rule-grid .col-age { color: var(--muted); font-size: 13px; font-weight: 500; }
+.monitor-page .rule-grid .col-age.is-ago { white-space: nowrap; }
+.monitor-page .rule-grid > thead .ui-result { font-size: 14px; }
+/* What a location saw: one value, kept whole ("Couldn’t run", "142 ms"). Each names its location only when stacked. */
+.monitor-page .rule-grid > tbody td > :is(.ui-result, .cell-none) { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.monitor-page .rule-grid .cell-none { color: var(--muted); }
+.monitor-page .rule-grid .cell-where { display: none; }
+/* A rule: its words, then its expected value as a chip, which wraps under the words when the two do not fit one line. */
+.monitor-page .value-chip { display: inline-block; align-content: center; min-width: 0; max-width: 100%; min-height: 30px; margin: 3px 0; padding: 2px 10px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--ground); color: var(--ink); font-size: 14px; font-weight: 650; line-height: 1.3; vertical-align: middle; }
+.monitor-page .value-chip.ui-mono { font-family: var(--mono); font-size: 13px; }
+
+/* In-place editors. A rule's chip, a number's chip, "+ Add a rule" and "+ Location" are each a <details>; the chip is its
+   summary (no chevron), hidden while the editor is open, which shows its field in the chip's place. */
+.monitor-page details.in-place > summary { min-height: 0; padding: 0; color: inherit; font-weight: inherit; }
+.monitor-page details.in-place > summary::after { content: none; }
+.monitor-page :is(.rule-edit, .num-edit) > summary { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0 6px; max-width: 100%; border-radius: 8px; }
+.monitor-page :is(.rule-edit, .num-edit) > summary > * { min-width: 0; }
+.monitor-page :is(.rule-edit, .num-edit) > summary:hover .value-chip { border-color: var(--lavender-deep); background: var(--lavender); }
+.monitor-page :is(.rule-edit, .num-edit)[open] > summary { display: none; }
+.monitor-page .num-edit { display: inline-block; }
+.monitor-page .inline-edit { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.monitor-page .edit-field { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; color: var(--ink); font-size: 15px; font-weight: 500; }
+.monitor-page .edit-field > input { width: 150px; max-width: 100%; min-height: 40px; margin: 0; padding: 0 10px; }
+.monitor-page .edit-field > input[name="path"] { width: 220px; }
+.monitor-page .edit-field > input[type="number"] { width: 76px; }
+.monitor-page .edit-field > input.narrow { width: 60px; }
+.monitor-page .edit-unit { color: var(--ink); font-size: 15px; }
+.monitor-page .edit-buttons { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.monitor-page .edit-buttons .ui-compact { min-height: 36px; padding: 0 14px; }
+.monitor-page .edit-error { flex-basis: 100%; margin: 0; color: var(--rose-text); font-size: 14px; font-weight: 600; }
+.monitor-page .edit-error:empty { display: none; }
+/* "+ Location" and its tick list, which opens under it inside the page's width. */
+.monitor-page .loc-pick { position: relative; }
+.monitor-page .loc-pick > summary.loc-add { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 14px; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--card); color: var(--ink); font-size: 14px; font-weight: 600; }
+.monitor-page .loc-pick > summary.loc-add:hover { border-color: var(--lavender-deep); }
+.monitor-page .loc-pop { position: absolute; z-index: 6; top: calc(100% + 6px); right: 0; display: grid; gap: 10px; width: max-content; min-width: 240px; max-width: min(320px, calc(100vw - 48px)); padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius-panel); background: var(--card); box-shadow: var(--shadow); }
+.monitor-page .pop-title { margin: 0; color: var(--muted); font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.monitor-page .loc-ticks { display: grid; gap: 2px; }
+.monitor-page .loc-tick { min-height: 40px; color: var(--ink); font-size: 15px; font-weight: 600; overflow-wrap: break-word; }
+.monitor-page .pop-note { margin: 0; color: var(--muted); font-size: 13px; }
+.monitor-page .pop-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }
+/* "+ Add a rule" and the kinds the monitor lacks. */
+.monitor-page .grid-add { position: relative; padding: 10px 0 2px; border-top: 1px solid var(--line); border-radius: 0; }
+.monitor-page .add-rule > summary.ui-link { display: inline-flex; min-height: 32px; font-size: 15px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.monitor-page .add-menu { position: absolute; z-index: 5; top: calc(100% + 2px); left: 0; display: grid; gap: 2px; min-width: 240px; max-width: calc(100vw - 48px); padding: 6px; border: 1px solid var(--line); border-radius: var(--radius-panel); background: var(--card); box-shadow: var(--shadow); }
+.monitor-page .add-menu > button { justify-content: flex-start; min-height: 40px; padding: 0 12px; border: 0; border-radius: 10px; background: none; box-shadow: none; color: var(--ink); font-weight: 500; text-align: left; }
+.monitor-page .add-menu > button:not(:disabled):hover { background: var(--ground); }
+/* Down when and Back up after: the numbers are chips like the rules; the agreement between locations is stated, never set. */
+.monitor-page .grid-foot { display: grid; gap: 8px; margin: 14px 0 0; }
+.monitor-page .grid-foot > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; min-width: 0; }
+.monitor-page .grid-foot dt { min-width: 120px; color: var(--muted); font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.monitor-page .grid-foot dd { flex: 1 1 260px; min-width: 0; margin: 0; color: var(--ink); font-size: 15px; line-height: 1.7; }
+.monitor-page .grid-foot dd > * { min-width: 0; }
+.monitor-page .grid-foot .value-chip { margin: 0 4px 0 0; }
+@container table-wrap (max-width: 719px) {
+  .monitor-page .grid-foot dt { flex-basis: 100%; min-width: 0; }
+}
+
+/* ---------------------------------------------------------------- recent checks */
+/* The strip of the last 30 checks (the newest 20 in a phone-width card) with its first and last times, the newest three as
+   short rows, and "All checks" at the card's top right, which opens the full list in place of the short rows. The list's
+   rows keep the console's own styles (style.css, the checks-card container). Every mark keeps its size; the page measures
+   how many of the newest fit (--strip-limit at most, public/monitor-recent-checks.js fitStrip) and hides the older ones. */
+.monitor-page .recent-checks { position: relative; container: checks-card / inline-size; }
+.monitor-page .recent-strip { --strip-limit: 30; display: grid; gap: 6px; min-width: 0; margin-bottom: 4px; }
+.monitor-page .recent-strip:empty { display: none; }
+.monitor-page .recent-strip .ui-strip { gap: 4px; min-width: 0; padding: 0; }
+.monitor-page .recent-strip .ui-strip > .past { display: none; }
+.monitor-page .recent-strip .ui-dot { width: 13px; height: 13px; }
+/* Marks beyond passed, failed and the hollow no-result ring: an overdue check is an amber ring; a running check is half
+   filled; a manual check is a smaller diamond in its result's colour; a paused or maintenance span is a short bar. */
+.monitor-page .recent-strip .ui-dot.overdue { box-shadow: inset 0 0 0 2px var(--amber), 0 0 0 3px var(--card); }
+.monitor-page .recent-strip .ui-dot.running { background: linear-gradient(90deg, var(--ink) 50%, var(--card) 50%); box-shadow: inset 0 0 0 2px var(--ink), 0 0 0 3px var(--card); }
+.monitor-page .recent-strip .ui-dot.manual { width: 10px; height: 10px; margin: 0 1.5px; border-radius: 2px; transform: rotate(45deg); }
+.monitor-page .recent-strip .ui-dot.span { flex: none; width: 20px; height: 9px; border-radius: 999px; background: var(--neutral-soft); box-shadow: inset 0 0 0 2px var(--line-strong), 0 0 0 3px var(--card); }
+.monitor-page .recent-strip .ui-dot.span.maintenance { background: var(--peach-soft); box-shadow: inset 0 0 0 2px var(--peach), 0 0 0 3px var(--card); }
+/* A run of two or more missed or overdue checks: one hollow ring with its count, in one place. */
+.monitor-page .recent-strip .strip-run { position: relative; flex: none; min-width: 30px; padding: 0 5px; border-radius: 999px; background: var(--card); box-shadow: inset 0 0 0 2px var(--unknown), 0 0 0 3px var(--card); color: var(--body); font-size: 13px; font-weight: 700; line-height: 18px; text-align: center; white-space: nowrap; }
+.monitor-page .recent-strip .strip-run.overdue { box-shadow: inset 0 0 0 2px var(--amber), 0 0 0 3px var(--card); color: var(--amber-text); }
+.monitor-page .strip-times { display: flex; justify-content: space-between; gap: 12px; margin: 0; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.monitor-page .recent-rows { margin: 4px 0 0; padding: 0; list-style: none; }
+.monitor-page .recent-rows > li { display: grid; grid-template-columns: minmax(84px, auto) minmax(0, 1fr) auto; align-items: center; gap: 4px 16px; padding: 10px 0; border-top: 1px solid var(--line); border-radius: 0; font-size: 14.5px; }
+.monitor-page .recent-rows > li:first-child { border-top: 0; }
+.monitor-page .recent-rows > li.recent-empty { display: block; color: var(--muted); }
+.monitor-page .recent-rows time { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.monitor-page .recent-rows .check-result.running { --mark: var(--mark-half); --mark-color: var(--ink); color: var(--ink); }
+.monitor-page .recent-rows .check-result.overdue { --mark: var(--mark-triangle); --mark-color: var(--amber); color: var(--amber-text); }
+.monitor-page .recent-rows .check-result.paused { --mark: var(--mark-pause); --mark-color: var(--muted); color: var(--body); }
+.monitor-page .recent-rows .check-result.maintenance { --mark: var(--mark-moon); --mark-color: var(--peach); color: var(--peach-text); }
+.monitor-page .recent-detail { color: var(--ink); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.monitor-page .all-checks > summary { position: absolute; top: 17px; right: 24px; min-height: 30px; padding: 0; font-size: 15px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.monitor-page .all-checks > summary::after { content: none; }
+.monitor-page .recent-checks:has(> .all-checks[open]) > .recent-rows { display: none; }
+.monitor-page .all-checks[open] { margin-top: 10px; }
+@container checks-card (max-width: 480px) {
+  .monitor-page .recent-strip { --strip-limit: 20; }
+  .monitor-page .recent-strip .ui-strip { gap: 3px; }
+  .monitor-page .recent-strip .ui-dot { width: 10px; height: 10px; }
+  .monitor-page .recent-strip .ui-dot.manual { width: 8px; height: 8px; }
+  .monitor-page .recent-rows > li { grid-template-columns: minmax(76px, auto) minmax(0, 1fr) auto; gap: 4px 12px; }
+}
+@container table-wrap (max-width: 719px) {
+  .monitor-page .all-checks > summary { top: 15px; right: 18px; }
+}
+/* The list's text, raised to the console's 13px floor inside this page (H11). */
+.monitor-page :is(.slot-age, .slot-meta, .attempt-line, .attempt-checks, .coverage-excluded) { font-size: 13px; }
+.monitor-page .slot-code .ui-mono { font-size: 13px; }
+
+/* ---------------------------------------------------------------- folds */
+/* One card, no heading: each fold a title and its one-line summary over a hairline, its panel inside without a card of its
+   own. A panel whose heading repeats the fold's title keeps it for assistive technology only. A panel's body is one track
+   no wider than the fold, so its own wide content (a failure snapshot's 42rem waterfall table, its replay video) scrolls or
+   scales in its own box and never widens the column or the page. */
+.monitor-page .folds-card { padding: 6px 22px; border-radius: 16px; }
+.monitor-page .fold + .fold { border-top: 1px solid var(--line); border-radius: 0; }
+.monitor-page .fold > summary { min-height: 48px; padding: 12px 0; gap: 12px; font-size: 15px; }
+.monitor-page .fold-title { flex: 1 1 auto; min-width: 0; color: var(--ink); font-weight: 650; }
+.monitor-page .fold-sum { flex: 0 1 auto; min-width: 0; color: var(--muted); font-size: 14px; font-weight: 500; text-align: right; overflow-wrap: break-word; }
+.monitor-page .fold-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 4px 0 18px; overflow-wrap: anywhere; }
+.monitor-page .fold-body:empty { display: none; }
+.monitor-page .fold-body .keep-line { white-space: normal; }
+.monitor-page .fold-body :is(#snapshot-viewer-link, .incident-record p > a:only-child) { display: inline-flex; align-items: center; min-height: 24px; }
+.monitor-page .fold-body > .panel { padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
+.monitor-page .fold-body > .panel > h2 { margin-bottom: 8px; font-size: 16px; }
+.monitor-page .fold-body.same-title > .panel > h2 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@container table-wrap (max-width: 719px) {
+  .monitor-page .folds-card { padding: 4px 18px; }
+}
+/* Reports: the 24-hour and 7-day bars, their key and the coverage rule behind its "?", then the period report. */
+.monitor-page .report-coverage { container: coverage-card / inline-size; display: grid; gap: 14px; }
+.monitor-page .coverage-windows { display: grid; gap: 18px; }
+.monitor-page .coverage-window { display: grid; gap: 6px; min-width: 0; }
+.monitor-page .coverage-window h3 { color: var(--ink); font-size: 15.5px; font-weight: 600; }
+.monitor-page .coverage.large { grid-template-columns: minmax(0, 1fr) minmax(0, 296px); align-items: center; gap: 8px 20px; }
+.monitor-page .coverage.large .coverage-bar { height: 28px; }
+.monitor-page .coverage.large .coverage-label { font-size: 14px; font-weight: 500; }
+@container coverage-card (max-width: 639px) {
+  .monitor-page .coverage.large { grid-template-columns: minmax(0, 1fr); }
+  .monitor-page .coverage.large .coverage-bar { height: 22px; }
+}
+.monitor-page .coverage-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px; padding-top: 14px; border-top: 1px solid var(--line); border-radius: 0; }
+.monitor-page .coverage-note { color: var(--muted); font-size: 13px; line-height: 1.45; }
+.monitor-page .report-chart text { font-size: 13px; }
+/* Fine print behind a "?": the line, and the explanation once the "?" (named for what it explains) is opened. */
+.monitor-page .fine-print { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; color: var(--muted); font-size: 13px; line-height: 1.45; }
+.monitor-page .fine-print > p { margin: 0; }
+.monitor-page .more-info { display: inline-block; }
+.monitor-page .more-info[open] { display: block; flex-basis: 100%; }
+.monitor-page .more-info > summary { display: inline-grid; place-items: center; min-height: 24px; width: 24px; height: 24px; padding: 0; color: var(--muted); list-style: none; cursor: pointer; }
+.monitor-page .more-info > summary > span { display: grid; place-items: center; box-sizing: border-box; width: 22px; height: 22px; border: 1px solid var(--line-strong); border-radius: 50%; font-size: 13px; font-weight: 700; line-height: 1; }
+.monitor-page .more-info > summary::-webkit-details-marker, .monitor-page .more-info > summary::after { display: none; }
+.monitor-page .more-info > p { margin: 6px 0 0; }
+/* Full check details: what a chip in the header means, the engine's own reason and the saved check. */
+.monitor-page .details-note { margin: 0 0 10px; color: var(--body); font-size: 14px; }
+.monitor-page .engine-status { margin: 8px 0; color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+.monitor-page .details-erase { margin: 12px 0 0; }
+.monitor-page .heartbeat code { font-size: 13px; }
+.monitor-page .maintenance-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.monitor-page .maintenance-panel .maintenance-windows { margin-bottom: 14px; }
+
+/* ---------------------------------------------------------------- phone tap targets */
+/* At phone width every control the page draws is at least 44px tall (TMPL-001); the height comes from the target's own
+   box, and a chip keeps its 30px look inside a 44px summary. */
+@media (max-width: 700px) {
+  .monitor-page .fold-body :is(#snapshot-viewer-link, .incident-record p > a:only-child) { min-height: 44px; }
+  .monitor-page :is(.state-text > .ui-link, .status-held .ui-link, .status-told .ui-link, .details-erase .ui-link) { min-height: 44px; }
+  .monitor-page #add-notification { display: inline-flex; align-items: center; min-height: 44px; }
+  .monitor-page .rule-grid .col-pick { min-width: 44px; min-height: 44px; justify-content: center; }
+  .monitor-page details:is(.rule-edit, .num-edit) > summary { min-height: 44px; }
+  .monitor-page .loc-pick > summary.loc-add, .monitor-page .add-rule > summary.ui-link, .monitor-page .all-checks > summary { min-height: 44px; }
+  .monitor-page .all-checks > summary { top: 8px; }
+  .monitor-page :is(.add-menu > button, .loc-tick) { min-height: 44px; }
+  .monitor-page :is(.edit-buttons, .pop-buttons) :is(.ui-compact, .ui-link) { min-height: 44px; }
+  .monitor-page .edit-field > input { min-height: 44px; }
+  .monitor-page .more-info > summary { width: 44px; height: 44px; min-height: 44px; }
 }

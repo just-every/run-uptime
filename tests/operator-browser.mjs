@@ -60,7 +60,8 @@ async function unavailableJourney(page,width){
   await page.locator('#read-notice[data-state=unavailable]').waitFor({timeout:12000});
   assert.equal(await page.locator('#monitor-state').textContent(),'Unknown');
   assert.match(await page.locator('#read-notice').textContent(),/Last successful refresh/);
-  assert.match(await page.locator('#latest-check-heading').textContent(),/Last recorded check/);
+  // The status line says the last result is shown, and the recorded checks stay listed with their times.
+  assert.match(await page.locator('#monitor-status').textContent(),/Showing the last result/);assert.ok(await page.locator('#recent-rows time').count(),'the last recorded checks stay listed');
   await audit(page,`unavailable-${width}`,{state:'Unknown',reason:/couldn.t refresh/i});
  }finally{await page.unroute(overviewRead)}
  await page.locator('#read-notice[data-state=recovered]').waitFor({timeout:12000});
@@ -120,10 +121,50 @@ async function editJourney(page,monitor,width){
  await page.locator('.editor-cancel:visible').click();await ready(page);
  await page.locator('#monitor-state').filter({hasText:'Unknown'}).waitFor({timeout:22000});
  await audit(page,`stale-${width}`,{state:'Unknown',reason:/recent result|waiting/i});
- assert.ok(await page.locator('.detail-time time').count(),'stale state retains the last real check time');
+ assert.ok(await page.locator('#recent-rows time').count(),'stale state retains the last real check time');
  const history=await (await page.request.get(origin+`/api/monitors/${monitor.id}/history`)).json();
  assert.ok(history.some(slot=>slot.revision===monitor.revision),'old assertion revision evidence remains');
  assert.ok(history.some(slot=>slot.revision===saved.revision&&slot.status==='complete'),'changed assertion revision has its own evidence');
+}
+// A rule changed in place on its monitor's page (U15), on a monitor of its own: Responds within changes by its chip and Enter;
+// the row shows the new rule, the save is one new revision changing only that rule, and the next scheduled check (read from
+// the history API, not from the page's ages) is judged by it. A value the server refuses keeps what was typed and the server's
+// reason in its row and makes no revision; Esc then puts the saved value back.
+async function ruleEditJourney(page,width){
+ const created=await page.request.post(origin+'/api/monitors',{headers:{origin},data:{name:`Rules in place ${width}`,url:'http://127.0.0.1:15481/health',intervalMs:5000,timeoutMs:2000,retries:0,confirmSlots:1,recoverSlots:1,freshnessMs:10000,assertions:{status:200,latencyMs:2000},enabled:true}});
+ assert.equal(created.status(),201);const monitor=await created.json();
+ const current=async()=>(await (await page.request.get(origin+'/api/overview')).json()).monitors.find(m=>m.id===monitor.id);
+ await page.goto(origin+`/app/monitors/${monitor.id}`);await ready(page);
+ const row=page.locator('#rule-grid tr[data-key="rule-latencyMs"]');
+ await row.locator('td .ui-result.passed').first().waitFor({timeout:30000});
+ await row.locator('#edit-latencyMs > summary').click();
+ const seconds=row.locator('input[name=seconds]');assert.equal(await seconds.inputValue(),'2');
+ await seconds.fill('3');await seconds.press('Enter');
+ await page.locator('#action-notice').filter({hasText:`Saved as revision ${monitor.revision+1}`}).waitFor({timeout:15000});
+ const saved=await current();
+ assert.equal(saved.revision,monitor.revision+1,'one save is one new revision');
+ assert.deepEqual(saved.definition.assertions,{status:200,latencyMs:3000},'only the changed rule changed');
+ assert.equal(await page.locator('#edit-latencyMs').evaluate(details=>details.open),false,'Save closes the editor');
+ assert.equal((await row.locator('.value-chip').textContent()).trim(),'3 s','the row shows the new rule');
+ let slot;
+ for(const end=Date.now()+30000;!slot&&Date.now()<end;await page.waitForTimeout(1000))slot=(await (await page.request.get(origin+`/api/monitors/${monitor.id}/history`)).json()).find(s=>!s.manual&&s.status==='complete'&&s.revision===saved.revision);
+ assert.ok(slot,'a scheduled check of the new revision completed');
+ assert.equal(slot.definition.assertions.latencyMs,3000,'the check ran with the new rule');
+ assert.ok(slot.observations.every(o=>o.checks.some(c=>c.assertion==='latency'&&c.pass)),'every location passed the new rule');
+ // The page shows only a check of the current revision, so once every location's age is back its row says what it measured.
+ await page.waitForFunction(()=>{const ages=[...document.querySelectorAll('#rule-grid thead .col-age')],cells=[...document.querySelectorAll('#rule-grid tr[data-key="rule-latencyMs"] td .ui-result')];return ages.length>0&&ages.every(age=>/ago$/.test(age.textContent))&&cells.length>0&&cells.every(cell=>cell.classList.contains('passed')&&/^\d+ ms$/.test(cell.textContent.trim()))},null,{timeout:20000});
+ const status=page.locator('#edit-status');await status.locator('summary').click();
+ await status.locator('input[name=status]').fill('ok');await status.locator('input[name=status]').press('Enter');
+ await page.locator('#edit-error-status').filter({hasText:/status/i}).waitFor({timeout:15000});
+ assert.equal(await status.locator('input[name=status]').inputValue(),'ok','the typed value stays');
+ assert.equal((await current()).revision,saved.revision,'a refused value makes no revision');
+ await audit(page,`rule-edit-${width}`);
+ // Focus stays in the field after the refusal, so Esc pressed on the page cancels: the editor closes and the saved value
+ // comes back.
+ await page.keyboard.press('Escape');
+ assert.equal(await status.evaluate(details=>details.open),false);assert.equal(await status.locator('input[name=status]').inputValue(),'200');
+ assert.equal((await page.request.patch(origin+`/api/monitors/${monitor.id}`,{headers:{origin},data:{...saved.definition,enabled:false}})).status(),200);
+ checks.push({label:`rule-edit-${width}`,revision:saved.revision,judgedBy:slot.definition.assertions.latencyMs});
 }
 try{
  for(const width of [1440,768,390,320]){
@@ -151,7 +192,7 @@ try{
    await page.getByRole('button',{name:'Save monitor'}).click();await ready(page);
    const overview=await (await page.request.get(origin+'/api/overview')).json(),monitor=overview.monitors.find(m=>m.definition.name===name);
    assert.ok(monitor);assert.deepEqual(Object.values(monitor.definition.assignments).map(a=>a.runnerId),overview.runner.runners.filter(r=>!r.revokedAt).map(r=>r.runnerId),'a new monitor checks from every location');
-   await page.waitForURL(url=>url.pathname===`/app/monitors/${monitor.id}`);await ready(page);
+   await page.waitForURL(url=>url.pathname===`/app/monitors/${monitor.id}`);await ready(page);await page.locator('#all-checks > summary').click();
    await page.locator('#monitor-state').filter({hasText:'Healthy'}).waitFor({timeout:18000});await page.locator('#raw-history details').first().waitFor();
    await audit(page,`healthy-${width}`,{state:'Healthy',reason:/^Up/});
    await unavailableJourney(page,width);await actionErrorJourney(page,monitor,width);
@@ -162,7 +203,8 @@ try{
    assert.ok(await page.locator('#raw-history details[open]').count()>0,'expanded immutable evidence survives polling');
    await editJourney(page,monitor,width);
    await tabTo(page,page.getByRole('button',{name:'Pause',exact:true}));await page.keyboard.press('Enter');await page.locator('#monitor-state').filter({hasText:'Paused'}).waitFor();
-   await page.getByRole('button',{name:'Resume',exact:true}).click();await page.getByText('More',{exact:true}).click();await page.getByRole('button',{name:'Maintenance 15 min'}).click();await page.getByText('More',{exact:true}).click();await page.getByRole('button',{name:'End maintenance'}).waitFor();await page.getByRole('button',{name:'End maintenance'}).click();await page.getByRole('button',{name:'Pause',exact:true}).click();await page.getByRole('button',{name:'Resume',exact:true}).waitFor();
+   await page.getByRole('button',{name:'Resume',exact:true}).click();await page.locator('details#maintenance > summary').click();await page.getByRole('button',{name:'Quiet alerts for 15 min'}).click();await page.locator('#status-card').getByRole('button',{name:'End now',exact:true}).click();await page.getByRole('button',{name:'Quiet alerts for 15 min'}).waitFor();await page.getByRole('button',{name:'Pause',exact:true}).click();await page.getByRole('button',{name:'Resume',exact:true}).waitFor();
+   if(width===1440||width===390)await ruleEditJourney(page,width);
    await tabTo(page,page.getByRole('link',{name:'Notifications',exact:true}));await page.keyboard.press('Enter');await page.waitForURL(origin+'/app/notifications');await ready(page);await page.getByRole('heading',{name:'Destinations · all monitors',exact:true}).waitFor();await audit(page,`notifications-${width}`);
    await page.getByRole('link',{name:'Archive',exact:true}).click();await page.waitForURL(origin+'/app/archive');await ready(page);await page.getByRole('button',{name:'Download backup'}).waitFor();await audit(page,`archive-${width}`);
    const [download]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'Download backup'}).click()]);await download.saveAs(resolve(out,`archive-${width}.json`));

@@ -20,7 +20,7 @@ try{
  const monitor=await post('/api/monitors',{name:'Checkout API',url:'https://example.com/checkout',enabled:false,service:'Storefront',group:'Production'});
  await mkdir(screens,{recursive:true});
  for(const width of [1440,390]){
-  await page.setViewportSize({width,height:1000});await page.goto(origin+`/app/monitors/${monitor.id}`);await page.locator('html.signed-in').waitFor();
+  await page.setViewportSize({width,height:1000});await page.goto(origin+`/app/monitors/${monitor.id}`);await page.evaluate(()=>{location.hash='alerts'});await page.locator('html.signed-in').waitFor();
   await page.getByRole('button',{name:'Edit alert route',exact:true}).click();const dialog=page.getByRole('dialog');
   await dialog.getByLabel('Recipient policy',{exact:true}).selectOption('selected');
   for(const id of [a.id,b.id])await dialog.locator(`[name=destination][value="${id}"]`).check();
