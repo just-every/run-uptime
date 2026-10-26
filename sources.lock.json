@@ -7151,7 +7151,7 @@
       "executable": false
     },
     "tests/access-member-controls-browser-support.mjs": {
-      "sha256": "91d0ddcb186511c7f4417d2f5ec5c4b054bf0d7e2ed2dab919a1573a5a1927a0",
+      "sha256": "2ca3c29a3e3c76b576278680bf1efbfa893b163f2305d907bc22095b97b2fbc1",
       "executable": false
     },
     "tests/access-scope-support.mjs": {
