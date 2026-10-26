@@ -66,7 +66,7 @@ function previewRecipients(policies:RoutePolicy[],contacts:any[],configured:bool
 export async function readAlertRoute(env:Bindings,monitorId:string,{readOnly=false}={}){
  const ctx=await context(env,monitorId,{readOnly});
  const changes=await env.DB.prepare(`SELECT * FROM alert_route_changes WHERE drill IS NULL AND ((scope_kind='monitor' AND scope_value=?) OR (scope_kind='service' AND scope_value=?) OR (scope_kind='group' AND scope_value=?) OR scope_kind='installation') ORDER BY changed_at DESC,rowid DESC LIMIT 30`).bind(monitorId,scopeValue('service',ctx.monitor),scopeValue('group',ctx.monitor)).all<any>();
- return {monitorId,drills:await routeDrillHistory(env,monitorId),portability:{included:false,reason:'route_policy_installation_local'},policies:ctx.policies,...previewRecipients(ctx.policies,ctx.destinations,mailConfigured(env),await teamCandidates(env,monitorId)),gaps,changes:changes.results.map(r=>({id:r.id,scope:r.scope_kind,value:r.scope_value,previous:JSON.parse(r.previous_policy),current:JSON.parse(r.current_policy),changedAt:r.changed_at,actorRef:r.actor_ref}))};
+ return {monitorId,drills:await routeDrillHistory(env,monitorId,{readOnly}),portability:{included:false,reason:'route_policy_installation_local'},policies:ctx.policies,...previewRecipients(ctx.policies,ctx.destinations,mailConfigured(env),await teamCandidates(env,monitorId)),gaps,changes:changes.results.map(r=>({id:r.id,scope:r.scope_kind,value:r.scope_value,previous:JSON.parse(r.previous_policy),current:JSON.parse(r.current_policy),changedAt:r.changed_at,actorRef:r.actor_ref}))};
 }
 async function plan(env:Bindings,monitorId:string,raw:any,{readOnly=false}={}){
  const input=validate(raw);
@@ -159,7 +159,7 @@ export async function saveNamedAlertRoute(env:Bindings,raw:any,actor:AuditActor)
 }
 export async function prepareNamedAlertRouteAssignment(env:Bindings,monitorId:string,route:Awaited<ReturnType<typeof namedAlertRoute>>){
  const current=await readAlertRoute(env,monitorId,{readOnly:true}),previous=current.policies.find(p=>p.scope==='monitor')!;
- const prepared=await plan(env,monitorId,{scope:'monitor',expectedRevision:previous.revision,...route.policy},{readOnly:true});prepared.current.namedRouteId=route.id;return prepared;
+ const prepared=await plan(env,monitorId,{scope:'monitor',expectedRevision:previous.revision,...route.policy,businessHours:route.policy.businessHours??null},{readOnly:true});prepared.current.namedRouteId=route.id;return prepared;
 }
 
 /** Apply's explicit drill action uses the existing route-write admission. It

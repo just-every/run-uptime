@@ -67,6 +67,11 @@ export async function proveRouteDrills(){
   await waitFor(async()=>{await dispatch();return (await history(held.routeDrillId)).recipients.find(r=>r.id===hook.id).state==='accepted'},'route drill leaves its quiet hold',90000);
   assert.equal(sent.length,sentBefore+1);await dispatch();assert.equal(sent.length,sentBefore+1,'each selected route recipient gets only one drill');
 
+  const paused=await start(named);await ok('/api/notifications/destinations/'+hook.id,{name:hook.name,enabled:false},{method:'PATCH'});
+  assert.equal((await f.request('/api/routing/recipient',{body:{destinationId:inbox.id,enabled:false},headers:{cookie:member.cookie}})).status,200);await dispatch();
+  const stopped=await history(paused.routeDrillId);for(const id of [hook.id,inbox.id])assert.deepEqual([stopped.recipients.find(r=>r.id===id).state,stopped.recipients.find(r=>r.id===id).code],['rejected','route_recipient_ineligible']);
+  await ok('/api/notifications/destinations/'+hook.id,{name:hook.name,enabled:true},{method:'PATCH'});
+  assert.equal((await f.request('/api/routing/recipient',{body:{destinationId:inbox.id,enabled:true},headers:{cookie:member.cookie}})).status,200);
   // Consent binds the credential, including an address rotated away and back.
   await ok('/api/notifications/destinations/'+inbox.id,{name:inbox.name,enabled:true,address:'synthetic-uptime-29@example.test'},{method:'PATCH'});
   await ok('/api/notifications/destinations/'+inbox.id,{name:inbox.name,enabled:true,address:'synthetic-uptime-28@example.test'},{method:'PATCH'});
@@ -74,6 +79,10 @@ export async function proveRouteDrills(){
   const rotated=await start(named);result=await history(rotated.routeDrillId);
   assert.deepEqual([result.recipients.find(r=>r.id===inbox.id).outcome,result.recipients.find(r=>r.id===inbox.id).reason],['excluded','team_recipient_ineligible']);
   await dispatch();
+  const reserved=await start(named),reservedRecipient=(await history(reserved.routeDrillId)).recipients.find(r=>r.id===hook.id),reservation=crypto.randomUUID();
+  const claim=await rpc('',{operation:'claim',id:reservedRecipient.deliveryId,reservation,runnerNow:Date.now()});assert.ok(claim);
+  await ok('/api/notifications/destinations/'+hook.id+'/rotate',{});
+  assert.equal(await rpc('',{operation:'start',id:reservedRecipient.deliveryId,claim,reservation}),false,'rotation after reservation cannot start the stale route credential');
   const excluded=await start(named,'slow');result=await history(excluded.routeDrillId);
   assert.ok(result.recipients.filter(r=>r.selected).every(r=>r.outcome==='excluded'),'the named route filters apply to the sending drill');
   assert.ok(result.recipients.some(r=>r.reason==='filter_severities'));

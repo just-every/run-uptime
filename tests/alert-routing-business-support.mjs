@@ -37,6 +37,11 @@ export async function proveRoutingBusinessHours(){
   await writeFile(inputFile,JSON.stringify(cliInput),{mode:0o600});const cliArgs=['--origin',f.origin,'--monitor',m.id],cliEnv={UPTIME_ACCESS_COOKIE:f.cookie};
   const cliPreview=await routingCommand(['preview',...cliArgs,'--input',inputFile],cliEnv);await writeFile(inputFile,JSON.stringify({...cliInput,digest:cliPreview.digest}),{mode:0o600});await routingCommand(['apply',...cliArgs,'--input',inputFile],cliEnv);
   assert.deepEqual((await routingCommand(['route',...cliArgs],cliEnv)).effective.businessHours,preserved,'the routing CLI configures and reads the weekly window');
+  const namedTarget=await f.monitor({name:'Synthetic business named target',enabled:false,runners:[f.first],canary:true,environment:'production'}),previousBusiness={...week,selection:'outside'};await save(namedTarget,previousBusiness);
+  const cli=async(command,input)=>{await writeFile(inputFile,JSON.stringify(input),{mode:0o600});return routingCommand([command,'--origin',f.origin,'--input',inputFile],cliEnv)};
+  const named=await cli('name-route',{name:'Synthetic weekly named route',monitorId:m.id}),batch={routeId:named.id,monitorIds:[namedTarget.id]},batchPreview=await cli('preview-batch',batch),applied=await cli('apply-batch',{...batch,digest:batchPreview.digest});
+  assert.deepEqual((await ok(route(namedTarget.id))).effective.businessHours,preserved,'named assignment carries weekly fields');await cli('undo-batch',{batchId:applied.batchId});
+  assert.deepEqual((await ok(route(namedTarget.id))).effective.businessHours,previousBusiness,'undo restores the prior weekly fields');
   const revision=(await ok(route(m.id))).effective.revision;
   for(const change of [{weekdays:[1,1]},{selection:'holiday'},{timeZone:'not-a-zone'}])assert.equal((await f.request(route(m.id)+'/preview',{body:{scope:'monitor',mode:'selected',destinationIds:[good.id],expectedRevision:revision,businessHours:{...week,selection:'inside',...change}}})).status,400);
 

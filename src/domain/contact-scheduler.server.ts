@@ -52,6 +52,9 @@ export async function refreshContactQuiet(env:Bindings,id?:string){
  }));
 }
 async function refreshRouteBusiness(env:Bindings){
+ const active=await env.DB.prepare(`SELECT 1 FROM alert_contact_schedules s JOIN notification_jobs j ON j.id=s.trigger_job_id
+  WHERE s.route_business_rules IS NOT NULL AND (s.business_allowed IS NULL OR (s.business_allowed=0 AND j.state='queued')) LIMIT 1`).first();
+ if(!active)return;
  const rows=(await env.DB.prepare(`SELECT s.trigger_job_id,s.route_business_rules,t.event_id FROM alert_contact_schedules s JOIN notification_jobs t ON t.id=s.trigger_job_id
   WHERE s.route_business_rules IS NOT NULL AND s.business_allowed IS NULL`).all<{trigger_job_id:string;route_business_rules:string;event_id:string}>()).results;
  for(const row of rows){

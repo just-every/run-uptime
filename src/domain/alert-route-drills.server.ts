@@ -16,7 +16,7 @@ export function routeDrillAuthorityReady(job='j',now="CAST((julianday('now')-244
  ), live_route_drills AS MATERIALIZED (
   SELECT a.delivery_id FROM alert_drills a JOIN monitors m ON m.id=json_extract(a.route_context,'$.monitorId')
   JOIN notification_destinations d ON d.id=a.destination_id
-  WHERE a.route_context IS NOT NULL AND d.enabled=1 AND d.deleted_at IS NULL AND a.expires_at>${now}
+  WHERE a.route_context IS NOT NULL AND d.enabled=1 AND d.deleted_at IS NULL AND d.credential_id=a.credential_id AND a.expires_at>${now}
    AND (json_extract(a.route_context,'$.viaTeam')=0 OR a.delivery_id IN(SELECT delivery_id FROM live_route_teams)))
   SELECT 1 FROM alert_drills a LEFT JOIN live_route_drills live ON live.delivery_id=a.delivery_id
   WHERE a.delivery_id=${job}.id AND a.route_context IS NOT NULL AND live.delivery_id IS NULL)`;
@@ -26,6 +26,9 @@ export function routeDrillQuietReady(job='j',now="CAST((julianday('now')-2440587
   AND (a.quiet_checked_until IS NULL OR a.quiet_checked_until<=${now} OR a.quiet_until>${now}))`
 }
 export async function refreshRouteDrillQuiet(env:Bindings,id?:string){
+ const active=await env.DB.prepare(`SELECT 1 FROM alert_drills a JOIN notification_jobs j ON j.id=a.delivery_id LEFT JOIN integration_deliveries d ON d.namespace='uptime-notifications' AND d.id=j.id
+  WHERE a.route_context IS NOT NULL AND (CASE WHEN j.state<>'queued' THEN j.state ELSE COALESCE(d.state,j.state) END) IN ('queued','sending') LIMIT 1`).first();
+ if(!active)return;
  const now=Date.now(),checkedUntil=Math.floor(now/60000)*60000+60000;
  const rows=(await env.DB.prepare(`SELECT a.id,a.route_context FROM alert_drills a JOIN notification_jobs j ON j.id=a.delivery_id
   WHERE a.route_context IS NOT NULL AND j.state IN ('queued','sending') AND (a.quiet_checked_until IS NULL OR a.quiet_checked_until<=?) ${id===undefined?'':'AND j.id=?'}`)
@@ -42,8 +45,8 @@ export async function refreshRouteDrillQuiet(env:Bindings,id?:string){
    AND id IN(SELECT id FROM notification_jobs WHERE state='rejected' AND code IN ('drill_expired','route_recipient_ineligible'))`).bind(now),
  ]);
 }
-export async function routeDrillHistory(env:Bindings,monitorId:string){
- await refreshRouteDrillQuiet(env);
+export async function routeDrillHistory(env:Bindings,monitorId:string,{readOnly=false}={}){
+ if(!readOnly)await refreshRouteDrillQuiet(env);
  const receipts=(await env.DB.prepare("SELECT id,drill,changed_at FROM alert_route_changes WHERE scope_kind='monitor' AND scope_value=? AND drill IS NOT NULL ORDER BY changed_at DESC,rowid DESC LIMIT 30").bind(monitorId).all<any>()).results;
  const rows=(await env.DB.prepare(`SELECT a.*,j.state job_state,j.code,COALESCE(d.state,j.state) delivery_state,
   (SELECT outcome FROM integration_attempts t WHERE t.namespace='uptime-notifications' AND t.delivery_id=j.id ORDER BY number DESC LIMIT 1) outcome
