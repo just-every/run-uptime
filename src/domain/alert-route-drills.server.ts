@@ -5,10 +5,13 @@ import type {Bindings} from './control.server.ts'
 // Fixed aliases only. Direct destination drills keep DRILL-001's explicit test
 // semantics; route drills also require the original route recipient's authority.
 export function routeDrillAuthorityReady(job='j',now="CAST((julianday('now')-2440587.5)*86400000 AS INTEGER)"){
- return `NOT EXISTS(SELECT 1 FROM alert_drills a LEFT JOIN monitors m ON m.id=json_extract(a.route_context,'$.monitorId')
-  LEFT JOIN notification_destinations d ON d.id=a.destination_id
-  WHERE a.delivery_id=${job}.id AND a.route_context IS NOT NULL AND (m.id IS NULL OR d.enabled<>1 OR d.deleted_at IS NOT NULL OR a.expires_at<=${now}
-   OR (json_extract(a.route_context,'$.viaTeam')=1 AND NOT ${selectedTeamRecipientSql("json_extract(a.route_context,'$.teamIds')")})))`
+ return `NOT EXISTS(WITH live_route_drills AS MATERIALIZED (
+  SELECT a.delivery_id FROM alert_drills a JOIN monitors m ON m.id=json_extract(a.route_context,'$.monitorId')
+  JOIN notification_destinations d ON d.id=a.destination_id
+  WHERE a.route_context IS NOT NULL AND d.enabled=1 AND d.deleted_at IS NULL AND a.expires_at>${now}
+   AND (json_extract(a.route_context,'$.viaTeam')=0 OR ${selectedTeamRecipientSql("json_extract(a.route_context,'$.teamIds')")}))
+  SELECT 1 FROM alert_drills a LEFT JOIN live_route_drills live ON live.delivery_id=a.delivery_id
+  WHERE a.delivery_id=${job}.id AND a.route_context IS NOT NULL AND live.delivery_id IS NULL)`;
 }
 export function routeDrillQuietReady(job='j',now="CAST((julianday('now')-2440587.5)*86400000 AS INTEGER)"){
  return `NOT EXISTS(SELECT 1 FROM alert_drills a WHERE a.delivery_id=${job}.id AND a.route_context IS NOT NULL
