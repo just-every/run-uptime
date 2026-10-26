@@ -56,7 +56,7 @@ export async function routeDrillHistory(env:Bindings,monitorId:string,{readOnly=
   const drill=JSON.parse(receipt.drill);
   return {id:receipt.id,startedAt:receipt.changed_at,...drill,recipients:drill.recipients.map((recipient:any)=>{
    const row=rows.find(r=>JSON.parse(r.route_context).routeDrillId===receipt.id&&r.destination_id===recipient.id);
-   if(!row)return recipient;
+   if(!row)return recipient.eligible?{...recipient,outcome:'excluded',reason:'destination_missing',state:'erased'}:recipient;
    const state=row.job_state==='queued'?row.delivery_state:row.job_state;
    return {...recipient,drillId:row.id,deliveryId:row.delivery_id,state,code:row.outcome?JSON.parse(row.outcome).code:row.code,
     quietUntil:state==='queued'?row.quiet_until:null,confirmedAt:row.confirmed_at,expiresAt:row.expires_at};

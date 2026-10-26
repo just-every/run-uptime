@@ -80,13 +80,17 @@ export async function proveRouteDrills(){
   assert.deepEqual([result.recipients.find(r=>r.id===inbox.id).outcome,result.recipients.find(r=>r.id===inbox.id).reason],['excluded','team_recipient_ineligible']);
   await dispatch();
   const reserved=await start(named),reservedRecipient=(await history(reserved.routeDrillId)).recipients.find(r=>r.id===hook.id),reservation=crypto.randomUUID();
+  assert.ok((await rpc('',{operation:'poll'})).jobs.some(j=>j.id===reservedRecipient.deliveryId),'poll prepares the real integration delivery before a claim');
   const claim=await rpc('',{operation:'claim',id:reservedRecipient.deliveryId,reservation,runnerNow:Date.now()});assert.ok(claim);
   await ok('/api/notifications/destinations/'+hook.id+'/rotate',{});
   assert.equal(await rpc('',{operation:'start',id:reservedRecipient.deliveryId,claim,reservation}),false,'rotation after reservation cannot start the stale route credential');
+  assert.deepEqual([(await history(reserved.routeDrillId)).recipients.find(r=>r.id===hook.id).state,(await history(reserved.routeDrillId)).recipients.find(r=>r.id===hook.id).code],['rejected','credential_rotated'],'the unstarted stale reservation retains its exact refusal');
   const excluded=await start(named,'slow');result=await history(excluded.routeDrillId);
   assert.ok(result.recipients.filter(r=>r.selected).every(r=>r.outcome==='excluded'),'the named route filters apply to the sending drill');
   assert.ok(result.recipients.some(r=>r.reason==='filter_severities'));
   assert.deepEqual(await evidence(),before);
+  await ok('/api/notifications/destinations/'+inbox.id,undefined,{method:'DELETE'});
+  assert.deepEqual([(await history(first.routeDrillId)).recipients.find(r=>r.id===inbox.id).state,(await history(first.routeDrillId)).recipients.find(r=>r.id===inbox.id).reason],['erased','destination_missing']);
   const portable=await ok('/api/archive');
   for(const table of ['alert_routes','alert_route_changes','alert_drills'])assert.equal(Object.hasOwn(portable.payload.productTables,table),false);
   assert.equal((await ok(path)).portability.reason,'route_policy_installation_local');

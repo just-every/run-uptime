@@ -10,7 +10,7 @@ import {mailConfigured} from './mail.server.ts'
 import {auditStatement,mutationGuard,type AuditActor} from './audit.server.ts'
 import {digest} from './archive-schema.ts'
 import {routeScopes,scopeValue,defaultPolicy,routePolicy,effectivePolicy,normalizeFallback,type RouteScope,type RoutePolicy} from './alert-routes-policy.ts'
-const gaps=['These routes apply to confirmed incident triggers and recoveries. Expiry and renewal notices still use installation-wide destinations.','Teams and filters have API/CLI doors; their console UI and business-hour calendar remain unavailable. Region filters match exact configured probe IDs, not geographic regions; severity is critical for outages, warning for Slow, info for dependency notices.','Contact delays and reminders start at confirmation. Fallback contacts are named only in a selected policy and receive incident triggers, not reminders, slow notices or tests.','Route settings and detailed change history stay in this installation; archives retain opaque audit entries.'];
+const gaps=['These routes apply to confirmed incident triggers and recoveries. Expiry and renewal notices still use installation-wide destinations.','Teams, filters and weekly business hours have API/CLI doors; their console controls remain unavailable. Region filters match exact configured probe IDs, not geographic regions; severity is critical for outages, warning for Slow, info for dependency notices.','Contact delays and reminders start at confirmation. Fallback contacts are named only in a selected policy and receive incident triggers, not reminders, slow notices or tests.','Route settings and detailed change history stay in this installation; archives retain opaque audit entries.'];
 // No secrets: only policy, monitor revisions and destination/custody identity.
 // Fencing this snapshot makes the reviewed affected set and readiness atomic
 // with a policy edit, even when another operator changes a broader scope.
@@ -165,7 +165,7 @@ export async function prepareNamedAlertRouteAssignment(env:Bindings,monitorId:st
 /** Apply's explicit drill action uses the existing route-write admission. It
  * snapshots one reviewed named route and queues every eligible drill atomically. */
 async function startRouteDrill(env:Bindings,monitorId:string,raw:any,actor:AuditActor){
- if(actor.kind!=='operator'||!raw||Object.keys(raw).some(k=>!['action','routeId','kind','regions','expectedRevision'].includes(k))||typeof raw.routeId!=='string'||!Number.isSafeInteger(raw.expectedRevision))throw Error('A route drill needs its assigned named route and current revision');
+ if(actor.kind!=='operator'||!raw||Object.keys(raw).some(k=>!['action','routeId','kind','regions','expectedRevision'].includes(k))||typeof raw.routeId!=='string'||!Number.isSafeInteger(raw.expectedRevision))throw Error('A route drill needs its effective named route and current revision');
  const sample=normalizeRouteSample({kind:raw.kind,regions:raw.regions??[],at:Date.now()}),ctx=await context(env,monitorId),before=await snapshot(env);
  const preview=previewRecipients(ctx.policies,ctx.destinations,mailConfigured(env),await teamCandidates(env,monitorId),sample,ctx.monitor.definition.environment);
  const named=await namedAlertRoute(env,raw.routeId),matches=preview.effective.namedRouteId===raw.routeId||JSON.stringify(namedPolicy(preview.effective))===JSON.stringify({...named.policy,businessHours:named.policy.businessHours??null});

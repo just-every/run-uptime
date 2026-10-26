@@ -1,4 +1,4 @@
-import {routeDrillQuietReady} from './alert-route-drills.server.ts'
+import {routeDrillQuietReady,routeDrillAuthorityReady} from './alert-route-drills.server.ts'
 import {contactReady,contactQuietReady,refreshContactQuiet} from './contact-scheduler.server.ts'
 import {auditStatement,automated} from './audit.server.ts'
 import {sha256} from '../base/modules/integrations/core/crypto.ts'
@@ -92,10 +92,12 @@ export async function startClaim(env:Bindings,id:string,claim:unknown,reservatio
   // A drill's Submitted time is the transport boundary of its one attempt, recorded only with a started claim.
   env.DB.prepare(`UPDATE notification_delivery_attempts SET started_at=? WHERE delivery_id=? AND number=(SELECT attempts FROM integration_deliveries WHERE namespace=? AND id=? AND claim=?) AND EXISTS(SELECT 1 FROM notification_claim_custody WHERE delivery_id=? AND claim=? AND started_at=?)`).bind(now,id,namespace,id,claim,id,claim,now),
   env.DB.prepare('UPDATE alert_drills SET submitted_at=? WHERE delivery_id=? AND submitted_at IS NULL AND EXISTS(SELECT 1 FROM notification_claim_custody WHERE delivery_id=? AND claim=? AND started_at=?)').bind(now,id,id,claim,now)]);
- if(!result[0].meta.changes&&await env.DB.prepare(`SELECT 1 FROM notification_jobs j WHERE j.id=? AND NOT ${contactQuietReady()}`).bind(id).first()){
-  // A valid reservation which reached the boundary inside quiet hours never
-  // handed anything to a transport. Release its custody and attempt together.
-  await releaseUnstartedClaim(env,id,claim,reservation,Date.now(),'waiting_for_contact_quiet');
+ if(!result[0].meta.changes){
+  const blocked=await env.DB.prepare(`SELECT CASE WHEN NOT ${contactQuietReady()} THEN 'waiting_for_contact_quiet' ELSE 'route_recipient_ineligible' END reason
+   FROM notification_jobs j WHERE j.id=? AND (NOT ${contactQuietReady()} OR NOT ${routeDrillAuthorityReady()})`).bind(id).first<{reason:string}>();
+  // No transport started: release the owned reservation and attempt together.
+  // Reapply current custody so a rotated route credential ends as rejected.
+  if(blocked)await releaseUnstartedClaim(env,id,claim,reservation,Date.now(),blocked.reason);
  }
  return Boolean(result[0].meta.changes);
 }
