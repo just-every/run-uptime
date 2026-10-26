@@ -73,7 +73,7 @@ export function securityControls(host,transport){
  const place=control=>{const target=control?.closest('form')??control?.parentElement??host;if(target.closest('[data-secret-once]'))once.after(status);else target.append(status);status.textContent=''};
  host.addEventListener('click',event=>{const button=event.target.closest('button');if(button)place(button)},true);
  host.addEventListener('submit',event=>place(event.target.querySelector('button')),true);
- const outcome=text=>{status.textContent=text;status.scrollIntoView({block:'nearest'})};
+ const outcome=(text,block='nearest')=>{status.textContent=text;status.scrollIntoView({block})};
  const error=problem=>{outcome(problem.readable?problem.message:'This action could not finish. Try again.')};
  const run=async action=>{if(busy)return;busy=true;try{await action()}catch(problem){error(problem)}finally{busy=false}};
  const shownOnce=(title,value)=>{once.replaceChildren();const heading=document.createElement('h4'),text=document.createElement('pre'),done=document.createElement('button');heading.textContent=title;text.textContent=Array.isArray(value)?value.join('\n'):value;done.type='button';done.textContent='I saved this';done.onclick=()=>once.replaceChildren();once.append(heading,text,done);once.scrollIntoView({block:'nearest'});done.focus()};
@@ -110,7 +110,7 @@ export function securityControls(host,transport){
  });
  host.querySelector('[data-enroll-passkey]').onclick=()=>run(async()=>{const state=await factorState();const enroll=async()=>{showCodes(await passkey(api,true));status.textContent='Passkey enrolled.';await factorState()};if(state.factors.length)await fresh(enroll);else await enroll()});
  host.querySelector('[data-recovery]').onclick=()=>run(()=>fresh(async()=>{showCodes(await api(prefix+'/recovery/rotate','POST',{}));status.textContent='Recovery codes replaced.'}));
- host.querySelector('[data-mfa-policy]').onsubmit=event=>{event.preventDefault();const required=event.currentTarget.elements.required.checked;void run(()=>fresh(async()=>{await api(prefix+'/policy','POST',{required});await factorState();outcome('Factor policy saved.')}))};
+ host.querySelector('[data-mfa-policy]').onsubmit=event=>{event.preventDefault();const required=event.currentTarget.elements.required.checked;void run(()=>fresh(async()=>{await api(prefix+'/policy','POST',{required});await factorState();outcome('Factor policy saved.','center')}))};
  const lines=value=>value.split('\n').map(v=>v.trim()).filter(Boolean);
  const keyForm=host.querySelector('[data-key-create]');
  const scopeLabel=scopes=>scopes.includes('monitoring:read')?'Monitoring read':scopes.includes('definitions:apply')?'CI preview and apply':'CI preview';
