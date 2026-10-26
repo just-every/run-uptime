@@ -1,15 +1,23 @@
 import {contactQuietUntil,type ContactQuietHours} from './contact-quiet.ts'
-import {selectedTeamRecipientSql} from './alert-team-policy.ts'
+import {liveRecipientAssignmentSql} from './alert-team-policy.ts'
 import type {Bindings} from './control.server.ts'
 
 // Fixed aliases only. Direct destination drills keep DRILL-001's explicit test
 // semantics; route drills also require the original route recipient's authority.
 export function routeDrillAuthorityReady(job='j',now="CAST((julianday('now')-2440587.5)*86400000 AS INTEGER)"){
- return `NOT EXISTS(WITH live_route_drills AS MATERIALIZED (
+ return `NOT EXISTS(WITH live_route_teams AS MATERIALIZED (
+  SELECT DISTINCT a.delivery_id FROM alert_drills a JOIN monitors m ON m.id=json_extract(a.route_context,'$.monitorId')
+  JOIN notification_destinations d ON d.id=a.destination_id
+  JOIN alert_recipient_consents rc ON rc.destination_id=d.id AND rc.credential_id=d.credential_id
+  JOIN alert_team_members tm ON tm.operator_id=rc.operator_id
+  JOIN alert_teams team ON team.id=tm.team_id AND team.enabled=1
+  JOIN oa_operators o ON o.id=rc.operator_id JOIN uptime_member_roles r ON r.operator_id=o.id
+  WHERE a.route_context IS NOT NULL AND team.id IN(SELECT value FROM json_each(json_extract(a.route_context,'$.teamIds'))) AND ${liveRecipientAssignmentSql()}
+ ), live_route_drills AS MATERIALIZED (
   SELECT a.delivery_id FROM alert_drills a JOIN monitors m ON m.id=json_extract(a.route_context,'$.monitorId')
   JOIN notification_destinations d ON d.id=a.destination_id
   WHERE a.route_context IS NOT NULL AND d.enabled=1 AND d.deleted_at IS NULL AND a.expires_at>${now}
-   AND (json_extract(a.route_context,'$.viaTeam')=0 OR ${selectedTeamRecipientSql("json_extract(a.route_context,'$.teamIds')")}))
+   AND (json_extract(a.route_context,'$.viaTeam')=0 OR a.delivery_id IN(SELECT delivery_id FROM live_route_teams)))
   SELECT 1 FROM alert_drills a LEFT JOIN live_route_drills live ON live.delivery_id=a.delivery_id
   WHERE a.delivery_id=${job}.id AND a.route_context IS NOT NULL AND live.delivery_id IS NULL)`;
 }

@@ -1,3 +1,4 @@
+import {normalizeBusinessHours,businessHoursSelected} from './alert-business-hours.ts'
 import {prepareDrill} from './alert-drills.server.ts'
 import {routeDrillHistory} from './alert-route-drills.server.ts'
 import {normalizeRouteFilters,normalizeRouteQuiet,routeIds,normalizeRouteSample,filterReasons,quietPreview,type RouteSample} from './alert-route-filters.ts'
@@ -14,7 +15,7 @@ const gaps=['These routes apply to confirmed incident triggers and recoveries. E
 // Fencing this snapshot makes the reviewed affected set and readiness atomic
 // with a policy edit, even when another operator changes a broader scope.
 const snapshotSql=`SELECT json_array(
- (SELECT json_group_array(json_array(scope_kind,scope_value,mode,destination_ids,contact_settings,fallback,team_ids,filters,quiet_hours,revision,updated_at,named_route_id)) FROM (SELECT * FROM alert_routes ORDER BY scope_kind,scope_value)),
+ (SELECT json_group_array(json_array(scope_kind,scope_value,mode,destination_ids,contact_settings,fallback,team_ids,filters,quiet_hours,business_hours,revision,updated_at,named_route_id)) FROM (SELECT * FROM alert_routes ORDER BY scope_kind,scope_value)),
  (SELECT json_group_array(json_array(id,revision,definition)) FROM (SELECT id,revision,definition FROM monitors ORDER BY id)),
  (SELECT json_group_array(json_array(id,name,kind,enabled,credential_id,deleted_at,cid,retired_at,unavailable_at,has_ciphertext,has_endpoint)) FROM
   (SELECT d.*,c.id cid,c.retired_at,c.unavailable_at,c.ciphertext IS NOT NULL has_ciphertext,c.endpoint IS NOT NULL has_endpoint FROM notification_destinations d LEFT JOIN notification_credentials c ON c.id=d.credential_id ORDER BY d.id))
@@ -26,9 +27,9 @@ const snapshotSql=`SELECT json_array(
  ,(SELECT json_group_array(json_array(operator_id,kind,value)) FROM (SELECT * FROM uptime_member_scopes ORDER BY operator_id,kind,value))
  ) snapshot`;
 async function snapshot(env:Bindings){return (await env.DB.prepare(snapshotSql).first<{snapshot:string}>())!.snapshot}
-type Input={scope:RouteScope;mode:RoutePolicy['mode'];destinationIds:string[];contactSettings?:Record<string,any>;fallback:RoutePolicy['fallback'];teamIds?:string[];filters?:RoutePolicy['filters'];quietHours?:RoutePolicy['quietHours'];expectedRevision:number};
+type Input={scope:RouteScope;mode:RoutePolicy['mode'];destinationIds:string[];contactSettings?:Record<string,any>;fallback:RoutePolicy['fallback'];teamIds?:string[];filters?:RoutePolicy['filters'];quietHours?:RoutePolicy['quietHours'];businessHours?:RoutePolicy['businessHours'];expectedRevision:number};
 function validate(input:any):Input{
- if(!input||Object.keys(input).some(k=>!['scope','mode','destinationIds','contactSettings','fallback','teamIds','filters','quietHours','expectedRevision'].includes(k))||!routeScopes.includes(input.scope))throw Error('Choose monitor, service, group or installation scope');
+ if(!input||Object.keys(input).some(k=>!['scope','mode','destinationIds','contactSettings','fallback','teamIds','filters','quietHours','businessHours','expectedRevision'].includes(k))||!routeScopes.includes(input.scope))throw Error('Choose monitor, service, group or installation scope');
  if(!(input.scope==='installation'?['all','selected']:['inherit','selected']).includes(input.mode))throw Error('Choose an allowed inheritance or selected-destinations policy');
  if(!Array.isArray(input.destinationIds)||input.destinationIds.length>100||input.destinationIds.some((id:any)=>typeof id!=='string'||!id||id.length>512||/[\x00-\x1f\x7f]/.test(id))||new Set(input.destinationIds).size!==input.destinationIds.length)throw Error('Use at most 100 distinct destination IDs');
  if(input.mode!=='selected'&&input.destinationIds.length)throw Error('Only a selected-destinations policy takes destination IDs');
@@ -36,7 +37,7 @@ function validate(input:any):Input{
  const fallback=normalizeFallback(input.fallback,input.mode,input.destinationIds);
  const teamIds=input.teamIds===undefined?undefined:routeIds(input.teamIds,'team IDs',30);if(input.mode!=='selected'&&teamIds?.length)throw Error('Only a selected policy takes teams');
  const filters=input.filters===undefined?undefined:normalizeRouteFilters(input.filters),quietHours=input.quietHours===undefined?undefined:normalizeRouteQuiet(input.quietHours);
- return {...input,teamIds,filters,quietHours,destinationIds:[...input.destinationIds].sort(),fallback,contactSettings:normalizeContactSettings(input.contactSettings??{},[...input.destinationIds,...fallback.destinationIds])};
+ return {...input,teamIds,filters,quietHours,businessHours:input.businessHours===undefined?undefined:normalizeBusinessHours(input.businessHours),destinationIds:[...input.destinationIds].sort(),fallback,contactSettings:normalizeContactSettings(input.contactSettings??{},[...input.destinationIds,...fallback.destinationIds])};
 }
 async function context(env:Bindings,monitorId:string,{readOnly=false}={}){
  const monitor=await get(env,monitorId);if(!monitor)throw Object.assign(Error('Monitor not found'),{status:404});
@@ -48,7 +49,7 @@ function previewRecipients(policies:RoutePolicy[],contacts:any[],configured:bool
  const effective=effectivePolicy(policies),ids=effective.destinationIds;
  const recipients=contacts.map(d=>{
   const team=candidates.filter(c=>c.destination_id===d.id&&effective.teamIds.includes(c.team_id)),direct=effective.mode==='all'||ids.includes(d.id),selected=direct||team.length>0;
-  const blocked=sample?filterReasons(effective.filters,environment,sample):[],recipientAllowed=direct||team.some(c=>c.live&&c.team_enabled&&c.credential_current);
+  const blocked=sample?filterReasons(effective.filters,environment,sample).concat(businessHoursSelected(effective.businessHours,sample.at)?[]:['filter_business_hours']):[],recipientAllowed=direct||team.some(c=>c.live&&c.team_enabled&&c.credential_current);
   const until=sample?quietPreview(effective.quietHours,effective.contactSettings[d.id]?.quietHours,sample.at):null;
   const reason=!selected?(effective.fallback.destinationIds.includes(d.id)?'fallback_only':'not_selected'):!recipientAllowed?'team_recipient_ineligible':blocked.length?blocked[0]:!d.enabled?'disabled':!d.credentialsAvailable?'credentials_missing':d.kind==='email'&&!configured?'mail_not_configured':'ready';
   return {...d,selected,eligible:reason==='ready',reason,...(sample?{quietUntil:until,outcome:reason!=='ready'?'excluded':until?'held_quiet':'ready'}:{}),teamIds:team.map(c=>c.team_id),contactSettings:effective.contactSettings[d.id]??defaultContactSettings};
@@ -56,7 +57,7 @@ function previewRecipients(policies:RoutePolicy[],contacts:any[],configured:bool
  for(const id of ids)if(!contacts.some(d=>d.id===id))recipients.push({id,name:'Missing or erased destination',kind:null,enabled:false,credentialsAvailable:false,selected:true,eligible:false,reason:'destination_missing'});
  // Fallback contacts keep their own ROUTING-002 schedule and are messaged only after an earlier contact fails.
  const fallback=effective.fallback.destinationIds.map((id,index)=>{
-  const d=contacts.find(c=>c.id===id),blocked=sample?filterReasons(effective.filters,environment,sample):[],until=sample?quietPreview(effective.quietHours,effective.contactSettings[id]?.quietHours,sample.at):null;
+  const d=contacts.find(c=>c.id===id),blocked=sample?filterReasons(effective.filters,environment,sample).concat(businessHoursSelected(effective.businessHours,sample.at)?[]:['filter_business_hours']):[],until=sample?quietPreview(effective.quietHours,effective.contactSettings[id]?.quietHours,sample.at):null;
   const reason=blocked.length?blocked[0]:!d?'destination_missing':!d.enabled?'disabled':!d.credentialsAvailable?'credentials_missing':d.kind==='email'&&!configured?'mail_not_configured':'ready';
   return {id,name:d?.name??'Missing or erased destination',kind:d?.kind??null,order:index+1,eligible:reason==='ready',reason,...(sample?{quietUntil:until,outcome:reason!=='ready'?'excluded':until?'held_quiet':'fallback_only'}:{}),contactSettings:effective.contactSettings[id]??defaultContactSettings};
  });
@@ -80,7 +81,7 @@ async function plan(env:Bindings,monitorId:string,raw:any,{readOnly=false}={}){
  const teamIds=input.teamIds??[];
  const knownTeams=(await env.DB.prepare('SELECT id FROM alert_teams').all<{id:string}>()).results;
  if(teamIds.some(id=>!knownTeams.some(t=>t.id===id)))throw Error('A selected team does not exist');
- const current={...previous,teamIds,filters:input.filters??previous.filters,quietHours:input.quietHours===undefined?previous.quietHours:input.quietHours,mode:input.mode,destinationIds:input.destinationIds,contactSettings:input.contactSettings!,fallback:input.fallback,revision:previous.revision+1};
+ const current={...previous,teamIds,filters:input.filters??previous.filters,quietHours:input.quietHours===undefined?previous.quietHours:input.quietHours,businessHours:input.businessHours===undefined?previous.businessHours:input.businessHours,mode:input.mode,destinationIds:input.destinationIds,contactSettings:input.contactSettings!,fallback:input.fallback,revision:previous.revision+1};
  const policies=ctx.policies.map(p=>p.scope===input.scope?current:p),preview=previewRecipients(policies,ctx.destinations,mailConfigured(env),await teamCandidates(env,monitorId));
  const monitors=await env.DB.prepare('SELECT id,revision,definition FROM monitors ORDER BY id').all<any>();
  const candidates=await teamCandidates(env);
@@ -106,7 +107,7 @@ export function alertRouteAssignmentStatements(env:Bindings,prepared:Awaited<Ret
  const guard=previous.revision?'EXISTS(SELECT 1 FROM alert_routes WHERE scope_kind=? AND scope_value=? AND revision=?)':'NOT EXISTS(SELECT 1 FROM alert_routes WHERE scope_kind=? AND scope_value=?)';
  const guards=[mutationGuard(env,`(${snapshotSql})=?`,[prepared.snapshot]),mutationGuard(env,guard,[input.scope,value,...(previous.revision?[previous.revision]:[])]),mutationGuard(env,'EXISTS(SELECT 1 FROM monitors WHERE id=? AND revision=?)',[monitor.id,monitor.revision])];
  const writes=[
-  remove?env.DB.prepare("DELETE FROM alert_routes WHERE scope_kind='monitor' AND scope_value=?").bind(value):env.DB.prepare(`INSERT INTO alert_routes(scope_kind,scope_value,mode,destination_ids,contact_settings,fallback,team_ids,filters,quiet_hours,revision,updated_at,named_route_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(scope_kind,scope_value) DO UPDATE SET mode=excluded.mode,destination_ids=excluded.destination_ids,contact_settings=excluded.contact_settings,fallback=excluded.fallback,team_ids=excluded.team_ids,filters=excluded.filters,quiet_hours=excluded.quiet_hours,revision=excluded.revision,updated_at=excluded.updated_at,named_route_id=excluded.named_route_id`).bind(input.scope,value,input.mode,JSON.stringify(current.destinationIds),JSON.stringify(current.contactSettings),JSON.stringify(current.fallback),JSON.stringify(current.teamIds),JSON.stringify(current.filters),current.quietHours?JSON.stringify(current.quietHours):null,current.revision,now,namedRouteId),
+  remove?env.DB.prepare("DELETE FROM alert_routes WHERE scope_kind='monitor' AND scope_value=?").bind(value):env.DB.prepare(`INSERT INTO alert_routes(scope_kind,scope_value,mode,destination_ids,contact_settings,fallback,team_ids,filters,quiet_hours,business_hours,revision,updated_at,named_route_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(scope_kind,scope_value) DO UPDATE SET mode=excluded.mode,destination_ids=excluded.destination_ids,contact_settings=excluded.contact_settings,fallback=excluded.fallback,team_ids=excluded.team_ids,filters=excluded.filters,quiet_hours=excluded.quiet_hours,business_hours=excluded.business_hours,revision=excluded.revision,updated_at=excluded.updated_at,named_route_id=excluded.named_route_id`).bind(input.scope,value,input.mode,JSON.stringify(current.destinationIds),JSON.stringify(current.contactSettings),JSON.stringify(current.fallback),JSON.stringify(current.teamIds),JSON.stringify(current.filters),current.quietHours?JSON.stringify(current.quietHours):null,current.businessHours?JSON.stringify(current.businessHours):null,current.revision,now,namedRouteId),
   env.DB.prepare('INSERT INTO alert_route_changes(id,scope_kind,scope_value,previous_policy,current_policy,changed_at,actor_ref) VALUES(?,?,?,?,?,?,?)').bind(changeId,input.scope,value,JSON.stringify(previous),JSON.stringify({...current,updatedAt:now}),now,actor.ref),
   auditStatement(env,actor,'alert_route_change','alert_route',changeId,'1',[],now),
  ];return {guards,writes,changeId,revision:current.revision};
@@ -134,7 +135,7 @@ export async function sampleAlertRoute(env:Bindings,monitorId:string,raw:any){
 
 // Named routes keep an immutable copy of an already reviewed explicit route.
 // They contain recipient IDs and policy only, never endpoints, consent or sending authority.
-const namedPolicy=(policy:RoutePolicy)=>({mode:policy.mode,destinationIds:policy.destinationIds,contactSettings:policy.contactSettings,fallback:policy.fallback,teamIds:policy.teamIds,filters:policy.filters,quietHours:policy.quietHours});
+const namedPolicy=(policy:RoutePolicy)=>({mode:policy.mode,destinationIds:policy.destinationIds,contactSettings:policy.contactSettings,fallback:policy.fallback,teamIds:policy.teamIds,filters:policy.filters,quietHours:policy.quietHours,businessHours:policy.businessHours});
 export async function namedAlertRoutes(env:Bindings){return (await env.DB.prepare('SELECT id,name,policy,created_at FROM alert_named_routes ORDER BY name,id').all<any>()).results.map(row=>({id:row.id,name:row.name,policy:JSON.parse(row.policy),createdAt:row.created_at}))}
 export async function namedAlertRoute(env:Bindings,id:string){
  const row=await env.DB.prepare('SELECT id,name,policy,created_at FROM alert_named_routes WHERE id=?').bind(id).first<any>();

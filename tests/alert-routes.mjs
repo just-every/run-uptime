@@ -1,3 +1,4 @@
+import {proveRoutingBusinessHours} from './alert-routing-business-support.mjs';
 import {proveCatalogRoutes} from './catalog-routes-support.mjs';
 // One owner flow through the emitted API, signed runner evidence and production
 // notification dispatcher. Only the public target socket and recipient edge
@@ -86,6 +87,7 @@ test('owned routes preview inheritance, deliver matched triggers/recoveries and 
   await f.pause(monitor);
   await proveRoutingTeams(f,ok);
   await proveRoutingFilters(f,ok);
+  await proveRoutingBusinessHours();
   await proveCatalogRoutes();
  }finally{releaseTrigger?.();try{await dispatching}finally{await f.close()}}
 });
