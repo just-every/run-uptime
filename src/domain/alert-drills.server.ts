@@ -2,7 +2,7 @@
 import {keyedHash,seal,unseal,random} from '../base/modules/operator-auth/identity/oidc/crypto.mjs'
 import {sha256} from '../base/modules/integrations/core/crypto.ts'
 import {notificationKeyPresent} from './notification-credentials.server.ts'
-import {queueTestEvent,NOTIFICATION_NAMESPACE} from './notifications.server.ts'
+import {prepareTestEvent,NOTIFICATION_NAMESPACE} from './notifications.server.ts'
 import {drillEvent,drillMailContent,drillWebhookBody,drillSlackBody,type DrillDetails} from './alert-drill-content.ts'
 import {mailContent} from './notification-content.ts'
 import type {Bindings} from './control.server.ts'
@@ -17,16 +17,20 @@ const identity=(row:DrillRow)=>JSON.stringify(['uptime-alert-drill-v1',row.id,ro
 const bound=(row:Omit<DrillRow,'delivery_id'>,secret:string)=>sha256(`uptime-alert-drill-v1\0${row.id}\0${row.destination_id}\0${row.credential_id}\0${secret}`);
 function equal(a:string,b:string){if(a.length!==b.length)return false;let difference=0;for(let i=0;i<a.length;i++)difference|=a.charCodeAt(i)^b.charCodeAt(i);return difference===0}
 
-export async function startDrill(env:Bindings,destinationId:string,operatorId:string){
+export async function prepareDrill(env:Bindings,destinationId:string,operatorId:string){
  const destination=await env.DB.prepare('SELECT webhook_template FROM notification_destinations WHERE id=? AND deleted_at IS NULL').bind(destinationId).first<{webhook_template:string|null}>();
  if(destination?.webhook_template!==null&&destination?.webhook_template!==undefined)throw Error('This custom webhook template has no acknowledgement-link field. Use its exact Test send, or choose default signed JSON for a recipient-acknowledged alert drill.');
  const event=drillEvent(env.UPTIME_ORIGIN??''),id=crypto.randomUUID(),secret=random() as string,now=event.observedAt;
- const {deliveryId}=await queueTestEvent(env,destinationId,event,async(deliveryId,credentialId)=>{
+ const prepared=await prepareTestEvent(env,destinationId,event,async(deliveryId,credentialId)=>{
   const row={id,destination_id:destinationId,credential_id:credentialId,delivery_id:deliveryId};
   return [mutationGuard(env,'EXISTS(SELECT 1 FROM notification_destinations WHERE id=? AND credential_id=? AND deleted_at IS NULL AND webhook_template IS NULL)',[destinationId,credentialId]),env.DB.prepare(`INSERT INTO alert_drills(id,destination_id,credential_id,delivery_id,started_by,started_at,expires_at,token_hash,token_ciphertext)
    SELECT ?,destination_id,credential_id,id,?,?,?,?,? FROM notification_jobs WHERE id=? AND destination_id=? AND credential_id=?`).bind(id,operatorId,now,now+DAY,await bound(row,secret),await seal(await key(env),identity(row),{secret}),deliveryId,destinationId,credentialId)];
  });
- return {queued:true,drillId:id,eventId:event.id,deliveryId};
+ return {queued:true,drillId:id,eventId:event.id,deliveryId:prepared.deliveryId,credentialId:prepared.credentialId,statements:prepared.statements};
+}
+export async function startDrill(env:Bindings,destinationId:string,operatorId:string){
+ const {statements,credentialId,...result}=await prepareDrill(env,destinationId,operatorId),[job]=await env.DB.batch(statements);
+ if(!job.meta.changes)throw Error('Destination not found');return result;
 }
 // Send-time details for a drill delivery that may still be confirmed; null sends the stored drill text without a link.
 async function details(env:Bindings,deliveryId:string):Promise<DrillDetails|null>{
@@ -72,7 +76,7 @@ export async function confirmDrill(env:Bindings,token:unknown){
 }
 // Proof is a recipient's report for the destination's current credential: rotation or a new address starts over.
 export async function drillOverview(env:{DB:D1Database},now=Date.now()){
-const rows=await env.DB.prepare(`SELECT a.id,a.destination_id,a.credential_id,a.started_at,a.expires_at,a.submitted_at,a.confirmed_at,o.display_name started_by,
+const rows=await env.DB.prepare(`SELECT a.id,a.destination_id,a.credential_id,a.started_at,a.expires_at,a.submitted_at,a.confirmed_at,a.route_context,o.display_name started_by,
   CASE WHEN j.state<>'queued' THEN j.state ELSE COALESCE(d.state,j.state) END state,j.code,
   COALESCE((SELECT t.finished_at FROM integration_attempts t WHERE t.namespace=? AND t.delivery_id=j.id ORDER BY t.number DESC LIMIT 1),j.finished_at) finished_at,
   (SELECT t.outcome FROM integration_attempts t WHERE t.namespace=? AND t.delivery_id=j.id ORDER BY t.number DESC LIMIT 1) outcome,
@@ -82,7 +86,7 @@ const rows=await env.DB.prepare(`SELECT a.id,a.destination_id,a.credential_id,a.
   WHERE a.started_at=(SELECT MAX(x.started_at) FROM alert_drills x WHERE x.destination_id=a.destination_id)`).bind(NOTIFICATION_NAMESPACE,NOTIFICATION_NAMESPACE,NOTIFICATION_NAMESPACE).all<any>();
  const byDestination=new Map<string,any>();
  for(const r of rows.results)byDestination.set(r.destination_id,{
-  latest:{id:r.id,startedAt:r.started_at,startedBy:r.started_by,expiresAt:r.expires_at,submittedAt:r.submitted_at,state:r.state,code:r.outcome?JSON.parse(r.outcome).code:r.state==='sending'?'delivery_sending':r.code,finishedAt:r.state==='queued'||r.state==='sending'?null:r.finished_at,confirmedAt:r.confirmed_at,confirmation:r.confirmed_at?'confirmed':r.expires_at<=now?'expired':'pending',currentCredential:Boolean(r.current_credential)},
+  latest:{id:r.id,startedAt:r.started_at,startedBy:r.started_by,expiresAt:r.expires_at,submittedAt:r.submitted_at,state:r.state,code:r.outcome?JSON.parse(r.outcome).code:r.state==='sending'?'delivery_sending':r.code,finishedAt:r.state==='queued'||r.state==='sending'?null:r.finished_at,confirmedAt:r.confirmed_at,confirmation:r.confirmed_at?'confirmed':r.expires_at<=now?'expired':'pending',currentCredential:Boolean(r.current_credential),...(r.route_context?{routeDrillId:JSON.parse(r.route_context).routeDrillId,routeMonitorId:JSON.parse(r.route_context).monitorId}:{})},
   provenAt:r.proven_at});
  return (id:string)=>{const entry=byDestination.get(id),provenAt=entry?.provenAt??null;return {proof:{state:provenAt===null?'never':now-provenAt>PROOF_WINDOW?'stale':'proven',lastProvenAt:provenAt},latestDrill:entry?.latest??null}};
 }

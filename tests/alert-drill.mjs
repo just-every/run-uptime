@@ -1,3 +1,4 @@
+import {proveRouteDrills} from './alert-route-drills-support.mjs';
 // DRILL-001: an alert drill is a labelled test send whose recipient can report receipt once, by POST, through a
 // one-time link. Real Worker/D1 and the production runner; fakes only at the SendGrid, webhook and Slack edges.
 import {testAuthBindings} from './auth-test-support.mjs';
@@ -166,3 +167,5 @@ try{
  if(restoreWorker)await restoreWorker.dispose();if(worker)await worker.dispose();if(fixture)await fixture.stop();
  await Promise.all(receivers.map(receiver=>receiver.close()));await cleanupDirectory(directory);console.error=originalConsoleError;
 }
+
+await proveRouteDrills();

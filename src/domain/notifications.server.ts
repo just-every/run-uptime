@@ -22,14 +22,18 @@ export async function openIncidentKey(env:Bindings,monitorId:string,state:any){
 }
 // Test sends and alert drills share this path: one queued test-kind event for one destination's current credential.
 // `extra` runs in the same transaction, after the job insert, so a drill row exists exactly when its job does.
-export async function queueTestEvent(env:Bindings,id:string,event:NotificationEvent,extra:(deliveryId:string,credentialId:string)=>Promise<D1PreparedStatement[]>=async()=>[]){
+export async function prepareTestEvent(env:Bindings,id:string,event:NotificationEvent,extra:(deliveryId:string,credentialId:string)=>Promise<D1PreparedStatement[]>=async()=>[]){
  await ensureNotificationCustody(env);
  const credential=await env.DB.prepare('SELECT c.* FROM notification_destinations d JOIN notification_credentials c ON c.id=d.credential_id WHERE d.id=? AND d.deleted_at IS NULL').bind(id).first<any>();
  if(!credential)throw Error('Destination not found');await readCredential(env,credential);
  const deliveryId=`${event.id}:${id}`;
- const [result]=await env.DB.batch([env.DB.prepare(`INSERT INTO notification_jobs(id,event_id,destination_id,destination_name,kind,credential_id,event,created_at)
- SELECT ?,?,id,name,kind,credential_id,?,? FROM notification_destinations WHERE id=? AND credential_id=? AND deleted_at IS NULL`).bind(deliveryId,event.id,JSON.stringify(event),event.observedAt,id,credential.id),...await extra(deliveryId,credential.id)]);
- if(!result.meta.changes)throw Error('Destination not found');return {deliveryId,credentialId:credential.id as string}}
+ const statements=[env.DB.prepare(`INSERT INTO notification_jobs(id,event_id,destination_id,destination_name,kind,credential_id,event,created_at)
+ SELECT ?,?,id,name,kind,credential_id,?,? FROM notification_destinations WHERE id=? AND credential_id=? AND deleted_at IS NULL`).bind(deliveryId,event.id,JSON.stringify(event),event.observedAt,id,credential.id),...await extra(deliveryId,credential.id)];
+ return {deliveryId,credentialId:credential.id as string,statements}}
+export async function queueTestEvent(env:Bindings,id:string,event:NotificationEvent,extra:(deliveryId:string,credentialId:string)=>Promise<D1PreparedStatement[]>=async()=>[]){
+ const prepared=await prepareTestEvent(env,id,event,extra),[result]=await env.DB.batch(prepared.statements);
+ if(!result.meta.changes)throw Error('Destination not found');return {deliveryId:prepared.deliveryId,credentialId:prepared.credentialId};
+}
 export async function testDestination(env:Bindings,id:string){const event=testEvent(env.UPTIME_ORIGIN??''),{deliveryId}=await queueTestEvent(env,id,event);return {queued:true,eventId:event.id,deliveryId}}
 export async function notificationOverview(env:Bindings){
  await refreshContactQuiet(env);

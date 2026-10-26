@@ -64,6 +64,7 @@ export async function proveRoutingTeams(f,ok){
  assert.equal((await memberCall('/api/routing/recipient',{destinationId:email.id,enabled:true})).status,200);
  await ok('/api/access/members/'+member.id,{role:'responder',scopes:[{kind:'service',value:'Routing payments'}]});
  assert.equal((await ok(route(teamMonitor.id))).readyCount,0,'changed role revision invalidates old consent');
+ assert.equal((await memberCall(route(teamMonitor.id)+'/apply',{action:'drill',routeId:'not-an-assigned-route',kind:'trigger',regions:['local-a'],expectedRevision:0})).status,403,'route drills inherit the existing route-write role admission');
  const portable=await ok('/api/archive');assert.ok(portable,'new local tables and opaque audit actions have an archive decision');
  await ok('/api/operators/'+member.id+'/erase',{});
  assert.equal((await f.DB.prepare('SELECT COUNT(*) n FROM alert_team_members WHERE operator_id=?').bind(member.id).first()).n,0);

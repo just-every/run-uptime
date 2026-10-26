@@ -1,3 +1,5 @@
+import {prepareDrill} from './alert-drills.server.ts'
+import {routeDrillHistory} from './alert-route-drills.server.ts'
 import {normalizeRouteFilters,normalizeRouteQuiet,routeIds,normalizeRouteSample,filterReasons,quietPreview,type RouteSample} from './alert-route-filters.ts'
 import {liveRecipientSql} from './alert-team-policy.ts'
 import {normalizeContactSettings,defaultContactSettings} from './contact-schedule.ts'
@@ -62,8 +64,8 @@ function previewRecipients(policies:RoutePolicy[],contacts:any[],configured:bool
 }
 export async function readAlertRoute(env:Bindings,monitorId:string,{readOnly=false}={}){
  const ctx=await context(env,monitorId,{readOnly});
- const changes=await env.DB.prepare(`SELECT * FROM alert_route_changes WHERE (scope_kind='monitor' AND scope_value=?) OR (scope_kind='service' AND scope_value=?) OR (scope_kind='group' AND scope_value=?) OR scope_kind='installation' ORDER BY changed_at DESC,rowid DESC LIMIT 30`).bind(monitorId,scopeValue('service',ctx.monitor),scopeValue('group',ctx.monitor)).all<any>();
- return {monitorId,policies:ctx.policies,...previewRecipients(ctx.policies,ctx.destinations,mailConfigured(env),await teamCandidates(env,monitorId)),gaps,changes:changes.results.map(r=>({id:r.id,scope:r.scope_kind,value:r.scope_value,previous:JSON.parse(r.previous_policy),current:JSON.parse(r.current_policy),changedAt:r.changed_at,actorRef:r.actor_ref}))};
+ const changes=await env.DB.prepare(`SELECT * FROM alert_route_changes WHERE drill IS NULL AND ((scope_kind='monitor' AND scope_value=?) OR (scope_kind='service' AND scope_value=?) OR (scope_kind='group' AND scope_value=?) OR scope_kind='installation') ORDER BY changed_at DESC,rowid DESC LIMIT 30`).bind(monitorId,scopeValue('service',ctx.monitor),scopeValue('group',ctx.monitor)).all<any>();
+ return {monitorId,drills:await routeDrillHistory(env,monitorId),portability:{included:false,reason:'route_policy_installation_local'},policies:ctx.policies,...previewRecipients(ctx.policies,ctx.destinations,mailConfigured(env),await teamCandidates(env,monitorId)),gaps,changes:changes.results.map(r=>({id:r.id,scope:r.scope_kind,value:r.scope_value,previous:JSON.parse(r.previous_policy),current:JSON.parse(r.current_policy),changedAt:r.changed_at,actorRef:r.actor_ref}))};
 }
 async function plan(env:Bindings,monitorId:string,raw:any,{readOnly=false}={}){
  const input=validate(raw);
@@ -105,11 +107,12 @@ export function alertRouteAssignmentStatements(env:Bindings,prepared:Awaited<Ret
  const guards=[mutationGuard(env,`(${snapshotSql})=?`,[prepared.snapshot]),mutationGuard(env,guard,[input.scope,value,...(previous.revision?[previous.revision]:[])]),mutationGuard(env,'EXISTS(SELECT 1 FROM monitors WHERE id=? AND revision=?)',[monitor.id,monitor.revision])];
  const writes=[
   remove?env.DB.prepare("DELETE FROM alert_routes WHERE scope_kind='monitor' AND scope_value=?").bind(value):env.DB.prepare(`INSERT INTO alert_routes(scope_kind,scope_value,mode,destination_ids,contact_settings,fallback,team_ids,filters,quiet_hours,revision,updated_at,named_route_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(scope_kind,scope_value) DO UPDATE SET mode=excluded.mode,destination_ids=excluded.destination_ids,contact_settings=excluded.contact_settings,fallback=excluded.fallback,team_ids=excluded.team_ids,filters=excluded.filters,quiet_hours=excluded.quiet_hours,revision=excluded.revision,updated_at=excluded.updated_at,named_route_id=excluded.named_route_id`).bind(input.scope,value,input.mode,JSON.stringify(current.destinationIds),JSON.stringify(current.contactSettings),JSON.stringify(current.fallback),JSON.stringify(current.teamIds),JSON.stringify(current.filters),current.quietHours?JSON.stringify(current.quietHours):null,current.revision,now,namedRouteId),
-  env.DB.prepare('INSERT INTO alert_route_changes VALUES(?,?,?,?,?,?,?)').bind(changeId,input.scope,value,JSON.stringify(previous),JSON.stringify({...current,updatedAt:now}),now,actor.ref),
+  env.DB.prepare('INSERT INTO alert_route_changes(id,scope_kind,scope_value,previous_policy,current_policy,changed_at,actor_ref) VALUES(?,?,?,?,?,?,?)').bind(changeId,input.scope,value,JSON.stringify(previous),JSON.stringify({...current,updatedAt:now}),now,actor.ref),
   auditStatement(env,actor,'alert_route_change','alert_route',changeId,'1',[],now),
  ];return {guards,writes,changeId,revision:current.revision};
 }
 export async function applyAlertRoute(env:Bindings,monitorId:string,raw:any,actor:AuditActor){
+ if(raw?.action==='drill')return startRouteDrill(env,monitorId,raw,actor);
  const {digest:approved,...input}=raw,prepared=await plan(env,monitorId,input);
  if(typeof approved!=='string'||approved!==prepared.digest)throw Object.assign(Error('Preview changed; review recipients again'),{status:409});
  const statements=alertRouteAssignmentStatements(env,prepared,actor);
@@ -156,4 +159,25 @@ export async function saveNamedAlertRoute(env:Bindings,raw:any,actor:AuditActor)
 export async function prepareNamedAlertRouteAssignment(env:Bindings,monitorId:string,route:Awaited<ReturnType<typeof namedAlertRoute>>){
  const current=await readAlertRoute(env,monitorId,{readOnly:true}),previous=current.policies.find(p=>p.scope==='monitor')!;
  const prepared=await plan(env,monitorId,{scope:'monitor',expectedRevision:previous.revision,...route.policy},{readOnly:true});prepared.current.namedRouteId=route.id;return prepared;
+}
+
+/** Apply's explicit drill action uses the existing route-write admission. It
+ * snapshots one reviewed named route and queues every eligible drill atomically. */
+async function startRouteDrill(env:Bindings,monitorId:string,raw:any,actor:AuditActor){
+ if(actor.kind!=='operator'||!raw||Object.keys(raw).some(k=>!['action','routeId','kind','regions','expectedRevision'].includes(k))||typeof raw.routeId!=='string'||!Number.isSafeInteger(raw.expectedRevision))throw Error('A route drill needs its assigned named route and current revision');
+ const sample=normalizeRouteSample({kind:raw.kind,regions:raw.regions??[],at:Date.now()}),ctx=await context(env,monitorId),before=await snapshot(env);
+ const preview=previewRecipients(ctx.policies,ctx.destinations,mailConfigured(env),await teamCandidates(env,monitorId),sample,ctx.monitor.definition.environment);
+ if(preview.effective.namedRouteId!==raw.routeId||preview.effective.revision!==raw.expectedRevision)throw Object.assign(Error('Named route changed; read the route before starting its drill'),{status:409});
+ const id=crypto.randomUUID(),statements:D1PreparedStatement[]=[],recipients=preview.recipients.map(d=>({id:d.id,selected:d.selected,eligible:d.eligible,reason:d.reason,outcome:d.eligible?(d.quietUntil?'held_quiet':'selected'):'excluded'}));
+ for(const recipient of preview.recipients.filter(d=>d.eligible)){
+  const drill=await prepareDrill(env,recipient.id,actor.ref),context={routeDrillId:id,monitorId,routeId:raw.routeId,sample,viaTeam:preview.effective.mode!=='all'&&!preview.effective.destinationIds.includes(recipient.id),teamIds:preview.effective.teamIds,quietHours:preview.effective.quietHours,contactQuietHours:preview.effective.contactSettings[recipient.id]?.quietHours??null};
+  statements.push(...drill.statements,env.DB.prepare('UPDATE alert_drills SET route_context=? WHERE id=?').bind(JSON.stringify(context),drill.drillId));
+ }
+ const receipt={routeId:raw.routeId,sample,effective:preview.effective,recipients};
+ try{await env.DB.batch([
+  mutationGuard(env,`(${snapshotSql})=?`,[before]),
+  env.DB.prepare('INSERT INTO alert_route_changes(id,scope_kind,scope_value,previous_policy,current_policy,changed_at,actor_ref,drill) VALUES(?,?,?,?,?,?,?,?)').bind(id,'monitor',monitorId,JSON.stringify(preview.effective),JSON.stringify(preview.effective),sample.at,actor.ref,JSON.stringify(receipt)),
+  auditStatement(env,actor,'alert_route_drill','alert_route',id,'1',[],sample.at),...statements,
+ ])}catch(error){if(String(error).includes('uptime_audit.id'))throw Object.assign(Error('Routing inputs changed; read the route before starting its drill'),{status:409});throw error}
+ return {queued:true,routeDrillId:id,...await readAlertRoute(env,monitorId)};
 }

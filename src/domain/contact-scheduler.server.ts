@@ -1,3 +1,4 @@
+import {routeDrillAuthorityReady,routeDrillQuietReady,refreshRouteDrillQuiet} from './alert-route-drills.server.ts'
 import {reportDeliveryReady} from './reports/recurring.server.ts'
 import {teamDeliveryReady} from './alert-team-policy.ts'
 import {contactQuietUntil,type ContactQuietHours} from './contact-quiet.ts'
@@ -18,12 +19,12 @@ const dependencyPrimaryAccepted=(job:string)=>`(json_extract(${job}.event,'$.kin
 const databaseNow="CAST((julianday('now')-2440587.5)*86400000 AS INTEGER)";
 const contactMatch=(job:string)=>`t.destination_id=${job}.destination_id AND s.monitor_id=json_extract(${job}.event,'$.monitorId') AND s.incident_key=json_extract(${job}.event,'$.incidentKey')`;
 export function contactQuietReady(job='j',now=databaseNow){
- return `NOT EXISTS(SELECT 1 FROM alert_contact_schedules s JOIN notification_jobs t ON t.id=s.trigger_job_id
+ return `(${routeDrillQuietReady(job,now)} AND NOT EXISTS(SELECT 1 FROM alert_contact_schedules s JOIN notification_jobs t ON t.id=s.trigger_job_id
   WHERE ${contactMatch(job)} AND (s.quiet_rules IS NOT NULL OR s.route_quiet_rules IS NOT NULL)
-  AND (s.quiet_checked_until IS NULL OR s.quiet_checked_until<=${now} OR s.quiet_until>${now}))`;
+  AND (s.quiet_checked_until IS NULL OR s.quiet_checked_until<=${now} OR s.quiet_until>${now})))`;
 }
 export function contactReady(job='j',now=databaseNow){
- return `(${reportDeliveryReady(job)} AND NOT EXISTS(SELECT 1 FROM scheduled_reports report WHERE report.delivery_id=${job}.id AND report.due_at>${now}) AND ${teamDeliveryReady(job)} AND NOT ${dependencyPrimaryAccepted(job)} AND ${contactQuietReady(job,now)} AND NOT EXISTS(SELECT 1 FROM alert_contact_schedules s JOIN notification_jobs t ON t.id=s.trigger_job_id
+ return `(${routeDrillAuthorityReady(job,now)} AND ${reportDeliveryReady(job)} AND NOT EXISTS(SELECT 1 FROM scheduled_reports report WHERE report.delivery_id=${job}.id AND report.due_at>${now}) AND ${teamDeliveryReady(job)} AND NOT ${dependencyPrimaryAccepted(job)} AND ${contactQuietReady(job,now)} AND NOT EXISTS(SELECT 1 FROM alert_contact_schedules s JOIN notification_jobs t ON t.id=s.trigger_job_id
   WHERE ${contactMatch(job)}
   AND json_extract(${job}.event,'$.kind') IN ('trigger','reminder','slow','slow_reminder','dependency') AND (s.due_at>${now} OR ${closed} OR (json_extract(${job}.event,'$.kind') IN ('reminder','slow_reminder') AND NOT (${active})))))`;
 }
@@ -31,6 +32,7 @@ export function contactReady(job='j',now=databaseNow){
  * across restarts, and make each evaluation expire at the next real minute so
  * claims cannot reuse an earlier poll on the other side of a quiet boundary. */
 export async function refreshContactQuiet(env:Bindings,id?:string){
+ await refreshRouteDrillQuiet(env,id);
  const now=Date.now();
  const rows=(await env.DB.prepare(`SELECT s.trigger_job_id,s.quiet_rules,s.route_quiet_rules,s.quiet_until FROM alert_contact_schedules s JOIN notification_jobs t ON t.id=s.trigger_job_id
   WHERE (s.quiet_rules IS NOT NULL OR s.route_quiet_rules IS NOT NULL) AND (s.quiet_checked_until IS NULL OR s.quiet_checked_until<=?)
