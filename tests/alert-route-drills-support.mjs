@@ -18,20 +18,21 @@ export async function proveRouteDrills(){
   const cli=async(command,input,monitor)=>{const path=join(f.directory,'route-input.json');if(input!==undefined)await writeFile(path,JSON.stringify(input),{mode:0o600});return routingCommand([command,'--origin',f.origin,...(monitor?['--monitor',monitor]:[]),...(input===undefined?[]:['--input',path])],{UPTIME_ACCESS_COOKIE:f.cookie})};
   const member=await inviteDoorMember(f.origin,f.cookie,'read-only','uptime-28',[{kind:'service',value:'Routing drills'}]);
   const inbox=await ok('/api/notifications/destinations',{name:'Synthetic team inbox',kind:'email',address:'synthetic-uptime-28@example.test'});
-  const hook=await ok('/api/notifications/destinations',{name:'Synthetic route webhook',kind:'webhook',url:'https://route-drill.example.test/receive'});
-  const disabled=await ok('/api/notifications/destinations',{name:'Synthetic disabled contact',kind:'webhook',enabled:false,url:'https://route-drill.example.test/disabled'});
+  const hook=await ok('/api/notifications/destinations',{name:'Synthetic route webhook',kind:'webhook',url:'https://route-drill.example.com/receive'});
+  const disabled=await ok('/api/notifications/destinations',{name:'Synthetic disabled contact',kind:'webhook',enabled:false,url:'https://route-drill.example.com/disabled'});
   const owner=await ok('/api/access/self');
   const production=await ok('/api/routing/teams',{name:'Synthetic production drill team',enabled:true,memberIds:[member.id],expectedRevision:0});
   const staging=await ok('/api/routing/teams',{name:'Synthetic staging drill team',enabled:true,memberIds:[owner.id],expectedRevision:0});
   assert.equal((await f.request('/api/routing/recipient',{body:{destinationId:inbox.id,enabled:true},headers:{cookie:member.cookie}})).status,200);
   const m=await f.monitor({name:'Synthetic route drill target',enabled:false,runners:[f.first],canary:true,service:'Routing drills',environment:'production'}),path=`/api/monitors/${m.id}/alert-route`;
+  const inherited=await f.monitor({name:'Synthetic inherited drill target',enabled:false,runners:[f.first],canary:true,service:'Routing drills',environment:'production'});
   const save=async(name,quietHours=null,filters={environments:['production'],severities:['critical'],origins:['monitor'],regions:['local-a']})=>{
    const current=await ok(path),input={scope:'monitor',mode:'selected',destinationIds:[hook.id,disabled.id],teamIds:[production.id,staging.id],filters,quietHours,expectedRevision:current.policies[0].revision};
    const preview=await ok(path+'/preview',input);await ok(path+'/apply',{...input,digest:preview.digest});
    const named=await cli('name-route',{name,monitorId:m.id}),batch={routeId:named.id,monitorIds:[m.id]},planned=await cli('preview-batch',batch);await cli('apply-batch',{...batch,digest:planned.digest});
    return named;
   };
-  const transport={async send(wire,beforeRequest){assert.equal(wire.url,'https://route-drill.example.test/receive');await beforeRequest();sent.push(JSON.parse(wire.body));return {status:202,headers:{},body:''}}},rpc=async(_path,body)=>ok('/api/runner/notifications',body,{runner:f.first});
+  const transport={async send(wire,beforeRequest){assert.equal(wire.url,'https://route-drill.example.com/receive');await beforeRequest();sent.push(JSON.parse(wire.body));return {status:202,headers:{},body:''}}},rpc=async(_path,body)=>ok('/api/runner/notifications',body,{runner:f.first});
   const dispatch=()=>dispatchNotifications(rpc,transport),history=async id=>(await ok(path)).drills.find(d=>d.id===id);
   const evidence=async()=>Object.fromEntries(await Promise.all(['monitors','revisions','slots','observations','outbox'].map(async table=>[table,(await f.DB.prepare(`SELECT * FROM ${table} ORDER BY rowid`).all()).results])));
   const start=async(named,kind='trigger')=>cli('drill',{routeId:named.id,kind,regions:['local-a'],expectedRevision:(await ok(path)).effective.revision},m.id);
@@ -47,6 +48,13 @@ export async function proveRouteDrills(){
   assert.equal((await fetch(f.origin+'/alert-drill',{method:'POST',headers:{origin:f.origin,'content-type':'application/x-www-form-urlencoded'},body:new URLSearchParams({token:link.searchParams.get('token')})})).status,200);
   assert.ok((await history(first.routeDrillId)).recipients.find(r=>r.id===hook.id).confirmedAt);
   assert.equal((await ok('/api/notifications')).destinations.find(d=>d.id===hook.id).latestDrill.routeDrillId,first.routeDrillId,'ordinary drill read API retains route provenance');
+
+  const effective=(await ok(path)).effective,servicePath=`/api/monitors/${inherited.id}/alert-route`,serviceInput={scope:'service',mode:'selected',destinationIds:effective.destinationIds,teamIds:effective.teamIds,filters:effective.filters,quietHours:effective.quietHours,businessHours:effective.businessHours,contactSettings:effective.contactSettings,fallback:effective.fallback,expectedRevision:0};
+  const servicePreview=await ok(servicePath+'/preview',serviceInput);await ok(servicePath+'/apply',{...serviceInput,digest:servicePreview.digest});
+  const inheritedRoute=await ok(servicePath);assert.equal(inheritedRoute.effective.scope,'service');
+  const inheritedDrill=await ok(servicePath+'/apply',{action:'drill',routeId:named.id,kind:'trigger',regions:['local-a'],expectedRevision:inheritedRoute.effective.revision});await dispatch();
+  const inheritedResult=(await ok(servicePath)).drills.find(d=>d.id===inheritedDrill.routeDrillId);assert.equal(inheritedResult.effective.scope,'service');
+  for(const id of [hook.id,inbox.id])assert.equal(inheritedResult.recipients.find(r=>r.id===id).state,'accepted','an inherited effective route uses the confirmed-alert recipient policy');
 
   const endAt=Math.ceil((Date.now()+20000)/60000)*60000,clock=at=>new Date(at).toISOString().slice(11,16);
   named=await save('Synthetic quiet route drill',{timeZone:'UTC',start:clock(endAt-120000),end:clock(endAt)});

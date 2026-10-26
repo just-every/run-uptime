@@ -1,3 +1,6 @@
+import {writeFile} from 'node:fs/promises';
+import {join} from 'node:path';
+import {main as routingCommand} from '../scripts/routing.mjs';
 import assert from 'node:assert/strict';
 import {fixture} from './resilience/support.mjs';
 import {startLocalWorker} from './mail-provider-fixture.mjs';
@@ -9,8 +12,8 @@ export async function proveRoutingBusinessHours(){
  const f=await fixture(),sent=[];let replacement,release,pending;
  try{
   const ok=async(path,body,options={})=>{const r=await f.request(path,{...options,...(body===undefined?{}:{body})});assert.ok(r.status>=200&&r.status<300,`${path}: ${r.status} ${JSON.stringify(r.data)}`);return r.data};
-  const good=await ok('/api/notifications/destinations',{name:'Synthetic business receiver',kind:'webhook',url:'https://business-route.example.test/good'});
-  const bad=await ok('/api/notifications/destinations',{name:'Synthetic business primary',kind:'webhook',url:'https://business-route.example.test/bad'});
+  const good=await ok('/api/notifications/destinations',{name:'Synthetic business receiver',kind:'webhook',url:'https://business-route.example.com/good'});
+  const bad=await ok('/api/notifications/destinations',{name:'Synthetic business primary',kind:'webhook',url:'https://business-route.example.com/bad'});
   const m=await f.monitor({name:'Synthetic weekly route',enabled:false,runners:[f.first],canary:true,environment:'production'}),route=id=>`/api/monitors/${id}/alert-route`;
   const save=async(m,businessHours,{ids=[good.id],fallback={destinationIds:[],deadlineSeconds:120},consoleShape=false}={})=>{
    const current=await ok(route(m.id)),input={scope:'monitor',mode:'selected',destinationIds:ids,contactSettings:{},fallback,expectedRevision:current.policies[0].revision,...(consoleShape?{}:{businessHours})};
@@ -30,6 +33,10 @@ export async function proveRoutingBusinessHours(){
   await sample({timeZone:'America/New_York',weekdays:[5],start:'22:00',end:'02:00',selection:'inside'},[['2026-10-31T05:00:00Z',true],['2026-11-01T05:00:00Z',false]]);
   const preserved=(await ok(route(m.id))).effective.businessHours;await save(m,null,{consoleShape:true});
   assert.deepEqual((await ok(route(m.id))).effective.businessHours,preserved,'the console-shaped save preserves unspecified business fields');
+  const inputFile=join(f.directory,'business-route.json'),cliInput={scope:'monitor',mode:'selected',destinationIds:[good.id],contactSettings:{},businessHours:preserved,expectedRevision:(await ok(route(m.id))).effective.revision};
+  await writeFile(inputFile,JSON.stringify(cliInput),{mode:0o600});const cliArgs=['--origin',f.origin,'--monitor',m.id],cliEnv={UPTIME_ACCESS_COOKIE:f.cookie};
+  const cliPreview=await routingCommand(['preview',...cliArgs,'--input',inputFile],cliEnv);await writeFile(inputFile,JSON.stringify({...cliInput,digest:cliPreview.digest}),{mode:0o600});await routingCommand(['apply',...cliArgs,'--input',inputFile],cliEnv);
+  assert.deepEqual((await routingCommand(['route',...cliArgs],cliEnv)).effective.businessHours,preserved,'the routing CLI configures and reads the weekly window');
   const revision=(await ok(route(m.id))).effective.revision;
   for(const change of [{weekdays:[1,1]},{selection:'holiday'},{timeZone:'not-a-zone'}])assert.equal((await f.request(route(m.id)+'/preview',{body:{scope:'monitor',mode:'selected',destinationIds:[good.id],expectedRevision:revision,businessHours:{...week,selection:'inside',...change}}})).status,400);
 
