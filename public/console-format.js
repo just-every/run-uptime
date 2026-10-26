@@ -28,12 +28,5 @@ export function humaneDuration(ms,{roundUp=false}={}){
   return rest?`${part(whole,unit)} ${part(rest,next)}`:part(whole,unit);
  }
 }
-// "Last check <time> <ago>", or why there is none. A check time in the future is not a valid result.
-export function checkTime(m,{withLabel=true,readUnavailable=false}={}){
- const t=m.availability?.lastCheckAt,label=readUnavailable?'Last recorded check':'Last check';
- if(!Number.isSafeInteger(t)||t<0||t>Date.now())return readUnavailable?'Last recorded check unavailable':'No completed check';
- const time=new Date(t);
- return `${withLabel?`<span class="check-label">${label}</span> `:''}<time datetime="${escape(time.toISOString())}">${escape(time.toLocaleString())}</time><span class="time-ago">${escape(ago(t))}</span>`;
-}
 // The state a monitor shows: Paused when disabled, Unknown while the overview could not be refreshed.
 export const shownState=(m,readUnavailable)=>m.definition.enabled?(readUnavailable?'Unknown':m.state.state):'Paused';

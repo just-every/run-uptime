@@ -1,5 +1,6 @@
-// The console's five-second refresh updates data in place: an open disclosure stays open, the page keeps its nodes and
-// its scroll position, and a change made elsewhere (a pause) still appears without a reload. The monitor list keeps its
+// The console's five-second refresh updates data in place: on a monitor's page an open fold and the disclosure inside it,
+// Full check details, and an open rule editor with the value typed in it all stay open, the page keeps its nodes and its
+// scroll position, and a change made elsewhere (a pause) still appears without a reload. The monitor list keeps its
 // filters folded behind Filter and its selection actions out of sight until a monitor is ticked; an open filter panel
 // and a ticked monitor survive the refresh. At 1440 and 390.
 import assert from 'node:assert/strict';
@@ -14,24 +15,31 @@ async function twoPolls(page){for(let i=0;i<2;i++){await page.waitForResponse(ov
 // Marks every element under the console now, then later counts the marked ones the refresh replaced.
 const mark=page=>page.evaluate(()=>{window.__marked=[...document.querySelectorAll('.app *')]});
 const replaced=page=>page.evaluate(()=>window.__marked.filter(element=>!element.isConnected).map(element=>element.id||element.className||element.localName));
-// A monitor page's panels, which a refresh must update in place rather than rebuild.
-const panels=['#monitor-page','#monitor-report','#monitor-incidents','#raw-history','#alert-route-summary','#assertion-definition','#coverage-heading'];
+// A monitor page's regions, which a refresh must update in place rather than rebuild.
+const panels=['#monitor-page','#status-card','#rules-card','#edit-latencyMs','#recent-checks','#raw-history','#folds-card','details#alerts','#alert-route-summary','details#details','#monitor-incidents'];
 try{
  const [port]=await availablePorts(1),origin=`http://127.0.0.1:${port}`;({worker}=await migratedWorker({port,persist:join(directory,'worker')}));
  browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});
  const context=await browser.newContext(),page=await context.newPage();await browserSignIn(page,origin);
- const created=await page.request.post(origin+'/api/monitors',{headers:{origin},data:{name:'Nightly backup',type:'heartbeat',heartbeat:{maxAgeMs:60000,graceMs:0,maxRunDurationMs:30000},canaryUrl:'https://example.org/',intervalMs:60000,enabled:true}});
+ const created=await page.request.post(origin+'/api/monitors',{headers:{origin},data:{name:'Checkout',url:'https://example.com/checkout',canaryUrl:'https://example.org/',intervalMs:60000,assertions:{status:200,latencyMs:3000},enabled:true}});
  assert.equal(created.status(),201);const monitor=await created.json();
  const enable=async enabled=>{const {monitors}=await(await page.request.get(origin+'/api/overview')).json(),current=monitors.find(m=>m.id===monitor.id);assert.equal((await page.request.patch(origin+`/api/monitors/${monitor.id}`,{headers:{origin},data:{...current.definition,enabled}})).status(),200)};
  for(const width of [1440,390]){
   await page.setViewportSize({width,height:900});
-  await page.goto(origin+`/app/monitors/${monitor.id}`);await page.locator('html.signed-in').waitFor();await page.locator('#alert-route-summary details').waitFor();
-  await page.locator('#assertion-definition-summary').click();await page.locator('#alert-route-summary summary').click();
-  await page.locator('#more-menu > summary').click();
-  await page.locator('#assertion-definition').evaluate(details=>details.scrollIntoView({block:'center'}));
+  await page.goto(origin+`/app/monitors/${monitor.id}`);await page.locator('html.signed-in').waitFor();
+  await page.locator('details#alerts > summary').click();await page.locator('#alert-route-summary details').waitFor();await page.locator('#alert-route-summary details > summary').click();
+  await page.locator('details#details > summary').click();
+  await page.locator('#edit-latencyMs > summary').click();await page.locator('#edit-latencyMs input[name=seconds]').fill('7');
+  await page.locator('#edit-latencyMs').evaluate(details=>details.scrollIntoView({block:'center'}));
   const scrolled=await page.evaluate(()=>scrollY);assert.ok(scrolled>0,'the monitor page scrolls');
-  const disclosuresOpen=async()=>{assert.ok(await page.locator('#assertion-definition').evaluate(details=>details.open),'check details stay open');assert.ok(await page.locator('#alert-route-summary details').evaluate(details=>details.open),'alert recipients stay open');assert.ok(await page.locator('#more-menu').evaluate(details=>details.open),'the action menu stays open')};
-  const panelsKept=async()=>assert.deepEqual(await page.evaluate(selectors=>selectors.filter((selector,i)=>window.__panels[i]!==document.querySelector(selector)),panels),[],'monitor page panels stay mounted');
+  const disclosuresOpen=async()=>{
+   assert.ok(await page.locator('details#alerts').evaluate(details=>details.open),'the Alerts fold stays open');
+   assert.ok(await page.locator('#alert-route-summary details').evaluate(details=>details.open),'the disclosure inside it stays open');
+   assert.ok(await page.locator('details#details').evaluate(details=>details.open),'Full check details stays open');
+   assert.ok(await page.locator('#edit-latencyMs').evaluate(details=>details.open),'the rule editor stays open');
+   assert.equal(await page.locator('#edit-latencyMs input[name=seconds]').inputValue(),'7','the typed value stays');
+  };
+  const panelsKept=async()=>assert.deepEqual(await page.evaluate(selectors=>selectors.filter((selector,i)=>window.__panels[i]!==document.querySelector(selector)),panels),[],'monitor page regions stay mounted');
   await page.evaluate(selectors=>{window.__panels=selectors.map(selector=>document.querySelector(selector))},panels);
   // Steady refreshes: nothing moves.
   const began=Date.now();do{await twoPolls(page);await disclosuresOpen();await panelsKept();assert.equal(await page.evaluate(()=>scrollY),scrolled,'scroll holds through 60 seconds of polls')}while(Date.now()-began<60000);
@@ -56,6 +64,6 @@ try{
   await mark(page);await twoPolls(page);
   assert.deepEqual(await replaced(page),[],'monitor list keeps every row');
   assert.ok(await panel.isVisible(),'the open filters stay open');assert.equal(await page.locator('.catalog-selected').textContent(),'1 selected','the ticked monitor stays ticked');
-  console.log(`CONSOLE-POLL ${width}: menus, disclosures, scroll and nodes survive 60 seconds of refreshes; a background pause still shows.`);
+  console.log(`CONSOLE-POLL ${width}: folds, a typed rule edit, disclosures, scroll and nodes survive 60 seconds of refreshes; a background pause still shows.`);
  }
 }finally{await browser?.close();await worker?.dispose();await cleanupDirectory(directory)}

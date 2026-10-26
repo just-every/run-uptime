@@ -1,9 +1,14 @@
 import {escape} from './console-format.js';
 import {maintenanceTime,weekdayNames,modeDescription,windowDescription} from './maintenance-calendar.js';
 
+const clock=t=>new Date(t).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+// A monitor page's Planned maintenance fold: the planned windows, the quick quiet-alerts window while it runs (with End now),
+// then Quiet alerts for 15 min (while none runs) beside Plan maintenance.
 export function maintenancePanel(m){
- const windows=m.definition.maintenanceWindows??[];
- return `<section class="ui-card panel maintenance-panel" aria-labelledby="planned-maintenance-heading"><h2 id="planned-maintenance-heading">Planned maintenance</h2><p>Quiet alerts during planned work.</p>${windows.length?`<ul class="maintenance-windows">${windows.map(window=>`<li><strong>${escape(window.name)}</strong><p>${escape(windowDescription(window))}</p><p>${escape(modeDescription(window.mode))}</p><button type="button" id="cancel-maintenance-${escape(window.id)}" data-cancel-maintenance="${escape(window.id)}">Cancel window</button></li>`).join('')}</ul>`:'<p>No planned windows.</p>'}<button type="button" id="plan-maintenance">Plan maintenance</button></section>`;
+ const windows=m.definition.maintenanceWindows??[],until=m.definition.maintenanceUntil>Date.now()?m.definition.maintenanceUntil:null;
+ const quick=until?`<li data-key="quick-maintenance"><strong>Quick maintenance</strong><p>Now · until ${escape(clock(until))} · alerts held</p><button type="button" id="end-quiet-alerts">End now</button></li>`:'';
+ const list=quick||windows.length?`<ul class="maintenance-windows">${quick}${windows.map(window=>`<li data-key="window-${escape(window.id)}"><strong>${escape(window.name)}</strong><p>${escape(windowDescription(window))}</p><p>${escape(modeDescription(window.mode))}</p><button type="button" id="cancel-maintenance-${escape(window.id)}" data-cancel-maintenance="${escape(window.id)}">Cancel window</button></li>`).join('')}</ul>`:'';
+ return `<section class="ui-card panel maintenance-panel" aria-labelledby="planned-maintenance-heading"><h2 id="planned-maintenance-heading">Planned maintenance</h2>${list}<div class="maintenance-actions">${until?'':'<button type="button" id="quiet-alerts"><span class="ui-icon" data-icon="moon" aria-hidden="true"></span>Quiet alerts for 15 min</button>'}<button type="button" id="plan-maintenance">Plan maintenance</button></div></section>`;
 }
 export function plannerFields(timeZone,start,fromDate,untilDate){
  return `<label class="dialog-field">Window name<input id="maintenance-name" name="name" required maxlength="100" autocomplete="off"></label>

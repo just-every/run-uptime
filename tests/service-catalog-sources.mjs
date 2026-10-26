@@ -89,7 +89,7 @@ export async function proveFullSizeSources({g, edge, page, catalog, search, entr
  edge.state.okta.mode = 'oversize';await check(okta.id);await unknown('Okta past the bound', okta);
  for (const [name, m, s] of [['Google Cloud', google, edge.state.gcp], ['PayPal', paypal, edge.state.paypal]]) {s.mode = 'shape';await check(m.id);await unknown(`${name} with another shape`, m)}
  assert.equal((await rows("SELECT id FROM outbox WHERE kind LIKE 'dependency%'")).length, notices, 'an unreadable source states nothing, so it sends no notice');
- await page.goto(g.origin + '/app/monitors/' + encodeURIComponent(cloudflare.id));
+ await page.goto(g.origin + '/app/monitors/' + encodeURIComponent(cloudflare.id) + '#followed');
  await page.locator('.followed-panel .followed-review').waitFor();
  await widths(page, 'followed-oversize', {evidence, target: page.locator('.followed-panel')});
  for (const s of Object.values(source)) s.mode = 200;

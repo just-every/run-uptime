@@ -12,10 +12,15 @@ export function containModalKeyboard(dialog){
 
 // Periodic console redraws can replace the opener while a native dialog is
 // open. Restore the current control with the same id when that happens.
+// Closing has already returned focus to a connected opener, and the close
+// event runs a frame later, when the owner may have moved on (Tab, another
+// button): restore only focus that is still lost, on the page or in a closed
+// dialog.
 export function dialogFocusReturn(fallbackId) {
  const opener=document.activeElement,id=opener?.id||fallbackId;
  return ()=>{
-  if(document.querySelector('dialog:modal'))return;
+  const active=document.activeElement;
+  if(document.querySelector('dialog:modal')||active&&active!==document.body&&!active.closest('dialog:not([open])'))return;
   const control=opener?.isConnected&&opener!==document.body&&!opener.closest('dialog')?opener:id?document.getElementById(id):null;
   control?.focus({preventScroll:true});
  };
