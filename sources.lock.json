@@ -487,7 +487,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "00815f97c486f0fbba54fc0e27ef2d7edbaeab3a03189def7d6a4182f61c6ae9",
+      "sha256": "2411285dcbb93bcd447bd3ccea8901b77c21f9b697bbf3cb1dc3ce98e7e00096",
       "executable": false
     },
     "AGENTS.md": {
@@ -511,7 +511,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "4b8d9f68b5d324bf1cdbda7e112fc9379d89b1793de4d41657d444fdb2b27867",
+      "sha256": "bab8e00df2798c4a9b929e6a9cb28c8801ef4d2fc890015f1d0f19bbc86deb75",
       "executable": false
     },
     "DEMO.md": {
@@ -2043,7 +2043,7 @@
       "executable": false
     },
     "docs/monitors.md": {
-      "sha256": "41f17599ca2fa82251e208e0f9afbfdb53357c9a78b676ed716d8b4e3c3d57ce",
+      "sha256": "333e7e7f41b7207020f6f861b6d6408a888d24337d2cc6799f03cfd31a709f88",
       "executable": false
     },
     "docs/moving-from-uptimerobot.md": {
@@ -2071,7 +2071,7 @@
       "executable": false
     },
     "docs/routing-api.md": {
-      "sha256": "e5ffd6a07943ffd63cda9d65b1ffd1ac495d65d4dfa1ea2ec9401d5c26789fd3",
+      "sha256": "369cf893e85a06ad2cedf03b8394cfb03b93286366d3d40024e4f4ca9cdee479",
       "executable": false
     },
     "docs/runner.md": {
@@ -2436,6 +2436,10 @@
     },
     "migrations/0075_recurring_reports.sql": {
       "sha256": "c4d828c039fa56b8c74bd91f1fe6bcedc433ca46db6a327efd1a46b851025f93",
+      "executable": false
+    },
+    "migrations/0077_rum_percentile_erasure.sql": {
+      "sha256": "60984388c36a7e790ffe7eb357336d7eddbf6b97e5c2a4007578f9d6dadebcca",
       "executable": false
     },
     "OPERATIONS.json": {
@@ -5531,7 +5535,7 @@
       "executable": false
     },
     "src/domain/archive-inventory.ts": {
-      "sha256": "0559238cef8467b713eedf48a84dbb4e4806129486e4f2233d434012d81d5614",
+      "sha256": "179e27db4c03ec96912f636934b548374067c3d748b04e7778a8508cfae15988",
       "executable": false
     },
     "src/domain/archive-monitor-validation.ts": {
@@ -6491,7 +6495,7 @@
       "executable": false
     },
     "src/domain/rum/door.server.ts": {
-      "sha256": "8be6b5adcb7e0233277cdd106a45774923c67f83d7fdde5105fb484b3767fa22",
+      "sha256": "e0c2a9ed1cb54b585760379156de88c0bcd2f272c486f7f516ecd3fc52f53367",
       "executable": false
     },
     "src/domain/rum/privacy.mjs": {
@@ -6503,7 +6507,7 @@
       "executable": false
     },
     "src/domain/rum/sites.server.ts": {
-      "sha256": "d5766ecd367bcb6ea8c2ca72291e2cabb95965e43c7dcd35b33a7b73503c589b",
+      "sha256": "b4b353a3b9ec5a0487464a7c06fe6164a6b4aa470da9146bdbb642cb030f09c5",
       "executable": false
     },
     "src/domain/runner-capabilities.mjs": {
@@ -7451,7 +7455,7 @@
       "executable": false
     },
     "tests/flow-journey.mjs": {
-      "sha256": "d1e1c61f77b55129f9335e6aecff0e2e9dd6686cfd2e1178dc6b19a1ccc79be1",
+      "sha256": "0d15dcd5734987fa12d7694ca85441121483fec7dc6bf5336608e185f2319f83",
       "executable": false
     },
     "tests/flow-profiles-browser.mjs": {
@@ -7703,11 +7707,11 @@
       "executable": false
     },
     "tests/pagespeed-support.mjs": {
-      "sha256": "97db3883b23b3c76251387d0ae6f1e2c95e496d559792d35ae6a98a18bc70858",
+      "sha256": "f77d5587fbaec93955523239731f43bbe2cdab474047b8196711674e8b384bbf",
       "executable": false
     },
     "tests/pagespeed-timing-support.mjs": {
-      "sha256": "56a5d5b086d9694776c7079ef359db8406a6975f2efdf7a27f68403d31cb4f43",
+      "sha256": "5b5db264a1ebca50afff0337607bf697e5dea7e135a30c04cdff316d05e26800",
       "executable": false
     },
     "tests/ping-browser.mjs": {

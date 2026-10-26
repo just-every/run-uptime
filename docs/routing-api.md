@@ -74,8 +74,10 @@ notification histories and opaque audit entries; imported deliveries stay
 inactive. Operator erasure removes membership/consent and anonymizes original
 team dispatch bindings so they stay denied. Monitor/destination erasure removes
 dependent bindings. Business-hour calendars, expiry/renewal routing, portable
-route settings/history, richer provenance, geographic filters, configurable
-severity and the held console UI remain ROUTING-001 gaps.
+route settings/history, basic geographic routing and UI acceptance remain
+ROUTING-001 gaps. Environment, severity and origin filters and current provenance
+are described above; richer unlanded routing-branch evidence does not establish
+accepted-main behavior.
 
 ## Assign a named route to an existing selection
 

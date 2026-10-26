@@ -3,7 +3,7 @@
 // endpoint: the mobile check retains the throttled mobile script, the browser error it throws, its waterfall and vitals, breaches its
 // budgets and opens an incident whose email goes out through the installation's destination, while the desktop check passes and
 // the health check stays Healthy. Then the real-user beacon: registered off, enabled with owner sampling and an excluded path, and
-// visited by real browsers (consenting phone and desktop visitors; a visitor without consent, one with Global Privacy Control, one
+// visited by real browsers (consenting phone-profile and desktop visitors; a visitor without consent, one with Global Privacy Control, one
 // with Do Not Track, a bot, one outside the sample and one on an excluded path send nothing), with the door's own refusals and filtering. The console
 // shows the waterfall, the budgets and the two reports with their own denominators at 1440 and 390, with no overflow or serious
 // axe finding. Assertions read retained structure and budget decisions against the fixture's fixed delays, not absolute timings.
@@ -17,6 +17,7 @@ import {chromium} from 'playwright';
 import {startLocalWorker} from './mail-provider-fixture.mjs';
 import {splitSql} from './migration-support.mjs';
 import {testAuthBindings,signInOwner} from './auth-test-support.mjs';
+import {availablePorts,migratedWorker,ownerAPI} from './notify-acceptance-runtime.mjs';
 import {validateDefinition} from '../src/domain/policy.mjs';
 
 const PHONE = 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36';
@@ -24,8 +25,8 @@ const LAPTOP = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.
 
 // An actual HTTP proxy at the controlled Miniflare edge. Unlike DevTools interception,
 // it remains alive for a tab's keepalive beacon after the tab target closes.
-async function countryEdge(worker, origin, fixtureOrigin, country) {
-  let beacons = 0;
+async function countryEdge(worker, origin, fixtureOrigin, country, subdivision) {
+  let beacons = 0; const samples = [];
   const server = createServer(async (request, response) => {
     try {
       const url = new URL(request.url);
@@ -33,14 +34,14 @@ async function countryEdge(worker, origin, fixtureOrigin, country) {
       const chunks = []; for await (const chunk of request) chunks.push(chunk);
       const headers = Object.fromEntries(Object.entries(request.headers).filter(([key]) => !['connection', 'proxy-connection'].includes(key)));
       const init = {method: request.method, headers, ...(!['GET', 'HEAD'].includes(request.method) ? {body: Buffer.concat(chunks)} : {})};
-      if (url.origin === origin && url.pathname === '/rum/v1/collect' && request.method === 'POST') beacons++;
-      const reply = url.origin === origin ? await worker.dispatchFetch(url.href, {...init, cf: {country}}) : await fetch(url, init);
+      if (url.origin === origin && url.pathname === '/rum/v1/collect' && request.method === 'POST') { beacons++; samples.push(JSON.parse(Buffer.concat(chunks).toString())); }
+      const reply = url.origin === origin ? await worker.dispatchFetch(url.href, {...init, cf: {country, ...(subdivision ? {regionCode: subdivision} : {})}}) : await fetch(url, init);
       const keptHeaders = Object.fromEntries([...reply.headers].filter(([key]) => !['connection', 'content-encoding', 'content-length', 'transfer-encoding'].includes(key)));
       response.writeHead(reply.status, keptHeaders); response.end(Buffer.from(await reply.arrayBuffer()));
     } catch { response.writeHead(502).end(); }
   });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-  return {proxy: {server: `http://127.0.0.1:${server.address().port}`, bypass: '<-loopback>'}, beacons: () => beacons,
+  return {proxy: {server: `http://127.0.0.1:${server.address().port}`, bypass: '<-loopback>'}, beacons: () => beacons, samples,
     async close() { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); }};
 }
 
@@ -56,7 +57,7 @@ export async function startPageSpeed({ok, fixture}) {
 export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, waitFor, observations, worker}) {
   for (const id of [ids.mobile, ids.desktop, ids.health]) await waitFor(async () => (await observations(id)).some(o => o.outcome !== 'runner_error'), 'the page-speed and health checks ran', 120000);
   const [mobile] = (await observations(ids.mobile)).filter(o => o.outcome !== 'runner_error'), [desktop] = (await observations(ids.desktop)).filter(o => o.outcome !== 'runner_error');
-  // The mobile check: slow 4G and a phone, the throttled mobile script in its waterfall (no query string kept), its exception kept.
+  // The mobile check: slow 4G and a phone profile, the throttled mobile script in its waterfall (no query string kept), its exception kept.
   const m = mobile.pagespeed, d = desktop.pagespeed;
   assert.deepEqual([mobile.outcome, m.device, m.throttle, m.status], ['target_failure', 'mobile', 'slow-4g', 200]);
   assert.deepEqual(mobile.checks.map(c => [c.assertion, c.pass]), [['status', true], ['budget:lcpMs', false], ['budget:cls', false], ['budget:tbtMs', false], ['budget:browserErrors', false]], 'each budget is its own named check');
@@ -94,13 +95,14 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
   fixture.setBeacon(`${origin}/rum/v1/s/${site.id}.js`);
 
   // Real visitors in a real browser. Each visitor's own coin is fixed, so the 50% sample is decided the same way every run.
-  const browser = await chromium.launch({headless: true, args: ['--use-mock-keychain', '--password-store=basic']});
+  const measured = [];
+  const browser = await chromium.launch({headless: true, ...(process.env.UPTIME_TEST_CHROMIUM ? {executablePath: process.env.UPTIME_TEST_CHROMIUM} : {}), args: ['--use-mock-keychain', '--password-store=basic', '--no-sandbox']});
   try {
     const views = async () => Number((await DB.prepare('SELECT COALESCE(SUM(views),0) n FROM rum_aggregates WHERE site_id=?').bind(site.id).first()).n);
     // One visitor in a fresh context. The context stays open until the view is counted (or, for a visitor whose beacon must stay
     // silent, for a while), so closing it never cancels a beacon still in flight.
-    const visit = async ({phone = false, consent = true, coin = 0.25, gpc = false, dnt = false, agent, path = '/s/shop/checkout', click = true, counted = false, country = 'US', unavailable = false}) => {
-      const edge = country !== 'US' ? await countryEdge(worker, origin, fixture.origin, country) : null;
+    const visit = async ({phone = false, consent = true, coin = 0.25, gpc = false, dnt = false, agent, path = '/s/shop/checkout', click = true, counted = false, country = 'US', subdivision, unavailable = false}) => {
+      const edge = await countryEdge(worker, origin, fixture.origin, country, subdivision);
       const context = await browser.newContext({... (phone ? {viewport: {width: 390, height: 844}, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: agent ?? PHONE} : {viewport: {width: 1280, height: 800}, userAgent: agent ?? LAPTOP}), ...(edge ? {proxy: edge.proxy} : {})});
       try {
         const before = await views();
@@ -117,10 +119,11 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
         await page.close({runBeforeUnload: true});
         if (counted) await waitFor(async () => await views() === before + 1, 'the visitor was counted', 30000);
         else await new Promise(r => setTimeout(r, 1500));
-        if (edge) assert.equal(edge.beacons(), 1, 'the actual browser beacon crossed the controlled country edge once');
+        assert.equal(edge.beacons(), counted ? 1 : 0, 'only an admitted browser sends across the controlled edge');
+        if (counted) { const sample = {...edge.samples[0], region: country, subdivision: subdivision ?? null}; measured.push(sample); return sample; }
       } finally { await context.close(); await edge?.close(); }
     };
-    await visit({phone: true, counted: true});
+    await visit({phone: true, subdivision: 'CA', counted: true});
     await visit({counted: true});
     // Nothing is sent without consent, with Global Privacy Control or Do Not Track, from a bot, outside the sample, or on an excluded path.
     await visit({phone: true, consent: false});
@@ -145,20 +148,31 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
   assert.equal(accepted.status, 204);
   assert.equal(accepted.headers.get('access-control-allow-origin'), fixture.origin);
   assert.equal(accepted.headers.get('set-cookie'), null, 'the door sets no cookie');
-  const stored = JSON.stringify([(await DB.prepare('SELECT * FROM rum_aggregates').all()).results, (await DB.prepare('SELECT * FROM rum_dropped').all()).results]);
+  const stored = JSON.stringify([(await DB.prepare('SELECT * FROM rum_aggregates').all()).results, (await DB.prepare('SELECT * FROM rum_dropped').all()).results, (await DB.prepare('SELECT * FROM rum_value_counts').all()).results]);
   assert.ok(!stored.includes(order) && !stored.includes('synthetic-uptime-2') && !stored.includes('receipt') && !stored.includes('127.0.0.1'), 'no identifier, query, fragment or address is stored');
   const report = await ok(`/api/rum/sites/${site.id}/report?hours=24`);
   assert.deepEqual([report.kind, report.denominator, report.views, report.dropped], ['real-user', 'sampled page views', 5, {bot: 1, excluded: 1}]);
   const row = (route, device, country = 'US') => report.rows.find(r => r.route === route && r.device === device && r.region === country);
   const phone = row('/s/shop/checkout', 'mobile'), laptop = row('/s/shop/checkout', 'desktop'), failed = row('/s/shop/orders/:id', 'desktop');
   assert.ok(phone && laptop && failed, `rows by route and device: ${JSON.stringify(report.rows)}`);
+  assert.ok(report.subdivisions.some(r => r.route === '/s/shop/checkout' && r.device === 'mobile' && r.region === 'US' && r.subdivision === 'CA' && r.views === 1), 'the real consenting browser beacon groups under the edge-provided US subdivision');
+  assert.ok(phone.errors >= 1, 'the RUM report retains the real mobile script error count');
+  for (const r of report.rows) {
+    const samples = measured.filter(v => v.route === r.route && v.device === r.device && v.region === r.region);
+    if (!samples.length) continue;
+    assert.equal(r.errors, samples.reduce((sum, v) => sum + v.errors, 0), 'RUM errors equal the shipped browser beacons');
+    for (const metric of ['lcpMs', 'cls', 'inpMs']) {
+      const values = samples.map(v => v[metric]).filter(v => v !== null).sort((a,b) => a-b);
+      assert.deepEqual(r[metric].percentiles, {p50: values[Math.ceil(values.length*.5)-1] ?? null, p75: values[Math.ceil(values.length*.75)-1] ?? null, p95: values[Math.ceil(values.length*.95)-1] ?? null, of: values.length}, 'percentiles retain actual browser measurements, with their own denominator');
+    }
+  }
   assert.equal(phone.region, 'US', 'the visitor country comes from the edge, not from an address');
   assert.ok(phone.views === 1 && phone.lcpMs.average >= 2600 && phone.lcpMs.poorPercent === 100 && phone.inpMs.average >= 250 && phone.cls.average > 0.1 && phone.availability.percent === 100, `the slow mobile checkout shows in real-user figures: ${JSON.stringify(phone)}`);
   assert.ok(laptop.lcpMs.average < 2500 && laptop.lcpMs.poorPercent === 0, `desktop visitors load fast: ${JSON.stringify(laptop)}`);
   assert.deepEqual(failed.availability, {loaded: 0, of: 1, percent: 0}, 'real-user availability counts a failed page load');
   const canada = row('/s/shop/checkout', 'mobile', 'CA'), unavailable = row('/s/shop/unavailable', 'mobile');
   assert.ok(canada && canada.views === 1 && phone.views === 1 && canada.cls.average > 0.1, 'the actual Canadian beacon stays separate and leaves the US denominator at one');
-  assert.deepEqual(unavailable?.availability, {loaded: 0, of: 1, percent: 0}, 'the shipped beacon reports its real consenting phone HTTP500 visit as unavailable');
+  assert.deepEqual(unavailable?.availability, {loaded: 0, of: 1, percent: 0}, 'the shipped beacon reports its real consenting phone-profile HTTP500 visit as unavailable');
   // Two reports, two denominators, never summed.
   const both = await ok(`/api/monitors/${ids.mobile}/pagespeed`);
   assert.deepEqual([both.kind, both.denominator, both.checks, both.overBudget], ['synthetic', 'page-speed checks', (await observations(ids.mobile)).filter(o => o.outcome !== 'runner_error').length, (await observations(ids.mobile)).filter(o => o.outcome === 'target_failure').length]);
@@ -167,7 +181,7 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
 
   // The console at 1440 and 390: budgets, the waterfall, the browser error, both reports and the beacon's privacy and sampling settings.
   const axeSource = await readFile(resolve('node_modules/axe-core/axe.min.js'), 'utf8');
-  const consoleBrowser = await chromium.launch({headless: true, args: ['--use-mock-keychain', '--password-store=basic']});
+  const consoleBrowser = await chromium.launch({headless: true, ...(process.env.UPTIME_TEST_CHROMIUM ? {executablePath: process.env.UPTIME_TEST_CHROMIUM} : {}), args: ['--use-mock-keychain', '--password-store=basic', '--no-sandbox']});
   try {
     const context = await consoleBrowser.newContext();
     await context.addCookies(owner.cookie.split(/;\s*/).filter(Boolean).map(pair => { const i = pair.indexOf('='); return {name: pair.slice(0, i), value: pair.slice(i + 1), url: origin}; }));
@@ -209,6 +223,32 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
     await page.getByText('Beacon settings saved.').waitFor();
     assert.ok((await (await fetch(`${origin}/rum/v1/s/${site.id}.js`)).text()).includes('"sample":0.2'));
   } finally { await consoleBrowser.close(); }
+  // Additional measurements use the same registered public collector and report,
+  // after the unchanged c28 console assertions. Weighted ranks must differ from
+  // averages, combine hours, exclude missing metrics and never count bot values.
+  const values = [100, 200, 200, 800];
+  for (const lcpMs of values) assert.equal((await worker.dispatchFetch(`${origin}/rum/v1/collect`, {method: 'POST', headers: {origin: fixture.origin, 'content-type': 'text/plain', 'user-agent': PHONE},
+    body: JSON.stringify({...view, route: '/s/shop/percentiles', lcpMs, cls: lcpMs/1000, inpMs: lcpMs/2, errors: 2}), cf: {country: 'US', regionCode: 'CA'}})).status, 204);
+  // Retain an earlier hourly bucket of the same admitted measurements; the report must weight both hours.
+  await DB.prepare("UPDATE rum_value_counts SET hour=hour-3600000 WHERE site_id=? AND route='/s/shop/percentiles' AND value=200").bind(site.id).run();
+  const sendEdge = async (country, regionCode, agent = PHONE) => worker.dispatchFetch(`${origin}/rum/v1/collect`, {method: 'POST', headers: {origin: fixture.origin, 'content-type': 'text/plain', 'user-agent': agent},
+    body: JSON.stringify({...view, route: '/s/shop/percentiles', lcpMs: null, cls: null, inpMs: null, errors: 0}), cf: {country, regionCode}});
+  assert.equal((await sendEdge('US', 'NY')).status, 204);
+  assert.equal((await sendEdge('CA', 'ON')).status, 204);
+  assert.equal((await sendEdge('US', undefined)).status, 204);
+  assert.equal((await sendEdge('US', 'CA', 'Googlebot/2.1')).status, 204);
+  const distribution = await ok(`/api/rum/sites/${site.id}/report`), us = distribution.rows.find(r => r.route === '/s/shop/percentiles' && r.region === 'US');
+  assert.equal(us.views, 6); assert.equal(us.errors, 8);
+  assert.deepEqual(us.lcpMs.percentiles, {p50: 200, p75: 200, p95: 800, of: 4});
+  assert.deepEqual(us.cls.percentiles, {p50: .2, p75: .2, p95: .8, of: 4});
+  assert.deepEqual(us.inpMs.percentiles, {p50: 100, p75: 100, p95: 400, of: 4});
+  assert.notEqual(us.lcpMs.percentiles.p75, us.lcpMs.average, 'percentiles are not averages');
+  const parts = distribution.subdivisions.filter(r => r.route === '/s/shop/percentiles');
+  assert.deepEqual(parts.map(r => [r.region, r.subdivision, r.views]).sort(), [['CA', null, 1], ['US', null, 1], ['US', 'CA', 4], ['US', 'NY', 1]].sort(), 'only available US subdivision codes are grouped; country and unknown subdivision stay separate');
+  assert.equal(parts.find(r => r.subdivision === 'CA').errors, 8);
+  assert.deepEqual(parts.find(r => r.subdivision === 'NY').inpMs, {p50: null, p75: null, p95: null, of: 0}, 'missing input is absent, never a zero sample');
+  console.log('PERF-001 RUM report assertions passed: measured browser errors and LCP/CLS/INP percentiles, weighted ranks across hours, missing metrics, bot exclusion and edge US subdivisions.');
+  await provePopulatedRumRestore({ok, site, fixture, origin, distribution});
   // Paused once proven, so the journey's later hard stops find only their own flow's run folder on each runner.
   for (const monitor of ids.created) await ok(`/api/monitors/${monitor.id}`, 'PATCH', {...monitor.definition, enabled: false});
 }
@@ -218,7 +258,8 @@ export async function proveRumUpgrade() {
   const directory = await mkdtemp(join(tmpdir(), 'uptime-rum-upgrade-')), bindings = {...testAuthBindings, UPTIME_RUNNER_KEY: randomUUID() + randomUUID()}, legacyId = `self-${randomUUID()}`;
   let worker;
   try {
-    worker = await startLocalWorker({persist: directory, bindings, outboundService: async () => new Response('', {status: 200})});
+    const [port] = await availablePorts(1);
+    worker = await startLocalWorker({port, persist: directory, bindings, outboundService: async () => new Response('', {status: 200})});
     const DB = await worker.getD1Database('DB'), names = (await readdir('migrations')).filter(n => n.endsWith('.sql')).sort(), rum = names.find(n => n.startsWith('0066_'));
     const apply = async name => { if (name.endsWith('_resilient_monitoring.sql')) { await DB.prepare('INSERT INTO runner_registration(id,runner_id,registered_at) VALUES(1,?,?)').bind(legacyId, Date.now()).run(); await DB.prepare('INSERT INTO runner_contact(id,last_contact_at) VALUES(1,?)').bind(Date.now() - 5).run(); } for (const sql of splitSql(await readFile(join('migrations', name), 'utf8'))) await DB.prepare(sql).run(); };
     for (const name of names.filter(n => n < rum)) await apply(name);
@@ -229,10 +270,51 @@ export async function proveRumUpgrade() {
     await apply(rum);
     assert.deepEqual(await read(), before, 'the beacon migration rewrites no monitor or revision');
     for (const table of ['rum_sites', 'rum_aggregates', 'rum_dropped']) assert.equal(Number((await DB.prepare(`SELECT COUNT(*) n FROM ${table}`).first()).n), 0);
-    for (const name of names.filter(n => n > rum)) await apply(name);
+    for (const name of names.filter(n => n > rum && !n.startsWith('0077_'))) await apply(name);
     const origin = (await worker.ready).origin, cookie = await signInOwner(origin, {bindings});
     const get = async path => { const response = await fetch(origin + path, {headers: {cookie, origin}}); const body = await response.json(); assert.equal(response.status, 200, path + ' ' + JSON.stringify(body)); return body; };
     assert.deepEqual((await get('/api/rum/sites')).sites, [], 'an upgraded installation has no beacon until its owner registers one');
     assert.ok((await get('/api/archive')).payload.tables.monitors.some(r => r.id === 'shop-one'), 'the upgraded installation still exports its monitors');
+    const legacySite = randomUUID(), hour = Math.floor(now/3600000)*3600000;
+    await DB.prepare('INSERT INTO rum_sites VALUES(?,?,1,35,?, ?,?)').bind(legacySite, 'https://synthetic-uptime-3.example.test', '["/account"]', now, now).run();
+    await DB.prepare("INSERT INTO rum_aggregates(site_id,hour,route,device,region,views,known_views,lcp_n,lcp_sum) VALUES(?,?,'/','mobile','US',3,3,3,1200)").bind(legacySite,hour).run();
+    const priorRum = (await DB.prepare('SELECT * FROM rum_aggregates').all()).results;
+    await apply(names.find(n => n.startsWith('0077_')));
+    assert.deepEqual((await DB.prepare('SELECT * FROM rum_aggregates').all()).results, priorRum, 'percentile migration preserves existing aggregates byte for byte');
+    assert.deepEqual(await read(), before, 'percentile migration preserves populated monitor history');
+    const legacy = await get(`/api/rum/sites/${legacySite}/report`);
+    assert.equal(legacy.rows[0].lcpMs.average, 400);
+    assert.deepEqual(legacy.rows[0].lcpMs.percentiles, {p50: null, p75: null, p95: null, of: 0}, 'old sums cannot invent percentile samples');
+    assert.deepEqual(legacy.subdivisions, [], 'old country-only sums cannot invent subdivisions');
+    assert.ok((await get('/api/archive')).payload.tables.monitors.some(r => r.id === 'shop-one'), 'the upgraded inventory explicitly classifies the new frequency table even when empty');
   } finally { await worker?.dispose(); await rm(directory, {recursive: true, force: true}); }
+}
+
+// A populated, enabled source exports through the owner door; an independently
+// established receiver restores through its owner door. Neither registration,
+// sampling nor visitor aggregates can become authority at the destination.
+async function provePopulatedRumRestore({ok, site, fixture, origin, distribution}) {
+  const archive = await ok('/api/archive');
+  const all = {...archive.payload.tables, ...archive.payload.productTables};
+  for (const table of ['rum_sites', 'rum_aggregates', 'rum_dropped', 'rum_value_counts']) assert.ok(!Object.hasOwn(all, table), `${table} stays installation-local`);
+  assert.ok(distribution.views > 5 && distribution.site.enabled && distribution.site.samplePercent === 20, 'the exported source is populated and enabled with saved sampling');
+  const directory = await mkdtemp(join(tmpdir(), 'uptime-rum-restore-'));
+  let receiver;
+  try {
+    const [port] = await availablePorts(1), target = `http://127.0.0.1:${port}`;
+    const bindings = {...testAuthBindings, SESSION_SECRET: randomUUID()+randomUUID(), UPTIME_RUNNER_KEY: randomUUID()+randomUUID()};
+    ({worker: receiver} = await migratedWorker({port, persist: directory, bindings}));
+    const owner = ownerAPI(target); await owner.signIn(bindings);
+    const request = async (path, method = 'GET', body) => { const r = await owner.api(path, method, body); assert.equal(r.status, 200, `${path}: ${JSON.stringify(r.data)}`); return r.data; };
+    await request('/api/restore', 'POST', archive);
+    assert.deepEqual((await request('/api/rum/sites')).sites, [], 'restore carries no enabled registration or saved sample');
+    assert.match(await (await fetch(`${target}/rum/v1/s/${site.id}.js`)).text(), /not enabled/, 'the source snippet cannot collect on the receiver');
+    const rejected = await fetch(`${target}/rum/v1/collect`, {method: 'POST', headers: {origin: fixture.origin, 'content-type': 'text/plain', 'user-agent': PHONE}, body: JSON.stringify({site: site.id, route: '/', device: 'mobile', status: 'ok', lcpMs: 1, cls: 0, inpMs: 1, ttfbMs: 1, errors: 0})});
+    assert.equal(rejected.status, 403, 'restored collection is off');
+    const restored = await request('/api/archive');
+    assert.equal(restored.payload.tables.monitors.length, archive.payload.tables.monitors.length, 'portable monitors survived the same restore');
+    const local = await ok('/api/rum/sites');
+    assert.ok(local.sites.some(r => r.id === site.id && r.enabled && r.samplePercent === 20), 'export preserves the source registration and sampling');
+    assert.equal((await ok(`/api/rum/sites/${site.id}/report`)).views, distribution.views, 'export preserves source aggregates');
+  } finally { await receiver?.dispose(); await rm(directory, {recursive: true, force: true}); }
 }

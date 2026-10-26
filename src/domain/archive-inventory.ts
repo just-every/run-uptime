@@ -28,6 +28,7 @@ export const installationLocalTables:Record<string,string>={
  public_rate_limits:'Installation public-path request counters; expire after their window.',
  rum_sites:'PERF-001 real-user beacon registrations; an imported installation starts with every beacon off until its owner registers and enables a site.',
  rum_aggregates:'PERF-001 anonymous real-user aggregates about the owner\'s site visitors; they stay with the installation that collected them.',
+ rum_value_counts:'PERF-001 installation-local anonymous vital frequency counts and edge US subdivisions; never portable visitor data.',
  rum_dropped:'PERF-001 counts of beacons dropped as bots or excluded paths; they stay with the installation that collected them.',
  _cf_METADATA:'D1 installation metadata; never product records.',
  _rer_deploy_migrations:'Historical deployment migration ledger; installation-local permanent history, never portable product records.',

@@ -14,7 +14,7 @@ const notFound=()=>Object.assign(Error('Beacon site not found'),{status:404})
 export async function rumSites(env:Bindings){
  return {sites:(await env.DB.prepare('SELECT * FROM rum_sites ORDER BY origin').all<any>()).results.map(row=>shown(env,row)),
   defaults:{enabled:false,samplePercent:RUM_LIMITS.defaultSamplePercent,excludedPaths:[]},
-  privacy:'Anonymous hourly aggregates by route, device and country only. No cookies, query strings, fragments, identifiers or IP addresses are kept; Do Not Track, Global Privacy Control and automated browsers are never measured; nothing is measured before the site records consent.'}
+  privacy:'Anonymous hourly aggregates by route, device, edge country and available US subdivision only. No cookies, query strings, fragments, identifiers or IP addresses are kept; Do Not Track, Global Privacy Control and automated browsers are never measured; nothing is measured before the site records consent.'}
 }
 export async function registerRumSite(env:Bindings,input:any,actor:AuditActor){
  const site=validateSiteInput(input,{local:env.UPTIME_LOCAL_REVIEW==='true'}),id=crypto.randomUUID(),now=Date.now()
@@ -34,18 +34,36 @@ export async function updateRumSite(env:Bindings,id:string,input:any,actor:Audit
  return shown(env,await env.DB.prepare('SELECT * FROM rum_sites WHERE id=?').bind(id).first<any>())
 }
 const average=(sum:number,n:number,scale=1)=>n?Math.round(sum/n/scale*1000)/1000:null
+// Nearest-rank percentiles of measured browser values, weighted by their counts.
+// Missing browser metrics and pre-upgrade sums never become zero-valued samples.
+function percentiles(values:{value:number;count:number}[],scale=1){
+ const ordered=values.slice().sort((a,b)=>a.value-b.value),of=ordered.reduce((sum,v)=>sum+v.count,0)
+ const rank=(fraction:number)=>{if(!of)return null;const target=Math.ceil(of*fraction);let n=0;for(const v of ordered){n+=v.count;if(n>=target)return v.value/scale}return null}
+ return {p50:rank(.5),p75:rank(.75),p95:rank(.95),of}
+}
 /** Real-user figures for one site over the last `hours`, by route, device and country. Denominator: sampled page views. */
 export async function rumReport(env:Bindings,id:string,hours=24){
  const row=await env.DB.prepare('SELECT * FROM rum_sites WHERE id=?').bind(id).first<any>();if(!row)throw notFound()
  const since=Date.now()-Math.min(Math.max(1,hours),RUM_LIMITS.reportHours)*3600000
- const [groups,dropped]=await env.DB.batch<any>([env.DB.prepare(`SELECT route,device,region,SUM(views) views,SUM(failed_views) failed,SUM(known_views) known,SUM(errors) errors,SUM(lcp_n) lcp_n,SUM(lcp_sum) lcp_sum,SUM(lcp_poor) lcp_poor,
+ const [groups,dropped,frequencies]=await env.DB.batch<any>([env.DB.prepare(`SELECT route,device,region,SUM(views) views,SUM(failed_views) failed,SUM(known_views) known,SUM(errors) errors,SUM(lcp_n) lcp_n,SUM(lcp_sum) lcp_sum,SUM(lcp_poor) lcp_poor,
   SUM(cls_n) cls_n,SUM(cls_milli_sum) cls_sum,SUM(inp_n) inp_n,SUM(inp_sum) inp_sum,SUM(ttfb_n) ttfb_n,SUM(ttfb_sum) ttfb_sum FROM rum_aggregates WHERE site_id=? AND hour>=? GROUP BY route,device,region ORDER BY route,device,region`).bind(id,since-3600000),
-  env.DB.prepare('SELECT reason,SUM(count) count FROM rum_dropped WHERE site_id=? AND hour>=? GROUP BY reason ORDER BY reason').bind(id,since-3600000)])
- const rows=groups.results.map((g:any)=>({route:g.route,device:g.device,region:g.region,views:g.views,
+  env.DB.prepare('SELECT reason,SUM(count) count FROM rum_dropped WHERE site_id=? AND hour>=? GROUP BY reason ORDER BY reason').bind(id,since-3600000),
+  env.DB.prepare('SELECT route,device,region,subdivision,metric,value,SUM(count) count FROM rum_value_counts WHERE site_id=? AND hour>=? GROUP BY route,device,region,subdivision,metric,value').bind(id,since-3600000)])
+ const key=(r:any)=>JSON.stringify([r.route,r.device,r.region])
+ const byGroup=new Map<string,any[]>(),bySubdivision=new Map<string,any[]>()
+ for(const f of frequencies.results){const k=key(f);if(!byGroup.has(k))byGroup.set(k,[]);byGroup.get(k)!.push(f)
+  const sk=JSON.stringify([f.route,f.device,f.region,f.subdivision]);if(!bySubdivision.has(sk))bySubdivision.set(sk,[]);bySubdivision.get(sk)!.push(f)}
+ const figures=(values:any[])=>Object.fromEntries(['lcpMs','cls','inpMs'].map(metric=>[metric,percentiles(values.filter(v=>v.metric===metric),metric==='cls'?1000:1)]))
+ const subdivisions=[...bySubdivision.values()].map(values=>{
+  const first=values[0],status=values.filter(v=>v.metric==='status'),views=status.reduce((sum,v)=>sum+v.count,0),known=status.filter(v=>v.value!==0).reduce((sum,v)=>sum+v.count,0),failed=status.filter(v=>v.value===2).reduce((sum,v)=>sum+v.count,0)
+  return {route:first.route,device:first.device,region:first.region,subdivision:first.subdivision||null,views,errors:values.filter(v=>v.metric==='errors').reduce((sum,v)=>sum+v.value*v.count,0),
+   availability:known?{loaded:known-failed,of:known,percent:Math.round((known-failed)/known*10000)/100}:null,...figures(values)}
+ }).sort((a,b)=>JSON.stringify([a.route,a.device,a.region,a.subdivision]).localeCompare(JSON.stringify([b.route,b.device,b.region,b.subdivision])))
+ const rows=groups.results.map((g:any)=>{const measured=figures(byGroup.get(key(g))??[]);return {route:g.route,device:g.device,region:g.region,views:g.views,
   availability:g.known?{loaded:g.known-g.failed,of:g.known,percent:Math.round((g.known-g.failed)/g.known*10000)/100}:null,errors:g.errors,
-  lcpMs:{average:average(g.lcp_sum,g.lcp_n),poorPercent:g.lcp_n?Math.round(g.lcp_poor/g.lcp_n*10000)/100:null,of:g.lcp_n},cls:{average:average(g.cls_sum,g.cls_n,1000),of:g.cls_n},
-  inpMs:{average:average(g.inp_sum,g.inp_n),of:g.inp_n},ttfbMs:{average:average(g.ttfb_sum,g.ttfb_n),of:g.ttfb_n}}))
- return {kind:'real-user',denominator:'sampled page views',site:shown(env,row),hours,views:rows.reduce((sum:number,r:any)=>sum+r.views,0),rows,
+  lcpMs:{percentiles:measured.lcpMs,average:average(g.lcp_sum,g.lcp_n),poorPercent:g.lcp_n?Math.round(g.lcp_poor/g.lcp_n*10000)/100:null,of:g.lcp_n},cls:{percentiles:measured.cls,average:average(g.cls_sum,g.cls_n,1000),of:g.cls_n},
+  inpMs:{percentiles:measured.inpMs,average:average(g.inp_sum,g.inp_n),of:g.inp_n},ttfbMs:{average:average(g.ttfb_sum,g.ttfb_n),of:g.ttfb_n}}})
+ return {kind:'real-user',denominator:'sampled page views',site:shown(env,row),hours,views:rows.reduce((sum:number,r:any)=>sum+r.views,0),rows,subdivisions,
   dropped:Object.fromEntries(dropped.results.map((d:any)=>[d.reason,d.count]))}
 }
 /** Synthetic page-speed figures for one monitor: its latest checks. Denominator: page-speed checks (runner errors are coverage, not checks). */

@@ -1,15 +1,16 @@
 import assert from 'node:assert/strict';
-import {mkdir} from 'node:fs/promises';
+import {mkdtemp,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {fixture} from './resilience/support.mjs';
 import {timingNetwork} from './pagespeed-network-fixture.mjs';
 import {executeTaskProbe} from '../runners/src/execute-task.mjs';
 
 export async function provePageSpeedTimings(){
- const f=await fixture();let network;
+ const f=await fixture();let network,workspace;
  try{
   assert.equal((await f.request('/api/runner/enroll',{runner:f.first,signed:true,body:{version:1,capabilities:{browser:true}}})).status,200);
-  network=await timingNetwork(f.directory);const workspace=join(f.directory,'timing-browsers');await mkdir(workspace,{mode:0o700});
+  network=await timingNetwork(f.directory);workspace=await mkdtemp(join(tmpdir(),'uptime-p-')); // Keep Chromium's Unix socket path within the OS limit.
   async function measure(label,url,dns,tls,connect=0,firstByte=0){
    network.state.dns=dns;network.state.tls=tls;network.state.connect=connect;network.state.firstByte=firstByte;
    const monitor=await f.monitor({runners:[f.first],name:label,type:'pagespeed',network:'public',url,intervalMs:300000,timeoutMs:20000,pagespeed:{device:'desktop',budgets:{lcpMs:5000}}});
@@ -41,5 +42,5 @@ export async function provePageSpeedTimings(){
   assert.ok(network.queries.some(q=>q.type==='A')&&network.queries.some(q=>q.type==='AAAA'),'the runner resolves the hostname over the real DNS wire protocol');
   console.log('PERF-001 retained timing samples:', JSON.stringify({base,delayedDns,delayedTls,delayedConnect,delayedFirstByte,plain}));
   console.log('PERF-001 DNS/connect/TLS/TTFB passed: generated fixture certificate trusted only by this browser, hostname and controlled wire DNS, non-zero retained DNS/TLS, independent delayed answers/handshakes and honest plain HTTP.');
- }finally{await network?.close();await f.close()}
+ }finally{await network?.close();await f.close();if(workspace)await rm(workspace,{recursive:true,force:true})}
 }
