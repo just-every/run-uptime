@@ -224,4 +224,4 @@ The current product pin is read from package.json rather than copied from older 
 
 Actual release acceptance separately requires exact-candidate CI, signed self-runner enrollment, certificate-verified HTTPS up/down/recovery and restart against the emitted production Worker, owner-deploy provision/repeat/interruption/resume/collision and independent runtime/accessibility checks. A hosted installation requires account-bound setup/resource readback, additive migration proof, real regional/private runner placement, scoped browser support, provider and recipient acceptance and recovery after interruption. Command exit, a stored outbox or a local health check does not establish those outcomes. Source-only docs checks do not establish operating capacity, US commercial demand or an SLA.
 
-Clause totals: **88 total; 46 done, 31 partial, 11 missing.**
+Clause totals: **88 total; 45 done, 32 partial, 11 missing.**
