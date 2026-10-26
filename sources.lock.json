@@ -487,7 +487,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "b0c003681da91e74f66e0fd55f08196f197586873ca7b490d7bd829972aadac6",
+      "sha256": "ecec231edf7e0670f8d4746aca2e80ea021a10f39427a664abbc13625f00c11d",
       "executable": false
     },
     "AGENTS.md": {
@@ -511,7 +511,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "4eb8e2ea1f03b8505661aa039b81da6050ce074dea94c2b72c47366ca8fec8c4",
+      "sha256": "7d4e6d39afef2c916a6ba7a1a01c813c1e0b0f358d207f128b9e9692ba0a46d0",
       "executable": false
     },
     "DEMO.md": {
@@ -3063,7 +3063,7 @@
       "executable": false
     },
     "runners/src/discovery/sources/providers/cloudflare.mjs": {
-      "sha256": "d394b14806eba7c3ce49ef64ec4dc322865a61244c36a9f013593331ffc82722",
+      "sha256": "8f04b455910a59569bf975207850f9e405368fe78fac3bc33341ec76b6f75a3c",
       "executable": false
     },
     "runners/src/discovery/sources/providers/codedeploy.mjs": {
@@ -7327,11 +7327,11 @@
       "executable": false
     },
     "tests/discovery-sources-fixture.mjs": {
-      "sha256": "f7cba94e3cfc6932b9887948db6fd2c5167349dd6ba1b8d2fa308eb1c032f41b",
+      "sha256": "86134371448a0479a582e124f68cbdd43a91fd157c17f92dca51c5adb534b87e",
       "executable": false
     },
     "tests/discovery-sources-journey.mjs": {
-      "sha256": "cf410de0daf247b262a1da293a72041a50ff0227eba639d65083ea5c5f7806dc",
+      "sha256": "ea806c8fdaeb5d05431133e4fb690dd237172fcf89f881bc68301dde08a7a731",
       "executable": false
     },
     "tests/discovery-sources-portability.mjs": {

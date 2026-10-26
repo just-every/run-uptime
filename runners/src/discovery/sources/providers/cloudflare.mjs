@@ -9,7 +9,10 @@ export async function listCloudflare({identifiers,credential,call,now}){
  if(zone?.success!==true||String(zone.result?.name).toLowerCase()!==domain)throw new SourceError('shape',`That Cloudflare zone is not ${domain}.`);
  const records=jsonBody('cloudflare',await call({provider:'cloudflare',url:`${BASE}/zones/${zoneId}/dns_records?per_page=100`,headers}));
  if(records?.success!==true||!Array.isArray(records.result))throw new SourceError('shape','Cloudflare answered with a record list Uptime cannot read.');
+ // Proxied names answer with Cloudflare addresses, not the stored origin; one proxied record proxies every A/AAAA at that name.
+ // https://developers.cloudflare.com/dns/proxy-status/
+ const proxied=new Set(records.result.filter(record=>record?.proxied===true&&typeof record.name==='string').map(record=>record.name.toLowerCase()));
  const hosts=records.result.filter(record=>['A','AAAA','CNAME'].includes(record?.type)&&typeof record.name==='string'&&typeof record.content==='string'&&!record.name.startsWith('*')&&(record.name===domain||record.name.endsWith(`.${domain}`)))
-  .map(record=>({host:record.name.toLowerCase(),identifier:`Cloudflare ${record.type} record ${record.name}`.slice(0,200),seenAt:now(),record:{type:record.type,values:[record.content]}}));
+  .map(record=>({host:record.name.toLowerCase(),identifier:`Cloudflare ${record.type} record ${record.name}`.slice(0,200),seenAt:now(),...(proxied.has(record.name.toLowerCase())?{}:{record:{type:record.type,values:[record.content]}})}));
  return {hosts,sites:[],notes:[]};
 }

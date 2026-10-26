@@ -113,6 +113,8 @@ export async function proveDiscoverySources({launch,evidence}){
   assert.deepEqual(urls('sitemap'),[`https://${host('www')}/`,`https://${host('www')}/checkout`,`https://${host('www')}/pricing`].sort());
   assert.deepEqual(urls('spec'),[`https://${host('api')}/openapi.json`,`https://${host('api')}/v1/health`,`https://${host('api')}/v1/orders`].sort());
   assert.deepEqual(urls('cloudflare'),[`https://${host('api')}/`,`https://${host('www')}/`].sort());
+  assert.ok(!first.cloudflare.proposals.some(p=>p.kind==='dns'&&p.url===`https://${host('www')}/`),'a proxied Cloudflare name never proposes its hidden origin as a public DNS answer, including mixed proxy flags');
+  assert.ok(first.cloudflare.proposals.some(p=>p.kind==='dns'&&p.url===`https://${host('api')}/`),'a DNS-only Cloudflare record still proposes its published answer');
   assert.deepEqual(urls('route53'),[`https://${host('shop')}/`]);
   assert.deepEqual(urls('github'),[`https://${host('app')}/`]);
   assert.deepEqual(urls('vercel'),[`https://${host('web')}/`]);
@@ -135,6 +137,9 @@ export async function proveDiscoverySources({launch,evidence}){
   // The populated list, then the domain's proposals opened for review.
   await page.reload();await panel.locator('.sources-item').filter({hasText:'CodeDeploy shop'}).waitFor();
   await widths(page,'sources-populated',{evidence,target:panel.locator('#sources-list')});
+  await panel.locator('.sources-item').filter({hasText:'Cloudflare zone'}).getByRole('button',{name:'Review proposals',exact:true}).click();
+  await review.locator('.source-proposal[data-key]').first().waitFor();
+  await widths(page,'sources-cloudflare-proxy',{evidence,target:review});
   await panel.locator('.sources-item').filter({hasText:'Synthetic domain'}).getByRole('button',{name:'Review proposals',exact:true}).click();
   await review.locator('.source-proposal[data-key]').first().waitFor();
   await widths(page,'sources-review',{evidence,target:review});

@@ -61,7 +61,7 @@ export function initialSite(){
 // The providers' accounts, in their documented shapes; a test changes them between runs.
 export function initialProviders(){
  const zoneId='0123456789abcdef0123456789abcdef',hostedZone='ZSYNTHETICUPTIME1';
- return {zoneId,hostedZone,cloudflare:[{type:'A',name:host('www'),content:SITE},{type:'CNAME',name:host('api'),content:host('edge')},{type:'A',name:host('status'),content:PRIVATE},{type:'TXT',name:DOMAIN,content:'v=spf1 -all'}],
+ return {zoneId,hostedZone,cloudflare:[{type:'AAAA',name:host('www'),content:'100::',proxied:true},{type:'A',name:host('www'),content:'93.184.216.51',proxied:false},{type:'CNAME',name:host('api'),content:host('edge'),proxied:false},{type:'A',name:host('status'),content:PRIVATE},{type:'TXT',name:DOMAIN,content:'v=spf1 -all'}],
   route53:[{type:'A',name:host('shop'),values:[SITE]},{type:'MX',name:DOMAIN,values:['10 mail.example.org']}],
   github:[{id:9001,created_at:new Date(Date.now()-3600000).toISOString(),environment:'production',url:host('app')}],githubRuns:2,
   vercel:{deployments:[{uid:'dpl_synthetic1',created:Date.now()-3600000}],domains:[host('web')]},
