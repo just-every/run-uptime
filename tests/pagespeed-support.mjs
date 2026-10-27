@@ -17,7 +17,7 @@ import {tmpdir} from 'node:os';
 import {chromium} from 'playwright';
 import {startLocalWorker} from './mail-provider-fixture.mjs';
 import {splitSql} from './migration-support.mjs';
-import {testAuthBindings,signInOwner} from './auth-test-support.mjs';
+import {testAuthBindings,signInOwner,browserSignIn} from './auth-test-support.mjs';
 import {availablePorts,migratedWorker,ownerAPI} from './notify-acceptance-runtime.mjs';
 import {validateDefinition} from '../src/domain/policy.mjs';
 
@@ -272,27 +272,39 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
     await change(() => sample.fill('74'), {samplePercent: 74});
     await page.locator('[name=enabled]').uncheck();
     await status.getByText('Saved', {exact: true}).waitFor();
-    const other = await context.newPage();
+    const otherContext = await consoleBrowser.newContext(), other = await otherContext.newPage();
+    await browserSignIn(other, origin);
     try {
       for (const typed of [false, true]) {
+        // Edit both controls in this document: reloading here would conceal stale live values.
+        await sample.fill('73'); await sample.blur(); await status.getByText('Saved', {exact: true}).waitFor();
+        await page.locator('[name=enabled]').uncheck(); await status.getByText('Saved', {exact: true}).waitFor();
         await other.goto(`${origin}/app/monitors/${ids.mobile}`);
         const otherSample = other.locator('#pagespeed-sample');
         await otherSample.fill('80'); await otherSample.blur();
+        await other.locator('#pagespeed-save-status').getByText('Saved', {exact: true}).waitFor();
+        await other.locator('[name=enabled]').check();
         await other.locator('#pagespeed-save-status').getByText('Saved', {exact: true}).waitFor();
         const refreshed = page.waitForResponse(response => new URL(response.url()).pathname === `/api/monitors/${ids.mobile}/pagespeed`);
         await page.locator('#pagespeed-refresh').click(); await refreshed;
         await page.waitForFunction(() => document.querySelector('#pagespeed-sample').value === '80');
         assert.equal(await status.textContent(), '', 'a read that changes the shown value clears Saved');
+        assert.ok(await page.locator('[name=enabled]').isChecked(), 'Refresh shows the same enabled value as its read');
         const before = settingWrites.length;
         await sample.focus(); await sample.blur(); await page.waitForTimeout(650);
         assert.equal(settingWrites.length, before, 'untouched refreshed value sends no write');
+        await sample.fill('51'); await sample.blur(); await status.getByText('Saved', {exact: true}).waitFor();
+        assert.deepEqual(settingWrites.at(-1), {samplePercent: 51}, 'a sample edit never sends the untouched enabled value');
+        const current = (await ok(`/api/rum/sites/${site.id}/report`)).site;
+        assert.equal(current.samplePercent, 51); assert.equal(current.enabled, true);
         await change(async () => {
           if (typed) { await sample.fill(''); await sample.pressSequentially('74'); }
           else await sample.fill('74');
         }, {samplePercent: 74});
         assert.equal(await sample.inputValue(), '74', 'the set-back value survives reload');
       }
-    } finally { await other.close(); }
+    } finally { await otherContext.close(); }
+    await change(() => page.locator('[name=enabled]').uncheck(), {enabled: false});
     await change(() => page.locator('[name=enabled]').check(), {enabled: true});
     // The response is held at the provider edge: Saved must wait for the actual successful server response.
     let release; const held = new Promise(resolve => { release = resolve; });

@@ -73,13 +73,25 @@ async function mount(m){
  const values=form=>({enabled:form.elements.enabled.checked,samplePercent:Number(form.elements.samplePercent.value),excludedPaths:[...new Set(form.elements.excludedPaths.value.split('\n').map(x=>x.trim()).filter(Boolean))]});
  const equal=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
  const say=text=>{const feedback=host.querySelector('#pagespeed-save-status');if(feedback&&feedback.textContent!==text)feedback.textContent=text};
+ // Only owner input can authorize a field in a PATCH, including a retry after failure.
+ const edited=new Set();
  let siteId,saved,saving=false,pending=false,timer;
  const load=async()=>{try{const report=await request(`/api/monitors/${key}/pagespeed`);if(!host.isConnected)return;
   const site=report.realUser?.report.site;
-  const previous=saved;
+  // dom-patch preserves live controls; refresh only values with no unconfirmed edit.
+  const previous=saved,form=host.querySelector('#pagespeed-beacon'),live=form?values(form):null;
+  const clean=Object.keys(previous??{}).filter(name=>equal(live?.[name],previous[name]));
+  if(siteId!==site?.id)edited.clear();
   siteId=site?.id;saved=site?settings(site):null;
   if(previous&&saved&&!equal(previous,saved))say('');
-  patch(body,`${latestMarkup(report)}<div class="ps-reports"><section aria-labelledby="pagespeed-synthetic-heading"><h3 id="pagespeed-synthetic-heading">Synthetic checks</h3><p id="pagespeed-synthetic-denominator">${report.checks} page-speed check${report.checks===1?'':'s'}, ${report.overBudget} over budget.</p></section><section aria-labelledby="pagespeed-rum-heading"><h3 id="pagespeed-rum-heading">Real users</h3>${rumMarkup(report.realUser)}</section></div>${settingsMarkup(report,origin)}`)}
+  patch(body,`${latestMarkup(report)}<div class="ps-reports"><section aria-labelledby="pagespeed-synthetic-heading"><h3 id="pagespeed-synthetic-heading">Synthetic checks</h3><p id="pagespeed-synthetic-denominator">${report.checks} page-speed check${report.checks===1?'':'s'}, ${report.overBudget} over budget.</p></section><section aria-labelledby="pagespeed-rum-heading"><h3 id="pagespeed-rum-heading">Real users</h3>${rumMarkup(report.realUser)}</section></div>${settingsMarkup(report,origin)}`);
+  const refreshed=host.querySelector('#pagespeed-beacon');
+  if(saved&&refreshed)for(const name of clean){
+   const control=refreshed.elements[name];
+   if(name==='enabled')control.checked=saved[name];
+   else control.value=name==='excludedPaths'?saved[name].join('\n'):saved[name];
+   edited.delete(name);
+  }}
   catch(error){if(host.isConnected)body.textContent="Couldn't load page speed. Try Refresh again."}};
  host.addEventListener('click',async event=>{
   if(event.target.closest('#pagespeed-refresh'))await load();
@@ -95,12 +107,15 @@ async function mount(m){
   try{while(pending&&host.isConnected){
    pending=false;
    const form=host.querySelector('#pagespeed-beacon');if(!form||!siteId)break;
-   const next=values(form);if(equal(next,saved)){if(host.querySelector('#pagespeed-save-status').textContent!=='Saved')say('');continue}
+   const next=values(form),changes=Object.fromEntries([...edited].filter(name=>!equal(next[name],saved[name])).map(name=>[name,next[name]]));
+   for(const name of [...edited])if(equal(next[name],saved[name]))edited.delete(name);
+   if(!Object.keys(changes).length){if(host.querySelector('#pagespeed-save-status').textContent!=='Saved')say('');continue}
    if(!form.checkValidity()){say(form.elements.samplePercent.validity.valid?form.querySelector(':invalid').validationMessage:'Sampling is a whole percentage from 1 to 100');continue}
-   const changes=Object.fromEntries(Object.entries(next).filter(([name,value])=>!equal(value,saved[name])));
    try{
     const site=await request(`/api/rum/sites/${encodeURIComponent(siteId)}`,'PATCH',changes);
     saved=settings(site);
+    const live=values(form);
+    for(const name of Object.keys(changes))if(equal(live[name],next[name]))edited.delete(name);
     if(!host.isConnected)return;
     form.querySelector('#pagespeed-beacon-state').textContent=`${site.origin} · ${site.enabled?'on':'off'}.`;
     say(equal(values(form),saved)?'Saved':'');
@@ -110,10 +125,10 @@ async function mount(m){
  host.addEventListener('submit',event=>{if(event.target.matches('#pagespeed-beacon')){event.preventDefault();void save()}});
  host.addEventListener('input',event=>{
   const form=event.target.closest('#pagespeed-beacon');if(!form)return;
-  say('');
+  edited.add(event.target.name);say('');
   clearTimeout(timer);if(event.target.type!=='checkbox')timer=setTimeout(save,500);
  });
- host.addEventListener('change',event=>{if(event.target.closest('#pagespeed-beacon'))void save()});
+ host.addEventListener('change',event=>{if(event.target.matches('#pagespeed-beacon input,#pagespeed-beacon textarea')){edited.add(event.target.name);void save()}});
  host.addEventListener('focusout',event=>{if(event.target.matches('#pagespeed-beacon input,#pagespeed-beacon textarea'))void save()});
  await load();
 }
