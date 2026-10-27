@@ -23,7 +23,7 @@ function styles(){
 .pagespeed .ps-waterfall{list-style:none;padding:0;margin:0}.pagespeed .ps-waterfall li{padding:.3rem 0;border-bottom:1px solid var(--ui-border,#ddd)}.pagespeed .ps-url{overflow-wrap:anywhere;font-family:ui-monospace,monospace;font-size:13px}
 .pagespeed .ps-track{position:relative;height:.6rem;background:var(--ui-surface-muted,#eee);border-radius:3px;overflow:hidden;margin-top:.2rem}.pagespeed .ps-bar{position:absolute;top:0;bottom:0;background:var(--ui-accent,#2f6fdb);min-width:2px}
 .pagespeed .ps-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));gap:.5rem;margin:0}.pagespeed .ps-grid div{min-width:0}.pagespeed dd{margin:0;font-weight:600}.pagespeed .ps-reports{display:grid;gap:1rem}
-.pagespeed #pagespeed-beacon>p{margin-top:12px}.pagespeed form label{display:block;margin-top:.5rem}.pagespeed form input[type=number],.pagespeed form textarea{width:100%;max-width:100%;box-sizing:border-box}.pagespeed code{overflow-wrap:anywhere;white-space:pre-wrap}
+.pagespeed #pagespeed-beacon>p{margin-top:12px}.pagespeed #pagespeed-beacon>#pagespeed-save-status{margin:.25rem 0 0;font-size:14px}.pagespeed #pagespeed-save-status:empty{display:none}.pagespeed form label{display:block;margin-top:.5rem}.pagespeed form input[type=number],.pagespeed form textarea{width:100%;max-width:100%;box-sizing:border-box}.pagespeed code{overflow-wrap:anywhere;white-space:pre-wrap}
 ${RUM_STYLES}`;
  document.head.append(style);
 }
@@ -59,7 +59,7 @@ function settingsMarkup(report,origin){
  const site=report.realUser?.report.site;
  if(!site)return `<h3>Real-user beacon</h3><p>Off. Registering ${escape(origin)} keeps the beacon off until you enable it; it then samples 10% of consenting visitors.</p><button type="button" class="ui-button" id="pagespeed-register">Register ${escape(origin)}</button>`;
  return `<h3>Real-user beacon</h3><form id="pagespeed-beacon"><p id="pagespeed-beacon-state">${escape(site.origin)} · ${site.enabled?'on':'off'}.</p>
-<label><input type="checkbox" name="enabled"${site.enabled?' checked':''}> Collect real-user figures</label><label for="pagespeed-sample">Sample (% of consenting visitors)</label><input id="pagespeed-sample" name="samplePercent" type="number" min="1" max="100" step="1" value="${site.samplePercent}">
+<label><input type="checkbox" name="enabled"${site.enabled?' checked':''}> Collect real-user figures</label><label for="pagespeed-sample">Sample (% of consenting visitors)</label><input id="pagespeed-sample" name="samplePercent" type="number" min="1" max="100" step="1" value="${site.samplePercent}" required aria-describedby="pagespeed-save-status"><p id="pagespeed-save-status" role="status" data-owned="${escape(site.id)}"></p>
 <label for="pagespeed-excluded">Excluded paths (one prefix per line)</label><textarea id="pagespeed-excluded" name="excludedPaths" rows="2">${escape(site.excludedPaths.join('\n'))}</textarea>
 <p>Add to the site's pages: <code id="pagespeed-snippet">${escape(site.snippet)}</code></p><p>Then record consent: add <code>data-consent="granted"</code> to the tag only on pages served to a visitor who consented, or call <code>uptimeRum.consent()</code> from your consent banner.</p>
 <p id="pagespeed-privacy">${escape(PRIVACY)}</p><details class="ps-erase" id="pagespeed-erase"><summary>Erase this site's data</summary><p>This erases the registration of ${escape(site.origin)} and every figure kept for it. The snippet on your pages then collects nothing. The anonymous audit remains.</p>
@@ -72,12 +72,13 @@ async function mount(m){
  const settings=site=>({enabled:site.enabled,samplePercent:site.samplePercent,excludedPaths:site.excludedPaths});
  const values=form=>({enabled:form.elements.enabled.checked,samplePercent:Number(form.elements.samplePercent.value),excludedPaths:[...new Set(form.elements.excludedPaths.value.split('\n').map(x=>x.trim()).filter(Boolean))]});
  const equal=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+ const say=text=>{const feedback=host.querySelector('#pagespeed-save-status');if(feedback&&feedback.textContent!==text)feedback.textContent=text};
  let siteId,saved,saving=false,pending=false,timer;
  const load=async()=>{try{const report=await request(`/api/monitors/${key}/pagespeed`);if(!host.isConnected)return;
   const site=report.realUser?.report.site;
   const previous=saved;
   siteId=site?.id;saved=site?settings(site):null;
-  if(previous&&saved&&!equal(previous,saved))status.textContent='';
+  if(previous&&saved&&!equal(previous,saved))say('');
   patch(body,`${latestMarkup(report)}<div class="ps-reports"><section aria-labelledby="pagespeed-synthetic-heading"><h3 id="pagespeed-synthetic-heading">Synthetic checks</h3><p id="pagespeed-synthetic-denominator">${report.checks} page-speed check${report.checks===1?'':'s'}, ${report.overBudget} over budget.</p></section><section aria-labelledby="pagespeed-rum-heading"><h3 id="pagespeed-rum-heading">Real users</h3>${rumMarkup(report.realUser)}</section></div>${settingsMarkup(report,origin)}`)}
   catch(error){if(host.isConnected)body.textContent="Couldn't load page speed. Try Refresh again."}};
  host.addEventListener('click',async event=>{
@@ -94,22 +95,22 @@ async function mount(m){
   try{while(pending&&host.isConnected){
    pending=false;
    const form=host.querySelector('#pagespeed-beacon');if(!form||!siteId)break;
-   const next=values(form);if(equal(next,saved))continue;
-   if(!form.checkValidity()){status.textContent=form.querySelector(':invalid').validationMessage;continue}
+   const next=values(form);if(equal(next,saved)){if(host.querySelector('#pagespeed-save-status').textContent!=='Saved')say('');continue}
+   if(!form.checkValidity()){say(form.elements.samplePercent.validity.valid?form.querySelector(':invalid').validationMessage:'Sampling is a whole percentage from 1 to 100');continue}
    const changes=Object.fromEntries(Object.entries(next).filter(([name,value])=>!equal(value,saved[name])));
    try{
     const site=await request(`/api/rum/sites/${encodeURIComponent(siteId)}`,'PATCH',changes);
     saved=settings(site);
     if(!host.isConnected)return;
     form.querySelector('#pagespeed-beacon-state').textContent=`${site.origin} · ${site.enabled?'on':'off'}.`;
-    status.textContent=equal(values(form),saved)?'Saved':'';
-   }catch(error){if(host.isConnected)status.textContent=saveFailure(error)}
+    say(equal(values(form),saved)?'Saved':'');
+   }catch(error){if(host.isConnected)say(saveFailure(error))}
   }}finally{saving=false}
  };
  host.addEventListener('submit',event=>{if(event.target.matches('#pagespeed-beacon')){event.preventDefault();void save()}});
  host.addEventListener('input',event=>{
   const form=event.target.closest('#pagespeed-beacon');if(!form)return;
-  if(!equal(values(form),saved))status.textContent='';
+  say('');
   clearTimeout(timer);if(event.target.type!=='checkbox')timer=setTimeout(save,500);
  });
  host.addEventListener('change',event=>{if(event.target.closest('#pagespeed-beacon'))void save()});

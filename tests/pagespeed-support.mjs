@@ -247,7 +247,7 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
     // Save-as-you-go settings: real owner writes, no remount/focus loss, quiet no-ops and recoverable errors.
     await page.setViewportSize({width: 1440, height: 1000});
     assert.equal(await page.getByRole('button', {name: 'Save beacon settings'}).count(), 0);
-    const settingWrites = [], status = page.locator('#pagespeed-status'), sample = page.locator('#pagespeed-sample');
+    const settingWrites = [], status = page.locator('#pagespeed-save-status'), sample = page.locator('#pagespeed-sample');
     page.on('request', request => { if (request.method() === 'PATCH' && new URL(request.url()).pathname === `/api/rum/sites/${site.id}`) settingWrites.push(request.postDataJSON()); });
     await sample.focus(); await sample.blur(); await page.waitForTimeout(650);
     assert.equal(settingWrites.length, 0, 'an unchanged blur writes nothing');
@@ -270,13 +270,15 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
     // Another signed-in tab changes this same registration. A refreshed value becomes the comparison
     // baseline for paste, typing and an untouched blur, without registering another site.
     await change(() => sample.fill('74'), {samplePercent: 74});
+    await page.locator('[name=enabled]').uncheck();
+    await status.getByText('Saved', {exact: true}).waitFor();
     const other = await context.newPage();
     try {
       for (const typed of [false, true]) {
         await other.goto(`${origin}/app/monitors/${ids.mobile}`);
         const otherSample = other.locator('#pagespeed-sample');
         await otherSample.fill('80'); await otherSample.blur();
-        await other.locator('#pagespeed-status').getByText('Saved', {exact: true}).waitFor();
+        await other.locator('#pagespeed-save-status').getByText('Saved', {exact: true}).waitFor();
         const refreshed = page.waitForResponse(response => new URL(response.url()).pathname === `/api/monitors/${ids.mobile}/pagespeed`);
         await page.locator('#pagespeed-refresh').click(); await refreshed;
         await page.waitForFunction(() => document.querySelector('#pagespeed-sample').value === '80');
@@ -291,6 +293,7 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
         assert.equal(await sample.inputValue(), '74', 'the set-back value survives reload');
       }
     } finally { await other.close(); }
+    await change(() => page.locator('[name=enabled]').check(), {enabled: true});
     // The response is held at the provider edge: Saved must wait for the actual successful server response.
     let release; const held = new Promise(resolve => { release = resolve; });
     const sitePath = `**/api/rum/sites/${site.id}`;
@@ -323,6 +326,26 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
       assert.equal(settingWrites.length, before + 1, 'next blur retries the kept value once');
       assert.equal((await ok(`/api/rum/sites/${site.id}/report`)).site.samplePercent, value);
     }
+    const validation = 'Sampling is a whole percentage from 1 to 100';
+    const beforeInvalid = settingWrites.length;
+    for (const value of ['', '0', '101', '2.5']) {
+      await sample.fill(value); await status.getByText(validation, {exact: true}).waitFor();
+      await sample.blur(); await sample.focus(); await sample.blur(); await page.waitForTimeout(650);
+      assert.equal(settingWrites.length, beforeInvalid, 'empty or invalid sampling never sends a PATCH');
+      await sample.fill('23');
+      assert.equal(await status.textContent(), '', 'returning to the stored value clears validation');
+    }
+    await page.route(sitePath, route => route.request().method() === 'PATCH' ? route.fulfill({status: 500, body: ''}) : route.continue());
+    await sample.fill('24'); await status.getByText(failure, {exact: true}).waitFor();
+    const failedWrites = settingWrites.length;
+    await sample.fill('23');
+    assert.equal(await status.textContent(), '', 'returning to the stored value clears a failure');
+    await sample.blur(); await page.waitForTimeout(650);
+    assert.equal(settingWrites.length, failedWrites, 'returning to the stored value sends no request');
+    await page.unroute(sitePath);
+    await sample.fill('24'); await status.getByText('Saved', {exact: true}).waitFor();
+    const feedbackPosition = await Promise.all([sample.boundingBox(), status.boundingBox()]);
+    assert.ok(feedbackPosition[1].y >= feedbackPosition[0].y && feedbackPosition[1].y - feedbackPosition[0].y < 100, 'feedback sits beside its sample field');
     await change(() => sample.fill('20'), {samplePercent: 20});
     assert.equal(await sample.inputValue(), '20', 'sampling survives reload');
     assert.ok((await (await fetch(`${origin}/rum/v1/s/${site.id}.js`)).text()).includes('"sample":0.2'));
