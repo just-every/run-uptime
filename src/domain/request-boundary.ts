@@ -40,6 +40,7 @@ export const apiRoutes:readonly Route[]=[
  {method:'GET',path:'/api/rum/sites',body:'none'},
  {method:'POST',path:'/api/rum/sites',body:'object'},
  {method:'PATCH',path:'/api/rum/sites/:id',params:{id:uuid},body:'object'},
+ {method:'DELETE',path:'/api/rum/sites/:id',params:{id:uuid},body:'none'},
  {method:'GET',path:'/api/rum/sites/:id/report',params:{id:uuid},query:{hours:(value:string)=>/^[1-9][0-9]{0,2}$/.test(value)},body:'none'},
  ...['effect-grants','effect-grants/revoke'].map(suffix=>({method:'POST',path:`/api/monitors/:id/${suffix}`,params:id,body:'object' as const})),
  {method:'GET',path:'/api/monitors/:id/evidence-access',params:id,body:'none'},

@@ -33,6 +33,14 @@ export async function updateRumSite(env:Bindings,id:string,input:any,actor:Audit
   auditStatement(env,actor,change.enabled===false?'rum_site_disable':'rum_site_change','rum_site',crypto.randomUUID(),'1',[],now)])
  return shown(env,await env.DB.prepare('SELECT * FROM rum_sites WHERE id=?').bind(id).first<any>())
 }
+export async function eraseRumSite(env:Bindings,id:string,actor:AuditActor){
+ if(!await env.DB.prepare('SELECT 1 FROM rum_sites WHERE id=?').bind(id).first())throw notFound()
+ await env.DB.batch([
+  ...['rum_sites','rum_aggregates','rum_dropped','rum_value_counts'].map(table=>env.DB.prepare(`DELETE FROM ${table} WHERE ${table==='rum_sites'?'id':'site_id'}=?`).bind(id)),
+  auditStatement(env,actor,'rum_site_erase','rum_site')
+ ])
+ return {erased:true}
+}
 const average=(sum:number,n:number,scale=1)=>n?Math.round(sum/n/scale*1000)/1000:null
 // Nearest-rank percentiles of measured browser values, weighted by their counts.
 // Missing browser metrics and pre-upgrade sums never become zero-valued samples.

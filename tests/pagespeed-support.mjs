@@ -9,7 +9,7 @@
 // axe finding. Assertions read retained structure and budget decisions against the fixture's fixed delays, not absolute timings.
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
-import {randomUUID} from 'node:crypto';
+import {createHash,randomUUID} from 'node:crypto';
 import {mkdir,mkdtemp,readFile,readdir,rm,writeFile} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
 import {tmpdir} from 'node:os';
@@ -248,7 +248,8 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
   assert.equal(parts.find(r => r.subdivision === 'CA').errors, 8);
   assert.deepEqual(parts.find(r => r.subdivision === 'NY').inpMs, {p50: null, p75: null, p95: null, of: 0}, 'missing input is absent, never a zero sample');
   console.log('PERF-001 RUM report assertions passed: measured browser errors and LCP/CLS/INP percentiles, weighted ranks across hours, missing metrics, bot exclusion and edge US subdivisions.');
-  await provePopulatedRumRestore({ok, site, fixture, origin, distribution});
+  await proveRumErasure({ok, api, DB, worker, origin, site});
+  await provePopulatedRumRestore({ok, DB, site, fixture, origin, distribution});
   // Paused once proven, so the journey's later hard stops find only their own flow's run folder on each runner.
   for (const monitor of ids.created) await ok(`/api/monitors/${monitor.id}`, 'PATCH', {...monitor.definition, enabled: false});
 }
@@ -293,28 +294,68 @@ export async function proveRumUpgrade() {
 // A populated, enabled source exports through the owner door; an independently
 // established receiver restores through its owner door. Neither registration,
 // sampling nor visitor aggregates can become authority at the destination.
-async function provePopulatedRumRestore({ok, site, fixture, origin, distribution}) {
+async function provePopulatedRumRestore({ok, DB, site, fixture, origin, distribution}) {
+  const audits = (await DB.prepare("SELECT * FROM uptime_audit WHERE subject_kind='rum_site' ORDER BY rowid").all()).results;
   const archive = await ok('/api/archive');
   const all = {...archive.payload.tables, ...archive.payload.productTables};
   for (const table of ['rum_sites', 'rum_aggregates', 'rum_dropped', 'rum_value_counts']) assert.ok(!Object.hasOwn(all, table), `${table} stays installation-local`);
+  for (const action of ['rum_site_register', 'rum_site_change', 'rum_site_disable', 'rum_site_erase']) assert.ok(audits.some(row => row.action === action), `${action} was written by an owner operation`);
+  const auditIds = new Set(audits.map(row => row.id));
+  assert.deepEqual(all.uptime_audit.filter(row => auditIds.has(row.id)), audits, 'export retains every RUM audit row');
   assert.ok(distribution.views > 5 && distribution.site.enabled && distribution.site.samplePercent === 20, 'the exported source is populated and enabled with saved sampling');
   const directory = await mkdtemp(join(tmpdir(), 'uptime-rum-restore-'));
-  let receiver;
+  let receiver, receiverDB;
   try {
     const [port] = await availablePorts(1), target = `http://127.0.0.1:${port}`;
     const bindings = {...testAuthBindings, SESSION_SECRET: randomUUID()+randomUUID(), UPTIME_RUNNER_KEY: randomUUID()+randomUUID()};
-    ({worker: receiver} = await migratedWorker({port, persist: directory, bindings}));
+    ({worker: receiver, DB: receiverDB} = await migratedWorker({port, persist: directory, bindings}));
     const owner = ownerAPI(target); await owner.signIn(bindings);
     const request = async (path, method = 'GET', body) => { const r = await owner.api(path, method, body); assert.equal(r.status, 200, `${path}: ${JSON.stringify(r.data)}`); return r.data; };
+    // The receiving validator admits only the exact action and subject pairs.
+    for (const change of [{action: 'rum_site_unknown'}, {subject_kind: 'monitor'}, {action: 'credential_rotate'}]) {
+      const invalid = structuredClone(archive);
+      const row = invalid.payload.productTables.uptime_audit.find(row => auditIds.has(row.id));
+      Object.assign(row, change);
+      invalid.sha256 = createHash('sha256').update(JSON.stringify(invalid.payload)).digest('hex');
+      const refused = await owner.api('/api/restore', 'POST', invalid);
+      assert.equal(refused.status, 400, 'restore rejects an unrecognized or mismatched RUM audit');
+      assert.match(refused.data.error, /Invalid anonymized archive audit/);
+    }
     await request('/api/restore', 'POST', archive);
     assert.deepEqual((await request('/api/rum/sites')).sites, [], 'restore carries no enabled registration or saved sample');
     assert.match(await (await fetch(`${target}/rum/v1/s/${site.id}.js`)).text(), /not enabled/, 'the source snippet cannot collect on the receiver');
     const rejected = await fetch(`${target}/rum/v1/collect`, {method: 'POST', headers: {origin: fixture.origin, 'content-type': 'text/plain', 'user-agent': PHONE}, body: JSON.stringify({site: site.id, route: '/', device: 'mobile', status: 'ok', lcpMs: 1, cls: 0, inpMs: 1, ttfbMs: 1, errors: 0})});
     assert.equal(rejected.status, 403, 'restored collection is off');
+    for (const table of ['rum_sites', 'rum_aggregates', 'rum_dropped', 'rum_value_counts']) assert.equal((await receiverDB.prepare(`SELECT COUNT(*) n FROM ${table}`).first()).n, 0, `${table} remains empty after the refused beacon`);
     const restored = await request('/api/archive');
+    assert.deepEqual(restored.payload.productTables.uptime_audit.filter(row => auditIds.has(row.id)), audits, 'RUM audit history arrived at the independent receiver');
     assert.equal(restored.payload.tables.monitors.length, archive.payload.tables.monitors.length, 'portable monitors survived the same restore');
     const local = await ok('/api/rum/sites');
     assert.ok(local.sites.some(r => r.id === site.id && r.enabled && r.samplePercent === 20), 'export preserves the source registration and sampling');
     assert.equal((await ok(`/api/rum/sites/${site.id}/report`)).views, distribution.views, 'export preserves source aggregates');
+    console.log('PERF-001 populated archive and restore passed: registration, sampling and all aggregates stay local; restored collection is off; every RUM audit arrives.');
   } finally { await receiver?.dispose(); await rm(directory, {recursive: true, force: true}); }
+}
+
+async function proveRumErasure({ok, api, DB, worker, origin, site}) {
+  const doomed = await ok('/api/rum/sites', 'POST', {origin: 'https://synthetic-uptime-4.example.test', enabled: true, samplePercent: 100});
+  const body = JSON.stringify({site: doomed.id, route: '/checkout', device: 'mobile', status: 'ok', lcpMs: 200, cls: 0.1, inpMs: 100, ttfbMs: 50, errors: 1});
+  const beacon = agent => worker.dispatchFetch(`${origin}/rum/v1/collect`, {method: 'POST', headers: {origin: doomed.origin, 'user-agent': agent}, body, cf: {country: 'US', regionCode: 'CA'}});
+  assert.equal((await beacon(PHONE)).status, 204);
+  assert.equal((await beacon('Googlebot')).status, 204);
+  const tables = ['rum_aggregates', 'rum_dropped', 'rum_value_counts'];
+  for (const table of tables) assert.ok((await DB.prepare(`SELECT COUNT(*) n FROM ${table} WHERE site_id=?`).bind(doomed.id).first()).n > 0, `${table} is populated before erasure`);
+  const surviving = await ok(`/api/rum/sites/${site.id}/report`);
+  const retained = await Promise.all(tables.map(async table => (await DB.prepare(`SELECT * FROM ${table} WHERE site_id=? ORDER BY rowid`).bind(site.id).all()).results));
+  await ok(`/api/rum/sites/${doomed.id}`, 'PATCH', {enabled: false});
+  assert.ok((await ok(`/api/rum/sites/${doomed.id}/report`)).views > 0, 'disabling retains the report until owner erasure');
+  await ok(`/api/rum/sites/${doomed.id}`, 'PATCH', {enabled: true});
+  assert.deepEqual(await ok(`/api/rum/sites/${doomed.id}`, 'DELETE'), {erased: true});
+  assert.equal((await api(`/api/rum/sites/${doomed.id}/report`)).status, 404, 'the erased site report is gone');
+  assert.ok(!(await ok('/api/rum/sites')).sites.some(row => row.id === doomed.id), 'the erased registration is gone');
+  for (const table of tables) assert.equal((await DB.prepare(`SELECT COUNT(*) n FROM ${table} WHERE site_id=?`).bind(doomed.id).first()).n, 0, `${table} is erased with its registration`);
+  assert.equal((await beacon(PHONE)).status, 403, 'the erased origin cannot collect');
+  assert.deepEqual(await ok(`/api/rum/sites/${site.id}/report`), surviving, 'a second site report survives erasure');
+  assert.deepEqual(await Promise.all(tables.map(async table => (await DB.prepare(`SELECT * FROM ${table} WHERE site_id=? ORDER BY rowid`).bind(site.id).all()).results)), retained, 'a second site retains every aggregate');
+  console.log('PERF-001 owner erasure passed: registration and all aggregate tables removed atomically, erased-origin collection refused, independent site retained.');
 }

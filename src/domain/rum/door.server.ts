@@ -41,23 +41,24 @@ export async function rumDoor(env:Bindings,request:Request):Promise<Response>{
  const cors={'access-control-allow-origin':row.origin,vary:'origin'},hour=Math.floor(Date.now()/3600000)*3600000
  const dropped=BOT_AGENTS.test(request.headers.get('user-agent')??'')?'bot':JSON.parse(row.excluded_paths).some((prefix:string)=>beacon.route.startsWith(prefix))?'excluded':null
  if(dropped){
-  await env.DB.prepare('INSERT INTO rum_dropped(site_id,hour,reason,count) VALUES(?,?,?,1) ON CONFLICT(site_id,hour,reason) DO UPDATE SET count=count+1').bind(row.id,hour,dropped).run()
+  await env.DB.prepare('INSERT INTO rum_dropped(site_id,hour,reason,count) SELECT ?,?,?,1 WHERE EXISTS(SELECT 1 FROM rum_sites WHERE id=? AND enabled=1) ON CONFLICT(site_id,hour,reason) DO UPDATE SET count=count+1').bind(row.id,hour,dropped,row.id).run()
   return plain(204,cors)
  }
  const n=(value:number|null)=>value===null?0:1,v=(value:number|null)=>value??0
  const {region,subdivision}=geography(request)
  const aggregate=env.DB.prepare(`INSERT INTO rum_aggregates(site_id,hour,route,device,region,views,failed_views,known_views,errors,lcp_n,lcp_sum,lcp_poor,cls_n,cls_milli_sum,inp_n,inp_sum,ttfb_n,ttfb_sum)
-  VALUES(?,?,?,?,?,1,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(site_id,hour,route,device,region) DO UPDATE SET views=views+1,failed_views=failed_views+excluded.failed_views,known_views=known_views+excluded.known_views,
+  SELECT ?,?,?,?,?,1,?,?,?,?,?,?,?,?,?,?,?,? WHERE EXISTS(SELECT 1 FROM rum_sites WHERE id=? AND enabled=1) ON CONFLICT(site_id,hour,route,device,region) DO UPDATE SET views=views+1,failed_views=failed_views+excluded.failed_views,known_views=known_views+excluded.known_views,
   errors=errors+excluded.errors,lcp_n=lcp_n+excluded.lcp_n,lcp_sum=lcp_sum+excluded.lcp_sum,lcp_poor=lcp_poor+excluded.lcp_poor,cls_n=cls_n+excluded.cls_n,cls_milli_sum=cls_milli_sum+excluded.cls_milli_sum,
   inp_n=inp_n+excluded.inp_n,inp_sum=inp_sum+excluded.inp_sum,ttfb_n=ttfb_n+excluded.ttfb_n,ttfb_sum=ttfb_sum+excluded.ttfb_sum`)
   .bind(row.id,hour,beacon.route,beacon.device,region,Number(beacon.status==='failed'),Number(beacon.status!=='unknown'),beacon.errors,n(beacon.lcpMs),v(beacon.lcpMs),Number((beacon.lcpMs??0)>RUM_LIMITS.poorLcpMs),
-   n(beacon.cls),Math.round(v(beacon.cls)*1000),n(beacon.inpMs),v(beacon.inpMs),n(beacon.ttfbMs),v(beacon.ttfbMs))
+   n(beacon.cls),Math.round(v(beacon.cls)*1000),n(beacon.inpMs),v(beacon.inpMs),n(beacon.ttfbMs),v(beacon.ttfbMs),row.id)
+ // Recheck registration inside each write: an earlier read cannot recreate erased aggregates.
  // Counts combine equal anonymous values. Keep these and the legacy sums in one
  // transaction, so failures cannot leave mismatched reporting denominators.
  const values:Record<string,number|null>={status:beacon.status==='unknown'?0:beacon.status==='failed'?2:1,errors:beacon.errors,lcpMs:beacon.lcpMs,cls:beacon.cls===null?null:Math.round(beacon.cls*1000),inpMs:beacon.inpMs}
  const frequencies=Object.entries(values).filter(([,value])=>value!==null).map(([metric,value])=>env.DB.prepare(`INSERT INTO rum_value_counts(site_id,hour,route,device,region,subdivision,metric,value,count)
-  VALUES(?,?,?,?,?,?,?,?,1) ON CONFLICT(site_id,hour,route,device,region,subdivision,metric,value) DO UPDATE SET count=count+1`)
-  .bind(row.id,hour,beacon.route,beacon.device,region,subdivision,metric,value))
+  SELECT ?,?,?,?,?,?,?,?,1 WHERE EXISTS(SELECT 1 FROM rum_sites WHERE id=? AND enabled=1) ON CONFLICT(site_id,hour,route,device,region,subdivision,metric,value) DO UPDATE SET count=count+1`)
+  .bind(row.id,hour,beacon.route,beacon.device,region,subdivision,metric,value,row.id))
  await env.DB.batch([aggregate,...frequencies])
  return plain(204,cors)
 }
