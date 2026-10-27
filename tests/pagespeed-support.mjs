@@ -247,14 +247,16 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
     // Save-as-you-go settings: real owner writes, no remount/focus loss, quiet no-ops and recoverable errors.
     await page.setViewportSize({width: 1440, height: 1000});
     assert.equal(await page.getByRole('button', {name: 'Save beacon settings'}).count(), 0);
-    const settingWrites = [], status = page.locator('#pagespeed-save-status'), sample = page.locator('#pagespeed-sample');
+    const settingWrites = [], status = page.locator('#pagespeed-save-status'), sampleError = page.locator('#pagespeed-samplePercent-error'), sample = page.locator('#pagespeed-sample');
     page.on('request', request => { if (request.method() === 'PATCH' && new URL(request.url()).pathname === `/api/rum/sites/${site.id}`) settingWrites.push(request.postDataJSON()); });
     await sample.focus(); await sample.blur(); await page.waitForTimeout(650);
     assert.equal(settingWrites.length, 0, 'an unchanged blur writes nothing');
     assert.equal(await status.textContent(), '', 'an unchanged blur says nothing');
     const change = async (edit, expected) => {
       const before = settingWrites.length;
-      await edit(); await status.getByText('Saved', {exact: true}).waitFor();
+      await edit();
+      const name = Object.keys(expected)[0];
+      await page.locator(name === 'samplePercent' ? '#pagespeed-save-status' : `#pagespeed-${name}-status`).getByText('Saved', {exact: true}).waitFor();
       assert.equal(settingWrites.length, before + 1, 'one write per real change');
       const saved = await ok(`/api/rum/sites/${site.id}/report`);
       for (const [key, value] of Object.entries(expected)) assert.deepEqual(saved.site[key], value);
@@ -271,20 +273,20 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
     // baseline for paste, typing and an untouched blur, without registering another site.
     await change(() => sample.fill('74'), {samplePercent: 74});
     await page.locator('[name=enabled]').uncheck();
-    await status.getByText('Saved', {exact: true}).waitFor();
+    await page.locator('#pagespeed-enabled-status').getByText('Saved', {exact: true}).waitFor();
     const otherContext = await consoleBrowser.newContext(), other = await otherContext.newPage();
     await browserSignIn(other, origin);
     try {
       for (const typed of [false, true]) {
         // Edit both controls in this document: reloading here would conceal stale live values.
         await sample.fill('73'); await sample.blur(); await status.getByText('Saved', {exact: true}).waitFor();
-        await page.locator('[name=enabled]').uncheck(); await status.getByText('Saved', {exact: true}).waitFor();
+        await page.locator('[name=enabled]').uncheck(); await page.locator('#pagespeed-enabled-status').getByText('Saved', {exact: true}).waitFor();
         await other.goto(`${origin}/app/monitors/${ids.mobile}`);
         const otherSample = other.locator('#pagespeed-sample');
         await otherSample.fill('80'); await otherSample.blur();
         await other.locator('#pagespeed-save-status').getByText('Saved', {exact: true}).waitFor();
         await other.locator('[name=enabled]').check();
-        await other.locator('#pagespeed-save-status').getByText('Saved', {exact: true}).waitFor();
+        await other.locator('#pagespeed-enabled-status').getByText('Saved', {exact: true}).waitFor();
         const refreshed = page.waitForResponse(response => new URL(response.url()).pathname === `/api/monitors/${ids.mobile}/pagespeed`);
         await page.locator('#pagespeed-refresh').click(); await refreshed;
         await page.waitForFunction(() => document.querySelector('#pagespeed-sample').value === '80');
@@ -329,7 +331,7 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
     ]) {
       const stored = (await ok(`/api/rum/sites/${site.id}/report`)).site.samplePercent;
       await page.route(sitePath, route => route.request().method() === 'PATCH' ? fail(route) : route.continue());
-      await sample.fill(String(value)); await status.getByText(failure, {exact: true}).waitFor();
+      await sample.fill(String(value)); await sampleError.getByText(failure, {exact: true}).waitFor();
       assert.equal(await sample.inputValue(), String(value), 'a failed write keeps the typed value');
       assert.equal((await ok(`/api/rum/sites/${site.id}/report`)).site.samplePercent, stored, 'a failed write changes no saved value');
       await page.unroute(sitePath);
@@ -341,14 +343,14 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
     const validation = 'Sampling is a whole percentage from 1 to 100';
     const beforeInvalid = settingWrites.length;
     for (const value of ['', '0', '101', '2.5']) {
-      await sample.fill(value); await status.getByText(validation, {exact: true}).waitFor();
+      await sample.fill(value); await sampleError.getByText(validation, {exact: true}).waitFor();
       await sample.blur(); await sample.focus(); await sample.blur(); await page.waitForTimeout(650);
       assert.equal(settingWrites.length, beforeInvalid, 'empty or invalid sampling never sends a PATCH');
       await sample.fill('23');
       assert.equal(await status.textContent(), '', 'returning to the stored value clears validation');
     }
     await page.route(sitePath, route => route.request().method() === 'PATCH' ? route.fulfill({status: 500, body: ''}) : route.continue());
-    await sample.fill('24'); await status.getByText(failure, {exact: true}).waitFor();
+    await sample.fill('24'); await sampleError.getByText(failure, {exact: true}).waitFor();
     const failedWrites = settingWrites.length;
     await sample.fill('23');
     assert.equal(await status.textContent(), '', 'returning to the stored value clears a failure');
@@ -356,8 +358,22 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
     assert.equal(settingWrites.length, failedWrites, 'returning to the stored value sends no request');
     await page.unroute(sitePath);
     await sample.fill('24'); await status.getByText('Saved', {exact: true}).waitFor();
-    const feedbackPosition = await Promise.all([sample.boundingBox(), status.boundingBox()]);
-    assert.ok(feedbackPosition[1].y >= feedbackPosition[0].y && feedbackPosition[1].y - feedbackPosition[0].y < 100, 'feedback sits beside its sample field');
+    // Every control owns its label-row feedback and reserved error space. Saving or clearing it moves no control.
+    for (const [name, value] of [['enabled', false], ['samplePercent', '25'], ['excludedPaths', '/s/shop/private/']]) {
+      const control = page.locator(`[name=${name}]`), fieldStatus = page.locator(name === 'samplePercent' ? '#pagespeed-save-status' : `#pagespeed-${name}-status`);
+      const described = (await control.getAttribute('aria-describedby')).split(' ');
+      assert.ok(described.includes(await fieldStatus.getAttribute('id')) && described.includes(`pagespeed-${name}-error`));
+      const positions = () => page.locator('#pagespeed-excluded').evaluate(node => node.getBoundingClientRect().top + scrollY);
+      const before = await positions();
+      if (name === 'enabled') await control.setChecked(value); else await control.fill(value);
+      await fieldStatus.getByText('Saved', {exact: true}).waitFor();
+      assert.equal(await positions(), before, `${name}: Saved moves no field`);
+      const row = await fieldStatus.locator('..').boundingBox(), feedbackPosition = await fieldStatus.boundingBox();
+      assert.ok(feedbackPosition.y >= row.y && feedbackPosition.y + feedbackPosition.height <= row.y + row.height + 1, 'feedback stays in its own label row');
+      if (name === 'enabled') await control.check(); else await control.fill(name === 'samplePercent' ? '26' : '/s/shop/account/');
+      assert.equal(await positions(), before, `${name}: clearing Saved moves no field`);
+      await fieldStatus.getByText('Saved', {exact: true}).waitFor();
+    }
     await change(() => sample.fill('20'), {samplePercent: 20});
     assert.equal(await sample.inputValue(), '20', 'sampling survives reload');
     assert.ok((await (await fetch(`${origin}/rum/v1/s/${site.id}.js`)).text()).includes('"sample":0.2'));
