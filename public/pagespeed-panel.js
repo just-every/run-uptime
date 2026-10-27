@@ -73,7 +73,9 @@ async function mount(m){
  let siteId,saved,saving=false,pending=false,timer;
  const load=async()=>{try{const report=await request(`/api/monitors/${key}/pagespeed`);if(!host.isConnected)return;
   const site=report.realUser?.report.site;
-  if(site?.id!==siteId){siteId=site?.id;saved=site?settings(site):null}
+  const previous=saved;
+  siteId=site?.id;saved=site?settings(site):null;
+  if(previous&&saved&&!equal(previous,saved))status.textContent='';
   patch(body,`${latestMarkup(report)}<div class="ps-reports"><section aria-labelledby="pagespeed-synthetic-heading"><h3 id="pagespeed-synthetic-heading">Synthetic checks</h3><p id="pagespeed-synthetic-denominator">${report.checks} page-speed check${report.checks===1?'':'s'}, ${report.overBudget} over budget.</p></section><section aria-labelledby="pagespeed-rum-heading"><h3 id="pagespeed-rum-heading">Real users</h3>${rumMarkup(report.realUser)}</section></div>${settingsMarkup(report,origin)}`)}
   catch(error){if(host.isConnected)body.textContent=error.message}};
  host.addEventListener('click',async event=>{

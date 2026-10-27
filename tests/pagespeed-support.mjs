@@ -267,6 +267,30 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
     await change(() => page.locator('#pagespeed-excluded').fill('/private/'), {excludedPaths: ['/private/']});
     assert.equal(await page.locator('#pagespeed-excluded').inputValue(), '/private/');
     await change(() => page.locator('#pagespeed-excluded').fill('/s/shop/account/'), {excludedPaths: ['/s/shop/account/']});
+    // Another signed-in tab changes this same registration. A refreshed value becomes the comparison
+    // baseline for paste, typing and an untouched blur, without registering another site.
+    await change(() => sample.fill('74'), {samplePercent: 74});
+    const other = await context.newPage();
+    try {
+      for (const typed of [false, true]) {
+        await other.goto(`${origin}/app/monitors/${ids.mobile}`);
+        const otherSample = other.locator('#pagespeed-sample');
+        await otherSample.fill('80'); await otherSample.blur();
+        await other.locator('#pagespeed-status').getByText('Saved', {exact: true}).waitFor();
+        const refreshed = page.waitForResponse(response => new URL(response.url()).pathname === `/api/monitors/${ids.mobile}/pagespeed`);
+        await page.locator('#pagespeed-refresh').click(); await refreshed;
+        await page.waitForFunction(() => document.querySelector('#pagespeed-sample').value === '80');
+        assert.equal(await status.textContent(), '', 'a read that changes the shown value clears Saved');
+        const before = settingWrites.length;
+        await sample.focus(); await sample.blur(); await page.waitForTimeout(650);
+        assert.equal(settingWrites.length, before, 'untouched refreshed value sends no write');
+        await change(async () => {
+          if (typed) { await sample.fill(''); await sample.pressSequentially('74'); }
+          else await sample.fill('74');
+        }, {samplePercent: 74});
+        assert.equal(await sample.inputValue(), '74', 'the set-back value survives reload');
+      }
+    } finally { await other.close(); }
     // The response is held at the provider edge: Saved must wait for the actual successful server response.
     let release; const held = new Promise(resolve => { release = resolve; });
     const sitePath = `**/api/rum/sites/${site.id}`;
