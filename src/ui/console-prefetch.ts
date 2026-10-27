@@ -23,5 +23,5 @@ export const CONSOLE_MODULES=['app.js',
  'monitor-recent-checks.js','monitor-report.js','monitor-rule-edit.js','monitor-rules-table.js','monitor-rules.js','monitor-status-line.js',
  'monitor-status.js','monitor-table-fit.js',
  'monitor-timeline.js','notification-dialogs.js','notification-help.js','notification-preferences.js','notifications.js',
- 'pagespeed-panel.js','planned-maintenance.js','protocol-panel.js','report-jobs.js','report-render.js','settings-view.js','slow-policy.js',
+ 'pagespeed-panel.js','pagespeed-rum.js','planned-maintenance.js','protocol-panel.js','report-jobs.js','report-render.js','settings-view.js','slow-policy.js',
  'transaction-panel.js','webhook-editor.js']

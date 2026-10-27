@@ -1446,6 +1446,14 @@
         "environment": "all"
       },
       {
+        "path": "/pagespeed-rum.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
         "path": "/protocol-panel.js",
         "match": "exact",
         "kind": "asset",

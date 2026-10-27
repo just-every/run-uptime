@@ -5,8 +5,9 @@
 // the health check stays Healthy. Then the real-user beacon: registered off, enabled with owner sampling and an excluded path, and
 // visited by real browsers (consenting phone-profile and desktop visitors; a visitor without consent, one with Global Privacy Control, one
 // with Do Not Track, a bot, one outside the sample and one on an excluded path send nothing), with the door's own refusals and filtering. The console
-// shows the waterfall, the budgets and the two reports with their own denominators at 1440 and 390, with no overflow or serious
-// axe finding. Assertions read retained structure and budget decisions against the fixture's fixed delays, not absolute timings.
+// shows the waterfall, the budgets and the two reports with their own denominators, the real users' measured percentiles, at 1440 and
+// 390, with no overflow or serious axe finding; the owner finally erases the site from it. Assertions read retained structure and
+// budget decisions against the fixture's fixed delays, not absolute timings.
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
 import {createHash,randomUUID} from 'node:crypto';
@@ -199,15 +200,19 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
       assert.match(await panel.locator('#pagespeed-errors').textContent(), /Mobile checkout script failed/);
       assert.equal(await panel.locator('#pagespeed-synthetic-denominator').textContent(), `${both.checks} page-speed checks, ${both.overBudget} over budget.`);
       assert.match(await panel.locator('#pagespeed-rum-denominator').textContent(), /^5 sampled page views/);
-      assert.equal(await panel.locator('#pagespeed-rum tr[data-route="/s/shop/checkout"][data-device="mobile"]').count(), 2);
+      assert.equal(await panel.locator('#pagespeed-rum tbody[data-route="/s/shop/checkout"][data-device="mobile"]').count(), 2);
       for (const country of ['US', 'CA']) {
-        const countryRow = panel.locator('#pagespeed-rum tr[data-route="/s/shop/checkout"][data-device="mobile"]').filter({has: page.getByRole('cell', {name: country, exact: true})});
-        assert.equal(await countryRow.locator('td').nth(2).textContent(), '1');
-        assert.ok(Number(await countryRow.locator('td').last().textContent()) > 0.1, `real CLS displayed for ${country} at ${width}`);
+        const countryRow = panel.locator(`#pagespeed-rum tbody[data-route="/s/shop/checkout"][data-device="mobile"][data-region="${country}"]`), cls = row('/s/shop/checkout', 'mobile', country).cls.percentiles;
+        assert.equal(await countryRow.locator('[data-figure="views"]').textContent(), '1');
+        // The typical and slow-end CLS shown are the row's measured p50 and p75, not its average.
+        const shown = await countryRow.locator('[data-figure^="cls:"]').allTextContents();
+        assert.deepEqual(shown, [cls.p50.toFixed(3), cls.p75.toFixed(3)]);
+        assert.ok(Number(shown[0]) > 0.1, `real CLS displayed for ${country} at ${width}`);
       }
-      assert.match(await panel.locator('#pagespeed-rum tr[data-route="/s/shop/unavailable"]').textContent(), /0% of 1/);
+      assert.match(await panel.locator('#pagespeed-rum tbody[data-route="/s/shop/unavailable"]').textContent(), /0% of 1/);
       assert.equal(await panel.locator('#pagespeed-sample').inputValue(), '50');
-      assert.match(await panel.locator('#pagespeed-beacon').textContent(), /Never kept: cookies, query strings, fragments, identifiers or IP addresses/);
+      const privacy = await panel.locator('#pagespeed-beacon #pagespeed-privacy').textContent();
+      for (const promise of [/no cookies/, /no IP addresses/, /consent/, /Do Not Track or Global Privacy Control/, /erase all/]) assert.match(privacy, promise, 'the privacy copy beside the snippet states what is never kept and that the owner can erase');
       await panel.scrollIntoViewIfNeeded();
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `no horizontal overflow at ${width}`);
       await page.addScriptTag({content: axeSource});
@@ -224,7 +229,7 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
     assert.ok((await (await fetch(`${origin}/rum/v1/s/${site.id}.js`)).text()).includes('"sample":0.2'));
   } finally { await consoleBrowser.close(); }
   // Additional measurements use the same registered public collector and report,
-  // after the unchanged c28 console assertions. Weighted ranks must differ from
+  // after the console assertions. Weighted ranks must differ from
   // averages, combine hours, exclude missing metrics and never count bot values.
   const values = [100, 200, 200, 800];
   for (const lcpMs of values) assert.equal((await worker.dispatchFetch(`${origin}/rum/v1/collect`, {method: 'POST', headers: {origin: fixture.origin, 'content-type': 'text/plain', 'user-agent': PHONE},
@@ -250,6 +255,7 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
   console.log('PERF-001 RUM report assertions passed: measured browser errors and LCP/CLS/INP percentiles, weighted ranks across hours, missing metrics, bot exclusion and edge US subdivisions.');
   await proveRumErasure({ok, api, DB, worker, origin, site});
   await provePopulatedRumRestore({ok, DB, site, fixture, origin, distribution});
+  await proveConsoleErasure({ok, DB, origin, owner, monitor: ids.mobile, site});
   // Paused once proven, so the journey's later hard stops find only their own flow's run folder on each runner.
   for (const monitor of ids.created) await ok(`/api/monitors/${monitor.id}`, 'PATCH', {...monitor.definition, enabled: false});
 }
@@ -358,4 +364,26 @@ async function proveRumErasure({ok, api, DB, worker, origin, site}) {
   assert.deepEqual(await ok(`/api/rum/sites/${site.id}/report`), surviving, 'a second site report survives erasure');
   assert.deepEqual(await Promise.all(tables.map(async table => (await DB.prepare(`SELECT * FROM ${table} WHERE site_id=? ORDER BY rowid`).bind(site.id).all()).results)), retained, 'a second site retains every aggregate');
   console.log('PERF-001 owner erasure passed: registration and all aggregate tables removed atomically, erased-origin collection refused, independent site retained.');
+}
+
+// The owner erases the populated site from the monitor's page: the confirm sends one DELETE for the shown site, then the
+// registration and every aggregate are gone, its snippet does nothing and the panel offers registration again.
+async function proveConsoleErasure({ok, DB, origin, owner, monitor, site}) {
+  const browser = await chromium.launch({headless: true, ...(process.env.UPTIME_TEST_CHROMIUM ? {executablePath: process.env.UPTIME_TEST_CHROMIUM} : {}), args: ['--use-mock-keychain', '--password-store=basic', '--no-sandbox']});
+  try {
+    const context = await browser.newContext();
+    await context.addCookies(owner.cookie.split(/;\s*/).filter(Boolean).map(pair => { const i = pair.indexOf('='); return {name: pair.slice(0, i), value: pair.slice(i + 1), url: origin}; }));
+    const page = await context.newPage(), erasures = [];
+    page.on('request', request => { if (request.method() === 'DELETE') erasures.push(new URL(request.url()).pathname); });
+    await page.goto(`${origin}/app/monitors/${monitor}`);
+    const panel = page.locator('#pagespeed-panel');
+    await panel.locator('#pagespeed-erase > summary').click();
+    await panel.locator('#pagespeed-erase-confirm').click();
+    await panel.locator('#pagespeed-register').waitFor();
+    assert.deepEqual(erasures, [`/api/rum/sites/${site.id}`], 'one erasure request for the site the panel shows');
+  } finally { await browser.close(); }
+  assert.ok(!(await ok('/api/rum/sites')).sites.some(row => row.id === site.id), 'the console erased the registration');
+  for (const table of ['rum_aggregates', 'rum_dropped', 'rum_value_counts']) assert.equal((await DB.prepare(`SELECT COUNT(*) n FROM ${table} WHERE site_id=?`).bind(site.id).first()).n, 0, `${table} is erased from the console`);
+  assert.match(await (await fetch(`${origin}/rum/v1/s/${site.id}.js`)).text(), /not enabled/, 'the erased site serves a beacon that does nothing');
+  console.log('PERF-001 console erasure passed: one confirmed DELETE from the monitor page removed the registration and every aggregate.');
 }

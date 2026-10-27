@@ -1,9 +1,11 @@
 // PERF-001 on a page-speed monitor's page: the latest check's budgets, DNS/connect/TLS/TTFB, Core Web Vitals, its resource waterfall
-// and browser errors; then the synthetic report (page-speed checks) and the real-user report (sampled page views) side by side,
-// never summed; then the beacon's privacy and sampling settings for the monitor's site. It mounts itself into its own placeholder
-// and reads only the owner API with the page's session.
+// and browser errors; then the synthetic report (page-speed checks) and the real-user report (sampled page views, public/pagespeed-rum.js)
+// side by side, never summed; then the beacon's sampling settings, its snippet with what it measures and keeps, and erasing the site's
+// data. It mounts itself into its own placeholder, reads only the owner API with the page's session and patches each read into place,
+// so an open fold, a typed value and the scroll stay through a refresh.
 import {escape,ago} from './console-format.js';
-import {firstMount} from './dom-patch.js';
+import {patch,firstMount} from './dom-patch.js';
+import {rumMarkup,RUM_STYLES} from './pagespeed-rum.js';
 
 export const PAGESPEED_KINDS={pagespeed:'Page speed'};
 const labels={ttfbMs:'Time to first byte',fcpMs:'First contentful paint',lcpMs:'Largest contentful paint',cls:'Cumulative layout shift',tbtMs:'Total blocking time (lab proxy for INP)',loadMs:'Page load',transferBytes:'Transferred bytes',browserErrors:'Browser errors'};
@@ -16,10 +18,11 @@ function styles(){
  if(document.getElementById('pagespeed-styles'))return;
  const style=document.createElement('style');style.id='pagespeed-styles';
  style.textContent=`.pagespeed .ps-table{width:100%;border-collapse:collapse;table-layout:fixed}.pagespeed .ps-table th,.pagespeed .ps-table td{text-align:left;padding:.25rem .4rem;border-bottom:1px solid var(--ui-border,#ddd);overflow-wrap:anywhere;vertical-align:top}
-.pagespeed .ps-waterfall{list-style:none;padding:0;margin:0}.pagespeed .ps-waterfall li{padding:.3rem 0;border-bottom:1px solid var(--ui-border,#ddd)}.pagespeed .ps-url{overflow-wrap:anywhere;font-family:ui-monospace,monospace;font-size:.85em}
+.pagespeed .ps-waterfall{list-style:none;padding:0;margin:0}.pagespeed .ps-waterfall li{padding:.3rem 0;border-bottom:1px solid var(--ui-border,#ddd)}.pagespeed .ps-url{overflow-wrap:anywhere;font-family:ui-monospace,monospace;font-size:13px}
 .pagespeed .ps-track{position:relative;height:.6rem;background:var(--ui-surface-muted,#eee);border-radius:3px;overflow:hidden;margin-top:.2rem}.pagespeed .ps-bar{position:absolute;top:0;bottom:0;background:var(--ui-accent,#2f6fdb);min-width:2px}
 .pagespeed .ps-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));gap:.5rem;margin:0}.pagespeed .ps-grid div{min-width:0}.pagespeed dd{margin:0;font-weight:600}.pagespeed .ps-reports{display:grid;gap:1rem}
-.pagespeed form label{display:block;margin-top:.5rem}.pagespeed form input[type=number],.pagespeed form textarea{width:100%;max-width:100%;box-sizing:border-box}.pagespeed code{overflow-wrap:anywhere;white-space:pre-wrap}`;
+.pagespeed form label{display:block;margin-top:.5rem}.pagespeed form input[type=number],.pagespeed form textarea{width:100%;max-width:100%;box-sizing:border-box}.pagespeed code{overflow-wrap:anywhere;white-space:pre-wrap}
+${RUM_STYLES}`;
  document.head.append(style);
 }
 /** The placeholder on the monitor's page; it fills itself once the page has been patched. */
@@ -48,30 +51,30 @@ function latestMarkup(report){
 <div><dt>FCP</dt><dd>${ms(v.fcpMs)}</dd></div><div><dt>LCP</dt><dd>${ms(v.lcpMs)}</dd></div><div><dt>CLS</dt><dd>${escape(v.cls.toFixed(3))}</dd></div><div><dt>TBT</dt><dd>${ms(v.tbtMs)}</dd></div></dl>
 <p>Interaction to Next Paint needs a person's input, so a synthetic load reports total blocking time as its lab proxy; the real-user report shows INP.</p>${waterfall(e)}${errors}`;
 }
-function rumMarkup(rum){
- if(!rum)return '<p>No real-user beacon is registered for this site.</p>';
- const r=rum.report,dropped=Object.entries(r.dropped).map(([reason,count])=>`${count} ${reason==='bot'?'from bots':'on excluded paths'}`).join(', ');
- const rows=r.rows.map(x=>`<tr data-route="${escape(x.route)}" data-device="${escape(x.device)}"><th scope="row">${escape(x.route)}</th><td>${escape(x.device)}</td><td>${escape(x.region)}</td><td>${x.views}</td><td>${x.availability?`${x.availability.percent}% of ${x.availability.of}`:'—'}</td><td>${x.lcpMs.average===null?'—':`${escape(ms(x.lcpMs.average))} (${x.lcpMs.poorPercent}% slow)`}</td><td>${x.inpMs.average===null?'—':escape(ms(x.inpMs.average))}</td><td>${x.cls.average===null?'—':escape(x.cls.average.toFixed(3))}</td></tr>`).join('');
- return `<p id="pagespeed-rum-denominator">${r.views} sampled page view${r.views===1?'':'s'} in the last ${r.hours} hours${dropped?`; not counted: ${escape(dropped)}`:''}.</p>${r.rows.length?`<table class="ps-table" id="pagespeed-rum"><caption class="ui-visually-hidden">Real users by route, device and country</caption><thead><tr><th scope="col">Route</th><th scope="col">Device</th><th scope="col">Country</th><th scope="col">Views</th><th scope="col">Loaded</th><th scope="col">LCP</th><th scope="col">INP</th><th scope="col">CLS</th></tr></thead><tbody>${rows}</tbody></table>`:''}`;
-}
+// What the beacon measures and keeps (src/domain/rum/beacon-script.ts, door.server.ts and privacy.mjs); docs/monitors.md says the same.
+const PRIVACY="The snippet measures page-load timings, layout shift and script errors, with each page's path, mobile or desktop, the country and, for US visitors, the state. It uses no cookies, and Uptime keeps no IP addresses, query strings or ID-like parts of paths. Nothing is sent without the visitor's consent, or when their browser sends Do Not Track or Global Privacy Control. You can erase all of this site's data.";
 function settingsMarkup(report,origin){
  const site=report.realUser?.report.site;
  if(!site)return `<h3>Real-user beacon</h3><p>Off. Registering ${escape(origin)} keeps the beacon off until you enable it; it then samples 10% of consenting visitors.</p><button type="button" class="ui-button" id="pagespeed-register">Register ${escape(origin)}</button>`;
- return `<h3>Real-user beacon</h3><form id="pagespeed-beacon"><p>${escape(site.origin)} · ${site.enabled?'on':'off'}. Kept: anonymous hourly figures by route, device and country. Never kept: cookies, query strings, fragments, identifiers or IP addresses. Do Not Track, Global Privacy Control and automated browsers are never measured, and nothing is measured before the site records consent.</p>
+ return `<h3>Real-user beacon</h3><form id="pagespeed-beacon"><p>${escape(site.origin)} · ${site.enabled?'on':'off'}.</p>
 <label><input type="checkbox" name="enabled"${site.enabled?' checked':''}> Collect real-user figures</label><label for="pagespeed-sample">Sample (% of consenting visitors)</label><input id="pagespeed-sample" name="samplePercent" type="number" min="1" max="100" step="1" value="${site.samplePercent}">
 <label for="pagespeed-excluded">Excluded paths (one prefix per line)</label><textarea id="pagespeed-excluded" name="excludedPaths" rows="2">${escape(site.excludedPaths.join('\n'))}</textarea><p><button type="submit" class="ui-button">Save beacon settings</button></p>
-<p>Add to the site's pages: <code id="pagespeed-snippet">${escape(site.snippet)}</code></p><p>Then record consent: add <code>data-consent="granted"</code> to the tag only on pages served to a visitor who consented, or call <code>uptimeRum.consent()</code> from your consent banner.</p></form>`;
+<p>Add to the site's pages: <code id="pagespeed-snippet">${escape(site.snippet)}</code></p><p>Then record consent: add <code>data-consent="granted"</code> to the tag only on pages served to a visitor who consented, or call <code>uptimeRum.consent()</code> from your consent banner.</p>
+<p id="pagespeed-privacy">${escape(PRIVACY)}</p><details class="ps-erase" id="pagespeed-erase"><summary>Erase this site's data</summary><p>This erases the registration of ${escape(site.origin)} and every figure kept for it. The snippet on your pages then collects nothing. The anonymous audit remains.</p>
+<p><button type="button" class="primary danger" id="pagespeed-erase-confirm" data-site="${escape(site.id)}">Erase all data</button></p></details></form>`;
 }
 async function mount(m){
  const host=document.getElementById('pagespeed-panel');if(!host||!firstMount(host))return;
  styles();
  const body=host.querySelector('#pagespeed-body'),status=host.querySelector('#pagespeed-status'),key=encodeURIComponent(m.id),origin=new URL(m.definition.url).origin;
  const load=async()=>{try{const report=await request(`/api/monitors/${key}/pagespeed`);if(!host.isConnected)return;
-  body.innerHTML=`${latestMarkup(report)}<div class="ps-reports"><section aria-labelledby="pagespeed-synthetic-heading"><h3 id="pagespeed-synthetic-heading">Synthetic checks</h3><p id="pagespeed-synthetic-denominator">${report.checks} page-speed check${report.checks===1?'':'s'}, ${report.overBudget} over budget.</p></section><section aria-labelledby="pagespeed-rum-heading"><h3 id="pagespeed-rum-heading">Real users</h3>${rumMarkup(report.realUser)}</section></div>${settingsMarkup(report,origin)}`}
+  patch(body,`${latestMarkup(report)}<div class="ps-reports"><section aria-labelledby="pagespeed-synthetic-heading"><h3 id="pagespeed-synthetic-heading">Synthetic checks</h3><p id="pagespeed-synthetic-denominator">${report.checks} page-speed check${report.checks===1?'':'s'}, ${report.overBudget} over budget.</p></section><section aria-labelledby="pagespeed-rum-heading"><h3 id="pagespeed-rum-heading">Real users</h3>${rumMarkup(report.realUser)}</section></div>${settingsMarkup(report,origin)}`)}
   catch(error){if(host.isConnected)body.textContent=error.message}};
  host.addEventListener('click',async event=>{
   if(event.target.closest('#pagespeed-refresh'))await load();
   if(event.target.closest('#pagespeed-register')){try{await request('/api/rum/sites','POST',{origin});status.textContent='Registered. The beacon stays off until you enable it.';await load()}catch(error){status.textContent=error.message}}
+  const erase=event.target.closest('#pagespeed-erase-confirm');
+  if(erase){erase.disabled=true;try{await request(`/api/rum/sites/${encodeURIComponent(erase.dataset.site)}`,'DELETE');status.textContent=`Erased all real-user data for ${origin}.`;await load()}catch(error){status.textContent=error.message;erase.disabled=false}}
  });
  host.addEventListener('submit',async event=>{
   const form=event.target.closest('#pagespeed-beacon');if(!form)return;event.preventDefault();
