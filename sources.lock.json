@@ -2479,7 +2479,7 @@
       "executable": false
     },
     "public/app-theme.css": {
-      "sha256": "5ba300125cacbf8b1f13d3ec3e21105a379d1fa4ec756ac5d94985fbdffaad6a",
+      "sha256": "08a9addd18541291a127ea98994b965a1040aa477ae61caa77f590ed1649ffda",
       "executable": false
     },
     "public/app.js": {
@@ -2819,11 +2819,11 @@
       "executable": false
     },
     "public/pagespeed-panel.js": {
-      "sha256": "789bdc22ed53dcdbfb73cae69bd443bf65e84e33e5ad8851ac24b3ec72164f0f",
+      "sha256": "1f7336f113dfd6e3c3f212640c00ed90f62c26d3c8dde9dedfcf459b678a69ec",
       "executable": false
     },
     "public/pagespeed-rum.js": {
-      "sha256": "59a89cdd117b49518caa0379799f140065585cd4d9c8d0d9c6f89380f7100670",
+      "sha256": "7fd6b793bbc6b904b5800cd50cd8cb8b0ffcd4f2ade8ee8516344552f8b489c0",
       "executable": false
     },
     "public/planned-maintenance.css": {
@@ -7335,7 +7335,7 @@
       "executable": false
     },
     "tests/console-routing-browser.mjs": {
-      "sha256": "b87b3532bd9b98f588d7cdc6653246d05bd2890a0d888e11e7b9bc453a4c1345",
+      "sha256": "e80a6a6ec69310b3bd481150a3529eda3b027cf323c76e0c3e02db200e90ab55",
       "executable": false
     },
     "tests/contact-schedules-browser.mjs": {
@@ -7731,7 +7731,7 @@
       "executable": false
     },
     "tests/pagespeed-support.mjs": {
-      "sha256": "8c57c859102c3a9a7255a04def53f7a0687590b993f3433d906f62f4324dd6f6",
+      "sha256": "104527911cc976bb515879381f88729867baa05a30a1239c2da4c5ee999dd72b",
       "executable": false
     },
     "tests/pagespeed-timing-support.mjs": {

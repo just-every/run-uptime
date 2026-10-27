@@ -71,13 +71,15 @@ export const RUM_STYLES=`.pagespeed .ps-places{display:grid;grid-template-column
 .pagespeed .ps-views{color:var(--muted);white-space:nowrap}.pagespeed .ps-note{margin-top:4px;color:var(--muted);font-size:13px}
 .pagespeed .ps-rum{width:100%;max-width:54rem;border-collapse:collapse;table-layout:fixed}.pagespeed .ps-rum thead td{width:6.5rem}
 .pagespeed .ps-rum :is(th,td){padding:6px 12px 6px 0;text-align:left;vertical-align:top;overflow-wrap:anywhere}
+.pagespeed .ps-rum td{overflow-wrap:break-word}
 .pagespeed .ps-rum thead th{color:var(--muted);font-size:13px;font-weight:600}.pagespeed .ps-rum th[scope=row]{color:var(--muted);font-size:13px;font-weight:600}
 .pagespeed .ps-rum th[scope=rowgroup]{padding-top:14px;border-top:1px solid var(--line);font-weight:400}.pagespeed .ps-page{color:var(--ink);font-weight:700}
 .pagespeed .ps-meta{color:var(--muted);font-size:14px}.pagespeed .ps-value{color:var(--ink);font-weight:600}.pagespeed .ps-quiet{color:var(--muted)}.pagespeed .ps-none{color:var(--muted)}
 .pagespeed .ps-rating{font-size:14px}.pagespeed .ps-rating.good{--mark:var(--mark-dot);--mark-color:var(--green);color:var(--green-text)}
 .pagespeed .ps-rating.needs-work{--mark:var(--mark-triangle);--mark-color:var(--amber);color:var(--amber-text)}.pagespeed .ps-rating.poor{--mark:var(--mark-cross);--mark-color:var(--rose);color:var(--rose-text)}
 .pagespeed #pagespeed-rum-more{max-width:54rem;margin-top:4px}.pagespeed #pagespeed-privacy{margin-top:12px}.pagespeed .ps-erase>summary{color:var(--rose-text)}.pagespeed .ps-erase>p+p{margin-top:8px}
-@container table-wrap (max-width:719px){.pagespeed .ps-rum thead td{width:4rem}.pagespeed .ps-rum :is(th,td){padding-right:4px}.pagespeed .ps-rating{display:flex;font-size:13px}.pagespeed .ps-rating::before{display:none}}`;
+@container table-wrap (max-width:719px){.pagespeed .ps-rum thead td{width:4rem}.pagespeed .ps-rum :is(th,td){padding-right:4px}.pagespeed .ps-rating{display:flex;font-size:13px}.pagespeed .ps-rating::before{display:none}}
+@media(max-width:339px){.pagespeed .ps-rum thead td{width:3.75rem}.pagespeed .ps-rum :is(th,td){padding-right:3px}.pagespeed .ps-rum td{font-size:13px}}`;
 /** The Real users section's body for the monitor's site, or the one line saying no beacon is registered. */
 export function rumMarkup(rum){
  if(!rum)return '<p>No real-user beacon is registered for this site.</p>';

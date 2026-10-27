@@ -230,6 +230,19 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
       await page.screenshot({path: join(evidence, `pagespeed-${width}.png`), fullPage: true});
       await writeFile(join(evidence, `pagespeed-${width}.json`), JSON.stringify({width, mobile: m, desktop: d, rows: report.rows, violations: result.violations.map(v => v.id)}, null, 2));
     }
+    // At 320 the value columns reserve enough room for whole numbers/units and unsampled words.
+    await page.setViewportSize({width:320,height:1000});
+    const wrapping=await page.locator('#pagespeed-rum').evaluate(table=>{
+      const pieces=[];
+      for(const node of table.querySelectorAll('.ps-value,.ps-none')){
+        const range=document.createRange();range.selectNodeContents(node);
+        const words=node.matches('.ps-none')?[...node.firstChild.textContent.matchAll(/\S+/g)].map(match=>{const word=document.createRange();word.setStart(node.firstChild,match.index);word.setEnd(node.firstChild,match.index+match[0].length);return new Set([...word.getClientRects()].map(r=>r.top)).size}):[new Set([...range.getClientRects()].map(r=>r.top)).size];
+        pieces.push({text:node.textContent,whole:words.every(lines=>lines===1),wrap:getComputedStyle(node.closest('td')).overflowWrap});
+      }
+      return pieces;
+    });
+    assert.ok(wrapping.length>0&&wrapping.every(x=>x.wrap==='break-word'&&x.whole),JSON.stringify(wrapping));
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'value table fits 320');
     // Save-as-you-go settings: real owner writes, no remount/focus loss, quiet no-ops and recoverable errors.
     await page.setViewportSize({width: 1440, height: 1000});
     assert.equal(await page.getByRole('button', {name: 'Save beacon settings'}).count(), 0);
@@ -436,7 +449,7 @@ async function proveConsoleErasure({ok, DB, origin, owner, monitor, site}) {
     await stale.locator('#pagespeed-register').waitFor();
     assert.equal(await stale.locator('#pagespeed-status').textContent(), 'Already erased.');
     assert.equal(await stale.locator('#pagespeed-rum').count(), 0, 'stale figures clear after the already-erased response');
-    assert.ok(!(await stale.locator('#pagespeed-panel').textContent()).includes('Beacon site not found')); 
+    assert.ok(!(await stale.locator('#pagespeed-panel').textContent()).includes('Beacon site not found'));
   } finally { await browser.close(); }
   assert.ok(!(await ok('/api/rum/sites')).sites.some(row => row.id === site.id), 'the console erased the registration');
   for (const table of ['rum_aggregates', 'rum_dropped', 'rum_value_counts']) assert.equal((await DB.prepare(`SELECT COUNT(*) n FROM ${table} WHERE site_id=?`).bind(site.id).first()).n, 0, `${table} is erased from the console`);
