@@ -474,6 +474,12 @@
       "name": "0075_recurring_reports.sql",
       "sha256": "c4d828c039fa56b8c74bd91f1fe6bcedc433ca46db6a327efd1a46b851025f93",
       "sql": "-- Local recurring send authority; frozen report snapshots keep their existing\n-- portable scheduled_reports history, while restored installations never send.\nCREATE TABLE report_recurrences (\n id TEXT PRIMARY KEY, monitor_id TEXT NOT NULL, service TEXT,\n destination_id TEXT NOT NULL, credential_id TEXT NOT NULL,\n actor_id TEXT NOT NULL, actor_version INTEGER NOT NULL, role_revision INTEGER NOT NULL,\n frequency TEXT NOT NULL CHECK(frequency IN ('daily','weekly','monthly')),\n time_zone TEXT NOT NULL, anchor_at INTEGER NOT NULL, next_at INTEGER NOT NULL,\n period TEXT NOT NULL, created_at INTEGER NOT NULL, stopped_at INTEGER, stop_reason TEXT\n);\nCREATE TABLE report_occurrences (\n recurrence_id TEXT NOT NULL, due_at INTEGER NOT NULL, report_id TEXT NOT NULL UNIQUE,\n PRIMARY KEY(recurrence_id,due_at)\n);\nCREATE INDEX report_recurrences_due ON report_recurrences(next_at) WHERE stopped_at IS NULL;\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0077_rum_percentile_erasure.sql",
+      "sha256": "60984388c36a7e790ffe7eb357336d7eddbf6b97e5c2a4007578f9d6dadebcca",
+      "sql": "-- PERF-001: anonymous frequency counts, never per-visitor records. Existing hourly\n-- sums remain intact: pre-upgrade data has no reconstructable percentiles.\n-- Subdivision is the edge-provided US code, or empty when it is unavailable.\n-- These installation-local counts are excluded from archives with rum_sites.\nCREATE TABLE rum_value_counts(\n site_id TEXT NOT NULL,\n hour INTEGER NOT NULL,\n route TEXT NOT NULL,\n device TEXT NOT NULL CHECK(device IN ('mobile','desktop')),\n region TEXT NOT NULL,\n subdivision TEXT NOT NULL,\n metric TEXT NOT NULL CHECK(metric IN ('status','errors','lcpMs','cls','inpMs')),\n value INTEGER NOT NULL CHECK(value>=0),\n count INTEGER NOT NULL CHECK(count>0),\n PRIMARY KEY(site_id,hour,route,device,region,subdivision,metric,value)\n);\n"
     }
   ],
   "compatibilityDate": "2026-09-08",
