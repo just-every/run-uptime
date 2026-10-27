@@ -2479,7 +2479,7 @@
       "executable": false
     },
     "public/app-theme.css": {
-      "sha256": "088f81ba90b02e067793184c1bfdba79a5247da945994340fc83f54646fade3f",
+      "sha256": "60dbc993a959822f6bf4437009f83a16576021b00769d3d4a1a364d7fa958b33",
       "executable": false
     },
     "public/app.js": {
@@ -2819,7 +2819,7 @@
       "executable": false
     },
     "public/pagespeed-panel.js": {
-      "sha256": "1f7336f113dfd6e3c3f212640c00ed90f62c26d3c8dde9dedfcf459b678a69ec",
+      "sha256": "546e79cdf8c5b14740ae5a26ad763d9572bcfb912524aa4fe4d3f8c4859eb7f2",
       "executable": false
     },
     "public/pagespeed-rum.js": {
@@ -7335,7 +7335,7 @@
       "executable": false
     },
     "tests/console-routing-browser.mjs": {
-      "sha256": "541b3336b0294f4d45bfc087fd9bb11884d0a4ae8d11920c4aca1414acc7e563",
+      "sha256": "c983598374a93014066626e1c6cca1159976c815a5a4559b639dd969df9bd277",
       "executable": false
     },
     "tests/contact-schedules-browser.mjs": {
@@ -7731,7 +7731,7 @@
       "executable": false
     },
     "tests/pagespeed-support.mjs": {
-      "sha256": "a522768c03d035de0d4ef2a04d98987dd4bb161bfb35c9ede8a8544619a300c1",
+      "sha256": "d21d059941a95b9187a4c46fa662f856b56c2e050fdf98f587d5f9801e5f2606",
       "executable": false
     },
     "tests/pagespeed-timing-support.mjs": {
