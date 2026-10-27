@@ -2051,7 +2051,7 @@
       "executable": false
     },
     "docs/monitors.md": {
-      "sha256": "9c84290d1154d592cbd0d81a51be8b601a7fcb0a699e03f9a9ea9a6a5933ffce",
+      "sha256": "02e742b6c86fb238965ef2a5d53f9a3e4c7ad7293cd3167da73d16fe35bb94bd",
       "executable": false
     },
     "docs/moving-from-uptimerobot.md": {
@@ -2819,7 +2819,11 @@
       "executable": false
     },
     "public/pagespeed-panel.js": {
-      "sha256": "5bc5fd5e6c06dcda25f9d675bc41d4a0d55951fd7bb26cec3b029f50fd1d6f10",
+      "sha256": "789bdc22ed53dcdbfb73cae69bd443bf65e84e33e5ad8851ac24b3ec72164f0f",
+      "executable": false
+    },
+    "public/pagespeed-rum.js": {
+      "sha256": "59a89cdd117b49518caa0379799f140065585cd4d9c8d0d9c6f89380f7100670",
       "executable": false
     },
     "public/planned-maintenance.css": {
@@ -3703,7 +3707,7 @@
       "executable": false
     },
     "seed.json": {
-      "sha256": "451ad6087bbfdddea0d7d9d5fccfdc145ca9ad0316a52a9f943c3cdbb16d76ec",
+      "sha256": "00fda036a3c5bfc7800491cbca367dfe2ff54dcd2c5b6e450c942cb22beeb463",
       "executable": false
     },
     "src/base/contract-filter.ts": {
@@ -7171,7 +7175,7 @@
       "executable": false
     },
     "src/ui/console-prefetch.ts": {
-      "sha256": "830ace94072ff40b884813d8fd4f4f5e859b689f5e8d22eedb4cb3fa358c3f8e",
+      "sha256": "9ca4faf2bc2b2fbe88bd9ce526a2cc911add873abe2e74b6691127330b929136",
       "executable": false
     },
     "src/ui/console.html": {
@@ -7727,7 +7731,7 @@
       "executable": false
     },
     "tests/pagespeed-support.mjs": {
-      "sha256": "3fd9e4ebbdf1d465e709569cf5220e52e9844447216066a25094f5c9c9b4882c",
+      "sha256": "8c57c859102c3a9a7255a04def53f7a0687590b993f3433d906f62f4324dd6f6",
       "executable": false
     },
     "tests/pagespeed-timing-support.mjs": {
