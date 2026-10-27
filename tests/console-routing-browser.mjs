@@ -10,7 +10,7 @@ test('console paths survive bookmarks, navigation, copied links, history and rel
  try{
   const [port]=await availablePorts(1),origin=`http://127.0.0.1:${port}`;
   ({worker}=await migratedWorker({port,persist:join(directory,'worker')}));
-  browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});
+  browser=await chromium.launch({headless:true,...(process.env.UPTIME_TEST_CHROMIUM?{executablePath:process.env.UPTIME_TEST_CHROMIUM}:{}),args:['--use-mock-keychain','--password-store=basic','--no-sandbox']});
   const context=await browser.newContext(),page=await context.newPage();await browserSignIn(page,origin);
   const created=await page.request.post(origin+'/api/monitors',{headers:{origin},data:{name:'Storefront availability',url:'https://example.com/',canaryUrl:'https://example.org/',enabled:false}});
   assert.equal(created.status(),201);const {id}=await created.json(),detail=`/app/monitors/${encodeURIComponent(id)}`,edit=detail+'/edit';
@@ -55,6 +55,18 @@ test('console paths survive bookmarks, navigation, copied links, history and rel
    await page.goBack();await page.waitForURL(origin+detail);await page.locator('#monitor-state').waitFor();
    await page.goForward();await page.waitForURL(origin+edit);await page.locator('html.editor-context-ready').waitFor();
    assert.equal(new URL(page.url()).search,'');assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  }
+  // The shared shell fits all section links in one row at the narrowest supported phone width.
+  await page.setViewportSize({width:320,height:900});
+  for(const path of ['/app/monitors','/app/locations','/app/notifications','/app/archive','/app/settings',detail,edit,'/app/monitors/new','/app/monitors/new/manual']){
+   await page.goto(origin+path);await page.locator('.ui-sidebar nav').waitFor();
+   await page.evaluate(()=>document.fonts.ready);
+   const nav=await page.locator('.ui-sidebar nav').evaluate(node=>({width:node.clientWidth,scroll:node.scrollWidth,links:[...node.querySelectorAll('a')].filter(a=>new URL(a.href).pathname!=='/app/signout').map(a=>{const r=a.getBoundingClientRect();return {height:r.height,top:r.top,left:r.left,right:r.right,font:parseFloat(getComputedStyle(a).fontSize)}})}));
+   assert.equal(nav.links.length,5,path);
+   assert.ok(nav.links.every(a=>a.height>=44&&a.font>=13&&a.left>=0&&a.right<=320),`44px readable links fit ${path}`);
+   assert.equal(new Set(nav.links.map(a=>a.top)).size,1,`one nav row on ${path}`);
+   assert.ok(nav.scroll<=nav.width,`no sideways nav scroll on ${path}`);
+   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`no page overflow on ${path}`);
   }
   // Clone is opened through the list selection, including the optional Labels
   // fold. Keep this block at the end of the existing navigation registration.
