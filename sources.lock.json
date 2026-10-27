@@ -2819,7 +2819,7 @@
       "executable": false
     },
     "public/pagespeed-panel.js": {
-      "sha256": "546e79cdf8c5b14740ae5a26ad763d9572bcfb912524aa4fe4d3f8c4859eb7f2",
+      "sha256": "9c136124d326db7f25b5b6bc2cdeb044d6f239cb5bc4472ed8bc1e1830a95512",
       "executable": false
     },
     "public/pagespeed-rum.js": {
@@ -7731,7 +7731,7 @@
       "executable": false
     },
     "tests/pagespeed-support.mjs": {
-      "sha256": "d21d059941a95b9187a4c46fa662f856b56c2e050fdf98f587d5f9801e5f2606",
+      "sha256": "f613b1ee769415eaae9d6ae807659b7fdff60f6d8408f2326bee34ac9c32a1cd",
       "executable": false
     },
     "tests/pagespeed-timing-support.mjs": {
