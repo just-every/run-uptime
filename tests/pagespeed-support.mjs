@@ -305,6 +305,21 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
         }, {samplePercent: 74});
         assert.equal(await sample.inputValue(), '74', 'the set-back value survives reload');
       }
+      // A successful write may also read another tab's change to an untouched field.
+      // That field still has no unconfirmed local edit when Refresh reads it again.
+      await other.goto(`${origin}/app/monitors/${ids.mobile}`);
+      await other.locator('[name=enabled]').uncheck();
+      await other.locator('#pagespeed-enabled-status').getByText('Saved', {exact: true}).waitFor();
+      await sample.fill('52'); await sample.blur(); await status.getByText('Saved', {exact: true}).waitFor();
+      assert.deepEqual(settingWrites.at(-1), {samplePercent: 52});
+      assert.equal((await ok(`/api/rum/sites/${site.id}/report`)).site.enabled, false);
+      const refreshed = page.waitForResponse(response => new URL(response.url()).pathname === `/api/monitors/${ids.mobile}/pagespeed`);
+      await page.locator('#pagespeed-refresh').click(); await refreshed;
+      await page.waitForFunction(() => !document.querySelector('[name=enabled]').checked);
+      await sample.fill('53'); await sample.blur(); await status.getByText('Saved', {exact: true}).waitFor();
+      assert.deepEqual(settingWrites.at(-1), {samplePercent: 53}, 'the unrelated confirmed read authorizes no checkbox write');
+      assert.equal((await ok(`/api/rum/sites/${site.id}/report`)).site.enabled, false);
+      await change(() => page.locator('[name=enabled]').check(), {enabled: true});
     } finally { await otherContext.close(); }
     await change(() => page.locator('[name=enabled]').uncheck(), {enabled: false});
     await change(() => page.locator('[name=enabled]').check(), {enabled: true});
@@ -358,7 +373,7 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
     assert.equal(settingWrites.length, failedWrites, 'returning to the stored value sends no request');
     await page.unroute(sitePath);
     await sample.fill('24'); await status.getByText('Saved', {exact: true}).waitFor();
-    // Every control owns its label-row feedback and reserved error space. Saving or clearing it moves no control.
+    // Every control owns its label-row feedback and error. Saved appearing or clearing moves no control.
     for (const [name, value] of [['enabled', false], ['samplePercent', '25'], ['excludedPaths', '/s/shop/private/']]) {
       const control = page.locator(`[name=${name}]`), fieldStatus = page.locator(name === 'samplePercent' ? '#pagespeed-save-status' : `#pagespeed-${name}-status`);
       const described = (await control.getAttribute('aria-describedby')).split(' ');

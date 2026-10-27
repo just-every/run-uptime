@@ -2,7 +2,7 @@
 // and browser errors; then the synthetic report (page-speed checks) and the real-user report (sampled page views, public/pagespeed-rum.js)
 // side by side, never summed; then the beacon's sampling settings, its snippet with what it measures and keeps, and erasing the site's
 // data. It mounts itself into its own placeholder, reads only the owner API with the page's session and patches each read into place,
-// so an open fold, a typed value and the scroll stay through a refresh.
+// so an open fold, an unconfirmed edit and the scroll stay through a refresh.
 import {escape,ago} from './console-format.js';
 import {patch,firstMount} from './dom-patch.js';
 import {rumMarkup,RUM_STYLES} from './pagespeed-rum.js';
@@ -23,7 +23,7 @@ function styles(){
 .pagespeed .ps-waterfall{list-style:none;padding:0;margin:0}.pagespeed .ps-waterfall li{padding:.3rem 0;border-bottom:1px solid var(--ui-border,#ddd)}.pagespeed .ps-url{overflow-wrap:anywhere;font-family:ui-monospace,monospace;font-size:13px}
 .pagespeed .ps-track{position:relative;height:.6rem;background:var(--ui-surface-muted,#eee);border-radius:3px;overflow:hidden;margin-top:.2rem}.pagespeed .ps-bar{position:absolute;top:0;bottom:0;background:var(--ui-accent,#2f6fdb);min-width:2px}
 .pagespeed .ps-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));gap:.5rem;margin:0}.pagespeed .ps-grid div{min-width:0}.pagespeed dd{margin:0;font-weight:600}.pagespeed .ps-reports{display:grid;gap:1rem}
-.pagespeed #pagespeed-beacon>p{margin-top:12px}.pagespeed .ps-setting-heading{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-top:.5rem}.pagespeed .ps-setting-heading label{margin:0;min-width:0}.pagespeed .ps-save-status{flex:none;min-width:4.75em;height:1.5em;line-height:1.5;text-align:right;font-size:14px}.pagespeed .ps-save-error{margin:.25rem 0 0;font-size:14px;line-height:1.4;overflow-wrap:anywhere}.pagespeed .ps-save-error:has(>span:empty){display:none}.pagespeed form label{display:block;margin-top:.5rem}.pagespeed form input[type=number],.pagespeed form textarea{width:100%;max-width:100%;box-sizing:border-box}.pagespeed code{overflow-wrap:anywhere;white-space:pre-wrap}
+.pagespeed #pagespeed-beacon>p{margin-top:12px}.pagespeed .ps-setting-heading{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-top:.5rem}.pagespeed .ps-setting-heading label{margin:0;min-width:0}.pagespeed .ps-save-status{flex:none;min-width:4.75em;height:1em;line-height:1;text-align:right;font-size:14px}.pagespeed .ps-save-error{margin:.25rem 0 0;font-size:14px;line-height:1.4;overflow-wrap:anywhere}.pagespeed .ps-save-error:has(>span:empty){display:none}.pagespeed form label{display:block;margin-top:.5rem}.pagespeed form input[type=number],.pagespeed form textarea{width:100%;max-width:100%;box-sizing:border-box}.pagespeed code{overflow-wrap:anywhere;white-space:pre-wrap}
 ${RUM_STYLES}`;
  document.head.append(style);
 }
@@ -88,7 +88,7 @@ async function mount(m){
   const site=report.realUser?.report.site;
   // dom-patch preserves live controls; refresh only values with no unconfirmed edit.
   const previous=saved,form=host.querySelector('#pagespeed-beacon'),live=form?values(form):null;
-  const clean=Object.keys(previous??{}).filter(name=>equal(live?.[name],previous[name]));
+  const clean=Object.keys(previous??{}).filter(name=>!edited.has(name)||equal(live?.[name],previous[name]));
   if(siteId!==site?.id)edited.clear();
   siteId=site?.id;saved=site?settings(site):null;
   if(previous&&saved)for(const name of clean)if(!equal(previous[name],saved[name]))say(name);
