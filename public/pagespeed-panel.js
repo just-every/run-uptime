@@ -14,6 +14,8 @@ const networks={'slow-4g':'slow 4G (150 ms round trip, 1.6 Mbit/s down)',none:'n
 const shown=(key,value)=>value===null||value===undefined?'not observed':key==='cls'?Number(value).toFixed(3):key==='transferBytes'?`${Number(value).toLocaleString()} bytes`:key==='browserErrors'?String(value):`${Number(value).toLocaleString()} ms`;
 const ms=value=>value===null||value===undefined?'—':`${Number(value).toLocaleString()} ms`;
 const request=async(path,method='GET',body)=>{const response=await fetch(path,{method,credentials:'same-origin',cache:'no-store',headers:{'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});const data=await response.json().catch(()=>({}));if(!response.ok)throw Object.assign(Error(data.error??`HTTP ${response.status}`),{status:response.status});return data};
+const SAVE_FAILURE="Couldn't save. Your change is kept; it will be sent again when you leave the field.";
+const saveFailure=error=>error.status===400&&['Sampling is a whole percentage from 1 to 100','Excluded paths are up to 20 path prefixes that start with /'].includes(error.message)?error.message:SAVE_FAILURE;
 function styles(){
  if(document.getElementById('pagespeed-styles'))return;
  const style=document.createElement('style');style.id='pagespeed-styles';
@@ -77,12 +79,12 @@ async function mount(m){
   siteId=site?.id;saved=site?settings(site):null;
   if(previous&&saved&&!equal(previous,saved))status.textContent='';
   patch(body,`${latestMarkup(report)}<div class="ps-reports"><section aria-labelledby="pagespeed-synthetic-heading"><h3 id="pagespeed-synthetic-heading">Synthetic checks</h3><p id="pagespeed-synthetic-denominator">${report.checks} page-speed check${report.checks===1?'':'s'}, ${report.overBudget} over budget.</p></section><section aria-labelledby="pagespeed-rum-heading"><h3 id="pagespeed-rum-heading">Real users</h3>${rumMarkup(report.realUser)}</section></div>${settingsMarkup(report,origin)}`)}
-  catch(error){if(host.isConnected)body.textContent=error.message}};
+  catch(error){if(host.isConnected)body.textContent="Couldn't load page speed. Try Refresh again."}};
  host.addEventListener('click',async event=>{
   if(event.target.closest('#pagespeed-refresh'))await load();
-  if(event.target.closest('#pagespeed-register')){try{await request('/api/rum/sites','POST',{origin});status.textContent='Registered. The beacon stays off until you enable it.';await load()}catch(error){status.textContent=error.message}}
+  if(event.target.closest('#pagespeed-register')){try{await request('/api/rum/sites','POST',{origin});status.textContent='Registered. The beacon stays off until you enable it.';await load()}catch(error){status.textContent="Couldn't register this site. Try again."}}
   const erase=event.target.closest('#pagespeed-erase-confirm');
-  if(erase){erase.disabled=true;try{await request(`/api/rum/sites/${encodeURIComponent(erase.dataset.site)}`,'DELETE');status.textContent=`Erased all real-user data for ${origin}.`;await load()}catch(error){if(error.status===404){await load();status.textContent='Already erased.'}else{status.textContent=error.message;erase.disabled=false}}}
+  if(erase){erase.disabled=true;try{await request(`/api/rum/sites/${encodeURIComponent(erase.dataset.site)}`,'DELETE');status.textContent=`Erased all real-user data for ${origin}.`;await load()}catch(error){if(error.status===404){await load();status.textContent='Already erased.'}else{status.textContent="Couldn't erase this site's data. Try again.";erase.disabled=false}}}
  });
  // One write at a time: an edit made during a request is compared with its confirmed response next.
  // Patch only the saved state line; the live controls and focus stay in place, including after errors.
@@ -101,7 +103,7 @@ async function mount(m){
     if(!host.isConnected)return;
     form.querySelector('#pagespeed-beacon-state').textContent=`${site.origin} · ${site.enabled?'on':'off'}.`;
     status.textContent=equal(values(form),saved)?'Saved':'';
-   }catch(error){if(host.isConnected)status.textContent=error.message}
+   }catch(error){if(host.isConnected)status.textContent=saveFailure(error)}
   }}finally{saving=false}
  };
  host.addEventListener('submit',event=>{if(event.target.matches('#pagespeed-beacon')){event.preventDefault();void save()}});

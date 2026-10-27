@@ -306,11 +306,23 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
     release(); await status.getByText('Saved', {exact: true}).waitFor();
     assert.ok(await sample.evaluate(node => node === window.beaconSample && node === document.activeElement), 'same focused control after saving');
     await page.unroute(sitePath);
-    await page.route(sitePath, route => route.request().method() === 'PATCH' ? route.fulfill({status: 500, contentType: 'application/json', body: JSON.stringify({error: 'Could not save beacon settings.'})}) : route.continue());
-    await sample.fill('21'); await status.getByText('Could not save beacon settings.', {exact: true}).waitFor();
-    assert.equal(await sample.inputValue(), '21', 'a failed write keeps the typed value');
-    assert.equal((await ok(`/api/rum/sites/${site.id}/report`)).site.samplePercent, 19, 'a failed write changes no saved value');
-    await page.unroute(sitePath);
+    const failure = "Couldn't save. Your change is kept; it will be sent again when you leave the field.";
+    for (const [value, fail] of [
+      [21, route => route.fulfill({status: 500, body: ''})],
+      [22, route => route.fulfill({status: 503, contentType: 'application/json', body: JSON.stringify({error: 'Storage operation failed'})})],
+      [23, route => route.abort('failed')],
+    ]) {
+      const stored = (await ok(`/api/rum/sites/${site.id}/report`)).site.samplePercent;
+      await page.route(sitePath, route => route.request().method() === 'PATCH' ? fail(route) : route.continue());
+      await sample.fill(String(value)); await status.getByText(failure, {exact: true}).waitFor();
+      assert.equal(await sample.inputValue(), String(value), 'a failed write keeps the typed value');
+      assert.equal((await ok(`/api/rum/sites/${site.id}/report`)).site.samplePercent, stored, 'a failed write changes no saved value');
+      await page.unroute(sitePath);
+      const before = settingWrites.length;
+      await sample.blur(); await status.getByText('Saved', {exact: true}).waitFor();
+      assert.equal(settingWrites.length, before + 1, 'next blur retries the kept value once');
+      assert.equal((await ok(`/api/rum/sites/${site.id}/report`)).site.samplePercent, value);
+    }
     await change(() => sample.fill('20'), {samplePercent: 20});
     assert.equal(await sample.inputValue(), '20', 'sampling survives reload');
     assert.ok((await (await fetch(`${origin}/rum/v1/s/${site.id}.js`)).text()).includes('"sample":0.2'));
