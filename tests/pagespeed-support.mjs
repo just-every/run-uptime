@@ -373,7 +373,9 @@ async function proveConsoleErasure({ok, DB, origin, owner, monitor, site}) {
   try {
     const context = await browser.newContext();
     await context.addCookies(owner.cookie.split(/;\s*/).filter(Boolean).map(pair => { const i = pair.indexOf('='); return {name: pair.slice(0, i), value: pair.slice(i + 1), url: origin}; }));
-    const page = await context.newPage(), erasures = [];
+    const page = await context.newPage(), stale = await context.newPage(), erasures = [];
+    await stale.goto(`${origin}/app/monitors/${monitor}`);
+    await stale.locator('#pagespeed-erase > summary').click();
     page.on('request', request => { if (request.method() === 'DELETE') erasures.push(new URL(request.url()).pathname); });
     await page.goto(`${origin}/app/monitors/${monitor}`);
     const panel = page.locator('#pagespeed-panel');
@@ -381,6 +383,11 @@ async function proveConsoleErasure({ok, DB, origin, owner, monitor, site}) {
     await panel.locator('#pagespeed-erase-confirm').click();
     await panel.locator('#pagespeed-register').waitFor();
     assert.deepEqual(erasures, [`/api/rum/sites/${site.id}`], 'one erasure request for the site the panel shows');
+    await stale.locator('#pagespeed-erase-confirm').click();
+    await stale.locator('#pagespeed-register').waitFor();
+    assert.equal(await stale.locator('#pagespeed-status').textContent(), 'Already erased.');
+    assert.equal(await stale.locator('#pagespeed-rum').count(), 0, 'stale figures clear after the already-erased response');
+    assert.ok(!(await stale.locator('#pagespeed-panel').textContent()).includes('Beacon site not found')); 
   } finally { await browser.close(); }
   assert.ok(!(await ok('/api/rum/sites')).sites.some(row => row.id === site.id), 'the console erased the registration');
   for (const table of ['rum_aggregates', 'rum_dropped', 'rum_value_counts']) assert.equal((await DB.prepare(`SELECT COUNT(*) n FROM ${table} WHERE site_id=?`).bind(site.id).first()).n, 0, `${table} is erased from the console`);

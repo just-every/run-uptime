@@ -13,7 +13,7 @@ const profiles={mobile:'Mobile · 390 × 844, touch, 4× CPU slowdown',desktop:'
 const networks={'slow-4g':'slow 4G (150 ms round trip, 1.6 Mbit/s down)',none:'no network throttling'};
 const shown=(key,value)=>value===null||value===undefined?'not observed':key==='cls'?Number(value).toFixed(3):key==='transferBytes'?`${Number(value).toLocaleString()} bytes`:key==='browserErrors'?String(value):`${Number(value).toLocaleString()} ms`;
 const ms=value=>value===null||value===undefined?'—':`${Number(value).toLocaleString()} ms`;
-const request=async(path,method='GET',body)=>{const response=await fetch(path,{method,credentials:'same-origin',cache:'no-store',headers:{'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});const data=await response.json().catch(()=>({}));if(!response.ok)throw Error(data.error??`HTTP ${response.status}`);return data};
+const request=async(path,method='GET',body)=>{const response=await fetch(path,{method,credentials:'same-origin',cache:'no-store',headers:{'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});const data=await response.json().catch(()=>({}));if(!response.ok)throw Object.assign(Error(data.error??`HTTP ${response.status}`),{status:response.status});return data};
 function styles(){
  if(document.getElementById('pagespeed-styles'))return;
  const style=document.createElement('style');style.id='pagespeed-styles';
@@ -74,7 +74,7 @@ async function mount(m){
   if(event.target.closest('#pagespeed-refresh'))await load();
   if(event.target.closest('#pagespeed-register')){try{await request('/api/rum/sites','POST',{origin});status.textContent='Registered. The beacon stays off until you enable it.';await load()}catch(error){status.textContent=error.message}}
   const erase=event.target.closest('#pagespeed-erase-confirm');
-  if(erase){erase.disabled=true;try{await request(`/api/rum/sites/${encodeURIComponent(erase.dataset.site)}`,'DELETE');status.textContent=`Erased all real-user data for ${origin}.`;await load()}catch(error){status.textContent=error.message;erase.disabled=false}}
+  if(erase){erase.disabled=true;try{await request(`/api/rum/sites/${encodeURIComponent(erase.dataset.site)}`,'DELETE');status.textContent=`Erased all real-user data for ${origin}.`;await load()}catch(error){if(error.status===404){await load();status.textContent='Already erased.'}else{status.textContent=error.message;erase.disabled=false}}}
  });
  host.addEventListener('submit',async event=>{
   const form=event.target.closest('#pagespeed-beacon');if(!form)return;event.preventDefault();
