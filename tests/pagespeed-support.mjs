@@ -242,7 +242,8 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
       return pieces;
     });
     assert.ok(wrapping.length>0&&wrapping.every(x=>x.wrap==='break-word'&&x.whole),JSON.stringify(wrapping));
-    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'value table fits 320');
+    const overflow=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,outside:[...document.querySelectorAll('body *')].filter(n=>n.getBoundingClientRect().right>innerWidth).map(n=>({tag:n.tagName,id:n.id,class:n.className,right:n.getBoundingClientRect().right})).slice(0,12)}));
+    assert.ok(overflow.scroll<=overflow.width,`value table fits 320: ${JSON.stringify(overflow)}`);
     // Save-as-you-go settings: real owner writes, no remount/focus loss, quiet no-ops and recoverable errors.
     await page.setViewportSize({width: 1440, height: 1000});
     assert.equal(await page.getByRole('button', {name: 'Save beacon settings'}).count(), 0);

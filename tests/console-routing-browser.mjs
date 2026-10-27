@@ -63,7 +63,7 @@ test('console paths survive bookmarks, navigation, copied links, history and rel
    await page.evaluate(()=>document.fonts.ready);
    const nav=await page.locator('.ui-sidebar nav').evaluate(node=>({width:node.clientWidth,scroll:node.scrollWidth,links:[...node.querySelectorAll('a')].filter(a=>new URL(a.href).pathname!=='/app/signout').map(a=>{const r=a.getBoundingClientRect();return {height:r.height,top:r.top,left:r.left,right:r.right,font:parseFloat(getComputedStyle(a).fontSize)}})}));
    assert.equal(nav.links.length,5,path);
-   assert.ok(nav.links.every(a=>a.height>=44&&a.font>=13&&a.left>=0&&a.right<=320),`44px readable links fit ${path}`);
+   assert.ok(nav.links.every(a=>a.height>=44&&a.font>=13&&a.left>=0&&a.right<=320),`44px readable links fit ${path}: ${JSON.stringify(nav)}`);
    assert.equal(new Set(nav.links.map(a=>a.top)).size,1,`one nav row on ${path}`);
    assert.ok(nav.scroll<=nav.width,`no sideways nav scroll on ${path}`);
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`no page overflow on ${path}`);

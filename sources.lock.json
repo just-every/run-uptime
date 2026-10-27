@@ -2479,7 +2479,7 @@
       "executable": false
     },
     "public/app-theme.css": {
-      "sha256": "08a9addd18541291a127ea98994b965a1040aa477ae61caa77f590ed1649ffda",
+      "sha256": "088f81ba90b02e067793184c1bfdba79a5247da945994340fc83f54646fade3f",
       "executable": false
     },
     "public/app.js": {
@@ -7335,7 +7335,7 @@
       "executable": false
     },
     "tests/console-routing-browser.mjs": {
-      "sha256": "e80a6a6ec69310b3bd481150a3529eda3b027cf323c76e0c3e02db200e90ab55",
+      "sha256": "541b3336b0294f4d45bfc087fd9bb11884d0a4ae8d11920c4aca1414acc7e563",
       "executable": false
     },
     "tests/contact-schedules-browser.mjs": {
@@ -7731,7 +7731,7 @@
       "executable": false
     },
     "tests/pagespeed-support.mjs": {
-      "sha256": "104527911cc976bb515879381f88729867baa05a30a1239c2da4c5ee999dd72b",
+      "sha256": "a522768c03d035de0d4ef2a04d98987dd4bb161bfb35c9ede8a8544619a300c1",
       "executable": false
     },
     "tests/pagespeed-timing-support.mjs": {

@@ -628,6 +628,6 @@ body:has(.ui-sidebar)::before {
   .ui-main { padding: 20px 16px 40px; }
 }
 @media (max-width: 360px) {
-  .ui-sidebar nav { gap: 2px; padding-inline: 2px; }
+  .ui-sidebar nav { gap: 1px; padding-inline: 1px; }
   .ui-sidebar nav a { padding-inline: 0; font-size: 13px; }
 }
