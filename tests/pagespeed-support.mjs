@@ -222,10 +222,51 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
       await page.screenshot({path: join(evidence, `pagespeed-${width}.png`), fullPage: true});
       await writeFile(join(evidence, `pagespeed-${width}.json`), JSON.stringify({width, mobile: m, desktop: d, rows: report.rows, violations: result.violations.map(v => v.id)}, null, 2));
     }
-    // The owner changes sampling in the console; the next served beacon carries it.
-    await page.locator('#pagespeed-sample').fill('20');
-    await page.getByRole('button', {name: 'Save beacon settings'}).click();
-    await page.getByText('Beacon settings saved.').waitFor();
+    // Save-as-you-go settings: real owner writes, no remount/focus loss, quiet no-ops and recoverable errors.
+    await page.setViewportSize({width: 1440, height: 1000});
+    assert.equal(await page.getByRole('button', {name: 'Save beacon settings'}).count(), 0);
+    const settingWrites = [], status = page.locator('#pagespeed-status'), sample = page.locator('#pagespeed-sample');
+    page.on('request', request => { if (request.method() === 'PATCH' && new URL(request.url()).pathname === `/api/rum/sites/${site.id}`) settingWrites.push(request.postDataJSON()); });
+    await sample.focus(); await sample.blur(); await page.waitForTimeout(650);
+    assert.equal(settingWrites.length, 0, 'an unchanged blur writes nothing');
+    assert.equal(await status.textContent(), '', 'an unchanged blur says nothing');
+    const change = async (edit, expected) => {
+      const before = settingWrites.length;
+      await edit(); await status.getByText('Saved', {exact: true}).waitFor();
+      assert.equal(settingWrites.length, before + 1, 'one write per real change');
+      const saved = await ok(`/api/rum/sites/${site.id}/report`);
+      for (const [key, value] of Object.entries(expected)) assert.deepEqual(saved.site[key], value);
+      await page.reload(); await page.locator('#pagespeed-beacon').waitFor();
+      return saved.site;
+    };
+    await change(() => page.locator('[name=enabled]').uncheck(), {enabled: false});
+    assert.equal(await page.locator('[name=enabled]').isChecked(), false);
+    await change(() => page.locator('[name=enabled]').check(), {enabled: true});
+    await change(() => page.locator('#pagespeed-excluded').fill('/private/'), {excludedPaths: ['/private/']});
+    assert.equal(await page.locator('#pagespeed-excluded').inputValue(), '/private/');
+    await change(() => page.locator('#pagespeed-excluded').fill('/s/shop/account/'), {excludedPaths: ['/s/shop/account/']});
+    // The response is held at the provider edge: Saved must wait for the actual successful server response.
+    let release; const held = new Promise(resolve => { release = resolve; });
+    const sitePath = `**/api/rum/sites/${site.id}`;
+    await page.route(sitePath, async route => {
+      if (route.request().method() !== 'PATCH') return route.continue();
+      await held; await route.continue();
+    });
+    await sample.fill('19');
+    await page.waitForRequest(request => request.method() === 'PATCH');
+    assert.equal(await status.textContent(), '', 'no Saved before server confirmation');
+    await page.evaluate(() => { window.beaconSample = document.querySelector('#pagespeed-sample'); });
+    assert.ok(await sample.evaluate(node => node === document.activeElement));
+    release(); await status.getByText('Saved', {exact: true}).waitFor();
+    assert.ok(await sample.evaluate(node => node === window.beaconSample && node === document.activeElement), 'same focused control after saving');
+    await page.unroute(sitePath);
+    await page.route(sitePath, route => route.request().method() === 'PATCH' ? route.fulfill({status: 500, contentType: 'application/json', body: JSON.stringify({error: 'Could not save beacon settings.'})}) : route.continue());
+    await sample.fill('21'); await status.getByText('Could not save beacon settings.', {exact: true}).waitFor();
+    assert.equal(await sample.inputValue(), '21', 'a failed write keeps the typed value');
+    assert.equal((await ok(`/api/rum/sites/${site.id}/report`)).site.samplePercent, 19, 'a failed write changes no saved value');
+    await page.unroute(sitePath);
+    await change(() => sample.fill('20'), {samplePercent: 20});
+    assert.equal(await sample.inputValue(), '20', 'sampling survives reload');
     assert.ok((await (await fetch(`${origin}/rum/v1/s/${site.id}.js`)).text()).includes('"sample":0.2'));
   } finally { await consoleBrowser.close(); }
   // Additional measurements use the same registered public collector and report,
