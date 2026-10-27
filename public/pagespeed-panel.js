@@ -33,7 +33,7 @@ export function pageSpeedPanel(m){
 }
 function budgets(latest,settings){
  const rows=latest.checks.map(check=>{const key=check.assertion.replace(/^budget:/,'');const budget=settings.budgets[key];
-  return `<tr data-check="${escape(check.assertion)}"><th scope="row">${escape(check.assertion==='status'?'Page status':labels[key]??key)}</th><td>${escape(check.assertion==='status'?`HTTP ${latest.evidence.status}`:shown(key,latest.figures[key]))}</td><td>${escape(check.assertion==='status'?'2xx':shown(key,budget))}</td><td><span class="ui-result ${check.pass?'healthy':'failing'}">${check.pass?'Within budget':'Over budget'}</span></td></tr>`}).join('');
+  return `<tr data-check="${escape(check.assertion)}"><th scope="row">${escape(check.assertion==='status'?'Page status':labels[key]??key)}</th><td>${escape(check.assertion==='status'?`HTTP ${latest.evidence.status}`:shown(key,latest.figures[key]))}</td><td>${escape(check.assertion==='status'?'2xx':shown(key,budget))}</td><td><span class="ui-result ${check.pass?'passed':'failed'}">${check.pass?'Within budget':'Over budget'}</span></td></tr>`}).join('');
  return `<table class="ps-table" id="pagespeed-budgets"><caption class="ui-visually-hidden">Budgets of the latest check</caption><thead><tr><th scope="col">Figure</th><th scope="col">Latest</th><th scope="col">Budget</th><th scope="col">Result</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 function waterfall(e){

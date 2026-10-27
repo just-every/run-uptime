@@ -196,6 +196,14 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
       await panel.locator('#pagespeed-waterfall').waitFor({timeout: 30000});
       assert.match(await panel.locator('[data-check="budget:lcpMs"]').textContent(), /Over budget/);
       assert.match(await panel.locator('[data-check="budget:cls"]').textContent(), /Over budget/);
+      if(width===1440){
+        for(const [check,tone] of [['status','passed'],['budget:lcpMs','failed']]){
+          const result=panel.locator(`[data-check="${check}"] .ui-result`);
+          assert.ok(await result.evaluate((node,tone)=>node.classList.contains(tone),tone));
+          assert.ok(await result.evaluate((node,tone)=>{const probe=document.createElement('span');probe.style.color=`var(${tone==='passed'?'--green':'--rose'})`;node.append(probe);const color=getComputedStyle(probe).color;probe.remove();return getComputedStyle(node,'::before').backgroundColor===color},tone),'budget result uses the theme mark color');
+        }
+      }
+
       assert.ok(await panel.locator('#pagespeed-waterfall li').count() >= 2);
       assert.match(await panel.locator('#pagespeed-errors').textContent(), /Mobile checkout script failed/);
       assert.equal(await panel.locator('#pagespeed-synthetic-denominator').textContent(), `${both.checks} page-speed checks, ${both.overBudget} over budget.`);
