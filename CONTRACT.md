@@ -1012,7 +1012,7 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 - *access*: member invitations, role changes and removals, runner enrollment and revocation, and read API, metrics and CI keys. Facts are the people or credentials and whether the change widens or narrows.
 - *security*: request credential references, TLS trust exceptions, heartbeat tokens and URLs, destination credentials (endpoint URLs, signing keys, header secrets and bot tokens), live-effect, synthetic and private-network grants, the MFA policy, a member's factor reset, snapshot masks, safe values and email release, discovery source credentials and archive restore. Facts are the setting.
 - *destructive*: deleting a comment and its edit history, shortening retained snapshots' expiry, or erasing a monitor, destination, import batch or operator. Facts are the item count per table.
-- *live*: enabling or changing a running monitor, pausing or resuming, maintenance windows, routes and contact schedules, handoff mappings, adopting discovered monitors and following or unfollowing catalog dependencies when that starts or stops checks. Facts are the monitors and routes affected.
+- *live*: enabling or changing a running monitor, pausing or resuming, maintenance windows, routes and contact schedules, handoff mappings, adopting discovered monitors following or unfollowing catalog dependencies when that starts or stops checks, and revoking or relabeling a runner with assigned probes. Facts are the monitors and routes affected.
 - *gated*: a step the provider keeps for a person: a Teams admin installing the Uptime Teams app, a buyer connecting their own Twilio account in Twilio's console, a person authorizing Zapier or Make in their own account, and a recipient entering their own phone verification code. Facts are the provider and the step.
 
 | Tool | Does | Core clauses | Risk class | Today |
@@ -1027,7 +1027,7 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 | `uptime.grants.update` | Grant or revoke a live-effect, synthetic or private-network grant | API-004, FLOW-001, PRIVATE-001 | security (+ money) | none |
 | `uptime.cleanup.resolve` | Resolve a cleanup debt with a note | API-004 | standard | none |
 | `uptime.heartbeats.issue` | Issue or rotate a heartbeat token or URL and generate scheduler snippets | HEARTBEAT-001, HEARTBEAT-002, HEARTBEAT-003 | security | none |
-| `uptime.runners.update` | Enroll, label, upgrade or revoke a private runner | PRIVATE-001, PROBE-001 | access (+ security) | none |
+| `uptime.runners.update` | Enroll, label, upgrade or revoke a private runner | PRIVATE-001, PROBE-001 | access (+ security) (+ live) | none |
 | `uptime.maintenance.update` | Schedule, preview, apply or cancel a maintenance window | MAINT-001 | live | none |
 | `uptime.routes.update` | Routes, teams, contacts, delays, repeats, quiet hours and fallback chains | ROUTING-001, ROUTING-002, DELIVERY-002, AGENT-004 | live (+ external) | none |
 | `uptime.destinations.update` | Create, rotate, disable or remove a notification destination, including webhook templates and chat, phone and push destinations | NOTIFY-001, WEBHOOK-001, CHAT-001, PHONE-001, PHONE-002, MANAGE-001 | standard (+ security) (+ destructive) (+ external) (+ gated) | none |
@@ -1082,10 +1082,10 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 1. `uptime.monitors.save` is standard for a paused revision and live, with the monitors affected, for a change to a running monitor or one that enables checks; it adds security when it binds a credential reference or a TLS trust exception.
 2. `uptime.monitors.bulk`, `uptime.definitions.apply` and `uptime.settings.update` are standard for paused creations and live when they enable checks or change running monitors; `uptime.settings.update` adds security, with the setting changed, when it changes snapshot masks, safe values or email release.
 3. `uptime.routes.update`, `uptime.maintenance.update`, `uptime.monitors.pause` and `uptime.handoffs.update` are live with the monitors and routes they change, and `uptime.handoffs.update` adds security when it stores a connector credential.
-4. `uptime.discovery.run` is standard for a run, adds live when it adopts a proposal that enables checks and adds security when it authorizes a provider source credential.
-5. `uptime.destinations.update` is standard for a name or enable change, adds external as SURFACE-003 specifies for an outside alert recipient, and adds security when it sets or rotates an endpoint URL, signing key, header secret or bot token; `uptime.runners.update` adds security when it issues a runner key.
+4. `uptime.discovery.run` is standard for a run, adds live when it adopts a proposal that enables checks and adds security when it authorizes a provider source credential; `uptime.dependencies.follow` adds live when following starts checks or unfollowing stops them, with the dependency monitors affected.
+5. `uptime.destinations.update` is standard for a name or enable change, adds external as SURFACE-003 specifies for an outside alert recipient, and adds security when it sets or rotates an endpoint URL, signing key, header secret or bot token.
 6. Record text or arguments claiming a change is paused, internal or credential-free leave the computed classes unchanged.
-7. `uptime.dependencies.follow` adds live when following starts checks or unfollowing stops them, with the dependency monitors affected.
+7. `uptime.runners.update` adds live when it revokes or relabels a runner with assigned probes, with the monitors affected; revoking or relabeling a runner without assigned probes does not add live. It adds security when it issues a runner key.
 8. `uptime.members.update` adds security when it resets a member's enrolled second factors, with the factor-reset setting; invitations, role changes and removals do not add security for a factor reset.
 
 #### SURFACE-003 — External and money are computed per call
