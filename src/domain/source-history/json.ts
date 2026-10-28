@@ -8,9 +8,9 @@ export function isIncidentJson(text:string){
 }
 /** Saved v3 /incidents pages or detail captures, optionally wrapped with the source monitor and extraction range.
  * /monitors/{id}/response-time-stats time_series points retain their published millisecond units separately. */
-export async function parseHistoryJson(text:string):Promise<HistoryFile>{
+export async function parseHistoryJson(text:string,context:any={}):Promise<HistoryFile>{
  const captures=jsonValues(text,'history'),rows:HistoryRow[]=[]
- let extractedAt:number|null=null,coverageFrom:number|null=null,coverageTo:number|null=null
+ let extractedAt:number|null=context.extractedAt===undefined?null:sourceInstant(context.extractedAt,'extractedAt'),coverageFrom:number|null=context.coverageFrom===undefined?null:sourceInstant(context.coverageFrom,'coverageFrom'),coverageTo:number|null=context.coverageTo===undefined?null:sourceInstant(context.coverageTo,'coverageTo')
  for(const [page,value] of captures.flatMap((v:any)=>Array.isArray(v)?v:[v]).entries()){
   const capture:any=value
   for(const [field,key] of [['extractedAt','extractedAt'],['coverageFrom','coverageFrom'],['coverageTo','coverageTo']] as const)if(capture?.[key]!==undefined){
@@ -24,7 +24,7 @@ export async function parseHistoryJson(text:string):Promise<HistoryFile>{
    if(!item||typeof item!=='object'||!('startedAt' in item)||!('resolvedAt' in item))refuse(`${line}: expected v3 incident startedAt and resolvedAt`)
    const startedAt=sourceInstant(item.startedAt,`${line}, startedAt`),endedAt=item.resolvedAt===null?null:sourceInstant(item.resolvedAt,`${line}, resolvedAt`)
    if(endedAt!==null&&endedAt<startedAt)refuse(`${line}: resolvedAt precedes startedAt`)
-   const sourceMonitorId=sourceIdentity(item.monitor?.id??capture.monitorId,`${line}, monitor.id (or capture monitorId)`)
+   const sourceMonitorId=sourceIdentity(item.monitor?.id??capture.monitorId??context.sourceMonitorId,`${line}, monitor.id (or capture monitorId)`)
    const commentsValue=item.comments?.data??item.comments??capture.comments?.[item.id]?.data??capture.comments?.[item.id]??[]
    if(!Array.isArray(commentsValue))refuse(`${line}, comments: expected saved comment rows`)
    const comments=commentsValue.map((c:any,i:number)=>({text:sourceText(c.comment,`${line}, comment ${i+1}`),author:sourceText(c.user?.fullName??c.author,`${line}, comment author`),createdAt:c.created===undefined?null:sourceInstant(c.created,`${line}, comment created`)}))
@@ -36,7 +36,7 @@ export async function parseHistoryJson(text:string):Promise<HistoryFile>{
   if(capture.responseTimes){
    const samples=capture.responseTimes
    if(!Array.isArray(samples.time_series))refuse(`JSON capture ${page+1}, responseTimes.time_series: expected source samples`)
-   const sourceMonitorId=sourceIdentity(capture.monitorId,`JSON capture ${page+1}, monitorId`)
+   const sourceMonitorId=sourceIdentity(capture.monitorId??context.sourceMonitorId,`JSON capture ${page+1}, monitorId`)
    for(const [i,sample] of samples.time_series.entries()){
     const line=`JSON capture ${page+1}, response sample ${i+1}`,startedAt=sourceInstant(sample.timestamp,line)
     if(typeof sample.value!=='number'||!Number.isFinite(sample.value)||sample.value<0)refuse(`${line}: value must be response time in milliseconds`)
@@ -46,7 +46,8 @@ export async function parseHistoryJson(text:string):Promise<HistoryFile>{
  }
  boundRows(rows)
  if(!rows.length)refuse('History file has 0 rows')
+ if((coverageFrom===null)!==(coverageTo===null))refuse('Supply both coverageFrom/Period Start and coverageTo/Period End')
  const from=coverageFrom??Math.min(...rows.map(r=>r.startedAt)),to=coverageTo??Math.max(...rows.map(r=>r.endedAt??r.startedAt))
  if(from>to||rows.some(r=>r.startedAt<from||(r.endedAt??r.startedAt)>to))refuse('Source rows fall outside the stated coverage range')
- return {rows,extractedAt,coverageFrom:from,coverageTo:to,columns:[]}
+ return {rows,extractedAt,coverageFrom:from,coverageTo:to,coverageExplicit:coverageFrom!==null&&coverageTo!==null,columns:[]}
 }

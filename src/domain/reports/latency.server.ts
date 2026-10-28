@@ -1,3 +1,4 @@
+import {sourceResponseTimes} from '../source-history/response-times.server.ts'
 import {credentialMonitorFilter,type CredentialEnvironment} from '../credentials/model.server.ts'
 import {configuredPeriod} from './configured-period.server.ts'
 import { latencyQuery } from './latency-query.ts'
@@ -63,5 +64,7 @@ export async function monitorLatency(env: CredentialEnvironment, id: string, par
   const options = params instanceof URLSearchParams ? latencyOptions(params) : latencyOptions(new URLSearchParams())
   const filter=credentialMonitorFilter(env)
   const exists = await env.DB.prepare(`SELECT id FROM monitors WHERE id=? AND ${filter.sql}`).bind(id,...filter.params).first()
-  return exists ? periodLatency(env.DB, id, period, options) : null
+  if(!exists)return null
+  const [native,sourceSamples]=await Promise.all([periodLatency(env.DB,id,period,options),sourceResponseTimes(env.DB,id,period)])
+  return sourceSamples.length?{...native,sourceSamples}:native
 }

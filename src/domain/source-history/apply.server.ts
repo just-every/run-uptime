@@ -5,15 +5,16 @@ import {historyPlan,rowValue} from './preview.server.ts'
 import {refuse} from './model.ts'
 export async function applyHistory(env:Bindings,input:any){
  if(typeof input?.text!=='string')refuse('History apply needs file text')
- const plan=await historyPlan(env,input.text)
+ const plan=await historyPlan(env,input.text,input)
  if(typeof input.digest!=='string'||input.digest!==plan.digest)throw Object.assign(Error('The installation or file changed since preview. Nothing was applied; preview again.'),{status:409})
+ if(plan.extractedAt===null)refuse('Export or extraction time is required; supply extractedAt context or an Exported At column. Nothing was applied.')
  if(plan.counts.conflict)throw Object.assign(Error('Source rows already exist with different content; nothing was applied.'),{status:409})
  const rows=plan.entries.filter(e=>e.action==='create'),batchId=crypto.randomUUID(),now=Date.now()
  if(!rows.length)return {batchId:null,addedRows:0,unchangedRows:plan.counts.unchanged,unmappedRows:plan.counts.unmapped,preview:plan}
  const groups=new Map<string,any[]>(),batches=[]
  for(const id of new Set(rows.map(r=>r.monitorId!))){
   const monitorRows=plan.entries.filter(r=>r.monitorId===id)
-  batches.push({id:batchId,monitor_id:id,source:plan.source,source_monitor_id:monitorRows[0].sourceMonitorId,file_digest:plan.fileDigest,extracted_at:plan.extractedAt,coverage_from:plan.coverageFrom,coverage_to:plan.coverageTo,imported_at:now,restored_at:null})
+  batches.push({id:batchId,monitor_id:id,source:plan.source,source_monitor_id:monitorRows[0].sourceMonitorId,file_digest:plan.fileDigest,extracted_at:plan.extractedAt,coverage_from:plan.coverageExplicit?plan.coverageFrom:Math.min(...monitorRows.map(r=>r.startedAt)),coverage_to:plan.coverageExplicit?plan.coverageTo:Math.max(...monitorRows.map(r=>r.endedAt??r.startedAt)),imported_at:now,restored_at:null})
  }
  groups.set('source_history_batches',batches)
  groups.set('source_history_rows',rows.map(row=>({...rowValue(row,row.monitorId!),batch_id:batchId})))

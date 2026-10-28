@@ -23,13 +23,13 @@ export async function historyCutover(env:Pick<Bindings,'DB'>,id:string){
 }
 /** Source covered time and downtime never enter the native availability engine. Overlap is clipped only for blending. */
 export async function sourceSegments(env:Pick<Bindings,'DB'>,id:string,period:ReportPeriod){
- const batches=(await env.DB.prepare('SELECT * FROM source_history_batches WHERE monitor_id=? ORDER BY source,coverage_from,id').bind(id).all<any>()).results
+ const batches=(await env.DB.prepare(`SELECT b.*,EXISTS(SELECT 1 FROM source_history_rows r WHERE r.batch_id=b.id AND r.monitor_id=b.monitor_id AND r.kind<>'response') AS availability_history FROM source_history_batches b WHERE monitor_id=? ORDER BY source,coverage_from,id`).bind(id).all<any>()).results
  if(!batches.length)return null
  const rows=(await env.DB.prepare('SELECT * FROM source_history_rows WHERE monitor_id=? AND started_at<? AND (ended_at IS NULL OR ended_at>=?) ORDER BY started_at,source_row_id LIMIT 10001').bind(id,period.to,period.from).all<StoredHistoryRow>()).results
  if(rows.length>10000)throw Object.assign(Error('Source history exceeds 10,000 period rows; choose a shorter period'),{status:400})
  const cutover=await historyCutover(env,id),segments=[]
  for(const source of [...new Set(batches.map(b=>b.source as string))]){
-  const coverage=union(batches.filter(b=>b.source===source).map((b):Span=>[Math.max(period.from,b.coverage_from),Math.min(period.to,b.coverage_to)]))
+  const coverage=union(batches.filter(b=>b.source===source&&b.availability_history).map((b):Span=>[Math.max(period.from,b.coverage_from),Math.min(period.to,b.coverage_to)]))
   const outages=rows.filter(r=>r.source===source&&['down','incident'].includes(r.kind))
   const excluded=outages.filter(r=>!r.included).map((r):Span=>[r.started_at,r.ended_at??period.to])
   const covered=without(coverage,excluded),down=intersect(covered,outages.filter(r=>r.included).map((r):Span=>[r.started_at,r.ended_at??period.to]))

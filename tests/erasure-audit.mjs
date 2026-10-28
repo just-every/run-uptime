@@ -139,6 +139,7 @@ try{
  const [journalReceipt]=journalReceipts;assert.match(journalReceipt.id,/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
  assert.ok(journalReceipt.occurred_at>=journalStarted&&journalReceipt.occurred_at<=Date.now());
  assert.deepEqual(journalReceipt,{id:journalReceipt.id,actor_kind:'operator',actor_ref:ownerRow.id,occurred_at:journalReceipt.occurred_at,action:'access_export',subject_kind:'operator',subject_ref:journalReceipt.id});
+ await proveHistoryErasure({origin,cookie:owner.cookie,db:DB});
  await worker.dispose();worker=null;
  ({worker:freshWorker,DB:globalThis.freshDB}=await migratedWorker({port:freshPort,persist:join(directory,'fresh'),bindings}));const fresh={...env,DB:globalThis.freshDB};
  await assert.rejects(restore(fresh,nativeBefore,undefined,{laterJournal:later}),/erased/);
@@ -158,6 +159,5 @@ try{
  await restore(fresh,afterArchive);const restoredAudit=(await fresh.DB.prepare('SELECT * FROM uptime_audit').all()).results;for(const row of savedAudit)assert.deepEqual(restoredAudit.find(item=>item.id===row.id),row,'portable audit rows survive import unchanged');for(const row of freshAuditBefore)assert.deepEqual(restoredAudit.find(item=>item.id===row.id),row,'receiving owner enrollment audit survives restore');assert.equal(restoredAudit.length,new Set([...savedAudit,...freshAuditBefore].map(row=>row.id)).size+1);const restoreAudit=restoredAudit.find(row=>row.action==='archive_restore');assert.ok(restoreAudit);
  const evidence={receipts,scan,audit:savedAudit,restoreAudit,signedResult:{realClaimedHeartbeat:true,validSignaturePassed:true,refusedStatus:signedRefusal.status,unchangedNonCounterTables:true,runnerAdmissions:5},notificationAttempts:{mail:mail.length,webhook:receiver.records.length,authCaptures,authAudits},erasedActorArchiveRefusedBeforeWrites:true,historicalFixtures:'Two replay envelopes cloned from actual deliveries, one delivery resolution, and an original monitor archive_history copy were inserted in real D1; owner and runner APIs populated all other dependents.',attachments:'No R2 buckets or uploads exist.'};
  if(process.env.UPTIME_ERASURE_EVIDENCE){await mkdir(process.env.UPTIME_ERASURE_EVIDENCE,{recursive:true});await writeFile(join(process.env.UPTIME_ERASURE_EVIDENCE,'erasure-audit.json'),JSON.stringify(evidence,null,2)+'\n')}
- await proveHistoryErasure({origin,cookie:owner.cookie,db:DB});
  console.log(`BASE-DATA-003 / BASE-OPS-005 PASS erasure public owner routes, ${scan.length} physical table canary scan, real scheduled probe and ${mail.length+receiver.records.length} network-edge sends, durable receipts/audit, last owner and late claims refused, native/custom payload later-journal fences.`);
 }finally{if(freshWorker)await freshWorker.dispose();if(worker)await worker.dispose();if(fixture)await fixture.stop();if(receiver)await receiver.close();await cleanupDirectory(directory)}
