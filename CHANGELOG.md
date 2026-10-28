@@ -1,5 +1,10 @@
 # Changelog
 
+## Contract cleanup fix — 28 October 2026
+
+- Demote FLOW-003 and MAINT-001 where the carried evidence proves the monitor snapshot API and DST previews, but not the named incident-detail door or scheduled New York recurring-window failure. The acceptance points retain their full scope.
+- Re-audit every asserted outcome of the 22 carried-done clauses for named doors, verbs and enumerated cases. Demote PING-001 because initial unchecked coverage does not assert coverage after stopping a running probe. Name the cited incident-detail and signed-webhook fallback assertions and correct the rebinding and sandbox-checkout assertion references.
+
 ## 28 October 2026 — contract cleanup to the RER contract standard
 
 CONTRACT.md was rewritten to the RER contract standard from main `a492c68b79754ded94cf5a75e9564c29a50f3215` and moved onto main `dc096c027d5172b1c9ff64afea2c7f76faf4bcef` (native Oncall handoffs; BOUNDARY-001 stays partial with its new Evidence and Gap carried). Nothing was cut and no status was promoted: `docs/contract/COVERAGE.json` places every old sentence of CONTRACT.md, the hand-written ACCEPTANCE.md and docs/CLAIMS.md, `docs/contract/ID-MAP.json` maps every old id, and `docs/contract/DONE-AUDIT.md` checks every point of every clause that was done.

@@ -8,10 +8,10 @@ The primary journey: an operator moves their monitors from UptimeRobot or Pingdo
 
 | Tier | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
-| Core | 22 | 62 | 11 | 95 |
+| Core | 19 | 65 | 11 | 95 |
 | Agent surface | 0 | 0 | 5 | 5 |
 | Later | 0 | 0 | 1 | 1 |
-| Full target | 22 | 62 | 17 | 101 |
+| Full target | 19 | 65 | 17 | 101 |
 
 Judged from the code and tests at commit `56497f8d6716dbe16437095f61a923266fd9b347` (24 October 2026). Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
 
@@ -376,7 +376,7 @@ Core · target · **partial**
 
 #### PING-001 — ICMP reachability and packet quality
 
-Core · target · **done**
+Core · target · **partial**
 
 **Requirement.** ICMP ping monitors retain bounded packet loss, round-trip latency and configured thresholds by location for IPv4/IPv6. ICMP blocked by policy is shown explicitly rather than inferred from HTTP success.
 
@@ -384,7 +384,7 @@ Core · target · **done**
 1. Configure a ping target, vary loss and latency, disable ICMP and stop a probe; inspect protocol-specific results and Unknown probe coverage.
 
 **Evidence.** `runners/src/icmp-probe.mjs`; `src/domain/protocol/`; `tests/ping-monitors.mjs`; `tests/ping-browser.mjs`; `docs/evidence/contracts/ping/`
-**Gap.** None.
+**Gap.** Configured ICMP loss and latency, threshold failures, disabled or unavailable ICMP, and initial Unknown probe coverage are asserted. Unknown coverage after stopping a previously running probe is not asserted; the cited stopped-probe case only creates an unchecked monitor.
 
 #### DNS-001 — DNS records and change detection
 
@@ -577,7 +577,7 @@ Core · target · **done**
 
 #### MAINT-001 — Planned and recurring maintenance
 
-Core · target · **done**
+Core · target · **partial**
 
 **Requirement.** One-time and recurring windows target monitors/groups with US time zones, daylight-saving handling, preview and audit. Buyers choose notification suppression or execution pause explicitly; reports show maintenance separately and retain denominator and underlying observations. Expiry re-evaluates actual evidence and cannot emit orphan recovery.
 
@@ -585,7 +585,7 @@ Core · target · **done**
 1. Schedule a New York recurring maintenance window across a DST transition and a one-time group window; fail a monitor during each, restart, end/cancel the window and inspect preserved results, suppression and reports.
 
 **Evidence.** `src/domain/planned-maintenance/`; `src/domain/planned-maintenance.server.ts`; `public/planned-maintenance.js`; `tests/maintenance-windows.mjs`; `tests/archive-roundtrip.mjs`; `docs/evidence/contracts/maintenance/`
-**Gap.** None.
+**Gap.** DST previews, one-time group pause and suppression with failing monitors, restart, cancellation, expiry, preserved observations and separate maintenance report denominators are asserted. A New York recurring window scheduled across a DST transition and a monitor failing during a recurring window are not asserted.
 
 ### Reports, evidence and diagnosis
 
@@ -703,7 +703,7 @@ Core · target · **partial**
 
 #### FLOW-003 — Useful and safe browser failure artifacts
 
-Core · target · **done**
+Core · target · **partial**
 
 **Requirement.** Failed steps retain redacted screenshots, Playwright traces, video replay, console errors, network/timing waterfalls and step durations tied to the immutable run. Owner-defined masks, no secret-bearing headers/bodies and bounded retention/export/access prevent synthetic credentials or personal data leaking into artifacts. Artifact-generation failure is visible and cannot hide the check failure.
 
@@ -712,7 +712,7 @@ Core · target · **done**
 2. Planted secrets/masked fields never appear; retained artifact failures and erasure are visible.
 
 **Evidence.** `runners/src/flow/artifacts.mjs`; `src/domain/flow-artifacts.mjs`; `src/domain/failure-page-custody.server.ts`; `public/assets/failure-snapshot-view.js`; `tests/flow-journey.mjs`; `tests/flow-artifact-journey.mjs`
-**Gap.** None.
+**Gap.** Screenshot, video, trace and waterfall reads through the owner's monitor snapshot API, denied artifact storage, unauthorized download, masking and erasure are asserted. The authenticated incident-detail door is asserted only in `tests/flow-artifact-browser.mjs`, which this clause does not cite.
 
 #### FLOW-004 — Cross-browser and mobile transactions
 

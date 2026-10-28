@@ -4,9 +4,9 @@ Old reference: `dc096c027d5172b1c9ff64afea2c7f76faf4bcef` (main, 28 October 2026
 
 One row per outcome of every acceptance point of every clause that was done at the old reference. **Asserting test** is the line of the assertion (or of the call whose expected result a helper in the same file asserts) in a file the clause's Evidence cell lists. **Result** is `asserted`, `none` or `moved`. A `none` row demotes its clause to partial, and that clause's Gap names the outcome. A `moved` row is a pointer or proof boundary that left the point for the Requirement; the point keeps every outcome it named.
 
-Still done (22): NETWORK-001, RETENTION-001, AUDIT-001, INTERFACE-001, DRILL-001, API-001, SLOW-001, API-003, API-004, PING-001, UDP-001, MAIL-001, NETWORK-002, PRIVATE-001, MAINT-001, EVIDENCE-002, DEPENDENCY-001, FLOW-003, FLOW-004, DELIVERY-002, NOTICE-001, OPS-001.
+Still done (19): NETWORK-001, RETENTION-001, AUDIT-001, INTERFACE-001, DRILL-001, API-001, SLOW-001, API-003, API-004, UDP-001, MAIL-001, NETWORK-002, PRIVATE-001, EVIDENCE-002, DEPENDENCY-001, FLOW-004, DELIVERY-002, NOTICE-001, OPS-001.
 
-Demoted to partial (23): HTTP-001, EVIDENCE-001, STATE-001, AUTHORITY-001, HEARTBEAT-001, ARCHIVE-001, ERASURE-001, PRESENCE-001, NOTIFY-001, DELIVERY-001, PUBLIC-001, STARTUP-001, PUBLIC-002, API-002, TCP-001, DNS-001, TLS-001, DOMAIN-001, SCHEDULE-001, ROUTING-002, WEBHOOK-001, MANAGE-001, METRICS-001.
+Demoted to partial (26): HTTP-001, EVIDENCE-001, STATE-001, AUTHORITY-001, HEARTBEAT-001, ARCHIVE-001, ERASURE-001, PRESENCE-001, NOTIFY-001, DELIVERY-001, PUBLIC-001, STARTUP-001, PUBLIC-002, API-002, TCP-001, DNS-001, TLS-001, DOMAIN-001, SCHEDULE-001, ROUTING-002, WEBHOOK-001, MANAGE-001, METRICS-001, PING-001, MAINT-001, FLOW-003.
 
 | Clause | Point | Outcome | Asserting test | Result |
 | --- | --- | --- | --- | --- |
@@ -47,7 +47,7 @@ Demoted to partial (23): HTTP-001, EVIDENCE-001, STATE-001, AUTHORITY-001, HEART
 | AUTHORITY-001 | 1 | The authorized session then succeeds | `tests/access-matrix.mjs:70` | asserted |
 | AUTHORITY-001 | 1 | The scoped runner then succeeds | `tests/signed-runner.mjs:104` | asserted |
 | NETWORK-001 | 1 | A mixed public/private DNS answer is refused | `tests/public-probes.mjs:57` | asserted |
-| NETWORK-001 | 1 | A rebinding answer on re-resolution is refused before connecting | `tests/public-probes.mjs:127` | asserted |
+| NETWORK-001 | 1 | A rebinding answer on re-resolution is refused before connecting | `tests/public-probes.mjs:128` | asserted |
 | NETWORK-001 | 1 | A TLS hostname mismatch fails as a TLS target failure | `tests/public-probes.mjs:70` | asserted |
 | NETWORK-001 | 1 | Every redirect hop is re-resolved | `tests/public-probes.mjs:121` | asserted |
 | NETWORK-001 | 1 | An HTTPS downgrade redirect is refused | `tests/public-probes.mjs:125` | asserted |
@@ -217,10 +217,10 @@ Demoted to partial (23): HTTP-001, EVIDENCE-001, STATE-001, AUTHORITY-001, HEART
 | API-003 | 1 | Step history keeps each step's outcome, attempts and timing | `tests/api-transaction-journey.mjs:50`, `:51` and `:54` | asserted |
 | API-003 | 1 | Cleanup runs and is visible after a failure | `tests/api-transaction-journey.mjs:49` and `:58` | asserted |
 | API-003 | 1 | No extracted secret leaks into evidence | `tests/api-transaction-journey.mjs:16` | asserted |
-| API-004 | 1 | A sandbox checkout runs with setup and teardown | `tests/api-transaction-journey.mjs:49` and `:50` | asserted |
-| API-004 | 1 | A mid-flow cancellation is recorded and cleanup still runs | `tests/api-transaction-journey.mjs:71` | asserted |
-| API-004 | 1 | Cleanup denied at the network edge makes exactly its bounded attempts | `tests/api-transaction-journey.mjs:75` | asserted |
-| API-004 | 1 | The cleanup failure is retained as debt | `tests/api-transaction-journey.mjs:77` | asserted |
+| API-004 | 1 | A sandbox checkout runs with setup and teardown | `tests/api-transaction-journey.mjs:201` and `:202` (real browser checkout, synthetic account and Stripe test-mode order) | asserted |
+| API-004 | 1 | A mid-flow cancellation is recorded and cleanup still runs | `tests/api-transaction-journey.mjs:71` and `:206` (API and browser cancellation) | asserted |
+| API-004 | 1 | Cleanup denied at the network edge makes exactly its bounded attempts | `tests/api-transaction-journey.mjs:75` and `:211` (API and browser cleanup) | asserted |
+| API-004 | 1 | The cleanup failure is retained as debt | `tests/api-transaction-journey.mjs:77` and `:213` | asserted |
 | API-004 | 1 | Explicit operator resolution closes debt and is audited | `tests/api-transaction-journey.mjs:93` and `:95` | asserted |
 | API-004 | 1 | No live charge is made without a grant | `tests/api-transaction-journey.mjs:104`, `:110` and `:121` | asserted |
 | TCP-001 | 1 | A TCP monitor is created through the owner API | `tests/protocol-monitors.mjs:58` | asserted |
@@ -233,7 +233,8 @@ Demoted to partial (23): HTTP-001, EVIDENCE-001, STATE-001, AUTHORITY-001, HEART
 | PING-001 | 1 | Raised loss fails the packet-loss threshold | `tests/ping-monitors.mjs:61` | asserted |
 | PING-001 | 1 | Raised latency fails the round-trip threshold | `tests/ping-monitors.mjs:62` | asserted |
 | PING-001 | 1 | Disabled or unavailable ICMP reads Unknown, not success | `tests/ping-monitors.mjs:72` | asserted |
-| PING-001 | 1 | A stopped probe leaves Unknown probe coverage | `tests/ping-monitors.mjs:79` | asserted |
+| PING-001 | 1 | Stop a previously running probe and inspect Unknown probe coverage | none: `tests/ping-monitors.mjs:79` only creates an unchecked monitor, and neither cited test reads coverage after stopping a previously running probe | none |
+| PING-001 | 1 | A newly created unchecked monitor has initial Unknown probe coverage | `tests/ping-monitors.mjs:79` | asserted |
 | DNS-001 | 1 | DNS monitors are saved through the owner door and read their records | `tests/protocol-monitors.mjs:71` | asserted |
 | DNS-001 | 1 | A changed expected record fails | `tests/protocol-monitors.mjs:72` | asserted |
 | DNS-001 | 1 | A removed record (NXDOMAIN) fails and is never treated as success | `tests/protocol-monitors.mjs:78` | asserted |
@@ -290,7 +291,9 @@ Demoted to partial (23): HTTP-001, EVIDENCE-001, STATE-001, AUTHORITY-001, HEART
 | PRIVATE-001 | 2 | A metadata address refuses | `tests/private-network.mjs:39` | asserted |
 | PRIVATE-001 | 2 | A redirected private address refuses without connecting | `tests/private-network.mjs:48` | asserted |
 | PRIVATE-001 | 2 | A public runner cannot use the grant | `tests/private-network.mjs:50` | asserted |
-| MAINT-001 | 1 | A New York recurring window is previewed across a DST transition | `tests/maintenance-windows.mjs:71` | asserted |
+| MAINT-001 | 1 | Schedule a New York recurring maintenance window across a DST transition | none: `tests/maintenance-windows.mjs:66` and `:69` preview but never apply the New York recurring window | none |
+| MAINT-001 | 1 | New York DST previews distinguish the skipped spring time and the repeated fall time | `tests/maintenance-windows.mjs:67` and `:71` | asserted |
+| MAINT-001 | 1 | Fail a monitor during the recurring window | none: the applied failing-monitor windows in `tests/maintenance-windows.mjs:80`, `:96`, `:106` and `:114` are one-time; the recurring report fixture has passing observations | none |
 | MAINT-001 | 1 | A one-time group window pauses execution for the whole group | `tests/maintenance-windows.mjs:84` | asserted |
 | MAINT-001 | 1 | A failure during a suppress window is kept but opens no trigger or recovery | `tests/maintenance-windows.mjs:82` and `:98` | asserted |
 | MAINT-001 | 1 | A restart during a window keeps observations and the window | `tests/maintenance-windows.mjs:111` | asserted |
@@ -302,6 +305,7 @@ Demoted to partial (23): HTTP-001, EVIDENCE-001, STATE-001, AUTHORITY-001, HEART
 | EVIDENCE-002 | 1 | The owner reads the request and response headers in the snapshot | `tests/failure-page-journey.mjs:22` and `tests/failure-snapshots.mjs:25` | asserted |
 | EVIDENCE-002 | 1 | The page excerpt is kept and masked | `tests/failure-page-journey.mjs:23` | asserted |
 | EVIDENCE-002 | 1 | The screenshot is kept and read back by the owner | `tests/failure-page-journey.mjs:22` and `:26` | asserted |
+| EVIDENCE-002 | 1 | As owner open incident detail and inspect the failure snapshot, including its screenshot | `tests/failure-page-browser.mjs:15` (incident snapshot control, visible screenshot and downloaded incident report assertion) | asserted |
 | EVIDENCE-002 | 2 | An unauthorized role is refused | `tests/failure-page-journey.mjs:33` (member without evidence access: 403) | asserted |
 | EVIDENCE-002 | 2 | A signed-out request is refused | `tests/failure-page-journey.mjs:33` and `tests/failure-snapshots.mjs:27` | asserted |
 | EVIDENCE-002 | 2 | The incident report carries the snapshot | `tests/failure-page-journey.mjs:26` | asserted |
@@ -315,7 +319,8 @@ Demoted to partial (23): HTTP-001, EVIDENCE-001, STATE-001, AUTHORITY-001, HEART
 | DEPENDENCY-001 | 2 | The separate provider monitor shows its failure, naming where its status comes from | `tests/discovery-jobs.mjs:180` and `:181` | asserted |
 | DEPENDENCY-001 | 2 | The application monitor's state, revisions and evidence stay unchanged | `tests/discovery-jobs.mjs:182` | asserted |
 | DEPENDENCY-001 | 2 | A removed component reads Unknown/missing evidence | `tests/discovery-jobs.mjs:184` | asserted |
-| FLOW-003 | 1 | A broken sandbox checkout keeps a screenshot, video, trace and waterfall read through the authenticated owner door | `tests/flow-artifact-journey.mjs:44` | asserted |
+| FLOW-003 | 1 | A broken sandbox checkout keeps a screenshot, video, trace and waterfall read through the authenticated owner monitor snapshot API | `tests/flow-artifact-journey.mjs:44` | asserted |
+| FLOW-003 | 1 | Inspect screenshot, video, trace and waterfall through authenticated incident detail | none: asserted only in `tests/flow-artifact-browser.mjs:14`, which this clause does not cite; `tests/flow-artifact-journey.mjs:44` reads the monitor snapshot API | none |
 | FLOW-003 | 1 | Denied artifact storage leaves a visible capture failure | `tests/flow-artifact-journey.mjs:56` and `:57` | asserted |
 | FLOW-003 | 1 | An unauthorized download is refused | `tests/flow-artifact-journey.mjs:51` | asserted |
 | FLOW-003 | 2 | Planted secrets never appear | `tests/flow-artifact-journey.mjs:46` | asserted |
@@ -340,6 +345,7 @@ Demoted to partial (23): HTTP-001, EVIDENCE-001, STATE-001, AUTHORITY-001, HEART
 | DELIVERY-002 | 1 | A restart mid-backoff makes no duplicate attempt | `tests/notify-retry-fixture.mjs:61` | asserted |
 | DELIVERY-002 | 2 | A dead Slack webhook fails with its code | `tests/notify-fallback-fixture.mjs:23` | asserted |
 | DELIVERY-002 | 2 | The email fallback is sent within the deadline, naming the failed primary | `tests/notify-fallback-fixture.mjs:27`, `:29` and `:30` | asserted |
+| DELIVERY-002 | 2 | The signed-webhook fallback receives the alert after the uncertain email, with the preceding outcome visible | `tests/notify-fallback-fixture.mjs:38`, `:39` and `:44` | asserted |
 | DELIVERY-002 | 2 | Both outcomes stay visible | `tests/notify-fallback-fixture.mjs:31` and `tests/notify-retry-fixture.mjs:72` | asserted |
 | DELIVERY-002 | 3 | An email destination is never automatically resent | `tests/notify-fallback-fixture.mjs:28` | asserted |
 | DELIVERY-002 | old 2 | The SMS fallback is inherited by PHONE-001 and PHONE-002 | moved to the Requirement (a pointer to other clauses, RL-3) | moved |
