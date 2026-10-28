@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { hostingPageHtml } from '../base/hosting-page';
 import { contractPageHtml } from '../base/contract-page';
 import { runPageHtml, siteNotFoundHtml, type SiteBuild, type SiteContext } from '../base/run-site';
 import { identity } from '../identity';
@@ -10,7 +11,7 @@ import { Landing } from './landing/Landing';
 import { run } from './run';
 
 /** The run site (run-uptime.com), built by `rer build --site`: the approved homepage, the Run page, the docs and a 404. */
-export function sitePages({ styles, contract }: SiteContext): SiteBuild {
+export function sitePages({ styles, contract, hosting }: SiteContext): SiteBuild {
   const document = (title: string, description: string | undefined, body: ReactElement) => '<!doctype html>' + renderToStaticMarkup(
     <html lang="en">
       <head>
@@ -32,6 +33,7 @@ export function sitePages({ styles, contract }: SiteContext): SiteBuild {
       { path: '/', html: document('Uptime — Sleep through the night', identity.tagline, <Landing />) },
       { path: '/run', html: runPageHtml(identity, run, contract) },
       ...(contract ? [{ path: '/contract', html: contractPageHtml(identity, run, contract) }] : []),
+      { path: '/docs/hosting', html: hostingPageHtml(identity, run, hosting, contract) },
       { path: '/docs', html: document(...head(), <DocsIndex variant="site" />) },
       ...docsPages.map(page => ({ path: `/docs/${page.slug}`, html: document(...head(page.slug), <DocsArticle slug={page.slug} variant="site" />) })),
       { path: '/404', html: siteNotFoundHtml(identity, run, contract) },
