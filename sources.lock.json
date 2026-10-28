@@ -2003,7 +2003,7 @@
       "executable": false
     },
     "docs/getting-started.md": {
-      "sha256": "b988b07e34c112e6ed793f8fa9260eb8efb4d066bf7c9cc4dae8699ffdc9d59d",
+      "sha256": "2b7ad696aaf2675b71905ea12801998a2242b36c5ffef9777d9ee0cbd899ad62",
       "executable": false
     },
     "docs/grafana/uptime-dashboard.json": {
@@ -7611,7 +7611,7 @@
       "executable": false
     },
     "src/site/docs/build/site.ts": {
-      "sha256": "c8036a0bc48dc9dbcaf58eeb14cb4f2cbd291f7ac69266fc4edb0e39347d4ac9",
+      "sha256": "4ff4cef7bdd0271f1638a846f63ef54eed435b562cd3dbe0e8c4171b2b905563",
       "executable": false
     },
     "src/site/docs/build/slug.ts": {
