@@ -1323,6 +1323,7 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
 5. `uptime.destinations.update` is standard for a name or enable change and adds security when it sets or rotates an endpoint URL, signing key, header secret or bot token; `uptime.runners.update` adds security when it issues a runner key.
 6. Record text or arguments claiming a change is paused, internal or credential-free leave the computed classes unchanged.
 7. `uptime.dependencies.follow` adds live when following starts checks or unfollowing stops them, with the dependency monitors affected.
+8. `uptime.members.update` adds security when it resets a member's enrolled second factors, with the factor-reset setting; invitations, role changes and removals do not add security for a factor reset.
 
 **Evidence.** None.
 **Gap.** No implementation: no tool declares or computes live or security classes.

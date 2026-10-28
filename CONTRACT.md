@@ -1010,7 +1010,7 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 - *external*: a test send or alert drill, a phone verification code, a scheduled report to a recipient outside the business, a comment published to a status page, and following an Auth0 tenant feed that sends the tenant domain to Auth0. Facts are the recipient count and the counterparty: *known* for a destination or provider already on record, *new* otherwise, *public* for a status page.
 - *money*: SMS and voice sends metered at COST-001's USD price, a phone budget or plan change, and a live-effect grant's spend limit. Facts are the USD amount and the payee.
 - *access*: member invitations, role changes and removals, runner enrollment and revocation, and read API, metrics and CI keys. Facts are the people or credentials and whether the change widens or narrows.
-- *security*: request credential references, TLS trust exceptions, heartbeat tokens and URLs, destination credentials (endpoint URLs, signing keys, header secrets and bot tokens), live-effect, synthetic and private-network grants, the MFA policy, discovery source credentials and archive restore. Facts are the setting.
+- *security*: request credential references, TLS trust exceptions, heartbeat tokens and URLs, destination credentials (endpoint URLs, signing keys, header secrets and bot tokens), live-effect, synthetic and private-network grants, the MFA policy, a member's factor reset, discovery source credentials and archive restore. Facts are the setting.
 - *destructive*: deleting a comment and its edit history, or erasing a monitor, destination, import batch or operator. Facts are the item count per table.
 - *live*: enabling or changing a running monitor, pausing or resuming, maintenance windows, routes and contact schedules, handoff mappings, adopting discovered monitors and following or unfollowing catalog dependencies when that starts or stops checks. Facts are the monitors and routes affected.
 - *gated*: a step the provider keeps for a person: a Teams admin installing the Uptime Teams app, a buyer connecting their own Twilio account in Twilio's console, a person authorizing Zapier or Make in their own account, and a recipient entering their own phone verification code. Facts are the provider and the step.
@@ -1046,7 +1046,7 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 | `uptime.archive.restore` | Restore an archive into empty product data | ARCHIVE-001, ARCHIVE-002, OPS-001 | security | none |
 | `uptime.erasure.run` | Erase a monitor, destination, import batch or operator | ERASURE-001 | destructive (+ access) | none |
 | `uptime.audit.read` | Search and export the audit | AUDIT-001 | standard | none |
-| `uptime.members.update` | Invite, change the role of, reset the factors of or remove a member | ACCESS-001 | access | none |
+| `uptime.members.update` | Invite, change the role of, reset the factors of or remove a member | ACCESS-001, ACCESS-003 | access (+ security) | none |
 | `uptime.keys.update` | Create, limit or revoke read API, metrics and CI keys | READAPI-001, METRICS-001, CODE-001 | access · security | none |
 | `uptime.security.update` | Change the MFA policy | ACCESS-003 | security | none |
 | `uptime.settings.update` | Notice time zone and preferences, snapshot retention, the external check URL, the phone budget and the plan | NOTICE-001, COST-001 | standard or live (+ money) | none |
@@ -1086,6 +1086,7 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 5. `uptime.destinations.update` is standard for a name or enable change and adds security when it sets or rotates an endpoint URL, signing key, header secret or bot token; `uptime.runners.update` adds security when it issues a runner key.
 6. Record text or arguments claiming a change is paused, internal or credential-free leave the computed classes unchanged.
 7. `uptime.dependencies.follow` adds live when following starts checks or unfollowing stops them, with the dependency monitors affected.
+8. `uptime.members.update` adds security when it resets a member's enrolled second factors, with the factor-reset setting; invitations, role changes and removals do not add security for a factor reset.
 
 #### SURFACE-003 — External and money are computed per call
 
