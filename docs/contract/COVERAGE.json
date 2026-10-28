@@ -110,7 +110,27 @@
     {
       "file": "CONTRACT.md",
       "line": 25,
-      "text": "**AUTHORITY-001 — Server-side scoped authority.** Every private document, read, mutation and export requires server-side operator or scoped runner authority, missing configuration fails closed, browser mutations enforce configured origin, and expired/foreign attempts cannot alter current evidence, and duplicate attempt identities cannot overwrite it; a signature identifies a key holder rather than proving truthful observation. See [Integrity and authority](#integrity-and-authority). **Acceptance evidence:** Open private documents and call native/framework APIs while signed out, revoked, cross-origin or using a foreign/expired runner signature; require refusal with no product writes, then succeed with the authorized session or scoped runner.",
+      "text": "**AUTHORITY-001 — Server-side scoped authority.**",
+      "to": "clause",
+      "ids": [
+        "AUTHORITY-001"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 25,
+      "text": "Every private document, read, mutation and export requires server-side operator or",
+      "to": "base",
+      "ids": [
+        "BASE-ACCESS-002",
+        "BASE-ACCESS-004",
+        "BASE-ROLE-001"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 25,
+      "text": "scoped runner authority, missing configuration fails closed, browser mutations enforce configured origin, and expired/foreign attempts cannot alter current evidence, and duplicate attempt identities cannot overwrite it; a signature identifies a key holder rather than proving truthful observation. See [Integrity and authority](#integrity-and-authority). **Acceptance evidence:** Open private documents and call native/framework APIs while signed out, revoked, cross-origin or using a foreign/expired runner signature; require refusal with no product writes, then succeed with the authorized session or scoped runner.",
       "to": "clause",
       "ids": [
         "AUTHORITY-001"
@@ -199,7 +219,89 @@
     {
       "file": "CONTRACT.md",
       "line": 35,
-      "text": "**RETENTION-001 — Explicit storage custody.** Product and observation metadata and legacy development sign-in records have no automatic age/count deletion; operator erasure removes captures for the associated operator, and local reset clears the installation. Expired sessions, authentication/public rate-limit state and short-lived login-attempt counters are cleaned up. Expired or confirmed alert-drill links lose their capability material while drill history stays; retired destination secrets are scrubbed only after owner rotation/deletion and in-flight sends finish; a proven-unsent integration-attempt reservation can be removed while its delivery history remains. Other expired operational records, including discovery jobs, change status and remain stored unless an owner erases the associated entity or resets the installation. Raw target response bodies and probe-request secrets are not retained in observations; the only target content kept is EVIDENCE-002's bounded, redacted, access-controlled failure snapshot, stored apart from observations under owner-set retention, carried in archives and erased with its monitor or on owner request. Webhook and Slack endpoint URLs and signing keys remain installation-local, available email addresses travel as destination definitions, and retention changes must never silently improve the fixed denominator or historical health. See [Portability and retention](#portability-and-retention). **Acceptance evidence:** Judge custody and every declared cleanup class at current supported bounds. Populate product, authentication, rate-limit, drill, credential and attempt records; run expiry, maintenance and restart through runtime doors and compare surviving identities. Only declared transient data/secret material disappears; no cleanup improves uptime or removes retained product history.",
+      "text": "**RETENTION-001 — Explicit storage custody.**",
+      "to": "clause",
+      "ids": [
+        "RETENTION-001"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 35,
+      "text": "Product and observation metadata and",
+      "to": "base",
+      "ids": [
+        "BASE-DATA-002"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 35,
+      "text": "legacy development sign-in records",
+      "to": "clause",
+      "ids": [
+        "RETENTION-001"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 35,
+      "text": "have no automatic age/count deletion; operator erasure removes captures for the associated operator, and local reset clears the installation.",
+      "to": "base",
+      "ids": [
+        "BASE-DATA-002",
+        "BASE-DATA-003"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 35,
+      "text": "Expired sessions, authentication/public rate-limit state and",
+      "to": "base",
+      "ids": [
+        "BASE-DATA-002"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 35,
+      "text": "short-lived login-attempt counters are cleaned up. Expired or confirmed alert-drill links lose their capability material while drill history stays; retired destination secrets are scrubbed only after owner rotation/deletion and in-flight sends finish; a proven-unsent integration-attempt reservation can be removed while its delivery history remains.",
+      "to": "clause",
+      "ids": [
+        "RETENTION-001"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 35,
+      "text": "Other expired operational records, including",
+      "to": "base",
+      "ids": [
+        "BASE-DATA-002"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 35,
+      "text": "discovery jobs,",
+      "to": "clause",
+      "ids": [
+        "RETENTION-001"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 35,
+      "text": "change status and remain stored unless an owner erases the associated entity or resets the installation.",
+      "to": "base",
+      "ids": [
+        "BASE-DATA-002"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 35,
+      "text": "Raw target response bodies and probe-request secrets are not retained in observations; the only target content kept is EVIDENCE-002's bounded, redacted, access-controlled failure snapshot, stored apart from observations under owner-set retention, carried in archives and erased with its monitor or on owner request. Webhook and Slack endpoint URLs and signing keys remain installation-local, available email addresses travel as destination definitions, and retention changes must never silently improve the fixed denominator or historical health. See [Portability and retention](#portability-and-retention). **Acceptance evidence:** Judge custody and every declared cleanup class at current supported bounds. Populate product, authentication, rate-limit, drill, credential and attempt records; run expiry, maintenance and restart through runtime doors and compare surviving identities. Only declared transient data/secret material disappears; no cleanup improves uptime or removes retained product history.",
       "to": "clause",
       "ids": [
         "RETENTION-001"
@@ -1111,9 +1213,10 @@
       "file": "CONTRACT.md",
       "line": 153,
       "text": "A read-only member, a read-only API key or a signed-out request is refused server-side and writes nothing.",
-      "to": "clause",
+      "to": "base",
       "ids": [
-        "INCIDENT-001"
+        "BASE-ROLE-001",
+        "BASE-ACCESS-002"
       ]
     },
     {
@@ -1475,7 +1578,27 @@
     {
       "file": "CONTRACT.md",
       "line": 167,
-      "text": "**MOBILE-001 — Mobile operator access and push.** Responsive operator flows and native iOS/Android clients support secure sign-in honoring ACCESS-003 second factors, monitor/incident evidence, pause/maintenance controls and push alerts via APNs/FCM; Pushover and Pushbullet are selectable provider destinations. Expired tokens, offline reads, revoked sessions and notification permissions have honest states; privileged actions retain server-side authorization and audit. **Acceptance evidence:** Install the iOS and Android apps from their public App Store and Google Play listings; on those devices and 390-pixel web, receive a test push and open its exact incident, acknowledge via the configured responder handoff, go offline, revoke a session and deny push permission; inspect stale data labels and failed delivery. Drill Pushover and Pushbullet separately.",
+      "text": "**MOBILE-001 — Mobile operator access and push.** Responsive operator flows and native iOS/Android clients support secure sign-in honoring ACCESS-003 second factors, monitor/incident evidence, pause/maintenance controls and push alerts via APNs/FCM; Pushover and Pushbullet are selectable provider destinations. Expired tokens, offline reads, revoked sessions and notification permissions have honest states;",
+      "to": "clause",
+      "ids": [
+        "MOBILE-001"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 167,
+      "text": "privileged actions retain server-side authorization and audit.",
+      "to": "base",
+      "ids": [
+        "BASE-ROLE-001",
+        "BASE-ACCESS-004",
+        "BASE-OPS-005"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 167,
+      "text": "**Acceptance evidence:** Install the iOS and Android apps from their public App Store and Google Play listings; on those devices and 390-pixel web, receive a test push and open its exact incident, acknowledge via the configured responder handoff, go offline, revoke a session and deny push permission; inspect stale data labels and failed delivery. Drill Pushover and Pushbullet separately.",
       "to": "clause",
       "ids": [
         "MOBILE-001"
@@ -2094,7 +2217,27 @@
     {
       "file": "CONTRACT.md",
       "line": 207,
-      "text": "**ACCESS-001 — Teams, roles and accountable ownership.** Workspaces provide owner/admin, editor, responder and read-only roles with service/team scope, invitations, removal and least-scope API/CI credentials, including READAPI-001's read-only `monitoring:read` API keys. Responders and above can comment on incidents and set root causes (INCIDENT-001); read-only members and keys cannot. Changes to checks, secrets, routes, maintenance and exports enforce server-side permissions and durable actor audit. Every background action has an owner, due condition, visible progress/failure and stop/resolution. **Acceptance evidence:** Invite each role through the app, perform and refuse representative actions through direct routes/API as well as UI, revoke a member/token mid-job and inspect preserved authorized results and blocked later operations.",
+      "text": "**ACCESS-001 — Teams, roles and accountable ownership.** Workspaces provide owner/admin, editor, responder and read-only roles with service/team scope, invitations, removal and least-scope API/CI credentials, including READAPI-001's read-only `monitoring:read` API keys. Responders and above can comment on incidents and set root causes (INCIDENT-001); read-only members and keys cannot.",
+      "to": "clause",
+      "ids": [
+        "ACCESS-001"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 207,
+      "text": "Changes to checks, secrets, routes, maintenance and exports enforce server-side permissions and durable actor audit.",
+      "to": "base",
+      "ids": [
+        "BASE-ROLE-001",
+        "BASE-OPS-005",
+        "BASE-AUDIT-001"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 207,
+      "text": "Every background action has an owner, due condition, visible progress/failure and stop/resolution. **Acceptance evidence:** Invite each role through the app, perform and refuse representative actions through direct routes/API as well as UI, revoke a member/token mid-job and inspect preserved authorized results and blocked later operations.",
       "to": "clause",
       "ids": [
         "ACCESS-001"
@@ -2115,7 +2258,61 @@
     {
       "file": "CONTRACT.md",
       "line": 213,
-      "text": "**ACCESS-002 — Enterprise identity lifecycle.** Optional SAML/OIDC SSO and SCIM with Okta, Microsoft Entra ID and Google Workspace enforce workspace membership, role mapping, session expiry/revocation and recovery-owner access. Native standalone sign-in, with ACCESS-003 second factors, remains usable without a linked provider; a configured but broken integration never silently authenticates a user. **Acceptance evidence:** Connect each named provider at an authorized identity edge, sign in, change groups, deprovision and revoke existing sessions, then recover as the owner; inspect callback origin/state checks and blocked foreign tenants.",
+      "text": "**ACCESS-002 — Enterprise identity lifecycle.** Optional SAML/OIDC SSO and SCIM with Okta, Microsoft Entra ID and Google Workspace",
+      "to": "clause",
+      "ids": [
+        "ACCESS-002"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 213,
+      "text": "enforce workspace membership,",
+      "to": "base",
+      "ids": [
+        "BASE-SIGNIN-001"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 213,
+      "text": "role mapping,",
+      "to": "clause",
+      "ids": [
+        "ACCESS-002"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 213,
+      "text": "session expiry/revocation and",
+      "to": "base",
+      "ids": [
+        "BASE-SIGNIN-001"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 213,
+      "text": "recovery-owner access. Native standalone sign-in, with ACCESS-003 second factors, remains usable without a linked provider; a configured but broken integration never silently authenticates a user. **Acceptance evidence:** Connect each named provider at an authorized identity edge,",
+      "to": "clause",
+      "ids": [
+        "ACCESS-002"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 213,
+      "text": "sign in, change groups, deprovision and revoke existing sessions,",
+      "to": "base",
+      "ids": [
+        "BASE-SIGNIN-001"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 213,
+      "text": "then recover as the owner; inspect callback origin/state checks and blocked foreign tenants.",
       "to": "clause",
       "ids": [
         "ACCESS-002"
@@ -2124,7 +2321,25 @@
     {
       "file": "CONTRACT.md",
       "line": 215,
-      "text": "**ACCESS-003 — Multi-factor sign-in and step-up.** Every member can enroll TOTP (RFC 6238 authenticator apps) and WebAuthn passkeys or security keys as a second factor on top of native email-link sign-in, with ten single-use recovery codes stored hashed and shown once. An owner policy can require MFA for all members: once it is enforced, an email-link session without a verified second factor reaches only factor enrollment, every private document and API refuses it server-side, and existing factorless sessions are revoked. Destructive or secret-bearing actions — erasure, archive export and import, destination credential creation and rotation, private-runner and synthetic grants, API/CI token creation, role changes and MFA policy changes — require a second-factor check within the previous 5 minutes. Enrollment, removal, recovery-code use and policy changes are rate-limited, audited without secrets and notified to the member by email; an owner can reset another member's factors, and the last owner recovers through recovery codes or local installation authority. With SSO under ACCESS-002 the owner can accept the identity provider's MFA assertion instead. API tokens, runner keys and heartbeat capabilities remain separate scoped credentials. Authentication stays in Base operator-auth; the requirement policy is product configuration. **Acceptance evidence:** Enroll TOTP and a passkey through the console at an authorized authenticator edge, sign in by email link and complete each factor. Enforce MFA and prove an email-link-only session is refused at private documents and APIs and existing factorless sessions are revoked; attempt an erasure and a destination rotation without fresh step-up and be refused, then succeed after it; use and then reuse a recovery code; inspect audit entries and member notices for absent secrets.",
+      "text": "**ACCESS-003 — Multi-factor sign-in and step-up.**",
+      "to": "clause",
+      "ids": [
+        "ACCESS-003"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 215,
+      "text": "Every member can enroll TOTP (RFC 6238 authenticator apps) and WebAuthn passkeys or security keys as a second factor on top of native email-link sign-in, with",
+      "to": "base",
+      "ids": [
+        "BASE-SIGNIN-002"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 215,
+      "text": "ten single-use recovery codes stored hashed and shown once. An owner policy can require MFA for all members: once it is enforced, an email-link session without a verified second factor reaches only factor enrollment, every private document and API refuses it server-side, and existing factorless sessions are revoked. Destructive or secret-bearing actions — erasure, archive export and import, destination credential creation and rotation, private-runner and synthetic grants, API/CI token creation, role changes and MFA policy changes — require a second-factor check within the previous 5 minutes. Enrollment, removal, recovery-code use and policy changes are rate-limited, audited without secrets and notified to the member by email; an owner can reset another member's factors, and the last owner recovers through recovery codes or local installation authority. With SSO under ACCESS-002 the owner can accept the identity provider's MFA assertion instead. API tokens, runner keys and heartbeat capabilities remain separate scoped credentials. Authentication stays in Base operator-auth; the requirement policy is product configuration. **Acceptance evidence:** Enroll TOTP and a passkey through the console at an authorized authenticator edge, sign in by email link and complete each factor. Enforce MFA and prove an email-link-only session is refused at private documents and APIs and existing factorless sessions are revoked; attempt an erasure and a destination rotation without fresh step-up and be refused, then succeed after it; use and then reuse a recovery code; inspect audit entries and member notices for absent secrets.",
       "to": "clause",
       "ids": [
         "ACCESS-003"

@@ -58,9 +58,9 @@ Core · published · **partial**
 
 #### AUTHORITY-001 — Server-side scoped authority
 
-Core · published · **partial** · Cites BASE-ACCESS-002, BASE-ACCESS-004
+Core · published · **partial** · Cites BASE-ACCESS-002, BASE-ACCESS-004, BASE-ROLE-001
 
-**Requirement.** Every private document, read, mutation and export requires server-side operator or scoped runner authority, missing configuration fails closed, browser mutations enforce configured origin, and expired/foreign attempts cannot alter current evidence, and duplicate attempt identities cannot overwrite it; a signature identifies a key holder rather than proving truthful observation. See [Integrity and authority](docs/contract/safety-rules.md#integrity-and-authority).
+**Requirement.** Runner claim, result and heartbeat doors accept only scoped runner authority; missing configuration fails closed; browser mutations enforce configured origin; expired or foreign attempts cannot alter current evidence, and duplicate attempt identities cannot overwrite it; a signature identifies a key holder rather than proving truthful observation. See [Integrity and authority](docs/contract/safety-rules.md#integrity-and-authority).
 
 **Acceptance.**
 1. Open private documents and call native/framework APIs while signed out, revoked, cross-origin or using a foreign/expired runner signature; require refusal with no product writes, then succeed with the authorized session or scoped runner.
@@ -122,7 +122,7 @@ Core · published · **partial** · Cites BASE-INPUT-001 · Register R-3
 
 Core · published · **done** · Cites BASE-DATA-002
 
-**Requirement.** Product and observation metadata and legacy development sign-in records have no automatic age/count deletion; operator erasure removes captures for the associated operator, and local reset clears the installation. Expired sessions, authentication/public rate-limit state and short-lived login-attempt counters are cleaned up. Expired or confirmed alert-drill links lose their capability material while drill history stays; retired destination secrets are scrubbed only after owner rotation/deletion and in-flight sends finish; a proven-unsent integration-attempt reservation can be removed while its delivery history remains. Other expired operational records, including discovery jobs, change status and remain stored unless an owner erases the associated entity or resets the installation. Raw target response bodies and probe-request secrets are not retained in observations; the only target content kept is EVIDENCE-002's bounded, redacted, access-controlled failure snapshot, stored apart from observations under owner-set retention, carried in archives and erased with its monitor or on owner request. Webhook and Slack endpoint URLs and signing keys remain installation-local, available email addresses travel as destination definitions, and retention changes must never silently improve the fixed denominator or historical health. Custody and every declared cleanup class are judged at current supported bounds. See [Portability and retention](docs/contract/safety-rules.md#portability-and-retention).
+**Requirement.** Beyond BASE-DATA-002, short-lived login-attempt counters are cleaned up, and legacy development sign-in records stay until operator erasure or local reset. Expired or confirmed alert-drill links lose their capability material while drill history stays; retired destination secrets are scrubbed only after owner rotation/deletion and in-flight sends finish; a proven-unsent integration-attempt reservation can be removed while its delivery history remains. Expired discovery jobs retain their expired status. Raw target response bodies and probe-request secrets are not retained in observations; the only target content kept is EVIDENCE-002's bounded, redacted, access-controlled failure snapshot, stored apart from observations under owner-set retention, carried in archives and erased with its monitor or on owner request. Webhook and Slack endpoint URLs and signing keys remain installation-local, available email addresses travel as destination definitions, and retention changes must never silently improve the fixed denominator or historical health. Custody and every declared cleanup class are judged at current supported bounds. See [Portability and retention](docs/contract/safety-rules.md#portability-and-retention).
 
 **Acceptance.**
 1. Populate product, authentication, rate-limit, drill, credential and attempt records; run expiry, maintenance and restart through runtime doors and compare surviving identities.
@@ -845,9 +845,9 @@ Core · target · **missing** · Register R-4
 
 #### MOBILE-001 — Mobile operator access and push
 
-Core · target · **partial** · Register R-5
+Core · target · **partial** · Cites BASE-ACCESS-004, BASE-OPS-005, BASE-ROLE-001 · Register R-5
 
-**Requirement.** Responsive operator flows and native iOS/Android clients support secure sign-in honoring ACCESS-003 second factors, monitor/incident evidence, pause/maintenance controls and push alerts via APNs/FCM; Pushover and Pushbullet are selectable provider destinations. Expired tokens, offline reads, revoked sessions and notification permissions have honest states; privileged actions retain server-side authorization and audit.
+**Requirement.** Responsive operator flows and native iOS/Android clients support secure sign-in honoring ACCESS-003 second factors, monitor/incident evidence, pause/maintenance controls and push alerts via APNs/FCM; Pushover and Pushbullet are selectable provider destinations. Expired tokens, offline reads, revoked sessions and notification permissions have honest states.
 
 **Acceptance.**
 1. Install the iOS and Android apps from their public App Store and Google Play listings; on those devices and 390-pixel web, receive a test push and open its exact incident, acknowledge via the configured responder handoff, go offline, revoke a session and deny push permission; inspect stale data labels and failed delivery.
@@ -873,9 +873,9 @@ Core · target · **partial**
 
 #### INCIDENT-001 — Incident comments and edit history
 
-Core · target · **partial**
+Core · target · **partial** · Cites BASE-ACCESS-002, BASE-ROLE-001
 
-**Requirement.** Every incident, open or resolved, has a comments section on its detail page and in the FOLLOWUP-001 timeline. Members with the ACCESS-001 responder role or above can add a comment of up to 5,000 characters. Each comment records its author and time, renders as escaped plain text with links, and can be edited by its author or an admin. Every edit keeps the earlier version in a visible edit history with editor and time. Deleting a comment requires its author or an admin and leaves a "comment deleted" timeline entry that names who deleted it and when; the text and its history are removed. A read-only member, a read-only API key or a signed-out request is refused server-side and writes nothing.
+**Requirement.** Every incident, open or resolved, has a comments section on its detail page and in the FOLLOWUP-001 timeline. Members with the ACCESS-001 responder role or above can add a comment of up to 5,000 characters. Each comment records its author and time, renders as escaped plain text with links, and can be edited by its author or an admin. Every edit keeps the earlier version in a visible edit history with editor and time. Deleting a comment requires its author or an admin and leaves a "comment deleted" timeline entry that names who deleted it and when; the text and its history are removed.
 
 **Acceptance.**
 1. Confirm an outage through scheduled evidence; as a responder, comment "restarted php-fpm" on the open incident.
@@ -1160,9 +1160,9 @@ Core · target · **partial** · Register R-3
 
 #### ACCESS-001 — Teams, roles and accountable ownership
 
-Core · target · **partial** · Cites BASE-ACCESS-004, BASE-ROLE-001
+Core · target · **partial** · Cites BASE-ACCESS-004, BASE-OPS-005, BASE-ROLE-001, BASE-AUDIT-001
 
-**Requirement.** Workspaces provide owner/admin, editor, responder and read-only roles with service/team scope, invitations, removal and least-scope API/CI credentials, including READAPI-001's read-only `monitoring:read` API keys. Responders and above can comment on incidents and set root causes (INCIDENT-001, INCIDENT-003); read-only members and keys cannot. Changes to checks, secrets, routes, maintenance and exports enforce server-side permissions and durable actor audit. Every background action has an owner, due condition, visible progress/failure and stop/resolution.
+**Requirement.** Workspaces provide owner/admin, editor, responder and read-only roles with service/team scope, invitations, removal and least-scope API/CI credentials, including READAPI-001's read-only `monitoring:read` API keys. Responders and above can comment on incidents and set root causes (INCIDENT-001, INCIDENT-003); read-only members and keys cannot. Every background action has an owner, due condition, visible progress/failure and stop/resolution.
 
 **Acceptance.**
 1. Invite each role through the app, perform and refuse representative actions through direct routes/API as well as UI, revoke a member/token mid-job and inspect preserved authorized results and blocked later operations.
@@ -1174,7 +1174,7 @@ Core · target · **partial** · Cites BASE-ACCESS-004, BASE-ROLE-001
 
 Core · target · **partial** · Cites BASE-ACCESS-001, BASE-ACCESS-002, BASE-SIGNIN-002
 
-**Requirement.** Every member can enroll TOTP (RFC 6238 authenticator apps) and WebAuthn passkeys or security keys as a second factor on top of native email-link sign-in, with ten single-use recovery codes stored hashed and shown once. An owner policy can require MFA for all members: once it is enforced, an email-link session without a verified second factor reaches only factor enrollment, every private document and API refuses it server-side, and existing factorless sessions are revoked. Destructive or secret-bearing actions — erasure, archive export and import, destination credential creation and rotation, private-runner and synthetic grants, API/CI token creation, role changes and MFA policy changes — require a second-factor check within the previous 5 minutes. Enrollment, removal, recovery-code use and policy changes are rate-limited, audited without secrets and notified to the member by email; an owner can reset another member's factors, and the last owner recovers through recovery codes or local installation authority. With SSO under ACCESS-002 the owner can accept the identity provider's MFA assertion instead. API tokens, runner keys and heartbeat capabilities remain separate scoped credentials. Authentication stays in Base operator-auth; the requirement policy is product configuration.
+**Requirement.** Beyond BASE-SIGNIN-002, Uptime issues ten single-use recovery codes, stored hashed and shown once. An owner policy can require MFA for all members: once it is enforced, an email-link session without a verified second factor reaches only factor enrollment, every private document and API refuses it server-side, and existing factorless sessions are revoked. Destructive or secret-bearing actions — erasure, archive export and import, destination credential creation and rotation, private-runner and synthetic grants, API/CI token creation, role changes and MFA policy changes — require a second-factor check within the previous 5 minutes. Enrollment, removal, recovery-code use and policy changes are rate-limited, audited without secrets and notified to the member by email; an owner can reset another member's factors, and the last owner recovers through recovery codes or local installation authority. With SSO under ACCESS-002 the owner can accept the identity provider's MFA assertion instead. API tokens, runner keys and heartbeat capabilities remain separate scoped credentials. Authentication stays in Base operator-auth; the requirement policy is product configuration.
 
 **Acceptance.**
 1. Enroll TOTP and a passkey through the console at an authorized authenticator edge, sign in by email link and complete each factor.
@@ -1313,7 +1313,7 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-001, BASE
 
 Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
 
-**Requirement.** Uptime's server computes the live and security classes and their facts from the arguments and current records for every call that can carry them, never from a flag or record text.
+**Requirement.** Uptime's server computes the live and security classes and their facts from the arguments and current records for every call that can carry them.
 
 **Acceptance.**
 1. `uptime.monitors.save` is standard for a paused revision and live, with the monitors affected, for a change to a running monitor or one that enables checks; it adds security when it binds a credential reference or a TLS trust exception.
@@ -1344,7 +1344,7 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
 
 #### SURFACE-004 — Access, destructive and gated are computed per call
 
-Agent surface · target · **missing** · From new · Cites BASE-AGENT-006, BASE-AGENT-008
+Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
 
 **Requirement.** Uptime's server computes access, destructive and gated from the people, credentials, records and provider steps a call touches, and marks the steps a provider keeps for a person as gated before they run.
 
@@ -1352,7 +1352,6 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-006, BASE
 1. `uptime.members.update`, `uptime.runners.update` and `uptime.keys.update` carry access with the people or credentials and whether the change widens or narrows.
 2. `uptime.erasure.run` carries destructive with the item count per table and adds access when it erases an operator.
 3. `uptime.destinations.update` adds gated when a Teams admin must install the Uptime Teams app or a buyer must connect their own Twilio account, `uptime.automations.update` adds gated when a person must authorize Zapier or Make, and `uptime.phones.verify` adds gated for the recipient's own code entry; each gated step names the provider and the step.
-4. An agent's incident act (ownership, acknowledgment, comment, root cause or publication) reads "<agent> for <person>" in the incident timeline, on the comment and in exports.
 
 **Evidence.** None.
 **Gap.** No implementation: no tool declares or computes access, destructive or gated classes, and no incident record attributes an agent act.
@@ -1381,10 +1380,10 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-007, BASE
 
 Later · target · **missing** · Cites BASE-SIGNIN-001 · Register R-8
 
-**Requirement.** Optional SAML/OIDC SSO and SCIM with Okta, Microsoft Entra ID and Google Workspace enforce workspace membership, role mapping, session expiry/revocation and recovery-owner access. Native standalone sign-in, with ACCESS-003 second factors, remains usable without a linked provider; a configured but broken integration never silently authenticates a user.
+**Requirement.** Beyond BASE-SIGNIN-001, the Okta, Microsoft Entra ID and Google Workspace integrations map provider groups to Uptime roles and retain recovery-owner access (R-8). Native standalone sign-in, with ACCESS-003 second factors, remains usable without a linked provider; a configured but broken integration never silently authenticates a user.
 
 **Acceptance.**
-1. Connect each named provider at an authorized identity edge, sign in, change groups, deprovision and revoke existing sessions, then recover as the owner; inspect callback origin/state checks and blocked foreign tenants.
+1. Connect each named provider at an authorized identity edge; inspect group-to-role mapping, recovery-owner access, callback origin/state checks and blocked foreign tenants.
 
 **Evidence.** None.
 **Gap.** No implementation; acceptance journey above is required.
