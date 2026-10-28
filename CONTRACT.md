@@ -1030,7 +1030,7 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 | `uptime.runners.update` | Enroll, label, upgrade or revoke a private runner | PRIVATE-001, PROBE-001 | access (+ security) | none |
 | `uptime.maintenance.update` | Schedule, preview, apply or cancel a maintenance window | MAINT-001 | live | none |
 | `uptime.routes.update` | Routes, teams, contacts, delays, repeats, quiet hours and fallback chains | ROUTING-001, ROUTING-002, DELIVERY-002, AGENT-004 | live | none |
-| `uptime.destinations.update` | Create, rotate, disable or remove a notification destination, including webhook templates and chat, phone and push destinations | NOTIFY-001, WEBHOOK-001, CHAT-001, PHONE-001, PHONE-002, MANAGE-001 | standard (+ security) (+ gated) | none |
+| `uptime.destinations.update` | Create, rotate, disable or remove a notification destination, including webhook templates and chat, phone and push destinations | NOTIFY-001, WEBHOOK-001, CHAT-001, PHONE-001, PHONE-002, MANAGE-001 | standard (+ security) (+ destructive) (+ gated) | none |
 | `uptime.destinations.test` | Send a test or run an alert drill on one destination | NOTIFY-001, DELIVERY-001, DRILL-001, AGENT-004 | external (+ money) | none |
 | `uptime.phones.verify` | Send a one-time verification code to a recipient's phone number | PHONE-002 | external · money (+ gated) | none |
 | `uptime.incidents.read` | Read incidents, timelines, next-due follow-up, snapshots, artifacts and diagnostics | FOLLOWUP-001, EVIDENCE-002, DIAG-001, FLOW-003, READAPI-003, AGENT-002 | standard | none |
@@ -1110,6 +1110,7 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 2. `uptime.erasure.run` carries destructive with the item count per table and adds access when it erases an operator.
 3. `uptime.destinations.update` adds gated when a Teams admin must install the Uptime Teams app or a buyer must connect their own Twilio account, `uptime.automations.update` adds gated when a person must authorize Zapier or Make, and `uptime.phones.verify` adds gated for the recipient's own code entry; each gated step names the provider and the step.
 4. `uptime.incidents.comment` adds destructive when it deletes a comment, with the number of comments whose text and edit history are irreversibly removed; an add or edit does not carry destructive.
+5. `uptime.destinations.update` adds destructive when it removes a destination, with the item count per table erased; creating, rotating or disabling a destination does not add destructive.
 
 #### SURFACE-005 — The monitoring-operator journey under two company policies
 
