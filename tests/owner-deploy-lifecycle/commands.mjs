@@ -40,7 +40,7 @@ export async function deploy(root, provider, signal, flags = [], { inputs = true
     NODE_OPTIONS: `--import=${pathToFileURL(join(root, 'tests/owner-deploy-lifecycle/preload.mjs')).href}`,
     CLOUDFLARE_ACCOUNT_ID: provider.accountId, CLOUDFLARE_API_TOKEN: provider.token,
     // rer's shared production-mail names; Uptime keeps MAIL_API_KEY under the selected provider's own setting.
-    ...(inputs ? { OWNER_EMAIL: 'owner@example.test', MAIL_FROM: 'sender@example.test', MAIL_PROVIDER: 'sendgrid', MAIL_API_KEY: 'test-only-sendgrid-key' } : {}),
+    ...(inputs ? { OWNER_EMAIL: 'owner@example.test', MAIL_FROM: 'sender@synthetic-uptime.dev', MAIL_PROVIDER: 'sendgrid', MAIL_API_KEY: 'test-only-sendgrid-key' } : {}),
   };
   return new Promise((resolveResult, reject) => {
     const child = spawn('rer', ['deploy', '--json', '--owner-name', 'Lifecycle owner', ...flags], { cwd: root, env, detached: true, stdio: ['ignore', 'pipe', 'pipe'] });

@@ -1,4 +1,7 @@
 // Local verification keeps every task; CI selects eight balanced push shards.
+import {appendFile} from 'node:fs/promises';
+import {planVerification} from '../../scripts/verify-plan.mjs';
+import {reviewedReaders} from './verify-readers.mjs';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {allTasks, allShards, plan} from '../../scripts/verification-plan.mjs';
@@ -21,7 +24,23 @@ function commands(task) {
 
 const [mode, tier, ...extra] = process.argv.slice(2);
 if (extra.length) throw Error('Too many verification arguments');
-if (mode === '--matrix') {
+if (mode === '--plan' && !tier) {
+ const decision = await planVerification({plan, readers: reviewedReaders});
+ decision.matrix.include = decision.matrix.include.map(({name}) => {
+  const {browser, engines, evidence} = allShards.find(shard => shard.name === name);
+  return {name, browser, engines, evidence};
+ });
+ const output = Object.entries({...decision, matrix: JSON.stringify(decision.matrix), readers: JSON.stringify(decision.readers), has_shards: decision.matrix.include.length > 0}).map(([key,value]) => key+'='+value+'\n').join('');
+ if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, output);
+ process.stdout.write(output);
+} else if (mode === '--light' && !tier) {
+ const readers=JSON.parse(process.env.LIGHT_READERS);
+ if (!Array.isArray(readers) || readers.some(command => typeof command !== 'string')) throw Error('Invalid light readers');
+ run('node scripts/edition-authoring/cli.mjs check');
+ run('pnpm run check');
+ for (const command of readers) run(command);
+ run('pnpm run build --site');
+} else if (mode === '--matrix') {
  if (!['push', 'all'].includes(tier)) throw Error('Usage: verify-ci.mjs --matrix push|all');
  const selected = tier === 'push' ? plan.push : allShards;
  console.log(JSON.stringify({include: selected.map(({name, browser, engines, evidence}) => ({name, browser, engines, evidence}))}));

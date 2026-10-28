@@ -46,6 +46,6 @@ export function sourceRefusal(error: unknown): DoorError | undefined {
       reason: `The upload holds a credential the door cannot remove: a ${field}. Remove it and upload again.`, ...at});
   }
   if (!(error instanceof ReaderError) && !Object.hasOwn(reasons, code)) return undefined;
-  const reason = reasons[code] ?? `The reader refused the upload (${code}).`;
+  const reason = error instanceof PlanTooLargeError ? `The import ${error.subject} is ${error.bytes} canonical JSON bytes; the limit is ${error.limit}.` : reasons[code] ?? `The reader refused the upload (${code}).`;
   return new DoorError('source_' + code.toLowerCase().replace(/^source_/, ''), tooLarge.has(code) ? 413 : 422, {reason, ...at});
 }

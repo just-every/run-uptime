@@ -1,13 +1,56 @@
 Uptime runs on your own computer first, which is the quickest way to try it. Open a terminal (on a Mac, Terminal in Applications → Utilities; on Windows, your WSL2 distribution), copy this line into it and press Enter:
 
 ```sh
-curl -fsSL https://runeditrun.com/install.sh | sh -s -- dev just-every/run-uptime
+{{runStart}}
 ```
 
-Git is required; rer brings Node and pnpm. Already have Node 22 or later? `npx -y @runeditrun/rer dev just-every/run-uptime` does the same.
+{{runRequirements}} Already have Node 22 or later? `{{runAlternative}}` does the same.
 
 The line installs `rer`, the Run Edit Run command, clones Uptime into a `run-uptime` folder, installs everything and starts the app, its private runner and a practice target, with you as the owner. A first launch can take several minutes. When it is ready it prints `RER_READY` with the address: open it and complete the browser sign-in handoff from `rer dev` on the same computer, and keep that sign-in private. This free copy runs only on your computer: it sends no email, and nobody else can open it.
 
 If the installer prints a line that puts `rer` on your PATH, run that line too. To start Uptime again later, run the same line from the same folder, or `cd run-uptime && rer dev`. `rer dev --stop` stops it.
 
-Next: [Install Uptime](/docs/install) covers choosing the owner yourself and finishing setup, and [Deploy to Cloudflare](/docs/deploy) puts Uptime on the internet.
+## Explicit owner setup
+
+To choose an owner or supply setup answers yourself, run `npx -y @runeditrun/rer install just-every/run-uptime`, then from the checkout, before `rer dev`:
+
+```sh
+rer setup --owner-email EMAIL --owner-name "NAME" --non-interactive
+```
+
+Replace EMAIL and NAME with your own address and name. Setup builds Uptime, applies the local database migrations, saves your private settings in `data/local-secrets.json` and creates the first owner, then prints `RER_SETUP_READY` and stops its temporary processes. Running it again keeps your owner, data and settings, and refuses a different owner or address instead of replacing them.
+
+### Start with a website
+
+If you already know which site you want to watch, tell setup and Uptime will have monitors waiting for you. Save the address in a private file next to the checkout (`chmod 600 answers.json`):
+
+```json
+{"UPTIME_START_URL": "https://example.com"}
+```
+
+Then add `--answers answers.json` to the setup command above. Use a public `http` or `https` address; setup refuses one that Uptime could not check. This is optional. If you leave it out, `/setup` has a **Website to monitor** box you can fill in instead, and leaving the box empty works as it always did.
+
+When you open `/setup`, Uptime asks your runner to visit that site and look around. Dev starts the runner for you. When you choose **Continue**, the console opens on the monitors it proposes, each ready to start with one click. Nothing is created until you choose it. Website discovery needs a private runner, including after deployment; hosted public monitors can then run in the Worker without one.
+
+## Sign in and finish setup
+
+1. Open the address printed as `RER_READY` and complete the browser sign-in handoff from `rer dev`. Keep local access credentials private.
+2. First-run setup opens at `/setup`. Setup asks only for your website, and it is optional. Choose **Continue** (or **Skip**). If you gave a website and the runner is working, you land on its proposed monitors; otherwise on the form for your first monitor. The External check URL (https://example.org/ by default) is set in **Settings**.
+
+The console is then at `/app`. Hosted email-link sign-in and notifications use a configured mail sender. Development and demo runs report successful sends without sending email. Setup can defer mail configuration; dev identity provides local owner access while you configure it.
+
+## Stop it
+
+```sh
+rer dev --stop
+```
+
+This stops the app and its owned runner and practice target. Stop it before deployment (including a dry run), export, import or reset.
+
+## Look after the settings file
+
+`data/local-secrets.json` is private and ignored by Git. Keep it with any local backup you want to resume from, and do not edit or share it. Your data lives in `.wrangler/state`. To start again, export first, then run `rer reset --yes`, which removes only local data and generated settings.
+
+## What next
+
+Dev starts a [private runner](/docs/runner) for local checks and website discovery. Hosted public website checks and notifications run in the Worker; heartbeats, discovery and private targets still need a private runner. To put Uptime on the internet, follow [Deploy to Cloudflare](/docs/deploy).

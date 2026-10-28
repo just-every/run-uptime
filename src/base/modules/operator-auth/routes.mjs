@@ -1,5 +1,7 @@
 import { rejectedResponse } from './rejected-response.mjs';
 import { identitySettingsPage } from './accounts/settings-page.mjs';
+import { settingsRefusalPage } from './page.mjs';
+import { representation } from './representation.mjs';
 import { confirmationResponse } from './identity/email-link/confirmation.mjs';
 import { createOidcHandler } from './identity/oidc/index.mjs';
 import { AuthError } from './errors.mjs';
@@ -64,10 +66,15 @@ export function createAuthHandler(auth) {
       if (auth.scheduledPolicies && path === '/auth/policy-runs' && request.method === 'GET') return json(await auth.scheduledPolicies.runs(request));
       if (path === '/auth/sessions' && request.method === 'GET') return json(await auth.listSessions(request, readParameters(url.searchParams).operatorId));
       if (path === '/auth/domain-rules' && request.method === 'GET') return json(await auth.listDomainRules(request));
-      if (path === '/auth/settings/identity' && request.method === 'GET') {const value=await auth.identitySettings(request);return /text\/html/.test(request.headers.get('accept')??'')?await identitySettingsPage(value,auth.presentation):json(value);}
+      if (path === '/auth/settings/identity' && ['GET', 'HEAD'].includes(request.method)) {
+        const value = { ...await auth.identitySettings(request), ...(auth.businessSettingsInfo ? { business: await auth.businessSettingsInfo(request) } : {}) };
+        return representation(request) === 'html'
+          ? await identitySettingsPage(value, auth.publicPresentation ? await auth.publicPresentation() : auth.presentation, { saved: url.searchParams.get('saved') === '1', method: request.method })
+          : request.method === 'HEAD' ? new Response(null, { headers: { ...securityHeaders(), 'content-type': 'application/json' } }) : json(value);
+      }
       if (path === '/auth/providers' && request.method === 'GET') return json(await auth.listProviders(request));
       const posts = new Set(['/auth/bootstrap', '/auth/magic-link', '/auth/confirm', '/auth/signout', '/auth/invite', '/auth/invite/cancel', '/auth/review-session',
-        '/auth/policy/approve', '/auth/policy/revoke', '/auth/operator/status', '/auth/operator/role', '/auth/session/revoke', '/auth/step-up', '/auth/domain-rules', '/auth/providers/unlink', '/auth/providers/relink', '/auth/settings/identity', '/auth/setup-complete', OWNER_SIGNIN_PATH, '/auth/email', '/auth/display-name']);
+        '/auth/policy/approve', '/auth/policy/revoke', '/auth/operator/status', '/auth/operator/role', '/auth/session/revoke', '/auth/step-up', '/auth/domain-rules', '/auth/providers/unlink', '/auth/providers/relink', '/auth/settings/identity', '/auth/settings/business', '/auth/setup-complete', OWNER_SIGNIN_PATH, '/auth/email', '/auth/display-name']);
       if (!posts.has(path)) return json({ error: 'not_found' }, 404);
       if (request.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
       const query = readParameters(url.searchParams);
@@ -80,7 +87,15 @@ export function createAuthHandler(auth) {
       switch (path) {
         case '/auth/policy/approve': return json(await auth.scheduledPolicies.approve(request, input));
         case '/auth/policy/revoke': await auth.scheduledPolicies.revoke(request, input); return json({ revoked: true });
-        case '/auth/settings/identity': {const value=await auth.setIdentitySettings(request,formPost(request)?{idpSignIn:input.idpSignIn==='true'}:input);return formPost(request)?seeOther('/auth/settings/identity'):json(value);}
+        case '/auth/settings/identity': {
+          const value = await auth.setIdentitySettings(request, formPost(request) ? { idpSignIn: input.idpSignIn === 'true' } : input);
+          return formPost(request) ? seeOther('/auth/settings/identity?saved=1') : json(value);
+        }
+        case '/auth/settings/business': {
+          if (!auth.stopBusinessSettings) return json({ error: 'not_found' }, 404);
+          const value = await auth.stopBusinessSettings(request);
+          return formPost(request) ? seeOther('/auth/settings/identity') : json(value);
+        }
         case '/auth/setup-complete': return json(await auth.completeLocalSetup(request));
         case '/auth/bootstrap': { const value = await auth.bootstrap(request, input); return seeOther(value.returnTo, value.cookie); }
         case '/auth/magic-link': {
@@ -118,6 +133,15 @@ export function createAuthHandler(auth) {
         case '/auth/providers/relink': return json(await auth.relinkProvider(request, input));
       }
     } catch (error) {
+      if (['/auth/settings/identity', '/auth/settings/business'].includes(path) && representation(request) === 'html') {
+        const code = error instanceof AuthError ? error.code : 'auth_unavailable';
+        const status = error instanceof AuthError ? error.status : 503;
+        if (code === 'provider_unlinked' || code === 'step_up_required') {
+          try { return await identitySettingsPage({ ...await auth.identitySettings(request), ...(auth.businessSettingsInfo ? { business: await auth.businessSettingsInfo(request) } : {}) }, auth.publicPresentation ? await auth.publicPresentation() : auth.presentation, { error: code, status, method: request.method }); }
+          catch { return settingsRefusalPage(request, auth.presentation, 'auth_unavailable', 503); }
+        }
+        return settingsRefusalPage(request, auth.presentation, code, status);
+      }
       if (form) return seeOther(notice(auth, error instanceof AuthError ? error.code : 'auth_unavailable'));
       if (error instanceof AuthError) return json({ error: error.code }, error.status);
       // Do not put SQL, email addresses, setup tokens or provider exceptions on the wire.
@@ -126,6 +150,10 @@ export function createAuthHandler(auth) {
   };
   return async function(request) {
     const response = await handleAuth(request);
+    if (response && request.method === 'HEAD' && new URL(request.url).pathname === '/auth/settings/identity') {
+      void response.body?.cancel();
+      return rejectedResponse(request, new Response(null, { status: response.status, headers: response.headers }));
+    }
     return response ? rejectedResponse(request, response) : response;
   };
 }
