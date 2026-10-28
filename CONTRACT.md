@@ -1007,7 +1007,7 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 
 **How Uptime computes each class.**
 - *standard*: reads of monitors, evidence, incidents, reports and the audit; paused monitor revisions and definition previews; manual checks without an active live-payment or refund grant; comment additions and edits, mentions of workspace members and root causes; incident ownership, acknowledgment and stop; cleanup-debt resolution; archive and report exports. Each can be withdrawn or corrected in the product. Facts are the item count.
-- *external*: a test send or alert drill, a phone verification code, a scheduled report to a recipient outside the business, a comment published to a status page, and following an Auth0 tenant feed that sends the tenant domain to Auth0. Facts are the recipient count and the counterparty: *known* for a destination or provider already on record, *new* otherwise, *public* for a status page.
+- *external*: a test send or alert drill, a phone verification code, a scheduled report to a recipient outside the business, a route or an enabled destination that puts a recipient outside the business on the alert path, a comment published to a status page, and following an Auth0 tenant feed that sends the tenant domain to Auth0. Facts are the recipient count and the counterparty: *known* for a recipient, destination or provider already on record, *new* otherwise, *public* for a status page.
 - *money*: SMS and voice sends metered at COST-001's USD price, a phone budget or plan change, a live-effect grant's spend limit and a manual check using an active live-payment or refund grant. Facts are the USD amount and the payee.
 - *access*: member invitations, role changes and removals, runner enrollment and revocation, and read API, metrics and CI keys. Facts are the people or credentials and whether the change widens or narrows.
 - *security*: request credential references, TLS trust exceptions, heartbeat tokens and URLs, destination credentials (endpoint URLs, signing keys, header secrets and bot tokens), live-effect, synthetic and private-network grants, the MFA policy, a member's factor reset, snapshot masks, safe values and email release, discovery source credentials and archive restore. Facts are the setting.
@@ -1029,8 +1029,8 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 | `uptime.heartbeats.issue` | Issue or rotate a heartbeat token or URL and generate scheduler snippets | HEARTBEAT-001, HEARTBEAT-002, HEARTBEAT-003 | security | none |
 | `uptime.runners.update` | Enroll, label, upgrade or revoke a private runner | PRIVATE-001, PROBE-001 | access (+ security) | none |
 | `uptime.maintenance.update` | Schedule, preview, apply or cancel a maintenance window | MAINT-001 | live | none |
-| `uptime.routes.update` | Routes, teams, contacts, delays, repeats, quiet hours and fallback chains | ROUTING-001, ROUTING-002, DELIVERY-002, AGENT-004 | live | none |
-| `uptime.destinations.update` | Create, rotate, disable or remove a notification destination, including webhook templates and chat, phone and push destinations | NOTIFY-001, WEBHOOK-001, CHAT-001, PHONE-001, PHONE-002, MANAGE-001 | standard (+ security) (+ destructive) (+ gated) | none |
+| `uptime.routes.update` | Routes, teams, contacts, delays, repeats, quiet hours and fallback chains | ROUTING-001, ROUTING-002, DELIVERY-002, AGENT-004 | live (+ external) | none |
+| `uptime.destinations.update` | Create, rotate, disable or remove a notification destination, including webhook templates and chat, phone and push destinations | NOTIFY-001, WEBHOOK-001, CHAT-001, PHONE-001, PHONE-002, MANAGE-001 | standard (+ security) (+ destructive) (+ external) (+ gated) | none |
 | `uptime.destinations.test` | Send a test or run an alert drill on one destination | NOTIFY-001, DELIVERY-001, DRILL-001, AGENT-004 | external (+ money) | none |
 | `uptime.phones.verify` | Send a one-time verification code to a recipient's phone number | PHONE-002 | external · money (+ gated) | none |
 | `uptime.incidents.read` | Read incidents, timelines, next-due follow-up, snapshots, artifacts and diagnostics | FOLLOWUP-001, EVIDENCE-002, DIAG-001, FLOW-003, READAPI-003, AGENT-002 | standard | none |
@@ -1083,7 +1083,7 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 2. `uptime.monitors.bulk`, `uptime.definitions.apply` and `uptime.settings.update` are standard for paused creations and live when they enable checks or change running monitors; `uptime.settings.update` adds security, with the setting changed, when it changes snapshot masks, safe values or email release.
 3. `uptime.routes.update`, `uptime.maintenance.update`, `uptime.monitors.pause` and `uptime.handoffs.update` are live with the monitors and routes they change, and `uptime.handoffs.update` adds security when it stores a connector credential.
 4. `uptime.discovery.run` is standard for a run, adds live when it adopts a proposal that enables checks and adds security when it authorizes a provider source credential.
-5. `uptime.destinations.update` is standard for a name or enable change and adds security when it sets or rotates an endpoint URL, signing key, header secret or bot token; `uptime.runners.update` adds security when it issues a runner key.
+5. `uptime.destinations.update` is standard for a name or enable change, adds external as SURFACE-003 specifies for an outside alert recipient, and adds security when it sets or rotates an endpoint URL, signing key, header secret or bot token; `uptime.runners.update` adds security when it issues a runner key.
 6. Record text or arguments claiming a change is paused, internal or credential-free leave the computed classes unchanged.
 7. `uptime.dependencies.follow` adds live when following starts checks or unfollowing stops them, with the dependency monitors affected.
 8. `uptime.members.update` adds security when it resets a member's enrolled second factors, with the factor-reset setting; invitations, role changes and removals do not add security for a factor reset.
@@ -1101,6 +1101,7 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 4. `uptime.settings.update` adds money with the amount when it changes the phone budget or plan, and `uptime.grants.update` adds money with the spend limit when a grant allows live payments or refunds.
 5. Record text or arguments claiming a recipient is internal or a cost is zero leave the computed classes and facts unchanged.
 6. `uptime.monitors.check` adds money when the monitor holds an active live-payment or refund grant, with the USD amount and payee from the grant and current transaction; a manual check without such a grant does not add money.
+7. `uptime.routes.update` and `uptime.destinations.update` add external when a route or an enabled destination puts a recipient outside the business on the alert path, with the recipient count and counterparty *known* for a recipient already on record and *new* otherwise; a change that exposes alerts only within the business does not add external.
 
 #### SURFACE-004 — Access, destructive and gated are computed per call
 

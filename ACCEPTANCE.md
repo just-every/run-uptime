@@ -1320,7 +1320,7 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
 2. `uptime.monitors.bulk`, `uptime.definitions.apply` and `uptime.settings.update` are standard for paused creations and live when they enable checks or change running monitors; `uptime.settings.update` adds security, with the setting changed, when it changes snapshot masks, safe values or email release.
 3. `uptime.routes.update`, `uptime.maintenance.update`, `uptime.monitors.pause` and `uptime.handoffs.update` are live with the monitors and routes they change, and `uptime.handoffs.update` adds security when it stores a connector credential.
 4. `uptime.discovery.run` is standard for a run, adds live when it adopts a proposal that enables checks and adds security when it authorizes a provider source credential.
-5. `uptime.destinations.update` is standard for a name or enable change and adds security when it sets or rotates an endpoint URL, signing key, header secret or bot token; `uptime.runners.update` adds security when it issues a runner key.
+5. `uptime.destinations.update` is standard for a name or enable change, adds external as SURFACE-003 specifies for an outside alert recipient, and adds security when it sets or rotates an endpoint URL, signing key, header secret or bot token; `uptime.runners.update` adds security when it issues a runner key.
 6. Record text or arguments claiming a change is paused, internal or credential-free leave the computed classes unchanged.
 7. `uptime.dependencies.follow` adds live when following starts checks or unfollowing stops them, with the dependency monitors affected.
 8. `uptime.members.update` adds security when it resets a member's enrolled second factors, with the factor-reset setting; invitations, role changes and removals do not add security for a factor reset.
@@ -1341,6 +1341,7 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
 4. `uptime.settings.update` adds money with the amount when it changes the phone budget or plan, and `uptime.grants.update` adds money with the spend limit when a grant allows live payments or refunds.
 5. Record text or arguments claiming a recipient is internal or a cost is zero leave the computed classes and facts unchanged.
 6. `uptime.monitors.check` adds money when the monitor holds an active live-payment or refund grant, with the USD amount and payee from the grant and current transaction; a manual check without such a grant does not add money.
+7. `uptime.routes.update` and `uptime.destinations.update` add external when a route or an enabled destination puts a recipient outside the business on the alert path, with the recipient count and counterparty *known* for a recipient already on record and *new* otherwise; a change that exposes alerts only within the business does not add external.
 
 **Evidence.** None.
 **Gap.** No implementation: no tool declares or computes external or money classes.
