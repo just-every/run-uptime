@@ -46,7 +46,13 @@
           "migrations/0033_dependency_setup.sql",
           "migrations/0034_dependency_approval.sql",
           "src/base/modules/import-kit/src",
-          "src/base/modules/d1-transport"
+          "src/base/modules/d1-transport",
+          "src/base/modules/agent-door",
+          "src/base/modules/business-settings",
+          "src/base/foundation/runtime",
+          "migrations/0079_agent_door.sql",
+          "migrations/0080_business_settings.sql",
+          "migrations/0081_business_people.sql"
         ],
         "origin": {
           "repository": "https://github.com/runeditrun/base.git",
