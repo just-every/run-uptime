@@ -208,7 +208,9 @@
           "migrations/0017_first_run.sql",
           "migrations/0020_audit_erasure.sql",
           "migrations/0021_public_rate_limits.sql",
-          "src/demo.ts"
+          "src/demo.ts",
+          "agent-surface.json",
+          "scripts/generate-agent-surface.mjs"
         ]
       }
     },

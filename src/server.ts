@@ -1,3 +1,4 @@
+import {agentDoorRequest,uptimeAgentDoor} from './domain/agent-door/index.server.ts'
 import {registerSourceHistory} from './domain/source-history/routes.server.ts'
 import {previewReportRecurrence} from './domain/reports/recurring.server.ts'
 import {serviceReport,serviceReportCsv} from './domain/reports/service.server.ts'
@@ -369,6 +370,7 @@ const handler={async fetch(request,env,execution){
  const limited=await limitPublicRequest(env as Bindings,request);if(limited)return limited;
  const bindings=env as Bindings,url=new URL(request.url),path=url.pathname,isEvidencePage=/^\/app\/evidence\/[^/]+$/.test(path);
  if(url.origin!==bindings.UPTIME_ORIGIN||(request.headers.has('host')&&request.headers.get('host')?.toLowerCase()!==url.host.toLowerCase()))return new Response('Invalid host',{status:403});
+ const agent=await agentDoorRequest(bindings,request);if(agent)return agent;
  const mfa=await mfaDoor(bindings,request);if(mfa)return mfa;
  const ci=await ciDoor(bindings,request);if(ci)return ci;
  const factorDenial=await earlyMfaGate(bindings,request);if(factorDenial)return factorDenial;
