@@ -2,14 +2,14 @@ import type {CredentialAuthority} from './credentials/model.server.ts'
 import type {AuthBindings} from './operator-auth.server.ts'
 import {auditStatement,mutationGuard} from './audit.server.ts'
 import {auditsMutation} from './access-audit.server.ts'
-import {accessFence,type Access} from './access.server.ts'
+import {accessFence,type Access,type AgentAccess} from './access.server.ts'
 // Guard and audit each actual write in its own transaction. This also covers
 // delayed import batches: a request-time JS check never authorizes later writes.
 // Original statement results and changes() ordering remain unchanged.
-export function authorizedDatabase(env:AuthBindings,access:Access|CredentialAuthority,extra:(statements:{sql:string;values:any[]}[])=>D1PreparedStatement[]=()=>[]):D1Database{
+export function authorizedDatabase(env:AuthBindings,access:Access|AgentAccess|CredentialAuthority,extra:(statements:{sql:string;values:any[]}[])=>D1PreparedStatement[]=()=>[]):D1Database{
  const db=env.DB,originals=new WeakMap<object,{statement:D1PreparedStatement;sql:string;write:boolean;values:any[]}>()
  const fence=()=>{const guard=accessFence(access);return mutationGuard(env,guard.sql,guard.params)}
- const audit=()=>auditStatement(env,{kind:'operator',ref:('kind' in access?access.issuerId:access.session.operator.id)},`access_${access.action}`,'operator')
+ const audit=()=>auditStatement(env,{kind:'operator',ref:('kind' in access?access.kind==='agent'?access.operatorId:access.issuerId:access.session.operator.id)},`access_${access.action}`,'operator')
  async function commit(statements:D1PreparedStatement[]){
   const details=statements.map(s=>originals.get(s)),additional=extra(details.map(d=>({sql:d?.sql??'',values:d?.values??[]})))
   const result=await db.batch([fence(),...statements.map((s,i)=>details[i]?.statement??s),...additional,...(auditsMutation(access.action,details,additional.length>0)?[audit()]:[])]);return result.slice(1,statements.length+1)

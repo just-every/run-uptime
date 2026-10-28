@@ -1,5 +1,5 @@
 import type {AuthBindings} from './operator-auth.server.ts'
-export type AuditActor={kind:'operator'|'feature'|'anonymized';ref:string};
+export type AuditActor={kind:'operator'|'feature'|'anonymized';ref:string;delegation?:import('../agent-door/work.server.ts').SavedPrincipal};
 export const automated:AuditActor={kind:'feature',ref:'notification-dispatch'};
 export function auditSql(actor:AuditActor,action:string,kind:string,reference:string=crypto.randomUUID(),guard='1',values:unknown[]=[],now=Date.now()):[string,unknown[]]{
  // The actor may be erased after authorization but before this batch runs.

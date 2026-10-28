@@ -486,6 +486,36 @@
       "name": "0078_source_history.sql",
       "sha256": "e66ce54cf7bdfb3e22d5af4d5480e1bdab31a69878c1a5cde07a3de4e113ebb2",
       "sql": "-- Sourced incumbent history is never monitoring evidence or execution authority.\nCREATE TABLE source_history_batches (\n id TEXT NOT NULL, monitor_id TEXT NOT NULL REFERENCES monitors(id), source TEXT NOT NULL,\n source_monitor_id TEXT NOT NULL, file_digest TEXT NOT NULL, extracted_at INTEGER,\n coverage_from INTEGER NOT NULL, coverage_to INTEGER NOT NULL, imported_at INTEGER NOT NULL,\n restored_at INTEGER, PRIMARY KEY(id,monitor_id), CHECK(coverage_to>=coverage_from)\n);\nCREATE TABLE source_history_rows (\n monitor_id TEXT NOT NULL REFERENCES monitors(id), source TEXT NOT NULL, source_row_id TEXT NOT NULL,\n batch_id TEXT NOT NULL, kind TEXT NOT NULL CHECK(kind IN ('down','up','incident','response')),\n started_at INTEGER NOT NULL, ended_at INTEGER, response_ms REAL, source_duration_seconds REAL,\n author TEXT NOT NULL, comments TEXT NOT NULL, root_cause TEXT NOT NULL, included INTEGER NOT NULL,\n PRIMARY KEY(monitor_id,source,source_row_id),\n FOREIGN KEY(batch_id,monitor_id) REFERENCES source_history_batches(id,monitor_id),\n CHECK(ended_at IS NULL OR ended_at>=started_at)\n);\nCREATE INDEX source_history_period ON source_history_rows(monitor_id,started_at);\nCREATE TABLE source_history_cutovers (\n monitor_id TEXT PRIMARY KEY REFERENCES monitors(id), cutover_at INTEGER NOT NULL\n);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0079_agent_door.sql",
+      "sha256": "016d8a98b964385f5c4a13447361c3c783910a76aaf4606b0e0081482bc819cc",
+      "sql": "CREATE TABLE IF NOT EXISTS agent_door_state (\n  id INTEGER PRIMARY KEY CHECK(id=1), envelope TEXT, local_document TEXT,\n  local_revision INTEGER NOT NULL DEFAULT 0, local_paused INTEGER NOT NULL DEFAULT 0,\n  decision_lock TEXT, decision_until INTEGER\n);\nCREATE TABLE IF NOT EXISTS agent_door_agents (\n  id TEXT PRIMARY KEY, name TEXT NOT NULL, specialist TEXT, sponsor TEXT NOT NULL,\n  sponsor_name TEXT NOT NULL, revoked INTEGER NOT NULL DEFAULT 0,\n  window INTEGER NOT NULL DEFAULT 0, requests INTEGER NOT NULL DEFAULT 0\n);\nCREATE TABLE IF NOT EXISTS agent_door_audit (\n  sequence INTEGER PRIMARY KEY AUTOINCREMENT, id TEXT NOT NULL UNIQUE, at TEXT NOT NULL,\n  agent TEXT NOT NULL, classes TEXT NOT NULL, row TEXT NOT NULL, evidence TEXT\n);\nCREATE INDEX IF NOT EXISTS agent_door_audit_agent ON agent_door_audit(agent,sequence);\nCREATE TABLE IF NOT EXISTS agent_door_calls (\n  agent TEXT NOT NULL, key TEXT NOT NULL, digest TEXT NOT NULL, decision_id TEXT NOT NULL,\n  created_at INTEGER NOT NULL, state TEXT NOT NULL, outcome TEXT, PRIMARY KEY(agent,key)\n);\nCREATE TABLE IF NOT EXISTS agent_door_approvals (\n  id TEXT PRIMARY KEY, state TEXT NOT NULL, saved TEXT NOT NULL, approvals TEXT NOT NULL DEFAULT '[]',\n  result TEXT, version INTEGER NOT NULL DEFAULT 0\n);\nCREATE TABLE IF NOT EXISTS agent_door_reviews (\n  id TEXT PRIMARY KEY, state TEXT NOT NULL, saved TEXT NOT NULL, marked_by TEXT, marked_at TEXT\n);\nCREATE TABLE IF NOT EXISTS agent_door_events (\n  sequence INTEGER PRIMARY KEY AUTOINCREMENT, id TEXT NOT NULL UNIQUE, uri TEXT NOT NULL, event TEXT NOT NULL\n);\nCREATE INDEX IF NOT EXISTS agent_door_events_uri ON agent_door_events(uri,sequence);\nCREATE TABLE IF NOT EXISTS agent_door_usage (\n  decision_id TEXT PRIMARY KEY, at INTEGER NOT NULL, seed TEXT NOT NULL, specialist TEXT, agent TEXT NOT NULL,\n  classes TEXT NOT NULL\n);\nCREATE INDEX IF NOT EXISTS agent_door_usage_day ON agent_door_usage(at);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0080_business_settings.sql",
+      "sha256": "a16f736a781aa3fe02a2e090c993f8c360c904f9fb6d86126acdab6e1f24e773",
+      "sql": "CREATE TABLE bs_settings (\n  singleton INTEGER PRIMARY KEY CHECK(singleton=1),\n  rev INTEGER NOT NULL DEFAULT 0,\n  document TEXT,\n  applied_at TEXT,\n  stopped INTEGER NOT NULL DEFAULT 0 CHECK(stopped IN(0,1)),\n  token TEXT NOT NULL DEFAULT ''\n);\nCREATE TABLE bs_overrides (\n  field TEXT PRIMARY KEY CHECK(field IN('display_name','owner_name','brand_color','logo','timezone')),\n  value TEXT NOT NULL,\n  actor TEXT NOT NULL,\n  changed_at TEXT NOT NULL\n);\nCREATE TABLE bs_logo (\n  singleton INTEGER PRIMARY KEY CHECK(singleton=1),\n  sha256 TEXT NOT NULL,\n  type TEXT NOT NULL,\n  bytes BLOB NOT NULL\n);\nCREATE TABLE bs_team (\n  email TEXT PRIMARY KEY,\n  operator_id TEXT,\n  invite INTEGER NOT NULL,\n  state TEXT NOT NULL CHECK(state IN('invited','active','inactive','conflict'))\n);\nCREATE TABLE bs_audit (\n  id INTEGER PRIMARY KEY,\n  actor TEXT NOT NULL,\n  action TEXT NOT NULL,\n  field TEXT,\n  changed_at TEXT NOT NULL\n);\n-- An INSERT of NULL fails the transaction if a concurrent write invalidated its fence.\nCREATE TABLE bs_assert (value INTEGER NOT NULL);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0081_business_people.sql",
+      "sha256": "51aa39622d866b987d71b6e37c9a8300e7f24c54a55611edaab669ed051b01cd",
+      "sql": "ALTER TABLE bs_settings ADD COLUMN owner_id TEXT CHECK(owner_id IS NULL OR owner_id <> '');\nALTER TABLE bs_team ADD COLUMN business_id TEXT CHECK(business_id IS NULL OR business_id <> '');\nALTER TABLE bs_team ADD COLUMN business_role TEXT CHECK(business_role IS NULL OR business_role IN('admin','member'));\nCREATE UNIQUE INDEX bs_team_business_id ON bs_team(business_id) WHERE business_id IS NOT NULL;\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0082_agent_native_proof.sql",
+      "sha256": "bcb541ecc5d1d854adde6ffd9e58662e6aa0506e8f5e4b32afdd4e24401fe6fa",
+      "sql": "-- Opaque, exact-action references to native recent person proof. No bearer\n-- material, factor, password or recovery code enters the agent door.\nCREATE TABLE uptime_agent_native_proof(\n id TEXT PRIMARY KEY,\n operator_id TEXT NOT NULL,\n operator_version INTEGER NOT NULL,\n session_id TEXT NOT NULL,\n agent_id TEXT NOT NULL,\n tool TEXT NOT NULL,\n arguments_sha256 TEXT NOT NULL,\n expires_at INTEGER NOT NULL\n);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0083_agent_work.sql",
+      "sha256": "608658a596975fe50cd2cbfaf86e097f82615d723aa387d48490f7501fdec9f2",
+      "sql": "-- Durable initiating identity without any token, browser cookie or credential.\n-- Revisions and one-time runner handoffs retain custody across Worker restarts.\nCREATE TABLE uptime_agent_revisions(\n monitor_id TEXT NOT NULL, revision INTEGER NOT NULL, principal TEXT NOT NULL,\n PRIMARY KEY(monitor_id,revision)\n);\nCREATE TABLE uptime_agent_handoffs(\n id TEXT PRIMARY KEY, monitor_id TEXT NOT NULL, revision INTEGER NOT NULL,\n runner_id TEXT NOT NULL, operation_key TEXT NOT NULL UNIQUE,\n args TEXT NOT NULL, principal TEXT NOT NULL, delivered_at INTEGER,\n UNIQUE(monitor_id,revision,runner_id,operation_key)\n);\nCREATE TABLE uptime_agent_manual(slot_id TEXT PRIMARY KEY,principal TEXT NOT NULL);\nCREATE TABLE uptime_agent_discoveries(id TEXT PRIMARY KEY,principal TEXT NOT NULL,delivered_at INTEGER);\nCREATE TABLE uptime_agent_notifications(delivery_id TEXT PRIMARY KEY,principal TEXT NOT NULL);\n"
     }
   ],
   "compatibilityDate": "2026-09-08",
