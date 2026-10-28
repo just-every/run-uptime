@@ -1,3 +1,4 @@
+import net from 'node:net';
 import {rejectForgedDiagnostics} from './diagnostic-intake-refusals.mjs';
 import {completeApiSecondFactor} from './mfa-auth-support.mjs';
 import assert from 'node:assert/strict';
@@ -16,7 +17,7 @@ import {mailEdges} from './mail-edges.mjs';
 // MAIL-001: owner-created revisions, real signed Node execution, actual TCP/TLS mail edges, retained per-step incidents.
 const diagnosticKinds=new Set();
 const directory=await mkdtemp(join(tmpdir(),'uptime-mail-journey-')),key='mail-journey-test-only-runner-key';
-let worker,db,web,edge,cookie='',origin;
+let worker,db,web,edge,mailTimeoutServer,cookie='',origin;const mailTimeoutSockets=[];
 try{
  const certs=await certificates(directory),ca=await readFile(certs.caPath),credentialDir=join(directory,'credentials');await mkdir(credentialDir,{mode:0o700});
  edge=await mailEdges(certs.web);
@@ -39,14 +40,14 @@ try{
  const credentials=async(id,s)=>{
   for(const target of [s,...(s.transaction?[s.transaction.receive]:[])])if(target.credentialRef)await writeFile(join(credentialDir,`${target.credentialRef}.json`),JSON.stringify({monitorId:id,origin:`https://${target.host}:${target.port}`,auth:{type:'basic',username:'synthetic-user',password:'planted-private-password'}}),{mode:0o600});
  };
- const create=async(name,mail)=>{const response=await api('/api/monitors',{name,type:'mail',mail,assignments:{'local-a':registration.runnerId},canaryUrl:'https://dns.google/ok',intervalMs:5000,timeoutMs:4000,retries:0,confirmSlots:1,recoverSlots:1});assert.equal(response.status,201,JSON.stringify(response.data));await credentials(response.data.id,mail);return response.data};
- const runner=async()=>{
-  const child=spawn(process.execPath,['--import',resolve('tests/mail-routing.mjs'),resolve('tests/signed-runner-child.mjs')],{env:{...process.env,UPTIME_CONTROL_ORIGIN:origin,UPTIME_RUNNER_KEY:key,UPTIME_CREDENTIAL_DIR:credentialDir,NODE_EXTRA_CA_CERTS:certs.caPath,MAIL_JOURNEY_WEB_PORT:String(webPort)},stdio:['ignore','pipe','pipe']});
+ const create=async(name,mail,options={})=>{const response=await api('/api/monitors',{name,type:'mail',mail,assignments:{'local-a':registration.runnerId},canaryUrl:'https://dns.google/ok',intervalMs:5000,timeoutMs:4000,retries:0,confirmSlots:1,recoverSlots:1,...options});assert.equal(response.status,201,JSON.stringify(response.data));await credentials(response.data.id,mail);return response.data};
+ const runner=async(extra={})=>{
+  const child=spawn(process.execPath,['--import',resolve('tests/mail-routing.mjs'),resolve('tests/signed-runner-child.mjs')],{env:{...process.env,UPTIME_CONTROL_ORIGIN:origin,UPTIME_RUNNER_KEY:key,UPTIME_CREDENTIAL_DIR:credentialDir,NODE_EXTRA_CA_CERTS:certs.caPath,MAIL_JOURNEY_WEB_PORT:String(webPort),...extra},stdio:['ignore','pipe','pipe']});
   let output='';child.stdout.on('data',b=>output+=b);child.stderr.on('data',b=>output+=b);const timer=setTimeout(()=>child.kill('SIGKILL'),40000);
   try{assert.equal((await once(child,'exit'))[0],0,`Mail runner failed: ${output.slice(0,2000)}`)}finally{clearTimeout(timer)}
  };
- const step=async id=>{
-  const row=await db.prepare('SELECT next_due FROM monitors WHERE id=?').bind(id).first(),delay=row.next_due-Date.now()+20;if(delay>0)await new Promise(r=>setTimeout(r,delay));await runner();
+ const step=async(id,extra)=>{
+  const row=await db.prepare('SELECT next_due FROM monitors WHERE id=?').bind(id).first(),delay=row.next_due-Date.now()+20;if(delay>0)await new Promise(r=>setTimeout(r,delay));await runner(extra);
   const history=(await api(`/api/monitors/${id}/history`)).data,overview=(await api(`/api/overview?monitor=${id}`)).data,slot=history.find(s=>!s.manual);
   assert.equal(slot.status,'complete',JSON.stringify(slot));const o=slot.observations[0];assert.equal(o.canary.outcome,'pass');
   assert.ok(!JSON.stringify([history,overview]).includes('planted-private-password'));assert.ok(!JSON.stringify([history,overview]).includes('private-body-not-evidence'));
@@ -77,6 +78,24 @@ try{
   edge.state.rejectCleanup=true;result=await step(monitor.id);assert.equal(result.o.outcome,'target_failure');assert.equal(result.o.checks.at(-1).assertion,'cleanup');assert.equal(result.o.protocol.transaction.received,true);assert.equal(result.o.protocol.transaction.cleanup,false);edge.state.rejectCleanup=false;
   result=await step(monitor.id);assert.equal(result.state.state,'Healthy');assert.equal(result.o.protocol.transaction.cleanup,true);assert.equal(unrelated.deleted,false);await pause(monitor.id);
  }
+ const reserved=net.createServer(),refusedPort=await listen(reserved);await close(reserved);
+ mailTimeoutServer=net.createServer(socket=>{socket.on('error',()=>{});mailTimeoutSockets.push(socket)});const silentPort=await listen(mailTimeoutServer);
+ for(const [index,port,category] of [[501,refusedPort,'connection'],[502,silentPort,'timeout']]){
+  const monitor=await create('synthetic-uptime-'+index,{protocol:'smtp',host:'canary.protocol.test',port,security:'none'},{timeoutMs:200});
+  const result=await step(monitor.id,{MAIL_DIAGNOSTIC_PIN:'93.184.216.34'});
+  assert.equal(result.o.outcome,'target_failure');
+  const retained=(await api('/api/monitors/'+monitor.id+'/failure-snapshots')).data.items[0].snapshot;
+  assert.equal(retained.diagnostics.category,category);assert.equal(retained.diagnostics.route.tool,'traceroute');
+  assert.equal(retained.diagnostics.route.hops[0].address,'93.184.216.34');assert.ok(retained.diagnostics.phases.connectMs>=0);assert.equal(retained.diagnostics.phases.tlsMs,null);
+  await pause(monitor.id);
+ }
+ const receiverMail={...endpoint('smtp','synthetic-uptime-503'),transaction:{dedicatedMailbox:true,from:'synthetic@example.test',to:'mailbox@example.test',receive:{...endpoint('pop3','synthetic-uptime-504'),host:'receiver.protocol.test',port:refusedPort},receiptTimeoutMs:700,pollIntervalMs:100}};
+ const receiverMonitor=await create('synthetic-uptime-503',receiverMail),receiverResult=await step(receiverMonitor.id,{MAIL_DIAGNOSTIC_PIN:'93.184.216.35'});
+ assert.equal(receiverResult.o.outcome,'target_failure');assert.equal(receiverResult.o.protocol.transaction.smtpAccepted,true);assert.equal(receiverResult.o.checks.at(-1).assertion,'receive_connection');
+ const receiverDiagnostic=(await api('/api/monitors/'+receiverMonitor.id+'/failure-snapshots')).data.items[0].snapshot.diagnostics;
+ assert.equal(receiverDiagnostic.category,'connection');assert.equal(receiverDiagnostic.route.tool,'traceroute');assert.equal(receiverDiagnostic.route.hops[0].address,'93.184.216.35','diagnostics use the failed receiver pin, never the earlier SMTP pin');
+ assert.equal(receiverDiagnostic.phases.tlsMs,null,'the failed receiver did not reach TLS; do not retain the sender handshake');
+ await pause(receiverMonitor.id);
  assert.deepEqual([...diagnosticKinds].sort(),['MAIL'].sort());
  console.log('PASS MAIL-001 owner configuration, signed native protocols, per-step incidents, receiver confirmation and synthetic-only removal');
-}finally{await edge?.close();await close(web);await worker?.dispose();await rm(directory,{recursive:true,force:true})}
+}finally{for(const socket of mailTimeoutSockets)socket.destroy();await close(mailTimeoutServer);await edge?.close();await close(web);await worker?.dispose();await rm(directory,{recursive:true,force:true})}

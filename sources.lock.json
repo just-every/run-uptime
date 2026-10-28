@@ -495,7 +495,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "33a2965875370e514b025a6789cc05a8c3f7203dfece74b47390327584fca97e",
+      "sha256": "5760a80108c2e4c190f48ef31d748710d587379019d231ff503945ba8521439f",
       "executable": false
     },
     "AGENTS.md": {
@@ -519,7 +519,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "8c259ccf30d7388f77e67430c753b314cef977fc4670dae93164419c90e32ef8",
+      "sha256": "e51fca19255812316fabeed81c6ab837b85566959d75075d67af75d4725a6120",
       "executable": false
     },
     "DEMO.md": {
@@ -7611,7 +7611,7 @@
       "executable": false
     },
     "tests/mail-journey.mjs": {
-      "sha256": "858d57ef5b2966831810e38d2dba8e3c2c5aaba9ec9a5d268e27a692ad2b3569",
+      "sha256": "bc1903a5f8d2378eeae1c6a2229da60b00a0ba5e797eea5bfdb3228be7c8c02f",
       "executable": false
     },
     "tests/mail-provider-fixture.mjs": {
@@ -7619,7 +7619,7 @@
       "executable": false
     },
     "tests/mail-routing.mjs": {
-      "sha256": "b4c3ccd2fe4bb22b58d6873e5ca671b446d16f09a299cb51df85ee662675cd4e",
+      "sha256": "4881df3d2032291fe173bbcecde94dc446c78e77265d753af00c8c4e54e6f9d3",
       "executable": false
     },
     "tests/maintenance-windows.mjs": {
