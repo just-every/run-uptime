@@ -55,7 +55,7 @@ export async function proveCatalogRoutes(){
   const archive=await ok('/api/archive');for(const table of ['alert_named_routes','catalog_route_batches','catalog_route_batch_entries'])assert.equal(Object.hasOwn(archive.payload.productTables,table),false,'route assignment authority is installation-local');
   await ok(`/api/monitors/${peer.id}/erase`,{name:peer.definition.name});assert.equal((await f.DB.prepare('SELECT COUNT(*) n FROM catalog_route_batch_entries WHERE monitor_id=?').bind(peer.id).first()).n,0);assert.ok((await cli('named')).some(r=>r.id===named.id),'erasing a monitor retains independent named configuration');
   await f.pause(selected);await f.pause(unassigned);
-  const add={format:'urls',text:`http://93.184.216.34:${f.port}/catalog`,defaults:{intervalMs:60000,locations:['local-a'],assignments:{'local-a':{runnerId:f.first.runnerId,canaryUrl:`http://93.184.216.35:${f.port}/canary`}},alertRoute:named.id},enableAfterCreate:true};
+  const add={format:'urls',text:`http://93.184.216.34:${f.port}/catalog`,defaults:{intervalMs:5000,locations:['local-a'],assignments:{'local-a':{runnerId:f.first.runnerId,canaryUrl:`http://93.184.216.35:${f.port}/canary`}},alertRoute:named.id},enableAfterCreate:true};
   const addBefore=await all(),addPreview=await ok('/api/catalog/add/preview',add);assert.deepEqual(await all(),addBefore,'route-default review writes nothing');
   assert.equal(addPreview.alertRoute.id,named.id);assert.equal(addPreview.entries[0].alertRoute.readyCount,1);
   for(const cookie of [admin.cookie,unproved])for(const action of ['preview','apply']){
@@ -70,7 +70,13 @@ export async function proveCatalogRoutes(){
   const routeBefore=await all();assert.equal((await f.request('/api/catalog/add/apply',{body:{...changedRoute,digest:freshAdd.digest}})).status,409);assert.deepEqual(await all(),routeBefore,'a changed route selection cannot reuse an approval');
   const addMail=mail.length,added=await ok('/api/catalog/add/apply',{...add,digest:freshAdd.digest});assert.equal(added.created.length,1);assert.equal(mail.length,addMail);
   const created=added.created[0],createdRoute=await ok(`/api/monitors/${created}/alert-route`);assert.equal(createdRoute.policies[0].namedRouteId,named.id);
-  const createdTask=await f.claim(f.first);assert.equal(createdTask.monitorId,created);assert.equal((await f.submit(f.first,createdTask,[await f.evidence(createdTask)])).status,200);
+  for(let slot=0;slot<added.preview.entries[0].target.confirmSlots;slot++){
+   if(slot)await new Promise(resolve=>setTimeout(resolve,5100));
+   const task=await f.claim(f.first);assert.equal(task.monitorId,created);const attempts=[];
+   for(let attempt=0;attempt<=task.definition.retries;attempt++)attempts.push({...await f.evidence(task),attempt});
+   assert.equal((await f.submit(f.first,task,attempts)).status,200);
+  }
+  assert.equal((await f.state(created)).targetState,'Failing');
   await dispatchNotifications(rpc);const createdDelivery=(await ok('/api/notifications')).deliveries.filter(d=>d.event.monitorId===created&&d.event.kind==='trigger');
   assert.equal(createdDelivery.length,1);assert.equal(createdDelivery[0].destinationId,inbox.id);assert.equal(createdDelivery[0].state,'accepted');assert.equal(mail.length,addMail+1);
   const createdHistory=await all();await ok(`/api/definitions/batches/${added.batchId}/undo`,{});const undoneAdd=await all();
