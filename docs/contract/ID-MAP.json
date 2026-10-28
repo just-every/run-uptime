@@ -1,0 +1,534 @@
+{
+  "schema": 1,
+  "old": "a492c68b79754ded94cf5a75e9564c29a50f3215",
+  "ids": {
+    "HTTP-001": {
+      "how": "kept",
+      "to": [
+        "HTTP-001"
+      ]
+    },
+    "EVIDENCE-001": {
+      "how": "kept",
+      "to": [
+        "EVIDENCE-001"
+      ]
+    },
+    "STATE-001": {
+      "how": "kept",
+      "to": [
+        "STATE-001"
+      ]
+    },
+    "AUTHORITY-001": {
+      "how": "kept",
+      "to": [
+        "AUTHORITY-001"
+      ]
+    },
+    "NETWORK-001": {
+      "how": "kept",
+      "to": [
+        "NETWORK-001"
+      ]
+    },
+    "NETWORK-002": {
+      "how": "kept",
+      "to": [
+        "NETWORK-002"
+      ]
+    },
+    "HEARTBEAT-001": {
+      "how": "kept",
+      "to": [
+        "HEARTBEAT-001"
+      ]
+    },
+    "ARCHIVE-001": {
+      "how": "kept",
+      "to": [
+        "ARCHIVE-001"
+      ]
+    },
+    "ARCHIVE-002": {
+      "how": "kept",
+      "to": [
+        "ARCHIVE-002"
+      ]
+    },
+    "IMPORT-001": {
+      "how": "kept",
+      "to": [
+        "IMPORT-001"
+      ]
+    },
+    "RETENTION-001": {
+      "how": "kept",
+      "to": [
+        "RETENTION-001"
+      ]
+    },
+    "ERASURE-001": {
+      "how": "kept",
+      "to": [
+        "ERASURE-001"
+      ]
+    },
+    "AUDIT-001": {
+      "how": "kept",
+      "to": [
+        "AUDIT-001"
+      ]
+    },
+    "PRESENCE-001": {
+      "how": "kept",
+      "to": [
+        "PRESENCE-001"
+      ]
+    },
+    "INTERFACE-001": {
+      "how": "kept",
+      "to": [
+        "INTERFACE-001"
+      ]
+    },
+    "NOTIFY-001": {
+      "how": "kept",
+      "to": [
+        "NOTIFY-001"
+      ]
+    },
+    "DELIVERY-001": {
+      "how": "kept",
+      "to": [
+        "DELIVERY-001"
+      ]
+    },
+    "PUBLIC-001": {
+      "how": "kept",
+      "to": [
+        "PUBLIC-001"
+      ]
+    },
+    "BOUNDARY-001": {
+      "how": "kept",
+      "to": [
+        "BOUNDARY-001"
+      ]
+    },
+    "DRILL-001": {
+      "how": "kept",
+      "to": [
+        "DRILL-001"
+      ]
+    },
+    "STARTUP-001": {
+      "how": "kept",
+      "to": [
+        "STARTUP-001"
+      ]
+    },
+    "PUBLIC-002": {
+      "how": "kept",
+      "to": [
+        "PUBLIC-002"
+      ]
+    },
+    "FLOW-001": {
+      "how": "kept",
+      "to": [
+        "FLOW-001"
+      ]
+    },
+    "MONITOR-001": {
+      "how": "kept",
+      "to": [
+        "MONITOR-001"
+      ]
+    },
+    "API-001": {
+      "how": "kept",
+      "to": [
+        "API-001"
+      ]
+    },
+    "SLOW-001": {
+      "how": "kept",
+      "to": [
+        "SLOW-001"
+      ]
+    },
+    "API-002": {
+      "how": "kept",
+      "to": [
+        "API-002"
+      ]
+    },
+    "API-003": {
+      "how": "kept",
+      "to": [
+        "API-003"
+      ]
+    },
+    "API-004": {
+      "how": "kept",
+      "to": [
+        "API-004"
+      ]
+    },
+    "TCP-001": {
+      "how": "kept",
+      "to": [
+        "TCP-001"
+      ]
+    },
+    "PING-001": {
+      "how": "kept",
+      "to": [
+        "PING-001"
+      ]
+    },
+    "DNS-001": {
+      "how": "kept",
+      "to": [
+        "DNS-001"
+      ]
+    },
+    "TLS-001": {
+      "how": "kept",
+      "to": [
+        "TLS-001"
+      ]
+    },
+    "DOMAIN-001": {
+      "how": "kept",
+      "to": [
+        "DOMAIN-001"
+      ]
+    },
+    "UDP-001": {
+      "how": "kept",
+      "to": [
+        "UDP-001"
+      ]
+    },
+    "MAIL-001": {
+      "how": "kept",
+      "to": [
+        "MAIL-001"
+      ]
+    },
+    "HEARTBEAT-002": {
+      "how": "kept",
+      "to": [
+        "HEARTBEAT-002"
+      ]
+    },
+    "SCHEDULE-001": {
+      "how": "kept",
+      "to": [
+        "SCHEDULE-001"
+      ]
+    },
+    "SCHEDULE-002": {
+      "how": "kept",
+      "to": [
+        "SCHEDULE-002"
+      ]
+    },
+    "PROBE-001": {
+      "how": "kept",
+      "to": [
+        "PROBE-001"
+      ]
+    },
+    "PROBE-002": {
+      "how": "kept",
+      "to": [
+        "PROBE-002"
+      ]
+    },
+    "PRIVATE-001": {
+      "how": "kept",
+      "to": [
+        "PRIVATE-001"
+      ]
+    },
+    "MAINT-001": {
+      "how": "kept",
+      "to": [
+        "MAINT-001"
+      ]
+    },
+    "REPORT-001": {
+      "how": "kept",
+      "to": [
+        "REPORT-001"
+      ]
+    },
+    "EVIDENCE-002": {
+      "how": "kept",
+      "to": [
+        "EVIDENCE-002"
+      ]
+    },
+    "DIAG-001": {
+      "how": "kept",
+      "to": [
+        "DIAG-001"
+      ]
+    },
+    "PERF-001": {
+      "how": "kept",
+      "to": [
+        "PERF-001"
+      ]
+    },
+    "DEPENDENCY-001": {
+      "how": "kept",
+      "to": [
+        "DEPENDENCY-001"
+      ]
+    },
+    "DEPENDENCY-002": {
+      "how": "kept",
+      "to": [
+        "DEPENDENCY-002"
+      ]
+    },
+    "FLOW-002": {
+      "how": "kept",
+      "to": [
+        "FLOW-002"
+      ]
+    },
+    "FLOW-003": {
+      "how": "kept",
+      "to": [
+        "FLOW-003"
+      ]
+    },
+    "FLOW-004": {
+      "how": "kept",
+      "to": [
+        "FLOW-004"
+      ]
+    },
+    "ROUTING-001": {
+      "how": "kept",
+      "to": [
+        "ROUTING-001"
+      ]
+    },
+    "ROUTING-002": {
+      "how": "kept",
+      "to": [
+        "ROUTING-002"
+      ]
+    },
+    "DELIVERY-002": {
+      "how": "kept",
+      "to": [
+        "DELIVERY-002"
+      ]
+    },
+    "FOLLOWUP-001": {
+      "how": "kept",
+      "to": [
+        "FOLLOWUP-001"
+      ]
+    },
+    "INCIDENT-001": {
+      "how": "kept",
+      "to": [
+        "INCIDENT-001"
+      ]
+    },
+    "NOTICE-001": {
+      "how": "kept",
+      "to": [
+        "NOTICE-001"
+      ]
+    },
+    "CHAT-001": {
+      "how": "kept",
+      "to": [
+        "CHAT-001"
+      ]
+    },
+    "PHONE-001": {
+      "how": "kept",
+      "to": [
+        "PHONE-001"
+      ]
+    },
+    "PHONE-002": {
+      "how": "kept",
+      "to": [
+        "PHONE-002"
+      ]
+    },
+    "MOBILE-001": {
+      "how": "kept",
+      "to": [
+        "MOBILE-001"
+      ]
+    },
+    "ONCALL-001": {
+      "how": "kept",
+      "to": [
+        "ONCALL-001"
+      ]
+    },
+    "LAMP-001": {
+      "how": "kept",
+      "to": [
+        "LAMP-001"
+      ]
+    },
+    "AUTOMATION-001": {
+      "how": "kept",
+      "to": [
+        "AUTOMATION-001"
+      ]
+    },
+    "WEBHOOK-001": {
+      "how": "kept",
+      "to": [
+        "WEBHOOK-001"
+      ]
+    },
+    "MANAGE-001": {
+      "how": "kept",
+      "to": [
+        "MANAGE-001"
+      ]
+    },
+    "READAPI-001": {
+      "how": "kept",
+      "to": [
+        "READAPI-001"
+      ]
+    },
+    "CODE-001": {
+      "how": "kept",
+      "to": [
+        "CODE-001"
+      ]
+    },
+    "CODE-002": {
+      "how": "kept",
+      "to": [
+        "CODE-002"
+      ]
+    },
+    "METRICS-001": {
+      "how": "kept",
+      "to": [
+        "METRICS-001"
+      ]
+    },
+    "MIGRATE-001": {
+      "how": "kept",
+      "to": [
+        "MIGRATE-001"
+      ]
+    },
+    "MIGRATE-002": {
+      "how": "kept",
+      "to": [
+        "MIGRATE-002"
+      ]
+    },
+    "MIGRATE-003": {
+      "how": "kept",
+      "to": [
+        "MIGRATE-003"
+      ]
+    },
+    "MIGRATE-004": {
+      "how": "kept",
+      "to": [
+        "MIGRATE-004"
+      ]
+    },
+    "MIGRATE-005": {
+      "how": "kept",
+      "to": [
+        "MIGRATE-005"
+      ]
+    },
+    "HISTORY-001": {
+      "how": "kept",
+      "to": [
+        "HISTORY-001"
+      ]
+    },
+    "ACCESS-001": {
+      "how": "kept",
+      "to": [
+        "ACCESS-001"
+      ]
+    },
+    "ACCESS-002": {
+      "how": "kept",
+      "to": [
+        "ACCESS-002"
+      ]
+    },
+    "ACCESS-003": {
+      "how": "kept",
+      "to": [
+        "ACCESS-003"
+      ]
+    },
+    "COST-001": {
+      "how": "kept",
+      "to": [
+        "COST-001"
+      ]
+    },
+    "OPS-001": {
+      "how": "kept",
+      "to": [
+        "OPS-001"
+      ]
+    },
+    "DISCOVERY-001": {
+      "how": "kept",
+      "to": [
+        "DISCOVERY-001"
+      ]
+    },
+    "AGENT-001": {
+      "how": "kept",
+      "to": [
+        "AGENT-001"
+      ]
+    },
+    "AGENT-002": {
+      "how": "kept",
+      "to": [
+        "AGENT-002"
+      ]
+    },
+    "AGENT-003": {
+      "how": "kept",
+      "to": [
+        "AGENT-003"
+      ]
+    },
+    "AGENT-004": {
+      "how": "kept",
+      "to": [
+        "AGENT-004"
+      ]
+    },
+    "AGENT-005": {
+      "how": "kept",
+      "to": [
+        "AGENT-005"
+      ]
+    }
+  }
+}
