@@ -259,7 +259,7 @@ Demoted to partial (23): HTTP-001, EVIDENCE-001, STATE-001, AUTHORITY-001, HEART
 | UDP-001 | 1 | A matching payload passes | `tests/udp-monitors.mjs:55` | asserted |
 | UDP-001 | 1 | A mismatching payload fails as an assertion | `tests/udp-monitors.mjs:51` and `:57` | asserted |
 | UDP-001 | 1 | Dropped packets fail as a timeout | `tests/udp-monitors.mjs:57` and `:60` | asserted |
-| UDP-001 | 1 | Removed or refused probe authority is a runner failure that sends nothing | `tests/udp-monitors.mjs:50`, `:65` and `:70` | asserted |
+| UDP-001 | 1 | Removed or refused probe authority is a runner failure that sends nothing | `tests/udp-monitors.mjs:50` (refused destination) and `:65` (revoked runner: claim refused, no packet sent) | asserted |
 | UDP-001 | 1 | Outbound traffic is bounded | `tests/udp-monitors.mjs:60` (capacity cap) and `:61` | asserted |
 | MAIL-001 | 1 | Each protocol monitor is configured through the owner door | `tests/mail-journey.mjs:39` | asserted |
 | MAIL-001 | 1 | Broken authentication fails its step and alerts | `tests/mail-journey.mjs:56` | asserted |
@@ -285,7 +285,7 @@ Demoted to partial (23): HTTP-001, EVIDENCE-001, STATE-001, AUTHORITY-001, HEART
 | PRIVATE-001 | 1 | With one service granted, an HTTP check passes | `tests/private-network.mjs:41` | asserted |
 | PRIVATE-001 | 1 | A TCP check passes under the grant | `tests/private-network.mjs:51` | asserted |
 | PRIVATE-001 | 1 | A browser check passes under the grant | `tests/private-network.mjs:53` | asserted |
-| PRIVATE-001 | 1 | A revoked grant refuses | `tests/private-network.mjs:49` | asserted |
+| PRIVATE-001 | 1 | Revoking the grant or the runner refuses further checks | `tests/private-network.mjs:49` (grant retired mid-request) and `:57` (runner revoked) | asserted |
 | PRIVATE-001 | 2 | An unauthorized neighbor refuses without connecting | `tests/private-network.mjs:44` | asserted |
 | PRIVATE-001 | 2 | A metadata address refuses | `tests/private-network.mjs:39` | asserted |
 | PRIVATE-001 | 2 | A redirected private address refuses without connecting | `tests/private-network.mjs:48` | asserted |
