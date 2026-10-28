@@ -83,8 +83,16 @@ team dispatch bindings so they stay denied. Monitor/destination erasure removes
 dependent bindings. The route read returns portability reason
 `route_policy_installation_local`: route policies, business windows, detailed
 receipts and dispatch authority are deliberately excluded, and the receiving
-owner configures them again. Expiry/renewal notices still use installation-wide
-destinations. Their effective-route integration remains unimplemented.
+owner configures them again. Expiry and renewal notices use the monitor’s current
+effective route, including explicit-empty selection, team consent, filters, route
+quiet hours and the weekly business selection at observation time. Expiry is
+`warning` severity and renewal is `info`; both have `monitor` origin. Region
+filters use the vantages that observed the certificate or registration, including
+passing evidence. Each warning stage and renewal snapshots its own policy; an
+earlier stage’s quiet or business result cannot control a later notice. These
+notices send once, without incident delays, repeats or fallback escalation. They
+remain outbox events beside incidents, retain maintenance suppression and archive
+rules, and do not change monitor health.
 
 ## Assign a named route to an existing selection
 

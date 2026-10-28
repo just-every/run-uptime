@@ -14,7 +14,7 @@ import {certificates,listen,close,webServer,tcpServer,tlsServer,dnsServer} from 
 // local fixtures through its production DNS pinning and sockets (only the network edge is routed), and its signed
 // results drive state, incidents and expiry warnings in the emitted production Worker with migrated D1.
 const directory=await mkdtemp(join(tmpdir(),'uptime-protocols-')),key='protocol-monitors-test-only-runner-key';
-const DAY=86400000,scenario={dns:{},registry:{},registrar:{},certificate:null};
+const DAY=86400000,scenario={dns:{},registry:{},registrar:{},certificate:null,notifications:[]};
 let worker,db,web,tcp,tlsService,dns,cookie='',origin,passed=0;
 const check=async(name,fn)=>{await fn();passed++;console.log('PASS '+name)};
 const signature=(path,body,stamp)=>createHmac('sha256',key).update(`${stamp}.${path==='/api/runner/enroll'?'runner-enrolment.':''}${JSON.stringify(body)}`).digest('hex');
@@ -53,6 +53,15 @@ try{
  // Each runner run takes one due task, so a finished flow pauses its monitor before the next flow starts.
  const pause=async id=>{const current=(await api(`/api/overview?monitor=${id}`)).data.monitors[0];assert.equal((await api(`/api/monitors/${id}`,{...current.definition,enabled:false},{},'PATCH')).status,200)};
 
+ // ROUTING-001 reuses these real scheduled TLS/domain journeys and the
+ // runner's production notification transport, with only receiver sockets routed.
+ const saveNoticeRoute=async(m,scope,destinationIds,fields={})=>{
+  const path=`/api/monitors/${m.id}/alert-route`,current=(await api(path)).data;
+  const input={scope,mode:'selected',destinationIds,teamIds:[],expectedRevision:current.policies.find(p=>p.scope===scope).revision,...fields};
+  const preview=await api(path+'/preview',input);assert.equal(preview.status,200,JSON.stringify(preview.data));
+  const applied=await api(path+'/apply',{...input,digest:preview.data.digest});assert.equal(applied.status,200,JSON.stringify(applied.data));
+ };
+
  await check('TCP: open, refused, blackholed and unresolvable-by-the-runner ports are distinct outcomes with confirmed trigger and recovery',async()=>{
   const m=await create({name:'Database port',type:'tcp',tcp:{host:'tcp.protocol.test',port:5432,bannerIncludes:'READY'},timeoutMs:1500});
   assert.equal(m.definition.url,'tcp://tcp.protocol.test:5432');
@@ -83,21 +92,35 @@ try{
 
  await check('TLS: an expiring certificate warns once naming it and its owner; a wrong name and an untrusted chain fail; a renewed certificate resolves the warning',async()=>{
   scenario.certificate=certs.expiring;
-  const m=await create({name:'Storefront certificate',type:'tls',tls:{host:'tls.protocol.test',warnDays:[30,14,7],owner:'Web team'}});
+  const m=await create({name:'Storefront certificate',type:'tls',service:'Certificates',environment:'production',tls:{host:'tls.protocol.test',warnDays:[30,14,7],owner:'Web team'}});
+  const destination=async(label)=>{const response=await api('/api/notifications/destinations',{name:`Synthetic ${label} notice receiver`,kind:'webhook',url:`https://routing.protocol.example.com/routing/${label}`});assert.equal(response.status,201,JSON.stringify(response.data));return response.data};
+  const installation=await destination('installation'),selected=await destination('selected');
+  await saveNoticeRoute(m,'installation',[installation.id]);
+  const clock=at=>new Intl.DateTimeFormat('en-GB',{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(at),now=Date.now();
+  await saveNoticeRoute(m,'service',[selected.id],{filters:{environments:['production'],severities:['warning','info'],origins:['monitor'],regions:['local-a']},quietHours:{timeZone:'America/New_York',start:clock(now+7200000),end:clock(now+10800000)},businessHours:{timeZone:'America/New_York',weekdays:[0,1,2,3,4,5,6],start:clock(now-3600000),end:clock(now+3600000),selection:'inside'}});
   let r=await step(m.id);assert.equal(r.o.outcome,'pass',JSON.stringify(r.o.checks));assert.equal(r.state.state,'Healthy');
   let warnings=r.alerts.filter(a=>a.kind==='expiry');assert.equal(warnings.length,1);assert.match(warnings[0].event.title,/^Certificate expires in (9|10) days: Storefront certificate$/);assert.match(warnings[0].event.explanation,/tls\.protocol\.test issued by Protocol fixture test CA .*the 14-day warning.*Accountable owner: Web team/);
+  assert.deepEqual(scenario.notifications.filter(row=>row.event.monitorId===m.id).map(row=>[row.path,row.event.kind]),[['/routing/selected','expiry']],`only the effective service route receives the expiry notice: ${JSON.stringify((await api('/api/notifications')).data.deliveries.map(job=>({kind:job.event.kind,state:job.state,code:job.code})))}`);
+  await saveNoticeRoute(m,'service',[installation.id]);
   r=await step(m.id);assert.equal(r.alerts.filter(a=>a.kind==='expiry').length,1,'the same stage never warns twice');
+  assert.equal(scenario.notifications.filter(row=>row.event.monitorId===m.id).length,1,'editing recipients does not replay an existing warning stage');
+  await saveNoticeRoute(m,'service',[selected.id]);
   scenario.certificate=certs.wrongName;r=await step(m.id);assert.equal(r.o.outcome,'target_failure');assert.equal(r.o.checks.find(c=>c.assertion==='hostname').pass,false);assert.equal(r.state.state,'Failing');
   scenario.certificate=certs.selfSigned;r=await step(m.id);assert.equal(r.o.checks.find(c=>c.assertion==='trust').pass,false);assert.match(r.o.checks.find(c=>c.assertion==='trust').reason,/self-signed/);
   scenario.certificate=certs.renewed;r=await step(m.id);assert.equal(r.o.outcome,'pass');assert.equal(r.state.state,'Healthy');
   const renewal=r.alerts.find(a=>a.kind==='renewal');assert.ok(renewal,'a renewal is observed');assert.equal(renewal.event.incidentKey,warnings[0].event.incidentKey);assert.match(renewal.event.explanation,/valid until .*replaces the one warned about earlier/);
   r=await step(m.id);assert.equal(r.alerts.filter(a=>a.kind==='renewal').length,1);assert.deepEqual(kinds(r.alerts),['expiry','trigger','recovery','renewal']);
+  assert.deepEqual(scenario.notifications.filter(row=>row.event.monitorId===m.id).map(row=>[row.path,row.event.kind]),[['/routing/selected','expiry'],['/routing/selected','renewal']],'renewal follows the same effective route without installation-wide sends or duplicate notices');
+  const notices=(await api('/api/notifications')).data.deliveries.filter(job=>job.event.monitorId===m.id&&['expiry','renewal'].includes(job.event.kind));
+  assert.equal(notices.length,2);assert.ok(notices.every(job=>job.destinationId===selected.id&&job.state==='accepted'&&job.businessHours.selected));
+  console.log('ROUTING-001 R3 passed: scheduled TLS expiry and renewal reach only the inherited service-route recipient through the real runner, with environment/severity/origin/region and weekly policy, while health and incident history remain separate.');
   await pause(m.id);
  });
 
  await check('Domain: approaching expiry warns with its source; conflicting, redacted and unavailable registry data is Unknown; renewal is followed through',async()=>{
   const soon=Date.now()+20*DAY;scenario.registry={status:200,expiresAt:soon};scenario.registrar={status:200,expiresAt:soon+3600000};
   const m=await create({name:'Shop domain',type:'domain',domain:{name:'shop.test',owner:'Finance'},timeoutMs:5000});
+  await saveNoticeRoute(m,'monitor',[]);
   let r=await step(m.id);assert.equal(r.o.outcome,'pass',JSON.stringify(r.o.checks));assert.equal(r.o.protocol.source,'https://rdap.registry.test/domain/shop.test');assert.ok(r.o.protocol.sourceUpdatedAt<Date.now());assert.equal(r.o.protocol.registrar.source,'https://rdap.registrar.test/domain/shop.test');
   const warning=r.alerts.find(a=>a.kind==='expiry');assert.match(warning.event.title,/^Domain registration expires in (19|20) days: Shop domain$/);assert.match(warning.event.explanation,/the 30-day warning.*Accountable owner: Finance/);
   scenario.registrar={status:200,expiresAt:soon+90*DAY};r=await step(m.id);assert.equal(r.o.outcome,'runner_error');assert.match(r.o.checks[0].reason,/^Unknown: sources disagree/);assert.equal(r.state.targetState,'Unknown');
@@ -105,6 +128,7 @@ try{
   scenario.registry={status:503};r=await step(m.id);assert.equal(r.o.outcome,'runner_error');assert.equal(r.o.checks[0].assertion,'registry');
   const renewed=Date.now()+400*DAY;scenario.registry={status:200,expiresAt:renewed};scenario.registrar={status:200,expiresAt:renewed};r=await step(m.id);assert.equal(r.o.outcome,'pass');assert.equal(r.state.state,'Healthy');
   const renewal=r.alerts.find(a=>a.kind==='renewal');assert.ok(renewal);assert.equal(renewal.event.incidentKey,warning.event.incidentKey);assert.equal(r.alerts.filter(a=>a.kind==='trigger').length,0,'Unknown registry data never opened an incident');
+  assert.ok(!scenario.notifications.some(row=>row.event.monitorId===m.id),'an explicit empty monitor route suppresses both domain expiry and renewal despite installation recipients');
  });
  console.log(`PROTOCOL-MONITORS passed ${passed} checks: emitted Worker + migrated D1, real Node runner per scheduled check, local TCP/TLS/DNS over HTTPS/RDAP fixtures behind production pinning.`);
 }finally{await close(web);await close(tcp);await close(tlsService);await close(dns);await worker?.dispose();await rm(directory,{recursive:true,force:true})}

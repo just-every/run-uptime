@@ -5,10 +5,11 @@ import assert from 'node:assert/strict';
 import https from 'node:https';
 import net from 'node:net';
 import tls from 'node:tls';
-import {Resolver} from 'node:dns/promises';
+import dns,{Resolver} from 'node:dns/promises';
+import {syncBuiltinESMExports} from 'node:module';
 
 const PUBLIC='93.184.216.34';
-const HOSTS=['ns1.protocol.test','tcp.protocol.test','tls.protocol.test','canary.protocol.test','cloudflare-dns.com','dns.google','data.iana.org','rdap.registry.test','rdap.registrar.test'];
+const HOSTS=['ns1.protocol.test','tcp.protocol.test','tls.protocol.test','canary.protocol.test','routing.protocol.example.com','cloudflare-dns.com','dns.google','data.iana.org','rdap.registry.test','rdap.registrar.test'];
 const env=process.env;
 Resolver.prototype.resolve4=async host=>{
  assert.ok(HOSTS.includes(host),`unexpected lookup ${host}`);
@@ -17,6 +18,11 @@ Resolver.prototype.resolve4=async host=>{
  return [PUBLIC];
 };
 Resolver.prototype.resolve6=async()=>[];
+// NotificationTransport uses lookup rather than the probe Resolver. Route its
+// receiver DNS through the same controlled public-address edge.
+const originalLookup=dns.lookup;
+dns.lookup=async(host,options)=>host==='routing.protocol.example.com'?(options?.all?[{address:PUBLIC,family:4}]:{address:PUBLIC,family:4}):originalLookup(host,options);
+syncBuiltinESMExports();
 const request=https.request;
 https.request=function(options,callback){
  assert.equal(options.hostname,PUBLIC);assert.equal(options.rejectUnauthorized,true);assert.ok(HOSTS.includes(options.servername),`unexpected TLS name ${options.servername}`);

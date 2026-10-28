@@ -18,7 +18,7 @@ const dependencyPrimaryAccepted=(job:string)=>`(json_extract(${job}.event,'$.kin
   LEFT JOIN integration_deliveries delivery ON delivery.namespace='uptime-notifications' AND delivery.id=prior.id
   WHERE COALESCE(CASE WHEN prior.state='queued' THEN delivery.state ELSE prior.state END,'queued')<>'accepted'))`;
 const databaseNow="CAST((julianday('now')-2440587.5)*86400000 AS INTEGER)";
-const contactMatch=(job:string)=>`t.destination_id=${job}.destination_id AND s.monitor_id=json_extract(${job}.event,'$.monitorId') AND s.incident_key=json_extract(${job}.event,'$.incidentKey')`;
+const contactMatch=(job:string)=>`t.destination_id=${job}.destination_id AND s.monitor_id=json_extract(${job}.event,'$.monitorId') AND s.incident_key=json_extract(${job}.event,'$.incidentKey') AND (json_extract(${job}.event,'$.kind') NOT IN ('expiry','renewal') OR t.event_id=${job}.event_id)`;
 export function contactQuietReady(job='j',now=databaseNow){
  return `(${routeDrillQuietReady(job,now)} AND NOT EXISTS(SELECT 1 FROM alert_contact_schedules s JOIN notification_jobs t ON t.id=s.trigger_job_id
   WHERE ${contactMatch(job)} AND (s.quiet_rules IS NOT NULL OR s.route_quiet_rules IS NOT NULL)

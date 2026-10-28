@@ -35,5 +35,6 @@ export function teamDeliveryReady(job='j'){
  LEFT JOIN live_team_bindings live ON live.trigger_job_id=b.trigger_job_id
  WHERE (original.destination_id=${job}.destination_id AND original.credential_id=${job}.credential_id)
  AND (json_extract(original.event,'$.monitorId')=json_extract(${job}.event,'$.monitorId') AND json_extract(original.event,'$.incidentKey')=json_extract(${job}.event,'$.incidentKey'))
+ AND (json_extract(${job}.event,'$.kind') NOT IN ('expiry','renewal') OR original.event_id=${job}.event_id)
  AND live.trigger_job_id IS NULL)`
 }

@@ -15,7 +15,7 @@ import {classifyAttempts} from './attempt-classification.ts'
 import {slowNotice} from './slow-notices.server.ts'
 import {incidentEvent} from './notification-content.ts'
 import {dependencyEvent} from './dependency-notices.ts'
-import {incidentDeliveryStatements} from './alert-route-delivery.server.ts'
+import {incidentDeliveryStatements,expiryDeliveryStatements} from './alert-route-delivery.server.ts'
 import {HOSTED_RUNNER_ID} from './hosted-runner.ts'
 import {definitionChange,definitionChangeNote} from './flow-changes.server.ts'
 import {expiryNotices,openExpiryWarnings} from './expiry-notices.server.ts'
@@ -142,10 +142,11 @@ export async function completeAttempts(env:Bindings,input:any,runnerId:string){
   }
   // Staged expiry warnings and renewals (TLS-001, DOMAIN-001) follow the same current-revision and maintenance rules as incidents.
   if(current&&!state.maintenance&&['tls','domain'].includes(definition.type)){
-   const notices=expiryNotices({monitor:m,slotId:slot.id,observations:finalAttempts(definition,combined.filter(o=>o.slot_id===slot.id).map(o=>JSON.parse(o.evidence))),now,open:await openExpiryWarnings(env,m.id),origin:env.UPTIME_ORIGIN});
-   for(const {kind:noticeKind,event} of notices){
+   const expiryObservations=finalAttempts(definition,combined.filter(o=>o.slot_id===slot.id).map(o=>JSON.parse(o.evidence)));
+   const notices=expiryNotices({monitor:m,slotId:slot.id,observations:expiryObservations,now,open:await openExpiryWarnings(env,m.id),origin:env.UPTIME_ORIGIN});
+   for(const {kind:noticeKind,event,probes} of notices){
     statements.push(env.DB.prepare(`INSERT OR IGNORE INTO outbox(id,monitor_id,slot_id,kind,event) SELECT ?,?,?,?,? WHERE ${guard} AND EXISTS(SELECT 1 FROM monitors WHERE id=? AND revision=?)`).bind(event.id,m.id,slot.id,noticeKind,JSON.stringify(event),...values,m.id,m.revision));
-    statements.push(env.DB.prepare(`INSERT OR IGNORE INTO notification_jobs(id,event_id,destination_id,destination_name,kind,credential_id,event,created_at) SELECT ?||':'||id,?,id,name,kind,credential_id,?,? FROM notification_destinations WHERE enabled=1 AND deleted_at IS NULL AND EXISTS(SELECT 1 FROM outbox WHERE id=? AND slot_id=?) AND ${guard}`).bind(event.id,event.id,JSON.stringify(event),now,event.id,slot.id,...values));
+    statements.push(...expiryDeliveryStatements(env,event,probes,guard,values));
    }
   }
   if(current){const started=Math.max(...combined.filter(o=>o.slot_id===slot.id&&o.attempt===0).map(o=>JSON.parse(o.evidence).startedAt));if(Number.isSafeInteger(started))statements.push(env.DB.prepare(`UPDATE monitors SET next_due=CASE WHEN json_extract(definition,'$.type')='heartbeat' AND next_due<=? THEN next_due ELSE MAX(next_due,?) END WHERE id=? AND revision=? AND ${guard}`).bind(slot.due_at,started+definition.intervalMs,m.id,m.revision,...values))}
