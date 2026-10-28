@@ -1,3 +1,5 @@
+import {readSource,selectAvailability,selectIncidentSummary} from '../source-history/read-selection.ts'
+import {sourceSegments} from '../source-history/segments.server.ts'
 import {credentialMonitorFilter,type CredentialEnvironment} from '../credentials/model.server.ts'
 import {configuredPeriod} from './configured-period.server.ts'
 import {heartbeatRuns} from '../heartbeat-jobs.server.ts'
@@ -19,7 +21,7 @@ export async function monitorReport(env: CredentialEnvironment, id: string, para
   const monitor = await env.DB.prepare(`SELECT id,revision,definition FROM monitors WHERE id=? AND ${filter.sql}`).bind(id,...filter.params)
     .first<{ id: string; revision: number; definition: string }>()
   if (!monitor) return null
-  const [availability, latency, allIncidents, slow, flowProfiles] = await Promise.all([
+  const [nativeAvailability, latency, allIncidents, slow, flowProfiles] = await Promise.all([
     periodAvailability(env.DB, id, period), periodLatency(env.DB, id, period, options),
     periodIncidents(env.DB, id, period, now),periodSlow(env.DB,id,period),periodFlowProfiles(env.DB,id,period,options),
   ])
@@ -30,12 +32,16 @@ export async function monitorReport(env: CredentialEnvironment, id: string, para
   },Object.create(null)))
   const jobRuns=JSON.parse(monitor.definition).type==='heartbeat'?await heartbeatRuns(env,id,{from:period.from,to:period.to,limit:10000}):null
   if(jobRuns?.nextCursor)throw Error('Heartbeat report exceeds 10,000 run records; choose a shorter period')
+  const sourceHistory=await sourceSegments(env,id,period)
+  const selection=params instanceof URLSearchParams?readSource(params):null
+  const selected=selectAvailability(nativeAvailability,sourceHistory,selection,period),availability=selected.availability
+  const nativeIncidentSummary={count:incidents.length,durationInPeriodMs:incidents.reduce((total,incident)=>total+incident.durationInPeriodMs,0)}
   const targetPercent = period.slaTargetPercent
   return {
     schemaVersion: 1, generatedAt: now,
     monitor: { id: monitor.id, name: String(JSON.parse(monitor.definition).name), revision: monitor.revision },
     period,
-    denominatorPolicy: 'Healthy time as a share of observed scheduled time (healthy + not passing). Unknown, paused and maintenance time are excluded from the uptime and SLA denominator and shown separately.',
+    denominatorPolicy: selected.selection?`${selected.selection.label}: ${sourceHistory!.policy}`:'Healthy time as a share of observed scheduled time (healthy + not passing). Unknown, paused and maintenance time are excluded from the uptime and SLA denominator and shown separately.',
     availability,
     sla: targetPercent === null ? null : {
       targetPercent, actualPercent: availability.uptimePercent,
@@ -45,9 +51,11 @@ export async function monitorReport(env: CredentialEnvironment, id: string, para
       remainingBudgetMs: availability.observedMs * (100 - targetPercent) / 100 - availability.notPassingMs,
     },
     latency, slow, incidents, rootCauseFilter, rootCauseGroups,
+    ...(sourceHistory?{sourceHistory}:{}),
+    ...(selected.selection?{sourceSelection:selected.selection,nativeAvailability,nativeIncidentSummary}:{}),
     ...(flowProfiles.length?{flowProfiles}:{}),
     ...(jobRuns?{jobRuns:jobRuns.runs}:{}),
-    incidentSummary: { count: incidents.length, durationInPeriodMs: incidents.reduce((total, incident) => total + incident.durationInPeriodMs, 0) },
+    incidentSummary:selectIncidentSummary(incidents,sourceHistory,selection,period),
   }
 }
 

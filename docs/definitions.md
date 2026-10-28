@@ -233,3 +233,40 @@ An owner can still export and undo through the ordinary session-authorized comma
 ## Revoked CI jobs
 
 Settings shows each CI key's definition jobs: initiating owner, authorized checkpoint, the next operation and an explicit revoked stop state. An authorized batch remains stored when the token is revoked; the next batch is refused. The same durable projection is available with `node scripts/api-keys.mjs jobs --origin ORIGIN --id CREDENTIAL_ID`, using the owner's `UPTIME_ACCESS_COOKIE`. Restart does not change it. The underlying engine checkpoint is retained as history; a new key cannot adopt another key's import namespace.
+
+## UptimeRobot source history (API and CLI)
+
+History uses separate source tables. It never creates or changes a scheduled slot, observation, native incident, notification, follow-up or current health. The console move-in preview and report charts do not yet expose this import.
+
+An owner session may `POST /api/definitions/history/preview` with `{"text":"<saved file>"}`. The read-only response gives a `reviewDigest`, file digest, source monitor mapping, named unmapped rows, per-monitor date range, row/outage counts, exact timestamp downtime and separately stated source durations. Apply with `POST /api/definitions/history/apply`, the same `text`, optional context and `digest` set to that reviewed value. Changed bytes, target revisions, mapping or existing history refuse with 409. Conflicting existing source row content refuses; identical rows add zero records. Unmapped rows are named and skipped. The response names the new batch and receipt counts.
+
+Files are UTF-8, at most 2 MiB and 5,000 source rows per import; exceeding either bound refuses, without truncation. Content is parsed as data and never executed. Timestamps need ISO 8601 with `Z` or an explicit offset; JSON timestamp numbers mean epoch milliseconds. Ambiguous local times and invalid calendar dates refuse with the row and column.
+
+UptimeRobot does not publish a fixed CSV header. Accepted column vocabulary (case-insensitive) is:
+
+- **Source monitor ID:** `Monitor ID`, `monitor_id`, `monitorId`.
+- **Display name:** `Monitor`, `Monitor Name`, `friendlyName`, `Friendly Name`.
+- **Event:** `Event`, `Status`, `Type`: `Down`/`Up` or `1`/`2`.
+- **Timestamp:** `Date-Time`, `Date Time`, `DateTime`, `Date`, `Time`, `Timestamp`.
+- **Explicit end:** `Resolved At`, `resolved_at`, `resolvedAt`, `End Time`, `Ended At`.
+- **Source row ID:** `ID`, `Log ID`, `Incident ID`, `Source Row ID`.
+- **Source duration:** `Duration`, `Duration Seconds`: seconds or `HH:MM:SS`.
+- **Source text:** `Reason`, `Root Cause`, `Author`, `Source Author`, `Comment`, `Comments`.
+- **Capture metadata:** `Exported At`, `Extracted At`, `Period Start`, `Coverage From`, `Period End`, `Coverage To`.
+
+Unknown or repeated headers refuse by name. Source identities are bounded to 256 characters and each retained source-text field (including a combined comment thread) to 20,000 characters; longer values refuse by row rather than being truncated. Down/Up pairs use their exact timestamps; a stated duration never invents an end time. An unresolved final Down retains a null end. Without row IDs, a digest of the source row provides identity. Mapping uses the migrated source ID, never a display-name guess. For a per-monitor CSV without an ID column, provide `sourceMonitorId` in the request. `extractedAt`, `coverageFrom` and `coverageTo` may supply explicit capture context; export/extraction time is required for apply, and coverage bounds must be supplied together. They must agree with file columns. Without a declared range, only the interval between that monitor's earliest and latest source timestamps is covered. A missing export/extraction time is named in the preview and refuses apply until supplied; import receipt time is stored separately.
+
+Saved v3 `/incidents` pages use `data` rows with `id`, `monitor.id`, `startedAt` and `resolvedAt`. Save all relevant pages, as an array or sequential JSON values. A detail response has no monitor field: wrap it as `{"monitorId":"SOURCE_ID","extractedAt":"ISO_TIME","coverageFrom":"ISO_TIME","coverageTo":"ISO_TIME","incidents":[DETAIL]}`. The same wrapper may hold `incidents` pages, per-incident `comments` pages keyed by incident ID, and `responseTimes` with the published `/monitors/{id}/response-time-stats` `time_series` (`timestamp`, millisecond `value`). Source comments retain `comment`, `user.fullName` and `created` as source text/time, never workspace membership. Source root-cause text, diagnostics and non-secret URLs/headers are retained; credential fields and credential-bearing URL values use the existing import withholding policy. `includeInReports: false` remains visible and its time is excluded from the source denominator.
+
+```sh
+node scripts/definitions.mjs preview --input history.csv --source uptimerobot-log --json
+node scripts/definitions.mjs apply --input history.csv --source uptimerobot-log --digest REVIEW_DIGEST --json
+node scripts/definitions.mjs preview --input per-monitor.csv --source-monitor SOURCE_ID --extracted-at ISO_TIME --from ISO_TIME --to ISO_TIME --json
+node scripts/definitions.mjs history-batches --json
+node scripts/definitions.mjs history-remove --batch BATCH_ID --json
+node scripts/definitions.mjs history-cutover --monitor UPTIME_ID --at ISO_TIME --json
+```
+
+Add `--origin ORIGIN` with `UPTIME_SESSION_COOKIE` for a remote owner session. Local commands retain the existing `UPTIME_ACCESS_COOKIE` authority. History refuses CI credentials. Repeat capture context on apply, including `--source-monitor` for a two-column per-monitor log. The reviewed digest binds this context as well as the file and mapping. `GET /api/definitions/history/batches` lists provenance; `DELETE /api/definitions/history/batches/{id}` removes only that batch's source rows and headers, returning per-table counts. `POST /api/definitions/history/cutover/{uptimeMonitorId}` takes `cutoverAt`; it must be within source coverage overlapping scheduled Uptime time. Default cutover is the first nonmanual scheduled slot. Source history travels in workspace archives and restores as inactive history with batch IDs/digests intact; monitor erasure removes all three source tables with per-table receipt counts.
+
+These are synthetic-fixture-tested saved-file doors. Real exports, an authorized live account and hosted import remain unmeasured. Pingdom, Better Stack, Site24x7 and challenger history remain unavailable.

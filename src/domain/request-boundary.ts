@@ -10,8 +10,8 @@ interface Route{method:string;path:string;params?:Record<string,(value:string)=>
 const identity=(value:string)=>value.length>0&&value.length<=512&&!/[\x00-\x1f\x7f]/.test(value)
 const uuid=(value:string)=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(value)
 const id={id:identity},source=(value:string)=>SOURCES.includes(value)
-const reportQuery={...Object.fromEntries(['period','from','to','timeZone','zone','sla','slaTarget','bucket','location','rootCause'].map(name=>[name,(value:string)=>identity(value)&&value.length<=150])),format:(value:string)=>['csv','json','pdf'].includes(value)}
-const incidentQuery=Object.fromEntries(['monitor','tag','from','to','state','rootCause','cursor','limit'].map(name=>[name,identity]))
+const reportQuery={source:identity,...Object.fromEntries(['period','from','to','timeZone','zone','sla','slaTarget','bucket','location','rootCause'].map(name=>[name,(value:string)=>identity(value)&&value.length<=150])),format:(value:string)=>['csv','json','pdf'].includes(value)}
+const incidentQuery=Object.fromEntries(['source','monitor','tag','from','to','state','rootCause','cursor','limit'].map(name=>[name,identity]))
 export const apiRoutes:readonly Route[]=[
  {method:'GET',path:'/api/routing/named-routes',body:'none'},
  {method:'POST',path:'/api/routing/named-routes',body:'object'},
@@ -31,7 +31,7 @@ export const apiRoutes:readonly Route[]=[
  {method:'GET',path:'/api/v1/services/report',query:{...reportQuery,format:value=>['json','csv'].includes(value),service:identity},body:'none'},
  {method:'GET',path:'/api/v1/monitors',query:{limit:identity,cursor:identity,tag:identity},body:'none'},
  {method:'GET',path:'/api/v1/monitors/:id',params:id,body:'none'},
- {method:'GET',path:'/api/v1/uptime',query:{...Object.fromEntries(['period','from','to','timeZone','zone','sla','slaTarget','rootCause','tag'].map(name=>[name,identity])),monitor:value=>value.length>0&&value.length<=256500&&!/[\x00-\x1f\x7f]/.test(value),format:value=>['json','csv'].includes(value)},body:'none'},
+ {method:'GET',path:'/api/v1/uptime',query:{...Object.fromEntries(['source','period','from','to','timeZone','zone','sla','slaTarget','rootCause','tag'].map(name=>[name,identity])),monitor:value=>value.length>0&&value.length<=256500&&!/[\x00-\x1f\x7f]/.test(value),format:value=>['json','csv'].includes(value)},body:'none'},
  {method:'GET',path:'/api/evidence/monitors/:id',params:id,query:{before:identity},body:'none'},
  {method:'GET',path:'/api/monitors/:id/cleanup-debt',params:id,body:'none'},
  {method:'POST',path:'/api/monitors/:id/cleanup-debt/:debtId/resolve',params:{...id,debtId:identity},body:'object'},
@@ -126,6 +126,11 @@ export const apiRoutes:readonly Route[]=[
  {method:'GET',path:'/api/archive/restore-status',body:'none'},
  {method:'POST',path:'/api/restore',body:'object'},
  // A definitions file is JSON, NDJSON or CSV text; its importer reads it, refusing anything it cannot read.
+ {method:'POST',path:'/api/definitions/history/preview',body:'object'},
+ {method:'POST',path:'/api/definitions/history/apply',body:'object'},
+ {method:'GET',path:'/api/definitions/history/batches',body:'none'},
+ {method:'DELETE',path:'/api/definitions/history/batches/:id',params:id,body:'none'},
+ {method:'POST',path:'/api/definitions/history/cutover/:id',params:id,body:'object'},
  {method:'POST',path:'/api/definitions/recognise',query:{source},body:'text'},
  {method:'GET',path:'/api/definitions/plans/:id',params:id,body:'none'},
  {method:'GET',path:'/api/definitions/export',body:'none'},

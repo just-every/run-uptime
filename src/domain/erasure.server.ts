@@ -50,6 +50,7 @@ export async function erase(env:Bindings,kind:'monitor'|'destination'|'operator'
  if(['monitor','destination','operator'].includes(kind)){const column=kind==='monitor'?'monitor_id':kind==='destination'?'destination_id':'actor_id';plans.push(selection('report_occurrences',`recurrence_id IN(SELECT id FROM report_recurrences WHERE ${column}=?)`,id),selection('report_recurrences',`${column}=?`,id));}
  if(kind==='monitor'){
   plans.push(selection('report_occurrences',`report_id IN(SELECT id FROM scheduled_reports WHERE ${scheduledMonitor})`,id,id),selection('scheduled_reports',scheduledMonitor,id,id));
+  plans.push(...['source_history_rows','source_history_batches','source_history_cutovers'].map(table=>selection(table,'monitor_id=?',id)));
   plans.push(selection('failure_snapshots','monitor_id=?',id),selection('failure_snapshot_settings','monitor_id=?',id),selection('failure_evidence_grants','monitor_id=?',id));
   plans.push(selection('slow_acknowledgements','monitor_id=?',id),selection('cleanup_debt','monitor_id=?',id),selection('effect_grants','monitor_id=?',id));
   // Uploads no import plan reads (an abandoned or interrupted preview) that name this monitor go with it.

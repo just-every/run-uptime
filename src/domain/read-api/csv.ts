@@ -15,7 +15,8 @@ export function incidentListCsv(page:Awaited<ReturnType<typeof incidentList>>) {
 }
 
 export function bulkUptimeCsv(result:BulkUptime) {
+ const sourceRows=result.monitors.flatMap(row=>{const h=row.sourceHistory;if(!h)return [];return [...h.segments,h.uptimeSegment,...(h.blended?[h.blended]:[])].map(s=>[row.monitor.id,row.monitor.name,result.period.from,result.period.to,result.period.timeZone,s.uptimePercent,s.denominatorMs/1000,s.upMs/1000,s.notPassingMs/1000,'','','','','','',h.policy,s.label])})
  return csv([['monitor_id','monitor_name','from','to','time_zone','availability_percent','observed_seconds','up_seconds','down_seconds','unknown_seconds','paused_seconds','maintenance_seconds','slow_seconds','incident_count','incident_duration_seconds','denominator_policy','source'],
   ...result.monitors.map(row=>[row.monitor.id,row.monitor.name,result.period.from,result.period.to,result.period.timeZone,row.availability.uptimePercent,
-   row.seconds.observed,row.seconds.up,row.seconds.down,row.seconds.unknown,row.seconds.paused,row.seconds.maintenance,row.seconds.slow,row.incidentSummary.count,row.incidentSummary.durationInPeriodMs/1000,row.denominatorPolicy,result.source])])
+   row.seconds.observed,row.seconds.up,row.seconds.down,row.seconds.unknown,row.seconds.paused,row.seconds.maintenance,row.seconds.slow,row.incidentSummary.count,row.incidentSummary.durationInPeriodMs/1000,row.denominatorPolicy,result.source]),...sourceRows])
 }

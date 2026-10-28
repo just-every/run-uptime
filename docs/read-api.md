@@ -48,7 +48,7 @@ Each row includes confirmation/recovery times, duration in seconds, the original
 
 ## Moving a monitoring script
 
-UptimeRobot uptime-ratio reads map to `/api/v1/monitors/{id}/uptime` for one monitor or `/api/v1/uptime` for a selection; response-time reads map to `/response-times`; incident/log reads map to `/api/v1/incidents` and its detail route. First map source monitor IDs to their new Uptime IDs and choose matching periods and time zones. Source incident-history segments and blended cross-cutover figures remain unavailable. Use a scoped read key in the trusted service that supplies a dashboard, with the smallest monitor or tag selection it needs.
+UptimeRobot uptime-ratio reads map to `/api/v1/monitors/{id}/uptime` for one monitor or `/api/v1/uptime` for a selection; response-time reads map to `/response-times`; incident/log reads map to `/api/v1/incidents` and its detail route. First map source monitor IDs to their new Uptime IDs and choose matching periods and time zones. Saved UptimeRobot history appears in the report and bulk uptime `sourceHistory` object described below. Use a scoped read key in the trusted service that supplies a dashboard, with the smallest monitor or tag selection it needs.
 
 ### Role and scope limits
 
@@ -57,3 +57,33 @@ Live Base owners/admins and assigned member roles use the same central permissio
 ## Service reports
 
 `GET /api/v1/services/report?service=NAME&period=7d&timeZone=America/New_York` names the accessible member monitors, retains each member's full report, and sums observed monitor-time for service availability and SLA. Unknown, paused and maintenance time stay separate. Percentages and percentiles are not averaged. Monitoring keys receive only their authorized members. `format=csv` downloads matching availability rows; JSON retains per-monitor latency figures. [Scheduled reports](/docs/scheduled-reports) freezes the same figures at each recurring due instant.
+
+
+## Sourced history in reports
+
+After an [owner history import](/docs/definitions#uptimerobot-source-history-api-and-cli), per-monitor `/uptime` and `/report` JSON and each bulk `/uptime` monitor include `sourceHistory` only when source history exists. Native `availability`, SLA, incident and response-time figures keep their existing meaning. Monitors with no imported history keep their previous response shape and figures.
+
+`sourceHistory.segments` labels each source (for example `source: UptimeRobot`) and gives covered intervals, `denominatorMs`, `upMs`, `notPassingMs` and `uptimePercent`. Source coverage is the union of imported ranges, so repeated or overlapping files do not add time twice. Each segment also gives its `blendedContribution` before the monitor's cutover. `uptimeSegment` gives observed scheduled Uptime time at or after cutover. `blended` names both sources and weights their healthy time by their separate denominators; it is always accompanied by those segments. Without a first scheduled slot it remains null. Source history after cutover stays visible and contributes no blended time.
+
+`sourceIncidents` is a separate labeled list beside native incidents, with original timestamps, exact `durationSeconds` (null for an unresolved incident), period overlap, source-stated duration, source author, comments and root cause. `sourceResponseTimes` retains source millisecond samples separately from native latency. The `/response-times` JSON door also returns them as labeled `sourceSamples` when present; its native statistics and series stay unchanged. `provenance` names batch IDs, source monitor IDs, file digests, extraction time when supplied and the import/restoration receipt times. Source text never authorizes membership or follow-up. Native incident-list/current-state reads remain unchanged by import.
+
+Report CSV and PDF include the labeled segments, their denominators, blended figure and source incident list. Bulk uptime CSV adds labeled source, Uptime-cutover and blended rows with explicit seconds; its original native row remains present. Owner API/CLI cutover adjustment is limited to side-by-side source/Uptime overlap. The owner-console report charts and move-in history preview are held follow-ups; no live-export or hosted-import acceptance is claimed.
+
+
+### Selecting a source
+
+The exact `source` query values on per-monitor `/uptime`, `/report`, bulk `/uptime` and service `/report` reads are `Uptime`, `UptimeRobot` and `blended`. The selected `availability`, seconds, SLA and `incidentSummary` use that source segment; `sourceSelection.label` identifies it and `nativeAvailability` and `nativeIncidentSummary` retain native figures when a history segment is selected. `sourceHistory` always accompanies a blended selection and contains each source's own figure and denominator. Omitting `source` keeps the existing native figures and appends source history beside them. Native latency, Slow and the native incident list retain their own meaning; source incident details stay in `sourceHistory.sourceIncidents` or the selected incident-list door.
+
+On `/response-times`, accepted values are `Uptime` and `UptimeRobot`. The latter calculates buckets and nearest-rank statistics only from retained source samples; their location is `source: UptimeRobot`. It never combines native and incumbent percentiles. On `/incidents`, the same two values select separate native or source cursor spaces. Source rows include source author/comments/root cause and link to their sourced report; they have no workspace owner, acknowledgment or native category authority. Source incident filters accept dates, monitor/tag and open/resolved state; native root-cause category and acknowledged-state filters refuse for source rows. Keep `source` when following a cursor. Uptime category filters also refuse on sourced or blended availability reports; their source root causes are retained as text.
+
+An unknown source, an unsupported incumbent such as `Pingdom`, or a selected source without available history/samples refuses with HTTP 400 naming it. A source unavailable on any explicitly selected bulk monitor refuses the whole request. No source selection silently substitutes native data. For example, use `GET /api/v1/monitors/{id}/uptime?period=90d&bucket=1d&source=blended` for the labeled cross-cutover figure, or `GET /api/v1/incidents?monitor={id}&source=UptimeRobot` for its source incident rows. The public OpenAPI schema lists these exact per-route value sets.
+
+To read a blended SLA report with a scoped read key, keep the source explicit in the request and every downloaded format:
+
+```sh
+curl --fail --silent --show-error \
+  --header "Authorization: Bearer $UPTIME_READ_TOKEN" \
+  "$UPTIME_ORIGIN/api/v1/monitors/$MONITOR_ID/report?period=90d&bucket=1d&timeZone=America%2FChicago&sla=99.9&source=blended"
+```
+
+Read the selected `availability`/`sla` together with `sourceHistory.segments`, `uptimeSegment` and `blended`; retain their labels and denominators in a downstream dashboard. Add `format=csv` or `format=pdf` to download the same selection.

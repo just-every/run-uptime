@@ -1,3 +1,4 @@
+import {proveSourceHistory,proveHistoryUpgrade} from './source-history-support.mjs';
 // IMPORT-001: definition files and UptimeRobot imports through the owner's import door, the move-in screen's transport.
 // A preview writes no native record; hostile, malformed, stale, cross-origin and unauthenticated requests leave every
 // native table byte-identical; apply is exactly the reviewed plan, creates paused monitors and touches no destination,
@@ -361,6 +362,7 @@ try{
   const again=await door.preview(saved);assert.equal(again.status,200);assert.deepEqual(again.body.counts,{create:0,unchanged:1,change:0,refused:3,unsupported:3});assert.equal((await door.apply(plan.body)).status,200);assert.equal((await door.undo(applied.body)).status,200);assert.equal((await get('/api/overview')).monitors.length,1);assert.equal((await get('/api/overview')).monitors[0].definition.enabled,false);
   const transaction=JSON.parse(saved)[4];transaction.steps=[{fn:'go_to',args:{url:'https://synthetic-uptime-97.example/'}}];
   const recognised=await fetch(origin+'/api/definitions/recognise?source=pingdom',{method:'POST',headers:{origin,cookie:owner,'content-type':'application/json'},body:JSON.stringify(transaction)});assert.equal(recognised.status,200);assert.ok(!(await recognised.text()).includes('synthetic-uptime-97'),'unsupported transaction script values are withheld before upload');
+  await proveHistoryUpgrade(DB);await proveSourceHistory({origin,cookie:owner,db:DB});
   console.log('MIGRATE-002 saved checks: read 7 = converted 1 + refused 3 + unsupported 3; tags retained, every probe filter named, TMS refused, paused apply and undo.');
  }
 }finally{await worker?.dispose();await cleanupDirectory(directory)}
