@@ -3500,9 +3500,9 @@
       "line": 518,
       "cell": "gap",
       "text": "Gap: PERF-001 stays partial until ct independently accepts every 22 October rider at a landed SHA with exact-SHA gates.",
-      "to": "gap",
+      "to": "rulings",
       "ids": [
-        "PERF-001"
+        "RL-8"
       ]
     },
     {
@@ -3547,7 +3547,27 @@
       "file": "CONTRACT.md",
       "line": 521,
       "cell": "gap",
-      "text": "The supported real Playwright subset imports JSON fixtures and an npm v3 dependency lock without executing buyer code; unsupported constructs refuse by file and line. The checked-in workflow shell runs CLI import, Worker preview and apply with the fixture owner session, names immutable flow digests and reapplies the same source without changing revisions. Imported login/signup/checkout and a separate API check use ordinary deployment and scheduled runners. Broken setup, assertion and forbidden metadata calls retain distinct manual and scheduled outcomes and revision digests; ambiguous locators fail, and selected secrets stay runner-local. Definition export and inactive archive restore retain exact source/fixture/lock bytes and flow digests; erasure removes them and dependent custody. Default ADOPTED: the ct-approved translate-and-refuse step. Gap: arbitrary Playwright execution requires an OS-level runner sandbox; console import-source and revision views are held UI. Hosted GitHub execution and least-scope CI credentials are not claimed (CODE-001).",
+      "text": "The supported real Playwright subset imports JSON fixtures and an npm v3 dependency lock without executing buyer code; unsupported constructs refuse by file and line. The checked-in workflow shell runs CLI import, Worker preview and apply with the fixture owner session, names immutable flow digests and reapplies the same source without changing revisions. Imported login/signup/checkout and a separate API check use ordinary deployment and scheduled runners. Broken setup, assertion and forbidden metadata calls retain distinct manual and scheduled outcomes and revision digests; ambiguous locators fail, and selected secrets stay runner-local. Definition export and inactive archive restore retain exact source/fixture/lock bytes and flow digests; erasure removes them and dependent custody.",
+      "to": "gap",
+      "ids": [
+        "FLOW-002"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 521,
+      "cell": "gap",
+      "text": "Default ADOPTED: the ct-approved translate-and-refuse step.",
+      "to": "rulings",
+      "ids": [
+        "RL-13"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 521,
+      "cell": "gap",
+      "text": "Gap: arbitrary Playwright execution requires an OS-level runner sandbox; console import-source and revision views are held UI. Hosted GitHub execution and least-scope CI credentials are not claimed (CODE-001).",
       "to": "gap",
       "ids": [
         "FLOW-002"
@@ -3564,7 +3584,27 @@
       "file": "CONTRACT.md",
       "line": 524,
       "cell": "gap",
-      "text": "Monitor → service → group → installation inheritance, explicit empty selection, credential/disabled/missing exclusions, recipient and affected-monitor previews, stale-plan guards, labeled tests, durable audit and original accepted-trigger recipient/credential recovery now ship. ROUTING-002 now supplies per-contact delay/repeat/cap, recovery preference and acknowledgment-stop policies, plus reviewed saved UptimeRobot/Pingdom schedule previews. DELIVERY-002 supplies transport retry and fallback chains. Contact quiet holds (optional daily IANA-zone windows, overnight and DST boundaries, persisted hold rechecked at handoff, restart) are built toward this clause's quiet hours and apply to fallback contacts. Explicit team membership and a live scope-eligible member's opt-in to their verified email destination now govern API/CLI selection. Paused, disabled, stale-role and rotated-credential recipients do not count. Environment filters use monitor metadata; region selectors are exact configured non-pass probe IDs; severity is derived critical/warning/info for outage/Slow/dependency; origin is monitor/slow/dependency, never the console URL. Omitted dimensions allow all, empty lists match none and missing values cannot satisfy nonempty filters. Route quiet combines with contact quiet and is snapshotted onto fallback contacts. Gap: The original two-team production and staging journey is not fully qualified through both UI and API. Console controls for teams, route filters, route quiet and weekly business selection remain required, and a console edit must preserve all saved extended fields. Basic geographic-region routing remains unqualified; exact non-pass probe-ID matching alone is not geographic qualification. At this pin route-aware sending drills and weekly business-hour selection are unshipped, expiry and renewal notices still bypass effective routes, and the two-team all-class inside-and-outside-quiet qualification is incomplete. Present-time quiet holds and fallback restart are proven, but real-alert DST dispatch remains unqualified. The preserved R1 and R2 source has no recorded Verify and does not close these gaps. Per-contact delay and repeat remain ROUTING-002 duties; transport retry and fallback-chain behavior remain DELIVERY-002 duties. Richer optional provenance, geographic hierarchy, portable detailed route history and configurable severity are separate work candidates, without removing the original routing duties.",
+      "text": "Monitor → service → group → installation inheritance, explicit empty selection, credential/disabled/missing exclusions, recipient and affected-monitor previews, stale-plan guards, labeled tests, durable audit and original accepted-trigger recipient/credential recovery now ship. ROUTING-002 now supplies per-contact delay/repeat/cap, recovery preference and acknowledgment-stop policies, plus reviewed saved UptimeRobot/Pingdom schedule previews. DELIVERY-002 supplies transport retry and fallback chains. Contact quiet holds (optional daily IANA-zone windows, overnight and DST boundaries, persisted hold rechecked at handoff, restart) are built toward this clause's quiet hours and apply to fallback contacts. Explicit team membership and a live scope-eligible member's opt-in to their verified email destination now govern API/CLI selection. Paused, disabled, stale-role and rotated-credential recipients do not count. Environment filters use monitor metadata; region selectors are exact configured non-pass probe IDs; severity is derived critical/warning/info for outage/Slow/dependency; origin is monitor/slow/dependency, never the console URL. Omitted dimensions allow all, empty lists match none and missing values cannot satisfy nonempty filters. Route quiet combines with contact quiet and is snapshotted onto fallback contacts. Gap: The original two-team production and staging journey is not fully qualified through both UI and API. Console controls for teams, route filters, route quiet and weekly business selection remain required, and a console edit must preserve all saved extended fields. Basic geographic-region routing remains unqualified; exact non-pass probe-ID matching alone is not geographic qualification. At this pin route-aware sending drills and weekly business-hour selection are unshipped, expiry and renewal notices still bypass effective routes, and the two-team all-class inside-and-outside-quiet qualification is incomplete. Present-time quiet holds and fallback restart are proven, but real-alert DST dispatch remains unqualified.",
+      "to": "gap",
+      "ids": [
+        "ROUTING-001"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 524,
+      "cell": "gap",
+      "text": "The preserved R1 and R2 source has no recorded Verify and does not close these gaps.",
+      "to": "rulings",
+      "ids": [
+        "RL-11"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 524,
+      "cell": "gap",
+      "text": "Per-contact delay and repeat remain ROUTING-002 duties; transport retry and fallback-chain behavior remain DELIVERY-002 duties. Richer optional provenance, geographic hierarchy, portable detailed route history and configurable severity are separate work candidates, without removing the original routing duties.",
       "to": "gap",
       "ids": [
         "ROUTING-001"
@@ -3831,9 +3871,9 @@
       "line": 539,
       "cell": "gap",
       "text": "Default ADOPTED: owner-only issuance and intersecting combined selectors.",
-      "to": "gap",
+      "to": "rulings",
       "ids": [
-        "READAPI-001"
+        "RL-14"
       ]
     },
     {
@@ -3900,7 +3940,42 @@
       "file": "CONTRACT.md",
       "line": 540,
       "cell": "gap",
-      "text": "JSON and trusted local TypeScript monitor definitions use the same native schema, preview digest and bounded apply. TypeScript executes only on the buyer machine; the Worker receives evaluated JSON. Shared shown-once hashed credentials narrow preview/apply to one explicit environment and selected tags; current and proposed definitions must remain in scope, and each resumed operation repeats live issuer, expiry and revocation fences. CI cannot read secrets, export, change roles or undo applied work; preview-only keys cannot apply. A checked-in fixture workflow exercises actual CLI preview, definition-validation test and apply against the controlled Worker; owner export and undo round-trip evaluated definitions and changed live revisions refuse reviewed apply. Local typecheck/build and the real definitions, read-API, access-matrix and operator-security journeys pass; the changed definition/security guides are personally inspected at 1440 and 390 with no overflow, serious/critical axe finding or hydration mismatch. Exact-head branch Verify remains required. Default ADOPTED: owner-only fresh-MFA credential creation and local typed evaluation; clause text unchanged. Owner monitoring/CI key controls are now mounted from public/assets/access-member-controls.js through public/assets/security-controls.js; tests/security-controls-browser-support.mjs within tests/operator-security.mjs proves CI environment/tag issuance and token-job stop reads at 1440/390, and tests/definitions-ci-support.mjs proves API/CLI checkpoint/owner/stop parity across restart. Gap: runtime probe execution from CLI test, TypeScript route/maintenance deployment, mail-check/private/synthetic and cross-monitor dependency grants, Checkly suite migration (MIGRATE-005) and live GitHub execution.",
+      "text": "JSON and trusted local TypeScript monitor definitions use the same native schema, preview digest and bounded apply. TypeScript executes only on the buyer machine; the Worker receives evaluated JSON. Shared shown-once hashed credentials narrow preview/apply to one explicit environment and selected tags; current and proposed definitions must remain in scope, and each resumed operation repeats live issuer, expiry and revocation fences. CI cannot read secrets, export, change roles or undo applied work; preview-only keys cannot apply. A checked-in fixture workflow exercises actual CLI preview, definition-validation test and apply against the controlled Worker; owner export and undo round-trip evaluated definitions and changed live revisions refuse reviewed apply.",
+      "to": "gap",
+      "ids": [
+        "CODE-001"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 540,
+      "cell": "gap",
+      "text": "Local typecheck/build and the real definitions, read-API, access-matrix and operator-security journeys pass; the changed definition/security guides are personally inspected at 1440 and 390 with no overflow, serious/critical axe finding or hydration mismatch. Exact-head branch Verify remains required.",
+      "to": "changelog"
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 540,
+      "cell": "gap",
+      "text": "Default ADOPTED: owner-only fresh-MFA credential creation and local typed evaluation; clause text unchanged.",
+      "to": "rulings",
+      "ids": [
+        "RL-15"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 540,
+      "cell": "gap",
+      "text": "Owner monitoring/CI key controls are now mounted from public/assets/access-member-controls.js through public/assets/security-controls.js; tests/security-controls-browser-support.mjs within tests/operator-security.mjs proves CI environment/tag issuance and token-job stop reads at 1440/390, and tests/definitions-ci-support.mjs proves API/CLI checkpoint/owner/stop parity across restart.",
+      "to": "docs",
+      "path": "docs/contract/safety-rules.md"
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 540,
+      "cell": "gap",
+      "text": "Gap: runtime probe execution from CLI test, TypeScript route/maintenance deployment, mail-check/private/synthetic and cross-monitor dependency grants, Checkly suite migration (MIGRATE-005) and live GitHub execution.",
       "to": "gap",
       "ids": [
         "CODE-001"
@@ -4007,11 +4082,69 @@
       "file": "CONTRACT.md",
       "line": 551,
       "cell": "gap",
-      "text": "Default ADOPTED: API/CLI first slice. TOTP and WebAuthn second factors bind live Base session IDs/versions; ten hashed single-use recovery codes, sealed edition-local factor/challenge custody, require-all policy, session revocation, fresh five-minute sensitive-action guards, member reset, opaque audit and separate member notices are implemented without Base changes. Local archive commands require the same live cookie and recheck authority at each progress boundary. Targeted operator-security, access-matrix, definitions-import, archive-roundtrip and command-journey pass locally; exact-head branch Verify remains required. Settings enrollment and fresh step-up now have owner/member TOTP, ten shown-once recovery codes, CDP WebAuthn enrollment, stale policy/key refusal with the same API reason, factor removal and require-all policy proof at 1440/390 (tests/security-controls-browser-support.mjs within tests/operator-security.mjs). Member proof uses live native sessions in an already-open Settings document. Gap: initial console sign-in challenge and narrowed-role shell entry need held app.js/console-document work; provider MFA assertions depend on ACCESS-002 SSO, and recovery from total loss of all owner factors/codes or the sealing key needs local installation authority. API/CI key creation remains bounded by the credential features that actually ship. The original acceptance clause remains unchanged. Already-open-document member actions do not establish narrowed-role sign-in, initial MFA challenge, console shell entry or navigation. Those journeys remain required at 1440 and 390. The failed exact-pin console verification remains open.",
+      "text": "Default ADOPTED: API/CLI first slice.",
+      "to": "rulings",
+      "ids": [
+        "RL-16"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 551,
+      "cell": "gap",
+      "text": "TOTP and WebAuthn second factors bind live Base session IDs/versions; ten hashed single-use recovery codes, sealed edition-local factor/challenge custody, require-all policy, session revocation, fresh five-minute sensitive-action guards, member reset, opaque audit and separate member notices are implemented without Base changes. Local archive commands require the same live cookie and recheck authority at each progress boundary.",
       "to": "gap",
       "ids": [
         "ACCESS-003"
       ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 551,
+      "cell": "gap",
+      "text": "Targeted operator-security, access-matrix, definitions-import, archive-roundtrip and command-journey pass locally; exact-head branch Verify remains required.",
+      "to": "changelog"
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 551,
+      "cell": "gap",
+      "text": "Settings enrollment and fresh step-up now have owner/member TOTP, ten shown-once recovery codes, CDP WebAuthn enrollment, stale policy/key refusal with the same API reason, factor removal and require-all policy proof at 1440/390 (tests/security-controls-browser-support.mjs within tests/operator-security.mjs).",
+      "to": "changelog"
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 551,
+      "cell": "gap",
+      "text": "Member proof uses live native sessions in an already-open Settings document. Gap: initial console sign-in challenge and narrowed-role shell entry need held app.js/console-document work; provider MFA assertions depend on ACCESS-002 SSO, and recovery from total loss of all owner factors/codes or the sealing key needs local installation authority. API/CI key creation remains bounded by the credential features that actually ship.",
+      "to": "gap",
+      "ids": [
+        "ACCESS-003"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 551,
+      "cell": "gap",
+      "text": "The original acceptance clause remains unchanged.",
+      "to": "changelog"
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 551,
+      "cell": "gap",
+      "text": "Already-open-document member actions do not establish narrowed-role sign-in, initial MFA challenge, console shell entry or navigation. Those journeys remain required at 1440 and 390.",
+      "to": "gap",
+      "ids": [
+        "ACCESS-003"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 551,
+      "cell": "gap",
+      "text": "The failed exact-pin console verification remains open.",
+      "to": "changelog"
     },
     {
       "file": "CONTRACT.md",
@@ -4034,11 +4167,18 @@
       "file": "CONTRACT.md",
       "line": 554,
       "cell": "gap",
-      "text": "USD cost projection (blocked on COST-001) remains absent. Gap: Route 53, Cloudflare, GitHub Actions, Vercel, Netlify and CodeDeploy are proven at an authorized provider edge only; live provider-account authorization is Not proved. Continuous upkeep: see AGENT-001. The domain source's lookups use the real DNS wire protocol against a controlled DNS listener the runner's own resolver is pointed at; resolution of a publicly delegated zone through the runner's system resolver is not proved. Held-key round (26 October 2026), SD receipt report only: domain discovery for run-uptime.com recorded apex and www A and AAAA answers using the runner's default system resolver without a controlled listener or resolver override, seven proposals from three GETs and one rejection; GitHub Actions discovery for the run-uptime repository owned by just-every and its owner-started rediscovery recorded 12 and 2 allowlisted GETs, all HTTP 200, zero proposals and no rejection, using the production owner's broader classic PAT rather than the specified fine-grained read-only credential; Cloudflare receipts recorded zone metadata at HTTP 200 and DNS records at HTTP 403 with the original token, followed by six GETs, including zone metadata and a three-record DNS response both at HTTP 200, ten proposals and one rejection with a separately supplied credential described as restricted to run-uptime.com with Zone Read and DNS Read. The receipts recorded three incorrect DNS expectations of 100:: for proxied Cloudflare names and zero adopted monitors or created provider objects. The existing tagged discovery journey asserts that proxied names do not propose hidden origin DNS expectations, including mixed proxy flags, while DNS-only records retain their published-answer proposal. These receipt-reported observations are not assertions of the tagged tests or proof here of live provider-account authorization, publicly delegated DNS resolution or a live GitHub rejection. Route 53, Vercel, Netlify and CodeDeploy remain at the authorized provider edge only, USD cost projection remains blocked on COST-001, continuous upkeep remains AGENT-001's, and DISCOVERY-001 remains partial.",
+      "text": "USD cost projection (blocked on COST-001) remains absent. Gap: Route 53, Cloudflare, GitHub Actions, Vercel, Netlify and CodeDeploy are proven at an authorized provider edge only; live provider-account authorization is Not proved. Continuous upkeep: see AGENT-001. The domain source's lookups use the real DNS wire protocol against a controlled DNS listener the runner's own resolver is pointed at; resolution of a publicly delegated zone through the runner's system resolver is not proved.",
       "to": "gap",
       "ids": [
         "DISCOVERY-001"
       ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 554,
+      "cell": "gap",
+      "text": "Held-key round (26 October 2026), SD receipt report only: domain discovery for run-uptime.com recorded apex and www A and AAAA answers using the runner's default system resolver without a controlled listener or resolver override, seven proposals from three GETs and one rejection; GitHub Actions discovery for the run-uptime repository owned by just-every and its owner-started rediscovery recorded 12 and 2 allowlisted GETs, all HTTP 200, zero proposals and no rejection, using the production owner's broader classic PAT rather than the specified fine-grained read-only credential; Cloudflare receipts recorded zone metadata at HTTP 200 and DNS records at HTTP 403 with the original token, followed by six GETs, including zone metadata and a three-record DNS response both at HTTP 200, ten proposals and one rejection with a separately supplied credential described as restricted to run-uptime.com with Zone Read and DNS Read. The receipts recorded three incorrect DNS expectations of 100:: for proxied Cloudflare names and zero adopted monitors or created provider objects. The existing tagged discovery journey asserts that proxied names do not propose hidden origin DNS expectations, including mixed proxy flags, while DNS-only records retain their published-answer proposal. These receipt-reported observations are not assertions of the tagged tests or proof here of live provider-account authorization, publicly delegated DNS resolution or a live GitHub rejection. Route 53, Vercel, Netlify and CodeDeploy remain at the authorized provider edge only, USD cost projection remains blocked on COST-001, continuous upkeep remains AGENT-001's, and DISCOVERY-001 remains partial.",
+      "to": "changelog"
     },
     {
       "file": "CONTRACT.md",

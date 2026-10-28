@@ -102,3 +102,35 @@ Saved-route samples at supplied DST instants qualify selection calculations only
 **Sources:** [Auth0 RSS/Atom subscription URLs require the tenant domain.](https://support.auth0.com/center/s/article/How-to-subscribe-to-service-status-updates); [Pingdom publishes selected check statuses without a viewer login.](https://documentation.solarwinds.com/en/success_center/pingdom/content/topics/public-status-page.htm).
 
 **Main read:** `2046e21acdec5a7386e1d14b0f9fabb436e027b5`, `CONTRACT.md:520`. No status change; all unfinished acceptance and proof remain owed.
+
+### RL-13 — Translate and refuse Playwright imports
+
+*Date:* 28 October 2026 (recorded from the carried adopted default; original adoption date was not recorded) · *Ruled by:* ct (carried adopted default) · *Governs:* FLOW-002
+
+Default ADOPTED: the ct-approved translate-and-refuse step.
+
+This records the existing default and changes no acceptance point or status.
+
+### RL-14 — Read-key issuance and combined selectors
+
+*Date:* 28 October 2026 (recorded from the carried adopted default; original adoption date was not recorded) · *Ruled by:* ct (carried adopted default) · *Governs:* READAPI-001
+
+Default ADOPTED: owner-only issuance and intersecting combined selectors.
+
+This records the existing default and changes no acceptance point or status.
+
+### RL-15 — CI credentials and typed evaluation
+
+*Date:* 28 October 2026 (recorded from the carried adopted default; original adoption date was not recorded) · *Ruled by:* ct (carried adopted default) · *Governs:* CODE-001
+
+Default ADOPTED: owner-only fresh-MFA credential creation and local typed evaluation; clause text unchanged.
+
+This records the existing default and changes no acceptance point or status.
+
+### RL-16 — MFA delivery order
+
+*Date:* 28 October 2026 (recorded from the carried adopted default; original adoption date was not recorded) · *Ruled by:* ct (carried adopted default) · *Governs:* ACCESS-003
+
+Default ADOPTED: API/CLI first slice.
+
+This records the existing default and changes no acceptance point or status.

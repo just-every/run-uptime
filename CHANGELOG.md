@@ -2,6 +2,22 @@
 
 ## Contract cleanup fix — 28 October 2026
 
+- Replace the nine reported Base restatements with Uptime deltas and map the inherited text to its Base duties; remove SURFACE-004's inherited attribution point. Retarget URL-capability receipts to HEARTBEAT-003 and mention mail to INCIDENT-002 in the retained safety rules.
+- Move the carried adopted defaults to RL-13 through RL-16; RL-8 and RL-11 retain their existing decisions. Gap cells now describe delivered and missing outcomes.
+
+### Carried qualification and receipt notes moved out of Gap cells
+
+These are historical reports, not a new qualification of the fix candidate.
+
+**DISCOVERY-001 — held-key report of 26 October 2026.** Held-key round (26 October 2026), SD receipt report only: domain discovery for run-uptime.com recorded apex and www A and AAAA answers using the runner's default system resolver without a controlled listener or resolver override, seven proposals from three GETs and one rejection; GitHub Actions discovery for the run-uptime repository owned by just-every and its owner-started rediscovery recorded 12 and 2 allowlisted GETs, all HTTP 200, zero proposals and no rejection, using the production owner's broader classic PAT rather than the specified fine-grained read-only credential; Cloudflare receipts recorded zone metadata at HTTP 200 and DNS records at HTTP 403 with the original token, followed by six GETs, including zone metadata and a three-record DNS response both at HTTP 200, ten proposals and one rejection with a separately supplied credential described as restricted to run-uptime.com with Zone Read and DNS Read. The receipts recorded three incorrect DNS expectations of 100:: for proxied Cloudflare names and zero adopted monitors or created provider objects. The existing tagged discovery journey asserts that proxied names do not propose hidden origin DNS expectations, including mixed proxy flags, while DNS-only records retain their published-answer proposal. These receipt-reported observations are not assertions of the tagged tests or proof here of live provider-account authorization, publicly delegated DNS resolution or a live GitHub rejection. Route 53, Vercel, Netlify and CodeDeploy remain at the authorized provider edge only, USD cost projection remains blocked on COST-001, continuous upkeep remains AGENT-001's, and DISCOVERY-001 remains partial.
+
+**CODE-001 — carried local report, recorded 28 October 2026.** Local typecheck/build and the real definitions, read-API, access-matrix and operator-security journeys pass; the changed definition/security guides are personally inspected at 1440 and 390 with no overflow, serious/critical axe finding or hydration mismatch. Exact-head branch Verify remains required.
+
+**ACCESS-003 — carried local report, recorded 28 October 2026.** Targeted operator-security, access-matrix, definitions-import, archive-roundtrip and command-journey pass locally; exact-head branch Verify remains required. Settings enrollment and fresh step-up now have owner/member TOTP, ten shown-once recovery codes, CDP WebAuthn enrollment, stale policy/key refusal with the same API reason, factor removal and require-all policy proof at 1440/390 (tests/security-controls-browser-support.mjs within tests/operator-security.mjs). The original acceptance clause remains unchanged. The failed exact-pin console verification remains open.
+
+**ROUTING-001 — carried source note, recorded 28 October 2026.** The preserved R1 and R2 source has no recorded Verify and does not close the routing gaps; RL-11 holds the deployment ruling.
+
+
 - Demote FLOW-003 and MAINT-001 where the carried evidence proves the monitor snapshot API and DST previews, but not the named incident-detail door or scheduled New York recurring-window failure. The acceptance points retain their full scope.
 - Re-audit every asserted outcome of the 22 carried-done clauses for named doors, verbs and enumerated cases. Demote PING-001 because initial unchecked coverage does not assert coverage after stopping a running probe. Name the cited incident-detail and signed-webhook fallback assertions and correct the rebinding and sandbox-checkout assertion references.
 
