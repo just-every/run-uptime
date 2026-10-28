@@ -1006,9 +1006,9 @@ The primary journey: an operator moves their monitors from UptimeRobot or Pingdo
 Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every call; this section presets none.
 
 **How Uptime computes each class.**
-- *standard*: reads of monitors, evidence, incidents, reports and the audit; paused monitor revisions and definition previews; manual checks; comment additions and edits, mentions of workspace members and root causes; incident ownership, acknowledgment and stop; cleanup-debt resolution; archive and report exports. Each can be withdrawn or corrected in the product. Facts are the item count.
+- *standard*: reads of monitors, evidence, incidents, reports and the audit; paused monitor revisions and definition previews; manual checks without an active live-payment or refund grant; comment additions and edits, mentions of workspace members and root causes; incident ownership, acknowledgment and stop; cleanup-debt resolution; archive and report exports. Each can be withdrawn or corrected in the product. Facts are the item count.
 - *external*: a test send or alert drill, a phone verification code, a scheduled report to a recipient outside the business, a comment published to a status page, and following an Auth0 tenant feed that sends the tenant domain to Auth0. Facts are the recipient count and the counterparty: *known* for a destination or provider already on record, *new* otherwise, *public* for a status page.
-- *money*: SMS and voice sends metered at COST-001's USD price, a phone budget or plan change, and a live-effect grant's spend limit. Facts are the USD amount and the payee.
+- *money*: SMS and voice sends metered at COST-001's USD price, a phone budget or plan change, a live-effect grant's spend limit and a manual check using an active live-payment or refund grant. Facts are the USD amount and the payee.
 - *access*: member invitations, role changes and removals, runner enrollment and revocation, and read API, metrics and CI keys. Facts are the people or credentials and whether the change widens or narrows.
 - *security*: request credential references, TLS trust exceptions, heartbeat tokens and URLs, destination credentials (endpoint URLs, signing keys, header secrets and bot tokens), live-effect, synthetic and private-network grants, the MFA policy, a member's factor reset, snapshot masks, safe values and email release, discovery source credentials and archive restore. Facts are the setting.
 - *destructive*: deleting a comment and its edit history, shortening retained snapshots' expiry, or erasing a monitor, destination, import batch or operator. Facts are the item count per table.
@@ -1021,7 +1021,7 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 | `uptime.monitors.save` | Create or edit a monitor revision of any kind, with its schedule, locations, assertions and alert policy | HTTP-001, API-001, SLOW-001, API-003, TCP-001, PING-001, DNS-001, TLS-001, DOMAIN-001, UDP-001, MAIL-001, NETWORK-002, SCHEDULE-001, SCHEDULE-002, PERF-001, FLOW-001, FLOW-002, FLOW-004, MANAGE-001, AGENT-001, AGENT-003 | standard or live (+ security) | none |
 | `uptime.monitors.pause` | Pause or resume monitors | MONITOR-001 | live | none |
 | `uptime.monitors.bulk` | Preview, apply and undo a URL or CSV batch, and clone, tag, search and filter monitors | MONITOR-001 | standard or live | none |
-| `uptime.monitors.check` | Run a manual check now | STATE-001, SCHEDULE-001, AGENT-002, AGENT-005 | standard | none |
+| `uptime.monitors.check` | Run a manual check now | STATE-001, SCHEDULE-001, AGENT-002, AGENT-005 | standard (+ money) | none |
 | `uptime.definitions.apply` | Preview, apply, export and undo definition files and code bundles | IMPORT-001, CODE-001, CODE-002 | standard or live | none |
 | `uptime.credentials.update` | Bind, rotate or revoke a monitor's request credential reference | API-002 | security | none |
 | `uptime.grants.update` | Grant or revoke a live-effect, synthetic or private-network grant | API-004, FLOW-001, PRIVATE-001 | security (+ money) | none |
@@ -1100,6 +1100,7 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 3. `uptime.incidents.publish` carries external with counterparty *public*; `uptime.reports.schedule` adds external when a recipient is outside the business; `uptime.dependencies.follow` adds external with counterparty *known* when following Auth0 sends the tenant domain to Auth0; `uptime.automations.update` adds external when a test sends an event to the automation.
 4. `uptime.settings.update` adds money with the amount when it changes the phone budget or plan, and `uptime.grants.update` adds money with the spend limit when a grant allows live payments or refunds.
 5. Record text or arguments claiming a recipient is internal or a cost is zero leave the computed classes and facts unchanged.
+6. `uptime.monitors.check` adds money when the monitor holds an active live-payment or refund grant, with the USD amount and payee from the grant and current transaction; a manual check without such a grant does not add money.
 
 #### SURFACE-004 — Access, destructive and gated are computed per call
 

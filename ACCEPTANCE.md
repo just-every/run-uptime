@@ -1340,6 +1340,7 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
 3. `uptime.incidents.publish` carries external with counterparty *public*; `uptime.reports.schedule` adds external when a recipient is outside the business; `uptime.dependencies.follow` adds external with counterparty *known* when following Auth0 sends the tenant domain to Auth0; `uptime.automations.update` adds external when a test sends an event to the automation.
 4. `uptime.settings.update` adds money with the amount when it changes the phone budget or plan, and `uptime.grants.update` adds money with the spend limit when a grant allows live payments or refunds.
 5. Record text or arguments claiming a recipient is internal or a cost is zero leave the computed classes and facts unchanged.
+6. `uptime.monitors.check` adds money when the monitor holds an active live-payment or refund grant, with the USD amount and payee from the grant and current transaction; a manual check without such a grant does not add money.
 
 **Evidence.** None.
 **Gap.** No implementation: no tool declares or computes external or money classes.
