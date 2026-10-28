@@ -1,3 +1,4 @@
+import {seedRoutingUpgrade,proveRoutingUpgrade} from './alert-routing-upgrade-support.mjs';
 import {testAuthBindings,authRequest} from './auth-test-support.mjs';
 import assert from 'node:assert/strict';
 import {readFile,readdir} from 'node:fs/promises';
@@ -44,7 +45,7 @@ try{
  await worker.dispose();worker=null;
  ({worker,DB}=await migratedWorker({port,persist,bindings,baselineOnly:true}));
  const upgradeStarted=Date.now();
- for(const name of migrations.filter(name=>Number(name.slice(0,4))>6))for(const statement of splitSql(await readFile(join(root,'migrations',name),'utf8')))await DB.prepare(statement).run();
+ for(const name of migrations.filter(name=>Number(name.slice(0,4))>6)){const routing=name.startsWith('0076_')?await seedRoutingUpgrade(DB):null;for(const statement of splitSql(await readFile(join(root,'migrations',name),'utf8')))await DB.prepare(statement).run();if(routing)await proveRoutingUpgrade(DB,routing);}
  await unchanged(before,'all historical bytes and identities survive every additive migration and restart');
  const firstRun=await DB.prepare('SELECT * FROM uptime_first_run WHERE id=1').first();
  assert.ok(firstRun&&Number.isSafeInteger(firstRun.completed_at)&&firstRun.completed_at>=Math.floor(upgradeStarted/1000)*1000&&firstRun.completed_at<=Date.now(),'existing monitor infers a valid completed first run');
@@ -84,5 +85,6 @@ try{
  const contact=await rows('runner_contact');
  assert.equal(contact.length,1);assert.equal(contact[0].id,1);
  assert.ok(contact[0].last_contact_at>=pollStarted&&contact[0].last_contact_at<=Date.now(),'new runner contact is separate operational state');
+ const routing=await ownerRead(`/api/monitors/${monitor.id}/alert-route`);assert.equal(routing.effective.businessHours,null);assert.equal(routing.portability.reason,'route_policy_installation_local');
  console.log('PASS additive notification upgrade retains exact legacy definitions observations outbox migration ledger and live owner session without replay');
 }finally{if(worker)await worker.dispose();if(fixture)await fixture.stop();await cleanupDirectory(directory)}

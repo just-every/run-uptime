@@ -1,3 +1,4 @@
+import {routeDrillQuietReady,routeDrillAuthorityReady} from './alert-route-drills.server.ts'
 import {contactReady,contactQuietReady,refreshContactQuiet} from './contact-scheduler.server.ts'
 import {auditStatement,automated} from './audit.server.ts'
 import {sha256} from '../base/modules/integrations/core/crypto.ts'
@@ -91,10 +92,12 @@ export async function startClaim(env:Bindings,id:string,claim:unknown,reservatio
   // A drill's Submitted time is the transport boundary of its one attempt, recorded only with a started claim.
   env.DB.prepare(`UPDATE notification_delivery_attempts SET started_at=? WHERE delivery_id=? AND number=(SELECT attempts FROM integration_deliveries WHERE namespace=? AND id=? AND claim=?) AND EXISTS(SELECT 1 FROM notification_claim_custody WHERE delivery_id=? AND claim=? AND started_at=?)`).bind(now,id,namespace,id,claim,id,claim,now),
   env.DB.prepare('UPDATE alert_drills SET submitted_at=? WHERE delivery_id=? AND submitted_at IS NULL AND EXISTS(SELECT 1 FROM notification_claim_custody WHERE delivery_id=? AND claim=? AND started_at=?)').bind(now,id,id,claim,now)]);
- if(!result[0].meta.changes&&await env.DB.prepare(`SELECT 1 FROM notification_jobs j WHERE j.id=? AND NOT ${contactQuietReady()}`).bind(id).first()){
-  // A valid reservation which reached the boundary inside quiet hours never
-  // handed anything to a transport. Release its custody and attempt together.
-  await releaseUnstartedClaim(env,id,claim,reservation,Date.now(),'waiting_for_contact_quiet');
+ if(!result[0].meta.changes){
+  const blocked=await env.DB.prepare(`SELECT CASE WHEN NOT ${contactQuietReady()} THEN 'waiting_for_contact_quiet' ELSE 'route_recipient_ineligible' END reason
+   FROM notification_jobs j WHERE j.id=? AND (NOT ${contactQuietReady()} OR NOT ${routeDrillAuthorityReady()})`).bind(id).first<{reason:string}>();
+  // No transport started: release the owned reservation and attempt together.
+  // Reapply current custody so a rotated route credential ends as rejected.
+  if(blocked)await releaseUnstartedClaim(env,id,claim,reservation,Date.now(),blocked.reason);
  }
  return Boolean(result[0].meta.changes);
 }
@@ -134,8 +137,8 @@ export async function releaseQuietClaims(env:Bindings,now:number){
   JOIN notification_jobs j ON j.id=d.id
   WHERE d.state='sending' AND c.started_at IS NULL AND c.released_at IS NULL AND c.reservation_hash IS NOT NULL
   AND (d.claim_until<=? OR NOT ${contactQuietReady()})
-  AND EXISTS(SELECT 1 FROM alert_contact_schedules s JOIN notification_jobs t ON t.id=s.trigger_job_id
-   WHERE t.destination_id=j.destination_id AND s.monitor_id=json_extract(j.event,'$.monitorId') AND s.incident_key=json_extract(j.event,'$.incidentKey') AND (s.quiet_rules IS NOT NULL OR s.route_quiet_rules IS NOT NULL))`)
+  AND (NOT ${routeDrillQuietReady()} OR EXISTS(SELECT 1 FROM alert_contact_schedules s JOIN notification_jobs t ON t.id=s.trigger_job_id
+   WHERE t.destination_id=j.destination_id AND s.monitor_id=json_extract(j.event,'$.monitorId') AND s.incident_key=json_extract(j.event,'$.incidentKey') AND (s.quiet_rules IS NOT NULL OR s.route_quiet_rules IS NOT NULL)))`)
   .bind(namespace,now).all<{delivery_id:string;claim:string;reservation_hash:string}>()).results;
  for(const row of rows)await releaseReservation(env,row.delivery_id,row.claim,row.reservation_hash,now,'waiting_for_contact_quiet');
 }

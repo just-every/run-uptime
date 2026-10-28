@@ -5,7 +5,7 @@ import {namedAlertRoute,prepareNamedAlertRouteAssignment,prepareAlertRouteAssign
 import {fields,fail} from './input.ts'
 const stale=()=>Object.assign(Error('Alert routes or monitors changed; review the batch again'),{status:409})
 const warning='This batch creates, confirms and messages no recipient. No confirmed recipient is established by assignment; existing consent and recipient proof are unchanged.'
-const policy=(p:any)=>({mode:p.mode,destinationIds:p.destinationIds,contactSettings:p.contactSettings,fallback:p.fallback,teamIds:p.teamIds,filters:p.filters,quietHours:p.quietHours})
+const policy=(p:any)=>({mode:p.mode,destinationIds:p.destinationIds,contactSettings:p.contactSettings,fallback:p.fallback,teamIds:p.teamIds,filters:p.filters,quietHours:p.quietHours,businessHours:p.businessHours??null})
 const owner=(actor:AuditActor)=>{if(actor.kind!=='operator')throw Object.assign(Error('Owner required'),{status:403})}
 async function plan(env:Bindings,raw:any){
  fields(raw,['routeId','monitorIds'],'alert route batch');
@@ -41,7 +41,7 @@ export async function undoCatalogRoutes(env:Bindings,raw:any,actor:AuditActor){
  const parts=[];
  for(const entry of entries){
   const read=await readAlertRoute(env,entry.monitor_id,{readOnly:true}),current=read.policies.find(p=>p.scope==='monitor')!;
-  if(current.namedRouteId!==batch.route_id||current.revision!==entry.applied_revision||JSON.stringify(policy(current))!==entry.applied_policy)throw stale();
+  if(current.namedRouteId!==batch.route_id||current.revision!==entry.applied_revision||JSON.stringify(policy(current))!==JSON.stringify(policy(JSON.parse(entry.applied_policy))))throw stale();
   const previous=JSON.parse(entry.previous_policy),prepared=await prepareAlertRouteAssignment(env,entry.monitor_id,{scope:'monitor',expectedRevision:current.revision,...policy(previous)});
   parts.push(alertRouteAssignmentStatements(env,prepared,actor,previous.revision===0,previous.namedRouteId??null));
  }

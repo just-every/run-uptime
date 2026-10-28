@@ -480,6 +480,12 @@
       "name": "0077_rum_percentile_erasure.sql",
       "sha256": "60984388c36a7e790ffe7eb357336d7eddbf6b97e5c2a4007578f9d6dadebcca",
       "sql": "-- PERF-001: anonymous frequency counts, never per-visitor records. Existing hourly\n-- sums remain intact: pre-upgrade data has no reconstructable percentiles.\n-- Subdivision is the edge-provided US code, or empty when it is unavailable.\n-- These installation-local counts are excluded from archives with rum_sites.\nCREATE TABLE rum_value_counts(\n site_id TEXT NOT NULL,\n hour INTEGER NOT NULL,\n route TEXT NOT NULL,\n device TEXT NOT NULL CHECK(device IN ('mobile','desktop')),\n region TEXT NOT NULL,\n subdivision TEXT NOT NULL,\n metric TEXT NOT NULL CHECK(metric IN ('status','errors','lcpMs','cls','inpMs')),\n value INTEGER NOT NULL CHECK(value>=0),\n count INTEGER NOT NULL CHECK(count>0),\n PRIMARY KEY(site_id,hour,route,device,region,subdivision,metric,value)\n);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0079_route_drills_business_hours.sql",
+      "sha256": "3ee86bfdde7675de0eafdcd17e9e50346ad4e14cb333b84e8466a5cb5f41a0f2",
+      "sql": "-- Route drill receipts and dispatch authority stay installation-local, like\n-- alert_routes, alert_route_changes and alert_drills. Archives never replay them.\nALTER TABLE alert_route_changes ADD COLUMN drill TEXT;\nALTER TABLE alert_drills ADD COLUMN route_context TEXT;\nALTER TABLE alert_drills ADD COLUMN quiet_until INTEGER;\nALTER TABLE alert_drills ADD COLUMN quiet_checked_until INTEGER;\n-- The weekly policy and its confirmation anchor/result are dispatch snapshots.\n-- Existing routes and queued work keep their prior always-selected behaviour.\nALTER TABLE alert_routes ADD COLUMN business_hours TEXT;\nALTER TABLE alert_contact_schedules ADD COLUMN route_business_rules TEXT;\nALTER TABLE alert_contact_schedules ADD COLUMN business_allowed INTEGER;\nALTER TABLE alert_fallback_chains ADD COLUMN route_business_rules TEXT;\n"
     }
   ],
   "compatibilityDate": "2026-09-08",
