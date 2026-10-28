@@ -18,7 +18,7 @@ export function addInput(input:any){
  if(new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(new TextEncoder().encode(input.text))!==input.text)fail('The file is not UTF-8 text.')
  const defaults=fields(input.defaults??{},['type','intervalMs','locations','probes','assignments','keyword','alertRoute',...metadataFields],'shared default')
  if(input.alertRoute!==undefined&&defaults.alertRoute!==undefined)fail('Choose the shared alert route once, in defaults or at the top level.')
- const alertRoute=input.alertRoute??defaults.alertRoute
+ const alertRoute=input.alertRoute!==undefined?input.alertRoute:defaults.alertRoute
  if(alertRoute!==undefined&&(typeof alertRoute!=='string'||!alertRoute||alertRoute.length>512||/[\x00-\x1f\x7f]/.test(alertRoute)))fail('Choose an existing named alert route ID.')
  if(defaults.locations!==undefined&&defaults.probes!==undefined)fail('Use locations or probes, not both.')
  // `assignments` names the runner of each probe (the console's Check from); without it the probes take runners in order.

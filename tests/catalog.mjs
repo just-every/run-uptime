@@ -39,7 +39,7 @@ test('MONITOR-001 catalog adds, metadata, lifecycle and undo keep reviewed revis
   await ok('/api/external-check',{url:`http://93.184.216.35:${edgePort}/canary`});
   const seed=await ok('/api/monitors',{name:'Production checkout',url:'https://93.184.216.34/seed',enabled:false,project:'Shop',environment:'production',owner:'Payments team',outcome:'Customers can complete checkout',tags:['checkout']});
   const routeContacts=[];
-  for(const [name,enabled] of [['Selected',true],['Disabled',false],['Unselected',true]])routeContacts.push(await ok('/api/notifications/destinations',{name,kind:'webhook',url:`https://catalog.example.test/${name.toLowerCase()}`,enabled}));
+  for(const [name,enabled] of [['Selected',true],['Disabled',false],['Unselected',true]])routeContacts.push(await ok('/api/notifications/destinations',{name,kind:'webhook',url:`https://catalog.example.com/${name.toLowerCase()}`,enabled}));
   const policy={scope:'monitor',mode:'selected',destinationIds:routeContacts.slice(0,2).map(d=>d.id),expectedRevision:0};
   const policyPreview=await ok(`/api/monitors/${seed.id}/alert-route/preview`,policy);
   await ok(`/api/monitors/${seed.id}/alert-route/apply`,{...policy,digest:policyPreview.digest});
@@ -48,6 +48,7 @@ test('MONITOR-001 catalog adds, metadata, lifecycle and undo keep reviewed revis
   const urls=Array.from({length:47},(_,i)=>`http://93.184.216.34:${edgePort}/batch/${i}`);
   const input={format:'urls',text:[...urls,'https://93.184.216.34:443/seed','invalid URL','http://10.0.0.8/'].join('\n'),defaults,enableAfterCreate:true,alertRoute:named.id};
   const plan=await unchanged(()=>preview(input,true));
+  for(const invalid of [{...input,alertRoute:null},{...input,defaults:{...defaults,alertRoute:named.id}}])await unchanged(async()=>assert.equal((await request('/api/catalog/add/preview',invalid)).status,400));
   assert.deepEqual(plan.counts,{create:47,change:0,unchanged:0,duplicate:1,refused:2,excluded:0});
   assert.equal(plan.entries[47].monitorId,seed.id);
   assert.equal(plan.quota.used,1);assert.equal(plan.quota.after,48);

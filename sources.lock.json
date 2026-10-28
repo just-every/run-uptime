@@ -487,11 +487,11 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "b937895116a1ab1af7d7fc286c8f51f1a5d0f6ffd142c53ea2beee978e575b51",
+      "sha256": "ebe9356e4f18c08ef5cf3a879b1e108ef041ca2ef7d7ade518319575b2770fc9",
       "executable": false
     },
     "AGENTS.md": {
-      "sha256": "feac09a53de937f263481e52107fadd23fa8b2259010000013681e09f440c543",
+      "sha256": "f643fdc02e49851617f25f2cb2d65c636cbee72322aa42aff5217e0c9e68dce4",
       "executable": false
     },
     "base-copies.json": {
@@ -511,7 +511,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "179209ea5af47552a6f148662a7485b73c41263dc30ed9c5f9671f525efb6fbf",
+      "sha256": "c549e1a836b48aeb4aa2f2015047abec88d288b103fbae469a31e7b81d1a3625",
       "executable": false
     },
     "DEMO.md": {
@@ -543,7 +543,7 @@
       "executable": false
     },
     "docs/CLAIMS.md": {
-      "sha256": "c6c6135f972e5f22ac7daf360580d3e33b90e3fedd037795cadbacb05c156fe2",
+      "sha256": "f404f08024ba8aaf2bb09f50290f0ba7ef31a2a0764351bba6255014400bcc35",
       "executable": false
     },
     "docs/data.md": {
@@ -2043,7 +2043,7 @@
       "executable": false
     },
     "docs/monitors.md": {
-      "sha256": "02e742b6c86fb238965ef2a5d53f9a3e4c7ad7293cd3167da73d16fe35bb94bd",
+      "sha256": "fd9dc0a9b43cafbce06f931f05f5c0398de2db9c3e0bec7dde1e01cd0c74ed36",
       "executable": false
     },
     "docs/moving-from-uptimerobot.md": {
@@ -3368,6 +3368,10 @@
     },
     "scripts/chromium-probe.mjs": {
       "sha256": "02b9f04559ec2631d4a33f131db7ed6b91e5f5e6fa2b314653eca164d34acce7",
+      "executable": false
+    },
+    "scripts/contract-docs.mjs": {
+      "sha256": "45d0e49827e331a268703fd3aa96699f0277d573e0f5325a0fc05a53eac264d0",
       "executable": false
     },
     "scripts/data-files.mjs": {
@@ -6439,7 +6443,7 @@
       "executable": false
     },
     "src/domain/catalog/input.ts": {
-      "sha256": "c25d5965e94b1ed4c0ba181771b212a4aa6495da9fd2189f03f5392762c02276",
+      "sha256": "1a63f4a9009134f8e2a34e84236010b69a4d915655c1f5d1bf2dd5e0bf2e801e",
       "executable": false
     },
     "src/domain/catalog/plan.server.ts": {
@@ -8067,7 +8071,7 @@
       "executable": false
     },
     "tests/catalog.mjs": {
-      "sha256": "9d330f9fdd24dfd958f09198c39f32e50698509a6206d1bce7de49e09880e99f",
+      "sha256": "4edf34925c7f944a84aa306455011eed8f0f66ce59276b33a92e5cf06e3b96d2",
       "executable": false
     },
     "tests/command-journey.mjs": {
