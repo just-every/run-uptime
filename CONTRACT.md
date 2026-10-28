@@ -1010,8 +1010,8 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 - *external*: a test send or alert drill, a phone verification code, a scheduled report to a recipient outside the business, a comment published to a status page, and following an Auth0 tenant feed that sends the tenant domain to Auth0. Facts are the recipient count and the counterparty: *known* for a destination or provider already on record, *new* otherwise, *public* for a status page.
 - *money*: SMS and voice sends metered at COST-001's USD price, a phone budget or plan change, and a live-effect grant's spend limit. Facts are the USD amount and the payee.
 - *access*: member invitations, role changes and removals, runner enrollment and revocation, and read API, metrics and CI keys. Facts are the people or credentials and whether the change widens or narrows.
-- *security*: request credential references, TLS trust exceptions, heartbeat tokens and URLs, destination credentials (endpoint URLs, signing keys, header secrets and bot tokens), live-effect, synthetic and private-network grants, the MFA policy, a member's factor reset, discovery source credentials and archive restore. Facts are the setting.
-- *destructive*: deleting a comment and its edit history, or erasing a monitor, destination, import batch or operator. Facts are the item count per table.
+- *security*: request credential references, TLS trust exceptions, heartbeat tokens and URLs, destination credentials (endpoint URLs, signing keys, header secrets and bot tokens), live-effect, synthetic and private-network grants, the MFA policy, a member's factor reset, snapshot masks, safe values and email release, discovery source credentials and archive restore. Facts are the setting.
+- *destructive*: deleting a comment and its edit history, shortening retained snapshots' expiry, or erasing a monitor, destination, import batch or operator. Facts are the item count per table.
 - *live*: enabling or changing a running monitor, pausing or resuming, maintenance windows, routes and contact schedules, handoff mappings, adopting discovered monitors and following or unfollowing catalog dependencies when that starts or stops checks. Facts are the monitors and routes affected.
 - *gated*: a step the provider keeps for a person: a Teams admin installing the Uptime Teams app, a buyer connecting their own Twilio account in Twilio's console, a person authorizing Zapier or Make in their own account, and a recipient entering their own phone verification code. Facts are the provider and the step.
 
@@ -1049,7 +1049,7 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 | `uptime.members.update` | Invite, change the role of, reset the factors of or remove a member | ACCESS-001, ACCESS-003 | access (+ security) | none |
 | `uptime.keys.update` | Create, limit or revoke read API, metrics and CI keys | READAPI-001, METRICS-001, CODE-001 | access · security | none |
 | `uptime.security.update` | Change the MFA policy | ACCESS-003 | security | none |
-| `uptime.settings.update` | Notice time zone and preferences, snapshot retention, the external check URL, the phone budget and the plan | NOTICE-001, COST-001 | standard or live (+ money) | none |
+| `uptime.settings.update` | Notice time zone and preferences, snapshot retention and redaction settings, the external check URL, the phone budget and the plan | NOTICE-001, COST-001, RETENTION-001, EVIDENCE-002 | standard or live (+ money) (+ destructive) (+ security) | none |
 | `uptime.automations.update` | Connect, test, pause or revoke a Zapier, Make or webhook automation | AUTOMATION-001 | security (+ external) (+ gated) | none |
 
 **Resources.** `uptime://monitors/{id}`, `uptime://monitors/{id}/revisions/{revision}`, `uptime://slots/{id}`, `uptime://incidents/{id}`, `uptime://destinations/{id}`, `uptime://routes/{id}`, `uptime://maintenance/{id}`, `uptime://reports/{id}`, `uptime://runners/{id}`, `uptime://dependencies/{id}`. **Events.** `incident.confirmed`, `incident.recovered`, `incident.acknowledged`, `slow.opened`, `slow.recovered`, `dependency.notice`, `delivery.failed`, `delivery.uncertain`, `heartbeat.missed`, `certificate.expiring`, `domain.expiring`, `runner.unreachable`, `cleanup.debt_opened`. **Prompts.** keep coverage meaningful (AGENT-001), tell an outage from a network fault or a broken check (AGENT-002), repair browser drift without weakening intent (AGENT-003), keep alert routes accountable (AGENT-004), hand off evidence and verify recovery (AGENT-005).
@@ -1080,7 +1080,7 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 
 **Acceptance.**
 1. `uptime.monitors.save` is standard for a paused revision and live, with the monitors affected, for a change to a running monitor or one that enables checks; it adds security when it binds a credential reference or a TLS trust exception.
-2. `uptime.monitors.bulk`, `uptime.definitions.apply` and `uptime.settings.update` are standard for paused creations and live when they enable checks or change running monitors.
+2. `uptime.monitors.bulk`, `uptime.definitions.apply` and `uptime.settings.update` are standard for paused creations and live when they enable checks or change running monitors; `uptime.settings.update` adds security, with the setting changed, when it changes snapshot masks, safe values or email release.
 3. `uptime.routes.update`, `uptime.maintenance.update`, `uptime.monitors.pause` and `uptime.handoffs.update` are live with the monitors and routes they change, and `uptime.handoffs.update` adds security when it stores a connector credential.
 4. `uptime.discovery.run` is standard for a run, adds live when it adopts a proposal that enables checks and adds security when it authorizes a provider source credential.
 5. `uptime.destinations.update` is standard for a name or enable change and adds security when it sets or rotates an endpoint URL, signing key, header secret or bot token; `uptime.runners.update` adds security when it issues a runner key.
@@ -1113,6 +1113,7 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 3. `uptime.destinations.update` adds gated when a Teams admin must install the Uptime Teams app or a buyer must connect their own Twilio account, `uptime.automations.update` adds gated when a person must authorize Zapier or Make, and `uptime.phones.verify` adds gated for the recipient's own code entry; each gated step names the provider and the step.
 4. `uptime.incidents.comment` adds destructive when it deletes a comment, with the number of comments whose text and edit history are irreversibly removed; an add or edit does not carry destructive.
 5. `uptime.destinations.update` adds destructive when it removes a destination, with the item count per table erased; creating, rotating or disabling a destination does not add destructive.
+6. `uptime.settings.update` adds destructive when it shortens snapshot retention, with the count of retained snapshots whose expiry is shortened; leaving retention unchanged or increasing it does not add destructive for retention and never restores an expiry already shortened.
 
 #### SURFACE-005 — The monitoring-operator journey under two company policies
 

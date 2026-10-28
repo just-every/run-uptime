@@ -1317,7 +1317,7 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
 
 **Acceptance.**
 1. `uptime.monitors.save` is standard for a paused revision and live, with the monitors affected, for a change to a running monitor or one that enables checks; it adds security when it binds a credential reference or a TLS trust exception.
-2. `uptime.monitors.bulk`, `uptime.definitions.apply` and `uptime.settings.update` are standard for paused creations and live when they enable checks or change running monitors.
+2. `uptime.monitors.bulk`, `uptime.definitions.apply` and `uptime.settings.update` are standard for paused creations and live when they enable checks or change running monitors; `uptime.settings.update` adds security, with the setting changed, when it changes snapshot masks, safe values or email release.
 3. `uptime.routes.update`, `uptime.maintenance.update`, `uptime.monitors.pause` and `uptime.handoffs.update` are live with the monitors and routes they change, and `uptime.handoffs.update` adds security when it stores a connector credential.
 4. `uptime.discovery.run` is standard for a run, adds live when it adopts a proposal that enables checks and adds security when it authorizes a provider source credential.
 5. `uptime.destinations.update` is standard for a name or enable change and adds security when it sets or rotates an endpoint URL, signing key, header secret or bot token; `uptime.runners.update` adds security when it issues a runner key.
@@ -1356,6 +1356,7 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
 3. `uptime.destinations.update` adds gated when a Teams admin must install the Uptime Teams app or a buyer must connect their own Twilio account, `uptime.automations.update` adds gated when a person must authorize Zapier or Make, and `uptime.phones.verify` adds gated for the recipient's own code entry; each gated step names the provider and the step.
 4. `uptime.incidents.comment` adds destructive when it deletes a comment, with the number of comments whose text and edit history are irreversibly removed; an add or edit does not carry destructive.
 5. `uptime.destinations.update` adds destructive when it removes a destination, with the item count per table erased; creating, rotating or disabling a destination does not add destructive.
+6. `uptime.settings.update` adds destructive when it shortens snapshot retention, with the count of retained snapshots whose expiry is shortened; leaving retention unchanged or increasing it does not add destructive for retention and never restores an expiry already shortened.
 
 **Evidence.** None.
 **Gap.** No implementation: no tool declares or computes access, destructive or gated classes, and no incident record attributes an agent act.
