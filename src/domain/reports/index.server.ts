@@ -1,3 +1,4 @@
+import {sourceSegments} from '../source-history/segments.server.ts'
 import {credentialMonitorFilter,type CredentialEnvironment} from '../credentials/model.server.ts'
 import {configuredPeriod} from './configured-period.server.ts'
 import {heartbeatRuns} from '../heartbeat-jobs.server.ts'
@@ -30,6 +31,7 @@ export async function monitorReport(env: CredentialEnvironment, id: string, para
   },Object.create(null)))
   const jobRuns=JSON.parse(monitor.definition).type==='heartbeat'?await heartbeatRuns(env,id,{from:period.from,to:period.to,limit:10000}):null
   if(jobRuns?.nextCursor)throw Error('Heartbeat report exceeds 10,000 run records; choose a shorter period')
+  const sourceHistory=await sourceSegments(env,id,period)
   const targetPercent = period.slaTargetPercent
   return {
     schemaVersion: 1, generatedAt: now,
@@ -45,6 +47,7 @@ export async function monitorReport(env: CredentialEnvironment, id: string, para
       remainingBudgetMs: availability.observedMs * (100 - targetPercent) / 100 - availability.notPassingMs,
     },
     latency, slow, incidents, rootCauseFilter, rootCauseGroups,
+    ...(sourceHistory?{sourceHistory}:{}),
     ...(flowProfiles.length?{flowProfiles}:{}),
     ...(jobRuns?{jobRuns:jobRuns.runs}:{}),
     incidentSummary: { count: incidents.length, durationInPeriodMs: incidents.reduce((total, incident) => total + incident.durationInPeriodMs, 0) },

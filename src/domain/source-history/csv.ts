@@ -20,7 +20,7 @@ export async function parseHistoryCsv(text:string):Promise<HistoryFile>{
  for(const [i,value] of header.entries()){
   const key=Object.keys(vocabulary).find(key=>vocabulary[key].includes(value.trim().toLowerCase()))
   if(!key)refuse(`Unrecognised history column “${value}”`)
-  if(indices[key]!==undefined)refuse(`Repeated history column “${value}”`)
+  if(indices[key!]!==undefined)refuse(`Repeated history column “${value}”`)
   indices[key!]=i
  }
  for(const key of ['at','event'])if(indices[key]===undefined)refuse(`History header needs a ${key==='at'?'date/time':'event/status/type'} column; received: ${header.join(', ')}`)
@@ -45,7 +45,7 @@ export async function parseHistoryCsv(text:string):Promise<HistoryFile>{
   row.sourceRowId||=await sha256(JSON.stringify({...row,line:undefined}))
   rows.push(row)
   for(const key of ['exported','from','to'])if(get(key)){
-   const at=sourceInstant(get(key),`${line}, ${key}`),previous=key==='exported'?extractedAt:key==='from'?coverageFrom:coverageTo
+   const at=sourceInstant(get(key),`${line}, ${key}`),previous:number|null=key==='exported'?extractedAt:key==='from'?coverageFrom:coverageTo
    if(previous!==null&&previous!==at)refuse(`${line}: inconsistent ${key} timestamp`)
    if(key==='exported')extractedAt=at;else if(key==='from')coverageFrom=at;else coverageTo=at
   }

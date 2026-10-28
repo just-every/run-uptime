@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import {isHistoryFile,localHistoryCommand,remoteHistoryCommand,printHistory} from './definitions-history.mjs';
 // Monitor definition files for a local installation, through the same import door as the console's Definitions view:
 //   node scripts/definitions.mjs validate --input uptime.monitors.json   (writes nothing; exits 1 if any entry is refused or unsupported)
 //   node scripts/definitions.mjs preview  --input FILE [--source auto|uptime.monitors|uptimerobot|pingdom|betterstack-heartbeats|site24x7|uptimerobot-log]
@@ -29,7 +30,7 @@ import {permission,accessFence} from '../src/domain/access.server.ts';
 import {authorizedDatabase,auditAccess} from '../src/domain/access-database.server.ts';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-const commands = { 'import-playwright': ['--input', '--fixtures', '--lock', '--output', '--base'], validate: ['--input', '--source'], test: ['--input','--source'], preview: ['--input', '--source'], apply: ['--input', '--source', '--digest'], export: ['--output'], batches: [], undo: ['--batch'] };
+const commands = { 'history-batches': [], 'history-remove': ['--batch'], 'history-cutover': ['--monitor','--at'], 'import-playwright': ['--input', '--fixtures', '--lock', '--output', '--base'], validate: ['--input', '--source'], test: ['--input','--source'], preview: ['--input', '--source'], apply: ['--input', '--source', '--digest'], export: ['--output'], batches: [], undo: ['--batch'] };
 
 function parse(argv) {
  const [command, ...rest] = argv, options = {};
@@ -42,7 +43,7 @@ function parse(argv) {
   if (value === undefined || value.startsWith('--')) throw usage(`A value is required for ${flag}.`);
   options[flag.slice(2)] = value;
  }
- for (const required of { validate: ['input'], test:['input'], preview: ['input'], apply: ['input', 'digest'], export: ['output'], undo: ['batch'] }[command] ?? []) if (options[required] === undefined) throw usage(`${command} needs --${required}.`);
+ for (const required of { validate: ['input'], test:['input'], preview: ['input'], apply: ['input', 'digest'], export: ['output'], undo: ['batch'], 'history-remove':['batch'], 'history-cutover':['monitor','at'] }[command] ?? []) if (options[required] === undefined) throw usage(`${command} needs --${required}.`);
  return { command, options };
 }
 const usage = message => Object.assign(Error(message), { exitCode: 2 });
@@ -122,7 +123,9 @@ function printPreview(result) {
 export async function run(argv = process.argv.slice(2)) {
  const { command, options } = parse(argv);
  if (options.origin) {
-  const result = await remoteDefinitions(command, options, options.input === undefined ? null : await readInput(options.input));
+  const text=options.input===undefined?null:await readInput(options.input);
+  if(command.startsWith('history-')||text!==null&&isHistoryFile(text,options.source)){const result=await remoteHistoryCommand(command,options,text);if(options.json)console.log(JSON.stringify(result));else printHistory(result);return 0;}
+  const result = await remoteDefinitions(command, options, text);
   if (options.json) console.log(JSON.stringify(result)); else if (command === 'preview' || command === 'validate' || command === 'test') printPreview(result); else console.log(result.unchanged ? 'The reviewed definitions are unchanged.' : 'Definitions command completed.');
   return ['validate','test'].includes(command) && result.kind === 'definitions' && (result.counts.refused || result.counts.unsupported) ? 1 : 0;
  }
@@ -134,13 +137,14 @@ export async function run(argv = process.argv.slice(2)) {
  const operation = await localOperation(root, process.env.RER_LOCAL_OPERATION);
  let worker;
  try {
-  if (['apply', 'undo'].includes(command)) await migrate();
+  if (['apply', 'undo','history-remove','history-cutover'].includes(command)) await migrate();
   const settings = await readLocalSettings();
   worker = await startLocalWorker({ bindings: { ...settings, ...await syntheticGrant() }, assets: false });
   const localEnv = { ...settings, UPTIME_LOCAL_REVIEW:'true', ...await syntheticGrant(), DB: await worker.getD1Database('DB') };
   const access=command==='export'?await permission(localEnv,ownerRequest(localEnv,'/api/definitions/export'),undefined,{action:'export',workspace:true}):await localAccess(localEnv);
   const env={...localEnv,DB:authorizedDatabase(localEnv,access)};
   const actor={kind:'operator',ref:access.session.operator.id};
+  if(command.startsWith('history-')||text!==null&&isHistoryFile(text,options.source)){const result=await localHistoryCommand(env,command,options,text);if(options.json)console.log(JSON.stringify(result));else printHistory(result);return 0;}
   if (command === 'validate' || command === 'preview' || command === 'test') {
    const result = await previewDefinitions(env, text, options.source);
    if(command==='test')result.test={kind:'schema-and-plan-validation',runtimeProbesExecuted:false};

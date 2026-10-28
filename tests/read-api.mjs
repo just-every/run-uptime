@@ -1,3 +1,4 @@
+import {historyFixture,applyHistoryFixture,assertHistoryReport} from './source-history-support.mjs';
 // Owner-session READAPI journey through the real emitted Worker and durable D1.
 import assert from 'node:assert/strict';
 import {join} from 'node:path';
@@ -118,6 +119,7 @@ try{
  assert.ok((await db.prepare("SELECT COUNT(*) n FROM uptime_audit WHERE actor_ref=? AND action='access_read'").bind(reader.id).first()).n>0,'scoped CSV export retains its actor without request values');
  assert.equal((await db.prepare('SELECT COUNT(*) n FROM attempt_checkpoints').first()).n,0,'monitoring reads do not checkpoint or mutate evidence');
  await proveReadKeys({origin,db,cookie,ids,from,to});
+ const sourceFixture=await historyFixture({origin,cookie,db});await applyHistoryFixture(sourceFixture);const sourceRead=await json('/api/v1/monitors/'+sourceFixture.id+'/report?'+sourceFixture.query);await assertHistoryReport(sourceFixture,sourceRead);
  console.log('READAPI-001 subset passed: owner monitor cursors/current coverage, exact bulk/report figures and seconds, filtered paginated incident CSV, spreadsheet escaping, and zoned calendar periods. Monitoring keys use live owner issuance and fresh second-factor proof.');
 }finally{
  await worker?.dispose();await cleanupDirectory(directory);

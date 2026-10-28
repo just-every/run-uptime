@@ -18,4 +18,3 @@ CREATE INDEX source_history_period ON source_history_rows(monitor_id,started_at)
 CREATE TABLE source_history_cutovers (
  monitor_id TEXT PRIMARY KEY REFERENCES monitors(id), cutover_at INTEGER NOT NULL
 );
-INSERT INTO migrations(version,applied_at) VALUES(78,unixepoch()*1000);

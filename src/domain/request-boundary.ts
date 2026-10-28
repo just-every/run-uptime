@@ -126,6 +126,11 @@ export const apiRoutes:readonly Route[]=[
  {method:'GET',path:'/api/archive/restore-status',body:'none'},
  {method:'POST',path:'/api/restore',body:'object'},
  // A definitions file is JSON, NDJSON or CSV text; its importer reads it, refusing anything it cannot read.
+ {method:'POST',path:'/api/definitions/history/preview',body:'object'},
+ {method:'POST',path:'/api/definitions/history/apply',body:'object'},
+ {method:'GET',path:'/api/definitions/history/batches',body:'none'},
+ {method:'DELETE',path:'/api/definitions/history/batches/:id',params:id,body:'none'},
+ {method:'POST',path:'/api/definitions/history/cutover/:id',params:id,body:'object'},
  {method:'POST',path:'/api/definitions/recognise',query:{source},body:'text'},
  {method:'GET',path:'/api/definitions/plans/:id',params:id,body:'none'},
  {method:'GET',path:'/api/definitions/export',body:'none'},

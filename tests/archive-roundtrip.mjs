@@ -1,3 +1,4 @@
+import {seedArchiveHistory} from './source-history-support.mjs';
 // BASE-DATA-001 replacement: complete portable records, excluded authority, inactive legacy-compatible restore.
 import assert from 'node:assert/strict';
 import {mkdtemp,mkdir,readFile,writeFile,rm,stat} from 'node:fs/promises';
@@ -51,6 +52,7 @@ try{
  const recipientResponse=await fetch(origin+'/api/notifications/destinations',{method:'POST',headers:{origin,cookie,'content-type':'application/json'},body:JSON.stringify({name:'synthetic-uptime-report-archive',kind:'email',address:'synthetic-uptime-archive@example.test'})});assert.equal(recipientResponse.status,201);const reportRecipient=await recipientResponse.json();
  const reportMonitor=(await env.DB.prepare('SELECT id FROM monitors ORDER BY id LIMIT 1').first()).id;
  const scheduledResponse=await fetch(origin+`/api/monitors/${encodeURIComponent(reportMonitor)}/report-schedules`,{method:'POST',headers:{origin,cookie,'content-type':'application/json'},body:JSON.stringify({dueAt:Date.now()+3600000,destinationId:reportRecipient.id,period:{period:'24h',timeZone:'America/Chicago'}})});assert.equal(scheduledResponse.status,201,await scheduledResponse.clone().text());const scheduled=await scheduledResponse.json();
+ await seedArchiveHistory({origin,cookie,db:env.DB});
  const original=await archive(env),a=tables(original);assert.ok(!JSON.stringify(original).includes('rer_migrations'));assert.deepEqual((await env.DB.prepare('SELECT * FROM rer_migrations').all()).results,sourceLedger);
  // A Slack body sent with workerd's zero-offset spelling exports as sent; the loops below restore and re-export it byte for byte.
  assert.match(JSON.parse(a.integration_deliveries.find(d=>d.id==='job-zero-offset').envelope).body,/Confirmed start \(UTC\): [^\\]+ GMT\+00:00\\n/);
@@ -71,6 +73,7 @@ try{
  await writeFile(file,JSON.stringify(original),{mode:0o600});assert.equal((await stat(file)).mode&0o777,0o600);assert.deepEqual(tables(JSON.parse(await readFile(file,'utf8'))),a);
  await migrate(target);env=await installation(target);const destinationLedger=await platformLedger(env.DB,'destination.sql');await restore(env,original);const roundtrip=await archive(env),b=tables(roundtrip);assert.deepEqual((await env.DB.prepare('SELECT * FROM rer_migrations').all()).results,destinationLedger,'ARCHIVE-ROUNDTRIP-001: preserve Platform destination migration history');
 
+ assert.deepEqual(b.source_history_rows,a.source_history_rows,'source history rows, source labels, batch IDs and digests round trip');assert.deepEqual(b.source_history_batches.map(r=>({...r,restored_at:null})),a.source_history_batches);assert.ok(b.source_history_batches.every(r=>r.restored_at!==null),'source batches restore inactive');
  assert.deepEqual(b.scheduled_reports,a.scheduled_reports.map(row=>({...row,actor_id:null})),'scheduled snapshot survives with inactive owner attribution');assert.equal(b.notification_jobs.find(job=>job.id===scheduled.deliveryId).state,'imported-inactive','restored report cannot send');
  for(const name of ['uptime_member_roles','uptime_member_scopes'])assert.equal((await env.DB.prepare(`SELECT COUNT(*) n FROM ${name}`).first()).n,0,'archive restore grants no receiving membership or scope');
  for(const name of ['migrations','observations','integration_attempts','integration_resolutions','integration_replays'])assert.deepEqual(b[name],a[name],`${name} retained byte for byte`);

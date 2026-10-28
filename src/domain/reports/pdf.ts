@@ -19,6 +19,13 @@ export async function reportPdf(report:MonitorReport,assets:Fetcher|undefined){
    pdf.text(`Revision ${segment.revision}: ${p.browser} / ${p.device} / ${p.viewport.width} x ${p.viewport.height}\n${at(segment.from)} to ${at(segment.to)}\nUptime: ${number(segment.availability.uptimePercent)}% / observed: ${duration(segment.availability.observedMs)} / not passing: ${duration(segment.availability.notPassingMs)} / Unknown: ${duration(segment.availability.unknownMs)}\nLatency samples: ${segment.latency.statistics.count} / p95: ${number(segment.latency.statistics.p95Ms)} ms`)
   }
  }
+ if(report.sourceHistory){
+  const h=report.sourceHistory
+  pdf.heading('Sourced history segments');pdf.text(h.policy);pdf.text(`Cutover: ${at(h.cutover.at)}`)
+  for(const s of [...h.segments,h.uptimeSegment])pdf.text(`${s.label}: ${number(s.uptimePercent)}% / denominator ${duration(s.denominatorMs)} / downtime ${duration(s.notPassingMs)}`)
+  if(h.blended)pdf.text(`${h.blended.label}: ${number(h.blended.uptimePercent)}% / denominator ${duration(h.blended.denominatorMs)}`)
+  for(const r of h.sourceIncidents)pdf.text(`${r.label}: ${at(r.startedAt)} to ${at(r.endedAt)} / ${r.durationSeconds??'Unknown'} seconds / source author: ${r.author||'not supplied'} / ${r.comments} / root cause: ${r.rootCause}`)
+ }
  pdf.heading('Availability and coverage')
  pdf.text(report.denominatorPolicy)
  for(const [label,key] of [['Uptime','uptimePercent'],['Healthy time','upMs'],['Not-passing time','notPassingMs'],['Observed denominator','observedMs'],['Unknown time','unknownMs'],['Paused time','pausedMs'],['Maintenance time','maintenanceMs'],['Entire period','windowMs']] as const){
