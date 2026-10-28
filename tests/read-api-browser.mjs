@@ -32,5 +32,5 @@ try{
   const incidents=await page.request.get(origin+'/api/v1/incidents?limit=1',{headers:{accept:'text/csv'}});assert.equal(incidents.status(),200);assert.match(incidents.headers()['content-type'],/text\/csv/);assert.ok(incidents.headers()['x-next-cursor']);
  }
  await context.clearCookies();const denied=await page.request.get(origin+'/api/v1/monitors');assert.equal(denied.status(),401);
- console.log('READAPI-001 browser subset PASS calendar report selections/downloads, exact bulk parity, paged incident CSV, anonymous OpenAPI and signed-out refusal; inspected 1440/390 reflow/axe/tree.');
+ console.log('READAPI-001/002/003 browser subset PASS calendar report selections/downloads, exact bulk parity, paged incident CSV, anonymous OpenAPI and signed-out refusal; inspected 1440/390 reflow/axe/tree.');
 }finally{await browser?.close();await worker?.dispose();await cleanupDirectory(directory)}

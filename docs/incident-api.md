@@ -1,6 +1,6 @@
 # Incident collaboration API and CLI
 
-This is the 23 October 2026 bounded INCIDENT-001 API/CLI slice. The original contract and receiving duties remain in CONTRACT.md and ACCEPTANCE.md. The public console upgrade is held; this document is source-only.
+This is the 23 October 2026 bounded API/CLI slice of INCIDENT-001 (comments), INCIDENT-002 (mentions), INCIDENT-003 (root cause) and INCIDENT-005 (custody). The original contract and receiving duties remain in CONTRACT.md and ACCEPTANCE.md. The public console upgrade is held; this document is source-only.
 
 Use a live native Base session with the edition's required second factor. The CLI reads `UPTIME_ACCESS_COOKIE` from its environment; keep it private. It neither accepts session credentials in arguments nor creates authority. Local development persona cookies are not native sessions; use the access/MFA session flow in docs/mfa.md.
 
@@ -24,7 +24,7 @@ Outcomes are `accepted`, `development`, `rejected`, `rate_limited`, `uncertain`,
 
 Run `node scripts/incidents.mjs --origin "$UPTIME_ORIGIN" read --id INCIDENT_ID`, or use `members` with optional `--query`. `comment`, `edit` and `root-cause` read their exact request JSON from standard input; `edit` also needs `--comment COMMENT_ID`. `delete` needs `--comment COMMENT_ID --version N`. Every command uses the same authenticated HTTP doors. For example, a private file containing `{"text":"restarted php-fpm","mentions":["MEMBER_ID"]}` can be supplied with `node scripts/incidents.mjs --origin "$UPTIME_ORIGIN" comment --id INCIDENT_ID < comment.json`. Output is private incident data; handle it as such.
 
-Remaining INCIDENT-001 gaps: held `public/incident-work.js` console workflows and visible mention outcomes; MOBILE-001 push; LAMP-001 preview/publication/corrections; sourced incumbent incident/comment/root-cause imports. Publication is unavailable, so comments reach only explicitly mentioned members and authorized incident reads/exports. This slice does not establish production mail acceptance or any provider consent.
+Remaining gaps: held `public/incident-work.js` console workflows and visible mention outcomes (INCIDENT-001 to INCIDENT-003); MOBILE-001 push (INCIDENT-002); LAMP-001 preview/publication/corrections (INCIDENT-004); sourced incumbent incident/comment/root-cause imports (INCIDENT-005). Publication is unavailable, so comments reach only explicitly mentioned members and authorized incident reads/exports. This slice does not establish production mail acceptance or any provider consent.
 
 Own monitor incidents may share an acknowledgment group when their owner-configured dependency, service or group matches and their confirmation times are within the larger of their confirmation windows (`intervalMs × confirmSlots`). This is correlation context, not evidence of a common cause. Unrelated and later incidents stay separate. Group acknowledgment changes response state, while each contact's selected stop-on-acknowledgment policy controls reminders. It never changes an observation or closes another monitor's machine incident. Scoped incident reads and group actions exclude monitors outside the actor's scope.
 

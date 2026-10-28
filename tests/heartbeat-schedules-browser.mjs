@@ -38,7 +38,7 @@ try{
   await page.goto(origin+'/app/archive');await page.locator('#definition-source').waitFor();await page.locator('#definition-source').selectOption('betterstack-heartbeats');await page.locator('#definition-text').fill(JSON.stringify({data:[{type:'heartbeat',attributes:{name:'Acme offsite copy',period:86400,grace:900}}]}));
   await page.getByRole('button',{name:'Preview',exact:true}).click();await page.locator('#definition-result .definition-source').waitFor();await shot(`heartbeat-import-${width}`,'#definition-result');
   await page.goto(origin+'/docs/heartbeat-jobs');await page.getByText(/Choose Cron in a time zone/).first().waitFor();await shot(`heartbeat-guide-${width}`,'main');
-  console.log(`HEARTBEAT-002 browser ${width}: cron save/reload, deadline preview, invalid-date refusal, one-time scheduler selection, focus, source preview, axe and reflow passed.`);
+  console.log(`HEARTBEAT-002/003/004 browser ${width}: cron save/reload, deadline preview, invalid-date refusal, one-time scheduler selection, focus, source preview, axe and reflow passed.`);
  }
  // The copied heartbeat command hands curl its receipt URL as one literal argument; the shell runs nothing the id spells.
  await page.goto(origin+`/app/monitors/${encodeURIComponent(importedId)}`);await page.locator('#issue-heartbeat-key').click();await page.getByRole('button',{name:'Issue key',exact:true}).click();

@@ -166,7 +166,7 @@ try{
  assert.equal((await fetch(origin+'/api/v1/incidents?limit=101',{headers:{cookie}})).status,400);
  worker=await proveScheduledReports({worker,persist,origin,cookie,id,params,report});
  await proveRecurringReports();
- console.log('REPORT-001 / READAPI-001 passed: owner period reports, full immutable coverage and incident overlap, SLA denominator, exact CSV/API/console figures, location latency percentiles at every resolution, Chicago DST validation, and oversized raw-series refusal.');
+ console.log('REPORT-001 / READAPI-002 passed: owner period reports, full immutable coverage and incident overlap, SLA denominator, exact CSV/API/console figures, location latency percentiles at every resolution, Chicago DST validation, and oversized raw-series refusal.');
 }finally{
  await worker?.dispose();
  await rm(persist,{recursive:true,force:true});

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "old": "a492c68b79754ded94cf5a75e9564c29a50f3215",
+  "old": "dc096c027d5172b1c9ff64afea2c7f76faf4bcef",
   "ids": {
     "HTTP-001": {
       "how": "kept",
@@ -219,9 +219,11 @@
       ]
     },
     "HEARTBEAT-002": {
-      "how": "kept",
+      "how": "split",
       "to": [
-        "HEARTBEAT-002"
+        "HEARTBEAT-002",
+        "HEARTBEAT-003",
+        "HEARTBEAT-004"
       ]
     },
     "SCHEDULE-001": {
@@ -339,9 +341,13 @@
       ]
     },
     "INCIDENT-001": {
-      "how": "kept",
+      "how": "split",
       "to": [
-        "INCIDENT-001"
+        "INCIDENT-001",
+        "INCIDENT-002",
+        "INCIDENT-003",
+        "INCIDENT-004",
+        "INCIDENT-005"
       ]
     },
     "NOTICE-001": {
@@ -405,9 +411,11 @@
       ]
     },
     "READAPI-001": {
-      "how": "kept",
+      "how": "split",
       "to": [
-        "READAPI-001"
+        "READAPI-001",
+        "READAPI-002",
+        "READAPI-003"
       ]
     },
     "CODE-001": {

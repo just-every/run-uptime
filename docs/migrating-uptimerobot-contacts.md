@@ -28,5 +28,5 @@ destination and consent are reviewed. This response supplies no login role.
 Incident comments and root cause are absent from these contact lists. The current
 published API exposes `/incidents/{id}/comments` and `IncidentDetailDto.rootCause`
 separately; importing them as labelled source history remains a HISTORY-001 and
-INCIDENT-001 gap. Live extraction, full contact apply, sibling handoffs and account
+INCIDENT-005 gap. Live extraction, full contact apply, sibling handoffs and account
 cutover remain unimplemented. Nothing here uses a provider account or grants send authority.

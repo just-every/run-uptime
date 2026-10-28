@@ -36,6 +36,7 @@
         "UDP-001",
         "PRIVATE-001",
         "HEARTBEAT-002",
+        "HEARTBEAT-003",
         "FLOW-004",
         "PING-001",
         "METRICS-001",
@@ -43,6 +44,8 @@
         "DIAG-001",
         "FLOW-001",
         "READAPI-001",
+        "READAPI-002",
+        "READAPI-003",
         "API-003",
         "MAIL-001"
       ]

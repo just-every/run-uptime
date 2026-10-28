@@ -84,5 +84,5 @@ try{
  const audits=(await f.DB.prepare("SELECT * FROM uptime_audit WHERE action LIKE 'incident_%'").all()).results;assert.ok(audits.length);assert.ok(!JSON.stringify(audits).includes('php-fpm'),'audit contains opaque references only');
  await proveOwnIncidentCorrelation(f);
  await proveCombinedIncident();
- console.log('INCIDENT-001 / FOLLOWUP-001 / READAPI-001 PASS scoped responder/editor/admin collaboration, live member/key refusal, single-attempt mentions, optimistic edits, category filters, distinct human and machine resolution, restart, archive and erasure through real Worker routes.');
+ console.log('INCIDENT-001/002/003/005 / FOLLOWUP-001 / READAPI-001/003 PASS scoped responder/editor/admin collaboration, live member/key refusal, single-attempt mentions, optimistic edits, category filters, distinct human and machine resolution, restart, archive and erasure through real Worker routes.');
 }finally{await fresh?.dispose();await resumed?.dispose();await f.close();await rm(destination,{recursive:true,force:true})}
