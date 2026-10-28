@@ -1361,6 +1361,7 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
 5. `uptime.destinations.update` adds destructive when it removes a destination, with the item count per table erased; creating, rotating or disabling a destination does not add destructive.
 6. `uptime.settings.update` adds destructive when it shortens snapshot retention, with the count of retained snapshots whose expiry is shortened; leaving retention unchanged or increasing it does not add destructive for retention and never restores an expiry already shortened.
 7. `uptime.definitions.apply` adds destructive when code-managed destruction irreversibly erases a monitor, its evidence or another managed record, with the item count per table; a preview or a reversible definition change does not add destructive.
+8. `uptime.monitors.check` adds destructive when the monitor holds an active destructive-write grant, with the step and item count; a manual check without such a grant does not add destructive.
 
 **Evidence.** None.
 **Gap.** No implementation: no tool declares or computes access, destructive or gated classes, and no incident record attributes an agent act.
