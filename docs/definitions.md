@@ -244,17 +244,15 @@ Files are UTF-8, at most 2 MiB and 5,000 source rows per import; exceeding eithe
 
 UptimeRobot does not publish a fixed CSV header. Accepted column vocabulary (case-insensitive) is:
 
-| Value | Accepted columns |
-| --- | --- |
-| Source monitor ID | `Monitor ID`, `monitor_id`, `monitorId` |
-| Display name | `Monitor`, `Monitor Name`, `friendlyName`, `Friendly Name` |
-| Event | `Event`, `Status`, `Type`: `Down`/`Up` or `1`/`2` |
-| Timestamp | `Date-Time`, `Date Time`, `DateTime`, `Date`, `Time`, `Timestamp` |
-| Explicit end | `Resolved At`, `resolved_at`, `resolvedAt`, `End Time`, `Ended At` |
-| Source row ID | `ID`, `Log ID`, `Incident ID`, `Source Row ID` |
-| Source duration | `Duration`, `Duration Seconds`: seconds or `HH:MM:SS` |
-| Source text | `Reason`, `Root Cause`, `Author`, `Source Author`, `Comment`, `Comments` |
-| Capture metadata | `Exported At`, `Extracted At`, `Period Start`, `Coverage From`, `Period End`, `Coverage To` |
+- **Source monitor ID:** `Monitor ID`, `monitor_id`, `monitorId`.
+- **Display name:** `Monitor`, `Monitor Name`, `friendlyName`, `Friendly Name`.
+- **Event:** `Event`, `Status`, `Type`: `Down`/`Up` or `1`/`2`.
+- **Timestamp:** `Date-Time`, `Date Time`, `DateTime`, `Date`, `Time`, `Timestamp`.
+- **Explicit end:** `Resolved At`, `resolved_at`, `resolvedAt`, `End Time`, `Ended At`.
+- **Source row ID:** `ID`, `Log ID`, `Incident ID`, `Source Row ID`.
+- **Source duration:** `Duration`, `Duration Seconds`: seconds or `HH:MM:SS`.
+- **Source text:** `Reason`, `Root Cause`, `Author`, `Source Author`, `Comment`, `Comments`.
+- **Capture metadata:** `Exported At`, `Extracted At`, `Period Start`, `Coverage From`, `Period End`, `Coverage To`.
 
 Unknown or repeated headers refuse by name. Source identities are bounded to 256 characters and each retained source-text field (including a combined comment thread) to 20,000 characters; longer values refuse by row rather than being truncated. Down/Up pairs use their exact timestamps; a stated duration never invents an end time. An unresolved final Down retains a null end. Without row IDs, a digest of the source row provides identity. Mapping uses the migrated source ID, never a display-name guess. For a per-monitor CSV without an ID column, provide `sourceMonitorId` in the request. `extractedAt`, `coverageFrom` and `coverageTo` may supply explicit capture context; export/extraction time is required for apply, and coverage bounds must be supplied together. They must agree with file columns. Without a declared range, only the interval between that monitor's earliest and latest source timestamps is covered. A missing export/extraction time is named in the preview and refuses apply until supplied; import receipt time is stored separately.
 
