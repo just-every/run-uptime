@@ -1,7 +1,8 @@
 import type {Bindings} from '../domain/control.server.ts'
 import type {ToolContext,Principal} from '../base/modules/agent-door/index.ts'
 import {authority} from './authority.server.ts'
-import {uptimeAgentDoor} from './index.server.ts'
+// Native helpers also run under Node; load the Worker composition only for agent work.
+const agentDoor=async(env:Bindings)=>(await import('./index.server.ts')).uptimeAgentDoor(env)
 export type SavedPrincipal={person:{id:string};agent:Principal['agent'];scopes:string[];clientId?:string;consent?:string;attribution?:ToolContext['actor'];approvers?:{id:string;name:string}[]}
 export const delegation=(c:ToolContext):SavedPrincipal=>({person:{id:c.person.id},agent:{...c.agent},scopes:[...c.scopes],attribution:c.actor,approvers:c.approvers.map(person=>({...person})),...(c.clientId?{clientId:c.clientId}:{}),...(c.consent?{consent:c.consent}:{})})
 // A claimed task is handed to its authenticated runner once, just like native
@@ -28,7 +29,7 @@ export async function agentRunnerTask(env:Bindings,runnerId:string,monitorId:str
   // Re-read native admission even when the Base outcome is a completed replay.
   // Base separately checks current Pause, policy, scopes and consent at invoke.
   await authority(env,{...who,person},'respond',[pending.monitor_id])
-  const outcome=await uptimeAgentDoor(env).invoke('uptime.checks.dispatch',JSON.parse(pending.args),who)
+  const outcome=await (await agentDoor(env)).invoke('uptime.checks.dispatch',JSON.parse(pending.args),who)
   if(outcome.outcome==='pending')return null
   const mark=await env.DB.prepare('UPDATE uptime_agent_handoffs SET delivered_at=? WHERE id=? AND delivered_at IS NULL RETURNING id').bind(Date.now(),pending.id).all()
   if(!mark.results.length||outcome.outcome!=='done')return null
@@ -43,7 +44,7 @@ export async function notificationAdmission(env:Bindings,id:string){
  try{
   const access=await authority(env,{...who,person},'secret_write',[],undefined,true)
   const row=await env.DB.prepare('SELECT destination_id,credential_id FROM notification_jobs WHERE id=?').bind(id).first<any>();if(!row)return {allowed:false as const}
-  const answer=await uptimeAgentDoor(env).invoke('uptime.destinations.dispatch',{id:row.destination_id,delivery_id:id,credential_id:row.credential_id,idempotency_key:'dispatch:'+id+':'+row.credential_id},who)
+  const answer=await (await agentDoor(env)).invoke('uptime.destinations.dispatch',{id:row.destination_id,delivery_id:id,credential_id:row.credential_id,idempotency_key:'dispatch:'+id+':'+row.credential_id},who)
   return answer.outcome==='done'?{allowed:true as const,access}:{allowed:false as const}
  }catch{return {allowed:false as const}}
 }
@@ -53,7 +54,7 @@ export async function agentDiscoveryTask(env:Bindings,runnerId:string){
  const who:SavedPrincipal=JSON.parse(row.principal),person=await (await import('./authority.server.ts')).nativePerson(env,who.person.id)
  if(!person)return null
  try{await authority(env,{...who,person},'discovery_write',[],undefined,true)
-  const answer=await uptimeAgentDoor(env).invoke('uptime.discovery.dispatch',{id:row.id,runner_id:runnerId,idempotency_key:'discovery:'+row.id+':'+runnerId},who)
+  const answer=await (await agentDoor(env)).invoke('uptime.discovery.dispatch',{id:row.id,runner_id:runnerId,idempotency_key:'discovery:'+row.id+':'+runnerId},who)
   if(answer.outcome!=='done')return null
   const marked=await env.DB.prepare('UPDATE uptime_agent_discoveries SET delivered_at=? WHERE id=? AND delivered_at IS NULL RETURNING id').bind(Date.now(),row.id).all()
   return marked.results.length?(answer.result as any)?.job??null:null

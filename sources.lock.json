@@ -4340,7 +4340,7 @@
       "executable": false
     },
     "src/agent-door/work.server.ts": {
-      "sha256": "dbbc862289b4acbba862d9e1fccb9e1930a0bfa3d776503f42eebd701c0a4ccc",
+      "sha256": "3eff689521e508a4563dc4b5ae69289aa928f05bae9b645df6aed936e722559b",
       "executable": false
     },
     "src/base/contract-filter.ts": {
@@ -8036,7 +8036,7 @@
       "executable": false
     },
     "src/server.dev.ts": {
-      "sha256": "ace6a94698fd4fb0781e371f7ce82322d2fff875ea9d0617586846772f8a39a3",
+      "sha256": "8b7ce0bf027547665c2bbb06aad53597cea1cb67a18e48dec57eab9ee6cc27fb",
       "executable": false
     },
     "src/server.ts": {
