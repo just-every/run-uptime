@@ -81,6 +81,7 @@ import {operatorSession,authenticatedSession} from './domain/operator-auth.serve
 import {accessDeniedDocument} from './domain/access-document.server.ts'
 import {boundedHealth,health} from './domain/health.server.ts'
 import {permission,accessResponse,type Access} from './domain/access.server.ts'
+import {checkSecondFactor} from './domain/mfa/policy.server.ts'
 import {authorizedDatabase,auditAccess} from './domain/access-database.server.ts'
 import {accessMembers} from './domain/access-members.server.ts'
 import {monitorEditor} from './domain/monitor-editor.server.ts'
@@ -131,7 +132,9 @@ api.use('/api/*',async(c,next)=>{
  }else{
   let input;try{input=JSON.parse(c.get('requestText')||'{}')}catch{/* The schema boundary returns the input error. */}
   try{
-   const access=await permission(c.env,c.req.raw,input)
+   const addWithRoute=/^\/api\/catalog\/add\/(preview|apply)$/.test(c.req.path)&&(input?.alertRoute!==undefined||input?.defaults?.alertRoute!==undefined)
+   const access=await permission(c.env,c.req.raw,input,addWithRoute?{action:'owner',workspace:true}:undefined)
+   if(addWithRoute){await checkSecondFactor(c.env,access.session,true);access.fresh=true}
    c.set('access',access)
    if(!['read','export'].includes(access.action)&&!c.req.path.startsWith('/api/access/')&&!/^\/api\/(?:monitors|operators)\/[^/]+\/erase$/.test(c.req.path)&&!(c.req.method==='DELETE'&&c.req.path.startsWith('/api/notifications/destinations/')))c.env={...c.env,DB:authorizedDatabase(c.env,access)}
   }catch(error){const denied=accessResponse(error);if(denied)return denied;throw error}

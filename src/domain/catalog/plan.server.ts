@@ -6,19 +6,20 @@ import {publicTarget} from '../public-target.mjs'
 import {keptAssignments} from '../definitions/plan.server.ts'
 import {addInput,bulkInput,csvInterval,metadata} from './input.ts'
 import {assigned,capacity,catalogContext,checkDependencies,digestFor,publicChecks,quota,reason,same,type Context} from './context.server.ts'
+import {catalogAddRoute,addRouteView,addRouteRecipients,checkAddRoute,type AddRoute} from './add-route.server.ts'
 
-export type CatalogEntry={index:number;label:string;action:'create'|'change'|'unchanged'|'duplicate'|'refused';selected?:boolean;name?:string;reason?:string;monitorId?:string;revision?:number;sourceMonitorId?:string;sourceRevision?:number;duplicateIndex?:number;definition?:any;differences:string[];changes?:{field:string;from:any;to:any}[]}
-export type CatalogPlan={source:string;digest:string;context:Context;entries:CatalogEntry[];counts:Record<CatalogEntry['action'],number>&{excluded?:number};unsupported:string[]}
+export type CatalogEntry={index:number;label:string;action:'create'|'change'|'unchanged'|'duplicate'|'refused';selected?:boolean;name?:string;reason?:string;monitorId?:string;revision?:number;sourceMonitorId?:string;sourceRevision?:number;duplicateIndex?:number;definition?:any;alertRoute?:Awaited<ReturnType<typeof addRouteRecipients>>;differences:string[];changes?:{field:string;from:any;to:any}[]}
+export type CatalogPlan={source:string;digest:string;context:Context;entries:CatalogEntry[];counts:Record<CatalogEntry['action'],number>&{excluded?:number};unsupported:string[];alertRoute?:AddRoute}
 const checked=(input:any,env:Bindings)=>({...validateDefinition(input,grants(env)),...metadata(input)})
 const canonicalUrl=(value:string)=>{const url=new URL(value);url.hostname=url.hostname.toLowerCase().replace(/\.$/,'');return url.href}
 const defaultName=(url:URL)=>`${url.hostname}${url.pathname==='/'?'':url.pathname}`.slice(0,100)
-async function finish(context:Context,input:any,source:string,entries:CatalogEntry[],unsupported:string[]):Promise<CatalogPlan>{
+async function finish(context:Context,input:any,source:string,entries:CatalogEntry[],unsupported:string[],alertRoute?:AddRoute):Promise<CatalogPlan>{
  const counts:CatalogPlan['counts']={create:0,change:0,unchanged:0,duplicate:0,refused:0,...(source.startsWith('catalog.add.')?{excluded:0}:{})}
  for(const entry of entries)if(entry.action==='create'&&entry.selected===false)counts.excluded!++;else counts[entry.action]++
- return {source,digest:await digestFor(context,input,source,entries),context,entries,counts,unsupported}
+ return {source,digest:await digestFor(context,input,source,entries,alertRoute),context,entries,counts,unsupported,alertRoute}
 }
 export async function planCatalogAdd(env:Bindings,input:any){
- const {rows,base,selected,enabled,unsupported}=addInput(input),context=await catalogContext(env),checkPublic=publicChecks(),entries:CatalogEntry[]=[]
+ const {rows,base,selected,enabled,unsupported,alertRoute:routeId}=addInput(input),context=await catalogContext(env),alertRoute=await catalogAddRoute(env,routeId),checkPublic=publicChecks(),entries:CatalogEntry[]=[]
  const urls=new Map<string,{monitorId?:string;index?:number;name:string}>()
  for(const monitor of context.monitors)if(monitor.definition.url&&['http','keyword','flow'].includes(monitor.definition.type))urls.set(canonicalUrl(monitor.definition.url),{monitorId:monitor.id,name:monitor.definition.name})
  let creates=0
@@ -39,11 +40,12 @@ export async function planCatalogAdd(env:Bindings,input:any){
    if(chosen)capacity(context,creates,0,definition)
    const ready=assigned(env,context,definition,{assignments:definition.assignments})
    await checkPublic(ready)
-   entries.push({index,label,name:definition.name,action:'create',selected:chosen,definition:ready,differences:[...unsupported]})
+   entries.push({index,label,name:definition.name,action:'create',selected:chosen,definition:ready,...(alertRoute?{alertRoute:await addRouteRecipients(env,alertRoute,ready)}:{}),differences:[...unsupported]})
    if(chosen){urls.set(key,{index,name:definition.name});creates++}
   }catch(error){entries.push({index,label,action:'refused',selected:false,reason:reason(error),differences:[]})}
  }
- return finish(context,input,`catalog.add.${input.format}`,entries.sort((a,b)=>a.index-b.index),unsupported)
+ await checkAddRoute(env,alertRoute)
+ return finish(context,input,`catalog.add.${input.format}`,entries.sort((a,b)=>a.index-b.index),unsupported,alertRoute)
 }
 export async function planCatalogBulk(env:Bindings,input:any){
  const {ids,action,changes,enabled,unsupported}=bulkInput(input),context=await catalogContext(env),checkPublic=publicChecks(),entries:CatalogEntry[]=[]
@@ -76,7 +78,7 @@ export function catalogView(plan:CatalogPlan){
  for(const entry of plan.entries)if(entry.action==='change')projected.set(entry.monitorId!,entry.definition)
  const creates=plan.entries.filter(e=>e.action==='create'&&e.selected!==false).map(e=>e.definition),all=[...projected.values(),...creates]
  const scheduled=all.reduce((sum,d)=>sum+(d.enabled?checks(d):0),0),configured=all.reduce((sum,d)=>sum+checks(d),0)
- return {kind:'catalog',source:plan.source,digest:plan.digest,counts:plan.counts,unsupported:plan.unsupported,quota:quota(plan.context,plan.counts.create),
+ return {kind:'catalog',source:plan.source,digest:plan.digest,counts:plan.counts,unsupported:plan.unsupported,...(plan.alertRoute?{alertRoute:addRouteView(plan.alertRoute)}:{}),quota:quota(plan.context,plan.counts.create),
   projectedChecksPerDay:scheduled,configuredChecksPerDay:configured,traffic:{scheduledChecksPerDay:scheduled,configuredChecksPerDay:configured,includesRetries:false,includesExternalChecks:false,note:'Scheduled target checks at the configured locations; retries, redirects, external checks and browser subrequests can add traffic.'},
   cost:{currency:'USD',status:'unpriced',amount:null,reason:'COST-001 pricing is not implemented. A USD estimate is unavailable.'},
   entries:plan.entries.map(({definition,...entry})=>({...entry,...(definition?{target:definition}:{})}))}

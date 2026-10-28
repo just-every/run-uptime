@@ -17,6 +17,9 @@ export function addInput(input:any){
  // A JSON string can contain a lone surrogate, which is not a UTF-8 source character.
  if(new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(new TextEncoder().encode(input.text))!==input.text)fail('The file is not UTF-8 text.')
  const defaults=fields(input.defaults??{},['type','intervalMs','locations','probes','assignments','keyword','alertRoute',...metadataFields],'shared default')
+ if(input.alertRoute!==undefined&&defaults.alertRoute!==undefined)fail('Choose the shared alert route once, in defaults or at the top level.')
+ const alertRoute=input.alertRoute??defaults.alertRoute
+ if(alertRoute!==undefined&&(typeof alertRoute!=='string'||!alertRoute||alertRoute.length>512||/[\x00-\x1f\x7f]/.test(alertRoute)))fail('Choose an existing named alert route ID.')
  if(defaults.locations!==undefined&&defaults.probes!==undefined)fail('Use locations or probes, not both.')
  // `assignments` names the runner of each probe (the console's Check from); without it the probes take runners in order.
  const base={...metadata(defaults),type:defaults.type??'http',intervalMs:defaults.intervalMs??60000,probes:defaults.locations??defaults.probes??['local-a'],...(defaults.assignments!==undefined?{assignments:defaults.assignments}:{}),...(defaults.keyword!==undefined?{keyword:defaults.keyword}:{})}
@@ -25,7 +28,7 @@ export function addInput(input:any){
  if(!rows.length)fail('Add at least one URL.')
  if(rows.length>500)fail(`The input lists ${rows.length} rows; at most 500 rows are accepted. The installation monitor limit still applies.`)
  if(input.selectedIndexes!==undefined&&(!Array.isArray(input.selectedIndexes)||input.selectedIndexes.some((index:any)=>!Number.isInteger(index)||index<0||index>=rows.length)||new Set(input.selectedIndexes).size!==input.selectedIndexes.length))fail('selectedIndexes must list distinct row indexes from this input.')
- return {base,rows,selected:input.selectedIndexes===undefined?null:new Set<number>(input.selectedIndexes),enabled:enabledFlag(input),unsupported:input.alertRoute!==undefined||defaults.alertRoute!==undefined?['Alert routes are unsupported. These monitors use the installation-wide notification destinations; no per-monitor route will be saved.']:[]}
+ return {base,rows,alertRoute,selected:input.selectedIndexes===undefined?null:new Set<number>(input.selectedIndexes),enabled:enabledFlag(input),unsupported:[] as string[]}
 }
 export function bulkInput(input:any){
  fields(input,['monitorIds','action','changes','enableAfterCreate','alertRoute'],'catalog bulk')

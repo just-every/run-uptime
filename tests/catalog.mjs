@@ -36,21 +36,36 @@ test('MONITOR-001 catalog adds, metadata, lifecycle and undo keep reviewed revis
   const undo=batchId=>ok(`/api/definitions/batches/${batchId}/undo`,{});
   const monitor=async id=>{const row=await DB.prepare('SELECT * FROM monitors WHERE id=?').bind(id).first();return {...row,definition:JSON.parse(row.definition)}};
 
-  await ok('/api/external-check',{url:'https://93.184.216.35/'});
+  await ok('/api/external-check',{url:`http://93.184.216.35:${edgePort}/canary`});
   const seed=await ok('/api/monitors',{name:'Production checkout',url:'https://93.184.216.34/seed',enabled:false,project:'Shop',environment:'production',owner:'Payments team',outcome:'Customers can complete checkout',tags:['checkout']});
+  const routeContacts=[];
+  for(const [name,enabled] of [['Selected',true],['Disabled',false],['Unselected',true]])routeContacts.push(await ok('/api/notifications/destinations',{name,kind:'webhook',url:`https://catalog.example.test/${name.toLowerCase()}`,enabled}));
+  const policy={scope:'monitor',mode:'selected',destinationIds:routeContacts.slice(0,2).map(d=>d.id),expectedRevision:0};
+  const policyPreview=await ok(`/api/monitors/${seed.id}/alert-route/preview`,policy);
+  await ok(`/api/monitors/${seed.id}/alert-route/apply`,{...policy,digest:policyPreview.digest});
+  const named=await ok('/api/routing/named-routes',{name:'Payments',monitorId:seed.id});
   const defaults={intervalMs:60000,locations:['local-a','local-b'],project:'Shop',environment:'staging',owner:'Payments team',tags:['catalog'],dependencies:[seed.id]};
-  const urls=Array.from({length:47},(_,i)=>`https://93.184.216.34/batch/${i}`);
-  const input={format:'urls',text:[...urls,'https://93.184.216.34:443/seed','invalid URL','http://10.0.0.8/'].join('\n'),defaults,enableAfterCreate:true,alertRoute:'payments'};
+  const urls=Array.from({length:47},(_,i)=>`http://93.184.216.34:${edgePort}/batch/${i}`);
+  const input={format:'urls',text:[...urls,'https://93.184.216.34:443/seed','invalid URL','http://10.0.0.8/'].join('\n'),defaults,enableAfterCreate:true,alertRoute:named.id};
   const plan=await unchanged(()=>preview(input,true));
   assert.deepEqual(plan.counts,{create:47,change:0,unchanged:0,duplicate:1,refused:2,excluded:0});
   assert.equal(plan.entries[47].monitorId,seed.id);
   assert.equal(plan.quota.used,1);assert.equal(plan.quota.after,48);
   assert.equal(plan.cost.currency,'USD');assert.equal(plan.cost.status,'unpriced');assert.equal(plan.cost.amount,null);
-  assert.ok(plan.unsupported.length,'an unsupported alert route is explicitly disclosed');
+  assert.equal(plan.unsupported.length,0);
+  assert.equal(plan.alertRoute.id,named.id);assert.deepEqual(plan.alertRoute.policy,named.policy);
+  assert.match(plan.alertRoute.warning,/consent and confirmation remain unchanged/);
+  for(const entry of plan.entries.filter(e=>e.action==='create')){
+   assert.deepEqual(entry.target.probes,['local-a','local-b']);assert.equal(entry.alertRoute.readyCount,1);
+   assert.deepEqual(entry.alertRoute.effective.destinationIds,policyPreview.current.destinationIds);
+   assert.equal(entry.alertRoute.recipients.find(d=>d.id===routeContacts[1].id).reason,'disabled');
+   assert.equal(entry.alertRoute.recipients.find(d=>d.id===routeContacts[2].id).reason,'not_selected');
+  }
   assert.equal(plan.projectedChecksPerDay,47*2*1440);
   for(const entry of plan.entries.filter(e=>e.action==='refused'))assert.ok(entry.reason);
   const csv={...input,format:'csv',text:'url,name,tags,group\n'+[...urls.map((url,i)=>`${url},Row ${i},"row|checkout",Shop`),'https://93.184.216.34:443/seed,Existing,,','invalid URL,Bad,,','http://10.0.0.8/,Private,,'].join('\n')};
   const csvPlan=await unchanged(()=>preview(csv,true));assert.deepEqual(csvPlan.counts,plan.counts);
+  assert.deepEqual(csvPlan.alertRoute,plan.alertRoute);assert.deepEqual(csvPlan.entries[0].alertRoute,plan.entries[0].alertRoute);
   assert.deepEqual(csvPlan.entries[0].target.tags,['row','checkout']);assert.equal(csvPlan.entries[0].target.group,'Shop');
   const selection=await unchanged(()=>preview({...input,selectedIndexes:[0,2]},true));assert.equal(selection.counts.create,2);assert.equal(selection.counts.excluded,45);assert.equal(selection.quota.after,3);assert.equal(selection.entries[1].selected,false);
   const emptySelection=await unchanged(()=>preview({...input,selectedIndexes:[]},true));assert.equal(emptySelection.counts.create,0);
@@ -71,10 +86,18 @@ test('MONITOR-001 catalog adds, metadata, lifecycle and undo keep reviewed revis
   assert.equal(afterApply.monitors.length,beforeApply.monitors.length+47);
   assert.equal(afterApply.definition_batches.length,beforeApply.definition_batches.length+1);
   assert.equal(afterApply.definition_batch_entries.length,beforeApply.definition_batch_entries.length+47);
-  for(const id of added.created){const current=await monitor(id);assert.equal(current.definition.enabled,true);assert.ok(current.next_due<=Date.now());assert.equal(current.definition.environment,'staging');assert.deepEqual(current.definition.dependencies,[seed.id]);}
+  for(const id of added.created){const current=await monitor(id);assert.equal(current.definition.enabled,true);assert.ok(current.next_due<=Date.now());assert.equal(current.definition.environment,'staging');assert.deepEqual(current.definition.dependencies,[seed.id]);const saved=await ok(`/api/monitors/${id}/alert-route`);assert.equal(saved.policies[0].namedRouteId,named.id);assert.deepEqual(saved.effective.destinationIds,named.policy.destinationIds);}
   const selected=added.created[0],first=afterApply.runners.find(r=>r.legacy_key);
-  const task=await ok('/api/runner/claim',{}, {headers:{'x-runner-key':testAuthBindings.UPTIME_RUNNER_KEY,'x-runner-id':first.runner_id}});
-  assert.ok(task.task,'an enabled batch has its first scheduled slot ready');
+  const checked=new Set();
+  for(let i=0;i<47;i++){
+   const {task}=await ok('/api/runner/claim',{}, {headers:{'x-runner-key':testAuthBindings.UPTIME_RUNNER_KEY,'x-runner-id':first.runner_id}});
+   assert.ok(task,'each enabled monitor has its first scheduled slot ready');assert.ok(added.created.includes(task.monitorId));assert.ok(!checked.has(task.monitorId));checked.add(task.monitorId);
+   assert.deepEqual(task.probes,['local-a','local-b']);
+   const attempts=await Promise.all(task.probes.map(async probe=>{const observation=await executeTaskProbe(task,probe,{controlPort:port});assert.equal(observation.outcome,'pass');const canaryUrl=task.definition.assignments[probe].canaryUrl;return {...observation,attempt:0,canary:{...await executeTaskProbe({...task,definition:{...task.definition,url:canaryUrl,assertions:{status:200}}},probe,{controlPort:port,statusOnly:true}),attempt:0}}}));
+   const result={slotId:task.id,attempts},stamp=String(Date.now()),signature=createHmac('sha256',testAuthBindings.UPTIME_RUNNER_KEY).update(`${stamp}.${JSON.stringify(result)}`).digest('hex');
+   assert.equal((await ok('/api/runner/results',result,{headers:{'x-runner-key':testAuthBindings.UPTIME_RUNNER_KEY,'x-runner-id':first.runner_id,'x-sent-at':stamp,'x-runner-signature':signature}})).accepted,true);
+  }
+  assert.deepEqual(checked,new Set(added.created),'all 47 monitors produced first-slot work at both configured locations');
   let history=await DB.prepare('SELECT * FROM slots ORDER BY rowid').all();assert.ok(history.results.length);
   const edited=await bulk({monitorIds:[selected],action:'edit',changes:{project:'Storefront',tags:['release'],outcome:'Shoppers can pay'}});
   const editRevision=(await monitor(selected)).revision;assert.ok(editRevision>1);assert.equal((await monitor(selected)).definition.enabled,true);
@@ -100,7 +123,9 @@ test('MONITOR-001 catalog adds, metadata, lifecycle and undo keep reviewed revis
   history=await DB.prepare('SELECT * FROM slots ORDER BY rowid').all();
   await undo(cloned.batchId);assert.equal((await monitor(cloned.created[0])).definition.enabled,false);
   assert.deepEqual(await ok(`/api/monitors/${cloned.created[0]}/history`),cloneHistory,'undo retains the clone and every scheduled history record');
+  const routingHistory=(await scan()).alert_route_changes,selectedHistory=await ok(`/api/monitors/${selected}/history`);
   await undo(added.batchId);
+  assert.deepEqual((await scan()).alert_route_changes,routingHistory);assert.deepEqual(await ok(`/api/monitors/${selected}/history`),selectedHistory);
   for(const id of added.created.filter(id=>id!==selected))assert.equal((await monitor(id)).definition.enabled,false);
   assert.deepEqual((await DB.prepare('SELECT * FROM slots ORDER BY rowid').all()).results,history.results,'pause, clone and undo retain scheduled evidence');
   const exported=await ok('/api/definitions/export');assert.equal(exported.monitors.find(m=>m.url.endsWith('/seed')).owner,'Payments team');

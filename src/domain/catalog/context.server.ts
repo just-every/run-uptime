@@ -50,8 +50,8 @@ export function capacity(context:Context,creates:number,flowCreates:number,defin
 }
 export const reason=(error:unknown)=>error instanceof Error?error.message:'Invalid monitor.'
 export const same=(a:any,b:any)=>JSON.stringify(canonical(a))===JSON.stringify(canonical(b))
-export async function digestFor(context:Context,input:any,source:string,entries:any[]){
+export async function digestFor(context:Context,input:any,source:string,entries:any[],alertRoute?:unknown){
  return sha256(JSON.stringify(canonical({kind:'uptime.catalog',version:1,source,input,
   monitors:context.monitors.map(m=>({id:m.id,revision:m.revision,definition:m.definition})),
-  runners:context.runners.map(r=>({id:r.runner_id,label:r.network_label,revokedAt:r.revoked_at,legacy:r.legacy_key,capabilities:r.capabilities})),external:context.external,entries})))
+  runners:context.runners.map(r=>({id:r.runner_id,label:r.network_label,revokedAt:r.revoked_at,legacy:r.legacy_key,capabilities:r.capabilities})),external:context.external,entries,alertRoute})))
 }

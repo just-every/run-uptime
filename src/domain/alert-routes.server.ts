@@ -11,7 +11,7 @@ const gaps=['These routes apply to confirmed incident triggers and recoveries. E
 // No secrets: only policy, monitor revisions and destination/custody identity.
 // Fencing this snapshot makes the reviewed affected set and readiness atomic
 // with a policy edit, even when another operator changes a broader scope.
-const snapshotSql=`SELECT json_array(
+export const snapshotSql=`SELECT json_array(
  (SELECT json_group_array(json_array(scope_kind,scope_value,mode,destination_ids,contact_settings,fallback,team_ids,filters,quiet_hours,revision,updated_at,named_route_id)) FROM (SELECT * FROM alert_routes ORDER BY scope_kind,scope_value)),
  (SELECT json_group_array(json_array(id,revision,definition)) FROM (SELECT id,revision,definition FROM monitors ORDER BY id)),
  (SELECT json_group_array(json_array(id,name,kind,enabled,credential_id,deleted_at,cid,retired_at,unavailable_at,has_ciphertext,has_endpoint)) FROM
@@ -23,7 +23,7 @@ const snapshotSql=`SELECT json_array(
  ,(SELECT json_group_array(json_array(operator_id,role,base_role,base_version,revision)) FROM (SELECT * FROM uptime_member_roles ORDER BY operator_id))
  ,(SELECT json_group_array(json_array(operator_id,kind,value)) FROM (SELECT * FROM uptime_member_scopes ORDER BY operator_id,kind,value))
  ) snapshot`;
-async function snapshot(env:Bindings){return (await env.DB.prepare(snapshotSql).first<{snapshot:string}>())!.snapshot}
+export async function snapshot(env:Bindings){return (await env.DB.prepare(snapshotSql).first<{snapshot:string}>())!.snapshot}
 type Input={scope:RouteScope;mode:RoutePolicy['mode'];destinationIds:string[];contactSettings?:Record<string,any>;fallback:RoutePolicy['fallback'];teamIds?:string[];filters?:RoutePolicy['filters'];quietHours?:RoutePolicy['quietHours'];expectedRevision:number};
 function validate(input:any):Input{
  if(!input||Object.keys(input).some(k=>!['scope','mode','destinationIds','contactSettings','fallback','teamIds','filters','quietHours','expectedRevision'].includes(k))||!routeScopes.includes(input.scope))throw Error('Choose monitor, service, group or installation scope');
@@ -42,7 +42,7 @@ async function context(env:Bindings,monitorId:string,{readOnly=false}={}){
  const policies=routeScopes.map(scope=>{const value=scopeValue(scope,monitor);return rows.results.find(r=>r.scope_kind===scope&&r.scope_value===value)});
  return {monitor,rows:rows.results,policies:policies.map((row,i)=>row?routePolicy(row):defaultPolicy(routeScopes[i],scopeValue(routeScopes[i],monitor))),destinations:contacts};
 }
-function previewRecipients(policies:RoutePolicy[],contacts:any[],configured:boolean,candidates:any[]=[],sample?:RouteSample,environment?:string){
+export function previewRecipients(policies:RoutePolicy[],contacts:any[],configured:boolean,candidates:any[]=[],sample?:RouteSample,environment?:string){
  const effective=effectivePolicy(policies),ids=effective.destinationIds;
  const recipients=contacts.map(d=>{
   const team=candidates.filter(c=>c.destination_id===d.id&&effective.teamIds.includes(c.team_id)),direct=effective.mode==='all'||ids.includes(d.id),selected=direct||team.length>0;

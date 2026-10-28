@@ -54,6 +54,30 @@ export async function proveCatalogRoutes(){
   const single={routeId:named.id,monitorIds:[peer.id]},singlePreview=await cli('preview-batch',single),second=await cli('apply-batch',{...single,digest:singlePreview.digest});await route(peer.id,'selected',[]);const edited=await all();assert.equal((await f.request('/api/catalog/routes/undo',{body:{batchId:second.batchId}})).status,409);assert.deepEqual(await all(),edited,'manual edits cannot be overwritten by undo');
   const archive=await ok('/api/archive');for(const table of ['alert_named_routes','catalog_route_batches','catalog_route_batch_entries'])assert.equal(Object.hasOwn(archive.payload.productTables,table),false,'route assignment authority is installation-local');
   await ok(`/api/monitors/${peer.id}/erase`,{name:peer.definition.name});assert.equal((await f.DB.prepare('SELECT COUNT(*) n FROM catalog_route_batch_entries WHERE monitor_id=?').bind(peer.id).first()).n,0);assert.ok((await cli('named')).some(r=>r.id===named.id),'erasing a monitor retains independent named configuration');
+  await f.pause(selected);await f.pause(unassigned);
+  const add={format:'urls',text:`http://93.184.216.34:${f.port}/catalog`,defaults:{intervalMs:60000,locations:['local-a'],assignments:{'local-a':{runnerId:f.first.runnerId,canaryUrl:`http://93.184.216.35:${f.port}/canary`}},alertRoute:named.id},enableAfterCreate:true};
+  const addBefore=await all(),addPreview=await ok('/api/catalog/add/preview',add);assert.deepEqual(await all(),addBefore,'route-default review writes nothing');
+  assert.equal(addPreview.alertRoute.id,named.id);assert.equal(addPreview.entries[0].alertRoute.readyCount,1);
+  for(const cookie of [admin.cookie,unproved])for(const action of ['preview','apply']){
+   assert.equal((await f.request('/api/catalog/add/'+action,{body:{...add,...(action==='apply'?{digest:addPreview.digest}:{})},headers:{cookie}})).status,403);
+   assert.deepEqual(await all(),addBefore,'unauthorized creation with a route writes no monitor or recipient state');
+  }
+  await ok(`/api/notifications/destinations/${inbox.id}`,{name:inbox.name,enabled:false},{method:'PATCH'});
+  const disabled=await all();assert.equal((await f.request('/api/catalog/add/apply',{body:{...add,digest:addPreview.digest}})).status,409);assert.deepEqual(await all(),disabled,'changed recipient state refuses the whole create');
+  await ok(`/api/notifications/destinations/${inbox.id}`,{name:inbox.name,enabled:true},{method:'PATCH'});
+  const renamed=await cli('name-route',{name:'Synthetic alternate route',monitorId:source.id});
+  const freshAdd=await ok('/api/catalog/add/preview',add),changedRoute={...add,defaults:{...add.defaults,alertRoute:renamed.id}};
+  const routeBefore=await all();assert.equal((await f.request('/api/catalog/add/apply',{body:{...changedRoute,digest:freshAdd.digest}})).status,409);assert.deepEqual(await all(),routeBefore,'a changed route selection cannot reuse an approval');
+  const addMail=mail.length,added=await ok('/api/catalog/add/apply',{...add,digest:freshAdd.digest});assert.equal(added.created.length,1);assert.equal(mail.length,addMail);
+  const created=added.created[0],createdRoute=await ok(`/api/monitors/${created}/alert-route`);assert.equal(createdRoute.policies[0].namedRouteId,named.id);
+  const createdTask=await f.claim(f.first);assert.equal(createdTask.monitorId,created);assert.equal((await f.submit(f.first,createdTask,[await f.evidence(createdTask)])).status,200);
+  await dispatchNotifications(rpc);const createdDelivery=(await ok('/api/notifications')).deliveries.filter(d=>d.event.monitorId===created&&d.event.kind==='trigger');
+  assert.equal(createdDelivery.length,1);assert.equal(createdDelivery[0].destinationId,inbox.id);assert.equal(createdDelivery[0].state,'accepted');assert.equal(mail.length,addMail+1);
+  const createdHistory=await all();await ok(`/api/definitions/batches/${added.batchId}/undo`,{});const undoneAdd=await all();
+  for(const table of ['slots','observations','outbox','notification_jobs','alert_routes','alert_route_changes','alert_recipient_consents','alert_drills'])assert.deepEqual(undoneAdd[table],createdHistory[table],table+' retained by create-batch undo');
+  assert.equal(JSON.parse(undoneAdd.monitors.find(m=>m.id===created).definition).enabled,false);
+  const revoked=await emailSignIn(f.origin,{bindings:f.bindings});await ok('/api/auth/sign-out',{}, {headers:{cookie:revoked}});const revokedBefore=await all();
+  assert.equal((await f.request('/api/catalog/add/apply',{body:{...add,digest:freshAdd.digest},headers:{cookie:revoked}})).status,401);assert.deepEqual(await all(),revokedBefore,'a replayed revoked session cannot create monitors or routing authority');
   const inviting=await emailSignIn(f.origin,{bindings:f.bindings}),successor=await inviteDoorMember(f.origin,inviting,'owner','uptime-route-successor');await completeSecondFactor(f.origin,successor.cookie);
   const original=(await f.DB.prepare('SELECT id FROM oa_operators WHERE email=?').bind(f.bindings.OWNER_EMAIL).first()).id;await ok(`/api/operators/${original}/erase`,{},{headers:{cookie:successor.cookie}});assert.ok((await f.DB.prepare('SELECT actor_kind FROM catalog_route_batches').all()).results.every(r=>r.actor_kind==='anonymized'),'operator erasure anonymizes retained route batch ownership');
   assert.deepEqual((await f.DB.prepare('PRAGMA foreign_key_check').all()).results,[]);assert.equal((await f.DB.prepare('SELECT COUNT(*) n FROM uptime_mfa_factors WHERE operator_id=?').bind(successor.id).first()).n,1,'surviving owner keeps its own enrolled factor');

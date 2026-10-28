@@ -6,6 +6,7 @@ import {classifyStorage} from '../storage-error.ts'
 import {same} from './context.server.ts'
 import {fail} from './input.ts'
 import type {CatalogPlan} from './plan.server.ts'
+import {addRouteGuards,addRouteStatements} from './add-route.server.ts'
 
 const stale=()=>Object.assign(Error(STALE_PLAN),{status:409})
 export async function applyCatalogPlan(env:Bindings,plan:CatalogPlan,digest:unknown,actor:AuditActor){
@@ -14,6 +15,7 @@ export async function applyCatalogPlan(env:Bindings,plan:CatalogPlan,digest:unkn
  const accepted=plan.entries.filter(e=>(e.action==='create'||e.action==='change')&&e.selected!==false)
  if(!accepted.length)fail('This preview has nothing to create or change.')
  const context=plan.context,now=Date.now(),batchId=crypto.randomUUID(),statements:D1PreparedStatement[]=[]
+ if(plan.alertRoute)statements.push(...addRouteGuards(env,plan.alertRoute,actor))
  // Guard the whole reviewed catalog, including unrelated monitors. A same-count erase/create also fails.
  statements.push(mutationGuard(env,'(SELECT COUNT(*) FROM monitors)=?',[context.monitors.length]))
  for(const monitor of context.monitors)statements.push(mutationGuard(env,'EXISTS(SELECT 1 FROM monitors WHERE id=? AND revision=?)',[monitor.id,monitor.revision]))
@@ -31,6 +33,7 @@ export async function applyCatalogPlan(env:Bindings,plan:CatalogPlan,digest:unkn
   if(definition.type==='flow'&&old?.definition.type!=='flow')addsFlows++
   const revision=await revisionStatements(env,definition,old,key,now,actor,{keepHeartbeatToken:true})
   statements.push(...revision.statements)
+  if(plan.alertRoute)statements.push(...addRouteStatements(env,plan.alertRoute,key,actor,now))
   written.push({monitorId:key,action:entry.action as 'create'|'change',revision:revision.revision,previous:old?.revision??null})
  }
  statements.push(env.DB.prepare('INSERT INTO definition_batches(id,created_at,actor_kind,actor_ref,source,plan_digest,counts) VALUES(?,?,?,?,?,?,?)').bind(batchId,now,actor.kind,actor.ref,plan.source,plan.digest,JSON.stringify(plan.counts)))

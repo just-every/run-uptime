@@ -6239,7 +6239,7 @@
       "executable": false
     },
     "src/domain/alert-routes.server.ts": {
-      "sha256": "632c004430f01f43953463b5e10923910af11b106775e49173e1b1d0fe4a6623",
+      "sha256": "96f30f5fa1176b94a00c36d2ffe285fa4007cfffd5cd937243ab139bc3c7ab20",
       "executable": false
     },
     "src/domain/alert-team-policy.ts": {
@@ -6426,20 +6426,24 @@
       "sha256": "5dbe863a287f704ed0dcf52899cc1cee774b7791edb8ce56a2c88109f06936d9",
       "executable": false
     },
+    "src/domain/catalog/add-route.server.ts": {
+      "sha256": "eb84a1080e722cc055cb572fbcd2ddbeaeffdbc61e466735749750c9d63429eb",
+      "executable": false
+    },
     "src/domain/catalog/apply.server.ts": {
-      "sha256": "9b2f9d654b2f617e170c38a8bdb855c22abeb7e30180b78ba0dee5dfb0fcf224",
+      "sha256": "99e898d17dbc126d88dde495b65e552a7db2e98dcd3838d370770809e0af2e3d",
       "executable": false
     },
     "src/domain/catalog/context.server.ts": {
-      "sha256": "c1c329b309311473b472955e3910a66ea785b2593fa9b03a033109806f271eae",
+      "sha256": "9548feed5ff387e3cfa806a21715bdd743d226419f493156f1ccf71e741bb9d4",
       "executable": false
     },
     "src/domain/catalog/input.ts": {
-      "sha256": "c04a1ff4f0fb156b40471b3b915c5545d161a9f2b403fd889aea31aa47f1ea03",
+      "sha256": "c25d5965e94b1ed4c0ba181771b212a4aa6495da9fd2189f03f5392762c02276",
       "executable": false
     },
     "src/domain/catalog/plan.server.ts": {
-      "sha256": "cb37cd306b451c93106395b3d501d49683070d37b3eb43ce69cef3392d1eddbe",
+      "sha256": "eea65dedf68f04fce57279f9b3e144f219f2f8e5bed5b2c8ecdb11e6bc5f5b2b",
       "executable": false
     },
     "src/domain/catalog/routes.server.ts": {
@@ -7655,7 +7659,7 @@
       "executable": false
     },
     "src/server.ts": {
-      "sha256": "20ec3f1beb7be01e3cb50d85bc4aac4e742d5cf08cea72d56108c9c7d900576c",
+      "sha256": "c26ea4b68e6f8dc19f9b6a1a75a8ca5aefd650478135b3ff487e79fad16b2d36",
       "executable": false
     },
     "src/site/docs/build/manifest.ts": {
@@ -8059,11 +8063,11 @@
       "executable": false
     },
     "tests/catalog-routes-support.mjs": {
-      "sha256": "658cd8722a6e5fbe68e95ae33a2e2bac9b09581dda15fdb57c3ceba6183c12be",
+      "sha256": "b7e31ccbbfcbbba6c135b2211cc0172c5b40ba3c1c6b0c9f37e48633dfd5896f",
       "executable": false
     },
     "tests/catalog.mjs": {
-      "sha256": "901582eaff14b0187168ae3c3b478a9dd4aa6f61bcee9a2d4325fa109da69fea",
+      "sha256": "9d330f9fdd24dfd958f09198c39f32e50698509a6206d1bce7de49e09880e99f",
       "executable": false
     },
     "tests/command-journey.mjs": {
