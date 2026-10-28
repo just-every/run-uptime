@@ -1006,12 +1006,12 @@ The primary journey: an operator moves their monitors from UptimeRobot or Pingdo
 Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every call; this section presets none.
 
 **How Uptime computes each class.**
-- *standard*: reads of monitors, evidence, incidents, reports and the audit; paused monitor revisions and definition previews; manual checks; comments, mentions of workspace members and root causes; incident ownership, acknowledgment and stop; cleanup-debt resolution; archive and report exports. Each can be withdrawn or corrected in the product. Facts are the item count.
+- *standard*: reads of monitors, evidence, incidents, reports and the audit; paused monitor revisions and definition previews; manual checks; comment additions and edits, mentions of workspace members and root causes; incident ownership, acknowledgment and stop; cleanup-debt resolution; archive and report exports. Each can be withdrawn or corrected in the product. Facts are the item count.
 - *external*: a test send or alert drill, a phone verification code, a scheduled report to a recipient outside the business, a comment published to a status page, and following an Auth0 tenant feed that sends the tenant domain to Auth0. Facts are the recipient count and the counterparty: *known* for a destination or provider already on record, *new* otherwise, *public* for a status page.
 - *money*: SMS and voice sends metered at COST-001's USD price, a phone budget or plan change, and a live-effect grant's spend limit. Facts are the USD amount and the payee.
 - *access*: member invitations, role changes and removals, runner enrollment and revocation, and read API, metrics and CI keys. Facts are the people or credentials and whether the change widens or narrows.
 - *security*: request credential references, TLS trust exceptions, heartbeat tokens and URLs, destination credentials (endpoint URLs, signing keys, header secrets and bot tokens), live-effect, synthetic and private-network grants, the MFA policy, discovery source credentials and archive restore. Facts are the setting.
-- *destructive*: erasing a monitor, destination, import batch or operator. Facts are the item count per table.
+- *destructive*: deleting a comment and its edit history, or erasing a monitor, destination, import batch or operator. Facts are the item count per table.
 - *live*: enabling or changing a running monitor, pausing or resuming, maintenance windows, routes and contact schedules, handoff mappings and adopting discovered monitors. Facts are the monitors and routes affected.
 - *gated*: a step the provider keeps for a person: a Teams admin installing the Uptime Teams app, a buyer connecting their own Twilio account in Twilio's console, a person authorizing Zapier or Make in their own account, and a recipient entering their own phone verification code. Facts are the provider and the step.
 
@@ -1035,7 +1035,7 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 | `uptime.phones.verify` | Send a one-time verification code to a recipient's phone number | PHONE-002 | external · money (+ gated) | none |
 | `uptime.incidents.read` | Read incidents, timelines, next-due follow-up, snapshots, artifacts and diagnostics | FOLLOWUP-001, EVIDENCE-002, DIAG-001, FLOW-003, READAPI-003, AGENT-002 | standard | none |
 | `uptime.incidents.work` | Take or reassign ownership, acknowledge, stop reminders or resolve an incident | FOLLOWUP-001 | standard | none |
-| `uptime.incidents.comment` | Add, edit or delete a comment, mention a member or set a root cause | INCIDENT-001, INCIDENT-002, INCIDENT-003, INCIDENT-005 | standard | none |
+| `uptime.incidents.comment` | Add, edit or delete a comment, mention a member or set a root cause | INCIDENT-001, INCIDENT-002, INCIDENT-003, INCIDENT-005 | standard (+ destructive) | none |
 | `uptime.incidents.publish` | Publish a comment or correction to the mapped Lamp or Statuspage incident | INCIDENT-004, LAMP-001, AGENT-005 | external | none |
 | `uptime.handoffs.update` | Map Lamp or Statuspage components and Oncall, PagerDuty or Splunk On-Call services | LAMP-001, ONCALL-001, BOUNDARY-001, AGENT-005 | live (+ security) | none |
 | `uptime.reports.read` | Read and export uptime, SLA, response-time and slow-time figures and reports | REPORT-001, READAPI-002, METRICS-001 | standard | none |
@@ -1109,6 +1109,7 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 1. `uptime.members.update`, `uptime.runners.update` and `uptime.keys.update` carry access with the people or credentials and whether the change widens or narrows.
 2. `uptime.erasure.run` carries destructive with the item count per table and adds access when it erases an operator.
 3. `uptime.destinations.update` adds gated when a Teams admin must install the Uptime Teams app or a buyer must connect their own Twilio account, `uptime.automations.update` adds gated when a person must authorize Zapier or Make, and `uptime.phones.verify` adds gated for the recipient's own code entry; each gated step names the provider and the step.
+4. `uptime.incidents.comment` adds destructive when it deletes a comment, with the number of comments whose text and edit history are irreversibly removed; an add or edit does not carry destructive.
 
 #### SURFACE-005 — The monitoring-operator journey under two company policies
 
