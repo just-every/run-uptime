@@ -4,9 +4,9 @@ Old reference: `dc096c027d5172b1c9ff64afea2c7f76faf4bcef` (main, 28 October 2026
 
 One row per outcome of every acceptance point of every clause that was done at the old reference. **Asserting test** is the line of the assertion (or of the call whose expected result a helper in the same file asserts) in a file the clause's Evidence cell lists. **Result** is `asserted`, `none` or `moved`. A `none` row demotes its clause to partial, and that clause's Gap names the outcome. A `moved` row is a pointer or proof boundary that left the point for the Requirement; the point keeps every outcome it named.
 
-Still done (23): NETWORK-001, RETENTION-001, AUDIT-001, INTERFACE-001, DRILL-001, API-001, SLOW-001, API-003, API-004, PING-001, TLS-001, UDP-001, MAIL-001, NETWORK-002, PRIVATE-001, MAINT-001, EVIDENCE-002, DEPENDENCY-001, FLOW-003, FLOW-004, DELIVERY-002, NOTICE-001, OPS-001.
+Still done (22): NETWORK-001, RETENTION-001, AUDIT-001, INTERFACE-001, DRILL-001, API-001, SLOW-001, API-003, API-004, PING-001, UDP-001, MAIL-001, NETWORK-002, PRIVATE-001, MAINT-001, EVIDENCE-002, DEPENDENCY-001, FLOW-003, FLOW-004, DELIVERY-002, NOTICE-001, OPS-001.
 
-Demoted to partial (22): HTTP-001, EVIDENCE-001, STATE-001, AUTHORITY-001, HEARTBEAT-001, ARCHIVE-001, ERASURE-001, PRESENCE-001, NOTIFY-001, DELIVERY-001, PUBLIC-001, STARTUP-001, PUBLIC-002, API-002, TCP-001, DNS-001, DOMAIN-001, SCHEDULE-001, ROUTING-002, WEBHOOK-001, MANAGE-001, METRICS-001.
+Demoted to partial (23): HTTP-001, EVIDENCE-001, STATE-001, AUTHORITY-001, HEARTBEAT-001, ARCHIVE-001, ERASURE-001, PRESENCE-001, NOTIFY-001, DELIVERY-001, PUBLIC-001, STARTUP-001, PUBLIC-002, API-002, TCP-001, DNS-001, TLS-001, DOMAIN-001, SCHEDULE-001, ROUTING-002, WEBHOOK-001, MANAGE-001, METRICS-001.
 
 | Clause | Point | Outcome | Asserting test | Result |
 | --- | --- | --- | --- | --- |
@@ -16,7 +16,7 @@ Demoted to partial (22): HTTP-001, EVIDENCE-001, STATE-001, AUTHORITY-001, HEART
 | HTTP-001 | 1 | Signed runner work runs against a controlled HTTPS service | `tests/public-probes.mjs:68` (runner HTTPS probe passes) with `tests/probe-native-evidence.mjs:181` (signed completion accepted, Healthy) | asserted |
 | HTTP-001 | 1 | A status failure is retained and turns the monitor Failing | `tests/probe-native-evidence.mjs:187` | asserted |
 | HTTP-001 | 1 | A text (keyword) failure is retained on a real response | `tests/public-probes.mjs:90` | asserted |
-| HTTP-001 | 1 | The monitor recovers on passing scheduled evidence | `tests/probe-native-evidence.mjs:137` | asserted |
+| HTTP-001 | 1 | After failing, the monitor returns to Healthy on passing scheduled evidence | `tests/probe-native-evidence.mjs:137` | asserted |
 | HTTP-001 | 1 | The immutable assertion results are read back in history | `tests/probe-native-evidence.mjs:55` (history equals the signed attempts) with `:182` | asserted |
 | HTTP-001 | 1 | The transport evidence is read back by category | `tests/probe-native-evidence.mjs:134` | asserted |
 | EVIDENCE-001 | 1 | A failure attempt is submitted through the signed result route and kept | `tests/probe-native-evidence.mjs:101` | asserted |
@@ -35,8 +35,8 @@ Demoted to partial (22): HTTP-001, EVIDENCE-001, STATE-001, AUTHORITY-001, HEART
 | STATE-001 | 1 | Stale evidence past its freshness reads Unknown | `tests/availability.mjs:132` | asserted |
 | STATE-001 | 1 | A recovering slot reads Recovering before Healthy | `tests/resilience/attempts.mjs:305` | asserted |
 | STATE-001 | 1 | The recovery threshold is applied | `tests/resilience/attempts.mjs:308` | asserted |
-| STATE-001 | 2 | A manual pass cannot fabricate recovery | `tests/availability.mjs:129` (with :127, the scheduled failure stays the last check and the window stays down) | asserted |
-| STATE-001 | 2 | An absent probe cannot fabricate recovery | `tests/availability.mjs:106` (missing evidence is not counted as passing or down) | asserted |
+| STATE-001 | 2 | A manual pass cannot fabricate recovery | none: the cited files assert only that a manual pass does not replace the scheduled last check or uptime figure (`tests/availability.mjs:129`); no cited line reads the monitor's state after a manual pass during an outage | none |
+| STATE-001 | 2 | An absent probe cannot fabricate recovery | none: the cited files assert that a missing check leaves report time Unknown (`tests/availability.mjs:105`), but no cited line reads the monitor's recovery state with one selected probe absent | none |
 | STATE-001 | 2 | Maintenance expiry cannot fabricate recovery | none in a cited file: asserted in `tests/maintenance-windows.mjs`, which STATE-001 does not cite | none |
 | AUTHORITY-001 | 1 | Signed-out, expired and revoked sessions are refused at private documents | `tests/access-matrix.mjs:63` | asserted |
 | AUTHORITY-001 | 1 | Signed-out, expired and revoked sessions are refused at private reads and mutations | `tests/access-matrix.mjs:64` (reads) and `:65` (writes) | asserted |
@@ -248,6 +248,7 @@ Demoted to partial (22): HTTP-001, EVIDENCE-001, STATE-001, AUTHORITY-001, HEART
 | TLS-001 | 1 | A broken (untrusted) chain fails | `tests/protocol-monitors.mjs:91` | asserted |
 | TLS-001 | 1 | Each failure is kept as the location's evidence | `tests/protocol-monitors.mjs:90` and `:91` | asserted |
 | TLS-001 | 1 | A renewed certificate resolves the warning | `tests/protocol-monitors.mjs:93` and `:94` | asserted |
+| TLS-001 | 1 | As the clock advances, warnings move through the configured stages without repeating | none: the cited test presents one certificate at one stage (the 14-day warning of 30, 14 and 7) and repeats the check without moving the clock (`tests/protocol-monitors.mjs:89`) | none |
 | DOMAIN-001 | 1 | A domain is added in the console | none: the cited test adds the domain through the owner API (`tests/protocol-monitors.mjs:100`), not the console | none |
 | DOMAIN-001 | 1 | Approaching expiry warns, naming the stage and accountable owner | `tests/protocol-monitors.mjs:102` | asserted |
 | DOMAIN-001 | 1 | Conflicting dates read Unknown | `tests/protocol-monitors.mjs:103` | asserted |
@@ -305,7 +306,7 @@ Demoted to partial (22): HTTP-001, EVIDENCE-001, STATE-001, AUTHORITY-001, HEART
 | EVIDENCE-002 | 2 | A signed-out request is refused | `tests/failure-page-journey.mjs:33` and `tests/failure-snapshots.mjs:27` | asserted |
 | EVIDENCE-002 | 2 | The incident report carries the snapshot | `tests/failure-page-journey.mjs:26` | asserted |
 | EVIDENCE-002 | 2 | An archive round trip keeps the snapshot without planted values | `tests/failure-snapshots.mjs:30` and `tests/failure-page-journey.mjs:36` | asserted |
-| EVIDENCE-002 | 2 | Erasing the monitor removes the snapshot with a receipt | `tests/failure-snapshots.mjs:37` and `tests/failure-page-journey.mjs:36` | asserted |
+| EVIDENCE-002 | 2 | Erasing the monitor removes the snapshot with a receipt, and its archived copy cannot come back | `tests/failure-snapshots.mjs:37` and `tests/failure-page-journey.mjs:36` (receipts), with `tests/failure-snapshots.mjs:36` (the later journal refuses the archived copy) | asserted |
 | EVIDENCE-002 | 2 | The alert carries only the cause line and link, no excerpt | `tests/failure-snapshots.mjs:31` | asserted |
 | DEPENDENCY-001 | 1 | A linked provider status page is discovered through the real runner | `tests/discovery-jobs.mjs:128` and `:130` | asserted |
 | DEPENDENCY-001 | 1 | Its overall and one component proposal are reviewed and adopted through the owner monitor door | `tests/discovery-jobs.mjs:155` and `:156` | asserted |

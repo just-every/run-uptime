@@ -8,10 +8,10 @@ The primary journey: an operator moves their monitors from UptimeRobot or Pingdo
 
 | Tier | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
-| Core | 23 | 61 | 11 | 95 |
+| Core | 22 | 62 | 11 | 95 |
 | Agent surface | 0 | 0 | 5 | 5 |
 | Later | 0 | 0 | 1 | 1 |
-| Full target | 23 | 61 | 17 | 101 |
+| Full target | 22 | 62 | 17 | 101 |
 
 Judged from the code and tests at commit `56497f8d6716dbe16437095f61a923266fd9b347` (24 October 2026). Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
 
@@ -54,7 +54,7 @@ Core · published · **partial**
 2. A manual pass, absent probe or maintenance expiry cannot fabricate recovery.
 
 **Evidence.** `src/domain/policy.mjs`; `tests/resilience/attempts.mjs`; `tests/availability.mjs`; `docs/evidence/contracts/release-0.4.0/`
-**Gap.** Carried-done audit: that a maintenance expiry cannot fabricate recovery is asserted only in `tests/maintenance-windows.mjs`, which this clause does not cite. Degraded, Failing, Unknown for partial, missing and stale coverage, Recovering, the recovery threshold and the manual-pass and absent-probe cases are asserted.
+**Gap.** Carried-done audit: that a maintenance expiry cannot fabricate recovery is asserted only in `tests/maintenance-windows.mjs`, which this clause does not cite, and no cited line reads the monitor's state after a manual pass during an outage or with one selected probe absent (the cited files show only that report time stays down or Unknown). Degraded, Failing, Unknown for partial, missing and stale coverage, Recovering and the recovery threshold are asserted.
 
 #### AUTHORITY-001 — Server-side scoped authority
 
@@ -400,7 +400,7 @@ Core · target · **partial**
 
 #### TLS-001 — SSL certificate and chain monitoring
 
-Core · target · **done**
+Core · target · **partial**
 
 **Requirement.** TLS checks verify hostname/SNI, certificate chain/trust, validity, expiry and renewal on HTTPS or configured TLS ports from each location. Staged configurable expiry warnings name the certificate and accountable owner, track renewal and resolve only after a newly observed valid chain.
 
@@ -408,7 +408,7 @@ Core · target · **done**
 1. Monitor a controlled TLS service; present an expiring certificate, broken chain, wrong name and then renewed certificate, advance the clock and inspect deduplicated warnings, location evidence and renewal resolution.
 
 **Evidence.** `src/domain/protocol/x509.mjs`; `src/domain/protocol/tls12-certificates.mjs`; `src/domain/expiry-notices.server.ts`; `tests/protocol-monitors.mjs`
-**Gap.** None.
+**Gap.** Carried-done audit: the cited test presents one certificate at one stage and repeats the check without moving the clock, so warnings advancing through the configured stages without repeating are unasserted. The named warning with its stage and accountable owner, no repeat within a stage, wrong-name and untrusted-chain failures as location evidence and renewal resolution are asserted.
 
 #### DOMAIN-001 — Domain registration expiry
 
