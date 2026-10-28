@@ -12,7 +12,7 @@ Demoted to partial (32): HTTP-001, EVIDENCE-001, STATE-001, AUTHORITY-001, NETWO
 | --- | --- | --- | --- | --- |
 | HTTP-001 | 1 | An HTTP(S) monitor is created through the owner API | `tests/probe-native-evidence.mjs:25` (saved HTTP definition and Healthy state read after execution) | asserted |
 | HTTP-001 | 1 | A keyword monitor is created through the owner API | none: no cited file configures and reads a keyword-type monitor; the retained assertion bundle is on an HTTP monitor | none |
-| HTTP-001 | 1 | Scheduled hosted Worker work runs against a controlled HTTPS service | none in a cited file: the scheduled public Worker check is asserted in `tests/hosted-scheduled.mjs`, which HTTP-001 does not cite | none |
+| HTTP-001 | 1 | Scheduled hosted Worker work runs against a controlled HTTPS service | none: no surviving cited assertion runs a scheduled hosted Worker check against a controlled HTTPS service | none |
 | HTTP-001 | 1 | Signed runner work runs against a controlled HTTPS service | none: the surviving HTTPS assertions are in helpers called by tests/tls-auth.mjs, which contains no assertion itself; the cited probe-native-evidence journey uses HTTP | none |
 | HTTP-001 | 1 | A status failure is retained and turns the monitor Failing | `tests/probe-native-evidence.mjs:40` (status scenario at :29) | asserted |
 | HTTP-001 | 1 | A text (keyword) failure is retained on a real response | `tests/probe-native-evidence.mjs:40` (body scenario at :30) | asserted |
@@ -21,7 +21,7 @@ Demoted to partial (32): HTTP-001, EVIDENCE-001, STATE-001, AUTHORITY-001, NETWO
 | HTTP-001 | 1 | The transport evidence is read back by category | none: no surviving cited assertion reads each retained transport-evidence category | none |
 | EVIDENCE-001 | 1 | A failure attempt is submitted through the signed result route and kept | `tests/probe-native-evidence.mjs:40` | asserted |
 | EVIDENCE-001 | 1 | A retry is kept beside the earlier failure it follows | `tests/probe-native-evidence.mjs:41` | asserted |
-| EVIDENCE-001 | 1 | A late attempt is kept and identifiable | none in a cited file: late retries are asserted in `tests/resilience/attempts.mjs`, which EVIDENCE-001 does not cite | none |
+| EVIDENCE-001 | 1 | A late attempt is kept and identifiable | none in a cited file: expired acceptance is asserted in tests/control-runtime.mjs:48, which EVIDENCE-001 does not cite | none |
 | EVIDENCE-001 | 1 | A duplicate attempt cannot overwrite the first accepted copy | none: no surviving cited assertion proves first-copy-wins for a duplicate attempt | none |
 | EVIDENCE-001 | 1 | History survives a restart | none: no cited surviving test restarts the Worker and rereads exact evidence history | none |
 | EVIDENCE-001 | 1 | History is read and each attempt stays identifiable | `tests/probe-native-evidence.mjs:40` and `:41` | asserted |
@@ -42,7 +42,7 @@ Demoted to partial (32): HTTP-001, EVIDENCE-001, STATE-001, AUTHORITY-001, NETWO
 | AUTHORITY-001 | 1 | Signed-out, expired and revoked sessions are refused at private reads and mutations | `tests/access-matrix.mjs:64` (reads) and `:65` (writes) | asserted |
 | AUTHORITY-001 | 1 | Cross-origin owner requests are refused | `tests/access-matrix.mjs:80` (create) and `:81` (read) | asserted |
 | AUTHORITY-001 | 1 | A foreign runner signature is refused without durable changes | `tests/signed-runner.mjs:112` | asserted |
-| AUTHORITY-001 | 1 | An expired runner signature or acceptance window is refused | none in a cited file: acceptance-window expiry is asserted in `tests/resilience/attempts.mjs`, which AUTHORITY-001 does not cite | none |
+| AUTHORITY-001 | 1 | An expired runner signature or acceptance window is refused | none in a cited file: acceptance-window expiry is asserted in tests/control-runtime.mjs:48, which AUTHORITY-001 does not cite | none |
 | AUTHORITY-001 | 1 | Refused requests make no product writes | `tests/access-matrix.mjs:67` | asserted |
 | AUTHORITY-001 | 1 | The authorized session then succeeds | `tests/access-matrix.mjs:70` | asserted |
 | AUTHORITY-001 | 1 | The scoped runner then succeeds | `tests/signed-runner.mjs:110` | asserted |
@@ -132,8 +132,8 @@ Demoted to partial (32): HTTP-001, EVIDENCE-001, STATE-001, AUTHORITY-001, NETWO
 | INTERFACE-001 | 1 | The accessibility tree exposes a main landmark and named headings | none: the cited console assertions survive at 1440, but the 390 run was removed; no surviving cited assertion proves this outcome at both required widths | none |
 | INTERFACE-001 | 1 | axe reports no violations | none: the cited console assertions survive at 1440, but the 390 run was removed; no surviving cited assertion proves this outcome at both required widths | none |
 | NOTIFY-001 | 1 | Email, Slack and signed webhook destinations are created | `tests/notify-delivery.mjs:56` (with `:66`, three saved) | asserted |
-| NOTIFY-001 | 1 | A destination credential is rotated | none in a cited file: rotation is asserted in `tests/notify-custody-runtime.mjs`, which NOTIFY-001 does not cite | none |
-| NOTIFY-001 | 1 | A destination is disabled | none in a cited file: disabling is asserted in `tests/notify-custody-runtime.mjs` and `tests/notify-secret-browser.mjs`, which NOTIFY-001 does not cite | none |
+| NOTIFY-001 | 1 | A destination credential is rotated | none: no surviving cited assertion rotates a destination credential | none |
+| NOTIFY-001 | 1 | A destination is disabled | none: no surviving cited assertion disables a destination | none |
 | NOTIFY-001 | 1 | A scheduled failure is delivered through the actual runner and Worker doors | `tests/notify-delivery.mjs:85` (runner dispatch, one record per receiver) and `tests/hosted-alerts.mjs:49` (Worker Slack) | asserted |
 | NOTIFY-001 | 1 | A scheduled recovery is delivered to each destination | `tests/notify-delivery.mjs:130` | asserted |
 | NOTIFY-001 | 1 | A test send is delivered once per destination | `tests/notify-delivery.mjs:75` and `:76` | asserted |
@@ -143,12 +143,12 @@ Demoted to partial (32): HTTP-001, EVIDENCE-001, STATE-001, AUTHORITY-001, NETWO
 | NOTIFY-001 | 1 | Content is escaped for each channel | `tests/notify-delivery.mjs:86`, `:87` and `:88` | asserted |
 | NOTIFY-001 | 1 | A test send leaves health and incidents unchanged | `tests/notify-delivery.mjs:77` | asserted |
 | DELIVERY-001 | 1 | An accepted provider response is recorded as accepted | `tests/notify-delivery.mjs:75` (settle waits for accepted and fails otherwise) | asserted |
-| DELIVERY-001 | 1 | A proven-unaccepted RER relay 429 with Retry-After is recorded | none in a cited file: proven-unaccepted relay attempts are asserted in `tests/hosted-rer-mail.mjs`, which DELIVERY-001 does not cite | none |
+| DELIVERY-001 | 1 | A proven-unaccepted RER relay 429 with Retry-After is recorded | none: no surviving cited assertion records a proven-unaccepted RER relay 429 with Retry-After | none |
 | DELIVERY-001 | 1 | An HTTP 500 is recorded as uncertain | `tests/notify-delivery.mjs:139` | asserted |
 | DELIVERY-001 | 1 | A timeout is recorded as uncertain | `tests/notify-delivery.mjs:162` and `:165` | asserted |
 | DELIVERY-001 | 1 | A connection loss is recorded as uncertain | `tests/notify-delivery.mjs:147` | asserted |
 | DELIVERY-001 | 1 | A restart during claims sends nothing twice | `tests/notify-delivery.mjs:133` and `:149` | asserted |
-| DELIVERY-001 | 2 | The proven-unaccepted relay case requeues automatically after its delay | none in a cited file: asserted in `tests/hosted-rer-mail.mjs`, which DELIVERY-001 does not cite | none |
+| DELIVERY-001 | 2 | The proven-unaccepted relay case requeues automatically after its delay | none: no surviving cited assertion reads the automatic requeue after a proven-unaccepted relay delay | none |
 | DELIVERY-001 | 2 | No other outcome requeues: an endpoint 429 is not requeued | `tests/notify-delivery.mjs:141` | asserted |
 | DELIVERY-001 | 2 | Uncertain started sends never replay, across restart | `tests/notify-delivery.mjs:149` and `:171` | asserted |
 | DELIVERY-001 | 2 | Acceptance stays distinct from receipt | none: no cited line reads an accepted delivery back as anything other than accepted, or shows receipt as a separate fact | none |
