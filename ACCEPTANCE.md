@@ -1342,6 +1342,7 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
 5. Record text or arguments claiming a recipient is internal or a cost is zero leave the computed classes and facts unchanged.
 6. `uptime.monitors.check` adds money when the monitor holds an active live-payment or refund grant, with the USD amount and payee from the grant and current transaction; a manual check without such a grant does not add money.
 7. `uptime.routes.update` and `uptime.destinations.update` add external when a route or an enabled destination puts a recipient outside the business on the alert path, with the recipient count and counterparty *known* for a recipient already on record and *new* otherwise; a change that exposes alerts only within the business does not add external.
+8. `uptime.handoffs.update` adds external when a mapping exposes incident, maintenance or recovery updates and their evidence to a status page or an outside responder service, with the recipient count and counterparty *public* for a status page, *known* for a PagerDuty, Splunk On-Call or other outside responder service already on record and *new* otherwise; a mapping confined to the business does not add external.
 
 **Evidence.** None.
 **Gap.** No implementation: no tool declares or computes external or money classes.
