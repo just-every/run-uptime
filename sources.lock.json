@@ -519,7 +519,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "26bb850884534852527cd5bf89acdb5e6926a33c702a54ae8e3cd381ecbc85c5",
+      "sha256": "0a9368e6f29b42e9263694e1a7209d662ebffaef0209f8f04baf654136ec915d",
       "executable": false
     },
     "DEMO.md": {
@@ -2587,7 +2587,7 @@
       "executable": false
     },
     "public/definitions.js": {
-      "sha256": "20a1f3bb0e6cf164321c076a010879a3da9e3568d2c31479b4f644b0e9537914",
+      "sha256": "a4581b80470a6df1490747e2b1c8b72eb3d18bdf69755236119cd06095d64169",
       "executable": false
     },
     "public/delivery-chain.js": {
@@ -5667,11 +5667,15 @@
       "executable": false
     },
     "src/domain/business-import/erasure.server.ts": {
-      "sha256": "e214e761ff6d894061011e508861eeab0064591966d8835a49f249604edf621e",
+      "sha256": "b3bde174c7b3670ef73ef601ad620aefb25c32718b6433cdbb6fbb120478899f",
       "executable": false
     },
     "src/domain/business-import/history.server.ts": {
-      "sha256": "e857b28a9a36e98717cca3dc24ba2ee921b14843dc44b6431f144d94601a68d1",
+      "sha256": "0c7a184028caeb54b6bac23aa8b9bb0fc9553ec866c04fbdb2ff628e1262c671",
+      "executable": false
+    },
+    "src/domain/business-import/identity-erasure.server.ts": {
+      "sha256": "b27e747971f0953b9ca967267a17402bdc113b8137b306858be75f64f777cb10",
       "executable": false
     },
     "src/domain/business-import/inventory.server.ts": {
@@ -5935,7 +5939,7 @@
       "executable": false
     },
     "src/domain/erasure.server.ts": {
-      "sha256": "98396350fcb77bc6230930e95e847f5e048c20b902c9e65bc22890b7e834baf9",
+      "sha256": "69ef5dd2863bffc472149702b78a948af3c8d6cc2cd3ed8746268c56122ad42f",
       "executable": false
     },
     "src/domain/evidence.server.ts": {
@@ -7371,7 +7375,11 @@
       "executable": false
     },
     "tests/business-import-door.mjs": {
-      "sha256": "de4f0c603036641570018e8a8e64d549b717b2b1ac19dec75faeb9db4a2f6a9c",
+      "sha256": "cd3f48bcf53160b7e752fa74f59fa097f2b9bb7ad216628a83a8255cac77f833",
+      "executable": false
+    },
+    "tests/business-import-erasure-proof.mjs": {
+      "sha256": "60d291f58ff95f2f0d0161b33656b74a34b541d87136322632e191adfd51860c",
       "executable": false
     },
     "tests/business-provisioned.mjs": {

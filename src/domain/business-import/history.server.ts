@@ -45,6 +45,11 @@ export async function definitionImportHistory(env:Bindings,request:Request){retu
 export async function importHistory(env:Bindings,authority:D1Sql){
  const native=await listBatches(env),installation=DOOR_KEY
  const history=await readImportDoorHistory(env.DB,installation,authority) as Array<Record<string,any>>
+ // Retired jobs have no source/target content left to read. Their approved
+ // fingerprints and lineage remain inspectable as anonymous history only.
+ const withdrawn=(await env.DB.prepare(`SELECT p.id AS planId,p.namespace,p.fingerprint,a.owner,a.approved_at AS approvedAt,a.approval_id AS approvalRecordId,a.reviewer
+  FROM ik_door_plans p JOIN ik_door_approvals a ON a.plan_id=p.id JOIN ik_d1_retirements r ON r.id=p.job_id AND r.kind='job'
+  WHERE p.installation_id=? AND NOT EXISTS(SELECT 1 FROM ik_jobs j WHERE j.id=p.job_id)`).bind(installation).all<Record<string,any>>()).results
  const undos=new Map((await env.DB.prepare('SELECT plan_id,undone_at FROM uptime_business_import_undos').all<{plan_id:string;undone_at:number}>()).results.map(row=>[row.plan_id,row.undone_at]))
  const business=await Promise.all(history.map(async item=>{
   const undone=['undone','rolled_back'].includes(String(item.state)),entries=await batchEntries(env,item.jobId,undone)
@@ -55,11 +60,15 @@ export async function importHistory(env:Bindings,authority:D1Sql){
    businessApproval:{owner:item.owner,approvedAt:item.approvedAt,fingerprint:item.fingerprint,approvalId:item.approvalRecordId,via:item.reviewer==='operator'?'owner':'business'},
    entries}
  }))
- return [...native,...business].sort((a,b)=>b.createdAt-a.createdAt)
+ const retired=withdrawn.map(item=>({id:'business:'+item.planId,createdAt:Date.parse(String(item.approvedAt)),source:String(item.namespace).split(':')[0],namespace:item.namespace,
+  counts:{create:0,change:0},entries:[],withdrawn:true,undone:false,undoneAt:null,restoredAt:null,
+  businessApproval:{owner:item.owner,approvedAt:item.approvedAt,fingerprint:item.fingerprint,approvalId:item.approvalRecordId,via:item.reviewer==='operator'?'owner':'business'}}))
+ return [...native,...business,...retired].sort((a,b)=>b.createdAt-a.createdAt)
 }
 export async function undoDefinitionImport(env:Bindings,request:Request,id:string,actor:AuditActor){
  if(!id.startsWith('business:'))return undoBatch(env,id,actor)
  const planId=id.slice('business:'.length),installation=DOOR_KEY
+ if(await env.DB.prepare("SELECT 1 FROM ik_door_plans p JOIN ik_d1_retirements r ON r.id=p.job_id AND r.kind='job' WHERE p.id=? AND p.installation_id=?").bind(planId,installation).first())throw Object.assign(Error('Import custody was erased; nothing remains to undo.'),{status:410})
  const row=await env.DB.prepare(`SELECT p.id,p.job_id,j.namespace,j.mapping_version,j.state FROM ik_door_plans p JOIN ik_jobs j ON j.id=p.job_id
   WHERE p.id=? AND p.installation_id=?`).bind(planId,installation).first<any>()
  if(!row)throw Object.assign(Error('Import not found'),{status:404})
