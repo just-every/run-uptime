@@ -8,6 +8,8 @@ import { uploads } from './uploads.ts';
 import { plan } from './planning.ts';
 import { apply, status, reconcile, undo } from './jobs.ts';
 import { archive, restoreCheck } from './archive.ts';
+import { streamUpload } from './intake-upload.ts';
+import { intakeIdentity } from './intake-policy.ts';
 
 const routes = {uploads,plan,apply,status,reconcile,undo,archive,'restore-check':restoreCheck};
 const headers = {'Cache-Control':'no-store','Content-Type':'application/json','X-Content-Type-Options':'nosniff'};
@@ -37,6 +39,7 @@ export function mountValid(options: Partial<ImportDoorRuntimeOptions>): boolean 
 /** Refuses a mount, or a resolved source, missing what the pipeline needs. */
 export function runtimeOptions<T extends Partial<ImportDoorRuntimeOptions>>(options: T): T & ImportDoorRuntimeOptions {
   if (!options.mapping?.version || typeof options.parse!=='function' || !mountValid(options)) throw new DoorError('invalid_configuration',503);
+  if (options.intake !== undefined) intakeIdentity(options.intake);
   return options as T & ImportDoorRuntimeOptions;
 }
 /** Server-side mount only. A null response belongs to another dispatcher. Every
@@ -61,6 +64,11 @@ export function createDoorHandler(prefix: string, database: D1Database,
       if (url.search || url.hash) throw new DoorError('query_transport_forbidden',400);
       admitted = await admit(request,action,budgeted);
       if (!admitted) return Response.json({error:'not_found'},{status:404,headers});
+      if (action === 'uploads' && admitted.options.intake && request.headers.get('Content-Type')?.split(';')[0] === 'application/octet-stream') {
+        const result = await streamUpload(admitted,request);
+        await authorized(admitted);
+        return Response.json(result,{headers});
+      }
       const input = await readInput(request);
       admitted = await review(admitted,input);
       if (['status','reconcile','undo'].includes(action) && Object.keys(input).some(k=>k!=='planId')) throw new DoorError('invalid_input',400);

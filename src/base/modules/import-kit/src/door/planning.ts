@@ -11,6 +11,7 @@ import { DoorError } from './protocol.ts';
 import { assertion, lineage, loadSnapshot, planRow, saveSnapshot, sql, statement, transact } from './store.ts';
 import { bundleBytes, text, uploadRow, type UploadRow } from './uploads.ts';
 import { sourceRefusal } from './refusals.ts';
+import { intakeState } from './intake-policy.ts';
 
 export function preview(snapshot: DoorSnapshot) {
   const {plan,differences} = snapshot;
@@ -61,6 +62,7 @@ async function planUpload(request: DoorRequest, input: Record<string, unknown>, 
   if (existing) {
     if (!existing.complete) throw new DoorError('plan_staging_interrupted_cancel_and_replan',409,{planId:existing.id});
     const snapshot = await loadSnapshot(request,existing);
+    if (canonicalJson(snapshot.plan.source.intake ?? null) !== canonicalJson(intakeState(upload.intake_json)?.custody ?? null)) throw new DoorError('plan_intake_changed_use_new_namespace',409);
     if (snapshot.sourceCount > request.access.maxRecords) throw new DoorError('plan_exceeds_grant_quota');
     if (snapshot.plan.mappingVersion !== request.options.mapping.version) throw new DoorError('snapshot_mapping_changed_use_new_namespace',409);
     if (request.access.catchup === 'bounded' && (!snapshot.standingApproval || snapshot.standingApproval.id !== request.access.approvalRecordId || snapshot.standingApproval.at !== request.access.approvedAt)) throw new DoorError('standing_approval_mismatch');
@@ -166,12 +168,14 @@ const dropChunks = (request: DoorRequest, upload: UploadRow) => transact(request
  * meets the failed job's kit namespace. */
 async function readUpload(request: DoorRequest, upload: UploadRow, planId: string) {
   const options = request.options;
+  const intake = intakeState(upload.intake_json)?.custody;
   const kitNamespace = 'door:' + sha256(canonicalJson([request.access.namespace,upload.bundle_sha256,planId]));
   const retained = await retainedSource(request,upload);
   if (retained) return {kitNamespace,retainedFrom:retained.planId,source:{...retained.source,records:retained.source.records.map(record=>({...record,namespace:kitNamespace}))}};
   // Credential values are removed per record, never imported, and never refuse a record.
-  const source = await readFileSource({namespace:kitNamespace,name:upload.name,bytes:await bundleBytes(request,upload),format:options.format,parse:options.parse,credentials:'remove'},
+  const source = await readFileSource({namespace:kitNamespace,name:upload.name,bytes:await bundleBytes(request,upload),format:intake ? 'ndjson' : options.format,parse:options.parse,credentials:'remove'},
     {...options.limits,maxBytes:Math.min(options.limits?.maxBytes ?? request.access.maxBytes,request.access.maxBytes),maxRecords:Math.min(options.limits?.maxRecords ?? request.access.maxRecords,request.access.maxRecords)});
+  if (intake) source.intake = intake;
   return {kitNamespace,source,retainedFrom:undefined};
 }
 /** An upload whose bytes went because the reader removed credential values
@@ -182,13 +186,15 @@ async function readUpload(request: DoorRequest, upload: UploadRow, planId: strin
  * uploads the bundle again. */
 async function retainedSource(request: DoorRequest, upload: UploadRow): Promise<{planId: string; source: SourceBundle} | null> {
   const db = request.options.database;
+  if (upload.total_bytes === 0 && intakeState(upload.intake_json)) return null;
   if ((await db.prepare('SELECT 1 FROM ik_door_chunks WHERE upload_id=? LIMIT 1').bind(upload.id).first()) !== null) return null;
   const {results} = await db.prepare('SELECT * FROM ik_door_plans WHERE installation_id=? AND namespace=? AND bundle_sha256=? AND complete=1 ORDER BY rowid DESC')
     .bind(request.access.installationId,request.access.namespace,upload.bundle_sha256).all<DoorPlanRow>();
   for (const row of results) {
     const snapshot = await loadSnapshot(request,row).catch(error => { if (error instanceof DoorError && error.code === 'snapshot_withdrawn') return null; throw error; });
     // Records parsed under another mapping version are not reused.
-    if (!snapshot || !withheldCredentials(snapshot.plan.source) || snapshot.plan.mappingVersion !== request.options.mapping.version) continue;
+    if (!snapshot || !withheldCredentials(snapshot.plan.source) || snapshot.plan.mappingVersion !== request.options.mapping.version
+      || canonicalJson(snapshot.plan.source.intake ?? null) !== canonicalJson(intakeState(upload.intake_json)?.custody ?? null)) continue;
     if (snapshot.plan.source.records.length > request.access.maxRecords) throw new DoorError('plan_exceeds_grant_quota');
     return {planId:row.id,source:snapshot.plan.source};
   }

@@ -11,7 +11,10 @@ import { configureBranding } from './branding.mjs';
 // gate: holding the key is. Browsers trade it once for a host-only cookie; test
 // harnesses and the rer command line present it in a header. The cookie is
 // named for the origin's port (`rer_dev_gate_8787`), so checkouts side by side
-// on one loopback host keep their own.
+// on one loopback host keep their own. It is SameSite=Lax like the session
+// cookie it guards, so a dev session survives the top-level redirect back from
+// an OAuth provider (`admitsSession`); the gated sign-in surfaces still refuse
+// a cross-site request that carries only the cookie (`admits`), as Strict did.
 export const DEV_KEY_HEADER = 'x-rer-dev-key';
 export const DEV_KEY_PATH = '/__dev/key';
 const encoder = new TextEncoder();
@@ -71,15 +74,24 @@ export function devGate({ key, origin, local }) {
   let expected;
   const cookieName = localCookieName('rer_dev_gate', origin);
   const cookie = () => expected ??= cookieValue(key);
-  const setCookie = async () => `${cookieName}=${await cookie()}; Path=/; HttpOnly; SameSite=Strict; Max-Age=2592000${url.protocol === 'https:' ? '; Secure' : ''}`;
+  const admitted = async request => {
+    const presented = request.headers.get(DEV_KEY_HEADER);
+    if (presented !== null) return constantEqual(presented, key);
+    const value = readGateCookie(request, cookieName);
+    return value !== null && constantEqual(value, await cookie());
+  };
+  const setCookie = async () => `${cookieName}=${await cookie()}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000${url.protocol === 'https:' ? '; Secure' : ''}`;
   return Object.freeze({
     cookieName,
+    // The gated surfaces (dev sign-in, personas, one-click sign-in): the key
+    // header, or the cookie on a request that did not come from another site.
     async admits(request) {
-      const presented = request.headers.get(DEV_KEY_HEADER);
-      if (presented !== null) return constantEqual(presented, key);
-      const value = readGateCookie(request, cookieName);
-      return value !== null && constantEqual(value, await cookie());
+      if (request.headers.get(DEV_KEY_HEADER) === null && request.headers.get('sec-fetch-site') === 'cross-site') return false;
+      return admitted(request);
     },
+    // A dev session counts wherever the browser sends the Lax cookie, which
+    // includes a top-level GET arriving from another site (an OAuth callback).
+    admitsSession: admitted,
     setCookie,
     // GET serves the exchange page with the seed's productName, mark and theme; POST trades the key for the cookie.
     async exchange(request, branding) {

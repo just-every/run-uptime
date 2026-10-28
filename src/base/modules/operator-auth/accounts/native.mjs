@@ -1,3 +1,4 @@
+import { businessSettingsControls } from '../business-settings.mjs';
 // Native composition never constructs an OA account/session store. The seed
 // selects its tenant in these adapters, before any request is handled.
 import { AuthError, deny } from '../errors.mjs';
@@ -14,6 +15,7 @@ import { createOidcProviders } from '../identity/oidc/index.mjs';
 import { isLocalCli } from '../local-cli.mjs';
 import { nativeDependencyAuthority } from '../../dependencies/native.mjs';
 import { linkedProviders } from '../../dependencies/auth.mjs';
+import { providerSetup } from './provider-setup.mjs';
 
 const ACCOUNT_METHODS = ['findById', 'getSession', 'signOut', 'policyVersion', 'identityEnabled', 'requiredProvider', 'bindAndIssueSession'];
 const PROOF_METHODS = ['limits', 'token', 'preview', 'consumeLink', 'revokeLink', 'stepUpPreview', 'stepUpChallenge', 'consumeStepUp', 'revokeStepUp', 'steppedUp'];
@@ -23,7 +25,7 @@ function validate(value, required, optional = []) {
   if (!value || typeof value !== 'object' || required.some(k => typeof value[k] !== 'function') || optional.some(k => value[k] !== undefined && typeof value[k] !== 'function')) throw new AuthError('invalid_native_adapter', 503);
 }
 
-export function createNativeAuth({ accounts, proofs, db, config, clock, hooks, mailSender, clientIp, fetch, waitUntil }) {
+export function createNativeAuth({ businessSettings, accounts, proofs, db, config, clock, hooks, mailSender, clientIp, fetch, waitUntil }) {
   accountsAdapter(accounts);
   validate(accounts, ACCOUNT_METHODS, OPTIONAL);
   validate(proofs, PROOF_METHODS);
@@ -107,6 +109,7 @@ export function createNativeAuth({ accounts, proofs, db, config, clock, hooks, m
     return session;
   }
   return Object.freeze({
+    ...businessSettingsControls({ businessSettings, config, accounts, authenticate, requireFreshProof: email.requireFreshProof, clock }),
     // Account administration belongs to the seed; unsupported operations are
     // explicit refusals, never apparently successful writes to an unused store.
     ...Object.fromEntries(['invite', 'listOperators', 'cancelInvitation', 'setOperatorStatus', 'setRole', 'listSessions', 'revokeSession',
@@ -146,11 +149,12 @@ export function createNativeAuth({ accounts, proofs, db, config, clock, hooks, m
     async admitVerifiedPassword(request, id, { returnTo } = {}) {
       requirePost(request, config); return localSession(request, id, 'password', returnTo);
     },
-    async identitySettings(request) { await owner(request); return { idpSignIn: await enabled() }; },
+    async identitySettings(request) { await owner(request); return { idpSignIn: await enabled(), providerSetup: await providerSetup(db, config) }; },
     async setIdentitySettings(request, { idpSignIn }) {
       const actor = await owner(request, true);
       if (typeof idpSignIn !== 'boolean') deny('invalid_input', 400);
       if (!accounts.setIdentitySettings) unavailable();
+      if (idpSignIn && !(await providerSetup(db, config)).canEnable) deny('provider_unlinked', 409);
       if (!await accounts.setIdentitySettings({ actor, idpSignIn, now: clock() })) deny('authority_changed', 409);
       return { idpSignIn };
     },

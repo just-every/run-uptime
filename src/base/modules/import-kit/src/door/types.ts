@@ -2,12 +2,16 @@ import type { D1Database, D1Sql, D1TargetAdapter } from '../d1/types.ts';
 import type { D1ReversalPolicy } from '../d1/undo-types.ts';
 import type { ImportMapping, ImportPlan, Json, ParsedRecord, ReaderLimits } from '../types.ts';
 import type { DoorGrant } from './protocol.ts';
+import type { ImportDoorIntake } from './intake/types.ts';
+export type { ImportDoorIntake, IntakeFormat } from './intake/types.ts';
 
 /** One import source: its parser and mapping, and optionally its own owner principal. */
 export interface ImportDoorSource {
   mapping: ImportMapping;
   parse(value: Json, index: number): ParsedRecord | ParsedRecord[];
   ownerPrincipalId?: string;
+  /** Project declared fields before the first persistent byte. Shared by both mounts. */
+  intake?: ImportDoorIntake;
 }
 export interface ImportDoorRuntimeOptions extends ImportDoorSource {
   database: D1Database;
@@ -17,10 +21,9 @@ export interface ImportDoorRuntimeOptions extends ImportDoorSource {
   destination: string;
   format: 'json' | 'ndjson';
   limits?: ReaderLimits;
-  /** The undo policy each new door job is created with: 'strict' (the default)
-   * refuses undo after a native edit; 'preserve-conflicts' keeps the owner's
-   * edits, as the seed's own imports do, and needs the adapter's
-   * `preparePreservedUndo`. Existing jobs keep the policy they were created with. */
+  /** Override the undo policy for new jobs. By default an adapter declaring
+   * `preparePreservedUndo` selects 'preserve-conflicts'; other adapters select
+   * 'strict'. Existing jobs always keep the policy they were created with. */
   reversalPolicy?: D1ReversalPolicy;
 }
 /** Structurally identical to owner-claim's server-owned trust configuration. */

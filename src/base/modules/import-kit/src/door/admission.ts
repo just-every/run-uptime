@@ -21,7 +21,7 @@ async function source(options: ImportDoorOptions, namespace: string): Promise<Im
   if (!options.source) return runtimeOptions(options);
   const listed = await options.source(namespace);
   if (!listed) throw new DoorError('unknown_import_source');
-  return runtimeOptions({...options, parse: listed.parse, mapping: listed.mapping, ownerPrincipalId: listed.ownerPrincipalId ?? options.ownerPrincipalId});
+  return runtimeOptions({...options, parse: listed.parse, mapping: listed.mapping, intake: listed.intake, ownerPrincipalId: listed.ownerPrincipalId ?? options.ownerPrincipalId});
 }
 export async function admit(options: ImportDoorOptions, request: Request, action: DoorAction): Promise<DoorRequest> {
   const authorization = request.headers.get('Authorization');

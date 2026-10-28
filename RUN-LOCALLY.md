@@ -1,32 +1,29 @@
 # Run it locally
 
-To bring existing data into a seed, sign in as the owner and use its import
-screen. First step: open this path on the destination app:
-
-```text
-/app/import
-```
-
-Upload a supported source export, review the plan and its differences, then
-approve that exact plan to apply it. Reconcile the result against native data;
-use Undo from the same history when needed. Base's reference accepts people JSON
-here, not installation `.rer` archives. Editions adopt this same door
-with their own supported readers and native adapters.
+<!-- BEGIN COLD RUN BUDGET -->
+Allow roughly 500 MB–1 GB of downloads and 1–3 GB of disk space for a first run, including Node, rer, the app and its dependencies. The app and your computer can need more; later runs reuse downloads.
+<!-- END COLD RUN BUDGET -->
 
 Start a published seed with one line:
-`npx -y @runeditrun/rer dev just-every/<repo>`, for example
-`npx -y @runeditrun/rer dev just-every/run-inkwell`. It clones the seed into
-`./<repo>`, installs its dependencies, sets up a local owner and starts the app.
-The clone has every commit and release tag (file contents arrive as a checkout
-needs them), so `git checkout <tag>` adopts an older release.
-To set up without starting, use `npx -y @runeditrun/rer setup just-every/<repo>`.
-Without Node 22 or later, the [RER installer](https://runeditrun.com) runs the
-same line: `curl -fsSL https://runeditrun.com/install.sh | sh -s -- dev just-every/<repo>`.
+
+```sh
+curl -fsSL https://runeditrun.com/install.sh | sh -s -- dev <owner/repo>
+```
+
+Git is required; rer brings Node and pnpm. Already have Node 22 or later? `npx -y @runeditrun/rer dev <owner/repo>` does the same.
+
+For example, use
+`curl -fsSL https://runeditrun.com/install.sh | sh -s -- dev just-every/run-inkwell`.
+It clones the seed into `./<repo>`, installs its dependencies, sets up a local
+owner and starts the app. The clone has every commit and release tag (file
+contents arrive as a checkout needs them), so `git checkout <tag>` adopts an
+older release. To set up without starting, use
+`curl -fsSL https://runeditrun.com/install.sh | sh -s -- setup <owner/repo>`.
 It installs `rer` in `~/.local/bin` with its own Node and edits no shell
-profile: when `~/.local/bin` is not on PATH for new terminals, its install step
-ends with the one command that adds it for your shell (for zsh:
-`echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc && export PATH="$HOME/.local/bin:$PATH"`);
-run it once. To start the seed again later, run `cd <repo> && rer dev` (the
+profile. Its absolute launcher works immediately. After opening your app,
+the optional `rer cli path` step explains how to make `rer` available in future
+terminals; only running the displayed shell line changes a startup file.
+To start the seed again later, run `cd <repo> && rer dev` (the
 folder is the repository name). `npm install -g @runeditrun/rer` is another way to
 install `rer`. The installer's Node stays private to `rer`: it puts no `node`,
 `npm` or `npx` on PATH. First-party commands fetch and verify
@@ -40,6 +37,19 @@ package mode. Vendored mode carries Base's exported CLI; package mode pins an
 exact `@runeditrun/rer` devDependency. In both modes the checkout's
 `OPERATIONS.json` argv and `package.json` aliases select the version that
 `rer VERB` runs.
+
+To bring existing data into a seed, sign in as the owner and use its import
+screen. First step: open this path on the destination app:
+
+```text
+/app/import
+```
+
+Upload a supported source export, review the plan and its differences, then
+approve that exact plan to apply it. Reconcile the result against native data;
+use Undo from the same history when needed. Base's reference accepts people JSON
+here, not installation `.rer` archives. Editions adopt this same door
+with their own supported readers and native adapters.
 
 ## Launch with one command
 
@@ -227,9 +237,13 @@ allow more. Machine load alone never refuses a start or holds heavy work; a
 fleet that wants a load guard sets `RER_SERVERS_LOAD_THRESHOLD=N` and
 `RER_JOBS_LOAD_THRESHOLD=N` (the 1-minute load) in its own environment.
 When `rer dev` or `rer setup` holds a step 20 minutes for that guard, it stops with `Not started: this computer is busy`, the measured load, the threshold and the next step (run the same command again, or raise `RER_JOBS_LOAD_THRESHOLD`); it is never reported as a failed migration.
-A start needs 15 GiB free on the checkout and temporary volumes;
-`RER_SERVERS_DISK_FLOOR_GIB=N` changes that floor. A CI runner on a small disk
-may set it lower (for example 4); people should not.
+A start measures installed `node_modules` and `.wrangler` (including local D1
+state) and requires twice those bytes plus 256 MiB, with a 1 GiB minimum. It
+checks the checkout, the selected temporary directory (`TMPDIR`, then
+`TMP`/`TEMP`, then the OS default), and the actual server registry directory
+(`RER_SERVERS_DIR` or `~/.rer/servers`). A refusal names the path and exact free
+and required bytes. `RER_SERVERS_DISK_FLOOR_GIB=N` explicitly replaces the
+estimate (GiB, decimals allowed, 0 disables the floor).
 
 A new server is refused only when available memory is below 1.5 GiB. An idle
 dev server holds about 0.5-1.3 GiB and a preview about 0.4-0.8 GiB. The message
