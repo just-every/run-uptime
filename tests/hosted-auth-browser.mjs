@@ -161,8 +161,7 @@ try {
   assert.ok((await members.json()).members.some(member => member.displayName === 'Native browser owner'), 'incident assignment uses the typed owner name');
   for (const width of [1440, 390]) {
     await login.setViewportSize({width, height: 900});
-    await login.goto(runtime.origin + '/app/settings');
-    await login.getByRole('button', {name: 'Manage operators', exact: true}).click();
+    await login.goto(runtime.origin + '/app/settings/people');
     await login.locator('.operator-row').filter({hasText: 'Native browser owner'}).waitFor();
     const people = await loginContext.request.get(runtime.origin + '/auth/operators');
     assert.equal(people.status(), 200);

@@ -2,7 +2,9 @@
 // Full check details, and an open rule editor with the value typed in it all stay open, the page keeps its nodes and its
 // scroll position, and a change made elsewhere (a pause) still appears without a reload. The monitor list keeps its
 // filters folded behind Filter and its selection actions out of sight until a monitor is ticked; an open filter panel
-// and a ticked monitor survive the refresh. At 1440 and 390.
+// and a ticked monitor survive the refresh. In Settings the sidebar is the Settings menu: a refresh keeps it, a typed
+// invitation and an open fold, and switching between the menus and areas rebuilds neither menu and loads no document.
+// At 1440 and 390.
 import assert from 'node:assert/strict';
 import {join} from 'node:path';
 import {chromium} from 'playwright';
@@ -49,10 +51,22 @@ try{
   assert.equal(await page.locator('#monitor-state').textContent(),'Paused','a pause made elsewhere shows without a reload');
   await disclosuresOpen();await panelsKept();
   await enable(true);
-  await page.goto(origin+'/app/notifications');await page.locator('html.signed-in').waitFor();const help=page.locator('.email-setup:visible');await help.waitFor();
+  await page.goto(origin+'/app/settings/alerts');await page.locator('html.signed-in').waitFor();const help=page.locator('.email-setup:visible');await help.waitFor();
   await help.locator('summary').click();await mark(page);await twoPolls(page);
   assert.ok(await help.evaluate(details=>details.open),'the help disclosure stays open');
   assert.deepEqual(await replaced(page),[],'notifications view keeps every node');
+  await page.goto(origin+'/app/settings/people');await page.locator('#operators .operator-row').first().waitFor();
+  // Each area's one-time reads finish within the first refreshes; only then are its nodes marked.
+  await page.locator('#invite-email').fill('synthetic-uptime-9@example.test');await twoPolls(page);await mark(page);await twoPolls(page);
+  assert.deepEqual(await replaced(page),[],'an area keeps every node');assert.ok(await page.locator('.nav-settings').isVisible(),'the Settings menu stays');
+  assert.equal(await page.locator('#invite-email').inputValue(),'synthetic-uptime-9@example.test','the typed invitation stays');
+  await page.evaluate(()=>{window.__menus=[...document.querySelectorAll('.sidebar *')]});
+  let loads=0;const load=request=>{if(request.isNavigationRequest()&&request.frame()===page.mainFrame())loads++};page.on('request',load);
+  for(const [name,path]of [['Monitors','/app/monitors'],['Settings','/app/settings/alerts'],['Backup and files','/app/settings/backup']]){await page.locator('.sidebar nav').getByRole('link',{name,exact:true}).click();await page.waitForURL(origin+path)}
+  await page.getByText('Restoring an older backup',{exact:true}).click();await twoPolls(page);await mark(page);await twoPolls(page);
+  assert.ok(await page.locator('details.archive-older').evaluate(details=>details.open),'the open fold stays open');assert.deepEqual(await replaced(page),[],'Backup and files keeps every node');
+  await page.locator('.sidebar nav').getByRole('link',{name:'Monitors',exact:true}).click();await page.waitForURL(origin+'/app/monitors');page.off('request',load);
+  assert.equal(loads,0,'switching menus and areas loads no document');assert.deepEqual(await page.evaluate(()=>window.__menus.filter(element=>!element.isConnected).length),0,'neither menu is rebuilt');
   await page.goto(origin+'/app/monitors');await page.locator('.catalog-rows .monitor-row').first().waitFor();
   const filter=page.getByRole('button',{name:'Filter',exact:true}),panel=page.locator('#catalog-filters');
   assert.ok(await panel.isHidden(),'the filters start folded');

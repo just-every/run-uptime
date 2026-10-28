@@ -15,13 +15,15 @@ test('console paths survive bookmarks, navigation, copied links, history and rel
   const created=await page.request.post(origin+'/api/monitors',{headers:{origin},data:{name:'Storefront availability',url:'https://example.com/',canaryUrl:'https://example.org/',enabled:false}});
   assert.equal(created.status(),201);const {id}=await created.json(),detail=`/app/monitors/${encodeURIComponent(id)}`,edit=detail+'/edit';
   const filtered='catalog-search=Storefront&catalog-state=Paused&catalog-selection='+encodeURIComponent(id);
-  const aliases=[['/app','/app/monitors'],['/app/','/app/monitors'],['/app?'+filtered,'/app/monitors?'+filtered],['/monitor','/app/monitors/new'],['/monitor/?monitor='+encodeURIComponent(id),edit],['/app/monitor?monitor='+encodeURIComponent(id),edit],['/app/monitor/?first=1','/app/monitors/new']];
-  for(const [old,to]of aliases){const response=await page.request.get(origin+old,{maxRedirects:0});assert.equal(response.status(),308,old);assert.equal(response.headers().location,to);}
+  // Settings opens Alerts, first in its menu, and so does an area it does not have; Notifications and Archive go straight to
+  // Settings › Alerts and Settings › Backup and files. Each old link reaches its final path in one hop.
+  const aliases=[['/app','/app/monitors'],['/app/','/app/monitors'],['/app?'+filtered,'/app/monitors?'+filtered],['/monitor','/app/monitors/new'],['/monitor/?monitor='+encodeURIComponent(id),edit],['/app/monitor?monitor='+encodeURIComponent(id),edit],['/app/monitor/?first=1','/app/monitors/new'],['/app/settings','/app/settings/alerts'],['/app/settings/','/app/settings/alerts'],['/app/settings/nowhere','/app/settings/alerts'],['/app/notifications','/app/settings/alerts'],['/app/archive','/app/settings/backup']];
+  for(const [old,to]of aliases){const response=await page.request.get(origin+old,{maxRedirects:0});assert.equal(response.status(),308,old);assert.equal(response.headers().location,to);if(to.startsWith('/app/settings/'))assert.equal((await page.request.get(origin+to,{maxRedirects:0})).status(),200,to)}
   for(const width of [1440,390]){
    await page.setViewportSize({width,height:900});
-   for(const [old,to]of [['locations','locations'],['runners','locations'],['notifications','notifications'],['archive','archive'],['definitions','archive'],['settings','settings'],['monitors','monitors']]){
-    await page.goto(origin+'/app#'+old);await page.waitForURL(origin+'/app/'+to);await page.locator('html.signed-in').waitFor();
-    assert.equal(await page.locator('.sidebar nav a[aria-current=page]').getAttribute('href'),'/app/'+to);
+   for(const [old,to]of [['locations','/app/locations'],['runners','/app/locations'],['notifications','/app/settings/alerts'],['archive','/app/settings/backup'],['definitions','/app/settings/backup'],['settings','/app/settings/alerts'],['monitors','/app/monitors']]){
+    await page.goto(origin+'/app#'+old);await page.waitForURL(origin+to);await page.locator('html.signed-in').waitFor();
+    assert.equal(await page.locator('.sidebar nav a[aria-current=page]').getAttribute('href'),to);
    }
    // An old filtered-list bookmark opens the list with its search, its filters as chips and its selection.
    await page.goto(origin+'/app?'+filtered);await page.waitForURL(origin+'/app/monitors?'+filtered);await page.locator('.catalog-rows .monitor-row').waitFor();
@@ -33,19 +35,21 @@ test('console paths survive bookmarks, navigation, copied links, history and rel
    const left=60000-Date.now()%60000;if(left<20000)await new Promise(resolve=>setTimeout(resolve,left+250));
    const spent=[],started=Date.now(),loads=request=>{if(request.isNavigationRequest()&&request.frame()===page.mainFrame())spent.push('document '+request.url())},refused=response=>{if(response.status()===429)spent.push('429 '+response.url())};
    page.on('request',loads);page.on('response',refused);
-   const sections=['Locations','Notifications','Archive','Settings','Monitors'];
+   // The clicks cross both menus: Settings turns the sidebar into the Settings menu, whose Monitors leads back.
+   const steps=[['Locations','/app/locations','Locations'],['Settings','/app/settings/alerts','Alerts'],['People','/app/settings/people','People'],['Backup and files','/app/settings/backup','Backup and files'],['Monitors','/app/monitors','Monitors']];
    for(let click=0;click<12;click++){
-    const name=sections[click%sections.length],path='/app/'+name.toLowerCase();
+    const [name,path,heading]=steps[click%steps.length];
     await page.locator('.sidebar nav').getByRole('link',{name,exact:true}).click();await page.waitForURL(origin+path);
-    await page.waitForFunction(name=>document.documentElement.classList.contains('signed-in')&&document.querySelector('h1')?.textContent.trim()===name&&!document.querySelector('#content-area .loading-list'),name);
+    await page.waitForFunction(name=>document.documentElement.classList.contains('signed-in')&&document.querySelector('h1')?.textContent.trim()===name&&!document.querySelector('#content-area .loading-list'),heading);
     assert.equal(await page.locator('.sidebar nav a[aria-current=page]').getAttribute('href'),path);
    }
    await page.goBack();await page.waitForURL(origin+'/app/locations');await page.locator('h1',{hasText:'Locations'}).waitFor();
-   await page.goForward();await page.waitForURL(origin+'/app/notifications');await page.locator('h1',{hasText:'Notifications'}).waitFor();
+   await page.goForward();await page.waitForURL(origin+'/app/settings/alerts');await page.locator('h1',{hasText:'Alerts'}).waitFor();
    page.off('request',loads);page.off('response',refused);
    assert.deepEqual(spent,[],'section clicks spend no document load or public request');assert.equal(Math.floor(Date.now()/60000),Math.floor(started/60000),'one rate window');
    await cdp.send('Network.setCacheDisabled',{cacheDisabled:false});await cdp.detach();
-   await page.reload();await page.locator('html.signed-in').waitFor();assert.equal(await page.locator('h1').textContent(),'Notifications');
+   await page.reload();await page.locator('html.signed-in').waitFor();assert.equal(await page.locator('h1').textContent(),'Alerts');
+   await page.getByRole('link',{name:'Monitors',exact:true}).click();await page.waitForURL(origin+'/app/monitors');
    await page.getByRole('link',{name:'Locations',exact:true}).click();await page.waitForURL(origin+'/app/locations');await page.locator('html.signed-in').waitFor();
    await page.getByRole('link',{name:'Monitors',exact:true}).click();await page.locator('.catalog-rows .monitor-link').click();await page.waitForURL(origin+detail);await page.locator('#monitor-state').waitFor();
    await page.getByRole('button',{name:'Edit',exact:true}).click();await page.waitForURL(origin+edit);await page.locator('html.editor-context-ready').waitFor();
@@ -56,16 +60,18 @@ test('console paths survive bookmarks, navigation, copied links, history and rel
    await page.goForward();await page.waitForURL(origin+edit);await page.locator('html.editor-context-ready').waitFor();
    assert.equal(new URL(page.url()).search,'');assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
   }
-  // The shared shell fits all section links in one row at the narrowest supported phone width.
+  // The shared shell's menu fits the narrowest supported phone width: one row of three section pills, or in Settings its
+  // five areas wrapping onto rows under the way back, never scrolling sideways.
   for(const width of [320,365]){
   await page.setViewportSize({width,height:900});
-  for(const path of ['/app/monitors','/app/locations','/app/notifications','/app/archive','/app/settings',detail,edit,'/app/monitors/new','/app/monitors/new/manual']){
-   await page.goto(origin+path);await page.locator('.ui-sidebar nav').waitFor();
+  for(const path of ['/app/monitors','/app/locations','/app/settings/alerts','/app/settings/backup',detail,edit,'/app/monitors/new','/app/monitors/new/manual']){
+   await page.goto(origin+path);await page.locator('.ui-sidebar nav:visible').waitFor();
    await page.evaluate(()=>document.fonts.ready);
-   const nav=await page.locator('.ui-sidebar nav').evaluate(node=>({width:node.clientWidth,scroll:node.scrollWidth,links:[...node.querySelectorAll('a')].filter(a=>new URL(a.href).pathname!=='/app/signout').map(a=>{const r=a.getBoundingClientRect();return {height:r.height,top:r.top,left:r.left,right:r.right,font:parseFloat(getComputedStyle(a).fontSize)}})}));
-   assert.equal(nav.links.length,5,path);
+   const nav=await page.locator('.ui-sidebar nav:visible').evaluate(node=>({width:node.clientWidth,scroll:node.scrollWidth,settings:node.classList.contains('nav-settings'),links:[...node.querySelectorAll('a')].filter(a=>new URL(a.href).pathname!=='/app/signout').map(a=>{const r=a.getBoundingClientRect();return {back:a.classList.contains('nav-back'),height:r.height,top:r.top,left:r.left,right:r.right,font:parseFloat(getComputedStyle(a).fontSize)}})}));
+   const pills=nav.links.filter(a=>!a.back);
+   assert.equal(pills.length,nav.settings?5:3,path);
    assert.ok(nav.links.every(a=>a.height>=44&&a.font>=13&&a.left>=0&&a.right<=width),`44px readable links fit ${path}: ${JSON.stringify(nav)}`);
-   assert.equal(new Set(nav.links.map(a=>a.top)).size,1,`one nav row on ${path}`);
+   if(!nav.settings)assert.equal(new Set(pills.map(a=>a.top)).size,1,`one nav row on ${path}`);
    assert.ok(nav.scroll<=nav.width,`no sideways nav scroll on ${path}`);
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`no page overflow on ${path}`);
   }

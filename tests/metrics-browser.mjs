@@ -15,8 +15,8 @@ try{
  const context=await browser.newContext({permissions:['clipboard-read','clipboard-write']}),page=await context.newPage();
  await browserSignIn(page,origin);
  const enter=async()=>{
-  await page.goto(origin+'/app/settings');await page.locator('html.signed-in').waitFor();
-  await page.locator('[data-view="settings"]').click();await page.locator('#metrics-key-form').waitFor();
+  await page.goto(origin+'/app/settings/integrations');await page.locator('html.signed-in').waitFor();
+  await page.getByRole('button',{name:'Create key',exact:true}).click();await page.locator('#metrics-key-form').waitFor();
  };
  const checkPanel=async(width,stage='panel')=>{
   const panel=page.locator('#metrics-tools');
@@ -24,7 +24,7 @@ try{
   await page.addScriptTag({path:resolve('node_modules/axe-core/axe.min.js')});
   const violations=await panel.evaluate(async node=>(await axe.run(node)).violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>n.target)})));
   assert.deepEqual(violations,[],'changed metrics panel has no axe violations');
-  const tree=await panel.ariaSnapshot();assert.ok(tree.includes('Metrics export')&&tree.includes('Days to expiry'),'metrics controls appear in the accessibility tree');
+  const tree=await panel.ariaSnapshot();assert.ok(tree.includes('Metrics keys')&&(tree.includes('Days to expiry')||tree.includes('Create key')),'metrics controls appear in the accessibility tree');
   await writeFile(join(output,'metrics-'+stage+'-'+width+'.aria.txt'),tree);
   await panel.screenshot({path:join(output,'metrics-'+stage+'-'+width+'.png')});
  };
@@ -50,7 +50,7 @@ try{
   await page.waitForFunction(node=>!node.isConnected,code);
   assert.ok((await code.textContent())==='','dismissal clears the detached credential node');
   assert.ok(await copy.evaluate(node=>node.onclick===null),'dismissal clears the copy handler');
-  assert.ok(await page.evaluate(()=>document.activeElement?.id==='create-metrics-key'),'focus returns to Create metrics key');
+  assert.ok(await page.evaluate(()=>document.activeElement?.id==='metrics-key-open'),'focus returns to Create key');
   await code.dispose();await copy.dispose();
   assert.ok(await page.evaluate(value=>!document.body.textContent.includes(value),token),'dismissal removes the rendered credential');
   // Raw requests have no owner cookies, so only the issued key supplies authority.
@@ -60,7 +60,7 @@ try{
   const snapshot=await fetch(origin+'/api/v1/metrics?format=json',{headers});assert.equal(snapshot.status,200);assert.ok(await snapshot.json(),'JSON metrics snapshot is available');
   const forbidden=await fetch(origin+'/api/monitors',{method:'POST',headers:{...headers,origin,'content-type':'application/json'},body:JSON.stringify({name:'Must not exist',type:'http',url:'https://example.com/'})});
   assert.equal(forbidden.status,403,'metrics key cannot mutate monitors');
-  await page.reload();await page.locator('html.signed-in').waitFor();await page.locator('[data-view="settings"]').click();
+  await page.reload();await page.locator('html.signed-in').waitFor();
   await page.getByRole('button',{name:'Revoke '+name,exact:true}).waitFor();
   assert.equal(await page.locator('code.token').count(),0,'reload never retrieves a secret');
   await checkPanel(width);
@@ -68,8 +68,8 @@ try{
   await page.getByRole('button',{name:'Revoke '+name,exact:true}).click();assert.equal((await revoked).status(),200);
   const refused=await fetch(origin+'/api/v1/metrics',{headers});assert.ok([401,403].includes(refused.status),'revocation refuses metrics immediately');
   token='';headers.authorization='';
-  await page.reload();await page.locator('html.signed-in').waitFor();await page.locator('[data-view="settings"]').click();
-  await page.locator('#metrics-key-list').getByRole('heading',{name,exact:true}).waitFor();
+  await page.reload();await page.locator('html.signed-in').waitFor();
+  await page.locator('#metrics-key-list').getByText(name,{exact:true}).waitFor();
   assert.equal(await page.getByRole('button',{name:'Revoke '+name,exact:true}).count(),0,'revocation persists on reload');
   await checkPanel(width,'revoked');
   await page.getByRole('link',{name:'Metrics guide',exact:true}).click();

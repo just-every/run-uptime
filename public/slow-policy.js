@@ -39,7 +39,7 @@ function destinationMarkup(destinations,slow){
  return contacts.length?contacts.map((destination,index)=>{
   const prefix=`slow-destination-${index}`;
   return `<div class="slow-contact" data-slow-contact><label class="slow-choice" for="${prefix}"><input type="checkbox" name="destination" id="${prefix}" value="${escape(destination.id)}" ${ids.includes(destination.id)?'checked':''}><span>${escape(destination.name)}${destination.kind?` <span class="slow-choice-detail">(${escape(destination.kind)})</span>`:''}${destination.enabled?'':' <span class="slow-choice-detail">— disabled or unavailable; will not receive notices</span>'}</span></label>${contactScheduleMarkup(prefix,destination.name,slow?.contactSettings?.[destination.id])}</div>`;
- }).join(''):'<p>No local destinations. <a href="/app/notifications">Manage notification destinations</a>.</p>';
+ }).join(''):'<p>No local destinations. <a href="/app/settings/alerts">Manage notification destinations</a>.</p>';
 }
 function formMarkup({definition,destinations,slow}){
  return `<form id="slow-policy-form">

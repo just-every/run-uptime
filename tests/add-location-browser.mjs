@@ -92,7 +92,7 @@ try{
  assert.equal(await page.locator('details.check-from-advanced').evaluate(details=>details.open),false,'Advanced stays closed');
  assert.equal(await page.locator('#external-check-own').inputValue(),'');
  // A new URL in Settings: only the monitor with its own URL keeps it.
- await page.goto(origin+'/app/settings');const setting=page.locator('#external-check-url');await setting.waitFor();
+ await page.goto(origin+'/app/settings/general');const setting=page.locator('#external-check-url');await setting.waitFor();
  const saving=page.waitForResponse(response=>response.url()===origin+'/api/external-check'&&response.request().method()==='POST');
  await setting.fill('https://example.net/');await page.locator('#external-check-form button[type=submit]').click();
  const answer=await(await saving).json();assert.equal(answer.url,'https://example.net/');assert.equal(answer.own,1,'only the monitor with its own URL keeps its own');

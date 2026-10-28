@@ -40,9 +40,9 @@
      .ui-compact         36px control for toolbars and cards (still above the 24px target size)
      .ui-link            text action (a or button) in the underlined link style
      .ui-icon[data-icon] 18px line icon drawn with a CSS mask in currentColor: arrow, arrow-left, archive, bell, braces,
-                         chat, check, check-circle, chevron, clock, copy, export, funnel, info, mail, monitor, moon,
-                         pause, pencil, pin, gear, play, plus, pulse, restore, search, server, sign-out, alert, x,
-                         x-circle. Always aria-hidden.
+                         chat, check, check-circle, chevron, clock, copy, export, funnel, globe, info, key, mail,
+                         monitor, moon, pause, pencil, people, pin, gear, play, plus, pulse, restore, search, server,
+                         sign-out, alert, upload, x, x-circle. Always aria-hidden.
      .ui-mark            the ring-and-peach-arc mark (28px); an inline <svg class="ui-mark"> is sized the same
      .ui-card            white card, 1px --line, --radius, --shadow-sm; .ui-card--raised uses --shadow
      .ui-inset           quiet lavender inner panel (--radius-panel)
@@ -68,7 +68,7 @@
      .ui-code            block code or secret on --code-bg (pre already looks like this)
      .ui-mono, .ui-url   monospace for URLs, codes and JSON; .ui-url wraps anywhere
      .ui-helper          13.5px --muted helper line, outside its label
-     .ui-eyebrow         12px uppercase caption, for new decorative spans only
+     .ui-eyebrow         13px uppercase caption, for new decorative spans only
      .ui-num             tabular numbers
      .ui-visually-hidden hidden from sight, kept for assistive technology */
 
@@ -208,6 +208,10 @@
   --icon-search: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14ZM20 20l-4-4'/%3E%3C/svg%3E");
   --icon-funnel: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5h16l-6 7.5V19l-4 1.5v-8L4 5Z'/%3E%3C/svg%3E");
   --icon-x: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 7l10 10M17 7 7 17'/%3E%3C/svg%3E");
+  --icon-people: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5M16 4.3a3.5 3.5 0 0 1 0 6.4M18 14.7c1.9.7 3 2.6 3 5.3'/%3E%3C/svg%3E");
+  --icon-key: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8.5 15.5a4.5 4.5 0 1 1 3.2-1.3L20 22M15 17l2-2M17.5 19.5l2-2'/%3E%3C/svg%3E");
+  --icon-globe: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18ZM3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3Z'/%3E%3C/svg%3E");
+  --icon-upload: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 15V4.5M7.5 9 12 4.5 16.5 9M4 15.5V19a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3.5'/%3E%3C/svg%3E");
   --mark-dot: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='5.5'/%3E%3C/svg%3E");
   --mark-ring: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='5' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E");
   --mark-half: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='5' fill='none' stroke='%23000' stroke-width='2'/%3E%3Cpath d='M8 3a5 5 0 0 0 0 10Z'/%3E%3C/svg%3E");
@@ -417,6 +421,10 @@ select:not([multiple],[size]:not([size="1"])):disabled { --rer-select-ink: color
 .ui-icon[data-icon="search"] { --i: var(--icon-search); }
 .ui-icon[data-icon="funnel"] { --i: var(--icon-funnel); }
 .ui-icon[data-icon="x"] { --i: var(--icon-x); }
+.ui-icon[data-icon="people"] { --i: var(--icon-people); }
+.ui-icon[data-icon="key"] { --i: var(--icon-key); }
+.ui-icon[data-icon="globe"] { --i: var(--icon-globe); }
+.ui-icon[data-icon="upload"] { --i: var(--icon-upload); }
 
 .ui-mark { display: inline-block; flex: none; width: 28px; height: 28px; }
 .ui-mark:not(svg) { background: var(--mark-brand) center / contain no-repeat; }
@@ -542,7 +550,7 @@ select:not([multiple],[size]:not([size="1"])):disabled { --rer-select-ink: color
 .ui-mono, .ui-url { font-family: var(--mono); font-size: 13px; }
 .ui-url { color: var(--muted); overflow-wrap: anywhere; }
 .ui-helper { color: var(--muted); font-size: 13.5px; font-weight: 400; line-height: 1.5; }
-.ui-eyebrow { color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: 0.12em; line-height: 1.3; text-transform: uppercase; }
+.ui-eyebrow { color: var(--muted); font-size: 13px; font-weight: 700; letter-spacing: 0.1em; line-height: 1.3; text-transform: uppercase; }
 .ui-num { font-variant-numeric: tabular-nums; }
 .ui-visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
@@ -576,16 +584,28 @@ body:has(.ui-sidebar)::before {
 .ui-sidebar { display: flex; flex-direction: column; gap: 20px; min-width: 0; min-height: 100vh; padding: 24px 14px 24px 16px; }
 .ui-brand { display: inline-flex; align-items: center; align-self: flex-start; gap: 10px; min-height: 44px; padding: 0 8px; color: var(--ink); font-size: 27px; font-weight: 700; letter-spacing: -0.035em; line-height: 1; text-decoration: none; }
 .ui-brand .ui-mark { width: 30px; height: 30px; }
-.ui-sidebar nav { display: grid; gap: 4px; }
+/* The menu: the daily sections, then Settings and Sign out apart at its foot. In Settings the same sidebar is the Settings
+   menu (a way back to Monitors, then the areas): .app[data-menu="settings"] shows that group instead of the daily one, so
+   switching menus only changes which group shows. */
+.ui-sidebar nav { display: flex; flex: 1; flex-direction: column; gap: 4px; }
+.ui-sidebar .nav-foot { display: grid; gap: 4px; margin-top: auto; padding-top: 16px; }
+.app:not([data-menu="settings"]) .nav-settings, .app[data-menu="settings"] .nav-daily { display: none; }
+.ui-sidebar .nav-eyebrow { margin: 10px 12px 2px 28px; }
 .ui-sidebar nav a { position: relative; display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px 0 28px; border-radius: 12px; color: var(--body); font-size: 15px; font-weight: 500; line-height: 1.2; text-decoration: none; white-space: nowrap; transition: background-color 0.15s, color 0.15s; }
 .ui-sidebar nav a:where(:not([aria-disabled="true"])):hover { background: var(--hover-tint); color: var(--ink); }
 .ui-sidebar nav a:is([aria-current="page"], [aria-current="true"]) { background: var(--card); color: var(--ink); font-weight: 650; box-shadow: 0 0 0 1px var(--line), var(--shadow-sm); }
 .ui-sidebar nav a:is([aria-current="page"], [aria-current="true"])::before { content: ""; position: absolute; left: 11px; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 50%; background: var(--peach); }
+.ui-sidebar nav a.nav-back { color: var(--muted); }
 .ui-sidebar nav .ui-icon { width: 20px; height: 20px; }
+@media (min-width: 701px) {
+  /* The sidebar keeps its place while the page scrolls, so its foot is the bottom of the screen; a short screen scrolls
+     the menu inside it. */
+  .ui-sidebar { position: sticky; top: 0; align-self: start; height: 100vh; min-height: 0; overflow-y: auto; }
+}
 @media (min-width: 701px) and (max-width: 1199px) {
   .ui-sidebar nav a { gap: 10px; padding-right: 10px; }
 }
-.ui-sidebar .environment { margin-top: auto; padding: 14px 16px; border-radius: var(--radius-panel); background: var(--lavender); color: var(--body); font-size: 13.5px; line-height: 1.45; }
+.ui-sidebar .environment { padding: 14px 16px; border-radius: var(--radius-panel); background: var(--lavender); color: var(--body); font-size: 13.5px; line-height: 1.45; }
 .ui-sidebar .environment small { display: block; margin-bottom: 4px; color: var(--muted); font-size: 12px; font-weight: 700; line-height: 1.3; }
 .ui-sidebar .environment p { margin: 0; }
 
@@ -593,6 +613,7 @@ body:has(.ui-sidebar)::before {
 .ui-header { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px 24px; margin-bottom: 20px; }
 .ui-header > :first-child { min-width: 0; }
 .ui-header h1 { font-size: clamp(24px, 2.2vw, 30px); font-weight: 700; letter-spacing: -0.025em; line-height: 1.15; }
+.ui-header .eyebrow { margin-bottom: 6px; }
 .ui-header .subtitle { margin-top: 6px; color: var(--muted); font-size: 15px; }
 .ui-header .actions { display: flex; flex-wrap: wrap; gap: 12px; }
 
@@ -612,22 +633,29 @@ body:has(.ui-sidebar)::before {
 
 @media (max-width: 700px) {
   :where(.app, .monitor-editor):has(> .ui-sidebar) { display: block; padding: 0; background: none; }
-  .ui-sidebar { min-height: 0; gap: 12px; padding: 12px 16px 0; }
+  .ui-sidebar { position: relative; min-height: 0; gap: 12px; padding: 12px 16px 0; }
   .ui-brand { padding: 0; font-size: 22px; }
   .ui-brand .ui-mark { width: 26px; height: 26px; }
-  /* One row of section links fits a phone; Sign out sits beside the logo. */
-  .ui-sidebar { position: relative; }
-  .ui-sidebar nav { display: flex; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; gap: 3px; margin: -1px -16px 0; padding: 1px 8px 12px; }
-  .ui-sidebar nav a { flex: 1 0 auto; justify-content: center; gap: 6px; min-height: 44px; padding: 0 2px; border: 1px solid var(--line-strong); border-radius: 999px; background: rgba(255, 255, 255, 0.6); font-size: 14px; }
-  .ui-sidebar nav a:is([aria-current="page"], [aria-current="true"]) { border-color: var(--line); background: var(--card); }
-  .ui-sidebar nav a:is([aria-current="page"], [aria-current="true"])::before { left: 50%; top: auto; bottom: 3px; width: 4px; height: 4px; margin: 0 0 0 -2px; }
+  /* Sign out sits beside the logo; under it one row of pills (Monitors, Locations, Settings), or in Settings the way back
+     on its own line and then the areas, wrapping onto a second row. Nothing scrolls sideways. */
+  .ui-sidebar nav { flex-direction: row; flex-wrap: wrap; gap: 8px; padding: 1px 0 12px; }
+  .ui-sidebar .nav-foot { display: contents; }
+  .ui-sidebar .nav-eyebrow { display: none; }
+  .ui-sidebar nav a { justify-content: center; gap: 6px; padding: 0 15px; border: 1px solid var(--line-strong); border-radius: 999px; background: rgba(255, 255, 255, 0.6); font-size: 14px; }
+  .ui-sidebar nav a:is([aria-current="page"], [aria-current="true"]) { padding-left: 26px; border-color: var(--line); background: var(--card); }
+  .ui-sidebar nav a:is([aria-current="page"], [aria-current="true"])::before { left: 11px; width: 7px; height: 7px; margin-top: -3.5px; }
   .ui-sidebar nav .ui-icon { display: none; }
-  .ui-sidebar nav a:is([data-view="signout"], #editor-signout) { position: absolute; top: 12px; right: 16px; min-height: 44px; padding: 0 4px; border: 0; background: none; }
+  .ui-sidebar nav a.nav-back { flex-basis: 100%; justify-content: flex-start; padding: 0; border: 0; background: none; font-size: 14.5px; }
+  .ui-sidebar nav a.nav-back .ui-icon { display: block; width: 18px; height: 18px; }
+  .ui-sidebar nav a:is([data-view="signout"], #editor-signout) { position: absolute; top: 12px; right: 16px; padding: 0 4px; border: 0; background: none; }
   .ui-sidebar nav a:is([data-view="signout"], #editor-signout) .ui-icon { display: block; width: 18px; height: 18px; }
   .ui-sidebar .environment { display: none; }
   .ui-main { padding: 20px 16px 40px; }
 }
 @media (max-width: 379px) {
-  .ui-sidebar nav { gap: 1px; padding-inline: 1px; }
-  .ui-sidebar nav a { padding-inline: 0; font-size: 13px; }
+  .ui-sidebar nav { gap: 6px; }
+  .ui-sidebar nav a { padding: 0 11px; }
+  .ui-sidebar nav a:is([aria-current="page"], [aria-current="true"]) { padding-left: 22px; }
+  .ui-sidebar nav a:is([aria-current="page"], [aria-current="true"])::before { left: 9px; }
+}
 }
