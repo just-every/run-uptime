@@ -77,3 +77,13 @@ The exact `source` query values on per-monitor `/uptime`, `/report`, bulk `/upti
 On `/response-times`, accepted values are `Uptime` and `UptimeRobot`. The latter calculates buckets and nearest-rank statistics only from retained source samples; their location is `source: UptimeRobot`. It never combines native and incumbent percentiles. On `/incidents`, the same two values select separate native or source cursor spaces. Source rows include source author/comments/root cause and link to their sourced report; they have no workspace owner, acknowledgment or native category authority. Source incident filters accept dates, monitor/tag and open/resolved state; native root-cause category and acknowledged-state filters refuse for source rows. Keep `source` when following a cursor. Uptime category filters also refuse on sourced or blended availability reports; their source root causes are retained as text.
 
 An unknown source, an unsupported incumbent such as `Pingdom`, or a selected source without available history/samples refuses with HTTP 400 naming it. A source unavailable on any explicitly selected bulk monitor refuses the whole request. No source selection silently substitutes native data. For example, use `GET /api/v1/monitors/{id}/uptime?period=90d&bucket=1d&source=blended` for the labeled cross-cutover figure, or `GET /api/v1/incidents?monitor={id}&source=UptimeRobot` for its source incident rows. The public OpenAPI schema lists these exact per-route value sets.
+
+To read a blended SLA report with a scoped read key, keep the source explicit in the request and every downloaded format:
+
+```sh
+curl --fail --silent --show-error \
+  --header "Authorization: Bearer $UPTIME_READ_TOKEN" \
+  "$UPTIME_ORIGIN/api/v1/monitors/$MONITOR_ID/report?period=90d&bucket=1d&timeZone=America%2FChicago&sla=99.9&source=blended"
+```
+
+Read the selected `availability`/`sla` together with `sourceHistory.segments`, `uptimeSegment` and `blended`; retain their labels and denominators in a downstream dashboard. Add `format=csv` or `format=pdf` to download the same selection.

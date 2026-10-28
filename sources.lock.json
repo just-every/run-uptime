@@ -2075,7 +2075,7 @@
       "executable": false
     },
     "docs/read-api.md": {
-      "sha256": "76d17f77474dd47efd28db217ba431ce1188e55857b24d48f7a05496bff36957",
+      "sha256": "567a6a398c04252c78e8e76c96e011ef2d648c387752c4d13bf56d813abe0fbc",
       "executable": false
     },
     "docs/resilient-monitoring.md": {
@@ -8019,7 +8019,7 @@
       "executable": false
     },
     "tests/source-history-support.mjs": {
-      "sha256": "da6ac133c8cb782c609001c60c5a9799102918108c0638be0e95e44a7f75dbd7",
+      "sha256": "e8ebe6178241caf192bf07b50a42689ab7095066fbbb7176ce075eef70d9437f",
       "executable": false
     },
     "tests/startup-config.mjs": {

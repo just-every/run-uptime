@@ -1,3 +1,4 @@
+import http from 'node:http';
 import {completeSecondFactor} from './mfa-auth-support.mjs';
 import assert from 'node:assert/strict';
 import {readFile,readdir,mkdtemp,writeFile,rm} from 'node:fs/promises';
@@ -12,7 +13,7 @@ const iso=at=>new Date(at).toISOString();
 const path='/api/definitions/history/';
 export function historyClient(origin,cookie){
  return async(resource,body,method=body===undefined?'GET':'POST',session=cookie)=>{
-  const response=await fetch(origin+(resource.startsWith('/api/')?resource:path+resource),{method,headers:{origin,cookie:session,...(body===undefined?{}:{'content-type':'application/json'})},body:body===undefined?undefined:JSON.stringify(body)});
+  const response=await fetch(origin+(resource.startsWith('/api/')?resource:path+resource),{method,headers:{origin,cookie:session,...(body===undefined?{}:{'content-type':'application/json'})},body:body===undefined?undefined:JSON.stringify(body)}).catch(error=>{throw new Error(`History ${method} ${resource}: ${error.cause?.code??error.message}`,{cause:error})});
   const result=await response.json();return {status:response.status,body:result};
  };
 }
@@ -79,7 +80,8 @@ export async function proveSourceHistory({origin,cookie,db}){
  assert.equal(preview.body.counts.unmapped,1);assert.equal(preview.body.mapping.find(m=>m.sourceMonitorId===sourceId).monitorId,f.id);assert.equal(preview.body.mapping.find(m=>m.sourceMonitorId==='synthetic-uptime-202').name,'synthetic-uptime-202');assert.equal(preview.body.mapping[0].outageCount,3);assert.equal(preview.body.mapping[0].totalDowntimeSeconds,3799);assert.equal(preview.body.mapping[0].sourceStatedDowntimeSeconds,3799);
  for(const bad of [f.csv.replace('Date-Time','Mystery date'),f.csv.replace(iso(f.from),'2026-02-30T00:00:00Z'),f.csv.replace(iso(f.from),'not-a-date')]){const refused=await f.client('preview',{text:bad});assert.equal(refused.status,400);assert.match(refused.body.error,/column|row|timestamp/i)}
  const many='Monitor ID,Date-Time,Event\n'+Array.from({length:5001},()=>`${sourceId},${iso(f.from)},Up`).join('\n');const capped=await f.client('preview',{text:many});assert.equal(capped.status,400);assert.match(capped.body.error,/5001.*5000/);
- assert.equal((await f.client('preview',{text:'x'.repeat(2*1024*1024+1)})).status,413);
+ // An early 413 closes the upload connection. Use the same dedicated-connection pattern as worker-intake.
+ const oversized=await new Promise((resolve,reject)=>{const body=JSON.stringify({text:'x'.repeat(2*1024*1024+1)});const request=http.request(origin+path+'preview',{method:'POST',agent:false,headers:{origin,cookie,'content-type':'application/json','content-length':Buffer.byteLength(body),connection:'close'}},response=>{response.resume();response.on('end',()=>resolve(response.statusCode));response.on('error',reject)});request.on('error',reject);request.end(body)});assert.equal(oversized,413);
  for(const resource of ['preview','apply'])assert.equal((await f.client(resource,{text:f.csv,digest:preview.body.digest},'POST','')).status,401);
  const stale=await f.client('apply',{text:f.csv+'\n',digest:preview.body.digest});assert.equal(stale.status,409);
  assert.equal(await evidenceSnapshot(db),before);
