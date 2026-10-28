@@ -23,8 +23,8 @@ async function greeting(session){
 export async function openMailSession(settings,options,step,prefix=''){
  const session={settings,channel:null,tag:0,capabilities:[]};
  try{
-  await step(prefix+'connection',async()=>{const connected=await connectMail(settings,options.signal,options.privateAccess,options.budget);session.channel=connected.channel;session.address=connected.address});
-  const secure=async()=>{session.channel=await secureMail(session.channel,settings)};
+  await step(prefix+'connection',async()=>{const connected=await connectMail(settings,options.signal,options.privateAccess,options.budget,options.capture);session.channel=connected.channel;session.address=connected.address});
+  const secure=async()=>{session.channel=await secureMail(session.channel,settings,options.capture)};
   if(settings.security==='tls')await step(prefix+'tls',secure);
   await step(prefix+'banner',()=>greeting(session));
   if(settings.security==='starttls')await step(prefix+'tls',async()=>{

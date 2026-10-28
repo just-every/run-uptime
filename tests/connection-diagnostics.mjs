@@ -1,4 +1,5 @@
 // DIAG-001: real failed transport -> signed completion -> private incident diagnostics.
+import {protocolDiagnostics} from './connection-diagnostics-protocols.mjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import childProcess from 'node:child_process';
@@ -34,5 +35,6 @@ test('connection failures retain bounded diagnostic phases and unavailable route
   const refusedTask=await f.claim(f.first),failure=await f.evidence(refusedTask);assert.equal(failure.checks[0].assertion,'connection');assert.equal(failure.failureSnapshot.diagnostics.route.reason,'blocked');assert.equal((await f.submit(f.first,refusedTask,[failure])).status,200);
   const forged=structuredClone(failure);forged.id+='bad';forged.failureSnapshot.diagnostics.route.reason='arbitrary secret text';assert.equal((await f.submit(f.first,refusedTask,[forged])).status,400);
   const erased=await f.request(`/api/monitors/${refused.id}/erase`,{body:{name:refused.definition.name}});assert.equal(erased.status,200);assert.equal(erased.data.receipt.counts.failure_snapshots,1);assert.equal(calls.length,2);
+  await protocolDiagnostics(f,value=>blocked=value);
  }finally{childProcess.spawn=original;syncBuiltinESMExports();await receiving?.close();await f?.close()}
 });

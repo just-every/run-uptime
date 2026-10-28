@@ -1,3 +1,5 @@
+import {dnsDiagnosticTransports} from './dns-diagnostics.mjs';
+import {diagnosticCapture,resolveDiagnosticPin,socketPhases,attachProtocolDiagnostics} from './protocol-diagnostics.mjs';
 import net from 'node:net';
 import {icmpFacts} from './icmp-probe.mjs';
 import {udpFacts} from './udp-probe.mjs';
@@ -33,11 +35,11 @@ function opened(socket,event,signal,port){
   socket.once(event,ok);socket.once('error',bad);socket.once('close',closed);signal.addEventListener('abort',aborted,{once:true});
  });
 }
-async function tcpFacts(s,signal,deadline,privateAccess){
- const pin=await (privateAccess?privateAccess(new URL(`http://${s.host.includes(':')?`[${s.host}]`:s.host}:${s.port}/`),signal):resolvePublic(pinned(s.host),signal)),started=Date.now();
- const socket=net.connect({host:pin.address,port:s.port,family:pin.family});
+async function tcpFacts(s,signal,deadline,privateAccess,capture){
+ const pin=await resolveDiagnosticPin(capture,new URL(`http://${s.host.includes(':')?`[${s.host}]`:s.host}:${s.port}/`),signal,undefined,privateAccess),started=Date.now();
+ const socket=net.connect({host:pin.address,port:s.port,family:pin.family}),finishPhases=socketPhases(capture,socket);
  try{
-  await opened(socket,'connect',signal,s.port);
+  try{await opened(socket,'connect',signal,s.port)}finally{finishPhases()}
   const facts={address:pin.address,connectMs:Date.now()-started};
   if(!s.readBanner)return facts;
   // A bounded banner: the first bytes the service sends on its own (SSH, SMTP, FTP), at most 256 characters.
@@ -58,12 +60,12 @@ function certificateFacts(peer){
  const name=o=>Object.fromEntries([['cn',o?.CN],['o',o?.O]].filter(([,v])=>typeof v==='string').map(([k,v])=>[k,v.replace(/[\x00-\x1f\x7f]/g,' ').slice(0,200)]));
  return {subject:name(peer.subject),issuer:name(peer.issuer),notBefore:Date.parse(peer.valid_from),notAfter:Date.parse(peer.valid_to),dnsNames:names,fingerprint256:peer.fingerprint256};
 }
-async function tlsFacts(s,signal){
- const pin=await resolvePublic(pinned(s.host),signal),started=Date.now(),literal=net.isIP(s.host);
+async function tlsFacts(s,signal,capture){
+ const pin=await resolveDiagnosticPin(capture,pinned(s.host),signal),started=Date.now(),literal=net.isIP(s.host);
  // Verification is reported, not enforced here: the check records what failed instead of refusing to look.
- const socket=tls.connect({host:pin.address,port:s.port,family:pin.family,...(literal?{}:{servername:s.host}),rejectUnauthorized:false});
+ const socket=tls.connect({host:pin.address,port:s.port,family:pin.family,...(literal?{}:{servername:s.host}),rejectUnauthorized:false}),finishPhases=socketPhases(capture,socket,true);
  try{
-  await opened(socket,'secureConnect',signal,s.port);
+  try{await opened(socket,'secureConnect',signal,s.port)}finally{finishPhases()}
   const handshakeMs=Date.now()-started,peer=socket.getPeerCertificate(true);
   if(!peer?.fingerprint256)throw new ProtocolError('tls','TLS handshake failed: the server sent no certificate');
   let chainLength=1;for(let c=peer;c.issuerCertificate&&c.issuerCertificate!==c&&chainLength<10;c=c.issuerCertificate)chainLength++;
@@ -73,35 +75,26 @@ async function tlsFacts(s,signal){
   return {address:pin.address,handshakeMs,certificate:certificateFacts(peer),chainLength,trusted:error===null?true:dated?null:false,hostnameMatch:tls.checkServerIdentity(s.host,peer)===undefined,...(error&&!dated?{verifyError:(VERIFY[error]??error.toLowerCase().replace(/_/g,' ')).slice(0,120)}:{})};
  }finally{socket.destroy()}
 }
-// One DNS query over TCP to a name server address the shared code validated as public.
-const asker=signal=>async(address,bytes)=>{
- const socket=net.connect({host:address,port:53});
- try{
-  await opened(socket,'connect',signal,53);socket.write(bytes);
-  const queue=[];let wake;socket.on('data',chunk=>{queue.push(new Uint8Array(chunk));wake?.()});socket.on('end',()=>{queue.push(null);wake?.()});
-  const read=async()=>{while(!queue.length){if(signal.aborted)throw new ProtocolError('timeout','No answer within the timeout');await new Promise(r=>{wake=r;signal.addEventListener('abort',r,{once:true})})}const value=queue.shift();return value?{value,done:false}:{done:true}};
-  return await readFramed(read);
- }finally{socket.destroy()}
-};
 // Reads for the shared DNS over HTTPS and RDAP code: pinned, credential-free, read-only and bounded.
 const reader=signal=>async(url,{accept,maxBytes})=>{
  const response=await publicReport(url,{signal,accept,userAgent:RUNNER_VERSION,maxBody:maxBytes,maxHops:3});
  if(response.truncated||response.redirect)throw new ProtocolError('registry','The answer was larger than the check reads or redirected too often');
  return {status:response.status,text:response.body};
 };
-export async function probeProtocol(input,probe,{signal,privateAccess}={}){
+export async function probeProtocol(input,probe,{signal,privateAccess,snapshotPolicy}={}){
  const def=validateDefinition(input,[]),startedAt=Date.now(),deadline=startedAt+def.timeoutMs;
+ let capture=diagnosticCapture();
  const execution=AbortSignal.any([AbortSignal.timeout(def.timeoutMs),...(signal?[signal]:[])]);
  const evidence=(data,completedAt=Date.now())=>({id:randomUUID(),probe,startedAt,completedAt,durationMs:completedAt-startedAt,runnerVersion:RUNNER_VERSION,...data});
  try{
   if(def.network==='private'&&!privateAccess)throw new ProtocolError('grant','Private network grant unavailable');
-  const s=def[def.type];
-  const facts=def.type==='ping'?await icmpFacts(s,execution):def.type==='udp'?await udpFacts(s,execution):def.type==='tcp'?await tcpFacts(s,execution,deadline,privateAccess):def.type==='tls'?await tlsFacts(s,execution):def.type==='dns'?await dnsFacts(reader(execution),s,asker(execution)):await domainFacts(reader(execution),s.name);
-  const completedAt=Date.now();
-  return evidence({...protocolChecks(def,facts,completedAt),protocol:facts},completedAt);
+  const s=def[def.type],dns=def.type==='dns'?dnsDiagnosticTransports(execution,opened):null;
+  const facts=def.type==='ping'?await icmpFacts(s,execution,capture):def.type==='udp'?await udpFacts(s,execution,capture):def.type==='tcp'?await tcpFacts(s,execution,deadline,privateAccess,capture):def.type==='tls'?await tlsFacts(s,execution,capture):def.type==='dns'?await dnsFacts(dns.get,s,dns.ask):await domainFacts(reader(execution),s.name);
+  const completedAt=Date.now();if(dns)capture=dns.select(facts,s);
+  return attachProtocolDiagnostics(def,evidence({...protocolChecks(def,facts,completedAt),protocol:facts},completedAt),capture,{signal,snapshotPolicy});
  }catch(error){
   const category=def.type==='ping'&&execution.aborted?'vantage':error instanceof ProtocolError||error instanceof ProbeError?error.category:execution.aborted?'timeout':'runner';
   const reason=def.type==='ping'&&execution.aborted?'The ICMP sample was interrupted before completion; this location reports Unknown':error?.reason??(category==='timeout'?'No answer within the timeout':category==='unresolved'?'DNS: the host name does not resolve':category==='network'?'The host resolves to an address this check never contacts':category==='dns'?'The runner’s DNS resolver failed; this is not evidence about the target':'The runner could not perform this check');
-  return evidence({outcome:targetCategories.includes(category)?'target_failure':'runner_error',checks:[{assertion:category,pass:false,reason}]});
+  return attachProtocolDiagnostics(def,evidence({outcome:targetCategories.includes(category)?'target_failure':'runner_error',checks:[{assertion:category,pass:false,reason}]}),capture,{signal,snapshotPolicy});
  }
 }

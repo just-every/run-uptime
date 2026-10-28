@@ -94,14 +94,17 @@ export async function publicHttp(def,signal,onRequest,{statusOnly=false,monitorI
 // beforeRequest(url) runs after the address is validated and before anything is sent; it may throw to stop (budget, robots).
 // followRedirect(next,from,status) may return false to stop at a redirect without following it.
 // onChunk(chunk) receives the body as it arrives instead of it being kept (body is then ''); returning false stops the read.
-export async function publicReport(rawUrl,{signal,accept=PROBE_ACCEPT,userAgent,maxBody,method='GET',maxHops=4,hopTimeoutMs=8000,beforeRequest,followRedirect,onChunk}={}) {
+export async function publicReport(rawUrl,{signal,accept=PROBE_ACCEPT,userAgent,maxBody,method='GET',maxHops=4,hopTimeoutMs=8000,beforeRequest,followRedirect,onChunk,capture}={}) {
   if(!['GET','HEAD'].includes(method))throw new ProbeError('method');
   if(!Number.isInteger(maxBody)||maxBody<1||typeof userAgent!=='string'||!userAgent)throw new ProbeError('runner');
   let url=publicTarget(rawUrl);
-  const hops=[],settings={headers:{}},base=signal??new AbortController().signal;
+  const hops=[],settings={headers:{},capture},base=signal??new AbortController().signal;
   for(let hop=0;hop<=maxHops;hop++){
     base.throwIfAborted();
-    const resolving=Date.now(),pin=await resolvePublic(url,base),lookupMs=Date.now()-resolving;
+    const resolving=Date.now();let pin;
+    if(capture){capture.pin=undefined;capture.phases={dnsMs:null,connectMs:null,tlsMs:null,ttfbMs:null,totalMs:0}}
+    try{pin=await resolvePublic(url,base)}finally{if(capture)capture.phases.dnsMs=Date.now()-resolving}
+    const lookupMs=Date.now()-resolving;if(capture)capture.pin=pin;
     await beforeRequest?.(url,hop);
     const hopSignal=AbortSignal.any([base,AbortSignal.timeout(hopTimeoutMs)]);
     // Timing is lookup plus the request, as a probe measures it; waiting in beforeRequest (robots, spacing) is not counted.

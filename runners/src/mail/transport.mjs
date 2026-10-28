@@ -1,3 +1,4 @@
+import {resolveDiagnosticPin,measurePhase} from '../network-phase-capture.mjs';
 import net from 'node:net';
 import tls from 'node:tls';
 import {resolvePublic} from '../public-http.mjs';
@@ -50,19 +51,19 @@ function opened(socket,event,signal){
   socket.once(event,ok);socket.once('error',bad);socket.once('close',closed);signal.addEventListener('abort',abort,{once:true});if(signal.aborted)abort();
  });
 }
-export async function connectMail(settings,signal,privateAccess,budget){
+export async function connectMail(settings,signal,privateAccess,budget,capture){
  const url=new URL(mailOrigin(settings));
- const pin=await(privateAccess?privateAccess(url,signal):resolvePublic(url,signal));
+ const pin=await resolveDiagnosticPin(capture,url,signal,undefined,privateAccess);
  if(signal.aborted)throw new MailError('timeout');
  const socket=net.connect({host:pin.address,port:settings.port,family:pin.family});
  const channel=new MailChannel(socket,signal,budget);
- try{await opened(socket,'connect',signal);return {channel,address:pin.address}}catch(error){channel.destroy();throw error}
+ try{await measurePhase(capture,'connectMs',()=>opened(socket,'connect',signal));return {channel,address:pin.address}}catch(error){channel.destroy();throw error}
 }
-export async function secureMail(channel,settings){
+export async function secureMail(channel,settings,capture){
  // Never consume unsolicited bytes as a TLS record, or pass pre-upgrade protocol bytes through to authentication.
  if(channel.buffer.length)throw new MailError('protocol');
  const previous=channel.socket,signal=channel.signal;channel.detach();
  const socket=tls.connect({socket:previous,servername:net.isIP(settings.host)?undefined:settings.host,rejectUnauthorized:true,checkServerIdentity:(_,cert)=>tls.checkServerIdentity(settings.host,cert)});
  const secure=new MailChannel(socket,signal,channel.budget);
- try{await opened(socket,'secureConnect',signal);if(!socket.authorized)throw new MailError('tls');return secure}catch(error){secure.destroy();throw mailError(error,signal)}
+ try{await measurePhase(capture,'tlsMs',()=>opened(socket,'secureConnect',signal));if(!socket.authorized)throw new MailError('tls');return secure}catch(error){secure.destroy();throw mailError(error,signal)}
 }

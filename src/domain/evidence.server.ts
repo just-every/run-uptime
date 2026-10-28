@@ -4,6 +4,7 @@ import {validateMailFacts} from './mail-probe/facts.mjs'
 import {mailChecks} from './mail-probe/evaluate.mjs'
 // @ts-ignore Shared transaction facts contain no extracted values.
 import {validateApiTransactionEvidence,apiTransactionChecks,apiTransactionOutcome,validateFixtureEvidence} from './api-transaction.mjs'
+import {DIAGNOSTIC_PROTOCOLS,validateProtocolDiagnosticSnapshot} from './network-diagnostics.mjs'
 import {normalizeFailureSnapshot,FAILURE_SNAPSHOT_LIMITS} from './failure-snapshot.mjs'
 // @ts-ignore Shared monitor-scoped certificate trust facts.
 import {validateTlsTrustEvidence,TLS_EVIDENCE_MAX_BYTES} from './tls-trust.mjs'
@@ -188,11 +189,12 @@ function validateTrust(o:any,definition:any){
 
 export function validateEvidence(o: any, definition: any, dueAt: number, now: number, mode: ValidationMode = 'live-completion') {
   if(o?.failureSnapshot!==undefined){
-    const snapshot=normalizeFailureSnapshot(o.failureSnapshot),flow=definition.type==='flow';
-    if(!['http','keyword','flow'].includes(definition.type??'http')||o.outcome==='pass')throw Error('Invalid failure snapshot evidence');
+    const snapshot=normalizeFailureSnapshot(o.failureSnapshot),flow=definition.type==='flow',protocol=DIAGNOSTIC_PROTOCOLS.includes(definition.type);
+    if(!['http','keyword','flow',...DIAGNOSTIC_PROTOCOLS].includes(definition.type??'http')||o.outcome==='pass')throw Error('Invalid failure snapshot evidence');
     if(!('unavailable' in snapshot)){
-      const statusValid=flow?snapshot.status===null:o.status!==undefined?snapshot.status===o.status:snapshot.status===null||o.checks?.some((c:any)=>['timeout','connection','transport','encoding','body-limit'].includes(c.assertion));
-      if(!statusValid||snapshot.durationMs!==o.durationMs||snapshot.diagnostics&&snapshot.diagnostics.category!==o.checks?.[0]?.assertion||!flow&&snapshot.artifacts)throw Error('Invalid failure snapshot evidence');
+      if(protocol)validateProtocolDiagnosticSnapshot(snapshot,definition,o);
+      const statusValid=protocol?snapshot.status===null:flow?snapshot.status===null:o.status!==undefined?snapshot.status===o.status:snapshot.status===null||o.checks?.some((c:any)=>['timeout','connection','transport','encoding','body-limit'].includes(c.assertion));
+      if(!statusValid||snapshot.durationMs!==o.durationMs||!protocol&&snapshot.diagnostics&&snapshot.diagnostics.category!==o.checks?.[0]?.assertion||!flow&&snapshot.artifacts)throw Error('Invalid failure snapshot evidence');
     }
   }
   const binding = o?.credentialBinding;

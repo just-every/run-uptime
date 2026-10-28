@@ -1,3 +1,4 @@
+import {resolveDiagnosticPin} from './protocol-diagnostics.mjs';
 import {spawn} from 'node:child_process';
 import {isIP} from 'node:net';
 import {resolvePublic} from './public-http.mjs';
@@ -29,12 +30,12 @@ function sample(text,address,family,packets){
 // A fixed operating-system utility, argv only, numeric destination, no inherited
 // environment or PATH lookup. The validated definition cannot supply flags,
 // executables, packet sizes, interfaces, source addresses or authority.
-export async function icmpFacts(settings,signal){
+export async function icmpFacts(settings,signal,capture){
  if(!signal||signal.aborted)throw unavailable('The ICMP sample was interrupted before completion; this location reports Unknown');
  const {host,family,packets}=settings??{};
  if(![4,6].includes(family)||!Number.isInteger(packets)||packets<1||packets>5)throw new ProtocolError('runner','Invalid ICMP sample settings');
  publicHost(host);
- const pin=await resolvePublic(new URL(`https://${host.includes(':')?`[${host}]`:host}/`),signal,{family});
+ const pin=await resolveDiagnosticPin(capture,new URL(`https://${host.includes(':')?`[${host}]`:host}/`),signal,{family});
  if(isIP(pin.address)!==family)throw new ProtocolError('runner','The resolved ICMP address has the wrong IP family');
  const darwin=process.platform==='darwin';
  if(!darwin&&process.platform!=='linux')throw unavailable('ICMP checks require the native macOS or Linux ping utility; this location reports Unknown');
