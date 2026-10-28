@@ -52,7 +52,9 @@
           "src/base/foundation/runtime",
           "migrations/0079_agent_door.sql",
           "migrations/0080_business_settings.sql",
-          "migrations/0081_business_people.sql"
+          "migrations/0081_business_people.sql",
+          "migrations/0082_agent_native_proof.sql",
+          "migrations/0083_agent_work.sql"
         ],
         "origin": {
           "repository": "https://github.com/runeditrun/base.git",
@@ -214,7 +216,8 @@
           "migrations/0017_first_run.sql",
           "migrations/0020_audit_erasure.sql",
           "migrations/0021_public_rate_limits.sql",
-          "src/demo.ts"
+          "src/demo.ts",
+          "src/agent-door"
         ]
       }
     },

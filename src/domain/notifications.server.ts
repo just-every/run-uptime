@@ -31,7 +31,7 @@ export async function queueTestEvent(env:Bindings,id:string,event:NotificationEv
  const [result]=await env.DB.batch([env.DB.prepare(`INSERT INTO notification_jobs(id,event_id,destination_id,destination_name,kind,credential_id,event,created_at)
  SELECT ?,?,id,name,kind,credential_id,?,? FROM notification_destinations WHERE id=? AND credential_id=? AND deleted_at IS NULL`).bind(deliveryId,event.id,JSON.stringify(event),event.observedAt,id,credential.id),...await extra(deliveryId,credential.id)]);
  if(!result.meta.changes)throw Error('Destination not found');return {deliveryId,credentialId:credential.id as string}}
-export async function testDestination(env:Bindings,id:string){const event=testEvent(env.UPTIME_ORIGIN??''),{deliveryId}=await queueTestEvent(env,id,event);return {queued:true,eventId:event.id,deliveryId}}
+export async function testDestination(env:Bindings,id:string,initiator?:import('../agent-door/work.server.ts').SavedPrincipal){const event={...testEvent(env.UPTIME_ORIGIN??''),...(initiator?.attribution?{preparedBy:initiator.attribution}: {})},{deliveryId}=await queueTestEvent(env,id,event,async deliveryId=>initiator?[env.DB.prepare('INSERT INTO uptime_agent_notifications(delivery_id,principal) VALUES(?,?)').bind(deliveryId,JSON.stringify(initiator))]:[]);return {queued:true,eventId:event.id,deliveryId}}
 export async function notificationOverview(env:Bindings){
  await refreshContactQuiet(env);
  const rows=await env.DB.prepare(`SELECT j.id,j.event_id,j.destination_id,j.destination_name,j.kind,j.created_at,j.event,
