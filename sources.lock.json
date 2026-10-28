@@ -2454,6 +2454,10 @@
       "sha256": "60984388c36a7e790ffe7eb357336d7eddbf6b97e5c2a4007578f9d6dadebcca",
       "executable": false
     },
+    "migrations/0078_source_history.sql": {
+      "sha256": "8d55688aef10cbf783e03a391ee31f7353808b9c2b3fb4ce5af3ba253c30e589",
+      "executable": false
+    },
     "OPERATIONS.json": {
       "sha256": "61ba56de0f6cefb040131c53bde043bc4aa6b4edf6bdba50bc682eee244e45c3",
       "executable": false
@@ -6636,6 +6640,14 @@
     },
     "src/domain/slow-policy.mjs": {
       "sha256": "622efa7fd9a55bcecce49891d2bcfdb9e0c1a6d13ec74b549c3c5445d58d6db7",
+      "executable": false
+    },
+    "src/domain/source-history/csv.ts": {
+      "sha256": "a48c66f5813b753085ed4952201cc049571d6f035d8df6019d88c5149f45148b",
+      "executable": false
+    },
+    "src/domain/source-history/model.ts": {
+      "sha256": "c30b2eed27c3ba5680370252d44378f26c4b07382cf73b93336648c1a2b5bfb8",
       "executable": false
     },
     "src/domain/startup-config.d.mts": {
