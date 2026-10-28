@@ -377,6 +377,22 @@
           }
         ]
       }
+    },
+    {
+      "id": "runeditrun/agent-door",
+      "role": "module",
+      "source": {
+        "kind": "local",
+        "paths": [
+          "src/base/modules/agent-door",
+          "src/base/modules/business-settings",
+          "src/base/foundation/runtime/theme-frame.ts",
+          "src/base/foundation/runtime/icon-head.ts",
+          "migrations/0079_agent_door.sql",
+          "migrations/0080_business_settings.sql",
+          "migrations/0081_business_people.sql"
+        ]
+      }
     }
   ]
 }
