@@ -51,18 +51,17 @@ export async function scratchInstallation({ mirror = false } = {}) {
   assert.equal((await readProcessTable(inspectionMs, child.pid)).length, 0, 'scratch command left an owned process group');
   children.delete(child);
  }
+ async function diagnostic(child) {
+  // Keep a failed launch actionable after cleanup without exposing settings or sign-in grants.
+  const settings=await readFile(join(root,'data/local-secrets.json'),'utf8').then(JSON.parse).catch(()=>({}));
+  let text=child.output;
+  for(const value of [...Object.values(settings),env.UPTIME_ACCESS_COOKIE])if(typeof value==='string'&&value)text=text.replaceAll(value,'[private]');
+  return text.replace(/\b[A-Za-z0-9_-]{24,}\b/g,'[private]').slice(-2400);
+ }
  async function run(command, args, options) {
   const child = start(command, args, options);
   try { const result = await child.done;
-   if(result.code!==0){
-    // Retain the cause after cleanup without exposing this installation's
-    // generated credentials or a newly issued session in an assertion.
-    const settings=await readFile(join(root,'data/local-secrets.json'),'utf8').then(JSON.parse).catch(()=>({}));
-    let diagnostic=child.output;
-    for(const value of [...Object.values(settings),env.UPTIME_ACCESS_COOKIE])if(typeof value==='string'&&value)diagnostic=diagnostic.replaceAll(value,'[private]');
-    diagnostic=diagnostic.replace(/\b[A-Za-z0-9_-]{24,}\b/g,'[private]');
-    assert.equal(result.code,0,'scratch command failed: '+diagnostic.slice(-2400));
-   }
+   if(result.code!==0)assert.equal(result.code,0,'scratch command failed: '+await diagnostic(child));
    return child.output;
   }
   finally { await stop(child); }
@@ -81,6 +80,6 @@ export async function scratchInstallation({ mirror = false } = {}) {
    await run('git', ['add', '.']);
    await run('git', ['-c', 'user.name=Uptime local proof', '-c', 'user.email=proof@example.test', 'commit', '-m', 'Candidate working-copy snapshot']);
   }
-  return { directory, root, env, start, run, stop, close };
+  return { directory, root, env, start, run, stop, close, diagnostic };
  } catch (error) { await close(); throw error; }
 }

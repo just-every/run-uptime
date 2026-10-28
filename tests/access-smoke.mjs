@@ -54,7 +54,7 @@ try{
  const settings={...JSON.parse(await readFile(join(scratch.root,'data/local-secrets.json'),'utf8')),RER_DEV_KEY:await readCheckoutKey(scratch.root)};
  // rer dev detaches without a terminal; --foreground keeps it this test's child, as a terminal would.
  await machineAvailable();child=scratch.start('pnpm',['run','dev','--','--foreground']);
- await waitFor(async()=>{if(child.exitCode!==null)throw Error('Development launcher stopped');return child.output.includes('RER_READY '+origin)&&(await fetch(origin+'/health')).ok},'real pnpm run dev',60000);
+ await waitFor(async()=>{if(child.exitCode!==null)throw Error(`Development launcher stopped (${child.exitCode}): ${await scratch.diagnostic(child)}`);return child.output.includes('RER_READY '+origin)&&(await fetch(origin+'/health')).ok},'real pnpm run dev',60000);
  syntheticPort=JSON.parse(await readFile(join(scratch.root,'.wrangler/state/synthetic-grant.json'),'utf8')).port;
  await probe(authRequest(origin),settings,fetch,true);
  await stop();await assertGroupsGone(groups);

@@ -7951,7 +7951,7 @@
       "executable": false
     },
     "tests/access-smoke.mjs": {
-      "sha256": "1c87ad3a133b725dedbeb5847c447dbb739ebfb1bd39bc097dd7e558f6fb3755",
+      "sha256": "5e59a2658840dee1a6c718497bd24e8a2462aa4caea5208b03f157ade9c503af",
       "executable": false
     },
     "tests/add-location-browser.mjs": {
@@ -8631,7 +8631,7 @@
       "executable": false
     },
     "tests/scratch-installation.mjs": {
-      "sha256": "808161656377e6b47e0e8ef5b1abe4bf95337ea45acf9dedb646dfbdd7c2e3fe",
+      "sha256": "b828a1a59d74d918eed034b12576c7cc6f0cb5a7e0d3e90475adfb18531276eb",
       "executable": false
     },
     "tests/security-controls-browser-support.mjs": {
