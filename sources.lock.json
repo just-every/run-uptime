@@ -2003,7 +2003,7 @@
       "executable": false
     },
     "docs/getting-started.md": {
-      "sha256": "2b7ad696aaf2675b71905ea12801998a2242b36c5ffef9777d9ee0cbd899ad62",
+      "sha256": "8b6f20d829f727152bfb87725c310c7f489e9aa388831874cd91fbfc677b14f8",
       "executable": false
     },
     "docs/grafana/uptime-dashboard.json": {
@@ -2067,7 +2067,7 @@
       "executable": false
     },
     "docs/overview.md": {
-      "sha256": "dbd396336192c25457c85b16d83de49a1a32b8d932b5e6d36c063c408319f86a",
+      "sha256": "2152306a98b144a5f0a3fc0c9e047365195c60b4ed57cfbd4a0d73e95af74095",
       "executable": false
     },
     "docs/private-overview.md": {
@@ -2887,7 +2887,7 @@
       "executable": false
     },
     "README.md": {
-      "sha256": "250d75c3e63f1b5178e2eaf4aad6efc69955515c685c002a61162f4ced0a66fe",
+      "sha256": "a0cfb84fa5d5f94033befcb4db90608db540c6dd4625d5a609230685787a88da",
       "executable": false
     },
     "RELEASE.json": {
@@ -7643,7 +7643,7 @@
       "executable": false
     },
     "src/site/docs/pages.ts": {
-      "sha256": "a17f881064554985f316e87b7838c63c764764a8c5a2f26eb9ccbf3a138c0c68",
+      "sha256": "01180a5f0c84e00a64a0d73ea4e86dcd520c2164d3c09a0c1fa4dc40d9d36c7d",
       "executable": false
     },
     "src/site/docs/styles/index.ts": {

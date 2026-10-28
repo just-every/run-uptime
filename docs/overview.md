@@ -41,7 +41,7 @@ It does not cover everything. Uptime uses sampled evidence from the assigned run
 
 ## Where to go next
 
-1. [Install Uptime](/docs/install) on your own computer to look around.
+1. [Install Uptime](/docs/getting-started) on your own computer to look around.
 2. [Deploy to Cloudflare](/docs/deploy) when you want it running for real.
 3. Start [the private runner](/docs/runner) for heartbeats, website discovery or private targets.
 4. Add [monitors](/docs/monitors) and [notifications](/docs/notifications).
