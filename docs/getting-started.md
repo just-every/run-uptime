@@ -10,8 +10,6 @@ The line installs `rer`, the Run Edit Run command, clones Uptime into a `run-upt
 
 If the installer prints a line that puts `rer` on your PATH, run that line too. To start Uptime again later, run the same line from the same folder, or `cd run-uptime && rer dev`. `rer dev --stop` stops it.
 
-
-
 ## Explicit owner setup
 
 To choose an owner or supply setup answers yourself, run `npx -y @runeditrun/rer install just-every/run-uptime`, then from the checkout, before `rer dev`:

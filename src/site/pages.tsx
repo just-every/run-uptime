@@ -11,7 +11,7 @@ import { Landing } from './landing/Landing';
 import { run } from './run';
 
 /** The run site (run-uptime.com), built by `rer build --site`: the approved homepage, the Run page, the docs and a 404. */
-export function sitePages({ styles, contract, hosting }: SiteContext): SiteBuild {
+export function sitePages({ styles, contract, hosting = null }: SiteContext): SiteBuild {
   const document = (title: string, description: string | undefined, body: ReactElement) => '<!doctype html>' + renderToStaticMarkup(
     <html lang="en">
       <head>
