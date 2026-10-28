@@ -1006,13 +1006,13 @@ The primary journey: an operator moves their monitors from UptimeRobot or Pingdo
 Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every call; this section presets none.
 
 **How Uptime computes each class.**
-- *standard*: reads of monitors, evidence, incidents, reports and the audit; paused monitor revisions and definition previews; manual checks without an active live-payment, refund or destructive-write grant; comment additions and edits, mentions of workspace members and root causes; incident ownership, acknowledgment and stop; cleanup-debt resolution; archive and report exports. Each can be withdrawn or corrected in the product. Facts are the item count.
+- *standard*: reads of monitors, evidence, incidents, reports and the audit; paused monitor revisions and definition previews; manual checks without an active live-payment, refund or destructive-write grant; comment additions and edits, mentions of workspace members and root causes; incident ownership, acknowledgment and stop; archive and report exports. Each can be withdrawn or corrected in the product. Facts are the item count.
 - *external*: a test send or alert drill, a phone verification code, a scheduled report to a recipient outside the business, a route or an enabled destination that puts a recipient outside the business on the alert path (including code-applied routes and contacts, a monitor's slow-policy destinations and a bulk-created batch's shared alert route), a handoff mapping that exposes incident, maintenance or recovery updates, evidence and attachments to a status page or an outside responder service, a comment published to a status page, and following an Auth0 tenant feed that sends the tenant domain to Auth0. Facts are the recipient count and the counterparty: *known* for a recipient, destination or provider already on record, *new* otherwise, *public* for a status page.
 - *money*: SMS and voice sends metered at COST-001's USD price, a phone budget or plan change, a live-effect grant's spend limit and a manual check using an active live-payment or refund grant. Facts are the USD amount and the payee.
 - *access*: member invitations, role changes and removals, runner enrollment and revocation, read API, metrics and CI keys, and automation app grants. Facts are the people, credentials or app and whether the change widens or narrows.
 - *security*: request credential references, TLS trust exceptions, heartbeat tokens and URLs, destination credentials (endpoint URLs, signing keys, header secrets and bot tokens), live-effect, synthetic and private-network grants, the MFA policy, a member's factor reset, snapshot masks, safe values and email release, discovery source credentials and archive restore. Facts are the setting.
-- *destructive*: deleting a comment and its edit history, shortening retained snapshots' expiry, erasing a monitor, destination, import batch or operator, including code-managed destruction, a grant that allows destructive writes, or a manual check using an active destructive-write grant. Facts are the item count per table, or the step and item count for a destructive write or its grant.
-- *live*: enabling or changing a running monitor, pausing or resuming, maintenance windows, routes and contact schedules, creating, enabling, disabling or removing a destination on a running monitor's route, pausing or revoking an automation on a running monitor's alert path, handoff mappings, code-managed destruction of running monitors, erasing a running monitor, or a destination or operator on a running monitor's alert path, adopting discovered monitors, following or unfollowing catalog dependencies when that starts or stops checks, revoking or relabeling a runner with assigned probes, binding, rotating or revoking a request credential reference used by a running monitor, granting or revoking a grant a running monitor's checks use, rotating or revoking a running heartbeat monitor's token or URL authority, and removing a member or changing their role or scope when that drops a team recipient on a running monitor's route. Facts are the monitors and routes affected.
+- *destructive*: irreversibly closing a cleanup debt, with the debts closed as its facts; deleting a comment and its edit history, shortening retained snapshots' expiry, erasing a monitor, destination, import batch or operator, including code-managed destruction, a grant that allows destructive writes, or a manual check using an active destructive-write grant. Facts are the item count per table, or the step and item count for a destructive write or its grant.
+- *live*: resolving a cleanup debt when that takes a running monitor below the open-debt limit so its next run performs setup again, with the monitor affected; enabling or changing a running monitor, pausing or resuming, maintenance windows, routes and contact schedules, creating, enabling, disabling or removing a destination on a running monitor's route, pausing or revoking an automation on a running monitor's alert path, handoff mappings, code-managed destruction of running monitors, erasing a running monitor, or a destination or operator on a running monitor's alert path, adopting discovered monitors, following or unfollowing catalog dependencies when that starts or stops checks, revoking or relabeling a runner with assigned probes, binding, rotating or revoking a request credential reference used by a running monitor, granting or revoking a grant a running monitor's checks use, rotating or revoking a running heartbeat monitor's token or URL authority, and removing a member or changing their role or scope when that drops a team recipient on a running monitor's route. Facts are the monitors and routes affected.
 - *gated*: a step the provider keeps for a person: a Teams admin installing the Uptime Teams app, a buyer connecting their own Twilio account in Twilio's console, a person authorizing Zapier or Make in their own account, and a recipient entering their own phone verification code. Facts are the provider and the step.
 
 | Tool | Does | Core clauses | Risk class | Today |
@@ -1025,7 +1025,7 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 | `uptime.definitions.apply` | Preview, apply, export and undo definition files and code bundles, and destroy code-managed resources | IMPORT-001, CODE-001, CODE-002 | standard or live (+ external) (+ security) (+ destructive) | none |
 | `uptime.credentials.update` | Bind, rotate or revoke a monitor's request credential reference | API-002 | security (+ live) | none |
 | `uptime.grants.update` | Grant or revoke a live-effect, synthetic or private-network grant | API-004, FLOW-001, PRIVATE-001 | security (+ money) (+ destructive) (+ live) | none |
-| `uptime.cleanup.resolve` | Resolve a cleanup debt with a note | API-004 | standard | none |
+| `uptime.cleanup.resolve` | Irreversibly close a cleanup debt with a note | API-004 | destructive (+ live) | none |
 | `uptime.heartbeats.issue` | Issue or rotate a heartbeat token or URL and generate scheduler snippets | HEARTBEAT-001, HEARTBEAT-002, HEARTBEAT-003 | security (+ live) | none |
 | `uptime.runners.update` | Enroll, label, upgrade or revoke a private runner | PRIVATE-001, PROBE-001 | access (+ security) (+ live) | none |
 | `uptime.maintenance.update` | Schedule, preview, apply or cancel a maintenance window | MAINT-001 | live | none |
@@ -1132,6 +1132,15 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 3. Under the held policy (standard reviewed, every other class Uptime declares waiting for approval, which the test person grants), each non-standard call waits with no effect and runs once approved, and the review feed lists the standard calls.
 4. Under the held policy with live blocked, the adoptions, the pause, the maintenance window and the route change are refused and the rest of the week completes.
 5. Before setup is answered, the first call returns `policy_unset` with the setup link, and setup asks every Uptime class with no answer pre-selected.
+
+#### SURFACE-006 — One-way operational actions carry their effects
+
+*Tier:* Agent surface · *From:* new · *Cites:* BASE-AGENT-006
+
+**Requirement.** Uptime computes the irreversible and live effects of cleanup-debt resolution from the affected debts and running monitors.
+
+**Acceptance.**
+1. `uptime.cleanup.resolve` carries destructive with the debts irreversibly closed; it adds live, with the monitor affected, when resolving a debt takes a running monitor below the open-debt limit so its next scheduled run performs setup again. A resolution that leaves setup refused, or affects only a paused monitor, does not add live.
 
 ## Push further
 
@@ -1247,8 +1256,8 @@ Judged from the code and tests at commit `56497f8d6716dbe16437095f61a923266fd9b3
 | Clauses | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
 | Published | 3 | 18 | 0 | 21 |
-| Target and push further | 10 | 53 | 17 | 80 |
-| All | 13 | 71 | 17 | 101 |
+| Target and push further | 10 | 53 | 18 | 81 |
+| All | 13 | 71 | 18 | 102 |
 
 | Clause | Title | Kind | Status | Evidence | Gap |
 | --- | --- | --- | --- | --- | --- |
@@ -1348,6 +1357,7 @@ Judged from the code and tests at commit `56497f8d6716dbe16437095f61a923266fd9b3
 | `SURFACE-003` | External and money are computed per call | target | missing |  | No implementation: no tool declares or computes external or money classes. |
 | `SURFACE-004` | Access, destructive and gated are computed per call | target | missing |  | No implementation: no tool declares or computes access, destructive or gated classes, and no incident record attributes an agent act. |
 | `SURFACE-005` | The monitoring-operator journey under two company policies | target | missing |  | No implementation: no MCP door exists for a stranger agent to run the monitoring-operator week under either company policy. |
+| `SURFACE-006` | One-way operational actions carry their effects | target | missing |  | No implementation: no tool computes irreversible cleanup-debt closure or its effect on a running monitor’s setup. |
 | `AGENT-001` | Continuously maintain meaningful coverage | push-further | partial | `src/domain/discovery.server.ts`; `tests/discovery-jobs.mjs` | Reviewed one-shot discovery exists; continuous agent planning, analytics/deploy comparison and maintenance are absent. |
 | `AGENT-002` | Distinguish outage, network and broken check | push-further | partial | `src/domain/policy.mjs`; `src/domain/evidence.server.ts`; `tests/control-runtime.mjs` | Canary/network evidence exists; AI explanation and competing release/dependency investigation do not. |
 | `AGENT-003` | Repair browser drift without weakening intent | push-further | missing |  | No implementation; acceptance journey above is required. |

@@ -9,9 +9,9 @@ The primary journey: an operator moves their monitors from UptimeRobot or Pingdo
 | Tier | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
 | Core | 13 | 71 | 11 | 95 |
-| Agent surface | 0 | 0 | 5 | 5 |
+| Agent surface | 0 | 0 | 6 | 6 |
 | Later | 0 | 0 | 1 | 1 |
-| Full target | 13 | 71 | 17 | 101 |
+| Full target | 13 | 71 | 18 | 102 |
 
 Judged from the code and tests at commit `56497f8d6716dbe16437095f61a923266fd9b347` (24 October 2026). Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
 
@@ -1381,6 +1381,18 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-007, BASE
 
 **Evidence.** None.
 **Gap.** No implementation: no MCP door exists for a stranger agent to run the monitoring-operator week under either company policy.
+
+#### SURFACE-006 — One-way operational actions carry their effects
+
+Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
+
+**Requirement.** Uptime computes the irreversible and live effects of cleanup-debt resolution from the affected debts and running monitors.
+
+**Acceptance.**
+1. `uptime.cleanup.resolve` carries destructive with the debts irreversibly closed; it adds live, with the monitor affected, when resolving a debt takes a running monitor below the open-debt limit so its next scheduled run performs setup again. A resolution that leaves setup refused, or affects only a paused monitor, does not add live.
+
+**Evidence.** None.
+**Gap.** No implementation: no tool computes irreversible cleanup-debt closure or its effect on a running monitor’s setup.
 
 ## Later
 
