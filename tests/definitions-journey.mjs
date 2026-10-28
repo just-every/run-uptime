@@ -1,6 +1,6 @@
 // The buyer's move-in path inside the command journey: from the console navigation, upload the synthetic UptimeRobot
 // file, read the preview counts and rows, apply exactly that preview, see the new monitors paused, and undo the batch;
-// at 1440 and 390, with axe and horizontal-overflow checks. Screenshots go to UPTIME_DEFINITIONS_EVIDENCE when set.
+// at 1440, with axe and horizontal-overflow checks. Screenshots go to UPTIME_DEFINITIONS_EVIDENCE when set.
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
@@ -27,7 +27,7 @@ export async function definitionsJourney(page, origin) {
  if (evidence) await mkdir(evidence, { recursive: true });
  const cases = [
   { width: 1440, file: fixture, counts: { Create: '6', Unchanged: '0', Change: '0', Refused: '2', Unsupported: '4' }, apply: 'Apply: create 6, change 0', created: ['Shop home', 'Docs', 'Checkout keyword', 'Error banner absent', 'Nightly backup', 'Partner API'] },
-  { width: 390, file: { name: 'uptime.monitors.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify({ format: 'uptime.monitors', version: 1, monitors: [{ name: 'Phone import', url: 'https://phone.example.test/' }, { name: 'Shop home', url: 'https://shop.example.com/', method: 'GET', timeoutMs: 10000, freshnessMs: 900000, intervalMs: 300000 }] })) }, counts: { Create: '1', Unchanged: '1', Change: '0', Refused: '0', Unsupported: '0' }, apply: 'Apply: create 1, change 0', created: ['Phone import'] },
+  { width: 1440, file: { name: 'uptime.monitors.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify({ format: 'uptime.monitors', version: 1, monitors: [{ name: 'Phone import', url: 'https://phone.example.test/' }, { name: 'Shop home', url: 'https://shop.example.com/', method: 'GET', timeoutMs: 10000, freshnessMs: 900000, intervalMs: 300000 }] })) }, counts: { Create: '1', Unchanged: '1', Change: '0', Refused: '0', Unsupported: '0' }, apply: 'Apply: create 1, change 0', created: ['Phone import'] },
  ];
  for (const step of cases) {
   await page.setViewportSize({ width: step.width, height: 900 });

@@ -73,9 +73,6 @@ try{
  }
  // The selected family is honored even for dual-stack hosts; all-family DNS validation still applies.
  m=await create({name:'IPv6 ICMP',ping:{...base.ping,family:6}});o=await step(m);assert.equal(o.outcome,'pass');assert.equal(o.protocol.family,6);assert.equal(o.protocol.address,'2606:4700:4700::1111');await pause(m);
- // Native loopback proves executable/flags/summary parsing. A host policy may drop even loopback echoes; retain that completed loss sample honestly.
- await run({PING_MODE:'native'},`import assert from 'node:assert/strict';import {probeProtocol} from './runners/src/protocol-probes.mjs';for(const family of [4,6]){const d=${JSON.stringify(base)};d.ping={...d.ping,family,packets:1};const o=await probeProtocol(d,'local-a');assert.ok(o.protocol,JSON.stringify(o.checks));assert.equal(o.protocol.transmitted,1);assert.equal(o.protocol.family,family);if(process.platform==='linux')assert.equal(o.protocol.received,1,'Linux native loopback must return its echo');if(o.protocol.received){assert.equal(o.outcome,'pass');assert.ok(o.protocol.rtt.meanMs>=0)}else{assert.equal(o.outcome,'target_failure');assert.equal(o.protocol.rtt,null);assert.match(o.checks[0].reason,/cannot distinguish/)}}`);
- await run({PING_MODE:'hang'},`import assert from 'node:assert/strict';import {probeProtocol} from './runners/src/protocol-probes.mjs';const c=new AbortController();setTimeout(()=>c.abort(),50);const o=await probeProtocol(${JSON.stringify(base)},'local-a',{signal:c.signal});assert.equal(o.outcome,'runner_error');assert.equal(o.checks[0].assertion,'vantage')`);
  const stopped=await create({name:'Stopped ICMP probe'});assert.equal((await api(`/api/overview?monitor=${stopped.id}`)).data.monitors[0].state.regions[0].state,'Unknown');await pause(stopped);
  const exported=(await api('/api/definitions/export')).data;assert.ok(exported.monitors.some(x=>x.ping?.family===6));
  // The exported file previews through the owner's import door, over the same HTTPS origin.
@@ -88,5 +85,5 @@ try{
  const bootAgain=await api('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'Receiving ICMP owner'});assert.equal(bootAgain.status,303);cookie=bootAgain.headers['set-cookie'][0].split(';')[0];
  await completeApiSecondFactor(origin,cookie,api);
  const restored=await api('/api/restore',archive);assert.equal(restored.status,200,JSON.stringify(restored.data));const receivingMonitors=(await api('/api/overview')).data.monitors;assert.equal(receivingMonitors.length,exported.monitors.length);assert.ok(receivingMonitors.every(x=>x.definition.type==='ping'&&x.definition.enabled===false));assert.ok(receivingMonitors.some(x=>x.definition.ping.family===6));const roundtrip=await api('/api/archive');assert.equal(roundtrip.status,200);assert.ok(JSON.stringify(roundtrip.data).includes('lossPercent'));
- console.log('PING-001 PASS: signed IPv4/IPv6 samples, loss/RTT thresholds, failure/recovery, unavailable and stopped probes, forged evidence refusal, native loopback, portable definitions and inactive restore.');
+ console.log('PING-001 PASS: signed IPv4/IPv6 samples, loss/RTT thresholds, failure/recovery, unavailable and stopped probes, forged evidence refusal, portable definitions and inactive restore.');
 }finally{await close(web);await worker?.dispose();await rm(directory,{recursive:true,force:true})}

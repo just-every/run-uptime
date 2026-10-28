@@ -39,7 +39,8 @@ export async function migratedWorker({port,persist,bindings,outboundService,base
   return {worker,DB};
  }catch(error){await worker.dispose();throw error}
 }
-export async function runtimeDirectory(){return mkdtemp(join(tmpdir(),'uptime-notify-'))}
+// Leave room for native browser Unix socket paths beneath the run's private home.
+export async function runtimeDirectory(){return mkdtemp(join(tmpdir(),'u-'))}
 export function fixtureProcess(port,grantPath,directory){
  const child=spawn(process.execPath,[join(root,'runners/src/synthetic.mjs')],{cwd:directory,env:{...process.env,UPTIME_SYNTHETIC_PORT:String(port),UPTIME_GRANT_FILE:grantPath},stdio:['ignore','pipe','pipe']});
  // Child output is deliberately retained privately: even test credentials and

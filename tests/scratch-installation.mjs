@@ -17,9 +17,9 @@ export async function machineAvailable(timeout = 20 * 60_000) {
 }
 const excluded = new Set(['.git', 'node_modules', 'dist', 'data', '.seed', '.rer', '.wrangler', '.dev.vars', '.dev.vars.previous', 'test-results', 'playwright-report', '.exports', 'exports', '.rer-tools', 'delivery-artifact', 'rer-package']);
 // Copy the current candidate bytes and isolate the installation.
-export async function scratchInstallation({ mirror = false } = {}) {
+export async function scratchInstallation() {
  const directory = await realpath(await mkdtemp(join(tmpdir(), 'uptime-local-journey-')));
- const root = join(directory, mirror ? 'mirror' : 'uptime');
+ const root = join(directory, 'uptime');
  const temporary = join(directory, 'temporary');
  await mkdir(temporary, { mode: 0o700 });
  const env = { PATH: process.env.PATH, HOME: process.env.HOME, CI: 'true', RER_SERVER_JOURNEY: '1', TMPDIR: temporary, TMP: temporary, TEMP: temporary,
@@ -75,11 +75,7 @@ export async function scratchInstallation({ mirror = false } = {}) {
  }
  try {
   await cp(repository, root, { recursive: true, filter: path => !excluded.has(basename(path)) });
-  if (mirror) {
-   await run('git', ['init', '--initial-branch=main']);
-   await run('git', ['add', '.']);
-   await run('git', ['-c', 'user.name=Uptime local proof', '-c', 'user.email=proof@example.test', 'commit', '-m', 'Candidate working-copy snapshot']);
-  }
+
   return { directory, root, env, start, run, stop, close, diagnostic };
  } catch (error) { await close(); throw error; }
 }

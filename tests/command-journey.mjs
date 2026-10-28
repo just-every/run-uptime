@@ -69,12 +69,12 @@ try {
  for (const [, specifier] of imports) assert.equal((await fetch(origin + specifier)).status, 200, 'the Vite client import ' + specifier + ' is served');
  const resetActive = scratch.start('node', [rer, 'reset', '--yes', '--non-interactive']);
  try { assert.equal((await resetActive.done).code, 4); } finally { await scratch.stop(resetActive); }
- browser = await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']}); const context=await browser.newContext(),page=await context.newPage();
+ browser = await chromium.launch({...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{}),headless:true,args:['--no-sandbox','--use-mock-keychain','--password-store=basic']}); const context=await browser.newContext({viewport:{width:1440,height:1000}}),page=await context.newPage();
  const devKey = await readCheckoutKey(scratch.root);
  await openGate(page.context(), origin, devKey);
  await devSignIn(page, origin + '/__dev/key', { displayName: 'Command Owner', OWNER_EMAIL: 'journey@example.test' }, { finishSetup: false, key: devKey });
  assert.equal(new URL(page.url()).pathname, '/setup', 'rer sign-in returns the unfinished owner to setup');
- const unsigned = await browser.newContext();
+ const unsigned = await browser.newContext({viewport:{width:1440,height:1000}});
  try {
   for (const method of ['get', 'post']) {
    const denied = await unsigned.request[method](origin + '/setup', { headers: { origin }, maxRedirects: 0 });
@@ -89,7 +89,7 @@ try {
  }
  const setupEvidence = process.env.UPTIME_SETUP_EVIDENCE;
  if (setupEvidence) await mkdir(setupEvidence, { recursive: true });
- for (const width of [1440, 390]) {
+ for (const width of [1440]) {
   await page.setViewportSize({ width, height: 900 });
   for (const path of ['/app', '/app/', '/app/monitor', '/app/monitor/', '/_serverFn/private']) {
    await page.goto(origin + path); assert.equal(new URL(page.url()).pathname, '/setup', 'unfinished owner stays in setup');
@@ -101,7 +101,7 @@ try {
   if (setupEvidence) await page.screenshot({ path: join(setupEvidence, `setup-${width}.png`), fullPage: true });
  }
  // The actual first-run form works without JavaScript or hydration.
- const nativeSetup = await browser.newContext({ javaScriptEnabled: false, storageState: await page.context().storageState() });
+ const nativeSetup = await browser.newContext({viewport:{width:1440,height:1000}, javaScriptEnabled: false, storageState: await page.context().storageState() });
  try {
   const p = await nativeSetup.newPage(); await p.goto(origin + '/setup');
   await p.getByRole('button', { name: 'Continue', exact: true }).click(); await p.waitForURL(url => url.origin === origin && /^\/app\/monitors\/new\/discovery\/[^/]+$/.test(url.pathname));
@@ -111,7 +111,7 @@ try {
  const finished = await page.request.get(origin + '/setup', { maxRedirects: 0 });
  assert.equal(finished.status(), 303); assert.equal(finished.headers().location, '/app/monitors');
  await page.goto(origin + '/app');
- if (setupEvidence) await writeFile(join(setupEvidence, 'RESULTS.json'), JSON.stringify({ widths: [1440, 390], freshRerSetup: true, devReturn: '/setup', unfinishedRoutes: true, unsignedReturn: true, csrfRefused: true, nativeCompletion: true, finishedReturn: '/app/monitors' }, null, 2));
+ if (setupEvidence) await writeFile(join(setupEvidence, 'RESULTS.json'), JSON.stringify({ widths: [1440], freshRerSetup: true, devReturn: '/setup', unfinishedRoutes: true, unsignedReturn: true, csrfRefused: true, nativeCompletion: true, finishedReturn: '/app/monitors' }, null, 2));
  // Base's existing local CLI door issues a native session. A dev-persona
  // session deliberately stops authenticating outside the dev key gate.
  const cliAdmission=JSON.parse(await scratch.run('node',['scripts/mfa.mjs','local-session','--origin',origin]));

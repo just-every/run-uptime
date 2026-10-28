@@ -1,7 +1,7 @@
 import {completeSecondFactor} from './mfa-auth-support.mjs';
 import assert from 'node:assert/strict';
 import {createHmac,randomBytes} from 'node:crypto';
-import {mkdtemp,readFile,readdir,rm} from 'node:fs/promises';
+import {mkdtemp,mkdir,readFile,readdir,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {hostedRuntime} from './hosted-auth-runtime.mjs';
@@ -78,4 +78,22 @@ try{
  checked=await histories();
  assert.ok(checked.every(h=>h.length===1&&h[0].observations.every(o=>o.outcome==='pass')),'deferred monitors ran next, and nothing was recorded as a failure');
  console.log('PASS hosted Worker sends webhook and Slack alerts without a runner, fails unresolved names and defers checks beyond its request budget');
+ // The same public notification door in demo mode reports acceptance without sending to recipients.
+ await worker.dispose();worker=null;let demoSends=0;await mkdir(join(directory,'demo'));
+ worker=await hostedRuntime(join(directory,'demo'),{...testAuthBindings,UPTIME_LOCAL_REVIEW:'false',UPTIME_ORIGIN:origin,RER_DEMO:'1'},request=>{
+  if(request.method!=='GET'){demoSends++;throw Error('Demo notification reached the network edge')}
+  const url=new URL(request.url);
+  return url.origin==='https://cloudflare-dns.com'?Response.json({Status:0,Answer:[{type:1,data:'93.184.215.14'}]}):new Response('service ready',{status:200});
+ });
+ const demoDB=await worker.getD1Database('DB');
+ for(const file of(await readdir('migrations')).filter(f=>f.endsWith('.sql')).sort())for(const sql of splitSql(await readFile(join('migrations',file),'utf8')))await demoDB.prepare(sql).run();
+ const demoOwner=await call('/auth/bootstrap',{token:testAuthBindings.SETUP_TOKEN,displayName:'Demo owner'});assert.equal(demoOwner.status,303);
+ const demoCookie=demoOwner.headers.get('set-cookie').split(';')[0];
+ await completeSecondFactor(origin,demoCookie,(url,init)=>call(new URL(url).pathname,init.body===undefined?undefined:JSON.parse(init.body),demoCookie));
+ const demoDestination=(await json(await call('/api/notifications',undefined,demoCookie))).destinations.find(d=>d.kind==='webhook');assert.ok(demoDestination);
+ const demoDelivery=await json(await call(`/api/notifications/destinations/${demoDestination.id}/test`,{},demoCookie));
+ await scheduled();
+ const demoNotes=await json(await call('/api/notifications',undefined,demoCookie));
+ assert.equal(demoNotes.deliveries.find(d=>d.id===demoDelivery.deliveryId)?.state,'accepted');assert.equal(demoSends,0,'demo acceptance conveys no external recipient delivery');
+
 }finally{await worker?.dispose();await rm(directory,{recursive:true,force:true})}

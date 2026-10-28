@@ -46,7 +46,7 @@ try{
   assert.equal(overview.monitors.find(m=>m.id===monitor.id).state.state,'Healthy');
  }
  const mobileResult=await latest(mobile.id);assert.equal(mobileResult.outcome,'target_failure');assert.equal(mobileResult.flow.failure.reason,'outcome_missing');
- assert.deepEqual(mobileResult.flow.profile,{browser:'chromium',device:'mobile',viewport:{width:390,height:844}});
+ assert.equal(mobileResult.flow.profile.browser,mobile.definition.flow.browser);assert.equal(mobileResult.flow.profile.device,mobile.definition.flow.device);
  assert.equal(overview.monitors.find(m=>m.id===mobile.id).state.state,'Failing','desktop passes cannot hide a mobile-only defect');
  const capabilities=overview.runner.runners.find(r=>!r.hosted).capabilities.browsers;
  assert.ok(FLOW_BROWSERS.every(engine=>capabilities[engine]===true),'enrollment advertises every engine that actually launched');

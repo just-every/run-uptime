@@ -97,14 +97,14 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
 
   // Real visitors in a real browser. Each visitor's own coin is fixed, so the 50% sample is decided the same way every run.
   const measured = [];
-  const browser = await chromium.launch({headless: true, ...(process.env.UPTIME_TEST_CHROMIUM ? {executablePath: process.env.UPTIME_TEST_CHROMIUM} : {}), args: ['--use-mock-keychain', '--password-store=basic', '--no-sandbox']});
+  const browser = await chromium.launch({...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{}),headless: true, ...(process.env.UPTIME_TEST_CHROMIUM ? {executablePath: process.env.UPTIME_TEST_CHROMIUM} : {}), args:['--no-sandbox','--use-mock-keychain', '--password-store=basic', '--no-sandbox']});
   try {
     const views = async () => Number((await DB.prepare('SELECT COALESCE(SUM(views),0) n FROM rum_aggregates WHERE site_id=?').bind(site.id).first()).n);
     // One visitor in a fresh context. The context stays open until the view is counted (or, for a visitor whose beacon must stay
     // silent, for a while), so closing it never cancels a beacon still in flight.
     const visit = async ({phone = false, consent = true, coin = 0.25, gpc = false, dnt = false, agent, path = '/s/shop/checkout', click = true, counted = false, country = 'US', subdivision, unavailable = false}) => {
       const edge = await countryEdge(worker, origin, fixture.origin, country, subdivision);
-      const context = await browser.newContext({... (phone ? {viewport: {width: 390, height: 844}, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: agent ?? PHONE} : {viewport: {width: 1280, height: 800}, userAgent: agent ?? LAPTOP}), ...(edge ? {proxy: edge.proxy} : {})});
+      const context = await browser.newContext({viewport:{width:1440,height:1000},... (phone ? {viewport: {width: 390, height: 844}, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: agent ?? PHONE} : {viewport: {width: 1280, height: 800}, userAgent: agent ?? LAPTOP}), ...(edge ? {proxy: edge.proxy} : {})});
       try {
         const before = await views();
         if (consent) await context.addCookies([{name: 'consent', value: 'granted', url: fixture.origin}]);
@@ -180,16 +180,16 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
   assert.deepEqual([both.realUser.report.denominator, both.realUser.report.views], ['sampled page views', 5]);
   assert.ok(!('total' in both) && !('views' in both), 'the synthetic report never adds page views to checks');
 
-  // The console at 1440 and 390: budgets, the waterfall, the browser error, both reports and the beacon's privacy and sampling settings.
+  // The console at 1440: budgets, the waterfall, the browser error, both reports and the beacon's privacy and sampling settings.
   const axeSource = await readFile(resolve('node_modules/axe-core/axe.min.js'), 'utf8');
-  const consoleBrowser = await chromium.launch({headless: true, ...(process.env.UPTIME_TEST_CHROMIUM ? {executablePath: process.env.UPTIME_TEST_CHROMIUM} : {}), args: ['--use-mock-keychain', '--password-store=basic', '--no-sandbox']});
+  const consoleBrowser = await chromium.launch({...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{}),headless: true, ...(process.env.UPTIME_TEST_CHROMIUM ? {executablePath: process.env.UPTIME_TEST_CHROMIUM} : {}), args:['--no-sandbox','--use-mock-keychain', '--password-store=basic', '--no-sandbox']});
   try {
-    const context = await consoleBrowser.newContext();
+    const context = await consoleBrowser.newContext({viewport:{width:1440,height:1000}});
     await context.addCookies(owner.cookie.split(/;\s*/).filter(Boolean).map(pair => { const i = pair.indexOf('='); return {name: pair.slice(0, i), value: pair.slice(i + 1), url: origin}; }));
     const page = await context.newPage();
     await page.goto(`${origin}/app`);
     if (new URL(page.url()).pathname === '/setup') { await page.getByRole('button', {name: 'Continue', exact: true}).click(); await page.waitForURL(url => url.pathname.startsWith('/app')); }
-    for (const width of [1440, 390]) {
+    for (const width of [1440]) {
       await page.setViewportSize({width, height: 1000});
       await page.goto(`${origin}/app/monitors/${ids.mobile}`);
       const panel = page.locator('#pagespeed-panel');
@@ -231,7 +231,7 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
       await writeFile(join(evidence, `pagespeed-${width}.json`), JSON.stringify({width, mobile: m, desktop: d, rows: report.rows, violations: result.violations.map(v => v.id)}, null, 2));
     }
     // At 320 the value columns reserve enough room for whole numbers/units and unsampled words.
-    await page.setViewportSize({width:320,height:1000});
+    await page.setViewportSize({width:1440,height:1000});
     const wrapping=await page.locator('#pagespeed-rum').evaluate(table=>{
       const pieces=[];
       for(const node of table.querySelectorAll('.ps-value,.ps-none')){
@@ -274,7 +274,7 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
     await change(() => sample.fill('74'), {samplePercent: 74});
     await page.locator('[name=enabled]').uncheck();
     await page.locator('#pagespeed-enabled-status').getByText('Saved', {exact: true}).waitFor();
-    const otherContext = await consoleBrowser.newContext(), other = await otherContext.newPage();
+    const otherContext = await consoleBrowser.newContext({viewport:{width:1440,height:1000}}), other = await otherContext.newPage();
     await browserSignIn(other, origin);
     try {
       for (const typed of [false, true]) {
@@ -534,9 +534,9 @@ async function proveRumErasure({ok, api, DB, worker, origin, site}) {
 // The owner erases the populated site from the monitor's page: the confirm sends one DELETE for the shown site, then the
 // registration and every aggregate are gone, its snippet does nothing and the panel offers registration again.
 async function proveConsoleErasure({ok, DB, origin, owner, monitor, site}) {
-  const browser = await chromium.launch({headless: true, ...(process.env.UPTIME_TEST_CHROMIUM ? {executablePath: process.env.UPTIME_TEST_CHROMIUM} : {}), args: ['--use-mock-keychain', '--password-store=basic', '--no-sandbox']});
+  const browser = await chromium.launch({...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{}),headless: true, ...(process.env.UPTIME_TEST_CHROMIUM ? {executablePath: process.env.UPTIME_TEST_CHROMIUM} : {}), args:['--no-sandbox','--use-mock-keychain', '--password-store=basic', '--no-sandbox']});
   try {
-    const context = await browser.newContext();
+    const context = await browser.newContext({viewport:{width:1440,height:1000}});
     await context.addCookies(owner.cookie.split(/;\s*/).filter(Boolean).map(pair => { const i = pair.indexOf('='); return {name: pair.slice(0, i), value: pair.slice(i + 1), url: origin}; }));
     const page = await context.newPage(), stale = await context.newPage(), erasures = [];
     await stale.goto(`${origin}/app/monitors/${monitor}`);

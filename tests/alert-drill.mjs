@@ -18,7 +18,6 @@ const secrets=[bindings.SETUP_TOKEN,bindings.SESSION_SECRET,key,bindings.SENDGRI
 const originalConsoleError=console.error;console.error=(...values)=>runnerLogs.push(values.map(String).join(' '));
 const transport=loopbackWireTransport(new Map([[webhookUrl,{port:webhookPort,path:'/receiver'}],[slackUrl,{port:slackPort,path:'/slack'}]])),{api,signIn}=ownerAPI(origin);
 let worker,DB,fixture,restoreWorker,webhookDestination;
-const check=async(label,fn)=>{await fn();console.log('PASS '+label)};
 const ok=async(path,method='GET',body)=>{const result=await api(path,method,body);assert.ok(result.status>=200&&result.status<300,`${method} ${path}: ${result.status} ${JSON.stringify(result.data)}`);return result.data};
 const destination=async id=>(await ok('/api/notifications')).destinations.find(d=>d.id===id);
 const runOnce=()=>runRunner({origin,key,grantPath,localReview:true,transport,once:true});
@@ -78,12 +77,14 @@ try{
  assert.ok((await ok(`/api/monitors/${monitor.id}/history`)).some(slot=>slot.observations.some(observation=>observation.canary?.outcome==='pass')),'passing external-check evidence is retained through the public history door');
  const drills={};
 
- await check('a destination starts never proven and a signed-out drill request is refused',async()=>{
+ // a destination starts never proven and a signed-out drill request is refused
+ {
   for(const d of [email,webhookDestination,slackDestination])assert.equal((await destination(d.id)).proof.state,'never');
   const signedOut=await fetch(`${origin}/api/notifications/destinations/${email.id}/drill`,{method:'POST',headers:{'content-type':'application/json'},body:'{}'});assert.equal(signedOut.status,401);
   assert.equal((await DB.prepare('SELECT COUNT(*) n FROM alert_drills').first()).n,0);
- });
- await check('each destination kind gets one labelled drill with its link; monitor evidence, state and incidents are untouched',async()=>{
+ }
+ // each destination kind gets one labelled drill with its link; monitor evidence, state and incidents are untouched
+ {
   const before=await evidence(),state=(await ok('/api/overview')).monitors.map(({state:{evaluatedAt,...state}})=>state);
   drills.email=await drill(email,mail);drills.webhook=await drill(webhookDestination,webhook);drills.slack=await drill(slackDestination,slack);
   assert.deepEqual(await evidence(),before,'a drill adds no slot, observation, outbox event or incident');
@@ -91,29 +92,34 @@ try{
   assert.equal(drills.webhook.record.body.kind,'test');assert.equal(drills.webhook.record.body.eventType,'uptime.notification.drill');assert.equal(drills.webhook.record.body.incidentKey,null);
   const html=drills.email.record.body.content.find(item=>item.type==='text/html').value;assert.ok(html.includes(`href="${drills.email.link}"`),'email carries the link as a link');
   for(const d of [email,webhookDestination,slackDestination]){const row=await destination(d.id);assert.ok(row.latestDrill.submittedAt);assert.ok(row.latestDrill.finishedAt);assert.equal(row.latestDrill.confirmation,'pending');assert.equal(row.proof.state,'never')}
- });
- await check('no capability is stored in plaintext and the sealed copy is gone once the send is over',async()=>{
+ }
+ // no capability is stored in plaintext and the sealed copy is gone once the send is over
+ {
   const all=await allRows();for(const {link} of Object.values(drills))assert.ok(!all.includes(drillToken(link).split('.')[1]),'raw D1 holds no plaintext capability');
   for(const {drillId} of Object.values(drills)){const row=await drillRow(drillId);assert.match(row.token_hash,/^[0-9a-f]{64}$/);assert.equal(row.token_ciphertext,null)}
   const archive=await ok('/api/archive');assertNoSecrets(archive,'archive');const tables={...archive.payload.tables,...archive.payload.productTables};assert.ok(!('alert_drills' in tables),'drill history is installation-local');
   assert.ok(tables.notification_jobs.some(job=>JSON.parse(job.event).eventType==='uptime.notification.drill'),'drill delivery history travels like a test send');
- });
- await check('opening the link (GET or HEAD, as a scanner or prefetcher does) shows the page and confirms nothing',async()=>{
+ }
+ // opening the link (GET or HEAD, as a scanner or prefetcher does) shows the page and confirms nothing
+ {
   for(const method of ['GET','HEAD']){const response=await page(new URL(drills.email.link).pathname+new URL(drills.email.link).search,{method});assert.equal(response.status,200);if(method==='GET'){const html=await response.text();assert.match(html,/<form method="post" action="\/alert-drill">/);assert.match(html,/email destination/);for(const value of ['Drill inbox','qa-inbox@example.test','Drill isolation target'])assert.ok(!html.includes(value),'page names no installation data');assertNoSecrets(html,'drill page',drillToken(drills.email.link).split('.')[1])}}
   assert.equal((await drillRow(drills.email.drillId)).confirmed_at,null);assert.equal((await destination(email.id)).proof.state,'never');
- });
- await check('cross-origin and origin-less POSTs are refused with no state change',async()=>{
+ }
+ // cross-origin and origin-less POSTs are refused with no state change
+ {
   const before=await allRows(['public_rate_limits']);
   for(const headers of [{},{origin:'https://attacker.example'},{origin,'sec-fetch-site':'cross-site'}])assert.equal((await confirm(drillToken(drills.email.link),headers)).status,403);
   assert.equal(await allRows(['public_rate_limits']),before);
- });
- await check('a POST confirms once, as reported by the recipient, and proves only that destination',async()=>{
+ }
+ // a POST confirms once, as reported by the recipient, and proves only that destination
+ {
   const response=await confirm(drillToken(drills.email.link));assert.equal(response.status,200);assert.match(await response.text(),/Your confirmation was recorded/);
   const row=await destination(email.id);assert.equal(row.latestDrill.confirmation,'confirmed');assert.equal(row.proof.state,'proven');assert.equal(row.proof.lastProvenAt,row.latestDrill.confirmedAt);
   assert.equal((await destination(webhookDestination.id)).proof.state,'never');assert.equal((await destination(slackDestination.id)).proof.state,'never');
   const stored=await drillRow(drills.email.drillId);assert.equal(stored.token_hash,null);assert.equal(stored.token_ciphertext,null);
- });
- await check('replay, a foreign token, a wrong destination and an expired link all answer 404 with no state change',async()=>{
+ }
+ // replay, a foreign token, a wrong destination and an expired link all answer 404 with no state change
+ {
   const secretOf=link=>drillToken(link).split('.')[1];
   await DB.prepare('UPDATE alert_drills SET expires_at=? WHERE id=?').bind(Date.now()-1,drills.slack.drillId).run();
   const before=await allRows(['public_rate_limits']);
@@ -123,8 +129,9 @@ try{
   assert.equal(await allRows(['public_rate_limits']),before);
   const expired=(await destination(slackDestination.id)).latestDrill;assert.equal(expired.confirmation,'expired');
   const sent=counts();await runOnce();await runOnce();assert.deepEqual(counts(),sent,'expiry never sends anything again');
- });
- await check('an endpoint answering HTTP 500 leaves the drill Uncertain and it is never resent',async()=>{
+ }
+ // an endpoint answering HTTP 500 leaves the drill Uncertain and it is never resent
+ {
   webhook.setDisposition('failed');const before=webhook.records.length;
   const started=await ok(`/api/notifications/destinations/${webhookDestination.id}/drill`,'POST',{});await runOnce();
   const row=await waitFor(async()=>{const d=await destination(webhookDestination.id);return d.latestDrill.id===started.drillId&&d.latestDrill.state==='uncertain'?d:null},'drill uncertain');
@@ -134,32 +141,36 @@ try{
   // The recipient may still have received it; their report still counts for this credential.
   const link=webhook.records[before].body.drill.confirmUrl;capabilities.push(link.split('.').at(-1));
   assert.equal((await confirm(drillToken(link))).status,200);assert.equal((await destination(webhookDestination.id)).proof.state,'proven');
- });
- await check('rotating a webhook or changing an email address resets the destination to never proven',async()=>{
+ }
+ // rotating a webhook or changing an email address resets the destination to never proven
+ {
   const rotated=await ok(`/api/notifications/destinations/${webhookDestination.id}/rotate`,'POST',{});secrets.push(rotated.signingSecret);
   webhookDestination.signingSecret=rotated.signingSecret;webhookDestination.credentialId=await credentialOf(webhookDestination.id);
   const row=await destination(webhookDestination.id);assert.equal(row.proof.state,'never');assert.equal(row.latestDrill.currentCredential,false);
   await ok(`/api/notifications/destinations/${email.id}`,'PATCH',{name:'Drill inbox renamed',enabled:true});assert.equal((await destination(email.id)).proof.state,'proven','renaming keeps proof');
   await ok(`/api/notifications/destinations/${email.id}`,'PATCH',{name:'Drill inbox',enabled:true,address:'qa-inbox-new@example.test'});assert.equal((await destination(email.id)).proof.state,'never');
- });
- await check('credentials, signing keys and links never reach the console reads, the drill page or logs',async()=>{
+ }
+ // credentials, signing keys and links never reach the console reads, the drill page or logs
+ {
   assertNoSecrets(await ok('/api/notifications'),'notifications');assertNoSecrets(await ok('/api/overview'),'overview');
   assertNoSecrets(runnerLogs,'runner logs');assertNoSecrets(fixture.getLogs(),'fixture logs');
   for(const receiver of receivers)receiver.assertValid();
- });
- await check('a restored destination is never proven and its drill history does not replay',async()=>{
+ }
+ // a restored destination is never proven and its drill history does not replay
+ {
   const archive=await ok('/api/archive'),restoredOrigin=`http://127.0.0.1:${restorePort}`,restored=ownerAPI(restoredOrigin);
   ({worker:restoreWorker}=await migratedWorker({port:restorePort,persist:join(directory,'restored'),bindings:{...bindings,UPTIME_ORIGIN:restoredOrigin}}));
   await restored.signIn(bindings);assert.equal((await restored.api('/api/restore','POST',archive)).status,200);
   const notes=(await restored.api('/api/notifications')).data,inbox=notes.destinations.find(d=>d.kind==='email');
   assert.ok(inbox);assert.equal(inbox.proof.state,'never');assert.equal(inbox.latestDrill,null);
   const sent=counts();await runRunner({origin:restoredOrigin,key,grantPath,localReview:true,transport,once:true});assert.deepEqual(counts(),sent);
- });
- await check('erasing a destination removes its drill rows',async()=>{
+ }
+ // erasing a destination removes its drill rows
+ {
   assert.ok((await DB.prepare('SELECT COUNT(*) n FROM alert_drills WHERE destination_id=?').bind(slackDestination.id).first()).n>0);
   await ok(`/api/notifications/destinations/${slackDestination.id}`,'DELETE');
   assert.equal((await DB.prepare('SELECT COUNT(*) n FROM alert_drills WHERE destination_id=?').bind(slackDestination.id).first()).n,0);
- });
+ }
  console.log('Alert drill passed: real Worker/D1, production runner, SendGrid, signed webhook and Slack receivers.');
 }finally{
  http.request=nativeRequest;

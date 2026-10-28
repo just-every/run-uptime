@@ -133,4 +133,14 @@ try{
  const report=['# BASE-ACCESS-003 public paths and rate limits','',`Inspected emitted Worker with ${files.length} discovered emitted files (${files.length-unservedFiles.length} served static resources); declaration read from seed.json. No session used. Counter fixtures set limit−1 through D1; the final allowed and first refused requests use the public Worker door.`, '', '| Path | Class | Baseline | Limit+1 | Second IP | Source |','| --- | --- | ---: | ---: | --- | --- |',...rows.map(row=>'| '+row.join(' | ')+' |'),'','Passed: independent classes; eight simultaneous final-slot requests admit exactly one; Worker restart preserves limits; absent/malformed hosted CF-Connecting-IP shares unknown bucket; canonical IPv6; spoofed local headers share loopback; raw IP absent from D1; scheduled cleanup removes expired counters and preserves active counters; unknown/undeclared paths fail closed; unavailable counter storage denies health/assets with 503 without SQL details.','','Defaults are owner-tunable and estimated-not-tested: '+JSON.stringify(limits)+'.','Hosted dev endpoints are 404. The production build omits dev identity and Vite compiler handlers, so their local declarations return 404 in emitted local mode; the limiter still executes before routing. Actual Vite behavior is checked in the separate startup development evidence. Local second IP cannot create a second bucket by design. Runtime capacity is not established by these boundary checks.'];
  if(process.env.UPTIME_PUBLIC_PATHS_EVIDENCE){await mkdir(resolve(process.env.UPTIME_PUBLIC_PATHS_EVIDENCE,'..'),{recursive:true});await writeFile(process.env.UPTIME_PUBLIC_PATHS_EVIDENCE,report.join('\n')+'\n')}
  console.log(report.join('\n'));
+ // A visitor sees a safe diagnostic while configuration is missing, then health returns after repair.
+ await runtime.worker.dispose();runtime=null;
+ const incomplete={...hosted};delete incomplete.SESSION_SECRET;
+ runtime=await publicRuntime(join(directory,'configuration'),incomplete,port);
+ const unavailable=await runtime.call('/health');assert.equal(unavailable.status,503);
+ const explanation=await unavailable.text();assert.ok(explanation.includes('SESSION_SECRET'));assert.ok(!explanation.includes(hosted.SESSION_SECRET));
+ await runtime.worker.dispose();runtime=null;
+ runtime=await publicRuntime(join(directory,'configuration'),hosted,port);
+ assert.equal((await runtime.call('/health')).status,200,'corrected configuration restores the public health door');
+
 }finally{await runtime?.worker.dispose();await cleanupDirectory(directory)}

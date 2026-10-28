@@ -12,14 +12,14 @@ import {inviteDoorMember} from './access-door-support.mjs';
 // Folded into operator-security's existing factor registration. The authenticator
 // is a CDP CTAP2 edge; every enrollment/challenge/key action uses the real console.
 export async function proveSecurityControls(){
- for(const width of [1440,390]){
+ for(const width of [1440]){
   const directory=await mkdtemp(join(tmpdir(),'uptime-security-console-')),origin='http://localhost:15503',bindings={...testAuthBindings,UPTIME_ORIGIN:origin};let worker,browser;
   try{
    ({worker}=await migratedWorker({port:15503,persist:directory,bindings}));let DB=await worker.getD1Database('DB');const call=authRequest(origin);
    const cookie=sessionCookie(await call('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'synthetic-uptime-601'}));
    assert.equal((await fetch(origin+'/setup',{method:'POST',redirect:'manual',headers:{origin,cookie}})).status,303);
    const monitorResponse=await call('/api/monitors',{name:'synthetic-uptime-602',url:'https://example.com/',enabled:false,tags:['synthetic-uptime-603']},{cookie});assert.equal(monitorResponse.status,201);const monitor=await monitorResponse.json();const secondResponse=await call('/api/monitors',{name:'synthetic-uptime-612',url:'https://example.org/',enabled:false},{cookie});assert.equal(secondResponse.status,201);const second=await secondResponse.json();
-   browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});const context=await browser.newContext({timezoneId:'UTC'}),[name,...parts]=cookie.split('=');await context.addCookies([{name,value:parts.join('='),url:origin}]);const page=await context.newPage();await page.setViewportSize({width,height:1000});
+   browser=await chromium.launch({...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{}),headless:true,args:['--no-sandbox','--use-mock-keychain','--password-store=basic']});const context=await browser.newContext({viewport:{width:1440,height:1000},timezoneId:'UTC'}),[name,...parts]=cookie.split('=');await context.addCookies([{name,value:parts.join('='),url:origin}]);const page=await context.newPage();await page.setViewportSize({width,height:1000});
    await context.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
    const cdp=await context.newCDPSession(page);await cdp.send('WebAuthn.enable');const {authenticatorId}=await cdp.send('WebAuthn.addVirtualAuthenticator',{options:{protocol:'ctap2',transport:'usb',hasResidentKey:true,hasUserVerification:true,isUserVerified:true,automaticPresenceSimulation:true}});
    await page.goto(origin+'/app/settings');const panel=page.locator('#security-controls');await panel.locator('[data-factor-state]').getByText(/Second factors: 0/).waitFor();

@@ -1,4 +1,4 @@
-// Local verification keeps every task; CI selects eight balanced push shards.
+// Local and CI verification use the same eight groups of public-door journeys.
 import {appendFile} from 'node:fs/promises';
 import {planVerification} from '../../scripts/verify-plan.mjs';
 import {reviewedReaders} from './verify-readers.mjs';
@@ -26,6 +26,8 @@ const [mode, tier, ...extra] = process.argv.slice(2);
 if (extra.length) throw Error('Too many verification arguments');
 if (mode === '--plan' && !tier) {
  const decision = await planVerification({plan, readers: reviewedReaders});
+ // Push and nightly share the same journeys; an all-tier run schedules each once.
+ decision.matrix.include = [...new Map(decision.matrix.include.map(shard => [shard.name, shard])).values()];
  decision.matrix.include = decision.matrix.include.map(({name}) => {
   const {browser, engines, evidence} = allShards.find(shard => shard.name === name);
   return {name, browser, engines, evidence};

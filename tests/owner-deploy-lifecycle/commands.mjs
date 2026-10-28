@@ -25,7 +25,12 @@ export async function checkout(t) {
   }
   git(root, 'init', '-q');
   git(root, 'add', '.');
-  git(root, '-c', 'user.name=Uptime test', '-c', 'user.email=test@example.test', '-c', 'core.hooksPath=/dev/null', 'commit', '-qm', 'Isolated owner deployment lifecycle');
+  git(root, 'config', 'user.name', process.env.GIT_AUTHOR_NAME || 'Uptime test');
+  git(root, 'config', 'user.email', process.env.GIT_AUTHOR_EMAIL || 'test@example.test');
+  let hooks;try { hooks = git(project, 'config', '--get', 'core.hooksPath'); } catch {}
+  if (hooks) git(root, 'config', 'core.hooksPath', hooks);
+  const identity = ['GIT_AUTHOR_NAME', 'GIT_AUTHOR_EMAIL', 'GIT_COMMITTER_NAME', 'GIT_COMMITTER_EMAIL'].map(name => name + '=' + (process.env[name] || (name.endsWith('EMAIL') ? 'test@example.test' : 'Uptime test')));
+  execFileSync('env', [...identity, 'git', 'commit', '-qm', 'Isolated owner deployment lifecycle'], {cwd:root,encoding:'utf8',stdio:['ignore','pipe','pipe']});
   await symlink(join(project, 'node_modules'), join(root, 'node_modules'));
   await appendFile(join(root, '.git/info/exclude'), '\n/node_modules\n');
   return root;

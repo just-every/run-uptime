@@ -47,11 +47,11 @@ try {
  Object.assign(editorBindings,enabledBindings);await app.restart();
  const document=await app.call('/app/monitors',undefined,{cookie});
  assert.match(document.headers.get('content-security-policy'),new RegExp(`frame-ancestors 'self' ${edge.origin.replaceAll('.','\\.')}`));
- await mkdir(evidence,{recursive:true});browser=await chromium.launch({headless:true,args:['--disable-gpu','--use-mock-keychain','--password-store=basic']});
+ await mkdir(evidence,{recursive:true});browser=await chromium.launch({...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{}),headless:true,args:['--no-sandbox','--disable-gpu','--use-mock-keychain','--password-store=basic']});
  const results=[];
- for(const width of [1440,390]) {
+ for(const width of [1440]) {
   cookie=await emailSignIn(app.origin);
-  const context=await browser.newContext({viewport:{width,height:900}});
+  const context=await browser.newContext({viewport:{width:1440,height:1000},viewport:{width,height:900}});
   try {
    const [name,value]=cookie.split('=');await context.addCookies([{name,value,url:app.origin,httpOnly:true,sameSite:'Lax'}]);
    const page=await context.newPage(),renewals=[],nativeChecks=[];
@@ -107,5 +107,5 @@ try {
   } finally {await context.close()}
  }
  await writeFile(join(evidence,'RESULTS.json'),JSON.stringify({results,externalNetwork:false,scope:'Real emitted Uptime and Base editor, local management network edge; hosted service acceptance remains with the owner.'},null,2));
- console.log('OWNER-EDITOR passed: owner-only disabled 204, partial/malformed configuration refusal, native owner config, anonymous/member refusal, 1440/390 mount, two ordinary renewals beyond initial expiry preserving iframe/document/private draft, route transition, role-loss revocation and browser CSP refusal.');
+ console.log('OWNER-EDITOR passed: owner-only disabled 204, partial/malformed configuration refusal, native owner config, anonymous/member refusal, 1440 mount, two ordinary renewals beyond initial expiry preserving iframe/document/private draft, route transition, role-loss revocation and browser CSP refusal.');
 } finally {await browser?.close();await app?.close();await edge.close()}

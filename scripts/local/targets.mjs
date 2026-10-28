@@ -62,6 +62,6 @@ export async function runtimeTarget(context, development) {
  // Only the control runtime receives the checkout's dev key (the synthetic target and the private runner never do).
  const env = { ...runtime, UPTIME_SYNTHETIC_PORT: String(grant.port), ...(development ? { RER_DEV_ORIGIN: origin } : {}), ...(devKey ? { RER_DEV_KEY: devKey, ...(development ? { RER_DEV_IDENTITY: devLogin ? 'off' : 'on' } : {}) } : {}) };
  return development
-  ? ['pnpm', ['exec', 'vite', 'dev', '--host', hostname, '--port', port, '--strictPort'], { env, ready }]
+  ? [process.execPath, ['scripts/local/vite-runtime.mjs'], { env, ready, runtimePortHandshake: true, stdio: ['ignore','pipe','pipe','ipc'] }]
   : [process.execPath, ['scripts/local/worker.mjs'], { env, ready }];
 }

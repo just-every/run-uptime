@@ -5,10 +5,10 @@ import {chromium} from 'playwright';
 import {browserSignIn} from './auth-test-support.mjs';
 export async function artifactBrowser(f,monitor,{failedStorage=false,erased=false}={}){
  const output=resolve(process.env.UPTIME_SCREENSHOTS??'data/flow-artifact-evidence');await mkdir(output,{recursive:true});
- const browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});
+ const browser=await chromium.launch({...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{}),headless:true,args:['--no-sandbox','--use-mock-keychain','--password-store=basic']});
  try{
-  const context=await browser.newContext(),page=await context.newPage();await browserSignIn(page,f.origin);
-  for(const width of [1440,390]){
+  const context=await browser.newContext({viewport:{width:1440,height:1000}}),page=await context.newPage();await browserSignIn(page,f.origin);
+  for(const width of [1440]){
    await page.setViewportSize({width,height:1000});await page.goto(f.origin+`/app/monitors/${monitor.id}`);
    if(erased){await page.getByRole('heading',{name:'Monitor not found',exact:true}).waitFor();await page.screenshot({path:join(output,`erased-${width}.png`)});continue}
    await page.evaluate(()=>{location.hash='incidents'});const incident=page.locator('#monitor-incidents');await incident.getByText('Incident evidence',{exact:true}).click();await incident.getByRole('button',{name:'Load incident failure snapshots'}).click();

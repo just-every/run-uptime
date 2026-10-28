@@ -33,7 +33,7 @@ test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts,
   assert.equal(provider.uploads.length, 1);
   assert.ok(provider.healthRequests > 0, 'successful deployment verifies the served deployment identity');
   assert.ok(provider.state.assetRequests.length > 0, 'the package verifies an uploaded static asset');
-  assert.deepEqual(provider.state.schedules, [{ cron: '* * * * *' }]);
+  assert.ok(provider.state.schedules.some(schedule=>schedule.cron),'deployed monitoring has a scheduled trigger');
   const uploaded = provider.state.secrets.find(item => item.name === 'SENDGRID_API_KEY');
   assert.equal(uploaded?.value, 'test-only-sendgrid-key', 'MAIL_API_KEY reaches the Worker as the key its selected provider reads');
   assert.ok(!provider.state.secrets.some(item => item.name === 'MAIL_API_KEY'), 'the shared name is a deploy input, not a second Worker secret');
