@@ -4,7 +4,7 @@ import {people,installationTrust,businessSettings} from './people.server.ts'
 import {localCredentials,localAuthority,readScopes} from './authority.server.ts'
 import {nativeTools} from './tools.server.ts'
 import {projection} from './projections.server.ts'
-export const resourceTemplates=['uptime://monitors/{id}','uptime://monitors/{id}/history','uptime://monitors/{id}/revisions','uptime://monitors/{id}/uptime','uptime://monitors/{id}/response-times','uptime://monitors/{id}/failure-snapshots','uptime://incidents/{id}','uptime://routes/{id}','uptime://destinations/{id}']
+export const resourceTemplates=['uptime://monitors/{id}','uptime://monitors/{id}/history','uptime://monitors/{id}/revisions','uptime://monitors/{id}/uptime','uptime://monitors/{id}/response-times','uptime://monitors/{id}/failure-snapshots','uptime://incidents/{id}','uptime://routes/{id}','uptime://destinations/{id}','uptime://discoveries/{id}','uptime://definition-batches/{id}']
 export const notTools=[{clauses:['ARCHIVE-001','IMPORT-001'],reason:'import-door' as const},{clauses:['AUTHORITY-001','NETWORK-001'],reason:'device' as const},{clauses:['AUTHORITY-001'],reason:'installation' as const}]
 export function uptimeAgentDoor(env:Bindings){
  const resources:ResourceDefinition[]=resourceTemplates.map(uriTemplate=>({uriTemplate,name:uriTemplate,scope:'uptime:read',classes:uriTemplate.endsWith('failure-snapshots')?['standard','sensitive']:['standard'],

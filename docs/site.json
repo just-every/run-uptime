@@ -115,6 +115,12 @@
           "title": "Scheduled reports",
           "file": "scheduled-reports.md",
           "summary": "Schedule monitor or service reports, inspect frozen runs, and cancel future delivery."
+        },
+        {
+          "slug": "agents",
+          "title": "Agents and company policy",
+          "file": "agents.md",
+          "summary": "Use the scoped monitoring MCP door, exact approvals and Pause, with explicit native and adoption limits."
         }
       ]
     },

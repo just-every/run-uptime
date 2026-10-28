@@ -140,6 +140,15 @@ api.use('/api/*',async(c,next)=>{
  await next()
 })
 api.use('/api/*',boundary)
+// Person UI changes share the same retained event vocabulary as agent tools.
+api.use('/api/*',async(c,next)=>{
+ await next()
+ const access=c.get('access'),path=c.req.path
+ if(!c.res.ok||!access||['GET','HEAD','OPTIONS'].includes(c.req.method))return
+ const monitor=/^\/api\/monitors\/([^/]+)/.exec(path),incident=/^\/api\/incidents\/([^/]+)/.exec(path)
+ const id=monitor?.[1]??incident?.[1]
+ if(id)await uptimeAgentDoor(c.get('systemBindings')??c.env).emit({type:'native.changed',uri:`uptime://${monitor?'monitors':'incidents'}/${id}`,person:{id:access.session.operator.id,name:access.session.operator.displayName,email:access.session.operator.email,role:access.role,active:true}})
+})
 api.use('/api/*',async(c,next)=>{
  const access=c.get('access')
  if(access&&(access.action==='export'||access.action==='read'&&(['csv','pdf'].includes(c.req.query('format')??'')||/text\/csv|application\/pdf/.test(c.req.header('accept')??''))))await auditAccess(c.env,access)

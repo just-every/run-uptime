@@ -19,7 +19,7 @@ type Args=Record<string,any>
 const id={type:'string',minLength:1,maxLength:512},obj={type:'object',additionalProperties:true}
 const input=(properties:Record<string,any>,required=Object.keys(properties))=>({type:'object' as const,properties,required,additionalProperties:false})
 const standard=():ClassAndFacts[]=>[{class:'standard',facts:{measure:1}}]
-const actor=(c:ToolContext):AuditActor=>({kind:'operator',ref:c.person.id,preparedBy:c.actor,approvers:c.approvers})
+const actor=(c:ToolContext):AuditActor=>({kind:'feature',ref:`agent:${c.agent.id}`,preparedBy:c.actor,approvers:c.approvers})
 const native=(env:Bindings,a:AgentAccess)=>({...env,DB:authorizedDatabase(env,a)})
 const link=(area:string,id:string)=>({uri:`uptime://${area}/${encodeURIComponent(id)}`,name:id})
 async function current(env:Bindings,c:ToolContext,id:string){await agentAccess(env,c,'read',[id]);const m=await get(env,id);if(!m)throw denied();return m}
@@ -31,7 +31,13 @@ export function nativeTools(env:Bindings):ToolDefinition[]{
   tools.push({name:`uptime.${name}`,title:name.replaceAll('.',' '),description:`Uptime native ${name.replaceAll('.',' ')}. Current native role, service/team scope and immutable evidence remain authoritative.`,scope:readOnly?'uptime:read':'uptime:operate',readOnly,inputSchema:schema,outputSchema:obj,classes,clauses,untrusted:readOnly,
    classify:async(a,c)=>{await agentAccess(env,c,'read');return standard()},
    ...(!readOnly?{summary:async(a:Args,c:ToolContext):Promise<ApprovalSummary>=>({target:{id:a.id??a.monitorId??a.operatorId??'workspace'},items:[name]})}:{}),
-   async run(a,c){const result=await perform(()=>run(a,c));return {result}},...extra})
+   async run(a,c){
+    const result=await perform(()=>run(a,c)),family=name.split('.')[0],target=result?.id??a.id;
+    const area=family==='incidents'?'incidents':family==='routes'?'routes':['monitors','maintenance','reports','evidence','grants'].includes(family)?'monitors':null;
+    const suffix=name==='monitors.history'?'/history':family==='reports'?'/uptime':family==='evidence'?'/failure-snapshots':'';
+    const resources=area&&target?[{...link(area,String(target)),uri:link(area,String(target)).uri+suffix}]:undefined;
+    return {result,...(resources?{resources}:{})}
+   },...extra})
  }
  add('monitors.list',true,input({limit:{type:'integer',minimum:1,maximum:100}},[]),['standard'],['EVIDENCE-001','AUTHORITY-001'],async(a,c)=>({items:await Promise.all((await visibleIds(env,c)).slice(0,a.limit??100).map(id=>monitor(env,c,id)))}))
  add('monitors.read',true,input({id}),['standard'],['EVIDENCE-001','AUTHORITY-001'],(a,c)=>monitor(env,c,a.id),{classify:async(a,c)=>{await agentAccess(env,c,'read',[String(a.id)]);return standard()}})

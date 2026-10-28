@@ -1218,7 +1218,16 @@
         "modules/agent-door/transport.ts",
         "modules/agent-door/types.ts",
         "modules/agent-door/wire.ts"
-      ]
+      ],
+      "adapted": {
+        "src/base/modules/agent-door/events.ts": "7ce44fa5b70b68b21d270ba54760dae28b4a37a7"
+      },
+      "acknowledged": {
+        "src/base/modules/agent-door/events.ts": {
+          "sha256": "f3a5713834ab7a24ed3038502c5e622aa72f0966cdbe0d4d6babbe34e6a57c19",
+          "mode": "100644"
+        }
+      }
     },
     {
       "path": "src/base/modules/business-settings",
