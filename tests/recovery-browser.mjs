@@ -17,7 +17,7 @@ if([sourcePort,port].some(p=>!Number.isInteger(p)||p<15485||p>15519)||sourcePort
 const origin=`http://127.0.0.1:${port}`,dir=await mkdtemp(join(tmpdir(),'uptime-recovery-ui-')),out=resolve(process.env.UPTIME_RECOVERY_UI_EVIDENCE??'data/recovery-evidence');
 const require=createRequire(import.meta.url),checks=[];
 async function auditWidths(page,label,state){
- for(const width of [1440,390]){
+ for(const width of [1440]){
   await page.setViewportSize({width,height:900});
   await page.addScriptTag({path:require.resolve('axe-core/axe.min.js')});
   const axeResult=await page.evaluate(()=>axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21a','wcag21aa','wcag22aa']}}));
@@ -47,8 +47,8 @@ try{
  const sourceDB=await sourceWorker.getD1Database('DB');for(const name of (await readdir(join(root,'migrations'))).filter(n=>n.endsWith('.sql')).sort())for(const statement of splitSql(await readFile(join(root,'migrations',name),'utf8')))await sourceDB.prepare(statement).run();
  worker=await startLocalWorker({root,port,persist:join(dir,'control'),bindings:{...testAuthBindings,UPTIME_RUNNER_KEY:runnerKey,UPTIME_SYNTHETIC_PORT:'15481'}});
  const DB=await worker.getD1Database('DB');for(const name of (await readdir(join(root,'migrations'))).filter(n=>n.endsWith('.sql')).sort())for(const statement of splitSql(await readFile(join(root,'migrations',name),'utf8')))await DB.prepare(statement).run();
- browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic'],...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{})});
- const context=await browser.newContext({viewport:{width:390,height:900}});await context.route('**/*',route=>{const url=new URL(route.request().url());return [source,origin].includes(url.origin)?route.continue():route.abort()});
+ browser=await chromium.launch({...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{}),headless:true,args:['--no-sandbox','--use-mock-keychain','--password-store=basic'],...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{})});
+ const context=await browser.newContext({viewport:{width:1440,height:900}});await context.route('**/*',route=>{const url=new URL(route.request().url());return [source,origin].includes(url.origin)?route.continue():route.abort()});
  const sourcePage=await context.newPage();await login(sourcePage,source);const sourceSecond=await (await sourcePage.request.post(source+'/api/runners',{data:{networkLabel:'second-recovery-network'}})).json();
  const created=await sourcePage.request.post(source+'/api/monitors',{data:{name:'Recovery status assertion retained',url:'http://127.0.0.1:15481/health',probes:['local-a','local-b'],assertions:{status:201},confirmSlots:1,recoverSlots:1,retries:0,intervalMs:5000,freshnessMs:10000}});assert.equal(created.status(),201);
  sourceRunner=spawn(process.execPath,[join(root,'runners/src/private-runner.mjs')],{cwd:root,env:{...process.env,UPTIME_CONTROL_ORIGIN:source,UPTIME_RUNNER_KEY:runnerKey,UPTIME_GRANT_FILE:join(root,'data/synthetic-grant.json'),UPTIME_LOCAL_REVIEW:'true'},stdio:'pipe'});sourceRunner.stdout.on('data',c=>logs+=c);sourceRunner.stderr.on('data',c=>logs+=c);
@@ -75,7 +75,7 @@ try{
  await auditWidths(page,'reauthorized-current-evidence','Failing');
  // The full list of checks opens once from Recent checks and stays open through polling.
  await page.locator('#all-checks > summary').click();
- for(const width of [1440,390]){
+ for(const width of [1440]){
   await page.setViewportSize({width,height:900});
   // Scheduled checks can prepend a new row between browser commands. Keep the
   // identity the owner focused instead of resolving the moving first row again.

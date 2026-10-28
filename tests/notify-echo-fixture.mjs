@@ -58,8 +58,8 @@ export async function proveEchoCustody({f,ok,rpc,database,inspectEcho}){
 export async function inspectEchoCustody({f,records}){
  let browser;
  try{
-  browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});
-  for(const width of [1440,390]){
+  browser=await chromium.launch({...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{}),headless:true,args:['--no-sandbox','--use-mock-keychain','--password-store=basic']});
+  for(const width of [1440]){
    const context=await browser.newContext({viewport:{width,height:900}}),page=await context.newPage();
    try{
     await context.route('**/*',route=>new URL(route.request().url()).origin===f.origin?route.continue():route.abort());

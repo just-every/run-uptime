@@ -15,8 +15,7 @@ import {certificates,listen,close,webServer,tcpServer,tlsServer,dnsServer} from 
 // results drive state, incidents and expiry warnings in the emitted production Worker with migrated D1.
 const directory=await mkdtemp(join(tmpdir(),'uptime-protocols-')),key='protocol-monitors-test-only-runner-key';
 const DAY=86400000,scenario={dns:{},registry:{},registrar:{},certificate:null};
-let worker,db,web,tcp,tlsService,dns,cookie='',origin,passed=0;
-const check=async(name,fn)=>{await fn();passed++;console.log('PASS '+name)};
+let worker,db,web,tcp,tlsService,dns,cookie='',origin;
 const signature=(path,body,stamp)=>createHmac('sha256',key).update(`${stamp}.${path==='/api/runner/enroll'?'runner-enrolment.':''}${JSON.stringify(body)}`).digest('hex');
 try{
  const certs=await certificates(directory),ca=await readFile(certs.caPath),tcpPort=await listen(tcp=tcpServer());
@@ -53,7 +52,8 @@ try{
  // Each runner run takes one due task, so a finished flow pauses its monitor before the next flow starts.
  const pause=async id=>{const current=(await api(`/api/overview?monitor=${id}`)).data.monitors[0];assert.equal((await api(`/api/monitors/${id}`,{...current.definition,enabled:false},{},'PATCH')).status,200)};
 
- await check('TCP: open, refused, blackholed and unresolvable-by-the-runner ports are distinct outcomes with confirmed trigger and recovery',async()=>{
+ // TCP: open, refused, blackholed and unresolvable-by-the-runner ports are distinct outcomes with confirmed trigger and recovery
+ {
   const m=await create({name:'Database port',type:'tcp',tcp:{host:'tcp.protocol.test',port:5432,bannerIncludes:'READY'},timeoutMs:1500});
   assert.equal(m.definition.url,'tcp://tcp.protocol.test:5432');
   let r=await step(m.id);assert.equal(r.o.outcome,'pass');assert.equal(r.o.protocol.address,'93.184.216.34');assert.match(r.o.protocol.banner,/^READY protocol fixture/);assert.equal(r.state.state,'Healthy');
@@ -62,9 +62,10 @@ try{
   r=await step(m.id,{PROTOCOL_RESOLVER_FAILS:'1'});assert.equal(r.o.outcome,'runner_error');assert.equal(r.o.checks[0].assertion,'dns');assert.equal(r.state.targetState,'Unknown','a probe failure is never target evidence');
   await listen(tcp=tcpServer(),tcpPort);r=await step(m.id);assert.equal(r.o.outcome,'pass');assert.equal(r.state.state,'Healthy');assert.deepEqual(kinds(r.alerts),['trigger','recovery']);
   await pause(m.id);
- });
+ }
 
- await check('DNS: expected values, change, owner-approved change, propagation difference, NXDOMAIN, SERVFAIL and resolver faults stay distinct',async()=>{
+ // DNS: expected values, change, owner-approved change, propagation difference, NXDOMAIN, SERVFAIL and resolver faults stay distinct
+ {
   const all=values=>({cloudflare:{status:'answer',answers:values},google:{status:'answer',answers:values},authoritative:{status:'answer',answers:values}});
   scenario.dns=all(['203.0.113.10']);
   const m=await create({name:'Shop address',type:'dns',dns:{name:'shop.protocol.test',recordType:'A',resolvers:['cloudflare','google','authoritative'],expect:{values:['203.0.113.10']}}});
@@ -79,9 +80,10 @@ try{
   scenario.dns={...all(['203.0.113.99']),google:{status:'servfail'}};r=await step(m.id);assert.equal(r.o.outcome,'target_failure');assert.match(r.o.checks[1].reason,/SERVFAIL/);assert.equal(r.o.checks.find(c=>c.assertion==='agreement').pass,false);
   scenario.dns={...all(['203.0.113.99']),google:{status:'unavailable'}};r=await step(m.id);assert.equal(r.o.outcome,'runner_error');assert.match(r.o.checks[1].reason,/monitor infrastructure fault/);assert.equal(r.state.targetState,'Unknown');
   await pause(m.id);
- });
+ }
 
- await check('TLS: an expiring certificate warns once naming it and its owner; a wrong name and an untrusted chain fail; a renewed certificate resolves the warning',async()=>{
+ // TLS: an expiring certificate warns once naming it and its owner; a wrong name and an untrusted chain fail; a renewed certificate resolves the warning
+ {
   scenario.certificate=certs.expiring;
   const m=await create({name:'Storefront certificate',type:'tls',tls:{host:'tls.protocol.test',warnDays:[30,14,7],owner:'Web team'}});
   let r=await step(m.id);assert.equal(r.o.outcome,'pass',JSON.stringify(r.o.checks));assert.equal(r.state.state,'Healthy');
@@ -93,9 +95,10 @@ try{
   const renewal=r.alerts.find(a=>a.kind==='renewal');assert.ok(renewal,'a renewal is observed');assert.equal(renewal.event.incidentKey,warnings[0].event.incidentKey);assert.match(renewal.event.explanation,/valid until .*replaces the one warned about earlier/);
   r=await step(m.id);assert.equal(r.alerts.filter(a=>a.kind==='renewal').length,1);assert.deepEqual(kinds(r.alerts),['expiry','trigger','recovery','renewal']);
   await pause(m.id);
- });
+ }
 
- await check('Domain: approaching expiry warns with its source; conflicting, redacted and unavailable registry data is Unknown; renewal is followed through',async()=>{
+ // Domain: approaching expiry warns with its source; conflicting, redacted and unavailable registry data is Unknown; renewal is followed through
+ {
   const soon=Date.now()+20*DAY;scenario.registry={status:200,expiresAt:soon};scenario.registrar={status:200,expiresAt:soon+3600000};
   const m=await create({name:'Shop domain',type:'domain',domain:{name:'shop.test',owner:'Finance'},timeoutMs:5000});
   let r=await step(m.id);assert.equal(r.o.outcome,'pass',JSON.stringify(r.o.checks));assert.equal(r.o.protocol.source,'https://rdap.registry.test/domain/shop.test');assert.ok(r.o.protocol.sourceUpdatedAt<Date.now());assert.equal(r.o.protocol.registrar.source,'https://rdap.registrar.test/domain/shop.test');
@@ -105,6 +108,6 @@ try{
   scenario.registry={status:503};r=await step(m.id);assert.equal(r.o.outcome,'runner_error');assert.equal(r.o.checks[0].assertion,'registry');
   const renewed=Date.now()+400*DAY;scenario.registry={status:200,expiresAt:renewed};scenario.registrar={status:200,expiresAt:renewed};r=await step(m.id);assert.equal(r.o.outcome,'pass');assert.equal(r.state.state,'Healthy');
   const renewal=r.alerts.find(a=>a.kind==='renewal');assert.ok(renewal);assert.equal(renewal.event.incidentKey,warning.event.incidentKey);assert.equal(r.alerts.filter(a=>a.kind==='trigger').length,0,'Unknown registry data never opened an incident');
- });
- console.log(`PROTOCOL-MONITORS passed ${passed} checks: emitted Worker + migrated D1, real Node runner per scheduled check, local TCP/TLS/DNS over HTTPS/RDAP fixtures behind production pinning.`);
+ }
+ console.log(`PROTOCOL-MONITORS completed one owner-to-runner lifecycle: emitted Worker + migrated D1, real Node runner per scheduled check, local TCP/TLS/DNS over HTTPS/RDAP fixtures behind production pinning.`);
 }finally{await close(web);await close(tcp);await close(tlsService);await close(dns);await worker?.dispose();await rm(directory,{recursive:true,force:true})}

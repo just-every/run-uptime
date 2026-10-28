@@ -29,8 +29,8 @@ export async function proveMfaWebAuthn(){
   worker=await startLocalWorker({port:15503,persist:directory,bindings});const DB=await worker.getD1Database('DB');
   for(const file of (await readdir('migrations')).filter(f=>f.endsWith('.sql')).sort())for(const sql of splitSql(await readFile(join('migrations',file),'utf8')))await DB.prepare(sql).run();
   const cookie=sessionCookie(await authRequest(origin)('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'Synthetic passkey owner'})),mfa=factorRequest(origin,cookie);
-  browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic'],...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{})});
-  const context=await browser.newContext(),page=await context.newPage();await page.goto(origin+'/login');
+  browser=await chromium.launch({...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{}),headless:true,args:['--no-sandbox','--use-mock-keychain','--password-store=basic'],...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{})});
+  const context=await browser.newContext({viewport:{width:1440,height:1000}}),page=await context.newPage();await page.goto(origin+'/login');
   const cdp=await context.newCDPSession(page);await cdp.send('WebAuthn.enable');
   const {authenticatorId}=await cdp.send('WebAuthn.addVirtualAuthenticator',{options:{protocol:'ctap2',transport:'usb',hasResidentKey:true,hasUserVerification:true,isUserVerified:true,automaticPresenceSimulation:true}});
   const enrollment=await mfa('/webauthn/enroll',{});assert.equal(enrollment.status,200);const pending=await enrollment.json();

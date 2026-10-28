@@ -401,16 +401,10 @@ unchanged.
 
 See `scripts/delivery/README.md` for the pinned producer, immutable managed
 workflow, exact setup-manifest digest, trusted signed-claim bindings and native
-owner editor policy. `pnpm run test:admission` checks these public flows against
+owner editor policy. `pnpm run test:identity` checks these public flows against
 the emitted application; its management peer is only a test network edge.
 Stage installation, live Cloudflare and the public release remain owner work.
 
 ## Independent watches and runner vantages
 
 Since v0.1.2, Uptime uses per-runner keys, immutable probe assignments, stored-evidence state and independent-vantage failure agreement. Mail is selected through Base adapters. See [the monitoring setup and C3/C4 rules](docs/resilient-monitoring.md).
-
-## Nightly notification measurements
-
-`Nightly notification measurements` (`.github/workflows/nightly-measurements.yml`) runs the existing `notifications-2` commands 30 times normally and 10 times with page-only CDP CPU throttling at rate 5. It builds the exact scheduled checkout once per mode, records its full SHA, requested/completed/passed/failed totals, each duration and exit, sample logs, browser evidence and focus diagnostics, and stops that mode on the first failed sample without retry. Both modes retain their artifacts even on failure. Push Verify keeps its ordinary single-run proof and existing time cap; this job repeats no complete suite. Historical before/after comparisons stay historical and never select nightly checkouts.
-
-After a build, invoke `node .github/scripts/measure-notifications.mjs normal` and `node .github/scripts/measure-notifications.mjs cpu`. For a local invocation check, append `--one-sample` to each; these two smoke samples do not meet the nightly quotas. Repeated-measurement acceptance remains PARTIAL until a successful scheduled 30/10 run on the landed SHA is cited in Evidence. No quota run is dispatched for a candidate campaign.

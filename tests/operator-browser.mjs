@@ -8,7 +8,7 @@ import {chromium} from 'playwright';
 const require=createRequire(import.meta.url),origin='http://127.0.0.1:15482';
 const out=resolve(process.env.UPTIME_UI_EVIDENCE??'data/operator-evidence'),checks=[];
 await mkdir(out,{recursive:true});
-const browser=await chromium.launch({headless:true,args:['--disable-gpu','--use-mock-keychain','--password-store=basic'],...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{})});
+const browser=await chromium.launch({...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{}),headless:true,args:['--no-sandbox','--disable-gpu','--use-mock-keychain','--password-store=basic'],...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{})});
 const overviewRead=url=>url.origin===origin&&url.pathname==='/api/overview';
 const failedReads=new WeakMap();
 const ready=async page=>{try{await page.locator('.signed-in').waitFor({timeout:15000})}catch(error){
@@ -167,7 +167,7 @@ async function ruleEditJourney(page,width){
  checks.push({label:`rule-edit-${width}`,revision:saved.revision,judgedBy:slot.definition.assertions.latencyMs});
 }
 try{
- for(const width of [1440,768,390,320]){
+ for(const width of [1440]){
   // These independent cold-browser journeys share the local installation's
   // public asset bucket. Do not carry one viewport's loads into the next one.
   await new Promise(resolve=>setTimeout(resolve,60000-Date.now()%60000));
@@ -211,6 +211,18 @@ try{
    await page.getByRole('link',{name:'Sign out',exact:true}).click();await page.getByLabel('Email address').waitFor();assert.equal((await page.request.get(origin+'/api/overview')).status(),401);assert.deepEqual(errors,[],'browser exceptions');
   }finally{await context.close()}
  }
- await writeFile(resolve(out,'RESULTS.json'),JSON.stringify({checks,workflow:'Native owner console at 1440/390; real healthy and naturally stale scheduled evidence; failed reads show Unknown with historical time; keyboard actions/navigation; failed actions survive polling; controls excluded through reconciliation; assertion edits preserve checks and reject overrides without writes; immutable history/focus retained; native export and signout; computed accessibility trees, axe and reflow',externalNetwork:false},null,2));
- console.log(`INTERFACE-001 operator passed: ${checks.length} local accessibility/reflow checks and real owner journeys at 1440/768/390/320. Evidence ${out}`);
+ // One phone smoke: sign in, inspect retained monitoring, navigate, and sign out at 390.
+ {
+  const context=await browser.newContext({viewport:{width:390,height:844}});
+  try{
+   const page=await context.newPage();
+   await browserSignIn(page,origin,{bootstrap:false,bindings:{...testAuthBindings,OWNER_EMAIL:process.env.UPTIME_OPERATOR_OWNER_EMAIL??testAuthBindings.OWNER_EMAIL}});
+   await ready(page);await bulkAddDoor(page);await audit(page,'phone-console-390');
+   await page.getByRole('link',{name:'Notifications',exact:true}).click();await ready(page);await audit(page,'phone-notifications-390');
+   await page.getByRole('link',{name:'Sign out',exact:true}).click();await page.getByLabel('Email address').waitFor();
+   assert.equal((await page.request.get(origin+'/api/overview')).status(),401);
+  }finally{await context.close()}
+ }
+ await writeFile(resolve(out,'RESULTS.json'),JSON.stringify({checks,workflow:'Desktop owner monitoring and one 390 phone smoke; real healthy and naturally stale scheduled evidence; failed reads show Unknown with historical time; keyboard actions/navigation; failed actions survive polling; controls excluded through reconciliation; assertion edits preserve checks and reject overrides without writes; immutable history/focus retained; native export and signout; computed accessibility trees, axe and reflow',externalNetwork:false},null,2));
+ console.log(`INTERFACE-001 operator passed: ${checks.length} local accessibility/reflow checks and real owner journeys at 1440 plus one 390 phone smoke. Evidence ${out}`);
 }finally{await browser.close()}

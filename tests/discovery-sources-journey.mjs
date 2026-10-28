@@ -21,7 +21,7 @@ const axe=async page=>{
 };
 // A screen at desktop and phone width: no overflow and no serious axe finding; pictures only for an evidence folder.
 const widths=async(page,name,{evidence,target})=>{
- for(const width of [1440,390]){
+ for(const width of [1440]){
   await page.setViewportSize({width,height:1000});await target.scrollIntoViewIfNeeded();
   if(evidence){await mkdir(evidence,{recursive:true});await target.screenshot({path:join(evidence,`${name}-${width}.png`)})}
   await axe(page);

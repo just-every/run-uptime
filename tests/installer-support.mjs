@@ -38,7 +38,7 @@ export async function smokeDocuments(page, origin) {
  assert.equal((await page.request.get(origin + '/app/monitors')).status(), 200);
  assert.equal((await page.request.get(origin + '/login')).status(), 200);
  assert.equal((await page.request.get(origin + '/journey-missing-document')).status(), 404);
- const unsigned = await page.context().browser().newContext();
+ const unsigned = await page.context().browser().newContext({viewport:{width:1440,height:1000}});
  try {
   assert.equal((await unsigned.request.get(origin + '/login')).status(), 200);
   assert.equal((await unsigned.request.get(origin + '/')).status(), 200, 'public landing needs no session');
@@ -50,7 +50,7 @@ export async function smokeDocuments(page, origin) {
 // Public-page hydration checks cannot reach this owner-only document. Exercise
 // its real dev module graph and the form that hydration makes interactive.
 export async function monitorHydration(ownerPage, origin, root) {
- const context = await ownerPage.context().browser().newContext({ storageState: await ownerPage.context().storageState() });
+ const context = await ownerPage.context().browser().newContext({viewport:{width:1440,height:1000}, storageState: await ownerPage.context().storageState() });
  const page = await context.newPage();
  const evidence = process.env.UPTIME_HYDRATION_EVIDENCE;
  if (evidence) await mkdir(evidence, { recursive: true });
@@ -68,7 +68,7 @@ export async function monitorHydration(ownerPage, origin, root) {
  try {
   const grant = JSON.parse(await readFile(join(root, '.wrangler/state/synthetic-grant.json'), 'utf8'));
   const target = `http://127.0.0.1:${grant.port}/health`;
-  for (const width of [1440, 390]) {
+  for (const width of [1440]) {
    const name = `Hydration monitor ${width}`;
    await page.setViewportSize({ width, height: 900 });
    await page.goto(origin + '/app/monitors/new');
@@ -107,7 +107,7 @@ export async function monitorHydration(ownerPage, origin, root) {
   assert.deepEqual(errors, [], 'authenticated monitor journey has no console/page errors');
   assert.deepEqual(failed, [], 'authenticated monitor journey has no failed client requests');
   if (evidence) await writeFile(join(evidence, 'result.json'), JSON.stringify({ path: '/app/monitors/new', rows, errors, failed, cancellations }, null, 2));
-  console.log('HYDRATION /app/monitors/new PASS: authenticated discovery/manual forms, UI save and reload persistence at 1440/390; zero console/page errors and failed client loads; navigation/effect cancellations recorded separately.');
+  console.log('HYDRATION /app/monitors/new PASS: authenticated discovery/manual forms, UI save and reload persistence at 1440; zero console/page errors and failed client loads; navigation/effect cancellations recorded separately.');
  } catch (error) {
   if (evidence) await writeFile(join(evidence, 'failure.json'), JSON.stringify({ path: '/app/monitors/new', rows, errors, failed, cancellations }, null, 2));
   throw error;

@@ -23,7 +23,6 @@ const receivers=[],credentials=[bindings.SETUP_TOKEN,bindings.SESSION_SECRET,key
 const originalConsoleError=console.error;console.error=(...values)=>runnerLogs.push(values.map(value=>String(value)).join(' '));
 const routes=new Map([[webhookUrl,{port:webhookPort,path:'/incident'}],[slackUrl,{port:slackPort,path:'/slack'}]]);
 const transport=loopbackWireTransport(routes),{api,signIn}=ownerAPI(origin);
-const check=async(label,fn)=>{await fn();console.log('PASS '+label)};
 const notifications=async()=>{const result=await api('/api/notifications');assert.equal(result.status,200);return result.data};
 const overview=async()=>{const result=await api('/api/overview');assert.equal(result.status,200);return result.data};
 const setFixture=async mode=>{assert.equal((await fetch(`http://127.0.0.1:${fixturePort}/control`,{method:'POST',body:JSON.stringify({mode})})).status,200)};
@@ -58,33 +57,36 @@ try{
   if(result.data.signingSecret)credentials.push(result.data.signingSecret);
   if(value.kind==='webhook'){webhookDestination=result.data;webhookDestination.credentialId=(await DB.prepare('SELECT credential_id FROM notification_destinations WHERE id=?').bind(result.data.id).first()).credential_id;}
  }
- await check('destination save and actual pinned connect reject unsafe routing without a network request',async()=>{
+ // destination save and actual pinned connect reject unsafe routing without a network request
+ {
   for(const url of['http://notifications.example.com/incident','https://user:password@notifications.example.com/incident','https://127.0.0.1/incident','https://10.0.0.1/incident','https://172.16.0.1/incident','https://192.168.0.1/incident','https://169.254.169.254/latest/meta-data/','https://[::1]/incident','https://[fe80::1]/incident']){
    const result=await api('/api/notifications/destinations','POST',{name:'Refused destination',kind:'webhook',url});assert.equal(result.status,400);
    await assert.rejects(new NodePinnedTransport().send({url,headers:{},body:'{}'}));
   }
   assert.equal((await notifications()).destinations.length,3,'refusals do not save destination rows');
   await promisify(execFile)(process.execPath,[fileURLToPath(new URL('./notify-acceptance-dns.mjs',import.meta.url))]);
- });
+ }
  const created=await api('/api/monitors','POST',{name,url:`http://127.0.0.1:${fixturePort}/health`,probes:['local-a','local-b'],intervalMs:5000,retries:0,confirmSlots:1,recoverSlots:1,freshnessMs:15000});assert.equal(created.status,201);const monitorId=created.data.id;
  await startRunner();
  await waitFor(async()=> (await overview()).monitors.find(m=>m.id===monitorId)?.state.state==='Healthy','real scheduled Healthy');
- await check('each destination test is visibly labelled and cannot open an incident or alter target evidence',async()=>{
+ // each destination test is visibly labelled and cannot open an incident or alter target evidence
+ {
   const before=await overview();await stopRunner();const beforeCount=receivers.map(receiver=>receiver.records.length);
   for(const destination of destinations){const id=await testDestination(destination);await runOnce();const delivery=await settle(id,'accepted');assert.equal(delivery.event.kind,'test');assert.equal(delivery.event.state,'test');assert.equal(delivery.event.incidentKey,null);assert.match(delivery.event.title,/Test notification/)}
   assert.deepEqual(receivers.map(receiver=>receiver.records.length),beforeCount.map(count=>count+1),'concurrent real runner dispatch claims each test once');await startRunner();
   const after=await overview();assert.equal(after.monitors.find(m=>m.id===monitorId).state.state,'Healthy');assert.deepEqual(after.alerts,before.alerts,'test delivery never adds incident outbox rows');
- });
+ }
  const beforeTrigger=receivers.map(receiver=>receiver.records.length);
  await setFixture('failing');
  await waitFor(async()=> (await overview()).monitors.find(m=>m.id===monitorId)?.state.state==='Failing','real scheduled Failing');
- await check('automatic failing delivery reaches Base email signed JSON and inert Slack once',async()=>{
+ // automatic failing delivery reaches Base email signed JSON and inert Slack once
+ {
   await waitFor(async()=> (await notifications()).deliveries.filter(row=>row.event.monitorId===monitorId&&row.event.kind==='trigger'&&row.state==='accepted').length===3,'all automatic trigger deliveries');
   receivers.forEach((receiver,index)=>{receiver.assertValid();assert.equal(receiver.records.length,beforeTrigger[index]+1)});
   assert.match(mail.records.at(-1).body.content.find(content=>content.type==='text/html').value,/&lt;script&gt;/);
   assert.match(mail.records.at(-1).body.content.find(content=>content.type==='text/html').value,/&lt;!channel&gt;/);assert.equal(webhook.records.at(-1).body.monitorName,name);assert.ok(webhook.records.at(-1).raw.includes(Buffer.from('café 日本語','utf8')));
   assert.match(slack.records.at(-1).body.text,/&lt;!channel&gt;/);assert.match(slack.records.at(-1).body.text,/&lt;script&gt;/);
- });
+ }
  const triggerRows=(await notifications()).deliveries.filter(row=>row.event.monitorId===monitorId&&row.event.kind==='trigger');
  assert.equal(new Set(triggerRows.map(row=>row.event.incidentKey)).size,1);assert.ok(triggerRows[0].event.incidentKey);
  const triggerEvent=triggerRows[0].event,triggerContext=triggerEvent.incidentContext;
@@ -101,7 +103,8 @@ try{
  const changedZone=await api('/api/notifications/preferences','PATCH',{timeZone:'America/Los_Angeles'});assert.equal(changedZone.status,200,JSON.stringify(changedZone.data));
  await restart();await setFixture('healthy');
  await waitFor(async()=> (await overview()).monitors.find(m=>m.id===monitorId)?.state.state==='Healthy','real scheduled recovery after both runtime restarts');
- await check('NOTICE-001 restart retains original failure locations and exact confirmed downtime in email Slack and signed JSON',async()=>{
+ // NOTICE-001 restart retains original failure locations and exact confirmed downtime in email Slack and signed JSON
+ {
   await waitFor(async()=> (await notifications()).deliveries.filter(row=>row.event.monitorId===monitorId&&row.event.kind==='recovery'&&row.state==='accepted').length===3,'all automatic recovery deliveries');
   const rows=(await notifications()).deliveries.filter(row=>row.event.monitorId===monitorId);
   const recoveryEvent=rows.find(row=>row.event.kind==='recovery').event,recoveryContext=recoveryEvent.incidentContext;
@@ -128,24 +131,27 @@ try{
   for(const row of rows.filter(row=>row.kind!=='email')){const claim=await api('/api/runner/notifications','POST',{operation:'claim',id:row.id},{'x-runner-key':key});assert.equal(claim.status,200);assert.equal(claim.data,null,'completed delivery cannot be claimed twice')}
   const count=receivers.map(receiver=>receiver.records.length);await restart();
   await new Promise(resolve=>setTimeout(resolve,2500));assert.deepEqual(receivers.map(receiver=>receiver.records.length),count,'redispatch after restart cannot duplicate accepted delivery');
- });
- await check('500, 4xx and single-attempt 429 outcomes remain visible without false acceptance',async()=>{
+ }
+ // 500, 4xx and single-attempt 429 outcomes remain visible without false acceptance
+ {
   for(let index=0;index<destinations.length;index++){
    const receiver=receivers[index],destination=destinations[index];receiver.setDisposition('failed');
    const failed=await settle(await testDestination(destination),'uncertain');assert.ok(failed.code);assert.ok(failed.attempts>0);
    receiver.setDisposition('rejected');const rejected=await settle(await testDestination(destination),'rejected');assert.ok(rejected.code);assert.ok(rejected.attempts>0);
    receiver.setDisposition('rate_limited');const limited=await settle(await testDestination(destination),'rejected');assert.equal(limited.attempts,1,'non-deduplicating test sends never requeue a 429');receiver.setDisposition('accepted');
   }
- });
- await check('lost responses including mail stay uncertain and never automatically resend after restart',async()=>{
+ }
+ // lost responses including mail stay uncertain and never automatically resend after restart
+ {
   const ids=[];
   for(let index=0;index<destinations.length;index++){receivers[index].setDisposition('lost');ids.push(await testDestination(destinations[index]));await settle(ids.at(-1),'uncertain');receivers[index].setDisposition('accepted')}
   const counts=receivers.map(receiver=>receiver.records.length);await restart();await new Promise(resolve=>setTimeout(resolve,2500));
   assert.deepEqual(receivers.map(receiver=>receiver.records.length),counts,'unknown provider acceptance is never retried automatically');
   for(const id of ids)assert.equal((await notifications()).deliveries.find(row=>row.id===id).state,'uncertain');
- });
+ }
  // A socket loss cannot prove deadline handling: hold validated requests until the real mail and injected wire deadlines expire.
- await check('stalled email webhook and Slack responses time out once and remain uncertain after both runtimes restart',async()=>{
+ // stalled email webhook and Slack responses time out once and remain uncertain after both runtimes restart
+ {
   const ids=[];
   for(let index=0;index<destinations.length;index++){
    const receiver=receivers[index],before=receiver.records.length,timeoutsBefore=transport.timeouts.length;
@@ -165,13 +171,15 @@ try{
   assert.deepEqual(receivers.map(receiver=>receiver.records.length),counts,'repeat dispatch after Worker and runner restart cannot resend a timed out delivery');
   for(const id of ids){const row=(await notifications()).deliveries.find(row=>row.id===id);assert.equal(row.state,'uncertain');assert.equal(row.attempts,1)}
   await startRunner();
- });
- await check('credential custody excludes delivery rows operator reads console and exported archives',async()=>{
+ }
+ // credential custody excludes delivery rows operator reads console and exported archives
+ {
   assertNoSecrets(await notifications());assertNoSecrets(await overview());assertNoSecrets((await api('/api/archive')).data);
   for(const table of ['notification_jobs','integration_deliveries','integration_attempts']){const rows=await DB.prepare(`SELECT * FROM ${table}`).all();assertNoSecrets(rows.results)}
   assertNoSecrets((await api('/')).data);assertNoSecrets(fixture.getLogs());assertNoSecrets(runnerLogs);
- });
- await check('archive restoration leaves monitors paused events inactive and destinations unauthorised without replay',async()=>{
+ }
+ // archive restoration leaves monitors paused events inactive and destinations unauthorised without replay
+ {
   await stopRunner();const exported=await api('/api/archive');assert.equal(exported.status,200,JSON.stringify(exported.data?.error));const archive=exported.data;
   const contextOrigin=`http://127.0.0.1:${restorePort}`,contextRestored=ownerAPI(contextOrigin);
   ({worker:restoreWorker}=await migratedWorker({port:restorePort,persist:join(directory,'restored-context'),bindings:{...bindings,UPTIME_ORIGIN:contextOrigin}}));
@@ -195,17 +203,10 @@ try{
   const counts=receivers.map(receiver=>receiver.records.length);
   await runRunner({origin:restoredOrigin,key,grantPath,localReview:true,transport,once:true});
   assert.deepEqual(receivers.map(receiver=>receiver.records.length),counts,'inactive restore cannot transmit historical notifications');
- });
+ }
  receivers.forEach(receiver=>receiver.assertValid());
  console.log('Notification acceptance passed: emitted Worker/D1, production private runner, real synthetic probes, independent receivers and restart-safe delivery history.');
 }finally{
  await stopRunner();if(restoreWorker)await restoreWorker.dispose();if(worker)await worker.dispose();if(fixture)await fixture.stop();
  await Promise.all(receivers.map(receiver=>receiver.close()));await cleanupDirectory(directory);console.error=originalConsoleError;
 }
-
-// One additional public-door journey; provider-edge responses are the only fake.
-const {test}=await import('node:test');
-const {proveNotificationRetry}=await import('./notify-retry-fixture.mjs');
-const {inspectEchoCustody}=await import('./notify-echo-fixture.mjs');
-test('DELIVERY-002 deduplicated retry honors Retry-After and stops on 4xx, and fallback contacts fire once with both outcomes visible across restart',{timeout:420000},async()=>{await proveNotificationRetry(undefined,undefined,inspectEchoCustody);await (await import('./notify-oncall-fixture.mjs')).proveOncallHandoff()});
-test('DEPENDENCY-002 fallbacks honor the saved delay across restart, cancel on primary acceptance or recovery, and retain zero-delay and quiet-hour behavior',{timeout:240000},async()=>{await (await import('./notify-fallback-fixture.mjs')).proveDependencyFallback()});

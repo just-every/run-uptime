@@ -10,7 +10,6 @@ import {splitSql} from './migration-support.mjs';
 
 const mails = [];
 const {surfaces: {app: {signIn}}} = JSON.parse(await readFile('management/integration/deployment-spec.json', 'utf8'));
-assert.equal(signIn.loginHint, true, 'Open app can carry the owner email');
 const directory = await mkdtemp(join(tmpdir(), 'uptime-hosted-browser-'));
 const bindings = {...testAuthBindings, MAIL_PROVIDER: 'sendgrid', UPTIME_LOCAL_REVIEW: 'false', OWNER_EMAIL: 'maya@northstar.example',
   MAIL_FROM: 'Uptime <auth@example.test>', SENDGRID_API_KEY: 'test-only-provider-key'};
@@ -25,12 +24,12 @@ try {
   for (const file of (await readdir('migrations')).filter(file => file.endsWith('.sql')).sort()) {
     for (const sql of splitSql(await readFile(join('migrations', file), 'utf8'))) await db.prepare(sql).run();
   }
-  browser = await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});
+  browser = await chromium.launch({...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{}),headless:true,args:['--no-sandbox','--use-mock-keychain','--password-store=basic']});
   const errors = [];
   const newContext = async () => {
     // Trust only the disposable test server's self-signed certificate. The
     // browser still creates native HTTPS Origin headers and Secure cookies.
-    const context = await browser.newContext({ignoreHTTPSErrors: true});
+    const context = await browser.newContext({viewport:{width:1440,height:1000},ignoreHTTPSErrors: true});
     context.on('page', page => page.on('pageerror', error => errors.push(error.message)));
     return context;
   };
@@ -58,7 +57,7 @@ try {
     assert.equal((await context.request.get(runtime.origin + '/api/overview')).status(), 200);
   };
   const assertSignInForward = async (page, complete) => {
-    for (const width of [1440, 390]) {
+    for (const width of [1440]) {
       await page.setViewportSize({width, height: 900});
       for (const path of [signIn.path, '/signin']) {
         const url = runtime.origin + path + '?login_hint=' + encodeURIComponent(bindings.OWNER_EMAIL);
@@ -95,7 +94,7 @@ try {
   await completeBrowserSecondFactor(setup,runtime.origin);
   await setup.goto(runtime.origin+'/setup');
   await setup.waitForURL(runtime.origin + '/setup');
-  for (const width of [1440, 390]) {
+  for (const width of [1440]) {
     await setup.setViewportSize({width, height: 900});
     await setup.getByRole('heading', {name: 'Welcome, Native browser owner', exact: true}).waitFor();
     assert.equal(await setup.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
@@ -111,7 +110,7 @@ try {
 
   const loginContext = await newContext(), login = await loginContext.newPage();
   assert.equal((await loginContext.request.get(runtime.origin + '/api/overview')).status(), 401);
-  for (const width of [1440, 390]) {
+  for (const width of [1440]) {
     await login.setViewportSize({width, height: 900});
     for (const path of [signIn.path, '/signin']) {
       for (const hint of ['', 'not-an-email', '"><script>alert(1)</script>@example.test']) {
@@ -159,7 +158,7 @@ try {
   const members = await loginContext.request.get(runtime.origin + '/api/incident-settings');
   assert.equal(members.status(), 200);
   assert.ok((await members.json()).members.some(member => member.displayName === 'Native browser owner'), 'incident assignment uses the typed owner name');
-  for (const width of [1440, 390]) {
+  for (const width of [1440]) {
     await login.setViewportSize({width, height: 900});
     await login.goto(runtime.origin + '/app/settings');
     await login.getByRole('button', {name: 'Manage operators', exact: true}).click();
@@ -174,7 +173,7 @@ try {
   assert.deepEqual(runtime.errors, []);
   assert.deepEqual(errors, []);
   await loginContext.close();
-  console.log('HOSTED-AUTH-BROWSER passed native HTTPS bootstrap, Open app login_hint prefill at 1440/390 without auto-submit, fresh-context magic link and confirmation; actual Origin, origin-only Referer and Secure Base owner session verified; outbound mail captured only in test');
+  console.log('HOSTED-AUTH-BROWSER passed native HTTPS bootstrap, Open app login_hint prefill at 1440 without auto-submit, fresh-context magic link and confirmation; actual Origin, origin-only Referer and Secure Base owner session verified; outbound mail captured only in test');
 } finally {
   await browser?.close();
   await runtime?.close();

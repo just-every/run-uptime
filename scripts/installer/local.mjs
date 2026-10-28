@@ -19,7 +19,7 @@ export const commandAdapter = createCommandAdapter(lifecycle, {
  deploy: deployment(lifecycle), portability,
  settings: ['data/local-secrets.json'], setup: { manifestFile: 'rer-local-setup.json' },
  // Local dev identity: the local-only Worker entry, the build output rer build scans for the dev layer, and the kept end-to-end email-link test.
- devIdentity: { entry: 'src/server.dev.ts', output: ['dist'], emailLinkTest: 'tests/auth-input-boundary.mjs' }, localOnlyKeys: ['RER_DEV_ORIGIN', 'RER_DEV_IDENTITY'],
+ devIdentity: { entry: 'src/server.dev.ts', output: ['dist'], emailLinkTest: 'tests/hosted-auth-browser.mjs' }, localOnlyKeys: ['RER_DEV_ORIGIN', 'RER_DEV_IDENTITY'],
  browserModule: 'scripts/installer/ui/seed.mjs', product: 'Uptime',
  // The run site (run-uptime.com): rer build --site renders the approved homepage, /run and the docs into dist/site.
  // The hydration check's pages: the Lobby is plain HTML, so name the docs React hydrates.
