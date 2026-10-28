@@ -1012,7 +1012,7 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 - *access*: member invitations, role changes and removals, runner enrollment and revocation, and read API, metrics and CI keys. Facts are the people or credentials and whether the change widens or narrows.
 - *security*: request credential references, TLS trust exceptions, heartbeat tokens and URLs, destination credentials (endpoint URLs, signing keys, header secrets and bot tokens), live-effect, synthetic and private-network grants, the MFA policy, discovery source credentials and archive restore. Facts are the setting.
 - *destructive*: deleting a comment and its edit history, or erasing a monitor, destination, import batch or operator. Facts are the item count per table.
-- *live*: enabling or changing a running monitor, pausing or resuming, maintenance windows, routes and contact schedules, handoff mappings and adopting discovered monitors. Facts are the monitors and routes affected.
+- *live*: enabling or changing a running monitor, pausing or resuming, maintenance windows, routes and contact schedules, handoff mappings, adopting discovered monitors and following or unfollowing catalog dependencies when that starts or stops checks. Facts are the monitors and routes affected.
 - *gated*: a step the provider keeps for a person: a Teams admin installing the Uptime Teams app, a buyer connecting their own Twilio account in Twilio's console, a person authorizing Zapier or Make in their own account, and a recipient entering their own phone verification code. Facts are the provider and the step.
 
 | Tool | Does | Core clauses | Risk class | Today |
@@ -1040,7 +1040,7 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 | `uptime.handoffs.update` | Map Lamp or Statuspage components and Oncall, PagerDuty or Splunk On-Call services | LAMP-001, ONCALL-001, BOUNDARY-001, AGENT-005 | live (+ security) | none |
 | `uptime.reports.read` | Read and export uptime, SLA, response-time and slow-time figures and reports | REPORT-001, READAPI-002, METRICS-001 | standard | none |
 | `uptime.reports.schedule` | Schedule a recurring report to recipients | REPORT-001 | standard (+ external) | none |
-| `uptime.dependencies.follow` | Follow or unfollow a catalog provider or component and link it to monitors | DEPENDENCY-002 | standard (+ external) | none |
+| `uptime.dependencies.follow` | Follow or unfollow a catalog provider or component and link it to monitors | DEPENDENCY-002 | standard (+ live) (+ external) | none |
 | `uptime.discovery.run` | Authorize a discovery source, run discovery and adopt or reject its proposals | DISCOVERY-001, DEPENDENCY-001, AGENT-001 | standard (+ live) (+ security) | none |
 | `uptime.archive.export` | Export the installation, a time range or a subset of monitors | ARCHIVE-001, ARCHIVE-002, OPS-001 | standard | none |
 | `uptime.archive.restore` | Restore an archive into empty product data | ARCHIVE-001, ARCHIVE-002, OPS-001 | security | none |
@@ -1085,6 +1085,7 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 4. `uptime.discovery.run` is standard for a run, adds live when it adopts a proposal that enables checks and adds security when it authorizes a provider source credential.
 5. `uptime.destinations.update` is standard for a name or enable change and adds security when it sets or rotates an endpoint URL, signing key, header secret or bot token; `uptime.runners.update` adds security when it issues a runner key.
 6. Record text or arguments claiming a change is paused, internal or credential-free leave the computed classes unchanged.
+7. `uptime.dependencies.follow` adds live when following starts checks or unfollowing stops them, with the dependency monitors affected.
 
 #### SURFACE-003 — External and money are computed per call
 

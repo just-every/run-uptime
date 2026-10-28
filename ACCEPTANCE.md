@@ -1322,6 +1322,7 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
 4. `uptime.discovery.run` is standard for a run, adds live when it adopts a proposal that enables checks and adds security when it authorizes a provider source credential.
 5. `uptime.destinations.update` is standard for a name or enable change and adds security when it sets or rotates an endpoint URL, signing key, header secret or bot token; `uptime.runners.update` adds security when it issues a runner key.
 6. Record text or arguments claiming a change is paused, internal or credential-free leave the computed classes unchanged.
+7. `uptime.dependencies.follow` adds live when following starts checks or unfollowing stops them, with the dependency monitors affected.
 
 **Evidence.** None.
 **Gap.** No implementation: no tool declares or computes live or security classes.
