@@ -1,10 +1,10 @@
 name: Verify
-on:
-  push:
-  pull_request:
+'on':
+  push: null
+  pull_request: null
   schedule:
-    - cron: '17 3 * * 1,4'
-  workflow_dispatch:
+    - cron: 54 6 * * 1,4
+  workflow_dispatch: null
 permissions:
   contents: read
 concurrency:
@@ -13,71 +13,43 @@ concurrency:
 jobs:
   plan:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 1
     permissions:
       contents: read
       actions: read
     outputs:
-      skip: ${{ steps.reuse.outputs.skip }}
       matrix: ${{ steps.plan.outputs.matrix }}
+      skip: ${{ steps.plan.outputs.skip }}
+      coverage: ${{ steps.plan.outputs.coverage }}
+      tier: ${{ steps.plan.outputs.tier }}
+      readers: ${{ steps.plan.outputs.readers }}
+      has_shards: ${{ steps.plan.outputs.has_shards }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          fetch-depth: 2
           persist-credentials: false
-      - id: reuse
-        env:
-          GH_TOKEN: ${{ github.token }}
-          EVENT: ${{ github.event_name }}
-          REF: ${{ github.ref }}
-          SAME_REPO: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
-          PR_HEAD: ${{ github.event.pull_request.head.sha }}
-          WF_REF: ${{ github.workflow_ref }}
-        run: bash .github/scripts/verify-reuse.sh
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+          fetch-depth: 2
+      - name: Check reusable workflow permissions
+        run: node scripts/verify-ci.mjs --check-workflows
+      - name: Look up complete nightly marker
+        id: nightly
+        if: ${{ github.event_name == 'schedule' }}
+        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684
         with:
-          node-version: '22.20.0'
-          package-manager-cache: false
+          path: ${{ runner.temp }}/nightly-green
+          key: nightly-green-${{ github.sha }}
+          lookup-only: true
       - id: plan
         env:
-          TIER: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')) && 'all' || 'push' }}
-        run: echo "matrix=$(node .github/scripts/verify-ci.mjs --matrix "$TIER")" >> "$GITHUB_OUTPUT"
-  build:
-    needs: plan
-    if: needs.plan.outputs.skip != 'true'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    env:
-      CI: 'true'
-      WRANGLER_SEND_METRICS: 'false'
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          persist-credentials: false
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10.12.4
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
-        with:
-          node-version: '22.20.0'
-          cache: pnpm
-      - run: node scripts/edition-authoring/cli.mjs check
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm exec rer install
-      - name: Build exact verification checkout once
-        run: pnpm build
-      - name: Bind shared output to this source and run
-        run: node .github/scripts/verify-build.mjs create "$RUNNER_TEMP/uptime-verify-build"
-      - name: Share verification output with this run's shards
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: uptime-verify-build-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/uptime-verify-build/
-          if-no-files-found: error
-          retention-days: 1
+          TIER: ${{ (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')) && 'all' || 'push' }}
+          GITHUB_TOKEN: ${{ github.token }}
+          NIGHTLY_CACHE_HIT: ${{ steps.nightly.outputs.cache-hit }}
+        run: node .github/scripts/verify-ci.mjs --plan
   shards:
-    needs: [plan, build]
-    if: needs.plan.outputs.skip != 'true'
+    needs:
+      - plan
+      - build
+    if: ${{ needs.plan.outputs.has_shards == 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
@@ -88,33 +60,40 @@ jobs:
       WRANGLER_SEND_METRICS: 'false'
       PLAYWRIGHT_SKIP_BROWSER_GC: '1'
     steps:
+      - name: Set runner-owned browser cache
+        run: printf 'PLAYWRIGHT_BROWSERS_PATH=%s/ms-playwright\n' "$RUNNER_TEMP" >> "$GITHUB_ENV"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
       - uses: pnpm/action-setup@v4
         with:
           version: 10.12.4
+      - name: Set runner-owned pnpm store
+        run: pnpm config set store-dir "$RUNNER_TEMP/pnpm-store"
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
-          node-version: '22.20.0'
-          cache: pnpm
+          node-version: 22.20.0
+          package-manager-cache: false
       - name: Check edition source lock freshness
         run: node scripts/edition-authoring/cli.mjs check
-      - name: Cache Chromium
-        if: matrix.browser
+      - name: Cache runner-owned dependencies and browsers
         uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
         with:
-          path: |
-            ~/.cache/ms-playwright
-            ${{ runner.temp }}/rer-apt/archives
-          key: uptime-ubuntu24-${{ runner.arch }}-browser-${{ hashFiles('pnpm-lock.yaml') }}-${{ matrix.engines }}
+          path: |-
+            ${{ runner.temp }}/pnpm-store
+            ${{ runner.temp }}/ms-playwright
+            ${{ runner.temp }}/rer-apt/archives/*.deb
+          key: uptime-ubuntu24-temp-store-${{ runner.arch }}-browser-${{ matrix.browser }}-${{ hashFiles('pnpm-lock.yaml', 'package.json') }}-${{ matrix.engines }}
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec rer install
+      - name: Prepare runner-owned browser and apt caches
+        if: matrix.browser
+        run: mkdir -p "$PLAYWRIGHT_BROWSERS_PATH" "$RUNNER_TEMP/rer-apt/archives"
       - name: Install browsers and probe bundled engines
         if: matrix.browser
         run: bash .github/scripts/install-browsers.sh ${{ matrix.engines == 'all' && 'firefox webkit' || '' }}
       - name: Download this run's shared verification build
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           name: uptime-verify-build-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/uptime-verify-build
@@ -135,9 +114,8 @@ jobs:
           UPTIME_VERIFY_BUILD: ${{ runner.temp }}/uptime-verify-build
         run: node .github/scripts/verify-ci.mjs "$SHARD"
       - name: Retain browser suite logs of a failed shard
-        # Names the failing step of a browser suite: each suite's suite.log, with its RESULTS.json, from this local-only run.
         if: ${{ failure() && matrix.evidence }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: uptime-browser-suites-evidence-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
@@ -145,39 +123,153 @@ jobs:
             data/browser-suites-evidence-*/RESULTS.json
           if-no-files-found: warn
           retention-days: 7
+    name: shards (${{ matrix.name }})
+  light:
+    needs: plan
+    if: ${{ needs.plan.outputs.coverage == 'light' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      CI: 'true'
+      WRANGLER_SEND_METRICS: 'false'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 22.20.0
+          package-manager-cache: false
+      - run: npm install --global pnpm@10.12.4
+      - run: pnpm config set store-dir "$RUNNER_TEMP/pnpm-store"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run deps
+      - name: Run the changed files' reviewed readers and build the run site
+        env:
+          LIGHT_READERS: ${{ needs.plan.outputs.readers }}
+        run: node .github/scripts/verify-ci.mjs --light
+  full-push-proof:
+    needs:
+      - plan
+      - build
+      - shards
+      - prepare
+    if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/heads/') && needs.plan.outputs.tier == 'push' && needs.plan.outputs.coverage == 'full' && needs.shards.result == 'success' && needs.build.result == 'success' && needs.prepare.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 1
+    steps:
+      - run: test '${{ needs.shards.result }}' = success
+  nightly-proof:
+    needs:
+      - plan
+      - shards
+    if: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && (needs.plan.outputs.tier == 'nightly' || needs.plan.outputs.tier == 'all') && needs.plan.outputs.coverage == 'full' && needs.shards.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 1
+    steps:
+      - name: Mark successful complete nightly coverage
+        run: mkdir -p "$RUNNER_TEMP/nightly-green" && printf '%s\n' '${{ github.sha }}' > "$RUNNER_TEMP/nightly-green/sha"
+      - uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684
+        with:
+          path: ${{ runner.temp }}/nightly-green
+          key: nightly-green-${{ github.sha }}
   verify:
-    needs: [plan, build, shards, prepare]
+    needs:
+      - plan
+      - shards
+      - light
+      - full-push-proof
+      - nightly-proof
+      - build
+      - prepare
     if: ${{ always() }}
     runs-on: ubuntu-24.04
     timeout-minutes: 1
     steps:
-      - name: Require every shard and the inert artifact
+      - name: Require the selected coverage and its proof
         env:
           PLAN: ${{ needs.plan.result }}
+          SHARDS: ${{ needs.shards.result }}
+          LIGHT: ${{ needs.light.result }}
+          PUSH_PROOF: ${{ needs.full-push-proof.result }}
+          NIGHTLY_PROOF: ${{ needs.nightly-proof.result }}
+          COVERAGE: ${{ needs.plan.outputs.coverage }}
+          HAS_SHARDS: ${{ needs.plan.outputs.has_shards }}
           SKIP: ${{ needs.plan.outputs.skip }}
           BUILD: ${{ needs.build.result }}
-          SHARDS: ${{ needs.shards.result }}
           PREPARE: ${{ needs.prepare.result }}
+          TIER: ${{ needs.plan.outputs.tier }}
         run: |
+          set -euo pipefail
           test "$PLAN" = success
-          if [ "$SKIP" = true ]; then exit 0; fi
-          test "$BUILD" = success && test "$SHARDS" = success && test "$PREPARE" = success
+          case "$PUSH_PROOF:$NIGHTLY_PROOF" in
+            *failure*|*cancelled*) exit 1 ;;
+          esac
+          case "$COVERAGE" in
+            reuse) test "$SKIP" = true && test "$SHARDS" = skipped && test "$LIGHT" = skipped ;;
+            light) test "$SKIP" = false && test "$LIGHT" = success && test "$SHARDS" = skipped ;;
+            full) test "$LIGHT" = skipped && { test "$SHARDS" = success || { test "$HAS_SHARDS" = false && test "$SHARDS" = skipped; }; } ;;
+            *) exit 1 ;;
+          esac
+
+          if [ "$HAS_SHARDS" = true ]; then test "$BUILD" = success; else test "$BUILD" = skipped; fi
+          if [ "$COVERAGE" = full ] && [ "$TIER" != nightly ]; then test "$PREPARE" = success; else test "$PREPARE" = skipped; fi
+  build:
+    needs: plan
+    if: ${{ needs.plan.outputs.has_shards == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      CI: 'true'
+      WRANGLER_SEND_METRICS: 'false'
+    steps:
+      - name: Set runner-owned browser cache
+        run: printf 'PLAYWRIGHT_BROWSERS_PATH=%s/ms-playwright\n' "$RUNNER_TEMP" >> "$GITHUB_ENV"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.4
+      - name: Set runner-owned pnpm store
+        run: pnpm config set store-dir "$RUNNER_TEMP/pnpm-store"
+      - name: Cache runner-owned dependencies
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        with:
+          path: ${{ runner.temp }}/pnpm-store
+          key: uptime-ubuntu24-temp-store-${{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml', 'package.json') }}
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 22.20.0
+          package-manager-cache: false
+      - run: node scripts/edition-authoring/cli.mjs check
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec rer install
+      - name: Build exact verification checkout once
+        run: pnpm build
+      - name: Bind shared output to this source and run
+        run: node .github/scripts/verify-build.mjs create "$RUNNER_TEMP/uptime-verify-build"
+      - name: Share verification output with this run's shards
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: uptime-verify-build-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/uptime-verify-build/
+          if-no-files-found: error
+          retention-days: 1
   prepare:
     needs: plan
-    if: needs.plan.outputs.skip != 'true'
-    # This job has no provider credentials and never deploys. Its artifact must
-    # pass independent source, run and digest checks in a trusted controller.
+    if: ${{ needs.plan.outputs.coverage == 'full' && needs.plan.outputs.tier != 'nightly' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 14
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
       - uses: pnpm/action-setup@v4
         with:
           version: 10.12.4
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: 22.20.0
       - name: Install and package without credential environment
@@ -201,10 +293,10 @@ jobs:
             echo 'Checkout retained credential configuration' >&2
             exit 1
           fi
-          env -i PATH="$PATH" HOME="$install_home" CI=true TMPDIR="$bundle/tmp" \
+          env -i PATH="$PATH" HOME="$install_home" npm_config_store_dir="$RUNNER_TEMP/pnpm-store" CI=true TMPDIR="$bundle/tmp" \
             GIT_CONFIG_NOSYSTEM=1 WRANGLER_SEND_METRICS=false \
             CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV=false sh -c 'pnpm install --frozen-lockfile && exec pnpm exec rer "$@"' sh install
-          env -i PATH="$PATH" HOME="$install_home" CI=true TMPDIR="$bundle/tmp" \
+          env -i PATH="$PATH" HOME="$install_home" npm_config_store_dir="$RUNNER_TEMP/pnpm-store" CI=true TMPDIR="$bundle/tmp" \
             GIT_CONFIG_NOSYSTEM=1 WRANGLER_SEND_METRICS=false \
             CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV=false \
             RER_PREPARE_ISOLATION=ephemeral-credential-free-job \
@@ -213,7 +305,7 @@ jobs:
             RER_DEPLOY_RUN_ATTEMPT="$RUN_ATTEMPT" node scripts/deployment/prepare.mjs
           (cd "$bundle" && sha256sum artifact.json > artifact.sha256)
       - name: Retain inert deployment artifact and digest
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: uptime-deploy-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: |

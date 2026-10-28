@@ -13,6 +13,26 @@
       }
     },
     {
+      "path": ".github/workflows/verify.yml",
+      "originPath": "export/verify.yml",
+      "revision": "25d370982f5bd8afbe650b82cb58adc2137d10e9",
+      "files": {
+        ".github/workflows/verify.yml": "09fe6d2a0b274d4925950ef0ddde9c8c7099e15edb5333a601ead2bbcec73a86"
+      },
+      "modes": {
+        ".github/workflows/verify.yml": "100644"
+      },
+      "adapted": {
+        ".github/workflows/verify.yml": "25d370982f5bd8afbe650b82cb58adc2137d10e9"
+      },
+      "acknowledged": {
+        ".github/workflows/verify.yml": {
+          "sha256": "f88135567ec7b8a445d9878c5fc301e0e997e252334dca24179bc5233a7b3d14",
+          "mode": "100644"
+        }
+      }
+    },
+    {
       "path": "DEMO.md",
       "originPath": "default-seed/DEMO.md",
       "revision": "25d370982f5bd8afbe650b82cb58adc2137d10e9",
@@ -357,6 +377,17 @@
       },
       "modes": {
         "scripts/delivery/base/payloads.mjs": "100644"
+      }
+    },
+    {
+      "path": "scripts/delivery/base/schema/business-field-inputs.mjs",
+      "originPath": "schema/business-field-inputs.mjs",
+      "revision": "25d370982f5bd8afbe650b82cb58adc2137d10e9",
+      "files": {
+        "scripts/delivery/base/schema/business-field-inputs.mjs": "b028b576bc85758c4ed400d059d4aae4fdda7a29eeb290fd1032ea15aaf957d1"
+      },
+      "modes": {
+        "scripts/delivery/base/schema/business-field-inputs.mjs": "100644"
       }
     },
     {
@@ -823,6 +854,17 @@
       },
       "modes": {
         "src/base/font-response.ts": "100644"
+      }
+    },
+    {
+      "path": "src/base/hosting-page.ts",
+      "originPath": "foundation/runtime/hosting-page.ts",
+      "revision": "25d370982f5bd8afbe650b82cb58adc2137d10e9",
+      "files": {
+        "src/base/hosting-page.ts": "280e291c4d74cc27560379876044be55c7b2ba8d827ddb76b58e2a1b90b21569"
+      },
+      "modes": {
+        "src/base/hosting-page.ts": "100644"
       }
     },
     {
@@ -1368,6 +1410,72 @@
       },
       "modes": {
         "src/base/modules/import-kit/src/door/index.ts": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/intake-policy.ts",
+      "originPath": "modules/import-kit/src/door/intake-policy.ts",
+      "revision": "25d370982f5bd8afbe650b82cb58adc2137d10e9",
+      "files": {
+        "src/base/modules/import-kit/src/door/intake-policy.ts": "c8814605021d9bd32b7f36af0d344530154707e736c93c863a3a4bc693021f59"
+      },
+      "modes": {
+        "src/base/modules/import-kit/src/door/intake-policy.ts": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/intake-upload.ts",
+      "originPath": "modules/import-kit/src/door/intake-upload.ts",
+      "revision": "25d370982f5bd8afbe650b82cb58adc2137d10e9",
+      "files": {
+        "src/base/modules/import-kit/src/door/intake-upload.ts": "e0c740e9650a649f36d640cdeb8dad5dfa11ed934d2086caa59c2acb58ac8131"
+      },
+      "modes": {
+        "src/base/modules/import-kit/src/door/intake-upload.ts": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/intake/csv.ts",
+      "originPath": "modules/import-kit/src/door/intake/csv.ts",
+      "revision": "25d370982f5bd8afbe650b82cb58adc2137d10e9",
+      "files": {
+        "src/base/modules/import-kit/src/door/intake/csv.ts": "5f34704d2e9e3814330342e50e8866471c924c0bab423109470f6bf48165d9f2"
+      },
+      "modes": {
+        "src/base/modules/import-kit/src/door/intake/csv.ts": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/intake/json.ts",
+      "originPath": "modules/import-kit/src/door/intake/json.ts",
+      "revision": "25d370982f5bd8afbe650b82cb58adc2137d10e9",
+      "files": {
+        "src/base/modules/import-kit/src/door/intake/json.ts": "a5eea8e5c5fd5dae01275a8fe7b6ca1c66841f5ea1b41751da3f0d79e80de415"
+      },
+      "modes": {
+        "src/base/modules/import-kit/src/door/intake/json.ts": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/intake/projection.ts",
+      "originPath": "modules/import-kit/src/door/intake/projection.ts",
+      "revision": "25d370982f5bd8afbe650b82cb58adc2137d10e9",
+      "files": {
+        "src/base/modules/import-kit/src/door/intake/projection.ts": "cd9c439f60c9c5180acea395d8ed0edd285624851a56b942197d3ea2c063a039"
+      },
+      "modes": {
+        "src/base/modules/import-kit/src/door/intake/projection.ts": "100644"
+      }
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/intake/types.ts",
+      "originPath": "modules/import-kit/src/door/intake/types.ts",
+      "revision": "25d370982f5bd8afbe650b82cb58adc2137d10e9",
+      "files": {
+        "src/base/modules/import-kit/src/door/intake/types.ts": "97fea2ccdb3bfb85bec82f8429fe11ebbdbcff437383ea20b1293d2e147426a1"
+      },
+      "modes": {
+        "src/base/modules/import-kit/src/door/intake/types.ts": "100644"
       }
     },
     {
@@ -2091,6 +2199,50 @@
       }
     },
     {
+      "path": "src/base/run-chooser-style.ts",
+      "originPath": "foundation/runtime/run-chooser-style.ts",
+      "revision": "25d370982f5bd8afbe650b82cb58adc2137d10e9",
+      "files": {
+        "src/base/run-chooser-style.ts": "62cd0b43762dbe406958d929ee6d27440658ffaead40bb51229eca7c4aea0756"
+      },
+      "modes": {
+        "src/base/run-chooser-style.ts": "100644"
+      }
+    },
+    {
+      "path": "src/base/run-data.d.mts",
+      "originPath": "foundation/runtime/run-data.d.mts",
+      "revision": "25d370982f5bd8afbe650b82cb58adc2137d10e9",
+      "files": {
+        "src/base/run-data.d.mts": "8b8f8e6b6030abe061027eef4b1b1560fdc77f54b25c82048839887da4fe56c1"
+      },
+      "modes": {
+        "src/base/run-data.d.mts": "100644"
+      }
+    },
+    {
+      "path": "src/base/run-data.mjs",
+      "originPath": "foundation/runtime/run-data.mjs",
+      "revision": "25d370982f5bd8afbe650b82cb58adc2137d10e9",
+      "files": {
+        "src/base/run-data.mjs": "e27f7c181fe17f54771893a0988098f49395511a8264b4fd3b848ecda1f5c1c9"
+      },
+      "modes": {
+        "src/base/run-data.mjs": "100644"
+      }
+    },
+    {
+      "path": "src/base/run-pricing.ts",
+      "originPath": "foundation/runtime/run-pricing.ts",
+      "revision": "25d370982f5bd8afbe650b82cb58adc2137d10e9",
+      "files": {
+        "src/base/run-pricing.ts": "f95bdf9b5e62c7d302e97a57ae4dcb580846197fa4cf2222e17a5e1b2c0a02fd"
+      },
+      "modes": {
+        "src/base/run-pricing.ts": "100644"
+      }
+    },
+    {
       "path": "src/base/run-site.ts",
       "originPath": "foundation/runtime/run-site.ts",
       "revision": "25d370982f5bd8afbe650b82cb58adc2137d10e9",
@@ -2179,135 +2331,58 @@
       }
     },
     {
-      "path": "src/base/run-pricing.ts",
-      "originPath": "foundation/runtime/run-pricing.ts",
+      "path": "scripts/verify-ci.mjs",
+      "originPath": "export/verify-ci.mjs",
       "revision": "25d370982f5bd8afbe650b82cb58adc2137d10e9",
       "files": {
-        "src/base/run-pricing.ts": "f95bdf9b5e62c7d302e97a57ae4dcb580846197fa4cf2222e17a5e1b2c0a02fd"
+        "scripts/verify-ci.mjs": "cf1ceb8773ed276f82245fb8fb4c4bdc95bff40ecc0e8ca8ac9e776978b17340"
       },
       "modes": {
-        "src/base/run-pricing.ts": "100644"
+        "scripts/verify-ci.mjs": "100644"
       }
     },
     {
-      "path": "scripts/delivery/base/schema/business-field-inputs.mjs",
-      "originPath": "schema/business-field-inputs.mjs",
+      "path": "scripts/verify-app.mjs",
+      "originPath": "export/verify-app.mjs",
       "revision": "25d370982f5bd8afbe650b82cb58adc2137d10e9",
       "files": {
-        "scripts/delivery/base/schema/business-field-inputs.mjs": "b028b576bc85758c4ed400d059d4aae4fdda7a29eeb290fd1032ea15aaf957d1"
+        "scripts/verify-app.mjs": "4c3a87c809e2b671a555dc36171b60675f87be96362de7d2269d9f5e1c3100b6"
       },
       "modes": {
-        "scripts/delivery/base/schema/business-field-inputs.mjs": "100644"
+        "scripts/verify-app.mjs": "100644"
       }
     },
     {
-      "path": "src/base/modules/import-kit/src/door/intake-policy.ts",
-      "originPath": "modules/import-kit/src/door/intake-policy.ts",
+      "path": "scripts/verify-plan.mjs",
+      "originPath": "export/verify-plan.mjs",
       "revision": "25d370982f5bd8afbe650b82cb58adc2137d10e9",
       "files": {
-        "src/base/modules/import-kit/src/door/intake-policy.ts": "c8814605021d9bd32b7f36af0d344530154707e736c93c863a3a4bc693021f59"
+        "scripts/verify-plan.mjs": "45fe2ab9c5cbc72d0186bf77fab32c985605caae6ecee50676dd618612c3e78f"
       },
       "modes": {
-        "src/base/modules/import-kit/src/door/intake-policy.ts": "100644"
+        "scripts/verify-plan.mjs": "100644"
       }
     },
     {
-      "path": "src/base/modules/import-kit/src/door/intake-upload.ts",
-      "originPath": "modules/import-kit/src/door/intake-upload.ts",
+      "path": "scripts/verify-light.mjs",
+      "originPath": "export/verify-light.mjs",
       "revision": "25d370982f5bd8afbe650b82cb58adc2137d10e9",
       "files": {
-        "src/base/modules/import-kit/src/door/intake-upload.ts": "e0c740e9650a649f36d640cdeb8dad5dfa11ed934d2086caa59c2acb58ac8131"
+        "scripts/verify-light.mjs": "3f58865aa32380d48d8320f3a1f520c0663e4f17d82f7f5ccd4cb0448feff197"
       },
       "modes": {
-        "src/base/modules/import-kit/src/door/intake-upload.ts": "100644"
+        "scripts/verify-light.mjs": "100644"
       }
     },
     {
-      "path": "src/base/modules/import-kit/src/door/intake/types.ts",
-      "originPath": "modules/import-kit/src/door/intake/types.ts",
+      "path": "scripts/verify-evidence.mjs",
+      "originPath": "export/verify-evidence.mjs",
       "revision": "25d370982f5bd8afbe650b82cb58adc2137d10e9",
       "files": {
-        "src/base/modules/import-kit/src/door/intake/types.ts": "97fea2ccdb3bfb85bec82f8429fe11ebbdbcff437383ea20b1293d2e147426a1"
+        "scripts/verify-evidence.mjs": "9224f772d6a17f043448694eca3c149df83070417b995a2840497e36a9ad0100"
       },
       "modes": {
-        "src/base/modules/import-kit/src/door/intake/types.ts": "100644"
-      }
-    },
-    {
-      "path": "src/base/hosting-page.ts",
-      "originPath": "foundation/runtime/hosting-page.ts",
-      "revision": "25d370982f5bd8afbe650b82cb58adc2137d10e9",
-      "files": {
-        "src/base/hosting-page.ts": "280e291c4d74cc27560379876044be55c7b2ba8d827ddb76b58e2a1b90b21569"
-      },
-      "modes": {
-        "src/base/hosting-page.ts": "100644"
-      }
-    },
-    {
-      "path": "src/base/run-chooser-style.ts",
-      "originPath": "foundation/runtime/run-chooser-style.ts",
-      "revision": "25d370982f5bd8afbe650b82cb58adc2137d10e9",
-      "files": {
-        "src/base/run-chooser-style.ts": "62cd0b43762dbe406958d929ee6d27440658ffaead40bb51229eca7c4aea0756"
-      },
-      "modes": {
-        "src/base/run-chooser-style.ts": "100644"
-      }
-    },
-    {
-      "path": "src/base/modules/import-kit/src/door/intake/projection.ts",
-      "originPath": "modules/import-kit/src/door/intake/projection.ts",
-      "revision": "25d370982f5bd8afbe650b82cb58adc2137d10e9",
-      "files": {
-        "src/base/modules/import-kit/src/door/intake/projection.ts": "cd9c439f60c9c5180acea395d8ed0edd285624851a56b942197d3ea2c063a039"
-      },
-      "modes": {
-        "src/base/modules/import-kit/src/door/intake/projection.ts": "100644"
-      }
-    },
-    {
-      "path": "src/base/run-data.mjs",
-      "originPath": "foundation/runtime/run-data.mjs",
-      "revision": "25d370982f5bd8afbe650b82cb58adc2137d10e9",
-      "files": {
-        "src/base/run-data.mjs": "e27f7c181fe17f54771893a0988098f49395511a8264b4fd3b848ecda1f5c1c9"
-      },
-      "modes": {
-        "src/base/run-data.mjs": "100644"
-      }
-    },
-    {
-      "path": "src/base/modules/import-kit/src/door/intake/json.ts",
-      "originPath": "modules/import-kit/src/door/intake/json.ts",
-      "revision": "25d370982f5bd8afbe650b82cb58adc2137d10e9",
-      "files": {
-        "src/base/modules/import-kit/src/door/intake/json.ts": "a5eea8e5c5fd5dae01275a8fe7b6ca1c66841f5ea1b41751da3f0d79e80de415"
-      },
-      "modes": {
-        "src/base/modules/import-kit/src/door/intake/json.ts": "100644"
-      }
-    },
-    {
-      "path": "src/base/modules/import-kit/src/door/intake/csv.ts",
-      "originPath": "modules/import-kit/src/door/intake/csv.ts",
-      "revision": "25d370982f5bd8afbe650b82cb58adc2137d10e9",
-      "files": {
-        "src/base/modules/import-kit/src/door/intake/csv.ts": "5f34704d2e9e3814330342e50e8866471c924c0bab423109470f6bf48165d9f2"
-      },
-      "modes": {
-        "src/base/modules/import-kit/src/door/intake/csv.ts": "100644"
-      }
-    },
-    {
-      "path": "src/base/run-data.d.mts",
-      "originPath": "foundation/runtime/run-data.d.mts",
-      "revision": "25d370982f5bd8afbe650b82cb58adc2137d10e9",
-      "files": {
-        "src/base/run-data.d.mts": "8b8f8e6b6030abe061027eef4b1b1560fdc77f54b25c82048839887da4fe56c1"
-      },
-      "modes": {
-        "src/base/run-data.d.mts": "100644"
+        "scripts/verify-evidence.mjs": "100644"
       }
     }
   ],
