@@ -1,7 +1,7 @@
 import {ToolRefusal, type Person, type Principal, type ToolContext} from '../../base/modules/agent-door/index.ts'
 import {inScope, type Scope} from '../access.server.ts'
 import type {Bindings} from '../control.server.ts'
-import {loadCredential} from '../credentials/admission.server.ts'
+import {loadCredential,admitCredential} from '../credentials/admission.server.ts'
 import {credentialMonitorFilter, type CredentialAuthority} from '../credentials/model.server.ts'
 // @ts-ignore Native product role policy is also used by the browser and CLI.
 import {baseRole, permitted} from '../role-permissions.mjs'
@@ -35,10 +35,20 @@ export async function agentAccess(env:Bindings,ctx:Pick<Principal,'person'|'agen
   if(action==='check_write'&&!['owner','admin'].includes(row.role)&&(protectedDefinition(JSON.parse(monitor.definition))||protectedDefinition(definition)))throw denied()
  }
  if(definition&&!inScope(definition,scopes))throw denied()
+ // Match the native editor's dependency fence as well as its direct target.
+ if(definition?.dependencies){
+  if(!Array.isArray(definition.dependencies)||definition.dependencies.length>100)throw denied()
+  for(const dependency of definition.dependencies){
+   if(typeof dependency!=='string')throw denied()
+   const target=await env.DB.prepare('SELECT definition FROM monitors WHERE id=?').bind(dependency).first<{definition:string}>()
+   if(!target||!inScope(JSON.parse(target.definition),scopes))throw denied()
+   if(!ids.includes(dependency))ids.push(dependency)
+  }
+ }
  if(scopes.length&&!workspace&&!ids.length&&action!=='read')throw denied()
  if(ctx.clientId?.startsWith('native-key:')){
   const a=await localAuthority(env,ctx.clientId.slice(11))
-  if(a.issuerId!==operator.id||action!=='read')throw denied()
+  if(a.issuerId!==operator.id||action!=='read'||workspace)throw denied()
   const f=credentialMonitorFilter({...env,readCredential:a})
   for(const id of ids)if(!await env.DB.prepare(`SELECT 1 FROM monitors WHERE id=? AND ${f.sql}`).bind(id,...f.params).first())throw denied()
  }
@@ -57,6 +67,7 @@ export const readScopes=['uptime:read']
 export async function localCredentials(env:Bindings,request:Request){
  if(!/^Bearer int_[a-f0-9]{64}$/.test(request.headers.get('authorization')??''))return null
  const a=await loadCredential(env,request,'monitoring:read');if(!a)return null
+ await admitCredential(env,a,'mcp')
  return {sponsor:{id:a.issuerId},agent:{id:`uptime-key:${a.id}`,name:'Monitoring read key'},scopes:readScopes,clientId:`native-key:${a.id}`}
 }
 export async function evidenceAccess(env:Bindings,ctx:Principal,id:string){

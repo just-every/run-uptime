@@ -1,5 +1,3 @@
-# Uptime's agent door
-
 The canonical endpoint is `/mcp`. Discovery, tool and resource lists use the same
 server registry. The supported protocol versions are `2026-07-28` and
 `2025-11-25`; `/agents` is the native person's policy, activity and approval door.
@@ -34,17 +32,12 @@ requirements remain in their native person doors. Protected monitor changes
 currently return `native_proof_required`; no credential or private-network
 fallback is supplied.
 
-The surface is generated with `pnpm agent:generate` and checked with
-`pnpm agent:check`. The runtime source is pinned in `base-copies.json` at
-`7ce44fa5b70b68b21d270ba54760dae28b4a37a7`; the installed npm CLI remains 0.2.85.
-The matching unreleased Base CLI is needed for the normal conformance run until
-0.2.86 containing that head is published. Runtime and CLI pins are independent.
+MCP does not yet expose manual checks, discovery starts, destination changes or
+sends, definition-file apply, operator-access changes or privacy erasure. Use
+those existing native person and installation doors with their original
+permissions. The current definition-file tool inspects a file; it does not apply
+or activate its contents.
 
-Adoption is incomplete. The declaration retains failing coverage requirements
-for native evidence/incident fixtures and the remaining operable tool families.
-The existing Agent clauses still need ct's policy alignment. Base v2 is also
-needed for native target audit attribution, resource refusal codes, authorization
-before mutation replay, monitor-subject escalation fixtures and reviewer
-lifecycle. These gaps are not a readiness claim. Spend caps are not enforced;
-native quotas, explicit effect grants and uncertain provider outcomes remain
-binding.
+Spend caps are not enforced. Native quotas, explicit effect grants and uncertain
+provider outcomes remain binding. The monitoring door does not provide a
+remediation executor or a general payment product.
