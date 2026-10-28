@@ -495,7 +495,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "98fcdd51a10c2f97d391be7c2a66f42ecbcc92d3fdabf6c32943a0cb494ed2a8",
+      "sha256": "a4107f7a85f31a9dcd6272fab304f0af3dc24f21abe6d50ebafbbff58603ff7d",
       "executable": false
     },
     "AGENTS.md": {
@@ -519,7 +519,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "4a5850ee4aceeec6896181acb3e9687f44c4a6afd4a8be71ce2deeb6ccefd852",
+      "sha256": "30fe6e1bc854ec6bdc4c189e6e64a93d31b53ca0ab97a8666dd0729e6dbfa062",
       "executable": false
     },
     "DEMO.md": {
@@ -559,19 +559,19 @@
       "executable": false
     },
     "docs/contract/COVERAGE.json": {
-      "sha256": "e23718dfd984cae770fa683ac734a8c41425b0ed5c063c1bb9f2ee2bba6cbe0d",
+      "sha256": "1f38d320e23162956fa63b472bf28049d3e3472bdd9567bc3db2dd65fb18e46a",
       "executable": false
     },
     "docs/contract/DONE-AUDIT.md": {
-      "sha256": "efb052e614dc69540bb80fd8d1e83a81dfa8f669f8f09fd3319b904d12eab37a",
+      "sha256": "c1b08be26e520ef11cf35af5d47993d2c4dae967865279ba7f9ffde687d62d56",
       "executable": false
     },
     "docs/contract/ID-MAP.json": {
-      "sha256": "7f1264e374dff09c0f0e9846f7c908d466c9a89225af52c23e1a7c0eaaa50b30",
+      "sha256": "7bc15a8bae611478f1b6bcce9a79968f7559ca5ba9aafe9d423d076751e6305d",
       "executable": false
     },
     "docs/contract/safety-rules.md": {
-      "sha256": "bf488affaf9752fcc7a2c50a8cae878cbde94548a4dbcdfe0772a11395ae159f",
+      "sha256": "3116b421a2ed1320dcb80a6fe788116d43e9300a0ef6ff8dfbefb4e308c4ff0e",
       "executable": false
     },
     "docs/data.md": {
@@ -2603,7 +2603,7 @@
       "executable": false
     },
     "public/definitions.js": {
-      "sha256": "20a1f3bb0e6cf164321c076a010879a3da9e3568d2c31479b4f644b0e9537914",
+      "sha256": "a4581b80470a6df1490747e2b1c8b72eb3d18bdf69755236119cd06095d64169",
       "executable": false
     },
     "public/delivery-chain.js": {
@@ -5687,11 +5687,15 @@
       "executable": false
     },
     "src/domain/business-import/erasure.server.ts": {
-      "sha256": "e214e761ff6d894061011e508861eeab0064591966d8835a49f249604edf621e",
+      "sha256": "b3bde174c7b3670ef73ef601ad620aefb25c32718b6433cdbb6fbb120478899f",
       "executable": false
     },
     "src/domain/business-import/history.server.ts": {
-      "sha256": "e857b28a9a36e98717cca3dc24ba2ee921b14843dc44b6431f144d94601a68d1",
+      "sha256": "0c7a184028caeb54b6bac23aa8b9bb0fc9553ec866c04fbdb2ff628e1262c671",
+      "executable": false
+    },
+    "src/domain/business-import/identity-erasure.server.ts": {
+      "sha256": "b27e747971f0953b9ca967267a17402bdc113b8137b306858be75f64f777cb10",
       "executable": false
     },
     "src/domain/business-import/inventory.server.ts": {
@@ -5955,7 +5959,7 @@
       "executable": false
     },
     "src/domain/erasure.server.ts": {
-      "sha256": "00e96d7a087ca1b6451d8739de046d03b1394020e4d08990c79956216d7f7e4b",
+      "sha256": "1e31e398897cbe5a546178a0090422e752b072ec4aaf7d8f95515191af66047e",
       "executable": false
     },
     "src/domain/evidence.server.ts": {
@@ -7339,7 +7343,11 @@
       "executable": false
     },
     "tests/business-import-door.mjs": {
-      "sha256": "de4f0c603036641570018e8a8e64d549b717b2b1ac19dec75faeb9db4a2f6a9c",
+      "sha256": "cd3f48bcf53160b7e752fa74f59fa097f2b9bb7ad216628a83a8255cac77f833",
+      "executable": false
+    },
+    "tests/business-import-erasure-proof.mjs": {
+      "sha256": "60d291f58ff95f2f0d0161b33656b74a34b541d87136322632e191adfd51860c",
       "executable": false
     },
     "tests/business-provisioned.mjs": {

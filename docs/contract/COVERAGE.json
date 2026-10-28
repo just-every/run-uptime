@@ -2,7 +2,7 @@
   "schema": 1,
   "seed": "uptime",
   "old": {
-    "commit": "dc096c027d5172b1c9ff64afea2c7f76faf4bcef",
+    "commit": "a249d58f20dd1ac41a0a2b928e7932edcb8b7aef",
     "files": [
       "CONTRACT.md",
       "ACCEPTANCE.md",
@@ -192,7 +192,23 @@
     {
       "file": "CONTRACT.md",
       "line": 33,
-      "text": "**IMPORT-001 — Reviewed definition files and inactive imports.** A versioned definition file (2 MiB, 500 monitors, UTF-8 JSON, editor fields only, no request secrets or installation authority) or saved UptimeRobot v3 monitor pages are previewed without writes as create, unchanged, change, refused or unsupported per entry with a plan digest, validated by the editor's own validation; apply refuses a digest that no longer matches and otherwise writes the whole plan in one transaction as new paused monitors or new revisions that keep enabled, maintenance and runner assignments; nothing in a file enables a monitor, issues a heartbeat token, schedules a notification or touches a destination. Each apply is a batch; undo pauses what it created and restores what it changed while their revisions are unchanged, reports the rest and never removes history. Batches travel in archives as restored history without authority. Through this definition-file door a log export is recognized and counted only. Storing it as labeled source history for reports is HISTORY-001's migration import, and no imported history ever becomes evidence.",
+      "text": "**IMPORT-001 — Reviewed definition files and inactive imports.** A versioned definition file (2 MiB, 500 monitors, UTF-8 JSON, editor fields only, no request secrets or installation authority) or saved UptimeRobot v3 monitor pages are previewed without writes as create, unchanged, change, refused or unsupported per entry with a plan digest, validated by the editor's own validation; apply refuses a digest that no longer matches and otherwise resumes the reviewed plan in bounded transactional batches as new paused monitors or new revisions that keep enabled, maintenance and runner assignments; nothing in a file enables a monitor, issues a heartbeat token, schedules a notification or touches a destination.",
+      "to": "clause",
+      "ids": [
+        "IMPORT-001"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 33,
+      "text": "Whole-plan atomicity is not established by the current door; whether batch atomicity meets the intended guarantee remains unresolved under this partial clause.",
+      "to": "section",
+      "section": "Status"
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 33,
+      "text": "Undo pauses what it created and restores what it changed while their revisions are unchanged, reports the rest and never removes history. Legacy definition batches travel in archives as restored history without authority; import-door custody stays installation-local. Through this definition-file door a log export is recognized and counted only. Storing it as labeled source history for reports is HISTORY-001's migration import, and no imported history ever becomes evidence.",
       "to": "clause",
       "ids": [
         "IMPORT-001"
@@ -310,7 +326,7 @@
     {
       "file": "CONTRACT.md",
       "line": 37,
-      "text": "**ERASURE-001 — Operator-directed entity erasure.** An owner can erase a monitor with its evidence and dependent notification/heartbeat records, a destination with its credential copies, or an operator while another active owner remains. Monitor erasure requires typing the current monitor name. Each completed erasure returns a receipt with entity kind, per-table counts and completion time, and returns it only after the transaction containing the erasure, audit entry and portability fence succeeds. Requests based on stale monitor or destination state cannot re-create erased rows. The last active owner cannot be erased: local installations use `rer reset --yes`, while hosted installations require replacement by redeployment. Uptime has no R2 upload feature, so product erasure has no uploaded attachments to remove. Already downloaded archives, messages already sent to external recipients and requests already in progress remain outside local erasure. See [Erasure and audit](#erasure-and-audit). **Acceptance evidence:** Erase each supported entity through the owner API, including stale concurrent requests and the original owner with a successor. Inspect the atomic per-table receipt, audit and journal; the last owner is protected and an old archive with the later journal cannot resurrect erased records.",
+      "text": "**ERASURE-001 — Operator-directed entity erasure.** An owner can erase a monitor with its evidence and dependent notification/heartbeat records, a destination with its credential copies, or an operator while another active owner remains. Monitor erasure requires typing the current monitor name. Each completed erasure returns a receipt with entity kind, per-table counts and completion time, and returns it only after the transaction containing the erasure, audit entry and portability fence succeeds. Requests based on stale monitor or destination state cannot re-create erased rows. The last active owner cannot be erased: local installations use `rer reset --yes`, while hosted installations require replacement by redeployment. Uptime has no R2 attachment feature; import-door uploads, plan snapshots and archive bytes are D1 custody covered by the erasure rule below. Already downloaded archives, messages already sent to external recipients and requests already in progress remain outside local erasure. See [Erasure and audit](#erasure-and-audit). **Acceptance evidence:** Erase each supported entity through the owner API, including stale concurrent requests and the original owner with a successor. Inspect the atomic per-table receipt, audit and journal; the last owner is protected and an old archive with the later journal cannot resurrect erased records.",
       "to": "clause",
       "ids": [
         "ERASURE-001"
@@ -2896,7 +2912,7 @@
     {
       "file": "CONTRACT.md",
       "line": 367,
-      "text": "The audit includes destructive actions and automated notification attempts, including test sends, plus operator authentication-mail provider attempts and legacy development capture history. The mail sender records the feature audit before attempting the provider request. Actor and subject fields are identifiers or feature names, never user-supplied names, emails, URLs or secrets. The audit travels in product archives. A later erasure journal makes restore refuse old audit actor references for an erased operator. Older offline archive bytes and external messages already sent cannot be changed by a later local erasure; a request already in progress may still reach its provider. Uptime does not use R2 or accept uploads, so there are no uploaded attachments to remove.",
+      "text": "The audit includes destructive actions and automated notification attempts, including test sends, plus operator authentication-mail provider attempts and legacy development capture history. The mail sender records the feature audit before attempting the provider request. Actor and subject fields are identifiers or feature names, never user-supplied names, emails, URLs or secrets. The audit travels in product archives. A later erasure journal makes restore refuse old audit actor references for an erased operator. Older offline archive bytes and external messages already sent cannot be changed by a later local erasure; a request already in progress may still reach its provider. Uptime does not use R2 for attachments; it does accept import-door uploads in D1. On operator or destination erasure, all import-door uploads (including interrupted uploads), snapshot and kit content and undo custody are withdrawn, approval identities and archive labels are anonymized, and only approval times/fingerprints, opaque lineage and archive receipt metadata remain, with native monitors preserved. This conservative rule applies with Business disabled because indivisible exports have no reliable operator/destination membership index. Approval rows keep their plan links, but caller-supplied approval/reviewer ids are replaced; archive headers keep hashes, sizes, counts and times while their filename/tool labels and caller-supplied upload references are replaced. Public import history labels retired jobs as history only and offers no undo; old snapshot operations and archive restore-check refuse withdrawn content. Installation opt-in, grant replay metadata and permanent key revocations remain. Monitor-level custody erasure retains its existing monitor-specific scope.",
       "to": "docs",
       "path": "docs/contract/safety-rules.md"
     },
@@ -3288,7 +3304,7 @@
       "file": "CONTRACT.md",
       "line": 481,
       "cell": "gap",
-      "text": "Synthetic saved-page/JSON tests only; real export and hosted import remain unmeasured.",
+      "text": "Synthetic saved-page/JSON tests only; real export and hosted import remain unmeasured. Apply resumes in atomic batches, not one whole-plan transaction; the intended whole-plan atomicity guarantee remains unresolved.",
       "to": "gap",
       "ids": [
         "IMPORT-001"
@@ -3300,6 +3316,16 @@
       "cell": "gap",
       "text": "Runtime owner/runner/Cron cleanup and Worker restart compare every populated table’s surviving identities, exact retained history and availability. Expired auth/rate-limit rows, snapshot content, drill capability material, retired credentials and proven-unsent attempt reservations follow declared custody. View/archive bounds remain distinct from storage capacity (ARCHIVE-002).",
       "to": "changelog"
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 483,
+      "cell": "gap",
+      "text": "Local synthetic public-door proof covers non-last-owner and destination erasure with approvals, pending/interrupted uploads and archives populated and Business disabled, anonymous history/export reads, custody withdrawal and peer native monitor preservation; no real-export or hosted acceptance is added.",
+      "to": "gap",
+      "ids": [
+        "ERASURE-001"
+      ]
     },
     {
       "file": "CONTRACT.md",
