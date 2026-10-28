@@ -84,11 +84,11 @@ function previewMarkup(preview){
 function batchesMarkup(batches){
  if(!batches)return '<p>Loading batches…</p>';
  if(!batches.length)return '<p>No imports yet.</p>';
- return `<ul class="definition-batches">${batches.map(b=>{const created=b.entries.filter(e=>e.action==='create').length,changed=b.entries.length-created,status=b.restoredAt?'From an archive (history only)':b.failed?'Apply failed':b.undoneAt?`Undone ${new Date(b.undoneAt).toLocaleString()}`:b.undone?'Undone':'Applied';
-  return `<li><p><strong>${escape(new Date(b.createdAt).toLocaleString())}</strong> · ${escape(b.source)} · ${created} created, ${changed} changed · ${escape(status)}</p>
+ return `<ul class="definition-batches">${batches.map(b=>{const created=b.entries.filter(e=>e.action==='create').length,changed=b.entries.length-created,status=b.withdrawn?'Import custody erased (history only)':b.restoredAt?'From an archive (history only)':b.failed?'Apply failed':b.undoneAt?`Undone ${new Date(b.undoneAt).toLocaleString()}`:b.undone?'Undone':'Applied';
+  return `<li><p><strong>${escape(new Date(b.createdAt).toLocaleString())}</strong> · ${escape(b.source)} · ${b.withdrawn?'':`${created} created, ${changed} changed · `}${escape(status)}</p>
   ${b.businessApproval?`<p>Approved ${b.businessApproval.via==='owner'?'':'via Business '}by ${escape(b.businessApproval.owner)} at ${escape(new Date(b.businessApproval.approvedAt).toLocaleString())}${b.failed?`, then failed (${escape(b.failed)})`:''}</p>`:''}
   <ul>${b.entries.map(e=>`<li>${escape(e.name??e.monitorId)} — ${e.action==='create'?'created':'changed'}${e.undoOutcome?`; ${escape(OUTCOMES[e.undoOutcome]??e.undoOutcome)}`:''}</li>`).join('')}</ul>
-  ${!b.undone&&!b.undoneAt&&!b.restoredAt?`<button class="definition-undo" data-batch="${escape(b.id)}">${icon('restore')}Undo this batch</button>`:''}</li>`}).join('')}</ul>`;
+  ${!b.withdrawn&&!b.undone&&!b.undoneAt&&!b.restoredAt?`<button class="definition-undo" data-batch="${escape(b.id)}">${icon('restore')}Undo this batch</button>`:''}</li>`}).join('')}</ul>`;
 }
 export function renderDefinitions({area,action}){
  if(area.querySelector('.definitions-panel'))return;

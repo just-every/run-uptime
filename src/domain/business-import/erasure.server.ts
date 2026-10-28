@@ -26,7 +26,7 @@ function uploadNames(namespace:string,bytes:Uint8Array|null,name:string){
  * (an abandoned or interrupted preview) that names it or cannot be read, and every archive outside those namespaces that
  * still holds bytes naming it or that cannot be read (an archive can be the only copy of a source left). */
 export async function businessErasureScope(env:Bindings,id:string,name:string){
- const plans=(await env.DB.prepare('SELECT id,namespace,job_id,snapshot_hash FROM ik_door_plans WHERE complete=1').all<any>()).results
+ const plans=(await env.DB.prepare("SELECT id,namespace,job_id,snapshot_hash FROM ik_door_plans p WHERE complete=1 AND NOT EXISTS(SELECT 1 FROM ik_d1_retirements r WHERE r.id=p.job_id AND r.kind='job')").all<any>()).results
  const namespaces=new Set<string>()
  for(const plan of plans){
   const chunks=(await env.DB.prepare('SELECT body FROM ik_door_plan_chunks WHERE plan_id=? ORDER BY ordinal').bind(plan.id).all<{body:string}>()).results

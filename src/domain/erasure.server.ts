@@ -8,6 +8,7 @@ import {installationLocalTables} from './archive-inventory.ts'
 import {auditStatement,mutationGuard,type AuditActor} from './audit.server.ts'
 import type {Bindings} from './control.server.ts'
 import {businessErasureScope,eraseBusinessCustody} from './business-import/erasure.server.ts'
+import {businessIdentityErasure} from './business-import/identity-erasure.server.ts'
 type Selection={table:string;where:string;args:unknown[]};
 // A fallback contact's alert names the earlier contacts it followed (DELIVERY-002): it is dependent history of each.
 const serviceReportJobs="EXISTS(SELECT 1 FROM scheduled_reports sr JOIN json_each(json_extract(sr.report,'$.service.monitors')) member WHERE sr.delivery_id=notification_jobs.id AND json_extract(member.value,'$.id')=?)";
@@ -113,6 +114,13 @@ export async function erase(env:Bindings,kind:'monitor'|'destination'|'operator'
  if(kind==='operator'&&entity.role==='owner'&&entity.status==='active')statements.push(mutationGuard(env,"(SELECT COUNT(*) FROM oa_operators WHERE role='owner' AND status='active')>1"));
  if(bootstrap)statements.push(env.DB.prepare('UPDATE oa_bootstrap SET claim_id=? WHERE singleton=? AND claim_id=?').bind(crypto.randomUUID(),bootstrap.singleton,id));
  for(const plan of plans)statements.push(env.DB.prepare(`DELETE FROM ${plan.table} WHERE ${plan.where}`).bind(...plan.args));
+ if(kind==='operator'||kind==='destination'){
+  const custody=await businessIdentityErasure(env)
+  Object.assign(counts,custody.counts)
+  // Door custody is installation-local and never exported. The native entity's
+  // existing row fences and transfer invalidation retain their restore semantics.
+  statements.push(...custody.statements)
+ }
  const receipt={id:crypto.randomUUID(),entityKind:kind,counts,completedAt:Date.now()};
  if(kind==='operator')statements.push(env.DB.prepare("UPDATE discovery_jobs SET status=CASE WHEN status IN ('queued','running') THEN 'failed' ELSE status END,finished_at=CASE WHEN status IN ('queued','running') THEN ? ELSE finished_at END,stopped_at=CASE WHEN status IN ('queued','running') THEN ? ELSE stopped_at END,stop_reason=CASE WHEN status IN ('queued','running') THEN 'initiator_erased' ELSE stop_reason END,error=CASE WHEN status IN ('queued','running') THEN 'Initiating owner erased; discovery stopped.' ELSE error END,initiator_id=NULL,initiator_version=NULL,initiator_role=NULL,initiator_revision=NULL,initiator_base_role=NULL WHERE initiator_id=?").bind(receipt.completedAt,receipt.completedAt,id),env.DB.prepare('UPDATE scheduled_reports SET actor_id=NULL WHERE actor_id=?').bind(id),env.DB.prepare("UPDATE catalog_route_batches SET actor_kind='anonymized',actor_ref=? WHERE actor_kind='operator' AND actor_ref=?").bind(crypto.randomUUID(),id),env.DB.prepare('UPDATE alert_team_deliveries SET operator_id=NULL WHERE operator_id=?').bind(id),...incidentOperatorErasureStatements(env,id),env.DB.prepare("UPDATE uptime_audit SET actor_kind='anonymized',actor_ref=? WHERE actor_kind='operator' AND actor_ref=?").bind(crypto.randomUUID(),id),env.DB.prepare("UPDATE definition_batches SET actor_kind='anonymized',actor_ref=? WHERE actor_kind='operator' AND actor_ref=?").bind(crypto.randomUUID(),id),env.DB.prepare('UPDATE slow_acknowledgements SET actor_id=NULL WHERE actor_id=?').bind(id),env.DB.prepare('UPDATE dependency_acks SET actor_id=NULL WHERE actor_id=?').bind(id),...discoveryOperatorErasure.map(sql=>env.DB.prepare(sql).bind(id)),env.DB.prepare('UPDATE alert_route_changes SET actor_ref=NULL WHERE actor_ref=?').bind(id),env.DB.prepare('UPDATE alert_drills SET started_by=NULL WHERE started_by=?').bind(id));
  // An erased monitor leaves no import marker, so a later import of the same source record starts afresh.
