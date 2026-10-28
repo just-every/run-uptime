@@ -45,7 +45,7 @@ try{
  await worker.dispose();worker=null;
  ({worker,DB}=await migratedWorker({port,persist,bindings,baselineOnly:true}));
  const upgradeStarted=Date.now();
- for(const name of migrations.filter(name=>Number(name.slice(0,4))>6)){const routing=name.startsWith('0076_')?await seedRoutingUpgrade(DB):null;for(const statement of splitSql(await readFile(join(root,'migrations',name),'utf8')))await DB.prepare(statement).run();if(routing)await proveRoutingUpgrade(DB,routing);}
+ for(const name of migrations.filter(name=>Number(name.slice(0,4))>6)){const routing=name==='0079_route_drills_business_hours.sql'?await seedRoutingUpgrade(DB):null;for(const statement of splitSql(await readFile(join(root,'migrations',name),'utf8')))await DB.prepare(statement).run();if(routing)await proveRoutingUpgrade(DB,routing);}
  await unchanged(before,'all historical bytes and identities survive every additive migration and restart');
  const firstRun=await DB.prepare('SELECT * FROM uptime_first_run WHERE id=1').first();
  assert.ok(firstRun&&Number.isSafeInteger(firstRun.completed_at)&&firstRun.completed_at>=Math.floor(upgradeStarted/1000)*1000&&firstRun.completed_at<=Date.now(),'existing monitor infers a valid completed first run');

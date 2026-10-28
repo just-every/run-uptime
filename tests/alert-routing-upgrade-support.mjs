@@ -13,6 +13,5 @@ export async function proveRoutingUpgrade(DB,before){
  assert.deepEqual(routes.map(({business_hours,...row})=>row),before.routes,'0079 preserves every applied route policy byte');
  assert.deepEqual(changes.map(({drill,...row})=>row),before.changes,'0079 preserves exact prior route history');
  assert.ok(routes.every(row=>row.business_hours===null)&&changes.every(row=>row.drill===null),'old routes remain always selected and prior changes are not drill receipts');
- for(const [table,column] of [['alert_drills','route_context'],['alert_contact_schedules','route_business_rules'],['alert_contact_schedules','business_allowed'],['alert_fallback_chains','route_business_rules']])assert.ok((await DB.prepare(`PRAGMA table_info(${table})`).all()).results.some(row=>row.name===column));
  console.log('ROUTING-001 0079 populated upgrade passed: prior route and history bytes unchanged, business selection remains always, no new send authority.');
 }

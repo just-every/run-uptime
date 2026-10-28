@@ -30,8 +30,8 @@ separate from membership selection.
 The preview/apply body still requires `scope`, `mode`, `destinationIds` and
 `expectedRevision`. Additional fields are:
 
-- `teamIds`: explicit team IDs for selected mode. Omitted means no teams;
-  `destinationIds:[],teamIds:[]` selects nobody.
+- `teamIds`: explicit team IDs for selected mode. Omission on a selected-route edit preserves saved teams;
+  `destinationIds:[],teamIds:[]` explicitly selects nobody.
 - `filters`: optional `environments`, `severities`, `regions`, `origins` arrays.
   An omitted dimension allows all; an empty array matches nothing. Dimensions
   intersect and values within a dimension are alternatives. Omitted `filters`

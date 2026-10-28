@@ -78,7 +78,7 @@ async function plan(env:Bindings,monitorId:string,raw:any,{readOnly=false}={}){
  if(previous.revision!==input.expectedRevision)throw Object.assign(Error('Route changed; refresh and preview again'),{status:409});
  if(input.destinationIds.some(id=>!ctx.destinations.some(d=>d.id===id)&&!previous.destinationIds.includes(id)))throw Error('A selected destination does not exist');
  if(input.fallback.destinationIds.some(id=>!ctx.destinations.some(d=>d.id===id)&&!previous.fallback.destinationIds.includes(id)))throw Error('A fallback destination does not exist');
- const teamIds=input.teamIds??[];
+ const teamIds=input.teamIds??(input.mode==='selected'?previous.teamIds:[]);
  const knownTeams=(await env.DB.prepare('SELECT id FROM alert_teams').all<{id:string}>()).results;
  if(teamIds.some(id=>!knownTeams.some(t=>t.id===id)))throw Error('A selected team does not exist');
  const current={...previous,teamIds,filters:input.filters??previous.filters,quietHours:input.quietHours===undefined?previous.quietHours:input.quietHours,businessHours:input.businessHours===undefined?previous.businessHours:input.businessHours,mode:input.mode,destinationIds:input.destinationIds,contactSettings:input.contactSettings!,fallback:input.fallback,revision:previous.revision+1};
