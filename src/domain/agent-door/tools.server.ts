@@ -49,6 +49,7 @@ export function nativeTools(env:Bindings):ToolDefinition[]{
  const proposed=async(a:Args,c:ToolContext,mode:string)=>{
   const old=mode==='create'?null:await current(env,c,a.id)
   const next={...(old?.definition??{}),...(a.definition??{}),...(mode==='pause'?{enabled:false}:mode==='resume'?{enabled:true}:{})}
+  if(old&&(next.type!==old.definition.type||JSON.stringify(next.assertions)!==JSON.stringify(old.definition.assertions)))throw new ToolRefusal('assertion_change_requires_native_door')
   await agentAccess(env,c,'check_write',old?[old.id]:[],next,!old)
   // Retain native step-up for credential/private/synthetic/API/browser changes.
   if(requestNeedsStepUp(new Request(`${env.UPTIME_ORIGIN}/api/monitors/${old?.id??''}`,{method:'PATCH'}),next))throw new ToolRefusal('native_proof_required')

@@ -560,7 +560,7 @@
       "executable": false
     },
     "docs/agents.md": {
-      "sha256": "e84a0c9ac5cb2c03ded25ecdc87ee477541856de2a1356498166497086446078",
+      "sha256": "60d0f09fddddbd5a2647613f35f2ab9a905cc90d19eb6e5e9afb99ff15a2a06d",
       "executable": false
     },
     "docs/api-keys.md": {
@@ -6556,7 +6556,7 @@
       "executable": false
     },
     "src/domain/agent-door/tools.server.ts": {
-      "sha256": "748a8a282c4145411b1b921521b6fd60a9e453d5862ab73e965454b9c15611e1",
+      "sha256": "f458d61f295ae276a0b40179855028846d27e4133316174417898fc73adddcdd",
       "executable": false
     },
     "src/domain/alert-drill-content.ts": {
@@ -8364,7 +8364,7 @@
       "executable": false
     },
     "tests/agent-door.mjs": {
-      "sha256": "86e7f73ca11966cc638d3423e69f810014af05afb9af0ca7d2c16813128b39d3",
+      "sha256": "8f3854b445427f3c61b9a84126c38cc18f5d43c2625e1c75bc53cbda66e604d6",
       "executable": false
     },
     "tests/agent-network-edge.mjs": {

@@ -34,6 +34,9 @@ try{
  assert.equal(refusal(await tool('uptime.monitors.create',{definition:{name:'changed'},idempotency_key:'create-checkout'})),'idempotency_conflict');
  const read=content(await tool('uptime.monitors.read',{id:created.id}));assert.equal(read.id,created.id);assert.equal(read.current.state,'Paused');assert.equal(JSON.stringify((await app.DB.prepare('SELECT * FROM monitors').all()).results),nativeBefore,'private read does not kick checks or alter a definition');
  assert.equal(refusal(await tool('uptime.monitors.update',{id:created.id,definition:{name:'stale'},expected_revision:0,idempotency_key:'stale'})),'revision_conflict');
+ assert.equal(refusal(await tool('uptime.monitors.update',{id:created.id,definition:{assertions:{}},idempotency_key:'weaker-assertion'})),'assertion_change_requires_native_door');
+ assert.equal(refusal(await tool('uptime.monitors.update',{id:created.id,definition:{type:'heartbeat'},idempotency_key:'changed-monitor-kind'})),'assertion_change_requires_native_door');
+ assert.equal((await app.DB.prepare('SELECT revision FROM monitors WHERE id=?').bind(created.id).first()).revision,1,'an assertion change cannot create a revision or weaken the saved check');
  const edited=content(await tool('uptime.monitors.update',{id:created.id,definition:{name:'Checkout evidence revised'},expected_revision:1,idempotency_key:'edit'}));assert.equal(edited.revision,2);
  // The native credential is minted through the existing person/MFA door.
  await completeSecondFactor(origin,cookie);
