@@ -28,7 +28,7 @@ there is no product approval preset. Unset, expired, unanswered and paused polic
 refuse calls. Held mutations retain a server summary and its hash; the actual
 named person decides the exact revision. Native role, consent, revision and
 credential restrictions remain separate. Secret entry and native fresh-factor
-requirements remain in their native person doors. Protected monitor changes
+requirements, monitor-kind changes and assertion-semantic edits remain in their native person doors. Protected monitor changes
 currently return `native_proof_required`; no credential or private-network
 fallback is supplied.
 
