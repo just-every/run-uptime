@@ -41,7 +41,14 @@ export async function proveOncallHandoff(){
  const ok=async(path,body,method)=>{const r=await f.request(path,{body,...(method?{method}:{})});assert.ok(r.status>=200&&r.status<300,path+': '+r.status+' '+JSON.stringify(r.data));return r.data};
  const rpc=async(_path,body)=>{const r=await f.request('/api/runner/notifications',{body,runner:f.first});assert.equal(r.status,200);return r.data};
  const send=()=>dispatchNotifications(rpc,transport);
- const probe=async runner=>{const task=await f.claim(runner);if(task)assert.equal((await f.submit(runner,task,[await f.evidence(task)])).status,200)};
+ // Claim one scheduled round before any probe I/O. Completing one runner
+ // before claiming the next can cross the slot boundary and leave recovery
+ // without independent evidence in a single slot.
+ const probeRound=async runners=>{
+  const tasks=[];for(const runner of runners)tasks.push(await f.claim(runner));
+  const evidence=await Promise.all(tasks.map(task=>task?f.evidence(task):null));
+  for(let i=0;i<runners.length;i++)if(tasks[i])assert.equal((await f.submit(runners[i],tasks[i],[evidence[i]])).status,200);
+ };
  const rows=async()=> (await ok('/api/notifications')).deliveries.filter(d=>d.destinationId===destination.id);
  const retry=async()=>{const row=(await rows()).find(d=>d.state==='queued');assert.ok(row,'uncertain handoff retains a retry');const due=row.attemptHistory.findLast(a=>a.started_at===null)?.scheduled_at;assert.ok(due);await sleep(due-Date.now()+30);await send()};
  let destination;
@@ -81,17 +88,17 @@ export async function proveOncallHandoff(){
   await sleep(5500);
   assert.equal((await f.state(monitor.id)).state,'Unknown');
   assert.equal((await rows()).some(d=>d.event.kind==='recovery'),false);
-  await probe(f.first);await probe(same);await probe(f.second);
+  await probeRound([f.first,same,f.second]);
   // Keep real evidence fresh while the configured one-minute repeat becomes due.
   const repeatDue=delivery.event.observedAt+60000;
-  while(Date.now()<repeatDue){await sleep(Math.min(4000,repeatDue-Date.now()));await probe(f.first);await probe(same);await probe(f.second)}
+  while(Date.now()<repeatDue){await sleep(Math.min(4000,repeatDue-Date.now()));await probeRound([f.first,same,f.second])}
   await send();
   const repeat=(await rows()).find(d=>d.event.kind==='reminder');assert.ok(repeat);assert.equal(repeat.state,'accepted');
   assert.deepEqual(repeat.handoff.acknowledged,ack,'a repeat does not create a second acknowledgement');
   await (restarted??f.worker).dispose();
   restarted=await startLocalWorker({persist:f.directory,port:Number(new URL(f.origin).port),bindings:f.bindings});await restarted.ready;
   await send();assert.deepEqual((await rows())[0].handoff.acknowledged,ack);
-  f.modes.target=200;await sleep(5100);await probe(f.first);await probe(same);await probe(f.second);await send();
+  f.modes.target=200;await sleep(5100);await probeRound([f.first,same,f.second]);await send();
   const recovered=(await rows()).find(d=>d.event.kind==='recovery');assert.ok(recovered);assert.equal(recovered.state,'accepted');
   const recovery=records.find(r=>r.event.intent==='recover').event,trigger=records[0].event;
   assert.equal(recovery.key,trigger.key);assert.equal(recovery.generation,trigger.generation);assert.notEqual(recovery.eventId,trigger.eventId);

@@ -7338,8 +7338,12 @@
       "sha256": "3c53814d4f1149660543051bf44b527db7c5cc02ec2009600b397ed423aa14f8",
       "executable": false
     },
+    "tests/business-import-catchup-support.mjs": {
+      "sha256": "5f7a2d27b8b92f08b917e438e4f201bdecf567162f5a0d1d31d63a3931ba11b2",
+      "executable": false
+    },
     "tests/business-import-door.mjs": {
-      "sha256": "cd3f48bcf53160b7e752fa74f59fa097f2b9bb7ad216628a83a8255cac77f833",
+      "sha256": "347583f0864e5654d63b6190eedaaef4dfdca0e3617aa499086e8c1148f19a9f",
       "executable": false
     },
     "tests/business-import-erasure-proof.mjs": {
@@ -7703,7 +7707,7 @@
       "executable": false
     },
     "tests/notify-oncall-fixture.mjs": {
-      "sha256": "051ad09c298d66941eedacdda5eaf2ab29cfa970a75908dbcdcab474e0285397",
+      "sha256": "8426ff5275aad62ee94bd8c26e888cac8c861f65d3963c182cc394f6e03b578d",
       "executable": false
     },
     "tests/notify-quiet-fixture.mjs": {
