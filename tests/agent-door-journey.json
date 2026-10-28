@@ -1,0 +1,384 @@
+{
+  "witness": {
+    "tool": "uptime.witness.read",
+    "args": {}
+  },
+  "journey": [
+    {
+      "id": "draft",
+      "tool": "uptime.monitors.create",
+      "args": {
+        "definition": {
+          "name": "Checkout evidence",
+          "type": "http",
+          "url": "https://probe.uptime.example.test/checkout",
+          "enabled": false
+        }
+      },
+      "expect": [
+        {
+          "class": "standard",
+          "facts": {
+            "measure": 1
+          }
+        }
+      ],
+      "inject": {
+        "classes": [
+          "standard"
+        ],
+        "confirm": true,
+        "approved": true
+      }
+    },
+    {
+      "id": "read",
+      "tool": "uptime.monitors.read",
+      "args": {
+        "id": {
+          "$from": "draft",
+          "pointer": "/id"
+        }
+      },
+      "expect": [
+        {
+          "class": "standard",
+          "facts": {
+            "measure": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "history",
+      "tool": "uptime.monitors.history",
+      "args": {
+        "id": {
+          "$from": "draft",
+          "pointer": "/id"
+        }
+      },
+      "expect": [
+        {
+          "class": "standard"
+        }
+      ]
+    },
+    {
+      "id": "list",
+      "tool": "uptime.monitors.list",
+      "args": {},
+      "expect": [
+        {
+          "class": "standard"
+        }
+      ]
+    },
+    {
+      "id": "report",
+      "tool": "uptime.reports.read",
+      "args": {
+        "id": {
+          "$from": "draft",
+          "pointer": "/id"
+        }
+      },
+      "expect": [
+        {
+          "class": "standard"
+        }
+      ]
+    },
+    {
+      "id": "edit-draft",
+      "tool": "uptime.monitors.update",
+      "args": {
+        "id": {
+          "$from": "draft",
+          "pointer": "/id"
+        },
+        "definition": {
+          "name": "Checkout evidence revised"
+        }
+      },
+      "expect": [
+        {
+          "class": "standard"
+        }
+      ]
+    },
+    {
+      "id": "activate",
+      "tool": "uptime.monitors.resume",
+      "args": {
+        "id": {
+          "$from": "draft",
+          "pointer": "/id"
+        }
+      },
+      "expect": [
+        {
+          "class": "live"
+        },
+        {
+          "class": "external",
+          "facts": {
+            "measure": 1,
+            "counterparty": "public"
+          }
+        }
+      ]
+    },
+    {
+      "id": "pause",
+      "tool": "uptime.monitors.pause",
+      "args": {
+        "id": {
+          "$from": "draft",
+          "pointer": "/id"
+        }
+      },
+      "expect": [
+        {
+          "class": "live"
+        }
+      ]
+    },
+    {
+      "id": "paused-again",
+      "tool": "uptime.monitors.pause",
+      "args": {
+        "id": {
+          "$from": "draft",
+          "pointer": "/id"
+        }
+      },
+      "expect": [
+        {
+          "class": "standard"
+        }
+      ]
+    },
+    {
+      "id": "witness",
+      "tool": "uptime.witness.read",
+      "args": {},
+      "expect": [
+        {
+          "class": "standard"
+        }
+      ]
+    },
+    {
+      "id": "events",
+      "tool": "uptime.events.list",
+      "args": {},
+      "expect": [
+        {
+          "class": "standard"
+        }
+      ]
+    },
+    {
+      "id": "active-create",
+      "tool": "uptime.monitors.create",
+      "args": {
+        "definition": {
+          "name": "Active checkout probe",
+          "type": "http",
+          "url": "https://probe.uptime.example.test/checkout",
+          "enabled": true
+        }
+      },
+      "expect": [
+        {
+          "class": "live"
+        },
+        {
+          "class": "external"
+        }
+      ]
+    },
+    {
+      "id": "active-update",
+      "tool": "uptime.monitors.update",
+      "args": {
+        "id": {
+          "$from": "active-create",
+          "pointer": "/id"
+        },
+        "definition": {
+          "intervalMs": 120000
+        }
+      },
+      "expect": [
+        {
+          "class": "live"
+        }
+      ]
+    },
+    {
+      "id": "active-target-change",
+      "tool": "uptime.monitors.update",
+      "args": {
+        "id": {
+          "$from": "active-create",
+          "pointer": "/id"
+        },
+        "definition": {
+          "url": "https://probe.uptime.example.test/alternate"
+        }
+      },
+      "expect": [
+        {
+          "class": "live"
+        },
+        {
+          "class": "external"
+        }
+      ]
+    },
+    {
+      "id": "maintenance-read",
+      "tool": "uptime.maintenance.read",
+      "args": {
+        "id": {
+          "$from": "draft",
+          "pointer": "/id"
+        }
+      },
+      "expect": [
+        {
+          "class": "standard"
+        }
+      ]
+    },
+    {
+      "id": "maintenance-plan",
+      "tool": "uptime.maintenance.update",
+      "args": {
+        "id": {
+          "$from": "draft",
+          "pointer": "/id"
+        },
+        "window": {
+          "id": "agent-window",
+          "name": "Reviewed maintenance",
+          "timeZone": "America/Chicago",
+          "mode": "suppress",
+          "startsAt": 1893456000000,
+          "endsAt": 1893456060000
+        }
+      },
+      "expect": [
+        {
+          "class": "live"
+        }
+      ]
+    },
+    {
+      "id": "definitions",
+      "tool": "uptime.definitions.read",
+      "args": {},
+      "expect": [
+        {
+          "class": "standard"
+        }
+      ]
+    },
+    {
+      "id": "definition-inspection",
+      "tool": "uptime.definitions.preview",
+      "args": {
+        "file": "{\"format\": \"uptime.monitors\", \"version\": 8, \"monitors\": [{\"name\": \"Imported paused proposal\", \"type\": \"http\", \"url\": \"https://probe.uptime.example.test/import\"}]}"
+      },
+      "expect": [
+        {
+          "class": "standard"
+        }
+      ]
+    },
+    {
+      "id": "empty-evidence",
+      "tool": "uptime.evidence.read",
+      "args": {
+        "id": {
+          "$from": "draft",
+          "pointer": "/id"
+        }
+      },
+      "expect": [
+        {
+          "class": "standard"
+        }
+      ]
+    },
+    {
+      "id": "evidence-grants",
+      "tool": "uptime.grants.read",
+      "args": {
+        "id": {
+          "$from": "draft",
+          "pointer": "/id"
+        }
+      },
+      "expect": [
+        {
+          "class": "standard"
+        }
+      ]
+    },
+    {
+      "id": "route-read",
+      "tool": "uptime.routes.read",
+      "args": {
+        "id": {
+          "$from": "draft",
+          "pointer": "/id"
+        }
+      },
+      "expect": [
+        {
+          "class": "standard"
+        }
+      ]
+    },
+    {
+      "id": "route-preview",
+      "tool": "uptime.routes.preview",
+      "args": {
+        "id": {
+          "$from": "draft",
+          "pointer": "/id"
+        },
+        "policy": {
+          "scope": "monitor",
+          "mode": "selected",
+          "destinationIds": [],
+          "expectedRevision": 0
+        }
+      },
+      "expect": [
+        {
+          "class": "standard"
+        }
+      ]
+    }
+  ],
+  "escalations": [],
+  "verification": {
+    "owner": {
+      "bindings": {
+        "RER_MANAGEMENT_ORIGIN": "issuer",
+        "RER_INSTALLATION_ID": "installationId"
+      }
+    },
+    "network": {
+      "module": "tests/agent-network-edge.mjs",
+      "origins": [
+        "https://probe.uptime.example.test",
+        "https://cloudflare-dns.com"
+      ]
+    }
+  }
+}

@@ -1,3 +1,4 @@
+import {agentFence,type AgentAccess} from './agent-door/authority.server.ts'
 import {checkInput,InputError} from './request-boundary.ts'
 import {credentialFence,CredentialError,type CredentialAuthority} from './credentials/model.server.ts'
 export {credentialPermission} from './credentials/auth.server.ts'
@@ -67,7 +68,8 @@ export function inScope(definition:any,scopes:Scope[]){
  // intersect; alternatives within a kind are a union. No rows means workspace.
  return (['service','team'] as const).every(kind=>{const values=scopes.filter(s=>s.kind===kind);return !values.length||values.some(s=>s.value===definition[kind==='team'?'group':'service'])})
 }
-export function accessFence(access:Access|CredentialAuthority){
+export function accessFence(access:Access|CredentialAuthority|AgentAccess){
+ if('kind' in access&&access.kind==='agent')return agentFence(access)
  if('kind' in access&&access.kind==='credential')return credentialFence(access)
 
  const {session,revision}=access as Access

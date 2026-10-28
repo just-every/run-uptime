@@ -18,8 +18,12 @@ Imports through the operator import door, metrics-key administration, erasure,
 incident comments/root causes/actions, setup, the private management editor and
 identity changes still require owner authority. A member role never grants
 private-runner, synthetic or credential creation authority. The existing metrics
-key is separate and only grants `metrics:read`; `monitoring:read` and CI tokens
-are not implemented.
+key is separate and only grants `metrics:read`. Native `monitoring:read` keys support
+selected monitors/tags and retain the creating operator’s current role and scopes.
+CI credentials support bounded `definitions:preview` / `definitions:apply` for an
+explicit environment and selection; they cannot create a general owner session.
+The MCP local-credential adapter currently accepts only live `monitoring:read`
+keys, with their original monitor selection and no write or private-evidence scope.
 
 ## Service and team scope
 

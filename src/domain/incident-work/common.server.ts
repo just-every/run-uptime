@@ -1,9 +1,10 @@
+import type {AgentAccess} from '../agent-door/authority.server.ts'
 import {accessFence,type Access} from '../access.server.ts'
 import type {Bindings} from '../control.server.ts'
 import type {NotificationEvent} from '../notification-content.ts'
 import {auditStatement,mutationGuard} from '../audit.server.ts'
 export type Person={id:string;displayName:string}
-export type Actor=Person&{access:Access}
+export type Actor=Person&{access:Access|AgentAccess}
 export class IncidentWorkError extends Error {status:number;constructor(message:string,status=400){super(message);this.status=status}}
 export function integer(value:unknown,label='version'){if(!Number.isSafeInteger(value)||Number(value)<0)throw new IncidentWorkError(`A non-negative integer ${label} is required`);return Number(value)}
 export function text(value:unknown,max:number,label='text',empty=false){if(typeof value!=='string'||(!empty&&!value.trim())||[...value].length>max||/[\u0000]/u.test(value))throw new IncidentWorkError(`${label} must be ${empty?'at most':'1 to'} ${max} characters`);return value}
@@ -19,6 +20,6 @@ export async function member(env:Bindings,id:string):Promise<Person>{const row=a
 export async function defaultOwner(env:Bindings){const row=await env.DB.prepare("SELECT id,display_name FROM oa_operators WHERE role='owner' AND status='active' ORDER BY created_at,id LIMIT 1").first<{id:string;display_name:string}>();return row?{id:row.id,displayName:row.display_name}:null}
 export function actorGuard(env:Bindings,actor:Actor,id:string){const fence=accessFence(actor.access);return mutationGuard(env,`${fence.sql} AND EXISTS(SELECT 1 FROM outbox o JOIN monitors m ON m.id=o.monitor_id WHERE o.id=? AND o.kind='trigger')`,[...fence.params,id])}
 export function workSeed(env:Bindings,id:string,monitorId:string,ownerId:string|null){return env.DB.prepare('INSERT OR IGNORE INTO incident_work(incident_id,monitor_id,owner_id) VALUES(?,?,?)').bind(id,monitorId,ownerId)}
-export function timeline(env:Bindings,id:string,monitorId:string,actor:Actor,kind:string,data:unknown,now:number){return env.DB.prepare('INSERT INTO incident_timeline(id,incident_id,monitor_id,occurred_at,actor_id,kind,data) VALUES(?,?,?,?,?,?,?)').bind(crypto.randomUUID(),id,monitorId,now,actor.id,kind,JSON.stringify(data))}
-export function audit(env:Bindings,actor:Actor,kind:string,now:number){return auditStatement(env,{kind:'operator',ref:actor.id},kind,'incident',crypto.randomUUID(),'1',[],now)}
+export function timeline(env:Bindings,id:string,monitorId:string,actor:Actor,kind:string,data:unknown,now:number){return env.DB.prepare('INSERT INTO incident_timeline(id,incident_id,monitor_id,occurred_at,actor_id,kind,data) VALUES(?,?,?,?,?,?,?)').bind(crypto.randomUUID(),id,monitorId,now,actor.id,kind,JSON.stringify({...data as object,...('kind' in actor.access && actor.access.kind === 'agent'?{preparedBy:actor.access.attribution,approvers:actor.access.approvers}:{})}))}
+export function audit(env:Bindings,actor:Actor,kind:string,now:number){return auditStatement(env,'kind' in actor.access&&actor.access.kind==='agent'?{kind:'feature',ref:`agent:${actor.access.attribution.agent.id}`}:{kind:'operator',ref:actor.id},kind,'incident',crypto.randomUUID(),'1',[],now)}
 export async function commit(env:Bindings,statements:D1PreparedStatement[]){try{await env.DB.batch(statements)}catch(error){if(String(error).includes('uptime_audit.id'))throw new IncidentWorkError('Incident changed; refresh before saving',409);throw error}}

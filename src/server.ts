@@ -1,3 +1,4 @@
+import {agentDoorRequest,uptimeAgentDoor} from './domain/agent-door/index.server.ts'
 import {registerSourceHistory} from './domain/source-history/routes.server.ts'
 import {previewReportRecurrence} from './domain/reports/recurring.server.ts'
 import {serviceReport,serviceReportCsv} from './domain/reports/service.server.ts'
@@ -139,6 +140,15 @@ api.use('/api/*',async(c,next)=>{
  await next()
 })
 api.use('/api/*',boundary)
+// Person UI changes share the same retained event vocabulary as agent tools.
+api.use('/api/*',async(c,next)=>{
+ await next()
+ const access=c.get('access'),path=c.req.path
+ if(!c.res.ok||!access||['GET','HEAD','OPTIONS'].includes(c.req.method))return
+ const monitor=/^\/api\/monitors\/([^/]+)/.exec(path),incident=/^\/api\/incidents\/([^/]+)/.exec(path)
+ const id=monitor?.[1]??incident?.[1]
+ if(id)await uptimeAgentDoor(c.get('systemBindings')??c.env).emit({type:'native.changed',uri:`uptime://${monitor?'monitors':'incidents'}/${id}`,person:{id:access.session.operator.id,name:access.session.operator.displayName,email:access.session.operator.email,role:access.role,active:true}})
+})
 api.use('/api/*',async(c,next)=>{
  const access=c.get('access')
  if(access&&(access.action==='export'||access.action==='read'&&(['csv','pdf'].includes(c.req.query('format')??'')||/text\/csv|application\/pdf/.test(c.req.header('accept')??''))))await auditAccess(c.env,access)
@@ -369,6 +379,7 @@ const handler={async fetch(request,env,execution){
  const limited=await limitPublicRequest(env as Bindings,request);if(limited)return limited;
  const bindings=env as Bindings,url=new URL(request.url),path=url.pathname,isEvidencePage=/^\/app\/evidence\/[^/]+$/.test(path);
  if(url.origin!==bindings.UPTIME_ORIGIN||(request.headers.has('host')&&request.headers.get('host')?.toLowerCase()!==url.host.toLowerCase()))return new Response('Invalid host',{status:403});
+ const agent=await agentDoorRequest(bindings,request);if(agent)return agent;
  const mfa=await mfaDoor(bindings,request);if(mfa)return mfa;
  const ci=await ciDoor(bindings,request);if(ci)return ci;
  const factorDenial=await earlyMfaGate(bindings,request);if(factorDenial)return factorDenial;

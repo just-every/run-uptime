@@ -21,7 +21,7 @@
     "test:recovery-ui": "node tests/recovery-browser.mjs",
     "test:probes": "node --test --test-concurrency=2 tests/public-probes.mjs && node tests/probe-native.mjs && node --test --test-concurrency=1 tests/tls-auth.mjs",
     "test:security": "node --test --test-concurrency=1 tests/monitor-capacity.mjs tests/monitor-credentials.mjs && node tests/operator-security.mjs && node tests/hosted-auth.mjs && node tests/hosted-rer-mail.mjs && node tests/hosted-scheduled.mjs && node tests/demo-scheduled.mjs && node tests/hosted-alerts.mjs && node tests/hosted-auth-browser.mjs && node --test --test-concurrency=2 tests/public-query.mjs && node --test --test-concurrency=2 tests/deployment-invocation.mjs && node --test --test-concurrency=2 tests/deployment-custody.mjs",
-    "test:availability": "node tests/availability.mjs && node tests/incident-work.mjs",
+    "test:availability": "node tests/availability.mjs && node tests/incident-work.mjs && node tests/agent-door.mjs",
     "test:notifications": "node tests/notify-delivery.mjs && node tests/alert-drill.mjs && node tests/notify-upgrade.mjs && node tests/notify-custody-runtime.mjs && node tests/notify-secret-browser.mjs && node --test tests/webhook-custom.mjs && node tests/notification-preferences-browser.mjs && node tests/webhook-browser.mjs && node tests/contact-schedules-browser.mjs",
     "test:local": "node --test --test-concurrency=1 tests/local-mail-settings.mjs && node tests/command-journey.mjs",
     "deploy": "rer deploy",
@@ -69,7 +69,9 @@
     "test:console": "node tests/console-routing-browser.mjs && node tests/console-polling-browser.mjs",
     "test:locations": "node tests/add-location-browser.mjs",
     "access": "node scripts/access.mjs",
-    "mfa": "node scripts/mfa.mjs"
+    "mfa": "node scripts/mfa.mjs",
+    "agent:generate": "node scripts/generate-agent-surface.mjs",
+    "agent:check": "node scripts/generate-agent-surface.mjs --check"
   },
   "dependencies": {
     "@pdf-lib/fontkit": "1.1.1",
