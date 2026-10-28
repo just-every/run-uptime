@@ -1,3 +1,4 @@
+import {historyFixture,applyHistoryFixture,assertHistoryReport} from './source-history-support.mjs';
 // Owner-session READAPI journey through the real emitted Worker and durable D1.
 import assert from 'node:assert/strict';
 import {join} from 'node:path';
@@ -30,6 +31,9 @@ try{
  const read=(path,extra={})=>fetch(origin+path,{headers:{cookie,...extra}});
  const json=async path=>{const response=await read(path);assert.equal(response.status,200,await response.clone().text());return response.json()};
  await proveCredentialArchive({origin,cookie});
+ const sourceFixture=await historyFixture({origin,cookie,db});await applyHistoryFixture(sourceFixture);const sourceRead=await json('/api/v1/monitors/'+sourceFixture.id+'/report?'+sourceFixture.query);await assertHistoryReport(sourceFixture,sourceRead);
+ const sourceErase=await fetch(origin+'/api/monitors/'+sourceFixture.id+'/erase',{method:'POST',headers:{origin,cookie,'content-type':'application/json'},body:JSON.stringify({name:'synthetic-uptime-201'})});assert.equal(sourceErase.status,200);
+
  const {ids,from,to}=await metricsFixture(db,origin);
  const preferredZone='America/Los_Angeles';
  assert.equal((await fetch(origin+'/api/notifications/preferences',{method:'PATCH',headers:{cookie,origin,'content-type':'application/json'},body:JSON.stringify({timeZone:preferredZone})})).status,200);

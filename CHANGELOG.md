@@ -1,5 +1,11 @@
 # Changelog
 
+## Source-history judgment carried from main — 28 October 2026
+
+Main `01481aa78afb3ba2a2f63dcc03733266089093ae` reports the following source-history proof. This is a carried implementation report, not a new status promotion.
+
+tests/definitions-import.mjs (proveSourceHistory and proveHistoryUpgrade in tests/source-history-support.mjs) proves bounded/name-specific refusals, populated upgrade, unchanged native state/quorum/incidents/notifications/follow-up, re-import and batch removal. tests/reporting.mjs and tests/read-api.mjs (assertHistoryReport; proveHistorySourceReads in tests/definitions-import.mjs) prove exact 73/125/3601-second source outages in a 90-day JSON/CSV/PDF/API report, separate source/Uptime denominators, labeled weighted blending, exact OpenAPI source selections through owner/scoped-key reads, named unavailable-source refusals, paginated source incidents and overlap cutover adjustment. tests/archive-roundtrip.mjs retains source labels/batch IDs/digests inactive; tests/erasure-audit.mjs (proveHistoryErasure) proves all source-table receipt counts.
+
 ## Contract cleanup fix — 28 October 2026
 
 - Replace the nine reported Base restatements with Uptime deltas and map the inherited text to its Base duties; remove SURFACE-004's inherited attribution point. Retarget URL-capability receipts to HEARTBEAT-003 and mention mail to INCIDENT-002 in the retained safety rules.

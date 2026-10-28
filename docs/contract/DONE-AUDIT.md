@@ -1,4 +1,4 @@
-Old reference: `eef52a03c4ca4ccc9db813be245f3c5f275f8d4f` (main, 28 October 2026). Clauses done there: HTTP-001, EVIDENCE-001, STATE-001, AUTHORITY-001, NETWORK-001, HEARTBEAT-001, ARCHIVE-001, RETENTION-001, ERASURE-001, AUDIT-001, PRESENCE-001, INTERFACE-001, NOTIFY-001, DELIVERY-001, PUBLIC-001, DRILL-001, STARTUP-001, PUBLIC-002, API-001, SLOW-001, API-002, API-003, API-004, TCP-001, PING-001, DNS-001, TLS-001, DOMAIN-001, UDP-001, MAIL-001, NETWORK-002, SCHEDULE-001, PRIVATE-001, MAINT-001, EVIDENCE-002, DEPENDENCY-001, FLOW-003, FLOW-004, ROUTING-002, DELIVERY-002, NOTICE-001, WEBHOOK-001, MANAGE-001, METRICS-001, OPS-001.
+Old reference: `01481aa78afb3ba2a2f63dcc03733266089093ae` (main, 28 October 2026). Clauses done there: HTTP-001, EVIDENCE-001, STATE-001, AUTHORITY-001, NETWORK-001, HEARTBEAT-001, ARCHIVE-001, RETENTION-001, ERASURE-001, AUDIT-001, PRESENCE-001, INTERFACE-001, NOTIFY-001, DELIVERY-001, PUBLIC-001, DRILL-001, STARTUP-001, PUBLIC-002, API-001, SLOW-001, API-002, API-003, API-004, TCP-001, PING-001, DNS-001, TLS-001, DOMAIN-001, UDP-001, MAIL-001, NETWORK-002, SCHEDULE-001, PRIVATE-001, MAINT-001, EVIDENCE-002, DEPENDENCY-001, FLOW-003, FLOW-004, ROUTING-002, DELIVERY-002, NOTICE-001, WEBHOOK-001, MANAGE-001, METRICS-001, OPS-001.
 
 # Carried-done audit
 
@@ -65,21 +65,21 @@ Demoted to partial (26): HTTP-001, EVIDENCE-001, STATE-001, AUTHORITY-001, HEART
 | HEARTBEAT-001 | 1 | An old token cannot change current health after rotation | `tests/signed-runner.mjs:182` | asserted |
 | HEARTBEAT-001 | 1 | An imported receipt cannot change current health | `tests/signed-runner.mjs:178` | asserted |
 | HEARTBEAT-001 | 1 | A foreign-revision receipt cannot change current health | none: no cited test sends a receipt bound to another revision of the monitor | none |
-| ARCHIVE-001 | 1 | A populated installation with TCP, DNS, TLS and domain monitors is exported | `tests/archive-roundtrip.mjs:80` (each protocol's monitor is in the export and restores exactly) and `tests/command-journey.mjs:168` (CLI export) | asserted |
+| ARCHIVE-001 | 1 | A populated installation with TCP, DNS, TLS and domain monitors is exported | `tests/archive-roundtrip.mjs:83` (each protocol's monitor is in the export and restores exactly) and `tests/command-journey.mjs:168` (CLI export) | asserted |
 | ARCHIVE-001 | 1 | A different receiving owner is established before the import | `tests/command-journey.mjs:174` (setup for receiving@example.test; the run asserts its exit) | asserted |
-| ARCHIVE-001 | 1 | The archive imports into empty product data | `tests/archive-roundtrip.mjs:72` and `tests/command-journey.mjs:180` | asserted |
-| ARCHIVE-001 | 1 | The restored installation exports again and its history reads back | `tests/archive-roundtrip.mjs:76` | asserted |
-| ARCHIVE-001 | 1 | The restore repeats without growing original histories | `tests/archive-roundtrip.mjs:96` | asserted |
-| ARCHIVE-001 | 2 | Each protocol's settings survive | `tests/archive-roundtrip.mjs:80` | asserted |
-| ARCHIVE-001 | 2 | Immutable revisions and slots survive | `tests/archive-roundtrip.mjs:82` (revisions) and `:83` (slot definition) | asserted |
-| ARCHIVE-001 | 2 | Definitions are paused | `tests/archive-roundtrip.mjs:80` | asserted |
-| ARCHIVE-001 | 2 | Leases are interrupted | `tests/archive-roundtrip.mjs:83` | asserted |
-| ARCHIVE-001 | 2 | Delivery is quarantined | `tests/archive-roundtrip.mjs:85` (jobs and outbox imported-inactive) and `:94` (the runner is offered no job) | asserted |
-| ARCHIVE-001 | 2 | Secrets and authority are absent | `tests/archive-roundtrip.mjs:68` (archive text) and `:93` (no heartbeat authority, claims or contact) | asserted |
-| ARCHIVE-001 | 2 | History is retained | `tests/archive-roundtrip.mjs:87` (no omitted records; originals preserved at :88) | asserted |
+| ARCHIVE-001 | 1 | The archive imports into empty product data | `tests/archive-roundtrip.mjs:74` and `tests/command-journey.mjs:180` | asserted |
+| ARCHIVE-001 | 1 | The restored installation exports again and its history reads back | `tests/archive-roundtrip.mjs:79` | asserted |
+| ARCHIVE-001 | 1 | The restore repeats without growing original histories | `tests/archive-roundtrip.mjs:99` | asserted |
+| ARCHIVE-001 | 2 | Each protocol's settings survive | `tests/archive-roundtrip.mjs:83` | asserted |
+| ARCHIVE-001 | 2 | Immutable revisions and slots survive | `tests/archive-roundtrip.mjs:85` (revisions) and `:86` (slot definition) | asserted |
+| ARCHIVE-001 | 2 | Definitions are paused | `tests/archive-roundtrip.mjs:83` | asserted |
+| ARCHIVE-001 | 2 | Leases are interrupted | `tests/archive-roundtrip.mjs:86` | asserted |
+| ARCHIVE-001 | 2 | Delivery is quarantined | `tests/archive-roundtrip.mjs:88` (jobs and outbox imported-inactive) and `:97` (the runner is offered no job) | asserted |
+| ARCHIVE-001 | 2 | Secrets and authority are absent | `tests/archive-roundtrip.mjs:70` (archive text) and `:96` (no heartbeat authority, claims or contact) | asserted |
+| ARCHIVE-001 | 2 | History is retained | `tests/archive-roundtrip.mjs:90` (no omitted records; originals preserved at :91) | asserted |
 | ARCHIVE-001 | 2 | Later erasure journals are enforced on restore | none: no cited test restores an archive together with a later erasure journal | none |
-| ARCHIVE-001 | 2 | A corrupt import writes nothing | `tests/archive-roundtrip.mjs:97` | asserted |
-| ARCHIVE-001 | 2 | An import into nonempty product data writes nothing | `tests/archive-roundtrip.mjs:95` | asserted |
+| ARCHIVE-001 | 2 | A corrupt import writes nothing | `tests/archive-roundtrip.mjs:100` | asserted |
+| ARCHIVE-001 | 2 | An import into nonempty product data writes nothing | `tests/archive-roundtrip.mjs:98` | asserted |
 | RETENTION-001 | 1 | Product records keep their identities through expiry, maintenance and restart | `tests/retention-cleanup-proof.mjs:80` (every nontransient row identity) and `:82` (product rows unchanged) | asserted |
 | RETENTION-001 | 1 | Authentication records: expired sessions go and expired authority is refused while its identity remains | `tests/retention-cleanup-proof.mjs:84`, `:89`, `:90` and `:91` | asserted |
 | RETENTION-001 | 1 | Rate-limit records are populated and cleaned up | `tests/retention-cleanup-proof.mjs:83` (aged rows exist) and `:84` (removed) | asserted |
@@ -91,25 +91,25 @@ Demoted to partial (26): HTTP-001, EVIDENCE-001, STATE-001, AUTHORITY-001, HEART
 | RETENTION-001 | 2 | No cleanup improves uptime | `tests/retention-cleanup-proof.mjs:92` | asserted |
 | RETENTION-001 | 2 | No cleanup removes retained product history | `tests/retention-cleanup-proof.mjs:82` and `:110` | asserted |
 | RETENTION-001 | old 1 | Custody and every declared cleanup class are judged at current supported bounds | moved to the Requirement (a proof boundary, not an outcome) | moved |
-| ERASURE-001 | 1 | A monitor is erased through the owner API | `tests/erasure-audit.mjs:105` | asserted |
-| ERASURE-001 | 1 | A destination is erased through the owner API | `tests/erasure-audit.mjs:107` | asserted |
-| ERASURE-001 | 1 | An operator is erased through the owner API | `tests/erasure-audit.mjs:106` | asserted |
+| ERASURE-001 | 1 | A monitor is erased through the owner API | `tests/erasure-audit.mjs:106` | asserted |
+| ERASURE-001 | 1 | A destination is erased through the owner API | `tests/erasure-audit.mjs:108` | asserted |
+| ERASURE-001 | 1 | An operator is erased through the owner API | `tests/erasure-audit.mjs:107` | asserted |
 | ERASURE-001 | 1 | A stale concurrent monitor edit cannot recreate erased rows | `tests/erasure-races.mjs:19` | asserted |
 | ERASURE-001 | 1 | A stale prepared destination envelope cannot recreate erased rows | `tests/erasure-races.mjs:31` | asserted |
-| ERASURE-001 | 1 | The original owner is erased once a successor owner exists | none: the cited tests erase a second operator (`tests/erasure-audit.mjs:106`) and refuse the last owner, but none erases the original owner after a successor exists | none |
-| ERASURE-001 | 2 | The per-table receipt is persisted with the erasure | `tests/erasure-audit.mjs:108` | asserted |
-| ERASURE-001 | 2 | The erasure is audited | `tests/erasure-audit.mjs:109` | asserted |
-| ERASURE-001 | 2 | The erasure journal reads back as a later export | `tests/erasure-audit.mjs:133` with `:137` | asserted |
+| ERASURE-001 | 1 | The original owner is erased once a successor owner exists | none: the cited tests erase a second operator (`tests/erasure-audit.mjs:107`) and refuse the last owner, but none erases the original owner after a successor exists | none |
+| ERASURE-001 | 2 | The per-table receipt is persisted with the erasure | `tests/erasure-audit.mjs:109` | asserted |
+| ERASURE-001 | 2 | The erasure is audited | `tests/erasure-audit.mjs:110` | asserted |
+| ERASURE-001 | 2 | The erasure journal reads back as a later export | `tests/erasure-audit.mjs:134` with `:138` | asserted |
 | ERASURE-001 | 2 | A refused erasure rolls back every deletion, journal and audit (atomic) | `tests/erasure-races.mjs:41` | asserted |
-| ERASURE-001 | 2 | The last owner is protected | `tests/erasure-audit.mjs:127` and `tests/erasure-races.mjs:40` | asserted |
-| ERASURE-001 | 2 | An old archive with the later journal cannot resurrect erased records | `tests/erasure-audit.mjs:143` and `:144` | asserted |
-| AUDIT-001 | 1 | Destructive actions are audited through public doors | `tests/erasure-audit.mjs:109` | asserted |
-| AUDIT-001 | 1 | Notification attempts are audited, one per actual attempt | `tests/erasure-audit.mjs:72` | asserted |
-| AUDIT-001 | 1 | Authentication-mail attempts are audited, one per capture | `tests/erasure-audit.mjs:94` | asserted |
-| AUDIT-001 | 1 | Erasing an actor anonymizes its audit references | `tests/erasure-audit.mjs:124` | asserted |
-| AUDIT-001 | 1 | The audit round-trips an archive unchanged | `tests/erasure-audit.mjs:136` (export) and `:157` (import) | asserted |
-| AUDIT-001 | 1 | Audit subjects are durable opaque references | `tests/erasure-audit.mjs:109` (the subject is the receipt id) and `:140` | asserted |
-| AUDIT-001 | 1 | No planted name, address, URL or secret appears in the audit | `tests/erasure-audit.mjs:121` (every physical table, the audit included, is scanned for the planted canaries) | asserted |
+| ERASURE-001 | 2 | The last owner is protected | `tests/erasure-audit.mjs:128` and `tests/erasure-races.mjs:40` | asserted |
+| ERASURE-001 | 2 | An old archive with the later journal cannot resurrect erased records | `tests/erasure-audit.mjs:145` and `:146` | asserted |
+| AUDIT-001 | 1 | Destructive actions are audited through public doors | `tests/erasure-audit.mjs:110` | asserted |
+| AUDIT-001 | 1 | Notification attempts are audited, one per actual attempt | `tests/erasure-audit.mjs:73` | asserted |
+| AUDIT-001 | 1 | Authentication-mail attempts are audited, one per capture | `tests/erasure-audit.mjs:95` | asserted |
+| AUDIT-001 | 1 | Erasing an actor anonymizes its audit references | `tests/erasure-audit.mjs:125` | asserted |
+| AUDIT-001 | 1 | The audit round-trips an archive unchanged | `tests/erasure-audit.mjs:137` (export) and `:159` (import) | asserted |
+| AUDIT-001 | 1 | Audit subjects are durable opaque references | `tests/erasure-audit.mjs:110` (the subject is the receipt id) and `:141` | asserted |
+| AUDIT-001 | 1 | No planted name, address, URL or secret appears in the audit | `tests/erasure-audit.mjs:122` (every physical table, the audit included, is scanned for the planted canaries) | asserted |
 | PRESENCE-001 | 1 | Contact reads Never seen at first | `tests/runner-contact.mjs:35` | asserted |
 | PRESENCE-001 | 1 | An accepted idle claim records fresh contact | `tests/runner-contact.mjs:38` | asserted |
 | PRESENCE-001 | 1 | An accepted result records fresh contact | `tests/runner-contact.mjs:52` | asserted |
@@ -365,12 +365,12 @@ Demoted to partial (26): HTTP-001, EVIDENCE-001, STATE-001, AUTHORITY-001, HEART
 | WEBHOOK-001 | 6 | The preview matches the received request byte for byte apart from masked secrets | none: the cited tests check the preview's masking (`tests/webhook-custom.mjs:9`) and the received request (`:13`) separately, but no line compares them | none |
 | WEBHOOK-001 | 7 | The signed variant verifies with its HMAC | `tests/webhook-custom.mjs:13` and `:19` | asserted |
 | WEBHOOK-001 | 8 | An archive export carries the template and header names but no header value | `tests/webhook-custom.mjs:22` | asserted |
-| MANAGE-001 | 1 | A monitor is created through the owner API | `tests/definitions-import.mjs:164` | asserted |
-| MANAGE-001 | 1 | A monitor is edited through the owner API | `tests/definitions-import.mjs:188` and `:190` | asserted |
-| MANAGE-001 | 1 | A monitor is paused through the owner API | `tests/definitions-import.mjs:164` (saved with enabled false) | asserted |
+| MANAGE-001 | 1 | A monitor is created through the owner API | `tests/definitions-import.mjs:208` (heartbeat creation returns 201) | asserted |
+| MANAGE-001 | 1 | A monitor is edited through the owner API | `tests/definitions-import.mjs:189` and `:191` | asserted |
+| MANAGE-001 | 1 | A monitor is paused through the owner API | `tests/definitions-import.mjs:165` (saved with enabled false) | asserted |
 | MANAGE-001 | 1 | A contact credential is rotated through the owner API | none: no cited test rotates a contact | none |
 | MANAGE-001 | 1 | The monitor's revision is read back | none: no cited line reads the saved revision back | none |
-| MANAGE-001 | 1 | A signed-out mutation is refused | `tests/definitions-import.mjs:105` | asserted |
+| MANAGE-001 | 1 | A signed-out mutation is refused | `tests/definitions-import.mjs:106` | asserted |
 | MANAGE-001 | 1 | A cross-origin mutation is refused | none: no cited test sends a cross-origin mutation to the monitor or contact API | none |
 | MANAGE-001 | 1 | A refused mutation writes nothing (atomic refusal) | none: no cited line compares durable state before and after a refused monitor or contact mutation | none |
 | MANAGE-001 | 1 | No endpoint secret is exposed | `tests/notify-delivery.mjs:170` to `:172` | asserted |

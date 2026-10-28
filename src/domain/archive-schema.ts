@@ -1,3 +1,4 @@
+import {sourceHistoryColumns} from './source-history/archive.ts'
 import {incidentArchiveColumns} from './incident-work/portability.server.ts'
 import {dependencyArchiveColumns} from './dependency-archive.ts'
 import {discoveryArchiveColumns} from './discovery-sources-archive.ts'
@@ -13,6 +14,7 @@ export const columns:Record<string,string[]>={
  observations:['id','slot_id','probe','attempt','evidence'],outbox:['id','monitor_id','slot_id','kind','event','status','lease_until','receipt'],
  scheduled_reports:['id','monitor_id','destination_id','actor_id','due_at','created_at','delivery_id','report'],
  ...incidentArchiveColumns,
+ ...sourceHistoryColumns,
  notification_destinations:['id','name','kind','enabled','created_at','deleted_at','address','webhook_template'],
  notification_jobs:['id','event_id','destination_id','destination_name','kind','event','created_at','state','code','finished_at','attempts','webhook_template'],
  integration_deliveries:['namespace','id','envelope','state','attempts','created_at','next_at','max_attempts','retry_delays'],
@@ -34,8 +36,8 @@ export const columns:Record<string,string[]>={
 };
 export const TABLES=Object.keys(columns);
 // Product tables each extension version lacks: 1 predates the audit, 2 predates definition batches, 8 predates cleanup debt.
-export const EXTENSION_VERSION=14;
-export const EXTENSION_TABLES:Record<number,string[]>={1:['failure_snapshots','heartbeat_runs',...Object.keys(incidentArchiveColumns),'uptime_audit','uptime_erasure_receipts','definition_batches','definition_batch_entries'],2:['failure_snapshots','heartbeat_runs',...Object.keys(incidentArchiveColumns),'definition_batches','definition_batch_entries'],3:['failure_snapshots','heartbeat_runs',...Object.keys(incidentArchiveColumns)],4:['failure_snapshots','heartbeat_runs'],5:['failure_snapshots'],6:['failure_snapshots'],7:[],8:[],9:[],10:[],11:[],12:[],13:[],14:[]};
+export const EXTENSION_VERSION=15;
+export const EXTENSION_TABLES:Record<number,string[]>={1:['failure_snapshots','heartbeat_runs',...Object.keys(incidentArchiveColumns),'uptime_audit','uptime_erasure_receipts','definition_batches','definition_batch_entries'],2:['failure_snapshots','heartbeat_runs',...Object.keys(incidentArchiveColumns),'definition_batches','definition_batch_entries'],3:['failure_snapshots','heartbeat_runs',...Object.keys(incidentArchiveColumns)],4:['failure_snapshots','heartbeat_runs'],5:['failure_snapshots'],6:['failure_snapshots'],7:[],8:[],9:[],10:[],11:[],12:[],13:[],14:[],15:[]};
 for(const version of [1,2,3,4,5,6,7])EXTENSION_TABLES[version].push('auxiliary_attempts');
 for(const version of [1,2,3,4,5,6,7,8])EXTENSION_TABLES[version].push('cleanup_debt');
 for(const version of [1,2,3,4,5,6,7,8,9])EXTENSION_TABLES[version].push('notification_delivery_attempts');
@@ -46,6 +48,7 @@ for(const version of [1,2,3,4,5,6,7,8,9,10,11])EXTENSION_TABLES[version].push(..
 // Version 13 adds mention history; versions 1–3 already exclude the entire collaboration set.
 for(const version of [4,5,6,7,8,9,10,11,12])EXTENSION_TABLES[version].push('incident_mentions');
 for(const version of [1,2,3,4,5,6,7,8,9,10,11,12,13])EXTENSION_TABLES[version].push('scheduled_reports');
+for(const version of [1,2,3,4,5,6,7,8,9,10,11,12,13,14])EXTENSION_TABLES[version].push(...Object.keys(sourceHistoryColumns));
 export const extensionTables=(version:number)=>TABLES.filter(name=>!LEGACY_TABLES.includes(name)&&!EXTENSION_TABLES[version].includes(name));
 export const notificationNamespace='uptime-notifications';
 export type Tables=Record<string,any[]>;

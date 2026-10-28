@@ -43,6 +43,7 @@ export async function projectRestore(input:Tables,migrations:any[],now=Date.now(
  }
  // Imported batches stay history: restored_at keeps them from undoing anything in the receiving installation.
  for(const row of t.definition_batches)if(row.restored_at===null)row.restored_at=now;
+ for(const row of t.source_history_batches)if(row.restored_at===null)row.restored_at=now;
  restoreAuxiliary(t,now);
  restoreMentions(t,now);
  // A restored discovery source reads nothing until the receiving owner authorizes it again.

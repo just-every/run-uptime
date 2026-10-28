@@ -1,3 +1,4 @@
+import {proveHistoryErasure} from './source-history-support.mjs';
 import {completeSecondFactor} from './mfa-auth-support.mjs';
 import {retentionCleanup} from './retention-cleanup-proof.mjs';
 import {allDeliveredMessages} from './mail-provider-fixture.mjs';
@@ -138,6 +139,7 @@ try{
  const [journalReceipt]=journalReceipts;assert.match(journalReceipt.id,/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
  assert.ok(journalReceipt.occurred_at>=journalStarted&&journalReceipt.occurred_at<=Date.now());
  assert.deepEqual(journalReceipt,{id:journalReceipt.id,actor_kind:'operator',actor_ref:ownerRow.id,occurred_at:journalReceipt.occurred_at,action:'access_export',subject_kind:'operator',subject_ref:journalReceipt.id});
+ await proveHistoryErasure({origin,cookie:owner.cookie,db:DB});
  await worker.dispose();worker=null;
  ({worker:freshWorker,DB:globalThis.freshDB}=await migratedWorker({port:freshPort,persist:join(directory,'fresh'),bindings}));const fresh={...env,DB:globalThis.freshDB};
  await assert.rejects(restore(fresh,nativeBefore,undefined,{laterJournal:later}),/erased/);

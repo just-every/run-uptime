@@ -1,3 +1,4 @@
+import {registerSourceHistory} from './domain/source-history/routes.server.ts'
 import {previewReportRecurrence} from './domain/reports/recurring.server.ts'
 import {serviceReport,serviceReportCsv} from './domain/reports/service.server.ts'
 import {scheduleReport,readScheduledReport,cancelScheduledReport} from './domain/reports/schedules.server.ts'
@@ -306,6 +307,7 @@ api.post('/api/restore',async c=>{const input=c.get('input');return c.json(await
 // Definition files import through the owner's import door (/api/operator/import/*): recognising a file names its source,
 // returns its text with request secrets withheld (the text the screen uploads) and writes nothing; a plan's preview reads the door's retained plan; export is read-only; undo pauses or restores.
 const operator=async(c:any)=>({kind:'operator' as const,ref:(await authenticatedSession(c.env,c.req.raw))!.operator.id})
+registerSourceHistory(api)
 api.post('/api/definitions/recognise',async c=>c.json(recogniseFile(c.get('requestText'),c.req.query('source'))))
 api.get('/api/definitions/plans/:id',async c=>c.json(await doorPlanView(c.env,c.req.param('id'))))
 api.get('/api/definitions/export',async c=>{c.header('content-disposition','attachment; filename="uptime.monitors.json"');return c.json(await exportDefinitions(c.env))})

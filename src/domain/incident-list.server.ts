@@ -1,3 +1,5 @@
+import {readSource} from './source-history/read-selection.ts'
+import {sourceIncidentList} from './source-history/incidents.server.ts'
 import {credentialMonitorFilter} from './credentials/model.server.ts'
 import type {Bindings} from './control.server.ts'
 import {ReportInputError} from './reports/period.ts'
@@ -5,6 +7,7 @@ import {ReportInputError} from './reports/period.ts'
 const instant=(value:string|null,fallback:number)=>{if(value===null)return fallback;const at=/^\d+$/.test(value)?Number(value):Date.parse(value);if(!Number.isSafeInteger(at)||at<0)throw new ReportInputError('Incident dates must be ISO 8601 or epoch milliseconds');return at}
 /** Stable keyset pagination over durable scheduled confirmations; never current health. */
 export async function incidentList(env:Bindings,params:URLSearchParams,now=Date.now()){
+ const selection=readSource(params,'incidents');if(selection==='UptimeRobot')return sourceIncidentList(env,params,now)
  const limit=params.has('limit')?Number(params.get('limit')):50,cursor=params.get('cursor');
  if(!Number.isSafeInteger(limit)||limit<1||limit>100)throw new ReportInputError('Incident page size must be between 1 and 100')
  if(cursor!==null&&(!/^[1-9][0-9]*$/.test(cursor)||!Number.isSafeInteger(Number(cursor))))throw new ReportInputError('Invalid incident cursor')

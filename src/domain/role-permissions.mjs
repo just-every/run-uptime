@@ -19,6 +19,7 @@ export function requestPermission(request,input){
  const monitor=/^\/api\/(?:v1\/)?monitors\/([^/]+)(?:\/(.*))?$/.exec(path);
  const decode=value=>{try{return decodeURIComponent(value)}catch{return ''}};
  if(path==='/api/routing/named-routes'||path.startsWith('/api/catalog/routes/'))return {action:'owner',workspace:true};
+ if(path.startsWith('/api/definitions/history/'))return {action:'import',workspace:true};
  if(path.startsWith('/api/credentials'))return {action:'owner',workspace:true};
  if(path==='/api/routing/recipient')return {action:'receive',workspace:false};
  if(path==='/api/routing/teams')return {action:'members',workspace:true};

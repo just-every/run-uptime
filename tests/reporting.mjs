@@ -1,3 +1,4 @@
+import {historyFixture,applyHistoryFixture,assertHistoryReport} from './source-history-support.mjs';
 import {proveRecurringReports} from './report-recurrences-support.mjs';
 import assert from 'node:assert/strict';
 import {proveScheduledReports} from './report-schedules-support.mjs';
@@ -167,6 +168,8 @@ try{
  worker=await proveScheduledReports({worker,persist,origin,cookie,id,params,report});
  await proveRecurringReports();
  console.log('REPORT-001 / READAPI-002 passed: owner period reports, full immutable coverage and incident overlap, SLA denominator, exact CSV/API/console figures, location latency percentiles at every resolution, Chicago DST validation, and oversized raw-series refusal.');
+ const sourceFixture=await historyFixture({origin,cookie,db:await worker.getD1Database('DB')});await applyHistoryFixture(sourceFixture);
+ const sourceResponse=await fetch(origin+`/api/v1/monitors/${encodeURIComponent(sourceFixture.id)}/report?${sourceFixture.query}`,{headers:{cookie}});assert.equal(sourceResponse.status,200);await assertHistoryReport(sourceFixture,await sourceResponse.json());
 }finally{
  await worker?.dispose();
  await rm(persist,{recursive:true,force:true});
