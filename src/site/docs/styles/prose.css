@@ -32,7 +32,7 @@
 .docs-prose code { padding: 0.14em 0.4em; border-radius: 6px; background: #ecebf6; color: var(--ink); font-family: var(--mono); font-size: 0.86em; overflow-wrap: anywhere; }
 .docs-code { overflow: hidden; border-radius: 16px; background: var(--code-bg); box-shadow: var(--shadow); }
 .docs-code-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 42px; padding: 0 12px 0 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
-.docs-code-lang { color: var(--code-muted); font-size: 12.5px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+.docs-code-lang { color: var(--code-muted); font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
 .docs-copy { padding: 5px 12px; border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 999px; background: transparent; color: var(--code-ink); font: 600 13px/1.2 var(--sans); cursor: pointer; transition: background-color 0.18s; }
 .docs-copy:hover { background: rgba(255, 255, 255, 0.08); }
 .docs-copy:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
