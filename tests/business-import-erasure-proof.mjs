@@ -21,7 +21,7 @@ export async function proveIdentityErasure({origin,DB,bindings,grant}){
   return {status:response.status,body:await response.json()};
  };
  const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
- const upload=(bytes,name)=>doorOK('uploads',{name,bundleSha256:hash(bytes),totalBytes:bytes.length,totalChunks:Math.ceil(bytes.length/65536),index:0,
+ const upload=(bytes,name,uploadId)=>doorOK('uploads',{...(uploadId?{uploadId}:{}),name,bundleSha256:hash(bytes),totalBytes:bytes.length,totalChunks:Math.ceil(bytes.length/65536),index:0,
   chunkSha256:hash(bytes.subarray(0,65536)),base64:bytes.subarray(0,65536).toString('base64')});
  const successor='synthetic-custody-owner-1@example.test';
  await ok('/auth/invite',{email:successor,displayName:'Custody owner',role:'owner'});
@@ -37,7 +37,7 @@ export async function proveIdentityErasure({origin,DB,bindings,grant}){
    {id:7001+index*10,friendlyName:`Custody checkout ${kind}`,type:'HTTP',url:'https://custody-checkout.example.test/health',interval:300,timeout:5,custodyContact:identity},
    {id:7002+index*10,friendlyName:identity,type:'PING',url:'https://unsupported.example.test/',interval:300},
   ],nextLink:null})+'\n');
-  const uploaded=await upload(bytes,identity+'.ndjson');
+  const uploaded=await upload(bytes,identity+'.ndjson',identity);
   const archivedResult=await business('archive',{uploadId:uploaded.uploadId,tool:'uptimerobot',takenAt:new Date().toISOString()});
   assert.equal(archivedResult.status,200,JSON.stringify(archivedResult.body));const archived=archivedResult.body;
   let planned=await door('plan',{uploadId:uploaded.uploadId});
@@ -69,7 +69,7 @@ export async function proveIdentityErasure({origin,DB,bindings,grant}){
   assert.notEqual(after.businessApproval.approvalId,before.businessApproval.approvalId);
   assert.deepEqual(await DB.prepare('SELECT * FROM ik_door_plans WHERE id=?').bind(plan.planId).first(),header,'opaque fingerprint, bundle hash, previous/job ids and plan lineage stay exact');
   const remainingArchive=await DB.prepare('SELECT * FROM ik_door_archives WHERE id=?').bind(archived.archiveId).first();
-  assert.deepEqual(remainingArchive,{...archiveHeader,name:'Withdrawn',tool:'withdrawn'},'archive receipt stays with anonymous labels');
+  assert.deepEqual(remainingArchive,{...archiveHeader,name:'Withdrawn',tool:'withdrawn',upload_id:archiveHeader.id},'archive receipt stays with anonymous labels and upload reference');
   assert.deepEqual(await ok('/api/definitions/export'),native,'peer native monitors and their fields survive');
   const archive=await ok('/api/archive');assert.ok(!JSON.stringify(archive).includes(identity));
   for(const table of [...Object.keys(archive.payload.tables),...Object.keys(archive.payload.productTables??{})])assert.ok(!table.startsWith('ik_')&&!table.startsWith('uptime_business_import_'),'only opaque per-table erasure counts travel, never import custody');

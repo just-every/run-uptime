@@ -40,7 +40,7 @@ export async function businessIdentityErasure(env:Bindings){
   env.DB.prepare(`UPDATE ik_door_approvals SET owner='Erased identity',approval_id=lower(hex(randomblob(16))),
    reviewer=CASE WHEN reviewer='operator' THEN 'operator' ELSE 'erased' END
    WHERE plan_id IN(SELECT id FROM ik_door_plans WHERE installation_id=?)`).bind(DOOR_KEY),
-  env.DB.prepare("UPDATE ik_door_archives SET name='Withdrawn',tool='withdrawn' WHERE installation_id=?").bind(DOOR_KEY),
+  env.DB.prepare("UPDATE ik_door_archives SET name='Withdrawn',tool='withdrawn',upload_id=id WHERE installation_id=?").bind(DOOR_KEY),
   env.DB.prepare('UPDATE ik_door_namespaces SET head_id=NULL,pending_id=NULL WHERE installation_id=?').bind(DOOR_KEY),
   env.DB.prepare('UPDATE uptime_business_import_targets SET retired=1 WHERE retired=0'),
   mutationGuard(env,'NOT EXISTS(SELECT 1 FROM ik_jobs WHERE destination=?)',[BUSINESS_DESTINATION]),

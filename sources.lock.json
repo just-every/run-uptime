@@ -519,7 +519,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "97f1c64b3da2bdffffdf2b3cf13ef7469974d2b14e70bb7cba1431bf044b75dd",
+      "sha256": "69f2c7eabc338c466473c74048a8a0aaa432fdb2787f191191c649f335445c17",
       "executable": false
     },
     "DEMO.md": {
@@ -5667,7 +5667,7 @@
       "executable": false
     },
     "src/domain/business-import/identity-erasure.server.ts": {
-      "sha256": "53e446323da27eaf43464a2d79cdc4f3fd30fa9c7b090de4e1b79cba647802ef",
+      "sha256": "b27e747971f0953b9ca967267a17402bdc113b8137b306858be75f64f777cb10",
       "executable": false
     },
     "src/domain/business-import/inventory.server.ts": {
@@ -7319,7 +7319,7 @@
       "executable": false
     },
     "tests/business-import-erasure-proof.mjs": {
-      "sha256": "f766f7a8bb1ef2c509664090d1d22242d0ac7c651c0e13794273df604542ecca",
+      "sha256": "60d291f58ff95f2f0d0161b33656b74a34b541d87136322632e191adfd51860c",
       "executable": false
     },
     "tests/business-provisioned.mjs": {
