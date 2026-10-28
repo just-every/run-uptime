@@ -10,7 +10,7 @@ import {fileURLToPath} from 'node:url';
 import {startLocalWorker} from './mail-provider-fixture.mjs';
 import {testAuthBindings, signInOwner, authRequest, emailSignIn, deliveredLink, sessionCookie} from './auth-test-support.mjs';
 import {splitSql} from './migration-support.mjs';
-import {readProcessTable, sameProcess} from '@runeditrun/rer/internal/onboarding/process-table.mjs';
+import {readProcessTable, sameBirth} from '@runeditrun/rer/internal/onboarding/process-table.mjs';
 
 // Integration of the existing local-review browser suites, not hosted acceptance
 // or the separate production signed-runner regression. Build first (pnpm verify).
@@ -54,7 +54,7 @@ async function stopChild(child) {
   assert.equal(groupExists(child), false, 'owned process group must stop');
   const descendantsRemain = async () => {
     const remaining = await readProcessTable();
-    return [...child.groups.values()].some(identities => remaining.some(row => identities.some(old => sameProcess(row, old))));
+    return [...child.groups.values()].some(identities => remaining.some(row => identities.some(old => sameBirth(row, old))));
   };
   const descendantsDeadline = Date.now() + 5000;
   while (await descendantsRemain() && Date.now() < descendantsDeadline) await pause(100);
@@ -79,7 +79,7 @@ async function captureDescendants(child) {
   for (const row of table) {
     if (!descendants.has(row.pid)) continue;
     const known = child.groups.get(row.pgid) ?? [];
-    if (!known.some(old => sameProcess(row, old))) known.push(row);
+    if (!known.some(old => sameBirth(row, old))) known.push(row);
     child.groups.set(row.pgid, known);
   }
 }
@@ -87,7 +87,7 @@ async function signalDescendants(child, signal) {
   const table = await readProcessTable();
   for (const [group, identities] of child.groups) {
     for (const row of table) {
-      if (row.pgid !== group || !identities.some(old => sameProcess(row, old))) continue;
+      if (row.pgid !== group || !identities.some(old => sameBirth(row, old))) continue;
       try { process.kill(row.pid, signal); }
       catch (error) { if (error.code !== 'ESRCH') throw error; }
     }

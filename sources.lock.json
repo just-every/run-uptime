@@ -483,7 +483,7 @@
       "executable": false
     },
     ".github/workflows/verify.yml": {
-      "sha256": "f88135567ec7b8a445d9878c5fc301e0e997e252334dca24179bc5233a7b3d14",
+      "sha256": "0d27fa72d6f646c203e0ffa25f92155da63efb7a4772b406d80558d6826a1610",
       "executable": false
     },
     ".gitignore": {
@@ -503,7 +503,7 @@
       "executable": false
     },
     "base-copies.json": {
-      "sha256": "dda881aa6cb92f0483ac650133a00ef8e3844f725ad9fa7955a81b243d4f39d0",
+      "sha256": "762dcc270252bc4d9424b6d774eb197ff2a08ea84c81e03867063f6b40d9c707",
       "executable": false
     },
     "BASELINE.md": {
@@ -6327,7 +6327,7 @@
       "executable": false
     },
     "src/domain/audit.server.ts": {
-      "sha256": "8e73c185590c37cfb4e2797be8dbe6dc989942a5b1a716a744bc362ed9f8137b",
+      "sha256": "24c103450f558374c0a59d522605cfb68e510d269d29c93680421f7692cf8997",
       "executable": false
     },
     "src/domain/auth-document.server.ts": {
@@ -7023,7 +7023,7 @@
       "executable": false
     },
     "src/domain/operator-auth.server.ts": {
-      "sha256": "246e8e644dc9aeddf3756ebeeb86a8efd30e1fbc9e8499a6e4116698871a24ac",
+      "sha256": "de212f1ce4e0ea00e38a1bd34974bfb500537ac1aa68e22deb5c571d75c7da14",
       "executable": false
     },
     "src/domain/operator-mail-authority.ts": {
@@ -8023,7 +8023,7 @@
       "executable": false
     },
     "tests/browser-suites.mjs": {
-      "sha256": "3c53814d4f1149660543051bf44b527db7c5cc02ec2009600b397ed423aa14f8",
+      "sha256": "6b559e9ba1b1bd3554589b859e2c95f1f839685cfecdc917fab60850b2566469",
       "executable": false
     },
     "tests/business-import-door.mjs": {
@@ -8435,7 +8435,7 @@
       "executable": false
     },
     "tests/owner-deploy-lifecycle/commands.mjs": {
-      "sha256": "0f7b8830e1ea62be3f5ec97fa938d76d46a11a8f9a11c157b66bb61efcb54594",
+      "sha256": "173ea7b8723a98914a6414db993c5ef62e4216a52a3f457f73e257017e890b8b",
       "executable": false
     },
     "tests/owner-deploy-lifecycle/preload.mjs": {

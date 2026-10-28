@@ -1,5 +1,5 @@
 import {checkSecondFactor,MfaError} from './mfa/policy.server.ts'
-import {auditStatement} from './audit.server.ts'
+import {auditSql} from './audit.server.ts'
 import {permission,accessResponse} from './access.server.ts'
 import {authorizedDatabase} from './access-database.server.ts'
 // Edition wiring only. Credential, session and operator authority belongs to Base.
@@ -19,6 +19,7 @@ export function operatorAuth(env:AuthBindings){
  const local=env.UPTIME_LOCAL_REVIEW==='true',development=developmentMail(env);
  if(env.MAIL_PROVIDER==='development'&&!development)throw new AuthError('invalid_configuration',503);
  return createOperatorAuth({db:env.DB,config:authConfig(env),
+ hooks:{audit:({action,actorId,now})=>action==='sessions.revoke'?[auditSql({kind:'operator',ref:actorId},'session_revoke','session',crypto.randomUUID(),'1',[],now)]:[]},
  ...(mailSender(env)?{mailSender:operatorMailSender(env,development)}:{}),clientIp:(request:Request)=>local?'loopback':request.headers.get('CF-Connecting-IP')??''})
 }
 // Base validates identity. The shared product policy narrows ordinary access;
@@ -43,10 +44,6 @@ export async function authRoute(env:AuthBindings,request:Request){try{
    own=target?.operator_id===principal.operator.id
   }
   if(!own){try{const actor=await permission(env,request,undefined,{action:'members',workspace:true});configured={...env,DB:authorizedDatabase(env,actor)}}catch(error){if(accessResponse(error))return Response.json({error:'forbidden'},{status:principal?403:401});throw error}}
- }
- if(new URL(request.url).pathname==='/auth/session/revoke'){
-  const actor=await operatorSession(env,request);
-  if(actor){const db=configured.DB;configured={...configured,DB:{prepare(sql:string){const statement=db.prepare(sql);if(!sql.startsWith('UPDATE oa_sessions SET revoked_at='))return statement;const wrap=(prepared:D1PreparedStatement):D1PreparedStatement=>new Proxy(prepared,{get(target,key){if(key==='bind')return (...values:any[])=>wrap(target.bind(...values));if(key==='run')return async()=>{const results=await db.batch([target,auditStatement(env,{kind:'operator',ref:actor.operator.id},'session_revoke','session',crypto.randomUUID(),'changes()>0')]);return results[0]};const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value}});return wrap(statement)},batch:db.batch.bind(db),exec:db.exec.bind(db),dump:db.dump.bind(db),withSession:db.withSession?.bind(db)} as D1Database}}
  }
  return await createAuthHandler(operatorAuth(configured))(request)
  }catch(error){return authFailure(error)}}

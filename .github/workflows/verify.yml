@@ -210,7 +210,7 @@ jobs:
             light) test "$SKIP" = false && test "$LIGHT" = success && test "$SHARDS" = skipped ;;
             full) test "$LIGHT" = skipped && { test "$SHARDS" = success || { test "$HAS_SHARDS" = false && test "$SHARDS" = skipped; }; } ;;
             *) exit 1 ;;
-          esac
+          esac || exit 1
 
           if [ "$HAS_SHARDS" = true ]; then test "$BUILD" = success; else test "$BUILD" = skipped; fi
           if [ "$COVERAGE" = full ] && [ "$TIER" != nightly ]; then test "$PREPARE" = success; else test "$PREPARE" = skipped; fi
