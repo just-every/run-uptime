@@ -31,7 +31,7 @@
     "artifact-deploy": "node scripts/deployment/deploy.mjs deploy",
     "artifact-health": "node scripts/deployment/deploy.mjs health",
     "test:base": "node scripts/edition-authoring/cli.mjs check && node scripts/edition-authoring/cli.mjs verify-base --offline && rer check --profile first-party",
-    "test:access": "node tests/auth-input-boundary.mjs && node tests/access-matrix.mjs && node tests/access-smoke.mjs",
+    "test:access": "node tests/auth-input-boundary.mjs && node tests/access-matrix.mjs && node tests/access-smoke.mjs && node tests/agent-door.mjs",
     "test:owner-deploy": "node --test --test-concurrency=1 tests/owner-deploy-lifecycle.mjs",
     "test:archive": "node tests/archive-roundtrip.mjs",
     "test:definitions": "node tests/definitions-import.mjs && node tests/business-import-door.mjs && node tests/business-provisioned.mjs",
