@@ -495,7 +495,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "d4fc7c5c82affad57886b3bfc00069edd36bc4d4ea8e3b5e291183ff44a322e9",
+      "sha256": "bc8f2332288443477705a6e4447ca81c694eb9338f3f9dacbefe5dbc7b5ce4d9",
       "executable": false
     },
     "AGENTS.md": {
@@ -519,7 +519,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "e33149cf3e5419bf351d6c810784994dc81c7a447dc1f4c81331ff632bd7a785",
+      "sha256": "26bb850884534852527cd5bf89acdb5e6926a33c702a54ae8e3cd381ecbc85c5",
       "executable": false
     },
     "DEMO.md": {
@@ -559,7 +559,7 @@
       "executable": false
     },
     "docs/definitions.md": {
-      "sha256": "03b91a779fa4e58110156ef2c193b639179424d07a13086267887dc125c16930",
+      "sha256": "96e11807f4111265a2999a8ec42a935c6bc754385b84e6c519e186b8df900681",
       "executable": false
     },
     "docs/deploy.md": {
@@ -2075,7 +2075,7 @@
       "executable": false
     },
     "docs/read-api.md": {
-      "sha256": "3db46978c0de387d0f0cdc85f6374a3dc0ff5f72f7b0f0c43a5abf1b9ed9b11c",
+      "sha256": "76d17f77474dd47efd28db217ba431ce1188e55857b24d48f7a05496bff36957",
       "executable": false
     },
     "docs/resilient-monitoring.md": {
@@ -2135,7 +2135,7 @@
       "executable": false
     },
     "management/integration/deployment-spec.json": {
-      "sha256": "f057a3f4ed80e4d94b1e46e82bfba34203ba0d1f07dcd11633289e0c715621b4",
+      "sha256": "626e37f55e5fbac5aa511d24b8ce0da5dd11ac56cbc7b04c41ae472471f11206",
       "executable": false
     },
     "migrations/0001_uptime.sql": {
@@ -6083,7 +6083,7 @@
       "executable": false
     },
     "src/domain/incident-list.server.ts": {
-      "sha256": "1d73d71c30f0bc760fad502b5c30932b2d571cd1d5f6fc4bd141aa3f4edb9f63",
+      "sha256": "bb285693c5010d1af72bafc286e01a14bf10c6850a10822094a7f9d1e97c85e5",
       "executable": false
     },
     "src/domain/incident-work/actions.server.ts": {
@@ -6427,11 +6427,11 @@
       "executable": false
     },
     "src/domain/read-api-openapi.ts": {
-      "sha256": "20d32a78aee5aff2f1b069634f1eb5e93092c18a8f26b179f3136a541571174d",
+      "sha256": "3a76f1550c39b1fd64715a67b2073f761d74db8365a8539ebc1fd1d9b95d9818",
       "executable": false
     },
     "src/domain/read-api/bulk.server.ts": {
-      "sha256": "708bbe4a4453c68a44177e3ef4fed23453e02028d91b30504abd4cd38a597276",
+      "sha256": "b4c782ff033b9c01f70cd3599b26f9b9e5bb56c7cc19e9a9ab71f725a4c4f27f",
       "executable": false
     },
     "src/domain/read-api/csv.ts": {
@@ -6455,7 +6455,7 @@
       "executable": false
     },
     "src/domain/reports/export.ts": {
-      "sha256": "12816722702561bc8b1bed5e0c95f13d487208bff05cc0e97f26f6463518f37d",
+      "sha256": "eb6526f27a655471704381cb36ddf35fc7c77b15a7516119e28179afcd7205d4",
       "executable": false
     },
     "src/domain/reports/flow-profiles.server.ts": {
@@ -6467,7 +6467,7 @@
       "executable": false
     },
     "src/domain/reports/index.server.ts": {
-      "sha256": "aa8fa4a3f45445181c3a973825acd53ef67560e56a1119eeb29284cb0159ab7f",
+      "sha256": "7e0ba9484ec43990a03fa494aab67b1c555f400390940f43986fbdbc29dc4847",
       "executable": false
     },
     "src/domain/reports/latency-query.ts": {
@@ -6475,7 +6475,7 @@
       "executable": false
     },
     "src/domain/reports/latency.server.ts": {
-      "sha256": "878ab4858de5983f7a9698a8949fd9bb6732d5855a86205f1fb1adca97fc2c4c",
+      "sha256": "b4dc11a129ecdebb04eeb3e1d1189f23a7ca3ddeaacfb0a900bbde76a5b26262",
       "executable": false
     },
     "src/domain/reports/pdf-layout.ts": {
@@ -6483,7 +6483,7 @@
       "executable": false
     },
     "src/domain/reports/pdf.ts": {
-      "sha256": "476bdf29362db85e494a97cc8efc1a70508ee8daa568cec400d11c324213cf3c",
+      "sha256": "c2e1825f02fede41cc7b3a886a54a7284c341f78ec1f60b477738812f79bcdf1",
       "executable": false
     },
     "src/domain/reports/period.ts": {
@@ -6511,7 +6511,7 @@
       "executable": false
     },
     "src/domain/request-boundary.ts": {
-      "sha256": "e10e3f8b4b7b07c2c4bbb98907b1c7a3f35bc802a8a8ecf3eece3d76477bfddc",
+      "sha256": "e46c371a546b93053aa854e60d47efff000ccf1a02a9f796872707aeeb427c39",
       "executable": false
     },
     "src/domain/rer-cutover-status.server.ts": {
@@ -6655,15 +6655,23 @@
       "executable": false
     },
     "src/domain/source-history/csv.ts": {
-      "sha256": "aad56aebb4ddde0be32fa6fcad28ec724d8522f6698fb2c51dd75f9ca67bc4d4",
+      "sha256": "dc0f167793b95f8ec2b1d3bcd311975abc3e9e2ff5a2605987fcd73cc4fb4e3b",
       "executable": false
     },
     "src/domain/source-history/cutover.server.ts": {
       "sha256": "832746c2145d8231d7727f299e836a86f145d642e7ac635b1731eebcc3618b7b",
       "executable": false
     },
+    "src/domain/source-history/incidents.server.ts": {
+      "sha256": "26237d815c5b4c531e5324fa51aee3a1f9765391d8b9ab84ed83eab258661300",
+      "executable": false
+    },
     "src/domain/source-history/json.ts": {
-      "sha256": "838de7d3147a8de9195d29d86cdf0db97780cbc172a899fc2d40d2665d7123b9",
+      "sha256": "10b6a7f04366dd229178713d93d1ffaf18012c780fa77bb6cc0cde86c78d7c65",
+      "executable": false
+    },
+    "src/domain/source-history/latency.ts": {
+      "sha256": "1aa587bfc495c5ac0f5691c1eb30d5465f279e21d47b09c75a46f4c2bef2ca59",
       "executable": false
     },
     "src/domain/source-history/model.ts": {
@@ -6672,6 +6680,10 @@
     },
     "src/domain/source-history/preview.server.ts": {
       "sha256": "fed475a36e2f99244fb75d92a3b8594040ead43ecfbcfdcf6a4aa8b367ea9158",
+      "executable": false
+    },
+    "src/domain/source-history/read-selection.ts": {
+      "sha256": "ae9fc6fc5822d3e1ad0a6274df365a99289211a0c47b044df2452a9a8adf5c10",
       "executable": false
     },
     "src/domain/source-history/response-times.server.ts": {
@@ -6683,7 +6695,7 @@
       "executable": false
     },
     "src/domain/source-history/segments.server.ts": {
-      "sha256": "5d6398d4f6502716f0fe4a71783e7d48e1d5c0dca6f407ad016fe5660161910a",
+      "sha256": "4f8f6c27bdb5afaf71252fa29bd54970d241a055e4c97753fad2981a41847dfe",
       "executable": false
     },
     "src/domain/startup-config.d.mts": {
@@ -8007,7 +8019,7 @@
       "executable": false
     },
     "tests/source-history-support.mjs": {
-      "sha256": "703a23290d5b2c93db4126a38888b3fcde7cae72e33328bd5c063d8ff1af8149",
+      "sha256": "da6ac133c8cb782c609001c60c5a9799102918108c0638be0e95e44a7f75dbd7",
       "executable": false
     },
     "tests/startup-config.mjs": {

@@ -42,7 +42,7 @@ export async function parseHistoryCsv(text:string,context:any={}):Promise<Histor
    if(duration===null||!Number.isFinite(duration))refuse(`${line}, column “${header[indices.duration]}”: unrecognised duration “${value}”`)
   }
   if(sourceMonitorId!==null&&get('monitorId')&&get('monitorId')!==sourceMonitorId)refuse(`${line}: sourceMonitorId conflicts with the Monitor ID column`)
-  const row:HistoryRow={sourceMonitorId:get('monitorId')||sourceMonitorId||'',sourceRowId:get('id'),name:get('name'),kind,startedAt,endedAt:get('end')?sourceInstant(get('end'),`${line}, resolved at`):null,responseMs:null,sourceDurationSeconds:duration,author:sourceText(get('author'),line),comments:sourceText(get('comments'),line),rootCause:sourceText(get('reason'),line),included:true,line}
+  const row:HistoryRow={sourceMonitorId:get('monitorId')||sourceMonitorId||'',sourceRowId:get('id')?sourceIdentity(get('id'),line+', source row ID'):'',name:get('name'),kind,startedAt,endedAt:get('end')?sourceInstant(get('end'),`${line}, resolved at`):null,responseMs:null,sourceDurationSeconds:duration,author:sourceText(get('author'),line),comments:sourceText(get('comments'),line),rootCause:sourceText(get('reason'),line),included:true,line}
   if(row.endedAt!==null&&row.endedAt<startedAt)refuse(`${line}: end precedes start`)
   row.sourceRowId||=await sha256(JSON.stringify({...row,line:undefined}))
   rows.push(row)

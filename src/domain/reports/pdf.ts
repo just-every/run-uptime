@@ -26,6 +26,7 @@ export async function reportPdf(report:MonitorReport,assets:Fetcher|undefined){
   if(h.blended)pdf.text(`${h.blended.label}: ${number(h.blended.uptimePercent)}% / denominator ${duration(h.blended.denominatorMs)}`)
   for(const r of h.sourceIncidents)pdf.text(`${r.label}: ${at(r.startedAt)} to ${at(r.endedAt)} / ${r.durationSeconds??'Unknown'} seconds / source author: ${r.author||'not supplied'} / ${r.comments} / root cause: ${r.rootCause}`)
  }
+ if(report.sourceSelection)pdf.text(`Selected figure: ${report.sourceSelection.label}`)
  pdf.heading('Availability and coverage')
  pdf.text(report.denominatorPolicy)
  for(const [label,key] of [['Uptime','uptimePercent'],['Healthy time','upMs'],['Not-passing time','notPassingMs'],['Observed denominator','observedMs'],['Unknown time','unknownMs'],['Paused time','pausedMs'],['Maintenance time','maintenanceMs'],['Entire period','windowMs']] as const){
@@ -50,7 +51,8 @@ export async function reportPdf(report:MonitorReport,assets:Fetcher|undefined){
  if(!report.latency.series.length)pdf.text('No eligible samples. Response time is Unknown.')
  for(const point of report.latency.series)pdf.text(`${at(point.at)} to ${at(point.to)} / ${point.location} / ${point.count} samples\nMin ${point.minMs} / mean ${point.meanMs} / p50 ${point.p50Ms} / p95 ${point.p95Ms} / p99 ${point.p99Ms} / max ${point.maxMs} ms`)
  pdf.heading('Incidents in this period')
- pdf.text(`Confirmed incidents: ${report.incidentSummary.count} / period overlap: ${duration(report.incidentSummary.durationInPeriodMs)}`)
+ const nativeSummary=report.nativeIncidentSummary??report.incidentSummary
+ pdf.text(`Confirmed Uptime incidents: ${nativeSummary.count} / period overlap: ${duration(nativeSummary.durationInPeriodMs)}`)
  if(report.rootCauseFilter)pdf.text(`Root-cause filter: ${report.rootCauseFilter}. Coverage and SLA retain the complete denominator.`)
  for(const group of report.rootCauseGroups)pdf.text(`${group.categoryLabel}: ${group.count} incidents / overlap ${duration(group.durationInPeriodMs)}`)
  for(const incident of report.incidents){

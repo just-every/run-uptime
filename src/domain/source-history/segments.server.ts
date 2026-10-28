@@ -38,7 +38,7 @@ export async function sourceSegments(env:Pick<Bindings,'DB'>,id:string,period:Re
  }
  const uptimeFrom=Math.min(period.to,Math.max(period.from,cutover.at??period.to))
  const uptime=uptimeFrom<period.to?await periodAvailability(env.DB,id,{...period,from:uptimeFrom}):null
- const uptimeSegment={source:'Uptime',label:'source: Uptime',from:uptimeFrom,to:period.to,denominatorMs:uptime?.observedMs??0,upMs:uptime?.upMs??0,notPassingMs:uptime?.notPassingMs??0,uptimePercent:uptime?.uptimePercent??null}
+ const uptimeSegment={source:'Uptime',label:'source: Uptime',from:uptimeFrom,to:period.to,denominatorMs:uptime?.observedMs??0,upMs:uptime?.upMs??0,notPassingMs:uptime?.notPassingMs??0,uptimePercent:uptime?.uptimePercent??null,availability:uptime}
  const contribution=segments.reduce((a,s)=>({denominatorMs:a.denominatorMs+s.blendedContribution.denominatorMs,notPassingMs:a.notPassingMs+s.blendedContribution.notPassingMs}),{denominatorMs:uptimeSegment.denominatorMs,notPassingMs:uptimeSegment.notPassingMs})
  // A monitor can have several files from one incumbent. They union above. Multiple incumbents require an owner
  // selection in a later adapter; until then overlapping sources refuse a combined figure instead of double counting.

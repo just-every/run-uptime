@@ -25,6 +25,7 @@ export function reportCsv(report: MonitorReport): string {
     for(const r of h.sourceIncidents)for(const [key,value] of Object.entries(r))add(r.label,key,value,key.includes('Seconds')||key==='durationSeconds'?'seconds':'','',r.startedAt,r.endedAt,r.sourceRowId)
     for(const r of h.sourceResponseTimes)add(r.label,'responseMs',r.responseMs,'ms','',r.at,r.at,r.sourceRowId)
   }
+  if(report.sourceSelection)add('policy','selectedSource',report.sourceSelection.label)
   add('policy','rootCauseFilter',report.rootCauseFilter)
   for(const group of report.rootCauseGroups){add('root_cause',group.categoryLabel+' incident count',group.count);add('root_cause',group.categoryLabel+' downtime',group.durationInPeriodMs,'ms')}
   add('policy', 'denominator', report.denominatorPolicy)

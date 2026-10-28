@@ -1,3 +1,4 @@
+import {withheldCredentials} from '../business-import/credential-shapes.ts'
 import {jsonValues,sha256} from '../definitions/format.ts'
 import {withholdValue} from '../definitions/withhold.ts'
 import {sourceIdentity,sourceInstant,sourceText,refuse,boundRows,type HistoryFile,type HistoryRow} from './model.ts'
@@ -22,6 +23,7 @@ export async function parseHistoryJson(text:string,context:any={}):Promise<Histo
   for(const [index,item] of list(incidents).entries()){
    const line=`JSON capture ${page+1}, incident ${index+1}`
    if(!item||typeof item!=='object'||!('startedAt' in item)||!('resolvedAt' in item))refuse(`${line}: expected v3 incident startedAt and resolvedAt`)
+   if(item.includeInReports!==undefined&&typeof item.includeInReports!=='boolean')refuse(`${line}, includeInReports: expected a boolean`)
    const startedAt=sourceInstant(item.startedAt,`${line}, startedAt`),endedAt=item.resolvedAt===null?null:sourceInstant(item.resolvedAt,`${line}, resolvedAt`)
    if(endedAt!==null&&endedAt<startedAt)refuse(`${line}: resolvedAt precedes startedAt`)
    const sourceMonitorId=sourceIdentity(item.monitor?.id??capture.monitorId??context.sourceMonitorId,`${line}, monitor.id (or capture monitorId)`)
@@ -29,9 +31,9 @@ export async function parseHistoryJson(text:string,context:any={}):Promise<Histo
    if(!Array.isArray(commentsValue))refuse(`${line}, comments: expected saved comment rows`)
    const comments=commentsValue.map((c:any,i:number)=>({text:sourceText(c.comment,`${line}, comment ${i+1}`),author:sourceText(c.user?.fullName??c.author,`${line}, comment author`),createdAt:c.created===undefined?null:sourceInstant(c.created,`${line}, comment created`)}))
    const root=item.rootCause
-   const rootCause=typeof root==='string'?root:root?JSON.stringify(withholdValue({...root,requestHeaders:undefined,responseHeaders:undefined,responseDownloadUrl:undefined,url:undefined})):item.reason??''
+   const rootCause=typeof root==='string'?root:root?JSON.stringify(withheldCredentials(withholdValue(root))):item.reason??''
    if(item.duration!==undefined&&item.duration!==null&&(!Number.isFinite(item.duration)||item.duration<0))refuse(`${line}, duration: expected nonnegative seconds`)
-   rows.push({sourceMonitorId,sourceRowId:sourceIdentity(item.id,`${line}, id`),name:sourceText(item.monitor?.friendlyName??capture.monitorName,line),kind:'incident',startedAt,endedAt,responseMs:null,sourceDurationSeconds:item.duration??null,author:sourceText(item.author??item.user?.fullName,line),comments:JSON.stringify(comments),rootCause:sourceText(rootCause,line),included:item.includeInReports!==false,line})
+   rows.push({sourceMonitorId,sourceRowId:sourceIdentity(item.id,`${line}, id`),name:sourceText(item.monitor?.friendlyName??capture.monitorName,line),kind:'incident',startedAt,endedAt,responseMs:null,sourceDurationSeconds:item.duration??null,author:sourceText(item.author??item.user?.fullName,line),comments:sourceText(JSON.stringify(comments),line+', combined comments'),rootCause:sourceText(rootCause,line),included:item.includeInReports!==false,line})
   }
   if(capture.responseTimes){
    const samples=capture.responseTimes

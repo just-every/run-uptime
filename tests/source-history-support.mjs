@@ -1,3 +1,4 @@
+import {completeSecondFactor} from './mfa-auth-support.mjs';
 import assert from 'node:assert/strict';
 import {readFile,readdir,mkdtemp,writeFile,rm} from 'node:fs/promises';
 import {join} from 'node:path';
@@ -96,11 +97,13 @@ export async function proveSourceHistory({origin,cookie,db}){
  assert.equal((await f.client('batches/'+ra.body.batchId,undefined,'DELETE')).status,200);
  // Saved v3 detail capture includes source comments and source-author text, plus published response time samples.
  const incidentStart=f.cutover+day,incidentEnd=incidentStart+91*1000;
- const json=JSON.stringify({monitorId:sourceId,monitorName:sourceId,extractedAt:iso(f.end),coverageFrom:iso(f.from),coverageTo:iso(f.end),incidents:{data:[{id:'synthetic-uptime-203',monitor:{id:sourceId,friendlyName:sourceId},startedAt:iso(incidentStart),resolvedAt:iso(incidentEnd),duration:91,includeInReports:true,rootCause:'Synthetic upstream failure',comments:[{id:1,comment:'Synthetic comment',created:iso(incidentEnd),user:{id:1,fullName:'Synthetic source author'}}]}],nextLink:null},responseTimes:{time_series:[{timestamp:iso(incidentStart),value:123}]}});
+ const json=JSON.stringify({monitorId:sourceId,monitorName:sourceId,extractedAt:iso(f.end),coverageFrom:iso(f.from),coverageTo:iso(f.end),incidents:{data:[{id:'synthetic-uptime-203',monitor:{id:sourceId,friendlyName:sourceId},startedAt:iso(incidentStart),resolvedAt:iso(incidentEnd),duration:91,includeInReports:true,rootCause:{url:'https://history.example.test/health',httpResponseCode:503,requestHeaders:{authorization:'synthetic-uptime-207'},responseHeaders:{'content-type':'text/plain'}},comments:[{id:1,comment:'Synthetic comment',created:iso(incidentEnd),user:{id:1,fullName:'Synthetic source author'}}]}],nextLink:null},responseTimes:{time_series:[{timestamp:iso(incidentStart),value:123}]}});
+ const oversizedThread=JSON.parse(json);oversizedThread.incidents.data[0].comments=Array.from({length:3},()=>({comment:'x'.repeat(8000)}));const threadRefusal=await f.client('preview',{text:JSON.stringify(oversizedThread)});assert.equal(threadRefusal.status,400);assert.match(threadRefusal.body.error,/combined comments/);
  const jp=await f.client('preview',{text:json});assert.equal(jp.status,200,JSON.stringify(jp.body));const ja=await f.client('apply',{text:json,digest:jp.body.digest});assert.equal(ja.status,200,JSON.stringify(ja.body));assert.equal(ja.body.addedRows,2);
- const overlap=await read(nativePath);assert.equal(overlap.sourceHistory.sourceIncidents.length,4);assert.equal(overlap.sourceHistory.blended.notPassingMs,3799000,'post-cutover source downtime stays outside blended figure');assert.equal(overlap.sourceHistory.sourceResponseTimes[0].responseMs,123);assert.match(overlap.sourceHistory.sourceIncidents.at(-1).comments,/Synthetic source author/);
+ const overlap=await read(nativePath);assert.equal(overlap.sourceHistory.sourceIncidents.length,4);assert.equal(overlap.sourceHistory.blended.notPassingMs,3799000,'post-cutover source downtime stays outside blended figure');assert.equal(overlap.sourceHistory.sourceResponseTimes[0].responseMs,123);assert.match(overlap.sourceHistory.sourceIncidents.at(-1).comments,/Synthetic source author/);assert.match(overlap.sourceHistory.sourceIncidents.at(-1).rootCause,/httpResponseCode/);assert.match(overlap.sourceHistory.sourceIncidents.at(-1).rootCause,/history.example.test/);assert.ok(!JSON.stringify(overlap).includes('synthetic-uptime-207'),'source request credentials are withheld');
  assert.equal((await db.prepare('SELECT COUNT(*) n FROM oa_operators WHERE display_name=?').bind('Synthetic source author').first()).n,0);
  const sourceTimes=await read(`/api/v1/monitors/${encodeURIComponent(f.id)}/response-times?${f.query}`);assert.equal(sourceTimes.sourceSamples[0].responseMs,123);assert.equal(sourceTimes.sourceSamples[0].label,'source: UptimeRobot');
+ await proveHistorySourceReads(f);
  const originalDigest=overlap.sourceHistory.blended.denominatorMs;
  const changed=await f.client('cutover/'+encodeURIComponent(f.id),{cutoverAt:iso(f.cutover+2*day)});assert.equal(changed.status,200,JSON.stringify(changed.body));
  const adjusted=await read(nativePath);assert.equal(adjusted.sourceHistory.blended.notPassingMs,(3799+91)*1000);assert.equal(adjusted.sourceHistory.blended.denominatorMs,originalDigest);
@@ -109,8 +112,8 @@ export async function proveSourceHistory({origin,cookie,db}){
  assert.equal(await evidenceSnapshot(db),before,'batch removal and cutover do not touch monitoring evidence');
  const disk=await mkdtemp(join(tmpdir(),'uptime-history-cli-'));
  try{
-  const input=join(disk,'source.csv');await writeFile(input,f.csv);
-  for(const command of [['preview','--input',input],['apply','--input',input,'--digest',(await f.client('preview',{text:f.csv})).body.digest],['history-batches'],['history-cutover','--monitor',f.id,'--at',iso(f.cutover)]]){
+  const input=join(disk,'source.csv'),perInput=join(disk,'per-monitor.csv');await writeFile(input,f.csv);await writeFile(perInput,`Date-Time,Event\n${iso(f.from)},Up\n${iso(f.cutover)},Up\n`);
+  for(const command of [['preview','--input',input],['apply','--input',input,'--digest',(await f.client('preview',{text:f.csv})).body.digest],['preview','--input',perInput,'--source-monitor',sourceId,'--extracted-at',iso(f.end)],['history-batches'],['history-cutover','--monitor',f.id,'--at',iso(f.cutover)]]){
    const args=['scripts/definitions.mjs',...command,'--origin',origin,'--json'];const result=await cli(args,{UPTIME_SESSION_COOKIE:cookie});assert.equal(result.code,0,result.error);const output=JSON.parse(result.output);if(command[0]==='preview')assert.equal(output.kind,'history');if(command[0]==='apply')assert.equal(output.addedRows,0);
   }
  }finally{await rm(disk,{recursive:true,force:true})}
@@ -126,7 +129,35 @@ export async function assertHistoryReport(f,report){
  const bulkQuery=new URLSearchParams(f.query);bulkQuery.delete('bucket');
  const bulk=await f.client('/api/v1/uptime?'+bulkQuery+'&monitor='+encodeURIComponent(f.id));assert.equal(bulk.status,200,JSON.stringify(bulk.body));assert.deepEqual(bulk.body.monitors[0].sourceHistory,h);
  const bulkCsv=await fetch(f.origin+'/api/v1/uptime?'+bulkQuery+'&monitor='+encodeURIComponent(f.id)+'&format=csv',{headers:{cookie:f.cookie}});assert.equal(bulkCsv.status,200);assert.match(await bulkCsv.text(),/source: UptimeRobot/);
+ const schema=await (await fetch(f.origin+'/api/v1/openapi.json')).json();
+ const accepted=schema.paths['/api/v1/monitors/{id}/report'].get.parameters.find(p=>p.name==='source').schema.enum;
+ const expected={UptimeRobot:h.segments[0],Uptime:h.uptimeSegment,blended:h.blended};
+ for(const source of accepted){
+  const selected=await f.client(`/api/v1/monitors/${encodeURIComponent(f.id)}/report?${f.query}&source=${encodeURIComponent(source)}`);assert.equal(selected.status,200,JSON.stringify(selected.body));const uptimeRead=await f.client(`/api/v1/monitors/${encodeURIComponent(f.id)}/uptime?${f.query}&source=${encodeURIComponent(source)}`);assert.equal(uptimeRead.status,200);assert.deepEqual(uptimeRead.body.availability,selected.body.availability);assert.equal(selected.body.availability.observedMs,expected[source].denominatorMs);assert.equal(selected.body.sla.denominatorMs,expected[source].denominatorMs);assert.equal(selected.body.sla.actualPercent,expected[source].uptimePercent);assert.equal(selected.body.availability.notPassingMs,expected[source].notPassingMs);assert.equal(selected.body.availability.uptimePercent,expected[source].uptimePercent);assert.equal(selected.body.incidentSummary.count,source==='UptimeRobot'?3:source==='Uptime'?report.incidents.length:report.incidents.length+3);assert.ok(selected.body.sourceHistory.segments.length);
+  const selectedBulk=await f.client('/api/v1/uptime?'+bulkQuery+'&monitor='+encodeURIComponent(f.id)+'&source='+encodeURIComponent(source));assert.equal(selectedBulk.status,200,JSON.stringify(selectedBulk.body));assert.deepEqual(selectedBulk.body.monitors[0].availability,selected.body.availability);
+ }
+ for(const source of ['not-a-source','Pingdom']){const refused=await f.client(`/api/v1/monitors/${encodeURIComponent(f.id)}/uptime?${f.query}&source=${source}`);assert.equal(refused.status,400);assert.ok(refused.body.error.includes(source));}
  const pdf=await read('pdf');assert.match(pdf.headers.get('content-type'),/pdf/);assert.ok((await pdf.arrayBuffer()).byteLength>1000);
+}
+async function proveHistorySourceReads(f){
+ const read=async(path,headers={})=>{const response=await fetch(f.origin+path,{headers:{cookie:f.cookie,...headers}});const body=await response.json();return {status:response.status,body}};
+ const prefix=`/api/v1/monitors/${encodeURIComponent(f.id)}/response-times?${f.query}`;
+ const source=await read(prefix+'&source=UptimeRobot');assert.equal(source.status,200);assert.equal(source.body.statistics.meanMs,123);assert.equal(source.body.statistics.count,1);assert.equal(source.body.label,'source: UptimeRobot');
+ const native=await read(prefix+'&source=Uptime');assert.equal(native.status,200);assert.equal(native.body.statistics.count,30);
+ const schema=await (await fetch(f.origin+'/api/v1/openapi.json')).json(),values=schema.paths['/api/v1/monitors/{id}/response-times'].get.parameters.find(p=>p.name==='source').schema.enum;
+ for(const value of values)assert.equal((await read(prefix+'&source='+encodeURIComponent(value))).status,200);
+ for(const value of ['blended','Pingdom','not-a-source']){const refused=await read(prefix+'&source='+value);assert.equal(refused.status,400);assert.ok(refused.body.error.includes(value));}
+ const query=new URLSearchParams({source:'UptimeRobot',monitor:f.id,from:String(f.from),to:String(f.end),limit:'1'}),seen=[],durations=[];
+ do{const page=await read('/api/v1/incidents?'+query);assert.equal(page.status,200,JSON.stringify(page.body));assert.equal(page.body.items.length,1);const row=page.body.items[0];assert.equal(row.source,'UptimeRobot');assert.equal(row.label,'source: UptimeRobot');assert.equal(row.ownerId,null);seen.push(row.id);durations.push(row.durationSeconds);if(page.body.nextCursor)query.set('cursor',page.body.nextCursor);else break;}while(seen.length<10);
+ assert.equal(new Set(seen).size,4);assert.deepEqual(durations.sort((a,b)=>a-b),[73,91,125,3601]);
+ const nativeIncidents=await read('/api/v1/incidents?source=Uptime&monitor='+encodeURIComponent(f.id));assert.equal(nativeIncidents.status,200);assert.equal(nativeIncidents.body.items.length,1);
+ const csv=await fetch(f.origin+'/api/v1/incidents?'+new URLSearchParams({source:'UptimeRobot',monitor:f.id,format:'csv'}),{headers:{cookie:f.cookie}});assert.equal(csv.status,200);assert.match(await csv.text(),/UptimeRobot/);
+ const unavailable=await read('/api/v1/incidents?source=Pingdom');assert.equal(unavailable.status,400);assert.match(unavailable.body.error,/Pingdom/);
+ await completeSecondFactor(f.origin,f.cookie);
+ const issued=await f.client('/api/credentials',{name:'synthetic-uptime-206',scopes:['monitoring:read'],expiresAt:Date.now()+3600000,resources:{mode:'selection',monitorIds:[f.id],tags:[]}});assert.equal(issued.status,201);
+ const headers={authorization:'Bearer '+issued.body.token};
+ for(const value of schema.paths['/api/v1/monitors/{id}/report'].get.parameters.find(p=>p.name==='source').schema.enum){const report=await read(`/api/v1/monitors/${encodeURIComponent(f.id)}/report?${f.query}&source=${encodeURIComponent(value)}`,headers);assert.equal(report.status,200);assert.ok(report.body.sourceHistory);}
+ assert.equal((await read(prefix+'&source=UptimeRobot',headers)).status,200);assert.equal((await read('/api/v1/incidents?source=UptimeRobot&monitor='+encodeURIComponent(f.id),headers)).status,200);
 }
 // Existing definition registration also proves an additive migration against populated pre-upgrade tables.
 export async function proveHistoryUpgrade(db){

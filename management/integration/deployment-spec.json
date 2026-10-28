@@ -480,6 +480,12 @@
       "name": "0077_rum_percentile_erasure.sql",
       "sha256": "60984388c36a7e790ffe7eb357336d7eddbf6b97e5c2a4007578f9d6dadebcca",
       "sql": "-- PERF-001: anonymous frequency counts, never per-visitor records. Existing hourly\n-- sums remain intact: pre-upgrade data has no reconstructable percentiles.\n-- Subdivision is the edge-provided US code, or empty when it is unavailable.\n-- These installation-local counts are excluded from archives with rum_sites.\nCREATE TABLE rum_value_counts(\n site_id TEXT NOT NULL,\n hour INTEGER NOT NULL,\n route TEXT NOT NULL,\n device TEXT NOT NULL CHECK(device IN ('mobile','desktop')),\n region TEXT NOT NULL,\n subdivision TEXT NOT NULL,\n metric TEXT NOT NULL CHECK(metric IN ('status','errors','lcpMs','cls','inpMs')),\n value INTEGER NOT NULL CHECK(value>=0),\n count INTEGER NOT NULL CHECK(count>0),\n PRIMARY KEY(site_id,hour,route,device,region,subdivision,metric,value)\n);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0078_source_history.sql",
+      "sha256": "e66ce54cf7bdfb3e22d5af4d5480e1bdab31a69878c1a5cde07a3de4e113ebb2",
+      "sql": "-- Sourced incumbent history is never monitoring evidence or execution authority.\nCREATE TABLE source_history_batches (\n id TEXT NOT NULL, monitor_id TEXT NOT NULL REFERENCES monitors(id), source TEXT NOT NULL,\n source_monitor_id TEXT NOT NULL, file_digest TEXT NOT NULL, extracted_at INTEGER,\n coverage_from INTEGER NOT NULL, coverage_to INTEGER NOT NULL, imported_at INTEGER NOT NULL,\n restored_at INTEGER, PRIMARY KEY(id,monitor_id), CHECK(coverage_to>=coverage_from)\n);\nCREATE TABLE source_history_rows (\n monitor_id TEXT NOT NULL REFERENCES monitors(id), source TEXT NOT NULL, source_row_id TEXT NOT NULL,\n batch_id TEXT NOT NULL, kind TEXT NOT NULL CHECK(kind IN ('down','up','incident','response')),\n started_at INTEGER NOT NULL, ended_at INTEGER, response_ms REAL, source_duration_seconds REAL,\n author TEXT NOT NULL, comments TEXT NOT NULL, root_cause TEXT NOT NULL, included INTEGER NOT NULL,\n PRIMARY KEY(monitor_id,source,source_row_id),\n FOREIGN KEY(batch_id,monitor_id) REFERENCES source_history_batches(id,monitor_id),\n CHECK(ended_at IS NULL OR ended_at>=started_at)\n);\nCREATE INDEX source_history_period ON source_history_rows(monitor_id,started_at);\nCREATE TABLE source_history_cutovers (\n monitor_id TEXT PRIMARY KEY REFERENCES monitors(id), cutover_at INTEGER NOT NULL\n);\n"
     }
   ],
   "compatibilityDate": "2026-09-08",

@@ -1,3 +1,5 @@
+import {readSource} from '../source-history/read-selection.ts'
+import {sourceLatency} from '../source-history/latency.ts'
 import {sourceResponseTimes} from '../source-history/response-times.server.ts'
 import {credentialMonitorFilter,type CredentialEnvironment} from '../credentials/model.server.ts'
 import {configuredPeriod} from './configured-period.server.ts'
@@ -59,6 +61,7 @@ export async function periodLatency(db: D1Database, id: string, period: ReportPe
 }
 
 export async function monitorLatency(env: CredentialEnvironment, id: string, params: URLSearchParams | ReportPeriod, now = Date.now()) {
+  const selection=params instanceof URLSearchParams?readSource(params,'response times'):null
   const period = await configuredPeriod(env, params, now)
   if (period.to - period.from > 90 * 86400000) throw new ReportInputError('Response-time ranges cannot exceed 90 days', 'range_too_long')
   const options = params instanceof URLSearchParams ? latencyOptions(params) : latencyOptions(new URLSearchParams())
@@ -66,5 +69,6 @@ export async function monitorLatency(env: CredentialEnvironment, id: string, par
   const exists = await env.DB.prepare(`SELECT id FROM monitors WHERE id=? AND ${filter.sql}`).bind(id,...filter.params).first()
   if(!exists)return null
   const [native,sourceSamples]=await Promise.all([periodLatency(env.DB,id,period,options),sourceResponseTimes(env.DB,id,period)])
+  if(selection==='UptimeRobot')return sourceLatency(sourceSamples,period,options)
   return sourceSamples.length?{...native,sourceSamples}:native
 }
