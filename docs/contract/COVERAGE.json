@@ -2,7 +2,7 @@
   "schema": 1,
   "seed": "uptime",
   "old": {
-    "commit": "a249d58f20dd1ac41a0a2b928e7932edcb8b7aef",
+    "commit": "eef52a03c4ca4ccc9db813be245f3c5f275f8d4f",
     "files": [
       "CONTRACT.md",
       "ACCEPTANCE.md",

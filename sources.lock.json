@@ -559,15 +559,15 @@
       "executable": false
     },
     "docs/contract/COVERAGE.json": {
-      "sha256": "1f38d320e23162956fa63b472bf28049d3e3472bdd9567bc3db2dd65fb18e46a",
+      "sha256": "12a12a12d1170a97d7c1efdcd8c6c2b65e79302ca2fc27a7a1ccb0a5957ab950",
       "executable": false
     },
     "docs/contract/DONE-AUDIT.md": {
-      "sha256": "c1b08be26e520ef11cf35af5d47993d2c4dae967865279ba7f9ffde687d62d56",
+      "sha256": "a83799ebf6dda42a5eedee07351754d1fd91f1128e38b757308c266b5651229b",
       "executable": false
     },
     "docs/contract/ID-MAP.json": {
-      "sha256": "7bc15a8bae611478f1b6bcce9a79968f7559ca5ba9aafe9d423d076751e6305d",
+      "sha256": "7b9f9839b50516999e689295a5bf16209aec07ec700e4df10d0f20f3f40e69d1",
       "executable": false
     },
     "docs/contract/safety-rules.md": {
@@ -7342,8 +7342,12 @@
       "sha256": "3c53814d4f1149660543051bf44b527db7c5cc02ec2009600b397ed423aa14f8",
       "executable": false
     },
+    "tests/business-import-catchup-support.mjs": {
+      "sha256": "5f7a2d27b8b92f08b917e438e4f201bdecf567162f5a0d1d31d63a3931ba11b2",
+      "executable": false
+    },
     "tests/business-import-door.mjs": {
-      "sha256": "cd3f48bcf53160b7e752fa74f59fa097f2b9bb7ad216628a83a8255cac77f833",
+      "sha256": "347583f0864e5654d63b6190eedaaef4dfdca0e3617aa499086e8c1148f19a9f",
       "executable": false
     },
     "tests/business-import-erasure-proof.mjs": {
