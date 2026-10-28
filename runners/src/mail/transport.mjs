@@ -1,7 +1,6 @@
 import {resolveDiagnosticPin,measurePhase} from '../network-phase-capture.mjs';
 import net from 'node:net';
 import tls from 'node:tls';
-import {resolvePublic} from '../public-http.mjs';
 import {mailOrigin} from '../../../src/domain/mail-probe/schema.mjs';
 import {MAIL_ERROR_CATEGORIES} from '../../../src/domain/mail-probe/evaluate.mjs';
 

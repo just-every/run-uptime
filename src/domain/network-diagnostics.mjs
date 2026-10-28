@@ -56,7 +56,7 @@ export function protocolDiagnosticCategory(definition,observation){
  if(!DIAGNOSTIC_PROTOCOLS.includes(definition.type)||observation.outcome==='pass')return null;
  const code=definition.type==='mail'?observation.protocol?.steps?.find(step=>!step.pass)?.category:observation.protocol?null:observation.checks?.[0]?.assertion;
  if(code)return code==='refused'?'connection':categories.has(code)?code:null;
- if(definition.type==='ping'&&observation.protocol?.received===0)return 'timeout';
+ if(definition.type==='ping'&&observation.protocol?.lossPercent>0)return 'timeout';
  if(definition.type==='tls'&&observation.checks?.some(check=>!check.pass&&['trust','hostname','validity'].includes(check.assertion)))return 'tls';
  if(definition.type==='dns'&&observation.protocol?.resolvers?.some(resolver=>resolver.status!=='answer'||!resolver.answers.length))return 'dns';
  return null;

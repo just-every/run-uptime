@@ -13,6 +13,7 @@ export function validateSnapshotArchive(t:Tables){
   if(!('unavailable' in snapshot)){
    const protocol=DIAGNOSTIC_PROTOCOLS.includes(type);
    if(protocol)validateProtocolDiagnosticSnapshot(snapshot,JSON.parse(slot.definition),evidence);
+   else if(!['http:','https:'].includes(new URL(snapshot.url).protocol))throw Error('Invalid failure snapshot URL');
    const validStatus=protocol?snapshot.status===null:type==='flow'?snapshot.status===null:evidence.status!==undefined?snapshot.status===evidence.status:snapshot.status===null||evidence.checks?.some((c:any)=>['timeout','connection','transport','encoding','body-limit'].includes(c.assertion));
    if(!validStatus||snapshot.durationMs!==evidence.durationMs||type!=='flow'&&snapshot.artifacts)throw Error('Invalid failure snapshot evidence')
   }

@@ -13,6 +13,7 @@ let worker;
 try{
  worker=await hostedRuntime(directory,{...testAuthBindings,UPTIME_LOCAL_REVIEW:'false',UPTIME_ORIGIN:origin,MAIL_PROVIDER:'sendgrid',SENDGRID_API_KEY:'test-only-provider-key'},request=>{
   const url=new URL(request.url);if(url.hostname==='api.sendgrid.com')return new Response(null,{status:202});
+  if(url.origin==='https://cloudflare-dns.com'&&url.searchParams.get('name')==='synthetic-uptime-401.test')return Response.json({Status:3});
   if(url.origin==='https://cloudflare-dns.com')return Response.json({Status:0,Answer:[{type:1,data:'93.184.215.14'}]});
   assert.ok(['https://public.example.test','https://example.com'].includes(url.origin),'only declared public targets leave the Worker');
   if(url.pathname==='/self-redirect')return new Response(null,{status:302,headers:{location:origin+'/health'}});
@@ -58,5 +59,12 @@ try{
  assert.equal(redirectedHistory.length,1);assert.ok(redirectedHistory[0].observations.every(o=>o.outcome==='runner_error'&&o.status===undefined),JSON.stringify(redirectedHistory));
  assert.equal(overview.monitors.find(m=>m.id===redirectMonitor.id).state.targetState,'Unknown','an unsupported self-fetch is not a target failure or success');
  assert.equal((await (await call(`/api/monitors/${privateMonitor.id}/history`,undefined,cookie)).json()).length,0,'the Worker does not execute private assignments');
+ const dnsCreated=await call('/api/monitors',{name:'synthetic-uptime-401',type:'dns',dns:{name:'synthetic-uptime-401.test',resolvers:['cloudflare']},intervalMs:60000,retries:0,confirmSlots:1,recoverSlots:1},cookie);
+ assert.equal(dnsCreated.status,201,await dnsCreated.clone().text());const dnsMonitor=await dnsCreated.json();
+ const dnsRun=await worker.dispatchFetch('http://127.0.0.1:15504/',{method:'POST',body:JSON.stringify({scheduled:true})});assert.equal(dnsRun.status,204);
+ const retained=await call('/api/monitors/'+dnsMonitor.id+'/failure-snapshots',undefined,cookie);assert.equal(retained.status,200);
+ const diagnostic=(await retained.json()).items[0].snapshot.diagnostics;
+ assert.equal(diagnostic.category,'dns');assert.equal(diagnostic.route.reason,'hosted-transport');assert.deepEqual(diagnostic.route.hops,[]);
+ for(const phase of ['dnsMs','connectMs','tlsMs','ttfbMs'])assert.equal(diagnostic.phases[phase],null);
  console.log('PASS request-started and scheduled public Worker checks preserve external health, refuse self-monitor saves and leave self-redirects Unknown');
 }finally{await worker?.dispose();await rm(directory,{recursive:true,force:true})}

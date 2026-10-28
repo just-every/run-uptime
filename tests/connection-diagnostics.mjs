@@ -11,7 +11,7 @@ test('connection failures retain bounded diagnostic phases and unavailable route
  const original=childProcess.spawn,calls=[];let blocked=false;
  // Only the network utility edge is substituted. HTTP, signing, Worker and D1 are real.
  childProcess.spawn=function(file,args,options){if(file==='/usr/sbin/traceroute'||file==='traceroute'){
-  calls.push({file,args});assert.ok(args.includes('-n'));assert.equal(args[args.indexOf('-m')+1],'5');assert.equal(args[args.indexOf('-q')+1],'1');
+  calls.push({file,args});assert.equal(args.at(-1),'93.184.216.34','route uses the original numeric transport pin');assert.ok(args.includes('-n'));assert.equal(args[args.indexOf('-m')+1],'5');assert.equal(args[args.indexOf('-q')+1],'1');
   return original.call(this,process.execPath,['-e',blocked?'process.stderr.write("Operation not permitted\\n");process.exitCode=1':'process.stdout.write("1  192.0.2.1  1.25 ms\\n2  *\\n3  93.184.216.34  3.5 ms\\n")'],options)
  }return original.call(this,file,args,options)};syncBuiltinESMExports();
  let f,receiving;
@@ -35,6 +35,16 @@ test('connection failures retain bounded diagnostic phases and unavailable route
   const refusedTask=await f.claim(f.first),failure=await f.evidence(refusedTask);assert.equal(failure.checks[0].assertion,'connection');assert.equal(failure.failureSnapshot.diagnostics.route.reason,'blocked');assert.equal((await f.submit(f.first,refusedTask,[failure])).status,200);
   const forged=structuredClone(failure);forged.id+='bad';forged.failureSnapshot.diagnostics.route.reason='arbitrary secret text';assert.equal((await f.submit(f.first,refusedTask,[forged])).status,400);
   const erased=await f.request(`/api/monitors/${refused.id}/erase`,{body:{name:refused.definition.name}});assert.equal(erased.status,200);assert.equal(erased.data.receipt.counts.failure_snapshots,1);assert.equal(calls.length,2);
-  await protocolDiagnostics(f,value=>blocked=value);
+  const protocols=await protocolDiagnostics(f,value=>blocked=value);assert.equal(calls.length,8,'one bounded route per failed transport; healthy peers add no traffic');
+  const protocolArchive=(await f.request('/api/archive')).data;receiving=await fixture();
+  const restored=await receiving.request('/api/restore',{body:{archive:protocolArchive}});assert.equal(restored.status,200,JSON.stringify(restored.data));
+  for(const protocol of protocols){
+   const retained=(await receiving.request('/api/monitors/'+protocol.id+'/failure-snapshots')).data;
+   assert.equal(retained.items.length,2);assert.equal(retained.items.filter(row=>row.snapshot.diagnostics.route.reason==='blocked').length,1);
+   assert.ok(retained.items.every(row=>row.healthyPeers.length===1),'healthy peer comparison survives inactive restore');
+   const erased=await receiving.request('/api/monitors/'+protocol.id+'/erase',{body:{name:protocol.definition.name}});
+   assert.equal(erased.status,200);assert.equal(erased.data.receipt.counts.failure_snapshots,2);
+   assert.equal((await receiving.DB.prepare('SELECT COUNT(*) n FROM failure_snapshots WHERE monitor_id=?').bind(protocol.id).first()).n,0);
+  }
  }finally{childProcess.spawn=original;syncBuiltinESMExports();await receiving?.close();await f?.close()}
 });

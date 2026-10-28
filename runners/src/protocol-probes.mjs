@@ -10,8 +10,7 @@ import {protocolChecks} from '../../src/domain/protocol/evaluate.mjs';
 import {dnsFacts} from '../../src/domain/protocol/dns.mjs';
 import {domainFacts} from '../../src/domain/protocol/rdap.mjs';
 import {ProtocolError} from '../../src/domain/protocol/protocol-error.mjs';
-import {readFramed} from '../../src/domain/protocol/dns-wire.mjs';
-import {resolvePublic,publicReport,ProbeError} from './public-http.mjs';
+import {publicReport,ProbeError} from './public-http.mjs';
 // The runner's TCP, TLS, DNS and domain checks. Sockets connect only to the address the public resolver validated
 // (resolvePublic pins it, as an HTTP probe's socket is pinned); DNS over HTTPS and RDAP reads go through publicReport's
 // pinned, read-only, bounded GET. Refused, timed out and unresolved targets are target failures; a check this runner could

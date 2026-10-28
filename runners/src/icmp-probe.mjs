@@ -1,7 +1,6 @@
 import {resolveDiagnosticPin} from './protocol-diagnostics.mjs';
 import {spawn} from 'node:child_process';
 import {isIP} from 'node:net';
-import {resolvePublic} from './public-http.mjs';
 import {publicHost} from '../../src/domain/protocol/settings.mjs';
 import {ProtocolError} from '../../src/domain/protocol/protocol-error.mjs';
 

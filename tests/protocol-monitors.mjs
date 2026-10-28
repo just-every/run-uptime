@@ -1,3 +1,4 @@
+import {rejectForgedDiagnostics} from './diagnostic-intake-refusals.mjs';
 import {completeApiSecondFactor} from './mfa-auth-support.mjs';
 import assert from 'node:assert/strict';
 import {createHmac} from 'node:crypto';
@@ -13,6 +14,7 @@ import {certificates,listen,close,webServer,tcpServer,tlsServer,dnsServer} from 
 // TCP-001, DNS-001, TLS-001 and DOMAIN-001 core flows: the owner API saves each monitor, the real Node runner checks
 // local fixtures through its production DNS pinning and sockets (only the network edge is routed), and its signed
 // results drive state, incidents and expiry warnings in the emitted production Worker with migrated D1.
+const diagnosticKinds=new Set();
 const directory=await mkdtemp(join(tmpdir(),'uptime-protocols-')),key='protocol-monitors-test-only-runner-key';
 const DAY=86400000,scenario={dns:{},registry:{},registrar:{},certificate:null};
 let worker,db,web,tcp,tlsService,dns,cookie='',origin,passed=0;
@@ -23,6 +25,7 @@ try{
  const dispatch=envelope=>worker.dispatchFetch('http://localhost/',{method:'POST',redirect:'manual',headers:{'content-type':'application/json'},body:JSON.stringify(envelope)});
  web=webServer(certs.web,scenario,async(req,res)=>{
   let body='';for await(const chunk of req)body+=chunk;
+  if(req.url==='/api/runner/results')await rejectForgedDiagnostics({url:origin+req.url,headers:req.headers,body,key,dispatch,db,seen:diagnosticKinds});
   const response=await dispatch({url:origin+req.url,method:req.method,headers:req.headers,...(body?{body}:{})});
   res.writeHead(response.status,Object.fromEntries(response.headers));res.end(Buffer.from(await response.arrayBuffer()));
  });
@@ -57,9 +60,9 @@ try{
   const m=await create({name:'Database port',type:'tcp',tcp:{host:'tcp.protocol.test',port:5432,bannerIncludes:'READY'},timeoutMs:1500});
   assert.equal(m.definition.url,'tcp://tcp.protocol.test:5432');
   let r=await step(m.id);assert.equal(r.o.outcome,'pass');assert.equal(r.o.protocol.address,'93.184.216.34');assert.match(r.o.protocol.banner,/^READY protocol fixture/);assert.equal(r.state.state,'Healthy');
-  await close(tcp);r=await step(m.id);assert.equal(r.o.outcome,'target_failure');assert.equal(r.o.checks[0].assertion,'refused');assert.equal(r.state.state,'Failing');assert.deepEqual(kinds(r.alerts),['trigger']);
-  r=await step(m.id,{PROTOCOL_TCP_MODE:'blackhole'});assert.equal(r.o.outcome,'target_failure');assert.equal(r.o.checks[0].assertion,'timeout');
-  r=await step(m.id,{PROTOCOL_RESOLVER_FAILS:'1'});assert.equal(r.o.outcome,'runner_error');assert.equal(r.o.checks[0].assertion,'dns');assert.equal(r.state.targetState,'Unknown','a probe failure is never target evidence');
+  await close(tcp);r=await step(m.id);assert.equal(r.o.outcome,'target_failure');assert.equal(r.o.checks[0].assertion,'refused');assert.equal((await api('/api/monitors/'+m.id+'/failure-snapshots')).data.items[0].snapshot.diagnostics.category,'connection');assert.equal(r.state.state,'Failing');assert.deepEqual(kinds(r.alerts),['trigger']);
+  r=await step(m.id,{PROTOCOL_TCP_MODE:'blackhole'});assert.equal(r.o.outcome,'target_failure');assert.equal(r.o.checks[0].assertion,'timeout');assert.equal((await api('/api/monitors/'+m.id+'/failure-snapshots')).data.items[0].snapshot.diagnostics.category,'timeout');
+  r=await step(m.id,{PROTOCOL_RESOLVER_FAILS:'1'});assert.equal(r.o.outcome,'runner_error');assert.equal(r.o.checks[0].assertion,'dns');assert.equal((await api('/api/monitors/'+m.id+'/failure-snapshots')).data.items[0].snapshot.diagnostics.route.reason,'missing-pin');assert.equal(r.state.targetState,'Unknown','a probe failure is never target evidence');
   await listen(tcp=tcpServer(),tcpPort);r=await step(m.id);assert.equal(r.o.outcome,'pass');assert.equal(r.state.state,'Healthy');assert.deepEqual(kinds(r.alerts),['trigger','recovery']);
   await pause(m.id);
  });
@@ -75,7 +78,7 @@ try{
   // The zone changed at its server, but recursive resolvers still serve the cached record: each answer is acceptable,
   // yet exact expectations make the propagation difference itself a failure.
   scenario.dns={...all(['203.0.113.99']),authoritative:{status:'answer',answers:['203.0.113.10']}};r=await step(m.id);assert.equal(r.o.outcome,'target_failure');assert.match(r.o.checks.find(c=>c.assertion==='agreement').reason,/Resolvers disagree/);
-  scenario.dns={cloudflare:{status:'nxdomain'},google:{status:'nxdomain'},authoritative:{status:'nxdomain'}};r=await step(m.id);assert.equal(r.o.outcome,'target_failure',JSON.stringify(r.o.checks));assert.match(r.o.checks[2].reason,/NXDOMAIN/,'an approved value never suppresses a missing name');
+  scenario.dns={cloudflare:{status:'nxdomain'},google:{status:'nxdomain'},authoritative:{status:'nxdomain'}};r=await step(m.id);assert.equal(r.o.outcome,'target_failure',JSON.stringify(r.o.checks));assert.equal((await api('/api/monitors/'+m.id+'/failure-snapshots')).data.items[0].snapshot.diagnostics.category,'dns');assert.match(r.o.checks[2].reason,/NXDOMAIN/,'an approved value never suppresses a missing name');
   scenario.dns={...all(['203.0.113.99']),google:{status:'servfail'}};r=await step(m.id);assert.equal(r.o.outcome,'target_failure');assert.match(r.o.checks[1].reason,/SERVFAIL/);assert.equal(r.o.checks.find(c=>c.assertion==='agreement').pass,false);
   scenario.dns={...all(['203.0.113.99']),google:{status:'unavailable'}};r=await step(m.id);assert.equal(r.o.outcome,'runner_error');assert.match(r.o.checks[1].reason,/monitor infrastructure fault/);assert.equal(r.state.targetState,'Unknown');
   await pause(m.id);
@@ -87,7 +90,7 @@ try{
   let r=await step(m.id);assert.equal(r.o.outcome,'pass',JSON.stringify(r.o.checks));assert.equal(r.state.state,'Healthy');
   let warnings=r.alerts.filter(a=>a.kind==='expiry');assert.equal(warnings.length,1);assert.match(warnings[0].event.title,/^Certificate expires in (9|10) days: Storefront certificate$/);assert.match(warnings[0].event.explanation,/tls\.protocol\.test issued by Protocol fixture test CA .*the 14-day warning.*Accountable owner: Web team/);
   r=await step(m.id);assert.equal(r.alerts.filter(a=>a.kind==='expiry').length,1,'the same stage never warns twice');
-  scenario.certificate=certs.wrongName;r=await step(m.id);assert.equal(r.o.outcome,'target_failure');assert.equal(r.o.checks.find(c=>c.assertion==='hostname').pass,false);assert.equal(r.state.state,'Failing');
+  scenario.certificate=certs.wrongName;r=await step(m.id);assert.equal(r.o.outcome,'target_failure');assert.equal(r.o.checks.find(c=>c.assertion==='hostname').pass,false);assert.equal((await api('/api/monitors/'+m.id+'/failure-snapshots')).data.items[0].snapshot.diagnostics.category,'tls');assert.equal(r.state.state,'Failing');
   scenario.certificate=certs.selfSigned;r=await step(m.id);assert.equal(r.o.checks.find(c=>c.assertion==='trust').pass,false);assert.match(r.o.checks.find(c=>c.assertion==='trust').reason,/self-signed/);
   scenario.certificate=certs.renewed;r=await step(m.id);assert.equal(r.o.outcome,'pass');assert.equal(r.state.state,'Healthy');
   const renewal=r.alerts.find(a=>a.kind==='renewal');assert.ok(renewal,'a renewal is observed');assert.equal(renewal.event.incidentKey,warnings[0].event.incidentKey);assert.match(renewal.event.explanation,/valid until .*replaces the one warned about earlier/);
@@ -106,5 +109,6 @@ try{
   const renewed=Date.now()+400*DAY;scenario.registry={status:200,expiresAt:renewed};scenario.registrar={status:200,expiresAt:renewed};r=await step(m.id);assert.equal(r.o.outcome,'pass');assert.equal(r.state.state,'Healthy');
   const renewal=r.alerts.find(a=>a.kind==='renewal');assert.ok(renewal);assert.equal(renewal.event.incidentKey,warning.event.incidentKey);assert.equal(r.alerts.filter(a=>a.kind==='trigger').length,0,'Unknown registry data never opened an incident');
  });
+ assert.deepEqual([...diagnosticKinds].sort(),['TCP','DNS','TLS'].sort());
  console.log(`PROTOCOL-MONITORS passed ${passed} checks: emitted Worker + migrated D1, real Node runner per scheduled check, local TCP/TLS/DNS over HTTPS/RDAP fixtures behind production pinning.`);
 }finally{await close(web);await close(tcp);await close(tlsService);await close(dns);await worker?.dispose();await rm(directory,{recursive:true,force:true})}

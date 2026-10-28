@@ -1,3 +1,4 @@
+import {rejectForgedDiagnostics} from './diagnostic-intake-refusals.mjs';
 import {completeApiSecondFactor} from './mfa-auth-support.mjs';
 // PING-001: owner API -> real signed Node runner -> migrated emitted Worker.
 import assert from 'node:assert/strict';
@@ -12,8 +13,9 @@ import {splitSql} from './migration-support.mjs';
 import {emittedRunnerWorker,request,listen,close} from './signed-runner-runtime.mjs';
 import https from 'node:https';
 import {certificates} from './protocol-fixtures.mjs';
+const diagnosticKinds=new Set();
 const directory=await mkdtemp(join(tmpdir(),'uptime-ping-')),key=randomBytes(32).toString('base64url');
-let worker,web,cookie='',forge=false,forgeries=0;
+let worker,web,db,cookie='',forge=false,forgeries=0;
 try{
  const certs=await certificates(directory),cert={...certs.web,caPath:certs.caPath},ca=await readFile(certs.caPath);
  let origin;
@@ -30,12 +32,13 @@ try{
    }
    forge=false;
   }
+  if(req.url==='/api/runner/results')await rejectForgedDiagnostics({url:origin+req.url,headers:req.headers,body,key,dispatch:envelope=>worker.dispatchFetch('http://localhost/',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(envelope)}),db,seen:diagnosticKinds});
   const r=await worker.dispatchFetch('http://localhost/',{method:'POST',redirect:'manual',headers:{'content-type':'application/json'},body:JSON.stringify({url:origin+req.url,method:req.method,headers:req.headers,...(body?{body}:{})})});
   res.writeHead(r.status,Object.fromEntries(r.headers));res.end(Buffer.from(await r.arrayBuffer()));
  });
  const port=await listen(web);origin=`https://localhost:${port}`;
  const bindings={...testAuthBindings,UPTIME_ORIGIN:origin,UPTIME_RUNNER_KEY:key,UPTIME_LOCAL_REVIEW:'false',MAIL_PROVIDER:'sendgrid',SENDGRID_API_KEY:randomBytes(32).toString('base64url'),RER_DEV_KEY:randomBytes(32).toString('base64url')};
- worker=await emittedRunnerWorker(directory,bindings);const db=await worker.getD1Database('DB');
+ worker=await emittedRunnerWorker(directory,bindings);db=await worker.getD1Database('DB');
  for(const file of(await readdir('migrations')).filter(n=>n.endsWith('.sql')).sort())for(const sql of splitSql(await readFile(join('migrations',file),'utf8')))await db.prepare(sql).run();
  const api=(path,body,headers={},method=body===undefined?'GET':'POST')=>request(origin,ca,path,{method,body,headers:{origin,cookie,'cf-connecting-ip':'192.0.2.1',...headers}});
  const run=async(extra={},code)=>{
@@ -60,7 +63,7 @@ try{
   const overview=(await api(`/api/overview?monitor=${m.id}`)).data;assert.equal(overview.monitors[0].state.targetState,'Failing');
   if(mode==='loss')assert.equal(o.checks.find(c=>c.assertion==='packet_loss').pass,false);
   if(mode==='slow')assert.equal(o.checks.find(c=>c.assertion==='rtt').pass,false);
-  if(mode==='blocked'){assert.equal(o.protocol.rtt,null);assert.match(o.checks[0].reason,/cannot distinguish/)}
+  if(mode==='blocked'){const retained=await api('/api/monitors/'+m.id+'/failure-snapshots');assert.equal(retained.status,200);assert.equal(retained.data.items[0].snapshot.diagnostics.category,'timeout');assert.equal(retained.data.items[0].snapshot.diagnostics.phases.connectMs,null);assert.equal(o.protocol.rtt,null);assert.match(o.checks[0].reason,/cannot distinguish/)}
   await pause(m);
  }
  // Recovery is a new immutable revision, with its previous failing sample retained.
@@ -88,5 +91,6 @@ try{
  const bootAgain=await api('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'Receiving ICMP owner'});assert.equal(bootAgain.status,303);cookie=bootAgain.headers['set-cookie'][0].split(';')[0];
  await completeApiSecondFactor(origin,cookie,api);
  const restored=await api('/api/restore',archive);assert.equal(restored.status,200,JSON.stringify(restored.data));const receivingMonitors=(await api('/api/overview')).data.monitors;assert.equal(receivingMonitors.length,exported.monitors.length);assert.ok(receivingMonitors.every(x=>x.definition.type==='ping'&&x.definition.enabled===false));assert.ok(receivingMonitors.some(x=>x.definition.ping.family===6));const roundtrip=await api('/api/archive');assert.equal(roundtrip.status,200);assert.ok(JSON.stringify(roundtrip.data).includes('lossPercent'));
+ assert.deepEqual([...diagnosticKinds].sort(),['PING'].sort());
  console.log('PING-001 PASS: signed IPv4/IPv6 samples, loss/RTT thresholds, failure/recovery, unavailable and stopped probes, forged evidence refusal, native loopback, portable definitions and inactive restore.');
 }finally{await close(web);await worker?.dispose();await rm(directory,{recursive:true,force:true})}

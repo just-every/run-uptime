@@ -495,7 +495,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "d8e54b45a42f6c137716fd9c24c1c4076f4498811d6f9566962c2b471f21863e",
+      "sha256": "33a2965875370e514b025a6789cc05a8c3f7203dfece74b47390327584fca97e",
       "executable": false
     },
     "AGENTS.md": {
@@ -519,7 +519,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "2ba842bc2d101a208ec093de3aef0bd06b7c479114f007dc44154a7c375f2236",
+      "sha256": "8c259ccf30d7388f77e67430c753b314cef977fc4670dae93164419c90e32ef8",
       "executable": false
     },
     "DEMO.md": {
@@ -2523,7 +2523,7 @@
       "executable": false
     },
     "public/assets/failure-snapshot-view.js": {
-      "sha256": "1582a23b207e0820e724c604f522034f70b7ab90941a43683ed1dc9a084a6a9a",
+      "sha256": "f5056b388653b8b1913132efd11e02c1c4797ac054573a1281da29283e3ac270",
       "executable": false
     },
     "public/assets/report-schedule-controls.js": {
@@ -3195,7 +3195,7 @@
       "executable": false
     },
     "runners/src/execute-task.mjs": {
-      "sha256": "e5d86d73684675eaaa97be6044ba234708d0bd743b30f4f61560b8a6c340f766",
+      "sha256": "38e57dccd20eb1481a478ccb5629f38c2f5889aa40d087c996cdeebab1cb9fbf",
       "executable": false
     },
     "runners/src/failure-page-child.mjs": {
@@ -3255,7 +3255,7 @@
       "executable": false
     },
     "runners/src/icmp-probe.mjs": {
-      "sha256": "f08ae538aa5d8b773e8ed2d77bcc62e70dbcb89b4741e6bbd17e8bbc487fe158",
+      "sha256": "97980218c2bd6b66f76b48816ec244f23d38efc25df57660e68f5c06bd800b26",
       "executable": false
     },
     "runners/src/mail/index.mjs": {
@@ -3271,7 +3271,7 @@
       "executable": false
     },
     "runners/src/mail/transport.mjs": {
-      "sha256": "3361d2eead09f7704fe177983c2bb6d54315a5eab3bb7e34ec18f720d36ba761",
+      "sha256": "58e9a0475710b504c2a76a058204287cbee1705e0779bc1cdfd87751b3b24be4",
       "executable": false
     },
     "runners/src/mail/wire.mjs": {
@@ -3323,7 +3323,7 @@
       "executable": false
     },
     "runners/src/protocol-probes.mjs": {
-      "sha256": "0352902aa921946ab1a44fc358596493c44b92d2d0249b78666eed0c9a622b6d",
+      "sha256": "25f112dc5fed39a228d99c56645c4a0032fd307420a66db5ec2fe59f8a5dc0f8",
       "executable": false
     },
     "runners/src/public-http-request.mjs": {
@@ -3355,7 +3355,7 @@
       "executable": false
     },
     "runners/src/udp-probe.mjs": {
-      "sha256": "9305f449f2d48fa4fddfc73cf1d8327259c0f391d333b8efc914119c70fe86af",
+      "sha256": "d092909009872c1b4aec77a836bcc5c33d45f87a7190e49cd0f8bcfcebeb2b4b",
       "executable": false
     },
     "runners/src/watch-store.mjs": {
@@ -5943,7 +5943,7 @@
       "executable": false
     },
     "src/domain/evidence.server.ts": {
-      "sha256": "ce9c050a0f16110711bb2a10bf5aa96b2a01110aab32eeb3eeba3962d2559092",
+      "sha256": "8571c8b1928a237a606595c0911151a6520a837871e521d2fb7b85bebba9e446",
       "executable": false
     },
     "src/domain/expiry-notices.server.ts": {
@@ -5975,7 +5975,7 @@
       "executable": false
     },
     "src/domain/failure-snapshot-archive.ts": {
-      "sha256": "8c09f4ba31958b05363979453a606177f7ff23cf251b62e0eab382b42fb8ca80",
+      "sha256": "0136d14dd198d4d1cbda43fbeebaf6e35e17fe72444a8d86be06826c34543213",
       "executable": false
     },
     "src/domain/failure-snapshot-text.d.mts": {
@@ -5995,7 +5995,7 @@
       "executable": false
     },
     "src/domain/failure-snapshots.server.ts": {
-      "sha256": "0e6a76e989ad0d8270df18786697d86890b805d0b4938a21f168bba27a99c3ab",
+      "sha256": "b1a53aa61dd7acde94ddf840aafeb4094e0a0e388f339f54acd2c36791e92933",
       "executable": false
     },
     "src/domain/first-run.server.ts": {
@@ -6246,12 +6246,16 @@
       "sha256": "9737eb2bbd477cb52de306193156bf0f9b0cf478175f5c1bcd38ff1c93fbaa8c",
       "executable": false
     },
+    "src/domain/network-diagnostic-peers.server.ts": {
+      "sha256": "591781bd4eb46a30921ce0bf6164444df54021e31ffafbcab21a8bd47f789277",
+      "executable": false
+    },
     "src/domain/network-diagnostics.d.mts": {
       "sha256": "0b54d1b145f5580871acf2745ef677abd77e8d7b27685dbbc65aa8c26e9bd2e0",
       "executable": false
     },
     "src/domain/network-diagnostics.mjs": {
-      "sha256": "51cfe14cf24ee414a7a521e43308ed9dd6e02a88dd08602a3109afc2b0be7dea",
+      "sha256": "be74a36afac09d5876e36e6b8b1212c630593eedd30c1c0959dcc346fcfb7742",
       "executable": false
     },
     "src/domain/notification-cancellation.server.ts": {
@@ -6683,7 +6687,7 @@
       "executable": false
     },
     "src/domain/worker-checks.server.ts": {
-      "sha256": "ae2ddacdef37f55ff2f79e8e8387b9da18ec3b87715ee1ae5917cad0526d7121",
+      "sha256": "a7b1efe4535df48297b5a8680d84e84602cd3a696a8f0ee09801f10696df2542",
       "executable": false
     },
     "src/domain/worker-discovery.server.ts": {
@@ -6700,6 +6704,10 @@
     },
     "src/domain/worker-kick.server.ts": {
       "sha256": "04ed2e0509e23366ab01b3a9923a8392cc9b79216d57d41231e6b9cc956c0954",
+      "executable": false
+    },
+    "src/domain/worker-protocol-diagnostics.server.ts": {
+      "sha256": "1ae098a36bd12acecf94e8c7acf8ac6cfc6976297086a1a24012339d2edb2162",
       "executable": false
     },
     "src/domain/worker-protocols.server.ts": {
@@ -7343,15 +7351,15 @@
       "executable": false
     },
     "tests/connection-diagnostics-browser.mjs": {
-      "sha256": "113743ffb8258978b79240b816097a03126842978d60baf27c8d7c2b1ed1c6ec",
+      "sha256": "8515e5356d64b7ce64d767923a00053713cb0e4b7fa772ac1c823ea7d3f9b0e9",
       "executable": false
     },
     "tests/connection-diagnostics-protocols.mjs": {
-      "sha256": "a8ac36a117f7e35f3973d372d34b15ead4473b95e0c121f0d7298a45d1501bd3",
+      "sha256": "d1b16bf28788dd473db5de720c34efdfeffa975d83966abfd67819b77b5b6de2",
       "executable": false
     },
     "tests/connection-diagnostics.mjs": {
-      "sha256": "0d8accb1b46cc8ea280de0199c0152b19929a79c101023628df4b47c4aeadc39",
+      "sha256": "ed619fb50ebe27603193bbf5faec7ca9769170cb538b1331b168c6b05e0c1622",
       "executable": false
     },
     "tests/console-polling-browser.mjs": {
@@ -7408,6 +7416,10 @@
     },
     "tests/deployment-invocation.mjs": {
       "sha256": "0a0f666615efc7bca6d1b8dd5007ebf775ed8f3682091c382722266bd83bb42e",
+      "executable": false
+    },
+    "tests/diagnostic-intake-refusals.mjs": {
+      "sha256": "2b8a1d9fc761fc0d090a359eea46324746a8602c29c6346bb5212a990e02c98b",
       "executable": false
     },
     "tests/discovery-jobs.mjs": {
@@ -7555,7 +7567,7 @@
       "executable": false
     },
     "tests/hosted-scheduled.mjs": {
-      "sha256": "13de4b5656778e3c44799fe93f35b3804b7a0d73a831bd48b8ec1cc58545a995",
+      "sha256": "8addd87e311e2833e0a7777bfc7b34fc6d68ee665b86129262d8ea38078abd7f",
       "executable": false
     },
     "tests/incident-combined-support.mjs": {
@@ -7599,7 +7611,7 @@
       "executable": false
     },
     "tests/mail-journey.mjs": {
-      "sha256": "24821dfcee10d3e51f3e5397c48b938dacbd9c3a277c7b8645ff35536779841e",
+      "sha256": "858d57ef5b2966831810e38d2dba8e3c2c5aaba9ec9a5d268e27a692ad2b3569",
       "executable": false
     },
     "tests/mail-provider-fixture.mjs": {
@@ -7771,7 +7783,7 @@
       "executable": false
     },
     "tests/ping-monitors.mjs": {
-      "sha256": "3721b80d477562115d2c102b58e62f508a5230f4d19c8a4e7286c8f89e942091",
+      "sha256": "102dd534bf61136375e3ec3538160bcf45394455677697e02083d14cd414d282",
       "executable": false
     },
     "tests/ping-routing.mjs": {
@@ -7819,7 +7831,7 @@
       "executable": false
     },
     "tests/protocol-monitors.mjs": {
-      "sha256": "004799836e381147bea9635ecb749189585718b29f77c8b9cf1bb69516fdfa37",
+      "sha256": "ba32a8aca7cbfb5b2d6c84ccbeb20a3cf6e0f702e8ff90cd0cf849e85f79d8ec",
       "executable": false
     },
     "tests/protocol-routing.mjs": {
@@ -7891,7 +7903,7 @@
       "executable": false
     },
     "tests/resilience/support.mjs": {
-      "sha256": "a629af0b1f5cbdea1a656be7ac53d8ba970b5c482cfb170dd9e4ba2c90b14b6d",
+      "sha256": "a153a3d1eb0d0dc9851c5b54618c372e2ac8518b5289ac23dfabfebef4ee7b0a",
       "executable": false
     },
     "tests/resilience/watch-clock.mjs": {
@@ -8003,7 +8015,7 @@
       "executable": false
     },
     "tests/udp-monitors.mjs": {
-      "sha256": "fb174c9ef86111dad7efbc36776e5259a6cc086e4bc28c3d2bc46d4dfaef81a9",
+      "sha256": "42ccab75c8d548512eac48d1ca2408d376edb19171c1bfc682c0690ef49d37b5",
       "executable": false
     },
     "tests/udp-routing.mjs": {

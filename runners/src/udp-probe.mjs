@@ -1,7 +1,6 @@
 import {resolveDiagnosticPin} from './protocol-diagnostics.mjs';
 import dgram from 'node:dgram';
 import {performance} from 'node:perf_hooks';
-import {resolvePublic} from './public-http.mjs';
 import {ProtocolError} from '../../src/domain/protocol/protocol-error.mjs';
 
 const WINDOW_MS=60_000,MAX_ENDPOINTS=1000,MAX_SENDS=6;

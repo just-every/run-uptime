@@ -1,3 +1,4 @@
+import {rejectForgedDiagnostics} from './diagnostic-intake-refusals.mjs';
 import {completeApiSecondFactor} from './mfa-auth-support.mjs';
 import assert from 'node:assert/strict';
 import {createHmac} from 'node:crypto';
@@ -13,6 +14,7 @@ import {certificates,listen,close,webServer} from './protocol-fixtures.mjs';
 import {mailEdges} from './mail-edges.mjs';
 
 // MAIL-001: owner-created revisions, real signed Node execution, actual TCP/TLS mail edges, retained per-step incidents.
+const diagnosticKinds=new Set();
 const directory=await mkdtemp(join(tmpdir(),'uptime-mail-journey-')),key='mail-journey-test-only-runner-key';
 let worker,db,web,edge,cookie='',origin;
 try{
@@ -20,6 +22,7 @@ try{
  edge=await mailEdges(certs.web);
  web=webServer(certs.web,{dns:{google:{status:'answer',answers:[]}}},async(req,res)=>{
   let body='';for await(const chunk of req)body+=chunk;
+  if(req.url==='/api/runner/results')await rejectForgedDiagnostics({url:origin+req.url,headers:req.headers,body,key,dispatch:envelope=>worker.dispatchFetch('http://localhost/',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(envelope)}),db,seen:diagnosticKinds});
   const response=await worker.dispatchFetch('http://localhost/',{method:'POST',redirect:'manual',headers:{'content-type':'application/json'},body:JSON.stringify({url:origin+req.url,method:req.method,headers:req.headers,...(body?{body}:{})})});
   res.writeHead(response.status,Object.fromEntries(response.headers));res.end(Buffer.from(await response.arrayBuffer()));
  });
@@ -58,7 +61,7 @@ try{
   // A new immutable revision changes the TLS identity, not its trusted CA. The same edge certificate must be refused.
   const bad={...mail,host:'wrong-cert.protocol.test'};
   const current=(await api(`/api/overview?monitor=${monitor.id}`)).data.monitors[0];assert.equal((await api(`/api/monitors/${monitor.id}`,{...current.definition,url:undefined,mail:bad},{},'PATCH')).status,200);await credentials(monitor.id,bad);
-  result=await step(monitor.id);assert.equal(result.o.outcome,'target_failure');assert.equal(result.o.checks.at(-1).assertion,'tls');assert.ok(result.history.some(slot=>slot.observations.some(o=>o.checks.some(c=>c.assertion==='authentication'&&!c.pass))));await pause(monitor.id);
+  result=await step(monitor.id);assert.equal(result.o.outcome,'target_failure');assert.equal(result.o.checks.at(-1).assertion,'tls');const retained=await api('/api/monitors/'+monitor.id+'/failure-snapshots');assert.equal(retained.status,200);assert.equal(retained.data.items[0].snapshot.diagnostics.category,'tls');assert.ok(retained.data.items[0].snapshot.diagnostics.phases.tlsMs>=0);assert.ok(!JSON.stringify(retained.data).includes('planted-private-password'));assert.ok(result.history.some(slot=>slot.observations.some(o=>o.checks.some(c=>c.assertion==='authentication'&&!c.pass))));await pause(monitor.id);
  }
  for(const [protocol,security,port] of [['smtp','none',edge.ports.smtp],['smtp','tls',edge.ports.smtps],['pop3','none',edge.ports.pop3Plain],['pop3','starttls',edge.ports.pop3Plain],['imap','none',edge.ports.imapPlain],['imap','starttls',edge.ports.imapPlain]]){
   const mail={protocol,host:'canary.protocol.test',port,security,...(security==='none'?{}:{credentialRef:`variant-${protocol}-${security}`})};
@@ -74,5 +77,6 @@ try{
   edge.state.rejectCleanup=true;result=await step(monitor.id);assert.equal(result.o.outcome,'target_failure');assert.equal(result.o.checks.at(-1).assertion,'cleanup');assert.equal(result.o.protocol.transaction.received,true);assert.equal(result.o.protocol.transaction.cleanup,false);edge.state.rejectCleanup=false;
   result=await step(monitor.id);assert.equal(result.state.state,'Healthy');assert.equal(result.o.protocol.transaction.cleanup,true);assert.equal(unrelated.deleted,false);await pause(monitor.id);
  }
+ assert.deepEqual([...diagnosticKinds].sort(),['MAIL'].sort());
  console.log('PASS MAIL-001 owner configuration, signed native protocols, per-step incidents, receiver confirmation and synthetic-only removal');
 }finally{await edge?.close();await close(web);await worker?.dispose();await rm(directory,{recursive:true,force:true})}
