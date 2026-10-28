@@ -211,7 +211,7 @@ Demoted to partial (26): HTTP-001, EVIDENCE-001, STATE-001, AUTHORITY-001, HEART
 | API-002 | 1 | A foreign reference is refused | `tests/monitor-credentials.mjs:40` | asserted |
 | API-002 | 1 | No planted secret appears in storage, archives or traces (browser artifacts) | `tests/monitor-credentials.mjs:74` and `tests/api-auth-journey.mjs:74` | asserted |
 | API-002 | 1 | No planted secret appears in logs | `tests/monitor-credentials.mjs:37` | asserted |
-| API-003 | 1 | A login/create/read/delete journey is created through the configuration door and runs | `tests/api-transaction-journey.mjs:50` | asserted |
+| API-003 | 1 | A login/create/read/delete journey is created through the configuration door and runs | `tests/api-transaction-browser.mjs:35` and `:36` (saved through the owner editor and run), with `tests/api-transaction-journey.mjs:50` | asserted |
 | API-003 | 1 | A failed middle assertion stays failed after later steps pass | `tests/api-transaction-journey.mjs:57` | asserted |
 | API-003 | 1 | Expired shared authentication fails its step and skips the rest | `tests/api-transaction-journey.mjs:79` | asserted |
 | API-003 | 1 | Step history keeps each step's outcome, attempts and timing | `tests/api-transaction-journey.mjs:50`, `:51` and `:54` | asserted |

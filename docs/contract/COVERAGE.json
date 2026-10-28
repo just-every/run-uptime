@@ -2258,7 +2258,25 @@
     {
       "file": "CONTRACT.md",
       "line": 213,
-      "text": "**ACCESS-002 — Enterprise identity lifecycle.** Optional SAML/OIDC SSO and SCIM with Okta, Microsoft Entra ID and Google Workspace",
+      "text": "**ACCESS-002 — Enterprise identity lifecycle.**",
+      "to": "clause",
+      "ids": [
+        "ACCESS-002"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 213,
+      "text": "Optional SAML/OIDC SSO and SCIM with",
+      "to": "base",
+      "ids": [
+        "BASE-SIGNIN-001"
+      ]
+    },
+    {
+      "file": "CONTRACT.md",
+      "line": 213,
+      "text": "Okta, Microsoft Entra ID and Google Workspace",
       "to": "clause",
       "ids": [
         "ACCESS-002"
