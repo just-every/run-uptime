@@ -207,5 +207,5 @@ try{
 const {test}=await import('node:test');
 const {proveNotificationRetry}=await import('./notify-retry-fixture.mjs');
 const {inspectEchoCustody}=await import('./notify-echo-fixture.mjs');
-test('DELIVERY-002 deduplicated retry honors Retry-After and stops on 4xx, and fallback contacts fire once with both outcomes visible across restart',{timeout:420000},()=>proveNotificationRetry(undefined,undefined,inspectEchoCustody));
+test('DELIVERY-002 deduplicated retry honors Retry-After and stops on 4xx, and fallback contacts fire once with both outcomes visible across restart',{timeout:420000},async()=>{await proveNotificationRetry(undefined,undefined,inspectEchoCustody);await (await import('./notify-oncall-fixture.mjs')).proveOncallHandoff()});
 test('DEPENDENCY-002 fallbacks honor the saved delay across restart, cancel on primary acceptance or recovery, and retain zero-delay and quiet-hour behavior',{timeout:240000},async()=>{await (await import('./notify-fallback-fixture.mjs')).proveDependencyFallback()});

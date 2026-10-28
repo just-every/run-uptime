@@ -60,7 +60,7 @@ export class NotificationRepository extends IntegrationsRepository {
    const envelope=JSON.parse(row.envelope);
    // Drill links are augmented at send time and may already be retired or
    // confirmed. Their complete sent body cannot always be reconstructed.
-   outcome={...outcome,responseExcerpt:envelope.event!=='uptime.notification.drill'&&typeof envelope.body==='string'?notificationResponseExcerpt(raw,credential,{},envelope.body):''};
+   outcome={...outcome,responseExcerpt:envelope.event!=='uptime.notification.drill'&&typeof envelope.body==='string'?notificationResponseExcerpt(raw,credential,{},credential.webhook?.config.mode==='oncall'?undefined:envelope.body):''};
   }
   const row=await this.env.DB.prepare(`SELECT d.*,p.window_ms FROM integration_deliveries d JOIN notification_retry_policy p ON p.delivery_id=d.id WHERE d.namespace=? AND d.id=?`).bind(NOTIFICATION_NAMESPACE,id).first<any>();
   // The policy was snapshotted when the immutable delivery was first prepared.

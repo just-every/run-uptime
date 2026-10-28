@@ -495,7 +495,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "faade7990926f3b9e9f325575c26cec80a651386bc77eafdbf4519ad368f4611",
+      "sha256": "d8e54b45a42f6c137716fd9c24c1c4076f4498811d6f9566962c2b471f21863e",
       "executable": false
     },
     "AGENTS.md": {
@@ -519,7 +519,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "82b616c9ec75a4a544b79b800223eca66a9f74b585f46d607d803858a40981a2",
+      "sha256": "2ba842bc2d101a208ec093de3aef0bd06b7c479114f007dc44154a7c375f2236",
       "executable": false
     },
     "DEMO.md": {
@@ -2060,6 +2060,10 @@
     },
     "docs/notifications.md": {
       "sha256": "82f9afa0af0c6340a06630a6a2b2d5f5c5905a51b60adba1776ae25e8ec47ab1",
+      "executable": false
+    },
+    "docs/oncall-handoff.md": {
+      "sha256": "f91d002dc584d58b3a53ca0a496837ba4a48871e21b72a116bbaaa86de774e73",
       "executable": false
     },
     "docs/overview.md": {
@@ -3707,7 +3711,7 @@
       "executable": false
     },
     "seed.json": {
-      "sha256": "00fda036a3c5bfc7800491cbca367dfe2ff54dcd2c5b6e450c942cb22beeb463",
+      "sha256": "a7c757f23e2dac31941097453300bec5518f7f7a1b12f0e1daf12aa331fe9867",
       "executable": false
     },
     "src/base/contract-filter.ts": {
@@ -6098,6 +6102,10 @@
       "sha256": "f514608f707cada92edb096bdcd3cd430210ee1f35719b0360e42c510f4a74ad",
       "executable": false
     },
+    "src/domain/incident-work/handoff.server.ts": {
+      "sha256": "ac6b4a3ec5883497a1ae791967a60a0856fa3077c01b1622ae55d565b71ac5a7",
+      "executable": false
+    },
     "src/domain/incident-work/mention-archive.ts": {
       "sha256": "9cf3fb2d9a09807410b039d1136269c951e5dbcf95c5291747abcc3b11482346",
       "executable": false
@@ -6119,7 +6127,7 @@
       "executable": false
     },
     "src/domain/incident-work/read.server.ts": {
-      "sha256": "05592abaf4b7818f35d1104355e1c02a39ec5de17c79c5d4f41336406f8ecfb4",
+      "sha256": "c85e02874d2bb4b3c8bec9c7ddf62b1d60e1cb5eb0a3daadcbccb205e30e4aa5",
       "executable": false
     },
     "src/domain/incident-work/settings.server.ts": {
@@ -6271,7 +6279,7 @@
       "executable": false
     },
     "src/domain/notification-protocols.ts": {
-      "sha256": "2658af0f73e6e2a6a301e2ca026357c16e5f3ec1008faab75a07fdcd13deead9",
+      "sha256": "a8007e2f3f3dc82f29c3d20ec49dca8db5c9432837b0923b900ebcc718cf9f50",
       "executable": false
     },
     "src/domain/notification-retry.ts": {
@@ -6279,7 +6287,7 @@
       "executable": false
     },
     "src/domain/notification-rpc.server.ts": {
-      "sha256": "763156d253362e7364a4d7751ad19c13146dbce7ae8a8f0ec97f1ab2b5de1987",
+      "sha256": "307d963c518c9921d67a4fd2c6637a94212d59d19e6cacf029136e217bc52cfe",
       "executable": false
     },
     "src/domain/notification-webhook-context.ts": {
@@ -6287,7 +6295,7 @@
       "executable": false
     },
     "src/domain/notification-webhook.ts": {
-      "sha256": "77f03e8113f12dea0af180c6dc067e17c998b4cf31a6d812b6326cde928311c1",
+      "sha256": "1465fa46054a4190cdf882130548183e6a3ca1c79daf9a024eeeb677cf2a98bb",
       "executable": false
     },
     "src/domain/notification-worker.server.ts": {
@@ -6295,7 +6303,7 @@
       "executable": false
     },
     "src/domain/notifications.server.ts": {
-      "sha256": "4a31fb89e6a01dd36db97399b86e565a33c8f2c46b7e6e6150dc089c44278da8",
+      "sha256": "3eb01db7f79df11b02da4bdbc6a3b86c152546f0ec40ccb83cfa7fd6ad2c6c95",
       "executable": false
     },
     "src/domain/operator-auth.server.ts": {
@@ -6655,7 +6663,7 @@
       "executable": false
     },
     "src/domain/webhook-template.mjs": {
-      "sha256": "52e502b12763db2109bcd95abe0e88be4287d5d4b50906fd929aa563aa6b3e2b",
+      "sha256": "586c19866714954da311d1e05034418c18dfe70e5fa8864eb8f8e43ce9044a5d",
       "executable": false
     },
     "src/domain/worker-budget.ts": {
@@ -7651,7 +7659,7 @@
       "executable": false
     },
     "tests/notify-delivery.mjs": {
-      "sha256": "e49678f333a6ec81c3d473b4bcd4340addd3b146ff20fc391065d7b57b4b3498",
+      "sha256": "dd7896d63f4b20dec0a8ad67b1972b46c03cb8f0140f150b5a945b5f05fbc0eb",
       "executable": false
     },
     "tests/notify-echo-fixture.mjs": {
@@ -7660,6 +7668,10 @@
     },
     "tests/notify-fallback-fixture.mjs": {
       "sha256": "ee82d06d5332a9a836b4511f6ec209a499499359b3265f8c0f220a8f4575baa3",
+      "executable": false
+    },
+    "tests/notify-oncall-fixture.mjs": {
+      "sha256": "051ad09c298d66941eedacdda5eaf2ab29cfa970a75908dbcdcab474e0285397",
       "executable": false
     },
     "tests/notify-quiet-fixture.mjs": {

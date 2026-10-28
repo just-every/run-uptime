@@ -113,6 +113,21 @@ function monitorUrl(event){
 }
 /** Normalize the portable config, and parse JSON against every documented sample event at save time. */
 export function normalizeWebhookTemplate(input){
+ if(object(input)&&input.mode==='oncall'){
+  if(Object.keys(input).some(k=>!['version','method','mode','template','headerNames','timeZone'].includes(k))||input.version!==1||input.method!=='POST'||!object(input.template)||
+   Object.keys(input.template).some(k=>!['source','service','environment','severity'].includes(k)))return invalid('Invalid Oncall webhook configuration');
+  const template={};
+  for(const key of ['source','service','environment']){
+   const value=input.template[key];
+   if(typeof value!=='string'||!value.trim()||value!==value.trim()||value.length>100||/[\x00-\x1f\x7f]/.test(value))return invalid('Oncall needs bounded source, service and environment');
+   template[key]=value;
+  }
+  if(!/^intake:[A-Za-z0-9_-]+$/.test(template.source))return invalid('Oncall source must name a routed intake key');
+  template.severity=input.template.severity??'critical';
+  if(!['critical','warning','info'].includes(template.severity)||JSON.stringify(input.headerNames)!=='["authorization"]')return invalid('Oncall requires a bearer authorization header and native severity');
+  return {version:1,method:'POST',mode:'oncall',template,headerNames:['authorization'],timeZone:timeZone(input.timeZone)};
+ }
+
  if(!object(input)||Object.keys(input).some(name=>!['version','method','mode','template','headerNames','timeZone'].includes(name))||input.version!==1||
   !['GET','POST','PUT','PATCH'].includes(input.method)||!['json','form','query'].includes(input.mode))return invalid('Invalid webhook template configuration');
  if(input.method==='GET'&&input.mode!=='query')return invalid('GET webhooks require query parameters and send no body');
@@ -133,7 +148,7 @@ export function normalizeWebhookTemplate(input){
 }
 /** Names recognized from UptimeRobot but currently lacking an immutable Uptime event equivalent. Show these at save/import. */
 export function webhookTemplateWarnings(config,headers={}){
- const normalized=normalizeWebhookTemplate(config),values=[...(normalized.mode==='json'?[normalized.template]:Object.values(normalized.template)),...Object.values(headers)];
+ const normalized=normalizeWebhookTemplate(config);if(normalized.mode==='oncall')return [];const values=[...(normalized.mode==='json'?[normalized.template]:Object.values(normalized.template)),...Object.values(headers)];
  return [...new Set(values.flatMap(value=>tokens(value).filter(token=>unmapped.has(token.name)).map(token=>token.name)))].map(name=>({variable:name,aliases:Object.keys(WEBHOOK_VARIABLE_ALIASES).filter(alias=>WEBHOOK_VARIABLE_ALIASES[alias]===name),reason:'No immutable Uptime event equivalent; renders Unavailable.'}));
 }
 function localHeaders(config,input,values){
@@ -159,7 +174,8 @@ export function renderWebhookTemplate({config,event,baseUrl,headers={}}){
  let url;try{url=new URL(baseUrl)}catch{return invalid('Invalid webhook destination')}
  if(url.protocol!=='https:'||url.username||url.password||url.hash||bytes(url.href)>8192)return invalid('Webhook destination requires HTTPS without URL credentials or fragments');
  let body;
- if(config.mode==='json'){body=substitute(config.template,values,true);outHeaders['content-type']='application/json'}
+ if(config.mode==='oncall'){body=JSON.stringify(oncallEvent(config,event));outHeaders['content-type']='application/json'}
+ else if(config.mode==='json'){body=substitute(config.template,values,true);outHeaders['content-type']='application/json'}
  else{
   const fields=[];let size=0;for(const [name,template] of Object.entries(config.template)){
    const encoded=new URLSearchParams([[name,substitute(template,values)]]).toString();size+=encoded.length+(fields.length?1:0);
@@ -184,4 +200,29 @@ export function webhookTemplateSamples(){
 }
 export function previewWebhookTemplates(config,{baseUrl,headers={}}){
  return webhookTemplateSamples().map(event=>({kind:event.kind,request:renderWebhookTemplate({config,event,baseUrl,headers})}));
+}
+
+/** Native Oncall fields only. A generation follows the confirmed incident, while
+ * each observation has its own immutable event ID. Missing probes supply nothing. */
+export function oncallEvent(config,event){
+ if(!['trigger','reminder','recovery'].includes(event.kind)||!event.monitorId||!event.incidentKey||!event.incidentContext)throw Error('Oncall requires a confirmed incident event');
+ const locations=event.incidentContext.failedLocations;
+ const labels=[...new Set(locations.map(p=>p.name))];
+ if(!labels.length||event.kind!=='recovery'&&!event.probes.some(p=>p.outcome==='target_failure'))throw Error('Oncall requires retained failure evidence');
+ const title='monitor='+event.monitorId+';networks='+labels.join(',');
+ const body={source:config.template.source,eventId:event.id,service:config.template.service,environment:config.template.environment,
+  key:'uptime:'+event.monitorId,generation:event.incidentKey,intent:event.kind==='recovery'?'recover':'trigger',
+  severity:config.template.severity,title,observedAt:new Date(event.observedAt).toISOString(),evidence:event.incidentContext.incidentUrl};
+ if(title.length>300||body.eventId.length>200||body.generation.length>100||!body.evidence||body.evidence.length>2000)throw Error('Oncall event exceeds native field bounds');
+ return body;
+}
+/** Retain only a receiver-generated UUID and canonical timestamp. Request echoes,
+ * arbitrary receiver text and credentials cannot enter a handoff fact. */
+export function oncallReceipt(body,expected){
+ try{
+  const r=JSON.parse(body);
+  if(!object(r)||! /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(r.id)||typeof r.acceptedAt!=='string'||new Date(r.acceptedAt).toISOString()!==r.acceptedAt)return null;
+  if(expected&&(r.truncation||r.eventId!==expected.eventId||r.service!==expected.service||r.observedAt!==expected.observedAt||typeof r.duplicate!=='boolean'))return null;
+  return {id:r.id,acceptedAt:r.acceptedAt};
+ }catch{return null}
 }

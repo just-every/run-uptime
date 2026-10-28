@@ -1,3 +1,4 @@
+import {handoffFacts} from './handoff.server.ts'
 import type {Access} from '../access.server.ts'
 import {nextFallbackDue} from '../notification-fallback.server.ts'
 import {assignmentMembers} from './ownership.server.ts'
@@ -41,6 +42,12 @@ export async function incidentDetail(env:Bindings,id:string,access?:Pick<Access,
  }
  for(const attempt of attempts.results){timeline.push({id:`attempt:${attempt.id}`,at:attempt.started_at,actor:feature('Router'),kind:attempt.fallback_step?'escalation_attempt':'notification_attempt',data:{deliveryId:attempt.delivery_id,number:attempt.number}});if(attempt.finished_at!==null)timeline.push({id:`outcome:${attempt.id}`,at:attempt.finished_at,actor:feature('Router'),kind:attempt.fallback_step?'escalation_outcome':'notification_outcome',data:{deliveryId:attempt.delivery_id,number:attempt.number,outcome:attempt.outcome?JSON.parse(attempt.outcome):null}})}
  for(const resolution of resolutions.results)timeline.push({id:`delivery-resolution:${resolution.id}`,at:resolution.at,actor:feature('Router'),kind:'delivery_resolution',data:{deliveryId:resolution.delivery_id,outcome:JSON.parse(resolution.outcome)}})
+ const handoffs=await handoffFacts(env,jobs.results.map(job=>job.id)),acknowledged=new Set<string>()
+ for(const job of jobs.results){
+  const facts=handoffs.get(job.id);if(!facts)continue;
+  const fact=facts.acknowledged,identity=JSON.stringify([job.destination_id,fact.attemptId])
+  if(fact.state==='acknowledged'&&!acknowledged.has(identity)){acknowledged.add(identity);timeline.push({id:'handoff:'+fact.attemptId,at:fact.at,actor:feature('Oncall intake'),kind:'sibling_handoff',data:{deliveryId:fact.deliveryId,...facts}})}
+ }
  timeline.sort((a,b)=>a.at-b.at||a.id.localeCompare(b.id))
  return {id,key:incident.trigger.incidentKey,monitorId:incident.monitor_id,startedAt:incident.trigger.observedAt,endedAt:incident.recovery?.observedAt??null,
   machineState:incident.recovery?'recovered':'open',trigger:incident.trigger,recovery:incident.recovery,imported:incident.status==='imported-inactive',
@@ -53,7 +60,7 @@ export async function incidentDetail(env:Bindings,id:string,access?:Pick<Access,
    mentions:mentions.filter(mention=>mention.comment_id===row.id).map(mention=>({id:mention.id,version:mention.comment_version,recipient:person(mention.recipient_id),createdAt:mention.created_at,submittedAt:mention.submitted_at,finishedAt:mention.finished_at,outcome:mention.outcome==='submitting'?'uncertain':mention.outcome})),
    history:histories.results.filter(history=>history.comment_id===row.id).map(history=>({version:history.version,text:history.text,editor:person(history.editor_id),editedAt:history.edited_at}))})),
   rootCauseCategories:(await readSettings(env)).categories,
-  failureSnapshots:access&&access.role!=='owner'?[]:await incidentSnapshots(env,id),timeline,deliveries:jobs.results.map(job=>({id:job.id,channel:job.kind,destinationName:job.destination_name,state:job.state==='queued'?job.delivery_state??job.state:job.state,code:job.code,attempts:job.attempts})),
+  failureSnapshots:access&&access.role!=='owner'?[]:await incidentSnapshots(env,id),timeline,deliveries:jobs.results.map(job=>({id:job.id,...(handoffs.has(job.id)?{handoff:handoffs.get(job.id)}:{}),channel:job.kind,destinationName:job.destination_name,state:job.state==='queued'?job.delivery_state??job.state:job.state,code:job.code,attempts:job.attempts})),
   assignmentMembers:access?.role==='read-only'||env.readCredential?[]:await assignmentMembers(env,incident.monitor_id),
   dependencies,capabilities:{assignment:!env.readCredential&&(!access||access.role!=='read-only'),categoryAdministration:!env.readCredential&&(!access||access.role==='owner'),comments:!access||access.role!=='read-only',mentions:true,publication:false,responderRoles:true,scheduledFollowup:!access||access.role==='owner',dependencyCorrelation:true,failureSnapshots:!access||access.role==='owner'}}
 }

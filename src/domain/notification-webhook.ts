@@ -1,5 +1,5 @@
 // @ts-ignore Shared versioned renderer also runs on the Node dispatcher.
-import {normalizeWebhookTemplate,renderWebhookTemplate,webhookTemplateWarnings,webhookTemplateSamples} from './webhook-template.mjs'
+import {normalizeWebhookTemplate,renderWebhookTemplate,webhookTemplateWarnings,webhookTemplateSamples,oncallReceipt} from './webhook-template.mjs'
 import {validateDestination} from '../base/modules/integrations/core/destination.ts'
 import type {NotificationCredential} from './notification-credentials.server.ts'
 export type WebhookSnapshot={config:any;headers:Record<string,string>;signing:boolean};
@@ -8,6 +8,7 @@ export function webhookConfigText(credential:NotificationCredential){return cred
 export function normalizeWebhookSnapshot(value:any):WebhookSnapshot{
  if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).sort().join(',')!=='config,headers,signing'||typeof value.signing!=='boolean')throw Error('Invalid webhook credential configuration');
  const config=normalizeWebhookTemplate(value.config);
+ if(config.mode==='oncall'&&(!value.signing||!/^Bearer [A-Za-z0-9._~-]{32,200}$/.test(value.headers?.authorization??'')))throw Error('Oncall requires signing enabled and a scoped bearer token');
  // Rendering validates exact header names, values and the total byte bound;
  // its sample contains no installation or customer authority.
  renderWebhookTemplate({config,event:webhookTemplateSamples()[0],baseUrl:'https://example.com/',headers:value.headers});
@@ -65,6 +66,12 @@ function requestEchoes(wireBody:string,headers:Record<string,string>){
  * would reproduce a protected window, omit the excerpt instead. */
 export function notificationResponseExcerpt(body:unknown,credential:NotificationCredential,wireHeaders:Record<string,string>={},wireBody?:string):string{
  if(typeof body!=='string')return '';
+ if(credential.webhook?.config.mode==='oncall'){
+  let expected;try{expected=wireBody?JSON.parse(wireBody):undefined}catch{return ''}
+  const receipt=oncallReceipt(body,expected);if(!receipt)return '';
+  const endpoint=new URL(credential.endpoint),text=JSON.stringify(receipt),authority=[credential.endpoint,...endpoint.searchParams.values(),...endpoint.pathname.split('/').filter(Boolean),credential.signing_secret,...Object.values(credential.webhook.headers).flatMap(v=>[v,v.replace(/^Bearer /,'')])].filter(Boolean);
+  return authority.some(value=>text.includes(value!))?'':text;
+ }
  const endpoint=new URL(credential.endpoint),values=[credential.endpoint,credential.signing_secret??'',...Object.values(credential.webhook?.headers??{}),...Object.entries(wireHeaders).filter(([name])=>!/^(content-type|webhook-id|webhook-tenant|webhook-destination|webhook-event|webhook-timestamp|x-lamp-timestamp)$/.test(name.toLowerCase())).map(([,value])=>value),...endpoint.searchParams.values(),...endpoint.pathname.split('/').filter(Boolean)];
  if(wireBody){try{const drill=JSON.parse(wireBody).drill;if(typeof drill?.confirmUrl==='string'){values.push(drill.confirmUrl);values.push(new URL(drill.confirmUrl).searchParams.get('token')??'')}}catch{/* Ordinary form/template text has no JSON drill capability. */}}
  let text=body.slice(0,65536);
@@ -83,7 +90,7 @@ function maskedRequest(wire:any,secretNames:string[]){return {method:wire.method
 async function previewCredential(credential:NotificationCredential){
  const {notificationProtocols}=await import('./notification-protocols.ts');
  const samples=[];
- for(const source of webhookTemplateSamples()){
+ for(const source of webhookTemplateSamples().filter((e:any)=>credential.webhook?.config.mode!=='oncall'||['trigger','recovery'].includes(e.kind))){
   const event={...source,eventType:`uptime.preview.${source.kind}`},body=notificationEnvelopeBody(credential,event),protocol=notificationProtocols(credential,'preview-credential',event)[0];
   const request=await protocol.prepare({id:event.id,tenant:'uptime-notifications',destinationId:'preview-credential',event:event.eventType,protocol:'webhook',body},event.observedAt);
   samples.push({kind:event.kind,request:maskedRequest(request,credential.webhook?.config.headerNames??[])});

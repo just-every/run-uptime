@@ -2,7 +2,7 @@ import {createWebhookProtocol,retryAfter} from '../base/modules/integrations/cor
 import {createSlackIncomingWebhookProtocol} from '../base/modules/integrations/slack/protocol.ts'
 import {hmacBytes} from '../base/modules/integrations/core/crypto.ts'
 // @ts-ignore Pure renderer shared with the Node dispatcher.
-import {renderWebhookTemplate} from './webhook-template.mjs'
+import {renderWebhookTemplate,oncallEvent,oncallReceipt} from './webhook-template.mjs'
 import type {NotificationCredential} from './notification-credentials.server.ts'
 export function notificationProtocols(credential:NotificationCredential,credentialId:string,event?:any){
  const resolve=async(id:string)=>{if(id!==credentialId)throw Error('Destination version mismatch');return credential.endpoint};
@@ -15,7 +15,11 @@ export function notificationProtocols(credential:NotificationCredential,credenti
  }};
  if(!credential.webhook)return [legacy,createSlackIncomingWebhookProtocol({resolveDestination:resolve})];
  const webhook=credential.webhook;
- const custom={id:'webhook',classify:legacy.classify,async prepare(envelope:any,now:number){
+ const custom={id:'webhook',classify(response:any,now:number){
+  if(webhook.config.mode!=='oncall'||response.status<200||response.status>=300)return legacy.classify(response,now);
+  const receipt=oncallReceipt(response.body,oncallEvent(webhook.config,event));
+  return {kind:receipt?'accepted' as const:'uncertain' as const,code:receipt?'oncall_receipt_accepted':'oncall_receipt_missing',status:response.status};
+ },async prepare(envelope:any,now:number){
   await resolve(envelope.destinationId);if(!event||event.eventType!==envelope.event)throw Error('Immutable webhook event unavailable');
   const rendered=renderWebhookTemplate({config:webhook.config,event,baseUrl:credential.endpoint,headers:webhook.headers}),body=rendered.body??'';
   if(envelope.body!==body)throw Error('Webhook body differs from its immutable event and configuration');
