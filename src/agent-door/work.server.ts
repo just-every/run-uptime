@@ -3,7 +3,7 @@ import type {ToolContext,Principal} from '../base/modules/agent-door/index.ts'
 import {authority} from './authority.server.ts'
 import {uptimeAgentDoor} from './index.server.ts'
 export type SavedPrincipal={person:{id:string};agent:Principal['agent'];scopes:string[];clientId?:string;consent?:string;attribution?:ToolContext['actor'];approvers?:{id:string;name:string}[]}
-export const delegation=(c:ToolContext):SavedPrincipal=>({person:{id:c.person.id},agent:c.agent,scopes:c.scopes,attribution:c.actor,approvers:c.approvers,...(c.clientId?{clientId:c.clientId}:{}),...(c.consent?{consent:c.consent}:{})})
+export const delegation=(c:ToolContext):SavedPrincipal=>({person:{id:c.person.id},agent:{...c.agent},scopes:[...c.scopes],attribution:c.actor,approvers:c.approvers.map(person=>({...person})),...(c.clientId?{clientId:c.clientId}:{}),...(c.consent?{consent:c.consent}:{})})
 // A claimed task is handed to its authenticated runner once, just like native
 // runner_assignments.delivered_at. A lost response remains missing evidence;
 // it cannot become permission to send the same network request twice.

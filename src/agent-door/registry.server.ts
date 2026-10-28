@@ -51,10 +51,26 @@ async function actionSummary(env:Bindings,verb:string,title:string,a:any){
  if(a.monitorIds)for(const id of a.monitorIds){const m=await get(env,id);items.push('Selected monitor: '+(m?.definition.name??id))}
  return {target:{id:typeof a.id==='string'?a.id:undefined,name},items,...(recipients?{recipients}:{}),...(a.role?{role:a.role}:{})}
 }
+// Resolve audit identity through the same native visibility checks as execution.
+async function recordTarget(env:Bindings,name:string,args:Record<string,unknown>,ctx:ToolContext){
+ if(typeof args.id!=='string')return null
+ const id=args.id
+ if(name.startsWith('incidents.')){await reads.incidentRead(env,ctx,id);return {kind:'incident',id}}
+ if(name.startsWith('destinations.')){const record=await reads.destinationRead(env,ctx,id);return {kind:'destination',id:record.id}}
+ if(name.startsWith('discovery.')){const record=await reads.discoveryRead(env,ctx,id);return {kind:'discovery',id:record.id}}
+ if(name.startsWith('access.')){
+  await authority(env,ctx,'members',[],undefined,true)
+  const record=await env.DB.prepare('SELECT id FROM oa_operators WHERE id=?').bind(id).first<{id:string}>()
+  if(!record)throw unavailable()
+  return {kind:'operator',id:record.id}
+ }
+ const record=await current(env,ctx,id)
+ return {kind:'monitor',id:record.id}
+}
 export function tools(env:Bindings):ToolDefinition[]{
  const definitions:ToolDefinition[]=[]
  function read(name:string,title:string,input:JsonSchemaObject,clauses:string[],run:(a:any,c:ToolContext)=>Promise<any>,classes:ClassId[]=['standard']){
-  definitions.push({name:'uptime.'+name,title,description:title+'. Uses current native role, scope and redacted records.',scope:name==='definitions.preview'?'definitions:preview':classes.includes('sensitive')?'uptime:evidence':'uptime:read',readOnly:true,inputSchema:input,outputSchema:{type:'object'},classes,clauses,untrusted:true,classify:async(a,c)=>{await run(a,c);return classes.map(cls=>facts(cls,cls==='sensitive'?{kind:'failure-evidence'}:{}))},run:safeCall(run)})
+  definitions.push({name:'uptime.'+name,title,description:title+'. Uses current native role, scope and redacted records.',scope:name==='definitions.preview'?'definitions:preview':classes.includes('sensitive')?'uptime:evidence':'uptime:read',readOnly:true,inputSchema:input,outputSchema:{type:'object'},classes,clauses,untrusted:true,target:(a,c)=>recordTarget(env,name,a,c),classify:async(a,c)=>{await run(a,c);return classes.map(cls=>facts(cls,cls==='sensitive'?{kind:'failure-evidence'}:{}))},run:safeCall(run)})
  }
  read('monitors.list','List visible monitors',schema({}),['READAPI-001'],(_,c)=>reads.monitorList(env,c))
  read('monitors.read','Read one monitor',idSchema,['READAPI-001'],(a,c)=>reads.monitorRead(env,c,a.id))
@@ -71,11 +87,11 @@ export function tools(env:Bindings):ToolDefinition[]{
  read('evidence.witness','Read native monitoring change witness',schema({}),['MONITOR-001','FOLLOWUP-001'],(_,c)=>reads.witnessRead(env,c))
  function mutation(name:string,title:string,input:JsonSchemaObject,classes:ClassId[],clauses:string[],run:(a:any,c:ToolContext)=>Promise<any>,classify:ToolDefinition['classify'],revision?:ToolDefinition['revision']){
   input={...input,properties:{...input.properties,proof_reference:{type:'string',maxLength:512}}}
-  const guarded=async(a:any,c:ToolContext)=>{const {proof_reference,...args}=a;
+  const guarded=async(a:any,c:ToolContext)=>{const {proof_reference,...args}=a;let execution=c;
    if(name.startsWith('monitors.')){const old=args.id?await get(env,args.id):null,next={...(old?.definition??{}),...(args.definition??{})};if(requestNeedsStepUp(new Request(new URL('/api/monitors/'+(args.id??''),c.origin),{method:'PATCH'}),next)){
-    if(typeof proof_reference!=='string'||!await nativeProof(env).verify({kind:'step_up',tool:'uptime.'+name,args,principal:{person:c.person,agent:c.agent,scopes:c.scopes,clientId:c.clientId},reference:proof_reference}))throw new ToolRefusal('native_proof_required','Complete native step-up',{kind:'step_up',handoff:new URL('/app/settings',c.origin).href});c.nativeProof={kind:'step_up',reference:proof_reference}
-   }}return run(args,c)}
-  const tool:ToolDefinition={name:'uptime.'+name,title,description:title+'. Native validation and immutable revisions remain authoritative.',scope:'uptime:operate',readOnly:false,inputSchema:input,outputSchema:{type:'object'},classes,clauses,classify,run:safeCall(guarded),summary:async(a)=>actionSummary(env,name,title,a),...(revision?{revision}:{})};definitions.push(tool);return tool
+    if(typeof proof_reference!=='string'||!await nativeProof(env).verify({kind:'step_up',tool:'uptime.'+name,args,principal:{person:c.person,agent:c.agent,scopes:[...c.scopes],clientId:c.clientId},reference:proof_reference}))throw new ToolRefusal('native_proof_required','Complete native step-up',{kind:'step_up',handoff:new URL('/app/settings',c.origin).href});execution={...c,nativeProof:{kind:'step_up',reference:proof_reference}}
+   }}return run(args,execution)}
+  const tool:ToolDefinition={name:'uptime.'+name,title,description:title+'. Native validation and immutable revisions remain authoritative.',scope:'uptime:operate',readOnly:false,inputSchema:input,outputSchema:{type:'object'},classes,clauses,target:(a,c)=>recordTarget(env,name,a,c),classify,run:safeCall(guarded),summary:async(a)=>actionSummary(env,name,title,a),...(revision?{revision}:{})};definitions.push(tool);return tool
  }
 
 
@@ -106,11 +122,11 @@ export function tools(env:Bindings):ToolDefinition[]{
  const incidentVersion=async(a:any,c:ToolContext)=>{const read=await reads.incidentRead(env,c,a.id);return read.version}
  for(const kind of ['assign','acknowledge'] as const)mutation('incidents.'+kind,kind==='assign'?'Assign an eligible native responder':'Acknowledge an incident without asserting recovery',schema({id:string,version:integer,...(kind==='assign'?{owner_id:{type:['string','null']}}:{})}),['standard'],['FOLLOWUP-001'],async(a,c)=>{
   const incident=await findIncident(env,a.id),access=await authority(env,c,'respond',[incident.monitor_id]);if(access.kind==='credential')throw new ToolRefusal('insufficient_scope')
-  const version=a.version,native={id:c.person.id,displayName:c.person.name,access,preparedBy:c.actor,approvers:c.approvers}
+  const version=a.version,native={id:c.person.id,displayName:c.person.name,access,preparedBy:c.actor,approvers:c.approvers.map(person=>({...person}))}
   const result=await incidentAction({...env,DB:authorizedDatabase(env,access)},a.id,{kind,version,...(kind==='assign'?{ownerId:a.owner_id}:{})},native)
   c.emit('incident.updated',`uptime://incidents/${a.id}`,{version:result.version});return {id:a.id,...result}
  },async(a,c)=>{const incident=await findIncident(env,String(a.id));await authority(env,c,'respond',[incident.monitor_id]);return [facts('standard')]},incidentVersion)
- mutation('incidents.note','Add an internal incident note',schema({id:string,text:{type:'string',minLength:1,maxLength:5000}}),['standard'],['FOLLOWUP-001'],async(a,c)=>{const incident=await findIncident(env,a.id),access=await authority(env,c,'respond',[incident.monitor_id]);if(access.kind==='credential')throw new ToolRefusal('insufficient_scope');const result=await addComment({...env,DB:authorizedDatabase(env,access)},a.id,{text:a.text,mentions:[]},{id:c.person.id,displayName:c.person.name,access,preparedBy:c.actor,approvers:c.approvers});c.emit('incident.updated',`uptime://incidents/${a.id}`);return {incidentId:a.id,...result}},async(a,c)=>{const i=await findIncident(env,String(a.id));await authority(env,c,'respond',[i.monitor_id]);return [facts('standard')]})
+ mutation('incidents.note','Add an internal incident note',schema({id:string,text:{type:'string',minLength:1,maxLength:5000}}),['standard'],['FOLLOWUP-001'],async(a,c)=>{const incident=await findIncident(env,a.id),access=await authority(env,c,'respond',[incident.monitor_id]);if(access.kind==='credential')throw new ToolRefusal('insufficient_scope');const result=await addComment({...env,DB:authorizedDatabase(env,access)},a.id,{text:a.text,mentions:[]},{id:c.person.id,displayName:c.person.name,access,preparedBy:c.actor,approvers:c.approvers.map(person=>({...person}))});c.emit('incident.updated',`uptime://incidents/${a.id}`);return {incidentId:a.id,...result}},async(a,c)=>{const i=await findIncident(env,String(a.id));await authority(env,c,'respond',[i.monitor_id]);return [facts('standard')]})
  mutation('maintenance.preview','Preview an exact native maintenance selection',schema({monitorIds:{type:'array',items:string,minItems:1,maxItems:100},window:{type:'object'}}),['standard'],['MAINT-001'],async(a,c)=>{await authority(env,c,'maintenance_write',a.monitorIds);return previewMaintenance(env,a)},async(a,c)=>{await authority(env,c,'maintenance_write',a.monitorIds as string[]);return [facts('standard')]})
  mutation('maintenance.update','Apply the exact previewed maintenance calendar',schema({monitorIds:{type:'array',items:string,minItems:1,maxItems:100},window:{type:'object'},digest:string}),['live'],['MAINT-001'],async(a,c)=>{const access=await authority(env,c,'maintenance_write',a.monitorIds);const {digest,...input}=a;const result=await applyMaintenance({...env,DB:authorizedDatabase(env,access)},input,digest,actor(c));for(const id of a.monitorIds)c.emit('monitor.updated',`uptime://monitors/${id}`);return result},async(a,c)=>{await authority(env,c,'maintenance_write',a.monitorIds as string[]);return [facts('live',{service:'monitoring-maintenance'})]})
  mutation('routes.preview','Preview a native alert route',schema({id:string,route:{type:'object'}}),['standard'],['ROUTING-001'],async(a,c)=>{await authority(env,c,'route_write',[a.id],undefined,true);const {monitor,snapshot,...view}=await prepareAlertRouteAssignment(env,a.id,a.route);return view},async(a,c)=>{await authority(env,c,'route_write',[String(a.id)],undefined,true);return [facts('standard')]})

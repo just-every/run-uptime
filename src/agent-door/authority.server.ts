@@ -4,7 +4,7 @@ import {ToolRefusal,type Person,type Principal,type ResourceContext,type ToolCon
 import {credentialFence,credentialMonitorFilter,type CredentialAuthority} from '../domain/credentials/model.server.ts'
 // @ts-ignore Shared native role vocabulary.
 import {baseRole,permitted} from '../domain/role-permissions.mjs'
-export type Context=Pick<Principal,'person'|'agent'|'scopes'|'clientId'|'nativeProof'>
+export type Context=Pick<ToolContext,'person'|'agent'|'scopes'|'clientId'|'nativeProof'>
 export const unavailable=()=>new ToolRefusal('not_found')
 export async function nativePerson(env:Bindings,id:string):Promise<Person|null>{
  const row=await env.DB.prepare(`SELECT o.id,o.email,o.display_name,o.role,o.status,o.version,r.role product_role,r.base_role,r.base_version
