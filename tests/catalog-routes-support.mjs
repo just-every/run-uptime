@@ -62,6 +62,15 @@ export async function proveCatalogRoutes(){
    assert.equal((await f.request('/api/catalog/add/'+action,{body:{...add,...(action==='apply'?{digest:addPreview.digest}:{})},headers:{cookie}})).status,403);
    assert.deepEqual(await all(),addBefore,'unauthorized creation with a route writes no monitor or recipient state');
   }
+  const ownerId=(await f.DB.prepare('SELECT id FROM oa_operators WHERE email=?').bind(f.bindings.OWNER_EMAIL).first()).id;
+  await f.DB.prepare('UPDATE uptime_mfa_proofs SET verified_at=? WHERE operator_id=?').bind(Date.now()-300001,ownerId).run();
+  assert.equal((await f.request('/api/overview')).status,200,'an older factor proof still authorizes ordinary reads');
+  const expiredBefore=await all();
+  for(const action of ['preview','apply']){
+   const denied=await f.request('/api/catalog/add/'+action,{body:{...add,...(action==='apply'?{digest:addPreview.digest}:{})}});
+   assert.equal(denied.status,403);assert.equal(denied.data.code,'fresh_second_factor_required');assert.deepEqual(await all(),expiredBefore,'an expired step-up cannot create or assign');
+  }
+  await completeSecondFactor(f.origin,f.cookie);
   await ok(`/api/notifications/destinations/${inbox.id}`,{name:inbox.name,enabled:false},{method:'PATCH'});
   const disabled=await all();assert.equal((await f.request('/api/catalog/add/apply',{body:{...add,digest:addPreview.digest}})).status,409);assert.deepEqual(await all(),disabled,'changed recipient state refuses the whole create');
   await ok(`/api/notifications/destinations/${inbox.id}`,{name:inbox.name,enabled:true},{method:'PATCH'});
@@ -86,6 +95,7 @@ export async function proveCatalogRoutes(){
   assert.equal((await f.request('/api/catalog/add/apply',{body:{...add,digest:freshAdd.digest},headers:{cookie:revoked}})).status,401);assert.deepEqual(await all(),revokedBefore,'a replayed revoked session cannot create monitors or routing authority');
   const inviting=await emailSignIn(f.origin,{bindings:f.bindings}),successor=await inviteDoorMember(f.origin,inviting,'owner','uptime-route-successor');await completeSecondFactor(f.origin,successor.cookie);
   const original=(await f.DB.prepare('SELECT id FROM oa_operators WHERE email=?').bind(f.bindings.OWNER_EMAIL).first()).id;await ok(`/api/operators/${original}/erase`,{},{headers:{cookie:successor.cookie}});assert.ok((await f.DB.prepare('SELECT actor_kind FROM catalog_route_batches').all()).results.every(r=>r.actor_kind==='anonymized'),'operator erasure anonymizes retained route batch ownership');
+  const erasedBefore=await all();assert.equal((await f.request('/api/catalog/add/apply',{body:{...add,digest:freshAdd.digest}})).status,401);assert.deepEqual(await all(),erasedBefore,'an erased issuer cannot replay captured route creation');
   assert.deepEqual((await f.DB.prepare('PRAGMA foreign_key_check').all()).results,[]);assert.equal((await f.DB.prepare('SELECT COUNT(*) n FROM uptime_mfa_factors WHERE operator_id=?').bind(successor.id).first()).n,1,'surviving owner keeps its own enrolled factor');
   const survivingCookie=await emailSignIn(f.origin,{bindings:{...f.bindings,OWNER_EMAIL:'synthetic-uptime-route-successor@example.test'}});assert.equal((await f.request('/api/routing/named-routes',{headers:{cookie:survivingCookie}})).status,200,'surviving owner obtains a new session and genuine factor proof after issuer erasure');
   console.log('MONITOR-001 named route API/CLI: zero-write review, owner/fresh-factor refusal, atomic race/stale refusal, confirmed fake-mail recipient only for assigned monitor, history-preserving undo, edited-route refusal and erasure/local-only authority.');

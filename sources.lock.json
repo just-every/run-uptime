@@ -8067,7 +8067,7 @@
       "executable": false
     },
     "tests/catalog-routes-support.mjs": {
-      "sha256": "2af62c432ed6b7b285dcc399c791e55382c9b00a270c84617da74528aca9ca5e",
+      "sha256": "93b4bfa3a213984efaf25f3ae17dc42cdf1c510ebda76891342e46461ab79906",
       "executable": false
     },
     "tests/catalog.mjs": {
