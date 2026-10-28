@@ -7310,8 +7310,12 @@
       "sha256": "3c53814d4f1149660543051bf44b527db7c5cc02ec2009600b397ed423aa14f8",
       "executable": false
     },
+    "tests/business-import-catchup-support.mjs": {
+      "sha256": "5f7a2d27b8b92f08b917e438e4f201bdecf567162f5a0d1d31d63a3931ba11b2",
+      "executable": false
+    },
     "tests/business-import-door.mjs": {
-      "sha256": "de4f0c603036641570018e8a8e64d549b717b2b1ac19dec75faeb9db4a2f6a9c",
+      "sha256": "17545e2a9364c14c0327e6d1851d33a2a6741ea3b30e86e8621e31ecc5b34065",
       "executable": false
     },
     "tests/business-provisioned.mjs": {

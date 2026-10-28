@@ -7,6 +7,7 @@ import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {migratedWorker,runtimeDirectory,cleanupDirectory,availablePorts} from './notify-acceptance-runtime.mjs';
 import {testAuthBindings,authRequest,sessionCookie,finishSetup} from './auth-test-support.mjs';
+import {proveBoundedCatchup} from './business-import-catchup-support.mjs';
 
 const directory=await runtimeDirectory(),[port]=await availablePorts(1),origin=`http://127.0.0.1:${port}`;
 const keys=await webcrypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']);
@@ -269,5 +270,6 @@ try{
  const everything=await stored(),derived=await stored({originals:false});
  for(const value of live)assert.ok(!everything.includes(value),`no table holds the live credential ${value}`);
  for(const value of withheld)assert.ok(!derived.includes(value),`no monitor, revision, plan, record or history holds ${value}`);
+ await proveBoundedCatchup();
  console.log('Business import door passed: opt-in off 404; synthetic upload, zero-write native plan, fingerprint apply, reconciliation, Business history, undo, durable key revocation; erasure withdraws an archive that is the only copy naming a monitor; a rer UptimeRobot export imports with request fields withheld, its live response is refused.');
 }finally{await worker?.dispose();await cleanupDirectory(directory)}
