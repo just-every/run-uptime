@@ -1,0 +1,528 @@
+{
+  "schema": "rer-agent-surface/1",
+  "seed": "uptime",
+  "specialist": "monitoring operator",
+  "tools": [
+    {
+      "name": "uptime.definitions.preview",
+      "scope": "uptime:read",
+      "readOnly": true,
+      "classes": [
+        "standard"
+      ],
+      "clauses": [
+        "IMPORT-001"
+      ]
+    },
+    {
+      "name": "uptime.definitions.read",
+      "scope": "uptime:read",
+      "readOnly": true,
+      "classes": [
+        "standard"
+      ],
+      "clauses": [
+        "IMPORT-001"
+      ]
+    },
+    {
+      "name": "uptime.events.list",
+      "scope": "events:read",
+      "readOnly": true,
+      "classes": [
+        "standard"
+      ],
+      "clauses": [
+        "BASE-AGENT-010"
+      ]
+    },
+    {
+      "name": "uptime.evidence.read",
+      "scope": "uptime:read",
+      "readOnly": true,
+      "classes": [
+        "standard",
+        "sensitive"
+      ],
+      "clauses": [
+        "EVIDENCE-002"
+      ]
+    },
+    {
+      "name": "uptime.grants.read",
+      "scope": "uptime:read",
+      "readOnly": true,
+      "classes": [
+        "standard"
+      ],
+      "clauses": [
+        "AUTHORITY-001",
+        "EVIDENCE-002"
+      ]
+    },
+    {
+      "name": "uptime.grants.update",
+      "scope": "uptime:operate",
+      "readOnly": false,
+      "classes": [
+        "access"
+      ],
+      "clauses": [
+        "AUTHORITY-001",
+        "EVIDENCE-002"
+      ]
+    },
+    {
+      "name": "uptime.incidents.acknowledge",
+      "scope": "uptime:operate",
+      "readOnly": false,
+      "classes": [
+        "standard"
+      ],
+      "clauses": [
+        "INCIDENT-001",
+        "STATE-001"
+      ]
+    },
+    {
+      "name": "uptime.incidents.assign",
+      "scope": "uptime:operate",
+      "readOnly": false,
+      "classes": [
+        "standard"
+      ],
+      "clauses": [
+        "INCIDENT-001",
+        "STATE-001"
+      ]
+    },
+    {
+      "name": "uptime.incidents.note",
+      "scope": "uptime:operate",
+      "readOnly": false,
+      "classes": [
+        "standard"
+      ],
+      "clauses": [
+        "INCIDENT-001",
+        "STATE-001"
+      ]
+    },
+    {
+      "name": "uptime.incidents.read",
+      "scope": "uptime:read",
+      "readOnly": true,
+      "classes": [
+        "standard"
+      ],
+      "clauses": [
+        "EVIDENCE-001",
+        "INCIDENT-001"
+      ]
+    },
+    {
+      "name": "uptime.maintenance.read",
+      "scope": "uptime:read",
+      "readOnly": true,
+      "classes": [
+        "standard"
+      ],
+      "clauses": [
+        "MAINT-001"
+      ]
+    },
+    {
+      "name": "uptime.maintenance.update",
+      "scope": "uptime:operate",
+      "readOnly": false,
+      "classes": [
+        "live"
+      ],
+      "clauses": [
+        "MAINT-001"
+      ]
+    },
+    {
+      "name": "uptime.monitors.create",
+      "scope": "uptime:operate",
+      "readOnly": false,
+      "classes": [
+        "standard",
+        "live",
+        "external"
+      ],
+      "clauses": [
+        "MONITOR-001",
+        "HTTP-001",
+        "STATE-001"
+      ]
+    },
+    {
+      "name": "uptime.monitors.history",
+      "scope": "uptime:read",
+      "readOnly": true,
+      "classes": [
+        "standard"
+      ],
+      "clauses": [
+        "EVIDENCE-001",
+        "STATE-001"
+      ]
+    },
+    {
+      "name": "uptime.monitors.list",
+      "scope": "uptime:read",
+      "readOnly": true,
+      "classes": [
+        "standard"
+      ],
+      "clauses": [
+        "EVIDENCE-001",
+        "AUTHORITY-001"
+      ]
+    },
+    {
+      "name": "uptime.monitors.pause",
+      "scope": "uptime:operate",
+      "readOnly": false,
+      "classes": [
+        "standard",
+        "live"
+      ],
+      "clauses": [
+        "MONITOR-001",
+        "HTTP-001",
+        "STATE-001"
+      ]
+    },
+    {
+      "name": "uptime.monitors.read",
+      "scope": "uptime:read",
+      "readOnly": true,
+      "classes": [
+        "standard"
+      ],
+      "clauses": [
+        "EVIDENCE-001",
+        "AUTHORITY-001"
+      ]
+    },
+    {
+      "name": "uptime.monitors.resume",
+      "scope": "uptime:operate",
+      "readOnly": false,
+      "classes": [
+        "live",
+        "external"
+      ],
+      "clauses": [
+        "MONITOR-001",
+        "HTTP-001",
+        "STATE-001"
+      ]
+    },
+    {
+      "name": "uptime.monitors.update",
+      "scope": "uptime:operate",
+      "readOnly": false,
+      "classes": [
+        "standard",
+        "live",
+        "external"
+      ],
+      "clauses": [
+        "MONITOR-001",
+        "HTTP-001",
+        "STATE-001"
+      ]
+    },
+    {
+      "name": "uptime.reports.read",
+      "scope": "uptime:read",
+      "readOnly": true,
+      "classes": [
+        "standard"
+      ],
+      "clauses": [
+        "REPORT-001"
+      ]
+    },
+    {
+      "name": "uptime.routes.preview",
+      "scope": "uptime:read",
+      "readOnly": true,
+      "classes": [
+        "standard"
+      ],
+      "clauses": [
+        "ROUTING-001"
+      ]
+    },
+    {
+      "name": "uptime.routes.read",
+      "scope": "uptime:read",
+      "readOnly": true,
+      "classes": [
+        "standard"
+      ],
+      "clauses": [
+        "ROUTING-001"
+      ]
+    },
+    {
+      "name": "uptime.routes.update",
+      "scope": "uptime:operate",
+      "readOnly": false,
+      "classes": [
+        "live",
+        "external",
+        "access"
+      ],
+      "clauses": [
+        "ROUTING-001"
+      ]
+    },
+    {
+      "name": "uptime.witness.read",
+      "scope": "uptime:read",
+      "readOnly": true,
+      "classes": [
+        "standard"
+      ],
+      "clauses": [
+        "EVIDENCE-001",
+        "AUDIT-001"
+      ]
+    }
+  ],
+  "resources": [
+    "uptime://monitors/{id}",
+    "uptime://monitors/{id}/history",
+    "uptime://monitors/{id}/revisions",
+    "uptime://monitors/{id}/uptime",
+    "uptime://monitors/{id}/response-times",
+    "uptime://monitors/{id}/failure-snapshots",
+    "uptime://incidents/{id}",
+    "uptime://routes/{id}",
+    "uptime://destinations/{id}"
+  ],
+  "notTools": [
+    {
+      "clauses": [
+        "ARCHIVE-001",
+        "IMPORT-001"
+      ],
+      "reason": "import-door"
+    },
+    {
+      "clauses": [
+        "AUTHORITY-001",
+        "NETWORK-001"
+      ],
+      "reason": "device"
+    },
+    {
+      "clauses": [
+        "AUTHORITY-001"
+      ],
+      "reason": "installation"
+    }
+  ],
+  "witness": {
+    "tool": "uptime.witness.read",
+    "args": {}
+  },
+  "journey": [
+    {
+      "id": "draft",
+      "tool": "uptime.monitors.create",
+      "args": {
+        "definition": {
+          "name": "Checkout evidence",
+          "type": "http",
+          "url": "https://probe.uptime.example.test/checkout",
+          "enabled": false
+        }
+      },
+      "expect": [
+        {
+          "class": "standard",
+          "facts": {
+            "measure": 1
+          }
+        }
+      ],
+      "inject": {
+        "classes": [
+          "standard"
+        ],
+        "confirm": true,
+        "approved": true
+      }
+    },
+    {
+      "id": "read",
+      "tool": "uptime.monitors.read",
+      "args": {
+        "id": {
+          "$from": "draft",
+          "pointer": "/id"
+        }
+      },
+      "expect": [
+        {
+          "class": "standard",
+          "facts": {
+            "measure": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "history",
+      "tool": "uptime.monitors.history",
+      "args": {
+        "id": {
+          "$from": "draft",
+          "pointer": "/id"
+        }
+      },
+      "expect": [
+        {
+          "class": "standard"
+        }
+      ]
+    },
+    {
+      "id": "list",
+      "tool": "uptime.monitors.list",
+      "args": {},
+      "expect": [
+        {
+          "class": "standard"
+        }
+      ]
+    },
+    {
+      "id": "report",
+      "tool": "uptime.reports.read",
+      "args": {
+        "id": {
+          "$from": "draft",
+          "pointer": "/id"
+        }
+      },
+      "expect": [
+        {
+          "class": "standard"
+        }
+      ]
+    },
+    {
+      "id": "edit-draft",
+      "tool": "uptime.monitors.update",
+      "args": {
+        "id": {
+          "$from": "draft",
+          "pointer": "/id"
+        },
+        "definition": {
+          "name": "Checkout evidence revised"
+        }
+      },
+      "expect": [
+        {
+          "class": "standard"
+        }
+      ]
+    },
+    {
+      "id": "activate",
+      "tool": "uptime.monitors.resume",
+      "args": {
+        "id": {
+          "$from": "draft",
+          "pointer": "/id"
+        }
+      },
+      "expect": [
+        {
+          "class": "live"
+        },
+        {
+          "class": "external",
+          "facts": {
+            "measure": 1,
+            "counterparty": "public"
+          }
+        }
+      ]
+    },
+    {
+      "id": "pause",
+      "tool": "uptime.monitors.pause",
+      "args": {
+        "id": {
+          "$from": "draft",
+          "pointer": "/id"
+        }
+      },
+      "expect": [
+        {
+          "class": "live"
+        }
+      ]
+    },
+    {
+      "id": "paused-again",
+      "tool": "uptime.monitors.pause",
+      "args": {
+        "id": {
+          "$from": "draft",
+          "pointer": "/id"
+        }
+      },
+      "expect": [
+        {
+          "class": "standard"
+        }
+      ]
+    },
+    {
+      "id": "witness",
+      "tool": "uptime.witness.read",
+      "args": {},
+      "expect": [
+        {
+          "class": "standard"
+        }
+      ]
+    },
+    {
+      "id": "events",
+      "tool": "uptime.events.list",
+      "args": {},
+      "expect": [
+        {
+          "class": "standard"
+        }
+      ]
+    }
+  ],
+  "escalations": [],
+  "verification": {
+    "owner": {
+      "bindings": {
+        "RER_MANAGEMENT_ORIGIN": "issuer",
+        "RER_INSTALLATION_ID": "installationId"
+      }
+    },
+    "network": {
+      "module": "tests/agent-network-edge.mjs",
+      "origins": [
+        "https://probe.uptime.example.test",
+        "https://cloudflare-dns.com"
+      ]
+    }
+  }
+}

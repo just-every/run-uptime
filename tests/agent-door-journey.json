@@ -1,0 +1,18 @@
+{
+ "witness":{"tool":"uptime.witness.read","args":{}},
+ "journey":[
+  {"id":"draft","tool":"uptime.monitors.create","args":{"definition":{"name":"Checkout evidence","type":"http","url":"https://probe.uptime.example.test/checkout","enabled":false}},"expect":[{"class":"standard","facts":{"measure":1}}],"inject":{"classes":["standard"],"confirm":true,"approved":true}},
+  {"id":"read","tool":"uptime.monitors.read","args":{"id":{"$from":"draft","pointer":"/id"}},"expect":[{"class":"standard","facts":{"measure":1}}]},
+  {"id":"history","tool":"uptime.monitors.history","args":{"id":{"$from":"draft","pointer":"/id"}},"expect":[{"class":"standard"}]},
+  {"id":"list","tool":"uptime.monitors.list","args":{},"expect":[{"class":"standard"}]},
+  {"id":"report","tool":"uptime.reports.read","args":{"id":{"$from":"draft","pointer":"/id"}},"expect":[{"class":"standard"}]},
+  {"id":"edit-draft","tool":"uptime.monitors.update","args":{"id":{"$from":"draft","pointer":"/id"},"definition":{"name":"Checkout evidence revised"}},"expect":[{"class":"standard"}]},
+  {"id":"activate","tool":"uptime.monitors.resume","args":{"id":{"$from":"draft","pointer":"/id"}},"expect":[{"class":"live"},{"class":"external","facts":{"measure":1,"counterparty":"public"}}]},
+  {"id":"pause","tool":"uptime.monitors.pause","args":{"id":{"$from":"draft","pointer":"/id"}},"expect":[{"class":"live"}]},
+  {"id":"paused-again","tool":"uptime.monitors.pause","args":{"id":{"$from":"draft","pointer":"/id"}},"expect":[{"class":"standard"}]},
+  {"id":"witness","tool":"uptime.witness.read","args":{},"expect":[{"class":"standard"}]},
+  {"id":"events","tool":"uptime.events.list","args":{},"expect":[{"class":"standard"}]}
+ ],
+ "escalations":[],
+ "verification":{"owner":{"bindings":{"RER_MANAGEMENT_ORIGIN":"issuer","RER_INSTALLATION_ID":"installationId"}},"network":{"module":"tests/agent-network-edge.mjs","origins":["https://probe.uptime.example.test","https://cloudflare-dns.com"]}}
+}
