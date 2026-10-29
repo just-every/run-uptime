@@ -219,24 +219,45 @@ try{
  ])assert.equal(errorCode(await c.tool(name,args)),'operation_mismatch','MCP cannot manufacture a trusted continuation operation');
  assert.deepEqual((await result('uptime.evidence.witness')).result.structuredContent,continuationWitness);
  console.log('PASS BASE-AGENT-012.uptime.worker-only-continuation-admission');
+ // A retained read approval authorizes a fresh native projection, including
+ // aggregate reads whose visibility is enforced inside the native service.
+ const readApprovalPolicy=heldPolicy();readApprovalPolicy.rules=[{id:'all',class:'*',do:'approval',approver:['sponsor'],wait:'PT1H'}];
+ await c.adopt(readApprovalPolicy);
+ const pendingRead=await c.tool('uptime.monitors.list',{});
+ assert.ok(pendingRead.result._meta['com.runeditrun/approval']);
+ assert.equal((await c.decideApproval(pendingRead)).ok,true);
+ const readState={requestState:pendingRead.result.requestState};
+ assert.equal(typeof readState.requestState,'string');
+ const firstRead=await c.tool('uptime.monitors.list',{},readState);
+ assert.equal(firstRead.result.isError,false);
+ const freshMonitor=await native('/api/monitors',{...monitor.definition,name:'Independent native read update',enabled:false});
+ assert.ok(!firstRead.result.structuredContent.items.some(item=>item.id===freshMonitor.id));
+ const refreshedRead=await c.tool('uptime.monitors.list',{},readState);
+ assert.equal(refreshedRead.result.isError,false);
+ assert.ok(refreshedRead.result.structuredContent.items.some(item=>item.id===freshMonitor.id),'an approved aggregate read replays current native records instead of cached private content');
+ await c.adopt(autonomousPolicy());
+ console.log('PASS BASE-AGENT-012.uptime.replayauth-current-native-read');
  await proof.capture('agents-final','/agents');await proof.close();proof=null;
  assert.ok(c.points.every(point=>point.ok),JSON.stringify(c.points.filter(p=>!p.ok)));
  // Pending 2026-10-29 BASE-AGENT-013.uptime.declarative-conformance:
- // The inherited adoption and main 110914c4 contain no agent-surface.json.
- // The full native tool/class journey must be declared without omitting jobs.
+ // Re-measured with npm rer 0.2.89 and its recorded runtime after merging
+ // main 645448de. No agent-surface.json is claimed complete: all 37 native
+ // tools require their real mandatory journey, including trusted continuations.
  // Pending 2026-10-29 BASE-AGENT-013.uptime.ct-alignment:
  // CONTRACT.md's newer SURFACE-001 requires its 34-tool table and ten resource
  // templates exactly; this CORE registry exposes 37 native tools and eleven retained
- // templates, with different verbs and seven classes. Preserve the newer
- // judgments while reconciling that substantive native surface.
+ // templates. There are 28 native names absent from that table and 25 table
+ // names absent from the registry, not simply three added names. Every native
+ // tool already names existing clause IDs. Preserve ct's table and judgments.
  // Pending 2026-10-29 BASE-AGENT-013.uptime.worker-conformance:
- // Base modules/agent-door/conformance/journey.mjs:60 and
- // conformance/fixtures.mjs:40 call every declared native step through MCP.
- // operation.ts:38 requires a trusted invoke operationId for continuationItem
- // tools. The CLI's verifier hook (conformance/invocation.mjs:7) separately
- // invokes only the first mutating step; it does not drive each continuation
- // through its real native queue in all mandatory policy phases. Preserve the
- // worker boundary and all three final-admission tools until that is supported.
+ // Confirmed unchanged in released 0.2.89: modules/agent-door/conformance/
+ // fixtures.mjs:40 and journey.mjs:59 send each mandatory step through MCP,
+ // while operation.ts:38 requires a trusted invoke operationId. The private
+ // verification.invoke bridge drives only the first mutating step in the
+ // separate invocation.mjs:7 phase. It cannot route checks.dispatch,
+ // destinations.dispatch and discovery.dispatch through typed invoke in every
+ // journey/policy phase. Keep their retained native operation identities and
+ // MCP refusal; no 0.2.90 per-step bridge writer is named in this brief.
  // Closed 2026-10-29 BASE-AGENT-013.uptime.managed-mail-check:
  // rer 0.2.88 structural check and the unchanged managed generator both pass;
  // MAIL_PROVIDER stays public and the duplicate deploy secret stays absent.

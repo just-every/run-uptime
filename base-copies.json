@@ -27,7 +27,7 @@
       },
       "acknowledged": {
         ".github/workflows/verify.yml": {
-          "sha256": "2c656688db5f7d6fdb302fad331ad9a0eb6f273ad00a6307a057f885bd3d507e",
+          "sha256": "50628edf6b6106cf45b5d218ed995b95552f1032b947b13f0a8f2cc6f8adc58c",
           "mode": "100644"
         }
       }
@@ -1068,10 +1068,10 @@
     {
       "path": "src/base/modules/agent-door",
       "originPath": "modules/agent-door",
-      "revision": "114ef7a61f080da053af783c5fbe06f625d692cc",
+      "revision": "5e869f64d02c3da28a6fe30db0b44dd6e2961acb",
       "files": {
         "src/base/modules/agent-door/admission.ts": "c67ee28a1ae61b963619ffc64807baaa37b618aec41d6a2d90f1852f5beebf9e",
-        "src/base/modules/agent-door/ADOPTING.md": "7c52cbdbc2f76db48205f58eeb3168020fcfb21e8eea3d7af9da9ab9fce6c4c1",
+        "src/base/modules/agent-door/ADOPTING.md": "f92e6df2b1c61ff752c21e513d6146421cacdac2edaedf229ddf6d7b573348dc",
         "src/base/modules/agent-door/approval-execution.ts": "184b7fd7f016fb58121746873f4bf8fab621c4d09a1a00e61cf53eedad2fc3b3",
         "src/base/modules/agent-door/approvals.ts": "45757936fac519de054ca754fd45ea3e6def75f18f1e71cb6a651e6451bf767c",
         "src/base/modules/agent-door/audit.ts": "cb45fb29821cfa9fd544198154dde76efb0d3c2800e264a318282fdb622e7725",
@@ -1123,7 +1123,7 @@
         "src/base/modules/agent-door/pages.ts": "a7feefe27dbdffa0b8e0c09fda373f3f89620fc3d78ce77febca67585d4ac716",
         "src/base/modules/agent-door/people.ts": "b9aeb6c3190be3b4ca1f38345a55634cc7e34eda671f0467839b005406e4ac9e",
         "src/base/modules/agent-door/person-doors.ts": "ae6ca4f854809578d3b3402a9779a0dc4def0ff1a887d9dc3b8ec924e644b190",
-        "src/base/modules/agent-door/pipeline.ts": "90641d220b2a752b3496bf50935df4d17840cd5844885cef72bcc8e7ee3d982e",
+        "src/base/modules/agent-door/pipeline.ts": "2318f7d8410c765c5768a2b9275c744be85dd93d4021c457d39485fe98a59293",
         "src/base/modules/agent-door/policy-store.ts": "79caa78b1afd31e960aafe7a3eaf848ab17ca7c18116a3deea253d8c022304c9",
         "src/base/modules/agent-door/policy/catalogue.ts": "7c15685b0f2a308da0cc6645f066dd8e64948c1da582550b387f69c230f8d179",
         "src/base/modules/agent-door/policy/decide.ts": "b88c4b049a3000b5a823178ea400b9d097fcdb45a54c3f3a2c0b2ff7bbbc864d",
@@ -1293,6 +1293,7 @@
         "modules/agent-door/tests/identity.test.ts",
         "modules/agent-door/tests/principal.test.ts",
         "modules/agent-door/tests/queued-context.test.ts",
+        "modules/agent-door/tests/read-replay.test.ts",
         "modules/agent-door/tests/revision-probes.fixture.mjs",
         "modules/agent-door/tests/runtime.mjs",
         "modules/agent-door/tests/schema.test.ts",

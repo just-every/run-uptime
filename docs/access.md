@@ -131,3 +131,10 @@ listings omit them. Internal native events and visibility adapters remain in
 place. The full Agent surface contract remains a target: the native registry
 and the contract's 34-tool table still need reconciliation, and declarative
 conformance has not been established. Spend caps remain unenforced.
+
+An approved private read re-reads current native records when replayed; its
+approval does not preserve an old copy of private content. Queued native work
+retains its original operation identity, consent and preparation key, while each
+continuation item has its own once-only claim. The trusted worker invokes that
+continuation under current native authority and policy. MCP callers cannot
+supply that trusted operation identity.
