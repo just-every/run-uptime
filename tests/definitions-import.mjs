@@ -16,6 +16,7 @@ import {inviteDoorMember} from './access-door-support.mjs';
 import {populateArchiveFixture} from './archive-fixture.mjs';
 import {typeScriptDefinitionsProof} from './definitions-typescript-support.mjs';
 import {proveDefinitionCI} from './definitions-ci-support.mjs';
+import {heartbeatImports,importedHeartbeatSettings} from './heartbeat-import-fixture.mjs';
 
 const directory=await runtimeDirectory(),[port]=await availablePorts(1),origin=`http://127.0.0.1:${port}`;
 const savedRobot=await readFile('tests/fixtures/uptimerobot-v3-monitors.synthetic.json');
@@ -295,6 +296,24 @@ try{
  const typed=await typeScriptDefinitionsProof({directory,preview});
  await proveDefinitionCI({directory,origin,cookie,DB,typed,restart:async()=>{await worker.dispose();({worker,DB}=await migratedWorker({port,persist:join(directory,'local'),bindings:{UPTIME_ORIGIN:origin}}))}});
  console.log('IMPORT-001 / MIGRATE-001 passed through the import door: refusals leave every table byte-identical; request secrets are withheld before upload and stored nowhere; UptimeRobot preview, paused apply, export round-trip, change, undo that keeps and reports edits, with history intact, and earlier batches keep read and undo. DEPENDENCY-002 passed: UptimeRobot, Better Stack and Site24x7 third-party service monitors map onto catalog entries as paused followed services, a Better Stack third-party status page row is refused citing its public API, and a part already followed is refused.');
+ // Each documented heartbeat pair survives reviewed apply, with no source authority or replayed alert state.
+ for(const fixture of heartbeatImports){
+  const plan=await unchanged(fixture.source+' heartbeat preview',()=>preview(JSON.stringify(fixture.document)));
+  assert.equal(plan.status,200);assert.equal(plan.body.source,fixture.source);
+  const [entry]=plan.body.entries;assert.equal(entry.action,'create');assert.deepEqual(entry.target.heartbeat,importedHeartbeatSettings);
+  assert.ok(entry.differences.some(text=>/one scheduled missed-deadline result confirms failure/.test(text)),'preview reviews the local confirmation policy');
+  assert.ok(entry.differences.some(text=>/delays, repeats and escalation settings are not converted/.test(text)),'source alert settings remain separate from grace');
+  const before=await history(),authority=(await DB.prepare('SELECT * FROM heartbeat_authority ORDER BY rowid').all()).results;
+  const result=await apply(plan.body);assert.equal(result.status,200);assert.equal(result.body.report.ok,true);
+  const [id]=result.body.created,revision=await json(await send(`/api/monitors/${id}/revisions`,undefined,{method:'GET'}));
+  assert.equal(revision.status,200);const definition=revision.body[0].definition;
+  assert.equal(definition.enabled,false);assert.deepEqual(definition.heartbeat,importedHeartbeatSettings);
+  assert.equal(definition.confirmSlots,1);assert.equal(definition.recoverSlots,1);
+  assert.ok(!JSON.stringify(definition).includes(fixture.sourceToken));assert.equal(definition.url,'');
+  assert.deepEqual((await DB.prepare('SELECT * FROM heartbeat_authority ORDER BY rowid').all()).results,authority);
+  assert.deepEqual(await history(),before,'import neither replays source alerts nor invents receipt or scheduled history');
+  assert.equal((await send(`/api/heartbeats/${id}`,JSON.stringify({}),{headers:{authorization:`Bearer ${fixture.sourceToken}`,'x-heartbeat-sequence':'1'}})).status,400);
+ }
  // MIGRATE-004 saved monitor settings: the same Definitions door, in a fresh installation namespace.
  await worker.dispose();({worker}=await migratedWorker({port,persist:join(directory,'site24x7'),bindings:{UPTIME_ORIGIN:origin}}));
  {

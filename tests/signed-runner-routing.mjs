@@ -4,6 +4,9 @@ import assert from 'node:assert/strict';
 import https from 'node:https';
 import {Resolver} from 'node:dns/promises';
 
+// Only the test process and emitted-Worker envelope control time; production has no clock override.
+if(process.env.SIGNED_RUNNER_CLOCK!==undefined){const clock=Number(process.env.SIGNED_RUNNER_CLOCK);assert.ok(Number.isSafeInteger(clock));Date.now=()=>clock}
+
 Resolver.prototype.resolve4=async host=>{
  assert.ok(['runner-target.test','canary.runner-target.test'].includes(host));
  return ['93.184.216.34'];
