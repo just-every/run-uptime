@@ -18,8 +18,30 @@ Imports through the operator import door, metrics-key administration, erasure,
 incident comments/root causes/actions, setup, the private management editor and
 identity changes still require owner authority. A member role never grants
 private-runner, synthetic or credential creation authority. The existing metrics
-key is separate and only grants `metrics:read`; `monitoring:read` and CI tokens
-are not implemented.
+key is separate and only grants `metrics:read`. Native API credentials also
+support `monitoring:read` and bounded `definitions:preview` / `definitions:apply`.
+Their issuing operator, installation, expiry, version and selected-monitor,
+tag or environment fences remain authoritative. They do not grant staff roles
+or private failure-evidence access.
+
+The shared `/mcp` door accepts a live selected-monitor `monitoring:read`
+credential for the corresponding monitor reads and events, and a bounded
+`definitions:preview` credential for definition recognition. This adapter does
+not grant definition apply or other operator writes. Business agent credentials
+bind through the signed settings person's durable Business ID to a current
+native operator ID; a matching token email supplies no authority. Current native
+roles and service/team scopes still apply, and company policy decides each call.
+Resource refusals expose their machine code in JSON-RPC `error.data.code`;
+missing and restricted records use the same refusal.
+
+Agent-originated runner checks, discovery jobs and notification work retain the
+door's original operation, consent, sponsor, scopes and public idempotency key.
+Each native handoff or delivery has its own continuation identity. At the final
+native admission, the door rechecks current authority, policy, Pause and
+revocation; a preparation approval does not authorize unrelated queued effects.
+Older agent queue records without the originating admission require fresh
+preparation. A notification transport admission records permission to attempt
+that delivery, not provider acceptance or receipt by a person.
 
 ## Service and team scope
 
