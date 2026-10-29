@@ -2499,7 +2499,7 @@
       "executable": false
     },
     "public/app-theme.css": {
-      "sha256": "60dbc993a959822f6bf4437009f83a16576021b00769d3d4a1a364d7fa958b33",
+      "sha256": "ee3165c4c8c93a40c3dff4928316b6c383cc7e33e448f97e135960e8ceec5725",
       "executable": false
     },
     "public/app.js": {
@@ -2891,7 +2891,7 @@
       "executable": false
     },
     "public/style.css": {
-      "sha256": "7bd2af12b217ae11ed0acd33da41bad496ddcbfa11a86cf642b891b569553c20",
+      "sha256": "c26921eb4ec562b713408bbc93f428b1ea5e4bb433cd10309bf843838a5afa1f",
       "executable": false
     },
     "public/transaction-panel.js": {
