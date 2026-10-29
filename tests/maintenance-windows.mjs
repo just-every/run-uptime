@@ -1,4 +1,5 @@
 import {completeApiSecondFactor} from './mfa-auth-support.mjs';
+import {proveRecurringMaintenance} from './maintenance-recurring-support.mjs';
 // MAINT-001: one owner journey through the emitted Worker, durable D1 and a
 // real restarted, signed Node runner. Only DNS/socket routing is controlled.
 import assert from 'node:assert/strict';
@@ -161,3 +162,4 @@ try{
 }finally{
  releaseHeld?.();await Promise.all([...children].map(child=>child.stop()));await close(control);await worker?.dispose();await close(target);await rm(directory,{recursive:true,force:true});
 }
+await proveRecurringMaintenance();
