@@ -8528,7 +8528,7 @@
       "executable": false
     },
     "tests/agent-conformance/journey.mjs": {
-      "sha256": "7ffb9f69fd81617a4cd4e0010b7a8222ad73f3d5174467a893a4ca460617d64f",
+      "sha256": "e2fa68198995e6be799a84e8da1f4457980ba85bd8a7b5a364be78d64f0bb1e9",
       "executable": false
     },
     "tests/agent-conformance/owner.mjs": {

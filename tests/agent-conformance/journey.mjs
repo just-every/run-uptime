@@ -42,6 +42,7 @@ export default async function nativeJourney(context) {
   for (const row of page.rows) if (row.door === 'embedded' || row.code && row.ignored_arguments?.includes('instruction')) {
    console.log('Native conformance refusal ' + JSON.stringify({tool: row.tool, door: row.door, code: row.code, outcome: row.outcome}));
   }
+  if (page.cursor === after) break;
   after = page.cursor;
  } while (after);
 }
