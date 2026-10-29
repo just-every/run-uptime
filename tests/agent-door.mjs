@@ -219,16 +219,36 @@ try{
  ])assert.equal(errorCode(await c.tool(name,args)),'operation_mismatch','MCP cannot manufacture a trusted continuation operation');
  assert.deepEqual((await result('uptime.evidence.witness')).result.structuredContent,continuationWitness);
  console.log('PASS BASE-AGENT-012.uptime.worker-only-continuation-admission');
+ // An approved aggregate read retains a receipt, not a snapshot of native
+ // rows. Replaying through a scoped native credential must read current state.
+ const readPolicy=autonomousPolicy();readPolicy.rules=[{id:'all',class:'*',do:'approval',approver:['sponsor'],wait:'PT1H'}];
+ await c.adopt(readPolicy);
+ const aggregate=state=>c.mcp('tools/call',{name:'uptime.monitors.list',arguments:{},...(state?{requestState:state}:{})},local);
+ const readPending=await aggregate();assert.equal(readPending.result?.resultType,'input_required');
+ assert.equal((await c.decideApproval(readPending)).ok,true);
+ const readState=readPending.result.requestState,readFirst=await aggregate(readState);
+ assert.equal(readFirst.result?.isError,false);assert.deepEqual(readFirst.result.structuredContent.items.map(item=>item.id),[monitor.id]);
+ const [savedMonitor]=await native('/api/monitors/'+monitor.id+'/revisions'),renamed='Checkout reachability — current native read';
+ await native('/api/monitors/'+monitor.id,{...savedMonitor.definition,name:renamed},'PATCH');
+ const readReplay=await aggregate(readState);
+ assert.equal(readReplay.result?.isError,false);assert.equal(readReplay.result.structuredContent.items[0].definition.name,renamed);
+ assert.deepEqual(readReplay.result._meta['com.runeditrun/receipt'],readFirst.result._meta['com.runeditrun/receipt']);
+ assert.notDeepEqual(readReplay.result.structuredContent,readFirst.result.structuredContent,'an old approval cannot return stale aggregate rows');
+ await native('/api/credentials/'+keyIssued.credential.id,undefined,'DELETE');
+ const revokedRead=await aggregate(readState);assert.equal(revokedRead.status,401);assert.equal(revokedRead.result?.structuredContent,undefined);
+ console.log('PASS BASE-AGENT-012.uptime.current-native-read-replay');
  await proof.capture('agents-final','/agents');await proof.close();proof=null;
  assert.ok(c.points.every(point=>point.ok),JSON.stringify(c.points.filter(p=>!p.ok)));
  // Pending 2026-10-29 BASE-AGENT-013.uptime.declarative-conformance:
- // The inherited adoption and main 110914c4 contain no agent-surface.json.
- // The full native tool/class journey must be declared without omitting jobs.
+ // The inherited adoption has no agent-surface.json. The contract-led 34-tool
+ // declaration remains blocked by the ct-alignment mismatch below; neither a
+ // partial manifest nor a renamed no-op can establish native conformance.
  // Pending 2026-10-29 BASE-AGENT-013.uptime.ct-alignment:
  // CONTRACT.md's newer SURFACE-001 requires its 34-tool table and ten resource
- // templates exactly; this CORE registry exposes 37 native tools and eleven retained
- // templates, with different verbs and seven classes. Preserve the newer
- // judgments while reconciling that substantive native surface.
+ // templates exactly; only 9 of the 37 native names match that table. Removing
+ // the three worker admissions leaves 25 required names absent and 25 surplus
+ // names. Some required jobs (phone, budget and automation) have no native
+ // implementation. Preserve ct's judgments rather than invent those jobs.
  // Pending 2026-10-29 BASE-AGENT-013.uptime.worker-conformance:
  // Base modules/agent-door/conformance/journey.mjs:60 and
  // conformance/fixtures.mjs:40 call every declared native step through MCP.
@@ -237,6 +257,13 @@ try{
  // invokes only the first mutating step; it does not drive each continuation
  // through its real native queue in all mandatory policy phases. Preserve the
  // worker boundary and all three final-admission tools until that is supported.
+ // Remeasured on 0.2.89: index.ts:62 invokes only rt.tools, while transport.ts:45
+ // exposes that same registry. There is no native-only registration
+ // option; a second door or a seed policy dispatcher would change the contract.
+ // Pending 2026-10-29 BASE-AGENT-013.uptime.archive-refresh (no writer yet):
+ // edition-authoring/edition-migrations.mjs:33 requires Git ancestry even for
+ // --base-archive; archive-source.mjs:34 refuses it. The published npm CLI is
+ // pinned, and the release archive's door is recorded with record-base instead.
  // Closed 2026-10-29 BASE-AGENT-013.uptime.managed-mail-check:
  // rer 0.2.88 structural check and the unchanged managed generator both pass;
  // MAIL_PROVIDER stays public and the duplicate deploy secret stays absent.

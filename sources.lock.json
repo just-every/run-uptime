@@ -480,7 +480,7 @@
       "executable": false
     },
     ".github/workflows/verify.yml": {
-      "sha256": "2c656688db5f7d6fdb302fad331ad9a0eb6f273ad00a6307a057f885bd3d507e",
+      "sha256": "50628edf6b6106cf45b5d218ed995b95552f1032b947b13f0a8f2cc6f8adc58c",
       "executable": false
     },
     ".gitignore": {
@@ -504,7 +504,7 @@
       "executable": false
     },
     "base-copies.json": {
-      "sha256": "e4f56a2fa22aae170ae8936986775221fd7c3d1cdac766a770dd9544b58ce5d5",
+      "sha256": "74fe5b3917596661a664ad6e862c0c890ab9082072ba5a0b9a08e18194f65806",
       "executable": false
     },
     "BASELINE.md": {
@@ -4464,7 +4464,7 @@
       "executable": false
     },
     "src/base/modules/agent-door/ADOPTING.md": {
-      "sha256": "7c52cbdbc2f76db48205f58eeb3168020fcfb21e8eea3d7af9da9ab9fce6c4c1",
+      "sha256": "f92e6df2b1c61ff752c21e513d6146421cacdac2edaedf229ddf6d7b573348dc",
       "executable": false
     },
     "src/base/modules/agent-door/approval-execution.ts": {
@@ -4672,7 +4672,7 @@
       "executable": false
     },
     "src/base/modules/agent-door/pipeline.ts": {
-      "sha256": "90641d220b2a752b3496bf50935df4d17840cd5844885cef72bcc8e7ee3d982e",
+      "sha256": "2318f7d8410c765c5768a2b9275c744be85dd93d4021c457d39485fe98a59293",
       "executable": false
     },
     "src/base/modules/agent-door/policy-store.ts": {
@@ -8492,7 +8492,7 @@
       "executable": false
     },
     "tests/agent-door.mjs": {
-      "sha256": "4919aea8d3b46475e1a3abf20d04e5f00da0e649619d5887007cd7f9ae69ab48",
+      "sha256": "7cf2f7d7f8c8951456885ec5a024709049718e75c14ca043c310eb40bde23e15",
       "executable": false
     },
     "tests/alert-drill.mjs": {
