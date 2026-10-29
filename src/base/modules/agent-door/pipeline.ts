@@ -15,7 +15,7 @@ import type { ToolDefinition } from './types.ts'
 import { nativeTarget } from './target.ts'
 import { nativeProof } from './native-proof.ts'
 import { narrowPrincipal } from './principal.ts'
-import { operationKey, resumeOperation } from './operation.ts'
+import { continuationItem, operationKey, resumeOperation } from './operation.ts'
 
 export interface PipelineAnswer { result: CallResult; status?: number; scope?: string }
 export async function callTool(rt: Runtime, name: string, input: unknown, principal: Principal, door: ToolContext['door'], trace?: unknown, resourceTool?: ToolDefinition, requestState?: unknown, proofReference?: unknown, operationId?: string): Promise<PipelineAnswer> {
@@ -39,7 +39,6 @@ export async function callTool(rt: Runtime, name: string, input: unknown, princi
     const operation = operationId === undefined ? undefined : await resumeOperation(rt, operationId, principal, key)
     const approvers = operation?.approvers ?? []
     principal = operation?.principal ?? principal
-    claimKey = key === null ? null : operationId === undefined ? key : operationKey(operationId, name, key)
     const current = await narrowPrincipal(rt, principal)
     if (operationId !== undefined && principal.scopes.some(scope => !current.scopes.includes(scope))) return refuse('insufficient_scope')
     principal = { ...current, operationId: row.operation_id, idempotencyKey: key }
@@ -51,6 +50,11 @@ export async function callTool(rt: Runtime, name: string, input: unknown, princi
     const agent = await rt.options.db.prepare('SELECT revoked,sponsor FROM agent_door_agents WHERE id=?').bind(principal.agent.id).first<{ revoked: number; sponsor: string }>()
     if (revoked(state, principal) || agent?.revoked || agent && agent.sponsor !== principal.person.id) { status = 401; return refuse('unauthenticated') }
     const { idempotency_key: _key, expected_revision: expected, ...args } = declared
+    if (tool.continuationItem && (!raw || !validateSchema(tool.inputSchema, declared))) return refuse('invalid_arguments')
+    const item = await continuationItem(tool, args, context(rt, principal, door, [], approvers), operationId)
+    principal = { ...principal, continuationItemId: item }
+    if (item !== undefined) row.continuation_item_id = item
+    claimKey = key === null ? null : operationId === undefined ? key : operationKey(operationId, name, key, item)
     const ctx = context(rt, principal, door, [], approvers)
     const validInput = raw && validateSchema(tool.inputSchema, declared)
     const refusal = policyRefusal(rt, state, tool.classes)

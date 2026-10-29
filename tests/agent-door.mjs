@@ -109,6 +109,19 @@ try{
  const stopped=await c.tool('uptime.monitors.pause',{id:monitor.id,version:version+3});assert.equal(errorCode(stopped),'agents_paused');
  await proof.capture('agents-paused','/agents');assert.equal((await claimRunner()).task,null,'Pause refuses delayed runner admission');
  await c.adopt(autonomousPolicy());const admittedTask=(await claimRunner()).task;assert.equal(admittedTask.monitorId,monitor.id);assert.equal((await claimRunner()).task,null,'native runner handoff is issued once');
+ const prepared=JSON.parse((await db.prepare('SELECT principal FROM uptime_agent_revisions WHERE monitor_id=? AND revision=?').bind(monitor.id,version+3).first()).principal);
+ assert.ok(prepared.operationId);assert.ok(prepared.idempotencyKey);
+ const dispatchRows=(await auditRows(c)).rows.filter(row=>row.tool==='uptime.checks.dispatch'&&row.outcome==='done');
+ assert.equal(dispatchRows.length,1,'only one final runner admission completed');
+ assert.equal(dispatchRows[0].operation_id,prepared.operationId,'queued work retains the originating door admission');
+ assert.equal(dispatchRows[0].idempotency_key,prepared.idempotencyKey,'queued work retains the public preparation key');
+ assert.equal(dispatchRows[0].consent,prepared.consent);
+ const handoff=await db.prepare('SELECT id FROM uptime_agent_handoffs WHERE monitor_id=? AND delivered_at IS NOT NULL ORDER BY rowid DESC LIMIT 1').bind(monitor.id).first();
+ assert.equal(dispatchRows[0].continuation_item_id,handoff.id,'the native handoff owns its own once-only claim');
+ const originatingAudit=(await auditRows(c)).rows.find(row=>row.id===dispatchRows[0].operation_id);
+ assert.deepEqual(originatingAudit.approval.by,[sponsor.id],'the continuation links the real preparatory approval');
+ assert.deepEqual(prepared.approvers.map(person=>person.id),[sponsor.id],'native queue custody retains the real preparatory approver');
+ console.log('PASS BASE-AGENT-012.uptime.native-continuation-identity');
  // Native owner enrolls and proves their actual second factor before issuing
  // a selected-monitor credential. No token, proof or secret is printed.
  await completeSecondFactor(origin,cookie);
@@ -145,13 +158,56 @@ try{
  assert.equal(reviewedAudit.agent.id,c.agentId);assert.deepEqual(reviewedAudit.resource,target);
  await proof.capture('approval-independent',reviewPath.replace('/agents/api/approvals/','/agents/approvals/'));
  console.log('PASS BASE-AGENT-008.uptime.native-independent-reviewer');
+ const currentMonitor=await native('/api/v1/monitors/'+monitor.id);
+ await c.adopt(heldPolicy());
+ const pausedApproval=await c.tool('uptime.monitors.resume',{id:monitor.id,version:currentMonitor.revision,expected_revision:currentMonitor.revision});
+ assert.ok(pausedApproval.result._meta['com.runeditrun/approval'],'resume is held before native execution');
+ await c.adopt(autonomousPolicy(),{paused:true});
+ const stoppedApproval=await c.decideApproval(pausedApproval);
+ assert.equal(stoppedApproval.ok,true);assert.equal(stoppedApproval.body.approval.state,'refused');
+ assert.equal((await native('/api/v1/monitors/'+monitor.id)).revision,currentMonitor.revision,'Pause stops an already pending native effect');
+ await proof.capture('approval-refused',new URL(pausedApproval.result._meta['com.runeditrun/approval'].url).pathname);
+ console.log('PASS BASE-AGENT-011.uptime.pause-pending-execution');
  await c.adopt(autonomousPolicy());
+ const destination=await native('/api/notifications/destinations',{name:'Checkout incident webhook',kind:'webhook',url:'https://notifications.example.com/checkout'});
+ const notificationArgs={id:destination.id,idempotency_key:randomUUID()};
+ const queued=await result('uptime.destinations.test',notificationArgs),notificationId=queued.result.structuredContent.deliveryId;
+ assert.equal((await result('uptime.destinations.test',notificationArgs)).result.structuredContent.deliveryId,notificationId,'preparation replay retains one native delivery');
+ const rpc=async(operation,extra={})=>{
+  const response=await fetch(origin+'/api/runner/notifications',{method:'POST',headers:{origin,'content-type':'application/json','x-runner-key':bindings.UPTIME_RUNNER_KEY},body:JSON.stringify({operation,...extra})});
+  assert.equal(response.status,200,'ordinary authenticated notification runner admission');return response.json();
+ };
+ await rpc('poll');
+ const reservation=randomUUID(),transportClaim=await rpc('claim',{id:notificationId,reservation});assert.ok(transportClaim);
+ await c.adopt(autonomousPolicy(),{paused:true});
+ assert.equal(await rpc('start',{id:notificationId,claim:transportClaim,reservation}),false,'Pause stops transport admission of queued agent mail');
+ assert.equal((await db.prepare('SELECT started_at FROM notification_claim_custody WHERE delivery_id=?').bind(notificationId).first()).started_at,null);
+ await c.adopt(autonomousPolicy());
+ assert.equal(await rpc('start',{id:notificationId,claim:transportClaim,reservation}),true);
+ assert.equal(await rpc('start',{id:notificationId,claim:transportClaim,reservation}),false,'native transport custody starts only once');
+ const notificationAudit=(await auditRows(c)).rows.findLast(row=>row.tool==='uptime.destinations.dispatch'&&row.outcome==='done');
+ const notificationSource=JSON.parse((await db.prepare('SELECT principal FROM uptime_agent_notifications WHERE delivery_id=?').bind(notificationId).first()).principal);
+ assert.equal(notificationAudit.operation_id,notificationSource.operationId);
+ assert.equal(notificationAudit.idempotency_key,notificationArgs.idempotency_key);
+ assert.equal(notificationAudit.continuation_item_id,notificationId);
+ assert.equal(notificationAudit.consent,notificationSource.consent);
+ assert.equal((await db.prepare('SELECT COUNT(*) n FROM notification_delivery_attempts WHERE delivery_id=? AND started_at IS NOT NULL').bind(notificationId).first()).n,1);
+ console.log('PASS BASE-AGENT-012.uptime.notification-continuation-identity (native transport admission; provider delivery unclaimed)');
  const events=await result('uptime.events.list',{});assert.ok(events.result.structuredContent.events.some(event=>event.uri==='uptime://monitors/'+monitor.id));
  await proof.capture('agents-final','/agents');await proof.close();proof=null;
  assert.ok(c.points.every(point=>point.ok),JSON.stringify(c.points.filter(p=>!p.ok)));
- // Pending 2026-10-28 BASE-AGENT-013.uptime.declarative-conformance:
- // Adoption 7 supplied no agent-surface.json or named pending conformance points.
- // Pending 2026-10-28 BASE-AGENT-013.uptime.ct-alignment:
- // Fresh main has no aligned Agent surface clause rewrite or contract generator.
+ // Pending 2026-10-29 BASE-AGENT-013.uptime.declarative-conformance:
+ // The inherited adoption and main 110914c4 contain no agent-surface.json.
+ // The full native tool/class journey must be declared without omitting jobs.
+ // Pending 2026-10-29 BASE-AGENT-013.uptime.ct-alignment:
+ // CONTRACT.md's newer SURFACE-001 requires its 34-tool table and ten resource
+ // templates exactly; this inherited registry exposes 38 tools and eleven
+ // templates, with different verbs and seven classes. Preserve the newer
+ // judgments while reconciling that substantive native surface.
+ // Pending 2026-10-29 BASE-AGENT-013.uptime.managed-mail-check:
+ // Normal rer check rejects MAIL_PROVIDER in Wrangler vars and deploy secrets
+ // (Base cli/deploy-variables.mjs:87), while removing the public variable makes
+ // the recorded managed generator fail (modules/delivery-producer/mail.mjs:39).
+ // Preserve both real checks and the existing owner/managed mail lifecycles.
  console.log('PASS Uptime agent native signed identity, both MCP eras, no-effect reads, current scopes, revision, one-effect replay, held approval, Pause and read-key fences');
 }finally{await proof?.dispose();await worker?.dispose();await cleanupDirectory(directory)}

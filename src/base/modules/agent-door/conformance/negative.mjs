@@ -5,6 +5,7 @@ import { errorCode, VERSION } from './protocol.mjs';
 
 export async function negativePhase(c) {
  await c.adopt(autonomousPolicy());
+ await c.prepare('negative');
  const before = await c.witness(), iat = seconds(c.now);
  const unavailable = await c.mcp('resources/read', { uri: `unregistered://${crypto.randomUUID()}` });
  c.add('BASE-AGENT-003.refusal-code', unavailable.message?.error?.data?.code === 'tool_not_found' && unavailable.result === undefined, 'An unregistered resource must refuse with JSON-RPC error.data.code and no content.');

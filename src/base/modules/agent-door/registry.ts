@@ -23,6 +23,7 @@ export function registry(options: AgentDoorOptions): ToolDefinition[] {
     if ('cost' in tool) throw new TypeError(`Provider cost is not enforced: ${tool.name}`)
     if (!tool.readOnly && typeof tool.summary !== 'function') throw new TypeError(`Missing approval summary: ${tool.name}`)
     if (tool.target !== undefined && typeof tool.target !== 'function') throw new TypeError(`Invalid target resolver: ${tool.name}`)
+    if (tool.continuationItem !== undefined && (tool.readOnly || typeof tool.continuationItem !== 'function')) throw new TypeError(`Invalid continuation item resolver: ${tool.name}`)
     if (tool.authority === 'none' && !recordOnlyAuthority(tool)) throw new TypeError(`Invalid no-subject authority: ${tool.name}`)
     if (tool.classes.some(cls => cls === 'access' || cls === 'security') && tool.authority !== 'none' && typeof tool.authority !== 'function') throw new TypeError(`Missing authority: ${tool.name}`)
     if ((tool.widens !== undefined || tool.narrowing !== undefined) && (!tool.classes.some(cls => cls === 'access' || cls === 'security') || tool.readOnly || !narrowingContract(tool))) throw new TypeError(`Invalid narrowing-only contract: ${tool.name}`)

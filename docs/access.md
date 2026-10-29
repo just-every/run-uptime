@@ -34,6 +34,15 @@ roles and service/team scopes still apply, and company policy decides each call.
 Resource refusals expose their machine code in JSON-RPC `error.data.code`;
 missing and restricted records use the same refusal.
 
+Agent-originated runner checks, discovery jobs and notification work retain the
+door's original operation, consent, sponsor, scopes and public idempotency key.
+Each native handoff or delivery has its own continuation identity. At the final
+native admission, the door rechecks current authority, policy, Pause and
+revocation; a preparation approval does not authorize unrelated queued effects.
+Older agent queue records without the originating admission require fresh
+preparation. A notification transport admission records permission to attempt
+that delivery, not provider acceptance or receipt by a person.
+
 ## Service and team scope
 
 A scope is `{ "kind": "service" | "team", "value": "label" }`.

@@ -5,7 +5,7 @@ export type JsonSchema = boolean | { [key: string]: unknown }
 export interface JsonSchemaObject { type: 'object'; properties?: Record<string, JsonSchema>; required?: string[]; [key: string]: unknown }
 export interface Person { id: string; email: string; name: string; role: string; active: boolean }
 export interface Agent { id: string; name: string; specialist?: string | null }
-export interface Principal { person: Person; agent: Agent; scopes: string[]; clientId?: string; consent?: string; nativeProof?: { kind: string; reference: string }; operationId?: string; idempotencyKey?: string | null }
+export interface Principal { person: Person; agent: Agent; scopes: string[]; clientId?: string; consent?: string; nativeProof?: { kind: string; reference: string }; operationId?: string; idempotencyKey?: string | null; continuationItemId?: string }
 export interface PeopleAdapter {
   sponsor(claims: { sub: string }): Promise<Person | null>
   person(id: string): Promise<Person | null>
@@ -23,6 +23,7 @@ export interface ToolContext {
   readonly person: Readonly<Person>; readonly agent: Readonly<Agent>
   readonly consent?: string; readonly scopes: readonly string[]; readonly clientId?: string
   readonly operationId: string; readonly idempotencyKey: string | null
+  readonly continuationItemId?: string
   readonly nativeProof?: Readonly<{ kind: string; reference: string }>
   readonly actor: { readonly agent: Readonly<PreparedBy['agent']>; readonly for: Readonly<PreparedBy['for']>; readonly label: string }
   readonly seed: string; readonly origin: string; readonly door: 'mcp' | 'embedded'
@@ -56,11 +57,13 @@ export interface ToolDefinition {
   revision?(args: Record<string, unknown>, ctx: ToolContext): Promise<string | number | null>
   summary?(args: Record<string, unknown>, ctx: ToolContext): ApprovalSummary | Promise<ApprovalSummary>
   target?(args: Record<string, unknown>, ctx: ToolContext): NativeTarget | null | Promise<NativeTarget | null>
+  /** Resolve persisted native queue identity, bound to its originating admission. */
+  continuationItem?(args: Record<string, unknown>, ctx: ToolContext): { id: string; operationId: string } | null | Promise<{ id: string; operationId: string } | null>
   undo?(saved: unknown, ctx: UndoContext): Promise<void>
   authority?: 'none' | ((args: Record<string, unknown>, ctx: ToolContext) => Promise<{ subject: string; widens: boolean } | null>)
   effect?: { kind: 'record'; justification: string }
   proof?: 'native'; proofKind?: string
-  widens?: false; narrowing?: { effect: 'revoke' | 'narrow'; target: string }
+  widens?: false; narrowing?: { effect: 'revoke' | 'narrow'; target: string | string[] }
   untrusted?: boolean
 }
 export type ResourceContext = Principal & { db: D1Database }
