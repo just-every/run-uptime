@@ -12,6 +12,7 @@ export function incidentMailEdge(){
    if(message.subject==='Uptime incident mention'){
     edge.mentions.push(message);
     if(edge.mode==='held'){edge.held();return new Promise(()=>{})}
+    if(edge.mode==='delayed'){edge.held();return new Promise(resolve=>edge.release=()=>resolve(new Response(null,{status:202})))}
     if(edge.mode==='uncertain')throw Error('Synthetic connection loss after submission');
     if(edge.mode==='rejected')return new Response(null,{status:400});
    }

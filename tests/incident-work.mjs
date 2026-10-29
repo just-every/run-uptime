@@ -67,7 +67,7 @@ try{
  detail=await ok(path);assert.equal(detail.machineState,'recovered');assert.equal(detail.stopReason,'recovery');assert.ok(detail.timeline.some(entry=>entry.kind==='manual_resolution'));assert.ok(detail.timeline.some(entry=>entry.kind==='recovery'));
  const recoveredComment=await ok(path+'/comments',{body:{text:'Recovered incident remains editable'}});
  await ok(path+'/root-cause',{method:'PATCH',body:{categoryId:'hosting-provider',text:'Provider disk full',version:1}});
- const restart=async()=>{await(resumed??f.worker).dispose();resumed=await startLocalWorker({port:Number(new URL(f.origin).port),persist:f.directory,bindings:f.bindings,outboundService:mail.fetch});f.worker=resumed;f.DB=await resumed.getD1Database('DB')};
+ const restart=async(options={})=>{await(resumed??f.worker).dispose();resumed=await startLocalWorker({port:Number(new URL(f.origin).port),persist:f.directory,bindings:f.bindings,outboundService:mail.fetch,...options});f.worker=resumed;f.DB=await resumed.getD1Database('DB')};
  const collaboration=await proveIncidentMembers(f,monitor,id,mail,restart);
  const assignedBeforeRestart=(await ok('/api/v1/incidents/'+encodeURIComponent(id))).timeline.filter(row=>row.kind==='owner_assigned');
  await resumed.dispose();resumed=await startLocalWorker({port:Number(new URL(f.origin).port),persist:f.directory,bindings:f.bindings,outboundService:mail.fetch});f.DB=await resumed.getD1Database('DB');

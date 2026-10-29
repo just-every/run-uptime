@@ -7,6 +7,7 @@ import {join} from 'node:path';
 import {hostedRuntime} from './hosted-auth-runtime.mjs';
 import {testAuthBindings} from './auth-test-support.mjs';
 import {splitSql} from './migration-support.mjs';
+import {interruptMention} from './incident-mention-interruption-support.mjs';
 // A hosted install with no private runner: HTTP setup -> real scheduled handler -> webhook and Slack receivers.
 // Only public DNS/HTTP network edges are faked.
 const directory=await mkdtemp(join(tmpdir(),'uptime-hosted-alerts-')),origin='https://uptime.example.test';
@@ -101,10 +102,10 @@ try{
  const emailJobs=[];
  for(let index=0;index<10;index++)emailJobs.push(await json(await call(`/api/notifications/destinations/${inbox.id}/test`,{},cookie)));
  const incident=(await json(await call(`/api/monitors/${down.id}/incidents`,undefined,cookie)))[0];
- await db.prepare("CREATE TRIGGER synthetic_mention_interruption BEFORE UPDATE OF outcome ON incident_mentions WHEN OLD.outcome='pending' AND NEW.outcome='submitting' BEGIN SELECT RAISE(ABORT,'synthetic-uptime-552'); END").run();
- for(let index=0;index<11;index++)assert.equal((await call(`/api/incidents/${incident.id}/comments`,{text:`synthetic-uptime-${560+index}`,mentions:[self.id]},cookie)).status,503);
- await db.prepare('DROP TRIGGER synthetic_mention_interruption').run();
- const queued=(await db.prepare("SELECT * FROM incident_mentions WHERE outcome='pending'").all()).results;assert.equal(queued.length,11);
+ const restart=async(options={})=>{await worker.dispose();worker=await hostedRuntime(directory,bindings,outbound,options)};
+ await restart({inspectorPort:0});
+ for(let index=0;index<11;index++)await interruptMention(worker,restart,()=>call(`/api/incidents/${incident.id}/comments`,{text:`synthetic-uptime-${560+index}`,mentions:[self.id]},cookie));
+ const queued=(await (await worker.getD1Database('DB')).prepare("SELECT * FROM incident_mentions WHERE outcome='pending'").all()).results;assert.equal(queued.length,11);
  await worker.dispose();worker=await hostedRuntime(directory,bindings,outbound,{now:Date.now()+61000});
  const resumedDB=await worker.getD1Database('DB'),mentions=()=>mail.filter(message=>message.subject==='Uptime incident mention');
  requests=0;await scheduled();

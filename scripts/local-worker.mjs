@@ -9,7 +9,7 @@ import {fileURLToPath} from 'node:url';
 // request after a rejected oversized streaming body; preserve its v3 D1 layout.
 // `cf` is the request.cf every request carries (where a runner connects from names its location); left out, Miniflare
 // reads this machine's own.
-export async function startLocalWorker({root=resolve(fileURLToPath(new URL('../',import.meta.url))),host='127.0.0.1',port=0,persist=join(root,'.wrangler/state'),bindings={},assets=true,outboundService,cf}={}) {
+export async function startLocalWorker({root=resolve(fileURLToPath(new URL('../',import.meta.url))),host='127.0.0.1',port=0,persist=join(root,'.wrangler/state'),bindings={},assets=true,outboundService,cf,inspectorPort}={}) {
   portValue(port,{zero:true});
   const automaticPort=port===0&&!Object.hasOwn(bindings,'UPTIME_ORIGIN');
   for(let attempt=0;;attempt++){
@@ -22,7 +22,7 @@ export async function startLocalWorker({root=resolve(fileURLToPath(new URL('../'
   const worker=new Miniflare(convertV4MiniflareOptions({
     name:config.name,scriptPath:join(emitted,config.main),modules,modulesRoot:emitted,
     compatibilityDate:config.compatibility_date,compatibilityFlags:config.compatibility_flags,
-    host,port:candidate,...(outboundService?{outboundService}:{}),...(cf!==undefined?{cf}:{}),unsafeTriggerHandlers:false,unsafeLocalExplorer:false,unsafeObservability:false,resourcePersistencePath:join(resolve(persist),'v3'),
+    host,port:candidate,...(inspectorPort===undefined?{}:{inspectorPort,inspectorHost:'127.0.0.1'}),...(outboundService?{outboundService}:{}),...(cf!==undefined?{cf}:{}),unsafeTriggerHandlers:false,unsafeLocalExplorer:false,unsafeObservability:false,resourcePersistencePath:join(resolve(persist),'v3'),
     d1Databases:Object.fromEntries(config.d1_databases.map(db=>[db.binding,db.database_id])),
     ...(assets?{assets:{directory:resolve(emitted,config.assets.directory),binding:'ASSETS',routerConfig:{has_user_worker:true},run_worker_first:true}}:{}),bindings:runtimeBindings,
   }));
