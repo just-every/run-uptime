@@ -60,7 +60,9 @@ export async function provePublicDnsDiscovery({launch,evidence}){
   const [source]=await rows('SELECT * FROM discovery_sources');
   const owner=await g.DB.prepare("SELECT id FROM oa_operators WHERE role='owner' AND status='active'").first();
   assert.equal(source.authorized_by,owner.id);assert.equal(source.state,'active');assert.deepEqual(JSON.parse(source.identifiers),{domain:DOMAIN});
-  assert.equal((await ok(`/api/discovery-sources/${source.id}`)).review,null,'authorization alone does not read the source');
+  const authorized=await ok(`/api/discovery-sources/${source.id}`);
+  assert.equal(authorized.review,null,'authorization alone does not read the source');
+  assert.equal(authorized.source.running,null);assert.deepEqual(await rows('SELECT id FROM discovery_jobs'),[],'authorization never queues an automatic source run');
   await noMonitoring();
   await sourceRow.getByRole('button',{name:'Run discovery',exact:true}).click();
   const queued=await waitUntil(async()=>(await rows("SELECT * FROM discovery_jobs WHERE kind='source'"))[0],'owner-started source job');
