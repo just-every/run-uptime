@@ -8126,8 +8126,12 @@
       "sha256": "ca7e3b8ad53ceb9f549ca7d8b92ce14c9a1c4861248eaa0c0bc9e6f148482b83",
       "executable": false
     },
+    "tests/control-cadence-support.mjs": {
+      "sha256": "a6289bd15ecb0277245f81b35efc50b61dfdf881badf52b52e955db7f382277d",
+      "executable": false
+    },
     "tests/control-runtime.mjs": {
-      "sha256": "5807ac52830beaec68bec872afff3f8c23b88a9b64ee23e3cd7fc38651b9ae21",
+      "sha256": "b542d245fbdad3cec649acf3f07a253b272cb5374654768651da4cbb47824fc3",
       "executable": false
     },
     "tests/definitions-ci-support.mjs": {
