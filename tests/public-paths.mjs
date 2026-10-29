@@ -5,6 +5,7 @@ import {join,resolve} from 'node:path';
 import {runtimeDirectory,cleanupDirectory,availablePorts} from './notify-acceptance-runtime.mjs';
 import {testAuthBindings,keyHeader} from './auth-test-support.mjs';
 import {filesIn,publicRuntime,prefill,limited,steadyMinute} from './public-paths-support.mjs';
+import {provePublicSurfaces} from './public-surfaces-support.mjs';
 
 const seed=JSON.parse(await readFile('seed.json','utf8')),declarations=seed.deploy.publicPaths,limits=seed.limits.publicRequestsPerMinutePerIp;
 const matches=(path,local=false)=>declarations.find(item=>(local||item.environment!=='local')&&(item.match==='prefix'?path.startsWith(item.path):path===item.path)&&(!item.withinDirectory||(!/[\\]|%(?:2f|5c|25)/i.test(path)&&path.split('/').includes(item.withinDirectory))));
@@ -44,6 +45,8 @@ for(const file of files){
 directory=await runtimeDirectory();
 try{
  let {DB,call}=await start();
+ await provePublicSurfaces({call,origin:hosted.UPTIME_ORIGIN,directory});
+ await DB.prepare('DELETE FROM public_rate_limits').run();
  // Discover non-served output metadata by its actual Worker denial, never by
  // a fixed filename exclusion. A newly served undeclared file fails here.
  for(const path of unservedFiles){
