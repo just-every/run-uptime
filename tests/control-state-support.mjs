@@ -108,8 +108,21 @@ export async function proveStateHysteresis() {
    return current;
   };
 
-  // One failing network with the other passing is visible without independent failure agreement.
-  await run(0,503);await run(1,200);
+  // No selected probe has run yet; an empty history cannot establish target health.
+  const unseen=await coverage('Unknown',['Unknown','Unknown']);
+  assert.equal(unseen.state.coverageState,'Incomplete');
+  assert.deepEqual(await history(),[]);assert.deepEqual(await incidents(),[]);
+
+  // One failing network with the other missing stays visible without independent agreement.
+  await run(0,503);
+  const partial=await coverage('Degraded',['Failing','Unknown']);
+  assert.equal(partial.state.coverageState,'Incomplete');assert.equal(partial.state.failingVantages,1);
+  assert.deepEqual((await overview()).alerts,[]);
+  const partialSlot=(await history())[0];
+  assert.equal(partialSlot.status,'running');assert.equal(partialSlot.observations.length,1);
+
+  // Complete the same slot with a passing peer, retaining the original failure.
+  clock+=25;await run(1,200);
   const mixed=await coverage('Degraded',['Failing','Healthy']);
   assert.equal(mixed.state.coverageState,'Complete');assert.equal(mixed.state.failingVantages,1);
   assert.deepEqual((await overview()).alerts,[]);
@@ -118,6 +131,19 @@ export async function proveStateHysteresis() {
   assert.deepEqual(mixedSlot.observations.map(({probe,outcome,status})=>({probe,outcome,status})).sort((a,b)=>a.probe.localeCompare(b.probe)),[
    {probe:'local-a',outcome:'target_failure',status:503},{probe:'local-b',outcome:'pass',status:200},
   ]);
+  assert.deepEqual(mixedSlot.observations.find(observation=>observation.probe==='local-a'),partialSlot.observations[0]);
+
+  // Reads age each real observation independently, without consuming scheduled work.
+  clock=partialSlot.observations[0].completedAt+created.definition.freshnessMs;
+  await coverage('Degraded',['Failing','Healthy']);
+  clock+=1;
+  const partlyStale=await coverage('Unknown',['Unknown','Healthy']);
+  assert.equal(partlyStale.state.coverageState,'Incomplete');
+  clock=Math.max(...mixedSlot.observations.map(observation=>observation.completedAt))+created.definition.freshnessMs+1;
+  const staleMixed=await coverage('Unknown',['Unknown','Unknown']);
+  assert.equal(staleMixed.state.coverageState,'Incomplete');
+  assert.deepEqual(await history(),[mixedSlot],'freshness reads retain actual observations and create no replacement checks');
+  assert.deepEqual((await overview()).alerts,[]);assert.deepEqual(await incidents(),[]);
 
   await next();await both(503);
   const firstFailure=await coverage('Degraded',['Failing','Failing']);
@@ -155,6 +181,13 @@ export async function proveStateHysteresis() {
   assert.equal(afterManual.nextDue,nextDue);assert.equal(afterManual.state.recoveryStreak,0);
   await assertOpen();
 
+  // Expiring both failing witnesses cannot resolve the open incident or consume recovery.
+  clock=Math.max(...failingSlot.observations.map(observation=>observation.completedAt))+created.definition.freshnessMs+1;
+  const staleFailure=await coverage('Unknown',['Unknown','Unknown']);
+  assert.equal(staleFailure.state.coverageState,'Incomplete');assert.equal(staleFailure.state.recoveryStreak,0);
+  assert.equal(staleFailure.nextDue,nextDue);await assertOpen();
+  assert.deepEqual((await history()).find(slot=>slot.id===manual.id),manual);
+
   // The other selected probe is absent: one actual scheduled pass is never complete coverage.
   await next();await run(0,200);
   const absentSlot=(await history()).find(slot=>!slot.manual&&slot.id!==failingSlot.id&&slot.due_at===nextDue);
@@ -172,6 +205,15 @@ export async function proveStateHysteresis() {
   const firstPassing=(await history()).find(slot=>slot.id===absentSlot.id);
   assert.equal(firstPassing.status,'complete');assert.equal(firstPassing.observations.length,2);
   assert.ok(firstPassing.observations.every(observation=>observation.outcome==='pass'));
+
+  // Passing coverage is fresh through its saved deadline, then becomes Unknown without recovery.
+  clock=Math.max(...firstPassing.observations.map(observation=>observation.completedAt))+created.definition.freshnessMs;
+  await coverage('Recovering',['Healthy','Healthy']);await assertOpen();
+  clock+=1;
+  const staleRecovery=await coverage('Unknown',['Unknown','Unknown']);
+  assert.equal(staleRecovery.state.coverageState,'Incomplete');
+  assert.equal(staleRecovery.state.recoveryStreak,1);await assertOpen();
+  assert.deepEqual((await history()).find(slot=>slot.id===firstPassing.id),firstPassing);
 
   // At the next due time, absence still cannot finish recovery; the second complete pass can.
   await next();await run(0,200);
@@ -202,7 +244,12 @@ export async function proveStateHysteresis() {
   }
   await run(0,200,true);await run(1,200,true);
   assert.deepEqual((await overview()).alerts,closed,'idle polls after recovery cannot replay the recovery event');
-  console.log('STATE-001 passed: two signed assigned runners, mixed-vantage Degraded, confirmed failure, manual-pass isolation, absent-probe Unknown, first complete scheduled Recovering and one recovery after the second complete scheduled pass with immutable evidence.');
+  clock=Math.max(...finalHistory[0].observations.map(observation=>observation.completedAt))+created.definition.freshnessMs+1;
+  const staleHealthy=await coverage('Unknown',['Unknown','Unknown']);
+  assert.equal(staleHealthy.state.coverageState,'Incomplete');assert.equal(staleHealthy.state.notificationOpen,false);
+  assert.deepEqual((await overview()).alerts,closed,'aging recovered evidence creates no incident event');
+  assert.deepEqual(await incidents(),recoveredIncidents);assert.deepEqual(await history(),finalHistory);
+  console.log('STATE-001 passed: two signed assigned runners, missing and partial coverage, mixed-vantage Degraded, exact freshness aging, confirmed failure, manual-pass isolation, absent-probe Unknown, first complete scheduled Recovering and one recovery after the second complete scheduled pass with immutable evidence.');
  } finally {
   for(const child of children)if(child.exitCode===null&&child.signalCode===null)child.kill('SIGTERM');
   await Promise.all([...children].map(child=>child.exitCode!==null||child.signalCode!==null?undefined:once(child,'exit')));
