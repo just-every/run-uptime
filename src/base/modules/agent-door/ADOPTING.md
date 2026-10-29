@@ -1031,3 +1031,64 @@ current replay authorization from fresh-effect preparation. Returning a cached
 result before native authorization or current policy would remove required
 admission checks. This needs a native replay-admission contract; the shared
 runtime does not infer one from a revision refusal.
+
+## Declare a door subset
+
+The declaration lives in the existing `agent-surface.json` door descriptor:
+
+```json
+{
+  "capabilities": ["tools", "policy", "pause", "audit", "idempotency"]
+}
+```
+
+Pass that same array as `capabilities` to `createAgentDoor`. A descriptor alone
+cannot change a deployed runtime: conformance checks discovery against the
+array and fails a mismatch. Omit the field in both places to retain the legacy
+full-door requirements and checks. An empty array, unknown names, duplicates,
+a boolean map or an array missing any CORE name is rejected when loaded.
+
+The mandatory CORE names are **tools, policy, pause, audit and idempotency**.
+Principal authorization, owner-bound tokens, current scopes, native proofs,
+self-escalation refusal, policy refusal, approval controls and consent revocation
+remain unconditional. These security duties have no off switch. Native tools
+retain their complete declared journeys, classification, output, injection,
+replay and audit checks. Core is not permission to omit a native tool's security.
+
+The currently scopeable optional names are:
+
+| Name | Offered when declared | Refused when omitted |
+| --- | --- | --- |
+| `events` | Built-in `<seed>.events.list`, full retained-event, attribution and cursor checks | Absent from tools/list; typed tool refusal |
+| `resources` | Native resource templates and complete policy-controlled reads of returned links | Empty template list; no resource discovery or resource links; typed read refusal |
+| `prompts` | Specialist prompts and retrieval checks; at least one must exist | Empty prompt list; no prompt discovery; typed get refusal |
+| `subscriptions` | Streaming notification acknowledgement and live pause termination checks; requires `events` | No subscription advertisement; typed listen refusal |
+
+Refusals carry `code: "capability_not_declared"` and the capability name in the
+usual tool error metadata or JSON-RPC `error.data`. Authenticated refused tool
+and resource calls still receive audit rows. Internal event collection and
+native resource visibility adapters may remain in place for audit and event
+visibility; they do not expose an undeclared public resource door.
+
+Discovery metadata `_meta["com.runeditrun/capabilities"]` and the conformance report
+contain `mode`, `declared`, `refused` and `unscoped`. A declared optional
+capability runs its full applicable checks; it is not credited merely for being
+listed. Missing declared resources or prompts reject runtime creation; missing
+built-in events fails catalogue and event checks. Conformance replaces only the
+scopeable omitted families with explicit discovery, listing, typed refusal and
+no-effect checks. Existing event definitions and journey steps in the descriptor
+are excluded from the effective surface when events are omitted. References to
+excluded steps must still validate; dependent native steps are never silently
+removed. Native resource links are withheld when resources are omitted.
+
+This first subset does **not** scope multi-sponsor, mail edges, resource refresh,
+timed lifecycle, dual host, queued lifecycle or owner-native administration.
+They appear under `unscoped`, cannot be selected as capability names, and are
+not claimed as refused or proved by this declaration. Existing extra-sponsor,
+provider, native journey, replay-admission, durable invocation and webhook
+checks continue unchanged wherever supplied. In particular, owner bootstrap,
+owner binding, native approvals and audit APIs cannot be switched off: they
+carry CORE security. A seed-native journey that mixes these duties with a timed
+or second-host scenario must be separated before that family can be scoped.
+Keep the corresponding seed contract clauses partial until independently proved;
+a subset declaration never promotes contract statuses.

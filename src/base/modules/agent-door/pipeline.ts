@@ -1,3 +1,4 @@
+import { offers } from './capabilities.mjs'
 import type { CallResult, DecisionMeta, Principal, Runtime, ToolContext } from './types.ts'
 import { audit, newAudit, recordDecision, outcomeRow, recoverAudit, usage, usageToday, type Evidence } from './audit.ts'
 import { policyRefusal, policyState, setupUrl } from './policy-store.ts'
@@ -27,6 +28,8 @@ export async function callTool(rt: Runtime, name: string, input: unknown, princi
   let result: CallResult = { outcome: 'refused', decision: null }, status: number | undefined, scope: string | undefined
   const refuse = (code: string, fields?: Record<string, unknown>) => { result = { ...result, outcome: 'refused', code, fields }; return { result, status, scope } }
   try {
+    const optional = name === `${rt.options.seed}.events.list` ? 'events' : name === 'resources/read' ? 'resources' : null
+    if (optional && !offers(rt.options.capabilities, optional)) return refuse('capability_not_declared', { capability: optional })
     const tool = resourceTool ?? rt.tools.find(tool => tool.name === name)
     if (!tool) { status = 400; return refuse('tool_not_found') }
     if (tool.authority === 'none') row.authority = 'none'

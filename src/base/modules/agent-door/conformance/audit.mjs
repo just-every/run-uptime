@@ -1,3 +1,4 @@
+import { offers } from '../capabilities.mjs';
 import { isDeepStrictEqual } from 'node:util';
 import { classIds } from './protocol.mjs';
 import { AGENT_CLASSES } from './surface.mjs';
@@ -34,6 +35,7 @@ export async function auditPhase(c) {
  c.add('BASE-AGENT-007.7.differs-from-policy', differs === 0, `Audit evidence has ${differs} decisions that differ from the policy in force.`);
  // Audit is read before the events tool: its own call is audited as well, but
  // cannot occur in a snapshot taken before it was made.
+ if (!offers(c.surface.capabilities, 'events')) return;
  const events = []; let after;
  for (let page = 0; page < 100; page++) {
   const result = await c.tool(`${c.surface.seed}.events.list`, { ...(after ? { after } : {}), limit: 200 });

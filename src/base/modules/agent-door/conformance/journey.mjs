@@ -1,3 +1,4 @@
+import { offers } from '../capabilities.mjs';
 import { randomUUID } from 'node:crypto';
 import { isDeepStrictEqual } from 'node:util';
 import { classIds, subset, errorCode, APPROVAL } from './protocol.mjs';
@@ -87,7 +88,7 @@ export async function runJourney(c, phase, { held = false, injections = false, r
     const smuggled = await c.stepTool(step, { ...args, idempotency_key: randomUUID(), grant_to_add: 'admin' });
     c.add(`BASE-AGENT-005.narrowing.${step.tool}.undeclared`, errorCode(smuggled) === 'invalid_arguments' && isDeepStrictEqual(beforeInjection, await c.witness()), `${step.tool} must refuse an undeclared widening argument without an effect.`);
    }
-   if (!c.surface.tools.find(tool => tool.name === step.tool)?.readOnly) {
+   if (offers(c.surface.capabilities, 'events') && !c.surface.tools.find(tool => tool.name === step.tool)?.readOnly) {
     const snapshot = await c.tool(`${c.surface.seed}.events.list`, { limit: 200 }, { client: step.client });
     if (!Array.isArray(snapshot.result?.structuredContent?.events)) throw new Error('Post-effect events.list must return events');
     (c.effectEvents ??= []).push(...snapshot.result.structuredContent.events);

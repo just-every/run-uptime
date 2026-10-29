@@ -1,3 +1,6 @@
+import { capabilitySet, offers } from '../capabilities.mjs';
+import { scopedSurface, refusalPhase } from './subset.mjs';
+import { subscriptionPhase } from './subscription.mjs';
 import { randomUUID } from 'node:crypto';
 import { validateAgentSurface } from './surface.mjs';
 import { createProtocol } from './protocol.mjs';
@@ -19,6 +22,8 @@ export { validateAgentSurface } from './surface.mjs';
 export async function runAgentDoorConformance({ fetch, invoke, origin, surface, signer, person, sponsors = [person], webhooks, business = 'rer-agent-conformance', consent = randomUUID(), now, prove, nativeJourney, nativeStep, prepare }) {
  const validation = validateAgentSurface(surface), points = [...validation.points];
  if (!validation.ok) return { ok: false, points };
+ const capabilities = capabilitySet(surface.capabilities);
+ surface = scopedSurface(surface);
  if (typeof fetch !== 'function' || !signer?.privateKey || !signer.issuer || !signer.installationId || !signer.kid || !person?.email || !person.cookie || typeof person.sub !== 'string' || !person.sub.trim() || typeof consent !== 'string' || !consent.trim() || new URL(origin).origin !== origin) throw new TypeError('Conformance requires fetch, canonical origin, signer, consent and signed-in person {email,cookie,sub}');
  const c = createProtocol({ fetch, origin, surface, signer, person, business, consent, now, prove, nativeStep, prepare, points, agentId: `rer-conformance-${randomUUID()}`, seq: 0, revision: 0, listed: new Map() });
  await c.phase('BASE-AGENT-001.transport', () => discoverDoor(c));
@@ -35,7 +40,9 @@ export async function runAgentDoorConformance({ fetch, invoke, origin, surface, 
  if (surface.tools.some(tool => tool.authority === 'none')) await c.phase('BASE-AGENT-005.no-subject', () => recordSecurityPhase(c));
  if (surface.verification?.replayAdmission) await c.phase('BASE-AGENT-012.replay', () => replayAdmissionPhase(c, surface.verification.replayAdmission));
  if (webhooks) await c.phase('BASE-AGENT-006.webhook', () => webhookPhase(c, webhooks));
+ await c.phase('BASE-AGENT-subset.refusals', () => refusalPhase(c));
+ if (capabilities.mode === 'declared' && offers(surface.capabilities, 'subscriptions')) await c.phase('BASE-AGENT-subset.subscriptions', () => subscriptionPhase(c));
  await c.phase('BASE-AGENT-009.phase7', () => auditPhase(c));
  if (sponsors.length > 1) await c.phase('BASE-AGENT-004.cross-sponsor', () => crossSponsorPhase(c, sponsors));
- return { ok: points.every(point => point.ok), points };
+ return { ok: points.every(point => point.ok), points, capabilities };
 }

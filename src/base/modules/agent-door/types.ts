@@ -1,3 +1,4 @@
+import type { Capability } from './capabilities.mjs'
 import type { ClassFacts, ClassId } from './policy/catalogue.ts'
 import type { PolicyDocument } from './policy/document.ts'
 
@@ -74,6 +75,7 @@ export interface ResourceDefinition {
 }
 export interface AgentDoorOptions {
   seed: string; name: string; specialist: string; version?: string; db: D1Database; origin: string; trust: Trust | null
+  capabilities?: readonly Capability[]
   tools: ToolDefinition[]; resources?: ResourceDefinition[]
   prompts?: Array<{ name: string; title?: string; description: string; clauses?: string[]; messages(args: Record<string, string>): unknown[] }>
   notTools?: Array<{ clauses: string[]; reason: 'device' | 'screen' | 'connector' | 'import-door' | 'installation' }>

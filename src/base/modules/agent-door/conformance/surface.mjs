@@ -1,3 +1,5 @@
+import { offers, capabilitySet } from '../capabilities.mjs';
+import { scopedSurface } from './subset.mjs';
 import { recordOnlyAuthority } from './authority.mjs';
 import { narrowingContract, narrowingTargets } from './narrowing.mjs';
 import { validToolName } from './tool-name.mjs';
@@ -9,6 +11,9 @@ const text = value => typeof value === 'string' && value.trim().length > 0;
 
 /** Validate the edition's static declaration without loading application code. */
 export function validateAgentSurface(surface, { contract } = {}) {
+ let set;
+ try { set = capabilitySet(surface?.capabilities); surface = scopedSurface(surface); }
+ catch (error) { return { ok: false, points: [{ id: 'BASE-AGENT-subset.declaration', ok: false, detail: error.message }] }; }
  const points = [], add = (id, ok, detail) => points.push({ id: `BASE-AGENT-013.surface.${id}`, ok: Boolean(ok), ...(!ok ? { detail } : {}) });
  add('schema', object(surface) && surface.schema === 'rer-agent-surface/1', 'Agent surface must use schema rer-agent-surface/1.');
  if (!object(surface)) return { ok: false, points };
@@ -85,7 +90,8 @@ export function validateAgentSurface(surface, { contract } = {}) {
  }
  for (const [name, tool] of tools) if (Array.isArray(tool?.classes) && tool.classes.some(cls => ['access', 'security'].includes(cls))) escalation(`${name}.coverage`, tool.authority === 'none' && recordOnlyAuthority(tool) || (tool.widens === false ? narrowingTools.has(name) : tool.sponsorEscalation === false || escalationTools.has(name)), `${name} has no ${tool.widens === false ? 'narrowing check' : 'sponsor escalation fixture'}.`);
  for (const [name, tool] of tools) for (const cls of Array.isArray(tool?.classes) ? tool.classes : []) add(`${name}.coverage.${cls}`, coverage.get(name).has(cls), `${name} has no journey fixture for declared class ${cls}.`);
- add('events', tools.has(`${surface.seed}.events.list`), `Declare built-in ${surface.seed}.events.list in the Agent surface.`);
+ if (offers(surface.capabilities, 'events')) add('events', tools.has(`${surface.seed}.events.list`), `Declare built-in ${surface.seed}.events.list in the Agent surface.`);
+ if (set.mode === 'declared' && offers(surface.capabilities, 'resources')) add('resources.offered', surface.resources.length > 0, 'Declared resources must offer at least one resource template.');
  add('witness', object(surface.witness) && tools.get(surface.witness.tool)?.readOnly === true && object(surface.witness.args), 'witness must name a declared readOnly tool and arguments.');
  checkReferences(surface.witness?.args, 'witness', new Set());
  return { ok: points.every(point => point.ok), points };
