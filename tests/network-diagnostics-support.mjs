@@ -37,7 +37,9 @@ export async function proveNetworkDiagnostics(){
   const protocols=await protocolDiagnostics(f,value=>blocked=value);assert.equal(calls.length,8,'one bounded route per failed transport; healthy peers add no traffic');
   const protocolArchive=(await f.request('/api/archive')).data;receiving=await fixture();
   const restored=await receiving.request('/api/restore',{body:{archive:protocolArchive}});assert.equal(restored.status,200,JSON.stringify(restored.data));
+  const restoredMonitors=(await receiving.request('/api/overview')).data.monitors;
   for(const protocol of protocols){
+   assert.equal(restoredMonitors.find(row=>row.id===protocol.id).definition.enabled,false,'restored diagnostics never reactivate their monitor');
    const retained=(await receiving.request('/api/monitors/'+protocol.id+'/failure-snapshots')).data;
    assert.equal(retained.items.length,2);assert.equal(retained.items.filter(row=>row.snapshot.diagnostics.route.reason==='blocked').length,1);
    assert.ok(retained.items.every(row=>row.healthyPeers.length===1),'healthy peer comparison survives inactive restore');
@@ -45,5 +47,6 @@ export async function proveNetworkDiagnostics(){
    assert.equal(erased.status,200);assert.equal(erased.data.receipt.counts.failure_snapshots,2);
    assert.equal((await receiving.DB.prepare('SELECT COUNT(*) n FROM failure_snapshots WHERE monitor_id=?').bind(protocol.id).first()).n,0);
   }
+  console.log('DIAG-001 PASS: original pins and bounded diagnostics, signed refusal, unchanged verdicts, healthy peers, inactive restore and erasure through the consolidated protocol journey.');
  }finally{childProcess.spawn=original;syncBuiltinESMExports();await receiving?.close();await f?.close()}
 }

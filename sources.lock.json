@@ -487,7 +487,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "efa9d02f2e18372128033dbb3b6752419f319079b952e015812468ba64701fd1",
+      "sha256": "ad1c171de5bdcbbae42106aa4476a4021b8e3cad9eab1763d7e363de2774b041",
       "executable": false
     },
     "AGENTS.md": {
@@ -511,7 +511,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "18a36c09eb1e7baa0b00b033fd777b52ec1320c54f66a0a7cbf706e1eca487f8",
+      "sha256": "ed4e3f6ef238b9cd9157bcc26c9c8bb9b04892a9f414ef6a6fdd5ae1d46b4164",
       "executable": false
     },
     "DEMO.md": {
@@ -8243,7 +8243,7 @@
       "executable": false
     },
     "tests/hosted-alerts.mjs": {
-      "sha256": "231575a0f07ef31a2d21d77f0dd17a02115ec1476ca9d5486f49269c1705f940",
+      "sha256": "83d8dde9379c29edfa6975ecb6905c1660c8faa70861c0071562409fdcaa0d2e",
       "executable": false
     },
     "tests/hosted-auth-browser.mjs": {
@@ -8323,7 +8323,7 @@
       "executable": false
     },
     "tests/network-diagnostics-support.mjs": {
-      "sha256": "dec30c46de5004930f01a5db1fc2a48825f4a74e24a6cecdaabb3656ebb9d0fe",
+      "sha256": "f7a383393c6849353779cba29f323ed2096a2971fa225289dc004542024a60a8",
       "executable": false
     },
     "tests/notification-fallback.mjs": {

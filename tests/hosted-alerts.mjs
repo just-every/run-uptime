@@ -38,6 +38,10 @@ try{
  const dnsCreated=await call('/api/monitors',{name:'synthetic-uptime-401',type:'dns',dns:{name:'synthetic-uptime-401.test',resolvers:['cloudflare']},intervalMs:60000,retries:0,confirmSlots:1,recoverSlots:1},cookie);
  assert.equal(dnsCreated.status,201,await dnsCreated.clone().text());const dnsMonitor=await dnsCreated.json();
  await scheduled();
+ // Saving starts the first hosted check asynchronously; a concurrent Cron call may find its lease already claimed.
+ let dnsHistory=[];
+ for(let attempt=0;attempt<100;attempt++){dnsHistory=await json(await call('/api/monitors/'+dnsMonitor.id+'/history',undefined,cookie));if(dnsHistory.some(slot=>slot.status==='complete'))break;await new Promise(resolve=>setTimeout(resolve,50))}
+ assert.ok(dnsHistory.some(slot=>slot.status==='complete'&&slot.observations.some(observation=>observation.outcome==='target_failure')),'the hosted DNS failure completes through the scheduled intake');
  const retained=await call('/api/monitors/'+dnsMonitor.id+'/failure-snapshots',undefined,cookie);assert.equal(retained.status,200);
  const diagnostic=(await retained.json()).items[0].snapshot.diagnostics;
  assert.equal(diagnostic.category,'dns');assert.equal(diagnostic.route.reason,'hosted-transport');assert.deepEqual(diagnostic.route.hops,[]);
