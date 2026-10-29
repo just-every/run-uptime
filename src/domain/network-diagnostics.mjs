@@ -48,3 +48,27 @@ export function normalizeNetworkDiagnostics(value){
  });
  return {version:1,category:value.category,phases:normalizeDiagnosticPhases(value.phases),route:{tool:route.tool,reason:route.reason,hops}};
 }
+
+// Protocol observations keep their existing checks and outcomes. Only the
+// diagnostic category is derived here, identically at runner and signed intake.
+export const DIAGNOSTIC_PROTOCOLS=Object.freeze(['tcp','tls','dns','udp','ping','mail']);
+export function protocolDiagnosticCategory(definition,observation){
+ if(!DIAGNOSTIC_PROTOCOLS.includes(definition.type)||observation.outcome==='pass')return null;
+ const code=definition.type==='mail'?observation.protocol?.steps?.find(step=>!step.pass)?.category:observation.protocol?null:observation.checks?.[0]?.assertion;
+ if(code)return code==='refused'?'connection':categories.has(code)?code:null;
+ if(definition.type==='ping'&&observation.protocol?.lossPercent>0)return 'timeout';
+ if(definition.type==='tls'&&observation.checks?.some(check=>!check.pass&&['trust','hostname','validity'].includes(check.assertion)))return 'tls';
+ if(definition.type==='dns'&&observation.protocol?.resolvers?.some(resolver=>resolver.status!=='answer'||!resolver.answers.length))return 'dns';
+ return null;
+}
+export function validateProtocolDiagnosticSnapshot(snapshot,definition,observation){
+ const category=protocolDiagnosticCategory(definition,observation);
+ if(!category||snapshot.method!==definition.type.toUpperCase()||snapshot.status!==null||snapshot.body!==''||snapshot.bodyTruncated||
+  snapshot.redirects.length||Object.keys(snapshot.requestHeaders).length||Object.keys(snapshot.responseHeaders).length||
+  snapshot.screenshot||snapshot.artifacts||!snapshot.diagnostics||snapshot.diagnostics.category!==category||
+  snapshot.diagnostics.phases.totalMs!==observation.durationMs||
+  snapshot.phases&&JSON.stringify(snapshot.phases)!==JSON.stringify(snapshot.diagnostics.phases))fail();
+ const scheme=new URL(snapshot.url).protocol;
+ if(definition.type==='mail'?!['smtp:','smtps:','pop3:','pop3s:','imap:','imaps:'].includes(scheme):scheme!==definition.type+':')fail();
+ return snapshot;
+}

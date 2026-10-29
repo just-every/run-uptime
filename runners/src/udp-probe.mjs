@@ -1,6 +1,6 @@
+import {resolveDiagnosticPin} from './protocol-diagnostics.mjs';
 import dgram from 'node:dgram';
 import {performance} from 'node:perf_hooks';
-import {resolvePublic} from './public-http.mjs';
 import {ProtocolError} from '../../src/domain/protocol/protocol-error.mjs';
 
 const WINDOW_MS=60_000,MAX_ENDPOINTS=1000,MAX_SENDS=6;
@@ -45,12 +45,12 @@ function settingsOf(settings){
 // One pinned, connected socket and exactly one outbound datagram. The shared
 // evaluator compares responseHex with the configured expectation; a mismatching
 // first response is evidence, never a reason to send or wait for another packet.
-export async function udpFacts(settings,signal){
+export async function udpFacts(settings,signal,capture){
  if(!signal||typeof signal.addEventListener!=='function')throw new ProtocolError('runner','A UDP check requires an abort signal');
  try{
   if(signal.aborted)throw timeout();
   const {host,port,payload}=settingsOf(settings);
-  const pin=await resolvePublic(pinned(host),signal);
+  const pin=await resolveDiagnosticPin(capture,pinned(host),signal);
   if(signal.aborted)throw timeout();
   // Canonical spelling gives IPv6 aliases the same numeric-endpoint budget.
   const address=pinned(pin.address).hostname.replace(/^\[|\]$/g,'');
