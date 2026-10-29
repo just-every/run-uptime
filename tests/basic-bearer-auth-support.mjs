@@ -92,11 +92,11 @@ export async function basicBearerAuthJourney(){
   let populated=0;
   for(const {name} of names){const rows=(await f.DB.prepare(`SELECT * FROM "${name.replaceAll('"','""')}"`).all()).results;if(rows.length)populated++;clean(rows,'durable '+name)}
   assert.ok(populated>0);
-  const archive=await read('/api/archive');assert.ok(archive.payload.productTables.observations.length>0);assert.ok(archive.payload.productTables.failure_snapshots.length>0);
+  const archive=await read('/api/archive');assert.ok(archive.payload.tables.observations.length>0);assert.ok(archive.payload.productTables.failure_snapshots.length>0);
   clean(archive,'populated archive');clean(reads,'public owner reads');clean(logs.join(''),'captured native logs');
   async function scanFiles(directory){for(const entry of await readdir(directory,{withFileTypes:true})){const path=join(directory,entry.name);if(entry.isDirectory())await scanFiles(path);else if(entry.isFile())clean((await readFile(path)).toString(),'product persistence file')}}
   await scanFiles(f.directory);
-  console.log('Basic and bearer native lifecycle PASS '+JSON.stringify({scheduledOutcomes:proof.length,scannedTables:names.length,populatedTables:populated,ownerReads:reads.length,archiveObservations:archive.payload.productTables.observations.length}));
+  console.log('Basic and bearer native lifecycle PASS '+JSON.stringify({scheduledOutcomes:proof.length,scannedTables:names.length,populatedTables:populated,ownerReads:reads.length,archiveObservations:archive.payload.tables.observations.length}));
  }finally{
   try{await edge?.close()}finally{for(const [i,stream] of streams.entries())stream.write=writers[i]}
  }

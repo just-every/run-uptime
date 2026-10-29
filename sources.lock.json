@@ -487,7 +487,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "60af7638964e0e23cbfb47cd37dbe1c3304c595cd956d3d10e72e9bb4b86e4aa",
+      "sha256": "ad3df24cc004898fc0ad9e6a06f6799e19c0591ece006a4075cd58786da52ee0",
       "executable": false
     },
     "AGENTS.md": {
@@ -511,7 +511,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "39997d8461d2cb93493cbc1887e15c89806b550f9509c4fbd0ed763c74bea340",
+      "sha256": "99bc29779b680f4f7703127994fd6332eb14276e632dd9c79075630b88fbb83a",
       "executable": false
     },
     "DEMO.md": {
@@ -8092,6 +8092,10 @@
     },
     "tests/auth-test-support.mjs": {
       "sha256": "8669f864e737731ab7a8c2b582300d392f2d1f1e5555cf90b56208f8a3af154a",
+      "executable": false
+    },
+    "tests/basic-bearer-auth-support.mjs": {
+      "sha256": "84d8e7f0bbbb9a5786f4d81f85519c98742d4f04bbecaf1b75ccfb5a9c581230",
       "executable": false
     },
     "tests/browser-canary-edge.mjs": {
