@@ -113,6 +113,8 @@ try{
  assert.equal(stale.state.denominator,running.state.denominator,'stopping a probe cannot shrink the configured denominator');
  assert.equal(stale.state.unknown,running.state.denominator);
  assert.equal(stale.state.fails,0);
+ assert.equal(stale.state.confirmedFailure??false,false);
+ assert.equal(stale.state.notificationOpen??false,false);
  assert.equal(stale.state.regions[0].probe,running.state.regions[0].probe);
  assert.equal(stale.state.regions[0].state,'Unknown');
  assert.equal(stale.state.regions[0].observationId,sample.id);
