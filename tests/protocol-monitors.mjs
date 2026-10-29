@@ -93,9 +93,10 @@ try{
   assert.deepEqual((await api(`/api/monitors/${m.id}/history`)).data,beforeHistory,'preview preserves scheduled evidence');
   assert.deepEqual((await api(`/api/monitors/${m.id}/revisions`)).data,beforeRevisions,'preview saves no maintenance');
   const applied=await api('/api/maintenance/apply',{...input,digest:review.data.digest});assert.equal(applied.status,201,JSON.stringify(applied.data));
-  scenario.dns=all(['203.0.113.111']);r=await step(m.id);
+  const changed=Array.from({length:12},(_,index)=>`203.0.113.${100+index}`);
+  scenario.dns=all(changed);r=await step(m.id);
   assert.equal(r.state.state,'Maintenance');assert.equal(r.state.maintenance,true);assert.equal(r.state.targetState,'Failing');assert.equal(r.o.outcome,'target_failure');
-  assert.deepEqual(r.o.protocol.resolvers.map(answer=>({id:answer.id,status:answer.status,rcode:answer.rcode,answers:answer.answers})),['cloudflare','google','authoritative'].map(id=>({id,status:'answer',rcode:0,answers:['203.0.113.111']})));
+  assert.deepEqual(r.o.protocol.resolvers.map(answer=>({id:answer.id,status:answer.status,rcode:answer.rcode,answers:answer.answers,more:answer.more})),['cloudflare','google','authoritative'].map(id=>({id,status:'answer',rcode:0,answers:changed.slice(0,10),more:2})));
   for(const answer of r.o.protocol.resolvers)assert.ok(Number.isFinite(answer.ms)&&answer.ms>=0,'retain measured resolver response time');
   retained.push(r.slot);assert.deepEqual(r.alerts,beforeAlerts,'a changed record during suppression emits no trigger');
   scenario.dns={cloudflare:{status:'nxdomain'},google:{status:'nxdomain'},authoritative:{status:'nxdomain'}};r=await step(m.id);
