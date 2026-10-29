@@ -40,8 +40,8 @@ Core · published · **partial**
 **Acceptance.**
 1. Through signed claim/result routes submit failure, retry, late and duplicate attempts, restart, and read history; each attempt and its revision remains identifiable and observation/state/outbox either all commit or none do.
 
-**Evidence.** `src/domain/evidence.server.ts`; `src/domain/history.server.ts`; `tests/probe-native-evidence.mjs`; `docs/evidence/contracts/release-0.4.0/`
-**Gap.** Failure and retry observations and identifiable history remain asserted. Gap: late and duplicate first-copy-wins behavior, history after Worker restart, a retained attempt's revision, full durable-state preservation after refusal and observation/state/outbox atomicity after acceptance lack assertions in the cited files.
+**Evidence.** `tests/probe-native-evidence.mjs`: saved HTTP and API assertions, retained failures and retries; `tests/evidence-integrity-support.mjs` proveEvidenceIntegrity: actual signed HTTPS completion after the acceptance deadline refuses independently of signature age, and a freshly signed contradictory second copy preserves the first observation, state, outbox and notification rows; all 196 durable tables compared with only exact public-admission counter changes. `tests/signed-runner.mjs` with `tests/signed-runner-result-proof.mjs` proveFreshResultSignature: signature refusal, exact replay and retained history after Worker and runner restart.
+**Gap.** Gap: explicit revision-specific evidence reconciliation, broader refusal coverage and observation, state and outbox transaction-fault atomicity qualification remain unproved. Console work and requalification remain owned by uip. Existing Platform, account, sibling and guarded-release prerequisites remain unchanged.
 
 #### STATE-001 — Fixed coverage and incident hysteresis
 
