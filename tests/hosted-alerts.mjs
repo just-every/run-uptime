@@ -7,6 +7,7 @@ import {join} from 'node:path';
 import {hostedRuntime} from './hosted-auth-runtime.mjs';
 import {testAuthBindings} from './auth-test-support.mjs';
 import {splitSql} from './migration-support.mjs';
+import {proveRelayMail} from './relay-mail-support.mjs';
 // A hosted install with no private runner: HTTP setup -> real scheduled handler -> webhook and Slack receivers.
 // Only public DNS/HTTP network edges are faked.
 const directory=await mkdtemp(join(tmpdir(),'uptime-hosted-alerts-')),origin='https://uptime.example.test';
@@ -110,3 +111,4 @@ try{
  assert.equal(demoNotes.deliveries.find(d=>d.id===demoDelivery.deliveryId)?.state,'accepted');assert.equal(demoSends,0,'demo acceptance conveys no external recipient delivery');
 
 }finally{await worker?.dispose();await rm(directory,{recursive:true,force:true})}
+await proveRelayMail();
