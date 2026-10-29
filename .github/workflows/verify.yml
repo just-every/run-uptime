@@ -249,7 +249,9 @@ jobs:
       - name: Build exact verification checkout once
         run: pnpm build
       - name: Bind shared output to this source and run
-        run: node .github/scripts/verify-build.mjs create "$RUNNER_TEMP/uptime-verify-build"
+        run: |
+          node .github/scripts/verify-build.mjs create "$RUNNER_TEMP/uptime-verify-build"
+          node .github/scripts/verify-build-proof.mjs
       - name: Share verification output with this run's shards
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
