@@ -8243,7 +8243,11 @@
       "executable": false
     },
     "tests/flow-profiles.mjs": {
-      "sha256": "c78dcada575891c2bb6312471426a674f75dc3bf75825fb618a9f10f4cee889e",
+      "sha256": "57d9033d1ce2607205d622d2c713a905a0cbc03ce835e5cc40ec3603b9358926",
+      "executable": false
+    },
+    "tests/flow-viewport-support.mjs": {
+      "sha256": "c4d67b0c7c03267162277f97cfecc8e0f065b4002fe91869509a7ab8354b8ad5",
       "executable": false
     },
     "tests/heartbeat-import-fixture.mjs": {
