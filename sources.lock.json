@@ -8454,8 +8454,12 @@
       "sha256": "f257b8b3c925f69a90c367a02bc1058f3369e16309298ccc4ebc57104df80e94",
       "executable": false
     },
+    "tests/probe-json-evidence-support.mjs": {
+      "sha256": "58c57ffdef94f9e2178f89402d5c0263ae3bd003c7600f1a4cafe1c8e78019aa",
+      "executable": false
+    },
     "tests/probe-native-evidence.mjs": {
-      "sha256": "9ef5a23d04cc9773320724ec55ff855437b259114a9ad1a448c9717279e9527a",
+      "sha256": "a376ae4f67a7a0c155740c49461e64fc601af7e5c234177578ea9bfb69856998",
       "executable": false
     },
     "tests/probe-native-support.mjs": {
