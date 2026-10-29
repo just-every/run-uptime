@@ -24,17 +24,21 @@ export async function proveMentionRecovery(f,source,members,edge,restart){
   return {comment,id:comment.mentions[0].id};
  };
  const schedule=async()=>assert.equal((await (await f.worker.getWorker()).scheduled()).outcome,'ok');
- const recovered=await pending('synthetic-uptime-502');
+ const recoveryText='synthetic-uptime-502 '+('Responder recovery detail. '.repeat(24))+'This tail stays out of the email.';
+ const recovered=await pending(recoveryText);
  const queued=await f.DB.prepare('SELECT * FROM incident_mentions WHERE id=?').bind(recovered.id).first();
  assert.equal(queued.outcome,'pending');assert.equal(queued.submitted_at,null);assert.equal(queued.finished_at,null);
  assert.equal(edge.mentions.length,sentBefore,'interrupted request submitted no email');
  await schedule();
  let detail=await incidentCommand(['--origin',f.origin,'read','--id',incident.id],{UPTIME_ACCESS_COOKIE:members.responder.cookie});
- assert.equal(detail.comments.find(row=>row.id===recovered.comment.id).mentions[0].outcome,'accepted');
+ const recoveredMention=detail.comments.find(row=>row.id===recovered.comment.id).mentions[0];
+ assert.equal(recoveredMention.outcome,'accepted');
  const message=edge.mentions.at(-1),excerpt=message.content.find(part=>part.type==='text/plain').value;
  assert.equal(edge.mentions.length,sentBefore+1);assert.equal(message.custom_args.rer_delivery_id,recovered.id);
  assert.ok(excerpt.includes('synthetic-uptime-502'));assert.ok(excerpt.includes(path));assert.ok(excerpt.length<1500);
+ assert.ok(excerpt.includes([...recoveryText].slice(0,500).join('')));assert.ok(!excerpt.includes('This tail stays out of the email.'));
  await restart({inspectorPort:0});await schedule();assert.equal(edge.mentions.length,sentBefore+1,'completed recovery never resubmits');
+ assert.deepEqual((await ok('/api/v1/incidents/'+encodeURIComponent(incident.id))).comments.find(row=>row.id===recovered.comment.id).mentions[0],recoveredMention,'the read API retains the same delivered outcome and clocks as the CLI after restart');
 
  // Request dispatch and the real Cron handler compete for the same reservation.
  const concurrentBefore=edge.mentions.length;
@@ -66,6 +70,8 @@ export async function proveMentionRecovery(f,source,members,edge,restart){
  const reinstatedMention=await pending('synthetic-uptime-512',reinstated.id);
  await ok('/auth/operator/status',{body:{operatorId:reinstated.id,status:'inactive'}});
  await ok('/auth/operator/status',{body:{operatorId:reinstated.id,status:'active'}});
+ await ok('/api/access/members/'+reinstated.id,{body:{role:'read-only',scopes:[]}});
+ assert.ok((await ok(path+'/mention-members')).some(member=>member.id===reinstated.id),'reinstated membership permits new mentions while the old authority remains revoked');
  // Retain a never-submitted reservation as a crash-boundary fixture. A sweep
  // must not acquire it even though there is no recorded provider submission.
  const reserved=await pending('synthetic-uptime-510',members.reader.id,path,true);
