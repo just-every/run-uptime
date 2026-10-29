@@ -212,6 +212,7 @@ export async function proveStateHysteresis() {
   clock+=1;
   const staleRecovery=await coverage('Unknown',['Unknown','Unknown']);
   assert.equal(staleRecovery.state.coverageState,'Incomplete');
+  assert.equal(staleRecovery.nextDue,recovering.nextDue,'freshness reads cannot move the next scheduled check');
   assert.equal(staleRecovery.state.recoveryStreak,1);await assertOpen();
   assert.deepEqual((await history()).find(slot=>slot.id===firstPassing.id),firstPassing);
 
@@ -247,6 +248,8 @@ export async function proveStateHysteresis() {
   clock=Math.max(...finalHistory[0].observations.map(observation=>observation.completedAt))+created.definition.freshnessMs+1;
   const staleHealthy=await coverage('Unknown',['Unknown','Unknown']);
   assert.equal(staleHealthy.state.coverageState,'Incomplete');assert.equal(staleHealthy.state.notificationOpen,false);
+  assert.equal(staleHealthy.state.recoveryStreak,healthy.state.recoveryStreak,'aging cannot consume or reset a completed scheduled recovery');
+  assert.equal(staleHealthy.nextDue,healthy.nextDue,'aging does not schedule fabricated replacement evidence');
   assert.deepEqual((await overview()).alerts,closed,'aging recovered evidence creates no incident event');
   assert.deepEqual(await incidents(),recoveredIncidents);assert.deepEqual(await history(),finalHistory);
   console.log('STATE-001 passed: two signed assigned runners, missing and partial coverage, mixed-vantage Degraded, exact freshness aging, confirmed failure, manual-pass isolation, absent-probe Unknown, first complete scheduled Recovering and one recovery after the second complete scheduled pass with immutable evidence.');

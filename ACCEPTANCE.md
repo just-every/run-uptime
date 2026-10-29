@@ -8,12 +8,12 @@ The primary journey: an operator moves their monitors from UptimeRobot or Pingdo
 
 | Tier | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
-| Core | 16 | 68 | 11 | 95 |
+| Core | 17 | 67 | 11 | 95 |
 | Agent surface | 0 | 0 | 6 | 6 |
 | Later | 0 | 0 | 1 | 1 |
-| Full target | 16 | 68 | 18 | 102 |
+| Full target | 17 | 67 | 18 | 102 |
 
-Judged from the code and tests at commit `886ad3662fec5bdd5c1cd4c7692a9d22d897529f` (29 October 2026). ERASURE-001 public owner erasure, retained stale edit and complete refusal preservation; other clause judgments retained. STATE-001's selected native state outcomes are proved at commit `983330a23edeeb995004c864bf7e97c4f9927ca2`; its remaining scope stays partial. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
+Judged from the code and tests at commit `886ad3662fec5bdd5c1cd4c7692a9d22d897529f` (29 October 2026). ERASURE-001 public owner erasure, retained stale edit and complete refusal preservation; other clause judgments retained. STATE-001's complete native state judgment is based on the source at commit `12dba5d75ad537fd82d4966780cfb4a346a879ed` with the candidate's additional freshness-read invariants. Its exact-candidate Verify and guarded landing remain required; Field proof and held console obligations retain their own clauses. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
 
 ## Core
 
@@ -45,7 +45,7 @@ Core · published · **partial**
 
 #### STATE-001 — Fixed coverage and incident hysteresis
 
-Core · published · **partial**
+Core · published · **done**
 
 **Requirement.** Missing or expired passing coverage is Unknown, partial failure stays visible, independent-vantage agreement and scheduled confirmation determine Failing, and complete fresh scheduled passing evidence plus recovery threshold is required for recovery; manual checks and maintenance never rewrite observations or scheduled policy. See [Evidence and state](docs/contract/safety-rules.md#evidence-and-state).
 
@@ -53,8 +53,8 @@ Core · published · **partial**
 1. Run two assigned network vantages through partial, missing, stale, failing and recovering slots; inspect Unknown/Degraded/Failing and thresholds.
 2. A manual pass, absent probe or maintenance expiry cannot fabricate recovery.
 
-**Evidence.** `src/domain/policy.mjs`; `tests/control-runtime.mjs`: CONTROL-001 and RESTART-001 scheduled confirmation, recovery and retained incident history; `tests/control-state-support.mjs`: proveStateHysteresis, two signed assigned runners show mixed-vantage Degraded, first complete scheduled Recovering, manual-pass isolation and absent-probe Unknown without recovery, then one recovery after the second complete scheduled pass, retaining the fixed denominator, original observations and incident identity; `tests/control-cadence-support.mjs`: proveCadenceRevision, incomplete selected coverage and missing-region Unknown; `tests/maintenance-windows.mjs`: MAINT-001 expiry and ordinary scheduled reevaluation without orphan recovery.
-**Gap.** Remaining partial, missing and stale target-state cases outside these journeys still lack assertions. Console rendering and requalification remain held by uip. Platform managed geographic independence and hosted timing and capacity, live heartbeat and TLS scopes, protected deployment files and existing account, sibling and guarded-release prerequisites remain unchanged and owed.
+**Evidence.** `tests/control-runtime.mjs`: CONTROL-001 and RESTART-001 scheduled confirmation, recovery and retained incident history; `tests/control-state-support.mjs`: proveStateHysteresis, two signed assigned runners through never-run, partial, mixed, stale, confirmed failing and recovering slots; exact freshness deadlines, fixed selected coverage, unchanged scheduled cadence and immutable failure history; a real manual pass, absent selected probe and stale passing evidence retain the open incident, with exactly one recovery only after the second complete scheduled passing slot; `tests/control-cadence-support.mjs`: proveCadenceRevision, incomplete selected coverage and missing-region Unknown; `tests/maintenance-windows.mjs`: MAINT-001, maintenance expiry read before reevaluation retains Unknown, history and events, then real scheduled reevaluation cannot emit an orphan recovery.
+**Gap.** None.
 
 #### AUTHORITY-001 — Server-side scoped authority
 
