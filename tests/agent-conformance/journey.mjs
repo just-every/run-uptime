@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {phaseState, rememberDiscovery} from './state.mjs';
+import {nativeHttp} from './http.mjs';
 
 const snapshots = new Map();
 async function result(tool, name, args) {
@@ -20,7 +21,8 @@ export async function afterStep({origin, phase, step, result: output, tool}) {
  const history = await result(tool, 'uptime.monitors.history', {id: state.observedMonitor.id});
  assert.deepEqual(history, snapshots.get(origin + phase), 'Incident coordination never rewrites independently observed scheduled evidence.');
 }
-export default async function nativeJourney({origin, tool}) {
+export default async function nativeJourney(context) {
+ const {origin, tool} = context;
  const state = phaseState.get(origin), args = {id: state.check.id, version: state.check.revision, idempotency_key: randomUUID()};
  const first = await result(tool, 'uptime.checks.run', args);
  assert.equal(first.policyAdvanced, false, 'A manual request does not advance scheduled incident policy.');
@@ -31,4 +33,15 @@ export default async function nativeJourney({origin, tool}) {
  const observed = history.items.filter(row => row.manual === 0 && row.observation);
  assert.deepEqual(new Set(observed.map(row => row.observation.probe)), new Set(['local-a', 'local-b']), 'Both independently enrolled vantages remain visible.');
  assert.ok(observed.every(row => row.observation.outcome === 'target_failure'), 'Only signed, independently observed failures establish this outage.');
+ // Report only public error codes and operation names from this disposable
+ // installation, so upstream refusal attribution has runtime evidence.
+ const http = nativeHttp(context);
+ let after;
+ do {
+  const page = await http.json('/agents/api/audit' + (after ? '?after=' + encodeURIComponent(after) : ''));
+  for (const row of page.rows) if (row.door === 'embedded' || row.code && row.ignored_arguments?.includes('instruction')) {
+   console.log('Native conformance refusal ' + JSON.stringify({tool: row.tool, door: row.door, code: row.code, outcome: row.outcome}));
+  }
+  after = page.cursor;
+ } while (after);
 }

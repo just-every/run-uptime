@@ -6,8 +6,9 @@ export default async function proveNative({request, origin, agentId, tool, args,
  // The proof hook's supplied request already carries the current native owner
  // session. The MFA helper still enrolls/verifies through public native doors.
  await completeSecondFactor(origin, '', (url, init) => {
-  const headers = {...edgeHeaders, ...init.headers}; delete headers.cookie;
-  return request(url, {...init, headers});
+  // personRequest already supplies Cookie, Origin and Content-Type. Supplying
+  // lowercase duplicates would merge their values at the HTTP boundary.
+  return request(url, {...init, headers: edgeHeaders});
  });
  const {idempotency_key: _key, expected_revision: _revision, ...nativeArgs} = args;
  const response = await request('/agents/native-proof', {

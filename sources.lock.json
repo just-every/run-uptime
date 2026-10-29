@@ -8528,7 +8528,7 @@
       "executable": false
     },
     "tests/agent-conformance/journey.mjs": {
-      "sha256": "513706ea2e2eb9be6c7be508559ece4898533171f5b2d6a0cfe1dcbf4b03f55f",
+      "sha256": "7ffb9f69fd81617a4cd4e0010b7a8222ad73f3d5174467a893a4ca460617d64f",
       "executable": false
     },
     "tests/agent-conformance/owner.mjs": {
@@ -8536,7 +8536,7 @@
       "executable": false
     },
     "tests/agent-conformance/proof.mjs": {
-      "sha256": "ec0dc12563402756d8a3af648ae3699f32073c803cf64581d2976a675c2e3697",
+      "sha256": "42afca7f3ce38c33de0c9509aa554eb7e9fe40ad48a966f3d4db606a6c2a4b81",
       "executable": false
     },
     "tests/agent-conformance/README.md": {
