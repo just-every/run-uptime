@@ -487,7 +487,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "60af7638964e0e23cbfb47cd37dbe1c3304c595cd956d3d10e72e9bb4b86e4aa",
+      "sha256": "278ed7a886bc32b4989e9f2f989a3b308cd5999024c70e184cb1a6d691514e03",
       "executable": false
     },
     "AGENTS.md": {
@@ -511,7 +511,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "39997d8461d2cb93493cbc1887e15c89806b550f9509c4fbd0ed763c74bea340",
+      "sha256": "51bec1e6d50595101f93946ced140d30452500b918fffa487b175037b1927b74",
       "executable": false
     },
     "DEMO.md": {
@@ -8491,7 +8491,7 @@
       "executable": false
     },
     "tests/public-paths.mjs": {
-      "sha256": "14cc065f13a16917d095090806971b5330ab6de89f8b2759de7cbe2abdb3fbc4",
+      "sha256": "841d5c9abc286fee4dc4279ac72d1b33010a962a06d9cb2a969231480fa4dbab",
       "executable": false
     },
     "tests/read-api.mjs": {
@@ -8596,6 +8596,10 @@
     },
     "tests/source-history-support.mjs": {
       "sha256": "e8ebe6178241caf192bf07b50a42689ab7095066fbbb7176ce075eef70d9437f",
+      "executable": false
+    },
+    "tests/startup-readiness-support.mjs": {
+      "sha256": "3a2ff91f231b73c17bc731498af53e22c2e2ca788e21ad64487888ad1a9eebb2",
       "executable": false
     },
     "tests/tls-auth-child.mjs": {

@@ -253,8 +253,8 @@ Core · published · **partial** · Cites BASE-SECRET-002, BASE-OPS-001 · Regis
 1. Start each runtime entry point with required and conditional bindings missing/malformed; diagnostics name bindings without values and health returns 503.
 2. Restore settings and recover; exercise D1/ASSETS faults inside the owner-approved three-second readiness response budget.
 
-**Evidence.** `src/domain/startup-config.mjs`; `tests/public-paths.mjs`
-**Gap.** Missing SESSION_SECRET returns Worker health 503 with a named, value-free diagnostic, and restored configuration returns 200. Gap: other missing/malformed and conditional bindings, scheduled/local-app/preview/setup/deployment/private-runner entry points, missing ASSETS, a D1 readiness fault and the three-second fault-response budget lack assertions in the cited files.
+**Evidence.** `src/domain/startup-config.mjs`; `tests/public-paths.mjs`: missing SESSION_SECRET returns a named, value-free 503 and restored settings return 200; `tests/startup-readiness-support.mjs` proveReadinessFaults, invoked by `tests/public-paths.mjs`: independently migrated emitted Worker, absent ASSETS, failed D1 readiness, stalled readiness and stalled public admission return bounded, value-free 503 responses and recover to 200; Worker deadline timing is separate from harness scheduling tolerance, and real D1 work completes after the timeout without a cancellation claim.
+**Gap.** Remaining required and conditional binding matrix with missing or malformed values; diagnostics at scheduled, local app, preview, setup, deployment and private runner entry points; uip-owned console requalification; hosted readiness and capacity qualification remain unproved.
 
 #### PUBLIC-002 — Declared sessionless paths and rate limits
 

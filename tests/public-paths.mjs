@@ -5,6 +5,7 @@ import {join,resolve} from 'node:path';
 import {runtimeDirectory,cleanupDirectory,availablePorts} from './notify-acceptance-runtime.mjs';
 import {testAuthBindings,keyHeader} from './auth-test-support.mjs';
 import {filesIn,publicRuntime,prefill,limited,steadyMinute} from './public-paths-support.mjs';
+import {proveReadinessFaults} from './startup-readiness-support.mjs';
 
 const seed=JSON.parse(await readFile('seed.json','utf8')),declarations=seed.deploy.publicPaths,limits=seed.limits.publicRequestsPerMinutePerIp;
 const matches=(path,local=false)=>declarations.find(item=>(local||item.environment!=='local')&&(item.match==='prefix'?path.startsWith(item.path):path===item.path)&&(!item.withinDirectory||(!/[\\]|%(?:2f|5c|25)/i.test(path)&&path.split('/').includes(item.withinDirectory))));
@@ -142,5 +143,7 @@ try{
  await runtime.worker.dispose();runtime=null;
  runtime=await publicRuntime(join(directory,'configuration'),hosted,port);
  assert.equal((await runtime.call('/health')).status,200,'corrected configuration restores the public health door');
+ await runtime.worker.dispose();runtime=null;
+ await proveReadinessFaults(hosted);
 
 }finally{await runtime?.worker.dispose();await cleanupDirectory(directory)}
