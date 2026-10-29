@@ -8,12 +8,12 @@ The primary journey: an operator moves their monitors from UptimeRobot or Pingdo
 
 | Tier | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
-| Core | 13 | 71 | 11 | 95 |
+| Core | 14 | 70 | 11 | 95 |
 | Agent surface | 0 | 0 | 6 | 6 |
 | Later | 0 | 0 | 1 | 1 |
-| Full target | 13 | 71 | 18 | 102 |
+| Full target | 14 | 70 | 18 | 102 |
 
-Judged from the code and tests at commit `56497f8d6716dbe16437095f61a923266fd9b347` (24 October 2026). Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
+Judged from the code and tests at commit `5f30a7368df91a0645a459094e9bd576137c1849` (29 October 2026). Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
 
 ## Core
 
@@ -400,15 +400,15 @@ Core · target · **partial**
 
 #### TLS-001 — SSL certificate and chain monitoring
 
-Core · target · **partial**
+Core · target · **done**
 
 **Requirement.** TLS checks verify hostname/SNI, certificate chain/trust, validity, expiry and renewal on HTTPS or configured TLS ports from each location. Staged configurable expiry warnings name the certificate and accountable owner, track renewal and resolve only after a newly observed valid chain.
 
 **Acceptance.**
 1. Monitor a controlled TLS service; present an expiring certificate, broken chain, wrong name and then renewed certificate, advance the clock and inspect deduplicated warnings, location evidence and renewal resolution.
 
-**Evidence.** `src/domain/protocol/x509.mjs`; `src/domain/protocol/tls12-certificates.mjs`; `src/domain/expiry-notices.server.ts`; `tests/protocol-monitors.mjs`
-**Gap.** Carried-done audit: the cited test presents one certificate at one stage and repeats the check without moving the clock, so warnings advancing through the configured stages without repeating are unasserted. The named warning with its stage and accountable owner, no repeat within a stage, wrong-name and untrusted-chain failures as location evidence and renewal resolution are asserted.
+**Evidence.** `tests/protocol-monitors.mjs` protocol monitor lifecycle: saved owner TLS monitor, real signed probes, named expiry warning, wrong-name and untrusted-chain location evidence, retained failure snapshot and valid renewal; `tests/tls-stages-support.mjs` proveTlsExpiryStages (called by that journey): one unchanged real certificate crosses every saved warning stage with advancing clock, one durable warning per stage across repeated probes and Worker restarts, original-certificate recovery leaves warnings open, one newly observed valid renewal resolves their shared identity, and all earlier location evidence remains unchanged.
+**Gap.** None.
 
 #### DOMAIN-001 — Domain registration expiry
 

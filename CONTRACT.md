@@ -1254,13 +1254,13 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 
 ## Status
 
-Judged from the code and tests at commit `56497f8d6716dbe16437095f61a923266fd9b347` (24 October 2026).
+Judged from the code and tests at commit `5f30a7368df91a0645a459094e9bd576137c1849` (29 October 2026).
 
 | Clauses | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
 | Published | 3 | 18 | 0 | 21 |
-| Target and push further | 10 | 53 | 18 | 81 |
-| All | 13 | 71 | 18 | 102 |
+| Target and push further | 11 | 52 | 18 | 81 |
+| All | 14 | 70 | 18 | 102 |
 
 | Clause | Title | Kind | Status | Evidence | Gap |
 | --- | --- | --- | --- | --- | --- |
@@ -1294,7 +1294,7 @@ Judged from the code and tests at commit `56497f8d6716dbe16437095f61a923266fd9b3
 | `TCP-001` | TCP service checks | target | partial | `src/domain/protocol/settings.mjs`; `src/domain/protocol/evaluate.mjs`; `runners/src/protocol-probes.mjs`; `src/domain/worker-protocols.server.ts`; `tests/protocol-monitors.mjs` | Carried-done audit: every cited TCP check runs from one location, so running from two locations is unasserted. Owner-API creation, open, refused and blackholed ports, the pinned address and banner evidence and trigger and recovery events are asserted. |
 | `PING-001` | ICMP reachability and packet quality | target | partial | `runners/src/icmp-probe.mjs`; `src/domain/protocol/`; `tests/ping-monitors.mjs`; `tests/ping-monitors.mjs`; `docs/evidence/contracts/ping/` | Configured ICMP loss and latency, threshold failures, disabled or unavailable ICMP, and initial Unknown probe coverage are asserted. Unknown coverage after stopping a previously running probe is not asserted; the cited stopped-probe case only creates an unchecked monitor. |
 | `DNS-001` | DNS records and change detection | target | partial | `src/domain/protocol/dns.mjs`; `src/domain/protocol/dns-wire.mjs`; `src/domain/protocol/evaluate.mjs`; `tests/protocol-monitors.mjs` | Carried-done audit: no cited DNS check runs inside a maintenance window. Saving through the owner door, changed and removed records, resolver disagreement and failure, raw bounded record evidence, confirmed alerts and recovery, and refusing to treat a missing answer as success are asserted. |
-| `TLS-001` | SSL certificate and chain monitoring | target | partial | `src/domain/protocol/x509.mjs`; `src/domain/protocol/tls12-certificates.mjs`; `src/domain/expiry-notices.server.ts`; `tests/protocol-monitors.mjs` | Carried-done audit: the cited test presents one certificate at one stage and repeats the check without moving the clock, so warnings advancing through the configured stages without repeating are unasserted. The named warning with its stage and accountable owner, no repeat within a stage, wrong-name and untrusted-chain failures as location evidence and renewal resolution are asserted. |
+| `TLS-001` | SSL certificate and chain monitoring | target | done | `tests/protocol-monitors.mjs` protocol monitor lifecycle: saved owner TLS monitor, real signed probes, named expiry warning, wrong-name and untrusted-chain location evidence, retained failure snapshot and valid renewal; `tests/tls-stages-support.mjs` proveTlsExpiryStages (called by that journey): one unchanged real certificate crosses every saved warning stage with advancing clock, one durable warning per stage across repeated probes and Worker restarts, original-certificate recovery leaves warnings open, one newly observed valid renewal resolves their shared identity, and all earlier location evidence remains unchanged. |  |
 | `DOMAIN-001` | Domain registration expiry | target | partial | `src/domain/protocol/rdap.mjs`; `src/domain/expiry-notices.server.ts`; `tests/protocol-monitors.mjs` | Carried-done audit: the cited test adds the domain through the owner API, not the console. Approaching-expiry warnings, Unknown for conflicting, redacted and unavailable data, registry and registrar source times and renewal follow-through are asserted. |
 | `UDP-001` | UDP request and response checks | target | done | `runners/src/udp-probe.mjs`; `src/domain/protocol/settings.mjs`; `src/domain/protocol/facts.mjs`; `tests/udp-monitors.mjs`; `tests/udp-monitors.mjs`; `docs/evidence/contracts/udp/` |  |
 | `MAIL-001` | SMTP and mailbox protocol checks | target | done | `runners/src/mail/`; `src/domain/mail-probe/`; `tests/mail-journey.mjs`; `tests/mail-journey.mjs` |  |
