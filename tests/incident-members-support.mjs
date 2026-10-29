@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {authRequest,deliveredLink,sessionCookie} from './auth-test-support.mjs';
 import {completeSecondFactor} from './mfa-auth-support.mjs';
 import {main as incidentCommand} from '../scripts/incidents.mjs';
+import {proveMentionRecovery} from './incident-mention-recovery-support.mjs';
 
 export function incidentMailEdge(){
  const edge={mode:'accepted',mentions:[]};
@@ -10,6 +11,7 @@ export function incidentMailEdge(){
    const message=await request.json();
    if(message.subject==='Uptime incident mention'){
     edge.mentions.push(message);
+    if(edge.mode==='held'){edge.held();return new Promise(()=>{})}
     if(edge.mode==='uncertain')throw Error('Synthetic connection loss after submission');
     if(edge.mode==='rejected')return new Response(null,{status:400});
    }
@@ -19,7 +21,7 @@ export function incidentMailEdge(){
  };
  return edge;
 }
-export async function proveIncidentMembers(f,monitor,id,edge){
+export async function proveIncidentMembers(f,monitor,id,edge,restart){
  const path='/api/incidents/'+encodeURIComponent(id),call=authRequest(f.origin);
  const ok=async(suffix,options={})=>{const result=await f.request(suffix,options);assert.ok(result.status>=200&&result.status<300,`${suffix}: ${result.status} ${JSON.stringify(result.data)}`);return result.data};
  const invite=async(role,scopes=[],label=role)=>{
@@ -76,7 +78,8 @@ export async function proveIncidentMembers(f,monitor,id,edge){
  await ok('/auth/operator/status',{body:{operatorId:admin.id,status:'inactive'}});
  assert.equal((await f.request(path+'/comments',{body:{text:'Stale Base session'},headers:{cookie:admin.cookie}})).status,401);
  assert.deepEqual(await machine(),before,'collaboration never changes monitoring evidence');
- return {responder,reader,commentId:comment.id,sent,ownership:changes};
+ await proveMentionRecovery(f,{...monitor,incidentId:id},{responder,reader,invite},edge,restart);
+ return {responder,reader,commentId:comment.id,sent:edge.mentions.length,ownership:changes};
 }
 export async function proveMentionErasure(f,path,members){
  for(const member of [members.responder,members.reader]){
