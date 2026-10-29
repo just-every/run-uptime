@@ -8191,7 +8191,7 @@
       "executable": false
     },
     "tests/evidence-integrity-support.mjs": {
-      "sha256": "4f4773cf3658ebaae2cd920e7eccdab346bcfdbe5fa9b84f7771a18e1f6e51d6",
+      "sha256": "dba7308323626bf95baaf68dcf2c8b0da04c6b2a7b00717f2499a5c01b18f1a0",
       "executable": false
     },
     "tests/failure-page-browser.mjs": {

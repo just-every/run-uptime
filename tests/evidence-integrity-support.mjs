@@ -93,11 +93,13 @@ export async function proveEvidenceIntegrity(){
    assert.equal(rows(durable,'outbox').filter(row=>row.monitor_id===id&&row.kind==='trigger').length,1);
    assert.equal(rows(durable,'notification_jobs').filter(row=>row.destination_id===destination.data.id).length,1,'preservation covers a real pending notification');
    const contradictory=structuredClone(body),copy=contradictory.attempts[0];
+   copy.id=randomUUID();
    copy.outcome='pass';copy.status=200;copy.checks=copy.checks.map(check=>({...check,pass:true,reason:'HTTP 200'}));delete copy.failureSnapshot;
-   assert.deepEqual([copy.id,copy.probe,copy.attempt],[first.id,first.probe,first.attempt]);
+   assert.deepEqual([contradictory.slotId,copy.probe,copy.attempt],[body.slotId,first.probe,first.attempt]);
+   assert.notEqual(copy.id,first.id,'first-copy protection follows the assigned attempt, not the observation ID');
    assert.notDeepEqual(copy,first,'the second copy contradicts the accepted failure');
    clock++;
-   const text=JSON.stringify(contradictory),stamp=String(clock),headers={...envelope.headers,'x-sent-at':stamp,'x-runner-signature':sign(text,stamp)};
+   const text=JSON.stringify(contradictory),stamp=String(clock),headers={...envelope.headers,'content-length':String(Buffer.byteLength(text)),'x-sent-at':stamp,'x-runner-signature':sign(text,stamp)};
    assert.notEqual(headers['x-runner-signature'],envelope.headers['x-runner-signature']);
    const proof=await unchanged({...envelope,body:text,headers,clock},async response=>{
     assert.equal(response.status,200);assert.deepEqual(await response.json(),{accepted:true,duplicate:true});
