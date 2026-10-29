@@ -750,8 +750,8 @@ Core · target · **partial**
 1. Configure Slack at 0 minutes and SMS at +10 minutes with a 30-minute repeat; confirm an outage and see Slack at confirmation, SMS only at +10 minutes and a repeat at +40.
 2. In a second outage recover at +5 minutes and see no SMS and no SMS recovery notice; restart the Worker between confirmation and +10 minutes and see exactly one SMS; import an UptimeRobot monitor with threshold and recurrence and see the same schedule in the preview.
 
-**Evidence.** `src/domain/contact-scheduler.server.ts`; `src/domain/contact-schedule-import.ts`; `public/assets/alert-route.js`; `tests/contact-schedules.mjs`; `tests/contact-schedules.mjs`; `docs/evidence/contracts/contact-schedules/`
-**Gap.** Carried-done audit: the cited tests configure zero-delay contacts but no line reads their sends at confirmation. The delayed contact sending nothing at confirmation and once at its delay, the repeat with the incident's stable identity, early-recovery suppression, exactly one delayed notice across a Worker restart and the UptimeRobot threshold/recurrence preview are asserted.
+**Evidence.** `tests/contact-schedules.mjs` contact schedules send Slack at confirmation, survive restart, stop on recovery and acknowledgment, and never replay uncertain attempts, with `tests/contact-schedules-support.mjs` assertSlackConfirmation: scheduled signed outage confirmation, native zero-delay Slack wire and durable accepted attempt before the delayed deadline, duplicate-poll suppression, delayed and repeat notices, restart, early recovery and UptimeRobot and Pingdom schedule previews.
+**Gap.** Native Slack is proved at the authorized transport edge, without a live Slack tenant receipt. PHONE-001 requires real US handsets on three carriers and a registered or toll-free sender; PHONE-002 requires registered US sender qualification. Physical SMS receipt at +10 minutes, repeat at +40 minutes and carrier recovery behavior remain unproved. Existing local delayed, repeat, restart and early-recovery proof uses signed webhooks. Held console work remains owed.
 
 #### DELIVERY-002 — Deduplicated retry and fallback contacts
 
