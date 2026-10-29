@@ -9,7 +9,7 @@ import {readdir} from 'node:fs/promises';
 import {createHmac} from 'node:crypto';
 import {testAuthBindings} from './auth-test-support.mjs';
 import {availablePorts,cleanupDirectory,migratedWorker,ownerAPI,root,runtimeDirectory,waitFor} from './notify-acceptance-runtime.mjs';
-import {startFlowFixture} from './flow-fixture.mjs';
+import {startViewportFlowFixture,assertFlowViewport,viewportText} from './flow-viewport-support.mjs';
 import {FLOW_BROWSERS} from '../src/domain/flow-profile.mjs';
 
 const directory=await runtimeDirectory(),[port,fixturePort]=await availablePorts(2),origin=`http://127.0.0.1:${port}`;
@@ -23,15 +23,15 @@ const start=(engines=FLOW_BROWSERS)=>{
 };
 try{
  ({worker}=await migratedWorker({port,persist:join(directory,'worker'),bindings}));
- fixture=await startFlowFixture({port:fixturePort,grantPath});await owner.signIn(bindings);
+ fixture=await startViewportFlowFixture({port:fixturePort,grantPath});await owner.signIn(bindings);
  const {api}=owner,ok=async(path,method='GET',value)=>{const response=await api(path,method,value);assert.ok(response.status>=200&&response.status<300,`${path}: ${response.status}`);return response.data};
  const second=await ok('/api/runners','POST',{networkLabel:'independent-profile-network'});
  runnerKeys.push([bindings.UPTIME_RUNNER_KEY,undefined],[second.key,second.runnerId]);
  // Each browser/device monitor retains two independent assigned vantages.
  const create=async(browser,device='desktop',path='browser-checkout')=>{
-  const url=`${fixture.origin}/s/transport-policy/${path}`;
+  const url=`${fixture.origin}/s/transport-policy/${path==='browser-checkout'?`${browser}-${device}/`:''}${path}`;
   return ok('/api/monitors','POST',{name:`Checkout ${browser} ${device}`,type:'flow',network:'synthetic',url,probes:['local-a','local-b'],intervalMs:300000,timeoutMs:20000,retries:0,confirmSlots:1,recoverSlots:1,
-   flow:{browser,device,intent:'Confirm checkout in this browser and device',steps:[{kind:'goto',url}],outcomes:[{id:'confirmed',what:'text',value:'Order confirmed'},...(path==='browser-checkout'?[{id:'transport-policy',what:'text',value:'Direct transports disabled'}]:[])]}});
+   flow:{browser,device,intent:'Confirm checkout in this browser and device',steps:[{kind:'goto',url},...(path==='browser-checkout'?[{kind:'expect',what:'text',value:viewportText(device)}]:[])],outcomes:[{id:'confirmed',what:'text',value:'Order confirmed'},...(path==='browser-checkout'?[{id:'transport-policy',what:'text',value:'Direct transports disabled'}]:[])]}});
  };
  const monitors=[];for(const browser of FLOW_BROWSERS)monitors.push(await create(browser));
  const mobile=await create('chromium','mobile');
@@ -60,6 +60,7 @@ try{
  for(const monitor of [...monitors,mobile]){
   const report=await ok(`/api/v1/monitors/${monitor.id}/report?period=24h`);
   assert.ok(report.flowProfiles.some(segment=>segment.profile.browser===monitor.definition.flow.browser&&segment.profile.device===monitor.definition.flow.device));
+  assertFlowViewport({fixture,monitor,history:await slots(monitor.id),report});
   assert.equal((await api(`/api/v1/monitors/${monitor.id}/report?period=24h&format=csv`)).status,200);
  }
  await stop();await flowProfilesBrowser({origin,monitors,mobile,directory});start();
@@ -99,5 +100,5 @@ try{
  const restored=await ok('/api/overview');assert.ok(restored.monitors.every(m=>m.definition.enabled===false),'restored profile monitors remain paused');
  const restoredEvidence=(await slots(mobile.id)).flatMap(slot=>slot.observations);
  assert.ok(restoredEvidence.some(result=>result.flow?.profile?.device==='mobile'),'inactive restore retains the original failing mobile profile');
- console.log('FLOW-004 passed: three real engines, mobile-only failure, engine-specific capacity, protected subresources, revision/profile reporting and retained archive evidence.');
+ console.log('FLOW-004 passed: three real engines, measured 390-pixel mobile checkout matching signed history and report dimensions, mobile-only failure, engine-specific capacity, protected subresources, revision and profile reporting and retained archive evidence.');
 }finally{await stop();await fixture?.close();await worker?.dispose();await cleanupDirectory(directory)}
