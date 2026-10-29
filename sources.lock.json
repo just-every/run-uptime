@@ -8479,7 +8479,7 @@
       "executable": false
     },
     "tests/protocol-monitors.mjs": {
-      "sha256": "df1355a8be35f109fd236496904decd9ab986335d9c9ca124796fb816c459182",
+      "sha256": "b6fd1dbe4a909824dee2fdb42ed68c9369891b4d4306c8cad35e5cadbc7c8bf5",
       "executable": false
     },
     "tests/protocol-routing.mjs": {
