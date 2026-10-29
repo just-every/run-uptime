@@ -18,7 +18,7 @@ const seconds={
  "signed-runner": 57,
  "probe-native-evidence": 18,
  "private-network": 83,
- "notify-delivery": 85,
+ "notify-delivery": 510, // Includes the real hosted destination lifecycle cadence.
  "notification-recovery": 335,
  "notification-fallback": 189,
  "hosted-alerts": 10,

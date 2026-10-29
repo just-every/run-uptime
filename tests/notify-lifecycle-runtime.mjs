@@ -20,7 +20,7 @@ export const lifecycleEndpoints={
 export async function lifecycleRuntime(mode,observe){
  const directory=await runtimeDirectory(),endpoints=lifecycleEndpoints;
  const bindings={...testAuthBindings,MAIL_PROVIDER:'sendgrid',MAIL_FROM:'synthetic-uptime-471'+'@'+'example.test',SENDGRID_API_KEY:'synthetic-uptime-472'};
- let worker,DB,fixture,api,origin,monitorURL,healthy=true,now=Date.now();
+ let worker,DB,fixture,api,origin,monitorURL,healthy=true;
  const receivers=[];
  const mail=record=>{
   if(record.body.subject==='Uptime second-factor security change')return verifySecurityNotice(record,bindings.OWNER_EMAIL);
@@ -45,7 +45,7 @@ export async function lifecycleRuntime(mode,observe){
    await waitFor(async()=>(await fetch(monitorURL)).ok,'lifecycle target ready');
    const owner=ownerAPI(origin);await owner.signIn(bindings);api=owner.api;
    const drain=async()=>{await runRunner({origin,key:bindings.UPTIME_RUNNER_KEY,grantPath,localReview:true,transport,once:true});receivers.forEach(receiver=>receiver.assertValid())};
-   return {api,origin,monitorURL,intervalMs:5000,get DB(){return DB},drain,close,
+   return {api,origin,monitorURL,intervalMs:5000,get DB(){return DB},drain,close,freshOwner:()=>completeSecondFactor(origin,owner.cookie),
     async transition(id,passing){
      assert.equal((await fetch(`http://127.0.0.1:${fixturePort}/control`,{method:'POST',body:JSON.stringify({mode:passing?'healthy':'failing'})})).status,200);
      await waitFor(async()=>{await drain();const result=await api('/api/overview');assert.equal(result.status,200);return result.data.monitors.find(m=>m.id===id)?.state.state===(passing?'Healthy':'Failing')},'signed scheduled lifecycle transition');
@@ -53,9 +53,6 @@ export async function lifecycleRuntime(mode,observe){
     }};
   }
   origin='https://synthetic-uptime-473.example.test';monitorURL='https://synthetic-uptime-474.example.test/health';
-  // Advance scheduled slots without real minute-long sleeps. Keep the whole
-  // journey within the independent receiver's real five-minute signature window.
-  now-=180000;
   Object.assign(bindings,{UPTIME_LOCAL_REVIEW:'false',UPTIME_ORIGIN:origin});
   const outbound=async request=>{
    const url=new URL(request.url);
@@ -68,18 +65,27 @@ export async function lifecycleRuntime(mode,observe){
    await observe(url.hostname==='hooks.slack.com'?'slack':'webhook',request.url,record);
    return new Response(url.hostname==='hooks.slack.com'?'ok':'accepted',{status:200});
   };
-  const start=async()=>{worker=await hostedRuntime(directory,bindings,outbound,{now});DB=await worker.getD1Database('DB')};
+  const start=async()=>{worker=await hostedRuntime(directory,bindings,outbound);DB=await worker.getD1Database('DB')};
   await start();
   for(const file of(await readdir('migrations')).filter(file=>file.endsWith('.sql')).sort())for(const sql of splitSql(await readFile(join('migrations',file),'utf8')))await DB.prepare(sql).run();
   let cookie='';
   const fetcher=(url,init={})=>worker.dispatchFetch('http://127.0.0.1:15504/',{method:'POST',redirect:'manual',headers:{'content-type':'application/json'},body:JSON.stringify({url,method:init.method??'GET',headers:{host:new URL(origin).host,origin,'cf-connecting-ip':'192.0.2.1','content-type':'application/json',cookie,...init.headers},...(init.body===undefined?{}:{body:init.body})})});
   const owner=await fetcher(origin+'/auth/bootstrap',{method:'POST',body:JSON.stringify({token:bindings.SETUP_TOKEN,displayName:'Lifecycle owner'})});assert.equal(owner.status,303);cookie=owner.headers.get('set-cookie').split(';')[0];
-  await completeSecondFactor(origin,cookie,fetcher,now);
+  await completeSecondFactor(origin,cookie,fetcher);
   api=async(path,method='GET',value)=>{const response=await fetcher(origin+path,{method,...(value===undefined?{}:{body:JSON.stringify(value)})});return {status:response.status,data:await response.json()}};
   const drain=async()=>{const response=await worker.dispatchFetch('http://127.0.0.1:15504/',{method:'POST',body:JSON.stringify({scheduled:true})});assert.equal(response.status,204,await response.text())};
-  return {api,origin,monitorURL,intervalMs:60000,get DB(){return DB},drain,close,
+  return {api,origin,monitorURL,intervalMs:60000,get DB(){return DB},drain,close,freshOwner:()=>completeSecondFactor(origin,cookie,fetcher),
    async transition(id,passing){
-    healthy=passing;await worker.dispose();worker=null;now+=60000;await start();await drain();
+    healthy=passing;
+    const current=(await api('/api/overview')).data.monitors.find(m=>m.id===id),target=passing?'Healthy':'Failing';
+    // Exercise the real cadence: SQL independently checks contact due times.
+    // Initial creation already kicks its first scheduled check asynchronously.
+    if(!['Unknown',target].includes(current.state.state)){
+     const delay=Math.max(0,current.nextDue-Date.now()+25);
+     console.log(`Waiting ${Math.ceil(delay/1000)}s for hosted scheduled ${target}`);
+     await new Promise(resolve=>setTimeout(resolve,delay));
+    }
+    await drain();
     await waitFor(async()=>{const result=await api('/api/overview');assert.equal(result.status,200);return result.data.monitors.find(m=>m.id===id)?.state.state===(passing?'Healthy':'Failing')},'hosted scheduled lifecycle transition');
     await drain();
    }};

@@ -32,7 +32,11 @@ async function lifecycleJourney(mode){
    const beforeJobs=await jobs(),beforeRequests=requests.length,beforeAlerts=(await ok('/api/overview')).alerts;
    for(const passing of [false,true]){
     await runtime.transition(monitor.id,passing);
-    if(enabled)await waitFor(async()=>{await runtime.drain();const rows=(await notes()).deliveries.filter(row=>row.event.monitorId===monitor.id&&!beforeJobs.some(old=>old.id===row.id));return rows.filter(row=>row.event.kind===(passing?'recovery':'trigger')&&row.state==='accepted').length===3},'current-authority deliveries accepted');
+    if(enabled){
+     let observed=[];
+     try{await waitFor(async()=>{await runtime.drain();const rows=(await notes()).deliveries.filter(row=>row.event.monitorId===monitor.id&&!beforeJobs.some(old=>old.id===row.id));observed=rows.filter(row=>row.event.kind===(passing?'recovery':'trigger'));return observed.filter(row=>row.state==='accepted').length===3},`${mode} current-authority deliveries accepted`)}
+     catch(error){throw Error(`${error.message}: ${JSON.stringify(observed.map(({kind,state,code,attempts})=>({kind,state,code,attempts})))}`)}
+    }
    }
    const added=(await jobs()).filter(row=>!beforeJobs.some(old=>old.id===row.id));
    const events=(await ok('/api/overview')).alerts.filter(row=>!beforeAlerts.some(old=>old.id===row.id)&&row.event.monitorId===monitor.id);
@@ -104,6 +108,7 @@ async function lifecycleJourney(mode){
   }
   const finalJobs=await jobs();
   for(const row of historical)assert.deepEqual(finalJobs.find(final=>final.id===row.id),row,'rotation and disable preserve historical outcomes');
+  await runtime.freshOwner();
   const archive=JSON.stringify(await ok('/api/archive')),publicReads=JSON.stringify(await notes());
   for(const value of [oldSecret,webhookSecret,...endpoints.slack]){assert.ok(!archive.includes(value),'archive excludes local authority');assert.ok(!publicReads.includes(value),'operator read excludes local authority')}
   for(const destination of destinations){const row=await runtime.DB.prepare('SELECT * FROM notification_credentials WHERE id=?').bind(currentCredentials.get(destination.id)).first();assert.ok(row.ciphertext);assert.equal(row.endpoint,null);assert.equal(row.signing_secret,null)}
