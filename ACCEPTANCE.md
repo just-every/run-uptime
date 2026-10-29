@@ -8,12 +8,12 @@ The primary journey: an operator moves their monitors from UptimeRobot or Pingdo
 
 | Tier | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
-| Core | 16 | 68 | 11 | 95 |
+| Core | 17 | 67 | 11 | 95 |
 | Agent surface | 0 | 0 | 6 | 6 |
 | Later | 0 | 0 | 1 | 1 |
-| Full target | 16 | 68 | 18 | 102 |
+| Full target | 17 | 67 | 18 | 102 |
 
-Judged from the code and tests at commit `886ad3662fec5bdd5c1cd4c7692a9d22d897529f` (29 October 2026). ERASURE-001 public owner erasure, retained stale edit and complete refusal preservation; other clause judgments retained. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
+Judged from the code and tests at commit `dc4831090b8fe36301ff6fba9956a014cd5371a1` (29 October 2026). PUBLIC-002 registered public-path journey and limited helper, Verify 40971041989 (workflow_dispatch, success); relevant runtime and tests unchanged by this status reconciliation. Other clause judgments retained. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
 
 ## Core
 
@@ -258,7 +258,7 @@ Core · published · **partial** · Cites BASE-SECRET-002, BASE-OPS-001 · Regis
 
 #### PUBLIC-002 — Declared sessionless paths and rate limits
 
-Core · published · **partial** · Cites BASE-ACCESS-003 · Register R-2
+Core · published · **done** · Cites BASE-ACCESS-003 · Register R-2
 
 **Requirement.** Every sessionless route and emitted static path is declared in `seed.json` with its authentication rule and rate-limit class. D1 applies owner-tunable per-client limits in fixed 60-second windows and returns 429 with `Retry-After` after the class limit. A declaration does not bypass route-specific session, runner, heartbeat or development-key checks. Limit values are marked estimated and not load-tested. See [Public paths and rate limits](docs/contract/safety-rules.md#public-paths-and-rate-limits) and [Integrity and authority](docs/contract/safety-rules.md#integrity-and-authority).
 
@@ -266,7 +266,7 @@ Core · published · **partial** · Cites BASE-ACCESS-003 · Register R-2
 1. Enumerate declared sessionless paths against emitted routes, exceed configured public limits, inspect Retry-After, and remove counter storage; each route retains its own authentication checks and admission fails closed.
 
 **Evidence.** `src/domain/public-rate-limits.server.ts`; `tests/public-paths.mjs` (registered by test:console in `package.json` and selected by `scripts/verification-plan.mjs`) enumerates declarations and emitted paths, checks route authentication and fail-closed counter-storage refusal, and calls `tests/public-paths-support.mjs` limited at line 64 for class-limit, concurrent-boundary and Worker-restart refusals; limited asserts 429, positive integral Retry-After seconds and no-store.
-**Gap.** Retry-After evidence attribution reconciled by inspection; this metadata change establishes no new runtime pass. Public-path load capacity and hosted readiness and scale qualification remain not run in R-2. Held uip console changes and requalification and existing account, Platform, sibling, protected-file and guarded-release prerequisites remain unchanged.
+**Gap.** None.
 
 #### FLOW-001 — Supported isolated browser transactions
 
