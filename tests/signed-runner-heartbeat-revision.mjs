@@ -44,7 +44,9 @@ export async function proveHeartbeatRevisionIsolation({api,runner,db,advance}){
  assert.equal((await read()).state.state,'Unknown');
 
  const fresh=await api(`/api/monitors/${id}/heartbeat-key`,{});assert.equal(fresh.status,200);assert.equal(fresh.data.revision,changed.data.revision+1);
+ const newlyAuthorized=await records();
  assert.equal((await api(path+'/success',{},headers(3))).status,400,'old authority stays retired after new authorization');
+ assert.deepEqual(await records(),newlyAuthorized,'retired authority cannot alter the newly authorized revision');
  const receipt=await api(path+'/success',{},{authorization:`Bearer ${fresh.data.token}`,'x-heartbeat-sequence':'1'});
  assert.equal(receipt.status,200);assert.equal(receipt.data.revision,fresh.data.revision);
  assert.equal((await read()).state.state,'Unknown','new current-revision receipt still needs signed evaluation');
@@ -54,7 +56,9 @@ export async function proveHeartbeatRevisionIsolation({api,runner,db,advance}){
  assert.ok(passing[0].observations.length>0);
  for(const observation of passing[0].observations){assert.equal(observation.outcome,'pass');assert.equal(observation.heartbeatJob.receivedAt,receipt.data.receivedAt)}
  for(const slot of pending)assert.deepEqual(completed.find(row=>row.id===slot.id),slot,'earlier scheduled evidence remains immutable');
- const runs=(await records()).runs;assert.equal(runs.length,2);assert.ok(runs.some(run=>run.revision===issued.data.revision));assert.ok(runs.some(run=>run.revision===fresh.data.revision));
+ const final=await records(),runs=final.runs;assert.equal(runs.length,2);assert.ok(runs.some(run=>run.revision===issued.data.revision));assert.ok(runs.some(run=>run.revision===fresh.data.revision));
+ assert.equal(final.authority.length,1);assert.equal(final.authority[0].revision,fresh.data.revision);assert.equal(final.authority[0].last_sequence,1);assert.equal(final.authority[0].received_at,receipt.data.receivedAt);
+ assert.ok(!JSON.stringify(final.authority).includes(fresh.data.token)&&!JSON.stringify(final.authority).includes(fresh.data.urlToken),'receipt authority stores no plaintext credential');
  const monitor=await read();assert.equal((await api(`/api/monitors/${id}`,{...monitor.definition,enabled:false},{},'PATCH')).status,200);
  console.log('HEARTBEAT-001 revision isolation passed: settings retire both receipt forms, increasing old sequence refuses without writes, current signed snapshot has no inherited receipt, and only fresh authority plus scheduled signed evaluation establishes Healthy.');
 }
