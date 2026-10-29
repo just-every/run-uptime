@@ -190,8 +190,8 @@ Core · published · **partial** · Cites BASE-SECRET-001 · Register R-6
 **Acceptance.**
 1. Create/rotate/disable email, Slack and signed webhook destinations, cause scheduled failure/recovery and a test send through actual Worker/runner delivery doors; inspect one job per enabled destination, credentials, exact signing, escaping and unchanged health for tests.
 
-**Evidence.** `src/domain/notification-destinations.server.ts`; `src/domain/notification-protocols.ts`; `tests/notify-delivery.mjs`; `tests/hosted-alerts.mjs`; `docs/evidence/contracts/release-0.4.0/`
-**Gap.** Carried-done audit: rotating and disabling a destination are asserted only in `tests/notify-delivery.mjs` and `tests/notify-delivery.mjs`, which this clause does not cite. Creating email, Slack and signed webhook destinations, scheduled failure and recovery and test sends through the runner and Worker doors, one job per destination, credential custody, exact signing, escaping and unchanged health for tests are asserted.
+**Evidence.** `tests/notify-delivery.mjs` Notification acceptance with `tests/notify-destination-lifecycle.mjs` proveDestinationLifecycle: owner-created email, Slack and signed webhook destinations, rotation to current authority, genuine scheduled trigger and recovery through the Worker and signed runner, one correlated job and request per enabled destination, disable suppressing automatic jobs, explicit tests while disabled, historical outcomes and encrypted local custody; `tests/hosted-alerts.mjs` hosted notification delivery; `tests/alert-drill.mjs` credential changes reset recipient proof; `docs/evidence/contracts/release-0.4.0/`
+**Gap.** Hosted lifecycle proof is still being completed in this candidate. Held: uip-owned destination console controls and console requalification remain omitted. Real Slack tenant, provider and inbox receipt and human-response qualification remain unproved (R-6 and R-9); existing channel and device, Platform, sibling, protected-file and guarded-release prerequisites remain unchanged.
 
 #### DELIVERY-001 — Bounded notification acknowledgment
 

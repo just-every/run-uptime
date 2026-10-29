@@ -9,6 +9,7 @@ import {NodePinnedTransport} from '../src/base/modules/integrations/core/node-tr
 import {runRunner} from '../runners/src/private-runner.mjs';
 import {acceptanceReceiver,verifySendGrid,verifySecurityNotice,signedReceiverVerifier,verifySlack,loopbackWireTransport} from './notify-acceptance-receivers.mjs';
 import {availablePorts,migratedWorker,runtimeDirectory,fixtureProcess,cleanupDirectory,ownerAPI,waitFor} from './notify-acceptance-runtime.mjs';
+import {proveDestinationLifecycle} from './notify-destination-lifecycle.mjs';
 
 const key='notification-acceptance-runner-local-only-20261007';
 const name='Notification café 日本語 <!channel> <script>alert(1)</script>';
@@ -210,3 +211,4 @@ try{
  await stopRunner();if(restoreWorker)await restoreWorker.dispose();if(worker)await worker.dispose();if(fixture)await fixture.stop();
  await Promise.all(receivers.map(receiver=>receiver.close()));await cleanupDirectory(directory);console.error=originalConsoleError;
 }
+await proveDestinationLifecycle();

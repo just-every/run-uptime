@@ -487,7 +487,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "60af7638964e0e23cbfb47cd37dbe1c3304c595cd956d3d10e72e9bb4b86e4aa",
+      "sha256": "2f5b9e1b126379a3172dae0209ca02e46bd6d3b45ea52d107b8b438e79c27966",
       "executable": false
     },
     "AGENTS.md": {
@@ -511,7 +511,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "39997d8461d2cb93493cbc1887e15c89806b550f9509c4fbd0ed763c74bea340",
+      "sha256": "5d99fee022c2e3e01cf921dd24ab5e5b022ace80d34acf1658217eeffd986ae5",
       "executable": false
     },
     "DEMO.md": {
@@ -8367,7 +8367,11 @@
       "executable": false
     },
     "tests/notify-delivery.mjs": {
-      "sha256": "d15eb5ab1ece8024b10d8798240fe6c2765f9d91bfc46d6e263ae408284feade",
+      "sha256": "e5fe5e25966f514086024bceb24b65913ffde2b46bfb6b96f76d87abca88452f",
+      "executable": false
+    },
+    "tests/notify-destination-lifecycle.mjs": {
+      "sha256": "3ada6d8f3078254772b8c67897079c504f5536cd56ea367af5b816fadf29ddeb",
       "executable": false
     },
     "tests/notify-echo-fixture.mjs": {
@@ -8376,6 +8380,10 @@
     },
     "tests/notify-fallback-fixture.mjs": {
       "sha256": "ee82d06d5332a9a836b4511f6ec209a499499359b3265f8c0f220a8f4575baa3",
+      "executable": false
+    },
+    "tests/notify-lifecycle-runtime.mjs": {
+      "sha256": "5c84e4fd9ef7d4882d8d3d493f4a17f5d94a2ea656a75491ff1059c937257df1",
       "executable": false
     },
     "tests/notify-oncall-fixture.mjs": {
