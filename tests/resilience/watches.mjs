@@ -17,6 +17,7 @@ import {fixture,cleanup,closeServer} from './support.mjs';
 import {startLocalWorker} from '../mail-provider-fixture.mjs';
 import {withStartupPortCollision} from './port-collision.mjs';
 import {startWatchClockWorker} from './watch-clock.mjs';
+import {proveExternalHeartbeatAlarm} from './external-heartbeat.mjs';
 const wait=async(fn)=>{for(let i=0;i<200;i++){if(await fn())return;await new Promise(r=>setTimeout(r,20))}throw Error('Expected watch event did not arrive')};
 
 
@@ -31,6 +32,7 @@ const wait=async(fn)=>{for(let i=0;i<200;i++){if(await fn())return;await new Pro
 
 
 test("Recover monitoring across runner and Worker crashes without replaying uncertain sends",async()=>{
+await proveExternalHeartbeatAlarm();
 // OPS-001 stopping the real Worker retries a rejected independent notice, repeats accepted notices and reports restored contact
 {
  const f=await fixture(),controller=new AbortController(),notices=[];let resumed,runner,failure;

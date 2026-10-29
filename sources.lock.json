@@ -487,7 +487,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "60af7638964e0e23cbfb47cd37dbe1c3304c595cd956d3d10e72e9bb4b86e4aa",
+      "sha256": "9ed60dc1dd5b9bfdd4baeb2d2206110c73ef2f2553a80c80701d5fa65b3c2af4",
       "executable": false
     },
     "AGENTS.md": {
@@ -511,7 +511,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "39997d8461d2cb93493cbc1887e15c89806b550f9509c4fbd0ed763c74bea340",
+      "sha256": "f82bc4b0e1150be0697092af2b9c8a8ef845adb74c7b93756d5db923b58a96e4",
       "executable": false
     },
     "DEMO.md": {
@@ -8518,6 +8518,14 @@
       "sha256": "d60862175bf04cbd74c30465e72554445faa33b2f4695d8d3b19f5185e7376af",
       "executable": false
     },
+    "tests/resilience/external-heartbeat-service.mjs": {
+      "sha256": "103c2ce20e61b544078081e32a6a6426e97fe103b2c6e4b5dd347439ccd6a5b0",
+      "executable": false
+    },
+    "tests/resilience/external-heartbeat.mjs": {
+      "sha256": "97f7c12e9cefc77746610533eb72c47fd3cafe12126770d4f17d910b65d089e0",
+      "executable": false
+    },
     "tests/resilience/port-collision.mjs": {
       "sha256": "5bf545413c0e949b4824170db466b5692d3007e3d7faeb9abce712b6d03b2dda",
       "executable": false
@@ -8531,7 +8539,7 @@
       "executable": false
     },
     "tests/resilience/watches.mjs": {
-      "sha256": "4a8413c284f2437e354c055956e3c4ee7c63af01ca04d07cd6866593e2bc0650",
+      "sha256": "1a448ef09acc2294d676914736b55c885f43eab6b171ad9d09ef274d42c709d7",
       "executable": false
     },
     "tests/retention-browser-proof.mjs": {
