@@ -1,3 +1,5 @@
+import {notificationAdmission} from '../agent-door/work.server.ts'
+import {authorizedDatabase} from './access-database.server.ts'
 import {contactReady,contactQuietReady,refreshContactQuiet} from './contact-scheduler.server.ts'
 import {auditStatement,automated} from './audit.server.ts'
 import {sha256} from '../base/modules/integrations/core/crypto.ts'
@@ -81,6 +83,8 @@ export async function registerClaim(env:Bindings,id:string,claim:string,reservat
   SELECT claim,id,?,? FROM integration_deliveries WHERE namespace=? AND id=? AND claim=? AND state='sending' AND claim_until>?`).bind(now,await sha256(reservation),namespace,id,claim,now).run();
 }
 export async function startClaim(env:Bindings,id:string,claim:unknown,reservation:unknown,now:number){
+ const admission=await notificationAdmission(env,id);if(!admission.allowed)return false;
+ if(admission.access)env={...env,DB:authorizedDatabase(env,admission.access)};
  if(typeof claim!=='string'||typeof reservation!=='string'||reservation.length>128)return false;
  await refreshContactQuiet(env,id);
  const reservationHash=await sha256(reservation);
