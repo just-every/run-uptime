@@ -1,13 +1,27 @@
 import assert from 'node:assert/strict';
 import {createHmac,randomUUID} from 'node:crypto';
 import https from 'node:https';
-import {mkdtemp,mkdir,readFile,readdir,rm} from 'node:fs/promises';
-import {join} from 'node:path';
+import {Miniflare,convertV4MiniflareOptions} from 'miniflare';
+import {mkdtemp,mkdir,readFile,readdir,rm,writeFile} from 'node:fs/promises';
+import {join,resolve,relative,dirname,parse} from 'node:path';
 import {tmpdir} from 'node:os';
 import {testAuthBindings} from './auth-test-support.mjs';
 import {completeSecondFactor} from './mfa-auth-support.mjs';
 import {splitSql} from './migration-support.mjs';
-import {emittedRunnerWorker,certificate,runChild,listen,close,request} from './signed-runner-runtime.mjs';
+import {certificate,runChild,listen,close,request} from './signed-runner-runtime.mjs';
+
+// The production assets are mounted as well, so /health exercises successful
+// installation readiness. This private envelope clock never changes the shared runtime.
+async function contactWorker(directory,bindings){
+ const emitted=resolve('./dist/server'),config=JSON.parse(await readFile(join(emitted,'wrangler.json'),'utf8'));
+ const wrapper=join(directory,'contact-envelope.mjs');
+ await writeFile(wrapper,`import app from ${JSON.stringify(relative(dirname(wrapper),join(emitted,config.main)))};
+ const wallNow=Date.now;let clock;Date.now=()=>clock??wallNow();
+ export default {async fetch(request,env,ctx){const input=await request.json();clock=input.clock;return app.fetch(new Request(input.url,{method:input.method,headers:input.headers,...(input.body===undefined?{}:{body:input.body})}),env,ctx)}};`);
+ const modules=[{type:'ESModule',path:wrapper},{type:'ESModule',path:join(emitted,config.main)},...(await readdir(join(emitted,'assets'))).filter(name=>name.endsWith('.js')).map(name=>({type:'ESModule',path:join(emitted,'assets',name)}))];
+ const worker=new Miniflare(convertV4MiniflareOptions({scriptPath:wrapper,modules,modulesRoot:parse(emitted).root,compatibilityDate:config.compatibility_date,compatibilityFlags:config.compatibility_flags,host:'127.0.0.1',port:0,assets:{directory:resolve('./dist/client'),binding:'ASSETS',routerConfig:{has_user_worker:true},run_worker_first:true},d1Databases:{DB:'runner-contact'},resourcePersistencePath:join(directory,'state'),bindings,outboundService:async request=>{if(new URL(request.url).hostname==='api.sendgrid.com'&&(await request.json()).subject==='Uptime second-factor security change')return new Response(null,{status:202});throw Error('Unexpected network request in runner contact journey')},unsafeLocalExplorer:false,unsafeObservability:false}));
+ try{await worker.ready;return worker}catch(error){await worker.dispose();throw error}
+}
 
 // An independent migrated installation and envelope clock keep this journey out
 // of the live heartbeat journey. Only the authorized HTTPS and DNS edges are local.
@@ -40,7 +54,7 @@ export async function proveRunnerContact(){
   });
   origin=`https://localhost:${await listen(control)}`;
   const bindings={...testAuthBindings,MAIL_PROVIDER:'sendgrid',SENDGRID_API_KEY:'synthetic-uptime-35',UPTIME_LOCAL_REVIEW:'false',UPTIME_ORIGIN:origin,UPTIME_RUNNER_KEY:key};
-  worker=await emittedRunnerWorker(directory,bindings);db=await worker.getD1Database('DB');
+  worker=await contactWorker(directory,bindings);db=await worker.getD1Database('DB');
   for(const file of(await readdir('migrations')).filter(name=>name.endsWith('.sql')).sort())for(const sql of splitSql(await readFile(join('migrations',file),'utf8')))await db.prepare(sql).run();
   const api=(path,body,headers={},method=body===undefined?'GET':'POST')=>request(origin,tls.cert,path,{method,body,headers:{origin,cookie,'cf-connecting-ip':'192.0.2.35',...headers}});
   const verifyOwner=()=>completeSecondFactor(origin,cookie,async(url,init)=>{
@@ -72,6 +86,11 @@ export async function proveRunnerContact(){
   view=await overview();assert.equal(view.runner.contact.state,'Fresh contact');assert.equal(view.runner.contact.lastContactAt,idleAt);
   assert.deepEqual((await stored()).contact,[{id:1,last_contact_at:idleAt}]);
   assert.equal((await runners()).find(row=>row.runnerId===runnerId).lastContactAt,idleAt);
+  advance(500);
+  const stillIdle=await api('/api/runner/claim',{},runnerHeaders);
+  assert.equal(stillIdle.status,200);assert.equal(stillIdle.data.task,null);assert.equal(stillIdle.data.now,clock);
+  assert.deepEqual((await stored()).contact,[{id:1,last_contact_at:idleAt+500}],'another idle receipt refreshes an existing contact');
+  assert.equal((await runners()).find(row=>row.runnerId===runnerId).lastContactAt,idleAt+500);
 
   const remote=await api('/api/runners',{networkLabel:'synthetic-uptime-35-uncontacted'});assert.equal(remote.status,201);
   const definition={url:'https://runner-target.test/health',network:'public',canaryUrl:'https://canary.runner-target.test/canary',intervalMs:5000,freshnessMs:180000,timeoutMs:2000,retries:0,confirmSlots:1,recoverSlots:1};
@@ -118,7 +137,8 @@ export async function proveRunnerContact(){
   assert.equal((await api('/api/runner/results',{}, {...signed('/api/runner/results',{}),'x-runner-signature':'0'.repeat(64)})).status,403);
   await runners();await checkTargets('Failing');
   const health=await api('/health',undefined,{cookie:''});
-  assert.equal(health.status,503,'fixture has no emitted asset binding, so readiness is unavailable');
+  assert.equal(health.status,200,'real emitted assets and migrated storage establish installation readiness');
+  assert.equal(health.data.status,'ok');
   assert.ok(!Object.hasOwn(health.data,'runner')&&!Object.hasOwn(health.data,'monitors'));
   assert.deepEqual(await stored(),beforeRefusals,'reads and rejected requests cannot refresh contact');
 
@@ -129,7 +149,7 @@ export async function proveRunnerContact(){
   assert.deepEqual(await stored(),beforeRefusals);
 
   // Same durable storage, new Worker, same contact and immutable failing history.
-  await worker.dispose();worker=await emittedRunnerWorker(directory,bindings);db=await worker.getD1Database('DB');
+  await worker.dispose();worker=await contactWorker(directory,bindings);db=await worker.getD1Database('DB');
   assert.deepEqual(await stored(),beforeRefusals);
   view=await checkTargets('Failing');assert.equal(view.runner.contact.state,'Stale contact');
   assert.equal((await runners()).find(row=>row.runnerId===runnerId).lastContactAt,resultAt);
@@ -166,7 +186,7 @@ export async function proveRunnerContact(){
   const receivingDirectory=join(directory,'receiving');await mkdir(receivingDirectory);
   await worker.dispose();
   const receivingBindings={...bindings,UPTIME_RUNNER_KEY:'synthetic-uptime-35-receiving-runner'};
-  worker=await emittedRunnerWorker(receivingDirectory,receivingBindings);db=await worker.getD1Database('DB');cookie='';
+  worker=await contactWorker(receivingDirectory,receivingBindings);db=await worker.getD1Database('DB');cookie='';
   for(const file of(await readdir('migrations')).filter(name=>name.endsWith('.sql')).sort())for(const sql of splitSql(await readFile(join('migrations',file),'utf8')))await db.prepare(sql).run();
   const receivingOwner=await api('/auth/bootstrap',{token:receivingBindings.SETUP_TOKEN,displayName:'Receiving contact owner'});
   assert.equal(receivingOwner.status,303);cookie=receivingOwner.headers['set-cookie'][0].split(';')[0];
