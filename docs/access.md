@@ -18,8 +18,30 @@ Imports through the operator import door, metrics-key administration, erasure,
 incident comments/root causes/actions, setup, the private management editor and
 identity changes still require owner authority. A member role never grants
 private-runner, synthetic or credential creation authority. The existing metrics
-key is separate and only grants `metrics:read`; `monitoring:read` and CI tokens
-are not implemented.
+key is separate and only grants `metrics:read`. Native API credentials also
+support `monitoring:read` and bounded `definitions:preview` / `definitions:apply`.
+Their issuing operator, installation, expiry, version and selected-monitor,
+tag or environment fences remain authoritative. They do not grant staff roles
+or private failure-evidence access.
+
+The shared `/mcp` door accepts a live selected-monitor `monitoring:read`
+credential for the corresponding monitor reads, and a bounded
+`definitions:preview` credential for definition recognition. This adapter does
+not grant definition apply or other operator writes. Business agent credentials
+bind through the signed settings person's durable Business ID to a current
+native operator ID; a matching token email supplies no authority. Current native
+roles and service/team scopes still apply, and company policy decides each call.
+Resource refusals expose their machine code in JSON-RPC `error.data.code`;
+missing and restricted records use the same refusal.
+
+Agent-originated runner checks, discovery jobs and notification work retain the
+door's original operation, consent, sponsor, scopes and public idempotency key.
+Each native handoff or delivery has its own continuation identity. At the final
+native admission, the door rechecks current authority, policy, Pause and
+revocation; a preparation approval does not authorize unrelated queued effects.
+Older agent queue records without the originating admission require fresh
+preparation. A notification transport admission records permission to attempt
+that delivery, not provider acceptance or receipt by a person.
 
 ## Service and team scope
 
@@ -99,3 +121,13 @@ recipient-drill and signed Run Edit Run capabilities remain separate.
 Explicit `POST /api/discoveries` jobs retain the initiating operator ID and authority revision. A live owner/admin can cancel queued or running work with `DELETE /api/discoveries/:id`. Reads include `initiatingOwnerId`, `stoppedAt` and `stopReason`; cancellation is a retained failed job, not deletion. A claiming runner cannot submit a result after cancellation or after the initiating member's identity/role authority is revoked. The next claim or result boundary records the stop. Outcomes completed while authorized remain unchanged. Initiator erasure stops active work before anonymizing its owner.
 
 Setup, catalog and source discovery creation still use their preceding installation-owned lifecycle. CI definition imports recheck token authority at each batch; revoked tokens cannot resume a later batch. Their general durable revoked-job stop presentation and member/job console controls remain open work.
+
+
+The agent door currently declares the mandatory CORE capabilities: tools,
+company policy, Pause, audit and idempotency. It retains all 37 native tools.
+Events, resource reads, specialist prompts and subscriptions are not public
+capabilities in this declaration; calls return `capability_not_declared` and
+listings omit them. Internal native events and visibility adapters remain in
+place. The full Agent surface contract remains a target: the native registry
+and the contract's 34-tool table still need reconciliation, and declarative
+conformance has not been established. Spend caps remain unenforced.
