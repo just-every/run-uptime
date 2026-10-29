@@ -8183,7 +8183,11 @@
       "executable": false
     },
     "tests/erasure-audit.mjs": {
-      "sha256": "ed03232cdaf20e54516de2a155cfb5491f22f4630b88f16c40af9c6c02dd7dc1",
+      "sha256": "eb8775156c8b24237bdecdf13e27befc374890970f645e437645899fd835ab65",
+      "executable": false
+    },
+    "tests/erasure-race-support.mjs": {
+      "sha256": "d0319fa88aa7952db7483fa0ed460ddbaa71f9b8693a609039ecf79061a901a4",
       "executable": false
     },
     "tests/failure-page-browser.mjs": {
