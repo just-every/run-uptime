@@ -8,12 +8,12 @@ The primary journey: an operator moves their monitors from UptimeRobot or Pingdo
 
 | Tier | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
-| Core | 15 | 69 | 11 | 95 |
+| Core | 16 | 68 | 11 | 95 |
 | Agent surface | 0 | 0 | 6 | 6 |
 | Later | 0 | 0 | 1 | 1 |
-| Full target | 15 | 69 | 18 | 102 |
+| Full target | 16 | 68 | 18 | 102 |
 
-Judged from the code and tests at commit `85a34f9214bd9396ac186cf8555b8edc1d28b8f8` (29 October 2026). FLOW-004 viewport proof and SCHEDULE-001 cadence proof; other clause judgments retained. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
+Judged from the code and tests at commit `85a34f9214bd9396ac186cf8555b8edc1d28b8f8` (29 October 2026). FLOW-004 viewport proof and SCHEDULE-001 cadence proof; other clause judgments retained. DNS-001 maintenance and bounded evidence reviewed from candidate `cd590ee9b99714cbb8b4b3626c5421920752a1ba`; other judgments retained. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
 
 ## Core
 
@@ -388,15 +388,15 @@ Core · target · **partial**
 
 #### DNS-001 — DNS records and change detection
 
-Core · target · **partial**
+Core · target · **done**
 
 **Requirement.** Checks query selected recursive and authoritative resolvers for A, AAAA, CNAME, MX, TXT, NS, SOA, SRV and CAA records, expected values, absence/change and response time. NXDOMAIN, SERVFAIL, propagation differences and monitor infrastructure faults are distinguishable; owner-approved expected changes suppress only their own condition.
 
 **Acceptance.**
 1. Save DNS monitors via the owner door, change/remove an expected record and induce resolver disagreement/failure; inspect raw bounded record evidence, confirmed alerts, maintenance and recovery without treating a missing answer as success.
 
-**Evidence.** `src/domain/protocol/dns.mjs`; `src/domain/protocol/dns-wire.mjs`; `src/domain/protocol/evaluate.mjs`; `tests/protocol-monitors.mjs`
-**Gap.** Carried-done audit: no cited DNS check runs inside a maintenance window. Saving through the owner door, changed and removed records, resolver disagreement and failure, raw bounded record evidence, confirmed alerts and recovery, and refusing to treat a missing answer as success are asserted.
+**Evidence.** `tests/protocol-monitors.mjs` PROTOCOL-MONITORS owner-to-runner lifecycle: owner save and approved change; changed and removed records, recursive and authoritative resolver evidence, disagreement and resolver failure; owner maintenance preview, apply and cancel, retained failing DNS evidence under Maintenance, suppressed trigger and orphan recovery, then scheduled failure and recovery with immutable earlier evidence.
+**Gap.** None.
 
 #### TLS-001 — SSL certificate and chain monitoring
 
