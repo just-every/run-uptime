@@ -8467,7 +8467,7 @@
       "executable": false
     },
     "tests/protocol-monitors.mjs": {
-      "sha256": "01f9caccf71b2cf894f04c8d4cad5c598fdb27bc95b5bcb4cf3b09aba661d056",
+      "sha256": "9b4ecad1f5793370a2158daf02cdc742e8932319edaa4c398aa782e17d925478",
       "executable": false
     },
     "tests/protocol-routing.mjs": {
@@ -8596,6 +8596,10 @@
     },
     "tests/tls-auth.mjs": {
       "sha256": "db4d8f498987b15902fc9b660b1ada435f79e9dc97d663f416023e0578d0f2c2",
+      "executable": false
+    },
+    "tests/tls-stages-support.mjs": {
+      "sha256": "8f0232b14fb7bd7c30cc565355688f6dd876e187e0d7129e7381573c1e0e2d47",
       "executable": false
     },
     "tests/tls-trust-journey.mjs": {
