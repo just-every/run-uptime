@@ -2019,7 +2019,7 @@
       "executable": false
     },
     "docs/grafana/uptime-dashboard.json": {
-      "sha256": "80b63b48791174b0bbbc896bf17f6e6dfba18d9a12e082df42b00fd6ec3d7841",
+      "sha256": "97fd4e9a3731d26e263ed442e027c44f94863504ae20e8c1c69d0e519209f9e9",
       "executable": false
     },
     "docs/heartbeat-jobs.md": {
@@ -2039,7 +2039,7 @@
       "executable": false
     },
     "docs/metrics.md": {
-      "sha256": "40d4b94a8200bf393aadb9e569cb7ebdd30e2f24efaeafa028ce17c239288997",
+      "sha256": "5b47f5229f99f717df23d0183e7f3393f6fa9a5bea32d6398ad0c040c4391c07",
       "executable": false
     },
     "docs/mfa.md": {
@@ -8323,7 +8323,7 @@
       "executable": false
     },
     "tests/metrics.mjs": {
-      "sha256": "2bd31d446594b00fdb7c1348010e73aa1f07d76f4458a9649830a22f16f4368e",
+      "sha256": "3aa9f44b5e5b355b70ff48c85892ba62b506612a4d690e97f63eeb6c134be2d6",
       "executable": false
     },
     "tests/mfa-auth-support.mjs": {
