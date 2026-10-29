@@ -1386,12 +1386,13 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-007, BASE
 
 Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
 
-**Requirement.** Uptime computes the irreversible and live effects of cleanup-debt resolution and incident response actions from the affected debts, incidents, running monitors and alert routes.
+**Requirement.** Uptime computes the irreversible and live effects of manual checks, cleanup-debt resolution and incident response actions from the affected debts, incidents, running monitors and alert routes.
 
 **Acceptance.**
 1. `uptime.cleanup.resolve` carries destructive with the debts irreversibly closed; it adds live, with the monitor affected, when resolving a debt takes a running monitor below the open-debt limit so its next scheduled run performs setup again. A resolution that leaves setup refused, or affects only a paused monitor, does not add live.
 2. `uptime.incidents.work` is standard for taking or reassigning ownership. Acknowledge, stop and resolve carry destructive with the incidents irreversibly changed, including incidents grouped by acknowledgment; assignment does not carry destructive.
 3. `uptime.incidents.work` adds live when acknowledge, stop or resolve ends scheduled reminders or a pending fallback on an open incident of a running monitor, including other incidents grouped by acknowledgment. Facts name every monitor, incident and route affected, applying each contact’s acknowledgment policy. Assignment, and a response action that ends no such scheduled reminder or pending fallback, do not add live.
+4. `uptime.monitors.check` adds live, with the monitor affected, when the monitor runs setup and cleanup fixtures and its open-debt count is one below the limit, so a cleanup failure in this check makes its next scheduled run refuse setup. A check of a monitor without fixtures, or further below the limit, does not add live.
 
 **Evidence.** None.
 **Gap.** No implementation: no tool computes irreversible cleanup-debt or incident transitions, setup resumption or reminder and fallback suppression across affected monitors, incidents and routes.
