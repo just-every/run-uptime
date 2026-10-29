@@ -434,8 +434,12 @@
       "sha256": "e78b53474abd7dc47d5a198a0103f19558c89408182b786a22edd0bc0b824b7b",
       "executable": false
     },
+    ".github/scripts/verify-build-proof.mjs": {
+      "sha256": "d5e439c88559708b1d4a1cf3a995af7bfbaf0b8cda9a863b68296d6076a2a3aa",
+      "executable": false
+    },
     ".github/scripts/verify-build.mjs": {
-      "sha256": "7cf9251deb57acee135c35f9feee931d8274020987502ecc6c212dae93ecc437",
+      "sha256": "dc3778c3d3d1363045c09172523cfd121032518a2baea4631bd8b87a9da122c7",
       "executable": false
     },
     ".github/scripts/verify-ci.mjs": {
@@ -471,7 +475,7 @@
       "executable": false
     },
     ".github/workflows/verify.yml": {
-      "sha256": "83eb904544dd764a04129b438907df1b38a5c3e8581437cc8f792144b0629286",
+      "sha256": "f21afe50cbece771e186965c2bb9c3c5c034baccc2e73543d856d239491dac96",
       "executable": false
     },
     ".gitignore": {
@@ -495,7 +499,7 @@
       "executable": false
     },
     "base-copies.json": {
-      "sha256": "e9a76d4defc8586abe3c09fbd1e4fce6bcd077d6b45113369dd755b993b6e266",
+      "sha256": "f1a64029e2dbb308b74a2f6450cf3b0e6e6409862cdc06785984a9a7d08fed4d",
       "executable": false
     },
     "BASELINE.md": {
