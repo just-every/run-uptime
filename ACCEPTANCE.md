@@ -8,12 +8,12 @@ The primary journey: an operator moves their monitors from UptimeRobot or Pingdo
 
 | Tier | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
-| Core | 13 | 71 | 11 | 95 |
+| Core | 14 | 70 | 11 | 95 |
 | Agent surface | 0 | 0 | 6 | 6 |
 | Later | 0 | 0 | 1 | 1 |
-| Full target | 13 | 71 | 18 | 102 |
+| Full target | 14 | 70 | 18 | 102 |
 
-Judged from the code and tests at commit `56497f8d6716dbe16437095f61a923266fd9b347` (24 October 2026). Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
+Judged from the code and tests at commit `b4edab68d7d35d272c3a51838b60aed1f6bd6c2f` (29 October 2026). Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
 
 ## Core
 
@@ -301,15 +301,15 @@ Core · target · **partial** · Register R-2
 
 #### API-001 — Complete HTTP and API assertions
 
-Core · target · **partial**
+Core · target · **done**
 
 **Requirement.** HTTP(S) methods, safe redirects, custom headers/body, expected status sets/ranges, keyword presence and absence, response headers, latency, nested JSONPath and regular-expression assertions evaluate the exact saved bundle with bounded redacted diagnostics. A transport 200 cannot pass a failed business assertion.
 
 **Acceptance.**
 1. Save checks through the editor/API against a controlled endpoint; independently break absent/present keywords, status range, response headers, JSON arrays/nested paths, regex and latency, then inspect the distinct failures and unchanged saved criteria.
 
-**Evidence.** `src/domain/http-assertions.mjs`; `src/domain/http-assertions/`; `src/domain/evidence.server.ts`; `tests/tls-auth.mjs`; `tests/probe-native-evidence.mjs`; `docs/evidence/contracts/http-assertions/`
-**Gap.** Saved criteria and independent present/absent keyword, status set/range, response-header, root JSON-member, regex and latency failures remain asserted. Gap: independently breaking JSON arrays and nested JSONPath expressions lacks an assertion in the surviving cited files; the root-member scenario does not prove those cases.
+**Evidence.** `tests/probe-native-evidence.mjs` — saved HTTP and API assertions, retained retries and confirmed failure and recovery: owner API saves, independent status, present and absent keyword, header, root JSON-member, regex and latency failures, with unchanged current and historical criteria after every phase; `tests/probe-json-evidence-support.mjs` — proveJsonSelectors, invoked by that journey: root JSON arrays and filtered nested JSONPath, each saved through the owner API and exercised by both signed scheduled runners with HTTP 200, an independently changed selected value, every unrelated assertion passing, distinct bounded redacted JSON failures, retained retries, one trigger and recovery, immutable earlier history and unchanged saved criteria after each phase; `tests/tls-auth.mjs`; `src/domain/http-assertions.mjs`; `src/domain/http-assertions/`; `src/domain/evidence.server.ts`; `docs/evidence/contracts/http-assertions/`
+**Gap.** None.
 
 #### SLOW-001 — Slow-response alerts distinct from outages
 
