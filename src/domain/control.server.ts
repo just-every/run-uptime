@@ -8,6 +8,7 @@ import {runnerRuntime} from './private-runner.ts'
 import {hostedInstallation} from './hosted-runner.ts'
 import {cronStarted} from './cron-run.server.ts'
 import {notificationOverview} from './notifications.server.ts'
+import {notificationPreferences} from './notification-preferences.server.ts'
 import {mutationGuard,auditStatement,type AuditActor} from './audit.server.ts'
 import {availabilityOverview} from './availability.server.ts'
 import {operatorSession,type AuthBindings} from './operator-auth.server.ts'
@@ -49,23 +50,24 @@ async function monitorState(env:Bindings,m:ReturnType<typeof monitorRow>,now:num
  return {...m,...(maintenanceEndsAt===undefined?{}:{maintenanceEndsAt}),configurationWarning:m.definition.assignments?null:legacyWarning,activeVantages:activeLabels.size,state:m.definition.enabled?state:{...state,state:'Paused',targetState:'Unknown',reason:'Monitor paused; historical observations do not establish current target health.'}};
 }
 // A monitor's page reads only its own monitor (`monitorId`): the same projection, its own alerts and no installation-wide
-// notification history, so opening one monitor costs one monitor's reads however many the installation has. Reads that do
+// notification history, so opening one monitor costs one monitor's reads however many the installation has. Both carry the
+// installation's one time zone (Settings › General), which the console's report, maintenance and job forms start from. Reads that do
 // not depend on each other run together: each is a D1 round trip, and a hosted console waits for the slowest chain.
 export async function overview(env:Bindings,{monitorId}:{monitorId?:string}={}){
  const now=Date.now(),staleMs=Number(env.UPTIME_RUNNER_STALE_MS??120000);
  if(!Number.isSafeInteger(staleMs)||staleMs<=0)throw Error('Invalid monitoring watch interval');
  // The first runner rows exist after the first overview; only an installation still missing one writes them, then reads again.
  const present=async()=>{const [runners,legacy]=await Promise.all([listRunners(env),runnerIdentity(env)]);return legacy&&(!hostedInstallation(env)||runners.some((r:any)=>r.hosted))?{runners,legacy}:null};
- const [found,rows,alerts,started,contact,external,notifications]=await Promise.all([present(),
+ const [found,rows,alerts,started,contact,external,notifications,preferences]=await Promise.all([present(),
   (monitorId===undefined?env.DB.prepare('SELECT * FROM monitors ORDER BY rowid'):env.DB.prepare('SELECT * FROM monitors WHERE id=?').bind(monitorId)).all<any>(),
   (monitorId===undefined?env.DB.prepare('SELECT * FROM outbox ORDER BY rowid DESC LIMIT 200'):env.DB.prepare('SELECT * FROM outbox WHERE monitor_id=? ORDER BY rowid DESC LIMIT 200').bind(monitorId)).all<any>(),
-  cronStarted(env),readContact(env.DB),externalCheck(env),monitorId===undefined?notificationOverview(env):null]);
+  cronStarted(env),readContact(env.DB),externalCheck(env),monitorId===undefined?notificationOverview(env):null,monitorId===undefined?null:notificationPreferences(env)]);
  const {runners,legacy}=found??(await ensureFirstRunner(env),(await present())!);
  const basics=rows.results.map(monitorRow);
  const [monitors,availability]=await Promise.all([Promise.all(basics.map(m=>monitorState(env,m,now,runners,legacy,staleMs))),availabilityOverview(env.DB,basics,now)]);
  return {monitors:monitors.map(m=>({...m,availability:availability.get(m.id),externalCheck:externalCheckOf(m.definition,external)})),alerts:alerts.results.map(r=>({...r,event:JSON.parse(r.event)})),
   runner:{...runnerRuntime(env,runners),cronStarted:started,identity:'private-runner',version:'uptime-node/0.1.0',independentVantage:new Set(runners.filter((r:any)=>r.revokedAt===null).map((r:any)=>r.networkLabel)).size>1,runners,grants:grants(env),contact,externalCheckUrl:external.url},
-  ...(notifications?{notifications}:{}),now};
+  timeZone:(notifications?.preferences??preferences)!.timeZone,...(notifications?{notifications}:{}),now};
 }
 export const MONITOR_LIMIT=100
 // The revision guard runs in the write transaction. A racing create returns the same useful capacity error as preflight.

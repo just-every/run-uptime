@@ -54,7 +54,7 @@ export function createCatalog({ api, action }) {
         if (!note)
             return;
         note.hidden = !lastBatch;
-        patch(note, lastBatch ? '<p>Catalog batch applied. <a href="/app/archive">Review or undo it in Archive</a></p>' : '');
+        patch(note, lastBatch ? '<p>Catalog batch applied. <a href="/app/settings/backup">Review or undo it in Settings › Backup and files</a></p>' : '');
     }
     function showFilters(open) {
         filtersOpen = open;

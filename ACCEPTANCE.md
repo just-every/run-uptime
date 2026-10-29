@@ -778,7 +778,7 @@ Core · target · **done**
 2. Inspect the email, Slack and webhook trigger and recovery notices for the reason, failed locations and exact downtime.
 3. An incident spanning a Worker restart reports the correct total.
 
-**Evidence.** `src/domain/notification-context.ts`; `src/domain/notification-preferences.server.ts`; `public/notification-preferences.js`; `tests/notify-delivery.mjs`; `tests/notify-delivery.mjs`; `tests/webhook-custom.mjs`
+**Evidence.** `src/domain/notification-context.ts`; `src/domain/notification-preferences.server.ts`; `public/settings-general.js`; `tests/notify-delivery.mjs`; `tests/notify-delivery.mjs`; `tests/webhook-custom.mjs`
 **Gap.** None.
 
 #### WEBHOOK-001 — Custom webhook requests and payload templates
