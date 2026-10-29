@@ -8,10 +8,10 @@ The primary journey: an operator moves their monitors from UptimeRobot or Pingdo
 
 | Tier | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
-| Core | 16 | 68 | 11 | 95 |
+| Core | 17 | 67 | 11 | 95 |
 | Agent surface | 0 | 0 | 6 | 6 |
 | Later | 0 | 0 | 1 | 1 |
-| Full target | 16 | 68 | 18 | 102 |
+| Full target | 17 | 67 | 18 | 102 |
 
 Judged from the code and tests at commit `886ad3662fec5bdd5c1cd4c7692a9d22d897529f` (29 October 2026). ERASURE-001 public owner erasure, retained stale edit and complete refusal preservation; other clause judgments retained. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
 
@@ -82,15 +82,15 @@ Core · published · **partial**
 
 #### HEARTBEAT-001 — Revision-scoped receipt evaluation
 
-Core · published · **partial**
+Core · published · **done**
 
 **Requirement.** Hashed owner-issued tokens and, in the header form, increasing sequences protect server-time receipts, ingress cannot advance health, and scheduled signed completion must match its exact installation-local claim snapshot; stale, future, paused, foreign-revision or imported receipts cannot establish Healthy. These rules bind every receipt form of the buyer-facing job heartbeat in HEARTBEAT-002 and HEARTBEAT-003. See [Network and credentials](docs/contract/safety-rules.md#network-and-credentials).
 
 **Acceptance.**
 1. Issue and rotate a heartbeat token through the owner door, send increasing receipts, miss one, and evaluate scheduled signed snapshots; replay, old tokens, imported or foreign-revision receipts cannot change current health.
 
-**Evidence.** `src/domain/heartbeat.server.ts`; `runners/src/probes.mjs`; `tests/signed-runner.mjs`; `docs/evidence/contracts/release-0.4.0/`
-**Gap.** Carried-done audit: no cited test sends a receipt bound to another revision of the monitor, so the foreign-revision case is unasserted. Token issue and rotation, increasing receipts, a missed run, signed scheduled snapshots and the refusal of replayed, old-token and imported receipts are asserted.
+**Evidence.** `tests/signed-runner.mjs` emitted Worker owner-to-runner lifecycle: owner token issue and rotation, increasing receipts, missed deadline, signed scheduled evaluation, replay and old-token refusal, snapshot-integrity refusal and inactive imported authority; `tests/signed-runner-heartbeat-revision.mjs` proveHeartbeatRevisionIsolation: settings create a revision independently of token issue, both earlier receipt forms are refused without receipt, history, claim, health, rate-limit or alert changes, scheduled current-revision evidence has no inherited receipt, and only new authority plus signed evaluation establishes Healthy.
+**Gap.** None.
 
 #### ARCHIVE-001 — Inactive validated restore
 
