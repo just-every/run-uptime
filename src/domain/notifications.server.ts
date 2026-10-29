@@ -4,6 +4,7 @@ import {notificationPreferences} from './notification-preferences.server.ts'
 import {mailConfigured} from './mail.server.ts'
 import {ensureNotificationCustody,readCredential} from './notification-credentials.server.ts'
 import {destinations} from './notification-destinations.server.ts'
+import {webhookSampleSend} from './notification-webhook.ts'
 import {testEvent,type NotificationEvent} from './notification-content.ts'
 import {readContact} from './runner-contact.server.ts'
 import {hostedInstallation} from './hosted-runner.ts'
@@ -23,15 +24,26 @@ export async function openIncidentKey(env:Bindings,monitorId:string,state:any){
 }
 // Test sends and alert drills share this path: one queued test-kind event for one destination's current credential.
 // `extra` runs in the same transaction, after the job insert, so a drill row exists exactly when its job does.
-export async function queueTestEvent(env:Bindings,id:string,event:NotificationEvent,extra:(deliveryId:string,credentialId:string)=>Promise<D1PreparedStatement[]>=async()=>[]){
+export async function queueTestEvent(env:Bindings,id:string,event:NotificationEvent,extra:(deliveryId:string,credentialId:string)=>Promise<D1PreparedStatement[]>=async()=>[],expectedCredentialId?:string){
  await ensureNotificationCustody(env);
  const credential=await env.DB.prepare('SELECT c.* FROM notification_destinations d JOIN notification_credentials c ON c.id=d.credential_id WHERE d.id=? AND d.deleted_at IS NULL').bind(id).first<any>();
- if(!credential)throw Error('Destination not found');await readCredential(env,credential);
+ if(!credential)throw Error('Destination not found');
+ if(expectedCredentialId!==undefined&&expectedCredentialId!==credential.id)throw Error('Destination changed; preview again');
+ await readCredential(env,credential);
  const deliveryId=`${event.id}:${id}`;
- const [result]=await env.DB.batch([env.DB.prepare(`INSERT INTO notification_jobs(id,event_id,destination_id,destination_name,kind,credential_id,event,created_at)
+ const [result]=await env.DB.batch([env.DB.prepare(`INSERT ${expectedCredentialId===undefined?'':'OR IGNORE '}INTO notification_jobs(id,event_id,destination_id,destination_name,kind,credential_id,event,created_at)
  SELECT ?,?,id,name,kind,credential_id,?,? FROM notification_destinations WHERE id=? AND credential_id=? AND deleted_at IS NULL`).bind(deliveryId,event.id,JSON.stringify(event),event.observedAt,id,credential.id),...await extra(deliveryId,credential.id)]);
- if(!result.meta.changes)throw Error('Destination not found');return {deliveryId,credentialId:credential.id as string}}
-export async function testDestination(env:Bindings,id:string){const event=testEvent(env.UPTIME_ORIGIN??''),{deliveryId}=await queueTestEvent(env,id,event);return {queued:true,eventId:event.id,deliveryId}}
+ if(!result.meta.changes){
+  const existing=expectedCredentialId===undefined?null:await env.DB.prepare('SELECT event,credential_id FROM notification_jobs WHERE id=? AND destination_id=?').bind(deliveryId,id).first<any>();
+  if(!existing||existing.credential_id!==credential.id||existing.event!==JSON.stringify(event))throw Error('Destination changed; preview again');
+ }
+ return {deliveryId,credentialId:credential.id as string}}
+export async function testDestination(env:Bindings,id:string,input:any={}){
+ if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(key=>key!=='sample'))throw Error('Invalid test send fields');
+ const sample=Object.hasOwn(input,'sample')?await webhookSampleSend(env,id,input.sample):undefined;
+ const event=sample?.event??testEvent(env.UPTIME_ORIGIN??''),{deliveryId}=await queueTestEvent(env,id,event,undefined,sample?.credentialId);
+ return {queued:true,eventId:event.id,deliveryId};
+}
 export async function notificationOverview(env:Bindings){
  await refreshContactQuiet(env);
  const rows=await env.DB.prepare(`SELECT j.id,j.event_id,j.destination_id,j.destination_name,j.kind,j.created_at,j.event,

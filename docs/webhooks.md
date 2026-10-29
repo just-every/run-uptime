@@ -47,6 +47,14 @@ Names are literal; values expand once and are encoded with `URLSearchParams` (in
 
 The template is limited to 32 KiB and parameter dictionaries to 100 fields. A rendered body is limited to 64 KiB and the complete URL to 8 KiB. Over-bound requests refuse instead of truncating.
 
+## Send the saved native preview
+
+The owner API can send one exact preview sample without changing monitor health. POST an empty JSON object to `/api/notifications/destinations/{id}/preview` after saving the custom template. Each sample contains its masked `request` and a `test` object. Explicitly POST that sample's complete `test` object to `/api/notifications/destinations/{id}/test` within five minutes. Ordinary empty test requests still send the separate generic Test event.
+
+The sealed sample context fixes its version, synthetic event identity, sample selection and signing timestamp. The sender uses the current saved credential version and the ordinary durable notification service. Repeating the same sample request returns the same delivery, including after acceptance; previewing never queues or sends. Rotating credentials, changing the saved template or erasing the destination invalidates the context. A preview of unsaved edits offers no sample-send context. The native sample-send control is not yet wired into the console.
+
+Sample requests carry a `test:` event identity and a versioned `uptime.notification.sample.v1` event header. Their trigger, recovery, expiry and slow values are synthetic examples, never monitor evidence or incident transitions. Compare the preview with the receiver's complete request target, application headers and raw UTF-8 body, allowing only its explicit header-secret and signature masks. The receiver's status and bounded, redacted response excerpt appear in notification history. Transport framing headers such as Host and Content-Length are supplied by the transport.
+
 ## Variables
 
 Use a canonical variable such as `{{monitor.name}}` or a compatible alias such as `*monitorFriendlyName*`. Names are case-sensitive. Unknown names are refused and identified. Known values absent from the immutable event render the literal string **`Unavailable`**, never an empty string, zero, a current monitor value or an invented measurement. Empty arrays are available values and render as `[]`.

@@ -2,7 +2,7 @@ import {createWebhookProtocol,retryAfter} from '../base/modules/integrations/cor
 import {createSlackIncomingWebhookProtocol} from '../base/modules/integrations/slack/protocol.ts'
 import {hmacBytes} from '../base/modules/integrations/core/crypto.ts'
 // @ts-ignore Pure renderer shared with the Node dispatcher.
-import {renderWebhookTemplate,oncallEvent,oncallReceipt} from './webhook-template.mjs'
+import {renderWebhookTemplate,webhookSampleKind,oncallEvent,oncallReceipt} from './webhook-template.mjs'
 import type {NotificationCredential} from './notification-credentials.server.ts'
 export function notificationProtocols(credential:NotificationCredential,credentialId:string,event?:any){
  const resolve=async(id:string)=>{if(id!==credentialId)throw Error('Destination version mismatch');return credential.endpoint};
@@ -21,6 +21,9 @@ export function notificationProtocols(credential:NotificationCredential,credenti
   return {kind:receipt?'accepted' as const:'uncertain' as const,code:receipt?'oncall_receipt_accepted':'oncall_receipt_missing',status:response.status};
  },async prepare(envelope:any,now:number){
   await resolve(envelope.destinationId);if(!event||event.eventType!==envelope.event)throw Error('Immutable webhook event unavailable');
+  // Sample timestamps are snapshotted at preview, so dispatch cannot change
+  // application headers or signatures while the five-minute context is valid.
+  if(webhookSampleKind(event))now=event.observedAt;
   const rendered=renderWebhookTemplate({config:webhook.config,event,baseUrl:credential.endpoint,headers:webhook.headers}),body=rendered.body??'';
   if(envelope.body!==body)throw Error('Webhook body differs from its immutable event and configuration');
   const protectedHeaders=webhook.signing?(await legacy.prepare(envelope,now)).headers:{'webhook-id':envelope.id,'webhook-tenant':envelope.tenant,'webhook-destination':envelope.destinationId,'webhook-event':envelope.event,'webhook-timestamp':String(Math.floor(now/1000))};

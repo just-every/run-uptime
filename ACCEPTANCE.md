@@ -797,8 +797,8 @@ Core · target · **partial** · Cites BASE-SECRET-001
 7. The signed variant verifies with its HMAC.
 8. An archive export contains the template and header names but no header value.
 
-**Evidence.** `src/domain/webhook-template.mjs`; `src/domain/notification-webhook.ts`; `src/domain/webhook-contact-import.mjs`; `runners/src/notification-transport.mjs`; `public/webhook-editor.js`; `public/notifications.js`; `tests/webhook-custom.mjs`; `tests/webhook-custom.mjs`; `tests/hosted-alerts.mjs`; `docs/webhooks.md`
-**Gap.** Carried-done audit: no cited line compares the preview with the received request byte for byte. The imported UptimeRobot contact, substituted field names, header and content type on trigger and recovery, escaping and valid JSON, query, form and GET modes, CR/LF refusal, the named unmappable variable, HMAC signing and archives without header values are asserted.
+**Evidence.** `src/domain/webhook-template.mjs`; `src/domain/notification-webhook.ts`; `src/domain/webhook-contact-import.mjs`; `runners/src/notification-transport.mjs`; `public/webhook-editor.js`; `public/notifications.js`; `tests/webhook-custom.mjs`; `tests/webhook-custom.mjs`; `tests/hosted-alerts.mjs`; `docs/webhooks.md`; `tests/webhook-custom.mjs` reviewed custom webhooks journey with `tests/webhook-preview-parity.mjs` proveWebhookPreviewParity: owner preview and explicit sample send compare the complete request target, application headers and raw UTF-8 for trigger, recovery, expiry and slow in JSON, form and query modes; independent HMAC, stable test identity, replay and authority refusals, unchanged monitoring history and inactive archive restore
+**Gap.** Native preview parity is proved; console sample-send controls, preview rendering and console requalification remain held by uip. Existing import, escaping, signing and archive journeys remain retained; no hosted, account, Platform or sibling qualification is added.
 
 #### CHAT-001 — Teams, Discord, Telegram and workplace chat
 
