@@ -52,9 +52,25 @@ try{
  assert.equal(errorCode(await c.tool('uptime.grants.update',selfGrant)),'self_escalation');
  assert.deepEqual((await db.prepare('SELECT * FROM failure_evidence_grants ORDER BY monitor_id,operator_id').all()).results,grantsBefore);
  console.log('PASS BASE-AGENT-005.uptime.evidence-self-escalation');
- const missingResource=await c.mcp('resources/read',{uri:'uptime://monitors/missing'});
- assert.equal(missingResource.message.error.data.code,'resource_unavailable');
- console.log('PASS BASE-AGENT-003.uptime.resource-refusal-code');
+ const capabilities={mode:'declared',declared:['tools','policy','pause','audit','idempotency'],refused:['events','resources','prompts','subscriptions'],unscoped:['multiSponsor','mailEdges','resourceRefresh','timedLifecycle','dualHost','queuedLifecycle','ownerNativeApi']};
+ const discovery=await c.mcp('server/discover');
+ assert.deepEqual(discovery.result._meta['com.runeditrun/capabilities'],capabilities);
+ assert.equal(surface.tools.length,37,'CORE keeps every native tool and omits only the optional built-in events tool');
+ const capabilityWitness=await result('uptime.evidence.witness');
+ for(const [capability,method,params] of [
+  ['resources','resources/read',{uri:'uptime://monitors/missing'}],
+  ['prompts','prompts/get',{name:'monitoring-shift'}],
+  ['subscriptions','subscriptions/listen',{notifications:{toolsListChanged:true}}],
+  ['events','tools/call',{name:'uptime.events.list',arguments:{}}],
+ ]){
+  const refused=await c.mcp(method,params);assert.equal(errorCode(refused),'capability_not_declared');
+  assert.equal((refused.result?._meta?.['com.runeditrun/error']??refused.message.error.data).capability,capability);
+  assert.equal(refused.result?.structuredContent,undefined);assert.equal(refused.result?.contents,undefined);
+ }
+ assert.deepEqual((await c.mcp('resources/templates/list')).result.resourceTemplates,[]);
+ assert.deepEqual((await c.mcp('prompts/list')).result.prompts,[]);
+ assert.deepEqual((await result('uptime.evidence.witness')).result.structuredContent,capabilityWitness.result.structuredContent);
+ console.log('PASS BASE-AGENT-subset.uptime.core-declaration-and-refusals');
  await c.adopt(null);
  const unsetKey=randomUUID(),unsetWrite=await c.tool('uptime.monitors.pause',{id:monitor.id,version:monitor.revision,idempotency_key:unsetKey});
  assert.equal(errorCode(unsetWrite),'policy_unset');
@@ -133,7 +149,7 @@ try{
  assert.equal((await c.mcp('tools/call',{name:'uptime.evidence.read',arguments:{id:monitor.id}},local)).status,403);
  const foreignResource=await c.mcp('resources/read',{uri:'uptime://monitors/'+second.id},local);
  const absentResource=await c.mcp('resources/read',{uri:'uptime://monitors/missing'},local);
- assert.equal(foreignResource.message.error.data.code,'resource_unavailable');assert.deepEqual(foreignResource.message.error,absentResource.message.error);
+ assert.equal(foreignResource.message.error.data.code,'capability_not_declared');assert.deepEqual(foreignResource.message.error,absentResource.message.error);
  // A second reviewer is invited and confirmed through the real native lifecycle.
  const reviewerEmail='synthetic-door-reviewer@example.test',reviewerSub=randomUUID();
  const roster=await signJws(pair.privateKey,kid,'rer-business-settings+jwt',{v:1,iss:issuer,aud:origin,sub:installationId,business,email:bindings.OWNER_EMAIL,owner_id:sub,jti:randomUUID(),iat:seconds(),exp:seconds()+300,rev:2,values:{},logo:null,team:[{id:reviewerSub,email:reviewerEmail,name:'Morgan Reviewer',role:'admin',invite:1}]});
@@ -193,7 +209,16 @@ try{
  assert.equal(notificationAudit.consent,notificationSource.consent);
  assert.equal((await db.prepare('SELECT COUNT(*) n FROM notification_delivery_attempts WHERE delivery_id=? AND started_at IS NOT NULL').bind(notificationId).first()).n,1);
  console.log('PASS BASE-AGENT-012.uptime.notification-continuation-identity (native transport admission; provider delivery unclaimed)');
- const events=await result('uptime.events.list',{});assert.ok(events.result.structuredContent.events.some(event=>event.uri==='uptime://monitors/'+monitor.id));
+ const retainedEvents=await db.prepare('SELECT event FROM agent_door_events WHERE uri=?').bind('uptime://monitors/'+monitor.id).all();
+ assert.ok(retainedEvents.results.length>0,'CORE retains internal native events without exposing an undeclared public event door');
+ const continuationWitness=(await result('uptime.evidence.witness')).result.structuredContent;
+ for(const [name,args] of [
+  ['uptime.checks.dispatch',{id:monitor.id,version:currentMonitor.revision,runner_id:runner.runnerId,handoff_id:handoff.id}],
+  ['uptime.destinations.dispatch',{id:destination.id,delivery_id:notificationId,credential_id:'not-a-native-credential'}],
+  ['uptime.discovery.dispatch',{id:'not-a-native-job',runner_id:runner.runnerId}],
+ ])assert.equal(errorCode(await c.tool(name,args)),'operation_mismatch','MCP cannot manufacture a trusted continuation operation');
+ assert.deepEqual((await result('uptime.evidence.witness')).result.structuredContent,continuationWitness);
+ console.log('PASS BASE-AGENT-012.uptime.worker-only-continuation-admission');
  await proof.capture('agents-final','/agents');await proof.close();proof=null;
  assert.ok(c.points.every(point=>point.ok),JSON.stringify(c.points.filter(p=>!p.ok)));
  // Pending 2026-10-29 BASE-AGENT-013.uptime.declarative-conformance:
@@ -201,13 +226,19 @@ try{
  // The full native tool/class journey must be declared without omitting jobs.
  // Pending 2026-10-29 BASE-AGENT-013.uptime.ct-alignment:
  // CONTRACT.md's newer SURFACE-001 requires its 34-tool table and ten resource
- // templates exactly; this inherited registry exposes 38 tools and eleven
+ // templates exactly; this CORE registry exposes 37 native tools and eleven retained
  // templates, with different verbs and seven classes. Preserve the newer
  // judgments while reconciling that substantive native surface.
- // Pending 2026-10-29 BASE-AGENT-013.uptime.managed-mail-check:
- // Normal rer check rejects MAIL_PROVIDER in Wrangler vars and deploy secrets
- // (Base cli/deploy-variables.mjs:87), while removing the public variable makes
- // the recorded managed generator fail (modules/delivery-producer/mail.mjs:39).
- // Preserve both real checks and the existing owner/managed mail lifecycles.
+ // Pending 2026-10-29 BASE-AGENT-013.uptime.worker-conformance:
+ // Base modules/agent-door/conformance/journey.mjs:60 and
+ // conformance/fixtures.mjs:40 call every declared native step through MCP.
+ // operation.ts:38 requires a trusted invoke operationId for continuationItem
+ // tools. The CLI's verifier hook (conformance/invocation.mjs:7) separately
+ // invokes only the first mutating step; it does not drive each continuation
+ // through its real native queue in all mandatory policy phases. Preserve the
+ // worker boundary and all three final-admission tools until that is supported.
+ // Closed 2026-10-29 BASE-AGENT-013.uptime.managed-mail-check:
+ // rer 0.2.88 structural check and the unchanged managed generator both pass;
+ // MAIL_PROVIDER stays public and the duplicate deploy secret stays absent.
  console.log('PASS Uptime agent native signed identity, both MCP eras, no-effect reads, current scopes, revision, one-effect replay, held approval, Pause and read-key fences');
 }finally{await proof?.dispose();await worker?.dispose();await cleanupDirectory(directory)}

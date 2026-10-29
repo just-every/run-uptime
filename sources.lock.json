@@ -540,7 +540,7 @@
       "executable": false
     },
     "docs/access.md": {
-      "sha256": "a4111092d3820242e2b6d0af1ed6352e27d86e06b388913160e108ded21c2741",
+      "sha256": "a0b42b0c2a08491b92ce4d7b7ea14edbba87fe7ac581d5c43f60f45748c0999e",
       "executable": false
     },
     "docs/api-keys.md": {
@@ -4356,7 +4356,7 @@
       "executable": false
     },
     "src/agent-door/index.server.ts": {
-      "sha256": "a87b2aaafab9a514174dfa1c81905ac40f7e49ccce8e80e44677ad80f34c96f4",
+      "sha256": "03ce4e262ea758f320784b44e273446a02724c7afa77bdd684aa376a4397fc95",
       "executable": false
     },
     "src/agent-door/people.server.ts": {
@@ -8492,7 +8492,7 @@
       "executable": false
     },
     "tests/agent-door.mjs": {
-      "sha256": "9d5069b56a79a86b10862facddf439e0ce362bbbc6a208c484c3b9f7c007aec4",
+      "sha256": "4919aea8d3b46475e1a3abf20d04e5f00da0e649619d5887007cd7f9ae69ab48",
       "executable": false
     },
     "tests/alert-drill.mjs": {
