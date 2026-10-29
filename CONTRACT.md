@@ -1254,13 +1254,13 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 
 ## Status
 
-Judged from the code and tests at commit `56497f8d6716dbe16437095f61a923266fd9b347` (24 October 2026).
+Judged from the code and tests at commit `56497f8d6716dbe16437095f61a923266fd9b347` (24 October 2026). PING-001 is judged from the code and tests at `HEAD` of this pinned candidate; the exact commit and recorded Verify accompany its guarded landing receipt.
 
 | Clauses | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
 | Published | 3 | 18 | 0 | 21 |
-| Target and push further | 10 | 53 | 18 | 81 |
-| All | 13 | 71 | 18 | 102 |
+| Target and push further | 11 | 52 | 18 | 81 |
+| All | 14 | 70 | 18 | 102 |
 
 | Clause | Title | Kind | Status | Evidence | Gap |
 | --- | --- | --- | --- | --- | --- |
@@ -1292,7 +1292,7 @@ Judged from the code and tests at commit `56497f8d6716dbe16437095f61a923266fd9b3
 | `API-003` | Multi-step API transactions | target | done | `src/domain/api-transaction.mjs`; `runners/src/api-transaction.mjs`; `tests/api-transaction-journey.mjs`; `tests/api-transaction-journey.mjs` |  |
 | `API-004` | Safe setup and teardown | target | done | `runners/src/api-steps.mjs`; `runners/src/flow/run-flow.mjs`; `src/domain/api-effects.mjs`; `src/domain/cleanup-debt.mjs`; `src/domain/cleanup-debt.server.ts`; `src/domain/effect-grants.server.ts`; `src/domain/cleanup-debt-archive.ts`; `migrations/0058_cleanup_debt_and_effect_grants.sql`; `public/cleanup-debt.js`; `tests/api-transaction-journey.mjs`; `tests/api-transaction-journey.mjs`; `docs/evidence/contracts/cleanup-debt/` |  |
 | `TCP-001` | TCP service checks | target | partial | `src/domain/protocol/settings.mjs`; `src/domain/protocol/evaluate.mjs`; `runners/src/protocol-probes.mjs`; `src/domain/worker-protocols.server.ts`; `tests/protocol-monitors.mjs` | Carried-done audit: every cited TCP check runs from one location, so running from two locations is unasserted. Owner-API creation, open, refused and blackholed ports, the pinned address and banner evidence and trigger and recovery events are asserted. |
-| `PING-001` | ICMP reachability and packet quality | target | partial | `runners/src/icmp-probe.mjs`; `src/domain/protocol/`; `tests/ping-monitors.mjs`; `tests/ping-monitors.mjs`; `docs/evidence/contracts/ping/` | Configured ICMP loss and latency, threshold failures, disabled or unavailable ICMP, and initial Unknown probe coverage are asserted. Unknown coverage after stopping a previously running probe is not asserted; the cited stopped-probe case only creates an unchecked monitor. |
+| `PING-001` | ICMP reachability and packet quality | target | done | `tests/ping-monitors.mjs` — PING-001 signed ICMP journey: owner-configured IPv4 and IPv6 targets, retained packet loss and round-trip latency thresholds, blocked and unavailable ICMP, confirmed failure and recovery, and a previously Healthy assigned probe stopped past its saved freshness deadline; public overview and history show Unknown with Incomplete coverage, the original denominator and unchanged observation, without replacement checks or fabricated recovery. |  |
 | `DNS-001` | DNS records and change detection | target | partial | `src/domain/protocol/dns.mjs`; `src/domain/protocol/dns-wire.mjs`; `src/domain/protocol/evaluate.mjs`; `tests/protocol-monitors.mjs` | Carried-done audit: no cited DNS check runs inside a maintenance window. Saving through the owner door, changed and removed records, resolver disagreement and failure, raw bounded record evidence, confirmed alerts and recovery, and refusing to treat a missing answer as success are asserted. |
 | `TLS-001` | SSL certificate and chain monitoring | target | partial | `src/domain/protocol/x509.mjs`; `src/domain/protocol/tls12-certificates.mjs`; `src/domain/expiry-notices.server.ts`; `tests/protocol-monitors.mjs` | Carried-done audit: the cited test presents one certificate at one stage and repeats the check without moving the clock, so warnings advancing through the configured stages without repeating are unasserted. The named warning with its stage and accountable owner, no repeat within a stage, wrong-name and untrusted-chain failures as location evidence and renewal resolution are asserted. |
 | `DOMAIN-001` | Domain registration expiry | target | partial | `src/domain/protocol/rdap.mjs`; `src/domain/expiry-notices.server.ts`; `tests/protocol-monitors.mjs` | Carried-done audit: the cited test adds the domain through the owner API, not the console. Approaching-expiry warnings, Unknown for conflicting, redacted and unavailable data, registry and registrar source times and renewal follow-through are asserted. |
