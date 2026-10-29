@@ -8,12 +8,12 @@ The primary journey: an operator moves their monitors from UptimeRobot or Pingdo
 
 | Tier | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
-| Core | 13 | 71 | 11 | 95 |
+| Core | 14 | 70 | 11 | 95 |
 | Agent surface | 0 | 0 | 6 | 6 |
 | Later | 0 | 0 | 1 | 1 |
-| Full target | 13 | 71 | 18 | 102 |
+| Full target | 14 | 70 | 18 | 102 |
 
-Judged from the code and tests at commit `56497f8d6716dbe16437095f61a923266fd9b347` (24 October 2026). Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
+Judged from the code and tests at commit `85a34f9214bd9396ac186cf8555b8edc1d28b8f8` (29 October 2026). FLOW-004 viewport proof; other clause judgments retained. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
 
 ## Core
 
@@ -716,15 +716,15 @@ Core · target · **partial**
 
 #### FLOW-004 — Cross-browser and mobile transactions
 
-Core · target · **partial**
+Core · target · **done**
 
 **Requirement.** A buyer selects Chromium, Firefox or WebKit and desktop/mobile viewport/device profiles per journey; reports and consensus preserve that browser/device dimension. Missing browser capacity stays Unknown. Native iOS/Android app testing is a separate device-testing integration; mobile web paths are Uptime checks.
 
 **Acceptance.**
 1. Deploy the same checkout to all three browsers and a 390-pixel mobile profile, introduce a mobile-only failure and remove one browser; inspect per-profile failures and Unknown capacity without averaging them into success.
 
-**Evidence.** `src/domain/flow-profile.mjs`; `runners/src/flow/`; `src/domain/reports/flow-profiles.server.ts`; `tests/flow-profiles.mjs`; `tests/flow-profiles-browser.mjs`; `docs/evidence/contracts/browser-profiles/`
-**Gap.** Chromium, Firefox and WebKit checkout outcomes, mobile device/browser labels, mobile-only failure isolation and missing-browser Unknown capacity remain asserted. Gap: the 390-pixel mobile viewport lacks an assertion in the surviving cited files; the retained mobile label is not a viewport measurement.
+**Evidence.** `tests/flow-profiles.mjs` FLOW-004, loaded by `tests/flow-journey.mjs`: the same checkout runs in Chromium, Firefox and WebKit; an owned target measures its actual 390 × 844 CSS viewport in the real mobile runner, with the passing viewport expectation retained in signed history and matching report dimensions (`tests/flow-viewport-support.mjs` assertFlowViewport). The mobile-only failure stays Failing beside Healthy desktop profiles; removal of WebKit capacity stays Unknown with no substituted trace. The journey also refuses contradictory signed profile evidence without changes, preserves revision dimensions, and retains failing mobile evidence on inactive restore. `tests/flow-profiles-browser.mjs` flowProfilesBrowser and flowMissingBrowser inspect the saved profile, failed trace, reports and missing capacity through the owner console.
+**Gap.** None.
 
 ### Alert routing and delivery
 
