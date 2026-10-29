@@ -8,12 +8,12 @@ The primary journey: an operator moves their monitors from UptimeRobot or Pingdo
 
 | Tier | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
-| Core | 13 | 71 | 11 | 95 |
+| Core | 14 | 70 | 11 | 95 |
 | Agent surface | 0 | 0 | 6 | 6 |
 | Later | 0 | 0 | 1 | 1 |
-| Full target | 13 | 71 | 18 | 102 |
+| Full target | 14 | 70 | 18 | 102 |
 
-Judged from the code and tests at commit `56497f8d6716dbe16437095f61a923266fd9b347` (24 October 2026). Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
+Judged from the code and tests at commit `56497f8d6716dbe16437095f61a923266fd9b347` (24 October 2026). TCP-001 is judged from the candidate commit carrying its Status row (29 October 2026); its full SHA and Verify run are recorded in the landing receipt. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
 
 ## Core
 
@@ -364,15 +364,15 @@ Core · target · **done**
 
 #### TCP-001 — TCP service checks
 
-Core · target · **partial**
+Core · target · **done**
 
 **Requirement.** TCP monitors test a chosen host/port, handshake latency and optional bounded banner from selected locations with the same confirmation, evidence and alert policy as HTTP. Refused connections, timeout and probe failure remain distinct.
 
 **Acceptance.**
 1. Create a TCP monitor through the console/API; open, close and blackhole an authorized port from two locations, then read evidence and trigger/recovery events.
 
-**Evidence.** `src/domain/protocol/settings.mjs`; `src/domain/protocol/evaluate.mjs`; `runners/src/protocol-probes.mjs`; `src/domain/worker-protocols.server.ts`; `tests/protocol-monitors.mjs`
-**Gap.** Carried-done audit: every cited TCP check runs from one location, so running from two locations is unasserted. Owner-API creation, open, refused and blackholed ports, the pinned address and banner evidence and trigger and recovery events are asserted.
+**Evidence.** `tests/protocol-monitors.mjs`: owner TCP lifecycle preserves distinct open, refused, timeout and probe-failure outcomes, pinned address, banner, failure diagnostics and confirmed trigger and recovery. `tests/tcp-locations-support.mjs` proveTcpLocations, called by the existing protocol journey: owner-created separately keyed runners and distinct network labels assigned to both fixed probes; actual signed checks through open, refused, blackholed and recovered states; public history retains each saved identity, pin, bounded banner, latency and distinct failure evidence, complete two-probe coverage, incomplete coverage before the second result, immutable earlier slots and one trigger and recovery pair.
+**Gap.** None.
 
 #### PING-001 — ICMP reachability and packet quality
 

@@ -1,4 +1,5 @@
 import {proveNetworkDiagnostics} from './network-diagnostics-support.mjs';
+import {proveTcpLocations} from './tcp-locations-support.mjs';
 import {rejectForgedDiagnostics} from './diagnostic-intake-refusals.mjs';
 import {completeApiSecondFactor} from './mfa-auth-support.mjs';
 import assert from 'node:assert/strict';
@@ -67,6 +68,8 @@ try{
   await listen(tcp=tcpServer(),tcpPort);r=await step(m.id);assert.equal(r.o.outcome,'pass');assert.equal(r.state.state,'Healthy');assert.deepEqual(kinds(r.alerts),['trigger','recovery']);
   await pause(m.id);
  }
+
+ await proveTcpLocations({api,create,runner,waitDue,pause,closeTcp:()=>close(tcp),openTcp:()=>listen(tcp=tcpServer(),tcpPort)});
 
  // DNS: expected values, change, owner-approved change, propagation difference, NXDOMAIN, SERVFAIL and resolver faults stay distinct
  {

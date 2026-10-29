@@ -1254,13 +1254,13 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 
 ## Status
 
-Judged from the code and tests at commit `56497f8d6716dbe16437095f61a923266fd9b347` (24 October 2026).
+Judged from the code and tests at commit `56497f8d6716dbe16437095f61a923266fd9b347` (24 October 2026). TCP-001 is judged from the candidate commit carrying its Status row (29 October 2026); its full SHA and Verify run are recorded in the landing receipt.
 
 | Clauses | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
 | Published | 3 | 18 | 0 | 21 |
-| Target and push further | 10 | 53 | 18 | 81 |
-| All | 13 | 71 | 18 | 102 |
+| Target and push further | 11 | 52 | 18 | 81 |
+| All | 14 | 70 | 18 | 102 |
 
 | Clause | Title | Kind | Status | Evidence | Gap |
 | --- | --- | --- | --- | --- | --- |
@@ -1291,7 +1291,7 @@ Judged from the code and tests at commit `56497f8d6716dbe16437095f61a923266fd9b3
 | `API-002` | Authenticated monitoring and secret lifecycle | target | partial | `runners/src/auth/`; `runners/src/credentials.mjs`; `src/domain/credential-binding.mjs`; `tests/api-auth-journey.mjs`; `tests/tls-auth.mjs`; `tests/api-auth-journey.mjs`; `docs/evidence/contracts/trust-auth/` | Digest, OAuth acquisition/refresh, JWT, mTLS, expiry, rotation/revocation, cross-origin stripping, failure/recovery and archive secret exclusion remain asserted. Gap: Basic authentication, standalone bearer credentials scoped to their own monitor, foreign-reference refusal and planted-secret absence from storage, logs and browser artifacts lack assertions in the cited files. |
 | `API-003` | Multi-step API transactions | target | done | `src/domain/api-transaction.mjs`; `runners/src/api-transaction.mjs`; `tests/api-transaction-journey.mjs`; `tests/api-transaction-journey.mjs` |  |
 | `API-004` | Safe setup and teardown | target | done | `runners/src/api-steps.mjs`; `runners/src/flow/run-flow.mjs`; `src/domain/api-effects.mjs`; `src/domain/cleanup-debt.mjs`; `src/domain/cleanup-debt.server.ts`; `src/domain/effect-grants.server.ts`; `src/domain/cleanup-debt-archive.ts`; `migrations/0058_cleanup_debt_and_effect_grants.sql`; `public/cleanup-debt.js`; `tests/api-transaction-journey.mjs`; `tests/api-transaction-journey.mjs`; `docs/evidence/contracts/cleanup-debt/` |  |
-| `TCP-001` | TCP service checks | target | partial | `src/domain/protocol/settings.mjs`; `src/domain/protocol/evaluate.mjs`; `runners/src/protocol-probes.mjs`; `src/domain/worker-protocols.server.ts`; `tests/protocol-monitors.mjs` | Carried-done audit: every cited TCP check runs from one location, so running from two locations is unasserted. Owner-API creation, open, refused and blackholed ports, the pinned address and banner evidence and trigger and recovery events are asserted. |
+| `TCP-001` | TCP service checks | target | done | `tests/protocol-monitors.mjs`: owner TCP lifecycle preserves distinct open, refused, timeout and probe-failure outcomes, pinned address, banner, failure diagnostics and confirmed trigger and recovery. `tests/tcp-locations-support.mjs` proveTcpLocations, called by the existing protocol journey: owner-created separately keyed runners and distinct network labels assigned to both fixed probes; actual signed checks through open, refused, blackholed and recovered states; public history retains each saved identity, pin, bounded banner, latency and distinct failure evidence, complete two-probe coverage, incomplete coverage before the second result, immutable earlier slots and one trigger and recovery pair. | |
 | `PING-001` | ICMP reachability and packet quality | target | partial | `runners/src/icmp-probe.mjs`; `src/domain/protocol/`; `tests/ping-monitors.mjs`; `tests/ping-monitors.mjs`; `docs/evidence/contracts/ping/` | Configured ICMP loss and latency, threshold failures, disabled or unavailable ICMP, and initial Unknown probe coverage are asserted. Unknown coverage after stopping a previously running probe is not asserted; the cited stopped-probe case only creates an unchecked monitor. |
 | `DNS-001` | DNS records and change detection | target | partial | `src/domain/protocol/dns.mjs`; `src/domain/protocol/dns-wire.mjs`; `src/domain/protocol/evaluate.mjs`; `tests/protocol-monitors.mjs` | Carried-done audit: no cited DNS check runs inside a maintenance window. Saving through the owner door, changed and removed records, resolver disagreement and failure, raw bounded record evidence, confirmed alerts and recovery, and refusing to treat a missing answer as success are asserted. |
 | `TLS-001` | SSL certificate and chain monitoring | target | partial | `src/domain/protocol/x509.mjs`; `src/domain/protocol/tls12-certificates.mjs`; `src/domain/expiry-notices.server.ts`; `tests/protocol-monitors.mjs` | Carried-done audit: the cited test presents one certificate at one stage and repeats the check without moving the clock, so warnings advancing through the configured stages without repeating are unasserted. The named warning with its stage and accountable owner, no repeat within a stage, wrong-name and untrusted-chain failures as location evidence and renewal resolution are asserted. |
