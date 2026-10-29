@@ -987,8 +987,8 @@ Core · target · **partial** · Cites BASE-INPUT-001
 **Acceptance.**
 1. Use the owner API to create/edit/pause a monitor and rotate a contact, read back its revision and attempt signed-out/cross-origin mutations; inspect atomic refusal and no exposed endpoint secrets.
 
-**Evidence.** `src/domain/control.server.ts`; `src/domain/notification-destinations.server.ts`; `tests/definitions-import.mjs`; `tests/notify-delivery.mjs`
-**Gap.** Carried-done audit: no cited test rotates a contact, reads a saved revision back, sends a cross-origin mutation or compares durable state around a refused mutation. Creating, editing and pausing a monitor through the owner API, the signed-out refusal and the absence of exposed endpoint secrets are asserted.
+**Evidence.** `src/domain/control.server.ts`; `src/domain/notification-destinations.server.ts`; `tests/definitions-import.mjs` with `tests/management-support.mjs` proveNativeManagement: owner create, direct edit and pause, immutable old and new revision readback, otherwise-valid foreign-Origin and cross-site monitor and contact mutations, malformed native input and exact preservation of every durable table including credentials, revisions, audit and custody; `tests/alert-drill.mjs`: contact rotation invalidates prior credential proof; `tests/notify-delivery.mjs`: signed-out refusal and endpoint-secret exclusion.
+**Gap.** Gap: uip-owned console editing, role navigation and console requalification remain held; existing account, Platform, sibling and guarded-release prerequisites are unchanged.
 
 #### READAPI-001 — Versioned read API keys, limits and documentation
 
