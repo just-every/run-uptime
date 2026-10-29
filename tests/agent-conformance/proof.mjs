@@ -9,8 +9,9 @@ export default async function proveNative({request, origin, agentId, tool, args,
   const headers = {...edgeHeaders, ...init.headers}; delete headers.cookie;
   return request(url, {...init, headers});
  });
+ const {idempotency_key: _key, expected_revision: _revision, ...nativeArgs} = args;
  const response = await request('/agents/native-proof', {
-  method: 'POST', headers: edgeHeaders, body: JSON.stringify({agent_id: agentId, tool, arguments: args}),
+  method: 'POST', headers: edgeHeaders, body: JSON.stringify({agent_id: agentId, tool, arguments: nativeArgs}),
  });
  if (!response.ok) throw new Error('Native step-up proof was refused.');
  const result = await response.json();
