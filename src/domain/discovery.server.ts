@@ -1,4 +1,4 @@
-import type {Access} from './access.server.ts'
+import {AccessError,type Access} from './access.server.ts'
 // @ts-ignore Edition URL validation is JavaScript.
 import {publicTarget,isLoopbackHostname} from './public-target.mjs'
 // @ts-ignore Shared with the runner; edition JavaScript.
@@ -64,25 +64,27 @@ export async function createDiscovery(env:Bindings,text:string,initiator?:Access
 }
 // DEPENDENCY-002: the owner asks the runner to read a catalog entry's status source before following it. The request names the
 // catalog entry and the chosen parts; the address is the catalog's own and is not taken from the owner.
-export async function createCatalogCheck(env:Bindings,text:string){
+export async function createCatalogCheck(env:Bindings,text:string,initiator:Access){
+ if(!initiator)throw new AccessError();
  const runtime=runnerRuntime(env,await listRunners(env));
  if(runtime.hosted&&!runtime.privateRunnerReady&&!runtime.workerDiscovery)throw Error('Checking a provider\u2019s status source needs a connected private runner. Start it from the deploying checkout: '+runtime.privateRunnerCommand);
  let input;try{input=JSON.parse(text)}catch{throw Error('Invalid catalog check')}
  const spec=catalogSpec(input),id=crypto.randomUUID(),now=Date.now();
  await expire(env,now);
- if(!(await insertJob(env,id,catalogEntry(spec.entry).source.url,now,false,'catalog',JSON.stringify(spec))).meta.changes)throw refuse(FULL,429);
+ if(!(await insertJob(env,id,catalogEntry(spec.entry).source.url,now,false,'catalog',JSON.stringify(spec),initiator)).meta.changes)throw refuse(FULL,429);
  if(runtime.workerDiscovery){await answerInWorker(env,id,{kind:'catalog',spec},(answer,runner)=>completeDiscovery(env,id,answer,runner));return {id,status:(await readDiscovery(env,id)).status}}
  return {id,status:'queued'}
 }
 // DISCOVERY-001: an owner-started run of an authorized source (discovery-sources.server.ts builds the spec: the source's identifiers,
 // the previous run's start and the addresses it found, never a credential). Only the owner's runner reads a source: it holds the
 // provider credentials and makes the DNS lookups, so a hosted Worker never answers one itself.
-export async function createSourceJob(env:Bindings,spec:{source:string}){
+export async function createSourceJob(env:Bindings,spec:{source:string},initiator:Access){
+ if(!initiator)throw new AccessError();
  const runtime=runnerRuntime(env,await listRunners(env));
  if(runtime.workerDiscovery||(runtime.hosted&&!runtime.privateRunnerReady))throw Error('Discovery sources are read by your private runner, which keeps provider credentials and makes the DNS lookups. Start it from the deploying checkout: '+runtime.privateRunnerCommand);
  const id=crypto.randomUUID(),now=Date.now();
  await expire(env,now);
- if(!(await insertJob(env,id,`source:${spec.source}`,now,false,'source',JSON.stringify(spec))).meta.changes)throw refuse(FULL,429);
+ if(!(await insertJob(env,id,`source:${spec.source}`,now,false,'source',JSON.stringify(spec),initiator)).meta.changes)throw refuse(FULL,429);
  return {id,status:'queued'}
 }
 // First-run setup asks about the owner's site once: a queued, running or finished job for this address is reused, anything else queues a new one.

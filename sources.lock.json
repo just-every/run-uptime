@@ -487,7 +487,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "4c0fb0a2c58c1067caec73a5f165d60ce3cc05999f07b80fbd9b203b74c0fe1b",
+      "sha256": "c190aab4cad37e9b37b568ac6fe8b87ff341bd56af3cea15ee190c038bf00563",
       "executable": false
     },
     "AGENTS.md": {
@@ -511,7 +511,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "98b219a9c97b72df87d55391544ea1ab6fa0587f9b2c8e4b296dfa71cb169e31",
+      "sha256": "dab16fcb153c61780404c0cac081a525561c72eea6b579254fbcbb5ee7757f86",
       "executable": false
     },
     "DEMO.md": {
@@ -6667,11 +6667,11 @@
       "executable": false
     },
     "src/domain/discovery-sources.server.ts": {
-      "sha256": "89a5a510b6f5538d3fabb8bc2bd3cd40ebbfe77e6940a1dacf0ed98e398b6f2c",
+      "sha256": "fea45b5a3626db199d01f8408ee74d556784f3f62fc4f31eecc2ebe961a274d4",
       "executable": false
     },
     "src/domain/discovery.server.ts": {
-      "sha256": "10c86924c0fde4e3231feb129735b7fe01f1ba920121a480f433bd8636749770",
+      "sha256": "0a2af8ad9f9e85a99871aed510aac5e72d2dc9e6ac1bfa1d6c338f3e60e1e7ce",
       "executable": false
     },
     "src/domain/document-shell.server.ts": {
@@ -7703,7 +7703,7 @@
       "executable": false
     },
     "src/server.ts": {
-      "sha256": "20ec3f1beb7be01e3cb50d85bc4aac4e742d5cf08cea72d56108c9c7d900576c",
+      "sha256": "9a8d22c2542466d08e86f197c287e11cf349d45ccf66cd19b910eec476eef377",
       "executable": false
     },
     "src/site/docs/build/manifest.ts": {
@@ -8035,7 +8035,7 @@
       "executable": false
     },
     "tests/access-discovery-job-support.mjs": {
-      "sha256": "1750bdd2d064306d26d6550f3a0112dab8dee90d7aa02a0d974bb80b1a6e11ed",
+      "sha256": "a0d28cfe69f17d252bfb67542ad4ca162f73e48612e0248aac67d278025a49bb",
       "executable": false
     },
     "tests/access-door-support.mjs": {
@@ -8155,7 +8155,7 @@
       "executable": false
     },
     "tests/discovery-jobs.mjs": {
-      "sha256": "d43c8b2a78837614773542fe5d685f8f1dc074848a1ac77d813660868d0f7d19",
+      "sha256": "14b79756cfecfad1874f72068c5e22c8056b89b55189e62b7ebd35a9ee717505",
       "executable": false
     },
     "tests/discovery-public-dns-support.mjs": {
