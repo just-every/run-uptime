@@ -8319,7 +8319,7 @@
       "executable": false
     },
     "tests/maintenance-windows.mjs": {
-      "sha256": "5cbc3e914592a7c6f8a36f8c0113e8d5bba86f0e562e22a2717b758961ea5aaa",
+      "sha256": "37c45e650e2a837adea8b66e93070955b246328660674fb0800433183bdc2758",
       "executable": false
     },
     "tests/metrics-fixture.mjs": {

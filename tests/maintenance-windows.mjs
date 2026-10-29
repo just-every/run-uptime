@@ -112,7 +112,14 @@ try{
  await cancel([a],'pause-only-a');await runUntil(a,aBefore+1);
  assert.equal((await db.prepare("SELECT COUNT(*) n FROM outbox WHERE kind='recovery'").first()).n,0);
  const ending=window('expires','pause',1000);await apply({monitorIds:[a],window:ending});
- await delay(Math.max(0,ending.endsAt-Date.now()+20));await runUntil(a,aBefore+2);assert.equal((await monitor(a)).state.maintenance,false);
+ const expiryHistory=await history(a),expiryAlerts=(await good(`/api/overview?monitor=${a}`)).alerts;
+ await delay(Math.max(0,ending.endsAt-Date.now()+20));
+ const expired=await monitor(a);
+ assert.equal(expired.state.maintenance,false);assert.equal(expired.state.targetState,'Unknown','expiry cannot promote earlier revision evidence to current health');
+ assert.deepEqual(await history(a),expiryHistory,'expiry creates no passing observation or scheduled check');
+ assert.deepEqual((await good(`/api/overview?monitor=${a}`)).alerts,expiryAlerts,'expiry cannot fabricate a recovery event');
+ await runUntil(a,aBefore+2);assert.equal((await monitor(a)).state.maintenance,false);
+ assert.equal((await good(`/api/overview?monitor=${a}`)).alerts.filter(event=>event.kind==='recovery').length,0,'ordinary reevaluation cannot recover a failure whose trigger was suppressed');
  const kept=await observations();for(const old of beforePause)assert.deepEqual(kept.find(row=>row.id===old.id),old);
  assert.ok((await db.prepare("SELECT COUNT(*) n FROM uptime_audit WHERE action IN ('maintenance_apply','maintenance_cancel')").first()).n>=8);
 
