@@ -8607,7 +8607,7 @@
       "executable": false
     },
     "tests/tls-auth.mjs": {
-      "sha256": "db4d8f498987b15902fc9b660b1ada435f79e9dc97d663f416023e0578d0f2c2",
+      "sha256": "b76f3b189d066754a85bf31f9be8f18052b6ef1cdf28605a0a82e5256d075c33",
       "executable": false
     },
     "tests/tls-trust-journey.mjs": {
