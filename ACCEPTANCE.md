@@ -13,7 +13,7 @@ The primary journey: an operator moves their monitors from UptimeRobot or Pingdo
 | Later | 0 | 0 | 1 | 1 |
 | Full target | 16 | 68 | 18 | 102 |
 
-Judged from the code and tests at commit `886ad3662fec5bdd5c1cd4c7692a9d22d897529f` (29 October 2026). ERASURE-001 public owner erasure, retained stale edit and complete refusal preservation; other clause judgments retained. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
+Judged from the code and tests at commit `886ad3662fec5bdd5c1cd4c7692a9d22d897529f` (29 October 2026). ERASURE-001 public owner erasure, retained stale edit and complete refusal preservation; other clause judgments retained. STATE-001's selected native state outcomes are proved at commit `983330a23edeeb995004c864bf7e97c4f9927ca2`; its remaining scope stays partial. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
 
 ## Core
 
@@ -53,8 +53,8 @@ Core · published · **partial**
 1. Run two assigned network vantages through partial, missing, stale, failing and recovering slots; inspect Unknown/Degraded/Failing and thresholds.
 2. A manual pass, absent probe or maintenance expiry cannot fabricate recovery.
 
-**Evidence.** `src/domain/policy.mjs`; `tests/control-runtime.mjs`; `tests/control-runtime.mjs`; `docs/evidence/contracts/release-0.4.0/`
-**Gap.** Two configured runner networks still prove confirmed Failing and the scheduled confirmation/recovery thresholds. Gap: exactly one failing vantage reading Degraded; Unknown for partial, missing and stale evidence; the intermediate Recovering state; and no fabricated recovery from a manual pass during an outage, an absent selected probe or maintenance expiry lack assertions in the cited files. Maintenance expiry is asserted only in tests/maintenance-windows.mjs, which this clause does not cite.
+**Evidence.** `src/domain/policy.mjs`; `tests/control-runtime.mjs`: CONTROL-001 and RESTART-001 scheduled confirmation, recovery and retained incident history; `tests/control-state-support.mjs`: proveStateHysteresis, two signed assigned runners show mixed-vantage Degraded, first complete scheduled Recovering, manual-pass isolation and absent-probe Unknown without recovery, then one recovery after the second complete scheduled pass, retaining the fixed denominator, original observations and incident identity; `tests/control-cadence-support.mjs`: proveCadenceRevision, incomplete selected coverage and missing-region Unknown; `tests/maintenance-windows.mjs`: MAINT-001 expiry and ordinary scheduled reevaluation without orphan recovery.
+**Gap.** Remaining partial, missing and stale target-state cases outside these journeys still lack assertions. Console rendering and requalification remain held by uip. Platform managed geographic independence and hosted timing and capacity, live heartbeat and TLS scopes, protected deployment files and existing account, sibling and guarded-release prerequisites remain unchanged and owed.
 
 #### AUTHORITY-001 — Server-side scoped authority
 
