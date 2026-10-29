@@ -10,26 +10,28 @@ export const viewportText=device=>`CSS viewport: ${device==='mobile'?'390 × 844
 export async function startViewportFlowFixture({port,grantPath}){
  const fixture=await startFlowFixture({grantPath}),measurements=new Map();
  const server=http.createServer(async(req,res)=>{
-  const url=new URL(req.url,fixture.origin),profile=url.searchParams.get('profile');
-  if(url.pathname==='/s/transport-policy/viewport'&&req.method==='POST'){
+  const url=new URL(req.url,fixture.origin),route=/^\/s\/transport-policy\/([a-z-]+)\/(browser-checkout|viewport)$/.exec(url.pathname),profile=route?.[1];
+  if(route?.[2]==='viewport'&&req.method==='POST'){
    const chunks=[];for await(const chunk of req)chunks.push(chunk);
    const measured=JSON.parse(Buffer.concat(chunks).toString());
    measurements.set(profile,[...(measurements.get(profile)??[]),measured]);
    res.writeHead(200,{'x-uptime-fixture':fixture.identity});res.end();return;
   }
+  if(route)url.pathname=`/s/transport-policy/${route[2]}`;
   const upstream=http.request(url,{method:req.method,headers:req.headers},response=>{
-   if(url.pathname==='/s/transport-policy/browser-checkout'){
+   if(route?.[2]==='browser-checkout'){
     const chunks=[];response.on('data',chunk=>chunks.push(chunk));
     response.on('end',()=>{
      // Read CSS pixels inside the target page, never the configured profile or
      // the operator console. Wait for the edge receipt before exposing the text.
      const script=`<p id="viewport"></p><script>
       const measured={width:innerWidth,height:innerHeight};
-      fetch('/s/transport-policy/viewport'+location.search,{method:'POST',body:JSON.stringify(measured)})
+      fetch(location.pathname.replace('browser-checkout','viewport'),{method:'POST',body:JSON.stringify(measured)})
        .then(response=>{if(response.ok)document.getElementById('viewport').textContent='CSS viewport: '+measured.width+' × '+measured.height});
      </script>`;
      const body=Buffer.from(Buffer.concat(chunks).toString().replace('</body>',script+'</body>'));
-     res.writeHead(response.statusCode,{...response.headers,'content-length':body.length});res.end(body);
+     const headers=Object.fromEntries(Object.entries(response.headers).filter(([name])=>!['content-length','transfer-encoding'].includes(name)));
+     res.writeHead(response.statusCode,{...headers,'content-length':body.length});res.end(body);
     });
    }else{res.writeHead(response.statusCode,response.headers);response.pipe(res)}
   });

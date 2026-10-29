@@ -8243,11 +8243,11 @@
       "executable": false
     },
     "tests/flow-profiles.mjs": {
-      "sha256": "57d9033d1ce2607205d622d2c713a905a0cbc03ce835e5cc40ec3603b9358926",
+      "sha256": "030feb2775d1384e09f220062b600c9bf3872ad2c3babeb2f55e1602cd141b65",
       "executable": false
     },
     "tests/flow-viewport-support.mjs": {
-      "sha256": "c4d67b0c7c03267162277f97cfecc8e0f065b4002fe91869509a7ab8354b8ad5",
+      "sha256": "95d4e1720972c3b3be6b4f093f57ba5f9b02b1477fb9fed5f71d3dbb76b189d6",
       "executable": false
     },
     "tests/heartbeat-import-fixture.mjs": {

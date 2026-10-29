@@ -29,7 +29,7 @@ try{
  runnerKeys.push([bindings.UPTIME_RUNNER_KEY,undefined],[second.key,second.runnerId]);
  // Each browser/device monitor retains two independent assigned vantages.
  const create=async(browser,device='desktop',path='browser-checkout')=>{
-  const url=`${fixture.origin}/s/transport-policy/${path}?profile=${browser}-${device}`;
+  const url=`${fixture.origin}/s/transport-policy/${path==='browser-checkout'?`${browser}-${device}/`:''}${path}`;
   return ok('/api/monitors','POST',{name:`Checkout ${browser} ${device}`,type:'flow',network:'synthetic',url,probes:['local-a','local-b'],intervalMs:300000,timeoutMs:20000,retries:0,confirmSlots:1,recoverSlots:1,
    flow:{browser,device,intent:'Confirm checkout in this browser and device',steps:[{kind:'goto',url},...(path==='browser-checkout'?[{kind:'expect',what:'text',value:viewportText(device)}]:[])],outcomes:[{id:'confirmed',what:'text',value:'Order confirmed'},...(path==='browser-checkout'?[{id:'transport-policy',what:'text',value:'Direct transports disabled'}]:[])]}});
  };
@@ -100,5 +100,5 @@ try{
  const restored=await ok('/api/overview');assert.ok(restored.monitors.every(m=>m.definition.enabled===false),'restored profile monitors remain paused');
  const restoredEvidence=(await slots(mobile.id)).flatMap(slot=>slot.observations);
  assert.ok(restoredEvidence.some(result=>result.flow?.profile?.device==='mobile'),'inactive restore retains the original failing mobile profile');
- console.log('FLOW-004 passed: three real engines, measured 390-pixel mobile checkout matching signed history and report dimensions, mobile-only failure, engine-specific capacity, protected subresources, revision/profile reporting and retained archive evidence.');
+ console.log('FLOW-004 passed: three real engines, measured 390-pixel mobile checkout matching signed history and report dimensions, mobile-only failure, engine-specific capacity, protected subresources, revision and profile reporting and retained archive evidence.');
 }finally{await stop();await fixture?.close();await worker?.dispose();await cleanupDirectory(directory)}
