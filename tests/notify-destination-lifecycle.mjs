@@ -67,6 +67,8 @@ async function lifecycleJourney(mode){
   };
 
   await incident(true,originalCredentials,0);
+  const outcomes=rows=>rows.map(({id,state,code,status,attempts})=>({id,state,code,status,attempts}));
+  const historicalOutcomes=outcomes((await notes()).deliveries);
   const historical=await jobs(),oldSecret=webhookSecret,rotationStart=requests.length;
   await ok(`/api/notifications/destinations/${email.id}`,'PATCH',{name:email.name,enabled:true,address:endpoints.email[1]});
   await ok(`/api/notifications/destinations/${slack.id}`,'PATCH',{name:slack.name,enabled:true,url:endpoints.slack[1]});
@@ -108,6 +110,8 @@ async function lifecycleJourney(mode){
   }
   const finalJobs=await jobs();
   for(const row of historical)assert.deepEqual(finalJobs.find(final=>final.id===row.id),row,'rotation and disable preserve historical outcomes');
+  const retainedOutcomes=outcomes((await notes()).deliveries);
+  for(const row of historicalOutcomes)assert.deepEqual(retainedOutcomes.find(final=>final.id===row.id),row,'public delivery history retains accepted outcomes after rotation and disable');
   await runtime.freshOwner();
   const archive=JSON.stringify(await ok('/api/archive')),publicReads=JSON.stringify(await notes());
   for(const value of [oldSecret,webhookSecret,...endpoints.slack]){assert.ok(!archive.includes(value),'archive excludes local authority');assert.ok(!publicReads.includes(value),'operator read excludes local authority')}

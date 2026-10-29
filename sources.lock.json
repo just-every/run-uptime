@@ -8371,7 +8371,7 @@
       "executable": false
     },
     "tests/notify-destination-lifecycle.mjs": {
-      "sha256": "741831ebf73c518b11014e3d52f9e66004a7ae881f4dfef3bf186241f5f0cbb5",
+      "sha256": "c6517a2a27b7d7fa1e3d88121599e90fa1783e84ff0ea72993895e458407a3bc",
       "executable": false
     },
     "tests/notify-echo-fixture.mjs": {
