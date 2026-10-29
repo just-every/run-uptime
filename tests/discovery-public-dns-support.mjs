@@ -25,12 +25,12 @@ async function published(host){
  assert.ok([...A,...AAAA].every(value=>isIP(value)&&publicAddress(value)),`${host} has public DNS answers`);
  return {A,AAAA,CNAME:CNAME.map(value=>value.replace(/\.$/,''))};
 }
-async function screen(page,review,evidence,name){
+async function screen(page,target,evidence,name){
  // The same real populated review is inspected at both release widths.
  for(const width of [1440,390]){
-  await page.setViewportSize({width,height:1000});await review.scrollIntoViewIfNeeded();
+  await page.setViewportSize({width,height:1000});await target.scrollIntoViewIfNeeded();
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'public DNS review reflows');
-  if(evidence){await mkdir(evidence,{recursive:true});await review.screenshot({path:join(evidence,`${name}-${width}.png`)})}
+  if(evidence){await mkdir(evidence,{recursive:true});await page.screenshot({path:join(evidence,`${name}-${width}.png`)});await target.screenshot({path:join(evidence,`${name}-details-${width}.png`)})}
  }
 }
 
@@ -88,20 +88,27 @@ export async function provePublicDnsDiscovery({launch,evidence}){
    assert.deepEqual(proposal.locations,[{runnerId:g.first.runnerId,networkLabel:g.first.networkLabel}]);
    assert.ok(proposal.traffic.perDay>0&&proposal.traffic.perMonth===proposal.traffic.perDay*30);
    assert.equal(proposal.cost.state,'unknown');assert.equal(proposal.cost.usd,null);assert.ok(proposal.cost.reason);
-   assert.ok(proposal.credentials.startsWith('None:'));assert.deepEqual(proposal.duplicates,{monitors:[],proposals:[]});
+   assert.ok(proposal.credentials.startsWith('None:'));assert.deepEqual(proposal.duplicates.monitors,[]);
+   // Public aliases can redirect to the same address. Their duplicate links
+   // must identify the other retained proposal, never a nonexistent monitor.
+   for(const duplicate of proposal.duplicates.proposals){
+    const other=view.proposals.find(item=>item.key===duplicate.key);assert.ok(other&&!other.refused&&other.key!==proposal.key);
+    assert.equal(duplicate.sourceId,null);assert.equal(other.definition.url,proposal.definition.url);
+   }
    assert.equal(proposal.decision,null);
   }
   const review=panel.locator('#source-review');await review.locator('.source-proposal').first().waitFor({timeout:100_000});
-  await screen(page,review,evidence,'public-dns-review');
   const reject=view.proposals.find(item=>!item.refused&&item.kind==='dns');
+  const rejected=review.locator(`[data-key="${reject.key}"]`);
+  await screen(page,rejected,evidence,'public-dns-review');
   await review.locator(`[data-reject="${reject.key}"]`).click();
   await waitUntil(async()=>{const current=(await ok(`/api/discovery-sources/${source.id}`)).review;return current.proposals.find(item=>item.key===reject.key)?.decision?.decision==='rejected'&&current},'reviewed DNS rejection');
   const decision=await g.DB.prepare('SELECT * FROM discovery_decisions WHERE source_id=? AND candidate_key=?').bind(source.id,reject.key).first();
   assert.equal(decision.actor_id,owner.id);assert.equal(decision.run_id,job.id);assert.equal(decision.monitor_id,null);
-  const rejected=review.locator(`[data-key="${reject.key}"]`);await rejected.getByText('Rejected',{exact:true}).waitFor();
+  await rejected.getByText('Rejected',{exact:true}).waitFor();
   await page.reload();await sourceRow.getByRole('button',{name:'Review proposals',exact:true}).click();
   await rejected.getByText('Rejected',{exact:true}).waitFor();assert.equal(await rejected.locator('[data-adopt]').isDisabled(),true,'rejection survives reload and cannot be started');
-  await screen(page,review,evidence,'public-dns-rejected');
+  await screen(page,rejected,evidence,'public-dns-rejected');
   await noMonitoring();
   const replay=await g.request(`/api/runner/discoveries/${job.id}/result`,{runner:g.first,signed:true,body:{result:job.result}});
   assert.equal(replay.status,409,'a replayed completion cannot change the finished review');

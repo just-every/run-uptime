@@ -8103,7 +8103,7 @@
       "executable": false
     },
     "tests/discovery-public-dns-support.mjs": {
-      "sha256": "25187dd4174015afbc12383b6822056f3495d13e35a54661d9346542ba2329d7",
+      "sha256": "2b6aeea6448918168bf9fc53206998fd0725032c2bab79b84518a36aacfde979",
       "executable": false
     },
     "tests/discovery-sources-fixture.mjs": {
