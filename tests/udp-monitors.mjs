@@ -1,3 +1,4 @@
+import {rejectForgedDiagnostics} from './diagnostic-intake-refusals.mjs';
 import {completeApiSecondFactor} from './mfa-auth-support.mjs';
 // UDP-001: owner API -> real signed Node runner -> migrated emitted Worker.
 import assert from 'node:assert/strict';
@@ -13,8 +14,9 @@ import {splitSql} from './migration-support.mjs';
 import {emittedRunnerWorker,request,listen,close} from './signed-runner-runtime.mjs';
 import https from 'node:https';
 import {certificates} from './protocol-fixtures.mjs';
+const diagnosticKinds=new Set();
 const directory=await mkdtemp(join(tmpdir(),'uptime-udp-')),key='udp-test-only-scoped-runner-key';
-let worker,web,cookie='',mode='match',packets=0;const udp=dgram.createSocket('udp4');
+let worker,web,db,cookie='',mode='match',packets=0;const udp=dgram.createSocket('udp4');
 try{
  udp.on('message',(bytes,remote)=>{packets++;assert.equal(bytes.toString(),'PING');if(mode!=='drop')udp.send(mode==='oversize'?Buffer.alloc(1025):Buffer.from(mode==='match'?'PONG':'WRONG'),remote.port,remote.address)});
  udp.bind(0,'127.0.0.1');await once(udp,'listening');
@@ -23,12 +25,13 @@ try{
  web=https.createServer(cert,async(req,res)=>{
   if(req.headers.host==='canary.protocol.test'){res.writeHead(200);res.end();return}
   let body='';for await(const b of req)body+=b;
+  if(req.url==='/api/runner/results')await rejectForgedDiagnostics({url:origin+req.url,headers:req.headers,body,key,dispatch:envelope=>worker.dispatchFetch('http://localhost/',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(envelope)}),db,seen:diagnosticKinds});
   const r=await worker.dispatchFetch('http://localhost/',{method:'POST',redirect:'manual',headers:{'content-type':'application/json'},body:JSON.stringify({url:origin+req.url,method:req.method,headers:req.headers,...(body?{body}:{})})});
   res.writeHead(r.status,Object.fromEntries(r.headers));res.end(Buffer.from(await r.arrayBuffer()));
  });
  const port=await listen(web);origin=`https://localhost:${port}`;
  const bindings={...testAuthBindings,UPTIME_ORIGIN:origin,UPTIME_RUNNER_KEY:key,UPTIME_LOCAL_REVIEW:'false',MAIL_PROVIDER:'sendgrid',SENDGRID_API_KEY:'test-only-key-not-contacted'};
- worker=await emittedRunnerWorker(directory,bindings);const db=await worker.getD1Database('DB');
+ worker=await emittedRunnerWorker(directory,bindings);db=await worker.getD1Database('DB');
  for(const file of(await readdir('migrations')).filter(n=>n.endsWith('.sql')).sort())for(const sql of splitSql(await readFile(join('migrations',file),'utf8')))await db.prepare(sql).run();
  const api=(path,body,headers={},method=body===undefined?'GET':'POST')=>request(origin,ca,path,{method,body,headers:{origin,cookie,'cf-connecting-ip':'192.0.2.1',...headers}});
  const run=async(extra={},code)=>{
@@ -54,7 +57,7 @@ try{
  mode='match';const due=(await db.prepare('SELECT next_due FROM monitors WHERE id=?').bind(m.id).first()).next_due;
  await new Promise(r=>setTimeout(r,Math.max(0,due-Date.now()+30)));o=await step(m);assert.equal(o.outcome,'pass');
  overview=(await api(`/api/overview?monitor=${m.id}`)).data;assert.equal(overview.monitors[0].state.targetState,'Healthy');assert.equal(overview.alerts.filter(a=>a.kind==='recovery').length,1);await pause(m);
- for(const [scenario,category] of [['drop','timeout'],['oversize','response_limit']]){mode=scenario;m=await create({name:`UDP ${scenario}`});o=await step(m);assert.equal(o.outcome,'target_failure');assert.equal(o.checks[0].assertion,category);await pause(m)}
+ for(const [scenario,category] of [['drop','timeout'],['oversize','response_limit']]){mode=scenario;m=await create({name:`UDP ${scenario}`});o=await step(m);assert.equal(o.outcome,'target_failure');assert.equal(o.checks[0].assertion,category);if(category==='timeout'){const retained=await api('/api/monitors/'+m.id+'/failure-snapshots');assert.equal(retained.status,200);assert.equal(retained.data.items[0].snapshot.diagnostics.category,'timeout');assert.equal(retained.data.items[0].snapshot.diagnostics.phases.connectMs,null)}await pause(m)}
  // Real packets prove per-process caps and cancellation cleanup through the probe door.
  mode='match';const before=packets;
  await run({},`import assert from 'node:assert/strict';import {probeProtocol} from './runners/src/protocol-probes.mjs';const d=${JSON.stringify(base)};for(let i=0;i<6;i++)assert.equal((await probeProtocol(d,'local-a')).outcome,'pass');const capped=await probeProtocol(d,'local-a');assert.equal(capped.outcome,'runner_error');assert.equal(capped.checks[0].assertion,'capacity');const c=new AbortController();c.abort();assert.equal((await probeProtocol(d,'local-a',{signal:c.signal})).checks[0].assertion,'timeout');`);
@@ -68,5 +71,6 @@ try{
  const receivingBoot=await api('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'Receiving network owner'});assert.equal(receivingBoot.status,303);cookie=receivingBoot.headers['set-cookie'][0].split(';')[0];
  await completeApiSecondFactor(origin,cookie,api);
  const restored=await api('/api/restore',archive);assert.equal(restored.status,200,JSON.stringify(restored.data));const receivingMonitors=(await api('/api/overview')).data.monitors;assert.ok(receivingMonitors.length);assert.ok(receivingMonitors.every(x=>x.definition.enabled===false));assert.ok(receivingMonitors.every(x=>x.definition.udp.expectedHex===base.udp.expectedHex));assert.equal(packets,count);const roundtrip=await api('/api/archive');assert.equal(roundtrip.status,200);assert.ok(JSON.stringify(roundtrip.data).includes('57524f4e47'));
+ assert.deepEqual([...diagnosticKinds].sort(),['UDP'].sort());
  console.log('UDP-001 PASS: signed scheduled match/mismatch/timeout/recovery, immutable facts, destination rejection, one-packet/rate/size caps, cancellation, portable settings and revoked authority.');
 }finally{udp.close();await close(web);await worker?.dispose();await rm(directory,{recursive:true,force:true})}

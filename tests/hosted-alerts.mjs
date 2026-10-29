@@ -18,7 +18,7 @@ try{
   requests++;const url=new URL(request.url);if(url.hostname==='api.sendgrid.com')return new Response(null,{status:202});
   if(url.origin==='https://cloudflare-dns.com'){
    const name=url.searchParams.get('name'),a=url.searchParams.get('type')==='A';
-   return Response.json(name==='gone.example.test'?{Status:3}:{Status:0,Answer:[{type:a?1:28,data:a?'93.184.215.14':'2606:2800:21f:cb07:6820:80da:af6b:8b2c'}]});
+   return Response.json(['gone.example.test','synthetic-uptime-401.test'].includes(name)?{Status:3}:{Status:0,Answer:[{type:a?1:28,data:a?'93.184.215.14':'2606:2800:21f:cb07:6820:80da:af6b:8b2c'}]});
   }
   if(['https://hooks.example.com','https://hooks.slack.com'].includes(url.origin)){
    received.push({origin:url.origin,url:request.url,method:request.method,headers:Object.fromEntries(request.headers),body:await request.text()});
@@ -29,11 +29,24 @@ try{
  });
  const db=await worker.getD1Database('DB');
  for(const file of (await readdir('migrations')).filter(f=>f.endsWith('.sql')).sort())for(const sql of splitSql(await readFile(join('migrations',file),'utf8')))await db.prepare(sql).run();
- const call=(path,body,cookie)=>worker.dispatchFetch('http://127.0.0.1:15504/',{method:'POST',redirect:'manual',headers:{'content-type':'application/json'},body:JSON.stringify({url:origin+path,method:body===undefined?'GET':'POST',headers:{host:'uptime.example.test',origin,'content-type':'application/json','cf-connecting-ip':'192.0.2.1',...(cookie?{cookie}:{})},...(body===undefined?{}:{body:JSON.stringify(body)})})});
+ const call=(path,body,cookie,method=body===undefined?'GET':'POST')=>worker.dispatchFetch('http://127.0.0.1:15504/',{method:'POST',redirect:'manual',headers:{'content-type':'application/json'},body:JSON.stringify({url:origin+path,method,headers:{host:'uptime.example.test',origin,'content-type':'application/json','cf-connecting-ip':'192.0.2.1',...(cookie?{cookie}:{})},...(body===undefined?{}:{body:JSON.stringify(body)})})});
  const scheduled=async()=>{const response=await worker.dispatchFetch('http://127.0.0.1:15504/',{method:'POST',body:JSON.stringify({scheduled:true})});assert.equal(response.status,204,await response.text())};
  const owner=await call('/auth/bootstrap',{token:testAuthBindings.SETUP_TOKEN,displayName:'Owner'});assert.equal(owner.status,303,await owner.clone().text());
  const cookie=owner.headers.get('set-cookie').split(';')[0],json=async response=>{assert.ok(response.ok,await response.clone().text());return response.json()};
  await completeSecondFactor(origin,cookie,(url,init)=>call(new URL(url).pathname,init.body===undefined?undefined:JSON.parse(init.body),cookie));
+ // DIAG-001: hosted DNS retains the failure with explicitly unavailable socket/route evidence.
+ const dnsCreated=await call('/api/monitors',{name:'synthetic-uptime-401',type:'dns',dns:{name:'synthetic-uptime-401.test',resolvers:['cloudflare']},intervalMs:60000,retries:0,confirmSlots:1,recoverSlots:1},cookie);
+ assert.equal(dnsCreated.status,201,await dnsCreated.clone().text());const dnsMonitor=await dnsCreated.json();
+ await scheduled();
+ // Saving starts the first hosted check asynchronously; a concurrent Cron call may find its lease already claimed.
+ let dnsHistory=[];
+ for(let attempt=0;attempt<100;attempt++){dnsHistory=await json(await call('/api/monitors/'+dnsMonitor.id+'/history',undefined,cookie));if(dnsHistory.some(slot=>slot.status==='complete'))break;await new Promise(resolve=>setTimeout(resolve,50))}
+ assert.ok(dnsHistory.some(slot=>slot.status==='complete'&&slot.observations.some(observation=>observation.outcome==='target_failure')),'the hosted DNS failure completes through the scheduled intake');
+ const retained=await call('/api/monitors/'+dnsMonitor.id+'/failure-snapshots',undefined,cookie);assert.equal(retained.status,200);
+ const diagnostic=(await retained.json()).items[0].snapshot.diagnostics;
+ assert.equal(diagnostic.category,'dns');assert.equal(diagnostic.route.reason,'hosted-transport');assert.deepEqual(diagnostic.route.hops,[]);
+ for(const phase of ['dnsMs','connectMs','tlsMs','ttfbMs'])assert.equal(diagnostic.phases[phase],null);
+ assert.equal((await call('/api/monitors/'+dnsMonitor.id,{...dnsMonitor.definition,enabled:false},cookie,'PATCH')).status,200);
  const webhook=await json(await call('/api/notifications/destinations',{name:'Receiver',kind:'webhook',url:'https://hooks.example.com/uptime'},cookie));
  await json(await call('/api/notifications/destinations',{name:'Team channel',kind:'slack',url:'https://hooks.slack.com/services/T000/B000/XXXX'},cookie));
  const down=await json(await call('/api/monitors',{name:'Down service',url:'https://down.example.test/health',retries:0,confirmSlots:1,recoverSlots:1},cookie));

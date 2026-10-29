@@ -1,3 +1,4 @@
+import {diagnosticCapture,attachProtocolDiagnostics} from '../protocol-diagnostics.mjs';
 import {randomUUID} from 'node:crypto';
 import {RUNNER_VERSION} from '../../../src/domain/policy.mjs';
 import {validateMailSettings} from '../../../src/domain/mail-probe/schema.mjs';
@@ -7,7 +8,7 @@ import {openMailSession} from './session.mjs';
 import {sendAndReceive} from './transaction.mjs';
 
 /** Native pinned mail execution. resolveCredential is a network/test boundary; production uses protected local files. */
-export async function mailFacts(input,{signal,privateAccess,network='public',timeoutMs=30000,...options}={}){
+export async function mailFacts(input,{signal,privateAccess,network='public',timeoutMs=30000,capture,...options}={}){
  const settings=validateMailSettings(input,{network}),deadline=Date.now()+timeoutMs;
  const execution=AbortSignal.any([AbortSignal.timeout(timeoutMs),...(signal?[signal]:[])]);
  const facts={protocol:settings.protocol,steps:[]};let session;
@@ -18,7 +19,7 @@ export async function mailFacts(input,{signal,privateAccess,network='public',tim
  };
  try{
   if(network==='private'&&!privateAccess)await step('connection',()=>{throw new MailError('grant')});
-  const context={...options,signal:execution,deadline,budget:{receivedBytes:0},privateAccess:network==='private'?privateAccess:undefined};
+  const context={...options,capture,signal:execution,deadline,budget:{receivedBytes:0},privateAccess:network==='private'?privateAccess:undefined};
   session=await openMailSession(settings,context,step);facts.address=session.address;
   if(settings.transaction){
    facts.transaction={messageId:`<uptime-${randomUUID()}@synthetic.uptime.invalid>`,smtpAccepted:false,received:false,cleanup:false};
@@ -30,8 +31,8 @@ export async function mailFacts(input,{signal,privateAccess,network='public',tim
 }
 /** Standard signed-runner observation, matching the other native protocol probes' call shape. */
 export async function probeMail(definition,probe,grants=[],options={}){
- const startedAt=Date.now();
- const facts=await mailFacts(definition.mail,{...options,timeoutMs:definition.timeoutMs,network:definition.network});
+ const startedAt=Date.now(),capture=diagnosticCapture();
+ const facts=await mailFacts(definition.mail,{...options,capture,timeoutMs:definition.timeoutMs,network:definition.network});
  const completedAt=Date.now();
- return {id:randomUUID(),probe,startedAt,completedAt,durationMs:completedAt-startedAt,runnerVersion:RUNNER_VERSION,...mailChecks(definition,facts),protocol:facts};
+ return attachProtocolDiagnostics(definition,{id:randomUUID(),probe,startedAt,completedAt,durationMs:completedAt-startedAt,runnerVersion:RUNNER_VERSION,...mailChecks(definition,facts),protocol:facts},capture,options);
 }

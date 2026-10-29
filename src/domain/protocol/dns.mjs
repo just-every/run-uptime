@@ -39,7 +39,7 @@ export async function queryResolver(get,id,name,type){
  const resolver=RESOLVERS[id],started=Date.now();
  const unavailable=detail=>({id,status:'unavailable',answers:[],ms:Date.now()-started,detail});
  let response;
- try{response=await get(`${resolver.url}?name=${encodeURIComponent(name)}&type=${type}`,{accept:'application/dns-json',maxBytes:65536})}
+ try{response=await get(`${resolver.url}?name=${encodeURIComponent(name)}&type=${type}`,{accept:'application/dns-json',maxBytes:65536,diagnosticResolver:id})}
  catch(error){return unavailable(error?.name==='TimeoutError'||error?.category==='timeout'?'the resolver did not answer in time':'the resolver could not be reached')}
  const ms=Date.now()-started;
  if(response.status!==200)return {...unavailable(`the resolver answered HTTP ${response.status}`),ms};

@@ -26,7 +26,7 @@ function urlText(value, secrets = []) {
   if (typeof value !== 'string' || bytes(value) > 8192) fail();
   let url;
   try { url = new URL(value); } catch { fail(); }
-  if (!['http:', 'https:'].includes(url.protocol)) fail();
+  if (!['http:','https:','tcp:','tls:','dns:','udp:','ping:','smtp:','smtps:','pop3:','pop3s:','imap:','imaps:'].includes(url.protocol)) fail();
   url.username = ''; url.password = ''; url.hash = '';
   const query = [...url.searchParams].map(([name]) => [redact(name, secrets), REDACTED]);
   url.search = '';
