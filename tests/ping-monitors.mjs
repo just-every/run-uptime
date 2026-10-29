@@ -15,7 +15,7 @@ import https from 'node:https';
 import {certificates} from './protocol-fixtures.mjs';
 const diagnosticKinds=new Set();
 const directory=await mkdtemp(join(tmpdir(),'uptime-ping-')),key=randomBytes(32).toString('base64url');
-let worker,web,db,cookie='',forge=false,forgeries=0;
+let worker,web,db,clock,cookie='',forge=false,forgeries=0;
 try{
  const certs=await certificates(directory),cert={...certs.web,caPath:certs.caPath},ca=await readFile(certs.caPath);
  let origin;
@@ -33,7 +33,7 @@ try{
    forge=false;
   }
   if(req.url==='/api/runner/results')await rejectForgedDiagnostics({url:origin+req.url,headers:req.headers,body,key,dispatch:envelope=>worker.dispatchFetch('http://localhost/',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(envelope)}),db,seen:diagnosticKinds});
-  const r=await worker.dispatchFetch('http://localhost/',{method:'POST',redirect:'manual',headers:{'content-type':'application/json'},body:JSON.stringify({url:origin+req.url,method:req.method,headers:req.headers,...(body?{body}:{})})});
+  const r=await worker.dispatchFetch('http://localhost/',{method:'POST',redirect:'manual',headers:{'content-type':'application/json'},body:JSON.stringify({url:origin+req.url,method:req.method,headers:req.headers,...(body?{body}:{}),...(clock===undefined?{}:{clock})})});
   res.writeHead(r.status,Object.fromEntries(r.headers));res.end(Buffer.from(await r.arrayBuffer()));
  });
  const port=await listen(web);origin=`https://localhost:${port}`;
@@ -76,7 +76,52 @@ try{
  }
  // The selected family is honored even for dual-stack hosts; all-family DNS validation still applies.
  m=await create({name:'IPv6 ICMP',ping:{...base.ping,family:6}});o=await step(m);assert.equal(o.outcome,'pass');assert.equal(o.protocol.family,6);assert.equal(o.protocol.address,'2606:4700:4700::1111');await pause(m);
- const stopped=await create({name:'Stopped ICMP probe'});assert.equal((await api(`/api/overview?monitor=${stopped.id}`)).data.monitors[0].state.regions[0].state,'Unknown');await pause(stopped);
+ // Stop invoking an assigned runner after a real signed success. Only the
+ // emitted Worker's clock advances; the saved monitor and evidence stay intact.
+ const stopped=await create({name:'Stopped ICMP probe'});
+ const initial=(await api(`/api/overview?monitor=${stopped.id}`)).data.monitors[0];
+ assert.equal(initial.state.regions[0].state,'Unknown');
+ const sample=await step(stopped);assert.equal(sample.outcome,'pass');
+ const healthy=(await api(`/api/overview?monitor=${stopped.id}`)).data;
+ const running=healthy.monitors[0];
+ assert.equal(running.definition.enabled,true);
+ assert.equal(running.state.targetState,'Healthy');
+ assert.equal(running.state.coverageState,'Complete');
+ assert.equal(running.state.denominator,stopped.definition.probes.length);
+ assert.equal(running.state.unknown,0);
+ assert.equal(running.state.regions[0].state,'Healthy');
+ assert.equal(running.state.regions[0].observationId,sample.id);
+ assert.deepEqual(healthy.alerts,[]);
+ const retained=(await api(`/api/monitors/${stopped.id}/history`)).data;
+ assert.equal(retained.length,1);assert.equal(retained[0].manual,0);
+ assert.equal(retained[0].observations.length,1);
+ assert.deepEqual(retained[0].observations[0],sample);
+ // Both the target and its external check still count just before the saved
+ // freshness limit; crossing it without another runner invocation loses coverage.
+ clock=Math.min(sample.completedAt,sample.canary.completedAt)+stopped.definition.freshnessMs-1;
+ const fresh=(await api(`/api/overview?monitor=${stopped.id}`)).data.monitors[0];
+ assert.equal(fresh.state.targetState,'Healthy');
+ assert.equal(fresh.state.coverageState,'Complete');
+ clock=Math.max(sample.completedAt,sample.canary.completedAt)+stopped.definition.freshnessMs+1;
+ const expired=(await api(`/api/overview?monitor=${stopped.id}`)).data;
+ const stale=expired.monitors[0];
+ assert.deepEqual(stale.definition,running.definition,'the monitor remains enabled with the same runner assignment');
+ assert.equal(stale.revision,running.revision);
+ assert.equal(stale.nextDue,running.nextDue);
+ assert.equal(stale.state.state,'Unknown');assert.equal(stale.state.targetState,'Unknown');
+ assert.equal(stale.state.coverageState,'Incomplete');
+ assert.equal(stale.state.denominator,running.state.denominator,'stopping a probe cannot shrink the configured denominator');
+ assert.equal(stale.state.unknown,running.state.denominator);
+ assert.equal(stale.state.fails,0);
+ assert.equal(stale.state.regions[0].probe,running.state.regions[0].probe);
+ assert.equal(stale.state.regions[0].state,'Unknown');
+ assert.equal(stale.state.regions[0].observationId,sample.id);
+ assert.equal(stale.state.regions[0].observedAt,sample.completedAt);
+ assert.deepEqual(expired.alerts,healthy.alerts,'missing probes cannot fabricate a trigger or recovery');
+ assert.deepEqual(stale.storedState,running.storedState,'freshness projection does not manufacture a successful scheduled decision');
+ const unchanged=await api(`/api/monitors/${stopped.id}/history`);assert.equal(unchanged.status,200);
+ assert.deepEqual(unchanged.data,retained,'no replacement slot or observation is fabricated and the original signed ICMP result is unchanged');
+ clock=undefined;await pause(stopped);
  const exported=(await api('/api/definitions/export')).data;assert.ok(exported.monitors.some(x=>x.ping?.family===6));
  // The exported file previews through the owner's import door, over the same HTTPS origin.
  const fetcher=(url,init)=>new Promise((resolve,reject)=>{const req=https.request(url,{method:init.method,ca,headers:{'cf-connecting-ip':'192.0.2.1',...init.headers}},res=>{let text='';res.on('data',b=>text+=b);res.on('end',()=>resolve({status:res.statusCode,json:async()=>JSON.parse(text)}))});req.on('error',reject);req.end(init.body)});
