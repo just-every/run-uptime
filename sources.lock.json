@@ -8099,7 +8099,11 @@
       "executable": false
     },
     "tests/discovery-jobs.mjs": {
-      "sha256": "7f376f69299491af852880e1fba5a1459057f3d285600dc106ddad0cd5fef74b",
+      "sha256": "d43c8b2a78837614773542fe5d685f8f1dc074848a1ac77d813660868d0f7d19",
+      "executable": false
+    },
+    "tests/discovery-public-dns-support.mjs": {
+      "sha256": "25187dd4174015afbc12383b6822056f3495d13e35a54661d9346542ba2329d7",
       "executable": false
     },
     "tests/discovery-sources-fixture.mjs": {
