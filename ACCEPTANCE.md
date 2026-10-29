@@ -8,12 +8,12 @@ The primary journey: an operator moves their monitors from UptimeRobot or Pingdo
 
 | Tier | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
-| Core | 13 | 71 | 11 | 95 |
+| Core | 14 | 70 | 11 | 95 |
 | Agent surface | 0 | 0 | 6 | 6 |
 | Later | 0 | 0 | 1 | 1 |
-| Full target | 13 | 71 | 18 | 102 |
+| Full target | 14 | 70 | 18 | 102 |
 
-Judged from the code and tests at commit `56497f8d6716dbe16437095f61a923266fd9b347` (24 October 2026). Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
+Judged from the code and tests at commit `d0c0f60d79f43e94f44349575609b050ccf113c4` (29 October 2026). Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
 
 ## Core
 
@@ -606,7 +606,7 @@ Core · target · **partial**
 
 #### EVIDENCE-002 — Failure snapshot and incident report
 
-Core · target · **partial**
+Core · target · **done**
 
 **Requirement.** Every failing attempt keeps an incident-report snapshot: the request actually sent (method, final URL, redirect chain and header names, with values redacted unless the owner marks them safe), response status, response headers and timing phases, and a bounded excerpt of the returned body (the first 16 KiB as text, shown only as escaped text or in a sandboxed no-script preview), so an operator sees the Cloudflare 52x page, maintenance page or stack trace the probe received. Before storage the excerpt passes owner masks plus built-in secret patterns (authorization values, cookies, API keys, card numbers, and email addresses unless allowed), and planted request secrets never appear. For HTTP and keyword checks the buyer can enable a screenshot of the failing page, taken by an isolated browser under FLOW-001's network rules. Incident detail combines these with a plain-language cause (for example, HTTP 503 from 2 of 3 locations whose body reads Service Unavailable), per-location results, DIAG-001 diagnostics and the activity log. Snapshots are stored apart from observations under owner-set retention (default 90 days), readable only by roles with evidence access, carried in archives, exported with their incident and erased with their monitor or on owner request with a receipt. They never alter a verdict, and alerts carry only a cause line and an authenticated link to them.
 
@@ -614,8 +614,8 @@ Core · target · **partial**
 1. Fail an HTTP monitor against a controlled endpoint returning a 503 HTML page containing a planted API key, cookie and email address; as owner open incident detail and see the request, status, headers, page excerpt and screenshot with planted values masked.
 2. Open it as an unauthorized role and signed out and be refused; export the incident and round-trip an archive; erase the monitor and confirm the snapshot and its copies are gone with a receipt; inspect the alert for only the cause line and link.
 
-**Evidence.** `src/domain/failure-snapshot.mjs`; `src/domain/failure-snapshot-text.mjs`; `src/domain/failure-page-custody.server.ts`; `runners/src/failure-page-screenshot.mjs`; `src/domain/failure-evidence-access.server.ts`; `tests/failure-page-journey.mjs`; `tests/failure-page-browser.mjs`; `tests/failure-page-journey.mjs`; `tests/failure-page-journey.mjs`
-**Gap.** Masked failure-page capture, owner incident screenshot/report reads, access refusal, archive round-trip, an erasure receipt and alert excerpt/secret exclusion remain asserted. Gap: reading both stored request/response header sets through the owner incident door, confirming every erased snapshot copy is gone and refusing an old snapshot archive using a later erasure journal lack assertions in the surviving cited files.
+**Evidence.** `src/domain/failure-snapshot.mjs`; `src/domain/failure-snapshot-text.mjs`; `src/domain/failure-page-custody.server.ts`; `runners/src/failure-page-screenshot.mjs`; `src/domain/failure-evidence-access.server.ts`; Acceptance 1: `tests/failure-page-journey.mjs` owners capture safe failure pages, share only monitor evidence, export every artifact and revoke access, with `tests/failure-page-custody-support.mjs` assertStoredFailureHeaders, proves stored request and response header sets retain explicitly safe values and mask planted secrets; `tests/failure-page-browser.mjs` failurePageBrowser proves owner incident screenshot and report reads. Acceptance 2: the same journey and `tests/failure-page-custody-support.mjs` proveFailureSnapshotErasure prove access refusal, archive round-trip, public monitor erasure with durable per-table receipt, removal of snapshot and encrypted artifact copies from all durable tables and transfer storage, refused public reads, clean later native and transfer exports, and refusal of a snapshot-bearing old archive with the source's later journal before any product or audit rows change. `tests/failure-page-browser.mjs` failurePageBrowser proves granted and revoked member access; `tests/notify-delivery.mjs` proves cause and authenticated incident links on actual alert transports; the failure-page journey retains alert excerpt and secret exclusions.
+**Gap.** None.
 
 #### DIAG-001 — Connection and network diagnostics
 
