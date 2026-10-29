@@ -8,12 +8,12 @@ The primary journey: an operator moves their monitors from UptimeRobot or Pingdo
 
 | Tier | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
-| Core | 16 | 68 | 11 | 95 |
+| Core | 17 | 67 | 11 | 95 |
 | Agent surface | 0 | 0 | 6 | 6 |
 | Later | 0 | 0 | 1 | 1 |
-| Full target | 16 | 68 | 18 | 102 |
+| Full target | 17 | 67 | 18 | 102 |
 
-Judged from the code and tests at commit `886ad3662fec5bdd5c1cd4c7692a9d22d897529f` (29 October 2026). ERASURE-001 public owner erasure, retained stale edit and complete refusal preservation; other clause judgments retained. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
+Judged from the code and tests at commit `2cad6681aa087e83313eb15a48681f263a6db447` (29 October 2026). DELIVERY-001 relay backoff, restart-safe dispatch and acceptance separate from recipient proof; other clause judgments retained. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
 
 ## Core
 
@@ -195,7 +195,7 @@ Core · published · **partial** · Cites BASE-SECRET-001 · Register R-6
 
 #### DELIVERY-001 — Bounded notification acknowledgment
 
-Core · published · **partial** · Cites BASE-MAIL-001, BASE-OPS-004
+Core · published · **done** · Cites BASE-MAIL-001, BASE-OPS-004
 
 **Requirement.** Each event and destination without receiver-side deduplication (email, Slack incoming webhooks and the other channels DELIVERY-002 names), every test send and every drill gets one automatic send attempt. A RER relay 429 with Retry-After confirms non-acceptance and queues another submission after that delay. For those sends HTTP 500, connection loss, timeout, and unknown outcomes remain uncertain and are not automatically sent again; deduplicating destinations retry and every route can fall back to another contact under DELIVERY-002. Accepted means the configured provider or endpoint acknowledged the request; it does not mean a person received, read, or acted on it. See [Contact, interface and delivery](docs/contract/safety-rules.md#contact-interface-and-delivery).
 
@@ -203,8 +203,8 @@ Core · published · **partial** · Cites BASE-MAIL-001, BASE-OPS-004
 1. At authorized provider edges return accepted, proven-unaccepted relay 429, HTTP 500, timeout and connection loss; restart during claims.
 2. Only the proven-unaccepted case requeues automatically; uncertain started sends never replay and acceptance remains distinct from receipt.
 
-**Evidence.** `src/domain/notification-claims.server.ts`; `tests/notify-delivery.mjs`; `tests/notify-delivery.mjs`; `docs/evidence/contracts/release-0.4.0/`
-**Gap.** Carried-done audit: the proven-unaccepted RER relay 429 and its automatic requeue are asserted only in `tests/hosted-alerts.mjs`, which this clause does not cite, and no cited line shows acceptance kept apart from receipt. Accepted, HTTP 500, timeout and connection-loss outcomes, restart during claims, no requeue of an endpoint 429 and no replay of uncertain sends are asserted.
+**Evidence.** `tests/notify-delivery.mjs` — notification acceptance journey: accepted, HTTP 500, timeout and lost-connection outcomes for email, Slack and signed webhooks, concurrent claims, ordinary endpoint 429 without requeue, and no replay after Worker and runner restart; `tests/hosted-alerts.mjs` — hosted alert journey calling `tests/relay-mail-support.mjs` proveRelayMail: the selected Base RER adapter receives a proven-unaccepted relay 429 with numeric Retry-After, one durable job preserves its not-before time across Worker restart, early and repeated dispatch send nothing, exactly one due submission is accepted and later dispatch never replays it; public delivery and destination-proof reads retain accepted transport, pending recipient confirmation, never-proven receipt and no human-response fact.
+**Gap.** None.
 
 #### PUBLIC-001 — Public landing and documentation
 

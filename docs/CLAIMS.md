@@ -15,7 +15,7 @@ A claim is done when every clause behind it is done, missing when every one is m
 | 7 | HTTP and HTTPS checks can assert on status, body text, headers, JSON values and response time | `HTTP-001` partial; `API-001` partial | partial |
 | 8 | Keyword checks look for the words a page should contain | `HTTP-001` partial; `API-001` partial | partial |
 | 9 | Heartbeats notice when a cron job or backup stops reporting in | `HEARTBEAT-001` partial; `HEARTBEAT-002` partial | partial |
-| 10 | Send incidents and recoveries by email, to a Slack incoming webhook, or to a signed JSON webhook, and every enabled destination covers every monitor in your installation | `NOTIFY-001` partial; `DELIVERY-001` partial | partial |
+| 10 | Send incidents and recoveries by email, to a Slack incoming webhook, or to a signed JSON webhook, and every enabled destination covers every monitor in your installation | `NOTIFY-001` partial; `DELIVERY-001` done | partial |
 | 11 | Run Uptime on your own computer: open-source monitoring you run yourself | `PUBLIC-001` partial; `STARTUP-001` partial | partial |
 | 12 | A small private runner checks your targets from a machine you choose | `PRIVATE-001` done; `AUTHORITY-001` partial | partial |
 | 13 | Export monitors, evidence and delivery history whenever you like | `ARCHIVE-001` partial | partial |
