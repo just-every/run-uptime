@@ -40,7 +40,7 @@
     "test:data": "node tests/archive-roundtrip.mjs && node tests/definitions-import.mjs && node tests/erasure-audit.mjs && node tests/catalog.mjs && node tests/business-provisioned.mjs",
     "test:transactions": "node tests/flow-journey.mjs && node tests/api-transaction-journey.mjs",
     "test:console": "node tests/browser-suites.mjs && node tests/hosted-auth-browser.mjs && node tests/public-paths.mjs && node tests/owner-editor-browser.mjs",
-    "test:identity": "node tests/operator-security.mjs && node tests/access-matrix.mjs && node tests/command-journey.mjs && node tests/resilience/watches.mjs && node tests/notification-recovery.mjs && node tests/owner-deploy-lifecycle.mjs",
+    "test:identity": "node tests/operator-security.mjs && node tests/access-matrix.mjs && node tests/command-journey.mjs && node tests/resilience/watches.mjs && node tests/notification-recovery.mjs && node tests/owner-deploy-lifecycle.mjs && node tests/agent-door.mjs",
     "test:operations": "node tests/maintenance-windows.mjs && node tests/slow-responses.mjs && node tests/reporting.mjs && node tests/metrics.mjs && node tests/failure-page-journey.mjs && node tests/discovery-jobs.mjs && node tests/alert-drill.mjs && node tests/contact-schedules.mjs && node tests/read-api.mjs",
     "test": "node .github/scripts/verify-ci.mjs --app",
     "test:base": "node scripts/edition-authoring/cli.mjs check && node scripts/edition-authoring/cli.mjs verify-base --offline && rer check --profile first-party"
@@ -60,7 +60,7 @@
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.62.2",
     "@cloudflare/workers-types": "5.20261006.1",
-    "@runeditrun/rer": "0.2.85",
+    "@runeditrun/rer": "0.2.87",
     "@types/node": "26.6.4",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.7",
