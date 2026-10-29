@@ -496,7 +496,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "bd028bf814f1ce63b724ccf8c460deccbe7f9a308e3a38de5b29def456c0b6d7",
+      "sha256": "102089090a89bb53625e516a430a7d460729913713fe1b43d5e7d96f26f3efed",
       "executable": false
     },
     "AGENTS.md": {
@@ -520,7 +520,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "ac01cb11b9951ad94f6e86ec8ed9ce74735327883ed4925c198f509406accd9d",
+      "sha256": "437315b6f280603d42a813193f8e8a823df0ca9ce8fe432df4cf10a90af00b0b",
       "executable": false
     },
     "DEMO.md": {
@@ -2508,7 +2508,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "29b79476e22acbf59c23bf44d54cb087429d3c82150235dc4fa5015449ca7767",
+      "sha256": "2459389455747ca30957c13969ff7c5555970c83b875140dffc60039ca6ab3ed",
       "executable": false
     },
     "patches/README.md": {
@@ -2516,7 +2516,7 @@
       "executable": false
     },
     "pnpm-lock.yaml": {
-      "sha256": "7daed9ceddd58901065cc26927a2fda2636389ef5b1826b90f1ad14edd609de0",
+      "sha256": "94711ff360dc39536285f7149df2e5a31a3c55cd58ae1fd398de352e8f9d29e8",
       "executable": false
     },
     "public/action-feedback.mjs": {
@@ -8680,7 +8680,11 @@
       "executable": false
     },
     "tests/flow-profiles.mjs": {
-      "sha256": "c78dcada575891c2bb6312471426a674f75dc3bf75825fb618a9f10f4cee889e",
+      "sha256": "030feb2775d1384e09f220062b600c9bf3872ad2c3babeb2f55e1602cd141b65",
+      "executable": false
+    },
+    "tests/flow-viewport-support.mjs": {
+      "sha256": "95d4e1720972c3b3be6b4f093f57ba5f9b02b1477fb9fed5f71d3dbb76b189d6",
       "executable": false
     },
     "tests/heartbeat-import-fixture.mjs": {
