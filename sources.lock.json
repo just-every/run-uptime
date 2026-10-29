@@ -487,7 +487,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "36b5bc79e2d3584d40e814888c20c044e4d3bbe39fb0080ed0ef5c0db37d791a",
+      "sha256": "c7ea3abed301d449fbd07af22469e5c2b23aae9fe33a9d0b2192702779b0bd3e",
       "executable": false
     },
     "AGENTS.md": {
@@ -511,7 +511,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "857db6aef2095f55aeea205882c123c823d41d8b0d28abfc307baffad329d066",
+      "sha256": "d18bb92d78bdab99f575b40f5dfa57511138e0a98d00330ac571cd38a2f3e5c4",
       "executable": false
     },
     "DEMO.md": {
@@ -8471,7 +8471,7 @@
       "executable": false
     },
     "tests/protocol-monitors.mjs": {
-      "sha256": "df1355a8be35f109fd236496904decd9ab986335d9c9ca124796fb816c459182",
+      "sha256": "b6fd1dbe4a909824dee2fdb42ed68c9369891b4d4306c8cad35e5cadbc7c8bf5",
       "executable": false
     },
     "tests/protocol-routing.mjs": {
