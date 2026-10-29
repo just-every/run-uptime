@@ -8431,7 +8431,7 @@
       "executable": false
     },
     "tests/ping-monitors.mjs": {
-      "sha256": "082bdc6cbc47c8afe2cdf37abfdce498fe023249f58975a09849fa033c5ce1f0",
+      "sha256": "926a27e75396f43a1d4a15ddf0093740e47d7e4062bc4a782647ad53ed0f2178",
       "executable": false
     },
     "tests/ping-routing.mjs": {
