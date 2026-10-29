@@ -47,6 +47,7 @@ export async function inspectDeliveryChains({origin,bindings,acceptedId,failedId
    assert.match(await route.locator('#route-preview').textContent(),/Fallback chainOn-call email email.*Fallback 1 · ReadyNow; no repeats; recovery on.*Escalation webhook webhook.*Fallback 2 · Ready/);
    assert.match(await route.locator('#route-preview .route-recipients > li').filter({hasText:'On-call email'}).first().textContent(),/Fallback contact/);
    await route.locator('#route-fallback-fields').scrollIntoViewIfNeeded();await capture(`chain-editor-${width}`);
+   await page.addScriptTag({path:require.resolve('axe-core/axe.min.js')});
    assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.map(v=>v.id),[]);
    assert.ok(await route.evaluate(element=>element.scrollWidth<=element.clientWidth+1),'route editor reflows');await reflow();
    const deadline=String(width===1440?7:9),savedContact=await route.locator('#route-fallback-0').inputValue();
