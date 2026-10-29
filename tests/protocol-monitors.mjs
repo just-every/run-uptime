@@ -1,4 +1,5 @@
 import {proveNetworkDiagnostics} from './network-diagnostics-support.mjs';
+import {proveTlsExpiryStages} from './tls-stages-support.mjs';
 import {rejectForgedDiagnostics} from './diagnostic-intake-refusals.mjs';
 import {completeApiSecondFactor} from './mfa-auth-support.mjs';
 import assert from 'node:assert/strict';
@@ -118,3 +119,4 @@ try{
 }finally{await close(web);await close(tcp);await close(tlsService);await close(dns);await worker?.dispose();await rm(directory,{recursive:true,force:true})}
 
 await proveNetworkDiagnostics();
+await proveTlsExpiryStages();

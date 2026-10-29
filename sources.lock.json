@@ -487,7 +487,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "beb784fc5966e2e58b4abdd7432ccd3944e65552756b9af6c04ef03c5e87762b",
+      "sha256": "8dad6f5d270d314f894be8020dad0b59002ffa2b6d0b48a6d0cf9930e9f22652",
       "executable": false
     },
     "AGENTS.md": {
@@ -511,7 +511,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "1e8fad9ac4e75e5c46855d10ea46acb74b39e3febb41b198cc41a33f5c2d5e2a",
+      "sha256": "75ce8cb93e79c62c0df7347f72ba999669666e574e83a641c15631d46ad2cc30",
       "executable": false
     },
     "DEMO.md": {
@@ -8479,7 +8479,7 @@
       "executable": false
     },
     "tests/protocol-monitors.mjs": {
-      "sha256": "01f9caccf71b2cf894f04c8d4cad5c598fdb27bc95b5bcb4cf3b09aba661d056",
+      "sha256": "9b4ecad1f5793370a2158daf02cdc742e8932319edaa4c398aa782e17d925478",
       "executable": false
     },
     "tests/protocol-routing.mjs": {
@@ -8612,6 +8612,10 @@
     },
     "tests/tls-auth.mjs": {
       "sha256": "db4d8f498987b15902fc9b660b1ada435f79e9dc97d663f416023e0578d0f2c2",
+      "executable": false
+    },
+    "tests/tls-stages-support.mjs": {
+      "sha256": "90ce5b37f70127025dcc1bf7c926f1d57d8fd3f66123d92118a934bb9c4668ce",
       "executable": false
     },
     "tests/tls-trust-journey.mjs": {
