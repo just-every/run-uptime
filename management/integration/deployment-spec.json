@@ -486,6 +486,12 @@
       "name": "0078_source_history.sql",
       "sha256": "e66ce54cf7bdfb3e22d5af4d5480e1bdab31a69878c1a5cde07a3de4e113ebb2",
       "sql": "-- Sourced incumbent history is never monitoring evidence or execution authority.\nCREATE TABLE source_history_batches (\n id TEXT NOT NULL, monitor_id TEXT NOT NULL REFERENCES monitors(id), source TEXT NOT NULL,\n source_monitor_id TEXT NOT NULL, file_digest TEXT NOT NULL, extracted_at INTEGER,\n coverage_from INTEGER NOT NULL, coverage_to INTEGER NOT NULL, imported_at INTEGER NOT NULL,\n restored_at INTEGER, PRIMARY KEY(id,monitor_id), CHECK(coverage_to>=coverage_from)\n);\nCREATE TABLE source_history_rows (\n monitor_id TEXT NOT NULL REFERENCES monitors(id), source TEXT NOT NULL, source_row_id TEXT NOT NULL,\n batch_id TEXT NOT NULL, kind TEXT NOT NULL CHECK(kind IN ('down','up','incident','response')),\n started_at INTEGER NOT NULL, ended_at INTEGER, response_ms REAL, source_duration_seconds REAL,\n author TEXT NOT NULL, comments TEXT NOT NULL, root_cause TEXT NOT NULL, included INTEGER NOT NULL,\n PRIMARY KEY(monitor_id,source,source_row_id),\n FOREIGN KEY(batch_id,monitor_id) REFERENCES source_history_batches(id,monitor_id),\n CHECK(ended_at IS NULL OR ended_at>=started_at)\n);\nCREATE INDEX source_history_period ON source_history_rows(monitor_id,started_at);\nCREATE TABLE source_history_cutovers (\n monitor_id TEXT PRIMARY KEY REFERENCES monitors(id), cutover_at INTEGER NOT NULL\n);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0079_incident_mention_dispatch.sql",
+      "sha256": "19987ac3ef708548a04429e049b51007c40d3c2a64f53ae8ee58a4069c54a4f2",
+      "sql": "-- Select the oldest never-reserved work without scanning retained send history.\nCREATE INDEX incident_mentions_pending_dispatch ON incident_mentions(created_at,id)\n WHERE outcome='pending' AND submitted_at IS NULL AND finished_at IS NULL;\n"
     }
   ],
   "compatibilityDate": "2026-09-08",
