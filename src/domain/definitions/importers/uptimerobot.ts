@@ -63,6 +63,7 @@ function map(entry:SourceEntry):Mapping{
   differences.push(`Heartbeat jobs must be repointed: ${typeof m.heartbeatUrl==='string'&&m.heartbeatUrl?m.heartbeatUrl:'the UptimeRobot heartbeat URL'} stops being used. Issue a new Uptime heartbeat token on the monitor page after import; the old URL and token are not imported.`)
   differences.push('Local heartbeat policy: one scheduled missed-deadline result confirms failure and one scheduled success confirms recovery. Source alert delays, repeats and escalation settings are not converted; review them separately before activation.')
   if(!Number.isSafeInteger(graceMs)||graceMs>86400000)return {refused:'Heartbeat grace must be from 0 to 86400 seconds.'}
+  differences.push(`Heartbeat schedule: expected period ${intervalMs/1000} seconds plus ${graceMs/1000} seconds grace. Missing that deadline is a missed run.`)
   return {definition:{...common,type:'heartbeat',heartbeat:{maxAgeMs:intervalMs,graceMs},confirmSlots:1,recoverSlots:1,assertions:{status:200},probes:['local-a'],failureQuorum:1},differences}
  }
  if(contacts)differences.push(CONTACT_EXPORT_GUIDANCE)
