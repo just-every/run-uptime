@@ -8131,7 +8131,11 @@
       "executable": false
     },
     "tests/control-runtime.mjs": {
-      "sha256": "b542d245fbdad3cec649acf3f07a253b272cb5374654768651da4cbb47824fc3",
+      "sha256": "3a248d1548d6f6de51a8e825a9cf82ef825b487056abdd7292caba35f4885a1a",
+      "executable": false
+    },
+    "tests/control-state-support.mjs": {
+      "sha256": "4b802bc7693c276bdba42948cecd0e5d2afe9cb2ea2a8800ed001769b6da32bc",
       "executable": false
     },
     "tests/definitions-ci-support.mjs": {
