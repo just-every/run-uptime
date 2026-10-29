@@ -8,12 +8,12 @@ The primary journey: an operator moves their monitors from UptimeRobot or Pingdo
 
 | Tier | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
-| Core | 14 | 70 | 11 | 95 |
+| Core | 15 | 69 | 11 | 95 |
 | Agent surface | 0 | 0 | 6 | 6 |
 | Later | 0 | 0 | 1 | 1 |
-| Full target | 14 | 70 | 18 | 102 |
+| Full target | 15 | 69 | 18 | 102 |
 
-Judged from the code and tests at commit `85a34f9214bd9396ac186cf8555b8edc1d28b8f8` (29 October 2026). FLOW-004 viewport proof; other clause judgments retained. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
+Judged from the code and tests at commit `2ba1d938b9113deb18dc0ab83f28ab7e9faf82f2` (29 October 2026). MAINT-001 recurring maintenance proof; other clause judgments retained. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
 
 ## Core
 
@@ -577,15 +577,15 @@ Core · target · **done**
 
 #### MAINT-001 — Planned and recurring maintenance
 
-Core · target · **partial**
+Core · target · **done**
 
 **Requirement.** One-time and recurring windows target monitors/groups with US time zones, daylight-saving handling, preview and audit. Buyers choose notification suppression or execution pause explicitly; reports show maintenance separately and retain denominator and underlying observations. Expiry re-evaluates actual evidence and cannot emit orphan recovery.
 
 **Acceptance.**
 1. Schedule a New York recurring maintenance window across a DST transition and a one-time group window; fail a monitor during each, restart, end/cancel the window and inspect preserved results, suppression and reports.
 
-**Evidence.** `src/domain/planned-maintenance/`; `src/domain/planned-maintenance.server.ts`; `public/planned-maintenance.js`; `tests/maintenance-windows.mjs`; `tests/archive-roundtrip.mjs`; `docs/evidence/contracts/maintenance/`
-**Gap.** DST previews, one-time group pause and suppression with failing monitors, restart, cancellation, expiry, preserved observations and separate maintenance report denominators are asserted. A New York recurring window scheduled across a DST transition and a monitor failing during a recurring window are not asserted.
+**Evidence.** `tests/maintenance-windows.mjs` — owner maintenance journey: one-time group preview, atomic apply and stale refusal, signed failing checks during suppression, execution pause, in-flight evidence, restart, cancellation, expiry, no orphan recovery and immutable report arithmetic; `tests/maintenance-recurring-support.mjs` — proveRecurringMaintenance, invoked by the same journey: applied New York first-repeat window spanning the actual fall-back transition, real signed scheduled failures, Maintenance with retained one-probe coverage, durable restart, suppression, elapsed expiry, active cancellation, ordinary correlated incident pairs and unchanged historical JSON and CSV maintenance figures.
+**Gap.** None.
 
 ### Reports, evidence and diagnosis
 
