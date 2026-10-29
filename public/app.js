@@ -133,7 +133,7 @@ function render(){if(!data||document.querySelector('dialog[open]'))return;
  else{patch(actions,viewActions[view]?.()??'');actions.hidden=!viewActions[view];summary.hidden=view!=='monitors';title.hidden=settingsArea!=='alerts'||view!=='settings';
   setHeading();
   area.setAttribute('aria-label',view==='settings'?AREAS[settingsArea]:{locations:'Locations'}[view]??'Monitor list');
-  if(view==='monitors')renderMonitors();else if(view==='locations')renderLocations();else if(view==='settings')renderSettings(settingsArea,{area,right,data,api,action,refresh:()=>refresh(),notice,closeConsole,navigateToLogin,closed:()=>closed,readUnavailable})}
+  if(view==='monitors')renderMonitors();else if(view==='locations')renderLocations();else if(view==='settings')renderSettings(settingsArea,{area,right,data,api,action,refresh:()=>refresh(),notice,closeConsole,navigateToLogin,closed:()=>closed,showing:requested=>!closed&&shown==='settings/'+requested,readUnavailable})}
  if(feedback.busy)lockControls(true)}
 {const flash=sessionStorage.getItem('uptime-notice');if(flash){sessionStorage.removeItem('uptime-notice');notice(flash)}}
 if(view==='signout')void signOut();else{refresh();polling=setInterval(refresh,5000)}

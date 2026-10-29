@@ -2503,7 +2503,7 @@
       "executable": false
     },
     "public/app.js": {
-      "sha256": "ef147390043e5502b42670a7039f15052f0393aed727f37c5f5c68f40fea778e",
+      "sha256": "0a999d9c0d49bf3f6b5160a1a31cb8841834c856e00bab83e17f236cf9326b15",
       "executable": false
     },
     "public/archive-view.js": {
@@ -2903,7 +2903,7 @@
       "executable": false
     },
     "public/settings-view.js": {
-      "sha256": "139ec6be1693ac80199b23775bd2ad10662f3eed521c4364a8ae6dc8940bd052",
+      "sha256": "a0da5301739d8e735558ddb4e761142c329093e0fb7652e3e18191ca9b269d9d",
       "executable": false
     },
     "public/slow-policy.css": {
@@ -8007,7 +8007,7 @@
       "executable": false
     },
     "src/ui/console-prefetch.ts": {
-      "sha256": "efc0bc6a54f546ca66891b5c65aea2854a9fddfdafd92ac1259db81ea5587e59",
+      "sha256": "4a7cb1ef79be864f9f478a1926006ea73ead4e6fc02da3538b8cf6787c43b813",
       "executable": false
     },
     "src/ui/console.html": {
