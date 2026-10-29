@@ -487,7 +487,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "8fc16ebbc0adf99e456de8d91fab32c1eb9caf9fd9d846ed6c2b8831fc6b16e3",
+      "sha256": "8be72af989c5ee9c88d36f6d8ed35922bb8797917439b275ac9555887932ea4e",
       "executable": false
     },
     "AGENTS.md": {
@@ -511,7 +511,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "5613c4ac904907223e0834e12b770a442009666638cde418a2bbe58826c2df29",
+      "sha256": "bfa7c40d2b9f5172320aed70c122ecac52244c7b907a88a0de3e50b3f8d2f712",
       "executable": false
     },
     "DEMO.md": {
@@ -8591,7 +8591,7 @@
       "executable": false
     },
     "tests/source-history-support.mjs": {
-      "sha256": "68af6b9e55b8db72fdb403e668e9b26bd677d0925d90e0fa5b9e67a1c310bb03",
+      "sha256": "5bcd14482346e70cafde45687f8ba71954799b07cdf890d3ff0fa9b3d3716e52",
       "executable": false
     },
     "tests/tls-auth-child.mjs": {

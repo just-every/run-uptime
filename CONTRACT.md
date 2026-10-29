@@ -1254,7 +1254,7 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 
 ## Status
 
-Judged from the code and tests at commit `1d41eafe22627498c6297e5f853facebdffb2011` (29 October 2026). INCIDENT-005 includes the custody assertions in this candidate; other judgments retain their prior scope.
+Judged from the code and tests at commit `381794862f32ab88aee050c671826f9c1866e48c` (29 October 2026). INCIDENT-005 is carried by this candidate with the same production code and additional revoked-key proof; other judgments retain their prior scope.
 
 | Clauses | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |

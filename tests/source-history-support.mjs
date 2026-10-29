@@ -179,6 +179,10 @@ async function proveHistorySourceReads(f){
  const headers={authorization:'Bearer '+issued.body.token};
  for(const value of schema.paths['/api/v1/monitors/{id}/report'].get.parameters.find(p=>p.name==='source').schema.enum){const report=await read(`/api/v1/monitors/${encodeURIComponent(f.id)}/report?${f.query}&source=${encodeURIComponent(value)}`,headers);assert.equal(report.status,200);assert.ok(report.body.sourceHistory);}
  assert.equal((await read(prefix+'&source=UptimeRobot',headers)).status,200);assert.equal((await read('/api/v1/incidents?source=UptimeRobot&monitor='+encodeURIComponent(f.id),headers)).status,200);
+ const credentialRead=()=>fetch(f.origin+'/api/v1/incidents?source=UptimeRobot&monitor='+encodeURIComponent(f.id),{headers});
+ const permitted=await credentialRead();assert.equal(permitted.status,200);assert.match(await permitted.text(),/Synthetic comment/);
+ assert.equal((await f.client('/api/credentials/'+issued.body.credential.id,undefined,'DELETE')).status,200);
+ const revoked=await credentialRead();assert.equal(revoked.status,401);assert.ok(!(await revoked.text()).includes('Synthetic comment'),'revoked read authority cannot expose the source account');
 }
 // Existing definition registration also proves an additive migration against populated pre-upgrade tables.
 export async function proveHistoryUpgrade(db){

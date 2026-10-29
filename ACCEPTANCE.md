@@ -13,7 +13,7 @@ The primary journey: an operator moves their monitors from UptimeRobot or Pingdo
 | Later | 0 | 0 | 1 | 1 |
 | Full target | 14 | 70 | 18 | 102 |
 
-Judged from the code and tests at commit `1d41eafe22627498c6297e5f853facebdffb2011` (29 October 2026). INCIDENT-005 includes the custody assertions in this candidate; other judgments retain their prior scope. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
+Judged from the code and tests at commit `381794862f32ab88aee050c671826f9c1866e48c` (29 October 2026). INCIDENT-005 is carried by this candidate with the same production code and additional revoked-key proof; other judgments retain their prior scope. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
 
 ## Core
 
