@@ -103,8 +103,8 @@ remain visible. Diagnostic audit reads print only operation names and error
 codes from the disposable installation. No assertion is suppressed.
 
 The descriptor corrects the initial overclaim that five record jobs widen their
-own sponsor. Their published `sponsorEscalation:false` metadata matches the
-runtime; native authority checks are always on. The evidence-viewer grant keeps
+own sponsor. Their published surface-only `sponsorEscalation:false` declaration
+describes the native resolver; runtime authority checks are always on. The evidence-viewer grant keeps
 `sponsorEscalation:true` and its mandatory self-grant refusal. Hooks compare
 current native sponsor authority before and after each record job, and the
 native journey proves that a fully authenticated owner still cannot edit its

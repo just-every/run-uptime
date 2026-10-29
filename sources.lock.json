@@ -4392,7 +4392,7 @@
       "executable": false
     },
     "src/agent-door/registry.server.ts": {
-      "sha256": "7c6379694c3fbf598cd81253252b4fa4e101fdcf5485ae23078a81f816e5dbdf",
+      "sha256": "ecc6b0419dd9d403ba2d4b7973d831be72bfedecf429024bb32eb8a1d500d6b4",
       "executable": false
     },
     "src/agent-door/work.server.ts": {
@@ -8540,7 +8540,7 @@
       "executable": false
     },
     "tests/agent-conformance/README.md": {
-      "sha256": "ff7296f8c68c9e5400039ffc0220388b421e16e19041e1b4935bba81bb05f8f8",
+      "sha256": "0a0ed597ec6345ec08ae0d2cc3d7b92b5307a5d12ec28ff361239e4f7a05cf60",
       "executable": false
     },
     "tests/agent-conformance/reviewer.mjs": {
