@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {phaseState, rememberDiscovery} from './state.mjs';
 import {nativeHttp} from './http.mjs';
+import {errorCode} from '../../src/base/modules/agent-door/conformance/protocol.mjs';
 
 const snapshots = new Map();
 const sponsorAccess = new Map();
@@ -39,9 +40,17 @@ export default async function nativeJourney(context) {
  const observed = history.items.filter(row => row.manual === 0 && row.observation);
  assert.deepEqual(new Set(observed.map(row => row.observation.probe)), new Set(['local-a', 'local-b']), 'Both independently enrolled vantages remain visible.');
  assert.ok(observed.every(row => row.observation.outcome === 'target_failure'), 'Only signed, independently observed failures establish this outage.');
+ const http = nativeHttp(context), self = await http.json('/api/access/self');
+ const inventory = await http.json('/agents/api/agents');
+ const agent = inventory.agents.find(item => item.specialist === 'monitoring-operator' && !item.revoked);
+ assert.ok(agent, 'The native person door identifies the current conformance agent.');
+ const change = {id: self.id, version: self.revision, role: 'admin', scopes: []};
+ const proof = await http.json('/agents/native-proof', {agent_id: agent.id, tool: 'uptime.access.update', arguments: change});
+ const denied = await tool('uptime.access.update', {...change, idempotency_key: randomUUID()}, {proofReference: proof.reference});
+ assert.equal(errorCode(denied), 'another_administrator_required', 'Even a proved owner cannot edit its own native assignment.');
+ assert.deepEqual(await http.json('/api/access/self'), self, 'The refused self-edit changes no native role or scope.');
  // Report only public error codes and operation names from this disposable
  // installation, so upstream refusal attribution has runtime evidence.
- const http = nativeHttp(context);
  let after;
  do {
   const page = await http.json('/agents/api/audit' + (after ? '?after=' + encodeURIComponent(after) : ''));

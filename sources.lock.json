@@ -8528,7 +8528,7 @@
       "executable": false
     },
     "tests/agent-conformance/journey.mjs": {
-      "sha256": "84e032ac0c0005931a8da757beadf8069544db7f052fb0c119333f752dac4b74",
+      "sha256": "0e8eaac00cfd8a1609afe5cd0dce4bd22b51f62fdaf8abb57253418b00a45177",
       "executable": false
     },
     "tests/agent-conformance/owner.mjs": {
@@ -8540,7 +8540,7 @@
       "executable": false
     },
     "tests/agent-conformance/README.md": {
-      "sha256": "e9cb991af5e2194ec502cd1e8d769e622cb9601757501226e076ed289190e6b8",
+      "sha256": "ff7296f8c68c9e5400039ffc0220388b421e16e19041e1b4935bba81bb05f8f8",
       "executable": false
     },
     "tests/agent-conformance/reviewer.mjs": {
