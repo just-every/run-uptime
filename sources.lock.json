@@ -487,7 +487,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "36b5bc79e2d3584d40e814888c20c044e4d3bbe39fb0080ed0ef5c0db37d791a",
+      "sha256": "1593adee6535c09c5805db2d32f6b276aa7786e3b2bd069a228aacf51bf47182",
       "executable": false
     },
     "AGENTS.md": {
@@ -511,7 +511,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "857db6aef2095f55aeea205882c123c823d41d8b0d28abfc307baffad329d066",
+      "sha256": "54e8acef12ce3d9bb01cc5172ddd85f665bd093b03f6b12aad701ca5e7cef5e9",
       "executable": false
     },
     "DEMO.md": {
@@ -8471,7 +8471,7 @@
       "executable": false
     },
     "tests/protocol-monitors.mjs": {
-      "sha256": "01f9caccf71b2cf894f04c8d4cad5c598fdb27bc95b5bcb4cf3b09aba661d056",
+      "sha256": "e93148d2b4c153b93bbd62bb86585085ed1a293484c10044350474bf17e7cd01",
       "executable": false
     },
     "tests/protocol-routing.mjs": {
@@ -8559,7 +8559,7 @@
       "executable": false
     },
     "tests/signed-runner-child.mjs": {
-      "sha256": "f5116a850fce0fa423e33b22b8ee05fa7ef864e869899957c2f77206e9704ff3",
+      "sha256": "6e58cecea4cc27e871d7045c7c6f6727f2d67ac35a7dbb5c9281dd5dbe2b61e6",
       "executable": false
     },
     "tests/signed-runner-heartbeat-import.mjs": {
@@ -8588,6 +8588,10 @@
     },
     "tests/source-history-support.mjs": {
       "sha256": "e8ebe6178241caf192bf07b50a42689ab7095066fbbb7176ce075eef70d9437f",
+      "executable": false
+    },
+    "tests/tcp-locations-support.mjs": {
+      "sha256": "a46e943d585e29338353b570a439d709f6717f3c7d619f6c1c5ff2716be14128",
       "executable": false
     },
     "tests/tls-auth-child.mjs": {
