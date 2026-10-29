@@ -24,7 +24,7 @@ export async function monitorList(env:Bindings,ctx:Context){const ids=await visi
 export async function historyRead(env:Bindings,ctx:Context,id:string){
  await authority(env,ctx,'read',[id])
  const rows=await env.DB.prepare(`SELECT s.id,s.revision,s.due_at,s.manual,s.status,o.probe,o.attempt,o.evidence FROM slots s LEFT JOIN observations o ON o.slot_id=s.id WHERE s.monitor_id=? ORDER BY s.due_at DESC,s.id,o.probe,o.attempt LIMIT 200`).bind(id).all<any>()
- return {id,items:rows.results.map(({evidence,...row})=>{const e=evidence?JSON.parse(evidence):null;return {...row,observation:e?Object.fromEntries(['id','probe','attempt','startedAt','finishedAt','classification','ok','status','elapsedMs','reason','verdict'].filter(k=>Object.hasOwn(e,k)).map(k=>[k,e[k]])):null}})}
+ return {id,items:rows.results.map(({evidence,...row})=>{const e=evidence?JSON.parse(evidence):null;return {...row,observation:e?Object.fromEntries(['id','probe','attempt','startedAt','completedAt','durationMs','outcome','finishedAt','classification','ok','status','elapsedMs','reason','verdict'].filter(k=>Object.hasOwn(e,k)).map(k=>[k,e[k]])):null}})}
 }
 export async function revisionRead(env:Bindings,ctx:Context,id:string){await authority(env,ctx,'read',[id]);return {id,items:(await revisions(env,id)).map((row:any)=>({revision:row.revision,start:row.start,definition:definitionView(row.definition)}))}}
 export async function incidentRead(env:Bindings,ctx:Context,id:string){

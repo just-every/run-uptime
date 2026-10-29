@@ -36,5 +36,5 @@ export async function prepareIncident(http) {
  const incident = await http.json('/api/v1/incidents/' + encodeURIComponent(incidents[0].id));
  // Freeze the test's producer through its ordinary native scheduling control.
  await http.json('/api/monitors/' + monitor.id, {...monitor.definition, enabled: false}, {method: 'PATCH'});
- return {incident: {id: incident.id, version: incident.version}, runner: {id: runners[0].runnerId}};
+ return {incident: {id: incident.id, version: incident.version}, observedMonitor: {id: monitor.id}, runner: {id: runners[0].runnerId}};
 }

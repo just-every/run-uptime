@@ -1368,6 +1368,7 @@
     },
     "proof": {
       "module": "tests/agent-conformance/proof.mjs"
-    }
+    },
+    "journey": "tests/agent-conformance/journey.mjs"
   }
 }

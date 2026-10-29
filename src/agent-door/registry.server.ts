@@ -49,7 +49,7 @@ async function actionSummary(env:Bindings,verb:string,title:string,a:any){
  }
  if(a.definition?.name)name=a.definition.name
  if(a.monitorIds)for(const id of a.monitorIds){const m=await get(env,id);items.push('Selected monitor: '+(m?.definition.name??id))}
- return {target:{id:typeof a.id==='string'?a.id:undefined,name},items,...(recipients?{recipients}:{}),...(a.role?{role:a.role}:{})}
+ return {target:{...(typeof a.id==='string'?{id:a.id}:{}),name},items,...(recipients?{recipients}:{}),...(a.role?{role:a.role}:{})}
 }
 // Resolve audit identity through the same native visibility checks as execution.
 async function recordTarget(env:Bindings,name:string,args:Record<string,unknown>,ctx:ToolContext){
