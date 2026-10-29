@@ -487,7 +487,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "21a8e08ba25118ed06d80f35582434a350bcf765f494cb77657e640026e1a7dd",
+      "sha256": "15e333d7e0998522658dad806f15966672b671c750d37f6abaa1629e7d031246",
       "executable": false
     },
     "AGENTS.md": {
@@ -511,7 +511,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "5a842fbecc52a7b5568c5eba55f3c3cd092ea76ac8e4c1fbf9be4214f6212028",
+      "sha256": "a492846486b753b60a2030ceba793e859776290e342620541e7fe4366e761961",
       "executable": false
     },
     "DEMO.md": {
@@ -8215,7 +8215,7 @@
       "executable": false
     },
     "tests/hosted-alerts.mjs": {
-      "sha256": "0add090604234898072aa24588a2b74ea9e871e45b1c8f446601ee56b2a476fe",
+      "sha256": "259c17212af2a013aa1b97e9cb5aaef575963f776781df134687e4c187088eee",
       "executable": false
     },
     "tests/hosted-auth-browser.mjs": {
@@ -8228,6 +8228,10 @@
     },
     "tests/hosted-browser-runtime.mjs": {
       "sha256": "97ba0d0d66adc7b3cb7f4e4d58a6a4a64752fe1d4b97c03fd0ad318f8cccbaa8",
+      "executable": false
+    },
+    "tests/hosted-mail-portability.mjs": {
+      "sha256": "e450a4c1757dd1c9037554caada99a1050f735c556f75bfe4fcc572e78a45ed8",
       "executable": false
     },
     "tests/incident-combined-support.mjs": {
@@ -8299,7 +8303,7 @@
       "executable": false
     },
     "tests/notification-recovery.mjs": {
-      "sha256": "2b285991d92c91fc21b139bfef87fb502c150409339ef61aebf70a783b732036",
+      "sha256": "4c5f243ed087558896535cd0460d0b4a33edf449327b16d57428104cfdb4bcb7",
       "executable": false
     },
     "tests/notify-acceptance-dns.mjs": {
@@ -8312,6 +8316,10 @@
     },
     "tests/notify-acceptance-runtime.mjs": {
       "sha256": "7d2818cf874a0dca5d8c7ca2d55e479dc54978f50b93feeb894cf9eb142b3804",
+      "executable": false
+    },
+    "tests/notify-chain-browser.mjs": {
+      "sha256": "7f5489a7facb187a237327975f2badddbce3f8b145feac8bd6683b15965e7766",
       "executable": false
     },
     "tests/notify-delivery.mjs": {
