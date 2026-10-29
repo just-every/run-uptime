@@ -12,7 +12,9 @@ export async function inspectDeliveryChains({origin,bindings,acceptedId,failedId
  const browser=await chromium.launch({headless:true,args:['--no-sandbox','--use-mock-keychain','--password-store=basic'],...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{})});
  try{
   const context=await browser.newContext(),page=await context.newPage();
-  await context.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
+  // Request routing disables Chromium's HTTP cache. Keep normal asset reuse
+  // while checking that the journey only requests this installation.
+  context.on('request',request=>assert.equal(new URL(request.url()).origin,origin,'delivery inspection stays on its installation'));
   await browserSignIn(page,origin,{bindings});
   const capture=async name=>{const directory=process.env.UPTIME_DELIVERY_CHAIN_EVIDENCE;if(directory){await mkdir(directory,{recursive:true});await page.screenshot({path:join(directory,name+'.png'),fullPage:true})}};
   const reflow=async()=>assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'delivery chain page reflows');
@@ -72,7 +74,7 @@ export async function inspectQuietFallback({origin,bindings,quietId}){
  const browser=await chromium.launch({headless:true,args:['--no-sandbox','--use-mock-keychain','--password-store=basic'],...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{})});
  try{for(const width of [1440,390]){
   const context=await browser.newContext({viewport:{width,height:900}}),page=await context.newPage();
-  await context.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
+  context.on('request',request=>assert.equal(new URL(request.url()).origin,origin,'quiet inspection stays on its installation'));
   await browserSignIn(page,origin,{bindings});await page.goto(origin+'/app/notifications');await page.locator('html.signed-in').waitFor();
   const card=page.locator(`[data-key="delivery-${quietId}"]`);await card.getByText(/Quiet hours: waiting until/).waitFor();assert.match(await card.textContent(),/Fallback 1 after Dead Slack: Failed/);
   await page.addScriptTag({path:require.resolve('axe-core/axe.min.js')});assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.map(v=>v.id),[]);

@@ -8319,7 +8319,7 @@
       "executable": false
     },
     "tests/notify-chain-browser.mjs": {
-      "sha256": "3c6937c3717968d75db50e98f91b62078d9ae6fe5385605775cc2910e0ff0126",
+      "sha256": "fb54e0945ba90e15b13436dd34c21f81bf4987b1b943791df53c69da8d79fa79",
       "executable": false
     },
     "tests/notify-delivery.mjs": {
