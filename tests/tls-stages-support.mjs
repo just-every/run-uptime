@@ -41,7 +41,8 @@ export async function proveTlsExpiryStages(){
    assert.ok(response.status>=200&&response.status<400,`${method} ${path}: ${response.status} ${JSON.stringify(response.data)}`);
    return response;
   };
-  Date.now=()=>clock;
+  // OpenSSL dates certificates at issuance; freeze only after they have been issued.
+  clock=wallNow();Date.now=()=>clock;
   const enroll={version:1},stamp=String(clock);
   const signature=createHmac('sha256',key).update(`${stamp}.runner-enrolment.${JSON.stringify(enroll)}`).digest('hex');
   const registration=(await api('/api/runner/enroll',enroll,{'x-runner-key':key,'x-sent-at':stamp,'x-runner-signature':signature})).data;
@@ -70,7 +71,7 @@ export async function proveTlsExpiryStages(){
    return {slot,o,view:await overview()};
   };
   let result=await step();
-  assert.equal(result.o.outcome,'pass');assert.equal(result.o.protocol.certificate.fingerprint256,fingerprint);
+  assert.equal(result.o.outcome,'pass',JSON.stringify(result.o.checks));assert.equal(result.o.protocol.certificate.fingerprint256,fingerprint);
   assert.equal(warnings(result.view).length,0,'a valid certificate outside every saved stage has no warning');
   const originalSlot=structuredClone(result.slot),reached=[],retainedWarnings=[];
   let incidentKey;
@@ -105,6 +106,11 @@ export async function proveTlsExpiryStages(){
   scenario.certificate=certs.selfSigned;result=await step();
   assert.equal(result.o.outcome,'target_failure');assert.equal(result.o.checks.find(c=>c.assertion==='trust').pass,false);
   assert.equal(result.view.alerts.filter(a=>a.kind==='renewal').length,0);
+  scenario.certificate=certs.expiring;result=await step();
+  assert.equal(result.o.outcome,'pass');assert.equal(result.view.monitors[0].state.state,'Healthy');
+  assert.equal(result.o.protocol.certificate.fingerprint256,fingerprint);
+  assert.equal(result.view.alerts.filter(a=>a.kind==='renewal').length,0,'a healthy check of the original certificate is not renewal');
+  assert.deepEqual(warnings(result.view).slice().reverse(),retainedWarnings,'the original certificate cannot repeat or resolve its warnings');
   scenario.certificate=certs.renewed;result=await step();
   assert.equal(result.o.outcome,'pass');assert.equal(result.view.monitors[0].state.state,'Healthy');
   assert.equal(result.o.protocol.trusted,true);assert.notEqual(result.o.protocol.certificate.fingerprint256,fingerprint);

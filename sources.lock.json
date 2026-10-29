@@ -8599,7 +8599,7 @@
       "executable": false
     },
     "tests/tls-stages-support.mjs": {
-      "sha256": "8f0232b14fb7bd7c30cc565355688f6dd876e187e0d7129e7381573c1e0e2d47",
+      "sha256": "90ce5b37f70127025dcc1bf7c926f1d57d8fd3f66123d92118a934bb9c4668ce",
       "executable": false
     },
     "tests/tls-trust-journey.mjs": {
