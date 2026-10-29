@@ -12,10 +12,11 @@ import {testAuthBindings} from './auth-test-support.mjs';
 import {splitSql} from './migration-support.mjs';
 import {emittedRunnerWorker,certificate,runChild,listen,close,request} from './signed-runner-runtime.mjs';
 import {proveFreshResultSignature,assertRunnerAdmissionOnly} from './signed-runner-result-proof.mjs';
+import {proveImportedHeartbeatJobs} from './signed-runner-heartbeat-import.mjs';
 
 const directory=await mkdtemp(join(tmpdir(),'uptime-signed-runner-'));
 const key='signed-runner-test-only-installation-runner-key';
-let worker,db,control,target,child,origin,resultHandler,bridgeError,signatureReceipt,cookie='',mode=200;
+let worker,db,control,target,child,origin,resultHandler,bridgeError,signatureReceipt,clock,cookie='',mode=200;
 const requests=[],children=[];
 const signature=(path,body,stamp)=>createHmac('sha256',key).update(`${stamp}.${path==='/api/runner/enroll'?'runner-enrolment.':''}${JSON.stringify(body)}`).digest('hex');
 const signed=(path,body,extra={})=>{const stamp=String(Date.now());return {'x-runner-key':key,'x-sent-at':stamp,'x-runner-signature':signature(path,body,stamp),...extra}};
@@ -38,7 +39,7 @@ try{
  control=https.createServer(tls,async(req,res)=>{
   try{
    let body='';for await(const chunk of req)body+=chunk;
-   const envelope={url:origin+req.url,method:req.method,headers:req.headers,...(body?{body}:{})};
+   const envelope={url:origin+req.url,method:req.method,headers:req.headers,...(body?{body}:{}),...(clock===undefined?{}:{clock})};
    const intercept=req.url==='/api/runner/results'?resultHandler:undefined;
    if(intercept)resultHandler=undefined;
    const response=intercept?await intercept(envelope):await dispatch(envelope);
@@ -50,7 +51,7 @@ try{
  worker=await emittedRunnerWorker(directory,bindings);db=await worker.getD1Database('DB');
  for(const file of(await readdir('migrations')).filter(n=>n.endsWith('.sql')).sort())for(const sql of splitSql(await readFile(join('migrations',file),'utf8')))await db.prepare(sql).run();
  const api=(path,body,headers={},method=body===undefined?'GET':'POST')=>request(origin,tls.cert,path,{method,body,headers:{origin,cookie,'cf-connecting-ip':'192.0.2.1',...headers}});
- const runner=async()=>{child=runChild({origin,key,caPath:tls.caPath,targetPort});children.push(child.child.pid);try{await child.finish()}catch(error){throw bridgeError??error}child=undefined};
+ const runner=async()=>{child=runChild({origin,key,caPath:tls.caPath,targetPort,clock});children.push(child.child.pid);try{await child.finish()}catch(error){throw bridgeError??error}child=undefined};
  const enrollBody={version:1},enrollPath='/api/runner/enroll';
 
  // signed enrolment rejects absent authority, tampering, stale timestamps and result-purpose signatures without product, auth or audit changes; only exact runner admissions persist
@@ -192,6 +193,8 @@ try{
   assert.equal((await db.prepare('SELECT COUNT(*) n FROM heartbeat_runs WHERE monitor_id=?').bind(heartbeatId).first()).n,0);
 
  }
+ const wallNow=Date.now;clock=wallNow();Date.now=()=>clock;
+ try{await proveImportedHeartbeatJobs({api,runner,origin,cookie,advance:at=>{assert.ok(at>=clock);clock=at}})}finally{Date.now=wallNow;clock=undefined}
  console.log('SIGNED-RUNNER results '+JSON.stringify(signatureReceipt));
  console.log(`SIGNED-RUNNER completed one owner-to-runner lifecycle: emitted Worker + migrated persistent D1, real Node process restarts, local HTTPS with verified certificates; no real account or public network deployment.`);
 }finally{await child?.stop();await close(control);await worker?.dispose();await close(target);await rm(directory,{recursive:true,force:true})}
