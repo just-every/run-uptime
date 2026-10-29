@@ -1,3 +1,4 @@
+import {agentDoorResponse,uptimeAgentDoor} from './agent-door/index.server.ts'
 import {registerSourceHistory} from './domain/source-history/routes.server.ts'
 import {previewReportRecurrence} from './domain/reports/recurring.server.ts'
 import {serviceReport,serviceReportCsv} from './domain/reports/service.server.ts'
@@ -143,6 +144,12 @@ api.use('/api/*',async(c,next)=>{
  const access=c.get('access')
  if(access&&(access.action==='export'||access.action==='read'&&(['csv','pdf'].includes(c.req.query('format')??'')||/text\/csv|application\/pdf/.test(c.req.header('accept')??''))))await auditAccess(c.env,access)
  await next()
+})
+// Native person changes share the retained resource vocabulary with agent work.
+api.use('/api/*',async(c,next)=>{await next();const access=c.get('access');if(!access||!c.res.ok||!['POST','PATCH','DELETE'].includes(c.req.method))return;
+ const m=/^\/api\/(monitors|incidents|notifications\/destinations)\/([^/]+)/.exec(c.req.path);if(!m)return;
+ const family=m[1]==='notifications/destinations'?'destinations':m[1],person=access.session.operator;
+ await uptimeAgentDoor(c.get('systemBindings')??c.env).emit({type:family.slice(0,-1)+'.updated',uri:`uptime://${family}/${decodeURIComponent(m[2])}`,person:{id:person.id,name:person.displayName,email:person.email,role:access.role,active:true}})
 })
 // Only authenticated owner requests can kick hosted work; public traffic and private runners cannot.
 api.use('/api/*',async(c,next)=>{await next();if(c.res.ok&&(c.req.path==='/api/overview'||/^\/api\/(monitors|notifications)(\/|$)/.test(c.req.path))){c.executionCtx.waitUntil(kickHostedWork(c.get('systemBindings')??c.env).catch(()=>console.error('Hosted console work failed; queued work remains available to Cron.')))}})
@@ -369,6 +376,7 @@ const handler={async fetch(request,env,execution){
  const limited=await limitPublicRequest(env as Bindings,request);if(limited)return limited;
  const bindings=env as Bindings,url=new URL(request.url),path=url.pathname,isEvidencePage=/^\/app\/evidence\/[^/]+$/.test(path);
  if(url.origin!==bindings.UPTIME_ORIGIN||(request.headers.has('host')&&request.headers.get('host')?.toLowerCase()!==url.host.toLowerCase()))return new Response('Invalid host',{status:403});
+ const agent=await agentDoorResponse(bindings,request);if(agent)return agent;
  const mfa=await mfaDoor(bindings,request);if(mfa)return mfa;
  const ci=await ciDoor(bindings,request);if(ci)return ci;
  const factorDenial=await earlyMfaGate(bindings,request);if(factorDenial)return factorDenial;
