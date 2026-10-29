@@ -2,7 +2,8 @@ import {testAuthBindings} from './auth-test-support.mjs';
 import assert from 'node:assert/strict';
 import {join} from 'node:path';
 import {createHash} from 'node:crypto';
-import {execFile} from 'node:child_process';
+import {execFile,spawn} from 'node:child_process';
+import {once} from 'node:events';
 import {promisify} from 'node:util';
 import {fileURLToPath} from 'node:url';
 import {NodePinnedTransport} from '../src/base/modules/integrations/core/node-transport.ts';
@@ -18,7 +19,7 @@ const directory=await runtimeDirectory(),ports=await availablePorts(6);
 const [controlPort,fixturePort,mailPort,webhookPort,slackPort,restorePort]=ports;
 const origin=`http://127.0.0.1:${controlPort}`,persist=join(directory,'worker'),grantPath=join(directory,'grant.json');
 const bindings={...testAuthBindings,UPTIME_RUNNER_KEY:key,UPTIME_SYNTHETIC_PORT:String(fixturePort),MAIL_PROVIDER:'sendgrid',MAIL_FROM:'qa-sender@example.com',SENDGRID_API_KEY:'synthetic-notification-acceptance-provider-key-local-only'};
-let worker,DB,fixture,runnerAbort,runnerPromise,restoreWorker,secondRunner;
+let worker,DB,fixture,runnerAbort,runnerPromise,restoreWorker,secondRunner,interruptedRunner;
 const receivers=[],credentials=[bindings.SETUP_TOKEN,bindings.SESSION_SECRET,key,bindings.SENDGRID_API_KEY],runnerLogs=[];let webhookDestination;
 const originalConsoleError=console.error;console.error=(...values)=>runnerLogs.push(values.map(value=>String(value)).join(' '));
 const routes=new Map([[webhookUrl,{port:webhookPort,path:'/incident'}],[slackUrl,{port:slackPort,path:'/slack'}]]);
@@ -39,7 +40,14 @@ async function startRunner(){runnerAbort=new AbortController();runnerPromise=Pro
 async function stopRunner(){if(runnerAbort){runnerAbort.abort();await runnerPromise;runnerAbort=null}}
 async function restart(){await stopRunner();await worker.dispose();worker=null;await startWorker();await startRunner()}
 async function testDestination(destination){const result=await api(`/api/notifications/destinations/${destination.id}/test`,'POST',{});assert.equal(result.status,202);assert.equal(result.data.queued,true);return result.data.deliveryId}
-async function settle(id,state){let last;try{return await waitFor(async()=>{const row=(await notifications()).deliveries.find(row=>row.id===id);last=row;return row?.state===state?row:null},`delivery reaches ${state}`)}catch(error){throw Error(`${error.message}; observed ${JSON.stringify({kind:last?.kind,state:last?.state,code:last?.code,attempts:last?.attempts,status:last?.status})}`)}}
+async function settle(id,state,timeout){let last;try{return await waitFor(async()=>{const row=(await notifications()).deliveries.find(row=>row.id===id);last=row;return row?.state===state?row:null},`delivery reaches ${state}`,timeout)}catch(error){throw Error(`${error.message}; observed ${JSON.stringify({kind:last?.kind,state:last?.state,code:last?.code,attempts:last?.attempts,status:last?.status})}`)}}
+async function killInterruptedRunner(){
+ if(interruptedRunner&&interruptedRunner.exitCode===null&&interruptedRunner.signalCode===null){
+  const exited=once(interruptedRunner,'exit');assert.equal(interruptedRunner.kill('SIGKILL'),true);
+  const [,signal]=await exited;assert.equal(signal,'SIGKILL');
+ }
+ interruptedRunner=null;
+}
 function assertNoSecrets(value){const text=typeof value==='string'?value:JSON.stringify(value);for(const credential of credentials)assert.ok(!text.includes(credential),'private notification credential cannot enter operator reads or archive');assert.ok(!text.includes(slackUrl),'Slack capability URL cannot enter operator reads or archive')}
 try{
  const mail=await acceptanceReceiver(mailPort,record=>record.body.subject==='Uptime second-factor security change'?verifySecurityNotice(record,bindings.OWNER_EMAIL):verifySendGrid(record));receivers.push(mail);
@@ -172,6 +180,39 @@ try{
   for(const id of ids){const row=(await notifications()).deliveries.find(row=>row.id===id);assert.equal(row.state,'uncertain');assert.equal(row.attempts,1)}
   await startRunner();
  }
+ // In-progress claim restart: kill the actual runner before its transport can settle, then recover through the public doors.
+ {
+  await stopRunner();const before=receivers.map(receiver=>receiver.records.length);
+  webhook.setDisposition('stalled');const id=await testDestination(destinations[1]);
+  // A separate process makes SIGKILL abrupt: no runner finally block can record a timeout or finish the claim.
+  // It uses the same production runner and network-edge transport as the rest of this journey.
+  interruptedRunner=spawn(process.execPath,['--input-type=module','-e',`
+   import {runRunner} from './runners/src/private-runner.mjs';
+   import {loopbackWireTransport} from './tests/notify-acceptance-receivers.mjs';
+   let input='';for await(const chunk of process.stdin)input+=chunk;
+   const {routes,...options}=JSON.parse(input);
+   await runRunner({...options,transport:loopbackWireTransport(new Map(routes)),once:true});
+  `],{stdio:['pipe','pipe','pipe']});
+  for(const stream of[interruptedRunner.stdout,interruptedRunner.stderr])stream.on('data',chunk=>runnerLogs.push(String(chunk)));
+  interruptedRunner.stdin.end(JSON.stringify({origin,key,grantPath,localReview:true,routes:[...routes]}));
+  const record=await waitFor(()=>webhook.records[before[1]],'receiver validates the in-progress request');
+  webhook.assertValid();assert.equal(record.stalled,true);
+  const sending=await settle(id,'sending');assert.equal(sending.attempts,1);
+  await killInterruptedRunner();
+  assert.equal((await notifications()).deliveries.find(row=>row.id===id).state,'sending','runner dies before the claim settles');
+  await worker.dispose();worker=null;await startWorker();
+  const retained=(await notifications()).deliveries.find(row=>row.id===id);
+  assert.equal(retained.state,'sending','Worker restart retains the in-progress claim');assert.equal(retained.attempts,1);
+  webhook.releaseStalled();webhook.setDisposition('accepted');
+  await startRunner();const recovered=await settle(id,'uncertain',75000);
+  assert.equal(recovered.code,'claim_expired','restarted runtime reconciles the abandoned claim');assert.equal(recovered.attempts,1);
+  await restart();await stopRunner();for(let repeat=0;repeat<2;repeat++)await runOnce();
+  assert.deepEqual(receivers.map(receiver=>receiver.records.length),before.map((count,index)=>count+Number(index===1)),'in-progress restart recovery and repeated dispatch never submit an extra request');
+  const final=(await notifications()).deliveries.find(row=>row.id===id);
+  assert.equal(final.state,'uncertain');assert.equal(final.code,'claim_expired');assert.equal(final.attempts,1);
+  console.log('IN_PROGRESS_RESTART '+JSON.stringify({kind:'webhook',beforeRestart:sending.state,afterWorkerRestart:retained.state,finalState:final.state,code:final.code,attempts:final.attempts,providerSubmissions:webhook.records.length-before[1]}));
+  await startRunner();
+ }
  // credential custody excludes delivery rows operator reads console and exported archives
  {
   assertNoSecrets(await notifications());assertNoSecrets(await overview());assertNoSecrets((await api('/api/archive')).data);
@@ -207,6 +248,7 @@ try{
  receivers.forEach(receiver=>receiver.assertValid());
  console.log('Notification acceptance passed: emitted Worker/D1, production private runner, real synthetic probes, independent receivers and restart-safe delivery history.');
 }finally{
+ await killInterruptedRunner();
  await stopRunner();if(restoreWorker)await restoreWorker.dispose();if(worker)await worker.dispose();if(fixture)await fixture.stop();
  await Promise.all(receivers.map(receiver=>receiver.close()));await cleanupDirectory(directory);console.error=originalConsoleError;
 }
