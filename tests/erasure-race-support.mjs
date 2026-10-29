@@ -17,6 +17,7 @@ export function erasureRaceProof({origin,owner,snapshot}){
   const current=revisions.data.find(row=>row.revision===monitor.revision);
   assert.ok(current,'the edit is based on the publicly retained current revision');
   assert.deepEqual(current.definition,monitor.definition);
+  const beforeRequest=await snapshot();
   const body=Buffer.from(JSON.stringify({...current.definition,name:'synthetic-uptime-stale-edit'}));
   let responded=false,request;
   const result=new Promise((resolve,reject)=>{
@@ -34,6 +35,7 @@ export function erasureRaceProof({origin,owner,snapshot}){
   await new Promise((resolve,reject)=>{request.once('error',reject);request.write(body.subarray(0,-1),error=>error?reject(error):resolve())});
   assert.equal(responded,false,'the actual edit request is still pending');
   const before=await snapshot();
+  assert.deepEqual(before,beforeRequest,'an unfinished owner edit writes no durable state');
   assert.ok(before.monitors.some(row=>row.id===monitor.id&&row.revision===current.revision));
   assert.ok(before.revisions.some(row=>row.monitor_id===monitor.id&&row.revision===current.revision));
   return {
