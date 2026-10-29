@@ -1206,40 +1206,40 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 
 | Tool | Native action | Core clause metadata | Registry classes | Today |
 | --- | --- | --- | --- | --- |
-| `uptime.access.update` | access / update | ACCESS-001 | access | declared; unjudged |
-| `uptime.checks.run` | checks / run | HTTP-001, INCIDENT-001 | external | declared; unjudged |
-| `uptime.definitions.preview` | definitions / preview | CODE-001 | standard | declared; unjudged |
-| `uptime.definitions.read` | definitions / read | CODE-001 | standard | declared; unjudged |
-| `uptime.destinations.drill` | destinations / drill | DRILL-001 | external | declared; unjudged |
-| `uptime.destinations.read` | destinations / read | DELIVERY-001 | standard | declared; unjudged |
-| `uptime.destinations.test` | destinations / test | NOTIFY-001 | external | declared; unjudged |
-| `uptime.destinations.update` | destinations / update | NOTIFY-001 | live, access | declared; unjudged |
-| `uptime.discovery.read` | discovery / read | DISCOVERY-001 | standard | declared; unjudged |
-| `uptime.discovery.start` | discovery / start | DISCOVERY-001 | external | declared; unjudged |
-| `uptime.evidence.read` | evidence / read | EVIDENCE-001 | sensitive | declared; unjudged |
-| `uptime.evidence.witness` | evidence / witness | MONITOR-001, FOLLOWUP-001 | standard | declared; unjudged |
-| `uptime.grants.read` | grants / read | API-004 | standard | declared; unjudged |
-| `uptime.grants.update` | grants / update | EVIDENCE-001 | access, security | declared; unjudged |
-| `uptime.incidents.acknowledge` | incidents / acknowledge | FOLLOWUP-001 | standard | declared; unjudged |
-| `uptime.incidents.assign` | incidents / assign | FOLLOWUP-001 | standard | declared; unjudged |
-| `uptime.incidents.note` | incidents / note | FOLLOWUP-001 | standard | declared; unjudged |
-| `uptime.incidents.read` | incidents / read | FOLLOWUP-001 | standard | declared; unjudged |
-| `uptime.maintenance.preview` | maintenance / preview | MAINT-001 | standard | declared; unjudged |
-| `uptime.maintenance.read` | maintenance / read | MAINT-001 | standard | declared; unjudged |
-| `uptime.maintenance.update` | maintenance / update | MAINT-001 | live | declared; unjudged |
-| `uptime.monitors.create` | monitors / create | MONITOR-001 | live, external, security | declared; unjudged |
-| `uptime.monitors.history` | monitors / history | READAPI-001 | standard | declared; unjudged |
-| `uptime.monitors.list` | monitors / list | READAPI-001 | standard | declared; unjudged |
-| `uptime.monitors.pause` | monitors / pause | MONITOR-001 | live | declared; unjudged |
-| `uptime.monitors.read` | monitors / read | READAPI-001 | standard | declared; unjudged |
-| `uptime.monitors.resume` | monitors / resume | MONITOR-001 | live | declared; unjudged |
-| `uptime.monitors.revisions` | monitors / revisions | MONITOR-001 | standard | declared; unjudged |
-| `uptime.monitors.update` | monitors / update | MONITOR-001 | live, external, security | declared; unjudged |
-| `uptime.privacy.erase` | privacy / erase | ERASURE-001 | destructive | declared; unjudged |
-| `uptime.reports.read` | reports / read | READAPI-001 | standard | declared; unjudged |
-| `uptime.routes.preview` | routes / preview | ROUTING-001 | standard | declared; unjudged |
-| `uptime.routes.read` | routes / read | ROUTING-001 | standard | declared; unjudged |
-| `uptime.routes.update` | routes / update | ROUTING-001 | live, external, access | declared; unjudged |
+| `uptime.access.update` | Change a native member product role and service/team scopes | ACCESS-001 | access | declared; unjudged |
+| `uptime.checks.run` | Queue a real manual check without changing scheduled health | HTTP-001, INCIDENT-001 | external | declared; unjudged |
+| `uptime.definitions.preview` | Recognize a native definition file without applying it | CODE-001 | standard | declared; unjudged |
+| `uptime.definitions.read` | Read redacted native definitions | CODE-001 | standard | declared; unjudged |
+| `uptime.destinations.drill` | Queue a native recipient-confirmed channel drill | DRILL-001 | external | declared; unjudged |
+| `uptime.destinations.read` | Read destination metadata without endpoint secrets | DELIVERY-001 | standard | declared; unjudged |
+| `uptime.destinations.test` | Queue an attributed native test send | NOTIFY-001 | external | declared; unjudged |
+| `uptime.destinations.update` | Update a native notification destination | NOTIFY-001 | live, access | declared; unjudged |
+| `uptime.discovery.read` | Read a native discovery outcome | DISCOVERY-001 | standard | declared; unjudged |
+| `uptime.discovery.start` | Start bounded native read-only website discovery | DISCOVERY-001 | external | declared; unjudged |
+| `uptime.evidence.read` | Read authorized private failure snapshots | EVIDENCE-001 | sensitive | declared; unjudged |
+| `uptime.evidence.witness` | Read native monitoring change witness | MONITOR-001, FOLLOWUP-001 | standard | declared; unjudged |
+| `uptime.grants.read` | Read native effect and evidence grants | API-004 | standard | declared; unjudged |
+| `uptime.grants.update` | Change a native private-evidence viewer grant | EVIDENCE-001 | access, security | declared; unjudged |
+| `uptime.incidents.acknowledge` | Acknowledge an incident without asserting recovery | FOLLOWUP-001 | standard | declared; unjudged |
+| `uptime.incidents.assign` | Assign an eligible native responder | FOLLOWUP-001 | standard | declared; unjudged |
+| `uptime.incidents.note` | Add an internal incident note | FOLLOWUP-001 | standard | declared; unjudged |
+| `uptime.incidents.read` | Read incident coordination | FOLLOWUP-001 | standard | declared; unjudged |
+| `uptime.maintenance.preview` | Preview an exact native maintenance selection | MAINT-001 | standard | declared; unjudged |
+| `uptime.maintenance.read` | Read a monitor maintenance calendar | MAINT-001 | standard | declared; unjudged |
+| `uptime.maintenance.update` | Apply the exact previewed maintenance calendar | MAINT-001 | live | declared; unjudged |
+| `uptime.monitors.create` | Create a native monitor | MONITOR-001 | live, external, security | declared; unjudged |
+| `uptime.monitors.history` | Read immutable check observations | READAPI-001 | standard | declared; unjudged |
+| `uptime.monitors.list` | List visible monitors | READAPI-001 | standard | declared; unjudged |
+| `uptime.monitors.pause` | Pause native monitor scheduling | MONITOR-001 | live | declared; unjudged |
+| `uptime.monitors.read` | Read one monitor | READAPI-001 | standard | declared; unjudged |
+| `uptime.monitors.resume` | Resume native monitor scheduling | MONITOR-001 | live | declared; unjudged |
+| `uptime.monitors.revisions` | Read immutable monitor revisions | MONITOR-001 | standard | declared; unjudged |
+| `uptime.monitors.update` | Update a native monitor definition | MONITOR-001 | live, external, security | declared; unjudged |
+| `uptime.privacy.erase` | Erase a native monitor and dependent records | ERASURE-001 | destructive | declared; unjudged |
+| `uptime.reports.read` | Read monitor availability report | READAPI-001 | standard | declared; unjudged |
+| `uptime.routes.preview` | Preview a native alert route | ROUTING-001 | standard | declared; unjudged |
+| `uptime.routes.read` | Read monitor alert routing | ROUTING-001 | standard | declared; unjudged |
+| `uptime.routes.update` | Apply an exact native alert-route preview | ROUTING-001 | live, external, access | declared; unjudged |
 
 **Worker admissions — outside the CORE door contract.** ct ruled at 2026-10-29T14:12Z that these are invoke-only and hidden from MCP. Base 0.2.90 still shares the invoke and MCP registry: `modules/agent-door/index.ts:32-33,55-62`, `transport.ts:38,45`, `pipeline.ts:33-34`, `registry.ts:10-38`. Pending 2026-10-30: Base 0.2.91 writer `gr-base-0290-invokeonly-1` adds opt-in `exposure: invoke`. Until it ships, the descriptor includes these three solely as exposed registry facts, never as CORE contract claims. Their native trusted operation identity and final-admission tests remain required.
 

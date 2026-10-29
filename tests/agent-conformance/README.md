@@ -60,9 +60,9 @@ are declared. Values are accessed with `{"$fixture":"NAME","pointer":"/FIELD"}`:
 | `definitionText` | Valid version-one native monitor definition document for the read-only recognition tool. |
 
 The incident helper issues a real native heartbeat key, submits an authenticated
-failure receipt, claims its scheduled slot with a newly issued and enrolled
-native runner, executes the production `probeHeartbeat` against that claim's
-immutable snapshot, and signs the result through `/api/runner/results`. It
+failure receipt, claims its scheduled slot with two newly issued and independently enrolled
+native runners, executes the production `probeHeartbeat` against that claim's
+immutable snapshot, and signs each vantage’s result through `/api/runner/results`. It
 requires accepted evidence and reads the resulting real incident. No target
 network traffic or invented successful observation is involved. Afterward the
 monitor is paused through the ordinary native scheduling door.
@@ -89,3 +89,15 @@ agent ID. Preparation has no agent-ID argument; after initial discovery it may
 read the native `/agents/api/agents` inventory. The proof callback receives the
 current agent ID explicitly. There is no fixture signer or privileged policy
 writer for manufacturing agent-specific policy limits.
+
+Fixture HTTP monitors select an explicitly enrolled private vantage. Their
+requests stay queued until that runner polls; CORE does not claim worker
+completion. Cleanup lists records through `/api/v1/monitors`, which never
+kicks hosted work. Discovery identifiers are retained from completed native
+responses and cancelled through their native door between phases.
+
+The journey hooks compare independently observed scheduled history around
+incident work. The native journey proves that exact-key manual replay queues
+one effect, unobserved work stays Unknown, and both signed failed vantages
+remain visible. Diagnostic audit reads print only operation names and error
+codes from the disposable installation. No assertion is suppressed.
