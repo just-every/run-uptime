@@ -8,12 +8,12 @@ The primary journey: an operator moves their monitors from UptimeRobot or Pingdo
 
 | Tier | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
-| Core | 13 | 71 | 11 | 95 |
+| Core | 16 | 68 | 11 | 95 |
 | Agent surface | 0 | 0 | 6 | 6 |
 | Later | 0 | 0 | 1 | 1 |
-| Full target | 13 | 71 | 18 | 102 |
+| Full target | 16 | 68 | 18 | 102 |
 
-Judged from the code and tests at commit `56497f8d6716dbe16437095f61a923266fd9b347` (24 October 2026). Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
+Judged from the code and tests at commit `886ad3662fec5bdd5c1cd4c7692a9d22d897529f` (29 October 2026). ERASURE-001 public owner erasure, retained stale edit and complete refusal preservation; other clause judgments retained. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
 
 ## Core
 
@@ -133,7 +133,7 @@ Core · published · **done** · Cites BASE-DATA-002
 
 #### ERASURE-001 — Operator-directed entity erasure
 
-Core · published · **partial** · Cites BASE-DATA-003, BASE-DATA-006
+Core · published · **done** · Cites BASE-DATA-003, BASE-DATA-006
 
 **Requirement.** An owner can erase a monitor with its evidence and dependent notification/heartbeat records, a destination with its credential copies, or an operator while another active owner remains. Monitor erasure requires typing the current monitor name. Each completed erasure returns a receipt with entity kind, per-table counts and completion time, and returns it only after the transaction containing the erasure, audit entry and portability fence succeeds. Requests based on stale monitor or destination state cannot re-create erased rows. The last active owner cannot be erased: local installations use `rer reset --yes`, while hosted installations require replacement by redeployment. Uptime has no R2 attachment feature; import-door uploads, plan snapshots and archive bytes are held in installation-local custody under the erasure rule in [Erasure and audit](docs/contract/safety-rules.md#erasure-and-audit). Already downloaded archives, messages already sent to external recipients and requests already in progress remain outside local erasure. See [Erasure and audit](docs/contract/safety-rules.md#erasure-and-audit).
 
@@ -141,8 +141,8 @@ Core · published · **partial** · Cites BASE-DATA-003, BASE-DATA-006
 1. Erase each supported entity through the owner API, including stale concurrent requests and the original owner with a successor.
 2. Inspect the atomic per-table receipt, audit and journal; the last owner is protected and an old archive with the later journal cannot resurrect erased records.
 
-**Evidence.** `src/domain/erasure.server.ts`; `tests/erasure-audit.mjs`; `tests/erasure-audit.mjs`; `tests/definitions-import.mjs`
-**Gap.** Monitor, destination and second-operator erasure, held delivery refusal after erasure, per-table receipts, anonymized audit, the last-owner refusal and journal fences on old archives remain asserted. Gap: erasing the original owner after a successor exists, resuming a captured concurrent monitor edit and complete durable-state rollback after a refused erasure lack assertions in the cited files. Local synthetic proof does not add real-export or hosted acceptance.
+**Evidence.** `tests/erasure-audit.mjs` — public owner erasure and later-journal restore: monitor, destination and second-operator erasure, populated per-table receipts, atomic audit and portability fences, held runner and notification refusal, anonymized actors and old-archive refusal; `tests/erasure-race-support.mjs` — erasureRaceProof, mounted once by the erasure journey: an actual owner PATCH based on revision 3 stays open across monitor erasure, resumes with refusal and cannot restore any durable row; unsigned, wrong-name and last-owner erasure refusals preserve all 197 durable tables, including populated transfer custody, receipts, audit and fences; `tests/alert-routes.mjs` — owned routes preview inheritance, deliver matched triggers and recoveries and retain auditable changes, calling `tests/catalog-routes-support.mjs` proveCatalogRoutes: original-owner erasure with an enrolled successor, anonymized retained ownership and surviving fresh sign-in and factor authority.
+**Gap.** None.
 
 #### AUDIT-001 — Durable anonymized audit
 
@@ -504,22 +504,22 @@ Core · target · **partial** · From HEARTBEAT-002 · Register R-3
 4. For Site24x7, review a 10-minute Trouble and 30-minute Down threshold plus an early-ping threshold; an owner-selected 25-minute period and 5-minute grace preserves the Down deadline, and the preview names Trouble and early-ping differences for explicit policy review.
 5. No Pingdom heartbeat entry or invented field is requested.
 
-**Evidence.** `src/domain/heartbeat-cron.mjs`; `src/domain/heartbeat.server.ts`; `src/domain/heartbeat-snippets.mjs`; `tests/signed-runner.mjs`; `tests/signed-runner.mjs`; `tests/signed-runner.mjs`; `docs/evidence/contracts/job-schedules/`
-**Gap.** Saved UptimeRobot/Better Stack period/grace previews are proven. Remaining: complete documented UptimeRobot interval/gracePeriod and Better Stack period/grace migration acceptance with alert-setting reconciliation; Site24x7 threshold review and explicit owner-selected local period/grace conversion; live source-account cutover. Pingdom has no heartbeat check; nothing to migrate.
+**Evidence.** `src/domain/heartbeat-cron.mjs`; `src/domain/heartbeat.server.ts`; `src/domain/heartbeat-snippets.mjs`; `tests/signed-runner.mjs`: signed job failure, duration and recovery; `tests/definitions-import.mjs`: reviewed saved heartbeat pairs and paused apply; `tests/signed-runner-heartbeat-import.mjs` proveImportedHeartbeatJobs (invoked by `tests/signed-runner.mjs`): both exact source documents through owner activation, new local URL, no early failure, signed 65-minute deadline incident, retained labeled late recovery, inert source authority and revoked local URL; `docs/evidence/contracts/job-schedules/`
+**Gap.** Saved UptimeRobot and Better Stack 60-minute period plus five-minute grace previews and paused apply, explicit owner activation with a newly issued local URL, signed local evaluation with no early failure and a 65-minute deadline incident, retained labeled late-success recovery, no ingress health changes or source-alert replay are proven. Remaining: remaining documented UptimeRobot and Better Stack source mappings and separate alert-setting reconciliation; Site24x7 threshold review and explicit owner-selected local period/grace conversion; live source-account cutover. Pingdom has no heartbeat check; nothing to migrate.
 
 ### Schedules, locations and maintenance
 
 #### SCHEDULE-001 — Explicit cadence, retries and confirmation
 
-Core · target · **partial**
+Core · target · **done**
 
 **Requirement.** Each revision records interval, timeout, retry budget, freshness, failure/recovery slot thresholds, fixed selected probes and assignments. Scheduled work cannot count retries as independent slots, invent missed checks or let manual runs alter cadence. Outages shorter than the sampling interval may be missed; SCHEDULE-002 sets the interval floor, on-time rate and alert latency.
 
 **Acceptance.**
 1. Save a cadence through the API/CLI, run retries, delay claims, edit the interval and make a manual pass; inspect due times, fixed coverage and incident thresholds through history.
 
-**Evidence.** `src/domain/policy.mjs`; `src/domain/schedule.ts`; `tests/signed-runner.mjs`; `tests/control-runtime.mjs`
-**Gap.** Carried-done audit: no cited test edits the interval and reads the next due times, or reads a slot's fixed probe selection back through history. A saved cadence, retries kept inside their slot, delayed claims at least one interval apart, a manual pass leaving scheduled state unchanged and incident thresholds are asserted.
+**Evidence.** `tests/control-runtime.mjs` — CONTROL-001 and RESTART-001: owner-saved cadence, retained retries within their original slots, scheduled confirmation and recovery thresholds, delayed claims and manual evidence; `tests/control-cadence-support.mjs` — proveCadenceRevision, called by that runtime journey: owner interval edit and revision and next-due readback, claims before and after due time with real signed runners, new-interval spacing, manual-pass isolation, delayed claims without catch-up checks, immutable old and new slot selections and assignments, and fixed coverage with a missing probe Unknown; `tests/signed-runner.mjs` — signed owner-to-runner lifecycle: authenticated signed completion, retained revision history and manual execution isolated from scheduled health.
+**Gap.** None.
 
 #### SCHEDULE-002 — Interval floor, on-time execution and alert latency
 
@@ -716,15 +716,15 @@ Core · target · **partial**
 
 #### FLOW-004 — Cross-browser and mobile transactions
 
-Core · target · **partial**
+Core · target · **done**
 
 **Requirement.** A buyer selects Chromium, Firefox or WebKit and desktop/mobile viewport/device profiles per journey; reports and consensus preserve that browser/device dimension. Missing browser capacity stays Unknown. Native iOS/Android app testing is a separate device-testing integration; mobile web paths are Uptime checks.
 
 **Acceptance.**
 1. Deploy the same checkout to all three browsers and a 390-pixel mobile profile, introduce a mobile-only failure and remove one browser; inspect per-profile failures and Unknown capacity without averaging them into success.
 
-**Evidence.** `src/domain/flow-profile.mjs`; `runners/src/flow/`; `src/domain/reports/flow-profiles.server.ts`; `tests/flow-profiles.mjs`; `tests/flow-profiles-browser.mjs`; `docs/evidence/contracts/browser-profiles/`
-**Gap.** Chromium, Firefox and WebKit checkout outcomes, mobile device/browser labels, mobile-only failure isolation and missing-browser Unknown capacity remain asserted. Gap: the 390-pixel mobile viewport lacks an assertion in the surviving cited files; the retained mobile label is not a viewport measurement.
+**Evidence.** `tests/flow-profiles.mjs` FLOW-004, loaded by `tests/flow-journey.mjs`: the same checkout runs in Chromium, Firefox and WebKit; an owned target measures its actual 390 × 844 CSS viewport in the real mobile runner, with the passing viewport expectation retained in signed history and matching report dimensions (`tests/flow-viewport-support.mjs` assertFlowViewport). The mobile-only failure stays Failing beside Healthy desktop profiles; removal of WebKit capacity stays Unknown with no substituted trace. The journey also refuses contradictory signed profile evidence without changes, preserves revision dimensions, and retains failing mobile evidence on inactive restore. `tests/flow-profiles-browser.mjs` flowProfilesBrowser and flowMissingBrowser inspect the saved profile, failed trace, reports and missing capacity through the owner console.
+**Gap.** None.
 
 ### Alert routing and delivery
 
