@@ -8,12 +8,12 @@ The primary journey: an operator moves their monitors from UptimeRobot or Pingdo
 
 | Tier | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
-| Core | 16 | 68 | 11 | 95 |
+| Core | 17 | 67 | 11 | 95 |
 | Agent surface | 0 | 0 | 6 | 6 |
 | Later | 0 | 0 | 1 | 1 |
-| Full target | 16 | 68 | 18 | 102 |
+| Full target | 17 | 67 | 18 | 102 |
 
-Judged from the code and tests at commit `886ad3662fec5bdd5c1cd4c7692a9d22d897529f` (29 October 2026). ERASURE-001 public owner erasure, retained stale edit and complete refusal preservation; other clause judgments retained. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
+Judged from the code and tests at commit `a9f5bc8c18b35b32f72e4aa84381f07200bd1c5d` (29 October 2026). ARCHIVE-001 later-erasure-journal evidence attribution reconciled against the existing journeys; source and tests unchanged, with runtime results established only by recorded Verify. Other clause judgments retained. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
 
 ## Core
 
@@ -94,7 +94,7 @@ Core · published · **partial**
 
 #### ARCHIVE-001 — Inactive validated restore
 
-Core · published · **partial** · Cites BASE-DATA-001
+Core · published · **done** · Cites BASE-DATA-001
 
 **Requirement.** Bounded versioned archives require integrity and semantic validation before transactional restore into empty product data, preserve historical evidence, erasure receipts and the permanent anonymized action audit, create paused current revisions, interrupt leases and quarantine alerts; installation-local sessions, keys, grants, request credential values, heartbeat authority, contact, webhook and Slack URLs, and signing keys are excluded; destination definitions and retained notification histories are portable, and imported evidence cannot establish current health or replay events. The source erasure journal fences copies made before a later erasure when that journal accompanies the restore. A local CLI receiving checkout must run setup first to establish its owner and settings. Supersedes `BASE-DATA-001` for installation authority and endpoint credentials only: the owner accepted this archive policy on 2026-10-13 (RL-1), as an intentional replacement, not BASE-DATA-001 equivalence. See [Portability and retention](docs/contract/safety-rules.md#portability-and-retention) and [Integrity and authority](docs/contract/safety-rules.md#integrity-and-authority).
 
@@ -102,8 +102,8 @@ Core · published · **partial** · Cites BASE-DATA-001
 1. Export a populated installation including TCP, DNS, TLS and domain monitors, establish a different receiving owner, import into empty product data, then export/read history and repeat the restore.
 2. Each protocol’s settings and immutable revisions/slots survive; definitions are paused, leases interrupted, delivery quarantined, secrets/authority absent, history retained and later erasure journals enforced; corrupt/nonempty imports write nothing.
 
-**Evidence.** `src/domain/archive.server.ts`; `src/domain/archive-monitor-validation.ts`; `tests/archive-roundtrip.mjs`; `tests/command-journey.mjs`; `docs/evidence/contracts/archives/`; `docs/evidence/contracts/release-0.4.0/`
-**Gap.** Carried-done audit: no cited test restores an archive together with a later erasure journal, so enforcement of later erasure journals is unasserted here. Export of TCP, DNS, TLS and domain monitors, a separate receiving owner, import into empty product data, re-export, repeated restore, exact settings, revisions and slots, paused definitions, interrupted leases, quarantined delivery, absent secrets and authority, retained history and refusal of corrupt and nonempty imports are asserted.
+**Evidence.** `src/domain/archive.server.ts`; `src/domain/archive-monitor-validation.ts`; `src/domain/archive-fence.server.ts`; `tests/archive-roundtrip.mjs` — archive move, corrupt and nonempty refusal, exact history, separate receiving owners and inactive repeated restore: populated TCP, DNS, TLS and domain definitions, immutable revisions and slots, paused monitors, interrupted leases, quarantined delivery and absent installation authority; `tests/erasure-audit.mjs` — public owner erasure and later-journal restore: exports the later journal at line 139, refuses the pre-erasure archive through the receiving-owner restore route at line 153 with an erased-record error and no restored monitors, retains auxiliary and operator fences at lines 154 to 158 and the chunked-transfer fence at lines 160 to 163, then restores the post-erasure archive and preserves source and receiving-owner audit at line 164; `tests/command-journey.mjs`; `docs/evidence/contracts/archives/`; `docs/evidence/contracts/release-0.4.0/`
+**Gap.** None.
 
 #### IMPORT-001 — Reviewed definition files and inactive imports
 

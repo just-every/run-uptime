@@ -487,7 +487,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "60af7638964e0e23cbfb47cd37dbe1c3304c595cd956d3d10e72e9bb4b86e4aa",
+      "sha256": "f8f1b4af407c486c04c0a1cd134c7dc38890a6b62aaff1ba9727776ec30d16b4",
       "executable": false
     },
     "AGENTS.md": {
@@ -511,7 +511,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "39997d8461d2cb93493cbc1887e15c89806b550f9509c4fbd0ed763c74bea340",
+      "sha256": "0fca2a5c1e6dda5ee39273960d5f53b7563bd4cdb3d279ff6a7a7324d8ccfc59",
       "executable": false
     },
     "DEMO.md": {
@@ -543,7 +543,7 @@
       "executable": false
     },
     "docs/CLAIMS.md": {
-      "sha256": "f2f6f917bba512135868b8be9534b11f040999ae78d91a41d153637aa9a819b3",
+      "sha256": "bd6e22e9f4d2d18cd6c6fcec9f260813911093b79cd7e74f0dbe53d551749477",
       "executable": false
     },
     "docs/contract/acceptance-before-cleanup.md": {
