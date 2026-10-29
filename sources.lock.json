@@ -487,7 +487,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "36b5bc79e2d3584d40e814888c20c044e4d3bbe39fb0080ed0ef5c0db37d791a",
+      "sha256": "d0f88d61879651877054fcaa4e04c92ed9b5aed2f07746766d859bdb3851cb8b",
       "executable": false
     },
     "AGENTS.md": {
@@ -511,7 +511,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "857db6aef2095f55aeea205882c123c823d41d8b0d28abfc307baffad329d066",
+      "sha256": "506d37afa0cd72bf96b480d59bffeefb8fa3b72f21000118f0def03ff81c304b",
       "executable": false
     },
     "DEMO.md": {
@@ -8431,7 +8431,7 @@
       "executable": false
     },
     "tests/ping-monitors.mjs": {
-      "sha256": "926a27e75396f43a1d4a15ddf0093740e47d7e4062bc4a782647ad53ed0f2178",
+      "sha256": "fcb895e10ea64cb765e4ef3e4f5a9326b856e87c8a7b0947a4bf3e6b7ac3b0ad",
       "executable": false
     },
     "tests/ping-routing.mjs": {

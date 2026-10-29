@@ -8,12 +8,12 @@ The primary journey: an operator moves their monitors from UptimeRobot or Pingdo
 
 | Tier | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
-| Core | 14 | 70 | 11 | 95 |
+| Core | 15 | 69 | 11 | 95 |
 | Agent surface | 0 | 0 | 6 | 6 |
 | Later | 0 | 0 | 1 | 1 |
-| Full target | 14 | 70 | 18 | 102 |
+| Full target | 15 | 69 | 18 | 102 |
 
-Judged from the code and tests at commit `85a34f9214bd9396ac186cf8555b8edc1d28b8f8` (29 October 2026). FLOW-004 viewport proof; other clause judgments retained. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
+Judged from the code and tests at commit `85a34f9214bd9396ac186cf8555b8edc1d28b8f8` (29 October 2026). FLOW-004 viewport proof; other clause judgments retained. PING-001 is judged from the code and tests at `HEAD` of this pinned candidate; the exact commit and recorded Verify accompany its guarded landing receipt. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
 
 ## Core
 
@@ -376,15 +376,15 @@ Core · target · **partial**
 
 #### PING-001 — ICMP reachability and packet quality
 
-Core · target · **partial**
+Core · target · **done**
 
 **Requirement.** ICMP ping monitors retain bounded packet loss, round-trip latency and configured thresholds by location for IPv4/IPv6. ICMP blocked by policy is shown explicitly rather than inferred from HTTP success.
 
 **Acceptance.**
 1. Configure a ping target, vary loss and latency, disable ICMP and stop a probe; inspect protocol-specific results and Unknown probe coverage.
 
-**Evidence.** `runners/src/icmp-probe.mjs`; `src/domain/protocol/`; `tests/ping-monitors.mjs`; `tests/ping-monitors.mjs`; `docs/evidence/contracts/ping/`
-**Gap.** Configured ICMP loss and latency, threshold failures, disabled or unavailable ICMP, and initial Unknown probe coverage are asserted. Unknown coverage after stopping a previously running probe is not asserted; the cited stopped-probe case only creates an unchecked monitor.
+**Evidence.** `tests/ping-monitors.mjs` — PING-001 signed ICMP journey: owner-configured IPv4 and IPv6 targets, retained packet loss and round-trip latency thresholds, blocked and unavailable ICMP, confirmed failure and recovery, and a previously Healthy assigned probe stopped past its saved freshness deadline; public overview and history show Unknown with Incomplete coverage, the original denominator and unchanged observation, without replacement checks or fabricated recovery.
+**Gap.** None.
 
 #### DNS-001 — DNS records and change detection
 
