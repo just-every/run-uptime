@@ -496,7 +496,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "d2c9a2be124235737e37c066313e9d57d6f9664055e94df0c9883763d4ac2f02",
+      "sha256": "75f439caa5ed922ce669bebeda4b5286e37b6cec8dad1184931abb530399a217",
       "executable": false
     },
     "agent-surface.json": {
@@ -524,7 +524,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "3ee78aa20bdaa585432a199f6453f2501d426fd5cacc715c045b69ce49bdc7e8",
+      "sha256": "b3076189059985ed9263363ecfc927c88a7b67f89639d76632947ebc8d3530f8",
       "executable": false
     },
     "DEMO.md": {
@@ -556,7 +556,7 @@
       "executable": false
     },
     "docs/CLAIMS.md": {
-      "sha256": "313c055ce952b69a6cea97cb29e6e1f5f28af1437ff64c44dd983cf98c319c2b",
+      "sha256": "3b0cfa2298f9e14f6de0768b8cf4c5c602bde6d0270a5252fed60ac930f392ae",
       "executable": false
     },
     "docs/contract/acceptance-before-cleanup.md": {
@@ -8627,8 +8627,12 @@
       "sha256": "ca7e3b8ad53ceb9f549ca7d8b92ce14c9a1c4861248eaa0c0bc9e6f148482b83",
       "executable": false
     },
+    "tests/control-cadence-support.mjs": {
+      "sha256": "a6289bd15ecb0277245f81b35efc50b61dfdf881badf52b52e955db7f382277d",
+      "executable": false
+    },
     "tests/control-runtime.mjs": {
-      "sha256": "5807ac52830beaec68bec872afff3f8c23b88a9b64ee23e3cd7fc38651b9ae21",
+      "sha256": "b542d245fbdad3cec649acf3f07a253b272cb5374654768651da4cbb47824fc3",
       "executable": false
     },
     "tests/definitions-ci-support.mjs": {

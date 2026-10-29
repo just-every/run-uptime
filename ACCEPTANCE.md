@@ -8,12 +8,12 @@ The primary journey: an operator moves their monitors from UptimeRobot or Pingdo
 
 | Tier | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
-| Core | 14 | 70 | 11 | 95 |
+| Core | 15 | 69 | 11 | 95 |
 | Agent surface | 0 | 0 | 19 | 19 |
 | Later | 0 | 0 | 1 | 1 |
-| Full target | 14 | 70 | 31 | 115 |
+| Full target | 15 | 69 | 31 | 115 |
 
-Judged from the code and tests at commit `85a34f9214bd9396ac186cf8555b8edc1d28b8f8` (29 October 2026). FLOW-004 viewport proof; other clause judgments retained. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
+Judged from the code and tests at commit `85a34f9214bd9396ac186cf8555b8edc1d28b8f8` (29 October 2026). FLOW-004 viewport proof and SCHEDULE-001 cadence proof; other clause judgments retained. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
 
 ## Core
 
@@ -511,15 +511,15 @@ Core · target · **partial** · From HEARTBEAT-002 · Register R-3
 
 #### SCHEDULE-001 — Explicit cadence, retries and confirmation
 
-Core · target · **partial**
+Core · target · **done**
 
 **Requirement.** Each revision records interval, timeout, retry budget, freshness, failure/recovery slot thresholds, fixed selected probes and assignments. Scheduled work cannot count retries as independent slots, invent missed checks or let manual runs alter cadence. Outages shorter than the sampling interval may be missed; SCHEDULE-002 sets the interval floor, on-time rate and alert latency.
 
 **Acceptance.**
 1. Save a cadence through the API/CLI, run retries, delay claims, edit the interval and make a manual pass; inspect due times, fixed coverage and incident thresholds through history.
 
-**Evidence.** `src/domain/policy.mjs`; `src/domain/schedule.ts`; `tests/signed-runner.mjs`; `tests/control-runtime.mjs`
-**Gap.** Carried-done audit: no cited test edits the interval and reads the next due times, or reads a slot's fixed probe selection back through history. A saved cadence, retries kept inside their slot, delayed claims at least one interval apart, a manual pass leaving scheduled state unchanged and incident thresholds are asserted.
+**Evidence.** `tests/control-runtime.mjs` — CONTROL-001 and RESTART-001: owner-saved cadence, retained retries within their original slots, scheduled confirmation and recovery thresholds, delayed claims and manual evidence; `tests/control-cadence-support.mjs` — proveCadenceRevision, called by that runtime journey: owner interval edit and revision and next-due readback, claims before and after due time with real signed runners, new-interval spacing, manual-pass isolation, delayed claims without catch-up checks, immutable old and new slot selections and assignments, and fixed coverage with a missing probe Unknown; `tests/signed-runner.mjs` — signed owner-to-runner lifecycle: authenticated signed completion, retained revision history and manual execution isolated from scheduled health.
+**Gap.** None.
 
 #### SCHEDULE-002 — Interval floor, on-time execution and alert latency
 
