@@ -487,7 +487,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "190aa997e0997a018393c5911d906db79785110c6eee008d7bbca24005243269",
+      "sha256": "14c6f1459410d8502cf86bc96ac523a0a51c0ad55d75afcd42b93f9b4c32732f",
       "executable": false
     },
     "AGENTS.md": {
@@ -511,7 +511,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "1adbfe00d0ef6d0292a98d988c67d7a873a216ec819d646d73468f2ad861c9e4",
+      "sha256": "19783be75b6904bfb91a565d1f55c9ee3a39ebcd92f68f072606096e68af99e3",
       "executable": false
     },
     "DEMO.md": {
@@ -8255,7 +8255,7 @@
       "executable": false
     },
     "tests/hosted-alerts.mjs": {
-      "sha256": "83d8dde9379c29edfa6975ecb6905c1660c8faa70861c0071562409fdcaa0d2e",
+      "sha256": "cd96c713da55f2b48d7030450fa03a14a3a8dfbc72bb18a8f3e3a650b5620431",
       "executable": false
     },
     "tests/hosted-auth-browser.mjs": {
@@ -8283,11 +8283,11 @@
       "executable": false
     },
     "tests/incident-mention-recovery-support.mjs": {
-      "sha256": "cf883daa16dc0bbc400dd0e25175bbd055ea5ef9f6999b5bafbc682fe5049524",
+      "sha256": "2c2e10ded687f1b3401615ae6ab5cf429ccc501268ce9b404e33f8646c30247c",
       "executable": false
     },
     "tests/incident-work.mjs": {
-      "sha256": "5981eea5cfbaa05f5b5691c9ed126f705a1a6c841ea9125655b0c6889f495cad",
+      "sha256": "8b2017e8f66c2374eee926b9ec348f6d359a1de134c3cab598b0805515982216",
       "executable": false
     },
     "tests/installer-support.mjs": {

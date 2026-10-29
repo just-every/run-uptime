@@ -11,11 +11,12 @@ import {splitSql} from './migration-support.mjs';
 // Only public DNS/HTTP network edges are faked.
 const directory=await mkdtemp(join(tmpdir(),'uptime-hosted-alerts-')),origin='https://uptime.example.test';
 const headerSecret=randomBytes(32).toString('hex');
-const received=[];let requests=0;
+const received=[],mail=[];let requests=0;
+const bindings={...testAuthBindings,UPTIME_LOCAL_REVIEW:'false',UPTIME_ORIGIN:origin,MAIL_PROVIDER:'sendgrid',SENDGRID_API_KEY:'synthetic-uptime-550'};
 let worker;
 try{
- worker=await hostedRuntime(directory,{...testAuthBindings,UPTIME_LOCAL_REVIEW:'false',UPTIME_ORIGIN:origin,MAIL_PROVIDER:'sendgrid',SENDGRID_API_KEY:'test-only-provider-key'},async request=>{
-  requests++;const url=new URL(request.url);if(url.hostname==='api.sendgrid.com')return new Response(null,{status:202});
+ const outbound=async request=>{
+  requests++;const url=new URL(request.url);if(url.hostname==='api.sendgrid.com'){mail.push(await request.json());return new Response(null,{status:202})}
   if(url.origin==='https://cloudflare-dns.com'){
    const name=url.searchParams.get('name'),a=url.searchParams.get('type')==='A';
    return Response.json(['gone.example.test','synthetic-uptime-401.test'].includes(name)?{Status:3}:{Status:0,Answer:[{type:a?1:28,data:a?'93.184.215.14':'2606:2800:21f:cb07:6820:80da:af6b:8b2c'}]});
@@ -26,7 +27,8 @@ try{
   }
   assert.ok(url.origin==='https://example.com'||url.hostname.endsWith('.example.test'),'only declared targets and receivers leave the Worker');
   return url.hostname==='down.example.test'?new Response('maintenance',{status:503}):new Response('service ready',{status:200,headers:{'content-type':'text/plain'}});
- });
+ };
+ worker=await hostedRuntime(directory,bindings,outbound);
  const db=await worker.getD1Database('DB');
  for(const file of (await readdir('migrations')).filter(f=>f.endsWith('.sql')).sort())for(const sql of splitSql(await readFile(join('migrations',file),'utf8')))await db.prepare(sql).run();
  const call=(path,body,cookie,method=body===undefined?'GET':'POST')=>worker.dispatchFetch('http://127.0.0.1:15504/',{method:'POST',redirect:'manual',headers:{'content-type':'application/json'},body:JSON.stringify({url:origin+path,method,headers:{host:'uptime.example.test',origin,'content-type':'application/json','cf-connecting-ip':'192.0.2.1',...(cookie?{cookie}:{})},...(body===undefined?{}:{body:JSON.stringify(body)})})});
@@ -90,6 +92,32 @@ try{
  requests=0;await scheduled();assert.ok(requests<=35);
  checked=await histories();
  assert.ok(checked.every(h=>h.length===1&&h[0].observations.every(o=>o.outcome==='pass')),'deferred monitors ran next, and nothing was recorded as a failure');
+ // Hold the ordinary console-kick lease while queueing work through public doors.
+ // The next real Cron invocation must share its outbound budget across checks,
+ // ordinary email and incident mentions, leaving excess mentions unreserved.
+ await db.prepare("UPDATE monitoring_watch SET at=?,outcome='running' WHERE id='console-worker-kick'").bind(Date.now()+3600000).run();
+ const self=await json(await call('/api/access/self',undefined,cookie));
+ const inbox=await json(await call('/api/notifications/destinations',{name:'synthetic-uptime-551',kind:'email',address:testAuthBindings.OWNER_EMAIL,enabled:false},cookie));
+ const emailJobs=[];
+ for(let index=0;index<10;index++)emailJobs.push(await json(await call(`/api/notifications/destinations/${inbox.id}/test`,{},cookie)));
+ const incident=(await json(await call(`/api/monitors/${down.id}/incidents`,undefined,cookie)))[0];
+ await db.prepare("CREATE TRIGGER synthetic_mention_interruption BEFORE UPDATE OF outcome ON incident_mentions WHEN OLD.outcome='pending' AND NEW.outcome='submitting' BEGIN SELECT RAISE(ABORT,'synthetic-uptime-552'); END").run();
+ for(let index=0;index<11;index++)assert.equal((await call(`/api/incidents/${incident.id}/comments`,{text:`synthetic-uptime-${560+index}`,mentions:[self.id]},cookie)).status,503);
+ await db.prepare('DROP TRIGGER synthetic_mention_interruption').run();
+ const queued=(await db.prepare("SELECT * FROM incident_mentions WHERE outcome='pending'").all()).results;assert.equal(queued.length,11);
+ await worker.dispose();worker=await hostedRuntime(directory,bindings,outbound,{now:Date.now()+61000});
+ const resumedDB=await worker.getD1Database('DB'),mentions=()=>mail.filter(message=>message.subject==='Uptime incident mention');
+ requests=0;await scheduled();
+ assert.ok(requests<=50,'the Cron invocation stays within the combined Worker outbound budget');
+ assert.ok(mentions().length>0&&mentions().length<queued.length,'busy checks and email leave some mention submissions for a later invocation');
+ const remaining=(await resumedDB.prepare("SELECT * FROM incident_mentions WHERE outcome='pending'").all()).results;
+ assert.equal(remaining.length,queued.length-mentions().length);assert.ok(remaining.every(row=>row.submitted_at===null&&row.finished_at===null));
+ const notifications=await json(await call('/api/notifications',undefined,cookie));
+ assert.ok(emailJobs.every(job=>notifications.deliveries.some(delivery=>delivery.id===job.deliveryId&&delivery.state==='accepted')));
+ await scheduled();await scheduled();
+ assert.equal(mentions().length,queued.length);
+ for(const row of queued)assert.equal(mentions().filter(message=>message.custom_args.rer_delivery_id===row.id).length,1);
+ console.log('PASS hosted Cron shares its outbound budget with incident mentions, defers unreserved work and submits each stable delivery ID once');
  console.log('PASS hosted Worker sends webhook and Slack alerts without a runner, fails unresolved names and defers checks beyond its request budget');
  // The same public notification door in demo mode reports acceptance without sending to recipients.
  await worker.dispose();worker=null;let demoSends=0;await mkdir(join(directory,'demo'));

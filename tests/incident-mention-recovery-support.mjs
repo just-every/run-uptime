@@ -93,6 +93,7 @@ export async function proveMentionRecovery(f,source,members,edge,restart){
  assert.equal(edge.mentions.length,interruptedBefore,'an interrupted provider handover never replays');
  assert.deepEqual((await f.DB.prepare('SELECT * FROM incident_mentions WHERE id=?').bind(submitted[0].id).first()),submitted[0]);
  assert.equal((await ok(path)).comments.find(row=>row.text==='synthetic-uptime-540').mentions[0].outcome,'uncertain');
+ await hold();await pending('synthetic-uptime-542');await release();
  assert.deepEqual(await machine(),before,'recovered human mentions never change monitoring evidence');
  await ok('/api/monitors/'+monitor.id+'/erase',{body:{name:monitor.definition.name}});
  const erasedBefore=edge.mentions.length;await schedule();assert.equal(edge.mentions.length,erasedBefore,'monitor erasure removes pending and reserved dispatch work');
