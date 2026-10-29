@@ -101,8 +101,25 @@ export async function proveSourceHistory({origin,cookie,db}){
  const incidentStart=f.cutover+day,incidentEnd=incidentStart+91*1000;
  const json=JSON.stringify({monitorId:sourceId,monitorName:sourceId,extractedAt:iso(f.end),coverageFrom:iso(f.from),coverageTo:iso(f.end),incidents:{data:[{id:'synthetic-uptime-203',monitor:{id:sourceId,friendlyName:sourceId},startedAt:iso(incidentStart),resolvedAt:iso(incidentEnd),duration:91,includeInReports:true,rootCause:{url:'https://history.example.test/health',httpResponseCode:503,requestHeaders:{authorization:'synthetic-uptime-207'},responseHeaders:{'content-type':'text/plain'}},comments:[{id:1,comment:'Synthetic comment',created:iso(incidentEnd),user:{id:1,fullName:'Synthetic source author'}}]}],nextLink:null},responseTimes:{time_series:[{timestamp:iso(incidentStart),value:123}]}});
  const oversizedThread=JSON.parse(json);oversizedThread.incidents.data[0].comments=Array.from({length:3},()=>({comment:'x'.repeat(8000)}));const threadRefusal=await f.client('preview',{text:JSON.stringify(oversizedThread)});assert.equal(threadRefusal.status,400);assert.match(threadRefusal.body.error,/combined comments/);
- const jp=await f.client('preview',{text:json});assert.equal(jp.status,200,JSON.stringify(jp.body));const ja=await f.client('apply',{text:json,digest:jp.body.digest});assert.equal(ja.status,200,JSON.stringify(ja.body));assert.equal(ja.body.addedRows,2);
+ // The documented detail response has no monitor identity; comment bodies come
+ // from a separate paginated response, rather than the list's commentsCount.
+ const capture=JSON.parse(json),incident=capture.incidents.data[0],thread=incident.comments;
+ delete incident.monitor;delete incident.comments;capture.comments={[incident.id]:{data:thread,nextLink:null}};
+ const summary=structuredClone(capture);delete summary.comments;delete summary.incidents.data[0].rootCause;summary.incidents.data[0].commentsCount=1;
+ const summaryPreview=await f.client('preview',{text:JSON.stringify(summary)});assert.equal(summaryPreview.status,200);
+ assert.ok(summaryPreview.body.warnings.some(w=>w.includes('comment bodies')&&w.includes('/incidents/{id}/comments')),'list preview names unavailable comment bodies and their source');
+ assert.ok(summaryPreview.body.warnings.some(w=>w.includes('rootCause')&&w.includes('/incidents/{id}')),'list preview names the missing detailed root cause');
+ const incomplete=structuredClone(capture);incomplete.comments[incident.id].nextLink='https://api.uptimerobot.com/v3/incidents/synthetic-uptime-203/comments?cursor=synthetic-uptime-208';
+ for(const resource of ['preview','apply']){const refused=await f.client(resource,{text:JSON.stringify(incomplete),digest:summaryPreview.body.digest});assert.equal(refused.status,400);assert.match(refused.body.error,/comments: more source pages remain/)}
+ assert.equal(await evidenceSnapshot(db),before,'incomplete comments cannot change native monitoring');
+ const complete=JSON.stringify(capture),jp=await f.client('preview',{text:complete});assert.equal(jp.status,200,JSON.stringify(jp.body));assert.deepEqual(jp.body.warnings,[]);
+ const ja=await f.client('apply',{text:complete,digest:jp.body.digest});assert.equal(ja.status,200,JSON.stringify(ja.body));assert.equal(ja.body.addedRows,2);
  const overlap=await read(nativePath);assert.equal(overlap.sourceHistory.sourceIncidents.length,4);assert.equal(overlap.sourceHistory.blended.notPassingMs,3799000,'post-cutover source downtime stays outside blended figure');assert.equal(overlap.sourceHistory.sourceResponseTimes[0].responseMs,123);assert.match(overlap.sourceHistory.sourceIncidents.at(-1).comments,/Synthetic source author/);assert.match(overlap.sourceHistory.sourceIncidents.at(-1).rootCause,/httpResponseCode/);assert.match(overlap.sourceHistory.sourceIncidents.at(-1).rootCause,/history.example.test/);assert.ok(!JSON.stringify(overlap).includes('synthetic-uptime-207'),'source request credentials are withheld');
+ const sourceIncidents=await read('/api/v1/incidents?'+new URLSearchParams({source:'UptimeRobot',monitor:f.id,from:String(f.from),to:String(f.end)})),sourceIncident=sourceIncidents.items.find(row=>row.sourceRowId===incident.id);
+ assert.equal(sourceIncident.label,'source: UptimeRobot');assert.deepEqual(JSON.parse(sourceIncident.comments),[{text:'Synthetic comment',author:'Synthetic source author',createdAt:incidentEnd}]);
+ assert.equal(sourceIncident.rootCause.text,overlap.sourceHistory.sourceIncidents.at(-1).rootCause);
+ const replay=await f.client('preview',{text:complete}),reapplied=await f.client('apply',{text:complete,digest:replay.body.digest});assert.equal(reapplied.status,200);assert.equal(reapplied.body.addedRows,0);
+ assert.equal(await evidenceSnapshot(db),before,'source comments, detailed causes and replay cannot acquire native incident or send authority');
  assert.equal((await db.prepare('SELECT COUNT(*) n FROM oa_operators WHERE display_name=?').bind('Synthetic source author').first()).n,0);
  const sourceTimes=await read(`/api/v1/monitors/${encodeURIComponent(f.id)}/response-times?${f.query}`);assert.equal(sourceTimes.sourceSamples[0].responseMs,123);assert.equal(sourceTimes.sourceSamples[0].label,'source: UptimeRobot');
  await proveHistorySourceReads(f);

@@ -2,7 +2,7 @@ import {DefinitionFileError} from '../definitions/format.ts'
 export const HISTORY_ROW_LIMIT=5000
 export const SOURCE='UptimeRobot'
 export type HistoryRow={sourceMonitorId:string;sourceRowId:string;name:string;kind:'down'|'up'|'incident'|'response';startedAt:number;endedAt:number|null;responseMs:number|null;sourceDurationSeconds:number|null;author:string;comments:string;rootCause:string;included:boolean;line:string}
-export type HistoryFile={rows:HistoryRow[];extractedAt:number|null;coverageFrom:number;coverageTo:number;coverageExplicit:boolean;columns:string[]}
+export type HistoryFile={rows:HistoryRow[];extractedAt:number|null;coverageFrom:number;coverageTo:number;coverageExplicit:boolean;columns:string[];warnings?:string[]}
 export const refuse=(message:string):never=>{throw new DefinitionFileError(message)}
 export function sourceText(value:unknown,label:string){
  if(value===undefined||value===null)return ''

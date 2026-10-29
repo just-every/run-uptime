@@ -20,7 +20,8 @@ try{
  assert.equal((await f.state(monitor.id)).targetState,'Failing','scheduled evidence confirms a real incident');
  const list=await ok(`/api/monitors/${monitor.id}/incidents`);assert.equal(list.length,1);const id=list[0].id,path=`/api/incidents/${encodeURIComponent(id)}`;
  let detail=await ok(path);assert.equal(detail.machineState,'open');assert.equal(detail.timeline[0].kind,'confirmation');
- const snapshot=async()=>Object.fromEntries(await Promise.all(['monitors','revisions','slots','observations','outbox'].map(async table=>[table,(await f.DB.prepare(`SELECT * FROM ${table} ORDER BY rowid`).all()).results])));
+ const metricTo=Date.now(),metricQuery=new URLSearchParams({period:'custom',from:String(metricTo-3600000),to:String(metricTo),timeZone:'UTC',bucket:'1h',sla:'99.9'});
+ const snapshot=async()=>{const report=await ok(`/api/v1/monitors/${monitor.id}/report?${metricQuery}`);return {...Object.fromEntries(await Promise.all(['monitors','revisions','slots','observations','outbox'].map(async table=>[table,(await f.DB.prepare(`SELECT * FROM ${table} ORDER BY rowid`).all()).results]))),availability:report.availability,sla:report.sla}};
  const machineBefore=await snapshot(),workSnapshot=async()=>Object.fromEntries(await Promise.all(['incident_work','incident_comments','incident_comment_history','incident_timeline','incident_settings','uptime_audit'].map(async table=>[table,(await f.DB.prepare(`SELECT * FROM ${table} ORDER BY rowid`).all()).results])));
  const call=authRequest(f.origin);
  // Prepare role fixtures, then obtain genuine native email-link sessions. Account
@@ -73,7 +74,9 @@ try{
  await resumed.dispose();resumed=await startLocalWorker({port:Number(new URL(f.origin).port),persist:f.directory,bindings:f.bindings,outboundService:mail.fetch});f.DB=await resumed.getD1Database('DB');
  assert.deepEqual((await ok('/api/v1/incidents/'+encodeURIComponent(id))).timeline.filter(row=>row.kind==='owner_assigned'),assignedBeforeRestart,'responder ownership actor/order/time survive restart');
  // Round-trip an edited comment and human root cause through owner archive routes.
- const beforeExport=await ok(path),archive=await ok('/api/archive');const restored=await migratedWorker({persist:destination,bindings:f.bindings,outboundService:mail.fetch});fresh=restored.worker;
+ const beforeExport=await ok(path),exported=await ok(path+'/failure-report');
+ assert.deepEqual(exported.comments,beforeExport.comments,'incident export keeps comments and every edit');assert.deepEqual(exported.rootCause,beforeExport.rootCause,'incident export keeps the private root cause');
+ const archive=await ok('/api/archive');const restored=await migratedWorker({persist:destination,bindings:f.bindings,outboundService:mail.fetch});fresh=restored.worker;
  const freshOrigin=(await fresh.ready).origin,freshCookie=await signInOwner(freshOrigin,{bindings:f.bindings});
  const freshRequest=async(suffix,method='GET',body)=>{const response=await fetch(freshOrigin+suffix,{method,headers:{cookie:freshCookie,origin:freshOrigin,'content-type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});const data=await response.json();assert.equal(response.status,200,JSON.stringify(data));return data};
  const restoreStart=Date.now();await freshRequest('/api/restore','POST',{archive});const restoreEnd=Date.now(),roundtrip=await freshRequest(path);
@@ -82,8 +85,10 @@ try{
  assert.equal((await(await fresh.getWorker()).scheduled()).outcome,'ok');assert.equal(mail.mentions.length,collaboration.sent,'scheduled dispatch cannot replay inactive restored mention history');
  await proveMentionErasure(f,path,collaboration);
  await ok(`${path}/comments/${comment.id}?version=2`,{method:'DELETE'});detail=await ok(path);assert.equal(detail.comments.find(row=>row.id===comment.id).text,null);assert.deepEqual(detail.comments.find(row=>row.id===comment.id).history,[]);assert.ok(detail.timeline.some(entry=>entry.kind==='comment_deleted'));
+ const retainedComment=await ok(path+'/comments',{body:{text:'Synthetic retained colleague account'},headers:{cookie:colleagueCookie}});
  const erased=await ok(`/api/operators/${colleague.id}/erase`,{body:{}});assert.equal(erased.erased,true);detail=await ok(path);assert.equal(detail.comments.find(row=>row.id===comment.id).author.displayName,'Former member');
- const receipt=await ok(`/api/monitors/${monitor.id}/erase`,{body:{name:monitor.definition.name}});for(const table of ['incident_work','incident_comments','incident_timeline'])assert.ok(receipt.receipt.counts[table]>0,`${table} counted in erasure`);
+ const formerComment=detail.comments.find(row=>row.id===retainedComment.id);assert.equal(formerComment.text,'Synthetic retained colleague account');assert.deepEqual(formerComment.author,{id:null,displayName:'Former member'});
+ const receipt=await ok(`/api/monitors/${monitor.id}/erase`,{body:{name:monitor.definition.name}});for(const table of ['incident_work','incident_comments','incident_comment_history','incident_timeline'])assert.ok(receipt.receipt.counts[table]>0,`${table} counted in erasure`);
  assert.equal((await f.request(path)).status,404);for(const table of ['incident_work','incident_comments','incident_comment_history','incident_timeline','incident_mentions','incident_mention_authority'])assert.equal((await f.DB.prepare(`SELECT COUNT(*) n FROM ${table} WHERE monitor_id=?`).bind(monitor.id).first()).n,0);
  const audits=(await f.DB.prepare("SELECT * FROM uptime_audit WHERE action LIKE 'incident_%'").all()).results;assert.ok(audits.length);assert.ok(!JSON.stringify(audits).includes('php-fpm'),'audit contains opaque references only');
  await proveOwnIncidentCorrelation(f);
