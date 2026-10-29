@@ -12,6 +12,7 @@ import {join} from 'node:path';
 import {statuspageEdge,applicationUrl,statusOrigin,canaryUrl} from './dependency-status-fixture.mjs';
 import {proveServiceCatalog} from './service-catalog-journey.mjs';
 import {proveDiscoverySources} from './discovery-sources-journey.mjs';
+import {provePublicDnsDiscovery} from './discovery-public-dns-support.mjs';
 let f;
 before(async()=>{f=await fixture()});
 after(async()=>{await f?.close()});
@@ -177,5 +178,8 @@ test("Discover a site, review and adopt monitoring, follow its dependency, and r
 {
  const launch=()=>chromium.launch({...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{}),headless:true,args:['--no-sandbox','--disable-gpu','--use-mock-keychain','--password-store=basic'],...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{})});
  await proveDiscoverySources({launch,evidence:process.env.UPTIME_DISCOVERY_EVIDENCE});
+ // After controlled source edges close, qualify the publicly delegated RER domain
+ // through the real runner's unchanged system resolver and public transport.
+ await provePublicDnsDiscovery({launch,evidence:process.env.UPTIME_DISCOVERY_EVIDENCE});
 }
 });

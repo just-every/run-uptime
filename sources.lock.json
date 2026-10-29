@@ -487,7 +487,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "ad1c171de5bdcbbae42106aa4476a4021b8e3cad9eab1763d7e363de2774b041",
+      "sha256": "56cd7c6dfb22e5d6c3bd2ca7c8c8f4929973ec5ab4e9097f2d07a16efaf5ec30",
       "executable": false
     },
     "AGENTS.md": {
@@ -511,7 +511,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "ed4e3f6ef238b9cd9157bcc26c9c8bb9b04892a9f414ef6a6fdd5ae1d46b4164",
+      "sha256": "854d3ffaabd01b4d4a7fd0fae7350a3e64ddf0f97f21f4ebe4a82b5b4040cf00",
       "executable": false
     },
     "DEMO.md": {
@@ -8155,7 +8155,11 @@
       "executable": false
     },
     "tests/discovery-jobs.mjs": {
-      "sha256": "7f376f69299491af852880e1fba5a1459057f3d285600dc106ddad0cd5fef74b",
+      "sha256": "d43c8b2a78837614773542fe5d685f8f1dc074848a1ac77d813660868d0f7d19",
+      "executable": false
+    },
+    "tests/discovery-public-dns-support.mjs": {
+      "sha256": "6ecb0dd42b472038c3ecaef85f98bc472265f226bdd8b537a9f55d6538622225",
       "executable": false
     },
     "tests/discovery-sources-fixture.mjs": {
