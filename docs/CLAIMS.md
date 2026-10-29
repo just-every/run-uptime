@@ -12,8 +12,8 @@ A claim is done when every clause behind it is done, missing when every one is m
 | 4 | Every green dot is a check that actually ran and passed | `EVIDENCE-001` partial; `STATE-001` partial | partial |
 | 5 | You choose how many failed checks in a row open an incident and how many passes close it | `SCHEDULE-001` done; `STATE-001` partial | partial |
 | 6 | Each incident keeps the evidence that justified it: the status, timing and the rule that failed on every check | `EVIDENCE-001` partial; `HTTP-001` partial | partial |
-| 7 | HTTP and HTTPS checks can assert on status, body text, headers, JSON values and response time | `HTTP-001` partial; `API-001` partial | partial |
-| 8 | Keyword checks look for the words a page should contain | `HTTP-001` partial; `API-001` partial | partial |
+| 7 | HTTP and HTTPS checks can assert on status, body text, headers, JSON values and response time | `HTTP-001` partial; `API-001` done | partial |
+| 8 | Keyword checks look for the words a page should contain | `HTTP-001` partial; `API-001` done | partial |
 | 9 | Heartbeats notice when a cron job or backup stops reporting in | `HEARTBEAT-001` partial; `HEARTBEAT-002` partial | partial |
 | 10 | Send incidents and recoveries by email, to a Slack incoming webhook, or to a signed JSON webhook, and every enabled destination covers every monitor in your installation | `NOTIFY-001` partial; `DELIVERY-001` partial | partial |
 | 11 | Run Uptime on your own computer: open-source monitoring you run yourself | `PUBLIC-001` partial; `STARTUP-001` partial | partial |
