@@ -28,8 +28,8 @@ Core · published · **partial**
 **Acceptance.**
 1. Create an HTTP(S) and keyword monitor through the owner API, run scheduled hosted and signed runner work against a controlled HTTPS service, fail its status/text, recover it and inspect the immutable assertions and transport evidence.
 
-**Evidence.** `src/domain/worker-http.server.ts`; `runners/src/probes.mjs`; `tests/tls-auth.mjs`; `tests/probe-native-evidence.mjs`; `docs/evidence/contracts/release-0.4.0/`
-**Gap.** Retained assertions cover saved HTTP criteria, signed HTTP status/text failures, recovery and immutable assertion history. Gap: keyword-type monitor creation, scheduled hosted HTTPS work, signed runner HTTPS work and retained transport evidence by category lack assertions in the cited files; the HTTPS assertions called by tests/tls-auth.mjs are only in uncited helper files.
+**Evidence.** `src/domain/worker-http.server.ts`; `runners/src/probes.mjs`; `tests/tls-auth.mjs`; `tests/probe-native-evidence.mjs`; `docs/evidence/contracts/release-0.4.0/`; `tests/keyword-monitor-journey.mjs` keywordMonitorJourney: owner keyword creation and saved assertion readback, scheduled signed HTTPS status and required-text failures, separate recovered incidents, immutable revision and assertion history, and bounded response metadata.
+**Gap.** Retained assertions cover saved HTTP criteria, signed HTTP status and text failures, recovery and immutable assertion history, including the explicit keyword journey. Gap: scheduled hosted HTTPS work, the remaining signed runner HTTPS qualification and retained transport evidence by category lack assertions in the cited files; the pre-existing HTTPS assertions called by tests/tls-auth.mjs remain in uncited helper files. Console work and requalification remain held by uip; Platform managed-location and hosted qualification remain unproved.
 
 #### EVIDENCE-001 — Immutable scheduled evidence
 
