@@ -500,7 +500,7 @@
       "executable": false
     },
     "agent-surface.json": {
-      "sha256": "4e0d725aa1c10226414593d8653d271890d27786987bb2bdf36aa55ca50d316a",
+      "sha256": "d3537ac6630d135d5fc51af95250d4b53c5cd99cac1b36cd50abb2d314330f5b",
       "executable": false
     },
     "AGENTS.md": {
@@ -4392,7 +4392,7 @@
       "executable": false
     },
     "src/agent-door/registry.server.ts": {
-      "sha256": "d62f81ac4165c627c4c19046f265ebf2261bc65883d0112d340db71fd225bcf1",
+      "sha256": "7c6379694c3fbf598cd81253252b4fa4e101fdcf5485ae23078a81f816e5dbdf",
       "executable": false
     },
     "src/agent-door/work.server.ts": {
@@ -8528,7 +8528,7 @@
       "executable": false
     },
     "tests/agent-conformance/journey.mjs": {
-      "sha256": "e2fa68198995e6be799a84e8da1f4457980ba85bd8a7b5a364be78d64f0bb1e9",
+      "sha256": "84e032ac0c0005931a8da757beadf8069544db7f052fb0c119333f752dac4b74",
       "executable": false
     },
     "tests/agent-conformance/owner.mjs": {

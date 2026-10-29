@@ -21,7 +21,8 @@
         "ACCESS-001"
       ],
       "proof": "native",
-      "proofKind": "step_up"
+      "proofKind": "step_up",
+      "sponsorEscalation": false
     },
     {
       "name": "uptime.checks.dispatch",
@@ -126,7 +127,8 @@
         "NOTIFY-001"
       ],
       "proof": "native",
-      "proofKind": "step_up"
+      "proofKind": "step_up",
+      "sponsorEscalation": false
     },
     {
       "name": "uptime.discovery.dispatch",
@@ -207,7 +209,8 @@
         "EVIDENCE-001"
       ],
       "proof": "native",
-      "proofKind": "step_up"
+      "proofKind": "step_up",
+      "sponsorEscalation": true
     },
     {
       "name": "uptime.incidents.acknowledge",
@@ -297,7 +300,8 @@
       ],
       "clauses": [
         "MONITOR-001"
-      ]
+      ],
+      "sponsorEscalation": false
     },
     {
       "name": "uptime.monitors.history",
@@ -376,7 +380,8 @@
       ],
       "clauses": [
         "MONITOR-001"
-      ]
+      ],
+      "sponsorEscalation": false
     },
     {
       "name": "uptime.privacy.erase",
@@ -435,7 +440,8 @@
       ],
       "clauses": [
         "ROUTING-001"
-      ]
+      ],
+      "sponsorEscalation": false
     }
   ],
   "resources": [
@@ -1257,36 +1263,6 @@
   ],
   "escalations": [
     {
-      "id": "access-update",
-      "tool": "uptime.access.update",
-      "args": {
-        "id": {
-          "$fixture": "owner",
-          "pointer": "/id"
-        },
-        "version": {
-          "$fixture": "owner",
-          "pointer": "/revision"
-        },
-        "role": "admin",
-        "scopes": []
-      }
-    },
-    {
-      "id": "destinations-update",
-      "tool": "uptime.destinations.update",
-      "args": {
-        "id": {
-          "$fixture": "destination",
-          "pointer": "/id"
-        },
-        "destination": {
-          "name": "Checkout responder inbox",
-          "enabled": true
-        }
-      }
-    },
-    {
       "id": "grants-update",
       "tool": "uptime.grants.update",
       "args": {
@@ -1299,52 +1275,6 @@
           "pointer": "/id"
         },
         "granted": true
-      }
-    },
-    {
-      "id": "monitors-create",
-      "tool": "uptime.monitors.create",
-      "args": {
-        "definition": {
-          "$fixture": "definition",
-          "pointer": ""
-        }
-      }
-    },
-    {
-      "id": "monitors-update",
-      "tool": "uptime.monitors.update",
-      "args": {
-        "id": {
-          "$fixture": "update",
-          "pointer": "/id"
-        },
-        "version": {
-          "$fixture": "update",
-          "pointer": "/revision"
-        },
-        "definition": {
-          "$fixture": "update",
-          "pointer": "/definition"
-        }
-      }
-    },
-    {
-      "id": "routes-update",
-      "tool": "uptime.routes.update",
-      "args": {
-        "id": {
-          "$fixture": "route",
-          "pointer": "/id"
-        },
-        "route": {
-          "$fixture": "route",
-          "pointer": "/policy"
-        },
-        "digest": {
-          "$from": "preview-route",
-          "pointer": "/digest"
-        }
       }
     }
   ],

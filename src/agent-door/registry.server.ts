@@ -35,7 +35,8 @@ const actor=(ctx:ToolContext)=>({kind:'feature' as const,ref:ctx.actor.label,del
 async function current(env:Bindings,ctx:ToolContext,id:string){await authority(env,ctx,'read',[id]);const row=await get(env,id);if(!row)throw unavailable();return row}
 // Native HTTP responses serialize optional fields away. The tool boundary
 // returns that same JSON value before Base validates its output schema.
-function safeCall(run:(a:any,c:ToolContext)=>Promise<any>){return async(a:Record<string,unknown>,c:ToolContext)=>{try{return {result:JSON.parse(JSON.stringify(await run(a,c)))}}catch(error){if(error instanceof ToolRefusal)throw error;const e=error as Error&{status?:number};throw new ToolRefusal(e.status===409?'revision_conflict':e.status===404?'not_found':e.status===403?'native_permission_required':'native_operation_refused')}}}
+function nativeRefusal(error:unknown):never{if(error instanceof ToolRefusal)throw error;const e=error as Error&{status?:number};throw new ToolRefusal(e.status===409?'revision_conflict':e.status===404?'not_found':e.status===403?'native_permission_required':'native_operation_refused')}
+function safeCall(run:(a:any,c:ToolContext)=>Promise<any>){return async(a:Record<string,unknown>,c:ToolContext)=>{try{return {result:JSON.parse(JSON.stringify(await run(a,c)))}}catch(error){return nativeRefusal(error)}}}
 function summaryItems(value:any,prefix=''):string[]{
  if(Array.isArray(value))return value.flatMap((item,index)=>summaryItems(item,`${prefix} ${index+1}`))
  if(value&&typeof value==='object')return Object.keys(value).sort().filter(key=>!['id','version','proof_reference'].includes(key)).flatMap(key=>summaryItems(value[key],[prefix,key.replaceAll('_',' ')].filter(Boolean).join(' / ')))
@@ -93,7 +94,10 @@ export function tools(env:Bindings):ToolDefinition[]{
    if(name.startsWith('monitors.')){const old=args.id?await get(env,args.id):null,next={...(old?.definition??{}),...(args.definition??{})};if(requestNeedsStepUp(new Request(new URL('/api/monitors/'+(args.id??''),c.origin),{method:'PATCH'}),next)){
     if(typeof proof_reference!=='string'||!await nativeProof(env).verify({kind:'step_up',tool:'uptime.'+name,args,principal:{person:c.person,agent:c.agent,scopes:[...c.scopes],clientId:c.clientId},reference:proof_reference}))throw new ToolRefusal('native_proof_required','Complete native step-up',{kind:'step_up',handoff:new URL('/app/settings',c.origin).href});execution={...c,nativeProof:{kind:'step_up',reference:proof_reference}}
    }}return run(args,execution)}
-  const tool:ToolDefinition={name:'uptime.'+name,title,description:title+'. Native validation and immutable revisions remain authoritative.',scope:'uptime:operate',readOnly:false,inputSchema:input,outputSchema:{type:'object'},classes,clauses,target:(a,c)=>recordTarget(env,name,a,c),classify,run:safeCall(guarded),summary:async(a)=>actionSummary(env,name,title,a),...(revision?{revision}:{})};definitions.push(tool);return tool
+  // Record jobs change a monitor, route or destination, not the sponsor's own
+  // grants. Member edits require unscoped administration and reject self-edits.
+  // The evidence-grant job below opts into the applicable self-grant fixture.
+  const tool:ToolDefinition={name:'uptime.'+name,title,description:title+'. Native validation and immutable revisions remain authoritative.',scope:'uptime:operate',readOnly:false,inputSchema:input,outputSchema:{type:'object'},classes,clauses,...(classes.some(cls=>['access','security'].includes(cls))?{sponsorEscalation:false}:{}),target:(a,c)=>recordTarget(env,name,a,c),classify:async(a,c,completed)=>{try{return await classify(a,c,completed)}catch(error){return nativeRefusal(error)}},run:safeCall(guarded),summary:async(a)=>actionSummary(env,name,title,a),...(revision?{revision}:{})};definitions.push(tool);return tool
  }
 
 
@@ -141,7 +145,7 @@ export function tools(env:Bindings):ToolDefinition[]{
  const route=mutation('routes.update','Apply an exact native alert-route preview',schema({id:string,route:{type:'object'},digest:string}),['live','external','access'],['ROUTING-001'],async(a,c)=>{const access=await authority(env,c,'route_write',[a.id],undefined,true);const result=await applyAlertRoute({...env,DB:authorizedDatabase(env,access)},a.id,{...a.route,digest:a.digest},actor(c));c.emit('route.updated',`uptime://routes/${a.id}`);return result},async(a,c,completed)=>{await authority(env,c,'route_write',[String(a.id)],undefined,true);if(completed){await reads.routeRead(env,c,String(a.id));return [...completed]}const p=await prepareAlertRouteAssignment(env,String(a.id),a.route);return [facts('live',{service:'alert-routing'}),facts('external',{measure:(p as any).readyCount??0,counterparty:'known'}),facts('access',{direction:'widens'})]})
  route.authority=async(a,c)=>{await authority(env,c,'route_write',[String(a.id)],undefined,true);return {subject:`route:${a.id}`,widens:true}}
  const grant=mutation('grants.update','Change a native private-evidence viewer grant',schema({id:string,operator_id:string,granted:{type:'boolean'}}),['access','security'],['EVIDENCE-001'],async(a,c)=>{const access=await authority(env,c,'secret_write',[a.id],undefined,true);const result=await saveEvidenceAccess({...env,DB:authorizedDatabase(env,access)},a.id,{operatorId:a.operator_id,granted:a.granted},actor(c));c.emit('monitor.updated',`uptime://monitors/${a.id}`);return result},async(a,c)=>{await authority(env,c,'secret_write',[String(a.id)],undefined,true);return [facts('access',{direction:a.granted?'widens':'narrows'}),facts('security',{setting:'failure-evidence-grant'})]})
- grant.proof='native';grant.proofKind='step_up'
+ grant.proof='native';grant.proofKind='step_up';grant.sponsorEscalation=true
  grant.authority=async(a)=>({subject:String(a.operator_id),widens:a.granted===true})
 
  read('definitions.read','Read redacted native definitions',schema({}),['CODE-001'],async(_,c)=>{await authority(env,c,'export',[],undefined,true);return {monitors:(await reads.monitorList(env,c)).items}})
