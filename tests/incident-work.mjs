@@ -91,6 +91,8 @@ try{
  const receipt=await ok(`/api/monitors/${monitor.id}/erase`,{body:{name:monitor.definition.name}});for(const table of ['incident_work','incident_comments','incident_comment_history','incident_timeline'])assert.ok(receipt.receipt.counts[table]>0,`${table} counted in erasure`);
  assert.equal((await f.request(path)).status,404);for(const table of ['incident_work','incident_comments','incident_comment_history','incident_timeline','incident_mentions','incident_mention_authority'])assert.equal((await f.DB.prepare(`SELECT COUNT(*) n FROM ${table} WHERE monitor_id=?`).bind(monitor.id).first()).n,0);
  const audits=(await f.DB.prepare("SELECT * FROM uptime_audit WHERE action LIKE 'incident_%'").all()).results;assert.ok(audits.length);assert.ok(!JSON.stringify(audits).includes('php-fpm'),'audit contains opaque references only');
+ for(const action of ['incident_comment_add','incident_comment_edit','incident_comment_delete','incident_root_cause_change'])assert.ok(audits.some(row=>row.action===action),`${action} remains audited after erasure`);
+ for(const privateText of ['Disk was full',beforeExport.rootCause.text,formerComment.text,...beforeExport.comments.flatMap(row=>[row.text,...row.history.map(edit=>edit.text)])].filter(Boolean))assert.ok(!JSON.stringify(audits).includes(privateText),'custody audit never includes private comment or root-cause text');
  await proveOwnIncidentCorrelation(f);
  await proveCombinedIncident();
  console.log('INCIDENT-001/002/003/005 / FOLLOWUP-001 / READAPI-001/003 PASS scoped responder/editor/admin collaboration, live member/key refusal, single-attempt mentions, optimistic edits, category filters, distinct human and machine resolution, restart, archive and erasure through real Worker routes.');

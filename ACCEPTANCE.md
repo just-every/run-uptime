@@ -8,12 +8,12 @@ The primary journey: an operator moves their monitors from UptimeRobot or Pingdo
 
 | Tier | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
-| Core | 13 | 71 | 11 | 95 |
+| Core | 14 | 70 | 11 | 95 |
 | Agent surface | 0 | 0 | 6 | 6 |
 | Later | 0 | 0 | 1 | 1 |
-| Full target | 13 | 71 | 18 | 102 |
+| Full target | 14 | 70 | 18 | 102 |
 
-Judged from the code and tests at commit `56497f8d6716dbe16437095f61a923266fd9b347` (24 October 2026). Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
+Judged from the code and tests at commit `1d41eafe22627498c6297e5f853facebdffb2011` (29 October 2026). INCIDENT-005 includes the custody assertions in this candidate; other judgments retain their prior scope. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
 
 ## Core
 
@@ -925,7 +925,7 @@ Core · target · **missing** · From INCIDENT-001 · Register R-6
 
 #### INCIDENT-005 — Comment and root-cause custody
 
-Core · target · **partial** · From INCIDENT-001 · Cites BASE-DATA-003 · Register R-3
+Core · target · **done** · From INCIDENT-001 · Cites BASE-DATA-003 · Register R-3
 
 **Requirement.** Unpublished comments and root causes never leave Uptime, except for mention emails to the mentioned member and the owner's own exports. Comments, edit histories and root causes are included in incident exports, READAPI-003 incident detail and ARCHIVE-001/ARCHIVE-002 archives. They are erased with their monitor under ERASURE-001 and counted in its receipt. Erasing an operator keeps that member's comments, with the author shown as a former member, and removes mentions of them. Comment add, edit and delete actions and root-cause changes are audited under AUDIT-001 without their text. Comments and root causes never change a verdict, state, incident threshold, uptime or SLA figure. They are the team's account, kept apart from EVIDENCE-002's machine-derived cause. MIGRATE-001 imports UptimeRobot incident comments and root causes as HISTORY-001 labeled source history where the source API exposes them, and names them where it does not.
 
@@ -935,8 +935,8 @@ Core · target · **partial** · From INCIDENT-001 · Cites BASE-DATA-003 · Reg
 3. Monitor state, incident thresholds, uptime and SLA figures are identical before and after every comment and root-cause change.
 4. Import an UptimeRobot incident with a comment and root cause: it appears as labeled source history, or the preview names the field the source does not expose.
 
-**Evidence.** `src/domain/incident-work/`; `public/incident-work.js`; `tests/incident-work.mjs`; `docs/evidence/contracts/incidents/`; `src/domain/incident-work/mention-delivery.server.ts`; `src/domain/incident-work/mention-members.server.ts`; `migrations/0070_incident_mentions.sql`; `scripts/incidents.mjs`; `tests/incident-members-support.mjs`; `tests/signed-runner.mjs`
-**Gap.** Safe archive history and operator/monitor erasure ship. Gap: sourced incumbent incident imports.
+**Evidence.** `tests/incident-work.mjs` incident collaboration journey: (1) incident JSON export and inactive archive restore retain comments, edit histories and root cause; (2) monitor erasure removes every collaboration table with receipt counts, operator erasure retains comments as Former member and removes mentions; (3) fixed-period public availability and SLA plus exact scheduled evidence and threshold snapshots stay identical across collaboration. The same journey, with `tests/incident-members-support.mjs` proveIncidentMembers and proveMentionErasure, proves permitted and refused roles, private mention outcomes, revoked authority, opaque audit and inactive restore without replay. (4) `tests/definitions-import.mjs` proveSourceHistory in `tests/source-history-support.mjs`: saved v3 detail and separate comment captures appear as labeled UptimeRobot source history in report and incident reads, list-only preview names missing comment bodies and rootCause, incomplete comment pages refuse without writes, credentials are withheld and repeated apply adds no records or native authority.
+**Gap.** None.
 
 #### ONCALL-001 — Responder handoff and automatic resolution
 
