@@ -8566,6 +8566,10 @@
       "sha256": "f5116a850fce0fa423e33b22b8ee05fa7ef864e869899957c2f77206e9704ff3",
       "executable": false
     },
+    "tests/signed-runner-contact.mjs": {
+      "sha256": "bc489907c92bbe57d704100322d444641fcd25ac67fc77eddade3aeb589a1c92",
+      "executable": false
+    },
     "tests/signed-runner-heartbeat-import.mjs": {
       "sha256": "513007341cd0d00d081077a2880fa6992581e12d387ebdd7a841b614f89dffc4",
       "executable": false
@@ -8583,7 +8587,7 @@
       "executable": false
     },
     "tests/signed-runner.mjs": {
-      "sha256": "9910334896ceeed80dcde5ed08c80ee4157d9a39c54ff15dc6c6eec359a94a35",
+      "sha256": "1944b732ce2a56a98c4d0ea8ec73f55984ddca98313498758ccc0a3e7278ea7f",
       "executable": false
     },
     "tests/slow-responses.mjs": {

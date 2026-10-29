@@ -13,6 +13,9 @@ import {splitSql} from './migration-support.mjs';
 import {emittedRunnerWorker,certificate,runChild,listen,close,request} from './signed-runner-runtime.mjs';
 import {proveFreshResultSignature,assertRunnerAdmissionOnly} from './signed-runner-result-proof.mjs';
 import {proveImportedHeartbeatJobs} from './signed-runner-heartbeat-import.mjs';
+import {proveRunnerContact} from './signed-runner-contact.mjs';
+
+await proveRunnerContact();
 
 const directory=await mkdtemp(join(tmpdir(),'uptime-signed-runner-'));
 const key='signed-runner-test-only-installation-runner-key';
