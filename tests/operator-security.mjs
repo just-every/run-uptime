@@ -16,7 +16,7 @@ let worker;
 try{
  worker=await startLocalWorker({port,persist:dir,bindings});const db=await worker.getD1Database('DB');
  const files=(await readdir('migrations')).filter(f=>f.endsWith('.sql')).sort();
- for(const file of files.filter(f=>!['0067_edition_access.sql','0068_mfa.sql','0069_alert_teams_filters.sql','0070_incident_mentions.sql','0071_edition_credentials.sql','0072_named_alert_routes.sql','0075_recurring_reports.sql'].includes(f)))for(const sql of splitSql(await readFile(join('migrations',file),'utf8')))await db.prepare(sql).run();
+ for(const file of files.filter(f=>!['0067_edition_access.sql','0068_mfa.sql','0069_alert_teams_filters.sql','0070_incident_mentions.sql','0071_edition_credentials.sql','0072_named_alert_routes.sql','0075_recurring_reports.sql','0079_incident_mention_dispatch.sql'].includes(f)))for(const sql of splitSql(await readFile(join('migrations',file),'utf8')))await db.prepare(sql).run();
  const call=(path,body,headers={})=>fetch(origin+path,{method:body===undefined?'GET':'POST',redirect:'manual',headers:{origin,'content-type':'application/json',...headers},body:body===undefined?undefined:JSON.stringify(body)});
  let cookie=sessionCookie(await call('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'Upgrade owner'}));
  const originalOwner=await db.prepare("SELECT id,version FROM oa_operators WHERE role='owner'").first();
@@ -34,7 +34,7 @@ try{
  const oldRows=async()=>Object.fromEntries(await Promise.all(oldTables.map(async name=>[name,(await db.prepare(`SELECT ${oldColumns[name].map(c=>'"'+c+'"').join(',')} FROM "${name}" ORDER BY rowid`).all()).results])));
  const beforeNamedUpgrade=await oldRows();for(const sql of splitSql(await readFile('migrations/0072_named_alert_routes.sql','utf8')))await db.prepare(sql).run();
  assert.deepEqual(await oldRows(),beforeNamedUpgrade,'named-route upgrade preserves every populated preexisting row');
- const beforeRecurringUpgrade=await oldRows();for(const sql of splitSql(await readFile('migrations/0075_recurring_reports.sql','utf8')))await db.prepare(sql).run();assert.deepEqual(await oldRows(),beforeRecurringUpgrade,'recurring-report migration preserves every populated preexisting row');for(const table of ['report_recurrences','report_occurrences'])assert.equal((await db.prepare(`SELECT COUNT(*) n FROM ${table}`).first()).n,0,'upgrade creates no recurring send authority');
+ const beforeRecurringUpgrade=await oldRows();for(const file of ['0075_recurring_reports.sql','0079_incident_mention_dispatch.sql'])for(const sql of splitSql(await readFile(join('migrations',file),'utf8')))await db.prepare(sql).run();assert.deepEqual(await oldRows(),beforeRecurringUpgrade,'recurring-report migration preserves every populated preexisting row');for(const table of ['report_recurrences','report_occurrences'])assert.equal((await db.prepare(`SELECT COUNT(*) n FROM ${table}`).first()).n,0,'upgrade creates no recurring send authority');
  for(const table of ['alert_named_routes','catalog_route_batches','catalog_route_batch_entries'])assert.equal((await db.prepare(`SELECT COUNT(*) n FROM ${table}`).first()).n,0,'upgrade creates no named route or assignment authority');
  assert.equal((await db.prepare('SELECT COUNT(*) n FROM uptime_credential_grants').first()).n,0,'populated upgrade creates no API credential grant');
  assert.equal((await db.prepare('SELECT (SELECT COUNT(*) FROM incident_mentions)+(SELECT COUNT(*) FROM incident_mention_authority) n').first()).n,0,'populated upgrade creates no mention or sending authority');

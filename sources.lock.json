@@ -8391,7 +8391,7 @@
       "executable": false
     },
     "tests/operator-security.mjs": {
-      "sha256": "7c74b920525598def519acfbd992c9454a89c11cca9a0835b1daf907caebac59",
+      "sha256": "25695565de488bc4376cb2655e85b1ed58992692a9aaaec36d761505d9c72724",
       "executable": false
     },
     "tests/owner-deploy-lifecycle.mjs": {
