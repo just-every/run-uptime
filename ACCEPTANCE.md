@@ -8,12 +8,12 @@ The primary journey: an operator moves their monitors from UptimeRobot or Pingdo
 
 | Tier | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
-| Core | 16 | 68 | 11 | 95 |
+| Core | 17 | 67 | 11 | 95 |
 | Agent surface | 0 | 0 | 6 | 6 |
 | Later | 0 | 0 | 1 | 1 |
-| Full target | 16 | 68 | 18 | 102 |
+| Full target | 17 | 67 | 18 | 102 |
 
-Judged from the code and tests at commit `886ad3662fec5bdd5c1cd4c7692a9d22d897529f` (29 October 2026). ERASURE-001 public owner erasure, retained stale edit and complete refusal preservation; other clause judgments retained. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
+Judged from the code and tests at commit `886ad3662fec5bdd5c1cd4c7692a9d22d897529f` (29 October 2026). ERASURE-001 public owner erasure, retained stale edit and complete refusal preservation; other clause judgments retained. PRESENCE-001 native contact lifecycle proof replayed at `8862426`; all newer main judgments retained. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
 
 ## Core
 
@@ -158,7 +158,7 @@ Core · published · **done** · Cites BASE-OPS-005, BASE-AUDIT-001
 
 #### PRESENCE-001 — Contact separate from health
 
-Core · published · **partial**
+Core · published · **done**
 
 **Requirement.** Only accepted scoped claims and signed results refresh server-time contact, the 120-second freshness threshold never proves process liveness or target health, and restart, unavailable reads and archive omission preserve that distinction. See [Contact, interface and delivery](docs/contract/safety-rules.md#contact-interface-and-delivery).
 
@@ -166,8 +166,8 @@ Core · published · **partial**
 1. Read Never seen, make accepted idle claims/results, age contact, reject foreign requests and restart.
 2. Reads and health checks do not refresh contact; unavailable reads and restore cannot imply runner or target health.
 
-**Evidence.** `src/domain/runner-contact.server.ts`; `tests/signed-runner.mjs`
-**Gap.** The implementation and cited signed-runner execution/restart journey remain. Gap: no surviving cited assertion reads Never seen, fresh contact from accepted idle claims/results, stale contact after aging, unchanged contact after foreign/rejected requests or owner/health reads, retained contact after restart, or the contact/target-health distinction after unavailable reads and restore.
+**Evidence.** `tests/signed-runner.mjs` calls `tests/signed-runner-contact.mjs` proveRunnerContact: Never seen, accepted idle claims and real signed results record distinct server receipt times; fresh at 119999 and 120000 ms, stale at 120001 ms; foreign identities, revoked authority, invalid signatures, owner reads and health reads preserve stored contact and target evidence; persistent Worker restart retains exact contact; unavailable overview returns 503 without invented contact or Healthy targets; fresh contact coexists with genuine Failing and Unknown targets at the fixed denominator; native export omits contact and receiving restore keeps history inactive, contact Never seen and source runner authority refused. `tests/signed-runner-result-proof.mjs` proveFreshResultSignature: rejected and duplicate actual signed results preserve every non-admission table.
+**Gap.** None.
 
 #### INTERFACE-001 — Honest durable operator feedback
 
