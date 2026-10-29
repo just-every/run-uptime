@@ -17,7 +17,7 @@ require separate review. Existing provider status-address and StatusIQ mappings
 continue to use the service catalog.
 
 Browser transactions require FLOW-001/FLOW-002 conversion; TLS and domain expiry
-require TLS-001/DOMAIN-001; heartbeat thresholds need HEARTBEAT-002 review. Locations,
+require TLS-001/DOMAIN-001; heartbeat thresholds need HEARTBEAT-004 review. Locations,
 threshold groups, notification profiles/groups, accounts, reports, history and
 live extraction are not transferred. Reconcile these and test side by side before
 cutover. This saved-file slice creates no recipient and sends no notification.

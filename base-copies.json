@@ -27,7 +27,7 @@
       },
       "acknowledged": {
         ".github/workflows/verify.yml": {
-          "sha256": "0d27fa72d6f646c203e0ffa25f92155da63efb7a4772b406d80558d6826a1610",
+          "sha256": "6c047bf16986a148a085b730856ee6b019ca96a26ba4fe6fe57adeeec2d00a64",
           "mode": "100644"
         }
       }
@@ -777,6 +777,17 @@
       },
       "modes": {
         "SEED-COMMAND-CONTRACT.md": "100644"
+      }
+    },
+    {
+      "path": "src/base/contract-docs.mjs",
+      "originPath": "foundation/runtime/contract-docs.mjs",
+      "revision": "0fe27af9a5cb1bd9dc5e41da024784082e609010",
+      "files": {
+        "src/base/contract-docs.mjs": "d98e14f489c57f60446c2cc68310db09f298f7974d77026dbaa2c62868cc4838"
+      },
+      "modes": {
+        "src/base/contract-docs.mjs": "100644"
       }
     },
     {

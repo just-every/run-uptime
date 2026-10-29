@@ -54,3 +54,10 @@ Preserve immutable revisions, scheduled slot and attempt identity, fixed configu
 The rer adapter uses the shared Base lifecycle and generated rer-local-setup.json manifest. Hosted Managed setup uses root rer-setup.json. Run pnpm spec:generate after rer build to refresh the local manifest, deployment spec and descriptor digest; Verify rejects drift. Keep product policy in the edition and authentication in Base. Preserve owner identity, exact private settings and permanent migration history. Dev must provide real Vite assets and HMR. Keep owner-account deployment separate from the credential-free artifact controller. A command exit does not establish hosted operation or recipient acceptance.
 
 Keep tests small and prove user flows through public routes or commands, with fakes only at network/provider edges. Never weaken assertions, special-case inputs or conceal failures with mock application code. Never commit secrets, private settings, owner archives or machine paths. Refresh source locks through the edition-authoring tool after intentional source changes.
+
+## Contract documents
+
+CONTRACT.md is the only acceptance text and status source. ACCEPTANCE.md and docs/CLAIMS.md are generated from it; after a contract change, run these from the repository root, then commit the generated files with the contract:
+
+Lander-Regenerate: node src/base/contract-docs.mjs write
+Lander-Regenerate: node scripts/edition-authoring/cli.mjs lock

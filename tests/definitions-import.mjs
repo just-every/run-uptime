@@ -306,7 +306,7 @@ try{
   assert.equal((await get('/api/overview')).monitors.length,before.monitors.length,'preview creates no monitor');
   const names=['synthetic-uptime-1','synthetic-uptime-2','synthetic-uptime-3','synthetic-uptime-4','synthetic-uptime-5'];
   for(const entry of plan.body.entries.slice(0,5)){assert.equal(entry.action,'create',entry.reason);assert.ok(entry.differences.some(d=>d.includes('timeout')));assert.ok(entry.differences.some(d=>d.includes('local-a')))}
-  for(const [index,clause] of [[7,'FLOW-001'],[8,'TLS-001'],[9,'DOMAIN-001'],[10,'HEARTBEAT-002'],[11,'DNS-001']])assert.ok(plan.body.entries[index].reason.includes(clause));
+  for(const [index,clause] of [[7,'FLOW-001'],[8,'TLS-001'],[9,'DOMAIN-001'],[10,'HEARTBEAT-004'],[11,'DNS-001']])assert.ok(plan.body.entries[index].reason.includes(clause));
   assert.ok(plan.body.entries[0].differences.some(d=>d.includes('location_profile_id')));
   const applied=await door.apply(plan.body);assert.equal(applied.status,200,JSON.stringify(applied.body));assert.equal(applied.body.created.length,5);
   const rows=(await get('/api/overview')).monitors.filter(m=>names.includes(m.definition.name)),defs=names.map(name=>rows.find(m=>m.definition.name===name).definition);

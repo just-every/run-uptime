@@ -243,6 +243,7 @@ jobs:
           node-version: 22.20.0
           package-manager-cache: false
       - run: node scripts/edition-authoring/cli.mjs check
+      - run: node src/base/contract-docs.mjs check
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec rer install
       - name: Build exact verification checkout once
