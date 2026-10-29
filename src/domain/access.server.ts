@@ -7,6 +7,8 @@ import {authenticatedSession,type AuthBindings} from './operator-auth.server.ts'
 import {baseRole,permitted,requestPermission} from './role-permissions.mjs'
 export type Scope={kind:'service'|'team';value:string}
 export type Access={session:NonNullable<Awaited<ReturnType<typeof authenticatedSession>>>;role:string;revision:number;scopes:Scope[];action:string;monitorIds:string[];fresh?:boolean}
+// A delegated person has native account authority, never a manufactured browser session.
+export type AgentAccess={proofReference?:string;kind:'agent';operatorId:string;operatorVersion:number;nativeRole:string;role:string;revision:number;scopes:Scope[];action:string;monitorIds:string[]}
 export class AccessError extends Error {status:number;constructor(status=403){super(status===401?'Owner session required':'Product permission required');this.status=status}}
 // One product authorization door. Base re-reads status, role, version and session
 // revocation on every call; edition authority never comes from request claims.
@@ -67,8 +69,15 @@ export function inScope(definition:any,scopes:Scope[]){
  // intersect; alternatives within a kind are a union. No rows means workspace.
  return (['service','team'] as const).every(kind=>{const values=scopes.filter(s=>s.kind===kind);return !values.length||values.some(s=>s.value===definition[kind==='team'?'group':'service'])})
 }
-export function accessFence(access:Access|CredentialAuthority){
+export function accessFence(access:Access|AgentAccess|CredentialAuthority){
  if('kind' in access&&access.kind==='credential')return credentialFence(access)
+
+ if('kind' in access&&access.kind==='agent')return {sql:`EXISTS(SELECT 1 FROM oa_operators o JOIN uptime_member_roles r ON r.operator_id=o.id
+ WHERE o.id=? AND o.version=? AND o.status='active' AND o.role=? AND r.base_version=o.version AND r.base_role=o.role AND r.role=? AND r.revision=?)
+ AND NOT EXISTS(SELECT 1 FROM json_each(?) selected LEFT JOIN monitors m ON m.id=selected.value
+ WHERE m.id IS NULL OR EXISTS(SELECT 1 FROM uptime_member_scopes p WHERE p.operator_id=? GROUP BY p.kind
+ HAVING MAX(CASE WHEN (p.kind='service' AND p.value=json_extract(m.definition,'$.service'))
+ OR (p.kind='team' AND p.value=json_extract(m.definition,'$.group')) THEN 1 ELSE 0 END)=0))${access.proofReference?` AND EXISTS(SELECT 1 FROM uptime_agent_native_proof p JOIN oa_sessions s ON s.id=p.session_id JOIN oa_operators o ON o.id=p.operator_id WHERE p.id=? AND p.operator_id=? AND p.operator_version=o.version AND p.expires_at>unixepoch()*1000 AND s.operator_id=o.id AND s.operator_version=o.version AND s.revoked_at IS NULL AND s.expires_at>unixepoch()*1000 AND ${mfaCondition(true)})`:''}`,params:[access.operatorId,access.operatorVersion,access.nativeRole,access.role,access.revision,JSON.stringify(access.monitorIds),access.operatorId,...(access.proofReference?[access.proofReference,access.operatorId]:[])]}
 
  const {session,revision}=access as Access
  const sql=`EXISTS(SELECT 1 FROM oa_sessions s JOIN oa_operators o ON o.id=s.operator_id JOIN uptime_member_roles r ON r.operator_id=o.id
