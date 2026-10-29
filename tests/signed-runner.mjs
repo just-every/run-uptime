@@ -13,6 +13,7 @@ import {splitSql} from './migration-support.mjs';
 import {emittedRunnerWorker,certificate,runChild,listen,close,request} from './signed-runner-runtime.mjs';
 import {proveFreshResultSignature,assertRunnerAdmissionOnly} from './signed-runner-result-proof.mjs';
 import {proveImportedHeartbeatJobs} from './signed-runner-heartbeat-import.mjs';
+import {proveHeartbeatRevisionIsolation} from './signed-runner-heartbeat-revision.mjs';
 
 const directory=await mkdtemp(join(tmpdir(),'uptime-signed-runner-'));
 const key='signed-runner-test-only-installation-runner-key';
@@ -194,7 +195,11 @@ try{
 
  }
  const wallNow=Date.now;clock=wallNow();Date.now=()=>clock;
- try{await proveImportedHeartbeatJobs({api,runner,origin,cookie,advance:at=>{assert.ok(at>=clock);clock=at}})}finally{Date.now=wallNow;clock=undefined}
+ try{
+  const advance=at=>{assert.ok(at>=clock);clock=at};
+  await proveHeartbeatRevisionIsolation({api,runner,db,advance});
+  await proveImportedHeartbeatJobs({api,runner,origin,cookie,advance});
+ }finally{Date.now=wallNow;clock=undefined}
  console.log('SIGNED-RUNNER results '+JSON.stringify(signatureReceipt));
  console.log(`SIGNED-RUNNER completed one owner-to-runner lifecycle: emitted Worker + migrated persistent D1, real Node process restarts, local HTTPS with verified certificates; no real account or public network deployment.`);
 }finally{await child?.stop();await close(control);await worker?.dispose();await close(target);await rm(directory,{recursive:true,force:true})}
