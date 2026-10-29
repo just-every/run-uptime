@@ -128,6 +128,10 @@ company policy, Pause, audit and idempotency. It retains all 37 native tools.
 Events, resource reads, specialist prompts and subscriptions are not public
 capabilities in this declaration; calls return `capability_not_declared` and
 listings omit them. Internal native events and visibility adapters remain in
-place. The full Agent surface contract remains a target: the native registry
-and the contract's 34-tool table still need reconciliation, and declarative
-conformance has not been established. Spend caps remain unenforced.
+place. The full Agent surface contract remains a target. ct's 2026-10-29T14:12Z
+ruling aligns the contract with native names while retaining every unfinished
+outcome and class obligation. agent-surface.json declares the same CORE set and
+is measured by rer verify; declaration alone establishes no passing claim.
+The three worker dispatch admissions remain exposed registry facts until Base
+0.2.91 gr-base-0290-invokeonly-1 can hide them from MCP; they are outside the
+CORE contract. Spend caps remain unenforced.

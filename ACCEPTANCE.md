@@ -1343,7 +1343,7 @@ Agent surface · target · **missing**
 6. Customer-sourced text carries the untrusted marker.
 
 **Evidence.** None.
-**Gap.** Not yet judged through this seed's own doors.
+**Gap.** Not yet judged through this seed's own doors. READY-PENDING-BASE 2026-10-30: resources undeclared in CORE. Resource consent and operation identity require Base 0.2.91 gr-base-door-0290-resctx-1 (modules/agent-door/resource-tool.ts:16-21).
 
 #### BASE-AGENT-004 — Business identity and short-lived, audience-bound tokens
 
@@ -1361,7 +1361,7 @@ Agent surface · target · **missing**
 7. After unpairing, Business tokens are refused and the seed's own sign-in still works.
 
 **Evidence.** None.
-**Gap.** Not yet judged through this seed's own doors.
+**Gap.** Not yet judged through this seed's own doors. READY-PENDING-BASE 2026-10-30: post-agent-ID initialization gr-base-0290-agentinit-1 (conformance/index.mjs:28, fixtures.mjs:18, protocol.mjs:116); sponsor negatives gr-base-0290-sponsorneg-1 (conformance/negative.mjs:15-22, fixtures.mjs:19), both Base 0.2.91.
 
 #### BASE-AGENT-005 — An agent acts as a person in a role, never more
 
@@ -1413,7 +1413,7 @@ Agent surface · target · **missing**
 8. A policy document with a bad signature or another Business's id is rejected, and the door keeps the last valid revision.
 
 **Evidence.** None.
-**Gap.** Not yet judged through this seed's own doors.
+**Gap.** Not yet judged through this seed's own doors. READY-PENDING-BASE 2026-10-30: verifier-policy renewal gr-base-0290-verifierrenewal-1 (conformance/crypto.mjs:34); standard-only named approval has no writer yet (conformance/crypto.mjs:28, journey.mjs:63-81).
 
 #### BASE-AGENT-008 — Truthful attribution
 
@@ -1449,7 +1449,7 @@ Agent surface · target · **missing**
 7. The Agents page works at 1440 and 390 with no serious or critical axe findings.
 
 **Evidence.** None.
-**Gap.** Not yet judged through this seed's own doors.
+**Gap.** Not yet judged through this seed's own doors. READY-PENDING-BASE 2026-10-30: review audit gr-base-0290-reviewaudit-1, Base 0.2.91 (conformance/audit.mjs:30 versus pipeline.ts).
 
 #### BASE-AGENT-010 — Agents can follow changes
 
@@ -1466,7 +1466,7 @@ Agent surface · target · **missing**
 6. `approval.pending`, `approval.decided`, `review.flagged` and `policy.adopted` carry the class and decision and nothing the subscriber may not read.
 
 **Evidence.** None.
-**Gap.** Not yet judged through this seed's own doors.
+**Gap.** Not yet judged through this seed's own doors. Undeclared CORE families remain partial obligations: events, subscriptions, multi-sponsor, mail edges and resource refresh. No family conformance is claimed.
 
 #### BASE-AGENT-011 — Limits are policy, and Pause stops everything
 
@@ -1500,7 +1500,7 @@ Agent surface · target · **missing**
 5. A job handle used by another person's token reads as not found.
 
 **Evidence.** None.
-**Gap.** Not yet judged through this seed's own doors.
+**Gap.** Not yet judged through this seed's own doors. READY-PENDING-BASE 2026-10-30: erasure fence gr-base-door-0290-erasurefence-1, Base 0.2.91 (pipeline.ts:92-98, approvals.ts:28-31). Replay-4 shipped in 0.2.90 (pipeline.ts:99-122); it is not a pending dependency.
 
 #### BASE-AGENT-013 — Manifest, docs and the conformance journey
 
@@ -1516,7 +1516,7 @@ Agent surface · target · **missing**
 5. A stranger agent given only the seed URL completes the specialist journey through MCP.
 
 **Evidence.** None.
-**Gap.** Not yet judged through this seed's own doors.
+**Gap.** Not yet judged through this seed's own doors. READY-PENDING-BASE 2026-10-30: invoke-only worker exposure gr-base-0290-invokeonly-1, Base 0.2.91 (modules/agent-door/index.ts:32-33,55-62; transport.ts:38,45; pipeline.ts:33-34; registry.ts:10-38). Timed, queued, dual-host and owner-native journeys remain contract obligations outside the CORE claim per ct 2026-10-29T14:12Z ruling 2; they await Base 0.2.91 gr-base-0290-history-1 (cli/agent-door.mjs:133-134, database and clock hook).
 
 ### Agent surface
 
@@ -1533,7 +1533,7 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-001, BASE
 4. The Base conformance harness passes on Uptime's seeded fixtures under both company policies.
 
 **Evidence.** None.
-**Gap.** No implementation: Uptime has no MCP door, tool registry, resource templates or Base conformance harness run.
+**Gap.** No implementation: Uptime has no MCP door, tool registry, resource templates or Base conformance harness run. ct 2026-10-29T14:12Z renamed the contract to native tool names without cutting outcomes, classes or clause IDs; worker admissions are excluded from CORE. Public resources and the retained unfinished capabilities still require their own conformance; no new judgment.
 
 #### SURFACE-002 — Live and security are computed per call
 
@@ -1542,14 +1542,14 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
 **Requirement.** Uptime's server computes the live and security classes and their facts from the arguments and current records for every call that can carry them.
 
 **Acceptance.**
-1. `uptime.monitors.save` is standard for a paused revision and live, with the monitors affected, for a change to a running monitor or one that enables checks; it adds security when it binds a credential reference or a TLS trust exception. `uptime.credentials.update` adds live, with the monitors affected, when it binds, rotates or revokes a request credential reference used by a running monitor; the same change for a paused monitor does not add live.
-2. `uptime.monitors.bulk`, `uptime.definitions.apply` and `uptime.settings.update` are standard for paused creations and live when they enable checks or change running monitors. `uptime.monitors.bulk` adds security, with the setting, when a clone copies a TLS trust exception; a clone of a monitor without one does not add security. `uptime.definitions.apply` is also live when it changes routes, contacts or maintenance or destroys a running monitor, with the monitors and routes affected, and adds security when it binds or changes a request credential reference or destination endpoint credential, with the credential setting. `uptime.settings.update` adds security, with the setting changed, when it changes snapshot masks, safe values or email release.
-3. `uptime.routes.update`, `uptime.maintenance.update`, `uptime.monitors.pause` and `uptime.handoffs.update` are live with the monitors and routes they change, and `uptime.handoffs.update` adds security when it stores a connector credential. `uptime.erasure.run` adds live when it erases a running monitor, or a destination or operator on a running monitor's alert path; `uptime.automations.update` adds live when it pauses or revokes an automation on that path. Both name the monitors and routes affected; erasure outside running monitors and their alert paths, or an automation pause or revocation outside those paths, does not add live.
-4. `uptime.discovery.run` is standard for a run, adds live when it adopts a proposal that enables checks and adds security when it authorizes a provider source credential; `uptime.dependencies.follow` adds live when following starts checks or unfollowing stops them, with the dependency monitors affected.
-5. `uptime.destinations.update` is standard for a name change and adds live when it creates, enables, disables or removes a destination on a running monitor's route, with the routes and monitors affected; outside running monitors' routes those changes do not add live. It adds external as SURFACE-003 specifies for an outside alert recipient, and adds security when it sets or rotates an endpoint URL, signing key, header secret or bot token.
+1. `uptime.monitors.create` or `uptime.monitors.update` is standard for a paused revision and live, with the monitors affected, for a change to a running monitor or one that enables checks; it adds security when it binds a credential reference or a TLS trust exception. `uptime.monitors.create` or `uptime.monitors.update` adds live, with the monitors affected, when it binds, rotates or revokes a request credential reference used by a running monitor; the same change for a paused monitor does not add live.
+2. `uptime.monitors.list` or `uptime.monitors.create` or `uptime.monitors.update`, `uptime.definitions.read` or `uptime.definitions.preview` and the pending settings update operation are standard for paused creations and live when they enable checks or change running monitors. `uptime.monitors.list` or `uptime.monitors.create` or `uptime.monitors.update` adds security, with the setting, when a clone copies a TLS trust exception; a clone of a monitor without one does not add security. `uptime.definitions.read` or `uptime.definitions.preview` is also live when it changes routes, contacts or maintenance or destroys a running monitor, with the monitors and routes affected, and adds security when it binds or changes a request credential reference or destination endpoint credential, with the credential setting. the pending settings update operation adds security, with the setting changed, when it changes snapshot masks, safe values or email release.
+3. `uptime.routes.read` or `uptime.routes.preview` or `uptime.routes.update`, `uptime.maintenance.read` or `uptime.maintenance.preview` or `uptime.maintenance.update`, `uptime.monitors.pause` or `uptime.monitors.resume` and the pending handoffs update operation are live with the monitors and routes they change, and the pending handoffs update operation adds security when it stores a connector credential. `uptime.privacy.erase` adds live when it erases a running monitor, or a destination or operator on a running monitor's alert path; the pending automations update operation adds live when it pauses or revokes an automation on that path. Both name the monitors and routes affected; erasure outside running monitors and their alert paths, or an automation pause or revocation outside those paths, does not add live.
+4. `uptime.discovery.start` or `uptime.discovery.read` is standard for a run, adds live when it adopts a proposal that enables checks and adds security when it authorizes a provider source credential; the pending dependencies follow operation adds live when following starts checks or unfollowing stops them, with the dependency monitors affected.
+5. `uptime.destinations.read` or `uptime.destinations.update` is standard for a name change and adds live when it creates, enables, disables or removes a destination on a running monitor's route, with the routes and monitors affected; outside running monitors' routes those changes do not add live. It adds external as SURFACE-003 specifies for an outside alert recipient, and adds security when it sets or rotates an endpoint URL, signing key, header secret or bot token.
 6. Record text or arguments claiming a change is paused, internal or credential-free leave the computed classes unchanged.
-7. `uptime.runners.update` adds live when it revokes or relabels a runner with assigned probes, with the monitors affected; revoking or relabeling a runner without assigned probes does not add live. It adds security when it issues a runner key. `uptime.grants.update` adds live when it grants or revokes a live-effect, synthetic or private-network grant a running monitor's checks use, and `uptime.heartbeats.issue` adds live when it rotates or revokes a running heartbeat monitor's token or URL authority. Each names the monitors affected; changes to grants or heartbeat authority used only by paused monitors do not add live.
-8. `uptime.members.update` adds security when it resets a member's enrolled second factors, with the factor-reset setting; invitations, role changes and removals do not add security for a factor reset. It adds live when a removal or role or scope change drops a team recipient on a running monitor's route, with the monitors and routes affected; a change that drops no such recipient does not add live.
+7. the pending runners update operation adds live when it revokes or relabels a runner with assigned probes, with the monitors affected; revoking or relabeling a runner without assigned probes does not add live. It adds security when it issues a runner key. `uptime.grants.read` adds live when it grants or revokes a live-effect, synthetic or private-network grant a running monitor's checks use, and the pending heartbeats issue operation adds live when it rotates or revokes a running heartbeat monitor's token or URL authority. Each names the monitors affected; changes to grants or heartbeat authority used only by paused monitors do not add live.
+8. `uptime.access.update` adds security when it resets a member's enrolled second factors, with the factor-reset setting; invitations, role changes and removals do not add security for a factor reset. It adds live when a removal or role or scope change drops a team recipient on a running monitor's route, with the monitors and routes affected; a change that drops no such recipient does not add live.
 
 **Evidence.** None.
 **Gap.** No implementation: no tool declares or computes live or security classes.
@@ -1561,14 +1561,14 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
 **Requirement.** Uptime's server computes the external and money classes and their facts from the destination, the recipient and the price on record for every call that can carry them.
 
 **Acceptance.**
-1. `uptime.destinations.test` carries external with its recipient count and counterparty, *known* for a destination already on record and *new* otherwise, and adds money with the USD price when the destination is SMS or voice.
-2. `uptime.phones.verify` carries external and money with the number and the USD price of the code message.
-3. `uptime.incidents.publish` carries external with counterparty *public*; `uptime.reports.schedule` adds external when a recipient is outside the business; `uptime.dependencies.follow` adds external with counterparty *known* when following Auth0 sends the tenant domain to Auth0; `uptime.automations.update` adds external when a test sends an event to the automation.
-4. `uptime.settings.update` adds money with the amount when it changes the phone budget or plan, and `uptime.grants.update` adds money with the spend limit when a grant allows live payments or refunds.
+1. `uptime.destinations.test` or `uptime.destinations.drill` carries external with its recipient count and counterparty, *known* for a destination already on record and *new* otherwise, and adds money with the USD price when the destination is SMS or voice.
+2. the pending phones verify operation carries external and money with the number and the USD price of the code message.
+3. the pending incidents publish operation carries external with counterparty *public*; the pending reports schedule operation adds external when a recipient is outside the business; the pending dependencies follow operation adds external with counterparty *known* when following Auth0 sends the tenant domain to Auth0; the pending automations update operation adds external when a test sends an event to the automation.
+4. the pending settings update operation adds money with the amount when it changes the phone budget or plan, and `uptime.grants.read` adds money with the spend limit when a grant allows live payments or refunds.
 5. Record text or arguments claiming a recipient is internal or a cost is zero leave the computed classes and facts unchanged.
-6. `uptime.monitors.check` adds money when the monitor holds an active live-payment or refund grant, with the USD amount and payee from the grant and current transaction; a manual check without such a grant does not add money.
-7. `uptime.routes.update`, `uptime.destinations.update` and `uptime.definitions.apply` add external when a route, an enabled destination or a code-applied contact puts a recipient outside the business on the alert path; `uptime.monitors.save` adds external when a slow policy's destinations include a recipient outside the business, and `uptime.monitors.bulk` adds external when the created monitors' shared alert route includes one. Each carries the recipient count and counterparty *known* for a recipient already on record and *new* otherwise; a change that exposes alerts only within the business does not add external.
-8. `uptime.handoffs.update` adds external when a mapping exposes incident, maintenance or recovery updates, evidence and attachments to a status page or an outside responder service, with the recipient count and counterparty *public* for a status page, *known* for a PagerDuty, Splunk On-Call or other outside responder service already on record and *new* otherwise; a mapping confined to the business does not add external.
+6. `uptime.checks.run` adds money when the monitor holds an active live-payment or refund grant, with the USD amount and payee from the grant and current transaction; a manual check without such a grant does not add money.
+7. `uptime.routes.read` or `uptime.routes.preview` or `uptime.routes.update`, `uptime.destinations.read` or `uptime.destinations.update` and `uptime.definitions.read` or `uptime.definitions.preview` add external when a route, an enabled destination or a code-applied contact puts a recipient outside the business on the alert path; `uptime.monitors.create` or `uptime.monitors.update` adds external when a slow policy's destinations include a recipient outside the business, and `uptime.monitors.list` or `uptime.monitors.create` or `uptime.monitors.update` adds external when the created monitors' shared alert route includes one. Each carries the recipient count and counterparty *known* for a recipient already on record and *new* otherwise; a change that exposes alerts only within the business does not add external.
+8. the pending handoffs update operation adds external when a mapping exposes incident, maintenance or recovery updates, evidence and attachments to a status page or an outside responder service, with the recipient count and counterparty *public* for a status page, *known* for a PagerDuty, Splunk On-Call or other outside responder service already on record and *new* otherwise; a mapping confined to the business does not add external.
 
 **Evidence.** None.
 **Gap.** No implementation: no tool declares or computes external or money classes.
@@ -1580,14 +1580,14 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
 **Requirement.** Uptime's server computes access, destructive and gated from the people, credentials, records and provider steps a call touches, and marks the steps a provider keeps for a person as gated before they run.
 
 **Acceptance.**
-1. `uptime.members.update`, `uptime.runners.update` and `uptime.keys.update` carry access with the people or credentials and whether the change widens or narrows; `uptime.automations.update` adds access when it grants, changes or revokes an automation app's authority, with the app and whether the change widens or narrows.
-2. `uptime.erasure.run` carries destructive with the item count per table and adds access when it erases an operator.
-3. `uptime.destinations.update` adds gated when a Teams admin must install the Uptime Teams app or a buyer must connect their own Twilio account, `uptime.automations.update` adds gated when a person must authorize Zapier or Make, and `uptime.phones.verify` adds gated for the recipient's own code entry; each gated step names the provider and the step.
-4. `uptime.incidents.comment` adds destructive when it deletes a comment, with the number of comments whose text and edit history are irreversibly removed; an add or edit does not carry destructive.
-5. `uptime.destinations.update` adds destructive when it removes a destination, with the item count per table erased; creating, rotating or disabling a destination does not add destructive.
-6. `uptime.settings.update` adds destructive when it shortens snapshot retention, with the count of retained snapshots whose expiry is shortened; leaving retention unchanged or increasing it does not add destructive for retention and never restores an expiry already shortened.
-7. `uptime.definitions.apply` adds destructive when code-managed destruction irreversibly erases a monitor, its evidence or another managed record, with the item count per table; a preview or a reversible definition change does not add destructive.
-8. `uptime.monitors.check` adds destructive when the monitor holds an active destructive-write grant, with the step and item count; a manual check without such a grant does not add destructive. `uptime.grants.update` adds destructive when it grants authority for destructive writes, with the step and item count; a grant that does not allow destructive writes does not add destructive.
+1. `uptime.access.update`, the pending runners update operation and the pending keys update operation carry access with the people or credentials and whether the change widens or narrows; the pending automations update operation adds access when it grants, changes or revokes an automation app's authority, with the app and whether the change widens or narrows.
+2. `uptime.privacy.erase` carries destructive with the item count per table and adds access when it erases an operator.
+3. `uptime.destinations.read` or `uptime.destinations.update` adds gated when a Teams admin must install the Uptime Teams app or a buyer must connect their own Twilio account, the pending automations update operation adds gated when a person must authorize Zapier or Make, and the pending phones verify operation adds gated for the recipient's own code entry; each gated step names the provider and the step.
+4. `uptime.incidents.note` adds destructive when it deletes a comment, with the number of comments whose text and edit history are irreversibly removed; an add or edit does not carry destructive.
+5. `uptime.destinations.read` or `uptime.destinations.update` adds destructive when it removes a destination, with the item count per table erased; creating, rotating or disabling a destination does not add destructive.
+6. the pending settings update operation adds destructive when it shortens snapshot retention, with the count of retained snapshots whose expiry is shortened; leaving retention unchanged or increasing it does not add destructive for retention and never restores an expiry already shortened.
+7. `uptime.definitions.read` or `uptime.definitions.preview` adds destructive when code-managed destruction irreversibly erases a monitor, its evidence or another managed record, with the item count per table; a preview or a reversible definition change does not add destructive.
+8. `uptime.checks.run` adds destructive when the monitor holds an active destructive-write grant, with the step and item count; a manual check without such a grant does not add destructive. `uptime.grants.read` adds destructive when it grants authority for destructive writes, with the step and item count; a grant that does not allow destructive writes does not add destructive.
 
 **Evidence.** None.
 **Gap.** No implementation: no tool declares or computes access, destructive or gated classes, and no incident record attributes an agent act.
@@ -1606,7 +1606,7 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-007, BASE
 5. Before setup is answered, the first call returns `policy_unset` with the setup link, and setup asks every Uptime class with no answer pre-selected.
 
 **Evidence.** None.
-**Gap.** No implementation: no MCP door exists for a stranger agent to run the monitoring-operator week under either company policy.
+**Gap.** No implementation: no MCP door exists for a stranger agent to run the monitoring-operator week under either company policy. ct 2026-10-29T14:12Z ruling 2: timed, queued, dual-host and owner-native journey steps remain READY-PENDING-BASE contract obligations outside CORE; Base 0.2.91 gr-base-0290-history-1 (cli/agent-door.mjs:133-134).
 
 #### SURFACE-006 — One-way operational actions carry their effects
 
@@ -1615,10 +1615,10 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
 **Requirement.** Uptime computes the irreversible and live effects of manual checks, cleanup-debt resolution and incident response actions from the affected debts, incidents, running monitors and alert routes.
 
 **Acceptance.**
-1. `uptime.cleanup.resolve` carries destructive with the debts irreversibly closed; it adds live, with the monitor affected, when resolving a debt takes a running monitor below the open-debt limit so its next scheduled run performs setup again. A resolution that leaves setup refused, or affects only a paused monitor, does not add live.
-2. `uptime.incidents.work` is standard for taking or reassigning ownership. Acknowledge, stop and resolve carry destructive with the incidents irreversibly changed, including incidents grouped by acknowledgment; assignment does not carry destructive.
-3. `uptime.incidents.work` adds live when acknowledge, stop or resolve ends scheduled reminders or a pending fallback on an open incident of a running monitor, including other incidents grouped by acknowledgment. Facts name every monitor, incident and route affected, applying each contact’s acknowledgment policy. Assignment, and a response action that ends no such scheduled reminder or pending fallback, do not add live.
-4. `uptime.monitors.check` adds live, with the monitor affected, when the monitor runs setup and cleanup fixtures and the cleanup debts this check can open (one for each cleanup step on each probe and attempt) would bring its open-debt count to the limit, so its next scheduled run would refuse setup. A check of a monitor without fixtures, or one whose possible debts cannot reach the limit, does not add live.
+1. the pending cleanup resolve operation carries destructive with the debts irreversibly closed; it adds live, with the monitor affected, when resolving a debt takes a running monitor below the open-debt limit so its next scheduled run performs setup again. A resolution that leaves setup refused, or affects only a paused monitor, does not add live.
+2. `uptime.incidents.assign` or `uptime.incidents.acknowledge` is standard for taking or reassigning ownership. Acknowledge, stop and resolve carry destructive with the incidents irreversibly changed, including incidents grouped by acknowledgment; assignment does not carry destructive.
+3. `uptime.incidents.assign` or `uptime.incidents.acknowledge` adds live when acknowledge, stop or resolve ends scheduled reminders or a pending fallback on an open incident of a running monitor, including other incidents grouped by acknowledgment. Facts name every monitor, incident and route affected, applying each contact’s acknowledgment policy. Assignment, and a response action that ends no such scheduled reminder or pending fallback, do not add live.
+4. `uptime.checks.run` adds live, with the monitor affected, when the monitor runs setup and cleanup fixtures and the cleanup debts this check can open (one for each cleanup step on each probe and attempt) would bring its open-debt count to the limit, so its next scheduled run would refuse setup. A check of a monitor without fixtures, or one whose possible debts cannot reach the limit, does not add live.
 
 **Evidence.** None.
 **Gap.** No implementation: no tool computes irreversible cleanup-debt or incident transitions, setup resumption or reminder and fallback suppression across affected monitors, incidents and routes.

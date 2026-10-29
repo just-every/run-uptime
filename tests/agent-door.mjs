@@ -239,31 +239,24 @@ try{
  console.log('PASS BASE-AGENT-012.uptime.current-native-read-replay');
  await proof.capture('agents-final','/agents');await proof.close();proof=null;
  assert.ok(c.points.every(point=>point.ok),JSON.stringify(c.points.filter(p=>!p.ok)));
- // Pending 2026-10-29 BASE-AGENT-013.uptime.declarative-conformance:
- // The inherited adoption has no agent-surface.json. The contract-led 34-tool
- // declaration remains blocked by the ct-alignment mismatch below; neither a
- // partial manifest nor a renamed no-op can establish native conformance.
- // Pending 2026-10-29 BASE-AGENT-013.uptime.ct-alignment:
- // CONTRACT.md's newer SURFACE-001 requires its 34-tool table and ten resource
- // templates exactly; only 9 of the 37 native names match that table. Removing
- // the three worker admissions leaves 25 required names absent and 25 surplus
- // names. Some required jobs (phone, budget and automation) have no native
- // implementation. Preserve ct's judgments rather than invent those jobs.
- // Pending 2026-10-29 BASE-AGENT-013.uptime.worker-conformance:
- // Base modules/agent-door/conformance/journey.mjs:60 and
- // conformance/fixtures.mjs:40 call every declared native step through MCP.
- // operation.ts:38 requires a trusted invoke operationId for continuationItem
- // tools. The CLI's verifier hook (conformance/invocation.mjs:7) separately
- // invokes only the first mutating step; it does not drive each continuation
- // through its real native queue in all mandatory policy phases. Preserve the
- // worker boundary and all three final-admission tools until that is supported.
- // Remeasured on 0.2.89: index.ts:62 invokes only rt.tools, while transport.ts:45
- // exposes that same registry. There is no native-only registration
- // option; a second door or a seed policy dispatcher would change the contract.
- // Pending 2026-10-29 BASE-AGENT-013.uptime.archive-refresh (no writer yet):
- // edition-authoring/edition-migrations.mjs:33 requires Git ancestry even for
- // --base-archive; archive-source.mjs:34 refuses it. The published npm CLI is
- // pinned, and the release archive's door is recorded with record-base instead.
+ // Updated 2026-10-30 BASE-AGENT-013.uptime.declarative-conformance:
+ // agent-surface.json declares tools, policy, pause, audit and idempotency.
+ // The installed rer 0.2.90 CLI measures every declared point; a declaration
+ // does not promote any ct judgment or unimplemented capability.
+ // Closed 2026-10-30 BASE-AGENT-013.uptime.ct-alignment:
+ // ct 2026-10-29T14:12Z ruled that the contract follows native names. Its
+ // retained outcome map preserves every existing clause, class and capability.
+ // Pending 2026-10-30 BASE-AGENT-013.uptime.worker-conformance:
+ // ct excludes checks.dispatch, destinations.dispatch and discovery.dispatch
+ // from CORE: invoke-only and hidden from MCP. Base 0.2.90 still uses one
+ // registry for both doors (modules/agent-door/index.ts:32-33,55-62;
+ // transport.ts:38,45; pipeline.ts:33-34; registry.ts:10-38). The descriptor
+ // includes them only as registry facts. Base 0.2.91 writer
+ // gr-base-0290-invokeonly-1 supplies the exposure option. Mandatory MCP
+ // fixtures cannot manufacture their retained trusted operation identities.
+ // Closed 2026-10-30 BASE-AGENT-013.uptime.archive-refresh:
+ // rer refresh-base --ref ab97e5e864013ef03fd7f1e1a335101dd9150891 acquired
+ // its public source automatically and completed without a scratch checkout.
  // Closed 2026-10-29 BASE-AGENT-013.uptime.managed-mail-check:
  // rer 0.2.88 structural check and the unchanged managed generator both pass;
  // MAIL_PROVIDER stays public and the duplicate deploy secret stays absent.

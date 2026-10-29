@@ -70,7 +70,7 @@ async function recordTarget(env:Bindings,name:string,args:Record<string,unknown>
 export function tools(env:Bindings):ToolDefinition[]{
  const definitions:ToolDefinition[]=[]
  function read(name:string,title:string,input:JsonSchemaObject,clauses:string[],run:(a:any,c:ToolContext)=>Promise<any>,classes:ClassId[]=['standard']){
-  definitions.push({name:'uptime.'+name,title,description:title+'. Uses current native role, scope and redacted records.',scope:name==='definitions.preview'?'definitions:preview':classes.includes('sensitive')?'uptime:evidence':'uptime:read',readOnly:true,inputSchema:input,outputSchema:{type:'object'},classes,clauses,untrusted:true,target:(a,c)=>recordTarget(env,name,a,c),classify:async(a,c)=>{await run(a,c);return classes.map(cls=>facts(cls,cls==='sensitive'?{kind:'failure-evidence'}:{}))},run:safeCall(run)})
+  definitions.push({name:'uptime.'+name,title,description:title+'. Uses current native role, scope and redacted records.',scope:name==='definitions.preview'?'definitions:preview':classes.includes('sensitive')?'uptime:evidence':'uptime:read',readOnly:true,inputSchema:input,outputSchema:{type:'object'},classes,clauses,untrusted:true,target:(a,c)=>recordTarget(env,name,a,c),classify:async(a,c)=>{await safeCall(run)(a,c);return classes.map(cls=>facts(cls,cls==='sensitive'?{kind:'failure-evidence'}:{}))},run:safeCall(run)})
  }
  read('monitors.list','List visible monitors',schema({}),['READAPI-001'],(_,c)=>reads.monitorList(env,c))
  read('monitors.read','Read one monitor',idSchema,['READAPI-001'],(a,c)=>reads.monitorRead(env,c,a.id))
