@@ -1,5 +1,6 @@
 // One installation-to-installation move through the same archive doors the console uses.
 import assert from 'node:assert/strict';
+import {proveArchiveSelection} from './archive-selection-support.mjs';
 import {join} from 'node:path';
 import {migratedWorker,runtimeDirectory,cleanupDirectory,ownerAPI} from './notify-acceptance-runtime.mjs';
 import {testAuthBindings} from './auth-test-support.mjs';
@@ -15,6 +16,7 @@ async function installation(name){
  return {worker,DB,bindings,owner,ok};
 }
 try{
+ await proveArchiveSelection(installation);
  const source=await installation('original-owner');
  // Historical, interrupted and already-sent records have no public manufacture door.
  await populateArchiveFixture({...source.bindings,DB:source.DB});
