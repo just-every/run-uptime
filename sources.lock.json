@@ -500,7 +500,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "40d26e73115ac09a2a572f90eb785b14c394471fe3b2d813ae50d168e90a73cb",
+      "sha256": "bfad510dbd320a063f363cd181708a69b91213702d3b8db5e8fb7d3ccd7bba18",
       "executable": false
     },
     "agent-surface.json": {
@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "5f6451a7c2971751d69deaa8d4756ff4a43e6c53b51ec371452e3bd1a6944b51",
+      "sha256": "4dc348b3afcf036e92b967395af18b4bd0dd65f64f345d7f23684a71cd0394df",
       "executable": false
     },
     "DEMO.md": {
@@ -8664,7 +8664,7 @@
       "executable": false
     },
     "tests/definitions-import.mjs": {
-      "sha256": "fd02319655c12b65ed9a1a012c4f535274c7873521e763fff1436f44b37eb4c5",
+      "sha256": "0a48a7a8db6c0f10581a03375804a247bb7cbb4542ef0c4c93a3b93733fdabb5",
       "executable": false
     },
     "tests/definitions-journey.mjs": {
@@ -8845,6 +8845,10 @@
     },
     "tests/maintenance-windows.mjs": {
       "sha256": "5cbc3e914592a7c6f8a36f8c0113e8d5bba86f0e562e22a2717b758961ea5aaa",
+      "executable": false
+    },
+    "tests/management-support.mjs": {
+      "sha256": "c335396bafb826025f1568dc6f920d911b04f5837924fce1571949337b4789ab",
       "executable": false
     },
     "tests/metrics-fixture.mjs": {
