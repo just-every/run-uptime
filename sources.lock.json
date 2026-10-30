@@ -8090,6 +8090,10 @@
       "sha256": "f069e3656f147da786c91cbdef5abdf0789e67bb3395f4914f0de4969ada2d12",
       "executable": false
     },
+    "tests/archive-range-support.mjs": {
+      "sha256": "43adece87d1231573d921ccbc137196151aa440bba6392bb8fa79047ac8742c8",
+      "executable": false
+    },
     "tests/archive-roundtrip.mjs": {
       "sha256": "f0f9328e62d19c7749e8ec2724a437873c45a79b19b7f20431707a57dbfa62ab",
       "executable": false
