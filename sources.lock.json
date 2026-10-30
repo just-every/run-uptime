@@ -496,7 +496,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "75f439caa5ed922ce669bebeda4b5286e37b6cec8dad1184931abb530399a217",
+      "sha256": "21c6b0b1f3571f72dcbbfa48dd5ccf11296c6bdafba8e95b4712354495132b13",
       "executable": false
     },
     "agent-surface.json": {
@@ -524,7 +524,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "b3076189059985ed9263363ecfc927c88a7b67f89639d76632947ebc8d3530f8",
+      "sha256": "f649c99aca207b453bd3b038e29dc8e3d40e97e3ec5d4ab7d03446fbbf6e4141",
       "executable": false
     },
     "DEMO.md": {
@@ -2512,7 +2512,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "29b16ab207696027d2eaa03e52a836be2d6935ac856db81ec5cbb98e0bc44619",
+      "sha256": "24a82ccfb57d15ac87a2580ec0064c6fb9dd80da62967dea15c6520948c63e0b",
       "executable": false
     },
     "patches/README.md": {
@@ -2520,7 +2520,7 @@
       "executable": false
     },
     "pnpm-lock.yaml": {
-      "sha256": "6367ff623e1a6347f59b4c9d485baf44e7d53ede3a83754acc1a9bd6bc5bcedd",
+      "sha256": "47832c312edffe7c2afe837dc4f761a4324eab284ff34805cb38bf1de385188e",
       "executable": false
     },
     "public/action-feedback.mjs": {
@@ -8684,7 +8684,11 @@
       "executable": false
     },
     "tests/erasure-audit.mjs": {
-      "sha256": "ed03232cdaf20e54516de2a155cfb5491f22f4630b88f16c40af9c6c02dd7dc1",
+      "sha256": "eb8775156c8b24237bdecdf13e27befc374890970f645e437645899fd835ab65",
+      "executable": false
+    },
+    "tests/erasure-race-support.mjs": {
+      "sha256": "08ee3d8383ebfc7085519e6dd5654dd006ec362e055fbcf3405aae307fc7a239",
       "executable": false
     },
     "tests/failure-page-browser.mjs": {

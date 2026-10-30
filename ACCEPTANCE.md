@@ -8,12 +8,12 @@ The primary journey: an operator moves their monitors from UptimeRobot or Pingdo
 
 | Tier | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
-| Core | 15 | 69 | 11 | 95 |
+| Core | 16 | 68 | 11 | 95 |
 | Agent surface | 0 | 0 | 19 | 19 |
 | Later | 0 | 0 | 1 | 1 |
-| Full target | 15 | 69 | 31 | 115 |
+| Full target | 16 | 68 | 31 | 115 |
 
-Judged from the code and tests at commit `85a34f9214bd9396ac186cf8555b8edc1d28b8f8` (29 October 2026). FLOW-004 viewport proof and SCHEDULE-001 cadence proof; other clause judgments retained. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
+Judged from the code and tests at commit `886ad3662fec5bdd5c1cd4c7692a9d22d897529f` (29 October 2026). ERASURE-001 public owner erasure, retained stale edit and complete refusal preservation; other clause judgments retained. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
 
 ## Core
 
@@ -133,7 +133,7 @@ Core · published · **done** · Cites BASE-DATA-002
 
 #### ERASURE-001 — Operator-directed entity erasure
 
-Core · published · **partial** · Cites BASE-DATA-003, BASE-DATA-006
+Core · published · **done** · Cites BASE-DATA-003, BASE-DATA-006
 
 **Requirement.** An owner can erase a monitor with its evidence and dependent notification/heartbeat records, a destination with its credential copies, or an operator while another active owner remains. Monitor erasure requires typing the current monitor name. Each completed erasure returns a receipt with entity kind, per-table counts and completion time, and returns it only after the transaction containing the erasure, audit entry and portability fence succeeds. Requests based on stale monitor or destination state cannot re-create erased rows. The last active owner cannot be erased: local installations use `rer reset --yes`, while hosted installations require replacement by redeployment. Uptime has no R2 attachment feature; import-door uploads, plan snapshots and archive bytes are held in installation-local custody under the erasure rule in [Erasure and audit](docs/contract/safety-rules.md#erasure-and-audit). Already downloaded archives, messages already sent to external recipients and requests already in progress remain outside local erasure. See [Erasure and audit](docs/contract/safety-rules.md#erasure-and-audit).
 
@@ -141,8 +141,8 @@ Core · published · **partial** · Cites BASE-DATA-003, BASE-DATA-006
 1. Erase each supported entity through the owner API, including stale concurrent requests and the original owner with a successor.
 2. Inspect the atomic per-table receipt, audit and journal; the last owner is protected and an old archive with the later journal cannot resurrect erased records.
 
-**Evidence.** `src/domain/erasure.server.ts`; `tests/erasure-audit.mjs`; `tests/erasure-audit.mjs`; `tests/definitions-import.mjs`
-**Gap.** Monitor, destination and second-operator erasure, held delivery refusal after erasure, per-table receipts, anonymized audit, the last-owner refusal and journal fences on old archives remain asserted. Gap: erasing the original owner after a successor exists, resuming a captured concurrent monitor edit and complete durable-state rollback after a refused erasure lack assertions in the cited files. Local synthetic proof does not add real-export or hosted acceptance.
+**Evidence.** `tests/erasure-audit.mjs` — public owner erasure and later-journal restore: monitor, destination and second-operator erasure, populated per-table receipts, atomic audit and portability fences, held runner and notification refusal, anonymized actors and old-archive refusal; `tests/erasure-race-support.mjs` — erasureRaceProof, mounted once by the erasure journey: an actual owner PATCH based on revision 3 stays open across monitor erasure, resumes with refusal and cannot restore any durable row; unsigned, wrong-name and last-owner erasure refusals preserve all 197 durable tables, including populated transfer custody, receipts, audit and fences; `tests/alert-routes.mjs` — owned routes preview inheritance, deliver matched triggers and recoveries and retain auditable changes, calling `tests/catalog-routes-support.mjs` proveCatalogRoutes: original-owner erasure with an enrolled successor, anonymized retained ownership and surviving fresh sign-in and factor authority.
+**Gap.** None.
 
 #### AUDIT-001 — Durable anonymized audit
 
