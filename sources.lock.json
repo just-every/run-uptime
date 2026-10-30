@@ -8314,8 +8314,12 @@
       "sha256": "4881df3d2032291fe173bbcecde94dc446c78e77265d753af00c8c4e54e6f9d3",
       "executable": false
     },
+    "tests/maintenance-recurring-support.mjs": {
+      "sha256": "7aa90050971110da4bf2d0f22e91586f5cee8342eaf8f0f543f09ed629d4fd4c",
+      "executable": false
+    },
     "tests/maintenance-windows.mjs": {
-      "sha256": "5cbc3e914592a7c6f8a36f8c0113e8d5bba86f0e562e22a2717b758961ea5aaa",
+      "sha256": "6fd25347afd050b52f6e6ea5c69e65343958c6e657dbb004a0eb0c243242e45c",
       "executable": false
     },
     "tests/metrics-fixture.mjs": {
