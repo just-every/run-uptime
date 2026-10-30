@@ -55,7 +55,8 @@ try{
  const capabilities={mode:'declared',declared:['tools','policy','pause','audit','idempotency'],refused:['events','resources','prompts','subscriptions'],unscoped:['multiSponsor','mailEdges','resourceRefresh','timedLifecycle','dualHost','queuedLifecycle','ownerNativeApi']};
  const discovery=await c.mcp('server/discover');
  assert.deepEqual(discovery.result._meta['com.runeditrun/capabilities'],capabilities);
- assert.equal(surface.tools.length,37,'CORE keeps every native tool and omits only the optional built-in events tool');
+ assert.equal(surface.tools.length,34,'CORE exposes every native operator tool; the three worker admissions remain invoke-only');
+ for(const name of ['uptime.checks.dispatch','uptime.destinations.dispatch','uptime.discovery.dispatch'])assert.ok(!surface.tools.some(tool=>tool.name===name),'Worker admission is absent from MCP discovery');
  const capabilityWitness=await result('uptime.evidence.witness');
  for(const [capability,method,params] of [
   ['resources','resources/read',{uri:'uptime://monitors/missing'}],
@@ -216,7 +217,7 @@ try{
   ['uptime.checks.dispatch',{id:monitor.id,version:currentMonitor.revision,runner_id:runner.runnerId,handoff_id:handoff.id}],
   ['uptime.destinations.dispatch',{id:destination.id,delivery_id:notificationId,credential_id:'not-a-native-credential'}],
   ['uptime.discovery.dispatch',{id:'not-a-native-job',runner_id:runner.runnerId}],
- ])assert.equal(errorCode(await c.tool(name,args)),'operation_mismatch','MCP cannot manufacture a trusted continuation operation');
+ ])assert.equal(errorCode(await c.tool(name,args)),'tool_not_found','MCP cannot discover or call an invoke-only worker admission');
  assert.deepEqual((await result('uptime.evidence.witness')).result.structuredContent,continuationWitness);
  console.log('PASS BASE-AGENT-012.uptime.worker-only-continuation-admission');
  // An approved aggregate read retains a receipt, not a snapshot of native
@@ -239,26 +240,9 @@ try{
  console.log('PASS BASE-AGENT-012.uptime.current-native-read-replay');
  await proof.capture('agents-final','/agents');await proof.close();proof=null;
  assert.ok(c.points.every(point=>point.ok),JSON.stringify(c.points.filter(p=>!p.ok)));
- // Updated 2026-10-30 BASE-AGENT-013.uptime.declarative-conformance:
- // agent-surface.json declares tools, policy, pause, audit and idempotency.
- // The installed rer 0.2.90 CLI measures every declared point; a declaration
- // does not promote any ct judgment or unimplemented capability.
- // Closed 2026-10-30 BASE-AGENT-013.uptime.ct-alignment:
- // ct 2026-10-29T14:12Z ruled that the contract follows native names. Its
- // retained outcome map preserves every existing clause, class and capability.
- // Pending 2026-10-30 BASE-AGENT-013.uptime.worker-conformance:
- // ct excludes checks.dispatch, destinations.dispatch and discovery.dispatch
- // from CORE: invoke-only and hidden from MCP. Base 0.2.90 still uses one
- // registry for both doors (modules/agent-door/index.ts:32-33,55-62;
- // transport.ts:38,45; pipeline.ts:33-34; registry.ts:10-38). The descriptor
- // includes them only as registry facts. Base 0.2.91 writer
- // gr-base-0290-invokeonly-1 supplies the exposure option. Mandatory MCP
- // fixtures cannot manufacture their retained trusted operation identities.
- // Closed 2026-10-30 BASE-AGENT-013.uptime.archive-refresh:
- // rer refresh-base --ref ab97e5e864013ef03fd7f1e1a335101dd9150891 acquired
- // its public source automatically and completed without a scratch checkout.
- // Closed 2026-10-29 BASE-AGENT-013.uptime.managed-mail-check:
- // rer 0.2.88 structural check and the unchanged managed generator both pass;
- // MAIL_PROVIDER stays public and the duplicate deploy secret stays absent.
+ // CORE is declared against published rer 0.2.93. Worker admissions are
+ // invoke-only under ct's 2026-10-29T14:12Z ruling. The earlier native runner
+ // and notification assertions retain their full trusted-operation checks.
+ // Declarative conformance runs through the installed rer verify CLI.
  console.log('PASS Uptime agent native signed identity, both MCP eras, no-effect reads, current scopes, revision, one-effect replay, held approval, Pause and read-key fences');
 }finally{await proof?.dispose();await worker?.dispose();await cleanupDirectory(directory)}

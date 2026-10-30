@@ -73,16 +73,12 @@ posts the exact current agent ID, tool and argument object to
 `/agents/native-proof`. It returns only the native reference. The proof binds
 the exact arguments after Base removes reserved idempotency/revision fields.
 
-Known boundaries remain visible: the three `*.dispatch` tools require an
-original trusted operation ID and their native continuation records. Mandatory
-journey calls use MCP, which cannot supply that identity. They fail before
-policy refusal checks, and no initializer, step hook or fabricated credential ID
-can fix that mismatch. The separate optional `verification.invoke` phase only
-invokes the first mutating journey step; these modules do not claim that phase
-or worker coverage. Keep those native mandatory steps last so earlier native
-coverage still runs. Record-subject security/access tools also cannot produce
-sponsor self-escalation fixtures without an applicable declaration; the real
-evidence grant tool can and retains its mandatory self-grant refusal fixture.
+The three `*.dispatch` worker admissions require an original trusted operation
+ID and their native continuation records. Under ct's 2026-10-29T14:12Z ruling,
+they use the exposure option shipped in rer 0.2.93 and remain outside the CORE
+public descriptor and mandatory MCP journey. Native runner and notification
+admission tests keep their original operation, consent, policy, replay and Pause
+assertions. Worker lifecycle conformance remains undeclared.
 
 The owner initializer runs before the verifier chooses its random conformance
 agent ID. Preparation has no agent-ID argument; after initial discovery it may

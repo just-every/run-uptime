@@ -496,7 +496,11 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "b554d67adf7bf78865827ab1c04f6ffb56041faf4477a18961a3a5e30c48545b",
+      "sha256": "a032e1ea2c32dcf5c548d7a0e4f2108a61f0c12ea4130a6f4b3bc590b47b874b",
+      "executable": false
+    },
+    "agent-surface.json": {
+      "sha256": "286c5db209bb11caa45c3729597f936b67f221325d79f59b601f0ac59c730b4f",
       "executable": false
     },
     "AGENTS.md": {
@@ -520,7 +524,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "a8cd0786c7f23c1699804a7302e5b0d6218822020710ef087a11fa37cbfbf0f7",
+      "sha256": "963a4f31e07b1aaab9eb5f42699bd0b94e919b56c92c4528e01c6a43ed1a95cb",
       "executable": false
     },
     "DEMO.md": {
@@ -536,7 +540,7 @@
       "executable": false
     },
     "deploy.json": {
-      "sha256": "bbc09130e676261796caf3890935338c7fedc7fa5dee15646dd5d31d49d00675",
+      "sha256": "cabe2cadb47a4ccfd2cd503628deb2b68e7dbda98de8ad23190d8b3890a1ef99",
       "executable": false
     },
     "docs/access.md": {
@@ -2156,7 +2160,7 @@
       "executable": false
     },
     "management/integration/deployment-spec.json": {
-      "sha256": "626e37f55e5fbac5aa511d24b8ce0da5dd11ac56cbc7b04c41ae472471f11206",
+      "sha256": "bc272ee4d737f13e217419540409cdb69eab29095eb4fd8847b49cb7f800e3a1",
       "executable": false
     },
     "migrations/0001_uptime.sql": {
@@ -4388,7 +4392,7 @@
       "executable": false
     },
     "src/agent-door/registry.server.ts": {
-      "sha256": "ecc6b0419dd9d403ba2d4b7973d831be72bfedecf429024bb32eb8a1d500d6b4",
+      "sha256": "b85b243df30cf67acf9f5167c7d63a8aba9af18b1bf2312327ad0c2e4aa47e89",
       "executable": false
     },
     "src/agent-door/work.server.ts": {
@@ -8540,7 +8544,7 @@
       "executable": false
     },
     "tests/agent-conformance/README.md": {
-      "sha256": "0a0ed597ec6345ec08ae0d2cc3d7b92b5307a5d12ec28ff361239e4f7a05cf60",
+      "sha256": "1a59855a9429c3e3cb6d3fbbf10e5a1a12a88e3692e401b096c23936b3b9a439",
       "executable": false
     },
     "tests/agent-conformance/reviewer.mjs": {
@@ -8556,7 +8560,7 @@
       "executable": false
     },
     "tests/agent-door.mjs": {
-      "sha256": "2b6eb12e32ed4b37d169fa08b1deac0ab53075ff3a22cb083e6757752377e5f0",
+      "sha256": "67a0069a2b30cb170fe69f25c700f8450aff8b77329dbc733ec316171a97a2e3",
       "executable": false
     },
     "tests/alert-drill.mjs": {
@@ -9280,7 +9284,7 @@
       "executable": false
     },
     "wrangler.jsonc": {
-      "sha256": "e1092a45cf67307de39f000ba147f1e95bedac5329bea03eb956884cc31d4338",
+      "sha256": "3a3a807386d102b0dad1acb3ec18b50fd7cd05f14350f36985a802ec2e444472",
       "executable": false
     }
   }
