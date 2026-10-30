@@ -863,7 +863,11 @@
       },
       "expect": [
         {
-          "class": "external"
+          "class": "external",
+          "facts": {
+            "measure": 1,
+            "counterparty": "known"
+          }
         }
       ],
       "inject": {
@@ -881,7 +885,11 @@
       },
       "expect": [
         {
-          "class": "external"
+          "class": "external",
+          "facts": {
+            "measure": 1,
+            "counterparty": "known"
+          }
         }
       ],
       "inject": {
