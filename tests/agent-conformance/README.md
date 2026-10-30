@@ -73,14 +73,14 @@ posts the exact current agent ID, tool and argument object to
 `/agents/native-proof`. It returns only the native reference. The proof binds
 the exact arguments after Base removes reserved idempotency/revision fields.
 
-Known boundaries remain visible: the three `*.dispatch` tools require an
-original trusted operation ID and their native continuation records. Mandatory
-journey calls use MCP, which cannot supply that identity. They fail before
-policy refusal checks, and no initializer, step hook or fabricated credential ID
-can fix that mismatch. The separate optional `verification.invoke` phase only
-invokes the first mutating journey step; these modules do not claim that phase
-or worker coverage. Keep those native mandatory steps last so earlier native
-coverage still runs. Record-subject security/access tools also cannot produce
+The three `*.dispatch` tools require an original trusted operation ID and
+their native continuation records. Published rer 0.2.93 supplies
+`exposure: 'invoke'`: they stay in the native registry for final worker
+admission, are hidden from MCP and are absent from the public descriptor and
+mandatory MCP journey, as ct ruled on 29 October at 14:12Z. Their existing
+native continuation-identity, final-admission and MCP refusal assertions remain
+in `tests/agent-door.mjs`. This does not claim the optional worker lifecycle
+family. Record-subject security/access tools also cannot produce
 sponsor self-escalation fixtures without an applicable declaration; the real
 evidence grant tool can and retains its mandatory self-grant refusal fixture.
 
@@ -101,6 +101,15 @@ incident work. The native journey proves that exact-key manual replay queues
 one effect, unobserved work stays Unknown, and both signed failed vantages
 remain visible. Diagnostic audit reads print only operation names and error
 codes from the disposable installation. No assertion is suppressed.
+
+Post-mutation injection probes retain their adversarial instruction arguments
+and the native stale-version and missing-record guards. The installed harness
+currently issues a fresh operation key with consumed fixture versions/targets
+(`conformance/injection.mjs:20-23`, `protocol.mjs:129-132`), so those probes must
+still be measured as failures when native admission refuses them. The approved
+erasure retry is also retained: Base documents its deleted-target classifier
+limitation as deferred A1 in `ADOPTING.md`. Neither fixture code nor native
+authorization bypasses these remaining boundaries.
 
 The descriptor corrects the initial overclaim that five record jobs widen their
 own sponsor. Their published surface-only `sponsorEscalation:false` declaration
