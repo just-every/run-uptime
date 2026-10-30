@@ -1394,7 +1394,7 @@ Agent surface · target · **missing**
 6. A refused call's audit row still records its computed classes.
 
 **Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs`; `tests/agent-conformance/journey.mjs`
-**Gap.** Declared native class checks run under both policies. Approved erasure replay loses its classification after deletion (0.2.93 pipeline.ts:122; ADOPTING.md:826-829, deferred A1). The wider retained class conditions remain unjudged.
+**Gap.** Declared native class checks run under both policies. The native erasure classifier uses trusted completed effect facts only after current workspace-owner admission, and its approved replay now retains classification. The wider retained class conditions remain unjudged.
 
 #### BASE-AGENT-007 — The company's policy decides, at one chokepoint
 
@@ -1413,7 +1413,7 @@ Agent surface · target · **missing**
 8. A policy document with a bad signature or another Business's id is rejected, and the door keeps the last valid revision.
 
 **Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs`; `tests/agent-conformance/journey.mjs`
-**Gap.** Published 0.2.93 verifier-policy renewal and the declared policy variants pass except the approved erasure receipt. That retry returns not_found after native deletion (pipeline.ts:122; ADOPTING.md:826-829, deferred A1). The earlier renewal dependency has shipped. Standard-only named approval remains a separate acceptance obligation with no writer supplied in the brief; no complete-clause judgment is promoted.
+**Gap.** Published 0.2.93 verifier-policy renewal and the declared policy variants pass, including the approved erasure receipt after native classifier adoption. The earlier renewal dependency has shipped. Standard-only named approval remains a separate acceptance obligation with no writer supplied in the brief; no complete-clause judgment is promoted.
 
 #### BASE-AGENT-008 — Truthful attribution
 
@@ -1500,7 +1500,7 @@ Agent surface · target · **missing**
 5. A job handle used by another person's token reads as not found.
 
 **Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs`; `tests/agent-conformance/journey.mjs`
-**Gap.** Published replay support preserves current admission, exact-key one-effect replay, current native reads and trusted continuation identity. Deferred A1 remains: an approved native DELETE retry can return not_found when its classifier reads the deleted target (0.2.93 pipeline.ts:122; ADOPTING.md:826-829). The nine post-mutation injection calls also receive fresh keys with consumed fixture versions/targets (conformance/injection.mjs:20-23, protocol.mjs:129-132). No writer for these remaining edges is supplied in this brief.
+**Gap.** Published replay support preserves current admission, exact-key one-effect replay, current native reads and trusted continuation identity. The native erasure adapter now consumes Base's trusted completed effect facts while rechecking current workspace-owner authority; its retained exact-key result, native proof, Pause refusal and fresh-key missing-target refusal are asserted in tests/agent-door.mjs. This closes the seed's deleted-target classifier gap without claiming a general Base A1 fix. Nine post-mutation injection calls still receive fresh keys with consumed fixture versions/targets (0.2.93 conformance/injection.mjs:20-23, protocol.mjs:129-132). No writer for that remaining harness edge is supplied in this brief.
 
 #### BASE-AGENT-013 — Manifest, docs and the conformance journey
 
@@ -1516,7 +1516,7 @@ Agent surface · target · **missing**
 5. A stranger agent given only the seed URL completes the specialist journey through MCP.
 
 **Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs`; `tests/agent-conformance/journey.mjs`
-**Gap.** Published 0.2.93 closes archive refresh and invoke-only worker exposure (gr-base-0290-invokeonly-1). CORE conformance remains incomplete at the named injection and approved-erasure points. Timed, queued, dual-host and owner-native journeys remain READY-PENDING-BASE contract obligations outside CORE per ct 2026-10-29T14:12Z ruling 2; the database/clock hook remains undeclared (cli/agent-door.mjs:133-134; gr-base-0290-history-1). No clause judgment is promoted.
+**Gap.** Published 0.2.93 closes archive refresh and invoke-only worker exposure (gr-base-0290-invokeonly-1). CORE conformance remains incomplete at the nine named post-mutation injection points; approved-erasure receipt and replay checks pass after native classifier adoption. Timed, queued, dual-host and owner-native journeys remain READY-PENDING-BASE contract obligations outside CORE per ct 2026-10-29T14:12Z ruling 2; the database/clock hook remains undeclared (cli/agent-door.mjs:133-134; gr-base-0290-history-1). No clause judgment is promoted.
 
 ### Agent surface
 
@@ -1533,7 +1533,7 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-001, BASE
 4. The Base conformance harness passes on Uptime's seeded fixtures under both company policies.
 
 **Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs`; `tests/agent-conformance/journey.mjs`
-**Gap.** Native CORE now exposes the 34 contract tools; the three worker admissions remain invoke-only under ct 2026-10-29T14:12Z. Declarative conformance still refuses nine post-mutation injection variants and approved erasure replay. No clause judgment is promoted. The retained capability outcomes and optional public resource, event and prompt obligations still require their own complete conformance.
+**Gap.** Native CORE now exposes the 34 contract tools; the three worker admissions remain invoke-only under ct 2026-10-29T14:12Z. Declarative conformance still refuses nine post-mutation injection variants. Native approved-erasure replay now rechecks current workspace-owner authority and native proof against the trusted completed effect facts. No clause judgment is promoted. The retained capability outcomes and optional public resource, event and prompt obligations still require their own complete conformance.
 
 #### SURFACE-002 — Live and security are computed per call
 
@@ -1606,7 +1606,7 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-007, BASE
 5. Before setup is answered, the first call returns `policy_unset` with the setup link, and setup asks every Uptime class with no answer pre-selected.
 
 **Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs`; `tests/agent-conformance/journey.mjs`
-**Gap.** The native CORE journey reads independently observed two-vantage scheduled failure, operates the incident, previews bounded repairs and preserves Unknown and scheduled recovery under both policies. Approved erasure replay and post-mutation injection variants still fail. ct 2026-10-29T14:12Z ruling 2 retains timed, queued, dual-host and owner-native steps as READY-PENDING-BASE contract obligations outside CORE; the database/clock lifecycle hook remains undeclared (cli/agent-door.mjs:133-134; writer gr-base-0290-history-1).
+**Gap.** The native CORE journey reads independently observed two-vantage scheduled failure, operates the incident, previews bounded repairs and preserves Unknown and scheduled recovery under both policies. Approved erasure replay passes after the native classifier adoption; the nine post-mutation injection variants still fail. ct 2026-10-29T14:12Z ruling 2 retains timed, queued, dual-host and owner-native steps as READY-PENDING-BASE contract obligations outside CORE; the database/clock lifecycle hook remains undeclared (cli/agent-door.mjs:133-134; writer gr-base-0290-history-1).
 
 #### SURFACE-006 — One-way operational actions carry their effects
 

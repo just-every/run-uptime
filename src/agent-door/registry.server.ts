@@ -148,7 +148,13 @@ export function tools(env:Bindings):ToolDefinition[]{
 
  read('definitions.read','Read redacted native definitions',schema({}),['CODE-001'],async(_,c)=>{await authority(env,c,'export',[],undefined,true);return {monitors:(await reads.monitorList(env,c)).items}})
  read('definitions.preview','Recognize a native definition file without applying it',schema({text:{type:'string',maxLength:2097152}}),['CODE-001'],async(a,c)=>{const access=await authority(env,c,'read');if(access.kind==='credential'){if(!access.tokenScopes.includes('definitions:preview'))throw new ToolRefusal('insufficient_scope');await assertCiFile(env,access,a.text)}return recogniseFile(a.text,'uptime.monitors')})
- const privacy=mutation('privacy.erase','Erase a native monitor and dependent records',schema({id:string,confirmation:string}),['destructive'],['ERASURE-001'],async(a,c)=>{const access=await authority(env,c,'owner',[a.id],undefined,true);const result=await erase({...env,DB:authorizedDatabase(env,access)},'monitor',a.id,actor(c),a.confirmation);c.emit('monitor.erased',`uptime://monitors/${a.id}`);return result},async(a,c)=>{await authority(env,c,'owner',[String(a.id)],undefined,true);return [facts('destructive')]},monitorRevision)
+ const privacy=mutation('privacy.erase','Erase a native monitor and dependent records',schema({id:string,confirmation:string}),['destructive'],['ERASURE-001'],async(a,c)=>{const access=await authority(env,c,'owner',[a.id],undefined,true);const result=await erase({...env,DB:authorizedDatabase(env,access)},'monitor',a.id,actor(c),a.confirmation);c.emit('monitor.erased',`uptime://monitors/${a.id}`);return result},async(a,c,completed)=>{
+  // A completed deletion has no live monitor to resolve. Base supplies the
+  // original effect facts only for its retained exact-key outcome; current
+  // workspace-owner authority, credential scope, policy and proof still apply.
+  await authority(env,c,'owner',completed?[]:[String(a.id)],undefined,true)
+  return completed?[...completed]:[facts('destructive')]
+ },monitorRevision)
  privacy.proof='native';privacy.proofKind='step_up'
 
  const destination=mutation('destinations.update','Update a native notification destination',schema({id:string,destination:schema({name:{type:'string',minLength:1,maxLength:100},enabled:{type:'boolean'}})}),['live','access'],['NOTIFY-001'],async(a,c)=>{const access=await authority(env,c,'secret_write',[],undefined,true);const result=await updateDestination({...env,DB:authorizedDatabase(env,access)},a.id,a.destination,actor(c));c.emit('destination.updated',`uptime://destinations/${a.id}`);const {signingSecret,...safe}=result as any;return safe},async(a,c)=>{await reads.destinationRead(env,c,String(a.id));return [facts('live',{service:'alert-delivery'}),facts('access',{direction:(a.destination as any)?.enabled?'widens':'narrows'})]})
