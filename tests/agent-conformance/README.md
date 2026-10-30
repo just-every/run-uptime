@@ -103,16 +103,17 @@ remain visible. Diagnostic audit reads print only operation names and error
 codes from the disposable installation. No assertion is suppressed.
 
 Post-mutation injection probes retain their adversarial instruction arguments
-and the native stale-version and missing-record guards. The installed harness
-currently issues a fresh operation key with consumed fixture versions/targets
-(`conformance/injection.mjs:20-23`, `protocol.mjs:129-132`), so those probes must
-still be measured as failures when native admission refuses them. The approved
-erasure retry uses Base's trusted completed effect facts only after rechecking
-current workspace-owner authority; native proof and current policy still apply.
-Its exact-key replay, Pause and proof refusals, and fresh-key missing-target
-refusal are asserted in the native journey. This adapts the seed classifier
-without claiming a general fix for Base's deferred A1 limitation. Neither
-fixture code nor native authorization bypasses the remaining injection boundary.
+and the native stale-version and missing-record guards. Published rer 0.2.94
+keeps each mutation's originally admitted arguments and exact idempotency key
+(`conformance/injection.mjs`, called from `conformance/journey.mjs`), so a probe
+retries the same operation after its original version or target is consumed.
+Read-only prerequisites still refresh without creating another write effect.
+The approved erasure retry uses Base's trusted completed effect facts only
+after rechecking current workspace-owner authority; native proof and current
+policy still apply. Its exact-key replay, Pause and proof refusals, and
+fresh-key missing-target refusal are asserted in the native journey. This
+adapts the seed classifier without claiming a general fix for Base's deferred
+A1 limitation. Neither fixture code nor native authorization bypasses admission.
 
 The descriptor corrects the initial overclaim that five record jobs widen their
 own sponsor. Their published surface-only `sponsorEscalation:false` declaration

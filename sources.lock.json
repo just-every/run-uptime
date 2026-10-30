@@ -496,7 +496,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "aa760facb29970044a04b1b77bebe8aa36d51b0f0ff1a53b4ed3abfa84695c26",
+      "sha256": "1a790eb99974ce510f31cc599019071b507442734c217f536072fa13fdf1b891",
       "executable": false
     },
     "agent-surface.json": {
@@ -524,7 +524,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "162f3f47e1ea47184cf360d88725793f9161aa584f1ff00e4cd4efb70a25e070",
+      "sha256": "bbee97485a0453fac3b346b4931fd229707ef018fac41b6164213468b3a13bae",
       "executable": false
     },
     "DEMO.md": {
@@ -4399,6 +4399,10 @@
       "sha256": "c36fe90e40695923946a740699e1ffde5b8317c7705f68b6c879f94acf715881",
       "executable": false
     },
+    "src/base/contract-anchor.mjs": {
+      "sha256": "b63993a57cff119f3f1d4407963d2623abe18733fffb0f04de12f43bc503821d",
+      "executable": false
+    },
     "src/base/contract-docs.mjs": {
       "sha256": "9df82c57404ec33c5807973e25dda23514dde977c5d9de7ff025386ebf21a75c",
       "executable": false
@@ -4437,6 +4441,10 @@
     },
     "src/base/font-response.ts": {
       "sha256": "55abc935a78085735ae5b7f2d441ee7a5a67d9c797417f9b5ac3c2449f8c91a8",
+      "executable": false
+    },
+    "src/base/foundation/runtime/contract-anchor.mjs": {
+      "sha256": "b63993a57cff119f3f1d4407963d2623abe18733fffb0f04de12f43bc503821d",
       "executable": false
     },
     "src/base/foundation/runtime/icon-head.ts": {
@@ -4509,6 +4517,10 @@
     },
     "src/base/modules/agent-door/CLAUSES.md": {
       "sha256": "0568321ca8cc6c5ff5056d3e12868795aadfedd17c51aa693dd4517450a9e867",
+      "executable": false
+    },
+    "src/base/modules/agent-door/company-policy.ts": {
+      "sha256": "884846582a35c7783aab697752a3fc3ae682424897139ac6c73302450e25abb0",
       "executable": false
     },
     "src/base/modules/agent-door/conformance/audit-pages.mjs": {
@@ -4633,6 +4645,10 @@
     },
     "src/base/modules/agent-door/conformance/webhooks.mjs": {
       "sha256": "0ab018eacc5568b8f4e9c6302ed1ca28c01221cad943723136ff96544bf2a7ee",
+      "executable": false
+    },
+    "src/base/modules/agent-door/continuation-audit.ts": {
+      "sha256": "ca2a853aaa666ab175dd2bf17a4d6c0ade27483969498054bf4a3640b07b4f64",
       "executable": false
     },
     "src/base/modules/agent-door/counting.ts": {
@@ -8540,7 +8556,7 @@
       "executable": false
     },
     "tests/agent-conformance/README.md": {
-      "sha256": "be4d0649787d1925d477d0b679e0a2a2852b63711a98a0d8fc99d3baf6f4225f",
+      "sha256": "d568d6f13237d721ba3195808d285ca66b0eb351b4617ba46918e5e34721c8f1",
       "executable": false
     },
     "tests/agent-conformance/reviewer.mjs": {
