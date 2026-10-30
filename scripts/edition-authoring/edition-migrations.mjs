@@ -16,7 +16,7 @@ export function editionMigrations(record, {tree, read, revision, base, recordPat
             typeof step.guide !== 'string' || !step.guide || typeof step.edit !== 'string' || !step.edit ||
             !Array.isArray(step.deliver) || step.deliver.some(name => typeof name !== 'string')) fail('invalid entry');
         safe(step.origin); safe(step.guide); step.deliver.forEach(safe);
-        read.tree(step.introduced);
+        if (read.historyAvailable !== false) read.tree(step.introduced);
         for (const name of step.deliver) if (!tree.has(name)) fail(`missing delivery ${name}`);
         ids.add(step.id);
       }
@@ -25,9 +25,13 @@ export function editionMigrations(record, {tree, read, revision, base, recordPat
   }
   for (const id of consent) if (!migrations.some(step => step.id === id)) throw Error(`Unknown edition migration ${id} at Base ${revision}. Use only ids declared in ${dataPath} at that commit; no files were refreshed.`);
   const applicable = migrations.flatMap(step => {
+    // No introduction can be crossed by an unrelated copy or a same-pin
+    // refresh. Archives can decide those cases without claiming Git ancestry.
+    const candidates = record.copies.flatMap(copy => copy.revision === revision ? [] : Object.keys(copy.files).filter(name =>
+      !copy.adapted?.[name] && copy.originPath + name.slice(copy.path.length) === step.origin).map(name => ({name, revision: copy.revision})));
+    if (!candidates.length) return [];
     if (!read.contains(revision, step.introduced)) return [];
-    const copies = record.copies.flatMap(copy => Object.keys(copy.files).filter(name =>
-      !copy.adapted?.[name] && copy.originPath + name.slice(copy.path.length) === step.origin && !read.contains(copy.revision, step.introduced)));
+    const copies = candidates.filter(copy => !read.contains(copy.revision, step.introduced)).map(copy => copy.name);
     return copies.length ? [{...step, copies}] : [];
   });
   const missing = applicable.filter(step => !consent.includes(step.id));
