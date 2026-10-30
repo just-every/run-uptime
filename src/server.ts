@@ -146,7 +146,7 @@ api.use('/api/*',async(c,next)=>{
  await next()
 })
 // Native person changes share the retained resource vocabulary with agent work.
-api.use('/api/*',async(c,next)=>{await next();const access=c.get('access');if(!access||!c.res.ok||!['POST','PATCH','DELETE'].includes(c.req.method))return;
+api.use('/api/*',async(c,next)=>{await next();const access=c.get('access');if(!access||!c.res.ok||!['POST','PATCH','DELETE'].includes(c.req.method)||c.req.path.endsWith('/erase'))return;
  const m=/^\/api\/(monitors|incidents|notifications\/destinations)\/([^/]+)/.exec(c.req.path);if(!m)return;
  const family=m[1]==='notifications/destinations'?'destinations':m[1],person=access.session.operator;
  await uptimeAgentDoor(c.get('systemBindings')??c.env).emit({type:family.slice(0,-1)+'.updated',uri:`uptime://${family}/${decodeURIComponent(m[2])}`,person:{id:person.id,name:person.displayName,email:person.email,role:access.role,active:true}})

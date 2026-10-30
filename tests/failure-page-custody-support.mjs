@@ -43,6 +43,10 @@ export async function proveFailureSnapshotErasure(source,monitor,{incidentId,scr
  assert.equal(native.data.payload.productTables.failure_snapshots[0].snapshot.includes(screenshot),true,'pre-erasure archive carries the actual artifact');
  const exported=await transfer(source);
  assert.equal(exported.archive.payload.productTables.failure_snapshots[0].snapshot.includes(screenshot),true,'durable transfer payload carries the actual artifact');
+ // A real native policy save creates retained resource history before erasure.
+ const policyView=await source.request(path);
+ assert.equal((await source.request(path,{method:'PATCH',body:policyView.data.settings})).status,200);
+ assert.ok((await source.DB.prepare('SELECT COUNT(*) n FROM agent_door_events WHERE uri=?').bind('uptime://monitors/'+monitor.id).first()).n>0,'native monitor history is populated before erasure');
  const before=await durableRows(source.DB);
  assert.ok(before.rer_portability_segments.length>0,'export segments are populated before erasure');
  assert.ok(before.archive_history.length>0,'inactive restore has retained original records before erasure');

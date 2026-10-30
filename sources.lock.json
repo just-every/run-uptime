@@ -4400,7 +4400,7 @@
       "executable": false
     },
     "src/agent-door/registry.server.ts": {
-      "sha256": "bb604d61be32100110aa443ff39bdbf29e76ce341de57818ebd3779bcf9c570b",
+      "sha256": "f16f30cea0ad4aeb1894e608cccc1b852e875e23d622110635c370c2c6b85b2f",
       "executable": false
     },
     "src/agent-door/work.server.ts": {
@@ -7172,7 +7172,7 @@
       "executable": false
     },
     "src/domain/erasure.server.ts": {
-      "sha256": "69ef5dd2863bffc472149702b78a948af3c8d6cc2cd3ed8746268c56122ad42f",
+      "sha256": "a117f469b6a1ba2e30ac76a81a2881cc7f3cbac2497c0ff76d512f3611a7097c",
       "executable": false
     },
     "src/domain/evidence.server.ts": {
@@ -8184,7 +8184,7 @@
       "executable": false
     },
     "src/server.ts": {
-      "sha256": "ea527fdc0eab5502e7f8a7c518debe567edf7c2b4e5f12121ec3f064f6c4a239",
+      "sha256": "57013fcb4f2a52b70d92f60ced7e15a15fc4b5fc89efb2700d1d5cf71fc0221f",
       "executable": false
     },
     "src/site/docs/build/manifest.ts": {
@@ -8720,7 +8720,7 @@
       "executable": false
     },
     "tests/failure-page-custody-support.mjs": {
-      "sha256": "60bfc4b9cb3a71cd0ac2bb74e4870c8d368251e4b5c4251ff1f6d33832d27665",
+      "sha256": "49f7a2cac8db8ba1bdbfd36a6623ac94854880d6064e7c1d6907ee57e24ca0f7",
       "executable": false
     },
     "tests/failure-page-journey.mjs": {
