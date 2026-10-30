@@ -8194,8 +8194,12 @@
       "sha256": "ad9d14543bb5e98cdb69dd443aeb544e0b2771dad1b00577352dfbfb165d2ff1",
       "executable": false
     },
+    "tests/failure-page-custody-support.mjs": {
+      "sha256": "ed3d5d3449e9f9397a4762780eafed02f3f562b956e781031618d2218e29839a",
+      "executable": false
+    },
     "tests/failure-page-journey.mjs": {
-      "sha256": "4728db8fbc97a4f22c4c481c024eaa33d0e94f87a0c713276bfb50ef4d3f0a19",
+      "sha256": "473dd072ed1cd1496694da6038620ad5d6d4b1238e7e98719b091be9fbcfabb4",
       "executable": false
     },
     "tests/fixtures/betterstack-monitors.synthetic.json": {
