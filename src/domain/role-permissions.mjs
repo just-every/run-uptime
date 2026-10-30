@@ -18,6 +18,7 @@ export function requestPermission(request,input){
  const url=new URL(request.url),path=url.pathname,method=request.method==='HEAD'?'GET':request.method,read=method==='GET';
  const monitor=/^\/api\/(?:v1\/)?monitors\/([^/]+)(?:\/(.*))?$/.exec(path);
  const decode=value=>{try{return decodeURIComponent(value)}catch{return ''}};
+ if(path==='/api/mcp')return {action:'owner',workspace:true};
  if(path==='/api/routing/named-routes'||path.startsWith('/api/catalog/routes/'))return {action:'owner',workspace:true};
  if(path.startsWith('/api/definitions/history/'))return {action:'import',workspace:true};
  if(path.startsWith('/api/credentials'))return {action:'owner',workspace:true};

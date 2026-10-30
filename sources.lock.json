@@ -511,7 +511,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "260ebc29b8739f98bcd567744dd15ee5a93d95ffe1ed301a7d11fc30b6cf8e6e",
+      "sha256": "f5e1196cdc50fc743ca8aabe029813cab0d2b5a4c0ab0e7ba8adee514eb3436f",
       "executable": false
     },
     "DEMO.md": {
@@ -2479,7 +2479,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "f6f4383004383edae5e611d0c61caa728057c72cb4ee136b0d7b6bfda04c2944",
+      "sha256": "21c48ee9fa68c2f31528d7e5aa2f15f6217bb1b983990ff6260ef75134ca622b",
       "executable": false
     },
     "patches/README.md": {
@@ -6254,6 +6254,14 @@
       "sha256": "5ad367f51d25535571aa1e389327f8ca747c257f56ad4e0ae499c5bc6f2c109a",
       "executable": false
     },
+    "src/domain/agent-surface/discovery.server.ts": {
+      "sha256": "8175c780a30699e3361b60c521669b2d17f99ffef2a8a3594d5b4fd4c0c48583",
+      "executable": false
+    },
+    "src/domain/agent-surface/registry.ts": {
+      "sha256": "c4784d2cf53ea20e4957ae58f96228e4a3e684a755a3f3bca1123a105c200af6",
+      "executable": false
+    },
     "src/domain/alert-drill-content.ts": {
       "sha256": "20fc1a7fc78f2ce08a407e3464cd82e10797a57eb91ad6c3ce689f52b382200f",
       "executable": false
@@ -7271,7 +7279,7 @@
       "executable": false
     },
     "src/domain/request-boundary.ts": {
-      "sha256": "e46c371a546b93053aa854e60d47efff000ccf1a02a9f796872707aeeb427c39",
+      "sha256": "f9fd493843a1d51357d1ed2bafeeb6ea8e3ddaf3ea795db2d9a2bd14dcc0d9a5",
       "executable": false
     },
     "src/domain/rer-cutover-status.server.ts": {
@@ -7287,7 +7295,7 @@
       "executable": false
     },
     "src/domain/role-permissions.mjs": {
-      "sha256": "3d86446e2cf1a9be1cea8770193a8398da1023786844844af049a79c4a635ab5",
+      "sha256": "743f7605de407bd6133e97d26c73c0e4c4a52001e6107148aa56ece0b6a0d5a8",
       "executable": false
     },
     "src/domain/rum/beacon-script.ts": {
@@ -7703,7 +7711,7 @@
       "executable": false
     },
     "src/server.ts": {
-      "sha256": "20ec3f1beb7be01e3cb50d85bc4aac4e742d5cf08cea72d56108c9c7d900576c",
+      "sha256": "d511f1544b6c72f15d5a0ae485bba5889645cb2d168ad70a6dc264f23f389363",
       "executable": false
     },
     "src/site/docs/build/manifest.ts": {
@@ -8056,6 +8064,10 @@
     },
     "tests/admission-runtime.mjs": {
       "sha256": "2da4fe23bce12c5c1aa2cbbe86397888023d22d0c3038fe4949959920157d08b",
+      "executable": false
+    },
+    "tests/agent-surface-discovery.mjs": {
+      "sha256": "2c32e7d3e2875a77258ac9edcf75a593fa1196b05c58baf195bf6abf321a3ca8",
       "executable": false
     },
     "tests/alert-drill.mjs": {

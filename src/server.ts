@@ -108,6 +108,7 @@ import {identity} from './identity'
 import {recordContact} from './domain/runner-contact.server.ts'
 import {session,overview,save,get,claim,complete,history,revisions,archive,restore,type Bindings} from './domain/control.server'
 import {checkInput,InputError} from './domain/request-boundary.ts'
+import {discovery} from './domain/agent-surface/discovery.server.ts'
 const api=new Hono<{Bindings:Bindings;Variables:{requestText:string;input:any;runner:Runner;access:Access;systemBindings:Bindings}}> ()
 api.get('/health',c=>health(c.env))
 api.use('/api/*',async(c,next)=>{c.set('systemBindings',c.env);c.header('cache-control','no-store');const origin=c.req.header('origin');if(c.env.UPTIME_LOCAL_REVIEW!=='true'&&['POST','PATCH','DELETE'].includes(c.req.method)&&!c.req.path.startsWith('/api/runner/')&&!c.req.path.startsWith('/api/heartbeats/')&&origin!==c.env.UPTIME_ORIGIN)return c.json({error:'Same origin required'},403);if(c.req.header('sec-fetch-site')==='cross-site'||(origin&&origin!==new URL(c.req.url).origin))return c.json({error:'Same origin required'},403);if(Number(c.req.header('content-length')??0)>2*1024*1024)return c.json({error:'Payload too large'},413);if(['POST','PATCH'].includes(c.req.method)&&!c.req.path.startsWith('/api/heartbeats/')&&c.req.header('content-type')!=='application/json'&&!(c.req.path==='/api/definitions/recognise'&&c.req.header('content-type')==='text/csv'))return c.json({error:'JSON required'},415);if(['POST','PATCH'].includes(c.req.method)){const reader=c.req.raw.body?.getReader(),decoder=new TextDecoder('utf-8',{fatal:true});let size=0,text='';if(reader){try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>(c.req.path.startsWith('/api/heartbeats/')?10240:2*1024*1024)){return c.json({error:'Payload too large'},413)}text+=decoder.decode(value,{stream:true})}text+=decoder.decode()}catch(error){if(error instanceof TypeError)return c.json({error:'Invalid UTF-8 request body'},400);throw error}finally{reader.releaseLock()}}c.set('requestText',text)}await next()})
@@ -146,6 +147,7 @@ api.use('/api/*',async(c,next)=>{
 })
 // Only authenticated owner requests can kick hosted work; public traffic and private runners cannot.
 api.use('/api/*',async(c,next)=>{await next();if(c.res.ok&&(c.req.path==='/api/overview'||/^\/api\/(monitors|notifications)(\/|$)/.test(c.req.path))){c.executionCtx.waitUntil(kickHostedWork(c.get('systemBindings')??c.env).catch(()=>console.error('Hosted console work failed; queued work remains available to Cron.')))}})
+api.all('/api/mcp',c=>discovery(c.req.raw,c.get('input')))
 api.get('/api/routing/named-routes',async c=>c.json(await namedAlertRoutes(c.env)))
 api.post('/api/routing/named-routes',async c=>c.json(await saveNamedAlertRoute(c.env,c.get('input'),{kind:'operator',ref:c.get('access').session.operator.id}),201))
 api.post('/api/catalog/routes/undo',async c=>c.json(await undoCatalogRoutes(c.env,c.get('input'),{kind:'operator',ref:c.get('access').session.operator.id})))

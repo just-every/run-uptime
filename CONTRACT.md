@@ -1259,8 +1259,8 @@ Judged from the code and tests at commit `886ad3662fec5bdd5c1cd4c7692a9d22d89752
 | Clauses | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
 | Published | 5 | 16 | 0 | 21 |
-| Target and push further | 12 | 51 | 18 | 81 |
-| All | 17 | 67 | 18 | 102 |
+| Target and push further | 12 | 52 | 17 | 81 |
+| All | 17 | 68 | 17 | 102 |
 
 | Clause | Title | Kind | Status | Evidence | Gap |
 | --- | --- | --- | --- | --- | --- |
@@ -1355,7 +1355,7 @@ Judged from the code and tests at commit `886ad3662fec5bdd5c1cd4c7692a9d22d89752
 | `COST-001` | US buyer budgets and capacity transparency | target | missing |  | No implementation; acceptance journey above is required. |
 | `OPS-001` | Recovery of monitoring itself | target | partial | `src/domain/auxiliary-execution.server.ts`; `src/domain/monitoring-watch.server.ts`; `src/domain/operator-mail.server.ts`; `runners/src/watch-store.mjs`; `tests/resilience/watches.mjs`; `tests/archive-roundtrip.mjs` | Independent Worker/runner interruption, retry/recovery notices, retained uncertain executions, no duplicate uncertain sends and inactive archive recovery remain asserted. Gap: a missed external heartbeat causing an independent service alarm, and lost contact reading stale with Unknown coverage lack assertions in the surviving cited files. |
 | `ARCHIVE-002` | Whole-workspace archives at monitoring scale | target | partial | `src/domain/archive.server.ts`; `tests/archive-roundtrip.mjs` | Validated inactive archives ship and refuse exports beyond 10,000 rows per table, 100 monitors or 2 MiB; streamed, resumable, range/subset archives at SCHEDULE-002 scale do not exist. Storage capacity and archive size at this monitoring scale remain unmeasured; current view/archive bounds are not storage-capacity measurements. |
-| `SURFACE-001` | The registry equals this table and the Base harness passes | target | missing |  | No implementation: Uptime has no MCP door, tool registry, resource templates or Base conformance harness run. |
+| `SURFACE-001` | The registry equals this table and the Base harness passes | target | partial | `tests/agent-surface-discovery.mjs` AGENT-SURFACE-DISCOVERY: emitted Worker, native Base bootstrap and mail-link login, exact contract tool names and class declarations, all live Core coverage and explicit not-a-tool reasons, signed-out, revoked, narrowed-role, foreign-origin and malformed refusals; every invocation leaves complete product state and provider traffic unchanged. | Discovery is owner-only; every invocation is unavailable. Acceptance 3's ten resource-template declarations and write record links, acceptance 4's actual Base conformance harness under both company policies, callable native adapters, sponsored agent identity and scoped tokens, computed per-call classes and facts, company-policy setup and enforcement, approval and gated steps, attribution, audit and events, Pause, limits and conflict-safe idempotency remain owed. Uip-owned console work remains held. AGENT-001 through AGENT-005 retain the ct hold for no declared AI data flow; existing owner, account, device, sibling, Platform and guarded-release prerequisites remain unchanged. |
 | `SURFACE-002` | Live and security are computed per call | target | missing |  | No implementation: no tool declares or computes live or security classes. |
 | `SURFACE-003` | External and money are computed per call | target | missing |  | No implementation: no tool declares or computes external or money classes. |
 | `SURFACE-004` | Access, destructive and gated are computed per call | target | missing |  | No implementation: no tool declares or computes access, destructive or gated classes, and no incident record attributes an agent act. |

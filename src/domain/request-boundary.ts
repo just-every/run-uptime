@@ -13,6 +13,9 @@ const id={id:identity},source=(value:string)=>SOURCES.includes(value)
 const reportQuery={source:identity,...Object.fromEntries(['period','from','to','timeZone','zone','sla','slaTarget','bucket','location','rootCause'].map(name=>[name,(value:string)=>identity(value)&&value.length<=150])),format:(value:string)=>['csv','json','pdf'].includes(value)}
 const incidentQuery=Object.fromEntries(['source','monitor','tag','from','to','state','rootCause','cursor','limit'].map(name=>[name,identity]))
 export const apiRoutes:readonly Route[]=[
+ {method:'POST',path:'/api/mcp',body:'object'},
+ {method:'GET',path:'/api/mcp',body:'none'},
+ {method:'DELETE',path:'/api/mcp',body:'none'},
  {method:'GET',path:'/api/routing/named-routes',body:'none'},
  {method:'POST',path:'/api/routing/named-routes',body:'object'},
  ...['preview','apply','undo'].map(action=>({method:'POST',path:'/api/catalog/routes/'+action,body:'object' as const})),
