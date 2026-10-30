@@ -70,14 +70,15 @@ export function mountDefaultRoute(card,{api,notes}){
   try{const result=await api('/api/alert-route/preview','POST',input());if(mine===ticket){preview=result;review()}}
   catch(error){if(mine!==ticket)return;if(error.status===409&&!retried){await refreshSaved();return previewDraft(true)}review(error.message)}
  }
- const later=()=>{clearTimeout(timer);ticket++;preview=null;review();timer=setTimeout(()=>void previewDraft(),300)};
+ // A new choice is not saved yet, so the last apply's Saved gives way to the preview and Apply.
+ const later=()=>{clearTimeout(timer);ticket++;preview=null;const line=card.querySelector('#default-route-saved');if(line.dataset.state==='saved'){line.dataset.state='';line.textContent=''}review();timer=setTimeout(()=>void previewDraft(),300)};
  async function refreshSaved(){const names=saved.destinations.map(d=>d.id+d.name).join();await read();if(saved.destinations.map(d=>d.id+d.name).join()!==names){for(const d of saved.destinations)draft.settings[d.id]??=d.contactSettings;build()}sync()}
  // Apply sends the preview shown; refused as stale, the card reads the route again, previews the kept choice and says so.
  async function apply(){
   const reviewed=preview;if(!reviewed)throw Error('there is nothing previewed to apply yet');
   body.setAttribute('aria-busy','true');
   try{saved=await api('/api/alert-route/apply','POST',{...reviewed.input,digest:reviewed.digest});draft=fromSaved();preview=null;sync()}
-  catch(error){if(error.status===409){await refreshSaved();if(!changed()){draft=fromSaved();sync();return}await previewDraft(true);throw Error('who is told by default changed elsewhere since this page read it. Your choice is kept below; Retry applies it to the current route')}throw error}
+  catch(error){if(error.status===409){await refreshSaved();if(!changed()){draft=fromSaved();sync();return}await previewDraft(true);throw Error('who is told by default changed elsewhere since this page read it. Your choice is kept; Retry applies it to the current route')}throw error}
   finally{body.removeAttribute('aria-busy')}
  }
  body.addEventListener('change',event=>{
