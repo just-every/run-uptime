@@ -1,3 +1,4 @@
+import {proveIdentityErasure} from './business-import-erasure-proof.mjs';
 import {completeSecondFactor} from './mfa-auth-support.mjs';
 // A Business-provisioned install through its public doors: Run Edit Run sets RER_IMPORT_DOOR=on with the owner-claim
 // trust, the owner's first claim opens the import door, later claims change nothing, the owner still switches it off and
@@ -139,6 +140,7 @@ try{
   ['no since',await cutover({}),400],['a date that is not ISO',await cutover({since:'yesterday'}),400],['extra fields',await cutover({since,content:true}),400],['not JSON',await cutover('since'),400],
  ];
  for(const [label,response,expected] of cutoverRefused){assert.equal(response.status,expected,label);const text=typeof response.text==='string'?response.text:await response.text();assert.ok(!text.includes('deliveries'),label)}
+ await proveIdentityErasure({origin,DB,bindings,grant:(action,extra,namespace)=>token('rer-import-grant+jwt',{action,namespace,maxBytes:2*1024*1024,maxChunks:32,maxRecords:500,...extra})});
  assert.equal((await owner('/api/business-import-settings',{enabled:true,revokedKeyIds:[kid]})).status,200);
  assert.equal((await runnerStatus()).status,403,'a key the owner revoked is refused');
  assert.equal((await cutover({since})).status,403,'a key the owner revoked is refused');
