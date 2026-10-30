@@ -48,7 +48,7 @@
 .route-schedule { grid-column: 1 / -1; padding: 6px 0 4px; }
 .route-schedule fieldset { display: grid; gap: 12px; padding: 14px 16px; border-radius: var(--radius-panel); background: var(--lavender); }
 .route-schedule legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.route-schedule .route-schedule-numbers { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.route-schedule .route-schedule-numbers { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); align-items: end; gap: 12px; }
 .route-schedule .route-schedule-numbers label { display: grid; gap: 6px; align-content: start; min-width: 0; }
 .route-schedule .route-schedule-numbers input { margin: 0; }
 .route-schedule .route-schedule-switches { display: flex; flex-wrap: wrap; gap: 0 20px; }
@@ -158,9 +158,10 @@
 .webhook-preview-controls { display:flex; flex-wrap:wrap; align-items:center; gap:12px; }
 .webhook-source { min-width:0; }
 .webhook-source[open] { display:grid; gap:12px; }
-.webhook-preview pre { white-space:pre-wrap; overflow-wrap:anywhere; max-width:100%; font-size:12px; padding:12px; background:var(--code-bg); color:var(--code-ink); border-radius:8px; }
+.webhook-preview pre { white-space:pre-wrap; overflow-wrap:anywhere; max-width:100%; font-size:13px; padding:12px; background:var(--code-bg); color:var(--code-ink); border-radius:8px; }
 .webhook-preview section { min-width:0; }
 .webhook-differences { padding-left:20px; font-size:13px; }
+.webhook-differences:empty { display:none; }
 @media(max-width:480px) { .webhook-pair { grid-template-columns:1fr; } }
 
 /* The signing help inside the one-time secret dialog. */
