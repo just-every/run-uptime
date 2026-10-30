@@ -1,3 +1,4 @@
+import {agentRunnerTask} from '../agent-door/work.server.ts'
 import {snapshotSettings,snapshotStatements} from './failure-snapshots.server.ts'
 import {notificationPreferences} from './notification-preferences.server.ts'
 import {scheduleHeartbeatEvaluation} from './heartbeat-jobs.server.ts'
@@ -30,18 +31,27 @@ import {claimGrants} from './effect-grants.server.ts'
 // one interval apart however late it polls. `slot` is the slot about to be delivered and ?2 its runner.
 const newest=(slot:string)=>`NOT EXISTS(SELECT 1 FROM slots c JOIN slots n ON n.monitor_id=c.monitor_id AND n.manual=0 AND n.due_at>c.due_at JOIN runner_assignments na ON na.slot_id=n.id AND na.runner_id=?2 WHERE c.id=${slot} AND c.manual=0)`
 export async function claimAttempt(env:Bindings,runnerId:string,{monitorId=null}:{monitorId?:string|null}={}){
+ const delegated=await agentRunnerTask(env,runnerId,monitorId);if(delegated)return delegated;
+ return nativeClaimAttempt(env,runnerId,monitorId,false)
+}
+// Trusted shared-door executor only; public runner protocols never choose this.
+export async function claimAdmittedAttempt(env:Bindings,runnerId:string,{monitorId=null}:{monitorId?:string|null}={}){return nativeClaimAttempt(env,runnerId,monitorId,true)}
+async function nativeClaimAttempt(env:Bindings,runnerId:string,monitorId:string|null,admitted:boolean){
  const now=Date.now();
  await env.DB.prepare("UPDATE slots SET status='interrupted' WHERE status='running' AND lease_until<=?").bind(now).run();
  const pendingRows=(await env.DB.prepare(`SELECT s.*,m.definition AS current_definition FROM slots s JOIN monitors m ON m.id=s.monitor_id JOIN runner_assignments a ON a.slot_id=s.id WHERE a.runner_id=?2 AND a.delivered_at IS NULL AND s.status='running' AND s.lease_until>?3 AND (?4 IS NULL OR s.monitor_id=?4) AND ${newest('s.id')} ORDER BY s.manual,s.due_at`).bind(null,runnerId,now,monitorId).all<any>()).results;
- const pending=pendingRows.find(row=>activeMaintenance(JSON.parse(row.current_definition),now)?.mode!=='pause');
+ const allowed=async(row:any)=>admitted||!await env.DB.prepare('SELECT 1 FROM uptime_agent_revisions WHERE monitor_id=? AND revision=? UNION ALL SELECT 1 FROM uptime_agent_manual WHERE slot_id=?').bind(row.monitor_id??row.id,row.current_revision??row.revision,row.id).first();
+ const admittedPending=[];for(const row of pendingRows)if(await allowed(row))admittedPending.push(row);
+ const pending=admittedPending.find(row=>activeMaintenance(JSON.parse(row.current_definition),now)?.mode!=='pause');
  let slot=pending;
  if(!slot){
   const queuedRows=(await env.DB.prepare("SELECT s.*,m.definition AS current_definition,m.revision AS current_revision FROM slots s JOIN monitors m ON m.id=s.monitor_id WHERE s.status='queued' AND s.manual=1 AND (? IS NULL OR s.monitor_id=?) AND (json_extract(s.definition,'$.assignments') IS NULL OR EXISTS(SELECT 1 FROM json_each(json_extract(s.definition,'$.assignments')) a WHERE json_extract(a.value,'$.runnerId')=?)) ORDER BY s.due_at").bind(monitorId,monitorId,runnerId).all<any>()).results;
-  for(const queued of queuedRows){const definition=JSON.parse(queued.current_definition);if(!definition.enabled||queued.current_revision!==queued.revision){await env.DB.prepare("UPDATE slots SET status='interrupted' WHERE id=?").bind(queued.id).run()}else if(activeMaintenance(definition,now)?.mode!=='pause'){slot=queued;break}}
+  for(const queued of queuedRows){if(!await allowed(queued))continue;const definition=JSON.parse(queued.current_definition);if(!definition.enabled||queued.current_revision!==queued.revision){await env.DB.prepare("UPDATE slots SET status='interrupted' WHERE id=?").bind(queued.id).run()}else if(activeMaintenance(definition,now)?.mode!=='pause'){slot=queued;break}}
   if(!slot){const due=(await env.DB.prepare("SELECT * FROM monitors WHERE next_due<=? AND json_extract(definition,'$.enabled')=1 AND (? IS NULL OR id=?) AND (json_extract(definition,'$.assignments') IS NULL OR EXISTS(SELECT 1 FROM json_each(json_extract(monitors.definition,'$.assignments')) a WHERE json_extract(a.value,'$.runnerId')=?)) ORDER BY next_due").bind(now,monitorId,monitorId,runnerId).all<any>()).results;
    // Calendar filtering considers every due monitor: a paused first row must
    // never starve unrelated monitors, or move their configured schedule.
-   const row=due.find(row=>activeMaintenance(JSON.parse(row.definition),now)?.mode!=='pause');
+   const admittedDue=[];for(const row of due)if(await allowed(row))admittedDue.push(row);
+   const row=admittedDue.find(row=>activeMaintenance(JSON.parse(row.definition),now)?.mode!=='pause');
    if(row){const definition=JSON.parse(row.definition),id=`${row.id}:${row.revision}:${row.next_due}`,until=now+acceptanceMs(definition);
     // The next scheduled check is due no sooner than one interval after this claim. Each vantage that takes its part of the check
     // later raises it to one interval after its own delivery, and completed results to one interval after the latest vantage's
