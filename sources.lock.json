@@ -487,7 +487,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "ee485e710d5f492cf2bb64b9fde89bab26c6b1753ad2ec205d8251306b846d47",
+      "sha256": "60a1efe2aa46390c60209e1af19c6f1d07105bc2772018a9e210c1924b6c037f",
       "executable": false
     },
     "AGENTS.md": {
@@ -511,7 +511,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "1538781431a2548f9003f4c6ff85aad589a598dfc6c47bb7918db12c8f205a87",
+      "sha256": "191a70ddb6e3a5ad80d6aafa113b7aa4892abcabb5853f5304567fac8a9d905a",
       "executable": false
     },
     "DEMO.md": {
@@ -8315,7 +8315,7 @@
       "executable": false
     },
     "tests/maintenance-recurring-support.mjs": {
-      "sha256": "7aa90050971110da4bf2d0f22e91586f5cee8342eaf8f0f543f09ed629d4fd4c",
+      "sha256": "bb70add27b099b51e203b5ce3005cc78b989789af0cc4491e110f01c9a029831",
       "executable": false
     },
     "tests/maintenance-windows.mjs": {
