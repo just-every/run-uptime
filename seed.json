@@ -1040,30 +1040,6 @@
         "environment": "all"
       },
       {
-        "path": "/notifications.js",
-        "match": "exact",
-        "kind": "asset",
-        "class": "assets",
-        "authentication": "None; emitted static resource only.",
-        "environment": "all"
-      },
-      {
-        "path": "/delivery-chain.js",
-        "match": "exact",
-        "kind": "asset",
-        "class": "assets",
-        "authentication": "None; emitted static resource only.",
-        "environment": "all"
-      },
-      {
-        "path": "/notification-help.js",
-        "match": "exact",
-        "kind": "asset",
-        "class": "assets",
-        "authentication": "None; emitted static resource only.",
-        "environment": "all"
-      },
-      {
         "path": "/webhook-editor.js",
         "match": "exact",
         "kind": "asset",
@@ -1371,6 +1347,62 @@
       },
       {
         "path": "/settings-alerts.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/alert-health.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/alert-clauses.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/alert-destinations.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/alert-route-default.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/destination-dialog.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/root-cause-categories.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/sent-alerts.js",
         "match": "exact",
         "kind": "asset",
         "class": "assets",

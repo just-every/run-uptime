@@ -1,113 +1,98 @@
-/* The notifications view, its help panel and the destination, confirm and secret dialogs, in the dawn style. Loaded after
-   app-theme.css and style.css; it builds on the theme's tokens, element defaults and ui-* components and owns only what
-   notifications.js and notification-dialogs.js render. Green stays for a check that passed: Enabled, Accepted and
-   Copied are ink, not sent and queued are neutral, and nothing here borrows the Unknown hollow ring. The text of
+/* Settings › Alerts (public/settings-alerts.js and its card modules) and the destination, confirm and secret dialogs, in the
+   dawn style. Loaded after app-theme.css and style.css (sections.css, which lays out every Settings area, loads after it); it
+   builds on the theme's tokens, element defaults and ui-* components. Green stays for a check that passed: Enabled,
+   Accepted and Copied are ink, not sent and queued are neutral, and nothing here borrows the Unknown hollow ring. The text of
    asserted elements is written in the source's case and never transformed. */
 
-/* ---------------------------------------------------------------- view */
-.table-scroll:has(.notification-intro) { overflow: visible; }
-/* The console lays this view out on the ground (style.css drops section.monitors' card here), so the intro and the
-   history are .ui-card cards of their own and the destination cards sit on the ground between them. */
-.notification-intro, .notification-history { padding: 22px 24px; }
-.notification-destinations, .notification-history, .notification-help-mobile { margin-top: 28px; }
-.notification-destinations h3, .notification-history h3 { color: var(--ink); font-size: 18px; font-weight: 700; line-height: 1.3; letter-spacing: -0.01em; }
+/* ---------------------------------------------------------------- Settings › Alerts */
+/* One amber clause per thing that stops an alert, above Destinations, its fix inline (public/alert-clauses.js). */
+.alert-clauses { display: grid; gap: 8px; }
+.alert-clauses:empty { display: none; }
+.alert-clause { font-size: 14.5px; }
+.alert-clause > span { min-width: 0; }
+.alert-clause :is(a, .ui-link) { margin-left: 4px; color: var(--ink); font-size: inherit; }
 
-/* Intro: the installation-wide facts, with Add destination at the top right of the same block. */
-.notification-intro { display: grid; margin-top: 12px; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 12px 24px; }
-.notification-status { display: grid; gap: 6px; min-width: 0; color: var(--body); font-size: 15px; line-height: 1.55; }
-.notification-intro strong { color: var(--ink); }
-#add-destination { white-space: nowrap; }
-/* A tablet main column is too narrow for the prose beside the button, so the button moves under the prose. */
-@media (min-width: 701px) and (max-width: 959px) {
-  .notification-intro { grid-template-columns: minmax(0, 1fr); }
-  .notification-intro #add-destination { justify-self: start; }
-}
-@media (max-width: 700px) {
-  .notification-intro, .notification-history { padding: 16px; }
-  .notification-destinations, .notification-history, .notification-help-mobile { margin-top: 24px; }
-  .notification-intro { grid-template-columns: minmax(0, 1fr); }
-  .notification-intro #add-destination { justify-self: start; }
+/* Destinations: a row per destination, its line icon, name and one quiet line, Send test and Edit at its end; on a narrow
+   column the actions move under the text. Rows are .rows (sections.css); these rules are scoped to win over it. */
+.alerts-area .destination-rows > li { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; align-items: center; gap: 10px 12px; padding: 12px 0; }
+.alerts-area .destination-rows > li:first-child { padding-top: 4px; }
+.destination-icon { display: grid; place-items: center; color: var(--muted); }
+.destination-row .who { display: grid; gap: 2px; min-width: 0; }
+.destination-row .who strong { color: var(--ink); font-size: 15px; font-weight: 650; overflow-wrap: anywhere; }
+.destination-row .who small { color: var(--muted); font-size: 13.5px; line-height: 1.45; overflow-wrap: anywhere; }
+.destination-row .who .destination-warning { color: var(--amber-text); }
+.row-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+@container table-wrap (max-width: 599px) {
+  .alerts-area .destination-rows > li { grid-template-columns: 18px minmax(0, 1fr); }
+  .row-actions { grid-column: 1 / -1; }
 }
 
-/* Destination cards, each with its kind icon, name, kind and enabled pill, custody line, any warning and its actions.
-   Full-width rows. Delete stands apart at the end
-   of the actions. */
-.notification-destinations { container: destinations / inline-size; }
-.destination-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 14px; min-width: 0; }
-@container destination (min-width: 440px) {
-  .destination-card > :not(.destination-head, .destination-controls) { margin-left: 52px; }
-  .destination-card > .email-setup-action { align-self: flex-start; }
-}
-.destination-card { container: destination / inline-size; display: flex; flex-direction: column; gap: 12px; min-width: 0; padding: 18px; border: 1px solid var(--line); border-radius: var(--radius-panel); background: var(--card); box-shadow: var(--shadow-sm); overflow-wrap: anywhere; }
-.destination-head { display: flex; align-items: flex-start; gap: 12px; min-width: 0; }
-.destination-icon { display: grid; place-items: center; flex: none; width: 40px; height: 40px; border-radius: 50%; background: var(--lavender); color: var(--ink); }
-.destination-icon .ui-icon { width: 20px; height: 20px; }
-.destination-title { display: grid; gap: 6px; min-width: 0; padding-top: 1px; }
-.destination-card h4 { color: var(--ink); font-size: 16px; font-weight: 700; line-height: 1.35; }
-.destination-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; color: var(--muted); font-size: 13.5px; line-height: 1.4; }
-.destination-custody { color: var(--body); font-size: 14px; line-height: 1.5; }
-.destination-custody.ui-mono { color: var(--ink); font-size: 13.5px; }
-.destination-warning.ui-callout { padding: 10px 12px; font-size: 13.5px; }
-/* The buttons' hit area reaches 10px past the text column on each side, but the rule above them stays on the card's
-   padding, level with the text. */
-.destination-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: auto -10px 0; padding-top: 10px; background: linear-gradient(var(--line), var(--line)) 10px 0 / calc(100% - 20px) 1px no-repeat; }
-.destination-controls button { min-height: 36px; padding: 0 10px; border-color: transparent; background: none; box-shadow: none; color: var(--ink); font-size: 14px; }
-.destination-controls button:not(:disabled):hover { border-color: transparent; background: var(--lavender); }
-.destination-controls [data-delete-destination] { margin-left: auto; color: var(--rose-text); }
-.destination-controls [data-delete-destination]:not(:disabled):hover { background: var(--rose-soft); }
-@container destination (max-width: 439px) {
-  .destination-card > .email-setup-action { width: 100%; }
-}
+/* Who is told by default and Root-cause categories side by side, each as tall as the taller; stacked on a narrow column. */
+.alerts-split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; align-items: stretch; }
+@container table-wrap (max-width: 759px) { .alerts-split { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 700px) { .alerts-split { gap: 14px; } }
 
-/* History: one row per delivery, separated by rules. On a wide list the title, time and destination sit in the first
-   column, then the state pill, the reason with its code and the next action. */
-.notification-history > p { margin-top: 6px; color: var(--body); font-size: 14.5px; }
-.delivery-list { container: deliveries / inline-size; margin-top: 10px; min-width: 0; }
-.delivery-card { display: grid; gap: 4px; min-width: 0; padding: 14px 0; border-top: 1px solid var(--line); overflow-wrap: anywhere; }
-.delivery-card:first-child { border-top: 0; }
-.delivery-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; min-width: 0; }
-.delivery-heading strong { color: var(--ink); font-size: 15px; font-weight: 650; line-height: 1.4; }
-.delivery-when, .delivery-destination { color: var(--muted); font-size: 13.5px; line-height: 1.45; }
-.delivery-when time { white-space: nowrap; }
-.delivery-destination strong { color: var(--body); font-weight: 600; }
-.delivery-reason { color: var(--body); font-size: 14px; line-height: 1.5; }
-.delivery-outcome { display: grid; justify-items: start; gap: 2px; min-width: 0; }
-.delivery-outcome > .email-setup-action { min-height: 36px; }
-@container deliveries (min-width: 620px) {
-  /* The outcome spans every row, ending in the 1fr track, so a tall reason grows that track and never spreads the
-     title, time and destination lines apart. */
-  .delivery-card { grid-template-columns: minmax(0, 1.2fr) 104px minmax(0, 1.5fr); grid-template-rows: auto auto auto 1fr; column-gap: 20px; row-gap: 2px; align-items: start; }
-  .delivery-heading { display: contents; }
-  .delivery-heading strong { grid-column: 1; grid-row: 1; }
-  .delivery-state { grid-column: 2; grid-row: 1; justify-self: start; }
-  .delivery-when { grid-column: 1; grid-row: 2; }
-  .delivery-destination { grid-column: 1; grid-row: 3; }
-  .delivery-outcome { grid-column: 3; grid-row: 1 / -1; }
-}
+/* Who is told by default (public/alert-route-default.js): two radios, then under Only these a tick per destination with its
+   schedule line and Change, which opens that contact's schedule on the sunk tone; the preview and Apply under the choices;
+   the monitors that choose their own route in the foot line. */
+.route-modes { display: grid; }
+.route-modes label { font-size: 15px; font-weight: 500; }
+.route-picks { display: grid; margin: 0 0 0 34px; padding: 0; list-style: none; }
+.route-picks > li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 16px; padding: 8px 0; border-top: 1px solid var(--line); }
+.route-picks > li:first-child { border-top: 0; padding-top: 0; }
+.route-pick { align-items: flex-start; gap: 10px; min-width: 0; }
+.route-pick > span { display: grid; gap: 1px; min-width: 0; padding-top: 1px; }
+.route-pick strong { color: var(--ink); font-size: 15px; font-weight: 650; overflow-wrap: anywhere; }
+.route-pick small { color: var(--muted); font-size: 13.5px; font-weight: 400; line-height: 1.45; overflow-wrap: anywhere; }
+.route-change { font-size: 14.5px; }
+.route-schedule { grid-column: 1 / -1; padding: 6px 0 4px; }
+.route-schedule fieldset { display: grid; gap: 12px; padding: 14px 16px; border-radius: var(--radius-panel); background: var(--lavender); }
+.route-schedule legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.route-schedule .route-schedule-numbers { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.route-schedule .route-schedule-numbers label { display: grid; gap: 6px; align-content: start; min-width: 0; }
+.route-schedule .route-schedule-numbers input { margin: 0; }
+.route-schedule .route-schedule-switches { display: flex; flex-wrap: wrap; gap: 0 20px; }
+.route-schedule [data-contact-quiet] > summary { min-height: 40px; padding: 6px 0; font-size: 14.5px; }
+.route-schedule [data-quiet-fields] { display: grid; gap: 10px; }
+.route-schedule [data-quiet-fields] p { color: var(--muted); font-size: 13.5px; }
+.route-review { display: grid; gap: 10px; justify-items: start; padding: 12px 16px; border-radius: var(--radius-panel); background: var(--lavender); color: var(--ink); font-size: 14.5px; line-height: 1.5; }
+.route-review .btn-row { gap: 8px 16px; }
+.route-foot { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+@media (max-width: 700px) { .route-picks { margin-left: 0; } }
 
-.notification-empty { margin-top: 12px; padding: 16px; border: 1px solid var(--line); border-radius: var(--radius-panel); background: var(--card); color: var(--body); font-size: 14.5px; }
-.destination-list > .notification-empty { grid-column: 1 / -1; margin-top: 0; }
+/* Root-cause categories (public/root-cause-categories.js): lavender chips, each with its × (a 44px target on a phone), then
+   + Add category, which opens one field. */
+.category-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.category-chip { display: inline-flex; align-items: center; gap: 2px; min-height: 32px; padding: 0 2px 0 12px; border-radius: 999px; background: var(--lavender); color: var(--ink); font-size: 14.5px; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
+.category-remove { position: relative; flex: none; width: 28px; min-height: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--ink); }
+.category-remove .ui-icon { width: 14px; height: 14px; }
+.category-remove:where(:not(:disabled)):hover { border-color: transparent; background: var(--hover-tint); }
+.add-category { justify-self: start; font-size: 15px; }
+.category-add { display: grid; gap: 6px; }
+.category-add .field-row > input { flex: 1 1 200px; }
+@media (max-width: 700px) { .category-remove::after { content: ""; position: absolute; inset: -8px; } }
 
-/* ---------------------------------------------------------------- help panel */
-/* One card, placed in the aside on wide screens and inline after the history at 700px and below; notifications.js
-   picks the copy to open by the same 700px width. */
-.notification-help { padding: 22px 24px; color: var(--body); }
-.notification-help h2 { color: var(--ink); font-size: 18px; font-weight: 700; }
-.notification-help h3 { margin: 18px 0 4px; color: var(--ink); font-size: 15px; font-weight: 700; }
-.notification-help p { margin: 6px 0 0; color: var(--body); font-size: 14px; line-height: 1.6; }
-.notification-help h3 + p { margin-top: 0; }
-.notification-help code { overflow-wrap: anywhere; }
-.notification-help details, .verification-help { border-top: 1px solid var(--line); }
-.notification-help details:first-of-type { margin-top: 18px; }
-.notification-help details:last-of-type { border-bottom: 1px solid var(--line); }
-.notification-help summary, .verification-help summary { font-size: 15px; }
-.notification-help details[open], .verification-help[open] { padding-bottom: 12px; }
-.notification-help-mobile { display: none; }
-@media (max-width: 700px) {
-  .notification-help-mobile { display: block; }
-  .notification-help-mobile .notification-help { padding: 18px 16px; }
-  .right:has(.notification-help) { display: none; }
-}
+/* Sent alerts (public/sent-alerts.js): rows with the title and one quiet line, the outcome's pill at the end; each row opens
+   in place on its reason, status and response excerpt. All sent alerts and Scheduled reports are closed disclosures under
+   them, then the guide link. */
+.sent-list { margin: 0; padding: 0; list-style: none; }
+.sent-row { border-top: 1px solid var(--line); }
+.sent-list > .sent-row:first-child { border-top: 0; }
+.sent-row > details > summary { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 16px; padding: 12px 0; font-weight: inherit; }
+.sent-list > .sent-row:first-child > details > summary { padding-top: 4px; }
+.sent-row > details > summary::after { content: none; }
+.sent-row > details > summary:hover .sent-what strong { text-decoration: underline; text-decoration-color: rgba(20, 32, 74, 0.4); text-underline-offset: 3px; }
+.sent-what { display: grid; gap: 2px; min-width: 0; }
+.sent-what strong { color: var(--ink); font-size: 15px; font-weight: 650; overflow-wrap: anywhere; }
+.sent-what small { color: var(--muted); font-size: 13.5px; line-height: 1.45; overflow-wrap: anywhere; }
+.sent-body { display: grid; gap: 6px; padding: 0 0 14px; color: var(--body); font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.sent-body pre { font-size: 13px; }
+.sent-body a { justify-self: start; font-weight: 600; }
+.all-sent, .scheduled-reports { border-top: 1px solid var(--line); }
+.all-sent > .sent-list { padding-bottom: 6px; }
+.scheduled-reports form { display: grid; gap: 12px; }
+.scheduled-reports [data-report-list] > div { padding: 8px 0; overflow-wrap: anywhere; }
+.sent-guide { justify-self: start; margin-top: 2px; font-weight: 600; }
 
 /* ---------------------------------------------------------------- dialogs */
 /* The theme draws the native dialog as the white card over --backdrop; these set the stacked form and the footer. */
@@ -155,16 +140,15 @@
   .secret-dialog > .copy-secret, .secret-dialog > .secret-close { width: 100%; }
 }
 
-/* Alert drill proof and the latest drill's lines on a destination card: plain text in the custody line's size, no colour
-   meaning. The three facts are a definition list so each reads as its own line with its own time. */
-.destination-proof { color: var(--ink); font-size: 14px; line-height: 1.5; }
+/* The latest drill's lines in a destination's Edit dialog: plain text, no colour meaning. The three facts are a definition
+   list so each reads as its own line with its own time. */
 .drill-result { display: grid; gap: 6px; min-width: 0; color: var(--body); font-size: 13.5px; line-height: 1.5; }
 .drill-heading { color: var(--ink); font-weight: 600; }
 .drill-lines { display: grid; gap: 4px; margin: 0; }
 .drill-lines div { display: grid; grid-template-columns: minmax(0, 9.5em) minmax(0, 1fr); gap: 2px 10px; }
 .drill-lines dt { color: var(--ink); font-weight: 600; }
 .drill-lines dd { margin: 0; min-width: 0; }
-@container destination (max-width: 360px) { .drill-lines div { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 480px) { .drill-lines div { grid-template-columns: minmax(0, 1fr); } }
 
 .webhook-editor { display:grid; gap:14px; min-width:0; border-block:1px solid var(--line); padding-block:18px; }
 .webhook-editor [data-custom-webhook] { display:grid; gap:14px; }
@@ -179,5 +163,19 @@
 .webhook-differences { padding-left:20px; font-size:13px; }
 @media(max-width:480px) { .webhook-pair { grid-template-columns:1fr; } }
 
-.notification-zone { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:12px; }
-.notification-zone p { margin:0; }
+/* The signing help inside the one-time secret dialog. */
+.verification-help { border-top: 1px solid var(--line); }
+.verification-help summary { font-size: 15px; }
+.verification-help[open] { padding-bottom: 12px; }
+
+/* A destination's Edit dialog: Delete stands apart at the start of the foot; on a phone the foot stacks Save over Cancel,
+   with Delete alone under them. The latest test is a closed disclosure between hairlines. */
+.destination-dialog .buttons [data-delete-destination] { margin-right: auto; }
+.latest-test { border-block: 1px solid var(--line); }
+.latest-test[open] { padding-bottom: 12px; }
+.destination-secret { display: grid; justify-items: start; gap: 6px; }
+.destination-secret .ui-helper { margin: 0; }
+@media (max-width: 480px) {
+  .destination-dialog .buttons { flex-direction: column-reverse; }
+  .destination-dialog .buttons [data-delete-destination] { margin: 8px 0 0; }
+}

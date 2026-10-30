@@ -37,7 +37,7 @@ import {cleanupDebt,resolveCleanupDebt} from './domain/cleanup-debt.server.ts'
 import {effectGrants,grantEffect,revokeEffect,spendGrant} from './domain/effect-grants.server.ts'
 import {rumDoor} from './domain/rum/door.server.ts'
 import {registerRumRoutes} from './domain/rum/routes.server.ts'
-import {readAlertRoute,previewAlertRoute,applyAlertRoute,sampleAlertRoute} from './domain/alert-routes.server.ts'
+import {readAlertRoute,previewAlertRoute,applyAlertRoute,sampleAlertRoute,readInstallationRoute,previewInstallationRoute,applyInstallationRoute} from './domain/alert-routes.server.ts'
 import {previewMaintenance,applyMaintenance,cancelMaintenance} from './domain/planned-maintenance.server.ts'
 // The package's demo module: operator-auth runs from the package and reads demo mode from this same instance.
 import {withDemo} from '@runeditrun/rer/modules/demo'
@@ -196,6 +196,10 @@ api.get('/api/monitors/:id/slow-policy',async c=>c.json(await readSlowPolicy(c.e
 api.post('/api/monitors/:id/slow-policy/import-preview',async c=>{const current=await readSlowPolicy(c.env,c.req.param('id'));return c.json({slow:importSlowPolicy(c.get('input'),current.definition),revision:current.revision})})
 api.post('/api/monitors/:id/slow-policy',async c=>c.json(await saveSlowPolicy(c.env,c.req.param('id'),c.get('input'),{kind:'operator',ref:(await authenticatedSession(c.env,c.req.raw))!.operator.id})))
 api.post('/api/monitors/:id/slow-ack',async c=>c.json(await acknowledgeSlow(c.env,c.req.param('id'),c.get('input'),{kind:'operator',ref:(await authenticatedSession(c.env,c.req.raw))!.operator.id})))
+// Who is told by default (Settings › Alerts): the installation scope of the same route, behind the same owner doors.
+api.get('/api/alert-route',async c=>c.json(await storageOperation('alertRoutes.read',()=>readInstallationRoute(c.env))))
+api.post('/api/alert-route/preview',async c=>c.json(await storageOperation('alertRoutes.preview',()=>previewInstallationRoute(c.env,c.get('input')))))
+api.post('/api/alert-route/apply',async c=>{const actor={kind:'operator' as const,ref:(await authenticatedSession(c.env,c.req.raw))!.operator.id};return c.json(await storageOperation('alertRoutes.apply',()=>applyInstallationRoute(c.env,c.get('input'),actor)))})
 api.get('/api/monitors/:id/alert-route',async c=>c.json(await storageOperation('alertRoutes.read',()=>readAlertRoute(c.env,c.req.param('id')))))
 api.post('/api/monitors/:id/alert-route/preview',async c=>c.json(await storageOperation('alertRoutes.preview',()=>previewAlertRoute(c.env,c.req.param('id'),c.get('input')))))
 api.post('/api/monitors/:id/alert-route/import-preview',async c=>c.json(await storageOperation('alertRoutes.import',()=>previewAlertRoute(c.env,c.req.param('id'),importContactSchedule(c.get('input'))))))

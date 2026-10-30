@@ -597,6 +597,9 @@ body:has(.ui-sidebar)::before {
 .ui-sidebar nav a:is([aria-current="page"], [aria-current="true"])::before { content: ""; position: absolute; left: 11px; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 50%; background: var(--peach); }
 .ui-sidebar nav a.nav-back { color: var(--muted); }
 .ui-sidebar nav .ui-icon { width: 20px; height: 20px; }
+/* The count on Settings and Alerts while an alert destination cannot send or none is enabled (public/alert-health.js): an
+   amber number at the item's end, after the label on a phone pill. */
+.ui-sidebar nav .nav-count { display: inline-grid; place-items: center; min-width: 22px; height: 22px; margin-left: auto; padding: 0 6px; border: 1px solid color-mix(in srgb, var(--amber) 55%, var(--amber-soft)); border-radius: 999px; background: var(--amber-soft); color: var(--amber-text); font-size: 13px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
 @media (min-width: 701px) {
   /* The sidebar keeps its place while the page scrolls, so its foot is the bottom of the screen; a short screen scrolls
      the menu inside it. */
@@ -645,6 +648,7 @@ body:has(.ui-sidebar)::before {
   .ui-sidebar nav a:is([aria-current="page"], [aria-current="true"]) { padding-left: 26px; border-color: var(--line); background: var(--card); }
   .ui-sidebar nav a:is([aria-current="page"], [aria-current="true"])::before { left: 11px; width: 7px; height: 7px; margin-top: -3.5px; }
   .ui-sidebar nav .ui-icon { display: none; }
+  .ui-sidebar nav .nav-count { margin-left: 0; }
   .ui-sidebar nav a.nav-back { flex-basis: 100%; justify-content: flex-start; padding: 0; border: 0; background: none; font-size: 14.5px; }
   .ui-sidebar nav a.nav-back .ui-icon { display: block; width: 18px; height: 18px; }
   .ui-sidebar nav a:is([data-view="signout"], #editor-signout) { position: absolute; top: 12px; right: 16px; padding: 0 4px; border: 0; background: none; }

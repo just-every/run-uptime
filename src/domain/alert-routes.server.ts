@@ -36,12 +36,15 @@ function validate(input:any):Input{
  const filters=input.filters===undefined?undefined:normalizeRouteFilters(input.filters),quietHours=input.quietHours===undefined?undefined:normalizeRouteQuiet(input.quietHours);
  return {...input,teamIds,filters,quietHours,destinationIds:[...input.destinationIds].sort(),fallback,contactSettings:normalizeContactSettings(input.contactSettings??{},[...input.destinationIds,...fallback.destinationIds])};
 }
-async function context(env:Bindings,monitorId:string,{readOnly=false}={}){
- const monitor=await get(env,monitorId);if(!monitor)throw Object.assign(Error('Monitor not found'),{status:404});
+// A monitor's route reads all four scopes for that monitor; the installation default (monitorId null) reads its own scope.
+async function context(env:Bindings,monitorId:string|null,{readOnly=false}={}){
+ const monitor=monitorId===null?null:await get(env,monitorId);if(monitorId!==null&&!monitor)throw Object.assign(Error('Monitor not found'),{status:404});
  const [rows,contacts]=await Promise.all([env.DB.prepare('SELECT * FROM alert_routes ORDER BY scope_kind,scope_value').all<any>(),destinations(env,{readOnly})]);
- const policies=routeScopes.map(scope=>{const value=scopeValue(scope,monitor);return rows.results.find(r=>r.scope_kind===scope&&r.scope_value===value)});
- return {monitor,rows:rows.results,policies:policies.map((row,i)=>row?routePolicy(row):defaultPolicy(routeScopes[i],scopeValue(routeScopes[i],monitor))),destinations:contacts};
+ return {monitor,rows:rows.results,policies:(monitor?routeScopes:['installation' as const]).map(scope=>scopedPolicy(rows.results,scope,monitor?scopeValue(scope,monitor):'')),destinations:contacts};
 }
+const scopedPolicy=(rows:any[],scope:RouteScope,value:string)=>{const row=rows.find(r=>r.scope_kind===scope&&r.scope_value===value);return row?routePolicy(row):defaultPolicy(scope,value)};
+// The four scopes a monitor inherits through, with the reviewed policy in place of its own scope's saved one.
+const monitorPolicies=(rows:any[],monitor:any,replaced?:RoutePolicy)=>routeScopes.map(scope=>{const value=scopeValue(scope,monitor);return replaced&&replaced.scope===scope&&replaced.value===value?replaced:scopedPolicy(rows,scope,value)});
 function previewRecipients(policies:RoutePolicy[],contacts:any[],configured:boolean,candidates:any[]=[],sample?:RouteSample,environment?:string){
  const effective=effectivePolicy(policies),ids=effective.destinationIds;
  const recipients=contacts.map(d=>{
@@ -62,14 +65,15 @@ function previewRecipients(policies:RoutePolicy[],contacts:any[],configured:bool
 }
 export async function readAlertRoute(env:Bindings,monitorId:string,{readOnly=false}={}){
  const ctx=await context(env,monitorId,{readOnly});
- const changes=await env.DB.prepare(`SELECT * FROM alert_route_changes WHERE (scope_kind='monitor' AND scope_value=?) OR (scope_kind='service' AND scope_value=?) OR (scope_kind='group' AND scope_value=?) OR scope_kind='installation' ORDER BY changed_at DESC,rowid DESC LIMIT 30`).bind(monitorId,scopeValue('service',ctx.monitor),scopeValue('group',ctx.monitor)).all<any>();
+ const changes=await env.DB.prepare(`SELECT * FROM alert_route_changes WHERE (scope_kind='monitor' AND scope_value=?) OR (scope_kind='service' AND scope_value=?) OR (scope_kind='group' AND scope_value=?) OR scope_kind='installation' ORDER BY changed_at DESC,rowid DESC LIMIT 30`).bind(monitorId,scopeValue('service',ctx.monitor!),scopeValue('group',ctx.monitor!)).all<any>();
  return {monitorId,policies:ctx.policies,...previewRecipients(ctx.policies,ctx.destinations,mailConfigured(env),await teamCandidates(env,monitorId)),gaps,changes:changes.results.map(r=>({id:r.id,scope:r.scope_kind,value:r.scope_value,previous:JSON.parse(r.previous_policy),current:JSON.parse(r.current_policy),changedAt:r.changed_at,actorRef:r.actor_ref}))};
 }
-async function plan(env:Bindings,monitorId:string,raw:any,{readOnly=false}={}){
+async function plan(env:Bindings,monitorId:string|null,raw:any,{readOnly=false}={}){
  const input=validate(raw);
  // Custody validation may clear a prior unavailable marker before we snapshot.
  await destinations(env,{readOnly});
- const before=await snapshot(env),ctx=await context(env,monitorId,{readOnly}),value=scopeValue(input.scope,ctx.monitor);
+ const before=await snapshot(env),ctx=await context(env,monitorId,{readOnly}),value=ctx.monitor?scopeValue(input.scope,ctx.monitor):'';
+ if(!ctx.monitor&&input.scope!=='installation')throw Error('Only the installation default is set here');
  if(input.scope!=='installation'&&!value)throw Error(`Set this monitor's ${input.scope} before choosing that route scope`);
  const previous=ctx.policies.find(p=>p.scope===input.scope)!;
  if(previous.revision!==input.expectedRevision)throw Object.assign(Error('Route changed; refresh and preview again'),{status:409});
@@ -79,43 +83,55 @@ async function plan(env:Bindings,monitorId:string,raw:any,{readOnly=false}={}){
  const knownTeams=(await env.DB.prepare('SELECT id FROM alert_teams').all<{id:string}>()).results;
  if(teamIds.some(id=>!knownTeams.some(t=>t.id===id)))throw Error('A selected team does not exist');
  const current={...previous,teamIds,filters:input.filters??previous.filters,quietHours:input.quietHours===undefined?previous.quietHours:input.quietHours,mode:input.mode,destinationIds:input.destinationIds,contactSettings:input.contactSettings!,fallback:input.fallback,revision:previous.revision+1};
- const policies=ctx.policies.map(p=>p.scope===input.scope?current:p),preview=previewRecipients(policies,ctx.destinations,mailConfigured(env),await teamCandidates(env,monitorId));
+ const policies=ctx.policies.map(p=>p.scope===input.scope?current:p),preview=previewRecipients(policies,ctx.destinations,mailConfigured(env),monitorId===null?[]:await teamCandidates(env,monitorId));
  const monitors=await env.DB.prepare('SELECT id,revision,definition FROM monitors ORDER BY id').all<any>();
  const candidates=await teamCandidates(env);
  const affected=monitors.results.filter(m=>input.scope==='installation'||(input.scope==='monitor'?m.id===monitorId:JSON.parse(m.definition)[input.scope]===value)).map(m=>{
   const monitor={id:m.id,definition:JSON.parse(m.definition)};
-  const inherited=routeScopes.map(scope=>{
-   const v=scopeValue(scope,monitor);if(scope===input.scope&&v===value)return current;
-   const row=ctx.rows.find(r=>r.scope_kind===scope&&r.scope_value===v);return row?routePolicy(row):defaultPolicy(scope,v);
-  });
-  const p=previewRecipients(inherited,ctx.destinations,mailConfigured(env),candidates.filter(c=>c.monitor_id===m.id));
+  const p=previewRecipients(monitorPolicies(ctx.rows,monitor,current),ctx.destinations,mailConfigured(env),candidates.filter(c=>c.monitor_id===m.id));
   return {id:m.id,name:monitor.definition.name,revision:m.revision,effective:p.effective,readyCount:p.readyCount,selectedIds:p.recipients.filter(d=>d.selected).map(d=>d.id),blocked:p.recipients.filter(d=>d.selected&&!d.eligible).map(d=>({id:d.id,reason:d.reason}))};
  });
  if(await snapshot(env)!==before)throw Object.assign(Error('Routing inputs changed; preview again'),{status:409});
  const result={input,value,previous,current,policies,...preview,affected,gaps};
- return {...result,digest:await digest(JSON.stringify({...result,monitorRevision:ctx.monitor.revision})),monitor:ctx.monitor,snapshot:before};
+ return {...result,digest:await digest(JSON.stringify({...result,monitorRevision:ctx.monitor?.revision??null})),monitor:ctx.monitor,snapshot:before};
 }
 export async function previewAlertRoute(env:Bindings,monitorId:string,input:any){const {monitor,snapshot,...result}=await plan(env,monitorId,input);return result}
-export async function prepareAlertRouteAssignment(env:Bindings,monitorId:string,input:any){return plan(env,monitorId,input,{readOnly:true})}
+// A batch assigns monitors' own routes, so its plans always name their monitor.
+const monitorPlan=async(env:Bindings,monitorId:string,input:any)=>{const prepared=await plan(env,monitorId,input,{readOnly:true});return {...prepared,monitor:prepared.monitor!}};
+export async function prepareAlertRouteAssignment(env:Bindings,monitorId:string,input:any){return monitorPlan(env,monitorId,input)}
 // Batch callers run every guard before any write, then commit all assignments together.
 export function alertRouteAssignmentStatements(env:Bindings,prepared:Awaited<ReturnType<typeof plan>>,actor:AuditActor,remove=false,namedRouteId:string|null=null){
  const {previous,value,monitor,input}=prepared,current={...prepared.current,namedRouteId},now=Date.now(),changeId=crypto.randomUUID();
  if(remove&&input.scope!=='monitor')throw Error('Only an absent monitor override can be restored by removal');
  const guard=previous.revision?'EXISTS(SELECT 1 FROM alert_routes WHERE scope_kind=? AND scope_value=? AND revision=?)':'NOT EXISTS(SELECT 1 FROM alert_routes WHERE scope_kind=? AND scope_value=?)';
- const guards=[mutationGuard(env,`(${snapshotSql})=?`,[prepared.snapshot]),mutationGuard(env,guard,[input.scope,value,...(previous.revision?[previous.revision]:[])]),mutationGuard(env,'EXISTS(SELECT 1 FROM monitors WHERE id=? AND revision=?)',[monitor.id,monitor.revision])];
+ const guards=[mutationGuard(env,`(${snapshotSql})=?`,[prepared.snapshot]),mutationGuard(env,guard,[input.scope,value,...(previous.revision?[previous.revision]:[])]),...(monitor?[mutationGuard(env,'EXISTS(SELECT 1 FROM monitors WHERE id=? AND revision=?)',[monitor.id,monitor.revision])]:[])];
  const writes=[
   remove?env.DB.prepare("DELETE FROM alert_routes WHERE scope_kind='monitor' AND scope_value=?").bind(value):env.DB.prepare(`INSERT INTO alert_routes(scope_kind,scope_value,mode,destination_ids,contact_settings,fallback,team_ids,filters,quiet_hours,revision,updated_at,named_route_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(scope_kind,scope_value) DO UPDATE SET mode=excluded.mode,destination_ids=excluded.destination_ids,contact_settings=excluded.contact_settings,fallback=excluded.fallback,team_ids=excluded.team_ids,filters=excluded.filters,quiet_hours=excluded.quiet_hours,revision=excluded.revision,updated_at=excluded.updated_at,named_route_id=excluded.named_route_id`).bind(input.scope,value,input.mode,JSON.stringify(current.destinationIds),JSON.stringify(current.contactSettings),JSON.stringify(current.fallback),JSON.stringify(current.teamIds),JSON.stringify(current.filters),current.quietHours?JSON.stringify(current.quietHours):null,current.revision,now,namedRouteId),
   env.DB.prepare('INSERT INTO alert_route_changes VALUES(?,?,?,?,?,?,?)').bind(changeId,input.scope,value,JSON.stringify(previous),JSON.stringify({...current,updatedAt:now}),now,actor.ref),
   auditStatement(env,actor,'alert_route_change','alert_route',changeId,'1',[],now),
  ];return {guards,writes,changeId,revision:current.revision};
 }
-export async function applyAlertRoute(env:Bindings,monitorId:string,raw:any,actor:AuditActor){
+async function applyPlan(env:Bindings,monitorId:string|null,raw:any,actor:AuditActor){
  const {digest:approved,...input}=raw,prepared=await plan(env,monitorId,input);
  if(typeof approved!=='string'||approved!==prepared.digest)throw Object.assign(Error('Preview changed; review recipients again'),{status:409});
  const statements=alertRouteAssignmentStatements(env,prepared,actor);
  try{await env.DB.batch([...statements.guards,...statements.writes])}catch(error){if(String(error).includes('uptime_audit.id'))throw Object.assign(Error('Route or monitor changed; preview again'),{status:409});throw error}
- return {saved:true,changeId:statements.changeId,revision:statements.revision,...await readAlertRoute(env,monitorId)};
+ return {saved:true,changeId:statements.changeId,revision:statements.revision};
 }
+export async function applyAlertRoute(env:Bindings,monitorId:string,raw:any,actor:AuditActor){return {...await applyPlan(env,monitorId,raw,actor),...await readAlertRoute(env,monitorId)}}
+
+// The installation default, which every monitor without a route of its own uses (Settings › Alerts, GET /api/alert-route
+// and POST /api/alert-route/preview and /apply): the same validation, revision guard, digest and audit as a monitor's
+// route at installation scope, without a monitor. A body naming another scope is refused.
+const installationScope=(raw:any)=>{if(raw?.scope!==undefined&&raw.scope!=='installation')throw Error('Only the installation default is set here');return {...raw,scope:'installation'}};
+export async function readInstallationRoute(env:Bindings){
+ const ctx=await context(env,null),policy=ctx.policies[0],monitors=await env.DB.prepare('SELECT id,definition FROM monitors ORDER BY rowid').all<any>();
+ // Monitors whose route is set at monitor, service or group scope choose their own recipients.
+ const overrides=monitors.results.map(m=>({id:m.id,definition:JSON.parse(m.definition)})).flatMap(monitor=>{const scope=effectivePolicy(monitorPolicies(ctx.rows,monitor)).scope;return scope==='installation'?[]:[{monitorId:monitor.id,name:monitor.definition.name,scope}]});
+ return {mode:policy.mode,destinationIds:policy.destinationIds,contactSettings:policy.contactSettings,fallback:policy.fallback,teamIds:policy.teamIds,revision:policy.revision,updatedAt:policy.updatedAt,destinations:previewRecipients(ctx.policies,ctx.destinations,mailConfigured(env)).recipients,overrides};
+}
+export async function previewInstallationRoute(env:Bindings,raw:any){const {monitor,snapshot,...result}=await plan(env,null,installationScope(raw));return result}
+export async function applyInstallationRoute(env:Bindings,raw:any,actor:AuditActor){return {...await applyPlan(env,null,installationScope(raw),actor),...await readInstallationRoute(env)}}
 
 async function teamCandidates(env:Bindings,monitorId?:string){
  return (await env.DB.prepare(`SELECT m.id monitor_id,tm.team_id,tm.operator_id,rc.destination_id,team.enabled team_enabled,(${liveRecipientSql()}) live,(rc.credential_id=d.credential_id) credential_current FROM alert_team_members tm JOIN alert_teams team ON team.id=tm.team_id LEFT JOIN alert_recipient_consents rc ON rc.operator_id=tm.operator_id LEFT JOIN notification_destinations d ON d.id=rc.destination_id JOIN monitors m ${monitorId?'ON m.id=?':''}`).bind(...(monitorId?[monitorId]:[])).all<any>()).results
@@ -124,8 +140,8 @@ async function teamCandidates(env:Bindings,monitorId?:string){
  * semantics. Real confirmation / transport outcomes remain delivery history. */
 export async function sampleAlertRoute(env:Bindings,monitorId:string,raw:any){
  const sample=normalizeRouteSample(raw),ctx=await context(env,monitorId),candidates=await teamCandidates(env,monitorId)
- const override=sample.kind==='slow'&&Array.isArray(ctx.monitor.definition.slow?.destinationIds)?{...effectivePolicy(ctx.policies),destinationIds:ctx.monitor.definition.slow.destinationIds,teamIds:[],contactSettings:ctx.monitor.definition.slow.contactSettings??{},mode:'selected' as const,fallback:{destinationIds:[],deadlineSeconds:120}}:null
- const result=previewRecipients(override?[override]:ctx.policies,ctx.destinations,mailConfigured(env),candidates,sample,ctx.monitor.definition.environment)
+ const override=sample.kind==='slow'&&Array.isArray(ctx.monitor!.definition.slow?.destinationIds)?{...effectivePolicy(ctx.policies),destinationIds:ctx.monitor!.definition.slow.destinationIds,teamIds:[],contactSettings:ctx.monitor!.definition.slow.contactSettings??{},mode:'selected' as const,fallback:{destinationIds:[],deadlineSeconds:120}}:null
+ const result=previewRecipients(override?[override]:ctx.policies,ctx.destinations,mailConfigured(env),candidates,sample,ctx.monitor!.definition.environment)
  return {...result,sample,excludedMembers:candidates.filter(c=>result.effective.teamIds.includes(c.team_id)&&(!c.destination_id||!c.live||!c.team_enabled||!c.credential_current)).map(c=>({teamId:c.team_id,operatorId:c.operator_id,reason:!c.destination_id?'no_consent':!c.team_enabled?'team_disabled':'consent_inactive_or_out_of_scope'})),gaps}
 }
 
@@ -155,5 +171,5 @@ export async function saveNamedAlertRoute(env:Bindings,raw:any,actor:AuditActor)
 }
 export async function prepareNamedAlertRouteAssignment(env:Bindings,monitorId:string,route:Awaited<ReturnType<typeof namedAlertRoute>>){
  const current=await readAlertRoute(env,monitorId,{readOnly:true}),previous=current.policies.find(p=>p.scope==='monitor')!;
- const prepared=await plan(env,monitorId,{scope:'monitor',expectedRevision:previous.revision,...route.policy},{readOnly:true});prepared.current.namedRouteId=route.id;return prepared;
+ const prepared=await monitorPlan(env,monitorId,{scope:'monitor',expectedRevision:previous.revision,...route.policy});prepared.current.namedRouteId=route.id;return prepared;
 }

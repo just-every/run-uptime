@@ -16,7 +16,7 @@ export async function retentionBrowser(origin,bindings,monitor){
   assert.ok((await page.locator('#raw-history details').count())>0,'retained check history remains visible');
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
   await page.screenshot({path:join(output,`retention-history-${width}.png`),fullPage:true});
-  await page.getByRole('link',{name:'Settings',exact:true}).click();
+  await page.getByRole('link',{name:/^Settings(, \d+ to fix)?$/}).click();
   await page.getByRole('heading',{name:'Destinations · all monitors',exact:true}).waitFor();
   assert.ok(await page.getByText('Retention webhook',{exact:true}).count());
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));

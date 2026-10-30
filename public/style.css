@@ -2,12 +2,11 @@
    coverage bars, a monitor's header and the console styles its page shares (sections.css styles Locations and the
    Settings areas; monitor-page.css a monitor's page). It builds on app-theme.css
    (tokens, element defaults, ui-* components and the shell), which
-   loads first; notifications.css loads after it. The shell's single-column breakpoint is 700px, matching
-   matchMedia('(max-width:700px)') in app.js and innerWidth<=700 in notifications.js. */
+   loads first; notifications.css loads after it. The shell's single-column breakpoint is 700px. */
 
 /* ---------------------------------------------------------------- grid */
-/* The side column (.right) holds the notifications help and the add-a-location steps; app.js hides it for the monitor list and
-   a monitor's page, which then take the full width. */
+/* The side column (.right) holds the add-a-location steps; app.js hides it for every other view, which then takes the full
+   width. */
 @media (min-width: 1200px) {
   .app { grid-template-columns: var(--sidebar-w) minmax(0, 1fr) 360px; }
   .app:has(> .right[hidden]) { grid-template-columns: var(--sidebar-w) minmax(0, 1fr); }
@@ -45,20 +44,14 @@
 }
 
 /* ---------------------------------------------------------------- the content card */
-/* section.monitors, a .ui-card with no padding of its own, holds the view's heading and #content-area. It is the card for
-   the monitor list and the runner view; the notifications view lays its own cards out on the ground, so there it is a
-   bare container. */
+/* section.monitors, a .ui-card with no padding of its own, holds #content-area. It is the card for the monitor list and the
+   runner view; a monitor's page lays its own cards out on the ground, so there it is a bare container. */
 .monitors { padding: 0; }
-.monitors:has(.notification-intro, .monitor-page, .monitor-missing) { border: 0; border-radius: 0; background: none; box-shadow: none; }
-.table-title { padding: 20px 24px 0; }
-.monitors:has(.notification-intro) > .table-title { padding: 0; }
+.monitors:has(.monitor-page, .monitor-missing) { border: 0; border-radius: 0; background: none; box-shadow: none; }
 /* #content-area is the monitor table's table-wrap container: the table stacks into card rows when this area is under
    760px wide (app-theme.css .ui-table--stack-md), whatever the viewport. */
 #content-area { container: table-wrap / inline-size; min-width: 0; border-radius: var(--radius); }
 #content-area:focus-visible { outline-offset: -3px; }
-@media (max-width: 700px) {
-  .table-title { padding: 16px 16px 0; }
-}
 
 /* The loading skeleton, shown until the first overview arrives: neutral bars, no sample data, no motion. */
 .loading-list { padding: 20px 24px; }

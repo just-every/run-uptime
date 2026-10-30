@@ -24,9 +24,11 @@ function comment(c){
  ${c.history.length?`<details><summary>Edit history (${c.history.length})</summary>${c.history.map(h=>`<p>Version ${h.version} · ${text(h.editor.displayName)} · ${text(at(h.editedAt))}</p><p class="incident-prose">${linkedText(h.text)}</p>`).join('')}</details>`:''}
  <details><summary>Delete comment</summary><p>Remove this comment’s text and edit history. A deletion entry remains in the timeline.</p><button type="button" data-delete-comment="${text(c.id)}" data-version="${c.version}">Delete text and history</button></details></article>`;
 }
-export function detailMarkup(d,settings){
- const retired=d.rootCause.categoryId&&!settings.categories.some(c=>c.id===d.rootCause.categoryId)?`<option value="${text(d.rootCause.categoryId)}" selected>${text(d.rootCause.categoryLabel)} (removed; choose a current category)</option>`:'';
- const categories=retired+settings.categories.map(c=>`<option value="${text(c.id)}"${d.rootCause.categoryId===c.id?' selected':''}>${text(c.label)}</option>`).join('');
+// The incident's own category select lists today's categories (Settings › Alerts manages them); a category removed since
+// stays on this incident, named as removed.
+export function detailMarkup(d){
+ const retired=d.rootCause.categoryId&&!d.rootCauseCategories.some(c=>c.id===d.rootCause.categoryId)?`<option value="${text(d.rootCause.categoryId)}" selected>${text(d.rootCause.categoryLabel)} (removed; choose a current category)</option>`:'';
+const categories=retired+d.rootCauseCategories.map(c=>`<option value="${text(c.id)}"${d.rootCause.categoryId===c.id?' selected':''}>${text(c.label)}</option>`).join('');
  return `<p>Confirmed ${text(at(d.startedAt))} · ${d.machineState==='recovered'?`Recovered ${text(at(d.endedAt))}`:'Monitoring incident remains open'}</p><p>${text(d.trigger.explanation)}</p>
  <section><h3>Follow-up</h3><dl class="ui-dl"><div><dt>Response state</dt><dd>${text(d.status)}</dd></div><div><dt>Owner</dt><dd>${text(d.owner?.displayName??'Unassigned')}</dd></div><div><dt>Next scheduled follow-up</dt><dd>${text(d.nextDue===null?d.nextDueReason:(d.nextDueKind==='reminder'?'Reminder · ':d.nextDueKind==='escalation'?'Escalation · ':'Notification · ')+at(d.nextDue))}</dd></div>${d.stopReason?`<div><dt>Stopped by</dt><dd>${text(d.stopReason.replaceAll('_',' '))}</dd></div>`:''}</dl>
  ${d.capabilities.assignment?'<form data-assignment>':'<form data-assignment hidden>'}<label>Incident owner<select name="ownerId"><option value="">Unassigned</option>${d.assignmentMembers.map(m=>`<option value="${text(m.id)}"${d.owner?.id===m.id?' selected':''}>${text(m.displayName)}</option>`).join('')}</select></label><button>Assign owner</button></form>
@@ -34,7 +36,5 @@ export function detailMarkup(d,settings){
  ${dependencySections(d)}
  <section><h3>Root cause</h3><form data-root-cause><label>Category<select name="categoryId"><option value="">Not categorized</option>${categories}</select></label><label>Root-cause account<textarea name="text" maxlength="2000" rows="3">${text(d.rootCause.text)}</textarea></label><button>Save root cause</button></form><p>Private team account, separate from the machine’s observed cause.</p></section>
  <section><h3>Comments</h3>${d.comments.map(comment).join('')}<form data-comment-add><label>Add a comment<textarea name="text" maxlength="5000" rows="4" required></textarea></label><button>Add comment</button></form><p>Comments stay private. Member mentions, mention email and status-page publication are not available.</p></section>
- <section><h3>Activity timeline</h3><ol class="incident-timeline">${d.timeline.map(e=>`<li><p><strong>${text(e.kind.replaceAll('_',' '))}</strong> · ${text(e.actor.displayName)} · ${text(at(e.at))}</p><p class="incident-prose">${text(activity(e))}</p></li>`).join('')}</ol></section>
- <details${d.capabilities.categoryAdministration?'':' hidden'}><summary>Manage root-cause categories</summary><form data-categories><div data-category-rows>${settings.categories.map(c=>categoryRow(c)).join('')}</div><button type="button" data-add-category>Add category</button><button>Save category list</button></form></details>`;
+ <section><h3>Activity timeline</h3><ol class="incident-timeline">${d.timeline.map(e=>`<li><p><strong>${text(e.kind.replaceAll('_',' '))}</strong> · ${text(e.actor.displayName)} · ${text(at(e.at))}</p><p class="incident-prose">${text(activity(e))}</p></li>`).join('')}</ol></section>`;
 }
-export function categoryRow(c){return `<div class="incident-category" data-category-id="${text(c.id)}"><label>Category label<input value="${text(c.label)}" maxlength="100" required></label><label class="incident-category-remove"><input type="checkbox" data-remove-category> Remove from future choices</label></div>`}
