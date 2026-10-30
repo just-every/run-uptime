@@ -2880,11 +2880,11 @@
       "executable": false
     },
     "public/pagespeed-panel.js": {
-      "sha256": "9c136124d326db7f25b5b6bc2cdeb044d6f239cb5bc4472ed8bc1e1830a95512",
+      "sha256": "139ae8a76f67ef31e547ac224450c9becfb7767bdfacb8e4f027e73a85a68e7a",
       "executable": false
     },
     "public/pagespeed-rum.js": {
-      "sha256": "7fd6b793bbc6b904b5800cd50cd8cb8b0ffcd4f2ade8ee8516344552f8b489c0",
+      "sha256": "b2abbdce821114d8046ca287b91a3e7455374d57f86f9f5f05df1daa030ee675",
       "executable": false
     },
     "public/planned-maintenance.css": {
