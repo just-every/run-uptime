@@ -711,8 +711,8 @@ Core · target · **partial**
 1. Break sandbox checkout, inspect screenshot/video/trace/waterfall through authenticated incident detail, deny artifact storage and try an unauthorized download.
 2. Planted secrets/masked fields never appear; retained artifact failures and erasure are visible.
 
-**Evidence.** `runners/src/flow/artifacts.mjs`; `src/domain/flow-artifacts.mjs`; `src/domain/failure-page-custody.server.ts`; `public/assets/failure-snapshot-view.js`; `tests/flow-journey.mjs`; `tests/flow-artifact-journey.mjs`
-**Gap.** Screenshot, video, trace and waterfall reads through the owner's monitor snapshot API, denied artifact storage, unauthorized download, masking and erasure are asserted. The authenticated incident-detail door is asserted only in `tests/flow-artifact-browser.mjs`, which this clause does not cite.
+**Evidence.** `runners/src/flow/artifacts.mjs`; `src/domain/flow-artifacts.mjs`; `src/domain/failure-page-custody.server.ts`; `public/assets/failure-snapshot-view.js`; `tests/flow-journey.mjs` loads `tests/flow-artifact-journey.mjs`, which calls `tests/flow-artifact-browser.mjs` artifactBrowser: authenticated incident-detail screenshot dimensions, playing video, downloaded trace ZIP, waterfall, visible capture failure and erased-monitor views at 1440 pixels only. `tests/flow-artifact-journey.mjs` retains failed sandbox checkout, masking, unauthorized reads, denied artifact storage, encrypted retention, inactive restore and erasure assertions.
+**Gap.** Uip-owned console changes, 390-pixel artifact-view qualification and broader console requalification remain held. This attribution is inspected; no new runtime pass or broader console qualification is claimed.
 
 #### FLOW-004 — Cross-browser and mobile transactions
 
