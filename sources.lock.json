@@ -487,7 +487,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "a1e89f2901c2011e77770035899e1063ca12dfe23d058ccacaa5fcc2b9899c59",
+      "sha256": "5f43956f4533ec99c5e0ec8831a4711a155a67fa13ad5c34b285232080859082",
       "executable": false
     },
     "AGENTS.md": {
@@ -511,7 +511,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "76cfb1518042299a99d883e00dee333e1bb57f9088060ae30a2e1e597ef1d79c",
+      "sha256": "bb305d6137340b0046884e88d3706d075e84f2d0566e354b4ffdd4ab435c6141",
       "executable": false
     },
     "DEMO.md": {
@@ -567,7 +567,7 @@
       "executable": false
     },
     "docs/data.md": {
-      "sha256": "466902c0219c1c39e469cfd2156f6bb86a40809bf29d079da3580479e89e82b5",
+      "sha256": "2da176183c5a7d84d40b21ec58c414b532e08575f393ee7a704c3b97dec86173",
       "executable": false
     },
     "docs/definitions.md": {
@@ -6339,11 +6339,11 @@
       "executable": false
     },
     "src/domain/archive-schema.ts": {
-      "sha256": "e113583dbb188fef3caf942ca17f551c68e6683564c84f5b0fee39790eb30ab4",
+      "sha256": "58bb0f4da265b6e78087b1a15eb5aa3c3c6a4847959f5cfc24199520321e49f5",
       "executable": false
     },
     "src/domain/archive-selection.server.ts": {
-      "sha256": "02f6a01e77cf34e8d291987eba18066ca61dcbe3e2c22b5804391d66d7449ce6",
+      "sha256": "c988fe7b34afac0f971daf50c7515dbed00aa97c0de15143ed03390283b03174",
       "executable": false
     },
     "src/domain/archive-validation.ts": {
@@ -6351,7 +6351,7 @@
       "executable": false
     },
     "src/domain/archive.server.ts": {
-      "sha256": "6e51eb5591b6fbbecae766aa5bda12ac1ba860124a9e353662be52411a7b7f63",
+      "sha256": "33f04541707d6a65dd3c035e36602c8d4e4553557f0e2b1f020e484459918feb",
       "executable": false
     },
     "src/domain/assets.server.ts": {
@@ -7275,7 +7275,7 @@
       "executable": false
     },
     "src/domain/request-boundary.ts": {
-      "sha256": "6e420aabc7faa9b3bb056680f1c926bcd297286012f63b7bb0ec9fd6a52548cd",
+      "sha256": "8d06c38e45c979cbe270abbc00603cf2c6b3982b936106419723a96fb5355ae0",
       "executable": false
     },
     "src/domain/rer-cutover-status.server.ts": {
@@ -8095,7 +8095,7 @@
       "executable": false
     },
     "tests/archive-selection-support.mjs": {
-      "sha256": "66c8dbb1b68b09e0ba6889c482f1945875ef4849d34c5931c9be8346165bb697",
+      "sha256": "4aef625b3bf6ff11f1f2ac8b91c957745488748fb8314c082e6eeb6088050961",
       "executable": false
     },
     "tests/auth-test-support.mjs": {

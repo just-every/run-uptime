@@ -52,7 +52,8 @@ for(const version of [1,2,3,4,5,6,7,8,9,10,11,12,13,14])EXTENSION_TABLES[version
 export const extensionTables=(version:number)=>TABLES.filter(name=>!LEGACY_TABLES.includes(name)&&!EXTENSION_TABLES[version].includes(name));
 export const notificationNamespace='uptime-notifications';
 export type Tables=Record<string,any[]>;
-export type ArchiveSelection={kind:'monitors';monitorIds:string[];sharedRecords:'installation-history-v1'};
+export type ArchiveRange={from:number;to:number};
+export type ArchiveSelection={kind:'monitors';monitorIds:string[];sharedRecords:'installation-history-v1';range?:ArchiveRange};
 export const object=(v:any)=>v!==null&&typeof v==='object'&&!Array.isArray(v);
 export function shape(row:any,keys:string[],label:string){if(!object(row)||Object.keys(row).sort().join(',')!==keys.slice().sort().join(','))throw Error(`Invalid archive ${label} row shape`)}
 export function clock(v:any,label:string){if(!Number.isSafeInteger(v)||v<0)throw Error(`Invalid archive ${label} time`)}

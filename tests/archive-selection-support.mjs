@@ -7,6 +7,7 @@ import {fixture} from './resilience/support.mjs';
 import {inviteDoorMember} from './access-door-support.mjs';
 import {completeSecondFactor} from './mfa-auth-support.mjs';
 import {emailSignIn} from './auth-test-support.mjs';
+import {proveArchiveRange} from './archive-range-support.mjs';
 
 const tables=archive=>({...archive.payload.tables,...archive.payload.productTables});
 const hash=payload=>createHash('sha256').update(JSON.stringify(payload)).digest('hex');
@@ -101,6 +102,7 @@ export async function proveArchiveSelection(installation){
   const scoped=await inviteDoorMember(f.origin,f.cookie,'admin','uptime-archive-scoped',[{kind:'service',value:'synthetic-uptime-service'}]);await completeSecondFactor(f.origin,scoped.cookie);await refuse(path,{headers:{cookie:scoped.cookie}},403);
   const revoked=await inviteDoorMember(f.origin,f.cookie,'admin','uptime-archive-revoked');await completeSecondFactor(f.origin,revoked.cookie);await ok(path,undefined,{headers:{cookie:revoked.cookie}});await ok('/api/auth/sign-out',{}, {headers:{cookie:revoked.cookie}});await refuse(path,{headers:{cookie:revoked.cookie}},401);
   const staleFactor=await emailSignIn(f.origin,{bindings:f.bindings,secondFactor:false});await refuse(path,{headers:{cookie:staleFactor}},403);
+  await proveArchiveRange({f,ok,refuse,installation,monitors,fullArchive,destination});
   // Cross-selection references are refused with no implicit expansion or lost history.
   await ok(`/api/monitors/${monitors[0].id}`,{...current.definition,enabled:false,dependencies:[monitors[1].id]},{method:'PATCH'});
   assert.match((await refuse(path)).data.error,/dependency/);

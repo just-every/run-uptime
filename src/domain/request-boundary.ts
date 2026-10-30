@@ -9,6 +9,7 @@ type Body='none'|'empty'|'object'|'text'
 interface Route{method:string;path:string;repeatedQuery?:string[];params?:Record<string,(value:string)=>boolean>;query?:Record<string,(value:string)=>boolean>;body:Body}
 const identity=(value:string)=>value.length>0&&value.length<=512&&!/[\x00-\x1f\x7f]/.test(value)
 const uuid=(value:string)=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(value)
+const clockValue=(value:string)=>/^[0-9]{1,16}$/.test(value)&&Number.isSafeInteger(Number(value))
 const id={id:identity},source=(value:string)=>SOURCES.includes(value)
 const reportQuery={source:identity,...Object.fromEntries(['period','from','to','timeZone','zone','sla','slaTarget','bucket','location','rootCause'].map(name=>[name,(value:string)=>identity(value)&&value.length<=150])),format:(value:string)=>['csv','json','pdf'].includes(value)}
 const incidentQuery=Object.fromEntries(['source','monitor','tag','from','to','state','rootCause','cursor','limit'].map(name=>[name,identity]))
@@ -122,7 +123,7 @@ export const apiRoutes:readonly Route[]=[
  {method:'GET',path:'/api/discoveries/:id',params:{id:uuid},body:'none'},
  {method:'POST',path:'/api/runner/discoveries/claim',body:'empty'},
  {method:'POST',path:'/api/runner/discoveries/:id/result',params:{id:uuid},body:'object'},
- {method:'GET',path:'/api/archive',query:{monitor:identity},repeatedQuery:['monitor'],body:'none'},
+ {method:'GET',path:'/api/archive',query:{monitor:identity,from:clockValue,to:clockValue},repeatedQuery:['monitor'],body:'none'},
  {method:'GET',path:'/api/archive/restore-status',body:'none'},
  {method:'POST',path:'/api/restore',body:'object'},
  // A definitions file is JSON, NDJSON or CSV text; its importer reads it, refusing anything it cannot read.

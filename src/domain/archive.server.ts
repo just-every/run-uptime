@@ -1,4 +1,4 @@
-import {selectionFilter,requireSelectionMonitors,projectSelectionReplays} from './archive-selection.server.ts'
+import {selectionFilter,resolveSelection,projectSelectionReplays} from './archive-selection.server.ts'
 import {openSnapshot,storeSnapshot} from './failure-page-custody.server.ts'
 import {archiveInserts} from './archive-inserts.server.ts'
 import {exportJournal,productFence} from './archive-fence.server.ts'
@@ -11,8 +11,8 @@ import {validateArchive} from './archive-validation.ts'
 import {projectRestore} from './archive-restore-projection.ts'
 import {doorBatchArchive} from './business-import/archive.server.ts'
 /** Explicit projections prevent future credential columns silently becoming portable. */
-export async function archive(env:Bindings,selection?:ArchiveSelection){
- if(selection)await requireSelectionMonitors(env,selection);
+export async function archive(env:Bindings,requested?:ArchiveSelection){
+ const selection=requested&&await resolveSelection(env,requested);
  await assertArchiveInventory(env.DB);
  const queries=TABLES.map(name=>{
   const filter=selection?selectionFilter(name,selection):{sql:'1',params:[]};
