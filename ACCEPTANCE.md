@@ -265,8 +265,8 @@ Core · published · **partial** · Cites BASE-ACCESS-003 · Register R-2
 **Acceptance.**
 1. Enumerate declared sessionless paths against emitted routes, exceed configured public limits, inspect Retry-After, and remove counter storage; each route retains its own authentication checks and admission fails closed.
 
-**Evidence.** `src/domain/public-rate-limits.server.ts`; `tests/public-paths.mjs`
-**Gap.** Carried-done audit: the Retry-After header on a 429 is read only by the `limited` helper in `tests/public-paths-support.mjs`, which this clause does not cite. Enumeration of declared paths against emitted routes, the 429 past a class limit, fail-closed admission without counter storage and each route's own authentication are asserted.
+**Evidence.** `src/domain/public-rate-limits.server.ts`; `tests/public-paths.mjs` (registered by test:console in `package.json` and selected by `scripts/verification-plan.mjs`) enumerates declarations and emitted paths, checks route authentication and fail-closed counter-storage refusal, and calls `tests/public-paths-support.mjs` limited at line 64 for class-limit, concurrent-boundary and Worker-restart refusals; limited asserts 429, positive integral Retry-After seconds and no-store.
+**Gap.** Retry-After evidence attribution reconciled by inspection; this metadata change establishes no new runtime pass. Public-path load capacity and hosted readiness and scale qualification remain not run in R-2. Held uip console changes and requalification and existing account, Platform, sibling, protected-file and guarded-release prerequisites remain unchanged.
 
 #### FLOW-001 — Supported isolated browser transactions
 
