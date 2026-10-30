@@ -308,7 +308,7 @@ Core · target · **partial**
 **Acceptance.**
 1. Save checks through the editor/API against a controlled endpoint; independently break absent/present keywords, status range, response headers, JSON arrays/nested paths, regex and latency, then inspect the distinct failures and unchanged saved criteria.
 
-**Evidence.** `src/domain/http-assertions.mjs`; `src/domain/http-assertions/`; `src/domain/evidence.server.ts`; `tests/tls-auth.mjs`; `tests/probe-native-evidence.mjs`; `docs/evidence/contracts/http-assertions/`
+**Evidence.** `src/domain/http-assertions.mjs`; `src/domain/http-assertions/`; `src/domain/evidence.server.ts`; `tests/tls-auth.mjs`; `tests/probe-native-evidence.mjs`; `docs/evidence/contracts/http-assertions/`; `tests/probe-json-evidence-support.mjs`
 **Gap.** Saved criteria and independent present/absent keyword, status set/range, response-header, root JSON-member, regex and latency failures remain asserted. Gap: independently breaking JSON arrays and nested JSONPath expressions lacks an assertion in the surviving cited files; the root-member scenario does not prove those cases.
 
 #### SLOW-001 — Slow-response alerts distinct from outages
