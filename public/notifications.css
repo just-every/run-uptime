@@ -58,7 +58,6 @@
 .route-review { display: grid; gap: 10px; justify-items: start; padding: 12px 16px; border-radius: var(--radius-panel); background: var(--lavender); color: var(--ink); font-size: 14.5px; line-height: 1.5; }
 .route-review .btn-row { gap: 8px 16px; }
 .route-foot { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
-@media (max-width: 700px) { .route-picks { margin-left: 0; } }
 
 /* Root-cause categories (public/root-cause-categories.js): lavender chips, each with its × (a 44px target on a phone), then
    + Add category, which opens one field. */
