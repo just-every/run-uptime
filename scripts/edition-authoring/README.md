@@ -187,8 +187,9 @@ sees no private address. To read Base, `record-base`, `refresh-base` and
 runeditrun/base: `source.repository` for Git source or `source.origin.repository`
 for local source. Without either, `runeditrun/base` resolves to the public
 `https://github.com/runeditrun/base.git` repository. Pass `--offline` to verify
-local bytes without acquisition; offline refresh requires `--base <checkout>`.
-Offline source reads use a temporary repository sharing only the checkout’s
+local bytes without acquisition; offline refresh requires `--base <checkout>`
+or `--base-archive <directory>` as described below.
+Offline checkout reads use a temporary repository sharing only the checkout’s
 object store and HEAD, with no remotes or inherited Git configuration. This
 prevents lazy fetches on Git 2.43 as well as newer Git. Missing objects require
 an online refresh without `--offline`; corrupt objects require checkout repair.
@@ -210,6 +211,37 @@ the copy leaves out (`notCopied`), local files that differ from Base
 cloning the recorded repository, and `--record <file>` for another record path.
 An explicit acquisition URL or local source checkout can remain in the seed's
 own source declaration; the default Base publisher identity uses its public URL.
+
+A plain extracted Base archive can supply the source instead of a checkout:
+
+```sh
+node scripts/edition-authoring/cli.mjs record-base src/base/modules/mail modules/mail \
+  --base-archive /absolute/extracted-base --ref FULL_40_HEX_COMMIT
+rer refresh-base --base-archive /absolute/extracted-base --ref FULL_40_HEX_COMMIT
+```
+
+The directory must contain the source files at its root, preserve their executable
+bits, and contain only regular files and directories, with no `.git` entry or
+symlinks. Choose either `--base` or `--base-archive`. The supplied full commit is
+the caller's source identity: an extracted directory cannot independently prove
+which Git commit produced its bytes. Both inputs produce the same copy mappings,
+file digests and modes for the same source. Archive reads do not acquire source
+or execute source-provided code. The direct authoring CLI accepts `--ref` in place
+of the positional revision for both commands; positional invocations remain supported.
+
+New records from either input also retain `originFiles`, the sorted complete
+regular-file membership under each copy's Base origin, including files the copy
+omits. Refresh updates that membership at the new pin. It lets an archive refresh
+distinguish omitted older files from new upstream additions without inventing a
+historical tree. Older records remain readable; to move one to a different pin
+from an archive, first refresh using `--base <checkout>` containing the recorded
+and target commits. A same-pin archive refresh can retain membership directly.
+Archive workflow matching uses only the supplied revision: exact current
+template bytes can be recorded; unmatched workflow bytes remain seed-owned.
+Migration ancestry and historical source reads still refuse before writing and
+require a checkout. Use
+`verify-base --offline` to check local recorded bytes after an archive refresh,
+or `verify-base --base <checkout>` to also check Git provenance.
 
 **Verify.** `... verify-base` checks three things and exits nonzero on any finding:
 
@@ -269,10 +301,19 @@ runtime imports require an explicit filename, as in Node. Relative `require` dir
 lookups use `package.json`'s runtime `main`, never its type metadata. Local package
 self-references and `imports` maps use Node's actual resolver and active runtime
 conditions; `types` is enabled only for erased edges. Export targets are exact
-files for both loaders. Unknown external packages remain package-manager inputs.
+files for both loaders. External package imports, including subpaths and erased
+type imports, must be declared in the seed's package manifest. Refresh reports
+the seed and Base versions in `packageDependencies`, preserving existing version
+conflicts without editing manifests or lockfiles. Optional new source graphs
+with undeclared packages are withheld together; required missing packages refuse
+before writes. Adopt a selected dependency with the seed's package manager and
+repeat refresh. The maintained Drizzle reference is optional, not a requirement
+for native D1 editions.
 Imports already unresolved in that same file before refresh remain untouched,
 except for missing authoring-toolkit bootstrap siblings and recorded removals.
-Refresh compares the retained ordinary unresolved set before writing.
+Files required elsewhere in the refresh plan may also satisfy these imports,
+completing a sparse historical copy; they are delivered and recorded normally.
+Unresolved imports without a planned dependency remain unresolved.
 When a preserved tracked sibling becomes equal to incoming Base bytes, refresh
 adds its path to `ignore` as a discovery exception; it stays unrecorded and keeps
 its bytes and mode. Recorded files continue to receive their incoming Base mode.
@@ -410,13 +451,18 @@ and `VERIFY-WORKFLOW.md` can be adopted when their exact bytes match a template
 in the requested Base commit's history (there are no seed substitutions).
 Acknowledged adaptations and divergent workflows stay untouched and receive a
 notice with the template changes and explicit merge/record instructions.
-An absent workflow is not automatically installed by this adoption step.
+An absent workflow is not automatically installed by this adoption step. With
+`--base-archive`, unrecorded workflows are preserved without requesting Git
+history; explicitly recorded workflows still update. See [adoption and historical
+0.2.82 recovery](../ADOPTING.md).
 
 Authoring refresh closes relative imports from every recorded authoring module,
 including singleton copies and modules whose Base origin is another maintained
 authoring mirror. It follows the bytes that will remain in the seed, including
 acknowledged local adaptations, and gives newly delivered siblings source records
-and digests. Tracked unrecorded siblings remain seed-owned: refresh preserves
+and digests. The lock identity also delivers the complete authoring tool file
+set, including vendored parser LICENSE and README files, so package and
+unadapted delivered tools accept the same source lock. Tracked unrecorded siblings remain seed-owned: refresh preserves
 them without traversing their imports. Untracked helper collisions, including
 ignored files and files matching Base bytes, refuse before writes, as do removed
 recorded dependencies still imported, conflicting mappings and symlinks. This
