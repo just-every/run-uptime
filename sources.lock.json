@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "5f6451a7c2971751d69deaa8d4756ff4a43e6c53b51ec371452e3bd1a6944b51",
+      "sha256": "2e463d23e97401654665cc235c82831f5e6f580478767a8eb0e408af6d56c1cd",
       "executable": false
     },
     "DEMO.md": {
@@ -2084,7 +2084,7 @@
       "executable": false
     },
     "docs/monitors.md": {
-      "sha256": "02e742b6c86fb238965ef2a5d53f9a3e4c7ad7293cd3167da73d16fe35bb94bd",
+      "sha256": "604e22721c42e661d9841114451de356e0c0ae6e8facf53a23a38906377d1b35",
       "executable": false
     },
     "docs/moving-from-uptimerobot.md": {
@@ -4376,7 +4376,7 @@
       "executable": false
     },
     "seed.json": {
-      "sha256": "5b857db47ef2af6685df31c5f4f00117e98d86a2e4c3168dcbd7893bf5b24803",
+      "sha256": "52bda15a4f5934462295431f690736e6052763cfa3943decfdc52e3008fa66b0",
       "executable": false
     },
     "src/agent-door/authority.server.ts": {
@@ -7611,6 +7611,10 @@
       "sha256": "25622e1b0bfe8120550591301995f8ee85998d7cd1b175f4cf824c55abac06d9",
       "executable": false
     },
+    "src/domain/probe-identification.ts": {
+      "sha256": "28664766149b5686f002ed614ccfae5b36c12b35b6e64aac7465ecd176670aa9",
+      "executable": false
+    },
     "src/domain/protocol/cloudflare-ranges.mjs": {
       "sha256": "3006059e2a04793301c2268235446d511f52cb8033a977bf769d1a29e9d0dd02",
       "executable": false
@@ -7972,7 +7976,7 @@
       "executable": false
     },
     "src/domain/worker-checks.server.ts": {
-      "sha256": "a7b1efe4535df48297b5a8680d84e84602cd3a696a8f0ee09801f10696df2542",
+      "sha256": "84b0767e320d64b011a866f64e9366856e8c81606f0e9f49a0fc6d3793aeb97e",
       "executable": false
     },
     "src/domain/worker-discovery.server.ts": {
@@ -7984,7 +7988,7 @@
       "executable": false
     },
     "src/domain/worker-http.server.ts": {
-      "sha256": "e7fe143b339a2b1769408add1125e8a5d64e581607c643b39a65ba23f337847f",
+      "sha256": "591291a99b1bf091173609a74accbfeb953bef3bb91f9ba4cc905693c8257d11",
       "executable": false
     },
     "src/domain/worker-kick.server.ts": {
@@ -8792,7 +8796,7 @@
       "executable": false
     },
     "tests/hosted-alerts.mjs": {
-      "sha256": "83d8dde9379c29edfa6975ecb6905c1660c8faa70861c0071562409fdcaa0d2e",
+      "sha256": "1122354f76975814426371f87c2f5bc2978183679e39c066169bff825b77ff28",
       "executable": false
     },
     "tests/hosted-auth-browser.mjs": {
@@ -8805,6 +8809,10 @@
     },
     "tests/hosted-browser-runtime.mjs": {
       "sha256": "97ba0d0d66adc7b3cb7f4e4d58a6a4a64752fe1d4b97c03fd0ad318f8cccbaa8",
+      "executable": false
+    },
+    "tests/hosted-probe-identification-support.mjs": {
+      "sha256": "ed60ec2aad8cabe2fdf6e4d6e69c0a20f80da8fb6c5ebd8554e813c3063c77c7",
       "executable": false
     },
     "tests/incident-combined-support.mjs": {

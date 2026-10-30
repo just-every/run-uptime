@@ -1,3 +1,4 @@
+import {proveHostedProbeIdentification} from './hosted-probe-identification-support.mjs';
 import {completeSecondFactor} from './mfa-auth-support.mjs';
 import assert from 'node:assert/strict';
 import {createHmac,randomBytes} from 'node:crypto';
@@ -110,3 +111,5 @@ try{
  assert.equal(demoNotes.deliveries.find(d=>d.id===demoDelivery.deliveryId)?.state,'accepted');assert.equal(demoSends,0,'demo acceptance conveys no external recipient delivery');
 
 }finally{await worker?.dispose();await rm(directory,{recursive:true,force:true})}
+
+await proveHostedProbeIdentification();
