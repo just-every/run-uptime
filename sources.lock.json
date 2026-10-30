@@ -8540,7 +8540,7 @@
       "executable": false
     },
     "tests/agent-conformance/README.md": {
-      "sha256": "0a0ed597ec6345ec08ae0d2cc3d7b92b5307a5d12ec28ff361239e4f7a05cf60",
+      "sha256": "4325470009639967f5a640ced1ef849b904ce00cf23a44cba09849a03cfd7160",
       "executable": false
     },
     "tests/agent-conformance/reviewer.mjs": {
