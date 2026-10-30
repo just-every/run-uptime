@@ -19,7 +19,7 @@ A claim is done when every clause behind it is done, missing when every one is m
 | 11 | Run Uptime on your own computer: open-source monitoring you run yourself | `PUBLIC-001` partial; `STARTUP-001` partial | partial |
 | 12 | A small private runner checks your targets from a machine you choose | `PRIVATE-001` done; `AUTHORITY-001` partial | partial |
 | 13 | Export monitors, evidence and delivery history whenever you like | `ARCHIVE-001` partial | partial |
-| 14 | Maintenance windows pause alerting while you work on a service | `MAINT-001` partial | partial |
+| 14 | Maintenance windows pause alerting while you work on a service | `MAINT-001` done | done |
 | 15 | Manual checks run now without opening or closing an incident | `STATE-001` partial; `SCHEDULE-001` done | partial |
 | 16 | Each heartbeat uses its own token and increasing sequence numbers | `HEARTBEAT-001` partial | partial |
 | 17 | Every DNS answer and redirect is validated, then the connection is pinned | `NETWORK-001` partial | partial |
@@ -28,4 +28,4 @@ A claim is done when every clause behind it is done, missing when every one is m
 | 20 | 100% free, open source (MIT licensed) alternative to Pingdom, UptimeRobot and Better Stack | `PUBLIC-001` partial; `MIGRATE-001` partial; `MIGRATE-002` partial; `MIGRATE-003` partial | partial |
 | 21 | What it doesn't do (yet): no ping or browser checks, no SMS or on-call paging, and one runner is one network vantage | `BOUNDARY-001` partial | partial |
 
-Claims: 21; 0 done, 21 partial, 0 missing.
+Claims: 21; 1 done, 20 partial, 0 missing.

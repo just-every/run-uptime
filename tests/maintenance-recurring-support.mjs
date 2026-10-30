@@ -108,17 +108,20 @@ export async function proveRecurringMaintenance(){
   // earlier immutable revision's maintenance or refreshing its old evidence.
   await factor();await good('/api/maintenance/cancel',{monitorIds:ids,windowId:window.id,revisions:{[id]:(await current()).revision}});
   const extended={monitorIds:ids,window:{...window,id:'synthetic-uptime-3208',weekly:{...window.weekly,localTime:'01:45',durationMinutes:120}}};
-  const secondReview=await good('/api/maintenance/preview',extended);await good('/api/maintenance/apply',{...extended,digest:secondReview.digest},201);
+  const secondReview=await good('/api/maintenance/preview',extended),secondOccurrence=secondReview.occurrences.find(row=>row.localDate==='2026-11-01');
+  assert.equal(secondOccurrence.startsAt,Date.parse('2026-11-01T05:45:00Z'));assert.equal(secondOccurrence.endsAt,Date.parse('2026-11-01T07:45:00Z'));
+  await good('/api/maintenance/apply',{...extended,digest:secondReview.digest},201);
   mode=503;await runner();
   assert.equal((await current()).state.state,'Maintenance');assert.equal((await current()).state.targetState,'Failing');assert.equal((await current()).state.denominator,1);assert.deepEqual(await events(),notices);
-  await restart();advance('2026-11-01T06:34:00Z');await runner();assert.equal((await current()).state.state,'Maintenance');advance('2026-11-01T06:35:00Z');
+  await restart();assert.deepEqual((await current()).definition.maintenanceWindows,[secondReview.window]);assert.equal((await current()).maintenanceEndsAt,secondOccurrence.endsAt);
+  advance('2026-11-01T06:34:00Z');await runner();assert.equal((await current()).state.state,'Maintenance');advance('2026-11-01T06:35:00Z');
   const beforeCancel=await observations(),revision=(await current()).revision;
   const cancelled=await good('/api/maintenance/cancel',{monitorIds:ids,windowId:extended.window.id,revisions:{[id]:revision}});
   assert.equal(cancelled.monitors[0].revision,revision+1);assert.deepEqual((await current()).definition.maintenanceWindows,[]);
   assert.equal((await current()).state.maintenance,false);assert.equal((await current()).state.targetState,'Unknown','the cancellation revision needs new scheduled evidence');assert.equal((await current()).state.denominator,1);assert.deepEqual(await observations(),beforeCancel);assert.deepEqual(await events(),notices);
   await runner();assert.equal((await current()).state.state,'Failing');assert.equal((await events()).filter(row=>row.kind==='trigger').length,2);
   mode=200;advance('2026-11-01T06:36:00Z');await runner();assert.equal((await current()).state.state,'Healthy');
-  notices=await events();assert.equal(notices.length,4);assert.equal(new Set(notices.filter(row=>row.kind==='trigger').map(row=>row.event.incidentKey)).size,2);for(const event of notices.filter(row=>row.kind==='trigger'))assert.equal(notices.filter(row=>row.kind==='recovery'&&row.event.incidentKey===event.event.incidentKey).length,1);
+  notices=await events();assert.equal(notices.length,4);assert.equal(new Set(notices.filter(row=>row.kind==='trigger').map(row=>row.event.incidentKey)).size,2);for(const event of notices.filter(row=>row.kind==='trigger')){assert.ok(event.event.incidentKey);assert.equal(notices.filter(row=>row.kind==='recovery'&&row.event.incidentKey===event.event.incidentKey).length,1)}
   advance('2026-11-01T06:38:00Z');await report('2026-11-01T06:29:00Z','2026-11-01T06:38:00Z',3*minute);
   assert.deepEqual(await report('2026-11-01T05:29:00Z','2026-11-01T06:32:00Z',45*minute),firstReport,'cancellation preserves historical recurring report and CSV figures');
   const kept=await observations();for(const old of [...retained,...beforeCancel])assert.deepEqual(kept.find(row=>row.id===old.id),old,'signed evidence remains byte-identical after restart, expiry and cancellation');
