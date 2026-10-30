@@ -496,7 +496,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "75f439caa5ed922ce669bebeda4b5286e37b6cec8dad1184931abb530399a217",
+      "sha256": "821a9859d674a5aebead0445f33a8bec2e454d266fc30d55089f26bc2b9bdfa2",
       "executable": false
     },
     "agent-surface.json": {
@@ -524,7 +524,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "b3076189059985ed9263363ecfc927c88a7b67f89639d76632947ebc8d3530f8",
+      "sha256": "1cdf169cfb797bdb1a63e4d76b58810db9f6aeb95e441eaeb73540430e564e29",
       "executable": false
     },
     "DEMO.md": {
@@ -556,7 +556,7 @@
       "executable": false
     },
     "docs/CLAIMS.md": {
-      "sha256": "3b0cfa2298f9e14f6de0768b8cf4c5c602bde6d0270a5252fed60ac930f392ae",
+      "sha256": "c592f8363b30df2c84b826e385bc87f9502b51a9c61b308b31aa6af1728fd0bf",
       "executable": false
     },
     "docs/contract/acceptance-before-cleanup.md": {
@@ -8684,7 +8684,11 @@
       "executable": false
     },
     "tests/erasure-audit.mjs": {
-      "sha256": "ed03232cdaf20e54516de2a155cfb5491f22f4630b88f16c40af9c6c02dd7dc1",
+      "sha256": "eb8775156c8b24237bdecdf13e27befc374890970f645e437645899fd835ab65",
+      "executable": false
+    },
+    "tests/erasure-race-support.mjs": {
+      "sha256": "08ee3d8383ebfc7085519e6dd5654dd006ec362e055fbcf3405aae307fc7a239",
       "executable": false
     },
     "tests/failure-page-browser.mjs": {
@@ -9067,6 +9071,10 @@
       "sha256": "f5116a850fce0fa423e33b22b8ee05fa7ef864e869899957c2f77206e9704ff3",
       "executable": false
     },
+    "tests/signed-runner-contact.mjs": {
+      "sha256": "4fa2fff9671e327aecc20585603732a3e200e99b907308d818c24220ef5067be",
+      "executable": false
+    },
     "tests/signed-runner-heartbeat-import.mjs": {
       "sha256": "513007341cd0d00d081077a2880fa6992581e12d387ebdd7a841b614f89dffc4",
       "executable": false
@@ -9084,7 +9092,7 @@
       "executable": false
     },
     "tests/signed-runner.mjs": {
-      "sha256": "9910334896ceeed80dcde5ed08c80ee4157d9a39c54ff15dc6c6eec359a94a35",
+      "sha256": "1944b732ce2a56a98c4d0ea8ec73f55984ddca98313498758ccc0a3e7278ea7f",
       "executable": false
     },
     "tests/slow-responses.mjs": {

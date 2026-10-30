@@ -16,6 +16,7 @@ import {productPolicy} from '../scripts/local/transfer-policy.mjs';
 import {createPortability,readArchive} from '@runeditrun/rer/modules/portability';
 import {digest} from '../src/domain/archive-schema.ts';
 import {assertRunnerAdmissionOnly} from './signed-runner-result-proof.mjs';
+import {erasureRaceProof} from './erasure-race-support.mjs';
 
 const directory=await runtimeDirectory(),[port,targetPort,webhookPort,freshPort]=await availablePorts(4),origin=`http://127.0.0.1:${port}`;
 const bindings={...testAuthBindings,UPTIME_SYNTHETIC_PORT:String(targetPort),MAIL_PROVIDER:'sendgrid',SENDGRID_API_KEY:'erasure-test-network-edge-key'},persist=join(directory,'source'),grantPath=join(directory,'grant.json');
@@ -26,6 +27,7 @@ const owner=ownerAPI(origin),api=owner.api;
 const ok=async(path,method='GET',body,headers)=>{const result=await api(path,method,body,headers);assert.ok(result.status>=200&&result.status<300,`${path}: ${result.status} ${JSON.stringify(result.data)}`);return result.data};
 const runner=async input=>(await api('/api/runner/notifications','POST',input,{'x-runner-key':bindings.UPTIME_RUNNER_KEY}));
 async function snapshot(){const names=(await DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name<>'_cf_METADATA' ORDER BY name").all()).results;return Object.fromEntries(await Promise.all(names.map(async({name})=>[name,(await DB.prepare(`SELECT * FROM "${name}" ORDER BY rowid`).all()).results])))}
+const erasureProof=erasureRaceProof({origin,owner,snapshot});let staleEditReceipt;
 async function exportedService(env){const service=await createPortability({db:env.DB,policy:productPolicy(env,()=>null)}),id=await service.exports.create();while((await service.exports.advance(id,{maxParts:16})).phase==='building'){}const records=[];for await(const record of readArchive(await service.exports.download(id)))records.push(record);return {service,id,records}}
 try{
  ({worker,DB}=await migratedWorker({port,persist,bindings,outboundService:async request=>{assert.equal(request.url,'https://api.sendgrid.com/v3/mail/send');mail.push(await request.json());return new Response(null,{status:202})}}));
@@ -87,19 +89,21 @@ try{
  // Use the owner client to revoke; its native route returns an empty 204 body.
  const revoked=await api('/auth/session/revoke','POST',{sessionId:otherSessions[0].id},{origin});assert.equal(revoked.status,204);
  assert.ok((await DB.prepare("SELECT * FROM uptime_audit WHERE action='session_revoke'").all()).results.length);
+ const nativeBefore=await ok('/api/archive'),transferBefore=await exportedService(env);
  const auditBeforeRefused=await DB.prepare('SELECT COUNT(*) n FROM uptime_audit').first();
  assert.equal((await DB.prepare('SELECT COUNT(*) n FROM scheduled_reports WHERE id=?').bind(scheduledReport.id).first()).n,1);
- const unsigned=await fetch(origin+`/api/monitors/${monitor.id}/erase`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({name:canaries.monitor})});assert.equal(unsigned.status,401);
- assert.equal((await api(`/api/monitors/${monitor.id}/erase`,'POST',{name:'wrong current name'})).status,400);
+ const unsigned=await erasureProof.unchanged('unsigned monitor erasure',async()=>{const response=await fetch(origin+`/api/monitors/${monitor.id}/erase`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({name:canaries.monitor})});await response.text();return response});assert.equal(unsigned.status,401);
+ assert.equal((await erasureProof.unchanged('wrong-name monitor erasure',()=>api(`/api/monitors/${monitor.id}/erase`,'POST',{name:'wrong current name'}))).status,400);
  assert.deepEqual(await DB.prepare('SELECT COUNT(*) n FROM uptime_audit').first(),auditBeforeRefused,'unauthorized and refused erasures create no audit');
  const authCaptures=allDeliveredMessages().filter(({message})=>/^(Your sign-in link|You're invited)/.test(message.subject)).length,authAudits=Number((await DB.prepare("SELECT COUNT(*) n FROM uptime_audit WHERE action='notification_send' AND actor_ref='operator-auth-mail'").first()).n);assert.ok(authCaptures>0);assert.equal(authAudits,authCaptures,'one auth audit for each actual public-flow capture');
- const nativeBefore=await ok('/api/archive'),transferBefore=await exportedService(env);
  const captured=await ok(`/api/notifications/destinations/${destination.id}/test`,'POST',{});await runner({operation:'poll'});
  const reservation=randomUUID(),claimed=await runner({operation:'claim',id:captured.deliveryId,reservation});assert.equal(claimed.status,200);assert.ok(claimed.data);
  await ok(`/api/monitors/${monitor.id}/run`,'POST',{});const heldTask=(await ok('/api/runner/claim','POST',{}, {'x-runner-key':bindings.UPTIME_RUNNER_KEY})).task;assert.equal(heldTask.monitorId,monitor.id);assert.equal(heldTask.definition.type,'heartbeat');assert.ok(heldTask.acceptUntil>Date.now());
  const heldResult={slotId:heldTask.id,attempts:[{...probeHeartbeat(heldTask.definition,'local-a',heldTask.heartbeatReceipt),attempt:0}]},heldTimestamp=String(Date.now()),heldSignature=createHmac('sha256',bindings.UPTIME_RUNNER_KEY).update(`${heldTimestamp}.${JSON.stringify(heldResult)}`).digest('hex');
  const keeperBefore=await DB.prepare('SELECT * FROM monitors WHERE id=?').bind(keep.id).first();
  const destinationKeeper=await DB.prepare('SELECT * FROM notification_destinations WHERE id=?').bind(retainedDestination.id).first();
+ const currentMonitor=(await ok('/api/overview')).monitors.find(row=>row.id===monitor.id);
+ const staleEdit=await erasureProof.capture(currentMonitor);
  for(const [kind,id,path,body] of [['monitor',monitor.id,`/api/monitors/${monitor.id}/erase`,{name:canaries.monitor}],['destination',destination.id,`/api/notifications/destinations/${destination.id}`,undefined],['destination',email.id,`/api/notifications/destinations/${email.id}`,undefined],['operator',other.id,`/api/operators/${other.id}/erase`,{}]]){
   if(kind==='operator')beforeOperatorArchive=await ok('/api/archive');
   const started=Date.now(),result=await ok(path,kind==='destination'?'DELETE':'POST',body);assert.equal(result.erased,true);assert.ok(Date.now()-started<300000);receipts.push({...result.receipt,elapsedMs:Date.now()-started});
@@ -108,6 +112,7 @@ try{
   if(id===destination.id)for(const table of ['notification_jobs','integration_deliveries','integration_replays','notification_credentials'])assert.ok(result.receipt.counts[table]>0,`${table} populated and removed by destination erasure`);
   const receipt=await DB.prepare('SELECT * FROM uptime_erasure_receipts WHERE id=?').bind(result.receipt.id).first();assert.deepEqual(JSON.parse(receipt.counts),result.receipt.counts);
   const audit=await DB.prepare('SELECT * FROM uptime_audit WHERE subject_ref=?').bind(result.receipt.id).first();assert.equal(audit.action,'erase');
+  if(kind==='monitor')staleEditReceipt=await staleEdit.resume();
  }
  const afterErase=await snapshot(),lateStart=Date.now();
  const signedRefusal=await api('/api/runner/results','POST',heldResult,{'x-runner-key':bindings.UPTIME_RUNNER_KEY,'x-sent-at':heldTimestamp,'x-runner-signature':heldSignature});assert.equal(signedRefusal.status,400);assert.match(signedRefusal.data.error,/acceptance window/);
@@ -125,7 +130,7 @@ try{
  assert.equal((await DB.prepare("SELECT COUNT(*) n FROM uptime_audit WHERE actor_ref=?").bind(other.id).first()).n,0);assert.ok((await DB.prepare("SELECT * FROM uptime_audit WHERE action='credential_rotate' AND actor_kind='anonymized'").all()).results.length);
  const ownerRow=(await ok('/auth/operators')).find(o=>o.role==='owner'&&o.status==='active');
  assert.equal((await DB.prepare('SELECT COUNT(*) n FROM scheduled_reports WHERE id=?').bind(scheduledReport.id).first()).n,0,'monitor erasure removes the scheduled snapshot');
- const beforeLast=await DB.prepare('SELECT COUNT(*) n FROM uptime_audit').first();const last=await api(`/api/operators/${ownerRow.id}/erase`,'POST',{});assert.equal(last.status,400);assert.match(last.data.error,/rer reset --yes/);assert.deepEqual(await DB.prepare('SELECT COUNT(*) n FROM uptime_audit').first(),beforeLast);
+ const beforeLast=await DB.prepare('SELECT COUNT(*) n FROM uptime_audit').first();const last=await erasureProof.unchanged('last-owner erasure',()=>api(`/api/operators/${ownerRow.id}/erase`,'POST',{}));assert.equal(last.status,400);assert.match(last.data.error,/rer reset --yes/);assert.deepEqual(await DB.prepare('SELECT COUNT(*) n FROM uptime_audit').first(),beforeLast);
  ({worker,DB}=await retentionCleanup({worker,DB,port,persist,bindings,owner,runChecks,origin,secondRunner}));env.DB=DB;
  const afterArchive=await ok('/api/archive');for(const canary of Object.values(canaries))assert.ok(!JSON.stringify(afterArchive).includes(canary));
  await assert.rejects(transferBefore.service.exports.download(transferBefore.id),'all previous transfer snapshots invalidated');
@@ -157,7 +162,7 @@ try{
  await assert.rejects(service.imports.finalize(importId,{contentHash:transferBefore.records.at(-1).contentHash,archiveHash:transferBefore.records.at(-1).archiveHash,laterJournal:later}),/erased/);
  assert.equal((await fresh.DB.prepare('SELECT COUNT(*) n FROM monitors').first()).n,0,'native payload fence precedes product writes');await service.imports.abort(importId);
  await restore(fresh,afterArchive);const restoredAudit=(await fresh.DB.prepare('SELECT * FROM uptime_audit').all()).results;for(const row of savedAudit)assert.deepEqual(restoredAudit.find(item=>item.id===row.id),row,'portable audit rows survive import unchanged');for(const row of freshAuditBefore)assert.deepEqual(restoredAudit.find(item=>item.id===row.id),row,'receiving owner enrollment audit survives restore');assert.equal(restoredAudit.length,new Set([...savedAudit,...freshAuditBefore].map(row=>row.id)).size+1);const restoreAudit=restoredAudit.find(row=>row.action==='archive_restore');assert.ok(restoreAudit);
- const evidence={receipts,scan,audit:savedAudit,restoreAudit,signedResult:{realClaimedHeartbeat:true,validSignaturePassed:true,refusedStatus:signedRefusal.status,unchangedNonCounterTables:true,runnerAdmissions:5},notificationAttempts:{mail:mail.length,webhook:receiver.records.length,authCaptures,authAudits},erasedActorArchiveRefusedBeforeWrites:true,historicalFixtures:'Two replay envelopes cloned from actual deliveries, one delivery resolution, and an original monitor archive_history copy were inserted in real D1; owner and runner APIs populated all other dependents.',attachments:'No R2 buckets or uploads exist.'};
+ const evidence={staleEdit:staleEditReceipt,refusedErasureSnapshots:erasureProof.refusals,receipts,scan,audit:savedAudit,restoreAudit,signedResult:{realClaimedHeartbeat:true,validSignaturePassed:true,refusedStatus:signedRefusal.status,unchangedNonCounterTables:true,runnerAdmissions:5},notificationAttempts:{mail:mail.length,webhook:receiver.records.length,authCaptures,authAudits},erasedActorArchiveRefusedBeforeWrites:true,historicalFixtures:'Two replay envelopes cloned from actual deliveries, one delivery resolution, and an original monitor archive_history copy were inserted in real D1; owner and runner APIs populated all other dependents.',attachments:'No R2 buckets or uploads exist.'};
  if(process.env.UPTIME_ERASURE_EVIDENCE){await mkdir(process.env.UPTIME_ERASURE_EVIDENCE,{recursive:true});await writeFile(join(process.env.UPTIME_ERASURE_EVIDENCE,'erasure-audit.json'),JSON.stringify(evidence,null,2)+'\n')}
  console.log(`BASE-DATA-003 / BASE-OPS-005 PASS erasure public owner routes, ${scan.length} physical table canary scan, real scheduled probe and ${mail.length+receiver.records.length} network-edge sends, durable receipts/audit, last owner and late claims refused, native/custom payload later-journal fences.`);
-}finally{if(freshWorker)await freshWorker.dispose();if(worker)await worker.dispose();if(fixture)await fixture.stop();if(receiver)await receiver.close();await cleanupDirectory(directory)}
+}finally{erasureProof.close();if(freshWorker)await freshWorker.dispose();if(worker)await worker.dispose();if(fixture)await fixture.stop();if(receiver)await receiver.close();await cleanupDirectory(directory)}
