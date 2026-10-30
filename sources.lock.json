@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "5f6451a7c2971751d69deaa8d4756ff4a43e6c53b51ec371452e3bd1a6944b51",
+      "sha256": "33e625862b2141f2215f582ed538a3d4aad7d08b5be3f6114a66e53dd3efa55a",
       "executable": false
     },
     "DEMO.md": {
@@ -8715,6 +8715,10 @@
       "sha256": "08ee3d8383ebfc7085519e6dd5654dd006ec362e055fbcf3405aae307fc7a239",
       "executable": false
     },
+    "tests/evidence-integrity-support.mjs": {
+      "sha256": "dba7308323626bf95baaf68dcf2c8b0da04c6b2a7b00717f2499a5c01b18f1a0",
+      "executable": false
+    },
     "tests/failure-page-browser.mjs": {
       "sha256": "ad9d14543bb5e98cdb69dd443aeb544e0b2771dad1b00577352dfbfb165d2ff1",
       "executable": false
@@ -9004,7 +9008,7 @@
       "executable": false
     },
     "tests/probe-native-evidence.mjs": {
-      "sha256": "a376ae4f67a7a0c155740c49461e64fc601af7e5c234177578ea9bfb69856998",
+      "sha256": "3e8675921e1f08607b6dc30adce0ebc4fe1dedff26e64ab8576993c1d27c7c43",
       "executable": false
     },
     "tests/probe-native-support.mjs": {
