@@ -20,7 +20,7 @@
     ]
   },
   "vars": {
-    "MAIL_PROVIDER": "rer",
+    "MAIL_PROVIDER": "sendgrid",
     "MAIL_FROM": "",
     "MAIL_RELAY_URL": ""
   }

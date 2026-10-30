@@ -1,3 +1,5 @@
+import {notificationAdmission} from '../agent-door/work.server.ts'
+import {authorizedDatabase} from './access-database.server.ts'
 import {advanceRecurringReports} from './reports/recurring.server.ts'
 import {contactReady,advanceContactSchedules,refreshContactQuiet} from './contact-scheduler.server.ts'
 import {advanceFallbackChains,attemptPhase} from './notification-fallback.server.ts'
@@ -53,7 +55,9 @@ export async function dispatchNotificationMail(env:Bindings,budget?:SubrequestBu
      // The transport boundary: this claim, still live, becomes mail_sending in the same write as the drill's submitted mark. A
      // dispatcher whose claim expired meanwhile changes nothing and sends nothing.
      await op('notifications.mail.quietPolicy',()=>refreshContactQuiet(env,row.id));
-     const handedAt=Date.now(),handed=await op('notifications.mail.markSubmitted',()=>env.DB.batch([env.DB.prepare(`UPDATE notification_jobs SET code='mail_sending' WHERE id=? AND state='sending' AND code='mail_claimed' AND claim=? AND claim_until>? AND ${contactReady('notification_jobs')}`).bind(row.id,claim,handedAt),markSubmitted(env,row.id,handedAt,claim),mailAttemptStart(env,row.id,claim,row.claim_until??row.created_at,handedAt)]));
+     const admission=await notificationAdmission(env,row.id);if(!admission.allowed){await env.DB.prepare("UPDATE notification_jobs SET state='queued',code='agent_policy_pending',claim=NULL,claim_until=NULL,attempts=attempts-1 WHERE id=? AND claim=? AND code='mail_claimed'").bind(row.id,claim).run();continue}
+     const admissionEnv=admission.access?{...env,DB:authorizedDatabase(env,admission.access)}:env;
+     const handedAt=Date.now(),handed=await op('notifications.mail.markSubmitted',()=>admissionEnv.DB.batch([admissionEnv.DB.prepare(`UPDATE notification_jobs SET code='mail_sending' WHERE id=? AND state='sending' AND code='mail_claimed' AND claim=? AND claim_until>? AND ${contactReady('notification_jobs')}`).bind(row.id,claim,handedAt),markSubmitted(env,row.id,handedAt,claim),mailAttemptStart(env,row.id,claim,row.claim_until??row.created_at,handedAt)]));
      if(!handed[0].meta.changes){
       // A delay/quiet boundary can close while content is prepared. This
       // reservation has no provider handover or attempt to preserve.
