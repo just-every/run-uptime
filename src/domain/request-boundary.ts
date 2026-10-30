@@ -68,6 +68,8 @@ export const apiRoutes:readonly Route[]=[
  {method:'POST',path:'/api/incidents/:id/actions',params:id,body:'object'},
  {method:'GET',path:'/api/monitors/:id/slow-policy',params:id,body:'none'},
  ...['slow-policy','slow-policy/import-preview','slow-ack'].map(suffix=>({method:'POST',path:`/api/monitors/:id/${suffix}`,params:id,body:'object' as const})),
+ {method:'GET',path:'/api/alert-route',body:'none'},
+ ...['preview','apply'].map(action=>({method:'POST',path:`/api/alert-route/${action}`,body:'object' as const})),
  {method:'GET',path:'/api/monitors/:id/alert-route',params:id,body:'none'},
  ...['preview','apply','import-preview','sample'].map(action=>({method:'POST',path:`/api/monitors/:id/alert-route/${action}`,params:id,body:'object' as const})),
  ...['catalog/preview','catalog/apply','catalog/add/preview','catalog/add/apply','maintenance/preview','maintenance/apply','maintenance/cancel'].map(path=>({method:'POST',path:'/api/'+path,body:'object' as const})),

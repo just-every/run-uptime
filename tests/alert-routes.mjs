@@ -22,9 +22,15 @@ test('owned routes preview inheritance, deliver matched triggers/recoveries and 
   const route=id=>`/api/monitors/${id}/alert-route`,read=()=>ok(route(monitor.id));
   const input=async(id,scope,mode,destinationIds=[])=>{const current=await ok(route(id));return {scope,mode,destinationIds,expectedRevision:current.policies.find(p=>p.scope===scope).revision}};
   const apply=async(id,scope,mode,ids=[])=>{const body=await input(id,scope,mode,ids),p=await ok(route(id)+'/preview',body);return ok(route(id)+'/apply',{...body,digest:p.digest})};
+  // Who is told by default has its own door (Settings › Alerts), with the same preview, digest and revision guard.
+  const installation=async(mode,destinationIds=[])=>{const current=await ok('/api/alert-route'),body={mode,destinationIds,expectedRevision:current.revision},p=await ok('/api/alert-route/preview',body);return ok('/api/alert-route/apply',{...body,digest:p.digest})};
   assert.equal((await read()).effective.scope,'installation');
-  await apply(monitor.id,'installation','selected',[c.id]);
+  const unread=await ok('/api/alert-route');
+  assert.deepEqual((await installation('selected',[c.id])).destinationIds,[c.id]);
+  assert.equal((await read()).effective.scope,'installation');assert.deepEqual((await read()).effective.destinationIds,[c.id]);
+  assert.equal((await f.request('/api/alert-route/preview',{body:{mode:'all',destinationIds:[],expectedRevision:unread.revision}})).status,409,'a stale revision is refused');
   await apply(monitor.id,'group','selected',[c.id,d.id]);
+  assert.ok((await ok('/api/alert-route')).overrides.some(o=>o.monitorId===monitor.id&&o.scope==='group'),'a monitor with its own route chooses its own');
   let current=await read();assert.equal(current.effective.scope,'group');assert.equal(current.recipients.find(r=>r.id===d.id).reason,'disabled');assert.equal(current.recipients.find(r=>r.id===a.id).selected,false);
   const stale=await input(monitor.id,'service','selected',[a.id,b.id]),plan=await ok(route(monitor.id)+'/preview',stale);
   await ok(`/api/notifications/destinations/${d.id}`,{name:d.name,enabled:true},{method:'PATCH'});

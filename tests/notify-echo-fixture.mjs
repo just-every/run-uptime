@@ -64,10 +64,13 @@ export async function inspectEchoCustody({f,records}){
    try{
     await context.route('**/*',route=>new URL(route.request().url()).origin===f.origin?route.continue():route.abort());
     await browserSignIn(page,f.origin,{bindings:f.bindings});await page.goto(f.origin+'/app/settings/alerts');await page.locator('html.signed-in').waitFor();
+    const open=async details=>{if(!await details.evaluate(d=>d.open))await details.locator(':scope > summary').click()};
     for(const reload of [false,true]){
      if(reload){await page.reload();await page.locator('html.signed-in').waitFor()}
+     // Sent alerts shows the newest five; All sent alerts opens the rest, and each row opens on its status and excerpt.
+     const all=page.locator('#all-sent-alerts');if(await all.count())await open(all);
      for(const record of records){
-      const card=page.locator(`[data-key="delivery-${record.id}"]`);await card.getByText('HTTP 202',{exact:true}).waitFor();
+      const card=page.locator(`[data-key="delivery-${record.id}"]`);await open(card.locator('details'));await card.getByText('HTTP 202',{exact:true}).waitFor();
       const excerpt=card.locator('.webhook-response');if(record.omitted)assert.equal(await excerpt.count(),0);else{await excerpt.waitFor();const text=await excerpt.textContent();safeExcerpt(text,record.body,record.signingSecret);assert.ok(text.includes('[redacted: echoed request]'))}
       assert.ok(!(await page.locator('body').textContent()).includes(record.body),'rendered console has no request body');
      }

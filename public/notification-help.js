@@ -1,6 +1,0 @@
-import {verificationHelp} from './notification-dialogs.js';
-export const notificationHelp=`<section class="ui-card notification-help"><h2>Notification help</h2>
-<details><summary>When alerts are sent</summary><p>Enabled destinations receive alerts from every monitor. Maintenance silences alerts; manual checks do not send them.</p></details>
-<details><summary>Delivery and receipt</summary><p>Accepted means the provider answered. Send test asks the recipient to confirm receipt; that confirms this message only. Signed webhooks retry within saved limits. Other uncertain sends are never resent; a route can alert a fallback contact.</p><p>Confirmation links expire after 24 hours. Changing an address or secret clears its receipt confirmation.</p></details>
-<details><summary>Credentials and backups</summary><p>Disabling cancels queued alerts. Deleting also erases delivery history. Started sends cannot be recalled.</p><p>Backups include email addresses and delivery history. Restored destinations are disabled; URLs and signing secrets stay local.</p></details>
-${verificationHelp}<details class="email-setup"><summary>Set up email</summary><p>Configure a verified sender with Resend, SendGrid or Cloudflare, then send a test. See the <a href="/docs/notifications">notification guide</a> for setup.</p></details></section>`;

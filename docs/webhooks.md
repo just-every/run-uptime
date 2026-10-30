@@ -7,7 +7,7 @@ Uptime validates the destination, pins public DNS answers and verifies TLS befor
 1. In **Settings › Alerts**, add a **Webhook** destination and choose **Custom request template**.
 2. Enter the receiver's public HTTPS URL, method, delivery mode and template. Choose the owner's time zone. Keep the destination disabled while reviewing it.
 3. Enter custom header values locally as a JSON object. Saved values are masked; editing the header names requires re-entering their values.
-4. Select **Preview sample requests**. Review the exact URL, payload, encoding and named variable differences for trigger, recovery, expiry and slow examples.
+4. Select **Preview request**. Review the exact URL, payload, encoding and named variable differences for trigger, recovery, expiry and slow examples.
 5. Save the destination and its one-time signing secret, if signing is enabled. Use **Send test**, then inspect its status and bounded response excerpt. Tests do not change monitor health. Enable the destination when its receiver is ready.
 
 Changing the URL, template or local headers replaces that credential version and cancels queued sends using the old version. A custom template can send tests; recipient-acknowledgement drills require the default signed JSON envelope.

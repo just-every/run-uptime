@@ -53,7 +53,7 @@ export async function definitionsJourney(page, origin) {
    await row.locator('.ui-pill.state').filter({ hasText: 'Paused' }).waitFor();
   }
   if (evidence) await page.screenshot({ path: join(evidence, `definitions-monitors-paused-${step.width}.png`), fullPage: true });
-  await page.getByRole('link', { name: 'Settings', exact: true }).click();
+  await page.getByRole('link', { name: /^Settings(, \d+ to fix)?$/ }).click();
   await page.getByRole('link', { name: 'Backup and files', exact: true }).click();
   await page.locator('.definition-batches > li').first().getByRole('button', { name: /^Undo/ }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Undo import', exact: true }).click();

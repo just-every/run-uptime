@@ -24,7 +24,7 @@
       "src/base/modules/integrations/**",
       "runners/src/public-http.mjs",
       "scripts/local-settings.mjs",
-      "public/notifications.js",
+      "public/destination-dialog.js",
       "src/domain/notification-content.ts",
       "src/domain/notification-cancellation.server.ts",
       "src/domain/notification-credentials.server.ts",

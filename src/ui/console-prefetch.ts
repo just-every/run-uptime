@@ -13,7 +13,7 @@ window.uptimePrefetch=early;
 // out only loads later, a module that is no longer imported is fetched for nothing.
 // app.js first, then its complete static import/export closure in alphabetical order. Dynamic imports stay on demand.
 export const CONSOLE_MODULES=['app.js',
- 'action-feedback.mjs','assets/alert-route-fallback.js','assets/alert-route-markup.js','assets/alert-route.js',
+ 'action-feedback.mjs','alert-health.js','assets/alert-route-fallback.js','assets/alert-route-markup.js','assets/alert-route.js',
  'assets/contact-quiet.js','assets/failure-snapshot-view.js','catalog-dialogs.js','catalog.js','cleanup-debt.js',
  'console-format.js','dom-patch.js','evidence-access.js','failure-snapshots.js','flow-panel.js','followed-service.js',
  'heartbeat-jobs.js','heartbeat-key.js','incident-dependencies.js','incident-work-markup.js','incident-work.js',
