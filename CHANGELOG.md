@@ -1,5 +1,9 @@
 # Changelog
 
+## ARCHIVE-002 time-range exports — 30 October 2026
+
+- The authenticated archive door accepts an optional `from` and `to` range, with or without monitor IDs. A range keeps every selected definition and revision and owns the history of the slots due inside it; shared journals follow the monitor-selection policy, and restore refuses history outside the declared range. ARCHIVE-002 stays partial: hosted-scale population, bounded chunk streaming with manifest digests, resumable transfer, a 120-monitor export (installations hold at most 100 monitors) and console controls remain owed.
+
 ## Source-history judgment carried from main — 28 October 2026
 
 Main `01481aa78afb3ba2a2f63dcc03733266089093ae` reports the following source-history proof. This is a carried implementation report, not a new status promotion.
