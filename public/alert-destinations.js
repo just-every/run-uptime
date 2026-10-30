@@ -2,18 +2,19 @@ import {escape,icon,ago} from './console-format.js';
 import {cannotSend} from './alert-health.js';
 // Destinations (Settings › Alerts): one row per destination, its line icon, its name and one quiet line (kind, the email
 // address, then what it last did or why it cannot send), with Send test and Edit. Everything else a destination has (Enabled,
-// the request preview, Rotate secret, the latest test and Delete) is in its Edit dialog (public/destination-dialog.js).
+// the request preview, Rotate secret, the latest test and Delete) is in its Edit dialog (public/notifications.js).
 export const kindName=d=>d.kind==='email'?'Email':d.kind==='slack'?'Slack':d.webhookTemplate?'Custom webhook':d.webhookSigning===false?'Webhook':'Signed webhook';
 const kindIcon=d=>d.kind==='webhook'?'braces':d.kind==='slack'?'chat':'mail';
-// What the destination last did: a recipient's confirmed receipt first, then its newest send that ended.
+// What the destination last did: a recipient's confirmed receipt first, then a send under way, then its newest send that
+// ended (one Uptime held back, never attempted, is no send).
 function lastWord(d,notes,blocked){
  if(!d.enabled)return 'disabled';
  if(blocked)return 'cannot send';
  if(d.proof?.state==='proven')return `receipt confirmed ${ago(d.proof.lastProvenAt)}`;
- const newest=notes.deliveries.find(x=>x.destinationId===d.id);
- if(newest?.state==='queued'||newest?.state==='sending')return 'sending';
- if(newest?.state==='accepted')return `sent ${ago(newest.createdAt)}`;
- if(newest?.state==='uncertain')return 'last send uncertain';
+ const own=notes.deliveries.filter(x=>x.destinationId===d.id),sent=own.find(x=>x.state==='accepted'||x.state==='uncertain'||x.state==='rejected'&&x.attempts>0);
+ if(own[0]?.state==='queued'||own[0]?.state==='sending')return 'sending';
+ if(sent?.state==='accepted')return `sent ${ago(sent.createdAt)}`;
+ if(sent?.state==='uncertain')return 'last send uncertain';
  return d.proof?.state==='stale'?`receipt last confirmed ${ago(d.proof.lastProvenAt)}`:'nothing sent yet';
 }
 function row(d,notes,blocked){

@@ -2,7 +2,7 @@ import {patch,firstMount} from './dom-patch.js';
 import {clausesMarkup} from './alert-clauses.js';
 import {destinationsMarkup} from './alert-destinations.js';
 import {sentAlertsMarkup} from './sent-alerts.js';
-import {destinationDialog} from './destination-dialog.js';
+import {destinationDialog} from './notifications.js';
 import {mountDefaultRoute} from './alert-route-default.js';
 import {mountCategories} from './root-cause-categories.js';
 // Settings › Alerts: who hears about an incident and what was sent, in four cards (Destinations, Who is told by default,

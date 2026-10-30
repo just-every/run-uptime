@@ -1,4 +1,4 @@
-// A destination's latest alert drill as three plain lines in its Edit dialog (public/destination-dialog.js). The lines stay
+// A destination's latest alert drill as three plain lines in its Edit dialog (public/notifications.js). The lines stay
 // separate because they prove different things: Uptime started the send; the provider or endpoint answered; a recipient
 // reported receiving it. Proof is never a health claim and never shown by colour alone; its row says the receipt in a word.
 const at=(value,escape)=>`<time datetime="${escape(new Date(value).toISOString())}">${escape(new Date(value).toLocaleString())}</time>`;

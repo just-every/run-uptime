@@ -4,7 +4,8 @@ import {containModalKeyboard,dialogFocusReturn,confirmDestination,showSecret,sho
 import {drillLines} from './alert-drills.js';
 import {deliveryReason} from './sent-alerts.js';
 const path=id=>`/api/notifications/destinations/${encodeURIComponent(id)}`;
-// Add destination, and a destination's Edit dialog (Settings › Alerts). Edit also holds what a destination's row does not
+// Add destination, and a destination's Edit dialog (Settings › Alerts), with the webhook editor's custom requests. Edit also
+// holds what a destination's row does not
 // show: Enabled, the request preview (in the webhook editor), the latest test's three lines, Rotate secret (signed webhooks)
 // and Delete at its foot, each with today's confirm, one-time secret and erasure receipt. Lists show saved email addresses
 // to the owner; URL capabilities and signing secrets are never returned by the list API or reconstructed here.

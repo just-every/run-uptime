@@ -1041,6 +1041,22 @@
         "environment": "all"
       },
       {
+        "path": "/notifications.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/delivery-chain.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
         "path": "/webhook-editor.js",
         "match": "exact",
         "kind": "asset",
@@ -1380,14 +1396,6 @@
       },
       {
         "path": "/alert-route-default.js",
-        "match": "exact",
-        "kind": "asset",
-        "class": "assets",
-        "authentication": "None; emitted static resource only.",
-        "environment": "all"
-      },
-      {
-        "path": "/destination-dialog.js",
         "match": "exact",
         "kind": "asset",
         "class": "assets",
