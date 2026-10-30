@@ -515,7 +515,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "260ebc29b8739f98bcd567744dd15ee5a93d95ffe1ed301a7d11fc30b6cf8e6e",
+      "sha256": "0e2f82e4ed70c2135a1b7d565ed1f68a49d85041ebf798b257e590d70ecb5083",
       "executable": false
     },
     "DEMO.md": {
@@ -2018,6 +2018,10 @@
       "sha256": "65d00d8d46784de4c6032f51d43727631f0557f1c242fc47533792e4bd857161",
       "executable": false
     },
+    "docs/examples/uptime-ratios.mjs": {
+      "sha256": "b1477ad790c5db4cff5aa74d7ef48d798c07d5844ccc96bb3a7af1a61dc05474",
+      "executable": true
+    },
     "docs/getting-started.md": {
       "sha256": "1cde923e46211973f27392449923ef2ce9122d610eaa20dfb6915b5cd716e6cc",
       "executable": false
@@ -2091,7 +2095,7 @@
       "executable": false
     },
     "docs/read-api.md": {
-      "sha256": "567a6a398c04252c78e8e76c96e011ef2d648c387752c4d13bf56d813abe0fbc",
+      "sha256": "5c1214266de5457de53f212ec6059a04e84a58b87d46d80ddefa970d9ecff067",
       "executable": false
     },
     "docs/resilient-monitoring.md": {
@@ -8214,6 +8218,14 @@
       "sha256": "207d5357868a4ac328ab45f6a3decafe468595a858d0ab5463c5eb727e4e8c10",
       "executable": false
     },
+    "tests/fixtures/read-api/uptimerobot-ratios.json": {
+      "sha256": "812c4154b161aa4d918b645fd81e646ceff53466a478681152169b1891c38968",
+      "executable": false
+    },
+    "tests/fixtures/read-api/uptimerobot-ratios.mjs": {
+      "sha256": "8b65b2834432a19cb4096ffa123cb7b61f1858db4a0ecae4cf3530110ef97e10",
+      "executable": false
+    },
     "tests/fixtures/README.md": {
       "sha256": "f6a9bf076984d991c7c2752704a821196c10e287f695928c7d6918ffdf3fbd40",
       "executable": false
@@ -8510,8 +8522,12 @@
       "sha256": "14cc065f13a16917d095090806971b5330ab6de89f8b2759de7cbe2abdb3fbc4",
       "executable": false
     },
+    "tests/read-api-dashboard-support.mjs": {
+      "sha256": "af621f5b7c0efb58812ccc6130402a03d03a98708f7b51da77cd290ca2a5b3ea",
+      "executable": false
+    },
     "tests/read-api.mjs": {
-      "sha256": "606306b83cc9eb65067e487635a45c3055f5daa26113b651d18793563d5ead7e",
+      "sha256": "da39b08938bd619771c41b4f6e11826119028141626e3a04d04e28b0eaf938ae",
       "executable": false
     },
     "tests/read-keys-support.mjs": {

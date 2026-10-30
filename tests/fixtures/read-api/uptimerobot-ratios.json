@@ -1,0 +1,10 @@
+{
+ "stat": "ok",
+ "pagination": {"offset": 0, "limit": 50, "total": 4},
+ "monitors": [
+  {"id": 4101, "friendly_name": "synthetic-uptime-401", "custom_uptime_ratio": "97.25-98.50-99.125"},
+  {"id": 4102, "friendly_name": "synthetic-uptime-402", "custom_uptime_ratio": "100.00-100.00-100.00"},
+  {"id": 4103, "friendly_name": "synthetic-uptime-403", "custom_uptime_ratio": "99.00-99.50-99.75"},
+  {"id": 4104, "friendly_name": "synthetic-uptime-404", "custom_uptime_ratio": "98.00-98.50-99.00"}
+ ]
+}
