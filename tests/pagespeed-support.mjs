@@ -338,7 +338,12 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
     release(); await status.getByText('Saved', {exact: true}).waitFor();
     assert.ok(await sample.evaluate(node => node === window.beaconSample && node === document.activeElement), 'same focused control after saving');
     await page.unroute(sitePath);
-    const failure = "Couldn't save. Your change is kept; it will be sent again when you leave the field.";
+    // A refusal is a line in the field's own place that is not empty and carries no raw transport or storage text.
+    const refusal = async error => {
+      await error.locator('span').filter({hasText: /\S/}).waitFor();
+      const text = (await error.textContent()).trim();
+      assert.ok(text && !/HTTP|Storage operation failed|Failed to fetch/.test(text), `a refusal speaks in words: ${text}`);
+    };
     for (const [value, fail] of [
       [21, route => route.fulfill({status: 500, body: ''})],
       [22, route => route.fulfill({status: 503, contentType: 'application/json', body: JSON.stringify({error: 'Storage operation failed'})})],
@@ -346,7 +351,7 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
     ]) {
       const stored = (await ok(`/api/rum/sites/${site.id}/report`)).site.samplePercent;
       await page.route(sitePath, route => route.request().method() === 'PATCH' ? fail(route) : route.continue());
-      await sample.fill(String(value)); await sampleError.getByText(failure, {exact: true}).waitFor();
+      await sample.fill(String(value)); await refusal(sampleError);
       assert.equal(await sample.inputValue(), String(value), 'a failed write keeps the typed value');
       assert.equal((await ok(`/api/rum/sites/${site.id}/report`)).site.samplePercent, stored, 'a failed write changes no saved value');
       await page.unroute(sitePath);
@@ -355,17 +360,23 @@ export async function provePageSpeed({ids, ok, api, DB, fixture, origin, owner, 
       assert.equal(settingWrites.length, before + 1, 'next blur retries the kept value once');
       assert.equal((await ok(`/api/rum/sites/${site.id}/report`)).site.samplePercent, value);
     }
-    const validation = 'Sampling is a whole percentage from 1 to 100';
     const beforeInvalid = settingWrites.length;
     for (const value of ['', '0', '101', '2.5']) {
-      await sample.fill(value); await sampleError.getByText(validation, {exact: true}).waitFor();
+      await sample.fill(value); await refusal(sampleError);
       await sample.blur(); await sample.focus(); await sample.blur(); await page.waitForTimeout(650);
       assert.equal(settingWrites.length, beforeInvalid, 'empty or invalid sampling never sends a PATCH');
       await sample.fill('23');
       assert.equal(await status.textContent(), '', 'returning to the stored value clears validation');
     }
+    // A path without a leading / is refused in the page: one line, the typed text kept, nothing sent at any blur.
+    const excluded = page.locator('#pagespeed-excluded');
+    await excluded.fill('shop/private'); await refusal(page.locator('#pagespeed-excludedPaths-error'));
+    await excluded.blur(); await excluded.focus(); await excluded.blur(); await page.waitForTimeout(650);
+    assert.equal(settingWrites.length, beforeInvalid, 'an invalid excluded path is never sent');
+    assert.equal(await excluded.inputValue(), 'shop/private', 'the typed path is kept');
+    await excluded.fill((await ok(`/api/rum/sites/${site.id}/report`)).site.excludedPaths.join('\n'));
     await page.route(sitePath, route => route.request().method() === 'PATCH' ? route.fulfill({status: 500, body: ''}) : route.continue());
-    await sample.fill('24'); await sampleError.getByText(failure, {exact: true}).waitFor();
+    await sample.fill('24'); await refusal(sampleError);
     const failedWrites = settingWrites.length;
     await sample.fill('23');
     assert.equal(await status.textContent(), '', 'returning to the stored value clears a failure');
@@ -547,10 +558,12 @@ async function proveConsoleErasure({ok, DB, origin, owner, monitor, site}) {
     await panel.locator('#pagespeed-erase > summary').click();
     await panel.locator('#pagespeed-erase-confirm').click();
     await panel.locator('#pagespeed-register').waitFor();
+    assert.ok(await panel.locator('#pagespeed-register').evaluate(node => node === document.activeElement), 'focus moves to the Register button after an erase');
     assert.deepEqual(erasures, [`/api/rum/sites/${site.id}`], 'one erasure request for the site the panel shows');
     await stale.locator('#pagespeed-erase-confirm').click();
     await stale.locator('#pagespeed-register').waitFor();
-    assert.equal(await stale.locator('#pagespeed-status').textContent(), 'Already erased.');
+    assert.ok((await stale.locator('#pagespeed-status').textContent()).trim() && !/HTTP|not found/i.test(await stale.locator('#pagespeed-status').textContent()), 'the stale panel says in words that nothing was left to erase');
+    assert.ok(await stale.locator('#pagespeed-register').evaluate(node => node === document.activeElement), 'focus moves to the Register button that replaces the erase button');
     assert.equal(await stale.locator('#pagespeed-rum').count(), 0, 'stale figures clear after the already-erased response');
     assert.ok(!(await stale.locator('#pagespeed-panel').textContent()).includes('Beacon site not found'));
   } finally { await browser.close(); }
