@@ -1067,8 +1067,8 @@ Core · target · **partial** · Register R-6
 **Acceptance.**
 1. Configure Grafana/Prometheus and authorized Datadog export against real API/scrape doors, fail a monitor and probe, revoke credentials and inspect matching source denominators, stale states and no cross-workspace metrics.
 
-**Evidence.** `src/domain/metrics/`; `scripts/metrics-export.mjs`; `docs/grafana/uptime-dashboard.json`; `tests/metrics.mjs`; `tests/metrics.mjs`; `docs/evidence/contracts/metrics/`
-**Gap.** Carried-done audit: no cited line loads the supplied Grafana dashboard or queries through Grafana. The Prometheus scrape door, the Datadog export with source location identity, failed monitor and probe states, revocation, report-equal denominators, stale states and workspace isolation are asserted.
+**Evidence.** `src/domain/metrics/`; `scripts/metrics-export.mjs`; `docs/grafana/uptime-dashboard.json`; `tests/metrics.mjs`; `tests/metrics.mjs`; `docs/evidence/contracts/metrics/`; `tests/metrics.mjs`: authenticated Worker scrape, report-equal figures, bounded scoped keys, installation isolation, Datadog source-location series, signed export and revocation; `tests/metrics-grafana-support.mjs` proveGrafanaPrometheus: owner-created monitors and keys, real signed scheduled failure, stopped assigned probe, checksum-verified upstream Prometheus and Grafana, imported dashboard queries through Grafana, fixed-window availability and location latency equality, fixed coverage, Unknown and excluded seconds, foreign key and monitor refusal, failed revoked scrape and aging snapshot.
+**Gap.** Carried-done audit: no cited line loads the supplied Grafana dashboard or queries through Grafana. The Prometheus scrape door, the Datadog export with source location identity, failed monitor and probe states, revocation, report-equal denominators, stale states and workspace isolation are asserted. Candidate integration proof replayed; main's partial judgment is retained for review.
 
 ### Migration and history
 

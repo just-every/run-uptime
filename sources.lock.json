@@ -487,7 +487,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "ee485e710d5f492cf2bb64b9fde89bab26c6b1753ad2ec205d8251306b846d47",
+      "sha256": "8f18546bdcc7359264cce15da27c0e6cd98fb110dee41019c0304b11015d6d56",
       "executable": false
     },
     "AGENTS.md": {
@@ -511,7 +511,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "1538781431a2548f9003f4c6ff85aad589a598dfc6c47bb7918db12c8f205a87",
+      "sha256": "fbc3356f050c9003f74b6c6b27297ab4ae62d6ccf5edbf71fc2a87437eafa9e1",
       "executable": false
     },
     "DEMO.md": {
@@ -8323,7 +8323,7 @@
       "executable": false
     },
     "tests/metrics-grafana-support.mjs": {
-      "sha256": "b6fb08eb8c1f150a7182c55a430fafd4774bb0846798aae37ba14b228c353fbc",
+      "sha256": "f7ebd07d8bdd59d0d4e8e0ece98c954819b4506ef507bc23f3cb96a86aee23dd",
       "executable": false
     },
     "tests/metrics.mjs": {

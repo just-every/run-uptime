@@ -205,6 +205,7 @@ export async function proveGrafanaPrometheus({inspect}={}){
 
   assert.equal((await f.request('/api/metrics/keys/'+key.credential.id,{method:'DELETE'})).status,200);
   await eventually(async()=>{const t=(await targets()).find(t=>t.labels.job==='uptime');return t.health==='down'&&/401/.test(t.lastError)},'revocation fails the real Prometheus scrape');
+  assert.equal((await panel(1)).length,0,'failed scrapes leave current availability unavailable');
   const lastSnapshot='last_over_time(uptime_snapshot_timestamp_seconds{job="uptime"}[1h])';
   const capture=Number((await query(lastSnapshot))[0].value[1]);
   const firstAge=value(await panel(3),{});assert.ok(firstAge>=0,'snapshot age never presents a future capture');
