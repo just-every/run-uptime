@@ -48,7 +48,7 @@ Labels contain stable monitor, probe and assigned runner IDs and fixed state/sta
 
 Import [the supplied dashboard JSON](https://github.com/just-every/run-uptime/blob/main/docs/grafana/uptime-dashboard.json) into Grafana and select your Prometheus data source. Choose monitor IDs in its monitor selector. Panels show availability, exclusions and Unknown time, per-location latency, current state, coverage, probe freshness, incidents and delivery outcomes.
 
-The dashboard's report-window panels use instant queries: changing Grafana's time picker does not change the period configured in the scrape. Change Prometheus's `period` parameter for another report window. A rolling availability gauge must never be averaged and presented as a different-period SLA. Snapshot age and the report's start/end gauges show which capture is being displayed.
+The dashboard's report-window panels use instant queries: changing Grafana's time picker does not change the period configured in the scrape. Change Prometheus's `period` parameter for another report window. A rolling availability gauge must never be averaged and presented as a different-period SLA. Snapshot age and the report window's start and end gauges show which capture is being displayed. The age panel retains the last captured timestamp for at most one hour after a failed scrape, so its age keeps increasing while current metric panels become unavailable. After that hour the age panel is unavailable too; no failed scrape refreshes the capture. Prometheus's `up` metric still reports the scrape failure.
 
 ## Datadog and signed webhooks
 
