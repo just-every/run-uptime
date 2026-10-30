@@ -15,6 +15,8 @@ export function assertStoredFailureHeaders(report,{observationId,trace,secrets})
  assert.equal(snapshot.responseHeaders['set-cookie'],'[redacted]');
  assert.equal(snapshot.responseHeaders['x-request-id'],trace,'explicitly safe response value survives storage and incident readback');
  assert.equal(snapshot.responseHeaders['content-type'],'text/html');
+ assert.ok(snapshot.body.includes('Checkout temporarily unavailable'),'the owner report retains the useful page excerpt');
+ for(const secret of secrets)assert.ok(!JSON.stringify(snapshot).includes(secret),'the stored incident snapshot excludes every planted secret');
  for(const secret of secrets)for(const headers of [snapshot.requestHeaders,snapshot.responseHeaders])assert.ok(!JSON.stringify(headers).includes(secret),'incident headers exclude planted secrets');
 }
 
