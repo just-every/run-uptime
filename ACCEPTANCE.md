@@ -216,8 +216,8 @@ Core · published · **partial** · Cites BASE-PUBLIC-001, BASE-INSTALL-001, BAS
 1. Open app-origin Lobby, docs and setup signed out, then sign in for /app and /app/monitor; separately read the marketing site and /run.
 2. Their routes remain distinct and private documents reject unsigned access.
 
-**Evidence.** `src/server.ts`; `src/routes/docs.index.tsx`; `tests/public-paths.mjs`; `tests/public-paths.mjs`; `docs/evidence/contracts/release-0.4.0/`
-**Gap.** Carried-done audit: signed-in `/app` and `/app/monitor` are asserted only in `tests/installer-support.mjs` (called from `tests/public-paths.mjs`), which this clause does not cite, and no cited test reads `/setup` signed out, reads the separate marketing site and its `/run` page or compares the two surfaces. The signed-out Lobby and docs and the refusal of unsigned private documents are asserted.
+**Evidence.** `src/server.ts`; `src/routes/docs.index.tsx`; `tests/public-paths.mjs`; `tests/public-paths.mjs`; `docs/evidence/contracts/release-0.4.0/`  Candidate assertions replayed on current main: `tests/public-surfaces-support.mjs` provePublicSurfaces (called by `tests/public-paths.mjs`) reads the published marketing landing and run page and the emitted Lobby, docs and signed-out setup; `tests/access-matrix.mjs` asserts signed-in console aliases and rendered documents.
+**Gap.** Carried-done audit: signed-in `/app` and `/app/monitor` are asserted only in `tests/installer-support.mjs` (called from `tests/public-paths.mjs`), which this clause does not cite, and no cited test reads `/setup` signed out, reads the separate marketing site and its `/run` page or compares the two surfaces. The signed-out Lobby and docs and the refusal of unsigned private documents are asserted.  Main's partial judgment and carried-done audit are retained pending review of the replayed assertions. The candidate also records unsolicited Cloudflare Insights/RUM at the published marketing edge; marketing configuration and publication remain outside this round.
 
 #### BOUNDARY-001 — Monitoring ownership and honest delivery claims
 

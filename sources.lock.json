@@ -487,7 +487,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "8fb2c6faf1404fdca6d982dc7a0a47de4190509348a1a9fdd8f37361f2ae758a",
+      "sha256": "705ce5cbb147b1b8d97afe298b1067d75eaaa8ac74884f066bdfad309c64ef37",
       "executable": false
     },
     "AGENTS.md": {
@@ -511,7 +511,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "4ddef8353c6c52d394380403464bd604962ea637d2651b46df030f98368af68b",
+      "sha256": "399ebfee4c74d82280b954e37f0e1741f43754bda8e42fd03840ce5eaf85cf40",
       "executable": false
     },
     "DEMO.md": {
@@ -8043,7 +8043,7 @@
       "executable": false
     },
     "tests/access-matrix.mjs": {
-      "sha256": "3226e8db8c11d828a95cc3ea2e0a3408e1caf8b5ad85b36585a24369ed1ab7fa",
+      "sha256": "a099fbb9f0def51b968b0794a2fa71fb51faf31ebd9296287190fb4069112462",
       "executable": false
     },
     "tests/access-member-controls-browser-support.mjs": {
@@ -8499,7 +8499,11 @@
       "executable": false
     },
     "tests/public-paths.mjs": {
-      "sha256": "14cc065f13a16917d095090806971b5330ab6de89f8b2759de7cbe2abdb3fbc4",
+      "sha256": "d7f9a53da1ca089a83d3978455fc92d16f89efc7b22956a683b4c97e4278ee3c",
+      "executable": false
+    },
+    "tests/public-surfaces-support.mjs": {
+      "sha256": "78875d9ef2e39324295c0c1e189bbb032452e974774ff757fde48019f8e6c051",
       "executable": false
     },
     "tests/read-api.mjs": {

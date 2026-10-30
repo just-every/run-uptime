@@ -69,6 +69,10 @@ try{
   }
   for(const path of ['/app/monitors','/app/monitors/new','/app/monitors/private']){const response=await call(path,undefined,{cookie:valid});assert.equal(response.status,200);assert.match(response.headers.get('content-type'),/text\/html/)}
   const canonical=await call('/app/monitor/',undefined,{cookie:valid});assert.equal(canonical.status,308);assert.equal(canonical.headers.get('location'),'/app/monitors/new');
+  for(const [path,destination] of [['/app','/app/monitors'],['/app/monitor','/app/monitors/new']]){
+   const entry=await call(path,undefined,{cookie:valid});assert.equal(entry.status,308,`signed-in ${path} opens its native console route`);assert.equal(entry.headers.get('location'),destination);await entry.arrayBuffer();
+   const document=await call(destination,undefined,{cookie:valid});assert.equal(document.status,200);assert.match(document.headers.get('content-type'),/^text\/html\b/);await document.arrayBuffer();
+  }
   assert.equal((await call('/api/overview',undefined,{cookie:valid})).status,200);
   assert.equal((await call('/api/monitors',{name:'Authorized write',type:'heartbeat',canaryUrl:'https://canary.example.test/health',heartbeat:{maxAgeMs:60000}},{cookie:valid})).status,201);
   // Discovery: owner routes refuse a cross-origin caller even with a valid owner session, and a runner key is not an owner session.
