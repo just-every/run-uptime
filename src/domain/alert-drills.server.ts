@@ -17,24 +17,24 @@ const identity=(row:DrillRow)=>JSON.stringify(['uptime-alert-drill-v1',row.id,ro
 const bound=(row:Omit<DrillRow,'delivery_id'>,secret:string)=>sha256(`uptime-alert-drill-v1\0${row.id}\0${row.destination_id}\0${row.credential_id}\0${secret}`);
 function equal(a:string,b:string){if(a.length!==b.length)return false;let difference=0;for(let i=0;i<a.length;i++)difference|=a.charCodeAt(i)^b.charCodeAt(i);return difference===0}
 
-export async function startDrill(env:Bindings,destinationId:string,operatorId:string){
+export async function startDrill(env:Bindings,destinationId:string,operatorId:string,initiator?:import('../agent-door/work.server.ts').SavedPrincipal){
  const destination=await env.DB.prepare('SELECT webhook_template FROM notification_destinations WHERE id=? AND deleted_at IS NULL').bind(destinationId).first<{webhook_template:string|null}>();
  if(destination?.webhook_template!==null&&destination?.webhook_template!==undefined)throw Error('This custom webhook template has no acknowledgement-link field. Use its exact Test send, or choose default signed JSON for a recipient-acknowledged alert drill.');
- const event=drillEvent(env.UPTIME_ORIGIN??''),id=crypto.randomUUID(),secret=random() as string,now=event.observedAt;
+ const event={...drillEvent(env.UPTIME_ORIGIN??''),...(initiator?.attribution?{preparedBy:initiator.attribution}: {})},id=crypto.randomUUID(),secret=random() as string,now=event.observedAt;
  const {deliveryId}=await queueTestEvent(env,destinationId,event,async(deliveryId,credentialId)=>{
   const row={id,destination_id:destinationId,credential_id:credentialId,delivery_id:deliveryId};
-  return [mutationGuard(env,'EXISTS(SELECT 1 FROM notification_destinations WHERE id=? AND credential_id=? AND deleted_at IS NULL AND webhook_template IS NULL)',[destinationId,credentialId]),env.DB.prepare(`INSERT INTO alert_drills(id,destination_id,credential_id,delivery_id,started_by,started_at,expires_at,token_hash,token_ciphertext)
+  return [...(initiator?[env.DB.prepare('INSERT INTO uptime_agent_notifications(delivery_id,principal) VALUES(?,?)').bind(deliveryId,JSON.stringify(initiator))]:[]),mutationGuard(env,'EXISTS(SELECT 1 FROM notification_destinations WHERE id=? AND credential_id=? AND deleted_at IS NULL AND webhook_template IS NULL)',[destinationId,credentialId]),env.DB.prepare(`INSERT INTO alert_drills(id,destination_id,credential_id,delivery_id,started_by,started_at,expires_at,token_hash,token_ciphertext)
    SELECT ?,destination_id,credential_id,id,?,?,?,?,? FROM notification_jobs WHERE id=? AND destination_id=? AND credential_id=?`).bind(id,operatorId,now,now+DAY,await bound(row,secret),await seal(await key(env),identity(row),{secret}),deliveryId,destinationId,credentialId)];
  });
  return {queued:true,drillId:id,eventId:event.id,deliveryId};
 }
 // Send-time details for a drill delivery that may still be confirmed; null sends the stored drill text without a link.
 async function details(env:Bindings,deliveryId:string):Promise<DrillDetails|null>{
- const row=await env.DB.prepare(`SELECT a.*,o.display_name FROM alert_drills a LEFT JOIN oa_operators o ON o.id=a.started_by
+ const row=await env.DB.prepare(`SELECT a.*,o.display_name,j.event FROM alert_drills a LEFT JOIN oa_operators o ON o.id=a.started_by LEFT JOIN notification_jobs j ON j.id=a.delivery_id
   WHERE a.delivery_id=? AND a.token_ciphertext IS NOT NULL AND a.confirmed_at IS NULL AND a.expires_at>?`).bind(deliveryId,Date.now()).first<any>();
  if(!row)return null;
  let secret;try{({secret}=await unseal(await key(env),identity(row),row.token_ciphertext))}catch{return null}
- return {startedBy:row.display_name??'An owner of this Uptime installation',startedAt:row.started_at,expiresAt:row.expires_at,confirmUrl:`${env.UPTIME_ORIGIN}/alert-drill?token=${row.id}.${secret}`};
+ return {startedBy:(row.event?JSON.parse(row.event).preparedBy?.label:null)??row.display_name??'An owner of this Uptime installation',startedAt:row.started_at,expiresAt:row.expires_at,confirmUrl:`${env.UPTIME_ORIGIN}/alert-drill?token=${row.id}.${secret}`};
 }
 export async function notificationMail(env:Bindings,job:{id:string;event:string}){
  const event=JSON.parse(job.event),drill=await details(env,job.id);

@@ -251,7 +251,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "time() - uptime_snapshot_timestamp_seconds",
+          "expr": "time() - last_over_time(uptime_snapshot_timestamp_seconds[1h])",
           "instant": true
         }
       ],
@@ -260,7 +260,8 @@
           "unit": "s"
         },
         "overrides": []
-      }
+      },
+      "description": "Age of the last captured snapshot, retained for at most one hour after a failed scrape. Increasing age is not fresh monitoring evidence; after one hour without a capture this panel is unavailable."
     },
     {
       "id": 4,

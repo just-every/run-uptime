@@ -5,8 +5,8 @@ const documents = new Set(['CONTRACT.md', 'ACCEPTANCE.md', 'CLAIMS.md', 'HANDOVE
 const allowed = path => documents.has(path) || path === 'sources.lock.json' || /^(?:evidence|\.artifacts)\/.+/.test(path);
 
 // Explicit readers of the maintained foundation and reference. An adopting
-// edition with additional tests must declare reviewed dependencies before light
-// coverage can account for them. Unknown readers deliberately select full CI.
+// edition can extend these with reviewed dependencies in verification.json's
+// readers table. Unknown or malformed readers deliberately select full CI.
 export async function lightReaders(files, { cwd = process.cwd(), plan } = {}) {
  if (!files.length || !files.every(allowed)) return;
  const commands = new Set(), changed = new Set(files);
@@ -24,6 +24,16 @@ export async function lightReaders(files, { cwd = process.cwd(), plan } = {}) {
   ...['build-safety', 'demo', 'erasure', 'security', 'installer-browser', 'installer', 'journey']
    .map(name => `tests/local-journey/${name}.test.mjs`),
  ].map(path => [path, []]));
+ const relative = path => typeof path === 'string' && path.length > 0 && !path.startsWith('/')
+  && !path.includes('\\') && !path.split('/').some(part => !part || part === '.' || part === '..');
+ if (plan.readers !== undefined) {
+  if (!plan.readers || typeof plan.readers !== 'object' || Array.isArray(plan.readers)) return;
+  for (const [path, dependencies] of Object.entries(plan.readers)) {
+   if (!relative(path) || !/^tests\/[A-Za-z0-9_./*-]+\.(?:mjs|ts|tsx)$/.test(path)
+    || !Array.isArray(dependencies) || !dependencies.every(relative)) return;
+   known[path] = dependencies;
+  }
+ }
  const indirect = new Set(['pnpm run test:typecheck', 'pnpm run test:runtime']);
  // Edition-owned lock validation is required for every light candidate.
  for (const path of ['edition.json', 'sources.lock.json', 'scripts/edition-authoring/cli.mjs']) await access(join(cwd, path));

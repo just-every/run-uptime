@@ -51,7 +51,7 @@ try{
  // One scheduled check: wait for the slot, run the runner, then read the newest scheduled attempt and the monitor.
  const step=async(id,edge)=>{await waitDue(id);await runner(edge);const history=(await api(`/api/monitors/${id}/history`)).data,overview=(await api(`/api/overview?monitor=${id}`)).data;
   const slot=history.find(s=>!s.manual);assert.equal(slot.status,'complete',JSON.stringify(slot));const o=slot.observations[0];assert.equal(o.canary.outcome,'pass');
-  return {o,state:overview.monitors[0].state,alerts:overview.alerts}};
+  return {o,slot,state:overview.monitors[0].state,alerts:overview.alerts}};
  const kinds=alerts=>alerts.map(a=>a.kind).reverse();
  // Each runner run takes one due task, so a finished flow pauses its monitor before the next flow starts.
  const pause=async id=>{const current=(await api(`/api/overview?monitor=${id}`)).data.monitors[0];assert.equal((await api(`/api/monitors/${id}`,{...current.definition,enabled:false},{},'PATCH')).status,200)};
@@ -83,6 +83,39 @@ try{
   scenario.dns={cloudflare:{status:'nxdomain'},google:{status:'nxdomain'},authoritative:{status:'nxdomain'}};r=await step(m.id);assert.equal(r.o.outcome,'target_failure',JSON.stringify(r.o.checks));assert.equal((await api('/api/monitors/'+m.id+'/failure-snapshots')).data.items[0].snapshot.diagnostics.category,'dns');assert.match(r.o.checks[2].reason,/NXDOMAIN/,'an approved value never suppresses a missing name');
   scenario.dns={...all(['203.0.113.99']),google:{status:'servfail'}};r=await step(m.id);assert.equal(r.o.outcome,'target_failure');assert.match(r.o.checks[1].reason,/SERVFAIL/);assert.equal(r.o.checks.find(c=>c.assertion==='agreement').pass,false);
   scenario.dns={...all(['203.0.113.99']),google:{status:'unavailable'}};r=await step(m.id);assert.equal(r.o.outcome,'runner_error');assert.match(r.o.checks[1].reason,/monitor infrastructure fault/);assert.equal(r.state.targetState,'Unknown');
+  // DNS maintenance uses the same owner review and revision-guarded apply as
+  // other monitors. Suppression hides notifications, never resolver evidence.
+  scenario.dns=all(['203.0.113.99']);r=await step(m.id);assert.equal(r.state.state,'Healthy');
+  const beforeAlerts=r.alerts,retained=[],beforeHistory=(await api(`/api/monitors/${m.id}/history`)).data;
+  const beforeRevisions=(await api(`/api/monitors/${m.id}/revisions`)).data;
+  const input={monitorIds:[m.id],window:{id:'dns-change',name:'DNS change',timeZone:'UTC',mode:'suppress',startsAt:Date.now()-1000,endsAt:Date.now()+120000}};
+  const review=await api('/api/maintenance/preview',input);assert.equal(review.status,200,JSON.stringify(review.data));
+  assert.deepEqual((await api(`/api/monitors/${m.id}/history`)).data,beforeHistory,'preview preserves scheduled evidence');
+  assert.deepEqual((await api(`/api/monitors/${m.id}/revisions`)).data,beforeRevisions,'preview saves no maintenance');
+  const applied=await api('/api/maintenance/apply',{...input,digest:review.data.digest});assert.equal(applied.status,201,JSON.stringify(applied.data));
+  const changed=Array.from({length:12},(_,index)=>`203.0.113.${100+index}`);
+  scenario.dns=all(changed);r=await step(m.id);
+  assert.equal(r.state.state,'Maintenance');assert.equal(r.state.maintenance,true);assert.equal(r.state.targetState,'Failing');assert.equal(r.o.outcome,'target_failure');
+  assert.deepEqual(r.o.protocol.resolvers.map(answer=>({id:answer.id,status:answer.status,rcode:answer.rcode,answers:answer.answers,more:answer.more})),['cloudflare','google','authoritative'].map(id=>({id,status:'answer',rcode:0,answers:changed.slice(0,10),more:2})));
+  for(const answer of r.o.protocol.resolvers)assert.ok(Number.isFinite(answer.ms)&&answer.ms>=0,'retain measured resolver response time');
+  retained.push(r.slot);assert.deepEqual(r.alerts,beforeAlerts,'a changed record during suppression emits no trigger');
+  scenario.dns={cloudflare:{status:'nxdomain'},google:{status:'nxdomain'},authoritative:{status:'nxdomain'}};r=await step(m.id);
+  assert.equal(r.state.state,'Maintenance');assert.equal(r.state.targetState,'Failing');assert.equal(r.o.outcome,'target_failure');
+  assert.deepEqual(r.o.protocol.resolvers.map(answer=>({status:answer.status,rcode:answer.rcode,answers:answer.answers})),Array.from({length:3},()=>({status:'nxdomain',rcode:3,answers:[]})));
+  for(const check of r.o.checks.filter(check=>check.assertion.startsWith('resolver:'))){assert.equal(check.pass,false);assert.match(check.reason,/NXDOMAIN/)}
+  retained.push(r.slot);assert.deepEqual(r.alerts,beforeAlerts,'a removed record during suppression emits no trigger');
+  scenario.dns=all(['203.0.113.99']);r=await step(m.id);assert.equal(r.o.outcome,'pass');assert.equal(r.state.state,'Maintenance');assert.equal(r.state.targetState,'Healthy');
+  assert.deepEqual(r.alerts,beforeAlerts,'a suppressed failure emits no orphan recovery');
+  const current=(await api(`/api/overview?monitor=${m.id}`)).data.monitors[0];
+  const cancelled=await api('/api/maintenance/cancel',{monitorIds:[m.id],windowId:input.window.id,revisions:{[m.id]:current.revision}});assert.equal(cancelled.status,200,JSON.stringify(cancelled.data));
+  r=await step(m.id);assert.equal(r.state.state,'Healthy');assert.equal(r.state.maintenance,false);assert.deepEqual(r.alerts,beforeAlerts,'cancellation does not invent a recovery');
+  scenario.dns={cloudflare:{status:'nxdomain'},google:{status:'nxdomain'},authoritative:{status:'nxdomain'}};r=await step(m.id);
+  assert.equal(r.o.outcome,'target_failure');assert.equal(r.state.state,'Failing');assert.equal(r.alerts.length,beforeAlerts.length+1);assert.equal(r.alerts[0].kind,'trigger');
+  const incidentKey=r.alerts[0].event.incidentKey;
+  scenario.dns=all(['203.0.113.99']);r=await step(m.id);assert.equal(r.o.outcome,'pass');assert.equal(r.state.state,'Healthy');
+  assert.equal(r.alerts.length,beforeAlerts.length+2);assert.equal(r.alerts[0].kind,'recovery');assert.equal(r.alerts[0].event.incidentKey,incidentKey);
+  const afterHistory=(await api(`/api/monitors/${m.id}/history`)).data;
+  for(const slot of retained)assert.deepEqual(afterHistory.find(row=>row.id===slot.id),slot,'maintenance DNS failure evidence stays immutable after cancellation and recovery');
   await pause(m.id);
  }
 

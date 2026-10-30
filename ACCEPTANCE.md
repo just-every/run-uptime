@@ -8,12 +8,12 @@ The primary journey: an operator moves their monitors from UptimeRobot or Pingdo
 
 | Tier | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
-| Core | 16 | 68 | 11 | 95 |
-| Agent surface | 0 | 0 | 6 | 6 |
+| Core | 17 | 67 | 11 | 95 |
+| Agent surface | 0 | 11 | 8 | 19 |
 | Later | 0 | 0 | 1 | 1 |
-| Full target | 16 | 68 | 18 | 102 |
+| Full target | 17 | 78 | 20 | 115 |
 
-Judged from the code and tests at commit `886ad3662fec5bdd5c1cd4c7692a9d22d897529f` (29 October 2026). ERASURE-001 public owner erasure, retained stale edit and complete refusal preservation; other clause judgments retained. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
+Judged from the code and tests at commit `886ad3662fec5bdd5c1cd4c7692a9d22d897529f` (29 October 2026). ERASURE-001 public owner erasure, retained stale edit and complete refusal preservation; other clause judgments retained. PRESENCE-001 native contact lifecycle proof replayed at `8862426`; all newer main judgments retained. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
 
 ## Core
 
@@ -158,7 +158,7 @@ Core · published · **done** · Cites BASE-OPS-005, BASE-AUDIT-001
 
 #### PRESENCE-001 — Contact separate from health
 
-Core · published · **partial**
+Core · published · **done**
 
 **Requirement.** Only accepted scoped claims and signed results refresh server-time contact, the 120-second freshness threshold never proves process liveness or target health, and restart, unavailable reads and archive omission preserve that distinction. See [Contact, interface and delivery](docs/contract/safety-rules.md#contact-interface-and-delivery).
 
@@ -166,8 +166,8 @@ Core · published · **partial**
 1. Read Never seen, make accepted idle claims/results, age contact, reject foreign requests and restart.
 2. Reads and health checks do not refresh contact; unavailable reads and restore cannot imply runner or target health.
 
-**Evidence.** `src/domain/runner-contact.server.ts`; `tests/signed-runner.mjs`
-**Gap.** The implementation and cited signed-runner execution/restart journey remain. Gap: no surviving cited assertion reads Never seen, fresh contact from accepted idle claims/results, stale contact after aging, unchanged contact after foreign/rejected requests or owner/health reads, retained contact after restart, or the contact/target-health distinction after unavailable reads and restore.
+**Evidence.** `tests/signed-runner.mjs` calls `tests/signed-runner-contact.mjs` proveRunnerContact: Never seen, accepted idle claims and real signed results record distinct server receipt times; fresh at 119999 and 120000 ms, stale at 120001 ms; foreign identities, revoked authority, invalid signatures, owner reads and health reads preserve stored contact and target evidence; persistent Worker restart retains exact contact; unavailable overview returns 503 without invented contact or Healthy targets; fresh contact coexists with genuine Failing and Unknown targets at the fixed denominator; native export omits contact and receiving restore keeps history inactive, contact Never seen and source runner authority refused. `tests/signed-runner-result-proof.mjs` proveFreshResultSignature: rejected and duplicate actual signed results preserve every non-admission table.
+**Gap.** None.
 
 #### INTERFACE-001 — Honest durable operator feedback
 
@@ -308,7 +308,7 @@ Core · target · **partial**
 **Acceptance.**
 1. Save checks through the editor/API against a controlled endpoint; independently break absent/present keywords, status range, response headers, JSON arrays/nested paths, regex and latency, then inspect the distinct failures and unchanged saved criteria.
 
-**Evidence.** `src/domain/http-assertions.mjs`; `src/domain/http-assertions/`; `src/domain/evidence.server.ts`; `tests/tls-auth.mjs`; `tests/probe-native-evidence.mjs`; `docs/evidence/contracts/http-assertions/`
+**Evidence.** `src/domain/http-assertions.mjs`; `src/domain/http-assertions/`; `src/domain/evidence.server.ts`; `tests/tls-auth.mjs`; `tests/probe-native-evidence.mjs`; `docs/evidence/contracts/http-assertions/`; `tests/probe-json-evidence-support.mjs`
 **Gap.** Saved criteria and independent present/absent keyword, status set/range, response-header, root JSON-member, regex and latency failures remain asserted. Gap: independently breaking JSON arrays and nested JSONPath expressions lacks an assertion in the surviving cited files; the root-member scenario does not prove those cases.
 
 #### SLOW-001 — Slow-response alerts distinct from outages
@@ -614,7 +614,7 @@ Core · target · **partial**
 1. Fail an HTTP monitor against a controlled endpoint returning a 503 HTML page containing a planted API key, cookie and email address; as owner open incident detail and see the request, status, headers, page excerpt and screenshot with planted values masked.
 2. Open it as an unauthorized role and signed out and be refused; export the incident and round-trip an archive; erase the monitor and confirm the snapshot and its copies are gone with a receipt; inspect the alert for only the cause line and link.
 
-**Evidence.** `src/domain/failure-snapshot.mjs`; `src/domain/failure-snapshot-text.mjs`; `src/domain/failure-page-custody.server.ts`; `runners/src/failure-page-screenshot.mjs`; `src/domain/failure-evidence-access.server.ts`; `tests/failure-page-journey.mjs`; `tests/failure-page-browser.mjs`; `tests/failure-page-journey.mjs`; `tests/failure-page-journey.mjs`
+**Evidence.** `src/domain/failure-snapshot.mjs`; `src/domain/failure-snapshot-text.mjs`; `src/domain/failure-page-custody.server.ts`; `runners/src/failure-page-screenshot.mjs`; `src/domain/failure-evidence-access.server.ts`; Acceptance 1: `tests/failure-page-journey.mjs` owners capture safe failure pages, share only monitor evidence, export every artifact and revoke access, with `tests/failure-page-custody-support.mjs` assertStoredFailureHeaders, proves stored request and response header sets retain explicitly safe values and mask planted secrets; `tests/failure-page-browser.mjs` failurePageBrowser proves owner incident screenshot and report reads. Acceptance 2: the same journey and `tests/failure-page-custody-support.mjs` proveFailureSnapshotErasure prove access refusal, archive round-trip, public monitor erasure with durable per-table receipt, removal of snapshot and encrypted artifact copies from all durable tables and transfer storage, refused public reads, clean later native and transfer exports, and refusal of a snapshot-bearing old archive with the source's later journal before any product or audit rows change. `tests/failure-page-browser.mjs` failurePageBrowser proves granted and revoked member access; `tests/notify-delivery.mjs` proves cause and authenticated incident links on actual alert transports; the failure-page journey retains alert excerpt and secret exclusions.
 **Gap.** Masked failure-page capture, owner incident screenshot/report reads, access refusal, archive round-trip, an erasure receipt and alert excerpt/secret exclusion remain asserted. Gap: reading both stored request/response header sets through the owner incident door, confirming every erased snapshot copy is gone and refusing an old snapshot archive using a later erasure journal lack assertions in the surviving cited files.
 
 #### DIAG-001 — Connection and network diagnostics
@@ -1067,8 +1067,8 @@ Core · target · **partial** · Register R-6
 **Acceptance.**
 1. Configure Grafana/Prometheus and authorized Datadog export against real API/scrape doors, fail a monitor and probe, revoke credentials and inspect matching source denominators, stale states and no cross-workspace metrics.
 
-**Evidence.** `src/domain/metrics/`; `scripts/metrics-export.mjs`; `docs/grafana/uptime-dashboard.json`; `tests/metrics.mjs`; `tests/metrics.mjs`; `docs/evidence/contracts/metrics/`
-**Gap.** Carried-done audit: no cited line loads the supplied Grafana dashboard or queries through Grafana. The Prometheus scrape door, the Datadog export with source location identity, failed monitor and probe states, revocation, report-equal denominators, stale states and workspace isolation are asserted.
+**Evidence.** `src/domain/metrics/`; `scripts/metrics-export.mjs`; `docs/grafana/uptime-dashboard.json`; `tests/metrics.mjs`; `tests/metrics.mjs`; `docs/evidence/contracts/metrics/`; `tests/metrics.mjs`: authenticated Worker scrape, report-equal figures, bounded scoped keys, installation isolation, Datadog source-location series, signed export and revocation; `tests/metrics-grafana-support.mjs` proveGrafanaPrometheus: owner-created monitors and keys, real signed scheduled failure, stopped assigned probe, checksum-verified upstream Prometheus and Grafana, imported dashboard queries through Grafana, fixed-window availability and location latency equality, fixed coverage, Unknown and excluded seconds, foreign key and monitor refusal, failed revoked scrape and aging snapshot.
+**Gap.** Carried-done audit: no cited line loads the supplied Grafana dashboard or queries through Grafana. The Prometheus scrape door, the Datadog export with source location identity, failed monitor and probe states, revocation, report-equal denominators, stale states and workspace isolation are asserted. Candidate integration proof replayed; main's partial judgment is retained for review.
 
 ### Migration and history
 
@@ -1292,6 +1292,232 @@ Core · push-further · **partial**
 
 ## Agent surface
 
+### Agent surface (Base-delivered)
+
+#### BASE-AGENT-001 — One MCP door per seed
+
+Agent surface · target · **partial**
+
+**Requirement.** Every seed, hosted or self-hosted, serves one remote MCP endpoint at `/mcp` over Streamable HTTP. It speaks the current revision (2026-07-28) and accepts 2025-11-25 clients through the twelve-month deprecation window. It implements `server / discover`, tools, resources and prompts. Lists are deterministic and carry `ttlMs` and `cacheScope: "private"`. Roots, Sampling and Logging are not served.
+
+**Acceptance.**
+1. `server / discover` returns the supported versions, capabilities, `serverInfo` and instructions.
+2. A 2026-07-28 request works with no handshake, and a 2025-11-25 client completes `initialize` and lists the same tools.
+3. An unsupported version returns `UnsupportedProtocolVersion`.
+4. Two `tools / list` calls return the same order, with cache fields.
+5. A foreign Origin returns 403, and a header and body method mismatch returns `HeaderMismatch`.
+6. An oversized body returns 413 with no effect.
+
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: transport, discovery and capability refusals.
+**Gap.** Native MCP transport, both protocol eras and the declared CORE discovery pass the published 0.2.94 harness. Resources, prompts, events and subscriptions remain undeclared and refused; their complete capability acceptance is unproved.
+
+#### BASE-AGENT-002 — The seed's jobs are tools, through the UI's own actions
+
+Agent surface · target · **partial**
+
+**Requirement.** Each Core job a person does in the product is a tool. Where one is not, the Agent surface says why: it runs on a device, it is a person's interactive screen, it belongs to a connector or the import door, or it is an installation fact. Risk is never the reason: a risky job is a tool with its class (BASE-AGENT-006). Tools are named `<seed>.<area>.<verb>` and declare input and output schemas and truthful annotations. Each calls the same server action as the UI, so validation and authorization are written once, and the seed's embedded agents use the same registry. A business refusal returns `isError` with the seed's stable error code.
+
+**Acceptance.**
+1. The Core clause ids in each tool's `_meta`, with the not-a-tool reasons that `server / discover` serves, cover every Core clause in the contract, and no reason is risk; the harness and `rer check` fail on a gap.
+2. Each tool's fixture result validates against its `outputSchema`.
+3. Read tools declare `readOnlyHint`; tools that can carry destructive declare `destructiveHint`, and tools that can carry external declare `openWorldHint`.
+4. A refusal returns the same error code the UI gets for the same action.
+5. The UI action and its tool, on the same fixture, give the same record state and the same audit event type.
+6. The seed's embedded agents appear in the audit as calls to the same tools.
+
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: tool schemas, annotations and native server actions.
+**Gap.** The 34 declared native tools share the existing server services and pass schema, annotation, stable-refusal and both-policy journey checks. Retained unfinished Core jobs and UI parity for every target action remain unproved.
+
+#### BASE-AGENT-003 — Records are resources
+
+Agent surface · target · **missing**
+
+**Requirement.** Each primary record type has a URI template, and tools return `resource_link`s to the records they touch. A read returns exactly the fields the caller's role sees in the UI. File bytes count against any byte budget on the grant. A record the caller cannot open reads as not found, identical to a missing id. Text from customers, imports or files carries an untrusted marker in `_meta`.
+
+**Acceptance.**
+1. `resources / templates / list` names every record type in the Agent surface.
+2. Reads as two roles return exactly what the UI shows each.
+3. An out-of-scope id and a missing id give identical responses.
+4. A write's `resource_link` reads back the new state.
+5. Bytes over budget return `budget_exhausted` and no partial content.
+6. Customer-sourced text carries the untrusted marker.
+
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs`; `tests/agent-conformance/journey.mjs`
+**Gap.** Resources remain undeclared in CORE: native templates are retained as registry facts and public reads are refused. Base resource consent/operation-context support has shipped, but no resource-family conformance or complete-clause judgment is claimed.
+
+#### BASE-AGENT-004 — Business identity and short-lived, audience-bound tokens
+
+Agent surface · target · **partial**
+
+**Requirement.** The door is an OAuth 2.1 resource server. Its RFC 9728 metadata names the authorization servers this installation trusts. That is the paired Business when Business provisioned it, verified with the owner-claim trust the installation already holds for its import door; otherwise it is the seed's own sign-in. Access tokens are RFC 9068 JWTs with `aud` set to the seed's canonical MCP URI, `sub` the sponsoring person, `act` the agent (RFC 8693) with its specialist, scopes per tool family, and a lifetime of 15 minutes or less (5 by default). The policy scopes rules on the sponsor, agent and specialist the token names. The consent behind the tokens can last longer and is revocable. Tokens travel only in the Authorization header, and there is no passthrough.
+
+**Acceptance.**
+1. An unauthenticated call returns 401 with `resource_metadata`, and the metadata names the trusted servers and scopes.
+2. A Business token for this seed works, and the same token sent to a sibling seed returns 401.
+3. An expired token returns 401, and a token with a lifetime over 15 minutes is refused.
+4. A read-only token calling a write tool returns 403 `insufficient_scope` with every needed scope in one challenge.
+5. A token in a query string is refused and not logged.
+6. Revoking consent in the seed or in Business refuses the next call within 60 seconds.
+7. After unpairing, Business tokens are refused and the seed's own sign-in still works.
+
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: native sponsorship, token audience and renewal refusals.
+**Gap.** Owner-bound sponsorship, changed-email refusal, token audience and renewal negatives pass CORE measurement on published 0.2.94. Inactive and excluded sponsor fixtures remain undeclared; the complete sponsor lifecycle and multiple-sponsor family are unproved.
+
+#### BASE-AGENT-005 — An agent acts as a person in a role, never more
+
+Agent surface · target · **partial**
+
+**Requirement.** Every call is authorized as the sponsoring person's current role and access (BASE-ACCESS-004), intersected with the grant's resources, actions and budget. A grant only narrows. No call widens the calling agent's own authority. A call that would widen its own grant or its sponsor's role, or change the company policy or Pause, is refused with `self_escalation`, whatever the policy says; narrowing its own grant is allowed. Other access and security changes are ordinary actions in the access and security classes. An agent never acts after its sponsor is suspended. Anything an agent reads (records, files, emails, imports, other seeds' results) is data and cannot change its scope, its targets or a call's class.
+
+**Acceptance.**
+1. For each role fixture, every tool's allow or deny through MCP equals the UI's for the same action.
+2. A one-folder, read-only grant holds, and widening through arguments is refused.
+3. Downgrading the sponsor changes the next call's result, and suspending the sponsor returns 401.
+4. Calls that widen the agent's own grant or its sponsor's role, or change the policy or Pause, return `self_escalation` and change nothing, even under a policy with every class autonomous; dropping a scope from its own grant runs.
+5. An injection fixture yields no out-of-grant call and no change of class: record text asking for a wider action, or claiming that a recipient is internal.
+
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: sponsor authority, self-escalation and BASE-AGENT-005.5.autonomous injection probes.
+**Gap.** Native sponsor authority, self-escalation refusal and ordinary record operations pass. All autonomous additional-argument probes now pass on published 0.2.94: mutations retain their admitted arguments and exact idempotency key, while native stale-version and missing-target guards remain enforced. Complete role parity across retained unfinished jobs is unproved.
+
+#### BASE-AGENT-006 — Every action declares its risk class
+
+Agent surface · target · **partial**
+
+**Requirement.** Classes come from the fleet list in RISK-POLICY.md: standard, external, money, commitment, accounts, gated, access, security, destructive, sensitive and live. In the registry, each tool declares the classes it can carry and a server-side classifier that decides them per call from the arguments, current records and, for gated, the provider's answer. The classifier also supplies each class's facts: the measure (items, recipients, amount and currency, people or records), the counterparty (internal, known, new or public), the direction for access, the provider and step for gated, and the data kind for sensitive. A classifier never reads a flag, label or claim supplied by the agent or by record text. A seed cannot add a class; it proposes one for the fleet list.
+
+**Acceptance.**
+1. Every tool in `tools / list` carries its possible classes in `_meta`, equal to the Agent surface table.
+2. For each tool, fixture calls cover every class it can carry, and the computed classes and facts equal the fixture's expected values.
+3. An argument or record text asserting a class or a confirmation (`internal: true`, `confirmExternal: true`) leaves the computed classes unchanged.
+4. Money calls carry amount and currency, external calls their counterparty and recipient count, access calls their direction, and destructive calls their item count.
+5. No tool in `tools / list` declares a class outside the fleet list, and `rer check` fails on one.
+6. A refused call's audit row still records its computed classes.
+
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: computed native classes and both-policy decisions.
+**Gap.** Declared native class checks pass under autonomous and held policies. Approved erasure replay retains trusted completed effect facts only after current workspace-owner admission. The wider retained class conditions, provider costs and gated steps remain unproved.
+
+#### BASE-AGENT-007 — The company's policy decides, at one chokepoint
+
+Agent surface · target · **partial**
+
+**Requirement.** Every agent door calls one decision function: MCP, the integration API with agent tokens, and the seed's embedded agents. It evaluates the call's classes against the company's policy, as above. The seed ships no dispositions and fills no gap with one: agent access opens only under a complete policy that setup has asked for (RISK-POLICY.md), and before then every agent call returns `policy_unset` with the setup link and changes nothing. *Autonomous* runs the call. *Review* runs it and adds it to the review feed. *Approval* saves a pending action with server-computed facts and returns `input_required`, with a URL-mode elicitation to the seed's approval page and a pending handle. Each person the rule names approves the exact saved revision in a signed-in browser, and changed inputs need a new approval. The retried call returns the result and a receipt. A rejection returns `approval_rejected`, and a lapse past the wait the rule sets returns `approval_expired`. *Blocked* returns `policy_blocked`, naming the class, rule and revision.
+
+**Acceptance.**
+1. The Base harness runs each tool under each disposition for every class it can carry, and sees it run, run and enter the review feed, wait with no effect, or be refused.
+2. Before setup is complete, the setup page lists every class the seed's tools carry with examples and no answer pre-selected, an agent call returns `policy_unset` with the setup link and changes nothing, and an incomplete revision cannot be confirmed; a `*` rule completes it, and a tool an upgrade adds with an unanswered class appears in `tools / list` once that class is answered, while the other tools keep running.
+3. Under "money autonomous up to $500, approval up to $10,000, blocked above", calls of $400, $600 and $20,000 run, wait and are refused; a per-day cap sends the call that crosses it to the next rule.
+4. A call carrying two classes takes the stricter disposition.
+5. An approval shows server-computed facts and an expiry, returns the URL elicitation and a handle, and completes once after the named approver approves; a changed input needs a new approval, and a rejection or lapse leaves no effect.
+6. The same call through MCP, the integration API and an embedded agent gets the same decision.
+7. A policy change applies to the next call within 60 seconds, and the audit cites the new revision.
+8. A policy document with a bad signature or another Business's id is rejected, and the door keeps the last valid revision.
+
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: unset, renewal, blocked, review and approval policy phases.
+**Gap.** Unanswered-policy refusal, policy renewal negatives, declared blocked variants, held approvals and approved erasure replay pass CORE measurement on published 0.2.94. Standard-only named approval and the retained complete policy lifecycle remain unproved.
+
+#### BASE-AGENT-008 — Truthful attribution
+
+Agent surface · target · **partial**
+
+**Requirement.** Every agent act is recorded and shown as `"<agent> for <person>"`, and mail and messages an agent sends outside name it that way as their sender. An approval, a review mark, a confirmation (a warning dialog, a typed-field confirmation, a delivery confirmation), a decision or a signature attributed to a person comes only from that person's signed-in session. When an agent does the equivalent act, the record names the agent, and the act carries its own class; a binding decision or a signature is commitment. Agent doors ignore arguments that stand for a person's confirmation. No tool solves a bot check, or enters a person's own password or 2FA code at an outside service. A provider step that demands a person goes to a person, whatever the policy says; the gated class marks such steps before they run.
+
+**Acceptance.**
+1. An agent call carrying a person-confirmation flag is classified and decided exactly as without it.
+2. Approving, marking reviewed or answering a policy question with an agent or device token returns 403 and changes nothing.
+3. A form-mode elicitation "accept" never completes an approval.
+4. Where an agent's decision, signature or field confirmation runs without a person, it reads `"<agent> for <person>"` in the record, the activity view, exports and any certificate, never as the person's own act.
+5. After a person approves an agent's prepared action, the record shows the person as approver and the agent as preparer.
+6. Activity and exports at 1440 and 390 show `"<agent> for <person>"` for every agent act.
+7. Mail an agent sends to an outside address names `"<agent> for <person>"` as its sender.
+
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: agent, sponsor, preparer and independent reviewer attribution.
+**Gap.** Native agent and preparer identity, sponsor and independent reviewer attribution pass through the shared door. Complete attribution for the retained unscoped lifecycle families remains unproved.
+
+#### BASE-AGENT-009 — Every agent action is audited with its class and decision
+
+Agent surface · target · **partial**
+
+**Requirement.** Extending BASE-OPS-005, each call that reads private data or changes anything records the agent client, name and specialist, and the run or task id (`traceparent` when sent); the sponsoring person, the grant, the tool and the targets; the classes and their facts, and the policy revision and rule; the decision (autonomous, review, approval, blocked, unset or self_escalation) and the outcome (done, refused, pending or failed); the approval or review id and person, and the idempotency key. For a period, the seed's Agents page shows actions by class and decision with the notable ones, the review feed (Mark reviewed, Flag, and Undo where reversible), pending approvals, steps waiting for a person and setup questions. Business shows the same across seeds.
+
+**Acceptance.**
+1. One write leaves a complete audit row.
+2. Refused, pending, unset and self-escalation calls are audited.
+3. The Agents page's counts by class and decision equal the audit rows on a fixture week.
+4. The review feed lists exactly the calls decided as review; Mark reviewed records the person, and Undo restores a reversible one.
+5. Filtering by agent or class lists only those rows, and export includes every field.
+6. Removing the agent keeps its rows and its name.
+7. The Agents page works at 1440 and 390 with no serious or critical axe findings.
+
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: review, execution, replay and native-target audit phases.
+**Gap.** Review, execution, exact-key replay and native-continuation audit checks pass the declared CORE measurement on published 0.2.94. Complete audit acceptance for retained unscoped lifecycle families remains unproved.
+
+#### BASE-AGENT-010 — Agents can follow changes
+
+Agent surface · target · **missing**
+
+**Requirement.** The seed emits a typed event for every record change and for every approval, review and policy decision. Each event carries a stable id, a type, the record URI, the actor (a person, or an agent acting for a person) and a time. Events never carry secrets or more than the subscriber may read. Agents can read events three ways: `subscriptions / listen`, an `events.list` tool with a cursor, and signed webhooks from Base `integrations` using the same ids. Every channel delivers at least once and filters by access at delivery.
+
+**Acceptance.**
+1. A subscribed record changed in the UI produces a notification within 10 seconds.
+2. `events.list` returns the same event id the webhook carries.
+3. Replaying from a cursor returns the same ids in order.
+4. After access is revoked, no channel delivers events about that record.
+5. A failed webhook is visible and replays without duplicate effects.
+6. `approval.pending`, `approval.decided`, `review.flagged` and `policy.adopted` carry the class and decision and nothing the subscriber may not read.
+
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs`; `tests/agent-conformance/journey.mjs`
+**Gap.** Events and subscriptions remain undeclared and are refused in CORE. Multi-sponsor, mail edges and resource refresh remain unscoped obligations; no family conformance or complete-clause acceptance is claimed.
+
+#### BASE-AGENT-011 — Limits are policy, and Pause stops everything
+
+Agent surface · target · **partial**
+
+**Requirement.** Business limits are rules in the company's policy: per-call and per-day thresholds on any class's measure, such as money moved, outside recipients or items destroyed; spend caps on provider cost (models, SMS, email) per seed, specialist or agent, which setup asks with the classes; "no cap" is an answer. Tools with provider cost declare an estimate before they run, and an exhausted cap returns `budget_exhausted` before any partial effect. The seed's capacity limits (request rate, body and byte sizes) protect the installation: they bound rate and size, never daily business volume, are documented and are not policy. A grant carries budgets only when the person granting it sets them. A **Pause agents** control in the seed, and Pause all agents in Business when paired, refuses every agent token within 60 seconds until a person resumes; browser sessions and devices keep working.
+
+**Acceptance.**
+1. A rate overrun returns 429 with `Retry-After`.
+2. A per-day cap of three outside recipients sends the fourth to the rule that applies past the cap.
+3. An exhausted spend cap returns `budget_exhausted` with no partial effect and shows the spend.
+4. Under the answer "no cap", a spending call runs and its spend shows in usage; a call that spends nothing is unaffected by any cap.
+5. The usage view shows calls, decisions by class, money moved and provider spend per agent.
+6. Pause and Pause all agents each stop the next call within 60 seconds, and resume restores access.
+7. An agent token cannot resume.
+
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: Pause, pending-execution refusal and declared limits.
+**Gap.** Native Pause, refusal of pending execution and declared policy limits pass CORE measurement. The full retained spend, recipient-cap, Business Pause and usage lifecycle remains unproved.
+
+#### BASE-AGENT-012 — Writes are idempotent and conflict-safe
+
+Agent surface · target · **partial**
+
+**Requirement.** Every mutating tool requires an idempotency key and takes an optional expected revision. The same key with the same arguments returns the first outcome for at least 24 hours; the same key with different arguments returns `idempotency_conflict`; a stale revision returns `revision_conflict` with the current revision. Long work returns a job handle and a status tool, with no dependence on the Tasks extension.
+
+**Acceptance.**
+1. Two calls with one key give one effect and equal results.
+2. A retry with a new JSON-RPC id and the same key, after a dropped stream, returns the recorded outcome.
+3. The same key with different arguments returns a conflict and no effect.
+4. A stale revision returns a conflict naming the current revision.
+5. A job handle used by another person's token reads as not found.
+
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: one-effect replay, current admission, revision conflicts and native continuation identity.
+**Gap.** Current admission, exact-key one-effect replay, argument conflict, stale revision, current native reads and trusted continuation identity pass. Deleted-target erasure replay rechecks current workspace-owner authority and native proof; Pause and fresh-key missing-target refusals remain asserted. Published 0.2.94 injection probes preserve the admitted mutation key and arguments. Retained long-work and full 24-hour lifecycle acceptance remains unproved.
+
+#### BASE-AGENT-013 — Manifest, docs and the conformance journey
+
+Agent surface · target · **partial**
+
+**Requirement.** `server / discover` instructions and an on-site `/docs/agents` page are generated from the action registry. The page lists tools by job, with each tool's classes, the test that adds each computed class, its scopes, resource templates, event types, capacity limits and error codes, and the specialist role. `prompts / list` carries the specialist's jobs. Base ships the conformance journey, a harness that `rer verify` runs against `rer dev` and seeds run in CI. It is an MCP client; a signed-in test person takes a person's steps (setup answers, approvals, review marks, resume) through the URLs the door returns, and the same browser leg runs the UI-parity actions and the page checks at 1440 and 390. It runs every acceptance point of BASE-AGENT-001 to 012 and of the seed's SURFACE clauses under two company policies: *all autonomous* (`*`), and *held* (standard review, every other class the seed declares approval, which the test person grants), plus the single-class variants a point names. A point that names no disposition passes under both.
+
+**Acceptance.**
+1. The docs list exactly the names in `tools / list` and `resources / templates / list`.
+2. Each tool's classes, and the test behind each computed one, are documented.
+3. The harness fails on any of: a tool without a schema; an effect under approval or blocked, or before setup is complete; a computed class that differs from its fixture; a flag that changes a class or completes a person's step; a role-parity mismatch; a wrong-audience token being accepted; a duplicate effect on retry.
+4. Every acceptance point runs under both policies, every decision matches the policy in force, and under all autonomous no call waits for a person or is refused by policy.
+5. A stranger agent given only the seed URL completes the specialist journey through MCP.
+
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: published CORE conformance and nativeJourney under both policies.
+**Gap.** All declared CORE conformance points pass on published 0.2.94, including the formerly failing autonomous post-mutation injection probes. Worker admissions remain invoke-only. Resources, prompts, events and subscriptions are undeclared; timed, queued, dual-host and owner-native journeys remain outside CORE under ct 2026-10-29T14:12Z ruling 2. Complete-clause acceptance is unproved.
+
 ### Agent surface
 
 #### SURFACE-001 — The registry equals this table and the Base harness passes
@@ -1306,7 +1532,7 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-001, BASE
 3. `resources/templates/list` names exactly the resource templates above, and each write returns a link to the record it touched.
 4. The Base conformance harness passes on Uptime's seeded fixtures under both company policies.
 
-**Evidence.** None.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: CORE registry, schema and both-policy harness checks.
 **Gap.** No implementation: Uptime has no MCP door, tool registry, resource templates or Base conformance harness run.
 
 #### SURFACE-002 — Live and security are computed per call
@@ -1316,16 +1542,16 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
 **Requirement.** Uptime's server computes the live and security classes and their facts from the arguments and current records for every call that can carry them.
 
 **Acceptance.**
-1. `uptime.monitors.save` is standard for a paused revision and live, with the monitors affected, for a change to a running monitor or one that enables checks; it adds security when it binds a credential reference or a TLS trust exception. `uptime.credentials.update` adds live, with the monitors affected, when it binds, rotates or revokes a request credential reference used by a running monitor; the same change for a paused monitor does not add live.
-2. `uptime.monitors.bulk`, `uptime.definitions.apply` and `uptime.settings.update` are standard for paused creations and live when they enable checks or change running monitors. `uptime.monitors.bulk` adds security, with the setting, when a clone copies a TLS trust exception; a clone of a monitor without one does not add security. `uptime.definitions.apply` is also live when it changes routes, contacts or maintenance or destroys a running monitor, with the monitors and routes affected, and adds security when it binds or changes a request credential reference or destination endpoint credential, with the credential setting. `uptime.settings.update` adds security, with the setting changed, when it changes snapshot masks, safe values or email release.
-3. `uptime.routes.update`, `uptime.maintenance.update`, `uptime.monitors.pause` and `uptime.handoffs.update` are live with the monitors and routes they change, and `uptime.handoffs.update` adds security when it stores a connector credential. `uptime.erasure.run` adds live when it erases a running monitor, or a destination or operator on a running monitor's alert path; `uptime.automations.update` adds live when it pauses or revokes an automation on that path. Both name the monitors and routes affected; erasure outside running monitors and their alert paths, or an automation pause or revocation outside those paths, does not add live.
-4. `uptime.discovery.run` is standard for a run, adds live when it adopts a proposal that enables checks and adds security when it authorizes a provider source credential; `uptime.dependencies.follow` adds live when following starts checks or unfollowing stops them, with the dependency monitors affected.
-5. `uptime.destinations.update` is standard for a name change and adds live when it creates, enables, disables or removes a destination on a running monitor's route, with the routes and monitors affected; outside running monitors' routes those changes do not add live. It adds external as SURFACE-003 specifies for an outside alert recipient, and adds security when it sets or rotates an endpoint URL, signing key, header secret or bot token.
+1. `uptime.monitors.create` or `uptime.monitors.update` is standard for a paused revision and live, with the monitors affected, for a change to a running monitor or one that enables checks; it adds security when it binds a credential reference or a TLS trust exception. `uptime.monitors.create` or `uptime.monitors.update` adds live, with the monitors affected, when it binds, rotates or revokes a request credential reference used by a running monitor; the same change for a paused monitor does not add live.
+2. `uptime.monitors.list` or `uptime.monitors.create` or `uptime.monitors.update`, `uptime.definitions.read` or `uptime.definitions.preview` and the pending settings update operation are standard for paused creations and live when they enable checks or change running monitors. `uptime.monitors.list` or `uptime.monitors.create` or `uptime.monitors.update` adds security, with the setting, when a clone copies a TLS trust exception; a clone of a monitor without one does not add security. `uptime.definitions.read` or `uptime.definitions.preview` is also live when it changes routes, contacts or maintenance or destroys a running monitor, with the monitors and routes affected, and adds security when it binds or changes a request credential reference or destination endpoint credential, with the credential setting. the pending settings update operation adds security, with the setting changed, when it changes snapshot masks, safe values or email release.
+3. `uptime.routes.read` or `uptime.routes.preview` or `uptime.routes.update`, `uptime.maintenance.read` or `uptime.maintenance.preview` or `uptime.maintenance.update`, `uptime.monitors.pause` or `uptime.monitors.resume` and the pending handoffs update operation are live with the monitors and routes they change, and the pending handoffs update operation adds security when it stores a connector credential. `uptime.privacy.erase` adds live when it erases a running monitor, or a destination or operator on a running monitor's alert path; the pending automations update operation adds live when it pauses or revokes an automation on that path. Both name the monitors and routes affected; erasure outside running monitors and their alert paths, or an automation pause or revocation outside those paths, does not add live.
+4. `uptime.discovery.start` or `uptime.discovery.read` is standard for a run, adds live when it adopts a proposal that enables checks and adds security when it authorizes a provider source credential; the pending dependencies follow operation adds live when following starts checks or unfollowing stops them, with the dependency monitors affected.
+5. `uptime.destinations.read` or `uptime.destinations.update` is standard for a name change and adds live when it creates, enables, disables or removes a destination on a running monitor's route, with the routes and monitors affected; outside running monitors' routes those changes do not add live. It adds external as SURFACE-003 specifies for an outside alert recipient, and adds security when it sets or rotates an endpoint URL, signing key, header secret or bot token.
 6. Record text or arguments claiming a change is paused, internal or credential-free leave the computed classes unchanged.
-7. `uptime.runners.update` adds live when it revokes or relabels a runner with assigned probes, with the monitors affected; revoking or relabeling a runner without assigned probes does not add live. It adds security when it issues a runner key. `uptime.grants.update` adds live when it grants or revokes a live-effect, synthetic or private-network grant a running monitor's checks use, and `uptime.heartbeats.issue` adds live when it rotates or revokes a running heartbeat monitor's token or URL authority. Each names the monitors affected; changes to grants or heartbeat authority used only by paused monitors do not add live.
-8. `uptime.members.update` adds security when it resets a member's enrolled second factors, with the factor-reset setting; invitations, role changes and removals do not add security for a factor reset. It adds live when a removal or role or scope change drops a team recipient on a running monitor's route, with the monitors and routes affected; a change that drops no such recipient does not add live.
+7. the pending runners update operation adds live when it revokes or relabels a runner with assigned probes, with the monitors affected; revoking or relabeling a runner without assigned probes does not add live. It adds security when it issues a runner key. `uptime.grants.read` adds live when it grants or revokes a live-effect, synthetic or private-network grant a running monitor's checks use, and the pending heartbeats issue operation adds live when it rotates or revokes a running heartbeat monitor's token or URL authority. Each names the monitors affected; changes to grants or heartbeat authority used only by paused monitors do not add live.
+8. `uptime.access.update` adds security when it resets a member's enrolled second factors, with the factor-reset setting; invitations, role changes and removals do not add security for a factor reset. It adds live when a removal or role or scope change drops a team recipient on a running monitor's route, with the monitors and routes affected; a change that drops no such recipient does not add live.
 
-**Evidence.** None.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: native live and security class fixtures under both policies.
 **Gap.** No implementation: no tool declares or computes live or security classes.
 
 #### SURFACE-003 — External and money are computed per call
@@ -1335,16 +1561,16 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
 **Requirement.** Uptime's server computes the external and money classes and their facts from the destination, the recipient and the price on record for every call that can carry them.
 
 **Acceptance.**
-1. `uptime.destinations.test` carries external with its recipient count and counterparty, *known* for a destination already on record and *new* otherwise, and adds money with the USD price when the destination is SMS or voice.
-2. `uptime.phones.verify` carries external and money with the number and the USD price of the code message.
-3. `uptime.incidents.publish` carries external with counterparty *public*; `uptime.reports.schedule` adds external when a recipient is outside the business; `uptime.dependencies.follow` adds external with counterparty *known* when following Auth0 sends the tenant domain to Auth0; `uptime.automations.update` adds external when a test sends an event to the automation.
-4. `uptime.settings.update` adds money with the amount when it changes the phone budget or plan, and `uptime.grants.update` adds money with the spend limit when a grant allows live payments or refunds.
+1. `uptime.destinations.test` or `uptime.destinations.drill` carries external with its recipient count and counterparty, *known* for a destination already on record and *new* otherwise, and adds money with the USD price when the destination is SMS or voice.
+2. the pending phones verify operation carries external and money with the number and the USD price of the code message.
+3. the pending incidents publish operation carries external with counterparty *public*; the pending reports schedule operation adds external when a recipient is outside the business; the pending dependencies follow operation adds external with counterparty *known* when following Auth0 sends the tenant domain to Auth0; the pending automations update operation adds external when a test sends an event to the automation.
+4. the pending settings update operation adds money with the amount when it changes the phone budget or plan, and `uptime.grants.read` adds money with the spend limit when a grant allows live payments or refunds.
 5. Record text or arguments claiming a recipient is internal or a cost is zero leave the computed classes and facts unchanged.
-6. `uptime.monitors.check` adds money when the monitor holds an active live-payment or refund grant, with the USD amount and payee from the grant and current transaction; a manual check without such a grant does not add money.
-7. `uptime.routes.update`, `uptime.destinations.update` and `uptime.definitions.apply` add external when a route, an enabled destination or a code-applied contact puts a recipient outside the business on the alert path; `uptime.monitors.save` adds external when a slow policy's destinations include a recipient outside the business, and `uptime.monitors.bulk` adds external when the created monitors' shared alert route includes one. Each carries the recipient count and counterparty *known* for a recipient already on record and *new* otherwise; a change that exposes alerts only within the business does not add external.
-8. `uptime.handoffs.update` adds external when a mapping exposes incident, maintenance or recovery updates, evidence and attachments to a status page or an outside responder service, with the recipient count and counterparty *public* for a status page, *known* for a PagerDuty, Splunk On-Call or other outside responder service already on record and *new* otherwise; a mapping confined to the business does not add external.
+6. `uptime.checks.run` adds money when the monitor holds an active live-payment or refund grant, with the USD amount and payee from the grant and current transaction; a manual check without such a grant does not add money.
+7. `uptime.routes.read` or `uptime.routes.preview` or `uptime.routes.update`, `uptime.destinations.read` or `uptime.destinations.update` and `uptime.definitions.read` or `uptime.definitions.preview` add external when a route, an enabled destination or a code-applied contact puts a recipient outside the business on the alert path; `uptime.monitors.create` or `uptime.monitors.update` adds external when a slow policy's destinations include a recipient outside the business, and `uptime.monitors.list` or `uptime.monitors.create` or `uptime.monitors.update` adds external when the created monitors' shared alert route includes one. Each carries the recipient count and counterparty *known* for a recipient already on record and *new* otherwise; a change that exposes alerts only within the business does not add external.
+8. the pending handoffs update operation adds external when a mapping exposes incident, maintenance or recovery updates, evidence and attachments to a status page or an outside responder service, with the recipient count and counterparty *public* for a status page, *known* for a PagerDuty, Splunk On-Call or other outside responder service already on record and *new* otherwise; a mapping confined to the business does not add external.
 
-**Evidence.** None.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: native external class fixtures under both policies.
 **Gap.** No implementation: no tool declares or computes external or money classes.
 
 #### SURFACE-004 — Access, destructive and gated are computed per call
@@ -1354,16 +1580,16 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
 **Requirement.** Uptime's server computes access, destructive and gated from the people, credentials, records and provider steps a call touches, and marks the steps a provider keeps for a person as gated before they run.
 
 **Acceptance.**
-1. `uptime.members.update`, `uptime.runners.update` and `uptime.keys.update` carry access with the people or credentials and whether the change widens or narrows; `uptime.automations.update` adds access when it grants, changes or revokes an automation app's authority, with the app and whether the change widens or narrows.
-2. `uptime.erasure.run` carries destructive with the item count per table and adds access when it erases an operator.
-3. `uptime.destinations.update` adds gated when a Teams admin must install the Uptime Teams app or a buyer must connect their own Twilio account, `uptime.automations.update` adds gated when a person must authorize Zapier or Make, and `uptime.phones.verify` adds gated for the recipient's own code entry; each gated step names the provider and the step.
-4. `uptime.incidents.comment` adds destructive when it deletes a comment, with the number of comments whose text and edit history are irreversibly removed; an add or edit does not carry destructive.
-5. `uptime.destinations.update` adds destructive when it removes a destination, with the item count per table erased; creating, rotating or disabling a destination does not add destructive.
-6. `uptime.settings.update` adds destructive when it shortens snapshot retention, with the count of retained snapshots whose expiry is shortened; leaving retention unchanged or increasing it does not add destructive for retention and never restores an expiry already shortened.
-7. `uptime.definitions.apply` adds destructive when code-managed destruction irreversibly erases a monitor, its evidence or another managed record, with the item count per table; a preview or a reversible definition change does not add destructive.
-8. `uptime.monitors.check` adds destructive when the monitor holds an active destructive-write grant, with the step and item count; a manual check without such a grant does not add destructive. `uptime.grants.update` adds destructive when it grants authority for destructive writes, with the step and item count; a grant that does not allow destructive writes does not add destructive.
+1. `uptime.access.update`, the pending runners update operation and the pending keys update operation carry access with the people or credentials and whether the change widens or narrows; the pending automations update operation adds access when it grants, changes or revokes an automation app's authority, with the app and whether the change widens or narrows.
+2. `uptime.privacy.erase` carries destructive with the item count per table and adds access when it erases an operator.
+3. `uptime.destinations.read` or `uptime.destinations.update` adds gated when a Teams admin must install the Uptime Teams app or a buyer must connect their own Twilio account, the pending automations update operation adds gated when a person must authorize Zapier or Make, and the pending phones verify operation adds gated for the recipient's own code entry; each gated step names the provider and the step.
+4. `uptime.incidents.note` adds destructive when it deletes a comment, with the number of comments whose text and edit history are irreversibly removed; an add or edit does not carry destructive.
+5. `uptime.destinations.read` or `uptime.destinations.update` adds destructive when it removes a destination, with the item count per table erased; creating, rotating or disabling a destination does not add destructive.
+6. the pending settings update operation adds destructive when it shortens snapshot retention, with the count of retained snapshots whose expiry is shortened; leaving retention unchanged or increasing it does not add destructive for retention and never restores an expiry already shortened.
+7. `uptime.definitions.read` or `uptime.definitions.preview` adds destructive when code-managed destruction irreversibly erases a monitor, its evidence or another managed record, with the item count per table; a preview or a reversible definition change does not add destructive.
+8. `uptime.checks.run` adds destructive when the monitor holds an active destructive-write grant, with the step and item count; a manual check without such a grant does not add destructive. `uptime.grants.read` adds destructive when it grants authority for destructive writes, with the step and item count; a grant that does not allow destructive writes does not add destructive.
 
-**Evidence.** None.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: native access and destructive class fixtures under both policies.
 **Gap.** No implementation: no tool declares or computes access, destructive or gated classes, and no incident record attributes an agent act.
 
 #### SURFACE-005 — The monitoring-operator journey under two company policies
@@ -1379,7 +1605,7 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-007, BASE
 4. Under the held policy with live blocked, the adoptions, the pause, the maintenance window and the route change are refused and the rest of the week completes.
 5. Before setup is answered, the first call returns `policy_unset` with the setup link, and setup asks every Uptime class with no answer pre-selected.
 
-**Evidence.** None.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: nativeJourney, beforeStep and afterStep under both company policies.
 **Gap.** No implementation: no MCP door exists for a stranger agent to run the monitoring-operator week under either company policy.
 
 #### SURFACE-006 — One-way operational actions carry their effects
@@ -1389,10 +1615,10 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
 **Requirement.** Uptime computes the irreversible and live effects of manual checks, cleanup-debt resolution and incident response actions from the affected debts, incidents, running monitors and alert routes.
 
 **Acceptance.**
-1. `uptime.cleanup.resolve` carries destructive with the debts irreversibly closed; it adds live, with the monitor affected, when resolving a debt takes a running monitor below the open-debt limit so its next scheduled run performs setup again. A resolution that leaves setup refused, or affects only a paused monitor, does not add live.
-2. `uptime.incidents.work` is standard for taking or reassigning ownership. Acknowledge, stop and resolve carry destructive with the incidents irreversibly changed, including incidents grouped by acknowledgment; assignment does not carry destructive.
-3. `uptime.incidents.work` adds live when acknowledge, stop or resolve ends scheduled reminders or a pending fallback on an open incident of a running monitor, including other incidents grouped by acknowledgment. Facts name every monitor, incident and route affected, applying each contact’s acknowledgment policy. Assignment, and a response action that ends no such scheduled reminder or pending fallback, do not add live.
-4. `uptime.monitors.check` adds live, with the monitor affected, when the monitor runs setup and cleanup fixtures and the cleanup debts this check can open (one for each cleanup step on each probe and attempt) would bring its open-debt count to the limit, so its next scheduled run would refuse setup. A check of a monitor without fixtures, or one whose possible debts cannot reach the limit, does not add live.
+1. the pending cleanup resolve operation carries destructive with the debts irreversibly closed; it adds live, with the monitor affected, when resolving a debt takes a running monitor below the open-debt limit so its next scheduled run performs setup again. A resolution that leaves setup refused, or affects only a paused monitor, does not add live.
+2. `uptime.incidents.assign` or `uptime.incidents.acknowledge` is standard for taking or reassigning ownership. Acknowledge, stop and resolve carry destructive with the incidents irreversibly changed, including incidents grouped by acknowledgment; assignment does not carry destructive.
+3. `uptime.incidents.assign` or `uptime.incidents.acknowledge` adds live when acknowledge, stop or resolve ends scheduled reminders or a pending fallback on an open incident of a running monitor, including other incidents grouped by acknowledgment. Facts name every monitor, incident and route affected, applying each contact’s acknowledgment policy. Assignment, and a response action that ends no such scheduled reminder or pending fallback, do not add live.
+4. `uptime.checks.run` adds live, with the monitor affected, when the monitor runs setup and cleanup fixtures and the cleanup debts this check can open (one for each cleanup step on each probe and attempt) would bring its open-debt count to the limit, so its next scheduled run would refuse setup. A check of a monitor without fixtures, or one whose possible debts cannot reach the limit, does not add live.
 
 **Evidence.** None.
 **Gap.** No implementation: no tool computes irreversible cleanup-debt or incident transitions, setup resumption or reminder and fallback suppression across affected monitors, incidents and routes.

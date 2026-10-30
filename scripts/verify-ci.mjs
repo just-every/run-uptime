@@ -86,25 +86,41 @@ export async function lookupMainVerification({ env = process.env, fetch = global
  return false;
 }
 
-// Reads only what a permission check needs from workflow YAML: nested block
-// mappings and one-line values. A sequence or a value that continues on later
-// lines is opaque; any other shape makes the file unreadable (null).
+// Reads block mappings, step mappings and one-line values from workflow YAML.
+// Other sequences and values that continue on later lines are opaque;
+// any other shape makes the file unreadable (null).
 const opaque = Symbol('opaque');
 function outline(text) {
  const root = {}, stack = [{ indent: -1, node: root }];
  let skip = Infinity, open;
  for (const raw of text.split(/\r?\n/)) {
-  const line = raw.replace(/(^|\s)#.*$/, '').trimEnd(), indent = line.search(/\S/);
+  const line = raw.replace(/(^|\s)#.*$/, '').trimEnd();
+  let indent = line.search(/\S/);
   if (indent < 0 || /^(---|\.\.\.)$/.test(line)) continue;
-  const body = line.slice(indent), item = /^-(\s|$)/.test(body);
+  let body = line.slice(indent);
+  const item = /^-(\s|$)/.test(body);
   if (indent > skip || (indent === skip && item)) continue;
   skip = Infinity;
   if (item) {
-   if (!open || indent < open.indent) return null;
-   open.parent[open.key] = opaque;
-   skip = open.indent;
+   const steps = stack.findLast(entry => entry.key === 'steps' && indent >= entry.indent
+    && (entry.sequenceIndent === undefined || entry.sequenceIndent === indent));
+   if (!steps) {
+    if (!open || indent < open.indent) return null;
+    open.parent[open.key] = opaque;
+    skip = open.indent;
+    open = undefined;
+    continue;
+   }
+   steps.sequenceIndent = indent;
+   while (stack.at(-1) !== steps) stack.pop();
+   const node = {};
+   steps.node[Object.keys(steps.node).length] = node;
+   stack.push({ indent, node });
+   const prefix = /^-\s*/.exec(body)[0];
+   body = body.slice(prefix.length);
+   indent += prefix.length;
    open = undefined;
-   continue;
+   if (!body) continue;
   }
   const match = /^(?:'([^']*)'|"([^"]*)"|([^\s'"{[\]}&*!|>-][^:]*?))\s*:(?:\s+(.*))?$/.exec(body);
   if (!match) return null;
@@ -112,7 +128,7 @@ function outline(text) {
   const parent = stack.at(-1).node, key = match[1] ?? match[2] ?? match[3], value = match[4]?.trim();
   if (!value) {
    parent[key] = {};
-   stack.push({ indent, node: parent[key] });
+   stack.push({ indent, key, node: parent[key] });
    open = { indent, parent, key };
    continue;
   }
@@ -140,9 +156,21 @@ async function workflowPermissionErrors(directory = '.github/workflows') {
  const files = (await readdir(directory)).filter(name => /\.ya?ml$/.test(name));
  const texts = Object.fromEntries(await Promise.all(files.map(async name => [name, await readFile(join(directory, name), 'utf8')])));
  const errors = [];
- for (const name of files.filter(file => texts[file].includes('./.github/workflows/'))) {
+ for (const name of files.filter(file => /\.\/\.github\/workflows\/|actions\/(?:upload|download)-artifact@/.test(texts[file]))) {
   const caller = outline(texts[name]);
   if (!readable(caller)) { errors.push(`${name}: cannot read its jobs`); continue; }
+  const artifacts = Object.entries(readable(caller.jobs) ? caller.jobs : {}).flatMap(([job, value]) =>
+   Object.values(readable(value?.steps) ? value.steps : {}).flatMap(step => {
+    const action = /^actions\/(upload|download)-artifact@/.exec(step?.uses ?? '')?.[1];
+    return action && typeof step.with?.name === 'string' ? [{ job, action, name: step.with.name }] : [];
+   }));
+  const attempt = /\bgithub\s*\.\s*run_attempt\b/;
+  const sharedName = value => value.replace(/[-_.]?\$\{\{\s*github\s*\.\s*run_attempt\s*\}\}/g, '').replace(/^[-_.]/, '');
+  for (const artifact of artifacts.filter(artifact => attempt.test(artifact.name))) {
+   const consumer = artifacts.find(other => other.action === 'download' && other.job !== artifact.job
+    && sharedName(other.name) === sharedName(artifact.name));
+   if (artifact.action === 'download' || consumer) errors.push(`${join(directory, name)} job ${artifact.job}: ${artifact.action}-artifact name ${artifact.name} uses github.run_attempt${consumer ? ` and is shared with job ${consumer.job}` : ''}; use the same attempt-independent name for upload and download so failed-jobs reruns can find it`);
+  }
   for (const [id, job] of Object.entries(readable(caller.jobs) ? caller.jobs : {})) {
    const target = /^\.\/\.github\/workflows\/([^/@]+\.ya?ml)$/.exec(job?.uses ?? '')?.[1];
    if (!target) continue;
@@ -195,7 +223,7 @@ if (invokedDirectly()) {
   const errors = await workflowPermissionErrors();
   for (const error of errors) console.error(error);
   if (errors.length) process.exit(1);
-  console.log('Every local reusable workflow call grants what its jobs request.');
+  console.log('Workflow permissions and shared artifact names are valid.');
  } else {
   const { verificationPlan, run } = await import('./verify-app.mjs');
   const plan = await verificationPlan();
