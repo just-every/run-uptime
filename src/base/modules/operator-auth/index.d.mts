@@ -220,6 +220,13 @@ export interface OperatorAuth<R extends string = Role> {
   cancelInvitation(request: Request, operatorId: string): Promise<Operator<R>>;
   setOperatorStatus(request: Request, operatorId: string, status: 'active' | 'inactive'): Promise<Operator<R>>;
   setRole(request: Request, operatorId: string, role: Role): Promise<Operator<R>>;
+  /** Trusted server only: caller admits the delegated principal; native policy
+   * and sponsor authority are checked again in each mutation transaction. */
+  delegatedAdministration(input: { personId: string; auditLabel: string; agentId: string }): {
+    invite(input: { email: string; displayName: string; role?: 'admin' | 'member'; returnTo?: string }): Promise<{ status: 'accepted' }>;
+    setRole(operatorId: string, role: 'admin' | 'member'): Promise<Operator<R>>;
+    listOperators(): Promise<Operator<R>[]>;
+  };
   listSessions(request: Request, operatorId?: string): Promise<Array<{ id: string; kind: SessionKind; createdAt: number; expiresAt: number; active: boolean }>>;
   revokeSession(request: Request, sessionId: string): Promise<void>;
   issueReviewSession(request: Request, input?: { returnTo?: string }): Promise<CompletedSession<R>>;
