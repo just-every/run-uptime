@@ -8539,6 +8539,10 @@
       "sha256": "2da4fe23bce12c5c1aa2cbbe86397888023d22d0c3038fe4949959920157d08b",
       "executable": false
     },
+    "tests/agent-access-facts-support.mjs": {
+      "sha256": "a1ef721ccac669e0ad42fd8001c6135ae4a482b06ff4d00770176ca6fcb8ecb6",
+      "executable": false
+    },
     "tests/agent-conformance/fixtures.mjs": {
       "sha256": "dd155d4a115fb6e43e74cd45a90d85a08abbf698a90dcf1d513a43e9e0712b57",
       "executable": false
