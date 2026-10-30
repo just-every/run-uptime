@@ -559,8 +559,8 @@ Core · target · **partial** · Register R-1
 2. Allowlist only the published addresses at a controlled WAF and see every location pass.
 3. Stage an address change and verify the notice, pending entry and 30-day hold before the new address carries checks; redirect cross-origin and prove the secret header is not forwarded; inspect the Worker vantage's not-allowlistable label.
 
-**Evidence.** `src/domain/worker-http.server.ts`; `runners/src/public-http.mjs`; `tests/tls-auth.mjs`
-**Gap.** Hosted and runner requests send a release-identifying User-Agent; dedicated egress, published address files/DNS/API, change notice and the WAF header do not exist.
+**Evidence.** `tests/hosted-alerts.mjs` invokes `tests/hosted-probe-identification-support.mjs` proveHostedProbeIdentification: owner-created HTTP and keyword monitors, actual scheduled Worker requests, independently received release and public documentation URL with distinct opaque references stable through retry, same-origin and cross-origin redirect, restart and owner edit; planted private names and session authority excluded; ordinary failure, recovery and immutable history retained with unchanged evidence runnerVersion. Existing private-runner context: `runners/src/public-http.mjs`; `tests/tls-auth.mjs`.
+**Gap.** Current hosted HTTP and keyword target identification is proved locally. Platform managed locations, source-address qualification and dedicated IPv4 and IPv6 egress remain held, including published text and JSON files, DNS and versioned API address lists with effective dates, controlled-WAF allowlisting, advance owner email and changelog and RSS notices, pending changes and 30-day enforcement, and emergency reasons. The optional installation-secret header and its cross-origin stripping, private-runner observed egress and identification changes, other request classes, the Worker not-allowlistable console label and published-location alternative, uip-owned console work and hosted qualification remain owed.
 
 #### PRIVATE-001 — Buyer-network private locations
 
