@@ -1308,8 +1308,8 @@ Agent surface · target · **missing**
 5. A foreign Origin returns 403, and a header and body method mismatch returns `HeaderMismatch`.
 6. An oversized body returns 413 with no effect.
 
-**Evidence.** None.
-**Gap.** Not yet judged through this seed's own doors.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs`; `tests/agent-conformance/journey.mjs`
+**Gap.** Native MCP transport is implemented and measured in CORE; this seed has no independent complete-clause judgment. Optional capabilities and the remaining conformance failures are not acceptance claims.
 
 #### BASE-AGENT-002 — The seed's jobs are tools, through the UI's own actions
 
@@ -1325,8 +1325,8 @@ Agent surface · target · **missing**
 5. The UI action and its tool, on the same fixture, give the same record state and the same audit event type.
 6. The seed's embedded agents appear in the audit as calls to the same tools.
 
-**Evidence.** None.
-**Gap.** Not yet judged through this seed's own doors.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs`; `tests/agent-conformance/journey.mjs`
+**Gap.** Native actions share the existing server services and retain their schemas, scopes and clause IDs. CORE implementation is measured; retained unfinished jobs still require implementation and full clause acceptance.
 
 #### BASE-AGENT-003 — Records are resources
 
@@ -1342,8 +1342,8 @@ Agent surface · target · **missing**
 5. Bytes over budget return `budget_exhausted` and no partial content.
 6. Customer-sourced text carries the untrusted marker.
 
-**Evidence.** None.
-**Gap.** Not yet judged through this seed's own doors. READY-PENDING-BASE 2026-10-30: resources undeclared in CORE. Resource consent and operation identity require Base 0.2.91 gr-base-door-0290-resctx-1 (modules/agent-door/resource-tool.ts:16-21).
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs`; `tests/agent-conformance/journey.mjs`
+**Gap.** Resources remain undeclared in CORE: native templates are retained as registry facts and public reads are refused. Base resource consent/operation-context support has shipped, but no resource-family conformance or complete-clause judgment is claimed.
 
 #### BASE-AGENT-004 — Business identity and short-lived, audience-bound tokens
 
@@ -1360,8 +1360,8 @@ Agent surface · target · **missing**
 6. Revoking consent in the seed or in Business refuses the next call within 60 seconds.
 7. After unpairing, Business tokens are refused and the seed's own sign-in still works.
 
-**Evidence.** None.
-**Gap.** Not yet judged through this seed's own doors. READY-PENDING-BASE 2026-10-30: post-agent-ID initialization gr-base-0290-agentinit-1 (conformance/index.mjs:28, fixtures.mjs:18, protocol.mjs:116); sponsor negatives gr-base-0290-sponsorneg-1 (conformance/negative.mjs:15-22, fixtures.mjs:19), both Base 0.2.91.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs`; `tests/agent-conformance/journey.mjs`
+**Gap.** Published 0.2.93 owner-bound sponsorship, changed-email refusal and renewal negatives pass CORE measurement. Inactive and excluded sponsor fixtures are undeclared and run no points. Post-agent-ID initialization support has shipped; undeclared sponsor lifecycles and complete identity acceptance remain unclaimed.
 
 #### BASE-AGENT-005 — An agent acts as a person in a role, never more
 
@@ -1376,8 +1376,8 @@ Agent surface · target · **missing**
 4. Calls that widen the agent's own grant or its sponsor's role, or change the policy or Pause, return `self_escalation` and change nothing, even under a policy with every class autonomous; dropping a scope from its own grant runs.
 5. An injection fixture yields no out-of-grant call and no change of class: record text asking for a wider action, or claiming that a recipient is internal.
 
-**Evidence.** None.
-**Gap.** Not yet judged through this seed's own doors.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs`; `tests/agent-conformance/journey.mjs`
+**Gap.** Native sponsor authority, self-escalation refusal and ordinary record operations remain enforced. Nine autonomous additional-argument variants fail after their original mutation consumes its version or target (0.2.93 conformance/injection.mjs:20-23 and protocol.mjs:129-132); their correct native stale-version or not-found refusal is retained. No complete-clause judgment is promoted.
 
 #### BASE-AGENT-006 — Every action declares its risk class
 
@@ -1393,8 +1393,8 @@ Agent surface · target · **missing**
 5. No tool in `tools / list` declares a class outside the fleet list, and `rer check` fails on one.
 6. A refused call's audit row still records its computed classes.
 
-**Evidence.** None.
-**Gap.** Not yet judged through this seed's own doors.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs`; `tests/agent-conformance/journey.mjs`
+**Gap.** Declared native class checks run under both policies. Approved erasure replay loses its classification after deletion (0.2.93 pipeline.ts:122; ADOPTING.md:826-829, deferred A1). The wider retained class conditions remain unjudged.
 
 #### BASE-AGENT-007 — The company's policy decides, at one chokepoint
 
@@ -1412,8 +1412,8 @@ Agent surface · target · **missing**
 7. A policy change applies to the next call within 60 seconds, and the audit cites the new revision.
 8. A policy document with a bad signature or another Business's id is rejected, and the door keeps the last valid revision.
 
-**Evidence.** None.
-**Gap.** Not yet judged through this seed's own doors. READY-PENDING-BASE 2026-10-30: verifier-policy renewal gr-base-0290-verifierrenewal-1 (conformance/crypto.mjs:34); standard-only named approval has no writer yet (conformance/crypto.mjs:28, journey.mjs:63-81).
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs`; `tests/agent-conformance/journey.mjs`
+**Gap.** Published 0.2.93 verifier-policy renewal and the declared policy variants pass except the approved erasure receipt. That retry returns not_found after native deletion (pipeline.ts:122; ADOPTING.md:826-829, deferred A1). The earlier renewal dependency has shipped. Standard-only named approval remains a separate acceptance obligation with no writer supplied in the brief; no complete-clause judgment is promoted.
 
 #### BASE-AGENT-008 — Truthful attribution
 
@@ -1430,8 +1430,8 @@ Agent surface · target · **missing**
 6. Activity and exports at 1440 and 390 show `"<agent> for <person>"` for every agent act.
 7. Mail an agent sends to an outside address names `"<agent> for <person>"` as its sender.
 
-**Evidence.** None.
-**Gap.** Not yet judged through this seed's own doors.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs`; `tests/agent-conformance/journey.mjs`
+**Gap.** Native agent/preparer, sponsor and independent reviewer attribution is measured through the shared door. Complete clause acceptance and the retained unscoped lifecycle obligations remain unjudged.
 
 #### BASE-AGENT-009 — Every agent action is audited with its class and decision
 
@@ -1448,8 +1448,8 @@ Agent surface · target · **missing**
 6. Removing the agent keeps its rows and its name.
 7. The Agents page works at 1440 and 390 with no serious or critical axe findings.
 
-**Evidence.** None.
-**Gap.** Not yet judged through this seed's own doors. READY-PENDING-BASE 2026-10-30: review audit gr-base-0290-reviewaudit-1, Base 0.2.91 (conformance/audit.mjs:30 versus pipeline.ts).
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs`; `tests/agent-conformance/journey.mjs`
+**Gap.** Published 0.2.93 review, execution, replay and native-continuation audit checks pass the declared CORE measurement. The earlier review-audit dependency has shipped; no complete-clause judgment is promoted.
 
 #### BASE-AGENT-010 — Agents can follow changes
 
@@ -1465,8 +1465,8 @@ Agent surface · target · **missing**
 5. A failed webhook is visible and replays without duplicate effects.
 6. `approval.pending`, `approval.decided`, `review.flagged` and `policy.adopted` carry the class and decision and nothing the subscriber may not read.
 
-**Evidence.** None.
-**Gap.** Not yet judged through this seed's own doors. Undeclared CORE families remain partial obligations: events, subscriptions, multi-sponsor, mail edges and resource refresh. No family conformance is claimed.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs`; `tests/agent-conformance/journey.mjs`
+**Gap.** Events and subscriptions remain undeclared and are refused in CORE. Multi-sponsor, mail edges and resource refresh remain unscoped obligations; no family conformance or complete-clause acceptance is claimed.
 
 #### BASE-AGENT-011 — Limits are policy, and Pause stops everything
 
@@ -1483,8 +1483,8 @@ Agent surface · target · **missing**
 6. Pause and Pause all agents each stop the next call within 60 seconds, and resume restores access.
 7. An agent token cannot resume.
 
-**Evidence.** None.
-**Gap.** Not yet judged through this seed's own doors.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs`; `tests/agent-conformance/journey.mjs`
+**Gap.** Native Pause, pending-execution refusal and policy limits are measured in CORE. Full retained lifecycle acceptance remains unjudged; no declaration replaces a missing obligation.
 
 #### BASE-AGENT-012 — Writes are idempotent and conflict-safe
 
@@ -1499,8 +1499,8 @@ Agent surface · target · **missing**
 4. A stale revision returns a conflict naming the current revision.
 5. A job handle used by another person's token reads as not found.
 
-**Evidence.** None.
-**Gap.** Not yet judged through this seed's own doors. READY-PENDING-BASE 2026-10-30: erasure fence gr-base-door-0290-erasurefence-1, Base 0.2.91 (pipeline.ts:92-98, approvals.ts:28-31). Replay-4 shipped in 0.2.90 (pipeline.ts:99-122); it is not a pending dependency.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs`; `tests/agent-conformance/journey.mjs`
+**Gap.** Published replay support preserves current admission, exact-key one-effect replay, current native reads and trusted continuation identity. Deferred A1 remains: an approved native DELETE retry can return not_found when its classifier reads the deleted target (0.2.93 pipeline.ts:122; ADOPTING.md:826-829). The nine post-mutation injection calls also receive fresh keys with consumed fixture versions/targets (conformance/injection.mjs:20-23, protocol.mjs:129-132). No writer for these remaining edges is supplied in this brief.
 
 #### BASE-AGENT-013 — Manifest, docs and the conformance journey
 
@@ -1515,8 +1515,8 @@ Agent surface · target · **missing**
 4. Every acceptance point runs under both policies, every decision matches the policy in force, and under all autonomous no call waits for a person or is refused by policy.
 5. A stranger agent given only the seed URL completes the specialist journey through MCP.
 
-**Evidence.** None.
-**Gap.** Not yet judged through this seed's own doors. READY-PENDING-BASE 2026-10-30: invoke-only worker exposure gr-base-0290-invokeonly-1, Base 0.2.91 (modules/agent-door/index.ts:32-33,55-62; transport.ts:38,45; pipeline.ts:33-34; registry.ts:10-38). Timed, queued, dual-host and owner-native journeys remain contract obligations outside the CORE claim per ct 2026-10-29T14:12Z ruling 2; they await Base 0.2.91 gr-base-0290-history-1 (cli/agent-door.mjs:133-134, database and clock hook).
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs`; `tests/agent-conformance/journey.mjs`
+**Gap.** Published 0.2.93 closes archive refresh and invoke-only worker exposure (gr-base-0290-invokeonly-1). CORE conformance remains incomplete at the named injection and approved-erasure points. Timed, queued, dual-host and owner-native journeys remain READY-PENDING-BASE contract obligations outside CORE per ct 2026-10-29T14:12Z ruling 2; the database/clock hook remains undeclared (cli/agent-door.mjs:133-134; gr-base-0290-history-1). No clause judgment is promoted.
 
 ### Agent surface
 
@@ -1532,8 +1532,8 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-001, BASE
 3. `resources/templates/list` names exactly the resource templates above, and each write returns a link to the record it touched.
 4. The Base conformance harness passes on Uptime's seeded fixtures under both company policies.
 
-**Evidence.** None.
-**Gap.** No implementation: Uptime has no MCP door, tool registry, resource templates or Base conformance harness run. ct 2026-10-29T14:12Z renamed the contract to native tool names without cutting outcomes, classes or clause IDs; worker admissions are excluded from CORE. Public resources and the retained unfinished capabilities still require their own conformance; no new judgment.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs`; `tests/agent-conformance/journey.mjs`
+**Gap.** Native CORE now exposes the 34 contract tools; the three worker admissions remain invoke-only under ct 2026-10-29T14:12Z. Declarative conformance still refuses nine post-mutation injection variants and approved erasure replay. No clause judgment is promoted. The retained capability outcomes and optional public resource, event and prompt obligations still require their own complete conformance.
 
 #### SURFACE-002 — Live and security are computed per call
 
@@ -1551,8 +1551,8 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
 7. the pending runners update operation adds live when it revokes or relabels a runner with assigned probes, with the monitors affected; revoking or relabeling a runner without assigned probes does not add live. It adds security when it issues a runner key. `uptime.grants.read` adds live when it grants or revokes a live-effect, synthetic or private-network grant a running monitor's checks use, and the pending heartbeats issue operation adds live when it rotates or revokes a running heartbeat monitor's token or URL authority. Each names the monitors affected; changes to grants or heartbeat authority used only by paused monitors do not add live.
 8. `uptime.access.update` adds security when it resets a member's enrolled second factors, with the factor-reset setting; invitations, role changes and removals do not add security for a factor reset. It adds live when a removal or role or scope change drops a team recipient on a running monitor's route, with the monitors and routes affected; a change that drops no such recipient does not add live.
 
-**Evidence.** None.
-**Gap.** No implementation: no tool declares or computes live or security classes.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs`; `tests/agent-conformance/journey.mjs`
+**Gap.** Native tools declare and compute live and security classes through the shared door. The retained class conditions and unfinished capabilities above remain unjudged; CORE measurement does not establish every target outcome.
 
 #### SURFACE-003 — External and money are computed per call
 
@@ -1570,8 +1570,8 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
 7. `uptime.routes.read` or `uptime.routes.preview` or `uptime.routes.update`, `uptime.destinations.read` or `uptime.destinations.update` and `uptime.definitions.read` or `uptime.definitions.preview` add external when a route, an enabled destination or a code-applied contact puts a recipient outside the business on the alert path; `uptime.monitors.create` or `uptime.monitors.update` adds external when a slow policy's destinations include a recipient outside the business, and `uptime.monitors.list` or `uptime.monitors.create` or `uptime.monitors.update` adds external when the created monitors' shared alert route includes one. Each carries the recipient count and counterparty *known* for a recipient already on record and *new* otherwise; a change that exposes alerts only within the business does not add external.
 8. the pending handoffs update operation adds external when a mapping exposes incident, maintenance or recovery updates, evidence and attachments to a status page or an outside responder service, with the recipient count and counterparty *public* for a status page, *known* for a PagerDuty, Splunk On-Call or other outside responder service already on record and *new* otherwise; a mapping confined to the business does not add external.
 
-**Evidence.** None.
-**Gap.** No implementation: no tool declares or computes external or money classes.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs`; `tests/agent-conformance/journey.mjs`
+**Gap.** Native outside checks, discovery, route changes and notification tests declare external. Money-bearing phone, payment and budget outcomes remain retained obligations without a CORE claim; no full clause judgment is made.
 
 #### SURFACE-004 — Access, destructive and gated are computed per call
 
@@ -1589,8 +1589,8 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
 7. `uptime.definitions.read` or `uptime.definitions.preview` adds destructive when code-managed destruction irreversibly erases a monitor, its evidence or another managed record, with the item count per table; a preview or a reversible definition change does not add destructive.
 8. `uptime.checks.run` adds destructive when the monitor holds an active destructive-write grant, with the step and item count; a manual check without such a grant does not add destructive. `uptime.grants.read` adds destructive when it grants authority for destructive writes, with the step and item count; a grant that does not allow destructive writes does not add destructive.
 
-**Evidence.** None.
-**Gap.** No implementation: no tool declares or computes access, destructive or gated classes, and no incident record attributes an agent act.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs`; `tests/agent-conformance/journey.mjs`
+**Gap.** Native member changes, evidence grants and erasure declare access, security or destructive as applicable, and incident actions retain agent attribution. Gated provider steps and the remaining retained class conditions are unproved; no full clause judgment is made.
 
 #### SURFACE-005 — The monitoring-operator journey under two company policies
 
@@ -1605,8 +1605,8 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-007, BASE
 4. Under the held policy with live blocked, the adoptions, the pause, the maintenance window and the route change are refused and the rest of the week completes.
 5. Before setup is answered, the first call returns `policy_unset` with the setup link, and setup asks every Uptime class with no answer pre-selected.
 
-**Evidence.** None.
-**Gap.** No implementation: no MCP door exists for a stranger agent to run the monitoring-operator week under either company policy. ct 2026-10-29T14:12Z ruling 2: timed, queued, dual-host and owner-native journey steps remain READY-PENDING-BASE contract obligations outside CORE; Base 0.2.91 gr-base-0290-history-1 (cli/agent-door.mjs:133-134).
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs`; `tests/agent-conformance/journey.mjs`
+**Gap.** The native CORE journey reads independently observed two-vantage scheduled failure, operates the incident, previews bounded repairs and preserves Unknown and scheduled recovery under both policies. Approved erasure replay and post-mutation injection variants still fail. ct 2026-10-29T14:12Z ruling 2 retains timed, queued, dual-host and owner-native steps as READY-PENDING-BASE contract obligations outside CORE; the database/clock lifecycle hook remains undeclared (cli/agent-door.mjs:133-134; writer gr-base-0290-history-1).
 
 #### SURFACE-006 — One-way operational actions carry their effects
 

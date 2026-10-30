@@ -55,7 +55,8 @@ try{
  const capabilities={mode:'declared',declared:['tools','policy','pause','audit','idempotency'],refused:['events','resources','prompts','subscriptions'],unscoped:['multiSponsor','mailEdges','resourceRefresh','timedLifecycle','dualHost','queuedLifecycle','ownerNativeApi']};
  const discovery=await c.mcp('server/discover');
  assert.deepEqual(discovery.result._meta['com.runeditrun/capabilities'],capabilities);
- assert.equal(surface.tools.length,37,'CORE keeps every native tool and omits only the optional built-in events tool');
+ assert.equal(surface.tools.length,34,'CORE exposes the native operator tools; worker admissions remain invoke-only');
+ for(const name of ['uptime.checks.dispatch','uptime.destinations.dispatch','uptime.discovery.dispatch'])assert.ok(!surface.tools.some(tool=>tool.name===name),'worker admissions stay absent from MCP discovery');
  const capabilityWitness=await result('uptime.evidence.witness');
  for(const [capability,method,params] of [
   ['resources','resources/read',{uri:'uptime://monitors/missing'}],
@@ -216,7 +217,13 @@ try{
   ['uptime.checks.dispatch',{id:monitor.id,version:currentMonitor.revision,runner_id:runner.runnerId,handoff_id:handoff.id}],
   ['uptime.destinations.dispatch',{id:destination.id,delivery_id:notificationId,credential_id:'not-a-native-credential'}],
   ['uptime.discovery.dispatch',{id:'not-a-native-job',runner_id:runner.runnerId}],
- ])assert.equal(errorCode(await c.tool(name,args)),'operation_mismatch','MCP cannot manufacture a trusted continuation operation');
+ ]){
+  const hidden=await c.tool(name,args);
+  assert.equal(hidden.status,400,'invoke-only admissions have the ordinary unknown-tool transport response');
+  assert.equal(errorCode(hidden),'tool_not_found','MCP cannot discover or call a native worker admission');
+  assert.equal(hidden.result,undefined,'a hidden worker admission returns no native result');
+  assert.equal(hidden.decision,undefined,'MCP never reaches native worker policy or execution');
+ }
  assert.deepEqual((await result('uptime.evidence.witness')).result.structuredContent,continuationWitness);
  console.log('PASS BASE-AGENT-012.uptime.worker-only-continuation-admission');
  // An approved aggregate read retains a receipt, not a snapshot of native
@@ -241,21 +248,19 @@ try{
  assert.ok(c.points.every(point=>point.ok),JSON.stringify(c.points.filter(p=>!p.ok)));
  // Updated 2026-10-30 BASE-AGENT-013.uptime.declarative-conformance:
  // agent-surface.json declares tools, policy, pause, audit and idempotency.
- // The installed rer 0.2.90 CLI measures every declared point; a declaration
+ // The installed rer 0.2.93 CLI measures every declared point; a declaration
  // does not promote any ct judgment or unimplemented capability.
  // Closed 2026-10-30 BASE-AGENT-013.uptime.ct-alignment:
  // ct 2026-10-29T14:12Z ruled that the contract follows native names. Its
  // retained outcome map preserves every existing clause, class and capability.
- // Pending 2026-10-30 BASE-AGENT-013.uptime.worker-conformance:
+ // Closed 2026-10-30 BASE-AGENT-013.uptime.worker-exposure:
  // ct excludes checks.dispatch, destinations.dispatch and discovery.dispatch
- // from CORE: invoke-only and hidden from MCP. Base 0.2.90 still uses one
- // registry for both doors (modules/agent-door/index.ts:32-33,55-62;
- // transport.ts:38,45; pipeline.ts:33-34; registry.ts:10-38). The descriptor
- // includes them only as registry facts. Base 0.2.91 writer
- // gr-base-0290-invokeonly-1 supplies the exposure option. Mandatory MCP
- // fixtures cannot manufacture their retained trusted operation identities.
+ // from CORE: invoke-only and hidden from MCP. Published Base 0.2.93 carries
+ // gr-base-0290-invokeonly-1's exposure option. Native final-admission and
+ // continuation-identity assertions above still run through the runner and
+ // notification doors; no MCP fixture manufactures their trusted identities.
  // Closed 2026-10-30 BASE-AGENT-013.uptime.archive-refresh:
- // rer refresh-base --ref ab97e5e864013ef03fd7f1e1a335101dd9150891 acquired
+ // rer refresh-base --ref 2f77cdb6d8dfaa82903c2839600e23b76631a537 acquired
  // its public source automatically and completed without a scratch checkout.
  // Closed 2026-10-29 BASE-AGENT-013.uptime.managed-mail-check:
  // rer 0.2.88 structural check and the unchanged managed generator both pass;
