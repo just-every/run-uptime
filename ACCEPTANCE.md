@@ -1220,8 +1220,8 @@ Core · target · **partial** · Cites BASE-DATA-001 · Register R-2
 2. Restore into an empty installation and compare every table's counts and ARCHIVE-001 transformations.
 3. A 120-monitor account exports in full, and a range or subset export matches its selection.
 
-**Evidence.** `src/domain/archive.server.ts`; `tests/archive-roundtrip.mjs`
-**Gap.** Validated inactive archives ship and refuse exports beyond 10,000 rows per table, 100 monitors or 2 MiB; streamed, resumable, range/subset archives at SCHEDULE-002 scale do not exist. Storage capacity and archive size at this monitoring scale remain unmeasured; current view/archive bounds are not storage-capacity measurements.
+**Evidence.** `src/domain/archive.server.ts`; `tests/archive-roundtrip.mjs` with `tests/archive-selection-support.mjs` proveArchiveSelection: authenticated explicit monitor IDs, integrity-covered selection, complete scheduled revisions and evidence, incident and notification history, shared journals, inactive receiving-owner restore and zero-write authority, reference and bound refusals; retained whole-installation round trip and `tests/erasure-audit.mjs` later-journal fencing
+**Gap.** Validated inactive archives and explicit monitor-subset exports ship within 10,000 rows per table, 100 monitors and 2 MiB. Remaining: 500 monitors with 90 days of hosted three-location history, hosted storage capacity and archive size, bounded chunk streaming with manifest digests, interrupted and resumed export and restore, OPS-001 backup integration at that scale, full 120-monitor export, time-range selection and console bound and selection controls with console requalification. Platform managed locations, egress and hosted capacity, uip console ownership and existing archive, incident, account, sibling and guarded-release prerequisites remain held; current bounds are not storage-capacity measurements.
 
 ### Push further with agents
 
