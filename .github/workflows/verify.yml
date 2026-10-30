@@ -28,7 +28,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-          fetch-depth: 2
+          fetch-depth: 0
       - name: Check reusable workflow permissions
         run: node scripts/verify-ci.mjs --check-workflows
       - name: Look up complete nightly marker
@@ -65,6 +65,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+          fetch-depth: 0
       - uses: pnpm/action-setup@v4
         with:
           version: 10.12.4
@@ -95,7 +96,7 @@ jobs:
       - name: Download this run's shared verification build
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
-          name: uptime-verify-build-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          name: uptime-verify-build-${{ github.sha }}-${{ github.run_id }}
           path: ${{ runner.temp }}/uptime-verify-build
       - name: Validate and restore the exact build
         run: node .github/scripts/verify-build.mjs restore "$RUNNER_TEMP/uptime-verify-build"
@@ -136,6 +137,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+          fetch-depth: 0
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version: 22.20.0
@@ -228,6 +230,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+          fetch-depth: 0
       - uses: pnpm/action-setup@v4
         with:
           version: 10.12.4
@@ -253,7 +256,8 @@ jobs:
       - name: Share verification output with this run's shards
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: uptime-verify-build-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          name: uptime-verify-build-${{ github.sha }}-${{ github.run_id }}
+          overwrite: true
           path: ${{ runner.temp }}/uptime-verify-build/
           if-no-files-found: error
           retention-days: 1
@@ -267,6 +271,7 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
+          fetch-depth: 0
       - uses: pnpm/action-setup@v4
         with:
           version: 10.12.4
