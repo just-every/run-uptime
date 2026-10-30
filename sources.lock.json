@@ -504,7 +504,7 @@
       "executable": false
     },
     "agent-surface.json": {
-      "sha256": "286c5db209bb11caa45c3729597f936b67f221325d79f59b601f0ac59c730b4f",
+      "sha256": "1d875e0bdf0d729cdff0fedb5b92c17d5b36534371943c0547df846e908c55b7",
       "executable": false
     },
     "AGENTS.md": {
@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "5f6451a7c2971751d69deaa8d4756ff4a43e6c53b51ec371452e3bd1a6944b51",
+      "sha256": "3c37879c90ff21e3074f6029a6177d6d9b37839b2dabdc56f89eff7b065c21e2",
       "executable": false
     },
     "DEMO.md": {
@@ -8580,7 +8580,7 @@
       "executable": false
     },
     "tests/agent-door.mjs": {
-      "sha256": "b27ff1b28fb1dc46cb6965d03e01d28103940c415b500c19bcd1347445f14dc5",
+      "sha256": "1b829e6ce11f2c9b4dd51bd6f895b1fe1f2ab71d1d8e92e4e7d417c6033c0846",
       "executable": false
     },
     "tests/alert-drill.mjs": {
