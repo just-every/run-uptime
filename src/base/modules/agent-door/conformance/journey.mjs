@@ -124,7 +124,7 @@ export async function runJourney(c, phase, { held = false, injections = false, r
     (c.effectEvents ??= []).push(...snapshot.result.structuredContent.events);
    }
    if (injections && step.inject) {
-    const injected = await injectionArgs(c, step, outputs);
+    const injected = await injectionArgs(c, step, outputs, args);
     const checked = await c.stepTool(step, injected, proof);
     c.add(`BASE-AGENT-005.5.${phase}.${step.id}`, isDeepStrictEqual(checked.decision?.classes, answer.decision?.classes) && checked.decision?.disposition === answer.decision?.disposition && !checked.result?.isError, `${step.tool} changed class, facts or decision for additional arguments.`);
    }
