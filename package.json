@@ -34,7 +34,7 @@
     "source:check": "node scripts/edition-authoring/cli.mjs check",
     "access": "node scripts/access.mjs",
     "mfa": "node scripts/mfa.mjs",
-    "test:runtime": "node tests/control-runtime.mjs && node tests/signed-runner.mjs && node tests/probe-native-evidence.mjs && node tests/private-network.mjs",
+    "test:runtime": "node tests/control-runtime.mjs && node tests/signed-runner.mjs && node tests/probe-native-evidence.mjs && node tests/network-mixed-dns.mjs && node tests/private-network.mjs",
     "test:delivery": "node tests/notify-delivery.mjs && node tests/hosted-alerts.mjs && node tests/webhook-custom.mjs && node tests/alert-routes.mjs && node tests/incident-work.mjs && node tests/notification-fallback.mjs",
     "test:protocols": "node tests/protocol-monitors.mjs && node tests/udp-monitors.mjs && node tests/mail-journey.mjs && node tests/ping-monitors.mjs && node tests/tls-auth.mjs",
     "test:data": "node tests/archive-roundtrip.mjs && node tests/definitions-import.mjs && node tests/erasure-audit.mjs && node tests/catalog.mjs && node tests/business-provisioned.mjs",
