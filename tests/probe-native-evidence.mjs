@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import {fixture} from './resilience/support.mjs';
 import {Resolver} from 'node:dns/promises';
+import {proveJsonSelectors} from './probe-json-evidence-support.mjs';
 const f=await fixture();
 try{
  // An owner cannot save a metadata target; a mixed public/private DNS answer never reaches a socket or becomes Healthy.
@@ -21,7 +22,15 @@ try{
  const assertions={status:[200,'201-202'],bodyIncludes:'checkout-ready',bodyExcludes:'maintenance',bodyRegex:{pattern:'"ready":true'},header:{name:'x-check',equals:'yes'},json:{path:'$["ready"]',equals:true},latencyMs:1000};
  f.modes.target=200;f.modes.headers={'content-type':'application/json','x-check':'yes'};f.modes.body='{"ready":true,"message":"checkout-ready"}';
  const monitor=await f.monitor({name:'Checkout API assertions',assertions,retries:1});
- const run=async()=>{await f.run(f.first);await f.run(f.second);const history=await f.request(`/api/monitors/${monitor.id}/history`);assert.equal(history.status,200);return history.data.filter(slot=>slot.observations.length).sort((a,b)=>b.due_at-a.due_at)[0]};
+ const run=async()=>{
+  await f.run(f.first);await f.run(f.second);
+  const history=await f.request(`/api/monitors/${monitor.id}/history`);assert.equal(history.status,200);
+  const slot=history.data.filter(slot=>slot.observations.length).sort((a,b)=>b.due_at-a.due_at)[0];
+  assert.deepEqual(slot.definition.assertions,monitor.definition.assertions,'every phase retains historical saved criteria');
+  const current=await f.request(`/api/overview?monitor=${monitor.id}`);assert.equal(current.status,200);
+  assert.deepEqual(current.data.monitors.find(row=>row.id===monitor.id).definition.assertions,monitor.definition.assertions,'failures and recovery leave saved criteria unchanged');
+  return slot;
+ };
  const first=await run();assert.equal((await f.state(monitor.id)).state,'Healthy');assert.deepEqual(first.definition.assertions,monitor.definition.assertions);
  // One behaviour table: each saved assertion actually judges target content, rather than merely validating its editor field.
  const goodBody='{"ready":true,"message":"checkout-ready"}';
@@ -44,5 +53,7 @@ try{
  await f.DB.prepare('UPDATE monitors SET next_due=? WHERE id=?').bind(Date.now(),monitor.id).run();await run();
  assert.equal((await f.state(monitor.id)).state,'Healthy');
  const overview=(await f.request('/api/overview')).data;assert.ok(overview.alerts.some(a=>a.kind==='trigger'));assert.ok(overview.alerts.some(a=>a.kind==='recovery'));
+ await f.pause(monitor);
+ await proveJsonSelectors(f);
  console.log('PASS saved HTTP/API assertions, retained retries and confirmed failure/recovery');
 }finally{await f.close()}
