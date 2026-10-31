@@ -4,6 +4,7 @@ import {provePolicyEntry} from './agent-policy-entry-support.mjs';
 import {nativeDoorBrowser} from './agent-door-browser.mjs';
 import {proveAccessFacts} from './agent-access-facts-support.mjs';
 import {proveStandardApproval} from './agent-standard-approval-support.mjs';
+import {provePersonActionRefusals} from './agent-person-action-refusal-support.mjs';
 // One integrated core journey, through the emitted production Worker and real
 // D1. Only mail/probe provider edges may be replaced; identities and mutations
 // enter the ordinary native public doors.
@@ -169,6 +170,7 @@ try{
  await completeSecondFactor(origin,reviewerCookie);
  const reviewerSession=await call('/auth/session',undefined,{cookie:reviewerCookie});assert.equal(reviewerSession.status,200);
  const reviewerId=(await reviewerSession.json()).operator.id;
+ await provePersonActionRefusals({c,native,call,origin,db,providerRequests,sponsorId:sponsor.id,reviewerSub,reviewerId,reviewerCookie});
  await proveStandardApproval({c,native,call,origin,cookie,monitorId:monitor.id,sponsorId:sponsor.id,reviewerSub,reviewerId,reviewerCookie,proof});
  const independent=heldPolicy();independent.rules=[{id:'all',class:'*',do:'approval',approver:['person:'+reviewerSub],wait:'PT1H'}];
  await c.adopt(independent);
