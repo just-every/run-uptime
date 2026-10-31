@@ -76,6 +76,7 @@ import {afterClaim,openDoorForOwner} from './domain/business-import/claim-door.s
 import {rerRunnerStatus} from './domain/rer-runner-status.server.ts'
 import {rerCutoverStatus} from './domain/rer-cutover-status.server.ts'
 import {definitionImportHistory,undoDefinitionImport} from './domain/business-import/history.server.ts'
+import {archiveSelection} from './domain/archive-selection.server.ts';
 import {archiveRestoreAvailable} from './domain/archive.server.ts';
 import {exportJournal} from './domain/archive-fence.server.ts'
 import {operatorSession,authenticatedSession} from './domain/operator-auth.server.ts'
@@ -142,6 +143,7 @@ api.use('/api/*',async(c,next)=>{
 api.use('/api/*',boundary)
 api.use('/api/*',async(c,next)=>{
  const access=c.get('access')
+ if(access&&c.req.path==='/api/archive'&&new URL(c.req.url).search){await next();if(c.res.ok)await auditAccess(c.env,access);return}
  if(access&&(access.action==='export'||access.action==='read'&&(['csv','pdf'].includes(c.req.query('format')??'')||/text\/csv|application\/pdf/.test(c.req.header('accept')??''))))await auditAccess(c.env,access)
  await next()
 })
@@ -309,7 +311,7 @@ api.post('/api/discovery-sources/:id/decisions',async c=>c.json(await decideProp
 api.post('/api/runner/discoveries/claim',async c=>c.json(await claimDiscovery(c.env,c.get('requestText'),c.get('runner'))))
 api.post('/api/runner/discoveries/:id/result',async c=>{const text=c.get('requestText');if(!await signedRunnerBody(c.env,c.get('runner'),text,c.req.header('x-sent-at')??'',c.req.header('x-runner-signature')??'',DISCOVERY_RESULT_BYTES))return c.json({error:'Invalid signed result'},403);return c.json(await completeDiscovery(c.env,c.req.param('id'),discoveryAnswer(text),c.get('runner')))})
 api.get('/api/archive/restore-status',async c=>c.json({available:await archiveRestoreAvailable(c.env)}))
-api.get('/api/archive',async c=>c.json(await archive(c.env)))
+api.get('/api/archive',async c=>c.json(await archive(c.env,archiveSelection(new URL(c.req.url).searchParams))))
 api.post('/api/restore',async c=>{const input=c.get('input');return c.json(await restore(c.env,input.archive??input,undefined,{laterJournal:input.laterJournal,actor:{kind:'operator',ref:(await authenticatedSession(c.env,c.req.raw))!.operator.id}}))})
 // Definition files import through the owner's import door (/api/operator/import/*): recognising a file names its source,
 // returns its text with request secrets withheld (the text the screen uploads) and writes nothing; a plan's preview reads the door's retained plan; export is read-only; undo pauses or restores.
