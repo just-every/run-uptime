@@ -109,6 +109,6 @@ export async function proveAttributedDiscoveryJobs(){
   await ok(`/api/operators/${erased.id}/erase`,{body:{}});
   for(const [index,job] of erasedJobs.entries()){assert.equal((await post(job.id,index===0?catalogGood:erasedResult)).status,409);const stopped=await read(job.id);assert.equal(stopped.initiatingOwnerId,null);assert.equal(stopped.stopReason,'initiator_erased');assert.ok(stopped.stoppedAt);assert.equal(stopped.result,undefined)}
   assert.deepEqual(await untouched(),beforeErase,'erased initiating authority cannot publish results or resurrect data');
-  console.log('ACCESS-001 attributed catalog and source discovery PASS: public create/read/cancel, full authority across restart, signed completion, revoked queued claims and running results, visible durable stops, preserved outcomes, replay refusal and source revocation.');
+  console.log('ACCESS-001 attributed catalog and source discovery PASS: public create, read and cancel, full authority across restart, signed completion, revoked queued claims and running results, visible durable stops, preserved outcomes, replay refusal and source revocation.');
  }finally{await edge?.close();await resumed?.dispose();await g.close()}
 }

@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "5cfaa61d9915a472359d0392af89a7103aa37ff289bcfb0fded45630aec89803",
+      "sha256": "f300df88a8d4fbabc7b63753aa430bc0144944ca25090167d3512d3d6379b6fc",
       "executable": false
     },
     "DEMO.md": {
@@ -8516,7 +8516,7 @@
       "executable": false
     },
     "tests/access-discovery-job-support.mjs": {
-      "sha256": "a0d28cfe69f17d252bfb67542ad4ca162f73e48612e0248aac67d278025a49bb",
+      "sha256": "0df1dd82364974cbca9a68ab6de0602c69b05cc4fd8bb865c2a259e253befad5",
       "executable": false
     },
     "tests/access-door-support.mjs": {
@@ -8708,7 +8708,7 @@
       "executable": false
     },
     "tests/discovery-sources-portability.mjs": {
-      "sha256": "c39f81cd025b8f028c5b9ad8525cfaddb640899b0af781287b6c96427b024547",
+      "sha256": "938d797b007820098c11d8a9cad594358baf5af2b986bab44ce7a13414cb1f2d",
       "executable": false
     },
     "tests/editor-management-edge.mjs": {
