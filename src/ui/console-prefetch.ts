@@ -13,17 +13,14 @@ window.uptimePrefetch=early;
 // out only loads later, a module that is no longer imported is fetched for nothing.
 // app.js first, then its complete static import/export closure in alphabetical order. Dynamic imports stay on demand.
 export const CONSOLE_MODULES=['app.js',
- 'action-feedback.mjs','alert-drills.js','archive-view.js','assets/alert-route-fallback.js',
- 'assets/alert-route-markup.js','assets/alert-route.js','assets/contact-quiet.js','assets/failure-snapshot-view.js',
- 'business-import-settings.js','catalog-dialogs.js','catalog.js','cleanup-debt.js','console-format.js',
- 'definition-changes.js','definitions.js','dom-patch.js','evidence-access.js','external-check.js',
- 'failure-snapshots.js','flow-panel.js','followed-service.js','heartbeat-jobs.js','heartbeat-key.js',
- 'incident-dependencies.js','incident-work-markup.js','incident-work.js','installation-zone.js','locations.js',
- 'mail-panel.js','maintenance-calendar.js','maintenance-markup.js','metrics.js','monitor-coverage.js',
- 'monitor-folds.js','monitor-incidents.js','monitor-links.js','monitor-list.js','monitor-page.js','monitor-reads.js',
- 'monitor-recent-checks.js','monitor-report.js','monitor-rule-edit.js','monitor-rules-table.js','monitor-rules.js',
- 'monitor-status-line.js','monitor-status.js','monitor-table-fit.js','monitor-timeline.js','notification-dialogs.js',
- 'notification-help.js','notifications.js','pagespeed-panel.js','pagespeed-rum.js','planned-maintenance.js',
- 'protocol-panel.js','report-jobs.js','report-render.js','settings-alerts.js','settings-backup.js',
- 'settings-general.js','settings-integrations.js','settings-people.js','settings-save.js','settings-view.js',
- 'slow-policy.js','transaction-panel.js','webhook-editor.js']
+ 'action-feedback.mjs','assets/alert-route-fallback.js','assets/alert-route-markup.js','assets/alert-route.js',
+ 'assets/contact-quiet.js','assets/failure-snapshot-view.js','catalog-dialogs.js','catalog.js','cleanup-debt.js',
+ 'console-format.js','dom-patch.js','evidence-access.js','failure-snapshots.js','flow-panel.js','followed-service.js',
+ 'heartbeat-jobs.js','heartbeat-key.js','incident-dependencies.js','incident-work-markup.js','incident-work.js',
+ 'installation-zone.js','locations.js','mail-panel.js','maintenance-calendar.js','maintenance-markup.js',
+ 'monitor-coverage.js','monitor-folds.js','monitor-incidents.js','monitor-links.js','monitor-list.js',
+ 'monitor-page.js','monitor-reads.js','monitor-recent-checks.js','monitor-report.js','monitor-rule-edit.js',
+ 'monitor-rules-table.js','monitor-rules.js','monitor-status-line.js','monitor-status.js','monitor-table-fit.js',
+ 'monitor-timeline.js','notification-dialogs.js','pagespeed-panel.js','pagespeed-rum.js','planned-maintenance.js',
+ 'protocol-panel.js','report-jobs.js','report-render.js','settings-save.js','settings-view.js','slow-policy.js',
+ 'transaction-panel.js']
