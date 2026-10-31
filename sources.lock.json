@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "c7a5c6b0b57d1c94c7358c272458ac5723a8b371eec19f9d02f02f25324661d6",
+      "sha256": "6da48294a2019906783c621fe6eb0114c8e7b8b508d0ca27c9b4e3fd0e886fe5",
       "executable": false
     },
     "DEMO.md": {
@@ -9160,7 +9160,7 @@
       "executable": false
     },
     "tests/public-paths.mjs": {
-      "sha256": "d7f9a53da1ca089a83d3978455fc92d16f89efc7b22956a683b4c97e4278ee3c",
+      "sha256": "e6e746fef0a209f6f676b9ebec5afa957b177fcca528d83ca2703507ce294008",
       "executable": false
     },
     "tests/public-surfaces-support.mjs": {
@@ -9285,6 +9285,10 @@
     },
     "tests/source-history-support.mjs": {
       "sha256": "e8ebe6178241caf192bf07b50a42689ab7095066fbbb7176ce075eef70d9437f",
+      "executable": false
+    },
+    "tests/startup-readiness-support.mjs": {
+      "sha256": "3a2ff91f231b73c17bc731498af53e22c2e2ca788e21ad64487888ad1a9eebb2",
       "executable": false
     },
     "tests/tls-auth-child.mjs": {
