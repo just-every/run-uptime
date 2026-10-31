@@ -48,6 +48,10 @@ export async function proveDiscoveryUpgrade(){
   await DB.batch([DB.prepare("INSERT INTO discovery_jobs(id,url,status,created_at,kind,spec) VALUES('00000000-0000-4000-8000-000000000001','https://example.com/','done',?,'site',NULL)").bind(now),
    DB.prepare("INSERT INTO followed_services(monitor_id,entry_id,catalog_version,scope,component_key,followed_at,checked_at) VALUES('followed-one','stripe',1,'whole',NULL,?,?)").bind(now,now)]);
   const read=async()=>({jobs:(await DB.prepare('SELECT * FROM discovery_jobs ORDER BY rowid').all()).results,followed:(await DB.prepare('SELECT * FROM followed_services').all()).results});
+  // Historical catalog and source jobs also predate initiating authority.
+  const legacyJobs=[['00000000-0000-4000-8000-000000000002','catalog','https://status.stripe.com/current',{entry:'stripe',scope:'whole'}],
+   ['00000000-0000-4000-8000-000000000003','source','source:00000000-0000-4000-8000-000000000004',{source:'00000000-0000-4000-8000-000000000004',kind:'openapi',identifiers:{url:'https://example.com/openapi.json'},since:null,known:[]}]];
+  for(const [id,kind,url,spec] of legacyJobs)await DB.prepare("INSERT INTO discovery_jobs(id,url,status,created_at,kind,spec) VALUES(?,?,'done',?,?,?)").bind(id,url,now,kind,JSON.stringify(spec)).run();
   const before=await read();
   await apply(sources);
   assert.deepEqual(await read(),before,'the migration rewrites no job or followed service');
@@ -57,5 +61,8 @@ export async function proveDiscoveryUpgrade(){
   const origin=(await worker.ready).origin,cookie=await signInOwner(origin,{bindings});
   const response=await fetch(origin+'/api/discovery-sources',{headers:{cookie,origin}});assert.equal(response.status,200);
   assert.deepEqual((await response.json()).sources,[],'the upgraded installation reads its (empty) sources');
+  const preserved=await read();
+  for(const previous of before.jobs){const current=preserved.jobs.find(job=>job.id===previous.id);for(const [key,value] of Object.entries(previous))assert.deepEqual(current[key],value,'authority upgrade keeps legacy job fields');assert.equal(current.initiator_id,null);const response=await fetch(origin+'/api/discoveries/'+previous.id,{headers:{cookie,origin}});assert.equal(response.status,200);const job=await response.json();assert.equal(job.status,'done');assert.equal(job.initiatingOwnerId,null);assert.equal(job.stopReason,null)}
+  assert.deepEqual(await read(),preserved,'reading legacy unattributed jobs does not rewrite or stop them');
  }finally{await worker?.dispose();await rm(directory,{recursive:true,force:true})}
 }
