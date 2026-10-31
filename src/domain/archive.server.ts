@@ -1,3 +1,4 @@
+import {selectionFilter,requireSelectionMonitors,projectSelectionReplays} from './archive-selection.server.ts'
 import {openSnapshot,storeSnapshot} from './failure-page-custody.server.ts'
 import {archiveInserts} from './archive-inserts.server.ts'
 import {exportJournal,productFence} from './archive-fence.server.ts'
@@ -5,20 +6,23 @@ import {auditStatement,mutationGuard,type AuditActor} from './audit.server.ts'
 import {assertArchiveInventory} from './archive-inventory.ts'
 import type {Bindings} from './control.server.ts'
 import {readCredential,sealCredential} from './notification-credentials.server.ts'
-import {ARCHIVE_ROWS,TABLES,columns,assertBytes,digest,portableArchive,type Tables} from './archive-schema.ts'
+import {ARCHIVE_ROWS,TABLES,columns,assertBytes,digest,portableArchive,type Tables,type ArchiveSelection} from './archive-schema.ts'
 import {validateArchive} from './archive-validation.ts'
 import {projectRestore} from './archive-restore-projection.ts'
 import {doorBatchArchive} from './business-import/archive.server.ts'
 /** Explicit projections prevent future credential columns silently becoming portable. */
-export async function archive(env:Bindings){
+export async function archive(env:Bindings,selection?:ArchiveSelection){
+ if(selection)await requireSelectionMonitors(env,selection);
  await assertArchiveInventory(env.DB);
  const queries=TABLES.map(name=>{
-  if(name==='failure_snapshots')return env.DB.prepare(`SELECT ${columns[name].join(',')} FROM failure_snapshots WHERE expires_at>? ORDER BY rowid LIMIT ${ARCHIVE_ROWS+1}`).bind(Date.now());
+  const filter=selection?selectionFilter(name,selection):{sql:'1',params:[]};
+  const where=[filter.sql,...(name.startsWith('integration_')?["namespace='uptime-notifications'"]:[])].join(' AND ');
+  if(name==='failure_snapshots')return env.DB.prepare(`SELECT ${columns[name].join(',')} FROM failure_snapshots WHERE expires_at>? AND (${where}) ORDER BY rowid LIMIT ${ARCHIVE_ROWS+1}`).bind(Date.now(),...filter.params);
   if(name==='notification_destinations')return env.DB.prepare(`SELECT d.id,d.name,d.kind,d.enabled,d.created_at,d.deleted_at,d.webhook_template,c.id credential_id,c.destination_id,c.created_at credential_created_at,c.endpoint,c.signing_secret,c.ciphertext,c.retired_at,c.unavailable_at FROM notification_destinations d LEFT JOIN notification_credentials c ON c.id=d.credential_id ORDER BY d.rowid LIMIT ${ARCHIVE_ROWS+1}`);
-  return env.DB.prepare(`SELECT ${columns[name].join(',')} FROM ${name}${name.startsWith('integration_')?" WHERE namespace='uptime-notifications'":''} ORDER BY rowid LIMIT ${ARCHIVE_ROWS+1}`);
+  return env.DB.prepare(`SELECT ${columns[name].join(',')} FROM ${name} WHERE ${where} ORDER BY rowid LIMIT ${ARCHIVE_ROWS+1}`).bind(...filter.params);
  });
  const results=await env.DB.batch(queries),t:Tables={};
- for(let i=0;i<TABLES.length;i++){const name=TABLES[i],rows=results[i].results;if(rows.length>ARCHIVE_ROWS)throw Error(`Archive row bound exceeded: ${name} (${ARCHIVE_ROWS})`);t[name]=rows}
+ for(let i=0;i<TABLES.length;i++){const name=TABLES[i],rows=results[i].results;if(rows.length>ARCHIVE_ROWS)throw Error(`Archive row bound exceeded: ${name} (at least ${rows.length} rows, limit ${ARCHIVE_ROWS})`);t[name]=rows}
  for(const row of t.failure_snapshots)row.snapshot=JSON.stringify(await openSnapshot(env,row,true));
  for(const row of t.notification_destinations){
   let address=null;
@@ -31,8 +35,8 @@ export async function archive(env:Bindings){
  }
  for(const row of t.slots){row.lease_owner='restored-inactive';row.lease_until=0}
  // Import-door batches travel as definition-batch history beside the batches Uptime wrote itself.
- const door=await doorBatchArchive(env);t.definition_batches.push(...door.batches);t.definition_batch_entries.push(...door.entries);
- for(const name of ['definition_batches','definition_batch_entries'])if(t[name].length>ARCHIVE_ROWS)throw Error(`Archive row bound exceeded: ${name} (${ARCHIVE_ROWS})`);
+ const door=await doorBatchArchive(env);t.definition_batches.push(...door.batches);t.definition_batch_entries.push(...door.entries.filter(row=>!selection||selection.monitorIds.includes(row.monitor_id)));
+ for(const name of ['definition_batches','definition_batch_entries'])if(t[name].length>ARCHIVE_ROWS)throw Error(`Archive row bound exceeded: ${name} (${t[name].length} rows, limit ${ARCHIVE_ROWS})`);
  // DELIVERY-002: webhook envelopes omit their request body; restore rebuilds it from the archived job event.
  // Slack retains its exact historical message, including the original local-time spelling (U10).
  for(const row of t.integration_deliveries){const e=JSON.parse(row.envelope),job=t.notification_jobs.find(j=>j.id===row.id);if(!job)throw Error('Archive notification delivery is orphaned');e.destinationId=job.destination_id;if(e.protocol==='webhook')delete e.body;row.envelope=JSON.stringify(e)}
@@ -43,7 +47,8 @@ export async function archive(env:Bindings){
  }
  t.archive_history=[...history.values()];
  for(const row of t.integration_replays){const envelope=JSON.parse(row.envelope);if(!t.notification_destinations.some(d=>d.id===envelope.destinationId)){const credential=await env.DB.prepare('SELECT destination_id FROM notification_credentials WHERE id=?').bind(envelope.destinationId).first<{destination_id:string}>();if(!credential)throw Error('Archive notification replay destination unavailable');envelope.destinationId=credential.destination_id;row.envelope=JSON.stringify(envelope)}}
- const result=await portableArchive(t,Date.now(),await exportJournal(env));assertBytes(result,1);await validateArchive(result);return result;
+ if(selection)projectSelectionReplays(t,selection);
+ const result=await portableArchive(t,Date.now(),await exportJournal(env),selection);assertBytes(result,1);await validateArchive(result);return result;
 }
 
 export async function restore(env:Bindings,input:any,receipt?:{id:string;sha256:string},options:{laterJournal?:any;actor?:AuditActor;manifest?:any}={}){
