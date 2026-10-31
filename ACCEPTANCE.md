@@ -1532,7 +1532,7 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-001, BASE
 3. `resources/templates/list` names exactly the resource templates above, and each write returns a link to the record it touched.
 4. The Base conformance harness passes on Uptime's seeded fixtures under both company policies.
 
-**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: CORE registry, schema and both-policy harness checks.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: CORE registry, schema and both-policy harness checks.; `tests/agent-surface-discovery.mjs`
 **Gap.** No implementation: Uptime has no MCP door, tool registry, resource templates or Base conformance harness run.
 
 #### SURFACE-002 — Live and security are computed per call
