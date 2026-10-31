@@ -12,6 +12,7 @@ import {join} from 'node:path';
 import {statuspageEdge,applicationUrl,statusOrigin,canaryUrl} from './dependency-status-fixture.mjs';
 import {proveServiceCatalog} from './service-catalog-journey.mjs';
 import {proveDiscoverySources} from './discovery-sources-journey.mjs';
+import {proveAttributedDiscoveryJobs} from './access-discovery-job-support.mjs';
 import {provePublicDnsDiscovery} from './discovery-public-dns-support.mjs';
 let f;
 before(async()=>{f=await fixture()});
@@ -53,6 +54,7 @@ const clear=()=>f.DB.prepare('DELETE FROM discovery_jobs').run();
 const waitUntil=async(read,label,ms=20000)=>{const until=Date.now()+ms;for(;;){const value=await read();if(value)return value;if(Date.now()>until)throw Error(`${label} did not happen`);await new Promise(r=>setTimeout(r,50))}};
 
 test("Discover a site, review and adopt monitoring, follow its dependency, and retain source custody",async()=>{
+ await proveAttributedDiscoveryJobs();
 // the owner asks, a runner claims and answers, and the owner reads the proposals with the runner's network label
 {
  await clear();const started=Date.now(),before=await everythingElse();
