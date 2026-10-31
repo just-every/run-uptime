@@ -77,7 +77,7 @@ Core · published · **partial**
 **Acceptance.**
 1. Exercise real controlled HTTP/TLS endpoints with mixed DNS, rebinding, hostname mismatch, redirects, downgrade, forbidden addresses, credentials and execution bounds; inspect requests and prove rejected destinations receive no connection or authority.
 
-**Evidence.** `runners/src/public-http.mjs`; `src/domain/worker-http.server.ts`; `tests/tls-auth.mjs`; `tests/api-auth-journey.mjs`
+**Evidence.** `runners/src/public-http.mjs`; `src/domain/worker-http.server.ts`; `tests/tls-auth.mjs`; `tests/api-auth-journey.mjs`; `tests/probe-native-evidence.mjs` — existing mixed-answer runner refusal and Unknown assertions; `tests/network-mixed-dns.mjs` — mixed DNS connection refusal journey: owner-created monitor, actual signed runners and retained scheduled evidence; an allowed public answer qualifies target socket and request counters, then both public-first and private-first mixed answers cause zero target connections and requests, retained network runner_error, Unknown with the fixed coverage denominator and no fabricated trigger or recovery. Qualification pending; current main judgment and gap retained.
 **Gap.** Cross-origin authentication, client-certificate and body stripping are asserted. Gap: mixed DNS answers, rebinding before connection, TLS hostname mismatch, re-resolution of every redirect, HTTPS downgrade and forbidden redirect refusal, exact-origin credential binding, timeout/body/encoding bounds and zero connections to rejected destinations lack assertions in the cited files. tests/tls-auth.mjs calls assertions in helper files this clause does not cite.
 
 #### HEARTBEAT-001 — Revision-scoped receipt evaluation
