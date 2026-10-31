@@ -195,6 +195,11 @@ export async function proveStateHysteresis() {
   assert.ok(finalHistory.every(slot=>slot.revision===created.revision&&JSON.stringify(slot.definition)===JSON.stringify(created.definition)));
   assert.equal(completions.length,12);assert.ok(completions.every(result=>result.status===200&&result.signed));
   assert.deepEqual([...new Set(completions.map(result=>result.runnerId))].sort(),locations.map(location=>location.runnerId).sort());
+  for(const slot of finalHistory) {
+   assert.deepEqual(completions.filter(result=>result.slotId===slot.id).map(result=>result.runnerId).sort(),
+    slot.definition.probes.map(probe=>slot.definition.assignments[probe].runnerId).sort(),
+    'every manual and scheduled slot retains accepted signed completions from exactly its assigned runners');
+  }
   await run(0,200,true);await run(1,200,true);
   assert.deepEqual((await overview()).alerts,closed,'idle polls after recovery cannot replay the recovery event');
   console.log('STATE-001 passed: two signed assigned runners, mixed-vantage Degraded, confirmed failure, manual-pass isolation, absent-probe Unknown, first complete scheduled Recovering and one recovery after the second complete scheduled pass with immutable evidence.');
