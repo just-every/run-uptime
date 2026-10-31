@@ -26,6 +26,7 @@ import {applyAlertRoute,previewAlertRoute,prepareAlertRouteAssignment} from '../
 import {saveEvidenceAccess} from '../domain/failure-evidence-access.server.ts'
 import {authority,unavailable} from './authority.server.ts'
 import * as reads from './reads.server.ts'
+import {monitorUpdateEffects} from './monitor-update-effects.server.ts'
 const string={type:'string',minLength:1,maxLength:512},integer={type:'integer',minimum:0}
 const schema=(properties:Record<string,any>,required=Object.keys(properties)):JsonSchemaObject=>({type:'object',properties,required,additionalProperties:false})
 const idSchema=schema({id:string})
@@ -50,7 +51,7 @@ async function actionSummary(env:Bindings,verb:string,title:string,a:any){
   else if(verb.startsWith('incidents.')){const incident=await findIncident(env,a.id);name='Incident for '+(await get(env,incident.monitor_id))?.definition.name}
   else {const m=await get(env,a.id);if(m){name=m.definition.name;items.push('Current monitor revision: '+m.revision)}}
  }
- if(a.definition?.name)name=a.definition.name
+ if(a.definition?.name&&verb!=='monitors.update')name=a.definition.name
  if(a.monitorIds)for(const id of a.monitorIds){const m=await get(env,id);items.push('Selected monitor: '+(m?.definition.name??id))}
  return {target:{...(typeof a.id==='string'?{id:a.id}:{}),name},items,...(recipients?{recipients}:{}),...(a.role?{role:a.role}:{})}
 }
@@ -122,11 +123,11 @@ export function tools(env:Bindings):ToolDefinition[]{
  }
  mutation('monitors.create','Create a native monitor',schema({definition:{type:'object'}}),['live','external','security'],['MONITOR-001'],async(a,c)=>{const access=await authority(env,c,'check_write',[],a.definition,true);const result=await save({...env,DB:authorizedDatabase(env,access)},a.definition,undefined,actor(c));c.emit('monitor.created',`uptime://monitors/${result!.id}`);return reads.monitorRead(env,c,result!.id)},monitorRisk).authority=async(a)=>({subject:'monitor:new',widens:Boolean((a.definition as any)?.privateGrantRef||(a.definition as any)?.request?.credentialRef)})
  const monitorSchema=schema({id:string,version:integer,definition:{type:'object',minProperties:1}})
- const update=mutation('monitors.update','Update a native monitor definition',monitorSchema,['live','external','security'],['MONITOR-001'],async(a,c)=>{
+ const update=mutation('monitors.update','Update a native monitor definition',monitorSchema,['standard','live','external','security'],['MONITOR-001'],async(a,c)=>{
   const old=await current(env,c,a.id),next={...old.definition,...a.definition},access=await authority(env,c,'check_write',[a.id],next),db=authorizedDatabase(env,access)
   // The exact native revision is also fenced in save's transaction.
   const result=await save({...env,DB:db},next,a.id,actor(c),a.version);c.emit('monitor.updated',`uptime://monitors/${a.id}`,{revision:result!.revision});return reads.monitorRead(env,c,a.id)
- },monitorRisk,monitorRevision)
+ },async(a,c)=>{const old=await current(env,c,String(a.id)),next={...old.definition,...a.definition as object};await authority(env,c,'check_write',[String(a.id)],next);return monitorUpdateEffects(old.definition,a.definition as Record<string,unknown>)},monitorRevision)
  update.authority=async(a,c)=>{const old=(await current(env,c,String(a.id))).definition,next={...old,...a.definition as object};return {subject:`monitor:${a.id}`,widens:next.network!==old.network||next.privateGrantRef!==old.privateGrantRef||JSON.stringify(next.request)!==JSON.stringify(old.request)||JSON.stringify(next.tlsTrust)!==JSON.stringify(old.tlsTrust)}}
  for(const [verb,enabled] of [['pause',false],['resume',true]] as const)mutation('monitors.'+verb,(enabled?'Resume':'Pause')+' native monitor scheduling',schema({id:string,version:integer}),['live'],['MONITOR-001'],async(a,c)=>{const old=await current(env,c,a.id),access=await authority(env,c,'check_write',[a.id],old.definition);const result=await save({...env,DB:authorizedDatabase(env,access)},{...old.definition,enabled},a.id,actor(c),a.version);c.emit('monitor.updated',`uptime://monitors/${a.id}`,{revision:result!.revision});return reads.monitorRead(env,c,a.id)},async(a,c)=>{const old=await current(env,c,String(a.id));await authority(env,c,'check_write',[String(a.id)],old.definition);return [facts('live',{service:old.definition.service??'monitoring'})]},monitorRevision)
  const incidentVersion=async(a:any,c:ToolContext)=>{const read=await reads.incidentRead(env,c,a.id);return read.version}

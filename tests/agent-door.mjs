@@ -4,6 +4,7 @@ import {provePolicyEntry} from './agent-policy-entry-support.mjs';
 import {nativeDoorBrowser} from './agent-door-browser.mjs';
 import {proveAccessFacts} from './agent-access-facts-support.mjs';
 import {proveStandardApproval} from './agent-standard-approval-support.mjs';
+import {proveMonitorStateEffects} from './agent-monitor-state-support.mjs';
 // One integrated core journey, through the emitted production Worker and real
 // D1. Only mail/probe provider edges may be replaced; identities and mutations
 // enter the ordinary native public doors.
@@ -93,6 +94,7 @@ try{
  const wrong=await accessToken(c,{aud:origin+'/other'});assert.equal((await c.mcp('tools/list',{}, {token:wrong})).status,401);
  const setup=await fetch(origin+'/setup',{method:'POST',redirect:'manual',headers:{origin,cookie}});assert.equal(setup.status,303);
  proof=await nativeDoorBrowser({origin,cookie,directory});
+ await proveMonitorStateEffects({c,native,db,proof});
  const version=monitor.revision;
  const stale=await c.tool('uptime.monitors.update',{id:monitor.id,version:version-1,definition:{name:'must not save'},expected_revision:version-1});assert.equal(errorCode(stale),'revision_conflict');
  const changed=await result('uptime.monitors.update',{id:monitor.id,version,definition:{name:'Checkout reachability — investigated'},expected_revision:version});
