@@ -5,7 +5,7 @@
 // Record identities keep the archive identity rule (restored records keep their source ids), so an id that rule accepts is
 // a well-formed id here; whether it names a record stays the service's answer.
 import {SOURCES} from './definitions/importers/index.ts'
-type Body='none'|'empty'|'object'|'text'
+type Body='none'|'empty'|'object'|'optional-object'|'text'
 interface Route{method:string;path:string;params?:Record<string,(value:string)=>boolean>;query?:Record<string,(value:string)=>boolean>;body:Body}
 const identity=(value:string)=>value.length>0&&value.length<=512&&!/[\x00-\x1f\x7f]/.test(value)
 const uuid=(value:string)=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(value)
@@ -148,7 +148,7 @@ export const apiRoutes:readonly Route[]=[
  {method:'PATCH',path:'/api/notifications/destinations/:id',params:id,body:'object'},
  {method:'DELETE',path:'/api/notifications/destinations/:id',params:id,body:'none'},
  {method:'POST',path:'/api/notifications/destinations/:id/rotate',params:id,body:'empty'},
- {method:'POST',path:'/api/notifications/destinations/:id/test',params:id,body:'empty'},
+ {method:'POST',path:'/api/notifications/destinations/:id/test',params:id,body:'optional-object'},
  {method:'POST',path:'/api/notifications/destinations/:id/drill',params:id,body:'empty'},
 ]
 export class InputError extends Error{status=400}
@@ -180,6 +180,7 @@ export function checkInput(method:string,url:URL,text:string,hasBody:boolean):{b
   if(route.body==='none'){if(hasBody)refuse('This request takes no body');return {body:undefined}}
   if(route.body==='text')return {body:undefined};
   if(route.body==='empty'){if(text!==''&&text.trim()!=='{}')refuse('This action takes no request fields');return {body:{}}}
+  if(route.body==='optional-object'&&text==='')return {body:{}};
   let body;try{body=JSON.parse(text)}catch{refuse('Invalid JSON body')}
   if(!body||typeof body!=='object'||Array.isArray(body))refuse('The request body must be a JSON object');
   return {body};

@@ -1,6 +1,8 @@
+import {proveWebhookPreviewParity} from './webhook-preview-parity.mjs';
 import {test} from 'node:test';import assert from 'node:assert/strict';import {createHmac,randomBytes} from 'node:crypto';import {webhookFixture} from './webhook-custom-support.mjs';import {fixture} from './resilience/support.mjs';
 const headerSecret=randomBytes(32).toString('hex');
 test('reviewed custom webhooks preserve receiver formats, exact signed bytes, local secrets and inactive portable history',async()=>{
+ await proveWebhookPreviewParity();
  let edge,receiving;try{edge=await webhookFixture();const {f,records,url}=edge;
  const request=async(path,body,method)=>{const r=await f.request(path,{...(body===undefined?{}:{body}),...(method?{method}:{})});assert.ok(r.status>=200&&r.status<300,JSON.stringify(r));return r.data};
  const source={type:'Webhook',data:{friendlyName:'Migrated billing receiver',urlToNotify:url,postValue:'{"name":"*monitorFriendlyName*","type":*alertType*,"detail":"*alertDetails*","id":"{{event.id}}","status":*httpStatusCode*}',sendAsQueryString:false,sendAsJSON:true,sendAsPostParameters:false,customHeaders:{'X-Api-Key':'source-secret-not-carried'},enableNotificationsFor:'UpAndDown',sslExpirationReminder:true}};

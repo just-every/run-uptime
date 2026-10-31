@@ -1,6 +1,10 @@
 // @ts-ignore Shared versioned renderer also runs on the Node dispatcher.
-import {normalizeWebhookTemplate,renderWebhookTemplate,webhookTemplateWarnings,webhookTemplateSamples,oncallReceipt} from './webhook-template.mjs'
+import {normalizeWebhookTemplate,renderWebhookTemplate,webhookTemplateWarnings,webhookTemplateSamples,webhookSampleKind,oncallReceipt} from './webhook-template.mjs'
 import {validateDestination} from '../base/modules/integrations/core/destination.ts'
+// @ts-expect-error Maintained Base sealed-context primitive.
+import {keyedHash,seal,unseal} from '../base/modules/operator-auth/identity/oidc/crypto.mjs'
+import {testEvent} from './notification-content.ts'
+import type {Bindings} from './control.server.ts'
 import type {NotificationCredential} from './notification-credentials.server.ts'
 export type WebhookSnapshot={config:any;headers:Record<string,string>;signing:boolean};
 export function portableWebhookConfig(value:any){return value===null?null:normalizeWebhookTemplate(value)}
@@ -87,13 +91,32 @@ export function notificationResponseExcerpt(body:unknown,credential:Notification
  let output='';for(const character of text){const escaped=html(character);if(output.length+escaped.length>512)break;output+=escaped}return echoes?echoes(output,false):output;
 }
 function maskedRequest(wire:any,secretNames:string[]){return {method:wire.method??'POST',url:wire.url,headers:Object.fromEntries(Object.entries(wire.headers).map(([name,value])=>[name,secretNames.includes(name)||['x-lamp-signature','webhook-signature'].includes(name)?'[masked]':value])),...(wire.body===undefined?{}:{body:wire.body})}}
-async function previewCredential(credential:NotificationCredential){
+const samplePurpose=(id:string)=>`uptime-webhook-sample-v1:${id}`;
+async function sampleKey(env:Bindings){
+ if(typeof env.SESSION_SECRET!=='string'||env.SESSION_SECRET.length<32)throw Error('Webhook sample custody unavailable');
+ return keyedHash(env.SESSION_SECRET,'uptime-webhook-sample','sealed-context-v1');
+}
+/** Only an authenticated owner request may exchange this context for a test job.
+ * The token grants no route authority and contains no destination secrets. */
+export async function webhookSampleSend(env:Bindings,id:string,token:unknown){
+ if(typeof token!=='string'||token.length>8192)throw Error('Invalid webhook sample context');
+ let context;try{context=await unseal(await sampleKey(env),samplePurpose(id),token)}catch{throw Error('Invalid webhook sample context')}
+ const event=context?.event,now=Date.now();
+ if(!webhookSampleKind(event)||!/^test:[a-f0-9-]{36}$/.test(event.id)||event.state!=='test'||event.monitorId!==null||event.incidentKey!==null||event.slotId!==null||
+  !Number.isSafeInteger(event.observedAt)||event.observedAt>now||context.expiresAt!==event.observedAt+300000||context.expiresAt<=now||typeof context.credentialId!=='string')throw Error('Webhook sample expired or invalid; preview again');
+ return {event,credentialId:context.credentialId as string};
+}
+async function previewCredential(credential:NotificationCredential,saved?:{env:Bindings;id:string;credentialId:string}){
  const {notificationProtocols}=await import('./notification-protocols.ts');
  const samples=[];
  for(const source of webhookTemplateSamples().filter((e:any)=>credential.webhook?.config.mode!=='oncall'||['trigger','recovery'].includes(e.kind))){
-  const event={...source,eventType:`uptime.preview.${source.kind}`},body=notificationEnvelopeBody(credential,event),protocol=notificationProtocols(credential,'preview-credential',event)[0];
-  const request=await protocol.prepare({id:event.id,tenant:'uptime-notifications',destinationId:'preview-credential',event:event.eventType,protocol:'webhook',body},event.observedAt);
-  samples.push({kind:event.kind,request:maskedRequest(request,credential.webhook?.config.headerNames??[])});
+  // Native Oncall needs real incident semantics and has no sample-send door.
+  const sample=Boolean(credential.webhook&&credential.webhook.config.mode!=='oncall'),event=sample?{...testEvent(''),eventType:`uptime.notification.sample.v1.${source.kind}`}:{...source,eventType:`uptime.preview.${source.kind}`};
+  const credentialId=saved?.credentialId??'preview-credential',deliveryId=saved?`${event.id}:${saved.id}`:event.id;
+  const body=notificationEnvelopeBody(credential,event),protocol=notificationProtocols(credential,credentialId,event)[0];
+  const request=await protocol.prepare({id:deliveryId,tenant:'uptime-notifications',destinationId:credentialId,event:event.eventType,protocol:'webhook',body},event.observedAt);
+  const test=sample&&saved?{sample:await seal(await sampleKey(saved.env),samplePurpose(saved.id),{event,credentialId,expiresAt:event.observedAt+300000})}:undefined;
+  samples.push({kind:source.kind,request:maskedRequest(request,credential.webhook?.config.headerNames??[]),...(test?{test}:{})});
  }
  return {webhookTemplate:credential.webhook?.config??null,webhookSigning:credential.webhook?.signing??true,warnings:credential.webhook?webhookTemplateWarnings(credential.webhook.config,credential.webhook.headers):[],samples};
 }
@@ -110,5 +133,6 @@ export async function savedWebhookPreview(env:any,id:string,input:any={}){
  if(!row)throw Error('Webhook destination not found');
  const current=await readCredential(env,row,{repairUnavailable:false}),endpoint=input.url===undefined?current.endpoint:validateDestination(input.url).href,webhook=webhookInput(input,current),signing=webhook?.signing??true;
  const signing_secret=signing?(current.signing_secret??Array.from(crypto.getRandomValues(new Uint8Array(32)),b=>b.toString(16).padStart(2,'0')).join('')):null;
- return previewCredential({endpoint,signing_secret,...(webhook?{webhook}:{})});
+ const unchanged=endpoint===current.endpoint&&signing_secret===current.signing_secret&&JSON.stringify(webhook)===JSON.stringify(current.webhook);
+ return previewCredential({endpoint,signing_secret,...(webhook?{webhook}:{})},unchanged&&webhook&&webhook.config.mode!=='oncall'?{env,id,credentialId:row.id}:undefined);
 }
