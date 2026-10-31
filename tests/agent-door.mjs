@@ -2,6 +2,7 @@ import {proveSavedEmailDestinationFacts} from './agent-destination-facts-support
 import {proveAgentSurfaceDiscovery} from './agent-surface-discovery.mjs';
 import {nativeDoorBrowser} from './agent-door-browser.mjs';
 import {proveAccessFacts} from './agent-access-facts-support.mjs';
+import {proveRecipientCap} from './agent-recipient-cap-support.mjs';
 // One integrated core journey, through the emitted production Worker and real
 // D1. Only mail/probe provider edges may be replaced; identities and mutations
 // enter the ordinary native public doors.
@@ -216,6 +217,7 @@ try{
  assert.equal(notificationAudit.consent,notificationSource.consent);
  assert.equal((await db.prepare('SELECT COUNT(*) n FROM notification_delivery_attempts WHERE delivery_id=? AND started_at IS NOT NULL').bind(notificationId).first()).n,1);
  console.log('PASS BASE-AGENT-012.uptime.notification-continuation-identity (native transport admission; provider delivery unclaimed)');
+ await proveRecipientCap({c,bindings,directory});
  const retainedEvents=await db.prepare('SELECT event FROM agent_door_events WHERE uri=?').bind('uptime://monitors/'+monitor.id).all();
  assert.ok(retainedEvents.results.length>0,'CORE retains internal native events without exposing an undeclared public event door');
  const continuationWitness=(await result('uptime.evidence.witness')).result.structuredContent;
