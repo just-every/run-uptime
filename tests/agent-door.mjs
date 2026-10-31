@@ -1,4 +1,5 @@
 import {proveSavedEmailDestinationFacts} from './agent-destination-facts-support.mjs';
+import {proveManualDebt} from './agent-manual-debt-support.mjs';
 import {proveAgentSurfaceDiscovery} from './agent-surface-discovery.mjs';
 import {provePolicyEntry} from './agent-policy-entry-support.mjs';
 import {nativeDoorBrowser} from './agent-door-browser.mjs';
@@ -279,6 +280,7 @@ try{
  assert.equal(freshErase.result?.structuredContent,undefined);
  assert.deepEqual((await result('uptime.evidence.witness')).result.structuredContent,erasedWitness);
  console.log('PASS BASE-AGENT-012.uptime.deleted-target-current-admission');
+ await proveManualDebt({c,db,origin,cookie,proof});
  await proof.capture('agents-final','/agents');await proof.close();proof=null;
  assert.ok(c.points.every(point=>point.ok),JSON.stringify(c.points.filter(p=>!p.ok)));
  // Updated 2026-10-30 BASE-AGENT-013.uptime.declarative-conformance:

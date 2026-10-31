@@ -1,3 +1,4 @@
+import {prepareManualDebt} from './manual-debt.mjs';
 import {randomUUID} from 'node:crypto';
 import {freshFactor, memberSessions, nativeHttp} from './http.mjs';
 import {prepareIncident} from './incident.mjs';
@@ -46,7 +47,11 @@ export default async function prepare(context) {
  const startsAt = Date.now() + 86400000;
  const window = {id: 'conformance-' + randomUUID(), name: 'Native conformance maintenance',
   mode: 'suppress', timeZone: 'UTC', startsAt, endsAt: startsAt + 3600000};
+ const debtFixture=await prepareManualDebt(http);
+ const manualLive=debtFixture.monitor;
+ await debtFixture.close();
  const values = {
+  manualLive,
   ...records, erase: {...records.erase, name: records.erase.definition.name},
   ...observed, owner: {id: owner.id, revision: owner.revision}, member: {id: member.id, revision: memberSelf.revision},
   destination: {id: destination.id}, discovery: {id: discovery.id},
