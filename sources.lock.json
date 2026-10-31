@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "13aca61133c472429185a02dc7c6458ddc3cd4fc59c10069c964f101cdb82894",
+      "sha256": "77ae2ae4a2994c905cb5dfb647fab1b58b17ca4674062823091e0496f7174a85",
       "executable": false
     },
     "DEMO.md": {
@@ -8871,6 +8871,10 @@
       "sha256": "15df3d8ae330fc23c1e58b280b61deb62149471fddeabf3a9d8b1e63fa004270",
       "executable": false
     },
+    "tests/keyword-monitor-journey.mjs": {
+      "sha256": "b3fe526259ab75a5d3e634ff2948bbb0d8ae1772a69e08c980964038726a5d86",
+      "executable": false
+    },
     "tests/mail-edges.mjs": {
       "sha256": "9d0eb50a2e6860ea2e514bf7c3adad86c2b51a10709c495a6c9b0eaffe1ed43e",
       "executable": false
@@ -9208,7 +9212,7 @@
       "executable": false
     },
     "tests/tls-auth.mjs": {
-      "sha256": "db4d8f498987b15902fc9b660b1ada435f79e9dc97d663f416023e0578d0f2c2",
+      "sha256": "6d7fe1ebe1334c848504f62ef0661e24ce8fe791d43feee86f02ff50c8bb6c19",
       "executable": false
     },
     "tests/tls-trust-journey.mjs": {
