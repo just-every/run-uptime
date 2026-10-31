@@ -2,6 +2,7 @@ import {proveSavedEmailDestinationFacts} from './agent-destination-facts-support
 import {proveAgentSurfaceDiscovery} from './agent-surface-discovery.mjs';
 import {nativeDoorBrowser} from './agent-door-browser.mjs';
 import {proveAccessFacts} from './agent-access-facts-support.mjs';
+import {proveLostResponseReplay} from './agent-lost-response-support.mjs';
 // One integrated core journey, through the emitted production Worker and real
 // D1. Only mail/probe provider edges may be replaced; identities and mutations
 // enter the ordinary native public doors.
@@ -20,8 +21,11 @@ const directory=await runtimeDirectory(),[port]=await availablePorts(1),origin='
 const signer={privateKey:pair.privateKey,kid,issuer,installationId};
 const bindings={...testAuthBindings,RER_OWNER_CLAIM_ISSUER:issuer,RER_OWNER_CLAIM_INSTALLATION_ID:installationId,RER_OWNER_CLAIM_APP_ORIGIN:origin,RER_OWNER_CLAIM_PUBLIC_KEYS:JSON.stringify({[kid]:key}),RER_BUSINESS_TRUST:JSON.stringify({v:1,issuer,audience:origin,subject:installationId,keys:{[kid]:key}})};
 let worker,proof;
+const providerRequests=[];
 try{
- ({worker}=await migratedWorker({port,persist:join(directory,'worker'),bindings}));
+ ({worker}=await migratedWorker({port,persist:join(directory,'worker'),bindings,outboundService:request=>{
+  providerRequests.push(new URL(request.url).hostname);throw Error('Unexpected network request');
+ }}));
  const iat=seconds(),claim=await signJws(pair.privateKey,kid,'rer-owner-claim+jwt',{v:1,iss:issuer,aud:origin,installationId,email:bindings.OWNER_EMAIL,jti:randomUUID(),iat,exp:iat+300});
  const call=authRequest(origin);
  assert.equal((await call('/auth/owner-claim',{token:bindings.SETUP_TOKEN,displayName:'Riley Owner',returnTo:'/app'})).status,403,'raw setup token never becomes a signed owner claim');
@@ -43,6 +47,7 @@ try{
  const second=await native('/api/monitors',{...monitor.definition,name:'Foreign service',service:'foreign'});
  const db=await worker.getD1Database('DB');
  const sponsor=await db.prepare('SELECT id FROM oa_operators WHERE email=?').bind(bindings.OWNER_EMAIL).first();
+ await proveLostResponseReplay({c,native,db,sponsorId:sponsor.id,providerRequests});
  await proveAgentSurfaceDiscovery({c,db,origin,monitorId:monitor.id});
  const target={kind:'monitor',id:monitor.id};
  const targetAudit=async(key,code)=>{
