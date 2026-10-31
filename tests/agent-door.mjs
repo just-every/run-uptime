@@ -1,3 +1,4 @@
+import {provePolicyEntry} from './agent-policy-entry-support.mjs';
 import {nativeDoorBrowser} from './agent-door-browser.mjs';
 // One integrated core journey, through the emitted production Worker and real
 // D1. Only mail/probe provider edges may be replaced; identities and mutations
@@ -16,9 +17,9 @@ const key=await webcrypto.subtle.exportKey('jwk',pair.publicKey),kid='uptime-nat
 const directory=await runtimeDirectory(),[port]=await availablePorts(1),origin='http://127.0.0.1:'+port;
 const signer={privateKey:pair.privateKey,kid,issuer,installationId};
 const bindings={...testAuthBindings,RER_OWNER_CLAIM_ISSUER:issuer,RER_OWNER_CLAIM_INSTALLATION_ID:installationId,RER_OWNER_CLAIM_APP_ORIGIN:origin,RER_OWNER_CLAIM_PUBLIC_KEYS:JSON.stringify({[kid]:key}),RER_BUSINESS_TRUST:JSON.stringify({v:1,issuer,audience:origin,subject:installationId,keys:{[kid]:key}})};
-let worker,proof;
+let worker,proof;const providerRequests=[];
 try{
- ({worker}=await migratedWorker({port,persist:join(directory,'worker'),bindings}));
+ ({worker}=await migratedWorker({port,persist:join(directory,'worker'),bindings,outboundService:async request=>{providerRequests.push({method:request.method,origin:new URL(request.url).origin});throw Error('Unexpected provider request')}}));
  const iat=seconds(),claim=await signJws(pair.privateKey,kid,'rer-owner-claim+jwt',{v:1,iss:issuer,aud:origin,installationId,email:bindings.OWNER_EMAIL,jti:randomUUID(),iat,exp:iat+300});
  const call=authRequest(origin);
  assert.equal((await call('/auth/owner-claim',{token:bindings.SETUP_TOKEN,displayName:'Riley Owner',returnTo:'/app'})).status,403,'raw setup token never becomes a signed owner claim');
@@ -27,12 +28,13 @@ try{
  const paired=await call('/api/rer/business-settings',{settings});assert.equal(paired.status,200);assert.equal((await paired.json()).rev,1);
  const surface={seed:'uptime',specialist:'monitoring-operator',tools:['uptime:read','uptime:evidence','uptime:operate','definitions:preview','events:read'].map(scope=>({scope}))};
  const c=createProtocol({fetch,origin,surface,signer,person:{email:bindings.OWNER_EMAIL,cookie,sub},business,consent:randomUUID(),points:[],agentId:'night-shift-'+randomUUID(),seq:0,revision:0,listed:new Map()});
+ const policyEntry=await provePolicyEntry({c,worker,origin,cookie,providerRequests});
  const unset=await c.tool('uptime.monitors.list',{});assert.equal(errorCode(unset),'policy_unset');
  const initial=await policyEnvelope(c,autonomousPolicy());const firstPolicy=await c.request('/api/rer/agent-policy',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({policy:initial.policy})});assert.equal(firstPolicy.status,200);c.seq=initial.payload.seq;c.revision=initial.payload.revision;
  const exposed=await c.mcp('tools/list');surface.tools=exposed.result.tools.map(t=>({name:t.name,scope:t._meta['com.runeditrun/scope'],readOnly:t.annotations.readOnlyHint,classes:t._meta['com.runeditrun/classes'],clauses:t._meta['com.runeditrun/clauses']}));
  const sendTool=c.tool;c.tool=(name,args={},options)=>sendTool(name,{...args,...(!surface.tools.find(t=>t.name===name)?.readOnly&&!args.idempotency_key?{idempotency_key:randomUUID()}:{})},options);
  const result=async(name,args={})=>{const answer=await c.tool(name,args);assert.equal(answer.result?.isError,false,`${name}: ${errorCode(answer)}`);return answer};
- await c.adopt(autonomousPolicy());
+ await c.adopt(autonomousPolicy());await policyEntry.proveAllowed();
  for(const version of ['2026-07-28','2025-11-25']){const listed=await c.mcp('tools/list',{}, {version});assert.deepEqual(listed.result.tools.map(t=>t.name),surface.tools.map(t=>t.name).sort())}
  const native=async(path,body,method=body===undefined?'GET':'POST')=>{const response=await fetch(origin+path,{method,redirect:'manual',headers:{cookie,origin,'content-type':'application/json'},...(body===undefined?{}:{body:JSON.stringify(body)})});assert.ok(response.ok,`${path} HTTP ${response.status}`);return response.json()};
  const monitor=await native('/api/monitors',{name:'Checkout reachability',type:'http',network:'public',url:'https://checkout.example.test/health',method:'GET',assertions:{status:200},intervalMs:60000,timeoutMs:5000,retries:0,probes:['local-a'],failureQuorum:1,confirmSlots:1,recoverSlots:1,freshnessMs:120000,enabled:true,service:'checkout',group:'operations'});
