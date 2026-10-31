@@ -2,6 +2,7 @@ import {randomUUID} from 'node:crypto';
 import {freshFactor, memberSessions, nativeHttp} from './http.mjs';
 import {prepareIncident} from './incident.mjs';
 import {discoveries, phaseState, rememberDiscovery} from './state.mjs';
+import {pausedUpdateFixture} from './monitor-state.mjs';
 
 const prefix = 'Native conformance ';
 function publicDefinition(label, enabled = false) {
@@ -47,6 +48,7 @@ export default async function prepare(context) {
  const window = {id: 'conformance-' + randomUUID(), name: 'Native conformance maintenance',
   mode: 'suppress', timeZone: 'UTC', startsAt, endsAt: startsAt + 3600000};
  const values = {
+  ...await pausedUpdateFixture(http,definitionFor('paused name edit',false)),
   ...records, erase: {...records.erase, name: records.erase.definition.name},
   ...observed, owner: {id: owner.id, revision: owner.revision}, member: {id: member.id, revision: memberSelf.revision},
   destination: {id: destination.id}, discovery: {id: discovery.id},

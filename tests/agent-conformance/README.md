@@ -41,6 +41,7 @@ are declared. Values are accessed with `{"$fixture":"NAME","pointer":"/FIELD"}`:
 | Value | Fields and intended use |
 | --- | --- |
 | `monitor` | Native `{id,revision,definition}` for reads and grant targeting. |
+| `pausedUpdate` | Independent paused native monitor for a name-only standard edit; the journey reads both immutable revisions and checks the unchanged saved definition. |
 | `update` | Independent enabled public HTTP monitor `{id,revision,definition}`. Change `url` and add a TLS fingerprint to exercise `live`, `external`, `security` together. |
 | `pause` | Independent enabled monitor `{id,revision,definition}`. |
 | `resume` | Independent disabled monitor `{id,revision,definition}`. |
