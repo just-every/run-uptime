@@ -205,8 +205,8 @@ try{
    await tabTo(page,page.getByRole('button',{name:'Pause',exact:true}));await page.keyboard.press('Enter');await page.locator('#monitor-state').filter({hasText:'Paused'}).waitFor();
    await page.getByRole('button',{name:'Resume',exact:true}).click();await page.locator('details#maintenance > summary').click();await page.getByRole('button',{name:'Quiet alerts for 15 min'}).click();await page.locator('#status-card').getByRole('button',{name:'End now',exact:true}).click();await page.getByRole('button',{name:'Quiet alerts for 15 min'}).waitFor();await page.getByRole('button',{name:'Pause',exact:true}).click();await page.getByRole('button',{name:'Resume',exact:true}).waitFor();
    if(width===1440||width===390)await ruleEditJourney(page,width);
-   await tabTo(page,page.getByRole('link',{name:'Notifications',exact:true}));await page.keyboard.press('Enter');await page.waitForURL(origin+'/app/notifications');await ready(page);await page.getByRole('heading',{name:'Destinations · all monitors',exact:true}).waitFor();await audit(page,`notifications-${width}`);
-   await page.getByRole('link',{name:'Archive',exact:true}).click();await page.waitForURL(origin+'/app/archive');await ready(page);await page.getByRole('button',{name:'Download backup'}).waitFor();await audit(page,`archive-${width}`);
+   await tabTo(page,page.getByRole('link',{name:'Settings',exact:true}));await page.keyboard.press('Enter');await page.waitForURL(origin+'/app/settings/alerts');await ready(page);await page.getByRole('heading',{name:'Destinations · all monitors',exact:true}).waitFor();await audit(page,`notifications-${width}`);
+   await page.getByRole('link',{name:'Backup and files',exact:true}).click();await page.waitForURL(origin+'/app/settings/backup');await ready(page);await page.getByRole('button',{name:'Download backup'}).waitFor();await audit(page,`archive-${width}`);
    const [download]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'Download backup'}).click()]);await download.saveAs(resolve(out,`archive-${width}.json`));
    await page.getByRole('link',{name:'Sign out',exact:true}).click();await page.getByLabel('Email address').waitFor();assert.equal((await page.request.get(origin+'/api/overview')).status(),401);assert.deepEqual(errors,[],'browser exceptions');
   }finally{await context.close()}
@@ -218,7 +218,7 @@ try{
    const page=await context.newPage();
    await browserSignIn(page,origin,{bootstrap:false,bindings:{...testAuthBindings,OWNER_EMAIL:process.env.UPTIME_OPERATOR_OWNER_EMAIL??testAuthBindings.OWNER_EMAIL}});
    await ready(page);await bulkAddDoor(page);await audit(page,'phone-console-390');
-   await page.getByRole('link',{name:'Notifications',exact:true}).click();await ready(page);await audit(page,'phone-notifications-390');
+   await page.getByRole('link',{name:'Settings',exact:true}).click();await page.waitForURL(origin+'/app/settings/alerts');await ready(page);await audit(page,'phone-notifications-390');
    await page.getByRole('link',{name:'Sign out',exact:true}).click();await page.getByLabel('Email address').waitFor();
    assert.equal((await page.request.get(origin+'/api/overview')).status(),401);
   }finally{await context.close()}

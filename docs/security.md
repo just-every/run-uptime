@@ -62,7 +62,7 @@ Background accountability is also incomplete. Contact reminders retain due/repea
 
 ## Settings security and keys
 
-Open Settings to enroll an authenticator or passkey, confirm enrollment, save the ten recovery codes shown once, remove a factor, or change the require-all policy. Sensitive actions prompt for a fresh second factor after five minutes. Recovery codes and key tokens disappear when you confirm you saved them and cannot be read back from lists or APIs. Keep them in private storage.
+Open **Settings › People** to enroll an authenticator or passkey, confirm enrollment, save the ten recovery codes shown once, remove a factor, or change the require-all policy. Sensitive actions prompt for a fresh second factor after five minutes. Recovery codes and key tokens disappear when you confirm you saved them and cannot be read back from lists or APIs. Keep them in private storage.
 
 The owner creates monitoring-read or CI keys with an expiry and explicit resource selection. CI keys additionally require one environment and selected tags. The list shows scope, restrictions, expiry, last use and revocation. Revocation applies to the next real read or operation. A key's definition jobs show its initiating owner, authorized checkpoint, refused next operation and revoked stop state, retained across restart; the native engine's earlier checkpoint remains history. Delegated issuance remains unavailable.
 
