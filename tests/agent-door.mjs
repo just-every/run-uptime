@@ -1,4 +1,5 @@
 import {nativeDoorBrowser} from './agent-door-browser.mjs';
+import {proveSavedEmailDestinationFacts} from './agent-destination-facts-support.mjs';
 // One integrated core journey, through the emitted production Worker and real
 // D1. Only mail/probe provider edges may be replaced; identities and mutations
 // enter the ordinary native public doors.
@@ -186,6 +187,7 @@ try{
  await proof.capture('approval-refused',new URL(pausedApproval.result._meta['com.runeditrun/approval'].url).pathname);
  console.log('PASS BASE-AGENT-011.uptime.pause-pending-execution');
  await c.adopt(autonomousPolicy());
+ await proveSavedEmailDestinationFacts({c,native,db,sponsorId:sponsor.id});
  const destination=await native('/api/notifications/destinations',{name:'Checkout incident webhook',kind:'webhook',url:'https://notifications.example.com/checkout'});
  const notificationArgs={id:destination.id,idempotency_key:randomUUID()};
  const queued=await result('uptime.destinations.test',notificationArgs),notificationId=queued.result.structuredContent.deliveryId;
