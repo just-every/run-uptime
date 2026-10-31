@@ -38,7 +38,7 @@ export async function provePolicyEntry({c,worker,origin,cookie,providerRequests}
  for(const field of ['com.runeditrun/receipt','com.runeditrun/approval','com.runeditrun/review'])assert.equal(refused.result._meta[field],undefined,'no execution or review handle');
  assert.equal(refused.decision.disposition,'unset');
  assert.equal(refused.decision.revision,null);
- assert.ok(refused.decision.classes.some(row=>row.class==='live'),'the valid target was classified');
+ assert.deepEqual(refused.decision.classes.map(({class:kind,facts})=>({class:kind,facts})),[{class:'standard',facts:{measure:1}}],'the valid paused name edit was classified without scheduling or request effects');
  assert.ok(refused.decision.classes.every(row=>row.rule===null&&row.do==='unset'));
  const after=await snapshot();
  assert.deepEqual(Object.keys(after),Object.keys(before),'no durable table is created or removed');

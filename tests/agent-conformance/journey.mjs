@@ -22,6 +22,14 @@ export async function beforeStep(context) {
 export async function afterStep(context) {
  const {origin, phase, step, result: output, tool} = context;
  if (recordAuthority.has(step.tool)) assert.deepEqual(await nativeHttp(context).json('/api/access/self'), sponsorAccess.get(origin + phase + step.id), 'Record operations leave the current sponsor’s native role and grants unchanged.');
+ if(step.id==='rename-paused-monitor'){
+  const record=phaseState.get(origin).pausedUpdate;
+  const rows=await nativeHttp(context).json('/api/monitors/'+record.id+'/revisions');
+  assert.equal(rows.length,2,'the standard fixture saves exactly one native revision');
+  assert.deepEqual(rows.find(row=>row.revision===record.revision).definition,record.definition);
+  assert.deepEqual(rows.find(row=>row.revision===record.revision+1).definition,{...record.definition,name:'Native conformance paused name edited'});
+  assert.equal(output.revision,record.revision+1);assert.equal(output.definition.enabled,false);
+ }
  if (step.tool === 'uptime.discovery.start') rememberDiscovery(origin, output.id);
  if (!step.tool.startsWith('uptime.incidents.')) return;
  const state = phaseState.get(origin);
