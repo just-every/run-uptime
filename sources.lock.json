@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "b011cad79dbffc8835c4862d022013f712fb0ef4c4ed11542fa9aa87678daacc",
+      "sha256": "8c5afef6862bff6652db6a51b60d5eef258495a4b9a05552cfacf3648e1ef73b",
       "executable": false
     },
     "DEMO.md": {
@@ -2520,7 +2520,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "412dce4e8fdbf2e3adf1114ca89c4da11f540ed4a4a1daf294fd3f519d5eb3ba",
+      "sha256": "fef9537fd8407a868a4d5a5f777142209f6b8717fe3b993787765b5f628ce407",
       "executable": false
     },
     "patches/README.md": {
@@ -8893,6 +8893,10 @@
     },
     "tests/network-diagnostics-support.mjs": {
       "sha256": "f7a383393c6849353779cba29f323ed2096a2971fa225289dc004542024a60a8",
+      "executable": false
+    },
+    "tests/network-mixed-dns.mjs": {
+      "sha256": "b829d72d3cd8230286b86d1f1e408db4d907aa94d81a6a50fcdcf4b70efcd68e",
       "executable": false
     },
     "tests/notification-fallback.mjs": {
