@@ -931,7 +931,11 @@
       },
       "expect": [
         {
-          "class": "access"
+          "class": "access",
+          "facts": {
+            "measure": 1,
+            "direction": "narrows"
+          }
         }
       ],
       "inject": {
