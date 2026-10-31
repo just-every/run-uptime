@@ -1,22 +1,85 @@
-/* The console sections around the owner's jobs: Locations (list and add panel), Settings and Archive panels
-   (public/locations.js, settings-view.js, archive-view.js). Tokens and components come from app-theme.css. */
+/* The console sections around the owner's jobs: Locations (list and add panel) and the Settings areas, each a stack of
+   cards (public/locations.js; settings-view.js and its areas settings-*.js, external-check.js, metrics.js,
+   business-import-settings.js, archive-view.js and definitions.js). Tokens and components come from app-theme.css. */
 
-/* ---------------------------------------------------------------- section panels (Settings, Archive) */
-.section-panel { padding: 8px 24px 24px; }
-.section-panel > section { padding-top: 20px; }
-.section-panel > section + section { margin-top: 20px; border-top: 1px solid var(--line); }
-.section-panel h2 { margin-bottom: 6px; font-size: 18px; }
-.section-panel h3 { margin-bottom: 10px; font-size: 17px; }
-.section-panel section > p { max-width: 72ch; margin-top: 8px; }
-.archive-buttons { display: flex; flex-wrap: wrap; gap: 10px; }
-.archive-older { max-width: 520px; margin-top: 14px; }
-.archive-older summary { cursor: pointer; color: var(--body); font-weight: 500; }
-.definitions-panel > p { max-width: 72ch; margin-top: 6px; }
-.definitions-panel > section { margin-top: 22px; }
-.definitions-panel h3 { margin-bottom: 8px; }
-.definitions-panel label { display: block; max-width: 520px; margin-top: 14px; }
-.definitions-panel .definition-input > p { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
-@media (max-width: 700px) { .section-panel { padding: 4px 16px 16px; } }
+/* ---------------------------------------------------------------- Settings areas */
+/* An area lays its cards out on the ground, so the console's content card is a bare container there. */
+.monitors:has(.settings-area) { border: 0; border-radius: 0; background: none; box-shadow: none; }
+.settings-area { display: grid; gap: 18px; min-width: 0; }
+.set-card { display: grid; gap: 12px; align-content: start; }
+.set-card > * { min-width: 0; }
+.card-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+.card-head h2 { font-size: 18px; }
+.set-card h3 { margin-top: 4px; font-size: 15px; }
+.set-card .ui-helper { margin: 0; }
+/* Saved as you go: a quiet line beside the heading, and a refusal under its field with Retry (public/settings-save.js). */
+.saved { display: inline-flex; align-items: center; gap: 6px; margin: 0; color: var(--muted); font-size: 13.5px; font-weight: 600; }
+.saved .ui-icon { width: 16px; height: 16px; color: var(--green-text); }
+.settings-failure { margin: 0; color: var(--rose-text); font-size: 14px; font-weight: 500; line-height: 1.5; }
+.settings-failure .ui-link { color: var(--rose-text); text-decoration-color: rgba(178, 48, 72, 0.45); }
+.field-row { display: flex; flex-wrap: wrap; align-items: end; gap: 10px 12px; }
+.field-row > label { flex: 1 1 220px; min-width: 0; }
+.field-row > input { flex: 1 1 260px; min-width: 0; }
+.field-row > button { flex: none; }
+.btn-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.set-split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 28px; align-items: start; }
+@container table-wrap (max-width: 759px) { .set-split { grid-template-columns: minmax(0, 1fr); } }
+/* Rows: a name, then one quiet line; the row's own action at its end. */
+.rows { display: grid; margin: 0; padding: 0; list-style: none; }
+.rows > li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 16px; padding: 10px 0; border-top: 1px solid var(--line); }
+.rows > li:first-child { border-top: 0; padding-top: 0; }
+.rows .who { display: grid; flex: 1 1 260px; gap: 2px; min-width: 0; }
+.rows .who strong { color: var(--ink); font-size: 15px; font-weight: 650; overflow-wrap: anywhere; }
+.rows .who small { color: var(--muted); font-size: 13.5px; line-height: 1.45; overflow-wrap: anywhere; }
+.rows-note { margin: 0; color: var(--muted); font-size: 14px; }
+.rows-note:empty { display: none; }
+.quiet-action { min-height: 44px; color: var(--body); font-size: 14px; }
+/* People: one row per person, which opens on their role, scope and own actions; inviting someone sits under the accounts
+   it adds to and takes a role (public/assets/access-member-controls.js). */
+.rows > details { border-top: 1px solid var(--line); }
+.rows > details:first-child { border-top: 0; }
+.rows > details:first-child > summary { padding-top: 0; }
+.rows > details > summary { font-weight: inherit; }
+.member-access { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px 12px; align-items: start; padding: 2px 0 14px; }
+.member-access > .btn-row, .member-access > [data-member-status] { grid-column: 1 / -1; }
+[data-member-status] { margin: 0; color: var(--body); font-size: 14px; font-weight: 500; overflow-wrap: anywhere; }
+[data-member-status]:empty { display: none; }
+.invite-form { display: grid; gap: 10px; }
+.invite-form .field-row > .invite-role { flex: 0 1 170px; }
+.invite-scopes .member-access { padding-bottom: 4px; }
+/* Integrations: Create key opens its two fields in place. */
+.metrics-key-form { display: grid; gap: 12px; }
+.metrics-key-form .field-row > label { flex-basis: 200px; }
+.business-import-allow { display: flex; align-items: center; gap: 10px; min-height: 44px; font-weight: 600; }
+.business-import-confirm { display: grid; flex-basis: 100%; gap: 10px; padding: 12px 16px; border-radius: var(--radius-panel); background: var(--rose-soft); color: var(--rose-text); font-size: 14px; }
+
+/* ---------------------------------------------------------------- Backup and files */
+#restore-control { display: grid; gap: 6px; }
+.archive-older summary { color: var(--ink); font-weight: 600; }
+.archive-older-body { display: grid; justify-items: start; gap: 14px; padding: 4px 0 6px; }
+.archive-older-body label { justify-self: stretch; }
+.definition-input { display: grid; gap: 10px; }
+.definition-input textarea { min-height: 120px; font-family: var(--mono); font-size: 13.5px; }
+.definition-input .btn-row { margin-top: 2px; }
+#definition-preview-area { display: grid; gap: 10px; margin-top: 4px; }
+#definition-applied:empty { display: none; }
+.definition-counts { display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 0; }
+.definition-counts > div { min-width: 96px; }
+.definition-counts dt { color: var(--muted); font-size: 13px; font-weight: 500; }
+.definition-counts dd { margin: 0; color: var(--ink); font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.definition-source, .definition-digest { max-width: 72ch; overflow-wrap: anywhere; }
+.definition-digest code { font-size: 13px; overflow-wrap: anywhere; }
+.definition-details p, .definition-details li { max-width: 64ch; overflow-wrap: anywhere; }
+.definition-details ul, .batch-entries ul { margin: 4px 0 0; padding-left: 18px; }
+.definition-details .field { font-weight: 600; }
+.batch-entries > summary { min-height: 32px; color: var(--body); font-size: 14px; font-weight: 600; }
+.batch-entries li { color: var(--body); font-size: 14px; overflow-wrap: anywhere; }
+@media (max-width: 700px) {
+  .settings-area { gap: 14px; }
+  .set-card { gap: 10px; }
+  .set-split { row-gap: 14px; }
+  .set-card h3 { margin-top: 2px; }
+}
 
 /* ---------------------------------------------------------------- locations */
 .locations-table th:nth-child(1) { width: 36%; padding-left: 14px; }
@@ -25,16 +88,23 @@
 .locations-table th:nth-child(4) { width: 32%; }
 .locations-table td { vertical-align: middle; }
 .location-name { color: var(--ink); font-size: 15px; font-weight: 700; }
-.location-badge { display: inline-block; margin-left: 10px; padding: 2px 10px; border-radius: 999px; background: var(--lavender); color: var(--body); font-size: 12px; font-weight: 600; vertical-align: 1px; }
+.location-badge { display: inline-block; margin-left: 10px; padding: 2px 10px; border-radius: 999px; background: var(--lavender); color: var(--body); font-size: 13px; font-weight: 600; vertical-align: 1px; }
 .location-badge.new { background: #fdebdc; color: #9a4b16; }
 .location-actions { text-align: right; white-space: nowrap; }
 .location-actions button + button { margin-left: 18px; }
 .location-actions .ui-link { min-height: 36px; padding: 0; border: 0; background: none; box-shadow: none; color: var(--ink); font-weight: 500; text-decoration: underline; text-underline-offset: 4px; }
+/* Rename and Remove are quiet row actions: they show on the row a pointer is over or holds focus; a touch screen, which
+   has no hover, always shows them. */
+@media (hover: hover) {
+  .locations-table .location-actions .ui-link { opacity: 0; transition: opacity 0.15s; }
+  .locations-table tr:is(:hover, :focus-within) .location-actions .ui-link { opacity: 1; }
+}
 @container table-wrap (max-width: 759px) {
   .locations-table tr { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px 16px; padding: 14px 20px; border-bottom: 1px solid var(--line); }
   .locations-table td { padding: 0; }
   .locations-table td[data-label="Location"], .location-actions { grid-column: 1 / -1; }
   .location-actions { text-align: left; }
+  .location-actions .ui-link { min-height: 44px; }
 }
 .add-location { display: grid; gap: 14px; }
 .add-steps { display: grid; gap: 16px; margin: 0; padding: 0; list-style: none; counter-reset: step; }
@@ -42,7 +112,7 @@
 .add-steps > li::before { content: counter(step); position: absolute; left: 0; top: -2px; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--lavender); color: var(--ink); font-size: 14px; font-weight: 700; }
 .add-steps h3 { font-size: 15.5px; }
 .add-steps p { margin: 0; color: var(--muted); font-size: 14px; }
-.add-steps pre { margin: 0; padding: 14px; border-radius: 12px; background: var(--ink); color: #fff; font-family: var(--mono); font-size: 12.5px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.add-steps pre { margin: 0; padding: 14px; border-radius: 12px; background: var(--ink); color: #fff; font-family: var(--mono); font-size: 13px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
 .add-steps button { justify-self: start; }
 .location-joined, .location-waiting { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 12px; font-size: 14px; font-weight: 600; }
 .location-joined { background: var(--green-soft); color: var(--green-text); }
@@ -51,9 +121,3 @@
 .add-steps .location-local { color: var(--body); }
 .check-all { display: flex; align-items: center; gap: 10px; min-height: 44px; color: var(--ink); font-size: 15px; font-weight: 600; }
 .check-all + .helper, .location-joined + .helper { margin: -8px 0 0; }
-
-/* Settings controls use the same spacing as the other forms. */
-.settings-panel form:not(#external-check-form) { display: grid; gap: 14px; max-width: 520px; margin-top: 14px; }
-.settings-panel form > button { justify-self: start; }
-.settings-buttons, .operator-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
-.settings-buttons { margin-top: 4px; }

@@ -40,7 +40,7 @@ export function statusCard(m,{readUnavailable,data,seen}){
  if(seen.followed?.review)held.push(['review','<span>The followed service’s catalog entry needs review.</span> <a class="ui-link" href="#followed">Review it</a>']);
  if(startingUp(m,data))held.push(['startup','<span>Checks run while you use this console; Cloudflare can take up to two hours to start background checks.</span>']);
  for(const [name,what] of Object.entries(READS))if(seen.failed?.has(name))held.push([`read-${name}`,`<span>Couldn’t load ${what}.</span> <button type="button" class="ui-link" data-action="retry-read" data-read="${name}">Retry</button>`]);
- const told=seen.route&&!seen.route.readyCount?`<p class="status-told" id="status-told">${icon('bell')}<span>Nobody is told.</span> <a class="ui-link" href="/app/notifications">Add a notification →</a></p>`:'';
+ const told=seen.route&&!seen.route.readyCount?`<p class="status-told" id="status-told">${icon('bell')}<span>Nobody is told.</span> <a class="ui-link" href="/app/settings/alerts">Add a notification →</a></p>`:'';
  return `<section class="ui-card status-card ${tone}" id="status-card"><div class="status-row"><p class="state-line"><span class="state-text"><span class="status-explanation" id="monitor-status" tabindex="-1" data-state="${escape(shown.toLowerCase())}">${breakable(text)}</span>${action?' '+action:''}</span></p>${passing(m,data,seen)}</div>`
   +held.map(([key,html])=>`<p class="status-held" data-key="held-${key}">${html}</p>`).join('')+told+'</section>';
 }
