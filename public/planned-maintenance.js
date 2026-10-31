@@ -2,6 +2,7 @@ import {escape} from './console-format.js';
 import {dialogFocusReturn} from './notification-dialogs.js';
 import {localDateTime,localStart,modeDescription,windowDescription} from './maintenance-calendar.js';
 import {plannerFields,previewMarkup} from './maintenance-markup.js';
+import {installationZone} from './installation-zone.js';
 import {clock,dayClock} from './monitor-status.js';
 export {maintenancePanel} from './maintenance-markup.js';
 
@@ -27,7 +28,7 @@ function lockDialog(dialog,busy){
 export function openMaintenanceDialog({monitors,api,action}){
  if(!monitors?.length)return;ensureMaintenanceStyles();
  const selection=[...monitors],monitorIds=selection.map(m=>m.id);
- const timeZone=Intl.DateTimeFormat().resolvedOptions().timeZone;
+ const timeZone=installationZone();
  const start=localDateTime(Date.now()+3600000,timeZone),fromDate=start.slice(0,10);
  const untilDate=new Date(Date.parse(fromDate+'T00:00:00Z')+28*86400000).toISOString().slice(0,10);
  const dialog=createDialog('Plan maintenance','plan-maintenance');

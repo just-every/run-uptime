@@ -30,7 +30,7 @@ Every selected location needs valid passing evidence for every slot in the windo
 
 For each selected destination, choose a delay of 0–1,440 minutes, a repeat interval of 0–1,440 minutes, an optional maximum of 1–1,000 repeats, whether to send a slow-recovered notice, and whether acknowledgement stops reminders. A delay of 0 sends immediately after confirmation; a repeat interval of 0 turns reminders off. A blank maximum allows reminders to continue while the event remains eligible. Delays start when Slow is confirmed, rather than at the first slow sample.
 
-Disabled destinations and contacts without usable local credentials cannot receive notices. An accepted provider request does not prove inbox delivery or human receipt. Review destinations and delivery history in **Notifications**.
+Disabled destinations and contacts without usable local credentials cannot receive notices. An accepted provider request does not prove inbox delivery or human receipt. Review destinations and delivery history in **Settings › Alerts**.
 
 ## Acknowledge and recover
 

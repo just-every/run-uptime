@@ -1080,14 +1080,6 @@
         "environment": "all"
       },
       {
-        "path": "/notification-preferences.js",
-        "match": "exact",
-        "kind": "asset",
-        "class": "assets",
-        "authentication": "None; emitted static resource only.",
-        "environment": "all"
-      },
-      {
         "path": "/alert-drills.js",
         "match": "exact",
         "kind": "asset",
@@ -1371,6 +1363,62 @@
       },
       {
         "path": "/settings-view.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/settings-alerts.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/settings-general.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/settings-people.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/settings-integrations.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/settings-backup.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/settings-save.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/installation-zone.js",
         "match": "exact",
         "kind": "asset",
         "class": "assets",

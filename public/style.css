@@ -1,6 +1,6 @@
 /* The console (/app and /app/monitors/<id>): its grid with the side column, the summary, the monitor list with its
-   coverage bars, a monitor's header and the console styles its page shares, and the definition files on Archive
-   (sections.css styles Locations, Settings and Archive; monitor-page.css a monitor's page). It builds on app-theme.css
+   coverage bars, a monitor's header and the console styles its page shares (sections.css styles Locations and the
+   Settings areas; monitor-page.css a monitor's page). It builds on app-theme.css
    (tokens, element defaults, ui-* components and the shell), which
    loads first; notifications.css loads after it. The shell's single-column breakpoint is 700px, matching
    matchMedia('(max-width:700px)') in app.js and innerWidth<=700 in notifications.js. */
@@ -308,36 +308,6 @@
 .monitor-missing { margin: 0; padding: 40px 24px; border-radius: var(--radius); background: var(--card); box-shadow: 0 0 0 1px var(--line), var(--shadow-sm); }
 .monitor-missing p { max-width: 56ch; overflow-wrap: anywhere; }
 .monitor-missing .ui-button { margin-top: 16px; }
-
-/* ---------------------------------------------------------------- settings and backup */
-.external-check form { max-width: 560px; margin-top: 14px; }
-.external-check label { display: block; margin-bottom: 6px; color: var(--body); font-weight: 500; }
-.external-check-row { display: flex; gap: 10px; }
-.external-check-row input { flex: 1 1 auto; min-width: 0; margin: 0; }
-.external-check .ui-callout { max-width: none; margin-top: 12px; }
-.external-check .ui-callout[hidden] { display: none; }
-#export { margin-top: 4px; }
-.archive-tools label { max-width: 520px; margin-top: 18px; color: var(--body); font-weight: 500; }
-.archive-tools .ui-callout { max-width: none; margin-top: 18px; }
-/* ---------------------------------------------------------------- definition files */
-.definition-input textarea { width: 100%; min-height: 120px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
-.definition-input select { max-width: 100%; }
-.definition-counts { display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 4px 0 12px; }
-.definition-counts > div { min-width: 96px; }
-.definition-counts dt { color: var(--muted); font-size: 13px; font-weight: 500; }
-.definition-counts dd { margin: 0; color: var(--ink); font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
-.definition-source, .definition-digest { max-width: 72ch; overflow-wrap: anywhere; }
-.definition-digest code { font-size: 12px; overflow-wrap: anywhere; }
-.definitions-panel .table-scroll { margin-top: 12px; }
-.definition-details p, .definition-details li { max-width: 64ch; overflow-wrap: anywhere; }
-.definition-details ul, .definition-batches ul { margin: 4px 0 0; padding-left: 18px; }
-.definition-details .field { font-weight: 600; }
-.definition-batches { margin: 0; padding: 0; list-style: none; }
-.definition-batches > li { padding: 12px 0; border-top: 1px solid var(--line); overflow-wrap: anywhere; }
-.definition-batches button { margin-top: 10px; }
-@media (max-width: 700px) {
-  .archive-tools label { max-width: none; }
-}
 
 /* Browser flow (FLOW-001): the step trace and revision history on a monitor's page, in the page's own list and result styles. */
 .flow .detail-metrics{grid-template-columns:minmax(0,1fr)}

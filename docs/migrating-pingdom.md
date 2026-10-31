@@ -1,6 +1,6 @@
 # Saved Pingdom check details
 
-Choose saved HTTP check-detail responses or TMS detail responses in Definitions.
+Choose saved HTTP check-detail responses or TMS detail responses in Settings › Backup and files.
 The [published API 3.1 schema](https://docs.pingdom.com/API_3.1.yaml), read
 23 October 2026, defines HTTP details inside `check` and direct TMS detail objects
 whose type is `script` or `recording`. Summary check lists do not supply complete
