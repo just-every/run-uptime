@@ -13,13 +13,12 @@ import { Route as ConsoleRouteImport } from './routes/_console'
 import { Route as DocsIndexRouteImport } from './routes/docs.index'
 import { Route as DocsSlugRouteImport } from './routes/docs.$slug'
 import { Route as ConsoleAppIndexRouteImport } from './routes/_console.app.index'
-import { Route as ConsoleAppArchiveRouteImport } from './routes/_console.app.archive'
 import { Route as ConsoleAppLocationsRouteImport } from './routes/_console.app.locations'
-import { Route as ConsoleAppNotificationsRouteImport } from './routes/_console.app.notifications'
 import { Route as ConsoleAppSettingsRouteImport } from './routes/_console.app.settings'
 import { Route as ConsoleAppSignoutRouteImport } from './routes/_console.app.signout'
 import { Route as AppMonitorsNewRouteImport } from './routes/app.monitors.new'
 import { Route as ConsoleAppMonitorsIndexRouteImport } from './routes/_console.app.monitors.index'
+import { Route as ConsoleAppSettingsAreaRouteImport } from './routes/_console.app.settings.$area'
 import { Route as AppMonitorsIdIndexRouteImport } from './routes/app.monitors.$id.index'
 import { Route as AppMonitorsIdEditRouteImport } from './routes/app.monitors.$id.edit'
 import { Route as AppMonitorsNewManualRouteImport } from './routes/app.monitors.new.manual'
@@ -45,19 +44,9 @@ const ConsoleAppIndexRoute = ConsoleAppIndexRouteImport.update({
   path: '/app/',
   getParentRoute: () => ConsoleRoute,
 } as any)
-const ConsoleAppArchiveRoute = ConsoleAppArchiveRouteImport.update({
-  id: '/app/archive',
-  path: '/app/archive',
-  getParentRoute: () => ConsoleRoute,
-} as any)
 const ConsoleAppLocationsRoute = ConsoleAppLocationsRouteImport.update({
   id: '/app/locations',
   path: '/app/locations',
-  getParentRoute: () => ConsoleRoute,
-} as any)
-const ConsoleAppNotificationsRoute = ConsoleAppNotificationsRouteImport.update({
-  id: '/app/notifications',
-  path: '/app/notifications',
   getParentRoute: () => ConsoleRoute,
 } as any)
 const ConsoleAppSettingsRoute = ConsoleAppSettingsRouteImport.update({
@@ -79,6 +68,11 @@ const ConsoleAppMonitorsIndexRoute = ConsoleAppMonitorsIndexRouteImport.update({
   id: '/app/monitors/',
   path: '/app/monitors/',
   getParentRoute: () => ConsoleRoute,
+} as any)
+const ConsoleAppSettingsAreaRoute = ConsoleAppSettingsAreaRouteImport.update({
+  id: '/$area',
+  path: '/$area',
+  getParentRoute: () => ConsoleAppSettingsRoute,
 } as any)
 const AppMonitorsIdIndexRoute = AppMonitorsIdIndexRouteImport.update({
   id: '/app/monitors/$id/',
@@ -112,13 +106,12 @@ export interface FileRoutesByFullPath {
   '/': typeof ConsoleRouteWithChildren
   '/docs/$slug': typeof DocsSlugRoute
   '/docs/': typeof DocsIndexRoute
-  '/app/archive': typeof ConsoleAppArchiveRoute
   '/app/locations': typeof ConsoleAppLocationsRoute
-  '/app/notifications': typeof ConsoleAppNotificationsRoute
-  '/app/settings': typeof ConsoleAppSettingsRoute
+  '/app/settings': typeof ConsoleAppSettingsRouteWithChildren
   '/app/signout': typeof ConsoleAppSignoutRoute
   '/app/monitors/new': typeof AppMonitorsNewRouteWithChildren
   '/app/': typeof ConsoleAppIndexRoute
+  '/app/settings/$area': typeof ConsoleAppSettingsAreaRoute
   '/app/monitors/$id/edit': typeof AppMonitorsIdEditRoute
   '/app/monitors/new/manual': typeof AppMonitorsNewManualRouteWithChildren
   '/app/monitors/': typeof ConsoleAppMonitorsIndexRoute
@@ -130,13 +123,12 @@ export interface FileRoutesByTo {
   '/': typeof ConsoleRouteWithChildren
   '/docs/$slug': typeof DocsSlugRoute
   '/docs': typeof DocsIndexRoute
-  '/app/archive': typeof ConsoleAppArchiveRoute
   '/app/locations': typeof ConsoleAppLocationsRoute
-  '/app/notifications': typeof ConsoleAppNotificationsRoute
-  '/app/settings': typeof ConsoleAppSettingsRoute
+  '/app/settings': typeof ConsoleAppSettingsRouteWithChildren
   '/app/signout': typeof ConsoleAppSignoutRoute
   '/app/monitors/new': typeof AppMonitorsNewRouteWithChildren
   '/app': typeof ConsoleAppIndexRoute
+  '/app/settings/$area': typeof ConsoleAppSettingsAreaRoute
   '/app/monitors/$id/edit': typeof AppMonitorsIdEditRoute
   '/app/monitors/new/manual': typeof AppMonitorsNewManualRouteWithChildren
   '/app/monitors': typeof ConsoleAppMonitorsIndexRoute
@@ -149,13 +141,12 @@ export interface FileRoutesById {
   '/_console': typeof ConsoleRouteWithChildren
   '/docs/$slug': typeof DocsSlugRoute
   '/docs/': typeof DocsIndexRoute
-  '/_console/app/archive': typeof ConsoleAppArchiveRoute
   '/_console/app/locations': typeof ConsoleAppLocationsRoute
-  '/_console/app/notifications': typeof ConsoleAppNotificationsRoute
-  '/_console/app/settings': typeof ConsoleAppSettingsRoute
+  '/_console/app/settings': typeof ConsoleAppSettingsRouteWithChildren
   '/_console/app/signout': typeof ConsoleAppSignoutRoute
   '/app/monitors/new': typeof AppMonitorsNewRouteWithChildren
   '/_console/app/': typeof ConsoleAppIndexRoute
+  '/_console/app/settings/$area': typeof ConsoleAppSettingsAreaRoute
   '/app/monitors/$id/edit': typeof AppMonitorsIdEditRoute
   '/app/monitors/new/manual': typeof AppMonitorsNewManualRouteWithChildren
   '/_console/app/monitors/': typeof ConsoleAppMonitorsIndexRoute
@@ -169,13 +160,12 @@ export interface FileRouteTypes {
     | '/'
     | '/docs/$slug'
     | '/docs/'
-    | '/app/archive'
     | '/app/locations'
-    | '/app/notifications'
     | '/app/settings'
     | '/app/signout'
     | '/app/monitors/new'
     | '/app/'
+    | '/app/settings/$area'
     | '/app/monitors/$id/edit'
     | '/app/monitors/new/manual'
     | '/app/monitors/'
@@ -187,13 +177,12 @@ export interface FileRouteTypes {
     | '/'
     | '/docs/$slug'
     | '/docs'
-    | '/app/archive'
     | '/app/locations'
-    | '/app/notifications'
     | '/app/settings'
     | '/app/signout'
     | '/app/monitors/new'
     | '/app'
+    | '/app/settings/$area'
     | '/app/monitors/$id/edit'
     | '/app/monitors/new/manual'
     | '/app/monitors'
@@ -205,13 +194,12 @@ export interface FileRouteTypes {
     | '/_console'
     | '/docs/$slug'
     | '/docs/'
-    | '/_console/app/archive'
     | '/_console/app/locations'
-    | '/_console/app/notifications'
     | '/_console/app/settings'
     | '/_console/app/signout'
     | '/app/monitors/new'
     | '/_console/app/'
+    | '/_console/app/settings/$area'
     | '/app/monitors/$id/edit'
     | '/app/monitors/new/manual'
     | '/_console/app/monitors/'
@@ -259,25 +247,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConsoleAppIndexRouteImport
       parentRoute: typeof ConsoleRoute
     }
-    '/_console/app/archive': {
-      id: '/_console/app/archive'
-      path: '/app/archive'
-      fullPath: '/app/archive'
-      preLoaderRoute: typeof ConsoleAppArchiveRouteImport
-      parentRoute: typeof ConsoleRoute
-    }
     '/_console/app/locations': {
       id: '/_console/app/locations'
       path: '/app/locations'
       fullPath: '/app/locations'
       preLoaderRoute: typeof ConsoleAppLocationsRouteImport
-      parentRoute: typeof ConsoleRoute
-    }
-    '/_console/app/notifications': {
-      id: '/_console/app/notifications'
-      path: '/app/notifications'
-      fullPath: '/app/notifications'
-      preLoaderRoute: typeof ConsoleAppNotificationsRouteImport
       parentRoute: typeof ConsoleRoute
     }
     '/_console/app/settings': {
@@ -307,6 +281,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/monitors/'
       preLoaderRoute: typeof ConsoleAppMonitorsIndexRouteImport
       parentRoute: typeof ConsoleRoute
+    }
+    '/_console/app/settings/$area': {
+      id: '/_console/app/settings/$area'
+      path: '/$area'
+      fullPath: '/app/settings/$area'
+      preLoaderRoute: typeof ConsoleAppSettingsAreaRouteImport
+      parentRoute: typeof ConsoleAppSettingsRoute
     }
     '/app/monitors/$id/': {
       id: '/app/monitors/$id/'
@@ -346,21 +327,28 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ConsoleAppSettingsRouteChildren {
+  ConsoleAppSettingsAreaRoute: typeof ConsoleAppSettingsAreaRoute
+}
+
+const ConsoleAppSettingsRouteChildren: ConsoleAppSettingsRouteChildren = {
+  ConsoleAppSettingsAreaRoute: ConsoleAppSettingsAreaRoute,
+}
+
+const ConsoleAppSettingsRouteWithChildren =
+  ConsoleAppSettingsRoute._addFileChildren(ConsoleAppSettingsRouteChildren)
+
 interface ConsoleRouteChildren {
-  ConsoleAppArchiveRoute: typeof ConsoleAppArchiveRoute
   ConsoleAppLocationsRoute: typeof ConsoleAppLocationsRoute
-  ConsoleAppNotificationsRoute: typeof ConsoleAppNotificationsRoute
-  ConsoleAppSettingsRoute: typeof ConsoleAppSettingsRoute
+  ConsoleAppSettingsRoute: typeof ConsoleAppSettingsRouteWithChildren
   ConsoleAppSignoutRoute: typeof ConsoleAppSignoutRoute
   ConsoleAppIndexRoute: typeof ConsoleAppIndexRoute
   ConsoleAppMonitorsIndexRoute: typeof ConsoleAppMonitorsIndexRoute
 }
 
 const ConsoleRouteChildren: ConsoleRouteChildren = {
-  ConsoleAppArchiveRoute: ConsoleAppArchiveRoute,
   ConsoleAppLocationsRoute: ConsoleAppLocationsRoute,
-  ConsoleAppNotificationsRoute: ConsoleAppNotificationsRoute,
-  ConsoleAppSettingsRoute: ConsoleAppSettingsRoute,
+  ConsoleAppSettingsRoute: ConsoleAppSettingsRouteWithChildren,
   ConsoleAppSignoutRoute: ConsoleAppSignoutRoute,
   ConsoleAppIndexRoute: ConsoleAppIndexRoute,
   ConsoleAppMonitorsIndexRoute: ConsoleAppMonitorsIndexRoute,

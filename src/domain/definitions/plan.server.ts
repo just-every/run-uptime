@@ -75,7 +75,7 @@ export function planEntries(state:PlanState,items:PlanItem[],{idFor,requireRunne
   seen.set(name,label)
   const id=idFor?.(item),own=id===undefined?undefined:monitors.find(m=>m.id===id)
   const matches=own?[own]:byName.get(name)??[]
-  if(own&&(byName.get(name)??[]).some(m=>m.id!==own.id)){entries.push({index,label,name,action:'refused',reason:`${label}: a monitor with this name already exists. Review it in Definitions before importing a separate source.`,differences});continue}
+  if(own&&(byName.get(name)??[]).some(m=>m.id!==own.id)){entries.push({index,label,name,action:'refused',reason:`${label}: a monitor with this name already exists. Review it in Settings › Backup and files before importing a separate source.`,differences});continue}
   if(matches.length>1){entries.push({index,label,name,action:'refused',reason:`${label}: ${matches.length} monitors in this installation are named “${name}”. Rename them in the console first.`,differences});continue}
   if(!matches.length){
    if(!first){entries.push({index,label,name,action:'refused',reason:`${label}: ${NO_RUNNER}`,differences});continue}

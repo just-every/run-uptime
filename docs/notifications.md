@@ -2,7 +2,7 @@ Notifications are how Uptime tells you a failure has been confirmed, and when it
 
 ## Add a destination
 
-Open **Notifications** in the console and add one or more destinations.
+Open **Settings › Alerts** in the console and add one or more destinations.
 
 - **Hosted email** uses the same sender setup as sign-in: `MAIL_FROM` and the mail provider you chose with `MAIL_PROVIDER`, which is `resend`, `sendgrid` (the existing-install default) or `cloudflare`. Each has its own credential: `MAIL_PROVIDER_API_KEY`, `SENDGRID_API_KEY`, or `CLOUDFLARE_MAIL_API_KEY` with `MAIL_ACCOUNT_ID`. See [Deploy to Cloudflare](/docs/deploy). Development and demo runs report successful sends without sending email. On a hosted installation, an unconfigured sender shows a warning and a **Set up email** step.
 - **Signed JSON webhook** posts a signed JSON event to a public HTTPS URL. Copy the signing secret when it is shown, because Uptime shows it only at creation or rotation.
@@ -86,7 +86,7 @@ Owner APIs are `GET /api/monitors/{id}/alert-route` and POST `.../preview` and `
 
 ## Alert time zone
 
-In Notifications, choose **Change alert time zone** and enter an IANA zone. New installations start with your browser's zone. New incident email, Slack and signed JSON context carry the confirmed start in that zone with its UTC offset. Recovery preserves the original reason, failed locations, start and zone, and adds the confirmed recovery time and exact downtime. Changing the setting affects new incidents. Old saved messages retain their original rendering. Custom webhook templates can select their own display zone and use the same immutable incident values; see [Webhook requests](/docs/webhooks).
+In **Settings › General**, choose the installation's **Time zone**; alerts, reports, maintenance and job schedules use it. New installations start with your browser's zone. New incident email, Slack and signed JSON context carry the confirmed start in that zone with its UTC offset. Recovery preserves the original reason, failed locations, start and zone, and adds the confirmed recovery time and exact downtime. Changing the setting affects new incidents. Old saved messages retain their original rendering. Custom webhook templates can select their own display zone and use the same immutable incident values; see [Webhook requests](/docs/webhooks).
 
 ## Contact delays and reminders
 
