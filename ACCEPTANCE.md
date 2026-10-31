@@ -216,7 +216,7 @@ Core · published · **partial** · Cites BASE-PUBLIC-001, BASE-INSTALL-001, BAS
 1. Open app-origin Lobby, docs and setup signed out, then sign in for /app and /app/monitor; separately read the marketing site and /run.
 2. Their routes remain distinct and private documents reject unsigned access.
 
-**Evidence.** `src/server.ts`; `src/routes/docs.index.tsx`; `tests/public-paths.mjs`; `tests/public-paths.mjs`; `docs/evidence/contracts/release-0.4.0/`
+**Evidence.** `src/server.ts`; `src/routes/docs.index.tsx`; `tests/public-paths.mjs`; `tests/public-paths.mjs`; `docs/evidence/contracts/release-0.4.0/`; `tests/public-surfaces-support.mjs`; `tests/access-matrix.mjs` asserts signed-in console aliases and rendered documents.
 **Gap.** Carried-done audit: signed-in `/app` and `/app/monitor` are asserted only in `tests/installer-support.mjs` (called from `tests/public-paths.mjs`), which this clause does not cite, and no cited test reads `/setup` signed out, reads the separate marketing site and its `/run` page or compares the two surfaces. The signed-out Lobby and docs and the refusal of unsigned private documents are asserted.
 
 #### BOUNDARY-001 — Monitoring ownership and honest delivery claims
