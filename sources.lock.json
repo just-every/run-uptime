@@ -500,7 +500,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "bfad510dbd320a063f363cd181708a69b91213702d3b8db5e8fb7d3ccd7bba18",
+      "sha256": "b87a300f83bddd05ffcb8a204c17babcf6b5567e5c82bce5392fb3de9bff760c",
       "executable": false
     },
     "agent-surface.json": {
@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "4dc348b3afcf036e92b967395af18b4bd0dd65f64f345d7f23684a71cd0394df",
+      "sha256": "c9d2be71648e9caca48d36b013520e694699e6e0275e0a117ff61e996f9c0456",
       "executable": false
     },
     "DEMO.md": {
@@ -8715,6 +8715,10 @@
       "sha256": "08ee3d8383ebfc7085519e6dd5654dd006ec362e055fbcf3405aae307fc7a239",
       "executable": false
     },
+    "tests/evidence-integrity-support.mjs": {
+      "sha256": "dba7308323626bf95baaf68dcf2c8b0da04c6b2a7b00717f2499a5c01b18f1a0",
+      "executable": false
+    },
     "tests/failure-page-browser.mjs": {
       "sha256": "ad9d14543bb5e98cdb69dd443aeb544e0b2771dad1b00577352dfbfb165d2ff1",
       "executable": false
@@ -9008,7 +9012,7 @@
       "executable": false
     },
     "tests/probe-native-evidence.mjs": {
-      "sha256": "a376ae4f67a7a0c155740c49461e64fc601af7e5c234177578ea9bfb69856998",
+      "sha256": "3e8675921e1f08607b6dc30adce0ebc4fe1dedff26e64ab8576993c1d27c7c43",
       "executable": false
     },
     "tests/probe-native-support.mjs": {

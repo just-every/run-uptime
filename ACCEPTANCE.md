@@ -40,7 +40,7 @@ Core · published · **partial**
 **Acceptance.**
 1. Through signed claim/result routes submit failure, retry, late and duplicate attempts, restart, and read history; each attempt and its revision remains identifiable and observation/state/outbox either all commit or none do.
 
-**Evidence.** `src/domain/evidence.server.ts`; `src/domain/history.server.ts`; `tests/probe-native-evidence.mjs`; `docs/evidence/contracts/release-0.4.0/`
+**Evidence.** `src/domain/evidence.server.ts`; `src/domain/history.server.ts`; `tests/probe-native-evidence.mjs`; `docs/evidence/contracts/release-0.4.0/`; `tests/evidence-integrity-support.mjs` proveEvidenceIntegrity — late fresh-signature completion refusal and contradictory first-copy preservation assertions (qualification pending)
 **Gap.** Failure and retry observations and identifiable history remain asserted. Gap: late and duplicate first-copy-wins behavior, history after Worker restart, a retained attempt's revision, full durable-state preservation after refusal and observation/state/outbox atomicity after acceptance lack assertions in the cited files.
 
 #### STATE-001 — Fixed coverage and incident hysteresis
