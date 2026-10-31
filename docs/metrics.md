@@ -2,7 +2,7 @@ Uptime exposes the same immutable monitoring figures to Prometheus, Grafana and 
 
 ## Create a metrics key
 
-In **Settings → Metrics export**, name a key, choose its expiry (1–366 days) and select **Create metrics key**. Copy the key before closing the dialog: it is shown once and only its hash is stored. The list shows expiry, last use and revocation. Revoke a key to stop its next request immediately. Keys belong to this installation, are managed by its active owners and are never restored from archives. Their metadata and authorization-use audit remain local until reset. Default expiry is 90 days.
+In **Settings › Integrations**, choose **Create key** under **Metrics keys**, name the key, choose its expiry (1–366 days) and select **Create metrics key**. Copy the key before closing the dialog: it is shown once and only its hash is stored. The list shows expiry, last use and revocation. Revoke a key to stop its next request immediately. Keys belong to this installation, are managed by its active owners and are never restored from archives. Their metadata and authorization-use audit remain local until reset. Default expiry is 90 days.
 
 A key has exactly `metrics:read`: it authorizes only `GET /api/v1/metrics`, including the JSON representation. It cannot read private archives, other product APIs or change monitors or settings. Owner sessions can also read the endpoint. This is separate from READAPI-001's future general-purpose scoped keys and ACCESS-003's future second-factor policy.
 

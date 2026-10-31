@@ -4,7 +4,7 @@ Uptime validates the destination, pins public DNS answers and verifies TLS befor
 
 ## Configure a receiver
 
-1. In **Notifications**, add a **Webhook** destination and choose **Custom request template**.
+1. In **Settings › Alerts**, add a **Webhook** destination and choose **Custom request template**.
 2. Enter the receiver's public HTTPS URL, method, delivery mode and template. Choose the owner's time zone. Keep the destination disabled while reviewing it.
 3. Enter custom header values locally as a JSON object. Saved values are masked; editing the header names requires re-entering their values.
 4. Select **Preview sample requests**. Review the exact URL, payload, encoding and named variable differences for trigger, recovery, expiry and slow examples.

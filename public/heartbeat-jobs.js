@@ -1,5 +1,6 @@
 import {escape} from './console-format.js';
 import {firstMount} from './dom-patch.js';
+import {installationZone,zoneChoices} from './installation-zone.js';
 
 export function heartbeatJobsPanel(m){
  if(m.definition.type!=='heartbeat')return '';
@@ -8,7 +9,7 @@ export function heartbeatJobsPanel(m){
  <p>A success is expected each period, with the grace below. A start measures duration; failure requests an immediate scheduled evaluation. Only signed scheduled results change health.</p>
  <form id="heartbeat-job-settings"><label for="job-mode">Schedule type<select id="job-mode" name="mode"><option value="period" ${h.cron?'':'selected'}>Expected period</option><option value="cron" ${h.cron?'selected':''}>Cron in a time zone</option></select></label>
  <label for="job-cron">Five-field cron expression<input id="job-cron" name="cron" value="${escape(h.cron??'0 2 * * *')}" maxlength="120"></label>
- <label for="job-zone">IANA time zone<input id="job-zone" name="zone" list="job-zones" value="${escape(h.timeZone??'America/New_York')}"></label><datalist id="job-zones">${['America/New_York','America/Chicago','America/Denver','America/Los_Angeles','America/Phoenix','America/Anchorage','Pacific/Honolulu','UTC'].map(z=>`<option value="${z}">`).join('')}</datalist>
+ <label for="job-zone">IANA time zone<input id="job-zone" name="zone" list="job-zones" value="${escape(h.timeZone??installationZone())}"></label><datalist id="job-zones">${zoneChoices().map(z=>`<option value="${escape(z)}">`).join('')}</datalist>
  <p>Cron skips times that do not exist during spring DST and uses only the first occurrence of repeated fall times. Early success does not satisfy the next scheduled run.</p><label for="job-period">Expected period (seconds)<input id="job-period" name="period" type="number" min="5" max="2678400" required value="${escape((h.maxAgeMs??180000)/1000)}"></label>
  <label for="job-grace">Grace (seconds)<input id="job-grace" name="grace" type="number" min="0" max="86400" required value="${escape((h.graceMs??0)/1000)}"></label>
  <label for="job-maximum">Maximum run duration (seconds; 0 disables)<input id="job-maximum" name="maximum" type="number" min="0" max="2678400" required value="${escape((h.maxRunDurationMs??0)/1000)}"></label>
