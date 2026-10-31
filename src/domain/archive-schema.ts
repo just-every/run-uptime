@@ -52,14 +52,15 @@ for(const version of [1,2,3,4,5,6,7,8,9,10,11,12,13,14])EXTENSION_TABLES[version
 export const extensionTables=(version:number)=>TABLES.filter(name=>!LEGACY_TABLES.includes(name)&&!EXTENSION_TABLES[version].includes(name));
 export const notificationNamespace='uptime-notifications';
 export type Tables=Record<string,any[]>;
+export type ArchiveSelection={kind:'monitors';monitorIds:string[];sharedRecords:'installation-history-v1'};
 export const object=(v:any)=>v!==null&&typeof v==='object'&&!Array.isArray(v);
 export function shape(row:any,keys:string[],label:string){if(!object(row)||Object.keys(row).sort().join(',')!==keys.slice().sort().join(','))throw Error(`Invalid archive ${label} row shape`)}
 export function clock(v:any,label:string){if(!Number.isSafeInteger(v)||v<0)throw Error(`Invalid archive ${label} time`)}
 export function identity(v:any,label:string){if(typeof v!=='string'||!v||v.length>512||/[\x00-\x1f\x7f]/.test(v))throw Error(`Invalid archive ${label} identity`)}
 export function unique(rows:any[],key:(r:any)=>string,label:string){const map=new Map<string,any>();for(const r of rows){const id=key(r);identity(id,label);if(map.has(id))throw Error(`Duplicate archive ${label}`);map.set(id,r)}return map}
 export async function digest(value:string){return [...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value)))].map(b=>b.toString(16).padStart(2,'0')).join('')}
-export function assertBytes(value:any,reservedBytes=0){if(new TextEncoder().encode(JSON.stringify(value)).byteLength+reservedBytes>ARCHIVE_BYTES)throw Error('Archive exceeds 2 MiB (byte bound exceeded: 2 MiB)')}
-export async function portableArchive(t:Tables,createdAt=Date.now(),erasureFence?:any){
- const payload={schemaVersion:ARCHIVE_VERSION,target:'uptime-worker-d1',createdAt,tables:Object.fromEntries(LEGACY_TABLES.map(name=>[name,t[name]])),extensionVersion:EXTENSION_VERSION,...(erasureFence?{erasureFence}:{}),productTables:Object.fromEntries(TABLES.filter(name=>!LEGACY_TABLES.includes(name)).map(name=>[name,t[name]]))};
+export function assertBytes(value:any,reservedBytes=0){const bytes=new TextEncoder().encode(JSON.stringify(value)).byteLength+reservedBytes;if(bytes>ARCHIVE_BYTES)throw Error(`Archive exceeds 2 MiB (byte bound exceeded: 2 MiB); ${bytes} bytes projected, limit ${ARCHIVE_BYTES}`)}
+export async function portableArchive(t:Tables,createdAt=Date.now(),erasureFence?:any,selection?:ArchiveSelection){
+ const payload={schemaVersion:ARCHIVE_VERSION,target:'uptime-worker-d1',createdAt,tables:Object.fromEntries(LEGACY_TABLES.map(name=>[name,t[name]])),extensionVersion:EXTENSION_VERSION,...(erasureFence?{erasureFence}:{}),...(selection?{selection}:{}),productTables:Object.fromEntries(TABLES.filter(name=>!LEGACY_TABLES.includes(name)).map(name=>[name,t[name]]))};
  return {payload,sha256:await digest(JSON.stringify(payload))};
 }

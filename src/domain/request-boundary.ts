@@ -6,7 +6,7 @@
 // a well-formed id here; whether it names a record stays the service's answer.
 import {SOURCES} from './definitions/importers/index.ts'
 type Body='none'|'empty'|'object'|'text'
-interface Route{method:string;path:string;params?:Record<string,(value:string)=>boolean>;query?:Record<string,(value:string)=>boolean>;body:Body}
+interface Route{method:string;path:string;repeatedQuery?:string[];params?:Record<string,(value:string)=>boolean>;query?:Record<string,(value:string)=>boolean>;body:Body}
 const identity=(value:string)=>value.length>0&&value.length<=512&&!/[\x00-\x1f\x7f]/.test(value)
 const uuid=(value:string)=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(value)
 const id={id:identity},source=(value:string)=>SOURCES.includes(value)
@@ -122,7 +122,7 @@ export const apiRoutes:readonly Route[]=[
  {method:'GET',path:'/api/discoveries/:id',params:{id:uuid},body:'none'},
  {method:'POST',path:'/api/runner/discoveries/claim',body:'empty'},
  {method:'POST',path:'/api/runner/discoveries/:id/result',params:{id:uuid},body:'object'},
- {method:'GET',path:'/api/archive',body:'none'},
+ {method:'GET',path:'/api/archive',query:{monitor:identity},repeatedQuery:['monitor'],body:'none'},
  {method:'GET',path:'/api/archive/restore-status',body:'none'},
  {method:'POST',path:'/api/restore',body:'object'},
  // A definitions file is JSON, NDJSON or CSV text; its importer reads it, refusing anything it cannot read.
@@ -174,7 +174,7 @@ export function checkInput(method:string,url:URL,text:string,hasBody:boolean):{b
   }
   const allowed=route.query??{},seen=new Set<string>();
   for(const [key,value] of url.searchParams){
-   if(!Object.hasOwn(allowed,key)||seen.has(key))refuse(`Unexpected query parameter${Object.keys(allowed).length?`; this route takes only ${Object.keys(allowed).join(' and ')}`:''}`);
+   if(!Object.hasOwn(allowed,key)||seen.has(key)&&!route.repeatedQuery?.includes(key))refuse(`Unexpected query parameter${Object.keys(allowed).length?`; this route takes only ${Object.keys(allowed).join(' and ')}`:''}`);
    seen.add(key);if(!allowed[key](value))refuse(key==='source'?`Invalid source in the query. Use one of: ${SOURCES.join(', ')}`:`Invalid ${key} in the query`);
   }
   if(route.body==='none'){if(hasBody)refuse('This request takes no body');return {body:undefined}}
