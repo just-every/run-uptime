@@ -65,7 +65,7 @@ Core · published · **partial** · Cites BASE-ACCESS-002, BASE-ACCESS-004, BASE
 **Acceptance.**
 1. Open private documents and call native/framework APIs while signed out, revoked, cross-origin or using a foreign/expired runner signature; require refusal with no product writes, then succeed with the authorized session or scoped runner.
 
-**Evidence.** `src/domain/control.server.ts`; `tests/operator-security.mjs`; `tests/access-matrix.mjs`; `tests/signed-runner.mjs`; `docs/evidence/contracts/release-0.4.0/`
+**Evidence.** `src/domain/control.server.ts`; `tests/operator-security.mjs`; `tests/access-matrix.mjs`; `tests/signed-runner.mjs`; `docs/evidence/contracts/release-0.4.0/`; `src/domain/runner-signature.server.ts` signedRunnerBody enforces the shared 60000 ms signature-age guard, wired to runner result and discovery result doors in `src/server.ts`
 **Gap.** Carried-done audit: refusal of an expired runner signature or acceptance window is asserted only in `tests/control-runtime.mjs`, which this clause does not cite. Signed-out, expired and revoked sessions, cross-origin requests and a foreign runner signature are refused with no product writes, and the authorized session and scoped runner then succeed.
 
 #### NETWORK-001 — Pinned bounded destination execution
