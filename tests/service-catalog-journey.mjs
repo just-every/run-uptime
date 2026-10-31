@@ -136,7 +136,8 @@ export async function proveServiceCatalog({launch,evidence}){
   const contacts=[];
   for(const [index,url] of urls.entries())contacts.push(await ok('/api/notifications/destinations',{name:['Dependency one','Dependency two','Dependency chat','Dead hook'][index],kind:index===2?'slack':'webhook',url}));
   const dead=contacts.pop();
-  const timeZone='America/Chicago',time=at=>new Intl.DateTimeFormat('en-GB',{timeZone,hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(at);
+  // UTC keeps the relative quiet-hours window continuous across DST transitions.
+  const timeZone='UTC',time=at=>new Intl.DateTimeFormat('en-GB',{timeZone,hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(at);
   const quietHours={timeZone,start:time(Date.now()-3600000),end:time(Date.now()+3600000)};
   const routeFor=async(id,route)=>{const path=`/api/monitors/${id}/alert-route`,current=await ok(path),body={scope:'monitor',mode:'selected',...route,expectedRevision:current.policies.find(p=>p.scope==='monitor').revision};const preview=await ok(path+'/preview',body);return ok(path+'/apply',{...body,digest:preview.digest})};
   await routeFor(stripeMonitor.id,{destinationIds:contacts.map(c=>c.id),contactSettings:{[contacts[1].id]:{quietHours}}});

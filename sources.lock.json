@@ -9132,7 +9132,7 @@
       "executable": false
     },
     "tests/service-catalog-journey.mjs": {
-      "sha256": "00d4f8ac8f7f96add9e5debaba3e42e60d437caf89dda5d6eb046863269064d1",
+      "sha256": "4417f3742844a8315f6a11b30a401c5bae6c83eaf71df8059dc9f8f691999992",
       "executable": false
     },
     "tests/service-catalog-portability.mjs": {
