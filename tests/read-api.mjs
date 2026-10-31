@@ -7,6 +7,9 @@ import {signInOwner} from './auth-test-support.mjs';
 import {inviteDoorMember} from './access-door-support.mjs';
 import {metricsFixture} from './metrics-fixture.mjs';
 import {proveReadKeys,proveCredentialArchive} from './read-keys-support.mjs';
+import {proveReadApiDashboard} from './read-api-dashboard-support.mjs';
+
+await proveReadApiDashboard();
 
 function csvRows(text){
  const rows=[];let row=[],value='',quoted=false;

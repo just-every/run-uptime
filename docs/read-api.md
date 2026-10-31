@@ -50,6 +50,26 @@ Each row includes confirmation/recovery times, duration in seconds, the original
 
 UptimeRobot uptime-ratio reads map to `/api/v1/monitors/{id}/uptime` for one monitor or `/api/v1/uptime` for a selection; response-time reads map to `/response-times`; incident/log reads map to `/api/v1/incidents` and its detail route. First map source monitor IDs to their new Uptime IDs and choose matching periods and time zones. Saved UptimeRobot history appears in the report and bulk uptime `sourceHistory` object described below. Use a scoped read key in the trusted service that supplies a dashboard, with the smallest monitor or tag selection it needs.
 
+For an existing v2 `getMonitors` consumer requesting `custom_uptime_ratios=1-7-30`, run the native Node example from the checkout root:
+
+```sh
+node docs/examples/uptime-ratios.mjs --map monitor-map.json
+```
+
+Set `UPTIME_ORIGIN` to your installation's HTTPS origin and `UPTIME_READ_TOKEN` to an owner-issued `monitoring:read` key. The owner must complete fresh MFA before issuing it; limit the key to the local monitors in the map and give it an expiry. Keep the token in private server configuration. Do not put it in the mapping file, browser code or a query string. Local loopback HTTP is supported for development.
+
+The map explicitly relates the old numeric source IDs to IDs obtained from the local monitor list. For example:
+
+```json
+{"4101":"local-monitor-id-1","4102":"local-monitor-id-2"}
+```
+
+Replace both local IDs with real IDs from your installation. The command uses the map to select exactly those monitors; names and list positions are never identity. It sends only the native bearer key, with no session cookie, source key or source request. It requests `24h`, `7d` and `30d`, each with `timeZone=America/Chicago` and `source=Uptime`. These preserve the requested 1-, 7- and 30-day elapsed horizons, rather than month-to-date or local-midnight periods. Each returned snapshot retains its actual inclusive `from`, exclusive `to`, time zone and generation time. For a report comparison use those exact bounds with `period=custom` on `/api/v1/monitors/{id}/report`, adding `bucket=1d` for long ranges.
+
+Each mapped row retains native `availability` and `denominatorPolicy`. The ratio is Healthy time divided by observed scheduled time, rounded down to two decimals. Unknown, paused and maintenance milliseconds are excluded and shown separately; no observations means `uptimePercent: null`, never 100 or zero-filled success. Matching horizons do not promise matching incumbent percentages: source definitions, available history and denominator policies can differ. Provider fixture ratios are never native monitoring evidence. Imported history stays separately labeled; this example explicitly selects native Uptime figures.
+
+The command emits one JSON result only after all three reads succeed. Revocation takes effect on the next run: a refused read prints its HTTP status to stderr, exits nonzero and emits no snapshot. There is no cached-success or session fallback. Consumers should treat this failure as unavailable data and retain any older snapshot only with its original timestamp. Actual source-account extraction, hosted qualification and delegated key issuance remain separate work.
+
 ### Role and scope limits
 
 Live Base owners/admins and assigned member roles use the same central permission function. Base deactivation, revocation or role/version changes take effect on the next request. Service scopes match monitor services; team scopes match existing group labels. An unassigned, stale or unknown member role is denied. Scoped members use individual monitor summary, uptime, report and response-time reads; workspace lists, exports and other unfiltered workspace doors refuse. Incident detail follows the same monitor scope. Responders and editors can add comments, change their own comments and set root causes; owners/admins can also change other authors' comments. Live scoped responders or higher can take or reassign incident ownership; group acknowledgment, other follow-up and category administration remain owner-only, and incident snapshots are withheld from nonowners. This replaces the interim admin-summary exception. Read keys cannot perform incident mutations or manage members, credentials or installation archives.
