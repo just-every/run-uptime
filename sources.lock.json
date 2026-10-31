@@ -8844,7 +8844,7 @@
       "executable": false
     },
     "tests/hosted-alerts.mjs": {
-      "sha256": "1122354f76975814426371f87c2f5bc2978183679e39c066169bff825b77ff28",
+      "sha256": "6bd446661cd7e90314a66d07c8a0d1c8be8a8f7951bad48efde9d14ef3f4f09d",
       "executable": false
     },
     "tests/hosted-auth-browser.mjs": {
@@ -9117,6 +9117,10 @@
     },
     "tests/recovery-browser.mjs": {
       "sha256": "9d26c6f32a9b1b3355187201360a48a157be66c1fec0541d3a480312ed67f69d",
+      "executable": false
+    },
+    "tests/relay-mail-support.mjs": {
+      "sha256": "7d2b778bac0647b91dd7ff5530f8680e794e2c0ccc3dc7dff6ba11e48fdab162",
       "executable": false
     },
     "tests/report-recurrences-support.mjs": {
