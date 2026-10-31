@@ -3,6 +3,7 @@ import {proveAgentSurfaceDiscovery} from './agent-surface-discovery.mjs';
 import {provePolicyEntry} from './agent-policy-entry-support.mjs';
 import {nativeDoorBrowser} from './agent-door-browser.mjs';
 import {proveAccessFacts} from './agent-access-facts-support.mjs';
+import {proveLostResponseReplay} from './agent-lost-response-support.mjs';
 // One integrated core journey, through the emitted production Worker and real
 // D1. Only mail/probe provider edges may be replaced; identities and mutations
 // enter the ordinary native public doors.
@@ -45,6 +46,7 @@ try{
  const second=await native('/api/monitors',{...monitor.definition,name:'Foreign service',service:'foreign'});
  const db=await worker.getD1Database('DB');
  const sponsor=await db.prepare('SELECT id FROM oa_operators WHERE email=?').bind(bindings.OWNER_EMAIL).first();
+ await proveLostResponseReplay({c,native,db,sponsorId:sponsor.id,providerRequests});
  await proveAgentSurfaceDiscovery({c,db,origin,monitorId:monitor.id});
  const target={kind:'monitor',id:monitor.id};
  const targetAudit=async(key,code)=>{
