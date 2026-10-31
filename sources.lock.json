@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "b011cad79dbffc8835c4862d022013f712fb0ef4c4ed11542fa9aa87678daacc",
+      "sha256": "b06ca247bb651573d9cf74d6ece30a8cabdcd1f43a5dbe8d91d0e47b1cb1c1ec",
       "executable": false
     },
     "DEMO.md": {
@@ -588,7 +588,7 @@
       "executable": false
     },
     "docs/data.md": {
-      "sha256": "4e5d8ab975842660ae65406249208414f4b5290035ee030fbd04f89fb691ba1e",
+      "sha256": "466902c0219c1c39e469cfd2156f6bb86a40809bf29d079da3580479e89e82b5",
       "executable": false
     },
     "docs/definitions.md": {
@@ -6820,15 +6820,19 @@
       "executable": false
     },
     "src/domain/archive-schema.ts": {
-      "sha256": "ee65bec4fc6fc4fc0dd3622bf70264422db0583006d88bba48e78b8d8e9bfbf5",
+      "sha256": "e113583dbb188fef3caf942ca17f551c68e6683564c84f5b0fee39790eb30ab4",
+      "executable": false
+    },
+    "src/domain/archive-selection.server.ts": {
+      "sha256": "02f6a01e77cf34e8d291987eba18066ca61dcbe3e2c22b5804391d66d7449ce6",
       "executable": false
     },
     "src/domain/archive-validation.ts": {
-      "sha256": "75ff3f5199c5a00d43313082523475b9ac85471424b95008ee470bb654707f27",
+      "sha256": "61d1546cde8adec14e79b48b4f5f9030126825b59f5071fd688bc46259f1b2c4",
       "executable": false
     },
     "src/domain/archive.server.ts": {
-      "sha256": "6505a5798782a28969a88786c6fc29b0f1264dad7b982182c3b046e568b28cd2",
+      "sha256": "6e51eb5591b6fbbecae766aa5bda12ac1ba860124a9e353662be52411a7b7f63",
       "executable": false
     },
     "src/domain/assets.server.ts": {
@@ -7752,7 +7756,7 @@
       "executable": false
     },
     "src/domain/request-boundary.ts": {
-      "sha256": "e46c371a546b93053aa854e60d47efff000ccf1a02a9f796872707aeeb427c39",
+      "sha256": "6e420aabc7faa9b3bb056680f1c926bcd297286012f63b7bb0ec9fd6a52548cd",
       "executable": false
     },
     "src/domain/rer-cutover-status.server.ts": {
@@ -8184,7 +8188,7 @@
       "executable": false
     },
     "src/server.ts": {
-      "sha256": "57013fcb4f2a52b70d92f60ced7e15a15fc4b5fc89efb2700d1d5cf71fc0221f",
+      "sha256": "1a1ecd7c192d6596139748e7a54166a052cf269492e827d101b45f07150a4123",
       "executable": false
     },
     "src/site/docs/build/manifest.ts": {
@@ -8620,7 +8624,11 @@
       "executable": false
     },
     "tests/archive-roundtrip.mjs": {
-      "sha256": "c4b9bb3c1e28f3cce7533e140d908925a21d01aa0f2f57c1396ac3dcc1fcd308",
+      "sha256": "f0f9328e62d19c7749e8ec2724a437873c45a79b19b7f20431707a57dbfa62ab",
+      "executable": false
+    },
+    "tests/archive-selection-support.mjs": {
+      "sha256": "66c8dbb1b68b09e0ba6889c482f1945875ef4849d34c5931c9be8346165bb697",
       "executable": false
     },
     "tests/auth-test-support.mjs": {

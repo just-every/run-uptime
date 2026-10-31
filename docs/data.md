@@ -23,6 +23,20 @@ On a hosted installation, use the archive export and restore actions in the cons
 
 Exports refuse to run, and name the reason, when an installation exceeds the archive limits, rather than silently cutting data off.
 
+## Export selected monitors
+
+The authenticated archive endpoint accepts repeated `monitor` parameters, for example `GET /api/archive?monitor=MONITOR_ID&monitor=OTHER_MONITOR_ID`. Use an existing workspace owner or administrator session with a second factor verified within the last five minutes. Scoped accounts cannot export workspace archives. Omitting every query parameter keeps the ordinary whole-installation export. Empty, duplicate, unavailable or more than 100 selected IDs are refused; unsupported query parameters, including a time range, are refused too.
+
+A selected archive contains exactly those monitor IDs, every retained revision and slot for them, their observations, unexpired failure snapshots, heartbeat runs, source history, cleanup debt, incident collaboration, outbox events, scheduled reports and associated notification jobs, deliveries and attempts. Flat original-history copies follow the same selection. No selected history is clipped to a date or to the console's history page limit. Credential exclusions and inactive restore rules are the same as for an ordinary archive.
+
+Some history belongs to the installation as a whole. Every selected archive preserves all permanent audit entries, erasure receipts and the complete source erasure journal, migration records, destination definitions and their original-history copies, incident category settings, definition-batch headers, auxiliary attempt journals and discovery sources with their finished run snapshots. Rejected discovery decisions and notification test jobs also remain shared history. Adopted discovery decisions and definition-batch entries follow their monitor. Batch header counts describe the original source batch, including entries outside the selection; they are not a claim about the number of selected entries. Shared destination definitions may include email addresses even when that destination has no selected monitor history. Review this shared content before giving an archive to anyone else.
+
+Replay records with a JSON event body follow that body's monitor identity; unscoped test replays remain shared. An opaque or unidentifiable replay refuses a selected export because it cannot be scoped safely. Use a whole-installation export for that history. A monitor dependency in any retained revision, a service report naming an unselected member or another unresolved cross-selection relationship also refuses the export. Explicitly select every referenced monitor, within the existing bounds. Uptime never adds a monitor implicitly or drops a referenced record to make the export pass.
+
+The archive digest covers a `selection` object containing the sorted requested IDs and the shared-record policy `installation-history-v1`. Restore verifies that those IDs exactly match the archive's monitors and validates the complete portable relationships before writing. After restore, a new ordinary export describes the receiving installation; request a selection again to record new selection metadata.
+
+Limits still apply to the projected archive, including shared history: 100 monitors, 10,000 rows per table and 2 MiB for the entire JSON document. An over-bound request returns an error without a partial archive or product changes. Successful selected exports record an authorization audit receipt after taking their snapshot; refusals add no export receipt. Streaming, interrupted or resumed transfer, time-range selection, hosted-scale qualification and console selection and bound controls remain pending.
+
 ## What an archive includes
 
 - Monitor definitions and their immutable evidence.
