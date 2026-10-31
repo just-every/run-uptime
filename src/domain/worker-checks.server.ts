@@ -3,6 +3,7 @@ import {claimAttempt,completeAttempts} from './attempts.server.ts'
 import {ensureFirstRunner} from './runner-registration.server.ts'
 import {HOSTED_RUNNER_ID,hostedHttp,hostedInstallation} from './hosted-runner.ts'
 import {workerProbe} from './worker-http.server.ts'
+import {hostedProbeUserAgent} from './probe-identification.ts'
 import {workerProtocolProbe,protocolRequests} from './worker-protocol-diagnostics.server.ts'
 // @ts-ignore Shared protocol settings.
 import {isProtocol} from './protocol/settings.mjs'
@@ -28,12 +29,12 @@ export async function scheduledPublicChecks(env:Bindings,budget:SubrequestBudget
   const allowance=budget.reserve(worstCase(row.definition,hosted));if(!allowance){deferred++;return}
   try{
    const task=await claimAttempt(env,HOSTED_RUNNER_ID,{monitorId:row.id});if(!task)return;
-   const attempts=[];
+   const attempts=[],userAgent=['http','keyword'].includes(task.definition.type??'http')&&!task.definition.catalog?await hostedProbeUserAgent(row.id,env.UPTIME_ORIGIN):undefined;
    for(const probe of task.probes){
     const canaryUrl=task.definition.assignments[probe].canaryUrl,context={dns,allowance,appOrigin:env.UPTIME_ORIGIN,snapshotPolicy:task.snapshotPolicy};
     const canary=canaryUrl?{...await workerProbe({...task.definition,type:'http',tlsTrust:undefined,catalog:undefined,url:canaryUrl,method:'GET',assertions:{status:200}},probe,{...context,statusOnly:true}),attempt:0}:undefined;
     for(let attempt=0;attempt<=task.definition.retries;attempt++){
-     const observation=isProtocol(task.definition.type)?await workerProtocolProbe(task.definition,probe,allowance,task.snapshotPolicy):await workerProbe(task.definition,probe,context);attempts.push({...observation,attempt,...(canary?{canary}:{})});
+     const observation=isProtocol(task.definition.type)?await workerProtocolProbe(task.definition,probe,allowance,task.snapshotPolicy):await workerProbe(task.definition,probe,{...context,userAgent});attempts.push({...observation,attempt,...(canary?{canary}:{})});
      if(observation.outcome!=='target_failure')break;
     }
    }
