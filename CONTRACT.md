@@ -1207,7 +1207,7 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 | Tool | Native action | Core clause metadata | Registry classes | Today |
 | --- | --- | --- | --- | --- |
 | `uptime.access.update` | Change a native member product role and service/team scopes | ACCESS-001 | access | declared; unjudged |
-| `uptime.checks.run` | Queue a real manual check without changing scheduled health | HTTP-001, INCIDENT-001 | external | declared; unjudged |
+| `uptime.checks.run` | Queue a real manual check without changing scheduled health | HTTP-001, INCIDENT-001 | external, live | declared; unjudged |
 | `uptime.definitions.preview` | Recognize a native definition file without applying it | CODE-001 | standard | declared; unjudged |
 | `uptime.definitions.read` | Read redacted native definitions | CODE-001 | standard | declared; unjudged |
 | `uptime.destinations.drill` | Queue a native recipient-confirmed channel drill | DRILL-001 | external | declared; unjudged |
@@ -1497,8 +1497,8 @@ Judged from the code and tests at commit `886ad3662fec5bdd5c1cd4c7692a9d22d89752
 | Clauses | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
 | Published | 5 | 16 | 0 | 21 |
-| Target and push further | 12 | 62 | 20 | 94 |
-| All | 17 | 78 | 20 | 115 |
+| Target and push further | 12 | 63 | 19 | 94 |
+| All | 17 | 79 | 19 | 115 |
 
 
 | Clause | Title | Kind | Status | Evidence | Gap |
@@ -1599,7 +1599,7 @@ Judged from the code and tests at commit `886ad3662fec5bdd5c1cd4c7692a9d22d89752
 | `SURFACE-003` | External and money are computed per call | target | missing | `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: native external class fixtures under both policies. | No implementation: no tool declares or computes external or money classes. |
 | `SURFACE-004` | Access, destructive and gated are computed per call | target | missing | `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: native access and destructive class fixtures under both policies.; `tests/agent-access-facts-support.mjs`; public member authority derives exact access measure 1 and direction, operator audit target, direction-selective held widening, named native approval, autonomous narrowing, fresh native proof and current-version refusals. | No implementation: no tool declares or computes access, destructive or gated classes, and no incident record attributes an agent act. |
 | `SURFACE-005` | The monitoring-operator journey under two company policies | target | missing | `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: nativeJourney, beforeStep and afterStep under both company policies. | No implementation: no MCP door exists for a stranger agent to run the monitoring-operator week under either company policy. |
-| `SURFACE-006` | One-way operational actions carry their effects | target | missing |  | No implementation: no tool computes irreversible cleanup-debt or incident transitions, setup resumption or reminder and fallback suppression across affected monitors, incidents and routes. |
+| `SURFACE-006` | One-way operational actions carry their effects | target | partial | `tests/agent-door.mjs` with `tests/agent-manual-debt-support.mjs` proveManualDebt: acceptance 4 single-probe zero-retry API setup and cleanup boundary, production-runner signed debt intake, below-boundary and ordinary-check exclusions, live-selective approval without a slot, named monitor and debt calculation, replaced debt evidence refusing old approval, fresh approval and exact-key replay queuing one manual slot without scheduled-health changes. `tests/agent-conformance/fixtures.mjs` with `tests/agent-conformance/manual-debt.mjs` prepareManualDebt provides the published Base harness manual-cleanup-boundary class fixture. | Acceptance 1 irreversible debt resolution and setup resumption; acceptance 2 incident assignment, acknowledgment, stop and resolve including grouped effects; acceptance 3 reminder and fallback suppression; acceptance 4 broader API definitions, browser fixtures, multiple probes and retries remain unqualified. Console work remains owned by uip. Money and destructive grants, worker-family qualification, AGENT hold and all existing account, sibling, Platform, continuation and guarded-release prerequisites remain unchanged. |
 | `AGENT-001` | Continuously maintain meaningful coverage | push-further | partial | `src/domain/discovery.server.ts`; `tests/discovery-jobs.mjs` | Reviewed one-shot discovery exists; continuous agent planning, analytics/deploy comparison and maintenance are absent. |
 | `AGENT-002` | Distinguish outage, network and broken check | push-further | partial | `src/domain/policy.mjs`; `src/domain/evidence.server.ts`; `tests/control-runtime.mjs` | Canary/network evidence exists; AI explanation and competing release/dependency investigation do not. |
 | `AGENT-003` | Repair browser drift without weakening intent | push-further | missing |  | No implementation; acceptance journey above is required. |

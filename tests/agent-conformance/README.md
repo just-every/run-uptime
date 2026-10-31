@@ -45,6 +45,7 @@ are declared. Values are accessed with `{"$fixture":"NAME","pointer":"/FIELD"}`:
 | `pause` | Independent enabled monitor `{id,revision,definition}`. |
 | `resume` | Independent disabled monitor `{id,revision,definition}`. |
 | `check` | Independent enabled monitor `{id,revision,definition}` for manual queueing. |
+| `manualLive` | Enabled single-probe, zero-retry API monitor with one setup and cleanup sequence and two open cleanup debts, created by production-runner execution and signed native intake. A manual check can open one further debt and reach the native setup-refusal limit. |
 | `maintenance` | Independent disabled monitor `{id,revision,definition}` for maintenance preview/apply. |
 | `erase` | Independent monitor `{id,revision,definition,name}`; pass `name` as `confirmation`. |
 | `route` | `{id,policy}`; policy is native monitor-scoped selected routing, with one real enabled destination and `expectedRevision:0`. Preview it and use that result's digest for update. |
@@ -122,3 +123,9 @@ describes the native resolver; runtime authority checks are always on. The evide
 current native sponsor authority before and after each record job, and the
 native journey proves that a fully authenticated owner still cannot edit its
 own assignment. No Base assertion, policy check or native guard is edited.
+
+The `manual-cleanup-boundary` journey step exercises `external` plus `live` through
+the published Base harness under both policies. Its native fixture denies only
+the authorized cleanup target edge; it never inserts a debt or observation
+directly. Broader API shapes, browser fixtures, multiple probes and retries
+remain unqualified under SURFACE-006.
