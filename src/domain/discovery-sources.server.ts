@@ -1,3 +1,4 @@
+import type {Access} from './access.server.ts'
 import type {Bindings} from './control.server.ts'
 import {auditStatement,mutationGuard,type AuditActor} from './audit.server.ts'
 import {classifyStorage} from './storage-error.ts'
@@ -65,12 +66,12 @@ export async function revokeSource(env:Bindings,id:string,actor:AuditActor){
   env.DB.prepare('DELETE FROM discovery_sources WHERE id=?').bind(id),auditStatement(env,actor,'discovery_source_revoke','discovery_source',crypto.randomUUID(),'1',[],now)])
  return {revoked:true}
 }
-export async function startSourceRun(env:Bindings,id:string){
+export async function startSourceRun(env:Bindings,id:string,initiator:Access){
  const row=await source(env,id)
  if(row.state!=='active')throw refuse('This source came from an archive. Authorize it again before running it.')
  if(await pending(env,id))throw refuse('A run of this source is already waiting or running.')
  const {latest}=await latestRuns(env,id)
- return createSourceJob(env,runSpec(row,latest&&{...latest,result:JSON.stringify(latest.result)}))
+ return createSourceJob(env,runSpec(row,latest&&{...latest,result:JSON.stringify(latest.result)}),initiator)
 }
 export async function sourceDocument(env:Bindings,id:string){
  const row=await source(env,id),runs=await latestRuns(env,id),job=await pending(env,id)
