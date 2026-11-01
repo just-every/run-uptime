@@ -116,7 +116,10 @@ function firstReadFailed(){const list=area.querySelector('.loading-list');if(!li
 // focusable, so focus on a link survives the action. aria-busy changes first, so that redraw already reads idle: a monitor
 // page's draw keeps its controls locked while a read lands during an action, and must not lock them again once it is over.
 function lockControls(busy){area.setAttribute('aria-busy',String(busy));if(busy){for(const control of document.querySelectorAll('button,input,select,textarea')){if(!lockedControls.has(control))lockedControls.set(control,control.disabled);control.disabled=true}for(const a of document.querySelectorAll('a[href]')){if(!lockedLinks.has(a))lockedLinks.set(a,a.getAttribute('aria-disabled'));a.setAttribute('aria-disabled','true')}}else{const locked=lockedControls.size>0||lockedLinks.size>0;for(const [control,disabled]of lockedControls)if(control.isConnected)control.disabled=disabled;lockedControls.clear();for(const [a,previous]of lockedLinks)if(previous===null)a.removeAttribute('aria-disabled');else a.setAttribute('aria-disabled',previous);lockedLinks.clear();if(locked)render()}}
-feedback=createActionFeedback({load:()=>api(view==='monitor'?`/api/overview?monitor=${encodeURIComponent(pageId)}`:'/api/overview'),lock:lockControls,publish:state=>{if(closed)return;for(const [name,channel]of Object.entries({action:state.action,read:state.read,background:state.background})){const host=$('#'+name+'-notice'),lead=channel.state==='unavailable'?channel.message.indexOf(': ')+1:0;if(lead>0){const body=document.createElement('span');body.append(Object.assign(document.createElement('strong'),{textContent:channel.message.slice(0,lead)}),channel.message.slice(lead));host.replaceChildren(body)}else host.textContent=channel.message;host.hidden=!channel.message;if(channel.state)host.dataset.state=channel.state}n.hidden=![state.action.message,state.read.message,state.background.message].some(Boolean)},render:(next,state)=>{if(closed)return;if(state.error?.status===401){navigateToLogin();return}if(!next){if(state.readUnavailable)firstReadFailed();return}data=next;rememberZone(next);readUnavailable=state.readUnavailable;render();if(!state.error&&!state.readUnavailable)document.documentElement.classList.add('signed-in')}});
+// html.signed-in: the first read succeeded and the view it shows has drawn. A Settings area shown for the first time draws
+// once its module loads, so the mark waits for that draw; the browser journeys read the view as soon as it is set.
+const signedIn=()=>{if(!closed)document.documentElement.classList.add('signed-in')};
+feedback=createActionFeedback({load:()=>api(view==='monitor'?`/api/overview?monitor=${encodeURIComponent(pageId)}`:'/api/overview'),lock:lockControls,publish:state=>{if(closed)return;for(const [name,channel]of Object.entries({action:state.action,read:state.read,background:state.background})){const host=$('#'+name+'-notice'),lead=channel.state==='unavailable'?channel.message.indexOf(': ')+1:0;if(lead>0){const body=document.createElement('span');body.append(Object.assign(document.createElement('strong'),{textContent:channel.message.slice(0,lead)}),channel.message.slice(lead));host.replaceChildren(body)}else host.textContent=channel.message;host.hidden=!channel.message;if(channel.state)host.dataset.state=channel.state}n.hidden=![state.action.message,state.read.message,state.background.message].some(Boolean)},render:(next,state)=>{if(closed)return;if(state.error?.status===401){navigateToLogin();return}if(!next){if(state.readUnavailable)firstReadFailed();return}data=next;rememberZone(next);readUnavailable=state.readUnavailable;const drawn=render();if(!state.error&&!state.readUnavailable){if(drawn)void drawn.then(signedIn);else signedIn()}}});
 
 // The amber count on Settings and Alerts while a destination cannot send or none is enabled (public/alert-health.js), also
 // in the item's accessible name ("Settings, 1 to fix"). Only its text and two attributes change, so the menu never remounts;
@@ -125,19 +128,21 @@ function showAlertCount(){const count=alertCount(data.notifications);for(const b
 function renderMonitors(){patch(summary,listSummary(data,readUnavailable));catalog.render({area,data,readUnavailable})}
 function renderLocations(){patch(area,locationsMarkup(data));patch(right,addPanelMarkup(data));bindLocations({area,right,data:()=>data,api,action,refresh,render})}
 // Each view patches its markup into the page (public/dom-patch.js), so a refresh changes only what changed: open
-// disclosures, focus, typed values and scroll stay. Switching views starts the new view from empty hosts.
+// disclosures, focus, typed values and scroll stay. Switching views starts the new view from empty hosts. Returns the
+// pending draw of a Settings area whose module is still loading.
 function render(){if(!data||document.querySelector('dialog[open]'))return;
  // With no monitors yet, the list opens the new-monitor form instead of an empty table.
  if(view==='monitors'&&!readUnavailable&&!data.monitors.length){if(!redirecting){redirecting=true;location.replace('/app/monitors/new')}return}
  const screen=view==='settings'?'settings/'+settingsArea:view;
  if(screen!==shown){area.replaceChildren();right.replaceChildren();shown=screen}right.hidden=sideHidden();
- markCurrent();showAlertCount();
+ markCurrent();showAlertCount();let drawn;
  if(view==='monitor')renderMonitorPage({header,actions,area,data,id:pageId,api,action,readUnavailable});
  else{const buttons=viewActions[view]?.()??'';patch(actions,buttons);actions.hidden=!buttons;summary.hidden=view!=='monitors';
   setHeading();
   area.setAttribute('aria-label',view==='settings'?AREAS[settingsArea]:{locations:'Locations'}[view]??'Monitor list');
-  if(view==='monitors')renderMonitors();else if(view==='locations')renderLocations();else if(view==='settings')renderSettings(settingsArea,{area,right,data,api,action,refresh:()=>refresh(),notice,closeConsole,navigateToLogin,closed:()=>closed,showing:requested=>!closed&&shown==='settings/'+requested,readUnavailable})}
- if(feedback.busy)lockControls(true)}
+  if(view==='monitors')renderMonitors();else if(view==='locations')renderLocations();else if(view==='settings')drawn=renderSettings(settingsArea,{area,right,data,api,action,refresh:()=>refresh(),notice,closeConsole,navigateToLogin,closed:()=>closed,showing:requested=>!closed&&shown==='settings/'+requested,readUnavailable})}
+ if(feedback.busy)lockControls(true);
+ return drawn}
 {const flash=sessionStorage.getItem('uptime-notice');if(flash){sessionStorage.removeItem('uptime-notice');notice(flash)}}
 if(view==='signout')void signOut();else{refresh();polling=setInterval(refresh,5000)}
 }
