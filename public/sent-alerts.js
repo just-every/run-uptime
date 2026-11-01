@@ -16,9 +16,18 @@ function when(t){
  return day===today?clock:day===today-86400000?`Yesterday ${clock}`:`${at.toLocaleDateString([],{month:'short',day:'numeric',...(at.getFullYear()===new Date().getFullYear()?{}:{year:'numeric'})})}, ${clock}`;
 }
 const excerpt=text=>escape(text.replace(/&(amp|lt|gt|quot|#39);/g,(_,name)=>({amp:'&',lt:'<',gt:'>',quot:'"','#39':"'"}[name])));
+// An Oncall delivery's three separate facts (d.handoff): Oncall's intake accepted it (a validated native receipt), Oncall reports
+// it received, and a person responded. Each reads from its own object only, so a fact with no evidence stays Unknown and none is
+// inferred from another, the delivery state, the HTTP status or the attempts. The acknowledgment replaces the raw receipt.
+const stamp=value=>{const at=new Date(value);return `<time datetime="${escape(at.toISOString())}">${escape(at.toLocaleString())}</time>`};
+const fact=(name,f,unknown,known)=>`<div><dt>${name}</dt><dd>${f.state==='unknown'?`Unknown · ${unknown}`:`${stamp(f.receiverAcceptedAt??f.at)} · ${known}`}</dd></div>`;
+const handoffLines=d=>{
+ const {acknowledged,received,responded}=d.handoff,word=f=>escape(f.state.charAt(0).toUpperCase()+f.state.slice(1));
+ return `<dl class="drill-lines">${fact('Acknowledged',acknowledged,'no valid Oncall receipt',`Oncall accepted it${acknowledged.deliveryId!==d.id?' · this incident\'s first alert':''}`)}${fact('Received',received,'Oncall doesn\'t report it',word(received))}${fact('Responded',responded,'Oncall doesn\'t report it',word(responded))}</dl>`;
+};
 function row(d,notes){
  const [tone,word]=pill(d),title=d.event.eventType==='uptime.notification.drill'||d.event.kind==='test'?'Test message':d.event.title;
- return `<li class="sent-row" data-key="delivery-${escape(d.id)}"><details><summary><span class="sent-what"><strong>${escape(title)}</strong><small><time datetime="${escape(new Date(d.createdAt).toISOString())}">${escape(when(d.createdAt))}</time> · ${escape(d.destinationName)}</small></span><span class="ui-pill ${escape(tone)}">${escape(word)}</span></summary><div class="sent-body"><p>${escape(retryNote(d)??deliveryReason(d,notes))}</p>${d.status?`<p>HTTP ${escape(d.status)}</p>`:''}${d.responseExcerpt?`<pre class="webhook-response">${excerpt(d.responseExcerpt)}</pre>`:''}${d.chain?chainLines(d.chain).map(line=>`<p>${escape(line)}</p>`).join(''):''}${d.code==='mail_not_configured'?'<a href="/docs/notifications#add-a-destination">Set up email</a>':''}</div></details></li>`;
+ return `<li class="sent-row" data-key="delivery-${escape(d.id)}"><details><summary><span class="sent-what"><strong>${escape(title)}</strong><small><time datetime="${escape(new Date(d.createdAt).toISOString())}">${escape(when(d.createdAt))}</time> · ${escape(d.destinationName)}</small></span><span class="ui-pill ${escape(tone)}">${escape(word)}</span></summary><div class="sent-body"><p>${escape(retryNote(d)??deliveryReason(d,notes))}</p>${d.handoff?handoffLines(d):''}${d.status?`<p>HTTP ${escape(d.status)}</p>`:''}${d.responseExcerpt&&!d.handoff?`<pre class="webhook-response">${excerpt(d.responseExcerpt)}</pre>`:''}${d.chain?chainLines(d.chain).map(line=>`<p>${escape(line)}</p>`).join(''):''}${d.code==='mail_not_configured'?'<a href="/docs/notifications#add-a-destination">Set up email</a>':''}</div></details></li>`;
 }
 export function sentAlertsMarkup(notes){
  const sent=notes.deliveries,rest=sent.slice(NEWEST);
