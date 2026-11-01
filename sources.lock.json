@@ -2564,7 +2564,7 @@
       "executable": false
     },
     "public/app.js": {
-      "sha256": "1994ae2371513106bc8a9b9e26c6630d75f2ae74cc90e8ed124379dc6b9012fc",
+      "sha256": "b99ca9e9a9306aeabe9d018737e4cf37cf8ac47907a2d1f45e8927142b622405",
       "executable": false
     },
     "public/archive-view.js": {
@@ -2968,7 +2968,7 @@
       "executable": false
     },
     "public/settings-view.js": {
-      "sha256": "a0da5301739d8e735558ddb4e761142c329093e0fb7652e3e18191ca9b269d9d",
+      "sha256": "da6efd7666f6faa096ed3d30d0d0c01855a6fc5b038329746871b94aeb842152",
       "executable": false
     },
     "public/slow-policy.css": {
