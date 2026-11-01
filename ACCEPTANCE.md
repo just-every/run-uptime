@@ -28,7 +28,7 @@ Core · published · **partial**
 **Acceptance.**
 1. Create an HTTP(S) and keyword monitor through the owner API, run scheduled hosted and signed runner work against a controlled HTTPS service, fail its status/text, recover it and inspect the immutable assertions and transport evidence.
 
-**Evidence.** `src/domain/worker-http.server.ts`; `runners/src/probes.mjs`; `tests/tls-auth.mjs`; `tests/probe-native-evidence.mjs`; `docs/evidence/contracts/release-0.4.0/`
+**Evidence.** `src/domain/worker-http.server.ts`; `runners/src/probes.mjs`; `tests/tls-auth.mjs`; `tests/probe-native-evidence.mjs`; `docs/evidence/contracts/release-0.4.0/`; `tests/keyword-monitor-journey.mjs` keywordMonitorJourney — owner keyword creation, scheduled signed HTTPS status and text failures, immutable history and recovery assertions (qualification pending; current judgment and gap retained)
 **Gap.** Retained assertions cover saved HTTP criteria, signed HTTP status/text failures, recovery and immutable assertion history. Gap: keyword-type monitor creation, scheduled hosted HTTPS work, signed runner HTTPS work and retained transport evidence by category lack assertions in the cited files; the HTTPS assertions called by tests/tls-auth.mjs are only in uncited helper files.
 
 #### EVIDENCE-001 — Immutable scheduled evidence
