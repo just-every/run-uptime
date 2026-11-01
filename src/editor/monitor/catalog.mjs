@@ -7,21 +7,18 @@ import {followCheck} from './discovery-poll.mjs';
 const SOURCE={statuspage:'Statuspage-compatible JSON status API',json:'the provider’s own JSON status document',feed:'RSS/Atom status feed',paypal:'the provider’s component status JSON (production and sandbox)',gcp:'the provider’s incident and product JSON',page:'status page only (no status Uptime can read)'};
 const element=(tag,className,text)=>{const node=document.createElement(tag);if(className)node.className=className;if(text!==undefined)node.textContent=text;return node};
 const PROBLEM={unreachable:'did not answer',moved:'has moved',shape:'no longer has the shape the catalog expects','too-large':'is larger than a check reads','component-missing':'no longer lists that component'};
-// The panel, placed after the website check; it stays hidden until mounted.
-const MARKUP=`<section id="service-catalog" class="catalog-panel ui-card" aria-labelledby="service-catalog-heading" hidden>
- <h2 id="service-catalog-heading">Follow a third-party service</h2>
- <p class="helper ui-helper">Pick a provider you depend on. Uptime reads its own status source first, then watches what the provider states and sends a dependency notice through your alert route. A provider issue opens no Uptime incident and never changes your own monitors.</p>
+// The panel under "Follow a service's status", mounted into its place under Other ways to add (ways.mjs).
+const MARKUP=`<section id="service-catalog" class="catalog-panel ui-card" aria-labelledby="service-catalog-heading">
+ <h2 id="service-catalog-heading">Follow a service's status</h2>
  <label for="catalog-search">Search providers</label>
  <input id="catalog-search" type="search" autocomplete="off" spellcheck="false" placeholder="Stripe, AWS us-east-1, email…" aria-describedby="catalog-status">
  <p id="catalog-status" class="discovery-status" role="status" aria-atomic="true"></p>
  <ul id="catalog-results" class="catalog-list"></ul>
- <p class="helper ui-helper catalog-other">Not listed? <button id="catalog-other" class="ui-link" type="button">Add a provider by its status page address</button>. Uptime looks at that page and proposes monitors for you to review.</p>
+ <p class="catalog-other">Not listed? <button id="catalog-other" class="ui-link" type="button">Add it by its status page</button></p>
 </section>`;
-export function mountServiceCatalog({overview,opened}){
- if(opened)return ()=>{};
- if(!document.querySelector('#service-catalog'))document.querySelector('#discovery')?.insertAdjacentHTML('afterend',MARKUP);
- const root=document.querySelector('#service-catalog');
- if(!root)return ()=>{};
+export function mountServiceCatalog({overview,host}){
+ host.insertAdjacentHTML('beforeend',MARKUP);
+ const root=host.querySelector('#service-catalog');
  const search=root.querySelector('#catalog-search'),status=root.querySelector('#catalog-status'),list=root.querySelector('#catalog-results');
  const needsRunner=overview.runner.hosted&&!overview.runner.privateRunnerReady&&overview.runner.workerDiscovery!==true;
  let control=new AbortController(),timer,catalog=null,busy=false;
@@ -75,7 +72,7 @@ export function mountServiceCatalog({overview,opened}){
  }
  function render(){
   list.replaceChildren(...catalog.entries.map(entryCard));
-  say(catalog.entries.length?`${catalog.entries.length} provider${catalog.entries.length===1?'':'s'} in catalog version ${catalog.version}.`:'No provider matches. Add it by its status page address below.');
+  say(catalog.entries.length?`${catalog.entries.length} provider${catalog.entries.length===1?'':'s'} in catalog version ${catalog.version}.`:'No provider matches. Add it by its status page below.');
  }
  // The runner reads the source; only then does Uptime follow.
  async function follow(entry,form,feedback,button){
@@ -99,12 +96,11 @@ export function mountServiceCatalog({overview,opened}){
  function useAddress(address){
   const input=document.querySelector('#discovery-url');
   if(!input||input.disabled){say('The website check needs a runner. Start it, then add the status page by address.');return}
-  input.value=address;input.focus();say('The website check below now has the status page address. Choose Check to review what it finds.');
+  input.value=address;input.focus();say('The website check above now has the status page address. Choose Check to review what it finds.');
  }
  root.querySelector('#catalog-other').addEventListener('click',()=>{const input=document.querySelector('#discovery-url');if(input&&!input.disabled){input.focus();say('Type the provider’s status page address in the website check, then choose Check.')}else say('The website check needs a runner. Start it, then add the status page by address.')});
  search.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(load,200)});
- root.hidden=false;
- if(needsRunner){search.disabled=true;say('Following a provider needs a private runner to read its status source. See the runner instructions above.');return ()=>{root.hidden=true}}
+ if(needsRunner){search.disabled=true;say('Following a provider needs a private runner to read its status source. See the runner instructions above.');return ()=>{}}
  load();
- return ()=>{control.abort();clearTimeout(timer);root.hidden=true};
+ return ()=>{control.abort();clearTimeout(timer)};
 }
