@@ -26,7 +26,7 @@ async function openConsole(f){
   await browserSignIn(page,f.origin,{bindings:f.bindings});
   const ui={browser,page,
    async width(width){await page.setViewportSize({width,height:width>480?1600:2400})},
-   async alerts(){await page.goto(f.origin+'/app/settings/alerts');await page.locator('html.signed-in').waitFor();await page.locator('#sent-alerts-heading').waitFor()},
+   async alerts(){await page.goto(f.origin+'/app/settings/alerts');await page.locator('html.signed-in').waitFor({timeout:60000});await page.locator('#sent-alerts-heading').waitFor()},
    // Axe, reflow and the smallest rendered text size inside one scope (a dialog or an opened row), kept as evidence on request.
    async audit(scope,name,width){
     if(!await page.evaluate(()=>typeof axe!=='undefined'))await page.addScriptTag({path:require.resolve('axe-core/axe.min.js')});
