@@ -79,7 +79,10 @@
 .way-host .definition-source { max-width: 72ch; overflow-wrap: anywhere; }
 .way-host .definition-details p, .way-host .definition-details li { max-width: 64ch; overflow-wrap: anywhere; }
 .way-host .definition-details ul { margin: 4px 0 0; padding-left: 18px; }
-.way-host .table-scroll { overflow-x: auto; }
+/* The preview's own wrapper is its table-wrap container (app-theme.css .ui-table--stack-md), as .catalog-plan-table is Paste's:
+   the table stacks while the panel is under 760px and never widens it, and a long name or address wraps inside its cell. */
+.way-host .table-scroll { container: table-wrap / inline-size; overflow-x: auto; }
+.way-host .table-scroll td { overflow-wrap: anywhere; }
 /* The preview tables stack into captioned cards on a phone; their captions are 13px here (app-theme.css draws 12px). */
 .way-host .ui-table td[data-label]::before { font-size: 13px; }
 @media (max-width: 700px) {
