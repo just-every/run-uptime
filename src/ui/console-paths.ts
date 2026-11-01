@@ -8,7 +8,7 @@ export const SETTINGS_AREAS=['alerts','general','people','integrations','backup'
 // an old hash link, /app#archive).
 const SECTION_PATHS:Record<string,string>={monitors:'/app/monitors',locations:'/app/locations',signout:'/app/signout',settings:'/app/settings/alerts',notifications:'/app/settings/alerts',archive:'/app/settings/backup'}
 export const isMonitorPage=(path:string)=>/^\/app\/monitors\/(?!new(?:\/|$))[^/]+\/?$/.test(path)
-export const isConsoleDocument=(path:string)=>['/app','/app/','/app/monitor','/app/monitor/'].includes(path)||Object.keys(SECTION_PATHS).some(section=>path===`/app/${section}`||path===`/app/${section}/`)||/^\/app\/settings\/[^/]+\/?$/.test(path)||isMonitorPage(path)||/^\/app\/monitors\/[^/]+\/edit\/?$/.test(path)||/^\/app\/monitors\/new(?:\/(?:discovery\/[^/]+|manual(?:\/(?:public|private)(?:\/[^/]+)?)?))?\/?$/.test(path)
+export const isConsoleDocument=(path:string)=>['/app','/app/','/app/monitor','/app/monitor/'].includes(path)||Object.keys(SECTION_PATHS).some(section=>path===`/app/${section}`||path===`/app/${section}/`)||/^\/app\/settings\/[^/]+\/?$/.test(path)||isMonitorPage(path)||/^\/app\/monitors\/[^/]+\/edit\/?$/.test(path)||/^\/app\/monitors\/new(?:\/(?:discovery\/[^/]+|paste|file|follow|discover|manual(?:\/(?:public|private)(?:\/[^/]+)?)?))?\/?$/.test(path)
 export function canonicalConsolePath(url:URL){
  const path=url.pathname.replace(/\/$/,'');
  if(path==='/app/monitor'||path==='/monitor')return legacyEditorPath(url.searchParams)

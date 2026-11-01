@@ -51,7 +51,7 @@ export async function provePublicDnsDiscovery({launch,evidence}){
   // Read once before and once after to allow DNS answer rotation during the run.
   const hosts=[DOMAIN,`www.${DOMAIN}`],before=await Promise.all(hosts.map(published));
   browser=await launch();const page=await (await browser.newContext({viewport:{width:1440,height:1000}})).newPage();
-  await browserSignIn(page,g.origin,{bindings:g.bindings});await page.goto(g.origin+'/app/monitors/new');
+  await browserSignIn(page,g.origin,{bindings:g.bindings});await page.goto(g.origin+'/app/monitors/new/discover');
   const panel=page.locator('#discovery-sources');await panel.locator('#sources-empty').waitFor();
   await panel.getByLabel('Source',{exact:true}).selectOption('domain');
   await panel.getByLabel('Name',{exact:true}).fill('RER public domain');await panel.getByLabel('Domain',{exact:true}).fill(DOMAIN);

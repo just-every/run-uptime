@@ -3,6 +3,7 @@ import {fillFields,readFields} from './fields.mjs';
 import {mountCheckFrom,assignmentsFor} from './check-from.mjs';
 import {setDependencyChoices} from './metadata-fields.mjs';
 import {showType,TYPE_TIMING} from './protocol-fields.mjs';
+import {advancedHolds,openAdvanced} from './advanced.mjs';
 // The full monitor form: what a new monitor starts from by hand, and the only way to edit an existing one.
 export const NEW_MONITOR={name:'',url:'',method:'GET',assertions:{status:200},intervalMs:60000,timeoutMs:2000,retries:1,probes:['local-a'],failureQuorum:1,confirmSlots:2,recoverSlots:2,freshnessMs:180000,enabled:true,maintenanceUntil:0};
 export function prepareManualForm(form,definition){
@@ -20,6 +21,7 @@ export function mountManualForm({form,overview,definition,id,returnTo,message,mo
  if(!preserveFields)prepareManualForm(form,definition);
  setDependencyChoices(form,monitors.filter(monitor=>monitor.id!==id),definition.dependencies);
  const checkFrom=mountCheckFrom(form.querySelector('#check-from'),{overview,definition,externalCheck:overview.externalCheck,isNew:!id});
+ openAdvanced(form,advancedHolds(definition,NEW_MONITOR,{ownExternalUrl:checkFrom.ownUrl()}));
  form.onsubmit=async event=>{
   event.preventDefault();if(!form.reportValidity())return;
   const button=form.querySelector('button[type=submit]');button.disabled=true;message.removeAttribute('data-error');message.textContent='Saving monitor…';
