@@ -37,17 +37,18 @@ async function tabTo(page,locator){
  for(let i=0;i<100;i++){await page.keyboard.press('Tab');if(await locator.evaluate(element=>document.activeElement===element))return}
  assert.fail('Keyboard could not reach '+await locator.textContent());
 }
-// Bulk add's door, "Add many monitors": beside New monitor on the list, and on the first-monitor page an empty list opens.
-// Tab from the page's heading reaches it, its dialog previews pasted URLs, and Escape returns to it.
+// Bulk add's one home: the "Paste many URLs or a CSV" button under New monitor's Other ways to add. Tab from the page's heading
+// reaches it, its panel previews pasted URLs, and pressing it again closes the panel.
 async function bulkAddDoor(page){
- const door=page.getByRole('button',{name:'Add many monitors',exact:true});
+ const door=page.getByRole('button',{name:'Paste many URLs or a CSV',exact:true});
  await page.locator('main h1').click();await tabTo(page,door);await page.keyboard.press('Enter');
- const dialog=page.getByRole('dialog',{name:'Bulk add monitors',exact:true});await dialog.waitFor();
- await dialog.getByLabel('URLs or CSV',{exact:true}).fill('https://93.184.216.34/operator-batch');
- await dialog.getByRole('button',{name:'Preview',exact:true}).click();await dialog.getByRole('heading',{name:'Review the plan',exact:true}).waitFor();
- assert.match(await dialog.locator('.catalog-preview > p').first().textContent(),/^1 create\b/,'Bulk add previews the pasted URL');
- await page.keyboard.press('Escape');await dialog.waitFor({state:'detached'});
- assert.ok(await door.evaluate(element=>document.activeElement===element),'closing Bulk add returns focus to its door');
+ assert.equal(await door.getAttribute('aria-pressed'),'true','the pressed button is the open panel');
+ const panel=page.locator('.way-panel[data-way=paste]');await panel.waitFor();
+ await panel.getByLabel('URLs or CSV',{exact:true}).fill('https://93.184.216.34/operator-batch');
+ await panel.getByRole('button',{name:'Preview',exact:true}).click();await panel.getByRole('heading',{name:'Review the plan',exact:true}).waitFor();
+ assert.match(await panel.locator('.catalog-preview > p').first().textContent(),/^1 create\b/,'Bulk add previews the pasted URL');
+ await door.click();await panel.waitFor({state:'hidden'});
+ assert.equal(await door.getAttribute('aria-pressed'),'false','pressing the open button closes its panel');
 }
 async function nextPoll(page){
  await page.waitForResponse(response=>overviewRead(new URL(response.url()))&&response.request().method()==='GET'&&response.ok(),{timeout:12000});
@@ -178,13 +179,15 @@ try{
    page.on('response',response=>{const path=new URL(response.url()).pathname;if(response.status()>=400&&(path.startsWith('/assets/')||path==='/app.js'||path==='/api/overview'))failed.push({path,status:response.status()})});
    await browserSignIn(page,origin,{bootstrap:false,bindings:{...testAuthBindings,OWNER_EMAIL:process.env.UPTIME_OPERATOR_OWNER_EMAIL??testAuthBindings.OWNER_EMAIL}});
    // The installation has no monitors before the first width: the console opens straight into the new-monitor form.
-   if(width===1440){await page.waitForURL(url=>url.pathname==='/app/monitors/new');await page.locator('.editor-context-ready').waitFor();assert.equal(await page.locator('h1').textContent(),'Add your first monitor');await audit(page,`editor-${width}`);await bulkAddDoor(page);await page.locator('#discovery-manual').click()}
-   else{await ready(page);await audit(page,`console-${width}`);await bulkAddDoor(page);
+   if(width===1440){await page.waitForURL(url=>url.pathname==='/app/monitors/new');await page.locator('.editor-context-ready').waitFor();assert.equal(await page.locator('h1').textContent(),'Add your first monitor');await audit(page,`editor-${width}`);await bulkAddDoor(page);await page.getByRole('button',{name:'Fill in the form yourself',exact:true}).click()}
+   else{await ready(page);await audit(page,`console-${width}`);
     await tabTo(page,page.getByRole('button',{name:'New monitor',exact:true}));await page.keyboard.press('Enter');
-    await page.locator('.editor-ready').waitFor();await audit(page,`editor-${width}`);await page.locator('#discovery-manual').click()}
+    await page.locator('.editor-ready').waitFor();await audit(page,`editor-${width}`);await bulkAddDoor(page);await page.getByRole('button',{name:'Fill in the form yourself',exact:true}).click()}
    const name=`Operator ${width} ${Date.now()}`;
    await page.locator('input[name=name]:visible').fill(name);await page.locator('input[name=url]:visible').fill('http://169.254.169.254/latest/meta-data/');
    await page.getByRole('button',{name:'Save monitor'}).click();await page.locator('#editor-feedback').filter({hasText:/grant|literal|target|URL|host|port|loopback/i}).waitFor();assert.equal(new URL(page.url()).pathname,'/app/monitors/new/manual');
+   // Wait for a response, Extra attempts and Unknown after sit in Advanced.
+   await page.locator('#editor-advanced > summary').click();
    const values={url:'http://127.0.0.1:15481/health',intervalMinutes:String(5000/60000),freshnessMinutes:String(10000/60000),retries:'0',confirmSlots:'1',recoverSlots:'1'};
    for(const [field,value] of Object.entries(values))await page.locator(`[name=${field}]:visible`).fill(value);
    const rules={'Page contains':{body:'healthy'},'Page must not contain':{bodyExcludes:'unhealthy'},Pattern:{regexPattern:'"ok":true',regexFlags:'i'},'Header equals':{headerName:'x-synthetic',headerValue:'local-review'},'JSON value':{jsonPath:'$.ok',jsonEquals:'true'}};
@@ -217,7 +220,9 @@ try{
   try{
    const page=await context.newPage();
    await browserSignIn(page,origin,{bootstrap:false,bindings:{...testAuthBindings,OWNER_EMAIL:process.env.UPTIME_OPERATOR_OWNER_EMAIL??testAuthBindings.OWNER_EMAIL}});
-   await ready(page);await bulkAddDoor(page);await audit(page,'phone-console-390');
+   await ready(page);await audit(page,'phone-console-390');
+   // Many-at-once has one home: New monitor, at the phone's width too.
+   await page.getByRole('button',{name:'New monitor',exact:true}).click();await page.locator('.editor-ready').waitFor();await bulkAddDoor(page);await audit(page,'phone-editor-390');
    await page.getByRole('link',{name:'Settings',exact:true}).click();await page.waitForURL(origin+'/app/settings/alerts');await ready(page);await audit(page,'phone-notifications-390');
    await page.getByRole('link',{name:'Sign out',exact:true}).click();await page.getByLabel('Email address').waitFor();
    assert.equal((await page.request.get(origin+'/api/overview')).status(),401);

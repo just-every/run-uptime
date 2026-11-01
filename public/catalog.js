@@ -209,8 +209,5 @@ export function createCatalog({ api, action }) {
             rows();
             showBatch();
         },
-        // The list's "Add many monitors" (public/app.js); U21 round R3's "Other ways to add" commit removes it.
-        openAdd() {
-            open('add');
-        }, read };
+        read };
 }

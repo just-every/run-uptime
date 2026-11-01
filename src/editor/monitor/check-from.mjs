@@ -1,7 +1,7 @@
 // The form's "Check from": a tick list of the owner's locations, one check of the monitor each (a probe, src/domain/policy.mjs).
 // The engine runs at most three checks a monitor and two for a browser flow, so the list stops there and says so. A location
-// already checking the monitor keeps its probe, so its history and slow-response settings stay with it. Under Advanced, the
-// monitor's own External check URL: empty, the monitor follows the one in Settings, live.
+// already checking the monitor keeps its probe, so its history and slow-response settings stay with it. The monitor's own
+// External check URL lives in the form's Advanced; empty, the monitor follows the one in Settings, live.
 const PROBES=['local-a','local-b','local-c'];
 export const locationLimit=type=>type==='flow'?2:PROBES.length;
 // The locations that have joined, in the console's order (src/domain/runner-registration.server.ts); one still waiting to join
@@ -48,10 +48,10 @@ export function mountCheckFrom(fieldset,{overview,definition,externalCheck,isNew
  const note=element('p','helper ui-helper location-limit',`Up to ${limit} locations per monitor.`);note.id='location-limit';
  const rule=element('p','agreement-rule helper ui-helper');rule.id='agreement-rule';rule.setAttribute('aria-live','polite');
  const more=element('p','probe-more');more.innerHTML='<a class="ui-link" href="/app/locations">Add a location</a>';
- const advanced=element('details','check-from-advanced'),summary=element('summary','', 'Advanced'),field=element('label','', 'External check URL (optional)'),own=element('input'),help=element('p','helper ui-helper','A site you do not run. Empty uses the one in Settings.');
- own.type='url';own.name='externalCheckUrl';own.id='external-check-own';own.placeholder=overview.runner.externalCheckUrl??'';own.value=externalCheck?.own??'';own.setAttribute('aria-describedby','external-check-own-help');help.id='external-check-own-help';
- field.append(own);advanced.append(summary,field,help);advanced.open=Boolean(own.value);
- fieldset.append(list,note,rule,more,advanced);
+ // The form's own input in Advanced (editor.html); the agreement line below reads it.
+ const own=fieldset.closest('form').querySelector('#external-check-own');
+ own.placeholder=overview.runner.externalCheckUrl?`${overview.runner.externalCheckUrl} (from Settings)`:'';own.value=externalCheck?.own??'';
+ fieldset.append(list,note,rule,more);
  const boxes=[...list.querySelectorAll('input[name=locations]')];
  const update=()=>{
   const chosen=boxes.filter(box=>box.checked),full=chosen.length>=limit;
