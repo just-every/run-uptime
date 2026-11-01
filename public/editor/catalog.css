@@ -12,6 +12,8 @@
 .catalog-summary { margin: 0; color: var(--body); font-size: 14px; }
 .catalog-source, .catalog-note, .catalog-followed { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
 .catalog-review { margin: 0; padding: 8px 12px; border-radius: var(--radius-control); background: var(--rose-soft); color: var(--rose-text); font-size: 13.5px; font-weight: 600; overflow-wrap: anywhere; }
+.catalog-more > summary { min-height: 40px; color: var(--ink); font-size: 14.5px; font-weight: 600; cursor: pointer; }
+.catalog-body { display: grid; gap: 6px; padding-bottom: 4px; }
 .catalog-form { display: grid; gap: 8px; margin-top: 4px; }
 .catalog-scope { margin: 0; padding: 0; border: 0; display: grid; gap: 6px; min-width: 0; }
 .catalog-scope legend { padding: 0; color: var(--ink); font-size: 14px; font-weight: 600; }
