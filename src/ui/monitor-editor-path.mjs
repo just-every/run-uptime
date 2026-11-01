@@ -1,12 +1,16 @@
 // Shareable editor state lives in the path; discovery jobs retain their own website and location.
 export const newMonitorPath='/app/monitors/new';
 export const discoveryPath=id=>`${newMonitorPath}/discovery/${encodeURIComponent(id)}`;
+// The five ways to add beside the website check: each way's own path under /app/monitors/new (manual is the form).
+export const WAY_PATHS=['paste','file','follow','discover'];
+export const wayPath=way=>`${newMonitorPath}/${way}`;
 export const manualPath=({url='',network='public'}={})=>url||network==='private'?`${newMonitorPath}/manual/${network}/${encodeURIComponent(url)}`:`${newMonitorPath}/manual`;
 export function editorState(path){
  const editing=path.match(/^\/app\/monitors\/([^/]+)\/edit\/?$/);
  const checking=path.match(/^\/app\/monitors\/new\/discovery\/([^/]+)\/?$/);
  const manual=path.match(/^\/app\/monitors\/new\/manual(?:\/(public|private)(?:\/(.*))?)?\/?$/);
- return {id:editing?decodeURIComponent(editing[1]):null,discovery:checking?decodeURIComponent(checking[1]):null,manual:!!manual,network:manual?.[1]??'public',url:manual?.[2]?decodeURIComponent(manual[2]):''};
+ const way=path.match(/^\/app\/monitors\/new\/(paste|file|follow|discover)\/?$/);
+ return {id:editing?decodeURIComponent(editing[1]):null,discovery:checking?decodeURIComponent(checking[1]):null,manual:!!manual,way:way?way[1]:manual?'manual':null,network:manual?.[1]??'public',url:manual?.[2]?decodeURIComponent(manual[2]):''};
 }
 export function legacyEditorPath(params){
  if(params.get('monitor'))return `/app/monitors/${encodeURIComponent(params.get('monitor'))}/edit`;

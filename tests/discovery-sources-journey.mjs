@@ -55,6 +55,7 @@ export async function proveDiscoverySources({launch,evidence}){
   const page=await (await browser.newContext({viewport:{width:1440,height:900}})).newPage();
   await browserSignIn(page,g.origin,{bindings:g.bindings});
   await page.goto(g.origin+'/app/monitors/new');
+  await page.getByRole('button',{name:'Discover from DNS, a spec or deploys',exact:true}).click();assert.equal(new URL(page.url()).pathname,'/app/monitors/new/discover','the pill puts its panel in the path');
   const panel=page.locator('#discovery-sources');await panel.locator('#sources-empty').waitFor();
   await widths(page,'sources-empty',{evidence,target:panel});
   await panel.getByLabel('Source',{exact:true}).selectOption('website-files');
@@ -147,7 +148,7 @@ export async function proveDiscoverySources({launch,evidence}){
   // Review: reject one proposal of every source; adopt three through the monitor door (one from the console).
   for(const [name,id] of Object.entries(sources)){const target=first[name].proposals.find(p=>!p.refused&&p.kind!=='host'&&!p.duplicates.monitors.length)??first[name].proposals.find(p=>!p.refused&&!p.url.includes('/checkout')&&!p.url.includes(host('docs'))&&!p.url.includes(host('app')));
    if(target)await ok(`/api/discovery-sources/${id}/decisions`,{key:target.key,decision:'rejected'})}
-  await page.goto(g.origin+'/app/monitors/new');
+  await page.goto(g.origin+'/app/monitors/new/discover');
   await panel.locator('.sources-item').filter({hasText:'Synthetic domain'}).getByRole('button',{name:'Review proposals',exact:true}).click();
   const docs=first.domain.proposals.find(p=>p.kind==='host'&&p.url===`https://${host('docs')}/`);
   await review.locator(`[data-adopt="${docs.key}"]`).check();
@@ -215,7 +216,7 @@ export async function proveDiscoverySources({launch,evidence}){
   const tables=(await rows("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_cf_%'")).map(r=>r.name),everything=[];
   for(const table of tables)everything.push(JSON.stringify(await rows(`SELECT * FROM "${table}"`)));
   const archive=await ok('/api/archive'),definitions=await ok('/api/definitions/export');
-  await page.goto(g.origin+'/app/monitors/new');await panel.locator('.sources-item').first().waitFor();
+  await page.goto(g.origin+'/app/monitors/new/discover');await panel.locator('.sources-item').first().waitFor();
   for(const [label,text] of [['database',everything.join('\n')],['archive',JSON.stringify(archive)],['definition export',JSON.stringify(definitions)],['console',await page.content()]])
    for(const secret of SECRETS)assert.ok(!text.includes(secret),`${label} holds no provider credential`);
 

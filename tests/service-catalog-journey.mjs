@@ -73,6 +73,7 @@ export async function proveServiceCatalog({launch,evidence}){
   if(process.env.UPTIME_DEBUG){page.on('pageerror',e=>console.error('PAGEERROR',e.message));page.on('console',m=>console.error('CONSOLE',m.type(),m.text()));page.on('response',r=>{if(r.url().includes('/api/'))console.error('RESP',r.status(),r.request().method(),r.url())})}
   await browserSignIn(page,g.origin,{bindings:g.bindings});
   await page.goto(g.origin+'/app/monitors/new');
+  await page.getByRole('button',{name:"Follow a service's status",exact:true}).click();assert.equal(new URL(page.url()).pathname,'/app/monitors/new/follow','the pill puts its panel in the path');
   const catalog=page.locator('#service-catalog');await catalog.waitFor();
   const search=async text=>{await page.getByLabel('Search providers',{exact:true}).fill(text);await waitUntil(async()=>(await catalog.locator('.catalog-entry').count())===1,`search ${text}`)};
   const entry=name=>catalog.locator('.catalog-entry').filter({has:page.getByRole('heading',{name,exact:true})});
@@ -213,7 +214,7 @@ export async function proveServiceCatalog({launch,evidence}){
    assert.equal(view.review.state,'needs_review',`status source ${mode} needs review`);assert.equal(view.sourceState,'unknown');
    assert.equal((await ok('/api/service-catalog?q=stripe')).entries[0].review.state,'needs_review');
    if(mode==='moved'){
-    await page.goto(g.origin+'/app/monitors/new');await search('stripe');await page.locator('.catalog-review').first().waitFor();
+    await page.goto(g.origin+'/app/monitors/new/follow');await search('stripe');await page.locator('.catalog-review').first().waitFor();
     await widths(page,'catalog-moved',{evidence,full:true});
     await page.goto(g.origin+'/app/monitors/'+encodeURIComponent(stripeMonitor.id));await page.evaluate(()=>{location.hash='followed'});await page.locator('.followed-review').waitFor();
     await page.locator('[data-review-followed]').focus();assert.equal(await page.locator('[data-review-followed]').evaluate(e=>e===document.activeElement),true,'review is keyboard reachable');

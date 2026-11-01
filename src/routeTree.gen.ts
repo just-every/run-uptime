@@ -21,7 +21,11 @@ import { Route as ConsoleAppMonitorsIndexRouteImport } from './routes/_console.a
 import { Route as ConsoleAppSettingsAreaRouteImport } from './routes/_console.app.settings.$area'
 import { Route as AppMonitorsIdIndexRouteImport } from './routes/app.monitors.$id.index'
 import { Route as AppMonitorsIdEditRouteImport } from './routes/app.monitors.$id.edit'
+import { Route as AppMonitorsNewDiscoverRouteImport } from './routes/app.monitors.new.discover'
+import { Route as AppMonitorsNewFileRouteImport } from './routes/app.monitors.new.file'
+import { Route as AppMonitorsNewFollowRouteImport } from './routes/app.monitors.new.follow'
 import { Route as AppMonitorsNewManualRouteImport } from './routes/app.monitors.new.manual'
+import { Route as AppMonitorsNewPasteRouteImport } from './routes/app.monitors.new.paste'
 import { Route as AppMonitorsNewDiscoveryJobRouteImport } from './routes/app.monitors.new.discovery.$job'
 import { Route as AppMonitorsNewManualSplatRouteImport } from './routes/app.monitors.new.manual.$'
 
@@ -84,9 +88,29 @@ const AppMonitorsIdEditRoute = AppMonitorsIdEditRouteImport.update({
   path: '/app/monitors/$id/edit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppMonitorsNewDiscoverRoute = AppMonitorsNewDiscoverRouteImport.update({
+  id: '/discover',
+  path: '/discover',
+  getParentRoute: () => AppMonitorsNewRoute,
+} as any)
+const AppMonitorsNewFileRoute = AppMonitorsNewFileRouteImport.update({
+  id: '/file',
+  path: '/file',
+  getParentRoute: () => AppMonitorsNewRoute,
+} as any)
+const AppMonitorsNewFollowRoute = AppMonitorsNewFollowRouteImport.update({
+  id: '/follow',
+  path: '/follow',
+  getParentRoute: () => AppMonitorsNewRoute,
+} as any)
 const AppMonitorsNewManualRoute = AppMonitorsNewManualRouteImport.update({
   id: '/manual',
   path: '/manual',
+  getParentRoute: () => AppMonitorsNewRoute,
+} as any)
+const AppMonitorsNewPasteRoute = AppMonitorsNewPasteRouteImport.update({
+  id: '/paste',
+  path: '/paste',
   getParentRoute: () => AppMonitorsNewRoute,
 } as any)
 const AppMonitorsNewDiscoveryJobRoute =
@@ -113,7 +137,11 @@ export interface FileRoutesByFullPath {
   '/app/': typeof ConsoleAppIndexRoute
   '/app/settings/$area': typeof ConsoleAppSettingsAreaRoute
   '/app/monitors/$id/edit': typeof AppMonitorsIdEditRoute
+  '/app/monitors/new/discover': typeof AppMonitorsNewDiscoverRoute
+  '/app/monitors/new/file': typeof AppMonitorsNewFileRoute
+  '/app/monitors/new/follow': typeof AppMonitorsNewFollowRoute
   '/app/monitors/new/manual': typeof AppMonitorsNewManualRouteWithChildren
+  '/app/monitors/new/paste': typeof AppMonitorsNewPasteRoute
   '/app/monitors/': typeof ConsoleAppMonitorsIndexRoute
   '/app/monitors/$id/': typeof AppMonitorsIdIndexRoute
   '/app/monitors/new/discovery/$job': typeof AppMonitorsNewDiscoveryJobRoute
@@ -130,7 +158,11 @@ export interface FileRoutesByTo {
   '/app': typeof ConsoleAppIndexRoute
   '/app/settings/$area': typeof ConsoleAppSettingsAreaRoute
   '/app/monitors/$id/edit': typeof AppMonitorsIdEditRoute
+  '/app/monitors/new/discover': typeof AppMonitorsNewDiscoverRoute
+  '/app/monitors/new/file': typeof AppMonitorsNewFileRoute
+  '/app/monitors/new/follow': typeof AppMonitorsNewFollowRoute
   '/app/monitors/new/manual': typeof AppMonitorsNewManualRouteWithChildren
+  '/app/monitors/new/paste': typeof AppMonitorsNewPasteRoute
   '/app/monitors': typeof ConsoleAppMonitorsIndexRoute
   '/app/monitors/$id': typeof AppMonitorsIdIndexRoute
   '/app/monitors/new/discovery/$job': typeof AppMonitorsNewDiscoveryJobRoute
@@ -148,7 +180,11 @@ export interface FileRoutesById {
   '/_console/app/': typeof ConsoleAppIndexRoute
   '/_console/app/settings/$area': typeof ConsoleAppSettingsAreaRoute
   '/app/monitors/$id/edit': typeof AppMonitorsIdEditRoute
+  '/app/monitors/new/discover': typeof AppMonitorsNewDiscoverRoute
+  '/app/monitors/new/file': typeof AppMonitorsNewFileRoute
+  '/app/monitors/new/follow': typeof AppMonitorsNewFollowRoute
   '/app/monitors/new/manual': typeof AppMonitorsNewManualRouteWithChildren
+  '/app/monitors/new/paste': typeof AppMonitorsNewPasteRoute
   '/_console/app/monitors/': typeof ConsoleAppMonitorsIndexRoute
   '/app/monitors/$id/': typeof AppMonitorsIdIndexRoute
   '/app/monitors/new/discovery/$job': typeof AppMonitorsNewDiscoveryJobRoute
@@ -167,7 +203,11 @@ export interface FileRouteTypes {
     | '/app/'
     | '/app/settings/$area'
     | '/app/monitors/$id/edit'
+    | '/app/monitors/new/discover'
+    | '/app/monitors/new/file'
+    | '/app/monitors/new/follow'
     | '/app/monitors/new/manual'
+    | '/app/monitors/new/paste'
     | '/app/monitors/'
     | '/app/monitors/$id/'
     | '/app/monitors/new/discovery/$job'
@@ -184,7 +224,11 @@ export interface FileRouteTypes {
     | '/app'
     | '/app/settings/$area'
     | '/app/monitors/$id/edit'
+    | '/app/monitors/new/discover'
+    | '/app/monitors/new/file'
+    | '/app/monitors/new/follow'
     | '/app/monitors/new/manual'
+    | '/app/monitors/new/paste'
     | '/app/monitors'
     | '/app/monitors/$id'
     | '/app/monitors/new/discovery/$job'
@@ -201,7 +245,11 @@ export interface FileRouteTypes {
     | '/_console/app/'
     | '/_console/app/settings/$area'
     | '/app/monitors/$id/edit'
+    | '/app/monitors/new/discover'
+    | '/app/monitors/new/file'
+    | '/app/monitors/new/follow'
     | '/app/monitors/new/manual'
+    | '/app/monitors/new/paste'
     | '/_console/app/monitors/'
     | '/app/monitors/$id/'
     | '/app/monitors/new/discovery/$job'
@@ -303,11 +351,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMonitorsIdEditRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/monitors/new/discover': {
+      id: '/app/monitors/new/discover'
+      path: '/discover'
+      fullPath: '/app/monitors/new/discover'
+      preLoaderRoute: typeof AppMonitorsNewDiscoverRouteImport
+      parentRoute: typeof AppMonitorsNewRoute
+    }
+    '/app/monitors/new/file': {
+      id: '/app/monitors/new/file'
+      path: '/file'
+      fullPath: '/app/monitors/new/file'
+      preLoaderRoute: typeof AppMonitorsNewFileRouteImport
+      parentRoute: typeof AppMonitorsNewRoute
+    }
+    '/app/monitors/new/follow': {
+      id: '/app/monitors/new/follow'
+      path: '/follow'
+      fullPath: '/app/monitors/new/follow'
+      preLoaderRoute: typeof AppMonitorsNewFollowRouteImport
+      parentRoute: typeof AppMonitorsNewRoute
+    }
     '/app/monitors/new/manual': {
       id: '/app/monitors/new/manual'
       path: '/manual'
       fullPath: '/app/monitors/new/manual'
       preLoaderRoute: typeof AppMonitorsNewManualRouteImport
+      parentRoute: typeof AppMonitorsNewRoute
+    }
+    '/app/monitors/new/paste': {
+      id: '/app/monitors/new/paste'
+      path: '/paste'
+      fullPath: '/app/monitors/new/paste'
+      preLoaderRoute: typeof AppMonitorsNewPasteRouteImport
       parentRoute: typeof AppMonitorsNewRoute
     }
     '/app/monitors/new/discovery/$job': {
@@ -369,12 +445,20 @@ const AppMonitorsNewManualRouteWithChildren =
   AppMonitorsNewManualRoute._addFileChildren(AppMonitorsNewManualRouteChildren)
 
 interface AppMonitorsNewRouteChildren {
+  AppMonitorsNewDiscoverRoute: typeof AppMonitorsNewDiscoverRoute
+  AppMonitorsNewFileRoute: typeof AppMonitorsNewFileRoute
+  AppMonitorsNewFollowRoute: typeof AppMonitorsNewFollowRoute
   AppMonitorsNewManualRoute: typeof AppMonitorsNewManualRouteWithChildren
+  AppMonitorsNewPasteRoute: typeof AppMonitorsNewPasteRoute
   AppMonitorsNewDiscoveryJobRoute: typeof AppMonitorsNewDiscoveryJobRoute
 }
 
 const AppMonitorsNewRouteChildren: AppMonitorsNewRouteChildren = {
+  AppMonitorsNewDiscoverRoute: AppMonitorsNewDiscoverRoute,
+  AppMonitorsNewFileRoute: AppMonitorsNewFileRoute,
+  AppMonitorsNewFollowRoute: AppMonitorsNewFollowRoute,
   AppMonitorsNewManualRoute: AppMonitorsNewManualRouteWithChildren,
+  AppMonitorsNewPasteRoute: AppMonitorsNewPasteRoute,
   AppMonitorsNewDiscoveryJobRoute: AppMonitorsNewDiscoveryJobRoute,
 }
 

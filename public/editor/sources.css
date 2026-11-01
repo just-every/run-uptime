@@ -1,8 +1,8 @@
 /* DISCOVERY-001: discovery sources on the new-monitor page (/app/monitor), after the service catalog. Built from the same tokens as
    discovery.css and catalog.css. Hooks editor/monitor/sources.mjs relies on: #discovery-sources, #source-form, #sources-list,
    #source-review, .source-proposal[data-key], [data-adopt], [data-reject], .sources-feedback[data-state]. */
-.sources-panel { margin-top: 20px; padding: 18px 24px 20px; min-width: 0; }
-.sources-panel h2 { font-size: 22px; letter-spacing: -0.02em; }
+.sources-panel { padding: 18px 24px 20px; min-width: 0; }
+.sources-panel h2 { margin-bottom: 14px; font-size: 20px; letter-spacing: -0.015em; }
 .sources-panel h3 { margin: 20px 0 8px; font-size: 17px; }
 .sources-panel h4 { margin: 16px 0 6px; font-size: 15px; }
 .sources-form { display: grid; gap: 6px; max-width: 640px; }

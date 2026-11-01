@@ -98,21 +98,20 @@ function batchesMarkup(batches){
   ${b.entries.length?`<details class="batch-entries" data-batch="${escape(b.id)}"${state.opened.has(b.id)?' open':''}><summary>${b.entries.length===1?'1 monitor':`${b.entries.length} monitors`}</summary><ul>${b.entries.map(e=>`<li>${escape(e.name??e.monitorId)} — ${e.action==='create'?'created':'changed'}${e.undoOutcome?`; ${escape(OUTCOMES[e.undoOutcome]??e.undoOutcome)}`:''}</li>`).join('')}</ul></details>`:''}</div>
   ${!b.withdrawn&&!b.undone&&!b.undoneAt&&!b.restoredAt?`<button type="button" class="ui-link quiet-action definition-undo" data-batch="${escape(b.id)}">Undo<span class="ui-visually-hidden"> ${escape(name)} from ${escape(when(b.createdAt))}</span></button>`:''}</li>`}).join('')}</ul>`;
 }
-export function renderDefinitions({area,action}){
- if(area.querySelector('.definitions-panel'))return;
- area.innerHTML=`<section class="ui-card set-card definitions-panel" aria-labelledby="monitor-files-heading"><div class="card-head"><h2 id="monitor-files-heading">Monitor files</h2></div>
- <div class="set-split"><section class="definition-input" aria-labelledby="definition-input-heading"><h3 id="definition-input-heading">Import</h3>
- <label id="definition-file-field">A file from UptimeRobot, Pingdom, Better Stack, Site24x7 or Uptime<input type="file" id="definition-file" accept=".json,.csv,application/json,text/csv"></label>
+// The Import part: a file or its pasted text, the source only after detection failed, Preview, the preview and its Apply. It
+// fills `host` (Settings › Backup and files: the Import column; New monitor: the panel "Import a file") and puts the preview
+// and the applied line in `preview` and `applied`, or under itself when they are not given. `action(task,{pending,success})`
+// runs a step and says its outcome; `onApplied` runs once an import has been applied.
+const IMPORT_MARKUP=`<label id="definition-file-field">A file from UptimeRobot, Pingdom, Better Stack, Site24x7 or Uptime<input type="file" id="definition-file" accept=".json,.csv,application/json,text/csv"></label>
  <label id="definition-text-field" hidden>Paste it<textarea id="definition-text" rows="5" spellcheck="false"></textarea></label>
  <details id="definition-choose" hidden><summary>Choose the source</summary><label>Source<select id="definition-source"><option value="auto">Detect from the file</option><option value="uptime.monitors">Uptime monitor file</option><option value="uptimerobot">UptimeRobot v3 monitor list</option><option value="pingdom">Pingdom HTTP check details</option><option value="betterstack-heartbeats">Better Stack heartbeat, monitor or status page pages</option><option value="site24x7">Site24x7 monitor list or StatusIQ third-party components</option><option value="uptimerobot-log">UptimeRobot log export (CSV)</option></select></label></details>
- <div class="btn-row"><button type="button" class="ui-link" id="definition-paste" aria-controls="definition-text-field">Paste it instead</button><button type="button" id="definition-preview" class="primary">Preview</button></div></section>
- <section aria-labelledby="definition-export-heading"><h3 id="definition-export-heading">Export</h3><button type="button" id="definition-export">${icon('export')}Export monitors</button></section></div>
- <section id="definition-preview-area" aria-labelledby="definition-preview-heading" hidden><h3 id="definition-preview-heading">Preview</h3><div id="definition-result"></div></section><p id="definition-applied" role="status"></p></section>
- <section class="ui-card set-card" aria-labelledby="definition-batches-heading"><div class="card-head"><h2 id="definition-batches-heading">Past imports</h2></div><div id="definition-batches"></div></section>`;
- const $=s=>area.querySelector(s);
+ <div class="btn-row"><button type="button" class="ui-link" id="definition-paste" aria-controls="definition-text-field">Paste it instead</button><button type="button" id="definition-preview" class="primary">Preview</button></div>`;
+const PREVIEW_MARKUP=`<section id="definition-preview-area" aria-labelledby="definition-preview-heading" hidden><h3 id="definition-preview-heading">Preview</h3><div id="definition-result"></div></section><p id="definition-applied" role="status"></p>`;
+export function mountImport(host,{action,onApplied,preview:previewHost,applied:appliedHost}){
+ host.insertAdjacentHTML('beforeend',IMPORT_MARKUP);
+ if(!previewHost)host.insertAdjacentHTML('beforeend',PREVIEW_MARKUP);
+ const roots=[host,previewHost,appliedHost].filter(Boolean),$=selector=>{for(const root of roots){const hit=root.matches(selector)?root:root.querySelector(selector);if(hit)return hit}};
  const showPreview=()=>{$('#definition-preview-area').hidden=!state.preview;$('#definition-result').innerHTML=state.preview?previewMarkup(state.preview):'';const apply=$('#definition-apply');if(apply)apply.onclick=applyPreview};
- const showBatches=()=>{$('#definition-batches').innerHTML=batchesMarkup(state.batches);for(const button of area.querySelectorAll('.definition-undo'))button.onclick=()=>confirmUndo(button.dataset.batch);for(const fold of area.querySelectorAll('.batch-entries'))fold.ontoggle=()=>{if(fold.open)state.opened.add(fold.dataset.batch);else state.opened.delete(fold.dataset.batch)}};
- const loadBatches=async()=>{state.batches=await send('/api/definitions/batches');showBatches()};
  // A file or, in its place, the pasted text: one way at a time.
  const showWay=()=>{$('#definition-file-field').hidden=state.paste;$('#definition-text-field').hidden=!state.paste;$('#definition-paste').textContent=state.paste?'Choose a file instead':'Paste it instead'};
  $('#definition-paste').onclick=()=>{state.paste=!state.paste;showWay();(state.paste?$('#definition-text'):$('#definition-file')).focus()};
@@ -136,8 +135,22 @@ export function renderDefinitions({area,action}){
    const report=await door(preview.namespace,'reconcile',{planId:preview.planId});
    if(!report.ok)throw Error('The import finished, but Uptime does not hold what it reviewed. Undo this batch.');
   },{pending:'Applying…',success:`Applied: ${preview.counts.create} created (paused), ${preview.counts.change} changed.`});
-  if(result.ok){if(preview.counts.create){const created=preview.entries.filter(e=>e.action==='create');$('#definition-applied').innerHTML=`${preview.counts.create} created and paused. <a class="ui-link" href="${created.length===1?'/app/monitors/'+encodeURIComponent(created[0].monitorId):'/app/monitors'}">Review and start them →</a>`}state.preview=null;state.payload=null;showPreview();await loadBatches();if(state.batches?.[0]){state.opened.add(state.batches[0].id);showBatches()}}
+  if(result.ok){if(preview.counts.create){const created=preview.entries.filter(e=>e.action==='create');$('#definition-applied').innerHTML=`${preview.counts.create} created and paused. <a class="ui-link" href="${created.length===1?'/app/monitors/'+encodeURIComponent(created[0].monitorId):'/app/monitors'}">Review and start them →</a>`}state.preview=null;state.payload=null;showPreview();await onApplied?.()}
  }
+ $('#definition-preview').onclick=preview;
+ showWay();showPreview();
+}
+export function renderDefinitions({area,action}){
+ if(area.querySelector('.definitions-panel'))return;
+ area.innerHTML=`<section class="ui-card set-card definitions-panel" aria-labelledby="monitor-files-heading"><div class="card-head"><h2 id="monitor-files-heading">Monitor files</h2></div>
+ <div class="set-split"><section class="definition-input" aria-labelledby="definition-input-heading"><h3 id="definition-input-heading">Import</h3></section>
+ <section aria-labelledby="definition-export-heading"><h3 id="definition-export-heading">Export</h3><button type="button" id="definition-export">${icon('export')}Export monitors</button></section></div>
+ ${PREVIEW_MARKUP}</section>
+ <section class="ui-card set-card" aria-labelledby="definition-batches-heading"><div class="card-head"><h2 id="definition-batches-heading">Past imports</h2></div><div id="definition-batches"></div></section>`;
+ const $=s=>area.querySelector(s);
+ const showBatches=()=>{$('#definition-batches').innerHTML=batchesMarkup(state.batches);for(const button of area.querySelectorAll('.definition-undo'))button.onclick=()=>confirmUndo(button.dataset.batch);for(const fold of area.querySelectorAll('.batch-entries'))fold.ontoggle=()=>{if(fold.open)state.opened.add(fold.dataset.batch);else state.opened.delete(fold.dataset.batch)}};
+ const loadBatches=async()=>{state.batches=await send('/api/definitions/batches');showBatches()};
+ mountImport($('.definition-input'),{action,preview:$('#definition-preview-area'),applied:$('#definition-applied'),onApplied:async()=>{await loadBatches();if(state.batches?.[0]){state.opened.add(state.batches[0].id);showBatches()}}});
  // Undo says what it does in its confirm.
  function confirmUndo(id){confirmDestination({title:'Undo this import?',explanation:'Undo pauses what this import added and puts back what it changed, unless edited or enabled since.',button:'Undo import',onConfirm:()=>undo(id)})}
  async function undo(id){
@@ -148,7 +161,6 @@ export function renderDefinitions({area,action}){
   const result=await action(()=>batch?.namespace?doorUndo():send(`/api/definitions/batches/${encodeURIComponent(id)}/undo`,{body:'{}',type:'application/json'}),{pending:'Undoing batch…',success:'Batch undone. Anything edited or enabled since was left as is.'});
   if(result.ok){state.opened.add(id);await loadBatches()}
  }
- $('#definition-preview').onclick=preview;
  $('#definition-export').onclick=()=>action(async()=>{const file=await send('/api/definitions/export'),url=URL.createObjectURL(new Blob([JSON.stringify(file,null,2)+'\n'],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='uptime.monitors.json';a.click();URL.revokeObjectURL(url)},{success:'Monitors exported.'});
- showWay();showPreview();showBatches();loadBatches().catch(error=>{$('#definition-batches').innerHTML=`<p>${escape(error.message)}</p>`});
+ showBatches();loadBatches().catch(error=>{$('#definition-batches').innerHTML=`<p>${escape(error.message)}</p>`});
 }
