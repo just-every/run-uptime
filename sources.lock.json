@@ -2100,7 +2100,7 @@
       "executable": false
     },
     "docs/oncall-handoff.md": {
-      "sha256": "f91d002dc584d58b3a53ca0a496837ba4a48871e21b72a116bbaaa86de774e73",
+      "sha256": "6e1d8e01591fcdc2c9da290ac97bc82491e67efa39bbfda8ead75482d34fb49e",
       "executable": false
     },
     "docs/overview.md": {
@@ -2544,7 +2544,7 @@
       "executable": false
     },
     "public/alert-destinations.js": {
-      "sha256": "d73f93054e971a2b70519b38936cedd2d27b0951dcc9b9bf65f5c518e629141b",
+      "sha256": "de2a7686e07b1755c4bc7d749fcffd8a97251c7067c6363c43dc677267e590e0",
       "executable": false
     },
     "public/alert-drills.js": {
@@ -2888,11 +2888,11 @@
       "executable": false
     },
     "public/notifications.css": {
-      "sha256": "c9457df120ad05dc618b3d709a9c0ff2a0d4ac64c51c2b1725fea65c0cd9c171",
+      "sha256": "1012973ea808ee591d80b29b8efdc0a3272ab90a11eafd3dc729d99ca372e7a3",
       "executable": false
     },
     "public/notifications.js": {
-      "sha256": "79387ed68f6b172faa9e350a41904ffd09620f0a5e02df67eb2c164420ec4eca",
+      "sha256": "5a0c3ab0a214b55dcfaa5e1f622b694614b13a8f52fd0cb4aca2044f68dbcf19",
       "executable": false
     },
     "public/pagespeed-panel.js": {
@@ -2940,7 +2940,7 @@
       "executable": false
     },
     "public/sent-alerts.js": {
-      "sha256": "8a03e64338d4c2dc56ec64f37ce6fb83b4a64d3648ac7ae19ce97d7ffcf14cc7",
+      "sha256": "d9e8f0e27075b852abc8253f62087722a101ae13ad72244e4f97dda12661acea",
       "executable": false
     },
     "public/settings-alerts.js": {
@@ -2988,7 +2988,7 @@
       "executable": false
     },
     "public/webhook-editor.js": {
-      "sha256": "93a4957e589cca0a0bcba9f6abdbeab94ed8083295881a737dd41e640b451872",
+      "sha256": "685cfdcef29067b5e30afcb40db6307d7f7181ba857bc676378185a18cb66404",
       "executable": false
     },
     "README.md": {
@@ -9020,7 +9020,7 @@
       "executable": false
     },
     "tests/notify-oncall-fixture.mjs": {
-      "sha256": "051ad09c298d66941eedacdda5eaf2ab29cfa970a75908dbcdcab474e0285397",
+      "sha256": "92fe711a76bf47b810e255a73a8d64dae2613d3d0adf00e75105e1317abcc922",
       "executable": false
     },
     "tests/notify-quiet-fixture.mjs": {
