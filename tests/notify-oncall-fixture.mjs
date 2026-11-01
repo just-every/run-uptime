@@ -26,7 +26,12 @@ async function openConsole(f){
   await browserSignIn(page,f.origin,{bindings:f.bindings});
   const ui={browser,page,
    async width(width){await page.setViewportSize({width,height:width>480?1600:2400})},
-   async alerts(){await page.goto(f.origin+'/app/settings/alerts');await page.locator('html.signed-in').waitFor({timeout:60000});await page.locator('#sent-alerts-heading').waitFor()},
+   // The page is loaded once and then left to the console's own five-second refresh: the public asset limiter is per minute.
+   async alerts(){
+    if(!await page.evaluate(()=>location.pathname==='/app/settings/alerts'&&document.documentElement.classList.contains('signed-in')))await page.goto(f.origin+'/app/settings/alerts');
+    await page.locator('html.signed-in').waitFor({timeout:60000});await page.locator('#sent-alerts-heading').waitFor()
+   },
+   async reload(){await page.reload();await page.locator('html.signed-in').waitFor({timeout:60000});await page.locator('#sent-alerts-heading').waitFor()},
    // Axe, reflow and the smallest rendered text size inside one scope (a dialog or an opened row), kept as evidence on request.
    async audit(scope,name,width){
     if(!await page.evaluate(()=>typeof axe!=='undefined'))await page.addScriptTag({path:require.resolve('axe-core/axe.min.js')});
@@ -90,7 +95,7 @@ async function inspectEdit(ui,destination,{key,endpoint}){
 // acknowledgment on later rows is marked), Received and Responded stay Unknown, and the raw receipt is not rendered.
 async function expectAcknowledged(ui,delivery,ack,widths=WIDTHS,name='oncall-row-acknowledged'){
  for(const width of widths){
-  await ui.width(width);await ui.alerts();const row=await ui.open(delivery.id);
+  await ui.width(width);await ui.alerts();const row=await ui.open(delivery.id);await row.locator('dl.drill-lines time').first().waitFor();
   const [acknowledged,...others]=await ui.facts(row),first=ack.deliveryId!==delivery.id;
   assert.equal(acknowledged[0],'Acknowledged');assert.equal(acknowledged[2],new Date(ack.receiverAcceptedAt).toISOString(),'Acknowledged shows the receiver acceptance time');
   assert.ok(acknowledged[1].endsWith(first?" · Oncall accepted it · this incident's first alert":' · Oncall accepted it'),acknowledged[1]);
@@ -219,7 +224,7 @@ export async function proveOncallHandoff(){
   restarted=await startLocalWorker({persist:f.directory,port:Number(new URL(f.origin).port),bindings:f.bindings});await restarted.ready;
   await send();assert.deepEqual((await rows())[0].handoff.acknowledged,ack);
   // The console's page survives the Worker restart: reloaded, it shows the same acknowledgment on the first alert and its reminder.
-  await ui.page.reload();await expectAcknowledged(ui,delivery,ack,[1440],'oncall-row-restarted-first');await expectAcknowledged(ui,repeat,ack,[1440],'oncall-row-restarted-reminder');
+  await ui.reload();await expectAcknowledged(ui,delivery,ack,[1440],'oncall-row-restarted-first');await expectAcknowledged(ui,repeat,ack,[1440],'oncall-row-restarted-reminder');
   f.modes.target=200;await sleep(5100);await probe(f.first);await probe(same);await probe(f.second);await send();
   const recovered=(await rows()).find(d=>d.event.kind==='recovery');assert.ok(recovered);assert.equal(recovered.state,'accepted');
   const recovery=records.find(r=>r.event.intent==='recover').event,trigger=records[0].event;
