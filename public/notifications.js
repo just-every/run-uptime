@@ -27,8 +27,9 @@ export function destinationDialog(destination,{notes,api,action}){
   event.preventDefault();const values={name:form.elements.name.value,enabled:form.elements.enabled.checked};
   if(destination){if(email)values.address=form.elements.address.value;else if(form.elements.url.value.trim())values.url=form.elements.url.value.trim()}
   else{values.kind=form.elements.kind.value;values[values.kind==='email'?'address':'url']=form.elements[values.kind==='email'?'address':'url'].value}
-  const kind=destination?.kind??values.kind;values.name=values.name.trim()||(kind==='email'?`Email ${values.address}`:kind==='slack'?'Slack':'Webhook').slice(0,100);
+  const kind=destination?.kind??values.kind;
   try{Object.assign(values,webhook.read())}catch(error){dialog.querySelector('.form-error').textContent=error.message;return}
+  values.name=values.name.trim()||(kind==='email'?`Email ${values.address}`:kind==='slack'?'Slack':values.webhookTemplate?.mode==='oncall'?'Oncall':'Webhook').slice(0,100);
   let result,failure;
   const response=await action(async()=>{try{result=await api(destination?path(destination.id):'/api/notifications/destinations',destination?'PATCH':'POST',values)}catch(error){failure=error.message;throw error}close()},{pending:'Saving destination…',success:kind==='email'&&!notes.mailConfigured?'Destination saved. Email is not set up, so it cannot send yet: Set up email is above Destinations.':'Destination saved.'});
   if(response.ok)returnFocus();

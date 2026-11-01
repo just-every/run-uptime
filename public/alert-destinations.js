@@ -2,8 +2,9 @@ import {escape,icon,ago} from './console-format.js';
 import {cannotSend} from './alert-health.js';
 // Destinations (Settings › Alerts): one row per destination, its line icon, its name and one quiet line (kind, the email
 // address, then what it last did or why it cannot send), with Send test and Edit. Everything else a destination has (Enabled,
-// the request preview, Rotate secret, the latest test and Delete) is in its Edit dialog (public/notifications.js).
-export const kindName=d=>d.kind==='email'?'Email':d.kind==='slack'?'Slack':d.webhookTemplate?'Custom webhook':d.webhookSigning===false?'Webhook':'Signed webhook';
+// the request preview, Rotate secret, the latest test and Delete) is in its Edit dialog (public/notifications.js). An Oncall handoff
+// has no Send test: a test event cannot become a handoff, so only Edit is offered.
+export const kindName=d=>d.kind==='email'?'Email':d.kind==='slack'?'Slack':d.webhookTemplate?.mode==='oncall'?'Oncall':d.webhookTemplate?'Custom webhook':d.webhookSigning===false?'Webhook':'Signed webhook';
 const kindIcon=d=>d.kind==='webhook'?'braces':d.kind==='slack'?'chat':'mail';
 // What the destination last did: a recipient's confirmed receipt first, then a send under way, then its newest send that
 // ended (one Uptime held back, never attempted, is no send).
@@ -21,7 +22,7 @@ function row(d,notes,blocked){
  const id=escape(d.id),name=`destination-name-${id}`;
  const meta=[kindName(d),...(d.kind==='email'&&d.address?[d.address]:[]),lastWord(d,notes,blocked)].map(escape).join(' · ');
  const warnings=(d.webhookWarnings??[]).map(w=>`<small class="destination-warning">${escape(w.variable)}: ${escape(w.reason)}</small>`).join('');
- return `<li class="destination-row" data-key="destination-${id}"><span class="destination-icon">${icon(kindIcon(d))}</span><div class="who"><strong id="${name}">${escape(d.name)}</strong><small>${meta}</small>${warnings}</div><div class="row-actions"><button type="button" class="ui-compact" id="destination-test-${id}" data-send-test="${id}" aria-describedby="${name}"${d.credentialsAvailable===false?' disabled':''}>Send test</button><button type="button" class="ui-compact" id="destination-edit-${id}" data-edit-destination="${id}" aria-describedby="${name}">Edit</button></div></li>`;
+ return `<li class="destination-row" data-key="destination-${id}"><span class="destination-icon">${icon(kindIcon(d))}</span><div class="who"><strong id="${name}">${escape(d.name)}</strong><small>${meta}</small>${warnings}</div><div class="row-actions">${d.webhookTemplate?.mode==='oncall'?'':`<button type="button" class="ui-compact" id="destination-test-${id}" data-send-test="${id}" aria-describedby="${name}"${d.credentialsAvailable===false?' disabled':''}>Send test</button>`}<button type="button" class="ui-compact" id="destination-edit-${id}" data-edit-destination="${id}" aria-describedby="${name}">Edit</button></div></li>`;
 }
 export function destinationsMarkup(notes){
  const blocked=new Set(cannotSend(notes).map(b=>b.destination.id));

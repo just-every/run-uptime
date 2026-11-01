@@ -150,7 +150,7 @@
 @media (max-width: 480px) { .drill-lines div { grid-template-columns: minmax(0, 1fr); } }
 
 .webhook-editor { display:grid; gap:14px; min-width:0; border-block:1px solid var(--line); padding-block:18px; }
-.webhook-editor [data-custom-webhook] { display:grid; gap:14px; }
+.webhook-editor [data-custom-webhook], .webhook-editor [data-oncall-webhook] { display:grid; gap:14px; }
 .webhook-editor [hidden] { display:none; }
 .webhook-editor textarea { font-family:var(--mono); font-size:13px; max-width:100%; }
 .webhook-pair { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
