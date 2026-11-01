@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "13aca61133c472429185a02dc7c6458ddc3cd4fc59c10069c964f101cdb82894",
+      "sha256": "ca10e4b181366df42bcbcd5d4d0101d63c954d81abba897ed39fc25f6aa7029b",
       "executable": false
     },
     "DEMO.md": {
@@ -8647,6 +8647,10 @@
       "sha256": "8669f864e737731ab7a8c2b582300d392f2d1f1e5555cf90b56208f8a3af154a",
       "executable": false
     },
+    "tests/basic-bearer-auth-support.mjs": {
+      "sha256": "84d8e7f0bbbb9a5786f4d81f85519c98742d4f04bbecaf1b75ccfb5a9c581230",
+      "executable": false
+    },
     "tests/browser-canary-edge.mjs": {
       "sha256": "9c73435d9feb5c76bc32178a55a8c0a4a61a075347e29b1f39f8d041d4cd29f9",
       "executable": false
@@ -9208,7 +9212,7 @@
       "executable": false
     },
     "tests/tls-auth.mjs": {
-      "sha256": "db4d8f498987b15902fc9b660b1ada435f79e9dc97d663f416023e0578d0f2c2",
+      "sha256": "b76f3b189d066754a85bf31f9be8f18052b6ef1cdf28605a0a82e5256d075c33",
       "executable": false
     },
     "tests/tls-trust-journey.mjs": {
