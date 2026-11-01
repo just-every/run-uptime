@@ -6,8 +6,9 @@ import {patch} from './dom-patch.js';
 export const AREAS={alerts:'Alerts',general:'General',people:'People',integrations:'Integrations',backup:'Backup and files'};
 const MODULES={alerts:()=>import('./settings-alerts.js').then(m=>m.renderAlerts),general:()=>import('./settings-general.js').then(m=>m.renderGeneral),people:()=>import('./settings-people.js').then(m=>m.renderPeople),integrations:()=>import('./settings-integrations.js').then(m=>m.renderIntegrations),backup:()=>import('./settings-backup.js').then(m=>m.renderBackup)};
 const RENDER={};
-// An area's first render waits for its module and draws only while the console still shows that area.
+// An area's first render waits for its module and draws only while the console still shows that area. It returns that
+// pending draw, so the console reports itself signed in only once the area it shows has drawn (public/app.js).
 export function renderSettings(area,context){
  if(RENDER[area]){RENDER[area](context);return}
- MODULES[area]().then(render=>{RENDER[area]=render;if(context.showing(area))render(context)},()=>{if(context.showing(area))patch(context.area,'<p class="rows-note">This area could not load. Reload the page to try again.</p>')});
+ return MODULES[area]().then(render=>{RENDER[area]=render;if(context.showing(area))render(context)},()=>{if(context.showing(area))patch(context.area,'<p class="rows-note">This area could not load. Reload the page to try again.</p>')});
 }
