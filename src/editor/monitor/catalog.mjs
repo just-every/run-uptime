@@ -23,7 +23,7 @@ export function mountServiceCatalog({overview,host}){
  const needsRunner=overview.runner.hosted&&!overview.runner.privateRunnerReady&&overview.runner.workerDiscovery!==true;
  let control=new AbortController(),timer,catalog=null,busy=false;
  // What the owner was last told about each provider survives the list being redrawn after a follow or a search.
- const told=new Map();
+ const told=new Map(),opened=new Set();
  const show=(node,note)=>{node.replaceChildren(note.text);if(note.href)node.append(Object.assign(element('a','ui-link',note.link),{href:note.href}));if(note.state)node.dataset.state=note.state;else node.removeAttribute('data-state')};
  const tell=(entry,node,note)=>{told.set(entry.id,note);show(node,note)};
  const say=(text,state)=>{status.textContent=text;if(state)status.dataset.state=state;else status.removeAttribute('data-state')};
@@ -38,14 +38,20 @@ export function mountServiceCatalog({overview,host}){
   const head=element('div','catalog-head'),title=element('h3','catalog-name',entry.name);
   head.append(title,element('span','catalog-kind ui-pill',entry.followable?'Followable':'Status page only'));
   item.append(head,element('p','catalog-summary',entry.summary));
+  // A long list is one row per provider; a row opens for its options, and every row is open once the search narrows to a few.
+  const more=element('details','catalog-more'),inside=element('div','catalog-body');
+  more.append(element('summary',undefined,entry.followable?'Choose what to follow':'About this source'),inside);
+  more.open=catalog.entries.length<=3||opened.has(entry.id);
+  more.addEventListener('toggle',()=>{if(more.open)opened.add(entry.id);else opened.delete(entry.id)});
   const source=element('p','catalog-source'),link=Object.assign(element('a','ui-link','status page'),{href:entry.source.page,target:'_blank',rel:'noopener noreferrer'});
-  source.append(`Official source: ${SOURCE[entry.source.kind]} · catalog version ${catalog.version} · `,link);item.append(source);
-  if(entry.note)item.append(element('p','catalog-note',entry.note));
+  source.append(`Official source: ${SOURCE[entry.source.kind]} · catalog version ${catalog.version} · `,link);inside.append(source);
+  if(entry.note)inside.append(element('p','catalog-note',entry.note));
   if(entry.review)item.append(Object.assign(element('p','catalog-review',`Needs review: the live check found this source ${PROBLEM[entry.review.problem]??'failing'}. ${entry.review.detail}`),{role:'note'}));
   for(const id of entry.followed){const current=catalog.followed.find(f=>f.monitorId===id);if(!current)continue;const row=element('p','catalog-followed'),open=Object.assign(element('a','ui-link',current.name),{href:`/app/monitors/${encodeURIComponent(id)}`});row.append('Following: ',open,current.review.state==='needs_review'?' · needs review':'');item.append(row)}
+  item.append(more);
   if(!entry.followable){
    const add=element('button','ui-link','Add its status page by address');add.type='button';
-   add.addEventListener('click',()=>useAddress(entry.source.page));item.append(add);return item;
+   add.addEventListener('click',()=>useAddress(entry.source.page));inside.append(add);return item;
   }
   const form=element('form','catalog-form');form.noValidate=true;
   const fieldset=element('fieldset','catalog-scope'),legend=element('legend',undefined,`What to follow for ${entry.name}`);fieldset.append(legend);
@@ -68,7 +74,7 @@ export function mountServiceCatalog({overview,host}){
   const go=element('button','primary','Follow');go.type='submit';
   form.append(fieldset,go,feedback);
   form.addEventListener('submit',event=>{event.preventDefault();follow(entry,form,feedback,go)});
-  item.append(form);return item;
+  inside.append(form);return item;
  }
  function render(){
   list.replaceChildren(...catalog.entries.map(entryCard));
