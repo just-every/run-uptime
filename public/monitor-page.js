@@ -50,7 +50,7 @@ function titleBlock(m,readUnavailable){
  const d=m.definition,state=shownState(m,readUnavailable);
  const where=d.type==='heartbeat'?`<p class="subtitle monitor-target">Incoming heartbeat at <code class="ui-mono">/api/heartbeats/${escape(m.id)}</code></p>`:`<p class="subtitle monitor-target ui-url">${breakableUrl(d.url)}</p>`;
  const chips=(d.network==='private'?'<a class="header-chip" href="#details">Private network</a>':'')+(d.tlsTrust?'<a class="header-chip" href="#details">Certificate exception</a>':'');
- return `${backLink}<div class="monitor-title"><h1 id="monitor-detail-heading">${escape(d.name)}</h1><span class="ui-pill badge ${escape(state.toLowerCase())}" id="monitor-state">${escape(state)}</span></div>${where}<p class="monitor-kind"><span class="keep-line">${escape(kinds[d.type??'http']??'Check')} ·</span> every ${escape(spokenInterval(d.intervalMs))}${chips?` <span class="header-chips">${chips}</span>`:''}</p>`;
+ return `${backLink}<div class="monitor-title"><h1 id="monitor-detail-heading">${escape(d.name)}</h1><span class="ui-pill badge ${escape(state.toLowerCase())}" id="monitor-state">${escape(state)}</span></div>${where}${m.preparedBy?`<p class="subtitle">Prepared by ${escape(m.preparedBy.label)}. Scheduled observations remain independent.</p>`:''}<p class="monitor-kind"><span class="keep-line">${escape(kinds[d.type??'http']??'Check')} ·</span> every ${escape(spokenInterval(d.intervalMs))}${chips?` <span class="header-chips">${chips}</span>`:''}</p>`;
 }
 function actionButtons(m){
  const d=m.definition,edit=isFlow(d)||d.type==='heartbeat'?`<a class="ui-button" id="edit" href="/docs/definitions">${icon('pencil')}Edit in a file</a>`:`<button id="edit">${icon('pencil')}Edit</button>`;

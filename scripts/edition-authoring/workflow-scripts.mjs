@@ -93,18 +93,29 @@ export function shellWords(script) {
   return words;
 }
 
-export function literalPaths(script) {
+export function literalPaths(script, {helpersOnly = false} = {}) {
   const names = new Set();
-  function scan(text, ancestors = new Set()) {
+  function scan(text, ancestors = new Set(), words = shellWords(text)) {
     if (ancestors.has(text)) return;
     const nested = new Set([...ancestors, text]);
-    for (const {value, dynamic} of shellWords(text)) {
+    for (const {value, dynamic} of words) {
       if (dynamic) continue;
       const relative = value.replace(/^\.\//, '');
-      if ((value.startsWith('./') || relative.startsWith('scripts/') || !/\s/.test(value) && (relative.includes('/') || /\.[a-z0-9]+$/i.test(relative))) && !relative.startsWith('/')) names.add(relative);
+      if ((value.startsWith('./') || relative.startsWith('scripts/') || !/\s/.test(value) && (relative.includes('/') || /\.[a-z0-9]+$/i.test(relative))) && !relative.startsWith('/')) {
+        if (!helpersOnly || value.startsWith('./') || relative.startsWith('scripts/') || relative.startsWith('.github/workflows/')) names.add(relative);
+      }
       // A complete quoted path is one word; only script-like quoted content is
       // recursively tokenized, never a path whose filename contains whitespace.
-      else if (/\s/.test(value)) scan(value, nested);
+      else if (/\s/.test(value)) {
+        // Decoded arguments may be prose, not another shell program. A quote
+        // that was literal in its enclosing word must not invalidate that
+        // workflow. Recurse only when the whole argument is valid shell text;
+        // the actual run script and its substitutions are still strict.
+        let words;
+        try { words = shellWords(value); }
+        catch { continue; }
+        scan(value, nested, words);
+      }
     }
   }
   scan(script);

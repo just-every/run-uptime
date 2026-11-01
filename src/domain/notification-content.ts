@@ -2,6 +2,7 @@ import {renderSlackEvent,serializeSlackMessage,escapeSlackText} from '../base/mo
 import {triggerContext,recoveryContext,incidentContextText,incidentUrl,type IncidentContext} from './notification-context.ts'
 import {eventWebhookContext,type WebhookContext} from './notification-webhook-context.ts'
 export interface NotificationEvent {
+ preparedBy?:{label:string;agent:{id:string;name:string};for:{id:string;name:string}};
  schemaVersion:2; id:string; kind:'report'|'trigger'|'recovery'|'test'|'expiry'|'renewal'|'reminder'|'slow'|'slow_recovery'|'slow_reminder'|'dependency'|'dependency_recovery'; eventType:string;
  incidentKey:string|null; state:'report'|'firing'|'recovered'|'test'|'warning'|'renewed'; title:string;
  monitorId:string|null; monitorRevision:number|null; monitorName:string; url:string;
@@ -54,7 +55,7 @@ export function escapeHtml(value:string){return value.replace(/[&<>"']/g,c=>({'&
 export function mailContent(event:NotificationEvent){
  // Mail uses friendly check labels; persisted Slack envelopes retain their byte-stable rendering.
  const display={...event,probes:event.probes.map(p=>({...p,name:p.name==='local-a'&&event.explanation.includes('Cloudflare Worker')?'Cloudflare Worker':/^local-[a-z]$/.test(p.name)?`Check ${p.name.charCodeAt(6)-96}`:p.name}))};
- const text=notificationText(display);let link='';
+ const text=[event.preparedBy?event.preparedBy.label:'',notificationText(display)].filter(Boolean).join('\n');let link='';
  if(event.consoleUrl){const url=new URL(event.consoleUrl);if(!['https:','http:'].includes(url.protocol)||url.username||url.password||url.origin!==event.consoleUrl)throw Error('Invalid console origin');link=event.incidentContext?`<p><a href="${escapeHtml(event.incidentContext.incidentUrl)}">Open incident in Uptime</a></p>`:`<p><a href="${escapeHtml(event.consoleUrl)}/app">Open Uptime console</a></p>`}
  return {subject:event.title.replace(/[\r\n\x00-\x1f\x7f]/g,' '),text,html:`<pre>${escapeHtml(text)}</pre>${link}`}
 }
@@ -65,4 +66,4 @@ function slackSections(value:string){
  for(const character of value){const width=escapeSlackText(character).length;if(size+width>3000){sections.push(section);section='';size=0}section+=character;size+=width}
  if(section)sections.push(section);return sections;
 }
-export function slackContent(event:NotificationEvent){return serializeSlackMessage(renderSlackEvent(event.eventType,event,{[event.eventType]:e=>({summary:e.title,sections:slackSections(notificationText(e))})}))}
+export function slackContent(event:NotificationEvent){return serializeSlackMessage(renderSlackEvent(event.eventType,event,{[event.eventType]:e=>({summary:e.title,sections:slackSections([e.preparedBy?.label,notificationText(e)].filter(Boolean).join('\n'))})}))}

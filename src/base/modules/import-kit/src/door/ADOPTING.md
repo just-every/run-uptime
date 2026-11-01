@@ -27,6 +27,15 @@ Owner history and undo must include jobs from either authority.
    `modules/import-kit/schema`, and sibling `./modules/d1-transport` with relative
    paths intact; record copies using the
    seed's existing Base provenance workflow. Never rename applied migrations.
+   Refresh the recorded kit copies together with `rer refresh-base`. For example,
+   `atomic-prefix.ts` and `budget.ts` must agree on the `batchExecutions` export.
+   Unadapted recorded dependencies advance together. If a dependency is marked
+   adapted or is unrecorded seed source, refresh preserves it and refuses before
+   writing when an incoming module needs an export it lacks. Use the printed
+   comparison command, merge the required exports while preserving seed edits,
+   and remove the comparison file. For a recorded adaptation, run the printed
+   `adapt-base` acknowledgement after the merge, then repeat refresh. Acknowledging
+   the old bytes alone does not resolve a missing export.
    Apply these in new numbered seed migrations, in this order,
    skipping any the seed already applied:
    - the D1 kit schemas, in the order `initializeD1ImportStorage` in
@@ -360,6 +369,26 @@ custody. That PR still keeps `/api/imports/sentry`: finishing single-path adopti
 requires replacing that caller with the operator mount and deleting the old
 HTTP importer in `src/domain/sentry-import/routes.ts`.
 Do not copy its older vendored door instead of current Base.
+
+## Raw source files
+
+For ZIP or another binary export, declare `format: 'raw'` and
+`readRaw(upload, limits)` instead of `parse`. The same source declaration serves
+both mounts, including a grant allow-list entry. The reader receives the verified
+`upload.bytes` (`Uint8Array`), `name`, `sha256` and `size`, before any text decoding,
+and returns a `ParsedRecord[]` (or a promise of it). Bound archive expansion while
+reading, inspect every member for credentials, and reject malformed or unsupported
+archives; thrown errors become a non-secret 422 `source_raw_reader_failed`.
+The door validates returned records, retains the exact original archive and binds
+it to the reviewed fingerprint. Raw sources cannot declare `intake`, which changes
+custody bytes. Chunk uploads have at most 1,024 chunks of 64 KiB: a 64 MiB
+(67,108,864-byte) ceiling, also the default owner quota. Signed quotas can reduce
+it. `limits.maxBytes` may lower it further and is checked before the
+reader runs; excess upload declarations are refused, or planning answers 413
+`source_byte_limit` (a previously retained upload above a lowered owner quota
+answers 403 `upload_exceeds_grant_quota`). Record count and per-record byte limits still apply. Export
+exclusion, erasure of complete or partial custody, archive restore-check, catch-up
+and Undo use the existing lifecycle and require the same seed integration proof.
 
 ## Copyable public HTTP conformance
 

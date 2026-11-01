@@ -13,14 +13,15 @@ const safe = path => typeof path === 'string' && !path.includes('\\') && !path.i
 
 function identity() {
  assert.equal(process.env.CI, 'true', 'Shared verification builds require CI=true');
- const { GITHUB_SHA: sha, GITHUB_RUN_ID: runId, GITHUB_RUN_ATTEMPT: runAttempt } = process.env;
+ const { GITHUB_SHA: sha, GITHUB_RUN_ID: runId, GITHUB_RUN_ATTEMPT: runAttempt, GITHUB_WORKFLOW: name } = process.env;
  assert.match(sha ?? '', /^[a-f0-9]{40}$/);
  assert.match(runId ?? '', /^[1-9][0-9]*$/);
  assert.match(runAttempt ?? '', /^[1-9][0-9]*$/);
+ assert.ok(typeof name === 'string' && name.length > 0, 'Shared verification builds require a workflow name');
  const git = value => execFileSync('git', ['rev-parse', value], { cwd: root, encoding: 'utf8' }).trim();
  const source = { sha: git('HEAD'), tree: git('HEAD^{tree}') };
  assert.equal(source.sha, sha, 'Shared verification build requires the workflow checkout SHA');
- return { source, workflow: { sha, runId, runAttempt } };
+ return { source, workflow: { name, sha, runId, runAttempt } };
 }
 
 async function regular(path) {
@@ -97,7 +98,11 @@ async function load(directory) {
  const manifest = JSON.parse(await regular(join(directory, 'build.json')));
  assert.equal(manifest.version, 1, 'Unknown shared build format');
  assert.deepEqual(manifest.source, expected.source, 'Shared build source mismatch');
- assert.deepEqual(manifest.workflow, expected.workflow, 'Shared build workflow mismatch');
+ // Failed-jobs reruns reuse a successful build from an earlier attempt of this
+ // exact source, workflow and run. An artifact from a future attempt is invalid.
+ assert.deepEqual(manifest.workflow, { ...expected.workflow, runAttempt: manifest.workflow?.runAttempt }, 'Shared build workflow mismatch');
+ assert.match(manifest.workflow.runAttempt ?? '', /^[1-9][0-9]*$/, 'Shared build workflow attempt is invalid');
+ assert.ok(BigInt(manifest.workflow.runAttempt) <= BigInt(expected.workflow.runAttempt), 'Shared build workflow attempt is from the future');
  assert.ok(manifest.files && typeof manifest.files === 'object' && !Array.isArray(manifest.files), 'Missing shared file digests');
  for (const [path, digest] of Object.entries(manifest.files)) {
   assert.ok(safe(path) && allowed(path), `Invalid manifest path: ${path}`);

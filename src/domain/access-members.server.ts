@@ -5,20 +5,20 @@ import {authorizedDatabase} from './access-database.server.ts'
 // @ts-ignore Product role vocabulary.
 import {PRODUCT_ROLES,baseRole} from './role-permissions.mjs'
 type Assignment={role:string;scopes:Scope[]}
-function assignment(input:any):Assignment{
+export function assignment(input:any):Assignment{
  if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(k=>!['role','scopes','email','displayName','returnTo'].includes(k))||!PRODUCT_ROLES.includes(input.role))throw Object.assign(Error('Choose a product role'),{status:400})
  const scopes=input.scopes??[]
  if(!Array.isArray(scopes)||scopes.length>30||scopes.some(s=>!s||Object.keys(s).sort().join(',')!=='kind,value'||!['service','team'].includes(s.kind)||typeof s.value!=='string'||!s.value.trim()||s.value!==s.value.trim()||s.value.length>100||/[\x00-\x1f\x7f]/.test(s.value))||new Set(scopes.map(s=>JSON.stringify([s.kind,s.value]))).size!==scopes.length)throw Object.assign(Error('Use distinct service/team scopes, at most 30'),{status:400})
  if(input.role==='owner'&&scopes.length)throw Object.assign(Error('Owners retain workspace authority'),{status:400})
  return {role:input.role,scopes}
 }
-function mayAssign(actor:Access,value:Assignment,target?:{role:string}){
+export function mayAssign(actor:Pick<Access,'role'>,value:Assignment,target?:{role:string}){
  if(actor.role==='owner')return
  if(actor.role!=='admin'||['owner','admin'].includes(value.role)||target&&target.role!=='member')throw new AccessError()
 }
 // Append these to Base's own invitation/role transaction, before it sends mail.
 // A failure cannot send an invitation with a missing or broader product role.
-function assignments(env:AuthBindings,where:string,params:any[],value:Assignment){
+export function assignments(env:AuthBindings,where:string,params:any[],value:Assignment){
  const id=`SELECT id FROM oa_operators WHERE ${where}`
  return [
   env.DB.prepare(`INSERT INTO uptime_member_roles(operator_id,role,base_role,base_version,revision,updated_at)

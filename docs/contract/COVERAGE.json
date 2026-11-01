@@ -3322,10 +3322,8 @@
       "line": 483,
       "cell": "gap",
       "text": "Local synthetic public-door proof covers non-last-owner and destination erasure with approvals, pending/interrupted uploads and archives populated and Business disabled, anonymous history/export reads, custody withdrawal and peer native monitor preservation; no real-export or hosted acceptance is added.",
-      "to": "gap",
-      "ids": [
-        "ERASURE-001"
-      ]
+      "to": "changelog",
+      "note": "Retained historical gap; current main judges ERASURE-001 done with no remaining Gap."
     },
     {
       "file": "CONTRACT.md",
@@ -4366,8 +4364,10 @@
       "file": "ACCEPTANCE.md",
       "line": 9,
       "text": "**HTTP-001 \u2014 Signed HTTP monitoring. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "HTTP-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -4387,8 +4387,10 @@
       "file": "ACCEPTANCE.md",
       "line": 11,
       "text": "**EVIDENCE-001 \u2014 Immutable scheduled evidence. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "EVIDENCE-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -4408,8 +4410,10 @@
       "file": "ACCEPTANCE.md",
       "line": 13,
       "text": "**STATE-001 \u2014 Fixed coverage and incident hysteresis. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "STATE-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -4429,8 +4433,10 @@
       "file": "ACCEPTANCE.md",
       "line": 15,
       "text": "**AUTHORITY-001 \u2014 Server-side scoped authority. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "AUTHORITY-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -4450,8 +4456,10 @@
       "file": "ACCEPTANCE.md",
       "line": 17,
       "text": "**NETWORK-001 \u2014 Pinned bounded destination execution. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "NETWORK-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -4471,8 +4479,10 @@
       "file": "ACCEPTANCE.md",
       "line": 19,
       "text": "**NETWORK-002 \u2014 Explicit TLS trust exceptions for legacy targets. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "NETWORK-002"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -4492,8 +4502,10 @@
       "file": "ACCEPTANCE.md",
       "line": 21,
       "text": "**HEARTBEAT-001 \u2014 Revision-scoped receipt evaluation. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "HEARTBEAT-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -4513,8 +4525,10 @@
       "file": "ACCEPTANCE.md",
       "line": 23,
       "text": "**ARCHIVE-001 \u2014 Inactive validated restore. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "ARCHIVE-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -4534,8 +4548,10 @@
       "file": "ACCEPTANCE.md",
       "line": 25,
       "text": "**ARCHIVE-002 \u2014 Whole-workspace archives at monitoring scale. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "ARCHIVE-002"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -4555,8 +4571,10 @@
       "file": "ACCEPTANCE.md",
       "line": 27,
       "text": "**IMPORT-001 \u2014 Reviewed definition files and inactive imports. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "IMPORT-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -4576,8 +4594,10 @@
       "file": "ACCEPTANCE.md",
       "line": 29,
       "text": "**RETENTION-001 \u2014 Explicit storage custody. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "RETENTION-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -4597,8 +4617,10 @@
       "file": "ACCEPTANCE.md",
       "line": 31,
       "text": "**ERASURE-001 \u2014 Operator-directed entity erasure. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "ERASURE-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -4618,8 +4640,10 @@
       "file": "ACCEPTANCE.md",
       "line": 33,
       "text": "**AUDIT-001 \u2014 Durable anonymized audit. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "AUDIT-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -4639,8 +4663,10 @@
       "file": "ACCEPTANCE.md",
       "line": 35,
       "text": "**PRESENCE-001 \u2014 Contact separate from health. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "PRESENCE-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -4660,8 +4686,10 @@
       "file": "ACCEPTANCE.md",
       "line": 37,
       "text": "**INTERFACE-001 \u2014 Honest durable operator feedback. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "INTERFACE-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -4681,8 +4709,10 @@
       "file": "ACCEPTANCE.md",
       "line": 39,
       "text": "**NOTIFY-001 \u2014 Authorized installation-wide destinations. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "NOTIFY-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -4702,8 +4732,10 @@
       "file": "ACCEPTANCE.md",
       "line": 41,
       "text": "**DELIVERY-001 \u2014 Bounded notification acknowledgment. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "DELIVERY-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -4723,8 +4755,10 @@
       "file": "ACCEPTANCE.md",
       "line": 43,
       "text": "**PUBLIC-001 \u2014 Public landing and documentation. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "PUBLIC-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -4744,8 +4778,10 @@
       "file": "ACCEPTANCE.md",
       "line": 45,
       "text": "**BOUNDARY-001 \u2014 Monitoring ownership and honest delivery claims. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "BOUNDARY-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -4765,8 +4801,10 @@
       "file": "ACCEPTANCE.md",
       "line": 47,
       "text": "**DRILL-001 \u2014 Recipient-reported alert drills. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "DRILL-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -4786,8 +4824,10 @@
       "file": "ACCEPTANCE.md",
       "line": 49,
       "text": "**STARTUP-001 \u2014 Required configuration diagnostics. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "STARTUP-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -4807,8 +4847,10 @@
       "file": "ACCEPTANCE.md",
       "line": 51,
       "text": "**PUBLIC-002 \u2014 Declared sessionless paths and rate limits. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "PUBLIC-002"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -4828,8 +4870,10 @@
       "file": "ACCEPTANCE.md",
       "line": 53,
       "text": "**FLOW-001 \u2014 Supported isolated browser transactions. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "FLOW-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -4849,8 +4893,10 @@
       "file": "ACCEPTANCE.md",
       "line": 55,
       "text": "**MONITOR-001 \u2014 Owned monitor catalog and lifecycle. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "MONITOR-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -4870,8 +4916,10 @@
       "file": "ACCEPTANCE.md",
       "line": 57,
       "text": "**API-001 \u2014 Complete HTTP and API assertions. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "API-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -4891,8 +4939,10 @@
       "file": "ACCEPTANCE.md",
       "line": 59,
       "text": "**SLOW-001 \u2014 Slow-response alerts distinct from outages. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "SLOW-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -4912,8 +4962,10 @@
       "file": "ACCEPTANCE.md",
       "line": 61,
       "text": "**API-002 \u2014 Authenticated monitoring and secret lifecycle. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "API-002"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -4933,8 +4985,10 @@
       "file": "ACCEPTANCE.md",
       "line": 63,
       "text": "**API-003 \u2014 Multi-step API transactions. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "API-003"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -4947,8 +5001,10 @@
       "file": "ACCEPTANCE.md",
       "line": 65,
       "text": "**API-004 \u2014 Safe setup and teardown. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "API-004"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -4968,8 +5024,10 @@
       "file": "ACCEPTANCE.md",
       "line": 67,
       "text": "**TCP-001 \u2014 TCP service checks. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "TCP-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -4989,8 +5047,10 @@
       "file": "ACCEPTANCE.md",
       "line": 69,
       "text": "**PING-001 \u2014 ICMP reachability and packet quality. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "PING-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5010,8 +5070,10 @@
       "file": "ACCEPTANCE.md",
       "line": 71,
       "text": "**DNS-001 \u2014 DNS records and change detection. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "DNS-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5031,8 +5093,10 @@
       "file": "ACCEPTANCE.md",
       "line": 73,
       "text": "**TLS-001 \u2014 SSL certificate and chain monitoring. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "TLS-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5052,8 +5116,10 @@
       "file": "ACCEPTANCE.md",
       "line": 75,
       "text": "**DOMAIN-001 \u2014 Domain registration expiry. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "DOMAIN-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5073,8 +5139,10 @@
       "file": "ACCEPTANCE.md",
       "line": 77,
       "text": "**UDP-001 \u2014 UDP request and response checks. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "UDP-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5094,8 +5162,10 @@
       "file": "ACCEPTANCE.md",
       "line": 79,
       "text": "**MAIL-001 \u2014 SMTP and mailbox protocol checks. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "MAIL-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5108,8 +5178,10 @@
       "file": "ACCEPTANCE.md",
       "line": 81,
       "text": "**HEARTBEAT-002 \u2014 Cron and job heartbeat monitoring. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "HEARTBEAT-002"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5129,8 +5201,10 @@
       "file": "ACCEPTANCE.md",
       "line": 83,
       "text": "**SCHEDULE-001 \u2014 Explicit cadence, retries and confirmation. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "SCHEDULE-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5150,8 +5224,10 @@
       "file": "ACCEPTANCE.md",
       "line": 85,
       "text": "**SCHEDULE-002 \u2014 Interval floor, on-time execution and alert latency. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "SCHEDULE-002"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5171,8 +5247,10 @@
       "file": "ACCEPTANCE.md",
       "line": 87,
       "text": "**PROBE-001 \u2014 US and global independent locations. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "PROBE-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5192,8 +5270,10 @@
       "file": "ACCEPTANCE.md",
       "line": 89,
       "text": "**PROBE-002 \u2014 Published probe addresses and identification. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "PROBE-002"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5213,8 +5293,10 @@
       "file": "ACCEPTANCE.md",
       "line": 91,
       "text": "**PRIVATE-001 \u2014 Buyer-network private locations. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "PRIVATE-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5234,8 +5316,10 @@
       "file": "ACCEPTANCE.md",
       "line": 93,
       "text": "**MAINT-001 \u2014 Planned and recurring maintenance. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "MAINT-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5255,8 +5339,10 @@
       "file": "ACCEPTANCE.md",
       "line": 95,
       "text": "**REPORT-001 \u2014 Latency, uptime and SLA reporting. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "REPORT-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5283,8 +5369,10 @@
       "file": "ACCEPTANCE.md",
       "line": 97,
       "text": "**EVIDENCE-002 \u2014 Failure snapshot and incident report. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "EVIDENCE-002"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5297,8 +5385,10 @@
       "file": "ACCEPTANCE.md",
       "line": 99,
       "text": "**DIAG-001 \u2014 Connection and network diagnostics. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "DIAG-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5318,8 +5408,10 @@
       "file": "ACCEPTANCE.md",
       "line": 101,
       "text": "**PERF-001 \u2014 Page speed and real-user performance. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "PERF-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5332,8 +5424,10 @@
       "file": "ACCEPTANCE.md",
       "line": 103,
       "text": "**DEPENDENCY-001 \u2014 External dependency checks. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "DEPENDENCY-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5346,8 +5440,10 @@
       "file": "ACCEPTANCE.md",
       "line": 105,
       "text": "**DEPENDENCY-002 \u2014 Third-party service catalog. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "DEPENDENCY-002"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5360,8 +5456,10 @@
       "file": "ACCEPTANCE.md",
       "line": 107,
       "text": "**FLOW-002 \u2014 Reusable Playwright monitoring as code. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "FLOW-002"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5381,8 +5479,10 @@
       "file": "ACCEPTANCE.md",
       "line": 109,
       "text": "**FLOW-003 \u2014 Useful and safe browser failure artifacts. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "FLOW-003"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5402,8 +5502,10 @@
       "file": "ACCEPTANCE.md",
       "line": 111,
       "text": "**FLOW-004 \u2014 Cross-browser and mobile transactions. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "FLOW-004"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5416,8 +5518,10 @@
       "file": "ACCEPTANCE.md",
       "line": 113,
       "text": "**ROUTING-001 \u2014 Monitor, service and team alert routing. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "ROUTING-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5437,8 +5541,10 @@
       "file": "ACCEPTANCE.md",
       "line": 115,
       "text": "**ROUTING-002 \u2014 Per-contact alert delay and repeat. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "ROUTING-002"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5458,8 +5564,10 @@
       "file": "ACCEPTANCE.md",
       "line": 117,
       "text": "**DELIVERY-002 \u2014 Deduplicated retry and fallback contacts. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "DELIVERY-002"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5472,8 +5580,10 @@
       "file": "ACCEPTANCE.md",
       "line": 119,
       "text": "**FOLLOWUP-001 \u2014 Ongoing outage follow-up and correlation. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "FOLLOWUP-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5493,8 +5603,10 @@
       "file": "ACCEPTANCE.md",
       "line": 121,
       "text": "**INCIDENT-001 \u2014 Incident comments, mentions and root cause. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "INCIDENT-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5514,8 +5626,10 @@
       "file": "ACCEPTANCE.md",
       "line": 123,
       "text": "**NOTICE-001 \u2014 Actionable trigger and recovery notice content. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "NOTICE-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5535,8 +5649,10 @@
       "file": "ACCEPTANCE.md",
       "line": 125,
       "text": "**CHAT-001 \u2014 Teams, Discord, Telegram and workplace chat. Status: missing.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "CHAT-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5556,8 +5672,10 @@
       "file": "ACCEPTANCE.md",
       "line": 127,
       "text": "**PHONE-001 \u2014 US SMS and voice alerts. Status: missing.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "PHONE-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5577,8 +5695,10 @@
       "file": "ACCEPTANCE.md",
       "line": 129,
       "text": "**PHONE-002 \u2014 Uptime-provided compliant US sender. Status: missing.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "PHONE-002"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5598,8 +5718,10 @@
       "file": "ACCEPTANCE.md",
       "line": 131,
       "text": "**MOBILE-001 \u2014 Mobile operator access and push. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "MOBILE-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5619,8 +5741,10 @@
       "file": "ACCEPTANCE.md",
       "line": 133,
       "text": "**ONCALL-001 \u2014 Responder handoff and automatic resolution. Status: missing.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "ONCALL-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5640,8 +5764,10 @@
       "file": "ACCEPTANCE.md",
       "line": 135,
       "text": "**LAMP-001 \u2014 Status communication through Lamp. Status: missing.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "LAMP-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5661,8 +5787,10 @@
       "file": "ACCEPTANCE.md",
       "line": 137,
       "text": "**AUTOMATION-001 \u2014 Zapier, Make and custom automation. Status: missing.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "AUTOMATION-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5682,8 +5810,10 @@
       "file": "ACCEPTANCE.md",
       "line": 139,
       "text": "**WEBHOOK-001 \u2014 Custom webhook requests and payload templates. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "WEBHOOK-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5703,8 +5833,10 @@
       "file": "ACCEPTANCE.md",
       "line": 141,
       "text": "**MANAGE-001 \u2014 Monitor and contact API. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "MANAGE-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5724,8 +5856,10 @@
       "file": "ACCEPTANCE.md",
       "line": 143,
       "text": "**READAPI-001 \u2014 Versioned read API for uptime, response times and incidents. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "READAPI-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5768,8 +5902,10 @@
       "file": "ACCEPTANCE.md",
       "line": 145,
       "text": "**CODE-001 \u2014 CLI, TypeScript and CI deployment. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "CODE-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5789,8 +5925,10 @@
       "file": "ACCEPTANCE.md",
       "line": 147,
       "text": "**CODE-002 \u2014 Terraform provider. Status: missing.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "CODE-002"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5810,8 +5948,10 @@
       "file": "ACCEPTANCE.md",
       "line": 149,
       "text": "**METRICS-001 \u2014 Grafana and Prometheus integration. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "METRICS-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5831,8 +5971,10 @@
       "file": "ACCEPTANCE.md",
       "line": 151,
       "text": "**MIGRATE-001 \u2014 Complete UptimeRobot migration. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "MIGRATE-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5852,8 +5994,10 @@
       "file": "ACCEPTANCE.md",
       "line": 153,
       "text": "**MIGRATE-002 \u2014 Pingdom migration. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "MIGRATE-002"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5873,8 +6017,10 @@
       "file": "ACCEPTANCE.md",
       "line": 155,
       "text": "**MIGRATE-003 \u2014 Better Stack Uptime migration. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "MIGRATE-003"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5894,8 +6040,10 @@
       "file": "ACCEPTANCE.md",
       "line": 157,
       "text": "**MIGRATE-004 \u2014 Site24x7 website monitoring migration. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "MIGRATE-004"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5915,8 +6063,10 @@
       "file": "ACCEPTANCE.md",
       "line": 159,
       "text": "**MIGRATE-005 \u2014 Challenger and advanced synthetic migration. Status: missing.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "MIGRATE-005"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5936,8 +6086,10 @@
       "file": "ACCEPTANCE.md",
       "line": 161,
       "text": "**HISTORY-001 \u2014 Sourced incumbent uptime history. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "HISTORY-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5964,8 +6116,10 @@
       "file": "ACCEPTANCE.md",
       "line": 163,
       "text": "**ACCESS-001 \u2014 Teams, roles and accountable ownership. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "ACCESS-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -5999,8 +6153,10 @@
       "file": "ACCEPTANCE.md",
       "line": 169,
       "text": "**ACCESS-002 \u2014 Enterprise identity lifecycle. Status: missing.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "ACCESS-002"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -6020,8 +6176,10 @@
       "file": "ACCEPTANCE.md",
       "line": 171,
       "text": "**ACCESS-003 \u2014 Multi-factor sign-in and step-up. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "ACCESS-003"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -6048,8 +6206,10 @@
       "file": "ACCEPTANCE.md",
       "line": 175,
       "text": "**COST-001 \u2014 US buyer budgets and capacity transparency. Status: missing.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "COST-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -6069,8 +6229,10 @@
       "file": "ACCEPTANCE.md",
       "line": 177,
       "text": "**OPS-001 \u2014 Recovery of monitoring itself. Status: done.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "OPS-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -6090,8 +6252,10 @@
       "file": "ACCEPTANCE.md",
       "line": 179,
       "text": "**DISCOVERY-001 \u2014 Reviewed automatic endpoint discovery. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "DISCOVERY-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -6111,8 +6275,10 @@
       "file": "ACCEPTANCE.md",
       "line": 181,
       "text": "**AGENT-001 \u2014 Continuously maintain meaningful coverage. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "AGENT-001"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -6132,8 +6298,10 @@
       "file": "ACCEPTANCE.md",
       "line": 183,
       "text": "**AGENT-002 \u2014 Distinguish outage, network and broken check. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "AGENT-002"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -6153,8 +6321,10 @@
       "file": "ACCEPTANCE.md",
       "line": 185,
       "text": "**AGENT-003 \u2014 Repair browser drift without weakening intent. Status: missing.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "AGENT-003"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -6174,8 +6344,10 @@
       "file": "ACCEPTANCE.md",
       "line": 187,
       "text": "**AGENT-004 \u2014 Keep alert routes accountable. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "AGENT-004"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -6195,8 +6367,10 @@
       "file": "ACCEPTANCE.md",
       "line": 189,
       "text": "**AGENT-005 \u2014 Coordinate evidence handoff and verified recovery. Status: partial.**",
-      "to": "generated",
-      "note": "The clause title and status now come from CONTRACT.md's Status table."
+      "to": "clause",
+      "ids": [
+        "AGENT-005"
+      ]
     },
     {
       "file": "ACCEPTANCE.md",
@@ -6307,8 +6481,8 @@
       "file": "ACCEPTANCE.md",
       "line": 227,
       "text": "Clause totals: **88 total; 45 done, 32 partial, 11 missing.**",
-      "to": "generated",
-      "note": "The contract generator now writes the clause totals."
+      "to": "section",
+      "section": "Status"
     },
     {
       "file": "ACCEPTANCE.md",

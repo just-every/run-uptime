@@ -2,13 +2,13 @@
 
 # Uptime homepage claims
 
-A claim is done when every clause behind it is done, missing when every one is missing, and partial otherwise.
+A product claim is done when every clause behind it is done, missing when every one is missing, and partial otherwise. Explicit source-bound non-product facts are unassessed; their historical status is history, not current proof.
 
 | # | Claim | Clauses | Status |
 | --- | --- | --- | --- |
 | 1 | Uptime checks your sites and APIs on schedule | `HTTP-001` partial; `SCHEDULE-001` done | partial |
 | 2 | It tells you only when a failure is confirmed | `STATE-001` partial; `SCHEDULE-001` done | partial |
-| 3 | It never calls a missing check healthy: a result that never arrives or expires is marked Unknown, so a quiet runner can't pass for a healthy site | `STATE-001` partial; `PRESENCE-001` partial | partial |
+| 3 | It never calls a missing check healthy: a result that never arrives or expires is marked Unknown, so a quiet runner can't pass for a healthy site | `STATE-001` partial; `PRESENCE-001` done | partial |
 | 4 | Every green dot is a check that actually ran and passed | `EVIDENCE-001` partial; `STATE-001` partial | partial |
 | 5 | You choose how many failed checks in a row open an incident and how many passes close it | `SCHEDULE-001` done; `STATE-001` partial | partial |
 | 6 | Each incident keeps the evidence that justified it: the status, timing and the rule that failed on every check | `EVIDENCE-001` partial; `HTTP-001` partial | partial |

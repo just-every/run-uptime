@@ -30,6 +30,14 @@ This requires the response's `status.indicator` value to equal `"none"` and its 
 
 A keyword monitor is an HTTP(S) check that requires specific text to be present or absent in the response body. Use it when a page can return 200 while the content is wrong.
 
+### Probe identification
+
+Hosted HTTP(S) and keyword target requests identify themselves in `User-Agent` as `Uptime/<release> (+<installation origin>/docs/monitors#probe-identification; monitor=<opaque reference>)`. The release is the installed Uptime version. The documentation address opens this public page on the installation that made the request; it needs no sign-in.
+
+The opaque reference identifies one monitor without sending its name, owner identity, session or installation secret. It stays the same across retries, scheduled checks, definition edits and Worker restarts; different monitors have different references. Redirect requests retain this public identification, including a redirect to another origin. It grants no access and can be imitated by another client, so a User-Agent alone is not authentication or an address allowlist.
+
+The current Worker uses Cloudflare's shared egress and has no dedicated allowlistable source address. This identification does not provide managed geographic locations, published address lists or a secret verification header. Private runners, canaries, discovery, followed-provider sources and other request classes keep their existing identification.
+
 ### TCP port
 
 A TCP monitor opens a connection to a host and port, for example a database, a mail server or an SSH service. It records the connection time and, if you choose, the first line the service sends (its banner, at most 256 characters), which can be required to contain some text. A refused connection, a connection that times out and a check that could not run (the runner's own DNS failed, or this vantage cannot reach the address) are separate outcomes; only the first two count against the target.

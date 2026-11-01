@@ -3,6 +3,10 @@ import {TABLES,columns} from './archive-schema.ts'
 /** Every permanent schema table has a portability decision. Unknown tables and
  * foreign integration namespaces refuse export rather than silently lose data. */
 export const installationLocalTables:Record<string,string>={
+ ...Object.fromEntries(['uptime_agent_revisions','uptime_agent_handoffs','uptime_agent_manual','uptime_agent_discoveries','uptime_agent_notifications'].map(name=>[name,'Installation-local originating agent, consent and one-time runner handoff custody; history retained, never restored execution authority.'])),
+ uptime_agent_native_proof:'Installation-local native person proof references, exact action binding and expiry; never restored authentication.',
+ ...Object.fromEntries(['agent_door_state','agent_door_agents','agent_door_audit','agent_door_calls','agent_door_usage','agent_door_approvals','agent_door_reviews','agent_door_events'].map(name=>[name,'Installation-local agent policy, consent, audit, retained outcome, events and approvals; never restored authority.'])),
+ ...Object.fromEntries(['bs_settings','bs_team','bs_overrides','bs_logo','bs_audit','bs_assert'].map(name=>[name,'Installation-local signed Business settings and native people mapping; never restored authority.'])),
  report_recurrences:'Installation-local recurring report authority and owner admission; frozen scheduled report snapshots travel as inactive history.',
  report_occurrences:'Installation-local unique recurrence occurrence dispatch linkage; restored snapshots never authorize another send.',
  ...Object.fromEntries(['alert_named_routes','catalog_route_batches','catalog_route_batch_entries'].map(name=>[name,'Installation-local named route policy and undo authority; receiving owners review and configure routes independently.'])),

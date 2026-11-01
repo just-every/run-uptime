@@ -1,3 +1,4 @@
+import { readRawSource } from './raw.ts';
 import { Buffer } from 'node:buffer';
 import { randomUUID } from 'node:crypto';
 import { canonicalJson, sha256 } from '../provenance/identity.ts';
@@ -44,8 +45,10 @@ async function readArchive(request: DoorRequest, name: string, bytes: Uint8Array
   if (!!intake !== !!options.intake || (intake && intake.allowlistSha256 !== intakeIdentity(options.intake!))) throw new DoorError('archive_intake_changed',409);
   const kitNamespace = 'door-archive:' + sha256(canonicalJson([access.namespace, bundleSha256, id]));
   try {
-    const {source, liveCredentialsRemoved} = await readFileSourceRemovals({namespace: kitNamespace, name, bytes, format: intake ? 'ndjson' : options.format, parse: options.parse, credentials: 'remove'},
-      {...options.limits, maxBytes: Math.min(options.limits?.maxBytes ?? access.maxBytes, access.maxBytes), maxRecords: Math.min(options.limits?.maxRecords ?? access.maxRecords, access.maxRecords)});
+    const limits = {...options.limits, maxBytes: Math.min(options.limits?.maxBytes ?? access.maxBytes, access.maxBytes), maxRecords: Math.min(options.limits?.maxRecords ?? access.maxRecords, access.maxRecords)};
+    const {source, liveCredentialsRemoved} = options.format === 'raw'
+      ? {source: await readRawSource(options,{name,bundle_sha256:bundleSha256,total_bytes:bytes.length},bytes,kitNamespace,limits),liveCredentialsRemoved:false}
+      : await readFileSourceRemovals({namespace: kitNamespace, name, bytes, format: intake ? 'ndjson' : options.format, parse: options.parse, credentials: 'remove'},limits);
     if (liveCredentialsRemoved) throw new DoorError('archive_holds_credentials', 422,
       {reason: 'The bundle holds credential values, and an archive keeps its exact bytes, so it is not kept. Export again with credential values removed (rer\'s vendor exports remove them) and archive that.'});
     if (intake) source.intake = intake;

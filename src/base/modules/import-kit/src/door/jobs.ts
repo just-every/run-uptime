@@ -102,6 +102,46 @@ export async function reconcile(request: DoorRequest, input: Record<string,unkno
   await authorized(request);
   return {planId:row.id,fingerprint:row.fingerprint,bundleSha256:snapshot.bundleSha256,...report};
 }
+/** RER's cleanup for a plan created only while checking an executor's report.
+ * It can discard private plan custody, never a reviewed or published import. */
+export async function cancel(request: DoorRequest, input: Record<string,unknown>) {
+  const id = text(input.planId,'plan_id'), db = request.options.database;
+  const row = await db.prepare(`SELECT p.job_id,
+    EXISTS(SELECT 1 FROM ik_jobs j WHERE j.destination=? AND j.principal_id=? AND j.operation_key='door:'||p.id) AS has_job,
+    EXISTS(SELECT 1 FROM ik_door_approvals a WHERE a.plan_id=p.id) AS has_approval,
+    EXISTS(SELECT 1 FROM ik_door_apply_failures f WHERE f.plan_id=p.id) AS has_failure
+    FROM ik_door_plans p WHERE p.id=? AND p.installation_id=? AND p.namespace=?`)
+    .bind(request.options.destination,request.options.ownerPrincipalId,id,request.access.installationId,request.access.namespace)
+    .first<{job_id:string|null;has_job:number;has_approval:number;has_failure:number}>();
+  if (!row) throw new DoorError('plan_not_found',404);
+  if (row.job_id || row.has_job || row.has_approval || row.has_failure) throw new DoorError('plan_cancel_refused',409);
+  const clear = sql(`EXISTS(SELECT 1 FROM ik_door_plans p WHERE p.id=? AND p.installation_id=? AND p.namespace=? AND p.job_id IS NULL
+    AND NOT EXISTS(SELECT 1 FROM ik_jobs j WHERE j.destination=? AND j.principal_id=? AND j.operation_key='door:'||p.id)
+    AND NOT EXISTS(SELECT 1 FROM ik_door_approvals a WHERE a.plan_id=p.id)
+    AND NOT EXISTS(SELECT 1 FROM ik_door_apply_failures f WHERE f.plan_id=p.id))`,
+    id,request.access.installationId,request.access.namespace,request.options.destination,request.options.ownerPrincipalId);
+  try {
+    await transact(db,request.authority,[
+      assertion(clear),
+      sql('UPDATE ik_door_namespaces SET pending_id=NULL WHERE installation_id=? AND namespace=? AND pending_id=?',request.access.installationId,request.access.namespace,id),
+      sql('DELETE FROM ik_d1_staging WHERE destination=? AND principal_id=? AND operation_key=?',request.options.destination,request.options.ownerPrincipalId,'door:'+id),
+      sql('DELETE FROM ik_door_plan_chunks WHERE plan_id=?',id),
+      sql(`DELETE FROM ik_door_plans WHERE id=? AND job_id IS NULL
+        AND NOT EXISTS(SELECT 1 FROM ik_jobs j WHERE j.destination=? AND j.principal_id=? AND j.operation_key='door:'||ik_door_plans.id)
+        AND NOT EXISTS(SELECT 1 FROM ik_door_approvals a WHERE a.plan_id=ik_door_plans.id)
+        AND NOT EXISTS(SELECT 1 FROM ik_door_apply_failures f WHERE f.plan_id=ik_door_plans.id)`,id,request.options.destination,request.options.ownerPrincipalId),
+    ]);
+  } catch (error) {
+    if (error instanceof DoorError) throw error;
+    const blocked = await db.prepare(`SELECT 1 FROM ik_door_plans p WHERE p.id=? AND (p.job_id IS NOT NULL
+      OR EXISTS(SELECT 1 FROM ik_jobs j WHERE j.destination=? AND j.principal_id=? AND j.operation_key='door:'||p.id)
+      OR EXISTS(SELECT 1 FROM ik_door_approvals a WHERE a.plan_id=p.id)
+      OR EXISTS(SELECT 1 FROM ik_door_apply_failures f WHERE f.plan_id=p.id))`).bind(id,request.options.destination,request.options.ownerPrincipalId).first();
+    if (blocked) throw new DoorError('plan_cancel_refused',409);
+    throw error;
+  }
+  return {planId:id,state:'cancelled'};
+}
 export async function undo(request: DoorRequest, input: Record<string,unknown>) {
   const id = text(input.planId,'plan_id');
   const candidate = await request.options.database.prepare('SELECT * FROM ik_door_plans WHERE id=? AND installation_id=? AND namespace=?').bind(id,request.access.installationId,request.access.namespace).first<DoorPlanRow>();

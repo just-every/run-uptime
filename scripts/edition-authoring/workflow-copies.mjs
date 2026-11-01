@@ -54,7 +54,7 @@ export function adoptWorkflowTemplates(root, plans, {tree, read, revision, files
     if (match) {
       include(plans, target, source, tree.get(source), revision);
       templateAdoptions.push({path: target, originPath: source, from: match.revision});
-    } else if (target.endsWith('.yml')) {
+    } else if (target.endsWith('.yml') && !file.read().equals(read.blobs([tree.get(source).object]).get(tree.get(source).object))) {
       notices.push(`${target}: preserved seed-owned workflow. The current template pins Ubuntu 24.04 and moves browser and apt caches to the runner temporary directory. To adopt, merge export/${path.posix.basename(source)} from Base ${revision} into ${target}, then run node node_modules/@runeditrun/rer/edition-authoring/cli.mjs record-base ${target} ${source} ${revision} --base <base-checkout> and repeat rer refresh-base --ref ${revision} --base <base-checkout>.`);
     }
   }
@@ -63,13 +63,15 @@ export function adoptWorkflowTemplates(root, plans, {tree, read, revision, files
 
 function invocations(text) {
   const {scripts, uses} = workflowScripts(text);
-  const paths = scripts.flatMap(literalPaths).flatMap(name => {
+  const paths = scripts.flatMap(script => literalPaths(script, {helpersOnly: true})).flatMap(name => {
     try { return [safe(name)]; }
     catch (error) {
       if (name.startsWith('scripts/') || name.startsWith('.github/workflows/')) throw error;
       return []; // A URL or command option is not a relative helper path.
     }
   });
+  // A workflow's archive/cache/build inputs do not select application source.
+  // Tooling namespaces and explicitly selected ./ helpers retain acquisition.
   return [...new Set([...uses.map(name => safe(name.slice(2))), ...paths])];
 }
 

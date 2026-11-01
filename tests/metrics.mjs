@@ -6,6 +6,7 @@ import {migratedWorker,runtimeDirectory,cleanupDirectory} from './notify-accepta
 import {signInOwner} from './auth-test-support.mjs';
 import {metricsFixture} from './metrics-fixture.mjs';
 import {runMetricsExport} from '../scripts/metrics-export.mjs';
+import {proveGrafanaPrometheus} from './metrics-grafana-support.mjs';
 const directory=await runtimeDirectory();let worker,foreign;
 try{
  ({worker}=await migratedWorker({persist:join(directory,'worker')}));const origin=(await worker.ready).origin,db=await worker.getD1Database('DB'),cookie=await signInOwner(origin);
@@ -42,3 +43,5 @@ try{
  assert.equal((await owner('/api/metrics/keys/'+key.credential.id,'DELETE')).status,200);assert.equal((await read()).status,401);const previous=sends;await runMetricsExport({...opts,datadogSite:'datadoghq.com'},{env,transport});assert.equal(sends,previous,'revocation stops export before provider traffic');
  console.log('METRICS-001 PASS: identical report/scrape figures, source locations, Healthy/Degraded/stale Unknown, scoped expiring/revocable hash-only credentials, installation isolation and bounded one-shot provider-edge exports.');
 }finally{await foreign?.dispose();await worker?.dispose();await cleanupDirectory(directory)}
+
+await proveGrafanaPrometheus();

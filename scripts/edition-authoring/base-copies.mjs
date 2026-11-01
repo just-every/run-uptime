@@ -17,6 +17,7 @@ import {requireMaterializedCopies, preflightRefresh} from './copy-checkout.mjs';
 import {completeModuleCopies} from './module-closure.mjs';
 import {editionMigrations} from './edition-migrations.mjs';
 import {adoptWorkflowTemplates, completeWorkflowHelpers} from './workflow-copies.mjs';
+import {archiveReader} from './archive-source.mjs';
 
 export const RECORD = 'base-copies.json';
 const commit = /^[a-f0-9]{40}$/, sha256 = /^[a-f0-9]{64}$/;
@@ -44,7 +45,11 @@ function declaredRemote(record, root) {
 }
 
 // An explicit checkout, else the record's legacy repository, else the seed's declaration.
-function open(record, base, root, offline = false) {
+function open(record, base, root, offline = false, baseArchive = null, revision = null) {
+  if (baseArchive) {
+    if (base) throw Error('Choose either --base or --base-archive');
+    return {repository: path.resolve(baseArchive), read: archiveReader(baseArchive, revision), head: revision, offline: true, close() {}};
+  }
   if (base) {
     const repository = fs.realpathSync(base);
     const source = gitReader(repository, offline);
@@ -67,23 +72,72 @@ function open(record, base, root, offline = false) {
 }
 
 export function options(args, count) {
-  const result = {positional: [], record: RECORD, base: null, offline: false, editionMigration: []};
+  const result = {positional: [], record: RECORD, base: null, baseArchive: null, offline: false, editionMigration: []};
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     if (arg === '--offline') result.offline = true;
+    else if (arg === '--from-api') result.fromApi = true;
     else if (arg === '--edition-migration') {
       if (!args[i + 1] || args[i + 1].startsWith('--')) throw Error(`${arg} requires a value`);
       result.editionMigration.push(args[++i]);
     }
-    else if (arg === '--record' || arg === '--base') {
-      if (!args[i + 1]) throw Error(`${arg} requires a value`);
-      result[arg.slice(2)] = args[++i];
+    else if (['--record', '--base', '--base-archive', '--ref'].includes(arg)) {
+      if (!args[i + 1] || args[i + 1].startsWith('--')) throw Error(`${arg} requires a value`);
+      const key = arg === '--base-archive' ? 'baseArchive' : arg.slice(2);
+      if (key === 'ref' && result.ref) throw Error('Provide --ref only once');
+      result[key] = args[++i];
     } else if (arg.startsWith('--')) throw Error(`Unknown option: ${arg}`);
     else result.positional.push(arg);
   }
-  if (result.positional.length !== count) throw Error('Usage: verify-base [--record <file>] [--base <checkout>] [--offline] | record-base <path> <origin-path> <revision> [--record <file>] [--base <checkout>] | adapt-base <file> [--record <file>] | refresh-base <revision> [--record <file>] [--base <checkout>]');
+  if (result.ref) {
+    if (![1, 3].includes(count) || result.positional.length !== count - 1) throw Error('Use --ref instead of the positional Base revision');
+    result.positional.push(result.ref);
+  }
+  if (result.base && result.baseArchive) throw Error('Choose either --base or --base-archive');
+  if (result.positional.length !== count) throw Error('Usage: verify-base [--record <file>] [--base <checkout>] [--offline] | record-base <path> <origin-path> <revision>|--ref <revision> [--record <file>] [--base <checkout>|--base-archive <directory>|--from-api|--offline --base <checkout>] | adapt-base <file> [--record <file>] | refresh-base <revision>|--ref <revision> [--record <file>] [--base <checkout>|--base-archive <directory>]');
+  if (result.fromApi && count !== 3) throw Error('--from-api is only supported by record-base');
   safe(result.record);
   return result;
+}
+
+// Read immutable Git objects through GitHub, without cloning Base or trusting
+// an archive's filesystem modes. Refuse incomplete trees and verify blob IDs.
+function apiReader(record, root, revision) {
+  const declared = record.repository ?? baseRepository(root);
+  const repository = /^(?:https:\/\/github\.com\/)?([\w.-]+\/[\w.-]+?)(?:\.git)?$/.exec(declared)?.[1];
+  if (!repository) throw Error('--from-api requires a GitHub Base repository');
+  const request = endpoint => {
+    try {
+      return JSON.parse(execFileSync('gh', ['api', `repos/${repository}/git/${endpoint}`], {
+        encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 60_000, maxBuffer: 64 * 1024 * 1024,
+      }));
+    } catch { throw Error(`Cannot read immutable Base ${revision} from the GitHub API; no copy record was changed.`); }
+  };
+  const pinned = request(`commits/${revision}`);
+  if (pinned.sha !== revision || !commit.test(pinned.tree?.sha)) throw Error('Base API did not resolve the immutable commit; no copy record was changed.');
+  const tree = request(`trees/${pinned.tree.sha}?recursive=1`);
+  if (tree.sha !== pinned.tree.sha || tree.truncated !== false || !Array.isArray(tree.tree)) throw Error('Incomplete Base API tree; no copy record was changed.');
+  const entries = new Map();
+  for (const entry of tree.tree) {
+    safe(entry.path);
+    if (entry.type === 'blob' && FILE_MODES.includes(entry.mode)) {
+      if (!commit.test(entry.sha)) throw Error('Invalid Base API blob identity');
+      entries.set(entry.path, {object: entry.sha, mode: entry.mode});
+    }
+  }
+  return {
+    tree: () => entries,
+    digests(objects) {
+      return new Map([...new Set(objects)].map(object => {
+        const blob = request(`blobs/${object}`);
+        if (blob.sha !== object || blob.encoding !== 'base64' || typeof blob.content !== 'string') throw Error('Invalid Base API blob');
+        const bytes = Buffer.from(blob.content, 'base64');
+        const actual = crypto.createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex');
+        if (blob.size !== bytes.length || actual !== object) throw Error('Base API blob integrity mismatch; no copy record was changed.');
+        return [object, hash(bytes)];
+      }));
+    },
+  };
 }
 
 export function validate(record) {
@@ -100,6 +154,14 @@ export function validate(record) {
     for (const [name, digest] of Object.entries(copy.files)) {
       safe(name);
       if (!within(name, copy.path) || !sha256.test(digest)) throw Error(`Invalid recorded copy file: ${name}`);
+    }
+    if (copy.originFiles !== undefined) {
+      if (!Array.isArray(copy.originFiles) || new Set(copy.originFiles).size !== copy.originFiles.length) throw Error(`Invalid Base source membership: ${copy.path}`);
+      for (const name of copy.originFiles) {
+        safe(name);
+        if (!within(name, copy.originPath)) throw Error(`Invalid Base source membership: ${name}`);
+      }
+      for (const name of Object.keys(copy.files)) if (!copy.adapted?.[name] && !copy.originFiles.includes(mapped(name, copy.path, copy.originPath))) throw Error(`Missing Base source membership: ${name}`);
     }
     if (copy.adapted !== undefined) {
       if (!copy.adapted || typeof copy.adapted !== 'object' || Array.isArray(copy.adapted)) throw Error(`Invalid adaptations: ${copy.path}`);
@@ -186,6 +248,7 @@ function containsHistory(origin, source, revision, introduced) {
 }
 
 function reader(origin) {
+  if (origin.read) return origin.read;
   const source = origin.source ?? gitReader(origin.repository);
   const format = source.git('rev-parse', '--show-object-format');
   const trees = new Map(), ancestry = new Map();
@@ -253,7 +316,8 @@ function recordFile(root, recordPath) {
   return filename;
 }
 
-export function verifyCopies(root, {record: recordPath, base, offline}) {
+export function verifyCopies(root, {record: recordPath, base, baseArchive, offline}) {
+  if (baseArchive) throw Error('--base-archive is supported by record-base and refresh-base; use verify-base --offline to check recorded local bytes');
   const filename = recordFile(root, recordPath);
   if (!filename) throw Error(`No ${recordPath} found; run record-base <path> <origin-path> <commit> first`);
   const record = validate(JSON.parse(fs.readFileSync(filename, 'utf8')));
@@ -326,16 +390,18 @@ export function verifyCopies(root, {record: recordPath, base, offline}) {
   };
 }
 
-export function recordCopy(root, {positional: [localPath, originPath, revision], record: recordPath, base}) {
+export function recordCopy(root, {positional: [localPath, originPath, revision], record: recordPath, base, baseArchive, offline, fromApi}) {
   safe(localPath); safe(originPath);
   if (!commit.test(revision)) throw Error('Record an immutable full Base commit');
   const filename = recordFile(root, recordPath) || path.join(root, recordPath);
   const record = validate(fs.existsSync(filename) ? JSON.parse(fs.readFileSync(filename, 'utf8')) : {schemaVersion: 1, copies: []});
   const files = seedFiles(root);
-  const origin = open(record, base, root);
-  delete record.repository;
+  if (fromApi && (base || baseArchive || offline)) throw Error('--from-api cannot be combined with --base, --base-archive or --offline');
+  if (offline && !base && !baseArchive) throw Error('record-base --offline requires --base <checkout> or --base-archive <directory>; use --from-api while online');
+  const origin = fromApi ? {close() {}} : open(record, base, root, offline, baseArchive, revision);
   try {
-    const read = reader(origin);
+    const read = fromApi ? apiReader(record, root, revision) : reader(origin);
+    delete record.repository;
     const sources = [...read.tree(revision)].filter(([name]) => within(name, originPath));
     if (!sources.length) throw Error(`No Base source at ${originPath} in ${revision}`);
     const present = sources.filter(([name]) => files.get(mapped(name, originPath, localPath))?.regular);
@@ -345,7 +411,8 @@ export function recordCopy(root, {positional: [localPath, originPath, revision],
     const ordered = present.map(([name, {object, mode}]) => [mapped(name, originPath, localPath), digests.get(object), mode]).sort(([a], [b]) => a.localeCompare(b));
     const recorded = Object.fromEntries(ordered.map(([name, digest]) => [name, digest]));
     const modes = Object.fromEntries(ordered.map(([name, , mode]) => [name, mode]));
-    record.copies = [...record.copies.filter(copy => copy.path !== localPath), {path: localPath, originPath, revision, files: recorded, modes}].sort((a, b) => a.path.localeCompare(b.path));
+    const originFiles = sources.map(([name]) => name).sort();
+    record.copies = [...record.copies.filter(copy => copy.path !== localPath), {path: localPath, originPath, revision, files: recorded, modes, originFiles}].sort((a, b) => a.path.localeCompare(b.path));
     validate(record);
     fs.writeFileSync(filename, json(record));
     return {
@@ -360,7 +427,8 @@ export function recordCopy(root, {positional: [localPath, originPath, revision],
 
 // Explicitly transfer one recorded file to seed ownership without changing its bytes
 // or its Base digest/mode. The per-file revision survives later whole-copy refreshes.
-export function adaptCopy(root, {positional: [name], record: recordPath}) {
+export function adaptCopy(root, {positional: [name], record: recordPath, baseArchive, ref}) {
+  if (baseArchive || ref) throw Error('--base-archive and --ref are supported by record-base and refresh-base');
   safe(name);
   const filename = recordFile(root, recordPath);
   if (!filename) throw Error(`No ${recordPath} found; run record-base first`);
@@ -387,15 +455,15 @@ export function adaptCopy(root, {positional: [name], record: recordPath}) {
 // entirely, just as absent files are dropped from directory copies. Local edits
 // are refused, never overwritten, as is any change to an existing file under a
 // migrations folder.
-export function refreshCopies(root, {positional: [revision], record: recordPath, base, offline, editionMigration = []}) {
+export function refreshCopies(root, {positional: [revision], record: recordPath, base, baseArchive, offline, editionMigration = []}) {
   if (!commit.test(revision)) throw Error('Refresh requires an immutable full 40-character Base commit. Resolve the release tag with git -C <base-checkout> rev-parse <tag>^{commit}, then repeat with --ref <commit> --base <base-checkout>.');
-  if (offline && !base) throw Error('Offline refresh needs a Base checkout. Repeat rer refresh-base --ref <commit> --offline --base <checkout> containing that commit.');
+  if (offline && !base && !baseArchive) throw Error('Offline refresh needs a Base checkout or archive. Repeat rer refresh-base --ref <commit> --offline --base <checkout> containing that commit, or use --base-archive <directory>.');
   const filename = recordFile(root, recordPath);
   if (!filename) throw Error(`No ${recordPath} found; run record-base <path> <origin-path> <commit> first`);
   const record = validate(JSON.parse(fs.readFileSync(filename, 'utf8')));
   const files = seedFiles(root);
   requireMaterializedCopies(root, record, files);
-  const origin = open(record, base, root, offline);
+  const origin = open(record, base, root, offline, baseArchive, revision);
   origin.refresh = {revision, recordPath, editionMigration};
   let writing = false, notices = [];
   try {
@@ -437,8 +505,14 @@ export function refreshCopies(root, {positional: [revision], record: recordPath,
       // removals, and a still-present singleton must retain a Base source.
       const retired = Object.keys(copy.files).length === 1 && Object.hasOwn(copy.files, copy.path) &&
         !files.has(copy.path) && !fs.existsSync(path.join(root, copy.path)) && !Object.hasOwn(copy.adapted || {}, copy.path);
-      const pinned = read.tree(copy.revision);
       if (retired) return {copy, sources: [], retired, removed: [copy.path]};
+      // An archive has only the target tree. Complete prior source membership
+      // retains the distinction between omitted old files and new additions.
+      let pinned;
+      if (baseArchive && copy.revision !== revision) {
+        if (!copy.originFiles) throw Error(`Base copy ${copy.path} lacks prior source membership (originFiles). Repeat this refresh with --base <checkout> containing the recorded and target commits; future archive refreshes can then preserve omitted files. No files were refreshed.`);
+        pinned = new Set(copy.originFiles);
+      } else pinned = read.tree(copy.revision);
       const tests = Object.keys(copy.files).some(name => testSource(mapped(name, copy.path, copy.originPath)));
       const sources = [...next].filter(([name]) => {
         if (!within(name, copy.originPath)) return false;
@@ -459,7 +533,8 @@ export function refreshCopies(root, {positional: [revision], record: recordPath,
     const templates = adoptWorkflowTemplates(root, plans, {tree: next, read, revision, files});
     notices = templates.notices;
     completeWorkflowHelpers(root, plans, {tree: next, read, revision});
-    const withheld = completeModuleCopies(root, plans, {tree: next, read, revision, base: origin.repository, ownerSources,
+    const relocations = new Map();
+    const {withheld, packageDependencies} = completeModuleCopies(root, plans, {tree: next, read, revision, base: origin.repository, baseArchive, recordPath, ownerSources, relocations,
       deliveries: migrations.flatMap(step => step.deliver.map(source => ({source, origin: step.origin, importers: step.copies})))});
     // Closure may add individually recorded siblings when the seed originally
     // selected runtime files one at a time instead of copying the directory.
@@ -493,9 +568,21 @@ export function refreshCopies(root, {positional: [revision], record: recordPath,
         const {object, mode} = byName.get(name);
         if (!Object.hasOwn(copy.files, name)) added.push(name);
         recorded[name] = upstream.get(object); modes[name] = mode;
+        if (relocations.has(name)) {
+          // The upstream digest remains the comparison baseline. Mechanical
+          // namespace edits are honest, acknowledged seed-owned adaptations.
+          (copy.adapted ||= {})[name] = revision;
+          (copy.acknowledged ||= {})[name] = {sha256: hash(relocations.get(name)), mode};
+          adapted.push({path: name, originPath: source, revision, conflict: false});
+        }
       }
       changes.push({path: copy.path, from: copy.revision, files: sources.length, added, removed});
-      Object.assign(copy, {revision, files: recorded, modes});
+      // Relocations become adaptations during this pass. Keep their map order
+      // identical when the next refresh visits adaptations before sources.
+      Object.assign(copy, {revision,
+        files: Object.fromEntries(Object.entries(recorded).sort(([a], [b]) => a.localeCompare(b))),
+        modes: Object.fromEntries(Object.entries(modes).sort(([a], [b]) => a.localeCompare(b))),
+        originFiles: [...next.keys()].filter(name => within(name, copy.originPath)).sort()});
     }
     record.copies = plans.filter(plan => !plan.retired).map(plan => plan.copy);
     delete record.repository;
@@ -510,12 +597,12 @@ export function refreshCopies(root, {positional: [revision], record: recordPath,
         noLinks(root, name);
         const target = path.join(root, name);
         fs.mkdirSync(path.dirname(target), {recursive: true});
-        fs.writeFileSync(target, bytes.get(object));
+        fs.writeFileSync(target, relocations.get(name) ?? bytes.get(object));
         fs.chmodSync(target, mode === '100755' ? 0o755 : 0o644);
       }
     }
     fs.writeFileSync(filename, json(record));
-    return {refreshed: revision, record: recordPath, copies: changes, retired: plans.filter(plan => plan.retired).map(plan => plan.copy.path), adapted, withheld, editionMigrations: migrations.map(({id, guide, edit, copies}) => ({id, guide, edit, copies})), ...templates, next: 'Run verify-base, then the edition tests, and commit the copied files with the record.'};
+    return {refreshed: revision, record: recordPath, copies: changes, retired: plans.filter(plan => plan.retired).map(plan => plan.copy.path), adapted, relocated: [...relocations.keys()], withheld, packageDependencies, editionMigrations: migrations.map(({id, guide, edit, copies}) => ({id, guide, edit, copies})), ...templates, next: 'Run verify-base, then the edition tests, and commit the copied files with the record.'};
   } catch (error) {
     if (!writing && !/no files were refreshed/i.test(error.message)) error.message += ' No files were refreshed.';
     if (!writing && notices.length) error.message += '\n' + notices.join('\n');

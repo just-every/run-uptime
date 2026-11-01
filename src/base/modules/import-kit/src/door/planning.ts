@@ -1,3 +1,4 @@
+import { readRawSource } from './raw.ts';
 import { randomUUID } from 'node:crypto';
 import { canonicalJson, sha256 } from '../provenance/identity.ts';
 import { readFileSource } from '../readers/file.ts';
@@ -13,9 +14,9 @@ import { bundleBytes, text, uploadRow, type UploadRow } from './uploads.ts';
 import { sourceRefusal } from './refusals.ts';
 import { intakeState } from './intake-policy.ts';
 
-export function preview(snapshot: DoorSnapshot) {
+export function preview(snapshot: DoorSnapshot, created: boolean) {
   const {plan,differences} = snapshot;
-  return {planId:snapshot.id,fingerprint:plan.fingerprint,bundleSha256:snapshot.bundleSha256,
+  return {planId:snapshot.id,fingerprint:plan.fingerprint,bundleSha256:snapshot.bundleSha256,created,
     summary:{sourceRecords:snapshot.sourceCount,created:differences.additions.length,updated:differences.replacements.length,unchanged:differences.unchanged.length,gone:differences.gone.length},
     counts:plan.counts,rejected:plan.entries.filter(e=>e.rejection).map(e=>({kind:e.source.kind,sourceId:e.source.sourceId,reason:e.rejection})),
     diagnostics:plan.diagnostics,differences};
@@ -67,7 +68,7 @@ async function planUpload(request: DoorRequest, input: Record<string, unknown>, 
     if (snapshot.plan.mappingVersion !== request.options.mapping.version) throw new DoorError('snapshot_mapping_changed_use_new_namespace',409);
     if (request.access.catchup === 'bounded' && (!snapshot.standingApproval || snapshot.standingApproval.id !== request.access.approvalRecordId || snapshot.standingApproval.at !== request.access.approvedAt)) throw new DoorError('standing_approval_mismatch');
     await dropCredentialBytes(request,snapshot,upload);
-    return preview(snapshot);
+    return preview(snapshot,false);
   }
   if (current.pending_id) throw new DoorError('namespace_has_pending_import',409);
   // An erasure withdrew the live import's snapshot, so nothing can be compared
@@ -138,7 +139,7 @@ async function planUpload(request: DoorRequest, input: Record<string, unknown>, 
   if (retired) await retire(request,retired,snapshot.plan);
   await saveSnapshot(request,snapshot,upload,retainedFrom);
   await dropCredentialBytes(request,snapshot,upload);
-  return preview(snapshot);
+  return preview(snapshot,true);
 }
 /** Retire an erasure-withdrawn live import as the namespace's baseline. The kit
  * never lets a new import write a record another live import holds, so while an
@@ -173,8 +174,11 @@ async function readUpload(request: DoorRequest, upload: UploadRow, planId: strin
   const retained = await retainedSource(request,upload);
   if (retained) return {kitNamespace,retainedFrom:retained.planId,source:{...retained.source,records:retained.source.records.map(record=>({...record,namespace:kitNamespace}))}};
   // Credential values are removed per record, never imported, and never refuse a record.
-  const source = await readFileSource({namespace:kitNamespace,name:upload.name,bytes:await bundleBytes(request,upload),format:intake ? 'ndjson' : options.format,parse:options.parse,credentials:'remove'},
-    {...options.limits,maxBytes:Math.min(options.limits?.maxBytes ?? request.access.maxBytes,request.access.maxBytes),maxRecords:Math.min(options.limits?.maxRecords ?? request.access.maxRecords,request.access.maxRecords)});
+  const bytes = await bundleBytes(request,upload);
+  const limits = {...options.limits,maxBytes:Math.min(options.limits?.maxBytes ?? request.access.maxBytes,request.access.maxBytes),maxRecords:Math.min(options.limits?.maxRecords ?? request.access.maxRecords,request.access.maxRecords)};
+  const source = options.format === 'raw'
+    ? await readRawSource(options,upload,bytes,kitNamespace,limits)
+    : await readFileSource({namespace:kitNamespace,name:upload.name,bytes,format:intake ? 'ndjson' : options.format,parse:options.parse,credentials:'remove'},limits);
   if (intake) source.intake = intake;
   return {kitNamespace,source,retainedFrom:undefined};
 }

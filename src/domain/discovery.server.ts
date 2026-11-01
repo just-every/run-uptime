@@ -1,4 +1,5 @@
-import type {Access} from './access.server.ts'
+import {agentDiscoveryTask} from '../agent-door/work.server.ts'
+import type {Access,AgentAccess} from './access.server.ts'
 // @ts-ignore Edition URL validation is JavaScript.
 import {publicTarget,isLoopbackHostname} from './public-target.mjs'
 // @ts-ignore Shared with the runner; edition JavaScript.
@@ -49,10 +50,10 @@ async function expire(env:Bindings,now:number){
 }
 const FULL=`${DISCOVERY_ACTIVE_LIMIT} discoveries are already waiting or running. Wait for one to finish, then try again.`;
 // The cap, and for first-run setup the one-job-per-site rule, are part of the insert, so concurrent requests cannot both take the last place or both queue the same site.
-function insertJob(env:Bindings,id:string,url:string,now:number,reuse:boolean,kind='site',spec:string|null=null,initiator?:Access){
- return env.DB.prepare(`INSERT INTO discovery_jobs(id,url,status,created_at,kind,spec,initiator_id,initiator_version,initiator_role,initiator_revision,initiator_base_role) SELECT ?,?,'queued',?,?,?,?,?,?,?,? WHERE (SELECT COUNT(*) FROM discovery_jobs WHERE status IN ('queued','running'))<?${reuse?" AND NOT EXISTS (SELECT 1 FROM discovery_jobs WHERE url=? AND kind='site' AND status IN ('queued','running','done'))":''}`).bind(id,url,now,kind,spec,initiator?.session.operator.id??null,initiator?.session.operator.version??null,initiator?.role??null,initiator?.revision??null,initiator?.session.operator.role??null,DISCOVERY_ACTIVE_LIMIT,...(reuse?[url]:[])).run()
+function insertJob(env:Bindings,id:string,url:string,now:number,reuse:boolean,kind='site',spec:string|null=null,initiator?:Access|AgentAccess){
+ return env.DB.prepare(`INSERT INTO discovery_jobs(id,url,status,created_at,kind,spec,initiator_id,initiator_version,initiator_role,initiator_revision,initiator_base_role) SELECT ?,?,'queued',?,?,?,?,?,?,?,? WHERE (SELECT COUNT(*) FROM discovery_jobs WHERE status IN ('queued','running'))<?${reuse?" AND NOT EXISTS (SELECT 1 FROM discovery_jobs WHERE url=? AND kind='site' AND status IN ('queued','running','done'))":''}`).bind(id,url,now,kind,spec,initiator?('kind' in initiator?initiator.operatorId:initiator.session.operator.id):null,initiator?('kind' in initiator?initiator.operatorVersion:initiator.session.operator.version):null,initiator?.role??null,initiator?.revision??null,initiator?('kind' in initiator?initiator.nativeRole:initiator.session.operator.role):null,DISCOVERY_ACTIVE_LIMIT,...(reuse?[url]:[])).run()
 }
-export async function createDiscovery(env:Bindings,text:string,initiator?:Access){
+export async function createDiscovery(env:Bindings,text:string,initiator?:Access|AgentAccess){
  const runtime=runnerRuntime(env,await listRunners(env));
  if(runtime.hosted&&!runtime.privateRunnerReady&&!runtime.workerDiscovery)throw Error('Website discovery needs a connected private runner. Start it from the deploying checkout: '+runtime.privateRunnerCommand);
  let input;try{input=JSON.parse(text)}catch{throw Error('Invalid discovery request')}
@@ -118,7 +119,8 @@ export async function claimDiscovery(env:Bindings,text:string,runner:Runner){
  object(input,[],'discovery claim');
  const row=runner.runner_id?runner:await ensureFirstRunner(env),now=Date.now();
  await expire(env,now);
- const job=await env.DB.prepare(`UPDATE discovery_jobs SET status='running',claimed_at=?,runner_id=?,network_label=? WHERE id=(SELECT id FROM discovery_jobs WHERE status='queued' ORDER BY created_at,rowid LIMIT 1) AND status='queued' AND ${liveInitiator('discovery_jobs')} RETURNING id,url,kind,spec`).bind(now,row.runner_id,row.network_label).first<{id:string;url:string;kind:string;spec:string|null}>();
+ const delegated=await agentDiscoveryTask(env,row.runner_id);if(delegated)return {job:delegated};
+ const job=await env.DB.prepare(`UPDATE discovery_jobs SET status='running',claimed_at=?,runner_id=?,network_label=? WHERE id=(SELECT id FROM discovery_jobs WHERE status='queued' AND NOT EXISTS(SELECT 1 FROM uptime_agent_discoveries d WHERE d.id=discovery_jobs.id) ORDER BY created_at,rowid LIMIT 1) AND status='queued' AND ${liveInitiator('discovery_jobs')} RETURNING id,url,kind,spec`).bind(now,row.runner_id,row.network_label).first<{id:string;url:string;kind:string;spec:string|null}>();
  return {job:job?{id:job.id,url:job.url,...(job.kind!=='site'?{kind:job.kind,spec:JSON.parse(job.spec!)}:{})}:null}
 }
 // One of the two answers a claiming runner may post: a derived result, or a short failure.
@@ -153,4 +155,13 @@ export async function completeDiscovery(env:Bindings,id:string,answer:{result:un
  // A catalog source that fails its live check is marked needs review for this installation; one that passes clears the mark.
  if(job.kind==='catalog'&&result)await env.DB.batch(result.ok?[env.DB.prepare('DELETE FROM catalog_review WHERE entry_id=?').bind(result.entry)]:[env.DB.prepare('INSERT INTO catalog_review(entry_id,catalog_version,problem,detail,checked_at) VALUES(?,?,?,?,?) ON CONFLICT(entry_id) DO UPDATE SET catalog_version=excluded.catalog_version,problem=excluded.problem,detail=excluded.detail,checked_at=excluded.checked_at').bind(result.entry,result.catalogVersion,result.problem,result.detail,result.checkedAt)])
  return {stored:true}
+}
+
+// Trusted shared-door final admission. The ordinary runner claim never selects
+// agent-created jobs until the door has re-read policy, sponsor and consent.
+export async function claimAdmittedDiscovery(env:Bindings,id:string,runnerId:string){
+ const runner=await env.DB.prepare('SELECT runner_id,network_label FROM runners WHERE runner_id=? AND revoked_at IS NULL').bind(runnerId).first<any>();if(!runner)return {job:null};
+ const now=Date.now();await expire(env,now);
+ const job=await env.DB.prepare(`UPDATE discovery_jobs SET status='running',claimed_at=?,runner_id=?,network_label=? WHERE id=? AND status='queued' AND ${liveInitiator('discovery_jobs')} RETURNING id,url,kind,spec`).bind(now,runnerId,runner.network_label,id).first<any>();
+ return {job:job?{id:job.id,url:job.url,...(job.kind!=='site'?{kind:job.kind,spec:JSON.parse(job.spec)}:{})}:null}
 }

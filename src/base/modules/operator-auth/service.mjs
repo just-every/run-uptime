@@ -25,6 +25,7 @@ import { displayNameChange } from './accounts/display-name.mjs';
 import { isLocalCli } from './local-cli.mjs';
 import { devAdmitted } from './dev-admission.mjs';
 import { oneClickAccounts } from './accounts/one-click.mjs';
+import { delegatedAdministration } from './accounts/delegated.mjs';
 
 export { STEP_UP_ACTIONS, STEP_UP_SECONDS } from './identity/email-link/index.mjs';
 export function createOperatorAuth(options) {
@@ -80,6 +81,7 @@ export function createOperatorAuth(options) {
   const external = legacyAdmission({ admission, config });
   return Object.freeze({
     ...admin,
+    delegatedAdministration: input => delegatedAdministration(adminContext, input),
     businessTeam: businessTeam(adminContext),
     ...businessSettingsControls({ businessSettings: options.businessSettings, config, accounts, authenticate, requireFreshProof, store, clock }),
     ...(options.scheduledPolicies ? { scheduledPolicies: scheduledPolicies({ definitions: options.scheduledPolicies, store, config, clock, authenticate, requireFreshProof, rolePolicy }) } : {}),
