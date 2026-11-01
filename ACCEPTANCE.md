@@ -89,7 +89,7 @@ Core · published · **partial**
 **Acceptance.**
 1. Issue and rotate a heartbeat token through the owner door, send increasing receipts, miss one, and evaluate scheduled signed snapshots; replay, old tokens, imported or foreign-revision receipts cannot change current health.
 
-**Evidence.** `src/domain/heartbeat.server.ts`; `runners/src/probes.mjs`; `tests/signed-runner.mjs`; `docs/evidence/contracts/release-0.4.0/`
+**Evidence.** `src/domain/heartbeat.server.ts`; `runners/src/probes.mjs`; `tests/signed-runner.mjs`; `docs/evidence/contracts/release-0.4.0/`; `tests/signed-runner-heartbeat-revision.mjs` proveHeartbeatRevisionIsolation: settings create a revision independently of token issue, both earlier receipt forms are refused without receipt, history, claim, health, rate-limit or alert changes, scheduled current-revision evidence has no inherited receipt, and only new authority plus signed evaluation establishes Healthy.
 **Gap.** Carried-done audit: no cited test sends a receipt bound to another revision of the monitor, so the foreign-revision case is unasserted. Token issue and rotation, increasing receipts, a missed run, signed scheduled snapshots and the refusal of replayed, old-token and imported receipts are asserted.
 
 #### ARCHIVE-001 — Inactive validated restore
@@ -407,7 +407,7 @@ Core · target · **partial**
 **Acceptance.**
 1. Monitor a controlled TLS service; present an expiring certificate, broken chain, wrong name and then renewed certificate, advance the clock and inspect deduplicated warnings, location evidence and renewal resolution.
 
-**Evidence.** `src/domain/protocol/x509.mjs`; `src/domain/protocol/tls12-certificates.mjs`; `src/domain/expiry-notices.server.ts`; `tests/protocol-monitors.mjs`
+**Evidence.** `src/domain/protocol/x509.mjs`; `src/domain/protocol/tls12-certificates.mjs`; `src/domain/expiry-notices.server.ts`; `tests/protocol-monitors.mjs`; `tests/tls-stages-support.mjs` proveTlsExpiryStages (called by that journey): one unchanged real certificate crosses every saved warning stage with advancing clock, one durable warning per stage across repeated probes and Worker restarts, original-certificate recovery leaves warnings open, one newly observed valid renewal resolves their shared identity, and all earlier location evidence remains unchanged.
 **Gap.** Carried-done audit: the cited test presents one certificate at one stage and repeats the check without moving the clock, so warnings advancing through the configured stages without repeating are unasserted. The named warning with its stage and accountable owner, no repeat within a stage, wrong-name and untrusted-chain failures as location evidence and renewal resolution are asserted.
 
 #### DOMAIN-001 — Domain registration expiry
