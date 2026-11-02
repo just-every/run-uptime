@@ -80,6 +80,7 @@ import {archiveRestoreAvailable} from './domain/archive.server.ts';
 import {exportJournal} from './domain/archive-fence.server.ts'
 import {operatorSession,authenticatedSession} from './domain/operator-auth.server.ts'
 import {accessDeniedDocument} from './domain/access-document.server.ts'
+import {ownerFactorDocument} from './domain/mfa/signin-document.server.ts'
 import {boundedHealth,health} from './domain/health.server.ts'
 import {permission,accessResponse,type Access} from './domain/access.server.ts'
 import {authorizedDatabase,auditAccess} from './domain/access-database.server.ts'
@@ -413,7 +414,7 @@ const handler={async fetch(request,env,execution){
  if(path!=='/health'&&path!=='/api'&&!path.startsWith('/api/')&&!isPublicDocument(path)){
   // Only native document routes and Start transports reach the private renderer.
   if(!isConsoleDocument(path)&&!path.startsWith('/_serverFn/'))return notFoundDocument();
-  try{const principal=await authenticatedSession(bindings,request);if(!principal)return new Response(null,{status:303,headers:{location:'/login','cache-control':'no-store'}});try{await permission(bindings,request)}catch(error){if(accessResponse(error))return accessDeniedDocument(principal.operator.displayName,request.method==='HEAD');throw error}if(principal.operator.role==='owner')await openDoorForOwner(bindings);if(!await firstRunComplete(bindings))return setupRedirect()}catch(error){return authFailure(error)}
+  try{const principal=await authenticatedSession(bindings,request);if(!principal)return new Response(null,{status:303,headers:{location:'/login','cache-control':'no-store'}});try{await permission(bindings,request)}catch(error){const owed=isConsoleDocument(path)?await ownerFactorDocument(bindings,principal,error,request.method==='HEAD'):null;if(owed)return owed;if(accessResponse(error))return accessDeniedDocument(principal.operator.displayName,request.method==='HEAD');throw error}if(principal.operator.role==='owner')await openDoorForOwner(bindings);if(!await firstRunComplete(bindings))return setupRedirect()}catch(error){return authFailure(error)}
   const canonical=canonicalConsolePath(url);if(canonical)return consoleRedirect(canonical);
   if(isMonitorPage(path)&&undecodableMonitorId(path))return notFoundDocument();
  }

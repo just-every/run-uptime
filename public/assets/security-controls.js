@@ -51,7 +51,7 @@ import {firstMount} from '../dom-patch.js';
 const prefix='/api/access/mfa';
 const decode=value=>Uint8Array.from(atob(value.replaceAll('-','+').replaceAll('_','/')),c=>c.charCodeAt(0));
 const encode=value=>btoa(String.fromCharCode(...new Uint8Array(value))).replaceAll('+','-').replaceAll('/','_').replaceAll('=','');
-async function passkey(api,enroll){
+export async function passkey(api,enroll){
  const pending=await api(prefix+(enroll?'/webauthn/enroll':'/webauthn/options'),'POST',{}),options=pending.options;
  options.challenge=decode(options.challenge);
  if(enroll){options.user.id=decode(options.user.id);for(const key of options.excludeCredentials??[])key.id=decode(key.id)}else for(const key of options.allowCredentials??[])key.id=decode(key.id);
