@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "96a60a77191a755d545dee8ecb006948334c536c94add1ad9280025a465738c0",
+      "sha256": "192331c6182e737e9a4c255458e95abb97a43ce9ad805830cca5e3477d1a2e9e",
       "executable": false
     },
     "DEMO.md": {
@@ -2148,7 +2148,7 @@
       "executable": false
     },
     "docs/webhooks.md": {
-      "sha256": "4b2a8f919a03682ebf323f7ee2deb73a2798f81f45eaba6c9e92134a356f5c97",
+      "sha256": "389eeed8af7c00453bb7e8ddd5f1032b2c189da8772e6794cdcca172076a2008",
       "executable": false
     },
     "edition.json": {
@@ -7604,7 +7604,7 @@
       "executable": false
     },
     "src/domain/notification-protocols.ts": {
-      "sha256": "a8007e2f3f3dc82f29c3d20ec49dca8db5c9432837b0923b900ebcc718cf9f50",
+      "sha256": "b423953b1ddd06ac38dce537a8e78d4b97816dfed320e6a518c230ce3d8bf5be",
       "executable": false
     },
     "src/domain/notification-retry.ts": {
@@ -7620,7 +7620,7 @@
       "executable": false
     },
     "src/domain/notification-webhook.ts": {
-      "sha256": "1465fa46054a4190cdf882130548183e6a3ca1c79daf9a024eeeb677cf2a98bb",
+      "sha256": "3a75865c20fca395d9ad62152f313ca14928b116884adf9c093a868e1f2869f6",
       "executable": false
     },
     "src/domain/notification-worker.server.ts": {
@@ -7628,7 +7628,7 @@
       "executable": false
     },
     "src/domain/notifications.server.ts": {
-      "sha256": "6cd10cf46a49762d081cd39ea5a077ef8c2351e7ab4978fdac95f8b7a3a3f66b",
+      "sha256": "0cc27842255cb8a6805bdad0f5e870e3e2c2e674403122c41371550ffd9a3843",
       "executable": false
     },
     "src/domain/operator-auth.server.ts": {
@@ -7832,7 +7832,7 @@
       "executable": false
     },
     "src/domain/request-boundary.ts": {
-      "sha256": "628805655c6e49a5f13663039ccd8064402bb46a4132f06525ee479c6e0c015e",
+      "sha256": "22d43642c3dc5a4459ab29d89cddc33214fa9d00985341e46c44b1129e72e49a",
       "executable": false
     },
     "src/domain/rer-cutover-status.server.ts": {
@@ -8044,7 +8044,7 @@
       "executable": false
     },
     "src/domain/webhook-template.mjs": {
-      "sha256": "586c19866714954da311d1e05034418c18dfe70e5fa8864eb8f8e43ce9044a5d",
+      "sha256": "47d4d82a77f407c64a036da72b4cb761be3e31f5a75bbbccee61544952b0d200",
       "executable": false
     },
     "src/domain/worker-budget.ts": {
@@ -8284,7 +8284,7 @@
       "executable": false
     },
     "src/server.ts": {
-      "sha256": "8bf6c1448096f7e30ebf5df0cf5dba9a5c295ce80d6f8c61fddd4c0a992b1323",
+      "sha256": "843418b0c79e3b73e08da2116e2ba1b944ea28bc290b9e5242772b4a600f3070",
       "executable": false
     },
     "src/site/docs/build/manifest.ts": {
@@ -9368,11 +9368,15 @@
       "executable": false
     },
     "tests/webhook-custom-support.mjs": {
-      "sha256": "c9d3cb508be277729e984a9cebe45dc10518a3614e4a20220a55ded2b195a508",
+      "sha256": "031217a3d567ea3a7dba808eb146d82753f5cb9b7fe47bcafd15b5ccca24f29d",
       "executable": false
     },
     "tests/webhook-custom.mjs": {
-      "sha256": "27ba8b2baaf50fd63b27ae022f3c1ff455a2c5c13bff59c6e50466b26cd168e6",
+      "sha256": "5c84c2b4aac1b97fa5c4d6980990b479229ce88abe8615e3492df24de020a9e5",
+      "executable": false
+    },
+    "tests/webhook-preview-parity.mjs": {
+      "sha256": "77f219c59088e87fd64358c3f37407632fc123fc3761d17f7a40819246241fc9",
       "executable": false
     },
     "tsconfig.json": {

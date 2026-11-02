@@ -168,8 +168,14 @@ function localHeaders(config,input,values){
  if(size>4096)return invalid('Webhook custom header names and values exceed 4 KiB');
  return Object.fromEntries(normalized);
 }
+// The v1 sample set is immutable portable context. Custody retains a test event,
+// never an incident; rendering alone selects its explicitly named sample.
+export function webhookSampleKind(event){
+ return event?.kind==='test'?/^uptime\.notification\.sample\.v1\.(trigger|recovery|expiry|slow)$/.exec(event.eventType)?.[1]:undefined;
+}
 /** Pure wire rendering. The caller validates/pins the destination, masks previews, applies HMAC and sends these exact bytes. */
 export function renderWebhookTemplate({config,event,baseUrl,headers={}}){
+ const sample=webhookSampleKind(event);if(sample)event={...webhookTemplateSamples().find(source=>source.kind===sample),id:event.id,eventType:event.eventType};
  config=normalizeWebhookTemplate(config);const values=webhookTemplateVariables(event,{timeZone:config.timeZone}),outHeaders=localHeaders(config,headers,values);
  let url;try{url=new URL(baseUrl)}catch{return invalid('Invalid webhook destination')}
  if(url.protocol!=='https:'||url.username||url.password||url.hash||bytes(url.href)>8192)return invalid('Webhook destination requires HTTPS without URL credentials or fragments');
@@ -188,7 +194,7 @@ export function renderWebhookTemplate({config,event,baseUrl,headers={}}){
  if(bytes(url.href)>8192||(body!==undefined&&bytes(body)>65536))return invalid('Rendered webhook request exceeds its size limit');
  return {method:config.method,url:url.href,headers:outHeaders,body};
 }
-/** Deliberate UI examples, never used as monitoring evidence or as replacement data for a real delivery. */
+/** Immutable v1 synthetic examples for preview and explicitly requested sample tests, never monitoring evidence or replacement incident data. */
 export function webhookTemplateSamples(){
  const at=Date.UTC(2026,0,15,18),common={schemaVersion:2,id:'sample-trigger',kind:'trigger',monitorId:'sample-monitor',monitorName:'Checkout "API" <script> & worker',
   url:'https://checkout.example.com/health',incidentKey:'sample-incident',observedAt:at,consoleUrl:'https://uptime.example.com',explanation:'HTTP 503: required checkout health failed.',
