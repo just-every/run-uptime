@@ -135,7 +135,17 @@ try{
   const heartbeatId=heartbeat.data.id,receiptPath=`/api/heartbeats/${heartbeatId}`;
   const hheaders=sequence=>({authorization:`Bearer ${issued.data.token}`,'x-heartbeat-sequence':String(sequence)});
   const state=async()=>(await api('/api/overview')).data.monitors.find(m=>m.id===heartbeatId).state.state;
+  const heartbeatRecords=async()=>({
+   monitor:await db.prepare('SELECT * FROM monitors WHERE id=?').bind(heartbeatId).first(),
+   authority:(await db.prepare('SELECT * FROM heartbeat_authority WHERE monitor_id=?').bind(heartbeatId).all()).results,
+   runs:(await db.prepare('SELECT * FROM heartbeat_runs WHERE monitor_id=? ORDER BY sequence,id').bind(heartbeatId).all()).results,
+   claims:(await db.prepare('SELECT c.* FROM heartbeat_claims c JOIN slots s ON s.id=c.slot_id WHERE s.monitor_id=? ORDER BY c.slot_id').bind(heartbeatId).all()).results,
+   limits:(await db.prepare('SELECT * FROM heartbeat_limits WHERE monitor_id=?').bind(heartbeatId).all()).results,
+   state:await state(),
+  });
+  const beforeReplay=await heartbeatRecords();assert.equal(beforeReplay.authority.length,1);assert.ok(beforeReplay.runs.length>0);
   assert.equal((await api(receiptPath+'/success',{},hheaders(1))).status,400,'header sequence replay refuses');
+  assert.deepEqual(await heartbeatRecords(),beforeReplay,'replayed sequence changes no monitor, authority, receipt, claim, limit or health record');
   const before=await db.prepare('SELECT state FROM monitors WHERE id=?').bind(heartbeatId).first();
   assert.equal((await api(receiptPath+'/start',{},hheaders(2))).status,200);
   assert.deepEqual(await db.prepare('SELECT state FROM monitors WHERE id=?').bind(heartbeatId).first(),before,'start ingress cannot change health');
