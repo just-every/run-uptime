@@ -504,7 +504,7 @@
       "executable": false
     },
     "agent-surface.json": {
-      "sha256": "e37257ee4aece754445875fe80b1d879393dd29d216a8800a55d0546ff59c66c",
+      "sha256": "a7c553e8057201f4dc55ebfc1399ea269446f63c34229fe410e339f53f77f969",
       "executable": false
     },
     "AGENTS.md": {
@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "d083f899e987fdf705a8693da6a1e87ede6bdd878d134bfb93430cf12d8d1d1a",
+      "sha256": "bdae4056242a0b199ec5b2bfcd2f2bb4b6ae813cf43d973f8683d9fae0c01942",
       "executable": false
     },
     "DEMO.md": {
@@ -4447,6 +4447,10 @@
       "sha256": "d807f7f7b9ae07f6a55408d5482817263bfafa03f82d1975716cd424ff07cd17",
       "executable": false
     },
+    "src/agent-door/incident-notes.server.ts": {
+      "sha256": "6dc10940ee916ef541cc746aa89437ebc9b82bb1af504ca3081ce2e643fd8846",
+      "executable": false
+    },
     "src/agent-door/index.server.ts": {
       "sha256": "03ce4e262ea758f320784b44e273446a02724c7afa77bdd684aa376a4397fc95",
       "executable": false
@@ -4472,7 +4476,7 @@
       "executable": false
     },
     "src/agent-door/registry.server.ts": {
-      "sha256": "5915d98d9768c3e6ba2596a40d67e70c9fd83a4650138b2e72685ab9ea3b2ce1",
+      "sha256": "7572c232ab39c222bbe0970dc3cc131c7959256b200a3bb89073c40364c88163",
       "executable": false
     },
     "src/agent-door/work.server.ts": {
@@ -8651,8 +8655,12 @@
       "sha256": "a1ef721ccac669e0ad42fd8001c6135ae4a482b06ff4d00770176ca6fcb8ecb6",
       "executable": false
     },
+    "tests/agent-comment-delete-support.mjs": {
+      "sha256": "b242ebf165889ea2293c6ee6ccd64f77246f9de5f7a3a362749e32db6256993b",
+      "executable": false
+    },
     "tests/agent-conformance/fixtures.mjs": {
-      "sha256": "f0ca8abace6617ee22ba8ea5998490fe61c2954c1abb48278e457302f01c7ed4",
+      "sha256": "769509480a1033ef75761830d5d947c8368e2b1278ee763d1f1e04c38f2eb780",
       "executable": false
     },
     "tests/agent-conformance/http.mjs": {
@@ -8664,7 +8672,7 @@
       "executable": false
     },
     "tests/agent-conformance/journey.mjs": {
-      "sha256": "ae304119296d7a17ecbc2e37e618e93c69edb27e12feb85a513a7b334c5628d7",
+      "sha256": "867e4ee77a8f3e1f64e96b87e0f6e3d86a80c33a6cb31fd8464c8c57a873b664",
       "executable": false
     },
     "tests/agent-conformance/manual-debt.mjs": {
@@ -8704,7 +8712,7 @@
       "executable": false
     },
     "tests/agent-door.mjs": {
-      "sha256": "0cdd150946cd5179bcfd24ce2d0e9afeb22535f965b9423ab770edf7c2e80e8d",
+      "sha256": "1cd3e87e5a696a4ca6684b3d717fb466428c69d9ed005a0ee689f272d4d61d03",
       "executable": false
     },
     "tests/agent-held-class-claims-support.mjs": {
