@@ -53,7 +53,7 @@ Core · published · **partial**
 1. Run two assigned network vantages through partial, missing, stale, failing and recovering slots; inspect Unknown/Degraded/Failing and thresholds.
 2. A manual pass, absent probe or maintenance expiry cannot fabricate recovery.
 
-**Evidence.** `src/domain/policy.mjs`; `tests/control-runtime.mjs`; `tests/control-runtime.mjs`; `docs/evidence/contracts/release-0.4.0/`
+**Evidence.** `src/domain/policy.mjs`; `tests/control-runtime.mjs`; `tests/control-runtime.mjs`; `docs/evidence/contracts/release-0.4.0/`; `tests/control-state-support.mjs`: proveStateHysteresis, two signed assigned runners show mixed-vantage Degraded, first complete scheduled Recovering, manual-pass isolation and absent-probe Unknown without recovery, then one recovery after the second complete scheduled pass, retaining the fixed denominator, original observations and incident identity; `tests/control-cadence-support.mjs`: proveCadenceRevision, incomplete selected coverage and missing-region Unknown; `tests/maintenance-windows.mjs`: MAINT-001 expiry and ordinary scheduled reevaluation without orphan recovery. Qualification pending; current main judgment and gap retained.
 **Gap.** Two configured runner networks still prove confirmed Failing and the scheduled confirmation/recovery thresholds. Gap: exactly one failing vantage reading Degraded; Unknown for partial, missing and stale evidence; the intermediate Recovering state; and no fabricated recovery from a manual pass during an outage, an absent selected probe or maintenance expiry lack assertions in the cited files. Maintenance expiry is asserted only in tests/maintenance-windows.mjs, which this clause does not cite.
 
 #### AUTHORITY-001 — Server-side scoped authority

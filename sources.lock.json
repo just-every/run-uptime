@@ -500,7 +500,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "2a41d95c592341ba2a89eefbee2233e5e58c43119e4127e8d7a7cfc2eef28ef4",
+      "sha256": "f683f76bf83147a5a0d6b54b4b11c4a300d7f81b5f4d95f4462102472d303785",
       "executable": false
     },
     "agent-surface.json": {
@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "c5449b9dbe8887a729dc18c8eda58103cbcd5fa0c1acd2dbf712d1af6935741a",
+      "sha256": "d083f899e987fdf705a8693da6a1e87ede6bdd878d134bfb93430cf12d8d1d1a",
       "executable": false
     },
     "DEMO.md": {
@@ -8820,7 +8820,11 @@
       "executable": false
     },
     "tests/control-runtime.mjs": {
-      "sha256": "b542d245fbdad3cec649acf3f07a253b272cb5374654768651da4cbb47824fc3",
+      "sha256": "3a248d1548d6f6de51a8e825a9cf82ef825b487056abdd7292caba35f4885a1a",
+      "executable": false
+    },
+    "tests/control-state-support.mjs": {
+      "sha256": "2d022ac48115f97a1fe0414ea2d61282fe05f1287ec6e9c5ac301764af114e20",
       "executable": false
     },
     "tests/definitions-ci-support.mjs": {
