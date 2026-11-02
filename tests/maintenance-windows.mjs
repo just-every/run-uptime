@@ -157,6 +157,7 @@ try{
   assert.equal(Object.hasOwn(row,'maintenanceEndsAt'),item.end!==undefined,`${item.name}: absent when inactive`);
   assert.equal(row.revision,created.revision,'reading the maintenance end creates no revision');
  }
+ await (await import('./state-maintenance-expiry-support.mjs')).proveMaintenanceExpiryKeepsOutage();
  console.log('MAINT-001 passed: DST review, exact group apply, real signed suppress/pause execution, in-flight retention, restart/cancel/expiry, no orphan recovery, immutable report/CSV counts.');
 }finally{
  releaseHeld?.();await Promise.all([...children].map(child=>child.stop()));await close(control);await worker?.dispose();await close(target);await rm(directory,{recursive:true,force:true});
