@@ -2623,6 +2623,18 @@
       "sha256": "c346c75b8c43ee407d81a0b838c5df8ae1f7b983d18887c01afb7b7ea59e4ff6",
       "executable": false
     },
+    "public/assets/tooltip-README.md": {
+      "sha256": "54a3a2142220d55000d9e6c3462b590cd9b7528df7a546a924800887e68739f4",
+      "executable": false
+    },
+    "public/assets/tooltip.css": {
+      "sha256": "23a9fa7848a060fd5cf087dcbba52f32b20bdfc76f3f04e4fe087aecfd1bdc4d",
+      "executable": false
+    },
+    "public/assets/tooltip.js": {
+      "sha256": "69c1a50af61e1fa470a5046a801828088c90d58c17e0a072a33a7d0fd31ae40b",
+      "executable": false
+    },
     "public/brand/band.svg": {
       "sha256": "0c8cf358db1874a8265fa0671feafea9e3eaf4e39127c6eb0d3ab9473180014f",
       "executable": false
@@ -2644,7 +2656,7 @@
       "executable": false
     },
     "public/catalog.js": {
-      "sha256": "d656fbfdad4b98b5ad3b03607b74fc8ca95206f21ff86fdcfe1af79dfb364017",
+      "sha256": "2d0eeb6bcd000ede97659cedc6c56979bb1346fe81a99d74487831658428e56b",
       "executable": false
     },
     "public/cleanup-debt.css": {
@@ -2656,7 +2668,7 @@
       "executable": false
     },
     "public/console-format.js": {
-      "sha256": "b8eb98564bbbfa1992f37a819fab63f606b53afb2bdfbd9e42467e9d3d0a26a5",
+      "sha256": "deed94ce2b58afd29a26beb340df52386a222dc0b39a2a92c4417398b66da599",
       "executable": false
     },
     "public/definition-changes.js": {
@@ -2832,7 +2844,7 @@
       "executable": false
     },
     "public/monitor-list.js": {
-      "sha256": "a7d28726e812aeb57684a0bb6da3a207313b20977354f4f24dbb6b1c190ce2b2",
+      "sha256": "4b376448b939991d4a6e35f6ed469cce5284682d19d93e36dd07862a5dc1bc12",
       "executable": false
     },
     "public/monitor-page.css": {
@@ -2872,7 +2884,7 @@
       "executable": false
     },
     "public/monitor-status.js": {
-      "sha256": "8068677fa67331f8c738d41e7c26293e52a94355ec534ec1b450f61a1b9beb50",
+      "sha256": "2f9e2f1a7c7cfd2bcbcb30b4b475f713c520c194dcadea8e8a6e31d116c5bd54",
       "executable": false
     },
     "public/monitor-table-fit.js": {
@@ -2936,7 +2948,7 @@
       "executable": false
     },
     "public/root-cause-categories.js": {
-      "sha256": "75040c2db4511112f469d488432769594db5f6a1ab3ed1439d172d47b55fca5a",
+      "sha256": "1998ea32cd88798ebb500b90c11e4d6716c07fa26a30e7f8a03b2928d48ce0c7",
       "executable": false
     },
     "public/sections.css": {
@@ -8067,6 +8079,10 @@
       "sha256": "52a74d5f87dba0b012d4f2bfd276a35e65d3d5379621a6e5666680298e9fde62",
       "executable": false
     },
+    "src/editor/launcher-tooltip.ts": {
+      "sha256": "638298c253de5b170928e38eb0d6fd74e58472aaad5ba0d96b9cdd08d3b52ee0",
+      "executable": false
+    },
     "src/editor/monitor/advanced.mjs": {
       "sha256": "2f738f57e3769b21a0b55e7cbcd2ccac66b081e5449df015d445141f08332246",
       "executable": false
@@ -8160,7 +8176,7 @@
       "executable": false
     },
     "src/editor/owner-editor.tsx": {
-      "sha256": "38bdf155a05ed92824ab169c511f8a9332f76abab2720d77b7a64a37eaa3697e",
+      "sha256": "cca575e15b224b408a5d227af16be79a6e7476e7aac4ef9f6a4ddb9f05588d9d",
       "executable": false
     },
     "src/editor/visual-edits.json": {
@@ -8180,7 +8196,7 @@
       "executable": false
     },
     "src/routes/__root.tsx": {
-      "sha256": "719ea04dddf5cd156d81eed2f47f8fe9378db3bcd4bf27f59a0004fecf82d4b7",
+      "sha256": "55667334f94cbde43b08f4c07fa0166e8e126ab6c367315da75dd01474dbb7e0",
       "executable": false
     },
     "src/routes/_console.app.index.tsx": {
@@ -8572,7 +8588,7 @@
       "executable": false
     },
     "src/ui/console-prefetch.ts": {
-      "sha256": "593b74c54387d69689ef2547f5e790b6f526de0e77a9d55aee36b4da4082073c",
+      "sha256": "f87d34ce5261fea57f512d3ebae7af99cc9953959c6610db1bbd6fb74523e47e",
       "executable": false
     },
     "src/ui/console.html": {
@@ -8580,7 +8596,7 @@
       "executable": false
     },
     "src/ui/editor.html": {
-      "sha256": "e6627e46d4bb14205a0bb6f93de6a3a39e08fb00726f4e535bb7fd0dc8bfecd0",
+      "sha256": "6a624a36f6e26c6f075e260e8c08955961ea9e2086b281a69035b8c777b2a727",
       "executable": false
     },
     "src/ui/monitor-editor-document.tsx": {
@@ -8589,6 +8605,14 @@
     },
     "src/ui/monitor-editor-path.mjs": {
       "sha256": "fa2bf373984f0995175cb89c26f938902221c5bca6a91d9da6456bf64744221f",
+      "executable": false
+    },
+    "src/ui/operator-tooltips.tsx": {
+      "sha256": "49046b78c9eda33148a116b945d89fab8a543fc72784eb193d5ffd849677f4be",
+      "executable": false
+    },
+    "src/ui/tooltip-layer.ts": {
+      "sha256": "b0075e648c8e2e6e6a3bcb2a53838154f3c5635131e7538f66d5a6a94a4d3c7b",
       "executable": false
     },
     "TARGET.md": {
