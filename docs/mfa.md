@@ -21,15 +21,16 @@ verification.
 
 Once your account has a factor, each new sign-in asks for it. After the email
 link (or, on your own computer, the `RER_OPEN` link from `rer dev`), an owner
-sees **Verify your second factor** at the address they opened, such as `/setup`
-or a console page, instead of the console. Enter the six-digit code your
-authenticator app shows now, or one unused recovery code, and choose **Verify
-and continue**; with a passkey enrolled on HTTPS or localhost, choose **Use a
-passkey**. The console then opens at that same address. A code that does not
-match, or a time step already used, is refused: enter the app's next code.
-**Sign out** leaves this step. Until the session is verified, every private page
-and API refuses it. This step is the owner's: another member who enrolled a
-factor verifies each new session with the command line below.
+sees **Verify your second factor** at the address they opened, such as `/setup`,
+a console page or an alert drill link; opening `/login` again while signed in
+goes to the same step. Enter the six-digit code your authenticator app shows
+now, or one unused recovery code, and choose **Verify and continue**; with a
+passkey enrolled on HTTPS or localhost, choose **Use a passkey**. The page you
+opened then appears at that same address. A code that does not match, or a time
+step already used, is refused: enter the app's next code. **Sign out** leaves
+this step. Until the session is verified, every private page and API refuses it.
+This step is the owner's: another member who enrolled a factor verifies each new
+session with the command line below.
 
 ## Sensitive actions
 

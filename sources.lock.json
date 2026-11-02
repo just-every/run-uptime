@@ -2068,7 +2068,7 @@
       "executable": false
     },
     "docs/mfa.md": {
-      "sha256": "7a98fb9ca933a555d4f68ebc977f48364ccc99c1266a25c0c028844f79c55ba9",
+      "sha256": "f81e2c9e78dd9321c512bae07d67f59b83426c4c1dc67e4f1e03d5b9fbd79e0e",
       "executable": false
     },
     "docs/migrating-betterstack.md": {
@@ -2132,7 +2132,7 @@
       "executable": false
     },
     "docs/security.md": {
-      "sha256": "7d8c913e4f8bafa7a18c5ee65872c62820f8652c74d465bce2d6bb4da9ed18e4",
+      "sha256": "69adbbf889f12f75318141f35af43e2db143ecf048d0373450ffeb9a79308039",
       "executable": false
     },
     "docs/site.json": {
@@ -7496,7 +7496,7 @@
       "executable": false
     },
     "src/domain/mfa/door.server.ts": {
-      "sha256": "cced1f5975d595bb75307026138ff1fa5a68d12b06f47d1b6ab56bcdfed6fdf4",
+      "sha256": "9ef4ca4716fd0314d729541405e0ef7df89a5e75e4cec3f5ac0b64a0e25c2e5a",
       "executable": false
     },
     "src/domain/mfa/manage.server.ts": {
@@ -7512,7 +7512,7 @@
       "executable": false
     },
     "src/domain/mfa/signin-document.server.ts": {
-      "sha256": "ff2184560326f4f3b00dcf1869bb1c34394abe3ae889ffe8d398019d15e65fa2",
+      "sha256": "def6d7daa01b7fd63128682e01186a004938b765ca3583d316a5d8544f951311",
       "executable": false
     },
     "src/domain/mfa/store.server.ts": {
@@ -7616,7 +7616,7 @@
       "executable": false
     },
     "src/domain/operator-auth.server.ts": {
-      "sha256": "3f954b64c63077f4d0c922230bdd1c04c802acc7aa0d89fc72e26cf96a2eb8d7",
+      "sha256": "3484d79a95c9d4e13c73ca16f9874cb6ca6c8aad18eb4a25ef60bad62e375b78",
       "executable": false
     },
     "src/domain/operator-mail-authority.ts": {
@@ -8928,7 +8928,7 @@
       "executable": false
     },
     "tests/hosted-auth-browser.mjs": {
-      "sha256": "37b529bfbe04084b4402103e96663c70c6ddd37d173e31386eb7b42019dabc8a",
+      "sha256": "f74aed41131287ebfc60262ffafe2449a22d2b32f054f534e68f50cf2cf0c657",
       "executable": false
     },
     "tests/hosted-auth-runtime.mjs": {

@@ -26,8 +26,10 @@ function secondFactorDocument(displayName:string,head:boolean){
 
 // Only an owner's refusal for a factor the account enrolled becomes this step; every other refusal keeps its response,
 // including an owner the require-all policy holds before any enrollment, who has nothing to verify here.
+export async function ownerOwesEnrolledFactor(env:AuthBindings,session:MfaSession,error:unknown){
+ if(!(error instanceof MfaError)||error.code!=='second_factor_required'||session.operator.role!=='owner')return false
+ return Boolean(await env.DB.prepare('SELECT 1 FROM uptime_mfa_factors WHERE operator_id=?').bind(session.operator.id).first())
+}
 export async function ownerFactorDocument(env:AuthBindings,session:MfaSession,error:unknown,head:boolean){
- if(!(error instanceof MfaError)||error.code!=='second_factor_required'||session.operator.role!=='owner')return null
- if(!await env.DB.prepare('SELECT 1 FROM uptime_mfa_factors WHERE operator_id=?').bind(session.operator.id).first())return null
- return secondFactorDocument(session.operator.displayName,head)
+ return await ownerOwesEnrolledFactor(env,session,error)?secondFactorDocument(session.operator.displayName,head):null
 }
