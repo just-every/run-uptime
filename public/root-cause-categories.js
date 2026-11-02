@@ -1,4 +1,4 @@
-import {escape,icon} from './console-format.js';
+import {escape,icon,tip} from './console-format.js';
 import {patch} from './dom-patch.js';
 import {saveAsYouGo,savedLine,failureLine} from './settings-save.js';
 // Root-cause categories (Settings › Alerts): the choices an incident's root cause offers (GET and PATCH
@@ -11,7 +11,7 @@ export function mountCategories(card,{api}){
  let settings=null;
  card.innerHTML=`<div class="card-head"><h2 id="categories-heading">Root-cause categories</h2>${savedLine('categories-saved')}</div><ul class="category-chips" aria-labelledby="categories-heading"><li class="rows-note">Reading categories…</li></ul><button type="button" class="ui-link add-category" aria-expanded="false" aria-controls="category-add" hidden>+ Add category</button><form class="category-add" id="category-add" novalidate hidden><label for="category-name">New category</label><div class="field-row"><input id="category-name" name="label" maxlength="100" autocomplete="off" aria-describedby="category-name-note"><button type="submit" class="ui-compact">Add</button></div><p class="settings-failure" id="category-name-note" hidden></p></form>${failureLine('categories-failure')}`;
  const chips=card.querySelector('.category-chips'),opener=card.querySelector('.add-category'),form=card.querySelector('.category-add'),field=form.elements.label,note=card.querySelector('#category-name-note');
- const draw=()=>patch(chips,settings.categories.map(c=>`<li class="category-chip" data-key="category-${escape(c.id)}"><span id="category-label-${escape(c.id)}">${escape(c.label)}</span><button type="button" class="category-remove" data-remove-category="${escape(c.id)}" aria-label="Remove category" title="Remove category" aria-describedby="category-label-${escape(c.id)}">${icon('x')}</button></li>`).join(''));
+ const draw=()=>patch(chips,settings.categories.map(c=>`<li class="category-chip" data-key="category-${escape(c.id)}"><span id="category-label-${escape(c.id)}">${escape(c.label)}</span><button type="button" class="category-remove" data-remove-category="${escape(c.id)}" ${tip('Remove category',{describedBy:`category-label-${c.id}`})}>${icon('x')}</button></li>`).join(''));
  const say=text=>{note.textContent=text;note.hidden=!text};
  // A change is an operation on the list as it is when it is sent, so Retry after a refresh applies it to the current list.
  async function send(change){

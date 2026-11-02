@@ -1,0 +1,641 @@
+[
+ {
+  "width": 320,
+  "route": "monitors",
+  "reloadsAfterRateLimit": 1,
+  "nav": {
+   "class": "nav-daily",
+   "overflowX": "visible",
+   "overflowY": "visible",
+   "flexWrap": "wrap",
+   "scrollable": false
+  },
+  "pills": [
+   {
+    "text": "Monitors",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     11,
+     63,
+     116,
+     117
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "Locations",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     112,
+     63,
+     212,
+     117
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "Settings0",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     208,
+     63,
+     299,
+     117
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "Sign out",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     212,
+     7,
+     309,
+     61
+    ],
+    "clippedBy": []
+   }
+  ],
+  "allUnclipped": true,
+  "activated": "/app/locations"
+ },
+ {
+  "width": 320,
+  "route": "settings",
+  "reloadsAfterRateLimit": 0,
+  "nav": {
+   "class": "nav-settings",
+   "overflowX": "visible",
+   "overflowY": "visible",
+   "flexWrap": "wrap",
+   "scrollable": false
+  },
+  "pills": [
+   {
+    "text": "Monitors",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     11,
+     63,
+     309,
+     117
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "Alerts0",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     11,
+     113,
+     96,
+     167
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "General",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     92,
+     113,
+     179,
+     167
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "People",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     175,
+     113,
+     257,
+     167
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "Integrations",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     11,
+     163,
+     126,
+     217
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "Backup and files",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     122,
+     163,
+     265,
+     217
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "Sign out",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     212,
+     7,
+     309,
+     61
+    ],
+    "clippedBy": []
+   }
+  ],
+  "allUnclipped": true,
+  "activated": null
+ },
+ {
+  "width": 320,
+  "route": "editor",
+  "reloadsAfterRateLimit": 0,
+  "nav": {
+   "class": "nav-daily",
+   "overflowX": "visible",
+   "overflowY": "visible",
+   "flexWrap": "wrap",
+   "scrollable": false
+  },
+  "pills": [
+   {
+    "text": "Monitors",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     11,
+     63,
+     116,
+     117
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "Locations",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     112,
+     63,
+     212,
+     117
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "Settings",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     208,
+     63,
+     299,
+     117
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "Sign out",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     212,
+     7,
+     309,
+     61
+    ],
+    "clippedBy": []
+   }
+  ],
+  "allUnclipped": true,
+  "activated": null
+ },
+ {
+  "width": 379,
+  "route": "monitors",
+  "reloadsAfterRateLimit": 0,
+  "nav": {
+   "class": "nav-daily",
+   "overflowX": "visible",
+   "overflowY": "visible",
+   "flexWrap": "wrap",
+   "scrollable": false
+  },
+  "pills": [
+   {
+    "text": "Monitors",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     11,
+     63,
+     116,
+     117
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "Locations",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     112,
+     63,
+     212,
+     117
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "Settings0",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     208,
+     63,
+     299,
+     117
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "Sign out",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     271,
+     7,
+     368,
+     61
+    ],
+    "clippedBy": []
+   }
+  ],
+  "allUnclipped": true,
+  "activated": "/app/locations"
+ },
+ {
+  "width": 379,
+  "route": "settings",
+  "reloadsAfterRateLimit": 0,
+  "nav": {
+   "class": "nav-settings",
+   "overflowX": "visible",
+   "overflowY": "visible",
+   "flexWrap": "wrap",
+   "scrollable": false
+  },
+  "pills": [
+   {
+    "text": "Monitors",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     11,
+     63,
+     368,
+     117
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "Alerts0",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     11,
+     113,
+     96,
+     167
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "General",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     92,
+     113,
+     179,
+     167
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "People",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     175,
+     113,
+     257,
+     167
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "Integrations",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     253,
+     113,
+     368,
+     167
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "Backup and files",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     11,
+     163,
+     154,
+     217
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "Sign out",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     271,
+     7,
+     368,
+     61
+    ],
+    "clippedBy": []
+   }
+  ],
+  "allUnclipped": true,
+  "activated": null
+ },
+ {
+  "width": 379,
+  "route": "editor",
+  "reloadsAfterRateLimit": 0,
+  "nav": {
+   "class": "nav-daily",
+   "overflowX": "visible",
+   "overflowY": "visible",
+   "flexWrap": "wrap",
+   "scrollable": false
+  },
+  "pills": [
+   {
+    "text": "Monitors",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     11,
+     63,
+     116,
+     117
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "Locations",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     112,
+     63,
+     212,
+     117
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "Settings",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     208,
+     63,
+     299,
+     117
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "Sign out",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     271,
+     7,
+     368,
+     61
+    ],
+    "clippedBy": []
+   }
+  ],
+  "allUnclipped": true,
+  "activated": null
+ },
+ {
+  "width": 390,
+  "route": "monitors",
+  "reloadsAfterRateLimit": 0,
+  "nav": {
+   "class": "nav-daily",
+   "overflowX": "visible",
+   "overflowY": "visible",
+   "flexWrap": "wrap",
+   "scrollable": false
+  },
+  "pills": [
+   {
+    "text": "Monitors",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     11,
+     63,
+     124,
+     117
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "Locations",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     122,
+     63,
+     230,
+     117
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "Settings0",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     228,
+     63,
+     327,
+     117
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "Sign out",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     282,
+     7,
+     379,
+     61
+    ],
+    "clippedBy": []
+   }
+  ],
+  "allUnclipped": true,
+  "activated": "/app/locations"
+ },
+ {
+  "width": 390,
+  "route": "settings",
+  "reloadsAfterRateLimit": 0,
+  "nav": {
+   "class": "nav-settings",
+   "overflowX": "visible",
+   "overflowY": "visible",
+   "flexWrap": "wrap",
+   "scrollable": false
+  },
+  "pills": [
+   {
+    "text": "Monitors",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     11,
+     63,
+     379,
+     117
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "Alerts0",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     11,
+     115,
+     104,
+     169
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "General",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     102,
+     115,
+     197,
+     169
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "People",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     195,
+     115,
+     285,
+     169
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "Integrations",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     11,
+     167,
+     134,
+     221
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "Backup and files",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     132,
+     167,
+     283,
+     221
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "Sign out",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     282,
+     7,
+     379,
+     61
+    ],
+    "clippedBy": []
+   }
+  ],
+  "allUnclipped": true,
+  "activated": null
+ },
+ {
+  "width": 390,
+  "route": "editor",
+  "reloadsAfterRateLimit": 0,
+  "nav": {
+   "class": "nav-daily",
+   "overflowX": "visible",
+   "overflowY": "visible",
+   "flexWrap": "wrap",
+   "scrollable": false
+  },
+  "pills": [
+   {
+    "text": "Monitors",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     11,
+     63,
+     124,
+     117
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "Locations",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     122,
+     63,
+     230,
+     117
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "Settings",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     228,
+     63,
+     327,
+     117
+    ],
+    "clippedBy": []
+   },
+   {
+    "text": "Sign out",
+    "outline": "solid 3px offset 2px",
+    "ring": [
+     282,
+     7,
+     379,
+     61
+    ],
+    "clippedBy": []
+   }
+  ],
+  "allUnclipped": true,
+  "activated": null
+ }
+]

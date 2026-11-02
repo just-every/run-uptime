@@ -1,0 +1,370 @@
+[
+ {
+  "surface": "monitor-row-checkbox",
+  "width": 1440,
+  "hoverAt120": false,
+  "hover": {
+   "layer": true,
+   "open": true,
+   "text": "Select monitor",
+   "rect": [
+    232,
+    191,
+    346,
+    221
+   ],
+   "vw": 1440,
+   "vh": 900
+  },
+  "focusReached": true,
+  "focus": {
+   "layer": true,
+   "open": true,
+   "text": "Select monitor",
+   "rect": [
+    232,
+    191,
+    346,
+    221
+   ],
+   "vw": 1440,
+   "vh": 900
+  },
+  "afterEscape": false
+ },
+ {
+  "surface": "filter-chip-remove",
+  "width": 1440,
+  "error": "page.waitForSelector: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#catalog-filter') to be visible\u001b[22m\n"
+ },
+ {
+  "surface": "select-all-checkbox",
+  "width": 1440,
+  "hoverAt120": false,
+  "hover": {
+   "layer": true,
+   "open": true,
+   "text": "Select all monitors",
+   "rect": [
+    221,
+    116,
+    357,
+    146
+   ],
+   "vw": 1440,
+   "vh": 900
+  },
+  "focusReached": true,
+  "focus": {
+   "layer": true,
+   "open": true,
+   "text": "Select all monitors",
+   "rect": [
+    221,
+    116,
+    357,
+    146
+   ],
+   "vw": 1440,
+   "vh": 900
+  },
+  "afterEscape": false
+ },
+ {
+  "surface": "monitor-page-disclosure",
+  "width": 1440,
+  "hoverAt120": false,
+  "hover": {
+   "layer": true,
+   "open": true,
+   "text": "About coverage",
+   "rect": [
+    1244,
+    400,
+    1366,
+    430
+   ],
+   "vw": 1440,
+   "vh": 900
+  },
+  "focusReached": true,
+  "focus": {
+   "layer": true,
+   "open": true,
+   "text": "About coverage",
+   "rect": [
+    1244,
+    400,
+    1366,
+    430
+   ],
+   "vw": 1440,
+   "vh": 900
+  },
+  "afterEscape": false
+ },
+ {
+  "surface": "settings-category-remove",
+  "width": 1440,
+  "hoverAt120": false,
+  "hover": {
+   "layer": true,
+   "open": true,
+   "text": "Remove category",
+   "rect": [
+    1031,
+    368,
+    1163,
+    398
+   ],
+   "vw": 1440,
+   "vh": 900
+  },
+  "focusReached": true,
+  "focus": {
+   "layer": true,
+   "open": true,
+   "text": "Remove category",
+   "rect": [
+    1031,
+    259,
+    1163,
+    289
+   ],
+   "vw": 1440,
+   "vh": 900
+  },
+  "afterEscape": false
+ },
+ {
+  "surface": "edit-monitor-rule-remove",
+  "width": 1440,
+  "hoverAt120": false,
+  "hover": {
+   "layer": true,
+   "open": true,
+   "text": "Remove rule",
+   "rect": [
+    1320,
+    303,
+    1418,
+    333
+   ],
+   "vw": 1440,
+   "vh": 900
+  },
+  "focusReached": true,
+  "focus": {
+   "layer": true,
+   "open": true,
+   "text": "Remove rule",
+   "rect": [
+    1320,
+    303,
+    1418,
+    333
+   ],
+   "vw": 1440,
+   "vh": 900
+  },
+  "afterEscape": false
+ },
+ {
+  "surface": "monitor-row-checkbox",
+  "width": 390,
+  "focusReached": true,
+  "focus": {
+   "layer": true,
+   "open": true,
+   "text": "Select monitor",
+   "rect": [
+    8,
+    303,
+    122,
+    333
+   ],
+   "vw": 390,
+   "vh": 844
+  },
+  "afterEscape": false,
+  "touchAt250": false,
+  "touch": {
+   "layer": true,
+   "open": true,
+   "text": "Select monitor",
+   "rect": [
+    8,
+    303,
+    122,
+    333
+   ],
+   "vw": 390,
+   "vh": 844
+  }
+ },
+ {
+  "surface": "filter-chip-remove",
+  "width": 390,
+  "focusReached": true,
+  "focus": {
+   "layer": true,
+   "open": true,
+   "text": "Remove filter",
+   "rect": [
+    104,
+    635,
+    208,
+    665
+   ],
+   "vw": 390,
+   "vh": 844
+  },
+  "afterEscape": false,
+  "touchAt250": false,
+  "touch": {
+   "layer": true,
+   "open": true,
+   "text": "Remove filter",
+   "rect": [
+    104,
+    635,
+    208,
+    665
+   ],
+   "vw": 390,
+   "vh": 844
+  }
+ },
+ {
+  "surface": "select-all-checkbox",
+  "width": 390,
+  "focusReached": true,
+  "focus": {
+   "layer": true,
+   "open": true,
+   "text": "Select all monitors",
+   "rect": [
+    8,
+    213,
+    144,
+    243
+   ],
+   "vw": 390,
+   "vh": 844
+  },
+  "afterEscape": false,
+  "touchAt250": false,
+  "touch": {
+   "layer": true,
+   "open": true,
+   "text": "Select all monitors",
+   "rect": [
+    8,
+    213,
+    144,
+    243
+   ],
+   "vw": 390,
+   "vh": 844
+  }
+ },
+ {
+  "surface": "monitor-page-disclosure",
+  "width": 390,
+  "focusReached": true,
+  "focus": {
+   "layer": true,
+   "open": true,
+   "text": "About coverage",
+   "rect": [
+    218,
+    762,
+    340,
+    792
+   ],
+   "vw": 390,
+   "vh": 844
+  },
+  "afterEscape": false,
+  "touchAt250": false,
+  "touch": {
+   "layer": true,
+   "open": true,
+   "text": "About coverage",
+   "rect": [
+    218,
+    762,
+    340,
+    792
+   ],
+   "vw": 390,
+   "vh": 844
+  }
+ },
+ {
+  "surface": "settings-category-remove",
+  "width": 390,
+  "focusReached": true,
+  "focus": {
+   "layer": true,
+   "open": true,
+   "text": "Remove category",
+   "rect": [
+    194,
+    488,
+    326,
+    518
+   ],
+   "vw": 390,
+   "vh": 844
+  },
+  "afterEscape": false,
+  "touchAt250": false,
+  "touch": {
+   "layer": true,
+   "open": true,
+   "text": "Remove category",
+   "rect": [
+    194,
+    488,
+    326,
+    518
+   ],
+   "vw": 390,
+   "vh": 844
+  }
+ },
+ {
+  "surface": "edit-monitor-rule-remove",
+  "width": 390,
+  "focusReached": true,
+  "focus": {
+   "layer": true,
+   "open": true,
+   "text": "Remove rule",
+   "rect": [
+    284,
+    308,
+    382,
+    338
+   ],
+   "vw": 390,
+   "vh": 844
+  },
+  "afterEscape": false,
+  "touchAt250": false,
+  "touch": {
+   "layer": true,
+   "open": true,
+   "text": "Remove rule",
+   "rect": [
+    284,
+    308,
+    382,
+    338
+   ],
+   "vw": 390,
+   "vh": 844
+  }
+ }
+]

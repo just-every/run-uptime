@@ -1,0 +1,96 @@
+[
+ {
+  "width": 1440,
+  "before": {
+   "name": "Open Run Edit Run",
+   "title": "Open Run Edit Run — send a draft with Cmd/Ctrl+Shift+Enter",
+   "marker": false,
+   "tip": null,
+   "rect": null,
+   "vw": 1440,
+   "vh": 900,
+   "layers": 0
+  },
+  "hoverAt150": null,
+  "hover": {
+   "name": "Open Run Edit Run",
+   "title": "Open Run Edit Run — send a draft with Cmd/Ctrl+Shift+Enter",
+   "marker": false,
+   "tip": null,
+   "rect": null,
+   "vw": 1440,
+   "vh": 900,
+   "layers": 0
+  },
+  "focusReached": true,
+  "focus": {
+   "name": "Open Run Edit Run",
+   "title": "Open Run Edit Run — send a draft with Cmd/Ctrl+Shift+Enter",
+   "marker": false,
+   "tip": null,
+   "rect": null,
+   "vw": 1440,
+   "vh": 900,
+   "layers": 0
+  },
+  "afterEscape": null,
+  "clickOpened": true,
+  "afterClick": {
+   "name": "Close Run Edit Run",
+   "title": "Close Run Edit Run",
+   "marker": false,
+   "tip": null,
+   "rect": null,
+   "vw": 1440,
+   "vh": 900,
+   "layers": 0
+  }
+ },
+ {
+  "width": 390,
+  "before": {
+   "name": "Open Run Edit Run",
+   "title": "Open Run Edit Run — send a draft with Cmd/Ctrl+Shift+Enter",
+   "marker": false,
+   "tip": null,
+   "rect": null,
+   "vw": 390,
+   "vh": 844,
+   "layers": 0
+  },
+  "focusReached": true,
+  "focus": {
+   "name": "Open Run Edit Run",
+   "title": "Open Run Edit Run — send a draft with Cmd/Ctrl+Shift+Enter",
+   "marker": false,
+   "tip": null,
+   "rect": null,
+   "vw": 390,
+   "vh": 844,
+   "layers": 0
+  },
+  "afterEscape": null,
+  "touch": {
+   "name": "Open Run Edit Run",
+   "title": "Open Run Edit Run — send a draft with Cmd/Ctrl+Shift+Enter",
+   "marker": false,
+   "tip": null,
+   "rect": null,
+   "vw": 390,
+   "vh": 844,
+   "layers": 0
+  },
+  "longPressDidNotOpen": false,
+  "tapOpened": false,
+  "afterTap": {
+   "name": "Open Run Edit Run",
+   "title": "Open Run Edit Run — send a draft with Cmd/Ctrl+Shift+Enter",
+   "marker": false,
+   "tip": null,
+   "rect": null,
+   "vw": 390,
+   "vh": 844,
+   "layers": 0
+  }
+ }
+]

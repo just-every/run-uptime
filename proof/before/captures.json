@@ -1,0 +1,128 @@
+[
+ {
+  "surface": "monitor-row-checkbox",
+  "width": 1440,
+  "hover": {
+   "layer": false
+  },
+  "focusReached": true,
+  "focus": {
+   "layer": false
+  }
+ },
+ {
+  "surface": "filter-chip-remove",
+  "width": 1440,
+  "hover": {
+   "layer": false
+  },
+  "focusReached": true,
+  "focus": {
+   "layer": false
+  }
+ },
+ {
+  "surface": "select-all-checkbox",
+  "width": 1440,
+  "hover": {
+   "layer": false
+  },
+  "focusReached": true,
+  "focus": {
+   "layer": false
+  }
+ },
+ {
+  "surface": "monitor-page-disclosure",
+  "width": 1440,
+  "hover": {
+   "layer": false
+  },
+  "focusReached": true,
+  "focus": {
+   "layer": false
+  }
+ },
+ {
+  "surface": "settings-category-remove",
+  "width": 1440,
+  "hover": {
+   "layer": false
+  },
+  "focusReached": true,
+  "focus": {
+   "layer": false
+  }
+ },
+ {
+  "surface": "edit-monitor-rule-remove",
+  "width": 1440,
+  "hover": {
+   "layer": false
+  },
+  "focusReached": true,
+  "focus": {
+   "layer": false
+  }
+ },
+ {
+  "surface": "monitor-row-checkbox",
+  "width": 390,
+  "focusReached": true,
+  "focus": {
+   "layer": false
+  },
+  "touch": {
+   "layer": false
+  }
+ },
+ {
+  "surface": "filter-chip-remove",
+  "width": 390,
+  "error": "page.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#catalog-filter')\u001b[22m\n"
+ },
+ {
+  "surface": "select-all-checkbox",
+  "width": 390,
+  "focusReached": true,
+  "focus": {
+   "layer": false
+  },
+  "touch": {
+   "layer": false
+  }
+ },
+ {
+  "surface": "monitor-page-disclosure",
+  "width": 390,
+  "focusReached": true,
+  "focus": {
+   "layer": false
+  },
+  "touch": {
+   "layer": false
+  }
+ },
+ {
+  "surface": "settings-category-remove",
+  "width": 390,
+  "focusReached": true,
+  "focus": {
+   "layer": false
+  },
+  "touch": {
+   "layer": false
+  }
+ },
+ {
+  "surface": "edit-monitor-rule-remove",
+  "width": 390,
+  "focusReached": true,
+  "focus": {
+   "layer": false
+  },
+  "touch": {
+   "layer": false
+  }
+ }
+]
