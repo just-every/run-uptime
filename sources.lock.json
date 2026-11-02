@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "cc3cd8a828e187364c12b112ceaf9a14e6d65ba9681aa2dc4f9c07e5ecaa1f85",
+      "sha256": "632b2a61d9c3f03cced202d4387dddb39ccd7c3975b57a38701edb3371bf4329",
       "executable": false
     },
     "DEMO.md": {
@@ -8668,7 +8668,7 @@
       "executable": false
     },
     "tests/agent-incident-ownership-support.mjs": {
-      "sha256": "a910e7c9f01d64858e71f02552861ef2e56303702f0bb8ba19f8494b831fb1ef",
+      "sha256": "ce0e005b489aafe1091a810471a3315f75a2edba340410a5f9e31804cb6425f7",
       "executable": false
     },
     "tests/agent-monitor-state-support.mjs": {

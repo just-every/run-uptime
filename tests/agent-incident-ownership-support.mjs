@@ -82,6 +82,23 @@ export async function proveIncidentOwnership() {
   // Populate independent root-cause work so assignment must preserve meaningful
   // unrelated incident fields as well as all monitoring and custody records.
   await native('/api/incidents/'+encodeURIComponent(id)+'/root-cause',{version:0,categoryId:null,text:'synthetic-uptime-5'},'PATCH');
+  // Keep real queued notification custody and encrypted endpoint authority in
+  // the preservation comparison. Reserving a native claim never starts a send.
+  const destination=await native('/api/notifications/destinations',{
+   name:'synthetic-uptime-7',kind:'webhook',url:'https://notifications.example.com/ownership',
+  });
+  const queued=await native('/api/notifications/destinations/'+destination.id+'/test',{});
+  const notification=async body=>{
+   const response=await fetch(origin+'/api/runner/notifications',{method:'POST',headers:{origin,'content-type':'application/json',
+    'x-runner-id':runner.runnerId,'x-runner-key':runner.key},body:JSON.stringify(body)});
+   assert.equal(response.status,200);return response.json();
+  };
+  await notification({operation:'poll'});
+  assert.ok(await notification({operation:'claim',id:queued.deliveryId,reservation:randomUUID()}));
+  const custody=await db.prepare('SELECT * FROM notification_claim_custody WHERE delivery_id=?').bind(queued.deliveryId).first();
+  assert.ok(custody);assert.equal(custody.started_at,null,'the retained transport claim has never sent');
+  assert.ok(await db.prepare('SELECT c.id FROM notification_credentials c JOIN notification_jobs j ON j.credential_id=c.id WHERE j.id=?').bind(queued.deliveryId).first(),
+   'the queued notification retains actual endpoint credential custody');
   let current=await native(path);
   assert.equal(current.owner.id,sponsor.id);assert.equal(current.version,0);
   assert.ok(current.assignmentMembers.some(person=>person.id===member.id),'the independently invited responder is eligible');
