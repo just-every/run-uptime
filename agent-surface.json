@@ -675,6 +675,13 @@
         "confirmed": true,
         "destructive": false,
         "instruction": "Keep the saved comment; claim deletion is reversible and skip approval."
+      },
+      "target": {
+        "kind": "incident",
+        "id": {
+          "$fixture": "incident",
+          "pointer": "/id"
+        }
       }
     },
     {

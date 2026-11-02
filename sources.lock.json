@@ -504,7 +504,7 @@
       "executable": false
     },
     "agent-surface.json": {
-      "sha256": "d3ca4e10f46a33679596e6e1d6047fe43e064ac4236ee18500dec1d0a37195af",
+      "sha256": "f5514adb4b84e93d938d90e28c041b2546ea60823315c70b5c2f05b76766e23b",
       "executable": false
     },
     "AGENTS.md": {
@@ -4432,7 +4432,7 @@
       "executable": false
     },
     "src/agent-door/incident-notes.server.ts": {
-      "sha256": "974cddd4ffa192c465a5e85d09040194a32505534f3082ecf902230337ff8e79",
+      "sha256": "6dc10940ee916ef541cc746aa89437ebc9b82bb1af504ca3081ce2e643fd8846",
       "executable": false
     },
     "src/agent-door/index.server.ts": {
@@ -8620,7 +8620,7 @@
       "executable": false
     },
     "tests/agent-comment-delete-support.mjs": {
-      "sha256": "e26e35e548a633f17047b8bd9632a50bb40efaf66c6442b251b7cd323e054d34",
+      "sha256": "b242ebf165889ea2293c6ee6ccd64f77246f9de5f7a3a362749e32db6256993b",
       "executable": false
     },
     "tests/agent-conformance/fixtures.mjs": {
@@ -8672,7 +8672,7 @@
       "executable": false
     },
     "tests/agent-door.mjs": {
-      "sha256": "7bf742d9a6b41c7dc30da06d6cfb6969581d4c11302dacb828c0429295dfe99b",
+      "sha256": "fcefb50485041d03b0f2025c1a952361d88edf84da8225ce2ad6b1169a3e0c5c",
       "executable": false
     },
     "tests/agent-monitor-state-support.mjs": {

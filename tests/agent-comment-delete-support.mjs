@@ -16,6 +16,7 @@ const classes=[{class:'standard',facts:{measure:1}},{class:'destructive',facts:{
 const facts=answer=>answer.decision?.classes.map(({class:cls,facts})=>({class:cls,facts}));
 
 export async function proveCommentDeletion({c,native,db,proof,providerRequests,reviewer}) {
+ const wire=providerRequests.length;
  const tool='uptime.incidents.note',owner=await native('/api/access/self');
  const http=nativeHttp({request:fetch,origin:c.origin,cookie:c.person.cookie});
  const {incident}=await prepareIncident(http),other=await prepareIncident(http);
@@ -40,7 +41,7 @@ export async function proveCommentDeletion({c,native,db,proof,providerRequests,r
   assert.deepEqual(saved.mentions,[]);
   return {id:comment.id,version:edit.version,original,text};
  };
- const argsFor=comment=>({id:incident.id,action:'delete',comment_id:comment.id,version:comment.version,idempotency_key:randomUUID()});
+ const argsFor=comment=>({id:incident.id,action:'delete',comment_id:comment.id,version:comment.version,expected_revision:comment.version,idempotency_key:randomUUID()});
  async function refused(args,code,options) {
   const before=await snapshot(),wire=providerRequests.length,answer=await c.tool(tool,args,options);
   assert.equal(errorCode(answer),code);assert.equal(answer.result?.structuredContent,undefined);
@@ -61,8 +62,9 @@ export async function proveCommentDeletion({c,native,db,proof,providerRequests,r
   assert.deepEqual(attribution.approvers.map(person=>person.id),approvers);
   assert.deepEqual(after.incident_timeline.filter(row=>row.id!==entry.id),before.incident_timeline);
   const audits=after.uptime_audit.filter(row=>!before.uptime_audit.some(old=>old.id===row.id));
-  assert.equal(audits.length,1);assert.equal(audits[0].action,'incident_comment_delete');
-  assert.deepEqual(after.uptime_audit.filter(row=>row.id!==audits[0].id),before.uptime_audit);
+  assert.deepEqual(audits.map(row=>row.action).sort(),['access_respond','incident_comment_delete']);
+  assert.ok(audits.every(row=>row.actor_kind==='operator'&&row.actor_ref===owner.id));
+  assert.deepEqual(after.uptime_audit.filter(row=>!audits.some(added=>added.id===row.id)),before.uptime_audit);
   const read=await detail(),visible=read.comments.find(row=>row.id===comment.id);
   assert.equal(visible.text,null);assert.equal(visible.version,comment.version+1);assert.deepEqual(visible.history,[]);
   assert.ok(!JSON.stringify(read).includes(comment.original));assert.ok(!JSON.stringify(read).includes(comment.text));
@@ -70,7 +72,9 @@ export async function proveCommentDeletion({c,native,db,proof,providerRequests,r
   assert.ok(!JSON.stringify(agent.result.structuredContent).includes(comment.original));assert.ok(!JSON.stringify(agent.result.structuredContent).includes(comment.text));
   return after;
  }
- const wire=providerRequests.length;
+ const listed=await c.mcp('tools/list');
+ assert.equal(listed.result.tools.find(row=>row.name===tool).annotations.destructiveHint,true,'discovery truthfully warns that the note tool can destroy comment text and history');
+ assert.equal(providerRequests.length,wire,'native incident preparation uses no provider traffic');
  for(const version of ['2026-07-28','2025-11-25'])for(const held of [false,true]) {
   const policy=held?heldPolicy():autonomousPolicy();
   if(held)policy.rules[0].approver=['person:'+reviewer.sub];
@@ -90,22 +94,24 @@ export async function proveCommentDeletion({c,native,db,proof,providerRequests,r
   const audited=(await auditRows(c)).rows.find(row=>row.id===answer.decision.id);
   assert.deepEqual(audited.resource,{kind:'incident',id:incident.id});
   if(held) {
-   assert.equal(answer.result.resultType,'input_required');assert.equal(answer.result.structuredContent,undefined);
+   if(version==='2026-07-28')assert.equal(answer.result.resultType,'input_required');
+   else assert.equal(errorCode(answer),'approval_required','the earlier MCP era returns its explicit approval refusal');
+   assert.equal(answer.result.structuredContent,undefined);
    assert.deepEqual(await snapshot(),before,'approval wait preserves text, edit history and every native table');
-   const handle=answer.result._meta['com.runeditrun/approval'];
+   const handle=answer.result._meta['com.runeditrun/approval']??answer.result._meta['com.runeditrun/error'].approval;
    const approvalPath='/agents/api/approvals/'+encodeURIComponent(handle.id),{approval}=await c.personJson(approvalPath);
    assert.deepEqual(approval.summary.nativeTarget,{kind:'incident',id:incident.id});
    assert.ok(approval.summary.items.includes('Comment: '+comment.id));assert.ok(approval.summary.items.includes('Expected comment version: '+comment.version));
    const decision={revision:approval.revision,summary_sha256:approval.summary_sha256};
    const wrong=await c.personRequest(approvalPath+'/approve',{method:'POST',body:JSON.stringify(decision)});
    assert.equal(wrong.status,403,'the sponsor cannot substitute for the actual named approver');await wrong.body?.cancel();
-   const tampered=await c.personRequest(approvalPath+'/approve',{method:'POST',headers:{cookie:reviewer.cookie},body:JSON.stringify({...decision,summary_sha256:'0'.repeat(64)})});
+   const tampered=await c.personRequest(approvalPath+'/approve',{method:'POST',headers:{Cookie:reviewer.cookie},body:JSON.stringify({...decision,summary_sha256:'0'.repeat(64)})});
    assert.equal(tampered.status,409);await tampered.body?.cancel();assert.deepEqual(await snapshot(),before);
    if(version==='2026-07-28')await proof.capture('comment-delete-approval',new URL(handle.url).pathname);
-   const approved=await c.personRequest(approvalPath+'/approve',{method:'POST',headers:{cookie:reviewer.cookie},body:JSON.stringify(decision)});
+   const approved=await c.personRequest(approvalPath+'/approve',{method:'POST',headers:{Cookie:reviewer.cookie},body:JSON.stringify(decision)});
    assert.equal(approved.status,200);assert.equal((await approved.json()).approval.state,'executed');
    const saved=await deleted(comment,before,[reviewer.id]);
-   const again=await c.personRequest(approvalPath+'/approve',{method:'POST',headers:{cookie:reviewer.cookie},body:JSON.stringify(decision)});
+   const again=await c.personRequest(approvalPath+'/approve',{method:'POST',headers:{Cookie:reviewer.cookie},body:JSON.stringify(decision)});
    assert.equal((await again.json()).approval.state,'executed');assert.deepEqual(await snapshot(),saved);
   } else {assert.equal(answer.result?.isError,false);await deleted(comment,before,[])}
   const after=await snapshot(),replay=await invoke();assert.equal(replay.result?.isError,false);
@@ -126,20 +132,24 @@ export async function proveCommentDeletion({c,native,db,proof,providerRequests,r
  await native(path+'/comments/'+comment.id,{text:'synthetic-uptime-newer',version:comment.version,mentions:[]},'PATCH');
  const before=await snapshot(),handle=pending.result._meta['com.runeditrun/approval'],approvalPath='/agents/api/approvals/'+handle.id;
  const {approval}=await c.personJson(approvalPath);
- const approved=await c.personRequest(approvalPath+'/approve',{method:'POST',headers:{cookie:reviewer.cookie},body:JSON.stringify({revision:approval.revision,summary_sha256:approval.summary_sha256})});
+ const approved=await c.personRequest(approvalPath+'/approve',{method:'POST',headers:{Cookie:reviewer.cookie},body:JSON.stringify({revision:approval.revision,summary_sha256:approval.summary_sha256})});
  const stale=await approved.json();assert.equal(stale.approval.state,'refused');assert.equal(stale.approval.code,'revision_conflict');
  assert.deepEqual(await snapshot(),before,'native editing after preparation invalidates the saved deletion');
  // Exercise native author and responder restrictions with an independently
  // mapped person. Changing that person's role or scope also fences replay.
  await c.adopt(autonomousPolicy());
- await native('/api/access/members/'+reviewer.id,{role:'responder',scopes:[]});
  const memberHttp=nativeHttp({request:fetch,origin:c.origin,cookie:reviewer.cookie});
- const memberToken=await accessToken(c,{sub:reviewer.sub,act:{sub:'synthetic-uptime-'+randomUUID(),name:'Synthetic responder',specialist:'monitoring-operator'}});
- const options={token:memberToken,track:false};
  const owned=await memberHttp.json(path+'/comments',{text:'synthetic-uptime-responder',mentions:[]});
+ await native('/api/access/members/'+reviewer.id,{role:'responder',scopes:[]});
+ const memberRecord=(await native('/api/access/members')).find(person=>person.id===reviewer.id);
+ assert.ok(memberRecord);
+ const memberToken=await accessToken(c,{sub:reviewer.sub,email:memberRecord.email,act:{sub:'synthetic-uptime-'+randomUUID(),name:'Synthetic responder',specialist:'monitoring-operator'}});
+ const options={token:memberToken,track:false};
  await refused(argsFor(comment),'native_permission_required',options);
  const ownArgs=argsFor(owned),ownBefore=await snapshot(),ownDelete=await c.tool(tool,ownArgs,options);
  assert.equal(ownDelete.result?.isError,false,'a scoped responder can delete their own comment');
+ assert.equal(ownDelete.result.structuredContent.deleted,true);
+ assert.equal((await detail()).comments.find(row=>row.id===owned.id).text,null);
  unchangedExcept(ownBefore,await snapshot(),nativeEffects);
  const deletedState=await snapshot();
  assert.deepEqual((await c.tool(tool,ownArgs,options)).result.structuredContent,ownDelete.result.structuredContent);
@@ -151,6 +161,9 @@ export async function proveCommentDeletion({c,native,db,proof,providerRequests,r
  await native('/api/access/members/'+reviewer.id,{role:'admin',scopes:[]});
  const asAdmin=await create(),admin=await c.tool(tool,argsFor(asAdmin),options);
  assert.equal(admin.result?.isError,false,'a current native administrator can delete another author’s comment');
+ assert.equal(admin.result.structuredContent.deleted,true);
+ const adminDeleted=(await detail()).comments.find(row=>row.id===asAdmin.id);
+ assert.equal(adminDeleted.text,null);assert.deepEqual(adminDeleted.history,[]);
  console.log('PROBE SURFACE-004 native-authority: responder own deletion -> allowed; foreign author, out-of-scope replay and read-only replay -> refused unchanged; administrator deletion -> allowed');
  assert.equal(providerRequests.length,wire,'the entire comment journey makes zero provider requests');
  await c.adopt(autonomousPolicy());

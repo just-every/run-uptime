@@ -17,14 +17,14 @@ export const incidentNoteSchema:JsonSchemaObject={type:'object',properties:{
 ]}
 
 export function incidentNotes(env:Bindings){
- async function current(a:Record<string,any>,c:ToolContext,completed=false){
+ async function current(a:Record<string,any>,c:ToolContext,completed=false,checkVersion=true){
   const incident=await findIncident(env,a.id),access=await authority(env,c,'respond',[incident.monitor_id])
   if(access.kind==='credential')throw new ToolRefusal('insufficient_scope')
   if(a.action!=='delete')return {incident,access,comment:null}
   const comment=await env.DB.prepare('SELECT id,author_id,version,deleted_at FROM incident_comments WHERE id=? AND incident_id=? AND monitor_id=?').bind(a.comment_id,a.id,incident.monitor_id).first<{id:string;author_id:string;version:number;deleted_at:number|null}>()
   if(!comment||!completed&&comment.deleted_at!==null)throw unavailable()
   if(comment.author_id!==c.person.id&&!['owner','admin'].includes(access.role))throw new ToolRefusal('native_permission_required')
-  if(!completed&&comment.version!==a.version)throw new ToolRefusal('revision_conflict')
+  if(checkVersion&&!completed&&comment.version!==a.version)throw new ToolRefusal('revision_conflict')
   return {incident,access,comment}
  }
  return {
@@ -44,7 +44,7 @@ export function incidentNotes(env:Bindings){
    c.emit('incident.updated',`uptime://incidents/${a.id}`)
    return {incidentId:a.id,...result}
   },
-  async revision(a:Record<string,unknown>,c:ToolContext){return (await current(a,c)).comment?.version??null},
+  async revision(a:Record<string,unknown>,c:ToolContext){return (await current(a,c,false,false)).comment?.version??null},
   async summary(a:Record<string,any>){
    const incident=await findIncident(env,a.id),monitor=await get(env,incident.monitor_id)
    return {target:{id:a.id,name:'Incident for '+monitor?.definition.name},items:a.action==='delete'

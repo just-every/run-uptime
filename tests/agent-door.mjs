@@ -173,7 +173,6 @@ try{
  const reviewerSession=await call('/auth/session',undefined,{cookie:reviewerCookie});assert.equal(reviewerSession.status,200);
  const reviewerId=(await reviewerSession.json()).operator.id;
  await proveStandardApproval({c,native,call,origin,cookie,monitorId:monitor.id,sponsorId:sponsor.id,reviewerSub,reviewerId,reviewerCookie,proof});
- await proveCommentDeletion({c,native,db,proof,providerRequests,reviewer:{id:reviewerId,sub:reviewerSub,cookie:reviewerCookie}});
  const independent=heldPolicy();independent.rules=[{id:'all',class:'*',do:'approval',approver:['person:'+reviewerSub],wait:'PT1H'}];
  await c.adopt(independent);
  const reviewed=await c.tool('uptime.monitors.pause',{id:monitor.id,version:version+3,expected_revision:version+3});
@@ -199,6 +198,7 @@ try{
  await proof.capture('approval-refused',new URL(pausedApproval.result._meta['com.runeditrun/approval'].url).pathname);
  console.log('PASS BASE-AGENT-011.uptime.pause-pending-execution');
  await c.adopt(autonomousPolicy());
+ await proveCommentDeletion({c,native,db,proof,providerRequests,reviewer:{id:reviewerId,sub:reviewerSub,cookie:reviewerCookie}});
  await proveSavedEmailDestinationFacts({c,native,db,sponsorId:sponsor.id});
  const destination=await native('/api/notifications/destinations',{name:'Checkout incident webhook',kind:'webhook',url:'https://notifications.example.com/checkout'});
  const notificationArgs={id:destination.id,idempotency_key:randomUUID()};
