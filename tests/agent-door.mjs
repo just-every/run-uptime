@@ -6,6 +6,7 @@ import {proveAccessFacts} from './agent-access-facts-support.mjs';
 import {proveStandardApproval} from './agent-standard-approval-support.mjs';
 import {proveMonitorStateEffects} from './agent-monitor-state-support.mjs';
 import {proveHeldClassClaims} from './agent-held-class-claims-support.mjs';
+import {proveIncidentOwnership} from './agent-incident-ownership-support.mjs';
 // One integrated core journey, through the emitted production Worker and real
 // D1. Only mail/probe provider edges may be replaced; identities and mutations
 // enter the ordinary native public doors.
@@ -18,6 +19,7 @@ import {auditRows} from '../src/base/modules/agent-door/conformance/audit.mjs';
 import {completeSecondFactor} from './mfa-auth-support.mjs';
 import {signJws,seconds,autonomousPolicy,heldPolicy,accessToken,policyEnvelope} from '../src/base/modules/agent-door/conformance/crypto.mjs';
 import {createProtocol,errorCode} from '../src/base/modules/agent-door/conformance/protocol.mjs';
+await proveIncidentOwnership();
 const pair=await webcrypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']);
 const key=await webcrypto.subtle.exportKey('jwk',pair.publicKey),kid='uptime-native-journey',issuer='https://business.example.test',installationId=randomUUID(),sub=randomUUID(),business=randomUUID();
 const directory=await runtimeDirectory(),[port]=await availablePorts(1),origin='http://127.0.0.1:'+port;
