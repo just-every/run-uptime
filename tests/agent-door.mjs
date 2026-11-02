@@ -1,5 +1,6 @@
 import {proveSavedEmailDestinationFacts} from './agent-destination-facts-support.mjs';
 import {proveManualDebt} from './agent-manual-debt-support.mjs';
+import {proveSavedChannelDestinationFacts} from './agent-saved-channel-facts-support.mjs';
 import {proveAgentSurfaceDiscovery} from './agent-surface-discovery.mjs';
 import {provePolicyEntry} from './agent-policy-entry-support.mjs';
 import {nativeDoorBrowser} from './agent-door-browser.mjs';
@@ -203,6 +204,7 @@ try{
  console.log('PASS BASE-AGENT-011.uptime.pause-pending-execution');
  await c.adopt(autonomousPolicy());
  await proveSavedEmailDestinationFacts({c,native,db,sponsorId:sponsor.id});
+ await proveSavedChannelDestinationFacts({c,native,db,sponsorId:sponsor.id,providerRequests});
  const destination=await native('/api/notifications/destinations',{name:'Checkout incident webhook',kind:'webhook',url:'https://notifications.example.com/checkout'});
  const notificationArgs={id:destination.id,idempotency_key:randomUUID()};
  const queued=await result('uptime.destinations.test',notificationArgs),notificationId=queued.result.structuredContent.deliveryId;
