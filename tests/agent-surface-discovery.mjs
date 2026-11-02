@@ -35,10 +35,13 @@ export async function proveAgentSurfaceDiscovery({c,db,origin,monitorId}) {
  };
  const before=await snapshot();
  assert.ok(before.monitors.some(row=>row.id===monitorId),'refusal proof protects populated durable storage');
+ // Authentication-first refusals can close an unread HTTP request body. Own
+ // each refusal connection explicitly; do not reuse a socket being closed by
+ // the local Worker. Every status, response and durable-state assertion stays.
  // Every listed tool is tested at the unauthenticated boundary. Main's native
  // adapters are callable only after current signed authority and company policy.
  for(const [index,tool] of expected.entries()){
-  const response=await fetch(origin+'/mcp',{method:'POST',headers:{origin,accept:'application/json, text/event-stream','content-type':'application/json','mcp-protocol-version':'2025-11-25'},body:JSON.stringify({jsonrpc:'2.0',id:index+1,method:'tools/call',params:{name:tool.name,arguments:{id:monitorId,enabled:true,confirm:true}}})});
+  const response=await fetch(origin+'/mcp',{method:'POST',headers:{origin,connection:'close',accept:'application/json, text/event-stream','content-type':'application/json','mcp-protocol-version':'2025-11-25'},body:JSON.stringify({jsonrpc:'2.0',id:index+1,method:'tools/call',params:{name:tool.name,arguments:{id:monitorId,enabled:true,confirm:true}}})});
   assert.equal(response.status,401,`${tool.name}: absent signed authority refuses invocation`);
   const body=await response.text();
   assert.ok(!body.includes(monitorId)&&!body.includes('structuredContent'),'refusal exposes no product record');
