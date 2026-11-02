@@ -1,3 +1,4 @@
+import {proveAgentRevocationAudit} from './agent-revocation-audit-support.mjs';
 import {proveSavedEmailDestinationFacts} from './agent-destination-facts-support.mjs';
 import {proveManualDebt} from './agent-manual-debt-support.mjs';
 import {proveAgentSurfaceDiscovery} from './agent-surface-discovery.mjs';
@@ -53,6 +54,7 @@ try{
  await proveHeldClassClaims({c,native,db,origin,sponsorId:sponsor.id,providerRequests});
  await proveSelfEscalationState({c,native,call,db,origin,cookie,providerRequests});
  await proveAgentSurfaceDiscovery({c,db,origin,monitorId:monitor.id});
+ await proveAgentRevocationAudit({c,db,native,monitorId:monitor.id,sponsorId:sponsor.id,providerRequests});
  const target={kind:'monitor',id:monitor.id};
  const targetAudit=async(key,code)=>{
   const {rows,differs}=await auditRows(c);assert.equal(differs,0);

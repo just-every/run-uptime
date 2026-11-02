@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "96a60a77191a755d545dee8ecb006948334c536c94add1ad9280025a465738c0",
+      "sha256": "f9434c2b6458626b00ea7ab8759c1da28e8e525823e4a2cd828248af74bf41e1",
       "executable": false
     },
     "DEMO.md": {
@@ -8704,7 +8704,7 @@
       "executable": false
     },
     "tests/agent-door.mjs": {
-      "sha256": "0cdd150946cd5179bcfd24ce2d0e9afeb22535f965b9423ab770edf7c2e80e8d",
+      "sha256": "9e91b604e00bd30ae9bdfeb1963e9b6e03fd922b54844d8f90e87c3df2c8d59f",
       "executable": false
     },
     "tests/agent-held-class-claims-support.mjs": {
@@ -8725,6 +8725,10 @@
     },
     "tests/agent-rate-overrun.mjs": {
       "sha256": "9c7ff0d0cda4409e5b925752d6b36946ed4a0ed3d61cc37794078e5a1876cf06",
+      "executable": false
+    },
+    "tests/agent-revocation-audit-support.mjs": {
+      "sha256": "e9349e6a06bfb455a0fed99cc693139a38f6599e366da773e84a4f1c02465518",
       "executable": false
     },
     "tests/agent-self-escalation-state-support.mjs": {
