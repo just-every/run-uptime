@@ -2068,7 +2068,7 @@
       "executable": false
     },
     "docs/mfa.md": {
-      "sha256": "2a42eff9436270b77d12f8ad617c72112a06d68722283a3ead48dbcb2a15cf21",
+      "sha256": "7a98fb9ca933a555d4f68ebc977f48364ccc99c1266a25c0c028844f79c55ba9",
       "executable": false
     },
     "docs/migrating-betterstack.md": {
@@ -2607,12 +2607,16 @@
       "sha256": "d9898770226fa84dc06dab3451fa16718b7db742865415caea2e731916fbe11e",
       "executable": false
     },
+    "public/assets/second-factor.js": {
+      "sha256": "fb2560b1731dc2f1a36792831d3a024d79207814899c8ff14e0398a0c6a060dd",
+      "executable": false
+    },
     "public/assets/security-controls.css": {
       "sha256": "a60264ca87ce3edb5e213c752e0c19128379066fb5b53dcaeb18c6756e22f257",
       "executable": false
     },
     "public/assets/security-controls.js": {
-      "sha256": "d9d4d2e053a92fb688682e57626741a3958e312b0ad0638933fa6bf5706f2c01",
+      "sha256": "25e5441403c3fc5425240ca66211cdd2390786641597b10eb5a5a23745def871",
       "executable": false
     },
     "public/assets/setup.js": {
@@ -2992,7 +2996,7 @@
       "executable": false
     },
     "README.md": {
-      "sha256": "de187f86c66b87f5948a7f65d93f49b018660006b6f32d127fdaf83003346c21",
+      "sha256": "0c82b26f9738813676349e96bdfecf10a3908643cb9913af5987febfac71286f",
       "executable": false
     },
     "RELEASE.json": {
@@ -6908,7 +6912,7 @@
       "executable": false
     },
     "src/domain/auth-document.server.ts": {
-      "sha256": "10cdfc32d988d981b1ff5c16dbe9bcbc21672c1d3515674dbaf2547d9cfa47dd",
+      "sha256": "edd6a58fe62ea5ee1a94c877f2aa3bd24d73e25107d4421abe5e65772fcedc27",
       "executable": false
     },
     "src/domain/auxiliary-archive.ts": {
@@ -7492,7 +7496,7 @@
       "executable": false
     },
     "src/domain/mfa/door.server.ts": {
-      "sha256": "4cf2ad44ad262941b22abc75393b49b96498b8efe99766a17b8bcee1bf698a00",
+      "sha256": "cced1f5975d595bb75307026138ff1fa5a68d12b06f47d1b6ab56bcdfed6fdf4",
       "executable": false
     },
     "src/domain/mfa/manage.server.ts": {
@@ -7505,6 +7509,10 @@
     },
     "src/domain/mfa/policy.server.ts": {
       "sha256": "080cad1565c49a3708fe1698905609be020fed996a45ff543df2a8a3756b0011",
+      "executable": false
+    },
+    "src/domain/mfa/signin-document.server.ts": {
+      "sha256": "ff2184560326f4f3b00dcf1869bb1c34394abe3ae889ffe8d398019d15e65fa2",
       "executable": false
     },
     "src/domain/mfa/store.server.ts": {
@@ -8256,7 +8264,7 @@
       "executable": false
     },
     "src/server.ts": {
-      "sha256": "8e0282474e97434f97880c4761a9914f6d15108679228819807d75ac497a8b44",
+      "sha256": "8bf6c1448096f7e30ebf5df0cf5dba9a5c295ce80d6f8c61fddd4c0a992b1323",
       "executable": false
     },
     "src/site/docs/build/manifest.ts": {
@@ -9236,7 +9244,7 @@
       "executable": false
     },
     "tests/security-controls-browser-support.mjs": {
-      "sha256": "2b30902b68017491759a68ef4133ab438dac451d69c2a4ebf90bdbfaab53414e",
+      "sha256": "4e6367b65435f4a11cb4bc87517971904a9d1826cd1b5a133aa600d9b95bdcfb",
       "executable": false
     },
     "tests/service-catalog-fixture.mjs": {
