@@ -500,7 +500,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "95b691193e1c328aa4ca4bfe13657df2f3cfddc504e5afafd8f0c59285791b48",
+      "sha256": "89698804de3120a2aad96fcf57c59dcf55d50200630ef5673f6ea0b6c1554b43",
       "executable": false
     },
     "agent-surface.json": {
@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "f2394da3a14ef54b9c1dec8313df22f894588b5fe793cdf346d0f6583d62edb2",
+      "sha256": "20e18d9b056d08192c3c7cf67243e97fafc1b9eb40967966a18f335985a615dd",
       "executable": false
     },
     "DEMO.md": {
@@ -2524,7 +2524,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "12ac60285de046f29c8774e16efcfc41195c4ac70a083d3f9ae1ae50cff740ce",
+      "sha256": "498436d52d3aef38d0ab6383488fb213593e98a2d6a896a7cb42771cb7945f6c",
       "executable": false
     },
     "patches/README.md": {
@@ -8677,6 +8677,10 @@
     },
     "tests/agent-policy-entry-support.mjs": {
       "sha256": "0317ab93c10bc5438534b1687869f282a3fc273ff6cb88c71c2b9d3c3d41daf7",
+      "executable": false
+    },
+    "tests/agent-rate-overrun.mjs": {
+      "sha256": "9c7ff0d0cda4409e5b925752d6b36946ed4a0ed3d61cc37794078e5a1876cf06",
       "executable": false
     },
     "tests/agent-self-escalation-state-support.mjs": {

@@ -1483,7 +1483,7 @@ Agent surface · target · **partial**
 6. Pause and Pause all agents each stop the next call within 60 seconds, and resume restores access.
 7. An agent token cannot resume.
 
-**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: Pause, pending-execution refusal and declared limits.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: Pause, pending-execution refusal and declared limits.; `tests/agent-rate-overrun.mjs`; an otherwise-valid current-revision name write with a fresh key and its identical retry return HTTP 429, native rate_limited and a positive integral Retry-After matching the remaining window. Complete durable snapshots, including capacity and sequence counters, preserve all product, revision, scheduling, notification, credential, audit, approval, review, usage, idempotency and custody rows; public monitor and revision reads retain the successful counterpart and no provider traffic occurs.
 **Gap.** Native Pause, refusal of pending execution and declared policy limits pass CORE measurement. The full retained spend, recipient-cap, Business Pause and usage lifecycle remains unproved.
 
 #### BASE-AGENT-012 — Writes are idempotent and conflict-safe
