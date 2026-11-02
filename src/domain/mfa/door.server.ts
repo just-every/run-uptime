@@ -1,5 +1,6 @@
 import {authenticatedSession,authFailure,type AuthBindings} from '../operator-auth.server.ts'
-import {checkSecondFactor,requestNeedsStepUp,MfaError,mfaResponse} from './policy.server.ts'
+import {checkSecondFactor,requestNeedsStepUp,MfaError,mfaResponse,type MfaSession} from './policy.server.ts'
+import {ownerFactorDocument} from './signin-document.server.ts'
 import {limited} from './store.server.ts'
 import {beginTotp,finishTotp,verifyTotp} from './totp.server.ts'
 import {beginWebAuthn,finishWebAuthn,passkeysAvailable} from './webauthn.server.ts'
@@ -52,5 +53,10 @@ export async function mfaDoor(env:AuthBindings,request:Request){
 export async function earlyMfaGate(env:AuthBindings,request:Request){
  const path=new URL(request.url).pathname
  if(!(path==='/setup'||path==='/api/editor/config'||path==='/alert-drill'||path.startsWith('/api/operator/import/')||/^\/app\/evidence\//.test(path)||/^\/auth\/(?:session|operators|sessions|invite|invite\/cancel|operator\/status|operator\/role|session\/revoke|setup-complete)$/.test(path)))return null
- try{const session=await authenticatedSession(env,request);if(session)await checkSecondFactor(env,session,requestNeedsStepUp(request));return null}catch(error){return mfaResponse(error)??authFailure(error)}
+ let session:MfaSession|null=null
+ try{session=await authenticatedSession(env,request);if(session)await checkSecondFactor(env,session,requestNeedsStepUp(request));return null}catch(error){
+  // An owner opening /setup or an evidence page finishes signing in there instead of reading the refusal's JSON.
+  const owed=session&&['GET','HEAD'].includes(request.method)&&(path==='/setup'||/^\/app\/evidence\//.test(path))?await ownerFactorDocument(env,session,error,request.method==='HEAD'):null
+  return owed??mfaResponse(error)??authFailure(error)
+ }
 }

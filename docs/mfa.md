@@ -1,12 +1,46 @@
-# Second factors through the API and CLI
+# Second factors
 
 Native email-link sign-in remains Base's authentication method. Uptime binds
 TOTP and WebAuthn verification to that live Base session ID and operator version.
 A revoked, expired or inactive Base identity cannot use an old factor proof.
-This first slice provides API and CLI operations; the console enrollment and
-step-up screens are pending. Provider MFA assertions await ACCESS-002 SSO.
+The console enrolls and verifies factors; the same operations are available
+through the API and CLI below. Provider MFA assertions await ACCESS-002 SSO.
 
-## Enroll and sign in
+## Enroll in the console
+
+Open **Settings › People**, then **Security and keys** › **Manage second
+factors**. **Enroll authenticator** shows a secret once: add it to an RFC 6238
+authenticator app (SHA-1, six digits, 30 seconds), enter the app's current code
+and choose **Confirm authenticator**. **Enroll passkey** uses the browser's
+standard WebAuthn prompt on HTTPS or localhost. The first factor shows ten
+single-use recovery codes once: store them in your password manager, then choose
+**I saved this**. **Replace recovery codes** issues a new set after a fresh
+verification.
+
+## Sign in after enrolling
+
+Once your account has a factor, each new sign-in asks for it. After the email
+link (or, on your own computer, the `RER_OPEN` link from `rer dev`), an owner
+sees **Verify your second factor** at the address they opened, such as `/setup`
+or a console page, instead of the console. Enter the six-digit code your
+authenticator app shows now, or one unused recovery code, and choose **Verify
+and continue**; with a passkey enrolled on HTTPS or localhost, choose **Use a
+passkey**. The console then opens at that same address. A code that does not
+match, or a time step already used, is refused: enter the app's next code.
+**Sign out** leaves this step. Until the session is verified, every private page
+and API refuses it. This step is the owner's: another member who enrolled a
+factor verifies each new session with the command line below.
+
+## Sensitive actions
+
+A verification counts as fresh for five minutes. A sensitive action after that
+is refused with **Verify a second factor within the last five minutes**. In
+**Settings › People**, actions from the Security and keys and People cards ask
+for the code in place and then finish. Elsewhere, open **Security and keys** ›
+**Verify a second factor**, enter a code and choose **Verify code** (or **Verify
+passkey**), then repeat the action.
+
+## Command line (alternative)
 
 Put your live native Base session cookie in `UPTIME_ACCESS_COOKIE` in your private
 terminal environment. Keep it out of command arguments, shell history, logs and
@@ -30,9 +64,10 @@ Enrollment returns a challenge ID, a base32 seed and an `otpauth:` URI once.
 Add the seed or URI to an RFC 6238 authenticator (SHA-1, six digits, 30 seconds).
 Supply the challenge as JSON on standard input and the authenticator's current
 code in `UPTIME_MFA_CODE`, then run `totp-confirm` with the same `--origin`.
-After a later email-link sign-in, use `totp-verify` with the current code in
-`UPTIME_MFA_CODE`. A consumed time step cannot be used again; use a subsequent
-code or one unused recovery code for another session.
+After a later email-link sign-in, `totp-verify` with the current code in
+`UPTIME_MFA_CODE` verifies that session, as the console's sign-in step does. A
+consumed time step cannot be used again; use a subsequent code or one unused
+recovery code for another session.
 
 The first confirmed factor returns ten single-use recovery codes once. Store
 them in your password manager. `recovery-use` accepts one in `UPTIME_MFA_CODE`;
