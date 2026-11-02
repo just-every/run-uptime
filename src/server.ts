@@ -1,3 +1,4 @@
+import {expireReplayCalls} from './base/modules/agent-door/index.ts'
 import {agentDoorResponse,uptimeAgentDoor} from './agent-door/index.server.ts'
 import {registerSourceHistory} from './domain/source-history/routes.server.ts'
 import {previewReportRecurrence} from './domain/reports/recurring.server.ts'
@@ -419,7 +420,7 @@ const handler={async fetch(request,env,execution){
  }
  const response=await dispatch(request,()=>api.fetch(request,bindings,execution),()=>start.fetch(request));
  return noTransform(isConsoleDocument(path)?editorDocument(response,bindings):response)
-},async scheduled(_controller,env){env=await demoBindings(env as Bindings);await validateWorkerConfiguration(env as Bindings);const bindings=env as Bindings;await recordCronRun(bindings);await maintenance(bindings);const checks=new SubrequestBudget(CHECK_SUBREQUESTS);await scheduledPublicChecks(bindings,checks);await scheduledNotifications(bindings,new SubrequestBudget(RUN_SUBREQUESTS-WATCH_SUBREQUESTS-(CHECK_SUBREQUESTS-checks.remaining)));await monitoringWatch(bindings,()=>boundedHealth(()=>health(bindings)),async()=>{const data=await overview(bindings);return data.monitors.filter(m=>m.definition.enabled).every(m=>m.state.targetState==='Healthy')})}} satisfies ExportedHandler
+},async scheduled(_controller,env){env=await demoBindings(env as Bindings);await validateWorkerConfiguration(env as Bindings);const bindings=env as Bindings;await recordCronRun(bindings);await expireReplayCalls({options:{db:bindings.DB},now:Date.now});await maintenance(bindings);const checks=new SubrequestBudget(CHECK_SUBREQUESTS);await scheduledPublicChecks(bindings,checks);await scheduledNotifications(bindings,new SubrequestBudget(RUN_SUBREQUESTS-WATCH_SUBREQUESTS-(CHECK_SUBREQUESTS-checks.remaining)));await monitoringWatch(bindings,()=>boundedHealth(()=>health(bindings)),async()=>{const data=await overview(bindings);return data.monitors.filter(m=>m.definition.enabled).every(m=>m.state.targetState==='Healthy')})}} satisfies ExportedHandler
 export default withDemo({...handler,fetch(request,env,execution){
  return new URL(request.url).pathname==='/health'?boundedHealth(()=>handler.fetch(request,env,execution)):handler.fetch(request,env,execution)
 }} satisfies ExportedHandler,{seed:seedDemo})
