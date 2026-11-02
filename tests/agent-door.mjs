@@ -6,6 +6,7 @@ import {nativeDoorBrowser} from './agent-door-browser.mjs';
 import {proveAccessFacts} from './agent-access-facts-support.mjs';
 import {proveStandardApproval} from './agent-standard-approval-support.mjs';
 import {proveMonitorStateEffects} from './agent-monitor-state-support.mjs';
+import {proveHeldClassClaims} from './agent-held-class-claims-support.mjs';
 // One integrated core journey, through the emitted production Worker and real
 // D1. Only mail/probe provider edges may be replaced; identities and mutations
 // enter the ordinary native public doors.
@@ -48,6 +49,7 @@ try{
  const second=await native('/api/monitors',{...monitor.definition,name:'Foreign service',service:'foreign'});
  const db=await worker.getD1Database('DB');
  const sponsor=await db.prepare('SELECT id FROM oa_operators WHERE email=?').bind(bindings.OWNER_EMAIL).first();
+ await proveHeldClassClaims({c,native,db,origin,sponsorId:sponsor.id,providerRequests});
  await proveAgentSurfaceDiscovery({c,db,origin,monitorId:monitor.id});
  await proveAgentDocs({c,db,origin,monitorId:monitor.id,providerRequests,privateValues:[bindings.UPTIME_RUNNER_KEY,bindings.SESSION_SECRET,bindings.SETUP_TOKEN,bindings.RER_DEV_KEY],directory});
  const target={kind:'monitor',id:monitor.id};
