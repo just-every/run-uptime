@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "c7a5c6b0b57d1c94c7358c272458ac5723a8b371eec19f9d02f02f25324661d6",
+      "sha256": "f2394da3a14ef54b9c1dec8313df22f894588b5fe793cdf346d0f6583d62edb2",
       "executable": false
     },
     "DEMO.md": {
@@ -8664,7 +8664,7 @@
       "executable": false
     },
     "tests/agent-door.mjs": {
-      "sha256": "c30d18587afef963f04b7ccff640ac7aecfc040d9d9287686d83e6b7da048eb7",
+      "sha256": "ad15ca511abbb3d28f83942ce3ce852aa44352b979ef7f17eeb2472de3bfaf6a",
       "executable": false
     },
     "tests/agent-held-class-claims-support.mjs": {
@@ -8677,6 +8677,10 @@
     },
     "tests/agent-policy-entry-support.mjs": {
       "sha256": "0317ab93c10bc5438534b1687869f282a3fc273ff6cb88c71c2b9d3c3d41daf7",
+      "executable": false
+    },
+    "tests/agent-self-escalation-state-support.mjs": {
+      "sha256": "699f4ff79ebae0bcd801573a355db39eb4cfc2519ff808e8bcb56994bed946dc",
       "executable": false
     },
     "tests/agent-standard-approval-support.mjs": {
