@@ -8760,7 +8760,7 @@
       "executable": false
     },
     "tests/contact-schedules.mjs": {
-      "sha256": "ca7e3b8ad53ceb9f549ca7d8b92ce14c9a1c4861248eaa0c0bc9e6f148482b83",
+      "sha256": "653d724f1235609e7c43842e0c3a61ee6e0d4daae6b41f1e4207c9b0afe571d3",
       "executable": false
     },
     "tests/control-cadence-support.mjs": {
@@ -9284,7 +9284,7 @@
       "executable": false
     },
     "tests/signed-runner.mjs": {
-      "sha256": "072559fdf793f70cf05c71b6fd8071d93ae44d6c35790b4b14baa518fdeb0cfe",
+      "sha256": "8cce779dc6d00d75446a2477d347d44a24c8dc89e285a4599362b76802b34819",
       "executable": false
     },
     "tests/slow-responses.mjs": {
