@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "9b01c8ad8aaa87948b434804fadeda7eefb340ce606ee26aa4cb8194cd04a4be",
+      "sha256": "f9cc0d4a333fede5ef23059f7c7b864d25448360bec0f2940e1c0f2ee27bd731",
       "executable": false
     },
     "DEMO.md": {
@@ -2524,7 +2524,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "12ac60285de046f29c8774e16efcfc41195c4ac70a083d3f9ae1ae50cff740ce",
+      "sha256": "d4dc8edbf180d55f04ed7424155a81326016176410bd4eff7c8babf96396e613",
       "executable": false
     },
     "patches/README.md": {
@@ -8673,6 +8673,14 @@
     },
     "tests/agent-policy-entry-support.mjs": {
       "sha256": "0317ab93c10bc5438534b1687869f282a3fc273ff6cb88c71c2b9d3c3d41daf7",
+      "executable": false
+    },
+    "tests/agent-query-token-child.mjs": {
+      "sha256": "5243948ad948e048c5699620b341f176c23fd8a4a66c9cee08476403c2733679",
+      "executable": false
+    },
+    "tests/agent-query-token.mjs": {
+      "sha256": "e6cf010171919bb9ac45d46eb0d9473a0c526d387de2b4ddd96ea6033f397997",
       "executable": false
     },
     "tests/agent-standard-approval-support.mjs": {
