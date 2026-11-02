@@ -6,6 +6,7 @@ import {proveAccessFacts} from './agent-access-facts-support.mjs';
 import {proveStandardApproval} from './agent-standard-approval-support.mjs';
 import {proveMonitorStateEffects} from './agent-monitor-state-support.mjs';
 import {proveHeldClassClaims} from './agent-held-class-claims-support.mjs';
+import {proveOversizeNoEffect} from './agent-oversize-support.mjs';
 // One integrated core journey, through the emitted production Worker and real
 // D1. Only mail/probe provider edges may be replaced; identities and mutations
 // enter the ordinary native public doors.
@@ -47,6 +48,7 @@ try{
  const monitor=await native('/api/monitors',{name:'Checkout reachability',type:'http',network:'public',url:'https://checkout.example.test/health',method:'GET',assertions:{status:200},intervalMs:60000,timeoutMs:5000,retries:0,probes:['local-a'],failureQuorum:1,confirmSlots:1,recoverSlots:1,freshnessMs:120000,enabled:true,service:'checkout',group:'operations'});
  const second=await native('/api/monitors',{...monitor.definition,name:'Foreign service',service:'foreign'});
  const db=await worker.getD1Database('DB');
+ await proveOversizeNoEffect({c,native,db,origin,providerRequests});
  const sponsor=await db.prepare('SELECT id FROM oa_operators WHERE email=?').bind(bindings.OWNER_EMAIL).first();
  await proveHeldClassClaims({c,native,db,origin,sponsorId:sponsor.id,providerRequests});
  await proveAgentSurfaceDiscovery({c,db,origin,monitorId:monitor.id});
