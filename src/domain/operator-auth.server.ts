@@ -1,4 +1,5 @@
 import {checkSecondFactor,MfaError} from './mfa/policy.server.ts'
+import {ownerOwesEnrolledFactor} from './mfa/signin-document.server.ts'
 import {auditSql} from './audit.server.ts'
 import {permission,accessResponse} from './access.server.ts'
 import {authorizedDatabase} from './access-database.server.ts'
@@ -51,15 +52,20 @@ export function authFailure(error:unknown){return Response.json({error:error ins
 export async function signOut(env:AuthBindings,request:Request){return operatorAuth(env).signOut(request)}
 
 // A Base session may still owe its installation's second factor. Reuse the
-// console's proof gate before forwarding either sign-in document.
+// console's proof gate before forwarding either sign-in document: an owner who
+// owes a factor the account enrolled goes on to the console's verification step
+// (mfa/signin-document.server.ts); one with nothing to verify keeps the form.
 export async function signedInOwnerRedirect(env:AuthBindings,request:Request){
  if(!['GET','HEAD'].includes(request.method))return null;
  try{
   const session=await authenticatedSession(env,request);
   if(session?.operator.role!=='owner')return null;
-  await checkSecondFactor(env,session);
+  try{await checkSecondFactor(env,session)}catch(error){
+   if(!(error instanceof MfaError)||error.code!=='second_factor_required')throw error;
+   if(!await ownerOwesEnrolledFactor(env,session,error))return null;
+  }
   return new Response(null,{status:303,headers:{location:'/app','cache-control':'no-store, private'}});
- }catch(error){if(error instanceof MfaError&&error.code==='second_factor_required')return null;return authFailure(error)}
+ }catch(error){return authFailure(error)}
 }
 
 // Keep /signin as a browser alias; /login is the declared sign-in and native return path.
