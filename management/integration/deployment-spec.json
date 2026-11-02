@@ -516,6 +516,12 @@
       "name": "0083_agent_work.sql",
       "sha256": "608658a596975fe50cd2cbfaf86e097f82615d723aa387d48490f7501fdec9f2",
       "sql": "-- Durable initiating identity without any token, browser cookie or credential.\n-- Revisions and one-time runner handoffs retain custody across Worker restarts.\nCREATE TABLE uptime_agent_revisions(\n monitor_id TEXT NOT NULL, revision INTEGER NOT NULL, principal TEXT NOT NULL,\n PRIMARY KEY(monitor_id,revision)\n);\nCREATE TABLE uptime_agent_handoffs(\n id TEXT PRIMARY KEY, monitor_id TEXT NOT NULL, revision INTEGER NOT NULL,\n runner_id TEXT NOT NULL, operation_key TEXT NOT NULL UNIQUE,\n args TEXT NOT NULL, principal TEXT NOT NULL, delivered_at INTEGER,\n UNIQUE(monitor_id,revision,runner_id,operation_key)\n);\nCREATE TABLE uptime_agent_manual(slot_id TEXT PRIMARY KEY,principal TEXT NOT NULL);\nCREATE TABLE uptime_agent_discoveries(id TEXT PRIMARY KEY,principal TEXT NOT NULL,delivered_at INTEGER);\nCREATE TABLE uptime_agent_notifications(delivery_id TEXT PRIMARY KEY,principal TEXT NOT NULL);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0084_incident_mention_dispatch.sql",
+      "sha256": "19987ac3ef708548a04429e049b51007c40d3c2a64f53ae8ee58a4069c54a4f2",
+      "sql": "-- Select the oldest never-reserved work without scanning retained send history.\nCREATE INDEX incident_mentions_pending_dispatch ON incident_mentions(created_at,id)\n WHERE outcome='pending' AND submitted_at IS NULL AND finished_at IS NULL;\n"
     }
   ],
   "compatibilityDate": "2026-09-08",

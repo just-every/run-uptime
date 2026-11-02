@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "2cac5e46e64d5fe84737746be582a562b2dc029f03c6b4bc5d5d6ae834b3ea05",
+      "sha256": "ad2f862e04bc4769ceaf268c9c55e9b2b66f6b714ecce86b63e793e6222ea37a",
       "executable": false
     },
     "DEMO.md": {
@@ -2172,7 +2172,7 @@
       "executable": false
     },
     "management/integration/deployment-spec.json": {
-      "sha256": "bc272ee4d737f13e217419540409cdb69eab29095eb4fd8847b49cb7f800e3a1",
+      "sha256": "3119f0621630704611fd275014412db77565bb932f75d333c6ee585d17d1cecf",
       "executable": false
     },
     "migrations/0001_uptime.sql": {
@@ -2513,6 +2513,10 @@
     },
     "migrations/0083_agent_work.sql": {
       "sha256": "608658a596975fe50cd2cbfaf86e097f82615d723aa387d48490f7501fdec9f2",
+      "executable": false
+    },
+    "migrations/0084_incident_mention_dispatch.sql": {
+      "sha256": "19987ac3ef708548a04429e049b51007c40d3c2a64f53ae8ee58a4069c54a4f2",
       "executable": false
     },
     "OPERATIONS.json": {
@@ -7428,7 +7432,7 @@
       "executable": false
     },
     "src/domain/incident-work/mention-delivery.server.ts": {
-      "sha256": "2185485e57a381ef5969bd7b5085de9610249aa612712a7cc672a1736791c58d",
+      "sha256": "1c6a307c90740dec265d58359c588f5354d72799642c0615dfec100a7dfa9e17",
       "executable": false
     },
     "src/domain/incident-work/mention-members.server.ts": {
@@ -7624,7 +7628,7 @@
       "executable": false
     },
     "src/domain/notification-worker.server.ts": {
-      "sha256": "d893ab8de35f0f5c41bd3d475641dbff1c74eb07c62f02950a3bbe542be18f9b",
+      "sha256": "df7c90b795f67793c220eee1961d32a8ca7dbb47432ba6a96d08275ffa7f5fc6",
       "executable": false
     },
     "src/domain/notifications.server.ts": {
@@ -8960,7 +8964,7 @@
       "executable": false
     },
     "tests/hosted-alerts.mjs": {
-      "sha256": "6bd446661cd7e90314a66d07c8a0d1c8be8a8f7951bad48efde9d14ef3f4f09d",
+      "sha256": "bc5865d7c5ee831606c3deccd2da47bf3952e8dd9a2cf9dc6c836b4ddbfdb351",
       "executable": false
     },
     "tests/hosted-auth-browser.mjs": {
@@ -8988,11 +8992,15 @@
       "executable": false
     },
     "tests/incident-members-support.mjs": {
-      "sha256": "370b3b9daf310827a76ad06cde0f513ae036b7a689932635d0caa40c03b4d203",
+      "sha256": "56f76ce13e7aa0b4438308cf56fe1f433c5b343fc819114513319f9a24405796",
+      "executable": false
+    },
+    "tests/incident-mention-recovery-support.mjs": {
+      "sha256": "2c2e10ded687f1b3401615ae6ab5cf429ccc501268ce9b404e33f8646c30247c",
       "executable": false
     },
     "tests/incident-work.mjs": {
-      "sha256": "6daafb6fdac08e639956badb29a652eb9e921737e0e647f899c6c36ed3c53485",
+      "sha256": "8b2017e8f66c2374eee926b9ec348f6d359a1de134c3cab598b0805515982216",
       "executable": false
     },
     "tests/installer-support.mjs": {
@@ -9112,7 +9120,7 @@
       "executable": false
     },
     "tests/operator-security.mjs": {
-      "sha256": "7c74b920525598def519acfbd992c9454a89c11cca9a0835b1daf907caebac59",
+      "sha256": "73c6a4bba16a0a2e516184696f0074916717d59c9d973260c862c39850112fb7",
       "executable": false
     },
     "tests/owner-deploy-lifecycle.mjs": {
