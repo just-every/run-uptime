@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "321c426fabe42837e831b807bef999fc0b6b53733447a77877346f461a05693c",
+      "sha256": "7c93711ab8f17a2bbc94cafd1d7aa14f36db94986e3f75055abc88b47a0be1f2",
       "executable": false
     },
     "DEMO.md": {
@@ -549,6 +549,10 @@
     },
     "docs/access.md": {
       "sha256": "29bb4bcfd74e0ccf06d7d24e7e98deb4c631eb5fea52e1343dbc18ac7f3cd9f5",
+      "executable": false
+    },
+    "docs/agents.md": {
+      "sha256": "57a6bcdeb87fb8ac8d14785a32d3aa8022148cbdde043b8fd3de8afd2c723e0e",
       "executable": false
     },
     "docs/api-keys.md": {
@@ -2136,7 +2140,7 @@
       "executable": false
     },
     "docs/site.json": {
-      "sha256": "3c4a381bcd402b717abfa24c2743b7b258da5c4155fdb1941ab22e17bdcb544f",
+      "sha256": "aae28e59ef5c1a35d2468f0a2e62136b5a3fff9eae7413bb25f93c0cbd73c746",
       "executable": false
     },
     "docs/slow-responses.md": {
@@ -3495,6 +3499,10 @@
       "sha256": "252cd632469e5d33cb367b8df1f1858391673ea8a4d1697476b8dbbc5766f5e6",
       "executable": false
     },
+    "scripts/agent-docs.mjs": {
+      "sha256": "030c278832570816059e73d2e58a742c66fd64216b7c98dbf8505fdc63663324",
+      "executable": false
+    },
     "scripts/api-keys.mjs": {
       "sha256": "c89a6676286226e15e2fe0245050a6d0327f79b1cc3d2b0344921ee70faf9424",
       "executable": false
@@ -4448,7 +4456,7 @@
       "executable": false
     },
     "src/agent-door/index.server.ts": {
-      "sha256": "03ce4e262ea758f320784b44e273446a02724c7afa77bdd684aa376a4397fc95",
+      "sha256": "584ec4057fb8dbaca9ffb33c0f7d56bcd1240a6d0aa499da984d5d752c977e74",
       "executable": false
     },
     "src/agent-door/manual-check-effects.server.ts": {
@@ -8699,12 +8707,16 @@
       "sha256": "c9cde5143bedbbbcae6d04b9dd6904df07d9043fb29a9a0bc76e9f38b54e4d70",
       "executable": false
     },
+    "tests/agent-docs-support.mjs": {
+      "sha256": "c0ac4b388255cabb68581a3fc5594a51320f7679a10a110a1b87b312fc537616",
+      "executable": false
+    },
     "tests/agent-door-browser.mjs": {
       "sha256": "0b4d1d600667e5e9ec22b577438e1231525bd0710b5d3e1ce04f79f600da8130",
       "executable": false
     },
     "tests/agent-door.mjs": {
-      "sha256": "0cdd150946cd5179bcfd24ce2d0e9afeb22535f965b9423ab770edf7c2e80e8d",
+      "sha256": "ea6cdbce85c08c48f620fc9c69397399a0fc84a43535a96d783247ef67e51077",
       "executable": false
     },
     "tests/agent-held-class-claims-support.mjs": {
