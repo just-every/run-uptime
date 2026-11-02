@@ -27,6 +27,7 @@ import {saveEvidenceAccess} from '../domain/failure-evidence-access.server.ts'
 import {authority,unavailable} from './authority.server.ts'
 import * as reads from './reads.server.ts'
 import {monitorUpdateEffects} from './monitor-update-effects.server.ts'
+import {monitorCreateEffects} from './monitor-create-effects.server.ts'
 const string={type:'string',minLength:1,maxLength:512},integer={type:'integer',minimum:0}
 const schema=(properties:Record<string,any>,required=Object.keys(properties)):JsonSchemaObject=>({type:'object',properties,required,additionalProperties:false})
 const idSchema=schema({id:string})
@@ -113,15 +114,11 @@ export function tools(env:Bindings):ToolDefinition[]{
   return row&&saved?.operationId?{id:row.id,operationId:saved.operationId}:null
  }
  const monitorRevision=async(a:any,c:ToolContext)=>(await current(env,c,a.id)).revision
- const monitorRisk=async(a:any,c:ToolContext)=>{
-  const before=a.id?(await current(env,c,a.id)).definition:null,next={...(before??{}),...(a.definition as object??{})}
-  const access=await authority(env,c,'check_write',a.id?[a.id]:[],next,!a.id)
-  const risks:ClassAndFacts[]=[facts('live',{service:next.service??'monitoring'})]
-  if(next.type!=='heartbeat'&&next.enabled!==false&&(!before||next.url!==before.url||JSON.stringify(next.probes)!==JSON.stringify(before.probes)||next.intervalMs!==before.intervalMs))risks.push(facts('external',{counterparty:'public'}))
-  if((next.network&&next.network!=='public'&&next.network!==before?.network)||next.privateGrantRef!==before?.privateGrantRef||next.request?.credentialRef!==before?.request?.credentialRef||JSON.stringify(next.tlsTrust)!==JSON.stringify(before?.tlsTrust))risks.push(facts('security',{setting:'monitor-request-authority'}))
-  return risks
+ const monitorCreationRisk=async(a:any,c:ToolContext)=>{
+  await authority(env,c,'check_write',[],a.definition,true)
+  return monitorCreateEffects(a.definition)
  }
- mutation('monitors.create','Create a native monitor',schema({definition:{type:'object'}}),['live','external','security'],['MONITOR-001'],async(a,c)=>{const access=await authority(env,c,'check_write',[],a.definition,true);const result=await save({...env,DB:authorizedDatabase(env,access)},a.definition,undefined,actor(c));c.emit('monitor.created',`uptime://monitors/${result!.id}`);return reads.monitorRead(env,c,result!.id)},monitorRisk).authority=async(a)=>({subject:'monitor:new',widens:Boolean((a.definition as any)?.privateGrantRef||(a.definition as any)?.request?.credentialRef)})
+ mutation('monitors.create','Create a native monitor',schema({definition:{type:'object'}}),['standard','live','external','security'],['MONITOR-001'],async(a,c)=>{const access=await authority(env,c,'check_write',[],a.definition,true);const result=await save({...env,DB:authorizedDatabase(env,access)},a.definition,undefined,actor(c));c.emit('monitor.created',`uptime://monitors/${result!.id}`);return reads.monitorRead(env,c,result!.id)},monitorCreationRisk).authority=async(a)=>({subject:'monitor:new',widens:Boolean((a.definition as any)?.privateGrantRef||(a.definition as any)?.request?.credentialRef)})
  const monitorSchema=schema({id:string,version:integer,definition:{type:'object',minProperties:1}})
  const update=mutation('monitors.update','Update a native monitor definition',monitorSchema,['standard','live','external','security'],['MONITOR-001'],async(a,c)=>{
   const old=await current(env,c,a.id),next={...old.definition,...a.definition},access=await authority(env,c,'check_write',[a.id],next),db=authorizedDatabase(env,access)
