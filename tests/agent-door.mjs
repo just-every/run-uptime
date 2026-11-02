@@ -1,3 +1,4 @@
+import {proveCommentDeletion} from './agent-comment-delete-support.mjs';
 import {proveSavedEmailDestinationFacts} from './agent-destination-facts-support.mjs';
 import {proveAgentSurfaceDiscovery} from './agent-surface-discovery.mjs';
 import {provePolicyEntry} from './agent-policy-entry-support.mjs';
@@ -172,6 +173,7 @@ try{
  const reviewerSession=await call('/auth/session',undefined,{cookie:reviewerCookie});assert.equal(reviewerSession.status,200);
  const reviewerId=(await reviewerSession.json()).operator.id;
  await proveStandardApproval({c,native,call,origin,cookie,monitorId:monitor.id,sponsorId:sponsor.id,reviewerSub,reviewerId,reviewerCookie,proof});
+ await proveCommentDeletion({c,native,db,proof,providerRequests,reviewer:{id:reviewerId,sub:reviewerSub,cookie:reviewerCookie}});
  const independent=heldPolicy();independent.rules=[{id:'all',class:'*',do:'approval',approver:['person:'+reviewerSub],wait:'PT1H'}];
  await c.adopt(independent);
  const reviewed=await c.tool('uptime.monitors.pause',{id:monitor.id,version:version+3,expected_revision:version+3});
