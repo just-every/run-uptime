@@ -1,0 +1,66 @@
+{
+ "hover shows the control name": {
+  "ok": true,
+  "detail": "Select monitor"
+ },
+ "accessible name equals tooltip text": {
+  "ok": true
+ },
+ "row context is the description": {
+  "ok": true
+ },
+ "leave dismisses": {
+  "ok": true
+ },
+ "Escape dismisses hover": {
+  "ok": true
+ },
+ "disclosure icon tooltip": {
+  "ok": true,
+  "detail": "About coverage"
+ },
+ "scroll dismisses": {
+  "ok": true
+ },
+ "keyboard focus shows at once": {
+  "ok": true
+ },
+ "click still acts": {
+  "ok": true
+ },
+ "tap: no tooltip": {
+  "ok": true
+ },
+ "tap performs the action": {
+  "ok": true
+ },
+ "long press shows tooltip": {
+  "ok": true,
+  "detail": "Select monitor"
+ },
+ "long press does not act": {
+  "ok": true
+ },
+ "long-press tooltip leaves by itself": {
+  "ok": true
+ },
+ "chip: long press names Remove filter": {
+  "ok": true,
+  "detail": "Remove filter"
+ },
+ "chip: long press leaves the filter": {
+  "ok": true
+ },
+ "chip: tap removes the filter": {
+  "ok": true
+ },
+ "rule remove: name and description": {
+  "ok": true
+ },
+ "rule remove: focus tooltip": {
+  "ok": true
+ },
+ "rule remove: click still removes the rule": {
+  "ok": true
+ }
+}

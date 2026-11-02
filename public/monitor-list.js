@@ -1,4 +1,4 @@
-import {escape,ago,monitorHref,shownState} from './console-format.js';
+import {escape,ago,monitorHref,shownState,tip} from './console-format.js';
 import {checkedFrom,locationNamer} from './monitor-rules.js';
 import {dayClock} from './monitor-status.js';
 import {activeLocations} from './locations.js';
@@ -68,5 +68,5 @@ export function monitorRow(m,{runners,readUnavailable,selected}){
  const d=m.definition,state=shownState(m,readUnavailable),id=escape(m.id),href=escape(monitorHref(m.id));
  const mark=state==='Healthy'?'<span class="monitor-dot"><span class="ui-visually-hidden">Healthy</span></span>':'',pill=state==='Healthy'?'':`<span class="ui-pill state ${escape(state.toLowerCase())}">${escape(state)}</span>`;
  const warning=m.configurationWarning?`<a class="ui-link monitor-warning" href="${href}/edit">Needs a second location or an external check</a>`:'';
- return `<li class="monitor-row${selected?' is-selected':''}" data-key="${id}"><input type="checkbox" id="catalog-select-${id}" data-monitor-select="${id}" aria-label="Select monitor" aria-describedby="monitor-link-${id}"${selected?' checked':''}><div class="monitor-main"><div class="monitor-title">${mark}<a class="monitor-link" id="monitor-link-${id}" href="${href}"><span class="monitor-name">${escape(d.name)}</span></a>${pill}</div>${meta(m,state,runners)}${warning}</div>${day(m.availability?.last24h,d.enabled)}</li>`;
+ return `<li class="monitor-row${selected?' is-selected':''}" data-key="${id}"><input type="checkbox" id="catalog-select-${id}" data-monitor-select="${id}" ${tip('Select monitor',{describedBy:`monitor-link-${id}`})}${selected?' checked':''}><div class="monitor-main"><div class="monitor-title">${mark}<a class="monitor-link" id="monitor-link-${id}" href="${href}"><span class="monitor-name">${escape(d.name)}</span></a>${pill}</div>${meta(m,state,runners)}${warning}</div>${day(m.availability?.last24h,d.enabled)}</li>`;
 }

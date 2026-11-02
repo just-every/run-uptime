@@ -1,0 +1,126 @@
+[
+ {
+  "label": "monitors list, 1440: Filter menu open with a chip, a row box focused",
+  "reads": 18,
+  "stable": true,
+  "answers": true,
+  "samples": [
+   {
+    "t": 0,
+    "filterOpen": true,
+    "chips": 1,
+    "focus": "status-endpoint",
+    "markKept": true,
+    "sameLayer": true,
+    "layers": 1
+   },
+   {
+    "t": 10,
+    "filterOpen": true,
+    "chips": 1,
+    "focus": "status-endpoint",
+    "markKept": true,
+    "sameLayer": true,
+    "layers": 1
+   },
+   {
+    "t": 23,
+    "filterOpen": true,
+    "chips": 1,
+    "focus": "status-endpoint",
+    "markKept": true,
+    "sameLayer": true,
+    "layers": 1
+   },
+   {
+    "t": 36,
+    "filterOpen": true,
+    "chips": 1,
+    "focus": "status-endpoint",
+    "markKept": true,
+    "sameLayer": true,
+    "layers": 1
+   },
+   {
+    "t": 49,
+    "filterOpen": true,
+    "chips": 1,
+    "focus": "status-endpoint",
+    "markKept": true,
+    "sameLayer": true,
+    "layers": 1
+   },
+   {
+    "t": 62,
+    "filterOpen": true,
+    "chips": 1,
+    "focus": "status-endpoint",
+    "markKept": true,
+    "sameLayer": true,
+    "layers": 1
+   }
+  ]
+ },
+ {
+  "label": "monitor page, 390: scrolled, Reports fold and Add a rule menu open",
+  "reads": 106,
+  "stable": true,
+  "answers": true,
+  "samples": [
+   {
+    "t": 0,
+    "scrollY": 420,
+    "addRuleOpen": true,
+    "foldsOpen": 7,
+    "markKept": true,
+    "sameLayer": true,
+    "layers": 1
+   },
+   {
+    "t": 10,
+    "scrollY": 420,
+    "addRuleOpen": true,
+    "foldsOpen": 7,
+    "markKept": true,
+    "sameLayer": true,
+    "layers": 1
+   },
+   {
+    "t": 23,
+    "scrollY": 420,
+    "addRuleOpen": true,
+    "foldsOpen": 7,
+    "markKept": true,
+    "sameLayer": true,
+    "layers": 1
+   },
+   {
+    "t": 36,
+    "scrollY": 420,
+    "addRuleOpen": true,
+    "foldsOpen": 7,
+    "markKept": true,
+    "sameLayer": true,
+    "layers": 1
+   },
+   {
+    "t": 49,
+    "scrollY": 420,
+    "addRuleOpen": true,
+    "foldsOpen": 7,
+    "markKept": true,
+    "sameLayer": true,
+    "layers": 1
+   },
+   {
+    "t": 62,
+    "scrollY": 420,
+    "addRuleOpen": true,
+    "foldsOpen": 7,
+    "markKept": true,
+    "sameLayer": true,
+    "layers": 1
+   }
+  ]
+ }
+]

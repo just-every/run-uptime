@@ -1,0 +1,116 @@
+[
+ {
+  "width": 1440,
+  "before": {
+   "name": "Open Run Edit Run",
+   "title": null,
+   "marker": true,
+   "tip": null,
+   "rect": null,
+   "vw": 1440,
+   "vh": 900,
+   "layers": 2
+  },
+  "hoverAt150": null,
+  "hover": {
+   "name": "Open Run Edit Run",
+   "title": null,
+   "marker": true,
+   "tip": "Open Run Edit Run",
+   "rect": [
+    1296,
+    794,
+    1432,
+    824
+   ],
+   "vw": 1440,
+   "vh": 900,
+   "layers": 2
+  },
+  "focusReached": true,
+  "focus": {
+   "name": "Open Run Edit Run",
+   "title": null,
+   "marker": true,
+   "tip": "Open Run Edit Run",
+   "rect": [
+    1296,
+    794,
+    1432,
+    824
+   ],
+   "vw": 1440,
+   "vh": 900,
+   "layers": 2
+  },
+  "afterEscape": null,
+  "clickOpened": true,
+  "afterClick": {
+   "name": "Close Run Edit Run",
+   "title": null,
+   "marker": true,
+   "tip": null,
+   "rect": null,
+   "vw": 1440,
+   "vh": 900,
+   "layers": 2
+  }
+ },
+ {
+  "width": 390,
+  "before": {
+   "name": "Open Run Edit Run",
+   "title": null,
+   "marker": true,
+   "tip": null,
+   "rect": null,
+   "vw": 390,
+   "vh": 844,
+   "layers": 2
+  },
+  "focusReached": true,
+  "focus": {
+   "name": "Open Run Edit Run",
+   "title": null,
+   "marker": true,
+   "tip": "Open Run Edit Run",
+   "rect": [
+    246,
+    738,
+    382,
+    768
+   ],
+   "vw": 390,
+   "vh": 844,
+   "layers": 2
+  },
+  "afterEscape": null,
+  "touch": {
+   "name": "Open Run Edit Run",
+   "title": null,
+   "marker": true,
+   "tip": "Open Run Edit Run",
+   "rect": [
+    246,
+    738,
+    382,
+    768
+   ],
+   "vw": 390,
+   "vh": 844,
+   "layers": 2
+  },
+  "longPressDidNotOpen": true,
+  "tapOpened": true,
+  "afterTap": {
+   "name": "Close Run Edit Run",
+   "title": null,
+   "marker": true,
+   "tip": null,
+   "rect": null,
+   "vw": 390,
+   "vh": 844,
+   "layers": 2
+  }
+ }
+]

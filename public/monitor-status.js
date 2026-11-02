@@ -1,4 +1,4 @@
-import {ago,duration,escape} from './console-format.js';
+import {ago,duration,escape,tip} from './console-format.js';
 import {checkedFrom,quoted,responseTime,statusText} from './monitor-rules.js';
 import {checkResultSummary} from './monitor-timeline.js';
 // What a monitor's page says about itself in one plain sentence, and what a finished check says. The engine's own
@@ -80,6 +80,6 @@ export function statusLine(m,{readUnavailable,data,seen={}}){
  }
 }
 // A short line with the longer explanation behind a "?" disclosure, so fine print is there when wanted and not read
-// otherwise. `name` says what the "?" explains (its accessible name).
-export const moreInfo=(line,more,cls,name)=>`<div class="fine-print${cls?' '+cls:''}"><p>${line}</p><details class="more-info"><summary aria-label="${escape(name)}"><span aria-hidden="true">?</span></summary><p>${more}</p></details></div>`;
+// otherwise. `name` says what the "?" explains: its tooltip and its accessible name.
+export const moreInfo=(line,more,cls,name)=>`<div class="fine-print${cls?' '+cls:''}"><p>${line}</p><details class="more-info"><summary ${tip(name)}><span aria-hidden="true">?</span></summary><p>${more}</p></details></div>`;
 export const moreInfoText=(line,more,cls,name)=>moreInfo(escape(line),escape(more),cls,name);
