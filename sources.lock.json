@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "96a60a77191a755d545dee8ecb006948334c536c94add1ad9280025a465738c0",
+      "sha256": "47d987d57f7c13d0a724fa926d2cb040be91135f3b8eef995ac5992061fa6ec0",
       "executable": false
     },
     "DEMO.md": {
@@ -8680,7 +8680,11 @@
       "executable": false
     },
     "tests/agent-door.mjs": {
-      "sha256": "0cdd150946cd5179bcfd24ce2d0e9afeb22535f965b9423ab770edf7c2e80e8d",
+      "sha256": "cb3ec6c1189e770bbfd498976d93f8a27a8937962034f54ac82cb374464f0c77",
+      "executable": false
+    },
+    "tests/agent-form-accept-support.mjs": {
+      "sha256": "4a8a9c6bf02527b1ba0fb81b7bba96f927739f43c6ddf343e250ad849d063f30",
       "executable": false
     },
     "tests/agent-held-class-claims-support.mjs": {
