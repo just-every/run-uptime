@@ -1,3 +1,4 @@
+import {proveAgentDocs} from './agent-docs-support.mjs';
 import {proveSavedEmailDestinationFacts} from './agent-destination-facts-support.mjs';
 import {proveAgentSurfaceDiscovery} from './agent-surface-discovery.mjs';
 import {provePolicyEntry} from './agent-policy-entry-support.mjs';
@@ -48,6 +49,7 @@ try{
  const db=await worker.getD1Database('DB');
  const sponsor=await db.prepare('SELECT id FROM oa_operators WHERE email=?').bind(bindings.OWNER_EMAIL).first();
  await proveAgentSurfaceDiscovery({c,db,origin,monitorId:monitor.id});
+ await proveAgentDocs({c,db,origin,monitorId:monitor.id,providerRequests,privateValues:[bindings.UPTIME_RUNNER_KEY,bindings.SESSION_SECRET,bindings.SETUP_TOKEN,bindings.RER_DEV_KEY],directory});
  const target={kind:'monitor',id:monitor.id};
  const targetAudit=async(key,code)=>{
   const {rows,differs}=await auditRows(c);assert.equal(differs,0);

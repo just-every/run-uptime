@@ -105,6 +105,12 @@
           "summary": "Connect read-only Prometheus scrapes, Grafana dashboards and explicit Datadog or signed webhook exports."
         },
         {
+          "slug": "agents",
+          "title": "Agent catalogue",
+          "file": "agents.md",
+          "summary": "The callable monitoring tools and declared resource availability, generated from the native registry."
+        },
+        {
           "slug": "read-api",
           "title": "Monitoring API and CSV",
           "file": "read-api.md",
