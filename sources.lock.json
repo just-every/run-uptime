@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "73cc1e980246632a5ab1f966a272b5939f1f2f1e15c72f4ebc14375cc1b27a82",
+      "sha256": "d00f8bafb00e2198da9ad8d94f52f517e86703b9dda002bdacef0d339fae3c9d",
       "executable": false
     },
     "DEMO.md": {
@@ -7248,7 +7248,7 @@
       "executable": false
     },
     "src/domain/evidence.server.ts": {
-      "sha256": "8571c8b1928a237a606595c0911151a6520a837871e521d2fb7b85bebba9e446",
+      "sha256": "7ff3d5052c37799080a247acf80ce1a01949676cbd6433112734cc0874103ff8",
       "executable": false
     },
     "src/domain/expiry-notices.server.ts": {
@@ -7280,7 +7280,7 @@
       "executable": false
     },
     "src/domain/failure-snapshot-archive.ts": {
-      "sha256": "0136d14dd198d4d1cbda43fbeebaf6e35e17fe72444a8d86be06826c34543213",
+      "sha256": "b4bb18840d6d2e6ab8fda13a07a68d473849c11dd826a9e76cd02d674746f518",
       "executable": false
     },
     "src/domain/failure-snapshot-text.d.mts": {

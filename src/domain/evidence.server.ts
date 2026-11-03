@@ -194,7 +194,7 @@ export function validateEvidence(o: any, definition: any, dueAt: number, now: nu
     if(!('unavailable' in snapshot)){
       if(protocol)validateProtocolDiagnosticSnapshot(snapshot,definition,o);
       else if(!['http:','https:'].includes(new URL(snapshot.url).protocol))throw Error('Invalid failure snapshot URL');
-      const statusValid=protocol?snapshot.status===null:flow?snapshot.status===null:o.status!==undefined?snapshot.status===o.status:snapshot.status===null||o.checks?.some((c:any)=>['timeout','connection','transport','encoding','body-limit'].includes(c.assertion));
+      const statusValid=protocol?snapshot.status===null:flow?snapshot.status===null:o.status!==undefined?snapshot.status===o.status:snapshot.status===null||o.checks?.some((c:any)=>['timeout','connection','transport','encoding','body-limit'].includes(c.assertion)||c.assertion==='redirect'&&snapshot.status!==null&&Number.isInteger(snapshot.status)&&snapshot.status>=300&&snapshot.status<400);
       if(!statusValid||snapshot.durationMs!==o.durationMs||!protocol&&snapshot.diagnostics&&snapshot.diagnostics.category!==o.checks?.[0]?.assertion||!flow&&snapshot.artifacts)throw Error('Invalid failure snapshot evidence');
     }
   }
