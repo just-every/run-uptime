@@ -10,6 +10,7 @@ import {proveMonitorStateEffects} from './agent-monitor-state-support.mjs';
 import {proveHeldClassClaims} from './agent-held-class-claims-support.mjs';
 import {proveSelfEscalationState} from './agent-self-escalation-state-support.mjs';
 import {proveOversizeNoEffect} from './agent-oversize-support.mjs';
+import {proveFormAccept} from './agent-form-accept-support.mjs';
 // One integrated core journey, through the emitted production Worker and real
 // D1. Only mail/probe provider edges may be replaced; identities and mutations
 // enter the ordinary native public doors.
@@ -47,12 +48,13 @@ try{
  await c.adopt(autonomousPolicy());await policyEntry.proveAllowed();
  for(const version of ['2026-07-28','2025-11-25']){const listed=await c.mcp('tools/list',{}, {version});assert.deepEqual(listed.result.tools.map(t=>t.name),surface.tools.map(t=>t.name).sort())}
  const native=async(path,body,method=body===undefined?'GET':'POST')=>{const response=await fetch(origin+path,{method,redirect:'manual',headers:{cookie,origin,'content-type':'application/json'},...(body===undefined?{}:{body:JSON.stringify(body)})});assert.ok(response.ok,`${path} HTTP ${response.status}`);return response.json()};
+ const db=await worker.getD1Database('DB');
+ const sponsor=await db.prepare('SELECT id FROM oa_operators WHERE email=?').bind(bindings.OWNER_EMAIL).first();
+ await proveFormAccept({c,native,db,origin,cookie,sponsorId:sponsor.id,providerRequests});
  await proveAccessFacts({c,native,call,origin,cookie});
  const monitor=await native('/api/monitors',{name:'Checkout reachability',type:'http',network:'public',url:'https://checkout.example.test/health',method:'GET',assertions:{status:200},intervalMs:60000,timeoutMs:5000,retries:0,probes:['local-a'],failureQuorum:1,confirmSlots:1,recoverSlots:1,freshnessMs:120000,enabled:true,service:'checkout',group:'operations'});
  const second=await native('/api/monitors',{...monitor.definition,name:'Foreign service',service:'foreign'});
- const db=await worker.getD1Database('DB');
  await proveOversizeNoEffect({c,native,db,origin,providerRequests});
- const sponsor=await db.prepare('SELECT id FROM oa_operators WHERE email=?').bind(bindings.OWNER_EMAIL).first();
  await proveHeldClassClaims({c,native,db,origin,sponsorId:sponsor.id,providerRequests});
  await proveSelfEscalationState({c,native,call,db,origin,cookie,providerRequests});
  await proveAgentSurfaceDiscovery({c,db,origin,monitorId:monitor.id});
