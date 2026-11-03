@@ -500,11 +500,11 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "77ba98ff4e551e244224d3e3b5a4e39714c06f9acdddd5baf064adafa087e9aa",
+      "sha256": "c808a9e868b21f24ef381207c7d394a8fbb8387942ecb520f808a48576b2b119",
       "executable": false
     },
     "agent-surface.json": {
-      "sha256": "e37257ee4aece754445875fe80b1d879393dd29d216a8800a55d0546ff59c66c",
+      "sha256": "e259070e281ef879b986dd1ed6179ccd9bc54f7591a90b2be62fe13091c63988",
       "executable": false
     },
     "AGENTS.md": {
@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "206f43f0cecf76de0b12efa59e30eb5f8920e63156bc6c7a94c859f46c6e3e3b",
+      "sha256": "89c95018f906aa0b00dccedc6805adac1fed66302e2fce104b7bc4223bc97305",
       "executable": false
     },
     "DEMO.md": {
@@ -4447,6 +4447,10 @@
       "sha256": "d807f7f7b9ae07f6a55408d5482817263bfafa03f82d1975716cd424ff07cd17",
       "executable": false
     },
+    "src/agent-door/destination-name-effects.server.ts": {
+      "sha256": "6682b8d67bb173722648ca61bff1b19c1118b44133f6ce895046b164e6a7946c",
+      "executable": false
+    },
     "src/agent-door/index.server.ts": {
       "sha256": "03ce4e262ea758f320784b44e273446a02724c7afa77bdd684aa376a4397fc95",
       "executable": false
@@ -4472,7 +4476,7 @@
       "executable": false
     },
     "src/agent-door/registry.server.ts": {
-      "sha256": "5915d98d9768c3e6ba2596a40d67e70c9fd83a4650138b2e72685ab9ea3b2ce1",
+      "sha256": "bfba065f73a8b8a9460ee7d7d8eec0a638acad2ed5b4fc63384f9a3ad0067ed8",
       "executable": false
     },
     "src/agent-door/work.server.ts": {
@@ -7588,7 +7592,7 @@
       "executable": false
     },
     "src/domain/notification-destinations.server.ts": {
-      "sha256": "0811573b9111fa5b541773f379e3291bdf048dc2b0f348ca3014befb28a79827",
+      "sha256": "432181e465f6a63aaab60e1ae6eaa4cd6f47feacdfdd9793274983cbd5cdbdff",
       "executable": false
     },
     "src/domain/notification-fallback.server.ts": {
@@ -8651,8 +8655,12 @@
       "sha256": "a1ef721ccac669e0ad42fd8001c6135ae4a482b06ff4d00770176ca6fcb8ecb6",
       "executable": false
     },
+    "tests/agent-conformance/destination-name.mjs": {
+      "sha256": "79ab27c6313de4461e2a317b88abfc157597cb91870a0db744682495d3ff0382",
+      "executable": false
+    },
     "tests/agent-conformance/fixtures.mjs": {
-      "sha256": "f0ca8abace6617ee22ba8ea5998490fe61c2954c1abb48278e457302f01c7ed4",
+      "sha256": "479b2f699805febead6a50398ed3cd26cd898064e6fa719910af3beb278c5457",
       "executable": false
     },
     "tests/agent-conformance/http.mjs": {
@@ -8664,7 +8672,7 @@
       "executable": false
     },
     "tests/agent-conformance/journey.mjs": {
-      "sha256": "ae304119296d7a17ecbc2e37e618e93c69edb27e12feb85a513a7b334c5628d7",
+      "sha256": "2d97bac7397f597d9fd1d545c2ec031c5ad83e8f8beeb366bc3cfa10dff152a9",
       "executable": false
     },
     "tests/agent-conformance/manual-debt.mjs": {
@@ -8699,12 +8707,16 @@
       "sha256": "c9cde5143bedbbbcae6d04b9dd6904df07d9043fb29a9a0bc76e9f38b54e4d70",
       "executable": false
     },
+    "tests/agent-destination-name-support.mjs": {
+      "sha256": "70947fe27b7b3b9596af9a53d718781fcd31e4f27d62b5448f0b5b04c81a523a",
+      "executable": false
+    },
     "tests/agent-door-browser.mjs": {
       "sha256": "0b4d1d600667e5e9ec22b577438e1231525bd0710b5d3e1ce04f79f600da8130",
       "executable": false
     },
     "tests/agent-door.mjs": {
-      "sha256": "38aac393e96fc15eae71af1c4c12ca6c00882f95bcc55261f69deb4104a3cbbd",
+      "sha256": "73d11b8a24903418b143e9ff67fea083fda48a2b0a6641ec0f778ceead11827f",
       "executable": false
     },
     "tests/agent-held-class-claims-support.mjs": {
