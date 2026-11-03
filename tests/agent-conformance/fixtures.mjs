@@ -52,6 +52,7 @@ export default async function prepare(context) {
  const manualLive=debtFixture.monitor;
  await debtFixture.close();
  const values = {
+  pausedCreationDefinition: definitionFor('created paused',false),
   ...await pausedUpdateFixture(http,definitionFor('paused name edit',false)),
   manualLive,
   ...records, erase: {...records.erase, name: records.erase.definition.name},

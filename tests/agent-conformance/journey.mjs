@@ -6,6 +6,7 @@ import {errorCode} from '../../src/base/modules/agent-door/conformance/protocol.
 
 const snapshots = new Map();
 const sponsorAccess = new Map();
+const creationInventories = new Map();
 const recordAuthority = new Set(['uptime.access.update', 'uptime.destinations.update', 'uptime.monitors.create', 'uptime.monitors.update', 'uptime.routes.update']);
 async function result(tool, name, args) {
  const answer = await tool(name, args);
@@ -15,6 +16,14 @@ async function result(tool, name, args) {
 export async function beforeStep(context) {
  const {origin, phase, step, tool} = context;
  if (recordAuthority.has(step.tool)) sponsorAccess.set(origin + phase + step.id, await nativeHttp(context).json('/api/access/self'));
+ if(step.id==='create-paused-monitor'){
+  const definition=phaseState.get(origin).pausedCreationDefinition;
+  assert.equal(definition.enabled,false);assert.equal(definition.type,'http');assert.equal(definition.network,'public');
+  assert.equal(definition.request,undefined);assert.equal(definition.tlsTrust,undefined);assert.equal(definition.slow,undefined);
+  const inventory=await nativeHttp(context).json('/api/v1/monitors?limit=100');
+  assert.ok(!inventory.items.some(row=>row.name===definition.name));
+  creationInventories.set(origin+phase,inventory.items.map(({id,name,revision,enabled})=>({id,name,revision,enabled})));
+ }
  if (!step.tool.startsWith('uptime.incidents.')) return;
  const state = phaseState.get(origin);
  snapshots.set(origin + phase, await result(tool, 'uptime.monitors.history', {id: state.observedMonitor.id}));
@@ -22,6 +31,19 @@ export async function beforeStep(context) {
 export async function afterStep(context) {
  const {origin, phase, step, result: output, tool} = context;
  if (recordAuthority.has(step.tool)) assert.deepEqual(await nativeHttp(context).json('/api/access/self'), sponsorAccess.get(origin + phase + step.id), 'Record operations leave the current sponsor’s native role and grants unchanged.');
+ if(step.id==='create-paused-monitor'){
+  const definition=phaseState.get(origin).pausedCreationDefinition,http=nativeHttp(context);
+  const inventory=await http.json('/api/v1/monitors?limit=100');
+  assert.deepEqual(inventory.items.filter(row=>row.id!==output.id).map(({id,name,revision,enabled})=>({id,name,revision,enabled})),creationInventories.get(origin+phase),'paused creation preserves every existing native monitor');
+  const matches=inventory.items.filter(row=>row.name===definition.name);
+  assert.equal(matches.length,1);assert.equal(matches[0].id,output.id);
+  assert.equal(matches[0].enabled,false);assert.equal(matches[0].revision,1);
+  assert.equal(matches[0].current.state,'Paused');assert.equal(matches[0].current.lastCheckAt,null);
+  assert.equal(output.definition.name,definition.name);assert.equal(output.definition.enabled,false);
+  const revisions=await result(tool,'uptime.monitors.revisions',{id:output.id});
+  assert.equal(revisions.items.length,1);assert.equal(revisions.items[0].revision,1);
+  for(const key of ['name','type','enabled','intervalMs','timeoutMs','retries','probes','failureQuorum','confirmSlots','recoverSlots','freshnessMs','service','group'])assert.deepEqual(revisions.items[0].definition[key],definition[key],'the native first revision retains independently reviewed '+key);
+ }
  if(step.id==='rename-paused-monitor'){
   const record=phaseState.get(origin).pausedUpdate;
   const rows=await nativeHttp(context).json('/api/monitors/'+record.id+'/revisions');
