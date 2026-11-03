@@ -115,8 +115,8 @@ Core · published · **partial** · Cites BASE-INPUT-001 · Register R-3
 1. Preview, apply, export and undo definition JSON and saved UptimeRobot pages through the owner routes and CLI.
 2. Malformed/hostile/secret-bearing inputs and stale digests write nothing; creations stay paused, changes keep operational state, unsupported fields are named and history is never made current evidence.
 
-**Evidence.** `src/domain/definitions/importers/uptimerobot.ts`; `src/domain/business-import/mapping.server.ts`; `tests/definitions-import.mjs`
-**Gap.** Synthetic saved-page/JSON tests only; real export and hosted import remain unmeasured. Apply resumes in atomic batches, not one whole-plan transaction; the intended whole-plan atomicity guarantee remains unresolved.
+**Evidence.** `src/domain/definitions/importers/uptimerobot.ts`; `src/domain/business-import/mapping.server.ts`; `tests/definitions-import.mjs`: existing owner-route import and refusal assertions, reviewed paused UptimeRobot apply, export and preserving undo; calls `tests/definitions-ci-support.mjs` proveDefinitionCI: a reviewed 21-record plan commits 20 records in its first batch, revoked authority refuses the next batch without changing durable product, job or authority rows, and owner CLI reads retain the stopped job and 20 authorized operations after Worker restart. Existing synthetic assertions inspected; no new runtime pass claimed.
+**Gap.** Synthetic saved-page/JSON tests only; real export and hosted import remain unmeasured. Apply resumes in atomic batches, not one whole-plan transaction; the intended whole-plan atomicity guarantee remains unresolved. The cited 21-record synthetic plan proves a retained 20-record authorized batch and refusal of its revoked next operation; this is bounded transactional-batch evidence, not whole-plan rollback qualification. Complete acceptances 1 and 2 beyond the retained synthetic evidence, broader fault and interruption qualification and monitoring-scale capacity remain unproved.
 
 #### RETENTION-001 — Explicit storage custody
 
