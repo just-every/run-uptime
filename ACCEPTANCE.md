@@ -115,7 +115,7 @@ Core · published · **partial** · Cites BASE-INPUT-001 · Register R-3
 1. Preview, apply, export and undo definition JSON and saved UptimeRobot pages through the owner routes and CLI.
 2. Malformed/hostile/secret-bearing inputs and stale digests write nothing; creations stay paused, changes keep operational state, unsupported fields are named and history is never made current evidence.
 
-**Evidence.** `src/domain/definitions/importers/uptimerobot.ts`; `src/domain/business-import/mapping.server.ts`; `tests/definitions-import.mjs`
+**Evidence.** `src/domain/definitions/importers/uptimerobot.ts`; `src/domain/business-import/mapping.server.ts`; `tests/definitions-import.mjs`: existing owner-route import and refusal assertions, reviewed paused UptimeRobot apply, export and preserving undo; calls `tests/definitions-ci-support.mjs` proveDefinitionCI: a reviewed 21-record plan commits 20 records in its first batch, revoked authority refuses the next batch without changing durable product, job or authority rows, and owner CLI reads retain the stopped job and 20 authorized operations after Worker restart. Existing synthetic assertions inspected; no new runtime pass claimed.
 **Gap.** Synthetic saved-page/JSON tests only; real export and hosted import remain unmeasured. Apply resumes in atomic batches, not one whole-plan transaction; the intended whole-plan atomicity guarantee remains unresolved.
 
 #### RETENTION-001 — Explicit storage custody
@@ -1220,7 +1220,7 @@ Core · target · **partial** · Cites BASE-DATA-001 · Register R-2
 2. Restore into an empty installation and compare every table's counts and ARCHIVE-001 transformations.
 3. A 120-monitor account exports in full, and a range or subset export matches its selection.
 
-**Evidence.** `src/domain/archive.server.ts`; `tests/archive-roundtrip.mjs`
+**Evidence.** `src/domain/archive.server.ts`; `tests/archive-roundtrip.mjs` with `tests/archive-selection-support.mjs` proveArchiveSelection: authenticated explicit monitor IDs, integrity-covered selection, complete scheduled revisions and evidence, incident and notification history, shared journals, inactive receiving-owner restore and zero-write authority, reference and bound refusals; retained whole-installation round trip and `tests/erasure-audit.mjs` later-journal fencing
 **Gap.** Validated inactive archives ship and refuse exports beyond 10,000 rows per table, 100 monitors or 2 MiB; streamed, resumable, range/subset archives at SCHEDULE-002 scale do not exist. Storage capacity and archive size at this monitoring scale remain unmeasured; current view/archive bounds are not storage-capacity measurements.
 
 ### Push further with agents
