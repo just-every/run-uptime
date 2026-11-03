@@ -24,7 +24,7 @@ import assert from 'node:assert/strict';
 import {webcrypto,randomUUID} from 'node:crypto';
 import {join} from 'node:path';
 import {migratedWorker,runtimeDirectory,cleanupDirectory,availablePorts} from './notify-acceptance-runtime.mjs';
-import {testAuthBindings,authRequest,sessionCookie,deliveredLink} from './auth-test-support.mjs';
+import {testAuthBindings,authRequest,sessionCookie,deliveredLink,emailSignIn} from './auth-test-support.mjs';
 import {auditRows} from '../src/base/modules/agent-door/conformance/audit.mjs';
 import {completeSecondFactor} from './mfa-auth-support.mjs';
 import {signJws,seconds,autonomousPolicy,heldPolicy,accessToken,policyEnvelope} from '../src/base/modules/agent-door/conformance/crypto.mjs';
@@ -40,7 +40,7 @@ try{
  const iat=seconds(),claim=await signJws(pair.privateKey,kid,'rer-owner-claim+jwt',{v:1,iss:issuer,aud:origin,installationId,email:bindings.OWNER_EMAIL,jti:randomUUID(),iat,exp:iat+300});
  const call=authRequest(origin);
  assert.equal((await call('/auth/owner-claim',{token:bindings.SETUP_TOKEN,displayName:'Riley Owner',returnTo:'/app'})).status,403,'raw setup token never becomes a signed owner claim');
- const claimed=await call('/auth/owner-claim',{token:claim,displayName:'Riley Owner',returnTo:'/app'}),cookie=sessionCookie(claimed);
+ const claimed=await call('/auth/owner-claim',{token:claim,displayName:'Riley Owner',returnTo:'/app'});let cookie=sessionCookie(claimed);
  const settings=await signJws(pair.privateKey,kid,'rer-business-settings+jwt',{v:1,iss:issuer,aud:origin,sub:installationId,business,email:bindings.OWNER_EMAIL,owner_id:sub,jti:randomUUID(),iat,exp:iat+300,rev:1,values:{},logo:null,team:null});
  const paired=await call('/api/rer/business-settings',{settings});assert.equal(paired.status,200);assert.equal((await paired.json()).rev,1);
  const surface={seed:'uptime',specialist:'monitoring-operator',tools:['uptime:read','uptime:evidence','uptime:operate','definitions:preview','events:read'].map(scope=>({scope}))};
@@ -219,6 +219,9 @@ try{
  await proof.capture('approval-refused',new URL(pausedApproval.result._meta['com.runeditrun/approval'].url).pathname);
  console.log('PASS BASE-AGENT-011.uptime.pause-pending-execution');
  await c.adopt(autonomousPolicy());
+ // The combined journey can outlive Base's ten-minute email proof. Renew
+ // through the native sign-in and second-factor doors before owner role writes.
+ cookie=await emailSignIn(origin,{bindings});c.person.cookie=cookie;
  await proveCommentDeletion({c,native,db,proof,providerRequests,reviewer:{id:reviewerId,sub:reviewerSub,cookie:reviewerCookie}});
  await proveSavedEmailDestinationFacts({c,native,db,sponsorId:sponsor.id});
  const destination=await native('/api/notifications/destinations',{name:'Checkout incident webhook',kind:'webhook',url:'https://notifications.example.com/checkout'});

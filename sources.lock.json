@@ -4464,7 +4464,7 @@
       "executable": false
     },
     "src/agent-door/index.server.ts": {
-      "sha256": "2a9186bd65c1f45c8ff50d26c342c81378989a45ead5cae52f00190e84588ef3",
+      "sha256": "8e9d6f953a8702ba5e4506ab33b0f0ac668ea17ec800439ccdabec0a2148adba",
       "executable": false
     },
     "src/agent-door/manual-check-effects.server.ts": {
@@ -8708,7 +8708,7 @@
       "executable": false
     },
     "tests/agent-comment-delete-support.mjs": {
-      "sha256": "b242ebf165889ea2293c6ee6ccd64f77246f9de5f7a3a362749e32db6256993b",
+      "sha256": "9635e20fa2949f7769433739bb04e989757349ef3038cab8142fb49c3645f3e2",
       "executable": false
     },
     "tests/agent-conformance/destination-name.mjs": {
@@ -8764,7 +8764,7 @@
       "executable": false
     },
     "tests/agent-destination-name-support.mjs": {
-      "sha256": "70947fe27b7b3b9596af9a53d718781fcd31e4f27d62b5448f0b5b04c81a523a",
+      "sha256": "74b9f984a2c43d999e14a946ab9dec94cd3f2c7066600fe6765470d742c757ab",
       "executable": false
     },
     "tests/agent-door-browser.mjs": {
@@ -8772,11 +8772,11 @@
       "executable": false
     },
     "tests/agent-door.mjs": {
-      "sha256": "df1ed25305f2266b15d9545b741e4e95e14d750afc94389349534a412e71db22",
+      "sha256": "31c715cca0cc5d20ff7e032005a6231c45b42f0058d4dcd7991aa927751a202f",
       "executable": false
     },
     "tests/agent-form-accept-support.mjs": {
-      "sha256": "4a8a9c6bf02527b1ba0fb81b7bba96f927739f43c6ddf343e250ad849d063f30",
+      "sha256": "f717a16fb8fb536008471da2f3c6bfb542aaaa524f8ba91f85c4439d19021bb0",
       "executable": false
     },
     "tests/agent-held-class-claims-support.mjs": {
@@ -8796,7 +8796,7 @@
       "executable": false
     },
     "tests/agent-paused-create-support.mjs": {
-      "sha256": "cc1a340024dcdaf41ecf4e46518dc692a377cb9ccc7dd2c2e3e6320c9b4c62d8",
+      "sha256": "3d19557b61a2e2083e1e031320cfc481a10b6ae75f06f3f9c0b0ae6665ff9035",
       "executable": false
     },
     "tests/agent-policy-entry-support.mjs": {
@@ -8812,11 +8812,15 @@
       "executable": false
     },
     "tests/agent-rate-overrun.mjs": {
-      "sha256": "9c7ff0d0cda4409e5b925752d6b36946ed4a0ed3d61cc37794078e5a1876cf06",
+      "sha256": "d08c88a07785aa16ba0d6973f2fe09021aa5b0b4f5bb8a072a266b1701b15813",
       "executable": false
     },
     "tests/agent-record-class-claims-support.mjs": {
-      "sha256": "db0090143ba922ac7de98a27854d833868f219487c077569022eba3beb6ac22a",
+      "sha256": "395e079e8ecfb1f85bf0696432ff90184f9c358589f2ac884496f629e0fb9322",
+      "executable": false
+    },
+    "tests/agent-relay-state-support.mjs": {
+      "sha256": "5fc4daf28126d95a44732a479cb0da2f2bd6eecc5c993f9d18976cff42eec4fa",
       "executable": false
     },
     "tests/agent-revocation-audit-support.mjs": {
@@ -8824,7 +8828,7 @@
       "executable": false
     },
     "tests/agent-self-escalation-state-support.mjs": {
-      "sha256": "699f4ff79ebae0bcd801573a355db39eb4cfc2519ff808e8bcb56994bed946dc",
+      "sha256": "c05e0c326a0346581ef1433b1cfc1d2fe25abe4d6f564f3f1a545f9c0e2820f5",
       "executable": false
     },
     "tests/agent-standard-approval-support.mjs": {

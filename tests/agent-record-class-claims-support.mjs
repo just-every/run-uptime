@@ -1,3 +1,4 @@
+import {includeRelayExpectation} from './agent-relay-state-support.mjs';
 import assert from 'node:assert/strict';
 import {createHmac,randomUUID} from 'node:crypto';
 import {accessToken,autonomousPolicy,heldPolicy} from '../src/base/modules/agent-door/conformance/crypto.mjs';
@@ -86,6 +87,8 @@ export async function proveRecordClassClaims({c,native,db,origin,sponsorId,provi
    assert.equal(call.agent,c.agentId);assert.equal(call.key,args.idempotency_key);assert.equal(call.decision_id,decision.id);
    assert.match(call.digest,/^[a-f0-9]{64}$/);at(call.created_at);
    assert.equal(call.state,phase==='pending'?'pending':'done');
+   if(phase==='pending')assert.equal(call.expires_at,null,'pending work has no completed replay horizon');
+   else at(call.expires_at-30*24*60*60*1000);
    const outcome=JSON.parse(call.outcome);assert.equal(outcome.outcome,call.state);assert.equal(outcome.decision.id,decision.id);
    expected.agent_door_calls=ordered([...before.agent_door_calls,call]);
   }
@@ -102,7 +105,9 @@ export async function proveRecordClassClaims({c,native,db,origin,sponsorId,provi
    const result=JSON.parse(approval.result);assert.equal(result.outcome,'done');
    assert.deepEqual(result.receipt.approved_by,[sponsorId]);assert.equal(result.receipt.approval_id,handle.id);
    expected.agent_door_approvals=ordered(before.agent_door_approvals.map(row=>row.id===handle.id?{...row,state:'executed',version:row.version+1,approvals:approval.approvals,result:approval.result}:row));
-   expected.agent_door_calls=ordered(before.agent_door_calls.map(row=>row.agent===c.agentId&&row.key===args.idempotency_key?{...row,state:'done',outcome:approval.result}:row));
+   const completed=after.agent_door_calls.find(row=>row.agent===c.agentId&&row.key===args.idempotency_key);
+   at(completed.expires_at-30*24*60*60*1000);
+   expected.agent_door_calls=ordered(before.agent_door_calls.map(row=>row.agent===c.agentId&&row.key===args.idempotency_key?{...row,state:'done',outcome:approval.result,expires_at:completed.expires_at}:row));
    assert.deepEqual(audit.approval,{id:handle.id,by:[sponsorId]});assert.equal(audit.decision_id,saved.decision_id);
   }
   const eventSpecs=phase==='pending'?[['approval.pending',handle.url]]:executing?[
@@ -146,6 +151,7 @@ export async function proveRecordClassClaims({c,native,db,origin,sponsorId,provi
   }
   expected.sqlite_sequence=ordered(expected.sqlite_sequence);
   assert.deepEqual(Object.keys(after),Object.keys(expected));
+  includeRelayExpectation(expected,before,after,c.business);
   for(const table of Object.keys(expected))assert.deepEqual(after[table],expected[table],table+': only enumerated target and bookkeeping rows may change');
   noTraffic();
  }

@@ -1,3 +1,4 @@
+import {includeRelayExpectation} from './agent-relay-state-support.mjs';
 import assert from 'node:assert/strict';
 import {createHmac,randomUUID} from 'node:crypto';
 import {isDeepStrictEqual} from 'node:util';
@@ -91,6 +92,7 @@ export async function proveFormAccept({c,native,db,origin,cookie,sponsorId,provi
    classes:original.classes,row:record.row,evidence:JSON.stringify(evidence)});
   expected.agent_door_audit=ordered([...before.agent_door_audit,record]);
   expected.sqlite_sequence=ordered(before.sqlite_sequence.map(row=>row.name==='agent_door_audit'?{...row,seq:row.seq+1}:row));
+  includeRelayExpectation(expected,before,after,c.business);
   for(const table of Object.keys(expected))assert.deepEqual(after[table],expected[table],
    table+': only the exact agent admission counter, replay audit and audit sequence may change');
   noTraffic();

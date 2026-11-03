@@ -1,3 +1,4 @@
+import {relaySnapshotGuard} from './agent-relay-state-support.mjs';
 import assert from 'node:assert/strict';
 import {createHmac,randomUUID} from 'node:crypto';
 import {autonomousPolicy,heldPolicy} from '../src/base/modules/agent-door/conformance/crypto.mjs';
@@ -32,10 +33,13 @@ export async function provePausedCreation({c,native,db,providerRequests,proof}) 
    'x-runner-id':runner.runnerId,'x-sent-at':at,'x-runner-signature':signature},body:raw});
  assert.equal(enrolled.status,200);await enrolled.body?.cancel();
  const tables=(await db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT GLOB '_cf*' ORDER BY name").all()).results.map(row=>row.name);
+ const checkRelay=relaySnapshotGuard(c.business);
  const snapshot=async()=>{
-  const rows=await db.batch(tables.filter(name=>!bookkeeping.has(name)).map(name=>db.prepare('SELECT * FROM "'+name.replaceAll('"','""')+'"')));
-  return Object.fromEntries(tables.filter(name=>!bookkeeping.has(name)).map((name,index)=>[name,
+  const rows=await db.batch(tables.map(name=>db.prepare('SELECT * FROM "'+name.replaceAll('"','""')+'"')));
+  const state=Object.fromEntries(tables.map((name,index)=>[name,
    rows[index].results.sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)))]));
+  checkRelay(state);
+  return Object.fromEntries(Object.entries(state).filter(([name])=>!bookkeeping.has(name)&&name!=='agent_door_relay'));
  };
  const inventory=()=>native('/api/v1/monitors?limit=100');
  async function oneCreation(before,answer,input,enabled) {

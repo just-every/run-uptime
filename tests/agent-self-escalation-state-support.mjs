@@ -1,3 +1,4 @@
+import {includeRelayExpectation} from './agent-relay-state-support.mjs';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {deliveredLink,sessionCookie} from './auth-test-support.mjs';
@@ -135,7 +136,7 @@ export async function proveSelfEscalationState({c,native,call,db,origin,cookie,p
    const sequence=before.sqlite_sequence.find(row=>row.name==='agent_door_audit');
    assert.ok(sequence);assert.equal(record.sequence,sequence.seq+1);
    assert.deepEqual(audit,{
-    id:record.id,operation_id:record.id,scopes:['uptime:operate'],client_id:'rer-agent-conformance',at:record.at,door:'mcp',
+    id:record.id,role:owner.role,operation_id:record.id,scopes:['uptime:operate'],client_id:'rer-agent-conformance',at:record.at,door:'mcp',
     agent:{id:c.agentId,name:'Agent door conformance',specialist:c.surface.specialist},
     sponsor:{id:owner.id,name:sponsor.display_name},label:'Agent door conformance for '+sponsor.display_name,
     consent:c.consent,tool,resource:{kind:'monitor',id:monitor.id},decision_id:null,
@@ -145,6 +146,7 @@ export async function proveSelfEscalationState({c,native,call,db,origin,cookie,p
    assert.deepEqual(record,{sequence:sequence.seq+1,id:record.id,at:record.at,agent:c.agentId,classes:'[]',row:record.row,evidence:null});
    expected.agent_door_audit=ordered([...before.agent_door_audit,record]);
    expected.sqlite_sequence=ordered(before.sqlite_sequence.map(row=>row.name==='agent_door_audit'?{...row,seq:row.seq+1}:row));
+   includeRelayExpectation(expected,before,after,c.business);
    for(const table of Object.keys(expected))assert.deepEqual(after[table],expected[table],`${table}: self-escalation preserves every row except the enumerated admission and refusal-audit deltas`);
    assert.deepEqual(providerRequests,networkBefore,'self-escalation sends no provider traffic');
    assert.equal(allDeliveredMessages().length,mailBefore,'self-escalation sends no intercepted mail');

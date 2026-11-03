@@ -1,3 +1,4 @@
+import {relaySnapshotGuard} from './agent-relay-state-support.mjs';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {prepareIncident} from './agent-conformance/incident.mjs';
@@ -22,10 +23,12 @@ export async function proveCommentDeletion({c,native,db,proof,providerRequests,r
  const {incident}=await prepareIncident(http),other=await prepareIncident(http);
  const path='/api/incidents/'+encodeURIComponent(incident.id);
  const detail=()=>native('/api/v1/incidents/'+encodeURIComponent(incident.id));
+ const checkRelay=relaySnapshotGuard(c.business);
  const snapshot=async()=>{
   const tables=(await db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT GLOB '_cf*' ORDER BY name").all()).results,state={};
-  for(const {name} of tables)if(!bookkeeping.has(name))state[name]=(await db.prepare(`SELECT * FROM "${name.replaceAll('"','""')}"`).all()).results.sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)));
-  return state;
+  for(const {name} of tables)state[name]=(await db.prepare(`SELECT * FROM "${name.replaceAll('"','""')}"`).all()).results.sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)));
+  checkRelay(state);
+  return Object.fromEntries(Object.entries(state).filter(([name])=>!bookkeeping.has(name)&&name!=='agent_door_relay'));
  };
  const unchangedExcept=(before,after,allowed)=>{
   assert.deepEqual(Object.keys(after),Object.keys(before));

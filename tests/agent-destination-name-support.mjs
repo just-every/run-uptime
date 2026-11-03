@@ -1,3 +1,4 @@
+import {includeRelayExpectation} from './agent-relay-state-support.mjs';
 import assert from 'node:assert/strict';
 import {isDeepStrictEqual} from 'node:util';
 import {randomUUID} from 'node:crypto';
@@ -67,6 +68,7 @@ export async function proveDestinationNameEffects({c,native,db,origin,cookie,pro
    }
   }
   expected.sqlite_sequence=ordered(before.sqlite_sequence.map(row=>({...row,seq:row.seq+(row.name==='agent_door_audit'?(!replay&&!refused?2:1):row.name==='agent_door_events'&&!replay&&!refused?1:0)})));
+  includeRelayExpectation(expected,before,after,c.business);
   for(const table of Object.keys(expected))assert.ok(isDeepStrictEqual(after[table],expected[table]),table+': only the enumerated name, admission, receipt, usage, exact-key outcome, event and optional review may change');
  }
  for(const [policy,document] of [['autonomous',autonomousPolicy()],['held',heldPolicy()]])for(const version of ['2026-07-28','2025-11-25']){
