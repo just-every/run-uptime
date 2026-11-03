@@ -10,6 +10,7 @@ import {proveAccessFacts} from './agent-access-facts-support.mjs';
 import {proveStandardApproval} from './agent-standard-approval-support.mjs';
 import {proveMonitorStateEffects} from './agent-monitor-state-support.mjs';
 import {proveHeldClassClaims} from './agent-held-class-claims-support.mjs';
+import {proveRecordClassClaims} from './agent-record-class-claims-support.mjs';
 import {proveSelfEscalationState} from './agent-self-escalation-state-support.mjs';
 import {proveOversizeNoEffect} from './agent-oversize-support.mjs';
 import {proveFormAccept} from './agent-form-accept-support.mjs';
@@ -59,6 +60,7 @@ try{
  const second=await native('/api/monitors',{...monitor.definition,name:'Foreign service',service:'foreign'});
  await proveOversizeNoEffect({c,native,db,origin,providerRequests});
  await proveHeldClassClaims({c,native,db,origin,sponsorId:sponsor.id,providerRequests});
+ await proveRecordClassClaims({c,native,db,origin,sponsorId:sponsor.id,providerRequests});
  await proveSelfEscalationState({c,native,call,db,origin,cookie,providerRequests});
  await proveAgentSurfaceDiscovery({c,db,origin,monitorId:monitor.id});
  await proveAgentRevocationAudit({c,db,native,monitorId:monitor.id,sponsorId:sponsor.id,providerRequests});
