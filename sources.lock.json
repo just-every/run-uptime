@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "dcd470bf31d66f8ed48de848b4b51c337f156646a17d5607c6492380baafdd1a",
+      "sha256": "73cc1e980246632a5ab1f966a272b5939f1f2f1e15c72f4ebc14375cc1b27a82",
       "executable": false
     },
     "DEMO.md": {
@@ -9076,7 +9076,7 @@
       "executable": false
     },
     "tests/network-downgrade-support.mjs": {
-      "sha256": "c790cbd5183c95030328580e0ccef7a698620f25442d8c1f4e4803579d76bd89",
+      "sha256": "d665c9724365f43a48633db4ae8c6a23ad1cc2d910598519559ffb2f466cd2e4",
       "executable": false
     },
     "tests/network-mixed-dns.mjs": {

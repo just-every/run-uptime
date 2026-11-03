@@ -41,10 +41,13 @@ export async function networkDowngradeJourney(){
    const overview=await read('/api/overview'),row=overview.monitors.find(item=>item.id===monitor.id);
    assert.ok(row);return row;
   };
-  const scheduled=async monitor=>{
+  const scheduled=async(monitor,inspectWire=()=>{})=>{
    const historyPath=`/api/monitors/${monitor.id}/history`,before=await read(historyPath);
    await sleep(Math.max(0,(await current(monitor)).nextDue-Date.now()+10));
-   await f.run(f.first);
+   let completionError;
+   try{await f.run(f.first)}catch(error){completionError=error}
+   inspectWire();
+   if(completionError)throw completionError;
    const history=await read(historyPath),added=history.filter(slot=>!before.some(old=>old.id===slot.id));
    assert.equal(added.length,1,'one genuinely due scheduled slot is completed by the production signed runner');
    const [slot]=added;
@@ -77,14 +80,16 @@ export async function networkDowngradeJourney(){
   const revisions=await read(`/api/monitors/${monitor.id}/revisions`),retained=[];
   for(const phase of ['healthy','downgrade','recovered']){
    redirect=phase==='downgrade';
-   const before=records.length,slot=await scheduled(monitor),[observation]=slot.observations;
+   const before=records.length,slot=await scheduled(monitor,()=>{
+    assert.equal(records.length,before+1,'the real HTTPS receiver observes each scheduled request');
+    assert.equal(records[before].host,new URL(monitor.definition.url).host);
+    assert.equal(records[before].method,'GET');assert.equal(records[before].url,'/health');
+    assert.deepEqual(responses[before],{status:redirect?302:200,location:redirect?httpUrl:undefined},'the HTTPS receiver completes the controlled response');
+    assert.equal(sockets,baseline.sockets,'HTTPS downgrade refusal must create zero new destination sockets');
+    assert.deepEqual(requests,baseline.requests,'HTTPS downgrade refusal must send zero new destination requests');
+    console.log(`PROBE NETWORK-001 ${phase}-wire: scheduled HTTPS response ${responses[before].status} -> HTTP socket delta 0, request delta 0`);
+   }),[observation]=slot.observations;
    retained.push(slot);
-   assert.equal(records.length,before+1,'the real HTTPS receiver observes each scheduled request');
-   assert.equal(records[before].host,new URL(monitor.definition.url).host);
-   assert.equal(records[before].method,'GET');assert.equal(records[before].url,'/health');
-   assert.deepEqual(responses[before],{status:redirect?302:200,location:redirect?httpUrl:undefined},'the HTTPS receiver completes the controlled response');
-   assert.equal(sockets,baseline.sockets,'HTTPS downgrade refusal must create zero new destination sockets');
-   assert.deepEqual(requests,baseline.requests,'HTTPS downgrade refusal must send zero new destination requests');
    if(redirect){
     assert.equal(observation.outcome,'target_failure');
     assert.deepEqual(observation.checks,[{assertion:'redirect',pass:false,reason:'Probe redirect check failed'}]);
