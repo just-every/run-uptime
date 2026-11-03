@@ -8768,7 +8768,7 @@
       "executable": false
     },
     "tests/agent-rate-overrun.mjs": {
-      "sha256": "9c7ff0d0cda4409e5b925752d6b36946ed4a0ed3d61cc37794078e5a1876cf06",
+      "sha256": "e257129eb4a9112b3f69243eb9d5d519582a1ac2e5c882a8e88b328a99063dc5",
       "executable": false
     },
     "tests/agent-record-class-claims-support.mjs": {

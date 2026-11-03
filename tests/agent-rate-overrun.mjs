@@ -13,7 +13,9 @@ import {accessToken,autonomousPolicy,heldPolicy,policyEnvelope,seconds,signJws} 
 // Worker clock; authentication, policy, transport, persistence and tools are real.
 // Each case starts with one active native sponsor and a fresh agent. Counters
 // are populated exclusively by authenticated HTTP requests, never database writes.
-const now=Date.parse('2026-10-27T12:34:17.250Z');
+// Keep native SQL session-expiry guards in the current minute while fixing
+// the Worker clock at the same offset for exact Retry-After assertions.
+const now=Math.floor(Date.now()/60000)*60000+17250;
 const directory=await runtimeDirectory();
 let worker;
 try{
