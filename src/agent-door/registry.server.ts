@@ -1,3 +1,5 @@
+import {destinationNameFence,outsideDestinationRoutes,destinationRouteValues} from './destination-name-effects.server.ts'
+import type {DestinationUpdateFence} from '../domain/notification-destinations.server.ts'
 import {manualCheckEffects,manualDebtSummary} from './manual-check-effects.server.ts'
 import {assertCiFile} from '../domain/ci/scope.server.ts'
 import {createDiscovery,claimAdmittedDiscovery} from '../domain/discovery.server.ts'
@@ -160,7 +162,19 @@ export function tools(env:Bindings):ToolDefinition[]{
  },monitorRevision)
  privacy.proof='native';privacy.proofKind='step_up'
 
- const destination=mutation('destinations.update','Update a native notification destination',schema({id:string,destination:schema({name:{type:'string',minLength:1,maxLength:100},enabled:{type:'boolean'}})}),['live','access'],['NOTIFY-001'],async(a,c)=>{const access=await authority(env,c,'secret_write',[],undefined,true);const result=await updateDestination({...env,DB:authorizedDatabase(env,access)},a.id,a.destination,actor(c));c.emit('destination.updated',`uptime://destinations/${a.id}`);const {signingSecret,...safe}=result as any;return safe},async(a,c)=>{await reads.destinationRead(env,c,String(a.id));return [facts('live',{service:'alert-delivery'}),facts('access',{direction:(a.destination as any)?.enabled?'widens':'narrows'})]})
+ const destinationFences=new Map<string,DestinationUpdateFence|null>()
+ const destination=mutation('destinations.update','Update a native notification destination',schema({id:string,destination:schema({name:{type:'string',minLength:1,maxLength:100},enabled:{type:'boolean'}})}),['standard','live','access'],['NOTIFY-001'],async(a,c)=>{
+  const access=await authority(env,c,'secret_write',[],undefined,true),fence=destinationFences.get(c.operationId)
+  const db=authorizedDatabase(env,access,()=>fence?[mutationGuard(env,outsideDestinationRoutes,destinationRouteValues(a.id))]:[])
+  const result=await updateDestination({...env,DB:db},a.id,a.destination,actor(c),fence??undefined)
+  c.emit('destination.updated',`uptime://destinations/${a.id}`);const {signingSecret,...safe}=result as any;return safe
+ },async(a,c,completed)=>{
+  await reads.destinationRead(env,c,String(a.id));await authority(env,c,'secret_write',[],undefined,true)
+  if(completed)return [...completed]
+  const fence=await destinationNameFence(env,String(a.id),a.destination as Record<string,unknown>)
+  destinationFences.set(c.operationId,fence)
+  return fence?[facts('standard')]:[facts('live',{service:'alert-delivery'}),facts('access',{direction:(a.destination as any)?.enabled?'widens':'narrows'})]
+ })
  destination.authority=async(a)=>({subject:`destination:${a.id}`,widens:Boolean((a.destination as any)?.enabled||(a.destination as any)?.address||(a.destination as any)?.url)});destination.proof='native';destination.proofKind='step_up'
  for(const verb of ['test','drill'] as const)mutation('destinations.'+verb,verb==='test'?'Queue an attributed native test send':'Queue a native recipient-confirmed channel drill',idSchema,['external'],[verb==='test'?'NOTIFY-001':'DRILL-001'],async(a,c)=>{const access=await authority(env,c,'secret_write',[],undefined,true),native={...env,DB:authorizedDatabase(env,access)},result=verb==='test'?await testDestination(native,a.id,delegation(c)):await startDrill(native,a.id,c.person.id,delegation(c));c.emit('destination.test.queued',`uptime://destinations/${a.id}`);return result},async(a,c)=>{await reads.destinationRead(env,c,String(a.id));return [facts('external',{counterparty:'known'})]})
  const notification=mutation('destinations.dispatch','Admit an existing native notification at its transport boundary',schema({id:string,delivery_id:string,credential_id:string}),['external'],['DELIVERY-001','NOTIFY-001'],async(a,c)=>{if(c.door!=='embedded')throw new ToolRefusal('runner_protocol_required');await reads.destinationRead(env,c,a.id);const job=await env.DB.prepare('SELECT 1 FROM notification_jobs WHERE id=? AND destination_id=? AND credential_id=?').bind(a.delivery_id,a.id,a.credential_id).first();if(!job)throw unavailable();return {admitted:true}},async(a,c)=>{await reads.destinationRead(env,c,String(a.id));return [facts('external',{counterparty:'known'})]})

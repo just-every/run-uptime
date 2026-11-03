@@ -1,4 +1,4 @@
-import {auditStatement,automated,type AuditActor} from './audit.server.ts'
+import {auditStatement,automated,mutationGuard,type AuditActor} from './audit.server.ts'
 import {erase} from './erasure.server.ts'
 import {ensureNotificationCustody,sealCredential,readCredential,retireObsoleteStatements} from './notification-credentials.server.ts'
 import {cancelDestinationStatements} from './notification-cancellation.server.ts'
@@ -39,11 +39,13 @@ export async function createDestination(env:Bindings,input:any){
  await env.DB.batch([env.DB.prepare('INSERT INTO notification_credentials(id,destination_id,created_at,ciphertext) VALUES(?,?,?,?)').bind(credentialId,id,now,ciphertext),env.DB.prepare('INSERT INTO notification_destinations(id,name,kind,enabled,credential_id,created_at,deleted_at,webhook_template) VALUES(?,?,?,?,?,?,NULL,?)').bind(id,displayName,kind,input.enabled===false?0:1,credentialId,now,template)]);
  return {id,name:displayName,kind,enabled:input.enabled!==false,created_at:now,...(kind==='webhook'?webhookMetadata(credential,template):{}),...(signingSecret?{signingSecret}:{})}
 }
-export async function updateDestination(env:Bindings,id:string,input:any,actor:AuditActor=automated){
+export type DestinationUpdateFence={name:string;enabled:boolean;credentialId:string};
+export async function updateDestination(env:Bindings,id:string,input:any,actor:AuditActor=automated,expected?:DestinationUpdateFence){
  if(!input||Object.keys(input).some(k=>!['name','enabled','address','url',...webhookFields].includes(k))||typeof input.enabled!=='boolean')throw Error('Name and enabled are required');
  const displayName=name(input.name);
- const row=await env.DB.prepare('SELECT d.kind,d.webhook_template,c.* FROM notification_destinations d JOIN notification_credentials c ON c.id=d.credential_id WHERE d.id=? AND d.deleted_at IS NULL').bind(id).first<any>();
+ const row=await env.DB.prepare('SELECT d.name,d.enabled,d.kind,d.webhook_template,c.* FROM notification_destinations d JOIN notification_credentials c ON c.id=d.credential_id WHERE d.id=? AND d.deleted_at IS NULL').bind(id).first<any>();
  if(!row)throw Error('Destination not found');
+ if(expected&&(row.name!==expected.name||Boolean(row.enabled)!==expected.enabled||row.id!==expected.credentialId))throw Error('Destination changed; refresh and retry');
  webhookOnly(row.kind,input);
  if((row.kind==='email'&&input.url!==undefined)||(row.kind!=='email'&&input.address!==undefined))throw Error('Invalid destination fields');
  let replacement:NotificationCredential|undefined,current:NotificationCredential|undefined;
@@ -60,8 +62,8 @@ export async function updateDestination(env:Bindings,id:string,input:any,actor:A
   if(replacement||JSON.stringify(webhook)!==JSON.stringify(current?.webhook))replacement={endpoint,signing_secret:(webhook?.signing??true)?secret():null,...(webhook?{webhook}:{})};
  }
  if(replacement)return replaceCredential(env,row,replacement,{name:displayName,enabled:input.enabled},actor);
- const result=await env.DB.batch([env.DB.prepare('UPDATE notification_destinations SET name=?,enabled=? WHERE id=? AND credential_id=? AND deleted_at IS NULL').bind(displayName,input.enabled?1:0,id,row.id),...(input.enabled?[]:cancelDestinationStatements(env,id))]);
- if(!result[0].meta.changes)throw Error('Destination changed; refresh and retry');return {updated:true,...(row.kind==='webhook'?webhookMetadata(current,row.webhook_template):{})};
+ const result=await env.DB.batch([...(expected?[mutationGuard(env,'EXISTS(SELECT 1 FROM notification_destinations WHERE id=? AND name=? AND enabled=? AND credential_id=? AND deleted_at IS NULL)',[id,expected.name,Number(expected.enabled),expected.credentialId])]:[]),env.DB.prepare('UPDATE notification_destinations SET name=?,enabled=? WHERE id=? AND credential_id=? AND deleted_at IS NULL').bind(displayName,input.enabled?1:0,id,row.id),...(input.enabled?[]:cancelDestinationStatements(env,id))]);
+ if(!result[expected?1:0].meta.changes)throw Error('Destination changed; refresh and retry');return {updated:true,...(row.kind==='webhook'?webhookMetadata(current,row.webhook_template):{})};
 }
 export async function deleteDestination(env:Bindings,id:string,actor:AuditActor=automated){return erase(env,'destination',id,actor)}
 export async function rotateDestination(env:Bindings,id:string,actor:AuditActor=automated){

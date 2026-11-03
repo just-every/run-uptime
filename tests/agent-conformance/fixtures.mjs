@@ -1,3 +1,4 @@
+import {destinationNameFixture} from './destination-name.mjs';
 import {prepareManualDebt} from './manual-debt.mjs';
 import {randomUUID} from 'node:crypto';
 import {freshFactor, memberSessions, nativeHttp} from './http.mjs';
@@ -52,6 +53,7 @@ export default async function prepare(context) {
  const manualLive=debtFixture.monitor;
  await debtFixture.close();
  const values = {
+  ...await destinationNameFixture(context),
   ...await pausedUpdateFixture(http,definitionFor('paused name edit',false)),
   manualLive,
   ...records, erase: {...records.erase, name: records.erase.definition.name},
