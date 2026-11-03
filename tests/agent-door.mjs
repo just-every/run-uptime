@@ -8,6 +8,7 @@ import {proveAccessFacts} from './agent-access-facts-support.mjs';
 import {proveStandardApproval} from './agent-standard-approval-support.mjs';
 import {proveMonitorStateEffects} from './agent-monitor-state-support.mjs';
 import {proveHeldClassClaims} from './agent-held-class-claims-support.mjs';
+import {proveRecordClassClaims} from './agent-record-class-claims-support.mjs';
 import {proveSelfEscalationState} from './agent-self-escalation-state-support.mjs';
 import {proveOversizeNoEffect} from './agent-oversize-support.mjs';
 import {provePausedCreation} from './agent-paused-create-support.mjs';
@@ -55,6 +56,7 @@ try{
  await proveOversizeNoEffect({c,native,db,origin,providerRequests});
  const sponsor=await db.prepare('SELECT id FROM oa_operators WHERE email=?').bind(bindings.OWNER_EMAIL).first();
  await proveHeldClassClaims({c,native,db,origin,sponsorId:sponsor.id,providerRequests});
+ await proveRecordClassClaims({c,native,db,origin,sponsorId:sponsor.id,providerRequests});
  await proveSelfEscalationState({c,native,call,db,origin,cookie,providerRequests});
  await proveAgentSurfaceDiscovery({c,db,origin,monitorId:monitor.id});
  const target={kind:'monitor',id:monitor.id};
