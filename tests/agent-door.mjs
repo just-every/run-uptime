@@ -1,6 +1,8 @@
 import {proveAgentRevocationAudit} from './agent-revocation-audit-support.mjs';
 import {proveDestinationNameEffects} from './agent-destination-name-support.mjs';
 import {proveCommentDeletion} from './agent-comment-delete-support.mjs';
+import {checkAgentArtifacts} from '../src/base/modules/agent-door/index.ts';
+import {uptimeAgentArtifacts} from '../src/agent-door/erasure.server.ts';
 import {proveSavedEmailDestinationFacts} from './agent-destination-facts-support.mjs';
 import {proveManualDebt} from './agent-manual-debt-support.mjs';
 import {proveAgentSurfaceDiscovery} from './agent-surface-discovery.mjs';
@@ -59,6 +61,8 @@ try{
  const monitor=await native('/api/monitors',{name:'Checkout reachability',type:'http',network:'public',url:'https://checkout.example.test/health',method:'GET',assertions:{status:200},intervalMs:60000,timeoutMs:5000,retries:0,probes:['local-a'],failureQuorum:1,confirmSlots:1,recoverSlots:1,freshnessMs:120000,enabled:true,service:'checkout',group:'operations'});
  const second=await native('/api/monitors',{...monitor.definition,name:'Foreign service',service:'foreign'});
  await proveOversizeNoEffect({c,native,db,origin,providerRequests});
+ await checkAgentArtifacts(db,uptimeAgentArtifacts);
+ console.log('PASS BASE-AGENT-009.uptime.complete-artifact-map (10 tables, every column)');
  await proveHeldClassClaims({c,native,db,origin,sponsorId:sponsor.id,providerRequests});
  await proveRecordClassClaims({c,native,db,origin,sponsorId:sponsor.id,providerRequests});
  await proveSelfEscalationState({c,native,call,db,origin,cookie,providerRequests});
@@ -302,6 +306,25 @@ try{
  console.log('PASS BASE-AGENT-012.uptime.deleted-target-current-admission');
  await proveManualDebt({c,db,origin,cookie,proof});
  await proof.capture('agents-final','/agents');await proof.close();proof=null;
+ const pullClaims=()=>({v:1,iss:issuer,aud:origin,sub:installationId,business,after:0,limit:200,iat:seconds(),exp:seconds()+60,jti:randomUUID()});
+ const pull=async(claims=pullClaims(),privateKey=pair.privateKey)=>call('/api/rer/agent-decisions',{pull:await signJws(privateKey,kid,'rer-agent-decisions+jwt',claims)});
+ const relayed=await pull();assert.equal(relayed.status,200);const feed=await relayed.json();assert.ok(feed.decisions.length>0);assert.ok(feed.head>=feed.cursor);
+ assert.equal((await pull(pullClaims(),(await webcrypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify'])).privateKey)).status,401,'foreign signature is refused at the relay authentication boundary');
+ assert.equal((await pull({...pullClaims(),business:randomUUID()})).status,404,'a valid signature cannot read another Business');
+ assert.equal((await call('/api/rer/agent-decisions',{pull:'invalid'})).status,401);
+ const current=await native('/api/v1/monitors/'+monitor.id);await c.adopt(heldPolicy());
+ const beforeStop=await c.tool('uptime.monitors.resume',{id:monitor.id,version:current.revision,expected_revision:current.revision});assert.ok(beforeStop.result._meta['com.runeditrun/approval']);
+ const detached=await signJws(pair.privateKey,kid,'rer-business-settings+jwt',{v:1,iss:issuer,aud:origin,sub:installationId,business,email:bindings.OWNER_EMAIL,owner_id:sub,jti:randomUUID(),iat:seconds(),exp:seconds()+300,rev:3,values:{},logo:null,team:null,detached:true});
+ assert.equal((await call('/api/rer/business-settings',{settings:detached})).status,200);
+ assert.equal((await pull()).status,404,'stopped Business has no decision relay');
+ assert.equal((await c.mcp('tools/list')).status,401,'stop ends Business-token admission');
+ const stoppedPending=await c.decideApproval(beforeStop);assert.equal(stoppedPending.body.approval.state,'refused');assert.equal(stoppedPending.body.approval.code,'sponsor_unavailable');
+ assert.equal((await native('/api/v1/monitors/'+monitor.id)).revision,current.revision,'stop preserves the native monitor and owner access');
+ const stoppedPolicy=autonomousPolicy();stoppedPolicy.reviewers=['person:'+sub];const signedPause=await policyEnvelope(c,stoppedPolicy,{paused:true});
+ const pausedAfterStop=await call('/api/rer/agent-policy',{policy:signedPause.policy});assert.equal(pausedAfterStop.status,200);assert.deepEqual((await pausedAfterStop.json()).adopted,{seq:signedPause.payload.seq,revision:signedPause.payload.revision});
+ assert.equal(JSON.parse((await db.prepare('SELECT envelope FROM agent_door_state WHERE id=1').first()).envelope).paused,true,'valid signed Pause is adopted after Business stop');
+ assert.equal((await db.prepare('SELECT stopped FROM bs_settings WHERE singleton=1').first()).stopped,1,'signed policy never revives Business');
+ console.log('PASS BASE-AGENT-009.uptime.signed-relay: 200; foreign/unauthorized 401; foreign Business/stopped 404; held Business effect refused; native owner and signed Pause survive');
  assert.ok(c.points.every(point=>point.ok),JSON.stringify(c.points.filter(p=>!p.ok)));
  // Updated 2026-10-30 BASE-AGENT-013.uptime.declarative-conformance:
  // agent-surface.json declares tools, policy, pause, audit and idempotency.

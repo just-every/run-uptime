@@ -51,7 +51,7 @@ export function uptimeAgentDoor(env:Bindings){
 }
 export async function agentDoorResponse(env:Bindings,request:Request):Promise<Response|null>{
  const path=new URL(request.url).pathname
- if(!['/mcp','/agents','/api/rer/agent-policy','/api/rer/business-settings','/rer-business-logo','/rer-business.css','/.well-known/oauth-protected-resource','/.well-known/oauth-protected-resource/mcp'].includes(path)&&!path.startsWith('/agents/'))return null
+ if(!['/mcp','/agents','/api/rer/agent-policy','/api/rer/agent-decisions','/api/rer/business-settings','/rer-business-logo','/rer-business.css','/.well-known/oauth-protected-resource','/.well-known/oauth-protected-resource/mcp'].includes(path)&&!path.startsWith('/agents/'))return null
  try{
   const proof=await nativeProofResponse(env,request);if(proof)return proof
   const settings=await businessSettings(env).handle(request);if(settings)return settings

@@ -35,7 +35,17 @@ export async function proveHeldClassClaims({c,native,db,origin,sponsorId,provide
   assert.deepEqual(Object.keys(after),Object.keys(before));
   for(const name of tables) {
    if(allowed.includes(name))continue;
-   if(name==='agent_door_agents') {
+   if(name==='agent_door_relay') {
+    const changed=new Map(after.agent_door_audit.filter(row=>!before.agent_door_audit.some(old=>JSON.stringify(old)===JSON.stringify(row))).map(row=>[row.id,JSON.parse(row.row)]));
+    const expected=new Set([...before[name].map(row=>row.decision_id),...Array.from(changed,([id,row])=>row.door==='mcp'&&row.consent!=null?id:null).filter(Boolean)]);
+    assert.deepEqual(after[name].map(row=>row.decision_id).sort(),[...expected].sort(),'relay retains exactly the Business audit membership');
+    const head=Math.max(0,...before[name].map(row=>row.sequence));
+    for(const row of after[name]) {
+     const old=before[name].find(item=>item.decision_id===row.decision_id);
+     if(changed.has(row.decision_id)) {assert.equal(row.business,c.business);assert.ok(row.sequence>head,'only changed audits advance the relay');}
+     else assert.deepEqual(row,old,'unrelated relay rows remain byte-for-byte unchanged');
+    }
+   } else if(name==='agent_door_agents') {
     const stable=rows=>rows.map(({window,requests,...row})=>row);
     assert.deepEqual(stable(after[name]),stable(before[name]),'admission changes only request counters, never identity or authority');
     assert.equal(after[name].find(row=>row.id===c.agentId).sponsor,sponsorId);
