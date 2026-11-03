@@ -500,11 +500,11 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "97c3634be107a84fa12cc92e868167b43ce4a923bebc9827a5aeafb55fa74601",
+      "sha256": "dec9a208061c268be31aaa04b7c244b7d52911014e28a0ed3cf0f45fc72be598",
       "executable": false
     },
     "agent-surface.json": {
-      "sha256": "e37257ee4aece754445875fe80b1d879393dd29d216a8800a55d0546ff59c66c",
+      "sha256": "ce400533be79cb1658032cfa1bef2931abbdb4faba59dd975ca83af5a6e63976",
       "executable": false
     },
     "AGENTS.md": {
@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "73b285edff0a35e5e8f2d4053dcbf69c623673448e59e7b42b8915a72c956d02",
+      "sha256": "e6fd0979a7837354efe33375c5cd33247d705d8be631ac5b9df89d57afdb1ee4",
       "executable": false
     },
     "DEMO.md": {
@@ -4447,12 +4447,20 @@
       "sha256": "d807f7f7b9ae07f6a55408d5482817263bfafa03f82d1975716cd424ff07cd17",
       "executable": false
     },
+    "src/agent-door/incident-notes.server.ts": {
+      "sha256": "6dc10940ee916ef541cc746aa89437ebc9b82bb1af504ca3081ce2e643fd8846",
+      "executable": false
+    },
     "src/agent-door/index.server.ts": {
       "sha256": "03ce4e262ea758f320784b44e273446a02724c7afa77bdd684aa376a4397fc95",
       "executable": false
     },
     "src/agent-door/manual-check-effects.server.ts": {
       "sha256": "4c3820b91cc541bf9b7187de2c81a58e35ab583c300fc7603b96a78880f4496f",
+      "executable": false
+    },
+    "src/agent-door/monitor-create-effects.server.ts": {
+      "sha256": "83804ae8638eecca1b0ce4f350c43ed0eb855a3a75b213da648dd50696e16d17",
       "executable": false
     },
     "src/agent-door/monitor-update-effects.server.ts": {
@@ -4472,7 +4480,7 @@
       "executable": false
     },
     "src/agent-door/registry.server.ts": {
-      "sha256": "5915d98d9768c3e6ba2596a40d67e70c9fd83a4650138b2e72685ab9ea3b2ce1",
+      "sha256": "8a952882771fc4d314c438ae64162fb8ed3f83161682e46deab6324856b22ffd",
       "executable": false
     },
     "src/agent-door/work.server.ts": {
@@ -8651,8 +8659,12 @@
       "sha256": "a1ef721ccac669e0ad42fd8001c6135ae4a482b06ff4d00770176ca6fcb8ecb6",
       "executable": false
     },
+    "tests/agent-comment-delete-support.mjs": {
+      "sha256": "b242ebf165889ea2293c6ee6ccd64f77246f9de5f7a3a362749e32db6256993b",
+      "executable": false
+    },
     "tests/agent-conformance/fixtures.mjs": {
-      "sha256": "f0ca8abace6617ee22ba8ea5998490fe61c2954c1abb48278e457302f01c7ed4",
+      "sha256": "167fc958b76490c71fda31e8717ba7ac5cc09b7ecf3e65310d7e6eba42b61125",
       "executable": false
     },
     "tests/agent-conformance/http.mjs": {
@@ -8664,7 +8676,7 @@
       "executable": false
     },
     "tests/agent-conformance/journey.mjs": {
-      "sha256": "ae304119296d7a17ecbc2e37e618e93c69edb27e12feb85a513a7b334c5628d7",
+      "sha256": "87228234d85923a60b71fd9be93be5c29daa0cba049abed9f6c1f184a4492fbe",
       "executable": false
     },
     "tests/agent-conformance/manual-debt.mjs": {
@@ -8704,7 +8716,7 @@
       "executable": false
     },
     "tests/agent-door.mjs": {
-      "sha256": "38aac393e96fc15eae71af1c4c12ca6c00882f95bcc55261f69deb4104a3cbbd",
+      "sha256": "498376edda1d4e21df23931a5ddd2005ae4a5e49a3b2ba4aa8424fa76009afc8",
       "executable": false
     },
     "tests/agent-held-class-claims-support.mjs": {
@@ -8723,6 +8735,10 @@
       "sha256": "3fee19c8e54e3c6cc3ca7b459d402d39df439fce8b835cb72aa26490c0ec4194",
       "executable": false
     },
+    "tests/agent-paused-create-support.mjs": {
+      "sha256": "cc1a340024dcdaf41ecf4e46518dc692a377cb9ccc7dd2c2e3e6320c9b4c62d8",
+      "executable": false
+    },
     "tests/agent-policy-entry-support.mjs": {
       "sha256": "0317ab93c10bc5438534b1687869f282a3fc273ff6cb88c71c2b9d3c3d41daf7",
       "executable": false
@@ -8737,6 +8753,10 @@
     },
     "tests/agent-rate-overrun.mjs": {
       "sha256": "9c7ff0d0cda4409e5b925752d6b36946ed4a0ed3d61cc37794078e5a1876cf06",
+      "executable": false
+    },
+    "tests/agent-record-class-claims-support.mjs": {
+      "sha256": "db0090143ba922ac7de98a27854d833868f219487c077569022eba3beb6ac22a",
       "executable": false
     },
     "tests/agent-revocation-audit-support.mjs": {
