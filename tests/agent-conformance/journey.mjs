@@ -5,6 +5,7 @@ import {nativeHttp} from './http.mjs';
 import {errorCode} from '../../src/base/modules/agent-door/conformance/protocol.mjs';
 
 const snapshots = new Map();
+const deletionSnapshots = new Map();
 const sponsorAccess = new Map();
 const creationInventories = new Map();
 const recordAuthority = new Set(['uptime.access.update', 'uptime.destinations.update', 'uptime.monitors.create', 'uptime.monitors.update', 'uptime.routes.update']);
@@ -26,6 +27,13 @@ export async function beforeStep(context) {
  }
  if (!step.tool.startsWith('uptime.incidents.')) return;
  const state = phaseState.get(origin);
+ if(step.id==='delete-incident-comment'){
+  const view=await nativeHttp(context).json('/api/v1/incidents/'+encodeURIComponent(state.incident.id));
+  const saved=view.comments.find(row=>row.id===state.commentDelete.id);
+  assert.equal(saved.text,state.commentDelete.text);assert.equal(saved.version,state.commentDelete.version);
+  assert.deepEqual(saved.history.map(row=>({version:row.version,text:row.text})),[{version:1,text:state.commentDelete.original}]);
+  deletionSnapshots.set(origin+phase,view);
+ }
  snapshots.set(origin + phase, await result(tool, 'uptime.monitors.history', {id: state.observedMonitor.id}));
 }
 export async function afterStep(context) {
@@ -55,6 +63,21 @@ export async function afterStep(context) {
  if (step.tool === 'uptime.discovery.start') rememberDiscovery(origin, output.id);
  if (!step.tool.startsWith('uptime.incidents.')) return;
  const state = phaseState.get(origin);
+ if(step.id==='delete-incident-comment'){
+  const before=deletionSnapshots.get(origin+phase),comment=state.commentDelete;
+  const view=await nativeHttp(context).json('/api/v1/incidents/'+encodeURIComponent(state.incident.id));
+  const tombstone=view.comments.find(row=>row.id===comment.id);
+  assert.equal(output.incidentId,state.incident.id);assert.equal(output.id,comment.id);assert.equal(output.deleted,true);
+  assert.equal(tombstone.text,null);assert.equal(tombstone.version,comment.version+1);assert.ok(tombstone.deletedAt);
+  assert.deepEqual(tombstone.history,[]);assert.deepEqual(tombstone.mentions,[]);
+  assert.ok(!JSON.stringify(view).includes(comment.original));assert.ok(!JSON.stringify(view).includes(comment.text));
+  assert.deepEqual(view.comments.filter(row=>row.id!==comment.id),before.comments.filter(row=>row.id!==comment.id));
+  const deletion=view.timeline.filter(row=>row.kind==='comment_deleted'&&row.data.commentId===comment.id);
+  assert.equal(deletion.length,1);assert.equal(deletion[0].data.version,comment.version+1);
+  assert.equal(deletion[0].actor.kind,'agent');
+  for(const key of ['machineState','status','version','nextDue','nextDueKind','deliveries','trigger','recovery'])assert.deepEqual(view[key],before[key]);
+  console.log('PROBE SURFACE-004 published-Base-'+phase+': native comment with edit history -> one attributed deletion, null text, empty history and unchanged native incident state');
+ }
  const history = await result(tool, 'uptime.monitors.history', {id: state.observedMonitor.id});
  assert.deepEqual(history, snapshots.get(origin + phase), 'Incident coordination never rewrites independently observed scheduled evidence.');
 }
