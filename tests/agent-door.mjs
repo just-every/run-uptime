@@ -12,6 +12,7 @@ import {proveHeldClassClaims} from './agent-held-class-claims-support.mjs';
 import {proveSelfEscalationState} from './agent-self-escalation-state-support.mjs';
 import {proveOversizeNoEffect} from './agent-oversize-support.mjs';
 import {proveFormAccept} from './agent-form-accept-support.mjs';
+import {provePausedCreation} from './agent-paused-create-support.mjs';
 // One integrated core journey, through the emitted production Worker and real
 // D1. Only mail/probe provider edges may be replaced; identities and mutations
 // enter the ordinary native public doors.
@@ -108,6 +109,7 @@ try{
  proof=await nativeDoorBrowser({origin,cookie,directory});
  await proveMonitorStateEffects({c,native,db,proof});
  await proveDestinationNameEffects({c,native,db,origin,cookie,providerRequests});
+ await provePausedCreation({c,native,db,providerRequests,proof});
  const version=monitor.revision;
  const stale=await c.tool('uptime.monitors.update',{id:monitor.id,version:version-1,definition:{name:'must not save'},expected_revision:version-1});assert.equal(errorCode(stale),'revision_conflict');
  const changed=await result('uptime.monitors.update',{id:monitor.id,version,definition:{name:'Checkout reachability — investigated'},expected_revision:version});
