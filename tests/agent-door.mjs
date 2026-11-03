@@ -1,4 +1,5 @@
 import {proveAgentRevocationAudit} from './agent-revocation-audit-support.mjs';
+import {proveCommentDeletion} from './agent-comment-delete-support.mjs';
 import {proveSavedEmailDestinationFacts} from './agent-destination-facts-support.mjs';
 import {proveManualDebt} from './agent-manual-debt-support.mjs';
 import {proveAgentSurfaceDiscovery} from './agent-surface-discovery.mjs';
@@ -208,6 +209,7 @@ try{
  await proof.capture('approval-refused',new URL(pausedApproval.result._meta['com.runeditrun/approval'].url).pathname);
  console.log('PASS BASE-AGENT-011.uptime.pause-pending-execution');
  await c.adopt(autonomousPolicy());
+ await proveCommentDeletion({c,native,db,proof,providerRequests,reviewer:{id:reviewerId,sub:reviewerSub,cookie:reviewerCookie}});
  await proveSavedEmailDestinationFacts({c,native,db,sponsorId:sponsor.id});
  const destination=await native('/api/notifications/destinations',{name:'Checkout incident webhook',kind:'webhook',url:'https://notifications.example.com/checkout'});
  const notificationArgs={id:destination.id,idempotency_key:randomUUID()};

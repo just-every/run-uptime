@@ -20,7 +20,7 @@ import type {Bindings} from '../domain/control.server.ts'
 import {save,get,sha} from '../domain/control.server.ts'
 import {authorizedDatabase} from '../domain/access-database.server.ts'
 import {incidentAction} from '../domain/incident-work/actions.server.ts'
-import {addComment} from '../domain/incident-work/comments.server.ts'
+import {incidentNotes,incidentNoteSchema} from './incident-notes.server.ts'
 import {findIncident} from '../domain/incident-work/common.server.ts'
 import {applyMaintenance,previewMaintenance} from '../domain/planned-maintenance.server.ts'
 import {applyAlertRoute,previewAlertRoute,prepareAlertRouteAssignment} from '../domain/alert-routes.server.ts'
@@ -136,7 +136,8 @@ export function tools(env:Bindings):ToolDefinition[]{
   const result=await incidentAction({...env,DB:authorizedDatabase(env,access)},a.id,{kind,version,...(kind==='assign'?{ownerId:a.owner_id}:{})},native)
   c.emit('incident.updated',`uptime://incidents/${a.id}`,{version:result.version});return {id:a.id,...result}
  },async(a,c)=>{const incident=await findIncident(env,String(a.id));await authority(env,c,'respond',[incident.monitor_id]);return [facts('standard')]},incidentVersion)
- mutation('incidents.note','Add an internal incident note',schema({id:string,text:{type:'string',minLength:1,maxLength:5000}}),['standard'],['FOLLOWUP-001'],async(a,c)=>{const incident=await findIncident(env,a.id),access=await authority(env,c,'respond',[incident.monitor_id]);if(access.kind==='credential')throw new ToolRefusal('insufficient_scope');const result=await addComment({...env,DB:authorizedDatabase(env,access)},a.id,{text:a.text,mentions:[]},{id:c.person.id,displayName:c.person.name,access,preparedBy:c.actor,approvers:c.approvers.map(person=>({...person}))});c.emit('incident.updated',`uptime://incidents/${a.id}`);return {incidentId:a.id,...result}},async(a,c)=>{const i=await findIncident(env,String(a.id));await authority(env,c,'respond',[i.monitor_id]);return [facts('standard')]})
+ const notes=incidentNotes(env)
+ mutation('incidents.note','Add or delete an internal incident note',incidentNoteSchema,['standard','destructive'],['FOLLOWUP-001'],notes.run,notes.classify,notes.revision).summary=notes.summary
  mutation('maintenance.preview','Preview an exact native maintenance selection',schema({monitorIds:{type:'array',items:string,minItems:1,maxItems:100},window:{type:'object'}}),['standard'],['MAINT-001'],async(a,c)=>{await authority(env,c,'maintenance_write',a.monitorIds);return previewMaintenance(env,a)},async(a,c)=>{await authority(env,c,'maintenance_write',a.monitorIds as string[]);return [facts('standard')]})
  mutation('maintenance.update','Apply the exact previewed maintenance calendar',schema({monitorIds:{type:'array',items:string,minItems:1,maxItems:100},window:{type:'object'},digest:string}),['live'],['MAINT-001'],async(a,c)=>{const access=await authority(env,c,'maintenance_write',a.monitorIds);const {digest,...input}=a;const result=await applyMaintenance({...env,DB:authorizedDatabase(env,access)},input,digest,actor(c));for(const id of a.monitorIds)c.emit('monitor.updated',`uptime://monitors/${id}`);return result},async(a,c)=>{await authority(env,c,'maintenance_write',a.monitorIds as string[]);return [facts('live',{service:'monitoring-maintenance'})]})
  mutation('routes.preview','Preview a native alert route',schema({id:string,route:{type:'object'}}),['standard'],['ROUTING-001'],async(a,c)=>{await authority(env,c,'route_write',[a.id],undefined,true);const {monitor,snapshot,...view}=await prepareAlertRouteAssignment(env,a.id,a.route);return view},async(a,c)=>{await authority(env,c,'route_write',[String(a.id)],undefined,true);return [facts('standard')]})
