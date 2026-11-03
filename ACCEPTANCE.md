@@ -1448,7 +1448,7 @@ Agent surface · target · **partial**
 6. Removing the agent keeps its rows and its name.
 7. The Agents page works at 1440 and 390 with no serious or critical axe findings.
 
-**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: review, execution, replay and native-target audit phases.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: review, execution, replay and native-target audit phases.; `tests/agent-revocation-audit-support.mjs`; synchronous owner revocation retains the complete original audit row and inventory name, specialist and sponsor, while the same unexpired bearer is refused with 401 on discovery; all 216 durable tables are compared with only the intended revoked flag changed and no provider or mail effects.
 **Gap.** Review, execution, exact-key replay and native-continuation audit checks pass the declared CORE measurement on published 0.2.94. Complete audit acceptance for retained unscoped lifecycle families remains unproved.
 
 #### BASE-AGENT-010 — Agents can follow changes
