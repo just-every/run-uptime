@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {isDeepStrictEqual} from 'node:util';
 import {randomUUID} from 'node:crypto';
 import {autonomousPolicy,heldPolicy,accessToken} from '../src/base/modules/agent-door/conformance/crypto.mjs';
+import {auditRows} from '../src/base/modules/agent-door/conformance/audit.mjs';
 import {errorCode} from '../src/base/modules/agent-door/conformance/protocol.mjs';
 import {completeSecondFactor} from './mfa-auth-support.mjs';
 import {allDeliveredMessages} from './mail-provider-fixture.mjs';
@@ -37,7 +38,8 @@ export async function proveDestinationNameEffects({c,native,db,origin,cookie,pro
   assert.equal(audit.id,decision);assert.equal(audit.agent.id,c.agentId);assert.equal(audit.sponsor.id,owner.id);
   assert.equal(audit.tool,tool);assert.deepEqual(audit.resource,target);assert.equal(audit.idempotency_key,args.idempotency_key);
   assert.equal(audit.consent,c.consent);assert.equal(audit.revision,c.revision);assert.equal(audit.door,'mcp');
-  assert.equal(audit.approval,null);assert.equal(audit.code,refused?'native_proof_required':null);
+  assert.equal(audit.approval,null);assert.equal(audit.review===null,!held||refused);
+  if(held&&!refused)assert.equal(audit.review.id,answer.result._meta['com.runeditrun/review'].id);assert.equal(audit.code,refused?'native_proof_required':null);
   assert.equal(audit.outcome,refused?'refused':replay?'replayed':'done');
   assert.deepEqual(audit.classes,standard);assert.equal(audit.decision,held?'review':'autonomous');
   assert.ok(Date.parse(audits[0].at)>=started&&Date.parse(audits[0].at)<=ended);
@@ -53,7 +55,7 @@ export async function proveDestinationNameEffects({c,native,db,origin,cookie,pro
    expected.agent_door_calls=ordered([...before.agent_door_calls,...calls]);
    const events=added('agent_door_events');assert.equal(events.length,1);const event=JSON.parse(events[0].event);
    assert.deepEqual(event,{id:events[0].id,type:'destination.updated',uri:'uptime://destinations/'+record.id,actor:{kind:'agent',agent:{id:c.agentId,name:'Agent door conformance'},for:{id:owner.id,name:sponsor.display_name},label:'Agent door conformance for '+(sponsor.display_name)},at:event.at});
-   assert.equal(events[0].uri,event.uri);expected.agent_door_events=ordered([...before.agent_door_events,...events]);
+   assert.ok(Date.parse(event.at)>=started&&Date.parse(event.at)<=ended);assert.equal(events[0].uri,event.uri);expected.agent_door_events=ordered([...before.agent_door_events,...events]);
    const receipts=added('uptime_audit');assert.equal(receipts.length,1);
    assert.deepEqual(receipts[0],{id:receipts[0].id,actor_kind:'operator',actor_ref:owner.id,occurred_at:receipts[0].occurred_at,action:'access_secret_write',subject_kind:'operator',subject_ref:receipts[0].id});
    expected.uptime_audit=ordered([...before.uptime_audit,...receipts]);
@@ -87,6 +89,7 @@ export async function proveDestinationNameEffects({c,native,db,origin,cookie,pro
    checkState(before,after,answer,input,{held:policy==='held',replay:mode==='replay',refused:mode==='unproved',started,ended});
   }
   assert.deepEqual(await nativeRead(),{...original,name:args.destination.name},'native read preserves enabled state, email endpoint and credential availability');
+  const audit=await auditRows(c);assert.equal(audit.differs,0,'the current policy independently recomputes every recorded decision');
   assert.deepEqual(providerRequests,network);assert.equal(allDeliveredMessages().length,mail);
   console.log(`PROBE SURFACE-002 acceptance-5-name-${policy}-${version}: owner-sponsored MCP name edit with live and access blocked -> standard measure 1, destination target, missing proof refused, one name effect, ${policy==='held'?'one attributed standard review':'no review'}, no approval, exact-key replay unchanged; all durable tables and provider traffic checked`);
  }
@@ -97,6 +100,7 @@ export async function proveDestinationNameEffects({c,native,db,origin,cookie,pro
  for(const race of ['enabled','credential']){
   const racing=await native('/api/notifications/destinations',{name:'synthetic-uptime-race',kind:'email',enabled:true,address:['synthetic-uptime-3','recipient.example.test'].join(String.fromCharCode(64))});
   const old=await db.prepare('SELECT * FROM notification_destinations WHERE id=?').bind(racing.id).first();
+  const traffic=structuredClone(providerRequests),mailCount=allDeliveredMessages().length;
   let concurrent,attempted=false;
   const barrier=new Proxy(db,{get(target,key){
    if(key==='batch')return async statements=>{
@@ -110,7 +114,7 @@ export async function proveDestinationNameEffects({c,native,db,origin,cookie,pro
   await assert.rejects(()=>updateDestination({DB:barrier},racing.id,{name:'synthetic-uptime-stale',enabled:true},{kind:'operator',ref:owner.id},{name:old.name,enabled:true,credentialId:old.credential_id}));
   assert.equal(attempted,true);assert.ok(isDeepStrictEqual(await snapshot(),concurrent),'stale name save cannot overwrite the concurrent owner change or alter any other durable table');
   const current=await db.prepare('SELECT * FROM notification_destinations WHERE id=?').bind(racing.id).first();
-  assert.equal(current.name,old.name);
+  assert.equal(current.name,old.name);assert.deepEqual(providerRequests,traffic);assert.equal(allDeliveredMessages().length,mailCount);
   if(race==='enabled')assert.equal(current.enabled,0);else assert.notEqual(current.credential_id,old.credential_id);
   console.log('PROBE SURFACE-002 acceptance-5-'+race+'-fence: native name-save command interleaved with owner PATCH -> transaction refuses, complete concurrent state preserved');
  }
