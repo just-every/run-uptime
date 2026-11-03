@@ -504,7 +504,7 @@
       "executable": false
     },
     "agent-surface.json": {
-      "sha256": "e37257ee4aece754445875fe80b1d879393dd29d216a8800a55d0546ff59c66c",
+      "sha256": "9ad8a63f3617b4317ea2b6f08d4fb77d269d437761171a98ee2dea01d11e432d",
       "executable": false
     },
     "AGENTS.md": {
@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "45c5bb1b67258e58383be125a115cc16b35e49e092d59f3f89c93b55cbeb5e4a",
+      "sha256": "909efea5cd72c41c8400fb447a73567ddaffca5d463aaeaccb5cc223ba055c3b",
       "executable": false
     },
     "DEMO.md": {
@@ -4472,7 +4472,7 @@
       "executable": false
     },
     "src/agent-door/registry.server.ts": {
-      "sha256": "5915d98d9768c3e6ba2596a40d67e70c9fd83a4650138b2e72685ab9ea3b2ce1",
+      "sha256": "bfba065f73a8b8a9460ee7d7d8eec0a638acad2ed5b4fc63384f9a3ad0067ed8",
       "executable": false
     },
     "src/agent-door/work.server.ts": {
@@ -7588,7 +7588,7 @@
       "executable": false
     },
     "src/domain/notification-destinations.server.ts": {
-      "sha256": "0811573b9111fa5b541773f379e3291bdf048dc2b0f348ca3014befb28a79827",
+      "sha256": "432181e465f6a63aaab60e1ae6eaa4cd6f47feacdfdd9793274983cbd5cdbdff",
       "executable": false
     },
     "src/domain/notification-fallback.server.ts": {
@@ -8652,7 +8652,7 @@
       "executable": false
     },
     "tests/agent-conformance/fixtures.mjs": {
-      "sha256": "f0ca8abace6617ee22ba8ea5998490fe61c2954c1abb48278e457302f01c7ed4",
+      "sha256": "479b2f699805febead6a50398ed3cd26cd898064e6fa719910af3beb278c5457",
       "executable": false
     },
     "tests/agent-conformance/http.mjs": {
@@ -8664,7 +8664,7 @@
       "executable": false
     },
     "tests/agent-conformance/journey.mjs": {
-      "sha256": "ae304119296d7a17ecbc2e37e618e93c69edb27e12feb85a513a7b334c5628d7",
+      "sha256": "2d97bac7397f597d9fd1d545c2ec031c5ad83e8f8beeb366bc3cfa10dff152a9",
       "executable": false
     },
     "tests/agent-conformance/manual-debt.mjs": {
@@ -8704,7 +8704,7 @@
       "executable": false
     },
     "tests/agent-door.mjs": {
-      "sha256": "6194e52282f62f139fe8d518e9d07446865d5a3a52004cf7cc38509ee3627b0b",
+      "sha256": "8309086a84d400552d5c311bc5f7c5c40d8dd9c292d5166aa4353b3874eb8a55",
       "executable": false
     },
     "tests/agent-held-class-claims-support.mjs": {

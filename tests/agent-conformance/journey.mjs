@@ -1,3 +1,4 @@
+import {beforeDestinationName,afterDestinationName} from './destination-name.mjs';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {phaseState, rememberDiscovery} from './state.mjs';
@@ -14,6 +15,7 @@ async function result(tool, name, args) {
 }
 export async function beforeStep(context) {
  const {origin, phase, step, tool} = context;
+ await beforeDestinationName(context);
  if (recordAuthority.has(step.tool)) sponsorAccess.set(origin + phase + step.id, await nativeHttp(context).json('/api/access/self'));
  if (!step.tool.startsWith('uptime.incidents.')) return;
  const state = phaseState.get(origin);
@@ -21,6 +23,7 @@ export async function beforeStep(context) {
 }
 export async function afterStep(context) {
  const {origin, phase, step, result: output, tool} = context;
+ await afterDestinationName(context);
  if (recordAuthority.has(step.tool)) assert.deepEqual(await nativeHttp(context).json('/api/access/self'), sponsorAccess.get(origin + phase + step.id), 'Record operations leave the current sponsor’s native role and grants unchanged.');
  if(step.id==='rename-paused-monitor'){
   const record=phaseState.get(origin).pausedUpdate;

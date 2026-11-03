@@ -1,3 +1,4 @@
+import {proveDestinationNameEffects} from './agent-destination-name-support.mjs';
 import {proveSavedEmailDestinationFacts} from './agent-destination-facts-support.mjs';
 import {proveManualDebt} from './agent-manual-debt-support.mjs';
 import {proveAgentSurfaceDiscovery} from './agent-surface-discovery.mjs';
@@ -102,6 +103,7 @@ try{
  const setup=await fetch(origin+'/setup',{method:'POST',redirect:'manual',headers:{origin,cookie}});assert.equal(setup.status,303);
  proof=await nativeDoorBrowser({origin,cookie,directory});
  await proveMonitorStateEffects({c,native,db,proof});
+ await proveDestinationNameEffects({c,native,db,origin,cookie,providerRequests});
  const version=monitor.revision;
  const stale=await c.tool('uptime.monitors.update',{id:monitor.id,version:version-1,definition:{name:'must not save'},expected_revision:version-1});assert.equal(errorCode(stale),'revision_conflict');
  const changed=await result('uptime.monitors.update',{id:monitor.id,version,definition:{name:'Checkout reachability — investigated'},expected_revision:version});
