@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "45c5bb1b67258e58383be125a115cc16b35e49e092d59f3f89c93b55cbeb5e4a",
+      "sha256": "dcd470bf31d66f8ed48de848b4b51c337f156646a17d5607c6492380baafdd1a",
       "executable": false
     },
     "DEMO.md": {
@@ -9075,6 +9075,10 @@
       "sha256": "f7a383393c6849353779cba29f323ed2096a2971fa225289dc004542024a60a8",
       "executable": false
     },
+    "tests/network-downgrade-support.mjs": {
+      "sha256": "c790cbd5183c95030328580e0ccef7a698620f25442d8c1f4e4803579d76bd89",
+      "executable": false
+    },
     "tests/network-mixed-dns.mjs": {
       "sha256": "b829d72d3cd8230286b86d1f1e408db4d907aa94d81a6a50fcdcf4b70efcd68e",
       "executable": false
@@ -9364,7 +9368,7 @@
       "executable": false
     },
     "tests/tls-auth.mjs": {
-      "sha256": "6d7fe1ebe1334c848504f62ef0661e24ce8fe791d43feee86f02ff50c8bb6c19",
+      "sha256": "cfe51cd4275b71a49e40d16d9936e09696f6e2285202433b79c2366d3980642c",
       "executable": false
     },
     "tests/tls-stages-support.mjs": {
