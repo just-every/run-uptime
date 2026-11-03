@@ -8832,7 +8832,7 @@
       "executable": false
     },
     "tests/agent-surface-discovery.mjs": {
-      "sha256": "e2c0a075e84baaf43c0649a1b68d4487ab0794db3473ea22d71cb1ef23814826",
+      "sha256": "221dfc2f55b1d763119eede90d623e1d468b21a97b17eece5b58430b660659c5",
       "executable": false
     },
     "tests/alert-drill.mjs": {
