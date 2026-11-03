@@ -870,10 +870,18 @@
       },
       "expect": [
         {
-          "class": "live"
+          "class": "live",
+          "facts": {
+            "measure": 1,
+            "service": "alert-delivery"
+          }
         },
         {
-          "class": "access"
+          "class": "access",
+          "facts": {
+            "measure": 1,
+            "direction": "widens"
+          }
         }
       ],
       "inject": {
