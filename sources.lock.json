@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "b55cc1c0d2e036bddd38d2a1c1e8820a43099e34d74bab7dc403e72fe6196142",
+      "sha256": "a8e34da8d16d02526614eb75b68ae21c22756367feb6bec733764f435c8c45bb",
       "executable": false
     },
     "DEMO.md": {
@@ -9384,7 +9384,7 @@
       "executable": false
     },
     "tests/resilience/watches.mjs": {
-      "sha256": "4a8413c284f2437e354c055956e3c4ee7c63af01ca04d07cd6866593e2bc0650",
+      "sha256": "073d17f7b2ae62c68b7d4cfb381f0b2bd6f5825b39c396a9f5559e1ebb988dde",
       "executable": false
     },
     "tests/retention-browser-proof.mjs": {
@@ -9457,6 +9457,10 @@
     },
     "tests/source-history-support.mjs": {
       "sha256": "e8ebe6178241caf192bf07b50a42689ab7095066fbbb7176ce075eef70d9437f",
+      "executable": false
+    },
+    "tests/startup-runner-config-support.mjs": {
+      "sha256": "ff696f3a3316e665be1b86cc351ee31016f6a73ece1dd47c9a7be59e30df71f3",
       "executable": false
     },
     "tests/tls-auth-child.mjs": {
