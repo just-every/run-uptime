@@ -9,9 +9,9 @@ The primary journey: an operator moves their monitors from UptimeRobot or Pingdo
 | Tier | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
 | Core | 35 | 49 | 11 | 95 |
-| Agent surface | 0 | 11 | 8 | 19 |
+| Agent surface | 0 | 12 | 7 | 19 |
 | Later | 0 | 0 | 1 | 1 |
-| Full target | 35 | 60 | 20 | 115 |
+| Full target | 35 | 61 | 19 | 115 |
 
 Judged from the code and tests at commit `cf75611586159d1588151fd403899d8f9a735593` (2 November 2026). ERASURE-001 public owner erasure, retained stale edit and complete refusal preservation; other clause judgments retained. PRESENCE-001 native contact lifecycle proof replayed at `8862426`; all newer main judgments retained. Carried-done recheck on 2 November 2026 (ct judge ct-judge-uptime-restore-20261102-0845, push Verify 41373254373 at 690ff55a867bcbac403c3f236ade9cac2a2d5c8b): HTTP-001, EVIDENCE-001, AUTHORITY-001, ARCHIVE-001, NOTIFY-001, DELIVERY-001, PUBLIC-001, PUBLIC-002, API-001, PING-001, DNS-001, TLS-001, EVIDENCE-002, FLOW-003, MANAGE-001 and METRICS-001 restored to done; other clause judgments retained. Assertion-round recheck on 2 November 2026 (ct judge ct-judge-uptime-assert-20261102-1320, push Verify 41448682806 at 40f33957850e11c6887789852f2e8bd10e14adf3, landed on main as `cf75611586159d1588151fd403899d8f9a735593`): HEARTBEAT-001 and ROUTING-002 restored to done; other clause judgments retained. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
 
@@ -1556,7 +1556,7 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
 
 #### SURFACE-003 — External and money are computed per call
 
-Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
+Agent surface · target · **partial** · From new · Cites BASE-AGENT-006
 
 **Requirement.** Uptime's server computes the external and money classes and their facts from the destination, the recipient and the price on record for every call that can carry them.
 
@@ -1571,7 +1571,7 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
 8. the pending handoffs update operation adds external when a mapping exposes incident, maintenance or recovery updates, evidence and attachments to a status page or an outside responder service, with the recipient count and counterparty *public* for a status page, *known* for a PagerDuty, Splunk On-Call or other outside responder service already on record and *new* otherwise; a mapping confined to the business does not add external.
 
 **Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: native external class fixtures under both policies.; `tests/agent-destination-facts-support.mjs` — saved single-mailbox external recipient facts, native approval custody, exact-key replay and misleading-claim resistance through native queue admission only.; pending calls and exact-key replay queue nothing, native person approval queues one current-credential job, and completed replay retains that same job with no delivery attempt or drill confirmation (lines 66–109). This is acceptance 1's saved-email subset and acceptance 5's matching misleading-claim resistance through native queue admission only.
-**Gap.** No implementation: no tool declares or computes external or money classes.
+**Gap.** Only the destinations.test/drill external cell for one saved email or webhook destination (known, count 1) is proven for this clause; no tool computes money. routes.update and destinations.test/drill always report counterparty known; destinations.update declares no external. Next proof: a signed MCP call of `uptime.checks.run` on a monitor holding an active live-payment or refund effect grant (API-004) must return a `money` class with the USD amount and payee from the grant and current transaction and wait under a money-approval rule; `uptime.grants.read` must add money with the grant's spend limit. A monitor with no, revoked, expired or spent grant must carry no money; names or arguments claiming zero cost must leave the saved-grant computation unchanged. Then `uptime.routes.update` and `uptime.destinations.update` must compute external from the saved recipient (count, known versus new, outside the business) in the same journey; SMS/voice money, phones, settings, handoffs, incidents, reports, dependencies and automations stay pending on PHONE-001/002, COST-001 and their missing tools.
 
 #### SURFACE-004 — Access, destructive and gated are computed per call
 
