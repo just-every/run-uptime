@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "a8641a29ea9a2a7aa94eab083451730dcf0c452ed5f1dd02c3940237dfb0d4ee",
+      "sha256": "3b775f33ff5366de8a58519330be08160a04bdef9f8b6cd514d0ad9a223eae5f",
       "executable": false
     },
     "DEMO.md": {
@@ -9187,6 +9187,10 @@
       "sha256": "b829d72d3cd8230286b86d1f1e408db4d907aa94d81a6a50fcdcf4b70efcd68e",
       "executable": false
     },
+    "tests/network-response-encoding-support.mjs": {
+      "sha256": "3807bfada2e8155be6c61331f536963ce2100e3bd9b1bc86e819b54fc7385520",
+      "executable": false
+    },
     "tests/notification-fallback.mjs": {
       "sha256": "07c06a0fb0ea511ad058d7ff7738e2729a0ab80864fb8794ec2c5e2faf06e18b",
       "executable": false
@@ -9480,7 +9484,7 @@
       "executable": false
     },
     "tests/tls-auth.mjs": {
-      "sha256": "6d7fe1ebe1334c848504f62ef0661e24ce8fe791d43feee86f02ff50c8bb6c19",
+      "sha256": "981a7b32b5516576b62982721254a1ce237166951cbcd8df60a07f10fb32dc85",
       "executable": false
     },
     "tests/tls-stages-support.mjs": {
