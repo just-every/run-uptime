@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "b55cc1c0d2e036bddd38d2a1c1e8820a43099e34d74bab7dc403e72fe6196142",
+      "sha256": "f31002bae484811ae8546282ba2a027a4e6e0c4f40860f5810771813e7fd0e5a",
       "executable": false
     },
     "DEMO.md": {
@@ -8715,6 +8715,10 @@
       "sha256": "a1ef721ccac669e0ad42fd8001c6135ae4a482b06ff4d00770176ca6fcb8ecb6",
       "executable": false
     },
+    "tests/agent-approval-rejection-support.mjs": {
+      "sha256": "d504993bf912388c312ae493a4614a3286b98362c5a057901e349c4480a98c93",
+      "executable": false
+    },
     "tests/agent-comment-delete-support.mjs": {
       "sha256": "9635e20fa2949f7769433739bb04e989757349ef3038cab8142fb49c3645f3e2",
       "executable": false
@@ -8780,7 +8784,7 @@
       "executable": false
     },
     "tests/agent-door.mjs": {
-      "sha256": "31c715cca0cc5d20ff7e032005a6231c45b42f0058d4dcd7991aa927751a202f",
+      "sha256": "bdca0eccea49b1fd42c32d90312c2ef644500cf1e527ad208b2b2fb065776070",
       "executable": false
     },
     "tests/agent-form-accept-support.mjs": {
