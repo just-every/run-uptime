@@ -224,7 +224,13 @@ try{
  // The combined journey can outlive Base's ten-minute email proof. Renew
  // through the native sign-in and second-factor doors before owner role writes.
  cookie=await emailSignIn(origin,{bindings});c.person.cookie=cookie;
- await proveCommentDeletion({c,native,db,proof,providerRequests,reviewer:{id:reviewerId,sub:reviewerSub,cookie:reviewerCookie}});
+ // Comment qualification can outlive the five-minute administrative factor.
+ // Re-prove the actual owner factor at each membership write boundary.
+ const commentNative=async(path,...args)=>{
+  if(path.startsWith('/api/access/members/')&&args[0]!==undefined)await completeSecondFactor(origin,cookie);
+  return native(path,...args);
+ };
+ await proveCommentDeletion({c,native:commentNative,db,proof,providerRequests,reviewer:{id:reviewerId,sub:reviewerSub,cookie:reviewerCookie}});
  await proveSavedEmailDestinationFacts({c,native,db,sponsorId:sponsor.id});
  const destination=await native('/api/notifications/destinations',{name:'Checkout incident webhook',kind:'webhook',url:'https://notifications.example.com/checkout'});
  const notificationArgs={id:destination.id,idempotency_key:randomUUID()};
