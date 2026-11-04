@@ -9,6 +9,7 @@ import {proveAgentSurfaceDiscovery} from './agent-surface-discovery.mjs';
 import {provePolicyEntry} from './agent-policy-entry-support.mjs';
 import {nativeDoorBrowser} from './agent-door-browser.mjs';
 import {proveAccessFacts} from './agent-access-facts-support.mjs';
+import {proveApprovalRejection} from './agent-approval-rejection-support.mjs';
 import {proveStandardApproval} from './agent-standard-approval-support.mjs';
 import {proveMonitorStateEffects} from './agent-monitor-state-support.mjs';
 import {proveHeldClassClaims} from './agent-held-class-claims-support.mjs';
@@ -57,6 +58,7 @@ try{
  const db=await worker.getD1Database('DB');
  const sponsor=await db.prepare('SELECT id FROM oa_operators WHERE email=?').bind(bindings.OWNER_EMAIL).first();
  await proveFormAccept({c,native,db,origin,cookie,sponsorId:sponsor.id,providerRequests});
+ await proveApprovalRejection({c,native,db,origin,sponsorId:sponsor.id,providerRequests});
  await proveAccessFacts({c,native,call,origin,cookie});
  const monitor=await native('/api/monitors',{name:'Checkout reachability',type:'http',network:'public',url:'https://checkout.example.test/health',method:'GET',assertions:{status:200},intervalMs:60000,timeoutMs:5000,retries:0,probes:['local-a'],failureQuorum:1,confirmSlots:1,recoverSlots:1,freshnessMs:120000,enabled:true,service:'checkout',group:'operations'});
  const second=await native('/api/monitors',{...monitor.definition,name:'Foreign service',service:'foreign'});
