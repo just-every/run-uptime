@@ -16,11 +16,13 @@ export async function provePendingInput({c,native,db,origin,sponsorId,providerRe
   'x-runner-signature':createHmac('sha256',runner.key).update(stamp+'.runner-enrolment.'+body).digest('hex')},body});
  assert.equal(enrolled.status,200);assert.equal((await enrolled.json()).runnerId,runner.runnerId);
  const owner=await native('/api/access/self');assert.equal(owner.id,sponsorId);assert.equal(owner.role,'owner');
- assert.equal((await db.prepare('SELECT status FROM oa_operators WHERE id=?').bind(sponsorId).first()).status,'active');
+ const sponsor=await db.prepare('SELECT status,display_name FROM oa_operators WHERE id=?').bind(sponsorId).first();
+ assert.equal(sponsor.status,'active');
  const definition={name:'synthetic-uptime-pending-control',type:'http',network:'public',url:'https://pending.example.test/health',method:'GET',assertions:{status:200},
   intervalMs:60000,timeoutMs:5000,retries:0,probes:['local-a'],assignments:{'local-a':runner.runnerId},failureQuorum:1,confirmSlots:1,recoverSlots:1,freshnessMs:120000,enabled:true,service:'synthetic-uptime-pending-service'};
  assert.equal((await db.prepare("SELECT COUNT(*) n FROM oa_operators WHERE status='active'").first()).n,1,'one active native sponsor');
  const networkBefore=structuredClone(providerRequests),mailBefore=allDeliveredMessages().length;
+ assert.deepEqual(networkBefore,[],'no provider traffic precedes this isolated pending-input proof');
  const ordered=rows=>rows.sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)));
  const snapshot=async()=>{
   // Retain the sequence ledger too. Only engine metadata is outside the product.
@@ -126,6 +128,9 @@ export async function provePendingInput({c,native,db,origin,sponsorId,providerRe
     const event=JSON.parse(row.event),[type,uri]=eventSpecs[index];
     assert.equal(row.sequence,sequence+index+1);assert.equal(row.uri,uri);assert.equal(event.id,row.id);
     assert.equal(event.type,type);assert.equal(event.uri,uri);at(Date.parse(event.at));
+    const admitted=before.agent_door_agents.find(item=>item.id===c.agentId),person={id:sponsorId,name:sponsor.display_name};
+    assert.deepEqual(event.actor,type==='approval.decided'?{kind:'person',person}:{kind:'agent',agent:{id:c.agentId,name:admitted.name},for:person,label:admitted.name+' for '+person.name});
+    if(type==='approval.decided'){assert.equal(event.decision,'approval');assert.equal(event.state,'executed')}
     if(type==='monitor.updated'){assert.equal(event.revision,record.revision+1);assert.equal(event.actor.agent.id,c.agentId);assert.equal(event.actor.for.id,sponsorId)}
     else {assert.equal(event.decision_id,phase==='approve'?saved.decision_id:decision.id);assert.deepEqual(event.classes,classes)}
    });
