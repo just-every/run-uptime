@@ -283,6 +283,7 @@ try{
  assert.equal(readReplay.result?.isError,false);assert.equal(readReplay.result.structuredContent.items[0].definition.name,renamed);
  assert.deepEqual(readReplay.result._meta['com.runeditrun/receipt'],readFirst.result._meta['com.runeditrun/receipt']);
  assert.notDeepEqual(readReplay.result.structuredContent,readFirst.result.structuredContent,'an old approval cannot return stale aggregate rows');
+ await completeSecondFactor(origin,cookie);
  await native('/api/credentials/'+keyIssued.credential.id,undefined,'DELETE');
  const revokedRead=await aggregate(readState);assert.equal(revokedRead.status,401);assert.equal(revokedRead.result?.structuredContent,undefined);
  console.log('PASS BASE-AGENT-012.uptime.current-native-read-replay');
