@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "08959ae4eda19a270152f97b6503d1b8369660394812d698b23bb0c57a46e83d",
+      "sha256": "27e0db2cb21f9cc1b8496283a76bf8bb2cdc5ffe26f41bd7f4f1a99d5dcdc77d",
       "executable": false
     },
     "DEMO.md": {
@@ -9183,6 +9183,10 @@
       "sha256": "b829d72d3cd8230286b86d1f1e408db4d907aa94d81a6a50fcdcf4b70efcd68e",
       "executable": false
     },
+    "tests/network-redirect-revalidation-support.mjs": {
+      "sha256": "d9cf3314e665525ef38e479d8738e54863d000f5fffa6bd928d23e3326844800",
+      "executable": false
+    },
     "tests/notification-fallback.mjs": {
       "sha256": "07c06a0fb0ea511ad058d7ff7738e2729a0ab80864fb8794ec2c5e2faf06e18b",
       "executable": false
@@ -9472,7 +9476,7 @@
       "executable": false
     },
     "tests/tls-auth.mjs": {
-      "sha256": "6d7fe1ebe1334c848504f62ef0661e24ce8fe791d43feee86f02ff50c8bb6c19",
+      "sha256": "86262268e87c40c331d446e109fae01eb438a51c1f77ed7a7f5d69a8ba10ae64",
       "executable": false
     },
     "tests/tls-stages-support.mjs": {
