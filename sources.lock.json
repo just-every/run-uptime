@@ -8780,7 +8780,7 @@
       "executable": false
     },
     "tests/agent-door.mjs": {
-      "sha256": "0c557c7dcb7283612206ce7a035dd42ae1f45d8cf615212204ac8b179908afab",
+      "sha256": "5feb95346c01ee8c0589dc3fe0b132142661946592e4e53980ef463fb9ddd972",
       "executable": false
     },
     "tests/agent-form-accept-support.mjs": {
