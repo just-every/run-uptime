@@ -8784,7 +8784,7 @@
       "executable": false
     },
     "tests/agent-door.mjs": {
-      "sha256": "d6758c3feddab6220fd60758e0cddf755a409c86c14170e8f320b3dcf51a3e14",
+      "sha256": "174d5e8fb7ba63385d0830de7f7dde3f742f870b5ebe5847b0b8db39ecd8b77f",
       "executable": false
     },
     "tests/agent-form-accept-support.mjs": {
