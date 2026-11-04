@@ -500,7 +500,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "afd8355c661f27465b59f4d34a8659cc107ca09168a3bcce0d85804919e06b43",
+      "sha256": "9c13ceec8f88b966585280b292ea7c134a22db8aeb72b20f1b69e28162f2c2b7",
       "executable": false
     },
     "agent-surface.json": {
@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "55108386663752600475557d91a725f14fe520278ef7b9ca6e913044967fa6f0",
+      "sha256": "54d1485c68b62b09ccbc0a10c4e832578661f36179bd0214a8550cb32254754c",
       "executable": false
     },
     "DEMO.md": {
@@ -8780,7 +8780,7 @@
       "executable": false
     },
     "tests/agent-door.mjs": {
-      "sha256": "31c715cca0cc5d20ff7e032005a6231c45b42f0058d4dcd7991aa927751a202f",
+      "sha256": "0c557c7dcb7283612206ce7a035dd42ae1f45d8cf615212204ac8b179908afab",
       "executable": false
     },
     "tests/agent-form-accept-support.mjs": {
@@ -8805,6 +8805,10 @@
     },
     "tests/agent-paused-create-support.mjs": {
       "sha256": "3d19557b61a2e2083e1e031320cfc481a10b6ae75f06f3f9c0b0ae6665ff9035",
+      "executable": false
+    },
+    "tests/agent-pending-input-support.mjs": {
+      "sha256": "16cff05b8b196b1d59dfbfe5593bee0dcc954137a3b8fee70b90a00315643d96",
       "executable": false
     },
     "tests/agent-policy-entry-support.mjs": {
