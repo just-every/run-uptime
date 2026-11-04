@@ -134,3 +134,15 @@ This records the existing default and changes no acceptance point or status.
 Default ADOPTED: API/CLI first slice.
 
 This records the existing default and changes no acceptance point or status.
+
+### RL-102 — SURFACE-003: reconcile the external and money proof gap
+
+*Date:* 4 November 2026 · *Ruled by:* ct · *Governs:* SURFACE-003
+
+Move SURFACE-003 from missing to partial. At main `0aa86524ac3929ac07c1b38f08a42434b67e5798`, `tests/agent-destination-facts-support.mjs`, mounted by `tests/agent-door.mjs`, asserts acceptance 1's saved-email subset and acceptance 5 for that subset through the native signed MCP door. One owner-saved mailbox carries external with measure 1 and counterparty known; approval holds without queuing, native person approval queues one current-credential job, and exact-key replay adds none. Misleading destination names and internal, zero-cost and zero-measure arguments leave those facts and approval unchanged. This qualifies queue admission only, without provider delivery or recipient confirmation.
+
+Replace the false blanket Gap that no tool declares or computes external or money. External is already declared and computed for checks, routes, destination test/drill and monitor creation/update, but this clause's broader recipient facts remain unproved. No native agent tool declares or computes money. The next proof is signed MCP checks.run with an active live-payment or refund grant, its USD amount and payee from the grant and current transaction, money-selective approval, and grants.read with the spend limit. No, revoked, expired and spent grants must add no money; a zero-cost claim cannot suppress money from an active grant. This distinction preserves acceptance 5 rather than treating misleading prose as a waiver.
+
+Follow that proof with routes.update and destinations.update deriving external count and known/new counterparty from saved recipients outside the business. Routes currently hard-codes known; destinations.update declares no external. SMS/voice, phones, settings, handoffs, incidents, reports, dependencies and automations retain the named tool and PHONE-001/002 or COST-001 dependencies. Do not repeat the saved-email proof as the next slice.
+
+Acceptance text, other clause judgments and published claims are unchanged. This status correction does not qualify the complete clause or release any hold pending independent Opus review.
