@@ -17,6 +17,7 @@ import {proveSelfEscalationState} from './agent-self-escalation-state-support.mj
 import {proveOversizeNoEffect} from './agent-oversize-support.mjs';
 import {proveFormAccept} from './agent-form-accept-support.mjs';
 import {provePausedCreation} from './agent-paused-create-support.mjs';
+import {proveCurrentRevision} from './agent-current-revision-support.mjs';
 // One integrated core journey, through the emitted production Worker and real
 // D1. Only mail/probe provider edges may be replaced; identities and mutations
 // enter the ordinary native public doors.
@@ -56,6 +57,7 @@ try{
  const native=async(path,body,method=body===undefined?'GET':'POST')=>{const response=await fetch(origin+path,{method,redirect:'manual',headers:{cookie,origin,'content-type':'application/json'},...(body===undefined?{}:{body:JSON.stringify(body)})});assert.ok(response.ok,`${path} HTTP ${response.status}`);return response.json()};
  const db=await worker.getD1Database('DB');
  const sponsor=await db.prepare('SELECT id FROM oa_operators WHERE email=?').bind(bindings.OWNER_EMAIL).first();
+ await proveCurrentRevision({c,native,db,sponsorId:sponsor.id,providerRequests});
  await proveFormAccept({c,native,db,origin,cookie,sponsorId:sponsor.id,providerRequests});
  await proveAccessFacts({c,native,call,origin,cookie});
  const monitor=await native('/api/monitors',{name:'Checkout reachability',type:'http',network:'public',url:'https://checkout.example.test/health',method:'GET',assertions:{status:200},intervalMs:60000,timeoutMs:5000,retries:0,probes:['local-a'],failureQuorum:1,confirmSlots:1,recoverSlots:1,freshnessMs:120000,enabled:true,service:'checkout',group:'operations'});
