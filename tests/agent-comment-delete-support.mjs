@@ -1,4 +1,5 @@
 import {relaySnapshotGuard} from './agent-relay-state-support.mjs';
+import {completeSecondFactor} from './mfa-auth-support.mjs';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {prepareIncident} from './agent-conformance/incident.mjs';
@@ -143,6 +144,7 @@ export async function proveCommentDeletion({c,native,db,proof,providerRequests,r
  await c.adopt(autonomousPolicy());
  const memberHttp=nativeHttp({request:fetch,origin:c.origin,cookie:reviewer.cookie});
  const owned=await memberHttp.json(path+'/comments',{text:'synthetic-uptime-responder',mentions:[]});
+ await completeSecondFactor(c.origin,c.person.cookie);
  await native('/api/access/members/'+reviewer.id,{role:'responder',scopes:[]});
  const memberRecord=(await native('/api/access/members')).find(person=>person.id===reviewer.id);
  assert.ok(memberRecord);
@@ -157,10 +159,13 @@ export async function proveCommentDeletion({c,native,db,proof,providerRequests,r
  const deletedState=await snapshot();
  assert.deepEqual((await c.tool(tool,ownArgs,options)).result.structuredContent,ownDelete.result.structuredContent);
  assert.deepEqual(await snapshot(),deletedState);
+ await completeSecondFactor(c.origin,c.person.cookie);
  await native('/api/access/members/'+reviewer.id,{role:'responder',scopes:[{kind:'service',value:'synthetic-uptime-outside'}]});
  await refused(ownArgs,'not_found',options);
+ await completeSecondFactor(c.origin,c.person.cookie);
  await native('/api/access/members/'+reviewer.id,{role:'read-only',scopes:[]});
  await refused(ownArgs,'native_permission_required',options);
+ await completeSecondFactor(c.origin,c.person.cookie);
  await native('/api/access/members/'+reviewer.id,{role:'admin',scopes:[]});
  const asAdmin=await create(),admin=await c.tool(tool,argsFor(asAdmin),options);
  assert.equal(admin.result?.isError,false,'a current native administrator can delete another author’s comment');
