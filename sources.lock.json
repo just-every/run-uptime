@@ -8720,7 +8720,7 @@
       "executable": false
     },
     "tests/agent-comment-delete-support.mjs": {
-      "sha256": "9635e20fa2949f7769433739bb04e989757349ef3038cab8142fb49c3645f3e2",
+      "sha256": "7aafa21cfa2a1ce538bff8b766387687adda388a526a9d9363f5e67bb903ebd9",
       "executable": false
     },
     "tests/agent-conformance/destination-name.mjs": {
