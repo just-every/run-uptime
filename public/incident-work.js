@@ -1,5 +1,4 @@
-import {detailMarkup,categoryRow} from './incident-work-markup.js';
-import {escape} from './console-format.js';
+import {detailMarkup} from './incident-work-markup.js';
 
 export function bindIncidentWork(host,api){
  host.addEventListener('click',event=>{
@@ -17,13 +16,12 @@ async function openIncidentWork(id,api,opener){
  dialog.addEventListener('close',()=>{dialog.remove();(opener.isConnected?opener:document.querySelector('button[data-incident-work]'))?.focus({preventScroll:true})});
  const content=dialog.querySelector('[data-incident-content]'),status=dialog.querySelector('[data-incident-status]'),error=dialog.querySelector('[data-incident-error]');
  const endpoint=`/api/incidents/${encodeURIComponent(id)}`;
- let detail,settings,busy=false;
+ let detail,busy=false;
  const showError=problem=>{error.textContent=problem.message??String(problem);error.hidden=false;status.textContent='Changes were not saved.'};
  async function load(){
   detail=await api(endpoint);
-  settings=detail.capabilities.categoryAdministration?await api('/api/incident-settings'):{categories:detail.rootCauseCategories,members:detail.assignmentMembers};
   if(!dialog.isConnected)return;
-  content.innerHTML=detailMarkup(detail,settings);status.textContent='Incident loaded.';
+  content.innerHTML=detailMarkup(detail);status.textContent='Incident loaded.';
  }
  async function mutate(path,method,body,message){
   if(busy)return;busy=true;error.hidden=true;status.textContent='Saving…';
@@ -39,17 +37,12 @@ async function openIncidentWork(id,api,opener){
   if(form.matches('[data-comment-edit]'))return mutate(endpoint+'/comments/'+encodeURIComponent(form.dataset.commentEdit),'PATCH',{text:values.text,version:Number(form.dataset.version)},'Comment edited. Earlier text is in edit history.');
   if(form.matches('[data-root-cause]'))return mutate(endpoint+'/root-cause','PATCH',{categoryId:values.categoryId||null,text:values.text,version:detail.rootCause.version},'Root cause saved.');
   if(form.matches('[data-assignment]'))return mutate(endpoint+'/actions','POST',{kind:'assign',version:detail.version,ownerId:values.ownerId||null},'Incident owner saved.');
-  if(form.matches('[data-categories]')){
-   const categories=[...form.querySelectorAll('[data-category-id]')].filter(row=>!row.querySelector('[data-remove-category]').checked).map(row=>({id:row.dataset.categoryId,label:row.querySelector('input:not([type=checkbox])').value}));
-   return mutate('/api/incident-settings','PATCH',{version:settings.version,categories},'Root-cause categories saved.');
-  }
  });
  content.addEventListener('click',event=>{
   const action=event.target.closest('[data-incident-action]');
   if(action)return mutate(endpoint+'/actions','POST',{kind:action.dataset.incidentAction,version:detail.version},'Response action recorded.');
   const remove=event.target.closest('[data-delete-comment]');
   if(remove)return mutate(endpoint+'/comments/'+encodeURIComponent(remove.dataset.deleteComment)+'?version='+remove.dataset.version,'DELETE',undefined,'Comment text and history deleted.');
-  if(event.target.closest('[data-add-category]')){content.querySelector('[data-category-rows]').insertAdjacentHTML('beforeend',categoryRow({id:crypto.randomUUID(),label:''}));return}
   if(event.target.closest('[data-incident-export]')){
    const url=URL.createObjectURL(new Blob([JSON.stringify(detail,null,2)+'\n'],{type:'application/json'})),link=document.createElement('a');link.href=url;link.download='uptime-incident.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
   }

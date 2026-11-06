@@ -19,8 +19,11 @@ function limitLocations(form) {
 const list = value => value.split(',').map(part => part.trim()).filter(Boolean);
 // New monitors take labels as an optional fold (and no dependencies: a list of new monitors has none yet); editing labels shows them all.
 const fieldsFor = edit => edit ? metadata : metadata.filter(name => name !== 'dependencies');
+function metadataGrid(edit = false) {
+    return `<div class="catalog-grid">${fieldsFor(edit).map(name => `<div>${edit ? `<label><input type="checkbox" name="set-${name}">Replace ${escape(labels[name])}</label>` : ''}<label>${escape(labels[name])}<input name="${name}"${name === 'outcome' ? ' maxlength="500"' : ['tags', 'dependencies'].includes(name) ? '' : ' maxlength="' + (name === 'environment' ? 80 : 100) + '"'}></label>${name === 'owner' ? '<p class="ui-helper">A label only; it grants no access.</p>' : ''}</div>`).join('')}</div>`;
+}
 function metadataMarkup(edit = false) {
-    const grid = `<div class="catalog-grid">${fieldsFor(edit).map(name => `<div>${edit ? `<label><input type="checkbox" name="set-${name}">Replace ${escape(labels[name])}</label>` : ''}<label>${escape(labels[name])}<input name="${name}"${name === 'outcome' ? ' maxlength="500"' : ['tags', 'dependencies'].includes(name) ? '' : ' maxlength="' + (name === 'environment' ? 80 : 100) + '"'}></label>${name === 'owner' ? '<p class="ui-helper">A label only; it grants no access.</p>' : ''}</div>`).join('')}</div>`;
+    const grid = metadataGrid(edit);
     if (!edit)
         return `<details class="catalog-metadata"><summary>Labels (optional)</summary>${grid}</details>`;
     return `<fieldset class="catalog-metadata"><legend>Labels</legend><p class="ui-helper">Choose the fields to replace. A chosen empty field clears that label on every selected monitor.</p>${grid}</fieldset>`;
@@ -44,35 +47,16 @@ function entryMarkup(entry, selectable, runners) {
 function previewMarkup(plan, runners) {
     return `<h3 tabindex="-1">Review the plan</h3><p>${Object.entries(plan.counts).map(([key, n]) => `${escape(n)} ${escape(key)}`).join(' · ')}</p>${trafficMarkup(plan)}${(plan.unsupported ?? []).map(text => `<p class="ui-callout">${escape(text)}</p>`).join('')}<div class="catalog-plan-table"><table class="ui-table ui-table--stack-md"><thead><tr><th scope="col">Row</th><th scope="col">Monitor</th><th scope="col">Result</th><th scope="col">Review</th></tr></thead><tbody>${plan.entries.map(entry => entryMarkup(entry, plan.source.startsWith('catalog.add.'), runners)).join('')}</tbody></table></div>`;
 }
-export function openCatalogDialog({ api, action, kind, monitors = [], runners = [], onApplied, onClosed }) {
-    const add = kind === 'add', edit = kind === 'edit', clone = kind === 'clone', creating = add || clone, title = add ? 'Bulk add monitors' : edit ? 'Edit monitor labels' : `${kind[0].toUpperCase() + kind.slice(1)} selected monitors`, opener = document.activeElement;
-    const dialog = document.createElement('dialog');
-    dialog.className = 'catalog-dialog';
-    dialog.setAttribute('aria-labelledby', 'catalog-dialog-heading');
-    dialog.innerHTML = `<form><h2 id="catalog-dialog-heading">${escape(title)}</h2>${add ? `<p>Paste public URLs, one per line, or upload a CSV with up to 500 rows. Review the results before applying.</p><div class="catalog-grid"><label>Input format<select name="format"><option value="urls">URLs, one per line</option><option value="csv">CSV</option></select></label><label>Upload CSV (2 MiB max)<input type="file" name="file" accept=".csv,text/csv"></label></div><label>URLs or CSV<textarea name="text" rows="6" required spellcheck="false"></textarea></label><p class="ui-helper">CSV needs a url column. Optional columns: name, type, keyword, interval (seconds), tags and group. Rows can override the shared settings.</p><fieldset><legend>Shared settings</legend><div class="catalog-grid"><label>Type<select name="type"><option value="http">HTTP</option><option value="keyword">HTTP with keyword</option></select></label><label>Required keyword<input name="keyword" maxlength="200"></label><label>Check every (minutes)<input name="interval" type="number" min="0.0834" max="1440" step="any" value="1" required></label></div><fieldset class="catalog-locations"><legend>Check from</legend>${locations(runners).map(({ id, name }, i) => `<label><input name="locations" type="checkbox" value="${escape(id)}"${i < PROBES.length ? ' checked' : ''}>${escape(name)}</label>`).join('')}<p class="ui-helper">Up to ${PROBES.length} locations per monitor.</p></fieldset></fieldset>` : `<p>${monitors.length} selected monitors:</p><ul class="catalog-selection">${monitors.map(m => `<li>${escape(m.definition.name)} <small>${escape(m.id)}</small></li>`).join('')}</ul>`}${add || edit || clone ? metadataMarkup(edit) : ''}${creating ? '<label><input name="enableAfterCreate" type="checkbox">Enable after create — start scheduled checks when this batch is applied</label>' : ''}<p class="catalog-dialog-error ui-callout error" role="alert" hidden></p><div class="catalog-preview" aria-live="polite"></div><p class="catalog-plan-status" role="status">Nothing has changed. Preview first.</p><div class="catalog-dialog-actions"><button type="button" data-close>Cancel</button><button type="submit" class="primary">Preview</button><button type="button" data-apply disabled>Apply selected accepted rows</button></div></form>`;
-    document.body.append(dialog);
-    const form = dialog.querySelector('form'), resultHost = dialog.querySelector('.catalog-preview'), status = dialog.querySelector('.catalog-plan-status'), errorHost = dialog.querySelector('[role=alert]'), apply = dialog.querySelector('[data-apply]'), previewButton = form.querySelector('[type=submit]');
+// The preview-then-apply flow every catalog form shares: Bulk add's panel (mountBulkAdd) and the dialog's edit, pause,
+// resume and clone. The server plans and the form shows exactly that plan; apply sends the plan's digest. `input` builds the
+// request body, `show` reports a refused request on the form itself, and `applied` draws what happens after the batch lands.
+function planFlow({ api, form, resultHost, status, apply, action, runners, input, base, show, applied }) {
     let plan = null, payload = null, selectedIndexes, working = false;
-    if (add)
-        limitLocations(form);
-    function close() {
-        if (working)
-            return;
-        dialog.close();
-        dialog.remove();
-        opener?.focus({ preventScroll: true });
-        onClosed?.();
-    }
-    dialog.querySelector('[data-close]').onclick = close;
-    dialog.addEventListener('cancel', event => {
-        event.preventDefault();
-        close();
-    });
-    function invalidate() {
+    const invalidate = () => {
         plan = null;
         apply.disabled = true;
         status.textContent = 'Settings or row selection changed. Preview again before applying.';
-    }
+    };
     form.addEventListener('input', event => {
         if (event.target.closest('.catalog-preview'))
             return;
@@ -87,50 +71,14 @@ export function openCatalogDialog({ api, action, kind, monitors = [], runners = 
         selectedIndexes = [...resultHost.querySelectorAll('[data-plan-index]:checked')].map(input => Number(input.dataset.planIndex));
         invalidate();
     });
-    if (add)
-        form.elements.file.onchange = async () => {
-            const file = form.elements.file.files[0];
-            if (!file)
-                return;
-            selectedIndexes = undefined;
-            form.elements.text.value = "";
-            invalidate();
-            try {
-                if (file.size > 2 * 1024 * 1024)
-                    throw Error('The CSV exceeds 2 MiB.');
-                const bytes=await file.arrayBuffer();
-                try{form.elements.text.value=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(bytes)}catch{throw Error('The CSV must use valid UTF-8 text.')}
-
-                form.elements.format.value = 'csv';
-                selectedIndexes = undefined;
-                invalidate();
-                errorHost.hidden = true;
-            }
-            catch (error) {
-                errorHost.textContent = error.message;
-                errorHost.hidden = false;
-                errorHost.tabIndex=-1;errorHost.focus();errorHost.scrollIntoView({block:'nearest'});
-            }
-        };
-    function input() {
-        const body = add ? { format: form.elements.format.value, text: form.elements.text.value, defaults: { ...readMetadata(form, false), type: form.elements.type.value, intervalMs: Math.round(Number(form.elements.interval.value) * 60000), ...chosenLocations(form), ...(form.elements.keyword.value ? { keyword: form.elements.keyword.value } : {}) } } : { monitorIds: monitors.map(m => m.id), action: kind, ...(edit || clone ? { changes: readMetadata(form, edit) } : {}) };
-        if (creating)
-            body.enableAfterCreate = form.elements.enableAfterCreate.checked;
-        if (selectedIndexes !== undefined)
-            body.selectedIndexes = selectedIndexes;
-        return body;
-    }
     async function run(fn, options) {
-        errorHost.hidden = true;
         working = true;
         const result = await action(async () => {
             try {
                 return await fn();
             }
             catch (error) {
-                errorHost.textContent = error.message;
-                errorHost.hidden = false;
-                errorHost.tabIndex=-1;errorHost.focus();errorHost.scrollIntoView({block:'nearest'});
+                show?.(error);
                 throw error;
             }
         }, options);
@@ -143,7 +91,9 @@ export function openCatalogDialog({ api, action, kind, monitors = [], runners = 
             return;
         invalidate();
         const body = input();
-        const response = await run(() => api(`/api/catalog/${add ? 'add/' : ''}preview`, 'POST', body), { pending: 'Previewing catalog changes…', success: 'Preview ready. Review the rows and estimates before applying.' });
+        if (selectedIndexes !== undefined)
+            body.selectedIndexes = selectedIndexes;
+        const response = await run(() => api(`${base}preview`, 'POST', body), { pending: 'Previewing catalog changes…', success: 'Preview ready. Review the rows and estimates before applying.' });
         if (!response.ok)
             return;
         plan = response.result;
@@ -157,26 +107,115 @@ export function openCatalogDialog({ api, action, kind, monitors = [], runners = 
         if (working || !plan || !payload)
             return;
         const reviewed = plan;
-        const response = await run(() => api(`/api/catalog/${add ? 'add/' : ''}apply`, 'POST', { ...payload, digest: reviewed.digest }), { pending: 'Applying reviewed catalog changes…', success: 'Catalog batch applied. Review or undo it in Archive.' });
+        const response = await run(() => api(`${base}apply`, 'POST', { ...payload, digest: reviewed.digest }), { pending: 'Applying reviewed catalog changes…', success: 'Catalog batch applied. Review or undo it in Settings › Backup and files.' });
+        plan = null;
+        apply.disabled = true;
         if (!response.ok) {
-            plan = null;
-            apply.disabled = true;
             status.textContent = 'Apply did not complete. Preview again to review the current installation.';
             return;
         }
-        plan = null;
-        apply.disabled = true;
-        previewButton.disabled = true;
-        form.querySelectorAll('input,select,textarea').forEach(control => control.disabled = true);
-        status.replaceChildren(document.createTextNode('Batch applied. '));
-        const link = document.createElement('a');
-        link.href = '/app/archive';
-        link.textContent = 'Review or undo this batch in Archive';
-        link.addEventListener('click',close);
-        status.append(link);
-        dialog.querySelector('[data-close]').textContent = 'Done';
-        onApplied?.(response.result);
+        applied(response.result);
     };
+    return { reset() { selectedIndexes = undefined; invalidate(); } };
+}
+const undoLink = (status, text, onClick) => {
+    const link = document.createElement('a');
+    link.href = '/app/settings/backup';
+    link.textContent = text;
+    if (onClick)
+        link.addEventListener('click', onClick);
+    status.append(link);
+};
+export function openCatalogDialog({ api, action, kind, monitors = [], runners = [], onApplied }) {
+    const edit = kind === 'edit', clone = kind === 'clone', title = edit ? 'Edit monitor labels' : `${kind[0].toUpperCase() + kind.slice(1)} selected monitors`, opener = document.activeElement;
+    const dialog = document.createElement('dialog');
+    dialog.className = 'catalog-dialog';
+    dialog.setAttribute('aria-labelledby', 'catalog-dialog-heading');
+    dialog.innerHTML = `<form><h2 id="catalog-dialog-heading">${escape(title)}</h2><p>${monitors.length} selected monitors:</p><ul class="catalog-selection">${monitors.map(m => `<li>${escape(m.definition.name)} <small>${escape(m.id)}</small></li>`).join('')}</ul>${edit || clone ? metadataMarkup(edit) : ''}${clone ? '<label><input name="enableAfterCreate" type="checkbox">Enable after create — start scheduled checks when this batch is applied</label>' : ''}<p class="catalog-dialog-error ui-callout error" role="alert" hidden></p><div class="catalog-preview" aria-live="polite"></div><p class="catalog-plan-status" role="status">Nothing has changed. Preview first.</p><div class="catalog-dialog-actions"><button type="button" data-close>Cancel</button><button type="submit" class="primary">Preview</button><button type="button" data-apply disabled>Apply selected accepted rows</button></div></form>`;
+    document.body.append(dialog);
+    const form = dialog.querySelector('form'), resultHost = dialog.querySelector('.catalog-preview'), status = dialog.querySelector('.catalog-plan-status'), errorHost = dialog.querySelector('[role=alert]'), apply = dialog.querySelector('[data-apply]'), previewButton = form.querySelector('[type=submit]');
+    function close() {
+        dialog.close();
+        dialog.remove();
+        opener?.focus({ preventScroll: true });
+    }
+    dialog.querySelector('[data-close]').onclick = close;
+    dialog.addEventListener('cancel', event => {
+        event.preventDefault();
+        close();
+    });
+    planFlow({ api, form, resultHost, status, apply, action, runners, base: '/api/catalog/',
+        input: () => ({ monitorIds: monitors.map(m => m.id), action: kind, ...(edit || clone ? { changes: readMetadata(form, edit) } : {}), ...(clone ? { enableAfterCreate: form.elements.enableAfterCreate.checked } : {}) }),
+        show: error => {
+            errorHost.textContent = error.message;
+            errorHost.hidden = false;
+            errorHost.tabIndex = -1;
+            errorHost.focus();
+            errorHost.scrollIntoView({ block: 'nearest' });
+        },
+        applied: result => {
+            previewButton.disabled = true;
+            form.querySelectorAll('input,select,textarea').forEach(control => control.disabled = true);
+            status.replaceChildren(document.createTextNode('Batch applied. '));
+            undoLink(status, 'Review or undo this batch in Settings › Backup and files', close);
+            dialog.querySelector('[data-close]').textContent = 'Done';
+            onApplied?.(result);
+        } });
     dialog.showModal();
-    (form.querySelector('[name=text]') ?? dialog.querySelector('input,button'))?.focus();
+    (dialog.querySelector('input,button'))?.focus();
+}
+// Bulk add, as the panel "Paste many URLs or a CSV" under New monitor's Other ways to add (src/editor/monitor/ways.mjs): pasted
+// URLs or a CSV, previewed (nothing is written), then applied as the plan the server returned. The shared settings sit in one
+// closed fold; a refused request is shown in the panel's own live status line by `action`.
+const addMarkup = runners => `<h2 id="bulk-add-heading">Paste many URLs or a CSV</h2><form class="catalog-add" aria-labelledby="bulk-add-heading"><label>URLs or CSV<textarea name="text" rows="6" required spellcheck="false"></textarea></label>
+ <div class="catalog-add-row"><label class="file-pill"><span class="ui-icon" data-icon="upload" aria-hidden="true"></span>Upload a CSV<input type="file" name="file" accept=".csv,text/csv"></label><label class="check-row"><input name="enableAfterCreate" type="checkbox">Start checking now</label><button type="submit" class="primary">Preview</button></div>
+  <details class="catalog-shared"><summary>Shared settings</summary><p class="ui-helper">A CSV needs a url column; up to 500 rows, 2 MiB.</p><div class="catalog-grid"><label>Input format<select name="format"><option value="urls">URLs, one per line</option><option value="csv">CSV</option></select></label><label>Type<select name="type"><option value="http">HTTP</option><option value="keyword">HTTP with keyword</option></select></label><label>Required keyword<input name="keyword" maxlength="200"></label><label>Check every (minutes)<input name="interval" type="number" min="0.0834" max="1440" step="any" value="1" required></label></div>
+  <fieldset class="catalog-locations"><legend>Check from</legend>${locations(runners).map(({ id, name }, i) => `<label class="check-row"><input name="locations" type="checkbox" value="${escape(id)}"${i < PROBES.length ? ' checked' : ''}>${escape(name)}</label>`).join('')}</fieldset>
+  <fieldset class="catalog-metadata"><legend>Labels (optional)</legend>${metadataGrid(false)}</fieldset></details>
+ <p class="catalog-dialog-error ui-callout error" role="alert" hidden></p><div class="catalog-preview" aria-live="polite"></div><p class="catalog-plan-status" role="status">Nothing has changed. Preview first.</p><div class="catalog-add-apply"><button type="button" data-apply disabled>Apply selected accepted rows</button></div></form>`;
+export function mountBulkAdd(host, { api, action, runners = [], onApplied }) {
+    host.innerHTML = addMarkup(runners);
+    const form = host.querySelector('form'), resultHost = host.querySelector('.catalog-preview'), status = host.querySelector('.catalog-plan-status'), errorHost = host.querySelector('[role=alert]'), apply = host.querySelector('[data-apply]');
+    limitLocations(form);
+    const flow = planFlow({ api, form, resultHost, status, apply, action, runners, base: '/api/catalog/add/',
+        input: () => ({ format: form.elements.format.value, text: form.elements.text.value, enableAfterCreate: form.elements.enableAfterCreate.checked, defaults: { ...readMetadata(form, false), type: form.elements.type.value, intervalMs: Math.round(Number(form.elements.interval.value) * 60000), ...chosenLocations(form), ...(form.elements.keyword.value ? { keyword: form.elements.keyword.value } : {}) } }),
+        applied: result => {
+            status.replaceChildren(document.createTextNode('Batch applied. '));
+            undoLink(status, 'Review or undo this batch in Settings › Backup and files');
+            status.append(document.createTextNode(' · '));
+            const list = Object.assign(document.createElement('a'), { href: '/app/monitors', textContent: 'Open the monitors' });
+            status.append(list);
+            onApplied?.(result);
+        } });
+    const refuse = message => {
+        errorHost.textContent = message;
+        errorHost.hidden = false;
+        errorHost.tabIndex = -1;
+        errorHost.focus();
+        errorHost.scrollIntoView({ block: 'nearest' });
+    };
+    form.elements.file.onchange = async () => {
+        const file = form.elements.file.files[0];
+        if (!file)
+            return;
+        flow.reset();
+        form.elements.text.value = "";
+        try {
+            if (file.size > 2 * 1024 * 1024)
+                throw Error('The CSV exceeds 2 MiB.');
+            const bytes = await file.arrayBuffer();
+            try {
+                form.elements.text.value = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes);
+            }
+            catch {
+                throw Error('The CSV must use valid UTF-8 text.');
+            }
+            form.elements.format.value = 'csv';
+            flow.reset();
+            errorHost.hidden = true;
+        }
+        catch (error) {
+            refuse(error.message);
+        }
+    };
 }

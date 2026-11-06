@@ -1,5 +1,96 @@
 # Changelog
 
+## 0.5.0 — 2026-11-01
+
+Minor release from `main`; previous version 0.4.3. It changes how you add and edit monitors, adds a Locations page and an Alerts page in Settings, hands confirmed incidents to Oncall, retries signed-webhook alerts and adds fallback contacts, imports more from other monitoring services and UptimeRobot's outage history, and adds members, second factors and scheduled reports. 26 additive migrations; no new required settings. `@runeditrun/rer` is pinned to exactly 0.2.94. Monitors, history, incidents, destinations and private settings are kept on upgrade.
+
+Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png), taken on 0.4.0 before this release's console changes.
+
+### Back up first
+
+Back up while you are still on 0.4.3. On a hosted installation, download the product archive from **Runner / archive** in the console and back up the database with `npx wrangler d1 export <database> --remote --output exports/<database>.sql`. On your own computer, stop dev and run `rer export --output exports/uptime.rer`. Keep `.rer/deploy` and your private settings. After the upgrade the backup is in **Settings › Backup and files**, and it asks for a second factor (see Upgrading from 0.4.3).
+
+### Add and edit monitors
+
+- **New monitor starts from your website.** Enter your site's address and Uptime proposes checks to start. **Other ways to add** lets you fill in the form yourself, paste many URLs or a CSV, import a file, follow a service's status, or discover endpoints from your DNS, a published API spec or your deploys. Setup now asks only for your website, and even that is optional; with no monitors yet, the console opens on the form for your first.
+- **One form for new and edited monitors.** It asks what to check, how often and from where. **Up or down** lists the rules a check must pass, added one at a time with **Add rule** (page contains, page must not contain, a pattern, a header, a JSON value, a response time) instead of the old JSON box, beside how many failed checks in a row open an incident and how many passes close it. Settings most monitors never change, such as the request method, timeouts, extra attempts, a private network, the monitor's own external check and certificate trust, wait under **Advanced**.
+- **A clearer monitor page.** One status line names each failing location in plain words, with the 24-hour share and when a running maintenance ends. Edit the Up or down rules in place, see the newest checks at a glance, and quiet alerts for 15 minutes with one button.
+- **A tidier list.** Filters fold behind one **Filter**, bulk actions appear once you select monitors, rows are more compact, and a monitor in maintenance shows when it ends.
+- **Locations.** **Locations** lists where your checks run from. **Add location** gives one command to run on any machine with Node 22.13 or later and network access to your Uptime; it needs no Uptime checkout, and its join key works once. A new location is named after the place it connects from, and you can rename or remove it. Each monitor ticks up to three locations (two for a browser flow) under **Check from**, and a new location can join every monitor with room in one step.
+- **The External check URL is in Settings › General.** A change there reaches every monitor's next check without saving each monitor; a monitor can still keep its own URL under **Advanced**.
+
+### Alerts and destinations
+
+- **Settings › Alerts.** Each destination is one row with **Send test** and **Edit**; Edit holds Enabled, the request preview, the latest test, secret rotation and Delete. A line above the list names anything that would stop an alert from going out, and **Settings** and **Alerts** show a count while a destination cannot send.
+- **Who is told by default.** Choose all enabled destinations or only the ones you tick, each with its own delay and repeat. Before you apply, Uptime shows who would be told and which monitors choose their own route.
+- **Retries for signed webhooks.** An incident alert to a signed webhook that fails or gets no clear answer is sent again with the same delivery ID: by default up to six attempts within ten minutes, honoring Retry-After. Other 4xx answers stop at once. Email and Slack are still sent once.
+- **Fallback contacts.** A route can name up to three fallback contacts, in order. When a contact's incident alert fails, or is still uncertain after a deadline (two minutes by default), the first fallback gets it, then the next, each with a line naming the contact it follows.
+- **Quiet hours.** A contact can hold its alerts during a daily window in its own time zone; they go out when the window ends.
+- **Sent alerts** lists the newest five sends with each answer, and **All sent alerts** the rest. A fallback and the contact it followed each name the other.
+- Root-cause categories are managed in **Settings › Alerts**. The installation's one time zone for alerts, reports, maintenance and job schedules is in **Settings › General**.
+
+### Hand incidents to Oncall
+
+- **Native Oncall handoff.** In **Settings › Alerts**, add a webhook destination with the request format **Oncall handoff**, Oncall's source, service, environment and severity, and a bearer token that is stored but never shown again. Uptime then sends confirmed failures, their reminders and matched recoveries to [Oncall](https://github.com/just-every/run-oncall) as Oncall's own events. A retry repeats the same event, so Oncall can tell it is a duplicate. Test sends and drills never go to Oncall. See [Hand an Uptime incident to Oncall](docs/oncall-handoff.md).
+- **What was delivered, fact by fact.** **Sent alerts** shows **Acknowledged**, **Received** and **Responded** separately for each Oncall alert. Acknowledged needs Oncall's matching receipt. Received and Responded stay Unknown, because Oncall does not yet offer a way to read them, so Uptime never claims that a person saw or acted on an alert. In Oncall's current release paging stays off: it records responder coordination beside your existing pager. A recovery in Uptime does not resolve the incident in Oncall.
+
+### Import
+
+- **Backup and files.** The backup, monitor files and past imports are together in **Settings › Backup and files**, which replaces Definitions.
+- **More from other services.** Saved Site24x7 monitor lists (Website, REST API, Port, Ping and DNS) and saved Better Stack monitor pages (status, keyword, ping and single-port TCP) now convert, with each difference shown before you apply. Saved Pingdom check details keep their tags as labels. A third-party status monitor in a saved UptimeRobot, Better Stack or Site24x7 file becomes a followed service. Imported monitors still arrive paused, and anything not converted is named with its reason.
+- **UptimeRobot contacts and seats** can be previewed through the API; nothing is created and nobody is notified.
+- **Monitors as code.** The command line also takes monitor definitions written in TypeScript, run on your own machine, and a CI key limited to one environment and chosen tags can preview and apply them. A supported subset of Playwright tests imports as browser flows without running your test code.
+
+### History
+
+- **UptimeRobot outage history.** Saved UptimeRobot logs (CSV) and incident pages import through the API and command line as separately labelled source history, matched to the monitors you moved. Reports and reads can show Uptime's own figures, UptimeRobot's or both blended, each with its own denominator, and an imported batch can be removed. Imported history never changes Uptime's own checks, incidents or alerts. The console does not show imported history yet, and history from Pingdom, Better Stack and Site24x7 cannot be imported yet.
+
+### Reliability
+
+- API transactions and browser flows can run setup and cleanup steps, up to three attempts each. A cleanup that cannot finish shows on the monitor page until you resolve it, and a step that could spend money or change live data needs an exact, expiring grant with a spend limit.
+- Console sections switch in place, and a filtered monitor list keeps its filters in its address so you can bookmark it.
+- Hosted HTTP checks identify themselves with an `Uptime/<version>` User-Agent and a link that explains them.
+- `rer dev` no longer fails to start when the local Worker's automatically chosen port is taken at the last moment. In `rer dev` and `rer demo`, email is reported as sent without being sent, and the demo sends no alerts.
+- TanStack Start is updated to 1.168.60 for a published security advisory (GHSA-qx66-fv34-fjm8).
+
+### People and sign-in
+
+- **Members.** In **Settings › People**, invite people as an admin, editor, responder or read-only member, optionally limited to services or teams. The console is not yet built for members with a narrower role than admin; they work through the API and command line for now.
+- **Second factors.** Enroll an authenticator app or a passkey in **Settings › People**, and keep the ten recovery codes shown once. The owner can require a second factor for everyone. Read Upgrading from 0.4.3 before you enroll.
+- **Keys.** Create monitoring read keys and CI keys with an expiry and a chosen set of monitors or tags, see when each was last used, and revoke it.
+- **Agents.** Run Edit Run Business agents can work with Uptime through its MCP door, as a named person within that person's current role, with your company's policy deciding each call. Not every console action is available to agents yet.
+
+### Reports, page speed and providers
+
+- **Scheduled reports.** From **Settings › Alerts**, send a one-time, daily, weekly or monthly report for a monitor or its service to an email or Slack destination.
+- **Page speed.** A page-speed monitor loads a page in a real browser on your runner and fails when it goes over the budgets you set, such as largest contentful paint. An optional real-user beacon, off until you turn it on, measures only visitors who consent, by page, device, country and US state. Parts of the real-user figures, such as error counts, percentiles and bot exclusion, are not yet fully proven.
+- **Third-party providers.** Follow the published status of a provider, or chosen parts of it, from a catalog of 24, such as AWS, Stripe and Cloudflare; Auth0 and Fastly cannot be followed yet. A provider's issue arrives as a dependency notice through the monitor's alert route, never as an Uptime incident, and shows beside any incident it overlaps as the provider's own claim. Website discovery also proposes a monitor for a provider status page your site links to, with its components offered unticked; a provider monitor never changes your own monitors.
+- **Discovery.** Discovery from your DNS, sitemap, OpenAPI document, Route 53 or Cloudflare zone, or GitHub, Vercel, Netlify or CodeDeploy deployments proposes monitors for you to review; nothing runs until you start it. These readers follow each provider's documented API but have not yet been tried against a live provider account.
+- **Incidents.** Incidents on your own monitors that share a dependency, service or group and start close together can be acknowledged together; each keeps its own evidence and recovery. Responders and editors can take or reassign an incident, comment, mention a member and set its root cause through the API and command line.
+
+### Install and docs
+
+- Getting started is one line, `curl -fsSL https://runeditrun.com/install.sh | sh -s -- dev just-every/run-uptime`, and the deploy guide adds having Run Edit Run set Uptime up on your own Cloudflare account, by request for now.
+
+### Upgrading from 0.4.3
+
+Migrations `0057_location_names.sql` through `0083_agent_work.sql` are applied (there is no `0076`). All are additive, and existing rows are kept.
+
+- **Where things moved.** The menu is Monitors, Locations and Settings. Notifications moved to **Settings › Alerts**; the archive and Definitions to **Settings › Backup and files**; the External check URL and the alert time zone to **Settings › General**; metrics keys and Business imports to **Settings › Integrations**.
+- **Runners keep working.** A runner's own network label is now ignored. Location names you typed are kept; the built-in `owner-network` location takes a generated name on upgrade and the name of its place on its runner's next contact. Monitors that copied the installation's External check URL now follow Settings; other URLs stay their own.
+- **Sensitive actions need a second factor.** Downloading or restoring a backup, importing, adding or deleting a destination or rotating its secret, adding, renaming or removing a location, creating keys, changing members, erasing, and saving a browser flow, API transaction, mail check or a monitor that uses a private network or runner credentials now ask for a second factor verified within the last five minutes, so enroll one in **Settings › People** first. The console does not yet ask for that factor when you sign in: once you have one, verify each new sign-in with the commands in [Second factors](docs/mfa.md) before the console opens. Local `rer export` and `rer import` need such a verified session too.
+
+### Not in this release
+
+- No SMS, voice, phone push, Microsoft Teams, Discord, Telegram, Zapier or Make alerts; no PagerDuty or Splunk On-Call handoff; no status-page publishing through Lamp; no Terraform provider; no SSO or SCIM; no USD cost estimates; no migration from Checkly, OpenStatus or Hyperping.
+- No managed check locations: every location is a runner you run.
+- Many features are partial: see the Status table in [CONTRACT.md](CONTRACT.md).
+
+### Known issues
+
+- A response body larger than 64 KiB fails the check as a target failure (`body-limit`), even when the status is correct. Point a monitor at a smaller page, such as a health endpoint, until a later release reads large pages.
+- The limits listed under 0.4.0 still apply: hosted heartbeat evaluation needs a private runner, and hosted Worker checks cannot pin connections.
+
 ## Source-history judgment carried from main — 28 October 2026
 
 Main `01481aa78afb3ba2a2f63dcc03733266089093ae` reports the following source-history proof. This is a carried implementation report, not a new status promotion.
@@ -39,21 +130,6 @@ CONTRACT.md was rewritten to the RER contract standard from main `a492c68b79754d
 - The Agent surface was written: the monitoring-operator specialist, its class computation, the tool table and SURFACE-001 to SURFACE-005 (missing; Uptime has no MCP door yet). Agent clauses that said a person approves an agent's step now name the class the step carries and leave the outcome to the company's policy.
 - The homepage claims, which no old file mapped, were mapped from the live homepage (21 claims).
 - Done-row Gap notes, the old Status section's round notes and the 23 October clarifications are kept below in the contract source as it stood before the cleanup.
-
-## Unreleased
-
-- Retry signed webhook incident deliveries with a stable ID, bounded stored backoff, Retry-After and owner-set limits; retain portable attempt metadata and erase it with its destination.
-- **Fallback contacts (DELIVERY-002).** A selected route can name up to three ordered fallback contacts and an uncertain deadline (default 2 minutes). A failed trigger escalates at once, an uncertain one after the deadline; the console shows both outcomes and an ended chain. Email attempts are recorded too, and archives carry delivery records without request bodies. Adds migration `0060_notification_fallback.sql`.
-
-Adds four migrations (`0057_location_names.sql`, who named each location; `0058_cleanup_debt_and_effect_grants.sql`, retained cleanup debt and live-effect grants; `0062_external_check_follow.sql`, monitors following the External check URL in Settings; `0063_location_join_keys.sql`, one-time location join keys); no new required settings.
-
-- **Locations and pass/fail, done properly.** A monitor's **Check from** is a tick list of your locations (up to three a monitor; two for a browser flow), with the rule for Down written beside it; new monitors start from every live location. When a location joins, **Check all monitors from here too** (on by default) adds it to every monitor with room, in one step. **Add location** gives one command that works from any machine with Node 22.13 or later and network access to this Uptime, with no checkout: it downloads the runner from `/uptime-runner.mjs` and joins with a one-time key, which the panel stops showing once the location joins. The External check URL lives in Settings and reaches every monitor's next check without saving the monitor; a monitor's own URL sits under **Advanced**. Monitors that copied the installation's URL before this follow Settings, also once **Check all monitors from here too** adds a location to them; other URLs stay their own. A monitor's reason names each check by its location rather than “Check 1”.
-
-- **Safe setup and teardown (API-004).** API transactions and browser flows run bounded setup and cleanup fixtures (up to 3 attempts each); cleanup still runs after a failure or a cancellation, and a cancelled run reads Unknown. A cleanup that cannot finish becomes cleanup debt the owner resolves with a note on the monitor page; at 3 open debts setup stops. Stripe live-mode keys, `livemode: true` responses, refunds and steps marked `effect` need an exact, expiring grant with a spend limit.
-
-- **Reviewed provider components (DEPENDENCY-001).** Linked Statuspage-compatible sources now propose their overall status and a bounded set of separate component monitors, initially unticked and keyed by component ID. Adoption retains the provider name, `dependency` tag and a line identifying the status as the provider's own claim. Review another component before adoption, or change it later through an ordinary monitor revision. Provider failure has its own monitor state and ordinary incident policy; the claim is contextual evidence and does not change application state, evidence, routes or thresholds. Missing, renamed or removed components and unavailable sources are Unknown, never Healthy. DEPENDENCY-002's catalog and no-incident dependency notices and FOLLOWUP-001 correlation remain open. No migration or new setting is required for this change.
-
-- **The console follows the owner's three jobs: monitors, locations, and each monitor's pass/fail rules.** The sidebar reads Monitors · Locations · Notifications · Archive · Settings. Setup asks only for the website, and that is optional; the External check URL (https://example.org/ by default) moved to Settings. With no monitors, setup and `/app` open the form for the first monitor. **Locations** lists where checks run from, and **Add location** shows the runner command, watches the new location join, and renames or removes locations. A location is named after the place its runner connects from (Cloudflare's `request.cf` city, region or country), or a short generated name, and `PATCH /api/runners/:id` renames it. An existing `owner-network` location takes a generated name on upgrade and its place's name on its runner's next contact. Each monitor's **Up or down** card lists what one check must see, when it is down, when it is back up and where it is checked from. The editor shows the same rules as a list with **Add rule**; JSON value and response time replaced the raw "Additional checks (JSON)" box. **Archive** holds the backup and the monitor files (import, export, past imports) that were "Definitions"; **Settings** holds the External check URL, metrics keys, operators and Business imports. A runner's own `UPTIME_NETWORK_LABEL` is now ignored rather than checked, so a renamed location keeps working with its old command.
 
 ## 0.4.3 — 2026-10-20
 

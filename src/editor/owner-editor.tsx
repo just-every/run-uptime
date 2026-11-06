@@ -1,11 +1,12 @@
 import {useEffect} from 'react'
 import {createOwnerEditor} from '../base/modules/editor/index.ts'
 import type {Session} from '../base/modules/operator-auth/index.mjs'
+import {launcherTooltip} from './launcher-tooltip.ts'
 
 /** The native session is rechecked before every short-lived editor grant. */
 export function OwnerEditorShell() {
  useEffect(()=>{
-  const editor=createOwnerEditor(), controller=new AbortController()
+  const editor=createOwnerEditor(), controller=new AbortController(), stopLauncherTooltip=launcherTooltip()
   let identity='', pending=false, stopped=false, generation=0
   const revoke=()=>{generation++;identity='';editor.setOwner(false)}
   const refresh=async()=>{
@@ -35,7 +36,7 @@ export function OwnerEditorShell() {
   const authorityLost=()=>{revoke()}
   const dispose=()=>{
    if(stopped)return
-   stopped=true;generation++;identity='';controller.abort();clearInterval(timer);editor.dispose()
+   stopped=true;generation++;identity='';controller.abort();clearInterval(timer);editor.dispose();stopLauncherTooltip()
    window.removeEventListener('uptime:auth-changed',changed);window.removeEventListener('uptime:auth-lost',authorityLost);window.removeEventListener('uptime:console-closed',dispose);window.removeEventListener('focus',focused)
   }
   window.addEventListener('uptime:auth-changed',changed)

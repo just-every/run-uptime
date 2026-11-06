@@ -60,6 +60,8 @@ export function requestPermission(request,input){
   if(!path.startsWith('/api/v1/')&&!read&&(/^(?:comments(?:\/[^/]+)?|root-cause)$/.test(suffix)))return {action:'respond',workspace:false,incidentId:decode(incident[1])};
   return {action:'owner',workspace:true};
  }
+ // The installation's default route shares the monitor route doors' authority.
+ if(path==='/api/alert-route'||path.startsWith('/api/alert-route/'))return {action:read?'settings_write':'route_write',workspace:true};
  if(path==='/api/incident-settings')return {action:'owner',workspace:true};
  if(path.startsWith('/api/notifications')||path.startsWith('/api/runners'))return {action:'secret_write',workspace:true};
  if(path.startsWith('/api/discover')||path.startsWith('/api/service-')||path.startsWith('/api/followed-services')||path.startsWith('/api/dependency-notices'))return {action:'discovery_write',workspace:true};

@@ -22,9 +22,8 @@
 .discovery-status:empty { display: none; }
 .discovery-status[data-state="checking"] { color: var(--ink); font-weight: 500; }
 .discovery-status[data-state="checking"]::before { content: ""; display: inline-block; width: 12px; height: 12px; margin: 0 8px 1px 0; border: 2px solid var(--line); border-top-color: var(--ink); border-radius: 50%; vertical-align: middle; animation: discovery-spin 1s linear infinite; }
-.discovery-panel .ui-helper { margin-top: 10px; }
-.discovery-manual { margin-top: 14px; }
-.discovery-manual .ui-link { font-size: 14px; font-weight: 500; }
+.discovery-runner { margin-top: 10px; }
+.discovery-runner[hidden] { display: none; }
 #discovery-problem { margin: 0; }
 
 /* What the runner noticed, as quiet lines above the proposals. */

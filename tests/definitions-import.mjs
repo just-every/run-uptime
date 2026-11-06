@@ -1,3 +1,4 @@
+import {proveNativeManagement} from './management-support.mjs';
 import {proveSourceHistory,proveHistoryUpgrade} from './source-history-support.mjs';
 // IMPORT-001: definition files and UptimeRobot imports through the owner's import door, the move-in screen's transport.
 // A preview writes no native record; hostile, malformed, stale, cross-origin and unauthenticated requests leave every
@@ -314,6 +315,7 @@ try{
   assert.deepEqual(await history(),before,'import neither replays source alerts nor invents receipt or scheduled history');
   assert.equal((await send(`/api/heartbeats/${id}`,JSON.stringify({}),{headers:{authorization:`Bearer ${fixture.sourceToken}`,'x-heartbeat-sequence':'1'}})).status,400);
  }
+ await proveNativeManagement({origin,cookie,DB});
  // MIGRATE-004 saved monitor settings: the same Definitions door, in a fresh installation namespace.
  await worker.dispose();({worker}=await migratedWorker({port,persist:join(directory,'site24x7'),bindings:{UPTIME_ORIGIN:origin}}));
  {

@@ -4,7 +4,7 @@
 export const hero = {
   title: 'Sleep through the night.',
   sub: 'Uptime checks your sites and APIs on schedule, tells you only when a failure is confirmed, and never calls a missing check healthy.',
-  alt: '100% free, open source alternative to',
+  alt: 'Open source alternative to',
   altNames: ['Pingdom', 'UptimeRobot', 'Better Stack'],
   primary: 'Run Uptime',
   demo: 'Try the demo',
@@ -101,5 +101,5 @@ export const closing = {
   sub: 'Open-source monitoring you run yourself.',
   primary: 'Run Uptime',
   secondary: 'Read the docs',
-  fine: 'Free and open source, MIT licensed.',
+  fine: 'You can also have all the source for free.',
 };

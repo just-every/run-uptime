@@ -1,5 +1,9 @@
 import {tlsTrustJourney} from './tls-trust-journey.mjs';
 import {apiAuthJourney} from './api-auth-journey.mjs';
-// One authenticated-target lifecycle: choose trust, run, rotate and revoke local credentials.
+import {keywordMonitorJourney} from './keyword-monitor-journey.mjs';
+import {proveNetworkTlsHostname} from './network-tls-hostname-support.mjs';
+// Choose trust, rotate and revoke local credentials, then retain scheduled keyword evidence.
 await tlsTrustJourney();
 await apiAuthJourney();
+await keywordMonitorJourney();
+await proveNetworkTlsHostname();

@@ -1,5 +1,24 @@
+import {proveAgentRevocationAudit} from './agent-revocation-audit-support.mjs';
+import {proveDestinationNameEffects} from './agent-destination-name-support.mjs';
+import {proveCommentDeletion} from './agent-comment-delete-support.mjs';
+import {checkAgentArtifacts} from '../src/base/modules/agent-door/index.ts';
+import {uptimeAgentArtifacts} from '../src/agent-door/erasure.server.ts';
+import {proveSavedEmailDestinationFacts} from './agent-destination-facts-support.mjs';
+import {proveManualDebt} from './agent-manual-debt-support.mjs';
+import {proveAgentSurfaceDiscovery} from './agent-surface-discovery.mjs';
+import {provePolicyEntry} from './agent-policy-entry-support.mjs';
 import {nativeDoorBrowser} from './agent-door-browser.mjs';
 import {proveAccessFacts} from './agent-access-facts-support.mjs';
+import {proveApprovalRejection} from './agent-approval-rejection-support.mjs';
+import {proveStandardApproval} from './agent-standard-approval-support.mjs';
+import {proveMonitorStateEffects} from './agent-monitor-state-support.mjs';
+import {proveHeldClassClaims} from './agent-held-class-claims-support.mjs';
+import {proveRecordClassClaims} from './agent-record-class-claims-support.mjs';
+import {proveSelfEscalationState} from './agent-self-escalation-state-support.mjs';
+import {proveOversizeNoEffect} from './agent-oversize-support.mjs';
+import {proveFormAccept} from './agent-form-accept-support.mjs';
+import {provePausedCreation} from './agent-paused-create-support.mjs';
+import {proveCurrentRevision} from './agent-current-revision-support.mjs';
 // One integrated core journey, through the emitted production Worker and real
 // D1. Only mail/probe provider edges may be replaced; identities and mutations
 // enter the ordinary native public doors.
@@ -7,7 +26,7 @@ import assert from 'node:assert/strict';
 import {webcrypto,randomUUID} from 'node:crypto';
 import {join} from 'node:path';
 import {migratedWorker,runtimeDirectory,cleanupDirectory,availablePorts} from './notify-acceptance-runtime.mjs';
-import {testAuthBindings,authRequest,sessionCookie,deliveredLink} from './auth-test-support.mjs';
+import {testAuthBindings,authRequest,sessionCookie,deliveredLink,emailSignIn} from './auth-test-support.mjs';
 import {auditRows} from '../src/base/modules/agent-door/conformance/audit.mjs';
 import {completeSecondFactor} from './mfa-auth-support.mjs';
 import {signJws,seconds,autonomousPolicy,heldPolicy,accessToken,policyEnvelope} from '../src/base/modules/agent-door/conformance/crypto.mjs';
@@ -17,30 +36,42 @@ const key=await webcrypto.subtle.exportKey('jwk',pair.publicKey),kid='uptime-nat
 const directory=await runtimeDirectory(),[port]=await availablePorts(1),origin='http://127.0.0.1:'+port;
 const signer={privateKey:pair.privateKey,kid,issuer,installationId};
 const bindings={...testAuthBindings,RER_OWNER_CLAIM_ISSUER:issuer,RER_OWNER_CLAIM_INSTALLATION_ID:installationId,RER_OWNER_CLAIM_APP_ORIGIN:origin,RER_OWNER_CLAIM_PUBLIC_KEYS:JSON.stringify({[kid]:key}),RER_BUSINESS_TRUST:JSON.stringify({v:1,issuer,audience:origin,subject:installationId,keys:{[kid]:key}})};
-let worker,proof;
+let worker,proof;const providerRequests=[];
 try{
- ({worker}=await migratedWorker({port,persist:join(directory,'worker'),bindings}));
+ ({worker}=await migratedWorker({port,persist:join(directory,'worker'),bindings,outboundService:async request=>{providerRequests.push({method:request.method,origin:new URL(request.url).origin});throw Error('Unexpected provider request')}}));
  const iat=seconds(),claim=await signJws(pair.privateKey,kid,'rer-owner-claim+jwt',{v:1,iss:issuer,aud:origin,installationId,email:bindings.OWNER_EMAIL,jti:randomUUID(),iat,exp:iat+300});
  const call=authRequest(origin);
  assert.equal((await call('/auth/owner-claim',{token:bindings.SETUP_TOKEN,displayName:'Riley Owner',returnTo:'/app'})).status,403,'raw setup token never becomes a signed owner claim');
- const claimed=await call('/auth/owner-claim',{token:claim,displayName:'Riley Owner',returnTo:'/app'}),cookie=sessionCookie(claimed);
+ const claimed=await call('/auth/owner-claim',{token:claim,displayName:'Riley Owner',returnTo:'/app'});let cookie=sessionCookie(claimed);
  const settings=await signJws(pair.privateKey,kid,'rer-business-settings+jwt',{v:1,iss:issuer,aud:origin,sub:installationId,business,email:bindings.OWNER_EMAIL,owner_id:sub,jti:randomUUID(),iat,exp:iat+300,rev:1,values:{},logo:null,team:null});
  const paired=await call('/api/rer/business-settings',{settings});assert.equal(paired.status,200);assert.equal((await paired.json()).rev,1);
  const surface={seed:'uptime',specialist:'monitoring-operator',tools:['uptime:read','uptime:evidence','uptime:operate','definitions:preview','events:read'].map(scope=>({scope}))};
  const c=createProtocol({fetch,origin,surface,signer,person:{email:bindings.OWNER_EMAIL,cookie,sub},business,consent:randomUUID(),points:[],agentId:'night-shift-'+randomUUID(),seq:0,revision:0,listed:new Map()});
+ const policyEntry=await provePolicyEntry({c,worker,origin,cookie,providerRequests});
  const unset=await c.tool('uptime.monitors.list',{});assert.equal(errorCode(unset),'policy_unset');
  const initial=await policyEnvelope(c,autonomousPolicy());const firstPolicy=await c.request('/api/rer/agent-policy',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({policy:initial.policy})});assert.equal(firstPolicy.status,200);c.seq=initial.payload.seq;c.revision=initial.payload.revision;
  const exposed=await c.mcp('tools/list');surface.tools=exposed.result.tools.map(t=>({name:t.name,scope:t._meta['com.runeditrun/scope'],readOnly:t.annotations.readOnlyHint,classes:t._meta['com.runeditrun/classes'],clauses:t._meta['com.runeditrun/clauses']}));
  const sendTool=c.tool;c.tool=(name,args={},options)=>sendTool(name,{...args,...(!surface.tools.find(t=>t.name===name)?.readOnly&&!args.idempotency_key?{idempotency_key:randomUUID()}:{})},options);
  const result=async(name,args={})=>{const answer=await c.tool(name,args);assert.equal(answer.result?.isError,false,`${name}: ${errorCode(answer)}`);return answer};
- await c.adopt(autonomousPolicy());
+ await c.adopt(autonomousPolicy());await policyEntry.proveAllowed();
  for(const version of ['2026-07-28','2025-11-25']){const listed=await c.mcp('tools/list',{}, {version});assert.deepEqual(listed.result.tools.map(t=>t.name),surface.tools.map(t=>t.name).sort())}
  const native=async(path,body,method=body===undefined?'GET':'POST')=>{const response=await fetch(origin+path,{method,redirect:'manual',headers:{cookie,origin,'content-type':'application/json'},...(body===undefined?{}:{body:JSON.stringify(body)})});assert.ok(response.ok,`${path} HTTP ${response.status}`);return response.json()};
+ const db=await worker.getD1Database('DB');
+ const sponsor=await db.prepare('SELECT id FROM oa_operators WHERE email=?').bind(bindings.OWNER_EMAIL).first();
+ await proveCurrentRevision({c,native,db,sponsorId:sponsor.id,providerRequests});
+ await proveFormAccept({c,native,db,origin,cookie,sponsorId:sponsor.id,providerRequests});
+ await proveApprovalRejection({c,native,db,origin,sponsorId:sponsor.id,providerRequests});
  await proveAccessFacts({c,native,call,origin,cookie});
  const monitor=await native('/api/monitors',{name:'Checkout reachability',type:'http',network:'public',url:'https://checkout.example.test/health',method:'GET',assertions:{status:200},intervalMs:60000,timeoutMs:5000,retries:0,probes:['local-a'],failureQuorum:1,confirmSlots:1,recoverSlots:1,freshnessMs:120000,enabled:true,service:'checkout',group:'operations'});
  const second=await native('/api/monitors',{...monitor.definition,name:'Foreign service',service:'foreign'});
- const db=await worker.getD1Database('DB');
- const sponsor=await db.prepare('SELECT id FROM oa_operators WHERE email=?').bind(bindings.OWNER_EMAIL).first();
+ await proveOversizeNoEffect({c,native,db,origin,providerRequests});
+ await checkAgentArtifacts(db,uptimeAgentArtifacts);
+ console.log('PASS BASE-AGENT-009.uptime.complete-artifact-map (10 tables, every column)');
+ await proveHeldClassClaims({c,native,db,origin,sponsorId:sponsor.id,providerRequests});
+ await proveRecordClassClaims({c,native,db,origin,sponsorId:sponsor.id,providerRequests});
+ await proveSelfEscalationState({c,native,call,db,origin,cookie,providerRequests});
+ await proveAgentSurfaceDiscovery({c,db,origin,monitorId:monitor.id});
+ await proveAgentRevocationAudit({c,db,native,monitorId:monitor.id,sponsorId:sponsor.id,providerRequests});
  const target={kind:'monitor',id:monitor.id};
  const targetAudit=async(key,code)=>{
   const {rows,differs}=await auditRows(c);assert.equal(differs,0);
@@ -87,6 +118,9 @@ try{
  const wrong=await accessToken(c,{aud:origin+'/other'});assert.equal((await c.mcp('tools/list',{}, {token:wrong})).status,401);
  const setup=await fetch(origin+'/setup',{method:'POST',redirect:'manual',headers:{origin,cookie}});assert.equal(setup.status,303);
  proof=await nativeDoorBrowser({origin,cookie,directory});
+ await proveMonitorStateEffects({c,native,db,proof});
+ await proveDestinationNameEffects({c,native,db,origin,cookie,providerRequests});
+ await provePausedCreation({c,native,db,providerRequests,proof});
  const version=monitor.revision;
  const stale=await c.tool('uptime.monitors.update',{id:monitor.id,version:version-1,definition:{name:'must not save'},expected_revision:version-1});assert.equal(errorCode(stale),'revision_conflict');
  const changed=await result('uptime.monitors.update',{id:monitor.id,version,definition:{name:'Checkout reachability — investigated'},expected_revision:version});
@@ -163,6 +197,7 @@ try{
  await completeSecondFactor(origin,reviewerCookie);
  const reviewerSession=await call('/auth/session',undefined,{cookie:reviewerCookie});assert.equal(reviewerSession.status,200);
  const reviewerId=(await reviewerSession.json()).operator.id;
+ await proveStandardApproval({c,native,call,origin,cookie,monitorId:monitor.id,sponsorId:sponsor.id,reviewerSub,reviewerId,reviewerCookie,proof});
  const independent=heldPolicy();independent.rules=[{id:'all',class:'*',do:'approval',approver:['person:'+reviewerSub],wait:'PT1H'}];
  await c.adopt(independent);
  const reviewed=await c.tool('uptime.monitors.pause',{id:monitor.id,version:version+3,expected_revision:version+3});
@@ -188,6 +223,11 @@ try{
  await proof.capture('approval-refused',new URL(pausedApproval.result._meta['com.runeditrun/approval'].url).pathname);
  console.log('PASS BASE-AGENT-011.uptime.pause-pending-execution');
  await c.adopt(autonomousPolicy());
+ // The combined journey can outlive Base's ten-minute email proof. Renew
+ // through the native sign-in and second-factor doors before owner role writes.
+ cookie=await emailSignIn(origin,{bindings});c.person.cookie=cookie;
+ await proveCommentDeletion({c,native,db,proof,providerRequests,reviewer:{id:reviewerId,sub:reviewerSub,cookie:reviewerCookie}});
+ await proveSavedEmailDestinationFacts({c,native,db,sponsorId:sponsor.id});
  const destination=await native('/api/notifications/destinations',{name:'Checkout incident webhook',kind:'webhook',url:'https://notifications.example.com/checkout'});
  const notificationArgs={id:destination.id,idempotency_key:randomUUID()};
  const queued=await result('uptime.destinations.test',notificationArgs),notificationId=queued.result.structuredContent.deliveryId;
@@ -243,6 +283,7 @@ try{
  assert.equal(readReplay.result?.isError,false);assert.equal(readReplay.result.structuredContent.items[0].definition.name,renamed);
  assert.deepEqual(readReplay.result._meta['com.runeditrun/receipt'],readFirst.result._meta['com.runeditrun/receipt']);
  assert.notDeepEqual(readReplay.result.structuredContent,readFirst.result.structuredContent,'an old approval cannot return stale aggregate rows');
+ await completeSecondFactor(origin,cookie);
  await native('/api/credentials/'+keyIssued.credential.id,undefined,'DELETE');
  const revokedRead=await aggregate(readState);assert.equal(revokedRead.status,401);assert.equal(revokedRead.result?.structuredContent,undefined);
  console.log('PASS BASE-AGENT-012.uptime.current-native-read-replay');
@@ -271,7 +312,27 @@ try{
  assert.equal(freshErase.result?.structuredContent,undefined);
  assert.deepEqual((await result('uptime.evidence.witness')).result.structuredContent,erasedWitness);
  console.log('PASS BASE-AGENT-012.uptime.deleted-target-current-admission');
+ await proveManualDebt({c,db,origin,cookie,proof});
  await proof.capture('agents-final','/agents');await proof.close();proof=null;
+ const pullClaims=()=>({v:1,iss:issuer,aud:origin,sub:installationId,business,after:0,limit:200,iat:seconds(),exp:seconds()+60,jti:randomUUID()});
+ const pull=async(claims=pullClaims(),privateKey=pair.privateKey)=>call('/api/rer/agent-decisions',{pull:await signJws(privateKey,kid,'rer-agent-decisions+jwt',claims)});
+ const relayed=await pull();assert.equal(relayed.status,200);const feed=await relayed.json();assert.ok(feed.decisions.length>0);assert.ok(feed.head>=feed.cursor);
+ assert.equal((await pull(pullClaims(),(await webcrypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify'])).privateKey)).status,401,'foreign signature is refused at the relay authentication boundary');
+ assert.equal((await pull({...pullClaims(),business:randomUUID()})).status,404,'a valid signature cannot read another Business');
+ assert.equal((await call('/api/rer/agent-decisions',{pull:'invalid'})).status,401);
+ const current=await native('/api/v1/monitors/'+monitor.id);await c.adopt(heldPolicy());
+ const beforeStop=await c.tool('uptime.monitors.resume',{id:monitor.id,version:current.revision,expected_revision:current.revision});assert.ok(beforeStop.result._meta['com.runeditrun/approval']);
+ const detached=await signJws(pair.privateKey,kid,'rer-business-settings+jwt',{v:1,iss:issuer,aud:origin,sub:installationId,business,email:bindings.OWNER_EMAIL,owner_id:sub,jti:randomUUID(),iat:seconds(),exp:seconds()+300,rev:3,values:{},logo:null,team:null,detached:true});
+ assert.equal((await call('/api/rer/business-settings',{settings:detached})).status,200);
+ assert.equal((await pull()).status,404,'stopped Business has no decision relay');
+ assert.equal((await c.mcp('tools/list')).status,401,'stop ends Business-token admission');
+ const stoppedPending=await c.decideApproval(beforeStop);assert.equal(stoppedPending.body.approval.state,'refused');assert.equal(stoppedPending.body.approval.code,'sponsor_unavailable');
+ assert.equal((await native('/api/v1/monitors/'+monitor.id)).revision,current.revision,'stop preserves the native monitor and owner access');
+ const stoppedPolicy=autonomousPolicy();stoppedPolicy.reviewers=['person:'+sub];const signedPause=await policyEnvelope(c,stoppedPolicy,{paused:true});
+ const pausedAfterStop=await call('/api/rer/agent-policy',{policy:signedPause.policy});assert.equal(pausedAfterStop.status,200);assert.deepEqual((await pausedAfterStop.json()).adopted,{seq:signedPause.payload.seq,revision:signedPause.payload.revision});
+ assert.equal(JSON.parse((await db.prepare('SELECT envelope FROM agent_door_state WHERE id=1').first()).envelope).paused,true,'valid signed Pause is adopted after Business stop');
+ assert.equal((await db.prepare('SELECT stopped FROM bs_settings WHERE singleton=1').first()).stopped,1,'signed policy never revives Business');
+ console.log('PASS BASE-AGENT-009.uptime.signed-relay: 200; foreign/unauthorized 401; foreign Business/stopped 404; held Business effect refused; native owner and signed Pause survive');
  assert.ok(c.points.every(point=>point.ok),JSON.stringify(c.points.filter(p=>!p.ok)));
  // Updated 2026-10-30 BASE-AGENT-013.uptime.declarative-conformance:
  // agent-surface.json declares tools, policy, pause, audit and idempotency.

@@ -1,7 +1,11 @@
 // Formatting shared by the console's views (public/app.js) and the monitor page (public/monitor-page.js). Every value
 // that reaches markup goes through escape().
+import {tooltip} from './assets/tooltip.js';
 export const escape=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const icon=name=>`<span class="ui-icon" data-icon="${name}" aria-hidden="true"></span>`;
+// An icon-only control's tooltip (public/assets/tooltip.js) as attributes for markup: its two-to-four-word accessible name, the
+// layer's marker and, with describedBy (the id of the element showing the row it acts on), the row as its description.
+export const tip=(label,options)=>Object.entries(tooltip(label,options)).map(([name,value])=>value===''?name:`${name}="${escape(value)}"`).join(' ');
 export const ago=t=>{if(!t)return 'No check recorded';const s=Math.max(0,Math.floor((Date.now()-t)/1000));return s<90?`${s}s ago`:s<5400?`${Math.floor(s/60)}m ago`:s<172800?`${Math.floor(s/3600)}h ago`:`${Math.floor(s/86400)}d ago`};
 export const duration=value=>Number.isSafeInteger(value)&&value>=0?(value<1000?`${value} ms`:`${(value/1000).toFixed(2)} s`):'Unknown';
 // <wbr> after the scheme and before each path segment, so the host and port stay whole and the URL wraps at its path.

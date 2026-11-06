@@ -3,9 +3,6 @@ import {showTlsFields} from './tls-fields.mjs';
 // The TCP, DNS, TLS and domain fields of the monitor form. The check type selects one group of fields; the others are
 // hidden and disabled, so only the selected type's fields are validated and read.
 export const PROTOCOL_TYPES=['tcp','udp','ping','dns','tls','domain'];
-const HELP={mail:'Verifies mail connection, TLS, greeting, authentication and optional synthetic mailbox delivery.',api:'Runs ordered backend requests with shared authentication, extracted variables and visible cleanup.',ping:'Checks IPv4 or IPv6 reachability, packet loss and round-trip time from each private runner location.',udp:'Sends one bounded UDP packet to an authorized public service. A response must match; silence is a timeout. Requires a private runner.',http:'Requests the URL and checks status, text, headers and JSON.',tcp:'Opens a TCP connection to a host and port, and can read the service’s banner.',
- dns:'Asks public resolvers for a record and compares the answer with what you expect.',tls:'Checks the certificate a host presents: trust, name, validity and expiry.',
- domain:'Watches the domain’s registration expiry date at its registry.'};
 // A new monitor's timing for each type: TLS and domain expiry checks run hourly (they may run more often, never less).
 export const TYPE_TIMING={mail:{intervalMinutes:1,timeoutSeconds:30,freshnessMinutes:3,retries:0},api:{intervalMinutes:1,timeoutSeconds:30,freshnessMinutes:3,retries:0},ping:{intervalMinutes:1,timeoutSeconds:10,freshnessMinutes:3},udp:{intervalMinutes:1,timeoutSeconds:3,freshnessMinutes:3},http:{intervalMinutes:1,timeoutSeconds:2,freshnessMinutes:3},tcp:{intervalMinutes:1,timeoutSeconds:3,freshnessMinutes:3},dns:{intervalMinutes:1,timeoutSeconds:3,freshnessMinutes:3},
  tls:{intervalMinutes:60,timeoutSeconds:5,freshnessMinutes:120},domain:{intervalMinutes:60,timeoutSeconds:10,freshnessMinutes:120}};
@@ -13,7 +10,7 @@ const control=(root,name)=>root.querySelector(`[name="${name}"]`);
 const days=list=>list?.join(', ')??'';
 const lines=list=>list?.join('\n')??'';
 export const checkTypeOf=definition=>[...PROTOCOL_TYPES,'api','mail'].includes(definition.type)?definition.type:'http';
-/** Shows the selected type's fields and help; hidden fields are disabled so they are neither validated nor read. */
+/** Shows the selected type's fields; hidden fields are disabled so they are neither validated nor read. */
 export function showType(root,type){
  for(const group of root.querySelectorAll('.type-fields')){
   const shown=group.dataset.types.split(' ').includes(type);group.hidden=!shown;
@@ -24,7 +21,6 @@ export function showType(root,type){
  const timeout=control(root,'timeoutSeconds');if(timeout)timeout.max=['api','mail'].includes(type)?'60':'10';
  const url=control(root,'url');if(url)url.required=type==='http';
  for(const name of ['pingHost','udpHost','udpPort','udpPayload','udpExpected','tcpHost','tcpPort','dnsName','tlsHost','domainName']){const field=control(root,name);if(field)field.required=name.startsWith(type)}
- const help=root.querySelector('.type-help');if(help)help.textContent=HELP[type];
  const privateGroup=root.querySelector('[data-private-network]'),privateField=control(root,'privateGrantRef');
  if(privateGroup){const shown=['http','tcp'].includes(type)&&control(root,'networkScope').value==='private';privateGroup.hidden=!shown;privateField.disabled=!shown;privateField.required=shown}
  showTlsFields(root);

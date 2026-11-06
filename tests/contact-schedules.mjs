@@ -31,6 +31,7 @@ test('contact schedules survive restart, stop on recovery/ack, and never replay 
   const rpc=async(_path,body)=>ok('/api/runner/notifications',body,{runner:f.first});
   await dispatchNotifications(rpc,transport);
   assert.equal(received.filter(r=>r.url.endsWith('/1')).length,0,'delay sends nothing at confirmation');
+  assert.equal(received.filter(r=>r.url==='https://alerts.example.com/0'&&r.event.monitorId===monitor.id&&r.event.kind==='trigger').length,1,'the immediate contact receives exactly one trigger at confirmation');
   const initial=await ok('/api/notifications'),trigger=initial.deliveries.find(j=>j.event.monitorId===monitor.id&&j.event.kind==='trigger').event;
   const followup=await ok(`/api/v1/incidents/${encodeURIComponent(trigger.id)}`);
   assert.equal(followup.nextDue,trigger.observedAt+60000,'next-due follows the exact confirmation-anchored delay');

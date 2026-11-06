@@ -1,0 +1,90 @@
+import assert from 'node:assert/strict';
+import {autonomousPolicy} from '../src/base/modules/agent-door/conformance/crypto.mjs';
+import {auditRows} from '../src/base/modules/agent-door/conformance/audit.mjs';
+
+// Continue the native journey with its independently invited, signed-in reviewer.
+// Only standard reads require approval; the complete catch-all stays autonomous.
+export async function proveStandardApproval({c,native,call,origin,cookie,monitorId,sponsorId,reviewerSub,reviewerId,reviewerCookie,proof}) {
+ const policy=autonomousPolicy();
+ policy.rules.push({id:'standard-reviewer',class:'standard',do:'approval',approver:['person:'+reviewerSub],wait:'PT1H'});
+ await c.adopt(policy);
+ const tool='uptime.monitors.read',args={id:monitorId},target={kind:'monitor',id:monitorId};
+ const before=await native('/api/v1/monitors/'+monitorId),started=Date.now();
+ const pending=await c.tool(tool,args),received=Date.now();
+ const noRecord=answer=>{
+  assert.equal(answer.result?.resultType,'input_required');
+  assert.equal(answer.result.structuredContent,undefined,'no native record is disclosed before approval');
+  assert.equal(answer.result.content,undefined);
+  assert.equal(answer.result.contents,undefined);
+  assert.ok(!JSON.stringify(answer.body).includes(before.name),'pending wire response contains no monitor name');
+  assert.equal(answer.result._meta['com.runeditrun/receipt'],undefined);
+ };
+ assert.equal(pending.status,200);noRecord(pending);
+ assert.equal(pending.decision.disposition,'approval');
+ assert.equal(pending.decision.revision,c.revision);
+ assert.deepEqual(pending.decision.classes.map(({class:cls,rule,do:action})=>({class:cls,rule,do:action})),[{class:'standard',rule:'standard-reviewer',do:'approval'}]);
+ const handle=pending.result._meta['com.runeditrun/approval'];
+ assert.equal(typeof handle.id,'string');assert.ok(handle.id.length>0);
+ assert.equal(typeof pending.result.requestState,'string');assert.ok(pending.result.requestState.length>0);
+ assert.equal(handle.url,origin+'/agents/approvals/'+encodeURIComponent(handle.id),'approval uses the canonical local page');
+ const elicitation=pending.result.inputRequests.approval;
+ assert.equal(elicitation.method,'elicitation/create');
+ assert.equal(elicitation.params.mode,'url');assert.equal(elicitation.params.url,handle.url);
+ const expiry=Date.parse(handle.expires_at);
+ assert.ok(expiry>=started+3600000&&expiry<=received+3600000,'server expiry follows the policy wait from this call');
+ const path='/agents/api/approvals/'+encodeURIComponent(handle.id);
+ const view=(await c.personJson(path)).approval;
+ assert.equal(view.id,handle.id);assert.equal(view.decision_id,pending.decision.id);
+ assert.equal(view.revision,pending.decision.revision);assert.equal(view.state,'pending');
+ assert.equal(view.expires_at,handle.expires_at);
+ assert.deepEqual(view.approvers,['person:'+reviewerSub]);assert.deepEqual(view.approvals,[]);
+ assert.deepEqual(view.summary.arguments,args);assert.deepEqual(view.summary.nativeTarget,target,'native target is resolved by the server');
+ assert.match(view.summary_sha256,/^[a-f0-9]{64}$/);
+ const decision={revision:view.revision,summary_sha256:view.summary_sha256};
+ await proof.capture('standard-approval-pending',new URL(handle.url).pathname);
+ const refused=await call(path+'/approve',decision,{cookie});
+ assert.equal(refused.status,403,'the sponsor cannot satisfy the named-reviewer rule');
+ assert.equal((await refused.json()).code,'forbidden');
+ assert.deepEqual((await c.personJson(path)).approval,view,'sponsor refusal leaves the saved approval unchanged');
+ noRecord(await c.tool(tool,args,{requestState:pending.result.requestState}));
+ assert.deepEqual(await native('/api/v1/monitors/'+monitorId),before,'pending read and refused approval do not change the monitor');
+ const reviewerView=await call(path,undefined,{cookie:reviewerCookie});assert.equal(reviewerView.status,200);
+ assert.deepEqual((await reviewerView.json()).approval,view,'the actual reviewer sees the same saved revision and facts');
+ const approved=await call(path+'/approve',decision,{cookie:reviewerCookie});assert.equal(approved.status,200);
+ const executed=(await approved.json()).approval;
+ assert.equal(executed.state,'executed');assert.equal(executed.revision,view.revision);
+ assert.equal(executed.summary_sha256,view.summary_sha256);
+ assert.equal(executed.approvals.length,1);assert.equal(executed.approvals[0].person,reviewerId);
+ assert.equal(executed.approvals[0].ref,'person:'+reviewerSub);
+ assert.ok(Number.isFinite(Date.parse(executed.approvals[0].at)));
+ const read=await c.tool(tool,args,{requestState:pending.result.requestState});
+ assert.equal(read.result?.isError,false);assert.equal(read.result.structuredContent.id,monitorId);
+ assert.equal(read.result.structuredContent.definition.name,before.name);
+ assert.equal(read.result.structuredContent.revision,before.revision);
+ const receipt=read.result._meta['com.runeditrun/receipt'];
+ assert.ok(receipt.id);assert.equal(receipt.decision_id,pending.decision.id);assert.equal(receipt.approval_id,handle.id);
+ assert.deepEqual(receipt.approved_by,[reviewerId]);assert.equal(receipt.prepared_by.for.id,sponsorId);
+ assert.equal(receipt.prepared_by.agent.id,c.agentId);
+ const duplicate=await call(path+'/approve',decision,{cookie:reviewerCookie});assert.equal(duplicate.status,200);
+ assert.deepEqual((await duplicate.json()).approval,executed);
+ const replay=await c.tool(tool,args,{requestState:pending.result.requestState});
+ assert.equal(replay.result?.isError,false);assert.deepEqual(replay.result.structuredContent,read.result.structuredContent);
+ assert.deepEqual(replay.result._meta['com.runeditrun/receipt'],receipt);
+ assert.deepEqual(await native('/api/v1/monitors/'+monitorId),before);
+ const {rows,differs}=await auditRows(c);assert.equal(differs,0);
+ const held=rows.find(row=>row.id===pending.decision.id);
+ assert.equal(held.outcome,'pending');assert.equal(held.decision,'approval');
+ assert.equal(held.revision,view.revision);assert.equal(held.approval.id,handle.id);
+ const executions=rows.filter(row=>row.decision_id===pending.decision.id);
+ assert.equal(executions.length,1,'repeated approval and read retries retain one execution');
+ const execution=executions[0];
+ assert.equal(execution.outcome,'done');assert.equal(execution.decision,'approval');
+ assert.equal(execution.revision,view.revision);assert.deepEqual(execution.approval,{id:handle.id,by:[reviewerId]});
+ for(const row of [held,execution]){
+  assert.equal(row.tool,tool);assert.equal(row.sponsor.id,sponsorId);assert.equal(row.agent.id,c.agentId);
+  assert.deepEqual(row.resource,target);
+  assert.deepEqual(row.rules,[{class:'standard',rule:'standard-reviewer',do:'approval'}]);
+ }
+ await proof.capture('standard-approval-executed',new URL(handle.url).pathname);
+ console.log('PASS BASE-AGENT-007.uptime.standard-only-named-approval: held read, local URL, expiry, sponsor refusal, reviewer revision, single execution and linked receipt');
+}

@@ -15,13 +15,19 @@ const shown=(key,value)=>value===null||value===undefined?'not observed':key==='c
 const ms=value=>value===null||value===undefined?'—':`${Number(value).toLocaleString()} ms`;
 const request=async(path,method='GET',body)=>{const response=await fetch(path,{method,credentials:'same-origin',cache:'no-store',headers:{'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});const data=await response.json().catch(()=>({}));if(!response.ok)throw Object.assign(Error(data.error??`HTTP ${response.status}`),{status:response.status});return data};
 const SAVE_FAILURE="Couldn't save. Your change is kept; it will be sent again when you leave the field.";
-const saveFailure=error=>error.status===400&&['Sampling is a whole percentage from 1 to 100','Excluded paths are up to 20 path prefixes that start with /'].includes(error.message)?error.message:SAVE_FAILURE;
+const EXCLUDED_RULE='Excluded paths are up to 20 path prefixes that start with /';
+// The API's rule for excluded paths (src/domain/rum/privacy.mjs), checked in the page so an invalid list is never sent.
+const excludedInvalid=paths=>paths.length>20||paths.some(path=>!path.startsWith('/')||path.length>100||/[?#\x00-\x1f\x7f]/.test(path));
+const saveFailure=error=>error.status===400&&['Sampling is a whole percentage from 1 to 100',EXCLUDED_RULE].includes(error.message)?error.message:SAVE_FAILURE;
 function styles(){
  if(document.getElementById('pagespeed-styles'))return;
  const style=document.createElement('style');style.id='pagespeed-styles';
  style.textContent=`.pagespeed .ps-table{width:100%;border-collapse:collapse;table-layout:fixed}.pagespeed .ps-table th,.pagespeed .ps-table td{text-align:left;padding:.25rem .4rem;border-bottom:1px solid var(--ui-border,#ddd);overflow-wrap:anywhere;vertical-align:top}
+@container table-wrap (max-width:719px){.pagespeed .ps-table th,.pagespeed .ps-table td{padding-inline:.25rem;overflow-wrap:break-word}.pagespeed .ps-table thead th:nth-child(1){width:32%}.pagespeed .ps-table thead th:nth-child(2),.pagespeed .ps-table thead th:nth-child(3){width:22%}.pagespeed .ps-table thead th:nth-child(4){width:24%}}
+@media(max-width:359px){.pagespeed .ps-table{font-size:13px}}
 .pagespeed .ps-waterfall{list-style:none;padding:0;margin:0}.pagespeed .ps-waterfall li{padding:.3rem 0;border-bottom:1px solid var(--ui-border,#ddd)}.pagespeed .ps-url{overflow-wrap:anywhere;font-family:ui-monospace,monospace;font-size:13px}
 .pagespeed .ps-track{position:relative;height:.6rem;background:var(--ui-surface-muted,#eee);border-radius:3px;overflow:hidden;margin-top:.2rem}.pagespeed .ps-bar{position:absolute;top:0;bottom:0;background:var(--ui-accent,#2f6fdb);min-width:2px}
+.pagespeed .ps-load-error{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 12px;font-size:14px;line-height:1.4;color:var(--rose-text)}.pagespeed .ps-load-error[hidden]{display:none}
 .pagespeed .ps-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));gap:.5rem;margin:0}.pagespeed .ps-grid div{min-width:0}.pagespeed dd{margin:0;font-weight:600}.pagespeed .ps-reports{display:grid;gap:1rem}
 .pagespeed #pagespeed-beacon>p{margin-top:12px}.pagespeed .ps-setting-heading{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-top:.5rem}.pagespeed .ps-setting-heading label{margin:0;min-width:0}.pagespeed .ps-save-status{flex:none;min-width:4.75em;height:1em;line-height:1;text-align:right;font-size:14px}.pagespeed .ps-save-error{margin:.25rem 0 0;font-size:14px;line-height:1.4;overflow-wrap:anywhere}.pagespeed .ps-save-error:has(>span:empty){display:none}.pagespeed form label{display:block;margin-top:.5rem}.pagespeed form input[type=number],.pagespeed form textarea{width:100%;max-width:100%;box-sizing:border-box}.pagespeed code{overflow-wrap:anywhere;white-space:pre-wrap}
 ${RUM_STYLES}`;
@@ -31,7 +37,7 @@ ${RUM_STYLES}`;
 export function pageSpeedPanel(m){
  if(m.definition.type!=='pagespeed')return '';
  queueMicrotask(()=>mount(m));
- return `<section class="ui-card panel pagespeed" id="pagespeed-panel" aria-labelledby="pagespeed-heading" data-owned="${escape(m.id)}"><div class="panel-head"><h2 id="pagespeed-heading">Page speed</h2><button type="button" class="ui-button" id="pagespeed-refresh">Refresh</button></div><div id="pagespeed-body">Loading page speed…</div><p id="pagespeed-status" role="status"></p></section>`;
+ return `<section class="ui-card panel pagespeed" id="pagespeed-panel" aria-labelledby="pagespeed-heading" data-owned="${escape(m.id)}"><div class="panel-head"><h2 id="pagespeed-heading">Page speed</h2><button type="button" class="ui-button" id="pagespeed-refresh">Refresh</button></div><p class="ps-load-error" id="pagespeed-load-error" role="status" hidden><span></span> <button type="button" class="ui-button" id="pagespeed-retry">Retry</button></p><div id="pagespeed-body">Loading page speed…</div><p id="pagespeed-status" role="status"></p></section>`;
 }
 function budgets(latest,settings){
  const rows=latest.checks.map(check=>{const key=check.assertion.replace(/^budget:/,'');const budget=settings.budgets[key];
@@ -84,7 +90,12 @@ async function mount(m){
  // Only owner input can authorize a field in a PATCH, including a retry after failure.
  const edited=new Set();
  let siteId,saved,saving=false,pending=false,timer;
+ const loadError=host.querySelector('#pagespeed-load-error');
+ let loaded=false;
+ // A failed read leaves the last good report and the form as they are; one line and Retry sit beside Refresh.
+ const loadFailed=text=>{loadError.querySelector('span').textContent=text;loadError.hidden=!text};
  const load=async()=>{try{const report=await request(`/api/monitors/${key}/pagespeed`);if(!host.isConnected)return;
+  loaded=true;loadFailed('');
   const site=report.realUser?.report.site;
   // dom-patch preserves live controls; refresh only values with no unconfirmed edit.
   const previous=saved,form=host.querySelector('#pagespeed-beacon'),live=form?values(form):null;
@@ -100,12 +111,14 @@ async function mount(m){
    else control.value=name==='excludedPaths'?saved[name].join('\n'):saved[name];
    edited.delete(name);
   }}
-  catch(error){if(host.isConnected)body.textContent="Couldn't load page speed. Try Refresh again."}};
+  catch(error){if(host.isConnected){if(!loaded)body.textContent='';loadFailed(loaded?"Couldn't refresh page speed. The last report is shown.":"Couldn't load page speed.")}}};
+ // The erase button is replaced by the Register button; keyboard focus follows to it instead of falling to the page body.
+ const focusRegister=()=>host.querySelector('#pagespeed-register')?.focus();
  host.addEventListener('click',async event=>{
-  if(event.target.closest('#pagespeed-refresh'))await load();
+  if(event.target.closest('#pagespeed-refresh,#pagespeed-retry'))await load();
   if(event.target.closest('#pagespeed-register')){try{await request('/api/rum/sites','POST',{origin});status.textContent='Registered. The beacon stays off until you enable it.';await load()}catch(error){status.textContent="Couldn't register this site. Try again."}}
   const erase=event.target.closest('#pagespeed-erase-confirm');
-  if(erase){erase.disabled=true;try{await request(`/api/rum/sites/${encodeURIComponent(erase.dataset.site)}`,'DELETE');status.textContent=`Erased all real-user data for ${origin}.`;await load()}catch(error){if(error.status===404){await load();status.textContent='Already erased.'}else{status.textContent="Couldn't erase this site's data. Try again.";erase.disabled=false}}}
+  if(erase){erase.disabled=true;try{await request(`/api/rum/sites/${encodeURIComponent(erase.dataset.site)}`,'DELETE');status.textContent=`Erased all real-user data for ${origin}.`;await load();focusRegister()}catch(error){if(error.status===404){await load();status.textContent='Already erased.';focusRegister()}else{status.textContent="Couldn't erase this site's data. Try again.";erase.disabled=false}}}
  });
  // One write at a time: an edit made during a request is compared with its confirmed response next.
  // Patch only the saved state line; the live controls and focus stay in place, including after errors.
@@ -119,6 +132,7 @@ async function mount(m){
    for(const name of [...edited])if(equal(next[name],saved[name])){
     edited.delete(name);if(host.querySelector(`#${statusId(name)}`).textContent!=='Saved')say(name);
    }
+   if(changes.excludedPaths&&excludedInvalid(changes.excludedPaths)){say('excludedPaths',EXCLUDED_RULE);delete changes.excludedPaths}
    if(!Object.keys(changes).length)continue;
    if(!form.checkValidity()){say('samplePercent',form.elements.samplePercent.validity.valid?form.querySelector(':invalid').validationMessage:'Sampling is a whole percentage from 1 to 100');continue}
    try{

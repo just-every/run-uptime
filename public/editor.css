@@ -1,8 +1,9 @@
 /* The monitor editor (/app/monitor), loaded after app-theme.css, which gives it the fonts, tokens, element defaults and
-   the shell (.ui-sidebar, .ui-main, .ui-header). This file lays out the form: what to check, its timing and labels on
-   the left, the "Up or down" card beside them at 1200px and wider, and the footer with the feedback line, Cancel and
-   Save. Hooks the editor relies on: #monitor-form, the field names, #check-from (it fills the Check from list),
-   #editor-feedback[role=status] with data-error, #editor-signout, the first h1 and html.editor-ready. */
+   the shell (.ui-sidebar, .ui-main, .ui-header). This file lays out the form: what to check, then Advanced and Labels on
+   the left, the "Up or down" card beside them at 1200px and wider, the footer with Erase, the feedback line, Cancel and
+   Save, and New monitor's Other ways to add. Hooks the editor relies on: #monitor-form, the field names, #check-from (it
+   fills the Check from list), #editor-feedback[role=status] with data-error, #editor-signout, the first h1 and
+   html.editor-ready. */
 
 /* Header */
 .editor-back { margin-bottom: 14px; font-size: 14px; }
@@ -10,21 +11,18 @@
 .editor-header { margin-bottom: 24px; }
 .editor-description { max-width: 80ch; margin-top: 8px; color: var(--body); }
 .editor-header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; }
-.editor-first-links { display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 0; }
-.editor-first-links[hidden], .editor-back[hidden], .editor-cancel[hidden] { display: none; }
-.editor-first-links .ui-link { min-height: 44px; padding: 0; border: 0; background: none; box-shadow: none; font-weight: 600; }
+.editor-back[hidden], .editor-cancel[hidden] { display: none; }
 
-/* Columns: the check and timing cards, then the policy card beside them (≥1200px) or below. */
+/* Columns: the check card and its folds, then the policy card beside them (≥1200px) or below. */
 .editor-columns { display: grid; gap: 20px; align-items: start; }
 .editor-stack { display: grid; gap: 20px; min-width: 0; }
 @media (min-width: 1200px) {
   .editor-columns { grid-template-columns: minmax(0, 1.7fr) minmax(320px, 1fr); gap: 24px; }
 }
-/* One column: the rules follow what to check, before timing and labels. */
+/* One column: the rules follow what to check, before Advanced and Labels. */
 @media (max-width: 1199px) {
   .editor-stack { display: contents; }
-  .editor-stack > [aria-labelledby="editor-timing-heading"] { order: 2; }
-  .editor-stack > [data-monitor-metadata] { order: 3; }
+  .editor-stack > [data-monitor-metadata] { order: 2; }
   .editor-columns > .rules-panel { order: 1; }
 }
 
@@ -32,19 +30,16 @@
 .editor-fields { display: grid; gap: 18px; }
 .editor-field { display: grid; gap: 6px; min-width: 0; }
 
-/* Paired and timing fields share a row; labels that wrap keep the fields on one line by pushing them to the bottom. */
-.editor-pair, .timing-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 16px; }
-.timing-fields { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.editor-pair > label, .timing-fields > label { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.editor-pair > label > :is(input, select), .timing-fields > label > input { margin-top: auto; }
-.timing-fields + .helper { margin-top: 10px; }
-#freshness-help { margin-top: 2px; }
+/* Paired fields share a row; labels that wrap keep the fields on one line by pushing them to the bottom. */
+.editor-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 16px; }
+.editor-pair > label { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.editor-pair > label > :is(input, select) { margin-top: auto; }
 
 /* Monospace only where the value is a URL or JSON. */
 .editor-panel :is(input[name="url"], input[name="jsonPath"], input[name="regexPattern"]) { font-family: var(--mono); font-size: 14px; }
 
 /* Up or down: Up when (one row per rule, the Add rule menu), Down when, and Check from with its agreement line. */
-.rules-panel .rules-heading { display: block; margin: 22px 0 10px; padding: 0; color: var(--muted); font-size: 12.5px; font-weight: 700; letter-spacing: .06em; line-height: 1.3; text-transform: uppercase; }
+.rules-panel .rules-heading { display: block; margin: 22px 0 10px; padding: 0; color: var(--muted); font-size: 13px; font-weight: 700; letter-spacing: .06em; line-height: 1.3; text-transform: uppercase; }
 .rules-panel h2 + .rules-heading { margin-top: 0; }
 .rule-rows { display: grid; gap: 12px; }
 .rule-row { display: flex; align-items: flex-end; gap: 10px; min-width: 0; }
@@ -81,35 +76,34 @@
 .editor-cancel { display: inline-flex; align-items: center; min-height: 44px; padding: 0 10px; font-weight: 600; }
 .editor-actions button { min-width: 160px; padding: 0 28px; }
 
-@media (max-width: 1200px) {
-  .timing-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
+.editor-erase { padding-left: 0; padding-right: 0; }
 @media (max-width: 700px) {
   .editor-header { margin-bottom: 20px; }
-  /* Erase monitor… (an existing monitor's foot) is a phone-sized target like Cancel and Save. */
-  .editor-footer > .editor-erase { min-height: 44px; }
   .editor-columns, .editor-stack { gap: 16px; }
-  .timing-fields { grid-template-columns: 1fr; }
+  /* The form's foot stacks Save over Cancel with Erase alone under them (column-reverse keeps Erase first in tab order). */
+  #monitor-form .editor-footer { flex-direction: column-reverse; align-items: stretch; }
+  #monitor-form #editor-feedback { flex: 0 0 auto; }
+  #monitor-form .editor-actions { flex-direction: column-reverse; align-items: stretch; width: 100%; margin-left: 0; }
+  #monitor-form .editor-actions button { width: 100%; min-width: 0; }
+  #monitor-form .editor-actions .editor-cancel { justify-content: center; }
+  #monitor-form .editor-footer > .editor-erase { align-self: center; min-height: 44px; }
 }
 @media (max-width: 560px) {
   .editor-pair { grid-template-columns: 1fr; }
 }
 @media (max-width: 480px) {
-  .editor-actions { width: 100%; }
-  .editor-actions button { flex: 1 1 auto; min-width: 0; }
+  #discovery .editor-actions { width: 100%; }
+  #discovery .editor-actions button { flex: 1 1 auto; min-width: 0; }
 }
 
-/* Check from: one row per location, the limit, the agreement line, and the monitor's own external check under Advanced. */
+/* Check from: one row per location, the limit (only when the list is full), and the agreement line. The monitor's own external
+   check URL is in Advanced. */
 .location-picks { display: grid; gap: 2px; }
 .location-pick { display: flex; align-items: center; gap: 10px; min-height: 40px; min-width: 0; }
 .location-pick-name { min-width: 0; overflow-wrap: anywhere; }
 .location-pick:has(input:disabled) { color: var(--muted); }
 .location-limit { margin-top: 6px; }
-.check-from-advanced { margin-top: 14px; }
-.check-from-advanced > summary { min-height: 40px; display: flex; align-items: center; font-weight: 600; cursor: pointer; }
-.check-from-advanced > label { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; min-width: 0; }
-.check-from-advanced input { width: 100%; min-width: 0; font-family: var(--mono); font-size: 14px; }
-.check-from-advanced > .helper { margin-top: 6px; }
+.location-limit:not(.is-full) { display: none; }
 
 /* The check type's own fields; checkbox rows and groups for TCP banners and DNS resolvers. */
 .type-fields[hidden] { display: none; }
@@ -121,3 +115,33 @@
 .labels-fold > summary { font-weight: 600; }
 .dependency-picker { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; }
 .dependency-picker > legend { padding: 0; font-weight: 600; }
+
+/* Advanced and Labels: one card, two folds. Advanced is a two-column grid of fields; a type's group takes its place in the
+   grid (display: contents) and shows or hides with the type; the wide ones take the whole row. */
+.editor-folds { padding-top: 4px; padding-bottom: 4px; }
+.editor-folds > details > summary { display: flex; align-items: center; min-height: 52px; color: var(--ink); font-size: 16px; font-weight: 700; cursor: pointer; }
+.editor-folds > details + details { border-top: 1px solid var(--line); }
+.advanced-body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: end; gap: 16px; padding: 2px 0 16px; }
+.advanced-body > .type-fields:not(.advanced-wide):not([hidden]) { display: contents; }
+.advanced-body .advanced-wide { grid-column: 1 / -1; }
+.advanced-body .advanced-wide > .helper { margin-top: 8px; }
+.advanced-body > details { padding-top: 4px; border-top: 1px solid var(--line); }
+.advanced-body > details > summary { min-height: 44px; color: var(--ink); font-size: 15px; font-weight: 600; cursor: pointer; }
+.advanced-body > details .editor-fields { padding-top: 6px; }
+.advanced-body input[name="externalCheckUrl"] { font-family: var(--mono); font-size: 14px; }
+@media (max-width: 700px) { .advanced-body { grid-template-columns: minmax(0, 1fr); } }
+
+/* New monitor's Other ways to add: the eyebrow, the five named pills (the pressed one lavender), and the open panel under the row. */
+.other-ways { display: grid; gap: 10px; margin: 24px 0 0; }
+.other-ways[hidden] { display: none; }
+.way-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.way-pill { min-height: 40px; padding: 0 16px; font-size: 14.5px; }
+.way-pill[aria-pressed="true"] { border-color: var(--lavender-deep); background: var(--lavender); }
+.way-panels:not(:empty) { margin-top: 10px; }
+.way-panel { display: grid; gap: 14px; min-width: 0; }
+.way-panel[hidden] { display: none; }
+.way-host { min-width: 0; }
+.way-host:not(.ui-card) { display: grid; gap: 14px; }
+.way-heading { color: var(--ink); font-size: 20px; letter-spacing: -0.015em; }
+.way-panel #monitor-form .editor-columns { margin-top: 0; }
+@media (max-width: 700px) { .other-ways { margin-top: 20px; } }

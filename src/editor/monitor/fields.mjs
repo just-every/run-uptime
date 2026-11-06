@@ -37,14 +37,16 @@ export function readFields(root,definition){
  const assertions=assembleAssertions({status:value('status'),body:value('body'),bodyExcludes:value('bodyExcludes'),regexPattern:value('regexPattern'),regexFlags:value('regexFlags'),headerName:value('headerName'),headerValue:value('headerValue'),jsonPath:value('jsonPath'),jsonEquals:value('jsonEquals'),latencyMs:optionalSecondsToMilliseconds(value('latencyMs'))});
  return {...rest,...timing,...readTlsFields(root),url:value('url'),method:value('method'),assertions};
 }
-// A copy of the form's field cards for one proposal row: no locations (the console assigns those), unique ids, enabled.
-// Its rule list is bound by the row (bindRules).
+// A copy of the form's field cards for one proposal row: no locations (the console assigns those), no network or own external
+// check (data-form-only), unique ids, enabled. Its rule list is bound by the row (bindRules).
 export function cloneFields(form,suffix){
  const copy=form.querySelector('.editor-columns').cloneNode(true);
  copy.querySelector('#check-from')?.remove();
  // A proposal is an HTTP or keyword monitor: its copy has no type choice and no other type's fields.
- copy.querySelector('[name="checkType"]')?.closest('label')?.remove();copy.querySelector('.type-help')?.remove();
- for(const group of copy.querySelectorAll('.type-fields'))if(group.dataset.types!=='http')group.remove();
+ copy.querySelector('[name="checkType"]')?.closest('label')?.remove();
+ for(const field of copy.querySelectorAll('[data-form-only]'))field.remove();
+ for(const group of copy.querySelectorAll('.type-fields'))if(!group.dataset.types.split(' ').includes('http'))group.remove();
+ copy.querySelector('.advanced-fold').open=false;
  const renamed=new Map();
  for(const element of copy.querySelectorAll('[id]')){renamed.set(element.id,`${element.id}-${suffix}`);element.id=renamed.get(element.id)}
  for(const element of copy.querySelectorAll('[aria-describedby],[aria-labelledby]'))for(const attribute of ['aria-describedby','aria-labelledby'])if(element.hasAttribute(attribute))element.setAttribute(attribute,element.getAttribute(attribute).split(/\s+/).map(id=>renamed.get(id)??id).join(' '));

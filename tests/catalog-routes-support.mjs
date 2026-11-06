@@ -21,8 +21,8 @@ export async function proveCatalogRoutes(){
   const selected=await f.monitor({name:'synthetic-uptime-route-selected',runners:[f.first],canary:true,enabled:false});
   const peer=await f.monitor({name:'synthetic-uptime-route-peer',runners:[f.first],canary:true,enabled:false});
   const unassigned=await f.monitor({name:'synthetic-uptime-route-unassigned',runners:[f.first],canary:true,enabled:false});
-  const global=await ok(`/api/monitors/${source.id}/alert-route`),globalInput={scope:'installation',mode:'selected',destinationIds:[],expectedRevision:global.policies.find(p=>p.scope==='installation').revision};
-  const globalPreview=await ok(`/api/monitors/${source.id}/alert-route/preview`,globalInput);await ok(`/api/monitors/${source.id}/alert-route/apply`,{...globalInput,digest:globalPreview.digest});
+  const global=await ok('/api/alert-route'),globalInput={mode:'selected',destinationIds:[],expectedRevision:global.revision};
+  const globalPreview=await ok('/api/alert-route/preview',globalInput);await ok('/api/alert-route/apply',{...globalInput,digest:globalPreview.digest});
   await route(source.id,'selected',[inbox.id]);
   const rpc=async(_path,body)=>ok('/api/runner/notifications',body,{runner:f.first});
   await ok(`/api/notifications/destinations/${inbox.id}/drill`,{});await dispatchNotifications(rpc);

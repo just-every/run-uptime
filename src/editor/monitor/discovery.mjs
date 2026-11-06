@@ -6,12 +6,13 @@ import {checkedLine,createResults} from './discovery-results.mjs';
 // and the proposed monitors arrive already filled in. States: start, checking, result, problem.
 const SCHEME=/^[a-z][a-z0-9+.-]*:\/\//i;
 const hostOf=url=>{try{return new URL(url).hostname}catch{return ''}};
-export function mountDiscovery({form,overview,openCheck,showManualForm}){
+export function mountDiscovery({form,overview,openCheck,showManualForm,onCheck,focusInput=true}){
  const root=document.querySelector('#discovery'),$=selector=>root.querySelector(selector);
- const panel=$('#discovery-form'),input=$('#discovery-url'),button=$('#discovery-check'),status=$('#discovery-status'),elapsed=$('#discovery-elapsed'),help=$('#discovery-help'),manual=$('#discovery-manual'),problem=$('#discovery-problem'),result=$('#discovery-result'),feedback=$('#discovery-feedback');
+ const panel=$('#discovery-form'),input=$('#discovery-url'),button=$('#discovery-check'),status=$('#discovery-status'),elapsed=$('#discovery-elapsed'),runnerNote=$('#discovery-runner'),problem=$('#discovery-problem'),result=$('#discovery-result'),feedback=$('#discovery-feedback');
  // A hosted demo's Worker answers the check itself; elsewhere a hosted installation needs a private runner with fresh contact.
  const plan=networkPlan(overview),workerAnswers=overview.runner.workerDiscovery===true,needsRunner=overview.runner.hosted&&!overview.runner.privateRunnerReady&&!workerAnswers;
- if(overview.runner.hosted&&!workerAnswers){help.textContent='Website discovery needs a private runner. Public HTTP and keyword monitors can run in the Cloudflare Worker; choose Fill in the form yourself to add one.';const command=document.createElement('pre');command.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere';command.textContent=overview.runner.privateRunnerCommand;help.append(command)}
+ // The card cannot check anything without a runner: say so, and give the command that starts one. This is state, not fine print.
+ if(needsRunner){runnerNote.textContent='Website discovery needs a private runner. Public HTTP and keyword monitors can run in the Cloudflare Worker: choose Fill in the form yourself.';const command=document.createElement('pre');command.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere';command.textContent=overview.runner.privateRunnerCommand;runnerNote.append(command)}
  const results=createResults({root,form,plan,onFeedback:text=>{feedback.textContent=text},onStarted:id=>{location.href=id?`/app/monitors/${encodeURIComponent(id)}`:'/app/monitors'}});
  // What the owner typed: a private check of an address typed without a scheme opens as http://, as a local server usually is.
  let control,timer,state,entered='';
@@ -22,7 +23,7 @@ export function mountDiscovery({form,overview,openCheck,showManualForm}){
   const busy=next==='checking';
   input.readOnly=busy;panel.setAttribute('aria-busy',String(busy));
   button.textContent=busy?'Cancel':label;button.type=busy?'button':'submit';button.classList.toggle('is-secondary',busy||next==='result');
-  help.hidden=next!=='start';manual.parentElement.hidden=next==='checking'||next==='result';
+  runnerNote.hidden=!needsRunner||next!=='start';
   result.hidden=next!=='result';problem.hidden=next!=='problem';
   if(!busy){stopTimer();status.replaceChildren();status.removeAttribute('data-state')}
  }
@@ -64,7 +65,7 @@ export function mountDiscovery({form,overview,openCheck,showManualForm}){
  }
  const restart=()=>{control?.abort();control=new AbortController();show('checking')};
  async function begin(){
-  const text=input.value.trim();entered=text;
+  const text=input.value.trim();entered=text;onCheck?.();
   if(!text){fail('Enter the address of your website, such as https://example.com.');input.focus();return}
   const url=SCHEME.test(text)?text:`https://${text}`;
   input.value=url;feedback.textContent='';
@@ -81,9 +82,10 @@ export function mountDiscovery({form,overview,openCheck,showManualForm}){
   event.preventDefault();
   control.abort();setCheckParam(null);show('start');input.focus();
  });
- for(const trigger of [manual,$('#discovery-empty-manual')])trigger.addEventListener('click',()=>showManualForm({url:input.value.trim()}));
+ $('#discovery-empty-manual').addEventListener('click',()=>showManualForm({url:input.value.trim()}));
+ input.disabled=needsRunner;button.disabled=needsRunner;
  root.hidden=false;
  if(openCheck&&!needsRunner){restart();const say=showProgress('');say();watch(openCheck,say)}
- else{show('start');if(needsRunner){input.disabled=true;button.disabled=true;help.hidden=false}else input.focus()}
+ else{show('start');if(!needsRunner&&focusInput)input.focus()}
  return ()=>{control?.abort();stopTimer()};
 }

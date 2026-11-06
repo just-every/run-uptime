@@ -8,12 +8,12 @@ The primary journey: an operator moves their monitors from UptimeRobot or Pingdo
 
 | Tier | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
-| Core | 17 | 67 | 11 | 95 |
+| Core | 35 | 49 | 11 | 95 |
 | Agent surface | 0 | 11 | 8 | 19 |
 | Later | 0 | 0 | 1 | 1 |
-| Full target | 17 | 78 | 20 | 115 |
+| Full target | 35 | 60 | 20 | 115 |
 
-Judged from the code and tests at commit `886ad3662fec5bdd5c1cd4c7692a9d22d897529f` (29 October 2026). ERASURE-001 public owner erasure, retained stale edit and complete refusal preservation; other clause judgments retained. PRESENCE-001 native contact lifecycle proof replayed at `8862426`; all newer main judgments retained. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
+Judged from the code and tests at commit `cf75611586159d1588151fd403899d8f9a735593` (2 November 2026). ERASURE-001 public owner erasure, retained stale edit and complete refusal preservation; other clause judgments retained. PRESENCE-001 native contact lifecycle proof replayed at `8862426`; all newer main judgments retained. Carried-done recheck on 2 November 2026 (ct judge ct-judge-uptime-restore-20261102-0845, push Verify 41373254373 at 690ff55a867bcbac403c3f236ade9cac2a2d5c8b): HTTP-001, EVIDENCE-001, AUTHORITY-001, ARCHIVE-001, NOTIFY-001, DELIVERY-001, PUBLIC-001, PUBLIC-002, API-001, PING-001, DNS-001, TLS-001, EVIDENCE-002, FLOW-003, MANAGE-001 and METRICS-001 restored to done; other clause judgments retained. Assertion-round recheck on 2 November 2026 (ct judge ct-judge-uptime-assert-20261102-1320, push Verify 41448682806 at 40f33957850e11c6887789852f2e8bd10e14adf3, landed on main as `cf75611586159d1588151fd403899d8f9a735593`): HEARTBEAT-001 and ROUTING-002 restored to done; other clause judgments retained. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
 
 ## Core
 
@@ -21,27 +21,27 @@ Judged from the code and tests at commit `886ad3662fec5bdd5c1cd4c7692a9d22d89752
 
 #### HTTP-001 — Signed HTTP monitoring
 
-Core · published · **partial**
+Core · published · **done**
 
 **Requirement.** Public hosted HTTP(S) and keyword checks run in the Cloudflare Worker; private checks use the separately scoped Node runner. They retain the exact immutable assertion bundle and bounded transport evidence, and require authenticated claims and signed results; the control plane must reject contradictory completion. Hosted Worker checks leave through Cloudflare's shared egress and have no dedicated source address; published allowlistable probe addresses and probe identification are PROBE-002's. See [Integrity and authority](docs/contract/safety-rules.md#integrity-and-authority) and [Network and credentials](docs/contract/safety-rules.md#network-and-credentials).
 
 **Acceptance.**
 1. Create an HTTP(S) and keyword monitor through the owner API, run scheduled hosted and signed runner work against a controlled HTTPS service, fail its status/text, recover it and inspect the immutable assertions and transport evidence.
 
-**Evidence.** `src/domain/worker-http.server.ts`; `runners/src/probes.mjs`; `tests/tls-auth.mjs`; `tests/probe-native-evidence.mjs`; `docs/evidence/contracts/release-0.4.0/`
-**Gap.** Retained assertions cover saved HTTP criteria, signed HTTP status/text failures, recovery and immutable assertion history. Gap: keyword-type monitor creation, scheduled hosted HTTPS work, signed runner HTTPS work and retained transport evidence by category lack assertions in the cited files; the HTTPS assertions called by tests/tls-auth.mjs are only in uncited helper files.
+**Evidence.** `src/domain/worker-http.server.ts`; `runners/src/probes.mjs`; `docs/evidence/contracts/release-0.4.0/`; `tests/keyword-monitor-journey.mjs` keywordMonitorJourney (called by `tests/tls-auth.mjs`) — owner-created keyword monitor, scheduled signed runner work on a real HTTPS edge, status and text failures, recovery, immutable revisions, slots and bounded transport metadata (lines 6-96); `tests/signed-runner.mjs` — owner-created HTTPS monitor run by the real Node runner process against a certificate-verified service, scheduled 503 failure, Worker restart and recovery with exact history (lines 87-111); `tests/probe-native-evidence.mjs` — saved HTTP criteria each fail alone, retries retained, confirmed failure and recovery (lines 23-57); `tests/hosted-probe-identification-support.mjs` proveHostedProbeIdentification (called by `tests/hosted-alerts.mjs`) — scheduled hosted Worker HTTP and keyword monitors, status and text failures with retries, recovery, restart and immutable history (lines 11-106); `tests/network-diagnostics-support.mjs` proveNetworkDiagnostics (called by `tests/protocol-monitors.mjs`) — retained timeout and connection transport categories read through the incident door (lines 9-36)
+**Gap.** None.
 
 #### EVIDENCE-001 — Immutable scheduled evidence
 
-Core · published · **partial**
+Core · published · **done**
 
 **Requirement.** Definitions, scheduled slots and every retry attempt retain revision, policy, fixed selected probes, runner identity, timings, status, assertions and error category; retries never erase failures, and observation/state/outbox commit atomically. See [Evidence and state](docs/contract/safety-rules.md#evidence-and-state) and [Integrity and authority](docs/contract/safety-rules.md#integrity-and-authority).
 
 **Acceptance.**
 1. Through signed claim/result routes submit failure, retry, late and duplicate attempts, restart, and read history; each attempt and its revision remains identifiable and observation/state/outbox either all commit or none do.
 
-**Evidence.** `src/domain/evidence.server.ts`; `src/domain/history.server.ts`; `tests/probe-native-evidence.mjs`; `docs/evidence/contracts/release-0.4.0/`
-**Gap.** Failure and retry observations and identifiable history remain asserted. Gap: late and duplicate first-copy-wins behavior, history after Worker restart, a retained attempt's revision, full durable-state preservation after refusal and observation/state/outbox atomicity after acceptance lack assertions in the cited files.
+**Evidence.** `src/domain/evidence.server.ts`; `src/domain/history.server.ts`; `docs/evidence/contracts/release-0.4.0/`; `tests/evidence-integrity-support.mjs` proveEvidenceIntegrity (called by `tests/probe-native-evidence.mjs`) — actual signed failure accepted with observation, history, outbox and job committed together, duplicate first-copy-wins and late fresh-signature and expired-window refusals each leaving every durable table unchanged (lines 15-151); `tests/control-runtime.mjs` — real private runners keep each probe's failed first attempt beside its retry (line 19), exact observations, revisions, outbox and incidents survive a Worker process restart (lines 35-44), a real expired acceptance window is refused (lines 46-49) and scheduled history reads back its revision (lines 61-63); `tests/probe-json-evidence-support.mjs` proveJsonSelectors (called by `tests/probe-native-evidence.mjs`) — each failed probe retains its original attempt and its retry (line 52)
+**Gap.** None.
 
 #### STATE-001 — Fixed coverage and incident hysteresis
 
@@ -53,20 +53,20 @@ Core · published · **partial**
 1. Run two assigned network vantages through partial, missing, stale, failing and recovering slots; inspect Unknown/Degraded/Failing and thresholds.
 2. A manual pass, absent probe or maintenance expiry cannot fabricate recovery.
 
-**Evidence.** `src/domain/policy.mjs`; `tests/control-runtime.mjs`; `tests/control-runtime.mjs`; `docs/evidence/contracts/release-0.4.0/`
+**Evidence.** `src/domain/policy.mjs`; `tests/control-runtime.mjs`; `tests/control-runtime.mjs`; `docs/evidence/contracts/release-0.4.0/`; `tests/control-state-support.mjs`: proveStateHysteresis, two signed assigned runners show mixed-vantage Degraded, first complete scheduled Recovering, manual-pass isolation and absent-probe Unknown without recovery, then one recovery after the second complete scheduled pass, retaining the fixed denominator, original observations and incident identity; `tests/control-cadence-support.mjs`: proveCadenceRevision, incomplete selected coverage and missing-region Unknown; `tests/maintenance-windows.mjs`: MAINT-001 expiry and ordinary scheduled reevaluation without orphan recovery. Qualification pending; current main judgment and gap retained.
 **Gap.** Two configured runner networks still prove confirmed Failing and the scheduled confirmation/recovery thresholds. Gap: exactly one failing vantage reading Degraded; Unknown for partial, missing and stale evidence; the intermediate Recovering state; and no fabricated recovery from a manual pass during an outage, an absent selected probe or maintenance expiry lack assertions in the cited files. Maintenance expiry is asserted only in tests/maintenance-windows.mjs, which this clause does not cite.
 
 #### AUTHORITY-001 — Server-side scoped authority
 
-Core · published · **partial** · Cites BASE-ACCESS-002, BASE-ACCESS-004, BASE-ROLE-001
+Core · published · **done** · Cites BASE-ACCESS-002, BASE-ACCESS-004, BASE-ROLE-001
 
 **Requirement.** Runner claim, result and heartbeat doors accept only scoped runner authority; missing configuration fails closed; browser mutations enforce configured origin; expired or foreign attempts cannot alter current evidence, and duplicate attempt identities cannot overwrite it; a signature identifies a key holder rather than proving truthful observation. See [Integrity and authority](docs/contract/safety-rules.md#integrity-and-authority).
 
 **Acceptance.**
 1. Open private documents and call native/framework APIs while signed out, revoked, cross-origin or using a foreign/expired runner signature; require refusal with no product writes, then succeed with the authorized session or scoped runner.
 
-**Evidence.** `src/domain/control.server.ts`; `tests/operator-security.mjs`; `tests/access-matrix.mjs`; `tests/signed-runner.mjs`; `docs/evidence/contracts/release-0.4.0/`
-**Gap.** Carried-done audit: refusal of an expired runner signature or acceptance window is asserted only in `tests/control-runtime.mjs`, which this clause does not cite. Signed-out, expired and revoked sessions, cross-origin requests and a foreign runner signature are refused with no product writes, and the authorized session and scoped runner then succeed.
+**Evidence.** `src/domain/control.server.ts`; `docs/evidence/contracts/release-0.4.0/`; `src/domain/runner-signature.server.ts`; `src/server.ts`; `tests/access-matrix.mjs` — signed-out, expired and revoked sessions refused at every private document, owner read and owner write with the database snapshot unchanged, cross-origin owner requests refused with a valid session, wrong, missing, foreign and stale-clock runner credentials refused with no installation change, then the authorized session succeeds (lines 62-108); `tests/signed-runner.mjs` — stale and tampered runner enrolment and a foreign runner identity refused with every table unchanged, then the scoped runner succeeds (lines 62-120); `tests/evidence-integrity-support.mjs` proveEvidenceIntegrity — a stale result signature and an expired acceptance window refused with every table unchanged (lines 117-143)
+**Gap.** None.
 
 #### NETWORK-001 — Pinned bounded destination execution
 
@@ -77,24 +77,24 @@ Core · published · **partial**
 **Acceptance.**
 1. Exercise real controlled HTTP/TLS endpoints with mixed DNS, rebinding, hostname mismatch, redirects, downgrade, forbidden addresses, credentials and execution bounds; inspect requests and prove rejected destinations receive no connection or authority.
 
-**Evidence.** `runners/src/public-http.mjs`; `src/domain/worker-http.server.ts`; `tests/tls-auth.mjs`; `tests/api-auth-journey.mjs`
+**Evidence.** `runners/src/public-http.mjs`; `src/domain/worker-http.server.ts`; `tests/tls-auth.mjs`; `tests/api-auth-journey.mjs`; `tests/probe-native-evidence.mjs` — existing mixed-answer runner refusal and Unknown assertions; `tests/network-mixed-dns.mjs` — mixed DNS connection refusal journey: owner-created monitor, actual signed runners and retained scheduled evidence; an allowed public answer qualifies target socket and request counters, then both public-first and private-first mixed answers cause zero target connections and requests, retained network runner_error, Unknown with the fixed coverage denominator and no fabricated trigger or recovery. Qualification pending; current main judgment and gap retained.
 **Gap.** Cross-origin authentication, client-certificate and body stripping are asserted. Gap: mixed DNS answers, rebinding before connection, TLS hostname mismatch, re-resolution of every redirect, HTTPS downgrade and forbidden redirect refusal, exact-origin credential binding, timeout/body/encoding bounds and zero connections to rejected destinations lack assertions in the cited files. tests/tls-auth.mjs calls assertions in helper files this clause does not cite.
 
 #### HEARTBEAT-001 — Revision-scoped receipt evaluation
 
-Core · published · **partial**
+Core · published · **done**
 
 **Requirement.** Hashed owner-issued tokens and, in the header form, increasing sequences protect server-time receipts, ingress cannot advance health, and scheduled signed completion must match its exact installation-local claim snapshot; stale, future, paused, foreign-revision or imported receipts cannot establish Healthy. These rules bind every receipt form of the buyer-facing job heartbeat in HEARTBEAT-002 and HEARTBEAT-003. See [Network and credentials](docs/contract/safety-rules.md#network-and-credentials).
 
 **Acceptance.**
 1. Issue and rotate a heartbeat token through the owner door, send increasing receipts, miss one, and evaluate scheduled signed snapshots; replay, old tokens, imported or foreign-revision receipts cannot change current health.
 
-**Evidence.** `src/domain/heartbeat.server.ts`; `runners/src/probes.mjs`; `tests/signed-runner.mjs`; `docs/evidence/contracts/release-0.4.0/`
-**Gap.** Carried-done audit: no cited test sends a receipt bound to another revision of the monitor, so the foreign-revision case is unasserted. Token issue and rotation, increasing receipts, a missed run, signed scheduled snapshots and the refusal of replayed, old-token and imported receipts are asserted.
+**Evidence.** `src/domain/heartbeat.server.ts`; `runners/src/probes.mjs`; `docs/evidence/contracts/release-0.4.0/`; `tests/signed-runner.mjs` — owner token issue (line 128), increasing header receipts accepted (lines 129, 150, 156, 179 and 184), a replayed header sequence refused with the monitor, authority, receipt, claim, limit and current-health records equal before and after the refusal (lines 135-148), start and completion ingress unable to change health (lines 149-158), an altered signed job snapshot refused with no observation written and signed scheduled evaluation deciding health (lines 167-174), a missed run confirmed by scheduled evaluation (lines 179-184), imported history refused as receipt authority (lines 191-203) and rotation retiring the old token with run history unchanged (lines 204-206); `tests/signed-runner-heartbeat-revision.mjs` proveHeartbeatRevisionIsolation (called by that journey) — a settings revision retires both earlier receipt forms with no receipt, history, claim, health, limit or alert change, and retired authority cannot alter the newly authorized revision (lines 4-63); `tests/signed-runner-heartbeat-import.mjs` proveImportedHeartbeatJobs (called by that journey) — imported source authority refused with runs and alerts unchanged (lines 8-62)
+**Gap.** None.
 
 #### ARCHIVE-001 — Inactive validated restore
 
-Core · published · **partial** · Cites BASE-DATA-001
+Core · published · **done** · Cites BASE-DATA-001
 
 **Requirement.** Bounded versioned archives require integrity and semantic validation before transactional restore into empty product data, preserve historical evidence, erasure receipts and the permanent anonymized action audit, create paused current revisions, interrupt leases and quarantine alerts; installation-local sessions, keys, grants, request credential values, heartbeat authority, contact, webhook and Slack URLs, and signing keys are excluded; destination definitions and retained notification histories are portable, and imported evidence cannot establish current health or replay events. The source erasure journal fences copies made before a later erasure when that journal accompanies the restore. A local CLI receiving checkout must run setup first to establish its owner and settings. Supersedes `BASE-DATA-001` for installation authority and endpoint credentials only: the owner accepted this archive policy on 2026-10-13 (RL-1), as an intentional replacement, not BASE-DATA-001 equivalence. See [Portability and retention](docs/contract/safety-rules.md#portability-and-retention) and [Integrity and authority](docs/contract/safety-rules.md#integrity-and-authority).
 
@@ -102,8 +102,8 @@ Core · published · **partial** · Cites BASE-DATA-001
 1. Export a populated installation including TCP, DNS, TLS and domain monitors, establish a different receiving owner, import into empty product data, then export/read history and repeat the restore.
 2. Each protocol’s settings and immutable revisions/slots survive; definitions are paused, leases interrupted, delivery quarantined, secrets/authority absent, history retained and later erasure journals enforced; corrupt/nonempty imports write nothing.
 
-**Evidence.** `src/domain/archive.server.ts`; `src/domain/archive-monitor-validation.ts`; `tests/archive-roundtrip.mjs`; `tests/command-journey.mjs`; `docs/evidence/contracts/archives/`; `docs/evidence/contracts/release-0.4.0/`
-**Gap.** Carried-done audit: no cited test restores an archive together with a later erasure journal, so enforcement of later erasure journals is unasserted here. Export of TCP, DNS, TLS and domain monitors, a separate receiving owner, import into empty product data, re-export, repeated restore, exact settings, revisions and slots, paused definitions, interrupted leases, quarantined delivery, absent secrets and authority, retained history and refusal of corrupt and nonempty imports are asserted.
+**Evidence.** `src/domain/archive.server.ts`; `src/domain/archive-monitor-validation.ts`; `docs/evidence/contracts/archives/`; `docs/evidence/contracts/release-0.4.0/`; `tests/archive-roundtrip.mjs` — populated export including TCP, DNS, TLS and domain monitors, separate receiving owner, import into empty data, exact settings, revisions and slots, paused definitions, interrupted leases, quarantined delivery, absent secrets, corrupt and nonempty refusal writing nothing, repeated restore (lines 17-58); `tests/erasure-audit.mjs` — restore with a later erasure journal refused through the owner restore route with no monitor or audit write (lines 153-158); `tests/failure-page-custody-support.mjs` proveFailureSnapshotErasure — old snapshot-bearing archive refused by the source's later journal with every table unchanged (lines 79-91)
+**Gap.** None.
 
 #### IMPORT-001 — Reviewed definition files and inactive imports
 
@@ -115,7 +115,7 @@ Core · published · **partial** · Cites BASE-INPUT-001 · Register R-3
 1. Preview, apply, export and undo definition JSON and saved UptimeRobot pages through the owner routes and CLI.
 2. Malformed/hostile/secret-bearing inputs and stale digests write nothing; creations stay paused, changes keep operational state, unsupported fields are named and history is never made current evidence.
 
-**Evidence.** `src/domain/definitions/importers/uptimerobot.ts`; `src/domain/business-import/mapping.server.ts`; `tests/definitions-import.mjs`
+**Evidence.** `src/domain/definitions/importers/uptimerobot.ts`; `src/domain/business-import/mapping.server.ts`; `tests/definitions-import.mjs`: existing owner-route import and refusal assertions, reviewed paused UptimeRobot apply, export and preserving undo; calls `tests/definitions-ci-support.mjs` proveDefinitionCI: a reviewed 21-record plan commits 20 records in its first batch, revoked authority refuses the next batch without changing durable product, job or authority rows, and owner CLI reads retain the stopped job and 20 authorized operations after Worker restart. Existing synthetic assertions inspected; no new runtime pass claimed.
 **Gap.** Synthetic saved-page/JSON tests only; real export and hosted import remain unmeasured. Apply resumes in atomic batches, not one whole-plan transaction; the intended whole-plan atomicity guarantee remains unresolved.
 
 #### RETENTION-001 — Explicit storage custody
@@ -183,19 +183,19 @@ Core · published · **partial** · Cites BASE-PUBLIC-003, BASE-ACCESSIBILITY-00
 
 #### NOTIFY-001 — Authorized installation-wide destinations
 
-Core · published · **partial** · Cites BASE-SECRET-001 · Register R-6
+Core · published · **done** · Cites BASE-SECRET-001 · Register R-6
 
 **Requirement.** An owner may configure email, signed JSON webhook, or Slack incoming webhook destinations for all monitors in one installation; only scheduled incident transitions generate automatic notifications, and a test send cannot change monitor evidence or incident state. The hosted Worker submits email through the configured Base mail adapter and sends webhooks and Slack without a private runner; a private runner can also claim notification work. Webhook destinations also take WEBHOOK-001's configurable method, content type, custom headers and payload template. Destination credentials are installation-local and are not restored from archives. See [Contact, interface and delivery](docs/contract/safety-rules.md#contact-interface-and-delivery) and [Network and credentials](docs/contract/safety-rules.md#network-and-credentials).
 
 **Acceptance.**
 1. Create/rotate/disable email, Slack and signed webhook destinations, cause scheduled failure/recovery and a test send through actual Worker/runner delivery doors; inspect one job per enabled destination, credentials, exact signing, escaping and unchanged health for tests.
 
-**Evidence.** `src/domain/notification-destinations.server.ts`; `src/domain/notification-protocols.ts`; `tests/notify-delivery.mjs`; `tests/hosted-alerts.mjs`; `docs/evidence/contracts/release-0.4.0/`
-**Gap.** Carried-done audit: rotating and disabling a destination are asserted only in `tests/notify-delivery.mjs` and `tests/notify-delivery.mjs`, which this clause does not cite. Creating email, Slack and signed webhook destinations, scheduled failure and recovery and test sends through the runner and Worker doors, one job per destination, credential custody, exact signing, escaping and unchanged health for tests are asserted.
+**Evidence.** `src/domain/notification-destinations.server.ts`; `src/domain/notification-protocols.ts`; `docs/evidence/contracts/release-0.4.0/`; `tests/notify-delivery.mjs` — email, Slack and signed webhook destinations, scheduled failure, recovery and test sends through the actual runner and Worker doors, one job per destination, credential custody, receiver-verified signing, escaping and unchanged health for tests (lines 53-142, lines 216-221); `tests/alert-drill.mjs` — webhook credential rotation through the owner door and an email address change reset proof, and rotated secrets stay out of reads and logs (lines 145-157); `tests/alert-routes.mjs` — a disabled destination is excluded from the effective route (lines 18-38), and `tests/alert-routing-filters-support.mjs` proveRoutingFilters (called by that journey) — a primary disabled before dispatch sends nothing (lines 51-55)
+**Gap.** None.
 
 #### DELIVERY-001 — Bounded notification acknowledgment
 
-Core · published · **partial** · Cites BASE-MAIL-001, BASE-OPS-004
+Core · published · **done** · Cites BASE-MAIL-001, BASE-OPS-004
 
 **Requirement.** Each event and destination without receiver-side deduplication (email, Slack incoming webhooks and the other channels DELIVERY-002 names), every test send and every drill gets one automatic send attempt. A RER relay 429 with Retry-After confirms non-acceptance and queues another submission after that delay. For those sends HTTP 500, connection loss, timeout, and unknown outcomes remain uncertain and are not automatically sent again; deduplicating destinations retry and every route can fall back to another contact under DELIVERY-002. Accepted means the configured provider or endpoint acknowledged the request; it does not mean a person received, read, or acted on it. See [Contact, interface and delivery](docs/contract/safety-rules.md#contact-interface-and-delivery).
 
@@ -203,12 +203,12 @@ Core · published · **partial** · Cites BASE-MAIL-001, BASE-OPS-004
 1. At authorized provider edges return accepted, proven-unaccepted relay 429, HTTP 500, timeout and connection loss; restart during claims.
 2. Only the proven-unaccepted case requeues automatically; uncertain started sends never replay and acceptance remains distinct from receipt.
 
-**Evidence.** `src/domain/notification-claims.server.ts`; `tests/notify-delivery.mjs`; `tests/notify-delivery.mjs`; `docs/evidence/contracts/release-0.4.0/`
-**Gap.** Carried-done audit: the proven-unaccepted RER relay 429 and its automatic requeue are asserted only in `tests/hosted-alerts.mjs`, which this clause does not cite, and no cited line shows acceptance kept apart from receipt. Accepted, HTTP 500, timeout and connection-loss outcomes, restart during claims, no requeue of an endpoint 429 and no replay of uncertain sends are asserted.
+**Evidence.** `src/domain/notification-claims.server.ts`; `docs/evidence/contracts/release-0.4.0/`; `tests/notify-delivery.mjs` — accepted, HTTP 500, 4xx and single-attempt 429, lost connections, stalled timeouts and in-progress claim restart: uncertain sends never replay and a non-deduplicating 429 never requeues (lines 143-215); `tests/relay-mail-support.mjs` proveRelayMail (called by `tests/hosted-alerts.mjs`) — proven-unaccepted relay 429 with Retry-After kept as a durable not-before time across Worker restart, exactly one due submission, accepted jobs terminal and acceptance kept apart from recipient proof (lines 12-127)
+**Gap.** None.
 
 #### PUBLIC-001 — Public landing and documentation
 
-Core · published · **partial** · Cites BASE-PUBLIC-001, BASE-INSTALL-001, BASE-DOCS-001
+Core · published · **done** · Cites BASE-PUBLIC-001, BASE-INSTALL-001, BASE-DOCS-001
 
 **Requirement.** At the app origin, `/` is the unauthenticated Lobby, `/docs` is public documentation, `/setup` is first-run setup, and the private operator console and editor are `/app` and `/app/monitor`; private documents require an owner session. The separate marketing site serves `https://run-uptime.com/` and `https://run-uptime.com/run`. The app Lobby at `/` and the marketing landing at the run-site `/` are distinct surfaces.
 
@@ -216,8 +216,8 @@ Core · published · **partial** · Cites BASE-PUBLIC-001, BASE-INSTALL-001, BAS
 1. Open app-origin Lobby, docs and setup signed out, then sign in for /app and /app/monitor; separately read the marketing site and /run.
 2. Their routes remain distinct and private documents reject unsigned access.
 
-**Evidence.** `src/server.ts`; `src/routes/docs.index.tsx`; `tests/public-paths.mjs`; `tests/public-paths.mjs`; `docs/evidence/contracts/release-0.4.0/`
-**Gap.** Carried-done audit: signed-in `/app` and `/app/monitor` are asserted only in `tests/installer-support.mjs` (called from `tests/public-paths.mjs`), which this clause does not cite, and no cited test reads `/setup` signed out, reads the separate marketing site and its `/run` page or compares the two surfaces. The signed-out Lobby and docs and the refusal of unsigned private documents are asserted.
+**Evidence.** `src/server.ts`; `src/routes/docs.index.tsx`; `docs/evidence/contracts/release-0.4.0/`; `tests/public-surfaces-support.mjs` provePublicSurfaces (called by `tests/public-paths.mjs`) — signed-out app Lobby and docs with no session cookie, the published marketing site and its run page read from the real origin, app and marketing documents distinct, the run page absent on the app origin, and setup, app and monitor editor documents sent to native sign-in with an empty body (lines 39-82); `tests/access-matrix.mjs` — signed in, the app and monitor editor entries open the console (lines 70-75)
+**Gap.** None.
 
 #### BOUNDARY-001 — Monitoring ownership and honest delivery claims
 
@@ -253,20 +253,20 @@ Core · published · **partial** · Cites BASE-SECRET-002, BASE-OPS-001 · Regis
 1. Start each runtime entry point with required and conditional bindings missing/malformed; diagnostics name bindings without values and health returns 503.
 2. Restore settings and recover; exercise D1/ASSETS faults inside the owner-approved three-second readiness response budget.
 
-**Evidence.** `src/domain/startup-config.mjs`; `tests/public-paths.mjs`
-**Gap.** Missing SESSION_SECRET returns Worker health 503 with a named, value-free diagnostic, and restored configuration returns 200. Gap: other missing/malformed and conditional bindings, scheduled/local-app/preview/setup/deployment/private-runner entry points, missing ASSETS, a D1 readiness fault and the three-second fault-response budget lack assertions in the cited files.
+**Evidence.** `src/domain/startup-config.mjs`; `tests/public-paths.mjs` — missing SESSION_SECRET gives Worker health 503 with a named, value-free diagnostic; restored settings recover to 200. `tests/resilience/watches.mjs` — Recover monitoring across runner and Worker crashes without replaying uncertain sends, invoking `tests/startup-runner-config-support.mjs` proveRunnerStartupConfiguration once: the actual private-runner command independently refuses missing and malformed UPTIME_CONTROL_ORIGIN and UPTIME_RUNNER_KEY with nonzero exits and binding names, withholding raw and encoded planted values; independently observed control and target edges receive no requests, every durable table is unchanged and disposable child directories retain no execution custody. Correcting each environment and restarting the same command in the same directory against a real migrated emitted Worker gives signed authenticated enrollment, an idle claim, durable contact and clean termination without target work.
+**Gap.** Missing SESSION_SECRET returns Worker health 503 with a named, value-free diagnostic, and restored configuration returns 200. Gap: other missing/malformed and conditional bindings, scheduled/local-app/preview/setup/deployment/private-runner entry points, missing ASSETS, a D1 readiness fault and the three-second fault-response budget lack assertions in the cited files. Retained bounded evidence (qualification pending; current partial judgment and unscoped gaps retained): the new command proof covers only missing and malformed UPTIME_CONTROL_ORIGIN and UPTIME_RUNNER_KEY and corrected idle enrollment. It does not qualify the complete private-runner binding matrix or the other runtime entry points, ASSETS, D1 faults or readiness timing. Console requalification, hosted readiness and capacity, and provider-account qualification remain held.
 
 #### PUBLIC-002 — Declared sessionless paths and rate limits
 
-Core · published · **partial** · Cites BASE-ACCESS-003 · Register R-2
+Core · published · **done** · Cites BASE-ACCESS-003 · Register R-2
 
 **Requirement.** Every sessionless route and emitted static path is declared in `seed.json` with its authentication rule and rate-limit class. D1 applies owner-tunable per-client limits in fixed 60-second windows and returns 429 with `Retry-After` after the class limit. A declaration does not bypass route-specific session, runner, heartbeat or development-key checks. Limit values are marked estimated and not load-tested. See [Public paths and rate limits](docs/contract/safety-rules.md#public-paths-and-rate-limits) and [Integrity and authority](docs/contract/safety-rules.md#integrity-and-authority).
 
 **Acceptance.**
 1. Enumerate declared sessionless paths against emitted routes, exceed configured public limits, inspect Retry-After, and remove counter storage; each route retains its own authentication checks and admission fails closed.
 
-**Evidence.** `src/domain/public-rate-limits.server.ts`; `tests/public-paths.mjs`
-**Gap.** Carried-done audit: the Retry-After header on a 429 is read only by the `limited` helper in `tests/public-paths-support.mjs`, which this clause does not cite. Enumeration of declared paths against emitted routes, the 429 past a class limit, fail-closed admission without counter storage and each route's own authentication are asserted.
+**Evidence.** `src/domain/public-rate-limits.server.ts`; `package.json`; `scripts/verification-plan.mjs`; `tests/public-paths.mjs` — declared sessionless paths enumerated against emitted routes, undeclared and private GET and POST refused by their own authentication, each class limit exceeded with 429, a second client unaffected, and removed counter storage failing closed (lines 27-135); `tests/public-paths-support.mjs` limited — positive integral Retry-After seconds and no-store (lines 64-70); `tests/access-matrix.mjs` — declared runner and setup paths keep their own runner and session checks behind admission, with installation data unchanged (lines 62-67, lines 99-108)
+**Gap.** None.
 
 #### FLOW-001 — Supported isolated browser transactions
 
@@ -301,15 +301,15 @@ Core · target · **partial** · Register R-2
 
 #### API-001 — Complete HTTP and API assertions
 
-Core · target · **partial**
+Core · target · **done**
 
 **Requirement.** HTTP(S) methods, safe redirects, custom headers/body, expected status sets/ranges, keyword presence and absence, response headers, latency, nested JSONPath and regular-expression assertions evaluate the exact saved bundle with bounded redacted diagnostics. A transport 200 cannot pass a failed business assertion.
 
 **Acceptance.**
 1. Save checks through the editor/API against a controlled endpoint; independently break absent/present keywords, status range, response headers, JSON arrays/nested paths, regex and latency, then inspect the distinct failures and unchanged saved criteria.
 
-**Evidence.** `src/domain/http-assertions.mjs`; `src/domain/http-assertions/`; `src/domain/evidence.server.ts`; `tests/tls-auth.mjs`; `tests/probe-native-evidence.mjs`; `docs/evidence/contracts/http-assertions/`; `tests/probe-json-evidence-support.mjs`
-**Gap.** Saved criteria and independent present/absent keyword, status set/range, response-header, root JSON-member, regex and latency failures remain asserted. Gap: independently breaking JSON arrays and nested JSONPath expressions lacks an assertion in the surviving cited files; the root-member scenario does not prove those cases.
+**Evidence.** `src/domain/http-assertions.mjs`; `src/domain/http-assertions/`; `src/domain/evidence.server.ts`; `docs/evidence/contracts/http-assertions/`; `tests/probe-native-evidence.mjs` — saved assertion bundle executed at the network edge; status set and range, body present and absent, header, regex, root JSON member and latency each fail alone with the others passing, retries retained, saved criteria unchanged through failure and recovery (lines 23-57); `tests/probe-json-evidence-support.mjs` proveJsonSelectors (called by that journey) — JSON array and nested JSONPath selectors independently broken and recovered through owner saves, real probes and signed scheduled completion (lines 4-68)
+**Gap.** None.
 
 #### SLOW-001 — Slow-response alerts distinct from outages
 
@@ -376,39 +376,39 @@ Core · target · **partial**
 
 #### PING-001 — ICMP reachability and packet quality
 
-Core · target · **partial**
+Core · target · **done**
 
 **Requirement.** ICMP ping monitors retain bounded packet loss, round-trip latency and configured thresholds by location for IPv4/IPv6. ICMP blocked by policy is shown explicitly rather than inferred from HTTP success.
 
 **Acceptance.**
 1. Configure a ping target, vary loss and latency, disable ICMP and stop a probe; inspect protocol-specific results and Unknown probe coverage.
 
-**Evidence.** `runners/src/icmp-probe.mjs`; `src/domain/protocol/`; `tests/ping-monitors.mjs`; `tests/ping-monitors.mjs`; `docs/evidence/contracts/ping/`
-**Gap.** Configured ICMP loss and latency, threshold failures, disabled or unavailable ICMP, and initial Unknown probe coverage are asserted. Unknown coverage after stopping a previously running probe is not asserted; the cited stopped-probe case only creates an unchecked monitor.
+**Evidence.** `runners/src/icmp-probe.mjs`; `src/domain/protocol/`; `docs/evidence/contracts/ping/`; `tests/ping-monitors.mjs` — configured ICMP loss, slow round trips and blocked or unavailable ICMP as protocol-specific results (lines 54-78); a previously running probe stopped: state and target Unknown, coverage Incomplete at the fixed denominator, the monitor unchanged and no trigger or recovery fabricated (lines 81-125)
+**Gap.** None.
 
 #### DNS-001 — DNS records and change detection
 
-Core · target · **partial**
+Core · target · **done**
 
 **Requirement.** Checks query selected recursive and authoritative resolvers for A, AAAA, CNAME, MX, TXT, NS, SOA, SRV and CAA records, expected values, absence/change and response time. NXDOMAIN, SERVFAIL, propagation differences and monitor infrastructure faults are distinguishable; owner-approved expected changes suppress only their own condition.
 
 **Acceptance.**
 1. Save DNS monitors via the owner door, change/remove an expected record and induce resolver disagreement/failure; inspect raw bounded record evidence, confirmed alerts, maintenance and recovery without treating a missing answer as success.
 
-**Evidence.** `src/domain/protocol/dns.mjs`; `src/domain/protocol/dns-wire.mjs`; `src/domain/protocol/evaluate.mjs`; `tests/protocol-monitors.mjs`
-**Gap.** Carried-done audit: no cited DNS check runs inside a maintenance window. Saving through the owner door, changed and removed records, resolver disagreement and failure, raw bounded record evidence, confirmed alerts and recovery, and refusing to treat a missing answer as success are asserted.
+**Evidence.** `src/domain/protocol/dns.mjs`; `src/domain/protocol/dns-wire.mjs`; `src/domain/protocol/evaluate.mjs`; `tests/protocol-monitors.mjs` — DNS block: owner-saved DNS monitors, changed, approved and removed records, resolver disagreement, SERVFAIL and resolver fault, raw bounded resolver evidence, confirmed trigger and recovery, a missing answer never success, and a DNS change inside an owner-applied maintenance window kept as Maintenance with target Failing, cancellation inventing no recovery and evidence immutable (lines 72-120)
+**Gap.** None.
 
 #### TLS-001 — SSL certificate and chain monitoring
 
-Core · target · **partial**
+Core · target · **done**
 
 **Requirement.** TLS checks verify hostname/SNI, certificate chain/trust, validity, expiry and renewal on HTTPS or configured TLS ports from each location. Staged configurable expiry warnings name the certificate and accountable owner, track renewal and resolve only after a newly observed valid chain.
 
 **Acceptance.**
 1. Monitor a controlled TLS service; present an expiring certificate, broken chain, wrong name and then renewed certificate, advance the clock and inspect deduplicated warnings, location evidence and renewal resolution.
 
-**Evidence.** `src/domain/protocol/x509.mjs`; `src/domain/protocol/tls12-certificates.mjs`; `src/domain/expiry-notices.server.ts`; `tests/protocol-monitors.mjs`
-**Gap.** Carried-done audit: the cited test presents one certificate at one stage and repeats the check without moving the clock, so warnings advancing through the configured stages without repeating are unasserted. The named warning with its stage and accountable owner, no repeat within a stage, wrong-name and untrusted-chain failures as location evidence and renewal resolution are asserted.
+**Evidence.** `src/domain/protocol/x509.mjs`; `src/domain/protocol/tls12-certificates.mjs`; `src/domain/expiry-notices.server.ts`; `tests/protocol-monitors.mjs` — TLS block: expiring certificate warns once naming the certificate and accountable owner, wrong-name and untrusted-chain failures as location evidence, renewal resolves the warning (lines 123-136); `tests/tls-stages-support.mjs` proveTlsExpiryStages (called by that journey) — one real certificate crosses every saved warning stage with an advancing clock, one durable warning per stage across probes and Worker restarts, renewal resolves their shared identity and earlier evidence is unchanged (lines 18-127)
+**Gap.** None.
 
 #### DOMAIN-001 — Domain registration expiry
 
@@ -559,7 +559,7 @@ Core · target · **partial** · Register R-1
 2. Allowlist only the published addresses at a controlled WAF and see every location pass.
 3. Stage an address change and verify the notice, pending entry and 30-day hold before the new address carries checks; redirect cross-origin and prove the secret header is not forwarded; inspect the Worker vantage's not-allowlistable label.
 
-**Evidence.** `src/domain/worker-http.server.ts`; `runners/src/public-http.mjs`; `tests/tls-auth.mjs`
+**Evidence.** `src/domain/worker-http.server.ts`; `runners/src/public-http.mjs`; `tests/tls-auth.mjs`; `tests/hosted-alerts.mjs` invokes `tests/hosted-probe-identification-support.mjs` proveHostedProbeIdentification: owner-created HTTP and keyword monitors, actual scheduled Worker requests, independently received release and public documentation URL with distinct opaque references stable through retry, same-origin and cross-origin redirect, restart and owner edit; planted private names and session authority excluded; ordinary failure, recovery and immutable history retained with unchanged evidence runnerVersion
 **Gap.** Hosted and runner requests send a release-identifying User-Agent; dedicated egress, published address files/DNS/API, change notice and the WAF header do not exist.
 
 #### PRIVATE-001 — Buyer-network private locations
@@ -606,7 +606,7 @@ Core · target · **partial**
 
 #### EVIDENCE-002 — Failure snapshot and incident report
 
-Core · target · **partial**
+Core · target · **done**
 
 **Requirement.** Every failing attempt keeps an incident-report snapshot: the request actually sent (method, final URL, redirect chain and header names, with values redacted unless the owner marks them safe), response status, response headers and timing phases, and a bounded excerpt of the returned body (the first 16 KiB as text, shown only as escaped text or in a sandboxed no-script preview), so an operator sees the Cloudflare 52x page, maintenance page or stack trace the probe received. Before storage the excerpt passes owner masks plus built-in secret patterns (authorization values, cookies, API keys, card numbers, and email addresses unless allowed), and planted request secrets never appear. For HTTP and keyword checks the buyer can enable a screenshot of the failing page, taken by an isolated browser under FLOW-001's network rules. Incident detail combines these with a plain-language cause (for example, HTTP 503 from 2 of 3 locations whose body reads Service Unavailable), per-location results, DIAG-001 diagnostics and the activity log. Snapshots are stored apart from observations under owner-set retention (default 90 days), readable only by roles with evidence access, carried in archives, exported with their incident and erased with their monitor or on owner request with a receipt. They never alter a verdict, and alerts carry only a cause line and an authenticated link to them.
 
@@ -614,8 +614,8 @@ Core · target · **partial**
 1. Fail an HTTP monitor against a controlled endpoint returning a 503 HTML page containing a planted API key, cookie and email address; as owner open incident detail and see the request, status, headers, page excerpt and screenshot with planted values masked.
 2. Open it as an unauthorized role and signed out and be refused; export the incident and round-trip an archive; erase the monitor and confirm the snapshot and its copies are gone with a receipt; inspect the alert for only the cause line and link.
 
-**Evidence.** `src/domain/failure-snapshot.mjs`; `src/domain/failure-snapshot-text.mjs`; `src/domain/failure-page-custody.server.ts`; `runners/src/failure-page-screenshot.mjs`; `src/domain/failure-evidence-access.server.ts`; Acceptance 1: `tests/failure-page-journey.mjs` owners capture safe failure pages, share only monitor evidence, export every artifact and revoke access, with `tests/failure-page-custody-support.mjs` assertStoredFailureHeaders, proves stored request and response header sets retain explicitly safe values and mask planted secrets; `tests/failure-page-browser.mjs` failurePageBrowser proves owner incident screenshot and report reads. Acceptance 2: the same journey and `tests/failure-page-custody-support.mjs` proveFailureSnapshotErasure prove access refusal, archive round-trip, public monitor erasure with durable per-table receipt, removal of snapshot and encrypted artifact copies from all durable tables and transfer storage, refused public reads, clean later native and transfer exports, and refusal of a snapshot-bearing old archive with the source's later journal before any product or audit rows change. `tests/failure-page-browser.mjs` failurePageBrowser proves granted and revoked member access; `tests/notify-delivery.mjs` proves cause and authenticated incident links on actual alert transports; the failure-page journey retains alert excerpt and secret exclusions.
-**Gap.** Masked failure-page capture, owner incident screenshot/report reads, access refusal, archive round-trip, an erasure receipt and alert excerpt/secret exclusion remain asserted. Gap: reading both stored request/response header sets through the owner incident door, confirming every erased snapshot copy is gone and refusing an old snapshot archive using a later erasure journal lack assertions in the surviving cited files.
+**Evidence.** `src/domain/failure-snapshot.mjs`; `src/domain/failure-snapshot-text.mjs`; `src/domain/failure-page-custody.server.ts`; `runners/src/failure-page-screenshot.mjs`; `src/domain/failure-evidence-access.server.ts`; `tests/failure-page-journey.mjs` — a failing 503 page with planted bearer token, cookie, email and order id: owner incident report, masked stored request and response headers, excerpt and screenshot, member and signed-out refusals, archive round trip and masked outbox (lines 15-49), with `tests/failure-page-custody-support.mjs` assertStoredFailureHeaders (lines 6-21) and proveFailureSnapshotErasure — public monitor erasure with durable per-table receipt, no snapshot or artifact copy left in any table or transfer storage, refused reads, clean later exports, and the source's later journal refusing an old snapshot archive with every table unchanged (lines 36-91); `tests/failure-page-browser.mjs` failurePageBrowser — owner incident screenshot, complete incident report download and member access reads (lines 6-22); `tests/notify-delivery.mjs` — cause line and authenticated incident link on actual alert transports (lines 105-134)
+**Gap.** None.
 
 #### DIAG-001 — Connection and network diagnostics
 
@@ -703,7 +703,7 @@ Core · target · **partial**
 
 #### FLOW-003 — Useful and safe browser failure artifacts
 
-Core · target · **partial**
+Core · target · **done**
 
 **Requirement.** Failed steps retain redacted screenshots, Playwright traces, video replay, console errors, network/timing waterfalls and step durations tied to the immutable run. Owner-defined masks, no secret-bearing headers/bodies and bounded retention/export/access prevent synthetic credentials or personal data leaking into artifacts. Artifact-generation failure is visible and cannot hide the check failure.
 
@@ -711,8 +711,8 @@ Core · target · **partial**
 1. Break sandbox checkout, inspect screenshot/video/trace/waterfall through authenticated incident detail, deny artifact storage and try an unauthorized download.
 2. Planted secrets/masked fields never appear; retained artifact failures and erasure are visible.
 
-**Evidence.** `runners/src/flow/artifacts.mjs`; `src/domain/flow-artifacts.mjs`; `src/domain/failure-page-custody.server.ts`; `public/assets/failure-snapshot-view.js`; `tests/flow-journey.mjs`; `tests/flow-artifact-journey.mjs`
-**Gap.** Screenshot, video, trace and waterfall reads through the owner's monitor snapshot API, denied artifact storage, unauthorized download, masking and erasure are asserted. The authenticated incident-detail door is asserted only in `tests/flow-artifact-browser.mjs`, which this clause does not cite.
+**Evidence.** `runners/src/flow/artifacts.mjs`; `src/domain/flow-artifacts.mjs`; `src/domain/failure-page-custody.server.ts`; `public/assets/failure-snapshot-view.js`; `tests/flow-artifact-journey.mjs` (run by `tests/flow-journey.mjs`) — real failed sandbox checkout: redacted PNG, replay WebM, sanitized native trace and waterfall through the owner snapshot API, secrets absent and artifacts encrypted at rest, signed-out reads refused, denied capture storage retained as capture_failed with the monitor still Failing, stricter masks and monitor erasure removing every artifact (lines 15-60); `tests/flow-artifact-browser.mjs` artifactBrowser — screenshot, video, trace download and waterfall through the authenticated incident detail, the denied-storage case and the erased monitor (lines 6-29)
+**Gap.** None.
 
 #### FLOW-004 — Cross-browser and mobile transactions
 
@@ -742,7 +742,7 @@ Core · target · **partial**
 
 #### ROUTING-002 — Per-contact alert delay and repeat
 
-Core · target · **partial**
+Core · target · **done**
 
 **Requirement.** Each monitor, group or route sets, per contact, notify after X minutes down (0 minutes to 24 hours), repeat every Y minutes while down (off, or 1 minute to 24 hours, with an optional maximum count) and whether that contact receives recovery notices. A delayed contact is notified only if the same incident is still open when its delay elapses; a recovery inside the delay sends that contact nothing, including no recovery notice. Repeats are FOLLOWUP-001 reminder events with the incident's stable identity, stop on recovery or under the selected acknowledgment policy and never replay an uncertain send. Delays and repeats count from confirmation time, survive restart, appear in the route preview (for example, Slack now, SMS at +10 minutes, repeat every 30 minutes) and map from UptimeRobot's per-contact threshold and recurrence and Pingdom's notify-after and repeat settings.
 
@@ -750,8 +750,8 @@ Core · target · **partial**
 1. Configure Slack at 0 minutes and SMS at +10 minutes with a 30-minute repeat; confirm an outage and see Slack at confirmation, SMS only at +10 minutes and a repeat at +40.
 2. In a second outage recover at +5 minutes and see no SMS and no SMS recovery notice; restart the Worker between confirmation and +10 minutes and see exactly one SMS; import an UptimeRobot monitor with threshold and recurrence and see the same schedule in the preview.
 
-**Evidence.** `src/domain/contact-scheduler.server.ts`; `src/domain/contact-schedule-import.ts`; `public/assets/alert-route.js`; `tests/contact-schedules.mjs`; `tests/contact-schedules.mjs`; `docs/evidence/contracts/contact-schedules/`
-**Gap.** Carried-done audit: the cited tests configure zero-delay contacts but no line reads their sends at confirmation. The delayed contact sending nothing at confirmation and once at its delay, the repeat with the incident's stable identity, early-recovery suppression, exactly one delayed notice across a Worker restart and the UptimeRobot threshold/recurrence preview are asserted.
+**Evidence.** `src/domain/contact-scheduler.server.ts`; `src/domain/contact-schedule-import.ts`; `src/domain/alert-route-delivery.server.ts`; `public/assets/alert-route.js`; `docs/evidence/contracts/contact-schedules/`; `tests/contact-schedules.mjs` — per-contact delay, repeat, maximum and recovery settings saved through the owner route preview and apply, with a negative delay refused (lines 12-23); saved UptimeRobot threshold and recurrence and Pingdom notify-after and repeat previewed as the same schedule (lines 24-28); after a confirmation from signed scheduled runner results, the production runner dispatcher sends the zero-delay contact exactly one trigger and the delayed contact nothing (lines 29-34), and the incident read shows the next notice due at confirmation plus the delay (lines 35-38); a second outage recovered inside the delay sends the delayed contact no trigger and no recovery notice (lines 40-43 and 57); a Worker restart inside the delay still yields exactly one delayed trigger, and acknowledgement stops repeats only for the contact that selected it (lines 44-51); the repeat follows at the delay plus the repeat interval with the incident's stable key (lines 52-55)
+**Gap.** None.
 
 #### DELIVERY-002 — Deduplicated retry and fallback contacts
 
@@ -778,7 +778,7 @@ Core · target · **done**
 2. Inspect the email, Slack and webhook trigger and recovery notices for the reason, failed locations and exact downtime.
 3. An incident spanning a Worker restart reports the correct total.
 
-**Evidence.** `src/domain/notification-context.ts`; `src/domain/notification-preferences.server.ts`; `public/notification-preferences.js`; `tests/notify-delivery.mjs`; `tests/notify-delivery.mjs`; `tests/webhook-custom.mjs`
+**Evidence.** `src/domain/notification-context.ts`; `src/domain/notification-preferences.server.ts`; `tests/notify-delivery.mjs`; `tests/notify-delivery.mjs`; `tests/webhook-custom.mjs`; `public/settings-general.js`
 **Gap.** None.
 
 #### WEBHOOK-001 — Custom webhook requests and payload templates
@@ -894,8 +894,8 @@ Core · target · **partial** · From INCIDENT-001
 **Acceptance.**
 1. In a comment on the open incident, @mention a colleague: the colleague receives the email with the excerpt and link, and the delivery outcome is shown on the comment.
 
-**Evidence.** `src/domain/incident-work/`; `public/incident-work.js`; `tests/incident-work.mjs`; `docs/evidence/contracts/incidents/`; `src/domain/incident-work/mention-delivery.server.ts`; `src/domain/incident-work/mention-members.server.ts`; `migrations/0070_incident_mentions.sql`; `scripts/incidents.mjs`; `tests/incident-members-support.mjs`; `tests/signed-runner.mjs`
-**Gap.** ID/display-name-only eligible member suggestions and Base email mentions with durable single-attempt outcomes ship through the API/CLI. Gap: the held console mention and outcome workflows, MOBILE-001 push, and recovery of interrupted unreserved mentions, which have no background recovery.
+**Evidence.** `src/domain/incident-work/`; `public/incident-work.js`; `tests/incident-work.mjs`; `docs/evidence/contracts/incidents/`; `src/domain/incident-work/mention-delivery.server.ts`; `src/domain/incident-work/mention-members.server.ts`; `migrations/0070_incident_mentions.sql`; `migrations/0085_incident_mention_dispatch.sql`; `scripts/incidents.mjs`; `tests/incident-members-support.mjs` — proveIncidentMembers; `tests/incident-mention-recovery-support.mjs` — proveMentionRecovery, invoked by `tests/incident-work.mjs`: committed responder comment, pre-reservation storage interruption and persisted Worker restart, bounded scheduled recovery with stable delivery identity and retained API and CLI outcome, competing dispatch once, stale comment and recipient refusal, erasure, inactive restore and no reserved or uncertain send replay; `tests/hosted-alerts.mjs` — hosted Cron with busy probes and ordinary email defers excess mentions without reserving them, then submits each stable delivery identity once; `tests/signed-runner.mjs`
+**Gap.** ID/display-name-only eligible member suggestions and Base email mentions with durable single-attempt outcomes ship through the API/CLI. Gap: the held console mention and outcome workflows and MOBILE-001 push.
 
 #### INCIDENT-003 — Incident root cause
 
@@ -980,15 +980,15 @@ Core · target · **missing** · Register R-6
 
 #### MANAGE-001 — Monitor and contact API
 
-Core · target · **partial** · Cites BASE-INPUT-001
+Core · target · **done** · Cites BASE-INPUT-001
 
 **Requirement.** Authenticated public product APIs create/read/update/pause monitors and manage alert destinations with the same validation, revisions, secret custody and authorization as the console. Bad input returns actionable errors without partial writes. Reading uptime, response-time and incident data, and the versioned, key-authenticated read API, are READAPI-001 to READAPI-003's.
 
 **Acceptance.**
 1. Use the owner API to create/edit/pause a monitor and rotate a contact, read back its revision and attempt signed-out/cross-origin mutations; inspect atomic refusal and no exposed endpoint secrets.
 
-**Evidence.** `src/domain/control.server.ts`; `src/domain/notification-destinations.server.ts`; `tests/definitions-import.mjs`; `tests/notify-delivery.mjs`
-**Gap.** Carried-done audit: no cited test rotates a contact, reads a saved revision back, sends a cross-origin mutation or compares durable state around a refused mutation. Creating, editing and pausing a monitor through the owner API, the signed-out refusal and the absence of exposed endpoint secrets are asserted.
+**Evidence.** `src/domain/control.server.ts`; `src/domain/notification-destinations.server.ts`; `tests/management-support.mjs` proveNativeManagement (called by `tests/definitions-import.mjs`) — owner API create, edit and pause with every immutable revision read back, then foreign-site and malformed monitor and contact mutations, rotation included, each refused with every durable table unchanged (lines 5-72); `tests/alert-drill.mjs` — contact rotation through the owner API issues a new credential and invalidates its prior proof (lines 145-152); `tests/access-matrix.mjs` — signed-out mutations refused with no write (lines 62-67)
+**Gap.** None.
 
 #### READAPI-001 — Versioned read API keys, limits and documentation
 
@@ -1002,8 +1002,8 @@ Core · target · **partial**
 3. A key for one workspace cannot read another workspace's monitors, a tag-limited key sees only its tag, and a revoked key is refused at once.
 4. Repoint a script that read UptimeRobot `getMonitors` uptime ratios to the documented equivalent and get the same periods.
 
-**Evidence.** `src/domain/credentials/`; `migrations/0071_edition_credentials.sql`; `scripts/api-keys.mjs`; `tests/read-keys-support.mjs`; `src/server.ts`; `src/domain/incident-list.server.ts`; `src/domain/incident-work/`; `src/domain/reports/`; `src/domain/read-api-openapi.ts`; `src/domain/read-api/`; `tests/incident-work.mjs`; `tests/reporting.mjs`; `tests/read-api.mjs`; `tests/metrics.mjs`; `docs/read-api.md`; `docs/evidence/contracts/read-api/`; `tests/security-controls-browser-support.mjs` (proveSecurityControls); `src/domain/reports/service.server.ts`; `tests/report-recurrences-support.mjs` (proveRecurringReports)
-**Gap.** The bounded API/CLI key slice adds Base-generated hash-only monitoring:read tokens, immutable installation/workspace resources, intersecting monitor/tag restrictions, explicit expiry/revocation/last use, per-key limits and owner-only fresh ACCESS-003 issuance; every v1 monitoring GET/HEAD, including metrics and CSV/PDF reports, uses resource fences before pagination/aggregation, and bearer writes cannot fall back to session authority. Public OpenAPI and Owner Settings key creation/list/revocation with shown-once custody are proven at 1440/390, including stale-proof step-up, selected monitors/tags/expiry, usage, immediate real-read 401 and nonowner refusal (RL-14). CODE-001 CI uses the same credential store with separate environment/tag authority. Gap: delegated issuance.
+**Evidence.** `src/domain/credentials/`; `migrations/0071_edition_credentials.sql`; `scripts/api-keys.mjs`; `tests/read-keys-support.mjs`; `src/server.ts`; `src/domain/incident-list.server.ts`; `src/domain/incident-work/`; `src/domain/reports/`; `src/domain/read-api-openapi.ts`; `src/domain/read-api/`; `tests/incident-work.mjs`; `tests/reporting.mjs`; `tests/read-api.mjs`; `tests/metrics.mjs`; `docs/read-api.md`; `docs/evidence/contracts/read-api/`; `tests/security-controls-browser-support.mjs` (proveSecurityControls); `src/domain/reports/service.server.ts`; `tests/report-recurrences-support.mjs` (proveRecurringReports); `tests/read-api-dashboard-support.mjs` proveReadApiDashboard through `tests/read-api.mjs`: executable authorized source ratios consumer and documented native command, explicit ID map, matching elapsed horizons and Chicago bounds, signed scheduled evidence and REPORT-001 equality, Unknown and excluded time, revoked-key visible failure; `docs/examples/uptime-ratios.mjs`
+**Gap.** The bounded API/CLI key slice adds Base-generated hash-only monitoring:read tokens, immutable installation/workspace resources, intersecting monitor/tag restrictions, explicit expiry/revocation/last use, per-key limits and owner-only fresh ACCESS-003 issuance; every v1 monitoring GET/HEAD, including metrics and CSV/PDF reports, uses resource fences before pagination/aggregation, and bearer writes cannot fall back to session authority. Public OpenAPI and Owner Settings key creation/list/revocation with shown-once custody are proven at 1440/390, including stale-proof step-up, selected monitors/tags/expiry, usage, immediate real-read 401 and nonowner refusal (RL-14). CODE-001 CI uses the same credential store with separate environment/tag authority. Acceptance 4 has an executable migration example preserving requested 1-, 7- and 30-day horizons as 24h, 7d and 30d in America/Chicago; native ratios remain separate from provider fixture data. Gap: delegated issuance.
 
 #### READAPI-002 — Uptime and response-time reads
 
@@ -1060,15 +1060,15 @@ Core · target · **missing**
 
 #### METRICS-001 — Grafana and Prometheus integration
 
-Core · target · **partial** · Register R-6
+Core · target · **done** · Register R-6
 
 **Requirement.** Authenticated, documented Prometheus metrics and Grafana dashboards expose availability, latency, regional coverage, probe health, incident and delivery outcomes with stable monitor identifiers, bounded cardinality and freshness. Datadog metric/webhook export preserves source location identity without claiming access to Datadog-managed probes. Its figures equal READAPI-002's for the same monitor and window.
 
 **Acceptance.**
 1. Configure Grafana/Prometheus and authorized Datadog export against real API/scrape doors, fail a monitor and probe, revoke credentials and inspect matching source denominators, stale states and no cross-workspace metrics.
 
-**Evidence.** `src/domain/metrics/`; `scripts/metrics-export.mjs`; `docs/grafana/uptime-dashboard.json`; `tests/metrics.mjs`; `tests/metrics.mjs`; `docs/evidence/contracts/metrics/`; `tests/metrics.mjs`: authenticated Worker scrape, report-equal figures, bounded scoped keys, installation isolation, Datadog source-location series, signed export and revocation; `tests/metrics-grafana-support.mjs` proveGrafanaPrometheus: owner-created monitors and keys, real signed scheduled failure, stopped assigned probe, checksum-verified upstream Prometheus and Grafana, imported dashboard queries through Grafana, fixed-window availability and location latency equality, fixed coverage, Unknown and excluded seconds, foreign key and monitor refusal, failed revoked scrape and aging snapshot.
-**Gap.** Carried-done audit: no cited line loads the supplied Grafana dashboard or queries through Grafana. The Prometheus scrape door, the Datadog export with source location identity, failed monitor and probe states, revocation, report-equal denominators, stale states and workspace isolation are asserted. Candidate integration proof replayed; main's partial judgment is retained for review.
+**Evidence.** `src/domain/metrics/`; `scripts/metrics-export.mjs`; `docs/grafana/uptime-dashboard.json`; `docs/evidence/contracts/metrics/`; `tests/metrics.mjs` — authenticated Worker scrape, report-equal figures and denominators, source-location series, bounded scoped keys, installation isolation, Datadog and signed export, revocation and stale states (lines 11-44); `tests/metrics-grafana-support.mjs` proveGrafanaPrometheus (called by that journey) — owner-created monitors and keys, real signed scheduled failure, stopped assigned probe, checksum-verified upstream Prometheus and Grafana, the supplied dashboard imported and its queries run through Grafana, fixed-window availability, location latency and coverage equal to the report, foreign key refusal and failed revoked scrape (lines 62-222)
+**Gap.** None.
 
 ### Migration and history
 
@@ -1088,7 +1088,7 @@ Core · target · **partial** · Register R-3
 7. An account with two login seats and three notify-only seats reads back two pending invitations with mapped roles and three notify-only destinations, with no member reported dropped.
 8. A legacy Teams connector URL is flagged with replacement steps.
 
-**Evidence.** `src/domain/definitions/importers/uptimerobot.ts`; `src/domain/webhook-contact-import.mjs`; `tests/definitions-import.mjs`; `tests/tls-trust-journey.mjs`; `tests/webhook-custom.mjs` (saved contact/seat reconciliation: every kind, per-kind counts, Teams replacement, seat refusals and no writes/sends); `docs/migrating-uptimerobot-contacts.md`; `docs/evidence/contracts/trust-auth/`; `docs/evidence/contracts/webhooks/`
+**Evidence.** `src/domain/definitions/importers/uptimerobot.ts`; `src/domain/webhook-contact-import.mjs`; `tests/definitions-import.mjs`; `tests/tls-trust-journey.mjs`; `tests/webhook-custom.mjs` (saved contact/seat reconciliation: every kind, per-kind counts, Teams replacement, seat refusals and no writes/sends); `docs/migrating-uptimerobot-contacts.md`; `docs/evidence/contracts/trust-auth/`; `docs/evidence/contracts/webhooks/`; `tests/source-history-support.mjs`; lines 100–106 preview and apply saved v3 incident details and assert retained comments, source-author text, root cause, secret withholding and no local operator creation; lines 89, 107–108 and 127–150 retain unchanged native evidence and source-labeled reads)
 **Gap.** Reviewed saved monitor pages and documented webhook create payloads retain their existing mappings and secret withholding. Owner-only read-only API previews now reconcile saved contact lists and login/notify-only seat rows, propose email/webhook kinds for local review, refuse other kinds with named handoffs, and flag legacy Teams connectors with replacement steps. Source status never becomes consent; no contact, confirmation, invitation or send is created. Contact/seat console file routing and apply remain absent. Incident comments and root cause are absent from these lists; the current source API exposes them separately, but labelled source-history import remains a HISTORY-001/INCIDENT-005 gap. Live extraction, complete contacts/history, sibling handoffs and authorized account cutover remain absent.
 
 #### MIGRATE-002 — Pingdom migration
@@ -1181,7 +1181,7 @@ Core · target · **partial** · Cites BASE-ACCESS-001, BASE-ACCESS-002, BASE-SI
 2. Enforce MFA and prove an email-link-only session is refused at private documents and APIs and existing factorless sessions are revoked; attempt an erasure and a destination rotation without fresh step-up and be refused, then succeed after it; use and then reuse a recovery code; inspect audit entries and member notices for absent secrets.
 
 **Evidence.** `src/domain/mfa/`; `src/domain/access.server.ts`; `migrations/0068_mfa.sql`; `scripts/mfa.mjs`; `scripts/local/transfer.mjs`; existing `tests/operator-security.mjs` with `tests/mfa-policy-support.mjs` and `tests/mfa-webauthn-support.mjs`; shared real-auth fixtures; `tests/command-journey.mjs`; `public/assets/security-controls.js`; `tests/security-controls-browser-support.mjs` (proveSecurityControls, within `tests/operator-security.mjs`)
-**Gap.** TOTP and WebAuthn second factors bind live Base session IDs/versions; ten hashed single-use recovery codes, sealed edition-local factor/challenge custody, require-all policy, session revocation, fresh five-minute sensitive-action guards, member reset, opaque audit and separate member notices are implemented (RL-16). Local archive commands require the same live cookie and recheck authority at each progress boundary. Settings enrollment and fresh step-up cover owner/member factors, recovery codes, stale policy/key refusal, factor removal and require-all policy at 1440/390. Member proof uses live native sessions in an already-open Settings document. Gap: initial console sign-in challenge and narrowed-role shell entry need held app.js/console-document work; provider MFA assertions depend on ACCESS-002 SSO, and recovery from total loss of all owner factors/codes or the sealing key needs local installation authority. API/CI key creation remains bounded by the credential features that actually ship. Already-open-document member actions do not establish narrowed-role sign-in, initial MFA challenge, console shell entry or navigation. Those journeys remain required at 1440 and 390.
+**Gap.** TOTP and WebAuthn second factors bind live Base session IDs/versions; ten hashed single-use recovery codes, sealed edition-local factor/challenge custody, require-all policy, session revocation, fresh five-minute sensitive-action guards, member reset, opaque audit and separate member notices are implemented (RL-16). Local archive commands require the same live cookie and recheck authority at each progress boundary. Settings enrollment and fresh step-up cover owner/member factors, recovery codes, stale policy/key refusal, factor removal and require-all policy at 1440/390. Member proof uses live native sessions in an already-open Settings document. A signed-in owner who owes the second factor is forwarded from /login and /signin to the factor step, and /alert-drill shows the step instead of raw JSON (real-browser probe at 1440 and 390 in the landing round's EVIDENCE.md). Gap: a member who enrolled a factor is still refused at sign-in because the step is owner-only by design today (approved direction: show members the same step, access still decided by role afterwards; not yet built), and narrowed-role shell entry still needs held app.js/console-document work; provider MFA assertions depend on ACCESS-002 SSO, and recovery from total loss of all owner factors/codes or the sealing key needs local installation authority. API/CI key creation remains bounded by the credential features that actually ship. Already-open-document member actions do not establish narrowed-role sign-in, initial MFA challenge, console shell entry or navigation. Those journeys remain required at 1440 and 390.
 
 #### COST-001 — US buyer budgets and capacity transparency
 
@@ -1206,8 +1206,8 @@ Core · target · **partial** · Cites BASE-OPS-004, BASE-BACKUP-001
 **Acceptance.**
 1. Stop/restart Worker and runner independently, miss an external heartbeat and interrupt auth-mail/watch jobs; inspect retained attempts, stale/Unknown coverage, nonduplicated notices and archive recovery with no alert replay.
 
-**Evidence.** `src/domain/auxiliary-execution.server.ts`; `src/domain/monitoring-watch.server.ts`; `src/domain/operator-mail.server.ts`; `runners/src/watch-store.mjs`; `tests/resilience/watches.mjs`; `tests/archive-roundtrip.mjs`
-**Gap.** Independent Worker/runner interruption, retry/recovery notices, retained uncertain executions, no duplicate uncertain sends and inactive archive recovery remain asserted. Gap: a missed external heartbeat causing an independent service alarm, and lost contact reading stale with Unknown coverage lack assertions in the surviving cited files.
+**Evidence.** `src/domain/auxiliary-execution.server.ts`; `src/domain/monitoring-watch.server.ts`; `src/domain/operator-mail.server.ts`; `runners/src/watch-store.mjs`; `tests/resilience/watches.mjs` Recover monitoring across runner and Worker crashes without replaying uncertain sends; `tests/archive-roundtrip.mjs`; `tests/ops-stale-coverage-support.mjs` proveStaleRunnerCoverage, mounted once by the resilience journey: independently migrated emitted Worker and isolated clock, native owner authentication and an enrolled production signed runner establish a scheduled Healthy check and Fresh contact; loss of that still-assigned runner past both saved freshness bounds reads simultaneous Stale contact and Unknown target with Incomplete coverage, the original denominator and observation identity; repeated owner reads and persistent Worker restart preserve contact, complete signed history, scheduling and alert records with independently counted zero replacement traffic; one genuinely due signed result restores Fresh contact and Healthy Complete coverage without rewriting the original observation or inventing a recovery event.
+**Gap.** Independent Worker and runner interruption, retry and recovery notices, retained uncertain executions, no duplicate uncertain sends and inactive archive recovery retain their existing proof. Gap: a missed external heartbeat causing an independent service alarm remains owed; its existing campaign is not repeated here. Broader Worker and runner interruption, watch and auth-mail, notification, weekly digest, backup and archive, and console requalification remain owed beyond the retained proof. Uip-owned console work is not released; public-DNS qualification is unavailable and the sd-uptime-c-f39 predecessor and landing hold remain unchanged. Real external-service and other-host qualification, hosted readiness and capacity, and managed-location obligations remain omitted.
 
 #### ARCHIVE-002 — Whole-workspace archives at monitoring scale
 
@@ -1220,7 +1220,7 @@ Core · target · **partial** · Cites BASE-DATA-001 · Register R-2
 2. Restore into an empty installation and compare every table's counts and ARCHIVE-001 transformations.
 3. A 120-monitor account exports in full, and a range or subset export matches its selection.
 
-**Evidence.** `src/domain/archive.server.ts`; `tests/archive-roundtrip.mjs`
+**Evidence.** `src/domain/archive.server.ts`; `tests/archive-roundtrip.mjs` with `tests/archive-selection-support.mjs` proveArchiveSelection: authenticated explicit monitor IDs, integrity-covered selection, complete scheduled revisions and evidence, incident and notification history, shared journals, inactive receiving-owner restore and zero-write authority, reference and bound refusals; retained whole-installation round trip and `tests/erasure-audit.mjs` later-journal fencing
 **Gap.** Validated inactive archives ship and refuse exports beyond 10,000 rows per table, 100 monitors or 2 MiB; streamed, resumable, range/subset archives at SCHEDULE-002 scale do not exist. Storage capacity and archive size at this monitoring scale remain unmeasured; current view/archive bounds are not storage-capacity measurements.
 
 ### Push further with agents
@@ -1308,7 +1308,7 @@ Agent surface · target · **partial**
 5. A foreign Origin returns 403, and a header and body method mismatch returns `HeaderMismatch`.
 6. An oversized body returns 413 with no effect.
 
-**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: transport, discovery and capability refusals.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: transport, discovery and capability refusals.; `tests/agent-oversize-support.mjs`; each 413 has no result or provider traffic and preserves all durable tables, including public-admission counters with delta zero; identical envelopes at the exact bound append one native revision, with held standard work creating its review.  (qualification pending; current judgment and gap retained)
 **Gap.** Native MCP transport, both protocol eras and the declared CORE discovery pass the published 0.2.94 harness. Resources, prompts, events and subscriptions remain undeclared and refused; their complete capability acceptance is unproved.
 
 #### BASE-AGENT-002 — The seed's jobs are tools, through the UI's own actions
@@ -1360,7 +1360,7 @@ Agent surface · target · **partial**
 6. Revoking consent in the seed or in Business refuses the next call within 60 seconds.
 7. After unpairing, Business tokens are refused and the seed's own sign-in still works.
 
-**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: native sponsorship, token audience and renewal refusals.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: native sponsorship, token audience and renewal refusals. `tests/agent-query-token.mjs` with `tests/agent-query-token-child.mjs` — isolated native query-token refusal and diagnostic-secret exclusion: one fresh signed single-sponsor bearer succeeds in Authorization under autonomous and held policies and both protocol versions; query-only and query plus valid Authorization return 401 without changing any durable table or admission counter and without provider traffic. Harmless emitted-Worker logging canaries establish capture before and after the requests; complete child and raw runtime stdout and stderr, response headers and bodies and durable rows exclude the bearer and credential-bearing query or URL in raw and encoded forms.
 **Gap.** Owner-bound sponsorship, changed-email refusal, token audience and renewal negatives pass CORE measurement on published 0.2.94. Inactive and excluded sponsor fixtures remain undeclared; the complete sponsor lifecycle and multiple-sponsor family are unproved.
 
 #### BASE-AGENT-005 — An agent acts as a person in a role, never more
@@ -1376,8 +1376,8 @@ Agent surface · target · **partial**
 4. Calls that widen the agent's own grant or its sponsor's role, or change the policy or Pause, return `self_escalation` and change nothing, even under a policy with every class autonomous; dropping a scope from its own grant runs.
 5. An injection fixture yields no out-of-grant call and no change of class: record text asking for a wider action, or claiming that a recipient is internal.
 
-**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: sponsor authority, self-escalation and BASE-AGENT-005.5.autonomous injection probes.
-**Gap.** Native sponsor authority, self-escalation refusal and ordinary record operations pass. All autonomous additional-argument probes now pass on published 0.2.94: mutations retain their admitted arguments and exact idempotency key, while native stale-version and missing-target guards remain enforced. Complete role parity across retained unfinished jobs is unproved.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-self-escalation-state-support.mjs` proveSelfEscalationState, mounted once by the native journey: synchronous owner-sponsored uptime.grants.update self-grants return self_escalation under autonomous and held policies in both supported MCP versions, with no success or pending work, zero provider traffic and exact preservation of every durable row except the enumerated agent admission and refusal audit with its sequence. Independent paused monitor and independently invited non-sponsor member grants qualify required native proof and signed-in person approval under held policy. `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: sponsor authority, self-escalation and BASE-AGENT-005.5.autonomous injection probes.
+**Gap.** Native sponsor authority, the bounded synchronous self-grant refusal and ordinary record operations pass. All autonomous additional-argument probes now pass on published 0.2.94: mutations retain their admitted arguments and exact idempotency key, while native stale-version and missing-target guards remain enforced. Complete role and UI parity across retained unfinished jobs, full grant resource narrowing and argument widening, sponsor downgrade and suspension, other own-grant and sponsor-role and policy and Pause escalation paths, actual scope dropping and remaining record-text injection families remain unproved. Uip-owned console work is held; ct's unscoped lifecycle families and the AGENT-001 through AGENT-005 AI-data-flow hold remain unchanged.
 
 #### BASE-AGENT-006 — Every action declares its risk class
 
@@ -1393,8 +1393,8 @@ Agent surface · target · **partial**
 5. No tool in `tools / list` declares a class outside the fleet list, and `rer check` fails on one.
 6. A refused call's audit row still records its computed classes.
 
-**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: computed native classes and both-policy decisions.
-**Gap.** Declared native class checks pass under autonomous and held policies. Approved erasure replay retains trusted completed effect facts only after current workspace-owner admission. The wider retained class conditions, provider costs and gated steps remain unproved.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: computed native classes and both-policy decisions. `tests/agent-held-class-claims-support.mjs` — proveHeldClassClaims, mounted once from `tests/agent-door.mjs`: fresh synchronous pause controls and separate class, live, internal and confirmation claims under autonomous and held policies in both protocol versions; owner-created enabled monitors assigned to one enrolled unpolled private runner; independently saved native service and live measure 1, identical policy rules, native targets and ignored argument names; complete durable native preservation before actual sponsor approval, canonical approval handle, unchanged admitted arguments and summary, one pause revision and exact-key replay, zero provider traffic. Modern pending responses use input_required; the older protocol uses approval_required and a modern retry exposes the same pending handle as input_required. `tests/agent-record-class-claims-support.mjs` — proveRecordClassClaims, mounted once from `tests/agent-door.mjs`: acceptance 3's single saved monitor-name record-text cell, read first through MCP before fresh synchronous pause with ordinary arguments; independent owner-created enabled monitors assigned to one enrolled unpolled private runner, clean names and misleading standard, paused, internal and confirmation names under both policies and supported protocol versions. Native enabled definitions independently establish live measure 1 and service; policy rules, disposition and intended target remain unchanged. Held calls preserve the canonical pending approval, saved arguments and exact summary until actual sponsor approval; autonomous calls complete directly. Exact enumerated admission, audit, approval, event, usage and target-revision deltas preserve every unrelated durable row and sequence counter; one intended pause revision and effect-free exact-key replay, with zero runner or provider traffic.
+**Gap.** Declared native class checks pass under autonomous and held policies. Approved erasure replay retains trusted completed effect facts only after current workspace-owner admission. Acceptance 3 is qualified here only for fresh synchronous uptime.monitors.pause argument claims. Its other tools and record-text families, acceptance 2's wider per-tool class conditions, acceptance 4's complete money, external, access and destructive facts, broader refused-call qualification, provider costs and gated steps remain unproved. Uip-owned console work is not released; ct's unscoped lifecycle families and all existing channel, account, device, sibling and Platform holds remain unchanged. No provider dispatch, receipt or optional queued-lifecycle qualification is claimed.
 
 #### BASE-AGENT-007 — The company's policy decides, at one chokepoint
 
@@ -1412,7 +1412,7 @@ Agent surface · target · **partial**
 7. A policy change applies to the next call within 60 seconds, and the audit cites the new revision.
 8. A policy document with a bad signature or another Business's id is rejected, and the door keeps the last valid revision.
 
-**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: unset, renewal, blocked, review and approval policy phases.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: unset, renewal, blocked, review and approval policy phases.; `tests/agent-standard-approval-support.mjs`; sponsor refusal preserves the saved revision; the independently invited reviewer approves that revision; retry discloses the record with one execution, reviewer and sponsor audit attribution and a linked receipt. The existing native current-read replay journey remains registered.; `tests/agent-approval-rejection-support.mjs`; genuine held approval retains canonical handle, native revision and summary; the named person rejects that saved revision through the native session door, and repeated rejection plus identical-key retries with fresh JSON-RPC ids return approval_rejected without a success, execution receipt, second approval, pause or revision. Complete durable snapshots enumerate only person-decision state and its internal event, agent admission and exact audit and relay deltas, preserving monitoring, scheduling, notifications, credentials, usage and custody with zero runner or provider traffic; independent autonomous and genuinely approved held controls each pause once. (qualification pending; current main judgment and gap retained)
 **Gap.** Unanswered-policy refusal, policy renewal negatives, declared blocked variants, held approvals and approved erasure replay pass CORE measurement on published 0.2.94. Standard-only named approval and the retained complete policy lifecycle remain unproved.
 
 #### BASE-AGENT-008 — Truthful attribution
@@ -1430,7 +1430,7 @@ Agent surface · target · **partial**
 6. Activity and exports at 1440 and 390 show `"<agent> for <person>"` for every agent act.
 7. Mail an agent sends to an outside address names `"<agent> for <person>"` as its sender.
 
-**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: agent, sponsor, preparer and independent reviewer attribution.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: agent, sponsor, preparer and independent reviewer attribution.; `tests/agent-form-accept-support.mjs`; identical admitted arguments, explicit key and real returned continuation state retain the original pending approval, saved summary hash, revision, approver marks and version, without a receipt, native pause or second approval. Every durable table, including the sequence ledger, preserves exact rows except the enumerated agent admission counter and replay audit bookkeeping. Modern responses retain URL-mode input_required; the older protocol retains approval_required. Actual signed-in sponsor approval executes the exact saved revision once with person approver and agent preparer attribution; exact-key replay is effect-free, and autonomous counterparts pause once without approval. No runner or provider traffic occurs. (qualification pending; current judgment and gap retained)
 **Gap.** Native agent and preparer identity, sponsor and independent reviewer attribution pass through the shared door. Complete attribution for the retained unscoped lifecycle families remains unproved.
 
 #### BASE-AGENT-009 — Every agent action is audited with its class and decision
@@ -1448,7 +1448,7 @@ Agent surface · target · **partial**
 6. Removing the agent keeps its rows and its name.
 7. The Agents page works at 1440 and 390 with no serious or critical axe findings.
 
-**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: review, execution, replay and native-target audit phases.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: review, execution, replay and native-target audit phases.; `tests/agent-revocation-audit-support.mjs`; synchronous owner revocation retains the complete original audit row and inventory name, specialist and sponsor, while the same unexpired bearer is refused with 401 on discovery; all 216 durable tables are compared with only the intended revoked flag changed and no provider or mail effects.
 **Gap.** Review, execution, exact-key replay and native-continuation audit checks pass the declared CORE measurement on published 0.2.94. Complete audit acceptance for retained unscoped lifecycle families remains unproved.
 
 #### BASE-AGENT-010 — Agents can follow changes
@@ -1483,7 +1483,7 @@ Agent surface · target · **partial**
 6. Pause and Pause all agents each stop the next call within 60 seconds, and resume restores access.
 7. An agent token cannot resume.
 
-**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: Pause, pending-execution refusal and declared limits.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: Pause, pending-execution refusal and declared limits.; `tests/agent-rate-overrun.mjs`; an otherwise-valid current-revision name write with a fresh key and its identical retry return HTTP 429, native rate_limited and a positive integral Retry-After matching the remaining window. Complete durable snapshots, including capacity and sequence counters, preserve all product, revision, scheduling, notification, credential, audit, approval, review, usage, idempotency and custody rows; public monitor and revision reads retain the successful counterpart and no provider traffic occurs.
 **Gap.** Native Pause, refusal of pending execution and declared policy limits pass CORE measurement. The full retained spend, recipient-cap, Business Pause and usage lifecycle remains unproved.
 
 #### BASE-AGENT-012 — Writes are idempotent and conflict-safe
@@ -1499,7 +1499,7 @@ Agent surface · target · **partial**
 4. A stale revision returns a conflict naming the current revision.
 5. A job handle used by another person's token reads as not found.
 
-**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: one-effect replay, current admission, revision conflicts and native continuation identity.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: one-effect replay, current admission, revision conflicts and native continuation identity.; `tests/agent-current-revision-support.mjs`; owner readback establishes its current revision. A fresh explicit key with the current native version and stale expected_revision returns revision_conflict naming that exact current_revision in error metadata and matching agent-readable text, without success, approval, review or execution receipts or target and provider traffic. Every durable table, including sequence counters, preserves exact rows except enumerated agent admission and refusal audit with its relay; a matching expected revision completes one paused name edit with the ordinary autonomous or standard-review decision.
 **Gap.** Current admission, exact-key one-effect replay, argument conflict, stale revision, current native reads and trusted continuation identity pass. Deleted-target erasure replay rechecks current workspace-owner authority and native proof; Pause and fresh-key missing-target refusals remain asserted. Published 0.2.94 injection probes preserve the admitted mutation key and arguments. Retained long-work and full 24-hour lifecycle acceptance remains unproved.
 
 #### BASE-AGENT-013 — Manifest, docs and the conformance journey
@@ -1532,7 +1532,7 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-001, BASE
 3. `resources/templates/list` names exactly the resource templates above, and each write returns a link to the record it touched.
 4. The Base conformance harness passes on Uptime's seeded fixtures under both company policies.
 
-**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: CORE registry, schema and both-policy harness checks.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: CORE registry, schema and both-policy harness checks.; `tests/agent-surface-discovery.mjs`
 **Gap.** No implementation: Uptime has no MCP door, tool registry, resource templates or Base conformance harness run.
 
 #### SURFACE-002 — Live and security are computed per call
@@ -1551,7 +1551,7 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
 7. the pending runners update operation adds live when it revokes or relabels a runner with assigned probes, with the monitors affected; revoking or relabeling a runner without assigned probes does not add live. It adds security when it issues a runner key. `uptime.grants.read` adds live when it grants or revokes a live-effect, synthetic or private-network grant a running monitor's checks use, and the pending heartbeats issue operation adds live when it rotates or revokes a running heartbeat monitor's token or URL authority. Each names the monitors affected; changes to grants or heartbeat authority used only by paused monitors do not add live.
 8. `uptime.access.update` adds security when it resets a member's enrolled second factors, with the factor-reset setting; invitations, role changes and removals do not add security for a factor reset. It adds live when a removal or role or scope change drops a team recipient on a running monitor's route, with the monitors and routes affected; a change that drops no such recipient does not add live.
 
-**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: native live and security class fixtures under both policies.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: native live and security class fixtures under both policies.; `tests/agent-door.mjs` with `tests/agent-monitor-state-support.mjs` proveMonitorStateEffects: equivalent native paused and running name edits compute standard and live; live-blocked policy permits one paused revision and refuses the running edit with unchanged native records; named native person approval holds then commits once with monitor target and reviewed name; exact-key replay and stale native revisions preserve immutable definitions. `agent-surface.json`; `tests/agent-conformance/fixtures.mjs` with `tests/agent-conformance/monitor-state.mjs` pausedUpdateFixture; `tests/agent-conformance/journey.mjs` afterStep: independent standard paused update in published Base conformance under both policies; existing running external and security fixtures retained.; `tests/agent-destination-name-support.mjs`; native step-up refusal, autonomous completion, one attributed held review without approval, live and access blocked, exact-key replay, complete durable preservation and native enabled-state and credential-identity transaction fences. `tests/agent-conformance/destination-name.mjs` beforeDestinationName and afterDestinationName, mounted by existing fixtures and journey hooks: independent native name, state and ciphertext readback for the standard fixture; distinct legacy live and access fixture retained.; `tests/agent-paused-create-support.mjs`; ordinary explicitly paused public HTTP creation is standard measure 1, held standard review is attributable, and exact-key replay retains one paused monitor and immutable first revision; enabled and omitted-enabled creation retain live and public external facts, wait for native person approval under held policy, and produce no runner or provider traffic; existing enabled creation and paused and running update fixtures remain.
 **Gap.** No implementation: no tool declares or computes live or security classes.
 
 #### SURFACE-003 — External and money are computed per call
@@ -1570,7 +1570,7 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
 7. `uptime.routes.read` or `uptime.routes.preview` or `uptime.routes.update`, `uptime.destinations.read` or `uptime.destinations.update` and `uptime.definitions.read` or `uptime.definitions.preview` add external when a route, an enabled destination or a code-applied contact puts a recipient outside the business on the alert path; `uptime.monitors.create` or `uptime.monitors.update` adds external when a slow policy's destinations include a recipient outside the business, and `uptime.monitors.list` or `uptime.monitors.create` or `uptime.monitors.update` adds external when the created monitors' shared alert route includes one. Each carries the recipient count and counterparty *known* for a recipient already on record and *new* otherwise; a change that exposes alerts only within the business does not add external.
 8. the pending handoffs update operation adds external when a mapping exposes incident, maintenance or recovery updates, evidence and attachments to a status page or an outside responder service, with the recipient count and counterparty *public* for a status page, *known* for a PagerDuty, Splunk On-Call or other outside responder service already on record and *new* otherwise; a mapping confined to the business does not add external.
 
-**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: native external class fixtures under both policies.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: native external class fixtures under both policies.; `tests/agent-destination-facts-support.mjs` — saved single-mailbox external recipient facts, native approval custody, exact-key replay and misleading-claim resistance through native queue admission only.; pending calls and exact-key replay queue nothing, native person approval queues one current-credential job, and completed replay retains that same job with no delivery attempt or drill confirmation (lines 66–109). This is acceptance 1's saved-email subset and acceptance 5's matching misleading-claim resistance through native queue admission only.
 **Gap.** No implementation: no tool declares or computes external or money classes.
 
 #### SURFACE-004 — Access, destructive and gated are computed per call
@@ -1589,8 +1589,8 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
 7. `uptime.definitions.read` or `uptime.definitions.preview` adds destructive when code-managed destruction irreversibly erases a monitor, its evidence or another managed record, with the item count per table; a preview or a reversible definition change does not add destructive.
 8. `uptime.checks.run` adds destructive when the monitor holds an active destructive-write grant, with the step and item count; a manual check without such a grant does not add destructive. `uptime.grants.read` adds destructive when it grants authority for destructive writes, with the step and item count; a grant that does not allow destructive writes does not add destructive.
 
-**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: native access and destructive class fixtures under both policies.
-**Gap.** No implementation: no tool declares or computes access, destructive or gated classes, and no incident record attributes an agent act.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: native access and destructive class fixtures under both policies.; `tests/agent-access-facts-support.mjs`; public member authority derives exact access measure 1 and direction, operator audit target, direction-selective held widening, named native approval, autonomous narrowing, fresh native proof and current-version refusals.; `tests/agent-comment-delete-support.mjs`; `tests/agent-conformance/fixtures.mjs`
+**Gap.** No implementation: no tool declares or computes access, destructive or gated classes, and no incident record attributes an agent act. Retained bounded evidence (qualification pending; current missing judgment and unscoped gaps retained): `agent-surface.json` declares access for `uptime.access.update`; `src/agent-door/registry.server.ts` computes widening or narrowing for one member's role and service and team scopes. The native door at `tests/agent-door.mjs` line 50 mounts `tests/agent-access-facts-support.mjs` proveAccessFacts: independently observed native authority and exact access measure 1 and direction (lines 13–96), eight role and scope cases (lines 100–130), direction-selective approval and named-person attribution (lines 132–172), and current-version refusal (lines 174–181). These retained assertions do not qualify acceptance 1's other invitation and removal, runner, key or automation-authority operations. Destructive and gated class qualification and incident-record attribution remain unproved.
 
 #### SURFACE-005 — The monitoring-operator journey under two company policies
 
@@ -1605,7 +1605,7 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-007, BASE
 4. Under the held policy with live blocked, the adoptions, the pause, the maintenance window and the route change are refused and the rest of the week completes.
 5. Before setup is answered, the first call returns `policy_unset` with the setup link, and setup asks every Uptime class with no answer pre-selected.
 
-**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: nativeJourney, beforeStep and afterStep under both company policies.
+**Evidence.** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: nativeJourney, beforeStep and afterStep under both company policies.; `tests/agent-policy-entry-support.mjs`; no complete-week proof is claimed.; the continuation hold and uip-owned console work remain held.
 **Gap.** No implementation: no MCP door exists for a stranger agent to run the monitoring-operator week under either company policy.
 
 #### SURFACE-006 — One-way operational actions carry their effects
@@ -1620,7 +1620,7 @@ Agent surface · target · **missing** · From new · Cites BASE-AGENT-006
 3. `uptime.incidents.assign` or `uptime.incidents.acknowledge` adds live when acknowledge, stop or resolve ends scheduled reminders or a pending fallback on an open incident of a running monitor, including other incidents grouped by acknowledgment. Facts name every monitor, incident and route affected, applying each contact’s acknowledgment policy. Assignment, and a response action that ends no such scheduled reminder or pending fallback, do not add live.
 4. `uptime.checks.run` adds live, with the monitor affected, when the monitor runs setup and cleanup fixtures and the cleanup debts this check can open (one for each cleanup step on each probe and attempt) would bring its open-debt count to the limit, so its next scheduled run would refuse setup. A check of a monitor without fixtures, or one whose possible debts cannot reach the limit, does not add live.
 
-**Evidence.** None.
+**Evidence.** `tests/agent-door.mjs` with `tests/agent-manual-debt-support.mjs` proveManualDebt: acceptance 4 single-probe zero-retry API setup and cleanup boundary, production-runner signed debt intake, below-boundary and ordinary-check exclusions, live-selective approval without a slot, named monitor and debt calculation, replaced debt evidence refusing old approval, fresh approval and exact-key replay queuing one manual slot without scheduled-health changes. `tests/agent-conformance/fixtures.mjs` with `tests/agent-conformance/manual-debt.mjs` prepareManualDebt provides the published Base harness manual-cleanup-boundary class fixture.
 **Gap.** No implementation: no tool computes irreversible cleanup-debt or incident transitions, setup resumption or reminder and fallback suppression across affected monitors, incidents and routes.
 
 ## Later

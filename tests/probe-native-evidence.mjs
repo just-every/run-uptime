@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {fixture} from './resilience/support.mjs';
 import {Resolver} from 'node:dns/promises';
 import {proveJsonSelectors} from './probe-json-evidence-support.mjs';
+import {proveEvidenceIntegrity} from './evidence-integrity-support.mjs';
 const f=await fixture();
 try{
  // An owner cannot save a metadata target; a mixed public/private DNS answer never reaches a socket or becomes Healthy.
@@ -57,3 +58,4 @@ try{
  await proveJsonSelectors(f);
  console.log('PASS saved HTTP/API assertions, retained retries and confirmed failure/recovery');
 }finally{await f.close()}
+await proveEvidenceIntegrity();

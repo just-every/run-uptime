@@ -106,5 +106,6 @@ Missing or stale probes stay Unknown or insufficient. They cannot confirm an
 outage, prove availability or produce a recovery. This handoff supplies neither
 an availability guarantee nor evidence of human delivery.
 
-The console has no handoff-specific rendering yet; these facts are available
-through the existing private reads.
+Configure the handoff in Settings › Alerts → Add destination → Webhook → Request
+format **Oncall handoff**. Sent alerts shows Acknowledged, Received and Responded
+for each alert; Received and Responded stay Unknown.

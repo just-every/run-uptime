@@ -1,7 +1,7 @@
 import {api} from './api.mjs';
 import {followCheck} from './discovery-poll.mjs';
 import {assignmentFor,networkPlan} from './discovery-launch.mjs';
-// DISCOVERY-001 on the new-monitor page, after the website check and the service catalog: the owner authorizes a source (a domain,
+// DISCOVERY-001 on the new-monitor page, as the panel "Discover from DNS, a spec or deploys" under Other ways to add: the owner authorizes a source (a domain,
 // robots and sitemap, an OpenAPI document, a Route 53 or Cloudflare zone, or GitHub Actions, Vercel, Netlify or CodeDeploy
 // deployments), runs it when they choose, and reviews what the runner proposes: where each proposal was found, its intended
 // outcome, duplicates, expected traffic and cost, locations and credential needs. Rejecting records a decision; starting adopts
@@ -13,8 +13,7 @@ const element=(tag,className,text)=>{const node=document.createElement(tag);if(c
 const plural=(count,word)=>`${count.toLocaleString('en-US')} ${word}${count===1?'':'s'}`;
 const at=value=>new Date(value).toLocaleString();
 const MARKUP=`<section id="discovery-sources" class="sources-panel ui-card" aria-labelledby="sources-heading">
- <h2 id="sources-heading">Discover from your DNS, spec and deploys</h2>
- <p class="helper ui-helper">Authorize a source, then run it when you choose. Your runner reads it read-only and proposes monitors, each with where it was found, what it would cost and what it needs. Nothing starts until you start it.</p>
+ <h2 id="sources-heading">Discover from DNS, a spec or deploys</h2>
  <form id="source-form" class="sources-form" novalidate>
   <label for="source-kind">Source</label><select id="source-kind"></select>
   <p id="source-access" class="helper ui-helper"></p>
@@ -37,11 +36,10 @@ const MARKUP=`<section id="discovery-sources" class="sources-panel ui-card" aria
  </section>
 </section>`;
 function styles(){if(!document.querySelector('link[href="/editor/sources.css"]'))document.head.append(Object.assign(document.createElement('link'),{rel:'stylesheet',href:'/editor/sources.css'}))}
-export function mountDiscoverySources({overview,opened}){
- if(opened)return ()=>{};
+export function mountDiscoverySources({overview,host}){
  styles();
- if(!document.querySelector('#discovery-sources'))(document.querySelector('#service-catalog')??document.querySelector('#discovery'))?.insertAdjacentHTML('afterend',MARKUP);
- const root=document.querySelector('#discovery-sources');if(!root)return ()=>{};
+ host.insertAdjacentHTML('beforeend',MARKUP);
+ const root=host.querySelector('#discovery-sources');
  const $=selector=>root.querySelector(selector),control=new AbortController(),plan=networkPlan(overview);
  const form=$('#source-form'),kind=$('#source-kind'),label=$('#source-label'),fields=$('#source-fields'),feedback=$('#source-feedback'),list=$('#sources-list'),review=$('#source-review'),start=$('#source-start');
  let kinds=[],shown=null,busy=false;
@@ -51,7 +49,7 @@ export function mountDiscoverySources({overview,opened}){
   $('#source-access').textContent=spec.access;
   fields.replaceChildren(...spec.fields.map(name=>{const wrap=element('label','sources-field');wrap.append(FIELD[name]);const input=element('input');input.name=name;input.autocomplete='off';input.spellcheck=false;if(PLACEHOLDER[name])input.placeholder=PLACEHOLDER[name];wrap.append(input);return wrap}));
   const credential=$('#source-credential');credential.hidden=!spec.provider;
-  credential.textContent=spec.provider?`The credential never leaves your runner: put it in provider-<reference>.json in the runner's credential folder, naming "${spec.provider}" and this source's identifiers. See Discovering endpoints in the monitor docs.`:'';
+  if(spec.provider){credential.textContent=`The credential never leaves your runner: put it in provider-<reference>.json in the runner's credential folder, naming "${spec.provider}" and this source's identifiers. `;credential.append(Object.assign(element('a','ui-link','Discovery source credentials'),{href:'/docs/runner#discovery-source-credentials'}))}else credential.textContent='';
  }
  async function load(){
   const document_=await api('/api/discovery-sources','GET',undefined,{signal:control.signal});

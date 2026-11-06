@@ -63,11 +63,9 @@ try {
         const url = runtime.origin + path + '?login_hint=' + encodeURIComponent(bindings.OWNER_EMAIL);
         for (const method of ['GET', 'HEAD']) {
           const response = await page.request.fetch(url, {method, maxRedirects: 0});
-          assert.equal(response.status(), complete ? 303 : 200, `${path} ${method}: only a complete owner session forwards`);
-          if (complete) {
-            assert.equal(response.headers().location, '/app');
-            assert.match(response.headers()['cache-control'], /no-store/);
-          }
+          assert.equal(response.status(), 303, `${path} ${method}: a signed-in owner session forwards`);
+          assert.equal(response.headers().location, '/app');
+          assert.match(response.headers()['cache-control'], /no-store/);
         }
         // The empty-list console deliberately forwards to first-monitor onboarding.
         // Commit observes the server redirect without racing that document's navigation.
@@ -76,7 +74,11 @@ try {
           await page.waitForURL(runtime.origin + '/app/monitors/new');
           await page.getByRole('heading', {name: 'Add your first monitor', exact: true}).waitFor();
         }
-        else assert.equal(await page.getByRole('textbox', {name: /^Email/}).inputValue(), bindings.OWNER_EMAIL, 'incomplete session keeps the sign-in form and prefill');
+        else {
+          // An owner who still owes the enrolled factor goes on to the console's verification step, not the form again.
+          await page.waitForURL(runtime.origin + '/app');
+          await page.getByLabel('Authenticator or recovery code', {exact: true}).waitFor();
+        }
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
         if (process.env.UPTIME_AUTH_SHOTS) {
           await mkdir(process.env.UPTIME_AUTH_SHOTS, {recursive: true});
@@ -160,8 +162,7 @@ try {
   assert.ok((await members.json()).members.some(member => member.displayName === 'Native browser owner'), 'incident assignment uses the typed owner name');
   for (const width of [1440]) {
     await login.setViewportSize({width, height: 900});
-    await login.goto(runtime.origin + '/app/settings');
-    await login.getByRole('button', {name: 'Manage operators', exact: true}).click();
+    await login.goto(runtime.origin + '/app/settings/people');
     await login.locator('.operator-row').filter({hasText: 'Native browser owner'}).waitFor();
     const people = await loginContext.request.get(runtime.origin + '/auth/operators');
     assert.equal(people.status(), 200);
