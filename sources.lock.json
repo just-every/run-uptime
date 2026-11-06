@@ -9156,7 +9156,7 @@
       "executable": false
     },
     "tests/maintenance-windows.mjs": {
-      "sha256": "00d3377fc74377ebe3c2da713e6900578ff2fa06d4527078dd1c79ad1612f250",
+      "sha256": "42dca2deaec8e44d40696b8303f73dee843cb40c93d025eca9d678c79e877811",
       "executable": false
     },
     "tests/management-support.mjs": {

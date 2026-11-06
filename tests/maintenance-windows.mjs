@@ -173,7 +173,7 @@ try{
   restart:async()=>{await worker.dispose();worker=await emittedRunnerWorker(directory,bindings,{assets:true});db=await worker.getD1Database('DB')},
   idle:async()=>{for(const id of ids)await good(`/api/monitors/${id}`,{...(await monitor(id)).definition,enabled:false},200,'PATCH')},
  });
- console.log('MAINT-001 passed: applied New York recurrence across DST, signed failures before and after fall-back, recurring expiry/cancel and reports; DST review, exact group apply, real signed suppress/pause execution, in-flight retention, restart/cancel/expiry, no orphan recovery, immutable report/CSV counts.');
+ console.log('MAINT-001 passed: applied New York recurrence across DST, signed failures before and after fall-back, recurring expiry and cancellation, separate report denominators; DST review, exact group apply, real signed suppression and execution pause, in-flight retention, restart, cancellation and expiry, no orphan recovery, immutable report and CSV counts.');
 }finally{
  releaseHeld?.();await Promise.all([...children].map(child=>child.stop()));await close(control);await worker?.dispose();await close(target);await rm(directory,{recursive:true,force:true});
 }
