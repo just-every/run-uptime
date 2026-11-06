@@ -1,3 +1,4 @@
+import {expireReplayCalls} from './base/modules/agent-door/index.ts'
 import {agentDoorResponse,uptimeAgentDoor} from './agent-door/index.server.ts'
 import {registerSourceHistory} from './domain/source-history/routes.server.ts'
 import {previewReportRecurrence} from './domain/reports/recurring.server.ts'
@@ -37,7 +38,7 @@ import {cleanupDebt,resolveCleanupDebt} from './domain/cleanup-debt.server.ts'
 import {effectGrants,grantEffect,revokeEffect,spendGrant} from './domain/effect-grants.server.ts'
 import {rumDoor} from './domain/rum/door.server.ts'
 import {registerRumRoutes} from './domain/rum/routes.server.ts'
-import {readAlertRoute,previewAlertRoute,applyAlertRoute,sampleAlertRoute} from './domain/alert-routes.server.ts'
+import {readAlertRoute,previewAlertRoute,applyAlertRoute,sampleAlertRoute,readInstallationRoute,previewInstallationRoute,applyInstallationRoute} from './domain/alert-routes.server.ts'
 import {previewMaintenance,applyMaintenance,cancelMaintenance} from './domain/planned-maintenance.server.ts'
 // The package's demo module: operator-auth runs from the package and reads demo mode from this same instance.
 import {withDemo} from '@runeditrun/rer/modules/demo'
@@ -76,10 +77,12 @@ import {afterClaim,openDoorForOwner} from './domain/business-import/claim-door.s
 import {rerRunnerStatus} from './domain/rer-runner-status.server.ts'
 import {rerCutoverStatus} from './domain/rer-cutover-status.server.ts'
 import {definitionImportHistory,undoDefinitionImport} from './domain/business-import/history.server.ts'
+import {archiveSelection} from './domain/archive-selection.server.ts';
 import {archiveRestoreAvailable} from './domain/archive.server.ts';
 import {exportJournal} from './domain/archive-fence.server.ts'
 import {operatorSession,authenticatedSession} from './domain/operator-auth.server.ts'
 import {accessDeniedDocument} from './domain/access-document.server.ts'
+import {ownerFactorDocument} from './domain/mfa/signin-document.server.ts'
 import {boundedHealth,health} from './domain/health.server.ts'
 import {permission,accessResponse,type Access} from './domain/access.server.ts'
 import {authorizedDatabase,auditAccess} from './domain/access-database.server.ts'
@@ -142,6 +145,7 @@ api.use('/api/*',async(c,next)=>{
 api.use('/api/*',boundary)
 api.use('/api/*',async(c,next)=>{
  const access=c.get('access')
+ if(access&&c.req.path==='/api/archive'&&new URL(c.req.url).search){await next();if(c.res.ok)await auditAccess(c.env,access);return}
  if(access&&(access.action==='export'||access.action==='read'&&(['csv','pdf'].includes(c.req.query('format')??'')||/text\/csv|application\/pdf/.test(c.req.header('accept')??''))))await auditAccess(c.env,access)
  await next()
 })
@@ -196,6 +200,10 @@ api.get('/api/monitors/:id/slow-policy',async c=>c.json(await readSlowPolicy(c.e
 api.post('/api/monitors/:id/slow-policy/import-preview',async c=>{const current=await readSlowPolicy(c.env,c.req.param('id'));return c.json({slow:importSlowPolicy(c.get('input'),current.definition),revision:current.revision})})
 api.post('/api/monitors/:id/slow-policy',async c=>c.json(await saveSlowPolicy(c.env,c.req.param('id'),c.get('input'),{kind:'operator',ref:(await authenticatedSession(c.env,c.req.raw))!.operator.id})))
 api.post('/api/monitors/:id/slow-ack',async c=>c.json(await acknowledgeSlow(c.env,c.req.param('id'),c.get('input'),{kind:'operator',ref:(await authenticatedSession(c.env,c.req.raw))!.operator.id})))
+// Who is told by default (Settings › Alerts): the installation scope of the same route, behind the same owner doors.
+api.get('/api/alert-route',async c=>c.json(await storageOperation('alertRoutes.read',()=>readInstallationRoute(c.env))))
+api.post('/api/alert-route/preview',async c=>c.json(await storageOperation('alertRoutes.preview',()=>previewInstallationRoute(c.env,c.get('input')))))
+api.post('/api/alert-route/apply',async c=>{const actor={kind:'operator' as const,ref:(await authenticatedSession(c.env,c.req.raw))!.operator.id};return c.json(await storageOperation('alertRoutes.apply',()=>applyInstallationRoute(c.env,c.get('input'),actor)))})
 api.get('/api/monitors/:id/alert-route',async c=>c.json(await storageOperation('alertRoutes.read',()=>readAlertRoute(c.env,c.req.param('id')))))
 api.post('/api/monitors/:id/alert-route/preview',async c=>c.json(await storageOperation('alertRoutes.preview',()=>previewAlertRoute(c.env,c.req.param('id'),c.get('input')))))
 api.post('/api/monitors/:id/alert-route/import-preview',async c=>c.json(await storageOperation('alertRoutes.import',()=>previewAlertRoute(c.env,c.req.param('id'),importContactSchedule(c.get('input'))))))
@@ -309,7 +317,7 @@ api.post('/api/discovery-sources/:id/decisions',async c=>c.json(await decideProp
 api.post('/api/runner/discoveries/claim',async c=>c.json(await claimDiscovery(c.env,c.get('requestText'),c.get('runner'))))
 api.post('/api/runner/discoveries/:id/result',async c=>{const text=c.get('requestText');if(!await signedRunnerBody(c.env,c.get('runner'),text,c.req.header('x-sent-at')??'',c.req.header('x-runner-signature')??'',DISCOVERY_RESULT_BYTES))return c.json({error:'Invalid signed result'},403);return c.json(await completeDiscovery(c.env,c.req.param('id'),discoveryAnswer(text),c.get('runner')))})
 api.get('/api/archive/restore-status',async c=>c.json({available:await archiveRestoreAvailable(c.env)}))
-api.get('/api/archive',async c=>c.json(await archive(c.env)))
+api.get('/api/archive',async c=>c.json(await archive(c.env,archiveSelection(new URL(c.req.url).searchParams))))
 api.post('/api/restore',async c=>{const input=c.get('input');return c.json(await restore(c.env,input.archive??input,undefined,{laterJournal:input.laterJournal,actor:{kind:'operator',ref:(await authenticatedSession(c.env,c.req.raw))!.operator.id}}))})
 // Definition files import through the owner's import door (/api/operator/import/*): recognising a file names its source,
 // returns its text with request secrets withheld (the text the screen uploads) and writes nothing; a plan's preview reads the door's retained plan; export is read-only; undo pauses or restores.
@@ -409,13 +417,13 @@ const handler={async fetch(request,env,execution){
  if(path!=='/health'&&path!=='/api'&&!path.startsWith('/api/')&&!isPublicDocument(path)){
   // Only native document routes and Start transports reach the private renderer.
   if(!isConsoleDocument(path)&&!path.startsWith('/_serverFn/'))return notFoundDocument();
-  try{const principal=await authenticatedSession(bindings,request);if(!principal)return new Response(null,{status:303,headers:{location:'/login','cache-control':'no-store'}});try{await permission(bindings,request)}catch(error){if(accessResponse(error))return accessDeniedDocument(principal.operator.displayName,request.method==='HEAD');throw error}if(principal.operator.role==='owner')await openDoorForOwner(bindings);if(!await firstRunComplete(bindings))return setupRedirect()}catch(error){return authFailure(error)}
+  try{const principal=await authenticatedSession(bindings,request);if(!principal)return new Response(null,{status:303,headers:{location:'/login','cache-control':'no-store'}});try{await permission(bindings,request)}catch(error){const owed=isConsoleDocument(path)?await ownerFactorDocument(bindings,principal,error,request.method==='HEAD'):null;if(owed)return owed;if(accessResponse(error))return accessDeniedDocument(principal.operator.displayName,request.method==='HEAD');throw error}if(principal.operator.role==='owner')await openDoorForOwner(bindings);if(!await firstRunComplete(bindings))return setupRedirect()}catch(error){return authFailure(error)}
   const canonical=canonicalConsolePath(url);if(canonical)return consoleRedirect(canonical);
   if(isMonitorPage(path)&&undecodableMonitorId(path))return notFoundDocument();
  }
  const response=await dispatch(request,()=>api.fetch(request,bindings,execution),()=>start.fetch(request));
  return noTransform(isConsoleDocument(path)?editorDocument(response,bindings):response)
-},async scheduled(_controller,env){env=await demoBindings(env as Bindings);await validateWorkerConfiguration(env as Bindings);const bindings=env as Bindings;await recordCronRun(bindings);await maintenance(bindings);const checks=new SubrequestBudget(CHECK_SUBREQUESTS);await scheduledPublicChecks(bindings,checks);await scheduledNotifications(bindings,new SubrequestBudget(RUN_SUBREQUESTS-WATCH_SUBREQUESTS-(CHECK_SUBREQUESTS-checks.remaining)));await monitoringWatch(bindings,()=>boundedHealth(()=>health(bindings)),async()=>{const data=await overview(bindings);return data.monitors.filter(m=>m.definition.enabled).every(m=>m.state.targetState==='Healthy')})}} satisfies ExportedHandler
+},async scheduled(_controller,env){env=await demoBindings(env as Bindings);await validateWorkerConfiguration(env as Bindings);const bindings=env as Bindings;await recordCronRun(bindings);await expireReplayCalls({options:{db:bindings.DB},now:Date.now});await maintenance(bindings);const checks=new SubrequestBudget(CHECK_SUBREQUESTS);await scheduledPublicChecks(bindings,checks);await scheduledNotifications(bindings,new SubrequestBudget(RUN_SUBREQUESTS-WATCH_SUBREQUESTS-(CHECK_SUBREQUESTS-checks.remaining)));await monitoringWatch(bindings,()=>boundedHealth(()=>health(bindings)),async()=>{const data=await overview(bindings);return data.monitors.filter(m=>m.definition.enabled).every(m=>m.state.targetState==='Healthy')})}} satisfies ExportedHandler
 export default withDemo({...handler,fetch(request,env,execution){
  return new URL(request.url).pathname==='/health'?boundedHealth(()=>handler.fetch(request,env,execution)):handler.fetch(request,env,execution)
 }} satisfies ExportedHandler,{seed:seedDemo})

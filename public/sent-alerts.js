@@ -1,0 +1,35 @@
+import {escape} from './console-format.js';
+import {retryNote,chainLines} from './delivery-chain.js';
+// Sent alerts (Settings › Alerts): what Uptime sent, newest first. The newest five are rows; the rest of the history (up to
+// 200) wait inside All sent alerts, a <details> the console's refresh keeps open (public/dom-patch.js). Each row is its own
+// disclosure: why the send ended as it did, the HTTP status with the receiver's response excerpt, and any retry or fallback
+// (public/delivery-chain.js).
+// The pill keeps acceptance apart from receipt: Accepted means the provider or endpoint took it, not that anyone read it.
+const NEWEST=5;
+const label=state=>({accepted:'Accepted',uncertain:'Uncertain',queued:'Queued',sending:'Sending'})[state]??state;
+// A refused send that was never attempted was held back by Uptime (disabled, rotated, cancelled, no sender): Not sent.
+const pill=d=>d.state==='rejected'?(d.attempts>0?['rejected',`Failed${d.status?` · ${d.status}`:''}`]:['not-sent','Not sent']):[d.state,label(d.state)];
+export function deliveryReason(d,{workerSends=false,demo=false,cronStarted=true}={}){return d.state==='queued'?(workerSends?`Queued — waiting to send.${demo||cronStarted?'':' Scheduled sending is starting up; this can take up to two hours.'}`:'Queued — waiting for your server to send it.'):d.state==='sending'?'The request has started; waiting for its response.':d.state==='accepted'?'Send completed.':d.state==='uncertain'?(d.code==='claim_expired'?`The delivery timed out before completion. Check ${workerSends?'Worker':'runner'} timing; delivery is uncertain and will not be automatically resent.`:'Unsuccessful confirmation: delivery is uncertain. It will not be automatically resent.'):d.code==='report_cancelled'?'Not sent: the owner cancelled this scheduled report.':d.code==='destination_disabled'?'Not sent: the destination was disabled before delivery.':d.code==='destination_deleted'?'Not sent: the destination was deleted before delivery.':d.code==='credential_rotated'?'Not sent: webhook credentials were rotated before delivery.':d.code==='credential_unavailable'?'Not sent: credentials are unavailable. Edit the destination to re-enter them.':d.code==='runner_clock_ahead'?'Not sent: the runner clock is ahead of Uptime. Synchronize the server clock. This event will not be resent.':d.code==='mail_not_configured'?'Not sent: email is not set up. Configure the installation sender, then send a new test.':d.code==='mail_input_invalid'?'Not sent: the sender or message failed validation.':'The request was not accepted. It will not be automatically resent.'}
+// One short date style: the time today, "Yesterday" and the time, else the date and the time.
+function when(t){
+ const at=new Date(t),day=new Date(at).setHours(0,0,0,0),today=new Date().setHours(0,0,0,0),clock=at.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+ return day===today?clock:day===today-86400000?`Yesterday ${clock}`:`${at.toLocaleDateString([],{month:'short',day:'numeric',...(at.getFullYear()===new Date().getFullYear()?{}:{year:'numeric'})})}, ${clock}`;
+}
+const excerpt=text=>escape(text.replace(/&(amp|lt|gt|quot|#39);/g,(_,name)=>({amp:'&',lt:'<',gt:'>',quot:'"','#39':"'"}[name])));
+// An Oncall delivery's three separate facts (d.handoff): Oncall's intake accepted it (a validated native receipt), Oncall reports
+// it received, and a person responded. Each reads from its own object only, so a fact with no evidence stays Unknown and none is
+// inferred from another, the delivery state, the HTTP status or the attempts. The acknowledgment replaces the raw receipt.
+const stamp=value=>{const at=new Date(value);return `<time datetime="${escape(at.toISOString())}">${escape(at.toLocaleString())}</time>`};
+const fact=(name,f,unknown,known)=>`<div><dt>${name}</dt><dd>${f.state==='unknown'?`Unknown · ${unknown}`:`${stamp(f.receiverAcceptedAt??f.at)} · ${known}`}</dd></div>`;
+const handoffLines=d=>{
+ const {acknowledged,received,responded}=d.handoff,word=f=>escape(f.state.charAt(0).toUpperCase()+f.state.slice(1));
+ return `<dl class="drill-lines">${fact('Acknowledged',acknowledged,'no valid Oncall receipt',`Oncall accepted it${acknowledged.deliveryId!==d.id?' · this incident\'s first alert':''}`)}${fact('Received',received,'Oncall doesn\'t report it',word(received))}${fact('Responded',responded,'Oncall doesn\'t report it',word(responded))}</dl>`;
+};
+function row(d,notes){
+ const [tone,word]=pill(d),title=d.event.eventType==='uptime.notification.drill'||d.event.kind==='test'?'Test message':d.event.title;
+ return `<li class="sent-row" data-key="delivery-${escape(d.id)}"><details><summary><span class="sent-what"><strong>${escape(title)}</strong><small><time datetime="${escape(new Date(d.createdAt).toISOString())}">${escape(when(d.createdAt))}</time> · ${escape(d.destinationName)}</small></span><span class="ui-pill ${escape(tone)}">${escape(word)}</span></summary><div class="sent-body"><p>${escape(retryNote(d)??deliveryReason(d,notes))}</p>${d.handoff?handoffLines(d):''}${d.status?`<p>HTTP ${escape(d.status)}</p>`:''}${d.responseExcerpt&&!d.handoff?`<pre class="webhook-response">${excerpt(d.responseExcerpt)}</pre>`:''}${d.chain?chainLines(d.chain).map(line=>`<p>${escape(line)}</p>`).join(''):''}${d.code==='mail_not_configured'?'<a href="/docs/notifications#add-a-destination">Set up email</a>':''}</div></details></li>`;
+}
+export function sentAlertsMarkup(notes){
+ const sent=notes.deliveries,rest=sent.slice(NEWEST);
+ return `<h2 id="sent-alerts-heading">Sent alerts</h2>${sent.length?`<ul class="sent-list">${sent.slice(0,NEWEST).map(d=>row(d,notes)).join('')}</ul>`:'<p class="rows-note">No alerts sent yet.</p>'}${rest.length?`<details class="all-sent" id="all-sent-alerts"><summary>All sent alerts</summary><ul class="sent-list">${rest.map(d=>row(d,notes)).join('')}</ul></details>`:''}<details class="scheduled-reports" id="scheduled-reports"><summary>Scheduled reports</summary><div id="report-schedule-controls" data-owned="report-schedules"></div></details><a class="sent-guide" href="/docs/notifications">Notification guide</a>`;
+}

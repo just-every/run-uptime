@@ -1,9 +1,9 @@
-/* DEPENDENCY-002: the third-party service catalog on the new-monitor page (/app/monitor). Loaded after discovery.css and
-   built from the same tokens. Hooks editor/monitor/catalog.mjs relies on: #service-catalog, #catalog-search,
+/* The panels under New monitor's Other ways to add that came from the catalog: Follow a service's status (DEPENDENCY-002),
+   Paste many URLs or a CSV and Import a file. Loaded after discovery.css and built from the same tokens. Hooks editor/monitor/catalog.mjs relies on: #service-catalog, #catalog-search,
    #catalog-status[role=status], #catalog-results .catalog-entry, .catalog-form, .catalog-feedback[data-state]. */
-.catalog-panel { margin-top: 20px; padding: 18px 24px 20px; }
+.catalog-panel { padding: 18px 24px 20px; }
 .catalog-panel[hidden] { display: none; }
-.catalog-panel h2 { font-size: 22px; letter-spacing: -0.02em; }
+.catalog-panel h2 { margin-bottom: 14px; font-size: 20px; letter-spacing: -0.015em; }
 .catalog-panel input[type="search"] { display: block; width: 100%; margin-top: 6px; font-size: 16px; }
 .catalog-list { display: grid; gap: 12px; margin: 14px 0 0; padding: 0; list-style: none; }
 .catalog-entry { display: grid; gap: 6px; padding: 14px 16px; border: 1px solid var(--line-strong); border-radius: var(--radius-panel); background: var(--card); min-width: 0; }
@@ -12,6 +12,8 @@
 .catalog-summary { margin: 0; color: var(--body); font-size: 14px; }
 .catalog-source, .catalog-note, .catalog-followed { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
 .catalog-review { margin: 0; padding: 8px 12px; border-radius: var(--radius-control); background: var(--rose-soft); color: var(--rose-text); font-size: 13.5px; font-weight: 600; overflow-wrap: anywhere; }
+.catalog-more > summary { min-height: 40px; color: var(--ink); font-size: 14.5px; font-weight: 600; cursor: pointer; }
+.catalog-body { display: grid; gap: 6px; padding-bottom: 4px; }
 .catalog-form { display: grid; gap: 8px; margin-top: 4px; }
 .catalog-scope { margin: 0; padding: 0; border: 0; display: grid; gap: 6px; min-width: 0; }
 .catalog-scope legend { padding: 0; color: var(--ink); font-size: 14px; font-weight: 600; }
@@ -33,4 +35,57 @@
   .catalog-components, .catalog-region { margin-left: 0; }
   .catalog-components { grid-template-columns: minmax(0, 1fr); }
   .catalog-form button.primary { justify-self: stretch; }
+}
+
+/* Paste many URLs or a CSV (public/catalog-dialogs.js mountBulkAdd). */
+.way-host > h2, .way-host > .card-head h2 { font-size: 20px; letter-spacing: -0.015em; }
+.catalog-add { display: grid; gap: 14px; margin-top: 14px; }
+.catalog-add textarea { width: 100%; min-height: 128px; font-family: var(--mono); font-size: 14px; }
+.catalog-add-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
+.catalog-add-row .primary { margin-left: auto; }
+.catalog-add .file-pill { position: relative; display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 16px; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--card); color: var(--ink); font-size: 14.5px; font-weight: 600; cursor: pointer; }
+.catalog-add .file-pill input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.catalog-add .file-pill:has(input:focus-visible) { outline: 2px solid var(--focus, var(--ink)); outline-offset: 2px; }
+.catalog-add .file-pill .ui-icon { width: 18px; height: 18px; }
+.catalog-add .check-row { min-height: 40px; font-size: 14.5px; }
+.catalog-shared { padding-top: 4px; border-top: 1px solid var(--line); }
+.catalog-shared > summary { min-height: 44px; color: var(--ink); font-size: 15px; font-weight: 600; cursor: pointer; }
+.catalog-shared fieldset { min-width: 0; margin: 14px 0 0; padding: 0; border: 0; }
+.catalog-shared legend { padding: 0; margin-bottom: 8px; color: var(--ink); font-size: 14px; font-weight: 600; }
+.catalog-shared .catalog-locations { display: flex; flex-wrap: wrap; gap: 4px 18px; }
+.catalog-shared .catalog-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px 16px; margin-top: 6px; }
+.catalog-add .catalog-plan-status { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.catalog-add .catalog-plan-status[data-state="working"] { color: var(--ink); font-weight: 500; }
+.catalog-add .catalog-plan-status[data-state="error"] { padding: 8px 12px; border-radius: var(--radius-control); background: var(--rose-soft); color: var(--rose-text); font-weight: 600; }
+.catalog-add .catalog-preview:empty { display: none; }
+.catalog-add .catalog-plan-table { margin-top: 12px; }
+.catalog-add .catalog-estimates { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; margin: 12px 0; }
+.catalog-add .catalog-estimates dt { color: var(--muted); font-size: 13px; }
+.catalog-add .catalog-estimates dd { margin: 4px 0 0; font-weight: 600; }
+.catalog-add .catalog-plan-table small { display: block; color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+.catalog-add .catalog-plan-table td { overflow-wrap: anywhere; }
+.catalog-add-apply:has([data-apply]:disabled) { display: none; }
+
+/* Import a file (public/definitions.js mountImport): the file or its pasted text, then the preview it returns. */
+.way-host .card-head { margin-bottom: 14px; }
+.way-host .definition-input { display: grid; gap: 12px; }
+.way-host .definition-input textarea { min-height: 120px; font-family: var(--mono); font-size: 14px; }
+.way-host .btn-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.way-host #definition-preview-area { display: grid; gap: 12px; margin-top: 6px; }
+.way-host #definition-applied:empty { display: none; }
+.way-host .definition-counts { display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 0; }
+.way-host .definition-counts dt { color: var(--muted); font-size: 13px; font-weight: 500; }
+.way-host .definition-counts dd { margin: 0; color: var(--ink); font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.way-host .definition-source { max-width: 72ch; overflow-wrap: anywhere; }
+.way-host .definition-details p, .way-host .definition-details li { max-width: 64ch; overflow-wrap: anywhere; }
+.way-host .definition-details ul { margin: 4px 0 0; padding-left: 18px; }
+/* The preview's own wrapper is its table-wrap container (app-theme.css .ui-table--stack-md), as .catalog-plan-table is Paste's:
+   the table stacks while the panel is under 760px and never widens it, and a long name or address wraps inside its cell. */
+.way-host .table-scroll { container: table-wrap / inline-size; overflow-x: auto; }
+.way-host .table-scroll td { overflow-wrap: anywhere; }
+/* The preview tables stack into captioned cards on a phone; their captions are 13px here (app-theme.css draws 12px). */
+.way-host .ui-table td[data-label]::before { font-size: 13px; }
+@media (max-width: 700px) {
+  .catalog-add-row .primary { margin-left: 0; width: 100%; }
+  .catalog-add .catalog-estimates { grid-template-columns: minmax(0, 1fr); }
 }

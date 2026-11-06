@@ -79,7 +79,7 @@ export const RUM_STYLES=`.pagespeed .ps-places{display:grid;grid-template-column
 .pagespeed .ps-rating.needs-work{--mark:var(--mark-triangle);--mark-color:var(--amber);color:var(--amber-text)}.pagespeed .ps-rating.poor{--mark:var(--mark-cross);--mark-color:var(--rose);color:var(--rose-text)}
 .pagespeed #pagespeed-rum-more{max-width:54rem;margin-top:4px}.pagespeed #pagespeed-privacy{margin-top:12px}.pagespeed .ps-erase>summary{color:var(--rose-text)}.pagespeed .ps-erase>p+p{margin-top:8px}
 @container table-wrap (max-width:719px){.pagespeed .ps-rum thead td{width:4rem}.pagespeed .ps-rum :is(th,td){padding-right:4px}.pagespeed .ps-rating{display:flex;font-size:13px}.pagespeed .ps-rating::before{display:none}}
-@media(max-width:339px){.pagespeed .ps-rum thead td{width:3.75rem}.pagespeed .ps-rum :is(th,td){padding-right:3px}.pagespeed .ps-rum td{font-size:13px}}`;
+@media(max-width:359px){.pagespeed .ps-rum thead td{width:3.75rem}.pagespeed .ps-rum :is(th,td){padding-right:3px}.pagespeed .ps-rum td{font-size:13px}}`;
 /** The Real users section's body for the monitor's site, or the one line saying no beacon is registered. */
 export function rumMarkup(rum){
  if(!rum)return '<p>No real-user beacon is registered for this site.</p>';

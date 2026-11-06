@@ -14,8 +14,8 @@ export function fillMetadata(root, definition) {
         card.dataset.monitorMetadata = '';
         root.querySelector('.editor-stack')?.append(card);
     }
-    if (!card.children.length)
-        card.innerHTML = '<details class="editor-field labels-fold"><summary>Labels (optional)</summary><div class="editor-fields">' + METADATA_FIELDS.filter(name => name !== 'dependencies').map(field).join('') + '<fieldset class="dependency-picker" hidden><legend>Depends on</legend></fieldset></div></details>';
+    if (!card.querySelector('.labels-fold'))
+        card.insertAdjacentHTML('beforeend', '<details class="editor-field labels-fold"><summary>Labels (optional)</summary><div class="editor-fields">' + METADATA_FIELDS.filter(name => name !== 'dependencies').map(field).join('') + '<fieldset class="dependency-picker" hidden><legend>Depends on</legend></fieldset></div></details>');
     const values = metadataValues(definition);
     for (const name of METADATA_FIELDS) {
         const input = root.querySelector(`[name="${name}"]`);
@@ -24,7 +24,7 @@ export function fillMetadata(root, definition) {
     }
     for (const box of root.querySelectorAll('[name="dependencies"]'))
         box.checked = (definition.dependencies ?? []).includes(box.value);
-    card.querySelector('details').open = METADATA_FIELDS.some(name => values[name]);
+    card.querySelector('.labels-fold').open = METADATA_FIELDS.some(name => values[name]);
 }
 // The other monitors this one can depend on, as a checklist; none to choose from keeps the group hidden.
 export function setDependencyChoices(root, monitors, selected = []) {

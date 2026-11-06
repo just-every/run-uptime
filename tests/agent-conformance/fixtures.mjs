@@ -1,7 +1,10 @@
+import {destinationNameFixture} from './destination-name.mjs';
+import {prepareManualDebt} from './manual-debt.mjs';
 import {randomUUID} from 'node:crypto';
 import {freshFactor, memberSessions, nativeHttp} from './http.mjs';
 import {prepareIncident} from './incident.mjs';
 import {discoveries, phaseState, rememberDiscovery} from './state.mjs';
+import {pausedUpdateFixture} from './monitor-state.mjs';
 
 const prefix = 'Native conformance ';
 function publicDefinition(label, enabled = false) {
@@ -29,6 +32,13 @@ export default async function prepare(context) {
  const memberSelf = await nativeHttp({...context, cookie: member.cookie}).json('/api/access/self');
  const owner = await http.json('/api/access/self');
  const observed = await prepareIncident(http);
+ // Independent native text and edit history: the MCP add fixture is retained.
+ const commentPath='/api/incidents/'+encodeURIComponent(observed.incident.id)+'/comments';
+ const original='synthetic-uptime-original-'+randomUUID(),text='synthetic-uptime-edited-'+randomUUID();
+ const added=await http.json(commentPath,{text:original,mentions:[]});
+ const edited=await http.json(commentPath+'/'+added.id,{text,version:added.version,mentions:[]},{method:'PATCH'});
+ const commentDelete={id:added.id,version:edited.version,original,text};
+
  // HTTP requests remain queued for an explicitly enrolled private vantage.
  // CORE exercises admission; native worker completion is its separate family.
  const definitionFor = (label, enabled) => ({...publicDefinition(label, enabled), assignments: {'local-a': {runnerId: observed.runner.id}}});
@@ -46,9 +56,16 @@ export default async function prepare(context) {
  const startsAt = Date.now() + 86400000;
  const window = {id: 'conformance-' + randomUUID(), name: 'Native conformance maintenance',
   mode: 'suppress', timeZone: 'UTC', startsAt, endsAt: startsAt + 3600000};
+ const debtFixture=await prepareManualDebt(http);
+ const manualLive=debtFixture.monitor;
+ await debtFixture.close();
  const values = {
+  ...await destinationNameFixture(context),
+  pausedCreationDefinition: definitionFor('created paused',false),
+  ...await pausedUpdateFixture(http,definitionFor('paused name edit',false)),
+  manualLive,
   ...records, erase: {...records.erase, name: records.erase.definition.name},
-  ...observed, owner: {id: owner.id, revision: owner.revision}, member: {id: member.id, revision: memberSelf.revision},
+  ...observed, commentDelete, owner: {id: owner.id, revision: owner.revision}, member: {id: member.id, revision: memberSelf.revision},
   destination: {id: destination.id}, discovery: {id: discovery.id},
   route: {id: records.route.id, policy: {scope: 'monitor', mode: 'selected', destinationIds: [destination.id], expectedRevision: 0}},
   grant: {id: records.monitor.id, operatorId: member.id}, window, definition,

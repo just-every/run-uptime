@@ -1,3 +1,4 @@
+import {beforeDestinationName,afterDestinationName} from './destination-name.mjs';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {phaseState, rememberDiscovery} from './state.mjs';
@@ -5,7 +6,9 @@ import {nativeHttp} from './http.mjs';
 import {errorCode} from '../../src/base/modules/agent-door/conformance/protocol.mjs';
 
 const snapshots = new Map();
+const deletionSnapshots = new Map();
 const sponsorAccess = new Map();
+const creationInventories = new Map();
 const recordAuthority = new Set(['uptime.access.update', 'uptime.destinations.update', 'uptime.monitors.create', 'uptime.monitors.update', 'uptime.routes.update']);
 async function result(tool, name, args) {
  const answer = await tool(name, args);
@@ -14,17 +17,70 @@ async function result(tool, name, args) {
 }
 export async function beforeStep(context) {
  const {origin, phase, step, tool} = context;
+ await beforeDestinationName(context);
  if (recordAuthority.has(step.tool)) sponsorAccess.set(origin + phase + step.id, await nativeHttp(context).json('/api/access/self'));
+ if(step.id==='create-paused-monitor'){
+  const definition=phaseState.get(origin).pausedCreationDefinition;
+  assert.equal(definition.enabled,false);assert.equal(definition.type,'http');assert.equal(definition.network,'public');
+  assert.equal(definition.request,undefined);assert.equal(definition.tlsTrust,undefined);assert.equal(definition.slow,undefined);
+  const inventory=await nativeHttp(context).json('/api/v1/monitors?limit=100');
+  assert.ok(!inventory.items.some(row=>row.name===definition.name));
+  creationInventories.set(origin+phase,inventory.items.map(({id,name,revision,enabled})=>({id,name,revision,enabled})));
+ }
  if (!step.tool.startsWith('uptime.incidents.')) return;
  const state = phaseState.get(origin);
+ if(step.id==='delete-incident-comment'){
+  const view=await nativeHttp(context).json('/api/v1/incidents/'+encodeURIComponent(state.incident.id));
+  const saved=view.comments.find(row=>row.id===state.commentDelete.id);
+  assert.equal(saved.text,state.commentDelete.text);assert.equal(saved.version,state.commentDelete.version);
+  assert.deepEqual(saved.history.map(row=>({version:row.version,text:row.text})),[{version:1,text:state.commentDelete.original}]);
+  deletionSnapshots.set(origin+phase,view);
+ }
  snapshots.set(origin + phase, await result(tool, 'uptime.monitors.history', {id: state.observedMonitor.id}));
 }
 export async function afterStep(context) {
  const {origin, phase, step, result: output, tool} = context;
+ await afterDestinationName(context);
  if (recordAuthority.has(step.tool)) assert.deepEqual(await nativeHttp(context).json('/api/access/self'), sponsorAccess.get(origin + phase + step.id), 'Record operations leave the current sponsor’s native role and grants unchanged.');
+ if(step.id==='create-paused-monitor'){
+  const definition=phaseState.get(origin).pausedCreationDefinition,http=nativeHttp(context);
+  const inventory=await http.json('/api/v1/monitors?limit=100');
+  assert.deepEqual(inventory.items.filter(row=>row.id!==output.id).map(({id,name,revision,enabled})=>({id,name,revision,enabled})),creationInventories.get(origin+phase),'paused creation preserves every existing native monitor');
+  const matches=inventory.items.filter(row=>row.name===definition.name);
+  assert.equal(matches.length,1);assert.equal(matches[0].id,output.id);
+  assert.equal(matches[0].enabled,false);assert.equal(matches[0].revision,1);
+  assert.equal(matches[0].current.state,'Paused');assert.equal(matches[0].current.lastCheckAt,null);
+  assert.equal(output.definition.name,definition.name);assert.equal(output.definition.enabled,false);
+  const revisions=await result(tool,'uptime.monitors.revisions',{id:output.id});
+  assert.equal(revisions.items.length,1);assert.equal(revisions.items[0].revision,1);
+  for(const key of ['name','type','enabled','intervalMs','timeoutMs','retries','probes','failureQuorum','confirmSlots','recoverSlots','freshnessMs','service','group'])assert.deepEqual(revisions.items[0].definition[key],definition[key],'the native first revision retains independently reviewed '+key);
+ }
+ if(step.id==='rename-paused-monitor'){
+  const record=phaseState.get(origin).pausedUpdate;
+  const rows=await nativeHttp(context).json('/api/monitors/'+record.id+'/revisions');
+  assert.equal(rows.length,2,'the standard fixture saves exactly one native revision');
+  assert.deepEqual(rows.find(row=>row.revision===record.revision).definition,record.definition);
+  assert.deepEqual(rows.find(row=>row.revision===record.revision+1).definition,{...record.definition,name:'Native conformance paused name edited'});
+  assert.equal(output.revision,record.revision+1);assert.equal(output.definition.enabled,false);
+ }
  if (step.tool === 'uptime.discovery.start') rememberDiscovery(origin, output.id);
  if (!step.tool.startsWith('uptime.incidents.')) return;
  const state = phaseState.get(origin);
+ if(step.id==='delete-incident-comment'){
+  const before=deletionSnapshots.get(origin+phase),comment=state.commentDelete;
+  const view=await nativeHttp(context).json('/api/v1/incidents/'+encodeURIComponent(state.incident.id));
+  const tombstone=view.comments.find(row=>row.id===comment.id);
+  assert.equal(output.incidentId,state.incident.id);assert.equal(output.id,comment.id);assert.equal(output.deleted,true);
+  assert.equal(tombstone.text,null);assert.equal(tombstone.version,comment.version+1);assert.ok(tombstone.deletedAt);
+  assert.deepEqual(tombstone.history,[]);assert.deepEqual(tombstone.mentions,[]);
+  assert.ok(!JSON.stringify(view).includes(comment.original));assert.ok(!JSON.stringify(view).includes(comment.text));
+  assert.deepEqual(view.comments.filter(row=>row.id!==comment.id),before.comments.filter(row=>row.id!==comment.id));
+  const deletion=view.timeline.filter(row=>row.kind==='comment_deleted'&&row.data.commentId===comment.id);
+  assert.equal(deletion.length,1);assert.equal(deletion[0].data.version,comment.version+1);
+  assert.equal(deletion[0].actor.kind,'agent');
+  for(const key of ['machineState','status','version','nextDue','nextDueKind','deliveries','trigger','recovery'])assert.deepEqual(view[key],before[key]);
+  console.log('PROBE SURFACE-004 published-Base-'+phase+': native comment with edit history -> one attributed deletion, null text, empty history and unchanged native incident state');
+ }
  const history = await result(tool, 'uptime.monitors.history', {id: state.observedMonitor.id});
  assert.deepEqual(history, snapshots.get(origin + phase), 'Incident coordination never rewrites independently observed scheduled evidence.');
 }

@@ -1,3 +1,5 @@
+import {checkAgentArtifacts} from '../base/modules/agent-door/index.ts'
+import {uptimeAgentArtifacts} from '../agent-door/erasure.server.ts'
 import {businessImportLocalTables} from './business-import/inventory.server.ts'
 import {TABLES,columns} from './archive-schema.ts'
 /** Every permanent schema table has a portability decision. Unknown tables and
@@ -6,6 +8,8 @@ export const installationLocalTables:Record<string,string>={
  ...Object.fromEntries(['uptime_agent_revisions','uptime_agent_handoffs','uptime_agent_manual','uptime_agent_discoveries','uptime_agent_notifications'].map(name=>[name,'Installation-local originating agent, consent and one-time runner handoff custody; history retained, never restored execution authority.'])),
  uptime_agent_native_proof:'Installation-local native person proof references, exact action binding and expiry; never restored authentication.',
  ...Object.fromEntries(['agent_door_state','agent_door_agents','agent_door_audit','agent_door_calls','agent_door_usage','agent_door_approvals','agent_door_reviews','agent_door_events'].map(name=>[name,'Installation-local agent policy, consent, audit, retained outcome, events and approvals; never restored authority.'])),
+ agent_door_relay:'Installation-private decision ids and Business id; signed pulls project current erasure-aware audit, never portable product history.',
+ agent_door_replay_aliases:'Installation-private HMAC replay custody, never exported or accepted from an archive.',
  ...Object.fromEntries(['bs_settings','bs_team','bs_overrides','bs_logo','bs_audit','bs_assert'].map(name=>[name,'Installation-local signed Business settings and native people mapping; never restored authority.'])),
  report_recurrences:'Installation-local recurring report authority and owner admission; frozen scheduled report snapshots travel as inactive history.',
  report_occurrences:'Installation-local unique recurrence occurrence dispatch linkage; restored snapshots never authorize another send.',
@@ -69,6 +73,7 @@ export const installationLocalTables:Record<string,string>={
 };
 /** SQLite's own sqlite_% tables and Cloudflare's _cf_% tables (real D1 adds _cf_KV and others) belong to the platform: never exported, never restored into, never refused. GLOB keeps the underscore literal. */
 export async function assertArchiveInventory(db:D1Database){
+ await checkAgentArtifacts(db,uptimeAgentArtifacts);
  const rows=await db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT GLOB '_cf_*' ORDER BY name").all<{name:string}>();
  for(const {name} of rows.results)if(!name.startsWith('rer_portability_')&&!TABLES.includes(name)&&!Object.hasOwn(installationLocalTables,name))throw Error(`Archive unclassified table: ${name}`);
  const sourceColumns:Record<string,string[]>={...columns,notification_destinations:['id','name','kind','enabled','credential_id','created_at','deleted_at','webhook_template'],notification_jobs:[...columns.notification_jobs,'credential_id','claim','claim_until'],integration_deliveries:[...columns.integration_deliveries,'fingerprint','destination_hash','claim','claim_until'],integration_replays:[...columns.integration_replays,'fingerprint']};

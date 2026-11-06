@@ -5,8 +5,8 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {chromium} from 'playwright';
 import {migratedWorker} from './notify-acceptance-runtime.mjs';
-import {testAuthBindings,authRequest,sessionCookie} from './auth-test-support.mjs';
-import {authenticatorCode} from './mfa-auth-support.mjs';
+import {testAuthBindings,authRequest,sessionCookie,deliveredLink} from './auth-test-support.mjs';
+import {authenticatorCode,completeSecondFactor,factorRequest} from './mfa-auth-support.mjs';
 import {inviteDoorMember} from './access-door-support.mjs';
 
 // Folded into operator-security's existing factor registration. The authenticator
@@ -16,13 +16,13 @@ export async function proveSecurityControls(){
   const directory=await mkdtemp(join(tmpdir(),'uptime-security-console-')),origin='http://localhost:15503',bindings={...testAuthBindings,UPTIME_ORIGIN:origin};let worker,browser;
   try{
    ({worker}=await migratedWorker({port:15503,persist:directory,bindings}));let DB=await worker.getD1Database('DB');const call=authRequest(origin);
-   const cookie=sessionCookie(await call('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'synthetic-uptime-601'}));
+   let cookie=sessionCookie(await call('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'synthetic-uptime-601'}));
    assert.equal((await fetch(origin+'/setup',{method:'POST',redirect:'manual',headers:{origin,cookie}})).status,303);
    const monitorResponse=await call('/api/monitors',{name:'synthetic-uptime-602',url:'https://example.com/',enabled:false,tags:['synthetic-uptime-603']},{cookie});assert.equal(monitorResponse.status,201);const monitor=await monitorResponse.json();const secondResponse=await call('/api/monitors',{name:'synthetic-uptime-612',url:'https://example.org/',enabled:false},{cookie});assert.equal(secondResponse.status,201);const second=await secondResponse.json();
    browser=await chromium.launch({...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{}),headless:true,args:['--no-sandbox','--use-mock-keychain','--password-store=basic']});const context=await browser.newContext({viewport:{width:1440,height:1000},timezoneId:'UTC'}),[name,...parts]=cookie.split('=');await context.addCookies([{name,value:parts.join('='),url:origin}]);const page=await context.newPage();await page.setViewportSize({width,height:1000});
    await context.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
    const cdp=await context.newCDPSession(page);await cdp.send('WebAuthn.enable');const {authenticatorId}=await cdp.send('WebAuthn.addVirtualAuthenticator',{options:{protocol:'ctap2',transport:'usb',hasResidentKey:true,hasUserVerification:true,isUserVerified:true,automaticPresenceSimulation:true}});
-   await page.goto(origin+'/app/settings');const panel=page.locator('#security-controls');await panel.locator('[data-factor-state]').getByText(/Second factors: 0/).waitFor();
+   await page.goto(origin+'/app/settings/people');const panel=page.locator('#security-controls');await panel.locator('[data-factor-state]').getByText(/Second factors: 0/).waitFor();
    const shot=async(gap,step)=>{if(process.env.UPTIME_SCREENSHOTS){const out=join(process.env.UPTIME_SCREENSHOTS,gap);await mkdir(out,{recursive:true});await page.screenshot({path:join(out,step+'-'+width+'.png'),mask:[panel.locator('[data-totp-secret]')]})}};
    assert.equal(await panel.getByText('Verify a second factor',{exact:true}).isVisible(),false);assert.equal(await panel.getByRole('button',{name:'Replace recovery codes',exact:true}).isVisible(),false);
    await panel.getByText('Manage second factors',{exact:true}).click();await panel.getByRole('button',{name:'Enroll authenticator',exact:true}).scrollIntoViewIfNeeded();await shot('G1','factorless-owner');
@@ -38,6 +38,30 @@ export async function proveSecurityControls(){
    };
    const owner=await enroll();await panel.getByRole('button',{name:'Enroll passkey',exact:true}).click();await panel.getByText('Passkey enrolled.',{exact:true}).waitFor();
    const state=await(await call('/api/access/mfa/status',undefined,{cookie})).json();assert.deepEqual(state.factors.map(f=>f.kind).sort(),['totp','webauthn']);assert.equal(state.passkeysAvailable,true);await shot('G1','allowed-passkeys');
+   // The owner signs out and back in by email link. The new session owes the enrolled factor: the console's own step asks
+   // for it at the address opened (no Access denied, no refusal JSON), refuses a wrong and a replayed code, then opens that
+   // screen, where a gated action works. A non-owner whose session owes a factor still gets Access denied, never the step.
+   {
+    await page.locator('a[data-view="signout"]:visible').click();await page.waitForURL(origin+'/login');
+    await page.getByLabel('Email address',{exact:true}).fill(bindings.OWNER_EMAIL);await page.getByRole('button',{name:'Send sign-in link',exact:true}).click();await page.waitForURL(url=>url.searchParams.get('notice')==='sent');
+    await page.goto((await deliveredLink(call,{email:bindings.OWNER_EMAIL})).href);const landing=page.waitForResponse(response=>new URL(response.url()).pathname==='/setup');await page.getByRole('button',{name:'Confirm',exact:true}).click();
+    const step=page.locator('[data-factor-step]'),codeField=step.getByLabel('Authenticator or recovery code',{exact:true}),verifyStep=step.getByRole('button',{name:'Verify and continue',exact:true});
+    const asked=async served=>{assert.equal(served.status(),403);assert.match(served.headers()['content-type'],/^text\/html/);await page.getByRole('heading',{name:'Verify your second factor',exact:true}).waitFor();await codeField.waitFor();assert.ok(!(await page.locator('body').innerText()).includes('Access denied'))};
+    await asked(await landing);await asked(await page.goto(origin+'/app/settings/backup'));
+    assert.equal(await codeField.evaluate(e=>e===document.activeElement),true);assert.equal(await step.getByRole('button',{name:'Use a passkey',exact:true}).isVisible(),true);
+    for(const size of [1440,390]){await page.setViewportSize({width:size,height:size===390?844:1000});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));const box=await codeField.boundingBox();assert.ok(box&&box.y+box.height<=page.viewportSize().height);if(process.env.UPTIME_SCREENSHOTS){const out=join(process.env.UPTIME_SCREENSHOTS,'G4');await mkdir(out,{recursive:true});await page.screenshot({path:join(out,'signin-step-'+size+'.png'),fullPage:true})}}await page.setViewportSize({width,height:1000});
+    const again=name+'='+(await context.cookies(origin)).find(c=>c.name===name).value;
+    await codeField.fill('000000');await verifyStep.click();await step.getByText(/code didn't match/).waitFor();assert.equal(await codeField.inputValue(),'000000');assert.equal((await call('/api/overview',undefined,{cookie:again})).status,403,'a wrong code leaves the session refused');
+    const {counter}=await DB.prepare("SELECT counter FROM uptime_mfa_factors WHERE kind='totp'").first(),code=authenticatorCode(owner.secret,Math.max(counter+1,Math.floor(Date.now()/30000))*30000);
+    await codeField.fill(code);await verifyStep.click();await page.getByRole('heading',{name:'Backup',exact:true}).waitFor();assert.equal(page.url(),origin+'/app/settings/backup','the screen asked for opens');
+    assert.equal((await factorRequest(origin,again)('/totp/verify',{code})).status,400,'a used authenticator step is refused');
+    const archive=page.waitForResponse(response=>new URL(response.url()).pathname==='/api/archive'),download=page.waitForEvent('download');await page.getByRole('button',{name:'Download backup',exact:true}).click();assert.equal((await archive).status(),200,'a gated action succeeds after the sign-in step');await download;
+    const memberEmail='synthetic-uptime-613@example.test';assert.equal((await call('/auth/invite',{email:memberEmail,displayName:'synthetic-uptime-613',role:'member'},{cookie:again})).status,202);
+    await completeSecondFactor(origin,sessionCookie(await call('/auth/confirm',{token:(await deliveredLink(call,{email:memberEmail,kind:'invite'})).searchParams.get('token')})));
+    assert.equal((await call('/auth/magic-link',{email:memberEmail,returnTo:'/app'})).status,202);const owed=sessionCookie(await call('/auth/confirm',{token:(await deliveredLink(call,{email:memberEmail})).searchParams.get('token')}));
+    const refused=await call('/app',undefined,{cookie:owed}),refusal=await refused.text();assert.equal(refused.status,403);assert.ok(refusal.includes('Access denied')&&!refusal.includes('Verify your second factor'),'a non-owner is refused, never shown the owner step');
+    cookie=again;await page.getByRole('navigation',{name:'Settings'}).getByRole('link',{name:'People',exact:true}).click();await panel.locator('[data-factor-state]').getByText(/Second factors: 2/).waitFor();
+   }
    await DB.prepare('UPDATE uptime_mfa_proofs SET verified_at=?').bind(Date.now()-300001).run();
    const denied=await call('/api/access/mfa/policy',{required:true},{cookie});assert.equal(denied.status,403);const reason=(await denied.json()).error;
    await panel.getByLabel('Require second factors for all members',{exact:true}).check();await panel.getByRole('button',{name:'Save factor policy',exact:true}).click();await panel.getByText(reason,{exact:true}).waitFor();const staleLine=await panel.locator('[data-security-status]').boundingBox();assert.ok(staleLine&&staleLine.y>=0&&staleLine.y+staleLine.height<=page.viewportSize().height);
@@ -78,7 +102,7 @@ export async function proveSecurityControls(){
    await panel.locator('[data-factors]').getByRole('button',{name:'Remove factor',exact:true}).click();await panel.getByText('Factor removed.',{exact:true}).waitFor();assert.equal((await(await call('/api/access/mfa/status',undefined,{cookie:member.cookie})).json()).factors.length,0);assert.ok(!await panel.textContent().then(text=>text.includes(memberFactor.secret)));
    await page.addScriptTag({path:new URL('../node_modules/axe-core/axe.min.js',import.meta.url).pathname});assert.deepEqual((await page.evaluate(()=>axe.run(document.querySelector('#security-controls')))).violations.filter(v=>['serious','critical'].includes(v.impact)).map(v=>v.id),[]);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
    if(process.env.UPTIME_SCREENSHOTS)await panel.screenshot({path:join(process.env.UPTIME_SCREENSHOTS,`security-member-${width}.png`)});
-   await worker.dispose();const loopback='http://127.0.0.1:15503';({worker}=await migratedWorker({port:15503,persist:directory,bindings:{...bindings,UPTIME_ORIGIN:loopback}}));await context.addCookies([{name,value:parts.join('='),url:loopback}]);await context.unroute('**/*');await context.route('**/*',route=>new URL(route.request().url()).origin===loopback?route.continue():route.abort());await page.goto(loopback+'/app/settings');await panel.getByText('Passkeys need a secure address.',{exact:true}).waitFor();await panel.getByText('Manage second factors',{exact:true}).click();assert.equal(await panel.getByRole('button',{name:'Enroll passkey',exact:true}).isVisible(),false);assert.equal(await panel.getByRole('button',{name:'Verify passkey',exact:true}).isVisible(),false);await shot('G1','loopback-passkeys');
+   await worker.dispose();const loopback='http://127.0.0.1:15503';({worker}=await migratedWorker({port:15503,persist:directory,bindings:{...bindings,UPTIME_ORIGIN:loopback}}));await context.addCookies([{name,value:cookie.slice(name.length+1),url:loopback}]);await context.unroute('**/*');await context.route('**/*',route=>new URL(route.request().url()).origin===loopback?route.continue():route.abort());await page.goto(loopback+'/app/settings/people');await panel.getByText('Passkeys need a secure address.',{exact:true}).waitFor();await panel.getByText('Manage second factors',{exact:true}).click();assert.equal(await panel.getByRole('button',{name:'Enroll passkey',exact:true}).isVisible(),false);assert.equal(await panel.getByRole('button',{name:'Verify passkey',exact:true}).isVisible(),false);await shot('G1','loopback-passkeys');
    console.log(`ACCESS-003/READAPI-001 Settings ${width} PASS: owner/member TOTP, recovery once, CDP passkey, stale policy/key step-up, hash-only restricted monitoring/CI issuance, usage and immediate revocation, live member refusal, factor removal, axe/reflow. Existing-document member proof; initial narrowed-role shell entry remains held.`);
   }finally{await browser?.close();await worker?.dispose();await rm(directory,{recursive:true,force:true})}
  }

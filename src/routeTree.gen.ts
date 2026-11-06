@@ -13,16 +13,19 @@ import { Route as ConsoleRouteImport } from './routes/_console'
 import { Route as DocsIndexRouteImport } from './routes/docs.index'
 import { Route as DocsSlugRouteImport } from './routes/docs.$slug'
 import { Route as ConsoleAppIndexRouteImport } from './routes/_console.app.index'
-import { Route as ConsoleAppArchiveRouteImport } from './routes/_console.app.archive'
 import { Route as ConsoleAppLocationsRouteImport } from './routes/_console.app.locations'
-import { Route as ConsoleAppNotificationsRouteImport } from './routes/_console.app.notifications'
 import { Route as ConsoleAppSettingsRouteImport } from './routes/_console.app.settings'
 import { Route as ConsoleAppSignoutRouteImport } from './routes/_console.app.signout'
 import { Route as AppMonitorsNewRouteImport } from './routes/app.monitors.new'
 import { Route as ConsoleAppMonitorsIndexRouteImport } from './routes/_console.app.monitors.index'
+import { Route as ConsoleAppSettingsAreaRouteImport } from './routes/_console.app.settings.$area'
 import { Route as AppMonitorsIdIndexRouteImport } from './routes/app.monitors.$id.index'
 import { Route as AppMonitorsIdEditRouteImport } from './routes/app.monitors.$id.edit'
+import { Route as AppMonitorsNewDiscoverRouteImport } from './routes/app.monitors.new.discover'
+import { Route as AppMonitorsNewFileRouteImport } from './routes/app.monitors.new.file'
+import { Route as AppMonitorsNewFollowRouteImport } from './routes/app.monitors.new.follow'
 import { Route as AppMonitorsNewManualRouteImport } from './routes/app.monitors.new.manual'
+import { Route as AppMonitorsNewPasteRouteImport } from './routes/app.monitors.new.paste'
 import { Route as AppMonitorsNewDiscoveryJobRouteImport } from './routes/app.monitors.new.discovery.$job'
 import { Route as AppMonitorsNewManualSplatRouteImport } from './routes/app.monitors.new.manual.$'
 
@@ -45,19 +48,9 @@ const ConsoleAppIndexRoute = ConsoleAppIndexRouteImport.update({
   path: '/app/',
   getParentRoute: () => ConsoleRoute,
 } as any)
-const ConsoleAppArchiveRoute = ConsoleAppArchiveRouteImport.update({
-  id: '/app/archive',
-  path: '/app/archive',
-  getParentRoute: () => ConsoleRoute,
-} as any)
 const ConsoleAppLocationsRoute = ConsoleAppLocationsRouteImport.update({
   id: '/app/locations',
   path: '/app/locations',
-  getParentRoute: () => ConsoleRoute,
-} as any)
-const ConsoleAppNotificationsRoute = ConsoleAppNotificationsRouteImport.update({
-  id: '/app/notifications',
-  path: '/app/notifications',
   getParentRoute: () => ConsoleRoute,
 } as any)
 const ConsoleAppSettingsRoute = ConsoleAppSettingsRouteImport.update({
@@ -80,6 +73,11 @@ const ConsoleAppMonitorsIndexRoute = ConsoleAppMonitorsIndexRouteImport.update({
   path: '/app/monitors/',
   getParentRoute: () => ConsoleRoute,
 } as any)
+const ConsoleAppSettingsAreaRoute = ConsoleAppSettingsAreaRouteImport.update({
+  id: '/$area',
+  path: '/$area',
+  getParentRoute: () => ConsoleAppSettingsRoute,
+} as any)
 const AppMonitorsIdIndexRoute = AppMonitorsIdIndexRouteImport.update({
   id: '/app/monitors/$id/',
   path: '/app/monitors/$id/',
@@ -90,9 +88,29 @@ const AppMonitorsIdEditRoute = AppMonitorsIdEditRouteImport.update({
   path: '/app/monitors/$id/edit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppMonitorsNewDiscoverRoute = AppMonitorsNewDiscoverRouteImport.update({
+  id: '/discover',
+  path: '/discover',
+  getParentRoute: () => AppMonitorsNewRoute,
+} as any)
+const AppMonitorsNewFileRoute = AppMonitorsNewFileRouteImport.update({
+  id: '/file',
+  path: '/file',
+  getParentRoute: () => AppMonitorsNewRoute,
+} as any)
+const AppMonitorsNewFollowRoute = AppMonitorsNewFollowRouteImport.update({
+  id: '/follow',
+  path: '/follow',
+  getParentRoute: () => AppMonitorsNewRoute,
+} as any)
 const AppMonitorsNewManualRoute = AppMonitorsNewManualRouteImport.update({
   id: '/manual',
   path: '/manual',
+  getParentRoute: () => AppMonitorsNewRoute,
+} as any)
+const AppMonitorsNewPasteRoute = AppMonitorsNewPasteRouteImport.update({
+  id: '/paste',
+  path: '/paste',
   getParentRoute: () => AppMonitorsNewRoute,
 } as any)
 const AppMonitorsNewDiscoveryJobRoute =
@@ -112,15 +130,18 @@ export interface FileRoutesByFullPath {
   '/': typeof ConsoleRouteWithChildren
   '/docs/$slug': typeof DocsSlugRoute
   '/docs/': typeof DocsIndexRoute
-  '/app/archive': typeof ConsoleAppArchiveRoute
   '/app/locations': typeof ConsoleAppLocationsRoute
-  '/app/notifications': typeof ConsoleAppNotificationsRoute
-  '/app/settings': typeof ConsoleAppSettingsRoute
+  '/app/settings': typeof ConsoleAppSettingsRouteWithChildren
   '/app/signout': typeof ConsoleAppSignoutRoute
   '/app/monitors/new': typeof AppMonitorsNewRouteWithChildren
   '/app/': typeof ConsoleAppIndexRoute
+  '/app/settings/$area': typeof ConsoleAppSettingsAreaRoute
   '/app/monitors/$id/edit': typeof AppMonitorsIdEditRoute
+  '/app/monitors/new/discover': typeof AppMonitorsNewDiscoverRoute
+  '/app/monitors/new/file': typeof AppMonitorsNewFileRoute
+  '/app/monitors/new/follow': typeof AppMonitorsNewFollowRoute
   '/app/monitors/new/manual': typeof AppMonitorsNewManualRouteWithChildren
+  '/app/monitors/new/paste': typeof AppMonitorsNewPasteRoute
   '/app/monitors/': typeof ConsoleAppMonitorsIndexRoute
   '/app/monitors/$id/': typeof AppMonitorsIdIndexRoute
   '/app/monitors/new/discovery/$job': typeof AppMonitorsNewDiscoveryJobRoute
@@ -130,15 +151,18 @@ export interface FileRoutesByTo {
   '/': typeof ConsoleRouteWithChildren
   '/docs/$slug': typeof DocsSlugRoute
   '/docs': typeof DocsIndexRoute
-  '/app/archive': typeof ConsoleAppArchiveRoute
   '/app/locations': typeof ConsoleAppLocationsRoute
-  '/app/notifications': typeof ConsoleAppNotificationsRoute
-  '/app/settings': typeof ConsoleAppSettingsRoute
+  '/app/settings': typeof ConsoleAppSettingsRouteWithChildren
   '/app/signout': typeof ConsoleAppSignoutRoute
   '/app/monitors/new': typeof AppMonitorsNewRouteWithChildren
   '/app': typeof ConsoleAppIndexRoute
+  '/app/settings/$area': typeof ConsoleAppSettingsAreaRoute
   '/app/monitors/$id/edit': typeof AppMonitorsIdEditRoute
+  '/app/monitors/new/discover': typeof AppMonitorsNewDiscoverRoute
+  '/app/monitors/new/file': typeof AppMonitorsNewFileRoute
+  '/app/monitors/new/follow': typeof AppMonitorsNewFollowRoute
   '/app/monitors/new/manual': typeof AppMonitorsNewManualRouteWithChildren
+  '/app/monitors/new/paste': typeof AppMonitorsNewPasteRoute
   '/app/monitors': typeof ConsoleAppMonitorsIndexRoute
   '/app/monitors/$id': typeof AppMonitorsIdIndexRoute
   '/app/monitors/new/discovery/$job': typeof AppMonitorsNewDiscoveryJobRoute
@@ -149,15 +173,18 @@ export interface FileRoutesById {
   '/_console': typeof ConsoleRouteWithChildren
   '/docs/$slug': typeof DocsSlugRoute
   '/docs/': typeof DocsIndexRoute
-  '/_console/app/archive': typeof ConsoleAppArchiveRoute
   '/_console/app/locations': typeof ConsoleAppLocationsRoute
-  '/_console/app/notifications': typeof ConsoleAppNotificationsRoute
-  '/_console/app/settings': typeof ConsoleAppSettingsRoute
+  '/_console/app/settings': typeof ConsoleAppSettingsRouteWithChildren
   '/_console/app/signout': typeof ConsoleAppSignoutRoute
   '/app/monitors/new': typeof AppMonitorsNewRouteWithChildren
   '/_console/app/': typeof ConsoleAppIndexRoute
+  '/_console/app/settings/$area': typeof ConsoleAppSettingsAreaRoute
   '/app/monitors/$id/edit': typeof AppMonitorsIdEditRoute
+  '/app/monitors/new/discover': typeof AppMonitorsNewDiscoverRoute
+  '/app/monitors/new/file': typeof AppMonitorsNewFileRoute
+  '/app/monitors/new/follow': typeof AppMonitorsNewFollowRoute
   '/app/monitors/new/manual': typeof AppMonitorsNewManualRouteWithChildren
+  '/app/monitors/new/paste': typeof AppMonitorsNewPasteRoute
   '/_console/app/monitors/': typeof ConsoleAppMonitorsIndexRoute
   '/app/monitors/$id/': typeof AppMonitorsIdIndexRoute
   '/app/monitors/new/discovery/$job': typeof AppMonitorsNewDiscoveryJobRoute
@@ -169,15 +196,18 @@ export interface FileRouteTypes {
     | '/'
     | '/docs/$slug'
     | '/docs/'
-    | '/app/archive'
     | '/app/locations'
-    | '/app/notifications'
     | '/app/settings'
     | '/app/signout'
     | '/app/monitors/new'
     | '/app/'
+    | '/app/settings/$area'
     | '/app/monitors/$id/edit'
+    | '/app/monitors/new/discover'
+    | '/app/monitors/new/file'
+    | '/app/monitors/new/follow'
     | '/app/monitors/new/manual'
+    | '/app/monitors/new/paste'
     | '/app/monitors/'
     | '/app/monitors/$id/'
     | '/app/monitors/new/discovery/$job'
@@ -187,15 +217,18 @@ export interface FileRouteTypes {
     | '/'
     | '/docs/$slug'
     | '/docs'
-    | '/app/archive'
     | '/app/locations'
-    | '/app/notifications'
     | '/app/settings'
     | '/app/signout'
     | '/app/monitors/new'
     | '/app'
+    | '/app/settings/$area'
     | '/app/monitors/$id/edit'
+    | '/app/monitors/new/discover'
+    | '/app/monitors/new/file'
+    | '/app/monitors/new/follow'
     | '/app/monitors/new/manual'
+    | '/app/monitors/new/paste'
     | '/app/monitors'
     | '/app/monitors/$id'
     | '/app/monitors/new/discovery/$job'
@@ -205,15 +238,18 @@ export interface FileRouteTypes {
     | '/_console'
     | '/docs/$slug'
     | '/docs/'
-    | '/_console/app/archive'
     | '/_console/app/locations'
-    | '/_console/app/notifications'
     | '/_console/app/settings'
     | '/_console/app/signout'
     | '/app/monitors/new'
     | '/_console/app/'
+    | '/_console/app/settings/$area'
     | '/app/monitors/$id/edit'
+    | '/app/monitors/new/discover'
+    | '/app/monitors/new/file'
+    | '/app/monitors/new/follow'
     | '/app/monitors/new/manual'
+    | '/app/monitors/new/paste'
     | '/_console/app/monitors/'
     | '/app/monitors/$id/'
     | '/app/monitors/new/discovery/$job'
@@ -259,25 +295,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConsoleAppIndexRouteImport
       parentRoute: typeof ConsoleRoute
     }
-    '/_console/app/archive': {
-      id: '/_console/app/archive'
-      path: '/app/archive'
-      fullPath: '/app/archive'
-      preLoaderRoute: typeof ConsoleAppArchiveRouteImport
-      parentRoute: typeof ConsoleRoute
-    }
     '/_console/app/locations': {
       id: '/_console/app/locations'
       path: '/app/locations'
       fullPath: '/app/locations'
       preLoaderRoute: typeof ConsoleAppLocationsRouteImport
-      parentRoute: typeof ConsoleRoute
-    }
-    '/_console/app/notifications': {
-      id: '/_console/app/notifications'
-      path: '/app/notifications'
-      fullPath: '/app/notifications'
-      preLoaderRoute: typeof ConsoleAppNotificationsRouteImport
       parentRoute: typeof ConsoleRoute
     }
     '/_console/app/settings': {
@@ -308,6 +330,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConsoleAppMonitorsIndexRouteImport
       parentRoute: typeof ConsoleRoute
     }
+    '/_console/app/settings/$area': {
+      id: '/_console/app/settings/$area'
+      path: '/$area'
+      fullPath: '/app/settings/$area'
+      preLoaderRoute: typeof ConsoleAppSettingsAreaRouteImport
+      parentRoute: typeof ConsoleAppSettingsRoute
+    }
     '/app/monitors/$id/': {
       id: '/app/monitors/$id/'
       path: '/app/monitors/$id'
@@ -322,11 +351,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMonitorsIdEditRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/monitors/new/discover': {
+      id: '/app/monitors/new/discover'
+      path: '/discover'
+      fullPath: '/app/monitors/new/discover'
+      preLoaderRoute: typeof AppMonitorsNewDiscoverRouteImport
+      parentRoute: typeof AppMonitorsNewRoute
+    }
+    '/app/monitors/new/file': {
+      id: '/app/monitors/new/file'
+      path: '/file'
+      fullPath: '/app/monitors/new/file'
+      preLoaderRoute: typeof AppMonitorsNewFileRouteImport
+      parentRoute: typeof AppMonitorsNewRoute
+    }
+    '/app/monitors/new/follow': {
+      id: '/app/monitors/new/follow'
+      path: '/follow'
+      fullPath: '/app/monitors/new/follow'
+      preLoaderRoute: typeof AppMonitorsNewFollowRouteImport
+      parentRoute: typeof AppMonitorsNewRoute
+    }
     '/app/monitors/new/manual': {
       id: '/app/monitors/new/manual'
       path: '/manual'
       fullPath: '/app/monitors/new/manual'
       preLoaderRoute: typeof AppMonitorsNewManualRouteImport
+      parentRoute: typeof AppMonitorsNewRoute
+    }
+    '/app/monitors/new/paste': {
+      id: '/app/monitors/new/paste'
+      path: '/paste'
+      fullPath: '/app/monitors/new/paste'
+      preLoaderRoute: typeof AppMonitorsNewPasteRouteImport
       parentRoute: typeof AppMonitorsNewRoute
     }
     '/app/monitors/new/discovery/$job': {
@@ -346,21 +403,28 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ConsoleAppSettingsRouteChildren {
+  ConsoleAppSettingsAreaRoute: typeof ConsoleAppSettingsAreaRoute
+}
+
+const ConsoleAppSettingsRouteChildren: ConsoleAppSettingsRouteChildren = {
+  ConsoleAppSettingsAreaRoute: ConsoleAppSettingsAreaRoute,
+}
+
+const ConsoleAppSettingsRouteWithChildren =
+  ConsoleAppSettingsRoute._addFileChildren(ConsoleAppSettingsRouteChildren)
+
 interface ConsoleRouteChildren {
-  ConsoleAppArchiveRoute: typeof ConsoleAppArchiveRoute
   ConsoleAppLocationsRoute: typeof ConsoleAppLocationsRoute
-  ConsoleAppNotificationsRoute: typeof ConsoleAppNotificationsRoute
-  ConsoleAppSettingsRoute: typeof ConsoleAppSettingsRoute
+  ConsoleAppSettingsRoute: typeof ConsoleAppSettingsRouteWithChildren
   ConsoleAppSignoutRoute: typeof ConsoleAppSignoutRoute
   ConsoleAppIndexRoute: typeof ConsoleAppIndexRoute
   ConsoleAppMonitorsIndexRoute: typeof ConsoleAppMonitorsIndexRoute
 }
 
 const ConsoleRouteChildren: ConsoleRouteChildren = {
-  ConsoleAppArchiveRoute: ConsoleAppArchiveRoute,
   ConsoleAppLocationsRoute: ConsoleAppLocationsRoute,
-  ConsoleAppNotificationsRoute: ConsoleAppNotificationsRoute,
-  ConsoleAppSettingsRoute: ConsoleAppSettingsRoute,
+  ConsoleAppSettingsRoute: ConsoleAppSettingsRouteWithChildren,
   ConsoleAppSignoutRoute: ConsoleAppSignoutRoute,
   ConsoleAppIndexRoute: ConsoleAppIndexRoute,
   ConsoleAppMonitorsIndexRoute: ConsoleAppMonitorsIndexRoute,
@@ -381,12 +445,20 @@ const AppMonitorsNewManualRouteWithChildren =
   AppMonitorsNewManualRoute._addFileChildren(AppMonitorsNewManualRouteChildren)
 
 interface AppMonitorsNewRouteChildren {
+  AppMonitorsNewDiscoverRoute: typeof AppMonitorsNewDiscoverRoute
+  AppMonitorsNewFileRoute: typeof AppMonitorsNewFileRoute
+  AppMonitorsNewFollowRoute: typeof AppMonitorsNewFollowRoute
   AppMonitorsNewManualRoute: typeof AppMonitorsNewManualRouteWithChildren
+  AppMonitorsNewPasteRoute: typeof AppMonitorsNewPasteRoute
   AppMonitorsNewDiscoveryJobRoute: typeof AppMonitorsNewDiscoveryJobRoute
 }
 
 const AppMonitorsNewRouteChildren: AppMonitorsNewRouteChildren = {
+  AppMonitorsNewDiscoverRoute: AppMonitorsNewDiscoverRoute,
+  AppMonitorsNewFileRoute: AppMonitorsNewFileRoute,
+  AppMonitorsNewFollowRoute: AppMonitorsNewFollowRoute,
   AppMonitorsNewManualRoute: AppMonitorsNewManualRouteWithChildren,
+  AppMonitorsNewPasteRoute: AppMonitorsNewPasteRoute,
   AppMonitorsNewDiscoveryJobRoute: AppMonitorsNewDiscoveryJobRoute,
 }
 

@@ -1,4 +1,4 @@
-import { escape, icon, shownState } from './console-format.js';
+import { escape, icon, shownState, tip } from './console-format.js';
 import { openCatalogDialog } from './catalog-dialogs.js';
 import { openMaintenanceDialog } from './planned-maintenance.js';
 import { monitorRow } from './monitor-list.js';
@@ -54,7 +54,7 @@ export function createCatalog({ api, action }) {
         if (!note)
             return;
         note.hidden = !lastBatch;
-        patch(note, lastBatch ? '<p>Catalog batch applied. <a href="/app/archive">Review or undo it in Archive</a></p>' : '');
+        patch(note, lastBatch ? '<p>Catalog batch applied. <a href="/app/settings/backup">Review or undo it in Settings › Backup and files</a></p>' : '');
     }
     function showFilters(open) {
         filtersOpen = open;
@@ -103,7 +103,7 @@ export function createCatalog({ api, action }) {
         row.classList.toggle('is-narrowed', narrowed);
         patch(row, (narrowed ? applied.map(key => {
             const label = `${names[key]}: ${values[key]}`;
-            return `<span class="catalog-chip" data-key="chip-${key}"><span class="catalog-chip-label">${escape(label)}</span><button type="button" class="catalog-chip-remove" data-remove-filter="${key}" aria-label="Remove filter: ${escape(label)}">${icon('x')}</button></span>`;
+            return `<span class="catalog-chip" data-key="chip-${key}"><span class="catalog-chip-label" id="catalog-chip-label-${key}">${escape(label)}</span><button type="button" class="catalog-chip-remove" data-remove-filter="${key}" ${tip('Remove filter', { describedBy: `catalog-chip-label-${key}` })}>${icon('x')}</button></span>`;
         }).join('') + '<button type="button" class="ui-link" id="catalog-clear-filters">Clear all</button>' : '')
             + `<p class="catalog-result-count" id="catalog-result-count" role="status">${narrowed ? `${visible.length} of ${current.data.monitors.length}<span class="ui-visually-hidden"> monitors shown</span>` : ''}</p>`);
         badge.hidden = !applied.length;
@@ -119,7 +119,7 @@ export function createCatalog({ api, action }) {
         selection();
     }
     function mount(area) {
-        area.innerHTML = `<div class="catalog-console"><div class="catalog-toolbar"><div class="catalog-tools"><label class="catalog-search"><span class="ui-visually-hidden">Search monitors</span>${icon('search')}<input id="catalog-search" name="catalog-search" type="search" placeholder="Search monitors" value="${escape(values.search)}"></label><button type="button" id="catalog-filter" aria-expanded="false" aria-controls="catalog-filters">${icon('funnel')}Filter<span class="catalog-filter-count" hidden></span></button></div><input id="catalog-select-visible" type="checkbox" aria-label="Select all monitors" hidden><span class="catalog-selected" role="status"></span><div class="catalog-bulk-actions" hidden>${bulk.map(([kind, label]) => `<button type="button" class="ui-compact" data-bulk="${kind}">${label}</button>`).join('')}</div><button type="button" class="ui-link" id="catalog-clear-selection" hidden>Clear</button></div><div class="catalog-filters" id="catalog-filters" role="group" aria-label="Filters" hidden>${filters.map(key => `<label>${names[key]}<select id="catalog-filter-${key}" name="catalog-${key}"></select></label>`).join('')}</div><div class="catalog-chips"></div><div class="catalog-batch ui-callout" role="status" hidden></div><ul class="catalog-rows" aria-label="Monitors"></ul><p class="catalog-no-results ui-empty" hidden>No monitors match these filters.</p></div>`;
+        area.innerHTML = `<div class="catalog-console"><div class="catalog-toolbar"><div class="catalog-tools"><label class="catalog-search"><span class="ui-visually-hidden">Search monitors</span>${icon('search')}<input id="catalog-search" name="catalog-search" type="search" placeholder="Search monitors" value="${escape(values.search)}"></label><button type="button" id="catalog-filter" aria-expanded="false" aria-controls="catalog-filters">${icon('funnel')}Filter<span class="catalog-filter-count" hidden></span></button></div><input id="catalog-select-visible" type="checkbox" ${tip('Select all monitors')} hidden><span class="catalog-selected" role="status"></span><div class="catalog-bulk-actions" hidden>${bulk.map(([kind, label]) => `<button type="button" class="ui-compact" data-bulk="${kind}">${label}</button>`).join('')}</div><button type="button" class="ui-link" id="catalog-clear-selection" hidden>Clear</button></div><div class="catalog-filters" id="catalog-filters" role="group" aria-label="Filters" hidden>${filters.map(key => `<label>${names[key]}<select id="catalog-filter-${key}" name="catalog-${key}"></select></label>`).join('')}</div><div class="catalog-chips"></div><div class="catalog-batch ui-callout" role="status" hidden></div><ul class="catalog-rows" aria-label="Monitors"></ul><p class="catalog-no-results ui-empty" hidden>No monitors match these filters.</p></div>`;
         host = area.querySelector('.catalog-console');
         const search = host.querySelector('#catalog-search'), filter = host.querySelector('#catalog-filter'), selectAll = host.querySelector('#catalog-select-visible');
         // The toolbar row's first control: Filter, or the select-all box while monitors are ticked.
@@ -209,8 +209,5 @@ export function createCatalog({ api, action }) {
             rows();
             showBatch();
         },
-        // The list's "Add many monitors" (public/app.js); U21 round R3's "Other ways to add" commit removes it.
-        openAdd() {
-            open('add');
-        }, read };
+        read };
 }

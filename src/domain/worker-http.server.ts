@@ -29,8 +29,8 @@ export async function boundedBody(response:Response,max:number,onPartial?:(body:
  const all=new Uint8Array(bytes);let offset=0;for(const chunk of chunks){all.set(chunk,offset);offset+=chunk.byteLength}
  return {body:new TextDecoder().decode(all),bytes}
 }
-interface ProbeContext {dns:PublicDNS;allowance:Allowance;appOrigin?:string;statusOnly?:boolean;snapshotPolicy?:{masks:string[];version?:number;safeValues?:any;screenshot?:boolean};capture?:any}
-async function publicResponse(def:any,signal:AbortSignal,{dns,allowance,appOrigin,statusOnly,snapshotPolicy,capture={}}:ProbeContext){
+interface ProbeContext {dns:PublicDNS;allowance:Allowance;appOrigin?:string;userAgent?:string;statusOnly?:boolean;snapshotPolicy?:{masks:string[];version?:number;safeValues?:any;screenshot?:boolean};capture?:any}
+async function publicResponse(def:any,signal:AbortSignal,{dns,allowance,appOrigin,userAgent=USER_AGENT,statusOnly,snapshotPolicy,capture={}}:ProbeContext){
  let url=publicTarget(def.url),method=def.method;const redirects:string[]=[];
  for(let hop=0;hop<=5;hop++){
   // Existing revisions and redirects must not mistake Workers' self-fetch 404 for target evidence.
@@ -39,8 +39,8 @@ async function publicResponse(def:any,signal:AbortSignal,{dns,allowance,appOrigi
   const resolving=Date.now();try{await dns(url,signal,allowance)}finally{capture.phases.dnsMs=Date.now()-resolving}
   allowance.spend();
   const sending=Date.now();
-  capture.requestHeaders={'user-agent':USER_AGENT,accept:'application/json,text/plain,*/*;q=0.1','accept-encoding':'identity'};
-  const response=await fetchDemoRead(url.href,{method,redirect:'manual',signal,headers:{'user-agent':USER_AGENT,accept:'application/json,text/plain,*/*;q=0.1','accept-encoding':'identity'},cache:'no-store'});
+  capture.requestHeaders={'user-agent':userAgent,accept:'application/json,text/plain,*/*;q=0.1','accept-encoding':'identity'};
+  const response=await fetchDemoRead(url.href,{method,redirect:'manual',signal,headers:capture.requestHeaders,cache:'no-store'});
   capture.phases.ttfbMs=Date.now()-sending;capture.status=response.status;capture.responseHeaders=Object.fromEntries(response.headers);
   if([301,302,303,307,308].includes(response.status)){
    const location=response.headers.get('location');await response.body?.cancel();
@@ -56,7 +56,7 @@ async function publicResponse(def:any,signal:AbortSignal,{dns,allowance,appOrigi
   if(statusOnly){await response.body?.cancel();return {status:response.status,headers,body:'',bytes:0}}
   if(headers['content-encoding']&&headers['content-encoding']!=='identity'){await response.body?.cancel();throw new ProbeError('encoding')}
   const payload=await boundedBody(response,MAX_BODY,body=>capture.body=body);capture.body=payload.body;
-  return {status:response.status,headers,...payload,...(snapshotPolicy?{failureSnapshot:tryCaptureFailureSnapshot({method,url:url.href,redirects,requestHeaders:{'user-agent':USER_AGENT,accept:'application/json,text/plain,*/*;q=0.1','accept-encoding':'identity'},responseHeaders:headers,status:response.status,body:payload.body,durationMs:0,masks:snapshotPolicy.masks,safeValues:snapshotPolicy.safeValues,policyVersion:snapshotPolicy.version,...(snapshotPolicy.screenshot?{screenshot:{unavailable:'browser_unavailable'}}:{}),phases:capture.phases})}:{})};
+  return {status:response.status,headers,...payload,...(snapshotPolicy?{failureSnapshot:tryCaptureFailureSnapshot({method,url:url.href,redirects,requestHeaders:capture.requestHeaders,responseHeaders:headers,status:response.status,body:payload.body,durationMs:0,masks:snapshotPolicy.masks,safeValues:snapshotPolicy.safeValues,policyVersion:snapshotPolicy.version,...(snapshotPolicy.screenshot?{screenshot:{unavailable:'browser_unavailable'}}:{}),phases:capture.phases})}:{})};
  }
  throw new ProbeError('redirect');
 }

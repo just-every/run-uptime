@@ -1,7 +1,7 @@
 {
   "id": "uptime",
   "name": "Uptime",
-  "version": "0.4.3",
+  "version": "0.5.0",
   "maturity": "local-installer-and-owner-deploy-implemented-hosted-unverified",
   "category": "monitoring",
   "spine": {
@@ -185,6 +185,7 @@
       "why": "The hosted Worker or an explicitly assigned private runner sends scheduled requests to the owner\u2019s public target and optional canary URLs. A private runner also acquires or refreshes OAuth tokens only at the exact public HTTPS token URL authorized in that monitor's local credential file.",
       "data": [
         "Target hostname, path and query, method, request time and runner source address; configured headers and request body where the monitor has them",
+        "Hosted HTTP(S) and keyword target requests, including their public redirect hops, send a User-Agent naming Uptime, its installed release, the installation origin with the public probe documentation path, and a stable opaque monitor reference; no monitor name, owner identity, session or installation secret is included in that identification. Other request classes keep their existing identification",
         "Owner-held Basic, bearer or Digest credentials, generated JWT authorization and configured headers/body are sent only to the exact authorized target origin and monitor; a configured client TLS certificate and proof of key possession may be sent there, while its private key remains local. Credentials, custom headers, body and client certificate are permanently stripped on a cross-origin redirect",
         "Owner-authorized OAuth token acquisition and refresh send a form-encoded HTTPS POST to the exact public token URL: client ID and secret through the declared Basic or form authentication mode, grant type, requested scopes and the refresh token when applicable. Public DNS answers are validated and pinned; token redirects and target TLS trust exceptions are refused. Acquired access and rotated refresh tokens remain in owner-only runner-local state, outside observations, logs and product archives",
         "The target returns status and headers plus a bounded response body used for assertions; raw response bodies are not retained in observations",
@@ -1056,14 +1057,6 @@
         "environment": "all"
       },
       {
-        "path": "/notification-help.js",
-        "match": "exact",
-        "kind": "asset",
-        "class": "assets",
-        "authentication": "None; emitted static resource only.",
-        "environment": "all"
-      },
-      {
         "path": "/webhook-editor.js",
         "match": "exact",
         "kind": "asset",
@@ -1073,14 +1066,6 @@
       },
       {
         "path": "/notification-dialogs.js",
-        "match": "exact",
-        "kind": "asset",
-        "class": "assets",
-        "authentication": "None; emitted static resource only.",
-        "environment": "all"
-      },
-      {
-        "path": "/notification-preferences.js",
         "match": "exact",
         "kind": "asset",
         "class": "assets",
@@ -1371,6 +1356,110 @@
       },
       {
         "path": "/settings-view.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/settings-alerts.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/alert-health.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/alert-clauses.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/alert-destinations.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/alert-route-default.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/root-cause-categories.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/sent-alerts.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/settings-general.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/settings-people.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/settings-integrations.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/settings-backup.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/settings-save.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/installation-zone.js",
         "match": "exact",
         "kind": "asset",
         "class": "assets",

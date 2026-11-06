@@ -23,7 +23,7 @@ export async function proveFullSizeSources({g, edge, page, catalog, search, entr
   await card.getByRole('checkbox', {name: box, exact: true}).check();
  };
  startLooking();
- await page.goto(g.origin + '/app/monitors/new');await catalog.waitFor();
+ await page.goto(g.origin + '/app/monitors/new/follow');await catalog.waitFor();
  const cloudflare = await follow('Cloudflare', component('Workers'));
  // A product in one location: the control lists one location's products at a time, at desktop and phone width.
  const google = await follow('Google Cloud', component('Google Compute Engine · us-central1', 'us-central1'), async card => {

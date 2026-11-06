@@ -1,3 +1,4 @@
+import {rpcError} from '../base/modules/agent-door/wire.ts'
 import {sha256} from '../base/modules/integrations/core/crypto.ts'
 import {nativeProof,nativeProofResponse} from './proof.server.ts'
 import {createAgentDoor,type ResourceDefinition,type Trust,type ClassAndFacts} from '../base/modules/agent-door/index.ts'
@@ -51,7 +52,10 @@ export function uptimeAgentDoor(env:Bindings){
 }
 export async function agentDoorResponse(env:Bindings,request:Request):Promise<Response|null>{
  const path=new URL(request.url).pathname
- if(!['/mcp','/agents','/api/rer/agent-policy','/api/rer/business-settings','/rer-business-logo','/rer-business.css','/.well-known/oauth-protected-resource','/.well-known/oauth-protected-resource/mcp'].includes(path)&&!path.startsWith('/agents/'))return null
+ // Reject URL credentials before policy or native identity reads. Even a
+ // valid header cannot authorize a request carrying a credential in its URL.
+ if(path==='/mcp'&&new URL(request.url).searchParams.has('access_token'))return rpcError(null,-32001,'Unauthorized',401,undefined,{'www-authenticate':`Bearer resource_metadata="${env.UPTIME_ORIGIN}/.well-known/oauth-protected-resource/mcp"`})
+ if(!['/mcp','/agents','/api/rer/agent-policy','/api/rer/agent-decisions','/api/rer/business-settings','/rer-business-logo','/rer-business.css','/.well-known/oauth-protected-resource','/.well-known/oauth-protected-resource/mcp'].includes(path)&&!path.startsWith('/agents/'))return null
  try{
   const proof=await nativeProofResponse(env,request);if(proof)return proof
   const settings=await businessSettings(env).handle(request);if(settings)return settings

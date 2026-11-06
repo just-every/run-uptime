@@ -12,7 +12,7 @@ import {proveMemberLifecycle} from './access-admin-support.mjs';
 import {apiRoutes} from '../src/domain/request-boundary.ts';
 const directory=await runtimeDirectory(),[port]=await availablePorts(1);
 let worker;
-const documents=['/app','/app/','/app/monitor','/app/monitor/','/app/monitors','/app/locations','/app/notifications','/app/archive','/app/settings','/app/signout','/app/monitors/new','/app/monitors/new/manual','/app/monitors/new/discovery/private','/app/monitors/private','/app/monitors/private/edit','/_serverFn/private','/setup'];
+const documents=['/app','/app/','/app/monitor','/app/monitor/','/app/monitors','/app/locations','/app/notifications','/app/archive','/app/settings','/app/signout','/app/monitors/new','/app/monitors/new/manual','/app/monitors/new/paste','/app/monitors/new/file','/app/monitors/new/follow','/app/monitors/new/discover','/app/monitors/new/discovery/private','/app/monitors/private','/app/monitors/private/edit','/_serverFn/private','/setup'];
 // Every owner route in the Worker's route table (runner and heartbeat routes carry their own credentials and are checked below).
 const ownerRoutes=apiRoutes.filter(route=>route.path!=='/api/v1/openapi.json'&&!route.path.startsWith('/api/runner/')&&!route.path.startsWith('/api/heartbeats/')&&!route.path.startsWith('/api/evidence/')).map(route=>[route.method,route.path.replace(':id',route.path.startsWith('/api/discoveries/')?'00000000-0000-0000-0000-000000000000':'private')]);
 const reads=ownerRoutes.filter(([method])=>method==='GET').map(([,path])=>path),writes=ownerRoutes.filter(([method])=>method!=='GET');
@@ -69,6 +69,10 @@ try{
   }
   for(const path of ['/app/monitors','/app/monitors/new','/app/monitors/private']){const response=await call(path,undefined,{cookie:valid});assert.equal(response.status,200);assert.match(response.headers.get('content-type'),/text\/html/)}
   const canonical=await call('/app/monitor/',undefined,{cookie:valid});assert.equal(canonical.status,308);assert.equal(canonical.headers.get('location'),'/app/monitors/new');
+  for(const [path,destination] of [['/app','/app/monitors'],['/app/monitor','/app/monitors/new']]){
+   const entry=await call(path,undefined,{cookie:valid});assert.equal(entry.status,308,`signed-in ${path} opens its native console route`);assert.equal(entry.headers.get('location'),destination);await entry.arrayBuffer();
+   const document=await call(destination,undefined,{cookie:valid});assert.equal(document.status,200);assert.match(document.headers.get('content-type'),/^text\/html\b/);await document.arrayBuffer();
+  }
   assert.equal((await call('/api/overview',undefined,{cookie:valid})).status,200);
   assert.equal((await call('/api/monitors',{name:'Authorized write',type:'heartbeat',canaryUrl:'https://canary.example.test/health',heartbeat:{maxAgeMs:60000}},{cookie:valid})).status,201);
   // Discovery: owner routes refuse a cross-origin caller even with a valid owner session, and a runner key is not an owner session.
