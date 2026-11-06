@@ -37,7 +37,8 @@ export async function proveRecurringMaintenance(c){
  };
  c.mode(503);advance(Date.parse('2030-11-03T05:30:00Z'));
  const daylight=await failing();
- assert.equal(daylight.due_at,Date.parse('2030-11-03T05:30:00Z'));
+ assert.equal(daylight.observations[0].startedAt,Date.parse('2030-11-03T05:30:00Z'));
+ assert.ok(daylight.due_at<=daylight.observations[0].startedAt,'overdue scheduled identity remains separate from actual execution time');
  await c.capture(id,'recurring-active',window.id,true);
  const saved=await history(id);
  await c.restart();

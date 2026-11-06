@@ -9147,12 +9147,16 @@
       "sha256": "4881df3d2032291fe173bbcecde94dc446c78e77265d753af00c8c4e54e6f9d3",
       "executable": false
     },
+    "tests/maintenance-browser-support.mjs": {
+      "sha256": "e2d2a4666341c954e30085bac98ed126bbad1d54bdd5cfea6e998eda74d9baab",
+      "executable": false
+    },
     "tests/maintenance-recurring-support.mjs": {
-      "sha256": "430cf64a59f104720f30c388aab8cd2f90d8c699c1d9a0d987bf402d4d98ac24",
+      "sha256": "e90ef03fcc3ee851e82f0a98472c848b797c3d1e7d71465c4c76fa6d41362503",
       "executable": false
     },
     "tests/maintenance-windows.mjs": {
-      "sha256": "d845314bd67582e8b719d283a201fc44ad2ab0c18c5aba85fa8edb310900bc11",
+      "sha256": "00d3377fc74377ebe3c2da713e6900578ff2fa06d4527078dd1c79ad1612f250",
       "executable": false
     },
     "tests/management-support.mjs": {

@@ -49,7 +49,7 @@ try{
   const response=await api(new URL(url).pathname,init.body===undefined?undefined:JSON.parse(init.body),init.headers,init.method);
   return new Response(JSON.stringify(response.data),{status:response.status});
  },clock);
- const setup=await worker.dispatchFetch('http://localhost/',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({url:origin+'/setup',method:'POST',headers:{origin,cookie,'content-type':'application/x-www-form-urlencoded'},body:'confirm=yes',clock})});
+ const setup=await worker.dispatchFetch('http://localhost/',{method:'POST',redirect:'manual',headers:{'content-type':'application/json'},body:JSON.stringify({url:origin+'/setup',method:'POST',headers:{origin,cookie,'content-type':'application/x-www-form-urlencoded'},body:'confirm=yes',clock})});
  assert.equal(setup.status,303,'owner finishes first-run setup through its native form route');
  const enroll={version:1},stamp=String(clock),signature=createHmac('sha256',key).update(`${stamp}.runner-enrolment.${JSON.stringify(enroll)}`).digest('hex');
  const enrollment=await api('/api/runner/enroll',enroll,{'x-runner-key':key,'x-sent-at':stamp,'x-runner-signature':signature});assert.equal(enrollment.status,200);const registration=enrollment.data;
