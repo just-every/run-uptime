@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "a85eb2bf06930677f3dfe8788365d97b57bd2ef32187e246af08cf5a46d94750",
+      "sha256": "17d8448853979ae1e29f7e8297b2d36b33e523b92a8c6354743d9c0dbf731e79",
       "executable": false
     },
     "DEMO.md": {
@@ -9147,8 +9147,12 @@
       "sha256": "4881df3d2032291fe173bbcecde94dc446c78e77265d753af00c8c4e54e6f9d3",
       "executable": false
     },
+    "tests/maintenance-recurring-support.mjs": {
+      "sha256": "9187b99ce421ea5e8835b0b25efe2f534da2571d472a188355f37b05ab139d67",
+      "executable": false
+    },
     "tests/maintenance-windows.mjs": {
-      "sha256": "5cbc3e914592a7c6f8a36f8c0113e8d5bba86f0e562e22a2717b758961ea5aaa",
+      "sha256": "7513a782db8fe92ef11cc165b73885d9fc5b9f5546d70df4d06658ce70d30ec0",
       "executable": false
     },
     "tests/management-support.mjs": {
@@ -9168,7 +9172,7 @@
       "executable": false
     },
     "tests/mfa-auth-support.mjs": {
-      "sha256": "2865597e9e5fa2fd172e9ecf5646c4e858263c6ede176a97e25af5f7c002560e",
+      "sha256": "962e779665fe6070932439a3958e725a41b47400de52a6689e114b4985ecbf7f",
       "executable": false
     },
     "tests/mfa-policy-support.mjs": {

@@ -9,6 +9,7 @@ import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {testAuthBindings} from './auth-test-support.mjs';
 import {splitSql} from './migration-support.mjs';
+import {proveRecurringAcrossDst} from './maintenance-recurring-support.mjs';
 import {emittedRunnerWorker,certificate,runChild,listen,close,request} from './signed-runner-runtime.mjs';
 
 const directory=await mkdtemp(join(tmpdir(),'uptime-maintenance-'));
@@ -157,7 +158,8 @@ try{
   assert.equal(Object.hasOwn(row,'maintenanceEndsAt'),item.end!==undefined,`${item.name}: absent when inactive`);
   assert.equal(row.revision,created.revision,'reading the maintenance end creates no revision');
  }
- console.log('MAINT-001 passed: DST review, exact group apply, real signed suppress/pause execution, in-flight retention, restart/cancel/expiry, no orphan recovery, immutable report/CSV counts.');
+ await proveRecurringAcrossDst();
+ console.log('MAINT-001 passed: DST review, New York recurring window across the fall-back, exact group apply, real signed suppress/pause execution, in-flight retention, restart/cancel/expiry, no orphan recovery, immutable report/CSV counts.');
 }finally{
  releaseHeld?.();await Promise.all([...children].map(child=>child.stop()));await close(control);await worker?.dispose();await close(target);await rm(directory,{recursive:true,force:true});
 }

@@ -38,9 +38,9 @@ export async function completeBrowserSecondFactor(page,origin){
 }
 // Adapt the existing certificate-checked Node HTTPS fixture transport. It still
 // calls the application's public factor endpoints and produces real TOTP proof.
-export async function completeApiSecondFactor(origin,cookie,api){
+export async function completeApiSecondFactor(origin,cookie,api,now=Date.now()){
  return completeSecondFactor(origin,cookie,async(url,init)=>{
   const response=await api(new URL(url).pathname,init.body===undefined?undefined:JSON.parse(init.body),init.headers,init.method);
   return new Response(JSON.stringify(response.data),{status:response.status});
- });
+ },now);
 }
