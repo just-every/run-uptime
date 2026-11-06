@@ -1,4 +1,4 @@
-import {completeApiSecondFactor} from './mfa-auth-support.mjs';
+import {completeSecondFactor} from './mfa-auth-support.mjs';
 // MAINT-001: one owner journey through the emitted Worker, durable D1 and a
 // real restarted, signed Node runner. Only DNS/socket routing is controlled.
 import assert from 'node:assert/strict';
@@ -10,9 +10,13 @@ import {tmpdir} from 'node:os';
 import {testAuthBindings} from './auth-test-support.mjs';
 import {splitSql} from './migration-support.mjs';
 import {emittedRunnerWorker,certificate,runChild,listen,close,request} from './signed-runner-runtime.mjs';
+import {proveRecurringMaintenance} from './maintenance-recurring-support.mjs';
 
 const directory=await mkdtemp(join(tmpdir(),'uptime-maintenance-'));
-const key='maintenance-test-only-installation-runner-key';
+const key='synthetic-uptime-501';
+// Pin both Worker and runner clocks ahead of SQLite's real admission floor.
+// The journey advances explicitly through New York's 2030 fall-back Sunday.
+let clock=Date.parse('2030-11-03T04:45:00Z');
 let worker,db,control,target,origin,cookie='',mode=503,releaseHeld,bridgeError;
 const children=new Set(),requests=[];
 let holdNext=false,heldResolve;
@@ -29,34 +33,37 @@ try{
  control=https.createServer(tls,async(req,res)=>{
   try{
    let body='';for await(const chunk of req)body+=chunk;
-   const response=await worker.dispatchFetch('http://localhost/',{method:'POST',redirect:'manual',headers:{'content-type':'application/json'},body:JSON.stringify({url:origin+req.url,method:req.method,headers:req.headers,...(body?{body}:{})})});
+   const response=await worker.dispatchFetch('http://localhost/',{method:'POST',redirect:'manual',headers:{'content-type':'application/json'},body:JSON.stringify({url:origin+req.url,method:req.method,headers:req.headers,...(body?{body}:{}),clock})});
    res.writeHead(response.status,Object.fromEntries(response.headers));res.end(Buffer.from(await response.arrayBuffer()));
   }catch(error){bridgeError=error;res.writeHead(500);res.end('Emitted Worker request failed')}
  });
  origin=`https://localhost:${await listen(control)}`;
- const bindings={...testAuthBindings,MAIL_PROVIDER:'sendgrid',SENDGRID_API_KEY:'test-only-provider-not-contacted',UPTIME_ORIGIN:origin,UPTIME_LOCAL_REVIEW:'false',UPTIME_RUNNER_KEY:key};
+ const bindings={...testAuthBindings,MAIL_PROVIDER:'sendgrid',SENDGRID_API_KEY:'synthetic-uptime-502',UPTIME_ORIGIN:origin,UPTIME_LOCAL_REVIEW:'false',UPTIME_RUNNER_KEY:key};
  worker=await emittedRunnerWorker(directory,bindings);db=await worker.getD1Database('DB');
  for(const file of(await readdir('migrations')).filter(name=>name.endsWith('.sql')).sort())for(const sql of splitSql(await readFile(join('migrations',file),'utf8')))await db.prepare(sql).run();
  const api=(path,body,headers={},method=body===undefined?'GET':'POST')=>request(origin,tls.cert,path,{method,body,headers:{origin,cookie,'cf-connecting-ip':'192.0.2.1',...headers}});
  const good=async(path,body,status=200,method)=>{const response=await api(path,body,{},method);assert.equal(response.status,status,`${path}: ${JSON.stringify(response.data)}`);return response.data};
  const boot=await api('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'Maintenance owner'});assert.equal(boot.status,303,JSON.stringify(boot.data));cookie=boot.headers['set-cookie'][0].split(';')[0];
- await completeApiSecondFactor(origin,cookie,api);
- const enroll={version:1},stamp=String(Date.now()),signature=createHmac('sha256',key).update(`${stamp}.runner-enrolment.${JSON.stringify(enroll)}`).digest('hex');
+ await completeSecondFactor(origin,cookie,async(url,init)=>{
+  const response=await api(new URL(url).pathname,init.body===undefined?undefined:JSON.parse(init.body),init.headers,init.method);
+  return new Response(JSON.stringify(response.data),{status:response.status});
+ },clock);
+ const enroll={version:1},stamp=String(clock),signature=createHmac('sha256',key).update(`${stamp}.runner-enrolment.${JSON.stringify(enroll)}`).digest('hex');
  const enrollment=await api('/api/runner/enroll',enroll,{'x-runner-key':key,'x-sent-at':stamp,'x-runner-signature':signature});assert.equal(enrollment.status,200);const registration=enrollment.data;
  // Enrolment requires the runner-purpose signature, independently of owner authority.
  if(!registration.runnerId)throw Error('Runner registration missing');
- const startRunner=()=>{const child=runChild({origin,key,caPath:tls.caPath,targetPort});children.add(child);return child};
+ const startRunner=()=>{const child=runChild({origin,key,caPath:tls.caPath,targetPort,clock});children.add(child);return child};
  const finishRunner=async child=>{try{await child.finish()}catch(error){throw bridgeError??error}finally{children.delete(child)}};
  const runner=()=>finishRunner(startRunner());
  const history=id=>good(`/api/monitors/${id}/history`);
  const monitor=async id=>(await good(`/api/overview?monitor=${id}`)).monitors[0];
- const waitDue=async id=>{const {next_due}=await db.prepare('SELECT next_due FROM monitors WHERE id=?').bind(id).first();await delay(Math.max(0,next_due-Date.now()+25))};
+ const waitDue=async id=>{const {next_due}=await db.prepare('SELECT next_due FROM monitors WHERE id=?').bind(id).first();clock=Math.max(clock+1,next_due)};
  const runUntil=async(id,count)=>{for(let i=0;i<4;i++){if((await history(id)).filter(slot=>slot.status==='complete').length>=count)return;await waitDue(id);await runner()}assert.fail('The due monitor did not complete through the real runner')};
  const create=async(name,path,intervalMs=5000)=>good('/api/monitors',{name,url:`https://runner-target.test/${path}`,network:'public',assignments:{'local-a':registration.runnerId},canaryUrl:'https://canary.runner-target.test/canary',intervalMs,timeoutMs:10000,retries:0,confirmSlots:1,recoverSlots:1},201);
  const preview=input=>good('/api/maintenance/preview',input);
  const apply=async input=>{const review=await preview(input);const result=await good('/api/maintenance/apply',{...input,digest:review.digest},201);assert.equal(result.digest,review.digest);return result};
  const cancel=async(ids,windowId)=>good('/api/maintenance/cancel',{monitorIds:ids,windowId,revisions:Object.fromEntries(await Promise.all(ids.map(async id=>[id,(await monitor(id)).revision])))});
- const window=(id,mode='suppress',duration=60000)=>({id,name:id,timeZone:'America/Chicago',mode,startsAt:Date.now()-1000,endsAt:Date.now()+duration});
+ const window=(id,mode='suppress',duration=60000)=>({id,name:id,timeZone:'America/Chicago',mode,startsAt:clock-1000,endsAt:clock+duration});
  const observations=async()=>(await db.prepare('SELECT * FROM observations ORDER BY id').all()).results;
 
  // DST previews write no revisions. Spring's nonexistent wall time is skipped;
@@ -112,13 +119,13 @@ try{
  await cancel([a],'pause-only-a');await runUntil(a,aBefore+1);
  assert.equal((await db.prepare("SELECT COUNT(*) n FROM outbox WHERE kind='recovery'").first()).n,0);
  const ending=window('expires','pause',1000);await apply({monitorIds:[a],window:ending});
- await delay(Math.max(0,ending.endsAt-Date.now()+20));await runUntil(a,aBefore+2);assert.equal((await monitor(a)).state.maintenance,false);
+ clock=ending.endsAt;await runUntil(a,aBefore+2);assert.equal((await monitor(a)).state.maintenance,false);
  const kept=await observations();for(const old of beforePause)assert.deepEqual(kept.find(row=>row.id===old.id),old);
  assert.ok((await db.prepare("SELECT COUNT(*) n FROM uptime_audit WHERE action IN ('maintenance_apply','maintenance_cancel')").first()).n>=8);
 
  // A fixed historical fixture exercises exact report arithmetic through the
  // public report/CSV doors, including revision boundaries and pause overlap.
- const end=Math.floor(Date.now()/60000)*60000,start=end-600000,fixtureId=randomUUID();
+ const end=Math.floor(clock/60000)*60000,start=end-600000,fixtureId=randomUUID();
  const base={...(await monitor(a)).definition,name:'Historical maintenance arithmetic',maintenanceUntil:0,maintenanceWindows:[],intervalMs:60000,freshnessMs:120000,assignments:undefined};
  const one=(id,from,to)=>({id,name:id,timeZone:'UTC',mode:'suppress',startsAt:start+from,endsAt:start+to});
  const weeklyAt=new Date(start+300000),date=weeklyAt.toISOString().slice(0,10);
@@ -138,7 +145,7 @@ try{
  const csv=await good(path+'&format=csv');assert.ok(csv.includes(',maintenanceMs,240000,ms,'));assert.ok(csv.includes(',upMs,209900,ms,'));
  // The private overview publishes one current end for planned, recurring and
  // quick maintenance, including overlaps, and omits it outside a window.
- const overviewNow=Date.now(),weeklyStart=new Date(overviewNow-60000),weeklyDate=weeklyStart.toISOString().slice(0,10);
+ const overviewNow=clock,weeklyStart=new Date(overviewNow-60000),weeklyDate=weeklyStart.toISOString().slice(0,10);
  const plannedEnd=overviewNow+3600000,quickEnd=overviewNow+900000;
  const recurringEnd=Date.parse(weeklyStart.toISOString().slice(0,16)+':00Z')+120*60000;
  const activeWeekly={id:'overview-weekly',name:'Overview weekly',timeZone:'UTC',mode:'suppress',weekly:{weekdays:[weeklyStart.getUTCDay()],localTime:weeklyStart.toISOString().slice(11,16),durationMinutes:120,fromDate:weeklyDate,untilDate:weeklyDate}};
@@ -157,7 +164,12 @@ try{
   assert.equal(Object.hasOwn(row,'maintenanceEndsAt'),item.end!==undefined,`${item.name}: absent when inactive`);
   assert.equal(row.revision,created.revision,'reading the maintenance end creates no revision');
  }
- console.log('MAINT-001 passed: DST review, exact group apply, real signed suppress/pause execution, in-flight retention, restart/cancel/expiry, no orphan recovery, immutable report/CSV counts.');
+ await proveRecurringMaintenance({api,good,create,preview,apply,cancel,monitor,history,runner,
+  mode:value=>{mode=value},advance:at=>{assert.ok(at>=clock,'journey clock advances monotonically');clock=at},
+  restart:async()=>{await worker.dispose();worker=await emittedRunnerWorker(directory,bindings);db=await worker.getD1Database('DB')},
+  idle:async()=>{for(const id of ids)await good(`/api/monitors/${id}`,{...(await monitor(id)).definition,enabled:false},200,'PATCH')},
+ });
+ console.log('MAINT-001 passed: applied New York recurrence across DST, signed failures before and after fall-back, recurring expiry/cancel and reports; DST review, exact group apply, real signed suppress/pause execution, in-flight retention, restart/cancel/expiry, no orphan recovery, immutable report/CSV counts.');
 }finally{
  releaseHeld?.();await Promise.all([...children].map(child=>child.stop()));await close(control);await worker?.dispose();await close(target);await rm(directory,{recursive:true,force:true});
 }
