@@ -9191,6 +9191,14 @@
       "sha256": "b829d72d3cd8230286b86d1f1e408db4d907aa94d81a6a50fcdcf4b70efcd68e",
       "executable": false
     },
+    "tests/network-tls-hostname-routing.mjs": {
+      "sha256": "194c23e2db8b0a68b4764aecbd9035cc724da3dfe227323d5bf489bce8c76752",
+      "executable": false
+    },
+    "tests/network-tls-hostname-support.mjs": {
+      "sha256": "29f94b3c6d92dc9be9446821cabfdd578457fe09baace9efb52a22183da39d38",
+      "executable": false
+    },
     "tests/notification-fallback.mjs": {
       "sha256": "07c06a0fb0ea511ad058d7ff7738e2729a0ab80864fb8794ec2c5e2faf06e18b",
       "executable": false
@@ -9484,7 +9492,7 @@
       "executable": false
     },
     "tests/tls-auth.mjs": {
-      "sha256": "6d7fe1ebe1334c848504f62ef0661e24ce8fe791d43feee86f02ff50c8bb6c19",
+      "sha256": "84a8423963c789bfb2747aca1fe9f810dfae07028d09bb447135d12e2913061b",
       "executable": false
     },
     "tests/tls-stages-support.mjs": {
