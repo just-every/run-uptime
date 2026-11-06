@@ -6,14 +6,14 @@ import {once} from 'node:events';
 import https from 'node:https';
 import assert from 'node:assert/strict';
 
-export async function emittedRunnerWorker(directory,bindings){
+export async function emittedRunnerWorker(directory,bindings,{assets=false}={}){
  const emitted=resolve('dist/server'),config=JSON.parse(await readFile(join(emitted,'wrangler.json'),'utf8'));
  const wrapper=join(directory,'runner-emitted-envelope.mjs');
  await writeFile(wrapper,`import app from ${JSON.stringify(relative(dirname(wrapper),join(emitted,config.main)))};
  const wallNow=Date.now;let clock;Date.now=()=>clock??wallNow();
  export default {async fetch(request,env,ctx){const input=await request.json();clock=input.clock;return app.fetch(new Request(input.url,{method:input.method,headers:input.headers,...(input.body===undefined?{}:{body:input.body})}),env,ctx)}};`);
  const modules=[{type:'ESModule',path:wrapper},{type:'ESModule',path:join(emitted,config.main)},...(await readdir(join(emitted,'assets'))).filter(n=>n.endsWith('.js')).map(n=>({type:'ESModule',path:join(emitted,'assets',n)}))];
- const worker=new Miniflare(convertV4MiniflareOptions({scriptPath:wrapper,modules,modulesRoot:parse(emitted).root,compatibilityDate:config.compatibility_date,compatibilityFlags:config.compatibility_flags,host:'127.0.0.1',port:0,d1Databases:{DB:'signed-emitted-runner'},resourcePersistencePath:join(directory,'state'),bindings,outboundService:async request=>{if(new URL(request.url).hostname==='api.sendgrid.com'&&(await request.json()).subject==='Uptime second-factor security change')return new Response(null,{status:202});throw Error('Unexpected hosted network request in signed-runner fixture')},unsafeLocalExplorer:false,unsafeObservability:false}));
+ const worker=new Miniflare(convertV4MiniflareOptions({scriptPath:wrapper,modules,modulesRoot:parse(emitted).root,compatibilityDate:config.compatibility_date,compatibilityFlags:config.compatibility_flags,host:'127.0.0.1',port:0,...(assets?{assets:{directory:resolve('dist/client'),binding:'ASSETS',routerConfig:{has_user_worker:true},run_worker_first:true}}:{}),d1Databases:{DB:'signed-emitted-runner'},resourcePersistencePath:join(directory,'state'),bindings,outboundService:async request=>{if(new URL(request.url).hostname==='api.sendgrid.com'&&(await request.json()).subject==='Uptime second-factor security change')return new Response(null,{status:202});throw Error('Unexpected hosted network request in signed-runner fixture')},unsafeLocalExplorer:false,unsafeObservability:false}));
  try{await worker.ready;return worker}catch(error){await worker.dispose();throw error}
 }
 

@@ -38,6 +38,7 @@ export async function proveRecurringMaintenance(c){
  c.mode(503);advance(Date.parse('2030-11-03T05:30:00Z'));
  const daylight=await failing();
  assert.equal(daylight.due_at,Date.parse('2030-11-03T05:30:00Z'));
+ await c.capture(id,'recurring-active',window.id,true);
  const saved=await history(id);
  await c.restart();
  await retained(saved);
@@ -86,5 +87,6 @@ export async function proveRecurringMaintenance(c){
  assert.deepEqual((await good(reportPath())).availability,report.availability,'historical maintenance denominator survives calendar cancellation');
  const cancellationReport=await good(`/api/v1/monitors/${id}/report?`+new URLSearchParams({period:'custom',from:String(Date.parse('2030-11-03T07:30:00Z')),to:String(cancelAt),timeZone:'America/New_York',bucket:'raw'}));
  assert.equal(cancellationReport.availability.maintenanceMs,60000);assert.equal(cancellationReport.availability.observedMs,0);
+ await c.capture(id,'recurring-ended',window.id);
  console.log('PROBE MAINT-001 point 1: native preview and apply, signed 503 checks on both sides of New York fall-back, restart, expiry and cancellation -> retained failed history, no orphan recovery, 7200000 ms recurring maintenance plus 60000 ms before cancellation; observed denominator 0.');
 }

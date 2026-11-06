@@ -11,9 +11,10 @@ import {testAuthBindings} from './auth-test-support.mjs';
 import {splitSql} from './migration-support.mjs';
 import {emittedRunnerWorker,certificate,runChild,listen,close,request} from './signed-runner-runtime.mjs';
 import {proveRecurringMaintenance} from './maintenance-recurring-support.mjs';
+import {captureMaintenance} from './maintenance-browser-support.mjs';
 
 const directory=await mkdtemp(join(tmpdir(),'uptime-maintenance-'));
-const key='synthetic-uptime-501';
+const key='synthetic-uptime-501-installation-runner-key';
 // Pin both Worker and runner clocks ahead of SQLite's real admission floor.
 // The journey advances explicitly through New York's 2030 fall-back Sunday.
 let clock=Date.parse('2030-11-03T04:45:00Z');
@@ -39,7 +40,7 @@ try{
  });
  origin=`https://localhost:${await listen(control)}`;
  const bindings={...testAuthBindings,MAIL_PROVIDER:'sendgrid',SENDGRID_API_KEY:'synthetic-uptime-502',UPTIME_ORIGIN:origin,UPTIME_LOCAL_REVIEW:'false',UPTIME_RUNNER_KEY:key};
- worker=await emittedRunnerWorker(directory,bindings);db=await worker.getD1Database('DB');
+ worker=await emittedRunnerWorker(directory,bindings,{assets:true});db=await worker.getD1Database('DB');
  for(const file of(await readdir('migrations')).filter(name=>name.endsWith('.sql')).sort())for(const sql of splitSql(await readFile(join('migrations',file),'utf8')))await db.prepare(sql).run();
  const api=(path,body,headers={},method=body===undefined?'GET':'POST')=>request(origin,tls.cert,path,{method,body,headers:{origin,cookie,'cf-connecting-ip':'192.0.2.1',...headers}});
  const good=async(path,body,status=200,method)=>{const response=await api(path,body,{},method);assert.equal(response.status,status,`${path}: ${JSON.stringify(response.data)}`);return response.data};
@@ -48,6 +49,8 @@ try{
   const response=await api(new URL(url).pathname,init.body===undefined?undefined:JSON.parse(init.body),init.headers,init.method);
   return new Response(JSON.stringify(response.data),{status:response.status});
  },clock);
+ const setup=await worker.dispatchFetch('http://localhost/',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({url:origin+'/setup',method:'POST',headers:{origin,cookie,'content-type':'application/x-www-form-urlencoded'},body:'confirm=yes',clock})});
+ assert.equal(setup.status,303,'owner finishes first-run setup through its native form route');
  const enroll={version:1},stamp=String(clock),signature=createHmac('sha256',key).update(`${stamp}.runner-enrolment.${JSON.stringify(enroll)}`).digest('hex');
  const enrollment=await api('/api/runner/enroll',enroll,{'x-runner-key':key,'x-sent-at':stamp,'x-runner-signature':signature});assert.equal(enrollment.status,200);const registration=enrollment.data;
  // Enrolment requires the runner-purpose signature, independently of owner authority.
@@ -114,7 +117,7 @@ try{
  await Promise.all(ids.map(waitDue));
  const aBefore=(await history(a)).length,bBefore=(await history(b)).length;
  await runner();assert.equal((await history(a)).length,aBefore);assert.equal((await history(b)).length,bBefore+1);
- const retained=await observations();await worker.dispose();worker=await emittedRunnerWorker(directory,bindings);db=await worker.getD1Database('DB');
+ const retained=await observations();await worker.dispose();worker=await emittedRunnerWorker(directory,bindings,{assets:true});db=await worker.getD1Database('DB');
  assert.deepEqual(await observations(),retained);assert.equal((await monitor(a)).state.maintenance,true);await runner();assert.equal((await history(a)).length,aBefore);
  await cancel([a],'pause-only-a');await runUntil(a,aBefore+1);
  assert.equal((await db.prepare("SELECT COUNT(*) n FROM outbox WHERE kind='recovery'").first()).n,0);
@@ -165,8 +168,9 @@ try{
   assert.equal(row.revision,created.revision,'reading the maintenance end creates no revision');
  }
  await proveRecurringMaintenance({api,good,create,preview,apply,cancel,monitor,history,runner,
+  capture:(id,label,windowId,preview=false)=>captureMaintenance({origin,cookie,id,clock,label,windowId,preview}),
   mode:value=>{mode=value},advance:at=>{assert.ok(at>=clock,'journey clock advances monotonically');clock=at},
-  restart:async()=>{await worker.dispose();worker=await emittedRunnerWorker(directory,bindings);db=await worker.getD1Database('DB')},
+  restart:async()=>{await worker.dispose();worker=await emittedRunnerWorker(directory,bindings,{assets:true});db=await worker.getD1Database('DB')},
   idle:async()=>{for(const id of ids)await good(`/api/monitors/${id}`,{...(await monitor(id)).definition,enabled:false},200,'PATCH')},
  });
  console.log('MAINT-001 passed: applied New York recurrence across DST, signed failures before and after fall-back, recurring expiry/cancel and reports; DST review, exact group apply, real signed suppress/pause execution, in-flight retention, restart/cancel/expiry, no orphan recovery, immutable report/CSV counts.');

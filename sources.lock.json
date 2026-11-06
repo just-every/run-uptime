@@ -9147,8 +9147,12 @@
       "sha256": "4881df3d2032291fe173bbcecde94dc446c78e77265d753af00c8c4e54e6f9d3",
       "executable": false
     },
+    "tests/maintenance-recurring-support.mjs": {
+      "sha256": "430cf64a59f104720f30c388aab8cd2f90d8c699c1d9a0d987bf402d4d98ac24",
+      "executable": false
+    },
     "tests/maintenance-windows.mjs": {
-      "sha256": "5536a8fcd62e3c60985f54a9e1837bae8685e7181ccedb4ac3299b6fa1bc2fbf",
+      "sha256": "d845314bd67582e8b719d283a201fc44ad2ab0c18c5aba85fa8edb310900bc11",
       "executable": false
     },
     "tests/management-support.mjs": {
@@ -9456,7 +9460,7 @@
       "executable": false
     },
     "tests/signed-runner-runtime.mjs": {
-      "sha256": "795ee1b7154bf19ba8c8e21c1921720f56d75c6b49db9f09d79b448f5c4af26d",
+      "sha256": "2453b305797ec30e7a61adb8600a091a2955d8b3c2cece75bf82baf600e0321d",
       "executable": false
     },
     "tests/signed-runner.mjs": {
