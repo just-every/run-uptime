@@ -39,6 +39,35 @@ export async function proveRoutingFilters(f,ok){
   assert.equal((await rows(m.id)).length,0);await f.pause(m);await ok('/api/monitors/'+m.id+'/erase',{name:m.definition.name});
  }
  f.modes.target=503;f.modes.delayMs=0;
+ // Geographic region: a location's country (stated by the owner here; a runner's own place sets it when none is set) is what
+ // a country selector matches, for the location of a probe that did not pass. A wrong country, or a location with none, selects nobody.
+ assert.equal((await f.request('/api/runners/'+f.first.runnerId,{method:'PATCH',body:{country:'de'}})).status,400,'a country is two capital letters');
+ await ok('/api/runners/'+f.first.runnerId,{country:'DE'},{method:'PATCH'});
+ for(const [country,delivered] of [['DE',true],['FR',false]]){
+  const m=await f.monitor({name:`Country ${country}`,enabled:false,runners:[f.first],canary:true,environment:'production'});
+  await save(m,{regions:[country]},open);
+  assert.equal((await ok(`/api/monitors/${m.id}/alert-route/sample`,{kind:'trigger',regions:['local-a'],at:Date.now()})).readyCount,delivered?1:0,'the sample expands a probe to its location country');
+  await ok('/api/monitors/'+m.id,{...m.definition,enabled:true},{method:'PATCH'});
+  const task=await f.claim(f.first);assert.equal(task.monitorId,m.id);assert.equal((await f.submit(f.first,task,[await f.evidence(task)])).status,200);
+  await dispatchNotifications(rpc,transport);
+  assert.equal((await rows(m.id)).length,delivered?1:0,`a real outage reaches a ${country} route only when a failing location is in ${country}`);
+  await f.pause(m);await ok('/api/monitors/'+m.id+'/erase',{name:m.definition.name});
+ }
+ await ok('/api/runners/'+f.first.runnerId,{country:null},{method:'PATCH'});
+ // Weekly business hours: outside the chosen days a real outage waits in the queue; on a chosen day it is sent. The window
+ // is the whole of the current UTC day except its last minute, so only that minute is skipped to keep the clock out of it.
+ const today=new Date();if(today.getUTCHours()===23&&today.getUTCMinutes()===59)await new Promise(r=>setTimeout(r,61000));
+ const day=new Date().getUTCDay();
+ for(const held of [false,true]){
+  const m=await f.monitor({name:`Business ${held?'closed':'open'}`,enabled:false,runners:[f.first],canary:true,environment:'production'});
+  await save(m,{environments:['production']},{timeZone:'UTC',start:'00:00',end:'23:59',businessDays:[held?(day+1)%7:day]});
+  await ok('/api/monitors/'+m.id,{...m.definition,enabled:true},{method:'PATCH'});
+  const task=await f.claim(f.first);assert.equal(task.monitorId,m.id);assert.equal((await f.submit(f.first,task,[await f.evidence(task)])).status,200);
+  await dispatchNotifications(rpc,transport);
+  const jobs=await rows(m.id);assert.equal(jobs.length,1);assert.equal(jobs[0].state,held?'queued':'accepted');assert.equal(jobs[0].code==='waiting_for_contact_quiet',held);
+  if(held)assert.ok(jobs[0].quietUntil>Date.now()+3600000,'held until the next business day starts');
+  await f.pause(m);await ok('/api/monitors/'+m.id+'/erase',{name:m.definition.name});
+ }
  // Disable an unsent primary during route quiet: its terminal failure advances
  // the real fallback chain, whose otherwise unrestricted contact must inherit
  // the route window. A sample preview alone cannot prove this path.

@@ -528,6 +528,12 @@
       "name": "0085_incident_mention_dispatch.sql",
       "sha256": "19987ac3ef708548a04429e049b51007c40d3c2a64f53ae8ee58a4069c54a4f2",
       "sql": "-- Select the oldest never-reserved work without scanning retained send history.\nCREATE INDEX incident_mentions_pending_dispatch ON incident_mentions(created_at,id)\n WHERE outcome='pending' AND submitted_at IS NULL AND finished_at IS NULL;\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0086_runner_country.sql",
+      "sha256": "d03df480a71153d9c81f34529ea3c0c19e24a6fe86d46b7cca931f58847948fa",
+      "sql": "-- ROUTING-001 geographic region routing: the country (ISO 3166 alpha-2) a location's runner connects from, taken from its\n-- request place the first time that place is known, or typed by the owner. Region filters match it for the probes a\n-- confirmed alert names. The country stays installation-local and is not an archive field.\nALTER TABLE runners ADD COLUMN country TEXT;\n"
     }
   ],
   "compatibilityDate": "2026-09-08",

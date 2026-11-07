@@ -73,7 +73,7 @@ export async function proveRoutingConsole(f,ok){
     await dialog.getByRole('button',{name:'Close',exact:true}).click();
     dialog=await open(stageMonitor);await dialog.getByText('Try this route',{exact:true}).click();
     const before=(await ok('/api/notifications')).deliveries.filter(j=>j.destinationId===ownerMail.id).length;
-    await dialog.locator('#route-try-drill').click();await dialog.locator('#route-try-result li',{hasText:'Drill queued'}).waitFor();
+    await dialog.locator('#route-try-drill').click();await dialog.locator('#route-try-result li',{hasText:'Console owner mail'}).filter({hasText:'Drill queued'}).waitFor();
     assert.equal((await ok('/api/notifications')).deliveries.filter(j=>j.destinationId===ownerMail.id).length,before+1,'the drill reached only the team member who opted in');
     await dialog.getByRole('button',{name:'Close',exact:true}).click();
     // An API edit that omits the extended fields keeps them too.
@@ -84,5 +84,34 @@ export async function proveRoutingConsole(f,ok){
    }finally{await context.close()}
   }
  }finally{await browser.close()}
+ // Every alert class, inside and outside each team's hours, through the saved routes at pinned instants: production's
+ // team follows New York business hours, staging's a daily quiet window, and neither reaches the other's environment.
+ const teams=(await ok('/api/routing/teams')).teams,prodTeam=teams.find(t=>t.name==='Production responders 390'),stageTeam=teams.find(t=>t.name==='Staging responders 390');
+ const route=async(m,fields)=>{const path=`/api/monitors/${m.id}/alert-route`,input={scope:'monitor',mode:'selected',destinationIds:[],expectedRevision:(await ok(path)).policies[0].revision,...fields},p=await ok(path+'/preview',input);return ok(path+'/apply',{...input,digest:p.digest})};
+ const prodAll=await f.monitor({name:'Console production classes',enabled:false,runners:[f.first],canary:true,service:'Console routing',environment:'production'});
+ const stageAll=await f.monitor({name:'Console staging classes',enabled:false,runners:[f.first],canary:true,service:'Console routing',environment:'staging'});
+ await route(prodAll,{teamIds:[prodTeam.id],filters:{environments:['production']},quietHours:{timeZone:'America/New_York',start:'09:00',end:'17:00',businessDays:[1,2,3,4,5]}});
+ await route(stageAll,{teamIds:[stageTeam.id],filters:{environments:['staging']},quietHours:{timeZone:'America/New_York',start:'22:00',end:'07:00'}});
+ const outcome=async(m,kind,at,id)=>(await ok(`/api/monitors/${m.id}/alert-route/sample`,{kind,regions:['local-a'],at:Date.parse(at)})).recipients.find(r=>r.id===id).outcome;
+ for(const kind of ['trigger','slow','dependency']){
+  assert.equal(await outcome(prodAll,kind,'2027-01-11T15:00:00Z',memberMail.id),'ready',`${kind}: Monday 10:00 New York`);
+  assert.equal(await outcome(prodAll,kind,'2027-01-16T15:00:00Z',memberMail.id),'held_quiet',`${kind}: Saturday`);
+  assert.equal(await outcome(prodAll,kind,'2027-01-12T03:00:00Z',memberMail.id),'held_quiet',`${kind}: Monday 22:00 New York`);
+  assert.equal(await outcome(stageAll,kind,'2027-01-11T15:00:00Z',ownerMail.id),'ready',`${kind}: staging outside its quiet window`);
+  assert.equal(await outcome(stageAll,kind,'2027-01-12T05:00:00Z',ownerMail.id),'held_quiet',`${kind}: staging inside its quiet window`);
+ }
+ assert.equal((await ok(`/api/monitors/${stageAll.id}/alert-route/sample`,{kind:'trigger',regions:['local-a'],at:Date.parse('2027-01-11T15:00:00Z')})).recipients.find(r=>r.id===memberMail.id).selected,false,'the production team is not told about staging');
+ // A drill sends only to contacts the route reads as ready: held, filtered and unauthorised drills send nothing.
+ const deliveries=async id=>(await ok('/api/notifications')).deliveries.filter(j=>j.destinationId===id).length;
+ const sent=await deliveries(memberMail.id);
+ const day=new Date().getUTCDay(),closed=await f.monitor({name:'Console closed drill',enabled:false,runners:[f.first],canary:true,service:'Console routing',environment:'production'});
+ await route(closed,{teamIds:[prodTeam.id],filters:{},quietHours:{timeZone:'UTC',start:'00:00',end:'23:59',businessDays:[(day+1)%7]}});
+ const held=await ok(`/api/monitors/${closed.id}/alert-route/drill`,{kind:'trigger'});
+ assert.equal(held.results.find(r=>r.destinationId===memberMail.id).outcome,'held_quiet');
+ const wrongEnvironment=await ok(`/api/monitors/${stageAll.id}/alert-route/drill`,{kind:'trigger',regions:['local-a']});
+ assert.ok(!wrongEnvironment.results.some(r=>r.destinationId===memberMail.id),'a team outside the route is never drilled');
+ assert.equal((await memberCall(`/api/monitors/${closed.id}/alert-route/drill`,{kind:'trigger'})).status,403,'a read-only member cannot send a drill');
+ assert.equal(await deliveries(memberMail.id),sent,'held and unauthorised drills queued nothing for the production team');
+ for(const m of [prodAll,stageAll,closed])await f.pause(m);
  console.log('ROUTING-001 console: two teams, production and staging routes, filters, business hours, sample and drill at 1440 and 390');
 }
