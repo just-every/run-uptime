@@ -1,6 +1,7 @@
 import {escape} from './console-format.js';
 import {dependencySections} from './incident-dependencies.js';
 const at=value=>value===null?'—':new Date(value).toLocaleString();
+const moment=value=>`<time datetime="${new Date(value).toISOString()}">${text(at(value))}</time>`;
 const text=value=>escape(value??'');
 export function linkedText(value){
  return String(value??'').split(/(https?:\/\/[^\s<>]+)/g).map(part=>/^https?:\/\//.test(part)?`<a href="${text(part)}" target="_blank" rel="noopener noreferrer">${text(part)}</a>`:text(part)).join('');
@@ -30,7 +31,7 @@ export function detailMarkup(d){
  const retired=d.rootCause.categoryId&&!d.rootCauseCategories.some(c=>c.id===d.rootCause.categoryId)?`<option value="${text(d.rootCause.categoryId)}" selected>${text(d.rootCause.categoryLabel)} (removed; choose a current category)</option>`:'';
 const categories=retired+d.rootCauseCategories.map(c=>`<option value="${text(c.id)}"${d.rootCause.categoryId===c.id?' selected':''}>${text(c.label)}</option>`).join('');
  return `<p>Confirmed ${text(at(d.startedAt))} · ${d.machineState==='recovered'?`Recovered ${text(at(d.endedAt))}`:'Monitoring incident remains open'}</p><p>${text(d.trigger.explanation)}</p>
- <section><h3>Follow-up</h3><dl class="ui-dl"><div><dt>Response state</dt><dd>${text(d.status)}</dd></div><div><dt>Owner</dt><dd>${text(d.owner?.displayName??'Unassigned')}</dd></div><div><dt>Next scheduled follow-up</dt><dd>${text(d.nextDue===null?d.nextDueReason:(d.nextDueKind==='reminder'?'Reminder · ':d.nextDueKind==='escalation'?'Escalation · ':'Notification · ')+at(d.nextDue))}</dd></div>${d.stopReason?`<div><dt>Stopped by</dt><dd>${text(d.stopReason.replaceAll('_',' '))}</dd></div>`:''}</dl>
+ <section><h3>Follow-up</h3><dl class="ui-dl"><div><dt>Response state</dt><dd>${text(d.status)}</dd></div><div><dt>Owner</dt><dd>${text(d.owner?.displayName??'Unassigned')}</dd></div><div><dt>Next scheduled follow-up</dt><dd>${d.nextDue===null?text(d.nextDueReason):text(d.nextDueKind==='reminder'?'Reminder · ':d.nextDueKind==='escalation'?'Escalation · ':d.nextDueKind==='handoff_check'?'Handoff check · ':'Notification · ')+moment(d.nextDue)}</dd></div>${d.stopReason?`<div><dt>Stopped by</dt><dd>${text(d.stopReason.replaceAll('_',' '))}</dd></div>`:''}</dl>
  ${d.capabilities.assignment?'<form data-assignment>':'<form data-assignment hidden>'}<label>Incident owner<select name="ownerId"><option value="">Unassigned</option>${d.assignmentMembers.map(m=>`<option value="${text(m.id)}"${d.owner?.id===m.id?' selected':''}>${text(m.displayName)}</option>`).join('')}</select></label><button>Assign owner</button></form>
  <div class="incident-actions"><button${d.capabilities.scheduledFollowup?'':' hidden'} type="button" data-incident-action="acknowledge"${d.status!=='open'?' disabled':''}>Acknowledge</button><button${d.capabilities.scheduledFollowup?'':' hidden'} type="button" data-incident-action="stop"${d.stopReason?' disabled':''}>Stop follow-up</button><button${d.capabilities.scheduledFollowup?'':' hidden'} type="button" data-incident-action="resolve"${d.status==='resolved'?' disabled':''}>Resolve response</button><button type="button" data-incident-export>Download incident JSON</button></div><p>Response actions record your team’s work. Scheduled evidence alone determines monitor health and recovery.</p></section>
  ${dependencySections(d)}

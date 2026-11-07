@@ -59,7 +59,7 @@ export async function signedInOwnerRedirect(env:AuthBindings,request:Request){
  if(!['GET','HEAD'].includes(request.method))return null;
  try{
   const session=await authenticatedSession(env,request);
-  if(session?.operator.role!=='owner')return null;
+  if(!session)return null;
   try{await checkSecondFactor(env,session)}catch(error){
    if(!(error instanceof MfaError)||error.code!=='second_factor_required')throw error;
    if(!await ownerOwesEnrolledFactor(env,session,error))return null;

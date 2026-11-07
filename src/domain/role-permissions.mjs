@@ -36,7 +36,11 @@ export function requestPermission(request,input){
  if(path==='/api/archive'||path==='/api/definitions/export'||path==='/api/erasure-journal')return {action:'export',workspace:true};
  if(path==='/api/restore')return {action:'archive_restore',workspace:true};
  if(path.startsWith('/_serverFn/'))return {action:'owner',workspace:true};
+ if(['/app','/app/','/app/monitors','/app/monitors/','/app/signout'].includes(path))return {action:'read',workspace:false};
+ const consoleMonitor=/^\/app\/monitors\/([^/]+)\/?$/.exec(path);
+ if(consoleMonitor&&consoleMonitor[1]!=='new')return {action:'read',workspace:false,monitorIds:[decode(consoleMonitor[1])]};
  if(path.startsWith('/app'))return {action:'read',workspace:true};
+ if(path==='/api/response-workspace')return {action:'read',workspace:false};
  if(path.startsWith('/api/maintenance/'))return {action:'maintenance_write',workspace:false,monitorIds:Array.isArray(input?.monitorIds)?input.monitorIds:[]};
  if(monitor){
   const id=decode(monitor[1]),suffix=monitor[2]??'';

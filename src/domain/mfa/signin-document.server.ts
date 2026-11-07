@@ -3,8 +3,8 @@ import {formStyle} from '../auth-document.server.ts'
 import {documentHeaders,escapeHtml,productName,shellDocument} from '../document-shell.server.ts'
 import {MfaError,type MfaSession} from './policy.server.ts'
 
-// The last step of an owner's sign-in once the account has a second factor. The gate is unchanged: until this session
-// holds a proof, every private document and API still refuses it. In place of that refusal an owner's console document
+// The last step of a member's sign-in once the account has a second factor. Until this session
+// holds a proof, every private document and API still refuses it. The member's console document
 // and /setup show this page at the address they opened. It verifies through the factor door (/api/access/mfa, with its
 // replay checks, limits, audit and notices) and then reloads that address (public/assets/second-factor.js).
 const style=`${formStyle}
@@ -24,10 +24,10 @@ function secondFactorDocument(displayName:string,head:boolean){
  return new Response(body,{status:403,headers:{...documentHeaders,'content-security-policy':`${documentHeaders['content-security-policy']}; script-src 'self'; connect-src 'self'`,'cache-control':'no-store, private',vary:'Cookie','x-content-type-options':'nosniff'}});
 }
 
-// Only an owner's refusal for a factor the account enrolled becomes this step; every other refusal keeps its response,
-// including an owner the require-all policy holds before any enrollment, who has nothing to verify here.
+// Every live member can verify an enrolled factor before entering their permitted console.
+// A require-all refusal without enrollment still keeps its original response.
 export async function ownerOwesEnrolledFactor(env:AuthBindings,session:MfaSession,error:unknown){
- if(!(error instanceof MfaError)||error.code!=='second_factor_required'||session.operator.role!=='owner')return false
+ if(!(error instanceof MfaError)||error.code!=='second_factor_required')return false
  return Boolean(await env.DB.prepare('SELECT 1 FROM uptime_mfa_factors WHERE operator_id=?').bind(session.operator.id).first())
 }
 export async function ownerFactorDocument(env:AuthBindings,session:MfaSession,error:unknown,head:boolean){

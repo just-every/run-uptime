@@ -81,6 +81,7 @@ import {archiveSelection} from './domain/archive-selection.server.ts';
 import {archiveRestoreAvailable} from './domain/archive.server.ts';
 import {exportJournal} from './domain/archive-fence.server.ts'
 import {operatorSession,authenticatedSession} from './domain/operator-auth.server.ts'
+import {responseWorkspace} from './domain/incident-work/workspace.server.ts'
 import {accessDeniedDocument} from './domain/access-document.server.ts'
 import {ownerFactorDocument} from './domain/mfa/signin-document.server.ts'
 import {boundedHealth,health} from './domain/health.server.ts'
@@ -165,6 +166,7 @@ api.post('/api/routing/teams',async c=>c.json(await saveTeam(c.env,c.get('input'
 api.get('/api/routing/recipient',async c=>c.json(await readRecipient(c.env,c.get('access'))))
 api.post('/api/routing/recipient',async c=>c.json(await consentRecipient(c.env,c.get('input'),c.get('access'))))
 api.post('/api/monitors/:id/alert-route/sample',async c=>c.json(await sampleAlertRoute(c.env,c.req.param('id'),c.get('input'))))
+api.get('/api/response-workspace',async c=>c.json(await responseWorkspace(c.env,c.get('access'))))
 api.get('/api/access/self',c=>accessMembers(c.env,c.req.raw))
 api.get('/api/access/members',c=>accessMembers(c.env,c.req.raw))
 api.post('/api/access/invitations',c=>accessMembers(c.env,c.req.raw,c.get('input')))
