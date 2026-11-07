@@ -133,6 +133,7 @@ export async function proveRoutingConsole(f,ok){
  const stateOf=async id=>(await ok('/api/notifications')).deliveries.find(j=>j.id===id);
  assert.notEqual((await stateOf(drilled.deliveryId)).code,'team_recipient_ineligible','the drill waits while the opt-in is live');
  assert.equal((await memberCall('/api/routing/recipient',{destinationId:memberMail.id,enabled:false})).status,200);
+ await ok('/api/runner/notifications',{operation:'poll'},{runner:f.first});
  assert.deepEqual([(await stateOf(drilled.deliveryId)).state,(await stateOf(drilled.deliveryId)).code],['rejected','team_recipient_ineligible'],'a drill queued before the opt-in was revoked is never sent');
  for(const m of [prodAll,stageAll,closed,open24])await f.pause(m);
  console.log('ROUTING-001 console: two teams, production and staging routes, filters, business hours, sample and drill at 1440 and 390');
