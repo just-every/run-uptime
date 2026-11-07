@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "13f309e98939602d8b1f06ce99d33a66d64fc9b07e61c8fcc4ed02a1aed50e70",
+      "sha256": "06f684118d5f0d86e412c7a721322bb0daaf5e90fbcb10bd8fc31cedde411eaa",
       "executable": false
     },
     "DEMO.md": {
@@ -2120,7 +2120,7 @@
       "executable": false
     },
     "docs/routing-api.md": {
-      "sha256": "d365b34c7122f168c8ebd8e59116599b1135196f57fcd99dbedda2dfd0a0ea02",
+      "sha256": "f68fd616b6a18c9b48719e5c27e1a75b0fc08782bb2558d1b85f7cb81f4bc1b6",
       "executable": false
     },
     "docs/runner.md": {
@@ -2172,7 +2172,7 @@
       "executable": false
     },
     "management/integration/deployment-spec.json": {
-      "sha256": "97dd01de935a6120101c25a5dc927983b5e7fbfdd9a566625c5b84e4088205d2",
+      "sha256": "69ed347b516b5e2f09a7fad6ae24ba289c3817b135fff7a661ca1550d7bb6ae4",
       "executable": false
     },
     "migrations/0001_uptime.sql": {
@@ -2527,6 +2527,10 @@
       "sha256": "d03df480a71153d9c81f34529ea3c0c19e24a6fe86d46b7cca931f58847948fa",
       "executable": false
     },
+    "migrations/0087_drill_team_binding.sql": {
+      "sha256": "73379c646b128c04f53cb5e3e57320a1725eb813f9ae64c82f02d065c207c9ce",
+      "executable": false
+    },
     "OPERATIONS.json": {
       "sha256": "61ba56de0f6cefb040131c53bde043bc4aa6b4edf6bdba50bc682eee244e45c3",
       "executable": false
@@ -2588,7 +2592,7 @@
       "executable": false
     },
     "public/assets/alert-route-extended.js": {
-      "sha256": "bdb25c24f03fe5f635234e9dd82c54885f35fa692e2af21edd21ab97399f07e3",
+      "sha256": "d8ceaafb99a54e9a282325413406e3645529f03537515be4e43c2c7c716020b7",
       "executable": false
     },
     "public/assets/alert-route-fallback.css": {
@@ -2616,7 +2620,7 @@
       "executable": false
     },
     "public/assets/alert-teams.js": {
-      "sha256": "0ff9d0a778e220415733b6168647a010c07c66f541c7a798ea6767adc35c30cb",
+      "sha256": "b224c9011f231d4d57bcd74cb9680dff3b276cda3fa419b8c97f8850e01b5412",
       "executable": false
     },
     "public/assets/contact-quiet.js": {
@@ -6892,7 +6896,7 @@
       "executable": false
     },
     "src/domain/alert-drills.server.ts": {
-      "sha256": "f8f4d00d76a09cf70df96b772c4735e50c7750b11a696f7ef7b59d6b3184df47",
+      "sha256": "fc93acc05d43835d04a526d97c7a1efe1358c6d325b7a80bce047c7d93494be2",
       "executable": false
     },
     "src/domain/alert-route-delivery.server.ts": {
@@ -6908,11 +6912,11 @@
       "executable": false
     },
     "src/domain/alert-routes.server.ts": {
-      "sha256": "855c6502e6e265b302b7a8e767cf45b7ba7107787cfb43362358e2b044a96da7",
+      "sha256": "0d85bf3c17bd5c9f48796ad524362a43ca2bf54197912c51c931824bb7a487c7",
       "executable": false
     },
     "src/domain/alert-team-policy.ts": {
-      "sha256": "d1b87b8fa18849db5164b789ac97bc2feefccd0af5852ac1253f73d1524b3781",
+      "sha256": "1444b4999961719e60cc5cdb269affbb669a984091bfbda05e05bcab8a220e73",
       "executable": false
     },
     "src/domain/alert-teams.server.ts": {
@@ -7928,7 +7932,7 @@
       "executable": false
     },
     "src/domain/role-permissions.mjs": {
-      "sha256": "c5a817aa8171eaba734c7824bfe25380cdf7beb526aec48d7ceea455b4edac2a",
+      "sha256": "57f6f6998bb39b52152768ca30bb075cec90ca9778618d21b920f48b1e6ee766",
       "executable": false
     },
     "src/domain/rum/beacon-script.ts": {
@@ -8700,7 +8704,7 @@
       "executable": false
     },
     "tests/access-admin-support.mjs": {
-      "sha256": "430239bb23b65da06f78375761b5d4b8ccf74d299168107824ed8ee76a274a48",
+      "sha256": "7852e7729a483f33ab9d65719d141b21c8ddaf3214f76f4a2454d3881cc86af9",
       "executable": false
     },
     "tests/access-discovery-job-support.mjs": {
@@ -8880,7 +8884,7 @@
       "executable": false
     },
     "tests/alert-routing-console-support.mjs": {
-      "sha256": "f37d98fd6dc06b25e5c3ba45c125851b34212b8001b008f09e408824a7cf881e",
+      "sha256": "ebc9d7579bb9c3d6dfd627c7e187f04aa26f7108bbae8629c501a24f975d7146",
       "executable": false
     },
     "tests/alert-routing-filters-support.mjs": {
