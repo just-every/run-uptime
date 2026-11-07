@@ -10,6 +10,7 @@ import {completeSecondFactor} from './mfa-auth-support.mjs';
 export async function incidentConsole(){
  const browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic'],...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{})});
  let context,page,member,editor,assignmentEntries;
+ const shot=async name=>{if(process.env.UPTIME_FOLLOWUP_SHOTS){await mkdir(process.env.UPTIME_FOLLOWUP_SHOTS,{recursive:true});await page.screenshot({path:join(process.env.UPTIME_FOLLOWUP_SHOTS,name+'.png')})}};
  const inspect=async({f,monitors,ids,phase,detail})=>{
   const read=async id=>{const r=await f.request('/api/v1/incidents/'+encodeURIComponent(id),{headers:{cookie:member.cookie}});assert.equal(r.status,200);return r.data};
   if(!context){
@@ -34,6 +35,9 @@ export async function incidentConsole(){
    const link=await deliveredLink(authRequest(f.origin),{email:member.email});
    await page.goto(link.href);await page.getByRole('button',{name:'Confirm',exact:true}).click();
    await page.goto(f.origin+'/app');
+   await page.getByLabel('Authenticator or recovery code',{exact:true}).waitFor();
+   for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await shot('second-factor-'+width)}
+   await page.setViewportSize({width:1440,height:1000});
    await page.getByLabel('Authenticator or recovery code',{exact:true}).fill(member.factor.recoveryCodes.shift());
    await page.getByRole('button',{name:'Verify and continue',exact:true}).click();
    await page.locator('html.signed-in').waitFor();
@@ -59,6 +63,7 @@ export async function incidentConsole(){
   await page.goto(f.origin+'/app/monitors');await page.locator('html.signed-in').waitFor();
   for(const width of [1440,390]){
    await page.setViewportSize({width,height:1000});
+   await shot('incident-list-'+width);
    await page.locator(`[data-incident-work="${ids[0]}"]`).click();
    const dialog=page.locator('#incident-work-dialog');await dialog.locator('[data-incident-status]').filter({hasText:'Incident loaded.'}).waitFor();
    const current=await read(ids[0]);
@@ -82,7 +87,7 @@ export async function incidentConsole(){
    const layout=await dialog.evaluate(node=>({overflow:document.documentElement.scrollWidth>innerWidth||node.scrollWidth>node.clientWidth,
     small:[...node.querySelectorAll('*')].filter(el=>el.getClientRects().length&&[...el.childNodes].some(n=>n.nodeType===3&&n.textContent.trim())).filter(el=>parseFloat(getComputedStyle(el).fontSize)<13).length}));
    assert.equal(layout.overflow,false);assert.equal(layout.small,0);
-   if(process.env.UPTIME_FOLLOWUP_SHOTS){await mkdir(process.env.UPTIME_FOLLOWUP_SHOTS,{recursive:true});await page.screenshot({path:join(process.env.UPTIME_FOLLOWUP_SHOTS,phase+'-'+width+'.png')})}
+   await shot(phase+'-'+width);
    await page.locator('[data-close-incident]').click();
   }
   console.log('PROBE FOLLOWUP-001 2: native responder sign-in, MFA, scoped console and READAPI -> assignments retained; '+phase+' exact next-due and timeline at 1440 and 390');
