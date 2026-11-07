@@ -47,6 +47,7 @@ export function requestPermission(request,input){
   if(method==='PATCH'&&!suffix)return {action:'check_write',workspace:false,monitorIds:[id],definition:input};
   if(!read&&suffix==='failure-snapshots')return {action:'secret_write',workspace:true};
   if(suffix==='erase')return {action:'owner',workspace:true};
+  if(!read&&suffix==='alert-route/drill')return {action:'secret_write',workspace:true};
   if(suffix.startsWith('alert-route'))return {action:read?'settings_write':'route_write',workspace:true};
   if(['heartbeat-key','effect-grants','effect-grants/revoke','evidence-access'].includes(suffix))return {action:'secret_write',workspace:true};
   return {action:read?'settings_write':'check_write',workspace:true};

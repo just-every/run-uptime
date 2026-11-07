@@ -6,8 +6,9 @@ import {destinations} from './notification-destinations.server.ts'
 import {mailConfigured} from './mail.server.ts'
 import {auditStatement,mutationGuard,type AuditActor} from './audit.server.ts'
 import {digest} from './archive-schema.ts'
+import {startDrill} from './alert-drills.server.ts'
 import {routeScopes,scopeValue,defaultPolicy,routePolicy,effectivePolicy,normalizeFallback,type RouteScope,type RoutePolicy} from './alert-routes-policy.ts'
-const gaps=['These routes apply to confirmed incident triggers and recoveries. Expiry and renewal notices still use installation-wide destinations.','Teams and filters have API/CLI doors; their console UI and business-hour calendar remain unavailable. Region filters match exact configured probe IDs, not geographic regions; severity is critical for outages, warning for Slow, info for dependency notices.','Contact delays and reminders start at confirmation. Fallback contacts are named only in a selected policy and receive incident triggers, not reminders, slow notices or tests.','Route settings and detailed change history stay in this installation; archives retain opaque audit entries.'];
+const gaps=['These routes apply to confirmed incident triggers and recoveries. Expiry and renewal notices still use installation-wide destinations.','Teams, filters, quiet hours and US business hours are set in this editor or through the API and CLI. A location filter matches the configured check locations of the monitor (probe IDs, shown with each location name), not a managed geographic taxonomy; severity is critical for outages, warning for Slow, info for dependency notices.','Contact delays and reminders start at confirmation. Fallback contacts are named only in a selected policy and receive incident triggers, not reminders, slow notices or tests.','Route settings and detailed change history stay in this installation; archives retain opaque audit entries.'];
 // No secrets: only policy, monitor revisions and destination/custody identity.
 // Fencing this snapshot makes the reviewed affected set and readiness atomic
 // with a policy edit, even when another operator changes a broader scope.
@@ -66,7 +67,7 @@ function previewRecipients(policies:RoutePolicy[],contacts:any[],configured:bool
 export async function readAlertRoute(env:Bindings,monitorId:string,{readOnly=false}={}){
  const ctx=await context(env,monitorId,{readOnly});
  const changes=await env.DB.prepare(`SELECT * FROM alert_route_changes WHERE (scope_kind='monitor' AND scope_value=?) OR (scope_kind='service' AND scope_value=?) OR (scope_kind='group' AND scope_value=?) OR scope_kind='installation' ORDER BY changed_at DESC,rowid DESC LIMIT 30`).bind(monitorId,scopeValue('service',ctx.monitor!),scopeValue('group',ctx.monitor!)).all<any>();
- return {monitorId,policies:ctx.policies,...previewRecipients(ctx.policies,ctx.destinations,mailConfigured(env),await teamCandidates(env,monitorId)),gaps,changes:changes.results.map(r=>({id:r.id,scope:r.scope_kind,value:r.scope_value,previous:JSON.parse(r.previous_policy),current:JSON.parse(r.current_policy),changedAt:r.changed_at,actorRef:r.actor_ref}))};
+ return {monitorId,policies:ctx.policies,...previewRecipients(ctx.policies,ctx.destinations,mailConfigured(env),await teamCandidates(env,monitorId)),teams:(await env.DB.prepare('SELECT id,name,enabled FROM alert_teams ORDER BY name,id').all<any>()).results.map(t=>({id:t.id,name:t.name,enabled:!!t.enabled})),locations:(ctx.monitor!.definition.probes??[]).map((id:string)=>({id,label:ctx.monitor!.definition.assignments?.[id]?.networkLabel??id})),environment:ctx.monitor!.definition.environment??null,gaps,changes:changes.results.map(r=>({id:r.id,scope:r.scope_kind,value:r.scope_value,previous:JSON.parse(r.previous_policy),current:JSON.parse(r.current_policy),changedAt:r.changed_at,actorRef:r.actor_ref}))};
 }
 async function plan(env:Bindings,monitorId:string|null,raw:any,{readOnly=false}={}){
  const input=validate(raw);
@@ -79,7 +80,7 @@ async function plan(env:Bindings,monitorId:string|null,raw:any,{readOnly=false}=
  if(previous.revision!==input.expectedRevision)throw Object.assign(Error('Route changed; refresh and preview again'),{status:409});
  if(input.destinationIds.some(id=>!ctx.destinations.some(d=>d.id===id)&&!previous.destinationIds.includes(id)))throw Error('A selected destination does not exist');
  if(input.fallback.destinationIds.some(id=>!ctx.destinations.some(d=>d.id===id)&&!previous.fallback.destinationIds.includes(id)))throw Error('A fallback destination does not exist');
- const teamIds=input.teamIds??[];
+ const teamIds=input.teamIds??(input.mode==='selected'?previous.teamIds:[]);
  const knownTeams=(await env.DB.prepare('SELECT id FROM alert_teams').all<{id:string}>()).results;
  if(teamIds.some(id=>!knownTeams.some(t=>t.id===id)))throw Error('A selected team does not exist');
  const current={...previous,teamIds,filters:input.filters??previous.filters,quietHours:input.quietHours===undefined?previous.quietHours:input.quietHours,mode:input.mode,destinationIds:input.destinationIds,contactSettings:input.contactSettings!,fallback:input.fallback,revision:previous.revision+1};
@@ -172,4 +173,19 @@ export async function saveNamedAlertRoute(env:Bindings,raw:any,actor:AuditActor)
 export async function prepareNamedAlertRouteAssignment(env:Bindings,monitorId:string,route:Awaited<ReturnType<typeof namedAlertRoute>>){
  const current=await readAlertRoute(env,monitorId,{readOnly:true}),previous=current.policies.find(p=>p.scope==='monitor')!;
  const prepared=await monitorPlan(env,monitorId,{scope:'monitor',expectedRevision:previous.revision,...route.policy});prepared.current.namedRouteId=route.id;return prepared;
+}
+
+/** A route-aware sending drill: the saved route's own recipient selection for one alert class and set of configured
+ * locations, then a labelled, acknowledgement-link drill to each contact that would be told right now. Excluded contacts
+ * and contacts inside route or contact quiet hours are named and never messaged. Fallback contacts are not drilled. */
+export async function drillAlertRoute(env:Bindings,monitorId:string,raw:any,operatorId:string){
+ if(!raw||typeof raw!=='object'||Array.isArray(raw)||Object.keys(raw).some(k=>!['kind','regions'].includes(k)))throw Error('A route drill names its alert kind and locations');
+ const {sample,...result}=await sampleAlertRoute(env,monitorId,{kind:raw.kind,regions:raw.regions??[],at:Date.now()});
+ const outcomes=[];
+ for(const d of result.recipients.filter(r=>r.selected)){
+  if(d.outcome!=='ready'){outcomes.push({id:d.id,name:d.name,outcome:d.outcome,reason:d.reason,quietUntil:d.quietUntil??null,teamIds:d.teamIds??[]});continue}
+  try{const started=await startDrill(env,d.id,operatorId);outcomes.push({id:d.id,name:d.name,outcome:'drilled',reason:'ready',deliveryId:started.deliveryId,teamIds:d.teamIds??[]})}
+  catch(error){outcomes.push({id:d.id,name:d.name,outcome:'not_drilled',reason:String((error as Error).message),teamIds:d.teamIds??[]})}
+ }
+ return {sample,readyCount:result.readyCount,outcomes,fallback:result.fallback,excludedMembers:result.excludedMembers}
 }
