@@ -34,7 +34,6 @@ export async function incidentConsole(){
    await page.getByRole('button',{name:'Send sign-in link',exact:true}).click();assert.equal((await sent).status(),303);
    const link=await deliveredLink(authRequest(f.origin),{email:member.email});
    await page.goto(link.href);await page.getByRole('button',{name:'Confirm',exact:true}).click();
-   await page.goto(f.origin+'/app');
    await page.getByLabel('Authenticator or recovery code',{exact:true}).waitFor();
    for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await shot('second-factor-'+width)}
    await page.setViewportSize({width:1440,height:1000});

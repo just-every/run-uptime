@@ -206,6 +206,9 @@ export async function proveOncallHandoff(){
   const incidentId=delivery.eventId;
   const detail=await ok('/api/incidents/'+incidentId);
   assert.equal(detail.timeline.filter(t=>t.kind==='sibling_handoff').length,1);
+  const handoffAttempts=detail.timeline.filter(t=>t.data.deliveryId===delivery.id&&t.kind==='notification_attempt');
+  assert.ok(handoffAttempts.length);assert.ok(handoffAttempts.every(t=>t.data.handoff&&t.data.eventKind==='trigger'));
+  assert.ok(detail.timeline.some(t=>t.data.deliveryId===delivery.id&&t.kind==='notification_outcome'&&t.data.handoff&&t.data.outcome));
   assert.deepEqual(detail.deliveries.find(d=>d.id===delivery.id).handoff,delivery.handoff);
   await renameInConsole(ui,f,destination,{key,endpoint});
   // Lost probes after confirmed failure neither recover nor claim availability.

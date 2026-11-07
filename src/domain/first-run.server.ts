@@ -34,6 +34,8 @@ export async function firstRun(env:Bindings,request:Request){
   if(request.method==='POST'&&(request.headers.get('origin')!==env.UPTIME_ORIGIN||request.headers.get('sec-fetch-site')==='cross-site'))return new Response('Same origin required',{status:403,headers:{'cache-control':'no-store'}})
   const owner=await authenticatedSession(env,request)
   if(!owner)return new Response(null,{status:303,headers:{location:'/login?returnTo=%2Fsetup','cache-control':'no-store'}})
+  // Native sign-in returns here; members continue to their own console gate.
+  if(request.method!=='POST'&&owner.operator.role!=='owner')return redirect('/app')
   try{await permission(env,request)}catch(error){if(accessResponse(error))return accessDeniedDocument(owner.operator.displayName,request.method==='HEAD');throw error}
   if(await firstRunComplete(env))return redirect('/app/monitors')
   // A website set at installation is the owner's answer; otherwise the form may carry one. Either way one discovery job asks the owner's runner to look.
