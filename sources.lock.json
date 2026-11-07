@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "0477eca3f9b3df5147ff947e1095e726183f14b6d87b5d8c3e7d198e73d4fb14",
+      "sha256": "1eafd4a7fee59c3202114586bb85b7f10d47dcc8a7fb35ded717b9de5c094a68",
       "executable": false
     },
     "DEMO.md": {
@@ -2611,8 +2611,12 @@
       "sha256": "f5056b388653b8b1913132efd11e02c1c4797ac054573a1281da29283e3ac270",
       "executable": false
     },
+    "public/assets/incident-console.css": {
+      "sha256": "3cc27e4309cd102ebd5e3ab315fc64119e8604faa17a561e036c2fa8b58226b5",
+      "executable": false
+    },
     "public/assets/incident-console.js": {
-      "sha256": "56a48ad11b238e77e2a332167c89edab9c585c74c937d364b1e47ef6484aa974",
+      "sha256": "330b261dae66cf2ce9d717fcb942fdfbd72d36f5c2d6767eff543f76a1d3a711",
       "executable": false
     },
     "public/assets/report-schedule-controls.js": {
@@ -2804,7 +2808,7 @@
       "executable": false
     },
     "public/incident-work-markup.js": {
-      "sha256": "45f5c584aafbc95efe8f0818707efcb1ff1d1e62418035212df72e7a3ebdfe1e",
+      "sha256": "0c6a067aeb10ba345881615e73f86d3808cb22592c5455e2447333ae0ea41580",
       "executable": false
     },
     "public/incident-work.css": {
@@ -8712,7 +8716,7 @@
       "executable": false
     },
     "tests/access-scope-support.mjs": {
-      "sha256": "62def560e027cb6a14eaf0c4b69b3e40bd2a598fa80ab40a561cd7d24661d59e",
+      "sha256": "47f708a9f73f18e4f700afcd9f3eae857a49057b2a308c6a187c4811a43f51f9",
       "executable": false
     },
     "tests/admission-runtime.mjs": {
@@ -9112,11 +9116,11 @@
       "executable": false
     },
     "tests/incident-combined-support.mjs": {
-      "sha256": "0688f7c346a736576cf05d663bce2e3a7cd23971ce50d5ce21780968aeaeea10",
+      "sha256": "5f1d06213c544ae40307a3a962f1a97db0783abdebc2c54466be778af5baff58",
       "executable": false
     },
     "tests/incident-console-support.mjs": {
-      "sha256": "e58e7a5cde7d913a7f2e2a721e8bca30fd5c71eb68b6763f92997abba62a4c16",
+      "sha256": "beb58de91469d447d50254331367a06ec29d8b49b66ceaf79d80368d38c48432",
       "executable": false
     },
     "tests/incident-correlation-support.mjs": {
@@ -9124,7 +9128,7 @@
       "executable": false
     },
     "tests/incident-members-support.mjs": {
-      "sha256": "56f76ce13e7aa0b4438308cf56fe1f433c5b343fc819114513319f9a24405796",
+      "sha256": "cbd33e0f59e1e1c74dd67dba534280c95a1dfee66f54980b3f0d33b401eb3d01",
       "executable": false
     },
     "tests/incident-mention-recovery-support.mjs": {

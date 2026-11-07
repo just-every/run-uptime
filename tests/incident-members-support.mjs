@@ -77,6 +77,7 @@ export async function proveIncidentMembers(f,monitor,id,edge,restart){
  assert.equal((await f.request(path+'/comments',{body:{text:'Stale responder authority'},headers:{cookie:editor.cookie}})).status,403);
  await ok('/auth/operator/status',{body:{operatorId:admin.id,status:'inactive'}});
  assert.equal((await f.request(path+'/comments',{body:{text:'Stale Base session'},headers:{cookie:admin.cookie}})).status,401);
+ assert.equal((await f.request('/api/response-workspace',{headers:{cookie:admin.cookie}})).status,401);
  assert.deepEqual(await machine(),before,'collaboration never changes monitoring evidence');
  await proveMentionRecovery(f,{...monitor,incidentId:id},{responder,reader,invite},edge,restart);
  return {responder,reader,commentId:comment.id,sent:edge.mentions.length,ownership:changes};
@@ -84,6 +85,7 @@ export async function proveIncidentMembers(f,monitor,id,edge,restart){
 export async function proveMentionErasure(f,path,members){
  for(const member of [members.responder,members.reader]){
   const response=await f.request('/api/operators/'+member.id+'/erase',{body:{}});assert.equal(response.status,200,JSON.stringify(response.data));
+  assert.equal((await f.request('/api/response-workspace',{headers:{cookie:member.cookie}})).status,401,'erased member cannot re-enter incident work');
   assert.equal((await f.DB.prepare('SELECT COUNT(*) n FROM incident_mentions WHERE recipient_id=?').bind(member.id).first()).n,0);
  }
  const detail=(await f.request(path)).data;assert.equal(detail.comments.find(row=>row.id===members.commentId).author.displayName,'Former member');assert.equal(detail.comments.find(row=>row.id===members.commentId).text,'Administrator correction');

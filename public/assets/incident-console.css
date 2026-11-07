@@ -1,0 +1,8 @@
+.response-monitor{padding:24px;overflow-wrap:anywhere}
+.response-monitor+.response-monitor{border-top:1px solid var(--line)}
+.response-monitor h2{margin-bottom:16px}
+.response-incident{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 24px}
+.response-incident+.response-incident{margin-top:18px;padding-top:18px;border-top:1px solid var(--line)}
+.response-incident>div{display:grid;gap:6px;min-width:0}
+.response-incident p{color:var(--muted);font-size:14px}
+@media(max-width:700px){.response-monitor{padding:20px 16px}.response-incident{align-items:start}}

@@ -9,7 +9,11 @@ export async function proveScopedAccess({origin,call,fetcher,DB,cookie,editor,re
   assert.equal((await call('/api/v1/monitors/'+target.id,undefined,{cookie:person.cookie})).status,200);
   for(const id of [outside.id,'missing-monitor']){const denied=await call('/api/v1/monitors/'+id,undefined,{cookie:person.cookie});assert.equal(denied.status,403);assert.ok(!JSON.stringify(await denied.json()).includes('synthetic-outside-scope'))}
   for(const path of ['/api/overview','/api/v1/monitors','/api/v1/uptime','/api/archive','/api/definitions/export','/api/discovery-sources','/api/notifications/destinations','/api/access/members'])assert.equal((await call(path,undefined,{cookie:person.cookie})).status,403,'scope cannot widen into '+path);
-  const document=await call('/app/monitors',undefined,{cookie:person.cookie});assert.equal(document.status,403);
+  const document=await call('/app/monitors',undefined,{cookie:person.cookie});assert.equal(document.status,200,'scoped members enter their incident console');
+  const work=await call('/api/response-workspace',undefined,{cookie:person.cookie});assert.equal(work.status,200);
+  assert.deepEqual((await work.json()).monitors.map(row=>row.id),[target.id],'console work retains the service and team intersection');
+  assert.equal((await call('/app/monitors/'+outside.id,undefined,{cookie:person.cookie})).status,403,'outside monitor document stays forbidden');
+  assert.equal((await call('/app/settings/people',undefined,{cookie:person.cookie})).status,403,'workspace configuration stays forbidden');
  }
  const patch=body=>fetcher(origin+'/api/monitors/'+target.id,{method:'PATCH',redirect:'manual',headers:{host:new URL(origin).host,origin,'content-type':'application/json',cookie:editor.cookie},body:JSON.stringify(body)});
  const current=JSON.parse((await DB.prepare('SELECT definition FROM monitors WHERE id=?').bind(target.id).first()).definition);

@@ -9,6 +9,7 @@ export function mountResponseConsole(identity){
  const app=document.querySelector('.app'),area=document.querySelector('.table-scroll');
  let stopped=false,polling;
  delete app.dataset.menu;
+ if(!document.querySelector('link[data-response-style]')){const style=document.createElement('link');style.rel='stylesheet';style.href='/assets/incident-console.css';style.dataset.responseStyle='';document.head.append(style)}
  document.querySelector('.top h1').textContent='Incident follow-up';
  document.querySelector('.top .eyebrow').hidden=true;
  document.querySelector('.top .subtitle').hidden=true;
@@ -40,7 +41,7 @@ export function mountResponseConsole(identity){
   try{
    const data=await api('/api/response-workspace');if(stopped)return;
    const monitors=selected?data.monitors.filter(row=>row.id===decodeURIComponent(selected)):data.monitors;
-   patch(area,monitors.map(m=>`<section class="incident-record"><h2>${escape(m.name)}</h2>${m.incidents.length?m.incidents.map(i=>`<article class="incident-record" data-key="${escape(i.id)}"><h3>${i.endedAt===null?'Open incident':'Recovered incident'}</h3><p>Confirmed <time datetime="${new Date(i.startedAt).toISOString()}">${escape(new Date(i.startedAt).toLocaleString())}</time></p><button type="button" data-incident-work="${escape(i.id)}">Notes and follow-up</button></article>`).join(''):'<p>No confirmed incidents recorded.</p>'}</section>`).join('')||'<p>No incident work in your scope.</p>');
+   patch(area,monitors.map(m=>`<section class="response-monitor"><h2>${escape(m.name)}</h2>${m.incidents.length?m.incidents.map(i=>`<article class="response-incident" data-key="${escape(i.id)}"><div><h3>${i.endedAt===null?'Open incident':'Recovered incident'}</h3><p>Confirmed <time datetime="${new Date(i.startedAt).toISOString()}">${escape(new Date(i.startedAt).toLocaleString())}</time></p></div><button type="button" data-incident-work="${escape(i.id)}">Notes and follow-up</button></article>`).join(''):'<p>No confirmed incidents recorded.</p>'}</section>`).join('')||'<p>No incident work in your scope.</p>');
    status.textContent='';document.documentElement.classList.add('signed-in');
   }catch(error){if(!stopped)status.textContent=error.message}
  }

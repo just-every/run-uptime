@@ -42,6 +42,7 @@ export async function proveCombinedIncident(inspect=async()=>{}){
   first=await ok(path(0));assert.equal(first.nextDueKind,'escalation');assert.equal(first.nextDue,deadline);
   const cli=await incidentCommand(['--origin',f.origin,'read','--id',ids[0]],{UPTIME_ACCESS_COOKIE:f.cookie});assert.equal(cli.nextDue,deadline);assert.equal(cli.nextDueKind,'escalation');
   await inspect({f,monitors,ids,phase:'escalation',detail:first});
+  first=await ok(path(0));
   await ok('/api/incidents/'+encodeURIComponent(ids[0])+'/actions',{body:{kind:'acknowledge',version:first.version}});
   assert.equal((await ok(path(1))).status,'acknowledged');
   await restart();first=await ok(path(0));assert.equal(first.nextDue,deadline,'restart retains the owner-set fallback deadline');
@@ -71,6 +72,6 @@ export async function proveCombinedIncident(inspect=async()=>{}){
   const archive=await ok('/api/archive');({worker:restored}=await migratedWorker({persist:archiveDirectory,bindings:f.bindings}));const origin=(await restored.ready).origin,cookie=await signInOwner(origin,{bindings:f.bindings});
   const response=await fetch(origin+'/api/restore',{method:'POST',headers:{origin,cookie,'content-type':'application/json'},body:JSON.stringify({archive})});assert.equal(response.status,200);
   const restoredDetail=await(await fetch(origin+path(0),{headers:{cookie}})).json();assert.deepEqual(restoredDetail.timeline.filter(row=>row.kind.startsWith('escalation_')),escalationEntries,'inactive restore retains escalation attempts and outcomes without rewriting them');
-  console.log('FOLLOWUP-001 combined PASS: correlated dependency/group, policy-selected acknowledgment, restart before deadline and due reminder, lost-response uncertainty without replay, exact next kinds/times, one-child recovery, resolution and inactive escalation restore.');
+  console.log('PROBE FOLLOWUP-001 1: correlated incident routes -> correlated dependency/group, policy-selected acknowledgment, restart before deadline and due reminder, lost-response uncertainty without replay, exact next kinds/times, one-child recovery, resolution and inactive escalation restore.');
  }finally{await restored?.dispose();await restarted?.dispose();await f.close();await rm(archiveDirectory,{recursive:true,force:true})}
 }

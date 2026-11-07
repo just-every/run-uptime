@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import {mkdir} from 'node:fs/promises';
+import {mkdir,readFile} from 'node:fs/promises';
+import {createRequire} from 'node:module';
 import {join} from 'node:path';
 import {chromium} from 'playwright';
 import {authRequest,deliveredLink,sessionCookie,finishSetup} from './auth-test-support.mjs';
@@ -7,9 +8,11 @@ import {completeSecondFactor} from './mfa-auth-support.mjs';
 
 // Extends the correlated lifecycle, with native invitation, fresh email sign-in,
 // actual second-factor UI and the scoped console. No imported browser sessions.
+const axeSource=await readFile(createRequire(import.meta.url).resolve('axe-core/axe.min.js'),'utf8');
 export async function incidentConsole(){
  let browser,context,page,member,editor,assignmentEntries;
  const shot=async name=>{if(process.env.UPTIME_FOLLOWUP_SHOTS){await mkdir(process.env.UPTIME_FOLLOWUP_SHOTS,{recursive:true});await page.screenshot({path:join(process.env.UPTIME_FOLLOWUP_SHOTS,name+'.png')})}};
+ const audit=async name=>{if(!await page.evaluate(()=>typeof window.axe==='object'))await page.evaluate(axeSource);const issues=await page.evaluate(async()=> (await axe.run(document)).violations.map(row=>row.id));assert.deepEqual(issues,[],name+' has no axe violations')};
  const inspect=async({f,monitors,ids,phase,detail})=>{
   const read=async id=>{const r=await f.request('/api/v1/incidents/'+encodeURIComponent(id),{headers:{cookie:member.cookie}});assert.equal(r.status,200);return r.data};
   if(!context){
@@ -35,7 +38,7 @@ export async function incidentConsole(){
    const link=await deliveredLink(authRequest(f.origin),{email:member.email});
    await page.goto(link.href);await page.getByRole('button',{name:'Confirm',exact:true}).click();
    await page.getByLabel('Authenticator or recovery code',{exact:true}).waitFor();
-   for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await shot('second-factor-'+width)}
+   for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await audit('Member second factor');await shot('second-factor-'+width)}
    await page.setViewportSize({width:1440,height:1000});
    await page.getByLabel('Authenticator or recovery code',{exact:true}).fill(member.factor.recoveryCodes.shift());
    await page.getByRole('button',{name:'Verify and continue',exact:true}).click();
@@ -56,13 +59,16 @@ export async function incidentConsole(){
    assert.deepEqual(assignmentEntries.map(row=>row.data.owner.id),[member.id,editor.id]);
    assert.ok(assignmentEntries.every(row=>row.actor.id===member.id&&row.at>0));
    await page.locator('[data-close-incident]').click();
+   const maintained=await f.request('/api/monitors/'+monitors[0].id,{method:'PATCH',body:{...monitors[0].definition,enabled:true,maintenanceUntil:Date.now()+60000}});assert.equal(maintained.status,200);
+   assert.equal((await f.request('/api/monitors/'+monitors[0].id,{method:'PATCH',body:{...maintained.data.definition,enabled:false}})).status,200);
+   assert.equal((await f.request('/api/monitors/'+monitors[0].id,{method:'PATCH',body:{...monitors[0].definition,enabled:true,maintenanceUntil:0}})).status,200);
   }
   // Reload through the document gate after every Worker restart, rather than
   // retaining an already-open privileged console.
   await page.goto(f.origin+'/app/monitors');await page.locator('html.signed-in').waitFor();
   for(const width of [1440,390]){
    await page.setViewportSize({width,height:1000});
-   await shot('incident-list-'+width);
+   await audit('Scoped incident list');await shot('incident-list-'+width);
    await page.locator(`[data-incident-work="${ids[0]}"]`).click();
    const dialog=page.locator('#incident-work-dialog');await dialog.locator('[data-incident-status]').filter({hasText:'Incident loaded.'}).waitFor();
    const current=await read(ids[0]);
@@ -86,9 +92,24 @@ export async function incidentConsole(){
    }
    const layout=await dialog.evaluate(node=>({overflow:document.documentElement.scrollWidth>innerWidth||node.scrollWidth>node.clientWidth,
     small:[...node.querySelectorAll('*')].filter(el=>el.getClientRects().length&&[...el.childNodes].some(n=>n.nodeType===3&&n.textContent.trim())).filter(el=>parseFloat(getComputedStyle(el).fontSize)<13).length}));
-   assert.equal(layout.overflow,false);assert.equal(layout.small,0);
+   assert.equal(layout.overflow,false);assert.equal(layout.small,0);await audit('Incident follow-up');
+   assert.ok(current.timeline.some(row=>row.kind==='maintenance_applied'&&row.actor.id&&row.at&&row.data.outcome==='applied'));
+   assert.ok(current.timeline.some(row=>row.kind==='pause_applied'&&row.actor.id&&row.at&&row.data.outcome==='applied'));
    await shot(phase+'-'+width);
-   await page.locator('[data-close-incident]').click();
+   await dialog.locator('.incident-timeline li').first().scrollIntoViewIfNeeded();await shot(phase+'-timeline-start-'+width);
+   await dialog.locator('.incident-timeline li').last().scrollIntoViewIfNeeded();await shot(phase+'-timeline-'+width);
+   await page.locator('[data-close-incident]').click();await dialog.waitFor({state:'detached'});
+   assert.equal(await page.locator(`[data-incident-work="${ids[0]}"]`).evaluate(node=>node===document.activeElement),true,'closing returns keyboard focus to its incident');
+  }
+  if(phase==='one-recovered'){
+   const before=(await f.request('/api/v1/incidents/'+encodeURIComponent(ids[0]))).data;
+   assert.equal((await f.request('/api/access/members/'+member.id,{method:'DELETE'})).status,200);
+   assert.equal((await context.request.get(f.origin+'/api/response-workspace')).status(),401,'revoked member cannot read incident work');
+   assert.equal((await context.request.get(f.origin+'/api/v1/incidents/'+encodeURIComponent(ids[0]))).status(),401);
+   assert.equal((await context.request.post(f.origin+'/api/incidents/'+encodeURIComponent(ids[0])+'/actions',{headers:{origin:f.origin},data:{kind:'assign',ownerId:editor.id,version:before.version}})).status(),401);
+   assert.deepEqual((await f.request('/api/v1/incidents/'+encodeURIComponent(ids[0]))).data.timeline,before.timeline,'revoked assignment changes nothing');
+   await page.goto(f.origin+'/app/monitors');await page.getByLabel('Email address',{exact:true}).waitFor();
+   assert.equal(await page.locator('#incident-work-dialog').count(),0);
   }
   console.log('PROBE FOLLOWUP-001 2: native responder sign-in, MFA, scoped console and READAPI -> assignments retained; '+phase+' exact next-due and timeline at 1440 and 390');
  };
