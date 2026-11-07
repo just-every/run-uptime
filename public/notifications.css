@@ -179,3 +179,10 @@
   .destination-dialog .buttons { flex-direction: column-reverse; }
   .destination-dialog .buttons [data-delete-destination] { margin: 8px 0 0; }
 }
+.team-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.team-row { display: flex; align-items: start; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+.team-row .ui-helper { margin: 4px 0 0; }
+.team-optin { display: grid; gap: 8px; }
+.alert-team-dialog form { display: grid; gap: 12px; min-width: 0; }
+.alert-team-dialog label:not(.route-contact) { display: grid; gap: 6px; }
+@media (max-width: 600px) { .team-row { flex-direction: column; } }

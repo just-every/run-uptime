@@ -71,7 +71,7 @@ export const apiRoutes:readonly Route[]=[
  {method:'GET',path:'/api/alert-route',body:'none'},
  ...['preview','apply'].map(action=>({method:'POST',path:`/api/alert-route/${action}`,body:'object' as const})),
  {method:'GET',path:'/api/monitors/:id/alert-route',params:id,body:'none'},
- ...['preview','apply','import-preview','sample'].map(action=>({method:'POST',path:`/api/monitors/:id/alert-route/${action}`,params:id,body:'object' as const})),
+ ...['preview','apply','import-preview','sample','drill'].map(action=>({method:'POST',path:`/api/monitors/:id/alert-route/${action}`,params:id,body:'object' as const})),
  ...['catalog/preview','catalog/apply','catalog/add/preview','catalog/add/apply','maintenance/preview','maintenance/apply','maintenance/cancel'].map(path=>({method:'POST',path:'/api/'+path,body:'object' as const})),
  {method:'GET',path:'/api/v1/openapi.json',body:'none'},
  ...['GET','POST'].flatMap(method=>['/api/heartbeats/:id','/api/heartbeats/:id/url/:token'].flatMap(base=>['','/start','/success','/fail','/fail/:exitCode'].map(suffix=>({method,path:base+suffix,params:{...id,...(base.includes(':token')?{token:(value:string)=>/^[0-9a-f-]{72}$/.test(value)}:{}),...(suffix.includes(':exitCode')?{exitCode:(value:string)=>/^(0|[1-9][0-9]{0,2})$/.test(value)&&Number(value)<=255}:{})},body:(method==='GET'?'none':'text') as Body})))),

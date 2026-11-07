@@ -8,6 +8,7 @@ import {createHmac} from 'node:crypto';
 import {fixture} from './resilience/support.mjs';
 import {proveRoutingFilters} from './alert-routing-filters-support.mjs';
 import {proveRoutingTeams} from './alert-routing-teams-support.mjs';
+import {proveRoutingConsole} from './alert-routing-console-support.mjs';
 import {dispatchNotifications} from '../runners/src/notification-dispatch.mjs';
 
 test('owned routes preview inheritance, deliver matched triggers/recoveries and retain auditable changes',{timeout:90000},async()=>{
@@ -92,6 +93,7 @@ test('owned routes preview inheritance, deliver matched triggers/recoveries and 
   await f.pause(monitor);
   await proveRoutingTeams(f,ok);
   await proveRoutingFilters(f,ok);
+  await proveRoutingConsole(f,ok);
   await proveCatalogRoutes();
  }finally{releaseTrigger?.();try{await dispatching}finally{await f.close()}}
 });

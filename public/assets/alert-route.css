@@ -27,7 +27,7 @@
 .route-recipients p { margin: 4px 0; font-size: 14px; line-height: 1.5; }
 .route-recipients button { flex: none; }
 .route-affected > li, .route-history > li { margin: 12px 0; line-height: 1.5; overflow-wrap: anywhere; }
-.route-history code { font-size: 12px; }
+.route-history code { font-size: 13px; }
 .alert-route-dialog details { margin-top: 18px; }
 .alert-route-dialog #route-preview { border-top: 1px solid var(--line); margin-top: 12px; padding-top: 18px; }
 .alert-route-dialog #route-error:empty { display: none; }
@@ -37,3 +37,14 @@
  .route-schedule-numbers, .route-import-mapping { grid-template-columns: minmax(0, 1fr); }
  .route-import-mapping > button { justify-self: start; }
 }
+.route-fields { font-size: 14px; }
+.route-filter { margin: 8px 0; }
+.route-filter-limit { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+.route-filter-limit input { flex: none; width: 20px; height: 20px; }
+.route-filter-values { padding: 8px 0 0 30px; }
+.route-filter-values label:not(.route-contact) { display: grid; gap: 6px; line-height: 1.5; }
+.route-filter-values input:not([type=checkbox]), .route-hours input:not([type=checkbox]), .route-hours select { box-sizing: border-box; width: 100%; min-width: 0; }
+.route-filter-warning { margin: 6px 0 0; font-size: 14px; }
+.route-try summary { cursor: pointer; }
+.route-try .buttons { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; }
+.route-try select, .route-try input[type=datetime-local] { box-sizing: border-box; width: 100%; }

@@ -2,7 +2,14 @@ import {escape} from '/console-format.js';
 import {quietDescription,readQuiet} from './contact-quiet.js';
 import {fallbackSummaryMarkup,fallbackPreviewMarkup} from './alert-route-fallback.js';
 export const scopeNames={monitor:'This monitor',service:'Service',group:'Group',installation:'Installation'};
-export const reasons={ready:'Ready',not_selected:'Excluded by route',fallback_only:'Fallback contact',disabled:'Disabled — excluded',credentials_missing:'Missing credentials — excluded',mail_not_configured:'Mail sender unavailable — excluded',destination_missing:'Destination missing — excluded'};
+export const reasons={ready:'Ready',not_selected:'Excluded by route',fallback_only:'Fallback contact',disabled:'Disabled — excluded',credentials_missing:'Missing credentials — excluded',mail_not_configured:'Mail sender unavailable — excluded',destination_missing:'Destination missing — excluded',team_recipient_ineligible:'Team member has not opted in, or is out of scope — excluded',filter_environments:'Excluded by environment filter',filter_severities:'Excluded by severity filter',filter_origins:'Excluded by origin filter',filter_regions:'Excluded by location filter'};
+const filterNames={environments:'environment',severities:'severity',origins:'origin',regions:'location'};
+const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+// The effective route's teams, filters and hours in one line each, so a review shows everything that holds an alert.
+export function routeFieldsMarkup(policy){
+ const filters=Object.entries(policy.filters??{}).map(([key,values])=>`${filterNames[key]}: ${values.length?values.join(', '):'nothing'}`),quiet=policy.quietHours;
+ return `<p class="route-fields">Teams: ${policy.teamIds?.length?`${policy.teamIds.length} selected`:'none'}. Filters: ${filters.length?escape(filters.join('; ')):'none, every alert matches'}. Hours: ${quiet?quiet.businessDays?`business hours ${escape(quiet.start)}–${escape(quiet.end)} on ${quiet.businessDays.map(d=>dayNames[d]).join(', ')} (${escape(quiet.timeZone)}); other times are held`:`quiet ${escape(quiet.start)}–${escape(quiet.end)} (${escape(quiet.timeZone)})`:'alerts are sent at any time'}.</p>`;
+}
 export const policyName=p=>`${scopeNames[p.scope]}${p.value&&p.scope!=='monitor'?` “${p.value}”`:''}: ${p.mode==='all'?'all enabled destinations':p.mode==='inherit'?'inherit':p.destinationIds.length?`${p.destinationIds.length} selected`:'no destinations'}`;
 export function scheduleDescription(settings={}){
  const delay=settings.delayMinutes??0,repeat=settings.repeatMinutes??0,max=settings.maxRepeats??null;
@@ -41,10 +48,10 @@ export function whoMarkup(data){
  return `${who}${fallbackSummaryMarkup(data)}`;
 }
 export function summaryMarkup(data){
- return `${whoMarkup(data)}<details><summary>How this is decided</summary><p>${escape(policyName(data.effective))}</p><p>Inheritance: monitor → service → group → installation. Recovery keeps the trigger’s matched recipients and credential, and waits for provider acceptance of the trigger. Disabled, missing or rotated contacts cannot receive recovery.</p>${recipientRows(data.recipients)}</details>`;
+ return `${whoMarkup(data)}<details><summary>How this is decided</summary><p>${escape(policyName(data.effective))}</p>${routeFieldsMarkup(data.effective)}<p>Inheritance: monitor → service → group → installation. Recovery keeps the trigger’s matched recipients and credential, and waits for provider acceptance of the trigger. Disabled, missing or rotated contacts cannot receive recovery.</p>${recipientRows(data.recipients)}</details>`;
 }
 export function previewMarkup(data){
- return `<h3>Review recipients</h3><p>${escape(policyName(data.effective))}. ${data.readyCount} ready for this monitor.</p>${!data.readyCount?'<p class="ui-callout">This monitor has no ready alert recipient under this policy.</p>':''}${recipientRows(data.recipients)}${fallbackPreviewMarkup(data)}<h3>Scope of this change</h3><p>${data.affected.length} monitor${data.affected.length===1?'':'s'} in this scope. A narrower selected route takes priority.</p><ul class="route-affected">${data.affected.map(m=>`<li><strong>${escape(m.name)}</strong> · ${m.readyCount} ready · ${escape(policyName(m.effective))}${m.blocked.length?` · ${m.blocked.length} selected but excluded`:''}</li>`).join('')}</ul>`;
+ return `<h3>Review recipients</h3><p>${escape(policyName(data.effective))}. ${data.readyCount} ready for this monitor.</p>${!data.readyCount?'<p class="ui-callout">This monitor has no ready alert recipient under this policy.</p>':''}${routeFieldsMarkup(data.effective)}${recipientRows(data.recipients)}${fallbackPreviewMarkup(data)}<h3>Scope of this change</h3><p>${data.affected.length} monitor${data.affected.length===1?'':'s'} in this scope. A narrower selected route takes priority.</p><ul class="route-affected">${data.affected.map(m=>`<li><strong>${escape(m.name)}</strong> · ${m.readyCount} ready · ${escape(policyName(m.effective))}${m.blocked.length?` · ${m.blocked.length} selected but excluded`:''}</li>`).join('')}</ul>`;
 }
 export function historyMarkup(data){
  const selected=p=>p.mode==='selected'?p.destinationIds.map(id=>`${data.recipients.find(d=>d.id===id)?.name??`Missing destination (${id})`} (${scheduleDescription(p.contactSettings?.[id])})`).join('; ')||'None':p.mode==='all'?'All enabled destinations':'Inherit';
