@@ -16,7 +16,7 @@ export function extendedMarkup(policy,{teams,teamsError,probes}){
  const probeIds=probes.map(p=>p.id),others=(filters.regions??[]).filter(r=>!probeIds.includes(r));
  const zone=quiet?.timeZone??Intl.DateTimeFormat().resolvedOptions().timeZone;
  return `<fieldset id="route-extended-fields"><legend>Teams, filters and hours</legend>
- <fieldset class="route-teams"><legend>Teams</legend>${teamsError?`<p role="status">Teams could not be read: ${escape(teamsError)}</p>`:teams.length?teams.map((t,i)=>`<label class="route-contact" for="route-team-${i}"><input id="route-team-${i}" type="checkbox" name="team" value="${escape(t.id)}" ${checked(policy.teamIds,t.id)}><span><strong>${escape(t.name)}</strong> · ${t.members.length} member${t.members.length===1?'':'s'}${t.enabled?'':' · disabled'}</span></label>`).join('')+'<p>A member is told only after opting in with their own verified email destination, and only for monitors their access covers.</p>':'<p>No teams yet. Create one under Settings › Alerts.</p>'}</fieldset>
+ <fieldset class="route-teams"><legend>Teams</legend>${teamsError?`<p role="status">Teams could not be read: ${escape(teamsError)}. Teams already saved on this route are kept.</p>`:teams.length?teams.map((t,i)=>`<label class="route-contact" for="route-team-${i}"><input id="route-team-${i}" type="checkbox" name="team" value="${escape(t.id)}" ${checked(policy.teamIds,t.id)}><span><strong>${escape(t.name)}</strong> · ${t.members.length} member${t.members.length===1?'':'s'}${t.enabled?'':' · disabled'}</span></label>`).join('')+'<p>A member is told only after opting in with their own verified email destination, and only for monitors their access covers.</p>':'<p>No teams yet. Create one under Settings › Alerts.</p>'}</fieldset>
  ${limit('environments','Only some environments',filters.environments,`<label for="route-environments">Environments, comma separated<input id="route-environments" data-filter-text value="${escape((filters.environments??[]).join(', '))}" placeholder="${escape('production, staging')}"></label>`)}
  ${limit('severities','Only some severities',filters.severities,severities.map(([v,l],i)=>`<label class="route-contact" for="route-severity-${i}"><input id="route-severity-${i}" type="checkbox" data-filter-option value="${v}" ${checked(filters.severities,v)}><span>${l}</span></label>`).join(''))}
  ${limit('origins','Only some origins',filters.origins,origins.map(([v,l],i)=>`<label class="route-contact" for="route-origin-${i}"><input id="route-origin-${i}" type="checkbox" data-filter-option value="${v}" ${checked(filters.origins,v)}><span>${l}</span></label>`).join(''))}
@@ -54,7 +54,9 @@ export function mountRouteExtended(host,{data,scope,mode,teams,teamsError,probes
    for(const f of root.querySelectorAll('[data-filter]'))if(f.querySelector('[data-filter-limit]').checked)filters[f.dataset.filter]=[...new Set(readFilter(f))];
    const kind=root.querySelector('[data-hours-kind]').value,value=key=>root.querySelector(`[data-hours-${key}]`).value.trim();
    const quietHours=kind==='none'?null:{timeZone:value('zone'),start:value('start'),end:value('end'),...(kind==='business'?{businessDays:[...root.querySelectorAll('[data-business-day]:checked')].map(i=>Number(i.value))}:{})};
-   const teamIds=[...root.querySelectorAll('[name=team]:checked')].map(i=>i.value);
+   // A team the directory could not list (or that is not listed) keeps its saved selection: only a shown, unchecked box removes a team.
+   const shown=new Set([...root.querySelectorAll('[name=team]')].map(i=>i.value)),kept=(data.policies.find(p=>p.scope===input.scope)?.teamIds??[]).filter(id=>!shown.has(id));
+   const teamIds=[...[...root.querySelectorAll('[name=team]:checked')].map(i=>i.value),...kept];
    return {...input,teamIds,filters,quietHours};
   },
  };

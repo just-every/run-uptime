@@ -11,7 +11,8 @@ export function selectedTeamRecipientSql(teams:string,destination='d',monitor='m
  return `EXISTS(SELECT 1 FROM alert_recipient_consents rc JOIN alert_team_members tm ON tm.operator_id=rc.operator_id JOIN alert_teams team ON team.id=tm.team_id
  WHERE rc.destination_id=${destination}.id AND rc.credential_id=${destination}.credential_id AND team.enabled=1 AND team.id IN(SELECT value FROM json_each(${teams})) AND ${liveRecipientSql('rc',monitor)})`
 }
-/** Original incident recipient binding also gates its reminders and recovery.
+/** A route drill to a team member binds its own delivery (monitor_id set), so revoking the opt-in, disabling the team or
+ * narrowing the member's access stops it while queued. Original incident recipient binding also gates its reminders and recovery.
  * It does not reselect from a changed route or send to replacement team members. */
 export function teamDeliveryReady(job='j'){
  // Materialize the live binding set inside this statement. Keeping identity,
@@ -21,7 +22,7 @@ export function teamDeliveryReady(job='j'){
  return `NOT EXISTS(WITH live_team_bindings AS MATERIALIZED (
  SELECT DISTINCT b.trigger_job_id FROM alert_team_deliveries b
  JOIN notification_jobs original ON original.id=b.trigger_job_id
- JOIN monitors m ON m.id=json_extract(original.event,'$.monitorId')
+ JOIN monitors m ON m.id=COALESCE(b.monitor_id,json_extract(original.event,'$.monitorId'))
  JOIN alert_recipient_consents rc ON rc.operator_id=b.operator_id AND rc.destination_id=original.destination_id AND rc.credential_id=original.credential_id
  JOIN notification_destinations d ON d.id=rc.destination_id AND d.credential_id=rc.credential_id
  JOIN alert_team_members tm ON tm.operator_id=rc.operator_id
@@ -31,6 +32,6 @@ export function teamDeliveryReady(job='j'){
  ) SELECT 1 FROM alert_team_deliveries b JOIN notification_jobs original ON original.id=b.trigger_job_id
  LEFT JOIN live_team_bindings live ON live.trigger_job_id=b.trigger_job_id
  WHERE (original.destination_id=${job}.destination_id AND original.credential_id=${job}.credential_id)
- AND (json_extract(original.event,'$.monitorId')=json_extract(${job}.event,'$.monitorId') AND json_extract(original.event,'$.incidentKey')=json_extract(${job}.event,'$.incidentKey'))
+ AND (original.id=${job}.id OR (json_extract(original.event,'$.monitorId')=json_extract(${job}.event,'$.monitorId') AND json_extract(original.event,'$.incidentKey')=json_extract(${job}.event,'$.incidentKey')))
  AND live.trigger_job_id IS NULL)`
 }

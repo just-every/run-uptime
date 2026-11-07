@@ -534,6 +534,12 @@
       "name": "0086_runner_country.sql",
       "sha256": "d03df480a71153d9c81f34529ea3c0c19e24a6fe86d46b7cca931f58847948fa",
       "sql": "-- ROUTING-001 geographic region routing: the country (ISO 3166 alpha-2) a location's runner connects from, taken from its\n-- request place the first time that place is known, or typed by the owner. Region filters match it for the probes a\n-- confirmed alert names. The country stays installation-local and is not an archive field.\nALTER TABLE runners ADD COLUMN country TEXT;\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0087_drill_team_binding.sql",
+      "sha256": "73379c646b128c04f53cb5e3e57320a1725eb813f9ae64c82f02d065c207c9ce",
+      "sql": "-- ROUTING-001: a route drill sent to a team member is bound to the monitor whose route chose it, so the member's opt-in,\n-- the team and the member's access are re-read when the queued drill is claimed. Alert bindings leave this empty.\nALTER TABLE alert_team_deliveries ADD COLUMN monitor_id TEXT;\n"
     }
   ],
   "compatibilityDate": "2026-09-08",

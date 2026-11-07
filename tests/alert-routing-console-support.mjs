@@ -64,6 +64,19 @@ export async function proveRoutingConsole(f,ok){
     await dialog.locator('#route-limit-severities').check();await dialog.getByLabel('Warning (Slow)').check();
     await save(dialog);
     saved=await policy(prodMonitor);assert.deepEqual(saved.filters,{environments:['production'],severities:['critical','warning']});assert.deepEqual(saved.teamIds,[prod.id]);assert.deepEqual(saved.quietHours.businessDays,[1,2,3,4,5]);
+    // A directory that fails to load never empties what is saved: teams on a route and members of a team survive an unrelated edit.
+    const unavailable=pattern=>page.route(pattern,r=>r.request().method()==='GET'?r.fulfill({status:503,contentType:'application/json',body:'{"error":"unavailable"}'}):r.continue());
+    const teamsRead=/\/api\/routing\/teams$/,directory=/\/api\/access\/members$/;
+    await unavailable(teamsRead);
+    dialog=await open(prodMonitor);
+    await dialog.locator('#route-limit-origins').check();await dialog.getByLabel('Monitor check').check();
+    await save(dialog);await page.unroute(teamsRead);
+    saved=await policy(prodMonitor);assert.deepEqual(saved.teamIds,[prod.id],'a failed team read keeps the route teams');assert.deepEqual(saved.filters.origins,['monitor']);
+    await unavailable(directory);
+    await page.goto(f.origin+'/app/settings/alerts');const editProd=card.getByRole('button',{name:`Edit Production responders ${width}`,exact:true});await editProd.click();dialog=page.getByRole('dialog');
+    await dialog.getByLabel('Team name').fill(`Production responders ${width}`);
+    await dialog.getByRole('button',{name:'Save team',exact:true}).click();await dialog.waitFor({state:'detached'});await page.unroute(directory);
+    assert.deepEqual((await ok('/api/routing/teams')).teams.find(t=>t.id===prod.id).members.map(m=>m.operatorId),[member.id],'a failed member directory keeps the team members');
     // The dialog's sample reads the saved business hours at pinned New York dates; its drill sends only to ready contacts.
     dialog=await open(prodMonitor);await dialog.getByText('Try this route',{exact:true}).click();
     const sample=async at=>{await dialog.locator('#route-try-at').fill(at);await dialog.locator('#route-try-sample').click();const row=dialog.locator('#route-try-result li',{hasText:'Console member mail'});await row.waitFor();return row.textContent()};
@@ -112,6 +125,15 @@ export async function proveRoutingConsole(f,ok){
  assert.ok(!wrongEnvironment.results.some(r=>r.destinationId===memberMail.id),'a team outside the route is never drilled');
  assert.equal((await memberCall(`/api/monitors/${closed.id}/alert-route/drill`,{kind:'trigger'})).status,403,'a read-only member cannot send a drill');
  assert.equal(await deliveries(memberMail.id),sent,'held and unauthorised drills queued nothing for the production team');
- for(const m of [prodAll,stageAll,closed])await f.pause(m);
+ // A drill queued for a team member follows the member's live opt-in like a real team alert: revoking it before the send stops the drill.
+ const open24=await f.monitor({name:'Console revoked drill',enabled:false,runners:[f.first],canary:true,service:'Console routing',environment:'production'});
+ await route(open24,{teamIds:[prodTeam.id],filters:{},quietHours:null});
+ const queued=await ok(`/api/monitors/${open24.id}/alert-route/drill`,{kind:'trigger'}),drilled=queued.results.find(r=>r.destinationId===memberMail.id);
+ assert.equal(drilled.outcome,'queued');
+ const stateOf=async id=>(await ok('/api/notifications')).deliveries.find(j=>j.id===id);
+ assert.notEqual((await stateOf(drilled.deliveryId)).code,'team_recipient_ineligible','the drill waits while the opt-in is live');
+ assert.equal((await memberCall('/api/routing/recipient',{destinationId:memberMail.id,enabled:false})).status,200);
+ assert.deepEqual([(await stateOf(drilled.deliveryId)).state,(await stateOf(drilled.deliveryId)).code],['rejected','team_recipient_ineligible'],'a drill queued before the opt-in was revoked is never sent');
+ for(const m of [prodAll,stageAll,closed,open24])await f.pause(m);
  console.log('ROUTING-001 console: two teams, production and staging routes, filters, business hours, sample and drill at 1440 and 390');
 }

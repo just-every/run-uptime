@@ -3,6 +3,7 @@ import {keyedHash,seal,unseal,random} from '../base/modules/operator-auth/identi
 import {sha256} from '../base/modules/integrations/core/crypto.ts'
 import {notificationKeyPresent} from './notification-credentials.server.ts'
 import {queueTestEvent,NOTIFICATION_NAMESPACE} from './notifications.server.ts'
+import {selectedTeamRecipientSql} from './alert-team-policy.ts'
 import {drillEvent,drillMailContent,drillWebhookBody,drillSlackBody,type DrillDetails} from './alert-drill-content.ts'
 import {mailContent} from './notification-content.ts'
 import type {Bindings} from './control.server.ts'
@@ -17,13 +18,16 @@ const identity=(row:DrillRow)=>JSON.stringify(['uptime-alert-drill-v1',row.id,ro
 const bound=(row:Omit<DrillRow,'delivery_id'>,secret:string)=>sha256(`uptime-alert-drill-v1\0${row.id}\0${row.destination_id}\0${row.credential_id}\0${secret}`);
 function equal(a:string,b:string){if(a.length!==b.length)return false;let difference=0;for(let i=0;i<a.length;i++)difference|=a.charCodeAt(i)^b.charCodeAt(i);return difference===0}
 
-export async function startDrill(env:Bindings,destinationId:string,operatorId:string,initiator?:import('../agent-door/work.server.ts').SavedPrincipal){
+/** `team` marks a route drill that reaches the destination only as a team member's opt-in: it is queued only while that opt-in is live and is
+ * re-checked, like a real team alert, whenever the queued drill is claimed. */
+export async function startDrill(env:Bindings,destinationId:string,operatorId:string,initiator?:import('../agent-door/work.server.ts').SavedPrincipal,team?:{monitorId:string;teamIds:string[]}){
  const destination=await env.DB.prepare('SELECT webhook_template FROM notification_destinations WHERE id=? AND deleted_at IS NULL').bind(destinationId).first<{webhook_template:string|null}>();
  if(destination?.webhook_template!==null&&destination?.webhook_template!==undefined)throw Error('This custom webhook template has no acknowledgement-link field. Use its exact Test send, or choose default signed JSON for a recipient-acknowledged alert drill.');
  const event={...drillEvent(env.UPTIME_ORIGIN??''),...(initiator?.attribution?{preparedBy:initiator.attribution}: {})},id=crypto.randomUUID(),secret=random() as string,now=event.observedAt;
  const {deliveryId}=await queueTestEvent(env,destinationId,event,async(deliveryId,credentialId)=>{
   const row={id,destination_id:destinationId,credential_id:credentialId,delivery_id:deliveryId};
-  return [...(initiator?[env.DB.prepare('INSERT INTO uptime_agent_notifications(delivery_id,principal) VALUES(?,?)').bind(deliveryId,JSON.stringify(initiator))]:[]),mutationGuard(env,'EXISTS(SELECT 1 FROM notification_destinations WHERE id=? AND credential_id=? AND deleted_at IS NULL AND webhook_template IS NULL)',[destinationId,credentialId]),env.DB.prepare(`INSERT INTO alert_drills(id,destination_id,credential_id,delivery_id,started_by,started_at,expires_at,token_hash,token_ciphertext)
+  const teamBinding=team?[mutationGuard(env,`EXISTS(SELECT 1 FROM notification_destinations d JOIN monitors m ON m.id=? WHERE d.id=? AND d.credential_id=? AND ${selectedTeamRecipientSql('?')})`,[team.monitorId,destinationId,credentialId,JSON.stringify(team.teamIds)]),env.DB.prepare('INSERT INTO alert_team_deliveries(trigger_job_id,operator_id,team_ids,monitor_id) SELECT ?,operator_id,?,? FROM alert_recipient_consents WHERE destination_id=? AND credential_id=?').bind(deliveryId,JSON.stringify(team.teamIds),team.monitorId,destinationId,credentialId)]:[];
+  return [...teamBinding,...(initiator?[env.DB.prepare('INSERT INTO uptime_agent_notifications(delivery_id,principal) VALUES(?,?)').bind(deliveryId,JSON.stringify(initiator))]:[]),mutationGuard(env,'EXISTS(SELECT 1 FROM notification_destinations WHERE id=? AND credential_id=? AND deleted_at IS NULL AND webhook_template IS NULL)',[destinationId,credentialId]),env.DB.prepare(`INSERT INTO alert_drills(id,destination_id,credential_id,delivery_id,started_by,started_at,expires_at,token_hash,token_ciphertext)
    SELECT ?,destination_id,credential_id,id,?,?,?,?,? FROM notification_jobs WHERE id=? AND destination_id=? AND credential_id=?`).bind(id,operatorId,now,now+DAY,await bound(row,secret),await seal(await key(env),identity(row),{secret}),deliveryId,destinationId,credentialId)];
  });
  return {queued:true,drillId:id,eventId:event.id,deliveryId};

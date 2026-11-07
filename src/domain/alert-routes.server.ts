@@ -196,7 +196,8 @@ export async function drillAlertRoute(env:Bindings,monitorId:string,raw:any,acto
  for(const r of sampled.recipients.filter(r=>r.selected)){
   const base={destinationId:r.id,name:r.name,reason:r.reason};
   if(r.outcome==='ready'){
-   try{const sent=await startDrill(env,r.id,actor.ref);results.push({...base,outcome:'queued',drillId:sent.drillId,deliveryId:sent.deliveryId})}
+   const direct=sampled.effective.mode==='all'||sampled.effective.destinationIds.includes(r.id);
+   try{const sent=await startDrill(env,r.id,actor.ref,undefined,direct?undefined:{monitorId,teamIds:sampled.effective.teamIds});results.push({...base,outcome:'queued',drillId:sent.drillId,deliveryId:sent.deliveryId})}
    catch(error){results.push({...base,outcome:'refused',reason:error instanceof Error?error.message:'refused'})}
   }else results.push({...base,outcome:r.outcome==='held_quiet'?'held_quiet':'excluded',...(r.quietUntil?{quietUntil:r.quietUntil}:{})});
  }

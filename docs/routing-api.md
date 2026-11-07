@@ -74,10 +74,14 @@ contacts, team membership exclusions and `ready`, `excluded`, `held_quiet` or
 ID in `regions` also stands for the country of its location. Actual
 confirmed alerts enter the same filter predicates and their ordinary delivery
 history records the outcome. `drill` posts `{kind,regions?}` to
-`/api/monitors/ID/alert-route/drill` (owner session): the saved route decides, as
+`/api/monitors/ID/alert-route/drill` (an owner or administrator session, the same
+authority as a direct destination drill): the saved route decides, as
 for a real alert of that class, and the ordinary labelled drill is queued only
 for contacts that read as ready now. Contacts held by quiet hours or excluded by
 a filter, team or credential are listed with the reason and sent nothing.
+A drill queued for a team member is re-checked when it is claimed, like a real team
+alert: revoking the opt-in, disabling the team or narrowing the member's access
+rejects the queued drill unsent.
 Existing direct destination drills still test one contact, not route coverage.
 
 Teams, membership, consent, route settings, detailed route history, quiet

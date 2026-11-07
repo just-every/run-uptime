@@ -62,6 +62,8 @@ export async function proveMemberLifecycle({origin,call,fetcher,DB,cookie,member
  const preview=await call(`/api/monitors/${target.id}/alert-route/preview`,routing,{cookie:editor.cookie});assert.equal(preview.status,200);const review=await preview.json();
  assert.equal((await call(`/api/monitors/${target.id}/alert-route/apply`,{...routing,digest:review.digest},{cookie:editor.cookie})).status,200);
  for(const person of [reader,responder])assert.equal((await call(`/api/monitors/${target.id}/alert-route/preview`,routing,{cookie:person.cookie})).status,403);
+ // A route drill sends to destinations, so it needs the authority of a direct destination drill: an editor has neither.
+ for(const door of [`/api/monitors/${target.id}/alert-route/drill`,`/api/notifications/destinations/${destination.id}/drill`])assert.equal((await call(door,door.endsWith('/alert-route/drill')?{kind:'trigger'}:{},{cookie:editor.cookie})).status,403,door);
  assert.equal((await call(path,undefined,{cookie:memberCookie,'x-role':'admin','x-operator-role':'owner'})).status,401,'client claims cannot turn an unassigned Base member into an administrator');
  const before=(await DB.prepare('SELECT COUNT(*) n FROM monitors').first()).n;
  assert.equal((await call('/api/monitors',definition,{cookie:reader.cookie,'x-role':'owner','x-operator-id':admin.id})).status,403);
