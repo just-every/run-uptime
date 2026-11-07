@@ -1,4 +1,4 @@
-import {escape} from './console-format.js';
+import {escape} from '/console-format.js';
 // Settings › Alerts › Alert teams (ROUTING-001): named teams of active members that a route can tell, and the signed-in
 // person's own opt-in to be told at their verified email contact. Team and member names only: no address or credential is
 // shown here. Membership never counts as consent; a member must opt in, and a paused, rotated or out-of-scope member is

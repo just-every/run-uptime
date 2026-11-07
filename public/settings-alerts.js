@@ -5,7 +5,7 @@ import {sentAlertsMarkup} from './sent-alerts.js';
 import {destinationDialog} from './notifications.js';
 import {mountDefaultRoute} from './alert-route-default.js';
 import {mountCategories} from './root-cause-categories.js';
-import {mountAlertTeams} from './alert-teams.js';
+import {mountAlertTeams} from './assets/alert-teams.js';
 // Settings › Alerts: who hears about an incident and what was sent, in four cards (Destinations, Who is told by default,
 // Root-cause categories and Sent alerts), with one clause above Destinations for each thing that stops an alert. Every
 // five-second overview redraws the clauses, the destination rows and the sent alerts in place (public/dom-patch.js); the two
