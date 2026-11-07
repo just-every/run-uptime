@@ -7,8 +7,9 @@ import {keyedHash,seal,unseal} from '../base/modules/operator-auth/identity/oidc
 import {publicTarget} from './public-target.mjs'
 // @ts-ignore Shared bounded runner capability vocabulary.
 import {validRunnerCapabilities,runnerCapabilities} from './runner-capabilities.mjs'
-import {distinctName,generatedName,placeName} from './location-name.ts'
-export type Runner={runner_id:string;registered_at:number;network_label:string;key_ciphertext:string|null;legacy_key:number;revoked_at:number|null;last_contact_at:number|null;capabilities?:string;named_by?:string;join_hash?:string|null}
+import {distinctName,generatedName,placeName,placeCountry} from './location-name.ts'
+import {regionCode} from './alert-route-filters.ts'
+export type Runner={runner_id:string;registered_at:number;network_label:string;key_ciphertext:string|null;legacy_key:number;revoked_at:number|null;last_contact_at:number|null;capabilities?:string;named_by?:string;join_hash?:string|null;country?:string|null}
 const runnerOrder=`CASE runner_id WHEN '${HOSTED_RUNNER_ID}' THEN 0 ELSE 1 END,registered_at,runner_id`
 const label=(value:unknown)=>{if(typeof value!=='string'||!value.trim()||value.length>80||/[\x00-\x1f\x7f]/.test(value))throw Error('Location name required (80 characters max)');return value.trim()}
 async function custody(env:Bindings){if(!env.SESSION_SECRET||env.SESSION_SECRET.length<32)throw Error('Runner key custody unavailable');return keyedHash(env.SESSION_SECRET,'uptime-runner-keys','aes-gcm-v1')}
@@ -45,6 +46,11 @@ export async function nameFromPlace(env:Bindings,row:Runner,place:unknown){
  const updated=await env.DB.prepare("UPDATE runners SET network_label=?,named_by='place' WHERE runner_id=? AND named_by='default'").bind(name,row.runner_id).run();
  return updated.meta.changes?{...row,network_label:name,named_by:'place'}:row;
 }
+// A location's country is where its runner connects from, recorded once; the owner's own setting is never replaced.
+export async function countryFromPlace(env:Bindings,row:Runner,place:unknown){
+ const country=placeCountry(place);if(!country||!row.runner_id)return;
+ await env.DB.prepare('UPDATE runners SET country=? WHERE runner_id=? AND country IS NULL').bind(country,row.runner_id).run();
+}
 export async function enrollRunner(env:Bindings,text:string,timestamp:string,signature:string,row:Runner,place?:unknown){
  const key=await runnerKey(env,row);
  if(!key||text.length>512||!/^\d{13}$/.test(timestamp)||Math.abs(Date.now()-Number(timestamp))>60000||!await same(signature,await sign(key,`${timestamp}.runner-enrolment.${text}`)))return null;
@@ -56,6 +62,7 @@ export async function enrollRunner(env:Bindings,text:string,timestamp:string,sig
  if(input.networkLabel!==undefined)try{label(input.networkLabel)}catch{return null}
  if(!row.runner_id)row=await ensureFirstRunner(env);
  row=await nameFromPlace(env,row,place);
+ await countryFromPlace(env,row,place);
  // A runner reports what it can run each time it enrols; a flow assigned to one without a browser stays Unknown (see docs/runner.md).
  if(input.capabilities!==undefined)await env.DB.prepare('UPDATE runners SET capabilities=? WHERE runner_id=?').bind(JSON.stringify(input.capabilities),row.runner_id).run();
  return {runnerId:row.runner_id,registeredAt:row.registered_at,networkLabel:row.network_label,scope:'self-runner'}
@@ -86,14 +93,19 @@ export async function joinRunner(env:Bindings,input:any){
 }
 // The owner's name for a location. Monitors saved from now on carry it; saved revisions keep the name they were saved with.
 export async function renameRunner(env:Bindings,id:string,input:any){
- if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).join()!=='networkLabel')throw Error('Invalid location name');
- const networkLabel=label(input.networkLabel);
- const result=await env.DB.prepare("UPDATE runners SET network_label=?,named_by='owner' WHERE runner_id=? AND revoked_at IS NULL").bind(networkLabel,id).run();
- if(!result.meta.changes)throw Error('Active location not found');
- return {runnerId:id,networkLabel}
+ if(!input||typeof input!=='object'||Array.isArray(input)||!Object.keys(input).length||Object.keys(input).some(k=>!['networkLabel','country'].includes(k)))throw Error('Invalid location name');
+ // The owner may also state the location's country (two capital letters), or clear it with null; alert routes match it.
+ if(input.country!==undefined&&input.country!==null&&regionCode(input.country)===null)throw Error('A country is two capital letters, such as US, or null');
+ const statements=[];
+ if(input.networkLabel!==undefined)statements.push(env.DB.prepare("UPDATE runners SET network_label=?,named_by='owner' WHERE runner_id=? AND revoked_at IS NULL").bind(label(input.networkLabel),id));
+ if(input.country!==undefined)statements.push(env.DB.prepare('UPDATE runners SET country=? WHERE runner_id=? AND revoked_at IS NULL').bind(input.country,id));
+ const results=await env.DB.batch(statements);
+ if(results.some(r=>!r.meta.changes))throw Error('Active location not found');
+ const row=await env.DB.prepare('SELECT network_label,country FROM runners WHERE runner_id=?').bind(id).first<{network_label:string;country:string|null}>();
+ return {runnerId:id,networkLabel:row!.network_label,country:row!.country}
 }
 export async function revokeRunner(env:Bindings,id:string){if(id===HOSTED_RUNNER_ID)throw Error('The hosted Worker has no runner key to revoke');const result=await env.DB.prepare('UPDATE runners SET revoked_at=?,key_ciphertext=NULL,join_hash=NULL WHERE runner_id=? AND revoked_at IS NULL').bind(Date.now(),id).run();if(!result.meta.changes)throw Error('Active runner not found');return {revoked:true}}
-export const runnerListQuery=`SELECT runner_id AS runnerId,network_label AS networkLabel,registered_at AS registeredAt,revoked_at AS revokedAt,last_contact_at AS lastContactAt,capabilities,legacy_key AS builtIn FROM runners ORDER BY ${runnerOrder}`
+export const runnerListQuery=`SELECT runner_id AS runnerId,network_label AS networkLabel,registered_at AS registeredAt,revoked_at AS revokedAt,last_contact_at AS lastContactAt,capabilities,legacy_key AS builtIn,country FROM runners ORDER BY ${runnerOrder}`
 export const describeRunners=(rows:any[])=>rows.map(r=>({...r,builtIn:r.builtIn===1,hosted:r.runnerId===HOSTED_RUNNER_ID,capabilities:runnerCapabilities(r.capabilities)}))
 export async function listRunners(env:Bindings){return describeRunners((await env.DB.prepare(runnerListQuery).all()).results)}
 export async function assignDefinition(env:Bindings,definition:any,input:any){

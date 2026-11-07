@@ -1,4 +1,5 @@
-import {normalizeRouteFilters,normalizeRouteQuiet,routeIds,normalizeRouteSample,filterReasons,quietPreview,type RouteSample} from './alert-route-filters.ts'
+import {startDrill} from './alert-drills.server.ts'
+import {normalizeRouteFilters,regionCode,normalizeRouteQuiet,routeIds,normalizeRouteSample,filterReasons,quietPreview,type RouteSample} from './alert-route-filters.ts'
 import {liveRecipientSql} from './alert-team-policy.ts'
 import {normalizeContactSettings,defaultContactSettings} from './contact-schedule.ts'
 import {get,type Bindings} from './control.server.ts'
@@ -7,7 +8,7 @@ import {mailConfigured} from './mail.server.ts'
 import {auditStatement,mutationGuard,type AuditActor} from './audit.server.ts'
 import {digest} from './archive-schema.ts'
 import {routeScopes,scopeValue,defaultPolicy,routePolicy,effectivePolicy,normalizeFallback,type RouteScope,type RoutePolicy} from './alert-routes-policy.ts'
-const gaps=['These routes apply to confirmed incident triggers and recoveries. Expiry and renewal notices still use installation-wide destinations.','Teams and filters have API/CLI doors; their console UI and business-hour calendar remain unavailable. Region filters match exact configured probe IDs, not geographic regions; severity is critical for outages, warning for Slow, info for dependency notices.','Contact delays and reminders start at confirmation. Fallback contacts are named only in a selected policy and receive incident triggers, not reminders, slow notices or tests.','Route settings and detailed change history stay in this installation; archives retain opaque audit entries.'];
+const gaps=['These routes apply to confirmed incident triggers, Slow and dependency notices and recoveries. Expiry and renewal notices still use installation-wide destinations.','Region filters match a configured probe ID or the country of the location assigned to a non-passing probe; severity is critical for outages, warning for Slow, info for dependency notices.','Contact delays and reminders start at confirmation. Fallback contacts are named only in a selected policy and receive incident triggers, not reminders, slow notices or tests.','Route settings and detailed change history stay in this installation; archives retain opaque audit entries.'];
 // No secrets: only policy, monitor revisions and destination/custody identity.
 // Fencing this snapshot makes the reviewed affected set and readiness atomic
 // with a policy edit, even when another operator changes a broader scope.
@@ -79,7 +80,7 @@ async function plan(env:Bindings,monitorId:string|null,raw:any,{readOnly=false}=
  if(previous.revision!==input.expectedRevision)throw Object.assign(Error('Route changed; refresh and preview again'),{status:409});
  if(input.destinationIds.some(id=>!ctx.destinations.some(d=>d.id===id)&&!previous.destinationIds.includes(id)))throw Error('A selected destination does not exist');
  if(input.fallback.destinationIds.some(id=>!ctx.destinations.some(d=>d.id===id)&&!previous.fallback.destinationIds.includes(id)))throw Error('A fallback destination does not exist');
- const teamIds=input.teamIds??[];
+ const teamIds=input.teamIds??previous.teamIds;
  const knownTeams=(await env.DB.prepare('SELECT id FROM alert_teams').all<{id:string}>()).results;
  if(teamIds.some(id=>!knownTeams.some(t=>t.id===id)))throw Error('A selected team does not exist');
  const current={...previous,teamIds,filters:input.filters??previous.filters,quietHours:input.quietHours===undefined?previous.quietHours:input.quietHours,mode:input.mode,destinationIds:input.destinationIds,contactSettings:input.contactSettings!,fallback:input.fallback,revision:previous.revision+1};
@@ -138,8 +139,17 @@ async function teamCandidates(env:Bindings,monitorId?:string){
 }
 /** A non-sending sample uses the saved route and exactly the admission filter
  * semantics. Real confirmation / transport outcomes remain delivery history. */
+// A sample names probe IDs; the countries of the locations assigned to those probes join them, as real admission does.
+async function expandRegions(env:Bindings,definition:any,sample:RouteSample):Promise<RouteSample>{
+ const countries=new Set<string>();
+ for(const probe of sample.regions){
+  const runnerId=definition.assignments?.[probe]?.runnerId,row=typeof runnerId==='string'?await env.DB.prepare('SELECT country FROM runners WHERE runner_id=?').bind(runnerId).first<{country:string|null}>():null;
+  if(regionCode(row?.country))countries.add(row!.country!);
+ }
+ return {...sample,regions:[...new Set([...sample.regions,...countries])]};
+}
 export async function sampleAlertRoute(env:Bindings,monitorId:string,raw:any){
- const sample=normalizeRouteSample(raw),ctx=await context(env,monitorId),candidates=await teamCandidates(env,monitorId)
+ const ctx=await context(env,monitorId),sample=await expandRegions(env,ctx.monitor!.definition,normalizeRouteSample(raw)),candidates=await teamCandidates(env,monitorId)
  const override=sample.kind==='slow'&&Array.isArray(ctx.monitor!.definition.slow?.destinationIds)?{...effectivePolicy(ctx.policies),destinationIds:ctx.monitor!.definition.slow.destinationIds,teamIds:[],contactSettings:ctx.monitor!.definition.slow.contactSettings??{},mode:'selected' as const,fallback:{destinationIds:[],deadlineSeconds:120}}:null
  const result=previewRecipients(override?[override]:ctx.policies,ctx.destinations,mailConfigured(env),candidates,sample,ctx.monitor!.definition.environment)
  return {...result,sample,excludedMembers:candidates.filter(c=>result.effective.teamIds.includes(c.team_id)&&(!c.destination_id||!c.live||!c.team_enabled||!c.credential_current)).map(c=>({teamId:c.team_id,operatorId:c.operator_id,reason:!c.destination_id?'no_consent':!c.team_enabled?'team_disabled':'consent_inactive_or_out_of_scope'})),gaps}
@@ -172,4 +182,25 @@ export async function saveNamedAlertRoute(env:Bindings,raw:any,actor:AuditActor)
 export async function prepareNamedAlertRouteAssignment(env:Bindings,monitorId:string,route:Awaited<ReturnType<typeof namedAlertRoute>>){
  const current=await readAlertRoute(env,monitorId,{readOnly:true}),previous=current.policies.find(p=>p.scope==='monitor')!;
  const prepared=await monitorPlan(env,monitorId,{scope:'monitor',expectedRevision:previous.revision,...route.policy});prepared.current.namedRouteId=route.id;return prepared;
+}
+
+/** A route-aware drill: the saved route decides, exactly as for a real alert of that class, which contacts get a labelled
+ * drill now. Recipients inside a quiet hold are not sent to and excluded ones never are; both are reported with why. Each
+ * sent drill is the ordinary confirmable alert drill of that destination, so nothing is counted as an incident. */
+export async function drillAlertRoute(env:Bindings,monitorId:string,raw:any,actor:AuditActor){
+ if(actor.kind!=='operator')throw Object.assign(Error('Owner required'),{status:403});
+ if(!raw||typeof raw!=='object'||Array.isArray(raw)||Object.keys(raw).some(k=>!['kind','regions'].includes(k)))throw Error('A route drill names a trigger, slow or dependency class and optional probe IDs');
+ const ctx=await context(env,monitorId),at=Date.now();
+ const sampled=await sampleAlertRoute(env,monitorId,{kind:raw.kind,regions:raw.regions??ctx.monitor!.definition.probes.slice(0,3),at});
+ const results:any[]=[];
+ for(const r of sampled.recipients.filter(r=>r.selected)){
+  const base={destinationId:r.id,name:r.name,reason:r.reason};
+  if(r.outcome==='ready'){
+   try{const sent=await startDrill(env,r.id,actor.ref);results.push({...base,outcome:'queued',drillId:sent.drillId,deliveryId:sent.deliveryId})}
+   catch(error){results.push({...base,outcome:'refused',reason:error instanceof Error?error.message:'refused'})}
+  }else results.push({...base,outcome:r.outcome==='held_quiet'?'held_quiet':'excluded',...(r.quietUntil?{quietUntil:r.quietUntil}:{})});
+ }
+ const drillId=crypto.randomUUID();
+ await env.DB.batch([auditStatement(env,actor,'alert_route_drill','alert_route',drillId,'1',[],at)]);
+ return {drillId,monitorId,kind:sampled.sample.kind,at,effective:sampled.effective,results,excludedMembers:sampled.excludedMembers};
 }

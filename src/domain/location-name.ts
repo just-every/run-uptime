@@ -9,6 +9,12 @@ export const NOUNS=['Bay','Brook','Cove','Crest','Dale','Field','Glen','Grove','
 // place; that is not where the runner is.
 const placeholder=(cf:Record<string,any>)=>cf.city==='Austin'&&cf.colo==='DFW'&&cf.asn===395747&&cf.botManagement?.ja3Hash==='25b4882c2bcb50cd6b469ff28c596742'
 const text=(value:unknown)=>typeof value==='string'&&value.trim()&&!/[\x00-\x1f\x7f]/.test(value)?value.trim().slice(0,72):null
+// The place's two-letter country, unless Miniflare's fixed placeholder answered or the country is unknown (XX).
+export function placeCountry(cf:unknown):string|null{
+ if(!cf||typeof cf!=='object'||placeholder(cf as Record<string,any>))return null
+ const country=(cf as Record<string,any>).country
+ return typeof country==='string'&&/^[A-Z]{2}$/.test(country)&&country!=='XX'?country:null
+}
 export function placeName(cf:unknown):string|null{
  if(!cf||typeof cf!=='object')return null
  const place=cf as Record<string,any>
