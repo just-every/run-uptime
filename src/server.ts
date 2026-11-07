@@ -38,7 +38,7 @@ import {cleanupDebt,resolveCleanupDebt} from './domain/cleanup-debt.server.ts'
 import {effectGrants,grantEffect,revokeEffect,spendGrant} from './domain/effect-grants.server.ts'
 import {rumDoor} from './domain/rum/door.server.ts'
 import {registerRumRoutes} from './domain/rum/routes.server.ts'
-import {readAlertRoute,previewAlertRoute,applyAlertRoute,sampleAlertRoute,readInstallationRoute,previewInstallationRoute,applyInstallationRoute} from './domain/alert-routes.server.ts'
+import {readAlertRoute,previewAlertRoute,applyAlertRoute,sampleAlertRoute,drillAlertRoute,readInstallationRoute,previewInstallationRoute,applyInstallationRoute} from './domain/alert-routes.server.ts'
 import {previewMaintenance,applyMaintenance,cancelMaintenance} from './domain/planned-maintenance.server.ts'
 // The package's demo module: operator-auth runs from the package and reads demo mode from this same instance.
 import {withDemo} from '@runeditrun/rer/modules/demo'
@@ -165,6 +165,7 @@ api.post('/api/routing/teams',async c=>c.json(await saveTeam(c.env,c.get('input'
 api.get('/api/routing/recipient',async c=>c.json(await readRecipient(c.env,c.get('access'))))
 api.post('/api/routing/recipient',async c=>c.json(await consentRecipient(c.env,c.get('input'),c.get('access'))))
 api.post('/api/monitors/:id/alert-route/sample',async c=>c.json(await sampleAlertRoute(c.env,c.req.param('id'),c.get('input'))))
+api.post('/api/monitors/:id/alert-route/drill',async c=>c.json(await drillAlertRoute(c.env,c.req.param('id'),c.get('input'),(await operator(c)).ref),202))
 api.get('/api/access/self',c=>accessMembers(c.env,c.req.raw))
 api.get('/api/access/members',c=>accessMembers(c.env,c.req.raw))
 api.post('/api/access/invitations',c=>accessMembers(c.env,c.req.raw,c.get('input')))

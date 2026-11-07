@@ -5,6 +5,7 @@ import {sentAlertsMarkup} from './sent-alerts.js';
 import {destinationDialog} from './notifications.js';
 import {mountDefaultRoute} from './alert-route-default.js';
 import {mountCategories} from './root-cause-categories.js';
+import {mountAlertTeams} from './alert-teams.js';
 // Settings › Alerts: who hears about an incident and what was sent, in four cards (Destinations, Who is told by default,
 // Root-cause categories and Sent alerts), with one clause above Destinations for each thing that stops an alert. Every
 // five-second overview redraws the clauses, the destination rows and the sent alerts in place (public/dom-patch.js); the two
@@ -12,11 +13,12 @@ import {mountCategories} from './root-cause-categories.js';
 const routes=new WeakMap();let current;
 export function renderAlerts({area,data,api,action,readUnavailable}){
  const notes=data.notifications;current={notes,api,action};
- patch(area,`<div class="settings-area alerts-area"><div class="alert-clauses">${clausesMarkup(notes,readUnavailable)}</div><section class="ui-card set-card" id="alert-destinations" aria-labelledby="destinations-heading">${destinationsMarkup(notes)}</section><div class="alerts-split"><section class="ui-card set-card" id="default-route" data-owned="default-route" aria-labelledby="default-route-heading"></section><section class="ui-card set-card" id="root-cause-categories" data-owned="root-cause-categories" aria-labelledby="categories-heading"></section></div><section class="ui-card set-card" id="sent-alerts" aria-labelledby="sent-alerts-heading">${sentAlertsMarkup(notes)}</section></div>`);
- const page=area.querySelector('.alerts-area'),route=area.querySelector('#default-route'),categories=area.querySelector('#root-cause-categories'),reports=area.querySelector('#report-schedule-controls');
+ patch(area,`<div class="settings-area alerts-area"><div class="alert-clauses">${clausesMarkup(notes,readUnavailable)}</div><section class="ui-card set-card" id="alert-destinations" aria-labelledby="destinations-heading">${destinationsMarkup(notes)}</section><div class="alerts-split"><section class="ui-card set-card" id="default-route" data-owned="default-route" aria-labelledby="default-route-heading"></section><section class="ui-card set-card" id="root-cause-categories" data-owned="root-cause-categories" aria-labelledby="categories-heading"></section></div><section class="ui-card set-card" id="alert-teams" data-owned="alert-teams" aria-labelledby="alert-teams-heading"></section><section class="ui-card set-card" id="sent-alerts" aria-labelledby="sent-alerts-heading">${sentAlertsMarkup(notes)}</section></div>`);
+ const page=area.querySelector('.alerts-area'),route=area.querySelector('#default-route'),categories=area.querySelector('#root-cause-categories'),teams=area.querySelector('#alert-teams'),reports=area.querySelector('#report-schedule-controls');
  if(firstMount(page))page.addEventListener('click',openFromPage);
  if(firstMount(route))routes.set(route,mountDefaultRoute(route,{api,notes}));else routes.get(route)?.update(notes);
  if(firstMount(categories))mountCategories(categories,{api});
+ if(firstMount(teams))mountAlertTeams(teams,{api});
  // Scheduled reports fill their own host once (public/assets/report-schedule-controls.js).
  if(!reports.hasChildNodes())void import('./assets/report-schedule-controls.js').then(({reportScheduleControls})=>reportScheduleControls(reports,{data,api}));
  const add=document.getElementById('add-destination');if(add)add.onclick=()=>destinationDialog(null,current);

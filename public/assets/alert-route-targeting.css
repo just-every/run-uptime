@@ -1,0 +1,19 @@
+#route-targeting-fields { min-width: 0; margin: 4px 0; }
+#route-targeting-fields fieldset { margin: 12px 0 0; }
+#route-targeting-fields p { margin: 8px 0; line-height: 1.5; }
+.route-target-check { display: flex; align-items: start; gap: 8px; margin: 8px 0; line-height: 1.5; }
+.route-target-check input { flex: none; width: 20px; height: 20px; margin-top: 2px; }
+.route-target-choices { margin-top: 8px; }
+.route-target-choices label:not(.route-target-check) { display: grid; gap: 6px; }
+.route-target-choices input[type=text], .route-target-choices input:not([type]) { box-sizing: border-box; width: 100%; }
+#route-business-days { display: flex; flex-wrap: wrap; gap: 4px 18px; }
+#route-business-days legend { flex-basis: 100%; }
+#route-quiet-fields[hidden], #route-business-days[hidden], .route-target-choices[hidden] { display: none; }
+#route-quiet-fields { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 10px; }
+.route-check-panel { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); }
+.route-check-panel .route-schedule-numbers { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.route-check-panel .btn-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
+.route-outcome { overflow-wrap: anywhere; }
+@media(max-width: 600px) {
+ #route-quiet-fields, .route-check-panel .route-schedule-numbers { grid-template-columns: minmax(0, 1fr); }
+}
