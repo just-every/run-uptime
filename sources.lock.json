@@ -500,7 +500,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "331f489f89725e6a82a58ac72d021e5895fa024c14ba74ca3b1edfd6723f6565",
+      "sha256": "c26ce9aa06e814a94ab8c93c0c9c13e10c3131799c3cf2fd851ad90fea7f0f08",
       "executable": false
     },
     "agent-surface.json": {
@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "17d8448853979ae1e29f7e8297b2d36b33e523b92a8c6354743d9c0dbf731e79",
+      "sha256": "0477eca3f9b3df5147ff947e1095e726183f14b6d87b5d8c3e7d198e73d4fb14",
       "executable": false
     },
     "DEMO.md": {
@@ -560,7 +560,7 @@
       "executable": false
     },
     "docs/CLAIMS.md": {
-      "sha256": "d2687919213f9cb40ce1495e4eedcb1cb56dcb3da09e734c7636a36dd1e89217",
+      "sha256": "adb3ad37ab113c2061ed4365767d2c347281a807acfa51eb712305959ad02b54",
       "executable": false
     },
     "docs/contract/acceptance-before-cleanup.md": {
@@ -9195,6 +9195,14 @@
       "sha256": "b829d72d3cd8230286b86d1f1e408db4d907aa94d81a6a50fcdcf4b70efcd68e",
       "executable": false
     },
+    "tests/network-tls-hostname-routing.mjs": {
+      "sha256": "194c23e2db8b0a68b4764aecbd9035cc724da3dfe227323d5bf489bce8c76752",
+      "executable": false
+    },
+    "tests/network-tls-hostname-support.mjs": {
+      "sha256": "29f94b3c6d92dc9be9446821cabfdd578457fe09baace9efb52a22183da39d38",
+      "executable": false
+    },
     "tests/notification-fallback.mjs": {
       "sha256": "07c06a0fb0ea511ad058d7ff7738e2729a0ab80864fb8794ec2c5e2faf06e18b",
       "executable": false
@@ -9488,7 +9496,7 @@
       "executable": false
     },
     "tests/tls-auth.mjs": {
-      "sha256": "6d7fe1ebe1334c848504f62ef0661e24ce8fe791d43feee86f02ff50c8bb6c19",
+      "sha256": "84a8423963c789bfb2747aca1fe9f810dfae07028d09bb447135d12e2913061b",
       "executable": false
     },
     "tests/tls-stages-support.mjs": {

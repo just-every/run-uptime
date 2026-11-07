@@ -8,12 +8,12 @@ The primary journey: an operator moves their monitors from UptimeRobot or Pingdo
 
 | Tier | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
-| Core | 35 | 49 | 11 | 95 |
+| Core | 36 | 48 | 11 | 95 |
 | Agent surface | 0 | 11 | 8 | 19 |
 | Later | 0 | 0 | 1 | 1 |
-| Full target | 35 | 60 | 20 | 115 |
+| Full target | 36 | 59 | 20 | 115 |
 
-Judged from the code and tests at commit `cf75611586159d1588151fd403899d8f9a735593` (2 November 2026). ERASURE-001 public owner erasure, retained stale edit and complete refusal preservation; other clause judgments retained. PRESENCE-001 native contact lifecycle proof replayed at `8862426`; all newer main judgments retained. Carried-done recheck on 2 November 2026 (ct judge ct-judge-uptime-restore-20261102-0845, push Verify 41373254373 at 690ff55a867bcbac403c3f236ade9cac2a2d5c8b): HTTP-001, EVIDENCE-001, AUTHORITY-001, ARCHIVE-001, NOTIFY-001, DELIVERY-001, PUBLIC-001, PUBLIC-002, API-001, PING-001, DNS-001, TLS-001, EVIDENCE-002, FLOW-003, MANAGE-001 and METRICS-001 restored to done; other clause judgments retained. Assertion-round recheck on 2 November 2026 (ct judge ct-judge-uptime-assert-20261102-1320, push Verify 41448682806 at 40f33957850e11c6887789852f2e8bd10e14adf3, landed on main as `cf75611586159d1588151fd403899d8f9a735593`): HEARTBEAT-001 and ROUTING-002 restored to done; other clause judgments retained. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
+Judged from the code and tests at commit `67280b96d5401299f320c18baa225366d230ea2d` (6 November 2026). MAINT-001: strategy-trial-3-son-gate-1 GATE PASS; all other clause judgments retained. ERASURE-001 public owner erasure, retained stale edit and complete refusal preservation; other clause judgments retained. PRESENCE-001 native contact lifecycle proof replayed at `8862426`; all newer main judgments retained. Carried-done recheck on 2 November 2026 (ct judge ct-judge-uptime-restore-20261102-0845, push Verify 41373254373 at 690ff55a867bcbac403c3f236ade9cac2a2d5c8b): HTTP-001, EVIDENCE-001, AUTHORITY-001, ARCHIVE-001, NOTIFY-001, DELIVERY-001, PUBLIC-001, PUBLIC-002, API-001, PING-001, DNS-001, TLS-001, EVIDENCE-002, FLOW-003, MANAGE-001 and METRICS-001 restored to done; other clause judgments retained. Assertion-round recheck on 2 November 2026 (ct judge ct-judge-uptime-assert-20261102-1320, push Verify 41448682806 at 40f33957850e11c6887789852f2e8bd10e14adf3, landed on main as `cf75611586159d1588151fd403899d8f9a735593`): HEARTBEAT-001 and ROUTING-002 restored to done; other clause judgments retained. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
 
 ## Core
 
@@ -577,15 +577,15 @@ Core · target · **done**
 
 #### MAINT-001 — Planned and recurring maintenance
 
-Core · target · **partial**
+Core · target · **done**
 
 **Requirement.** One-time and recurring windows target monitors/groups with US time zones, daylight-saving handling, preview and audit. Buyers choose notification suppression or execution pause explicitly; reports show maintenance separately and retain denominator and underlying observations. Expiry re-evaluates actual evidence and cannot emit orphan recovery.
 
 **Acceptance.**
 1. Schedule a New York recurring maintenance window across a DST transition and a one-time group window; fail a monitor during each, restart, end/cancel the window and inspect preserved results, suppression and reports.
 
-**Evidence.** `src/domain/planned-maintenance/`; `src/domain/planned-maintenance.server.ts`; `public/planned-maintenance.js`; `tests/maintenance-windows.mjs`; `tests/archive-roundtrip.mjs`; `docs/evidence/contracts/maintenance/`
-**Gap.** DST previews, one-time group pause and suppression with failing monitors, restart, cancellation, expiry, preserved observations and separate maintenance report denominators are asserted. A New York recurring window scheduled across a DST transition and a monitor failing during a recurring window are not asserted.
+**Evidence.** `src/domain/planned-maintenance/`; `src/domain/planned-maintenance.server.ts`; `public/planned-maintenance.js`; `tests/maintenance-windows.mjs` (run by the test:operations script in Verify) — DST previews (spring gap skipped, fall repeat first), stale-review refusal, one-time group pause and suppression with failing monitors, in-flight retention, Worker and runner restart, cancellation, expiry without orphan recovery, preserved observations and separate maintenance report and CSV denominators, then calls `tests/maintenance-recurring-support.mjs` proveRecurringAcrossDst — its own installation on a pinned clock: an America/New_York Sunday 01:30 recurring suppress window across the next November fall-back (preview shows three Sundays, the middle one first-repeat spanning the clock change; applied through preview digest), a failing monitor fails before and after the clock change with no notification, a Worker restart keeps every observation and the calendar, recovery inside the window emits no orphan recovery, the window ends by itself and a new failure after expiry raises exactly one ordinary trigger and no recovery, the report keeps the window's maintenance milliseconds apart from availability, and the window cancels; `tests/archive-roundtrip.mjs`; `docs/evidence/contracts/maintenance/`
+**Gap.** None.
 
 ### Reports, evidence and diagnosis
 
@@ -895,7 +895,7 @@ Core · target · **partial** · From INCIDENT-001
 1. In a comment on the open incident, @mention a colleague: the colleague receives the email with the excerpt and link, and the delivery outcome is shown on the comment.
 
 **Evidence.** `src/domain/incident-work/`; `public/incident-work.js`; `tests/incident-work.mjs`; `docs/evidence/contracts/incidents/`; `src/domain/incident-work/mention-delivery.server.ts`; `src/domain/incident-work/mention-members.server.ts`; `migrations/0070_incident_mentions.sql`; `migrations/0085_incident_mention_dispatch.sql`; `scripts/incidents.mjs`; `tests/incident-members-support.mjs` — proveIncidentMembers; `tests/incident-mention-recovery-support.mjs` — proveMentionRecovery, invoked by `tests/incident-work.mjs`: committed responder comment, pre-reservation storage interruption and persisted Worker restart, bounded scheduled recovery with stable delivery identity and retained API and CLI outcome, competing dispatch once, stale comment and recipient refusal, erasure, inactive restore and no reserved or uncertain send replay; `tests/hosted-alerts.mjs` — hosted Cron with busy probes and ordinary email defers excess mentions without reserving them, then submits each stable delivery identity once; `tests/signed-runner.mjs`
-**Gap.** ID/display-name-only eligible member suggestions and Base email mentions with durable single-attempt outcomes ship through the API/CLI. Gap: the held console mention and outcome workflows, MOBILE-001 push, and recovery of interrupted unreserved mentions, which have no background recovery.
+**Gap.** ID/display-name-only eligible member suggestions and Base email mentions with durable single-attempt outcomes ship through the API/CLI. Gap: the held console mention and outcome workflows and MOBILE-001 push.
 
 #### INCIDENT-003 — Incident root cause
 
