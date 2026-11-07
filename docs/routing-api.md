@@ -4,7 +4,7 @@ These API and CLI operations require a live Base session and the ACCESS-001
 permission. `node scripts/routing.mjs COMMAND --origin APP_ORIGIN` reads
 `UPTIME_ACCESS_COOKIE` from the environment. It never creates credentials.
 Use `--input FILE.json` for writes and `--monitor ID` for route operations.
-The console editor for these additional fields is pending.
+The route editor on the monitor page sets teams, filters and quiet hours, Settings › Alerts manages teams and each person's own opt-in, and the route editor's check panel runs `sample` and `drill` below.
 
 `teams` reads `/api/routing/teams`. `save-team` posts
 `{name,enabled,memberIds,expectedRevision}` there; omit `id` and use revision 0
@@ -30,14 +30,18 @@ separate from membership selection.
 The preview/apply body still requires `scope`, `mode`, `destinationIds` and
 `expectedRevision`. Additional fields are:
 
-- `teamIds`: explicit team IDs for selected mode. Omitted means no teams;
-  `destinationIds:[],teamIds:[]` selects nobody.
+- `teamIds`: explicit team IDs for selected mode. Omission keeps the saved teams
+  of a selected route; `[]` clears them, so `destinationIds:[],teamIds:[]`
+  selects nobody.
 - `filters`: optional `environments`, `severities`, `regions`, `origins` arrays.
   An omitted dimension allows all; an empty array matches nothing. Dimensions
   intersect and values within a dimension are alternatives. Omitted `filters`
   on an edit preserves the saved filters; `{}` explicitly clears them.
 - `quietHours`: `{timeZone,start,end}`, daily IANA-zone HH:mm window, overnight
-  and DST aware. Omission preserves it; null clears it. This holds every
+  and DST aware. Add `openDays` (weekday numbers, 0 Sunday to 6 Saturday) for
+  US business hours: start to end is then the open window on those days, and
+  every other minute, weekends included, is held. Business hours start and end
+  on the same day. Omission preserves it; null clears it. This holds every
   selected contact and fallback, in addition to any contact's own quiet window.
 
 Apply requires the exact preview `digest`. Membership, consent, Base identity,
@@ -66,16 +70,24 @@ contacts, team membership exclusions and `ready`, `excluded`, `held_quiet` or
 `fallback_only` outcomes. It does not send or assert recipient receipt. Actual
 confirmed alerts enter the same filter predicates and their ordinary delivery
 history records the outcome. Existing direct destination drills test a contact,
-not route coverage; route-aware sending drills remain pending.
+not route coverage.
+
+`drill` posts `{kind,regions}` to `/api/monitors/ID/alert-route/drill`. It runs
+the same selection as `sample` at the current time, then queues one labelled
+acknowledgement-link drill for each contact that would be told now. Each result
+is `drilled`, `held_quiet`, `excluded` or `not_drilled` with its reason; excluded
+and quiet-held contacts and fallback contacts are never messaged. It needs the
+same authority as a direct destination drill.
 
 Teams, membership, consent, route settings, detailed route history, quiet
 schedules and dispatch bindings remain installation-local. Archives preserve
 notification histories and opaque audit entries; imported deliveries stay
 inactive. Operator erasure removes membership/consent and anonymizes original
 team dispatch bindings so they stay denied. Monitor/destination erasure removes
-dependent bindings. Business-hour calendars, expiry/renewal routing, portable
-route settings and history, basic geographic routing and UI acceptance remain
-ROUTING-001 gaps. Environment, severity and origin filters and current provenance
+dependent bindings. Expiry and renewal routing, portable
+route settings and history, and a managed geographic taxonomy remain
+ROUTING-001 gaps. A location filter names a monitor's configured check location
+(its probe ID, shown with the location's name). Environment, severity and origin filters and current provenance
 are described above; richer unlanded routing-branch evidence does not establish
 accepted-main behavior.
 

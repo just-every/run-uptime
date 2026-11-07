@@ -584,7 +584,7 @@
       "executable": false
     },
     "docs/contract/safety-rules.md": {
-      "sha256": "3116b421a2ed1320dcb80a6fe788116d43e9300a0ef6ff8dfbefb4e308c4ff0e",
+      "sha256": "66f5dbba6b35cde775db18ddd5d9bd327d6475c84503ceb57a8554162daaab16",
       "executable": false
     },
     "docs/data.md": {
@@ -1579,6 +1579,26 @@
       "sha256": "73810e183f834555850b0724260a07303258fd5f72d301c6755d27b3f2e786e7",
       "executable": false
     },
+    "docs/evidence/contracts/routing/console-check-drill-1440.png": {
+      "sha256": "642ffdf463f4a73ec52d090ad8c1e132dd9e9a1dff0e50e5dbeb485fa09a3d37",
+      "executable": false
+    },
+    "docs/evidence/contracts/routing/console-targeting-1440.png": {
+      "sha256": "351d184422adb9c88d7cc4d8bd71d6d79839e41ccbf4b0ba4658d58c59413b61",
+      "executable": false
+    },
+    "docs/evidence/contracts/routing/console-targeting-390.png": {
+      "sha256": "a95720797abfb9c298d334b425499f12a7e7eefd5c5754a855fd6550ae341e1f",
+      "executable": false
+    },
+    "docs/evidence/contracts/routing/console-teams-1440.png": {
+      "sha256": "0cf92bbf3edbc7dd04edb1f8c72d5de254271d843f832b6f68dc25876f083687",
+      "executable": false
+    },
+    "docs/evidence/contracts/routing/console-teams-390.png": {
+      "sha256": "3a723a66da88171a73a2f25e740354432c5d3cc7384c9a9576dfc43bd0b76d03",
+      "executable": false
+    },
     "docs/evidence/contracts/routing/explicit-empty-preview-1440.png": {
       "sha256": "b3d40110ccd4158ccab0d4a96e313d962f535d624aaa90f36f53feef7b22a929",
       "executable": false
@@ -2120,7 +2140,7 @@
       "executable": false
     },
     "docs/routing-api.md": {
-      "sha256": "55bfae09b481190e78a6e458c6bc5e42a6008eabba6a6ca8440ef77e3e3433d3",
+      "sha256": "92a48e3fc6e4bba2f819fd10afd04df05ae3063749f7ed104bd6234693fb0bc3",
       "executable": false
     },
     "docs/runner.md": {
@@ -2583,6 +2603,10 @@
       "sha256": "bd10bc31ae958a3aa7fc735e1baf7adc49e409956b7e495345906bdaf7502a63",
       "executable": false
     },
+    "public/assets/alert-route-check.js": {
+      "sha256": "68f9a959b790ced52f2eaed5087b2dee98e5f24cd15a71cae088f26f9e576ff1",
+      "executable": false
+    },
     "public/assets/alert-route-fallback.css": {
       "sha256": "6a31f7ef86f467ddaa26340afb0390da9f5c21f042e91ae2a6309e7a412da638",
       "executable": false
@@ -2592,7 +2616,15 @@
       "executable": false
     },
     "public/assets/alert-route-markup.js": {
-      "sha256": "0744bc654f0c46d20e14bdc6370359f132bdc8336cc7050bcd153a92c2065737",
+      "sha256": "a2687f57f873f5d87f2840fb618257efdef189a1af149c6cad9d45a8f324b7bc",
+      "executable": false
+    },
+    "public/assets/alert-route-targeting.css": {
+      "sha256": "1fae897674da186c2f0debc3e02e0765a416a5d5c61acf588de682f194c00610",
+      "executable": false
+    },
+    "public/assets/alert-route-targeting.js": {
+      "sha256": "f3c2b72874c68bc53774874696c0d009bd3562f42e79b0e5fb36c2fde855ff8d",
       "executable": false
     },
     "public/assets/alert-route.css": {
@@ -2600,7 +2632,11 @@
       "executable": false
     },
     "public/assets/alert-route.js": {
-      "sha256": "f47c30d3e216fd3a751f73e6cead7cb2130c37d98af413f11800834bdf5e7184",
+      "sha256": "f6b88749593420d398f23d19c539e569221ee629e2c9c4f8c7d376d61799240a",
+      "executable": false
+    },
+    "public/assets/alert-teams.js": {
+      "sha256": "9c555615356507d9700dd3efb3f36489cd9f76c619a0c77bb2b672fda2b6b35e",
       "executable": false
     },
     "public/assets/contact-quiet.js": {
@@ -2968,7 +3004,7 @@
       "executable": false
     },
     "public/settings-alerts.js": {
-      "sha256": "07b245ee8dfd38e5ef60f2a5e72f87e6bc72891b58c061dab37dd91dad75e8ce",
+      "sha256": "6fb3bab10fa8447706d1cd3dd512df20d77479fa1f028b80dea7bf7f65f2fced",
       "executable": false
     },
     "public/settings-backup.js": {
@@ -6892,7 +6928,7 @@
       "executable": false
     },
     "src/domain/alert-routes.server.ts": {
-      "sha256": "d4250b68b75b89ab9a111ce9309c54fb456b0fc47f95b5dbccff3e83d87a7c6b",
+      "sha256": "4c6144df43dc94f60a992eed9dad514448dca23e9ec72960aa9f100c86b211e9",
       "executable": false
     },
     "src/domain/alert-team-policy.ts": {
@@ -7128,7 +7164,7 @@
       "executable": false
     },
     "src/domain/contact-quiet.ts": {
-      "sha256": "fc55a625ec75901ab33dda50bc63fe4a503daab790b636c88a35db12cd82cda2",
+      "sha256": "747bab6c3d1ac1813353faac8cb2bbad43119172d49580591655aadd49cc30b2",
       "executable": false
     },
     "src/domain/contact-schedule-import.ts": {
@@ -7896,7 +7932,7 @@
       "executable": false
     },
     "src/domain/request-boundary.ts": {
-      "sha256": "a073085d7ee2dffe587fc84af3931b71c41e33b694c38dab92fd688c62192adb",
+      "sha256": "a7d40cd3ebac5de56fcbb93093ecae1a72bb1ea8fb2115b921eed68375e8890c",
       "executable": false
     },
     "src/domain/rer-cutover-status.server.ts": {
@@ -7912,7 +7948,7 @@
       "executable": false
     },
     "src/domain/role-permissions.mjs": {
-      "sha256": "c5a817aa8171eaba734c7824bfe25380cdf7beb526aec48d7ceea455b4edac2a",
+      "sha256": "1d3b836156896f22fc639c37ebe20df70a8e7b4cf1af1c53b00c61849e2a170b",
       "executable": false
     },
     "src/domain/rum/beacon-script.ts": {
@@ -8348,7 +8384,7 @@
       "executable": false
     },
     "src/server.ts": {
-      "sha256": "af5e5fba177894be81a4e7e2d7e935a70721cc24c5cc22d9f288841b7425e2ba",
+      "sha256": "0bb9eb36375c698add2eccc4f6a20491080a987d12a4cd8603d5c593acfec728",
       "executable": false
     },
     "src/site/docs/build/manifest.ts": {
@@ -8652,7 +8688,7 @@
       "executable": false
     },
     "src/ui/console-prefetch.ts": {
-      "sha256": "f87d34ce5261fea57f512d3ebae7af99cc9953959c6610db1bbd6fb74523e47e",
+      "sha256": "71e7702c4d5c01466cee11b2cbf785c898ab9bc7af8a98b51e6a4ed3d7f9eb19",
       "executable": false
     },
     "src/ui/console.html": {
@@ -8860,7 +8896,11 @@
       "executable": false
     },
     "tests/alert-routes.mjs": {
-      "sha256": "6f6fbe407040c46f35f63fd23a3cf340f4d035dc1e5721bfd1bb7906a4aca5b3",
+      "sha256": "78003a306221a75d62c9736ac0a00d18c2d13a48fc72e91df8c482e70864ae19",
+      "executable": false
+    },
+    "tests/alert-routing-console-support.mjs": {
+      "sha256": "bbfb91e5e8e57628ab00ab8782766c309474bafd4354f635503fa23c9492220d",
       "executable": false
     },
     "tests/alert-routing-filters-support.mjs": {

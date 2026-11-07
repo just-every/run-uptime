@@ -8,6 +8,9 @@ import {createHmac} from 'node:crypto';
 import {fixture} from './resilience/support.mjs';
 import {proveRoutingFilters} from './alert-routing-filters-support.mjs';
 import {proveRoutingTeams} from './alert-routing-teams-support.mjs';
+import {proveRoutingConsole} from './alert-routing-console-support.mjs';
+import {mkdir} from 'node:fs/promises';
+import {join} from 'node:path';
 import {dispatchNotifications} from '../runners/src/notification-dispatch.mjs';
 
 test('owned routes preview inheritance, deliver matched triggers/recoveries and retain auditable changes',{timeout:90000},async()=>{
@@ -94,4 +97,13 @@ test('owned routes preview inheritance, deliver matched triggers/recoveries and 
   await proveRoutingFilters(f,ok);
   await proveCatalogRoutes();
  }finally{releaseTrigger?.();try{await dispatching}finally{await f.close()}}
+});
+
+test('owner configures two teams and production and staging routes in the console, then checks and drills them',{timeout:240000},async()=>{
+ const f=await fixture();
+ try{
+  const ok=async(path,body,options={})=>{const r=await f.request(path,{...options,...(body===undefined?{}:{body})});assert.ok(r.status>=200&&r.status<300,`${path}: ${r.status} ${JSON.stringify(r.data)}`);return r.data};
+  const screens=process.env.UPTIME_SCREENSHOTS??join(f.directory,'screens');await mkdir(screens,{recursive:true});
+  await proveRoutingConsole(f,ok,screens);
+ }finally{await f.close()}
 });

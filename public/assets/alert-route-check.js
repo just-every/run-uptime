@@ -5,7 +5,7 @@ import {reasons} from './alert-route-markup.js';
 const kinds=[['trigger','Outage (critical)'],['slow','Slow response (warning)'],['dependency','Dependency notice (info)']];
 const outcomeText={ready:'Would be told now',held_quiet:'Held for quiet hours',excluded:'Excluded',fallback_only:'Fallback contact',drilled:'Drill queued',not_drilled:'Drill not sent'};
 const when=value=>new Date(value).toLocaleString();
-const rows=list=>`<ul class="route-recipients">${list.map(r=>`<li class="route-outcome"><div><strong>${escape(r.name)}</strong> <span data-outcome="${escape(r.outcome)}">${escape(outcomeText[r.outcome]??r.outcome)}</span><p>${escape(r.outcome==='ready'||r.outcome==='drilled'?'Ready':reasons[r.reason]??r.reason)}${r.quietUntil?` · until ${escape(when(r.quietUntil))}`:''}${r.teamIds?.length?' · via team':''}</p></div></li>`).join('')||'<li>No contact is selected by this route.</li>'}</ul>`;
+const rows=list=>`<ul class="route-recipients">${list.map(r=>`<li class="route-outcome"><div><strong>${escape(r.name)}</strong> <span data-outcome="${escape(r.outcome)}">${escape(outcomeText[r.outcome]??r.outcome)}</span><p>${escape(r.outcome==='ready'||r.outcome==='drilled'?'Ready':r.outcome==='held_quiet'?'Waiting for quiet hours to end':reasons[r.reason]??r.reason)}${r.quietUntil?` · until ${escape(when(r.quietUntil))}`:''}${r.teamIds?.length?' · via team':''}</p></div></li>`).join('')||'<li>No contact is selected by this route.</li>'}</ul>`;
 export function mountRouteCheck(after,data,{monitor,api,lock}){
  const panel=document.createElement('section');panel.className='route-check-panel';panel.id='route-check';panel.setAttribute('aria-labelledby','route-check-heading');
  const locations=data.locations??[];
