@@ -2572,7 +2572,7 @@
       "executable": false
     },
     "public/app.js": {
-      "sha256": "c60ca9126112339d987e00ed70e514e1a1c8279fcbc00270bea6e62eb8c7daab",
+      "sha256": "10ce75381754d11c5979a9f1fb53ab909d1d9577b9c5397d73de77b6a9c1c661",
       "executable": false
     },
     "public/archive-view.js": {
@@ -2609,6 +2609,10 @@
     },
     "public/assets/failure-snapshot-view.js": {
       "sha256": "f5056b388653b8b1913132efd11e02c1c4797ac054573a1281da29283e3ac270",
+      "executable": false
+    },
+    "public/assets/incident-console.js": {
+      "sha256": "56a48ad11b238e77e2a332167c89edab9c585c74c937d364b1e47ef6484aa974",
       "executable": false
     },
     "public/assets/report-schedule-controls.js": {
@@ -2795,16 +2799,12 @@
       "sha256": "09c4229eb4b8568a9b24082ba2fa7e485375fe02c157f8ac3f3db85a1674e023",
       "executable": false
     },
-    "public/incident-console.js": {
-      "sha256": "dd232750b9def8f7af361e2fbbb971b496982da982bae868dc68ed965bce8fd3",
-      "executable": false
-    },
     "public/incident-dependencies.js": {
       "sha256": "651ff387cd4d97a33935a6c9a2c0f78a32e8115c205b6268b7fc45585e3e409e",
       "executable": false
     },
     "public/incident-work-markup.js": {
-      "sha256": "d6434479d97d4847cc474e7c6af5e86810dbbda065f884b8272cd8ae6e2fc36a",
+      "sha256": "a588dbc7f95f474862c0ec699c2f77ebbe6031520f844d2506569df59be41bd7",
       "executable": false
     },
     "public/incident-work.css": {

@@ -9,6 +9,7 @@ export function linkedText(value){
 function activity(entry){
  const d=entry.data??{};
  if(entry.kind==='confirmation'||entry.kind==='recovery')return d.cause;
+ if(entry.kind==='sibling_handoff')return 'Oncall handoff acknowledged; receipt and human response remain separate.';
  if(entry.kind==='owner_assigned')return 'Owner: '+(d.owner?.displayName??'Unassigned');
  if(entry.kind.startsWith('comment_'))return 'Comment '+(d.version?'version '+d.version:'');
  if(entry.kind==='root_cause_changed')return 'Category: '+(d.categoryLabel??'Not categorized');

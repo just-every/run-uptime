@@ -25,7 +25,8 @@ const pathOf=({view,area})=>view==='settings'?`/app/settings/${area}`:`/app/${vi
 const TITLES={monitors:'Monitors',locations:'Locations',signout:'Sign out'};
 async function mountConsole(){if(window.uptimeBooted)return;
  const identity=await fetch('/api/access/self').then(response=>response.ok?response.json():null);
- if(identity&&(identity.scopes.length||!['owner','admin'].includes(identity.role))){const {mountResponseConsole}=await import('./incident-console.js');return mountResponseConsole(identity)}
+ if(window.uptimeBooted)return;
+ if(identity&&(identity.scopes.length||!['owner','admin'].includes(identity.role))){const {mountResponseConsole}=await import('./assets/incident-console.js');return mountResponseConsole(identity)}
 window.uptimeBooted=true;const pageId=monitorIdFromPath(location.pathname),entry=routeOf(location.pathname);let data=null,view=pageId!==null?'monitor':entry?.view??(location.pathname.split('/')[2]||'monitors'),settingsArea=entry?.area??null,feedback,readUnavailable=false,redirecting=false,closed=false,polling,shown=null;const $=s=>document.querySelector(s);
 // /app/settings, or an area Settings does not have, opens Alerts at its own path.
 if(entry&&location.pathname!==pathOf(entry))history.replaceState(history.state,'',pathOf(entry)+location.search+location.hash);

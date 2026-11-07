@@ -1,6 +1,6 @@
-import {escape} from './console-format.js';
-import {patch} from './dom-patch.js';
-import {bindIncidentWork} from './incident-work.js';
+import {escape} from '../console-format.js';
+import {patch} from '../dom-patch.js';
+import {bindIncidentWork} from '../incident-work.js';
 
 // Scoped members enter the existing console shell and incident dialog. Their
 // daily list reads only incident work; workspace configuration stays restricted.
