@@ -82,6 +82,7 @@ export async function incidentConsole(){
    if(phase!=='escalation')assert.ok(current.timeline.some(row=>row.kind==='acknowledged'&&row.data.channel==='console'&&row.actor.id));
    if(phase==='one-recovered'){
     assert.equal(current.machineState,'recovered');assert.ok(timeline.includes('recovery'));
+    assert.ok(timeline.includes('notification attempt · reminder'));assert.ok(timeline.includes('notification outcome · reminder'));
     const sibling=await read(ids[1]);assert.equal(sibling.machineState,'open');
    }
    const layout=await dialog.evaluate(node=>({overflow:document.documentElement.scrollWidth>innerWidth||node.scrollWidth>node.clientWidth,

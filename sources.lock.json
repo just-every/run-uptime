@@ -2804,7 +2804,7 @@
       "executable": false
     },
     "public/incident-work-markup.js": {
-      "sha256": "a588dbc7f95f474862c0ec699c2f77ebbe6031520f844d2506569df59be41bd7",
+      "sha256": "45f5c584aafbc95efe8f0818707efcb1ff1d1e62418035212df72e7a3ebdfe1e",
       "executable": false
     },
     "public/incident-work.css": {
@@ -7512,7 +7512,7 @@
       "executable": false
     },
     "src/domain/incident-work/read.server.ts": {
-      "sha256": "e7d63642e6d1260804db757e9072aea0dbf5eab5ab0a2dbb885d82501e49fe54",
+      "sha256": "3d787aa5421ba0ec096c131868f6facc0e608758ebd98b279494831e43a2fbb9",
       "executable": false
     },
     "src/domain/incident-work/settings.server.ts": {
@@ -9112,11 +9112,11 @@
       "executable": false
     },
     "tests/incident-combined-support.mjs": {
-      "sha256": "cebc355fee988b273284853e46f9ec3cafc6a361c4240ece25611ef4d316a154",
+      "sha256": "0688f7c346a736576cf05d663bce2e3a7cd23971ce50d5ce21780968aeaeea10",
       "executable": false
     },
     "tests/incident-console-support.mjs": {
-      "sha256": "d75eb40177d0ef3d366447e845790f00faac8a31018b4b377cc06a4ae46d423a",
+      "sha256": "62cddff1c60a8a2aa97f52cfc589553319ac39907f8b9bb84d05fdcae4b5121d",
       "executable": false
     },
     "tests/incident-correlation-support.mjs": {

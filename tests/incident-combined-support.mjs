@@ -54,6 +54,9 @@ export async function proveCombinedIncident(inspect=async()=>{}){
   await dispatchNotifications(rpc,edge);await dispatchNotifications(rpc,edge);
   let rows=await deliveries();const reminders=rows.filter(row=>row.event.monitorId===monitors[0].id&&row.event.kind==='reminder');
   assert.equal(new Set(reminders.map(row=>row.eventId)).size,1,'one event for the due reminder');assert.equal(reminders.length,1);assert.equal(reminders[0].attempts,1);
+  const reminderTimeline=(await ok(path(0))).timeline.filter(row=>row.data.deliveryId===reminders[0].id);
+  for(const kind of ['notification_queued','notification_attempt','notification_outcome']){const entries=reminderTimeline.filter(row=>row.kind===kind);assert.equal(entries.length,1,'one durable '+kind+' for this reminder');assert.equal(entries[0].data.eventKind,'reminder')}
+  assert.ok(reminderTimeline.find(row=>row.kind==='notification_outcome').data.outcome);
   assert.equal(rows.filter(row=>row.event.monitorId===monitors[1].id&&row.event.kind==='reminder').length,0,'group acknowledgement stops only the selected stop-on-ack route');
   assert.equal(rows.find(row=>row.id===uncertain.id).state,'uncertain');assert.equal(rows.find(row=>row.id===uncertain.id).attempts,1,'the lost response never causes replay');
   assert.equal(receipts.filter(row=>row.url.includes('fallback.example.com')).length,1,'fallback sends once across both restarts');
