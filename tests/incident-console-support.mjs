@@ -8,12 +8,12 @@ import {completeSecondFactor} from './mfa-auth-support.mjs';
 // Extends the correlated lifecycle, with native invitation, fresh email sign-in,
 // actual second-factor UI and the scoped console. No imported browser sessions.
 export async function incidentConsole(){
- const browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic'],...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{})});
- let context,page,member,editor,assignmentEntries;
+ let browser,context,page,member,editor,assignmentEntries;
  const shot=async name=>{if(process.env.UPTIME_FOLLOWUP_SHOTS){await mkdir(process.env.UPTIME_FOLLOWUP_SHOTS,{recursive:true});await page.screenshot({path:join(process.env.UPTIME_FOLLOWUP_SHOTS,name+'.png')})}};
  const inspect=async({f,monitors,ids,phase,detail})=>{
   const read=async id=>{const r=await f.request('/api/v1/incidents/'+encodeURIComponent(id),{headers:{cookie:member.cookie}});assert.equal(r.status,200);return r.data};
   if(!context){
+   browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic'],...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{})});
    await finishSetup(f.origin,f.cookie);
    const invite=async(role,label,scopes=[])=>{
     const email=['synthetic-uptime-'+label,'example.test'].join('@');
@@ -92,5 +92,5 @@ export async function incidentConsole(){
   }
   console.log('PROBE FOLLOWUP-001 2: native responder sign-in, MFA, scoped console and READAPI -> assignments retained; '+phase+' exact next-due and timeline at 1440 and 390');
  };
- return {inspect,async close(){await browser.close()}};
+ return {inspect,async close(){await browser?.close()}};
 }
