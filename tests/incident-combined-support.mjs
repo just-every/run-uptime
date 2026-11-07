@@ -21,7 +21,7 @@ export async function proveCombinedIncident(inspect=async()=>{}){
   const fallback=await ok('/api/notifications/destinations',{body:{name:'synthetic-uptime-403',kind:'webhook',url:'https://fallback.example.com/synthetic-uptime-403'}});
   const monitors=[];
   for(const n of [404,405]){
-   const m=await f.monitor({name:`synthetic-uptime-${n}`,group:'synthetic-uptime-406',dependencies:[dependency.id],runners:[f.first],canary:true,enabled:false});monitors.push(m);
+   const m=await f.monitor({name:`synthetic-uptime-${n}`,group:'synthetic-uptime-406',service:'synthetic-uptime-407',dependencies:[dependency.id],runners:[f.first],canary:true,enabled:false});monitors.push(m);
    const route={scope:'monitor',mode:'selected',destinationIds:[primary.id],fallback:{destinationIds:[fallback.id],deadlineSeconds:30},expectedRevision:0,contactSettings:{[primary.id]:{repeatMinutes:1,maxRepeats:2,stopOnAck:n===405}}};
    const preview=await ok(`/api/monitors/${m.id}/alert-route/preview`,{body:route});await ok(`/api/monitors/${m.id}/alert-route/apply`,{body:{...route,digest:preview.digest}});
    await ok('/api/monitors/'+m.id,{method:'PATCH',body:{...m.definition,enabled:true}});
@@ -42,7 +42,7 @@ export async function proveCombinedIncident(inspect=async()=>{}){
   first=await ok(path(0));assert.equal(first.nextDueKind,'escalation');assert.equal(first.nextDue,deadline);
   const cli=await incidentCommand(['--origin',f.origin,'read','--id',ids[0]],{UPTIME_ACCESS_COOKIE:f.cookie});assert.equal(cli.nextDue,deadline);assert.equal(cli.nextDueKind,'escalation');
   await inspect({f,monitors,ids,phase:'escalation',detail:first});
-  await ok('/api/incidents/'+encodeURIComponent(ids[0])+'/actions',{body:{kind:'acknowledge',version:first.version}});
+  await ok('/api/incidents/'+encodeURIComponent(ids[0])+'/actions',{body:{kind:'acknowledge',version:(await ok(path(0))).version}});
   assert.equal((await ok(path(1))).status,'acknowledged');
   await restart();first=await ok(path(0));assert.equal(first.nextDue,deadline,'restart retains the owner-set fallback deadline');
   await new Promise(resolve=>setTimeout(resolve,Math.max(0,deadline-Date.now()+100)));
@@ -63,6 +63,7 @@ export async function proveCombinedIncident(inspect=async()=>{}){
   await inspect({f,monitors,ids,phase:'one-recovered',detail:await ok(path(0))});
   await recover(1);assert.equal((await ok(path(1))).machineState,'recovered');
   await dispatchNotifications(rpc,edge);await restart();const before=receipts.length;await dispatchNotifications(rpc,edge);assert.equal(receipts.length,before,'resolution and resume add no duplicate send');
+  await inspect({f,monitors,ids,phase:'final',detail:await ok(path(0))});
   first=await ok(path(0));const escalationEntries=first.timeline.filter(row=>row.kind.startsWith('escalation_'));
   assert.ok(escalationEntries.every(row=>row.at>0&&row.actor.displayName==='Router'));
   const archive=await ok('/api/archive');({worker:restored}=await migratedWorker({persist:archiveDirectory,bindings:f.bindings}));const origin=(await restored.ready).origin,cookie=await signInOwner(origin,{bindings:f.bindings});
