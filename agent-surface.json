@@ -71,6 +71,17 @@
       ]
     },
     {
+      "name": "uptime.destinations.drillSchedule",
+      "scope": "uptime:read",
+      "readOnly": true,
+      "classes": [
+        "standard"
+      ],
+      "clauses": [
+        "AGENT-004"
+      ]
+    },
+    {
       "name": "uptime.destinations.read",
       "scope": "uptime:read",
       "readOnly": true,
@@ -79,6 +90,17 @@
       ],
       "clauses": [
         "DELIVERY-001"
+      ]
+    },
+    {
+      "name": "uptime.destinations.scheduleDrills",
+      "scope": "uptime:operate",
+      "readOnly": false,
+      "classes": [
+        "external"
+      ],
+      "clauses": [
+        "AGENT-004"
       ]
     },
     {

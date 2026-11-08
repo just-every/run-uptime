@@ -1211,7 +1211,9 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 | `uptime.definitions.preview` | Recognize a native definition file without applying it | CODE-001 | standard | declared; unjudged |
 | `uptime.definitions.read` | Read redacted native definitions | CODE-001 | standard | declared; unjudged |
 | `uptime.destinations.drill` | Queue a native recipient-confirmed channel drill | DRILL-001 | external | declared; unjudged |
+| `uptime.destinations.drillSchedule` | Read consented drills and internal owner reminders | AGENT-004 | standard | declared; unjudged |
 | `uptime.destinations.read` | Read destination metadata without endpoint secrets | DELIVERY-001 | standard | declared; unjudged |
+| `uptime.destinations.scheduleDrills` | Schedule drills within explicit company consent | AGENT-004 | external | declared; unjudged |
 | `uptime.destinations.test` | Queue an attributed native test send | NOTIFY-001 | external | declared; unjudged |
 | `uptime.destinations.update` | Update a native notification destination | NOTIFY-001 | standard, live, access | declared; unjudged |
 | `uptime.discovery.read` | Read a native discovery outcome | DISCOVERY-001 | standard | declared; unjudged |
@@ -1241,12 +1243,14 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 | `uptime.routes.read` | Read monitor alert routing | ROUTING-001 | standard | declared; unjudged |
 | `uptime.routes.update` | Apply an exact native alert-route preview | ROUTING-001 | live, external, access | declared; unjudged |
 
-**Worker admissions — outside the CORE door contract.** ct ruled at 2026-10-29T14:12Z that these are invoke-only and hidden from MCP. Published Base 0.2.93 carries writer `gr-base-0290-invokeonly-1`: `exposure: 'invoke'` is set on all three native definitions. They are absent from MCP discovery, calls and `agent-surface.json`; the 34 public native tools retain their existing classes and clause IDs. Native trusted operation identity and final-admission tests remain required. This closes the exposure dependency formerly recorded against `modules/agent-door/index.ts:32-33,55-62`, `transport.ts:38,45`, `pipeline.ts:33-34`, `registry.ts:10-38`; it does not declare the separate worker lifecycle family complete.
+**Worker admissions — outside the CORE door contract.** ct ruled at 2026-10-29T14:12Z that these are invoke-only and hidden from MCP. Published Base 0.2.93 carries writer `gr-base-0290-invokeonly-1`: `exposure: 'invoke'` is set on native worker definitions. They are absent from MCP discovery, calls and `agent-surface.json`; the existing public native tools retain their existing classes and clause IDs. Native trusted operation identity and final-admission tests remain required. This closes the exposure dependency formerly recorded against `modules/agent-door/index.ts:32-33,55-62`, `transport.ts:38,45`, `pipeline.ts:33-34`, `registry.ts:10-38`; it does not declare the separate worker lifecycle family complete.
 
 | Worker admission | Classes | Existing clause IDs |
 | --- | --- | --- |
 | `uptime.checks.dispatch` | external | NETWORK-001, PRIVATE-001 |
 | `uptime.destinations.dispatch` | external | DELIVERY-001, NOTIFY-001 |
+| `uptime.destinations.runScheduledDrill` | external | AGENT-004 |
+| `uptime.destinations.remindDrillOwner` | standard | AGENT-004 |
 | `uptime.discovery.dispatch` | external | DISCOVERY-001 |
 
 **Retained capability obligations (ct 2026-10-29T14:12Z).** Renaming changes names only. Each row below retains its complete outcome, existing clause IDs and required class conditions. A native mapping identifies the entry points available today; it does not assert that their narrower implementation completes the outcome. An unmapped operation remains required and pending. The class rules and acceptance points below still govern all of this work. No clause judgment changes in this round.

@@ -2,6 +2,7 @@ import {escape} from './console-format.js';
 import {mountWebhookEditor} from './webhook-editor.js';
 import {containModalKeyboard,dialogFocusReturn,confirmDestination,showSecret,showErasureReceipt} from './notification-dialogs.js';
 import {drillLines} from './alert-drills.js';
+import {mountDrillSchedule} from './alert-drill-schedules.js';
 import {deliveryReason} from './sent-alerts.js';
 const path=id=>`/api/notifications/destinations/${encodeURIComponent(id)}`;
 // Add destination, and a destination's Edit dialog (Settings › Alerts), with the webhook editor's custom requests. Edit also
@@ -18,6 +19,7 @@ export function destinationDialog(destination,{notes,api,action}){
  dialog.innerHTML=`<form><h2 id="destination-dialog-title">${destination?`Edit ${escape(destination.name)}`:'Add destination'}</h2><label>Name (optional)<input name="name" maxlength="100" value="${escape(destination?.name??'')}"></label>${fields}<label class="enabled-control"><input name="enabled" type="checkbox" ${destination?.enabled===false?'':'checked'}> Enabled</label>${latest}${rotate}<p class="form-error" role="alert"></p><div class="buttons">${destination?'<button type="button" class="danger" data-delete-destination>Delete</button>':''}<button type="button" class="secondary" data-cancel>Cancel</button><button type="submit">${destination?'Save destination':'Create destination'}</button></div></form>`;
  dialog.setAttribute('aria-labelledby','destination-dialog-title');document.body.append(dialog);containModalKeyboard(dialog);dialog.showModal();
  const form=dialog.querySelector('form'),close=()=>dialog.close();dialog.querySelector('[data-cancel]').onclick=close;dialog.addEventListener('close',()=>{dialog.remove();returnFocus()},{once:true});
+ mountDrillSchedule(form,{destination,api});
  const webhook=mountWebhookEditor(form,{destination,api});dialog.addEventListener('close',()=>webhook.clear(),{once:true});
  if(!destination)form.elements.kind.onchange=()=>{const email=form.elements.kind.value==='email';dialog.querySelector('#destination-address-label').hidden=!email;dialog.querySelector('#destination-url-label').hidden=email;dialog.querySelector('#destination-privacy').hidden=email;form.elements.address.disabled=!email;form.elements.address.required=email;form.elements.url.disabled=email;form.elements.url.required=!email;webhook.update()};
  // Rotate and Delete each confirm on top of this dialog; confirming closes it before the action runs.

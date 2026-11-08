@@ -3,7 +3,7 @@ import type {ToolContext,Principal} from '../base/modules/agent-door/index.ts'
 import {authority} from './authority.server.ts'
 // Native helpers also run under Node; load the Worker composition only for agent work.
 const agentDoor=async(env:Bindings)=>(await import('./index.server.ts')).uptimeAgentDoor(env)
-export type SavedPrincipal={person:{id:string};agent:Principal['agent'];scopes:string[];clientId?:string;consent?:string;operationId?:string;idempotencyKey?:string|null;attribution?:ToolContext['actor'];approvers?:{id:string;name:string}[]}
+export type SavedPrincipal={drillConsentId?:string;person:{id:string};agent:Principal['agent'];scopes:string[];clientId?:string;consent?:string;operationId?:string;idempotencyKey?:string|null;attribution?:ToolContext['actor'];approvers?:{id:string;name:string}[]}
 export const delegation=(c:ToolContext):SavedPrincipal=>({person:{id:c.person.id},agent:{...c.agent},scopes:[...c.scopes],operationId:c.operationId,idempotencyKey:c.idempotencyKey,attribution:c.actor,approvers:c.approvers.map(person=>({...person})),...(c.clientId?{clientId:c.clientId}:{}),...(c.consent?{consent:c.consent}:{})})
 // Legacy queue snapshots cannot establish the originating admission. They need
 // fresh native preparation; never manufacture a replacement operation or key.
@@ -42,6 +42,7 @@ export async function agentRunnerTask(env:Bindings,runnerId:string,monitorId:str
  }catch{return null}
 }
 export async function notificationAdmission(env:Bindings,id:string){
+ if(!await (await import('../domain/alert-drill-scheduler.server.ts')).scheduledDrillAdmission(env,id))return {allowed:false as const}
  const source=await env.DB.prepare('SELECT principal FROM uptime_agent_notifications WHERE delivery_id=?').bind(id).first<{principal:string}>()
  if(!source)return {allowed:true as const}
  const who:SavedPrincipal=JSON.parse(source.principal),person=await (await import('./authority.server.ts')).nativePerson(env,who.person.id)

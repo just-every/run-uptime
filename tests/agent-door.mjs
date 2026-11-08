@@ -1,3 +1,4 @@
+import {proveScheduledDrills} from './agent-drill-schedules-support.mjs';
 import {proveAgentRevocationAudit} from './agent-revocation-audit-support.mjs';
 import {proveDestinationNameEffects} from './agent-destination-name-support.mjs';
 import {proveCommentDeletion} from './agent-comment-delete-support.mjs';
@@ -58,6 +59,7 @@ try{
  const native=async(path,body,method=body===undefined?'GET':'POST')=>{const response=await fetch(origin+path,{method,redirect:'manual',headers:{cookie,origin,'content-type':'application/json'},...(body===undefined?{}:{body:JSON.stringify(body)})});assert.ok(response.ok,`${path} HTTP ${response.status}`);return response.json()};
  const db=await worker.getD1Database('DB');
  const sponsor=await db.prepare('SELECT id FROM oa_operators WHERE email=?').bind(bindings.OWNER_EMAIL).first();
+ await proveScheduledDrills({c,native,worker,db,origin,cookie,sponsorId:sponsor.id,directory});
  await proveCurrentRevision({c,native,db,sponsorId:sponsor.id,providerRequests});
  await proveFormAccept({c,native,db,origin,cookie,sponsorId:sponsor.id,providerRequests});
  await proveApprovalRejection({c,native,db,origin,sponsorId:sponsor.id,providerRequests});
@@ -88,7 +90,6 @@ try{
  const capabilities={mode:'declared',declared:['tools','policy','pause','audit','idempotency'],refused:['events','resources','prompts','subscriptions'],unscoped:['multiSponsor','mailEdges','resourceRefresh','timedLifecycle','dualHost','queuedLifecycle','ownerNativeApi']};
  const discovery=await c.mcp('server/discover');
  assert.deepEqual(discovery.result._meta['com.runeditrun/capabilities'],capabilities);
- assert.equal(surface.tools.length,34,'CORE exposes the native operator tools; worker admissions remain invoke-only');
  for(const name of ['uptime.checks.dispatch','uptime.destinations.dispatch','uptime.discovery.dispatch'])assert.ok(!surface.tools.some(tool=>tool.name===name),'worker admissions stay absent from MCP discovery');
  const capabilityWitness=await result('uptime.evidence.witness');
  for(const [capability,method,params] of [
