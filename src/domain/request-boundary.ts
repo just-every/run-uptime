@@ -152,6 +152,10 @@ export const apiRoutes:readonly Route[]=[
  {method:'POST',path:'/api/notifications/destinations/:id/rotate',params:id,body:'empty'},
  {method:'POST',path:'/api/notifications/destinations/:id/test',params:id,body:'empty'},
  {method:'POST',path:'/api/notifications/destinations/:id/drill',params:id,body:'empty'},
+ {method:'GET',path:'/api/notifications/destinations/:id/drill-schedule',params:id,body:'none'},
+ {method:'POST',path:'/api/notifications/destinations/:id/drill-schedule',params:id,body:'object'},
+ {method:'DELETE',path:'/api/notifications/destinations/:id/drill-schedule',params:id,body:'none'},
+ {method:'POST',path:'/api/notifications/destinations/:id/drill-schedule/runs/:runId/decline',params:{...id,runId:uuid},body:'empty'},
 ]
 export class InputError extends Error{status=400}
 const refuse=(message:string)=>{throw new InputError(message)}

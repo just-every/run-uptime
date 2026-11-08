@@ -1,4 +1,4 @@
-import {drillScheduleView,scheduleDrills} from '../domain/alert-drill-schedules.server.ts'
+import {drillConsent,drillScheduleView,scheduleDrills} from '../domain/alert-drill-schedules.server.ts'
 import {executeScheduledDrill,remindDrillOwner,scheduledDrillRecord} from '../domain/alert-drill-scheduler.server.ts'
 import {destinationNameFence,outsideDestinationRoutes,destinationRouteValues} from './destination-name-effects.server.ts'
 import type {DestinationUpdateFence} from '../domain/notification-destinations.server.ts'
@@ -57,6 +57,7 @@ async function actionSummary(env:Bindings,verb:string,title:string,a:any){
   else if(verb.startsWith('incidents.')){const incident=await findIncident(env,a.id);name='Incident for '+(await get(env,incident.monitor_id))?.definition.name}
   else {const m=await get(env,a.id);if(m){name=m.definition.name;items.push('Current monitor revision: '+m.revision)}}
  }
+ if(verb==='destinations.schedule_drills'&&typeof a.id==='string'){const consent=await drillConsent(env,a.id);if(consent){items.push('Company consent: '+consent.id,...summaryItems(JSON.parse(consent.config)));}}
  if(a.definition?.name&&verb!=='monitors.update')name=a.definition.name
  if(a.monitorIds)for(const id of a.monitorIds){const m=await get(env,id);items.push('Selected monitor: '+(m?.definition.name??id))}
  return {target:{...(typeof a.id==='string'?{id:a.id}:{}),name},items,...(recipients?{recipients}:{}),...(a.role?{role:a.role}:{})}
@@ -188,7 +189,7 @@ export function tools(env:Bindings):ToolDefinition[]{
 
 
  read('destinations.drill_schedule','Read consented drills and internal owner reminders',idSchema,['AGENT-004'],async(a,c)=>{await authority(env,c,'secret_write',[],undefined,true);await reads.destinationRead(env,c,a.id);return drillScheduleView(env,a.id)})
- mutation('destinations.schedule_drills','Schedule drills within explicit company consent',schema({id:string,consent_id:string}),['external'],['AGENT-004'],async(a,c)=>{const access=await authority(env,c,'secret_write',[],undefined,true);await reads.destinationRead(env,c,a.id);return scheduleDrills({...env,DB:authorizedDatabase(env,access)},a.id,a.consent_id,delegation(c))},async(a,c)=>{await authority(env,c,'secret_write',[],undefined,true);await reads.destinationRead(env,c,String(a.id));return [facts('external',{counterparty:'known'})]})
+ mutation('destinations.schedule_drills','Schedule drills within explicit company consent',schema({id:string,consent_id:string}),['external'],['AGENT-004'],async(a,c)=>{const access=await authority(env,c,'secret_write',[],undefined,true);await reads.destinationRead(env,c,a.id);return scheduleDrills({...env,DB:authorizedDatabase(env,access)},a.id,a.consent_id,delegation(c))},async(a,c)=>{await authority(env,c,'secret_write',[],undefined,true);await reads.destinationRead(env,c,String(a.id));const consent=await drillConsent(env,String(a.id));return [facts('external',{measure:consent?JSON.parse(consent.config).maxDrills:1,counterparty:'known'})]})
  for(const reminder of [false,true]){
   const tool=mutation(reminder?'destinations.remind_drill_owner':'destinations.run_scheduled_drill',reminder?'Record a due internal route-owner reminder':'Run one bounded consented drill',schema({id:string,schedule_id:string,...(reminder?{run_id:string,number:integer}:{due_at:integer})}),reminder?['standard']:['external'],['AGENT-004'],async(a,c)=>{
    if(c.door!=='embedded')throw new ToolRefusal('runner_protocol_required')

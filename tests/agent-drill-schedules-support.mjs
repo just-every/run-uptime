@@ -21,6 +21,8 @@ export async function proveScheduledDrills({c,native,worker,db,origin,cookie,spo
  const tick=async()=>assert.equal((await(await worker.getWorker()).scheduled()).outcome,'ok');
  const mailFor=d=>allDeliveredMessages().filter(({message})=>message.personalizations.some(p=>p.to.some(to=>to.email===recipient(d))));
  const first=await create('Checkout primary alert route',71),expired=await create('Expired backup alert route',72);
+ const route=await native('/api/alert-route'),routeInput={mode:'selected',destinationIds:[first.id,expired.id],expectedRevision:route.revision};
+ const preview=await native('/api/alert-route/preview',routeInput);await native('/api/alert-route/apply',{...routeInput,digest:preview.digest});
  const policy=(extra={})=>({consent:true,windowStart:Date.now()-1000,windowEnd:Date.now()+180000,intervalMs:60000,maxDrills:1,credentialExpiresAt:null,confirmationWaitMs:60000,reminderIntervalMs:60000,maxReminders:1,phoneBudgetUsd:0,ownerId:sponsorId,...extra});
  const beforeJobs=(await db.prepare('SELECT COUNT(*) n FROM notification_jobs').first()).n;
  const unsigned=await fetch(origin+path(first),{method:'POST',headers:{origin,'content-type':'application/json'},body:JSON.stringify(policy())});assert.equal(unsigned.status,401);
@@ -42,7 +44,7 @@ export async function proveScheduledDrills({c,native,worker,db,origin,cookie,spo
  await tick();assert.equal((await read(first)).runs.length,1);assert.equal(mailFor(71).length,1,'repeated Cron never resends a one-shot occurrence');
  await new Promise(resolve=>setTimeout(resolve,Math.max(0,expiry+1100-Date.now())));await tick();
  let expiredView=await read(expired);assert.equal(expiredView.runs.length,1);assert.equal(expiredView.runs[0].code,'credential_expired');assert.equal(expiredView.runs[0].drillId,null);assert.equal(expiredView.runs[0].providerState,'not_sent');assert.equal(mailFor(72).length,0);
- assert.equal(expiredView.runs[0].proposedRoute.credentialDiagnosis,'credential_expired');assert.equal(expiredView.runs[0].proposedRoute.action,'replace_destination');assert.equal(expiredView.runs[0].proposedRoute.replacementDestinationId,first.id);assert.equal(expiredView.runs[0].proposedRoute.requiresReview,true);assert.match(expiredView.runs[0].proposedOncall,/Oncall/);
+ assert.equal(expiredView.runs[0].proposedRoute.credentialDiagnosis,'credential_expired');assert.equal(expiredView.runs[0].proposedRoute.action,'replace_destination');assert.equal(expiredView.runs[0].proposedRoute.replacementDestinationId,first.id);assert.equal(expiredView.runs[0].proposedRoute.requiresReview,true);assert.deepEqual(expiredView.runs[0].proposedRoute.routes.map(r=>r.scope),['installation']);assert.match(expiredView.runs[0].proposedOncall,/Oncall/);
  // Spend the real reminder interval in browser inspection, then finish any remaining wait.
  await completeSecondFactor(origin,cookie);
  assert.equal((await fetch(origin+'/setup',{method:'POST',redirect:'manual',headers:{origin,cookie}})).status,303);
