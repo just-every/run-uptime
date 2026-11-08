@@ -8848,7 +8848,7 @@
       "executable": false
     },
     "tests/agent-door.mjs": {
-      "sha256": "83abdff3583d9c8ac5c4ee3b4c6e0378bcb5ec348ef76c8e65634c0a2c17dcf9",
+      "sha256": "e7c3f60d491be0d0bca607d83216f34efe308780a5409b49b5b046c867399340",
       "executable": false
     },
     "tests/agent-drill-journey.mjs": {

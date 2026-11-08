@@ -31,6 +31,9 @@ import {auditRows} from '../src/base/modules/agent-door/conformance/audit.mjs';
 import {completeSecondFactor} from './mfa-auth-support.mjs';
 import {signJws,seconds,autonomousPolicy,heldPolicy,accessToken,policyEnvelope} from '../src/base/modules/agent-door/conformance/crypto.mjs';
 import {createProtocol,errorCode} from '../src/base/modules/agent-door/conformance/protocol.mjs';
+// Refusal endpoints may close before consuming a body. Keep this loopback
+// journey's HTTP calls independent rather than reusing those closing sockets.
+const fetch=(url,options={})=>{const headers=new Headers(options.headers);headers.set('connection','close');return globalThis.fetch(url,{...options,headers})};
 const pair=await webcrypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']);
 const key=await webcrypto.subtle.exportKey('jwk',pair.publicKey),kid='uptime-native-journey',issuer='https://business.example.test',installationId=randomUUID(),sub=randomUUID(),business=randomUUID();
 const directory=await runtimeDirectory(),[port]=await availablePorts(1),origin='http://127.0.0.1:'+port;
@@ -55,9 +58,7 @@ try{
  const result=async(name,args={})=>{const answer=await c.tool(name,args);assert.equal(answer.result?.isError,false,`${name}: ${errorCode(answer)}`);return answer};
  await c.adopt(autonomousPolicy());await policyEntry.proveAllowed();
  for(const version of ['2026-07-28','2025-11-25']){const listed=await c.mcp('tools/list',{}, {version});assert.deepEqual(listed.result.tools.map(t=>t.name),surface.tools.map(t=>t.name).sort())}
- // Native owner endpoints may return before consuming an empty JSON body; own
- // their HTTP connection so the following audit read never inherits a closing socket.
- const native=async(path,body,method=body===undefined?'GET':'POST')=>{const response=await fetch(origin+path,{method,redirect:'manual',headers:{cookie,origin,connection:'close','content-type':'application/json'},...(body===undefined?{}:{body:JSON.stringify(body)})});assert.ok(response.ok,`${path} HTTP ${response.status}`);return response.json()};
+ const native=async(path,body,method=body===undefined?'GET':'POST')=>{const response=await fetch(origin+path,{method,redirect:'manual',headers:{cookie,origin,'content-type':'application/json'},...(body===undefined?{}:{body:JSON.stringify(body)})});assert.ok(response.ok,`${path} HTTP ${response.status}`);return response.json()};
  const db=await worker.getD1Database('DB');
  const sponsor=await db.prepare('SELECT id FROM oa_operators WHERE email=?').bind(bindings.OWNER_EMAIL).first();
  await proveCurrentRevision({c,native,db,sponsorId:sponsor.id,providerRequests});
