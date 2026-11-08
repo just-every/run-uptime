@@ -39,7 +39,7 @@ export function mountDrillSchedule(form,{destination,api}){
  <div class="webhook-pair">${numeric('confirmationWaitMs','Confirmation wait (milliseconds)',60000,null,3600000)}${numeric('reminderIntervalMs','Reminder interval (milliseconds)',60000,null,3600000)}</div>
  ${numeric('maxReminders','Maximum owner reminders',1,10,3)}
  <label>Reminder owner<select form="drill-consent-fields" data-config="ownerId"></select></label>
- <p>Phone budget: $0. Email, webhook and Slack drills do not send phone notifications.</p>
+ <label>Phone budget (USD)<input form="drill-consent-fields" data-config="phoneBudgetUsd" type="number" min="0" step="0.01" value="0"></label><p>Email, webhook and Slack drills incur no phone charge. Phone calls are unavailable.</p>
  <label class="enabled-control"><input form="drill-consent-fields" data-config="consent" type="checkbox"> I consent on behalf of this company to these scheduled drills and owner reminders within these limits.</label>
  <div class="webhook-preview-controls"><button type="button" data-save>Save consent</button><button type="button" class="danger" data-revoke hidden>Revoke consent</button></div>
  </div><div data-runs style="overflow-wrap:anywhere"></div></div>`;
@@ -63,6 +63,7 @@ export function mountDrillSchedule(form,{destination,api}){
    for(const name of numberFields)if(consent)field(name).value=consent[name];
    field('ownerId').innerHTML=data.eligibleOwners.map(owner=>`<option value="${escape(owner.id)}">${escape(owner.name)}</option>`).join('');
    field('ownerId').value=consent?.ownerId??data.currentOwnerId;
+   field('phoneBudgetUsd').value=consent?.phoneBudgetUsd??0;
    field('consent').checked=false;
   }
   loaded=true;
@@ -79,7 +80,8 @@ export function mountDrillSchedule(form,{destination,api}){
   finally{if(!disposed)setBusy(false)}
  }
  function config(){
-  const values={consent:true,phoneBudgetUsd:0};
+  const values={consent:true,phoneBudgetUsd:Number(field('phoneBudgetUsd').value)};
+  if(!field('phoneBudgetUsd').value||!Number.isFinite(values.phoneBudgetUsd)||values.phoneBudgetUsd<0||Math.abs(values.phoneBudgetUsd*100-Math.round(values.phoneBudgetUsd*100))>0.00001)throw Error('Enter a nonnegative USD phone budget with at most two decimal places.');
   for(const name of dateFields){
    const raw=field(name).value;
    if(!raw&&name==='credentialExpiresAt'){values[name]=null;continue}

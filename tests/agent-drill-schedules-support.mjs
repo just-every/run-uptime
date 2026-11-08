@@ -12,6 +12,7 @@ import {allDeliveredMessages} from './mail-provider-fixture.mjs';
 // One company-consent-to-decline journey. Real signed MCP, owner API, Cron,
 // delivery and browser doors; the existing fixture substitutes only mail's network edge.
 export async function proveScheduledDrills({c,native,worker,db,origin,cookie,sponsorId,directory}){
+ await completeSecondFactor(origin,cookie);
  const recipient=n=>['synthetic-uptime-'+n,'recipient.example.test'].join(String.fromCharCode(64));
  const create=async(name,n)=>native('/api/notifications/destinations',{name,kind:'email',address:recipient(n)});
  const path=d=>'/api/notifications/destinations/'+d.id+'/drill-schedule';
@@ -35,7 +36,7 @@ export async function proveScheduledDrills({c,native,worker,db,origin,cookie,spo
  await c.adopt(autonomousPolicy(),{paused:true});await tick();assert.equal((await read(first)).runs.length,0);assert.equal(mailFor(71).length,0);
  await c.adopt(autonomousPolicy());await tick();
  let view=await read(first);assert.equal(view.runs.length,1);assert.equal(view.schedule.drills,1);assert.equal(view.schedule.state,'complete');
- assert.equal(view.runs[0].providerState,'accepted');assert.equal(view.runs[0].confirmation,'missing','provider acceptance is not recipient confirmation');
+ assert.equal(view.runs[0].providerState,'accepted');assert.equal(view.runs[0].confirmation,'pending','provider acceptance is not recipient confirmation');
  assert.equal(mailFor(71).length,1);assert.match(mailFor(71)[0].text,/This is an alert drill/);
  const due=(await db.prepare('SELECT next_reminder FROM alert_drill_runs WHERE id=?').bind(view.runs[0].id).first()).next_reminder;
  await tick();assert.equal((await read(first)).runs.length,1);assert.equal(mailFor(71).length,1,'repeated Cron never resends a one-shot occurrence');
@@ -62,7 +63,7 @@ export async function proveScheduledDrills({c,native,worker,db,origin,cookie,spo
   await page.locator('[data-refresh]').click();await capture('consented-drill-1440');
   await page.setViewportSize({width:390,height:1000});await capture('consented-drill-390');await page.getByRole('button',{name:'Cancel',exact:true}).click();
   await new Promise(resolve=>setTimeout(resolve,Math.max(0,due+100-Date.now())));await tick();await tick();
-  view=await read(first);assert.equal(view.runs[0].reminders.length,1);assert.equal(view.runs[0].reminders[0].ownerId,sponsorId);assert.ok(view.runs[0].reminders[0].at>=due);assert.equal(mailFor(71).length,1);
+  view=await read(first);assert.equal(view.runs[0].confirmation,'missing');assert.equal(view.runs[0].reminders.length,1);assert.equal(view.runs[0].reminders[0].ownerId,sponsorId);assert.ok(view.runs[0].reminders[0].at>=due);assert.equal(mailFor(71).length,1);
   const agentRead=await tool('drill_schedule',{id:first.id});assert.deepEqual(agentRead.runs,view.runs,'agent sees the same failed-channel and internal chase evidence as the company');
   const jobs=(await db.prepare('SELECT id FROM notification_jobs ORDER BY id').all()).results,credentials=(await db.prepare('SELECT id FROM notification_credentials ORDER BY id').all()).results;
   await open(first);await page.getByRole('button',{name:'Decline proposal',exact:true}).click();await page.getByText('Proposal declined.',{exact:true}).first().waitFor();
