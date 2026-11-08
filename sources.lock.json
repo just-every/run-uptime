@@ -6948,7 +6948,7 @@
       "executable": false
     },
     "src/domain/archive-fence.server.ts": {
-      "sha256": "456f00df64ecc3c438876d81a4c6a309affe51705d1ccd843a2dc6fdcfee77cc",
+      "sha256": "80ac34a794742fe0e417cb0cb110cf221bdc897bb2793d36bc0d671e819c81f4",
       "executable": false
     },
     "src/domain/archive-inserts.server.ts": {
@@ -6964,7 +6964,7 @@
       "executable": false
     },
     "src/domain/archive-notification-validation.ts": {
-      "sha256": "7fa125da330f5f3bcbf24b9aba23d79bf5c5ab197c6a890fbbdaba680ac7f8a8",
+      "sha256": "20e322de467d251314b156b00b800962deecf89b93e3d9e8867619751022cb18",
       "executable": false
     },
     "src/domain/archive-restore-projection.ts": {
@@ -7324,11 +7324,11 @@
       "executable": false
     },
     "src/domain/erasure-relations.ts": {
-      "sha256": "7264d853d22992a9c14707326f3ca7665da4b3f172383ab8156fcf999612fa72",
+      "sha256": "44e7c68aa7653ca8e6a2f359fc89e6f7e36f64099663803e5552ca798be16394",
       "executable": false
     },
     "src/domain/erasure.server.ts": {
-      "sha256": "5d6a14af43e72bcecf93f61bc7a99930b88710ee6a9879d61cd419c99dbaeb44",
+      "sha256": "352d624dcd9fe75431c3e79e8fea9f8ac70fa7eba3f855efb68ef8e7d6fdd8db",
       "executable": false
     },
     "src/domain/evidence.server.ts": {
@@ -7649,6 +7649,10 @@
     },
     "src/domain/network-diagnostics.mjs": {
       "sha256": "be74a36afac09d5876e36e6b8b1212c630593eedd30c1c0959dcc346fcfb7742",
+      "executable": false
+    },
+    "src/domain/notification-attribution.ts": {
+      "sha256": "0fd4fcef7b45ee04fd66785404e92789f57beaa906df95349737e3ff7801bf83",
       "executable": false
     },
     "src/domain/notification-cancellation.server.ts": {
@@ -8808,11 +8812,11 @@
       "executable": false
     },
     "tests/agent-door.mjs": {
-      "sha256": "c775e0887191fc51cd717b0a414c6526ed92b1d40791d66b7b30c5567a245015",
+      "sha256": "6b8932bf4d2a551546f89828854c6476f975a297153462fc3338795e54a73815",
       "executable": false
     },
     "tests/agent-drill-schedules-support.mjs": {
-      "sha256": "7557c887d7ee0fcf3c021557660f96707f8e41c41657481493cb0e29f37a842e",
+      "sha256": "ee4f1f5a6c98210387ae2a41a02d71b3561b465e3de256fe098f8f25fbe947df",
       "executable": false
     },
     "tests/agent-form-accept-support.mjs": {

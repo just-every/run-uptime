@@ -1,4 +1,4 @@
-import {proveScheduledDrills} from './agent-drill-schedules-support.mjs';
+import {proveScheduledDrills,proveDrillSponsorErasure} from './agent-drill-schedules-support.mjs';
 import {proveAgentRevocationAudit} from './agent-revocation-audit-support.mjs';
 import {proveDestinationNameEffects} from './agent-destination-name-support.mjs';
 import {proveCommentDeletion} from './agent-comment-delete-support.mjs';
@@ -59,7 +59,7 @@ try{
  const native=async(path,body,method=body===undefined?'GET':'POST')=>{const response=await fetch(origin+path,{method,redirect:'manual',headers:{cookie,origin,'content-type':'application/json'},...(body===undefined?{}:{body:JSON.stringify(body)})});assert.ok(response.ok,`${path} HTTP ${response.status}`);return response.json()};
  const db=await worker.getD1Database('DB');
  const sponsor=await db.prepare('SELECT id FROM oa_operators WHERE email=?').bind(bindings.OWNER_EMAIL).first();
- await proveScheduledDrills({c,native,worker,db,origin,cookie,sponsorId:sponsor.id,directory});
+ const drillProof=await proveScheduledDrills({c,native,worker,db,origin,cookie,sponsorId:sponsor.id,directory});
  await proveCurrentRevision({c,native,db,sponsorId:sponsor.id,providerRequests});
  await proveFormAccept({c,native,db,origin,cookie,sponsorId:sponsor.id,providerRequests});
  await proveApprovalRejection({c,native,db,origin,sponsorId:sponsor.id,providerRequests});
@@ -335,6 +335,8 @@ try{
  assert.equal((await db.prepare('SELECT stopped FROM bs_settings WHERE singleton=1').first()).stopped,1,'signed policy never revives Business');
  console.log('PASS BASE-AGENT-009.uptime.signed-relay: 200; foreign/unauthorized 401; foreign Business/stopped 404; held Business effect refused; native owner and signed Pause survive');
  assert.ok(c.points.every(point=>point.ok),JSON.stringify(c.points.filter(p=>!p.ok)));
+ cookie=await emailSignIn(origin,{bindings});c.person.cookie=cookie;
+ await proveDrillSponsorErasure({native,origin,cookie,sponsorId:sponsor.id,directory,bindings,proof:drillProof});
  // Updated 2026-10-30 BASE-AGENT-013.uptime.declarative-conformance:
  // agent-surface.json declares tools, policy, pause, audit and idempotency.
  // The installed rer 0.2.93 CLI measures every declared point; a declaration

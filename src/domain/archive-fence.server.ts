@@ -24,6 +24,7 @@ export async function productFence(env:Bindings,tables:Tables,metadata:any,later
  // Operator authority stays installation-local, but old portable audit rows
  // must not restore an actor identifier after its account was erased.
  const actors=[...new Set([
+ ...(tables.notification_jobs??[]).map(row=>JSON.parse(row.event).preparedBy?.for?.id),
  ...(tables.uptime_audit??[]).filter(row=>row.actor_kind==='operator').map(row=>row.actor_ref as string),
  ...(tables.incident_mentions??[]).map(row=>row.recipient_id),
  ...(tables.incident_comments??[]).map(row=>row.author_id),...(tables.incident_comment_history??[]).map(row=>row.editor_id),
