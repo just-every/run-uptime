@@ -8,6 +8,7 @@ import {autonomousPolicy} from '../src/base/modules/agent-door/conformance/crypt
 import {errorCode} from '../src/base/modules/agent-door/conformance/protocol.mjs';
 import {completeSecondFactor} from './mfa-auth-support.mjs';
 import {migratedWorker,ownerAPI} from './notify-acceptance-runtime.mjs';
+import {authRequest,deliveredLink,sessionCookie} from './auth-test-support.mjs';
 import {allDeliveredMessages} from './mail-provider-fixture.mjs';
 
 // One company-consent-to-decline journey. Real signed MCP, owner API, Cron,
@@ -95,9 +96,22 @@ export async function proveScheduledDrills({c,native,worker,db,origin,cookie,spo
   const bad=structuredClone(archive),audit=bad.payload.productTables.uptime_audit.find(row=>row.action==='drill_consent');assert.ok(audit);audit.subject_kind='monitor';bad.sha256=createHash('sha256').update(JSON.stringify(bad.payload)).digest('hex');
   assert.equal((await owner.api('/api/restore','POST',bad,{origin:restoredOrigin})).status,400,'wrong-subject drill audit is refused before any restore writes');
   assert.equal((await restored.DB.prepare('SELECT COUNT(*) n FROM notification_destinations').first()).n,0);
+  const forged=structuredClone(archive),attributed=forged.payload.productTables.notification_jobs.find(row=>JSON.parse(row.event).preparedBy);assert.ok(attributed);const event=JSON.parse(attributed.event);event.preparedBy.grant='invented';attributed.event=JSON.stringify(event);forged.sha256=createHash('sha256').update(JSON.stringify(forged.payload)).digest('hex');
+  assert.equal((await owner.api('/api/restore','POST',forged,{origin:restoredOrigin})).status,400,'extra attribution fields never grant restore authority');
   assert.equal((await owner.api('/api/restore','POST',archive,{origin:restoredOrigin})).status,200,'drill consent and refusal audits travel without execution authority');
   const restoredSchedule=await owner.api(path(first));assert.equal(restoredSchedule.status,200);assert.equal(restoredSchedule.data.consent,null);assert.deepEqual(restoredSchedule.data.runs,[]);
   assert.equal((await(await restored.worker.getWorker()).scheduled()).outcome,'ok');assert.equal(mailFor(71).length,1);assert.equal(mailFor(74).length,0,'restored history cannot contact the proposed recipient');
  }finally{await restored.worker.dispose()}
+ return {archive,first,scheduledArgs:args};
+}
+export async function proveDrillSponsorErasure({native,origin,cookie,sponsorId,directory,bindings,proof}){
+ const call=authRequest(origin),email=['synthetic-uptime-continuity','recipient.example.test'].join(String.fromCharCode(64));
+ await completeSecondFactor(origin,cookie);await native('/auth/invite',{email,displayName:'Continuity owner',role:'owner'});
+ const invite=await deliveredLink(call,{email,kind:'invite'}),successorCookie=sessionCookie(await call('/auth/confirm',{token:invite.searchParams.get('token')}));await completeSecondFactor(origin,successorCookie);
+ const api=async(path,body,method=body===undefined?'GET':'POST')=>{const response=await fetch(origin+path,{method,headers:{origin,cookie:successorCookie,'content-type':'application/json'},...(body===undefined?{}:{body:JSON.stringify(body)})});const value=await response.json();assert.ok(response.ok,path+' HTTP '+response.status);return value};
+ await api('/api/operators/'+sponsorId+'/erase',{});
+ const current=await api('/api/notifications');assert.ok(!current.deliveries.some(row=>row.event.preparedBy?.for?.id===sponsorId),'erased drill sponsor is absent from retained delivery reads');
+ const journal=await api('/api/erasure-journal');const restored=await migratedWorker({persist:join(directory,'drill-erasure-restore')});
+ try{const target=(await restored.worker.ready).origin,owner=ownerAPI(target);await owner.signIn();assert.equal((await owner.api('/api/restore','POST',{archive:proof.archive,laterJournal:journal},{origin:target})).status,400,'captured drill attribution cannot resurrect an erased person');assert.equal((await restored.DB.prepare('SELECT COUNT(*) n FROM notification_jobs').first()).n,0)}finally{await restored.worker.dispose()}
  console.log('PASS AGENT-004 scheduledDrills: consent, bounded current-policy execution, expiry, provider and recipient separation, internal owner chase, decline, revocation, erasure, inactive archive and Settings at 1440 and 390');
 }
