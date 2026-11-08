@@ -54,6 +54,10 @@ export async function witnessRead(env:Bindings,ctx:Context){
  ] as const){const rows=(await env.DB.prepare(sql).bind(selection).all<any>()).results;result[name]={count:rows.length,sha256:await sha(JSON.stringify(rows))}}
  if(workspace)for(const [name,sql] of [
   ['destinations','SELECT id,name,kind,enabled,credential_id,deleted_at FROM notification_destinations ORDER BY id'],
+  ['drillConsents','SELECT id,destination_id,credential_id,issuer_id,owner_id,config,revoked_at FROM alert_drill_consents ORDER BY id'],
+  ['drillSchedules','SELECT id,consent_id,next_due,drills,state FROM alert_drill_schedules ORDER BY id'],
+  ['drillRuns','SELECT id,schedule_id,due_at,drill_id,code,proposal,reminder_count,next_reminder FROM alert_drill_runs ORDER BY id'],
+  ['drillReminders','SELECT run_id,number,owner_id,at FROM alert_drill_reminders ORDER BY run_id,number'],
   ['notifications','SELECT id,destination_id,credential_id,event_id,state,code,attempts FROM notification_jobs ORDER BY id'],
   ['discoveries','SELECT id,status,result,error,initiator_id,runner_id FROM discovery_jobs ORDER BY id'],
   ['members','SELECT operator_id,role,base_role,base_version,revision FROM uptime_member_roles ORDER BY operator_id'],
