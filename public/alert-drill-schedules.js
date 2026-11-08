@@ -15,19 +15,19 @@ const numeric=(name,label,min,max,value)=>input(name,label,'number',`min="${min}
 function runsMarkup(runs){
  if(!runs.length)return '<p>No scheduled drills have run.</p>';
  return runs.map(run=>`<section class="drill-result" aria-label="Scheduled drill ${escape(run.code??run.id)}">
- <h4>Drill ${escape(run.code??run.id)}</h4><dl class="drill-lines">
+ <h4>${escape(run.code==='drill_queued'?'Scheduled drill':(run.code??'Drill').replaceAll('_',' '))}</h4><dl class="drill-lines">
  <div><dt>Provider</dt><dd>${escape(run.providerState??'Pending')}</dd></div>
  <div><dt>Recipient confirmation</dt><dd>${escape(describe(run.confirmation??'Pending'))}</dd></div>
  </dl>${run.proposedRoute!=null?`<p>Suggested route correction: ${escape(describe(run.proposedRoute))}</p>`:''}
  ${run.proposedOncall!=null?`<p>Suggested Oncall escalation: ${escape(describe(run.proposedOncall))}</p>`:''}
  ${run.proposal==='open'?`<p>Suggestions await review. Recipients, secrets and phone settings stay under your control.</p><button type="button" class="secondary" data-decline="${escape(run.id)}">Decline proposal</button>`:run.proposal==='declined'?'<p>Proposal declined.</p>':''}
- <p>${run.reminders.length?`Owner reminders: ${run.reminders.map(reminder=>`${escape(when(reminder.at))} · ${escape(reminder.ownerId)}`).join('; ')}`:'No owner reminders sent.'}</p></section>`).join('');
+ <p>${run.reminders.length?`Owner reminders: ${run.reminders.map(reminder=>`${escape(when(reminder.at))} · ${escape(reminder.ownerName??reminder.ownerId)}`).join('; ')}`:'No owner reminders sent.'}</p></section>`).join('');
 }
 
 // These fields deliberately have no form owner: destination Save must not validate or submit consent configuration.
 export function mountDrillSchedule(form,{destination,api}){
  if(!destination)return;
- const panel=document.createElement('details');panel.className='latest-test';panel.style.fontSize='14px';
+ const panel=document.createElement('details');panel.className='latest-test drill-schedule';panel.style.fontSize='14px';
  panel.innerHTML=`<summary>Scheduled drills</summary><div style="display:grid;gap:14px;min-width:0">
  <p>Authorize a limited window of test notifications. Your agent uses the consent ID to create the schedule.</p>
  <div class="webhook-preview-controls"><button type="button" class="secondary" data-refresh>Refresh</button><span role="status" data-message></span></div>
