@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "a0ca69c8d733efd8bef4948c3b7e9e5386bc2e16757b8c975a5c6980766c40f5",
+      "sha256": "b85025e48482f8b19f2e21b014db29a98c132e21451b88248cbe6020a9d97f14",
       "executable": false
     },
     "DEMO.md": {
@@ -2172,7 +2172,7 @@
       "executable": false
     },
     "management/integration/deployment-spec.json": {
-      "sha256": "97f5e3249e579aaea2f0d071dde1acb36d662fff18ace005273f7c0705717b1c",
+      "sha256": "a009284c7ddb49ada2f7d64779f5b5b35047d44e791d729b74450cdf84511976",
       "executable": false
     },
     "migrations/0001_uptime.sql": {
@@ -2523,6 +2523,10 @@
       "sha256": "19987ac3ef708548a04429e049b51007c40d3c2a64f53ae8ee58a4069c54a4f2",
       "executable": false
     },
+    "migrations/0086_route_accountability.sql": {
+      "sha256": "f552ac9371e6576a17f53efa9db8f6d4289a521c72f749b1daca6f815b8e8a5e",
+      "executable": false
+    },
     "OPERATIONS.json": {
       "sha256": "61ba56de0f6cefb040131c53bde043bc4aa6b4edf6bdba50bc682eee244e45c3",
       "executable": false
@@ -2532,7 +2536,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "baa0abeb4adf52667c9a21e55e21b3bb6cbf8d120061287306e6ab599b6d4f34",
+      "sha256": "d8766e98aeb37dfdce0251bbd2bf6e989a95fe9f7860207955fe9d57f81b5e28",
       "executable": false
     },
     "patches/README.md": {
@@ -6936,7 +6940,7 @@
       "executable": false
     },
     "src/domain/archive-inventory.ts": {
-      "sha256": "5d86e05003549ad1499b97ad0c92cd7427702c941127439cf934a70ed9931763",
+      "sha256": "0f6025131568f8d2a3dbfc7c6fb9cdfab214c46a58a8889e50f0461dd906f759",
       "executable": false
     },
     "src/domain/archive-monitor-validation.ts": {
@@ -7308,7 +7312,7 @@
       "executable": false
     },
     "src/domain/erasure.server.ts": {
-      "sha256": "a117f469b6a1ba2e30ac76a81a2881cc7f3cbac2497c0ff76d512f3611a7097c",
+      "sha256": "79a2f7e58de42b683b441c717e105faaec8d7b02d869fe3162887055bb4a3aee",
       "executable": false
     },
     "src/domain/evidence.server.ts": {
@@ -7688,7 +7692,7 @@
       "executable": false
     },
     "src/domain/notification-worker.server.ts": {
-      "sha256": "df7c90b795f67793c220eee1961d32a8ca7dbb47432ba6a96d08275ffa7f5fc6",
+      "sha256": "da3e550a00981b4e7b4b6eae5b93fbab6136d2d9ab1f59c276adcd3a403e8afa",
       "executable": false
     },
     "src/domain/notifications.server.ts": {
@@ -7896,7 +7900,7 @@
       "executable": false
     },
     "src/domain/request-boundary.ts": {
-      "sha256": "a073085d7ee2dffe587fc84af3931b71c41e33b694c38dab92fd688c62192adb",
+      "sha256": "fbca797f67d25f04909bf91e766c6834cb165fd02bfb9fc1a18378b5cb425af4",
       "executable": false
     },
     "src/domain/rer-cutover-status.server.ts": {
@@ -7912,7 +7916,23 @@
       "executable": false
     },
     "src/domain/role-permissions.mjs": {
-      "sha256": "c5a817aa8171eaba734c7824bfe25380cdf7beb526aec48d7ceea455b4edac2a",
+      "sha256": "468ab5b02dc5486cbe2d667577ae9a31ce963fbb093d47d682605348edfec58d",
+      "executable": false
+    },
+    "src/domain/route-accountability-policy.server.ts": {
+      "sha256": "bfb6bbdfb014940cb00c1fe7e69d6e9218fa0e3a8acc39e40739b95aba34816a",
+      "executable": false
+    },
+    "src/domain/route-accountability-proposals.server.ts": {
+      "sha256": "c53eeda56f4687bc76d3f77f0cb6769a5618b0bbb98e26c7293e614d2a1da661",
+      "executable": false
+    },
+    "src/domain/route-accountability-read.server.ts": {
+      "sha256": "19c2ce904d104b6717c8ca7432eef57f1036d77426fcde1d5e8f440b8d268cc0",
+      "executable": false
+    },
+    "src/domain/route-accountability-run.server.ts": {
+      "sha256": "dfacbce8a6665d9cbae8f1be12877f252bbc5255f0823a1b7d25e03a6fccb6ed",
       "executable": false
     },
     "src/domain/rum/beacon-script.ts": {
@@ -8348,7 +8368,7 @@
       "executable": false
     },
     "src/server.ts": {
-      "sha256": "af5e5fba177894be81a4e7e2d7e935a70721cc24c5cc22d9f288841b7425e2ba",
+      "sha256": "08841c7f19933a6ef31d30fc853141b2fa4650c9da379719a533ab15ee6d8b6a",
       "executable": false
     },
     "src/site/docs/build/manifest.ts": {
@@ -9421,6 +9441,10 @@
     },
     "tests/retention-cleanup-proof.mjs": {
       "sha256": "64926e407891f60b1bf93e68e7f6747559de6358d1175dd37f2f90de9b3c8f18",
+      "executable": false
+    },
+    "tests/route-accountability.mjs": {
+      "sha256": "0430e336d42ce2c1a03fbeb20b606f1945ab2ee38fe06e9ff2e01f48d6ecf58c",
       "executable": false
     },
     "tests/scratch-installation.mjs": {
