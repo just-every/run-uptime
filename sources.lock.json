@@ -2116,7 +2116,7 @@
       "executable": false
     },
     "docs/notifications.md": {
-      "sha256": "35e40fc2630f256bc8b5c3186525df712c61c7709c575c7cca87d5f574ca17d7",
+      "sha256": "89a92d43ca3be0941661c66cf4e56cee7479816c27c2383585e9283bd0d1ebf1",
       "executable": false
     },
     "docs/oncall-handoff.md": {
@@ -8848,7 +8848,11 @@
       "executable": false
     },
     "tests/agent-door.mjs": {
-      "sha256": "6b8932bf4d2a551546f89828854c6476f975a297153462fc3338795e54a73815",
+      "sha256": "4f668ba516fd5ff24ffc0bf601ae6588cc989302dc88883720fd5284e555c63c",
+      "executable": false
+    },
+    "tests/agent-drill-journey.mjs": {
+      "sha256": "a61b1357d27128240619209da4e60b86d721f7890c41f2617f64d28228ec1aec",
       "executable": false
     },
     "tests/agent-drill-schedules-support.mjs": {
@@ -8920,7 +8924,7 @@
       "executable": false
     },
     "tests/alert-drill.mjs": {
-      "sha256": "06a423eff7f2588c594242b17dd23aee29af1ea3208a6c415ae7fefd1283b863",
+      "sha256": "a7c17c0333880739a6dafe8247a1058593b32b0bff80cc2a395486714d2ed86c",
       "executable": false
     },
     "tests/alert-routes.mjs": {
