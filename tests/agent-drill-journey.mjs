@@ -3,7 +3,7 @@ import {webcrypto,randomUUID} from 'node:crypto';
 import {join} from 'node:path';
 import {migratedWorker,runtimeDirectory,cleanupDirectory} from './notify-acceptance-runtime.mjs';
 import {testAuthBindings,authRequest,sessionCookie,emailSignIn} from './auth-test-support.mjs';
-import {signJws,seconds,autonomousPolicy} from '../src/base/modules/agent-door/conformance/crypto.mjs';
+import {signJws,seconds,autonomousPolicy,policyEnvelope} from '../src/base/modules/agent-door/conformance/crypto.mjs';
 import {createProtocol} from '../src/base/modules/agent-door/conformance/protocol.mjs';
 import {proveScheduledDrills,proveDrillSponsorErasure} from './agent-drill-schedules-support.mjs';
 
@@ -22,7 +22,7 @@ export async function agentDrillJourney(){
   assert.equal((await call('/api/rer/business-settings',{settings:await sign('rer-business-settings+jwt',{sub:installationId,business,email:bindings.OWNER_EMAIL,owner_id:sub,rev:1,values:{},logo:null,team:null})})).status,200);
   const surface={seed:'uptime',specialist:'monitoring-operator',tools:['uptime:read','uptime:evidence','uptime:operate','definitions:preview','events:read'].map(scope=>({scope}))};
   const c=createProtocol({fetch,origin,surface,signer:{privateKey:pair.privateKey,kid,issuer,installationId},person:{email:bindings.OWNER_EMAIL,cookie,sub},business,consent:randomUUID(),points:[],agentId:'synthetic-uptime-drills-'+randomUUID(),seq:0,revision:0,listed:new Map()});
-  await c.adopt(autonomousPolicy());
+  const initial=await policyEnvelope(c,autonomousPolicy()),adopted=await c.request('/api/rer/agent-policy',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({policy:initial.policy})});assert.equal(adopted.status,200);c.seq=initial.payload.seq;c.revision=initial.payload.revision;
   surface.tools=(await c.mcp('tools/list')).result.tools.map(t=>({name:t.name,scope:t._meta['com.runeditrun/scope'],readOnly:t.annotations.readOnlyHint}));
   const send=c.tool;c.tool=(name,args={},options)=>send(name,{...args,...(!surface.tools.find(t=>t.name===name)?.readOnly&&!args.idempotency_key?{idempotency_key:randomUUID()}:{})},options);
   const native=async(path,body,method=body===undefined?'GET':'POST')=>{const response=await fetch(origin+path,{method,redirect:'manual',headers:{origin,cookie,'content-type':'application/json'},...(body===undefined?{}:{body:JSON.stringify(body)})});assert.ok(response.ok,path+' HTTP '+response.status);return response.json()};
