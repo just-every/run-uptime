@@ -25,12 +25,12 @@ export async function proveScheduledDrills({c,native,worker,db,origin,cookie,spo
  const unsigned=await fetch(origin+path(first),{method:'POST',headers:{origin,'content-type':'application/json'},body:JSON.stringify(policy())});assert.equal(unsigned.status,401);
  const noConsent=await fetch(origin+path(first),{method:'POST',headers:{origin,cookie,'content-type':'application/json'},body:JSON.stringify(policy({consent:false}))});assert.equal(noConsent.status,400);
  assert.equal((await read(first)).consent,null);assert.equal((await db.prepare('SELECT COUNT(*) n FROM notification_jobs').first()).n,beforeJobs);
- const wrong=await c.tool('uptime.destinations.scheduleDrills',{id:first.id,consent_id:randomUUID()});assert.equal(wrong.result?.isError,true);
+ const wrong=await c.tool('uptime.destinations.schedule_drills',{id:first.id,consent_id:randomUUID()});assert.equal(wrong.result?.isError,true);
  const consent=await native(path(first),policy()),expiry=Date.now()+1000;
  const expiredConsent=await native(path(expired),policy({windowStart:expiry+1000,credentialExpiresAt:expiry}));
- const args={id:first.id,consent_id:consent.id,idempotency_key:randomUUID()},scheduled=await tool('scheduleDrills',args);
- assert.equal((await tool('scheduleDrills',args)).id,scheduled.id,'exact replay preserves the one consented schedule');
- await tool('scheduleDrills',{id:expired.id,consent_id:expiredConsent.id});
+ const args={id:first.id,consent_id:consent.id,idempotency_key:randomUUID()},scheduled=await tool('schedule_drills',args);
+ assert.equal((await tool('schedule_drills',args)).id,scheduled.id,'exact replay preserves the one consented schedule');
+ await tool('schedule_drills',{id:expired.id,consent_id:expiredConsent.id});
  // Pause reaches the ordinary Cron entry point before any queue or send.
  await c.adopt(autonomousPolicy(),{paused:true});await tick();assert.equal((await read(first)).runs.length,0);assert.equal(mailFor(71).length,0);
  await c.adopt(autonomousPolicy());await tick();
@@ -41,7 +41,7 @@ export async function proveScheduledDrills({c,native,worker,db,origin,cookie,spo
  await tick();assert.equal((await read(first)).runs.length,1);assert.equal(mailFor(71).length,1,'repeated Cron never resends a one-shot occurrence');
  await new Promise(resolve=>setTimeout(resolve,Math.max(0,expiry+1100-Date.now())));await tick();
  let expiredView=await read(expired);assert.equal(expiredView.runs.length,1);assert.equal(expiredView.runs[0].code,'credential_expired');assert.equal(expiredView.runs[0].drillId,null);assert.equal(expiredView.runs[0].providerState,'not_sent');assert.equal(mailFor(72).length,0);
- assert.match(expiredView.runs[0].proposedRoute,/credential/);assert.match(expiredView.runs[0].proposedOncall,/Oncall/);
+ assert.equal(expiredView.runs[0].proposedRoute.credentialDiagnosis,'credential_expired');assert.equal(expiredView.runs[0].proposedRoute.action,'replace_destination');assert.equal(expiredView.runs[0].proposedRoute.replacementDestinationId,first.id);assert.equal(expiredView.runs[0].proposedRoute.requiresReview,true);assert.match(expiredView.runs[0].proposedOncall,/Oncall/);
  // Spend the real reminder interval in browser inspection, then finish any remaining wait.
  await completeSecondFactor(origin,cookie);
  assert.equal((await fetch(origin+'/setup',{method:'POST',redirect:'manual',headers:{origin,cookie}})).status,303);
@@ -63,7 +63,7 @@ export async function proveScheduledDrills({c,native,worker,db,origin,cookie,spo
   await page.setViewportSize({width:390,height:1000});await capture('consented-drill-390');await page.getByRole('button',{name:'Cancel',exact:true}).click();
   await new Promise(resolve=>setTimeout(resolve,Math.max(0,due+100-Date.now())));await tick();await tick();
   view=await read(first);assert.equal(view.runs[0].reminders.length,1);assert.equal(view.runs[0].reminders[0].ownerId,sponsorId);assert.ok(view.runs[0].reminders[0].at>=due);assert.equal(mailFor(71).length,1);
-  const agentRead=await tool('drillSchedule',{id:first.id});assert.deepEqual(agentRead.runs,view.runs,'agent sees the same failed-channel and internal chase evidence as the company');
+  const agentRead=await tool('drill_schedule',{id:first.id});assert.deepEqual(agentRead.runs,view.runs,'agent sees the same failed-channel and internal chase evidence as the company');
   const jobs=(await db.prepare('SELECT id FROM notification_jobs ORDER BY id').all()).results,credentials=(await db.prepare('SELECT id FROM notification_credentials ORDER BY id').all()).results;
   await open(first);await page.getByRole('button',{name:'Decline proposal',exact:true}).click();await page.getByText('Proposal declined.',{exact:true}).first().waitFor();
   for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await capture('declined-route-'+width)}
@@ -76,8 +76,8 @@ export async function proveScheduledDrills({c,native,worker,db,origin,cookie,spo
  }finally{await context.close();await browser.close()}
  // Revocation and erasure close both delayed execution and captured replay.
  const revoked=await create('Revoked route consent',73),revokedConsent=await native(path(revoked),policy({windowStart:Date.now()+60000}));
- const revokedArgs={id:revoked.id,consent_id:revokedConsent.id,idempotency_key:randomUUID()};await tool('scheduleDrills',revokedArgs);await native(path(revoked),undefined,'DELETE');await tick();assert.equal((await read(revoked)).schedule.state,'cancelled');assert.equal((await read(revoked)).runs.length,0);
- await native('/api/notifications/destinations/'+revoked.id,undefined,'DELETE');const erased=await c.tool('uptime.destinations.scheduleDrills',revokedArgs);assert.equal(erased.result?.isError,true);await tick();assert.equal(mailFor(73).length,0);
+ const revokedArgs={id:revoked.id,consent_id:revokedConsent.id,idempotency_key:randomUUID()};await tool('schedule_drills',revokedArgs);await native(path(revoked),undefined,'DELETE');await tick();assert.equal((await read(revoked)).schedule.state,'cancelled');assert.equal((await read(revoked)).runs.length,0);
+ await native('/api/notifications/destinations/'+revoked.id,undefined,'DELETE');const erased=await c.tool('uptime.destinations.schedule_drills',revokedArgs);assert.equal(erased.result?.isError,true);await tick();assert.equal(mailFor(73).length,0);
  assert.equal((await db.prepare('SELECT COUNT(*) n FROM alert_drill_consents WHERE destination_id=?').bind(revoked.id).first()).n,0);
  const archive=await native('/api/archive');for(const table of ['alert_drill_consents','alert_drill_schedules','alert_drill_runs','alert_drill_reminders'])assert.equal(Object.hasOwn(archive.payload.productTables,table),false,'local drill execution authority never travels');
  console.log('PASS AGENT-004 scheduledDrills: consent, bounded current-policy execution, expiry, provider and recipient separation, internal owner chase, decline, revocation, erasure, inactive archive and Settings at 1440 and 390');

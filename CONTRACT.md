@@ -1211,9 +1211,9 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 | `uptime.definitions.preview` | Recognize a native definition file without applying it | CODE-001 | standard | declared; unjudged |
 | `uptime.definitions.read` | Read redacted native definitions | CODE-001 | standard | declared; unjudged |
 | `uptime.destinations.drill` | Queue a native recipient-confirmed channel drill | DRILL-001 | external | declared; unjudged |
-| `uptime.destinations.drillSchedule` | Read consented drills and internal owner reminders | AGENT-004 | standard | declared; unjudged |
+| `uptime.destinations.drill_schedule` | Read consented drills and internal owner reminders | AGENT-004 | standard | declared; unjudged |
 | `uptime.destinations.read` | Read destination metadata without endpoint secrets | DELIVERY-001 | standard | declared; unjudged |
-| `uptime.destinations.scheduleDrills` | Schedule drills within explicit company consent | AGENT-004 | external | declared; unjudged |
+| `uptime.destinations.schedule_drills` | Schedule drills within explicit company consent | AGENT-004 | external | declared; unjudged |
 | `uptime.destinations.test` | Queue an attributed native test send | NOTIFY-001 | external | declared; unjudged |
 | `uptime.destinations.update` | Update a native notification destination | NOTIFY-001 | standard, live, access | declared; unjudged |
 | `uptime.discovery.read` | Read a native discovery outcome | DISCOVERY-001 | standard | declared; unjudged |
@@ -1249,8 +1249,8 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 | --- | --- | --- |
 | `uptime.checks.dispatch` | external | NETWORK-001, PRIVATE-001 |
 | `uptime.destinations.dispatch` | external | DELIVERY-001, NOTIFY-001 |
-| `uptime.destinations.runScheduledDrill` | external | AGENT-004 |
-| `uptime.destinations.remindDrillOwner` | standard | AGENT-004 |
+| `uptime.destinations.run_scheduled_drill` | external | AGENT-004 |
+| `uptime.destinations.remind_drill_owner` | standard | AGENT-004 |
 | `uptime.discovery.dispatch` | external | DISCOVERY-001 |
 
 **Retained capability obligations (ct 2026-10-29T14:12Z).** Renaming changes names only. Each row below retains its complete outcome, existing clause IDs and required class conditions. A native mapping identifies the entry points available today; it does not assert that their narrower implementation completes the outcome. An unmapped operation remains required and pending. The class rules and acceptance points below still govern all of this work. No clause judgment changes in this round.

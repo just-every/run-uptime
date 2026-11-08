@@ -187,10 +187,10 @@ export function tools(env:Bindings):ToolDefinition[]{
  }
 
 
- read('destinations.drillSchedule','Read consented drills and internal owner reminders',idSchema,['AGENT-004'],async(a,c)=>{await authority(env,c,'secret_write',[],undefined,true);await reads.destinationRead(env,c,a.id);return drillScheduleView(env,a.id)})
- mutation('destinations.scheduleDrills','Schedule drills within explicit company consent',schema({id:string,consent_id:string}),['external'],['AGENT-004'],async(a,c)=>{const access=await authority(env,c,'secret_write',[],undefined,true);await reads.destinationRead(env,c,a.id);return scheduleDrills({...env,DB:authorizedDatabase(env,access)},a.id,a.consent_id,delegation(c))},async(a,c)=>{await authority(env,c,'secret_write',[],undefined,true);await reads.destinationRead(env,c,String(a.id));return [facts('external',{counterparty:'known'})]})
+ read('destinations.drill_schedule','Read consented drills and internal owner reminders',idSchema,['AGENT-004'],async(a,c)=>{await authority(env,c,'secret_write',[],undefined,true);await reads.destinationRead(env,c,a.id);return drillScheduleView(env,a.id)})
+ mutation('destinations.schedule_drills','Schedule drills within explicit company consent',schema({id:string,consent_id:string}),['external'],['AGENT-004'],async(a,c)=>{const access=await authority(env,c,'secret_write',[],undefined,true);await reads.destinationRead(env,c,a.id);return scheduleDrills({...env,DB:authorizedDatabase(env,access)},a.id,a.consent_id,delegation(c))},async(a,c)=>{await authority(env,c,'secret_write',[],undefined,true);await reads.destinationRead(env,c,String(a.id));return [facts('external',{counterparty:'known'})]})
  for(const reminder of [false,true]){
-  const tool=mutation(reminder?'destinations.remindDrillOwner':'destinations.runScheduledDrill',reminder?'Record a due internal route-owner reminder':'Run one bounded consented drill',schema({id:string,schedule_id:string,...(reminder?{run_id:string,number:integer}:{due_at:integer})}),reminder?['standard']:['external'],['AGENT-004'],async(a,c)=>{
+  const tool=mutation(reminder?'destinations.remind_drill_owner':'destinations.run_scheduled_drill',reminder?'Record a due internal route-owner reminder':'Run one bounded consented drill',schema({id:string,schedule_id:string,...(reminder?{run_id:string,number:integer}:{due_at:integer})}),reminder?['standard']:['external'],['AGENT-004'],async(a,c)=>{
    if(c.door!=='embedded')throw new ToolRefusal('runner_protocol_required')
    const access=await authority(env,c,'secret_write',[],undefined,true),native={...env,DB:authorizedDatabase(env,access)}
    return reminder?remindDrillOwner(native,a.id,a.schedule_id,a.run_id,a.number):executeScheduledDrill(native,a.id,a.schedule_id,a.due_at)

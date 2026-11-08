@@ -1,3 +1,4 @@
+import {drillCorrection} from './alert-drill-proposals.server.ts'
 import type {Bindings} from './control.server.ts'
 import {auditStatement,mutationGuard} from './audit.server.ts'
 import {destinations} from './notification-destinations.server.ts'
@@ -38,7 +39,7 @@ export async function drillScheduleView(env:Bindings,id:string,currentOwnerId?:s
  const runs=[]
  for(const r of rows){const reminders=(await env.DB.prepare('SELECT owner_id ownerId,at FROM alert_drill_reminders WHERE run_id=? ORDER BY number').bind(r.id).all<any>()).results
   const failed=r.code!=='drill_queued'||['uncertain','rejected'].includes(r.job_state!=='queued'?r.job_state:r.provider_state)
-  runs.push({id:r.id,drillId:r.drill_id,dueAt:r.due_at,code:r.code,providerState:r.job_state&&r.job_state!=='queued'?r.job_state:r.provider_state??'not_sent',confirmation:r.confirmed_at?'confirmed':'missing',proposal:r.proposal,proposedRoute:r.confirmed_at?null:failed?'Repair or rotate the expired or failed destination credential, then review the route and obtain fresh consent.':'Review the route with its internal owner and propose a verified replacement recipient.',proposedOncall:r.confirmed_at?null:'Propose an Oncall escalation for the unresolved route gap; no page has been sent.',reminders})
+  runs.push({id:r.id,drillId:r.drill_id,dueAt:r.due_at,code:r.code,providerState:r.job_state&&r.job_state!=='queued'?r.job_state:r.provider_state??'not_sent',confirmation:r.confirmed_at?'confirmed':'missing',proposal:r.proposal,proposedRoute:r.confirmed_at?null:await drillCorrection(env,id,failed?r.code:'recipient_confirmation_missing'),proposedOncall:r.confirmed_at?null:'Propose an Oncall escalation for the unresolved route gap; no page has been sent.',reminders})
  }
  return {consent:c?{id:c.id,...JSON.parse(c.config),revokedAt:c.revoked_at}:null,schedule:s?{id:s.id,state:s.state,nextDue:s.next_due,drills:s.drills}:null,runs,eligibleOwners:await eligibleDrillOwners(env),...(currentOwnerId?{currentOwnerId}:{})}
 }

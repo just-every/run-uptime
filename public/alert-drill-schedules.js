@@ -8,7 +8,7 @@ const localDate=value=>{
  return new Date(date.getTime()-date.getTimezoneOffset()*60000).toISOString().slice(0,19);
 };
 const when=value=>value==null?'Not set':new Date(value).toLocaleString();
-const describe=value=>typeof value==='object'?JSON.stringify(value):String(value);
+const describe=value=>typeof value==='object'?(value.text??JSON.stringify(value)):String(value);
 const input=(name,label,type,attributes='')=>`<label>${label}<input form="drill-consent-fields" data-config="${name}" type="${type}" ${attributes}></label>`;
 const numeric=(name,label,min,max,value)=>input(name,label,'number',`min="${min}" ${max?`max="${max}"`:''} step="1" value="${value}"`);
 
