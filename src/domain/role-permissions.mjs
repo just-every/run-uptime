@@ -23,6 +23,7 @@ export function requestPermission(request,input){
  if(path.startsWith('/api/credentials'))return {action:'owner',workspace:true};
  if(path==='/api/routing/recipient')return {action:'receive',workspace:false};
  if(path==='/api/routing/teams')return {action:'members',workspace:true};
+ if(path==='/api/drill-reminders'&&read)return {action:'receive',workspace:false};
  if(path==='/api/access/self')return {action:'read',workspace:false};
  if(path.startsWith('/api/access/'))return {action:'members',workspace:true};
  if(path==='/api/auth/sign-out'||path==='/auth/signout')return {action:'read',workspace:false};

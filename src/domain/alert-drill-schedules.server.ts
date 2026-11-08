@@ -49,3 +49,10 @@ export async function declineDrillProposal(env:Bindings,id:string,runId:string,a
  if(!result[0].meta.changes)throw Object.assign(Error('Proposal not available'),{status:404})
  return {declined:true,recipientMessages:0,phoneChargeUsd:0}
 }
+
+// A reminder belongs to its explicitly assigned native recipient, without exposing
+// company consent configuration or anyone else's route history.
+export async function drillReminderInbox(env:Bindings,personId:string){
+ const rows=await env.DB.prepare(`SELECT m.run_id runId,m.number,m.at,d.id destinationId,d.name destinationName,r.code FROM alert_drill_reminders m JOIN alert_drill_runs r ON r.id=m.run_id JOIN alert_drill_schedules s ON s.id=r.schedule_id JOIN alert_drill_consents c ON c.id=s.consent_id JOIN notification_destinations d ON d.id=c.destination_id JOIN oa_operators o ON o.id=m.owner_id WHERE m.owner_id=? AND o.status='active' AND d.deleted_at IS NULL ORDER BY m.at DESC LIMIT 100`).bind(personId).all<any>()
+ return {items:rows.results.map(row=>({...row,message:'The assigned alert route needs review: check its credential and recipient confirmation with the company owner.'}))}
+}
