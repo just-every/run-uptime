@@ -54,9 +54,9 @@ export async function scheduledDrills(env:Bindings){
   try{
    const access=await authority(env,{...who,person},'secret_write',[],undefined,true),native={...env,DB:authorizedDatabase(env,access)},p:DrillPolicy=JSON.parse(s.config),now=Date.now()
    if(s.state==='active'&&now>p.windowEnd)await native.DB.prepare("UPDATE alert_drill_schedules SET state='complete' WHERE id=?").bind(s.id).run()
-   else if(s.state==='active'&&s.next_due<=now)await door.invoke('uptime.destinations.runScheduledDrill',{id:s.destination_id,schedule_id:s.id,due_at:s.next_due,idempotency_key:who.idempotencyKey},who)
+   else if(s.state==='active'&&s.next_due<=now)await door.invoke('uptime.destinations.run_scheduled_drill',{id:s.destination_id,schedule_id:s.id,due_at:s.next_due,idempotency_key:who.idempotencyKey},who)
    const runs=(await env.DB.prepare(`SELECT r.id,r.reminder_count FROM alert_drill_runs r LEFT JOIN alert_drills a ON a.id=r.drill_id WHERE r.schedule_id=? AND r.proposal='open' AND a.confirmed_at IS NULL AND r.next_reminder<=? AND r.reminder_count<? ORDER BY r.next_reminder LIMIT 24`).bind(s.id,now,p.maxReminders).all<any>()).results
-   for(const r of runs)await door.invoke('uptime.destinations.remindDrillOwner',{id:s.destination_id,schedule_id:s.id,run_id:r.id,number:r.reminder_count+1,idempotency_key:who.idempotencyKey},who)
+   for(const r of runs)await door.invoke('uptime.destinations.remind_drill_owner',{id:s.destination_id,schedule_id:s.id,run_id:r.id,number:r.reminder_count+1,idempotency_key:who.idempotencyKey},who)
   }catch{/* Missing current authority leaves the work unsent and the saved gap visible. */}
  }
 }

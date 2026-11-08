@@ -504,7 +504,7 @@
       "executable": false
     },
     "agent-surface.json": {
-      "sha256": "639eec5c69907fecf90a591acd8aeb519b7fe4159fb3ac12c0fe035a9871cc6c",
+      "sha256": "273fdc500320410d372c8fe45740ea0b17fc8ed1bac2eb8741eda17b7580d491",
       "executable": false
     },
     "AGENTS.md": {
@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "da151945ca162f6ac45eb75e4b383f86da3c74525885bbc5c9b80685ce1c754d",
+      "sha256": "0db170acfb6718ba8069c93dead33d88461ae4740165c1dc66aa896e40ef49d3",
       "executable": false
     },
     "DEMO.md": {
@@ -2560,7 +2560,7 @@
       "executable": false
     },
     "public/alert-drill-schedules.js": {
-      "sha256": "a5389ecebe675c2c3205f6bb4178e79e7379b74340f2d19bad7eb60b9868daf3",
+      "sha256": "81f10d523bcfb014e0f3ea4572e5bfa349b3ec0ef711aa84de276ae875623577",
       "executable": false
     },
     "public/alert-drills.js": {
@@ -4504,7 +4504,7 @@
       "executable": false
     },
     "src/agent-door/registry.server.ts": {
-      "sha256": "db48c71d7aec1b13db7a46de91471976fbf024d3801bbc888482ab074743ce42",
+      "sha256": "9d33f2142822e3a0acc8bb952de23267cd3c7fe2f0f895c9980bb8bd458d8739",
       "executable": false
     },
     "src/agent-door/work.server.ts": {
@@ -6883,12 +6883,16 @@
       "sha256": "b7876ffd84309495cbd61cfa64305a718fdfbdefc4da06fc0920b65dd13a9205",
       "executable": false
     },
+    "src/domain/alert-drill-proposals.server.ts": {
+      "sha256": "81d4b542623eb085c7eeaa196bc8d1813f334f4f53d9dd1b81e04067514800cb",
+      "executable": false
+    },
     "src/domain/alert-drill-scheduler.server.ts": {
-      "sha256": "526e9b57844c42e4011120cff19de206e34a5307d9b16ccc32f5d07dbce2748e",
+      "sha256": "0e1ea22fc872b4493e36dba6e0a82704612e95559b2615f809bab47bc696b5da",
       "executable": false
     },
     "src/domain/alert-drill-schedules.server.ts": {
-      "sha256": "dd21f7204b3d0bb3e509f21c7a01a2abd9b1201d3ad5cb16bc2e22c726dfaf6c",
+      "sha256": "fd43b63dfd56c0c52e7ebb6d77c8bb632b09c26f160573bed9b25172f57eb671",
       "executable": false
     },
     "src/domain/alert-drills.server.ts": {
@@ -8808,7 +8812,7 @@
       "executable": false
     },
     "tests/agent-drill-schedules-support.mjs": {
-      "sha256": "3d1c3ebb5301bdd715374136d268297391092dee560866e924e8f8057f70e0fc",
+      "sha256": "dd67bd3e723795e39c886f5f960e75a1b2a0fa814de1a6d7bc8194f6092b8f5c",
       "executable": false
     },
     "tests/agent-form-accept-support.mjs": {

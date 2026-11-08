@@ -71,7 +71,7 @@
       ]
     },
     {
-      "name": "uptime.destinations.drillSchedule",
+      "name": "uptime.destinations.drill_schedule",
       "scope": "uptime:read",
       "readOnly": true,
       "classes": [
@@ -93,7 +93,7 @@
       ]
     },
     {
-      "name": "uptime.destinations.scheduleDrills",
+      "name": "uptime.destinations.schedule_drills",
       "scope": "uptime:operate",
       "readOnly": false,
       "classes": [
