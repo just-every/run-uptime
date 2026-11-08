@@ -92,6 +92,9 @@ import {destinations,createDestination,updateDestination,rotateDestination} from
 import {notificationOverview,testDestination} from './domain/notifications.server.ts'
 import {notificationRpc} from './domain/notification-rpc.server.ts'
 import {startDrill} from './domain/alert-drills.server.ts'
+import {routeAccountability} from './domain/route-accountability-read.server.ts'
+import {savePolicy,saveDestinationSettings} from './domain/route-accountability-policy.server.ts'
+import {decideRouteProposal} from './domain/route-accountability-proposals.server.ts'
 import {alertDrillDocument} from './domain/alert-drill-document.server.ts'
 import {isPublicAsset,publicAssetResponse} from './domain/assets.server.ts'
 import {classifyStorage,storageLogLine,storageOperation} from './domain/storage-error.ts'
@@ -344,6 +347,10 @@ api.delete('/api/notifications/destinations/:id',async c=>c.json(await erase(c.e
 api.post('/api/notifications/destinations/:id/rotate',async c=>c.json(await rotateDestination(c.env,c.req.param('id'),{kind:'operator',ref:(await authenticatedSession(c.env,c.req.raw))!.operator.id})))
 api.post('/api/notifications/destinations/:id/test',async c=>c.json(await testDestination(c.env,c.req.param('id')),202))
 api.post('/api/notifications/destinations/:id/drill',async c=>c.json(await startDrill(c.env,c.req.param('id'),(await operator(c)).ref),202))
+api.get('/api/route-accountability',async c=>c.json(await routeAccountability(c.env)))
+api.post('/api/route-accountability',async c=>c.json(await savePolicy(c.env,c.get('input'),await operator(c))))
+api.post('/api/route-accountability/destinations/:id',async c=>c.json(await saveDestinationSettings(c.env,c.req.param('id'),c.get('input'),await operator(c))))
+api.post('/api/route-accountability/proposals/:id/decision',async c=>c.json(await decideRouteProposal(c.env,c.req.param('id'),c.get('input')?.decision,await operator(c))))
 api.post('/api/runner/notifications',async c=>c.json(await notificationRpc(c.env,c.get('input'))))
 // A failed mutation guard or a racing writer's constraint means the installation changed between reading and writing: a conflict.
 // Any other D1 failure is a retryable storage fault. The log line names the operation, class, status and a sanitized cause, never values.

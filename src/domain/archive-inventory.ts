@@ -60,6 +60,7 @@ export const installationLocalTables:Record<string,string>={
  rer_mail_development_outbox:'Retired pre-v2 development-capture table; excluded from product archives. Current local sign-in uses automatic owner entry, with no captured-mail inbox.',
  oc_owner_claims:'Installation signed owner admission ledger; retain permanently, never export credentials or authority.',
  uptime_first_run:'Installation first-run completion; a receiving owner completes setup independently.',
+ ...Object.fromEntries(['route_accountability_policy','route_accountability_destinations','route_accountability_drills','route_accountability_reminders','route_accountability_proposals'].map(name=>[name,'Installation-local consent, drill window, owner reminders and route proposals; a receiving owner consents again and nothing is restored as authority.'])),
  alert_drills:'Installation alert drill history and confirmation capability hashes; a restored destination starts never proven.',
  external_check:'Installation External check URL: the receiving installation chooses its own network\'s default; restored monitors that follow Settings check it, and a monitor\'s own URL travels in its revisions.',
  discovery_jobs:'Installation discovery questions and the runner\'s derived answers (website checks and catalog status-source checks); transient, never evidence or definitions of record.',

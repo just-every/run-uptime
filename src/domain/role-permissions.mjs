@@ -22,6 +22,8 @@ export function requestPermission(request,input){
  if(path.startsWith('/api/definitions/history/'))return {action:'import',workspace:true};
  if(path.startsWith('/api/credentials'))return {action:'owner',workspace:true};
  if(path==='/api/routing/recipient')return {action:'receive',workspace:false};
+ // Scheduled route accountability grants an agent consent, spend and recipient reach: owner only.
+ if(path==='/api/route-accountability'||path.startsWith('/api/route-accountability/'))return {action:'owner',workspace:true};
  if(path==='/api/routing/teams')return {action:'members',workspace:true};
  if(path==='/api/access/self')return {action:'read',workspace:false};
  if(path.startsWith('/api/access/'))return {action:'members',workspace:true};
