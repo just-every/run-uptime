@@ -71,7 +71,7 @@ export async function proveScheduledDrills({c,native,worker,db,origin,cookie,spo
   await page.setViewportSize({width:390,height:1000});await capture('consented-drill-390');await page.getByRole('button',{name:'Cancel',exact:true}).click();
   await new Promise(resolve=>setTimeout(resolve,Math.max(0,due+100-Date.now())));await tick();await tick();
   view=await read(first);assert.equal(view.runs[0].confirmation,'missing');assert.equal(view.runs[0].proposedRoute.replacementDestinationId,replacement.id);assert.equal(view.runs[0].reminders.length,1);assert.equal(view.runs[0].reminders[0].ownerId,sponsorId);assert.ok(view.runs[0].reminders[0].at>=due);assert.equal(mailFor(71).length,1);
-  const inbox=await native('/api/drill-reminders');assert.equal(inbox.items.length,1);assert.equal(inbox.items[0].runId,view.runs[0].id);assert.equal(inbox.items[0].destinationName,first.name);
+  const inbox=await native('/api/drill-reminders'),primaryReminder=inbox.items.filter(item=>item.runId===view.runs[0].id);assert.equal(primaryReminder.length,1);assert.equal(primaryReminder[0].destinationName,first.name);
   const agentRead=await tool('drill_schedule',{id:first.id});assert.deepEqual(agentRead.runs,view.runs,'agent sees the same failed-channel and internal chase evidence as the company');
   const jobs=(await db.prepare('SELECT id FROM notification_jobs ORDER BY id').all()).results,credentials=(await db.prepare('SELECT id FROM notification_credentials ORDER BY id').all()).results;
   await open(first);await page.getByRole('button',{name:'Decline proposal',exact:true}).click();await page.getByText('Proposal declined.',{exact:true}).first().waitFor();

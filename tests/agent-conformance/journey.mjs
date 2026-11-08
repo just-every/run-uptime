@@ -63,6 +63,8 @@ export async function afterStep(context) {
   assert.deepEqual(rows.find(row=>row.revision===record.revision+1).definition,{...record.definition,name:'Native conformance paused name edited'});
   assert.equal(output.revision,record.revision+1);assert.equal(output.definition.enabled,false);
  }
+ if(step.tool==='uptime.destinations.drill_schedule'){const state=phaseState.get(origin);assert.equal(output.consent.id,state.drillConsent.id);assert.equal(output.schedule,null,'reading consent never creates scheduled work')}
+ if(step.tool==='uptime.destinations.schedule_drills'){const state=phaseState.get(origin),saved=await nativeHttp(context).json('/api/notifications/destinations/'+state.destination.id+'/drill-schedule');assert.equal(saved.schedule.id,output.id);assert.equal(saved.schedule.state,'active');assert.equal(saved.schedule.drills,0);assert.deepEqual(saved.runs,[],'future consent queues no early drill')}
  if (step.tool === 'uptime.discovery.start') rememberDiscovery(origin, output.id);
  if (!step.tool.startsWith('uptime.incidents.')) return;
  const state = phaseState.get(origin);
