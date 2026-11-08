@@ -20,7 +20,7 @@ export async function proveScheduledDrills({c,native,worker,db,origin,cookie,spo
  const tool=async(name,args)=>{const answer=await c.tool('uptime.destinations.'+name,args);assert.equal(answer.result?.isError,false,errorCode(answer));return answer.result.structuredContent};
  const tick=async()=>assert.equal((await(await worker.getWorker()).scheduled()).outcome,'ok');
  const mailFor=d=>allDeliveredMessages().filter(({message})=>message.personalizations.some(p=>p.to.some(to=>to.email===recipient(d))));
- const first=await create('Checkout primary alert route',71),expired=await create('Expired backup alert route',72);
+ const first=await create('Checkout primary alert route',71),expired=await create('Expired backup alert route',72),replacement=await create('Reviewed replacement inbox',74);
  const route=await native('/api/alert-route'),routeInput={mode:'selected',destinationIds:[first.id,expired.id],expectedRevision:route.revision};
  const preview=await native('/api/alert-route/preview',routeInput);await native('/api/alert-route/apply',{...routeInput,digest:preview.digest});
  const policy=(extra={})=>({consent:true,windowStart:Date.now()-1000,windowEnd:Date.now()+180000,intervalMs:60000,maxDrills:1,credentialExpiresAt:null,confirmationWaitMs:60000,reminderIntervalMs:60000,maxReminders:1,phoneBudgetUsd:0,ownerId:sponsorId,...extra});
@@ -44,7 +44,7 @@ export async function proveScheduledDrills({c,native,worker,db,origin,cookie,spo
  await tick();assert.equal((await read(first)).runs.length,1);assert.equal(mailFor(71).length,1,'repeated Cron never resends a one-shot occurrence');
  await new Promise(resolve=>setTimeout(resolve,Math.max(0,expiry+1100-Date.now())));await tick();
  let expiredView=await read(expired);assert.equal(expiredView.runs.length,1);assert.equal(expiredView.runs[0].code,'credential_expired');assert.equal(expiredView.runs[0].drillId,null);assert.equal(expiredView.runs[0].providerState,'not_sent');assert.equal(mailFor(72).length,0);
- assert.equal(expiredView.runs[0].proposedRoute.credentialDiagnosis,'credential_expired');assert.equal(expiredView.runs[0].proposedRoute.action,'replace_destination');assert.equal(expiredView.runs[0].proposedRoute.replacementDestinationId,first.id);assert.equal(expiredView.runs[0].proposedRoute.requiresReview,true);assert.deepEqual(expiredView.runs[0].proposedRoute.routes.map(r=>r.scope),['installation']);assert.match(expiredView.runs[0].proposedOncall,/Oncall/);
+ assert.equal(expiredView.runs[0].proposedRoute.credentialDiagnosis,'credential_expired');assert.equal(expiredView.runs[0].proposedRoute.action,'replace_destination');assert.equal(expiredView.runs[0].proposedRoute.replacementDestinationId,replacement.id);assert.equal(expiredView.runs[0].proposedRoute.requiresReview,true);assert.deepEqual(expiredView.runs[0].proposedRoute.routes.map(r=>r.scope),['installation']);assert.match(expiredView.runs[0].proposedOncall,/Oncall/);
  // Spend the real reminder interval in browser inspection, then finish any remaining wait.
  await completeSecondFactor(origin,cookie);
  assert.equal((await fetch(origin+'/setup',{method:'POST',redirect:'manual',headers:{origin,cookie}})).status,303);
@@ -54,8 +54,10 @@ export async function proveScheduledDrills({c,native,worker,db,origin,cookie,spo
  const axe=await readFile(createRequire(import.meta.url).resolve('axe-core/axe.min.js'),'utf8');
  async function open(d){await page.goto(origin+'/app/settings/alerts',{waitUntil:'networkidle'});await page.locator(`[data-edit-destination="${d.id}"]`).first().click();await page.getByText('Scheduled drills',{exact:true}).click();await page.locator('[data-status]').getByText(/Consent active/).waitFor()}
  async function capture(label){
+  if(label.startsWith('declined')||label.startsWith('expired'))await page.locator('[data-runs]').scrollIntoViewIfNeeded();
   await page.screenshot({path:join(output,label+'.png'),fullPage:true});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Settings reflows at both widths');
+  assert.equal(await page.locator('dialog').evaluate(el=>el.scrollWidth>el.clientWidth),false,'every changed dialog control stays inside the card');
   assert.ok(await page.locator('[data-fields]').evaluate(el=>Math.min(...[...el.querySelectorAll('input,select,label,p,button')].map(e=>parseFloat(getComputedStyle(e).fontSize))))>=13,'inherited field typography stays readable');
  }
  try{
@@ -70,9 +72,11 @@ export async function proveScheduledDrills({c,native,worker,db,origin,cookie,spo
   const jobs=(await db.prepare('SELECT id FROM notification_jobs ORDER BY id').all()).results,credentials=(await db.prepare('SELECT id FROM notification_credentials ORDER BY id').all()).results;
   await open(first);await page.getByRole('button',{name:'Decline proposal',exact:true}).click();await page.getByText('Proposal declined.',{exact:true}).first().waitFor();
   for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await capture('declined-route-'+width)}
+  await page.getByRole('button',{name:'Cancel',exact:true}).click();
+  await open(expired);for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await capture('expired-route-'+width)}
   await page.getByRole('button',{name:'Cancel',exact:true}).click();await tick();await tick();
   assert.equal((await read(first)).runs[0].proposal,'declined');assert.equal((await read(first)).runs[0].reminders.length,1);
-  assert.deepEqual((await db.prepare('SELECT id FROM notification_jobs ORDER BY id').all()).results,jobs,'declining creates no outbound job or new recipient');assert.deepEqual((await db.prepare('SELECT id FROM notification_credentials ORDER BY id').all()).results,credentials,'declining rotates no secret');assert.equal(mailFor(71).length,1);assert.equal(mailFor(72).length,0);
+  assert.deepEqual((await db.prepare('SELECT id FROM notification_jobs ORDER BY id').all()).results,jobs,'declining creates no outbound job or new recipient');assert.deepEqual((await db.prepare('SELECT id FROM notification_credentials ORDER BY id').all()).results,credentials,'declining rotates no secret');assert.equal(mailFor(71).length,1);assert.equal(mailFor(72).length,0);assert.equal(mailFor(74).length,0,'the proposed replacement recipient is never contacted');
   const declinedReplay=await fetch(origin+path(first)+'/runs/'+view.runs[0].id+'/decline',{method:'POST',headers:{origin,cookie,'content-type':'application/json'},body:'{}'});assert.equal(declinedReplay.status,404);
   console.log('PROBE AGENT-004 1: company consent API, signed MCP schedule, real Cron and Settings -> one accepted drill without recipient confirmation, expired destination unsent, due internal owner reminder and route plus Oncall proposals');
   console.log('PROBE AGENT-004 2: Settings decline and repeated Cron -> declined proposal, no new recipient jobs, no credential rotation, no phone charge or outbound phone path');

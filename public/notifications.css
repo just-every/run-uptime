@@ -179,3 +179,10 @@
   .destination-dialog .buttons { flex-direction: column-reverse; }
   .destination-dialog .buttons [data-delete-destination] { margin: 8px 0 0; }
 }
+
+/* Keep finite drill controls inside the existing destination dialog. */
+.destination-dialog form { grid-template-columns: minmax(0,1fr); min-width:0; }
+.drill-schedule, .drill-schedule label { min-width:0; }
+.drill-schedule .webhook-pair { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.drill-schedule input, .drill-schedule select { min-width:0; max-width:100%; }
+@media(max-width:480px) { .drill-schedule .webhook-pair { grid-template-columns:minmax(0,1fr); } }

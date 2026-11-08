@@ -1423,7 +1423,7 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 
 #### AGENT-004 — Keep alert routes accountable
 
-*Tier:* Core
+*Tier:* Core · *Cites:* BASE-ACCESS-002, BASE-ROLE-001, BASE-AGENT-012
 
 **Requirement.** With the company's consent an agent schedules channel drills inside the drill windows and USD phone budgets the company sets, checks credential expiry, separates provider acknowledgment from recipient confirmation and chases the internal route owner through the reminder policy the company sets. It proposes corrected routes and Oncall escalation for unresolved gaps. Messaging a new recipient, rotating a secret or calling a number carries its class (external, security, or external and money), which the company's policy decides within the agent's grant.
 
