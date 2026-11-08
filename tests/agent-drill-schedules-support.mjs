@@ -31,6 +31,7 @@ export async function proveScheduledDrills({c,native,worker,db,origin,cookie,spo
  assert.equal((await read(first)).consent,null);assert.equal((await db.prepare('SELECT COUNT(*) n FROM notification_jobs').first()).n,beforeJobs);
  const wrong=await c.tool('uptime.destinations.schedule_drills',{id:first.id,consent_id:randomUUID()});assert.equal(wrong.result?.isError,true);
  const consent=await native(path(first),policy()),expiry=Date.now()+1000;
+ const earlyArchive=await fetch(origin+'/api/archive',{headers:{cookie,origin}});if(!earlyArchive.ok){const error=await earlyArchive.json();assert.fail('Consented drill archive: '+error.error)}
  const expiredConsent=await native(path(expired),policy({windowStart:expiry+1000,credentialExpiresAt:expiry}));
  const args={id:first.id,consent_id:consent.id,idempotency_key:randomUUID()},scheduled=await tool('schedule_drills',args);
  assert.equal((await tool('schedule_drills',args)).id,scheduled.id,'exact replay preserves the one consented schedule');
@@ -87,7 +88,7 @@ export async function proveScheduledDrills({c,native,worker,db,origin,cookie,spo
  const revokedArgs={id:revoked.id,consent_id:revokedConsent.id,idempotency_key:randomUUID()};await tool('schedule_drills',revokedArgs);await native(path(revoked),undefined,'DELETE');await tick();assert.equal((await read(revoked)).schedule.state,'cancelled');assert.equal((await read(revoked)).runs.length,0);
  await native('/api/notifications/destinations/'+revoked.id,undefined,'DELETE');const erased=await c.tool('uptime.destinations.schedule_drills',revokedArgs);assert.equal(erased.result?.isError,true);await tick();assert.equal(mailFor(73).length,0);
  assert.equal((await db.prepare('SELECT COUNT(*) n FROM alert_drill_consents WHERE destination_id=?').bind(revoked.id).first()).n,0);
- const archive=await native('/api/archive');for(const table of ['alert_drill_consents','alert_drill_schedules','alert_drill_runs','alert_drill_reminders'])assert.equal(Object.hasOwn(archive.payload.productTables,table),false,'local drill execution authority never travels');
+ const archiveResponse=await fetch(origin+'/api/archive',{headers:{cookie,origin}});if(!archiveResponse.ok){const error=await archiveResponse.json();assert.fail('Completed drill archive: '+error.error)}const archive=await archiveResponse.json();for(const table of ['alert_drill_consents','alert_drill_schedules','alert_drill_runs','alert_drill_reminders'])assert.equal(Object.hasOwn(archive.payload.productTables,table),false,'local drill execution authority never travels');
  const restored=await migratedWorker({persist:join(directory,'drill-restore')});
  try{
   const restoredOrigin=(await restored.worker.ready).origin,owner=ownerAPI(restoredOrigin);await owner.signIn();
