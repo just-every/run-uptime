@@ -504,7 +504,7 @@
       "executable": false
     },
     "agent-surface.json": {
-      "sha256": "2a261f27875db5ff5b98233442092a73ba16229d164d5dcf892e7bf1b0e5afb8",
+      "sha256": "639eec5c69907fecf90a591acd8aeb519b7fe4159fb3ac12c0fe035a9871cc6c",
       "executable": false
     },
     "AGENTS.md": {
@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "a0ca69c8d733efd8bef4948c3b7e9e5386bc2e16757b8c975a5c6980766c40f5",
+      "sha256": "da151945ca162f6ac45eb75e4b383f86da3c74525885bbc5c9b80685ce1c754d",
       "executable": false
     },
     "DEMO.md": {
@@ -2543,6 +2543,10 @@
       "sha256": "19987ac3ef708548a04429e049b51007c40d3c2a64f53ae8ee58a4069c54a4f2",
       "executable": false
     },
+    "migrations/0086_alert_drill_schedules.sql": {
+      "sha256": "3cdc7d47766d0c5780c986994b7eacd9e21fb7d13a3d2e4ada0d77e7b2dc7b0f",
+      "executable": false
+    },
     "OPERATIONS.json": {
       "sha256": "61ba56de0f6cefb040131c53bde043bc4aa6b4edf6bdba50bc682eee244e45c3",
       "executable": false
@@ -2573,6 +2577,10 @@
     },
     "public/alert-destinations.js": {
       "sha256": "de2a7686e07b1755c4bc7d749fcffd8a97251c7067c6363c43dc677267e590e0",
+      "executable": false
+    },
+    "public/alert-drill-schedules.js": {
+      "sha256": "a5389ecebe675c2c3205f6bb4178e79e7379b74340f2d19bad7eb60b9868daf3",
       "executable": false
     },
     "public/alert-drills.js": {
@@ -2952,7 +2960,7 @@
       "executable": false
     },
     "public/notifications.js": {
-      "sha256": "5a0c3ab0a214b55dcfaa5e1f622b694614b13a8f52fd0cb4aca2044f68dbcf19",
+      "sha256": "67bd4b67bf260405bb1005fbfdb244d8c3714d34e0cd229b3a27b0cd10dce1f9",
       "executable": false
     },
     "public/pagespeed-panel.js": {
@@ -4532,11 +4540,11 @@
       "executable": false
     },
     "src/agent-door/registry.server.ts": {
-      "sha256": "0f9ad550110c32858e6d702045863deb2fe4713572e87fb138f8388c43bea3cc",
+      "sha256": "db48c71d7aec1b13db7a46de91471976fbf024d3801bbc888482ab074743ce42",
       "executable": false
     },
     "src/agent-door/work.server.ts": {
-      "sha256": "c36fe90e40695923946a740699e1ffde5b8317c7705f68b6c879f94acf715881",
+      "sha256": "277d53dc7233fb7b619fede76851aa72f31c827436ec58f30b6374ebc2b031cd",
       "executable": false
     },
     "src/base/contract-anchor.mjs": {
@@ -6911,8 +6919,16 @@
       "sha256": "b7876ffd84309495cbd61cfa64305a718fdfbdefc4da06fc0920b65dd13a9205",
       "executable": false
     },
+    "src/domain/alert-drill-scheduler.server.ts": {
+      "sha256": "526e9b57844c42e4011120cff19de206e34a5307d9b16ccc32f5d07dbce2748e",
+      "executable": false
+    },
+    "src/domain/alert-drill-schedules.server.ts": {
+      "sha256": "dd21f7204b3d0bb3e509f21c7a01a2abd9b1201d3ad5cb16bc2e22c726dfaf6c",
+      "executable": false
+    },
     "src/domain/alert-drills.server.ts": {
-      "sha256": "f8f4d00d76a09cf70df96b772c4735e50c7750b11a696f7ef7b59d6b3184df47",
+      "sha256": "f7befc95a5e075d685286629208f270cb16833c58ebb3dce68a5e7845635661b",
       "executable": false
     },
     "src/domain/alert-route-delivery.server.ts": {
@@ -6972,7 +6988,7 @@
       "executable": false
     },
     "src/domain/archive-inventory.ts": {
-      "sha256": "5d86e05003549ad1499b97ad0c92cd7427702c941127439cf934a70ed9931763",
+      "sha256": "6b4422e5adc4dd098624f5c2b48094b26f4b29030e57939f8c2cc3423a97bb3f",
       "executable": false
     },
     "src/domain/archive-monitor-validation.ts": {
@@ -7344,7 +7360,7 @@
       "executable": false
     },
     "src/domain/erasure.server.ts": {
-      "sha256": "a117f469b6a1ba2e30ac76a81a2881cc7f3cbac2497c0ff76d512f3611a7097c",
+      "sha256": "5d6a14af43e72bcecf93f61bc7a99930b88710ee6a9879d61cd419c99dbaeb44",
       "executable": false
     },
     "src/domain/evidence.server.ts": {
@@ -7948,7 +7964,7 @@
       "executable": false
     },
     "src/domain/role-permissions.mjs": {
-      "sha256": "1d3b836156896f22fc639c37ebe20df70a8e7b4cf1af1c53b00c61849e2a170b",
+      "sha256": "a2602a6850962edea1cf17705498817297ef47b40a82cfc0b7a4f430035cc60b",
       "executable": false
     },
     "src/domain/rum/beacon-script.ts": {
@@ -8384,7 +8400,7 @@
       "executable": false
     },
     "src/server.ts": {
-      "sha256": "0bb9eb36375c698add2eccc4f6a20491080a987d12a4cd8603d5c593acfec728",
+      "sha256": "fd5e88ff9ec170ba9a18693d070e786189ccb520b362e9581e711e385a3c414d",
       "executable": false
     },
     "src/site/docs/build/manifest.ts": {
@@ -8824,7 +8840,11 @@
       "executable": false
     },
     "tests/agent-door.mjs": {
-      "sha256": "c0f3dcb29316935b7006cece418f97b58ae5942cf5f5c270785295b2c55855f6",
+      "sha256": "c775e0887191fc51cd717b0a414c6526ed92b1d40791d66b7b30c5567a245015",
+      "executable": false
+    },
+    "tests/agent-drill-schedules-support.mjs": {
+      "sha256": "3d1c3ebb5301bdd715374136d268297391092dee560866e924e8f8057f70e0fc",
       "executable": false
     },
     "tests/agent-form-accept-support.mjs": {
@@ -8888,7 +8908,7 @@
       "executable": false
     },
     "tests/agent-surface-discovery.mjs": {
-      "sha256": "221dfc2f55b1d763119eede90d623e1d468b21a97b17eece5b58430b660659c5",
+      "sha256": "7daa82b60d4fd0eeaceee6abd83d50230569bba71857ca23e32ddc8c569a66cd",
       "executable": false
     },
     "tests/alert-drill.mjs": {

@@ -64,6 +64,7 @@ export function requestPermission(request,input){
  // The installation's default route shares the monitor route doors' authority.
  if(path==='/api/alert-route'||path.startsWith('/api/alert-route/'))return {action:read?'settings_write':'route_write',workspace:true};
  if(path==='/api/incident-settings')return {action:'owner',workspace:true};
+ if(/^\/api\/notifications\/destinations\/[^/]+\/drill-schedule(?:\/|$)/.test(path))return {action:'owner',workspace:true};
  if(path.startsWith('/api/notifications')||path.startsWith('/api/runners'))return {action:'secret_write',workspace:true};
  if(path.startsWith('/api/discover')||path.startsWith('/api/service-')||path.startsWith('/api/followed-services')||path.startsWith('/api/dependency-notices'))return {action:'discovery_write',workspace:true};
  if(path==='/api/monitor-editor')return {action:'check_write',workspace:true};

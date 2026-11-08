@@ -70,6 +70,12 @@ export async function erase(env:Bindings,kind:'monitor'|'destination'|'operator'
   plans.push(selection('alert_routes',"scope_kind='monitor' AND scope_value=?",id),selection('alert_route_changes',"scope_kind='monitor' AND scope_value=?",id));
   plans.push(selection('heartbeat_runs','monitor_id=?',id),selection('definition_batch_entries','monitor_id=?',id),selection('attempt_checkpoints','monitor_id=?',id),selection('runner_assignments','slot_id IN(SELECT id FROM slots WHERE monitor_id=?)',id),selection('evidence_generation','monitor_id=?',id),selection('heartbeat_claims','slot_id IN(SELECT id FROM slots WHERE monitor_id=?)',id),selection('heartbeat_authority','monitor_id=?',id),selection('heartbeat_limits','monitor_id=?',id),selection('observations','slot_id IN(SELECT id FROM slots WHERE monitor_id=?)',id),selection('outbox','monitor_id=?',id),selection('slots','monitor_id=?',id),selection('revisions','monitor_id=?',id));
  }
+ if(kind==='destination'||kind==='operator'){
+  const condition=kind==='destination'?'destination_id=?':'issuer_id=? OR owner_id=?';
+  const args=kind==='destination'?[id]:[id,id];
+  const selected=`SELECT s.id FROM alert_drill_schedules s JOIN alert_drill_consents c ON c.id=s.consent_id WHERE ${kind==='destination'?'c.destination_id=?':'c.issuer_id=? OR c.owner_id=?'}`;
+  plans.push(selection('alert_drill_reminders',`run_id IN(SELECT id FROM alert_drill_runs WHERE schedule_id IN(${selected}))`,...args),selection('alert_drill_runs',`schedule_id IN(${selected})`,...args),selection('alert_drill_schedules',`id IN(${selected})`,...args),selection('alert_drill_consents',condition,...args));
+ }
  if(kind==='destination')plans.push(selection('scheduled_reports','destination_id=?',id),selection('alert_recipient_consents','destination_id=?',id),selection('alert_drills','destination_id=?',id),selection('notification_credentials','destination_id=?',id));
  if(kind==='operator'){
   for(const table of ['integration_token_usage','integration_token_events','integration_tokens'])plans.push(selection(table,'namespace IN(SELECT namespace FROM uptime_credential_grants WHERE issuer_id=?)',id));
