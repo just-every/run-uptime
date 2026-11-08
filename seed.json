@@ -251,7 +251,7 @@
         "Only status-source addresses the catalog itself names (provider status APIs, feeds and pages), one read-only GET each, with the catalog check User-Agent; no owner data, credential or other address is sent",
         "The provider's status service sees the request time and the runner's source address",
         "The reader streams at most 1 MiB of a document, follows no redirect and keeps nothing but derived facts",
-  "Only derived facts return to the Worker: whether the source answered, whether it has the expected shape, what the provider states about the followed part and region, and the provider's own id for a component or product; no body or header is kept"
+        "Only derived facts return to the Worker: whether the source answered, whether it has the expected shape, what the provider states about the followed part and region, and the provider's own id for a component or product; no body or header is kept"
       ],
       "adapters": []
     },
@@ -1074,6 +1074,14 @@
       },
       {
         "path": "/alert-drills.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
+        "path": "/alert-drill-schedules.js",
         "match": "exact",
         "kind": "asset",
         "class": "assets",
