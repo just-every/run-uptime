@@ -71,6 +71,7 @@ export async function proveScheduledDrills({c,native,worker,db,origin,cookie,spo
   await page.setViewportSize({width:390,height:1000});await capture('consented-drill-390');await page.getByRole('button',{name:'Cancel',exact:true}).click();
   await new Promise(resolve=>setTimeout(resolve,Math.max(0,due+100-Date.now())));await tick();await tick();
   view=await read(first);assert.equal(view.runs[0].confirmation,'missing');assert.equal(view.runs[0].proposedRoute.replacementDestinationId,replacement.id);assert.equal(view.runs[0].reminders.length,1);assert.equal(view.runs[0].reminders[0].ownerId,sponsorId);assert.ok(view.runs[0].reminders[0].at>=due);assert.equal(mailFor(71).length,1);
+  const inbox=await native('/api/drill-reminders');assert.equal(inbox.items.length,1);assert.equal(inbox.items[0].runId,view.runs[0].id);assert.equal(inbox.items[0].destinationName,first.name);
   const agentRead=await tool('drill_schedule',{id:first.id});assert.deepEqual(agentRead.runs,view.runs,'agent sees the same failed-channel and internal chase evidence as the company');
   const jobs=(await db.prepare('SELECT id FROM notification_jobs ORDER BY id').all()).results,credentials=(await db.prepare('SELECT id FROM notification_credentials ORDER BY id').all()).results;
   await open(first);await page.getByRole('button',{name:'Decline proposal',exact:true}).click();await page.getByText('Proposal declined.',{exact:true}).first().waitFor();
@@ -109,6 +110,7 @@ export async function proveDrillSponsorErasure({native,origin,cookie,sponsorId,d
  await completeSecondFactor(origin,cookie);await native('/auth/invite',{email,displayName:'Continuity owner',role:'owner'});
  const invite=await deliveredLink(call,{email,kind:'invite'});let successorCookie=sessionCookie(await call('/auth/confirm',{token:invite.searchParams.get('token')}));await completeSecondFactor(origin,successorCookie);
  const api=async(path,body,method=body===undefined?'GET':'POST')=>{const response=await fetch(origin+path,{method,headers:{origin,cookie:successorCookie,'content-type':'application/json'},...(body===undefined?{}:{body:JSON.stringify(body)})});const value=await response.json();assert.ok(response.ok,path+' HTTP '+response.status);return value};
+ assert.deepEqual((await api('/api/drill-reminders')).items,[],'another native owner cannot read the assigned recipient inbox');
  await api('/api/operators/'+sponsorId+'/erase',{});
  const retiredSession=await fetch(origin+'/api/notifications',{headers:{origin,cookie:successorCookie}});assert.equal(retiredSession.status,401,'erasing the invitation issuer also revokes the derived owner session');
  successorCookie=await emailSignIn(origin,{bindings:{...bindings,OWNER_EMAIL:email}});

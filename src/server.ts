@@ -1,5 +1,5 @@
 import {scheduledDrills} from './domain/alert-drill-scheduler.server.ts'
-import {saveDrillConsent,revokeDrillConsent,drillScheduleView,declineDrillProposal} from './domain/alert-drill-schedules.server.ts'
+import {drillReminderInbox,saveDrillConsent,revokeDrillConsent,drillScheduleView,declineDrillProposal} from './domain/alert-drill-schedules.server.ts'
 import {expireReplayCalls} from './base/modules/agent-door/index.ts'
 import {agentDoorResponse,uptimeAgentDoor} from './agent-door/index.server.ts'
 import {registerSourceHistory} from './domain/source-history/routes.server.ts'
@@ -346,6 +346,7 @@ api.patch('/api/notifications/destinations/:id',async c=>c.json(await updateDest
 api.delete('/api/notifications/destinations/:id',async c=>c.json(await erase(c.env,'destination',c.req.param('id'),{kind:'operator',ref:(await authenticatedSession(c.env,c.req.raw))!.operator.id})))
 api.post('/api/notifications/destinations/:id/rotate',async c=>c.json(await rotateDestination(c.env,c.req.param('id'),{kind:'operator',ref:(await authenticatedSession(c.env,c.req.raw))!.operator.id})))
 api.post('/api/notifications/destinations/:id/test',async c=>c.json(await testDestination(c.env,c.req.param('id')),202))
+api.get('/api/drill-reminders',async c=>c.json(await drillReminderInbox(c.env,(await operator(c)).ref)))
 api.get('/api/notifications/destinations/:id/drill-schedule',async c=>c.json(await drillScheduleView(c.env,c.req.param('id'),(await operator(c)).ref)))
 api.post('/api/notifications/destinations/:id/drill-schedule',async c=>c.json(await saveDrillConsent(c.env,c.req.param('id'),c.get('input'),(await operator(c)).ref),201))
 api.delete('/api/notifications/destinations/:id/drill-schedule',async c=>c.json(await revokeDrillConsent(c.env,c.req.param('id'),(await operator(c)).ref)))
