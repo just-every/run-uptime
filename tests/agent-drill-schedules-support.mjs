@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {randomUUID} from 'node:crypto';
+import {randomUUID,createHash} from 'node:crypto';
 import {mkdir,readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {createRequire} from 'node:module';
@@ -7,6 +7,7 @@ import {chromium} from 'playwright';
 import {autonomousPolicy} from '../src/base/modules/agent-door/conformance/crypto.mjs';
 import {errorCode} from '../src/base/modules/agent-door/conformance/protocol.mjs';
 import {completeSecondFactor} from './mfa-auth-support.mjs';
+import {migratedWorker,ownerAPI} from './notify-acceptance-runtime.mjs';
 import {allDeliveredMessages} from './mail-provider-fixture.mjs';
 
 // One company-consent-to-decline journey. Real signed MCP, owner API, Cron,
@@ -44,7 +45,7 @@ export async function proveScheduledDrills({c,native,worker,db,origin,cookie,spo
  await tick();assert.equal((await read(first)).runs.length,1);assert.equal(mailFor(71).length,1,'repeated Cron never resends a one-shot occurrence');
  await new Promise(resolve=>setTimeout(resolve,Math.max(0,expiry+1100-Date.now())));await tick();
  let expiredView=await read(expired);assert.equal(expiredView.runs.length,1);assert.equal(expiredView.runs[0].code,'credential_expired');assert.equal(expiredView.runs[0].drillId,null);assert.equal(expiredView.runs[0].providerState,'not_sent');assert.equal(mailFor(72).length,0);
- assert.equal(expiredView.runs[0].proposedRoute.credentialDiagnosis,'credential_expired');assert.equal(expiredView.runs[0].proposedRoute.action,'replace_destination');assert.equal(expiredView.runs[0].proposedRoute.replacementDestinationId,replacement.id);assert.equal(expiredView.runs[0].proposedRoute.requiresReview,true);assert.deepEqual(expiredView.runs[0].proposedRoute.routes.map(r=>r.scope),['installation']);assert.match(expiredView.runs[0].proposedOncall,/Oncall/);
+ assert.equal(expiredView.runs[0].proposedRoute.credentialDiagnosis,'credential_expired');assert.equal(expiredView.runs[0].proposedRoute.action,'replace_destination');assert.equal(expiredView.runs[0].proposedRoute.replacementDestinationId,first.id);assert.equal(expiredView.runs[0].proposedRoute.requiresReview,true);assert.deepEqual(expiredView.runs[0].proposedRoute.routes.map(r=>r.scope),['installation']);assert.match(expiredView.runs[0].proposedOncall,/Oncall/);
  // Spend the real reminder interval in browser inspection, then finish any remaining wait.
  await completeSecondFactor(origin,cookie);
  assert.equal((await fetch(origin+'/setup',{method:'POST',redirect:'manual',headers:{origin,cookie}})).status,303);
@@ -67,7 +68,7 @@ export async function proveScheduledDrills({c,native,worker,db,origin,cookie,spo
   await page.locator('[data-refresh]').click();await capture('consented-drill-1440');
   await page.setViewportSize({width:390,height:1000});await capture('consented-drill-390');await page.getByRole('button',{name:'Cancel',exact:true}).click();
   await new Promise(resolve=>setTimeout(resolve,Math.max(0,due+100-Date.now())));await tick();await tick();
-  view=await read(first);assert.equal(view.runs[0].confirmation,'missing');assert.equal(view.runs[0].reminders.length,1);assert.equal(view.runs[0].reminders[0].ownerId,sponsorId);assert.ok(view.runs[0].reminders[0].at>=due);assert.equal(mailFor(71).length,1);
+  view=await read(first);assert.equal(view.runs[0].confirmation,'missing');assert.equal(view.runs[0].proposedRoute.replacementDestinationId,replacement.id);assert.equal(view.runs[0].reminders.length,1);assert.equal(view.runs[0].reminders[0].ownerId,sponsorId);assert.ok(view.runs[0].reminders[0].at>=due);assert.equal(mailFor(71).length,1);
   const agentRead=await tool('drill_schedule',{id:first.id});assert.deepEqual(agentRead.runs,view.runs,'agent sees the same failed-channel and internal chase evidence as the company');
   const jobs=(await db.prepare('SELECT id FROM notification_jobs ORDER BY id').all()).results,credentials=(await db.prepare('SELECT id FROM notification_credentials ORDER BY id').all()).results;
   await open(first);await page.getByRole('button',{name:'Decline proposal',exact:true}).click();await page.getByText('Proposal declined.',{exact:true}).first().waitFor();
@@ -87,5 +88,15 @@ export async function proveScheduledDrills({c,native,worker,db,origin,cookie,spo
  await native('/api/notifications/destinations/'+revoked.id,undefined,'DELETE');const erased=await c.tool('uptime.destinations.schedule_drills',revokedArgs);assert.equal(erased.result?.isError,true);await tick();assert.equal(mailFor(73).length,0);
  assert.equal((await db.prepare('SELECT COUNT(*) n FROM alert_drill_consents WHERE destination_id=?').bind(revoked.id).first()).n,0);
  const archive=await native('/api/archive');for(const table of ['alert_drill_consents','alert_drill_schedules','alert_drill_runs','alert_drill_reminders'])assert.equal(Object.hasOwn(archive.payload.productTables,table),false,'local drill execution authority never travels');
+ const restored=await migratedWorker({persist:join(directory,'drill-restore')});
+ try{
+  const restoredOrigin=(await restored.worker.ready).origin,owner=ownerAPI(restoredOrigin);await owner.signIn();
+  const bad=structuredClone(archive),audit=bad.payload.productTables.uptime_audit.find(row=>row.action==='drill_consent');assert.ok(audit);audit.subject_kind='monitor';bad.sha256=createHash('sha256').update(JSON.stringify(bad.payload)).digest('hex');
+  assert.equal((await owner.api('/api/restore','POST',bad,{origin:restoredOrigin})).status,400,'wrong-subject drill audit is refused before any restore writes');
+  assert.equal((await restored.DB.prepare('SELECT COUNT(*) n FROM notification_destinations').first()).n,0);
+  assert.equal((await owner.api('/api/restore','POST',archive,{origin:restoredOrigin})).status,200,'drill consent and refusal audits travel without execution authority');
+  const restoredSchedule=await owner.api(path(first));assert.equal(restoredSchedule.status,200);assert.equal(restoredSchedule.data.consent,null);assert.deepEqual(restoredSchedule.data.runs,[]);
+  assert.equal((await(await restored.worker.getWorker()).scheduled()).outcome,'ok');assert.equal(mailFor(71).length,1);assert.equal(mailFor(74).length,0,'restored history cannot contact the proposed recipient');
+ }finally{await restored.worker.dispose()}
  console.log('PASS AGENT-004 scheduledDrills: consent, bounded current-policy execution, expiry, provider and recipient separation, internal owner chase, decline, revocation, erasure, inactive archive and Settings at 1440 and 390');
 }
