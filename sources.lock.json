@@ -8816,7 +8816,7 @@
       "executable": false
     },
     "tests/agent-drill-journey.mjs": {
-      "sha256": "a61b1357d27128240619209da4e60b86d721f7890c41f2617f64d28228ec1aec",
+      "sha256": "030d9d44147b1a8d4d1f20aa56c8ccd2d83e926a6083061bf24c0f53a486df8e",
       "executable": false
     },
     "tests/agent-drill-schedules-support.mjs": {
