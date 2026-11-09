@@ -21,7 +21,7 @@ const report=()=>ok('/api/route-accountability');
 const sentTo=address=>mail.records.filter(r=>r.body.personalizations[0].to[0].email===address);
 const text=record=>record.body.content.find(item=>item.type==='text/plain').value;
 const count=async(sql,...values)=>(await DB.prepare(sql).bind(...values).first()).n;
-const policy=(revision,window,extra={})=>({enabled:true,windowDays:[0,1,2,3,4,5,6],windowStartHour:window[0],windowEndHour:window[1],intervalDays:7,maxDrillsPerDay:1,reminder:{afterHours:0,repeatHours:1,max:2},expectedRevision:revision,...extra});
+const policy=(revision,window,extra={})=>({enabled:true,windowDays:[0,1,2,3,4,5,6],windowStartHour:window[0],windowEndHour:window[1],intervalDays:1,maxDrillsPerDay:1,reminder:{afterHours:0,repeatHours:1,max:2},expectedRevision:revision,...extra});
 const ownerMail=bindings.OWNER_EMAIL;
 try{
  mail=await acceptanceReceiver(mailPort,record=>{assert.equal(record.path,'/v3/mail/send')});
@@ -32,7 +32,7 @@ try{
  await signIn(bindings);
  const destination=async(name,address)=>ok('/api/notifications/destinations','POST',{name,kind:'email',address});
  const primary=await destination('Primary inbox','qa-primary@example.test'),extra=await destination('Extra inbox','qa-extra@example.test'),standby=await destination('Standby inbox','qa-standby@example.test'),expiring=await destination('Expiring inbox','qa-expiring@example.test');
- const installation=async(destinationIds)=>{const current=await ok('/api/alert-route'),body={mode:'selected',destinationIds,expectedRevision:current.revision},p=await ok('/api/alert-route/preview','POST',body);return ok('/api/alert-route/apply','POST',{...body,digest:p.digest})};
+ const installation=async(destinationIds)=>{const current=await ok('/api/alert-route'),body={mode:'selected',destinationIds,contactSettings:Object.fromEntries(destinationIds.map(id=>[id,{delayMinutes:5}])),expectedRevision:current.revision},p=await ok('/api/alert-route/preview','POST',body);return ok('/api/alert-route/apply','POST',{...body,digest:p.digest})};
  await installation([primary.id,expiring.id]);
  // The standby inbox is proven by the owner's own drill, so it is a verified recipient outside the route.
  await ok(`/api/notifications/destinations/${standby.id}/drill`,'POST',{});await runOnce();await waitFor(async()=>sentTo('qa-standby@example.test').length===1,'standby drill delivered');
@@ -84,6 +84,7 @@ try{
  // proposals carry the failed-channel evidence and the exact change, and nothing was applied or sent for them
  const proposals=gap.proposals;assert.equal(proposals.length,2);
  const missed=proposals.find(p=>p.destinationId===primary.id),lapsed=proposals.find(p=>p.destinationId===expiring.id);
+ assert.deepEqual(Object.keys(missed.change.contactSettings),[expiring.id],'settings of the removed contact leave with it');assert.deepEqual(Object.keys(lapsed.change.contactSettings),[primary.id]);
  assert.equal(missed.reason,'drill_unconfirmed');assert.equal(missed.evidence.drill.confirmed,false);assert.equal(missed.evidence.drill.remindersSent,1);assert.equal(missed.change.add,standby.id);assert.deepEqual(missed.change.destinationIds.sort(),[expiring.id,standby.id].sort());
  assert.equal(lapsed.reason,'credential_expired');assert.equal(lapsed.evidence.credentialExpiresAt,expiredAt);assert.equal(lapsed.evidence.drill,null);assert.equal(lapsed.change.add,standby.id);assert.deepEqual(lapsed.change.destinationIds.sort(),[primary.id,standby.id].sort());
  const route=await ok('/api/alert-route');assert.deepEqual(route.destinationIds.sort(),[primary.id,expiring.id].sort(),'proposing changes no route');
@@ -103,7 +104,7 @@ try{
  {
   const done=await ok(`/api/route-accountability/proposals/${lapsed.id}/decision`,'POST',{decision:'approve'});
   assert.equal(done.state,'approved');assert.equal(done.drill.started,true);
-  assert.deepEqual((await ok('/api/alert-route')).destinationIds.sort(),[primary.id,standby.id].sort());
+  const applied=await ok('/api/alert-route');assert.deepEqual(applied.destinationIds.sort(),[primary.id,standby.id].sort());assert.equal(applied.contactSettings[primary.id].delayMinutes,5,'the kept contact keeps its delay');
   await runOnce();await waitFor(async()=>sentTo('qa-standby@example.test').length===2,'the added recipient is drilled');
   assert.equal(sentTo('qa-expiring@example.test').length,0,'the expired destination received nothing');
  }

@@ -31,8 +31,11 @@ export async function proposeRouteChanges(env:Bindings,policy:Policy,now:number)
     ORDER BY (SELECT MAX(p.confirmed_at) FROM alert_drills p WHERE p.destination_id=d.id AND p.credential_id=d.credential_id) DESC,d.id LIMIT 1`).bind(gap.id,JSON.stringify(route.destinationIds),JSON.stringify(enabled.map(g=>g.id))).first<{id:string}>()
   const base=route.mode==='all'?enabled.map(g=>g.id):route.destinationIds.filter((id:string)=>id!==gap.id),destinationIds=[...base,...(candidate?[candidate.id]:[])]
   if(!destinationIds.length)continue
-  const change={scope:'installation',mode:'selected',destinationIds,contactSettings:route.contactSettings,fallback:{...route.fallback,destinationIds:route.fallback.destinationIds.filter((id:string)=>id!==gap.id)},teamIds:route.teamIds}
-  try{await previewInstallationRoute(env,{...change,expectedRevision:route.revision})}catch{continue}
+  const fallback={...route.fallback,destinationIds:route.fallback.destinationIds.filter((id:string)=>id!==gap.id)},kept=new Set([...destinationIds,...fallback.destinationIds])
+  // A route accepts settings only for contacts it still names, so the removed destination's delay and quiet hours leave with it.
+  const contactSettings=Object.fromEntries(Object.entries(route.contactSettings??{}).filter(([id])=>kept.has(id)))
+  const change={scope:'installation',mode:'selected',destinationIds,contactSettings,fallback,teamIds:route.teamIds}
+  try{await previewInstallationRoute(env,{...change,expectedRevision:route.revision})}catch(error){console.error(`Route accountability proposal for ${gap.id} not recorded: ${(error as Error).message}`);continue}
   const evidence={gapKey,reason,destination:{id:gap.id,name:gap.name,kind:gap.kind},credentialExpiresAt:gap.credential_expires_at,
    drill:gap.drill_id?{id:gap.drill_id,startedAt:gap.started_at,expiresAt:gap.expires_at,state:gap.state,code:gap.outcome?JSON.parse(gap.outcome).code:gap.code,finishedAt:gap.finished_at,confirmed:Boolean(gap.confirmed_at),remindersSent:gap.reminders}:null}
   await env.DB.prepare('INSERT OR IGNORE INTO route_accountability_proposals(id,destination_id,candidate_id,reason,evidence,change,route_revision,created_at) VALUES(?,?,?,?,?,?,?,?)')

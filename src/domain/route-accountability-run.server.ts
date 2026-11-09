@@ -13,19 +13,22 @@ const HOUR=3_600_000,DAY=86_400_000,REMINDER_BATCH=5
 export async function runRouteAccountability(env:Bindings,budget:SubrequestBudget,now=Date.now()){
  const policy=await readPolicy(env)
  if(!policy?.enabled||!await env.DB.prepare("SELECT 1 x FROM oa_operators WHERE id=? AND status='active'").bind(policy.consentedBy).first())return
- if(inWindow(policy,now))await scheduleDrills(env,policy,now)
+ // Reminders are planned first: a replacement drill would otherwise displace the expired drill the owner is still owed a chase for.
  await planReminders(env,policy,now)
+ if(inWindow(policy,now))await scheduleDrills(env,policy,now)
  await sendReminders(env,budget,now)
  await proposeRouteChanges(env,policy,now)
 }
 async function scheduleDrills(env:Bindings,policy:Policy,now:number){
  const used=(await env.DB.prepare('SELECT COUNT(*) n FROM route_accountability_drills WHERE scheduled_at>?').bind(now-DAY).first<{n:number}>())!.n,room=policy.maxDrillsPerDay-used
  if(room<=0)return
- // A destination is due when no drill for its current credential started within the interval, so a rotated or re-entered destination is drilled at the next window.
+ // A destination is due when no drill for its current credential started within the interval, so a rotated or re-entered destination is drilled at the next window. One whose latest scheduled drill is unconfirmed and still owes owner reminders is not replaced until they are done.
  const due=(await env.DB.prepare(`SELECT d.id FROM notification_destinations d LEFT JOIN route_accountability_destinations s ON s.destination_id=d.id
   WHERE d.deleted_at IS NULL AND d.enabled=1 AND d.webhook_template IS NULL AND (s.credential_expires_at IS NULL OR s.credential_expires_at>?)
   AND NOT EXISTS(SELECT 1 FROM alert_drills a WHERE a.destination_id=d.id AND a.credential_id=d.credential_id AND a.started_at>?)
-  ORDER BY d.created_at,d.id LIMIT ?`).bind(now,now-policy.intervalDays*DAY,room).all<{id:string}>()).results
+  AND NOT EXISTS(SELECT 1 FROM route_accountability_drills t JOIN alert_drills a ON a.id=t.drill_id WHERE a.destination_id=d.id AND a.credential_id=d.credential_id AND a.confirmed_at IS NULL
+   AND a.started_at=(SELECT MAX(x.started_at) FROM alert_drills x WHERE x.destination_id=d.id) AND (SELECT COUNT(*) FROM route_accountability_reminders r WHERE r.drill_id=a.id)<?)
+  ORDER BY d.created_at,d.id LIMIT ?`).bind(now,now-policy.intervalDays*DAY,policy.reminder.max,room).all<{id:string}>()).results
  for(const {id} of due){
   try{
    const started=await startDrill(env,id,policy.consentedBy)
