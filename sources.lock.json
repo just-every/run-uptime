@@ -7924,7 +7924,7 @@
       "executable": false
     },
     "src/domain/route-accountability-proposals.server.ts": {
-      "sha256": "c53eeda56f4687bc76d3f77f0cb6769a5618b0bbb98e26c7293e614d2a1da661",
+      "sha256": "734eb37f4963bdd3a4437968b4395c8a870c3575a97ec008ab3854cf90c02be6",
       "executable": false
     },
     "src/domain/route-accountability-read.server.ts": {
@@ -7932,7 +7932,7 @@
       "executable": false
     },
     "src/domain/route-accountability-run.server.ts": {
-      "sha256": "dfacbce8a6665d9cbae8f1be12877f252bbc5255f0823a1b7d25e03a6fccb6ed",
+      "sha256": "53a4f05ee1991e920596842db67d92d7029417f58ed808af5d541c1f58ffae28",
       "executable": false
     },
     "src/domain/rum/beacon-script.ts": {
@@ -9444,7 +9444,7 @@
       "executable": false
     },
     "tests/route-accountability.mjs": {
-      "sha256": "0430e336d42ce2c1a03fbeb20b606f1945ab2ee38fe06e9ff2e01f48d6ecf58c",
+      "sha256": "0ce610985278eb5d370766c91d9f3a34592d57e25e1d7d22a9f7e326736fab65",
       "executable": false
     },
     "tests/scratch-installation.mjs": {
