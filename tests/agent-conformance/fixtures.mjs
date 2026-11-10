@@ -50,6 +50,7 @@ export default async function prepare(context) {
   name: prefix + 'webhook ' + randomUUID().slice(0, 8), kind: 'webhook',
   url: 'https://notifications.example.com/conformance/' + randomUUID(), enabled: true,
  });
+ const drillConsent=await http.json('/api/notifications/destinations/'+destination.id+'/drill-schedule',{consent:true,windowStart:Date.now()+3600000,windowEnd:Date.now()+7200000,intervalMs:60000,maxDrills:1,credentialExpiresAt:null,confirmationWaitMs:60000,reminderIntervalMs:60000,maxReminders:1,phoneBudgetUsd:0,ownerId:owner.id});
  const discovery = await http.json('/api/discoveries', {url: 'https://agent-native.example.test/'});
  rememberDiscovery(origin, discovery.id);
  const definition = {...definitionFor('created', true), tlsTrust: {mode: 'fingerprint', sha256: 'a'.repeat(64)}};
@@ -66,7 +67,7 @@ export default async function prepare(context) {
   manualLive,
   ...records, erase: {...records.erase, name: records.erase.definition.name},
   ...observed, commentDelete, owner: {id: owner.id, revision: owner.revision}, member: {id: member.id, revision: memberSelf.revision},
-  destination: {id: destination.id}, discovery: {id: discovery.id},
+  drillConsent:{id:drillConsent.id},destination: {id: destination.id}, discovery: {id: discovery.id},
   route: {id: records.route.id, policy: {scope: 'monitor', mode: 'selected', destinationIds: [destination.id], expectedRevision: 0}},
   grant: {id: records.monitor.id, operatorId: member.id}, window, definition,
   definitionText: JSON.stringify({format: 'uptime.monitors', version: 1, monitors: [definitionFor('definition file', false)]}),

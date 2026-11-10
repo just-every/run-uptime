@@ -44,6 +44,16 @@ The link holds a random one-time capability. Uptime keeps only a hash of it, plu
 
 A signed JSON webhook drill carries the link as an extra `drill` object (`startedBy`, `startedAt`, `expiresAt`, `confirmUrl`). Incident events never have this field, and their payload and signature are unchanged.
 
+## Schedule drills with an agent
+
+In a destination’s **Edit** dialog under **Settings › Alerts**, open **Scheduled drills**. A company owner explicitly consents to a finite window, drill interval and count, credential expiry when known, and a confirmation wait followed by a bounded reminder policy. Choose the internal route owner and a USD phone budget. These email, Slack and default JSON webhook drills incur zero phone charge; phone calls and custom webhook templates are unavailable here.
+
+Give the saved consent ID and destination ID to the agent. `uptime.destinations.schedule_drills` takes `id` and `consent_id`; `uptime.destinations.drill_schedule` reads the saved schedule and its outcomes. Cron runs at most one current occurrence per due schedule, with no catch-up burst or retry of a sent drill. Each occurrence and the final transport boundary recheck current company policy, agent authority, consent, credential and window. Rotating a credential requires fresh company consent before that destination can be drilled again.
+
+The history keeps provider acknowledgment separate from recipient confirmation. A declared expired credential produces an unsent failure. After the company’s confirmation wait, the internal route owner receives a reminder in this Settings history, up to the company’s limit. The assigned member can also read their own reminders through `GET /api/drill-reminders`, including when their role cannot open company Settings. This inbox exposes only their assigned destination and reminder; it accepts no person selector. Reminders do not send external messages. Unresolved gaps show a proposed replacement destination and affected route revisions, plus a suggestion to escalate through Oncall. Those suggestions never rotate a secret, send a page, change a route or contact a replacement recipient. Use the ordinary reviewed route controls to make an approved correction. **Decline proposal** records the refusal and stops its reminders; it creates no outbound work and no phone charge. **Revoke consent** cancels subsequent scheduling and prevents queued scheduled drills from starting.
+
+Consent, schedules, internal reminders and proposals stay installation-local and are erased with their destination or internal owner. Attributed notification history is removed when its sponsoring person is erased; an earlier archive cannot restore that person through its attribution. Archives do not carry execution authority. The owner API uses the destination’s `drill-schedule` path for GET, POST consent and DELETE revocation; an occurrence’s `runs/{runId}/decline` subpath records a decline.
+
 ## Uncertain results
 
 Email, Slack, unsigned webhooks, test sends and drills get one automatic attempt. A server error, timeout, lost connection or unrecognized response stays Uncertain and is not resent automatically. Signed-webhook incident deliveries retry within their saved attempt and time limits, using the same stable ID. Look at the receiver before taking manual action.

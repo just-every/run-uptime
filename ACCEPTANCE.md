@@ -8,10 +8,10 @@ The primary journey: an operator moves their monitors from UptimeRobot or Pingdo
 
 | Tier | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
-| Core | 36 | 48 | 11 | 95 |
+| Core | 37 | 47 | 11 | 95 |
 | Agent surface | 0 | 11 | 8 | 19 |
 | Later | 0 | 0 | 1 | 1 |
-| Full target | 36 | 59 | 20 | 115 |
+| Full target | 37 | 58 | 20 | 115 |
 
 Judged from the code and tests at commit `67280b96d5401299f320c18baa225366d230ea2d` (6 November 2026). MAINT-001: strategy-trial-3-son-gate-1 GATE PASS; all other clause judgments retained. ERASURE-001 public owner erasure, retained stale edit and complete refusal preservation; other clause judgments retained. PRESENCE-001 native contact lifecycle proof replayed at `8862426`; all newer main judgments retained. Carried-done recheck on 2 November 2026 (ct judge ct-judge-uptime-restore-20261102-0845, push Verify 41373254373 at 690ff55a867bcbac403c3f236ade9cac2a2d5c8b): HTTP-001, EVIDENCE-001, AUTHORITY-001, ARCHIVE-001, NOTIFY-001, DELIVERY-001, PUBLIC-001, PUBLIC-002, API-001, PING-001, DNS-001, TLS-001, EVIDENCE-002, FLOW-003, MANAGE-001 and METRICS-001 restored to done; other clause judgments retained. Assertion-round recheck on 2 November 2026 (ct judge ct-judge-uptime-assert-20261102-1320, push Verify 41448682806 at 40f33957850e11c6887789852f2e8bd10e14adf3, landed on main as `cf75611586159d1588151fd403899d8f9a735593`): HEARTBEAT-001 and ROUTING-002 restored to done; other clause judgments retained. Field proof register: 11 rows; 0 passed, 0 failed, 11 not run.
 
@@ -1266,7 +1266,7 @@ Core · push-further · **missing**
 
 #### AGENT-004 — Keep alert routes accountable
 
-Core · push-further · **partial**
+Core · push-further · **done** · Cites BASE-ACCESS-002, BASE-ROLE-001, BASE-AGENT-012
 
 **Requirement.** With the company's consent an agent schedules channel drills inside the drill windows and USD phone budgets the company sets, checks credential expiry, separates provider acknowledgment from recipient confirmation and chases the internal route owner through the reminder policy the company sets. It proposes corrected routes and Oncall escalation for unresolved gaps. Messaging a new recipient, rotating a secret or calling a number carries its class (external, security, or external and money), which the company's policy decides within the agent's grant.
 
@@ -1274,8 +1274,8 @@ Core · push-further · **partial**
 1. Consent to scheduled drills, expire a destination and miss confirmation; inspect one bounded drill, due owner reminder, failed-channel evidence and proposed route change.
 2. A person declines the change: no new recipient is messaged and no extra phone charge is made.
 
-**Evidence.** `src/domain/alert-drills.server.ts`; `tests/alert-drill.mjs`
-**Gap.** Owner-started consented one-shot drills ship; agent schedules, credential diagnosis and chasing do not.
+**Evidence.** `tests/alert-drill.mjs` — agentDrillJourney, with `tests/agent-drill-schedules-support.mjs` — proveScheduledDrills: acceptance 1, explicit company consent, signed agent scheduling, bounded Cron execution, credential expiry, distinct provider acceptance and recipient confirmation, due assigned-owner inbox reminder, failed-channel evidence, proposed corrected route and Oncall, Settings at 1440 and 390; acceptance 2, native Settings decline followed by Cron preserves recipient jobs and credentials with no phone action or charge. proveScheduledDrills also checks consent revocation, destination erasure, captured replay and inactive archive restore; proveDrillSponsorErasure checks erased sponsor and captured archive cannot revive execution or erased attribution.
+**Gap.** None.
 
 #### AGENT-005 — Coordinate evidence handoff and verified recovery
 

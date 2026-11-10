@@ -9,13 +9,16 @@ import {testAuthBindings,authRequest,sessionCookie,deliveredLink} from './auth-t
 import {completeSecondFactor} from './mfa-auth-support.mjs';
 import {signJws,seconds,autonomousPolicy,policyEnvelope} from '../src/base/modules/agent-door/conformance/crypto.mjs';
 import {createProtocol,errorCode} from '../src/base/modules/agent-door/conformance/protocol.mjs';
+import {prepareIncident} from './agent-conformance/incident.mjs';
+import {nativeHttp} from './agent-conformance/http.mjs';
+import {readFileSync,readdirSync} from 'node:fs';
 const pair=await webcrypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']);
 const key=await webcrypto.subtle.exportKey('jwk',pair.publicKey),kid='uptime-agent-erasure',issuer='https://business.example.test',installationId=randomUUID(),sub=randomUUID(),business=randomUUID();
 const directory=await runtimeDirectory(),[port]=await availablePorts(1),origin='http://127.0.0.1:'+port;
 const signer={privateKey:pair.privateKey,kid,issuer,installationId};
 const bindings={...testAuthBindings,RER_OWNER_CLAIM_ISSUER:issuer,RER_OWNER_CLAIM_INSTALLATION_ID:installationId,RER_OWNER_CLAIM_APP_ORIGIN:origin,RER_OWNER_CLAIM_PUBLIC_KEYS:JSON.stringify({[kid]:key}),RER_BUSINESS_TRUST:JSON.stringify({v:1,issuer,audience:origin,subject:installationId,keys:{[kid]:key}})};
 const canaries={name:'Erased Agent Principal',email:'erase-agent-principal@example.test'};
-let worker;
+let worker;const problems=[],check=(label,ok)=>{if(!ok)problems.push(label)};
 try{
  ({worker}=await migratedWorker({port,persist:join(directory,'worker'),bindings,outboundService:async()=>{throw Error('Unexpected provider request')}}));
  const iat=seconds(),claim=await signJws(pair.privateKey,kid,'rer-owner-claim+jwt',{v:1,iss:issuer,aud:origin,installationId,email:bindings.OWNER_EMAIL,jti:randomUUID(),iat,exp:iat+300});
@@ -51,6 +54,27 @@ try{
   const tested=await who.tool('uptime.destinations.test',{id:destination.id,idempotency_key:randomUUID()});assert.equal(tested.result?.isError,false,errorCode(tested));
   const discovery=await who.tool('uptime.discovery.start',{url:'https://discovery.example.test/',idempotency_key:randomUUID()});assert.equal(discovery.result?.isError,false,errorCode(discovery));
  }
+
+ // Ordinary agent work writes history outside the agent tables: the incident timeline, the route history, the portable audit.
+ const http=nativeHttp({request:fetch,origin,cookie}),{incident,observedMonitor}=await prepareIncident(http);
+ const watched=await native('/api/monitors/'+observedMonitor.id);
+ await native('/api/monitors/'+observedMonitor.id,{...watched.definition,enabled:true},'PATCH');
+ const live=await native('/api/monitors/'+observedMonitor.id),window=()=>{const startsAt=Date.now()+86400000;return {id:'erasure-'+randomUUID(),name:'Agent erasure maintenance',mode:'suppress',timeZone:'UTC',startsAt,endsAt:startsAt+3600000}};
+ const work=async(who,toolName,args)=>{const answer=await who.tool(toolName,{...args,idempotency_key:randomUUID()});assert.equal(answer.result?.isError,false,toolName+': '+errorCode(answer));return answer.result.structuredContent};
+ const applied=async(who,monitor)=>{
+  const input={monitorIds:[monitor],window:window()},preview=await work(who,'uptime.maintenance.preview',input);
+  await work(who,'uptime.maintenance.update',{...input,digest:preview.digest});
+  const route={scope:'monitor',mode:'selected',destinationIds:[destination.id],expectedRevision:0},review=await work(who,'uptime.routes.preview',{id:monitor,route});
+  await work(who,'uptime.routes.update',{id:monitor,route,digest:review.digest});
+ };
+ await work(erased,'uptime.incidents.acknowledge',{id:incident.id,version:incident.version});
+ await work(erased,'uptime.monitors.pause',{id:observedMonitor.id,version:live.revision});
+ await applied(erased,theirs.id);await applied(keeper,mine.id);
+ const history=async()=>({audit:(await db.prepare("SELECT * FROM uptime_audit WHERE actor_kind='feature' AND actor_ref NOT IN ('notification-dispatch','operator-auth-mail','cron-maintenance','archive-transfer','credential-maintenance','business-import','incident-mention') ORDER BY occurred_at,id").all()).results,routes:(await db.prepare('SELECT * FROM alert_route_changes ORDER BY changed_at,rowid').all()).results});
+ const written=await history();
+ assert.ok(written.audit.length>=4&&written.routes.length>=2,'the agents\' maintenance and route actions wrote audit and route history');
+ const exportable=async()=>{const response=await fetch(origin+'/api/archive',{headers:{cookie,origin}});return {status:response.status,text:await response.text()}};
+ const beforeExport=await exportable();check('REPRO archive: GET /api/archive -> '+beforeExport.status+' '+beforeExport.text.slice(0,80)+' after uptime.maintenance.update by an agent',beforeExport.status===200);
  const agentTables=['uptime_agent_revisions','uptime_agent_handoffs','uptime_agent_manual','uptime_agent_discoveries','uptime_agent_notifications'];
  const mention=async who=>{const hits={};for(const table of agentTables){const n=(await db.prepare(`SELECT COUNT(*) n FROM ${table} WHERE principal LIKE ?`).bind('%'+who+'%').first()).n;if(n)hits[table]=n}return hits};
  const preparedBy=async cookieOf=>{const overview=await native('/api/overview',undefined,'GET',cookieOf);return Object.fromEntries(overview.monitors.map(m=>[m.id,m.preparedBy?.label??null]))};
@@ -60,6 +84,7 @@ try{
  for(const person of [sponsor,other])for(const table of agentTables)assert.ok((await mention(person.id))[table],`${table} holds ${person===other?'the erased':'the kept'} person's principal`);
  const keptRows=Object.fromEntries(await Promise.all(agentTables.map(async table=>[table,(await db.prepare(`SELECT * FROM ${table} WHERE principal LIKE ? ORDER BY rowid`).bind('%'+sponsor.id+'%').all()).results])));
  const keeperDoor=async()=>Object.fromEntries(await Promise.all(['agent_door_agents','agent_door_audit','agent_door_calls'].map(async table=>[table,(await db.prepare(`SELECT * FROM ${table} WHERE ${table==='agent_door_agents'?'id':'agent'}=? ORDER BY rowid`).bind(keeper.agentId).all()).results]))),keptDoor=await keeperDoor();
+ const notificationRows=(await db.prepare("SELECT COUNT(*) n FROM uptime_agent_notifications WHERE instr(principal,?)>0 OR delivery_id IN(SELECT id FROM notification_jobs WHERE json_extract(event,'$.preparedBy.for.id')=?)").bind(other.id,other.id).first()).n;
  const erasure=await native(`/api/operators/${other.id}/erase`,{});assert.equal(erasure.erased,true);
  // PROBE: the control read, the monitor page's own data and every table are redacted at once.
  const after=await preparedBy(cookie);
@@ -80,5 +105,27 @@ try{
  const read=await keeper.tool('uptime.monitors.read',{id:theirs.id});assert.equal(read.result?.isError,false,errorCode(read));
  assert.ok(!JSON.stringify(read.result.structuredContent).includes(canaries.name)&&read.result.structuredContent.preparedBy,'the agent read names no erased person');
  const refused=await erased.tool('uptime.monitors.read',{id:theirs.id});assert.equal(refused.status,401,'the erased person\'s agent can no longer act');
+
+ // PROBE: the history the agents wrote names no erased person anywhere, in the database or in any read the owner can make.
+ const label=(await db.prepare("SELECT json_extract(row,'$.label') label FROM agent_door_audit WHERE agent=? LIMIT 1").bind(erased.agentId).first()).label,nameless=text=>!text.includes(canaries.name)&&!text.includes(canaries.email)&&!text.includes(other.id)&&!text.includes(label);
+ const reads={incident:'/api/v1/incidents/'+incident.id,incidentConsole:'/api/incidents/'+incident.id,route:`/api/monitors/${theirs.id}/alert-route`,overview:'/api/overview',monitor:'/api/monitors/'+theirs.id};
+ for(const [name,path] of Object.entries(reads)){const response=await fetch(origin+path,{headers:{cookie,origin}});check(`PROBE ${name}: ${path} (${response.status}) names the erased person`,response.status===200&&nameless(await response.text()))}
+ const timeline=(await native(reads.incident)).timeline??[];
+ check('PROBE incident dialog: the agent\'s acknowledge and pause entries stay as an anonymous agent and a former member',['acknowledged','pause_applied'].every(kind=>timeline.some(entry=>entry.kind===kind&&entry.actor.kind&&nameless(JSON.stringify(entry)))));
+ const afterHistory=await history();
+ check('PROBE uptime_audit: no audit actor is a personal label',afterHistory.audit.every(row=>nameless(row.actor_ref)));
+ check('PROBE uptime_audit: the agent actions stay, counted and timed as before',afterHistory.audit.length===written.audit.length&&afterHistory.audit.every((row,i)=>row.id===written.audit[i].id&&row.occurred_at===written.audit[i].occurred_at&&row.action===written.audit[i].action));
+ check('PROBE alert-route changes: no actor is a personal label',afterHistory.routes.every(row=>nameless(JSON.stringify(row))));
+ const kept=written.audit.filter(row=>row.actor_ref===written.audit.find(r=>r.subject_ref===mine.id).actor_ref);
+ check('PROBE second operator: the other agent\'s audit and route rows are byte-identical',JSON.stringify(afterHistory.audit.filter(row=>kept.some(k=>k.id===row.id)))===JSON.stringify(kept)&&JSON.stringify(afterHistory.routes.filter(row=>row.scope_value===mine.id))===JSON.stringify(written.routes.filter(row=>row.scope_value===mine.id)));
+ const afterExport=await exportable();
+ check('PROBE archive: GET /api/archive -> '+afterExport.status+' '+afterExport.text.slice(0,80),afterExport.status===200);
+ check('PROBE archive: names no erased person and keeps the agent action in a non-personal form',nameless(afterExport.text)&&/"actor_ref\\?":\\?"agent:/.test(afterExport.text));
+ // The whole database, every table. The Business roster (bs_*) is the Business door's retirement rule, ruled by gr on 2 Nov, not the agent door's.
+ const whole=(await db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT GLOB '_cf_*' AND name NOT GLOB 'bs_*' ORDER BY name").all()).results.map(row=>row.name),residue=[];
+ for(const name of whole){const text=JSON.stringify((await db.prepare(`SELECT * FROM "${name}"`).all()).results);for(const [what,value] of [['name',canaries.name],['email',canaries.email],['label',label]])if(text.includes(value))residue.push(`${name}:${what}`)}
+ check('PROBE whole database: no table names the erased person: '+residue.join(', '),residue.length===0);
+ check('PROBE receipt: uptime_agent_notifications counts each touched row once ('+erasure.receipt.counts.uptime_agent_notifications+' of '+notificationRows+')',erasure.receipt.counts.uptime_agent_notifications===notificationRows);
+ assert.deepEqual(problems,[],'the erasure leaves the person reachable:\n'+problems.join('\n'));
  console.log('PASS agent-door custody names no erased person after operator erasure; the other person\'s agent records are intact.');
 }finally{if(worker)await worker.dispose();await cleanupDirectory(directory)}

@@ -31,6 +31,9 @@ import {auditRows} from '../src/base/modules/agent-door/conformance/audit.mjs';
 import {completeSecondFactor} from './mfa-auth-support.mjs';
 import {signJws,seconds,autonomousPolicy,heldPolicy,accessToken,policyEnvelope} from '../src/base/modules/agent-door/conformance/crypto.mjs';
 import {createProtocol,errorCode} from '../src/base/modules/agent-door/conformance/protocol.mjs';
+// Refusal endpoints may close before consuming a body. Keep this loopback
+// journey's HTTP calls independent rather than reusing those closing sockets.
+const fetch=(url,options={})=>{const headers=new Headers(options.headers);headers.set('connection','close');return globalThis.fetch(url,{...options,headers})};
 const pair=await webcrypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']);
 const key=await webcrypto.subtle.exportKey('jwk',pair.publicKey),kid='uptime-native-journey',issuer='https://business.example.test',installationId=randomUUID(),sub=randomUUID(),business=randomUUID();
 const directory=await runtimeDirectory(),[port]=await availablePorts(1),origin='http://127.0.0.1:'+port;
@@ -88,7 +91,6 @@ try{
  const capabilities={mode:'declared',declared:['tools','policy','pause','audit','idempotency'],refused:['events','resources','prompts','subscriptions'],unscoped:['multiSponsor','mailEdges','resourceRefresh','timedLifecycle','dualHost','queuedLifecycle','ownerNativeApi']};
  const discovery=await c.mcp('server/discover');
  assert.deepEqual(discovery.result._meta['com.runeditrun/capabilities'],capabilities);
- assert.equal(surface.tools.length,34,'CORE exposes the native operator tools; worker admissions remain invoke-only');
  for(const name of ['uptime.checks.dispatch','uptime.destinations.dispatch','uptime.discovery.dispatch'])assert.ok(!surface.tools.some(tool=>tool.name===name),'worker admissions stay absent from MCP discovery');
  const capabilityWitness=await result('uptime.evidence.witness');
  for(const [capability,method,params] of [

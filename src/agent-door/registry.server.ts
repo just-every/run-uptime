@@ -1,3 +1,5 @@
+import {drillConsent,drillScheduleView,scheduleDrills} from '../domain/alert-drill-schedules.server.ts'
+import {executeScheduledDrill,remindDrillOwner,scheduledDrillRecord} from '../domain/alert-drill-scheduler.server.ts'
 import {destinationNameFence,outsideDestinationRoutes,destinationRouteValues} from './destination-name-effects.server.ts'
 import type {DestinationUpdateFence} from '../domain/notification-destinations.server.ts'
 import {manualCheckEffects,manualDebtSummary} from './manual-check-effects.server.ts'
@@ -55,6 +57,7 @@ async function actionSummary(env:Bindings,verb:string,title:string,a:any){
   else if(verb.startsWith('incidents.')){const incident=await findIncident(env,a.id);name='Incident for '+(await get(env,incident.monitor_id))?.definition.name}
   else {const m=await get(env,a.id);if(m){name=m.definition.name;items.push('Current monitor revision: '+m.revision)}}
  }
+ if(verb==='destinations.schedule_drills'&&typeof a.id==='string'){const consent=await drillConsent(env,a.id);if(consent){items.push('Company consent: '+consent.id,...summaryItems(JSON.parse(consent.config)));}}
  if(a.definition?.name&&verb!=='monitors.update')name=a.definition.name
  if(a.monitorIds)for(const id of a.monitorIds){const m=await get(env,id);items.push('Selected monitor: '+(m?.definition.name??id))}
  return {target:{...(typeof a.id==='string'?{id:a.id}:{}),name},items,...(recipients?{recipients}:{}),...(a.role?{role:a.role}:{})}
@@ -184,6 +187,18 @@ export function tools(env:Bindings):ToolDefinition[]{
   return row&&saved?.operationId?{id:row.delivery_id,operationId:saved.operationId}:null
  }
 
+
+ read('destinations.drill_schedule','Read consented drills and internal owner reminders',idSchema,['AGENT-004'],async(a,c)=>{await authority(env,c,'secret_write',[],undefined,true);await reads.destinationRead(env,c,a.id);return drillScheduleView(env,a.id)})
+ mutation('destinations.schedule_drills','Schedule drills within explicit company consent',schema({id:string,consent_id:string}),['external'],['AGENT-004'],async(a,c)=>{const access=await authority(env,c,'secret_write',[],undefined,true);await reads.destinationRead(env,c,a.id);return scheduleDrills({...env,DB:authorizedDatabase(env,access)},a.id,a.consent_id,delegation(c))},async(a,c)=>{await authority(env,c,'secret_write',[],undefined,true);await reads.destinationRead(env,c,String(a.id));const consent=await drillConsent(env,String(a.id));return [facts('external',{measure:consent?JSON.parse(consent.config).maxDrills:1,counterparty:'known'})]})
+ for(const reminder of [false,true]){
+  const tool=mutation(reminder?'destinations.remind_drill_owner':'destinations.run_scheduled_drill',reminder?'Record a due internal route-owner reminder':'Run one bounded consented drill',schema({id:string,schedule_id:string,...(reminder?{run_id:string,number:integer}:{due_at:integer})}),reminder?['standard']:['external'],['AGENT-004'],async(a,c)=>{
+   if(c.door!=='embedded')throw new ToolRefusal('runner_protocol_required')
+   const access=await authority(env,c,'secret_write',[],undefined,true),native={...env,DB:authorizedDatabase(env,access)}
+   return reminder?remindDrillOwner(native,a.id,a.schedule_id,a.run_id,a.number):executeScheduledDrill(native,a.id,a.schedule_id,a.due_at)
+  },async(a,c)=>{await authority(env,c,'secret_write',[],undefined,true);await reads.destinationRead(env,c,String(a.id));return [facts(reminder?'standard':'external',reminder?{}:{counterparty:'known'})]})
+  tool.exposure='invoke'
+  tool.continuationItem=async(a,c)=>{await reads.destinationRead(env,c,String(a.id));const row=await scheduledDrillRecord(env,String(a.id),String(a.schedule_id)),who=row?JSON.parse(row.principal):null;return who?.operationId?{id:reminder?`${row.id}:${a.run_id}:${a.number}`:`${row.id}:${a.due_at}`,operationId:who.operationId}:null}
+ }
  const memberSchema=schema({id:string,version:integer,role:{type:'string',enum:['admin','editor','responder','read-only']},scopes:{type:'array',maxItems:30,items:{type:'object',properties:{kind:{type:'string',enum:['service','team']},value:string},required:['kind','value'],additionalProperties:false}}})
  const memberChange=async(a:any)=>{const target=await env.DB.prepare('SELECT o.id,o.role,o.version,r.role product_role,r.revision FROM oa_operators o JOIN uptime_member_roles r ON r.operator_id=o.id WHERE o.id=?').bind(a.id).first<any>();if(!target)throw unavailable();const scopes=(await env.DB.prepare('SELECT kind,value FROM uptime_member_scopes WHERE operator_id=? ORDER BY kind,value').bind(a.id).all<any>()).results;const rank:any={owner:5,admin:4,editor:3,responder:2,'read-only':1};const widens=rank[a.role]>rank[target.product_role]||['service','team'].some(kind=>{const before=scopes.filter(s=>s.kind===kind).map(s=>s.value),after=a.scopes.filter((s:any)=>s.kind===kind).map((s:any)=>s.value);return before.length>0&&(!after.length||after.some((v:string)=>!before.includes(v)))});return {target,widens}}
  const members=mutation('access.update','Change a native member product role and service/team scopes',memberSchema,['access'],['ACCESS-001'],async(a,c)=>{const access=await authority(env,c,'members',[],undefined,true);if(access.kind==='credential')throw new ToolRefusal('insufficient_scope');const {target}=await memberChange(a),value=assignment({role:a.role,scopes:a.scopes});mayAssign(access,value,target);if(a.id===c.person.id)throw new ToolRefusal('another_administrator_required');if(target.revision!==a.version)throw new ToolRefusal('revision_conflict');

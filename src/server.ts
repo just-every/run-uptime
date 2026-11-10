@@ -1,3 +1,5 @@
+import {scheduledDrills} from './domain/alert-drill-scheduler.server.ts'
+import {drillReminderInbox,saveDrillConsent,revokeDrillConsent,drillScheduleView,declineDrillProposal} from './domain/alert-drill-schedules.server.ts'
 import {expireReplayCalls} from './base/modules/agent-door/index.ts'
 import {agentDoorResponse,uptimeAgentDoor} from './agent-door/index.server.ts'
 import {registerSourceHistory} from './domain/source-history/routes.server.ts'
@@ -344,6 +346,11 @@ api.patch('/api/notifications/destinations/:id',async c=>c.json(await updateDest
 api.delete('/api/notifications/destinations/:id',async c=>c.json(await erase(c.env,'destination',c.req.param('id'),{kind:'operator',ref:(await authenticatedSession(c.env,c.req.raw))!.operator.id})))
 api.post('/api/notifications/destinations/:id/rotate',async c=>c.json(await rotateDestination(c.env,c.req.param('id'),{kind:'operator',ref:(await authenticatedSession(c.env,c.req.raw))!.operator.id})))
 api.post('/api/notifications/destinations/:id/test',async c=>c.json(await testDestination(c.env,c.req.param('id')),202))
+api.get('/api/drill-reminders',async c=>c.json(await drillReminderInbox(c.env,(await operator(c)).ref)))
+api.get('/api/notifications/destinations/:id/drill-schedule',async c=>c.json(await drillScheduleView(c.env,c.req.param('id'),(await operator(c)).ref)))
+api.post('/api/notifications/destinations/:id/drill-schedule',async c=>c.json(await saveDrillConsent(c.env,c.req.param('id'),c.get('input'),(await operator(c)).ref),201))
+api.delete('/api/notifications/destinations/:id/drill-schedule',async c=>c.json(await revokeDrillConsent(c.env,c.req.param('id'),(await operator(c)).ref)))
+api.post('/api/notifications/destinations/:id/drill-schedule/runs/:runId/decline',async c=>c.json(await declineDrillProposal(c.env,c.req.param('id'),c.req.param('runId'),(await operator(c)).ref)))
 api.post('/api/notifications/destinations/:id/drill',async c=>c.json(await startDrill(c.env,c.req.param('id'),(await operator(c)).ref),202))
 api.post('/api/runner/notifications',async c=>c.json(await notificationRpc(c.env,c.get('input'))))
 // A failed mutation guard or a racing writer's constraint means the installation changed between reading and writing: a conflict.
@@ -424,7 +431,7 @@ const handler={async fetch(request,env,execution){
  }
  const response=await dispatch(request,()=>api.fetch(request,bindings,execution),()=>start.fetch(request));
  return noTransform(isConsoleDocument(path)?editorDocument(response,bindings):response)
-},async scheduled(_controller,env){env=await demoBindings(env as Bindings);await validateWorkerConfiguration(env as Bindings);const bindings=env as Bindings;await recordCronRun(bindings);await expireReplayCalls({options:{db:bindings.DB},now:Date.now});await maintenance(bindings);const checks=new SubrequestBudget(CHECK_SUBREQUESTS);await scheduledPublicChecks(bindings,checks);await scheduledNotifications(bindings,new SubrequestBudget(RUN_SUBREQUESTS-WATCH_SUBREQUESTS-(CHECK_SUBREQUESTS-checks.remaining)));await monitoringWatch(bindings,()=>boundedHealth(()=>health(bindings)),async()=>{const data=await overview(bindings);return data.monitors.filter(m=>m.definition.enabled).every(m=>m.state.targetState==='Healthy')})}} satisfies ExportedHandler
+},async scheduled(_controller,env){env=await demoBindings(env as Bindings);await validateWorkerConfiguration(env as Bindings);const bindings=env as Bindings;await recordCronRun(bindings);await expireReplayCalls({options:{db:bindings.DB},now:Date.now});await maintenance(bindings);await scheduledDrills(bindings);const checks=new SubrequestBudget(CHECK_SUBREQUESTS);await scheduledPublicChecks(bindings,checks);await scheduledNotifications(bindings,new SubrequestBudget(RUN_SUBREQUESTS-WATCH_SUBREQUESTS-(CHECK_SUBREQUESTS-checks.remaining)));await monitoringWatch(bindings,()=>boundedHealth(()=>health(bindings)),async()=>{const data=await overview(bindings);return data.monitors.filter(m=>m.definition.enabled).every(m=>m.state.targetState==='Healthy')})}} satisfies ExportedHandler
 export default withDemo({...handler,fetch(request,env,execution){
  return new URL(request.url).pathname==='/health'?boundedHealth(()=>handler.fetch(request,env,execution)):handler.fetch(request,env,execution)
 }} satisfies ExportedHandler,{seed:seedDemo})

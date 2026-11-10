@@ -13,6 +13,7 @@ const id={id:identity},source=(value:string)=>SOURCES.includes(value)
 const reportQuery={source:identity,...Object.fromEntries(['period','from','to','timeZone','zone','sla','slaTarget','bucket','location','rootCause'].map(name=>[name,(value:string)=>identity(value)&&value.length<=150])),format:(value:string)=>['csv','json','pdf'].includes(value)}
 const incidentQuery=Object.fromEntries(['source','monitor','tag','from','to','state','rootCause','cursor','limit'].map(name=>[name,identity]))
 export const apiRoutes:readonly Route[]=[
+ {method:'GET',path:'/api/drill-reminders',body:'none'},
  {method:'GET',path:'/api/routing/named-routes',body:'none'},
  {method:'POST',path:'/api/routing/named-routes',body:'object'},
  ...['preview','apply','undo'].map(action=>({method:'POST',path:'/api/catalog/routes/'+action,body:'object' as const})),
@@ -152,6 +153,10 @@ export const apiRoutes:readonly Route[]=[
  {method:'POST',path:'/api/notifications/destinations/:id/rotate',params:id,body:'empty'},
  {method:'POST',path:'/api/notifications/destinations/:id/test',params:id,body:'empty'},
  {method:'POST',path:'/api/notifications/destinations/:id/drill',params:id,body:'empty'},
+ {method:'GET',path:'/api/notifications/destinations/:id/drill-schedule',params:id,body:'none'},
+ {method:'POST',path:'/api/notifications/destinations/:id/drill-schedule',params:id,body:'object'},
+ {method:'DELETE',path:'/api/notifications/destinations/:id/drill-schedule',params:id,body:'none'},
+ {method:'POST',path:'/api/notifications/destinations/:id/drill-schedule/runs/:runId/decline',params:{...id,runId:uuid},body:'empty'},
 ]
 export class InputError extends Error{status=400}
 const refuse=(message:string)=>{throw new InputError(message)}

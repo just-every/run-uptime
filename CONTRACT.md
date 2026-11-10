@@ -1211,7 +1211,9 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 | `uptime.definitions.preview` | Recognize a native definition file without applying it | CODE-001 | standard | declared; unjudged |
 | `uptime.definitions.read` | Read redacted native definitions | CODE-001 | standard | declared; unjudged |
 | `uptime.destinations.drill` | Queue a native recipient-confirmed channel drill | DRILL-001 | external | declared; unjudged |
+| `uptime.destinations.drill_schedule` | Read consented drills and internal owner reminders | AGENT-004 | standard | declared; unjudged |
 | `uptime.destinations.read` | Read destination metadata without endpoint secrets | DELIVERY-001 | standard | declared; unjudged |
+| `uptime.destinations.schedule_drills` | Schedule drills within explicit company consent | AGENT-004 | external | declared; unjudged |
 | `uptime.destinations.test` | Queue an attributed native test send | NOTIFY-001 | external | declared; unjudged |
 | `uptime.destinations.update` | Update a native notification destination | NOTIFY-001 | standard, live, access | declared; unjudged |
 | `uptime.discovery.read` | Read a native discovery outcome | DISCOVERY-001 | standard | declared; unjudged |
@@ -1241,12 +1243,14 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 | `uptime.routes.read` | Read monitor alert routing | ROUTING-001 | standard | declared; unjudged |
 | `uptime.routes.update` | Apply an exact native alert-route preview | ROUTING-001 | live, external, access | declared; unjudged |
 
-**Worker admissions — outside the CORE door contract.** ct ruled at 2026-10-29T14:12Z that these are invoke-only and hidden from MCP. Published Base 0.2.93 carries writer `gr-base-0290-invokeonly-1`: `exposure: 'invoke'` is set on all three native definitions. They are absent from MCP discovery, calls and `agent-surface.json`; the 34 public native tools retain their existing classes and clause IDs. Native trusted operation identity and final-admission tests remain required. This closes the exposure dependency formerly recorded against `modules/agent-door/index.ts:32-33,55-62`, `transport.ts:38,45`, `pipeline.ts:33-34`, `registry.ts:10-38`; it does not declare the separate worker lifecycle family complete.
+**Worker admissions — outside the CORE door contract.** ct ruled at 2026-10-29T14:12Z that these are invoke-only and hidden from MCP. Published Base 0.2.93 carries writer `gr-base-0290-invokeonly-1`: `exposure: 'invoke'` is set on native worker definitions. They are absent from MCP discovery, calls and `agent-surface.json`; the existing public native tools retain their existing classes and clause IDs. Native trusted operation identity and final-admission tests remain required. This closes the exposure dependency formerly recorded against `modules/agent-door/index.ts:32-33,55-62`, `transport.ts:38,45`, `pipeline.ts:33-34`, `registry.ts:10-38`; it does not declare the separate worker lifecycle family complete.
 
 | Worker admission | Classes | Existing clause IDs |
 | --- | --- | --- |
 | `uptime.checks.dispatch` | external | NETWORK-001, PRIVATE-001 |
 | `uptime.destinations.dispatch` | external | DELIVERY-001, NOTIFY-001 |
+| `uptime.destinations.run_scheduled_drill` | external | AGENT-004 |
+| `uptime.destinations.remind_drill_owner` | standard | AGENT-004 |
 | `uptime.discovery.dispatch` | external | DISCOVERY-001 |
 
 **Retained capability obligations (ct 2026-10-29T14:12Z).** Renaming changes names only. Each row below retains its complete outcome, existing clause IDs and required class conditions. A native mapping identifies the entry points available today; it does not assert that their narrower implementation completes the outcome. An unmapped operation remains required and pending. The class rules and acceptance points below still govern all of this work. No clause judgment changes in this round.
@@ -1419,7 +1423,7 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 
 #### AGENT-004 — Keep alert routes accountable
 
-*Tier:* Core
+*Tier:* Core · *Cites:* BASE-ACCESS-002, BASE-ROLE-001, BASE-AGENT-012
 
 **Requirement.** With the company's consent an agent schedules channel drills inside the drill windows and USD phone budgets the company sets, checks credential expiry, separates provider acknowledgment from recipient confirmation and chases the internal route owner through the reminder policy the company sets. It proposes corrected routes and Oncall escalation for unresolved gaps. Messaging a new recipient, rotating a secret or calling a number carries its class (external, security, or external and money), which the company's policy decides within the agent's grant.
 
@@ -1497,8 +1501,8 @@ Judged from the code and tests at commit `67280b96d5401299f320c18baa225366d230ea
 | Clauses | Done | Partial | Missing | Total |
 | --- | ---: | ---: | ---: | ---: |
 | Published | 14 | 7 | 0 | 21 |
-| Target and push further | 22 | 52 | 20 | 94 |
-| All | 36 | 59 | 20 | 115 |
+| Target and push further | 23 | 51 | 20 | 94 |
+| All | 37 | 58 | 20 | 115 |
 
 
 | Clause | Title | Kind | Status | Evidence | Gap |
@@ -1603,7 +1607,7 @@ Judged from the code and tests at commit `67280b96d5401299f320c18baa225366d230ea
 | `AGENT-001` | Continuously maintain meaningful coverage | push-further | partial | `src/domain/discovery.server.ts`; `tests/discovery-jobs.mjs` | Reviewed one-shot discovery exists; continuous agent planning, analytics/deploy comparison and maintenance are absent. |
 | `AGENT-002` | Distinguish outage, network and broken check | push-further | partial | `src/domain/policy.mjs`; `src/domain/evidence.server.ts`; `tests/control-runtime.mjs` | Canary/network evidence exists; AI explanation and competing release/dependency investigation do not. |
 | `AGENT-003` | Repair browser drift without weakening intent | push-further | missing |  | No implementation; acceptance journey above is required. |
-| `AGENT-004` | Keep alert routes accountable | push-further | partial | `src/domain/alert-drills.server.ts`; `tests/alert-drill.mjs` | Owner-started consented one-shot drills ship; agent schedules, credential diagnosis and chasing do not. |
+| `AGENT-004` | Keep alert routes accountable | push-further | done | `tests/alert-drill.mjs` — agentDrillJourney, with `tests/agent-drill-schedules-support.mjs` — proveScheduledDrills: acceptance 1, explicit company consent, signed agent scheduling, bounded Cron execution, credential expiry, distinct provider acceptance and recipient confirmation, due assigned-owner inbox reminder, failed-channel evidence, proposed corrected route and Oncall, Settings at 1440 and 390; acceptance 2, native Settings decline followed by Cron preserves recipient jobs and credentials with no phone action or charge. proveScheduledDrills also checks consent revocation, destination erasure, captured replay and inactive archive restore; proveDrillSponsorErasure checks erased sponsor and captured archive cannot revive execution or erased attribution. | |
 | `AGENT-005` | Coordinate evidence handoff and verified recovery | push-further | partial | `src/domain/flow-changes.server.ts`; `src/domain/policy.mjs`; `tests/flow-journey.mjs` | Original-assertion recovery/changed-definition labeling exists; agent repair coordination, supported browser verification and sibling handoff do not. |
 | `BASE-AGENT-001` | One MCP door per seed | target | partial | `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: transport, discovery and capability refusals.; `tests/agent-oversize-support.mjs`; each 413 has no result or provider traffic and preserves all durable tables, including public-admission counters with delta zero; identical envelopes at the exact bound append one native revision, with held standard work creating its review.  (qualification pending; current judgment and gap retained) | Native MCP transport, both protocol eras and the declared CORE discovery pass the published 0.2.94 harness. Resources, prompts, events and subscriptions remain undeclared and refused; their complete capability acceptance is unproved. |
 | `BASE-AGENT-002` | The seed's jobs are tools, through the UI's own actions | target | partial | `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: tool schemas, annotations and native server actions. | The 34 declared native tools share the existing server services and pass schema, annotation, stable-refusal and both-policy journey checks. Retained unfinished Core jobs and UI parity for every target action remain unproved. |

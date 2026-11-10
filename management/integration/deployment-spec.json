@@ -528,6 +528,12 @@
       "name": "0085_incident_mention_dispatch.sql",
       "sha256": "19987ac3ef708548a04429e049b51007c40d3c2a64f53ae8ee58a4069c54a4f2",
       "sql": "-- Select the oldest never-reserved work without scanning retained send history.\nCREATE INDEX incident_mentions_pending_dispatch ON incident_mentions(created_at,id)\n WHERE outcome='pending' AND submitted_at IS NULL AND finished_at IS NULL;\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0086_alert_drill_schedules.sql",
+      "sha256": "3cdc7d47766d0c5780c986994b7eacd9e21fb7d13a3d2e4ada0d77e7b2dc7b0f",
+      "sql": "-- Installation-local consent and bounded agent work, never portable sending authority.\nCREATE TABLE alert_drill_consents(\n id TEXT PRIMARY KEY, destination_id TEXT NOT NULL, credential_id TEXT NOT NULL,\n issuer_id TEXT NOT NULL, owner_id TEXT NOT NULL, config TEXT NOT NULL,\n created_at INTEGER NOT NULL, revoked_at INTEGER\n);\nCREATE INDEX alert_drill_consent_destination ON alert_drill_consents(destination_id,created_at);\nCREATE TABLE alert_drill_schedules(\n id TEXT PRIMARY KEY, consent_id TEXT NOT NULL UNIQUE, principal TEXT NOT NULL,\n next_due INTEGER NOT NULL, drills INTEGER NOT NULL DEFAULT 0, state TEXT NOT NULL DEFAULT 'active'\n);\nCREATE TABLE alert_drill_runs(\n id TEXT PRIMARY KEY, schedule_id TEXT NOT NULL, due_at INTEGER NOT NULL, drill_id TEXT,\n code TEXT NOT NULL, proposal TEXT NOT NULL DEFAULT 'open', reminder_count INTEGER NOT NULL DEFAULT 0,\n next_reminder INTEGER NOT NULL, UNIQUE(schedule_id,due_at)\n);\nCREATE TABLE alert_drill_reminders(\n run_id TEXT NOT NULL, number INTEGER NOT NULL, owner_id TEXT NOT NULL, at INTEGER NOT NULL,\n PRIMARY KEY(run_id,number)\n);\n"
     }
   ],
   "compatibilityDate": "2026-09-08",
