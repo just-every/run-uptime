@@ -94,10 +94,19 @@ the door ends everything it derived from Business: no Business token is admitted
 answers 401 with its resource-metadata challenge and open subscriptions close on their next tick), a call admitted
 with a Business token (`Principal.source: 'business'`) that was held for approval or waiting for admission is refused
 as `sponsor_unavailable` without a native effect, and `person:` and `role:` approver and reviewer refs match nobody.
+A principal saved by rer 0.2.95 or earlier has no `source`; approval execution treats one that has a `consent` id and was not
+held through the embedded door as Business-admitted (those versions admitted a Business token only with a consent id and
+never gave a local credential one), so such an approval ends with its Business too, with no migration.
 `sponsor` refs, seed credentials, native sessions and embedded invocations are unchanged, and the subject mapping
 stays, so a validly signed envelope that names Business people is still adopted and its Pause and revoked lists apply.
-`PeopleAdapter.businessStopped()` carries the stop; `operatorAuthPeople` reads `bs_settings.stopped`, and an adapter
-that omits it is never stopped. A signed envelope may include
+`PeopleAdapter.businessStopped()` is required; `operatorAuthPeople` reads `bs_settings.stopped`,
+including in Base's maintained seed. Business token admission, `person:`/`role:` reference resolution,
+held Business calls and signed decision-relay pulls require this reader to positively return `false`.
+A missing or non-function method, thrown or rejected read, `true`, `undefined` or any nonboolean answer
+uses the same refusal as a stopped Business: token admission returns 401, references match nobody,
+held calls refuse `sponsor_unavailable`, and the relay returns empty 404. Adoption conformance checks
+all four paths after signed detachment with the old policy and trust retained. This runtime correction
+needs no migration and leaves the default seed adapter's behavior unchanged. A signed envelope may include
 `revoked: { agents: string[], consents: string[] }`; these refuse the next call
 and expire affected pending approvals. Business delivery of those lists remains
 platform work.
@@ -120,7 +129,16 @@ where `revision` can be null. Resources also contribute declared classes. A
 Business rule with `max_per_day` must name a `seed`; unscoped daily limits are
 refused as `policy_document_invalid` with the rule's `.seed` path, because this
 installation cannot reserve company-wide usage. A named `person:` ref must
-resolve to an active mapped Business person at adoption. Paired approver and
+resolve to an active mapped Business person at adoption or have a recorded retirement.
+Retired references match nobody and never remove a required approval. The signed
+envelope remains verbatim until Business delivers a policy without the reference;
+only the value-free suppression digest/marker persists across archive restore.
+Unsigned local policy and stored copies use the erasure marker, including late
+writes. Operator erasure uses `retire: { refs }` and `operatorPolicyRefs` in the
+native batch; see ADOPTING.md for selectors and retention reporting.
+`GET /agents/api/state` reports `policy.pending_retirement`, the number of
+distinct retired approver/reviewer references still in force. The Agents page
+shows a replacement notice with the Business policy link or local editor. Paired approver and
 reviewer refs use Business member ids and roles, independent of native roles. Invalid input leaves the last valid state intact.
 Expired adopted policy refuses agent work; unpairing uses the retained local
 document, or leaves policy unset. Adoption delivery and the paired computer's
@@ -172,12 +190,17 @@ its first Business. Audit, approval and review changes replace its sequence,
 including native erasure. Erased projections contain exactly
 `{id,seq,at,erased:true,tool,classes,disposition,agent}`. The feed retains no
 subject payload. Re-pairing cannot expose an old Business's feed to a new one.
-The Business-held projection is an external store: a tombstone replaces its
-whole live row; stop, unpairing, authority loss, an unsupported route, a rewind
-or 30 days without a successful pull purge that installation's copy. The seed
-feed is never trimmed and can rebuild that copy from cursor zero. This is
-seed-side support for BASE-AGENT-009; platform readers and seed adoption need
-their own evidence.
+The Business holds only the public projection for each relayed decision: the
+17 keys above, including raw resource URIs for records the decision touched.
+Only the owner of the Business can read this external copy. Record erasure
+purges the live projection through a tombstone pull, replacing its whole row
+with the erased form. Unpairing, re-pairing or stopping the seed, authority loss,
+an unsupported route, a rewind or 30 days without a successful pull purge that
+installation's Business copy. The seed keeps no additional copy beyond its own
+audit and the bounded relay feed (one row per decision). The feed is never
+trimmed and can rebuild the Business copy from cursor zero. This is seed-side
+support for BASE-AGENT-009; platform readers and seed adoption need their own
+evidence.
 
 Approval produces `resultType:"input_required"`, opaque `requestState`, and,
 when the client advertises URL elicitation, an `inputRequests` map whose

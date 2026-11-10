@@ -19,6 +19,7 @@ export const uptimeAgentArtifacts:AgentArtifactMap={artifacts:[
  {table:'agent_door_reviews',columns:['id','state','saved','marked_by','marked_at'],match:match(`json_extract(saved,'$.decision_id') IN (${decisions}) OR ${reviews}`)},
  {table:'agent_door_events',columns:['sequence','id','uri','event'],match:match(`${mentions('agent_door_events',['uri','event'])} OR json_extract(event,'$.decision_id') IN (${decisions})`)},
  {table:'agent_door_usage',columns:['decision_id','at','seed','specialist','agent','classes'],match:match(`decision_id IN (${decisions}) OR ${mentions('agent_door_usage',['classes'])}`)},
+ {table:'agent_door_retired_refs',columns:['digest','marker'],unrelated:'Value-free suppression digests and erasure markers preserve retirement across restore.'},
  {table:'agent_door_replay_aliases',columns:['agent','alias','call_id','tombstone'],unrelated:'Installation-private value-free replay aliases; fixed call expiry, excluded from export and restore.'},
 ]}
 // This is an external custody declaration, not a provider or outbound sender.

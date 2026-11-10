@@ -72,11 +72,15 @@ export const installationLocalTables:Record<string,string>={
  rer_dependency_codes:'Installation one-use link handshake digests.',rer_dependency_installation:'Installation sector identity for the optional Auth link.',rer_dependency_keys:'Installation private link key; never exported.',rer_dependency_link:'Installation provider link record; a restored installation must link again.',rer_dependency_pending:'Installation pending link approvals; expire.',
  oc_idp_grants:'Installation one-use provider owner-claim grant ledger.',
 };
+/** Base-owned tables that travel through the installation archive itself, so they must never join installationLocalTables or any portability exclusion. */
+export const installationArchiveTables:Record<string,string>={
+ agent_door_retired_refs:'Value-free suppression digests and erasure markers keep an erased person reference retired across restore; they travel in the installation archive.',
+};
 /** SQLite's own sqlite_% tables and Cloudflare's _cf_% tables (real D1 adds _cf_KV and others) belong to the platform: never exported, never restored into, never refused. GLOB keeps the underscore literal. */
 export async function assertArchiveInventory(db:D1Database){
  await checkAgentArtifacts(db,uptimeAgentArtifacts);
  const rows=await db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT GLOB '_cf_*' ORDER BY name").all<{name:string}>();
- for(const {name} of rows.results)if(!name.startsWith('rer_portability_')&&!TABLES.includes(name)&&!Object.hasOwn(installationLocalTables,name))throw Error(`Archive unclassified table: ${name}`);
+ for(const {name} of rows.results)if(!name.startsWith('rer_portability_')&&!TABLES.includes(name)&&!Object.hasOwn(installationLocalTables,name)&&!Object.hasOwn(installationArchiveTables,name))throw Error(`Archive unclassified table: ${name}`);
  const sourceColumns:Record<string,string[]>={...columns,notification_destinations:['id','name','kind','enabled','credential_id','created_at','deleted_at','webhook_template'],notification_jobs:[...columns.notification_jobs,'credential_id','claim','claim_until'],integration_deliveries:[...columns.integration_deliveries,'fingerprint','destination_hash','claim','claim_until'],integration_replays:[...columns.integration_replays,'fingerprint']};
  const schemas=await db.batch(TABLES.map(name=>db.prepare(`PRAGMA table_info(${name})`)));
  for(let i=0;i<TABLES.length;i++){const name=TABLES[i],actual=schemas[i].results.map((r:any)=>r.name).sort().join(',');if(actual!==sourceColumns[name].slice().sort().join(','))throw Error(`Archive unsupported table columns: ${name}`)}

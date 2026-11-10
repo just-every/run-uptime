@@ -1,3 +1,4 @@
+import { retire } from './retired-refs.ts'
 import { REPLAY_WINDOW_MS } from './erasure.ts'
 import type { SavedApproval, ApprovalMark } from './approvals.ts'
 import type { Runtime } from './types.ts'
@@ -13,6 +14,7 @@ import { canonical } from './policy/document.ts'
 import { policyRefusal, policyState } from './policy-store.ts'
 import { savedTool } from './resource-tool.ts'
 import { nativeTarget } from './target.ts'
+import { savedPrincipal } from './principal.ts'
 
 /** This person request executes once and has an audit separate from the held call. */
 export async function executeApproval(rt: Runtime, id: string, saved: SavedApproval, approvals: ApprovalMark[]) {
@@ -26,7 +28,7 @@ export async function executeApproval(rt: Runtime, id: string, saved: SavedAppro
   const by = [...new Set(approvals.map(mark => mark.person))]
   const approvers: Array<{ id: string; name: string }> = []
   try {
-    let principal = await livePrincipal(rt, { ...saved.principal, operationId: saved.principal.operationId ?? saved.decision_id, idempotencyKey: saved.key }), state = await policyState(rt)
+    let principal = await livePrincipal(rt, savedPrincipal({ ...saved.principal, operationId: saved.principal.operationId ?? saved.decision_id, idempotencyKey: saved.key }, saved.door)), state = await policyState(rt)
     const tool = savedTool(rt, saved.tool, saved.args), scopes = principal?.scopes ?? []
     if (tool?.authority === 'none') row.authority = 'none'
     const refusal = policyRefusal(rt, state, tool?.classes)
@@ -107,10 +109,11 @@ export async function executeApproval(rt: Runtime, id: string, saved: SavedAppro
   if (result.outcome === 'done') result.receipt = { id: crypto.randomUUID(), decision_id: saved.decision_id, approval_id: id, prepared_by: preparedBy(saved.principal), approved_by: by }
   result.execution_id = row.id
   const state = result.outcome === 'done' ? 'executed' : 'refused'
+  const stored = await retire(rt.options.db, result)
   // Keep the recorded outcome durable before attempting the final audit write.
   await rt.options.db.batch([
-    rt.options.db.prepare("UPDATE agent_door_approvals SET state=?,result=? WHERE id=? AND json_extract(saved,'$.tombstone') IS NULL").bind(state, JSON.stringify(result), id),
-    ...(saved.key === null ? [] : [rt.options.db.prepare('UPDATE agent_door_calls SET state=?,outcome=?,expires_at=coalesce(expires_at,?) WHERE agent=? AND key=?').bind(result.outcome, JSON.stringify(result), rt.now() + REPLAY_WINDOW_MS, saved.principal.agent.id, saved.claimKey ?? saved.key)]),
+    rt.options.db.prepare(`UPDATE agent_door_approvals SET state=?,result=${stored.sql} WHERE id=? AND json_extract(saved,'$.tombstone') IS NULL`).bind(state, stored.value, id),
+    ...(saved.key === null ? [] : [rt.options.db.prepare(`UPDATE agent_door_calls SET state=?,outcome=${stored.sql},expires_at=coalesce(expires_at,?) WHERE agent=? AND key=?`).bind(result.outcome, stored.value, rt.now() + REPLAY_WINDOW_MS, saved.principal.agent.id, saved.claimKey ?? saved.key)]),
   ])
   if (row.outcome === 'running') row.outcome = result.outcome
   outcomeRow(row, result); row.approval = { id, by }

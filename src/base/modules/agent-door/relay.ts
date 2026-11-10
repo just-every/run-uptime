@@ -1,3 +1,4 @@
+import { businessRunning } from './business-state.ts'
 import { verifyJws } from './credentials.ts'
 import { error, json } from './errors.ts'
 import type { AuditRow } from './audit.ts'
@@ -65,7 +66,7 @@ export async function relayDecisions(rt: Runtime, request: Request): Promise<Res
     !Number.isSafeInteger(value.limit) || Number(value.limit) < 1 || Number(value.limit) > 200 ||
     !Number.isSafeInteger(value.iat) || !Number.isSafeInteger(value.exp) || !Number.isFinite(seconds) ||
     Number(value.iat) > seconds + 30 || Number(value.exp) <= seconds || Number(value.exp) <= Number(value.iat) || Number(value.exp) - Number(value.iat) > 60) return error('relay_unauthenticated', 401)
-  if (await rt.options.people.businessStopped?.()) return new Response(null, { status: 404 })
+  if (!await businessRunning(rt.options.people)) return new Response(null, { status: 404 })
   // One snapshot and one indexed feed range read, including empty pages and the
   // current pairing. Join only public state from approvals and reviews.
   const records = (await db.prepare(`SELECT context.business,head.head,feed.sequence,a.row,
@@ -79,12 +80,17 @@ export async function relayDecisions(rt: Runtime, request: Request): Promise<Res
     ORDER BY feed.sequence`).bind(value.business, value.business, value.after, value.limit).all<FeedRow>()).results
   if (records[0]?.business !== value.business) return new Response(null, { status: 404 })
   const head = records[0]!.head, decisions: ReturnType<typeof project>[] = []
-  let cursor = Number(value.after)
+  let cursor = Number(value.after), decisionBytes = 0
   for (const record of records) {
     if (record.sequence === null || record.row === null) continue
     const decision = project(record, now)
-    const page = { decisions: [...decisions, decision], cursor: record.sequence, head, more: record.sequence < head }
-    if (encoder.encode(JSON.stringify(page)).byteLength > 65536) break
+    const bytes = encoder.encode(JSON.stringify(decision)).byteLength
+    // An empty envelope includes the brackets; each preceding decision adds one
+    // comma. Measure cursor/more for this candidate so page edges stay identical.
+    const envelope = { decisions: [], cursor: record.sequence, head, more: record.sequence < head }
+    const size = encoder.encode(JSON.stringify(envelope)).byteLength + decisionBytes + decisions.length + bytes
+    if (size > 65536) break
+    decisionBytes += bytes
     decisions.push(decision); cursor = record.sequence
   }
   return json({ decisions, cursor, head, more: cursor < head })
