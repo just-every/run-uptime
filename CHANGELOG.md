@@ -1,5 +1,44 @@
 # Changelog
 
+## 0.5.3 — 2026-11-10
+
+Patch release from `main`; previous version 0.5.2. It moves Uptime to `@runeditrun/rer` 0.2.106 and makes a company's agent decision feed stricter about privacy: a company that has been stopped or detached can no longer pull decisions, and an older approval waiting on a stopped company is refused. One additive migration (`0088_agent_door_retired_refs_relay_privacy.sql`); no new required settings. Monitors, history, incidents, destinations and private settings are kept on upgrade.
+
+Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png), taken on 0.4.0, before the console changes of 0.5.0, 0.5.1, 0.5.2 and 0.5.3.
+
+### Back up first
+
+Back up while you are still on 0.5.2. Migration `0088` adds a table and replaces two database triggers, and it removes any decision-feed entry that was filed for the wrong company (see below); it cannot be undone. On a hosted installation, download the product archive from **Settings › Backup and files** and back up the database with `npx wrangler d1 export <database> --remote --output exports/<database>.sql`. On your own computer, stop dev and run `rer export --output exports/uptime.rer`. Keep `.rer/deploy` and your private settings. Downloading a backup asks for a second factor verified in the last five minutes.
+
+### Company agents and privacy
+
+- **A stopped or detached company can no longer pull decisions.** Uptime's agent decision feed now answers a company only while Uptime can positively tell that the company is running. If the company is stopped, or its signed settings say it is detached, the feed answers with an empty refusal, no company token is accepted, and no person or role the company named can approve anything.
+- **Older approvals from a stopped company are refused.** An approval that was saved before an agent's company was recorded on it, and that was waiting on a company that has since stopped, is now refused as unavailable instead of running. The monitor it would have changed stays as it was. Approvals for work that did not come through the company are not affected.
+- **One company's decisions no longer appear in another's feed.** If an installation was re-paired to a new company while an approval from the old one was still pending, that approval's result could be filed in the new company's feed. Migration `0088` removes only those entries; every audit record is kept. The new company's feed no longer includes anything about the old one.
+- **Erased people stay erased through a restore.** A new table keeps a value-free marker for each erased person reference, so the reference stays retired when an installation archive is restored. The installation archive carries the table and your backup includes it.
+
+### rer 0.2.106
+
+- **Deploy rehearsal.** `rer deploy --dry-run` finishes cleanly: it prints its plan, lists what a real deploy still needs (including your owner name) and changes nothing.
+- **Setup token.** Retiring the one-time setup token on a hosted installation no longer stops when Cloudflare returns only part of its list.
+- **Sign-in link.** `rer signin` prints the link for an installation on a custom domain.
+- **Run page badge.** The self-host card on the `/run` page now reads **On your computer** instead of **100% free**. It appears the next time the Run site is deployed.
+
+### Upgrading from 0.5.2
+
+Migration `0088_agent_door_retired_refs_relay_privacy.sql` is applied by a deploy. It creates the retired-reference table, removes only the cross-company decision-feed entries described above and replaces two relay triggers. It deletes no audit record, monitor, incident or setting.
+
+- Your checkout pins `@runeditrun/rer` to exactly 0.2.106. Update an existing checkout with `pnpm install --frozen-lockfile`.
+- Nothing in your settings changes. A company's agent decision feed starts answering again only while its company is running.
+
+### Known issues
+
+- A company-signed team roster still names a person you have erased. Erasing a member does not rewrite the signed roster the company sent, so that roster keeps the person's name until a later rer release changes how it is kept.
+- A company that has signed an agent policy but has never sent any company settings is treated as running: its decision feed answers with an empty page instead of a refusal. No company token is accepted and no decision is shared in that state.
+- `rer deploy --dry-run` prints its closing "Needed for a real deploy" block twice. It is only repeated text.
+- A response body larger than 64 KiB fails the check as a target failure (`body-limit`), even when the status is correct. Point a monitor at a smaller page, such as a health endpoint, until a later release reads large pages.
+- The limits listed under 0.4.0, 0.5.0, 0.5.1 and 0.5.2 still apply: hosted heartbeat evaluation needs a private runner, hosted Worker checks cannot pin connections, a member who is not the owner and has enrolled a second factor still verifies each new sign-in with the command line, and many features are partial; see the Status table in [CONTRACT.md](CONTRACT.md).
+
 ## 0.5.2 — 2026-11-10
 
 Patch release from `main`; previous version 0.5.1. It fixes erasing a person whose agent has worked in Uptime: the person's name is now removed from what the agent did, and the owner's archive export and backup work again once an agent has acted. It also lets a company's agent schedule alert-destination drills within limits the owner consents to. Two additive migrations (`0086_alert_drill_schedules.sql` and `0087_agent_actor_refs.sql`); no new required settings. `@runeditrun/rer` stays pinned to exactly 0.2.96. Monitors, history, incidents, destinations and private settings are kept on upgrade; migration `0087` rewrites some stored audit labels (see below).
