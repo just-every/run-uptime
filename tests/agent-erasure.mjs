@@ -57,9 +57,9 @@ try{
 
  // Ordinary agent work writes history outside the agent tables: the incident timeline, the route history, the portable audit.
  const http=nativeHttp({request:fetch,origin,cookie}),{incident,observedMonitor}=await prepareIncident(http);
- const watched=await native('/api/monitors/'+observedMonitor.id);
+ const current=async()=>(await native('/api/overview')).monitors.find(m=>m.id===observedMonitor.id),watched=await current();
  await native('/api/monitors/'+observedMonitor.id,{...watched.definition,enabled:true},'PATCH');
- const live=await native('/api/monitors/'+observedMonitor.id),window=()=>{const startsAt=Date.now()+86400000;return {id:'erasure-'+randomUUID(),name:'Agent erasure maintenance',mode:'suppress',timeZone:'UTC',startsAt,endsAt:startsAt+3600000}};
+ const live=await current(),window=()=>{const startsAt=Date.now()+86400000;return {id:'erasure-'+randomUUID(),name:'Agent erasure maintenance',mode:'suppress',timeZone:'UTC',startsAt,endsAt:startsAt+3600000}};
  const work=async(who,toolName,args)=>{const answer=await who.tool(toolName,{...args,idempotency_key:randomUUID()});assert.equal(answer.result?.isError,false,toolName+': '+errorCode(answer));return answer.result.structuredContent};
  const applied=async(who,monitor)=>{
   const input={monitorIds:[monitor],window:window()},preview=await work(who,'uptime.maintenance.preview',input);
@@ -108,7 +108,7 @@ try{
 
  // PROBE: the history the agents wrote names no erased person anywhere, in the database or in any read the owner can make.
  const label=(await db.prepare("SELECT json_extract(row,'$.label') label FROM agent_door_audit WHERE agent=? LIMIT 1").bind(erased.agentId).first()).label,nameless=text=>!text.includes(canaries.name)&&!text.includes(canaries.email)&&!text.includes(other.id)&&!text.includes(label);
- const reads={incident:'/api/v1/incidents/'+incident.id,incidentConsole:'/api/incidents/'+incident.id,route:`/api/monitors/${theirs.id}/alert-route`,overview:'/api/overview',monitor:'/api/monitors/'+theirs.id};
+ const reads={incident:'/api/v1/incidents/'+incident.id,incidentConsole:'/api/incidents/'+incident.id,route:`/api/monitors/${theirs.id}/alert-route`,overview:'/api/overview',monitorIncidents:`/api/monitors/${theirs.id}/incidents`};
  for(const [name,path] of Object.entries(reads)){const response=await fetch(origin+path,{headers:{cookie,origin}});check(`PROBE ${name}: ${path} (${response.status}) names the erased person`,response.status===200&&nameless(await response.text()))}
  const timeline=(await native(reads.incident)).timeline??[];
  check('PROBE incident dialog: the agent\'s acknowledge and pause entries stay as an anonymous agent and a former member',['acknowledged','pause_applied'].every(kind=>timeline.some(entry=>entry.kind===kind&&entry.actor.kind&&nameless(JSON.stringify(entry)))));
