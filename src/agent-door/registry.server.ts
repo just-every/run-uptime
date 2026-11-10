@@ -13,6 +13,7 @@ import {testDestination} from '../domain/notifications.server.ts'
 import {startDrill} from '../domain/alert-drills.server.ts'
 import {mutationGuard} from '../domain/audit.server.ts'
 import {delegation} from './work.server.ts'
+import {agentActorRef} from '../domain/agent-actor.ts'
 import {claimAdmittedAttempt} from '../domain/attempts.server.ts'
 import {nativeProof} from './proof.server.ts'
 import {requestNeedsStepUp} from '../domain/mfa/policy.server.ts'
@@ -38,7 +39,8 @@ const schema=(properties:Record<string,any>,required=Object.keys(properties)):Js
 const idSchema=schema({id:string})
 const facts=(cls:ClassId,extra:object={}):ClassAndFacts=>({class:cls,facts:{measure:1,...extra}})
 export const notTools=[{clauses:['PRIVATE-001'],reason:'device' as const},{clauses:['IMPORT-001','CODE-001'],reason:'import-door' as const},{clauses:['API-004'],reason:'screen' as const}]
-const actor=(ctx:ToolContext)=>({kind:'feature' as const,ref:ctx.actor.label,delegation:delegation(ctx)})
+// The audit actor is the agent's own identifier; the sponsoring person lives only in the saved delegation (redacted by erasure).
+const actor=(ctx:ToolContext)=>({kind:'feature' as const,ref:agentActorRef(ctx.agent.id),delegation:delegation(ctx)})
 async function current(env:Bindings,ctx:ToolContext,id:string){await authority(env,ctx,'read',[id]);const row=await get(env,id);if(!row)throw unavailable();return row}
 // Native HTTP responses serialize optional fields away. The tool boundary
 // returns that same JSON value before Base validates its output schema.
@@ -204,7 +206,7 @@ export function tools(env:Bindings):ToolDefinition[]{
  const members=mutation('access.update','Change a native member product role and service/team scopes',memberSchema,['access'],['ACCESS-001'],async(a,c)=>{const access=await authority(env,c,'members',[],undefined,true);if(access.kind==='credential')throw new ToolRefusal('insufficient_scope');const {target}=await memberChange(a),value=assignment({role:a.role,scopes:a.scopes});mayAssign(access,value,target);if(a.id===c.person.id)throw new ToolRefusal('another_administrator_required');if(target.revision!==a.version)throw new ToolRefusal('revision_conflict');
   const extra=(statements:{sql:string;values:any[]}[])=>statements.some(s=>s.sql.startsWith('UPDATE oa_operators SET role='))?assignments(env,'id=?',[a.id],value):[];
   const configured={...env,DB:authorizedDatabase(env,access,extra)};
-  if(target.role!==baseRole(a.role))await operatorAuth(configured).delegatedAdministration({personId:c.person.id,auditLabel:c.actor.label,agentId:c.agent.id}).setRole(a.id,baseRole(a.role));
+  if(target.role!==baseRole(a.role))await operatorAuth(configured).delegatedAdministration({personId:c.person.id,auditLabel:agentActorRef(c.agent.id),agentId:c.agent.id}).setRole(a.id,baseRole(a.role));
   else await authorizedDatabase(env,access).batch([mutationGuard(env,'EXISTS(SELECT 1 FROM oa_operators o JOIN uptime_member_roles r ON r.operator_id=o.id WHERE o.id=? AND o.version=? AND r.revision=?)',[a.id,target.version,a.version]),...assignments(env,'id=?',[a.id],value)]);
   return {id:a.id,role:a.role,scopes:a.scopes}
  },async(a,c)=>{await authority(env,c,'members',[],undefined,true);return [facts('access',{direction:(await memberChange(a)).widens?'widens':'narrows'})]},async(a)=>{const row=await env.DB.prepare('SELECT revision FROM uptime_member_roles WHERE operator_id=?').bind(a.id).first<{revision:number}>();return row?.revision??null})

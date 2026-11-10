@@ -86,6 +86,25 @@ try{
  const keeperDoor=async()=>Object.fromEntries(await Promise.all(['agent_door_agents','agent_door_audit','agent_door_calls'].map(async table=>[table,(await db.prepare(`SELECT * FROM ${table} WHERE ${table==='agent_door_agents'?'id':'agent'}=? ORDER BY rowid`).bind(keeper.agentId).all()).results]))),keptDoor=await keeperDoor();
  const label=(await db.prepare("SELECT json_extract(row,'$.label') label FROM agent_door_audit WHERE agent=? AND json_extract(row,'$.label') IS NOT NULL LIMIT 1").bind(erased.agentId).first()).label;
  assert.ok(label.includes(canaries.name),'the door audit labels the erased person\'s agent with the person');
+ // Rows an earlier release wrote name the person as the audit actor. The upgrade rewrites them in place; erasure rewrites any that arrive later.
+ const legacyRows=async()=>{
+  const route=(await db.prepare('SELECT * FROM alert_route_changes WHERE scope_value=? LIMIT 1').bind(theirs.id).first()),pause=await db.prepare("SELECT * FROM incident_timeline WHERE kind='pause_applied' LIMIT 1").first();
+  assert.ok(route&&pause,'the agent\'s route change and pause are on record');
+  await db.batch([
+   db.prepare("INSERT INTO uptime_audit(id,actor_kind,actor_ref,occurred_at,action,subject_kind,subject_ref) VALUES(?,'feature',?,?,'maintenance_apply','monitor',?)").bind(randomUUID(),label,Date.now(),theirs.id),
+   db.prepare('INSERT INTO alert_route_changes(id,scope_kind,scope_value,previous_policy,current_policy,changed_at,actor_ref) VALUES(?,?,?,?,?,?,?)').bind(randomUUID(),route.scope_kind,route.scope_value,route.previous_policy,route.current_policy,Date.now(),label),
+   db.prepare('INSERT INTO incident_timeline(id,incident_id,monitor_id,occurred_at,actor_id,kind,data) VALUES(?,?,?,?,NULL,?,?)').bind(randomUUID(),pause.incident_id,pause.monitor_id,Date.now(),'pause_applied',JSON.stringify({...JSON.parse(pause.data),feature:label})),
+   db.prepare('INSERT INTO oa_auth_audit(id,actor_id,action,value,created_at) VALUES(?,?,?,?,?)').bind(randomUUID(),'agent:'+erased.agentId,'set_role',JSON.stringify({operatorId:sponsor.id,detail:null,actor:label,for:other.id}),Date.now())]);
+ };
+ const rowCount=async()=>Object.fromEntries(await Promise.all(['uptime_audit','alert_route_changes','incident_timeline'].map(async table=>[table,(await db.prepare(`SELECT COUNT(*) n FROM ${table}`).first()).n])));
+ await legacyRows();
+ const populated=await rowCount(),upgrade=readFileSync('migrations/'+readdirSync('migrations').find(file=>file.endsWith('_agent_actor_refs.sql')),'utf8').split('\n').filter(line=>line&&!line.startsWith('--'));
+ check('PRECONDITION: an installation holding a label row cannot export before the upgrade',(await exportable()).status===400);
+ for(const sql of upgrade)await db.prepare(sql).run();
+ check('PROBE upgrade: every populated row and count is kept',JSON.stringify(await rowCount())===JSON.stringify(populated));
+ check('PROBE upgrade: no audit, route or timeline row names the label',(await db.prepare("SELECT (SELECT COUNT(*) FROM uptime_audit WHERE instr(actor_ref,?)>0)+(SELECT COUNT(*) FROM alert_route_changes WHERE instr(actor_ref,?)>0)+(SELECT COUNT(*) FROM incident_timeline WHERE instr(data,?)>0) n").bind(label,label,label).first()).n===0);
+ check('PROBE upgrade: the owner can export again',(await exportable()).status===200);
+ await legacyRows();
  const notificationRows=(await db.prepare("SELECT COUNT(*) n FROM uptime_agent_notifications WHERE instr(principal,?)>0 OR delivery_id IN(SELECT id FROM notification_jobs WHERE json_extract(event,'$.preparedBy.for.id')=?)").bind(other.id,other.id).first()).n;
  const erasure=await native(`/api/operators/${other.id}/erase`,{});assert.equal(erasure.erased,true);
  // PROBE: the control read, the monitor page's own data and every table are redacted at once.
