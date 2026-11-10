@@ -1,5 +1,63 @@
 # Changelog
 
+## 0.5.1 — 2026-11-10
+
+Patch release from `main`; previous version 0.5.0. It fixes sign-in for an owner who has enrolled a second factor: the console now asks for it instead of showing Access denied. It also adds alert-route teams, filters, business hours and a route drill to the console, export of a chosen set of monitors, tooltips on icon-only controls and more of the agent door, and it proves recurring maintenance across a clock change. Two additive migrations (`0084_agent_door_relay.sql`, `0085_incident_mention_dispatch.sql`); no new required settings. `@runeditrun/rer` is pinned to exactly 0.2.96. Monitors, history, incidents, destinations and private settings are kept on upgrade.
+
+Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png), taken on 0.4.0, before the console changes of 0.5.0 and 0.5.1.
+
+### Back up first
+
+Back up while you are still on 0.5.0. On a hosted installation, download the product archive from **Settings › Backup and files** and back up the database with `npx wrangler d1 export <database> --remote --output exports/<database>.sql`. On your own computer, stop dev and run `rer export --output exports/uptime.rer`. Keep `.rer/deploy` and your private settings. Downloading a backup asks for a second factor verified in the last five minutes.
+
+### Sign-in
+
+- **The owner is asked for the enrolled second factor at sign-in.** In 0.5.0, an owner who had enrolled a second factor ended on **Access denied** at the console, and on raw `second_factor_required` text at setup. Now, after the email link, the owner sees **Verify your second factor** at the address they opened: a console page, setup or an evidence page. Enter the authenticator app's current code or one recovery code, or use a passkey, and the console opens at that same address. A wrong code, or a code already used, is refused. **Sign out** leaves the step.
+- **Opening the app from the Lobby, or an alert drill link, reaches the same step.** The sign-in and login pages send a signed-in owner who still owes the factor to it, and an alert drill link shows the step instead of raw text.
+- Nothing else about access changed. Until the session is verified, every private page and API still refuses it, a sensitive action still needs a factor verified in the last five minutes, and a member who is not the owner still sees Access denied. A member who has enrolled a second factor still verifies each new sign-in with the commands in [Second factors](docs/mfa.md); the console does not offer them the step yet.
+
+### Alerts and routing
+
+- **Teams, filters and business hours on a monitor's alert route.** The route editor on the monitor page now sets the teams to tell, an environment, severity, check-location and origin filter, and the route's quiet hours: a daily window, or business hours, which tell people only inside an opening window on the weekdays you tick and hold every other time. Editing a route in the console keeps the teams already saved on it. **Settings › Alerts** manages teams and each person's own opt-in to alerts. A location filter names a monitor's configured check location.
+- **Check and drill a route.** The route editor's check panel shows who would be told now. **Drill** then sends one clearly labelled drill with an acknowledgement link to each contact who would be told at this moment; excluded contacts, contacts held by quiet hours and fallback contacts are never messaged. It needs the same authority as a drill of a single destination.
+- A two-team journey with production and staging routes is proven through the console, including real outages for each team. Alert routing is still partly built: expiry and renewal notices do not follow routes, geographic routing is not qualified and a managed geography does not exist yet.
+
+### Maintenance
+
+- **Recurring maintenance across a clock change.** A recurring window set in the America/New_York time zone for Sunday 01:30, across the November clock change, is now proven end to end: no alert while a failing monitor is inside it, no stray recovery, the observations kept, and the window ends or is cancelled on time. This proof changes no behavior of recurring windows.
+
+### Incidents and follow-up
+
+- **Mentions are recovered.** When a comment's mention is saved but the email to the mentioned member was not yet handed to the mail service, for example because the Worker restarted first, the next scheduled run sends it once, oldest first and in small batches. A mention that was already being sent is never sent again. Mentions work through the API and command line; the console does not offer them yet.
+- **Owner follow-up in the console.** The signed-in console shows the same owner, response state, next due time and timeline as the incident API, before and after a restart, and the owner can reassign an incident there. Responders and editors still reassign through the API and command line. Follow-up and correlation remain partly built.
+
+### Backup and files
+
+- **Export selected monitors.** `GET /api/archive?monitor=ID&monitor=ID` exports the chosen monitors with their revisions, history, incident work, reports and notification history, as an owner or administrator with a second factor verified in the last five minutes. Up to 100 monitors are accepted. An export that would leave out a monitor another one depends on is refused, and Uptime never adds a monitor on its own to make it pass. Leaving out every `monitor` parameter exports the whole installation as before. The console has no control for this yet, and streamed or resumable transfers and time ranges are not built. See [Export selected monitors](docs/data.md).
+
+### Checks
+
+- **Certificate names are checked by default.** A monitor of an `https` address that is served a certificate for a different name fails its check, unless you chose to trust the certificate. This is now proven through scheduled signed checks; the behavior is unchanged. Network safety is still partly proven.
+
+### Console
+
+- **Tooltips on icon-only controls.** Each icon-only control, such as the monitor checkboxes, removing a filter or a category, the **?** disclosures and removing an Up or down rule, now shows a short tooltip with the same name that screen readers hear.
+
+### Agents
+
+- **Agent door at rer 0.2.96.** Run Edit Run Business agents can now also delete an internal incident comment, which counts as a destructive step for your company's policy, and renaming a destination without changing whether it is enabled is treated as a standard step. Migration `0084_agent_door_relay.sql` adds the agent decision relay; it stays off unless the installation has the existing owner claim. Not every console action is available to agents yet.
+
+### Upgrading from 0.5.0
+
+Migrations `0084_agent_door_relay.sql` and `0085_incident_mention_dispatch.sql` are applied. Both are additive, and existing rows are kept.
+
+- **Second factor at sign-in, replacing the 0.5.0 note.** An owner who has enrolled a second factor no longer needs a command-line verification before the console opens: the console asks for the factor. Other members who enrolled one still verify each new sign-in with the commands in [Second factors](docs/mfa.md) before the console opens. Sensitive actions still need a factor verified in the last five minutes. Local `rer export` and `rer import` still need such a verified session too.
+
+### Known issues
+
+- A response body larger than 64 KiB fails the check as a target failure (`body-limit`), even when the status is correct. Point a monitor at a smaller page, such as a health endpoint, until a later release reads large pages.
+- The limits listed under 0.4.0 and 0.5.0 still apply: hosted heartbeat evaluation needs a private runner, hosted Worker checks cannot pin connections, and many features are partial; see the Status table in [CONTRACT.md](CONTRACT.md).
+
 ## 0.5.0 — 2026-11-01
 
 Minor release from `main`; previous version 0.4.3. It changes how you add and edit monitors, adds a Locations page and an Alerts page in Settings, hands confirmed incidents to Oncall, retries signed-webhook alerts and adds fallback contacts, imports more from other monitoring services and UptimeRobot's outage history, and adds members, second factors and scheduled reports. 26 additive migrations; no new required settings. `@runeditrun/rer` is pinned to exactly 0.2.94. Monitors, history, incidents, destinations and private settings are kept on upgrade.
