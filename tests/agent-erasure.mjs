@@ -1,0 +1,84 @@
+// An agent edits monitors for two different people; erasing one person must
+// leave no trace of them in the agent-door custody tables, the monitor control
+// read or the monitor page, while the other person's agent records stay intact.
+import assert from 'node:assert/strict';
+import {webcrypto,randomUUID} from 'node:crypto';
+import {join} from 'node:path';
+import {migratedWorker,runtimeDirectory,cleanupDirectory,availablePorts} from './notify-acceptance-runtime.mjs';
+import {testAuthBindings,authRequest,sessionCookie,deliveredLink} from './auth-test-support.mjs';
+import {completeSecondFactor} from './mfa-auth-support.mjs';
+import {signJws,seconds,autonomousPolicy,policyEnvelope} from '../src/base/modules/agent-door/conformance/crypto.mjs';
+import {createProtocol,errorCode} from '../src/base/modules/agent-door/conformance/protocol.mjs';
+const pair=await webcrypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']);
+const key=await webcrypto.subtle.exportKey('jwk',pair.publicKey),kid='uptime-agent-erasure',issuer='https://business.example.test',installationId=randomUUID(),sub=randomUUID(),business=randomUUID();
+const directory=await runtimeDirectory(),[port]=await availablePorts(1),origin='http://127.0.0.1:'+port;
+const signer={privateKey:pair.privateKey,kid,issuer,installationId};
+const bindings={...testAuthBindings,RER_OWNER_CLAIM_ISSUER:issuer,RER_OWNER_CLAIM_INSTALLATION_ID:installationId,RER_OWNER_CLAIM_APP_ORIGIN:origin,RER_OWNER_CLAIM_PUBLIC_KEYS:JSON.stringify({[kid]:key}),RER_BUSINESS_TRUST:JSON.stringify({v:1,issuer,audience:origin,subject:installationId,keys:{[kid]:key}})};
+const canaries={name:'Erased Agent Principal',email:'erase-agent-principal@example.test'};
+let worker;
+try{
+ ({worker}=await migratedWorker({port,persist:join(directory,'worker'),bindings,outboundService:async()=>{throw Error('Unexpected provider request')}}));
+ const iat=seconds(),claim=await signJws(pair.privateKey,kid,'rer-owner-claim+jwt',{v:1,iss:issuer,aud:origin,installationId,email:bindings.OWNER_EMAIL,jti:randomUUID(),iat,exp:iat+300});
+ const call=authRequest(origin),claimed=await call('/auth/owner-claim',{token:claim,displayName:'Riley Owner',returnTo:'/app'});let cookie=sessionCookie(claimed);
+ const settings=(rev,team)=>signJws(pair.privateKey,kid,'rer-business-settings+jwt',{v:1,iss:issuer,aud:origin,sub:installationId,business,email:bindings.OWNER_EMAIL,owner_id:sub,jti:randomUUID(),iat:seconds(),exp:seconds()+300,rev,values:{},logo:null,team});
+ assert.equal((await call('/api/rer/business-settings',{settings:await settings(1,null)})).status,200);
+ // A second person joins through the real invitation lifecycle and gets a Business agent of their own.
+ const otherSub=randomUUID();
+ assert.equal((await call('/api/rer/business-settings',{settings:await settings(2,[{id:otherSub,email:canaries.email,name:canaries.name,role:'admin',invite:1}])})).status,200);
+ const invitation=await deliveredLink(call,{email:canaries.email,kind:'invite'}),otherCookie=sessionCookie(await call('/auth/confirm',{token:invitation.searchParams.get('token')}));
+ await completeSecondFactor(origin,otherCookie);await completeSecondFactor(origin,cookie);
+ const db=await worker.getD1Database('DB');
+ const sponsor=await db.prepare('SELECT id FROM oa_operators WHERE email=?').bind(bindings.OWNER_EMAIL).first(),other=await db.prepare('SELECT id FROM oa_operators WHERE email=?').bind(canaries.email).first();
+ const surface={seed:'uptime',specialist:'monitoring-operator',tools:['uptime:read','uptime:evidence','uptime:operate','definitions:preview','events:read'].map(scope=>({scope}))};
+ const agent=(person,label)=>createProtocol({fetch,origin,surface,signer,person,business,consent:randomUUID(),points:[],agentId:label+'-'+randomUUID(),seq:0,revision:0,listed:new Map()});
+ const keeper=agent({email:bindings.OWNER_EMAIL,cookie,sub},'night-shift'),erased=agent({email:canaries.email,cookie:otherCookie,sub:otherSub},'day-shift');
+ const initial=await policyEnvelope(keeper,autonomousPolicy());
+ assert.equal((await keeper.request('/api/rer/agent-policy',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({policy:initial.policy})})).status,200);
+ keeper.seq=erased.seq=initial.payload.seq;keeper.revision=erased.revision=initial.payload.revision;
+ const native=async(path,body,method=body===undefined?'GET':'POST',as=cookie)=>{const response=await fetch(origin+path,{method,redirect:'manual',headers:{cookie:as,origin,'content-type':'application/json'},...(body===undefined?{}:{body:JSON.stringify(body)})});assert.ok(response.ok,`${path} HTTP ${response.status}`);return response.status===204?null:response.json()};
+ const definition=name=>({name,type:'http',network:'public',url:'https://agent-erasure.example.test/health',method:'GET',assertions:{status:200},intervalMs:60000,timeoutMs:5000,retries:0,probes:['local-a'],failureQuorum:1,confirmSlots:1,recoverSlots:1,freshnessMs:120000,enabled:true});
+ const theirs=await native('/api/monitors',definition('Prepared for the erased person')),mine=await native('/api/monitors',definition('Prepared for the kept person'));
+ const edit=async(who,monitor,name)=>{const answer=await who.tool('uptime.monitors.update',{id:monitor.id,version:monitor.revision,definition:{name},expected_revision:monitor.revision,idempotency_key:randomUUID()});assert.equal(answer.result?.isError,false,errorCode(answer));return answer.result.structuredContent};
+ const editedTheirs=await edit(erased,theirs,'Prepared for the erased person (edited)'),editedMine=await edit(keeper,mine,'Prepared for the kept person (edited)');
+ // A manual check and a runner handoff put the same principal into the other agent tables.
+ const manual=await erased.tool('uptime.checks.run',{id:theirs.id,version:editedTheirs.revision,idempotency_key:randomUUID()});assert.equal(manual.result?.isError,false,errorCode(manual));
+ const manualKeeper=await keeper.tool('uptime.checks.run',{id:mine.id,version:editedMine.revision,idempotency_key:randomUUID()});assert.equal(manualKeeper.result?.isError,false,errorCode(manualKeeper));
+ // A runner claim, a destination test and a discovery start put the same saved principal into the other agent tables.
+ const runnerId=(await native('/api/runners'))[0].runnerId;
+ for(let claim=0;claim<2;claim++){const response=await fetch(origin+'/api/runner/claim',{method:'POST',headers:{origin,'content-type':'application/json','x-runner-key':bindings.UPTIME_RUNNER_KEY,'x-runner-id':runnerId},body:'{}'});assert.equal(response.status,200)}
+ const destination=await native('/api/notifications/destinations',{name:'Agent erasure webhook',kind:'webhook',url:'https://notifications.example.com/agent-erasure'});
+ for(const who of [erased,keeper]){
+  const tested=await who.tool('uptime.destinations.test',{id:destination.id,idempotency_key:randomUUID()});assert.equal(tested.result?.isError,false,errorCode(tested));
+  const discovery=await who.tool('uptime.discovery.start',{url:'https://discovery.example.test/',idempotency_key:randomUUID()});assert.equal(discovery.result?.isError,false,errorCode(discovery));
+ }
+ const agentTables=['uptime_agent_revisions','uptime_agent_handoffs','uptime_agent_manual','uptime_agent_discoveries','uptime_agent_notifications'];
+ const mention=async who=>{const hits={};for(const table of agentTables){const n=(await db.prepare(`SELECT COUNT(*) n FROM ${table} WHERE principal LIKE ?`).bind('%'+who+'%').first()).n;if(n)hits[table]=n}return hits};
+ const preparedBy=async cookieOf=>{const overview=await native('/api/overview',undefined,'GET',cookieOf);return Object.fromEntries(overview.monitors.map(m=>[m.id,m.preparedBy?.label??null]))};
+ const before=await preparedBy(cookie);
+ assert.match(before[theirs.id],new RegExp(canaries.name),'the monitor control names the person whose agent prepared it');
+ assert.match(before[mine.id],/Riley Owner/);
+ for(const person of [sponsor,other])for(const table of agentTables)assert.ok((await mention(person.id))[table],`${table} holds ${person===other?'the erased':'the kept'} person's principal`);
+ const keptRows=Object.fromEntries(await Promise.all(agentTables.map(async table=>[table,(await db.prepare(`SELECT * FROM ${table} WHERE principal LIKE ? ORDER BY rowid`).bind('%'+sponsor.id+'%').all()).results])));
+ const keeperDoor=async()=>Object.fromEntries(await Promise.all(['agent_door_agents','agent_door_audit','agent_door_calls'].map(async table=>[table,(await db.prepare(`SELECT * FROM ${table} WHERE ${table==='agent_door_agents'?'id':'agent'}=? ORDER BY rowid`).bind(keeper.agentId).all()).results]))),keptDoor=await keeperDoor();
+ const erasure=await native(`/api/operators/${other.id}/erase`,{});assert.equal(erasure.erased,true);
+ // PROBE: the control read, the monitor page's own data and every table are redacted at once.
+ const after=await preparedBy(cookie);
+ assert.ok(after[theirs.id]!==null&&!after[theirs.id].includes(canaries.name),'the monitor still reports that an agent prepared it, without the erased name: '+after[theirs.id]);
+ assert.equal(after[mine.id],before[mine.id],'the kept person is untouched');
+ assert.deepEqual(await mention(other.id),{});
+ assert.deepEqual(await mention(canaries.name),{});
+ assert.deepEqual(await mention(canaries.email),{});
+ for(const table of agentTables)assert.deepEqual((await db.prepare(`SELECT * FROM ${table} WHERE principal LIKE ? ORDER BY rowid`).bind('%'+sponsor.id+'%').all()).results,keptRows[table],`${table} keeps the other person's records`);
+ for(const table of agentTables)assert.ok(erasure.receipt.counts[table]>0,`${table} counted in the erasure receipt`);
+ // Every agent-door table, Base's and Uptime's, holds no trace of the erased person; the erasure receipt counts what it reached.
+ const doorTables=(await db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND (name GLOB 'agent_door_*' OR name GLOB 'uptime_agent_*') ORDER BY name").all()).results.map(row=>row.name),leaks=[];
+ for(const name of doorTables){const text=JSON.stringify((await db.prepare(`SELECT * FROM "${name}"`).all()).results);for(const [label,value] of [...Object.entries(canaries),['id',other.id]])if(text.includes(value))leaks.push(`${name}:${label}`)}
+ assert.deepEqual(leaks,[],'no agent-door table keeps the erased person');
+ for(const table of ['agent_door_agents','agent_door_audit','agent_door_calls'])assert.ok(erasure.receipt.counts[table]>0,`${table} counted in the erasure receipt`);
+ assert.deepEqual(await keeperDoor(),keptDoor,'the other person\'s agent, calls and audit are untouched');
+ // The kept person's agent keeps working and still reads its own and the erased person's monitor.
+ const read=await keeper.tool('uptime.monitors.read',{id:theirs.id});assert.equal(read.result?.isError,false,errorCode(read));
+ assert.ok(!JSON.stringify(read.result.structuredContent).includes(canaries.name)&&read.result.structuredContent.preparedBy,'the agent read names no erased person');
+ const refused=await erased.tool('uptime.monitors.read',{id:theirs.id});assert.equal(refused.status,401,'the erased person\'s agent can no longer act');
+ console.log('PASS agent-door custody names no erased person after operator erasure; the other person\'s agent records are intact.');
+}finally{if(worker)await worker.dispose();await cleanupDirectory(directory)}

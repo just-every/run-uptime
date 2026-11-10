@@ -9,6 +9,7 @@ import {auditStatement,mutationGuard,type AuditActor} from './audit.server.ts'
 import type {Bindings} from './control.server.ts'
 import {businessErasureScope,eraseBusinessCustody} from './business-import/erasure.server.ts'
 import {businessIdentityErasure} from './business-import/identity-erasure.server.ts'
+import {agentCustodyErasure} from './agent-erasure.server.ts'
 type Selection={table:string;where:string;args:unknown[]};
 // A fallback contact's alert names the earlier contacts it followed (DELIVERY-002): it is dependent history of each.
 const serviceReportJobs="EXISTS(SELECT 1 FROM scheduled_reports sr JOIN json_each(json_extract(sr.report,'$.service.monitors')) member WHERE sr.delivery_id=notification_jobs.id AND json_extract(member.value,'$.id')=?)";
@@ -118,6 +119,9 @@ export async function erase(env:Bindings,kind:'monitor'|'destination'|'operator'
  statements.push(mutationGuard(env,`EXISTS(SELECT 1 FROM ${table} WHERE id=? AND ${kind==='monitor'?'definition':kind==='destination'?'name':'version'}=?)`,[id,kind==='monitor'?entity.definition:kind==='destination'?entity.name:entity.version]));
  if(kind==='operator'&&entity.role==='owner'&&entity.status==='active')statements.push(mutationGuard(env,"(SELECT COUNT(*) FROM oa_operators WHERE role='owner' AND status='active')>1"));
  if(bootstrap)statements.push(env.DB.prepare('UPDATE oa_bootstrap SET claim_id=? WHERE singleton=? AND claim_id=?').bind(crypto.randomUUID(),bootstrap.singleton,id));
+ // The receipt id is the tombstone Base's door redaction records, so it exists before any statement is queued.
+ const receipt={id:crypto.randomUUID(),entityKind:kind,counts,completedAt:Date.now()};
+ if(kind==='operator'){const agent=await agentCustodyErasure(env,entity,receipt);Object.assign(counts,agent.counts);statements.push(...agent.statements)}
  for(const plan of plans)statements.push(env.DB.prepare(`DELETE FROM ${plan.table} WHERE ${plan.where}`).bind(...plan.args));
  if(kind==='operator'||kind==='destination'){
   const custody=await businessIdentityErasure(env)
@@ -126,7 +130,6 @@ export async function erase(env:Bindings,kind:'monitor'|'destination'|'operator'
   // existing row fences and transfer invalidation retain their restore semantics.
   statements.push(...custody.statements)
  }
- const receipt={id:crypto.randomUUID(),entityKind:kind,counts,completedAt:Date.now()};
  if(kind==='operator')statements.push(env.DB.prepare("UPDATE discovery_jobs SET status=CASE WHEN status IN ('queued','running') THEN 'failed' ELSE status END,finished_at=CASE WHEN status IN ('queued','running') THEN ? ELSE finished_at END,stopped_at=CASE WHEN status IN ('queued','running') THEN ? ELSE stopped_at END,stop_reason=CASE WHEN status IN ('queued','running') THEN 'initiator_erased' ELSE stop_reason END,error=CASE WHEN status IN ('queued','running') THEN 'Initiating owner erased; discovery stopped.' ELSE error END,initiator_id=NULL,initiator_version=NULL,initiator_role=NULL,initiator_revision=NULL,initiator_base_role=NULL WHERE initiator_id=?").bind(receipt.completedAt,receipt.completedAt,id),env.DB.prepare('UPDATE scheduled_reports SET actor_id=NULL WHERE actor_id=?').bind(id),env.DB.prepare("UPDATE catalog_route_batches SET actor_kind='anonymized',actor_ref=? WHERE actor_kind='operator' AND actor_ref=?").bind(crypto.randomUUID(),id),env.DB.prepare('UPDATE alert_team_deliveries SET operator_id=NULL WHERE operator_id=?').bind(id),...incidentOperatorErasureStatements(env,id),env.DB.prepare("UPDATE uptime_audit SET actor_kind='anonymized',actor_ref=? WHERE actor_kind='operator' AND actor_ref=?").bind(crypto.randomUUID(),id),env.DB.prepare("UPDATE definition_batches SET actor_kind='anonymized',actor_ref=? WHERE actor_kind='operator' AND actor_ref=?").bind(crypto.randomUUID(),id),env.DB.prepare('UPDATE slow_acknowledgements SET actor_id=NULL WHERE actor_id=?').bind(id),env.DB.prepare('UPDATE dependency_acks SET actor_id=NULL WHERE actor_id=?').bind(id),...discoveryOperatorErasure.map(sql=>env.DB.prepare(sql).bind(id)),env.DB.prepare('UPDATE alert_route_changes SET actor_ref=NULL WHERE actor_ref=?').bind(id),env.DB.prepare('UPDATE alert_drills SET started_by=NULL WHERE started_by=?').bind(id));
  // An erased monitor leaves no import marker, so a later import of the same source record starts afresh.
  if(kind==='monitor')statements.push(env.DB.prepare('DELETE FROM uptime_business_import_targets WHERE monitor_id=?').bind(id),env.DB.prepare('DELETE FROM uptime_business_import_writes WHERE monitor_id=?').bind(id));
@@ -134,6 +137,6 @@ export async function erase(env:Bindings,kind:'monitor'|'destination'|'operator'
  try{
   if(businessNamespaces.length)await eraseBusinessCustody(env,id,actor,actingOwner.version,businessNamespaces,statements,await service.redactionStatements());
   else await env.DB.batch(statements);
- }catch(error){if(String(error).includes('last_owner')||(kind==='operator'&&entity.role==='owner'&&entity.status==='active'&&Number((await env.DB.prepare("SELECT COUNT(*) n FROM oa_operators WHERE role='owner' AND status='active'").first<any>())?.n)<=1))throw Error('The last owner cannot be erased. Use rer reset --yes locally or redeploy hosted.');if(String(error).includes('uptime_audit.id'))throw Object.assign(Error('Installation changed during erasure. No data was erased; try again.'),{status:409});throw error}
+ }catch(error){if(String(error).includes('last_owner')||(kind==='operator'&&entity.role==='owner'&&entity.status==='active'&&Number((await env.DB.prepare("SELECT COUNT(*) n FROM oa_operators WHERE role='owner' AND status='active'").first<any>())?.n)<=1))throw Error('The last owner cannot be erased. Use rer reset --yes locally or redeploy hosted.');if(String(error).includes('uptime_audit.id')||String(error).includes('agent_erasure_scope_changed'))throw Object.assign(Error('Installation changed during erasure. No data was erased; try again.'),{status:409});throw error}
  return {erased:true,receipt,selfErased:kind==='operator'&&actor.kind==='operator'&&actor.ref===id};
 }
