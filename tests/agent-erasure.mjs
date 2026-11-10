@@ -116,7 +116,8 @@ try{
  check('PROBE uptime_audit: no audit actor is a personal label',afterHistory.audit.every(row=>nameless(row.actor_ref)));
  check('PROBE uptime_audit: the agent actions stay, counted and timed as before',afterHistory.audit.length===written.audit.length&&afterHistory.audit.every((row,i)=>row.id===written.audit[i].id&&row.occurred_at===written.audit[i].occurred_at&&row.action===written.audit[i].action));
  check('PROBE alert-route changes: no actor is a personal label',afterHistory.routes.every(row=>nameless(JSON.stringify(row))));
- const kept=written.audit.filter(row=>row.actor_ref===written.audit.find(r=>r.subject_ref===mine.id).actor_ref);
+ const kept=written.audit.filter(row=>row.actor_ref.includes('Riley Owner')||row.actor_ref==='agent:'+keeper.agentId);
+ assert.ok(kept.length>=2,'the kept person\'s agent wrote audit rows of its own');
  check('PROBE second operator: the other agent\'s audit and route rows are byte-identical',JSON.stringify(afterHistory.audit.filter(row=>kept.some(k=>k.id===row.id)))===JSON.stringify(kept)&&JSON.stringify(afterHistory.routes.filter(row=>row.scope_value===mine.id))===JSON.stringify(written.routes.filter(row=>row.scope_value===mine.id)));
  const afterExport=await exportable();
  check('PROBE archive: GET /api/archive -> '+afterExport.status+' '+afterExport.text.slice(0,80),afterExport.status===200);
