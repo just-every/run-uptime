@@ -84,6 +84,8 @@ try{
  for(const person of [sponsor,other])for(const table of agentTables)assert.ok((await mention(person.id))[table],`${table} holds ${person===other?'the erased':'the kept'} person's principal`);
  const keptRows=Object.fromEntries(await Promise.all(agentTables.map(async table=>[table,(await db.prepare(`SELECT * FROM ${table} WHERE principal LIKE ? ORDER BY rowid`).bind('%'+sponsor.id+'%').all()).results])));
  const keeperDoor=async()=>Object.fromEntries(await Promise.all(['agent_door_agents','agent_door_audit','agent_door_calls'].map(async table=>[table,(await db.prepare(`SELECT * FROM ${table} WHERE ${table==='agent_door_agents'?'id':'agent'}=? ORDER BY rowid`).bind(keeper.agentId).all()).results]))),keptDoor=await keeperDoor();
+ const label=(await db.prepare("SELECT json_extract(row,'$.label') label FROM agent_door_audit WHERE agent=? AND json_extract(row,'$.label') IS NOT NULL LIMIT 1").bind(erased.agentId).first()).label;
+ assert.ok(label.includes(canaries.name),'the door audit labels the erased person\'s agent with the person');
  const notificationRows=(await db.prepare("SELECT COUNT(*) n FROM uptime_agent_notifications WHERE instr(principal,?)>0 OR delivery_id IN(SELECT id FROM notification_jobs WHERE json_extract(event,'$.preparedBy.for.id')=?)").bind(other.id,other.id).first()).n;
  const erasure=await native(`/api/operators/${other.id}/erase`,{});assert.equal(erasure.erased,true);
  // PROBE: the control read, the monitor page's own data and every table are redacted at once.
@@ -107,7 +109,7 @@ try{
  const refused=await erased.tool('uptime.monitors.read',{id:theirs.id});assert.equal(refused.status,401,'the erased person\'s agent can no longer act');
 
  // PROBE: the history the agents wrote names no erased person anywhere, in the database or in any read the owner can make.
- const label=(await db.prepare("SELECT json_extract(row,'$.label') label FROM agent_door_audit WHERE agent=? LIMIT 1").bind(erased.agentId).first()).label,nameless=text=>!text.includes(canaries.name)&&!text.includes(canaries.email)&&!text.includes(other.id)&&!text.includes(label);
+ const nameless=text=>!text.includes(canaries.name)&&!text.includes(canaries.email)&&!text.includes(other.id)&&!text.includes(label);
  const reads={incident:'/api/v1/incidents/'+incident.id,incidentConsole:'/api/incidents/'+incident.id,route:`/api/monitors/${theirs.id}/alert-route`,overview:'/api/overview',monitorIncidents:`/api/monitors/${theirs.id}/incidents`};
  for(const [name,path] of Object.entries(reads)){const response=await fetch(origin+path,{headers:{cookie,origin}});check(`PROBE ${name}: ${path} (${response.status}) names the erased person`,response.status===200&&nameless(await response.text()))}
  const timeline=(await native(reads.incident)).timeline??[];
