@@ -11,7 +11,7 @@ export const installationLocalTables:Record<string,string>={
  ...Object.fromEntries(['agent_door_state','agent_door_agents','agent_door_audit','agent_door_calls','agent_door_usage','agent_door_approvals','agent_door_reviews','agent_door_events'].map(name=>[name,'Installation-local agent policy, consent, audit, retained outcome, events and approvals; never restored authority.'])),
  agent_door_relay:'Installation-private decision ids and Business id; signed pulls project current erasure-aware audit, never portable product history.',
  agent_door_replay_aliases:'Installation-private HMAC replay custody, never exported or accepted from an archive.',
- ...Object.fromEntries(['bs_settings','bs_team','bs_overrides','bs_logo','bs_audit','bs_assert'].map(name=>[name,'Installation-local signed Business settings and native people mapping; never restored authority.'])),
+ ...Object.fromEntries(['bs_settings','bs_team','bs_overrides','bs_logo','bs_audit','bs_assert','bs_retired'].map(name=>[name,'Installation-local signed Business settings and native people mapping; never restored authority.'])),
  report_recurrences:'Installation-local recurring report authority and owner admission; frozen scheduled report snapshots travel as inactive history.',
  report_occurrences:'Installation-local unique recurrence occurrence dispatch linkage; restored snapshots never authorize another send.',
  ...Object.fromEntries(['alert_named_routes','catalog_route_batches','catalog_route_batch_entries'].map(name=>[name,'Installation-local named route policy and undo authority; receiving owners review and configure routes independently.'])),

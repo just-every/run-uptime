@@ -146,8 +146,8 @@ try{
  const afterExport=await exportable();
  check('PROBE archive: GET /api/archive -> '+afterExport.status+' '+afterExport.text.slice(0,80),afterExport.status===200);
  check('PROBE archive: names no erased person and keeps the agent action in a non-personal form',nameless(afterExport.text)&&/"actor_ref\\?":\\?"agent:/.test(afterExport.text));
- // The whole database, every table. The Business roster (bs_*) is the Business door's retirement rule, ruled by gr on 2 Nov, not the agent door's.
- const whole=(await db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT GLOB '_cf_*' AND name NOT GLOB 'bs_*' ORDER BY name").all()).results.map(row=>row.name),residue=[];
+ // The whole database, every table, the Business roster (bs_*) included: erasing an operator retires them from it (rer 0.2.107).
+ const whole=(await db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT GLOB '_cf_*' ORDER BY name").all()).results.map(row=>row.name),residue=[];
  for(const name of whole){const text=JSON.stringify((await db.prepare(`SELECT * FROM "${name}"`).all()).results);for(const [what,value] of [['name',canaries.name],['email',canaries.email],['label',label]])if(text.includes(value))residue.push(`${name}:${what}`)}
  check('PROBE whole database: no table names the erased person: '+residue.join(', '),residue.length===0);
  check('PROBE receipt: uptime_agent_notifications counts each touched row once ('+erasure.receipt.counts.uptime_agent_notifications+' of '+notificationRows+')',erasure.receipt.counts.uptime_agent_notifications===notificationRows);

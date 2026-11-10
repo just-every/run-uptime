@@ -512,7 +512,7 @@
       "executable": false
     },
     "base-copies.json": {
-      "sha256": "63ab377841b96e34f668115bbc59a6d37b3a85b91a201aca3a23340be1594b8b",
+      "sha256": "8a3b15d1b60699416018f3f617bd5b29f9f046348407a5ecfb813728a74cc5a5",
       "executable": false
     },
     "BASELINE.md": {
@@ -2192,7 +2192,7 @@
       "executable": false
     },
     "management/integration/deployment-spec.json": {
-      "sha256": "7a896a7248be05da22a55b65f21862c6d2904944a24b3b344a7d57d239700b10",
+      "sha256": "1027529a87a5c86ac428d15bd96b9d1a7bb8f241a90888dad8e071571dc3319b",
       "executable": false
     },
     "migrations/0001_uptime.sql": {
@@ -2564,7 +2564,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "ef8a6bdab13647abb9fd812b7762116d49e2af2c271c77ae7f65cd3fc1271450",
+      "sha256": "062806a152302e7b04893d2fbc6fd1016d5ead31db41e7fd9b26ed2437fc779c",
       "executable": false
     },
     "patches/README.md": {
@@ -2572,7 +2572,7 @@
       "executable": false
     },
     "pnpm-lock.yaml": {
-      "sha256": "a33ffa584dcfd2bdcf59a2be27f08e3a0126694e41d7df70a7356b8c4c366745",
+      "sha256": "2e6a5e3e3a1cfdeedba7af68b251101de4e333799f0e58a7da63b23acbcd249f",
       "executable": false
     },
     "public/action-feedback.mjs": {
@@ -3612,7 +3612,7 @@
       "executable": false
     },
     "scripts/delivery/base/declarations.mjs": {
-      "sha256": "bf63076ba1c203c948fe57f41f28fe6ad06ec1e057eecf2b55aab5aeee7c5e2c",
+      "sha256": "2d44614db82aa0f7690269ced75c349a2321a4a9505920ea32c6589afe71b1fd",
       "executable": false
     },
     "scripts/delivery/base/export.mjs": {
@@ -3636,7 +3636,7 @@
       "executable": false
     },
     "scripts/delivery/base/mail.mjs": {
-      "sha256": "fbe18b3678e88db8f98d760d72d39f4a94552c4685e3b8ce27e15d761ed6a981",
+      "sha256": "e308b618ab9b702ad0025ad184e30607c2cb371d2661507468dfc294c797bf2e",
       "executable": false
     },
     "scripts/delivery/base/migrations.mjs": {
@@ -4512,7 +4512,7 @@
       "executable": false
     },
     "src/agent-door/erasure.server.ts": {
-      "sha256": "bf32204b088d495bd31be0317decdc1041aa7a26313bf2cd7bb424e41f5bcd15",
+      "sha256": "61d1289e62bfd5f9521f8269d8341a67320e4792cd8482fce105baea2e75e42c",
       "executable": false
     },
     "src/agent-door/incident-notes.server.ts": {
@@ -4648,7 +4648,7 @@
       "executable": false
     },
     "src/base/modules/agent-door/ADOPTING.md": {
-      "sha256": "61a5d802a1a7555ca85ea2c8817df1be600717f405bb0f04c1d79955d539c0b6",
+      "sha256": "d97158c4d9af9a00a83b0f8a0dc52b80272858f5bea6ac509c4d093f67e7fb55",
       "executable": false
     },
     "src/base/modules/agent-door/adoption/penny/0106_agent_erasure_custody.sql": {
@@ -4848,7 +4848,7 @@
       "executable": false
     },
     "src/base/modules/agent-door/erasure.ts": {
-      "sha256": "26d2133d092d6539b15f3c89c02263be84c9c179dd9d92fc5c7ee5c7e77c1765",
+      "sha256": "36c7dce2bf06a5cd2da7d4deaf57064861cae59d3336f892f046cda5f967b172",
       "executable": false
     },
     "src/base/modules/agent-door/errors.ts": {
@@ -4992,15 +4992,15 @@
       "executable": false
     },
     "src/base/modules/business-settings/ADOPTING.md": {
-      "sha256": "5d7383182eb0ca92ce53b51d93f0199412366873ba7281cc0610857f76e77884",
+      "sha256": "3504517df0001e54533de4b59e4331dd0592796a0ab144f73acab3e06db64819",
       "executable": false
     },
     "src/base/modules/business-settings/apply.ts": {
-      "sha256": "037784c7d783c36577d351c9a6bddab5780393e192883ec08616a4d480e9df48",
+      "sha256": "d4ddd9bacb4dc2fc0d59ec036ec3aa12ed3a72be1bdc1fca788e4895e3888038",
       "executable": false
     },
     "src/base/modules/business-settings/index.ts": {
-      "sha256": "159975e2cd97f17ecfb577ea69052d4788500ca09cbe40707392355f924b658d",
+      "sha256": "052375df7447f8d572b36e7aa6d3bd097760c76bd6284560e36d0768d907a6df",
       "executable": false
     },
     "src/base/modules/business-settings/json.ts": {
@@ -5012,7 +5012,7 @@
       "executable": false
     },
     "src/base/modules/business-settings/README.md": {
-      "sha256": "f14d20c996e725600fba5af983ff24f97e058712ce9ca9d471e81eaf922887f4",
+      "sha256": "a062355a9898261b68e40b35336311c87cfe2859c0d7bda2bd469e33102104ea",
       "executable": false
     },
     "src/base/modules/business-settings/role-domain.d.mts": {
@@ -5044,7 +5044,7 @@
       "executable": false
     },
     "src/base/modules/business-settings/types.ts": {
-      "sha256": "4ada2afb8c4108a42ac8cecb33b231e25f20c05b5843662bda2cc354d995cf31",
+      "sha256": "3c07b2b0e1d4beb37d540551e829963de8eb19963bee30ecde676496ce2120a5",
       "executable": false
     },
     "src/base/modules/business-settings/validation.ts": {
@@ -6396,7 +6396,7 @@
       "executable": false
     },
     "src/base/modules/operator-auth/accounts/business-team.mjs": {
-      "sha256": "2074b728bc0856a4fb4bc87199944e0f1f30b10da1cf217fef1a456456527ebc",
+      "sha256": "2e297635de92551e2d06fbe694aae2597cfbfb6254a3e48f37c4a5e9ee589e56",
       "executable": false
     },
     "src/base/modules/operator-auth/accounts/credentials.mjs": {
@@ -6960,7 +6960,7 @@
       "executable": false
     },
     "src/domain/agent-erasure.server.ts": {
-      "sha256": "f43f5ae314e42a5a2e2d8b2d134c038d9f567b374738607be8cb9e5357eb618e",
+      "sha256": "6f79e8dfdc1d7626640133d7366070a48a4ab20d58617f740e68eec9dc64dfcd",
       "executable": false
     },
     "src/domain/alert-drill-content.ts": {
@@ -7044,7 +7044,7 @@
       "executable": false
     },
     "src/domain/archive-inventory.ts": {
-      "sha256": "9207ff693af81f5b122cba04b72e9d56425a5351025b97f5b7f7a2aa1f691100",
+      "sha256": "0751b609e1527ba5c8bae22b1d10a187ae9ffd8c7d0ba6efe7d11b225e79c56d",
       "executable": false
     },
     "src/domain/archive-monitor-validation.ts": {
@@ -8912,7 +8912,7 @@
       "executable": false
     },
     "tests/agent-erasure.mjs": {
-      "sha256": "c22177e9ee38ff4f6c1754462479216878dafd2521a89edb5fdb19ffafa0f6b0",
+      "sha256": "508fe46685658b652ee0dcdfaa89f3388919da4b28c661cb65ab50da465cfeb0",
       "executable": false
     },
     "tests/agent-form-accept-support.mjs": {

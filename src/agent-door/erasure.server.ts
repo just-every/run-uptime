@@ -2,16 +2,43 @@ import type {AgentArtifactMap} from '../base/modules/agent-door/index.ts'
 
 // Bind values to exact native monitor/destination/operator ids, linked child
 // ids and an operator's exact email, never a common display name or caller SQL.
+// agent_door_state is retired, not matched: the erased operator's policy references
+// (operatorPolicyRefs) become the erasure marker in the unsigned local policy and its stored copies.
 // This inventory describes custody. Uptime's native erasure transaction remains
 // authoritative for product deletion and its deliberate audit/history retention;
 // declaring a match does not authorize deleting retained decision evidence.
-const mentions=(table:string,columns:string[])=>`EXISTS(SELECT 1 FROM json_each(?1) subject WHERE subject.type='text' AND length(subject.value)>0 AND (${columns.map(column=>`instr(CAST(${table}.${column} AS TEXT),subject.value)>0`).join(' OR ')}))`
+// A text subject value (the operator's id or exact email) selects a record only where it stands as a whole token in a decoded
+// string value, never as a bare substring (erasing al@example.com must leave sal@example.com's records alone; Base 0.2.101) and
+// never as the `person:<id>` policy reference that every decision's policy evidence carries (the recipe in agent-door ADOPTING).
+// JSON keys and numbers are not mentions. A period ends a sentence only when its outward neighbour cannot continue an identifier.
+const strictTokenCharacter="'[A-Za-z0-9_@.+/:-]'",separatorTokenCharacter="'[A-Za-z0-9_@.+-]'",minimumSeparatorLength=8
+const textValue='CAST(subject.value AS TEXT)'
+const tokenCharacter=`CASE WHEN length(${textValue})<${minimumSeparatorLength} AND instr(${textValue},'@')=0 THEN ${strictTokenCharacter} ELSE ${separatorTokenCharacter} END`
+const boundary=(position:string,outward:number)=>{
+ const char=`substr(text,${position},1)`,next=`substr(text,(${position})+(${outward}),1)`
+ return `(${char} NOT GLOB token OR (${char}='.' AND ${next} NOT GLOB token))`
+}
+const textMention=(column:string)=>`EXISTS(
+ WITH RECURSIVE hits(text,source,pos,token) AS (
+  SELECT content.value,${textValue},instr(content.value,${textValue}),(${tokenCharacter})
+  FROM json_tree(CASE WHEN json_valid(${column}) THEN ${column} ELSE json_quote(${column}) END) content
+  WHERE content.type='text' AND instr(content.value,${textValue})>0
+  UNION ALL
+  SELECT text,source,pos+instr(substr(text,pos+1),source),token FROM hits
+  WHERE pos>0 AND instr(substr(text,pos+1),source)>0
+ )
+ SELECT 1 FROM hits WHERE pos>0
+  AND ${boundary('pos-1',-1)}
+  AND ${boundary('pos+length(source)',1)}
+  AND NOT (pos>7 AND substr(text,pos-7,7)='person:')
+)`
+const mentions=(table:string,columns:string[])=>`EXISTS(SELECT 1 FROM json_each(?1) subject WHERE subject.type='text' AND length(subject.value)>0 AND (${columns.map(column=>textMention(`${table}.${column}`)).join(' OR ')}))`
 const calls=mentions('agent_door_calls',['key','outcome']),approvals=mentions('agent_door_approvals',['saved','approvals','result']),reviews=mentions('agent_door_reviews',['saved','marked_by']),audits=mentions('agent_door_audit',['row','evidence'])
 const decisions=`SELECT decision_id FROM agent_door_calls WHERE ${calls} UNION SELECT json_extract(saved,'$.decision_id') FROM agent_door_approvals WHERE ${approvals} UNION SELECT json_extract(saved,'$.decision_id') FROM agent_door_reviews WHERE ${reviews} UNION SELECT id FROM agent_door_audit WHERE ${audits}`
 const match=(sql:string)=>({sql,params:['values']})
 export const uptimeAgentArtifacts:AgentArtifactMap={artifacts:[
  {table:'agent_door_relay',columns:['sequence','decision_id','business'],unrelated:'Value-free decision ids and installation Business id only; current projections come from the erasure-aware audit.'},
- {table:'agent_door_state',columns:['id','envelope','local_document','local_revision','local_paused','decision_lock','decision_until'],unrelated:'Signed installation policy and admission leases. Native entity deletion does not rewrite policy authority; current native people checks remain required.'},
+ {table:'agent_door_state',columns:['id','envelope','local_document','local_revision','local_paused','decision_lock','decision_until'],retire:{refs:'policyRefs'}},
  {table:'agent_door_agents',columns:['id','name','specialist','sponsor','sponsor_name','revoked','window','requests','tombstone'],match:match(mentions('agent_door_agents',['sponsor']))},
  {table:'agent_door_calls',columns:['agent','key','digest','decision_id','created_at','state','outcome','expires_at'],match:match(`decision_id IN (${decisions})`)},
  {table:'agent_door_audit',columns:['sequence','id','at','agent','classes','row','evidence'],match:match(`id IN (${decisions}) OR json_extract(row,'$.decision_id') IN (${decisions}) OR json_extract(row,'$.replay_of') IN (${decisions})`)},

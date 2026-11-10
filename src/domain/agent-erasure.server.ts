@@ -1,6 +1,6 @@
 import type {Bindings} from './control.server.ts'
 import {mutationGuard} from './audit.server.ts'
-import {agentErasureStatements} from '../base/modules/agent-door/index.ts'
+import {agentErasureStatements,operatorPolicyRefs} from '../base/modules/agent-door/index.ts'
 import {uptimeAgentArtifacts} from '../agent-door/erasure.server.ts'
 import {LEGACY_AGENT_REF} from './agent-actor.ts'
 
@@ -73,7 +73,8 @@ export async function agentCustodyErasure(env:Bindings,operator:{id:string;email
  for(const row of attributed)statements.push(mutationGuard(env,'EXISTS(SELECT 1 FROM incident_timeline WHERE rowid=? AND data=?)',[row._rowid_,row.data]),env.DB.prepare('UPDATE incident_timeline SET data=? WHERE rowid=? AND data=?').bind(redactedAttribution(row.data,operator.id,opaque),row._rowid_,row.data))
  statements.push(...legacyLabelStatements(env))
  // Base's door tables name the sponsor by id, exact email and display name. Select by the exact id and email only.
- const subject={values:JSON.stringify([operator.id,operator.email])}
+ // The operator's policy references (native and Business ids) are retired from the stored policy, never used to select decisions.
+ const subject={values:JSON.stringify([operator.id,operator.email]),policyRefs:JSON.stringify(await operatorPolicyRefs(env.DB,operator.id))}
  for(const item of uptimeAgentArtifacts.artifacts)if(item.match)counts[item.table]=Number((await env.DB.prepare(`SELECT COUNT(*) n FROM "${item.table}" WHERE ${item.match.sql}`).bind(subject.values).first<{n:number}>())?.n??0)
  statements.push(...await agentErasureStatements({db:env.DB,map:uptimeAgentArtifacts,subject,secret:env.SESSION_SECRET!,tombstone:{erasure_id:receipt.id,at:new Date(receipt.completedAt).toISOString()},checkpoint:noArchiveCheckpoint}))
  return {counts,statements}
