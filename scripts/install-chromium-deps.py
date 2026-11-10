@@ -5,6 +5,12 @@ import os
 from pathlib import Path
 import sys
 
+# Hosted-runner apt can unpack slowly after fast downloads: Verify 42837474512
+# (v0.5.2 tag, push-1) hit the old 180s cap twice while dpkg was still
+# finishing; earlier successful runs of this step took 68-104s. 420s leaves
+# margin and keeps the shard job under its 20-minute cap.
+DEPS_TIMEOUT = "420s"
+
 
 def main():
     extra_engines = sys.argv[1:]
@@ -55,7 +61,7 @@ def main():
 
     # Bound both apt update and package installation in Playwright's command.
     os.execvp("timeout", [
-        "timeout", "--signal=TERM", "--kill-after=10s", "180s",
+        "timeout", "--signal=TERM", "--kill-after=10s", DEPS_TIMEOUT,
         "pnpm", "exec", "playwright", "install-deps", "chromium", *extra_engines,
     ])
 
