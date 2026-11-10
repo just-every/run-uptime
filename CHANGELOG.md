@@ -1,5 +1,40 @@
 # Changelog
 
+## 0.5.2 — 2026-11-10
+
+Patch release from `main`; previous version 0.5.1. It fixes erasing a person whose agent has worked in Uptime: the person's name is now removed from what the agent did, and the owner's archive export and backup work again once an agent has acted. It also lets a company's agent schedule alert-destination drills within limits the owner consents to. Two additive migrations (`0086_alert_drill_schedules.sql` and `0087_agent_actor_refs.sql`); no new required settings. `@runeditrun/rer` stays pinned to exactly 0.2.96. Monitors, history, incidents, destinations and private settings are kept on upgrade; migration `0087` rewrites some stored audit labels (see below).
+
+Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png), taken on 0.4.0, before the console changes of 0.5.0, 0.5.1 and 0.5.2.
+
+### Back up first
+
+Back up while you are still on 0.5.1, because migration `0087` changes stored audit and timeline labels and cannot be undone. On a hosted installation, download the product archive from **Settings › Backup and files** and back up the database with `npx wrangler d1 export <database> --remote --output exports/<database>.sql`. On your own computer, stop dev and run `rer export --output exports/uptime.rer`. Keep `.rer/deploy` and your private settings. Downloading a backup asks for a second factor verified in the last five minutes.
+
+### Erasure and archives
+
+- **Erasing a person also removes their name from what their agents did.** An agent that works for a member used to leave that member's name on the records of its work. Erasing the member now rewrites those records so they name a former member instead: the changes an agent saved, queued, dispatched, tested or discovered for them, its acknowledgements and assignments in an incident's history, and the agent door's own records of that member's agents, their calls and their events. A monitor an erased member's agent had edited no longer shows their name on its page. Drill consents and schedules that the member issued or was assigned to are erased with them. Notification sends an agent prepared for the erased member are removed with them. Records of other people's agents are untouched. This covers what Uptime itself keeps; an archive or backup made earlier still holds what it held then.
+- **An agent's work is recorded under the agent's own identifier, not its sponsor's name.** In the audit, in an alert route's change history and in an incident's timeline, work an agent does is now filed under the agent (for example `agent:` followed by its identifier) rather than under a label that named the person it worked for. Nothing else about who may act, or what the company's policy decides, changed.
+- **The owner's archive export and backup work once an agent has acted.** In 0.5.1, an archive taken after an agent had changed something could fail with **Invalid anonymized archive audit**. The archive now carries and accepts an agent's own identifier in the audit.
+- **Older agent lines read "Agent legacy".** Before this release, the stored lines for an agent's earlier work carried the sponsor's name. Migration `0087` rewrites them in the audit, in alert route history and in incident timelines to a stand-in, so after upgrading those older lines in an incident timeline read **Agent legacy**. Every row, count and time stays; only the label changes, and the earlier name cannot be recovered from Uptime afterwards.
+
+### Agents and alert drills
+
+- **An agent can schedule alert drills inside limits you consent to.** In a destination's **Edit** dialog under **Settings › Alerts**, a company owner opens **Scheduled drills** and consents to a finite window, an interval and count, a confirmation wait with a bounded reminder limit, the internal route owner and a USD phone budget. The agent then schedules drills with `uptime.destinations.schedule_drills` and reads them with `uptime.destinations.drill_schedule`. Scheduled drills cover email, Slack and default JSON webhook destinations at zero phone charge; phone calls and custom webhook templates are not available for them.
+- **Bounded and rechecked.** A scheduled run sends at most one current drill per due schedule, with no catch-up burst and no retry of a drill that was sent. Each occurrence rechecks the company's policy, the agent's authority, your consent, the credential and the window just before it sends. Rotating a destination's credential needs fresh consent before it can be drilled again.
+- **Chasing the route owner and proposing a fix.** A drill's history keeps the provider's acknowledgment apart from the recipient's confirmation; a credential you declared expired produces an unsent failure. After the confirmation wait, the internal route owner is reminded in the Settings history, up to your limit, and the assigned member can read their own reminders at `GET /api/drill-reminders`. An unresolved gap shows a proposed replacement destination, the affected route revisions and a suggestion to escalate through Oncall. Those are suggestions only: nothing rotates a secret, sends a page, changes a route or contacts a replacement recipient. **Decline proposal** records the refusal and stops its reminders, and **Revoke consent** stops later scheduling and anything queued. Reminders send no external message. See [Schedule drills with an agent](docs/notifications.md).
+- **Kept on this installation.** Consents, schedules, reminders and proposals are local to the installation and are erased with their destination or internal owner. Archives do not carry the authority to run a drill, and an earlier archive cannot restore an erased sponsor's attribution. Not every console action is available to agents yet.
+
+### Upgrading from 0.5.1
+
+Migrations `0086_alert_drill_schedules.sql` and `0087_agent_actor_refs.sql` are applied by a deploy. `0086` adds tables only. `0087` rewrites stored labels as described above and removes no rows.
+
+- Nothing in your settings changes. No drill is scheduled until a company owner gives consent in a destination's **Scheduled drills**.
+
+### Known issues
+
+- A response body larger than 64 KiB fails the check as a target failure (`body-limit`), even when the status is correct. Point a monitor at a smaller page, such as a health endpoint, until a later release reads large pages.
+- The limits listed under 0.4.0, 0.5.0 and 0.5.1 still apply: hosted heartbeat evaluation needs a private runner, hosted Worker checks cannot pin connections, a member who is not the owner and has enrolled a second factor still verifies each new sign-in with the command line, and many features are partial; see the Status table in [CONTRACT.md](CONTRACT.md).
+
 ## 0.5.1 — 2026-11-10
 
 Patch release from `main`; previous version 0.5.0. It fixes sign-in for an owner who has enrolled a second factor: the console now asks for it instead of showing Access denied. It also adds alert-route teams, filters, business hours and a route drill to the console, export of a chosen set of monitors, tooltips on icon-only controls and more of the agent door, and it proves recurring maintenance across a clock change. Two additive migrations (`0084_agent_door_relay.sql`, `0085_incident_mention_dispatch.sql`); no new required settings. `@runeditrun/rer` is pinned to exactly 0.2.96. Monitors, history, incidents, destinations and private settings are kept on upgrade.
