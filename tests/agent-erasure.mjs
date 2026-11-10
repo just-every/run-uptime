@@ -130,7 +130,7 @@ try{
  // PROBE: the history the agents wrote names no erased person anywhere, in the database or in any read the owner can make.
  const nameless=text=>!text.includes(canaries.name)&&!text.includes(canaries.email)&&!text.includes(other.id)&&!text.includes(label);
  const reads={incident:'/api/v1/incidents/'+incident.id,incidentConsole:'/api/incidents/'+incident.id,route:`/api/monitors/${theirs.id}/alert-route`,overview:'/api/overview',monitorIncidents:`/api/monitors/${theirs.id}/incidents`};
- for(const [name,path] of Object.entries(reads)){const response=await fetch(origin+path,{headers:{cookie,origin}});check(`PROBE ${name}: ${path} (${response.status}) names the erased person`,response.status===200&&nameless(await response.text()))}
+ for(const [name,path] of Object.entries(reads)){const response=await fetch(origin+path,{headers:{cookie,origin}}).catch(error=>({status:'unreachable: '+(error.cause?.code??error.message),text:async()=>''}));check(`PROBE ${name}: ${path} (${response.status}) names the erased person`,response.status===200&&nameless(await response.text()))}
  const timeline=(await native(reads.incident)).timeline??[];
  check('PROBE incident dialog: the agent\'s acknowledge and pause entries stay as an anonymous agent and a former member',['acknowledged','pause_applied'].every(kind=>timeline.some(entry=>entry.kind===kind&&entry.actor.kind&&nameless(JSON.stringify(entry)))));
  const afterHistory=await history();
