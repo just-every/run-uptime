@@ -6903,6 +6903,10 @@
       "sha256": "8e303850ddd94ae25263fad6735de6eb63cfbbb78527ee13d27c5ee3feee151e",
       "executable": false
     },
+    "src/domain/agent-erasure.server.ts": {
+      "sha256": "2271c352a3c471a7ea0dcdddc448eb4d43ff1e44ea4e5bbc548f7aba4866cc3b",
+      "executable": false
+    },
     "src/domain/alert-drill-content.ts": {
       "sha256": "20fc1a7fc78f2ce08a407e3464cd82e10797a57eb91ad6c3ce689f52b382200f",
       "executable": false
@@ -8825,6 +8829,10 @@
     },
     "tests/agent-door.mjs": {
       "sha256": "c0f3dcb29316935b7006cece418f97b58ae5942cf5f5c270785295b2c55855f6",
+      "executable": false
+    },
+    "tests/agent-erasure.mjs": {
+      "sha256": "ecd84b977e49612f77786fa54565845b884228a9b924e9e0beff6c8a39e61fbd",
       "executable": false
     },
     "tests/agent-form-accept-support.mjs": {
