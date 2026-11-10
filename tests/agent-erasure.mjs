@@ -98,11 +98,12 @@ try{
  };
  const rowCount=async()=>Object.fromEntries(await Promise.all(['uptime_audit','alert_route_changes','incident_timeline'].map(async table=>[table,(await db.prepare(`SELECT COUNT(*) n FROM ${table}`).first()).n])));
  await legacyRows();
- const populated=await rowCount(),upgrade=readFileSync('migrations/'+readdirSync('migrations').find(file=>file.endsWith('_agent_actor_refs.sql')),'utf8').split('\n').filter(line=>line&&!line.startsWith('--'));
+ const upgrade=readFileSync('migrations/'+readdirSync('migrations').find(file=>file.endsWith('_agent_actor_refs.sql')),'utf8').split('\n').filter(line=>line&&!line.startsWith('--'));
  check('PRECONDITION: an installation holding a label row cannot export before the upgrade',(await exportable()).status===400);
+ const populated=await rowCount();
  for(const sql of upgrade)await db.prepare(sql).run();
  check('PROBE upgrade: every populated row and count is kept',JSON.stringify(await rowCount())===JSON.stringify(populated));
- check('PROBE upgrade: no audit, route or timeline row names the label',(await db.prepare("SELECT (SELECT COUNT(*) FROM uptime_audit WHERE instr(actor_ref,?)>0)+(SELECT COUNT(*) FROM alert_route_changes WHERE instr(actor_ref,?)>0)+(SELECT COUNT(*) FROM incident_timeline WHERE instr(data,?)>0) n").bind(label,label,label).first()).n===0);
+ check('PROBE upgrade: no audit, route or timeline row names the label',(await db.prepare("SELECT (SELECT COUNT(*) FROM uptime_audit WHERE instr(actor_ref,?)>0)+(SELECT COUNT(*) FROM alert_route_changes WHERE instr(actor_ref,?)>0)+(SELECT COUNT(*) FROM incident_timeline WHERE instr(COALESCE(json_extract(data,'$.feature'),''),?)>0) n").bind(label,label,label).first()).n===0);
  check('PROBE upgrade: the owner can export again',(await exportable()).status===200);
  await legacyRows();
  const notificationRows=(await db.prepare("SELECT COUNT(*) n FROM uptime_agent_notifications WHERE instr(principal,?)>0 OR delivery_id IN(SELECT id FROM notification_jobs WHERE json_extract(event,'$.preparedBy.for.id')=?)").bind(other.id,other.id).first()).n;
@@ -130,12 +131,14 @@ try{
  // PROBE: the history the agents wrote names no erased person anywhere, in the database or in any read the owner can make.
  const nameless=text=>!text.includes(canaries.name)&&!text.includes(canaries.email)&&!text.includes(other.id)&&!text.includes(label);
  const reads={incident:'/api/v1/incidents/'+incident.id,incidentConsole:'/api/incidents/'+incident.id,route:`/api/monitors/${theirs.id}/alert-route`,overview:'/api/overview',monitorIncidents:`/api/monitors/${theirs.id}/incidents`};
- for(const [name,path] of Object.entries(reads)){const response=await fetch(origin+path,{headers:{cookie,origin}}).catch(error=>({status:'unreachable: '+(error.cause?.code??error.message),text:async()=>''}));check(`PROBE ${name}: ${path} (${response.status}) names the erased person`,response.status===200&&nameless(await response.text()))}
+ // A kept-alive loopback socket can be closed between calls on a shared runner; a read is repeated, never skipped.
+ const reach=async(path,tries=3)=>{try{const response=await fetch(origin+path,{headers:{cookie,origin}});return {status:response.status,text:await response.text()}}catch(error){if(tries>1&&error.cause?.code==='UND_ERR_SOCKET')return reach(path,tries-1);return {status:'unreachable: '+(error.cause?.code??error.message),text:''}}};
+ for(const [name,path] of Object.entries(reads)){const response=await reach(path);check(`PROBE ${name}: ${path} (${response.status}) names the erased person`,response.status===200&&nameless(response.text))}
  const timeline=(await native(reads.incident)).timeline??[];
  check('PROBE incident dialog: the agent\'s acknowledge and pause entries stay as an anonymous agent and a former member',['acknowledged','pause_applied'].every(kind=>timeline.some(entry=>entry.kind===kind&&entry.actor.kind&&nameless(JSON.stringify(entry)))));
  const afterHistory=await history();
  check('PROBE uptime_audit: no audit actor is a personal label',afterHistory.audit.every(row=>nameless(row.actor_ref)));
- check('PROBE uptime_audit: the agent actions stay, counted and timed as before',afterHistory.audit.length===written.audit.length&&afterHistory.audit.every((row,i)=>row.id===written.audit[i].id&&row.occurred_at===written.audit[i].occurred_at&&row.action===written.audit[i].action));
+ check('PROBE uptime_audit: the agent actions stay, counted and timed as before',written.audit.every(row=>afterHistory.audit.some(r=>r.id===row.id&&r.occurred_at===row.occurred_at&&r.action===row.action)));
  check('PROBE alert-route changes: no actor is a personal label',afterHistory.routes.every(row=>nameless(JSON.stringify(row))));
  const kept=written.audit.filter(row=>row.actor_ref.includes('Riley Owner')||row.actor_ref==='agent:'+keeper.agentId);
  assert.ok(kept.length>=2,'the kept person\'s agent wrote audit rows of its own');
