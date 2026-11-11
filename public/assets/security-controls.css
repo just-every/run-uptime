@@ -9,3 +9,11 @@
 #security-controls .security-monitor-choice { display: flex; align-items: center; gap: 8px; min-height: 44px; margin: 0; cursor: pointer; }
 #security-controls .security-monitor-choice input { flex: 0 0 auto; }
 #security-controls .security-monitor-choice span { overflow-wrap: anywhere; }
+
+[data-totp-qr] { display: block; max-width: 100%; height: auto; background: white; }
+[data-totp-uri], [data-totp-secret] { overflow-wrap: anywhere; }
+[data-totp-uri] { display: block; margin-block: 8px; }
+.stepup-dialog { width: min(520px, calc(100vw - 32px)); box-sizing: border-box; }
+.stepup-dialog pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; }
+.stepup-dialog [data-totp-secret] { display: block; font-size: 14px; }
+.stepup-dialog [data-stepup-controls] > a { display: inline-block; margin: 8px 16px 8px 0; }
