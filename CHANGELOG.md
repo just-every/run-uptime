@@ -1,5 +1,49 @@
 # Changelog
 
+## 0.5.5 — 2026-11-11
+
+Patch release from `main`; previous version 0.5.4. You can now create a scheduled-job (heartbeat) monitor in the console. Pasting many URLs or a CSV now tells you what Uptime understood, and the import page lists the file formats it supports. Verifying a second factor for a sensitive action now guides you through it, including setting up your first authenticator. The run-locally guide shows the one `PATH` step a new `rer` install needs. It also moves Uptime to `@runeditrun/rer` 0.2.108. No new migration and no new required settings. Monitors, history, incidents, destinations and private settings are kept on upgrade.
+
+Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png), taken on 0.4.0, before the console changes of 0.5.0, 0.5.1, 0.5.2, 0.5.3, 0.5.4 and 0.5.5.
+
+### Scheduled jobs
+
+- **Create a scheduled-job monitor in the console.** In **New monitor › Fill in the form yourself**, choose **Scheduled job (heartbeat)** under **What to check**, enter a name, the expected interval and a grace period in seconds, and save. Before this you could only create one through the API or a definitions file.
+- **Connect your job.** The new monitor's page shows **Connect your job** with this installation's real check-in URL and a **Copy command** button holding the `curl -fsS` line to add after your job succeeds. The URL is shown only for that visit and stored hashed; after a reload, **Create or replace check-in URL…** issues another and stops the old one at once. Anyone holding the URL can send repeated check-ins.
+- **What the monitor shows.** A success marks it healthy at the next scheduled check, and a missed deadline (interval plus grace) marks it failing. Until the first success it stays unknown. A private runner has to be running: check-ins alone do not change health.
+
+### Importing monitors
+
+- **Paste many URLs or a CSV and Uptime works out which you gave it.** In **New monitor › Paste many URLs or a CSV**, a list of URLs (one per line) and a CSV with a `url` header are told apart automatically, and the columns of a CSV may come in any order. For example `url,name,interval` followed by `https://example.net/,Blog,60` creates a named monitor checked every minute, and `name,url,interval` works the same way. Intervals in a CSV are in seconds.
+- **The import page lists the supported files.** **New monitor › Import a file** and **Settings › Backup and files** now have an **Accepted files and export steps** section. For each source (an Uptime monitor file, an UptimeRobot v3 monitor list, an UptimeRobot event-log CSV, Pingdom check details, Better Stack pages and a Site24x7 monitor list) it shows the export step, a short sample and a link to the guide. Better Stack monitor pages now have their own entry under **Choose the source**.
+- **A monitor CSV exported from UptimeRobot is not read, and the page now says so.** A CSV headed `Friendly Name,URL/IP,Type,Interval (min)` is not a supported monitor export. Use the UptimeRobot v3 JSON, or paste a simple list with an Uptime `url,name,interval` header.
+- **Moving-from guides.** The Pingdom, Better Stack and Site24x7 guides are now listed in the documentation and say which saved responses to use.
+
+### Second factor
+
+- **Verify to continue.** When a sensitive action needs a second factor, a dialog opens in place. If you already have a factor it takes an authenticator code, a recovery code or your passkey, and your action then finishes without retyping. Cancelling keeps what you had entered.
+- **Set up your first authenticator on the spot.** If you have no second factor yet, the dialog offers **Add an authenticator** and **Enroll passkey**. Authenticator setup shows a QR code, a link that opens your authenticator app on the same device and the secret to type by hand; confirm with a current code, then save the ten recovery codes shown once. The same QR code appears under **Settings › People** › **Manage second factors**.
+
+### Running locally
+
+- **The one required `PATH` step.** [RUN-LOCALLY.md](RUN-LOCALLY.md) now shows, beside the first `rer dev`, the line to run when `~/.local/bin` is not on your `PATH`: `export PATH="$HOME/.local/bin:$PATH"`, kept in your shell startup file. Without it a new terminal says `rer: command not found`.
+
+### rer 0.2.108
+
+- Your checkout pins `@runeditrun/rer` to exactly 0.2.108. The one-line installer prints the `PATH` step above when it is needed. Authenticator setup adds one small library for the QR code to the checkout.
+
+### Upgrading from 0.5.4
+
+No migration is added. Update an existing checkout with `pnpm install --frozen-lockfile`, then deploy as usual; a backup is still good practice before any upgrade (see the 0.5.4 notes below for the steps). Nothing in your settings changes.
+
+### Known issues
+
+- A monitor CSV exported from UptimeRobot still cannot be imported (see above): only the v3 JSON, an event-log CSV and Uptime's own `url` CSV are read.
+- Restoring an installation archive does not bring back the list of erased people. If, after a restore, your Business pairs again and its team list still names a person you had erased, that person could be invited again.
+- A company that has signed an agent policy but has never sent any company settings is treated as running: its decision feed answers with an empty page instead of a refusal. No company token is accepted and no decision is shared in that state.
+- A response body larger than 64 KiB fails the check as a target failure (`body-limit`), even when the status is correct. Point a monitor at a smaller page, such as a health endpoint, until a later release reads large pages.
+- The limits listed under 0.4.0 to 0.5.4 still apply: hosted heartbeat evaluation needs a private runner, hosted Worker checks cannot pin connections, a member who is not the owner and has enrolled a second factor still verifies each new sign-in with the command line, and many features are partial; see the Status table in [CONTRACT.md](CONTRACT.md).
+
 ## 0.5.4 — 2026-11-11
 
 Patch release from `main`; previous version 0.5.3. Erasing a person now also removes them from your Business team list and keeps them off it, and erasing one person no longer touches another person's agent records when their email addresses end alike. It also moves Uptime to `@runeditrun/rer` 0.2.107. One additive migration (`0089_business_retired.sql`); no new required settings. Monitors, history, incidents, destinations and private settings are kept on upgrade.
