@@ -1,0 +1,17 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-plain-monitor-text-1",
+  "head": "15581293dc4be4e079132f70a2d1bdad3aa44274",
+  "remoteHead": "15581293dc4be4e079132f70a2d1bdad3aa44274",
+  "mainBase": "f7eaeebdd4bf1a93fa8cc505433f8cfe8ce3bea1",
+  "productPush": "confirmed",
+  "workingTree": "clean",
+  "pullRequest": null,
+  "ciRunId": 43000305698,
+  "mainPushed": false,
+  "historyRewritten": false,
+  "evidencePublication": "separate evidence ref; manifest will record product head",
+  "initialFailedRunId": 42997246922,
+  "ciResult": "failure",
+  "blocker": "Exact-SHA Verify failed; ten-call GitHub budget exhausted before corrected-run diagnostics"
+}

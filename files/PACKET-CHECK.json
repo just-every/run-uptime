@@ -1,0 +1,27 @@
+{
+  "candidate": "15581293dc4be4e079132f70a2d1bdad3aa44274",
+  "reportedScreensWithInternalFormsBefore": 3,
+  "reportedScreensWithInternalFormsAfter": 0,
+  "comparison": {
+    "preview": {
+      "beforeHasInternalForms": true,
+      "afterHasInternalForms": false
+    },
+    "details": {
+      "beforeHasInternalForms": true,
+      "afterHasInternalForms": false
+    },
+    "incident": {
+      "beforeHasInternalForms": true,
+      "afterHasInternalForms": false
+    }
+  },
+  "reportInternalForms": false,
+  "snapshotWidths": [
+    1440,
+    390
+  ],
+  "snapshotOverflow": false,
+  "selectedPacketCredentialMatches": 0,
+  "symlinks": 0
+}

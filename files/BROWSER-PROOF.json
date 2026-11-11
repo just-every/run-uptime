@@ -1,0 +1,29 @@
+{
+  "head": "15581293dc4be4e079132f70a2d1bdad3aa44274",
+  "widths": [
+    1440,
+    390
+  ],
+  "screens": [
+    "preview",
+    "details",
+    "incident",
+    "report",
+    "snapshot"
+  ],
+  "files": [
+    "after-details-1440.png",
+    "after-details-390.png",
+    "after-incident-1440.png",
+    "after-incident-390.png",
+    "after-preview-1440.png",
+    "after-preview-390.png",
+    "after-report-1440.png",
+    "after-report-390.png",
+    "after-snapshot-1440.png",
+    "after-snapshot-390.png"
+  ],
+  "consoleText": "AFTER.json",
+  "snapshotMeasurements": "SNAPSHOT-PROOF.json",
+  "inspected": true
+}

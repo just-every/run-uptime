@@ -1,0 +1,9 @@
+{
+  "commandEntrypoints": 47,
+  "entryRegistrations": 12,
+  "standaloneEntryScripts": 37,
+  "entryTotal": 49,
+  "newRegistrations": 0,
+  "cap": 200,
+  "note": "47 entry journeys: 12 node:test registrations plus 37 standalone entry scripts = 49. Nested standalone browser scripts are existing; no registration added or removed."
+}

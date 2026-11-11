@@ -1,0 +1,51 @@
+shards (push-1)	Run this shard	﻿2026-11-11T09:43:19.7737716Z ##[group]Run node .github/scripts/verify-ci.mjs "$SHARD"
+shards (push-1)	Run this shard	2026-11-11T09:43:19.7738053Z [36;1mnode .github/scripts/verify-ci.mjs "$SHARD"[0m
+shards (push-1)	Run this shard	2026-11-11T09:43:19.7754781Z shell: /usr/bin/bash -e {0}
+shards (push-1)	Run this shard	2026-11-11T09:43:19.7754999Z env:
+shards (push-1)	Run this shard	2026-11-11T09:43:19.7755160Z   CI: true
+shards (push-1)	Run this shard	2026-11-11T09:43:19.7755335Z   WRANGLER_SEND_METRICS: false
+shards (push-1)	Run this shard	2026-11-11T09:43:19.7755558Z   PLAYWRIGHT_SKIP_BROWSER_GC: 1
+shards (push-1)	Run this shard	2026-11-11T09:43:19.7755854Z   PLAYWRIGHT_BROWSERS_PATH: /home/runner/work/_temp/ms-playwright
+shards (push-1)	Run this shard	2026-11-11T09:43:19.7756184Z   PNPM_HOME: /home/runner/setup-pnpm/node_modules/.bin
+shards (push-1)	Run this shard	2026-11-11T09:43:19.7756448Z   TMPDIR: /tmp/uptime-verify-JC9XXD
+shards (push-1)	Run this shard	2026-11-11T09:43:19.7756685Z   TMP: /tmp/uptime-verify-JC9XXD
+shards (push-1)	Run this shard	2026-11-11T09:43:19.7756906Z   TEMP: /tmp/uptime-verify-JC9XXD
+shards (push-1)	Run this shard	2026-11-11T09:43:19.7757117Z   SHARD: push-1
+shards (push-1)	Run this shard	2026-11-11T09:43:19.7757359Z   UPTIME_VERIFY_BUILD: /home/runner/work/_temp/uptime-verify-build
+shards (push-1)	Run this shard	2026-11-11T09:43:19.7757644Z ##[endgroup]
+shards (push-1)	Run this shard	2026-11-11T09:43:19.8624628Z > node tests/flow-journey.mjs
+shards (push-1)	Run this shard	2026-11-11T09:43:45.2954068Z FLOW-002 translated login/signup/checkout through CLI, preview and ordinary deploy alongside an API check; scheduled isolated runs passed; unsupported source refused at suite.spec.ts:1; immutable source/fixture/lock digests and definition export retained.
+shards (push-1)	Run this shard	2026-11-11T09:44:43.1360405Z FLOW-002 broken fixture, assertion and metadata network call retained three distinct outcomes through the existing runner request policy; selected secrets stayed out of revision and result evidence.
+shards (push-1)	Run this shard	2026-11-11T09:45:53.4666982Z PERF-001 RUM report assertions passed: measured browser errors and LCP/CLS/INP percentiles, weighted ranks across hours, missing metrics, bot exclusion and edge US subdivisions.
+shards (push-1)	Run this shard	2026-11-11T09:45:53.6236764Z PERF-001 owner erasure passed: registration and all aggregate tables removed atomically, erased-origin collection refused, independent site retained.
+shards (push-1)	Run this shard	2026-11-11T09:45:57.9138447Z PERF-001 populated archive and restore passed: registration, sampling and all aggregates stay local; restored collection is off; every RUM audit arrives.
+shards (push-1)	Run this shard	2026-11-11T09:45:58.9739775Z PERF-001 console erasure passed: one confirmed DELETE from the monitor page removed the registration and every aggregate.
+shards (push-1)	Run this shard	2026-11-11T09:46:02.2336416Z FLOW-001 passed: browser flow through the production runner and Worker; healthy traces keep no query or credential, also with the account in the URL path; wrong password failed at its step and sent an incident email; a type change recovered only as a changed definition; hard stops left no profile; concurrent creates kept the flow limit; a tunnel to the fixture port failed as a custody violation.
+shards (push-1)	Run this shard	2026-11-11T09:46:02.2340848Z PERF-001 passed: mobile and desktop page-speed checks retained DNS/connect/TTFB with TLS absent on plain HTTP, the waterfall, vitals and the mobile browser error; the slow mobile checkout breached its budgets and opened an incident with its email while desktop passed and the health endpoint stayed Healthy; the consented beacon counted real browser phone-profile and desktop visitors, separate US/CA checkout denominators, measured phone-profile CLS and an actual HTTP 500 phone-profile visit reported unavailable, with owner sampling and exclusions, sent nothing without consent, with GPC, from a bot, outside the sample or on an excluded path, kept no identifier, query or address, and its report kept its own denominator beside the synthetic one; the console showed both at 1440.
+shards (push-1)	Run this shard	2026-11-11T09:46:06.9606103Z (node:6992) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+shards (push-1)	Run this shard	2026-11-11T09:46:06.9607021Z (Use `node --trace-warnings ...` to show where the warning was created)
+shards (push-1)	Run this shard	2026-11-11T09:46:25.6653751Z PERF-001 retained timing samples: {"base":{"dnsMs":22,"connectMs":1,"tlsMs":32,"ttfbMs":2},"delayedDns":{"dnsMs":402,"connectMs":1,"tlsMs":31,"ttfbMs":2},"delayedTls":{"dnsMs":21,"connectMs":1,"tlsMs":403,"ttfbMs":2},"delayedConnect":{"dnsMs":20,"connectMs":401,"tlsMs":31,"ttfbMs":2},"delayedFirstByte":{"dnsMs":21,"connectMs":1,"tlsMs":31,"ttfbMs":401},"plain":{"dnsMs":21,"connectMs":1,"tlsMs":null,"ttfbMs":24}}
+shards (push-1)	Run this shard	2026-11-11T09:46:25.6657482Z PERF-001 DNS/connect/TLS/TTFB passed: generated fixture certificate trusted only by this browser, hostname and controlled wire DNS, non-zero retained DNS/TLS, independent delayed answers/handshakes and honest plain HTTP.
+shards (push-1)	Run this shard	2026-11-11T09:46:25.6905779Z PERF-001 upgrade passed: a populated installation gained the beacon tables by one additive migration that rewrote nothing.
+shards (push-1)	Run this shard	2026-11-11T09:47:05.1585591Z FLOW-004 browser 1440: real mobile failure/evidence/report, profile save/reload, engine visibility, reviewed import, guide, axe and reflow passed.
+shards (push-1)	Run this shard	2026-11-11T09:48:04.2625226Z FLOW-004 passed: three real engines, measured 390-pixel mobile checkout matching signed history and report dimensions, mobile-only failure, engine-specific capacity, protected subresources, revision and profile reporting and retained archive evidence.
+shards (push-1)	Run this shard	2026-11-11T09:48:13.4524294Z node:internal/modules/run_main:123
+shards (push-1)	Run this shard	2026-11-11T09:48:13.4524804Z     triggerUncaughtException(
+shards (push-1)	Run this shard	2026-11-11T09:48:13.4525175Z     ^
+shards (push-1)	Run this shard	2026-11-11T09:48:13.4525317Z 
+shards (push-1)	Run this shard	2026-11-11T09:48:13.4526464Z locator.click: Error: strict mode violation: locator('#monitor-incidents').locator('.failure-snapshot').filter({ hasText: 'Download sanitized trace ZIP' }).first().locator('summary') resolved to 2 elements:
+shards (push-1)	Run this shard	2026-11-11T09:48:13.4528330Z     1) <summary>Browser flow failure · Silver Brook · 11/11/2026,…</summary> aka getByText('Browser flow failure · Silver')
+shards (push-1)	Run this shard	2026-11-11T09:48:13.4529198Z     2) <summary>Raw data</summary> aka getByText('Raw data').first()
+shards (push-1)	Run this shard	2026-11-11T09:48:13.4529685Z 
+shards (push-1)	Run this shard	2026-11-11T09:48:13.4529799Z Call log:
+shards (push-1)	Run this shard	2026-11-11T09:48:13.4530536Z   - waiting for locator('#monitor-incidents').locator('.failure-snapshot').filter({ hasText: 'Download sanitized trace ZIP' }).first().locator('summary')
+shards (push-1)	Run this shard	2026-11-11T09:48:13.4531331Z 
+shards (push-1)	Run this shard	2026-11-11T09:48:13.4531832Z     at artifactBrowser (/home/runner/work/run-uptime/run-uptime/tests/flow-artifact-browser.mjs:15:194)
+shards (push-1)	Run this shard	2026-11-11T09:48:13.4532713Z     at async file:///home/runner/work/run-uptime/run-uptime/tests/flow-artifact-journey.mjs:52:2 {
+shards (push-1)	Run this shard	2026-11-11T09:48:13.4533292Z   log: [
+shards (push-1)	Run this shard	2026-11-11T09:48:13.4534076Z     "  - waiting for locator('#monitor-incidents').locator('.failure-snapshot').filter({ hasText: 'Download sanitized trace ZIP' }).first().locator('summary')"
+shards (push-1)	Run this shard	2026-11-11T09:48:13.4534817Z   ]
+shards (push-1)	Run this shard	2026-11-11T09:48:13.4535021Z }
+shards (push-1)	Run this shard	2026-11-11T09:48:13.4535472Z 
+shards (push-1)	Run this shard	2026-11-11T09:48:13.4535572Z Node.js v22.20.0
+shards (push-1)	Run this shard	2026-11-11T09:48:13.4987296Z ##[error]Process completed with exit code 1.

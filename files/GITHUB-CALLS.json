@@ -1,0 +1,106 @@
+[
+  {
+    "number": 1,
+    "at": 1794390097.1594155,
+    "args": [
+      "api",
+      "repos/just-every/run-uptime/actions/runs?head_sha=7012f8b68bf9c769049d89a177df6bf279c1b028&per_page=100",
+      "--jq",
+      "{workflow_runs:[.workflow_runs[]|{id,name,event,status,conclusion,head_sha,html_url}]}"
+    ]
+  },
+  {
+    "number": 2,
+    "at": 1794390398.0174768,
+    "args": [
+      "api",
+      "repos/just-every/run-uptime/actions/runs/42997246922",
+      "--jq",
+      "{id,name,event,status,conclusion,head_sha,html_url}"
+    ]
+  },
+  {
+    "number": 3,
+    "at": 1794390698.6330266,
+    "args": [
+      "api",
+      "repos/just-every/run-uptime/actions/runs/42997246922",
+      "--jq",
+      "{id,name,event,status,conclusion,head_sha,html_url}"
+    ]
+  },
+  {
+    "number": 4,
+    "at": 1794390999.2021048,
+    "args": [
+      "api",
+      "repos/just-every/run-uptime/actions/runs/42997246922",
+      "--jq",
+      "{id,name,event,status,conclusion,head_sha,html_url}"
+    ]
+  },
+  {
+    "number": 5,
+    "at": 1794391010.75125,
+    "args": [
+      "api",
+      "repos/just-every/run-uptime/actions/runs/42997246922/jobs?per_page=100",
+      "--jq",
+      "{jobs:[.jobs[]|{id,name,status,conclusion,failedSteps:[.steps[]|select(.conclusion==\"failure\")|{name,number,conclusion}]}]}"
+    ]
+  },
+  {
+    "number": 6,
+    "at": 1794391021.1766365,
+    "args": [
+      "run",
+      "view",
+      "42997246922",
+      "--repo",
+      "just-every/run-uptime",
+      "--job",
+      "130444724282",
+      "--log-failed"
+    ]
+  },
+  {
+    "number": 7,
+    "at": 1794391403.200601,
+    "args": [
+      "api",
+      "repos/just-every/run-uptime/actions/runs?head_sha=15581293dc4be4e079132f70a2d1bdad3aa44274&per_page=100",
+      "--jq",
+      "{workflow_runs:[.workflow_runs[]|{id,name,event,status,conclusion,head_sha,html_url}]}"
+    ]
+  },
+  {
+    "number": 8,
+    "at": 1794391704.2280614,
+    "args": [
+      "api",
+      "repos/just-every/run-uptime/actions/runs/43000305698",
+      "--jq",
+      "{id,name,event,status,conclusion,head_sha,html_url}"
+    ]
+  },
+  {
+    "number": 9,
+    "at": 1794392005.4910758,
+    "args": [
+      "api",
+      "repos/just-every/run-uptime/actions/runs/43000305698",
+      "--jq",
+      "{id,name,event,status,conclusion,head_sha,html_url}"
+    ]
+  },
+  {
+    "number": 10,
+    "at": 1794392306.0263789,
+    "args": [
+      "api",
+      "repos/just-every/run-uptime/actions/runs/43000305698",
+      "--jq",
+      "{id,name,event,status,conclusion,head_sha,html_url}"
+    ]
+  }
+]

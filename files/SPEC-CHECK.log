@@ -1,0 +1,6 @@
+ WARN  Unsupported engine: wanted: {"node":"22.20.0"} (current: {"node":"v24.19.0","pnpm":"10.12.4"})
+
+> @uptime/uptime-console@0.5.4 spec:check /workspace/run-uptime
+> node scripts/delivery/publish-spec.mjs --check
+
+Deployment spec, setup digest and local setup match the build

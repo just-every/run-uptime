@@ -1,0 +1,21 @@
+{
+  "head": "15581293dc4be4e079132f70a2d1bdad3aa44274",
+  "proof": [
+    {
+      "width": 1440,
+      "text": "Open incident\nStarted\n11/11/2026, 10:03:52 AM\nEnded\nStill open\nDuration so far\n1 s\nNotes and follow-up\nIncident evidence\nFailure confirmed · revision 1\n\nWillow Hill: HTTP 503; HTTP status is outside the expected status or range. 1/1 selected probes failed; 0 unknown; coverage complete. 1 independent failing vantages; passing external check present; scheduled-slot confirmation 1/1; recovery 0/1.\n\nWillow Hill: Failed · Got 503; expected 200–299\nNotification context\n\nOriginal down reason: Willow Hill: HTTP 503; HTTP status is outside the expected status or range. 1/1 selected probes failed; 0 unknown; coverage complete. 1 independent failing vantages; passing external check present; scheduled-slot confirmation 1/1; recovery 0/1.\n\nConfirmed start (UTC)\n2026-11-11T10:03:52.720Z\nConfirmed recovery (UTC)\nNot confirmed\nConfirmed downtime\nOngoing\nWillow Hill: Got 503; expected 200–299\n\nLink to this incident\n\nLoad incident failure snapshots\n\nDownload complete incident report\n\nHTTP 503 · Willow Hill · 11/11/2026, 10:03:52 AM\n\nRevision 1 · attempt 1 · 8 ms\n\nRaw data\n\nGET http://93.184.216.34:46667/target\n\nExpires 2/9/2027, 10:03:52 AM. Diagnostic context; monitoring evidence and verdict are unchanged.\n\nRequest headers\naccept: [redacted]\naccept-encoding: [redacted]\nhost: [redacted]\nuser-agent: [redacted]\nResponse headers\nconnection: [redacted]\ncontent-length: 86\ncontent-type: text/html\ndate: [redacted]\nConnection phases\nMeasured final exchange\nPhase\tDuration\nDNS\t0 ms\nTCP connect\t0 ms\nTLS handshake\tUnavailable\nTime to response headers\t3 ms\nOriginal check\t8 ms\n\nPhases describe the final exchange at this location. Unmeasured phases are unavailable. Diagnostic collection is separate from the check duration and never changes its outcome.\n\nResponse excerpt\n<h1>Service temporarily unavailable</h1><p>The checkout service returned HTTP 503.</p>",
+      "extent": {
+        "viewport": 1440,
+        "document": 1440
+      }
+    },
+    {
+      "width": 390,
+      "text": "Open incident\nStarted\n11/11/2026, 10:03:52 AM\nEnded\nStill open\nDuration so far\n1 s\nNotes and follow-up\nIncident evidence\nFailure confirmed · revision 1\n\nWillow Hill: HTTP 503; HTTP status is outside the expected status or range. 1/1 selected probes failed; 0 unknown; coverage complete. 1 independent failing vantages; passing external check present; scheduled-slot confirmation 1/1; recovery 0/1.\n\nWillow Hill: Failed · Got 503; expected 200–299\nNotification context\n\nOriginal down reason: Willow Hill: HTTP 503; HTTP status is outside the expected status or range. 1/1 selected probes failed; 0 unknown; coverage complete. 1 independent failing vantages; passing external check present; scheduled-slot confirmation 1/1; recovery 0/1.\n\nConfirmed start (UTC)\n2026-11-11T10:03:52.720Z\nConfirmed recovery (UTC)\nNot confirmed\nConfirmed downtime\nOngoing\nWillow Hill: Got 503; expected 200–299\n\nLink to this incident\n\nLoad incident failure snapshots\n\nDownload complete incident report\n\nHTTP 503 · Willow Hill · 11/11/2026, 10:03:52 AM\n\nRevision 1 · attempt 1 · 8 ms\n\nRaw data\n\nGET http://93.184.216.34:46667/target\n\nExpires 2/9/2027, 10:03:52 AM. Diagnostic context; monitoring evidence and verdict are unchanged.\n\nRequest headers\naccept: [redacted]\naccept-encoding: [redacted]\nhost: [redacted]\nuser-agent: [redacted]\nResponse headers\nconnection: [redacted]\ncontent-length: 86\ncontent-type: text/html\ndate: [redacted]\nConnection phases\nMeasured final exchange\nPhase\tDuration\nDNS\t0 ms\nTCP connect\t0 ms\nTLS handshake\tUnavailable\nTime to response headers\t3 ms\nOriginal check\t8 ms\n\nPhases describe the final exchange at this location. Unmeasured phases are unavailable. Diagnostic collection is separate from the check duration and never changes its outcome.\n\nResponse excerpt\n<h1>Service temporarily unavailable</h1><p>The checkout service returned HTTP 503.</p>",
+      "extent": {
+        "viewport": 390,
+        "document": 390
+      }
+    }
+  ]
+}

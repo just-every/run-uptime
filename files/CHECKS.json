@@ -1,0 +1,53 @@
+{
+  "head": "15581293dc4be4e079132f70a2d1bdad3aa44274",
+  "checks": [
+    {
+      "command": "cloud_run npx -y @runeditrun/rer build",
+      "exit": 0
+    },
+    {
+      "command": "pnpm run typecheck",
+      "exit": 0
+    },
+    {
+      "command": "pnpm spec:check",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0
+    },
+    {
+      "command": "node tests/operator-browser.mjs via the existing browser-suites runtime (operator only)",
+      "exit": 0,
+      "evidence": "OPERATOR-TEST.log",
+      "audits": 13,
+      "assertionWidth": 1440,
+      "existingPhoneSmoke": 390
+    },
+    {
+      "command": "node tests/failure-page-journey.mjs",
+      "exit": 0,
+      "evidence": "SNAPSHOT-TEST.log",
+      "tests": 1
+    },
+    {
+      "command": "node tests/flow-artifact-journey.mjs",
+      "exit": 0,
+      "evidence": "FLOW-ARTIFACT-TEST.log",
+      "scope": "actual PNG, replay video, sanitized trace, waterfall and signed step evidence; denied capture and erasure"
+    }
+  ],
+  "execution": {
+    "runtime": "Node 22.20.0 for browser journeys; tsc under Node 24.19.0",
+    "driver": "/usr/bin/chromium --no-sandbox",
+    "runnerScreenshotBrowser": "Playwright Chromium build 1248"
+  },
+  "ci": "Separate exact-SHA Verify; see CI.json",
+  "scope": "Local owner-door checks only; no hosted/provider or pricing qualification",
+  "mergedMain": "f7eaeebdd4bf1a93fa8cc505433f8cfe8ce3bea1",
+  "sourceBinding": "Local checks ran on the merged candidate tree before its merge commit; the separate branch Verify runs on the exact final SHA.",
+  "ciResult": "failure",
+  "ciRunId": 43000305698,
+  "blocker": "Exact-SHA Verify failed; ten-call GitHub budget exhausted before corrected-run diagnostics"
+}
