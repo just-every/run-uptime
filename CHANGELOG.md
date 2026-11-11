@@ -1,5 +1,40 @@
 # Changelog
 
+## 0.5.4 — 2026-11-11
+
+Patch release from `main`; previous version 0.5.3. Erasing a person now also removes them from your Business team list and keeps them off it, and erasing one person no longer touches another person's agent records when their email addresses end alike. It also moves Uptime to `@runeditrun/rer` 0.2.107. One additive migration (`0089_business_retired.sql`); no new required settings. Monitors, history, incidents, destinations and private settings are kept on upgrade.
+
+Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png), taken on 0.4.0, before the console changes of 0.5.0, 0.5.1, 0.5.2, 0.5.3 and 0.5.4.
+
+### Back up first
+
+Back up while you are still on 0.5.3. Migration `0089` adds one table and changes nothing that is already stored, but a backup is the way back if anything goes wrong. On a hosted installation, download the product archive from **Settings › Backup and files** and back up the database with `npx wrangler d1 export <database> --remote --output exports/<database>.sql`. On your own computer, stop dev and run `rer export --output exports/uptime.rer`. Keep `.rer/deploy` and your private settings. Downloading a backup asks for a second factor verified in the last five minutes.
+
+### Erasing a person
+
+- **An erased person leaves your Business team list.** When you erase a person, Uptime now also removes them from the team list your Business has signed and sent, and from the Business settings that name them. If your Business sends a new update that lists them again, they stay off the list.
+- **People erased on earlier versions drop off at your next Business update.** Anyone you erased on 0.5.3 or earlier is removed from the team list the next time your Business sends an update. Nothing is changed or deleted when you upgrade; the table the migration adds only holds markers that carry no name, email address or other detail of the person.
+- **Erasing one person no longer touches another person's agent records.** Erasing `al@example.test` used to be able to redact the agent records of `sal@example.test`, because the addresses end the same way. Only the erased person's own records are changed now.
+
+### rer 0.2.107
+
+- Your checkout pins `@runeditrun/rer` to exactly 0.2.107, the version that carries the team-list erasure and the stricter record matching above.
+
+### Upgrading from 0.5.3
+
+Migration `0089_business_retired.sql` is applied by a deploy. It creates one table, `bs_retired`, and nothing else; it reads, moves and deletes no existing row.
+
+- Your checkout pins `@runeditrun/rer` to exactly 0.2.107. Update an existing checkout with `pnpm install --frozen-lockfile`.
+- Nothing in your settings changes.
+
+### Known issues
+
+- Restoring an installation archive does not bring back the list of erased people. If, after a restore, your Business pairs again and its team list still names a person you had erased, that person could be invited again.
+- A company that has signed an agent policy but has never sent any company settings is treated as running: its decision feed answers with an empty page instead of a refusal. No company token is accepted and no decision is shared in that state.
+- `rer deploy --dry-run` prints its closing "Needed for a real deploy" block twice. It is only repeated text.
+- A response body larger than 64 KiB fails the check as a target failure (`body-limit`), even when the status is correct. Point a monitor at a smaller page, such as a health endpoint, until a later release reads large pages.
+- The limits listed under 0.4.0, 0.5.0, 0.5.1, 0.5.2 and 0.5.3 still apply: hosted heartbeat evaluation needs a private runner, hosted Worker checks cannot pin connections, a member who is not the owner and has enrolled a second factor still verifies each new sign-in with the command line, and many features are partial; see the Status table in [CONTRACT.md](CONTRACT.md).
+
 ## 0.5.3 — 2026-11-10
 
 Patch release from `main`; previous version 0.5.2. It moves Uptime to `@runeditrun/rer` 0.2.106 and makes a company's agent decision feed stricter about privacy: a company that has been stopped or detached can no longer pull decisions, and an older approval waiting on a stopped company is refused. One additive migration (`0088_agent_door_retired_refs_relay_privacy.sql`); no new required settings. Monitors, history, incidents, destinations and private settings are kept on upgrade.
