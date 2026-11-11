@@ -1,0 +1,15 @@
+shards (push-5)	Run this shard	2026-11-11T12:14:54.7486996Z > node tests/notification-fallback.mjs
+shards (push-5)	Run this shard	2026-11-11T12:17:30.0494648Z > node tests/mail-journey.mjs
+shards (push-5)	Run this shard	2026-11-11T12:19:20.9328552Z PASS MAIL-001 owner configuration, signed native protocols, per-step incidents, receiver confirmation and synthetic-only removal
+shards (push-5)	Run this shard	2026-11-11T12:19:21.0052056Z > node tests/agent-erasure.mjs
+shards (push-5)	Run this shard	2026-11-11T12:19:34.4739637Z PASS agent-door custody names no erased person after operator erasure; the other person's agent records are intact.
+shards (push-5)	Run this shard	2026-11-11T12:19:34.5505103Z > node tests/udp-monitors.mjs
+shards (push-5)	Run this shard	2026-11-11T12:20:22.4281749Z UDP-001 PASS: signed scheduled match/mismatch/timeout/recovery, immutable facts, destination rejection, one-packet/rate/size caps, cancellation, portable settings and revoked authority.
+shards (push-5)	Run this shard	2026-11-11T12:20:22.4926328Z > node tests/operator-security.mjs
+shards (push-5)	Run this shard	2026-11-11T12:21:17.3987784Z Destination step-up PASS: public refusal guidance/deep link, QR scan, enrollment, stale proof, wrong code, cancellation and one retained-request creation.
+shards (push-5)	Run this shard	2026-11-11T12:21:57.0845259Z locator.click: Timeout 30000ms exceeded.
+shards (push-5)	Run this shard	2026-11-11T12:21:57.0846410Z   - waiting for locator('#security-controls').locator('[data-credential-id="d689c558-a495-4136-bf78-68a3641b31c2"]').locator('summary')
+shards (push-5)	Run this shard	2026-11-11T12:21:57.0847773Z     at proveSecurityControls (/home/runner/work/run-uptime/run-uptime/tests/security-controls-browser-support.mjs:106:702)
+shards (push-5)	Run this shard	2026-11-11T12:21:57.0848613Z     at async file:///home/runner/work/run-uptime/run-uptime/tests/operator-security.mjs:58:2 {
+shards (push-5)	Run this shard	2026-11-11T12:21:57.0849513Z     `  - waiting for locator('#security-controls').locator('[data-credential-id="d689c558-a495-4136-bf78-68a3641b31c2"]').locator('summary')`
+shards (push-5)	Run this shard	2026-11-11T12:21:57.1254818Z ##[error]Process completed with exit code 1.

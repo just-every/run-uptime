@@ -1,0 +1,20 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-readme-walkthrough-1-c1",
+  "head": "0c6fe8ad20d5accb03ff815abe2028b72f3cc7b8",
+  "main_merged": "3caf61f087a59a0cc009f1eb1c87077be0eb985b",
+  "product_push": "success",
+  "local_checks": {
+    "typecheck": "pass",
+    "command_journey": "pass",
+    "contract_docs_check": "pass",
+    "source_lock_check": "pass"
+  },
+  "original_verify": {
+    "id": 43014289681,
+    "attempt": 2,
+    "conclusion": "failure",
+    "reproduced_failure": "tests/security-controls-browser-support.mjs:106 post-restart credential summary timeout"
+  },
+  "new_test_registrations": 0
+}

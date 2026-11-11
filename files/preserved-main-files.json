@@ -1,0 +1,22 @@
+[
+  {
+    "path": "CONTRACT.md",
+    "same_as_merged_main": true,
+    "sha256": "879a0aeaeb48188b88efb518206a1f298c527772c4a86c077c9dbe88437eb849"
+  },
+  {
+    "path": "ACCEPTANCE.md",
+    "same_as_merged_main": true,
+    "sha256": "a8f018cf89045b9f4e69050fe0f97fd81afad012d8dc00db45fe3510e061982b"
+  },
+  {
+    "path": "docs/CLAIMS.md",
+    "same_as_merged_main": true,
+    "sha256": "adb3ad37ab113c2061ed4365767d2c347281a807acfa51eb712305959ad02b54"
+  },
+  {
+    "path": "tests/security-controls-browser-support.mjs",
+    "same_as_merged_main": true,
+    "sha256": "d126aaabd9ed5a0904f42bfc89891d8f8ae5eea66b1479a9fe7dfabc7e3959d0"
+  }
+]

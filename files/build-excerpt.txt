@@ -1,0 +1,9 @@
+Actual final build output, final 8 lines (full installation log retained privately):
+dist/server/assets/pdf-BVe-yyqf.js                              1,958.73 kB │ gzip: 622.60 kB
+dist/server/index.js                                            2,871.02 kB │ gzip: 705.56 kB
+
+[INEFFECTIVE_DYNAMIC_IMPORT] src/domain/notification-credentials.server.ts is dynamically imported by src/domain/notification-webhook.ts but also statically imported by src/domain/alert-drill-scheduler.server.ts, src/domain/alert-drills.server.ts, src/domain/alert-teams.server.ts, src/domain/archive.server.ts, src/domain/health.server.ts, ..., dynamic import will not move module into another chunk.
+
+✓ built in 1.41s
+Your application is built
+build: complete (exit 0)

@@ -1,0 +1,5 @@
+
+> @uptime/uptime-console@0.5.5 spec:check /home/agent/rer-consolidation/work/main-uptime-readme-walkthrough-1-c1/repo
+> node scripts/delivery/publish-spec.mjs --check
+
+Deployment spec, setup digest and local setup match the build

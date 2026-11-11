@@ -1,0 +1,81 @@
+{
+  "repository": "just-every/run-uptime",
+  "tag": "main-uptime-readme-walkthrough-1-c1",
+  "branch": "cloud/main-uptime-readme-walkthrough-1-c1",
+  "head": "06dccf2ce2a48aedabd482aee468fa22e6f4e8b1",
+  "merged_main": "1b74086c760398d8ec3a7fffa13985210c0191fc",
+  "original_walkthrough": "b1793418a2c866dea6ba969a738c181fdfb2b5de",
+  "original_verify": {
+    "id": 43014289681,
+    "attempt": 2,
+    "status": "completed",
+    "conclusion": "failure"
+  },
+  "checks": {
+    "frozen_install": 0,
+    "owner_setup": 0,
+    "build": 0,
+    "typecheck": 0,
+    "operator_security": 0,
+    "source_lock_check": 0,
+    "contract_check": 0,
+    "spec_check": 0,
+    "diff_check": 0,
+    "command_journey_final": 0
+  },
+  "browser_proof": {
+    "assertion_width": 1440,
+    "capture_widths": [
+      1440,
+      390
+    ],
+    "head": "06dccf2ce2a48aedabd482aee468fa22e6f4e8b1",
+    "screens": [
+      "People / Security and keys after runtime restart"
+    ],
+    "files": [
+      {
+        "file": "security-restart-1440.png",
+        "pixels": [
+          1440,
+          1000
+        ],
+        "bytes": 122295,
+        "sha256": "bebaba331523f843a0741c3edb24c0dc1156dc0e14a9720e79b9452f456ec66b"
+      },
+      {
+        "file": "security-restart-390.png",
+        "pixels": [
+          390,
+          1740
+        ],
+        "bytes": 140522,
+        "sha256": "6b1a302f2be505e286927937a40f64a414f9ae90a53c1151b19c4063d6f8e76f"
+      }
+    ]
+  },
+  "clause_counts_before": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "clause_counts_after": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "clause_status_changes": [],
+  "new_test_registrations": 0,
+  "selected_ci_journeys_before": 47,
+  "selected_ci_journeys_after": 47,
+  "full_publication_scan": "fleet Mac lander owns; unavailable in cloud",
+  "product_push": "final exact head pushed successfully",
+  "pr_url": null,
+  "ci": "pending exact-SHA branch Verify",
+  "product_pushes": [
+    "0c6fe8ad20d5accb03ff815abe2028b72f3cc7b8",
+    "06dccf2ce2a48aedabd482aee468fa22e6f4e8b1"
+  ]
+}
