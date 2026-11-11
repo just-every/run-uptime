@@ -520,7 +520,7 @@
       "executable": false
     },
     "CHANGELOG.md": {
-      "sha256": "dac21056a46c2a2bf354409376bcbf2efc26d2d47ded1775e343bb5f2874227d",
+      "sha256": "c8baaefeba06aa4c7fbbea3c730337c7c60b7582d5aca8f9117dbe730a02a255",
       "executable": false
     },
     "CLAUDE.md": {
@@ -2664,7 +2664,7 @@
       "executable": false
     },
     "public/assets/failure-snapshot-view.js": {
-      "sha256": "2b638b31d4978c9db38d5a615d75ef05079cfd50532771588b32e04352ea1326",
+      "sha256": "cf0510886267875973663d4f065a0dd3700911afec606b350c3902ff6f539dae",
       "executable": false
     },
     "public/assets/report-schedule-controls.js": {
@@ -2820,7 +2820,7 @@
       "executable": false
     },
     "public/failure-snapshots.js": {
-      "sha256": "7867218564f682965ff3dfd990b00c0f3a084dc7fccc456927660deac257564d",
+      "sha256": "89dd939ca7c4bd21cd74c3d48d3ee76da3b46ab663c0056a57c7491774eed4f9",
       "executable": false
     },
     "public/favicon.svg": {
@@ -2896,7 +2896,7 @@
       "executable": false
     },
     "public/monitor-folds.js": {
-      "sha256": "bc1ba922e5b4682fb326103e2d12ee653ef43710f7a048f3d7938a431d7af957",
+      "sha256": "7901228627a164dc82be68b6909c5e9ec6edc237797c8db6e436ecd3bb414da2",
       "executable": false
     },
     "public/monitor-incidents.js": {
@@ -2916,7 +2916,7 @@
       "executable": false
     },
     "public/monitor-page.js": {
-      "sha256": "cddec2b1cffa3be4f667e811d4728eba521ed5aa5896cb503716e10f85cb61db",
+      "sha256": "ed0338e385ce57a89a63fb4e82f695bf57fcba799add56862192704f516e62b4",
       "executable": false
     },
     "public/monitor-reads.js": {
@@ -2928,7 +2928,7 @@
       "executable": false
     },
     "public/monitor-report.js": {
-      "sha256": "5f3a69d4dafbe6e9be20e945c8a0635575f67c8d0f3d98aeab7d29b84f80c182",
+      "sha256": "ac3106bfaa4e033ff0f9c903b0a58f46dae24999f9ea5221a5d29d38cca6b9d3",
       "executable": false
     },
     "public/monitor-rule-edit.js": {
@@ -3000,7 +3000,7 @@
       "executable": false
     },
     "public/report-render.js": {
-      "sha256": "d824b2f3ec31f451e6067d8b1edfafdc817f827517ee6a71675e6a0de8932e2c",
+      "sha256": "ccad975132cf011aa8d8fa0e9be445d9607bbb42f26d7f408fe8cc210c4e2687",
       "executable": false
     },
     "public/report.css": {
@@ -9140,7 +9140,7 @@
       "executable": false
     },
     "tests/failure-page-browser.mjs": {
-      "sha256": "26f204a4f11e073adbb9d20e149dcd4043b73d05e26a3a93225360ac48dc10ae",
+      "sha256": "6aea172f65c5630685002dcf4afb61ee09089a2c651fb3d70e100a5e8f07a54b",
       "executable": false
     },
     "tests/failure-page-custody-support.mjs": {
@@ -9456,7 +9456,7 @@
       "executable": false
     },
     "tests/plain-monitor-text-support.mjs": {
-      "sha256": "eabd1253190eabf52a1cf07b3e6b58cb94ef66f608c3769df387b12513e742f3",
+      "sha256": "05d822c893ea6a310f36bcd0cc7c8bcc48990b5635879bff75cd3ee85eabafc3",
       "executable": false
     },
     "tests/playwright-custody-support.mjs": {

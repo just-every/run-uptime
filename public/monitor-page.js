@@ -79,7 +79,7 @@ function draw(page){
  const root=area.querySelector('#monitor-page');root.monitorPage=page;
  if(firstMount(root))bindPage(root);
  const incidents=area.querySelector('#monitor-incidents');
- if(firstMount(incidents)){bindIncidentWork(incidents,page.api);bindIncidentSnapshots(incidents,page.api)}
+ if(firstMount(incidents)){bindIncidentWork(incidents,page.api);bindIncidentSnapshots(incidents,page.api,(probe,row)=>locationNamer(page.seen.revisions?.find(revision=>revision.revision===row.revision)?.definition??page.m.definition,page.data.runner.runners)(probe))}
  if(seen.incidents)patch(incidents,incidentMarkup(seen.incidents,page.name,{slots:seen.slots,revisions:seen.revisions,runners:page.data.runner.runners}));
  const history=area.querySelector('#raw-history');
  if(firstMount(history)&&seen.timeline)patch(history,historyMarkup(seen.timeline,page.m,page.data.runner.runners??[]));

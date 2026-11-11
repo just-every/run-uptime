@@ -31,6 +31,9 @@ export async function provePlainMonitorEvidence(page,origin,monitor){
   slots=await (await page.request.get(origin+`/api/monitors/${monitor.id}/history`)).json();
   const slot=slots.find(s=>s.id===trigger.slotId),failed=slot.observations.find(o=>o.checks.some(c=>c.assertion==='status'&&!c.pass));
   assert.ok(failed,'incident has a retained failed HTTP status');
+  const check=page.locator(`#raw-history details[data-slot="${slot.id}"]`);
+  await check.locator('summary').click();await assertPlainMonitorText(check);
+  assert.doesNotMatch(await check.innerText(),/target_failure|runner_error|body-absent/,'attempt results use readable rule names');
   await save(monitor.definition);
   await page.waitForResponse(r=>new URL(r.url()).pathname==='/api/overview'&&r.ok());
   const evidence=incident.locator('details[open]').first();
@@ -46,5 +49,12 @@ export async function provePlainMonitorEvidence(page,origin,monitor){
   await details.locator('.check-raw-data > summary').click();
  }finally{await control('healthy')}
  await page.locator('#monitor-state').filter({hasText:'Healthy'}).waitFor({timeout:30000});
+ await page.evaluate(()=>{location.hash='reports'});
+ await page.locator('#report-bucket').selectOption('raw');await page.locator('#report-generate').click();
+ await page.locator('#report-status').getByText('Report generated.',{exact:true}).waitFor();
+ const report=page.locator('#report-results');
+ await report.getByText('Incident evidence',{exact:true}).first().click();await assertPlainMonitorText(report);
+ assert.ok(await report.locator('td[data-label=Location]').count()>0,'report contains measured location samples');
+ assert.ok((await report.locator('td[data-label=Location]').allInnerTexts()).every(value=>Object.values(monitor.definition.assignments).some(a=>a.networkLabel===value)),'report samples name their assigned places');
  return current();
 }

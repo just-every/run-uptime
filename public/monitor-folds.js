@@ -1,7 +1,7 @@
 import {escape,humaneDuration} from './console-format.js';
 import {moreInfo,dayClock} from './monitor-status.js';
 import {openSlow} from './monitor-status-line.js';
-import {responseTime,httpRules,httpType,checkedFrom} from './monitor-rules.js';
+import {responseTime,httpRules,httpType,locationNamer} from './monitor-rules.js';
 import {COVERAGE_RULE,coverage,coverageLegend} from './monitor-coverage.js';
 import {alertRoutePanel,bindAlertRoutePanel} from './assets/alert-route.js';
 import {reportPanel,mountReportPanel} from './monitor-report.js';
@@ -12,11 +12,10 @@ import {heartbeatJobsPanel,bindHeartbeatJobs} from './heartbeat-jobs.js';
 import {bindHeartbeatKey} from './heartbeat-key.js';
 import {cleanupDebtPanel,mountCleanupDebt} from './cleanup-debt.js';
 import {followedServicePanel,bindFollowedPanel} from './followed-service.js';
-import {isFlow,flowPanel,bindFlowProfile} from './flow-panel.js';
+import {isFlow,flowPanel,bindFlowProfile,flowSummary} from './flow-panel.js';
 import {isProtocol,protocolExpectations} from './protocol-panel.js';
 import {mailSummary} from './mail-panel.js';
 import {transactionSummary} from './transaction-panel.js';
-import {flowSummary} from './flow-panel.js';
 // The rest of a monitor's page, folded into one card (U15): each fold is a <details> with its title and a one-line summary.
 // Its panel mounts on the fold's first open, through the panel's own bind function, and stays mounted while the page is;
 // a fold the page keeps current from its own reads (Incidents, Full check details) is always there. Each fold's id is the
@@ -39,7 +38,7 @@ function details(m,ui,data){
  const raw=d.type==='mail'?d.mail:d.type==='api'?d.api:isProtocol(d)?{[d.type]:d[d.type],assertions:d.assertions}:d.assertions;
  const rows=httpType(d)?[['Request method',d.method??'GET'],...httpRules(d).map(rule=>[rule.label,rule.value])]:isProtocol(d)?protocolExpectations(d):[];
  const criteria=d.type==='mail'?mailSummary(d):d.type==='api'?transactionSummary(d):isFlow(d)?flowSummary(d):`<dl class="ui-dl">${rows.map(([label,value])=>`<div><dt>${escape(label)}</dt><dd>${escape(value)}</dd></div>`).join('')}</dl>`;
- const where=checkedFrom(d,data.runner.runners).join(', ')||'Unavailable location';
+ const where=[...new Set((d.probes??[]).map(locationNamer(d,data.runner.runners)))].join(', ')||'Unavailable location';
  return (d.network==='private'?`<p class="details-note" id="details-private">Private network. Each connection requires its current host, address and port permission.</p>`:'')
   +(d.tlsTrust?`<p class="details-note" id="details-trust">Certificate trust exception: ${trust}. Initial HTTPS origin only; a private runner applies this setting. Full certificate results remain visible on TLS certificate monitors.</p>`:'')
   +`<dl class="ui-dl"><div><dt>State</dt><dd>${escape(d.enabled?m.state.state:'Paused')}</dd></div><div><dt>Check from</dt><dd>${escape(where)}</dd></div><div><dt>Check every</dt><dd>${escape(humaneDuration(d.intervalMs))}</dd></div></dl>${criteria}<details class="check-raw-data"><summary>Raw data</summary><p class="engine-status">${escape(m.state.reason)}</p><pre>${escape(JSON.stringify({...raw,...(d.privateGrantRef?{privateGrantRef:d.privateGrantRef}:{})},null,2))}</pre></details>`

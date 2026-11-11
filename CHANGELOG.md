@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+Monitor previews, incident evidence and period reports show location names. Incident and check results name the measured and expected HTTP status. Full check details show labelled settings, with support payloads and snapshot references behind Raw data disclosures. Unpriced previews omit cost, and catalog selections and missing-monitor messages omit internal identifiers.
+
 ## 0.5.4 — 2026-11-11
 
 Patch release from `main`; previous version 0.5.3. Erasing a person now also removes them from your Business team list and keeps them off it, and erasing one person no longer touches another person's agent records when their email addresses end alike. It also moves Uptime to `@runeditrun/rer` 0.2.107. One additive migration (`0089_business_retired.sql`); no new required settings. Monitors, history, incidents, destinations and private settings are kept on upgrade.
