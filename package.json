@@ -10,6 +10,7 @@
     "build": "rer build",
     "dev": "rer dev",
     "preview": "rer preview",
+    "practice-target": "node scripts/local/practice-target.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.runner.json",
     "verify": "rer verify",
     "setup": "rer setup",

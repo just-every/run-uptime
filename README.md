@@ -33,7 +33,7 @@
 
 ## Run it on your computer
 
-Use Git on macOS, Linux or Windows with WSL2. The CLI selects the checkout's pinned Node 22.20.0 for application commands; direct `node` and `pnpm` contributor commands use that pinned runtime. Uptime is developed in its public repository, [just-every/run-uptime](https://github.com/just-every/run-uptime): candidate work on branches, accepted work on `main`, and each release is a version tag on `main`. Public v0.1.1 is the security predecessor that closed the local development file-exposure issue in v0.1.0. The previous published version is v0.3.0. This release record is v0.4.0, with rer pinned to 0.2.66. See [the changelog](CHANGELOG.md) for changes and [the release procedure](RELEASE.md) for producing the annotated tag and bundle.
+Use Git on macOS, Linux or Windows with WSL2. The CLI selects the checkout's pinned Node 22.20.0 for application commands; direct `node` and `pnpm` contributor commands use that pinned runtime. Uptime is developed in its public repository, [just-every/run-uptime](https://github.com/just-every/run-uptime): candidate work on branches, accepted work on `main`, and each release is a version tag on `main`. Public v0.1.1 is the security predecessor that closed the local development file-exposure issue in v0.1.0. The previous published version is v0.3.0. This release record is v0.4.0. See [the changelog](CHANGELOG.md) for changes and [the release procedure](RELEASE.md) for producing the annotated tag and bundle.
 
 ```sh
 npx -y @runeditrun/rer dev just-every/run-uptime
@@ -49,7 +49,7 @@ rer setup
 rer dev
 ```
 
-`rer` runs each verb with the `@runeditrun/rer` version this checkout pins in `package.json`.
+`rer` runs each verb with the `@runeditrun/rer` version this checkout pins in [`package.json`](package.json).
 
 `rer install` installs the frozen dependencies. `rer setup` creates the first owner and private local settings; follow its prompts. A checkout already set up keeps its existing owner and data. `rer dev` starts the app, private runner and practice target. In an interactive terminal it stays in the foreground; Control-C stops it. From a non-interactive shell it returns once ready and leaves the app running. Use `rer dev --detach` for an explicit background run. A first start can take several minutes; repeating `rer dev` resumes an interrupted setup.
 
@@ -81,32 +81,35 @@ The standalone native product has no operational marketplace or author dependenc
 
 ## Try the bundled local monitor
 
-After signing in, read the authorized local endpoint port from the local grant using the command below. The port is selected when `rer dev` starts. Before saving the monitor, set **External check URL** in **Settings › General** to a public site you do not run. **New monitor** first asks for a website address so it can suggest checks; choose **Fill in the form yourself** to open the full form. There, enter `http://127.0.0.1:<authorized-port>/health` as the **Target URL**, leave **Request method** at `GET` and **Expected HTTP status** at `200`, and keep only this computer's location ticked under **Check from**. Enter `0.1` for **Check every (minutes)**; that is a six-second interval. Set **Alert after this many failed checks** and **Recover after this many passing checks** to `1`, then choose **Save monitor**.
+Keep `rer dev` running. From the repository root in a second terminal, read the practice target's address and print its health URL:
+
+```sh
+target_url="$(rer run practice-target)"
+printf '%s/health\n' "$target_url"
+```
+
+`rer` uses its managed runtime, so you do not need `node` on your PATH. Copy the printed health URL, including its selected port; it can change when you start a new installation. Before saving the monitor, set **External check URL** in **Settings › General** to a public site you do not run. **New monitor** first asks for a website address so it can suggest checks; choose **Fill in the form yourself** to open the full form. There, name the monitor **Local practice**, enter the copied health URL as the **Target URL**, leave **Request method** (under **Advanced**) at `GET` and **Status** at `200` under **Up when**, and keep only the local location ticked under **Check from**. It is named after a city (or the name you gave it); check **Locations** if you need to identify it, and leave the hosted location unticked. Enter `0.1` for **Check every (minutes)**; that is a six-second interval. Set **Failed checks in a row** and **Back up after passing checks** to `1`, then choose **Save monitor**.
 
 The new scheduled check is due when you save. The private runner polls about once a second and the console refreshes every five seconds, so leave the monitor open until its first result appears. After changing the target mode below, wait for the next scheduled result; the six-second interval is followed by runner polling and the page refresh. **RUN NOW** creates a manual check and does not change scheduled health or incident thresholds.
 
-From the repository root in a second terminal, read the current port from the local grant once. Keep the app running:
-
-```sh
-target_port="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; process.stdout.write(String(JSON.parse(readFileSync(".wrangler/state/synthetic-grant.json", "utf8")).port));')"
-```
+Keep the app running and use the same second terminal for the commands below, so `target_url` remains set to that address.
 
 Start in healthy mode and wait for a scheduled **Healthy** result:
 
 ```sh
-curl --fail --silent --show-error --request POST "http://127.0.0.1:${target_port}/control" --header 'content-type: application/json' --data '{"mode":"healthy"}'
+curl --fail --silent --show-error --request POST "${target_url}/control" --header 'content-type: application/json' --data '{"mode":"healthy"}'
 ```
 
 Switch the fixture to failing mode. `/health` now returns HTTP 503; the next completed scheduled check should make the monitor **Failing** and open an incident. Keep the installation's **External check URL** (in **Settings › General**) reachable. This independent check must pass in the same slot to confirm failure from one network; if it fails, the target failure stays **Degraded**, and missing evidence is **Unknown**. Monitors use the URL in Settings from their next check:
 
 ```sh
-curl --fail --silent --show-error --request POST "http://127.0.0.1:${target_port}/control" --header 'content-type: application/json' --data '{"mode":"failing"}'
+curl --fail --silent --show-error --request POST "${target_url}/control" --header 'content-type: application/json' --data '{"mode":"failing"}'
 ```
 
 Switch back to healthy mode and wait for the next completed scheduled result to show **Healthy** and close the incident:
 
 ```sh
-curl --fail --silent --show-error --request POST "http://127.0.0.1:${target_port}/control" --header 'content-type: application/json' --data '{"mode":"healthy"}'
+curl --fail --silent --show-error --request POST "${target_url}/control" --header 'content-type: application/json' --data '{"mode":"healthy"}'
 ```
 
 The synthetic target binds only to `127.0.0.1`. Its owner-only grant at `.wrangler/state/synthetic-grant.json` records the current process, port, allowed paths and expiry; each probe must match that grant, and the runner checks the fixture's process and response identity. `/health` is an allowed monitor path. `POST /control` is a local fixture control, not a probe target. This walkthrough demonstrates the bundled fixture only; it does not establish the health of an external service or another network vantage.
@@ -143,7 +146,7 @@ Stop dev with `rer dev --stop` or preview with `rer preview --stop` before deplo
 
 The next deploy automatically migrates legacy `.rer/deploy/production-secrets.json` and `.rer/deploy/environments/<environment>/secrets.json` settings, preserving saved owner and mail inputs and every environment's keys without regenerating production keys. The installation's own `SESSION_SECRET`, `SETUP_TOKEN` and `UPTIME_RUNNER_KEY` from the legacy files replace any unused copies rer generated beside them, because those are the keys the installation was deployed with; the deploy names the keys it kept, never their values. Any other differing value already kept by rer stops deployment with the key name and file paths, never values. Legacy files remain until the move is verified, then are removed and never read or recreated; fresh installs use only the environment settings files. No manual conversion or rotation is needed. See [the upgrade guidance](docs/deploy.md#update-an-existing-deployment).
 
-Run `rer deploy` to build and provision the Worker, D1 database, migrations, and Cron in your account. With rer's newer custom-deployment lifecycle (0.2.3 and later), `rer deploy` wraps Uptime's deployment hook, claims the owner automatically, and retires the one-use hosted `SETUP_TOKEN` after admission. Inspect the command's `claimed` or `kept` owner outcome and token-retirement result, then open the reported hosted origin at `/login` for ordinary email-link sign-in and finish `/setup`; the owner then works in `/app`. This checkout pins the unmodified published `@runeditrun/rer` exactly 0.2.85, including automatic owner claim, token retirement and hosted owner sign-in recovery.
+Run `rer deploy` to build and provision the Worker, D1 database, migrations, and Cron in your account. With rer's custom-deployment lifecycle, `rer deploy` wraps Uptime's deployment hook, claims the owner automatically, and retires the one-use hosted `SETUP_TOKEN` after admission. Inspect the command's `claimed` or `kept` owner outcome and token-retirement result, then open the reported hosted origin at `/login` for ordinary email-link sign-in and finish `/setup`; the owner then works in `/app`. The pinned CLI includes automatic owner claim, token retirement and hosted owner sign-in recovery.
 
 If automatic claim or retirement is incomplete, keep the ownership record, rerun the same `rer deploy` command with the same environment, and inspect the reported outcome. Never use a retired token at `/claim`. See the [deployment guide](docs/deploy.md#owner-claim-and-sign-in) for the lifecycle boundary and recovery steps. The Cloudflare account deployment path was exercised end to end once on version 0.1.1; that historical run does not prove the newer lifecycle. `--environment NAME` selects a separate installation, checked with `node scripts/deployment/owner-cli.mjs health --environment NAME` from this checkout under Node 22.20.0. The deploy command does not run the private probe runner for you. `rer deploy --dry-run` builds and prints its resource plan without provider requests; Cloudflare assigns the hosted origin during a real deploy.
 

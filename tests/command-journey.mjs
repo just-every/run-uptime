@@ -60,6 +60,18 @@ try {
  // dev opens signed in: the owner it names and the key-carrying link (whose key stays in the fragment).
  assert.ok(dev.output.includes('RER_SIGNED_IN journey@example.test'));
  assert.ok(dev.output.includes('RER_OPEN ' + origin + '/__dev/key#rer-dev='));
+ // The README's no-Node walkthrough uses rer's managed runtime to read the
+ // target address for both the monitor and curl controls.
+ const practiceOutput = await invoke(['run', 'practice-target']);
+ const practiceTarget = practiceOutput.match(/^http:\/\/127\.0\.0\.1:\d+$/m)?.[0];
+ assert.ok(practiceTarget, 'the public command prints the practice target address');
+ for (const [mode, status] of [['healthy', 200], ['failing', 503], ['healthy', 200]]) {
+  const controlled = await scratch.run('curl', ['--fail', '--silent', '--show-error', '--request', 'POST', practiceTarget + '/control', '--header', 'content-type: application/json', '--data', JSON.stringify({mode})]);
+  assert.equal(JSON.parse(controlled).mode, mode);
+  const health = await fetch(practiceTarget + '/health');
+  assert.equal(health.status, status, 'the printed target responds in the selected mode');
+  assert.equal((await health.json()).mode, mode);
+ }
  assert.equal((await fetch(origin + '/__dev/outbox')).status, 404, 'the removed development outbox stays absent');
  const client = await fetch(origin + '/@vite/client');
  assert.equal(client.status, 200, 'real Vite asset/HMR support');
