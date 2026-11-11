@@ -1,0 +1,10 @@
+{
+  "status": "restored",
+  "repository": "just-every/run-uptime",
+  "ref": "refs/heads/evidence/main-uptime-period-report-1",
+  "head": "0c9b4ff7a1176ef4a47074ebcce2462bb3183238",
+  "product_head": "29325cbd849cc16324e302f6bac83425192f813e",
+  "manifest_sha256": "3e0ce3b5b22ad13e519412a9522e25166e627c200b93f2e4b85a1d669730fbac",
+  "verified_file_count": 14,
+  "scope": "Initial complete local packet read back from the published evidence ref; later CI updates have a newer evidence head."
+}

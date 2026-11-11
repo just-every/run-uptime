@@ -1,0 +1,142 @@
+{
+  "run_id": "43037562670",
+  "head_sha": "29325cbd849cc16324e302f6bac83425192f813e",
+  "jobs": [
+    {
+      "conclusion": "success",
+      "failed_steps": [],
+      "id": 130580373308,
+      "name": "plan",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "failed_steps": [],
+      "id": 130580495357,
+      "name": "prepare",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "failed_steps": [],
+      "id": 130580495462,
+      "name": "build",
+      "status": "completed"
+    },
+    {
+      "conclusion": "skipped",
+      "failed_steps": [],
+      "id": 130580497911,
+      "name": "light",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "failed_steps": [],
+      "id": 130580932536,
+      "name": "shards (push-5)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "failed_steps": [],
+      "id": 130580932607,
+      "name": "shards (push-8)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "failure",
+      "failed_steps": [
+        "Run this shard"
+      ],
+      "id": 130580932612,
+      "name": "shards (push-3)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "failed_steps": [],
+      "id": 130580932643,
+      "name": "shards (push-4)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "failure",
+      "failed_steps": [
+        "Install browsers and probe bundled engines"
+      ],
+      "id": 130580932646,
+      "name": "shards (push-1)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "failed_steps": [],
+      "id": 130580932832,
+      "name": "shards (push-6)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "failed_steps": [],
+      "id": 130580933833,
+      "name": "shards (push-2)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "failed_steps": [],
+      "id": 130580935393,
+      "name": "shards (push-7)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "failure",
+      "failed_steps": [
+        "Require the selected coverage and its proof"
+      ],
+      "id": 130587804513,
+      "name": "verify",
+      "status": "completed"
+    },
+    {
+      "conclusion": "skipped",
+      "failed_steps": [],
+      "id": 130587806479,
+      "name": "nightly-proof",
+      "status": "completed"
+    },
+    {
+      "conclusion": "skipped",
+      "failed_steps": [],
+      "id": 130587806646,
+      "name": "full-push-proof",
+      "status": "completed"
+    }
+  ],
+  "failed_log_reads": [
+    {
+      "job_id": "130580932612",
+      "command": "gh run view 43037562670 --repo just-every/run-uptime --job 130580932612 --log-failed",
+      "exit": 0,
+      "observed_failure": "tests/command-journey.mjs:180, scratch export failed with ERR_RUNTIME_FAILURE from Workerd; tests/scratch-installation.mjs:64 assertion 1 !== 0",
+      "scope": "Unchanged export/runtime path"
+    },
+    {
+      "job_id": "130580932646",
+      "command": "gh run view 43037562670 --repo just-every/run-uptime --job 130580932646 --log-failed",
+      "exit": 1,
+      "sanitized_transport_error": "failed to get run log: zip: not a valid zip file",
+      "http_status": "not supplied",
+      "scope": "Install browsers and probe bundled engines; no blocked archive retry"
+    }
+  ],
+  "rerun": {
+    "command": "gh api --method POST repos/just-every/run-uptime/actions/runs/43037562670/rerun-failed-jobs --silent",
+    "result": "accepted (exit 0)",
+    "requested_at": "2026-11-11T14:38:31Z",
+    "reruns_requested": 1
+  },
+  "api_calls_used": 9,
+  "api_call_budget": 10
+}
