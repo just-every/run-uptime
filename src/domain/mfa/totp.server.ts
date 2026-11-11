@@ -1,3 +1,4 @@
+import QRCode from 'qrcode'
 import type {AuthBindings} from '../operator-auth.server.ts'
 import {mutationGuard} from '../audit.server.ts'
 import {checkSecondFactor,MfaError,type MfaSession} from './policy.server.ts'
@@ -9,7 +10,10 @@ export async function beginTotp(env:AuthBindings,session:MfaSession){
  if(existing)await checkSecondFactor(env,session,true)
  if(await env.DB.prepare("SELECT 1 FROM uptime_mfa_factors WHERE operator_id=? AND kind='totp'").bind(session.operator.id).first())throw new MfaError(409,'factor_already_enrolled')
  const secret=newTotpSecret(),challengeId=await challenge(env,session,'totp-enroll',{secret})
- return {challengeId,secret,uri:`otpauth://totp/${encodeURIComponent('Uptime:'+session.operator.email)}?secret=${secret}&issuer=Uptime&algorithm=SHA1&digits=6&period=30`}
+ const uri=`otpauth://totp/${encodeURIComponent('Uptime:'+session.operator.email)}?secret=${secret}&issuer=Uptime&algorithm=SHA1&digits=6&period=30`
+ // Render locally: factor material never leaves this installation for a QR service.
+ const qrCode=await QRCode.toString(uri,{type:'svg',errorCorrectionLevel:'M',margin:4})
+ return {challengeId,secret,uri,qrCode}
 }
 export async function finishTotp(env:AuthBindings,session:MfaSession,input:any){
  const {secret}=await readChallenge(env,session,input.challengeId,'totp-enroll'),counter=await totpCounter(secret,input.code)

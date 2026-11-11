@@ -1,3 +1,4 @@
+import {authenticatorEnrollment} from './authenticator-enrollment.js';
 const reasons={
  invalid_factor_response:"That code didn't match. Use the newest code from your app.",
  fresh_second_factor_required:'Verify a second factor within the last five minutes',
@@ -45,7 +46,7 @@ const keyReasons={
 function securityReason(result,status){return reasons[result.code]??keyReasons[result.error]??(status===401?'Sign in again to continue.':status===403?'Only the owner manages keys and factor policy.':status===429?'Too many requests. Wait and try again.':'This action could not finish. Check the values and try again.')}
 export async function securityRequest(path,method='GET',body){
  const response=await fetch(path,{method,headers:{'content-type':'application/json'},cache:'no-store',...(body===undefined?{}:{body:JSON.stringify(body)})});
- const result=await response.json();if(!response.ok)throw Object.assign(Error(securityReason(result,response.status)),{status:response.status,code:result.code,readable:true});return result;
+ const result=await response.json();if(!response.ok)throw Object.assign(Error(securityReason(result,response.status)),{status:response.status,code:result.code,stepUp:result.stepUp,readable:true});return result;
 }
 import {firstMount} from '../dom-patch.js';
 const prefix='/api/access/mfa';
@@ -80,6 +81,7 @@ export function securityControls(host,transport){
  const run=async action=>{if(busy)return;busy=true;try{await action()}catch(problem){error(problem)}finally{busy=false}};
  const shownOnce=(title,value)=>{once.replaceChildren();const heading=document.createElement('h4'),text=document.createElement('pre'),done=document.createElement('button');heading.textContent=title;text.textContent=Array.isArray(value)?value.join('\n'):value;done.type='button';done.textContent='I saved this';done.onclick=()=>once.replaceChildren();once.append(heading,text,done);once.scrollIntoView({block:'nearest'});done.focus()};
  const showCodes=result=>{if(result.recoveryCodes)shownOnce('Save these ten recovery codes once',result.recoveryCodes)};
+ const continueEnrollment=async result=>{if(!pendingAction)return;if(result.recoveryCodes){once.querySelector('button').onclick=()=>{once.replaceChildren();void run(verified)}}else await verified()};
  async function factorState(){
   const state=await api(prefix+'/status');if(!host.isConnected)return state;
   host.querySelector('[data-factor-state]').textContent=`Second factors: ${state.factors.length} · ${state.fresh?'Fresh verification':'Verification needed for sensitive actions'} · Require all: ${state.required?'On':'Off'}`;
@@ -91,6 +93,7 @@ export function securityControls(host,transport){
   host.querySelector('[data-passkey-unavailable]').hidden=state.passkeysAvailable;
   host.querySelector('[data-recovery]').hidden=!state.factors.length;
   host.querySelector('[data-stepup]').closest('details').hidden=!state.factors.length;
+  if(state.factors.length&&!state.fresh)host.querySelector('[data-stepup]').closest('details').open=true;
   host.querySelector('[data-verify-passkey]').hidden=!state.passkeysAvailable||!state.factors.some(f=>f.kind==='webauthn');
   const factors=host.querySelector('[data-factors]');if(factors.contains(status))factors.before(status);factors.replaceChildren();
   for(const factor of state.factors){const row=document.createElement('p'),remove=document.createElement('button');row.textContent=`${factor.kind==='totp'?'Authenticator':'Passkey'} · ${new Date(factor.createdAt).toLocaleString()} `;remove.type='button';remove.textContent='Remove factor';remove.onclick=()=>run(()=>fresh(async()=>{await api(prefix+'/factors/'+factor.id,'DELETE');status.textContent='Factor removed.';await factorState()}));row.append(remove);factors.append(row)}
@@ -101,18 +104,18 @@ export function securityControls(host,transport){
  async function fresh(action){
   const state=await factorState();if(state.fresh)return action();
   const target=status.parentElement;pendingAction=async()=>{if(target?.isConnected)target.append(status);await action()};
-  if(!state.factors.length){const button=host.querySelector('[data-enroll-totp]');button.closest('details').open=true;button.after(status);button.focus();outcome('Enroll an authenticator before continuing.','center');return}
-  const form=host.querySelector('[data-stepup]');form.closest('details').open=true;form.elements.code.closest('label').after(status);form.elements.code.focus();outcome('Verify a second factor within the last five minutes','center');
+  if(!state.factors.length){const button=host.querySelector('[data-enroll-totp]');button.closest('details').open=true;button.after(status);button.focus();outcome(state.stepUp.message,'center');const link=document.createElement('a');link.href=state.stepUp.enrollmentUrl;link.textContent='Add an authenticator';link.onclick=event=>{if(event.button||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;event.preventDefault();button.click()};status.append(' ',link);return}
+  const form=host.querySelector('[data-stepup]');form.closest('details').open=true;form.elements.code.closest('label').after(status);form.elements.code.focus();outcome(state.stepUp.message,'center');
  }
  async function verified(){status.textContent='Second factor verified.';await factorState();const action=pendingAction;pendingAction=null;if(action){await action();if(status.textContent==='Second factor verified.')status.textContent='';host.querySelector('[data-stepup]').closest('details').open=false}}
  host.querySelector('[data-stepup]').onsubmit=event=>{event.preventDefault();const form=event.currentTarget;void run(async()=>{const code=form.elements.code.value;await api(prefix+(code.length===32?'/recovery/verify':'/totp/verify'),'POST',{code});form.reset();await verified()})};
  host.querySelector('[data-verify-passkey]').onclick=()=>run(async()=>{await passkey(api,false);await verified()});
  host.querySelector('[data-enroll-totp]').onclick=()=>run(async()=>{
-  const state=await factorState();const begin=async()=>{const pending=await api(prefix+'/totp/enroll','POST',{});enrollment.innerHTML='<form class="notification-form"><label>Authenticator secret (shown once)<output data-totp-secret></output></label><label>Confirm authenticator code<input name="code" inputmode="numeric" autocomplete="one-time-code" required></label><button>Confirm authenticator</button></form>';enrollment.querySelector('[data-totp-secret]').textContent=pending.secret;enrollment.querySelector('input').focus();
-   enrollment.querySelector('form').onsubmit=event=>{event.preventDefault();const code=event.currentTarget.elements.code.value;void run(async()=>{const result=await api(prefix+'/totp/confirm','POST',{challengeId:pending.challengeId,code});enrollment.replaceChildren();enrollment.append(status);showCodes(result);status.textContent='Authenticator enrolled.';await factorState();if(pendingAction)await verified()})};
+  const state=await factorState();const begin=async()=>{const pending=await api(prefix+'/totp/enroll','POST',{});authenticatorEnrollment(enrollment,pending);
+   enrollment.querySelector('form').onsubmit=event=>{event.preventDefault();const code=event.currentTarget.elements.code.value;void run(async()=>{const result=await api(prefix+'/totp/confirm','POST',{challengeId:pending.challengeId,code});enrollment.replaceChildren();enrollment.append(status);showCodes(result);status.textContent='Authenticator enrolled.';await factorState();await continueEnrollment(result)})};
   };if(state.factors.length)await fresh(begin);else await begin();
  });
- host.querySelector('[data-enroll-passkey]').onclick=()=>run(async()=>{const state=await factorState();const enroll=async()=>{showCodes(await passkey(api,true));status.textContent='Passkey enrolled.';await factorState()};if(state.factors.length)await fresh(enroll);else await enroll()});
+ host.querySelector('[data-enroll-passkey]').onclick=()=>run(async()=>{const state=await factorState();const enroll=async()=>{const result=await passkey(api,true);showCodes(result);status.textContent='Passkey enrolled.';await factorState();await continueEnrollment(result)};if(state.factors.length)await fresh(enroll);else await enroll()});
  host.querySelector('[data-recovery]').onclick=()=>run(()=>fresh(async()=>{showCodes(await api(prefix+'/recovery/rotate','POST',{}));status.textContent='Recovery codes replaced.'}));
  host.querySelector('[data-mfa-policy]').onsubmit=event=>{event.preventDefault();const required=event.currentTarget.elements.required.checked;void run(()=>fresh(async()=>{await api(prefix+'/policy','POST',{required});await factorState();outcome('Factor policy saved.','center')}))};
  const lines=value=>value.split('\n').map(v=>v.trim()).filter(Boolean);
@@ -131,6 +134,6 @@ export function securityControls(host,transport){
    }
   }catch(problem){list.textContent=problem.readable?problem.message:'Keys could not be loaded. Refresh and try again.'}
  }
- void run(async()=>{await factorState();if(owner){monitors=(await api('/api/overview')).monitors;for(const monitor of monitors){const row=document.createElement('label'),check=document.createElement('input'),name=document.createElement('span');row.className='security-monitor-choice';check.type='checkbox';check.name='monitorIds';check.value=monitor.id;name.textContent=monitor.definition.name;row.append(check,name);keyForm.querySelector('[data-monitor-choices]').append(row)}}await keyList()});
+ void run(async()=>{await factorState();if(owner){monitors=(await api('/api/overview')).monitors;for(const monitor of monitors){const row=document.createElement('label'),check=document.createElement('input'),name=document.createElement('span');row.className='security-monitor-choice';check.type='checkbox';check.name='monitorIds';check.value=monitor.id;name.textContent=monitor.definition.name;row.append(check,name);keyForm.querySelector('[data-monitor-choices]').append(row)}}await keyList()}).then(()=>{if(new URLSearchParams(location.search).get('enroll')==='authenticator'){const button=host.querySelector('[data-enroll-totp]');button.closest('details').open=true;button.click()}});
  return {request:async(path,method,body)=>{try{return await api(path,method,body)}catch(problem){if(!['fresh_second_factor_required','second_factor_required'].includes(problem.code))throw problem;return new Promise((resolve,reject)=>{void fresh(async()=>{try{resolve(await api(path,method,body))}catch(error){reject(error)}}).catch(reject)})}}};
 }
