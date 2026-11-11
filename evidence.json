@@ -7,10 +7,10 @@
       "sha256": "a268cdb84fa16238996fbaeeaffc8ff91c3fdaab48d82147a51e2c2d79f6d527"
     },
     {
-      "blob": "e3652c3e06a0a3e49299a6ff1cf0196910c84f29",
-      "bytes": 7679,
+      "blob": "b11c4e06ad935ae8bb08f43019f4faaa0e6f27b1",
+      "bytes": 8875,
       "path": "REPORT.md",
-      "sha256": "d6878556b5d636fef28bbf5651b3c499e39407b12aa59a0356d18d24bce54475"
+      "sha256": "94956f638a835a795cb950ae21f25fce6c906582f96ee2d607df8d8dd47e6eb0"
     },
     {
       "blob": "75a0ee4dc7ee217f79ac9bdc9a5e9de2fa8baf37",
@@ -49,10 +49,10 @@
       "sha256": "81aaa8e9d448068715f140694938bd8be8ab0bd031de4c8ea091d8b4964e3f0e"
     },
     {
-      "blob": "4ee276eca9627027ca7009354acbe3dab413ec66",
-      "bytes": 931,
+      "blob": "31ba6ee147acad9c5718c4877b4f96fbbd892a21",
+      "bytes": 1293,
       "path": "ci-receipt.json",
-      "sha256": "600d9f7955b2dbb167fae0cc459b51a2cce4c74e7fde67c79ff932d43f0a65fd"
+      "sha256": "eb5ec63ac4fa72b6b57b8f53979ee00e97d530b02fb46be0b07238924f03e48c"
     },
     {
       "blob": "5092d33a177eb45f90669a9a2e5796c3fc611d02",
@@ -95,6 +95,12 @@
       "bytes": 282,
       "path": "report-layout.json",
       "sha256": "485b8256c2126ad0770d35f82812e3fd52e8ab9055bcdc2ff44cdfa2944d05eb"
+    },
+    {
+      "blob": "f69d3311edf9a1b29db4f4b30d2f411e62f9f190",
+      "bytes": 855,
+      "path": "terminal-product-receipt.json",
+      "sha256": "e99211b2d88016cd2c8778ac0e65cf822cc6960fabdc5f0c793c26aad1927771"
     }
   ],
   "product_branch": "cloud/main-uptime-period-report-1",

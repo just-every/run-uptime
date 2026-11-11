@@ -1,0 +1,23 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-period-report-1",
+  "head": "29325cbd849cc16324e302f6bac83425192f813e",
+  "worktree_clean": true,
+  "product_pushed": true,
+  "status": "BLOCKED",
+  "reason": "Exact-SHA Verify failed again after the one permitted unrelated-failure rerun; API budget exhausted.",
+  "ci_run_id": "43037562670",
+  "ci": {
+    "conclusion": "failure",
+    "head_sha": "29325cbd849cc16324e302f6bac83425192f813e",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43037562670",
+    "run_attempt": 2,
+    "status": "completed",
+    "observed_at": "2026-11-11T14:50:31Z"
+  },
+  "api_calls_used": 10,
+  "api_call_budget": 10,
+  "pr": null,
+  "clause_status_changes": [],
+  "clone_cleanup": "After final evidence publication; product has been pushed and no uncommitted work remains."
+}

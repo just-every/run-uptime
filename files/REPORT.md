@@ -55,4 +55,16 @@ Only local synthetic data and public source identifiers are in this explicitly s
 
 ## First Verify attempt and permitted retry
 
-The first exact-SHA Verify attempt failed: push-3 reached the unchanged command journey export and Workerd returned ERR_RUNTIME_FAILURE (scratch-installation assertion 1 !== 0); push-1 failed in Install browsers and probe bundled engines. Build, prepare and six other shards succeeded. Failed logs were requested once per failed shard. The push-3 assertion log was readable. The exact command `gh run view 43037562670 --repo just-every/run-uptime --job 130580932646 --log-failed` failed with `failed to get run log: zip: not a valid zip file`; no HTTP status was supplied and no archive retry was made. The required single rerun of failed jobs was accepted on the same SHA. See ci-failure-receipt.json. Nine of ten explicit GitHub-budget calls have been used, leaving one terminal observation.
+The first exact-SHA Verify attempt failed: push-3 reached the unchanged command journey export and Workerd returned ERR_RUNTIME_FAILURE (scratch-installation assertion 1 !== 0); push-1 failed in Install browsers and probe bundled engines. Build, prepare and six other shards succeeded. Failed logs were requested once per failed shard. The push-3 assertion log was readable. The exact command `gh run view 43037562670 --repo just-every/run-uptime --job 130580932646 --log-failed` failed with `failed to get run log: zip: not a valid zip file`; no HTTP status was supplied and no archive retry was made. The required single rerun of failed jobs was accepted on the same SHA. See ci-failure-receipt.json. At the rerun request, nine of ten explicit GitHub-budget calls had been used; the tenth was reserved for its terminal observation.
+
+## Terminal product provenance
+
+Status: BLOCKED
+
+Exact-SHA Verify failed again after the one permitted unrelated-failure rerun; API budget exhausted.
+
+Run: 43037562670; observed attempt: 2; status: completed; conclusion: failure; head: 29325cbd849cc16324e302f6bac83425192f813e. The final observation was at 2026-11-11T14:50:31Z. All ten explicit GitHub-budget calls are accounted for. No further workflow dispatch, rerun, API read or product push was made.
+
+The product checkout is clean. The clone will be removed after this complete packet is published to its report-only evidence ref. The fleet still owns the full publication scan, landing and main verification. See terminal-product-receipt.json and ci-receipt.json for actual custody.
+
+Attempt 2 failed. Its failed-job identities and logs were not fetched because the explicit ten-call budget was exhausted. The initial Workerd/export and browser-install failures are facts about attempt 1 only; this report does not assign them as the cause of attempt 2. The remaining prerequisite is successful exact-SHA Verify, with failure diagnosis under a fresh authorized API budget. No READY claim is made.

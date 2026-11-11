@@ -23,6 +23,17 @@
       "html_url": "https://github.com/just-every/run-uptime/actions/runs/43037562670",
       "status": "completed",
       "observed_at": "2026-11-11T14:36:43Z"
+    },
+    {
+      "conclusion": "failure",
+      "head_sha": "29325cbd849cc16324e302f6bac83425192f813e",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43037562670",
+      "run_attempt": 2,
+      "status": "completed",
+      "observed_at": "2026-11-11T14:50:31Z"
     }
-  ]
+  ],
+  "calls_total": 10,
+  "budget": 10,
+  "failed_job_rerun_requested": 1
 }
