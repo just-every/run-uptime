@@ -9,8 +9,10 @@ through the API and CLI below. Provider MFA assertions await ACCESS-002 SSO.
 ## Enroll in the console
 
 Open **Settings › People**, then **Security and keys** › **Manage second
-factors**. **Enroll authenticator** shows a secret once: add it to an RFC 6238
-authenticator app (SHA-1, six digits, 30 seconds), enter the app's current code
+factors**. **Enroll authenticator** shows a QR code, an `otpauth:` link and a
+manual secret once. Scan the QR code or open the link in an RFC 6238
+authenticator app (SHA-1, six digits, 30 seconds), or enter the secret manually.
+Enter the app's current code
 and choose **Confirm authenticator**. **Enroll passkey** uses the browser's
 standard WebAuthn prompt on HTTPS or localhost. The first factor shows ten
 single-use recovery codes once: store them in your password manager, then choose
@@ -34,12 +36,13 @@ session with the command line below.
 
 ## Sensitive actions
 
-A verification counts as fresh for five minutes. A sensitive action after that
-is refused with **Verify a second factor within the last five minutes**. In
-**Settings › People**, actions from the Security and keys and People cards ask
-for the code in place and then finish. Elsewhere, open **Security and keys** ›
-**Verify a second factor**, enter a code and choose **Verify code** (or **Verify
-passkey**), then repeat the action.
+A verification counts as fresh for five minutes. A sensitive action asks for a
+code or passkey in place when verification is due. If you have no factor, choose
+**Add an authenticator** to enroll with a QR code, app link or manual secret, or
+choose **Enroll passkey**. Save the recovery codes when prompted. The pending
+action then finishes without retyping. Cancelling keeps your entries so you can
+try again. Settings › People also opens **Verify a second factor** whenever a
+new verification is needed, separately from **Manage second factors**.
 
 ## Command line (alternative)
 
