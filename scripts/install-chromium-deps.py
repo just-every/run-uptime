@@ -14,9 +14,17 @@ import sys
 DEPS_TIMEOUT = "420s"
 
 # Ubuntu archive mirrors in the order they are tried; the first that serves
-# the release's InRelease file wins.
-MIRRORS = ("https://archive.ubuntu.com/ubuntu", "http://azure.archive.ubuntu.com/ubuntu")
-MIRROR_PATTERN = re.compile(r"https?://(?:azure\.)?archive\.ubuntu\.com/ubuntu")
+# the release's InRelease file wins. The last two are independent hosts of the
+# same signed archive for when every ubuntu.com name fails DNS (Verify
+# 43060144184 at 16:39Z: archive and azure.archive both "Resolving timed out").
+# apt still verifies each suite's InRelease against the Ubuntu keyring.
+MIRRORS = (
+    "https://archive.ubuntu.com/ubuntu",
+    "http://azure.archive.ubuntu.com/ubuntu",
+    "https://mirrors.edge.kernel.org/ubuntu",
+    "https://mirror.us.leaseweb.net/ubuntu",
+)
+MIRROR_PATTERN = re.compile(r"https?://(?:azure\.archive|archive|security)\.ubuntu\.com/ubuntu")
 
 
 def release_codename():
@@ -33,8 +41,8 @@ def choose_mirror():
         try:
             probe = subprocess.run(
                 ["curl", "--fail", "--silent", "--show-error", "--output", os.devnull,
-                 "--max-time", "10", url],
-                capture_output=True, text=True, timeout=20,
+                 "--max-time", "8", url],
+                capture_output=True, text=True, timeout=15,
             )
             ok, detail = probe.returncode == 0, probe.stderr.strip()
         except subprocess.TimeoutExpired:
@@ -71,7 +79,11 @@ def main():
     for source in sources if mirror else []:
         if source.is_file():
             text = source.read_text()
-            updated = MIRROR_PATTERN.sub(mirror, text)
+            if source.name.startswith("apt-mirrors"):
+                # A mirror list: apt walks every line on failure, so keep one.
+                updated = f"{mirror}/\tpriority:1\n"
+            else:
+                updated = MIRROR_PATTERN.sub(mirror, text)
             if updated != text:
                 source.write_text(updated)
                 rewritten += 1
