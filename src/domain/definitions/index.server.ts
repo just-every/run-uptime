@@ -17,7 +17,7 @@ export function recogniseSource(text:string,source='auto'):string{
   if((source==='auto'||source===HISTORY_SOURCE)&&recogniseHistory(text))return HISTORY_SOURCE
   // A JSON file no importer recognises: name the JSON error first, if there is one.
   if(source==='auto'&&/^\s*[[{]/.test(text))jsonValues(text,'file')
-  throw new DefinitionFileError(source===HISTORY_SOURCE?'This is not a recognised UptimeRobot log export (CSV with a date or time column and an event column).':'Unrecognised file. Use an Uptime monitor file (uptime.monitors.json), saved UptimeRobot v3 GET /monitors pages, or an UptimeRobot log export (CSV).')
+  throw new DefinitionFileError(source===HISTORY_SOURCE?'This is not a recognised UptimeRobot log export (CSV with a date or time column and an event column).':'This file is not a supported monitor export. For UptimeRobot monitors, save the JSON response from API v3 GET /monitors (https://api.uptimerobot.com/v3/monitors?limit=200), including every nextLink page; a Friendly Name,URL/IP,Type,Interval (min) CSV is not supported. See /docs/moving-from-uptimerobot. For Uptime, Pingdom, Better Stack and Site24x7, use the saved JSON formats listed under Import a file. URL lists and CSV with a url header belong in New monitor › Paste many URLs or a CSV. Only UptimeRobot event-log CSV is read here, as history only.')
  }
  importer.entries(text)
  return importer.source

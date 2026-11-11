@@ -1,7 +1,6 @@
-# Saved Site24x7 monitor lists
-
-Open Definitions and choose a saved successful monitor-list response from the
+Open **New monitor › Import a file** (also available in **Settings › Backup and files**) and choose a saved successful monitor-list response from the
 [Site24x7 API documentation](https://www.site24x7.com/help/api/) (read 23 October 2026).
+Using read-only API access, save the JSON response from `GET https://www.site24x7.com/api/monitors` for your account’s regional API host, including every page and complete settings. Keep the `code`, `message` and `data` envelope; gather pages in a JSON array.
 Preview reconciles every record as converted, refused or unsupported. Review each
 field difference, then apply paused definitions; re-importing the same settings is
 unchanged. Undo retains created monitors paused and preserves their history.

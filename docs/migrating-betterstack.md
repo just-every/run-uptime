@@ -1,8 +1,6 @@
-# Saved Better Stack monitor pages
-
-In Definitions, keep **Detect from the file** selected and choose saved pages whose
+In **New monitor › Import a file** (also available in **Settings › Backup and files**), keep **Detect from the file** selected and choose saved pages whose
 resources have `type: "monitor"`. The command also accepts `--source betterstack-monitors`.
-Save heartbeat and status-page resources separately; their existing reader and
+Save the JSON response from `GET https://uptime.betterstack.com/api/v2/monitors` with your read-only API token, following each pagination link. Collect pages in a JSON array or append the saved pages. For heartbeat groups, save each group’s heartbeat pages from `GET /api/v2/heartbeat-groups/{id}/heartbeats`. Save heartbeat and status-page resources separately; their existing reader and
 catalog mappings remain unchanged. This imports no live account.
 
 The [monitor response](https://betterstack.com/docs/uptime/api/list-all-existing-monitors/)

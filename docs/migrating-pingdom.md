@@ -1,6 +1,6 @@
-# Saved Pingdom check details
-
 Choose saved HTTP check-detail responses or TMS detail responses in Settings › Backup and files.
+With a read-only Pingdom API token, save each `GET https://api.pingdom.com/api/3.1/checks/{id}` JSON response; collect check-detail objects in a JSON array. For TMS, save `GET /api/3.1/tms/check/{id}` separately: it is recognized, but transaction conversion remains unsupported.
+
 The [published API 3.1 schema](https://docs.pingdom.com/API_3.1.yaml), read
 23 October 2026, defines HTTP details inside `check` and direct TMS detail objects
 whose type is `script` or `recording`. Summary check lists do not supply complete

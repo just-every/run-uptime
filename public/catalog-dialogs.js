@@ -167,9 +167,9 @@ export function openCatalogDialog({ api, action, kind, monitors = [], runners = 
 // Bulk add, as the panel "Paste many URLs or a CSV" under New monitor's Other ways to add (src/editor/monitor/ways.mjs): pasted
 // URLs or a CSV, previewed (nothing is written), then applied as the plan the server returned. The shared settings sit in one
 // closed fold; a refused request is shown in the panel's own live status line by `action`.
-const addMarkup = runners => `<h2 id="bulk-add-heading">Paste many URLs or a CSV</h2><form class="catalog-add" aria-labelledby="bulk-add-heading"><label>URLs or CSV<textarea name="text" rows="6" required spellcheck="false"></textarea></label>
+const addMarkup = runners => `<h2 id="bulk-add-heading">Paste many URLs or a CSV</h2><form class="catalog-add" aria-labelledby="bulk-add-heading"><label>URLs or CSV<textarea name="text" rows="6" required spellcheck="false" aria-describedby="bulk-input-help"></textarea></label><p id="bulk-input-help">One URL per line, or CSV with a url header and optional name and interval (seconds), in any column order.</p>
  <div class="catalog-add-row"><label class="file-pill"><span class="ui-icon" data-icon="upload" aria-hidden="true"></span>Upload a CSV<input type="file" name="file" accept=".csv,text/csv"></label><label class="check-row"><input name="enableAfterCreate" type="checkbox">Start checking now</label><button type="submit" class="primary">Preview</button></div>
-  <details class="catalog-shared"><summary>Shared settings</summary><p class="ui-helper">A CSV needs a url column; up to 500 rows, 2 MiB.</p><div class="catalog-grid"><label>Input format<select name="format"><option value="urls">URLs, one per line</option><option value="csv">CSV</option></select></label><label>Type<select name="type"><option value="http">HTTP</option><option value="keyword">HTTP with keyword</option></select></label><label>Required keyword<input name="keyword" maxlength="200"></label><label>Check every (minutes)<input name="interval" type="number" min="0.0834" max="1440" step="any" value="1" required></label></div>
+  <details class="catalog-shared"><summary>Shared settings</summary><p class="ui-helper">A CSV needs a url column; up to 500 rows, 2 MiB.</p><div class="catalog-grid"><label>Input format<select name="format"><option value="auto">Detect URLs or CSV</option><option value="urls">URLs, one per line</option><option value="csv">CSV</option></select></label><label>Type<select name="type"><option value="http">HTTP</option><option value="keyword">HTTP with keyword</option></select></label><label>Required keyword<input name="keyword" maxlength="200"></label><label>Check every (minutes)<input name="interval" type="number" min="0.0834" max="1440" step="any" value="1" required></label></div>
   <fieldset class="catalog-locations"><legend>Check from</legend>${locations(runners).map(({ id, name }, i) => `<label class="check-row"><input name="locations" type="checkbox" value="${escape(id)}"${i < PROBES.length ? ' checked' : ''}>${escape(name)}</label>`).join('')}</fieldset>
   <fieldset class="catalog-metadata"><legend>Labels (optional)</legend>${metadataGrid(false)}</fieldset></details>
  <p class="catalog-dialog-error ui-callout error" role="alert" hidden></p><div class="catalog-preview" aria-live="polite"></div><p class="catalog-plan-status" role="status">Nothing has changed. Preview first.</p><div class="catalog-add-apply"><button type="button" data-apply disabled>Apply selected accepted rows</button></div></form>`;
@@ -210,7 +210,7 @@ export function mountBulkAdd(host, { api, action, runners = [], onApplied }) {
             catch {
                 throw Error('The CSV must use valid UTF-8 text.');
             }
-            form.elements.format.value = 'csv';
+            form.elements.format.value = 'auto';
             flow.reset();
             errorHost.hidden = true;
         }

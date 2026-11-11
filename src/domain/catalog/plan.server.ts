@@ -18,7 +18,7 @@ async function finish(context:Context,input:any,source:string,entries:CatalogEnt
  return {source,digest:await digestFor(context,input,source,entries),context,entries,counts,unsupported}
 }
 export async function planCatalogAdd(env:Bindings,input:any){
- const {rows,base,selected,enabled,unsupported}=addInput(input),context=await catalogContext(env),checkPublic=publicChecks(),entries:CatalogEntry[]=[]
+ const {format,rows,base,selected,enabled,unsupported}=addInput(input),context=await catalogContext(env),checkPublic=publicChecks(),entries:CatalogEntry[]=[]
  const urls=new Map<string,{monitorId?:string;index?:number;name:string}>()
  for(const monitor of context.monitors)if(monitor.definition.url&&['http','keyword','flow'].includes(monitor.definition.type))urls.set(canonicalUrl(monitor.definition.url),{monitorId:monitor.id,name:monitor.definition.name})
  let creates=0
@@ -43,7 +43,7 @@ export async function planCatalogAdd(env:Bindings,input:any){
    if(chosen){urls.set(key,{index,name:definition.name});creates++}
   }catch(error){entries.push({index,label,action:'refused',selected:false,reason:reason(error),differences:[]})}
  }
- return finish(context,input,`catalog.add.${input.format}`,entries.sort((a,b)=>a.index-b.index),unsupported)
+ return finish(context,input,`catalog.add.${format}`,entries.sort((a,b)=>a.index-b.index),unsupported)
 }
 export async function planCatalogBulk(env:Bindings,input:any){
  const {ids,action,changes,enabled,unsupported}=bulkInput(input),context=await catalogContext(env),checkPublic=publicChecks(),entries:CatalogEntry[]=[]

@@ -93,6 +93,24 @@
           "summary": "Import a saved UptimeRobot monitor list as paused monitors, and see plainly what does not move."
         },
         {
+          "slug": "migrating-pingdom",
+          "title": "Moving from Pingdom",
+          "file": "migrating-pingdom.md",
+          "summary": "Save complete check details, review settings and apply paused monitors."
+        },
+        {
+          "slug": "migrating-betterstack",
+          "title": "Moving from Better Stack",
+          "file": "migrating-betterstack.md",
+          "summary": "Import saved monitor and heartbeat pages and review what does not move."
+        },
+        {
+          "slug": "migrating-site24x7",
+          "title": "Moving from Site24x7",
+          "file": "migrating-site24x7.md",
+          "summary": "Review saved monitor settings and unsupported fields before applying paused checks."
+        },
+        {
           "slug": "data",
           "title": "Move your data",
           "file": "data.md",

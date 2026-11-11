@@ -10,9 +10,11 @@ curl -s -H "Authorization: Bearer $UPTIMEROBOT_READ_ONLY_KEY" "https://api.uptim
 
 The response is one page, `{"data": [...], "nextLink": ...}`. If `nextLink` is not null, fetch that link too and append the next page to the same file. Uptime reads pages written one after another, or a JSON array of pages. Keep the file private: it can contain your heartbeat URLs and request settings.
 
+A monitor CSV headed `Friendly Name,URL/IP,Type,Interval (min)` is not the saved v3 format this importer reads. Use the JSON response above, including every page. Uptime does not infer monitor types or minute-based intervals from that CSV. For a simple URL list instead, use **New monitor › Paste many URLs or a CSV** with Uptime's `url,name,interval` header and intervals in seconds.
+
 ## Preview and apply
 
-Open **Settings › Backup and files** in the console, choose the file and select **Preview**. Uptime detects the UptimeRobot format; if it cannot, choose it under **Choose the source**. The preview counts entries that are importable, importable with listed differences, and unsupported, then shows each monitor with its notes. Apply creates the importable monitors, paused. You can undo the whole import from the batch list. From a terminal, `node scripts/definitions.mjs preview --input uptimerobot-monitors.json` does the same.
+Open **New monitor › Import a file** (also available under **Settings › Backup and files**), choose the file or **Paste it instead**, and select **Preview**. **Accepted files and export steps** shows the supported formats, samples and provider guides. Uptime detects the UptimeRobot format; if it cannot, choose it under **Choose the source**. The preview counts entries that are importable, importable with listed differences, and unsupported, then shows each monitor with its notes. Apply creates the importable monitors, paused. You can undo the whole import from the batch list. From a terminal, `node scripts/definitions.mjs preview --input uptimerobot-monitors.json` does the same.
 
 ## What moves
 

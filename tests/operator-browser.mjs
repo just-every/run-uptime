@@ -1,3 +1,4 @@
+import {provePasteImport} from './import-paste-browser-support.mjs';
 import {browserSignIn,testAuthBindings} from './auth-test-support.mjs';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
@@ -47,6 +48,7 @@ async function bulkAddDoor(page){
  await panel.getByLabel('URLs or CSV',{exact:true}).fill('https://93.184.216.34/operator-batch');
  await panel.getByRole('button',{name:'Preview',exact:true}).click();await panel.getByRole('heading',{name:'Review the plan',exact:true}).waitFor();
  assert.match(await panel.locator('.catalog-preview > p').first().textContent(),/^1 create\b/,'Bulk add previews the pasted URL');
+ if(page.viewportSize().width===1440)await provePasteImport(page,origin);
  await door.click();await panel.waitFor({state:'hidden'});
  assert.equal(await door.getAttribute('aria-pressed'),'false','pressing the open button closes its panel');
 }
