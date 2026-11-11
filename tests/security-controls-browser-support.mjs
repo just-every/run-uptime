@@ -103,7 +103,22 @@ export async function proveSecurityControls(){
    // same test-owned session so its socket pool cannot reuse a dead connection;
    // the persisted session, key and exact stopped job still have to survive.
    await browser.close();await worker.dispose();({worker,DB}=await migratedWorker({port:15503,persist:directory,bindings}));
-   browser=await chromium.launch({...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{}),headless:true,args:['--no-sandbox','--use-mock-keychain','--password-store=basic']});context=await browser.newContext({viewport:{width,height:1000},timezoneId:'UTC'});await context.addCookies([{name,value:cookie.slice(name.length+1),url:origin}]);await context.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());page=await context.newPage();await page.goto(origin+'/app/settings/people');panel=page.locator('#security-controls');ciRow=panel.locator(`[data-credential-id="${ciKey.id}"]`);await ciRow.locator('summary').click();await ciRow.getByRole('button',{name:'Show definition jobs',exact:true}).click();await ciRow.getByText(stoppedText,{exact:true}).waitFor();
+   browser=await chromium.launch({...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{}),headless:true,args:['--no-sandbox','--use-mock-keychain','--password-store=basic']});context=await browser.newContext({viewport:{width,height:1000},timezoneId:'UTC'});await context.addCookies([{name,value:cookie.slice(name.length+1),url:origin}]);await context.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());page=await context.newPage();
+   // This rapid journey has already loaded the console repeatedly. Its public
+   // asset budget survives the Worker restart, while a new browser loads every
+   // module again. Honor the real limiter's Retry-After before one fresh load;
+   // never clear counters or relax the persisted-key and stopped-job assertions.
+   const assetLimit=new Promise(resolve=>page.on('response',response=>{
+    if(response.status()===429&&/\.(?:js|mjs|css|woff2)$/.test(new URL(response.url()).pathname))resolve(response);
+   }));
+   await page.goto(origin+'/app/settings/people');panel=page.locator('#security-controls');ciRow=panel.locator(`[data-credential-id="${ciKey.id}"]`);
+   const limited=await Promise.race([ciRow.locator('summary').waitFor().then(()=>null),assetLimit]);
+   if(limited){
+    const retryAfter=Number(limited.headers()['retry-after']);assert.ok(Number.isSafeInteger(retryAfter)&&retryAfter>0,'the public limiter supplies a retry delay');
+    await new Promise(resolve=>setTimeout(resolve,(retryAfter+1)*1000));
+    await page.reload();
+   }
+   await ciRow.locator('summary').click();await ciRow.getByRole('button',{name:'Show definition jobs',exact:true}).click();await ciRow.getByText(stoppedText,{exact:true}).waitFor();
    await shot('G3','job-after-restart');
    const manage=panel.getByText('Manage second factors',{exact:true});if(!await manage.evaluate(e=>e.parentElement.open))await manage.click();const ownerFactor=panel.locator('[data-factors] p').filter({hasText:'Authenticator'});await ownerFactor.getByRole('button',{name:'Remove factor',exact:true}).click();await panel.getByText('Factor removed.',{exact:true}).waitFor();assert.equal((await(await call('/api/access/mfa/status',undefined,{cookie})).json()).factors.length,1);
    const member=await inviteDoorMember(origin,cookie,'admin',`uptime-${width+610}`);const [mn,...mv]=member.cookie.split('=');await context.addCookies([{name:mn,value:mv.join('='),url:origin}]);const memberFactor=await enroll();
