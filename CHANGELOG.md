@@ -1,8 +1,33 @@
 # Changelog
 
-## Unreleased
+## 0.5.6 — 2026-11-11
 
-Monitor previews, incident evidence and period reports show location names. Incident and check results name the measured and expected HTTP status. Full check details show labelled settings, with support payloads and snapshot references behind Raw data disclosures. Unpriced previews omit cost, and catalog selections and missing-monitor messages omit internal identifiers.
+Patch release from `main`; previous version 0.5.5. The monitor page, incident records and period reports now read in plain words instead of internal codes and raw JSON: places are named, failed checks say what was measured and what was expected, and the original saved data sits behind a **Raw data** disclosure. The local walkthrough in the README now works without Node on your `PATH`. No migration, no new required settings, and the pinned `@runeditrun/rer` stays at 0.2.108. Monitors, history, incidents, destinations and private settings are kept on upgrade.
+
+Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png), taken on 0.4.0, before the console changes of 0.5.0, 0.5.1, 0.5.2, 0.5.3, 0.5.4, 0.5.5 and 0.5.6.
+
+### Plain words on the monitor page
+
+- **Places are named.** Incident evidence, the period report (its response-time chart, table and incident list) and failure snapshots show a location by its name, such as a city, instead of an internal probe code. A place Uptime can no longer identify reads **Unavailable location**, and a report that covers every place reads **All locations**.
+- **A failed status says what it measured.** An incident or a recent check that failed on the HTTP status now reads, for example, `Got 503; expected 200`, and each place's result is **Passed**, **Failed** or **Could not run** rather than a code.
+- **Full check details read as a list.** The **Full check details** section shows the state, where it checks from, how often, and each rule with a label (request method, status, response-time limit and so on) instead of a block of JSON. The original saved settings and the engine's explanation are still there for support behind **Raw data**, and so are the observation and slot references of a saved failure snapshot.
+- **Fewer internal ids.** Unpriced previews no longer show a cost line, the list of monitors selected in the catalog shows names only, and a monitor that is missing or deleted says so without printing its id.
+
+### Running locally
+
+- **The README walkthrough works without Node on your `PATH`.** Run `rer run practice-target` in a second terminal while `rer dev` is running: it prints the practice target's address, and the walkthrough's health URL and the `curl` commands that switch it between healthy and failing use that address. Before this the walkthrough read the port with a `node` command and stopped with `command not found` on a machine that had no Node of its own. The walkthrough's field names now match the monitor form.
+
+### Upgrading from 0.5.5
+
+No migration is added and nothing in your settings changes. Update an existing checkout with `pnpm install --frozen-lockfile`, then deploy as usual; a backup is still good practice before any upgrade (see the 0.5.4 notes below for the steps).
+
+### Known issues
+
+- A monitor CSV exported from UptimeRobot still cannot be imported: only the v3 JSON, an event-log CSV and Uptime's own `url` CSV are read.
+- Restoring an installation archive does not bring back the list of erased people. If, after a restore, your Business pairs again and its team list still names a person you had erased, that person could be invited again.
+- A company that has signed an agent policy but has never sent any company settings is treated as running: its decision feed answers with an empty page instead of a refusal. No company token is accepted and no decision is shared in that state.
+- A response body larger than 64 KiB fails the check as a target failure (`body-limit`), even when the status is correct. Point a monitor at a smaller page, such as a health endpoint, until a later release reads large pages.
+- The limits listed under 0.4.0 to 0.5.5 still apply: hosted heartbeat evaluation needs a private runner, hosted Worker checks cannot pin connections, a member who is not the owner and has enrolled a second factor still verifies each new sign-in with the command line, and many features are partial; see the Status table in [CONTRACT.md](CONTRACT.md).
 
 ## 0.5.5 — 2026-11-11
 
