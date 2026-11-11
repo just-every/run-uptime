@@ -1,0 +1,8 @@
+{
+  "scope": "existing operator-browser verification entry",
+  "beforeJourneyEntries": 1,
+  "afterJourneyEntries": 1,
+  "newRegistrations": 0,
+  "method": "The existing operator-browser script calls one additional import support function. No new test/it/contract registration, matrix case registration, or verification command was added. The fleet seed cap is unchanged; no cap raise is requested.",
+  "candidateHead": "b2147519f1fb6cc8ea1c24486e5657248010d6fd"
+}

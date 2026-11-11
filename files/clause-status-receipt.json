@@ -1,0 +1,20 @@
+{
+  "before": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "after": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "contractChanged": false,
+  "statusChanges": [],
+  "targetStatuses": {
+    "MONITOR-001": "partial (unchanged)",
+    "IMPORT-001": "partial (unchanged)",
+    "MIGRATE-001": "partial (unchanged)"
+  },
+  "candidateHead": "b2147519f1fb6cc8ea1c24486e5657248010d6fd"
+}

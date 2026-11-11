@@ -1,0 +1,4 @@
+
+> @uptime/uptime-console@0.5.4 typecheck /home/agent/rer-consolidation/work/main-uptime-import-paste-1/run-uptime
+> tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.runner.json
+

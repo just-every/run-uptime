@@ -1,0 +1,7 @@
+{
+  "scope": "product diff plus explicitly reviewed new support file",
+  "credentialShapeMatches": 0,
+  "result": "passed",
+  "publicationScan": "Cloud adaptation reserves the complete Base publication scan for the fleet Mac before landing. This is only a diff review, not a COMPLETE publication scan.",
+  "candidateHead": "b2147519f1fb6cc8ea1c24486e5657248010d6fd"
+}

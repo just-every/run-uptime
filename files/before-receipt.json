@@ -1,0 +1,40 @@
+{
+  "pasted": {
+    "counts": {
+      "create": 0,
+      "change": 0,
+      "unchanged": 0,
+      "duplicate": 0,
+      "refused": 3,
+      "excluded": 0
+    },
+    "reasons": [
+      "Invalid public target",
+      "Invalid public target",
+      "Invalid public target"
+    ]
+  },
+  "uploaded": {
+    "counts": {
+      "create": 2,
+      "change": 0,
+      "unchanged": 0,
+      "duplicate": 0,
+      "refused": 0,
+      "excluded": 0
+    },
+    "targets": [
+      {
+        "name": "Harbor Lane blog",
+        "url": "https://example.net/",
+        "intervalMs": 60000
+      },
+      {
+        "name": "Harbor Lane docs",
+        "url": "https://www.iana.org/help/example-domains",
+        "intervalMs": 60000
+      }
+    ]
+  },
+  "network": "Synthetic DNS edge only; real owner route and emitted application UI"
+}

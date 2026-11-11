@@ -1,0 +1,60 @@
+{
+  "checks": [
+    {
+      "header": "url,name,interval",
+      "counts": {
+        "create": 2,
+        "change": 0,
+        "unchanged": 0,
+        "duplicate": 0,
+        "refused": 0,
+        "excluded": 0
+      },
+      "appliedEach": 2,
+      "intervalMs": 60000
+    },
+    {
+      "header": "name,url,interval,tags",
+      "counts": {
+        "create": 2,
+        "change": 0,
+        "unchanged": 0,
+        "duplicate": 0,
+        "refused": 0,
+        "excluded": 0
+      },
+      "appliedEach": 2,
+      "intervalMs": 60000
+    },
+    {
+      "unsupportedMonitorCsv": {
+        "status": 400,
+        "error": "This file is not a supported monitor export. For UptimeRobot monitors, save the JSON response from API v3 GET /monitors (https://api.uptimerobot.com/v3/monitors?limit=200), including every nextLink page; a Friendly Name,URL/IP,Type,Interval (min) CSV is not supported. See /docs/moving-from-uptimerobot. For Uptime, Pingdom, Better Stack and Site24x7, use the saved JSON formats listed under Import a file. URL lists and CSV with a url header belong in New monitor \u203a Paste many URLs or a CSV. Only UptimeRobot event-log CSV is read here, as history only."
+      },
+      "guides": [
+        "/docs/definitions",
+        "/docs/moving-from-uptimerobot",
+        "/docs/migrating-pingdom",
+        "/docs/migrating-betterstack",
+        "/docs/migrating-site24x7"
+      ],
+      "plainUrls": {
+        "create": 2,
+        "change": 0,
+        "unchanged": 0,
+        "duplicate": 0,
+        "refused": 0,
+        "excluded": 0
+      }
+    }
+  ],
+  "widths": [
+    1440,
+    390
+  ],
+  "assertionsWidth": 1440,
+  "externalNetwork": false,
+  "network": "No network fake above the DNS edge; actual emitted app, owner routes, D1 planning/apply/readback/erase",
+  "result": "passed",
+  "candidateHead": "b2147519f1fb6cc8ea1c24486e5657248010d6fd"
+}

@@ -1,0 +1,48 @@
+{
+  "candidateHead": "b2147519f1fb6cc8ea1c24486e5657248010d6fd",
+  "branch": "cloud/main-uptime-import-paste-1",
+  "repository": "just-every/run-uptime",
+  "base": "c379fc602df7e8fbe56de96407a28287d3519af6",
+  "firstPublishedProductHead": "b2147519f1fb6cc8ea1c24486e5657248010d6fd",
+  "productPush": {
+    "status": "success",
+    "attempt": 1,
+    "guard": "python3 $HOME/rer-consolidation/.tools/cloud-push.py origin cloud/main-uptime-import-paste-1"
+  },
+  "identity": {
+    "authors": "Run Edit Run fleet <fleet@runeditrun.com>",
+    "committers": "Run Edit Run fleet <fleet@runeditrun.com>",
+    "trailers": "none",
+    "candidateRange": "origin/main..HEAD; every parent included",
+    "result": "passed"
+  },
+  "sourceLock": {
+    "command": "node scripts/edition-authoring/cli.mjs lock; node scripts/edition-authoring/cli.mjs check",
+    "result": "passed"
+  },
+  "contract": {
+    "changed": false,
+    "viewFilesCommitted": false,
+    "summaryCounts": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20
+    }
+  },
+  "pr": null,
+  "ciRunIds": [
+    42983465124
+  ],
+  "candidatePinnedRer": "0.2.108",
+  "candidateBrowserProof": "passed",
+  "finalCandidateChecks": {
+    "setup": "passed",
+    "build": "passed",
+    "typecheck": "passed",
+    "sourceLock": "passed",
+    "deliverySpec": "passed",
+    "workingTree": "clean",
+    "publicBrowser": "passed",
+    "originalRepro": "2 create / 0 refused via both doors; interval 60000 ms"
+  }
+}

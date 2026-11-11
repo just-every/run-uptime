@@ -1,0 +1,88 @@
+{
+  "runs": [
+    {
+      "command": "pnpm run typecheck",
+      "node": "22.20.0",
+      "result": "passed",
+      "exit": 0
+    },
+    {
+      "command": "node tests/catalog.mjs",
+      "node": "22.20.0",
+      "result": "passed",
+      "exit": 0,
+      "registrations": 1
+    },
+    {
+      "command": "node /tmp/uptime-operator-suite.mjs",
+      "node": "22.20.0",
+      "result": "passed",
+      "exit": 0,
+      "scope": "Existing tests/browser-suites.mjs runtime invokes the touched tests/operator-browser.mjs; recovery invocation omitted from temporary local wrapper only. Product harness and recovery checks are unchanged."
+    },
+    {
+      "command": "node /tmp/uptime-import-proof.mjs",
+      "result": "passed",
+      "exit": 0,
+      "scope": "Real emitted UI and owner API; both CSV header orders, optional tags and quoted names, preview equality, two paused apply/readbacks per case, plain URLs, refusals, sample recognition and guide reachability; screenshots at 1440 and 390."
+    },
+    {
+      "command": "node scripts/delivery/publish-spec.mjs --check",
+      "result": "passed",
+      "exit": 0
+    }
+  ],
+  "additionalAttempts": [
+    {
+      "command": "node tests/catalog.mjs (initial concurrent run)",
+      "result": "runtime startup failed before assertions: workerd bind address already in use; rerun sequentially passed."
+    },
+    {
+      "command": "node tests/definitions-import.mjs (two optional broader runs)",
+      "result": "Incomplete local transport: Node 24 progressed through existing saved imports before write ECONNRESET; Node 22 stopped at the existing oversized-file fetch with write ECONNRESET. No assertion removed or weakened. Exact-SHA CI remains the full wall."
+    }
+  ],
+  "corrections": "The initial touched browser extension incorrectly expected [] for omitted tags; corrected its expected optional absence and reran the complete existing operator journey successfully. No product behavior was changed for that correction.",
+  "candidateHead": "b2147519f1fb6cc8ea1c24486e5657248010d6fd",
+  "finalCandidateChecks": {
+    "rer": "0.2.108",
+    "node": "22.20.0",
+    "setup": {
+      "exit": 0,
+      "result": "passed; preserves existing owner/settings"
+    },
+    "build": {
+      "exit": 0,
+      "result": "passed"
+    },
+    "publicCsvBrowser": {
+      "exit": 0,
+      "result": "passed"
+    },
+    "originalThreeLineRepro": {
+      "exit": 0,
+      "pasteCreates": 2,
+      "pasteRefused": 0,
+      "uploadCreates": 2,
+      "uploadRefused": 0,
+      "intervalMs": 60000
+    },
+    "typecheck": {
+      "exit": 0,
+      "result": "passed"
+    },
+    "sourceLock": {
+      "exit": 0,
+      "result": "passed"
+    },
+    "deliverySpec": {
+      "exit": 0,
+      "result": "passed"
+    },
+    "workingTree": "clean after checks",
+    "completeTouchedOperatorJourney": {
+      "exit": 0,
+      "result": "passed with rer 0.2.108 on the exact candidate; owned runtimes and contexts stopped"
+    }
+  }
+}

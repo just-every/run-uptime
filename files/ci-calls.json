@@ -1,0 +1,50 @@
+[
+  {
+    "kind": "discover",
+    "key": "b2147519f1fb6cc8ea1c24486e5657248010d6fd",
+    "time": 1794383954.5237496,
+    "command": "gh api repos/just-every/run-uptime/actions/runs?head_sha=b2147519f1fb6cc8ea1c24486e5657248010d6fd&per_page=100 --jq {workflow_runs:[.workflow_runs[]|{id,name,status,conclusion,head_sha,html_url,created_at}]}",
+    "result": {
+      "workflow_runs": [
+        {
+          "conclusion": null,
+          "created_at": "2026-11-11T07:59:05Z",
+          "head_sha": "b2147519f1fb6cc8ea1c24486e5657248010d6fd",
+          "html_url": "https://github.com/just-every/run-uptime/actions/runs/42983465124",
+          "id": 42983465124,
+          "name": "Verify",
+          "status": "in_progress"
+        }
+      ]
+    },
+    "discovered_runs": [
+      "42983465124"
+    ]
+  },
+  {
+    "kind": "poll",
+    "key": "42983465124",
+    "time": 1794384280.3985858,
+    "command": "gh api repos/just-every/run-uptime/actions/runs/42983465124 --jq {id,status,conclusion,head_sha,html_url}",
+    "result": {
+      "conclusion": null,
+      "head_sha": "b2147519f1fb6cc8ea1c24486e5657248010d6fd",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/42983465124",
+      "id": 42983465124,
+      "status": "in_progress"
+    }
+  },
+  {
+    "kind": "poll",
+    "key": "42983465124",
+    "time": 1794384581.4447336,
+    "command": "gh api repos/just-every/run-uptime/actions/runs/42983465124 --jq {id,status,conclusion,head_sha,html_url}",
+    "result": {
+      "conclusion": null,
+      "head_sha": "b2147519f1fb6cc8ea1c24486e5657248010d6fd",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/42983465124",
+      "id": 42983465124,
+      "status": "in_progress"
+    }
+  }
+]
