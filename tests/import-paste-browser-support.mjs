@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {assertPlainMonitorText} from './plain-monitor-text-support.mjs';
 
 // Extends the existing New monitor bulk-add journey; every preview/apply uses the real public screen and owner routes.
 export async function provePasteImport(page,origin,{shot=async()=>{},record=()=>{}}={}){
@@ -8,7 +9,7 @@ export async function provePasteImport(page,origin,{shot=async()=>{},record=()=>
   const pending=page.waitForResponse(r=>r.url()===origin+'/api/catalog/add/preview'&&r.request().method()==='POST');
   await panel.getByRole('button',{name:'Preview',exact:true}).click();const response=await pending;
   assert.equal(response.status(),200);const plan=await response.json();
-  await panel.getByRole('heading',{name:'Review the plan',exact:true}).waitFor();return plan;
+  await panel.getByRole('heading',{name:'Review the plan',exact:true}).waitFor();await assertPlainMonitorText(panel.locator('.catalog-preview'));return plan;
  };
  const cases=[
   {header:'url,name,interval',rows:['https://93.184.216.34/synthetic-uptime-blog,"Blog, status",60','https://93.184.216.34/synthetic-uptime-docs,Docs,60']},

@@ -81,7 +81,8 @@ function draw(page){
  if(firstMount(root))bindPage(root);
  bindHeartbeatCheckIn(area,page.m,deps(page));
  const incidents=area.querySelector('#monitor-incidents');
- if(firstMount(incidents)){bindIncidentWork(incidents,page.api);bindIncidentSnapshots(incidents,page.api);if(seen.incidents)patch(incidents,incidentMarkup(seen.incidents,page.name))}
+ if(firstMount(incidents)){bindIncidentWork(incidents,page.api);bindIncidentSnapshots(incidents,page.api,(probe,row)=>locationNamer(page.seen.revisions?.find(revision=>revision.revision===row.revision)?.definition??page.m.definition,page.data.runner.runners)(probe))}
+ if(seen.incidents)patch(incidents,incidentMarkup(seen.incidents,page.name,{slots:seen.slots,revisions:seen.revisions,runners:page.data.runner.runners}));
  const history=area.querySelector('#raw-history');
  if(firstMount(history)&&seen.timeline)patch(history,historyMarkup(seen.timeline,page.m,page.data.runner.runners??[]));
  const flowHistory=area.querySelector('#flow-revisions');if(flowHistory&&seen.revisions)patch(flowHistory,flowRevisions(seen.revisions));
@@ -123,7 +124,7 @@ function renderMissing({header,actions,area,id}){
  document.title='Monitor not found · Uptime';
  patch(header,`${backLink}<div class="monitor-title"><h1 id="monitor-detail-heading">Monitor not found</h1></div><p class="subtitle">This installation has no monitor at this address.</p>`);
  actions.replaceChildren();
- patch(area,`<section class="empty ui-empty monitor-missing"><p>No monitor has the id <code class="ui-mono">${escape(id)}</code>. It may have been deleted, or the link may be incomplete.</p><a class="ui-button primary" id="missing-back" href="/app/monitors">Back to monitors</a></section>`);
+ patch(area,`<section class="empty ui-empty monitor-missing"><p>This monitor may have been deleted, or the link may be incomplete.</p><a class="ui-button primary" id="missing-back" href="/app/monitors">Back to monitors</a></section>`);
 }
 // header: the page header's title block (.top > div); actions: .actions; area: #content-area. While it shows a monitor the
 // console's header carries the page's header root, .monitor-page-header (public/monitor-page.css).

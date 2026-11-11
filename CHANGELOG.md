@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+Monitor previews, incident evidence and period reports show location names. Incident and check results name the measured and expected HTTP status. Full check details show labelled settings, with support payloads and snapshot references behind Raw data disclosures. Unpriced previews omit cost, and catalog selections and missing-monitor messages omit internal identifiers.
+
 ## 0.5.5 — 2026-11-11
 
 Patch release from `main`; previous version 0.5.4. You can now create a scheduled-job (heartbeat) monitor in the console. Pasting many URLs or a CSV now tells you what Uptime understood, and the import page lists the file formats it supports. Verifying a second factor for a sensitive action now guides you through it, including setting up your first authenticator. The run-locally guide shows the one `PATH` step a new `rer` install needs. It also moves Uptime to `@runeditrun/rer` 0.2.108. No new migration and no new required settings. Monitors, history, incidents, destinations and private settings are kept on upgrade.

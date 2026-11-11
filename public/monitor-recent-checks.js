@@ -1,5 +1,5 @@
 import {escape,ago,duration,humaneDuration} from './console-format.js';
-import {locationNamer} from './monitor-rules.js';
+import {locationNamer,checkLabel,checkReason} from './monitor-rules.js';
 import {latestAttempts,clock as shortClock,dayClock} from './monitor-status.js';
 import {checkResultSummary} from './monitor-timeline.js';
 import {traceMarkup} from './flow-panel.js';
@@ -38,10 +38,10 @@ const resultCell=(state,label)=>`<span class="check-result ui-result ${escape(st
 const rowData=(row,extra='')=>`data-kind="${escape(row.kind)}" data-time="${row.effectiveTime}" data-oldest="${row.oldestTime}"${extra}`;
 
 const attemptResults={pass:['passed','Passed'],target_failure:['failed','Target did not pass'],runner_error:['unknown','Check could not run']};
-function attemptMarkup(o,name){
+function attemptMarkup(o,name,definition){
  const [tone,result]=attemptResults[o.outcome]??['unknown','Unknown result'];
  const status=o.protocol?.steps?'Mail protocol':o.apiTransaction?'API transaction':o.flow?`${escape(o.flow.pages)} page${o.flow.pages===1?'':'s'}`:o.protocol!==undefined?escape(protocolFact(o)):o.status?`HTTP <span class="ui-mono">${escape(o.status)}</span>`:'No HTTP status';
- return `<div class="attempt-group"><p class="attempt-line"><span class="attempt-name">${escape(name(o.probe))} attempt ${o.attempt+1}</span><span class="ui-visually-hidden">: </span><span class="ui-result ${tone}">${escape(result)}</span>${slash}<span>${status}</span>${slash}<span>${escape(duration(o.durationMs))}</span>${slash}<span class="attempt-age">${ago(o.completedAt)}</span></p><ul class="attempt-checks">${o.checks.map(c=>`<li><span class="attempt-mark ui-result ui-result--small ${c.pass?'passed':'failed'}">${c.pass?'PASS':'FAIL'}</span> ${escape(c.assertion)}: ${escape(c.reason)}</li>`).join('')}</ul>${o.credentialBinding?`<details class="credential-binding"><summary>Known monitors referencing this credential</summary>${o.credentialBinding.monitorIds.length>1?'<p>This file can serve only one monitor. For the other monitors, create separate owner-only credential files and references, review the intended account, then bind each explicitly.</p>':''}<ul>${o.credentialBinding.monitorIds.map(id=>`<li>${escape(id)}</li>`).join('')}</ul></details>`:''}${o.canary?`<p class="canary-result">External check: ${escape(o.canary.outcome==='pass'?'Passed':o.canary.outcome==='target_failure'?'Failed':'Could not run')}${o.canary.status?` · HTTP ${escape(o.canary.status)}`:''}. ${escape(o.canary.checks.map(check=>check.reason).join('; '))}</p>`:''}${tlsTrustMarkup(o)}${traceMarkup(o)}${transactionTrace(o)}${mailTrace(o)}</div>`;
+ return `<div class="attempt-group"><p class="attempt-line"><span class="attempt-name">${escape(name(o.probe))} attempt ${o.attempt+1}</span><span class="ui-visually-hidden">: </span><span class="ui-result ${tone}">${escape(result)}</span>${slash}<span>${status}</span>${slash}<span>${escape(duration(o.durationMs))}</span>${slash}<span class="attempt-age">${ago(o.completedAt)}</span></p><ul class="attempt-checks">${o.checks.map(c=>`<li><span class="attempt-mark ui-result ui-result--small ${c.pass?'passed':'failed'}">${c.pass?'PASS':'FAIL'}</span> ${escape(checkLabel(c,definition))}: ${escape(checkReason(c,o,definition))}</li>`).join('')}</ul>${o.credentialBinding?`<details class="credential-binding"><summary>Known monitors referencing this credential</summary>${o.credentialBinding.monitorIds.length>1?'<p>This file can serve only one monitor. For the other monitors, create separate owner-only credential files and references, review the intended account, then bind each explicitly.</p>':''}<ul>${o.credentialBinding.monitorIds.map(id=>`<li>${escape(id)}</li>`).join('')}</ul></details>`:''}${o.canary?`<p class="canary-result">External check: ${escape(o.canary.outcome==='pass'?'Passed':o.canary.outcome==='target_failure'?'Failed':'Could not run')}${o.canary.status?` · HTTP ${escape(o.canary.status)}`:''}. ${escape(o.canary.checks.map(check=>check.reason).join('; '))}</p>`:''}${tlsTrustMarkup(o)}${traceMarkup(o)}${transactionTrace(o)}${mailTrace(o)}</div>`;
 }
 // What a slot row says it is: its result word, and in the meta how it ended, when it was due if it ran late, its
 // attempts, and the revision it came from when the monitor was edited, paused or resumed since (its result is real but
@@ -66,7 +66,7 @@ function slotMeta(row,revision,name){
 }
 function slotRow(row,revision,runners){
  const s=row.slot,name=locationNamer(s.definition,runners);
- return `<details ${rowData(row,` data-key="slot-${escape(s.id)}" data-slot="${escape(s.id)}" data-due="${s.due_at}"`)}><summary id="history-${escape(s.id)}">${timeCell(escape(clock(row.effectiveTime)),row.effectiveTime)}${hiddenDot}${slotResult(row)}${hiddenDot}<span class="slot-meta">${slotMeta(row,revision,name)}</span></summary><div class="slot-attempts">${(s.observations??[]).map(o=>attemptMarkup(o,name)).join('')}</div></details>`;
+ return `<details ${rowData(row,` data-key="slot-${escape(s.id)}" data-slot="${escape(s.id)}" data-due="${s.due_at}"`)}><summary id="history-${escape(s.id)}">${timeCell(escape(clock(row.effectiveTime)),row.effectiveTime)}${hiddenDot}${slotResult(row)}${hiddenDot}<span class="slot-meta">${slotMeta(row,revision,name)}</span></summary><div class="slot-attempts">${(s.observations??[]).map(o=>attemptMarkup(o,name,s.definition)).join('')}</div></details>`;
 }
 // A missed or overdue check, or a run of them collapsed into one row with its range and count. There is nothing to
 // open, so a row is not a disclosure.

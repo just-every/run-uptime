@@ -63,7 +63,7 @@ function bindReport(panel,monitor,api,probeName){
   try{
    const params=new URLSearchParams(new FormData(form));if(!params.get('rootCause'))params.delete('rootCause');
    const report=await api(`${endpoint}?${params}`);
-   const markup=renderReport(report);
+   const markup=renderReport(report,probeName);
    snapshot=report;seriesPage=0;incidentPage=0;jobsPage=0;results.innerHTML=markup;
    for(const id of report.latency.availableLocations){
     if(!Array.from(field('location').options).some(option=>option.value===id))field('location').add(new Option(probeName(id),id));
@@ -76,11 +76,11 @@ function bindReport(panel,monitor,api,probeName){
   const button=event.target.closest('button[data-report-action]');if(!button||!snapshot)return;
   const action=button.dataset.reportAction;
   if(action==='series-prev'||action==='series-next'){
-   seriesPage+=action==='series-next'?1:-1;results.querySelector('#report-series').innerHTML=renderSeries(snapshot,seriesPage);
+   seriesPage+=action==='series-next'?1:-1;results.querySelector('#report-series').innerHTML=renderSeries(snapshot,seriesPage,probeName);
    focusReportPage(results,action);return;
   }
   if(action==='incidents-prev'||action==='incidents-next'){
-   incidentPage+=action==='incidents-next'?1:-1;results.querySelector('#report-period-incidents').innerHTML=renderIncidents(snapshot,incidentPage);
+   incidentPage+=action==='incidents-next'?1:-1;results.querySelector('#report-period-incidents').innerHTML=renderIncidents(snapshot,incidentPage,probeName);
    focusReportPage(results,action);return;
   }
   if(action==='jobs-prev'||action==='jobs-next'){

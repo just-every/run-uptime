@@ -21,9 +21,9 @@ export function mountSnapshots(area,monitor,api,runners){
  slot.querySelector('#erase-failure-snapshots').onclick=async()=>{if(busy)return;lock(true);try{const data=await api(path(monitor.id),'DELETE');selection=null;results.textContent='Retained snapshots erased. Observations and monitoring state are unchanged.';slot.querySelector('#snapshot-erasure-receipt').textContent=`Receipt ${data.receipt.id}: ${data.receipt.counts.failure_snapshots} snapshots erased at ${new Date(data.receipt.completedAt).toLocaleString()}.`;status.textContent='Snapshot erasure completed.'}catch(error){status.textContent=error.message}finally{lock(false)}};
  mountEvidenceAccess(slot,monitor.id,api);load();
 }
-export function bindIncidentSnapshots(host,api){
+export function bindIncidentSnapshots(host,api,name){
  host.addEventListener('click',async event=>{const button=event.target.closest('[data-incident-snapshots]');if(!button)return;button.disabled=true;const target=button.nextElementSibling;try{
-  const data=await api(`/api/incidents/${encodeURIComponent(button.dataset.incidentSnapshots)}/failure-snapshots`);renderSnapshots(target,data.items);
+  const data=await api(`/api/incidents/${encodeURIComponent(button.dataset.incidentSnapshots)}/failure-snapshots`);renderSnapshots(target,data.items,name);
   const p=document.createElement('p'),link=document.createElement('a');link.href=`/api/incidents/${encodeURIComponent(button.dataset.incidentSnapshots)}/failure-report`;link.download='';link.textContent='Download complete incident report';p.append(link);target.prepend(p);
   if(data.more){const more=document.createElement('p');more.textContent='Showing the first 20 snapshots. Use the monitor’s Failure snapshots section for more.';target.append(more)}
  }catch(error){target.textContent=error.message}finally{button.disabled=false}});
