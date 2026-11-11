@@ -1,6 +1,18 @@
+## Add a scheduled job from the console
+
+Open **Monitors › New monitor › Fill in the form yourself**. Under **What to check**, choose **Scheduled job (heartbeat)**. Enter a name, the expected interval in seconds (30 seconds to 31 days) and a grace period in seconds (zero to 24 hours), then choose **Save monitor**.
+
+The monitor page shows **Connect your job**, with this installation's real **Check-in URL** and a **Copy command** button. Add the `curl -fsS` line after the successful end of your job. Save the URL privately before leaving the page: it is shown only for that visit and stored hashed on the server. After reloading, choose **Create or replace check-in URL…** to issue another; the previous URL and key stop working immediately. Anyone holding this replay-unprotected URL can send repeated check-ins.
+
+A successful check-in is read by the next scheduled evaluation and marks the monitor **Healthy** (up). If the interval plus grace passes with no success, scheduled evaluation marks it **Failing** (down); a later success recovers it. Until the first success and before its deadline it stays **Unknown**. Keep the private runner running: receipts alone do not change health. Console-created jobs use one scheduled result to confirm failure or recovery and follow the installation's existing runner and external-check settings.
+
+Open the monitor's **Heartbeat › Job schedule and runs** panel for cron schedules, a maximum run duration and run history. The existing one-time key dialog also offers protected header commands and scheduler wrappers.
+
+## API and definitions alternatives
+
 A heartbeat job reports its start, success or failure to Uptime. Use either the sequence-protected header key or the separately issued, replay-unprotected URL capability. GET, HEAD and POST work with both forms. The key is shown once and stored hashed. Receipts request evaluation; only a signed scheduled result can confirm an incident or recovery.
 
-Create a heartbeat through the monitor API or a definitions file. Its `heartbeat` configuration accepts:
+You can also create a heartbeat through the monitor API or a [definitions file](/docs/definitions). Its `heartbeat` configuration accepts:
 
 ```json
 {"maxAgeMs":86400000,"graceMs":900000,"maxRunDurationMs":1800000,"outputMasks":["customer-private-phrase"]}

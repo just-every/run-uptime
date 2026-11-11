@@ -26,12 +26,15 @@ export function mountManualForm({form,overview,definition,id,returnTo,message,mo
   event.preventDefault();if(!form.reportValidity())return;
   const button=form.querySelector('button[type=submit]');button.disabled=true;message.removeAttribute('data-error');message.textContent='Saving monitor…';
   try{
-   const runnerIds=checkFrom.runnerIds(),own=checkFrom.ownUrl();
+   const heartbeat=form.elements.checkType.value==='heartbeat',runnerIds=checkFrom.runnerIds(),own=heartbeat?'':checkFrom.ownUrl();
    if(!runnerIds.length)throw Error('Choose at least one location to check from.');
    // The server decides whether the monitor follows Settings: it does unless it has its own External check URL.
    const result={...readFields(form,definition),...assignmentsFor(definition,runnerIds),...(own?{canaryUrl:own}:{})};
    delete result.externalCheck;result.failureQuorum=Math.min(result.failureQuorum??1,result.probes.length);
-   const saved=await api(id?`/api/monitors/${id}`:'/api/monitors',id?'PATCH':'POST',result);location.href=id||!saved?.id?returnTo:`/app/monitors/${encodeURIComponent(saved.id)}`;
+   const saved=await api(id?`/api/monitors/${id}`:'/api/monitors',id?'PATCH':'POST',result);
+   // Only a successful explicit creation requests the one-time URL on the next page. No secret enters storage.
+   if(!id&&heartbeat&&saved?.id)sessionStorage.setItem('uptime-heartbeat-created',saved.id);
+   location.href=id||!saved?.id?returnTo:`/app/monitors/${encodeURIComponent(saved.id)}`;
   }catch(error){message.textContent=error.message;message.setAttribute('data-error','');button.disabled=false;form.querySelector('.editor-footer').scrollIntoView({block:'end'})}
  };
  form.querySelectorAll('input,select,textarea,button[type="submit"]').forEach(control=>control.disabled=false);

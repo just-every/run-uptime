@@ -2068,7 +2068,7 @@
       "executable": false
     },
     "docs/heartbeat-jobs.md": {
-      "sha256": "895705f0ea124198b6c94554be5f39d45867d6358a80ac9b903dd36550c7a24e",
+      "sha256": "bfae80848e521abcc70f092cd4db18e7654688e7eb2edb4e402ed74a3c051a0a",
       "executable": false
     },
     "docs/incident-api.md": {
@@ -2792,7 +2792,7 @@
       "executable": false
     },
     "public/editor.css": {
-      "sha256": "e4edc1ae3622b04bc2d1b8ada0d9ba006eafec0c2e2babfa0e16c70d35d088e4",
+      "sha256": "ab9b38a15afe53f18b554ec6e3db97445ee014aa76d567f601dc0f219834780c",
       "executable": false
     },
     "public/editor/catalog.css": {
@@ -2848,7 +2848,7 @@
       "executable": false
     },
     "public/heartbeat-key.js": {
-      "sha256": "09c4229eb4b8568a9b24082ba2fa7e485375fe02c157f8ac3f3db85a1674e023",
+      "sha256": "9c6471145c58465f93f132234d75f4e13c07dc50f6f705e5d3e6b9a4707cf446",
       "executable": false
     },
     "public/incident-dependencies.js": {
@@ -2912,11 +2912,11 @@
       "executable": false
     },
     "public/monitor-page.css": {
-      "sha256": "53f2688cc1b236b0dd46fcefcd124050fc274f3b823eb02b875e7c8788ee5d6b",
+      "sha256": "f3e92e7f43aa26186f34a9e453565847626ccabbc1b92cc0e4baf900b9422e28",
       "executable": false
     },
     "public/monitor-page.js": {
-      "sha256": "5e8050c42ba11c75e05e28ae8d2d48ddaa653144d158ac65a33c5c2739c7b307",
+      "sha256": "3704defb4a559289714bed3247e9a47bc2d7eb7edca21c390fd993e35e3877e6",
       "executable": false
     },
     "public/monitor-reads.js": {
@@ -8320,7 +8320,7 @@
       "executable": false
     },
     "src/editor/monitor/fields.mjs": {
-      "sha256": "d9fbe810bc4d1a047d4bb8374c2f8e0a9770211db3fdf662f51cfdc4e994c028",
+      "sha256": "53780861f42d6a562e5c7b4d56d2aae5057621a82082b6588d449937697b7e9f",
       "executable": false
     },
     "src/editor/monitor/index.mjs": {
@@ -8332,7 +8332,7 @@
       "executable": false
     },
     "src/editor/monitor/manual.mjs": {
-      "sha256": "93f3f782a2d705f05e1fb72a131ed7f340b28087f0e2fecb01cd0da413f3dd60",
+      "sha256": "07d68d0f65fd7969de3c1e48a26468cdb7017e4b80464eed8933964182f5a3f4",
       "executable": false
     },
     "src/editor/monitor/metadata-fields.mjs": {
@@ -8340,7 +8340,7 @@
       "executable": false
     },
     "src/editor/monitor/protocol-fields.mjs": {
-      "sha256": "e1dac3313668a5e8e864f5e1d708c2d16c1235fa6315fef5412c691b8e90add4",
+      "sha256": "005e80256c8fc164bff8d30f5a83ccaad274cb766cfa723d94b3fae2d7afb645",
       "executable": false
     },
     "src/editor/monitor/rules.mjs": {
@@ -8784,7 +8784,7 @@
       "executable": false
     },
     "src/ui/editor.html": {
-      "sha256": "6a624a36f6e26c6f075e260e8c08955961ea9e2086b281a69035b8c777b2a727",
+      "sha256": "04c46e339fcb1f650894d3202127a0b6687aa084dd13afcb67921d3c38671a2f",
       "executable": false
     },
     "src/ui/monitor-editor-document.tsx": {
@@ -9219,6 +9219,10 @@
       "sha256": "95d4e1720972c3b3be6b4f093f57ba5f9b02b1477fb9fed5f71d3dbb76b189d6",
       "executable": false
     },
+    "tests/heartbeat-console-support.mjs": {
+      "sha256": "ed23394220fd7877d5adb48a3278c6af2458962288b426fef4b4e49d0e11fe65",
+      "executable": false
+    },
     "tests/heartbeat-import-fixture.mjs": {
       "sha256": "9a319ca9b38bb5c6c809385d3bb0d7d91e8932477d401e65777b5837b5bd255d",
       "executable": false
@@ -9620,11 +9624,11 @@
       "executable": false
     },
     "tests/signed-runner-runtime.mjs": {
-      "sha256": "795ee1b7154bf19ba8c8e21c1921720f56d75c6b49db9f09d79b448f5c4af26d",
+      "sha256": "dbf604ff994e7c185fd58ba6df6a1841e9e0ceb0615303285e5da43ba7f9ed7d",
       "executable": false
     },
     "tests/signed-runner.mjs": {
-      "sha256": "8cce779dc6d00d75446a2477d347d44a24c8dc89e285a4599362b76802b34819",
+      "sha256": "ad52603349ec1eb5d92d310f973d60bc4fcbe71e4bfc80174da3fb805b276a83",
       "executable": false
     },
     "tests/slow-responses.mjs": {

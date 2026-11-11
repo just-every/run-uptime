@@ -4,14 +4,20 @@ import {showTlsFields} from './tls-fields.mjs';
 // hidden and disabled, so only the selected type's fields are validated and read.
 export const PROTOCOL_TYPES=['tcp','udp','ping','dns','tls','domain'];
 // A new monitor's timing for each type: TLS and domain expiry checks run hourly (they may run more often, never less).
-export const TYPE_TIMING={mail:{intervalMinutes:1,timeoutSeconds:30,freshnessMinutes:3,retries:0},api:{intervalMinutes:1,timeoutSeconds:30,freshnessMinutes:3,retries:0},ping:{intervalMinutes:1,timeoutSeconds:10,freshnessMinutes:3},udp:{intervalMinutes:1,timeoutSeconds:3,freshnessMinutes:3},http:{intervalMinutes:1,timeoutSeconds:2,freshnessMinutes:3},tcp:{intervalMinutes:1,timeoutSeconds:3,freshnessMinutes:3},dns:{intervalMinutes:1,timeoutSeconds:3,freshnessMinutes:3},
+export const TYPE_TIMING={heartbeat:{intervalMinutes:1,timeoutSeconds:2,freshnessMinutes:3,retries:0},mail:{intervalMinutes:1,timeoutSeconds:30,freshnessMinutes:3,retries:0},api:{intervalMinutes:1,timeoutSeconds:30,freshnessMinutes:3,retries:0},ping:{intervalMinutes:1,timeoutSeconds:10,freshnessMinutes:3},udp:{intervalMinutes:1,timeoutSeconds:3,freshnessMinutes:3},http:{intervalMinutes:1,timeoutSeconds:2,freshnessMinutes:3},tcp:{intervalMinutes:1,timeoutSeconds:3,freshnessMinutes:3},dns:{intervalMinutes:1,timeoutSeconds:3,freshnessMinutes:3},
  tls:{intervalMinutes:60,timeoutSeconds:5,freshnessMinutes:120},domain:{intervalMinutes:60,timeoutSeconds:10,freshnessMinutes:120}};
 const control=(root,name)=>root.querySelector(`[name="${name}"]`);
 const days=list=>list?.join(', ')??'';
 const lines=list=>list?.join('\n')??'';
-export const checkTypeOf=definition=>[...PROTOCOL_TYPES,'api','mail'].includes(definition.type)?definition.type:'http';
+export const checkTypeOf=definition=>[...PROTOCOL_TYPES,'api','mail','heartbeat'].includes(definition.type)?definition.type:'http';
 /** Shows the selected type's fields; hidden fields are disabled so they are neither validated nor read. */
 export function showType(root,type){
+ const heartbeat=type==='heartbeat';root.dataset.heartbeat=String(heartbeat);
+ for(const group of root.querySelectorAll('[data-heartbeat-hide]')){
+  group.hidden=heartbeat;
+  for(const field of group.querySelectorAll('input,select,textarea'))field.disabled=heartbeat;
+ }
+
  for(const group of root.querySelectorAll('.type-fields')){
   const shown=group.dataset.types.split(' ').includes(type);group.hidden=!shown;
   for(const field of group.querySelectorAll('input,select,textarea'))field.disabled=!shown;
@@ -24,9 +30,11 @@ export function showType(root,type){
  const privateGroup=root.querySelector('[data-private-network]'),privateField=control(root,'privateGrantRef');
  if(privateGroup){const shown=['http','tcp'].includes(type)&&control(root,'networkScope').value==='private';privateGroup.hidden=!shown;privateField.disabled=!shown;privateField.required=shown}
  showTlsFields(root);
+ if(heartbeat)for(const field of root.querySelectorAll('[data-heartbeat-hide] input,[data-heartbeat-hide] select,[data-heartbeat-hide] textarea'))field.disabled=true;
 }
 export function fillProtocol(root,definition){
  const set=(name,value)=>{const field=control(root,name);if(field)field.value=value??''};
+ set('heartbeatPeriod',(definition.heartbeat?.maxAgeMs??86400000)/1000);set('heartbeatGrace',(definition.heartbeat?.graceMs??900000)/1000);
  set('mailSettings',JSON.stringify(definition.mail??{protocol:'smtp',host:'mail.example.com',security:'starttls'},null,2));
  set('apiUrl',definition.type==='api'?definition.url:'');set('apiCredentialRef',definition.type==='api'?definition.request?.credentialRef:'');set('apiSettings',JSON.stringify(definition.api??{variables:{},steps:[{name:'Health requirement',phase:'request',url:'https://sandbox.example.com/health',method:'GET',assertions:{status:200}}]},null,2));
  set('networkScope',definition.network==='private'?'private':'public');set('privateGrantRef',definition.privateGrantRef);
