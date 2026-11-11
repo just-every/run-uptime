@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import {mkdir,readFile,writeFile} from 'node:fs/promises';
+import {join} from 'node:path';
 
 // Only visible console text is checked: support JSON remains available in its explicitly closed disclosure.
 export async function assertPlainMonitorText(region){
@@ -49,12 +51,62 @@ export async function provePlainMonitorEvidence(page,origin,monitor){
   await details.locator('.check-raw-data > summary').click();
  }finally{await control('healthy')}
  await page.locator('#monitor-state').filter({hasText:'Healthy'}).waitFor({timeout:30000});
+ await provePeriodReport(page,origin,monitor);
+ return current();
+}
+
+// Part of the same owner journey: the existing signed scheduled incident and
+// measured samples must remain readable after opening a report and returning.
+export async function provePeriodReport(page,origin,monitor){
  await page.evaluate(()=>{location.hash='reports'});
- await page.locator('#report-bucket').selectOption('raw');await page.locator('#report-generate').click();
- await page.locator('#report-status').getByText('Report generated.',{exact:true}).waitFor();
+ await page.locator('#report-generate').waitFor();
+ const sideWidth=await page.locator('.monitor-column-side').evaluate(node=>node.getBoundingClientRect().width);
+ assert.equal(await page.locator('.monitor-column-side #report-results').count(),0,'the monitor keeps only the report control');
+ await page.locator('#report-period').selectOption('7d');await page.locator('#report-generate').click();
+ await page.locator('#report-results .report-snapshot').waitFor();
+ assert.equal(await page.locator('#report-period').inputValue(),'7d','the selected period opens in the report view');
  const report=page.locator('#report-results');
+ assert.equal(await page.locator('#monitor-page').count(),0,'generating a report opens a dedicated view');
+ const reportWidth=await report.evaluate(node=>node.getBoundingClientRect().width);
+ assert.ok(reportWidth>sideWidth*2,'the report uses the wide content area outside the side column');
+ assert.equal(await page.locator('.monitor-column-side #report-results').count(),0);
+ await page.locator('.report-options > summary').click();
+ await page.locator('#report-period').selectOption('24h');await page.locator('#report-bucket').selectOption('raw');
+ await page.locator('#report-use-sla').check();
+ const response=page.waitForResponse(r=>new URL(r.url()).pathname.endsWith('/report')&&r.ok());
+ await page.locator('#report-generate').click();const snapshot=await (await response).json();
+ await page.locator('#report-status').getByText('Report generated.',{exact:true}).waitFor();
  await report.getByText('Incident evidence',{exact:true}).first().click();await assertPlainMonitorText(report);
  assert.ok(await report.locator('td[data-label=Location]').count()>0,'report contains measured location samples');
  assert.ok((await report.locator('td[data-label=Location]').allInnerTexts()).every(value=>Object.values(monitor.definition.assignments).some(a=>a.networkLabel===value)),'report samples name their assigned places');
- return current();
+ assert.ok(snapshot.incidents.length>0&&snapshot.sla&&snapshot.availability.observedMs>0,'the report retains incident, SLA and coverage figures');
+ assert.doesNotMatch(await report.innerText(),/\([−\-]?[\d,.]+\s*(?:seconds?|s|ms|milliseconds?)\)/i,'durations have no second parenthesised numerical form');
+ assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'report and its table fit the page');
+ await page.addScriptTag({path:join(process.cwd(),'node_modules/axe-core/axe.min.js')});
+ assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.map(v=>({id:v.id,targets:v.nodes.map(n=>n.target)})),[],'report remains accessible');
+ const generated=await report.locator('time').first().getAttribute('datetime');
+ await page.waitForResponse(r=>new URL(r.url()).pathname==='/api/overview'&&r.ok());
+ assert.equal(await report.locator('time').first().getAttribute('datetime'),generated,'polling preserves the generated snapshot');
+ for(const format of ['json','csv','pdf']){
+  const downloaded=page.waitForEvent('download');await page.locator(`#report-${format}`).click();
+  const data=await readFile(await (await downloaded).path());
+  if(format==='json')assert.deepEqual(JSON.parse(data),snapshot,'JSON downloads the exact displayed snapshot');
+  if(format==='csv')assert.ok(data.toString().includes(String(snapshot.availability.observedMs)),'CSV retains exact duration figures');
+  if(format==='pdf')assert.ok(data.subarray(0,5).equals(Buffer.from('%PDF-')),'PDF remains downloadable');
+ }
+ // Proof at both widths; assertions above run once at the journey's 1440 width.
+ if(process.env.UPTIME_SCREENSHOTS){
+  const out=process.env.UPTIME_SCREENSHOTS;await mkdir(out,{recursive:true});
+  const proof=[];
+  for(const width of [1440,390]){
+   await page.setViewportSize({width,height:width===390?844:1000});await page.evaluate(()=>scrollTo(0,0));
+   await page.screenshot({path:join(out,`report-${width}.png`),fullPage:true});
+   proof.push(await report.evaluate(node=>({viewport:innerWidth,documentWidth:document.documentElement.scrollWidth,reportWidth:node.getBoundingClientRect().width,insideSideColumn:Boolean(node.closest('.monitor-column-side')),doubledDurations:node.innerText.match(/\([\d,.]+ seconds\)/g)??[]})));
+  }
+  await writeFile(join(out,'report-layout.json'),JSON.stringify(proof,null,2)+'\n');
+  await page.setViewportSize({width:1440,height:900});
+ }
+ await page.locator('#report-back').click();await page.locator('#report-generate').waitFor();
+ assert.equal(await page.locator('#monitor-page #report-results').count(),0,'the monitor never grows by the generated report');
+ assert.equal(await page.locator('#monitor-page .report-snapshot').count(),0);
 }

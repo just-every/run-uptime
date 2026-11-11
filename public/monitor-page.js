@@ -18,6 +18,7 @@ import {PAGESPEED_KINDS,pageSpeedPanel} from './pagespeed-panel.js';
 import {heartbeatCheckInPanel,bindHeartbeatCheckIn} from './heartbeat-key.js';
 import {loadPage} from './monitor-reads.js';
 import {followLink,openFold,linkTarget} from './monitor-links.js';
+import {renderPeriodReport} from './monitor-report.js';
 // One monitor's page (/app/monitors/<id>), rendered by public/app.js into the console shell on every refresh (U15, build C
 // with U21's deltas). This file composes it: the header (back link, name and state, URL, kind and interval, quiet chips for
 // a private network or a certificate exception, then Run now, Edit and Pause), and in #content-area the status card, a TLS,
@@ -132,6 +133,9 @@ export function renderMonitorPage({header,actions,area,data,id,api,action,readUn
  header.parentElement.classList.add('monitor-page-header');
  const m=data.monitors.find(m=>m.id===id);
  if(!m){renderMissing({header,actions,area,id});return}
+ if(new URLSearchParams(location.search).get('view')==='report'){
+  renderPeriodReport({header,actions,area,monitor:m,api,runners:data.runner.runners??[]});return;
+ }
  const page=pageOf(m.id);
  if(!page.ui||area.querySelector('#monitor-page')?.dataset.monitor!==m.id)page.ui=freshUi();
  Object.assign(page,{m,data,readUnavailable,api,action,area,name:locationNamer(m.definition,data.runner.runners??[]),draw:()=>draw(page),refit:()=>refit(page),openFold:id=>openFold(page,id),deps:()=>deps(page)});

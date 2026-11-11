@@ -1,16 +1,38 @@
 import {escape} from './console-format.js';
-import {firstMount} from './dom-patch.js';
+import {firstMount,patch} from './dom-patch.js';
 import {renderReport,renderSeries,renderIncidents} from './report-render.js';
 import {renderJobRuns} from './report-jobs.js';
 import {installationZone,zoneChoices} from './installation-zone.js';
 import {locationNamer} from './monitor-rules.js';
 const options=values=>values.map(([value,label])=>`<option value="${escape(value)}">${escape(label)}</option>`).join('');
+const periods=[['24h','Last 24 hours'],['7d','Last 7 days'],['30d','Last 30 days'],['90d','Last 90 days'],['mtd','Month to date'],['qtd','Quarter to date'],['ytd','Year to date'],['last-month','Last month']];
+
+// The monitor keeps only the short entry control. Detailed filters and the
+// generated snapshot belong to a full-width view of its authenticated document.
+export const reportControl=monitor=>`<form id="monitor-report-control" class="report-control" data-owned="${escape(monitor.id)}"><label for="report-period">Period<select id="report-period" name="period">${options(periods)}</select></label><button id="report-generate" class="primary" type="submit">Generate report</button></form>`;
+export function mountReportControl(area,monitor){
+ const form=area.querySelector('#monitor-report-control');if(!firstMount(form))return;
+ form.addEventListener('submit',event=>{
+  event.preventDefault();
+  const params=new URLSearchParams({view:'report',period:form.elements.period.value});
+  location.assign(`/app/monitors/${encodeURIComponent(monitor.id)}?${params}`);
+ });
+}
+
+export function renderPeriodReport({header,actions,area,monitor,api,runners}){
+ const back=`/app/monitors/${encodeURIComponent(monitor.id)}#reports`;
+ document.title=`Period report · ${monitor.definition.name} · Uptime`;
+ patch(header,`<a class="back-link ui-link" id="report-back" href="${back}">Back to monitor</a><h1>Period report</h1><p class="subtitle">${escape(monitor.definition.name)}</p>`);
+ actions.replaceChildren();
+ patch(area,`<div class="period-report-view">${reportPanel(monitor)}</div>`);
+ mountReportPanel(area,monitor,api,runners,{generate:true});
+}
 
 function formMarkup(monitor,probeName){
  const locations=['all',...new Set(monitor.definition.probes??[])];
- return `<h2 id="report-heading">Period report</h2><p>A fixed snapshot of scheduled checks. <a href="/docs/read-api">Monitoring API and CSV guide</a></p>
+ return `<details class="report-options"><summary id="report-heading">Change period or filters</summary><p>A fixed snapshot of scheduled checks. <a href="/docs/read-api">Monitoring API and CSV guide</a></p>
  <form id="monitor-report-form" class="report-form">
- <label for="report-period">Period<select id="report-period" name="period">${options([['24h','Last 24 hours'],['7d','Last 7 days'],['30d','Last 30 days'],['90d','Last 90 days'],['mtd','Month to date'],['qtd','Quarter to date'],['ytd','Year to date'],['last-month','Last month'],['custom','Custom range']])}</select></label>
+ <label for="report-period">Period<select id="report-period" name="period">${options([...periods,['custom','Custom range']])}</select></label>
  <label for="report-zone">Time zone<input id="report-zone" name="timeZone" list="report-zones" value="${escape(installationZone())}" required aria-describedby="report-zone-help"><datalist id="report-zones">${options(zoneChoices().map(zone=>[zone,zone]))}</datalist></label>
  <p id="report-zone-help" class="report-help">Custom times use this zone. Include a UTC offset when a daylight-saving time repeats.</p>
  <div id="report-custom-range" class="report-custom-range" hidden>
@@ -22,12 +44,12 @@ function formMarkup(monitor,probeName){
  <label for="report-use-sla" class="report-sla-toggle"><input id="report-use-sla" type="checkbox">Include an SLA target</label>
  <label for="report-sla" id="report-sla-label" hidden>SLA target (%)<input id="report-sla" name="sla" type="number" min="0.000001" max="100" step="any" value="99.9" required disabled></label>
  <p class="report-help">The location filters response times only.</p>
- <button id="report-generate" class="primary" type="submit">Generate report</button></form>
+ <button id="report-generate" class="primary" type="submit">Generate report</button></form></details>
  <p id="report-status" role="status" aria-live="polite"></p><p id="report-error" role="alert" hidden></p>
  <div id="report-results"></div>`;
 }
 
-// The panel is data-owned by its monitor: console refreshes keep its form, results, open disclosures and caret.
+// Console refreshes keep the form, snapshot, pagination and focus.
 export const reportPanel=monitor=>`<section class="ui-card panel period-report" id="monitor-report" aria-labelledby="report-heading" data-owned="${escape(monitor.id)}"></section>`;
 
 function saveBlob(blob,name){
@@ -69,6 +91,8 @@ function bindReport(panel,monitor,api,probeName){
     if(!Array.from(field('location').options).some(option=>option.value===id))field('location').add(new Option(probeName(id),id));
    }
    status.textContent='Report generated.';
+   panel.querySelector('.report-options').open=false;
+   const heading=results.querySelector('h2');heading.tabIndex=-1;heading.focus();
   }catch(problem){status.textContent=snapshot?'The previous snapshot is still shown.':'No report generated.';showError(problem)}
   finally{button.disabled=false}
  });
@@ -104,10 +128,15 @@ function bindReport(panel,monitor,api,probeName){
  });
 }
 
-export function mountReportPanel(area,monitor,api,runners){
+export function mountReportPanel(area,monitor,api,runners,{generate=false}={}){
  if(!document.querySelector('link[data-period-report]')){
   const css=document.createElement('link');css.rel='stylesheet';css.href='/report.css';css.dataset.periodReport='';document.head.append(css);
  }
  const panel=area.querySelector('#monitor-report');if(!firstMount(panel))return;
  const probeName=locationNamer(monitor.definition,runners);panel.innerHTML=formMarkup(monitor,probeName);bindReport(panel,monitor,api,probeName);
+ if(generate){
+  const period=new URLSearchParams(location.search).get('period');
+  if(periods.some(([value])=>value===period))panel.querySelector('#report-period').value=period;
+  panel.querySelector('form').requestSubmit();
+ }
 }

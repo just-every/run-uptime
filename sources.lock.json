@@ -2904,7 +2904,7 @@
       "executable": false
     },
     "public/monitor-folds.js": {
-      "sha256": "7901228627a164dc82be68b6909c5e9ec6edc237797c8db6e436ecd3bb414da2",
+      "sha256": "fff471791aef22460c71c2518230242b0b449cba07e666e3950059013d5aa97d",
       "executable": false
     },
     "public/monitor-incidents.js": {
@@ -2920,11 +2920,11 @@
       "executable": false
     },
     "public/monitor-page.css": {
-      "sha256": "f3e92e7f43aa26186f34a9e453565847626ccabbc1b92cc0e4baf900b9422e28",
+      "sha256": "ae43185177a7466224d3cb01c4bc156e915e7066c45f9a6f8ec623510d683be8",
       "executable": false
     },
     "public/monitor-page.js": {
-      "sha256": "3bf88a66ef1c9cf788a78341fa6d2ac2497c5cf890a84861fc49a5ac1f153f5f",
+      "sha256": "4ec7185503d5e045e407e731fea4bc982237e66d468e42bfb181b5cf7e87e80d",
       "executable": false
     },
     "public/monitor-reads.js": {
@@ -2936,7 +2936,7 @@
       "executable": false
     },
     "public/monitor-report.js": {
-      "sha256": "ac3106bfaa4e033ff0f9c903b0a58f46dae24999f9ea5221a5d29d38cca6b9d3",
+      "sha256": "570cc4d23b6dc95df65cc0273be2062f866b27281a9f1cb80f2c17cd8640e574",
       "executable": false
     },
     "public/monitor-rule-edit.js": {
@@ -3004,15 +3004,15 @@
       "executable": false
     },
     "public/report-jobs.js": {
-      "sha256": "9f2f5cbea6591d8918ea5b5ff3aab32d3fd464fd97101fc437506a316a470dbe",
+      "sha256": "bab398ab0f0688ffac8237100674aae4731012944b25cd1a516cffb95cb309c3",
       "executable": false
     },
     "public/report-render.js": {
-      "sha256": "ccad975132cf011aa8d8fa0e9be445d9607bbb42f26d7f408fe8cc210c4e2687",
+      "sha256": "a2642f1905b1095f6a8046f8f2fc63cb89858a5a3e4226570d65eb56157fbab7",
       "executable": false
     },
     "public/report.css": {
-      "sha256": "3842b20453b44c06c3dd9cd9ae9ebbed369c28f1c5efcb71ca78d4507bf1f3b4",
+      "sha256": "f527950b1ee43128ae4e3f4c297d72f4aa3cb8fe638bff99f1e1194826745ef4",
       "executable": false
     },
     "public/rer-theme.css": {
@@ -9476,7 +9476,7 @@
       "executable": false
     },
     "tests/plain-monitor-text-support.mjs": {
-      "sha256": "05d822c893ea6a310f36bcd0cc7c8bcc48990b5635879bff75cd3ee85eabafc3",
+      "sha256": "d7425816db27d3abd9c336b22578e7c10e6326c13e0944df5041d854dae5cf81",
       "executable": false
     },
     "tests/playwright-custody-support.mjs": {

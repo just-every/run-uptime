@@ -4,7 +4,7 @@ import {openSlow} from './monitor-status-line.js';
 import {responseTime,httpRules,httpType,locationNamer} from './monitor-rules.js';
 import {COVERAGE_RULE,coverage,coverageLegend} from './monitor-coverage.js';
 import {alertRoutePanel,bindAlertRoutePanel} from './assets/alert-route.js';
-import {reportPanel,mountReportPanel} from './monitor-report.js';
+import {reportControl,mountReportControl} from './monitor-report.js';
 import {snapshotPanel,mountSnapshots} from './failure-snapshots.js';
 import {slowPolicyPanel,bindSlowPolicyPanel} from './slow-policy.js';
 import {maintenancePanel,bindMaintenancePanel} from './planned-maintenance.js';
@@ -72,7 +72,7 @@ export function foldsFor(m,data,seen,ui){
  if(seen.debt&&(seen.debt.open.length||seen.debt.resolved.length))list.push({id:'cleanup',title:'Cleanup debt',same:true,body:()=>cleanupDebtPanel(m),mount:(area,{api})=>mountCleanupDebt(area,m,api)});
  list.push({id:'alerts',title:'Alerts',same:true,body:()=>alertRoutePanel(m),mount:(area,o)=>bindAlertRoutePanel(area,m,o)});
  list.push({id:'incidents',title:'Incidents',always:true,body:()=>`<div id="monitor-incidents" data-owned="${escape(m.id)}">Loading incident history…</div>`});
- list.push({id:'reports',title:'Reports',body:()=>reportsCoverage(m,seen,data)+reportPanel(m),mount:(area,{api})=>mountReportPanel(area,m,api,data.runner.runners)});
+ list.push({id:'reports',title:'Reports',body:()=>reportsCoverage(m,seen,data)+reportControl(m),mount:area=>mountReportControl(area,m)});
  if(['http','keyword','flow'].includes(d.type))list.push({id:'snapshots',title:'Failure snapshots',same:true,body:()=>snapshotPanel(m),mount:(area,{api})=>mountSnapshots(area,m,api,data.runner.runners)});
  if(d.type!=='heartbeat')list.push({id:'slow',title:'Slow-response notices',same:true,body:()=>slowPolicyPanel(m),mount:(area,o)=>bindSlowPolicyPanel(area,m,o)});
  list.push({id:'maintenance',title:'Planned maintenance',same:true,body:()=>maintenancePanel(m),mount:(area,o)=>bindMaintenancePanel(area,m,o)});
