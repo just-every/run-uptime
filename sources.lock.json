@@ -2848,7 +2848,7 @@
       "executable": false
     },
     "public/heartbeat-key.js": {
-      "sha256": "9c6471145c58465f93f132234d75f4e13c07dc50f6f705e5d3e6b9a4707cf446",
+      "sha256": "ef6a986057d7a36cfe4ea2dc33ba3d3cf3f426b7470490ac404d1272364ae076",
       "executable": false
     },
     "public/incident-dependencies.js": {
@@ -8320,7 +8320,7 @@
       "executable": false
     },
     "src/editor/monitor/fields.mjs": {
-      "sha256": "53780861f42d6a562e5c7b4d56d2aae5057621a82082b6588d449937697b7e9f",
+      "sha256": "3a93946782f82420805fa62b76e64e8e4b1c1c1f356d79abcbf0cefa8725753e",
       "executable": false
     },
     "src/editor/monitor/index.mjs": {
@@ -8332,7 +8332,7 @@
       "executable": false
     },
     "src/editor/monitor/manual.mjs": {
-      "sha256": "07d68d0f65fd7969de3c1e48a26468cdb7017e4b80464eed8933964182f5a3f4",
+      "sha256": "f5860e1f0ebe4b68d1e10f0f7a43374ed10fd23af19ef3e098aac00f440b373a",
       "executable": false
     },
     "src/editor/monitor/metadata-fields.mjs": {
@@ -9220,7 +9220,7 @@
       "executable": false
     },
     "tests/heartbeat-console-support.mjs": {
-      "sha256": "ed23394220fd7877d5adb48a3278c6af2458962288b426fef4b4e49d0e11fe65",
+      "sha256": "b370e7b5f26c7ee02d10dd02d5cc642ce9f78bdab4e60461838b7bf9d93de821",
       "executable": false
     },
     "tests/heartbeat-import-fixture.mjs": {

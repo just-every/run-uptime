@@ -27,9 +27,9 @@ export function mountManualForm({form,overview,definition,id,returnTo,message,mo
   const button=form.querySelector('button[type=submit]');button.disabled=true;message.removeAttribute('data-error');message.textContent='Saving monitor…';
   try{
    const heartbeat=form.elements.checkType.value==='heartbeat',runnerIds=checkFrom.runnerIds(),own=heartbeat?'':checkFrom.ownUrl();
-   if(!runnerIds.length)throw Error('Choose at least one location to check from.');
+   if(!heartbeat&&!runnerIds.length)throw Error('Choose at least one location to check from.');
    // The server decides whether the monitor follows Settings: it does unless it has its own External check URL.
-   const result={...readFields(form,definition),...assignmentsFor(definition,runnerIds),...(own?{canaryUrl:own}:{})};
+   const result={...readFields(form,definition),...(!heartbeat?assignmentsFor(definition,runnerIds):{}),...(own?{canaryUrl:own}:{})};
    delete result.externalCheck;result.failureQuorum=Math.min(result.failureQuorum??1,result.probes.length);
    const saved=await api(id?`/api/monitors/${id}`:'/api/monitors',id?'PATCH':'POST',result);
    // Only a successful explicit creation requests the one-time URL on the next page. No secret enters storage.
