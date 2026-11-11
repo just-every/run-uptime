@@ -27,7 +27,7 @@ export function readFields(root,definition){
  const type=control(root,'checkType')?.value??'http';
  // Settings of other types never travel with the one selected.
  const {url,method,network:oldNetwork,privateGrantRef:oldGrant,api,mail,tcp,udp,ping,dns,tls,domain,heartbeat,tlsTrust,request,...rest}=definition;
- if(type==='heartbeat')return {...rest,name:value('name'),type,network:'public',heartbeat:{maxAgeMs:secondsToMilliseconds(value('heartbeatPeriod')),graceMs:secondsToMilliseconds(value('heartbeatGrace'))},assertions:{},intervalMs:60000,timeoutMs:2000,retries:0,confirmSlots:1,recoverSlots:1,freshnessMs:180000};
+ if(type==='heartbeat')return {...rest,...(definition.type==='heartbeat'?{}:{assignments:undefined,probes:['local-a']}),name:value('name'),type,network:'public',heartbeat:{maxAgeMs:secondsToMilliseconds(value('heartbeatPeriod')),graceMs:secondsToMilliseconds(value('heartbeatGrace'))},assertions:{},intervalMs:60000,timeoutMs:2000,retries:0,confirmSlots:1,recoverSlots:1,freshnessMs:180000};
  const privateScope=control(root,'networkScope')?.value==='private'&&['http','tcp'].includes(type);
  const timing={...(privateScope?{network:'private',privateGrantRef:control(root,'privateGrantRef').value.trim()}:{}),...readMetadata(root,definition),name:value('name'),intervalMs:minutesToMilliseconds(value('intervalMinutes')),timeoutMs:secondsToMilliseconds(value('timeoutSeconds')),freshnessMs:minutesToMilliseconds(value('freshnessMinutes'))};
  for(const name of ['retries','confirmSlots','recoverSlots'])timing[name]=Number(value(name));

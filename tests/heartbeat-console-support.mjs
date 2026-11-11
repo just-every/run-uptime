@@ -24,11 +24,12 @@ export async function proveHeartbeatConsole({origin,cookie,api,runner,advance}){
  try{
   await page.goto(origin+'/app');
   if(new URL(page.url()).pathname==='/setup'){await page.getByRole('button',{name:'Continue',exact:true}).click();await page.waitForURL(url=>url.pathname.startsWith('/app'))}
+  assert.equal((await api('/api/external-check',{url:'https://canary.runner-target.test/canary'})).status,200);
   await page.goto(origin+'/app/monitors');
-  await page.getByRole('link',{name:'New monitor',exact:true}).click();
-  await page.getByRole('button',{name:'Fill in the form yourself',exact:true}).click();
+  await page.getByRole('button',{name:'New monitor',exact:true}).click();
   await page.locator('html.editor-context-ready').waitFor();
-  await page.getByLabel('What to check',{exact:true}).selectOption('heartbeat');
+  if(!await page.locator('#monitor-form').isVisible())await page.getByRole('button',{name:'Fill in the form yourself',exact:true}).click();
+  await page.getByRole('combobox',{name:'What to check',exact:true}).selectOption('heartbeat');
   await page.getByLabel('Monitor name',{exact:true}).fill('synthetic-uptime-701');
   await page.getByLabel('Expected interval (seconds)',{exact:true}).fill('30');
   await page.getByLabel('Grace period (seconds)',{exact:true}).fill('2');
@@ -46,10 +47,11 @@ export async function proveHeartbeatConsole({origin,cookie,api,runner,advance}){
   await shot('scheduled-job-form');
   const saved=page.waitForResponse(response=>new URL(response.url()).pathname==='/api/monitors'&&response.request().method()==='POST');
   await page.getByRole('button',{name:'Save monitor',exact:true}).click();
-  const response=await saved;assert.equal(response.status(),201);const created=await response.json(),id=created.id;
-  await page.waitForURL(url=>url.pathname==='/app/monitors/'+id);
+  const response=await saved;if(response.status()!==201)throw Error('Console create refused: '+(await response.json()).error);
+  await page.waitForURL(url=>/^\/app\/monitors\/[^/]+$/.test(url.pathname));const id=new URL(page.url()).pathname.split('/').at(-1);
   const urlField=page.getByLabel('Check-in URL',{exact:true});await urlField.waitFor();await page.waitForFunction(()=>Boolean(document.querySelector('#heartbeat-checkin-url')?.value));
   const url=await urlField.inputValue();assert.equal(new URL(url).origin,origin);assert.ok(new URL(url).pathname.startsWith(`/api/heartbeats/${id}/url/`));
+  assert.equal(await page.evaluate(value=>{const token=new URL(value).pathname.split('/').at(-1);return [sessionStorage,localStorage].every(storage=>Object.values(storage).every(item=>!String(item).includes(token)))},url),true,'raw authority never enters browser storage');
   assert.equal(await state(id),'Unknown');
   const definition=(await read(id)).definition;
   assert.equal(definition.type,'heartbeat');assert.equal(definition.heartbeat.maxAgeMs,30000);assert.equal(definition.heartbeat.graceMs,2000);assert.equal(definition.url,'');
@@ -62,6 +64,8 @@ export async function proveHeartbeatConsole({origin,cookie,api,runner,advance}){
   await shot('job-checkin-ready');
   // Real GET through the URL read from the rendered page, with no owner cookie.
   const received=await api(new URL(url).pathname,undefined,{cookie:''},'GET');assert.equal(received.status,200);assert.equal(received.data.received,true);
+  assert.equal((await api(new URL(url).pathname,undefined,{cookie:''},'HEAD')).status,200);
+  const posted=await api(new URL(url).pathname,{},{cookie:''},'POST');assert.equal(posted.status,200);assert.equal(posted.data.received,true);
   assert.equal(await state(id),'Unknown','ingress alone cannot establish Healthy');
   await runner();assert.equal(await state(id),'Healthy');
   // Read the updated page without reloading: polling must keep its one-time URL.

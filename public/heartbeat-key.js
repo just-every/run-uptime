@@ -40,8 +40,9 @@ export function bindHeartbeatKey(area,m,{api,action}){
 export function heartbeatCheckInPanel(m){
  if(m.definition.type!=='heartbeat')return '';
  const h=m.definition.heartbeat;
+ const deadline=h.cron?`the scheduled time (${h.cron}, ${h.timeZone}) plus ${humaneDuration(h.graceMs)} grace`:`${humaneDuration(h.maxAgeMs)} plus ${humaneDuration(h.graceMs)} grace`;
  return `<section class="ui-card panel heartbeat-checkin" id="heartbeat-checkin" data-owned="${escape(m.id)}:${m.revision}" aria-labelledby="heartbeat-checkin-heading"><h2 id="heartbeat-checkin-heading">Connect your job</h2>
- <p>Send a check-in after your job succeeds. The next scheduled check marks it up. If no success arrives within ${escape(humaneDuration(h.maxAgeMs))} plus ${escape(humaneDuration(h.graceMs))} grace, a scheduled check marks it down. Until the first success, it stays Unknown. A private runner must be running.</p>
+ <p>Send a check-in after your job succeeds. The next scheduled check marks it up. If no success arrives within ${escape(deadline)}, a scheduled check marks it down. Until the first success, it stays Unknown. A private runner must be running.</p>
  <div id="heartbeat-checkin-secret" hidden><label>Check-in URL<input id="heartbeat-checkin-url" class="ui-mono" readonly autocomplete="off" spellcheck="false"></label><button type="button" id="copy-heartbeat-url">Copy check-in URL</button>
  <p>Add this line to the end of your job, after it succeeds:</p><pre id="heartbeat-checkin-command" tabindex="0" aria-label="Job check-in command"></pre><button type="button" id="copy-heartbeat-line">Copy command</button>
  <p>Save it privately now; the URL is shown only for this visit. Anyone with it can send repeated check-ins. It is replay-unprotected. Replacing it retires the old URL and key.</p></div>
@@ -51,7 +52,9 @@ export function bindHeartbeatCheckIn(area,m,{api,action}){
  const panel=area.querySelector('#heartbeat-checkin');if(!firstMount(panel))return;
  const secret=panel.querySelector('#heartbeat-checkin-secret'),url=panel.querySelector('#heartbeat-checkin-url'),command=panel.querySelector('#heartbeat-checkin-command'),status=panel.querySelector('#heartbeat-checkin-status');
  const clear=()=>{url.value='';command.textContent='';secret.hidden=true};
- window.addEventListener('pagehide',clear,{once:true});window.addEventListener('uptime:auth-lost',clear,{once:true});
+ const lifetime=new AbortController(),detached=new MutationObserver(()=>{if(!panel.isConnected){clear();lifetime.abort();detached.disconnect()}});
+ detached.observe(document.body,{childList:true,subtree:true});
+ window.addEventListener('pagehide',clear,{once:true,signal:lifetime.signal});window.addEventListener('uptime:auth-lost',clear,{once:true,signal:lifetime.signal});
  for(const [id,value] of [['copy-heartbeat-url',()=>url.value],['copy-heartbeat-line',()=>command.textContent]])panel.querySelector('#'+id).onclick=async()=>{try{await navigator.clipboard.writeText(value());status.textContent='Copied. Save it privately.'}catch{status.textContent='Select and copy the text above.'}};
  const issue=()=>action(async()=>{
   try{
