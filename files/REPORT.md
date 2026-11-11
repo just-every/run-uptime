@@ -19,7 +19,7 @@ The `Friendly Name,URL/IP,Type,Interval (min)` monitor CSV is not the documented
 
 ## Plan and execution
 
-The full original plan is in PLAN.md. Executed: fleet setup and identity/hook installation; isolated shallow clone; read product rules and contract; reproduce before changes through the emitted public screen; implement automatic parser selection and file guidance; extend the existing browser journey without new registrations; run focused public checks and typecheck; refresh main and rebase before publication; regenerate and check the source lock last; inspect all candidate identities/trailers; publish the product branch through the supplied push guard; await exact-SHA Verify; publish this report-only packet separately.
+The full original plan is in [PLAN.md](PLAN.md). Executed: fleet setup and identity/hook installation; isolated shallow clone; read product rules and contract; reproduce before changes through the emitted public screen; implement automatic parser selection and file guidance; extend the existing browser journey without new registrations; run focused public checks and typecheck; refresh main and rebase before publication; regenerate and check the source lock last; inspect all candidate identities/trailers; publish the product branch through the supplied push guard; await exact-SHA Verify; publish this report-only packet separately.
 
 The pre-publication main refresh adopted the fleet’s independent rer 0.2.108 update. It did not conflict with the product change. Setup, build and focused browser proof are repeated on the resulting candidate checkout with its new pin. The first product push succeeded on attempt 1. No main/default branch was pushed, and no published history was rewritten.
 
@@ -31,7 +31,7 @@ The pre-publication main refresh adopted the fleet’s independent rer 0.2.108 u
 - Typecheck, application build, generated delivery-spec check, source-lock check, diff review, identity/trailer review and Git whitespace check passed. No generated contract view was committed.
 - Two optional broader local definition-import attempts encountered `write ECONNRESET` in the existing test transport (one at the oversized-file refusal). One reached the existing saved-import assertions before its reset. No assertion was removed, skipped or weakened to address those attempts. The exact-SHA branch Verify is the full wall.
 
-Actual receipts: before-receipt.json, after-original-receipt.json, browser-receipt.json, test-receipt.json, product-receipt.json, test-budget-receipt.json, clause-status-receipt.json, diff-review-receipt.json, operator-browser-receipt.json and ci-calls.json. The packet contains only selected non-secret reports, receipts and screenshots; no auth/session data, environment dumps or private held-out material.
+Actual receipts: before-receipt.json, after-original-receipt.json, browser-receipt.json, test-receipt.json, product-receipt.json, test-budget-receipt.json, clause-status-receipt.json, diff-review-receipt.json, operator-browser-receipt.json, evidence-first-transfer-receipt.json, remote-product-receipt.json, ci-jobs-receipt.json, ci-final-receipt.json and ci-calls.json. The packet contains only selected non-secret reports, receipts and screenshots; no auth/session data, environment dumps or private held-out material.
 
 ## Clause custody
 
@@ -46,6 +46,10 @@ GAP IMPORT-001: This round proves file recognition/refusal and catalog CSV appli
 
 ## CI and landing
 
-Exact-SHA Verify: run 42983465124, https://github.com/just-every/run-uptime/actions/runs/42983465124. Outcome pending at report drafting; the final receipt below records the terminal observation.
+Exact-SHA Verify: run 42983465124, https://github.com/just-every/run-uptime/actions/runs/42983465124. **Completed / success on b2147519f1fb6cc8ea1c24486e5657248010d6fd**, confirmed by REST. All eight shards, full-push-proof and the aggregate verify job succeeded; no contract-generator exception was needed. Six GitHub API calls were used. See [ci-final-receipt.json](ci-final-receipt.json) and [ci-calls.json](ci-calls.json).
 
 The cloud adaptation reserves the complete Base publication scan and landing for the fleet Mac. The local diff review is not a COMPLETE publication scan. No landing, deployment, live provider migration or recipient acceptance is claimed. Evidence publication is report transport only and never signals product READY.
+
+Observed CI jobs: all eight shards, full-push-proof and aggregate `verify` completed successfully on the candidate. Aggregate verify completed at 08:14:47Z, 942 seconds after run creation. The longest shard was push-6 at 879 seconds. The existing wall exceeds the fleet’s 10-minute timing target; this is a process follow-up, with no CI-shape changes in this brief. The final REST observation confirmed completed/success on the exact candidate SHA.
+
+Product blockers: none. The broader local definition-import transport resets did not reproduce as a failed CI shard: the full branch wall passed. The final checkout was clean, and its exact product ref was read back from origin. All actual report/receipt files and selected changed-screen images are published on the separate report-only evidence ref. Clone cleanup follows verified final evidence publication.

@@ -46,5 +46,192 @@
       "id": 42983465124,
       "status": "in_progress"
     }
+  },
+  {
+    "kind": "poll",
+    "key": "42983465124",
+    "time": 1794384881.6441019,
+    "command": "gh api repos/just-every/run-uptime/actions/runs/42983465124 --jq {id,status,conclusion,head_sha,html_url}",
+    "result": {
+      "conclusion": null,
+      "head_sha": "b2147519f1fb6cc8ea1c24486e5657248010d6fd",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/42983465124",
+      "id": 42983465124,
+      "status": "in_progress"
+    }
+  },
+  {
+    "kind": "jobs",
+    "key": "42983465124",
+    "time": 1794385181.739762,
+    "command": "gh api repos/just-every/run-uptime/actions/runs/42983465124/jobs?filter=latest&per_page=100 --jq {total_count,jobs:[.jobs[]|{id,name,status,conclusion,head_sha,started_at,completed_at,html_url}]}",
+    "result": {
+      "jobs": [
+        {
+          "completed_at": "2026-11-11T07:59:16Z",
+          "conclusion": "success",
+          "head_sha": "b2147519f1fb6cc8ea1c24486e5657248010d6fd",
+          "html_url": "https://github.com/just-every/run-uptime/actions/runs/42983465124/job/130399057008",
+          "id": 130399057008,
+          "name": "plan",
+          "started_at": "2026-11-11T07:59:07Z",
+          "status": "completed"
+        },
+        {
+          "completed_at": "2026-11-11T07:59:57Z",
+          "conclusion": "success",
+          "head_sha": "b2147519f1fb6cc8ea1c24486e5657248010d6fd",
+          "html_url": "https://github.com/just-every/run-uptime/actions/runs/42983465124/job/130399122590",
+          "id": 130399122590,
+          "name": "build",
+          "started_at": "2026-11-11T07:59:18Z",
+          "status": "completed"
+        },
+        {
+          "completed_at": "2026-11-11T07:59:50Z",
+          "conclusion": "success",
+          "head_sha": "b2147519f1fb6cc8ea1c24486e5657248010d6fd",
+          "html_url": "https://github.com/just-every/run-uptime/actions/runs/42983465124/job/130399122935",
+          "id": 130399122935,
+          "name": "prepare",
+          "started_at": "2026-11-11T07:59:18Z",
+          "status": "completed"
+        },
+        {
+          "completed_at": "2026-11-11T07:59:16Z",
+          "conclusion": "skipped",
+          "head_sha": "b2147519f1fb6cc8ea1c24486e5657248010d6fd",
+          "html_url": "https://github.com/just-every/run-uptime/actions/runs/42983465124/job/130399125225",
+          "id": 130399125225,
+          "name": "light",
+          "started_at": "2026-11-11T07:59:17Z",
+          "status": "completed"
+        },
+        {
+          "completed_at": "2026-11-11T08:06:12Z",
+          "conclusion": "success",
+          "head_sha": "b2147519f1fb6cc8ea1c24486e5657248010d6fd",
+          "html_url": "https://github.com/just-every/run-uptime/actions/runs/42983465124/job/130399379098",
+          "id": 130399379098,
+          "name": "shards (push-5)",
+          "started_at": "2026-11-11T07:59:59Z",
+          "status": "completed"
+        },
+        {
+          "completed_at": "2026-11-11T08:09:37Z",
+          "conclusion": "success",
+          "head_sha": "b2147519f1fb6cc8ea1c24486e5657248010d6fd",
+          "html_url": "https://github.com/just-every/run-uptime/actions/runs/42983465124/job/130399379121",
+          "id": 130399379121,
+          "name": "shards (push-1)",
+          "started_at": "2026-11-11T07:59:59Z",
+          "status": "completed"
+        },
+        {
+          "completed_at": "2026-11-11T08:14:38Z",
+          "conclusion": "success",
+          "head_sha": "b2147519f1fb6cc8ea1c24486e5657248010d6fd",
+          "html_url": "https://github.com/just-every/run-uptime/actions/runs/42983465124/job/130399379124",
+          "id": 130399379124,
+          "name": "shards (push-6)",
+          "started_at": "2026-11-11T07:59:59Z",
+          "status": "completed"
+        },
+        {
+          "completed_at": "2026-11-11T08:09:56Z",
+          "conclusion": "success",
+          "head_sha": "b2147519f1fb6cc8ea1c24486e5657248010d6fd",
+          "html_url": "https://github.com/just-every/run-uptime/actions/runs/42983465124/job/130399379128",
+          "id": 130399379128,
+          "name": "shards (push-4)",
+          "started_at": "2026-11-11T07:59:59Z",
+          "status": "completed"
+        },
+        {
+          "completed_at": "2026-11-11T08:11:35Z",
+          "conclusion": "success",
+          "head_sha": "b2147519f1fb6cc8ea1c24486e5657248010d6fd",
+          "html_url": "https://github.com/just-every/run-uptime/actions/runs/42983465124/job/130399379147",
+          "id": 130399379147,
+          "name": "shards (push-8)",
+          "started_at": "2026-11-11T07:59:59Z",
+          "status": "completed"
+        },
+        {
+          "completed_at": "2026-11-11T08:08:39Z",
+          "conclusion": "success",
+          "head_sha": "b2147519f1fb6cc8ea1c24486e5657248010d6fd",
+          "html_url": "https://github.com/just-every/run-uptime/actions/runs/42983465124/job/130399379151",
+          "id": 130399379151,
+          "name": "shards (push-3)",
+          "started_at": "2026-11-11T07:59:59Z",
+          "status": "completed"
+        },
+        {
+          "completed_at": "2026-11-11T08:09:16Z",
+          "conclusion": "success",
+          "head_sha": "b2147519f1fb6cc8ea1c24486e5657248010d6fd",
+          "html_url": "https://github.com/just-every/run-uptime/actions/runs/42983465124/job/130399379176",
+          "id": 130399379176,
+          "name": "shards (push-7)",
+          "started_at": "2026-11-11T07:59:59Z",
+          "status": "completed"
+        },
+        {
+          "completed_at": "2026-11-11T08:09:04Z",
+          "conclusion": "success",
+          "head_sha": "b2147519f1fb6cc8ea1c24486e5657248010d6fd",
+          "html_url": "https://github.com/just-every/run-uptime/actions/runs/42983465124/job/130399379219",
+          "id": 130399379219,
+          "name": "shards (push-2)",
+          "started_at": "2026-11-11T07:59:59Z",
+          "status": "completed"
+        },
+        {
+          "completed_at": "2026-11-11T08:14:43Z",
+          "conclusion": "success",
+          "head_sha": "b2147519f1fb6cc8ea1c24486e5657248010d6fd",
+          "html_url": "https://github.com/just-every/run-uptime/actions/runs/42983465124/job/130405535194",
+          "id": 130405535194,
+          "name": "full-push-proof",
+          "started_at": "2026-11-11T08:14:40Z",
+          "status": "completed"
+        },
+        {
+          "completed_at": "2026-11-11T08:14:38Z",
+          "conclusion": "skipped",
+          "head_sha": "b2147519f1fb6cc8ea1c24486e5657248010d6fd",
+          "html_url": "https://github.com/just-every/run-uptime/actions/runs/42983465124/job/130405537272",
+          "id": 130405537272,
+          "name": "nightly-proof",
+          "started_at": "2026-11-11T08:14:38Z",
+          "status": "completed"
+        },
+        {
+          "completed_at": "2026-11-11T08:14:47Z",
+          "conclusion": "success",
+          "head_sha": "b2147519f1fb6cc8ea1c24486e5657248010d6fd",
+          "html_url": "https://github.com/just-every/run-uptime/actions/runs/42983465124/job/130405570949",
+          "id": 130405570949,
+          "name": "verify",
+          "started_at": "2026-11-11T08:14:45Z",
+          "status": "completed"
+        }
+      ],
+      "total_count": 15
+    }
+  },
+  {
+    "kind": "poll",
+    "key": "42983465124",
+    "time": 1794385481.9220252,
+    "command": "gh api repos/just-every/run-uptime/actions/runs/42983465124 --jq {id,status,conclusion,head_sha,html_url}",
+    "result": {
+      "conclusion": "success",
+      "head_sha": "b2147519f1fb6cc8ea1c24486e5657248010d6fd",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/42983465124",
+      "id": 42983465124,
+      "status": "completed"
+    }
   }
 ]

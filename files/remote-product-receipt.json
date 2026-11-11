@@ -1,0 +1,8 @@
+{
+  "repository": "just-every/run-uptime",
+  "ref": "refs/heads/cloud/main-uptime-import-paste-1",
+  "head": "b2147519f1fb6cc8ea1c24486e5657248010d6fd",
+  "remote": "origin",
+  "transport": "git ls-remote --refs origin refs/heads/cloud/main-uptime-import-paste-1",
+  "result": "exact remote ref matches the clean checked candidate"
+}

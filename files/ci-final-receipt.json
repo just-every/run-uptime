@@ -1,0 +1,15 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-import-paste-1",
+  "head": "b2147519f1fb6cc8ea1c24486e5657248010d6fd",
+  "workflow": "Verify",
+  "runId": 42983465124,
+  "status": "completed",
+  "conclusion": "success",
+  "html_url": "https://github.com/just-every/run-uptime/actions/runs/42983465124",
+  "githubCalls": 6,
+  "allEightShardsSucceeded": true,
+  "contractGeneratorExceptionUsed": false,
+  "publicationScan": "reserved for fleet Mac before landing",
+  "landing": "fleet custody; no landing performed here"
+}
