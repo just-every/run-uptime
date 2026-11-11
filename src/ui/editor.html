@@ -42,8 +42,12 @@
       <div class="editor-fields">
        <label>Monitor name<input disabled name="name" maxlength="100" required></label>
        <div class="editor-pair">
-        <label>What to check<select disabled name="checkType"><option value="http">Website or API (HTTP)</option><option value="mail">SMTP or mailbox protocol</option><option value="api">Multi-step API transaction</option><option value="tcp">TCP port</option><option value="udp">UDP request and response</option><option value="ping">ICMP ping</option><option value="dns">DNS record</option><option value="tls">TLS certificate</option><option value="domain">Domain registration expiry</option></select></label>
-        <label>Check every (minutes)<input disabled name="intervalMinutes" type="number" step="any" min="0.08333333333333333" max="1440" required></label>
+        <label>What to check<select disabled name="checkType"><option value="http">Website or API (HTTP)</option><option value="heartbeat">Scheduled job (heartbeat)</option><option value="mail">SMTP or mailbox protocol</option><option value="api">Multi-step API transaction</option><option value="tcp">TCP port</option><option value="udp">UDP request and response</option><option value="ping">ICMP ping</option><option value="dns">DNS record</option><option value="tls">TLS certificate</option><option value="domain">Domain registration expiry</option></select></label>
+        <label data-heartbeat-hide>Check every (minutes)<input disabled name="intervalMinutes" type="number" step="any" min="0.08333333333333333" max="1440" required></label>
+       </div>
+       <div class="type-fields editor-fields" data-types="heartbeat" hidden>
+        <div class="editor-pair"><label>Expected interval (seconds)<input disabled name="heartbeatPeriod" type="number" min="30" max="2678400" step="1" value="86400" required></label><label>Grace period (seconds)<input disabled name="heartbeatGrace" type="number" min="0" max="86400" step="1" value="900" required></label></div>
+        <p>Send a check-in after your job succeeds. The next scheduled check marks it up. If no success arrives within the expected interval plus grace, a scheduled check marks it down. Until the first success, it stays Unknown.</p>
        </div>
        <div class="type-fields editor-fields" data-types="http">
         <label>Target URL<input disabled name="url" type="url" placeholder="https://www.your-site.example/health" required></label>
@@ -92,7 +96,7 @@
        </div>
       </div>
      </section>
-     <section class="editor-panel editor-folds ui-card" data-monitor-metadata>
+     <section class="editor-panel editor-folds ui-card" data-monitor-metadata data-heartbeat-hide>
       <details class="advanced-fold" id="editor-advanced"><summary>Advanced</summary>
        <div class="advanced-body">
         <div class="type-fields" data-types="http tcp" data-form-only><label>Reachable from<select disabled name="networkScope"><option value="public">The public internet</option><option value="private">My private network</option></select></label></div>
@@ -117,7 +121,7 @@
       </details>
      </section>
     </div>
-    <section class="editor-panel policy-panel rules-panel ui-card" aria-labelledby="editor-rules-heading"><h2 id="editor-rules-heading">Up or down</h2>
+    <section class="editor-panel policy-panel rules-panel ui-card" data-heartbeat-hide aria-labelledby="editor-rules-heading"><h2 id="editor-rules-heading">Up or down</h2>
      <h3 class="type-fields rules-heading" data-types="http tcp udp dns tls">Up when</h3>
      <div class="type-fields rule-rows" data-types="http">
       <div class="rule-row" data-rule="status"><label>Status<input disabled name="status" type="text" placeholder="200, 2xx or 200-299" required></label></div>

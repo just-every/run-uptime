@@ -15,6 +15,7 @@ import {bindIncidentSnapshots} from './failure-snapshots.js';
 import {flowRevisions,isFlow} from './flow-panel.js';
 import {PROTOCOL_KINDS,expiryPanel} from './protocol-panel.js';
 import {PAGESPEED_KINDS,pageSpeedPanel} from './pagespeed-panel.js';
+import {heartbeatCheckInPanel,bindHeartbeatCheckIn} from './heartbeat-key.js';
 import {loadPage} from './monitor-reads.js';
 import {followLink,openFold,linkTarget} from './monitor-links.js';
 // One monitor's page (/app/monitors/<id>), rendered by public/app.js into the console shell on every refresh (U15, build C
@@ -61,7 +62,7 @@ function actionButtons(m){
 function pageMarkup(page){
  const {m,data,readUnavailable,seen,ui}=page;
  page.folds=foldsFor(m,data,seen,ui);
- return `<div class="monitor-page" id="monitor-page" data-monitor="${escape(m.id)}">${statusCard(m,{readUnavailable,data,seen})}${expiryPanel(m,data)}${pageSpeedPanel(m)}`
+ return `<div class="monitor-page" id="monitor-page" data-monitor="${escape(m.id)}">${statusCard(m,{readUnavailable,data,seen})}${expiryPanel(m,data)}${pageSpeedPanel(m)}${heartbeatCheckInPanel(m)}`
   +`<div class="monitor-columns"><div class="monitor-column-main">${rulesTable(m,{data,newest:seen.newest?.revision===m.revision?seen.newest:undefined,earlier:seen.earlier,ui,fit:page.fit})}${recentChecks(m,seen.timeline,page.strip)}</div>`
   +`<div class="monitor-column-side">${foldsCard(page.folds,id=>ui.probing||ui.mounted.has(id))}</div></div></div>`;
 }
@@ -78,6 +79,7 @@ function draw(page){
  patch(area,pageMarkup(page));
  const root=area.querySelector('#monitor-page');root.monitorPage=page;
  if(firstMount(root))bindPage(root);
+ bindHeartbeatCheckIn(area,page.m,deps(page));
  const incidents=area.querySelector('#monitor-incidents');
  if(firstMount(incidents)){bindIncidentWork(incidents,page.api);bindIncidentSnapshots(incidents,page.api,(probe,row)=>locationNamer(page.seen.revisions?.find(revision=>revision.revision===row.revision)?.definition??page.m.definition,page.data.runner.runners)(probe))}
  if(seen.incidents)patch(incidents,incidentMarkup(seen.incidents,page.name,{slots:seen.slots,revisions:seen.revisions,runners:page.data.runner.runners}));

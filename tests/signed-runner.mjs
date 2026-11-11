@@ -15,6 +15,7 @@ import {proveFreshResultSignature,assertRunnerAdmissionOnly} from './signed-runn
 import {proveImportedHeartbeatJobs} from './signed-runner-heartbeat-import.mjs';
 import {proveRunnerContact} from './signed-runner-contact.mjs';
 
+import {proveHeartbeatConsole} from './heartbeat-console-support.mjs';
 import {proveHeartbeatRevisionIsolation} from './signed-runner-heartbeat-revision.mjs';
 
 await proveRunnerContact();
@@ -211,6 +212,7 @@ try{
  const wallNow=Date.now;clock=wallNow();Date.now=()=>clock;
  try{
   const advance=at=>{assert.ok(at>=clock);clock=at};
+  await proveHeartbeatConsole({origin,cookie,api,runner,advance});
   await proveHeartbeatRevisionIsolation({api,runner,db,advance});
   await proveImportedHeartbeatJobs({api,runner,origin,cookie,advance});
  }finally{Date.now=wallNow;clock=undefined}
