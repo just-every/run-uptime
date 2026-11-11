@@ -520,7 +520,7 @@
       "executable": false
     },
     "CHANGELOG.md": {
-      "sha256": "ae08d6b79a583aa7c25e0bdff230ce264c6208f74c0391d930d37e485f3180cc",
+      "sha256": "4fe69d39929affed76bd5a3992f42c8b8886f8d9364e388ff7b209a860ff303b",
       "executable": false
     },
     "CLAUDE.md": {
@@ -2568,7 +2568,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "edfee4b427f448fc371fd5f61cead0d5368ded0a633789f8d8197c02442fe312",
+      "sha256": "eae34d4d8759d3075098de118e5f1be5d58e09c1cc5f1c825160463a9607f6f2",
       "executable": false
     },
     "patches/README.md": {
@@ -3084,7 +3084,7 @@
       "executable": false
     },
     "RELEASE.json": {
-      "sha256": "c8a5e6e32251440cc2197eb2cf296d8776d57edcabe4923eed3da9a9dc94a2a7",
+      "sha256": "cf9a44ab58aea9611518267e61708d829ee637e13d97fe898a28e38c9b4d6361",
       "executable": false
     },
     "RELEASE.md": {
@@ -4380,7 +4380,7 @@
       "executable": false
     },
     "scripts/install-chromium-deps.py": {
-      "sha256": "2337dc3ec7819048ae7357a41731456e05b11608b2e225ca111858b5433297cb",
+      "sha256": "569c5911644399f9d5f60bba085c5f5ab7ca52be2f428e1af88665f63c4b21d6",
       "executable": false
     },
     "scripts/installer/local.mjs": {
@@ -4516,7 +4516,7 @@
       "executable": false
     },
     "seed.json": {
-      "sha256": "40e1b525bdbd45d23c12ab2f67f76787d79d533fb9dfe9e99fef9eafad8f885d",
+      "sha256": "6b442dcadd7235980408fc5c225cc719af08ce33a5106f81f7d24136de343d5d",
       "executable": false
     },
     "src/agent-door/authority.server.ts": {
@@ -9600,7 +9600,7 @@
       "executable": false
     },
     "tests/security-controls-browser-support.mjs": {
-      "sha256": "d126aaabd9ed5a0904f42bfc89891d8f8ae5eea66b1479a9fe7dfabc7e3959d0",
+      "sha256": "01220fb1778516c17e97913612edcb5d8c9a0e30ef06929f015c11e6ba477247",
       "executable": false
     },
     "tests/service-catalog-fixture.mjs": {
