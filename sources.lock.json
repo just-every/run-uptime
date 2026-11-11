@@ -4380,7 +4380,7 @@
       "executable": false
     },
     "scripts/install-chromium-deps.py": {
-      "sha256": "2337dc3ec7819048ae7357a41731456e05b11608b2e225ca111858b5433297cb",
+      "sha256": "569c5911644399f9d5f60bba085c5f5ab7ca52be2f428e1af88665f63c4b21d6",
       "executable": false
     },
     "scripts/installer/local.mjs": {
