@@ -20,11 +20,14 @@ contents arrive as a checkout needs them), so `git checkout <tag>` adopts an
 older release. To set up without starting, use
 `curl -fsSL https://runeditrun.com/install.sh | sh -s -- setup <owner/repo>`.
 It installs `rer` in `~/.local/bin` with its own Node and edits no shell
-profile. Its absolute launcher works immediately. After opening your app,
-the optional `rer cli path` step explains how to make `rer` available in future
-terminals; only running the displayed shell line changes a startup file.
+profile. Its absolute launcher works immediately. When `~/.local/bin` is not on
+your PATH, its last lines give the one required step: run
+`export PATH="$HOME/.local/bin:$PATH"` and keep it in your shell startup file
+(`"$HOME/.local/bin/rer" cli path` shows the line for other shells); only running
+that line changes a startup file.
 To start the seed again later, run `cd <repo> && rer dev` (the
-folder is the repository name). `npm install -g @runeditrun/rer` is another way to
+folder is the repository name; a terminal without `~/.local/bin` on PATH needs that
+`export` line first, or it says `rer: command not found`). `npm install -g @runeditrun/rer` is another way to
 install `rer`. The installer's Node stays private to `rer`: it puts no `node`,
 `npm` or `npx` on PATH. First-party commands fetch and verify
 the exact pnpm version declared in `package.json` when it is missing, using

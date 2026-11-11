@@ -512,7 +512,7 @@
       "executable": false
     },
     "base-copies.json": {
-      "sha256": "8a3b15d1b60699416018f3f617bd5b29f9f046348407a5ecfb813728a74cc5a5",
+      "sha256": "063811c806b021a6281dcebaffd2a8daf4f91352f219b145633eaa179ddc6bb5",
       "executable": false
     },
     "BASELINE.md": {
@@ -2568,7 +2568,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "02618729b40217d2f8f4327f01b3a505229797d7e09557b2b2a35cf1677429a6",
+      "sha256": "c6b14b89134b46a763300851a07e2593ec9f0b3c61f4295d5752e0d16c2bbb28",
       "executable": false
     },
     "patches/README.md": {
@@ -2576,7 +2576,7 @@
       "executable": false
     },
     "pnpm-lock.yaml": {
-      "sha256": "2e6a5e3e3a1cfdeedba7af68b251101de4e333799f0e58a7da63b23acbcd249f",
+      "sha256": "550b08caf711bd259669289c95dd8655acc507086d9dd99516206c02fee441d2",
       "executable": false
     },
     "public/action-feedback.mjs": {
@@ -3100,7 +3100,7 @@
       "executable": false
     },
     "RUN-LOCALLY.md": {
-      "sha256": "9a275f0dc1056e13adde5d4da6b802f05dce72efe11c652ad779f2ef2fc725e8",
+      "sha256": "1e61ce3e5e4c8c5db9def5bac834bd3b1a8e5c57d882592930ca06cf4f0c9fb3",
       "executable": false
     },
     "runners/migrations/0001-monitor-credentials.mjs": {
