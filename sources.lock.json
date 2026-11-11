@@ -9596,7 +9596,7 @@
       "executable": false
     },
     "tests/security-controls-browser-support.mjs": {
-      "sha256": "d126aaabd9ed5a0904f42bfc89891d8f8ae5eea66b1479a9fe7dfabc7e3959d0",
+      "sha256": "01220fb1778516c17e97913612edcb5d8c9a0e30ef06929f015c11e6ba477247",
       "executable": false
     },
     "tests/service-catalog-fixture.mjs": {
