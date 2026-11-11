@@ -1,0 +1,300 @@
+{
+  "schema": 1,
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-plain-monitor-text-1-c1",
+  "head": "1b74086c760398d8ec3a7fffa13985210c0191fc",
+  "merged_main": "3caf61f087a59a0cc009f1eb1c87077be0eb985b",
+  "checks": [
+    {
+      "command": "npx -y @runeditrun/rer setup --owner-email fleet@runeditrun.com --non-interactive",
+      "exit_code": 0,
+      "log": "setup.log",
+      "head": "608dbd06c73a9f4464b39117c52e7ff2b7934d3d"
+    },
+    {
+      "command": "npx -y @runeditrun/rer build",
+      "exit_code": 0,
+      "log": "build.log",
+      "head": "608dbd06c73a9f4464b39117c52e7ff2b7934d3d"
+    },
+    {
+      "command": "pnpm run typecheck",
+      "exit_code": 0,
+      "log": "typecheck.log",
+      "head": "608dbd06c73a9f4464b39117c52e7ff2b7934d3d"
+    },
+    {
+      "command": "node src/base/contract-docs.mjs write",
+      "exit_code": 0,
+      "log": "contract-write.log",
+      "head": "608dbd06c73a9f4464b39117c52e7ff2b7934d3d"
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check",
+      "exit_code": 0,
+      "log": "contract-check.log",
+      "head": "608dbd06c73a9f4464b39117c52e7ff2b7934d3d"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "exit_code": 0,
+      "head": "608dbd06c73a9f4464b39117c52e7ff2b7934d3d"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit_code": 0,
+      "log": "source-lock-check.log",
+      "head": "608dbd06c73a9f4464b39117c52e7ff2b7934d3d"
+    },
+    {
+      "command": "node tests/browser-suites.mjs",
+      "exit_code": 0,
+      "log": "browser-suites.log",
+      "head": "608dbd06c73a9f4464b39117c52e7ff2b7934d3d"
+    },
+    {
+      "command": "node tests/operator-security.mjs",
+      "exit_code": 1,
+      "log": "operator-security-initial.log",
+      "reason": "Credential-row summary timed out after Worker restart",
+      "head": "608dbd06c73a9f4464b39117c52e7ff2b7934d3d"
+    },
+    {
+      "command": "node --import /tmp/uptime-security-debug.mjs tests/operator-security.mjs",
+      "exit_code": 0,
+      "log": "operator-security-diagnostic1.log",
+      "head": "608dbd06c73a9f4464b39117c52e7ff2b7934d3d"
+    },
+    {
+      "command": "node --import /tmp/uptime-security-debug.mjs tests/operator-security.mjs",
+      "exit_code": 0,
+      "log": "operator-security-diagnostic2.log",
+      "head": "608dbd06c73a9f4464b39117c52e7ff2b7934d3d"
+    },
+    {
+      "command": "node tests/failure-page-journey.mjs",
+      "exit_code": 1,
+      "log": "failure-page-initial.log",
+      "reason": "Isolated screenshot child lacked the pinned browser executable",
+      "head": "608dbd06c73a9f4464b39117c52e7ff2b7934d3d"
+    },
+    {
+      "command": "node --import /tmp/uptime-proof.mjs tests/failure-page-journey.mjs",
+      "exit_code": 0,
+      "log": "failure-page-system-chromium-proof.log",
+      "browser": "/usr/bin/chromium --no-sandbox via task-local path adapter",
+      "head": "608dbd06c73a9f4464b39117c52e7ff2b7934d3d"
+    },
+    {
+      "command": "node tests/signed-runner.mjs",
+      "exit_code": 0,
+      "log": "signed-runner.log",
+      "head": "608dbd06c73a9f4464b39117c52e7ff2b7934d3d"
+    },
+    {
+      "command": "python3 cloud-push.py origin cloud/main-uptime-plain-monitor-text-1-c1",
+      "exit_code": 0,
+      "log": "product-push.log",
+      "attempts": 1,
+      "head": "608dbd06c73a9f4464b39117c52e7ff2b7934d3d"
+    },
+    {
+      "command": "node --import /tmp/uptime-proof.mjs tests/browser-suites.mjs",
+      "exit_code": 0,
+      "log": "browser-capture.log",
+      "purpose": "Supplemental 1440 and 390 screen capture without source edits",
+      "head": "608dbd06c73a9f4464b39117c52e7ff2b7934d3d"
+    },
+    {
+      "command": "node --import /tmp/uptime-proof.mjs tests/failure-page-journey.mjs",
+      "exit_code": 0,
+      "log": "failure-page-final-capture.log",
+      "purpose": "Final paired snapshot screen capture after instrumented browser suite",
+      "head": "608dbd06c73a9f4464b39117c52e7ff2b7934d3d"
+    },
+    {
+      "command": "npx -y @runeditrun/rer build",
+      "exit_code": 0,
+      "head": "1b74086c760398d8ec3a7fffa13985210c0191fc",
+      "log": "final-build.log"
+    },
+    {
+      "command": "pnpm run typecheck",
+      "exit_code": 0,
+      "head": "1b74086c760398d8ec3a7fffa13985210c0191fc",
+      "log": "final-typecheck.log"
+    },
+    {
+      "command": "node src/base/contract-docs.mjs write/check",
+      "exit_code": 0,
+      "head": "1b74086c760398d8ec3a7fffa13985210c0191fc",
+      "logs": [
+        "final-contract-write.log",
+        "final-contract-check.log"
+      ]
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock/check",
+      "exit_code": 0,
+      "head": "1b74086c760398d8ec3a7fffa13985210c0191fc",
+      "log": "final-source-lock-check.log"
+    },
+    {
+      "command": "node tests/operator-security.mjs",
+      "exit_code": 0,
+      "head": "1b74086c760398d8ec3a7fffa13985210c0191fc",
+      "log": "final-security.log"
+    },
+    {
+      "command": "python3 cloud-push.py origin cloud/main-uptime-plain-monitor-text-1-c1",
+      "exit_code": 0,
+      "head": "1b74086c760398d8ec3a7fffa13985210c0191fc",
+      "log": "final-product-push.log",
+      "attempts": 1
+    },
+    {
+      "command": "standalone auxiliary minute-aligned security probe",
+      "exit_code": 247,
+      "log": "security-timing-probe-aborted.log",
+      "reason": "Auxiliary standalone Worker initialization did not complete; stopped only recorded own PIDs. No assertion result. The complete operator-security entrypoint passed afterward.",
+      "head": "608dbd06c73a9f4464b39117c52e7ff2b7934d3d"
+    },
+    {
+      "command": "node --import /tmp/uptime-proof.mjs tests/browser-suites.mjs",
+      "exit_code": 0,
+      "head": "1b74086c760398d8ec3a7fffa13985210c0191fc",
+      "log": "final-browser.log"
+    },
+    {
+      "command": "node --import /tmp/uptime-proof.mjs tests/failure-page-journey.mjs",
+      "exit_code": 0,
+      "head": "1b74086c760398d8ec3a7fffa13985210c0191fc",
+      "log": "final-failure.log",
+      "browser": "/usr/bin/chromium --no-sandbox"
+    }
+  ],
+  "status_counts": {
+    "before": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20
+    },
+    "after": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20
+    }
+  },
+  "registrations_added": 0,
+  "registrations_removed": 0,
+  "browser_capture": {
+    "head": "1b74086c760398d8ec3a7fffa13985210c0191fc",
+    "assertion_width": 1440,
+    "capture_widths": [
+      1440,
+      390
+    ],
+    "screens": [
+      {
+        "screen": "catalog-preview",
+        "width": 1440,
+        "leakCount": 0,
+        "documentWidth": 1440,
+        "screenshot": "catalog-preview-1440.png"
+      },
+      {
+        "screen": "catalog-preview",
+        "width": 390,
+        "leakCount": 0,
+        "documentWidth": 390,
+        "screenshot": "catalog-preview-390.png"
+      },
+      {
+        "screen": "monitor",
+        "width": 1440,
+        "leakCount": 0,
+        "documentWidth": 1440,
+        "screenshot": "monitor-1440.png"
+      },
+      {
+        "screen": "monitor",
+        "width": 390,
+        "leakCount": 0,
+        "documentWidth": 390,
+        "screenshot": "monitor-390.png"
+      },
+      {
+        "screen": "saved-check-evidence",
+        "width": 1440,
+        "leakCount": 0,
+        "documentWidth": 1440,
+        "screenshot": "saved-check-evidence-1440.png"
+      },
+      {
+        "screen": "saved-check-evidence",
+        "width": 390,
+        "leakCount": 0,
+        "documentWidth": 390,
+        "screenshot": "saved-check-evidence-390.png"
+      },
+      {
+        "screen": "details",
+        "width": 1440,
+        "leakCount": 0,
+        "documentWidth": 1440,
+        "screenshot": "details-1440.png"
+      },
+      {
+        "screen": "details",
+        "width": 390,
+        "leakCount": 0,
+        "documentWidth": 390,
+        "screenshot": "details-390.png"
+      },
+      {
+        "screen": "report-results",
+        "width": 1440,
+        "leakCount": 0,
+        "documentWidth": 1440,
+        "screenshot": "report-results-1440.png"
+      },
+      {
+        "screen": "report-results",
+        "width": 390,
+        "leakCount": 0,
+        "documentWidth": 390,
+        "screenshot": "report-results-390.png"
+      }
+    ]
+  },
+  "product": {
+    "repository": "just-every/run-uptime",
+    "branch": "cloud/main-uptime-plain-monitor-text-1-c1",
+    "head": "1b74086c760398d8ec3a7fffa13985210c0191fc",
+    "push": "succeeded",
+    "main_written": false,
+    "force_push": false,
+    "pr": null,
+    "publication_scan": "fleet Mac lander responsibility; unavailable in cloud"
+  },
+  "first_candidate_head": "608dbd06c73a9f4464b39117c52e7ff2b7934d3d",
+  "ci": {
+    "schema": 1,
+    "repository": "just-every/run-uptime",
+    "head": "1b74086c760398d8ec3a7fffa13985210c0191fc",
+    "github_calls": 8,
+    "observed_at_epoch": 1794399302,
+    "workflow_runs": [
+      {
+        "conclusion": "success",
+        "head_sha": "1b74086c760398d8ec3a7fffa13985210c0191fc",
+        "html_url": "https://github.com/just-every/run-uptime/actions/runs/43015884796",
+        "id": 43015884796,
+        "name": "Verify",
+        "status": "completed"
+      }
+    ]
+  },
+  "terminal_status": "READY",
+  "blockers": []
+}

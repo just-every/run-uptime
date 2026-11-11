@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "repository": "just-every/run-uptime",
+  "run_id": 43012005901,
+  "github_calls": 7,
+  "observations": [
+    {
+      "observed_at_epoch": 1794396723,
+      "conclusion": null,
+      "head_sha": "608dbd06c73a9f4464b39117c52e7ff2b7934d3d",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43012005901",
+      "status": "in_progress"
+    },
+    {
+      "observed_at_epoch": 1794397048,
+      "conclusion": null,
+      "head_sha": "608dbd06c73a9f4464b39117c52e7ff2b7934d3d",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43012005901",
+      "status": "in_progress"
+    },
+    {
+      "observed_at_epoch": 1794397353,
+      "conclusion": null,
+      "head_sha": "608dbd06c73a9f4464b39117c52e7ff2b7934d3d",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43012005901",
+      "status": "in_progress"
+    },
+    {
+      "observed_at_epoch": 1794397663,
+      "conclusion": "failure",
+      "head_sha": "608dbd06c73a9f4464b39117c52e7ff2b7934d3d",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43012005901",
+      "status": "completed"
+    }
+  ],
+  "failed_jobs": [
+    {
+      "id": 130494181308,
+      "name": "shards (push-5)",
+      "log_read_once": true
+    },
+    {
+      "id": 130501103533,
+      "name": "verify",
+      "reason": "aggregate failure after push-5 failure"
+    }
+  ]
+}

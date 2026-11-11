@@ -1,0 +1,23 @@
+▲ [WARNING] Proxy environment variables detected. We'll use your proxy for fetch requests.
+
+
+ACCESS-003 API/CLI TOTP, recovery consumption, enforced private doors/revocation, fresh erasure/rotation/export, member enrollment/reset/erasure, opaque audit/notices and durable limits. Console and provider-MFA assertion remain open.
+ACCESS-003 real Chromium CTAP2 enrollment and email-link second factor; origin, expiry, session binding and replay refusals.
+Destination step-up PASS: public refusal guidance/deep link, QR scan, enrollment, stale proof, wrong code, cancellation and one retained-request creation.
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator('#security-controls').locator('[data-credential-id="1298cfa7-e8ce-4764-bfa6-17dcf920862c"]').locator('summary')
+
+    at proveSecurityControls (/home/agent/rer-consolidation/work/main-uptime-plain-monitor-text-1-c1/repo/tests/security-controls-browser-support.mjs:106:702)
+    at async file:///home/agent/rer-consolidation/work/main-uptime-plain-monitor-text-1-c1/repo/tests/operator-security.mjs:58:2 {
+  log: [
+    `  - waiting for locator('#security-controls').locator('[data-credential-id="1298cfa7-e8ce-4764-bfa6-17dcf920862c"]').locator('summary')`
+  ],
+  name: 'TimeoutError'
+}
+
+Node.js v24.19.0

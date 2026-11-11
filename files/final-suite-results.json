@@ -1,0 +1,14 @@
+{
+  "results": [
+    {
+      "script": "tests/operator-browser.mjs",
+      "passed": true
+    },
+    {
+      "script": "tests/recovery-browser.mjs",
+      "passed": true
+    }
+  ],
+  "externalNetwork": false,
+  "scope": "Existing local-review browser suites; separate from production signed-runner and hosted acceptance"
+}

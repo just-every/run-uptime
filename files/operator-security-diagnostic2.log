@@ -1,0 +1,9 @@
+▲ [WARNING] Proxy environment variables detected. We'll use your proxy for fetch requests.
+
+
+ACCESS-003 API/CLI TOTP, recovery consumption, enforced private doors/revocation, fresh erasure/rotation/export, member enrollment/reset/erasure, opaque audit/notices and durable limits. Console and provider-MFA assertion remain open.
+ACCESS-003 real Chromium CTAP2 enrollment and email-link second factor; origin, expiry, session binding and replay refusals.
+Destination step-up PASS: public refusal guidance/deep link, QR scan, enrollment, stale proof, wrong code, cancellation and one retained-request creation.
+PRE_RESTART_BUDGET [{"class":"assets","window_start":1794396360000,"request_count":339,"expires_at":1794396420000},{"class":"authentication","window_start":1794396360000,"request_count":15,"expires_at":1794396420000},{"class":"editor","window_start":1794396360000,"request_count":4,"expires_at":1794396420000},{"class":"setup","window_start":1794396360000,"request_count":1,"expires_at":1794396420000},{"class":"authentication","window_start":1794396300000,"request_count":4,"expires_at":1794396360000},{"class":"setup","window_start":1794396300000,"request_count":1,"expires_at":1794396360000},{"class":"assets","window_start":1794396300000,"request_count":250,"expires_at":1794396360000},{"class":"editor","window_start":1794396300000,"request_count":3,"expires_at":1794396360000}]
+ACCESS-003/READAPI-001 Settings 1440 PASS: owner/member TOTP, recovery once, CDP passkey, stale policy/key step-up, hash-only restricted monitoring/CI issuance, usage and immediate revocation, live member refusal, factor removal, axe/reflow. Existing-document member proof; initial narrowed-role shell entry remains held.
+OPERATOR-SECURITY completed one owner-to-runner lifecycle

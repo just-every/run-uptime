@@ -1,0 +1,10 @@
+▲ [WARNING] Proxy environment variables detected. We'll use your proxy for fetch requests.
+
+
+Running tests/operator-browser.mjs
+(node:3799) [RER_PROCESS_INSPECTION_SLOW] Warning: Process inspection is taking longer than 5000 ms on a busy machine; waiting up to 25000 ms more.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:3799) [RER_PROCESS_INSPECTION_SLOW] Warning: Process inspection is taking longer than 5000 ms on a busy machine; waiting up to 25000 ms more.
+(node:3799) [RER_PROCESS_INSPECTION_SLOW] Warning: Process inspection is taking longer than 5000 ms on a busy machine; waiting up to 25000 ms more.
+Running tests/recovery-browser.mjs
+Browser integration passed; owned runtime groups stopped and temporary grant/state removed. Private evidence: /home/agent/rer-consolidation/work/main-uptime-plain-monitor-text-1-c1/repo/data/browser-suites-evidence-bvIngz

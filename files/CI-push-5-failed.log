@@ -1,0 +1,38 @@
+shards (push-5)	Run this shard	﻿2026-11-11T11:28:31.5259857Z ##[group]Run node .github/scripts/verify-ci.mjs "$SHARD"
+shards (push-5)	Run this shard	2026-11-11T11:28:31.5260365Z [36;1mnode .github/scripts/verify-ci.mjs "$SHARD"[0m
+shards (push-5)	Run this shard	2026-11-11T11:28:31.5282038Z shell: /usr/bin/bash -e {0}
+shards (push-5)	Run this shard	2026-11-11T11:28:31.5285782Z ##[endgroup]
+shards (push-5)	Run this shard	2026-11-11T11:28:31.6535427Z > node tests/notification-fallback.mjs
+shards (push-5)	Run this shard	2026-11-11T11:28:32.7654999Z (node:3009) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+shards (push-5)	Run this shard	2026-11-11T11:28:32.7656195Z (Use `node --trace-warnings ...` to show where the warning was created)
+shards (push-5)	Run this shard	2026-11-11T11:29:39.9359629Z DEPENDENCY_FALLBACK {"scenario":"delayed","delayMinutes":1,"sends":1,"workerElapsedMs":60581}
+shards (push-5)	Run this shard	2026-11-11T11:30:46.4778769Z DEPENDENCY_FALLBACK {"scenario":"primary-accepted","delayMinutes":1,"sends":0,"workerElapsedMs":null}
+shards (push-5)	Run this shard	2026-11-11T11:30:54.1960529Z DEPENDENCY_FALLBACK {"scenario":"zero","delayMinutes":0,"sends":1,"workerElapsedMs":346}
+shards (push-5)	Run this shard	2026-11-11T11:31:01.3234386Z DEPENDENCY_FALLBACK {"scenario":"quiet","delayMinutes":0,"sends":0,"workerElapsedMs":null}
+shards (push-5)	Run this shard	2026-11-11T11:31:08.1559737Z DEPENDENCY_FALLBACK {"scenario":"recovered","delayMinutes":1,"sends":0,"workerElapsedMs":null}
+shards (push-5)	Run this shard	2026-11-11T11:31:08.2521202Z > node tests/mail-journey.mjs
+shards (push-5)	Run this shard	2026-11-11T11:32:58.6230579Z PASS MAIL-001 owner configuration, signed native protocols, per-step incidents, receiver confirmation and synthetic-only removal
+shards (push-5)	Run this shard	2026-11-11T11:32:58.7030584Z > node tests/agent-erasure.mjs
+shards (push-5)	Run this shard	2026-11-11T11:33:08.8324217Z PASS agent-door custody names no erased person after operator erasure; the other person's agent records are intact.
+shards (push-5)	Run this shard	2026-11-11T11:33:08.9124946Z > node tests/udp-monitors.mjs
+shards (push-5)	Run this shard	2026-11-11T11:33:57.1860723Z > node tests/operator-security.mjs
+shards (push-5)	Run this shard	2026-11-11T11:34:08.2863759Z ACCESS-003 API/CLI TOTP, recovery consumption, enforced private doors/revocation, fresh erasure/rotation/export, member enrollment/reset/erasure, opaque audit/notices and durable limits. Console and provider-MFA assertion remain open.
+shards (push-5)	Run this shard	2026-11-11T11:34:12.8731652Z ACCESS-003 real Chromium CTAP2 enrollment and email-link second factor; origin, expiry, session binding and replay refusals.
+shards (push-5)	Run this shard	2026-11-11T11:35:04.8190186Z node:internal/modules/run_main:123
+shards (push-5)	Run this shard	2026-11-11T11:35:04.8191263Z     triggerUncaughtException(
+shards (push-5)	Run this shard	2026-11-11T11:35:04.8191958Z     ^
+shards (push-5)	Run this shard	2026-11-11T11:35:04.8192239Z 
+shards (push-5)	Run this shard	2026-11-11T11:35:04.8192548Z locator.click: Timeout 30000ms exceeded.
+shards (push-5)	Run this shard	2026-11-11T11:35:04.8193005Z Call log:
+shards (push-5)	Run this shard	2026-11-11T11:35:04.8193827Z   - waiting for locator('#security-controls').locator('[data-credential-id="60867b65-639b-454c-81f8-281ec685df36"]').locator('summary')
+shards (push-5)	Run this shard	2026-11-11T11:35:04.8194392Z 
+shards (push-5)	Run this shard	2026-11-11T11:35:04.8194884Z     at proveSecurityControls (/home/runner/work/run-uptime/run-uptime/tests/security-controls-browser-support.mjs:106:702)
+shards (push-5)	Run this shard	2026-11-11T11:35:04.8195684Z     at async file:///home/runner/work/run-uptime/run-uptime/tests/operator-security.mjs:58:2 {
+shards (push-5)	Run this shard	2026-11-11T11:35:04.8196141Z   log: [
+shards (push-5)	Run this shard	2026-11-11T11:35:04.8196800Z     `  - waiting for locator('#security-controls').locator('[data-credential-id="60867b65-639b-454c-81f8-281ec685df36"]').locator('summary')`
+shards (push-5)	Run this shard	2026-11-11T11:35:04.8197805Z   ],
+shards (push-5)	Run this shard	2026-11-11T11:35:04.8198021Z   name: 'TimeoutError'
+shards (push-5)	Run this shard	2026-11-11T11:35:04.8198277Z }
+shards (push-5)	Run this shard	2026-11-11T11:35:04.8198387Z 
+shards (push-5)	Run this shard	2026-11-11T11:35:04.8198489Z Node.js v22.20.0
+shards (push-5)	Run this shard	2026-11-11T11:35:04.8624635Z ##[error]Process completed with exit code 1.

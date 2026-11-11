@@ -1,0 +1,200 @@
+{
+  "schema": 1,
+  "head": "1b74086c760398d8ec3a7fffa13985210c0191fc",
+  "text_files": [
+    {
+      "path": "REPORT.md",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "PLAN.md",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "CHECKS.json",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "CI-discovery.json",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "IDENTITY.txt",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "build.log",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "setup.log",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "typecheck.log",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "contract-write.log",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "contract-check.log",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "source-lock-check.log",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "operator-security-initial.log",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "operator-security-diagnostic1.log",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "operator-security-diagnostic2.log",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "failure-page-initial.log",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "failure-page-system-chromium-proof.log",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "failure-page-final-capture.log",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "signed-runner.log",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "browser-suites.log",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "browser-capture.log",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "browser-suites-results.json",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "operator-results.json",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "recovery-results.json",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "browser-capture-results.json",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "proof-loader.mjs",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "security-diagnostic-loader.mjs",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "proof/screens.jsonl",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "REMOTE.txt",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "DIAGNOSIS.md",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "CI-first-candidate.json",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "CI-jobs.json",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "CI-push-5-failed.log",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "final-build.log",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "final-typecheck.log",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "final-contract-write.log",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "final-contract-check.log",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "final-source-lock-check.log",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "final-security.log",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "final-product-push.log",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "security-timing-probe-aborted.log",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "final-browser.log",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "final-failure.log",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "final-suite-results.json",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "final-operator-results.json",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "final-recovery-results.json",
+      "credential_shaped_matches": 0
+    },
+    {
+      "path": "proof/FINAL.json",
+      "credential_shaped_matches": 0
+    }
+  ],
+  "symlinks_selected": false,
+  "unselected": [
+    "local settings",
+    "session and factor material",
+    "environment files",
+    "archives",
+    "security enrollment screenshots"
+  ],
+  "final_ci_receipt_pending": false,
+  "github_calls": 8
+}

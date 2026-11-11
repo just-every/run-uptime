@@ -1,0 +1,32 @@
+▲ [WARNING] Proxy environment variables detected. We'll use your proxy for fetch requests.
+
+
+✖ owners capture safe failure pages, share only monitor evidence, export every artifact and revoke access (10584.735694ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10595.787012
+
+✖ failing tests:
+
+test at tests/failure-page-journey.mjs:12:1
+✖ owners capture safe failure pages, share only monitor evidence, export every artifact and revoke access (10584.735694ms)
+  AssertionError [ERR_ASSERTION]: {"screenshot":"browser_unavailable"}
+  
+  undefined !== 'png'
+  
+      at TestContext.<anonymous> (file:///home/agent/rer-consolidation/work/main-uptime-plain-monitor-text-1-c1/repo/tests/failure-page-journey.mjs:23:130)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: 'png',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

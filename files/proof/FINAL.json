@@ -1,0 +1,238 @@
+{
+  "schema": 1,
+  "head": "1b74086c760398d8ec3a7fffa13985210c0191fc",
+  "assertion_width": 1440,
+  "capture_widths": [
+    1440,
+    390
+  ],
+  "measurements": [
+    {
+      "screen": "catalog-preview",
+      "width": 1440,
+      "leakCount": 0,
+      "documentWidth": 1440,
+      "screenshot": "catalog-preview-1440.png"
+    },
+    {
+      "screen": "catalog-preview",
+      "width": 390,
+      "leakCount": 0,
+      "documentWidth": 390,
+      "screenshot": "catalog-preview-390.png"
+    },
+    {
+      "screen": "monitor",
+      "width": 1440,
+      "leakCount": 0,
+      "documentWidth": 1440,
+      "screenshot": "monitor-1440.png"
+    },
+    {
+      "screen": "monitor",
+      "width": 390,
+      "leakCount": 0,
+      "documentWidth": 390,
+      "screenshot": "monitor-390.png"
+    },
+    {
+      "screen": "saved-check-evidence",
+      "width": 1440,
+      "leakCount": 0,
+      "documentWidth": 1440,
+      "screenshot": "saved-check-evidence-1440.png"
+    },
+    {
+      "screen": "saved-check-evidence",
+      "width": 390,
+      "leakCount": 0,
+      "documentWidth": 390,
+      "screenshot": "saved-check-evidence-390.png"
+    },
+    {
+      "screen": "details",
+      "width": 1440,
+      "leakCount": 0,
+      "documentWidth": 1440,
+      "screenshot": "details-1440.png"
+    },
+    {
+      "screen": "details",
+      "width": 390,
+      "leakCount": 0,
+      "documentWidth": 390,
+      "screenshot": "details-390.png"
+    },
+    {
+      "screen": "report-results",
+      "width": 1440,
+      "leakCount": 0,
+      "documentWidth": 1440,
+      "screenshot": "report-results-1440.png"
+    },
+    {
+      "screen": "report-results",
+      "width": 390,
+      "leakCount": 0,
+      "documentWidth": 390,
+      "screenshot": "report-results-390.png"
+    }
+  ],
+  "files": [
+    {
+      "path": "proof/monitor-1440.png",
+      "bytes": 146962,
+      "sha256": "3f11bdaac14437c4fe42863d39182b51ba49b4da15efe9baea7a2695bbd74bdb",
+      "pixel_width": 1440,
+      "pixel_height": 1219
+    },
+    {
+      "path": "proof/monitor-390.png",
+      "bytes": 144897,
+      "sha256": "2729b627be26f1c0289bf997a0f9e5a6b1e13be575318e28351ca6da65a46e96",
+      "pixel_width": 390,
+      "pixel_height": 2079
+    },
+    {
+      "path": "proof/catalog-preview-1440.png",
+      "bytes": 160571,
+      "sha256": "cff4c0e410ab24731bed5e08b6641ecba21cfcc385dbb54c760649430216edf0",
+      "pixel_width": 1440,
+      "pixel_height": 1304
+    },
+    {
+      "path": "proof/catalog-preview-390.png",
+      "bytes": 172921,
+      "sha256": "49bea5df0a47c000ee0e9f9161c28b2c91caecbc73b2fe3e7b33f18a1b2fd541",
+      "pixel_width": 390,
+      "pixel_height": 2328
+    },
+    {
+      "path": "proof/saved-check-evidence-1440.png",
+      "bytes": 469648,
+      "sha256": "cd15492eb64388ab72841f3027bde48f382db5e15f0e55544c537906f7f92dd9",
+      "pixel_width": 1440,
+      "pixel_height": 2134
+    },
+    {
+      "path": "proof/saved-check-evidence-390.png",
+      "bytes": 424064,
+      "sha256": "687d4e0eb08a29e295ccadd1aa6005ceae4a3e5985b9c8d1b126de0428a4efaa",
+      "pixel_width": 390,
+      "pixel_height": 4768
+    },
+    {
+      "path": "proof/details-1440.png",
+      "bytes": 506569,
+      "sha256": "a99e94cd94d9301cd3a2c6427d19fbb371472bc2e3be112414be75d3d38f0e03",
+      "pixel_width": 1440,
+      "pixel_height": 2385
+    },
+    {
+      "path": "proof/details-390.png",
+      "bytes": 460175,
+      "sha256": "407046274e60b5b3efb023d6461320a97874f8a4c85b4cb5165aefcc2ad3a1da",
+      "pixel_width": 390,
+      "pixel_height": 5314
+    },
+    {
+      "path": "proof/report-results-1440.png",
+      "bytes": 1119647,
+      "sha256": "db32f3759d170418ff46dcabe66052b482cd36127a7dad00f9655ae195e26df1",
+      "pixel_width": 1440,
+      "pixel_height": 10631
+    },
+    {
+      "path": "proof/report-results-390.png",
+      "bytes": 935798,
+      "sha256": "578addd120091cba4111b92f83a2f1809cfc405a251fd0ea2ea1b706a9e4f5bc",
+      "pixel_width": 390,
+      "pixel_height": 13777
+    },
+    {
+      "path": "proof/failure-page-1440.png",
+      "bytes": 149904,
+      "sha256": "02f076da4fb2b5b4cc337f52daff1aab95817a6e99b17b48b93b513543786868",
+      "pixel_width": 323,
+      "pixel_height": 1902
+    },
+    {
+      "path": "proof/failure-page-390.png",
+      "bytes": 151232,
+      "sha256": "2da437dd6f6f277302812ef322fcc76c64259184549bbed0acef88580e0e627d",
+      "pixel_width": 320,
+      "pixel_height": 1920
+    },
+    {
+      "path": "proof/incident-page-1440.png",
+      "bytes": 207879,
+      "sha256": "0b1ab24a36dc52a79b4c60353d0ba1fc4c2321ee11ae9933bf09aea25816dbe3",
+      "pixel_width": 323,
+      "pixel_height": 2567
+    },
+    {
+      "path": "proof/incident-page-390.png",
+      "bytes": 209708,
+      "sha256": "0a28a04ae6836aaf9d1e20b6c6b94ac4613c04e148cd2a9010dcfd8f16a38496",
+      "pixel_width": 320,
+      "pixel_height": 2605
+    },
+    {
+      "path": "proof/failure-page-controls-1440.png",
+      "bytes": 243828,
+      "sha256": "738ee72c27bed5d7bceb756bb9e10e0bb9a6fcc23ad54c0292f82e02fcf7fb60",
+      "pixel_width": 323,
+      "pixel_height": 3092
+    },
+    {
+      "path": "proof/failure-page-controls-390.png",
+      "bytes": 247097,
+      "sha256": "251a5ee9230a70ecefcaf1f3959f207600a3442d166c62a2d87f496aa94aab49",
+      "pixel_width": 320,
+      "pixel_height": 3130
+    },
+    {
+      "path": "proof/evidence-viewer-1440.png",
+      "bytes": 346024,
+      "sha256": "5eef93f36b4bf05eac659bb1f974bc713ea037eb20231481d80b3f03f7e21469",
+      "pixel_width": 1440,
+      "pixel_height": 2819
+    },
+    {
+      "path": "proof/evidence-viewer-390.png",
+      "bytes": 236822,
+      "sha256": "62b6f6155b629477d56ef23a9a6c73751b44898ad2df4a6a6fafca964f4b797a",
+      "pixel_width": 390,
+      "pixel_height": 3001
+    },
+    {
+      "path": "proof/failure-page-policy-changed-1440.png",
+      "bytes": 147563,
+      "sha256": "4f7e957b2c0ae50d1b3c5c92dc209607ac443c4123e7dc439804ac3fa2ff16f7",
+      "pixel_width": 323,
+      "pixel_height": 1743
+    },
+    {
+      "path": "proof/failure-page-policy-changed-390.png",
+      "bytes": 148391,
+      "sha256": "60365fe7472050b6a86638ab2fd5bb050a5ba3da5ac83f3a4fda222a1ca5def3",
+      "pixel_width": 320,
+      "pixel_height": 1763
+    },
+    {
+      "path": "proof/evidence-revoked-1440.png",
+      "bytes": 108567,
+      "sha256": "820ac62cdde89f516a9e66d2d7e5bd1757629f6a395c7e6702f89e77ff27284d",
+      "pixel_width": 1440,
+      "pixel_height": 1000
+    },
+    {
+      "path": "proof/evidence-revoked-390.png",
+      "bytes": 45085,
+      "sha256": "e11ae85130762b1c6ea0ba2a2db43d36b1f6996e6e6a2be6c7a59457eb36fe78",
+      "pixel_width": 390,
+      "pixel_height": 844
+    }
+  ],
+  "artifact_naming": "Saved-check captures renamed from DETAILS-* to saved-check-evidence-* for case-insensitive filesystem compatibility; bytes and hashes unchanged."
+}

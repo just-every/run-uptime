@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "repository": "just-every/run-uptime",
+  "head": "1b74086c760398d8ec3a7fffa13985210c0191fc",
+  "github_calls": 8,
+  "observed_at_epoch": 1794399302,
+  "workflow_runs": [
+    {
+      "conclusion": "success",
+      "head_sha": "1b74086c760398d8ec3a7fffa13985210c0191fc",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43015884796",
+      "id": 43015884796,
+      "name": "Verify",
+      "status": "completed"
+    }
+  ]
+}
