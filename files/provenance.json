@@ -1,0 +1,22 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-heartbeat-console-1",
+  "head": "7138ac8714be14f7220c1d794a3cb4f50abd1e8a",
+  "base": "b2147519f1fb6cc8ea1c24486e5657248010d6fd",
+  "contractCountsBefore": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "contractCountsAfter": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "clauseChanges": [],
+  "ciJourneyEntrypointsBefore": 47,
+  "ciJourneyEntrypointsAfter": 47,
+  "newTestRegistrations": 0,
+  "workingTreeClean": true,
+  "publicationScan": "Fleet Mac lander required; unavailable in cloud by task contract"
+}

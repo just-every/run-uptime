@@ -1,0 +1,29 @@
+{
+  "journey": "proveHeartbeatConsole",
+  "result": "passed",
+  "width": 1440,
+  "proofWidths": [
+    1440,
+    390
+  ],
+  "createdThroughForm": true,
+  "copyUrl": true,
+  "copyCommand": true,
+  "realInstallUrl": true,
+  "ingressState": "Unknown",
+  "scheduledState": "Healthy",
+  "periodMs": 30000,
+  "graceMs": 2000,
+  "beforeDeadline": "not Failing",
+  "atDeadline": "Failing",
+  "lateRecovery": "Healthy",
+  "secretsInStorage": false,
+  "head": "7138ac8714be14f7220c1d794a3cb4f50abd1e8a",
+  "runner": "actual signed Node process",
+  "clock": "controlled fixture time; product state never rewritten",
+  "receiptMethods": [
+    "GET",
+    "HEAD",
+    "POST"
+  ]
+}

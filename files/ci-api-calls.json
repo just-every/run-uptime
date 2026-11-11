@@ -1,0 +1,47 @@
+[
+  {
+    "time": 1794390148.7222831,
+    "args": [
+      "api",
+      "repos/just-every/run-uptime/actions/runs?head_sha=7138ac8714be14f7220c1d794a3cb4f50abd1e8a&per_page=100",
+      "--jq",
+      "{total_count,workflow_runs:[.workflow_runs[]|{id,name,status,conclusion,head_sha,html_url}]}"
+    ]
+  },
+  {
+    "time": 1794390465.9302313,
+    "args": [
+      "api",
+      "repos/just-every/run-uptime/actions/runs?head_sha=7138ac8714be14f7220c1d794a3cb4f50abd1e8a&per_page=100",
+      "--jq",
+      "{total_count,workflow_runs:[.workflow_runs[]|{id,name,status,conclusion,head_sha,html_url}]}"
+    ]
+  },
+  {
+    "time": 1794390776.9603903,
+    "args": [
+      "api",
+      "repos/just-every/run-uptime/actions/runs/42997434322",
+      "--jq",
+      "{status,conclusion,head_sha,html_url}"
+    ]
+  },
+  {
+    "time": 1794391077.303198,
+    "args": [
+      "api",
+      "repos/just-every/run-uptime/actions/runs/42997434322",
+      "--jq",
+      "{status,conclusion,head_sha,html_url}"
+    ]
+  },
+  {
+    "time": 1794391381.851866,
+    "args": [
+      "api",
+      "repos/just-every/run-uptime/actions/runs/42997434322",
+      "--jq",
+      "{status,conclusion,head_sha,html_url}"
+    ]
+  }
+]

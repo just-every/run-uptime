@@ -1,0 +1,58 @@
+[
+  {
+    "call": 1,
+    "response": {
+      "total_count": 0,
+      "workflow_runs": []
+    },
+    "source": "Initial actual CLI response retained verbatim from task tool output",
+    "time": 1794390148.7222831
+  },
+  {
+    "call": 2,
+    "response": {
+      "total_count": 1,
+      "workflow_runs": [
+        {
+          "conclusion": null,
+          "head_sha": "7138ac8714be14f7220c1d794a3cb4f50abd1e8a",
+          "html_url": "https://github.com/just-every/run-uptime/actions/runs/42997434322",
+          "id": 42997434322,
+          "name": "Verify",
+          "status": "in_progress"
+        }
+      ]
+    },
+    "time": 1794390465.9302313
+  },
+  {
+    "call": 3,
+    "response": {
+      "conclusion": null,
+      "head_sha": "7138ac8714be14f7220c1d794a3cb4f50abd1e8a",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/42997434322",
+      "status": "in_progress"
+    },
+    "time": 1794390776.9603903
+  },
+  {
+    "call": 4,
+    "response": {
+      "conclusion": null,
+      "head_sha": "7138ac8714be14f7220c1d794a3cb4f50abd1e8a",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/42997434322",
+      "status": "in_progress"
+    },
+    "time": 1794391077.303198
+  },
+  {
+    "call": 5,
+    "time": 1794391381.851866,
+    "response": {
+      "conclusion": "success",
+      "head_sha": "7138ac8714be14f7220c1d794a3cb4f50abd1e8a",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/42997434322",
+      "status": "completed"
+    }
+  }
+]

@@ -1,0 +1,16 @@
+{
+  "result": "reproduced",
+  "door": "/app/monitors/new → Fill in the form yourself",
+  "options": [
+    "Website or API (HTTP)",
+    "SMTP or mailbox protocol",
+    "Multi-step API transaction",
+    "TCP port",
+    "UDP request and response",
+    "ICMP ping",
+    "DNS record",
+    "TLS certificate",
+    "Domain registration expiry"
+  ],
+  "heartbeatAvailable": false
+}

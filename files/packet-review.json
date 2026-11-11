@@ -1,0 +1,181 @@
+{
+  "head": "7138ac8714be14f7220c1d794a3cb4f50abd1e8a",
+  "reviewedAt": "2026-11-11T10:03:30.777791+00:00",
+  "selection": "Explicit actual non-secret reports, receipts, complete final logs and masked screenshots only",
+  "files": [
+    {
+      "file": "REPORT.md",
+      "bytes": 9456,
+      "sha256": "b49ca41a34609f25ca1ded6f90f9889adc3d8a0c2f8eb1ab22c0fab82e122696",
+      "regular": true
+    },
+    {
+      "file": "PLAN.md",
+      "bytes": 2105,
+      "sha256": "8b60823552db1dbd0f07c8580c672a1045390733b68a37070f67f1a4d13e6673",
+      "regular": true
+    },
+    {
+      "file": "validation.json",
+      "bytes": 3276,
+      "sha256": "09fc583eddea0f6a10a60ec00ea7cc747e99a00fe1b0d4d5b7c39f420c6505d5",
+      "regular": true
+    },
+    {
+      "file": "heartbeat-console.json",
+      "bytes": 666,
+      "sha256": "f29ed7af34aa29db5f4170d7fe112b56ffb08b1524eadc57e0e153eb134e7af6",
+      "regular": true
+    },
+    {
+      "file": "provenance.json",
+      "bytes": 616,
+      "sha256": "2d5087fa587e9394d865f36d8db5ad3231d8bcd89cc4edf784de9c09487d1e53",
+      "regular": true
+    },
+    {
+      "file": "identity-audit.json",
+      "bytes": 539,
+      "sha256": "e263bab55b2520381d6895eef5653c9f8cfd9bc0d31e5b10b03d81a35e18ec20",
+      "regular": true
+    },
+    {
+      "file": "product-push.txt",
+      "bytes": 764,
+      "sha256": "54042ccd3f9a8bd57d889ff4d7ae28efab3a82b6e72786a8d1c48dc12d7ef44d",
+      "regular": true
+    },
+    {
+      "file": "ci-discovery.json",
+      "bytes": 245,
+      "sha256": "b928733828e7f1b15aa14c0238868ebb7e2f75398bc5c649ef2e91730ab24a8b",
+      "regular": true
+    },
+    {
+      "file": "gap.json",
+      "bytes": 375,
+      "sha256": "cf215d2fa6461626cfcd6e00ded70bf71adf6546922a5d910d6e56b60f9c6931",
+      "regular": true
+    },
+    {
+      "file": "build.log",
+      "bytes": 10312,
+      "sha256": "7a83ad6938c82360a5d317296befc17df949c234cb3335e5caf6542bb1c628ab",
+      "regular": true
+    },
+    {
+      "file": "typecheck.log",
+      "bytes": 243,
+      "sha256": "5a8895cf2fe8ac35f41ebb153de450d4c240feb726fa16197a6c2e9d867d7317",
+      "regular": true
+    },
+    {
+      "file": "signed-runner.log",
+      "bytes": 1592,
+      "sha256": "a2fdaa81c2cdcf423734fc7c8d2efc78a3dc8511f3e14b3f09a53b27ab524289",
+      "regular": true
+    },
+    {
+      "file": "spec-check.log",
+      "bytes": 283,
+      "sha256": "b01e714779eb733aa500942a888a65c7f70f76a4fd4a4d5a213c8b21d55a2c0e",
+      "regular": true
+    },
+    {
+      "file": "source-check.log",
+      "bytes": 414774,
+      "sha256": "987649329c2aaede147e4d319477257504170c181e86cb7a481c04a71d299c45",
+      "regular": true
+    },
+    {
+      "file": "contract-check.log",
+      "bytes": 70,
+      "sha256": "b04031901cfff3e9bc42a429b52cbc14c2442ffb68817fd62a245ac52847b422",
+      "regular": true
+    },
+    {
+      "file": "before-1440.png",
+      "bytes": 116146,
+      "sha256": "5f9b47c4fa2be466f1c3bfda8ccb3d520e5efd4bd3d1860bd317532b8fd7036e",
+      "regular": true
+    },
+    {
+      "file": "before-390.png",
+      "bytes": 121710,
+      "sha256": "cb0721aff6bce3b5e3c135d619f7097af18995983d5bd91e442ba48c604bb346",
+      "regular": true
+    },
+    {
+      "file": "scheduled-job-form-1440.png",
+      "bytes": 99216,
+      "sha256": "6a681629596ef6f9e11ba100af6855f1b4b78ca1152590aca35b20e178157c13",
+      "regular": true
+    },
+    {
+      "file": "scheduled-job-form-390.png",
+      "bytes": 106356,
+      "sha256": "dc48b64946558f92bb80075bf02f8af4b93fb0e9c228596e858e70137b214344",
+      "regular": true
+    },
+    {
+      "file": "job-checkin-ready-1440.png",
+      "bytes": 370749,
+      "sha256": "e6d84e4ec89a84d7d3e528a4d4f3dfadbc1d573b5cb1029bfddaa0b4bfb7ba10",
+      "regular": true
+    },
+    {
+      "file": "job-checkin-ready-390.png",
+      "bytes": 326312,
+      "sha256": "79b748e53e76cd1e97427b9bb9d67fdd73676abe0baa8ef9d0d990937c0bfa34",
+      "regular": true
+    },
+    {
+      "file": "job-up-1440.png",
+      "bytes": 369556,
+      "sha256": "592900747cb0b386ef3929d3e7414f321d630c4fdfa9ab375535bedee1cde4fa",
+      "regular": true
+    },
+    {
+      "file": "job-up-390.png",
+      "bytes": 325597,
+      "sha256": "bb8fb2b51da562065fed5c3000c6adbb9781c517b31d9f1f9c01aae3e252e839",
+      "regular": true
+    },
+    {
+      "file": "job-missed-1440.png",
+      "bytes": 154808,
+      "sha256": "4b44804aa1a52b1538c7fe77ea597e4714f6c9f4b64130bf5e96ca069ef47145",
+      "regular": true
+    },
+    {
+      "file": "job-missed-390.png",
+      "bytes": 154853,
+      "sha256": "49823a306f20b01a5fc86218b77d79349ca06be98eab51c8fbd123324d617ed4",
+      "regular": true
+    },
+    {
+      "file": "product-remote.txt",
+      "bytes": 90,
+      "sha256": "b25f89b11b637f50c47341d81c4b1234b7cf727af00957c1401cac505d4a99e1",
+      "regular": true
+    },
+    {
+      "file": "ci-history.json",
+      "bytes": 1509,
+      "sha256": "d17617217d56fec395a80e3b99457f986eaa971d4593675c5be8345897bbfef2",
+      "regular": true
+    },
+    {
+      "file": "ci-verify.json",
+      "bytes": 179,
+      "sha256": "ceaab0e099f3d2a4e9cc2d9f307198e96cdcf07a74140956f339e50546e99885",
+      "regular": true
+    },
+    {
+      "file": "ci-api-calls.json",
+      "bytes": 1193,
+      "sha256": "c6bb441656d74d004f8b6391c97310967328dd2ed685aea564c6217407e4718c",
+      "regular": true
+    }
+  ]
+}

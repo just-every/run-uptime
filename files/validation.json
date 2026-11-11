@@ -1,0 +1,93 @@
+{
+  "repository": "just-every/run-uptime",
+  "head": "7138ac8714be14f7220c1d794a3cb4f50abd1e8a",
+  "completedAt": "2026-11-11T09:44:37.394551+00:00",
+  "checks": [
+    {
+      "name": "build",
+      "command": "cloud_run npx -y @runeditrun/rer build",
+      "exit": 0,
+      "log": "build.log",
+      "sha256": "7a83ad6938c82360a5d317296befc17df949c234cb3335e5caf6542bb1c628ab"
+    },
+    {
+      "name": "typecheck",
+      "command": "pnpm run typecheck",
+      "exit": 0,
+      "log": "typecheck.log",
+      "sha256": "5a8895cf2fe8ac35f41ebb153de450d4c240feb726fa16197a6c2e9d867d7317"
+    },
+    {
+      "name": "signed-runner",
+      "command": "cloud_run env UPTIME_BROWSER_EXECUTABLE=/usr/bin/chromium UPTIME_HEARTBEAT_PROOF_DIR=<packet> node tests/signed-runner.mjs",
+      "exit": 0,
+      "log": "signed-runner.log",
+      "sha256": "a2fdaa81c2cdcf423734fc7c8d2efc78a3dc8511f3e14b3f09a53b27ab524289"
+    },
+    {
+      "name": "spec",
+      "command": "pnpm run spec:generate && pnpm run spec:check",
+      "exit": 0,
+      "log": "spec-check.log",
+      "sha256": "b01e714779eb733aa500942a888a65c7f70f76a4fd4a4d5a213c8b21d55a2c0e"
+    },
+    {
+      "name": "source lock",
+      "command": "node scripts/edition-authoring/cli.mjs lock; node scripts/edition-authoring/cli.mjs check",
+      "exit": 0,
+      "log": "source-check.log",
+      "sha256": "987649329c2aaede147e4d319477257504170c181e86cb7a481c04a71d299c45"
+    },
+    {
+      "name": "contract documents",
+      "command": "node src/base/contract-docs.mjs check",
+      "exit": 0,
+      "log": "contract-check.log",
+      "sha256": "b04031901cfff3e9bc42a429b52cbc14c2442ffb68817fd62a245ac52847b422"
+    }
+  ],
+  "browser": {
+    "journey": "proveHeartbeatConsole",
+    "result": "passed",
+    "width": 1440,
+    "proofWidths": [
+      1440,
+      390
+    ],
+    "createdThroughForm": true,
+    "copyUrl": true,
+    "copyCommand": true,
+    "realInstallUrl": true,
+    "ingressState": "Unknown",
+    "scheduledState": "Healthy",
+    "periodMs": 30000,
+    "graceMs": 2000,
+    "beforeDeadline": "not Failing",
+    "atDeadline": "Failing",
+    "lateRecovery": "Healthy",
+    "secretsInStorage": false,
+    "head": "7138ac8714be14f7220c1d794a3cb4f50abd1e8a",
+    "runner": "actual signed Node process",
+    "clock": "controlled fixture time; product state never rewritten",
+    "receiptMethods": [
+      "GET",
+      "HEAD",
+      "POST"
+    ]
+  },
+  "cap": "No new test registration or CI journey; extended existing signed-runner heartbeat journey. CI journey entrypoints remain 47.",
+  "ci": {
+    "runId": 42997434322,
+    "conclusion": "success",
+    "head_sha": "7138ac8714be14f7220c1d794a3cb4f50abd1e8a",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/42997434322",
+    "status": "completed"
+  },
+  "notes": [
+    "Local Node v24.19.0 satisfies Node 22-or-later; required cloud toolchain selected pnpm 10.12.4. GitHub CI pins Node 22.20.0.",
+    "A spec check invoked without the provided shell setup refused under the VM default pnpm 11; rerunning through the required toolchain passed.",
+    "Browser proof masks the capability URL and command. No secret, browser state, environment dump or held gate input is included."
+  ],
+  "productCustody": "READY",
+  "githubApiCalls": 5
+}
