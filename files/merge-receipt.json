@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-period-report-1-c1",
+  "head": "7f07c2c0584c32be2d3c0a848bc23e827832825d",
+  "parents": [
+    "29325cbd849cc16324e302f6bac83425192f813e",
+    "65953b2f1288fb5010f17391761abeee16923793"
+  ],
+  "originalReportHead": "29325cbd849cc16324e302f6bac83425192f813e",
+  "mergedMain": "65953b2f1288fb5010f17391761abeee16923793",
+  "conflicts": [],
+  "mergeOnly": true,
+  "contractChanged": false,
+  "generatedViewsChanged": false,
+  "ciFixCommits": [
+    "541d7093f5471d9c208c05d7423e1093263e7059",
+    "88fc3dec2d874764aace8d21467aa4847373b2ac"
+  ],
+  "newProductEditsBeyondMerge": 0,
+  "worktreeClean": true,
+  "claim": "CLAIM REPORT-001 PARTIAL points=none tests=tests/plain-monitor-text-support.mjs#provePeriodReport"
+}

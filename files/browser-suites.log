@@ -1,0 +1,3 @@
+Running tests/operator-browser.mjs
+Running tests/recovery-browser.mjs
+Browser integration passed; owned runtime groups stopped and temporary grant/state removed. Private evidence: /home/agent/rer-consolidation/work/main-uptime-period-report-1-c1/run-uptime/data/browser-suites-evidence-JbMsEl

@@ -1,0 +1,4 @@
+{"call": 1, "time": 1794433057.2255857, "args": ["api", "repos/just-every/run-uptime/actions/runs?head_sha=7f07c2c0584c32be2d3c0a848bc23e827832825d&per_page=100"], "run_id": null, "poll": true}
+{"call": 2, "time": 1794433357.1723185, "args": ["api", "repos/just-every/run-uptime/actions/runs/43104662381", "--jq", "{status,conclusion,head_sha,html_url}"], "run_id": "43104662381", "poll": true}
+{"call": 3, "time": 1794433657.194988, "args": ["api", "repos/just-every/run-uptime/actions/runs/43104662381", "--jq", "{status,conclusion,head_sha,html_url}"], "run_id": "43104662381", "poll": true}
+{"call": 4, "time": 1794433971.332509, "args": ["api", "repos/just-every/run-uptime/actions/runs/43104662381", "--jq", "{status,conclusion,head_sha,html_url}"], "run_id": "43104662381", "poll": true}

@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "baseline": "origin/main",
+  "before": {
+    "total": 115,
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "after": {
+    "total": 115,
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "verificationJourneyEntrypointsBefore": 47,
+  "verificationJourneyEntrypointsAfter": 47,
+  "testRegistrationsAdded": 0,
+  "testRegistrationsRemoved": 0,
+  "reportClauseBefore": "partial",
+  "reportClauseAfter": "partial",
+  "countNote": "47 is the existing verification journey-entrypoint count, not a new exhaustive assertion count. This merge adds no registrations; the original round extends one existing journey."
+}

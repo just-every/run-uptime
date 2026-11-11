@@ -1,0 +1,8 @@
+CI_DISCOVERED run=43104662381 status=in_progress conclusion=None exact_sha=7f07c2c0584c32be2d3c0a848bc23e827832825d url=https://github.com/just-every/run-uptime/actions/runs/43104662381
+CI_POLL run=43104662381 status=in_progress conclusion=None
+CI_POLL run=43104662381 status=in_progress conclusion=None
+CI_READ_FAILED command=gh api repos/just-every/run-uptime/actions/runs/43104662381 --jq {status,conclusion,head_sha,html_url} exit=1
+Poll refused: 300-second interval has not elapsed
+
+CI_TIMING_RECOVERY local guard refused an early boundary call before invoking GitHub; subsequent observation occurred after the required interval.
+CI_FINAL run=43104662381 conclusion=success exact_sha=7f07c2c0584c32be2d3c0a848bc23e827832825d url=https://github.com/just-every/run-uptime/actions/runs/43104662381

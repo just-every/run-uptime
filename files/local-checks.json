@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "head": "7f07c2c0584c32be2d3c0a848bc23e827832825d",
+  "node": "22.20.0",
+  "pnpm": "10.12.4",
+  "browser": "/usr/bin/chromium",
+  "headless": true,
+  "noSandbox": true,
+  "checks": [
+    {
+      "command": "cloud_run npx -y @runeditrun/rer setup --owner-email fleet@runeditrun.com --non-interactive",
+      "exit": 0,
+      "scope": "dependency setup, application build and isolated local initialization; raw output private"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "exit": 0,
+      "scope": "source lock regenerated last before merge commit"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check",
+      "exit": 0
+    },
+    {
+      "command": "cloud_run pnpm run typecheck",
+      "exit": 0
+    },
+    {
+      "command": "UPTIME_BROWSER_EXECUTABLE=/usr/bin/chromium cloud_run node --import /tmp/fleet-forward-report-proof.mjs tests/browser-suites.mjs",
+      "exit": 0,
+      "scope": "existing operator and recovery journeys; only existing report screenshot option forwarded to operator child"
+    },
+    {
+      "command": "UPTIME_BROWSER_EXECUTABLE=/usr/bin/chromium cloud_run node tests/operator-security.mjs",
+      "exit": 0
+    },
+    {
+      "command": "Python compile() of scripts/install-chromium-deps.py",
+      "exit": 0,
+      "scope": "syntax only; no apt changes to cloud host"
+    },
+    {
+      "command": "bash -n .github/scripts/install-browsers.sh",
+      "exit": 0
+    },
+    {
+      "command": "git diff --check origin/main..HEAD",
+      "exit": 0
+    }
+  ],
+  "fullLocalVerifyRun": false,
+  "additionalTestRegistrations": 0
+}

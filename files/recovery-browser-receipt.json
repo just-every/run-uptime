@@ -1,0 +1,28 @@
+{
+  "checks": [
+    {
+      "label": "restored-archive",
+      "width": 1440,
+      "violations": 0,
+      "accessibilityNodes": 102
+    },
+    {
+      "label": "restored-paused",
+      "width": 1440,
+      "state": "Paused",
+      "violations": 0,
+      "accessibilityNodes": 258
+    },
+    {
+      "label": "reauthorized-current-evidence",
+      "width": 1440,
+      "state": "Failing",
+      "violations": 0,
+      "accessibilityNodes": 298
+    }
+  ],
+  "source": "http://127.0.0.1:15494",
+  "restoredInstallation": "http://127.0.0.1:15493",
+  "workflow": "Actual synthetic HTTP200/status201 confirmed failure and stored trigger; real native archive read; UI upload into empty independent D1; paused new revision/no inherited contact; explicit UI reauthorization; actual current-custody scheduled probes; no imported alert replay; UI re-export; nonempty-restore rejection; native session revocation",
+  "externalNetwork": false
+}
