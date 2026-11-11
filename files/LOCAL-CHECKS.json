@@ -1,0 +1,20 @@
+{
+  "rer": "0.2.108",
+  "checks": {
+    "build": {
+      "command": "cloud_run npx -y @runeditrun/rer build",
+      "logFile": "build.log",
+      "result": "passed"
+    },
+    "typecheck": {
+      "command": "pnpm run typecheck",
+      "logFile": "typecheck.log",
+      "result": "passed"
+    },
+    "spec": {
+      "command": "pnpm spec:check",
+      "logFile": "spec.log",
+      "result": "passed"
+    }
+  }
+}

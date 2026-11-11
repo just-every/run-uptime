@@ -1,0 +1,70 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-mfa-stepup-1",
+  "head": "da7ac7af62cfda990f22f3e2ec520ef658c7ce49",
+  "base": "c379fc602df7e8fbe56de96407a28287d3519af6",
+  "rer": "0.2.108",
+  "checks": [
+    {
+      "name": "build",
+      "command": "cloud_run npx -y @runeditrun/rer build",
+      "exit": 0,
+      "result": "passed",
+      "logFile": "build.log"
+    },
+    {
+      "name": "typecheck",
+      "command": "pnpm run typecheck",
+      "exit": 0,
+      "result": "passed",
+      "logFile": "typecheck.log"
+    },
+    {
+      "name": "spec",
+      "command": "pnpm spec:check",
+      "exit": 0,
+      "result": "passed",
+      "logFile": "spec.log"
+    },
+    {
+      "name": "operator-security",
+      "command": "cloud_run env UPTIME_BROWSER_EXECUTABLE=/usr/bin/chromium UPTIME_SCREENSHOTS=<packet>/screens node tests/operator-security.mjs",
+      "exit": 0,
+      "result": "passed",
+      "logFile": "operator-security.log"
+    },
+    {
+      "name": "source-lock",
+      "command": "node scripts/edition-authoring/cli.mjs lock && node scripts/edition-authoring/cli.mjs check",
+      "exit": 0,
+      "result": "passed"
+    },
+    {
+      "name": "diff-whitespace",
+      "command": "git diff --cached --check",
+      "exit": 0,
+      "result": "passed"
+    }
+  ],
+  "browser": {
+    "assertionWidth": 1440,
+    "proofWidths": [
+      1440,
+      390
+    ],
+    "authenticatorUriDecodedFromQr": true,
+    "sensitiveMaterialMasked": true
+  },
+  "priorFailures": [
+    {
+      "reason": "Enrollment deep link initially fired while the security panel was busy initializing.",
+      "resolution": "Open enrollment after initialization finishes; public-link test passes."
+    },
+    {
+      "reason": "Restarted local Worker left Chromium reusing an ended connection for tooltip.js.",
+      "resolution": "Reopen the test browser with the same synthetic session and retain all exact persistence assertions."
+    }
+  ],
+  "nonFatalDiagnostic": "workerd emitted a Broken pipe message during owned Worker shutdown; the integrated security command exited 0 and every assertion completed.",
+  "publicationScan": "Fleet Mac gate; not run or claimed in cloud."
+}

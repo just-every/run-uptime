@@ -1,0 +1,14 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-mfa-stepup-1",
+  "head": "da7ac7af62cfda990f22f3e2ec520ef658c7ce49",
+  "push": "successful",
+  "guard": "cloud-push.py",
+  "attempts": 1,
+  "author": "Run Edit Run fleet <fleet@runeditrun.com>",
+  "committer": "Run Edit Run fleet <fleet@runeditrun.com>",
+  "candidateMessagesInspected": true,
+  "worktreeClean": true,
+  "defaultBranchPushed": false,
+  "pullRequest": null
+}

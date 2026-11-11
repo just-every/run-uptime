@@ -1,0 +1,105 @@
+{
+  "head": "da7ac7af62cfda990f22f3e2ec520ef658c7ce49",
+  "scope": "Initial public-route reproduction plus final integrated Settings flow at 1440 and 390; synthetic local installation only.",
+  "sensitiveMaterial": "QR, otpauth link, manual secret and recovery codes masked where present.",
+  "files": [
+    {
+      "file": "before-alerts-1440.png",
+      "width": 1440,
+      "height": 1197,
+      "sha256": "94fee39b70aa5476e2fa4972f2358a91e1c2e70db89873d086b03622d38960b2",
+      "bytes": 139885
+    },
+    {
+      "file": "before-alerts-390.png",
+      "width": 390,
+      "height": 1726,
+      "sha256": "d0da3637e3272629610bb6997be0a99344b74deda5a01cfc6995767cd6a7a102",
+      "bytes": 123691
+    },
+    {
+      "file": "screens/destination-needs-enrollment-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "sha256": "931eab5c51d55e81fe9fb857557629662338c11bd61dba4466c63c6e3ca059e0",
+      "bytes": 132979
+    },
+    {
+      "file": "screens/destination-needs-enrollment-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "85ef008360a9593ab2af55fff788b98ccc1f73f364e04b7bf5305dd88d87f07a",
+      "bytes": 75251
+    },
+    {
+      "file": "screens/destination-enrollment-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "sha256": "2661c87bbae80f3dcffc8c2a036b1dce5d523d79d46d7ae04a634d62cbff31b9",
+      "bytes": 136245
+    },
+    {
+      "file": "screens/destination-enrollment-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "9234aac8db5a2214e64451d432460417ab827c777b1fd7d016fc7fd62ab9d36a",
+      "bytes": 51618
+    },
+    {
+      "file": "screens/destination-needs-verification-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "sha256": "f164ddec7b5b1b889144c54d5eef0d573a1e54829de8b4d61f7738ea85fa27ac",
+      "bytes": 146640
+    },
+    {
+      "file": "screens/destination-needs-verification-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "96d71ab746df3ba8435c36a52887ab554a5d0a566a705841ab494ea5e7efd18c",
+      "bytes": 76168
+    },
+    {
+      "file": "screens/destination-created-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "sha256": "7abc560fbbc7fd7b7cb8f0519e62c47186f5c9a16cb4cc32e2c3e6c65742ec6c",
+      "bytes": 124421
+    },
+    {
+      "file": "screens/destination-created-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "6fe9533b36285c5499051981008f268c3ae58be8fd307e3cd91f1200011fc5b4",
+      "bytes": 81836
+    },
+    {
+      "file": "screens/people-enrollment-1440.png",
+      "width": 1440,
+      "height": 1343,
+      "sha256": "1f0fc44ac2ffe477d024756c079d8447d8d0094c6dbc7e75e3d6c54b683e63f4",
+      "bytes": 109997
+    },
+    {
+      "file": "screens/people-enrollment-390.png",
+      "width": 390,
+      "height": 1772,
+      "sha256": "7d4e1fe76d0a96c2f5da7770a1b1002bea269aacf0405313085048db91980257",
+      "bytes": 117652
+    },
+    {
+      "file": "screens/people-verification-1440.png",
+      "width": 1440,
+      "height": 1132,
+      "sha256": "0e7ef1678fb86567f06d408890882d901bd352d189c0c0db3a287e9640cf270c",
+      "bytes": 113716
+    },
+    {
+      "file": "screens/people-verification-390.png",
+      "width": 390,
+      "height": 1509,
+      "sha256": "26dbfdcbf8087a849e097e1faf2be9136873cc83f78ea2e95f0115bcbde5f007",
+      "bytes": 119656
+    }
+  ]
+}

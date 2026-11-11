@@ -1,0 +1,24 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-mfa-stepup-1",
+  "head": "da7ac7af62cfda990f22f3e2ec520ef658c7ce49",
+  "productPush": "successful",
+  "verify": {
+    "id": 42985832979,
+    "conclusion": "success",
+    "head_sha": "da7ac7af62cfda990f22f3e2ec520ef658c7ce49",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/42985832979",
+    "status": "completed"
+  },
+  "githubCalls": 5,
+  "clauseStatusChanges": [],
+  "clauses": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "addedTestRegistrations": 0,
+  "productBlockers": [],
+  "landing": "Fleet-owned; not performed in cloud."
+}

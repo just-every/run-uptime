@@ -1,0 +1,23 @@
+{
+  "verifyJourneyCommands": {
+    "before": 47,
+    "after": 47
+  },
+  "addedTestRegistrations": 0,
+  "testCap": 200,
+  "clauseSummary": {
+    "before": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "total": 115
+    },
+    "after": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "total": 115
+    }
+  },
+  "statusChanges": []
+}

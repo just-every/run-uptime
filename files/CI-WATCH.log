@@ -1,0 +1,5 @@
+CI_STATUS run=42985832979 {"status": "in_progress", "conclusion": null, "head_sha": "da7ac7af62cfda990f22f3e2ec520ef658c7ce49", "html_url": "https://github.com/just-every/run-uptime/actions/runs/42985832979"}
+CI_STATUS run=42985832979 {"conclusion": null, "head_sha": "da7ac7af62cfda990f22f3e2ec520ef658c7ce49", "html_url": "https://github.com/just-every/run-uptime/actions/runs/42985832979", "status": "in_progress"}
+CI_STATUS run=42985832979 {"conclusion": null, "head_sha": "da7ac7af62cfda990f22f3e2ec520ef658c7ce49", "html_url": "https://github.com/just-every/run-uptime/actions/runs/42985832979", "status": "in_progress"}
+CI_STATUS run=42985832979 {"conclusion": null, "head_sha": "da7ac7af62cfda990f22f3e2ec520ef658c7ce49", "html_url": "https://github.com/just-every/run-uptime/actions/runs/42985832979", "status": "in_progress"}
+CI_STATUS run=42985832979 {"conclusion": "success", "head_sha": "da7ac7af62cfda990f22f3e2ec520ef658c7ce49", "html_url": "https://github.com/just-every/run-uptime/actions/runs/42985832979", "status": "completed"}

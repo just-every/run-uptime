@@ -1,0 +1,11 @@
+{
+  "route": "/app/settings/alerts",
+  "status": 403,
+  "refusal": {
+    "error": "Verify a second factor within the last five minutes",
+    "code": "fresh_second_factor_required"
+  },
+  "dialogGuidanceLinks": 0,
+  "destinationRetained": true,
+  "factorCount": 0
+}
