@@ -1,0 +1,68 @@
+{
+  "product_head": "29325cbd849cc16324e302f6bac83425192f813e",
+  "checks": [
+    {
+      "command": "cloud_run npx -y @runeditrun/rer setup --owner-email fleet@runeditrun.com --non-interactive",
+      "result": "passed"
+    },
+    {
+      "command": "cloud_run npx -y @runeditrun/rer build",
+      "result": "passed"
+    },
+    {
+      "command": "cloud_run pnpm run typecheck",
+      "result": "passed"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "result": "passed"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "result": "passed"
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check",
+      "result": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    }
+  ],
+  "source_lock_check_ok": true,
+  "contract_generator_output": "Contract prose: 0 errors, 0 warnings.\nContract documents are current.",
+  "new_test_registrations": 0,
+  "push_journeys_before": 47,
+  "push_journeys_after": 47,
+  "contract_counts_before": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "contract_counts_after": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "publication_scan": "fleet Mac landing gate; not available in this cloud",
+  "diff_credential_shape_check": "passed",
+  "product_push": {
+    "branch": "cloud/main-uptime-period-report-1",
+    "head": "29325cbd849cc16324e302f6bac83425192f813e",
+    "guard_result": "PUSH_OK",
+    "attempts": 1
+  },
+  "candidate_identity": {
+    "author": "Run Edit Run fleet <fleet@runeditrun.com>",
+    "committer": "Run Edit Run fleet <fleet@runeditrun.com>",
+    "trailers": []
+  },
+  "whole_owner_journey": {
+    "result": "passed",
+    "receipt": "owner-journey-receipt.json",
+    "checks": 13
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "files": [
+    {
+      "blob": "714c2a2b78e28289c232a14ff60fa6dcbfc295c4",
+      "bytes": 1434,
+      "path": "PLAN.md",
+      "sha256": "a268cdb84fa16238996fbaeeaffc8ff91c3fdaab48d82147a51e2c2d79f6d527"
+    },
+    {
+      "blob": "c996525ee4b9629ae6e50b4605e7053798e9e53e",
+      "bytes": 6614,
+      "path": "REPORT.md",
+      "sha256": "80a51533fd905dc8d1d30f344b4c038239f43ad143f384506de2579a1100db23"
+    },
+    {
+      "blob": "75a0ee4dc7ee217f79ac9bdc9a5e9de2fa8baf37",
+      "bytes": 497750,
+      "path": "before-1440.png",
+      "sha256": "37b3084a7756cb6e8797daf0f8f0cee691b80d2991645ad2d12d204191fd3702"
+    },
+    {
+      "blob": "2dc80580b37240fa1c5f8adbc0425e3d3b388ba0",
+      "bytes": 426399,
+      "path": "before-390.png",
+      "sha256": "e48058dac4b61cf43fa62ed4c75a3778c02c8c63934c816505380b3ca750bef9"
+    },
+    {
+      "blob": "f07daa5a5498d5307b8f312dfc3bf821e8745952",
+      "bytes": 858,
+      "path": "before.json",
+      "sha256": "7a2fd334787c5f4453cbf39f67f26d698fedd7e7d55b01d82d2c144fac31a9c8"
+    },
+    {
+      "blob": "ad4dc62a18ef455f77f363cec316ac89c4dcdc74",
+      "bytes": 451,
+      "path": "browser-receipt.json",
+      "sha256": "e3ac04250c4b2859039d4fb491aa71296d083733f5a6b5dec0b5895136436e74"
+    },
+    {
+      "blob": "3e2e23805faf0848dfa758848890577627c2e271",
+      "bytes": 1821,
+      "path": "checks-receipt.json",
+      "sha256": "60bda9699112e6692160fa65a062f2afc41f355d87ff406c4bf46dec896f2648"
+    },
+    {
+      "blob": "ebdee5b93906ca8311a8f0d4aa17aa749ff9371e",
+      "bytes": 665,
+      "path": "ci-receipt.json",
+      "sha256": "a00dad7288c1827ac4bbecac0dd16dc910c4400fda8667dbbbe0e36d1fe6a33a"
+    },
+    {
+      "blob": "6db8567c30553d77b9609cf81b2fb1c78c6b8040",
+      "bytes": 151701,
+      "path": "monitor-after-1440.png",
+      "sha256": "2c72b683af57f9a3d54eafdc05b203af3e9e05d3e5ab556d3888b784f016ef9c"
+    },
+    {
+      "blob": "0f864c341d6664e234e1574734c1297fd6d28447",
+      "bytes": 150744,
+      "path": "monitor-after-390.png",
+      "sha256": "f99dccd4c53ee75b197affeb8b980068245ed34fdec54483c65aceb5e2b71fab"
+    },
+    {
+      "blob": "36794e1feed5e83f63312fa4d5a195cfff1ac226",
+      "bytes": 2610,
+      "path": "owner-journey-receipt.json",
+      "sha256": "64ab013197f1207cccc9f05a86b4f7d256d95dcd824a700c738e0437cecbb66f"
+    },
+    {
+      "blob": "2abdb3d248bcf372cca24897be284d3d41c1d827",
+      "bytes": 329466,
+      "path": "report-1440.png",
+      "sha256": "b77973978b368ed28056b9fd2810f2844fdf33804bf9548a0f9751089937b171"
+    },
+    {
+      "blob": "c38d05cdcbafb490ceae7ba5f3f15f2624926474",
+      "bytes": 338122,
+      "path": "report-390.png",
+      "sha256": "c2844ab8143a5ec39a5bcd42e0d6eb860c061aac73110bfe88f16ed393d389b6"
+    },
+    {
+      "blob": "03b9844acfd9ffa81b0d812e16e18579df73b1e7",
+      "bytes": 282,
+      "path": "report-layout.json",
+      "sha256": "485b8256c2126ad0770d35f82812e3fd52e8ab9055bcdc2ff44cdfa2944d05eb"
+    }
+  ],
+  "product_branch": "cloud/main-uptime-period-report-1",
+  "product_head": "29325cbd849cc16324e302f6bac83425192f813e",
+  "ref": "refs/heads/evidence/main-uptime-period-report-1",
+  "repository": "just-every/run-uptime",
+  "schema": 1,
+  "tag": "main-uptime-period-report-1"
+}

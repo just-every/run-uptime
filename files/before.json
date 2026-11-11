@@ -1,0 +1,42 @@
+[
+  {
+    "width": 1440,
+    "pageHeight": 5132,
+    "pageWidth": 1440,
+    "reportWidth": 322.390625,
+    "inSideColumn": true,
+    "doubledDurations": [
+      "(0.042 seconds)",
+      "(5 seconds)",
+      "(5.042 seconds)",
+      "(86,393.791 seconds)",
+      "(1.167 seconds)",
+      "(0 seconds)",
+      "(86,400 seconds)",
+      "(0 seconds)",
+      "(5.263 seconds)",
+      "(5.263 seconds)",
+      "(5.263 seconds)"
+    ]
+  },
+  {
+    "width": 390,
+    "pageHeight": 6329,
+    "pageWidth": 390,
+    "reportWidth": 320,
+    "inSideColumn": true,
+    "doubledDurations": [
+      "(0.042 seconds)",
+      "(5 seconds)",
+      "(5.042 seconds)",
+      "(86,393.791 seconds)",
+      "(1.167 seconds)",
+      "(0 seconds)",
+      "(86,400 seconds)",
+      "(0 seconds)",
+      "(5.263 seconds)",
+      "(5.263 seconds)",
+      "(5.263 seconds)"
+    ]
+  }
+]

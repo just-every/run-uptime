@@ -1,0 +1,20 @@
+{
+  "test": "tests/plain-monitor-text-support.mjs#provePeriodReport",
+  "assertionWidth": 1440,
+  "proofWidths": [
+    1440,
+    390
+  ],
+  "passed": true,
+  "realScheduledIncident": true,
+  "exports": [
+    "JSON",
+    "CSV",
+    "PDF"
+  ],
+  "apiChanged": false,
+  "product_head": "29325cbd849cc16324e302f6bac83425192f813e",
+  "build": "cloud_run npx -y @runeditrun/rer build",
+  "typecheck": "cloud_run pnpm run typecheck",
+  "axe_violations": 0
+}
